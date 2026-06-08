@@ -1735,11 +1735,276 @@ middleware/cb    → <span class="type">stdlib</span>  <span class="comment">// 
         </div>
       </section>
 
+      <!-- ═══════════ APPENDIX: SELF-PUSHBACK ═══════════ -->
+      <section class="reveal">
+        <div class="section-label">A — Self-pushback</div>
+        <h2>What I <em>overstated</em> and what I <em>missed</em></h2>
+
+        <p>
+          After reflection, two things are wrong with the original feedback. One inflates the ask. The other misses the real prize entirely.
+        </p>
+
+        <div class="correction wrong" style="margin-top: 32px;">
+          <div class="claim">Overstatement: "I want the full middleware suite from go-cqrs-lite"</div>
+          <div class="fact">
+            <strong>The SDK already imports <code>samber/ro</code>.</strong> It's the reactive library
+            that backs the entire event bus. And it already provides most of what I claimed go-cqrs-lite
+            uniquely solves:
+          </div>
+        </div>
+
+        <table class="matrix" style="margin-top: 16px;">
+          <thead>
+            <tr>
+              <th>Concern</th>
+              <th>samber/ro</th>
+              <th>go-cqrs-lite</th>
+              <th>Needed?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Retry with backoff</td>
+              <td><span class="badge green">RetryWithConfig</span></td>
+              <td>middleware/retry</td>
+              <td><span class="badge green">already have it</span></td>
+            </tr>
+            <tr>
+              <td>Timeout</td>
+              <td><span class="badge green">Timeout</span></td>
+              <td>middleware/timeout</td>
+              <td><span class="badge green">already have it</span></td>
+            </tr>
+            <tr>
+              <td>Error fallback</td>
+              <td><span class="badge green">Catch / OnErrorResumeNextWith</span></td>
+              <td>—</td>
+              <td><span class="badge green">already have it</span></td>
+            </tr>
+            <tr>
+              <td>Rate limiting</td>
+              <td><span class="badge green">plugin/ratelimit</span></td>
+              <td>—</td>
+              <td><span class="badge green">already have it</span></td>
+            </tr>
+            <tr>
+              <td>Logging / tap</td>
+              <td><span class="badge green">TapOnNext / TapOnError</span></td>
+              <td>middleware/logging</td>
+              <td><span class="badge green">already have it</span></td>
+            </tr>
+            <tr>
+              <td>Debounce</td>
+              <td><span class="badge green">DebounceTime</span></td>
+              <td>—</td>
+              <td><span class="badge green">already have it</span></td>
+            </tr>
+            <tr>
+              <td>Throttle</td>
+              <td><span class="badge green">ThrottleTime</span></td>
+              <td>—</td>
+              <td><span class="badge green">already have it</span></td>
+            </tr>
+            <tr>
+              <td>Panic recovery</td>
+              <td>—</td>
+              <td><span class="badge amber">middleware/recovery</span></td>
+              <td><span class="badge amber">nice to have</span></td>
+            </tr>
+            <tr>
+              <td>Circuit breaker</td>
+              <td>—</td>
+              <td><span class="badge amber">middleware/circuitbreaker</span></td>
+              <td><span class="badge amber">real gap</span></td>
+            </tr>
+            <tr>
+              <td>Exponential backoff + jitter</td>
+              <td><span class="badge red">fixed delay only</span></td>
+              <td><span class="badge green">full backoff + jitter</span></td>
+              <td><span class="badge amber">real gap</span></td>
+            </tr>
+            <tr>
+              <td>Error taxonomy</td>
+              <td>—</td>
+              <td><span class="badge green">go-error-family (standalone)</span></td>
+              <td><span class="badge green">works today</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p>
+          The real middleware ask shrinks from <strong>"8 concerns"</strong> to <strong>"circuit
+          breaker + smart backoff"</strong>. ro's <code>RetryWithConfig</code> only supports a fixed
+          <code>Delay</code> — no <code>InitialDelay * Multiplier^attempt + jitter</code>. That's the
+          gap. But it's a <em>small</em> gap — small enough to implement as a custom ro operator
+          without importing any external library.
+        </p>
+
+        <div class="verdict">
+          <p>
+            <strong>Corrected ask:</strong> The middleware section of the original feedback overstated
+            the need by ~70%. The SDK already has retry, timeout, error fallback, rate limiting,
+            logging, debounce, and throttle via <code>samber/ro</code>. Only circuit breaker and
+            exponential backoff with jitter are genuine gaps — and those could be custom ro operators.
+          </p>
+        </div>
+
+        <div class="correction wrong" style="margin-top: 48px;">
+          <div class="claim">Missed opportunity: "the SDK doesn't need CQRS at all"</div>
+          <div class="fact">
+            <strong>The daemon module is a textbook CQRS surface.</strong> The original feedback
+            dismissed the entire SDK as "not CQRS" — but it only examined the reactive discovery
+            pipeline. The daemon mode tells a different story:
+          </div>
+        </div>
+
+        <h3>The daemon's natural CQRS mapping</h3>
+
+        <div class="compare">
+          <div class="compare-card before">
+            <h4>What the daemon does today</h4>
+            <pre><span class="comment">// Command — "discover these paths"</span>
+POST /v1/discover
+  → JSON body: DiscoverOptions
+  → JSON response: DiscoverResult
+
+<span class="comment">// Event stream — project changes</span>
+GET /v1/watch
+  → SSE: text/event-stream
+  → data: {"type":"watch_project_added",...}
+  → data: {"type":"watch_project_changed",...}
+  → data: {"type":"watch_project_removed",...}
+
+<span class="comment">// Query — "is the daemon alive?"</span>
+GET /v1/health
+  → JSON response: {status, version, uptime}</pre>
+          </div>
+          <div class="compare-card after">
+            <h4>go-cqrs-lite mapping</h4>
+            <pre><span class="comment">// Command — typed, with middleware</span>
+command.Dispatcher
+  → RegisterTyped("discover", handler)
+  → Logging, Retry, Validation middleware
+
+<span class="comment">// Event stream — reactive bus + SSE</span>
+event.Bus (reactive layer)
+  → ro.Subject[Event]
+  → FilterEventType, ReplayFilter, Tap
+  → SSEBroker → HTTP text/event-stream
+
+<span class="comment">// Query — typed, with pagination</span>
+query.Dispatcher
+  → RegisterTyped("health", handler)
+  → Returns typed HealthResponse</pre>
+          </div>
+        </div>
+
+        <p>
+          The daemon literally has <strong>Command → Event → Query</strong>. It's not a theoretical
+          mapping — it's the actual architecture, just hand-rolled today.
+        </p>
+
+        <h3>What go-cqrs-lite would improve in the daemon</h3>
+
+        <table class="matrix">
+          <thead>
+            <tr>
+              <th>Current daemon code</th>
+              <th>Problem</th>
+              <th>go-cqrs-lite solution</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>SSE with silent event drops</td>
+              <td><code>select { default: }</code> loses events</td>
+              <td>SSEBroker (already exists in middleware/sse.go)</td>
+            </tr>
+            <tr>
+              <td>Hand-rolled EventBus wrapping ro.Subject</td>
+              <td>Reimplemented filtering, ring buffer, replay</td>
+              <td>Reactive EventBus with FilterEventType, ReplayFilter</td>
+            </tr>
+            <tr>
+              <td>JSON-only discover endpoint</td>
+              <td>No validation, no middleware, no logging</td>
+              <td>Command dispatcher with typed handlers + middleware chain</td>
+            </tr>
+            <tr>
+              <td>DiscoverStream creates ReplaySubject but never emits</td>
+              <td>Dead code — functionally identical to Discover()</td>
+              <td>Reactive bus with actual event streaming</td>
+            </tr>
+            <tr>
+              <td>Zero watch stream tests</td>
+              <td>Most complex path has no coverage</td>
+              <td>MemoryBus + MemoryStore for deterministic test harness</td>
+            </tr>
+            <tr>
+              <td>Custom error-to-JSON in Event.MarshalJSON</td>
+              <td>Ad-hoc, lossy serialization</td>
+              <td>Structured event metadata with codec</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="verdict highlight">
+          <p>
+            The original feedback asked the wrong question: "should the SDK use go-cqrs-lite?" It should
+            have asked: <strong>"which <em>part</em> of the SDK should use go-cqrs-lite?"</strong> The
+            reactive pipeline doesn't need it. The daemon does. And the daemon is exactly the part
+            where the dependency cost of event/v2 + command/v2 + query/v2 would be justified — because
+            those CQRS concepts map 1:1 to what the daemon actually does.
+          </p>
+        </div>
+
+        <h3>Why it's still blocked</h3>
+
+        <p>
+          Even for the daemon, the dependency cost isn't trivial. The daemon module imports the root
+          SDK (reverse dependency). Adding go-cqrs-lite's event bus means the daemon's dependency tree
+          grows by event/v2 (2 production siblings + 2 external deps) + command/v2 (1 external dep) +
+          query/v2 (1 external dep). That's <strong>reasonable</strong> for a daemon process — but
+          only after the go.mod hygiene fix (step 3 in the action plan) ensures those are the real
+          production counts, not inflated by test deps.
+        </p>
+
+        <p>
+          The revised adoption path:
+        </p>
+
+        <div class="timeline">
+          <div class="timeline-step">
+            <h4>Enrichment pipeline: samber/ro custom operators</h4>
+            <p>
+              Implement circuit breaker and exponential backoff with jitter as custom
+              <code>ro</code> operators. No new external dependency. The SDK already imports ro.
+            </p>
+          </div>
+          <div class="timeline-step">
+            <h4>Error taxonomy: go-error-family directly</h4>
+            <p>
+              Already standalone. Use it to classify API errors (Transient vs Rejection)
+              to power smarter retry decisions in the ro operators.
+            </p>
+          </div>
+          <div class="timeline-step">
+            <h4>Daemon: adopt go-cqrs-lite event bus + command/query dispatchers</h4>
+            <p>
+              After go.mod hygiene fix. Replace hand-rolled EventBus, SSEBroker, and ad-hoc
+              JSON handlers with typed command dispatcher, reactive event bus, and SSEBroker.
+              The CQRS concepts map 1:1 to the daemon's actual architecture.
+            </p>
+          </div>
+        </div>
+      </section>
+
       <footer>
         <p>
           Feedback from project-discovery-sdk — a reactive Go SDK for discovering software
           projects.<br />
           Response from go-cqrs-lite maintainer — June 2026<br />
+          Appendix: self-pushback — June 2026<br />
           Generated June 2026 · Author: project-discovery-sdk architecture review
         </p>
       </footer>

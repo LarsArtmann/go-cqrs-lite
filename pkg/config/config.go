@@ -21,6 +21,7 @@ func NewLoader(basePath string) *Loader {
 // It looks for `{name}.json` as the base and `{name}.{env}.json` as the overlay.
 func (l *Loader) Load(name string, dest any) error {
 	baseFile := filepath.Join(l.basePath, name+".json")
+
 	data, err := os.ReadFile(baseFile)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -40,6 +41,7 @@ func (l *Loader) Load(name string, dest any) error {
 	}
 
 	overlayFile := filepath.Join(l.basePath, name+"."+env+".json")
+
 	overlayData, err := os.ReadFile(overlayFile)
 	if err != nil {
 		if os.IsNotExist(err) {
