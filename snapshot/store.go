@@ -10,11 +10,11 @@ import (
 )
 
 type Snapshot struct {
-	AggregateID   id.AggregateID
-	AggregateType event.AggregateType
-	Version       event.Version
-	State         []byte
-	CreatedAt     time.Time
+	AggregateID   id.AggregateID      `json:"aggregateId"`
+	AggregateType event.AggregateType `json:"aggregateType"`
+	Version       event.Version       `json:"version"`
+	State         []byte              `json:"state"`
+	CreatedAt     time.Time           `json:"createdAt"`
 }
 
 type SnapshotSink interface {
