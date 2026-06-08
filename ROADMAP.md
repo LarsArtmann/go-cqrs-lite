@@ -28,8 +28,8 @@
 - [x] `rapid` property tests on `event/` — event immutability, version correctness
 - [x] `rapid` property tests on `id/` — ULID validity, prefix correctness
 - [x] `go-snaps` snapshot tests on `integration/` — event JSON serialization, catalog exports
-- [ ] `go-snaps` snapshot tests on `catalog/` — AsyncAPI, OpenAPI, D2, EventCatalog exports
-- [ ] `go-snaps` snapshot tests on `projection/` — state rendering
+- [x] ~~`go-snaps` snapshot tests on `catalog/` — AsyncAPI, OpenAPI, D2, EventCatalog exports~~ — DONE (golden_test.go in all 4 sub-packages)
+- [x] ~~`go-snaps` snapshot tests on `projection/` — state rendering~~ — DONE (golden_test.go with replay-order snapshot)
 
 ### Sprint 4: CI & Deployment (Week 4)
 
@@ -43,22 +43,22 @@
 
 - [x] `example/catalog-server/` — embedded EventCatalog SPA server
 - [x] `middleware/sse.go` — SSE broker over event bus + tests
-- [ ] SSE handler in `example/user/` + JavaScript client
+- [x] ~~SSE handler in `example/user/` + JavaScript client~~ — DONE (sse_example.go with SSE broker demo)
 - [x] `pkg/config/` module — YAML config loader with env-specific overlays
-- [ ] Config usage example in `example/user/`
+- [x] ~~Config usage example in `example/user/`~~ — DONE (config_usage_example.go with env overlay demo)
 - [x] `integration/simulation/` — event sequence generator + decider stress tests
 - [x] Event store throughput simulation benchmark
 - [ ] Playwright setup in `example/user/`
 - [ ] Playwright E2E test: health endpoint
 - [ ] Playwright E2E test: core command→event→query flow
 - [ ] Playwright CI step
-- [ ] Dual store runtime switching in `example/user/` (memory vs SQL)
+- [x] ~~Dual store runtime switching in `example/user/` (memory vs SQL)~~ — DONE (dual_store_example.go)
 
 ### Sprint 6: Polish & Experiments (Week 7–8)
 
-- [ ] Document experimental build tags (`jsonv2`, `arenas`, `simd`, `runtimesecret`)
+- [x] ~~Document experimental build tags (`jsonv2`, `arenas`, `simd`, `runtimesecret`)~~ — DONE (docs/EXPERIMENTAL_BUILD_TAGS.md)
 - [ ] `go-snaps` across all remaining modules (signing, middleware, storage, listing, watermill, pebble, turso, codec, otel, schema, snapshot, memory)
-- [ ] `rapid` PBT on `command/` and `query/` modules
+- [x] ~~`rapid` PBT on `command/` and `query/` modules~~ — DONE (property_test.go in both modules, 9 tests)
 - [ ] `jsonv2` codec experiment behind build tag
 - [ ] Arena allocation experiment in event module
 
