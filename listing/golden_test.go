@@ -79,23 +79,7 @@ func TestGolden_PageJSON(t *testing.T) {
 		HasMore: true,
 	}
 
-	serializable := struct {
-		Items   []json.RawMessage `json:"items"`
-		HasMore bool              `json:"hasMore"`
-	}{
-		HasMore: page.HasMore,
-	}
-
-	for _, item := range page.Items {
-		raw, err := json.Marshal(item)
-		if err != nil {
-			t.Fatalf("marshal item: %v", err)
-		}
-
-		serializable.Items = append(serializable.Items, raw)
-	}
-
-	got, err := json.MarshalIndent(serializable, "", "  ")
+	got, err := json.MarshalIndent(page, "", "  ")
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}

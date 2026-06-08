@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -45,15 +46,17 @@ func runServer(store event.EventSource) {
 	fmt.Println("[server]  - Metrics: http://localhost:8080/metrics")
 
 	go func() {
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			fmt.Printf("[server] ListenAndServe error: %v\n", err)
 		}
 	}()
 
 	gracefulshutdown.Shutdown(gracefulshutdown.DefaultConfig(), func(_ context.Context) error {
 		fmt.Println("[server] Shutting down HTTP server...")
+
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
+
 		return server.Shutdown(shutdownCtx)
 	})
 }
@@ -64,6 +67,7 @@ func dbHealthCheck(store event.EventSource) middleware.HealthChecker {
 		if store == nil {
 			status = middleware.HealthStatusFail
 		}
+
 		return middleware.Check{
 			ComponentID:   "event-store",
 			ComponentType: "datastore",

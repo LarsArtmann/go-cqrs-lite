@@ -12,11 +12,11 @@ import (
 // AggregateRef is a lightweight identity reference to an aggregate stream.
 // No derived state. Status is computed separately by the reader.
 type AggregateRef struct {
-	ID          id.AggregateID
-	Type        event.AggregateType
-	Version     event.Version
-	EventCount  uint
-	LastEventAt time.Time
+	ID          id.AggregateID      `json:"id"`
+	Type        event.AggregateType `json:"type"`
+	Version     event.Version       `json:"version"`
+	EventCount  uint                `json:"event_count"`   //nolint:tagliatelle
+	LastEventAt time.Time           `json:"last_event_at"` //nolint:tagliatelle
 }
 
 // AggregateStatus pairs an aggregate with its computed tombstone state.
@@ -28,8 +28,8 @@ type AggregateStatus struct {
 // Page is a cursor-based page of results.
 // No TotalCount — append-only logs make counts stale and expensive.
 type Page[T any] struct {
-	Items   []T
-	HasMore bool
+	Items   []T  `json:"items"`
+	HasMore bool `json:"hasMore"`
 }
 
 // TombstonePolicy controls visibility of soft-deleted aggregates.
@@ -57,26 +57,15 @@ func (p TombstonePolicy) String() string {
 	}
 }
 
-type aggregateStatusJSON struct {
-	ID         string `json:"id"`
-	Type       string `json:"type"`
-	Version    int    `json:"version"`
-	EventCount uint   `json:"event_count"`   //nolint:tagliatelle
-	LastEvent  string `json:"last_event_at"` //nolint:tagliatelle
-	Status     string `json:"status"`
-}
-
 func (s AggregateStatus) MarshalJSON() ([]byte, error) {
-	return json.Marshal( //nolint:wrapcheck // JSON serialization, not domain error
-		aggregateStatusJSON{
-			ID:         s.Ref.ID.String(),
-			Type:       string(s.Ref.Type),
-			Version:    s.Ref.Version.Int(),
-			EventCount: s.Ref.EventCount,
-			LastEvent:  s.Ref.LastEventAt.Format(time.RFC3339),
-			Status:     s.Status.String(),
-		},
-	)
+	return json.Marshal(struct { //nolint:wrapcheck // JSON serialization
+		AggregateRef
+
+		Status string `json:"status"`
+	}{
+		AggregateRef: s.Ref,
+		Status:       s.Status.String(),
+	})
 }
 
 // ListOptions controls aggregate listing queries.
