@@ -36,6 +36,7 @@ func demonstrateDualStore() {
 	)
 	if err != nil {
 		fmt.Printf("  create event error: %v\n", err)
+
 		return
 	}
 
@@ -46,12 +47,14 @@ func demonstrateDualStore() {
 		0,
 	); err != nil {
 		fmt.Printf("  save error: %v\n", err)
+
 		return
 	}
 
 	loaded, err := store.Load(ctx, event.NewAggregateRef("Test", aggID))
 	if err != nil {
 		fmt.Printf("  load error: %v\n", err)
+
 		return
 	}
 
