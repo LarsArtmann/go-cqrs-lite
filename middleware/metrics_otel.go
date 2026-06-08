@@ -4,8 +4,6 @@ import (
 	"context"
 	"time"
 
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/metric"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
@@ -15,16 +13,16 @@ import (
 
 // OTelMetricsRecorder implements MetricsRecorder using OpenTelemetry histograms.
 type OTelMetricsRecorder struct {
-	histogram metric.Float64Histogram
+	histogram cqrsotel.Float64Histogram
 }
 
 // NewOTelMetricsRecorder creates a new OTelMetricsRecorder from the given meter.
 // The histogram instrument name is "cqrs.operation.duration".
-func NewOTelMetricsRecorder(meter metric.Meter) (*OTelMetricsRecorder, error) {
+func NewOTelMetricsRecorder(meter cqrsotel.Meter) (*OTelMetricsRecorder, error) {
 	h, err := meter.Float64Histogram(
 		"cqrs.operation.duration",
-		metric.WithDescription("Duration of CQRS operations"),
-		metric.WithUnit("ms"),
+		cqrsotel.MetricWithDescription("Duration of CQRS operations"),
+		cqrsotel.MetricWithUnit("ms"),
 	)
 	if err != nil {
 		return nil, err //nolint:wrapcheck // otel SDK error
@@ -43,19 +41,19 @@ func (r *OTelMetricsRecorder) Observe(
 ) {
 	const keyValuePairs = 2 // labels come in alternating key-value pairs
 
-	opts := make([]metric.RecordOption, 0, 1)
+	opts := make([]cqrsotel.RecordOption, 0, 1)
 	attrs := make(
-		[]attribute.KeyValue,
+		[]cqrsotel.KeyValue,
 		0,
 		(len(labels)/keyValuePairs)+1,
 	)
-	attrs = append(attrs, attribute.String("operation", name))
+	attrs = append(attrs, cqrsotel.AttrString("operation", name))
 
 	for i := 0; i+1 < len(labels); i += 2 {
-		attrs = append(attrs, attribute.String(labels[i], labels[i+1]))
+		attrs = append(attrs, cqrsotel.AttrString(labels[i], labels[i+1]))
 	}
 
-	opts = append(opts, metric.WithAttributes(attrs...))
+	opts = append(opts, cqrsotel.MetricWithAttributes(attrs...))
 	r.histogram.Record(ctx, float64(duration.Milliseconds()), opts...)
 }
 
@@ -63,7 +61,7 @@ func (r *OTelMetricsRecorder) Observe(
 func NewOTelMetrics[M any](
 	kindAttr, typeAttr string,
 	extractType func(M) string,
-	histogram metric.Float64Histogram,
+	histogram cqrsotel.Float64Histogram,
 ) Middleware[M] {
 	return func(next Handler[M]) Handler[M] {
 		return func(ctx context.Context, msg M) error {
@@ -77,10 +75,10 @@ func NewOTelMetrics[M any](
 
 			histogram.Record(
 				ctx, float64(time.Since(start).Milliseconds()),
-				metric.WithAttributes(
-					attribute.String(cqrsotel.AttrMessageKind, kindAttr),
-					attribute.String(typeAttr, extractType(msg)),
-					attribute.String(cqrsotel.AttrStatus, status),
+				cqrsotel.MetricWithAttributes(
+					cqrsotel.AttrString(cqrsotel.AttrMessageKind, kindAttr),
+					cqrsotel.AttrString(typeAttr, extractType(msg)),
+					cqrsotel.AttrString(cqrsotel.AttrStatus, status),
 				),
 			)
 
@@ -90,7 +88,7 @@ func NewOTelMetrics[M any](
 }
 
 // CommandOTelMetrics returns a command middleware that records duration using an OTel histogram.
-func CommandOTelMetrics(histogram metric.Float64Histogram) command.Middleware {
+func CommandOTelMetrics(histogram cqrsotel.Float64Histogram) command.Middleware {
 	return AsCommand(NewOTelMetrics[command.Command](
 		cqrsotel.KindCommand, cqrsotel.AttrCommandType,
 		func(cmd command.Command) string { return string(cmd.Type()) },
@@ -99,7 +97,7 @@ func CommandOTelMetrics(histogram metric.Float64Histogram) command.Middleware {
 }
 
 // EventOTelMetrics returns an event middleware that records duration using an OTel histogram.
-func EventOTelMetrics(histogram metric.Float64Histogram) event.Middleware {
+func EventOTelMetrics(histogram cqrsotel.Float64Histogram) event.Middleware {
 	return AsEvent(NewOTelMetrics[event.Event](
 		cqrsotel.KindEvent, cqrsotel.AttrEventType,
 		func(evt event.Event) string { return string(evt.Type()) },
@@ -108,7 +106,7 @@ func EventOTelMetrics(histogram metric.Float64Histogram) event.Middleware {
 }
 
 // QueryOTelMetrics returns a query middleware that records duration using an OTel histogram.
-func QueryOTelMetrics(histogram metric.Float64Histogram) query.Middleware {
+func QueryOTelMetrics(histogram cqrsotel.Float64Histogram) query.Middleware {
 	return AsQuery(NewOTelMetrics[query.Query](
 		cqrsotel.KindQuery, cqrsotel.AttrQueryType,
 		func(q query.Query) string { return string(q.Type()) },

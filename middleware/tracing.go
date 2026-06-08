@@ -3,8 +3,6 @@ package middleware
 import (
 	"context"
 
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
@@ -14,17 +12,17 @@ import (
 
 // NewTracing creates a generic OpenTelemetry span for each message handled.
 func NewTracing[M any](
-	tracer trace.Tracer,
+	tracer cqrsotel.Tracer,
 	spanName string,
-	kind trace.SpanKind,
-	attrs func(M) []attribute.KeyValue,
+	kind cqrsotel.SpanKind,
+	attrs func(M) []cqrsotel.KeyValue,
 ) Middleware[M] {
 	return func(next Handler[M]) Handler[M] {
 		return func(ctx context.Context, msg M) error {
 			ctx, span := tracer.Start(
 				ctx, spanName,
-				trace.WithSpanKind(kind),
-				trace.WithAttributes(attrs(msg)...),
+				cqrsotel.WithSpanKind(kind),
+				cqrsotel.WithAttributes(attrs(msg)...),
 			)
 			defer span.End()
 
@@ -39,17 +37,17 @@ func NewTracing[M any](
 }
 
 // CommandTracing creates an OpenTelemetry span for each command handled.
-// The tracer is typically obtained from a trace.TracerProvider:
+// The tracer is typically obtained from a cqrsotel.TracerProvider:
 //
 //	tracer := cqrsotel.NewTracer("middleware")
 //	mw := middleware.CommandTracing(tracer)
-func CommandTracing(tracer trace.Tracer) command.Middleware {
+func CommandTracing(tracer cqrsotel.Tracer) command.Middleware {
 	return AsCommand(
 		NewTracing(
 			tracer,
 			"command.handle",
-			trace.SpanKindServer,
-			func(cmd command.Command) []attribute.KeyValue {
+			cqrsotel.SpanKindServer,
+			func(cmd command.Command) []cqrsotel.KeyValue {
 				return cqrsotel.CommandAttrs(string(cmd.Type()), cmd.AggregateID())
 			},
 		),
@@ -57,17 +55,17 @@ func CommandTracing(tracer trace.Tracer) command.Middleware {
 }
 
 // EventTracing creates an OpenTelemetry span for each event handled.
-// The tracer is typically obtained from a trace.TracerProvider:
+// The tracer is typically obtained from a cqrsotel.TracerProvider:
 //
 //	tracer := cqrsotel.NewTracer("middleware")
 //	mw := middleware.EventTracing(tracer)
-func EventTracing(tracer trace.Tracer) event.Middleware {
+func EventTracing(tracer cqrsotel.Tracer) event.Middleware {
 	return AsEvent(
 		NewTracing(
 			tracer,
 			"event.handle",
-			trace.SpanKindConsumer,
-			func(evt event.Event) []attribute.KeyValue {
+			cqrsotel.SpanKindConsumer,
+			func(evt event.Event) []cqrsotel.KeyValue {
 				attrs := cqrsotel.EventAttrs(
 					string(evt.Type()),
 					evt.AggregateID(),
@@ -76,7 +74,7 @@ func EventTracing(tracer trace.Tracer) event.Middleware {
 
 				return append(
 					attrs,
-					attribute.Int(cqrsotel.AttrAggregateVersion, int(evt.Version())),
+					cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, int(evt.Version())),
 				)
 			},
 		),
@@ -84,17 +82,17 @@ func EventTracing(tracer trace.Tracer) event.Middleware {
 }
 
 // QueryTracing creates an OpenTelemetry span for each query handled.
-// The tracer is typically obtained from a trace.TracerProvider:
+// The tracer is typically obtained from a cqrsotel.TracerProvider:
 //
 //	tracer := cqrsotel.NewTracer("middleware")
 //	mw := middleware.QueryTracing(tracer)
-func QueryTracing(tracer trace.Tracer) query.Middleware {
+func QueryTracing(tracer cqrsotel.Tracer) query.Middleware {
 	return AsQuery(
 		NewTracing(
 			tracer,
 			"query.handle",
-			trace.SpanKindServer,
-			func(q query.Query) []attribute.KeyValue {
+			cqrsotel.SpanKindServer,
+			func(q query.Query) []cqrsotel.KeyValue {
 				return cqrsotel.QueryAttrs(string(q.Type()))
 			},
 		),
@@ -107,11 +105,11 @@ func QueryTracing(tracer trace.Tracer) query.Middleware {
 //
 //	tracer := cqrsotel.NewTracer("middleware")
 //	bus.UsePublish(middleware.EventPublishTracing(tracer))
-func EventPublishTracing(tracer trace.Tracer) event.PublishMiddleware {
+func EventPublishTracing(tracer cqrsotel.Tracer) event.PublishMiddleware {
 	return func(next event.Publisher) event.Publisher {
 		return event.PublisherFunc(func(ctx context.Context, events ...event.Event) error {
-			attrs := []attribute.KeyValue{
-				attribute.Int(cqrsotel.AttrEventCount, len(events)),
+			attrs := []cqrsotel.KeyValue{
+				cqrsotel.AttrInt(cqrsotel.AttrEventCount, len(events)),
 			}
 
 			if len(events) > 0 {
@@ -124,8 +122,8 @@ func EventPublishTracing(tracer trace.Tracer) event.PublishMiddleware {
 
 			ctx, span := tracer.Start(
 				ctx, "event.publish",
-				trace.WithSpanKind(trace.SpanKindProducer),
-				trace.WithAttributes(attrs...),
+				cqrsotel.WithSpanKind(cqrsotel.SpanKindProducer),
+				cqrsotel.WithAttributes(attrs...),
 			)
 			defer span.End()
 
