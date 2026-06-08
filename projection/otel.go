@@ -1,18 +1,16 @@
 package projection
 
 import (
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
 )
 
-func tracer() trace.Tracer {
+func tracer() cqrsotel.Tracer {
 	return cqrsotel.NewTracer("projection")
 }
 
-func projectionAttrs(name string) []attribute.KeyValue {
-	return []attribute.KeyValue{
-		attribute.String(cqrsotel.AttrProjectionName, name),
+func projectionAttrs(name string) []cqrsotel.KeyValue {
+	return []cqrsotel.KeyValue{
+		cqrsotel.AttrString(cqrsotel.AttrProjectionName, name),
 	}
 }

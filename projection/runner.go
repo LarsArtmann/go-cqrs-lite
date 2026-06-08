@@ -8,8 +8,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
@@ -92,7 +90,7 @@ func (r *Runner) Register(p event.Projection) error {
 func (r *Runner) Run(ctx context.Context) error {
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "projection.run",
-		trace.SpanKindClient,
+		cqrsotel.SpanKindClient,
 	)
 	defer span.End()
 
@@ -124,8 +122,8 @@ func (r *Runner) replay(ctx context.Context) error {
 	for _, p := range r.projections {
 		ctx, span := cqrsotel.StartSpan(
 			ctx, tracer(), "projection.replay",
-			trace.SpanKindClient,
-			trace.WithAttributes(projectionAttrs(p.Name())...),
+			cqrsotel.SpanKindClient,
+			cqrsotel.WithAttributes(projectionAttrs(p.Name())...),
 		)
 
 		events, err := r.loadReplayEvents(ctx, seekable, hasSeekable, p)
@@ -136,7 +134,7 @@ func (r *Runner) replay(ctx context.Context) error {
 			return err
 		}
 
-		span.SetAttributes(attribute.Int(cqrsotel.AttrEventCount, len(events)))
+		span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrEventCount, len(events)))
 
 		for _, evt := range events {
 			replayCtx := event.WithReplay(ctx, true)
@@ -195,10 +193,10 @@ func (r *Runner) handleAndCheckpoint(
 ) error {
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "projection.handle",
-		trace.SpanKindConsumer,
-		trace.WithAttributes(
-			attribute.String(cqrsotel.AttrEventType, string(evt.Type())),
-			attribute.String(cqrsotel.AttrProjectionName, p.Name()),
+		cqrsotel.SpanKindConsumer,
+		cqrsotel.WithAttributes(
+			cqrsotel.AttrString(cqrsotel.AttrEventType, string(evt.Type())),
+			cqrsotel.AttrString(cqrsotel.AttrProjectionName, p.Name()),
 		),
 	)
 	defer span.End()
