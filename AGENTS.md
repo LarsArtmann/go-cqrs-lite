@@ -81,6 +81,7 @@ go-cqrs-lite/
 9. **Strong types** — No `any` types (except `dialect.go` for database/sql interop). Max 250 lines/file, 30 lines/function.
 10. **Multi-module isolation** — Each module has its own `go.mod` with only needed deps.
 11. **Tombstone over delete** — Soft-delete via metadata (TombstoneStatus: Active/Tombstoned/Undetermined). No Delete on Store.
+12. **Dependency budgets** — Per-module direct dep limits enforced by `nix run .#check-layers`. Adding deps requires explicit budget review.
 
 ## Error Handling
 

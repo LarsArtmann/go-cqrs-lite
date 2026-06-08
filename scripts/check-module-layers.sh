@@ -43,7 +43,56 @@ EXCEPTIONS[turso]="storage listing"
 EXCEPTIONS[command]="snapshot"
 EXCEPTIONS[query]="snapshot"
 
+# Dependency budgets: maximum direct (non-indirect) dependencies per module.
+# Budgets are intentionally tight — new deps require explicit review.
+declare -A DEP_BUDGET
+DEP_BUDGET[id]=3
+DEP_BUDGET[dispatcher]=0
+DEP_BUDGET[codec]=0
+DEP_BUDGET[event]=13
+DEP_BUDGET[command]=8
+DEP_BUDGET[query]=7
+DEP_BUDGET[schema]=4
+DEP_BUDGET[snapshot]=5
+DEP_BUDGET[decider]=12
+DEP_BUDGET[memory]=8
+DEP_BUDGET[signing]=5
+DEP_BUDGET[otel]=7
+DEP_BUDGET[middleware]=14
+DEP_BUDGET[storage]=12
+DEP_BUDGET[projection]=11
+DEP_BUDGET[listing]=6
+DEP_BUDGET[watermill]=5
+DEP_BUDGET[pebble]=5
+DEP_BUDGET[turso]=6
+DEP_BUDGET[catalog]=3
+DEP_BUDGET[integration]=18
+
 failed=0
+
+# ── Dependency count check ──
+
+for mod in "${!DEP_BUDGET[@]}"; do
+    gomod="${mod}/go.mod"
+    if [ ! -f "$gomod" ]; then
+        continue
+    fi
+
+    budget=${DEP_BUDGET[$mod]}
+    direct=$(awk '
+        /^require \(/{found=1;next}
+        /^\)/{found=0}
+        found && !/\/\// && !/indirect/ && /^[[:space:]]+[^[:space:]]/{count++}
+        END{print count+0}
+    ' "$gomod")
+
+    if [ "$direct" -gt "$budget" ]; then
+        echo "BUDGET: ${mod} has ${direct} direct deps (budget: ${budget})"
+        failed=1
+    fi
+done
+
+# ── Layer ordering check ──
 
 for mod in "${!LAYER[@]}"; do
     gomod="${mod}/go.mod"
