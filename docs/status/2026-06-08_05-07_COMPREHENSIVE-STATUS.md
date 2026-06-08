@@ -124,7 +124,7 @@ All 22 library modules + 2 cmd modules tagged at v2.2.0 with `/v2` semantic impo
 - ❌ Saga module (formal, if needed)
 - ❌ Schema registry service
 - ❌ gRPC/NATS/Redis adapters
-- ❌ GraphQL query layer
+- ❌ GraphQL query layer → **DECLINED**: framework-level concern, not library scope
 - ❌ WebAssembly build
 - ❌ pprof endpoints
 - ❌ Prometheus exporter

@@ -86,7 +86,7 @@
 - [ ] WebAssembly compilation target for decider module
 - [ ] gRPC transport adapter
 - [ ] NATS / Redis Stream adapter
-- [ ] GraphQL query adapter for projections
+- [~] GraphQL query adapter for projections → **DECLINED**: framework-level concern, not library scope
 
 ### Observability
 
