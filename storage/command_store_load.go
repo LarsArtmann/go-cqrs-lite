@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
@@ -67,7 +65,7 @@ func (s *SQLCommandStore) LoadToTimestamp(
 
 type loadCommandParams struct {
 	spanName   string
-	attrs      []attribute.KeyValue
+	attrs      []cqrsotel.KeyValue
 	where      string
 	extraArgs  []any
 	requireHit bool
@@ -87,8 +85,8 @@ func (s *SQLCommandStore) loadWithSpan(
 		ctx,
 		sqlpkg.Tracer(),
 		p.spanName,
-		trace.SpanKindClient,
-		trace.WithAttributes(p.attrs...),
+		cqrsotel.SpanKindClient,
+		cqrsotel.WithAttributes(p.attrs...),
 	)
 	defer span.End()
 
@@ -98,7 +96,7 @@ func (s *SQLCommandStore) loadWithSpan(
 		return nil, err
 	}
 
-	span.SetAttributes(attribute.Int("command.count", len(cmds)))
+	span.SetAttributes(cqrsotel.AttrInt("command.count", len(cmds)))
 
 	return cmds, nil
 }

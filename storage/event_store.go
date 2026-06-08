@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"sync/atomic"
 
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
@@ -147,10 +145,10 @@ func (s *SQLEventStore) AppendBatch(
 
 	ctx, span := cqrsotel.StartSpan(
 		ctx, sqlpkg.Tracer(), "event.store.append_batch",
-		trace.SpanKindClient,
-		trace.WithAttributes(append(
+		cqrsotel.SpanKindClient,
+		cqrsotel.WithAttributes(append(
 			cqrsotel.AggregateAttrs(ref.Type, ref.ID),
-			attribute.Int(cqrsotel.AttrEventCount, len(events)),
+			cqrsotel.AttrInt(cqrsotel.AttrEventCount, len(events)),
 		)...),
 	)
 	defer span.End()
@@ -181,7 +179,7 @@ func (s *SQLEventStore) AppendBatch(
 }
 
 func (s *SQLEventStore) wrapInsertEventsErr(
-	span trace.Span,
+	span cqrsotel.Span,
 	err error,
 	events []event.Event,
 	ref event.AggregateRef,

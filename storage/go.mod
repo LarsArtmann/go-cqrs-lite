@@ -11,8 +11,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/listing/v2 v2.2.0
 	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.2.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.2.0
-	go.opentelemetry.io/otel v1.44.0
-	go.opentelemetry.io/otel/trace v1.44.0
 	modernc.org/sqlite v1.52.0
 )
 
@@ -32,7 +30,9 @@ require (
 	github.com/samber/lo v1.53.0 // indirect
 	github.com/samber/ro v0.3.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
+	go.opentelemetry.io/otel v1.44.0 // indirect
 	go.opentelemetry.io/otel/metric v1.44.0 // indirect
+	go.opentelemetry.io/otel/trace v1.44.0 // indirect
 	golang.org/x/exp v0.0.0-20260603202125-055de637280b // indirect
 	golang.org/x/sys v0.45.0 // indirect
 	golang.org/x/text v0.37.0 // indirect

@@ -4,8 +4,6 @@ import (
 	"context"
 	"database/sql"
 
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
@@ -75,9 +73,9 @@ func (s *SQLCheckpointStore) Save(
 func (s *SQLCheckpointStore) startSpan(
 	ctx context.Context,
 	name, projectionName string,
-) (context.Context, trace.Span) {
-	return cqrsotel.StartSpan(ctx, sqlpkg.Tracer(), name, trace.SpanKindClient,
-		trace.WithAttributes(attribute.String(cqrsotel.AttrProjectionName, projectionName)))
+) (context.Context, cqrsotel.Span) {
+	return cqrsotel.StartSpan(ctx, sqlpkg.Tracer(), name, cqrsotel.SpanKindClient,
+		cqrsotel.WithAttributes(cqrsotel.AttrString(cqrsotel.AttrProjectionName, projectionName)))
 }
 
 var (

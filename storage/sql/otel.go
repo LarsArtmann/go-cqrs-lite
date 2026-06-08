@@ -3,8 +3,6 @@ package sql
 import (
 	"context"
 
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
@@ -13,7 +11,7 @@ import (
 const storageComponent = "storage"
 
 // Tracer returns an OpenTelemetry tracer for the storage module.
-func Tracer() trace.Tracer {
+func Tracer() cqrsotel.Tracer {
 	return cqrsotel.NewTracer(storageComponent)
 }
 
@@ -22,12 +20,12 @@ func StartAggregateSpan(
 	ctx context.Context,
 	spanName string,
 	ref event.AggregateRef,
-	extraAttrs ...attribute.KeyValue,
-) (context.Context, trace.Span) {
+	extraAttrs ...cqrsotel.KeyValue,
+) (context.Context, cqrsotel.Span) {
 	return cqrsotel.StartSpan(
 		ctx, Tracer(), spanName,
-		trace.SpanKindClient,
-		trace.WithAttributes(append(cqrsotel.AggregateAttrs(ref.Type, ref.ID), extraAttrs...)...),
+		cqrsotel.SpanKindClient,
+		cqrsotel.WithAttributes(append(cqrsotel.AggregateAttrs(ref.Type, ref.ID), extraAttrs...)...),
 	)
 }
 
@@ -38,14 +36,14 @@ func StartSaveSpan(
 	ref event.AggregateRef,
 	expectedVersion event.Version,
 	eventCount int,
-) (context.Context, trace.Span) {
+) (context.Context, cqrsotel.Span) {
 	return cqrsotel.StartSpan(
 		ctx, Tracer(), spanName,
-		trace.SpanKindClient,
-		trace.WithAttributes(append(
+		cqrsotel.SpanKindClient,
+		cqrsotel.WithAttributes(append(
 			cqrsotel.AggregateAttrs(ref.Type, ref.ID),
-			attribute.Int(cqrsotel.AttrAggregateVersion, expectedVersion.Int()),
-			attribute.Int(cqrsotel.AttrEventCount, eventCount),
+			cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, expectedVersion.Int()),
+			cqrsotel.AttrInt(cqrsotel.AttrEventCount, eventCount),
 		)...),
 	)
 }

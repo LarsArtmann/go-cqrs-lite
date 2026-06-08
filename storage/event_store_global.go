@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
@@ -22,7 +20,7 @@ func (s *SQLEventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
 		ctx,
 		sqlpkg.Tracer(),
 		"event.store.read_all",
-		trace.SpanKindClient,
+		cqrsotel.SpanKindClient,
 	)
 	defer span.End()
 	query := `SELECT ` + sqlpkg.EventColumns + `
@@ -37,7 +35,7 @@ func (s *SQLEventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
 	if scanErr != nil {
 		cqrsotel.RecordError(span, scanErr)
 	}
-	span.SetAttributes(attribute.Int(cqrsotel.AttrEventCount, len(events)))
+	span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrEventCount, len(events)))
 	return events, scanErr
 }
 
@@ -54,8 +52,8 @@ func (s *SQLEventStore) ReadFrom(
 		ctx,
 		sqlpkg.Tracer(),
 		"event.store.read_from",
-		trace.SpanKindClient,
-		trace.WithAttributes(attribute.Int("cqrs.journal.limit", limit)),
+		cqrsotel.SpanKindClient,
+		cqrsotel.WithAttributes(cqrsotel.AttrInt("cqrs.journal.limit", limit)),
 	)
 	defer span.End()
 	if afterEventID.IsZero() {
@@ -65,7 +63,7 @@ func (s *SQLEventStore) ReadFrom(
 			return events, event.WrapInfrastructure(err, "storage.read_from_start",
 				fmt.Sprintf("read from start (limit=%d)", limit))
 		}
-		span.SetAttributes(attribute.Int(cqrsotel.AttrEventCount, len(events)))
+		span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrEventCount, len(events)))
 		return events, nil
 	}
 	p1 := s.Dialect.Placeholder(1)
@@ -98,7 +96,7 @@ func (s *SQLEventStore) ReadFrom(
 		return events, event.WrapInfrastructure(scanErr, "storage.scan_from_position",
 			fmt.Sprintf("scan events from position (limit=%d)", limit))
 	}
-	span.SetAttributes(attribute.Int(cqrsotel.AttrEventCount, len(events)))
+	span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrEventCount, len(events)))
 	return events, nil
 }
 

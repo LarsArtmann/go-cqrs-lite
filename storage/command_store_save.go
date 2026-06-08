@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
@@ -29,8 +27,8 @@ func (s *SQLCommandStore) Save(
 		ctx,
 		sqlpkg.Tracer(),
 		"command.store.save",
-		trace.SpanKindClient,
-		trace.WithAttributes(cqrsotel.AggregateAttrs(ref.Type, ref.ID)...),
+		cqrsotel.SpanKindClient,
+		cqrsotel.WithAttributes(cqrsotel.AggregateAttrs(ref.Type, ref.ID)...),
 	)
 	defer span.End()
 
@@ -80,10 +78,10 @@ func (s *SQLCommandStore) AppendBatch(
 		ctx,
 		sqlpkg.Tracer(),
 		"command.store.append_batch",
-		trace.SpanKindClient,
-		trace.WithAttributes(append(
+		cqrsotel.SpanKindClient,
+		cqrsotel.WithAttributes(append(
 			cqrsotel.AggregateAttrs(ref.Type, ref.ID),
-			attribute.Int("command.count", len(cmds)),
+			cqrsotel.AttrInt("command.count", len(cmds)),
 		)...),
 	)
 	defer span.End()

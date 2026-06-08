@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
@@ -15,7 +13,7 @@ import (
 
 type loadParams struct {
 	spanName   string
-	attrs      []attribute.KeyValue
+	attrs      []cqrsotel.KeyValue
 	where      string
 	extraArgs  []any
 	requireHit bool
@@ -35,8 +33,8 @@ func (s *SQLEventStore) loadWithSpan(
 		ctx,
 		sqlpkg.Tracer(),
 		p.spanName,
-		trace.SpanKindClient,
-		trace.WithAttributes(p.attrs...),
+		cqrsotel.SpanKindClient,
+		cqrsotel.WithAttributes(p.attrs...),
 	)
 	defer span.End()
 	events, err := s.queryEvents(ctx, ref, p.where, p.extraArgs, p.requireHit, p.errMsg)
@@ -44,7 +42,7 @@ func (s *SQLEventStore) loadWithSpan(
 		cqrsotel.RecordError(span, err)
 		return nil, err
 	}
-	span.SetAttributes(attribute.Int(cqrsotel.AttrEventCount, len(events)))
+	span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrEventCount, len(events)))
 	return events, nil
 }
 
@@ -71,7 +69,7 @@ func (s *SQLEventStore) LoadFromVersion(
 	return s.loadWithSpan(ctx, ref, loadParams{
 		spanName: "event.store.load_from_version",
 		attrs: append(cqrsotel.AggregateAttrs(ref.Type, ref.ID),
-			attribute.Int(cqrsotel.AttrAggregateVersion, version.Int())),
+			cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, version.Int())),
 		where:     fmt.Sprintf("AND version > %s ORDER BY version ASC", s.Dialect.Placeholder(3)),
 		extraArgs: []any{version.Int()}, requireHit: false, errMsg: "query events from version",
 	})
@@ -85,7 +83,7 @@ func (s *SQLEventStore) LoadToVersion(
 	return s.loadWithSpan(ctx, ref, loadParams{
 		spanName: "event.store.load_to_version",
 		attrs: append(cqrsotel.AggregateAttrs(ref.Type, ref.ID),
-			attribute.Int(cqrsotel.AttrAggregateVersion, maxVersion.Int())),
+			cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, maxVersion.Int())),
 		where:     fmt.Sprintf("AND version <= %s ORDER BY version ASC", s.Dialect.Placeholder(3)),
 		extraArgs: []any{maxVersion.Int()}, requireHit: true, errMsg: "query events to version",
 	})
