@@ -53,12 +53,9 @@ func (s *MemoryCommandStore) Save(
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if _, exists := s.commandIDIndex[cmd.ID()]; exists {
-		return event.WrapConflict(
-			command.ErrDuplicateCommand,
-			"memory.duplicate_command",
-			fmt.Sprintf("command with ID %s already exists", cmd.ID()),
-		)
+	dupErr := s.checkDuplicate(cmd.ID(), "")
+	if dupErr != nil {
+		return dupErr
 	}
 
 	s.appendCommand(ref.StreamKey(), cmd)
@@ -97,12 +94,9 @@ func (s *MemoryCommandStore) AppendBatch(
 
 		seen[cmd.ID()] = struct{}{}
 
-		if _, exists := s.commandIDIndex[cmd.ID()]; exists {
-			return event.WrapConflict(
-				command.ErrDuplicateCommand,
-				"memory.duplicate_command",
-				fmt.Sprintf("command with ID %s already exists in batch", cmd.ID()),
-			)
+		dupErr := s.checkDuplicate(cmd.ID(), " in batch")
+		if dupErr != nil {
+			return dupErr
 		}
 	}
 
@@ -155,6 +149,18 @@ func (s *MemoryCommandStore) LoadToTimestamp(
 // Close marks the store as closed. Subsequent operations return ErrStoreClosed.
 func (s *MemoryCommandStore) Close() error {
 	return s.Lifecycle.Close() //nolint:wrapcheck
+}
+
+func (s *MemoryCommandStore) checkDuplicate(cmdID id.CommandID, suffix string) error {
+	if _, exists := s.commandIDIndex[cmdID]; exists {
+		return event.WrapConflict(
+			command.ErrDuplicateCommand,
+			"memory.duplicate_command",
+			fmt.Sprintf("command with ID %s already exists%s", cmdID, suffix),
+		)
+	}
+
+	return nil
 }
 
 func (s *MemoryCommandStore) appendCommand(streamKey string, cmd *command.PersistedCommand) {

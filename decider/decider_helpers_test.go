@@ -201,21 +201,22 @@ func saveSnapshot(
 ) {
 	t.Helper()
 
-	_ = snapshotStore.Save(t.Context(), makeSnapshot(t, c, aggID, value, version))
+	snap := makeSnapshot(t, c, aggID, value, version)
+	_ = snapshotStore.Save(t.Context(), snap)
 }
 
-func setSnapshot(
-	t *testing.T,
-	snapshotStore *eventtest.FakeSnapshotStore,
-	c codec.Codec,
-	aggID id.AggregateID,
-	value int,
-	version event.Version,
+func applySnapshot(
+	tb *testing.T,
+	snapStore *eventtest.FakeSnapshotStore,
+	cdc codec.Codec,
+	aggregateID id.AggregateID,
+	val int,
+	ver event.Version,
 ) {
-	t.Helper()
+	tb.Helper()
 
-	snap := makeSnapshot(t, c, aggID, value, version)
-	snapshotStore.SetSnapshot(&snap)
+	stored := makeSnapshot(tb, cdc, aggregateID, val, ver)
+	snapStore.SetSnapshot(&stored)
 }
 
 func newEnricherRepo(

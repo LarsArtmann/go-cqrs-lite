@@ -250,8 +250,7 @@ func TestAggregateType_MustParse_Panics(t *testing.T) {
 	t.Parallel()
 
 	defer func() {
-		r := recover()
-		if r == nil {
+		if recover() == nil {
 			t.Error("expected panic for empty aggregate type")
 		}
 	}()

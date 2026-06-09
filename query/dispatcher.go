@@ -47,7 +47,7 @@ func (d *Dispatcher) Use(middleware ...Middleware) {
 
 // Register binds a handler to a query type.
 func (d *Dispatcher) Register(queryType Type, handler Handler) error {
-	err := d.checkClosed("query.register_failed", "registering query type "+string(queryType))
+	err := d.ensureOpen("query.register_failed", "registering query type "+string(queryType))
 	if err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func RegisterTyped[Q Query, R any](
 
 // Dispatch sends a query to its registered handler.
 func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
-	err := d.checkClosed("query.dispatch_failed", "dispatching query type "+string(query.Type()))
+	err := d.ensureOpen("query.dispatch_failed", "dispatching query type "+string(query.Type()))
 	if err != nil {
 		return nil, err
 	}
@@ -117,10 +117,10 @@ func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
 	return wrapped(ctx, query)
 }
 
-func (d *Dispatcher) checkClosed(code, msg string) error {
-	err := d.inner.Lifecycle.CheckClosed(ErrDispatcherClosed)
-	if err != nil {
-		return errorfamily.WrapInfrastructure(err, code, msg)
+func (d *Dispatcher) ensureOpen(code, msg string) error {
+	closedErr := d.inner.Lifecycle.CheckClosed(ErrDispatcherClosed)
+	if closedErr != nil {
+		return errorfamily.WrapInfrastructure(closedErr, code, msg)
 	}
 
 	return nil
@@ -148,9 +148,9 @@ func DispatchTyped[T any](ctx context.Context, d *Dispatcher, query Query) (T, e
 
 // Close marks the dispatcher as closed.
 func (d *Dispatcher) Close() error {
-	err := d.inner.Close()
-	if err != nil {
-		return event.WrapInfrastructure(err, "query.dispatcher_close",
+	closeErr := d.inner.Close()
+	if closeErr != nil {
+		return event.WrapInfrastructure(closeErr, "query.dispatcher_close",
 			"close query dispatcher")
 	}
 

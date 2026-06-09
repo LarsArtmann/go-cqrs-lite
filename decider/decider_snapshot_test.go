@@ -221,7 +221,7 @@ func TestLoad_SnapshotWithEventsAfter(t *testing.T) {
 	}
 	mustAppendBatch(t, store, "Counter", aggID, events)
 
-	setSnapshot(t, snapshotStore, codec, aggID, 5, event.Version(5))
+	applySnapshot(t, snapshotStore, codec, aggID, 5, event.Version(5))
 
 	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
 		makeEvent(t, "CounterIncremented", aggID, 6),
@@ -240,7 +240,7 @@ func TestLoad_SnapshotStoreLoadFromVersionError(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
-	setSnapshot(t, snapshotStore, codec, aggID, 1, event.Version(1))
+	applySnapshot(t, snapshotStore, codec, aggID, 1, event.Version(1))
 
 	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
 		makeEvent(t, "CounterIncremented", aggID, 2),

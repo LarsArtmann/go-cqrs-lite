@@ -52,6 +52,15 @@ var (
 	}
 )
 
+// failingMiddleware returns a middleware that always fails with the given error.
+func failingMiddleware[M any](err error) Middleware[M] {
+	return func(Handler[M]) Handler[M] {
+		return func(_ context.Context, _ M) error {
+			return err
+		}
+	}
+}
+
 // AsCommand converts a generic Middleware to a command.Middleware.
 func AsCommand(mw Middleware[command.Command]) command.Middleware {
 	return func(next command.Handler) command.Handler {

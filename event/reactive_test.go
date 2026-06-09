@@ -15,18 +15,33 @@ import (
 func newTestEvent(t *testing.T, eventType event.Type) event.Event {
 	t.Helper()
 
-	evt, err := event.New(
-		eventType,
-		id.NewAggregateID(),
-		"TestAggregate",
-		1,
-		[]byte(`{"test":true}`),
-	)
+	aggID := id.NewAggregateID()
+	evt, err := event.NewEvent(eventType, aggID, "Test", 1, nil)
 	if err != nil {
-		t.Fatalf("create test event: %v", err)
+		t.Fatalf("NewEvent: %v", err)
 	}
 
 	return evt
+}
+
+func subscribeAndCollect(src ro.Observable[event.Event]) (*sync.Mutex, *[]event.Event) {
+	var mu sync.Mutex
+	var received []event.Event
+
+	src.Subscribe(ro.OnNext(func(e event.Event) {
+		mu.Lock()
+		received = append(received, e)
+		mu.Unlock()
+	}))
+
+	return &mu, &received
+}
+
+func assertEventType(t *testing.T, evt event.Event, want string) {
+	t.Helper()
+	if evt.Type() != event.Type(want) {
+		t.Errorf("expected %s, got %s", want, evt.Type())
+	}
 }
 
 func TestNewEventBus_PublishSubscribe(t *testing.T) {
@@ -34,29 +49,20 @@ func TestNewEventBus_PublishSubscribe(t *testing.T) {
 
 	bus := event.NewEventBus()
 
-	var mu sync.Mutex
-	var received []event.Event
-
-	bus.Subscribe(ro.OnNext(func(e event.Event) {
-		mu.Lock()
-		received = append(received, e)
-		mu.Unlock()
-	}))
+	eventMu, events := subscribeAndCollect(bus)
 
 	evt := newTestEvent(t, "user.created")
 	bus.Next(evt)
 	bus.Complete()
 
-	mu.Lock()
-	defer mu.Unlock()
+	eventMu.Lock()
+	defer eventMu.Unlock()
 
-	if len(received) != 1 {
-		t.Fatalf("expected 1 event, got %d", len(received))
+	if len(*events) != 1 {
+		t.Fatalf("expected 1 event, got %d", len(*events))
 	}
 
-	if received[0].Type() != event.Type("user.created") {
-		t.Errorf("expected type user.created, got %s", received[0].Type())
-	}
+	assertEventType(t, (*events)[0], "user.created")
 }
 
 func TestNewEventBus_MultipleSubscribers(t *testing.T) {
@@ -192,14 +198,7 @@ func TestFilterEventType(t *testing.T) {
 
 	filtered := ro.Pipe1(bus, event.FilterEventType("user.created"))
 
-	var mu sync.Mutex
-	var received []event.Event
-
-	filtered.Subscribe(ro.OnNext(func(e event.Event) {
-		mu.Lock()
-		received = append(received, e)
-		mu.Unlock()
-	}))
+	mu, received := subscribeAndCollect(filtered)
 
 	bus.Next(newTestEvent(t, "user.created"))
 	bus.Next(newTestEvent(t, "user.changed"))
@@ -209,11 +208,11 @@ func TestFilterEventType(t *testing.T) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	if len(received) != 2 {
-		t.Fatalf("expected 2 filtered events, got %d", len(received))
+	if len(*received) != 2 {
+		t.Fatalf("expected 2 filtered events, got %d", len(*received))
 	}
 
-	for _, e := range received {
+	for _, e := range *received {
 		if e.Type() != event.Type("user.created") {
 			t.Errorf("expected type user.created, got %s", e.Type())
 		}
@@ -227,14 +226,7 @@ func TestFilterEventTypes(t *testing.T) {
 
 	filtered := ro.Pipe1(bus, event.FilterEventTypes("user.created", "user.deleted"))
 
-	var mu sync.Mutex
-	var received []event.Event
-
-	filtered.Subscribe(ro.OnNext(func(e event.Event) {
-		mu.Lock()
-		received = append(received, e)
-		mu.Unlock()
-	}))
+	eventMu, events := subscribeAndCollect(filtered)
 
 	bus.Next(newTestEvent(t, "user.created"))
 	bus.Next(newTestEvent(t, "user.changed"))
@@ -242,20 +234,15 @@ func TestFilterEventTypes(t *testing.T) {
 	bus.Next(newTestEvent(t, "user.loggedIn"))
 	bus.Complete()
 
-	mu.Lock()
-	defer mu.Unlock()
+	eventMu.Lock()
+	defer eventMu.Unlock()
 
-	if len(received) != 2 {
-		t.Fatalf("expected 2 filtered events, got %d", len(received))
+	if len(*events) != 2 {
+		t.Fatalf("expected 2 filtered events, got %d", len(*events))
 	}
 
-	if received[0].Type() != event.Type("user.created") {
-		t.Errorf("expected user.created, got %s", received[0].Type())
-	}
-
-	if received[1].Type() != event.Type("user.deleted") {
-		t.Errorf("expected user.deleted, got %s", received[1].Type())
-	}
+	assertEventType(t, (*events)[0], "user.created")
+	assertEventType(t, (*events)[1], "user.deleted")
 }
 
 func TestHandlerToObserver_Success(t *testing.T) {

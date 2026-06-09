@@ -56,12 +56,12 @@ func WrapCorruption(err error, code, msg string) *Error {
 	return errorfamily.WrapCorruption(err, code, msg)
 }
 
-func WrapInfrastructure(err error, code, msg string) *Error {
-	return errorfamily.WrapInfrastructure(err, code, msg)
+func WrapInfrastructure(wrappedErr error, code, msg string) *Error {
+	return errorfamily.WrapInfrastructure(wrappedErr, code, msg)
 }
 
-func Wrapf(err error, family Family, code, format string, args ...any) *Error {
-	return errorfamily.Wrapf(err, family, code, format, args...)
+func Wrapf(wrappedErr error, family Family, code, format string, args ...any) *Error {
+	return errorfamily.Wrapf(wrappedErr, family, code, format, args...)
 }
 
 func Newf(family Family, code, format string, args ...any) *Error {

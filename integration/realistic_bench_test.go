@@ -67,6 +67,31 @@ type OrderCancelled struct {
 	Reason string `json:"reason"`
 }
 
+func benchNewOrderRepo(
+	b *testing.B,
+	store *memory.MemoryStore,
+	bus *memory.MemoryBus,
+	snapEvery int,
+) *decider.Repository[OrderState] {
+	b.Helper()
+
+	memSnap := memory.NewMemorySnapshotStore()
+	b.Cleanup(func() { _ = memSnap.Close() })
+
+	d := decider.Decider[OrderState]{Initial: OrderState{}, Fold: foldOrder}
+	repo, err := decider.NewRepository(
+		store, bus, d,
+		decider.WithSnapshotStore[OrderState](memSnap),
+		decider.WithSnapshotStrategy[OrderState](snapshot.MustEveryNEvents(snapEvery)),
+		decider.WithCodec[OrderState](codec.JSONCodec{}),
+	)
+	if err != nil {
+		b.Fatalf("NewRepository: %v", err)
+	}
+
+	return repo
+}
+
 type OrderState struct {
 	Total     float64
 	Items     int
@@ -429,19 +454,7 @@ func BenchmarkRealistic_ConcurrentDecider(b *testing.B) {
 	bus := memory.NewMemoryBus()
 	b.Cleanup(func() { _ = store.Close(); _ = bus.Close() })
 
-	memSnap := memory.NewMemorySnapshotStore()
-	b.Cleanup(func() { _ = memSnap.Close() })
-
-	d := decider.Decider[OrderState]{Initial: OrderState{}, Fold: foldOrder}
-	repo, err := decider.NewRepository(
-		store, bus, d,
-		decider.WithSnapshotStore[OrderState](memSnap),
-		decider.WithSnapshotStrategy[OrderState](snapshot.MustEveryNEvents(50)),
-		decider.WithCodec[OrderState](codec.JSONCodec{}),
-	)
-	if err != nil {
-		b.Fatalf("NewRepository: %v", err)
-	}
+	repo := benchNewOrderRepo(b, store, bus, 50)
 
 	ctx := context.Background()
 	workers := runtime.NumCPU()
@@ -629,20 +642,7 @@ func BenchmarkRealistic_SnapshotVsReplay(b *testing.B) {
 	bus := memory.NewMemoryBus()
 	b.Cleanup(func() { _ = store.Close(); _ = bus.Close() })
 
-	memSnap := memory.NewMemorySnapshotStore()
-	b.Cleanup(func() { _ = memSnap.Close() })
-
-	d := decider.Decider[OrderState]{Initial: OrderState{}, Fold: foldOrder}
-
-	snapRepo, err := decider.NewRepository(
-		store, bus, d,
-		decider.WithSnapshotStore[OrderState](memSnap),
-		decider.WithSnapshotStrategy[OrderState](snapshot.MustEveryNEvents(100)),
-		decider.WithCodec[OrderState](codec.JSONCodec{}),
-	)
-	if err != nil {
-		b.Fatalf("NewRepository: %v", err)
-	}
+	snapRepo := benchNewOrderRepo(b, store, bus, 100)
 
 	ctx := context.Background()
 
@@ -677,7 +677,8 @@ func BenchmarkRealistic_SnapshotVsReplay(b *testing.B) {
 	b.Run("Replay", func(b *testing.B) {
 		b.ReportAllocs()
 
-		replayRepo, _ := decider.NewRepository[OrderState](store, bus, d)
+		plainDecider := decider.Decider[OrderState]{Initial: OrderState{}, Fold: foldOrder}
+		replayRepo, _ := decider.NewRepository[OrderState](store, bus, plainDecider)
 
 		b.ResetTimer()
 

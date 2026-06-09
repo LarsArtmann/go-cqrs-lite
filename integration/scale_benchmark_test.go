@@ -94,9 +94,9 @@ func benchCreateItem(
 	err := repo.Execute(
 		ctx, aggID, "Item",
 		func(_ benchState, v event.Version) ([]event.Event, error) {
-			return []event.Event{
-				newBenchEvent(b, "ItemCreated", aggID, v.Increment()),
-			}, nil
+			evt := newBenchEvent(b, "ItemCreated", aggID, v.Increment())
+
+			return []event.Event{evt}, nil
 		},
 	)
 	if err != nil {
@@ -112,11 +112,11 @@ func benchCreateItemConcurrent(
 	b.Helper()
 
 	aggID := id.NewAggregateID()
-	decide := func(_ benchState, v event.Version) ([]event.Event, error) {
+	decideFn := func(_ benchState, v event.Version) ([]event.Event, error) {
 		return []event.Event{newBenchEvent(b, "ItemCreated", aggID, v.Increment())}, nil
 	}
 
-	if err := repo.Execute(ctx, aggID, "Item", decide); err != nil {
+	if err := repo.Execute(ctx, aggID, "Item", decideFn); err != nil {
 		b.Errorf("concurrent Execute: %v", err)
 	}
 
@@ -728,17 +728,7 @@ func BenchmarkScale_FullPipeline_1KAggregates(b *testing.B) {
 		projectionEvents.Store(0)
 
 		for _, aggID := range aggIDs {
-			err := repo.Execute(
-				context.Background(), aggID, "Item",
-				func(_ benchState, v event.Version) ([]event.Event, error) {
-					return []event.Event{
-						newBenchEvent(b, "ItemCreated", aggID, v.Increment()),
-					}, nil
-				},
-			)
-			if err != nil {
-				b.Fatalf("Execute: %v", err)
-			}
+			benchCreateItem(b, repo, context.Background(), aggID)
 		}
 
 		q := query.MustNew("list.items")

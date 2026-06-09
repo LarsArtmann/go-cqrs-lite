@@ -96,11 +96,13 @@ func panicCommandHandler(msg string) command.Handler {
 }
 
 func callbackCommandHandler(called *bool) command.Handler {
-	return func(_ context.Context, _ command.Command) error {
+	fn := func(_ context.Context, _ command.Command) error {
 		*called = true
 
 		return nil
 	}
+
+	return fn
 }
 
 func noopQueryHandler() func(context.Context, query.Query) (any, error) {

@@ -40,7 +40,7 @@ func testEventStore_MetadataRoundtrip(
 	t *testing.T,
 	store event.Store,
 	cfg storeTestConfig,
-	customEnv string,
+	envOverride string,
 ) {
-	eventtest.TestStoreMetadataRoundtrip(t, store, cfg, customEnv)
+	eventtest.TestStoreMetadataRoundtrip(t, store, cfg, envOverride)
 }

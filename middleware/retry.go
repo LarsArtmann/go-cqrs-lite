@@ -16,13 +16,9 @@ import (
 // NewRetry returns a generic middleware that retries on retryable errors.
 // Returns a middleware that always fails if config is invalid.
 func NewRetry[M any](adapter MessageAdapter[M], config RetryConfig, opts ...Option) Middleware[M] {
-	err := config.Validate()
-	if err != nil {
-		return func(Handler[M]) Handler[M] {
-			return func(_ context.Context, _ M) error {
-				return err
-			}
-		}
+	validateErr := config.Validate()
+	if validateErr != nil {
+		return failingMiddleware[M](validateErr)
 	}
 
 	cfg := applyOptions(opts)

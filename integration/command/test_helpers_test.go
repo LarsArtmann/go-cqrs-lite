@@ -7,22 +7,22 @@ import (
 )
 
 func noopCommandHandler() command.Handler {
+	var h command.Handler = func(_ context.Context, _ command.Command) error { return nil }
+
+	return h
+}
+
+func callbackCommandHandler(flag *bool) command.Handler {
 	return func(_ context.Context, _ command.Command) error {
+		*flag = true
+
 		return nil
 	}
 }
 
-func callbackCommandHandler(called *bool) command.Handler {
+func appendCommandHandler(order *[]string) command.Handler {
 	return func(_ context.Context, _ command.Command) error {
-		*called = true
-
-		return nil
-	}
-}
-
-func appendCommandHandler(callOrder *[]string) command.Handler {
-	return func(_ context.Context, _ command.Command) error {
-		*callOrder = append(*callOrder, "handler")
+		*order = append(*order, "handler")
 
 		return nil
 	}

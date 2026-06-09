@@ -113,7 +113,7 @@ func TestGolden_SnapshotStoreRoundTrip(t *testing.T) {
 		AggregateType: "User",
 		Version:       event.Version(10),
 		State:         state,
-		CreatedAt:     time.Date(2026, 6, 1, 12, 0, 0, 0, time.UTC),
+		CreatedAt:     time.Date(2026, time.June, 1, 12, 0, 0, 0, time.UTC),
 	}
 
 	if err := store.Save(t.Context(), snap); err != nil {

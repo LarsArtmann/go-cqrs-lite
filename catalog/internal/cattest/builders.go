@@ -280,20 +280,20 @@ func AddServiceWithQuery(
 func AddServiceWithCommand(
 	tb testing.TB,
 	r *catalog.Registry,
-	serviceID catalog.ServiceID,
-	messageID catalog.MessageID,
-	name, version, summary string,
+	svc catalog.ServiceID,
+	msg catalog.MessageID,
+	msgName, msgVersion, msgSummary string,
 ) *catalog.Registry {
 	tb.Helper()
 
 	return addServiceWithMessage(
 		tb,
 		r,
-		serviceID,
-		messageID,
-		name,
-		version,
-		summary,
+		svc,
+		msg,
+		msgName,
+		msgVersion,
+		msgSummary,
 		catalog.CommandMessage,
 		r.AddCommand,
 	)

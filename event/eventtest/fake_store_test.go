@@ -19,6 +19,19 @@ func newTestEvent(t *testing.T, aggID id.AggregateID, v event.Version) event.Eve
 	return evt
 }
 
+func appendTestEvents(
+	t *testing.T,
+	store *FakeStore,
+	ctx context.Context,
+	ref event.AggregateRef,
+	n int,
+) {
+	t.Helper()
+	for i := range n {
+		_ = store.AppendBatch(ctx, ref, []event.Event{newTestEvent(t, ref.ID, event.Version(i+1))})
+	}
+}
+
 func TestFakeStore_Save_Default(t *testing.T) {
 	t.Parallel()
 	store := NewFakeStore()
@@ -125,10 +138,7 @@ func TestFakeStore_LoadFromVersion_Default(t *testing.T) {
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("Test", aggID)
 
-	for i := range 5 {
-		evt := newTestEvent(t, aggID, event.Version(i+1))
-		_ = store.AppendBatch(ctx, ref, []event.Event{evt})
-	}
+	appendTestEvents(t, store, ctx, ref, 5)
 
 	loaded, err := store.LoadFromVersion(ctx, ref, 2)
 	if err != nil {
@@ -162,10 +172,7 @@ func TestFakeStore_LoadToVersion_Default(t *testing.T) {
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("Test", aggID)
 
-	for i := range 5 {
-		evt := newTestEvent(t, aggID, event.Version(i+1))
-		_ = store.AppendBatch(ctx, ref, []event.Event{evt})
-	}
+	appendTestEvents(t, store, ctx, ref, 5)
 
 	loaded, err := store.LoadToVersion(ctx, ref, 3)
 	if err != nil {

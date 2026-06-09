@@ -154,6 +154,12 @@ var _ = Describe("Event Store via MemoryStore", func() {
 		initMemoryStoreTest(&ctx, &store, &aggID, &aggType, event.AggregateType("Order"))
 	})
 
+	savePlaced := func(expectedVersion event.Version) {
+		Expect(store.Save(ctx, event.NewAggregateRef(aggType, aggID), []event.Event{
+			mustNewEvent("OrderPlaced", aggID, aggType, 1),
+		}, expectedVersion)).To(Succeed())
+	}
+
 	Describe("As a developer persisting aggregate events", func() {
 		Context("when I save events for a new aggregate", func() {
 			It("should persist them with correct versioning", func() {
@@ -173,9 +179,7 @@ var _ = Describe("Event Store via MemoryStore", func() {
 
 		Context("when I save with a wrong expected version", func() {
 			It("should detect the version conflict", func() {
-				Expect(store.Save(ctx, event.NewAggregateRef(aggType, aggID), []event.Event{
-					mustNewEvent("OrderPlaced", aggID, aggType, 1),
-				}, 0)).To(Succeed())
+				savePlaced(0)
 
 				err := store.Save(ctx, event.NewAggregateRef(aggType, aggID), []event.Event{
 					mustNewEvent("OrderConfirmed", aggID, aggType, 2),
@@ -189,9 +193,7 @@ var _ = Describe("Event Store via MemoryStore", func() {
 			It(
 				"should succeed on the second attempt so I can recover from concurrent writes",
 				func() {
-					Expect(store.Save(ctx, event.NewAggregateRef(aggType, aggID), []event.Event{
-						mustNewEvent("OrderPlaced", aggID, aggType, 1),
-					}, 0)).To(Succeed())
+					savePlaced(0)
 
 					err := store.Save(ctx, event.NewAggregateRef(aggType, aggID), []event.Event{
 						mustNewEvent("OrderConfirmed", aggID, aggType, 2),
@@ -211,9 +213,7 @@ var _ = Describe("Event Store via MemoryStore", func() {
 
 		Context("when I close the store", func() {
 			BeforeEach(func() {
-				Expect(store.Save(ctx, event.NewAggregateRef(aggType, aggID), []event.Event{
-					mustNewEvent("OrderPlaced", aggID, aggType, 1),
-				}, 0)).To(Succeed())
+				savePlaced(0)
 			})
 
 			It(

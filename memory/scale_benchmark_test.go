@@ -11,6 +11,16 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 )
 
+func benchPopulateStore(b *testing.B, store *memory.MemoryStore, ctx context.Context, n int) {
+	b.Helper()
+
+	for range n {
+		aggID := id.NewAggregateID()
+		evt := benchEvent(b, aggID, 1)
+		_ = store.AppendBatch(ctx, event.NewAggregateRef("Bench", aggID), []event.Event{evt})
+	}
+}
+
 func benchStoreWithNEvents(b *testing.B, n int) {
 	b.Helper()
 
@@ -19,11 +29,7 @@ func benchStoreWithNEvents(b *testing.B, n int) {
 
 	ctx := context.Background()
 
-	for range n {
-		aggID := id.NewAggregateID()
-		evt := benchEvent(b, aggID, 1)
-		_ = store.AppendBatch(ctx, event.NewAggregateRef("Bench", aggID), []event.Event{evt})
-	}
+	benchPopulateStore(b, store, ctx, n)
 
 	b.ResetTimer()
 
@@ -91,9 +97,9 @@ func BenchmarkMemoryStore_Save_Concurrent(b *testing.B) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			aggID := id.NewAggregateID()
-			evt := benchEvent(b, aggID, 1)
-			_ = store.Save(ctx, event.NewAggregateRef("Bench", aggID), []event.Event{evt}, 0)
+			newID := id.NewAggregateID()
+			newEvt := benchEvent(b, newID, 1)
+			_ = store.Save(ctx, event.NewAggregateRef("Bench", newID), []event.Event{newEvt}, 0)
 		}()
 	}
 
@@ -108,11 +114,7 @@ func BenchmarkMemoryStore_ReadWrite_Concurrent(b *testing.B) {
 
 	ctx := context.Background()
 
-	for range 100 {
-		aggID := id.NewAggregateID()
-		evt := benchEvent(b, aggID, 1)
-		_ = store.AppendBatch(ctx, event.NewAggregateRef("Bench", aggID), []event.Event{evt})
-	}
+	benchPopulateStore(b, store, ctx, 100)
 
 	var wg sync.WaitGroup
 

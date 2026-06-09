@@ -68,11 +68,7 @@ func BenchmarkMemoryStore_ReadAll(b *testing.B) {
 
 	ctx := context.Background()
 
-	for range 1000 {
-		aggID := id.NewAggregateID()
-		evt := benchEvent(b, aggID, 1)
-		_ = store.AppendBatch(ctx, event.NewAggregateRef("Bench", aggID), []event.Event{evt})
-	}
+	benchPopulateStore(b, store, ctx, 1000)
 
 	b.ResetTimer()
 

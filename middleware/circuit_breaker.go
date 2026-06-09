@@ -179,11 +179,7 @@ func NewCircuitBreaker[M any](
 ) Middleware[M] {
 	err := config.Validate()
 	if err != nil {
-		return func(Handler[M]) Handler[M] {
-			return func(_ context.Context, _ M) error {
-				return err
-			}
-		}
+		return failingMiddleware[M](err)
 	}
 
 	cfg := applyOptions(opts)

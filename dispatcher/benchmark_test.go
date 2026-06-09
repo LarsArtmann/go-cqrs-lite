@@ -66,6 +66,9 @@ func BenchmarkDispatcher_Close(b *testing.B) {
 	b.ResetTimer()
 	for b.Loop() {
 		d := dispatcher.NewDispatcher[benchHandler, func(benchHandler) benchHandler]()
-		_ = d.Close()
+
+		if closeErr := d.Close(); closeErr != nil {
+			b.Fatalf("Close: %v", closeErr)
+		}
 	}
 }

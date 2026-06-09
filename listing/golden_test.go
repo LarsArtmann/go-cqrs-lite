@@ -15,30 +15,46 @@ import (
 
 var update = flag.Bool("update", false, "update golden files")
 
+func testListingStatus(
+	aggID id.AggregateID,
+	aggType string,
+	v int,
+	evtCount int,
+	lastEventAt time.Time,
+	status event.TombstoneStatus,
+) listing.AggregateStatus {
+	return listing.AggregateStatus{
+		Ref: listing.AggregateListing{
+			ID:          aggID,
+			Type:        event.AggregateType(aggType),
+			Version:     event.Version(v),
+			EventCount:  uint(evtCount),
+			LastEventAt: lastEventAt,
+		},
+		Status: status,
+	}
+}
+
 func TestGolden_AggregateStatusJSON(t *testing.T) {
 	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
 	statuses := []listing.AggregateStatus{
-		{
-			Ref: listing.AggregateListing{
-				ID:          aggID,
-				Type:        "User",
-				Version:     event.Version(10),
-				EventCount:  10,
-				LastEventAt: time.Date(2026, 6, 1, 12, 0, 0, 0, time.UTC),
-			},
-			Status: event.TombstoneActive,
-		},
-		{
-			Ref: listing.AggregateListing{
-				ID:          aggID,
-				Type:        "Order",
-				Version:     event.Version(5),
-				EventCount:  5,
-				LastEventAt: time.Date(2026, 5, 15, 8, 30, 0, 0, time.UTC),
-			},
-			Status: event.TombstoneTombstoned,
-		},
+		testListingStatus(
+			aggID,
+			"User",
+			10,
+			10,
+			time.Date(2026, 6, 1, 12, 0, 0, 0, time.UTC),
+			event.TombstoneActive,
+		),
+		testListingStatus(
+			aggID,
+			"Order",
+			5,
+			5,
+			time.Date(2026, 5, 15, 8, 30, 0, 0, time.UTC),
+			event.TombstoneTombstoned,
+		),
 		{
 			Ref: listing.AggregateListing{
 				ID:          aggID,
@@ -69,16 +85,14 @@ func TestGolden_PageJSON(t *testing.T) {
 
 	page := listing.Page[listing.AggregateStatus]{
 		Items: []listing.AggregateStatus{
-			{
-				Ref: listing.AggregateListing{
-					ID:          aggID,
-					Type:        "User",
-					Version:     event.Version(3),
-					EventCount:  3,
-					LastEventAt: time.Date(2026, 3, 1, 0, 0, 0, 0, time.UTC),
-				},
-				Status: event.TombstoneActive,
-			},
+			testListingStatus(
+				aggID,
+				"User",
+				3,
+				3,
+				time.Date(2026, 3, 1, 0, 0, 0, 0, time.UTC),
+				event.TombstoneActive,
+			),
 		},
 		HasMore: true,
 	}

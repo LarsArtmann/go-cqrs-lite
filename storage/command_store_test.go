@@ -34,29 +34,33 @@ func newTestCommandStore(t *testing.T) *storage.SQLCommandStore {
 
 func testCommand(
 	t *testing.T,
-	cmdType command.Type,
-	ref command.AggregateRef,
+	typ command.Type,
+	aggregateRef command.AggregateRef,
 ) *command.PersistedCommand {
 	t.Helper()
 
-	cmd, err := command.NewPersistedCommand(cmdType, ref, []byte(`{"name":"Alice"}`))
-	if err != nil {
-		t.Fatalf("create test command: %v", err)
+	persisted, createErr := command.NewPersistedCommand(
+		typ,
+		aggregateRef,
+		[]byte(`{"name":"Alice"}`),
+	)
+	if createErr != nil {
+		t.Fatalf("create test command: %v", createErr)
 	}
 
-	return cmd
+	return persisted
 }
 
 func requireCommandCount(
 	t *testing.T,
-	commands []*command.PersistedCommand,
-	want int,
+	cmds []*command.PersistedCommand,
+	expected int,
 	desc string,
 ) {
 	t.Helper()
 
-	if len(commands) != want {
-		t.Fatalf("expected %d commands %s, got %d", want, desc, len(commands))
+	if len(cmds) != expected {
+		t.Fatalf("expected %d commands %s, got %d", expected, desc, len(cmds))
 	}
 }
 

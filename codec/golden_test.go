@@ -85,9 +85,13 @@ func TestGolden_RawCodec_Passthrough(t *testing.T) {
 
 	goldenPath := filepath.Join(goldenDir(), "raw_passthrough.bin")
 
-	assertCodecGolden(t, goldenPath, got, func(got, want []byte) {
-		if string(got) != string(want)[:len(string(want))-1] {
-			t.Errorf("Raw passthrough mismatch\n got: %s\nwant: %s", got, want)
+	assertCodecGolden(t, goldenPath, got, func(actual, expected []byte) {
+		if string(actual) != string(expected)[:len(string(expected))-1] {
+			t.Errorf(
+				"Raw passthrough mismatch\n got: %s\nwant: %s",
+				actual,
+				expected,
+			)
 		}
 	})
 }

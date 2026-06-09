@@ -190,10 +190,10 @@ func assertCommandCount(t *testing.T, loaded []*command.PersistedCommand, want i
 	}
 }
 
-func assertCommandID(t *testing.T, got, want id.CommandID, desc string) {
+func checkCommandID(t *testing.T, got, want id.CommandID, desc string) {
 	t.Helper()
 	if got != want {
-		t.Errorf("%s command ID mismatch: got %v, want %v", desc, got, want)
+		t.Errorf("%s ID mismatch: got %v, want %v", desc, got, want)
 	}
 }
 
@@ -214,8 +214,8 @@ func TestMemoryCommandStore_LoadFromTimestamp(t *testing.T) {
 	}
 
 	assertCommandCount(t, loaded, 2, "after 2025-01-10")
-	assertCommandID(t, loaded[0].ID(), cmd2.ID(), "first")
-	assertCommandID(t, loaded[1].ID(), cmd3.ID(), "second")
+	checkCommandID(t, loaded[0].ID(), cmd2.ID(), "first")
+	checkCommandID(t, loaded[1].ID(), cmd3.ID(), "second")
 }
 
 func TestMemoryCommandStore_LoadToTimestamp(t *testing.T) {
@@ -235,8 +235,8 @@ func TestMemoryCommandStore_LoadToTimestamp(t *testing.T) {
 	}
 
 	assertCommandCount(t, loaded, 2, "up to 2025-01-20")
-	assertCommandID(t, loaded[0].ID(), cmd1.ID(), "first")
-	assertCommandID(t, loaded[1].ID(), cmd2.ID(), "second")
+	checkCommandID(t, loaded[0].ID(), cmd1.ID(), "first")
+	checkCommandID(t, loaded[1].ID(), cmd2.ID(), "second")
 }
 
 func TestMemoryCommandStore_Close(t *testing.T) {

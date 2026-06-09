@@ -77,10 +77,9 @@ func TestPostgresDialect_ParseTime(t *testing.T) {
 func TestPostgresDialect_ParseTime_WrongType(t *testing.T) {
 	t.Parallel()
 
-	d := sqlpkg.PostgresDialect{}
-
-	_, err := d.ParseTime("not a time pointer")
-	if err == nil {
+	var d sqlpkg.PostgresDialect
+	_, parseErr := d.ParseTime("not a time pointer")
+	if parseErr == nil {
 		t.Fatal("expected error for wrong type")
 	}
 }
@@ -156,10 +155,9 @@ func TestSQLiteDialect_ParseTime(t *testing.T) {
 func TestSQLiteDialect_ParseTime_WrongType(t *testing.T) {
 	t.Parallel()
 
-	d := sqlpkg.SQLiteDialect{}
-
-	_, err := d.ParseTime(42)
-	if err == nil {
+	var d sqlpkg.SQLiteDialect
+	_, parseErr := d.ParseTime(42)
+	if parseErr == nil {
 		t.Fatal("expected error for wrong type")
 	}
 }
