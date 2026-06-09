@@ -152,10 +152,20 @@ func BenchmarkMetadata_access(b *testing.B) {
 		},
 	}
 
-	b.Run("Clone", func(b *testing.B) {
+	b.Run("Clone/with_custom", func(b *testing.B) {
 		b.ReportAllocs()
 		for b.Loop() {
 			_ = meta.Clone()
+		}
+	})
+
+	b.Run("Clone/no_custom", func(b *testing.B) {
+		b.ReportAllocs()
+		noCustom := meta
+		noCustom.Custom = nil
+
+		for b.Loop() {
+			_ = noCustom.Clone()
 		}
 	})
 

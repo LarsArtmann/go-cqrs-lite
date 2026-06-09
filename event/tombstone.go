@@ -92,16 +92,39 @@ func copyWithMetadata(evt Event, key MetadataKey, label string) (*ImmutableEvent
 		return nil, NewRejection("event.nil_event", label+": event is required")
 	}
 
-	return NewEvent(
-		evt.Type(),
-		evt.AggregateID(),
-		evt.AggregateType(),
-		evt.Version(),
-		evt.Payload(),
-		WithEventID(evt.ID()),
-		WithOccurredAt(evt.OccurredAt()),
-		WithSchemaVersion(evt.SchemaVersion()),
-		WithMetadata(evt.Metadata()),
-		WithCustom(key, "true"),
-	)
+	rawPayload := payloadForDecode(evt)
+
+	var safePayload []byte
+	if rawPayload != nil {
+		safePayload = make([]byte, len(rawPayload))
+		copy(safePayload, rawPayload)
+	}
+
+	md := evt.Metadata()
+	if md.Custom == nil {
+		md.Custom = make(map[MetadataKey]string)
+	}
+
+	md.Custom[key] = "true"
+
+	deadline, hasDeadline := evt.Deadline()
+
+	var opts *eventOptions
+	if hasDeadline {
+		opts = &eventOptions{deadline: deadline}
+	}
+
+	return &ImmutableEvent{
+		id:            evt.ID(),
+		eventType:     evt.Type(),
+		aggregateID:   evt.AggregateID(),
+		aggregateType: evt.AggregateType(),
+		version:       evt.Version(),
+		schemaVersion: evt.SchemaVersion(),
+		encoding:      encodingForCopy(evt),
+		payload:       safePayload,
+		metadata:      md,
+		occurredAt:    evt.OccurredAt(),
+		opts:          opts,
+	}, nil
 }

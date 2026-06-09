@@ -66,7 +66,17 @@ func MustParseAggregateType(s string) AggregateType {
 	return t
 }
 
-// Event represents a domain event with rich metadata.
+// Event represents an immutable domain event with rich metadata.
+//
+// Implementations must ensure that mutable return values ([]byte, maps, slices)
+// are safe copies — callers must be unable to mutate the event's internal state
+// through the returned reference. Specifically:
+//
+//   - Payload() must return a copy of the internal byte slice.
+//   - Metadata() must return a deep copy of the internal map.
+//
+// Value-type accessors (ID, Type, AggregateID, etc.) are inherently safe since
+// they return by value.
 type Event interface {
 	ID() id.EventID
 	Type() Type

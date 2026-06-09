@@ -83,13 +83,17 @@ func (m MultiSignature) HasActor(actor Actor) bool {
 	return slices.ContainsFunc(m.Entries, func(e SignatureEntry) bool { return e.Actor == actor })
 }
 
-// Get returns the signature entry for a given actor, or nil.
+// Get returns a copy of the signature entry for a given actor, or nil.
+// The returned pointer references an independent copy; mutations will not
+// affect the MultiSignature's internal state.
 func (m MultiSignature) Get(actor Actor) *SignatureEntry {
 	if idx := slices.IndexFunc(
 		m.Entries,
 		func(e SignatureEntry) bool { return e.Actor == actor },
 	); idx >= 0 {
-		return &m.Entries[idx]
+		cp := m.Entries[idx]
+
+		return &cp
 	}
 
 	return nil

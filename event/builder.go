@@ -2,6 +2,7 @@ package event
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
@@ -32,7 +33,7 @@ func newBuilder(
 }
 
 func (b *builder) WithPayload(payload []byte) *builder {
-	b.payload = payload
+	b.payload = slices.Clone(payload)
 
 	return b
 }

@@ -112,6 +112,19 @@ func TestMultiSignature(t *testing.T) {
 		}
 	})
 
+	t.Run("get returns independent copy", func(t *testing.T) {
+		t.Parallel()
+		entry := multiSig.Get(multisig.Actor("server"))
+		if entry == nil {
+			t.Fatal("expected entry for server")
+		}
+		entry.Actor = "mutated"
+		original := multiSig.Get(multisig.Actor("server"))
+		if original.Actor != "server" {
+			t.Fatal("Get() returned a pointer into the internal slice — mutations leak")
+		}
+	})
+
 	t.Run("actors", func(t *testing.T) {
 		t.Parallel()
 		actors := multiSig.Actors()

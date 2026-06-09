@@ -17,6 +17,9 @@ import (
 type Signature []byte
 
 // Bytes returns a copy of the raw signature bytes.
+// The clone is retained for defensive consistency: callers cannot mutate the
+// signature through the returned slice, matching the pattern used by
+// [event.Event.Payload] and [event.Metadata.Clone].
 func (s Signature) Bytes() []byte {
 	return slices.Clone(s)
 }

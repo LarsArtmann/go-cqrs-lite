@@ -2,7 +2,9 @@ package event_test
 
 import (
 	"testing"
+	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
@@ -193,4 +195,150 @@ func TestMarkRebirth(t *testing.T) {
 			t.Error("rebirth metadata not set")
 		}
 	})
+}
+
+func TestMarkTombstone_AllFieldsPreserved(t *testing.T) {
+	t.Parallel()
+
+	deadline := time.Date(2026, 6, 9, 22, 0, 0, 0, time.UTC)
+	schemaV, err := event.ParseSchemaVersion(3)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	orig, err := event.NewEvent(
+		"user.deleted", id.NewAggregateID(), "User",
+		event.Version(5), []byte(`{"reason":"gdpr"}`),
+		event.WithEncoding(codec.Encoding("custom")),
+		event.WithSchemaVersion(schemaV),
+		event.WithCorrelationID(id.NewCorrelationID()),
+		event.WithCausationID(id.NewCausationID()),
+		event.WithUserID(id.NewUserID()),
+		event.WithDeadline(deadline),
+		event.WithCustom("traceId", "abc-123"),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	marked, err := event.MarkTombstone(orig)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if marked.ID() != orig.ID() {
+		t.Error("ID not preserved")
+	}
+
+	if marked.Type() != orig.Type() {
+		t.Error("Type not preserved")
+	}
+
+	if marked.AggregateID() != orig.AggregateID() {
+		t.Error("AggregateID not preserved")
+	}
+
+	if marked.AggregateType() != orig.AggregateType() {
+		t.Error("AggregateType not preserved")
+	}
+
+	if marked.Version() != orig.Version() {
+		t.Error("Version not preserved")
+	}
+
+	if marked.SchemaVersion() != orig.SchemaVersion() {
+		t.Error("SchemaVersion not preserved")
+	}
+
+	if marked.Encoding() != orig.Encoding() {
+		t.Errorf("Encoding not preserved: got %q, want %q", marked.Encoding(), orig.Encoding())
+	}
+
+	if string(marked.Payload()) != string(orig.Payload()) {
+		t.Error("Payload not preserved")
+	}
+
+	if marked.OccurredAt() != orig.OccurredAt() {
+		t.Error("OccurredAt not preserved")
+	}
+
+	markDeadline, markHas := marked.Deadline()
+	origDeadline, origHas := orig.Deadline()
+	if markHas != origHas || markDeadline != origDeadline {
+		t.Error("Deadline not preserved")
+	}
+
+	md := marked.Metadata()
+	if md.Custom[event.MetadataKeyTombstone] != "true" {
+		t.Error("tombstone metadata not set")
+	}
+
+	if md.CorrelationID != orig.Metadata().CorrelationID {
+		t.Error("CorrelationID not preserved")
+	}
+
+	if md.CausationID != orig.Metadata().CausationID {
+		t.Error("CausationID not preserved")
+	}
+
+	if md.UserID != orig.Metadata().UserID {
+		t.Error("UserID not preserved")
+	}
+
+	if md.Custom["traceId"] != "abc-123" {
+		t.Error("existing custom metadata not preserved")
+	}
+}
+
+func TestMarkRebirth_AllFieldsPreserved(t *testing.T) {
+	t.Parallel()
+
+	orig, err := event.NewEvent(
+		"user.reactivated", id.NewAggregateID(), "User",
+		event.Version(6), []byte(`{"source":"admin"}`),
+		event.WithCorrelationID(id.NewCorrelationID()),
+		event.WithUserID(id.NewUserID()),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	marked, err := event.MarkRebirth(orig)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if marked.ID() != orig.ID() {
+		t.Error("ID not preserved")
+	}
+
+	if marked.Type() != orig.Type() {
+		t.Error("Type not preserved")
+	}
+
+	if marked.AggregateID() != orig.AggregateID() {
+		t.Error("AggregateID not preserved")
+	}
+
+	if marked.Version() != orig.Version() {
+		t.Error("Version not preserved")
+	}
+
+	md := marked.Metadata()
+	if md.Custom[event.MetadataKeyRebirth] != "true" {
+		t.Error("rebirth metadata not set")
+	}
+
+	if md.CorrelationID != orig.Metadata().CorrelationID {
+		t.Error("CorrelationID not preserved")
+	}
+
+	if md.UserID != orig.Metadata().UserID {
+		t.Error("UserID not preserved")
+	}
+
+	origMd := orig.Metadata()
+	if origMd.Custom[event.MetadataKeyRebirth] != "" {
+		t.Error("original event was modified")
+	}
 }

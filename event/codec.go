@@ -50,14 +50,25 @@ func payloadForDecode(evt Event) []byte {
 	return evt.Payload()
 }
 
+// encodingForCopy returns the raw encoding field without normalization.
+// Encoding() converts "" to "json", but copies should preserve the original
+// field value to avoid altering the event's stored representation.
+func encodingForCopy(evt Event) codec.Encoding {
+	if ie, ok := evt.(*ImmutableEvent); ok {
+		return ie.encoding
+	}
+
+	return evt.Encoding()
+}
+
 // DecodePayloads decodes multiple events' payloads into a slice of typed values.
+// Validates encoding once for the batch instead of per-event.
 // Returns an error at the first decode failure, indicating the index.
 func DecodePayloads[T any](events []Event, c codec.Codec) ([]T, error) {
 	result := make([]T, 0, len(events))
 
 	for i, evt := range events {
-		v, err := DecodePayload[T](evt, c)
-		if err != nil {
+		if err := validateEncodingMatch(evt, c); err != nil {
 			return nil, WrapCorruption(
 				err,
 				"event.decode_payload_failed",
@@ -65,7 +76,20 @@ func DecodePayloads[T any](events []Event, c codec.Codec) ([]T, error) {
 			)
 		}
 
-		result = append(result, v)
+		payload := payloadForDecode(evt)
+
+		var target T
+		if len(payload) > 0 {
+			if err := c.Decode(payload, &target); err != nil {
+				return nil, WrapCorruption(
+					err,
+					"event.decode_payload_failed",
+					"decode payload ["+strconv.Itoa(i)+"] for event "+string(evt.Type()),
+				)
+			}
+		}
+
+		result = append(result, target)
 	}
 
 	return result, nil
