@@ -6,7 +6,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
-func noopQueryHandler() func(context.Context, query.Query) (any, error) {
+func noopQueryHandler() query.Handler {
 	return func(_ context.Context, _ query.Query) (any, error) {
 		return nil, nil
 	}

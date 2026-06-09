@@ -87,10 +87,13 @@ func TestPostgresDialect_ParseTime_WrongType(t *testing.T) {
 	}
 }
 
-func TestPostgresDialect_Schemas(t *testing.T) {
-	t.Parallel()
-
-	d := sqlpkg.PostgresDialect{}
+func assertSchemasNonEmpty(t *testing.T, d interface {
+	EventSchema() string
+	SnapshotSchema() string
+	CheckpointSchema() string
+},
+) {
+	t.Helper()
 
 	for _, schema := range []struct {
 		name string
@@ -105,6 +108,12 @@ func TestPostgresDialect_Schemas(t *testing.T) {
 			t.Errorf("%s returned empty string", schema.name)
 		}
 	}
+}
+
+func TestPostgresDialect_Schemas(t *testing.T) {
+	t.Parallel()
+
+	assertSchemasNonEmpty(t, sqlpkg.PostgresDialect{})
 }
 
 func TestSQLiteDialect_Placeholder(t *testing.T) {
@@ -183,21 +192,7 @@ func TestSQLiteDialect_ParseTime_WrongType(t *testing.T) {
 func TestSQLiteDialect_Schemas(t *testing.T) {
 	t.Parallel()
 
-	d := sqlpkg.SQLiteDialect{}
-
-	for _, schema := range []struct {
-		name string
-		fn   func() string
-	}{
-		{"EventSchema", d.EventSchema},
-		{"SnapshotSchema", d.SnapshotSchema},
-		{"CheckpointSchema", d.CheckpointSchema},
-	} {
-		s := schema.fn()
-		if s == "" {
-			t.Errorf("%s returned empty string", schema.name)
-		}
-	}
+	assertSchemasNonEmpty(t, sqlpkg.SQLiteDialect{})
 }
 
 func TestParseSQLiteTimestamp(t *testing.T) {

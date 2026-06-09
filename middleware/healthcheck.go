@@ -73,57 +73,41 @@ func HealthCheckHandler(version string, checks ...HealthChecker) http.Handler {
 		}
 
 		if isReady {
-			for i, check := range checks {
-				result := check(ctx)
-
-				if result.Time == "" {
-					result.Time = now
-				}
-
-				name := result.ComponentID
-
-				if name == "" {
-					name = "check-" + strconv.Itoa(i)
-				}
-
-				resp.Checks[name] = result
-
-				if result.Status == HealthStatusFail {
-					resp.Status = HealthStatusFail
-				} else if result.Status == HealthStatusWarn && resp.Status == HealthStatusPass {
-					resp.Status = HealthStatusWarn
-				}
-			}
+			runChecks(ctx, now, checks, &resp)
 
 			writeHealthResponse(w, resp)
 
 			return
 		}
 
-		for i, check := range checks {
-			result := check(ctx)
-
-			if result.Time == "" {
-				result.Time = now
-			}
-
-			name := result.ComponentID
-
-			if name == "" {
-				name = "check-" + strconv.Itoa(i)
-			}
-
-			resp.Checks[name] = result
-
-			if result.Status == HealthStatusFail {
-				resp.Status = HealthStatusFail
-			} else if result.Status == HealthStatusWarn && resp.Status == HealthStatusPass {
-				resp.Status = HealthStatusWarn
-			}
-		}
+		runChecks(ctx, now, checks, &resp)
 
 		writeHealthResponse(w, resp)
 	})
+}
+
+func runChecks(ctx context.Context, now string, checks []HealthChecker, resp *HealthCheckResponse) {
+	for i, check := range checks {
+		result := check(ctx)
+
+		if result.Time == "" {
+			result.Time = now
+		}
+
+		name := result.ComponentID
+
+		if name == "" {
+			name = "check-" + strconv.Itoa(i)
+		}
+
+		resp.Checks[name] = result
+
+		if result.Status == HealthStatusFail {
+			resp.Status = HealthStatusFail
+		} else if result.Status == HealthStatusWarn && resp.Status == HealthStatusPass {
+			resp.Status = HealthStatusWarn
+		}
+	}
 }
 
 func writeHealthResponse(w http.ResponseWriter, resp HealthCheckResponse) {

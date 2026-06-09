@@ -81,13 +81,7 @@ func (a *EventStore) ReadFrom(
 	for iter.First(); iter.Valid(); iter.Next() {
 		evt, err := a.deserializeEvent(iter.Value())
 		if err != nil {
-			if a.logger != nil {
-				a.logger.Warn("corrupt journal event in pebble store",
-					"key", string(iter.Key()), "error", err)
-			}
-
-			return nil, event.WrapCorruption(err, "pebble.corrupt_journal_event",
-				"corrupt journal event at key "+string(iter.Key()))
+			return nil, a.corruptEventErr(string(iter.Key()), err)
 		}
 
 		if skipping {

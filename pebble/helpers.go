@@ -133,6 +133,16 @@ func (a *EventStore) commitAndLog(
 	return nil
 }
 
+// corruptEventErr logs a warning and returns a corruption error for a corrupt event.
+func (a *EventStore) corruptEventErr(key string, err error) error {
+	if a.logger != nil {
+		a.logger.Warn("corrupt event in pebble store", "key", key, "error", err)
+	}
+
+	return event.WrapCorruption(err, "pebble.corrupt_event",
+		"corrupt event at key "+key)
+}
+
 // checkIteratorError checks an iterator for errors and returns an appropriate error.
 func checkIteratorError(iter *pebble.Iterator) error {
 	err := iter.Error()

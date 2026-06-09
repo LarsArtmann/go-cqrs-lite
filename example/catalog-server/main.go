@@ -42,6 +42,25 @@ type CreateUserPayload struct {
 	Name  string `json:"name"`
 }
 
+func addEvent(
+	reg *catalog.Registry,
+	msgID catalog.MessageID,
+	name, summary string,
+	direction catalog.Direction,
+	props ...string,
+) {
+	schema := &catalog.Schema{Type: catalog.TypeObject, Properties: map[string]catalog.Property{}}
+	for _, p := range props {
+		schema.Properties[p] = catalog.Property{Type: catalog.TypeString}
+	}
+
+	reg.AddEvent("user-service", catalog.Message{
+		Kind: catalog.EventMessage, ID: msgID, Name: name,
+		Version: "1.0.0", Summary: summary, Direction: direction,
+		Schema: schema,
+	})
+}
+
 func buildCatalog() *catalog.Catalog {
 	reg := catalog.NewRegistry("User Service", "1.0.0")
 
@@ -53,63 +72,30 @@ func buildCatalog() *catalog.Catalog {
 	})
 
 	reg.AddCommand("user-service", catalog.Message{
-		Kind:      catalog.CommandMessage,
-		ID:        "CreateUser",
-		Name:      "Create User",
-		Version:   "1.0.0",
-		Summary:   "Create a new user account",
-		Direction: catalog.Receives,
+		Kind: catalog.CommandMessage, ID: "CreateUser", Name: "Create User",
+		Version: "1.0.0", Summary: "Create a new user account", Direction: catalog.Receives,
 		Schema: &catalog.Schema{Type: catalog.TypeObject, Properties: map[string]catalog.Property{
-			"email": {Type: catalog.TypeString},
-			"name":  {Type: catalog.TypeString},
+			"email": {Type: catalog.TypeString}, "name": {Type: catalog.TypeString},
 		}},
 	})
 
 	reg.AddCommand("user-service", catalog.Message{
-		Kind:      catalog.CommandMessage,
-		ID:        "ChangeUserName",
-		Name:      "Change User Name",
-		Version:   "1.0.0",
-		Summary:   "Change a user's display name",
-		Direction: catalog.Receives,
+		Kind: catalog.CommandMessage, ID: "ChangeUserName", Name: "Change User Name",
+		Version: "1.0.0", Summary: "Change a user's display name", Direction: catalog.Receives,
 		Schema: &catalog.Schema{Type: catalog.TypeObject, Properties: map[string]catalog.Property{
 			"name": {Type: catalog.TypeString},
 		}},
 	})
 
-	reg.AddEvent("user-service", catalog.Message{
-		Kind:      catalog.EventMessage,
-		ID:        "UserCreated",
-		Name:      "User Created",
-		Version:   "1.0.0",
-		Summary:   "A new user account was created",
-		Direction: catalog.Sends,
-		Schema: &catalog.Schema{Type: catalog.TypeObject, Properties: map[string]catalog.Property{
-			"email": {Type: catalog.TypeString},
-			"name":  {Type: catalog.TypeString},
-		}},
-	})
+	addEvent(reg, "UserCreated", "User Created",
+		"A new user account was created", catalog.Sends, "email", "name")
 
-	reg.AddEvent("user-service", catalog.Message{
-		Kind:      catalog.EventMessage,
-		ID:        "UserNameChanged",
-		Name:      "User Name Changed",
-		Version:   "1.0.0",
-		Summary:   "A user's name was changed",
-		Direction: catalog.Sends,
-		Schema: &catalog.Schema{Type: catalog.TypeObject, Properties: map[string]catalog.Property{
-			"oldName": {Type: catalog.TypeString},
-			"newName": {Type: catalog.TypeString},
-		}},
-	})
+	addEvent(reg, "UserNameChanged", "User Name Changed",
+		"A user's name was changed", catalog.Sends, "oldName", "newName")
 
 	reg.AddQuery("user-service", catalog.Message{
-		Kind:      catalog.QueryMessage,
-		ID:        "GetUser",
-		Name:      "Get User",
-		Version:   "1.0.0",
-		Summary:   "Get a user by ID",
-		Direction: catalog.Receives,
+		Kind: catalog.QueryMessage, ID: "GetUser", Name: "Get User",
+		Version: "1.0.0", Summary: "Get a user by ID", Direction: catalog.Receives,
 		Schema: &catalog.Schema{Type: catalog.TypeObject, Properties: map[string]catalog.Property{
 			"id": {Type: catalog.TypeString},
 		}},

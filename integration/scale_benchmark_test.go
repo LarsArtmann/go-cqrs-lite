@@ -75,12 +75,52 @@ func noopCmdHandler() command.Handler {
 	return func(_ context.Context, _ command.Command) error { return nil }
 }
 
-func noopQueryHandler() func(context.Context, query.Query) (any, error) {
-	return func(_ context.Context, _ query.Query) (any, error) { return nil, nil }
+func benchNoopQueryHandler(_ context.Context, _ query.Query) (any, error) {
+	return nil, nil //nolint:nilnil
 }
 
 func noopEventHandler() event.Handler {
 	return func(_ context.Context, _ event.Event) error { return nil }
+}
+
+func benchCreateItem(
+	b *testing.B,
+	repo *decider.Repository[benchState],
+	ctx context.Context,
+	aggID id.AggregateID,
+) {
+	b.Helper()
+
+	err := repo.Execute(
+		ctx, aggID, "Item",
+		func(_ benchState, v event.Version) ([]event.Event, error) {
+			return []event.Event{
+				newBenchEvent(b, "ItemCreated", aggID, v.Increment()),
+			}, nil
+		},
+	)
+	if err != nil {
+		b.Fatalf("Execute: %v", err)
+	}
+}
+
+func benchCreateItemConcurrent(
+	b *testing.B,
+	repo *decider.Repository[benchState],
+	ctx context.Context,
+) id.AggregateID {
+	b.Helper()
+
+	aggID := id.NewAggregateID()
+	decide := func(_ benchState, v event.Version) ([]event.Event, error) {
+		return []event.Event{newBenchEvent(b, "ItemCreated", aggID, v.Increment())}, nil
+	}
+
+	if err := repo.Execute(ctx, aggID, "Item", decide); err != nil {
+		b.Errorf("concurrent Execute: %v", err)
+	}
+
+	return aggID
 }
 
 // ---------------------------------------------------------------------------
@@ -245,17 +285,7 @@ func BenchmarkScale_DeciderExecute_ManyAggregates(b *testing.B) {
 	b.ResetTimer()
 
 	for i := range aggIDs {
-		err := repo.Execute(
-			ctx, aggIDs[i], "Item",
-			func(_ benchState, v event.Version) ([]event.Event, error) {
-				return []event.Event{
-					newBenchEvent(b, "ItemCreated", aggIDs[i], v.Increment()),
-				}, nil
-			},
-		)
-		if err != nil {
-			b.Fatalf("Execute: %v", err)
-		}
+		benchCreateItem(b, repo, ctx, aggIDs[i])
 	}
 }
 
@@ -270,34 +300,14 @@ func BenchmarkScale_DeciderExecute_1000Aggregates_100UpdatesEach(b *testing.B) {
 	for i := range aggIDs {
 		aggIDs[i] = id.NewAggregateID()
 
-		err := repo.Execute(
-			ctx, aggIDs[i], "Item",
-			func(_ benchState, v event.Version) ([]event.Event, error) {
-				return []event.Event{
-					newBenchEvent(b, "ItemCreated", aggIDs[i], v.Increment()),
-				}, nil
-			},
-		)
-		if err != nil {
-			b.Fatalf("seed Execute: %v", err)
-		}
+		benchCreateItem(b, repo, ctx, aggIDs[i])
 	}
 
 	b.ResetTimer()
 
 	for b.Loop() {
 		for i := range aggIDs {
-			err := repo.Execute(
-				ctx, aggIDs[i], "Item",
-				func(_ benchState, v event.Version) ([]event.Event, error) {
-					return []event.Event{
-						newBenchEvent(b, "ItemCreated", aggIDs[i], v.Increment()),
-					}, nil
-				},
-			)
-			if err != nil {
-				b.Fatalf("Execute: %v", err)
-			}
+			benchCreateItem(b, repo, ctx, aggIDs[i])
 		}
 	}
 
@@ -479,7 +489,7 @@ func BenchmarkScale_QueryDispatch_1000Handlers(b *testing.B) {
 	for i := range handlerCount {
 		err := dispatcher.Register(
 			query.Type(fmt.Sprintf("query.%d", i)),
-			noopQueryHandler(),
+			benchNoopQueryHandler,
 		)
 		if err != nil {
 			b.Fatalf("register: %v", err)
@@ -807,20 +817,7 @@ func BenchmarkScale_Concurrent_DeciderExecute_4Goroutines(b *testing.B) {
 				defer wg.Done()
 
 				for range opsPerWorker {
-					aggID := id.NewAggregateID()
-					err := repo.Execute(
-						ctx, aggID, "Item",
-						func(_ benchState, v event.Version) ([]event.Event, error) {
-							return []event.Event{
-								newBenchEvent(b, "ItemCreated", aggID, v.Increment()),
-							}, nil
-						},
-					)
-					if err != nil {
-						b.Errorf("Execute: %v", err)
-
-						return
-					}
+					benchCreateItemConcurrent(b, repo, ctx)
 				}
 			}()
 		}

@@ -78,7 +78,8 @@ func TestGolden_EventStoreRoundTrip(t *testing.T) {
 	}
 
 	snaps := make([]snapEvent, len(loaded))
-	for i, e := range loaded {
+	for i := range loaded {
+		e := loaded[i]
 		snaps[i] = snapEvent{
 			ID:       e.ID().String(),
 			Type:     string(e.Type()),

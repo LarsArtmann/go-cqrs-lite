@@ -11,29 +11,50 @@ import (
 const testVersion = "v2.2.0"
 
 func TestHealthCheckHandler_Live(t *testing.T) {
-	handler := HealthCheckHandler(testVersion)
+	t.Parallel()
 
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/health/live", nil)
-	rec := httptest.NewRecorder()
-
-	handler.ServeHTTP(rec, req)
-
-	if rec.Code != http.StatusOK {
-		t.Fatalf("expected 200, got %d", rec.Code)
+	tests := []struct {
+		name string
+		path string
+	}{
+		{"LiveEndpoint", "/health/live"},
+		{"DefaultEndpoint", "/health"},
 	}
 
-	var resp HealthCheckResponse
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
-		t.Fatalf("failed to decode response: %v", err)
-	}
+			handler := HealthCheckHandler(testVersion)
 
-	if resp.Status != HealthStatusPass {
-		t.Fatalf("expected status pass, got %s", resp.Status)
-	}
+			req := httptest.NewRequestWithContext(
+				context.Background(),
+				http.MethodGet,
+				tt.path,
+				nil,
+			)
+			rec := httptest.NewRecorder()
 
-	if _, ok := resp.Checks["liveness"]; !ok {
-		t.Fatal("expected liveness check")
+			handler.ServeHTTP(rec, req)
+
+			if rec.Code != http.StatusOK {
+				t.Fatalf("expected 200, got %d", rec.Code)
+			}
+
+			var resp HealthCheckResponse
+
+			if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+				t.Fatalf("failed to decode response: %v", err)
+			}
+
+			if resp.Status != HealthStatusPass {
+				t.Fatalf("expected status pass, got %s", resp.Status)
+			}
+
+			if _, ok := resp.Checks["liveness"]; !ok {
+				t.Fatal("expected liveness check")
+			}
+		})
 	}
 }
 
@@ -110,32 +131,5 @@ func TestHealthCheckHandler_ReadyFail(t *testing.T) {
 
 	if resp.Status != HealthStatusFail {
 		t.Fatalf("expected status fail, got %s", resp.Status)
-	}
-}
-
-func TestHealthCheckHandler_Default(t *testing.T) {
-	handler := HealthCheckHandler(testVersion)
-
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/health", nil)
-	rec := httptest.NewRecorder()
-
-	handler.ServeHTTP(rec, req)
-
-	if rec.Code != http.StatusOK {
-		t.Fatalf("expected 200, got %d", rec.Code)
-	}
-
-	var resp HealthCheckResponse
-
-	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
-		t.Fatalf("failed to decode response: %v", err)
-	}
-
-	if resp.Status != HealthStatusPass {
-		t.Fatalf("expected status pass, got %s", resp.Status)
-	}
-
-	if _, ok := resp.Checks["liveness"]; !ok {
-		t.Fatal("expected liveness check")
 	}
 }

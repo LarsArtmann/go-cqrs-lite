@@ -13,7 +13,9 @@ func collectingPublisher() (event.PublisherFunc, *[]event.Event) {
 }
 
 func trackingHandler() (func(context.Context, event.Event) error, func() bool) {
-	return testutil.TrackingHandler()
+	h, w := testutil.TrackingHandler()
+
+	return h, w
 }
 
 var noopHandler = testutil.NoopHandler

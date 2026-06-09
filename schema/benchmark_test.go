@@ -21,23 +21,23 @@ func benchEvent(tb testing.TB, aggID id.AggregateID, v event.Version) event.Even
 	return evt
 }
 
+func benchSchemaVersionUpgrade(evt event.Event) (*event.ImmutableEvent, error) {
+	return event.NewEvent(
+		evt.Type(), evt.AggregateID(), evt.AggregateType(),
+		evt.Version(), evt.Payload(),
+		event.WithSchemaVersion(2),
+	)
+}
+
+var benchUpcaster = schema.NewUpcaster("UserCreated", 1, benchSchemaVersionUpgrade)
+
 func BenchmarkNewUpcaster(b *testing.B) {
 	b.ReportAllocs()
 
 	b.ResetTimer()
 
 	for b.Loop() {
-		upcaster := schema.NewUpcaster(
-			"UserCreated", 1,
-			func(evt event.Event) (*event.ImmutableEvent, error) {
-				return event.NewEvent(
-					evt.Type(), evt.AggregateID(), evt.AggregateType(),
-					evt.Version(), evt.Payload(),
-					event.WithSchemaVersion(2),
-				)
-			},
-		)
-		_ = upcaster
+		_ = schema.NewUpcaster("UserCreated", 1, benchSchemaVersionUpgrade)
 	}
 }
 
@@ -47,18 +47,7 @@ func BenchmarkVersionedStore_Load(b *testing.B) {
 	store := memory.NewMemoryStore()
 	b.Cleanup(func() { _ = store.Close() })
 
-	upcaster := schema.NewUpcaster(
-		"UserCreated", 1,
-		func(evt event.Event) (*event.ImmutableEvent, error) {
-			return event.NewEvent(
-				evt.Type(), evt.AggregateID(), evt.AggregateType(),
-				evt.Version(), evt.Payload(),
-				event.WithSchemaVersion(2),
-			)
-		},
-	)
-
-	versionedStore, err := schema.NewVersionedStore(store, upcaster)
+	versionedStore, err := schema.NewVersionedStore(store, benchUpcaster)
 	if err != nil {
 		b.Fatalf("NewVersionedStore: %v", err)
 	}

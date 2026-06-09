@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -11,12 +10,13 @@ import (
 func TestSagaPatternCompiles(t *testing.T) {
 	t.Parallel()
 
-	dir := filepath.Join("..", "..")
-	cmd := exec.CommandContext(context.Background(), "go", "build", "./example/saga-pattern/...")
-	cmd.Dir = dir
+	rootDir := filepath.Join("..", "..")
+	buildCmd := exec.Command("go", "build", "./example/saga-pattern/...")
+	buildCmd.Dir = rootDir
 
-	if output, err := cmd.CombinedOutput(); err != nil {
-		t.Errorf("example/saga-pattern failed to compile: %s\n%s", err, output)
+	output, buildErr := buildCmd.CombinedOutput()
+	if buildErr != nil {
+		t.Errorf("example/saga-pattern failed to compile: %s\n%s", buildErr, output)
 	}
 }
 

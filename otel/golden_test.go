@@ -94,24 +94,29 @@ var _ fmt.Stringer = fixedID("")
 func assertOtelGolden(t *testing.T, path string, got []byte) {
 	t.Helper()
 
+	dir := filepath.Dir(path)
+
 	if *update {
-		if err := os.MkdirAll(filepath.Dir(path), 0o750); err != nil {
-			t.Fatalf("mkdir: %v", err)
+		if mkdirErr := os.MkdirAll(dir, 0o750); mkdirErr != nil {
+			t.Fatalf("mkdir: %v", mkdirErr)
 		}
 
-		if err := os.WriteFile(path, append(got, '\n'), 0o644); err != nil {
-			t.Fatalf("write golden: %v", err)
+		if writeErr := os.WriteFile(path, append(got, '\n'), 0o644); writeErr != nil {
+			t.Fatalf("write golden: %v", writeErr)
 		}
 
 		return
 	}
 
-	want, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatalf("read golden %s (run with -update to create): %v", path, err)
+	want, readErr := os.ReadFile(path)
+	if readErr != nil {
+		t.Fatalf("read golden %s (run with -update to create): %v", path, readErr)
 	}
 
-	if strings.TrimSpace(string(got)) != strings.TrimSpace(string(want)) {
+	gotStr := strings.TrimSpace(string(got))
+	wantStr := strings.TrimSpace(string(want))
+
+	if gotStr != wantStr {
 		t.Errorf("golden mismatch for %s (run with -update to refresh)", path)
 	}
 }

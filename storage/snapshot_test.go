@@ -209,48 +209,38 @@ func expectSnapshotLoadAtVersion(
 func TestSQLSnapshotStore_LoadAtVersion_NotFound(t *testing.T) {
 	t.Parallel()
 
-	s, mock := newTestSnapshotStore(t)
-	aggID := id.MustParseAggregateID("01HGW5FPJPYK5RE8ACZDesWMY2")
-
-	mock.ExpectQuery(`SELECT version, state, created_at FROM snapshots`).
-		WithArgs("User", aggID, 99).
-		WillReturnError(sql.ErrNoRows)
-
-	_, err := s.LoadAtVersion(
-		context.Background(),
-		event.NewAggregateRef("User", aggID),
-		event.Version(99),
-	)
-	if err == nil {
-		t.Fatal("expected error for not found")
+	tests := []struct {
+		name    string
+		version event.Version
+	}{
+		{"HighVersion", event.Version(99)},
+		{"ExceedsRequested", event.Version(5)},
 	}
 
-	if !errors.Is(err, snapshot.ErrSnapshotNotFound) {
-		t.Errorf("error = %v, want ErrSnapshotNotFound", err)
-	}
-}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-func TestSQLSnapshotStore_LoadAtVersion_VersionExceedsRequested(t *testing.T) {
-	t.Parallel()
+			s, mock := newTestSnapshotStore(t)
+			aggID := id.MustParseAggregateID("01HGW5FPJPYK5RE8ACZDesWMY2")
 
-	s, mock := newTestSnapshotStore(t)
-	aggID := id.MustParseAggregateID("01HGW5FPJPYK5RE8ACZDesWMY2")
+			mock.ExpectQuery(`SELECT version, state, created_at FROM snapshots`).
+				WithArgs("User", aggID, tt.version.Int()).
+				WillReturnError(sql.ErrNoRows)
 
-	mock.ExpectQuery(`SELECT version, state, created_at FROM snapshots`).
-		WithArgs("User", aggID, 5).
-		WillReturnError(sql.ErrNoRows)
+			_, err := s.LoadAtVersion(
+				context.Background(),
+				event.NewAggregateRef("User", aggID),
+				tt.version,
+			)
+			if err == nil {
+				t.Fatal("expected error for not found")
+			}
 
-	_, err := s.LoadAtVersion(
-		context.Background(),
-		event.NewAggregateRef("User", aggID),
-		event.Version(5),
-	)
-	if err == nil {
-		t.Fatal("expected error for not found")
-	}
-
-	if !errors.Is(err, snapshot.ErrSnapshotNotFound) {
-		t.Errorf("error = %v, want ErrSnapshotNotFound", err)
+			if !errors.Is(err, snapshot.ErrSnapshotNotFound) {
+				t.Errorf("error = %v, want ErrSnapshotNotFound", err)
+			}
+		})
 	}
 }
 

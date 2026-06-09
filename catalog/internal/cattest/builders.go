@@ -231,18 +231,28 @@ func StringSchema(props ...string) *catalog.Schema {
 
 func addServiceWithMessage(
 	tb testing.TB,
-	r *catalog.Registry,
-	serviceID catalog.ServiceID,
-	messageID catalog.MessageID,
-	name, version, summary string,
-	kind catalog.MessageKind,
-	addFn func(catalog.ServiceID, catalog.Message),
+	registry *catalog.Registry,
+	svcID catalog.ServiceID,
+	msgID catalog.MessageID,
+	msgName, msgVersion, msgSummary string,
+	msgKind catalog.MessageKind,
+	register func(catalog.ServiceID, catalog.Message),
 ) *catalog.Registry {
 	tb.Helper()
 
-	AddService(tb, r, serviceID, string(serviceID), version)
+	AddService(tb, registry, svcID, string(svcID), msgVersion)
 
-	return AddMessageSimple(tb, r, serviceID, messageID, name, version, summary, kind, addFn)
+	return AddMessageSimple(
+		tb,
+		registry,
+		svcID,
+		msgID,
+		msgName,
+		msgVersion,
+		msgSummary,
+		msgKind,
+		register,
+	)
 }
 
 func AddServiceWithQuery(

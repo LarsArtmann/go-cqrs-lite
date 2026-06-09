@@ -47,10 +47,16 @@ func testCommand(
 	return cmd
 }
 
-func assertCommandCount(t *testing.T, loaded []*command.PersistedCommand, want int, desc string) {
+func requireCommandCount(
+	t *testing.T,
+	commands []*command.PersistedCommand,
+	want int,
+	desc string,
+) {
 	t.Helper()
-	if len(loaded) != want {
-		t.Fatalf("expected %d commands %s, got %d", want, desc, len(loaded))
+
+	if len(commands) != want {
+		t.Fatalf("expected %d commands %s, got %d", want, desc, len(commands))
 	}
 }
 
@@ -195,7 +201,7 @@ func TestSQLCommandStore_LoadFromTimestamp(t *testing.T) {
 		t.Fatalf("unexpected error on LoadFromTimestamp: %v", err)
 	}
 
-	assertCommandCount(t, loaded, 2, "after 2025-01-10")
+	requireCommandCount(t, loaded, 2, "after 2025-01-10")
 	assertCommandID(t, loaded[0].ID(), cmd2.ID(), "first")
 	assertCommandID(t, loaded[1].ID(), cmd3.ID(), "second")
 }
@@ -230,7 +236,7 @@ func TestSQLCommandStore_LoadToTimestamp(t *testing.T) {
 		t.Fatalf("unexpected error on LoadToTimestamp: %v", err)
 	}
 
-	assertCommandCount(t, loaded, 2, "up to 2025-01-20")
+	requireCommandCount(t, loaded, 2, "up to 2025-01-20")
 	assertCommandID(t, loaded[0].ID(), cmd1.ID(), "first")
 	assertCommandID(t, loaded[1].ID(), cmd2.ID(), "second")
 }
