@@ -112,6 +112,30 @@ func TestNewPersistedCommand_MetadataIsolation(t *testing.T) {
 	}
 }
 
+func TestWithCommandMetadata_IntakeIsolation(t *testing.T) {
+	t.Parallel()
+
+	ref := validRef()
+	meta := command.NewMetadata()
+	event.EnsureCustom(&meta)
+	meta.Custom["key"] = "original"
+
+	cmd, err := command.NewPersistedCommand(
+		"CreateUser", ref, nil,
+		command.WithCommandMetadata(meta),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	meta.Custom["key"] = "mutated_after_passing"
+
+	got := cmd.Metadata()
+	if got.Custom["key"] != "original" {
+		t.Error("WithCommandMetadata stored caller's map reference — mutation leaked into command")
+	}
+}
+
 func TestNewPersistedCommand_EmptyType(t *testing.T) {
 	t.Parallel()
 

@@ -2,6 +2,7 @@ package event
 
 import (
 	"encoding/json"
+	"slices"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
@@ -74,13 +75,9 @@ func marshalPayload(payload any, eventType Type, c codec.Codec) ([]byte, error) 
 
 	switch v := payload.(type) {
 	case []byte:
-		cloned := make([]byte, len(v))
-		copy(cloned, v)
-		return cloned, nil
+		return slices.Clone(v), nil
 	case json.RawMessage:
-		cloned := make([]byte, len(v))
-		copy(cloned, v)
-		return cloned, nil
+		return slices.Clone(v), nil
 	default:
 		data, err := c.Encode(payload)
 		if err != nil {

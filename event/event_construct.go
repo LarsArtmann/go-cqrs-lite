@@ -1,18 +1,14 @@
 package event
 
 import (
+	"slices"
+
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 // Clone returns a deep copy of the event. The returned event is fully independent —
 // mutations to its payload or metadata will not affect the original.
 func (e *ImmutableEvent) Clone() *ImmutableEvent {
-	var payloadCopy []byte
-	if e.payload != nil {
-		payloadCopy = make([]byte, len(e.payload))
-		copy(payloadCopy, e.payload)
-	}
-
 	return &ImmutableEvent{
 		id:            e.id,
 		eventType:     e.eventType,
@@ -21,7 +17,7 @@ func (e *ImmutableEvent) Clone() *ImmutableEvent {
 		version:       e.version,
 		schemaVersion: e.schemaVersion,
 		encoding:      e.encoding,
-		payload:       payloadCopy,
+		payload:       slices.Clone(e.payload),
 		metadata:      e.Metadata(),
 		occurredAt:    e.occurredAt,
 		opts:          e.opts,
@@ -48,11 +44,7 @@ func NewEvent(
 		return nil, err
 	}
 
-	var safePayload []byte
-	if payload != nil {
-		safePayload = make([]byte, len(payload))
-		copy(safePayload, payload)
-	}
+	safePayload := slices.Clone(payload)
 
 	return buildEvent(eventType, aggregateID, aggregateType, version, safePayload, opts), nil
 }

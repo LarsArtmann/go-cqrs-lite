@@ -1,6 +1,9 @@
 package event
 
-import "fmt"
+import (
+	"fmt"
+	"slices"
+)
 
 // TombstoneStatus represents the soft-delete state of an aggregate.
 type TombstoneStatus int
@@ -94,11 +97,7 @@ func copyWithMetadata(evt Event, key MetadataKey, label string) (*ImmutableEvent
 
 	rawPayload := payloadForDecode(evt)
 
-	var safePayload []byte
-	if rawPayload != nil {
-		safePayload = make([]byte, len(rawPayload))
-		copy(safePayload, rawPayload)
-	}
+	safePayload := slices.Clone(rawPayload)
 
 	md := evt.Metadata()
 	if md.Custom == nil {

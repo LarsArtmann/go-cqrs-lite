@@ -54,7 +54,7 @@ func WithCommandID(cmdID id.CommandID) PersistOption {
 }
 
 func WithCommandMetadata(m Metadata) PersistOption {
-	return func(c *PersistedCommand) { c.metadata = m }
+	return func(c *PersistedCommand) { c.metadata = m.Clone() }
 }
 
 func NewPersistedCommand(
@@ -87,18 +87,12 @@ func NewPersistedCommand(
 		)
 	}
 
-	var payloadCopy []byte
-	if payload != nil {
-		payloadCopy = make([]byte, len(payload))
-		copy(payloadCopy, payload)
-	}
-
 	cmd := &PersistedCommand{
 		id:           id.NewCommandID(),
 		cmdType:      cmdType,
 		aggregateRef: ref,
 		receivedAt:   time.Now(),
-		payload:      payloadCopy,
+		payload:      slices.Clone(payload),
 		metadata:     NewMetadata(),
 	}
 
