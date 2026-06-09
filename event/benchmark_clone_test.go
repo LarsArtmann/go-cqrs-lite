@@ -176,3 +176,32 @@ func BenchmarkMetadata_access(b *testing.B) {
 		}
 	})
 }
+
+func BenchmarkPayloadReadOnly(b *testing.B) {
+	payload := []byte(`{"name":"Alice","email":"alice@example.com","age":30}`)
+
+	evt, err := NewEvent(
+		Type("UserCreated"),
+		id.NewAggregateID(),
+		"User",
+		1,
+		payload,
+	)
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	b.Run("Payload", func(b *testing.B) {
+		b.ReportAllocs()
+		for b.Loop() {
+			_ = evt.Payload()
+		}
+	})
+
+	b.Run("PayloadReadOnly", func(b *testing.B) {
+		b.ReportAllocs()
+		for b.Loop() {
+			_ = PayloadReadOnly(evt)
+		}
+	})
+}

@@ -83,8 +83,8 @@ go-cqrs-lite/
 11. **Tombstone over delete** — Soft-delete via metadata (TombstoneStatus: Active/Tombstoned/Undetermined). No Delete on Store.
 12. **Dependency budgets** — Per-module direct dep limits enforced by `nix run .#check-layers`. Adding deps requires explicit budget review.
 13. **OTel through otel/** — Modules import `otel/` re-exports instead of `go.opentelemetry.io` directly. OTel SDK is indirect in decider, projection, storage, middleware go.mod files.
-14. **Zero-copy internal reads** — `payloadForDecode()` bypasses `Payload()` clone for internal read-only paths via `*ImmutableEvent` type assertion. Safe because `*ImmutableEvent` is the only production `Event` impl. New internal read-only paths should use this pattern instead of `Payload()`.
-15. **Defensive clone on all public accessors** — `Payload()` returns `slices.Clone`, `Metadata()` returns `.Clone()`, `EventTypes()` returns `slices.Clone`, `MultiSignature.Get()` returns a copy. The `Event` interface documents this contract for third-party implementors.
+14. **Zero-copy internal reads** — `PayloadReadOnly(evt)` bypasses `Payload()` clone for read-only paths via `*ImmutableEvent` type assertion. Used by signing (SHA-256 hashing, CloneEvent), pebble (json.Marshal), storage/sql (ExecContext), middleware/sse (string conversion). Internal-only `payloadForDecode()` and `encodingForCopy()` for same-package paths.
+15. **Defensive clone on all public accessors** — `Payload()` returns `slices.Clone`, `Metadata()` returns `.Clone()`, `EventTypes()` returns `slices.Clone`, `MultiSignature.Get()` returns a copy, `WithCommandMetadata` clones on intake. The `Event` interface documents this contract for third-party implementors.
 
 ## Error Handling
 

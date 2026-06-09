@@ -1,6 +1,7 @@
 package event_test
 
 import (
+	"bytes"
 	"testing"
 
 	"pgregory.net/rapid"
@@ -107,6 +108,76 @@ func TestBatchVersionMonotonicity(t *testing.T) {
 					events[i-1].Version(),
 					events[i].Version(),
 				)
+			}
+		}
+	})
+}
+
+// TestPayloadIsolation_Property checks that Payload() returns independent copies
+// under random payload sizes and content.
+func TestPayloadIsolation_Property(t *testing.T) {
+	t.Parallel()
+
+	rapid.Check(t, func(t *rapid.T) {
+		size := rapid.IntRange(0, 4096).Draw(t, "size")
+		payload := rapid.SliceOfN(rapid.Byte(), size, size).Draw(t, "payload")
+
+		evt, err := event.NewEvent("Test", id.NewAggregateID(), "Test", 1, payload)
+		if err != nil {
+			t.Fatalf("create: %v", err)
+		}
+
+		got := evt.Payload()
+
+		if !bytes.Equal(got, payload) {
+			t.Fatal("Payload() content mismatch")
+		}
+
+		if len(got) > 0 {
+			got[0] ^= 0xff
+			after := evt.Payload()
+			if after[0] == got[0] {
+				t.Fatal("mutating Payload() result affected internal state")
+			}
+		}
+	})
+}
+
+// TestMetadataIsolation_Property checks that Metadata() returns independent copies.
+func TestMetadataIsolation_Property(t *testing.T) {
+	t.Parallel()
+
+	rapid.Check(t, func(t *rapid.T) {
+		n := rapid.IntRange(1, 10).Draw(t, "num_keys")
+
+		seen := make(map[event.MetadataKey]string, n)
+		opts := make([]event.Option, 0, n)
+
+		for range n {
+			k := event.MetadataKey(rapid.StringN(1, 20, 30).Draw(t, "key"))
+			v := rapid.StringN(1, 20, 30).Draw(t, "val")
+			seen[k] = v
+			opts = append(opts, event.WithCustom(k, v))
+		}
+
+		evt, err := event.NewEvent("Test", id.NewAggregateID(), "Test", 1, []byte(`{}`), opts...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		md := evt.Metadata()
+		for k := range md.Custom {
+			md.Custom[k] = "MUTATED"
+		}
+
+		after := evt.Metadata()
+		for k, want := range seen {
+			if after.Custom[k] == "MUTATED" {
+				t.Fatalf("mutating Metadata() result leaked for key %q", k)
+			}
+
+			if after.Custom[k] != want {
+				t.Fatalf("Metadata value changed for key %q: got %q, want %q", k, after.Custom[k], want)
 			}
 		}
 	})
