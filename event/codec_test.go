@@ -325,3 +325,40 @@ func TestEvent_Encoding_DefaultIsJSON(t *testing.T) {
 		t.Errorf("Encoding() = %q, want %q", evt.Encoding(), codecpkg.EncodingJSON)
 	}
 }
+
+func TestPayloadReadOnly_ReturnsInternalReference(t *testing.T) {
+	t.Parallel()
+
+	payload := []byte(`{"name":"Alice"}`)
+	aggID := id.NewAggregateID()
+
+	evt, err := event.NewEvent("UserCreated", aggID, "User", 1, payload)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	readOnly := event.PayloadReadOnly(evt)
+
+	if string(readOnly) != string(payload) {
+		t.Errorf("PayloadReadOnly = %q, want %q", readOnly, payload)
+	}
+}
+
+func TestPayloadReadOnly_FallbackForCustomImplementation(t *testing.T) {
+	t.Parallel()
+
+	evt := &stubEvent{payload: []byte("stub")}
+
+	readOnly := event.PayloadReadOnly(evt)
+	if string(readOnly) != "stub" {
+		t.Errorf("PayloadReadOnly fallback = %q, want %q", readOnly, "stub")
+	}
+}
+
+type stubEvent struct {
+	event.Event
+	payload []byte
+}
+
+func (s *stubEvent) Payload() []byte { return s.payload }
+func (s *stubEvent) Type() event.Type { return "stub" }

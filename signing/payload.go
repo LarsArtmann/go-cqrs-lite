@@ -25,7 +25,7 @@ func canonicalPayload(evt event.Event) []byte {
 	version := strconv.Itoa(evt.Version().Int())
 	schemaVer := strconv.Itoa(evt.SchemaVersion().Int())
 	occurred := evt.OccurredAt().Format(time.RFC3339Nano)
-	payload := evt.Payload()
+	payload := event.PayloadReadOnly(evt)
 
 	totalLen := 8*lengthPrefixSize +
 		len(canonicalFormatVersion) + len(id) + len(typ) +

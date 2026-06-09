@@ -22,7 +22,7 @@ func CloneEvent(
 		evt.AggregateID(),
 		evt.AggregateType(),
 		evt.Version(),
-		evt.Payload(),
+		event.PayloadReadOnly(evt),
 		event.WithEventID(evt.ID()),
 		event.WithOccurredAt(evt.OccurredAt()),
 		event.WithSchemaVersion(evt.SchemaVersion()),

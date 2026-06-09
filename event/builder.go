@@ -63,13 +63,12 @@ func (b *builder) WithUserID(userID id.UserID) *builder {
 }
 
 func (b *builder) Build() (*ImmutableEvent, error) {
-	evt, err := NewEvent(
+	err := validateEventParams(
 		b.eventType,
 		b.aggregateID,
 		b.aggregateType,
 		b.version,
 		b.payload,
-		b.opts...,
 	)
 	if err != nil {
 		return nil, WrapCorruption(
@@ -79,7 +78,7 @@ func (b *builder) Build() (*ImmutableEvent, error) {
 		)
 	}
 
-	return evt, nil
+	return buildEvent(b.eventType, b.aggregateID, b.aggregateType, b.version, b.payload, b.opts), nil
 }
 
 func (b *builder) MustBuild() *ImmutableEvent {

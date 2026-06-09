@@ -18,7 +18,7 @@ func (a *EventStore) serializeEvent(evt event.Event) ([]byte, error) {
 		AggregateType: string(evt.AggregateType()),
 		Version:       evt.Version().Int(),
 		SchemaVersion: evt.SchemaVersion().Int(),
-		Payload:       evt.Payload(),
+		Payload:       event.PayloadReadOnly(evt),
 		OccurredAt:    evt.OccurredAt().UnixNano(),
 		Metadata:      evt.Metadata(),
 		Encoding:      string(evt.Encoding()),

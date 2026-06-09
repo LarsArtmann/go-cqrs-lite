@@ -50,6 +50,20 @@ func payloadForDecode(evt Event) []byte {
 	return evt.Payload()
 }
 
+// PayloadReadOnly returns the event's payload bytes without cloning.
+//
+// The returned slice MUST NOT be mutated — it references the event's internal
+// storage. Use this only for read-only operations (hashing, serialization,
+// decoding). For any path that needs ownership of the bytes, use [Event.Payload]
+// instead.
+//
+// For *ImmutableEvent (the only production implementation), this bypasses the
+// defensive clone entirely. Custom [Event] implementations fall back to
+// [Event.Payload], which returns a safe copy.
+func PayloadReadOnly(evt Event) []byte {
+	return payloadForDecode(evt)
+}
+
 // encodingForCopy returns the raw encoding field without normalization.
 // Encoding() converts "" to "json", but copies should preserve the original
 // field value to avoid altering the event's stored representation.
