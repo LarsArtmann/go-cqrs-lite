@@ -64,33 +64,33 @@ Nothing. The deduplication session and self-review were clean. The only real bug
 
 ## (f) Top #25 Things We Should Get Done Next
 
-| # | Priority | Task | Impact | Effort |
-|---|----------|------|--------|--------|
-| 1 | P0 | Run `art-dupl` at threshold 30 in CI | Prevents dedup regression | S |
-| 2 | P0 | Add property-based immutability tests for all immutable types | Catches mutation bugs | M |
-| 3 | P0 | Benchmark `slices.Clone` overhead in `Payload()` hot paths | Performance visibility | S |
-| 4 | P1 | Audit all `[]byte`/map/slice accessors across all modules for mutability leaks | Prevents similar bugs | M |
-| 5 | P1 | Add `Payload()` mutation test to `eventtest` golden test suite | Regression safety | S |
-| 6 | P1 | Document performance characteristics of `Payload()` clone in API docs | Consumer awareness | S |
-| 7 | P1 | Add concurrent benchmarks for command, event, decider, snapshot, listing | Performance regression detection | M |
-| 8 | P2 | Consolidate error-family re-exports into shared `errors` sub-package | Reduces maintenance burden | L |
-| 9 | P2 | Add SSE write error logging (not swallowing) | Debugging aid | S |
-| 10 | P2 | Generate API stability golden file post-Payload fix | Baseline update | S |
-| 11 | P2 | Add `CheckClosed` benchmark to dispatcher | Performance baseline | S |
-| 12 | P3 | Add reactive pipeline examples to docs | Consumer onboarding | M |
-| 13 | P3 | Create `eventtest` equivalent for command/query modules | Test consistency | M |
-| 14 | P3 | Add tombstone integration test with real SQL store | E2E correctness | M |
-| 15 | P3 | Document module dependency graph in README | Architecture understanding | S |
-| 16 | P3 | Add version migration guide (v2.0 → v2.2) | Consumer upgrade path | M |
-| 17 | P4 | Extract benchmark helpers into `eventtest/bench` package | Dedup test infra | M |
-| 18 | P4 | Add Go doc examples for `CompositeEnricher` | API discoverability | S |
-| 19 | P4 | Add `go vet` line-length check for test files | Code quality | S |
-| 20 | P4 | Create architecture decision record for Payload clone decision | Documentation | S |
-| 21 | P4 | Add snapshot strategy benchmarks (EveryNEvents) | Performance visibility | S |
-| 22 | P4 | Explore `sync.Pool` for `Payload()` clone allocation | Performance optimization | M |
-| 23 | P5 | Add OpenAPI schema generation for event types | API documentation | L |
-| 24 | P5 | Create interactive playground example | Consumer onboarding | L |
-| 25 | P5 | Add chaos testing for event store | Resilience testing | L |
+| #   | Priority | Task                                                                           | Impact                           | Effort |
+| --- | -------- | ------------------------------------------------------------------------------ | -------------------------------- | ------ |
+| 1   | P0       | Run `art-dupl` at threshold 30 in CI                                           | Prevents dedup regression        | S      |
+| 2   | P0       | Add property-based immutability tests for all immutable types                  | Catches mutation bugs            | M      |
+| 3   | P0       | Benchmark `slices.Clone` overhead in `Payload()` hot paths                     | Performance visibility           | S      |
+| 4   | P1       | Audit all `[]byte`/map/slice accessors across all modules for mutability leaks | Prevents similar bugs            | M      |
+| 5   | P1       | Add `Payload()` mutation test to `eventtest` golden test suite                 | Regression safety                | S      |
+| 6   | P1       | Document performance characteristics of `Payload()` clone in API docs          | Consumer awareness               | S      |
+| 7   | P1       | Add concurrent benchmarks for command, event, decider, snapshot, listing       | Performance regression detection | M      |
+| 8   | P2       | Consolidate error-family re-exports into shared `errors` sub-package           | Reduces maintenance burden       | L      |
+| 9   | P2       | Add SSE write error logging (not swallowing)                                   | Debugging aid                    | S      |
+| 10  | P2       | Generate API stability golden file post-Payload fix                            | Baseline update                  | S      |
+| 11  | P2       | Add `CheckClosed` benchmark to dispatcher                                      | Performance baseline             | S      |
+| 12  | P3       | Add reactive pipeline examples to docs                                         | Consumer onboarding              | M      |
+| 13  | P3       | Create `eventtest` equivalent for command/query modules                        | Test consistency                 | M      |
+| 14  | P3       | Add tombstone integration test with real SQL store                             | E2E correctness                  | M      |
+| 15  | P3       | Document module dependency graph in README                                     | Architecture understanding       | S      |
+| 16  | P3       | Add version migration guide (v2.0 → v2.2)                                      | Consumer upgrade path            | M      |
+| 17  | P4       | Extract benchmark helpers into `eventtest/bench` package                       | Dedup test infra                 | M      |
+| 18  | P4       | Add Go doc examples for `CompositeEnricher`                                    | API discoverability              | S      |
+| 19  | P4       | Add `go vet` line-length check for test files                                  | Code quality                     | S      |
+| 20  | P4       | Create architecture decision record for Payload clone decision                 | Documentation                    | S      |
+| 21  | P4       | Add snapshot strategy benchmarks (EveryNEvents)                                | Performance visibility           | S      |
+| 22  | P4       | Explore `sync.Pool` for `Payload()` clone allocation                           | Performance optimization         | M      |
+| 23  | P5       | Add OpenAPI schema generation for event types                                  | API documentation                | L      |
+| 24  | P5       | Create interactive playground example                                          | Consumer onboarding              | L      |
+| 25  | P5       | Add chaos testing for event store                                              | Resilience testing               | L      |
 
 ---
 
@@ -154,7 +154,7 @@ ok  github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v2
 
 ## Commits
 
-| Hash | Description |
-|------|-------------|
-| `9c65f194` | `refactor(dedup): eliminate all 27 semantic clone groups at threshold 30` |
+| Hash       | Description                                                                     |
+| ---------- | ------------------------------------------------------------------------------- |
+| `9c65f194` | `refactor(dedup): eliminate all 27 semantic clone groups at threshold 30`       |
 | `ee6b5f5e` | `fix(event): clone payload in ImmutableEvent.Payload() to enforce immutability` |
