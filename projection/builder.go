@@ -2,6 +2,7 @@ package projection
 
 import (
 	"context"
+	"slices"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
@@ -65,7 +66,7 @@ func (b *Builder) Build() event.Projection {
 	return &builtProjection{
 		name:       b.name,
 		registry:   b.registry,
-		eventTypes: types,
+		eventTypes: slices.Clone(types),
 	}
 }
 
@@ -76,7 +77,7 @@ type builtProjection struct {
 }
 
 func (p *builtProjection) Name() string             { return p.name }
-func (p *builtProjection) EventTypes() []event.Type { return p.eventTypes }
+func (p *builtProjection) EventTypes() []event.Type { return slices.Clone(p.eventTypes) }
 
 func (p *builtProjection) Handle(ctx context.Context, evt event.Event) error {
 	handlers := p.registry.Lookup(evt.Type())

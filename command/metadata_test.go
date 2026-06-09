@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
@@ -123,5 +124,25 @@ func TestCommand_AllMetadata(t *testing.T) {
 
 	if m.RequestID != rid {
 		t.Errorf("RequestID = %v, want %v", m.RequestID, rid)
+	}
+}
+
+func TestCommand_MetadataIsolation(t *testing.T) {
+	t.Parallel()
+
+	cmd, err := command.New("CreateUser", id.NewAggregateID(),
+		command.WithCorrelationID(id.NewCorrelationID()),
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	m1 := cmd.Metadata()
+	event.EnsureCustom(&m1)
+	m1.Custom["key"] = "value"
+
+	m2 := cmd.Metadata()
+	if m2.Custom != nil {
+		t.Error("mutating Metadata() return value should not affect internal state")
 	}
 }

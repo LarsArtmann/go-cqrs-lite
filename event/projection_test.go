@@ -123,3 +123,27 @@ func TestNewProjection_WithDecode(t *testing.T) {
 		t.Errorf("name = %q, want Alice", name)
 	}
 }
+
+func TestProjection_EventTypesIsolation(t *testing.T) {
+	t.Parallel()
+
+	original := []event.Type{"UserCreated", "UserUpdated"}
+
+	proj := event.NewProjection("test", func(_ context.Context, _ event.Event) error {
+		return nil
+	}, original)
+
+	returned := proj.EventTypes()
+	returned[0] = "MUTATED"
+
+	again := proj.EventTypes()
+	if again[0] == "MUTATED" {
+		t.Error("mutating EventTypes() return value should not affect internal state")
+	}
+
+	original[0] = "EXTERNAL_MUTATION"
+	third := proj.EventTypes()
+	if third[0] == "EXTERNAL_MUTATION" {
+		t.Error("mutating original input slice should not affect projection")
+	}
+}

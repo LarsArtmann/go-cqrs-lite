@@ -1,6 +1,9 @@
 package event
 
-import "context"
+import (
+	"context"
+	"slices"
+)
 
 // Projection processes events of specific types within a projection runner.
 type Projection interface {
@@ -24,7 +27,7 @@ func NewProjection(
 	return &projectionFunc{
 		name:       name,
 		handle:     handle,
-		eventTypes: eventTypes,
+		eventTypes: slices.Clone(eventTypes),
 	}
 }
 
@@ -34,6 +37,6 @@ func (p *projectionFunc) Handle(ctx context.Context, evt Event) error {
 	return p.handle(ctx, evt)
 }
 
-func (p *projectionFunc) EventTypes() []Type { return p.eventTypes }
+func (p *projectionFunc) EventTypes() []Type { return slices.Clone(p.eventTypes) }
 
 var _ Projection = (*projectionFunc)(nil)

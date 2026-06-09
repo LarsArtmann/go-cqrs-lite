@@ -36,7 +36,7 @@ func (c *BasicCommand) Type() Type { return c.commandType }
 func (c *BasicCommand) AggregateID() id.AggregateID { return c.aggregateID }
 
 // Metadata returns the command metadata.
-func (c *BasicCommand) Metadata() Metadata { return c.metadata }
+func (c *BasicCommand) Metadata() Metadata { return c.metadata.Clone() }
 
 // New creates a new command with validation.
 func New(commandType Type, aggregateID id.AggregateID, opts ...Option) (*BasicCommand, error) {

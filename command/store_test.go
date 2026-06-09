@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
@@ -83,6 +84,30 @@ func TestNewPersistedCommand_PayloadIsolation(t *testing.T) {
 	again := cmd.Payload()
 	if again[0] == 'Y' {
 		t.Error("mutating original payload slice should not affect PersistedCommand")
+	}
+}
+
+func TestNewPersistedCommand_MetadataIsolation(t *testing.T) {
+	t.Parallel()
+
+	ref := validRef()
+	meta := command.NewMetadata()
+	event.EnsureCustom(&meta)
+	meta.Custom["key1"] = "value1"
+
+	cmd, err := command.NewPersistedCommand("CreateUser", ref, nil,
+		command.WithCommandMetadata(meta),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	returned := cmd.Metadata()
+	returned.Custom["key1"] = "modified"
+
+	original := cmd.Metadata()
+	if original.Custom["key1"] != "value1" {
+		t.Error("mutating Metadata() return value should not affect internal state")
 	}
 }
 

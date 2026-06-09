@@ -66,7 +66,7 @@ func (r *InMemoryAggregateReader) getRefsUnsorted() []AggregateStatus {
 	cached := r.cached
 	r.mu.RUnlock()
 
-	return cached
+	return slices.Clone(cached)
 }
 
 func (r *InMemoryAggregateReader) rebuildCache(ctx context.Context) ([]AggregateStatus, error) {

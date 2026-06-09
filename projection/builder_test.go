@@ -247,3 +247,61 @@ func TestBuilder_Handle_InvalidPayload(t *testing.T) {
 		t.Fatal("expected error for invalid JSON payload")
 	}
 }
+
+func TestBuilder_EventTypesIsolation(t *testing.T) {
+	t.Parallel()
+
+	type OrderCreated struct{}
+
+	builder := projection.NewBuilder("isolation-proj")
+
+	err := projection.On(
+		builder, "order.created", codec.JSONCodec{},
+		func(_ context.Context, _ OrderCreated) error { return nil },
+	)
+	if err != nil {
+		t.Fatalf("On: %v", err)
+	}
+
+	proj := builder.Build()
+
+	returned := proj.EventTypes()
+	returned[0] = "MUTATED"
+
+	again := proj.EventTypes()
+	if again[0] == "MUTATED" {
+		t.Error("mutating EventTypes() return value should not affect internal state")
+	}
+}
+
+func TestBuilder_BuildIsolation(t *testing.T) {
+	t.Parallel()
+
+	type OrderCreated struct{}
+	type OrderShipped struct{}
+
+	builder := projection.NewBuilder("build-isolation-proj")
+
+	err := projection.On(
+		builder, "order.created", codec.JSONCodec{},
+		func(_ context.Context, _ OrderCreated) error { return nil },
+	)
+	if err != nil {
+		t.Fatalf("On: %v", err)
+	}
+
+	proj1 := builder.Build()
+
+	err = projection.On(
+		builder, "order.shipped", codec.JSONCodec{},
+		func(_ context.Context, _ OrderShipped) error { return nil },
+	)
+	if err != nil {
+		t.Fatalf("On second: %v", err)
+	}
+
+	proj1Types := proj1.EventTypes()
+	if len(proj1Types) != 1 || proj1Types[0] != "order.created" {
+		t.Errorf("proj1 EventTypes = %v, want [order.created] — Build() should isolate from builder reuse", proj1Types)
+	}
+}

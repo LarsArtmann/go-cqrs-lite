@@ -36,7 +36,7 @@ func (c *PersistedCommand) Payload() []byte {
 
 	return slices.Clone(c.payload)
 }
-func (c *PersistedCommand) Metadata() Metadata { return c.metadata }
+func (c *PersistedCommand) Metadata() Metadata { return c.metadata.Clone() }
 
 func (c *PersistedCommand) String() string {
 	return fmt.Sprintf("%s(%s) %s@%s",
