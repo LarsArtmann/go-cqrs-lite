@@ -247,3 +247,25 @@ func TestEvent_PayloadConstructionCopy(t *testing.T) {
 		t.Error("Payload should be independent of caller's original slice")
 	}
 }
+
+func TestEvent_PayloadReturnIsImmutable(t *testing.T) {
+	t.Parallel()
+
+	evt, err := event.NewEvent(
+		"UserCreated",
+		id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		"User",
+		1,
+		[]byte("immutable"),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	payload := evt.Payload()
+	payload[0] = 'X'
+
+	if string(evt.Payload()) != "immutable" {
+		t.Error("mutating Payload() return value must not affect the event's internal state")
+	}
+}

@@ -2,6 +2,7 @@ package event
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
@@ -133,10 +134,10 @@ func (e *ImmutableEvent) Encoding() codec.Encoding {
 	return e.encoding
 }
 
-// Payload returns the event payload. The returned slice references internal
-// state; callers must not modify it. Use slices.Clone if a mutable copy is needed.
+// Payload returns a copy of the event payload. The returned slice is safe to
+// modify; mutations will not affect the event's internal state.
 func (e *ImmutableEvent) Payload() []byte {
-	return e.payload
+	return slices.Clone(e.payload)
 }
 
 // Metadata returns a copy of the event's metadata. The returned value is
