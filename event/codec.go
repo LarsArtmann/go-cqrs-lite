@@ -20,7 +20,7 @@ func DecodePayload[T any](evt Event, c codec.Codec) (T, error) {
 		return zero, err
 	}
 
-	payload := evt.Payload()
+	payload := payloadForDecode(evt)
 	if len(payload) == 0 {
 		return zero, nil
 	}
@@ -37,6 +37,17 @@ func DecodePayload[T any](evt Event, c codec.Codec) (T, error) {
 	}
 
 	return target, nil
+}
+
+// payloadForDecode returns the raw event payload for read-only use in decoding.
+// For *ImmutableEvent (the common case), it accesses the field directly to avoid
+// the defensive clone in Payload() — decoding only reads the bytes, never mutates.
+func payloadForDecode(evt Event) []byte {
+	if ie, ok := evt.(*ImmutableEvent); ok {
+		return ie.payload
+	}
+
+	return evt.Payload()
 }
 
 // DecodePayloads decodes multiple events' payloads into a slice of typed values.
