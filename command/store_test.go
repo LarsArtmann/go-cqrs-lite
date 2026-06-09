@@ -95,7 +95,8 @@ func TestNewPersistedCommand_MetadataIsolation(t *testing.T) {
 	event.EnsureCustom(&meta)
 	meta.Custom["key1"] = "value1"
 
-	cmd, err := command.NewPersistedCommand("CreateUser", ref, nil,
+	cmd, err := command.NewPersistedCommand(
+		"CreateUser", ref, nil,
 		command.WithCommandMetadata(meta),
 	)
 	if err != nil {

@@ -130,7 +130,8 @@ func TestCommand_AllMetadata(t *testing.T) {
 func TestCommand_MetadataIsolation(t *testing.T) {
 	t.Parallel()
 
-	cmd, err := command.New("CreateUser", id.NewAggregateID(),
+	cmd, err := command.New(
+		"CreateUser", id.NewAggregateID(),
 		command.WithCorrelationID(id.NewCorrelationID()),
 	)
 	if err != nil {
