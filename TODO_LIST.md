@@ -1,7 +1,7 @@
 # TODO List
 
 **Generated:** 2026-05-21
-**Reconciled:** 2026-06-10 — updated after full code review + architecture audit
+**Reconciled:** 2026-06-10 — updated after full code review + architecture audit + follow-up audit
 **Files Processed:** 252
 
 ## Legend
@@ -434,6 +434,15 @@
 - [x] ~~**middleware/circuit_breaker.go:97-98** — `return nil` after exhaustive switch~~ — DONE (Session 8): replaced with `panic("unreachable")`
 - [x] ~~**query/query.go:54** — `TypedHandler[T]` takes `Query` not `T`~~ — DONE (Session 145: `TypedHandler[Q Query, R any]` with type assertion in `RegisterTyped`)
 - [x] ~~**storage/sql_aggregate_reader.go:63** — Hardcoded `?` placeholders~~ — DONE: already uses `r.dialect.Placeholder(pi)` for all placeholders
+- [x] ~~**Fix pebble metadata deserialization** — `pebble/serialization.go` swallowed `MarshalMetadataJSON` error~~ — DONE (follow-up audit: `fe1e5184`)
+- [x] ~~**Fix SSE send-on-closed-channel race** — `middleware/sse.go` RemoveClient closed channels; concurrent handleEvent could panic~~ — DONE (follow-up audit: `b652dd32`)
+- [x] ~~**Fix NewSSEBroker nil return** — Returned nil *SSEBroker on error with no error return; signature now `(*SSEBroker, error)`~~ — DONE (follow-up audit: `b652dd32`)
+- [x] ~~**Fix circuit breaker error taxonomy** — `ErrCircuitBreakerOpen` used bare `errors.New` instead of `event.NewInfrastructure`~~ — DONE (follow-up audit: `9d407f51`)
+- [x] ~~**Fix circuit breaker nil IsFailure** — `cb.config.IsFailure(err)` panicked if IsFailure was nil; defaults to `event.IsRetryable`~~ — DONE (follow-up audit: `9d407f51`)
+- [x] ~~**Simplify Version.Cmp** — Manual comparison replaced with stdlib `cmp.Compare`~~ — DONE (follow-up audit: `90929f1f`)
+- [x] ~~**Add pebble NewStore nil guard** — `NewStore(nil, ...)` caused nil pointer dereference; now panics with clear message~~ — DONE (follow-up audit: `70f05a14`)
+- [x] ~~**Add decider snapshot logging fallback** — Snapshot failures only recorded on OTel spans, invisible without tracing; added `slog.WarnContext`~~ — DONE (follow-up audit: `230a7177`)
+- [x] ~~**Fix ErrRetryCanceled dead sentinel** — `ErrRetryCanceled` was defined but never used in retry path; now properly wraps on context cancellation~~ — DONE (follow-up audit: `72b85174`)
 - [ ] **event/eventtest/fake_store.go** — 273 lines of untested mock code that duplicates MemoryStore functionality
 - [x] ~~**otel/logging.go:16** — `TraceIDLogger` name/doc mismatch~~ — DONE (Session 8): renamed to `ComponentLogger`, old name deprecated as alias
 - [x] ~~**codec/raw.go:6,13** — `json.RawMessage` support missing~~ — DONE (Session 8): added `json.RawMessage` case
