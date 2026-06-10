@@ -5,69 +5,69 @@ title: {
   label: go-cqrs-lite — Target Architecture (No Cycles)
   shape: text
   near: top-center
-  style: { font-size: 24; bold: true }
+  style: {font-size: 24; bold: true}
 }
 
 legend: {
   shape: rectangle
-  style: { fill: "#f8fafc" }
+  style: {fill: "#f8fafc"}
   near: top-right
 
-  leaf: { shape: rectangle; style: { fill: "#d1fae5"; stroke: "#059669" } }
-  core: { shape: rectangle; style: { fill: "#dbeafe"; stroke: "#2563eb" } }
-  infra: { shape: rectangle; style: { fill: "#fef3c7"; stroke: "#d97706" } }
-  test: { shape: rectangle; style: { fill: "#f3e8ff"; stroke: "#7c3aed" } }
+  leaf: {shape: rectangle; style: {fill: "#d1fae5"; stroke: "#059669"}}
+  core: {shape: rectangle; style: {fill: "#dbeafe"; stroke: "#2563eb"}}
+  infra: {shape: rectangle; style: {fill: "#fef3c7"; stroke: "#d97706"}}
+  test: {shape: rectangle; style: {fill: "#f3e8ff"; stroke: "#7c3aed"}}
 
-  leaf: { label: "Layer 0: Leaf (no internal deps)" }
-  core: { label: "Layer 1: Core CQRS" }
-  infra: { label: "Layer 2: Infrastructure" }
-  test: { label: "Layer 3: Tests / Integration" }
+  leaf: {label: "Layer 0: Leaf (no internal deps)"}
+  core: {label: "Layer 1: Core CQRS"}
+  infra: {label: "Layer 2: Infrastructure"}
+  test: {label: "Layer 3: Tests / Integration"}
 }
 
 layer0: {
   label: "Layer 0 — Leaf Modules"
-  style: { fill: "#ecfdf5"; stroke: "#059669" }
+  style: {fill: "#ecfdf5"; stroke: "#059669"}
 
-  codec: { style: { fill: "#d1fae5" } }
-  id: { style: { fill: "#d1fae5" } }
-  dispatcher: { style: { fill: "#d1fae5" } }
-  catalog: { style: { fill: "#d1fae5" } }
+  codec: {style: {fill: "#d1fae5"}}
+  id: {style: {fill: "#d1fae5"}}
+  dispatcher: {style: {fill: "#d1fae5"}}
+  catalog: {style: {fill: "#d1fae5"}}
 }
 
 layer1: {
   label: "Layer 1 — Core CQRS (DAG: no cycles)"
-  style: { fill: "#eff6ff"; stroke: "#2563eb" }
+  style: {fill: "#eff6ff"; stroke: "#2563eb"}
 
-  event: { style: { fill: "#dbeafe" }; label: "event\n(zero internal deps)" }
-  command: { style: { fill: "#dbeafe" }; label: "command\n(→event, id, dispatcher)" }
-  query: { style: { fill: "#dbeafe" }; label: "query\n(→event, dispatcher)" }
-  schema: { style: { fill: "#dbeafe" }; label: "schema\n(→event)" }
-  snapshot: { style: { fill: "#dbeafe" }; label: "snapshot\n(→event)" }
-  listing: { style: { fill: "#dbeafe" }; label: "listing\n(→event)" }
+  event: {style: {fill: "#dbeafe"}; label: "event\n(zero internal deps)"}
+  command: {style: {fill: "#dbeafe"}; label: "command\n(→event, id, dispatcher)"}
+  query: {style: {fill: "#dbeafe"}; label: "query\n(→event, dispatcher)"}
+  schema: {style: {fill: "#dbeafe"}; label: "schema\n(→event)"}
+  snapshot: {style: {fill: "#dbeafe"}; label: "snapshot\n(→event)"}
+  listing: {style: {fill: "#dbeafe"}; label: "listing\n(→event)"}
 }
 
 layer2: {
   label: "Layer 2 — Infrastructure / Adapters"
-  style: { fill: "#fffbeb"; stroke: "#d97706" }
+  style: {fill: "#fffbeb"; stroke: "#d97706"}
 
-  decider: { style: { fill: "#fef3c7" }; label: "decider\n(→event, snapshot, codec)" }
-  memory: { style: { fill: "#fef3c7" }; label: "memory\n(→event, command, snapshot)" }
-  middleware: { style: { fill: "#fef3c7" }; label: "middleware\n(→command, event, query)" }
-  signing: { style: { fill: "#fef3c7" }; label: "signing\n(→event, id)" }
-  projection: { style: { fill: "#fef3c7" }; label: "projection\n(→event, codec)" }
-  storage: { style: { fill: "#fef3c7" }; label: "storage\n(→event, command, snapshot)" }
-  watermill: { style: { fill: "#fef3c7" }; label: "watermill\n(→event)" }
-  pebble: { style: { fill: "#fef3c7" }; label: "pebble\n(→event, codec)" }
-  turso: { style: { fill: "#fef3c7" }; label: "turso\n(→event, storage)" }
-  otel: { style: { fill: "#fef3c7" }; label: "otel\n(standalone helper)" }
+  decider: {style: {fill: "#fef3c7"}; label: "decider\n(→event, snapshot, codec)"}
+  memory: {style: {fill: "#fef3c7"}; label: "memory\n(→event, command, snapshot)"}
+  middleware: {style: {fill: "#fef3c7"}; label: "middleware\n(→command, event, query)"}
+  signing: {style: {fill: "#fef3c7"}; label: "signing\n(→event, id)"}
+  projection: {style: {fill: "#fef3c7"}; label: "projection\n(→event, codec)"}
+  storage: {style: {fill: "#fef3c7"}; label: "storage\n(→event, command, snapshot)"}
+  watermill: {style: {fill: "#fef3c7"}; label: "watermill\n(→event)"}
+  pebble: {style: {fill: "#fef3c7"}; label: "pebble\n(→event, codec)"}
+  turso: {style: {fill: "#fef3c7"}; label: "turso\n(→event, storage)"}
+  otel: {style: {fill: "#fef3c7"}; label: "otel\n(standalone helper)"}
 }
 
 layer3: {
   label: "Layer 3 — Tests / Integration"
-  style: { fill: "#f5f3ff"; stroke: "#7c3aed" }
+  style: {fill: "#f5f3ff"; stroke: "#7c3aed"}
 
-  eventtest: { style: { fill: "#f3e8ff" }; label: "eventtest\n(separate test module)" }
-  integration: { style: { fill: "#f3e8ff" } }
+  eventtest: {style: {fill: "#f3e8ff"}; label: "eventtest\n(separate test module)"}
+  integration: {style: {fill: "#f3e8ff"}}
 }
 
 # Layer 0 → Layer 1 (one-directional)
@@ -77,11 +77,11 @@ layer0.dispatcher -> layer1.command
 layer0.dispatcher -> layer1.query
 
 # Layer 1 → Layer 1 (one-directional, no cycles!)
-layer1.event -> layer1.schema: { style: { stroke: "#2563eb" } }
-layer1.event -> layer1.snapshot: { style: { stroke: "#2563eb" } }
-layer1.event -> layer1.listing: { style: { stroke: "#2563eb" } }
-layer1.event -> layer1.command: { label: "types only" }
-layer1.event -> layer1.query: { label: "types only" }
+layer1.event -> layer1.schema: {style: {stroke: "#2563eb"}}
+layer1.event -> layer1.snapshot: {style: {stroke: "#2563eb"}}
+layer1.event -> layer1.listing: {style: {stroke: "#2563eb"}}
+layer1.event -> layer1.command: {label: "types only"}
+layer1.event -> layer1.query: {label: "types only"}
 
 # Layer 1 → Layer 2
 layer1.event -> layer2.decider
@@ -130,7 +130,7 @@ layer2.turso -> layer3.integration
 changes: {
   near: bottom-center
   shape: rectangle
-  style: { fill: "#fef9c3"; stroke: "#ca8a04" }
+  style: {fill: "#fef9c3"; stroke: "#ca8a04"}
 
   c1: "✅ event has ZERO internal deps (was 7)"
   c2: "✅ No bidirectional cycles (was 4)"
