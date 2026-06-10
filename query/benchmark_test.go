@@ -15,7 +15,6 @@ func mustNewQuery(queryType query.Type) *query.BasicQuery {
 	return q
 }
 
-
 func BenchmarkNew(b *testing.B) {
 	b.ReportAllocs()
 

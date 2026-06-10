@@ -11,14 +11,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 )
 
-func parseAggID(s string) id.AggregateID {
-	v, err := id.ParseAggregateID(s)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
 func newTestSnapshot(
 	tb testing.TB,
 	aggregateID id.AggregateID,

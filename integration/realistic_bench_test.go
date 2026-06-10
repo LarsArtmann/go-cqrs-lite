@@ -46,7 +46,11 @@ func mustEveryN(n int) snapshot.SnapshotStrategy {
 	return s
 }
 
-func mustNewCmd(commandType command.Type, aggregateID id.AggregateID, opts ...command.Option) *command.BasicCommand {
+func mustNewCmd(
+	commandType command.Type,
+	aggregateID id.AggregateID,
+	opts ...command.Option,
+) *command.BasicCommand {
 	cmd, err := command.New(commandType, aggregateID, opts...)
 	if err != nil {
 		panic(err)

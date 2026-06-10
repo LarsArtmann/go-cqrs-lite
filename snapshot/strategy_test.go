@@ -7,15 +7,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 )
 
-func mustEveryN(n int) snapshot.SnapshotStrategy {
-	s, err := snapshot.EveryNEvents(n)
-	if err != nil {
-		panic(err)
-	}
-	return s
-}
-
-
 func TestEveryNEvents_ReturnsErrorForZero(t *testing.T) {
 	t.Parallel()
 

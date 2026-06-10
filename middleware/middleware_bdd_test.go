@@ -24,7 +24,6 @@ func mustNewQuery(queryType query.Type) *query.BasicQuery {
 	return q
 }
 
-
 type bddCommand struct {
 	aggregateID id.AggregateID
 }

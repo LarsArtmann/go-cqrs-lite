@@ -262,7 +262,7 @@ var _ = Describe("Command Dispatcher", func() {
 		Context("when I use MustNew with invalid inputs", func() {
 			It("should crash immediately so I notice the bug in development", func() {
 				Expect(func() {
-					command.MustNew("", aggID)
+					mustNewCmd("", aggID)
 				}).To(Panic())
 			})
 		})
@@ -290,7 +290,7 @@ var _ = Describe("Command Dispatcher", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				cmd := &createUserCmd{
-					BasicCommand: *command.MustNew("CreateUser", aggID),
+					BasicCommand: *mustNewCmd("CreateUser", aggID),
 					Name:         "Alice",
 				}
 

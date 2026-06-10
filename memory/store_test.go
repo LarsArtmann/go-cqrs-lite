@@ -13,14 +13,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 )
 
-func parseAggID(s string) id.AggregateID {
-	v, err := id.ParseAggregateID(s)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
 func TestMemoryStore_SaveAndLoad(t *testing.T) {
 	t.Parallel()
 

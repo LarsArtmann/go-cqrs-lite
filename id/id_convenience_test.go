@@ -132,37 +132,6 @@ func TestClientID(t *testing.T) {
 	}
 }
 
-func TestMustParseID(t *testing.T) {
-	t.Parallel()
-
-	t.Run("AggregateID", func(t *testing.T) {
-		t.Parallel()
-
-		id := MustParseAggregateID(testULID)
-		if id.String() != testULID {
-			t.Errorf("got %q, want %q", id.String(), testULID)
-		}
-	})
-
-	t.Run("EventID", func(t *testing.T) {
-		t.Parallel()
-
-		id := MustParseEventID("01HK1541W8PVV4E88DV993TP2A")
-		if id.String() != "01HK1541W8PVV4E88DV993TP2A" {
-			t.Errorf("got %q, want %q", id.String(), "01HK1541W8PVV4E88DV993TP2A")
-		}
-	})
-
-	t.Run("UserID", func(t *testing.T) {
-		t.Parallel()
-
-		id := MustParseUserID("01HK1542VGZX7VW38CS2WSRXBX")
-		if id.String() != "01HK1542VGZX7VW38CS2WSRXBX" {
-			t.Errorf("got %q, want %q", id.String(), "01HK1542VGZX7VW38CS2WSRXBX")
-		}
-	})
-}
-
 func TestParse_InvalidULID(t *testing.T) {
 	t.Parallel()
 
@@ -262,37 +231,6 @@ func TestParseConvenienceFuncs(t *testing.T) {
 			t.Errorf("ParseUserID() = %q, want %q", parsed.String(), testULID)
 		}
 	})
-}
-
-func TestMustParseConvenienceFuncs_Panic(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name string
-		fn   func()
-	}{
-		{"AggregateID", func() { _ = MustParseAggregateID("") }},
-		{"EventID", func() { _ = MustParseEventID("") }},
-		{"UserID", func() { _ = MustParseUserID("") }},
-		{"CausationID", func() { _ = MustParseCausationID("") }},
-		{"CorrelationID", func() { _ = MustParseCorrelationID("") }},
-		{"RequestID", func() { _ = MustParseRequestID("") }},
-		{"ClientID", func() { _ = MustParseClientID("") }},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			defer func() {
-				if r := recover(); r == nil {
-					t.Error("expected panic")
-				}
-			}()
-
-			tc.fn()
-		})
-	}
 }
 
 func TestPtr(t *testing.T) {

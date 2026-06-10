@@ -9,15 +9,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
-func mustNewQuery(queryType query.Type) *query.BasicQuery {
-	q, err := query.New(queryType)
-	if err != nil {
-		panic(err)
-	}
-	return q
-}
-
-
 func registerHandler(d *query.Dispatcher, name query.Type, result any) {
 	_ = d.Register(name, func(_ context.Context, _ query.Query) (any, error) {
 		return result, nil

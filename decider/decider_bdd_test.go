@@ -20,9 +20,9 @@ func mustEveryN(n int) snapshot.SnapshotStrategy {
 	if err != nil {
 		panic(err)
 	}
+
 	return s
 }
-
 
 // bddCounter models a simple counter aggregate for BDD scenarios.
 type bddCounter struct {

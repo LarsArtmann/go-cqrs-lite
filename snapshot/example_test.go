@@ -24,14 +24,6 @@ func ExampleEveryNEvents() {
 	// true
 }
 
-func ExampleMustEveryNEvents() {
-	strategy := snapshot.MustEveryNEvents(50)
-	fmt.Println(strategy != nil)
-
-	// Output:
-	// true
-}
-
 func ExampleSnapshotStore() {
 	store := newFakeStore()
 

@@ -5,18 +5,9 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2/internal/testutil"
 )
-
-func parseAggID(s string) id.AggregateID {
-	v, err := id.ParseAggregateID(s)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
 
 func TestHMACSigner_New(t *testing.T) {
 	t.Parallel()

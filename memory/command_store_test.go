@@ -11,14 +11,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 )
 
-func parseAggID(s string) id.AggregateID {
-	v, err := id.ParseAggregateID(s)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
 func validCommandRef() command.AggregateRef {
 	return command.NewAggregateRef("User", parseAggID("01HK1540X0841Y0A6BSX1VKR95"))
 }

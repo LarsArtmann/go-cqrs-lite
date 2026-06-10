@@ -1,7 +1,6 @@
 package simulation
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"

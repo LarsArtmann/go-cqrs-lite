@@ -15,7 +15,6 @@ func mustNewQuery(queryType query.Type) *query.BasicQuery {
 	return q
 }
 
-
 func BenchmarkDispatcher_Dispatch(b *testing.B) {
 	b.ReportAllocs()
 	dispatcher := query.NewDispatcher()

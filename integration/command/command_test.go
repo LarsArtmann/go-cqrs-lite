@@ -9,7 +9,10 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
-func mustNewCmd(commandType command.Type, aggregateID id.AggregateID, opts ...command.Option) *command.BasicCommand {
+	commandType command.Type,
+	aggregateID id.AggregateID,
+	opts ...command.Option,
+) *command.BasicCommand {
 	cmd, err := command.New(commandType, aggregateID, opts...)
 	if err != nil {
 		panic(err)

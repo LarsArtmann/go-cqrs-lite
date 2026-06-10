@@ -6,26 +6,8 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 )
-
-func mustEveryN(n int) snapshot.SnapshotStrategy {
-	s, err := snapshot.EveryNEvents(n)
-	if err != nil {
-		panic(err)
-	}
-	return s
-}
-
-
-func parseAggID(s string) id.AggregateID {
-	v, err := id.ParseAggregateID(s)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
 
 type mockSink struct {
 	saved []snapshot.Snapshot

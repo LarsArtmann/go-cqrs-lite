@@ -10,14 +10,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
-func parseAggID(s string) id.AggregateID {
-	v, err := id.ParseAggregateID(s)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
 func parseCmdAggType(s string) command.AggregateType {
 	v, err := command.ParseAggregateType(s)
 	if err != nil {
