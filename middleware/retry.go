@@ -93,8 +93,8 @@ func retry(
 		case <-ctx.Done():
 			timer.Stop()
 
-			return event.WrapInfrastructure(err, "middleware.retry_canceled",
-				opName+": retry canceled")
+			return event.WrapInfrastructure(ErrRetryCanceled, "middleware.retry_canceled",
+				opName+": retry canceled").WithCause(err)
 		}
 
 		timer.Stop()
