@@ -9,17 +9,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
-	commandType command.Type,
-	aggregateID id.AggregateID,
-	opts ...command.Option,
-) *command.BasicCommand {
-	cmd, err := command.New(commandType, aggregateID, opts...)
-	if err != nil {
-		panic(err)
-	}
-	return cmd
-}
-
 func parseAggID(s string) id.AggregateID {
 	v, err := id.ParseAggregateID(s)
 	if err != nil {

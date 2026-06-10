@@ -15,6 +15,7 @@ func parseCmdAggType(s string) command.AggregateType {
 	if err != nil {
 		panic(err)
 	}
+
 	return v
 }
 
@@ -23,6 +24,7 @@ func parseCommandID(s string) id.CommandID {
 	if err != nil {
 		panic(err)
 	}
+
 	return v
 }
 

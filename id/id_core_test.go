@@ -14,6 +14,7 @@ func mustParse[T any](s string) Of[T] {
 	if err != nil {
 		panic(err)
 	}
+
 	return v
 }
 
@@ -22,6 +23,7 @@ func parseAggID(s string) AggregateID {
 	if err != nil {
 		panic(err)
 	}
+
 	return v
 }
 
