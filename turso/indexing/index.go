@@ -11,7 +11,8 @@ type Index struct {
 	Table   string
 	Columns []string
 	Unique  bool
-	Where   string
+	Partial bool   // true if this is a partial index (WHERE clause)
+	Where   string // partial-index predicate; only used when Partial is true
 	Reason  string // human-readable justification
 }
 
@@ -81,6 +82,16 @@ func (s IndexSet) Names() []string {
 	}
 
 	return names
+}
+
+// DropDDL returns all DROP INDEX statements for the set.
+func (s IndexSet) DropDDL() []string {
+	ddls := make([]string, len(s))
+	for j, idx := range s {
+		ddls[j] = idx.DropDDL()
+	}
+
+	return ddls
 }
 
 // RecommendedCQRSIndexes returns pre-calculated indexes optimized for

@@ -44,12 +44,17 @@ func TestIndex_DDL_partial(t *testing.T) {
 		Name:    "idx_test_partial",
 		Table:   "events",
 		Columns: []string{"event_type"},
+		Partial: true,
 		Where:   "schema_version > 1",
 	}
 
 	want := "CREATE INDEX IF NOT EXISTS idx_test_partial ON events(event_type) WHERE schema_version > 1;"
 	if got := idx.DDL(); got != want {
 		t.Errorf("DDL() = %q, want %q", got, want)
+	}
+
+	if !idx.Partial {
+		t.Error("expected Partial to be true")
 	}
 }
 
@@ -93,6 +98,25 @@ func TestIndexSet_Filter(t *testing.T) {
 
 	if filtered[0].Name != "idx_events" {
 		t.Errorf("Name = %q, want idx_events", filtered[0].Name)
+	}
+}
+
+func TestIndexSet_DropDDL(t *testing.T) {
+	t.Parallel()
+
+	set := indexing.IndexSet{
+		{Name: "idx_a", Table: "events", Columns: []string{"a"}},
+		{Name: "idx_b", Table: "events", Columns: []string{"b"}},
+	}
+
+	ddls := set.DropDDL()
+	if len(ddls) != 2 {
+		t.Fatalf("expected 2 drop DDLs, got %d", len(ddls))
+	}
+
+	want0 := "DROP INDEX IF EXISTS idx_a;"
+	if ddls[0] != want0 {
+		t.Errorf("DropDDL[0] = %q, want %q", ddls[0], want0)
 	}
 }
 
