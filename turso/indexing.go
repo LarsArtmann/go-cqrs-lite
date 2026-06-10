@@ -26,7 +26,10 @@ func ApplyTursoOptimizations(ctx context.Context, db *sql.DB) error {
 // ApplyCQRSIndexes creates the recommended CQRS-optimized indexes.
 // Idempotent — safe to call multiple times.
 func ApplyCQRSIndexes(ctx context.Context, db *sql.DB) error {
-	return indexing.NewAutoIndexer(db).ApplyCQRSIndexes(ctx) //nolint:wrapcheck // transparent delegation
+	auto := indexing.NewAutoIndexer(db)
+	auto.Enable()
+
+	return auto.ApplyCQRSIndexes(ctx) //nolint:wrapcheck // transparent delegation
 }
 
 // InitSchemaWithIndexes creates all tables AND applies CQRS-optimized

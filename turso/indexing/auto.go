@@ -53,7 +53,13 @@ func (a *AutoIndexer) IsEnabled() bool {
 
 // Apply executes the DDL for each recommendation.
 // Skips indexes that already exist.
+// Returns a rejection error if the auto-indexer is not enabled.
 func (a *AutoIndexer) Apply(ctx context.Context, recs []Recommendation) error {
+	if !a.IsEnabled() {
+		return event.NewRejection("indexing.disabled",
+			"auto-indexer is disabled: call Enable() first")
+	}
+
 	if err := a.advisor.ExistingIndexes(ctx); err != nil {
 		return err
 	}
@@ -90,7 +96,13 @@ func (a *AutoIndexer) ApplyRecommended(ctx context.Context) error {
 
 // ApplyCQRSIndexes creates the predefined RecommendedCQRSIndexes.
 // This is the fastest way to get production-ready CQRS indexing.
+// Returns a rejection error if the auto-indexer is not enabled.
 func (a *AutoIndexer) ApplyCQRSIndexes(ctx context.Context) error {
+	if !a.IsEnabled() {
+		return event.NewRejection("indexing.disabled",
+			"auto-indexer is disabled: call Enable() first")
+	}
+
 	if err := a.advisor.ExistingIndexes(ctx); err != nil {
 		return err
 	}

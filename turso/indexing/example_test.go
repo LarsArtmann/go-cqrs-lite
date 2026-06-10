@@ -54,6 +54,7 @@ func ExampleAutoIndexer_ApplyCQRSIndexes() {
 	_ = turso.InitSchema(context.Background(), db)
 
 	auto := indexing.NewAutoIndexer(db)
+	auto.Enable()
 	_ = auto.ApplyCQRSIndexes(context.Background())
 
 	advisor := indexing.NewAdvisor(db)

@@ -50,6 +50,7 @@ func TestAutoIndexer_ApplyCQRSIndexes(t *testing.T) {
 
 	db := setupTestDB(t)
 	auto := indexing.NewAutoIndexer(db)
+	auto.Enable()
 
 	if err := auto.ApplyCQRSIndexes(context.Background()); err != nil {
 		t.Fatalf("ApplyCQRSIndexes: %v", err)
@@ -73,6 +74,7 @@ func TestAutoIndexer_ApplyCQRSIndexes_Idempotent(t *testing.T) {
 
 	db := setupTestDB(t)
 	auto := indexing.NewAutoIndexer(db)
+	auto.Enable()
 
 	// Apply twice should not error.
 	if err := auto.ApplyCQRSIndexes(context.Background()); err != nil {
