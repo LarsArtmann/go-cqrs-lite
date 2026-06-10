@@ -4,76 +4,116 @@ A lightweight CQRS library for Go with Event Sourcing, branded IDs, and auto-doc
 
 ## Installation
 
+go-cqrs-lite is a multi-module monorepo. Import only what you need:
+
 ```bash
-go get github.com/larsartmann/go-cqrs-lite/core
+go get github.com/larsartmann/go-cqrs-lite/event/v2
+go get github.com/larsartmann/go-cqrs-lite/command/v2
+go get github.com/larsartmann/go-cqrs-lite/memory/v2
 ```
 
 ## Quick Start
 
-### 1. Define Commands
+### 1. Define Events
+
+```go
+type UserCreated struct{ Name string }
+```
+
+### 2. Create and Store Events
 
 ```go
 import (
-    "github.com/larsartmann/go-cqrs-lite/core/command"
-    "github.com/larsartmann/go-cqrs-lite/core/pkg/id"
-)
-
-type CreateUser struct {
-    command.Core
-    Email string
-}
-
-cmd, _ := command.New("CreateUser", id.NewAggregateID())
-```
-
-### 2. Dispatch Commands
-
-```go
-d := command.NewDispatcher()
-
-d.Register("CreateUser", func(ctx context.Context, cmd command.Command) error {
-    // handle command
-    return nil
-})
-
-d.Dispatch(ctx, cmd)
-```
-
-### 3. Create Events
-
-```go
-import "github.com/larsartmann/go-cqrs-lite/core/event"
-
-evt, _ := event.NewEvent(
-    "UserCreated",
-    aggregateID,
-    "User",
-    1,
-    []byte(`{"email":"alice@example.com"}`),
-    event.WithCorrelationID(correlationID),
-)
-```
-
-### 4. Event Sourcing with Decider
-
-```go
-import (
-    "github.com/larsartmann/go-cqrs-lite/core/decider"
-    "github.com/larsartmann/go-cqrs-lite/memory"
+    "github.com/larsartmann/go-cqrs-lite/event/v2"
+    "github.com/larsartmann/go-cqrs-lite/id/v2"
+    "github.com/larsartmann/go-cqrs-lite/memory/v2"
 )
 
 store := memory.NewMemoryStore()
 bus := memory.NewMemoryBus()
-repo := decider.NewRepository(store, bus, initialState, foldFunc)
+aggID := id.NewAggregateID()
 
-// Execute: load → fold → decide → save → publish
-newState, err := repo.Execute(ctx, aggregateID, decideFunc)
+// Create a typed event — payload is auto-marshaled to JSON
+evt, err := event.NewEvent(
+    "user.created", aggID, "User", event.Version(1),
+    UserCreated{Name: "Alice"},
+)
+if err != nil {
+    log.Fatal(err)
+}
+
+// Save with optimistic concurrency
+ref := event.NewAggregateRef("User", aggID)
+if err := store.Save(ctx, ref, []event.Event{evt}, 0); err != nil {
+    log.Fatal(err)
+}
+
+// Publish to subscribers
+_ = bus.Publish(ctx, evt)
+```
+
+### 3. Dispatch Commands
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/command/v2"
+
+// Define a command embedding BasicCommand
+type CreateUserCmd struct {
+    *command.BasicCommand
+    Name string
+}
+
+// Type-safe handler registration
+cmds := command.NewDispatcher()
+command.RegisterTyped(cmds, "user.create",
+    func(ctx context.Context, cmd *CreateUserCmd) error {
+        // handle command
+        return nil
+    },
+)
+
+// Dispatch
+cmd := &CreateUserCmd{
+    BasicCommand: command.MustNew("user.create", aggID),
+    Name: "Alice",
+}
+cmds.Dispatch(ctx, cmd)
+```
+
+### 4. Event Sourcing with Decider
+
+The Decider pattern uses pure functions for load → fold → decide → save → publish:
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/decider/v2"
+
+type UserState struct{ Name string }
+
+d := decider.Decider[UserState]{
+    Initial: UserState{},
+    Fold: func(s UserState, evt event.Event) (UserState, error) {
+        p, _ := event.DecodePayload[UserCreated](evt, codec.JSONCodec{})
+        s.Name = p.Name
+        return s, nil
+    },
+}
+
+repo, _ := decider.NewRepository[UserState](store, bus, d)
+
+// Execute a command (load state → fold → decide → save → publish)
+repo.Execute(ctx, aggID, "User", func(s UserState, v event.Version) ([]event.Event, error) {
+    return event.NewEvents(aggID, "User", v,
+        []event.Type{"user.created"}, []any{UserCreated{Name: "Alice"}})
+})
+
+// Load current state
+state, version, _ := repo.Load(ctx, aggID, "User")
 ```
 
 ### 5. Branded IDs
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/core/pkg/id"
+import "github.com/larsartmann/go-cqrs-lite/id/v2"
 
 // Use built-in types
 aggID := id.NewAggregateID()
@@ -87,26 +127,31 @@ orderID := id.New[OrderID]()
 ## Architecture
 
 ```
-Command → Dispatcher → Handler → Aggregate → Store + Bus
-                                                  ↓
-Query   → Dispatcher → Handler              Projection
+Command → Dispatcher → Handler → Decider → Store + Bus
+                                            ↓
+Query   → Dispatcher → Handler            Projection
 ```
-
-For a detailed visual walkthrough of how a web client communicates with go-cqrs-lite, see the [Web Client Communication Diagram](web-client-communication.d2) (render with `d2` CLI or view [web-client-communication.html](web-client-communication.html)).
 
 ## Modules
 
-| Module      | Import          | Purpose                                              |
-| ----------- | --------------- | ---------------------------------------------------- |
-| core        | `…/core/…`      | CQRS primitives (command, event, query, decider, id) |
-| memory      | `…/memory`      | In-memory implementations (testing)                  |
-| catalog     | `…/catalog/…`   | Auto-documentation (AsyncAPI 3.0, EventCatalog)      |
-| middleware  | `…/middleware`  | Logging, retry, recovery, validation, metrics        |
-| storage     | `…/storage`     | PostgreSQL, SQLite, Turso, Pebble stores             |
-| testhelpers | `…/testhelpers` | Test utilities (fakes, helpers)                      |
+| Module      | Import Path                                | Purpose                                    |
+| ----------- | ------------------------------------------ | ------------------------------------------ |
+| event       | `…/event/v2`                               | Events, Store, Bus, reactive streams       |
+| command     | `…/command/v2`                             | Commands, Dispatcher, typed handlers        |
+| query       | `…/query/v2`                               | Queries, Dispatcher, typed results          |
+| decider     | `…/decider/v2`                             | Pure-function aggregate pattern             |
+| id          | `…/id/v2`                                  | Branded IDs (AggregateID, EventID, etc.)    |
+| projection  | `…/projection/v2`                          | Catch-up projections with replay            |
+| memory      | `…/memory/v2`                              | In-memory implementations (testing)         |
+| storage     | `…/storage/v2`                             | PostgreSQL, SQLite, Turso, Pebble stores    |
+| middleware  | `…/middleware/v2`                           | Logging, retry, recovery, validation, etc.  |
+| catalog     | `…/catalog/v2`                             | Auto-documentation (AsyncAPI, EventCatalog) |
+| schema      | `…/schema/v2`                              | Schema evolution (upcasters)                |
+| signing     | `…/signing/v2`                             | Event signing/verification (HMAC, Ed25519)  |
 
 ## Next Steps
 
-- See `example/user/` for a complete working demo
-- Browse `docs/planning/` for architectural decisions
+- See `example/user/` for a complete working demo with Decider + middleware + catalog
+- See `README.md` for the full Quick Start and feature comparison
+- Browse `docs/adr/` for architectural decisions
 - Check `FEATURES.md` for full feature inventory
