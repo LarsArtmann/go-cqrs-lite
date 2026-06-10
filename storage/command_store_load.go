@@ -10,7 +10,9 @@ import (
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
 )
 
-var commandQueryConfig = sqlpkg.QueryConfig[*command.PersistedCommand]{
+const commandCountAttr = "command.count"
+
+var commandQueryConfig = sqlpkg.QueryConfig[*command.PersistedCommand]{ //nolint:gochecknoglobals // contains closures, cannot be const
 	Columns:  sqlpkg.CommandColumns,
 	Table:    sqlpkg.TableCommands,
 	ScanRows: nil, // set per-store in loadWithSpan
@@ -32,7 +34,7 @@ func (s *SQLCommandStore) Load(
 	return s.loadWithSpan(ctx, ref, sqlpkg.LoadParams{
 		SpanName: "command.store.load", Attrs: cqrsotel.AggregateAttrs(ref.Type, ref.ID),
 		Where: "ORDER BY received_at ASC", RequireHit: true, ErrMsg: "query commands",
-		CountAttr: "command.count",
+		CountAttr: commandCountAttr,
 	})
 }
 
@@ -50,7 +52,7 @@ func (s *SQLCommandStore) LoadFromTimestamp(
 			s.Dialect.Placeholder(3),
 		),
 		ExtraArgs: []any{s.Dialect.FormatTime(after)}, RequireHit: false,
-		ErrMsg: "query commands from timestamp", CountAttr: "command.count",
+		ErrMsg: "query commands from timestamp", CountAttr: commandCountAttr,
 	})
 }
 
@@ -68,7 +70,7 @@ func (s *SQLCommandStore) LoadToTimestamp(
 			s.Dialect.Placeholder(3),
 		),
 		ExtraArgs: []any{s.Dialect.FormatTime(maxTime)}, RequireHit: true,
-		ErrMsg: "query commands to timestamp", CountAttr: "command.count",
+		ErrMsg: "query commands to timestamp", CountAttr: commandCountAttr,
 	})
 }
 

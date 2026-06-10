@@ -23,9 +23,9 @@
 - [v2] Add global TransactionID branded type for cross-aggregate consistency (source: TIME_TRAVEL)
 - [v2] io.Closer removal from core interfaces (source: SESSION_60)
 - [x] ~~**Break event↔command cycle**~~ — DONE (Session follow-up: moved taxonomy test to integration/, removed query/v2 from event/go.mod)
-- [ ] **Extract eventtest as separate module** — Give eventtest its own go.mod to break event↔memory cycle (source: architecture-review 2026-06-10)
+- [x] ~~**Extract eventtest as separate module**~~ — ACCEPTED/WONTFIX (eventtest has zero dependency on memory/, would not break any real cycle — purely organizational overhead)
 - [x] ~~**Break memory↔snapshot cycle**~~ — DONE (Session follow-up: replaced memory dep with inline fakeStore in snapshot tests)
-- [ ] **Extract sql.QueryEngine** — Generic query engine in storage/sql/ to eliminate ~300 lines of event/command store duplication (source: code-review 2026-06-10)
+- [x] ~~**Extract sql.QueryEngine**~~ — DONE (storage/sql/query_engine.go with generic LoadWithSpan[T] + QueryRows[T])
 - [x] ~~**Remove command error re-exports**~~ — DONE (Session follow-up: removed unused WrapTransient, kept used re-exports)
 - [x] ~~**Fix Lifecycle exported field**~~ — DONE (Session follow-up: `5218640c`)
 - [FUTURE] Add catalog diff/breaking-change detection tool (source: SESSION_04)
@@ -86,10 +86,10 @@
 - [x] ~~**Rename ErrNilBus → ErrNilPublisher**~~ — DONE (Session follow-up: `b3b6801a`)
 - [x] ~~**Remove StreamKey free function**~~ — DONE (Session follow-up: `4b183a5c`)
 - [x] ~~**Remove Map/ScanState/Tap reactive wrappers**~~ — DONE (Session follow-up: `38f336f5`)
-- [ ] **Move HTTP code out of middleware** — SSE, healthcheck, metrics_http have no relation to CQRS middleware (source: architecture-review 2026-06-10)
+- [v3] **Move HTTP code out of middleware** — SSE, healthcheck, metrics_http → transport/ module. DEFERRED: breaking API change requires v3.0.0 or deprecation period. Only example/ consumers internally.
 - [x] ~~**Consolidate listRefsFromStatus**~~ — DONE (Session follow-up: `c77a4b05`)
 - [x] ~~**Fix AggregateProjection hardcoded placeholders**~~ — DONE (Session follow-up: `cab48302`)
-- [ ] **Fix pebble unbounded lock map** — sync.Map grows without eviction; add LRU or sharded lock (source: code-review 2026-06-10)
+- [x] ~~**Fix pebble unbounded lock map**~~ — DONE (replaced sync.Map with [256]sync.Mutex sharded pool using FNV-1a hash)
 - [x] ~~**Fix README.md broken badges**~~ — DONE (Session follow-up: fixed Go Reference badge case, fixed Quick Start Save/Load API)
 
 ## 🟢 LOW Priority

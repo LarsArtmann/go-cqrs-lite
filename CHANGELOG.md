@@ -29,6 +29,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **event/go.mod** — removed `query/v2` direct dependency (test moved to integration/)
 - **snapshot/go.mod** — removed `memory/v2` dependency (replaced with inline fakeStore)
 
+### Changed
+
+- **pebble/store.go** — replaced unbounded `sync.Map` lock with fixed [256]`sync.Mutex` sharded pool (bounded memory, zero allocations)
+- **storage/sql/query_engine.go** — extracted generic `LoadWithSpan[T]` + `QueryRows[T]` to eliminate event/command store load duplication
+- **TODO_LIST.md** — marked 4 more items done/deferred (pebble locks, sql query engine, eventtest extraction, HTTP transport move)
+
 ### Removed
 
 - **event/** — `Map`, `ScanState`, `Tap` reactive wrappers (test-only, polluted public API)
