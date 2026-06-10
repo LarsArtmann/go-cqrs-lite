@@ -18,9 +18,9 @@ type Metadata struct {
 	Custom        map[MetadataKey]string `json:"custom,omitempty"`
 }
 
-// NewMetadata creates a Metadata with all fields initialized.
+// NewMetadata creates a Metadata with all fields initialized, including the Custom map.
 func NewMetadata() Metadata {
-	return Metadata{}
+	return Metadata{Custom: make(map[MetadataKey]string)}
 }
 
 // Clone returns a deep copy of the metadata.
