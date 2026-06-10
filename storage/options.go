@@ -5,7 +5,7 @@ import "database/sql"
 type SQLEventStoreOption func(*SQLEventStore)
 
 func WithOwnership() SQLEventStoreOption {
-	return func(s *SQLEventStore) { s.ClosableBase.SetOwnership(true) }
+	return func(s *SQLEventStore) { s.SetOwnership(true) }
 }
 
 func NewSQLEventStoreWithOptions(db *sql.DB, opts ...SQLEventStoreOption) (*SQLEventStore, error) {

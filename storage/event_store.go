@@ -47,7 +47,7 @@ func newSQLEventStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLEventStore, 
 }
 
 func (s *SQLEventStore) checkClosed() error {
-	return s.ClosableBase.CheckClosed(
+	return s.CheckClosed(
 		event.NewInfrastructure("storage.closed", "store is closed"),
 	)
 }

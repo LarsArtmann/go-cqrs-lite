@@ -41,13 +41,13 @@ func WithAsyncWrites() StoreOption {
 
 // NewStore creates a new store using an existing Pebble DB.
 // Panics if db is nil.
-func NewStore(db *pebble.DB, logger *slog.Logger, opts ...StoreOption) *EventStore {
-	if db == nil {
+func NewStore(database *pebble.DB, logger *slog.Logger, opts ...StoreOption) *EventStore {
+	if database == nil {
 		panic("pebble: NewStore called with nil db")
 	}
 
 	s := &EventStore{ //nolint:exhaustruct // locks initialized lazily
-		db:            db,
+		db:            database,
 		logger:        logger,
 		prefix:        "cqrs_event:",
 		journalPrefix: "cqrs_journal:",

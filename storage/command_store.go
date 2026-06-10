@@ -44,7 +44,7 @@ func newSQLCommandStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLCommandSto
 }
 
 func (s *SQLCommandStore) checkClosed() error {
-	return s.ClosableBase.CheckClosed(command.ErrStoreClosed)
+	return s.CheckClosed(command.ErrStoreClosed)
 }
 
 var _ command.Store = (*SQLCommandStore)(nil)

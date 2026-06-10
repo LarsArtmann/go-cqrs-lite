@@ -10,7 +10,7 @@ import (
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
 )
 
-var eventQueryConfig = sqlpkg.QueryConfig[event.Event]{
+var eventQueryConfig = sqlpkg.QueryConfig[event.Event]{ //nolint:gochecknoglobals // contains closures, cannot be const
 	Columns:  sqlpkg.EventColumns,
 	Table:    sqlpkg.TableEvents,
 	ScanRows: nil, // set per-store in loadWithSpan
