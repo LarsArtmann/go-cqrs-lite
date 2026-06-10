@@ -2,6 +2,7 @@ package decider
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
@@ -174,10 +175,9 @@ func (r *Repository[State]) saveSnapshotAfterEvents(
 
 		finalState, foldErr = r.decider.Fold(finalState, evt)
 		if foldErr != nil {
-			cqrsotel.RecordError(
-				cqrsotel.SpanFromContext(ctx),
-				opError(ref, "fold event %s for snapshot: %w", evt.Type(), foldErr),
-			)
+			err := opError(ref, "fold event %s for snapshot: %w", evt.Type(), foldErr)
+			cqrsotel.RecordError(cqrsotel.SpanFromContext(ctx), err)
+			slog.WarnContext(ctx, "snapshot fold failed", "ref", ref, "event_type", evt.Type(), "error", foldErr)
 
 			return
 		}
@@ -185,10 +185,9 @@ func (r *Repository[State]) saveSnapshotAfterEvents(
 
 	encoded, encErr := r.codec.Encode(finalState)
 	if encErr != nil {
-		cqrsotel.RecordError(
-			cqrsotel.SpanFromContext(ctx),
-			opError(ref, "encode snapshot: %w", encErr),
-		)
+		err := opError(ref, "encode snapshot: %w", encErr)
+		cqrsotel.RecordError(cqrsotel.SpanFromContext(ctx), err)
+		slog.WarnContext(ctx, "snapshot encode failed", "ref", ref, "error", encErr)
 
 		return
 	}
@@ -196,6 +195,7 @@ func (r *Repository[State]) saveSnapshotAfterEvents(
 	saveErr := snapshot.SaveSnapshot(ctx, r.snapshotStore, ref.Type, ref.ID, newVersion, encoded)
 	if saveErr != nil {
 		cqrsotel.RecordError(cqrsotel.SpanFromContext(ctx), saveErr)
+		slog.WarnContext(ctx, "snapshot save failed", "ref", ref, "version", newVersion, "error", saveErr)
 	}
 }
 
