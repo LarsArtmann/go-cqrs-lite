@@ -12,46 +12,46 @@
 
 ### Module Health (all green)
 
-| Module | Coverage | Status |
-|--------|----------|--------|
-| event/v2 | 89.6% | ✅ |
-| event/v2/eventtest | 17.8% (test infra) | ✅ |
-| command/v2 | 97.1% | ✅ |
-| query/v2 | 94.3% | ✅ |
-| decider/v2 | 100.0% | ✅ |
-| id/v2 | 97.5% | ✅ |
-| dispatcher/v2 | 98.0% | ✅ |
-| schema/v2 | 89.7% | ✅ |
-| snapshot/v2 | 88.9% | ✅ |
-| codec/v2 | 93.3% | ✅ |
-| memory/v2 | 98.2% | ✅ |
-| catalog/v2 | 95.9% | ✅ |
-| catalog/v2/asyncapi | 93.9% | ✅ |
-| catalog/v2/d2 | 95.0% | ✅ |
-| catalog/v2/docserver | 90.1% | ✅ |
-| catalog/v2/eventcatalog | 92.7% | ✅ |
-| catalog/v2/internal/caseutil | 100.0% | ✅ |
-| catalog/v2/openapi | 100.0% | ✅ |
-| catalog/v2/schema | 86.0% | ✅ |
-| middleware/v2 | 95.7% | ✅ |
-| integration/v2 | [no stmts] | ✅ |
-| integration/v2/command | [no stmts] | ✅ |
-| integration/v2/event | [no stmts] | ✅ |
-| integration/v2/query | [no stmts] | ✅ |
-| integration/v2/signing | [no stmts] | ✅ |
-| integration/v2/simulation | 92.3% | ✅ |
-| projection/v2 | 91.4% | ✅ |
-| signing/v2 | 94.1% | ✅ |
-| signing/v2/multisig | 94.2% | ✅ |
-| storage/v2 | 89.2% | ✅ |
-| storage/v2/sql | 61.2% | ✅ |
-| watermill/v2 | 28.6% | ✅ |
-| encryption/v2 | 73.0% | ✅ |
-| listing/v2 | 84.3% | ✅ |
-| otel/v2 | 89.9% | ✅ |
-| pebble/v2 | 86.1% | ✅ |
-| turso/v2 | 94.3% | ✅ |
-| cmd/cqrs-gen/v2 | 94.9% | ✅ |
+| Module                       | Coverage           | Status |
+| ---------------------------- | ------------------ | ------ |
+| event/v2                     | 89.6%              | ✅     |
+| event/v2/eventtest           | 17.8% (test infra) | ✅     |
+| command/v2                   | 97.1%              | ✅     |
+| query/v2                     | 94.3%              | ✅     |
+| decider/v2                   | 100.0%             | ✅     |
+| id/v2                        | 97.5%              | ✅     |
+| dispatcher/v2                | 98.0%              | ✅     |
+| schema/v2                    | 89.7%              | ✅     |
+| snapshot/v2                  | 88.9%              | ✅     |
+| codec/v2                     | 93.3%              | ✅     |
+| memory/v2                    | 98.2%              | ✅     |
+| catalog/v2                   | 95.9%              | ✅     |
+| catalog/v2/asyncapi          | 93.9%              | ✅     |
+| catalog/v2/d2                | 95.0%              | ✅     |
+| catalog/v2/docserver         | 90.1%              | ✅     |
+| catalog/v2/eventcatalog      | 92.7%              | ✅     |
+| catalog/v2/internal/caseutil | 100.0%             | ✅     |
+| catalog/v2/openapi           | 100.0%             | ✅     |
+| catalog/v2/schema            | 86.0%              | ✅     |
+| middleware/v2                | 95.7%              | ✅     |
+| integration/v2               | [no stmts]         | ✅     |
+| integration/v2/command       | [no stmts]         | ✅     |
+| integration/v2/event         | [no stmts]         | ✅     |
+| integration/v2/query         | [no stmts]         | ✅     |
+| integration/v2/signing       | [no stmts]         | ✅     |
+| integration/v2/simulation    | 92.3%              | ✅     |
+| projection/v2                | 91.4%              | ✅     |
+| signing/v2                   | 94.1%              | ✅     |
+| signing/v2/multisig          | 94.2%              | ✅     |
+| storage/v2                   | 89.2%              | ✅     |
+| storage/v2/sql               | 61.2%              | ✅     |
+| watermill/v2                 | 28.6%              | ✅     |
+| encryption/v2                | 73.0%              | ✅     |
+| listing/v2                   | 84.3%              | ✅     |
+| otel/v2                      | 89.9%              | ✅     |
+| pebble/v2                    | 86.1%              | ✅     |
+| turso/v2                     | 94.3%              | ✅     |
+| cmd/cqrs-gen/v2              | 94.9%              | ✅     |
 
 ### Completed This Session
 
@@ -84,12 +84,12 @@
 
 ## b) PARTIALLY DONE ⚠️
 
-| Item | Status | Details |
-|------|--------|---------|
-| encryption/v2 coverage | 73.0% | Below 80% threshold. Middleware tests and edge cases needed. |
-| watermill/v2 coverage | 28.6% | Very low. Most protocol.go paths untested without Watermill broker. |
-| eventtest coverage | 17.8% | Test infrastructure — low coverage is expected (helpers used by other tests). |
-| Strong-ID migration | Deferred | `tracing_logging.go` and `sse.go` still use `string` for IDs. Breaking public API change — deferred to v3. |
+| Item                   | Status   | Details                                                                                                    |
+| ---------------------- | -------- | ---------------------------------------------------------------------------------------------------------- |
+| encryption/v2 coverage | 73.0%    | Below 80% threshold. Middleware tests and edge cases needed.                                               |
+| watermill/v2 coverage  | 28.6%    | Very low. Most protocol.go paths untested without Watermill broker.                                        |
+| eventtest coverage     | 17.8%    | Test infrastructure — low coverage is expected (helpers used by other tests).                              |
+| Strong-ID migration    | Deferred | `tracing_logging.go` and `sse.go` still use `string` for IDs. Breaking public API change — deferred to v3. |
 
 ---
 
@@ -107,29 +107,32 @@
 
 ## d) TOTALLY FUCKED UP 💥
 
-| Issue | Severity | Details |
-|-------|----------|---------|
-| 144 unreleased commits | HIGH | v2.2.0 tagged but HEAD has 144 commits with no release. Encryption module, panic fixes, coverage improvements, deduplication — all unreleased. |
-| Golden test drift | LOW | codec and middleware golden files drifted from production output. Fixed this session but indicates golden tests aren't run in CI's format check. |
-| `testutil/go.sum` drift | LOW | `go.sum` has unstaged changes suggesting `go mod tidy` hasn't been run since last module edit. |
-| Pre-existing `GOWORK=off` build failure in middleware | MEDIUM | `memory/v2@v2.2.0` references `event.StreamKey` which doesn't exist in published version. Only affects per-module CI with `GOWORK=off`. Workspace builds fine. |
+| Issue                                                 | Severity | Details                                                                                                                                                        |
+| ----------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 144 unreleased commits                                | HIGH     | v2.2.0 tagged but HEAD has 144 commits with no release. Encryption module, panic fixes, coverage improvements, deduplication — all unreleased.                 |
+| Golden test drift                                     | LOW      | codec and middleware golden files drifted from production output. Fixed this session but indicates golden tests aren't run in CI's format check.               |
+| `testutil/go.sum` drift                               | LOW      | `go.sum` has unstaged changes suggesting `go mod tidy` hasn't been run since last module edit.                                                                 |
+| Pre-existing `GOWORK=off` build failure in middleware | MEDIUM   | `memory/v2@v2.2.0` references `event.StreamKey` which doesn't exist in published version. Only affects per-module CI with `GOWORK=off`. Workspace builds fine. |
 
 ---
 
 ## e) WHAT WE SHOULD IMPROVE 📈
 
 ### Critical
+
 1. **Tag v2.2.1** — 144 unreleased commits is irresponsible for a library consumers depend on
 2. **Fix `GOWORK=off` middleware build** — memory/v2 needs republishing with StreamKey fix
 3. **Run golden tests in CI** — Prevent drift by running `go test -run TestGolden` in CI pipeline
 
 ### Important
+
 4. **encryption/v2 coverage → 80%+** — Currently 73%, below project threshold
 5. **watermill/v2 coverage** — 28.6% is the lowest in the project. Needs integration tests or mark as experimental
 6. **storage/sql OTel helpers** — 0% coverage on Tracer, StartAggregateSpan, StartSaveSpan
 7. **Remove dead `docs/status/` status reports at root** — 97+ files still at root (only pre-Jun-5 archived this session)
 
 ### Nice-to-Have
+
 8. **Strong-ID migration plan for v3** — Document breaking changes needed
 9. **Benchmark baseline** — CI has benchmark regression detection but no baseline file committed
 10. **File size audit** — Some files may exceed the 350-line CI gate
@@ -140,43 +143,43 @@
 
 ### Immediate (this session or next)
 
-| # | Task | Impact | Effort | Module |
-|---|------|--------|--------|--------|
-| 1 | **Tag v2.2.1** with unreleased changes + CHANGELOG | HIGH | 15 min | git tags |
-| 2 | Fix `GOWORK=off` middleware build (re-tag memory/v2) | HIGH | 10 min | memory |
-| 3 | Run `go mod tidy` on testutil + all modules | MEDIUM | 5 min | testutil |
-| 4 | Add golden test step to CI workflow | HIGH | 5 min | .github |
-| 5 | encryption/v2 coverage → 80%+ (middleware tests) | HIGH | 30 min | encryption |
-| 6 | storage/sql CommandSchema tests | MEDIUM | 15 min | storage/sql |
-| 7 | storage/sql OTel helper tests | MEDIUM | 15 min | storage/sql |
+| #   | Task                                                 | Impact | Effort | Module      |
+| --- | ---------------------------------------------------- | ------ | ------ | ----------- |
+| 1   | **Tag v2.2.1** with unreleased changes + CHANGELOG   | HIGH   | 15 min | git tags    |
+| 2   | Fix `GOWORK=off` middleware build (re-tag memory/v2) | HIGH   | 10 min | memory      |
+| 3   | Run `go mod tidy` on testutil + all modules          | MEDIUM | 5 min  | testutil    |
+| 4   | Add golden test step to CI workflow                  | HIGH   | 5 min  | .github     |
+| 5   | encryption/v2 coverage → 80%+ (middleware tests)     | HIGH   | 30 min | encryption  |
+| 6   | storage/sql CommandSchema tests                      | MEDIUM | 15 min | storage/sql |
+| 7   | storage/sql OTel helper tests                        | MEDIUM | 15 min | storage/sql |
 
 ### Short-term (this week)
 
-| # | Task | Impact | Effort | Module |
-|---|------|--------|--------|--------|
-| 8 | watermill/v2 coverage → 50%+ | HIGH | 60 min | watermill |
-| 9 | Commit benchmark baseline file | MEDIUM | 5 min | root |
-| 10 | LoadWithSpan integration test | MEDIUM | 20 min | storage/sql |
-| 11 | Encryption BDD: multi-event batch, key rotation | MEDIUM | 30 min | encryption |
-| 12 | Strong-ID v3 migration plan (ADR) | LOW | 15 min | docs/adr |
-| 13 | SSE handler integration test | MEDIUM | 20 min | middleware |
-| 14 | Graceful shutdown integration test | MEDIUM | 15 min | pkg |
-| 15 | CI: add `nix run .#check-layers` step | LOW | 5 min | .github |
+| #   | Task                                            | Impact | Effort | Module      |
+| --- | ----------------------------------------------- | ------ | ------ | ----------- |
+| 8   | watermill/v2 coverage → 50%+                    | HIGH   | 60 min | watermill   |
+| 9   | Commit benchmark baseline file                  | MEDIUM | 5 min  | root        |
+| 10  | LoadWithSpan integration test                   | MEDIUM | 20 min | storage/sql |
+| 11  | Encryption BDD: multi-event batch, key rotation | MEDIUM | 30 min | encryption  |
+| 12  | Strong-ID v3 migration plan (ADR)               | LOW    | 15 min | docs/adr    |
+| 13  | SSE handler integration test                    | MEDIUM | 20 min | middleware  |
+| 14  | Graceful shutdown integration test              | MEDIUM | 15 min | pkg         |
+| 15  | CI: add `nix run .#check-layers` step           | LOW    | 5 min  | .github     |
 
 ### Medium-term (next 2 weeks)
 
-| # | Task | Impact | Effort | Module |
-|---|------|--------|--------|--------|
-| 16 | v3 roadmap: strong-ID migration, API cleanup | HIGH | 60 min | docs |
-| 17 | Event store benchmark suite (PG vs SQLite vs Pebble vs Turso) | MEDIUM | 90 min | storage |
-| 18 | catalog/v2/schema coverage → 90%+ | LOW | 20 min | catalog |
-| 19 | pebble/v2: add compaction/tombstone benchmarks | LOW | 30 min | pebble |
-| 20 | turso/v2: add sync failure recovery tests | LOW | 30 min | turso |
-| 21 | projection/v2: add pause/resume test | LOW | 20 min | projection |
-| 22 | signing/v2/multisig: add threshold signing test | LOW | 15 min | signing |
-| 23 | cmd/api-stability: add encryption to tracked surface | LOW | 10 min | cmd |
-| 24 | docs: add encryption module to architecture diagram | LOW | 10 min | docs |
-| 25 | example/: add encryption example | LOW | 20 min | example |
+| #   | Task                                                          | Impact | Effort | Module     |
+| --- | ------------------------------------------------------------- | ------ | ------ | ---------- |
+| 16  | v3 roadmap: strong-ID migration, API cleanup                  | HIGH   | 60 min | docs       |
+| 17  | Event store benchmark suite (PG vs SQLite vs Pebble vs Turso) | MEDIUM | 90 min | storage    |
+| 18  | catalog/v2/schema coverage → 90%+                             | LOW    | 20 min | catalog    |
+| 19  | pebble/v2: add compaction/tombstone benchmarks                | LOW    | 30 min | pebble     |
+| 20  | turso/v2: add sync failure recovery tests                     | LOW    | 30 min | turso      |
+| 21  | projection/v2: add pause/resume test                          | LOW    | 20 min | projection |
+| 22  | signing/v2/multisig: add threshold signing test               | LOW    | 15 min | signing    |
+| 23  | cmd/api-stability: add encryption to tracked surface          | LOW    | 10 min | cmd        |
+| 24  | docs: add encryption module to architecture diagram           | LOW    | 10 min | docs       |
+| 25  | example/: add encryption example                              | LOW    | 20 min | example    |
 
 ---
 
@@ -190,15 +193,15 @@ The 144 commits include both new features (encryption module, SchemaVersion arit
 
 ## Metrics Snapshot
 
-| Metric | Value |
-|--------|-------|
-| Total modules | 33 (22 library + 6 examples + 1 integration + 2 cmd + 2 testutil) |
-| Production LOC | 22,442 |
-| Test LOC | 51,452 |
-| Total coverage | 84.7% |
-| Packages green | 40/40 (100%) |
-| Packages FAIL | 0 |
-| Unreleased commits | 144 |
-| Last tagged release | v2.2.0 |
-| Status reports in archive | ~130 |
-| Status reports at root | ~97 |
+| Metric                    | Value                                                             |
+| ------------------------- | ----------------------------------------------------------------- |
+| Total modules             | 33 (22 library + 6 examples + 1 integration + 2 cmd + 2 testutil) |
+| Production LOC            | 22,442                                                            |
+| Test LOC                  | 51,452                                                            |
+| Total coverage            | 84.7%                                                             |
+| Packages green            | 40/40 (100%)                                                      |
+| Packages FAIL             | 0                                                                 |
+| Unreleased commits        | 144                                                               |
+| Last tagged release       | v2.2.0                                                            |
+| Status reports in archive | ~130                                                              |
+| Status reports at root    | ~97                                                               |
