@@ -37,6 +37,17 @@
 <body>
 
 <h1>go-cqrs-lite Architecture Review</h1>
+
+<div style="background:#fef2f2;border:2px solid #dc2626;border-radius:8px;padding:1em 1.5em;margin:1em 0;">
+<strong style="color:#dc2626;">CORRECTION (2026-06-10):</strong> This review incorrectly claims "4 bidirectional import cycles" in the production dependency graph.
+<strong>Analysis of actual production code confirms the dependency graph is a clean DAG.</strong>
+The apparent cycles exist only in <code>go.mod</code> files because Go does not separate test-only dependencies.
+For example, <code>event/go.mod</code> lists command, query, memory, schema, and snapshot as dependencies,
+but <strong>production event code imports ZERO from these modules</strong> — they are used exclusively in
+<code>_test.go</code> files and <code>eventtest/</code>. The recommended cycle-breaking actions (extract eventtest,
+remove event→command, etc.) are therefore about reducing test-dep binary bloat, not fixing compile-time cycles.
+</div>
+
 <p><strong>Date:</strong> 2026-06-10 · <strong>Reviewer:</strong> Automated Architecture Analysis · <strong>Scope:</strong> 22 library modules + 2 cmd tools</p>
 
 <div class="metric-grid">
