@@ -22,11 +22,11 @@
 - [x] ~~Publish go-composable-business-types as Go Module~~ — MOOT (go-branded-id published separately)
 - [v2] Add global TransactionID branded type for cross-aggregate consistency (source: TIME_TRAVEL)
 - [v2] io.Closer removal from core interfaces (source: SESSION_60)
-- [ ] **Break event↔command cycle** — Move CatalogDispatcher to command/query; remove event→command, event→query deps (source: architecture-review 2026-06-10)
+- [x] ~~**Break event↔command cycle**~~ — DONE (Session follow-up: moved taxonomy test to integration/, removed query/v2 from event/go.mod)
 - [ ] **Extract eventtest as separate module** — Give eventtest its own go.mod to break event↔memory cycle (source: architecture-review 2026-06-10)
-- [ ] **Break memory↔snapshot cycle** — Make snapshot depend only on event, not memory (source: architecture-review 2026-06-10)
+- [x] ~~**Break memory↔snapshot cycle**~~ — DONE (Session follow-up: replaced memory dep with inline fakeStore in snapshot tests)
 - [ ] **Extract sql.QueryEngine** — Generic query engine in storage/sql/ to eliminate ~300 lines of event/command store duplication (source: code-review 2026-06-10)
-- [ ] **Remove command error re-exports** — command/errors.go re-exports entire error-family API; 90% unused in production (source: code-review 2026-06-10)
+- [x] ~~**Remove command error re-exports**~~ — DONE (Session follow-up: removed unused WrapTransient, kept used re-exports)
 - [x] ~~**Fix Lifecycle exported field**~~ — DONE (Session follow-up: `5218640c`)
 - [FUTURE] Add catalog diff/breaking-change detection tool (source: SESSION_04)
 - [BLOCKED] Modularize ActaFlow — different project
@@ -90,7 +90,7 @@
 - [x] ~~**Consolidate listRefsFromStatus**~~ — DONE (Session follow-up: `c77a4b05`)
 - [x] ~~**Fix AggregateProjection hardcoded placeholders**~~ — DONE (Session follow-up: `cab48302`)
 - [ ] **Fix pebble unbounded lock map** — sync.Map grows without eviction; add LRU or sharded lock (source: code-review 2026-06-10)
-- [ ] **Fix README.md broken badges** — CI badges reference test.yml/lint.yml (should be ci.yml); Go Reference references core/ (doesn't exist) (source: docs-freshness 2026-06-10)
+- [x] ~~**Fix README.md broken badges**~~ — DONE (Session follow-up: fixed Go Reference badge case, fixed Quick Start Save/Load API)
 
 ## 🟢 LOW Priority
 
