@@ -60,7 +60,7 @@ func (f *fakeStore) LoadAtVersion(
 	ref event.AggregateRef,
 	version event.Version,
 ) (*snapshot.Snapshot, error) {
-	s, err := f.Load(context.TODO(), ref)
+	s, err := f.Load(context.Background(), ref)
 	if err != nil {
 		return nil, err
 	}
