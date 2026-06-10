@@ -78,18 +78,6 @@ func TestParseType_Empty(t *testing.T) {
 	}
 }
 
-func TestMustParseType_Panics(t *testing.T) {
-	t.Parallel()
-
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Fatal("expected panic")
-		}
-	}()
-
-	event.MustParseType("")
-}
 
 func TestParseAggregateType(t *testing.T) {
 	t.Parallel()

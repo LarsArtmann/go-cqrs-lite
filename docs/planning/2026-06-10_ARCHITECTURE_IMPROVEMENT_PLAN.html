@@ -646,6 +646,7 @@ section + section { border-top: 1px solid var(--border-subtle); }
       <a href="#completeness" class="completeness"><span class="count">2</span> Completeness</a>
       <a href="#consistency" class="consistency"><span class="count">2</span> Consistency</a>
       <a href="#summary" class="exec"><span class="count">✦</span> Summary</a>
+      <a href="#appendix-generics" class="api"><span class="count">A</span> Appendix: Generics</a>
     </div>
   </div>
 </nav>
@@ -1267,6 +1268,196 @@ section + section { border-top: 1px solid var(--border-subtle); }
       <li>Update AGENTS.md with changed patterns</li>
       <li>Run <code>nix fmt</code> before committing</li>
     </ul>
+  </div>
+</section>
+
+<section id="appendix-generics">
+  <div class="container">
+    <div class="section-header">
+      <h2>Appendix A: Generics Opportunities</h2>
+      <p>How Go generics can close the remaining API gaps in the library — informed by real consumer friction from the go-localsync integration. Ordered by impact.</p>
+    </div>
+
+    <!-- CQ-G1 -->
+    <div class="card">
+      <div class="card-top">
+        <div>
+          <div class="card-id">CQ-G1</div>
+          <h3><code>command.RegisterTyped[C]</code> — mirror the <code>query</code> pattern</h3>
+        </div>
+        <span class="severity api">New API</span>
+      </div>
+      <p class="card-desc">
+        The <code>query</code> package has <code>RegisterTyped[Q, R]</code> and <code>DispatchTyped[T]</code> — the "typed bookend" pattern that eliminates runtime type assertions for consumers. The <code>command</code> package has no equivalent. Every consumer must write the same <code>cmd.(*ConcreteCommand)</code> assertion + error wrapping boilerplate. This is a 6× repetition in go-localsync alone.
+      </p>
+      <div class="file-refs">
+        <span class="file-ref">command/dispatcher.go <span class="line">:—</span> (no RegisterTyped)</span>
+        <span class="file-ref">query/dispatcher.go <span class="line">:77</span> (RegisterTyped — exists)</span>
+        <span class="file-ref">query/dispatcher.go <span class="line">:130</span> (DispatchTyped — exists)</span>
+      </div>
+      <div class="code-block">
+<pre><span class="cmt">// command/dispatcher.go — new generic function</span>
+<span class="kw">type</span> <span class="type">TypedHandler</span>[C <span class="type">Command</span>] <span class="kw">func</span>(ctx context.<span class="type">Context</span>, cmd C) <span class="type">error</span>
+
+<span class="kw">func</span> <span class="fn">RegisterTyped</span>[C <span class="type">Command</span>](
+  d *<span class="type">Dispatcher</span>,
+  cmdType <span class="type">Type</span>,
+  handler <span class="type">TypedHandler</span>[C],
+) <span class="type">error</span> {
+  <span class="kw">return</span> d.<span class="fn">Register</span>(cmdType, <span class="kw">func</span>(ctx context.<span class="type">Context</span>, cmd <span class="type">Command</span>) <span class="type">error</span> {
+    typed, ok := cmd.(C)
+    <span class="kw">if</span> !ok {
+      <span class="kw">return</span> fmt.<span class="fn">Errorf</span>(<span class="str">"expected %T, got %T: %w"</span>, *<span class="kw">new</span>(C), cmd, <span class="type">ErrTypeMismatch</span>)
+    }
+    <span class="kw">return</span> <span class="fn">handler</span>(ctx, typed)
+  })
+}</pre>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <p><strong>Add <code>TypedHandler[C]</code> and <code>RegisterTyped[C]</code></strong> to the command package. The assertion is tested once in the library instead of repeated in every consumer. Add <code>ErrTypeMismatch</code> as a new sentinel error in the error taxonomy (Rejection family).</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <p><strong>Optionally add <code>DispatchTyped[C]</code></strong> that accepts a <code>C</code> directly and wraps it in the untyped dispatch. Less critical since <code>Dispatch(ctx, cmd)</code> already accepts the concrete type via the <code>Command</code> interface.</p>
+          </div>
+        </div>
+      </div>
+      <div class="callout">
+        <span><strong>Symmetry:</strong> <code>query</code> has <code>RegisterTyped[Q, R]</code> because queries return typed results. <code>command</code> only needs <code>RegisterTyped[C]</code> (one type param) because commands return <code>error</code> only. This is the simpler case.</span>
+      </div>
+      <div class="impact-grid">
+        <div class="impact-item">
+          <div class="impact-label">Effort</div>
+          <div class="impact-value">1–2 hours</div>
+        </div>
+        <div class="impact-item">
+          <div class="impact-label">Risk</div>
+          <div class="impact-value">Low (additive)</div>
+        </div>
+        <div class="impact-item">
+          <div class="impact-label">Breaking</div>
+          <div class="impact-value">No — purely additive</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CQ-G2 -->
+    <div class="card">
+      <div class="card-top">
+        <div>
+          <div class="card-id">CQ-G2</div>
+          <h3><code>DecideResult[R]</code> — typed domain result via second type parameter</h3>
+        </div>
+        <span class="severity api">Revises CQ-1</span>
+      </div>
+      <p class="card-desc">
+        CQ-1 proposes <code>Annotations map[string]any</code>. Generics offer a stronger alternative: <strong>a second type parameter <code>R</code> on <code>DecideFunc</code></strong> that carries a typed domain result. This eliminates runtime assertions on annotation values and makes the domain result a first-class part of the library's type system.
+      </p>
+      <div class="diff-grid">
+        <div>
+          <div class="diff-label before"><span class="dot"></span> CQ-1 as proposed</div>
+          <div class="code-block">
+<pre><span class="kw">type</span> <span class="type">DecideResult</span> <span class="kw">struct</span> {
+  Events     []event.<span class="type">Event</span>
+  Annotations <span class="kw">map</span>[<span class="kw">string</span>]<span class="kw">any</span>
+}
+
+<span class="kw">type</span> <span class="type">DecideFunc</span>[S <span class="kw">any</span>] <span class="kw">func</span>(
+  state S, ver event.<span class="type">Version</span>,
+) (*<span class="type">DecideResult</span>, <span class="type">error</span>)</pre>
+          </div>
+        </div>
+        <div>
+          <div class="diff-label after"><span class="dot"></span> With typed result (generics)</div>
+          <div class="code-block">
+<pre><span class="kw">type</span> <span class="type">DecideResult</span>[R <span class="kw">any</span>] <span class="kw">struct</span> {
+  Events []event.<span class="type">Event</span>
+  Result R
+}
+
+<span class="kw">type</span> <span class="type">DecideFunc</span>[S <span class="kw">any</span>, R <span class="kw">any</span>] <span class="kw">func</span>(
+  state S, ver event.<span class="type">Version</span>,
+) (*<span class="type">DecideResult</span>[R], <span class="type">error</span>)
+
+<span class="cmt">// Simple alias for consumers who don't need results:</span>
+<span class="kw">type</span> <span class="type">SimpleDecideFunc</span>[S <span class="kw">any</span>] = <span class="type">DecideFunc</span>[S, <span class="kw">struct</span>{}]</pre>
+          </div>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <p><strong>Add the second type parameter.</strong> <code>Repository[S, R]</code> carries both types. <code>Execute</code> returns <code>(*DecideResult[R], error)</code>. Existing code that doesn't care about the result uses <code>Repository[S, struct{}]</code> via the <code>SimpleDecideFunc[S]</code> alias — backward compatible in spirit, though the type signature changes.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <p><strong>Provide v2 shim.</strong> <code>ExecuteSimple(ctx, id, aggType, decide SimpleDecideFunc[S]) error</code> wraps the typed version and discards the result. Consumers who don't need domain results don't see the complexity.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <p><strong>Consumer side (go-localsync):</strong> Define <code>type SyncDecision struct { Action SyncAction; WasNew bool; Conflict string }</code>. Return it from <code>DecideSync</code>. The <code>countingDecide</code> hack disappears — the domain result flows through the type system.</p>
+          </div>
+        </div>
+      </div>
+      <div class="callout">
+        <span><strong>Tradeoff:</strong> Two-parameter generics increase the learning curve. The mitigation is the <code>SimpleDecideFunc[S]</code> alias — most consumers never see <code>R</code>. Only consumers who need domain semantics ("was this a create or an update?") opt into the full <code>DecideFunc[S, R]</code>.</span>
+      </div>
+      <div class="impact-grid">
+        <div class="impact-item">
+          <div class="impact-label">Effort</div>
+          <div class="impact-value">3–4 hours</div>
+        </div>
+        <div class="impact-item">
+          <div class="impact-label">Risk</div>
+          <div class="impact-value">Breaking (v3)</div>
+        </div>
+        <div class="impact-item">
+          <div class="impact-label">Replaces</div>
+          <div class="impact-value">CQ-1's map[string]any</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Not worth it -->
+    <div class="card">
+      <div class="card-top">
+        <div>
+          <div class="card-id">Note</div>
+          <h3>What's NOT worth genericizing</h3>
+        </div>
+      </div>
+      <div style="font-size:14px;color:var(--text-secondary);">
+        <div style="display:grid;grid-template-columns:1fr 2fr;gap:8px 20px;margin-top:8px;">
+          <span style="color:var(--text-muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;">Pattern</span>
+          <span style="color:var(--text-muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;">Why not</span>
+
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-primary);"><code>Event[T]</code> typed payloads</span>
+          <span>Go can't express union types — the <code>DecodePayload[T]</code> + codec pattern is the right tradeoff</span>
+
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-primary);"><code>EventSink[AggType]</code></span>
+          <span>Aggregates handle multiple event types — a type param would be rigid and restrictive</span>
+
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-primary);">Error types</span>
+          <span>Go's <code>error</code> interface + the 5-family taxonomy is already the right abstraction</span>
+
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-primary);"><code>dispatcher[H, M]</code></span>
+          <span>Already generic — this is the foundation that both <code>command</code> and <code>query</code> build on</span>
+
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-primary);"><code>listing.Page[T]</code></span>
+          <span>Already generic — and the cursor-based pagination is the correct model for append-only streams</span>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 

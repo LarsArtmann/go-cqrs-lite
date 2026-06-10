@@ -31,31 +31,17 @@ func (s *SQLCommandStore) Save(
 	)
 	defer span.End()
 
-	tx, err := s.DB.BeginTx(ctx, nil)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
+	return s.withTx(ctx, span, func(tx *sql.Tx) error {
+		err := s.insertCommand(ctx, tx, ref, cmd)
+		if err != nil {
+			cqrsotel.RecordError(span, err)
 
-		return command.WrapInfrastructure(err, "storage.begin_tx", "begin transaction")
-	}
+			return command.WrapInfrastructure(err, "storage.insert_command",
+				fmt.Sprintf("insert command %s for %s", cmd.Type(), ref))
+		}
 
-	defer func() {
-		_ = tx.Rollback()
-	}()
-
-	err = s.insertCommand(ctx, tx, ref, cmd)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
-
-		return command.WrapInfrastructure(err, "storage.insert_command",
-			fmt.Sprintf("insert command %s for %s", cmd.Type(), ref))
-	}
-
-	err = sqlpkg.CommitTx(tx)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
-	}
-
-	return err
+		return nil
+	})
 }
 
 // AppendBatch appends multiple commands in a single transaction.
@@ -85,6 +71,26 @@ func (s *SQLCommandStore) AppendBatch(
 	)
 	defer span.End()
 
+	return s.withTx(ctx, span, func(tx *sql.Tx) error {
+		for _, cmd := range cmds {
+			err := s.insertCommand(ctx, tx, ref, cmd)
+			if err != nil {
+				cqrsotel.RecordError(span, err)
+
+				return command.WrapInfrastructure(err, "storage.insert_command",
+					fmt.Sprintf("insert command %s for %s", cmd.Type(), ref))
+			}
+		}
+
+		return nil
+	})
+}
+
+func (s *SQLCommandStore) withTx(
+	ctx context.Context,
+	span cqrsotel.Span,
+	fn func(*sql.Tx) error,
+) error {
 	tx, err := s.DB.BeginTx(ctx, nil)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
@@ -96,14 +102,8 @@ func (s *SQLCommandStore) AppendBatch(
 		_ = tx.Rollback()
 	}()
 
-	for _, cmd := range cmds {
-		err = s.insertCommand(ctx, tx, ref, cmd)
-		if err != nil {
-			cqrsotel.RecordError(span, err)
-
-			return command.WrapInfrastructure(err, "storage.insert_command",
-				fmt.Sprintf("insert command %s for %s", cmd.Type(), ref))
-		}
+	if err := fn(tx); err != nil {
+		return err
 	}
 
 	err = sqlpkg.CommitTx(tx)
