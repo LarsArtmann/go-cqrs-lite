@@ -1,0 +1,141 @@
+direction: down
+layout: elk
+
+title: {
+  label: go-cqrs-lite — Target Architecture (No Cycles)
+  shape: text
+  near: top-center
+  style: { font-size: 24; bold: true }
+}
+
+legend: {
+  shape: rectangle
+  style: { fill: "#f8fafc" }
+  near: top-right
+
+  leaf: { shape: rectangle; style: { fill: "#d1fae5"; stroke: "#059669" } }
+  core: { shape: rectangle; style: { fill: "#dbeafe"; stroke: "#2563eb" } }
+  infra: { shape: rectangle; style: { fill: "#fef3c7"; stroke: "#d97706" } }
+  test: { shape: rectangle; style: { fill: "#f3e8ff"; stroke: "#7c3aed" } }
+
+  leaf: { label: "Layer 0: Leaf (no internal deps)" }
+  core: { label: "Layer 1: Core CQRS" }
+  infra: { label: "Layer 2: Infrastructure" }
+  test: { label: "Layer 3: Tests / Integration" }
+}
+
+layer0: {
+  label: "Layer 0 — Leaf Modules"
+  style: { fill: "#ecfdf5"; stroke: "#059669" }
+
+  codec: { style: { fill: "#d1fae5" } }
+  id: { style: { fill: "#d1fae5" } }
+  dispatcher: { style: { fill: "#d1fae5" } }
+  catalog: { style: { fill: "#d1fae5" } }
+}
+
+layer1: {
+  label: "Layer 1 — Core CQRS (DAG: no cycles)"
+  style: { fill: "#eff6ff"; stroke: "#2563eb" }
+
+  event: { style: { fill: "#dbeafe" }; label: "event\n(zero internal deps)" }
+  command: { style: { fill: "#dbeafe" }; label: "command\n(→event, id, dispatcher)" }
+  query: { style: { fill: "#dbeafe" }; label: "query\n(→event, dispatcher)" }
+  schema: { style: { fill: "#dbeafe" }; label: "schema\n(→event)" }
+  snapshot: { style: { fill: "#dbeafe" }; label: "snapshot\n(→event)" }
+  listing: { style: { fill: "#dbeafe" }; label: "listing\n(→event)" }
+}
+
+layer2: {
+  label: "Layer 2 — Infrastructure / Adapters"
+  style: { fill: "#fffbeb"; stroke: "#d97706" }
+
+  decider: { style: { fill: "#fef3c7" }; label: "decider\n(→event, snapshot, codec)" }
+  memory: { style: { fill: "#fef3c7" }; label: "memory\n(→event, command, snapshot)" }
+  middleware: { style: { fill: "#fef3c7" }; label: "middleware\n(→command, event, query)" }
+  signing: { style: { fill: "#fef3c7" }; label: "signing\n(→event, id)" }
+  projection: { style: { fill: "#fef3c7" }; label: "projection\n(→event, codec)" }
+  storage: { style: { fill: "#fef3c7" }; label: "storage\n(→event, command, snapshot)" }
+  watermill: { style: { fill: "#fef3c7" }; label: "watermill\n(→event)" }
+  pebble: { style: { fill: "#fef3c7" }; label: "pebble\n(→event, codec)" }
+  turso: { style: { fill: "#fef3c7" }; label: "turso\n(→event, storage)" }
+  otel: { style: { fill: "#fef3c7" }; label: "otel\n(standalone helper)" }
+}
+
+layer3: {
+  label: "Layer 3 — Tests / Integration"
+  style: { fill: "#f5f3ff"; stroke: "#7c3aed" }
+
+  eventtest: { style: { fill: "#f3e8ff" }; label: "eventtest\n(separate test module)" }
+  integration: { style: { fill: "#f3e8ff" } }
+}
+
+# Layer 0 → Layer 1 (one-directional)
+layer0.codec -> layer1.event
+layer0.id -> layer1.event
+layer0.dispatcher -> layer1.command
+layer0.dispatcher -> layer1.query
+
+# Layer 1 → Layer 1 (one-directional, no cycles!)
+layer1.event -> layer1.schema: { style: { stroke: "#2563eb" } }
+layer1.event -> layer1.snapshot: { style: { stroke: "#2563eb" } }
+layer1.event -> layer1.listing: { style: { stroke: "#2563eb" } }
+layer1.event -> layer1.command: { label: "types only" }
+layer1.event -> layer1.query: { label: "types only" }
+
+# Layer 1 → Layer 2
+layer1.event -> layer2.decider
+layer1.snapshot -> layer2.decider
+layer1.codec -> layer2.decider
+layer1.event -> layer2.memory
+layer1.command -> layer2.memory
+layer1.snapshot -> layer2.memory
+layer1.event -> layer2.middleware
+layer1.command -> layer2.middleware
+layer1.query -> layer2.middleware
+layer1.event -> layer2.signing
+layer1.id -> layer2.signing
+layer1.event -> layer2.projection
+layer1.codec -> layer2.projection
+layer1.event -> layer2.storage
+layer1.command -> layer2.storage
+layer1.snapshot -> layer2.storage
+layer1.event -> layer2.watermill
+layer1.event -> layer2.pebble
+layer1.codec -> layer2.pebble
+layer1.event -> layer2.turso
+layer2.storage -> layer2.turso
+
+# Test modules
+layer1.event -> layer3.eventtest
+layer2.memory -> layer3.eventtest
+
+# Integration
+layer1.event -> layer3.integration
+layer1.command -> layer3.integration
+layer1.schema -> layer3.integration
+layer1.snapshot -> layer3.integration
+layer1.listing -> layer3.integration
+layer2.decider -> layer3.integration
+layer2.memory -> layer3.integration
+layer2.middleware -> layer3.integration
+layer2.signing -> layer3.integration
+layer2.projection -> layer3.integration
+layer2.storage -> layer3.integration
+layer2.watermill -> layer3.integration
+layer2.pebble -> layer3.integration
+layer2.turso -> layer3.integration
+
+# Key change annotations
+changes: {
+  near: bottom-center
+  shape: rectangle
+  style: { fill: "#fef9c3"; stroke: "#ca8a04" }
+
+  c1: "✅ event has ZERO internal deps (was 7)"
+  c2: "✅ No bidirectional cycles (was 4)"
+  c3: "✅ eventtest extracted as separate module"
+  c4: "✅ CatalogDispatcher moved to command/query"
+  c5: "✅ OTel injected via middleware, not imported"
+  c6: "✅ memory moved to Layer 2 (infrastructure)"
+}

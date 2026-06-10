@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-06-08 (updated) · **Module count:** 30 (22 library + 6 examples + 2 cmd) · **Go version:** 1.26.3
+**Last audited:** 2026-06-10 (verified) · **Module count:** 31 (22 library + 6 examples + 1 integration + 2 cmd) · **Go version:** 1.26.3
 
 ## Status Legend
 
@@ -84,7 +84,6 @@
 || Journal | `ReadAll()` returns all events ordered by `occurred_at ASC` — for projection replay | ✅ |
 || SeekableJournal | `ReadFrom(ctx, afterEventID, limit)` — efficient projection catch-up | ✅ |
 || BackwardsSource | `LoadBackwards(ctx, aggType, aggID)` — loads events in reverse version order (`BackwardsLoader` alias kept) | ✅ |
-|| BackwardsSource | `LoadBackwards(ctx, aggType, aggID)` — loads events in reverse version order (`BackwardsLoader` alias kept) | ✅ |
 || TombstoneStatus | `Active`, `Tombstoned`, `Undetermined` — tri-state enum for soft-delete; `DetectTombstone`, `MarkTombstone`, `MarkRebirth` | ✅ |
 || Time-travel queries | `LoadToVersion` and `LoadToTimestamp` — read aggregate state at a point in time | ✅ |
 || Projection interface | `Projection`: `Name`, `Handle(ctx, Event)`, `EventTypes()` (nil = all) | ✅ |
@@ -96,7 +95,7 @@
 || Upcaster system | `Upcaster` interface + `UpcasterRegistry` + `NewUpcaster` + `NewVersionedStore` — schema migration on load | ✅ |
 || Cycle detection | UpcasterRegistry detects schema version revisits during upcast chain | ✅ |
 || Clock injection | `Clock` type + `WithClock` option for deterministic testing | ✅ |
-|| Error taxonomy | 5-family: Rejection / Conflict / Transient / Infrastructure / Corruption; 13 helper funcs (`New*`, `Wrap*`, `Classify`, `IsRetryable`); 16 sentinel errors | ✅ |
+|| Error taxonomy | 5-family: Rejection / Conflict / Transient / Infrastructure / Corruption; 16 helper funcs (`New*`, `Wrap*`, `Classify`, `IsRetryable`); 16 sentinel errors | ✅ |
 
 **Coverage:** 89.1%
 
@@ -117,25 +116,6 @@
 || Context enrichment | `WithEnricher` — injects metadata from context into events | ✅ |
 
 **Sentinel errors:** `ErrNilStore`, `ErrNilBus`, `ErrNilFold`, `ErrLoadFailed`, `ErrFoldFailed`, `ErrSaveFailed`
-
-### Aggregate Root (Traditional) ✅ FULLY_FUNCTIONAL
-
-> `import "github.com/larsartmann/go-cqrs-lite/aggregate"`
-
-|| Feature | Detail | Status |
-|| ---------------------- | ----------------------------------------------------------------------------------------------- | ------ |
-|| Aggregate root base | `Core` provides `ID`, `Type`, `Version`, `RecordEvent`, `UncommittedChanges`, `LoadFromHistory` | ✅ |
-|| Event sourcing | `EventSourcedRepository` — Save (persist + publish) and Load (replay from store) | ✅ |
-|| Optimistic concurrency | `Save` passes `expectedVersion` to `Store.Save` | ✅ |
-|| Snapshot strategy | `event.SnapshotStrategy` interface + `EveryNEvents(n)` — shared with decider | ✅ |
-|| Snapshot codec | `WithCodec` option for custom snapshot serialization | ✅ |
-|| Crash recovery | `SeekableJournal.ReadFrom` + `CheckpointStore` — tail events from checkpoint, republish on restart
-|| ISP Publisher | Repository accepts `event.Publisher` (not full `Bus`) — backward-compatible | ✅ |
-|| Defensive copies | `UncommittedChanges()` returns a copy; `MarkChangesAsCommitted()` reuses backing array | ✅ |
-
-> **Note:** The `aggregate` package is formally deprecated in favor of `decider`. It remains fully functional.
-
-**Coverage:** 95.9%
 
 ### Branded IDs ✅ FULLY_FUNCTIONAL
 
@@ -457,26 +437,6 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 **Sentinel errors:** `ErrNilHandler`, `ErrNilBus`, `ErrNilCheckpoint`, `ErrNoProjections`, `ErrDuplicateProjection`
 
 **Coverage:** ~95%
-
----
-
-## Test Helpers 🧪 TESTING_ONLY
-
-> `import "github.com/larsartmann/go-cqrs-lite/testhelpers"`
-
-|| Helper | Purpose |
-|| -------------------------------------------------------------- | ---------------------------------------------------- |
-|| `FakeStore` | Configurable `event.Store` with overridable `SaveFn` |
-|| `FakeBus` | Records published events, injectable `PublishErr` |
-|| `FakeSnapshotStore` | Configurable snapshot load/save with error injection |
-|| `AppendEventsHandler` | Handler that collects events into a slice |
-|| `NoopCommandHandler` / `NoopEventHandler` / `NoopQueryHandler` | No-op handlers |
-|| `FailingCommandHandler` / `FailingEventHandler` | Handlers that always error |
-|| `PanicCommandHandler` / `PanicEventHandler` | Handlers that panic |
-|| `CallbackCommandHandler` / `CallbackEventHandler` | Sets a bool flag |
-|| `CommandMiddleware` / `EventMiddleware` | Call-order tracking middleware |
-|| `TestMetrics` | `MetricsRecorder` that records names and durations |
-|| `NewTestEvent` | Creates a minimal test event |
 
 ---
 

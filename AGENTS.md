@@ -33,7 +33,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Monorepo Structure
 
-Multi-module Go workspace (`go.work`) with 30 modules (22 library + 6 examples + 1 integration + 1 cmd):
+Multi-module Go workspace (`go.work`) with 31 modules (22 library + 6 examples + 1 integration + 2 cmd):
 
 ```
 go-cqrs-lite/

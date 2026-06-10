@@ -37,18 +37,14 @@ If a word means something different to a consumer than to an implementer, it is 
 | **Decider**       | Pure-function aggregate: fold state from events, decide new events       | `decider.Decider[State]` — no side effects, fully testable                 |
 | **Repository**    | Loads aggregate state, executes decider, saves events                    | `decider.Repository[State]` — orchestrates Store + Bus + optional Snapshot |
 | **Bus**           | Message bus for publishing/subscribing to events                         | `event.Bus` — Publisher + Subscriber                                       |
-| **Outbox**        | Transactional outbox pattern — atomically save events + append to outbox | `event.Outbox` — polled by `OutboxPoller`                                  |
-| **Outbox Poller** | Background worker that polls pending outbox entries and publishes them   | `storage.NewOutboxPoller(outbox, bus)`                                     |
 
 ### Storage
 
 | Term                   | Definition                                                        | Context                                                                                               |
 | ---------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | **Dialect**            | SQL dialect abstraction (`PostgresDialect`, `SQLiteDialect`)      | Handles placeholder style, timestamp format, DDL                                                      |
-| **Backend**            | _(Deprecated concept)_ — wiring container for multiple SQL stores | Previously bundled EventStore + Outbox + SagaStore; being removed in favor of individual constructors |
 | **Store** (SQL)        | `SQLEventStore` — SQL-backed implementation of `event.Store`      | `NewSQLiteEventStore(db)`, `NewSQLEventStore(db)`                                                     |
 | **Pebble Store**       | Embedded KV event store (no SQL dependency)                       | `pebble.NewPebbleStore(db, logger)`                                                                   |
-| **Transactional Sink** | Atomic `SaveWithOutbox` — events + outbox in one DB transaction   | `storage.NewTransactionalSink(store, outbox)`                                                         |
 
 ### Saga
 
@@ -91,7 +87,6 @@ event.Store = EventSink + EventSource
   Journal: ReadAll(ctx)
   SeekableJournal: ReadFrom(ctx, afterEventID, limit)
   BackwardsSource: LoadBackwards(ctx, ref)
-  TransactionalSink: SaveWithOutbox(ctx, ref, events, expectedVersion)
 ```
 
 ---
