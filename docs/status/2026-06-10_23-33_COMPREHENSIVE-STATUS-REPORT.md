@@ -15,30 +15,30 @@ The project is in **excellent shape**. All 37 test packages pass (including race
 
 ### Core Library (22 library modules — ALL GREEN)
 
-| Module | Tests | Race | Lint | Coverage | Notes |
-|--------|-------|------|------|----------|-------|
-| `event/` | ✅ | ✅ | 0 | ~95% | Core event sourcing: 19 functional options, immutable events, reactive bus |
-| `command/` | ✅ | ✅ | 0 | ~93% | Typed handlers, middleware chain, reactive bus |
-| `query/` | ✅ | ✅ | 0 | ~92% | Pagination, typed dispatch, reactive bus |
-| `decider/` | ✅ | ✅ | 0 | ~95% | Pure-function aggregate pattern |
-| `id/` | ✅ | ✅ | 0 | 97.8% | Branded IDs: `id.Of[T]` phantom types |
-| `dispatcher/` | ✅ | ✅ | 0 | ~90% | Generic Dispatcher[H, M] |
-| `schema/` | ✅ | ✅ | 0 | ~85% | Upcaster, VersionedStore |
-| `snapshot/` | ✅ | ✅ | 0 | ~88% | Snapshot strategies |
-| `codec/` | ✅ | ✅ | 0 | ~90% | JSON + Raw payload encoding |
-| `memory/` | ✅ | ✅ | 0 | ~88% | In-memory test implementations |
-| `catalog/` | ✅ | ✅ | 0 | ~85% | AsyncAPI, OpenAPI, D2, EventCatalog exports |
-| `middleware/` | ✅ | ✅ | 0 | ~87% | 24 factories (8 concerns × 3 message types) |
-| `projection/` | ✅ | ✅ | 0 | ~88% | Replay+live runner, builder, retry, dead-letter |
-| `signing/` | ✅ | ✅ | 0 | ~92% | HMAC-SHA256, Ed25519, multi-sig |
-| `storage/` | ✅ | ✅ | 0 | ~34%* | SQL stores (PG/SQLite/Turso) |
-| `watermill/` | ✅ | ✅ | 0 | ~83% | Watermill protocol adapter |
-| `listing/` | ✅ | ✅ | 0 | ~88% | Aggregate listing, tombstone detection |
-| `otel/` | ✅ | ✅ | 0 | ~73% | Shared OTel helpers |
-| `pebble/` | ✅ | ✅ | 0 | ~82% | Embedded KV event store |
-| `turso/` | ✅ | ✅ | 0 | ~29%* | Turso/libSQL connector |
-| `integration/` | ✅ | ✅ | 0 | ~85% | Cross-module tests |
-| `cmd/cqrs-gen` | ✅ | ✅ | 0 | ~80% | Code generator |
+| Module         | Tests | Race | Lint | Coverage | Notes                                                                      |
+| -------------- | ----- | ---- | ---- | -------- | -------------------------------------------------------------------------- |
+| `event/`       | ✅    | ✅   | 0    | ~95%     | Core event sourcing: 19 functional options, immutable events, reactive bus |
+| `command/`     | ✅    | ✅   | 0    | ~93%     | Typed handlers, middleware chain, reactive bus                             |
+| `query/`       | ✅    | ✅   | 0    | ~92%     | Pagination, typed dispatch, reactive bus                                   |
+| `decider/`     | ✅    | ✅   | 0    | ~95%     | Pure-function aggregate pattern                                            |
+| `id/`          | ✅    | ✅   | 0    | 97.8%    | Branded IDs: `id.Of[T]` phantom types                                      |
+| `dispatcher/`  | ✅    | ✅   | 0    | ~90%     | Generic Dispatcher[H, M]                                                   |
+| `schema/`      | ✅    | ✅   | 0    | ~85%     | Upcaster, VersionedStore                                                   |
+| `snapshot/`    | ✅    | ✅   | 0    | ~88%     | Snapshot strategies                                                        |
+| `codec/`       | ✅    | ✅   | 0    | ~90%     | JSON + Raw payload encoding                                                |
+| `memory/`      | ✅    | ✅   | 0    | ~88%     | In-memory test implementations                                             |
+| `catalog/`     | ✅    | ✅   | 0    | ~85%     | AsyncAPI, OpenAPI, D2, EventCatalog exports                                |
+| `middleware/`  | ✅    | ✅   | 0    | ~87%     | 24 factories (8 concerns × 3 message types)                                |
+| `projection/`  | ✅    | ✅   | 0    | ~88%     | Replay+live runner, builder, retry, dead-letter                            |
+| `signing/`     | ✅    | ✅   | 0    | ~92%     | HMAC-SHA256, Ed25519, multi-sig                                            |
+| `storage/`     | ✅    | ✅   | 0    | ~34%\*   | SQL stores (PG/SQLite/Turso)                                               |
+| `watermill/`   | ✅    | ✅   | 0    | ~83%     | Watermill protocol adapter                                                 |
+| `listing/`     | ✅    | ✅   | 0    | ~88%     | Aggregate listing, tombstone detection                                     |
+| `otel/`        | ✅    | ✅   | 0    | ~73%     | Shared OTel helpers                                                        |
+| `pebble/`      | ✅    | ✅   | 0    | ~82%     | Embedded KV event store                                                    |
+| `turso/`       | ✅    | ✅   | 0    | ~29%\*   | Turso/libSQL connector                                                     |
+| `integration/` | ✅    | ✅   | 0    | ~85%     | Cross-module tests                                                         |
+| `cmd/cqrs-gen` | ✅    | ✅   | 0    | ~80%     | Code generator                                                             |
 
 \* Low coverage is shared infra / connector glue — not business logic.
 
@@ -58,20 +58,21 @@ The project is in **excellent shape**. All 37 test packages pass (including race
 
 ### Recent Sprint Completions (Jun 8–10)
 
-| Sprint | Status | Key Results |
-|--------|--------|-------------|
-| v2.2.0 Release | ✅ Done | 81 commits since v2.1.0, tagged all modules |
+| Sprint                          | Status  | Key Results                                              |
+| ------------------------------- | ------- | -------------------------------------------------------- |
+| v2.2.0 Release                  | ✅ Done | 81 commits since v2.1.0, tagged all modules              |
 | Immuntability Audit (Phase 1–3) | ✅ Done | 7 mutability leaks fixed, `payloadForDecode()` zero-copy |
-| Panic Elimination | ✅ Done | All `MustParse`/`MustNew` removed from test code |
-| Test Deduplication | ✅ Done | -133 lines, shared helpers extracted, nlreturn fixed |
-| Error Safety Cleanup | ✅ Done | Classified errors replace `fmt.Errorf` in 4 paths |
-| Dead API Surface Removal | ✅ Done | Storage, pebble, turso dead code removed |
-| Brute Self-Review | ✅ Done | Findings catalogued, improvement arc planned |
-| Branching Flow Lint | ✅ Done | 389 issues catalogued into 10 sprints |
+| Panic Elimination               | ✅ Done | All `MustParse`/`MustNew` removed from test code         |
+| Test Deduplication              | ✅ Done | -133 lines, shared helpers extracted, nlreturn fixed     |
+| Error Safety Cleanup            | ✅ Done | Classified errors replace `fmt.Errorf` in 4 paths        |
+| Dead API Surface Removal        | ✅ Done | Storage, pebble, turso dead code removed                 |
+| Brute Self-Review               | ✅ Done | Findings catalogued, improvement arc planned             |
+| Branching Flow Lint             | ✅ Done | 389 issues catalogued into 10 sprints                    |
 
 ### New Module: `encryption/` (ready for review)
 
 AES-256-GCM event payload encryption with:
+
 - `Encrypter`/`Decrypter` interfaces + AES-256-GCM implementation
 - `Ciphertext` type with JSON (base64) marshal/unmarshal
 - Event integration helpers (`AttachEncryption`, `ExtractCiphertext`)
@@ -85,18 +86,22 @@ AES-256-GCM event payload encryption with:
 ## b) PARTIALLY DONE ⚠️
 
 ### CI Integration of `encryption/` Module
+
 - **Done**: Code complete, tests pass, in `go.work`
 - **Not done**: Not added to `flake.nix` `testModules` list, not in CI pipeline, no `nix run .#test` coverage
 
 ### Unreleased CHANGELOG
+
 - **Done**: 12+ fixes and changes documented in `[Unreleased]`
 - **Not done**: Not yet tagged as a release. Should become v2.2.1 or v2.3.0
 
 ### Golden File Protection
+
 - **Done**: Tests work, golden files exist
 - **Not done**: `nix fmt` reformats `testdata/golden/*.json`, breaking golden tests. Needs `treefmt` exclusion
 
 ### Encryption Module Maturity
+
 - **Done**: Core functionality, tests, BDD suite
 - **Not done**: No key rotation, no KDF, no envelope encryption, no other cipher implementations
 
@@ -106,26 +111,26 @@ AES-256-GCM event payload encryption with:
 
 ### From Execution Plan v2 (49 tasks, 0 started)
 
-| Tier | Tasks | Est. Time | Description |
-|------|-------|-----------|-------------|
-| **A: Type Safety & API** | 5 tasks | 33 min | `SchemaVersion.Add/Cmp`, Version JSON marshal, `TypeOf[T]` design |
-| **B: Test Coverage** | 14 tasks | 156 min | storage/sql 34%→70%, otel 73%→85%, turso 29%→50% |
-| **C: Code Quality Polish** | 5 tasks | 32 min | New method tests, otel audit, `TypeOf` design |
-| **D: CI & DevEx** | 3 tasks | 36 min | Docker multi-arch, nolint audit, go vet in CI |
-| **E: Developer Docs** | 5 tasks | 44 min | godoc examples for decider, projection, signing, schema, listing |
-| **F: Experiments** | 2 tasks | 24 min | jsonv2 codec, arena allocation |
+| Tier                       | Tasks    | Est. Time | Description                                                       |
+| -------------------------- | -------- | --------- | ----------------------------------------------------------------- |
+| **A: Type Safety & API**   | 5 tasks  | 33 min    | `SchemaVersion.Add/Cmp`, Version JSON marshal, `TypeOf[T]` design |
+| **B: Test Coverage**       | 14 tasks | 156 min   | storage/sql 34%→70%, otel 73%→85%, turso 29%→50%                  |
+| **C: Code Quality Polish** | 5 tasks  | 32 min    | New method tests, otel audit, `TypeOf` design                     |
+| **D: CI & DevEx**          | 3 tasks  | 36 min    | Docker multi-arch, nolint audit, go vet in CI                     |
+| **E: Developer Docs**      | 5 tasks  | 44 min    | godoc examples for decider, projection, signing, schema, listing  |
+| **F: Experiments**         | 2 tasks  | 24 min    | jsonv2 codec, arena allocation                                    |
 
 **Total actionable: ~325 min (~5.8 hours). None started.**
 
 ### From Branching Flow Plan (44 non-deferred issues, 0 started)
 
-| Sprint | Issues | Est. | Priority |
-|--------|--------|------|----------|
-| Sprint 1: Panic + Error Context | 5 | 1 hr | HIGH |
-| Sprint 2: Strong IDs | 5 | 30 min | MEDIUM |
-| Sprint 3: Duplicate Types | 15 | 1.5 hr | MEDIUM |
-| Sprint 4: Anti-patterns | 5 | 30 min | LOW-MEDIUM |
-| Sprint 5–9: Composition/Mixins | 19 | 2 hr | LOW |
+| Sprint                          | Issues | Est.   | Priority   |
+| ------------------------------- | ------ | ------ | ---------- |
+| Sprint 1: Panic + Error Context | 5      | 1 hr   | HIGH       |
+| Sprint 2: Strong IDs            | 5      | 30 min | MEDIUM     |
+| Sprint 3: Duplicate Types       | 15     | 1.5 hr | MEDIUM     |
+| Sprint 4: Anti-patterns         | 5      | 30 min | LOW-MEDIUM |
+| Sprint 5–9: Composition/Mixins  | 19     | 2 hr   | LOW        |
 
 **Note**: The 315 phantom-type violations are explicitly deferred to incremental adoption.
 
@@ -141,21 +146,25 @@ AES-256-GCM event payload encryption with:
 ## d) TOTALLY FUCKED UP 💥
 
 ### 1. Golden Files vs `nix fmt` (Process Issue)
+
 `nix fmt` (treefmt with gofumpt/goimports/golines) reformats `testdata/golden/*.json` files, causing golden test mismatches. This has been a **recurring problem across multiple sessions**. The fix (adding `settings.excludes` to treefmt config) is trivial but keeps getting deprioritized.
 
 **Impact**: Tests fail after `nix fmt`. Forces `-update` flag to regenerate. Wastes time every session.
 
 ### 2. CI Not Running (Billing/Access)
+
 CI pipeline is defined (`.github/workflows/ci.yml`) but appears to have been running with `-parallel=4` which Ginkgo rejects. The paste from the user showed the CI run with extra flags not in the current `flake.nix`, suggesting either an older CI config or external CI runner with different settings.
 
 **Impact**: CI red. Blocks merge confidence. The signing "build failed" was a red herring — it was Ginkgo rejecting `-parallel`.
 
 ### 3. ~298 Status Reports Accumulated
+
 There are **133 active + 165 archived** status reports in `docs/status/`. This is excessive. Many are redundant or superseded. The directory has become a dumping ground.
 
 **Impact**: Hard to find relevant historical context. Noise drowns signal.
 
 ### 4. Encryption Module Not in CI
+
 The new `encryption/` module is in `go.work` but not in `flake.nix` `testModules`. It won't be tested/linted by CI.
 
 **Impact**: Regression risk. Module could break without detection.
@@ -202,48 +211,48 @@ The new `encryption/` module is in `go.work` but not in `flake.nix` `testModules
 
 ### Immediate (this session or next)
 
-| # | Task | Impact | Effort | Module |
-|---|------|--------|--------|--------|
-| 1 | Add `testdata/golden/**` to treefmt excludes | HIGH | 1 min | flake.nix |
-| 2 | Add `encryption` to `testModules` in flake.nix | HIGH | 2 min | flake.nix |
-| 3 | Tag v2.2.1 release with unreleased changes | HIGH | 5 min | git tags |
-| 4 | Archive old status reports (>Jun 5 → archive/) | MEDIUM | 2 min | docs/status |
-| 5 | Verify CI workflow matches current flake.nix | HIGH | 5 min | .github |
-| 6 | Add encryption module README.md | LOW | 10 min | encryption/ |
+| #   | Task                                           | Impact | Effort | Module      |
+| --- | ---------------------------------------------- | ------ | ------ | ----------- |
+| 1   | Add `testdata/golden/**` to treefmt excludes   | HIGH   | 1 min  | flake.nix   |
+| 2   | Add `encryption` to `testModules` in flake.nix | HIGH   | 2 min  | flake.nix   |
+| 3   | Tag v2.2.1 release with unreleased changes     | HIGH   | 5 min  | git tags    |
+| 4   | Archive old status reports (>Jun 5 → archive/) | MEDIUM | 2 min  | docs/status |
+| 5   | Verify CI workflow matches current flake.nix   | HIGH   | 5 min  | .github     |
+| 6   | Add encryption module README.md                | LOW    | 10 min | encryption/ |
 
 ### Short-term (this week)
 
-| # | Task | Impact | Effort | Module |
-|---|------|--------|--------|--------|
-| 7 | Tier A1: `SchemaVersion.Add()` method | HIGH | 5 min | event |
-| 8 | Tier A2: `SchemaVersion.Cmp()` method | HIGH | 5 min | event |
-| 9 | Tier A3: `Version` JSON marshal/unmarshal | HIGH | 10 min | event |
-| 10 | Tier A4: `SchemaVersion` arithmetic helpers | MEDIUM | 8 min | event |
-| 11 | Tier B1: storage/sql coverage 34%→50% | HIGH | 60 min | storage |
-| 12 | Tier C1: New method tests for event | MEDIUM | 10 min | event |
-| 13 | Sprint 1 from branching flow: fix gracefulshutdown panic | HIGH | 15 min | middleware |
-| 14 | Sprint 1: 4 error context loss fixes | MEDIUM | 30 min | multiple |
-| 15 | Sprint 1: 2 strong-id fixes | MEDIUM | 15 min | middleware |
+| #   | Task                                                     | Impact | Effort | Module     |
+| --- | -------------------------------------------------------- | ------ | ------ | ---------- |
+| 7   | Tier A1: `SchemaVersion.Add()` method                    | HIGH   | 5 min  | event      |
+| 8   | Tier A2: `SchemaVersion.Cmp()` method                    | HIGH   | 5 min  | event      |
+| 9   | Tier A3: `Version` JSON marshal/unmarshal                | HIGH   | 10 min | event      |
+| 10  | Tier A4: `SchemaVersion` arithmetic helpers              | MEDIUM | 8 min  | event      |
+| 11  | Tier B1: storage/sql coverage 34%→50%                    | HIGH   | 60 min | storage    |
+| 12  | Tier C1: New method tests for event                      | MEDIUM | 10 min | event      |
+| 13  | Sprint 1 from branching flow: fix gracefulshutdown panic | HIGH   | 15 min | middleware |
+| 14  | Sprint 1: 4 error context loss fixes                     | MEDIUM | 30 min | multiple   |
+| 15  | Sprint 1: 2 strong-id fixes                              | MEDIUM | 15 min | middleware |
 
 ### Medium-term (next 2 weeks)
 
-| # | Task | Impact | Effort | Module |
-|---|------|--------|--------|--------|
-| 16 | Tier B2: otel coverage 73%→85% | MEDIUM | 30 min | otel |
-| 17 | Tier B3: turso coverage 29%→50% | MEDIUM | 45 min | turso |
-| 18 | Tier D1: Docker multi-arch build | MEDIUM | 20 min | flake.nix |
-| 19 | Tier E1: godoc examples for decider | MEDIUM | 10 min | decider |
-| 20 | Tier E2: godoc examples for projection | MEDIUM | 10 min | projection |
-| 21 | Tier E3: godoc examples for signing | MEDIUM | 10 min | signing |
-| 22 | Document immutability contract on Event interface | HIGH | 15 min | event |
-| 23 | Key management design for encryption module | HIGH | 60 min | encryption |
+| #   | Task                                              | Impact | Effort | Module     |
+| --- | ------------------------------------------------- | ------ | ------ | ---------- |
+| 16  | Tier B2: otel coverage 73%→85%                    | MEDIUM | 30 min | otel       |
+| 17  | Tier B3: turso coverage 29%→50%                   | MEDIUM | 45 min | turso      |
+| 18  | Tier D1: Docker multi-arch build                  | MEDIUM | 20 min | flake.nix  |
+| 19  | Tier E1: godoc examples for decider               | MEDIUM | 10 min | decider    |
+| 20  | Tier E2: godoc examples for projection            | MEDIUM | 10 min | projection |
+| 21  | Tier E3: godoc examples for signing               | MEDIUM | 10 min | signing    |
+| 22  | Document immutability contract on Event interface | HIGH   | 15 min | event      |
+| 23  | Key management design for encryption module       | HIGH   | 60 min | encryption |
 
 ### Longer-term
 
-| # | Task | Impact | Effort | Module |
-|---|------|--------|--------|--------|
-| 24 | Encryption key rotation + envelope encryption | HIGH | 4 hr | encryption |
-| 25 | v3 breaking changes (Store split, TransactionID, io.Closer removal) | VERY HIGH | 12 hr | core |
+| #   | Task                                                                | Impact    | Effort | Module     |
+| --- | ------------------------------------------------------------------- | --------- | ------ | ---------- |
+| 24  | Encryption key rotation + envelope encryption                       | HIGH      | 4 hr   | encryption |
+| 25  | v3 breaking changes (Store split, TransactionID, io.Closer removal) | VERY HIGH | 12 hr  | core       |
 
 ---
 
@@ -252,6 +261,7 @@ The new `encryption/` module is in `go.work` but not in `flake.nix` `testModules
 **Is the `encryption/` module intended to be a v2.3.0 feature release, or should it be included in a v2.2.1 patch release alongside the current unreleased fixes?**
 
 The module is fully functional with 83.7% coverage, BDD tests, benchmarks, and examples. But it's new external-facing API surface in a library — adding it to a patch release feels wrong semantically, yet the unreleased changes in CHANGELOG are already substantial enough to warrant shipping. The decision affects:
+
 - Whether to add it to `flake.nix` `testModules` now or after versioning
 - Whether to write a module README and update FEATURES.md
 - Whether to add it to the v2.2.1 tag or wait for v2.3.0
@@ -260,33 +270,33 @@ The module is fully functional with 83.7% coverage, BDD tests, benchmarks, and e
 
 ## Metrics Dashboard
 
-| Metric | Value |
-|--------|-------|
-| **Go files** | 623 (325 production, 298 test) |
-| **Workspace modules** | 35 (23 library + 6 examples + 1 integration + 2 cmd + 1 encryption + 2 root) |
-| **Test packages** | 37 — ALL GREEN |
-| **Lint issues** | 0 across all 28 modules |
-| **Race issues** | 0 (fixed 1 this session) |
-| **Total coverage** | 84.0% |
-| **TODOs in production code** | 0 |
-| **ADRs** | 14 (all accepted) |
-| **Status reports** | 133 active + 165 archived |
-| **Latest release** | v2.2.0 (2026-06-08) |
-| **Commits since v2.2.0** | ~30 |
-| **art-dupl t50 clones** | 0 |
-| **Module layer violations** | 0 |
+| Metric                       | Value                                                                        |
+| ---------------------------- | ---------------------------------------------------------------------------- |
+| **Go files**                 | 623 (325 production, 298 test)                                               |
+| **Workspace modules**        | 35 (23 library + 6 examples + 1 integration + 2 cmd + 1 encryption + 2 root) |
+| **Test packages**            | 37 — ALL GREEN                                                               |
+| **Lint issues**              | 0 across all 28 modules                                                      |
+| **Race issues**              | 0 (fixed 1 this session)                                                     |
+| **Total coverage**           | 84.0%                                                                        |
+| **TODOs in production code** | 0                                                                            |
+| **ADRs**                     | 14 (all accepted)                                                            |
+| **Status reports**           | 133 active + 165 archived                                                    |
+| **Latest release**           | v2.2.0 (2026-06-08)                                                          |
+| **Commits since v2.2.0**     | ~30                                                                          |
+| **art-dupl t50 clones**      | 0                                                                            |
+| **Module layer violations**  | 0                                                                            |
 
 ## Uncommitted Changes
 
-| File | Change |
-|------|--------|
-| `projection/golden_test.go` | Fix data race: add sync.Mutex to trackedHandler |
-| `encryption/*` (18 files) | New module: AES-256-GCM event payload encryption |
-| `go.work` | Added encryption module |
-| `middleware/testdata/golden/health-check-response.json` | Golden file update |
-| `codec/testdata/golden/json_encode.json` | Golden file update |
-| `docs/status/2026-06-10_23-19_*` | Previous status report edits |
-| `docs/status/2026-06-10_23-20_*` | Previous status report edits |
+| File                                                    | Change                                           |
+| ------------------------------------------------------- | ------------------------------------------------ |
+| `projection/golden_test.go`                             | Fix data race: add sync.Mutex to trackedHandler  |
+| `encryption/*` (18 files)                               | New module: AES-256-GCM event payload encryption |
+| `go.work`                                               | Added encryption module                          |
+| `middleware/testdata/golden/health-check-response.json` | Golden file update                               |
+| `codec/testdata/golden/json_encode.json`                | Golden file update                               |
+| `docs/status/2026-06-10_23-19_*`                        | Previous status report edits                     |
+| `docs/status/2026-06-10_23-20_*`                        | Previous status report edits                     |
 
 ## Test Results (as of this report)
 

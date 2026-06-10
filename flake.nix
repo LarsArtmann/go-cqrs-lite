@@ -65,6 +65,7 @@
             "signing"
             "storage"
             "watermill"
+            "encryption"
             "listing"
             "otel"
             "pebble"
@@ -94,7 +95,7 @@
           treefmt = {
             projectRootFile = "go.work";
             settings.excludes = [
-              "catalog/testdata/golden/**"
+              "**/testdata/golden/**"
             ];
             programs = {
               gofumpt.enable = true;

@@ -55,7 +55,13 @@ func ExampleEncryptMiddleware() {
 	mw := encryption.EncryptMiddleware(enc)
 
 	aggID := id.NewAggregateID()
-	evt, _ := event.NewEvent("user.created", aggID, "User", 1, []byte(`{"email":"alice@example.com"}`))
+	evt, _ := event.NewEvent(
+		"user.created",
+		aggID,
+		"User",
+		1,
+		[]byte(`{"email":"alice@example.com"}`),
+	)
 
 	var captured event.Event
 	inner := event.PublisherFunc(func(_ context.Context, events ...event.Event) error {
