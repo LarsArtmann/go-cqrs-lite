@@ -100,7 +100,7 @@ func main() {
                 []any{UserCreated{Name: cmd.Name}},
             )
             if err != nil { return err }
-            if err := store.Save(ctx, "User", aggID, events, 0); err != nil { return err }
+            if err := store.Save(ctx, event.NewAggregateRef("User", aggID), events, 0); err != nil { return err }
             for _, e := range events { _ = bus.Publish(ctx, e) }
             return nil
         },
@@ -111,7 +111,7 @@ func main() {
     if err := cmds.Dispatch(context.Background(), cmd); err != nil { log.Fatal(err) }
 
     // Load and read
-    events, _ := store.Load(context.Background(), "User", aggID)
+    events, _ := store.Load(context.Background(), event.NewAggregateRef("User", aggID))
     for _, e := range events {
         p, _ := event.DecodePayload[UserCreated](e, codec.JSONCodec{})
         fmt.Printf("User created: %s\n", p.Name)
@@ -331,7 +331,7 @@ store, _ := storage.NewTursoEventStore(db)
 // Synced Turso database (push/pull with remote)
 syncDB, _ := storage.OpenTursoSync(ctx, "myapp.db", "libsql://db.turso.io", "token")
 syncDB.Push(ctx)       // send local writes to remote
--syncDB.Pull(ctx)       // fetch remote changes
+syncDB.Pull(ctx)       // fetch remote changes
 syncDB.Checkpoint(ctx) // compact WAL
 store, _ := storage.NewTursoEventStore(syncDB.DB())
 ```
@@ -655,7 +655,6 @@ func main() {
 | Context support    | ✅           | ❌      | ✅      |
 | Auto-docs          | ✅           | ❌      | ❌      |
 | Middleware         | ✅           | ❌      | ❌      |
-| Strong IDs         | ✅           | ❌      | ❌      |
 | Event Signing      | ✅           | ❌      | ❌      |
 | Schema Evolution   | ✅           | ❌      | ❌      |
 | Aggregate Listing  | ✅           | ❌      | ❌      |
