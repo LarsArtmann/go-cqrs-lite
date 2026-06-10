@@ -177,7 +177,12 @@ func TestMetadataIsolation_Property(t *testing.T) {
 			}
 
 			if after.Custom[k] != want {
-				t.Fatalf("Metadata value changed for key %q: got %q, want %q", k, after.Custom[k], want)
+				t.Fatalf(
+					"Metadata value changed for key %q: got %q, want %q",
+					k,
+					after.Custom[k],
+					want,
+				)
 			}
 		}
 	})

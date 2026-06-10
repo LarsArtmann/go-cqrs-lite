@@ -302,6 +302,9 @@ func TestBuilder_BuildIsolation(t *testing.T) {
 
 	proj1Types := proj1.EventTypes()
 	if len(proj1Types) != 1 || proj1Types[0] != "order.created" {
-		t.Errorf("proj1 EventTypes = %v, want [order.created] — Build() should isolate from builder reuse", proj1Types)
+		t.Errorf(
+			"proj1 EventTypes = %v, want [order.created] — Build() should isolate from builder reuse",
+			proj1Types,
+		)
 	}
 }

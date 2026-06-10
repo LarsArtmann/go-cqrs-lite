@@ -78,7 +78,14 @@ func (b *builder) Build() (*ImmutableEvent, error) {
 		)
 	}
 
-	return buildEvent(b.eventType, b.aggregateID, b.aggregateType, b.version, b.payload, b.opts), nil
+	return buildEvent(
+		b.eventType,
+		b.aggregateID,
+		b.aggregateType,
+		b.version,
+		b.payload,
+		b.opts,
+	), nil
 }
 
 func (b *builder) MustBuild() *ImmutableEvent {

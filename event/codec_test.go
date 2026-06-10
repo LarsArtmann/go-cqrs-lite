@@ -360,5 +360,5 @@ type stubEvent struct {
 	payload []byte
 }
 
-func (s *stubEvent) Payload() []byte { return s.payload }
+func (s *stubEvent) Payload() []byte  { return s.payload }
 func (s *stubEvent) Type() event.Type { return "stub" }
