@@ -3,11 +3,6 @@ package pebble
 import "github.com/larsartmann/go-cqrs-lite/event/v2"
 
 var (
-	// ErrPebbleProviderRequired is returned when no PebbleProvider is configured.
-	ErrPebbleProviderRequired = event.NewInfrastructure(
-		"pebble.provider_required",
-		"pebble: requires a Provider: use WithProvider",
-	)
 	// ErrAggregateTypeMismatch is returned when an event's aggregate type doesn't match.
 	ErrAggregateTypeMismatch = event.NewConflict(
 		"pebble.aggregate_type_mismatch",

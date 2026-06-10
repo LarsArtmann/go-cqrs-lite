@@ -7,17 +7,9 @@ import (
 )
 
 type (
-	Dialect         = sqlpkg.Dialect
-	PostgresDialect = sqlpkg.PostgresDialect
-	SQLiteDialect   = sqlpkg.SQLiteDialect
+	SQLiteDialect = sqlpkg.SQLiteDialect
 )
 
 var (
-	ErrNilDB                = sqlpkg.ErrNilDB
-	ErrUnexpectedTimeType   = sqlpkg.ErrUnexpectedTimeType
-	ErrUnsupportedTimestamp = sqlpkg.ErrUnsupportedTimestamp
-	ErrConcurrencyConflict  = sqlpkg.ErrConcurrencyConflict
+	ErrNilDB = sqlpkg.ErrNilDB
 )
-
-func Schema() string       { return sqlpkg.Schema() }
-func SQLiteSchema() string { return sqlpkg.SQLiteSchema() }

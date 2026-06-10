@@ -50,8 +50,8 @@ func TestSQLEventStore_Save_ConcurrencyConflict(t *testing.T) {
 		t.Errorf("error should wrap event.ErrVersionConflict, got: %v", err)
 	}
 
-	if !errors.Is(err, ErrConcurrencyConflict) {
-		t.Errorf("error should wrap ErrConcurrencyConflict, got: %v", err)
+	if !errors.Is(err, event.ErrVersionConflict) {
+		t.Errorf("error should wrap event.ErrVersionConflict (ErrConcurrencyConflict), got: %v", err)
 	}
 
 	err = mock.ExpectationsWereMet()
