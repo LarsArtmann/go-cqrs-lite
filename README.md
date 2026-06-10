@@ -1,8 +1,7 @@
 # go-cqrs-lite
 
-[![Tests](https://github.com/LarsArtmann/go-cqrs-lite/actions/workflows/test.yml/badge.svg)](https://github.com/LarsArtmann/go-cqrs-lite/actions/workflows/test.yml)
-[![Lint](https://github.com/LarsArtmann/go-cqrs-lite/actions/workflows/lint.yml/badge.svg)](https://github.com/LarsArtmann/go-cqrs-lite/actions/workflows/lint.yml)
-[![Go Reference](https://pkg.go.dev/badge/github.com/LarsArtmann/go-cqrs-lite/core.svg)](https://pkg.go.dev/github.com/LarsArtmann/go-cqrs-lite/core)
+[![CI](https://github.com/LarsArtmann/go-cqrs-lite/actions/workflows/ci.yml/badge.svg)](https://github.com/LarsArtmann/go-cqrs-lite/actions/workflows/ci.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/LarsArtmann/go-cqrs-lite/event/v2.svg)](https://pkg.go.dev/github.com/LarsArtmann/go-cqrs-lite/event/v2)
 
 A lightweight CQRS (Command Query Responsibility Segregation) library for Go with support for Event Sourcing, strongly-typed domain identifiers, and auto-documentation generation.
 
@@ -32,29 +31,29 @@ go-cqrs-lite provides the essential building blocks for implementing CQRS and Ev
 
 ```bash
 # Core CQRS types (commands, queries, events, IDs, decider)
-go get github.com/larsartmann/go-cqrs-lite/event
-go get github.com/larsartmann/go-cqrs-lite/command
-go get github.com/larsartmann/go-cqrs-lite/query
-go get github.com/larsartmann/go-cqrs-lite/decider
-go get github.com/larsartmann/go-cqrs-lite/id
+go get github.com/larsartmann/go-cqrs-lite/event/v2
+go get github.com/larsartmann/go-cqrs-lite/command/v2
+go get github.com/larsartmann/go-cqrs-lite/query/v2
+go get github.com/larsartmann/go-cqrs-lite/decider/v2
+go get github.com/larsartmann/go-cqrs-lite/id/v2
 
 # In-memory implementations (testing)
-go get github.com/larsartmann/go-cqrs-lite/memory
+go get github.com/larsartmann/go-cqrs-lite/memory/v2
 
 # Persistent storage (SQLite, Turso, PostgreSQL, Pebble)
-go get github.com/larsartmann/go-cqrs-lite/storage
+go get github.com/larsartmann/go-cqrs-lite/storage/v2
 
 # API documentation generation (AsyncAPI 3.0 + EventCatalog)
-go get github.com/larsartmann/go-cqrs-lite/catalog
+go get github.com/larsartmann/go-cqrs-lite/catalog/v2
 
 # Cross-cutting middleware (logging, retry, validation, recovery, metrics)
-go get github.com/larsartmann/go-cqrs-lite/middleware
+go get github.com/larsartmann/go-cqrs-lite/middleware/v2
 
 # Projection runner with replay and live subscription
-go get github.com/larsartmann/go-cqrs-lite/projection
+go get github.com/larsartmann/go-cqrs-lite/projection/v2
 
 # Watermill message bus adapter
-go get github.com/larsartmann/go-cqrs-lite/watermill
+go get github.com/larsartmann/go-cqrs-lite/watermill/v2
 ```
 
 ### Requirements
@@ -73,10 +72,10 @@ import (
     "fmt"
     "log"
 
-    "github.com/larsartmann/go-cqrs-lite/command"
-    "github.com/larsartmann/go-cqrs-lite/event"
-    "github.com/larsartmann/go-cqrs-lite/id"
-    "github.com/larsartmann/go-cqrs-lite/memory"
+    "github.com/larsartmann/go-cqrs-lite/command/v2"
+    "github.com/larsartmann/go-cqrs-lite/event/v2"
+    "github.com/larsartmann/go-cqrs-lite/id/v2"
+    "github.com/larsartmann/go-cqrs-lite/memory/v2"
 )
 
 type CreateUserCmd struct {
@@ -127,7 +126,7 @@ See `example/user/` for a complete example with the Decider pattern, middleware,
 For real applications, use the Decider — pure functions with load→fold→decide→save→publish semantics:
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/decider"
+import "github.com/larsartmann/go-cqrs-lite/decider/v2"
 
 type UserState struct{ Name string }
 
@@ -204,7 +203,7 @@ event, err := event.NewEvent(
 Prevents mixing up different ID types:
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/id"
+import "github.com/larsartmann/go-cqrs-lite/id/v2"
 
 // Instead of string IDs
 userID := id.NewAggregateID()
@@ -291,10 +290,10 @@ import (
     "context"
     "log"
 
-    "github.com/larsartmann/go-cqrs-lite/event"
-    "github.com/larsartmann/go-cqrs-lite/id"
-    "github.com/larsartmann/go-cqrs-lite/memory"
-    "github.com/larsartmann/go-cqrs-lite/storage"
+    "github.com/larsartmann/go-cqrs-lite/event/v2"
+    "github.com/larsartmann/go-cqrs-lite/id/v2"
+    "github.com/larsartmann/go-cqrs-lite/memory/v2"
+    "github.com/larsartmann/go-cqrs-lite/storage/v2"
 )
 
 func main() {
@@ -325,7 +324,7 @@ func main() {
 
 ```go
 // Local Turso database
--db, _ := storage.OpenTurso("myapp.db")
+db, _ := storage.OpenTurso("myapp.db")
 storage.TursoInitSchema(ctx, db)
 store, _ := storage.NewTursoEventStore(db)
 
@@ -340,7 +339,7 @@ store, _ := storage.NewTursoEventStore(syncDB.DB())
 ### Deterministic Testing with Clock
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/event"
+import "github.com/larsartmann/go-cqrs-lite/event/v2"
 
 fixedTime := time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC)
 clock := func() time.Time { return fixedTime }
@@ -377,9 +376,9 @@ Go Structs ──► SchemaFromType[T]() ──► Registry ──► Catalog
 package main
 
 import (
-    "github.com/larsartmann/go-cqrs-lite/catalog"
-    "github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"
-    "github.com/larsartmann/go-cqrs-lite/catalog/eventcatalog"
+    "github.com/larsartmann/go-cqrs-lite/catalog/v2"
+    "github.com/larsartmann/go-cqrs-lite/catalog/v2/asyncapi"
+    "github.com/larsartmann/go-cqrs-lite/catalog/v2/eventcatalog"
 )
 
 type CreateOrder struct {
@@ -525,8 +524,8 @@ Fluent builder for events with compile-time type safety:
 import (
     "encoding/json"
 
-    "github.com/larsartmann/go-cqrs-lite/event"
-    "github.com/larsartmann/go-cqrs-lite/id"
+    "github.com/larsartmann/go-cqrs-lite/event/v2"
+    "github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 aggregateID := id.NewAggregateID()
@@ -557,9 +556,9 @@ import (
     "fmt"
     "log"
 
-    "github.com/larsartmann/go-cqrs-lite/event"
-    "github.com/larsartmann/go-cqrs-lite/id"
-    "github.com/larsartmann/go-cqrs-lite/storage"
+    "github.com/larsartmann/go-cqrs-lite/event/v2"
+    "github.com/larsartmann/go-cqrs-lite/id/v2"
+    "github.com/larsartmann/go-cqrs-lite/storage/v2"
 )
 
 func main() {
@@ -608,8 +607,8 @@ import (
     "log"
 
     "github.com/ThreeDotsLabs/watermill/message"
-    "github.com/larsartmann/go-cqrs-lite/event"
-    "github.com/larsartmann/go-cqrs-lite/watermill"
+    "github.com/larsartmann/go-cqrs-lite/event/v2"
+    "github.com/larsartmann/go-cqrs-lite/watermill/v2"
 )
 
 func main() {
@@ -666,7 +665,7 @@ func main() {
 
 ## Project Status
 
-**Phase:** Active Development (v2.0.0 pre-release)
+**Phase:** Active Development (v2.2.0 released)
 
 | Phase         | Status      | Description                                       |
 | ------------- | ----------- | ------------------------------------------------- |
