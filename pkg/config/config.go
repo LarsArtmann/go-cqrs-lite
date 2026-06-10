@@ -22,7 +22,7 @@ func NewLoader(basePath string) *Loader {
 func (l *Loader) Load(name string, dest any) error {
 	baseFile := filepath.Join(l.basePath, name+".json")
 
-	data, err := os.ReadFile(filepath.Clean(baseFile)) //nolint:gosec // path from config dir + name
+	data, err := os.ReadFile(filepath.Clean(baseFile))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return fmt.Errorf("config file not found: %w", err)
@@ -43,7 +43,7 @@ func (l *Loader) Load(name string, dest any) error {
 
 	overlayFile := filepath.Join(l.basePath, name+"."+env+".json")
 
-	overlayData, err := os.ReadFile(filepath.Clean(overlayFile)) //nolint:gosec // path from config dir + name
+	overlayData, err := os.ReadFile(filepath.Clean(overlayFile))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil // no overlay, base config is sufficient

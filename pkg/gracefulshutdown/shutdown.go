@@ -2,7 +2,7 @@ package gracefulshutdown
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -10,6 +10,12 @@ import (
 	"syscall"
 	"time"
 )
+
+// defaultShutdownTimeout is the default timeout for graceful shutdown.
+const defaultShutdownTimeout = 10 * time.Second
+
+// ErrHookPanicked is returned when a shutdown hook panics.
+var ErrHookPanicked = errors.New("shutdown hook panicked")
 
 // Hook is a function that is called during shutdown.
 type Hook func(ctx context.Context) error
@@ -24,7 +30,7 @@ type Config struct {
 // DefaultConfig returns a sensible default configuration.
 func DefaultConfig() Config {
 	return Config{
-		Timeout: 10 * time.Second,
+		Timeout: defaultShutdownTimeout,
 		Signals: []os.Signal{syscall.SIGINT, syscall.SIGTERM},
 		Logger:  slog.Default(),
 	}
@@ -51,7 +57,7 @@ func Shutdown(cfg Config, hooks ...Hook) {
 			defer wg.Done()
 			defer func() {
 				if r := recover(); r != nil {
-					errCh <- fmt.Errorf("shutdown hook panicked: %v", r)
+					errCh <- ErrHookPanicked
 				}
 			}()
 
