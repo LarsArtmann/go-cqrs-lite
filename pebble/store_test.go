@@ -205,13 +205,20 @@ func TestEventStore_Save_Mismatches(t *testing.T) {
 	}
 }
 
-func TestEventStore_Close_NilDB(t *testing.T) {
-	store := NewStore(nil, slog.Default())
+func TestEventStore_NewStore_NilDB(t *testing.T) {
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("expected panic when calling NewStore with nil db")
+		}
 
-	err := store.Close()
-	if err != nil {
-		t.Fatalf("Close with nil db should return nil, got %v", err)
-	}
+		msg, ok := r.(string)
+		if !ok || msg != "pebble: NewStore called with nil db" {
+			t.Fatalf("unexpected panic message: %v", r)
+		}
+	}()
+
+	NewStore(nil, slog.Default())
 }
 
 func TestEventStore_Save_EmptyEvents(t *testing.T) {
