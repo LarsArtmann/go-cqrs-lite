@@ -55,7 +55,11 @@ func (f *fakeStore) Delete(_ context.Context, ref event.AggregateRef) error {
 	return nil
 }
 
-func (f *fakeStore) LoadAtVersion(_ context.Context, ref event.AggregateRef, version event.Version) (*snapshot.Snapshot, error) {
+func (f *fakeStore) LoadAtVersion(
+	_ context.Context,
+	ref event.AggregateRef,
+	version event.Version,
+) (*snapshot.Snapshot, error) {
 	s, err := f.Load(context.TODO(), ref)
 	if err != nil {
 		return nil, err
