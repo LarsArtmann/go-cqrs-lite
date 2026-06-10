@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"log/slog"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -23,6 +24,8 @@ type Runner struct {
 	projections []event.Projection
 	cancel      context.CancelFunc
 	running     atomic.Bool
+	done        chan struct{}
+	closeOnce   sync.Once
 }
 
 var _ io.Closer = (*Runner)(nil)
@@ -62,6 +65,7 @@ func NewRunner(
 		opts:       o,
 		logger:     logger,
 		cancel:     cancel,
+		done:       make(chan struct{}),
 	}, nil
 }
 
@@ -101,6 +105,7 @@ func (r *Runner) Run(ctx context.Context) error {
 		return ErrAlreadyRunning
 	}
 	defer r.running.Store(false)
+	defer close(r.done)
 
 	ctx, r.cancel = context.WithCancel(ctx)
 
@@ -228,9 +233,16 @@ func (r *Runner) Reset(ctx context.Context, projectionName string) error {
 	return r.checkpoint.Save(ctx, projectionName, event.Checkpoint{})
 }
 
-// Close cancels the internal context, causing Run to return gracefully.
+// Close cancels the internal context and waits for Run to return.
+// Safe to call multiple times. If Run was never called, returns immediately.
 func (r *Runner) Close() error {
-	r.cancel()
+	r.closeOnce.Do(func() {
+		r.cancel()
+	})
+
+	if r.running.Load() {
+		<-r.done
+	}
 
 	return nil
 }
