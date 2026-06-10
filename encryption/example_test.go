@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/encryption/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
@@ -77,4 +78,73 @@ func ExampleEncryptMiddleware() {
 
 	// Output:
 	// encrypted: true
+}
+
+func ExampleNewXChaCha20Poly1305() {
+	key := make([]byte, 32)
+	for i := range key {
+		key[i] = byte(i)
+	}
+
+	enc, err := encryption.NewXChaCha20Poly1305(key)
+	if err != nil {
+		fmt.Println("error:", err)
+
+		return
+	}
+
+	plaintext := []byte(`{"ssn":"123-45-6789"}`)
+
+	ct, err := enc.Encrypt(plaintext)
+	if err != nil {
+		fmt.Println("error:", err)
+
+		return
+	}
+
+	decrypted, err := enc.Decrypt(ct)
+	if err != nil {
+		fmt.Println("error:", err)
+
+		return
+	}
+
+	fmt.Println("round-trip:", string(decrypted) == string(plaintext))
+
+	// Output:
+	// round-trip: true
+}
+
+func ExampleNewCodec() {
+	key := make([]byte, 32)
+	for i := range key {
+		key[i] = byte(i)
+	}
+
+	enc, _ := encryption.NewXChaCha20Poly1305(key)
+	c := encryption.NewCodec(codec.JSONCodec{}, enc)
+
+	type Secret struct {
+		SSN string `json:"ssn"`
+	}
+
+	data, err := c.Encode(Secret{SSN: "123-45-6789"})
+	if err != nil {
+		fmt.Println("error:", err)
+
+		return
+	}
+
+	var decoded Secret
+	err = c.Decode(data, &decoded)
+	if err != nil {
+		fmt.Println("error:", err)
+
+		return
+	}
+
+	fmt.Println("ssn:", decoded.SSN)
+
+	// Output:
+	// ssn: 123-45-6789
 }

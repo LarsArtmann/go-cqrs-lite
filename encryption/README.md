@@ -2,7 +2,7 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/encryption.svg)](https://pkg.go.dev/github.com/LarsArtmann/go-cqrs-lite/encryption)
 
-AES-256-GCM event payload encryption for confidential event storage and transit. Provides authenticated encryption (confidentiality + integrity) using only Go stdlib.
+Authenticated event payload encryption for confidential event storage and transit. Two algorithms behind a single interface.
 
 ```bash
 go get github.com/larsartmann/go-cqrs-lite/encryption
@@ -17,12 +17,23 @@ Event stores and message brokers often reside in shared infrastructure. Encrypti
 - **Compliance**: Meets GDPR, HIPAA, PCI-DSS encryption-at-rest requirements
 - **Defense in depth**: Even if signing is bypassed, encrypted payloads are unreadable without the key
 
+## Algorithm Selection
+
+|                    | XChaCha20-Poly1305          | AES-256-GCM               |
+| ------------------ | --------------------------- | ------------------------- |
+| **Recommendation** | **Default choice**          | Legacy / stdlib-only      |
+| Nonce size         | 24 bytes                    | 12 bytes                  |
+| Birthday bound     | ~2^96 per key               | ~2^48 per key             |
+| Constant-time      | Always (pure software)      | Only with AES-NI hardware |
+| Dependency         | `golang.org/x/crypto`       | Go stdlib                 |
+| Used by            | WireGuard, Age, MinIO, NaCl | TLS 1.3, AWS KMS          |
+
 ## Quick Start
 
-### Encrypt and Decrypt
+### XChaCha20-Poly1305 (recommended)
 
 ```go
-enc, err := encryption.NewAES256GCM(key) // key must be 32 bytes
+enc, err := encryption.NewXChaCha20Poly1305(key) // key must be 32 bytes
 if err != nil { ... }
 
 ct, err := enc.Encrypt([]byte(`{"ssn":"123-45-6789"}`))
@@ -32,10 +43,16 @@ plaintext, err := enc.Decrypt(ct)
 // plaintext == original JSON
 ```
 
+### AES-256-GCM (stdlib-only)
+
+```go
+enc, err := encryption.NewAES256GCM(key) // key must be 32 bytes
+```
+
 ### Auto-Encrypt on Publish
 
 ```go
-enc, _ := encryption.NewAES256GCM(key)
+enc, _ := encryption.NewXChaCha20Poly1305(key)
 bus.UsePublish(encryption.EncryptMiddleware(enc))
 
 // Every published event's payload is automatically encrypted
@@ -44,18 +61,28 @@ bus.UsePublish(encryption.EncryptMiddleware(enc))
 ### Auto-Decrypt on Handle
 
 ```go
-enc, _ := encryption.NewAES256GCM(key)
+enc, _ := encryption.NewXChaCha20Poly1305(key)
 bus.Use(encryption.DecryptMiddleware(enc))
 
 // Encrypted events are decrypted before reaching handlers
 // Unencrypted events pass through (supports mixed streams)
 ```
 
+### Composable Codec Wrapper
+
+```go
+enc, _ := encryption.NewXChaCha20Poly1305(key)
+c := encryption.NewCodec(codec.JSONCodec{}, enc)
+
+// Use with event.New — encrypts during Encode, decrypts during Decode
+evt, _ := event.New("user.created", aggID, "User", 1, payload, event.WithCodec(c))
+```
+
 ### Full Pipeline (Sign + Encrypt)
 
 ```go
 signer, _ := signing.NewHMAC(signingKey)
-enc, _ := encryption.NewAES256GCM(encryptionKey)
+enc, _ := encryption.NewXChaCha20Poly1305(encryptionKey)
 
 bus.UsePublish(signing.SignMiddleware(signer))
 bus.UsePublish(encryption.EncryptMiddleware(enc))
@@ -68,9 +95,9 @@ bus.Use(signing.VerifyMiddleware(signer))
 
 ## Design
 
-- **No external crypto dependencies**: Uses Go stdlib (`crypto/aes`, `crypto/cipher`)
-- **AES-256-GCM**: Authenticated encryption with associated data (confidentiality + integrity)
-- **Random nonce per encryption**: 12-byte random nonce prepended to ciphertext
+- **Two algorithms, one interface**: `Encrypter`, `Decrypter`, `EncrypterDecrypter`
+- **Composable, not combinable**: codec/ stays pure (Layer 0, zero deps). Encryption wraps any codec via `NewCodec`
+- **Random nonce per encryption**: Prepended to ciphertext
 - **Ciphertext in metadata**: Base64-encoded ciphertext stored in event custom metadata (`event.encrypted`)
 - **Constant-time comparison**: `Ciphertext.Equal` uses `crypto/subtle.ConstantTimeCompare`
 - **Composable middleware**: EncryptMiddleware and DecryptMiddleware integrate with the event bus
@@ -80,13 +107,14 @@ bus.Use(signing.VerifyMiddleware(signer))
 Benchmarks on 1KB payloads (AMD Ryzen):
 
 ```
-AES256GCM_Encrypt     ~700ns/op   3 allocs/op
-AES256GCM_Decrypt     ~500ns/op   2 allocs/op
-AES256GCM_RoundTrip  ~1100ns/op   5 allocs/op
+AES256GCM_Encrypt              ~700ns/op    3 allocs/op
+AES256GCM_Decrypt              ~500ns/op    2 allocs/op
+XChaCha20Poly1305_Encrypt      ~800ns/op    3 allocs/op
+XChaCha20Poly1305_Decrypt      ~600ns/op    2 allocs/op
 ```
 
 ## Security Considerations
 
-- **Key management**: This module handles encryption, not key management. Use your cloud provider's KMS (AWS KMS, GCP KMS, Azure Key Vault) or HashiCorp Vault for key storage and rotation.
-- **Nonce space**: AES-GCM with random 12-byte nonces has a birthday bound of ~2^48 encryptions per key. Rotate keys well before this limit.
-- **Key rotation**: Design your system to support key rotation. Store the key ID alongside encrypted events for multi-key support.
+- **Key management**: This module handles encryption, not key management. Use your cloud provider's KMS or HashiCorp Vault.
+- **AES-GCM nonce space**: 12-byte random nonces have a birthday bound at ~2^48 per key. Rotate keys well before this limit. XChaCha20's 24-byte nonce eliminates this concern.
+- **Key rotation**: Design your system for key rotation. Store the key ID alongside encrypted events.

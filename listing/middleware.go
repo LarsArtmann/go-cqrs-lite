@@ -2,7 +2,6 @@ package listing
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
@@ -80,7 +79,9 @@ func CacheInvalidationMiddleware(reader CacheInvalidator) event.PublishMiddlewar
 		return event.PublisherFunc(func(ctx context.Context, events ...event.Event) error {
 			err := next.Publish(ctx, events...)
 			if err != nil {
-				return fmt.Errorf("publish events: %w", err)
+				return event.WrapInfrastructure(err,
+					"listing.publish_events_failed",
+					"publish events")
 			}
 
 			reader.InvalidateCache()

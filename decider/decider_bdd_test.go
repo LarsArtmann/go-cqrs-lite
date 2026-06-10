@@ -95,32 +95,27 @@ func newSnapshotRepo(
 	)
 }
 
-func createCounter(
+func executeCounterCommand(
 	ctx context.Context,
 	repo *decider.Repository[bddCounter],
 	aggID id.AggregateID,
+	eventName string,
 ) {
 	err := repo.Execute(
 		ctx, aggID, "Counter",
 		func(_ bddCounter, v event.Version) ([]event.Event, error) {
-			return []event.Event{makeCounterEvent("CounterCreated", aggID, v+1)}, nil
+			return []event.Event{makeCounterEvent(event.Type(eventName), aggID, v+1)}, nil
 		},
 	)
 	Expect(err).ToNot(HaveOccurred())
 }
 
-func incrementCounter(
-	ctx context.Context,
-	repo *decider.Repository[bddCounter],
-	aggID id.AggregateID,
-) {
-	err := repo.Execute(
-		ctx, aggID, "Counter",
-		func(_ bddCounter, v event.Version) ([]event.Event, error) {
-			return []event.Event{makeCounterEvent("CounterIncremented", aggID, v+1)}, nil
-		},
-	)
-	Expect(err).ToNot(HaveOccurred())
+func createCounter(ctx context.Context, repo *decider.Repository[bddCounter], aggID id.AggregateID) {
+	executeCounterCommand(ctx, repo, aggID, "CounterCreated")
+}
+
+func incrementCounter(ctx context.Context, repo *decider.Repository[bddCounter], aggID id.AggregateID) {
+	executeCounterCommand(ctx, repo, aggID, "CounterIncremented")
 }
 
 func executeAndAssertNoStateChange(

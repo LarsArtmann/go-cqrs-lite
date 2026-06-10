@@ -2,6 +2,7 @@ package gracefulshutdown
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -48,6 +49,11 @@ func Shutdown(cfg Config, hooks ...Hook) {
 		wg.Add(1)
 		go func(h Hook) {
 			defer wg.Done()
+			defer func() {
+				if r := recover(); r != nil {
+					errCh <- fmt.Errorf("shutdown hook panicked: %v", r)
+				}
+			}()
 
 			err := h(ctx)
 			if err != nil {

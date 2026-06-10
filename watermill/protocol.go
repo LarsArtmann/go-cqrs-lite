@@ -99,7 +99,9 @@ func messageToEvent(topic string, msg *message.Message) (event.Event, error) {
 
 	version, err := parseInt(md.Get(metaVersion), metaVersion)
 	if err != nil {
-		return nil, fmt.Errorf("topic %s: parse %s: %w", topic, metaVersion, err)
+		return nil, event.WrapRejection(err,
+			"watermill.parse_version_failed",
+			fmt.Sprintf("topic %s: parse %s", topic, metaVersion))
 	}
 
 	schemaVersion, err := parseSchemaVersion(md, topic)
@@ -142,7 +144,9 @@ func parseSchemaVersion(md message.Metadata, topic string) (int, error) {
 
 	sv, err := parseInt(svStr, metaSchemaVersion)
 	if err != nil {
-		return 0, fmt.Errorf("topic %s: parse %s: %w", topic, metaSchemaVersion, err)
+		return 0, event.WrapRejection(err,
+			"watermill.parse_schema_version_failed",
+			fmt.Sprintf("topic %s: parse %s", topic, metaSchemaVersion))
 	}
 
 	return sv, nil
@@ -239,7 +243,7 @@ func parseIDField[T any](
 
 	parsed, err := parse(v)
 	if err != nil {
-		*errs = append(*errs, fmt.Errorf("%s: %w", key, err))
+		*errs = append(*errs, event.WrapRejection(err, "watermill.parse_id_field_failed", key))
 
 		return
 	}

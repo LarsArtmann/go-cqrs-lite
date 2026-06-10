@@ -148,6 +148,92 @@ func TestSchemaVersion_IntStringIsZero(t *testing.T) {
 	}
 }
 
+func TestSchemaVersion_AddSub(t *testing.T) {
+	t.Parallel()
+
+	sv := event.SchemaVersion(3)
+
+	if sv.Add(2) != 5 {
+		t.Errorf("Add(2) = %d, want 5", sv.Add(2))
+	}
+
+	if sv.Sub(1) != 2 {
+		t.Errorf("Sub(1) = %d, want 2", sv.Sub(1))
+	}
+}
+
+func TestSchemaVersion_Add_PanicsOnUnderflow(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("expected panic for Add that would produce non-positive result")
+		}
+	}()
+
+	event.SchemaVersion(1).Add(-2)
+}
+
+func TestSchemaVersion_Sub_PanicsOnUnderflow(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("expected panic for Sub that would produce non-positive result")
+		}
+	}()
+
+	event.SchemaVersion(1).Sub(1)
+}
+
+func TestVersion_JSON(t *testing.T) {
+	t.Parallel()
+
+	v := event.Version(42)
+
+	b, err := v.MarshalJSON()
+	if err != nil {
+		t.Fatalf("MarshalJSON: %v", err)
+	}
+
+	if string(b) != "42" {
+		t.Errorf("MarshalJSON = %s, want 42", b)
+	}
+
+	var got event.Version
+	if err := got.UnmarshalJSON(b); err != nil {
+		t.Fatalf("UnmarshalJSON: %v", err)
+	}
+
+	if got != v {
+		t.Errorf("UnmarshalJSON = %d, want %d", got, v)
+	}
+}
+
+func TestSchemaVersion_JSON(t *testing.T) {
+	t.Parallel()
+
+	sv := event.SchemaVersion(3)
+
+	b, err := sv.MarshalJSON()
+	if err != nil {
+		t.Fatalf("MarshalJSON: %v", err)
+	}
+
+	if string(b) != "3" {
+		t.Errorf("MarshalJSON = %s, want 3", b)
+	}
+
+	var got event.SchemaVersion
+	if err := got.UnmarshalJSON(b); err != nil {
+		t.Fatalf("UnmarshalJSON: %v", err)
+	}
+
+	if got != sv {
+		t.Errorf("UnmarshalJSON = %d, want %d", got, sv)
+	}
+}
+
 func TestWithReplay(t *testing.T) {
 	t.Parallel()
 

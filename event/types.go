@@ -2,6 +2,7 @@ package event
 
 import (
 	"cmp"
+	"encoding/json"
 	"fmt"
 	"net/netip"
 	"strconv"
@@ -209,6 +210,28 @@ func (sv SchemaVersion) IsPositive() bool { return sv > 0 }
 // Increment returns the next schema version.
 func (sv SchemaVersion) Increment() SchemaVersion { return sv + 1 }
 
+// Add returns a new SchemaVersion incremented by n.
+// Panics if the result would be non-positive.
+func (sv SchemaVersion) Add(n int) SchemaVersion {
+	result := sv + SchemaVersion(n)
+	if result < 1 {
+		panic(fmt.Sprintf("schema version addition underflow: %d + %d < 1", sv, n))
+	}
+
+	return result
+}
+
+// Sub returns a new SchemaVersion decremented by n.
+// Panics if the result would be non-positive.
+func (sv SchemaVersion) Sub(n int) SchemaVersion {
+	result := sv - SchemaVersion(n)
+	if result < 1 {
+		panic(fmt.Sprintf("schema version subtraction underflow: %d - %d < 1", sv, n))
+	}
+
+	return result
+}
+
 // Cmp compares two SchemaVersions. Returns -1, 0, or +1.
 func (sv SchemaVersion) Cmp(other SchemaVersion) int {
 	if sv < other {
@@ -220,4 +243,26 @@ func (sv SchemaVersion) Cmp(other SchemaVersion) int {
 	}
 
 	return 0
+}
+
+func (v Version) MarshalJSON() ([]byte, error) { return json.Marshal(v.Int()) }
+
+func (v *Version) UnmarshalJSON(b []byte) error {
+	var n int
+	if err := json.Unmarshal(b, &n); err != nil {
+		return err
+	}
+	*v = Version(n)
+	return nil
+}
+
+func (sv SchemaVersion) MarshalJSON() ([]byte, error) { return json.Marshal(sv.Int()) }
+
+func (sv *SchemaVersion) UnmarshalJSON(b []byte) error {
+	var n int
+	if err := json.Unmarshal(b, &n); err != nil {
+		return err
+	}
+	*sv = SchemaVersion(n)
+	return nil
 }
