@@ -14,6 +14,28 @@ type Type string
 // String returns the command type as a string.
 func (t Type) String() string { return string(t) }
 
+// IsZero returns true if the command type is empty.
+func (t Type) IsZero() bool { return t == "" }
+
+// ParseType validates and returns a Type. Returns an error if empty.
+func ParseType(s string) (Type, error) {
+	if s == "" {
+		return "", ErrEmptyCommandType
+	}
+
+	return Type(s), nil
+}
+
+// MustParseType is like ParseType but panics on invalid input.
+func MustParseType(s string) Type {
+	t, err := ParseType(s)
+	if err != nil {
+		panic("command.MustParseType: " + err.Error())
+	}
+
+	return t
+}
+
 // Command represents a domain command.
 type Command interface {
 	Type() Type
