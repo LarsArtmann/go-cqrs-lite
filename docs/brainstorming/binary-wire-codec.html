@@ -426,6 +426,81 @@
         color: var(--info);
       }
 
+      .hex-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin: 1.5rem 0;
+      }
+
+      .hex-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.75rem 1rem;
+      }
+
+      .hex-card-title {
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 0.3rem;
+      }
+
+      .hex-card-overhead {
+        font-family: var(--font-serif);
+        font-size: 1.8rem;
+        font-weight: 800;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+      }
+
+      .hex-card-desc {
+        font-size: 0.8rem;
+        color: var(--text-tertiary);
+        margin-top: 0.25rem;
+        line-height: 1.4;
+      }
+
+      .verdict-tag {
+        display: inline-block;
+        font-family: var(--font-sans);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        padding: 0.1em 0.45em;
+        border-radius: 3px;
+        margin-top: 0.4rem;
+      }
+
+      .verdict-tag.current {
+        background: var(--accent-muted);
+        color: var(--accent);
+      }
+      .verdict-tag.rejected {
+        background: var(--surface);
+        color: var(--text-tertiary);
+        border: 1px solid var(--border);
+      }
+      .verdict-tag.winner {
+        background: #d4edda;
+        color: var(--success);
+      }
+      .verdict-tag.niche {
+        background: rgba(96, 165, 250, 0.15);
+        color: var(--info);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        .verdict-tag.winner {
+          background: #1a3a2a;
+        }
+        .verdict-tag.niche {
+          background: rgba(96, 165, 250, 0.1);
+        }
+      }
+
       .metric-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -844,6 +919,7 @@
           <li><a href="#phases">Build Phases</a></li>
           <li><a href="#decisions">Key Decisions</a></li>
           <li><a href="#alternatives">Alternatives Considered</a></li>
+          <li><a href="#appendix-base64">Appendix: Why Base64?</a></li>
         </ol>
 
         <div class="sidebar-meta">
@@ -1639,6 +1715,169 @@
               <code>JSONCodec</code> remains the default. Binary codecs are opt-in. Consumers who
               value debuggability over throughput keep JSON. Consumers who need maximum performance
               opt into binary. The library stays unopinionated.
+            </p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- ── Appendix: Why Base64? ──────────────────── -->
+        <section id="appendix-base64">
+          <h2>Appendix: Why Base64?</h2>
+
+          <h3>It's not a choice &mdash; it's the JSON tax</h3>
+
+          <p>
+            Go's <code>encoding/json</code> automatically base64-encodes any
+            <code>[]byte</code> field during <code>json.Marshal</code>. There is no opt-out. This is
+            mandated by
+            <a href="https://www.rfc-editor.org/rfc/rfc8259#section-8.1">RFC 8259 &sect;8.1</a>:
+            JSON text is Unicode. Binary data must be encoded.
+          </p>
+
+          <p>
+            In <code>pebble/serialization.go</code>, the <code>serializableEvent</code> struct has a
+            <code>Payload []byte</code> field. When <code>json.Marshal</code> encounters it, every
+            byte of the payload becomes ~1.33 bytes of base64 on disk. A 1 KB event payload inflates
+            to ~1.37 KB before the JSON envelope overhead is even counted.
+          </p>
+
+          <div class="callout warn">
+            <div class="callout-title">The math</div>
+            <p>
+              Base64 encodes 3 bytes into 4 characters. Overhead = 4/3 &minus; 1 =
+              <strong>33.3%</strong>. This is a constant, not a worst case. Every
+              <code>[]byte</code> field pays it.
+            </p>
+          </div>
+
+          <h3>Could we use a better binary-to-text encoding?</h3>
+
+          <p>
+            In theory, yes. In practice, none of them solve the real problem. The problem isn't
+            base64 specifically &mdash; it's
+            <strong>putting binary data inside a text format</strong>.
+          </p>
+
+          <div class="hex-grid">
+            <div class="hex-card">
+              <div class="hex-card-title" style="color: var(--accent)">Hex</div>
+              <div class="hex-card-overhead" style="color: var(--accent)">+100%</div>
+              <div class="hex-card-desc">
+                2 chars per byte. Worse than base64. Stdlib via <code>encoding/hex</code>.
+              </div>
+              <div class="verdict-tag rejected">Rejected &mdash; even worse</div>
+            </div>
+            <div class="hex-card">
+              <div class="hex-card-title" style="color: var(--text)">Base64</div>
+              <div class="hex-card-overhead">+33%</div>
+              <div class="hex-card-desc">
+                4 chars per 3 bytes. Current default via <code>encoding/json</code>. Zero-config but
+                unfixable.
+              </div>
+              <div class="verdict-tag current">Current (not a choice)</div>
+            </div>
+            <div class="hex-card">
+              <div class="hex-card-title" style="color: var(--warn)">Base85 / ASCII85</div>
+              <div class="hex-card-overhead" style="color: var(--warn)">+25%</div>
+              <div class="hex-card-desc">
+                5 chars per 4 bytes. Available in <code>x/crypto</code>. Non-standard, no JSON
+                interop.
+              </div>
+              <div class="verdict-tag rejected">Rejected</div>
+            </div>
+            <div class="hex-card">
+              <div class="hex-card-title" style="color: var(--info)">Base91</div>
+              <div class="hex-card-overhead" style="color: var(--info)">+14%</div>
+              <div class="hex-card-desc">
+                91 of 95 printable ASCII chars. No stdlib, no ecosystem, no RFC.
+              </div>
+              <div class="verdict-tag niche">Niche &mdash; not standard</div>
+            </div>
+            <div class="hex-card">
+              <div class="hex-card-title" style="color: var(--info)">Base122</div>
+              <div class="hex-card-overhead" style="color: var(--info)">+7%</div>
+              <div class="hex-card-desc">
+                Uses non-ASCII bytes (&gt;127). Not valid JSON. Breaks every JSON parser.
+              </div>
+              <div class="verdict-tag rejected">Breaks JSON spec</div>
+            </div>
+          </div>
+
+          <div class="callout">
+            <div class="callout-title">The ceiling problem</div>
+            <p>
+              Even Base122 at +7% is still an overhead. And none of these fix the
+              <em>other</em> costs: reflection-based marshaling, double-allocation (encode +
+              decode), and the structural overhead of JSON key-value pairs in the envelope.
+              Switching from Base64 to Base91 saves ~19% of the payload size but changes nothing
+              about the 3-pass serialization pipeline or the reflection cost.
+            </p>
+          </div>
+
+          <h3>The three real solutions, ranked</h3>
+
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Approach</th>
+                <th>Base64 eliminated?</th>
+                <th>Reflection eliminated?</th>
+                <th>Effort</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>1</strong></td>
+                <td><strong>Binary envelope</strong> <span class="badge new">proposed</span></td>
+                <td style="color: var(--success)">Fully</td>
+                <td style="color: var(--success)">
+                  Envelope: fully. Payload: depends on inner codec
+                </td>
+                <td>~1 day</td>
+              </tr>
+              <tr>
+                <td><strong>2</strong></td>
+                <td><strong>Msgpack / CBOR envelope</strong></td>
+                <td style="color: var(--success)">Fully (native binary)</td>
+                <td style="color: var(--warn)">
+                  Partially (still uses reflection for envelope struct)
+                </td>
+                <td>~3 hours</td>
+              </tr>
+              <tr>
+                <td><strong>3</strong></td>
+                <td><strong>Split Pebble keys</strong></td>
+                <td style="color: var(--success)">Fully (payload stored separately)</td>
+                <td style="color: var(--danger)">No (envelope still JSON)</td>
+                <td>~4 hours</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h4>What is "split Pebble keys"?</h4>
+
+          <p>
+            Store the JSON envelope and the raw payload bytes as two separate key-value pairs in
+            Pebble. The envelope gets a key like
+            <code>evt:{id}:meta</code>, the payload gets <code>evt:{id}:data</code>. On load, read
+            both and reassemble. This avoids base64 without changing the codec at all.
+          </p>
+
+          <p>
+            The cost: doubles the number of Pebble keys, complicates range scans (ReadAll must
+            interleave two key prefixes), and adds per-event latency from two reads instead of one.
+            It's a tactical patch, not a structural fix. Listed here for completeness.
+          </p>
+
+          <div class="callout success">
+            <div class="callout-title">Bottom line</div>
+            <p>
+              Every binary-to-text encoding is a band-aid. The real answer is
+              <strong>don't put binary data inside a text format</strong>. The binary wire codec
+              eliminates the problem at the root: payload bytes go raw into the wire layout. No
+              encoding step. No overhead. No ceiling.
             </p>
           </div>
         </section>
