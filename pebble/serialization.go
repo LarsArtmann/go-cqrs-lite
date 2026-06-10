@@ -37,7 +37,11 @@ func (a *EventStore) deserializeEvent(data []byte) (event.Event, error) {
 			"failed to unmarshal event")
 	}
 
-	metadataJSON, _ := event.MarshalMetadataJSON(s.Metadata, "pebble.marshal_metadata")
+	metadataJSON, err := event.MarshalMetadataJSON(s.Metadata, "pebble.marshal_metadata")
+	if err != nil {
+		return nil, event.WrapCorruption(err, "pebble.marshal_metadata",
+			"failed to marshal metadata for deserialization")
+	}
 
 	evt, err := event.ReconstructEventFromFields(
 		s.ID, s.Type, s.AggregateType, s.AggregateID,
