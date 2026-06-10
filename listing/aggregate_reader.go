@@ -19,10 +19,10 @@ type AggregateReader interface {
 	ListWithStatus(ctx context.Context, opts ListOptions) (*Page[AggregateStatus], error)
 }
 
-// listRefsFromStatus delegates to ListWithStatus and strips the status,
+// ListRefsFromStatus delegates to ListWithStatus and strips the status,
 // returning only the AggregateListing page. Both InMemoryAggregateReader
 // and SQLAggregateReader use this for their List implementation.
-func listRefsFromStatus(
+func ListRefsFromStatus(
 	r AggregateReader,
 	ctx context.Context,
 	opts ListOptions,

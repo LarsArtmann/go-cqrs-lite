@@ -49,7 +49,7 @@ func (r *SQLAggregateReader) List(
 	ctx context.Context,
 	opts listing.ListOptions,
 ) (*listing.Page[listing.AggregateListing], error) {
-	return listRefsFromStatus(r, ctx, opts)
+	return listing.ListRefsFromStatus(r, ctx, opts)
 }
 
 func (r *SQLAggregateReader) ListWithStatus(
@@ -177,22 +177,4 @@ func paginateStatuses(
 	}
 
 	return &listing.Page[listing.AggregateStatus]{Items: items, HasMore: hasMore}
-}
-
-func listRefsFromStatus(
-	r listing.AggregateReader,
-	ctx context.Context,
-	opts listing.ListOptions,
-) (*listing.Page[listing.AggregateListing], error) {
-	statusPage, err := r.ListWithStatus(ctx, opts)
-	if err != nil {
-		return nil, err
-	}
-
-	refs := make([]listing.AggregateListing, len(statusPage.Items))
-	for i, s := range statusPage.Items {
-		refs[i] = s.Ref
-	}
-
-	return &listing.Page[listing.AggregateListing]{Items: refs, HasMore: statusPage.HasMore}, nil
 }

@@ -33,7 +33,7 @@ func (r *InMemoryAggregateReader) List(
 	ctx context.Context,
 	opts ListOptions,
 ) (*Page[AggregateListing], error) {
-	return listRefsFromStatus(r, ctx, opts)
+	return ListRefsFromStatus(r, ctx, opts)
 }
 
 func (r *InMemoryAggregateReader) ListWithStatus(
