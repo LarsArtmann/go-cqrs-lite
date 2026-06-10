@@ -11,7 +11,8 @@ import (
 // Option configures event creation.
 type Option func(*ImmutableEvent)
 
-func WithNewCodec(c codec.Codec) Option {
+// WithCodec sets the codec for event payload encoding.
+func WithCodec(c codec.Codec) Option {
 	return func(e *ImmutableEvent) {
 		if e.opts == nil {
 			e.opts = &eventOptions{}
@@ -19,6 +20,9 @@ func WithNewCodec(c codec.Codec) Option {
 		e.opts.newCodec = c
 	}
 }
+
+// WithNewCodec is deprecated: use WithCodec instead.
+func WithNewCodec(c codec.Codec) Option { return WithCodec(c) }
 
 // metadataOption sets a single field on Metadata.
 type metadataOption[T any] func(*Metadata, T)
