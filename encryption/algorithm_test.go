@@ -95,7 +95,8 @@ func TestAttachEncryption_WithAlgorithmAndKeyID(t *testing.T) {
 		t.Fatalf("Encrypt: %v", err)
 	}
 
-	attached, err := AttachEncryption(evt, ct,
+	attached, err := AttachEncryption(
+		evt, ct,
 		func(c *attachConfig) { c.algorithm = XChaCha20Poly1305 },
 		WithKeyID("key-v2"),
 	)

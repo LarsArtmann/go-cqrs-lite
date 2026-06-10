@@ -118,7 +118,7 @@ var (
 	)
 	ErrVersionConflict   = NewConflict("event.version_conflict", "version conflict")
 	ErrAggregateNotFound = NewRejection("event.aggregate_not_found", "aggregate not found")
-	ErrBinaryNotFound   = NewRejection("event.binary_not_found", "binary data not found in event metadata")
+	ErrBinaryNotFound    = NewRejection("event.binary_not_found", "binary data not found in event metadata")
 	ErrStoreClosed       = NewInfrastructure("event.store_closed", "event store is closed")
 	ErrBusClosed         = NewInfrastructure("event.bus_closed", "event bus is closed")
 	ErrNilBus            = NewInfrastructure("event.nil_bus", "nil bus")
