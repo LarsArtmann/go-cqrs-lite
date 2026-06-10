@@ -7,37 +7,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/encryption/v2"
 )
 
-func TestCiphertext_NonceAndData(t *testing.T) {
-	t.Parallel()
-
-	nonce := make([]byte, 12)
-	for i := range nonce {
-		nonce[i] = byte(i)
-	}
-
-	data := []byte("encrypted-content-here")
-
-	ct := make(encryption.Ciphertext, 0, len(nonce)+len(data))
-	ct = append(ct, nonce...)
-	ct = append(ct, data...)
-
-	extractedNonce := ct.Nonce()
-	if len(extractedNonce) != 12 {
-		t.Fatalf("nonce length = %d, want 12", len(extractedNonce))
-	}
-
-	for i, b := range extractedNonce {
-		if b != byte(i) {
-			t.Errorf("nonce[%d] = %d, want %d", i, b, byte(i))
-		}
-	}
-
-	extractedData := ct.Data()
-	if string(extractedData) != string(data) {
-		t.Errorf("data = %q, want %q", extractedData, data)
-	}
-}
-
 func TestCiphertext_ZeroValue(t *testing.T) {
 	t.Parallel()
 
@@ -45,14 +14,6 @@ func TestCiphertext_ZeroValue(t *testing.T) {
 
 	if !ct.IsZero() {
 		t.Error("empty ciphertext should be zero")
-	}
-
-	if ct.Nonce() != nil {
-		t.Error("nonce of zero ciphertext should be nil")
-	}
-
-	if ct.Data() != nil {
-		t.Error("data of zero ciphertext should be nil")
 	}
 }
 

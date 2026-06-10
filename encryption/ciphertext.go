@@ -9,25 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
-const gcmNonceSize = 12 //nolint:unused // referenced by Nonce/Data accessors
-
 type Ciphertext []byte
-
-func (c Ciphertext) Nonce() []byte {
-	if len(c) < gcmNonceSize {
-		return nil
-	}
-
-	return slices.Clone(c[:gcmNonceSize])
-}
-
-func (c Ciphertext) Data() []byte {
-	if len(c) < gcmNonceSize {
-		return nil
-	}
-
-	return slices.Clone(c[gcmNonceSize:])
-}
 
 func (c Ciphertext) IsZero() bool { return len(c) == 0 }
 

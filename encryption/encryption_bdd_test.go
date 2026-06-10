@@ -128,6 +128,51 @@ var _ = Describe("Encryption", func() {
 		})
 	})
 
+	Describe("XChaCha20-Poly1305 encryption", func() {
+		When("I encrypt and decrypt a payload with the same key", func() {
+			It("should restore the original plaintext so I can store data securely", func() {
+				key := generateKey()
+				enc, err := NewXChaCha20Poly1305(key)
+				Expect(err).NotTo(HaveOccurred())
+
+				plaintext := []byte(`{"name":"Alice","ssn":"123-45-6789"}`)
+
+				ct, err := enc.Encrypt(plaintext)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(ct).NotTo(BeNil())
+
+				decrypted, err := enc.Decrypt(ct)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(decrypted).To(Equal(plaintext))
+			})
+		})
+
+		When("I encrypt the same payload twice with XChaCha20", func() {
+			It("should produce different ciphertexts because nonces are random", func() {
+				key := generateKey()
+				enc, err := NewXChaCha20Poly1305(key)
+				Expect(err).NotTo(HaveOccurred())
+
+				payload := []byte(`{"name":"Alice"}`)
+
+				ct1, err := enc.Encrypt(payload)
+				Expect(err).NotTo(HaveOccurred())
+				ct2, err := enc.Encrypt(payload)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(ct1).NotTo(Equal(ct2))
+			})
+		})
+
+		When("I try to create XChaCha20 with a wrong-sized key", func() {
+			It("should reject my key so I cannot accidentally use weak cryptography", func() {
+				_, err := NewXChaCha20Poly1305([]byte("too-short"))
+				Expect(err).To(HaveOccurred())
+				Expect(errors.Is(err, ErrInvalidKey)).To(BeTrue())
+			})
+		})
+	})
+
 	Describe("publish pipeline middleware", func() {
 		When("I use EncryptMiddleware on my publisher", func() {
 			It("should encrypt the event payload so data at rest is protected", func() {

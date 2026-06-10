@@ -11,6 +11,8 @@ import (
 
 const KeySize = 32
 
+const aesGCMNonceSize = 12
+
 type aes256gcm struct {
 	aead cipher.AEAD
 }
@@ -45,14 +47,14 @@ func (e *aes256gcm) Encrypt(plaintext []byte) (Ciphertext, error) {
 		return nil, nil
 	}
 
-	nonce := make([]byte, gcmNonceSize)
+	nonce := make([]byte, aesGCMNonceSize)
 	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
 		return nil, event.WrapInfrastructure(err, "encryption.nonce_gen", "generate nonce")
 	}
 
 	sealed := e.aead.Seal(nil, nonce, plaintext, nil)
 
-	result := make([]byte, 0, gcmNonceSize+len(sealed))
+	result := make([]byte, 0, aesGCMNonceSize+len(sealed))
 	result = append(result, nonce...)
 	result = append(result, sealed...)
 
@@ -64,17 +66,17 @@ func (e *aes256gcm) Decrypt(ciphertext Ciphertext) ([]byte, error) {
 		return nil, nil
 	}
 
-	if len(ciphertext) < gcmNonceSize+e.aead.Overhead() {
+	if len(ciphertext) < aesGCMNonceSize+e.aead.Overhead() {
 		return nil, event.Wrapf(
 			ErrDecryptionFailed, event.Rejection,
 			"encryption.ciphertext_too_short",
 			"ciphertext length %d < minimum %d",
-			len(ciphertext), gcmNonceSize+e.aead.Overhead(),
+			len(ciphertext), aesGCMNonceSize+e.aead.Overhead(),
 		)
 	}
 
-	nonce := ciphertext[:gcmNonceSize]
-	data := ciphertext[gcmNonceSize:]
+	nonce := ciphertext[:aesGCMNonceSize]
+	data := ciphertext[aesGCMNonceSize:]
 
 	plaintext, err := e.aead.Open(nil, nonce, data, nil)
 	if err != nil {
