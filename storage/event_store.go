@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"sync/atomic"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
@@ -13,10 +12,7 @@ import (
 
 // SQLEventStore persists events in a SQL database with optimistic concurrency.
 type SQLEventStore struct {
-	sqlpkg.Base
-
-	ownDB  bool
-	closed atomic.Bool
+	*sqlpkg.ClosableBase
 }
 
 // NewSQLEventStore creates a new SQL-backed event store using PostgreSQL dialect.
@@ -42,31 +38,18 @@ func NewSQLEventStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLEventStore, 
 }
 
 func newSQLEventStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLEventStore, error) {
-	base, err := sqlpkg.NewBase(db, d)
+	base, err := sqlpkg.NewClosableBase(db, d, false)
 	if err != nil {
 		return nil, err
 	}
 
-	return &SQLEventStore{Base: base}, nil
-}
-
-// Close closes the store. If WithOwnership was set, also closes the underlying *sql.DB.
-func (s *SQLEventStore) Close() error {
-	s.closed.Store(true)
-
-	if s.ownDB {
-		return s.DB.Close()
-	}
-
-	return nil
+	return &SQLEventStore{ClosableBase: base}, nil
 }
 
 func (s *SQLEventStore) checkClosed() error {
-	if s.closed.Load() {
-		return event.NewInfrastructure("storage.closed", "store is closed")
-	}
-
-	return nil
+	return s.ClosableBase.CheckClosed(
+		event.NewInfrastructure("storage.closed", "store is closed"),
+	)
 }
 
 // Save persists events with optimistic concurrency check.

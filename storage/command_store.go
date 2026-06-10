@@ -2,7 +2,6 @@ package storage
 
 import (
 	"database/sql"
-	"sync/atomic"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
@@ -10,10 +9,7 @@ import (
 
 // SQLCommandStore persists commands in a SQL database.
 type SQLCommandStore struct {
-	sqlpkg.Base
-
-	ownDB  bool
-	closed atomic.Bool
+	*sqlpkg.ClosableBase
 }
 
 // NewSQLCommandStore creates a new PostgreSQL-backed command store.
@@ -39,31 +35,16 @@ func NewSQLCommandStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLCommandSto
 }
 
 func newSQLCommandStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLCommandStore, error) {
-	base, err := sqlpkg.NewBase(db, d)
+	base, err := sqlpkg.NewClosableBase(db, d, false)
 	if err != nil {
 		return nil, err
 	}
 
-	return &SQLCommandStore{Base: base}, nil
-}
-
-// Close closes the store. If WithOwnership was set, also closes the underlying *sql.DB.
-func (s *SQLCommandStore) Close() error {
-	s.closed.Store(true)
-
-	if s.ownDB {
-		return s.DB.Close()
-	}
-
-	return nil
+	return &SQLCommandStore{ClosableBase: base}, nil
 }
 
 func (s *SQLCommandStore) checkClosed() error {
-	if s.closed.Load() {
-		return command.ErrStoreClosed
-	}
-
-	return nil
+	return s.ClosableBase.CheckClosed(command.ErrStoreClosed)
 }
 
 var _ command.Store = (*SQLCommandStore)(nil)
