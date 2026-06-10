@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	. "github.com/larsartmann/go-cqrs-lite/encryption/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
@@ -357,6 +358,69 @@ var _ = Describe("Encryption", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(handledEvent.Payload()).To(Equal(original.Payload()))
+			})
+		})
+	})
+
+	Describe("encrypting codec wrapper", func() {
+		When("I use NewCodec with XChaCha20 and JSON", func() {
+			It("should serialize, encrypt, decrypt, and deserialize transparently", func() {
+				key := generateKey()
+				enc, err := NewXChaCha20Poly1305(key)
+				Expect(err).NotTo(HaveOccurred())
+
+				c := NewCodec(codec.JSONCodec{}, enc)
+
+				type Secret struct {
+					SSN string `json:"ssn"`
+				}
+
+				original := Secret{SSN: "123-45-6789"}
+
+				data, err := c.Encode(original)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(data).NotTo(BeEmpty())
+
+				var decoded Secret
+				err = c.Decode(data, &decoded)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(decoded.SSN).To(Equal("123-45-6789"))
+			})
+		})
+
+		When("I encode with the encrypting codec", func() {
+			It("should produce ciphertext, not plaintext JSON", func() {
+				key := generateKey()
+				enc, err := NewAES256GCM(key)
+				Expect(err).NotTo(HaveOccurred())
+
+				c := NewCodec(codec.JSONCodec{}, enc)
+
+				data, err := c.Encode(map[string]string{"secret": "value"})
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(string(data)).NotTo(ContainSubstring("secret"))
+				Expect(string(data)).NotTo(ContainSubstring("value"))
+			})
+		})
+
+		When("I decode with the wrong key", func() {
+			It("should fail so unauthorized readers cannot access the data", func() {
+				key1 := generateKey()
+				key2 := generateKey()
+
+				enc1, _ := NewXChaCha20Poly1305(key1)
+				enc2, _ := NewXChaCha20Poly1305(key2)
+
+				encodeCodec := NewCodec(codec.JSONCodec{}, enc1)
+				decodeCodec := NewCodec(codec.JSONCodec{}, enc2)
+
+				data, err := encodeCodec.Encode(map[string]string{"secret": "data"})
+				Expect(err).NotTo(HaveOccurred())
+
+				var result map[string]string
+				err = decodeCodec.Decode(data, &result)
+				Expect(err).To(HaveOccurred())
 			})
 		})
 	})
