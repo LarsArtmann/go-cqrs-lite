@@ -15,6 +15,7 @@ func parseCausationID(s string) id.CausationID {
 	if err != nil {
 		panic(err)
 	}
+
 	return v
 }
 
@@ -23,6 +24,7 @@ func parseCorrID(s string) id.CorrelationID {
 	if err != nil {
 		panic(err)
 	}
+
 	return v
 }
 
@@ -31,6 +33,7 @@ func parseRequestID(s string) id.RequestID {
 	if err != nil {
 		panic(err)
 	}
+
 	return v
 }
 
@@ -39,6 +42,7 @@ func parseUserID(s string) id.UserID {
 	if err != nil {
 		panic(err)
 	}
+
 	return v
 }
 

@@ -17,6 +17,7 @@ func parseAggID(s string) id.AggregateID {
 	if err != nil {
 		panic(err)
 	}
+
 	return v
 }
 

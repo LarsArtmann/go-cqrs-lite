@@ -13,6 +13,7 @@ func parseEventID(s string) id.EventID {
 	if err != nil {
 		panic(err)
 	}
+
 	return v
 }
 

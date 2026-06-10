@@ -43,6 +43,7 @@ func mustEveryN(n int) snapshot.SnapshotStrategy {
 	if err != nil {
 		panic(err)
 	}
+
 	return s
 }
 
@@ -55,6 +56,7 @@ func mustNewCmd(
 	if err != nil {
 		panic(err)
 	}
+
 	return cmd
 }
 
@@ -63,6 +65,7 @@ func mustNewQuery(queryType query.Type) *query.BasicQuery {
 	if err != nil {
 		panic(err)
 	}
+
 	return q
 }
 
@@ -146,6 +149,7 @@ func foldOrder(_ OrderState, evt event.Event) (OrderState, error) {
 	case "OrderCancelled":
 		return OrderState{Cancelled: true}, nil
 	}
+
 	return OrderState{}, nil
 }
 

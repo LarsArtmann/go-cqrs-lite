@@ -17,6 +17,7 @@ func mustNewCmd(
 	if err != nil {
 		panic(err)
 	}
+
 	return cmd
 }
 

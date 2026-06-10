@@ -16,6 +16,7 @@ func newTestEvent(t *testing.T, aggID id.AggregateID, v event.Version) event.Eve
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}
+
 	return evt
 }
 

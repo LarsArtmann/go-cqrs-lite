@@ -18,6 +18,7 @@ func mustEveryN(n int) snapshot.SnapshotStrategy {
 	if err != nil {
 		panic(err)
 	}
+
 	return s
 }
 
@@ -26,6 +27,7 @@ func parseAggID(s string) id.AggregateID {
 	if err != nil {
 		panic(err)
 	}
+
 	return v
 }
 

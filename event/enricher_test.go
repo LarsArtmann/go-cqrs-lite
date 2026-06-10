@@ -30,6 +30,7 @@ func parseUserID(s string) id.UserID {
 	if err != nil {
 		panic(err)
 	}
+
 	return v
 }
 

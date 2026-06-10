@@ -33,6 +33,7 @@ func testScanRows(rows *sql.Rows) ([]string, error) {
 		}
 		results = append(results, s)
 	}
+
 	return results, nil
 }
 

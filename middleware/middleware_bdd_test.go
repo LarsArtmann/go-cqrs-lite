@@ -21,6 +21,7 @@ func mustNewQuery(queryType query.Type) *query.BasicQuery {
 	if err != nil {
 		panic(err)
 	}
+
 	return q
 }
 

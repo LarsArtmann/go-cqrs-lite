@@ -20,6 +20,7 @@ func parseAggID(s string) id.AggregateID {
 	if err != nil {
 		panic(err)
 	}
+
 	return v
 }
 
@@ -28,6 +29,7 @@ func parseEventID(s string) id.EventID {
 	if err != nil {
 		panic(err)
 	}
+
 	return v
 }
 
