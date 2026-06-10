@@ -22,7 +22,7 @@ func TestEncryptDecryptIsInvolutory_AES256GCM(t *testing.T) {
 	propEncryptDecryptInvolutory(t, enc)
 }
 
-func propEncryptDecryptInvolutory(t *testing.T, enc Encrypter) {
+func propEncryptDecryptInvolutory(t *testing.T, enc EncrypterDecrypter) {
 	t.Helper()
 
 	rapid.Check(t, func(t *rapid.T) {

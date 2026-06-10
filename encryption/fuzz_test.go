@@ -25,7 +25,7 @@ func FuzzAES256GCM_Roundtrip(f *testing.F) {
 	})
 }
 
-func fuzzRoundtrip(t *testing.T, enc Encrypter, plaintext []byte) {
+func fuzzRoundtrip(t *testing.T, enc EncrypterDecrypter, plaintext []byte) {
 	t.Helper()
 
 	ct, err := enc.Encrypt(plaintext)
@@ -91,7 +91,7 @@ func FuzzAES256GCM_CorruptCiphertext(f *testing.F) {
 	})
 }
 
-func fuzzCorruptCiphertext(t *testing.T, enc Encrypter, plaintext []byte, flip byte) {
+func fuzzCorruptCiphertext(t *testing.T, enc EncrypterDecrypter, plaintext []byte, flip byte) {
 	t.Helper()
 
 	if len(plaintext) == 0 {
