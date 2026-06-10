@@ -92,25 +92,19 @@ func DecryptMiddleware(decrypter Decrypter) event.Middleware {
 				)
 			}
 
-			decrypted, err := cloneEvent(evt, MetadataKey, "")
-			if err != nil {
-				return event.WrapInfrastructure(
-					err,
-					"encryption.reconstruct_plaintext",
-					"reconstruct plaintext event "+string(evt.Type()),
-				)
-			}
+			md := evt.Metadata().Clone()
+			delete(md.Custom, MetadataKey)
 
 			plainEvt, err := event.NewEvent(
-				decrypted.Type(),
-				decrypted.AggregateID(),
-				decrypted.AggregateType(),
-				decrypted.Version(),
+				evt.Type(),
+				evt.AggregateID(),
+				evt.AggregateType(),
+				evt.Version(),
 				plaintext,
-				event.WithEventID(decrypted.ID()),
-				event.WithOccurredAt(decrypted.OccurredAt()),
-				event.WithSchemaVersion(decrypted.SchemaVersion()),
-				event.WithMetadata(decrypted.Metadata()),
+				event.WithEventID(evt.ID()),
+				event.WithOccurredAt(evt.OccurredAt()),
+				event.WithSchemaVersion(evt.SchemaVersion()),
+				event.WithMetadata(md),
 			)
 			if err != nil {
 				return event.WrapInfrastructure(

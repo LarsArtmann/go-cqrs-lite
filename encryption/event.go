@@ -8,25 +8,6 @@ import (
 
 const MetadataKey event.MetadataKey = "event.encrypted"
 
-func cloneEvent(
-	evt event.Event,
-	key event.MetadataKey,
-	value string,
-) (*event.ImmutableEvent, error) {
-	return event.NewEvent(
-		evt.Type(),
-		evt.AggregateID(),
-		evt.AggregateType(),
-		evt.Version(),
-		event.PayloadReadOnly(evt),
-		event.WithEventID(evt.ID()),
-		event.WithOccurredAt(evt.OccurredAt()),
-		event.WithSchemaVersion(evt.SchemaVersion()),
-		event.WithMetadata(evt.Metadata()),
-		event.WithCustom(key, value),
-	)
-}
-
 func AttachEncryption(evt event.Event, ciphertext Ciphertext) (*event.ImmutableEvent, error) {
 	if evt == nil {
 		return nil, ErrNilEvent

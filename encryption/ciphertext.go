@@ -1,6 +1,7 @@
 package encryption
 
 import (
+	"crypto/subtle"
 	"encoding/base64"
 	"encoding/json"
 	"slices"
@@ -31,17 +32,7 @@ func (c Ciphertext) Data() []byte {
 func (c Ciphertext) IsZero() bool { return len(c) == 0 }
 
 func (c Ciphertext) Equal(other Ciphertext) bool {
-	if len(c) != len(other) {
-		return false
-	}
-
-	for i := range c {
-		if c[i] != other[i] {
-			return false
-		}
-	}
-
-	return true
+	return subtle.ConstantTimeCompare(c, other) == 1
 }
 
 func (c Ciphertext) Bytes() []byte { return slices.Clone(c) }
