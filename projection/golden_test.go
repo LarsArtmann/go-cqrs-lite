@@ -7,6 +7,8 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"slices"
+	"sync"
 	"testing"
 	"time"
 
@@ -39,6 +41,7 @@ type processedEvent struct {
 }
 
 type trackedHandler struct {
+	mu        sync.Mutex
 	name      string
 	types     []event.Type
 	processed []processedEvent
@@ -48,11 +51,13 @@ func (h *trackedHandler) Name() string             { return h.name }
 func (h *trackedHandler) EventTypes() []event.Type { return h.types }
 
 func (h *trackedHandler) Handle(_ context.Context, evt event.Event) error {
+	h.mu.Lock()
 	h.processed = append(h.processed, processedEvent{
 		EventType: string(evt.Type()),
 		AggID:     evt.AggregateID().String(),
 		Version:   int(evt.Version()),
 	})
+	h.mu.Unlock()
 	return nil
 }
 
@@ -128,7 +133,21 @@ func buildReplayCatalog(t *testing.T) []processedEvent {
 	cancel()
 	<-done
 
-	return handler.processed
+	return handler.items()
+}
+
+func (h *trackedHandler) len() int {
+	h.mu.Lock()
+	n := len(h.processed)
+	h.mu.Unlock()
+	return n
+}
+
+func (h *trackedHandler) items() []processedEvent {
+	h.mu.Lock()
+	out := slices.Clone(h.processed)
+	h.mu.Unlock()
+	return out
 }
 
 func waitForHandler(t *testing.T, h *trackedHandler, expected int, timeout time.Duration) {
@@ -137,14 +156,14 @@ func waitForHandler(t *testing.T, h *trackedHandler, expected int, timeout time.
 	deadline := time.Now().Add(timeout)
 
 	for time.Now().Before(deadline) {
-		if len(h.processed) >= expected {
+		if h.len() >= expected {
 			return
 		}
 
 		time.Sleep(10 * time.Millisecond)
 	}
 
-	t.Fatalf("timed out waiting for handler: got %d events, want %d", len(h.processed), expected)
+	t.Fatalf("timed out waiting for handler: got %d events, want %d", h.len(), expected)
 }
 
 func discardLogger() *slog.Logger {

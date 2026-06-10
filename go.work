@@ -9,6 +9,7 @@ use (
 	./command
 	./decider
 	./dispatcher
+	./encryption
 	./event
 	./example/catalog-server
 	./example/listing
