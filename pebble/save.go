@@ -2,6 +2,7 @@ package pebble
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/cockroachdb/pebble"
 
@@ -44,19 +45,36 @@ func (a *EventStore) countEvents(ref event.AggregateRef) (int, error) {
 
 	defer func() { _ = iter.Close() }()
 
-	count := 0
+	if !iter.Last() {
+		if err := iter.Error(); err != nil {
+			return 0, event.WrapInfrastructure(err, "pebble.iterator_error",
+				"last iterator error")
+		}
 
-	for iter.First(); iter.Valid(); iter.Next() {
-		count++
+		return 0, nil
 	}
 
-	err = iter.Error()
+	key := iter.Key()
+
+	version, err := parseVersionFromKey(key)
 	if err != nil {
-		return 0, event.WrapInfrastructure(err, "pebble.iterator_error",
-			"count iterator error")
+		return 0, event.WrapInfrastructure(err, "pebble.parse_version",
+			"failed to parse version from last key")
 	}
 
-	return count, nil
+	return version, nil
+}
+
+func parseVersionFromKey(key []byte) (int, error) {
+	str := string(key)
+
+	lastColon := len(str) - 11
+
+	if lastColon < 0 || str[lastColon] != ':' {
+		return 0, fmt.Errorf("invalid key format: %s", str) //nolint:err113
+	}
+
+	return strconv.Atoi(str[lastColon+1:])
 }
 
 func (a *EventStore) writeEventsToBatch(
