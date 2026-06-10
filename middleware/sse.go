@@ -18,7 +18,12 @@ type SSEBroker struct {
 }
 
 // NewSSEBroker creates a new SSE broker that subscribes to the given bus.
-func NewSSEBroker(bus event.Bus) *SSEBroker {
+// Returns an error if bus subscription fails.
+func NewSSEBroker(bus event.Bus) (*SSEBroker, error) {
+	if bus == nil {
+		return nil, event.NewInfrastructure("middleware.nil_bus", "event bus is required")
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 
 	b := &SSEBroker{ //nolint:exhaustruct // mu zero-value is ready, handler set below
@@ -34,14 +39,14 @@ func NewSSEBroker(bus event.Bus) *SSEBroker {
 	if err != nil {
 		cancel()
 
-		return nil
+		return nil, event.WrapInfrastructure(err, "middleware.sse_subscribe", "subscribe to event bus")
 	}
 
 	go func() {
 		<-ctx.Done()
 	}()
 
-	return b
+	return b, nil
 }
 
 func (b *SSEBroker) handleEvent(_ context.Context, evt event.Event) error {
@@ -72,14 +77,14 @@ func (b *SSEBroker) AddClient(id string) chan event.Event {
 }
 
 // RemoveClient unregisters an SSE client.
+// The channel is not closed to avoid send-on-closed-channel races with
+// concurrent handleEvent calls. The channel will be garbage-collected
+// once the SSE handler releases its reference.
 func (b *SSEBroker) RemoveClient(id string) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	if ch, ok := b.clients[id]; ok {
-		close(ch)
-		delete(b.clients, id)
-	}
+	delete(b.clients, id)
 }
 
 // ClientCount returns the number of connected clients.
@@ -131,8 +136,8 @@ func SSEHandler(broker *SSEBroker) http.Handler {
 
 		for {
 			select {
-			case evt, ok := <-ch:
-				if !ok {
+			case evt := <-ch:
+				if evt == nil {
 					return
 				}
 

@@ -16,7 +16,10 @@ func TestSSEBroker(t *testing.T) {
 	bus := memory.NewMemoryBus()
 	defer bus.Close() //nolint:errcheck // test helper
 
-	broker := NewSSEBroker(bus)
+	broker, err := NewSSEBroker(bus)
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer broker.Close()
 
 	ch := broker.AddClient("test-client")
@@ -48,7 +51,10 @@ func TestSSEHandler(t *testing.T) {
 	bus := memory.NewMemoryBus()
 	defer bus.Close() //nolint:errcheck // test helper
 
-	broker := NewSSEBroker(bus)
+	broker, err := NewSSEBroker(bus)
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer broker.Close()
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -95,7 +101,10 @@ func TestSSEHandler_MissingClient(t *testing.T) {
 	bus := memory.NewMemoryBus()
 	defer bus.Close() //nolint:errcheck // test helper
 
-	broker := NewSSEBroker(bus)
+	broker, err := NewSSEBroker(bus)
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer broker.Close()
 
 	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/events", nil)

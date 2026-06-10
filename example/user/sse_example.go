@@ -12,7 +12,12 @@ import (
 // In a real application, you would serve this on an HTTP endpoint and connect
 // from a JavaScript client using EventSource.
 func demonstrateSSE(bus event.Bus) {
-	broker := middleware.NewSSEBroker(bus)
+	broker, err := middleware.NewSSEBroker(bus)
+	if err != nil {
+		fmt.Printf("  failed to create SSE broker: %v\n", err)
+
+		return
+	}
 
 	http.Handle("/events", middleware.SSEHandler(broker))
 
