@@ -62,7 +62,7 @@ func opError(
 	family := event.Classify(inner)
 	if family == event.Rejection || family == event.Conflict ||
 		family == event.Transient || family == event.Corruption {
-		return event.Wrap(inner, family, "decider.op_error", inner.Error())
+		return inner
 	}
 
 	return event.WrapInfrastructure(inner, "decider.op_error", inner.Error())
