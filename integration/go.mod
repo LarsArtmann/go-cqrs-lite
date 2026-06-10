@@ -17,6 +17,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/signing/v2 v2.2.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.2.0
 	github.com/larsartmann/go-cqrs-lite/storage/v2 v2.2.0
+	github.com/larsartmann/go-cqrs-lite/testutil/v2 v2.0.0-20260610224735-4408c0037ffc
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0
 	go.opentelemetry.io/otel/sdk v1.44.0

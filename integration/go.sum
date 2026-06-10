@@ -39,6 +39,8 @@ github.com/larsartmann/go-branded-id v0.3.0 h1:3uE01+ymNTfsvtLMRSiux+6TjPZX5+frq
 github.com/larsartmann/go-branded-id v0.3.0/go.mod h1:O9fhyzY3DxtLsswpR7XaI+VbCM9182ZbZQLjfFFanLk=
 github.com/larsartmann/go-cqrs-lite/schema/v2 v2.2.0 h1:TVwgf/n+WBGmbSkGy4++BN2ACdchNewPbDYyyQTGKrs=
 github.com/larsartmann/go-cqrs-lite/schema/v2 v2.2.0/go.mod h1:NidR/HxizEGmgmTVEewG0IxM57+IHTcDAc+MqXX/dr4=
+github.com/larsartmann/go-cqrs-lite/testutil/v2 v2.0.0-20260610224735-4408c0037ffc h1:I+keFnJNFsm2BNQzAI9ZR+AwexsvykTBpXGuAB9wUsc=
+github.com/larsartmann/go-cqrs-lite/testutil/v2 v2.0.0-20260610224735-4408c0037ffc/go.mod h1:h7KW4iBe30zRkcoKuQ1/9yAEcZjZQg2g89hjYVzRawU=
 github.com/larsartmann/go-error-family v0.3.0 h1:ozA/xt9C+o+4o6bbt/vrMZDCL+ZvBjJVV79fjNkz3+8=
 github.com/larsartmann/go-error-family v0.3.0/go.mod h1:Fz+CKBOHHFZAeiZ/GFbY0JiiXBei+SqY8nznz2XpeaM=
 github.com/maruel/natural v1.1.1 h1:Hja7XhhmvEFhcByqDoHz9QZbkWey+COd9xWfCfn1ioo=
