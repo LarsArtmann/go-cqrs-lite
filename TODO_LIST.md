@@ -27,7 +27,7 @@
 - [ ] **Break memory↔snapshot cycle** — Make snapshot depend only on event, not memory (source: architecture-review 2026-06-10)
 - [ ] **Extract sql.QueryEngine** — Generic query engine in storage/sql/ to eliminate ~300 lines of event/command store duplication (source: code-review 2026-06-10)
 - [ ] **Remove command error re-exports** — command/errors.go re-exports entire error-family API; 90% unused in production (source: code-review 2026-06-10)
-- [ ] **Fix Lifecycle exported field** — dispatcher.Dispatcher.Lifecycle exposes internal mutex; make unexported with method delegation (source: code-review 2026-06-10)
+- [x] ~~**Fix Lifecycle exported field**~~ — DONE (Session follow-up: `5218640c`)
 - [FUTURE] Add catalog diff/breaking-change detection tool (source: SESSION_04)
 - [BLOCKED] Modularize ActaFlow — different project
 - [FUTURE] Add high-level test utilities — AggregateTester, ProjectionTester, BusTester fluent API (source: MONOREPO_PLAN)
@@ -81,14 +81,14 @@
 - [x] ~~Improve catalog/docserver coverage~~ — DONE (90.1%)
 - [x] ~~Add SubscriptionScope enum + projection.Runner~~ — DONE
 - [BLOCKED] Move example/todo to own repository — requires manual repo creation
-- [ ] **Add IsReplay getter** — event.WithReplay writes context value but no exported IsReplay(ctx) to read it (source: code-review 2026-06-10)
-- [ ] **Rename WithNewCodec → WithCodec** — misleading "New" prefix; consistent with decider.WithCodec (source: naming-review 2026-06-10)
-- [ ] **Rename ErrNilBus → ErrNilPublisher** — decider param is Publisher not Bus (source: naming-review 2026-06-10)
-- [ ] **Remove StreamKey free function** — duplicates AggregateRef.StreamKey() method; only used once externally (source: code-review 2026-06-10)
-- [ ] **Remove Map/ScanState/Tap reactive wrappers** — test-only thin pass-throughs, pollute public API (source: code-review 2026-06-10)
+- [x] ~~**Add IsReplay getter**~~ — DONE (Session follow-up: `ea0632b9`)
+- [x] ~~**Rename WithNewCodec → WithCodec**~~ — DONE (Session follow-up: `27cf2f2a`)
+- [x] ~~**Rename ErrNilBus → ErrNilPublisher**~~ — DONE (Session follow-up: `b3b6801a`)
+- [x] ~~**Remove StreamKey free function**~~ — DONE (Session follow-up: `4b183a5c`)
+- [x] ~~**Remove Map/ScanState/Tap reactive wrappers**~~ — DONE (Session follow-up: `38f336f5`)
 - [ ] **Move HTTP code out of middleware** — SSE, healthcheck, metrics_http have no relation to CQRS middleware (source: architecture-review 2026-06-10)
-- [ ] **Consolidate listRefsFromStatus** — duplicated between listing/ and storage/ (source: code-review 2026-06-10)
-- [ ] **Fix AggregateProjection hardcoded placeholders** — uses `?` instead of Dialect.Placeholder(), incompatible with Postgres (source: code-review 2026-06-10)
+- [x] ~~**Consolidate listRefsFromStatus**~~ — DONE (Session follow-up: `c77a4b05`)
+- [x] ~~**Fix AggregateProjection hardcoded placeholders**~~ — DONE (Session follow-up: `cab48302`)
 - [ ] **Fix pebble unbounded lock map** — sync.Map grows without eviction; add LRU or sharded lock (source: code-review 2026-06-10)
 - [ ] **Fix README.md broken badges** — CI badges reference test.yml/lint.yml (should be ci.yml); Go Reference references core/ (doesn't exist) (source: docs-freshness 2026-06-10)
 
