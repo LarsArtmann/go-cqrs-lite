@@ -34,6 +34,18 @@ type Recommendation struct {
 	EstimatedCost int // lower is better; parsed from plan detail if available
 }
 
+// AdvisorOption configures an Advisor.
+type AdvisorOption func(*Advisor)
+
+// WithExcludedTables prevents the advisor from analyzing the given tables.
+func WithExcludedTables(tables ...string) AdvisorOption {
+	return func(a *Advisor) {
+		for _, t := range tables {
+			a.excluded[t] = true
+		}
+	}
+}
+
 // Advisor analyzes SQLite query plans and recommends indexes.
 type Advisor struct {
 	db *sql.DB
@@ -41,11 +53,22 @@ type Advisor struct {
 
 	// existing indexes cached to avoid repeated schema queries
 	existing map[string]bool
+	excluded map[string]bool
 }
 
 // NewAdvisor creates an index advisor for the given database.
-func NewAdvisor(db *sql.DB) *Advisor {
-	return &Advisor{db: db, existing: make(map[string]bool)}
+func NewAdvisor(db *sql.DB, opts ...AdvisorOption) *Advisor {
+	a := &Advisor{
+		db:       db,
+		existing: make(map[string]bool),
+		excluded: make(map[string]bool),
+	}
+
+	for _, opt := range opts {
+		opt(a)
+	}
+
+	return a
 }
 
 // AnalyzeQuery runs EXPLAIN QUERY PLAN on the provided query and returns
@@ -99,6 +122,10 @@ func (a *Advisor) MissingIndexes(ctx context.Context) ([]Recommendation, error) 
 	var all []Recommendation
 
 	for _, tbl := range tables {
+		if a.excluded[tbl] {
+			continue
+		}
+
 		recs, err := a.AnalyzeTable(ctx, tbl)
 		if err != nil {
 			return nil, err

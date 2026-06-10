@@ -10,21 +10,36 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
+// AutoIndexerOption configures an AutoIndexer.
+type AutoIndexerOption func(*AutoIndexer)
+
+// WithAutoAnalyze runs ANALYZE after creating indexes.
+func WithAutoAnalyze() AutoIndexerOption {
+	return func(a *AutoIndexer) { a.autoAnalyze = true }
+}
+
 // AutoIndexer applies index recommendations automatically.
 // Call Enable to allow it to create indexes; call Disable to stop.
 type AutoIndexer struct {
-	advisor *Advisor
-	db      *sql.DB
-	mu      sync.RWMutex
-	enabled bool
+	advisor     *Advisor
+	db          *sql.DB
+	mu          sync.RWMutex
+	enabled     bool
+	autoAnalyze bool
 }
 
 // NewAutoIndexer creates an auto-indexer for the given database.
-func NewAutoIndexer(db *sql.DB) *AutoIndexer {
-	return &AutoIndexer{
+func NewAutoIndexer(db *sql.DB, opts ...AutoIndexerOption) *AutoIndexer {
+	a := &AutoIndexer{
 		advisor: NewAdvisor(db),
 		db:      db,
 	}
+
+	for _, opt := range opts {
+		opt(a)
+	}
+
+	return a
 }
 
 // Enable allows the auto-indexer to create indexes.
@@ -75,7 +90,15 @@ func (a *AutoIndexer) Apply(ctx context.Context, recs []Recommendation) error {
 		}
 	}
 
-	return nil
+	return a.maybeAnalyze(ctx)
+}
+
+func (a *AutoIndexer) maybeAnalyze(ctx context.Context) error {
+	if !a.autoAnalyze {
+		return nil
+	}
+
+	return Analyze(ctx, a.db) //nolint:wrapcheck // transparent delegation
 }
 
 // ApplyRecommended runs MissingIndexes and applies all recommendations.
@@ -118,7 +141,7 @@ func (a *AutoIndexer) ApplyCQRSIndexes(ctx context.Context) error {
 		}
 	}
 
-	return nil
+	return a.maybeAnalyze(ctx)
 }
 
 // Recommendations returns current recommendations without applying them.
