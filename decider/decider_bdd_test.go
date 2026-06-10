@@ -271,11 +271,11 @@ var _ = Describe("Decider Repository", func() {
 			})
 		})
 
-		Context("when I create a repository without a bus", func() {
-			It("should reject my setup and explain that an event bus is required", func() {
+		Context("when I create a repository without a publisher", func() {
+			It("should reject my setup and explain that an event publisher is required", func() {
 				_, err := decider.NewRepository(store, nil, bddCounterDecider())
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("event bus is required"))
+				Expect(err.Error()).To(ContainSubstring("event publisher is required"))
 			})
 		})
 

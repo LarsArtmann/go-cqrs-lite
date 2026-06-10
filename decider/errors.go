@@ -8,11 +8,14 @@ var ErrNilStore = event.NewInfrastructure(
 	"event store is required",
 )
 
-// ErrNilBus is returned by NewRepository when the event publisher is nil.
-var ErrNilBus = event.NewInfrastructure(
-	"decider.nil_bus",
-	"event bus is required",
+// ErrNilPublisher is returned by NewRepository when the event publisher is nil.
+var ErrNilPublisher = event.NewInfrastructure(
+	"decider.nil_publisher",
+	"event publisher is required",
 )
+
+// ErrNilBus is deprecated: use ErrNilPublisher instead.
+var ErrNilBus = ErrNilPublisher
 
 // ErrNilFold is returned by NewRepository when the decider Fold function is nil.
 var ErrNilFold = event.NewRejection(

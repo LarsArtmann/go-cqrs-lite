@@ -36,8 +36,8 @@ func NewRunner(
 	opts ...RunnerOption,
 ) (*Runner, error) {
 	if subscriber == nil {
-		return nil, event.WrapInfrastructure(ErrNilBus, "projection.create_runner",
-			"create runner: nil bus")
+		return nil, event.WrapInfrastructure(ErrNilSubscriber, "projection.create_runner",
+			"create runner: nil subscriber")
 	}
 
 	if checkpoint == nil {

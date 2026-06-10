@@ -239,11 +239,11 @@ var _ = Describe("Projection Runner", func() {
 	})
 
 	Describe("As a developer validating my setup", func() {
-		Context("when I create a runner without a bus", func() {
-			It("should reject my setup and explain that a bus is required", func() {
+		Context("when I create a runner without a subscriber", func() {
+			It("should reject my setup and explain that a subscriber is required", func() {
 				_, err := projection.NewRunner(store, nil, checkpoint)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("nil bus"))
+				Expect(err.Error()).To(ContainSubstring("nil subscriber"))
 			})
 		})
 

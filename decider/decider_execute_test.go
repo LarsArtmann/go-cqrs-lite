@@ -24,8 +24,8 @@ func TestNewRepository_NilChecks(t *testing.T) {
 	}
 
 	_, err = decider.NewRepository(eventtest.NewFakeStore(), nil, d)
-	if !errors.Is(err, decider.ErrNilBus) {
-		t.Fatalf("expected ErrNilBus, got %v", err)
+	if !errors.Is(err, decider.ErrNilPublisher) {
+		t.Fatalf("expected ErrNilPublisher, got %v", err)
 	}
 
 	_, err = decider.NewRepository(eventtest.NewFakeStore(), eventtest.NewFakeBus(),

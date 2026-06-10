@@ -9,11 +9,14 @@ var (
 		"projection: nil handler",
 	)
 
-	// ErrNilBus is returned when a nil event subscriber is passed to NewRunner.
-	ErrNilBus = event.NewInfrastructure(
-		"projection.nil_bus",
-		"projection: nil bus",
+	// ErrNilSubscriber is returned when a nil event subscriber is passed to NewRunner.
+	ErrNilSubscriber = event.NewInfrastructure(
+		"projection.nil_subscriber",
+		"projection: nil subscriber",
 	)
+
+	// ErrNilBus is deprecated: use ErrNilSubscriber instead.
+	ErrNilBus = ErrNilSubscriber
 
 	// ErrNilCheckpoint is returned when a nil checkpoint store is passed to NewRunner.
 	ErrNilCheckpoint = event.NewInfrastructure(

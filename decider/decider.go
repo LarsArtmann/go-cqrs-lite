@@ -53,7 +53,7 @@ func NewRepository[State any](
 	}
 
 	if publisher == nil {
-		return nil, ErrNilBus
+		return nil, ErrNilPublisher
 	}
 
 	if decider.Fold == nil {
