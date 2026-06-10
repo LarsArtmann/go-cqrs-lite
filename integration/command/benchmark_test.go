@@ -6,23 +6,11 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/testutil/v2"
 )
 
-func mustNewCmd(
-	commandType command.Type,
-	aggregateID id.AggregateID,
-	opts ...command.Option,
-) *command.BasicCommand {
-	cmd, err := command.New(commandType, aggregateID, opts...)
-	if err != nil {
-		panic(err)
-	}
-
-	return cmd
-}
-
 func benchmarkDispatch(b *testing.B, dispatcher *command.Dispatcher) {
-	cmd := mustNewCmd("bench.cmd", id.NewAggregateID())
+	cmd := testutil.MustNewCmd("bench.cmd", id.NewAggregateID())
 	ctx := context.Background()
 
 	for b.Loop() {

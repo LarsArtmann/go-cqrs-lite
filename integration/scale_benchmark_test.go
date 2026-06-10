@@ -17,20 +17,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
+	"github.com/larsartmann/go-cqrs-lite/testutil/v2"
 )
-
-func mustNewCmd(
-	commandType command.Type,
-	aggregateID id.AggregateID,
-	opts ...command.Option,
-) *command.BasicCommand {
-	cmd, err := command.New(commandType, aggregateID, opts...)
-	if err != nil {
-		panic(err)
-	}
-
-	return cmd
-}
 
 func mustNewQuery(queryType query.Type) *query.BasicQuery {
 	q, err := query.New(queryType)
@@ -172,7 +160,7 @@ func BenchmarkScale_CommandDispatch(b *testing.B) {
 
 	for b.Loop() {
 		for i := range 100 {
-			cmd := mustNewCmd(command.Type(fmt.Sprintf("cmd.%d", i)), aggID)
+			cmd := testutil.MustNewCmd(command.Type(fmt.Sprintf("cmd.%d", i)), aggID)
 			err := dispatcher.Dispatch(ctx, cmd)
 			if err != nil {
 				b.Fatalf("dispatch: %v", err)
@@ -798,7 +786,7 @@ func BenchmarkScale_Concurrent_10KCommands_8Goroutines(b *testing.B) {
 				aggID := id.NewAggregateID()
 
 				for range opsPerWorker {
-					cmd := mustNewCmd("bench.cmd", aggID)
+					cmd := testutil.MustNewCmd("bench.cmd", aggID)
 					_ = dispatcher.Dispatch(ctx, cmd)
 				}
 			}()

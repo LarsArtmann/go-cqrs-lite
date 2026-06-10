@@ -25,7 +25,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 | Language  | Go 1.26.3                                                                                                                                                                                                                                                                                                                             |
 | Modules   | `event`, `command`, `query`, `decider`, `id`, `dispatcher`, `schema`, `snapshot`, `memory`, `catalog`, `middleware`, `integration`, `storage`, `projection`, `signing`, `encryption`, `otel`, `watermill`, `pebble`, `codec`, `turso`, `listing`, `cqrs-gen`, `api-stability`                                                         |
 | Build     | `nix run .#build`                                                                                                                                                                                                                                                                                                                     |
-| Test      | `nix run .#test` or `go test ./event/... ./command/... ./query/... ./decider/... ./id/... ./dispatcher/... ./schema/... ./snapshot/... ./memory/... ./catalog/... ./middleware/... ./integration/... ./projection/... ./signing/... ./storage/... ./watermill/... ./pebble/... ./codec/... ./listing/... ./cmd/cqrs-gen/... -count=1` |
+| Test      | `nix run .#test` or `go test ./event/... ./command/... ./query/... ./decider/... ./id/... ./dispatcher/... ./schema/... ./snapshot/... ./memory/... ./catalog/... ./middleware/... ./integration/... ./projection/... ./signing/... ./encryption/... ./storage/... ./watermill/... ./pebble/... ./codec/... ./listing/... ./cmd/cqrs-gen/... -count=1` |
 | Lint      | `nix run .#lint`                                                                                                                                                                                                                                                                                                                      |
 | Format    | `nix fmt`                                                                                                                                                                                                                                                                                                                             |
 | Dev shell | `nix develop`                                                                                                                                                                                                                                                                                                                         |
@@ -54,6 +54,7 @@ go-cqrs-lite/
 │   └── schema/          # JSON Schema types, reflection engine, YAML serialization
 ├── middleware/           # Logging, Retry, Recovery, Validation, Metrics, OTel Tracing+Metrics (command+event+query)
 ├── signing/             # Event signing/verification: HMAC-SHA256, Ed25519, multisig, middleware
+├── encryption/          # Event payload encryption: XChaCha20-Poly1305, AES-256-GCM, codec wrapper, middleware
 ├── projection/          # Runner (replay+live), HandlerRegistry, Builder with On[T]()
 ├── storage/             # SQLEventStore, SQLSnapshotStore, SQLCheckpointStore (PG/SQLite/Turso)
 ├── otel/                # Shared OpenTelemetry helpers: Tracer, Meter, Spans, Attributes
@@ -191,7 +192,7 @@ Layer 0: id/, dispatcher/, codec/         (leaf modules, no internal deps)
 Layer 1: event/ (→id, codec, ro), command/ (→id, dispatcher, ro), query/ (→dispatcher, ro)
 Layer 2: schema/ (→event), snapshot/ (→event)
 Layer 3: decider/ (→event, snapshot)
-Layer 4: memory/, signing/, otel/
+Layer 4: memory/, signing/, encryption/, otel/
 Layer 5: middleware/, storage/, projection/, listing/, watermill/, pebble/, turso/
 Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability
 ```

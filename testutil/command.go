@@ -2,6 +2,8 @@
 package testutil
 
 import (
+	"context"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
@@ -32,7 +34,7 @@ func ParseAggID(s string) id.AggregateID {
 
 // NoopCommandHandler returns a handler that does nothing.
 func NoopCommandHandler() command.Handler {
-	return func(_ any, _ command.Command) error {
+	return func(_ context.Context, _ command.Command) error {
 		return nil
 	}
 }

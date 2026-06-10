@@ -36,6 +36,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
+	"github.com/larsartmann/go-cqrs-lite/testutil/v2"
 )
 
 func mustEveryN(n int) snapshot.SnapshotStrategy {
@@ -45,19 +46,6 @@ func mustEveryN(n int) snapshot.SnapshotStrategy {
 	}
 
 	return s
-}
-
-func mustNewCmd(
-	commandType command.Type,
-	aggregateID id.AggregateID,
-	opts ...command.Option,
-) *command.BasicCommand {
-	cmd, err := command.New(commandType, aggregateID, opts...)
-	if err != nil {
-		panic(err)
-	}
-
-	return cmd
 }
 
 func mustNewQuery(queryType query.Type) *query.BasicQuery {
@@ -378,12 +366,12 @@ func BenchmarkRealistic_FullPipeline(b *testing.B) {
 		projected.Store(0)
 
 		for _, aggID := range aggIDs {
-			cmd := mustNewCmd("create.order", aggID)
+			cmd := testutil.MustNewCmd("create.order", aggID)
 			if err := cmdDisp.Dispatch(context.Background(), cmd); err != nil {
 				b.Fatalf("create: %v", err)
 			}
 
-			cmd = mustNewCmd("add.item", aggID)
+			cmd = testutil.MustNewCmd("add.item", aggID)
 			if err := cmdDisp.Dispatch(context.Background(), cmd); err != nil {
 				b.Fatalf("add: %v", err)
 			}
