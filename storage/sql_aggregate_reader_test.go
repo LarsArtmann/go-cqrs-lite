@@ -19,7 +19,7 @@ func openSQLiteListingDB(t *testing.T) (*sql.DB, *AggregateProjection) {
 		t.Fatalf("OpenSQLiteInMemory: %v", err)
 	}
 
-	proj, err := NewAggregateProjection(context.Background(), db, "test_")
+	proj, err := NewAggregateProjection(context.Background(), db, "test_", sqlpkg.SQLiteDialect{})
 	if err != nil {
 		t.Fatalf("NewAggregateProjection: %v", err)
 	}

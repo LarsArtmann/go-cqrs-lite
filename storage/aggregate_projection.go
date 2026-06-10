@@ -7,6 +7,7 @@ import (
 	"regexp"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
 )
 
 var validListingTablePrefix = regexp.MustCompile(`^[a-z_][a-z0-9_]*$`)
@@ -24,6 +25,7 @@ func validateListingTablePrefix(prefix string) error {
 
 type AggregateProjection struct {
 	db        *sql.DB
+	dialect   sqlpkg.Dialect
 	tableName string
 }
 
@@ -31,6 +33,7 @@ func NewAggregateProjection(
 	ctx context.Context,
 	db *sql.DB,
 	tablePrefix string,
+	dialect sqlpkg.Dialect,
 ) (*AggregateProjection, error) {
 	err := validateListingTablePrefix(tablePrefix)
 	if err != nil {
@@ -39,6 +42,7 @@ func NewAggregateProjection(
 
 	p := &AggregateProjection{
 		db:        db,
+		dialect:   dialect,
 		tableName: tablePrefix + "listing_aggregates",
 	}
 
@@ -62,15 +66,20 @@ func (p *AggregateProjection) Handle(ctx context.Context, evt event.Event) error
 	status := detectStatusFromMetadata(evt)
 
 	if status == event.TombstoneUndetermined {
+		p1 := p.dialect.Placeholder(1)
+		p2 := p.dialect.Placeholder(2)
+		p3 := p.dialect.Placeholder(3)
+		p4 := p.dialect.Placeholder(4)
+
 		_, err := p.db.ExecContext(
 			ctx,
 			fmt.Sprintf(`INSERT INTO %s
 				(aggregate_type, aggregate_id, version, event_count, last_event_at, tombstone_status)
-				VALUES (?, ?, ?, 1, ?, 0)
+				VALUES (%s, %s, %s, 1, %s, 0)
 				ON CONFLICT (aggregate_type, aggregate_id) DO UPDATE SET
 					version = excluded.version,
 					event_count = %s.event_count + 1,
-					last_event_at = excluded.last_event_at`, p.tableName, p.tableName),
+					last_event_at = excluded.last_event_at`, p.tableName, p1, p2, p3, p4, p.tableName),
 			evt.AggregateType(),
 			evt.AggregateID().String(),
 			evt.Version().Int(),
@@ -80,16 +89,22 @@ func (p *AggregateProjection) Handle(ctx context.Context, evt event.Event) error
 		return err
 	}
 
+	p1 := p.dialect.Placeholder(1)
+	p2 := p.dialect.Placeholder(2)
+	p3 := p.dialect.Placeholder(3)
+	p4 := p.dialect.Placeholder(4)
+	p5 := p.dialect.Placeholder(5)
+
 	_, err := p.db.ExecContext(
 		ctx,
 		fmt.Sprintf(`INSERT INTO %s
 			(aggregate_type, aggregate_id, version, event_count, last_event_at, tombstone_status)
-			VALUES (?, ?, ?, 1, ?, ?)
+			VALUES (%s, %s, %s, 1, %s, %s)
 			ON CONFLICT (aggregate_type, aggregate_id) DO UPDATE SET
 				version = excluded.version,
 				event_count = %s.event_count + 1,
 				last_event_at = excluded.last_event_at,
-				tombstone_status = excluded.tombstone_status`, p.tableName, p.tableName),
+				tombstone_status = excluded.tombstone_status`, p.tableName, p1, p2, p3, p4, p5, p.tableName),
 		evt.AggregateType(),
 		evt.AggregateID().String(),
 		evt.Version().Int(),
