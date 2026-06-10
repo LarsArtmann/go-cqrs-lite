@@ -36,6 +36,8 @@ func NewXChaCha20Poly1305(key []byte) (*xchacha20, error) {
 	return &xchacha20{aead: aead}, nil
 }
 
+func (e *xchacha20) Algorithm() Algorithm { return XChaCha20Poly1305 }
+
 func (e *xchacha20) Encrypt(plaintext []byte) (Ciphertext, error) {
 	if len(plaintext) == 0 {
 		return nil, nil

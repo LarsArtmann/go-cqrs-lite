@@ -16,6 +16,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0
 	golang.org/x/crypto v0.53.0
+	pgregory.net/rapid v1.3.0
 )
 
 require (

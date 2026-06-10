@@ -25,13 +25,29 @@
 // Use AES-256-GCM when stdlib-only is required or when AES-NI hardware acceleration
 // is guaranteed.
 //
+// # Algorithm Identification
+//
+// EncryptMiddleware automatically detects the algorithm from the encrypter and
+// stores it in event metadata (event.encryption.algorithm). Extract it with
+// ExtractAlgorithm. Both implementations (AES-256-GCM, XChaCha20-Poly1305) report
+// their algorithm. DecryptMiddleware cleans up algorithm metadata on decryption.
+//
+// # Key ID Support
+//
+// For key rotation scenarios, pass WithMiddlewareKeyID to EncryptMiddleware.
+// The key ID is stored in event metadata (event.encryption.key-id) and can be
+// retrieved with ExtractKeyID. This enables consumers to select the correct
+// decryption key based on the key ID embedded in each event.
+//
+//	bus.UsePublish(encryption.EncryptMiddleware(enc, encryption.WithMiddlewareKeyID("key-v2")))
+//
 // # Composable Codec Wrapper
 //
 // encryption.NewCodec wraps any codec.Codec to add transparent encrypt/decrypt:
 //
 //	enc, _ := encryption.NewXChaCha20Poly1305(key)
 //	c := encryption.NewCodec(codec.JSONCodec{}, enc)
-//	evt, _ := event.New("user.created", aggID, "User", 1, payload, event.WithCodec(c))
+//	evt, _ := event.NewEvent("user.created", aggID, "User", 1, payload, event.WithCodec(c))
 //
 // # Example (direct encrypt/decrypt)
 //
@@ -49,5 +65,6 @@
 //   - No external crypto dependencies beyond Go stdlib + golang.org/x/crypto
 //   - AES-256-GCM provides hardware acceleration; XChaCha20 provides constant-time safety
 //   - Random nonce per encryption, prepended to ciphertext
+//   - Algorithm and key ID metadata for key rotation and audit
 //   - Failures are explicit errors, never panics
 package encryption

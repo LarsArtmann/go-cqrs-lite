@@ -42,6 +42,8 @@ func NewAES256GCM(key []byte) (*aes256gcm, error) {
 	return &aes256gcm{aead: aead}, nil
 }
 
+func (e *aes256gcm) Algorithm() Algorithm { return AES256GCM }
+
 func (e *aes256gcm) Encrypt(plaintext []byte) (Ciphertext, error) {
 	if len(plaintext) == 0 {
 		return nil, nil

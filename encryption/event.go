@@ -8,12 +8,44 @@ import (
 
 const MetadataKey event.MetadataKey = "event.encrypted"
 
-func AttachEncryption(evt event.Event, ciphertext Ciphertext) (*event.ImmutableEvent, error) {
+type attachConfig struct {
+	algorithm Algorithm
+	keyID     string
+}
+
+type AttachOption func(*attachConfig)
+
+func WithKeyID(id string) AttachOption {
+	return func(c *attachConfig) { c.keyID = id }
+}
+
+func AttachEncryption(evt event.Event, ciphertext Ciphertext, opts ...AttachOption) (*event.ImmutableEvent, error) {
 	if evt == nil {
 		return nil, ErrNilEvent
 	}
 
+	cfg := attachConfig{}
+	for _, o := range opts {
+		o(&cfg)
+	}
+
 	encoded := base64.URLEncoding.EncodeToString(ciphertext.Bytes())
+
+	eventOpts := []event.Option{
+		event.WithEventID(evt.ID()),
+		event.WithOccurredAt(evt.OccurredAt()),
+		event.WithSchemaVersion(evt.SchemaVersion()),
+		event.WithMetadata(evt.Metadata()),
+		event.WithCustom(MetadataKey, encoded),
+	}
+
+	if !cfg.algorithm.IsZero() {
+		eventOpts = append(eventOpts, event.WithCustom(AlgorithmKey, cfg.algorithm.String()))
+	}
+
+	if cfg.keyID != "" {
+		eventOpts = append(eventOpts, event.WithCustom(KeyIDKey, cfg.keyID))
+	}
 
 	clone, err := event.NewEvent(
 		evt.Type(),
@@ -21,11 +53,7 @@ func AttachEncryption(evt event.Event, ciphertext Ciphertext) (*event.ImmutableE
 		evt.AggregateType(),
 		evt.Version(),
 		[]byte(ciphertext),
-		event.WithEventID(evt.ID()),
-		event.WithOccurredAt(evt.OccurredAt()),
-		event.WithSchemaVersion(evt.SchemaVersion()),
-		event.WithMetadata(evt.Metadata()),
-		event.WithCustom(MetadataKey, encoded),
+		eventOpts...,
 	)
 	if err != nil {
 		return nil, event.WrapInfrastructure(

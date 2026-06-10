@@ -65,7 +65,7 @@ go-cqrs-lite/
 ├── turso/               # Turso database connector (embedded LibSQL sync)
 ├── cmd/cqrs-gen/        # Code generator: typed handler registration from Go structs
 ├── cmd/api-stability/   # API surface checker: compares exported symbols against golden file
-├── integration/         # Cross-module tests (command, event, query, signing)
+├── integration/         # Cross-module tests (command, event, query, signing, encryption)
 └── docs/                # Status reports, ADRs, architecture patterns, storage guide
 ```
 
@@ -149,6 +149,16 @@ marked, _ := event.MarkTombstone(evt)   // sets tombstone metadata
 //   bus.UsePublish(signing.SignMiddleware(signer))
 //   bus.Use(signing.VerifyMiddleware(signer))
 
+// Event encryption (confidential payloads)
+//   enc, _ := encryption.NewXChaCha20Poly1305(key)
+//   bus.UsePublish(encryption.EncryptMiddleware(enc, encryption.WithMiddlewareKeyID("key-v1")))
+//   bus.Use(encryption.DecryptMiddleware(enc))
+//
+//   // Composable codec wrapper
+//   codec := encryption.NewCodec(codec.JSONCodec{}, enc)
+//   alg := encryption.ExtractAlgorithm(evt)  // "xchacha20-poly1305"
+//   keyID := encryption.ExtractKeyID(evt)    // "key-v1"
+
 // OpenTelemetry tracing (opt-in, no-op when no provider configured)
 //   tracer := otel.GetTracerProvider().Tracer("my-app")
 //   bus.Use(middleware.EventTracing(tracer))
@@ -180,8 +190,8 @@ marked, _ := event.MarkTombstone(evt)   // sets tombstone metadata
 
 | Category   | Packages                                                                                                                                                                            |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Production | oklog/ulid/v2, go-branded-id, go-error-family, samber/ro (event, command, query); go-faster/yaml (catalog); go.opentelemetry.io/otel (otel, event, storage, middleware, projection) |
-| Test-only  | onsi/ginkgo/v2, onsi/gomega                                                                                                                                                         |
+| Production | oklog/ulid/v2, go-branded-id, go-error-family, samber/ro (event, command, query); go-faster/yaml (catalog); go.opentelemetry.io/otel (otel, event, storage, middleware, projection); golang.org/x/crypto (encryption) |
+| Test-only  | onsi/ginkgo/v2, onsi/gomega, pgregory.net/rapid (event, encryption) |
 
 **Coverage**: 84–100% across 32 packages. See `docs/status/` for latest.
 

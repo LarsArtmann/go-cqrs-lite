@@ -6,6 +6,16 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
+type middlewareConfig struct {
+	keyID string
+}
+
+type MiddlewareOption func(*middlewareConfig)
+
+func WithMiddlewareKeyID(id string) MiddlewareOption {
+	return func(c *middlewareConfig) { c.keyID = id }
+}
+
 func rejectingPublishMiddleware(code, msg string) event.PublishMiddleware {
 	return func(_ event.Publisher) event.Publisher {
 		return event.PublisherFunc(func(_ context.Context, _ ...event.Event) error {
@@ -22,13 +32,20 @@ func rejectingHandlerMiddleware(code, msg string) event.Middleware {
 	}
 }
 
-func EncryptMiddleware(encrypter Encrypter) event.PublishMiddleware {
+func EncryptMiddleware(encrypter Encrypter, opts ...MiddlewareOption) event.PublishMiddleware {
 	if encrypter == nil {
 		return rejectingPublishMiddleware(
 			"encryption.nil_encrypter",
 			"EncryptMiddleware called with nil encrypter",
 		)
 	}
+
+	cfg := middlewareConfig{}
+	for _, o := range opts {
+		o(&cfg)
+	}
+
+	alg := detectAlgorithm(encrypter)
 
 	return func(next event.Publisher) event.Publisher {
 		return event.PublisherFunc(func(ctx context.Context, events ...event.Event) error {
@@ -51,7 +68,16 @@ func EncryptMiddleware(encrypter Encrypter) event.PublishMiddleware {
 					)
 				}
 
-				clone, err := AttachEncryption(evt, ct)
+				attachOpts := []AttachOption{}
+				if !alg.IsZero() {
+					attachOpts = append(attachOpts, func(c *attachConfig) { c.algorithm = alg })
+				}
+
+				if cfg.keyID != "" {
+					attachOpts = append(attachOpts, WithKeyID(cfg.keyID))
+				}
+
+				clone, err := AttachEncryption(evt, ct, attachOpts...)
 				if err != nil {
 					return event.WrapInfrastructure(
 						err,
@@ -94,6 +120,8 @@ func DecryptMiddleware(decrypter Decrypter) event.Middleware {
 
 			md := evt.Metadata().Clone()
 			delete(md.Custom, MetadataKey)
+			delete(md.Custom, AlgorithmKey)
+			delete(md.Custom, KeyIDKey)
 
 			plainEvt, err := event.NewEvent(
 				evt.Type(),
@@ -117,4 +145,16 @@ func DecryptMiddleware(decrypter Decrypter) event.Middleware {
 			return next(ctx, plainEvt)
 		}
 	}
+}
+
+func detectAlgorithm(encrypter Encrypter) Algorithm {
+	type algorithmer interface {
+		Algorithm() Algorithm
+	}
+
+	if a, ok := encrypter.(algorithmer); ok {
+		return a.Algorithm()
+	}
+
+	return ""
 }

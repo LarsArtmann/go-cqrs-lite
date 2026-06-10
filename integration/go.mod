@@ -34,6 +34,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/encryption/v2 v2.0.0-20260610225456-4844e854e716 // indirect
 	github.com/larsartmann/go-error-family v0.3.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/samber/lo v1.53.0 // indirect
@@ -43,6 +44,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.44.0 // indirect
 	go.opentelemetry.io/otel/trace v1.44.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
+	golang.org/x/crypto v0.53.0 // indirect
 	golang.org/x/exp v0.0.0-20260603202125-055de637280b // indirect
 	golang.org/x/mod v0.36.0 // indirect
 	golang.org/x/net v0.55.0 // indirect
@@ -57,6 +59,7 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/command/v2 => ../command
 	github.com/larsartmann/go-cqrs-lite/decider/v2 => ../decider
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 => ../dispatcher
+	github.com/larsartmann/go-cqrs-lite/encryption/v2 => ../encryption
 	github.com/larsartmann/go-cqrs-lite/event/v2 => ../event
 	github.com/larsartmann/go-cqrs-lite/id/v2 => ../id
 	github.com/larsartmann/go-cqrs-lite/listing/v2 => ../listing
