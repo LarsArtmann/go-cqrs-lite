@@ -128,9 +128,9 @@ func TestBuilder_AddService_WithOptions(t *testing.T) {
 		"test-svc", "Test Service", "1.0.0", "A test service",
 		catalog.Command[TestCreateUser](
 			"user.create",
-			catalog.Name("Create User Account"),
-			catalog.Summary("Creates a new user with email verification"),
-			catalog.Version("2.0.0"),
+			catalog.WithName("Create User Account"),
+			catalog.WithSummary("Creates a new user with email verification"),
+			catalog.WithVersion("2.0.0"),
 		),
 	)
 

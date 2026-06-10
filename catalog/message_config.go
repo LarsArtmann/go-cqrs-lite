@@ -37,9 +37,9 @@ func (m *messageBuilder) apply(serviceID ServiceID, reg *Registry) {
 	msg := Message{ //nolint:exhaustruct
 		Kind:       m.kind,
 		ID:         m.id,
-		Name:       m.name,
-		Version:    m.version,
-		Summary:    m.summary,
+		Name:       Name(m.name),
+		Version:    Version(m.version),
+		Summary:    Summary(m.summary),
 		Schema:     m.schema,
 		Direction:  m.direction,
 		Owners:     m.owners,
@@ -64,22 +64,22 @@ func (m *messageBuilder) apply(serviceID ServiceID, reg *Registry) {
 // MessageOption configures a message builder.
 type MessageOption func(*messageBuilder)
 
-// Name overrides the auto-derived message name.
-func Name(name string) MessageOption {
+// WithName overrides the auto-derived message name.
+func WithName(name string) MessageOption {
 	return func(m *messageBuilder) {
 		m.name = name
 	}
 }
 
-// Summary sets the message summary/description.
-func Summary(summary string) MessageOption {
+// WithSummary sets the message summary/description.
+func WithSummary(summary string) MessageOption {
 	return func(m *messageBuilder) {
 		m.summary = summary
 	}
 }
 
-// Version overrides the default message version ("1.0.0").
-func Version(version string) MessageOption {
+// WithVersion overrides the default message version ("1.0.0").
+func WithVersion(version string) MessageOption {
 	return func(m *messageBuilder) {
 		m.version = version
 	}

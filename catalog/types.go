@@ -72,9 +72,9 @@ type Property = schema.Property
 type Message struct {
 	Kind       MessageKind       `json:"kind"`
 	ID         MessageID         `json:"id"`
-	Name       string            `json:"name"`
-	Version    string            `json:"version"`
-	Summary    string            `json:"summary,omitempty"`
+	Name       Name              `json:"name"`
+	Version    Version           `json:"version"`
+	Summary    Summary           `json:"summary,omitempty"`
 	Schema     *Schema           `json:"schema,omitempty"`
 	Direction  Direction         `json:"direction"`
 	Examples   []json.RawMessage `json:"examples,omitempty"`
@@ -91,9 +91,9 @@ type Message struct {
 
 type Service struct {
 	ID             ServiceID       `json:"id"`
-	Name           string          `json:"name"`
-	Version        string          `json:"version"`
-	Summary        string          `json:"summary,omitempty"`
+	Name           Name            `json:"name"`
+	Version        Version         `json:"version"`
+	Summary        Summary         `json:"summary,omitempty"`
 	Owners         []string        `json:"owners,omitempty"`
 	Commands       []Message       `json:"commands,omitempty"`
 	Events         []Message       `json:"events,omitempty"`
@@ -110,9 +110,9 @@ type Service struct {
 
 type Domain struct {
 	ID          DomainID     `json:"id"`
-	Name        string       `json:"name"`
-	Version     string       `json:"version"`
-	Summary     string       `json:"summary,omitempty"`
+	Name        Name         `json:"name"`
+	Version     Version      `json:"version"`
+	Summary     Summary      `json:"summary,omitempty"`
 	Owners      []string     `json:"owners,omitempty"`
 	Services    []ServiceID  `json:"services,omitempty"`
 	Sends       []Ref        `json:"sends,omitempty"`
@@ -125,13 +125,13 @@ type Domain struct {
 
 type Channel struct {
 	ID                ChannelID               `json:"id"`
-	Name              string                  `json:"name"`
-	Version           string                  `json:"version"`
-	Summary           string                  `json:"summary,omitempty"`
-	Address           string                  `json:"address,omitempty"`
-	Protocols         []string                `json:"protocols,omitempty"`
+	Name              Name                    `json:"name"`
+	Version           Version                 `json:"version"`
+	Summary           Summary                 `json:"summary,omitempty"`
+	Address           Address                 `json:"address,omitempty"`
+	Protocols         []Protocol              `json:"protocols,omitempty"`
 	Messages          []MessageID             `json:"messages,omitempty"`
-	DeliveryGuarantee string                  `json:"deliveryGuarantee,omitempty"`
+	DeliveryGuarantee DeliveryGuarantee        `json:"deliveryGuarantee,omitempty"`
 	Parameters        map[string]ChannelParam `json:"parameters,omitempty"`
 	Routes            []ChannelRoute          `json:"routes,omitempty"`
 	Owners            []string                `json:"owners,omitempty"`
@@ -139,15 +139,15 @@ type Channel struct {
 }
 
 type Catalog struct {
-	Title      string      `json:"title"`
-	Version    string      `json:"version"`
-	Services   []Service   `json:"services"`
-	Domains    []Domain    `json:"domains,omitempty"`
-	Channels   []Channel   `json:"channels,omitempty"`
+	Title      Title      `json:"title"`
+	Version    Version    `json:"version"`
+	Services   []Service  `json:"services"`
+	Domains    []Domain   `json:"domains,omitempty"`
+	Channels   []Channel  `json:"channels,omitempty"`
 	DataStores []DataStore `json:"dataStores,omitempty"`
-	Flows      []Flow      `json:"flows,omitempty"`
-	Teams      []Team      `json:"teams,omitempty"`
-	Users      []User      `json:"users,omitempty"`
+	Flows      []Flow     `json:"flows,omitempty"`
+	Teams      []Team     `json:"teams,omitempty"`
+	Users      []User     `json:"users,omitempty"`
 }
 
 // Key returns the unique key for the message: msg.ID if set, otherwise msg.Name.

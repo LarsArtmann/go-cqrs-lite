@@ -19,23 +19,23 @@ func generateEventCatalog(outputDir string) error {
 		"user-svc", "User Service", "1.0.0", "Manages user accounts",
 		catalog.Command[CreateUserPayload](
 			catalog.MessageID(cmdCreateUser),
-			catalog.Name("Create User"),
-			catalog.Summary("Creates a new user account"),
+			catalog.WithName("Create User"),
+			catalog.WithSummary("Creates a new user account"),
 		),
 		catalog.Command[ChangeUserNamePayload](
 			catalog.MessageID(cmdChangeUserName),
-			catalog.Name("Change User Name"),
-			catalog.Summary("Changes a user's display name"),
+			catalog.WithName("Change User Name"),
+			catalog.WithSummary("Changes a user's display name"),
 		),
 		catalog.Event[UserCreatedPayload](
 			catalog.MessageID(eventUserCreated), catalog.Sends,
-			catalog.Name("User Created"),
-			catalog.Summary("Fired when a new user account is created"),
+			catalog.WithName("User Created"),
+			catalog.WithSummary("Fired when a new user account is created"),
 		),
 		catalog.Event[UserNameChangedPayload](
 			catalog.MessageID(eventUserNameChanged), catalog.Sends,
-			catalog.Name("User Name Changed"),
-			catalog.Summary("Fired when a user changes their display name"),
+			catalog.WithName("User Name Changed"),
+			catalog.WithSummary("Fired when a user changes their display name"),
 		),
 	)
 

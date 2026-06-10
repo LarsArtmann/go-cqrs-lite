@@ -6,14 +6,17 @@ type ChannelOption func(*Channel)
 // ChannelAddress sets the channel address (e.g., "user.orders").
 func ChannelAddress(addr string) ChannelOption {
 	return func(ch *Channel) {
-		ch.Address = addr
+		ch.Address = Address(addr)
 	}
 }
 
 // ChannelProtocols sets the supported protocols (e.g., "http", "kafka").
 func ChannelProtocols(protocols ...string) ChannelOption {
 	return func(ch *Channel) {
-		ch.Protocols = protocols
+		ch.Protocols = make([]Protocol, len(protocols))
+		for i, p := range protocols {
+			ch.Protocols[i] = Protocol(p)
+		}
 	}
 }
 
@@ -27,7 +30,7 @@ func ChannelMessages(msgIDs ...MessageID) ChannelOption {
 // ChannelDeliveryGuarantee sets the delivery guarantee (e.g., "at-least-once").
 func ChannelDeliveryGuarantee(guarantee string) ChannelOption {
 	return func(ch *Channel) {
-		ch.DeliveryGuarantee = guarantee
+		ch.DeliveryGuarantee = DeliveryGuarantee(guarantee)
 	}
 }
 

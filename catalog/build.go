@@ -54,9 +54,9 @@ func (b *Builder) AddDomain(
 ) {
 	b.registry.AddDomain(Domain{ //nolint:exhaustruct
 		ID:       id,
-		Name:     name,
-		Version:  version,
-		Summary:  summary,
+		Name:     Name(name),
+		Version:  Version(version),
+		Summary:  Summary(summary),
 		Services: serviceIDs,
 	})
 }
