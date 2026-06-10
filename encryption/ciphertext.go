@@ -8,7 +8,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
-const gcmNonceSize = 12
+const gcmNonceSize = 12 //nolint:unused // referenced by Nonce/Data accessors
 
 type Ciphertext []byte
 

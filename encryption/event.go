@@ -8,7 +8,7 @@ import (
 
 const MetadataKey event.MetadataKey = "event.encrypted"
 
-func CloneEvent(
+func cloneEvent(
 	evt event.Event,
 	key event.MetadataKey,
 	value string,

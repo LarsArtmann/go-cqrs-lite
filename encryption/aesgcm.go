@@ -5,7 +5,6 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"io"
-	"slices"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
@@ -82,5 +81,5 @@ func (e *aes256gcm) Decrypt(ciphertext Ciphertext) ([]byte, error) {
 		return nil, event.WrapInfrastructure(err, "encryption.decrypt", "decrypt ciphertext")
 	}
 
-	return slices.Clone(plaintext), nil
+	return plaintext, nil
 }

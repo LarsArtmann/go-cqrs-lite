@@ -92,7 +92,7 @@ func DecryptMiddleware(decrypter Decrypter) event.Middleware {
 				)
 			}
 
-			decrypted, err := CloneEvent(evt, MetadataKey, "")
+			decrypted, err := cloneEvent(evt, MetadataKey, "")
 			if err != nil {
 				return event.WrapInfrastructure(
 					err,
