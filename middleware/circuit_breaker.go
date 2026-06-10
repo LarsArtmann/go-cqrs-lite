@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"sync"
@@ -161,7 +160,12 @@ func (cb *circuitBreaker) execute(
 		return nil
 	}
 
-	if cb.config.IsFailure(err) {
+	isFailure := cb.config.IsFailure
+	if isFailure == nil {
+		isFailure = event.IsRetryable
+	}
+
+	if isFailure(err) {
 		cb.recordFailure()
 	} else {
 		cb.recordSuccess()
@@ -212,5 +216,7 @@ func QueryCircuitBreaker(config CircuitBreakerConfig, opts ...Option) query.Midd
 	return AsQuery(NewCircuitBreaker(QueryAdapter, config, opts...))
 }
 
-// ErrCircuitBreakerOpen is returned when the circuit breaker is open.
-var ErrCircuitBreakerOpen = errors.New("circuit breaker open")
+var ErrCircuitBreakerOpen = event.NewInfrastructure(
+	"middleware.circuit_breaker_open",
+	"circuit breaker open",
+)
