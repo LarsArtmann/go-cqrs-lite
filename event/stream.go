@@ -1,16 +1,6 @@
 package event
 
-import (
-	"context"
-
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-)
-
-// StreamKey returns the canonical key for an event stream,
-// combining aggregate type and aggregate ID.
-func StreamKey(aggregateType AggregateType, aggregateID id.AggregateID) string {
-	return AggregateRef{Type: aggregateType, ID: aggregateID}.String()
-}
+import "context"
 
 // StreamLoader loads events as a stream rather than loading all into memory at once.
 // This is essential for large aggregates or projection replay where memory usage
