@@ -34,12 +34,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **pebble/store.go** — replaced unbounded `sync.Map` lock with fixed [256]`sync.Mutex` sharded pool (bounded memory, zero allocations)
 - **storage/sql/query_engine.go** — extracted generic `LoadWithSpan[T]` + `QueryRows[T]` to eliminate event/command store load duplication
 - **storage/command_store_scan.go** — replaced `MustParseAggregateType` with error-returning `ParseAggregateType` to prevent panics on corrupt data
-- **TODO_LIST.md** — marked 4 more items done/deferred (pebble locks, sql query engine, eventtest extraction, HTTP transport move)
+- **memory/store_load.go, memory/command_store.go, pebble/save.go, storage/aggregate_projection.go** — replaced `fmt.Errorf` wrapping classified errors with proper `WrapRejection`/`WrapCorruption` to preserve `errors.Is()`/`errors.As()` chains
+- **command/command.go** — added `Type.IsZero()`, `ParseType()`, `MustParseType()` to match `event.Type` API surface
+- **query/query.go** — added `Type.IsZero()`, `ParseType()`, `MustParseType()` to match `event.Type` API surface
+- **TODO_LIST.md** — marked items done/deferred
 
 ### Removed
 
-- **event/** — `Map`, `ScanState`, `Tap` reactive wrappers (test-only, polluted public API)
-- **event/** — `StreamKey` free function (duplicated `AggregateRef.StreamKey()` method)
+- **storage/options.go** — deleted `NewSQLEventStoreWithOptions`, `WithOwnership`, `SQLEventStoreOption` (zero external consumers)
+- **storage/doc.go** — removed 5 unused re-exports (`Dialect`, `PostgresDialect`, `ErrConcurrencyConflict`, `ErrUnsupportedTimestamp`, `ErrUnexpectedTimeType`, `Schema`, `SQLiteSchema`)
+- **pebble/config.go** — deleted entire config abstraction layer (`Backend`, `Config`, `NewConfig`, `NewEventStore`, etc.)
+- **pebble/example_test.go** — deleted (tested only deleted config API)
+- **pebble/errors.go** — removed `ErrPebbleProviderRequired` (only used by deleted config.go)
+- **turso/errors.go** — removed `ErrTursoMemorySync` backward-compat alias (zero external refs)
 
 ### Fixed (Prior Session)
 

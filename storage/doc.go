@@ -10,6 +10,4 @@ type (
 	SQLiteDialect = sqlpkg.SQLiteDialect
 )
 
-var (
-	ErrNilDB = sqlpkg.ErrNilDB
-)
+var ErrNilDB = sqlpkg.ErrNilDB

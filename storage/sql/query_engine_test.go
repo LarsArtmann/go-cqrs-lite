@@ -12,8 +12,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
-func stringPtr(s string) *string { return &s }
-
 func testQueryConfig() QueryConfig[string] {
 	return QueryConfig[string]{
 		Columns:    "id, name",
@@ -72,7 +70,7 @@ func TestQueryRows_QueryError(t *testing.T) {
 
 	mock.ExpectQuery("SELECT id, name FROM test_table").
 		WithArgs("User", "123").
-		WillReturnError(fmt.Errorf("connection lost"))
+		WillReturnError(errors.New("connection lost"))
 
 	cfg := testQueryConfig()
 	_, err = QueryRows(context.Background(), db, SQLiteDialect{}, cfg,
