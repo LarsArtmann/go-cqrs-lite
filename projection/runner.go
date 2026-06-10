@@ -107,6 +107,7 @@ func (r *Runner) Run(ctx context.Context) error {
 	defer r.running.Store(false)
 
 	done := make(chan struct{})
+
 	r.done = done
 	defer close(done)
 

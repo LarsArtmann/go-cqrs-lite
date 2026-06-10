@@ -46,7 +46,8 @@ func (a *EventStore) countEvents(ref event.AggregateRef) (int, error) {
 	defer func() { _ = iter.Close() }()
 
 	if !iter.Last() {
-		if err := iter.Error(); err != nil {
+		err := iter.Error()
+		if err != nil {
 			return 0, event.WrapInfrastructure(err, "pebble.iterator_error",
 				"last iterator error")
 		}
@@ -65,16 +66,23 @@ func (a *EventStore) countEvents(ref event.AggregateRef) (int, error) {
 	return version, nil
 }
 
+const versionDigits = 10
+
 func parseVersionFromKey(key []byte) (int, error) {
 	str := string(key)
 
-	lastColon := len(str) - 11
+	lastColon := len(str) - (versionDigits + 1)
 
 	if lastColon < 0 || str[lastColon] != ':' {
 		return 0, fmt.Errorf("invalid key format: %s", str) //nolint:err113
 	}
 
-	return strconv.Atoi(str[lastColon+1:])
+	n, err := strconv.Atoi(str[lastColon+1:])
+	if err != nil {
+		return 0, fmt.Errorf("parse version from key: %w", err)
+	}
+
+	return n, nil
 }
 
 func (a *EventStore) writeEventsToBatch(
