@@ -19,6 +19,12 @@ func TestEncryptDecryptIsInvolutory_AES256GCM(t *testing.T) {
 		t.Fatalf("NewAES256GCM: %v", err)
 	}
 
+	propEncryptDecryptInvolutory(t, enc)
+}
+
+func propEncryptDecryptInvolutory(t *testing.T, enc Encrypter) {
+	t.Helper()
+
 	rapid.Check(t, func(t *rapid.T) {
 		size := rapid.IntRange(0, 8192).Draw(t, "size")
 		plaintext := rapid.SliceOfN(rapid.Byte(), size, size).Draw(t, "plaintext")
@@ -58,32 +64,7 @@ func TestEncryptDecryptIsInvolutory_XChaCha20(t *testing.T) {
 		t.Fatalf("NewXChaCha20Poly1305: %v", err)
 	}
 
-	rapid.Check(t, func(t *rapid.T) {
-		size := rapid.IntRange(0, 8192).Draw(t, "size")
-		plaintext := rapid.SliceOfN(rapid.Byte(), size, size).Draw(t, "plaintext")
-
-		ct, err := enc.Encrypt(plaintext)
-		if err != nil {
-			t.Fatalf("Encrypt: %v", err)
-		}
-
-		if len(plaintext) == 0 {
-			if !ct.IsZero() {
-				t.Fatal("empty plaintext should produce zero ciphertext")
-			}
-
-			return
-		}
-
-		decrypted, err := enc.Decrypt(ct)
-		if err != nil {
-			t.Fatalf("Decrypt: %v", err)
-		}
-
-		if !bytes.Equal(decrypted, plaintext) {
-			t.Fatalf("involution failed: decrypted != plaintext")
-		}
-	})
+	propEncryptDecryptInvolutory(t, enc)
 }
 
 func TestEncryptProducesDifferentCiphertexts(t *testing.T) {

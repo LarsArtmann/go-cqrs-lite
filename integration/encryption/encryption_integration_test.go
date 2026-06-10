@@ -107,7 +107,7 @@ func TestEncryptThenSignCodecRoundtrip(t *testing.T) {
 
 	original := payload{Name: "Bob", Age: 30}
 
-	codec := encryption.NewCodec(codec.JSONCodec{}, xc)
+	codec := encryption.NewCodec(codec.JSONCodec{}, xchacha)
 
 	encoded, err := codec.Encode(original)
 	if err != nil {

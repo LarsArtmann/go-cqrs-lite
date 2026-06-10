@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/signing/v2"
 )
 
 type middlewareConfig struct {
@@ -16,25 +17,9 @@ func WithMiddlewareKeyID(id string) MiddlewareOption {
 	return func(c *middlewareConfig) { c.keyID = id }
 }
 
-func rejectingPublishMiddleware(code, msg string) event.PublishMiddleware {
-	return func(_ event.Publisher) event.Publisher {
-		return event.PublisherFunc(func(_ context.Context, _ ...event.Event) error {
-			return event.NewRejection(code, msg)
-		})
-	}
-}
-
-func rejectingHandlerMiddleware(code, msg string) event.Middleware {
-	return func(_ event.Handler) event.Handler {
-		return func(_ context.Context, _ event.Event) error {
-			return event.NewRejection(code, msg)
-		}
-	}
-}
-
 func EncryptMiddleware(encrypter Encrypter, opts ...MiddlewareOption) event.PublishMiddleware {
 	if encrypter == nil {
-		return rejectingPublishMiddleware(
+		return signing.RejectingPublishMiddleware(
 			"encryption.nil_encrypter",
 			"EncryptMiddleware called with nil encrypter",
 		)
@@ -96,7 +81,7 @@ func EncryptMiddleware(encrypter Encrypter, opts ...MiddlewareOption) event.Publ
 
 func DecryptMiddleware(decrypter Decrypter) event.Middleware {
 	if decrypter == nil {
-		return rejectingHandlerMiddleware(
+		return signing.RejectingHandlerMiddleware(
 			"encryption.nil_decrypter",
 			"DecryptMiddleware called with nil decrypter",
 		)
