@@ -37,7 +37,8 @@ func NewAggregateProjection(
 ) (*AggregateProjection, error) {
 	err := validateListingTablePrefix(tablePrefix)
 	if err != nil {
-		return nil, fmt.Errorf("invalid table prefix %q: %w", tablePrefix, err)
+		return nil, event.WrapRejection(err, "listing.invalid_table_prefix",
+			fmt.Sprintf("invalid table prefix %q", tablePrefix))
 	}
 
 	p := &AggregateProjection{

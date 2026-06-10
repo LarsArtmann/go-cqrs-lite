@@ -74,12 +74,12 @@ func parseVersionFromKey(key []byte) (int, error) {
 	lastColon := len(str) - (versionDigits + 1)
 
 	if lastColon < 0 || str[lastColon] != ':' {
-		return 0, fmt.Errorf("invalid key format: %s", str) //nolint:err113
+		return 0, event.NewCorruption("pebble.invalid_key_format", "invalid key format: "+str)
 	}
 
 	n, err := strconv.Atoi(str[lastColon+1:])
 	if err != nil {
-		return 0, fmt.Errorf("parse version from key: %w", err)
+		return 0, event.WrapCorruption(err, "pebble.parse_version", "parse version from key")
 	}
 
 	return n, nil

@@ -108,12 +108,9 @@ func (s *MemoryStore) getEvents(
 
 	indices, exists := s.streamIndex[key]
 	if !exists {
-		return nil, fmt.Errorf(
-			"memory %s aggregate %s: %w",
-			op,
-			ref,
-			event.ErrAggregateNotFound,
-		)
+		return nil, event.WrapRejection(event.ErrAggregateNotFound,
+			"memory.aggregate_not_found",
+			fmt.Sprintf("memory %s aggregate %s not found", op, ref))
 	}
 
 	events := make([]event.Event, len(indices))

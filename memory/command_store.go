@@ -193,12 +193,9 @@ func (s *MemoryCommandStore) loadFiltered(
 
 	indices, exists := s.streamIndex[key]
 	if !exists {
-		return nil, fmt.Errorf(
-			"memory %s aggregate %s: %w",
-			op,
-			ref,
-			command.ErrCommandNotFound,
-		)
+		return nil, command.WrapRejection(command.ErrCommandNotFound,
+			"memory.command_not_found",
+			fmt.Sprintf("memory %s aggregate %s not found", op, ref))
 	}
 
 	cmds := make([]*command.PersistedCommand, len(indices))
