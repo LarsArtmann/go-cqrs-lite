@@ -4,6 +4,8 @@ import (
 	"errors"
 	"testing"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
@@ -69,8 +71,8 @@ func TestErrorFamilyAliases(t *testing.T) {
 			t.Error("WrapConflict should classify as Conflict")
 		}
 
-		wt := command.WrapTransient(inner, "wrap.tra", "msg")
-		if command.Classify(wt) != command.Transient {
+		wt := errorfamily.WrapTransient(inner, "wrap.tra", "msg")
+		if errorfamily.Classify(wt) != errorfamily.Transient {
 			t.Error("WrapTransient should classify as Transient")
 		}
 

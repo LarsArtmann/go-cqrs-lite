@@ -48,10 +48,6 @@ func WrapConflict(err error, code, msg string) *Error {
 	return errorfamily.WrapConflict(err, code, msg)
 }
 
-func WrapTransient(err error, code, msg string) *Error {
-	return errorfamily.WrapTransient(err, code, msg)
-}
-
 func WrapCorruption(err error, code, msg string) *Error {
 	return errorfamily.WrapCorruption(err, code, msg)
 }
