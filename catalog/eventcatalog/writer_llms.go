@@ -97,7 +97,11 @@ func writeLLMsTxtChannel(buf *strings.Builder, ch catalog.Channel) {
 	}
 
 	if len(ch.Protocols) > 0 {
-		fmt.Fprintf(buf, "Protocols: %s\n", strings.Join(ch.Protocols, ", "))
+		protocols := make([]string, len(ch.Protocols))
+		for i, p := range ch.Protocols {
+			protocols[i] = string(p)
+		}
+		fmt.Fprintf(buf, "Protocols: %s\n", strings.Join(protocols, ", "))
 	}
 
 	buf.WriteString("\n")

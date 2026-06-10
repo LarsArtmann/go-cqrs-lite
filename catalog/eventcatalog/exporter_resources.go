@@ -18,21 +18,25 @@ func (e *Exporter) writeChannel(ch catalog.Channel) error {
 
 	md := newFrontmatterWriter()
 	md.addField("id", string(ch.ID))
-	md.addField("name", ch.Name)
-	md.addField("version", ch.Version)
+	md.addField("name", string(ch.Name))
+	md.addField("version", string(ch.Version))
 
 	if ch.Summary != "" {
-		md.addQuotedField("summary", ch.Summary)
+		md.addQuotedField("summary", string(ch.Summary))
 	}
 
 	if ch.Address != "" {
-		md.addQuotedField("address", ch.Address)
+		md.addQuotedField("address", string(ch.Address))
 	}
 
-	md.addListField("protocols", ch.Protocols)
+	protocols := make([]string, len(ch.Protocols))
+	for i, p := range ch.Protocols {
+		protocols[i] = string(p)
+	}
+	md.addListField("protocols", protocols)
 
 	if ch.DeliveryGuarantee != "" {
-		md.addField("deliveryGuarantee", ch.DeliveryGuarantee)
+		md.addField("deliveryGuarantee", string(ch.DeliveryGuarantee))
 	}
 
 	writeChannelParams(md, ch.Parameters)
@@ -46,7 +50,7 @@ func (e *Exporter) writeChannel(ch catalog.Channel) error {
 
 	md.addListField("owners", ch.Owners)
 	writeBadges(md, ch.Badges)
-	md.finishWithGraph(ch.Name, ch.Summary)
+	md.finishWithGraph(string(ch.Name), string(ch.Summary))
 
 	return e.writeMDXFile(filepath.Join(dir, indexFile), md.String())
 }
@@ -88,12 +92,12 @@ func (e *Exporter) writeDataStore(ds catalog.DataStore) error {
 
 	md := newFrontmatterWriter()
 	md.addField("id", string(ds.ID))
-	md.addField("name", ds.Name)
-	md.addField("version", ds.Version)
+	md.addField("name", string(ds.Name))
+	md.addField("version", string(ds.Version))
 	md.addField("container_type", ds.ContainerType)
 
 	if ds.Summary != "" {
-		md.addQuotedField("summary", ds.Summary)
+		md.addQuotedField("summary", string(ds.Summary))
 	}
 
 	if ds.Technology != "" {
@@ -114,7 +118,7 @@ func (e *Exporter) writeDataStore(ds catalog.DataStore) error {
 
 	md.addListField("owners", ds.Owners)
 	writeBadges(md, ds.Badges)
-	md.finishWithGraph(ds.Name, ds.Summary)
+	md.finishWithGraph(string(ds.Name), string(ds.Summary))
 
 	return e.writeMDXFile(filepath.Join(dir, indexFile), md.String())
 }

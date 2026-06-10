@@ -49,11 +49,11 @@ func (r *Registry) SetServiceMeta(serviceID ServiceID, name, version, summary st
 	defer r.mu.Unlock()
 
 	svc := r.ensureServiceEntry(serviceID)
-	svc.Name = name
-	svc.Version = version
+	svc.Name = Name(name)
+	svc.Version = Version(version)
 
 	if summary != "" {
-		svc.Summary = summary
+		svc.Summary = Summary(summary)
 	}
 }
 
@@ -100,7 +100,7 @@ func (r *Registry) ensureServiceEntry(serviceID ServiceID) *Service {
 	if !ok {
 		svc = &Service{
 			ID:       serviceID,
-			Name:     string(serviceID),
+			Name:     Name(serviceID),
 			Version:  "",
 			Summary:  "",
 			Owners:   nil,

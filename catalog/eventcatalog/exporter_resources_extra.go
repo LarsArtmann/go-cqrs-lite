@@ -19,16 +19,16 @@ func (e *Exporter) writeFlow(f catalog.Flow) error {
 
 	md := newFrontmatterWriter()
 	md.addField("id", string(f.ID))
-	md.addField("name", f.Name)
-	md.addField("version", f.Version)
+	md.addField("name", string(f.Name))
+	md.addField("version", string(f.Version))
 
 	if f.Summary != "" {
-		md.addQuotedField("summary", f.Summary)
+		md.addQuotedField("summary", string(f.Summary))
 	}
 
 	writeBadges(md, f.Badges)
 	writeFlowSteps(md, f.Steps)
-	md.finishWithGraph(f.Name, f.Summary)
+	md.finishWithGraph(string(f.Name), string(f.Summary))
 
 	return e.writeMDXFile(filepath.Join(dir, indexFile), md.String())
 }
@@ -107,23 +107,23 @@ func (e *Exporter) writeTeam(team catalog.Team) error {
 
 	md := newFrontmatterWriter()
 	md.addField("id", string(team.ID))
-	md.addField("name", team.Name)
+	md.addField("name", string(team.Name))
 
 	if team.Summary != "" {
-		md.addQuotedField("summary", team.Summary)
+		md.addQuotedField("summary", string(team.Summary))
 	}
 
 	md.addListField("members", team.Members)
 
 	if team.Email != "" {
-		md.addQuotedField("email", team.Email)
+		md.addQuotedField("email", string(team.Email))
 	}
 
 	if team.SlackDirectMessageURL != "" {
-		md.addQuotedField("slackDirectMessageUrl", team.SlackDirectMessageURL)
+		md.addQuotedField("slackDirectMessageUrl", string(team.SlackDirectMessageURL))
 	}
 
-	md.finish(team.Name, "")
+	md.finish(string(team.Name), "")
 
 	return e.writeMDXFile(filepath.Join(dir, string(team.ID)+".mdx"), md.String())
 }

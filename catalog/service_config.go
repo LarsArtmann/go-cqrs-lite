@@ -13,7 +13,7 @@ func ServiceBadges(badges ...Badge) ServiceOption {
 // ServiceRepository attaches code repository metadata to the service.
 func ServiceRepository(language, url string) ServiceOption {
 	return func(s *Service) {
-		s.Repository = &Repository{Language: language, URL: url}
+		s.Repository = &Repository{Language: Language(language), URL: URL(url)}
 	}
 }
 

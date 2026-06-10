@@ -127,11 +127,11 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 
 	md := newFrontmatterWriter()
 	md.addField("id", string(svc.ID))
-	md.addField("name", svc.Name)
-	md.addField("version", svc.Version)
+	md.addField("name", string(svc.Name))
+	md.addField("version", string(svc.Version))
 
 	if svc.Summary != "" {
-		md.addQuotedField("summary", svc.Summary)
+		md.addQuotedField("summary", string(svc.Summary))
 	}
 
 	md.addListField("owners", svc.Owners)
@@ -150,7 +150,7 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 	writeRepository(md, svc.Repository)
 	writeSpecifications(md, svc.Specifications)
 	writeAttachments(md, svc.Attachments)
-	md.finishWithGraph(svc.Name, svc.Summary)
+	md.finishWithGraph(string(svc.Name), string(svc.Summary))
 
 	return e.writeMDXFile(filepath.Join(dir, indexFile), md.String())
 }
@@ -194,11 +194,11 @@ func (e *Exporter) writeDomain(domain catalog.Domain) error {
 
 	md := newFrontmatterWriter()
 	md.addField("id", string(domain.ID))
-	md.addField("name", domain.Name)
-	md.addField("version", domain.Version)
+	md.addField("name", string(domain.Name))
+	md.addField("version", string(domain.Version))
 
 	if domain.Summary != "" {
-		md.addQuotedField("summary", domain.Summary)
+		md.addQuotedField("summary", string(domain.Summary))
 	}
 
 	md.addListField("owners", domain.Owners)
@@ -210,7 +210,7 @@ func (e *Exporter) writeDomain(domain catalog.Domain) error {
 	writeIDListField(md, "flows", domain.Flows)
 	writeBadges(md, domain.Badges)
 	writeAttachments(md, domain.Attachments)
-	md.finishWithGraph(domain.Name, domain.Summary)
+	md.finishWithGraph(string(domain.Name), string(domain.Summary))
 
 	return e.writeMDXFile(filepath.Join(dir, indexFile), md.String())
 }

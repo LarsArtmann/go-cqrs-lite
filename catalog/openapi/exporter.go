@@ -73,11 +73,11 @@ func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 	}
 
 	for _, svc := range cat.Services {
-		tagName := cmp.Or(svc.Name, string(svc.ID))
+		tagName := cmp.Or(string(svc.Name), string(svc.ID))
 
 		doc.Tags = append(doc.Tags, Tag{
 			Name:        tagName,
-			Description: svc.Summary,
+			Description: string(svc.Summary),
 		})
 
 		for _, cmd := range svc.Commands {
@@ -128,12 +128,12 @@ func (e *Exporter) addCommand(
 	doc.Paths[path] = &PathItem{
 		Post: &Operation{ //nolint:exhaustruct
 			Tags:        []string{tagName},
-			Summary:     msg.Name,
-			Description: msg.Summary,
+			Summary:     string(msg.Name),
+			Description: string(msg.Summary),
 			OperationID: "post" + caseutil.ToPascal(string(msg.ID)),
 			Deprecated:  msg.Deprecated,
 			RequestBody: &RequestBody{
-				Description: msg.Name + " request",
+				Description: string(msg.Name) + " request",
 				Content:     jsonContent(schemaRef),
 				Required:    true,
 			},
@@ -156,8 +156,8 @@ func (e *Exporter) addQuery(
 
 	op := &Operation{ //nolint:exhaustruct
 		Tags:        []string{tagName},
-		Summary:     msg.Name,
-		Description: msg.Summary,
+		Summary:     string(msg.Name),
+		Description: string(msg.Summary),
 		OperationID: "get" + caseutil.ToPascal(string(msg.ID)),
 		Deprecated:  msg.Deprecated,
 		Responses: map[string]*Response{
@@ -208,12 +208,12 @@ func (e *Exporter) addEvent(
 	doc.Paths[path] = &PathItem{
 		Post: &Operation{ //nolint:exhaustruct
 			Tags:        []string{tagName},
-			Summary:     "Event: " + msg.Name,
-			Description: msg.Summary,
+			Summary:     "Event: " + string(msg.Name),
+			Description: string(msg.Summary),
 			OperationID: "event" + caseutil.ToPascal(string(msg.ID)),
 			Deprecated:  msg.Deprecated,
 			RequestBody: &RequestBody{
-				Description: msg.Name + " event payload",
+				Description: string(msg.Name) + " event payload",
 				Content:     jsonContent(schemaRef),
 				Required:    true,
 			},

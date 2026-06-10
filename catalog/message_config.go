@@ -116,7 +116,7 @@ func Consumers(ids ...ServiceID) MessageOption {
 // MsgOperation maps this message to an HTTP endpoint.
 func MsgOperation(method, path string, statusCodes ...string) MessageOption {
 	return func(m *messageBuilder) {
-		m.op = &Operation{Method: method, Path: path, StatusCodes: statusCodes}
+		m.op = &Operation{Method: Method(method), Path: path, StatusCodes: statusCodes}
 	}
 }
 
@@ -130,7 +130,7 @@ func MsgBadges(badges ...Badge) MessageOption {
 // MsgRepository attaches code repository metadata to this message.
 func MsgRepository(language, url string) MessageOption {
 	return func(m *messageBuilder) {
-		m.repo = &Repository{Language: language, URL: url}
+		m.repo = &Repository{Language: Language(language), URL: URL(url)}
 	}
 }
 

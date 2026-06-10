@@ -42,11 +42,11 @@ func (e *Exporter) writeMessage(
 func buildMessageFrontmatter(messageID catalog.MessageID, msg catalog.Message) *frontmatterWriter {
 	md := newFrontmatterWriter()
 	md.addField("id", string(messageID))
-	md.addField("name", msg.Name)
-	md.addField("version", msg.Version)
+	md.addField("name", string(msg.Name))
+	md.addField("version", string(msg.Version))
 
 	if msg.Summary != "" {
-		md.addQuotedField("summary", msg.Summary)
+		md.addQuotedField("summary", string(msg.Summary))
 	}
 
 	if msg.Deprecated {
@@ -66,7 +66,7 @@ func buildMessageFrontmatter(messageID catalog.MessageID, msg catalog.Message) *
 		_, _ = md.WriteString("schemaPath: schemas/schema.json\n")
 	}
 
-	md.finish(msg.Name, msg.Summary)
+	md.finish(string(msg.Name), string(msg.Summary))
 
 	return md
 }

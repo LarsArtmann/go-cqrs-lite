@@ -5,8 +5,8 @@ func (r *Registry) Build() *Catalog {
 	defer r.mu.RUnlock()
 
 	return &Catalog{
-		Title:      r.title,
-		Version:    r.version,
+		Title:      Title(r.title),
+		Version:    Version(r.version),
 		Services:   sortedCopy(r.services, copyService),
 		Domains:    sortedCopy(r.domains, copyDomain),
 		Channels:   sortedCopy(r.channels, copyChannel),

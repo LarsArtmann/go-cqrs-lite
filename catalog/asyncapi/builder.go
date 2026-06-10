@@ -103,8 +103,8 @@ func addChannel(
 			kind,
 			dotSeparated(string(catalog.Key(msg))),
 		),
-		Title:       msg.Name + " " + strings.TrimSuffix(string(kind), "s") + " Channel",
-		Description: msg.Summary,
+		Title:       string(msg.Name) + " " + strings.TrimSuffix(string(kind), "s") + " Channel",
+		Description: string(msg.Summary),
 		Messages:    map[string]Ref{string(kind): {Ref: ref}},
 	}
 }
@@ -118,11 +118,11 @@ func addOperation(
 	channelKey, ref string,
 	messageID catalog.MessageID,
 ) {
-	opTitle, opName := operationTitleAndName(msg.Name, kind, cfg, messageID)
+	opTitle, opName := operationTitleAndName(string(msg.Name), kind, cfg, messageID)
 
 	doc.Operations[opName] = Operation{
 		Title:    opTitle,
-		Summary:  msg.Summary,
+		Summary:  string(msg.Summary),
 		Action:   cfg.action,
 		Channel:  Ref{Ref: "#/channels/" + channelKey},
 		Messages: []Ref{{Ref: ref}},
@@ -191,8 +191,8 @@ func (*Exporter) addMessageSchema(doc *Document, msg catalog.Message) {
 
 	doc.Components.Messages[componentKey] = Message{
 		Name:        string(messageID),
-		Title:       msg.Name,
-		Summary:     msg.Summary,
+		Title:       string(msg.Name),
+		Summary:     string(msg.Summary),
 		ContentType: contentType,
 		Payload:     Ref{Ref: "#/components/schemas/" + componentKey},
 		Tags:        []Tag{{Name: kindToTagName(msg.Kind)}},

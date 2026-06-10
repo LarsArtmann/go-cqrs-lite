@@ -99,7 +99,7 @@ func (e *Exporter) writeMessageNode(
 		fmt.Fprintf(buf, "    shape: %s\n", shape)
 	}
 
-	label := msg.Name
+	label := string(msg.Name)
 
 	if msg.Deprecated {
 		label += " [DEPRECATED]"
@@ -124,7 +124,7 @@ func (e *Exporter) buildTooltip(msg catalog.Message) string {
 	var parts []string
 
 	if msg.Summary != "" {
-		parts = append(parts, msg.Summary)
+		parts = append(parts, string(msg.Summary))
 	}
 
 	if len(msg.Owners) > 0 {

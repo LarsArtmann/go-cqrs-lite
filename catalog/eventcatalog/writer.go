@@ -67,10 +67,10 @@ func (e *Exporter) writeConfig(cat *catalog.Catalog) error {
 func (e *Exporter) writePackageJSON(cat *catalog.Catalog) error {
 	pkg := map[string]any{
 		"type":        "module",
-		"name":        strings.ToLower(strings.ReplaceAll(cat.Title, " ", "-")),
-		"version":     cat.Version,
+		"name":        strings.ToLower(strings.ReplaceAll(string(cat.Title), " ", "-")),
+		"version":     string(cat.Version),
 		"private":     true,
-		"description": cat.Title + " event catalog",
+		"description": string(cat.Title) + " event catalog",
 		"dependencies": map[string]string{
 			"@eventcatalog/core": "latest",
 		},
