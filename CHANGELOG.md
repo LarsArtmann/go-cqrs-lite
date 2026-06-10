@@ -33,6 +33,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - **pebble/store.go** — replaced unbounded `sync.Map` lock with fixed [256]`sync.Mutex` sharded pool (bounded memory, zero allocations)
 - **storage/sql/query_engine.go** — extracted generic `LoadWithSpan[T]` + `QueryRows[T]` to eliminate event/command store load duplication
+- **storage/command_store_scan.go** — replaced `MustParseAggregateType` with error-returning `ParseAggregateType` to prevent panics on corrupt data
 - **TODO_LIST.md** — marked 4 more items done/deferred (pebble locks, sql query engine, eventtest extraction, HTTP transport move)
 
 ### Removed

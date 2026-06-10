@@ -443,6 +443,6 @@
 - [x] ~~**Add pebble NewStore nil guard** — `NewStore(nil, ...)` caused nil pointer dereference; now panics with clear message~~ — DONE (follow-up audit: `70f05a14`)
 - [x] ~~**Add decider snapshot logging fallback** — Snapshot failures only recorded on OTel spans, invisible without tracing; added `slog.WarnContext`~~ — DONE (follow-up audit: `230a7177`)
 - [x] ~~**Fix ErrRetryCanceled dead sentinel** — `ErrRetryCanceled` was defined but never used in retry path; now properly wraps on context cancellation~~ — DONE (follow-up audit: `72b85174`)
-- [ ] **event/eventtest/fake_store.go** — 273 lines of untested mock code that duplicates MemoryStore functionality
+- [x] ~~**event/eventtest/fake_store.go**~~ — VERIFIED (340 lines of tests cover all methods; used extensively in decider/ tests)
 - [x] ~~**otel/logging.go:16** — `TraceIDLogger` name/doc mismatch~~ — DONE (Session 8): renamed to `ComponentLogger`, old name deprecated as alias
 - [x] ~~**codec/raw.go:6,13** — `json.RawMessage` support missing~~ — DONE (Session 8): added `json.RawMessage` case
