@@ -177,7 +177,16 @@ func (r *Repository[State]) saveSnapshotAfterEvents(
 		if foldErr != nil {
 			err := opError(ref, "fold event %s for snapshot: %w", evt.Type(), foldErr)
 			cqrsotel.RecordError(cqrsotel.SpanFromContext(ctx), err)
-			slog.WarnContext(ctx, "snapshot fold failed", "ref", ref, "event_type", evt.Type(), "error", foldErr)
+			slog.WarnContext(
+				ctx,
+				"snapshot fold failed",
+				"ref",
+				ref,
+				"event_type",
+				evt.Type(),
+				"error",
+				foldErr,
+			)
 
 			return
 		}
@@ -195,7 +204,16 @@ func (r *Repository[State]) saveSnapshotAfterEvents(
 	saveErr := snapshot.SaveSnapshot(ctx, r.snapshotStore, ref.Type, ref.ID, newVersion, encoded)
 	if saveErr != nil {
 		cqrsotel.RecordError(cqrsotel.SpanFromContext(ctx), saveErr)
-		slog.WarnContext(ctx, "snapshot save failed", "ref", ref, "version", newVersion, "error", saveErr)
+		slog.WarnContext(
+			ctx,
+			"snapshot save failed",
+			"ref",
+			ref,
+			"version",
+			newVersion,
+			"error",
+			saveErr,
+		)
 	}
 }
 

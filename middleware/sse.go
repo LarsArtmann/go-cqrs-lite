@@ -39,7 +39,11 @@ func NewSSEBroker(bus event.Bus) (*SSEBroker, error) {
 	if err != nil {
 		cancel()
 
-		return nil, event.WrapInfrastructure(err, "middleware.sse_subscribe", "subscribe to event bus")
+		return nil, event.WrapInfrastructure(
+			err,
+			"middleware.sse_subscribe",
+			"subscribe to event bus",
+		)
 	}
 
 	go func() {
