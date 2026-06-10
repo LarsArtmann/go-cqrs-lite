@@ -179,3 +179,21 @@ func TestWithReplay(t *testing.T) {
 		t.Error("different replay values should produce different contexts")
 	}
 }
+
+func TestIsReplay(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	if event.IsReplay(ctx) {
+		t.Error("background context should not be replay")
+	}
+
+	if event.IsReplay(event.WithReplay(ctx, false)) {
+		t.Error("WithReplay(false) should not be replay")
+	}
+
+	if !event.IsReplay(event.WithReplay(ctx, true)) {
+		t.Error("WithReplay(true) should be replay")
+	}
+}
