@@ -10,39 +10,29 @@ import (
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
 )
 
-type loadParams struct {
-	spanName   string
-	attrs      []cqrsotel.KeyValue
-	where      string
-	extraArgs  []any
-	requireHit bool
-	errMsg     string
+var eventQueryConfig = sqlpkg.QueryConfig[event.Event]{
+	Columns:  sqlpkg.EventColumns,
+	Table:    sqlpkg.TableEvents,
+	ScanRows: nil, // set per-store in loadWithSpan
+	WrapError: func(err error, code, msg string) error {
+		return event.WrapInfrastructure(err, code, msg)
+	},
+	WrapEmpty: func(err error, code, msg string) error {
+		return event.WrapRejection(err, code, msg)
+	},
+	NotFound:   event.ErrAggregateNotFound,
+	DomainNoun: "events",
 }
 
 func (s *SQLEventStore) loadWithSpan(
 	ctx context.Context,
 	ref event.AggregateRef,
-	p loadParams,
+	p sqlpkg.LoadParams,
 ) ([]event.Event, error) {
-	if err := s.checkClosed(); err != nil {
-		return nil, err
-	}
-
-	ctx, span := cqrsotel.StartSpan(
-		ctx,
-		sqlpkg.Tracer(),
-		p.spanName,
-		cqrsotel.SpanKindClient,
-		cqrsotel.WithAttributes(p.attrs...),
-	)
-	defer span.End()
-	events, err := s.queryEvents(ctx, ref, p.where, p.extraArgs, p.requireHit, p.errMsg)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
-		return nil, err
-	}
-	span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrEventCount, len(events)))
-	return events, nil
+	cfg := eventQueryConfig
+	cfg.ScanRows = s.scanEvents
+	return sqlpkg.LoadWithSpan(ctx, s.DB, s.Dialect, s.checkClosed, cfg, p,
+		string(ref.Type), ref.ID)
 }
 
 func (s *SQLEventStore) loadSimple(
@@ -50,9 +40,10 @@ func (s *SQLEventStore) loadSimple(
 	ref event.AggregateRef,
 	spanName, order, errMsg string,
 ) ([]event.Event, error) {
-	return s.loadWithSpan(ctx, ref, loadParams{
-		spanName: spanName, attrs: cqrsotel.AggregateAttrs(ref.Type, ref.ID),
-		where: order, requireHit: true, errMsg: errMsg,
+	return s.loadWithSpan(ctx, ref, sqlpkg.LoadParams{
+		SpanName: spanName, Attrs: cqrsotel.AggregateAttrs(ref.Type, ref.ID),
+		Where: order, RequireHit: true, ErrMsg: errMsg,
+		CountAttr: cqrsotel.AttrEventCount,
 	})
 }
 
@@ -65,12 +56,13 @@ func (s *SQLEventStore) LoadFromVersion(
 	ref event.AggregateRef,
 	version event.Version,
 ) ([]event.Event, error) {
-	return s.loadWithSpan(ctx, ref, loadParams{
-		spanName: "event.store.load_from_version",
-		attrs: append(cqrsotel.AggregateAttrs(ref.Type, ref.ID),
+	return s.loadWithSpan(ctx, ref, sqlpkg.LoadParams{
+		SpanName: "event.store.load_from_version",
+		Attrs: append(cqrsotel.AggregateAttrs(ref.Type, ref.ID),
 			cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, version.Int())),
-		where:     fmt.Sprintf("AND version > %s ORDER BY version ASC", s.Dialect.Placeholder(3)),
-		extraArgs: []any{version.Int()}, requireHit: false, errMsg: "query events from version",
+		Where:     fmt.Sprintf("AND version > %s ORDER BY version ASC", s.Dialect.Placeholder(3)),
+		ExtraArgs: []any{version.Int()}, RequireHit: false, ErrMsg: "query events from version",
+		CountAttr: cqrsotel.AttrEventCount,
 	})
 }
 
@@ -79,12 +71,13 @@ func (s *SQLEventStore) LoadToVersion(
 	ref event.AggregateRef,
 	maxVersion event.Version,
 ) ([]event.Event, error) {
-	return s.loadWithSpan(ctx, ref, loadParams{
-		spanName: "event.store.load_to_version",
-		attrs: append(cqrsotel.AggregateAttrs(ref.Type, ref.ID),
+	return s.loadWithSpan(ctx, ref, sqlpkg.LoadParams{
+		SpanName: "event.store.load_to_version",
+		Attrs: append(cqrsotel.AggregateAttrs(ref.Type, ref.ID),
 			cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, maxVersion.Int())),
-		where:     fmt.Sprintf("AND version <= %s ORDER BY version ASC", s.Dialect.Placeholder(3)),
-		extraArgs: []any{maxVersion.Int()}, requireHit: true, errMsg: "query events to version",
+		Where:     fmt.Sprintf("AND version <= %s ORDER BY version ASC", s.Dialect.Placeholder(3)),
+		ExtraArgs: []any{maxVersion.Int()}, RequireHit: true, ErrMsg: "query events to version",
+		CountAttr: cqrsotel.AttrEventCount,
 	})
 }
 
@@ -93,18 +86,16 @@ func (s *SQLEventStore) LoadToTimestamp(
 	ref event.AggregateRef,
 	maxTime time.Time,
 ) ([]event.Event, error) {
-	return s.loadWithSpan(ctx, ref, loadParams{
-		spanName: "event.store.load_to_timestamp",
-		attrs:    cqrsotel.AggregateAttrs(ref.Type, ref.ID),
-		where: fmt.Sprintf(
+	return s.loadWithSpan(ctx, ref, sqlpkg.LoadParams{
+		SpanName: "event.store.load_to_timestamp",
+		Attrs:    cqrsotel.AggregateAttrs(ref.Type, ref.ID),
+		Where: fmt.Sprintf(
 			"AND occurred_at <= %s ORDER BY version ASC",
 			s.Dialect.Placeholder(3),
 		),
-		extraArgs: []any{
-			s.Dialect.FormatTime(maxTime),
-		},
-		requireHit: true,
-		errMsg:     "query events to timestamp",
+		ExtraArgs:  []any{s.Dialect.FormatTime(maxTime)},
+		RequireHit: true, ErrMsg: "query events to timestamp",
+		CountAttr: cqrsotel.AttrEventCount,
 	})
 }
 
@@ -113,53 +104,9 @@ func (s *SQLEventStore) LoadBackwards(
 	ref event.AggregateRef,
 ) ([]event.Event, error) {
 	return s.loadSimple(
-		ctx,
-		ref,
+		ctx, ref,
 		"event.store.load_backwards",
 		"ORDER BY version DESC",
 		"query events backwards",
 	)
-}
-
-func (s *SQLEventStore) queryEvents(
-	ctx context.Context,
-	ref event.AggregateRef,
-	whereSuffix string,
-	extraArgs []any,
-	requireNonEmpty bool,
-	errMsg string,
-) ([]event.Event, error) {
-	p1, p2 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2)
-	query := fmt.Sprintf(
-		`SELECT `+sqlpkg.EventColumns+`
-		FROM `+sqlpkg.TableEvents+` WHERE aggregate_type = %s AND aggregate_id = %s %s`,
-		p1,
-		p2,
-		whereSuffix,
-	)
-	args := make([]any, 0, 2+len(extraArgs))
-	args = append(args, string(ref.Type), ref.ID)
-	args = append(args, extraArgs...)
-	rows, err := s.DB.QueryContext(ctx, query, args...)
-	if err != nil {
-		return nil, event.WrapInfrastructure(
-			err,
-			"storage.query_events",
-			errMsg+" (where="+whereSuffix+")",
-		)
-	}
-	defer func() { _ = rows.Close() }()
-	events, err := s.scanEvents(rows)
-	if err != nil {
-		return nil, event.WrapInfrastructure(
-			err,
-			"storage.scan_events",
-			errMsg+" (where="+whereSuffix+")",
-		)
-	}
-	if requireNonEmpty && len(events) == 0 {
-		return nil, event.WrapRejection(event.ErrAggregateNotFound, "storage.aggregate_not_found",
-			fmt.Sprintf("no events found for %s %s", ref.Type, ref.ID))
-	}
-	return events, nil
 }
