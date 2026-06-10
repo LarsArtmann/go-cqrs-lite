@@ -66,37 +66,22 @@ func TestNewEvents_Empty(t *testing.T) {
 	}
 }
 
-func TestMustNewEvents(t *testing.T) {
+func TestNewEvents_Batch(t *testing.T) {
 	t.Parallel()
 
 	aggID := id.NewAggregateID()
 
-	events := event.MustNewEvents(
+	events, err := event.NewEvents(
 		aggID, "User", 0,
 		[]event.Type{"user.created"},
 		[]any{map[string]string{"name": "Bob"}},
 	)
+	if err != nil {
+		t.Fatalf("NewEvents: %v", err)
+	}
 	if len(events) != 1 {
 		t.Fatalf("expected 1 event, got %d", len(events))
 	}
-}
-
-func TestMustNewEvents_Panics(t *testing.T) {
-	t.Parallel()
-
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Fatal("expected panic")
-		}
-	}()
-
-	aggID := id.NewAggregateID()
-	event.MustNewEvents(
-		aggID, "User", 0,
-		[]event.Type{"a"},
-		[]any{"x", "y"},
-	)
 }
 
 func TestVersion_AddSubCmp(t *testing.T) {

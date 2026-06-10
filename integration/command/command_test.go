@@ -9,16 +9,33 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
+func mustNewCmd(commandType command.Type, aggregateID id.AggregateID, opts ...command.Option) *command.BasicCommand {
+	cmd, err := command.New(commandType, aggregateID, opts...)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+
+func parseAggID(s string) id.AggregateID {
+	v, err := id.ParseAggregateID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 func TestNewCommand(t *testing.T) {
 	t.Parallel()
 
-	cmd := command.MustNew("CreateUser", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	cmd := mustNewCmd("CreateUser", parseAggID("01HK1540X0841Y0A6BSX1VKR95"))
 
 	if cmd.Type() != "CreateUser" {
 		t.Errorf("expected type CreateUser, got %s", cmd.Type())
 	}
 
-	if cmd.AggregateID() != id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95") {
+	if cmd.AggregateID() != parseAggID("01HK1540X0841Y0A6BSX1VKR95") {
 		t.Errorf("expected aggregate ID user-123, got %s", cmd.AggregateID())
 	}
 }
@@ -26,7 +43,7 @@ func TestNewCommand(t *testing.T) {
 func TestBaseCommand_ImplementsInterface(t *testing.T) {
 	t.Parallel()
 
-	var _ command.Command = command.MustNew("TestCommand", id.MustParseAggregateID("01HK1549P84T9XF8R94E960633"))
+	var _ command.Command = mustNewCmd("TestCommand", parseAggID("01HK1549P84T9XF8R94E960633"))
 }
 
 func TestDispatcher_Register(t *testing.T) {
@@ -51,7 +68,7 @@ func TestDispatcher_Dispatch(t *testing.T) {
 
 	_ = dispatcher.Register("CreateUser", handler)
 
-	cmd := command.MustNew("CreateUser", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	cmd := mustNewCmd("CreateUser", parseAggID("01HK1540X0841Y0A6BSX1VKR95"))
 
 	err := dispatcher.Dispatch(ctx, cmd)
 	if err != nil {
@@ -69,7 +86,7 @@ func TestDispatcher_Dispatch_HandlerNotFound(t *testing.T) {
 	dispatcher := command.NewDispatcher()
 	ctx := context.Background()
 
-	cmd := command.MustNew("UnknownCommand", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	cmd := mustNewCmd("UnknownCommand", parseAggID("01HK1540X0841Y0A6BSX1VKR95"))
 
 	err := dispatcher.Dispatch(ctx, cmd)
 	if err == nil {
@@ -92,7 +109,7 @@ func TestDispatcher_Middleware(t *testing.T) {
 
 	_ = dispatcher.Register("TestCommand", appendCommandHandler(&callOrder))
 
-	cmd := command.MustNew("TestCommand", id.MustParseAggregateID("01HK154ANGZHV2ZW0X3SKSNEN2"))
+	cmd := mustNewCmd("TestCommand", parseAggID("01HK154ANGZHV2ZW0X3SKSNEN2"))
 	_ = dispatcher.Dispatch(ctx, cmd)
 
 	eventtest.AssertCallOrder(t, callOrder, []string{"middleware1", "middleware2", "handler"})
@@ -109,7 +126,7 @@ func TestDispatcher_Closed(t *testing.T) {
 		t.Error("expected dispatcher closed error on Register")
 	}
 
-	cmd := command.MustNew("TestCommand", id.MustParseAggregateID("01HK154ANGZHV2ZW0X3SKSNEN2"))
+	cmd := mustNewCmd("TestCommand", parseAggID("01HK154ANGZHV2ZW0X3SKSNEN2"))
 
 	err = dispatcher.Dispatch(context.Background(), cmd)
 	if err == nil {

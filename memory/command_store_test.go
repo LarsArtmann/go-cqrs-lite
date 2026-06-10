@@ -11,8 +11,16 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 )
 
+func parseAggID(s string) id.AggregateID {
+	v, err := id.ParseAggregateID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 func validCommandRef() command.AggregateRef {
-	return command.NewAggregateRef("User", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	return command.NewAggregateRef("User", parseAggID("01HK1540X0841Y0A6BSX1VKR95"))
 }
 
 func testPersistedCommand(
@@ -268,8 +276,8 @@ func TestMemoryCommandStore_MultipleAggregates(t *testing.T) {
 	store := memory.NewMemoryCommandStore()
 	ctx := context.Background()
 
-	ref1 := command.NewAggregateRef("User", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
-	ref2 := command.NewAggregateRef("Order", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR96"))
+	ref1 := command.NewAggregateRef("User", parseAggID("01HK1540X0841Y0A6BSX1VKR95"))
+	ref2 := command.NewAggregateRef("Order", parseAggID("01HK1540X0841Y0A6BSX1VKR96"))
 
 	cmd1 := testPersistedCommand(t, "CreateUser", ref1)
 	cmd2 := testPersistedCommand(t, "CreateOrder", ref2)

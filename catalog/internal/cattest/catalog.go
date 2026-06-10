@@ -1,6 +1,9 @@
 package cattest
 
 import (
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
@@ -50,4 +53,30 @@ func BuildTestCatalog() *catalog.Catalog {
 	})
 
 	return reg.Build()
+}
+
+func AssertGolden(t *testing.T, goldenPath string, got []byte, update bool, mismatchMsg string) {
+	t.Helper()
+
+	if update {
+		err := os.WriteFile(goldenPath, append(got, '\n'), 0o644) //nolint:mnd
+		if err != nil {
+			t.Fatalf("write golden: %v", err)
+		}
+
+		return
+	}
+
+	want, err := os.ReadFile(goldenPath)
+	if err != nil {
+		t.Fatalf("read golden: %v", err)
+	}
+
+	if strings.TrimSpace(string(got)) != strings.TrimSpace(string(want)) {
+		t.Error(mismatchMsg)
+	}
+}
+
+func GoldenDir() string {
+	return filepath.Join("..", "testdata", "golden")
 }

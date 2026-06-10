@@ -1,694 +1,870 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>go-cqrs-lite — Upstream Improvement Plan</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<style>
-:root {
-  --bg-deep: #080b0e;
-  --bg-surface: #0f1218;
-  --bg-card: #151a23;
-  --bg-card-hover: #1a2030;
-  --bg-code: #0b0e14;
-  --border-subtle: rgba(255,255,255,0.05);
-  --border-active: rgba(255,255,255,0.10);
-  --text-primary: #e6eaf2;
-  --text-secondary: #8692a6;
-  --text-muted: #515d73;
-  --accent-amber: #f59e0b;
-  --accent-amber-dim: rgba(245,158,11,0.10);
-  --accent-teal: #14b8a6;
-  --accent-teal-dim: rgba(20,184,166,0.10);
-  --accent-rose: #f43f5e;
-  --accent-rose-dim: rgba(244,63,94,0.10);
-  --accent-violet: #8b5cf6;
-  --accent-violet-dim: rgba(139,92,246,0.10);
-  --accent-sky: #38bdf8;
-  --accent-sky-dim: rgba(56,189,248,0.10);
-  --accent-emerald: #34d399;
-  --accent-emerald-dim: rgba(52,211,153,0.10);
-  --radius: 12px;
-  --radius-sm: 8px;
-  --radius-xs: 6px;
-}
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>go-cqrs-lite — Upstream Improvement Plan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-deep: #080b0e;
+        --bg-surface: #0f1218;
+        --bg-card: #151a23;
+        --bg-card-hover: #1a2030;
+        --bg-code: #0b0e14;
+        --border-subtle: rgba(255, 255, 255, 0.05);
+        --border-active: rgba(255, 255, 255, 0.1);
+        --text-primary: #e6eaf2;
+        --text-secondary: #8692a6;
+        --text-muted: #515d73;
+        --accent-amber: #f59e0b;
+        --accent-amber-dim: rgba(245, 158, 11, 0.1);
+        --accent-teal: #14b8a6;
+        --accent-teal-dim: rgba(20, 184, 166, 0.1);
+        --accent-rose: #f43f5e;
+        --accent-rose-dim: rgba(244, 63, 94, 0.1);
+        --accent-violet: #8b5cf6;
+        --accent-violet-dim: rgba(139, 92, 246, 0.1);
+        --accent-sky: #38bdf8;
+        --accent-sky-dim: rgba(56, 189, 248, 0.1);
+        --accent-emerald: #34d399;
+        --accent-emerald-dim: rgba(52, 211, 153, 0.1);
+        --radius: 12px;
+        --radius-sm: 8px;
+        --radius-xs: 6px;
+      }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
 
-body {
-  font-family: 'Inter', -apple-system, sans-serif;
-  background: var(--bg-deep);
-  color: var(--text-primary);
-  line-height: 1.65;
-  -webkit-font-smoothing: antialiased;
-}
+      body {
+        font-family:
+          "Inter",
+          -apple-system,
+          sans-serif;
+        background: var(--bg-deep);
+        color: var(--text-primary);
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+      }
 
-.container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+      .container {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
 
-/* ── Hero ── */
-.hero {
-  padding: 80px 0 60px;
-  border-bottom: 1px solid var(--border-subtle);
-  position: relative;
-  overflow: hidden;
-}
-.hero::before {
-  content: '';
-  position: absolute;
-  top: -180px;
-  left: -100px;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(245,158,11,0.05) 0%, transparent 70%);
-  pointer-events: none;
-}
-.hero::after {
-  content: '';
-  position: absolute;
-  bottom: -120px;
-  right: -80px;
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, rgba(20,184,166,0.04) 0%, transparent 70%);
-  pointer-events: none;
-}
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 14px;
-  background: var(--accent-amber-dim);
-  border: 1px solid rgba(245,158,11,0.2);
-  border-radius: 100px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--accent-amber);
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  margin-bottom: 24px;
-}
-.hero h1 {
-  font-family: 'Instrument Serif', serif;
-  font-size: clamp(36px, 5vw, 52px);
-  font-weight: 400;
-  line-height: 1.15;
-  margin-bottom: 16px;
-}
-.hero h1 em { font-style: italic; color: var(--accent-amber); }
-.hero-desc {
-  font-size: 17px;
-  color: var(--text-secondary);
-  max-width: 620px;
-  line-height: 1.7;
-}
-.hero-meta {
-  display: flex;
-  gap: 24px;
-  margin-top: 28px;
-  flex-wrap: wrap;
-}
-.hero-meta-item { display: flex; flex-direction: column; gap: 2px; }
-.hero-meta-label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: var(--text-muted);
-  font-weight: 600;
-}
-.hero-meta-value {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
-  color: var(--text-secondary);
-}
+      /* ── Hero ── */
+      .hero {
+        padding: 80px 0 60px;
+        border-bottom: 1px solid var(--border-subtle);
+        position: relative;
+        overflow: hidden;
+      }
+      .hero::before {
+        content: "";
+        position: absolute;
+        top: -180px;
+        left: -100px;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(245, 158, 11, 0.05) 0%, transparent 70%);
+        pointer-events: none;
+      }
+      .hero::after {
+        content: "";
+        position: absolute;
+        bottom: -120px;
+        right: -80px;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(20, 184, 166, 0.04) 0%, transparent 70%);
+        pointer-events: none;
+      }
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 14px;
+        background: var(--accent-amber-dim);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        border-radius: 100px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--accent-amber);
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        margin-bottom: 24px;
+      }
+      .hero h1 {
+        font-family: "Instrument Serif", serif;
+        font-size: clamp(36px, 5vw, 52px);
+        font-weight: 400;
+        line-height: 1.15;
+        margin-bottom: 16px;
+      }
+      .hero h1 em {
+        font-style: italic;
+        color: var(--accent-amber);
+      }
+      .hero-desc {
+        font-size: 17px;
+        color: var(--text-secondary);
+        max-width: 620px;
+        line-height: 1.7;
+      }
+      .hero-meta {
+        display: flex;
+        gap: 24px;
+        margin-top: 28px;
+        flex-wrap: wrap;
+      }
+      .hero-meta-item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .hero-meta-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-muted);
+        font-weight: 600;
+      }
+      .hero-meta-value {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
 
-/* ── Module tag cloud ── */
-.module-cloud {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 24px;
-}
-.module-tag {
-  padding: 4px 10px;
-  border-radius: 100px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  font-weight: 500;
-  border: 1px solid var(--border-subtle);
-  color: var(--text-muted);
-}
-.module-tag.affected {
-  background: var(--accent-amber-dim);
-  border-color: rgba(245,158,11,0.2);
-  color: var(--accent-amber);
-}
-.module-tag.stable {
-  background: var(--accent-emerald-dim);
-  border-color: rgba(52,211,153,0.15);
-  color: var(--accent-emerald);
-}
+      /* ── Module tag cloud ── */
+      .module-cloud {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 24px;
+      }
+      .module-tag {
+        padding: 4px 10px;
+        border-radius: 100px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        font-weight: 500;
+        border: 1px solid var(--border-subtle);
+        color: var(--text-muted);
+      }
+      .module-tag.affected {
+        background: var(--accent-amber-dim);
+        border-color: rgba(245, 158, 11, 0.2);
+        color: var(--accent-amber);
+      }
+      .module-tag.stable {
+        background: var(--accent-emerald-dim);
+        border-color: rgba(52, 211, 153, 0.15);
+        color: var(--accent-emerald);
+      }
 
-/* ── Nav ── */
-.nav {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: rgba(8,11,14,0.88);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border-subtle);
-}
-.nav-inner {
-  display: flex;
-  gap: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.nav-inner::-webkit-scrollbar { display: none; }
-.nav a {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 14px 18px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-muted);
-  text-decoration: none;
-  white-space: nowrap;
-  border-bottom: 2px solid transparent;
-  transition: color 0.2s, border-color 0.2s;
-}
-.nav a:hover { color: var(--text-secondary); }
-.nav a .count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: 100px;
-  font-size: 10px;
-  font-weight: 700;
-}
-.nav a.api .count { background: var(--accent-rose-dim); color: var(--accent-rose); }
-.nav a.correctness .count { background: var(--accent-amber-dim); color: var(--accent-amber); }
-.nav a.completeness .count { background: var(--accent-teal-dim); color: var(--accent-teal); }
-.nav a.consistency .count { background: var(--accent-sky-dim); color: var(--accent-sky); }
-.nav a.exec .count { background: var(--accent-violet-dim); color: var(--accent-violet); }
+      /* ── Nav ── */
+      .nav {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(8, 11, 14, 0.88);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--border-subtle);
+      }
+      .nav-inner {
+        display: flex;
+        gap: 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .nav-inner::-webkit-scrollbar {
+        display: none;
+      }
+      .nav a {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 14px 18px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-muted);
+        text-decoration: none;
+        white-space: nowrap;
+        border-bottom: 2px solid transparent;
+        transition:
+          color 0.2s,
+          border-color 0.2s;
+      }
+      .nav a:hover {
+        color: var(--text-secondary);
+      }
+      .nav a .count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 100px;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      .nav a.api .count {
+        background: var(--accent-rose-dim);
+        color: var(--accent-rose);
+      }
+      .nav a.correctness .count {
+        background: var(--accent-amber-dim);
+        color: var(--accent-amber);
+      }
+      .nav a.completeness .count {
+        background: var(--accent-teal-dim);
+        color: var(--accent-teal);
+      }
+      .nav a.consistency .count {
+        background: var(--accent-sky-dim);
+        color: var(--accent-sky);
+      }
+      .nav a.exec .count {
+        background: var(--accent-violet-dim);
+        color: var(--accent-violet);
+      }
 
-/* ── Sections ── */
-section { padding: 60px 0; }
-section + section { border-top: 1px solid var(--border-subtle); }
-.section-header { margin-bottom: 36px; }
-.section-header h2 {
-  font-family: 'Instrument Serif', serif;
-  font-size: 28px;
-  font-weight: 400;
-  margin-bottom: 8px;
-}
-.section-header p {
-  color: var(--text-secondary);
-  font-size: 15px;
-  max-width: 580px;
-}
+      /* ── Sections ── */
+      section {
+        padding: 60px 0;
+      }
+      section + section {
+        border-top: 1px solid var(--border-subtle);
+      }
+      .section-header {
+        margin-bottom: 36px;
+      }
+      .section-header h2 {
+        font-family: "Instrument Serif", serif;
+        font-size: 28px;
+        font-weight: 400;
+        margin-bottom: 8px;
+      }
+      .section-header p {
+        color: var(--text-secondary);
+        font-size: 15px;
+        max-width: 580px;
+      }
 
-/* ── Cards ── */
-.card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius);
-  padding: 28px;
-  margin-bottom: 16px;
-  transition: border-color 0.25s, background 0.25s;
-}
-.card:hover {
-  border-color: var(--border-active);
-  background: var(--bg-card-hover);
-}
-.card-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-.card-id {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-muted);
-  letter-spacing: 0.5px;
-}
-.card h3 { font-size: 17px; font-weight: 600; line-height: 1.4; margin-bottom: 8px; }
-.card-desc {
-  color: var(--text-secondary);
-  font-size: 14px;
-  line-height: 1.7;
-  margin-bottom: 20px;
-}
-.card-desc strong { color: var(--text-primary); font-weight: 500; }
+      /* ── Cards ── */
+      .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius);
+        padding: 28px;
+        margin-bottom: 16px;
+        transition:
+          border-color 0.25s,
+          background 0.25s;
+      }
+      .card:hover {
+        border-color: var(--border-active);
+        background: var(--bg-card-hover);
+      }
+      .card-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+      .card-id {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-muted);
+        letter-spacing: 0.5px;
+      }
+      .card h3 {
+        font-size: 17px;
+        font-weight: 600;
+        line-height: 1.4;
+        margin-bottom: 8px;
+      }
+      .card-desc {
+        color: var(--text-secondary);
+        font-size: 14px;
+        line-height: 1.7;
+        margin-bottom: 20px;
+      }
+      .card-desc strong {
+        color: var(--text-primary);
+        font-weight: 500;
+      }
 
-.severity {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: 100px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.severity.api { background: var(--accent-rose-dim); color: var(--accent-rose); }
-.severity.correctness { background: var(--accent-amber-dim); color: var(--accent-amber); }
-.severity.completeness { background: var(--accent-teal-dim); color: var(--accent-teal); }
-.severity.consistency { background: var(--accent-sky-dim); color: var(--accent-sky); }
+      .severity {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 10px;
+        border-radius: 100px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      .severity.api {
+        background: var(--accent-rose-dim);
+        color: var(--accent-rose);
+      }
+      .severity.correctness {
+        background: var(--accent-amber-dim);
+        color: var(--accent-amber);
+      }
+      .severity.completeness {
+        background: var(--accent-teal-dim);
+        color: var(--accent-teal);
+      }
+      .severity.consistency {
+        background: var(--accent-sky-dim);
+        color: var(--accent-sky);
+      }
 
-/* ── File refs ── */
-.file-refs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 16px;
-}
-.file-ref {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 10px;
-  background: var(--bg-code);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xs);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  color: var(--text-muted);
-}
-.file-ref .line { color: var(--accent-sky); }
+      /* ── File refs ── */
+      .file-refs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 16px;
+      }
+      .file-ref {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 10px;
+        background: var(--bg-code);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-xs);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+      .file-ref .line {
+        color: var(--accent-sky);
+      }
 
-/* ── Code blocks ── */
-.code-block {
-  background: var(--bg-code);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: 20px;
-  margin: 16px 0;
-  overflow-x: auto;
-}
-.code-block pre {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12.5px;
-  line-height: 1.75;
-  color: var(--text-secondary);
-}
-.code-block .kw { color: var(--accent-violet); }
-.code-block .fn { color: var(--accent-sky); }
-.code-block .str { color: var(--accent-emerald); }
-.code-block .cmt { color: var(--text-muted); font-style: italic; }
-.code-block .type { color: var(--accent-amber); }
+      /* ── Code blocks ── */
+      .code-block {
+        background: var(--bg-code);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-sm);
+        padding: 20px;
+        margin: 16px 0;
+        overflow-x: auto;
+      }
+      .code-block pre {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12.5px;
+        line-height: 1.75;
+        color: var(--text-secondary);
+      }
+      .code-block .kw {
+        color: var(--accent-violet);
+      }
+      .code-block .fn {
+        color: var(--accent-sky);
+      }
+      .code-block .str {
+        color: var(--accent-emerald);
+      }
+      .code-block .cmt {
+        color: var(--text-muted);
+        font-style: italic;
+      }
+      .code-block .type {
+        color: var(--accent-amber);
+      }
 
-/* ── Steps ── */
-.steps { margin-top: 20px; }
-.step {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-.step-num {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--bg-code);
-  border: 1px solid var(--border-subtle);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-  flex-shrink: 0;
-}
-.step-content { flex: 1; }
-.step-content p {
-  font-size: 14px;
-  color: var(--text-secondary);
-  line-height: 1.7;
-  margin-bottom: 8px;
-}
-.step-content p strong { color: var(--text-primary); font-weight: 500; }
+      /* ── Steps ── */
+      .steps {
+        margin-top: 20px;
+      }
+      .step {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+      .step-num {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--bg-code);
+        border: 1px solid var(--border-subtle);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+        flex-shrink: 0;
+      }
+      .step-content {
+        flex: 1;
+      }
+      .step-content p {
+        font-size: 14px;
+        color: var(--text-secondary);
+        line-height: 1.7;
+        margin-bottom: 8px;
+      }
+      .step-content p strong {
+        color: var(--text-primary);
+        font-weight: 500;
+      }
 
-/* ── Diff grid ── */
-.diff-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 16px;
-}
-@media (max-width: 700px) { .diff-grid { grid-template-columns: 1fr; } }
-.diff-label {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.diff-label.before { color: var(--accent-rose); }
-.diff-label.after { color: var(--accent-emerald); }
-.diff-label .dot { width: 6px; height: 6px; border-radius: 50%; }
-.diff-label.before .dot { background: var(--accent-rose); }
-.diff-label.after .dot { background: var(--accent-emerald); }
+      /* ── Diff grid ── */
+      .diff-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 16px;
+      }
+      @media (max-width: 700px) {
+        .diff-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .diff-label {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .diff-label.before {
+        color: var(--accent-rose);
+      }
+      .diff-label.after {
+        color: var(--accent-emerald);
+      }
+      .diff-label .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+      }
+      .diff-label.before .dot {
+        background: var(--accent-rose);
+      }
+      .diff-label.after .dot {
+        background: var(--accent-emerald);
+      }
 
-/* ── Impact grid ── */
-.impact-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-top: 16px;
-}
-@media (max-width: 600px) { .impact-grid { grid-template-columns: 1fr; } }
-.impact-item {
-  background: var(--bg-code);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: 14px 16px;
-}
-.impact-label {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: var(--text-muted);
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-.impact-value {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
-  color: var(--text-secondary);
-}
+      /* ── Impact grid ── */
+      .impact-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-top: 16px;
+      }
+      @media (max-width: 600px) {
+        .impact-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .impact-item {
+        background: var(--bg-code);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-sm);
+        padding: 14px 16px;
+      }
+      .impact-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-muted);
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .impact-value {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
 
-/* ── Callout ── */
-.callout {
-  display: flex;
-  gap: 12px;
-  padding: 16px 20px;
-  background: var(--accent-teal-dim);
-  border: 1px solid rgba(20,184,166,0.15);
-  border-radius: var(--radius-sm);
-  margin: 16px 0;
-  font-size: 13px;
-  color: var(--text-secondary);
-  line-height: 1.7;
-}
-.callout strong { color: var(--text-primary); }
+      /* ── Callout ── */
+      .callout {
+        display: flex;
+        gap: 12px;
+        padding: 16px 20px;
+        background: var(--accent-teal-dim);
+        border: 1px solid rgba(20, 184, 166, 0.15);
+        border-radius: var(--radius-sm);
+        margin: 16px 0;
+        font-size: 13px;
+        color: var(--text-secondary);
+        line-height: 1.7;
+      }
+      .callout strong {
+        color: var(--text-primary);
+      }
 
-/* ── Dependency flow ── */
-.dep-flow {
-  background: var(--bg-code);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: 24px;
-  margin: 16px 0;
-  text-align: center;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  line-height: 2.4;
-  color: var(--text-muted);
-}
-.dep-flow .node {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: var(--radius-xs);
-  border: 1px solid var(--border-active);
-  color: var(--text-secondary);
-  margin: 2px 4px;
-}
-.dep-flow .arrow { color: var(--text-muted); margin: 0 4px; }
-.dep-flow .gap { border-color: var(--accent-rose); color: var(--accent-rose); }
-.dep-flow .ok { border-color: var(--accent-emerald); color: var(--accent-emerald); }
+      /* ── Dependency flow ── */
+      .dep-flow {
+        background: var(--bg-code);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-sm);
+        padding: 24px;
+        margin: 16px 0;
+        text-align: center;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        line-height: 2.4;
+        color: var(--text-muted);
+      }
+      .dep-flow .node {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: var(--radius-xs);
+        border: 1px solid var(--border-active);
+        color: var(--text-secondary);
+        margin: 2px 4px;
+      }
+      .dep-flow .arrow {
+        color: var(--text-muted);
+        margin: 0 4px;
+      }
+      .dep-flow .gap {
+        border-color: var(--accent-rose);
+        color: var(--accent-rose);
+      }
+      .dep-flow .ok {
+        border-color: var(--accent-emerald);
+        color: var(--accent-emerald);
+      }
 
-/* ── Summary ── */
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-top: 24px;
-}
-@media (max-width: 600px) { .summary-grid { grid-template-columns: repeat(2, 1fr); } }
-.summary-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius);
-  padding: 20px;
-  text-align: center;
-}
-.summary-card .num {
-  font-family: 'Instrument Serif', serif;
-  font-size: 36px;
-  font-weight: 400;
-  line-height: 1;
-  margin-bottom: 6px;
-}
-.summary-card .label {
-  font-size: 12px;
-  color: var(--text-muted);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.summary-card.api .num { color: var(--accent-rose); }
-.summary-card.correctness .num { color: var(--accent-amber); }
-.summary-card.completeness .num { color: var(--accent-teal); }
-.summary-card.total .num { color: var(--text-primary); }
+      /* ── Summary ── */
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-top: 24px;
+      }
+      @media (max-width: 600px) {
+        .summary-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      .summary-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius);
+        padding: 20px;
+        text-align: center;
+      }
+      .summary-card .num {
+        font-family: "Instrument Serif", serif;
+        font-size: 36px;
+        font-weight: 400;
+        line-height: 1;
+        margin-bottom: 6px;
+      }
+      .summary-card .label {
+        font-size: 12px;
+        color: var(--text-muted);
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .summary-card.api .num {
+        color: var(--accent-rose);
+      }
+      .summary-card.correctness .num {
+        color: var(--accent-amber);
+      }
+      .summary-card.completeness .num {
+        color: var(--accent-teal);
+      }
+      .summary-card.total .num {
+        color: var(--text-primary);
+      }
 
-/* ── Layer diagram ── */
-.layer-diagram {
-  background: var(--bg-code);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: 24px;
-  margin: 16px 0;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  line-height: 2;
-}
-.layer-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.layer-num {
-  width: 20px;
-  text-align: right;
-  color: var(--text-muted);
-  flex-shrink: 0;
-}
-.layer-modules {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-.layer-mod {
-  padding: 2px 8px;
-  border-radius: 4px;
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-}
-.layer-mod.highlight {
-  border-color: var(--accent-amber);
-  color: var(--accent-amber);
-  background: var(--accent-amber-dim);
-}
+      /* ── Layer diagram ── */
+      .layer-diagram {
+        background: var(--bg-code);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-sm);
+        padding: 24px;
+        margin: 16px 0;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        line-height: 2;
+      }
+      .layer-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .layer-num {
+        width: 20px;
+        text-align: right;
+        color: var(--text-muted);
+        flex-shrink: 0;
+      }
+      .layer-modules {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+      .layer-mod {
+        padding: 2px 8px;
+        border-radius: 4px;
+        border: 1px solid var(--border-subtle);
+        color: var(--text-secondary);
+      }
+      .layer-mod.highlight {
+        border-color: var(--accent-amber);
+        color: var(--accent-amber);
+        background: var(--accent-amber-dim);
+      }
 
-/* ── Table ── */
-.plan-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-  background: var(--bg-card);
-  border-radius: var(--radius);
-  overflow: hidden;
-  border: 1px solid var(--border-subtle);
-}
-.plan-table thead tr {
-  background: var(--bg-code);
-  border-bottom: 1px solid var(--border-subtle);
-}
-.plan-table th {
-  padding: 12px 20px;
-  text-align: left;
-  color: var(--text-muted);
-  font-weight: 600;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.plan-table td {
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-}
-.plan-table td.mono {
-  font-family: 'JetBrains Mono', monospace;
-}
-.plan-table tr:last-child td { border-bottom: none; }
+      /* ── Table ── */
+      .plan-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        background: var(--bg-card);
+        border-radius: var(--radius);
+        overflow: hidden;
+        border: 1px solid var(--border-subtle);
+      }
+      .plan-table thead tr {
+        background: var(--bg-code);
+        border-bottom: 1px solid var(--border-subtle);
+      }
+      .plan-table th {
+        padding: 12px 20px;
+        text-align: left;
+        color: var(--text-muted);
+        font-weight: 600;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .plan-table td {
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--border-subtle);
+        color: var(--text-secondary);
+      }
+      .plan-table td.mono {
+        font-family: "JetBrains Mono", monospace;
+      }
+      .plan-table tr:last-child td {
+        border-bottom: none;
+      }
 
-/* ── Checklist ── */
-.checklist { margin-top: 16px; }
-.checklist li {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 8px 0;
-  font-size: 14px;
-  color: var(--text-secondary);
-  line-height: 1.6;
-  list-style: none;
-}
-.checklist li::before {
-  content: '';
-  display: inline-block;
-  width: 18px;
-  height: 18px;
-  border-radius: 4px;
-  border: 1.5px solid var(--border-active);
-  flex-shrink: 0;
-  margin-top: 3px;
-}
+      /* ── Checklist ── */
+      .checklist {
+        margin-top: 16px;
+      }
+      .checklist li {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 8px 0;
+        font-size: 14px;
+        color: var(--text-secondary);
+        line-height: 1.6;
+        list-style: none;
+      }
+      .checklist li::before {
+        content: "";
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        border: 1.5px solid var(--border-active);
+        flex-shrink: 0;
+        margin-top: 3px;
+      }
 
-/* ── Footer ── */
-.footer {
-  padding: 40px 0;
-  border-top: 1px solid var(--border-subtle);
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 13px;
-}
-.footer a { color: var(--accent-amber); text-decoration: none; }
+      /* ── Footer ── */
+      .footer {
+        padding: 40px 0;
+        border-top: 1px solid var(--border-subtle);
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 13px;
+      }
+      .footer a {
+        color: var(--accent-amber);
+        text-decoration: none;
+      }
 
-/* ── Animations ── */
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.card { animation: fadeUp 0.4s ease both; }
-.card:nth-child(1) { animation-delay: 0.05s; }
-.card:nth-child(2) { animation-delay: 0.10s; }
-.card:nth-child(3) { animation-delay: 0.15s; }
-.card:nth-child(4) { animation-delay: 0.20s; }
-.card:nth-child(5) { animation-delay: 0.25s; }
-.card:nth-child(6) { animation-delay: 0.30s; }
-.card:nth-child(7) { animation-delay: 0.35s; }
-</style>
-</head>
-<body>
-
-<!-- ═══════════════ HERO ═══════════════ -->
-<header class="hero">
-  <div class="container">
-    <div class="hero-badge">Upstream · Library SDK</div>
-    <h1>go-cqrs-lite<br><em>Improvement Plan</em></h1>
-    <p class="hero-desc">
-      Targeted improvements to the library itself — informed by the go-localsync integration review. These changes strengthen the SDK for all consumers by closing API gaps, fixing a correctness issue in the projection runner, and adding missing production pieces.
-    </p>
-    <div class="hero-meta">
-      <div class="hero-meta-item">
-        <span class="hero-meta-label">Modules</span>
-        <span class="hero-meta-value">31 total · 7 affected</span>
-      </div>
-      <div class="hero-meta-item">
-        <span class="hero-meta-label">API Version</span>
-        <span class="hero-meta-value">v2.2.0</span>
-      </div>
-      <div class="hero-meta-item">
-        <span class="hero-meta-label">Scope</span>
-        <span class="hero-meta-value">7 items · 1 breaking</span>
-      </div>
-      <div class="hero-meta-item">
-        <span class="hero-meta-label">Effort</span>
-        <span class="hero-meta-value">~4–6 focused sessions</span>
-      </div>
-    </div>
-    <div class="module-cloud">
-      <span class="module-tag affected">decider</span>
-      <span class="module-tag affected">projection</span>
-      <span class="module-tag affected">query</span>
-      <span class="module-tag affected">listing</span>
-      <span class="module-tag affected">dispatcher</span>
-      <span class="module-tag affected">event</span>
-      <span class="module-tag stable">id</span>
-      <span class="module-tag stable">codec</span>
-      <span class="module-tag stable">command</span>
-      <span class="module-tag stable">middleware</span>
-      <span class="module-tag stable">storage</span>
-      <span class="module-tag stable">signing</span>
-      <span class="module-tag stable">snapshot</span>
-      <span class="module-tag stable">memory</span>
-      <span class="module-tag stable">schema</span>
-      <span class="module-tag stable">otel</span>
-    </div>
-  </div>
-</header>
-
-<!-- ═══════════════ NAV ═══════════════ -->
-<nav class="nav">
-  <div class="container">
-    <div class="nav-inner">
-      <a href="#api" class="api"><span class="count">1</span> API Design</a>
-      <a href="#correctness" class="correctness"><span class="count">2</span> Correctness</a>
-      <a href="#completeness" class="completeness"><span class="count">2</span> Completeness</a>
-      <a href="#consistency" class="consistency"><span class="count">2</span> Consistency</a>
-      <a href="#summary" class="exec"><span class="count">✦</span> Summary</a>
-      <a href="#appendix-generics" class="api"><span class="count">A</span> Appendix: Generics</a>
-    </div>
-  </div>
-</nav>
-
-<!-- ═══════════════ API DESIGN ═══════════════ -->
-<section id="api">
-  <div class="container">
-    <div class="section-header">
-      <h2>API Design</h2>
-      <p>Improvements to the library's public interface that reduce friction for consumers.</p>
-    </div>
-
-    <!-- CQ-1 -->
-    <div class="card">
-      <div class="card-top">
-        <div>
-          <div class="card-id">CQ-1</div>
-          <h3>Extend DecideFunc return to carry domain metadata</h3>
+      /* ── Animations ── */
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .card {
+        animation: fadeUp 0.4s ease both;
+      }
+      .card:nth-child(1) {
+        animation-delay: 0.05s;
+      }
+      .card:nth-child(2) {
+        animation-delay: 0.1s;
+      }
+      .card:nth-child(3) {
+        animation-delay: 0.15s;
+      }
+      .card:nth-child(4) {
+        animation-delay: 0.2s;
+      }
+      .card:nth-child(5) {
+        animation-delay: 0.25s;
+      }
+      .card:nth-child(6) {
+        animation-delay: 0.3s;
+      }
+      .card:nth-child(7) {
+        animation-delay: 0.35s;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ═══════════════ HERO ═══════════════ -->
+    <header class="hero">
+      <div class="container">
+        <div class="hero-badge">Upstream · Library SDK</div>
+        <h1>go-cqrs-lite<br /><em>Improvement Plan</em></h1>
+        <p class="hero-desc">
+          Targeted improvements to the library itself — informed by the go-localsync integration
+          review. These changes strengthen the SDK for all consumers by closing API gaps, fixing a
+          correctness issue in the projection runner, and adding missing production pieces.
+        </p>
+        <div class="hero-meta">
+          <div class="hero-meta-item">
+            <span class="hero-meta-label">Modules</span>
+            <span class="hero-meta-value">31 total · 7 affected</span>
+          </div>
+          <div class="hero-meta-item">
+            <span class="hero-meta-label">API Version</span>
+            <span class="hero-meta-value">v2.2.0</span>
+          </div>
+          <div class="hero-meta-item">
+            <span class="hero-meta-label">Scope</span>
+            <span class="hero-meta-value">7 items · 1 breaking</span>
+          </div>
+          <div class="hero-meta-item">
+            <span class="hero-meta-label">Effort</span>
+            <span class="hero-meta-value">~4–6 focused sessions</span>
+          </div>
         </div>
-        <span class="severity api">Breaking · v3</span>
+        <div class="module-cloud">
+          <span class="module-tag affected">decider</span>
+          <span class="module-tag affected">projection</span>
+          <span class="module-tag affected">query</span>
+          <span class="module-tag affected">listing</span>
+          <span class="module-tag affected">dispatcher</span>
+          <span class="module-tag affected">event</span>
+          <span class="module-tag stable">id</span>
+          <span class="module-tag stable">codec</span>
+          <span class="module-tag stable">command</span>
+          <span class="module-tag stable">middleware</span>
+          <span class="module-tag stable">storage</span>
+          <span class="module-tag stable">signing</span>
+          <span class="module-tag stable">snapshot</span>
+          <span class="module-tag stable">memory</span>
+          <span class="module-tag stable">schema</span>
+          <span class="module-tag stable">otel</span>
+        </div>
       </div>
-      <p class="card-desc">
-        The current <strong><code>DecideFunc</code></strong> returns <code>([]Event, error)</code> — no way for the decider to communicate domain semantics back to the caller. Consumers like go-localsync need to know <em>what happened</em> (created, updated, conflict, unchanged) to classify results. The current workaround is a <code>countingDecide</code> hack that reverse-engineers intent by counting events and checking state — fragile and couples to implementation details.
-      </p>
-      <div class="file-refs">
-        <span class="file-ref">decider/decider.go <span class="line">:85</span> (DecideFunc type)</span>
-        <span class="file-ref">decider/decider.go <span class="line">:98–155</span> (Execute method)</span>
+    </header>
+
+    <!-- ═══════════════ NAV ═══════════════ -->
+    <nav class="nav">
+      <div class="container">
+        <div class="nav-inner">
+          <a href="#api" class="api"><span class="count">1</span> API Design</a>
+          <a href="#correctness" class="correctness"><span class="count">2</span> Correctness</a>
+          <a href="#completeness" class="completeness"><span class="count">2</span> Completeness</a>
+          <a href="#consistency" class="consistency"><span class="count">2</span> Consistency</a>
+          <a href="#summary" class="exec"><span class="count">✦</span> Summary</a>
+          <a href="#appendix-generics" class="api"
+            ><span class="count">A</span> Appendix: Generics</a
+          >
+        </div>
       </div>
-      <div class="diff-grid">
-        <div>
-          <div class="diff-label before"><span class="dot"></span> Current (v2)</div>
-          <div class="code-block">
-<pre><span class="kw">type</span> <span class="type">DecideFunc</span>[State <span class="kw">any</span>] <span class="kw">func</span>(
+    </nav>
+
+    <!-- ═══════════════ API DESIGN ═══════════════ -->
+    <section id="api">
+      <div class="container">
+        <div class="section-header">
+          <h2>API Design</h2>
+          <p>Improvements to the library's public interface that reduce friction for consumers.</p>
+        </div>
+
+        <!-- CQ-1 -->
+        <div class="card">
+          <div class="card-top">
+            <div>
+              <div class="card-id">CQ-1</div>
+              <h3>Extend DecideFunc return to carry domain metadata</h3>
+            </div>
+            <span class="severity api">Breaking · v3</span>
+          </div>
+          <p class="card-desc">
+            The current <strong><code>DecideFunc</code></strong> returns
+            <code>([]Event, error)</code> — no way for the decider to communicate domain semantics
+            back to the caller. Consumers like go-localsync need to know
+            <em>what happened</em> (created, updated, conflict, unchanged) to classify results. The
+            current workaround is a <code>countingDecide</code> hack that reverse-engineers intent
+            by counting events and checking state — fragile and couples to implementation details.
+          </p>
+          <div class="file-refs">
+            <span class="file-ref"
+              >decider/decider.go <span class="line">:85</span> (DecideFunc type)</span
+            >
+            <span class="file-ref"
+              >decider/decider.go <span class="line">:98–155</span> (Execute method)</span
+            >
+          </div>
+          <div class="diff-grid">
+            <div>
+              <div class="diff-label before"><span class="dot"></span> Current (v2)</div>
+              <div class="code-block">
+                <pre><span class="kw">type</span> <span class="type">DecideFunc</span>[State <span class="kw">any</span>] <span class="kw">func</span>(
   state <span class="type">State</span>,
   currentVersion event.<span class="type">Version</span>,
 ) ([]event.<span class="type">Event</span>, <span class="type">error</span>)</pre>
-          </div>
-        </div>
-        <div>
-          <div class="diff-label after"><span class="dot"></span> Proposed (v3)</div>
-          <div class="code-block">
-<pre><span class="kw">type</span> <span class="type">DecideResult</span> struct {
+              </div>
+            </div>
+            <div>
+              <div class="diff-label after"><span class="dot"></span> Proposed (v3)</div>
+              <div class="code-block">
+                <pre><span class="kw">type</span> <span class="type">DecideResult</span> struct {
   Events []event.<span class="type">Event</span>
   Annotations <span class="kw">map</span>[<span class="kw">string</span>]<span class="kw">any</span>
 }
@@ -697,606 +873,773 @@ section + section { border-top: 1px solid var(--border-subtle); }
   state <span class="type">State</span>,
   currentVersion event.<span class="type">Version</span>,
 ) (*<span class="type">DecideResult</span>, <span class="type">error</span>)</pre>
+              </div>
+            </div>
+          </div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num">1</div>
+              <div class="step-content">
+                <p>
+                  <strong>Introduce <code>DecideResult</code> struct</strong> alongside
+                  <code>DecideFunc</code>. The <code>Annotations</code> map lets consumers carry
+                  arbitrary domain metadata (e.g., <code>"action": "created"</code>,
+                  <code>"conflict_winner": "remote"</code>) without the library needing to
+                  understand domain semantics.
+                </p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <div class="step-content">
+                <p>
+                  <strong>Expose <code>Execute</code> result.</strong> Change
+                  <code>Repository.Execute</code> to return
+                  <code>(*DecideResult, error)</code> instead of <code>error</code>. This is a
+                  breaking change — requires v3 bump. The benefit: consumers get their domain
+                  metadata back without hacks.
+                </p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">3</div>
+              <div class="step-content">
+                <p>
+                  <strong>Backward-compatible shim for v2.</strong> In the short term, add an
+                  <code>ExecuteWithResult</code> method that returns
+                  <code>(*DecideResult, error)</code> while keeping <code>Execute</code> returning
+                  <code>error</code>. This lets consumers opt-in without a v3 bump.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="callout">
+            <strong>Consumer impact:</strong> go-localsync's <code>countingDecide</code> hack
+            (stack.go:189–212) and <code>classifyAction</code> (stack_adapters.go:12) become
+            unnecessary. Domain semantics flow through the library's own return type instead of
+            being reverse-engineered.
+          </div>
+          <div class="impact-grid">
+            <div class="impact-item">
+              <div class="impact-label">Impact</div>
+              <div class="impact-value">All decider consumers</div>
+            </div>
+            <div class="impact-item">
+              <div class="impact-label">Effort</div>
+              <div class="impact-value">3–4 hours</div>
+            </div>
+            <div class="impact-item">
+              <div class="impact-label">Risk</div>
+              <div class="impact-value">Breaking (v3)</div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="steps">
-        <div class="step">
-          <div class="step-num">1</div>
-          <div class="step-content">
-            <p><strong>Introduce <code>DecideResult</code> struct</strong> alongside <code>DecideFunc</code>. The <code>Annotations</code> map lets consumers carry arbitrary domain metadata (e.g., <code>"action": "created"</code>, <code>"conflict_winner": "remote"</code>) without the library needing to understand domain semantics.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-num">2</div>
-          <div class="step-content">
-            <p><strong>Expose <code>Execute</code> result.</strong> Change <code>Repository.Execute</code> to return <code>(*DecideResult, error)</code> instead of <code>error</code>. This is a breaking change — requires v3 bump. The benefit: consumers get their domain metadata back without hacks.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-num">3</div>
-          <div class="step-content">
-            <p><strong>Backward-compatible shim for v2.</strong> In the short term, add an <code>ExecuteWithResult</code> method that returns <code>(*DecideResult, error)</code> while keeping <code>Execute</code> returning <code>error</code>. This lets consumers opt-in without a v3 bump.</p>
-          </div>
-        </div>
-      </div>
-      <div class="callout">
-        <strong>Consumer impact:</strong> go-localsync's <code>countingDecide</code> hack (stack.go:189–212) and <code>classifyAction</code> (stack_adapters.go:12) become unnecessary. Domain semantics flow through the library's own return type instead of being reverse-engineered.
-      </div>
-      <div class="impact-grid">
-        <div class="impact-item">
-          <div class="impact-label">Impact</div>
-          <div class="impact-value">All decider consumers</div>
-        </div>
-        <div class="impact-item">
-          <div class="impact-label">Effort</div>
-          <div class="impact-value">3–4 hours</div>
-        </div>
-        <div class="impact-item">
-          <div class="impact-label">Risk</div>
-          <div class="impact-value">Breaking (v3)</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+    </section>
 
-<!-- ═══════════════ CORRECTNESS ═══════════════ -->
-<section id="correctness">
-  <div class="container">
-    <div class="section-header">
-      <h2>Correctness</h2>
-      <p>Issues that could cause silent data loss or incorrect behavior under real-world conditions.</p>
-    </div>
+    <!-- ═══════════════ CORRECTNESS ═══════════════ -->
+    <section id="correctness">
+      <div class="container">
+        <div class="section-header">
+          <h2>Correctness</h2>
+          <p>
+            Issues that could cause silent data loss or incorrect behavior under real-world
+            conditions.
+          </p>
+        </div>
 
-    <!-- CQ-2 -->
-    <div class="card">
-      <div class="card-top">
-        <div>
-          <div class="card-id">CQ-2</div>
-          <h3>Projection runner replay-to-live event gap</h3>
-        </div>
-        <span class="severity correctness">Event Loss Window</span>
-      </div>
-      <p class="card-desc">
-        After <strong><code>replay()</code></strong> completes and before <strong><code>subscribeLive()</code></strong> takes effect, events published to the bus are <strong>silently missed</strong>. The runner does replay → live sequentially with no atomic handoff. Under load or with slow projections, this window is real and causes projection drift.
-      </p>
-      <div class="file-refs">
-        <span class="file-ref">projection/runner.go <span class="line">:116–124</span> (replay → subscribeLive)</span>
-        <span class="file-ref">projection/runner_live.go <span class="line">:subscribeLive</span></span>
-      </div>
-      <div class="dep-flow">
-        <div style="margin-bottom:8px;">
-          <span class="node ok">replay()</span>
-          <span class="arrow">→</span>
-          <span class="node ok">checkpoint saved</span>
-        </div>
-        <div style="margin-bottom:8px;">
-          <span class="node gap">← gap: events published here are LOST →</span>
-        </div>
-        <div>
-          <span class="node ok">subscribeLive()</span>
-          <span class="arrow">→</span>
-          <span class="node ok">processing events</span>
-        </div>
-      </div>
-      <div class="steps">
-        <div class="step">
-          <div class="step-num">1</div>
-          <div class="step-content">
-            <p><strong>Subscribe to bus before replay starts.</strong> Use a buffering subscriber that queues events without processing them. This ensures no events are missed during the replay phase.</p>
+        <!-- CQ-2 -->
+        <div class="card">
+          <div class="card-top">
+            <div>
+              <div class="card-id">CQ-2</div>
+              <h3>Projection runner replay-to-live event gap</h3>
+            </div>
+            <span class="severity correctness">Event Loss Window</span>
+          </div>
+          <p class="card-desc">
+            After <strong><code>replay()</code></strong> completes and before
+            <strong><code>subscribeLive()</code></strong> takes effect, events published to the bus
+            are <strong>silently missed</strong>. The runner does replay → live sequentially with no
+            atomic handoff. Under load or with slow projections, this window is real and causes
+            projection drift.
+          </p>
+          <div class="file-refs">
+            <span class="file-ref"
+              >projection/runner.go <span class="line">:116–124</span> (replay →
+              subscribeLive)</span
+            >
+            <span class="file-ref"
+              >projection/runner_live.go <span class="line">:subscribeLive</span></span
+            >
+          </div>
+          <div class="dep-flow">
+            <div style="margin-bottom: 8px">
+              <span class="node ok">replay()</span>
+              <span class="arrow">→</span>
+              <span class="node ok">checkpoint saved</span>
+            </div>
+            <div style="margin-bottom: 8px">
+              <span class="node gap">← gap: events published here are LOST →</span>
+            </div>
+            <div>
+              <span class="node ok">subscribeLive()</span>
+              <span class="arrow">→</span>
+              <span class="node ok">processing events</span>
+            </div>
+          </div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num">1</div>
+              <div class="step-content">
+                <p>
+                  <strong>Subscribe to bus before replay starts.</strong> Use a buffering subscriber
+                  that queues events without processing them. This ensures no events are missed
+                  during the replay phase.
+                </p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <div class="step-content">
+                <p>
+                  <strong>After replay completes, drain the buffer</strong> and switch to live
+                  processing. Skip any buffered events whose ID ≤ last replayed event ID (idempotent
+                  deduplication). This is the "catch-up subscription" pattern used by EventStoreDB,
+                  Kafka, and PostgreSQL logical replication.
+                </p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">3</div>
+              <div class="step-content">
+                <p>
+                  <strong>Add an integration test.</strong> A test that publishes events during the
+                  replay-to-live transition window and verifies the projection processes all of
+                  them. This is the key correctness proof.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="callout">
+            <strong>Consumer impact:</strong> go-localsync's
+            <code>startProjectionRunner</code> (runner.go:12) would benefit immediately — the
+            projection runner is the backbone of read model consistency.
+          </div>
+          <div class="impact-grid">
+            <div class="impact-item">
+              <div class="impact-label">Impact</div>
+              <div class="impact-value">All projection users</div>
+            </div>
+            <div class="impact-item">
+              <div class="impact-label">Effort</div>
+              <div class="impact-value">4–6 hours</div>
+            </div>
+            <div class="impact-item">
+              <div class="impact-label">Risk</div>
+              <div class="impact-value">Medium (concurrency)</div>
+            </div>
           </div>
         </div>
-        <div class="step">
-          <div class="step-num">2</div>
-          <div class="step-content">
-            <p><strong>After replay completes, drain the buffer</strong> and switch to live processing. Skip any buffered events whose ID ≤ last replayed event ID (idempotent deduplication). This is the "catch-up subscription" pattern used by EventStoreDB, Kafka, and PostgreSQL logical replication.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-num">3</div>
-          <div class="step-content">
-            <p><strong>Add an integration test.</strong> A test that publishes events during the replay-to-live transition window and verifies the projection processes all of them. This is the key correctness proof.</p>
-          </div>
-        </div>
-      </div>
-      <div class="callout">
-        <strong>Consumer impact:</strong> go-localsync's <code>startProjectionRunner</code> (runner.go:12) would benefit immediately — the projection runner is the backbone of read model consistency.
-      </div>
-      <div class="impact-grid">
-        <div class="impact-item">
-          <div class="impact-label">Impact</div>
-          <div class="impact-value">All projection users</div>
-        </div>
-        <div class="impact-item">
-          <div class="impact-label">Effort</div>
-          <div class="impact-value">4–6 hours</div>
-        </div>
-        <div class="impact-item">
-          <div class="impact-label">Risk</div>
-          <div class="impact-value">Medium (concurrency)</div>
-        </div>
-      </div>
-    </div>
 
-    <!-- CQ-3 -->
-    <div class="card">
-      <div class="card-top">
-        <div>
-          <div class="card-id">CQ-3</div>
-          <h3>Middleware applied at Register time, not Dispatch time</h3>
-        </div>
-        <span class="severity correctness">Surprise Behavior</span>
-      </div>
-      <p class="card-desc">
-        In the <strong><code>dispatcher</code></strong> package, middleware is baked into each handler at <code>Register()</code> time. Adding middleware <em>after</em> registration has no effect on already-registered handlers. This is documented but surprising — consumers expect middleware to apply globally regardless of registration order.
-      </p>
-      <div class="file-refs">
-        <span class="file-ref">dispatcher/dispatcher.go <span class="line">:Register</span> (middleware applied here)</span>
-        <span class="file-ref">command/dispatcher.go <span class="line">:44</span> (Use method)</span>
-        <span class="file-ref">query/dispatcher.go <span class="line">:44</span> (Use method)</span>
-      </div>
-      <div class="steps">
-        <div class="step">
-          <div class="step-num">1</div>
-          <div class="step-content">
-            <p><strong>Document the contract prominently.</strong> Add a package-level doc comment on <code>dispatcher</code>, <code>command</code>, and <code>query</code> that states: "Middleware must be added <em>before</em> calling Register. Middleware added after Register has no effect on existing handlers." Add a log warning in debug mode if <code>Use</code> is called after any <code>Register</code>.</p>
+        <!-- CQ-3 -->
+        <div class="card">
+          <div class="card-top">
+            <div>
+              <div class="card-id">CQ-3</div>
+              <h3>Middleware applied at Register time, not Dispatch time</h3>
+            </div>
+            <span class="severity correctness">Surprise Behavior</span>
+          </div>
+          <p class="card-desc">
+            In the <strong><code>dispatcher</code></strong> package, middleware is baked into each
+            handler at <code>Register()</code> time. Adding middleware <em>after</em> registration
+            has no effect on already-registered handlers. This is documented but surprising —
+            consumers expect middleware to apply globally regardless of registration order.
+          </p>
+          <div class="file-refs">
+            <span class="file-ref"
+              >dispatcher/dispatcher.go <span class="line">:Register</span> (middleware applied
+              here)</span
+            >
+            <span class="file-ref"
+              >command/dispatcher.go <span class="line">:44</span> (Use method)</span
+            >
+            <span class="file-ref"
+              >query/dispatcher.go <span class="line">:44</span> (Use method)</span
+            >
+          </div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num">1</div>
+              <div class="step-content">
+                <p>
+                  <strong>Document the contract prominently.</strong> Add a package-level doc
+                  comment on <code>dispatcher</code>, <code>command</code>, and
+                  <code>query</code> that states: "Middleware must be added <em>before</em> calling
+                  Register. Middleware added after Register has no effect on existing handlers." Add
+                  a log warning in debug mode if <code>Use</code> is called after any
+                  <code>Register</code>.
+                </p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <div class="step-content">
+                <p>
+                  <strong>Long-term: defer middleware application to dispatch time.</strong> Instead
+                  of wrapping the handler at registration, store the middleware chain separately and
+                  apply it at dispatch time. This is a larger refactor but removes the surprise
+                  entirely.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="impact-grid">
+            <div class="impact-item">
+              <div class="impact-label">Impact</div>
+              <div class="impact-value">All dispatcher users</div>
+            </div>
+            <div class="impact-item">
+              <div class="impact-label">Effort</div>
+              <div class="impact-value">Doc: 30 min · Fix: 3 hr</div>
+            </div>
+            <div class="impact-item">
+              <div class="impact-label">Risk</div>
+              <div class="impact-value">Low (doc) · Medium (refactor)</div>
+            </div>
           </div>
         </div>
-        <div class="step">
-          <div class="step-num">2</div>
-          <div class="step-content">
-            <p><strong>Long-term: defer middleware application to dispatch time.</strong> Instead of wrapping the handler at registration, store the middleware chain separately and apply it at dispatch time. This is a larger refactor but removes the surprise entirely.</p>
-          </div>
-        </div>
       </div>
-      <div class="impact-grid">
-        <div class="impact-item">
-          <div class="impact-label">Impact</div>
-          <div class="impact-value">All dispatcher users</div>
-        </div>
-        <div class="impact-item">
-          <div class="impact-label">Effort</div>
-          <div class="impact-value">Doc: 30 min · Fix: 3 hr</div>
-        </div>
-        <div class="impact-item">
-          <div class="impact-label">Risk</div>
-          <div class="impact-value">Low (doc) · Medium (refactor)</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+    </section>
 
-<!-- ═══════════════ COMPLETENESS ═══════════════ -->
-<section id="completeness">
-  <div class="container">
-    <div class="section-header">
-      <h2>Completeness</h2>
-      <p>Missing pieces that block production use of existing modules.</p>
-    </div>
+    <!-- ═══════════════ COMPLETENESS ═══════════════ -->
+    <section id="completeness">
+      <div class="container">
+        <div class="section-header">
+          <h2>Completeness</h2>
+          <p>Missing pieces that block production use of existing modules.</p>
+        </div>
 
-    <!-- CQ-4 -->
-    <div class="card">
-      <div class="card-top">
-        <div>
-          <div class="card-id">CQ-4</div>
-          <h3>listing/ has no SQL-backed AggregateReader</h3>
-        </div>
-        <span class="severity completeness">Production Blocker</span>
-      </div>
-      <p class="card-desc">
-        The <strong><code>listing</code></strong> module only has <code>InMemoryAggregateReader</code> backed by an in-memory cache of the event journal. For production use (SQLite, PostgreSQL), consumers must implement their own <code>AggregateReader</code>. The docstring mentions <code>SQLAggregateReader</code> but it doesn't exist yet.
-      </p>
-      <div class="file-refs">
-        <span class="file-ref">listing/in_memory.go <span class="line">:InMemoryAggregateReader</span></span>
-        <span class="file-ref">listing/aggregate_reader.go <span class="line">:12</span> (AggregateReader interface)</span>
-      </div>
-      <div class="steps">
-        <div class="step">
-          <div class="step-num">1</div>
-          <div class="step-content">
-            <p><strong>Add <code>SQLAggregateReader</code> in listing/.</strong> Backed by a pre-computed aggregates table (populated by projection). Supports the same <code>List</code>/<code>ListWithStatus</code> interface with cursor-based pagination. Reuses the existing <code>storage</code> dialect abstraction for PG/SQLite compatibility.</p>
+        <!-- CQ-4 -->
+        <div class="card">
+          <div class="card-top">
+            <div>
+              <div class="card-id">CQ-4</div>
+              <h3>listing/ has no SQL-backed AggregateReader</h3>
+            </div>
+            <span class="severity completeness">Production Blocker</span>
+          </div>
+          <p class="card-desc">
+            The <strong><code>listing</code></strong> module only has
+            <code>InMemoryAggregateReader</code> backed by an in-memory cache of the event journal.
+            For production use (SQLite, PostgreSQL), consumers must implement their own
+            <code>AggregateReader</code>. The docstring mentions <code>SQLAggregateReader</code> but
+            it doesn't exist yet.
+          </p>
+          <div class="file-refs">
+            <span class="file-ref"
+              >listing/in_memory.go <span class="line">:InMemoryAggregateReader</span></span
+            >
+            <span class="file-ref"
+              >listing/aggregate_reader.go <span class="line">:12</span> (AggregateReader
+              interface)</span
+            >
+          </div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num">1</div>
+              <div class="step-content">
+                <p>
+                  <strong>Add <code>SQLAggregateReader</code> in listing/.</strong> Backed by a
+                  pre-computed aggregates table (populated by projection). Supports the same
+                  <code>List</code>/<code>ListWithStatus</code> interface with cursor-based
+                  pagination. Reuses the existing <code>storage</code> dialect abstraction for
+                  PG/SQLite compatibility.
+                </p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <div class="step-content">
+                <p>
+                  <strong>Add a projection that maintains the aggregates table.</strong> Similar to
+                  how go-localsync maintains a sync items table. The
+                  <code>StatusMiddleware</code> already handles tombstone detection — the SQL reader
+                  just needs a table to read from.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="impact-grid">
+            <div class="impact-item">
+              <div class="impact-label">Impact</div>
+              <div class="impact-value">listing module users</div>
+            </div>
+            <div class="impact-item">
+              <div class="impact-label">Effort</div>
+              <div class="impact-value">4–5 hours</div>
+            </div>
+            <div class="impact-item">
+              <div class="impact-label">Risk</div>
+              <div class="impact-value">Low (new code)</div>
+            </div>
           </div>
         </div>
-        <div class="step">
-          <div class="step-num">2</div>
-          <div class="step-content">
-            <p><strong>Add a projection that maintains the aggregates table.</strong> Similar to how go-localsync maintains a sync items table. The <code>StatusMiddleware</code> already handles tombstone detection — the SQL reader just needs a table to read from.</p>
-          </div>
-        </div>
-      </div>
-      <div class="impact-grid">
-        <div class="impact-item">
-          <div class="impact-label">Impact</div>
-          <div class="impact-value">listing module users</div>
-        </div>
-        <div class="impact-item">
-          <div class="impact-label">Effort</div>
-          <div class="impact-value">4–5 hours</div>
-        </div>
-        <div class="impact-item">
-          <div class="impact-label">Risk</div>
-          <div class="impact-value">Low (new code)</div>
-        </div>
-      </div>
-    </div>
 
-    <!-- CQ-5 -->
-    <div class="card">
-      <div class="card-top">
-        <div>
-          <div class="card-id">CQ-5</div>
-          <h3>BatchProjection interface unused by Runner</h3>
-        </div>
-        <span class="severity completeness">Dead Interface</span>
-      </div>
-      <p class="card-desc">
-        <strong><code>event.BatchProjection</code></strong> interface exists but the <code>projection.Runner</code> processes events one-by-one via <code>Handle</code>. The <code>HandleBatch</code> path is unimplemented. This means high-throughput projections can't benefit from batch processing (e.g., bulk SQL inserts).
-      </p>
-      <div class="file-refs">
-        <span class="file-ref">event/projection.go <span class="line">:BatchProjection</span> (interface)</span>
-        <span class="file-ref">projection/runner.go <span class="line">:handleAndCheckpoint</span> (single event)</span>
-      </div>
-      <div class="steps">
-        <div class="step">
-          <div class="step-num">1</div>
-          <div class="step-content">
-            <p><strong>Add batch processing in the runner.</strong> After replay or during live subscription, accumulate events up to a batch size or flush interval, then call <code>HandleBatch</code> if the projection implements <code>BatchProjection</code>. Fall back to single-event processing for regular <code>Projection</code> implementations.</p>
+        <!-- CQ-5 -->
+        <div class="card">
+          <div class="card-top">
+            <div>
+              <div class="card-id">CQ-5</div>
+              <h3>BatchProjection interface unused by Runner</h3>
+            </div>
+            <span class="severity completeness">Dead Interface</span>
+          </div>
+          <p class="card-desc">
+            <strong><code>event.BatchProjection</code></strong> interface exists but the
+            <code>projection.Runner</code> processes events one-by-one via <code>Handle</code>. The
+            <code>HandleBatch</code> path is unimplemented. This means high-throughput projections
+            can't benefit from batch processing (e.g., bulk SQL inserts).
+          </p>
+          <div class="file-refs">
+            <span class="file-ref"
+              >event/projection.go <span class="line">:BatchProjection</span> (interface)</span
+            >
+            <span class="file-ref"
+              >projection/runner.go <span class="line">:handleAndCheckpoint</span> (single
+              event)</span
+            >
+          </div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num">1</div>
+              <div class="step-content">
+                <p>
+                  <strong>Add batch processing in the runner.</strong> After replay or during live
+                  subscription, accumulate events up to a batch size or flush interval, then call
+                  <code>HandleBatch</code> if the projection implements
+                  <code>BatchProjection</code>. Fall back to single-event processing for regular
+                  <code>Projection</code> implementations.
+                </p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <div class="step-content">
+                <p>
+                  <strong>Add <code>WithBatchSize</code> option to the runner.</strong> Default to 1
+                  (backward-compatible). Consumers opt into batch processing explicitly.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="callout">
+            <strong>Consumer impact:</strong> go-localsync's SQLite read model could use batch
+            upserts instead of per-event inserts during replay — significant performance improvement
+            for large datasets.
+          </div>
+          <div class="impact-grid">
+            <div class="impact-item">
+              <div class="impact-label">Impact</div>
+              <div class="impact-value">Performance</div>
+            </div>
+            <div class="impact-item">
+              <div class="impact-label">Effort</div>
+              <div class="impact-value">3–4 hours</div>
+            </div>
+            <div class="impact-item">
+              <div class="impact-label">Risk</div>
+              <div class="impact-value">Low (opt-in)</div>
+            </div>
           </div>
         </div>
-        <div class="step">
-          <div class="step-num">2</div>
-          <div class="step-content">
-            <p><strong>Add <code>WithBatchSize</code> option to the runner.</strong> Default to 1 (backward-compatible). Consumers opt into batch processing explicitly.</p>
-          </div>
-        </div>
       </div>
-      <div class="callout">
-        <strong>Consumer impact:</strong> go-localsync's SQLite read model could use batch upserts instead of per-event inserts during replay — significant performance improvement for large datasets.
-      </div>
-      <div class="impact-grid">
-        <div class="impact-item">
-          <div class="impact-label">Impact</div>
-          <div class="impact-value">Performance</div>
-        </div>
-        <div class="impact-item">
-          <div class="impact-label">Effort</div>
-          <div class="impact-value">3–4 hours</div>
-        </div>
-        <div class="impact-item">
-          <div class="impact-label">Risk</div>
-          <div class="impact-value">Low (opt-in)</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+    </section>
 
-<!-- ═══════════════ CONSISTENCY ═══════════════ -->
-<section id="consistency">
-  <div class="container">
-    <div class="section-header">
-      <h2>Consistency</h2>
-      <p>Minor friction points across modules that reduce the library's cohesion.</p>
-    </div>
+    <!-- ═══════════════ CONSISTENCY ═══════════════ -->
+    <section id="consistency">
+      <div class="container">
+        <div class="section-header">
+          <h2>Consistency</h2>
+          <p>Minor friction points across modules that reduce the library's cohesion.</p>
+        </div>
 
-    <!-- CQ-6 -->
-    <div class="card">
-      <div class="card-top">
-        <div>
-          <div class="card-id">CQ-6</div>
-          <h3>query/ imports event/ for error wrapping — unnecessary coupling</h3>
-        </div>
-        <span class="severity consistency">Layer Violation</span>
-      </div>
-      <p class="card-desc">
-        The <strong><code>query</code></strong> dispatcher wraps errors using <code>event.WrapInfrastructure</code> from the <code>event</code> module. This creates an unnecessary dependency of the read-side (queries) on the write-side (events). The <code>query</code> module should use <code>go-error-family</code> directly, like it does in some places already — the usage is inconsistent.
-      </p>
-      <div class="file-refs">
-        <span class="file-ref">query/dispatcher.go <span class="line">:import</span> (event import)</span>
-        <span class="file-ref">query/go.mod <span class="line">:event dependency</span></span>
-      </div>
-      <div class="layer-diagram">
-        <div class="layer-row" style="margin-bottom:8px;">
-          <span class="layer-num">L1</span>
-          <div class="layer-modules">
-            <span class="layer-mod highlight">event</span>
-            <span class="layer-mod">command</span>
-            <span class="layer-mod highlight">query</span>
+        <!-- CQ-6 -->
+        <div class="card">
+          <div class="card-top">
+            <div>
+              <div class="card-id">CQ-6</div>
+              <h3>query/ imports event/ for error wrapping — unnecessary coupling</h3>
+            </div>
+            <span class="severity consistency">Layer Violation</span>
+          </div>
+          <p class="card-desc">
+            The <strong><code>query</code></strong> dispatcher wraps errors using
+            <code>event.WrapInfrastructure</code> from the <code>event</code> module. This creates
+            an unnecessary dependency of the read-side (queries) on the write-side (events). The
+            <code>query</code> module should use <code>go-error-family</code> directly, like it does
+            in some places already — the usage is inconsistent.
+          </p>
+          <div class="file-refs">
+            <span class="file-ref"
+              >query/dispatcher.go <span class="line">:import</span> (event import)</span
+            >
+            <span class="file-ref">query/go.mod <span class="line">:event dependency</span></span>
+          </div>
+          <div class="layer-diagram">
+            <div class="layer-row" style="margin-bottom: 8px">
+              <span class="layer-num">L1</span>
+              <div class="layer-modules">
+                <span class="layer-mod highlight">event</span>
+                <span class="layer-mod">command</span>
+                <span class="layer-mod highlight">query</span>
+              </div>
+            </div>
+            <div style="color: var(--text-muted); padding-left: 32px; font-size: 11px">
+              query → event = unnecessary coupling on same layer
+            </div>
+          </div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num">1</div>
+              <div class="step-content">
+                <p>
+                  <strong>Replace <code>event.WrapInfrastructure</code></strong> with direct
+                  <code>errorfamily.NewInfrastructure</code> calls in query's dispatcher. Remove the
+                  <code>event</code> import. If there are other event references, audit and remove
+                  them.
+                </p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <div class="step-content">
+                <p>
+                  <strong>Update query/go.mod</strong> to remove the event dependency. Run
+                  <code>nix run .#check-layers</code> to verify the layer graph remains clean.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="impact-grid">
+            <div class="impact-item">
+              <div class="impact-label">Impact</div>
+              <div class="impact-value">Module isolation</div>
+            </div>
+            <div class="impact-item">
+              <div class="impact-label">Effort</div>
+              <div class="impact-value">30 minutes</div>
+            </div>
+            <div class="impact-item">
+              <div class="impact-label">Risk</div>
+              <div class="impact-value">Minimal</div>
+            </div>
           </div>
         </div>
-        <div style="color:var(--text-muted);padding-left:32px;font-size:11px;">
-          query → event = unnecessary coupling on same layer
-        </div>
-      </div>
-      <div class="steps">
-        <div class="step">
-          <div class="step-num">1</div>
-          <div class="step-content">
-            <p><strong>Replace <code>event.WrapInfrastructure</code></strong> with direct <code>errorfamily.NewInfrastructure</code> calls in query's dispatcher. Remove the <code>event</code> import. If there are other event references, audit and remove them.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-num">2</div>
-          <div class="step-content">
-            <p><strong>Update query/go.mod</strong> to remove the event dependency. Run <code>nix run .#check-layers</code> to verify the layer graph remains clean.</p>
-          </div>
-        </div>
-      </div>
-      <div class="impact-grid">
-        <div class="impact-item">
-          <div class="impact-label">Impact</div>
-          <div class="impact-value">Module isolation</div>
-        </div>
-        <div class="impact-item">
-          <div class="impact-label">Effort</div>
-          <div class="impact-value">30 minutes</div>
-        </div>
-        <div class="impact-item">
-          <div class="impact-label">Risk</div>
-          <div class="impact-value">Minimal</div>
-        </div>
-      </div>
-    </div>
 
-    <!-- CQ-7 -->
-    <div class="card">
-      <div class="card-top">
-        <div>
-          <div class="card-id">CQ-7</div>
-          <h3>Dual pagination models with no bridge</h3>
-        </div>
-        <span class="severity consistency">Cohesion</span>
-      </div>
-      <p class="card-desc">
-        Two pagination types exist with no shared abstraction: <strong><code>query.Pagination</code></strong> (offset-based, <code>Page</code> + <code>PageSize</code>) and <strong><code>listing.Page[T]</code></strong> (cursor-based, <code>After</code> cursor). Both live in the same library but serve different use cases with no documentation explaining when to use which, and no adapter to convert between them.
-      </p>
-      <div class="file-refs">
-        <span class="file-ref">query/pagination.go <span class="line">:Pagination</span> (offset)</span>
-        <span class="file-ref">listing/types.go <span class="line">:30</span> (Page[T] cursor)</span>
-      </div>
-      <div class="diff-grid">
-        <div>
-          <div class="diff-label">query.Pagination</div>
-          <div class="code-block">
-<pre><span class="kw">type</span> <span class="type">Pagination</span> <span class="kw">struct</span> {
+        <!-- CQ-7 -->
+        <div class="card">
+          <div class="card-top">
+            <div>
+              <div class="card-id">CQ-7</div>
+              <h3>Dual pagination models with no bridge</h3>
+            </div>
+            <span class="severity consistency">Cohesion</span>
+          </div>
+          <p class="card-desc">
+            Two pagination types exist with no shared abstraction:
+            <strong><code>query.Pagination</code></strong> (offset-based, <code>Page</code> +
+            <code>PageSize</code>) and <strong><code>listing.Page[T]</code></strong> (cursor-based,
+            <code>After</code> cursor). Both live in the same library but serve different use cases
+            with no documentation explaining when to use which, and no adapter to convert between
+            them.
+          </p>
+          <div class="file-refs">
+            <span class="file-ref"
+              >query/pagination.go <span class="line">:Pagination</span> (offset)</span
+            >
+            <span class="file-ref"
+              >listing/types.go <span class="line">:30</span> (Page[T] cursor)</span
+            >
+          </div>
+          <div class="diff-grid">
+            <div>
+              <div class="diff-label">query.Pagination</div>
+              <div class="code-block">
+                <pre><span class="kw">type</span> <span class="type">Pagination</span> <span class="kw">struct</span> {
   Page     <span class="kw">int</span>
   PageSize <span class="kw">int</span>
 }
 <span class="cmt">// Offset-based → human UIs</span>
 <span class="cmt">// Supports jump-to-page</span></pre>
-          </div>
-        </div>
-        <div>
-          <div class="diff-label">listing.Page[T]</div>
-          <div class="code-block">
-<pre><span class="kw">type</span> <span class="type">Page</span>[T <span class="kw">any</span>] <span class="kw">struct</span> {
+              </div>
+            </div>
+            <div>
+              <div class="diff-label">listing.Page[T]</div>
+              <div class="code-block">
+                <pre><span class="kw">type</span> <span class="type">Page</span>[T <span class="kw">any</span>] <span class="kw">struct</span> {
   Items   []T
   HasMore <span class="kw">bool</span>
 }
 <span class="cmt">// Cursor-based → append-only streams</span>
 <span class="cmt">// No total count (correct for logs)</span></pre>
+              </div>
+            </div>
+          </div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num">1</div>
+              <div class="step-content">
+                <p>
+                  <strong>Document the decision criteria.</strong> Add a package-level doc to both
+                  <code>query</code> and <code>listing</code> explaining when to use each:
+                  offset-based for user-facing paginated UIs, cursor-based for event streams and
+                  aggregate listings.
+                </p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <div class="step-content">
+                <p>
+                  <strong>Consider a shared <code>pagination</code> sub-package.</strong> If both
+                  models are needed in the same application, a shared package with clear naming
+                  (<code>OffsetPagination</code> vs <code>CursorPage[T]</code>) reduces import
+                  confusion. Low priority — both models are correct for their use cases.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="impact-grid">
+            <div class="impact-item">
+              <div class="impact-label">Impact</div>
+              <div class="impact-value">Developer experience</div>
+            </div>
+            <div class="impact-item">
+              <div class="impact-label">Effort</div>
+              <div class="impact-value">1–2 hours</div>
+            </div>
+            <div class="impact-item">
+              <div class="impact-label">Risk</div>
+              <div class="impact-value">Zero (documentation)</div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="steps">
-        <div class="step">
-          <div class="step-num">1</div>
-          <div class="step-content">
-            <p><strong>Document the decision criteria.</strong> Add a package-level doc to both <code>query</code> and <code>listing</code> explaining when to use each: offset-based for user-facing paginated UIs, cursor-based for event streams and aggregate listings.</p>
+    </section>
+
+    <!-- ═══════════════ SUMMARY ═══════════════ -->
+    <section id="summary">
+      <div class="container">
+        <div class="section-header">
+          <h2>Execution Summary</h2>
+          <p>Prioritized by impact on go-localsync integration and value to all consumers.</p>
+        </div>
+
+        <div class="summary-grid">
+          <div class="summary-card api">
+            <div class="num">1</div>
+            <div class="label">API Design</div>
+          </div>
+          <div class="summary-card correctness">
+            <div class="num">2</div>
+            <div class="label">Correctness</div>
+          </div>
+          <div class="summary-card completeness">
+            <div class="num">2</div>
+            <div class="label">Completeness</div>
+          </div>
+          <div class="summary-card total">
+            <div class="num">7</div>
+            <div class="label">Total Items</div>
           </div>
         </div>
-        <div class="step">
-          <div class="step-num">2</div>
-          <div class="step-content">
-            <p><strong>Consider a shared <code>pagination</code> sub-package.</strong> If both models are needed in the same application, a shared package with clear naming (<code>OffsetPagination</code> vs <code>CursorPage[T]</code>) reduces import confusion. Low priority — both models are correct for their use cases.</p>
+
+        <h3 style="font-size: 17px; font-weight: 600; margin-top: 40px; margin-bottom: 20px">
+          Recommended Execution Order
+        </h3>
+
+        <div class="plan-table">
+          <table style="width: 100%; border-collapse: collapse">
+            <thead>
+              <tr>
+                <th style="width: 50px">#</th>
+                <th style="width: 60px">ID</th>
+                <th>Item</th>
+                <th style="width: 80px">Effort</th>
+                <th style="width: 200px">Why This Order</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="mono" style="color: var(--text-muted)">1</td>
+                <td class="mono" style="color: var(--accent-amber)">CQ-2</td>
+                <td style="color: var(--text-primary)">Replay-to-live gap fix</td>
+                <td>4–6 hr</td>
+                <td>Correctness — every projection user is affected</td>
+              </tr>
+              <tr>
+                <td class="mono" style="color: var(--text-muted)">2</td>
+                <td class="mono" style="color: var(--accent-sky)">CQ-6</td>
+                <td style="color: var(--text-primary)">Remove query → event coupling</td>
+                <td>30 min</td>
+                <td>Quick layer hygiene, enables go.work cleanup</td>
+              </tr>
+              <tr>
+                <td class="mono" style="color: var(--text-muted)">3</td>
+                <td class="mono" style="color: var(--accent-amber)">CQ-3</td>
+                <td style="color: var(--text-primary)">Document middleware timing contract</td>
+                <td>30 min</td>
+                <td>Prevents consumer surprise; doc-only is safe</td>
+              </tr>
+              <tr>
+                <td class="mono" style="color: var(--text-muted)">4</td>
+                <td class="mono" style="color: var(--accent-rose)">CQ-1</td>
+                <td style="color: var(--text-primary)">DecideResult + ExecuteWithResult</td>
+                <td>3–4 hr</td>
+                <td>Unblocks go-localsync LS-1 fix cleanly</td>
+              </tr>
+              <tr>
+                <td class="mono" style="color: var(--text-muted)">5</td>
+                <td class="mono" style="color: var(--accent-teal)">CQ-5</td>
+                <td style="color: var(--text-primary)">BatchProjection in Runner</td>
+                <td>3–4 hr</td>
+                <td>Performance — complements CQ-2 replay fix</td>
+              </tr>
+              <tr>
+                <td class="mono" style="color: var(--text-muted)">6</td>
+                <td class="mono" style="color: var(--accent-teal)">CQ-4</td>
+                <td style="color: var(--text-primary)">SQL-backed AggregateReader</td>
+                <td>4–5 hr</td>
+                <td>Unlocks listing/ for production</td>
+              </tr>
+              <tr>
+                <td class="mono" style="color: var(--text-muted)">7</td>
+                <td class="mono" style="color: var(--accent-sky)">CQ-7</td>
+                <td style="color: var(--text-primary)">Pagination model documentation</td>
+                <td>1–2 hr</td>
+                <td>Low-risk, improves DX</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 style="font-size: 17px; font-weight: 600; margin-top: 40px; margin-bottom: 20px">
+          Module Dependency Flow
+        </h3>
+
+        <div class="layer-diagram">
+          <div class="layer-row">
+            <span class="layer-num">L0</span>
+            <div class="layer-modules">
+              <span class="layer-mod">id</span>
+              <span class="layer-mod">dispatcher</span>
+              <span class="layer-mod">codec</span>
+            </div>
+          </div>
+          <div class="layer-row">
+            <span class="layer-num">L1</span>
+            <div class="layer-modules">
+              <span class="layer-mod">event</span>
+              <span class="layer-mod">command</span>
+              <span class="layer-mod highlight">query</span>
+              <span style="font-size: 11px; color: var(--accent-amber); margin-left: 8px"
+                >← CQ-6 removes event dep</span
+              >
+            </div>
+          </div>
+          <div class="layer-row">
+            <span class="layer-num">L2</span>
+            <div class="layer-modules">
+              <span class="layer-mod">schema</span>
+              <span class="layer-mod">snapshot</span>
+            </div>
+          </div>
+          <div class="layer-row">
+            <span class="layer-num">L3</span>
+            <div class="layer-modules">
+              <span class="layer-mod highlight">decider</span>
+              <span style="font-size: 11px; color: var(--accent-rose); margin-left: 8px"
+                >← CQ-1 extends DecideFunc</span
+              >
+            </div>
+          </div>
+          <div class="layer-row">
+            <span class="layer-num">L4</span>
+            <div class="layer-modules">
+              <span class="layer-mod">memory</span>
+              <span class="layer-mod">signing</span>
+              <span class="layer-mod">otel</span>
+            </div>
+          </div>
+          <div class="layer-row">
+            <span class="layer-num">L5</span>
+            <div class="layer-modules">
+              <span class="layer-mod highlight">projection</span>
+              <span class="layer-mod">storage</span>
+              <span class="layer-mod highlight">listing</span>
+              <span class="layer-mod">middleware</span>
+              <span style="font-size: 11px; color: var(--accent-teal); margin-left: 8px"
+                >← CQ-2, CQ-4, CQ-5</span
+              >
+            </div>
           </div>
         </div>
-      </div>
-      <div class="impact-grid">
-        <div class="impact-item">
-          <div class="impact-label">Impact</div>
-          <div class="impact-value">Developer experience</div>
-        </div>
-        <div class="impact-item">
-          <div class="impact-label">Effort</div>
-          <div class="impact-value">1–2 hours</div>
-        </div>
-        <div class="impact-item">
-          <div class="impact-label">Risk</div>
-          <div class="impact-value">Zero (documentation)</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 
-<!-- ═══════════════ SUMMARY ═══════════════ -->
-<section id="summary">
-  <div class="container">
-    <div class="section-header">
-      <h2>Execution Summary</h2>
-      <p>Prioritized by impact on go-localsync integration and value to all consumers.</p>
-    </div>
-
-    <div class="summary-grid">
-      <div class="summary-card api">
-        <div class="num">1</div>
-        <div class="label">API Design</div>
+        <ul class="checklist" style="margin-top: 32px">
+          <li>
+            Run <code>nix run .#test</code> after each change (per-module:
+            <code>cd projection && GOWORK=off go test ./... -count=1</code>)
+          </li>
+          <li>Run <code>nix run .#lint</code> after each change</li>
+          <li>Run <code>nix run .#check-layers</code> to verify dependency graph integrity</li>
+          <li>Run <code>cmd/api-stability</code> to detect breaking API changes</li>
+          <li>Update AGENTS.md with changed patterns</li>
+          <li>Run <code>nix fmt</code> before committing</li>
+        </ul>
       </div>
-      <div class="summary-card correctness">
-        <div class="num">2</div>
-        <div class="label">Correctness</div>
-      </div>
-      <div class="summary-card completeness">
-        <div class="num">2</div>
-        <div class="label">Completeness</div>
-      </div>
-      <div class="summary-card total">
-        <div class="num">7</div>
-        <div class="label">Total Items</div>
-      </div>
-    </div>
+    </section>
 
-    <h3 style="font-size:17px;font-weight:600;margin-top:40px;margin-bottom:20px;">Recommended Execution Order</h3>
-
-    <div class="plan-table">
-      <table style="width:100%;border-collapse:collapse;">
-        <thead>
-          <tr>
-            <th style="width:50px;">#</th>
-            <th style="width:60px;">ID</th>
-            <th>Item</th>
-            <th style="width:80px;">Effort</th>
-            <th style="width:200px;">Why This Order</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="mono" style="color:var(--text-muted);">1</td>
-            <td class="mono" style="color:var(--accent-amber);">CQ-2</td>
-            <td style="color:var(--text-primary);">Replay-to-live gap fix</td>
-            <td>4–6 hr</td>
-            <td>Correctness — every projection user is affected</td>
-          </tr>
-          <tr>
-            <td class="mono" style="color:var(--text-muted);">2</td>
-            <td class="mono" style="color:var(--accent-sky);">CQ-6</td>
-            <td style="color:var(--text-primary);">Remove query → event coupling</td>
-            <td>30 min</td>
-            <td>Quick layer hygiene, enables go.work cleanup</td>
-          </tr>
-          <tr>
-            <td class="mono" style="color:var(--text-muted);">3</td>
-            <td class="mono" style="color:var(--accent-amber);">CQ-3</td>
-            <td style="color:var(--text-primary);">Document middleware timing contract</td>
-            <td>30 min</td>
-            <td>Prevents consumer surprise; doc-only is safe</td>
-          </tr>
-          <tr>
-            <td class="mono" style="color:var(--text-muted);">4</td>
-            <td class="mono" style="color:var(--accent-rose);">CQ-1</td>
-            <td style="color:var(--text-primary);">DecideResult + ExecuteWithResult</td>
-            <td>3–4 hr</td>
-            <td>Unblocks go-localsync LS-1 fix cleanly</td>
-          </tr>
-          <tr>
-            <td class="mono" style="color:var(--text-muted);">5</td>
-            <td class="mono" style="color:var(--accent-teal);">CQ-5</td>
-            <td style="color:var(--text-primary);">BatchProjection in Runner</td>
-            <td>3–4 hr</td>
-            <td>Performance — complements CQ-2 replay fix</td>
-          </tr>
-          <tr>
-            <td class="mono" style="color:var(--text-muted);">6</td>
-            <td class="mono" style="color:var(--accent-teal);">CQ-4</td>
-            <td style="color:var(--text-primary);">SQL-backed AggregateReader</td>
-            <td>4–5 hr</td>
-            <td>Unlocks listing/ for production</td>
-          </tr>
-          <tr>
-            <td class="mono" style="color:var(--text-muted);">7</td>
-            <td class="mono" style="color:var(--accent-sky);">CQ-7</td>
-            <td style="color:var(--text-primary);">Pagination model documentation</td>
-            <td>1–2 hr</td>
-            <td>Low-risk, improves DX</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <h3 style="font-size:17px;font-weight:600;margin-top:40px;margin-bottom:20px;">Module Dependency Flow</h3>
-
-    <div class="layer-diagram">
-      <div class="layer-row">
-        <span class="layer-num">L0</span>
-        <div class="layer-modules">
-          <span class="layer-mod">id</span>
-          <span class="layer-mod">dispatcher</span>
-          <span class="layer-mod">codec</span>
+    <section id="appendix-generics">
+      <div class="container">
+        <div class="section-header">
+          <h2>Appendix A: Generics Opportunities</h2>
+          <p>
+            How Go generics can close the remaining API gaps in the library — informed by real
+            consumer friction from the go-localsync integration. Ordered by impact.
+          </p>
         </div>
-      </div>
-      <div class="layer-row">
-        <span class="layer-num">L1</span>
-        <div class="layer-modules">
-          <span class="layer-mod">event</span>
-          <span class="layer-mod">command</span>
-          <span class="layer-mod highlight">query</span>
-          <span style="font-size:11px;color:var(--accent-amber);margin-left:8px;">← CQ-6 removes event dep</span>
-        </div>
-      </div>
-      <div class="layer-row">
-        <span class="layer-num">L2</span>
-        <div class="layer-modules">
-          <span class="layer-mod">schema</span>
-          <span class="layer-mod">snapshot</span>
-        </div>
-      </div>
-      <div class="layer-row">
-        <span class="layer-num">L3</span>
-        <div class="layer-modules">
-          <span class="layer-mod highlight">decider</span>
-          <span style="font-size:11px;color:var(--accent-rose);margin-left:8px;">← CQ-1 extends DecideFunc</span>
-        </div>
-      </div>
-      <div class="layer-row">
-        <span class="layer-num">L4</span>
-        <div class="layer-modules">
-          <span class="layer-mod">memory</span>
-          <span class="layer-mod">signing</span>
-          <span class="layer-mod">otel</span>
-        </div>
-      </div>
-      <div class="layer-row">
-        <span class="layer-num">L5</span>
-        <div class="layer-modules">
-          <span class="layer-mod highlight">projection</span>
-          <span class="layer-mod">storage</span>
-          <span class="layer-mod highlight">listing</span>
-          <span class="layer-mod">middleware</span>
-          <span style="font-size:11px;color:var(--accent-teal);margin-left:8px;">← CQ-2, CQ-4, CQ-5</span>
-        </div>
-      </div>
-    </div>
 
-    <ul class="checklist" style="margin-top:32px;">
-      <li>Run <code>nix run .#test</code> after each change (per-module: <code>cd projection && GOWORK=off go test ./... -count=1</code>)</li>
-      <li>Run <code>nix run .#lint</code> after each change</li>
-      <li>Run <code>nix run .#check-layers</code> to verify dependency graph integrity</li>
-      <li>Run <code>cmd/api-stability</code> to detect breaking API changes</li>
-      <li>Update AGENTS.md with changed patterns</li>
-      <li>Run <code>nix fmt</code> before committing</li>
-    </ul>
-  </div>
-</section>
-
-<section id="appendix-generics">
-  <div class="container">
-    <div class="section-header">
-      <h2>Appendix A: Generics Opportunities</h2>
-      <p>How Go generics can close the remaining API gaps in the library — informed by real consumer friction from the go-localsync integration. Ordered by impact.</p>
-    </div>
-
-    <!-- CQ-G1 -->
-    <div class="card">
-      <div class="card-top">
-        <div>
-          <div class="card-id">CQ-G1</div>
-          <h3><code>command.RegisterTyped[C]</code> — mirror the <code>query</code> pattern</h3>
-        </div>
-        <span class="severity api">New API</span>
-      </div>
-      <p class="card-desc">
-        The <code>query</code> package has <code>RegisterTyped[Q, R]</code> and <code>DispatchTyped[T]</code> — the "typed bookend" pattern that eliminates runtime type assertions for consumers. The <code>command</code> package has no equivalent. Every consumer must write the same <code>cmd.(*ConcreteCommand)</code> assertion + error wrapping boilerplate. This is a 6× repetition in go-localsync alone.
-      </p>
-      <div class="file-refs">
-        <span class="file-ref">command/dispatcher.go <span class="line">:—</span> (no RegisterTyped)</span>
-        <span class="file-ref">query/dispatcher.go <span class="line">:77</span> (RegisterTyped — exists)</span>
-        <span class="file-ref">query/dispatcher.go <span class="line">:130</span> (DispatchTyped — exists)</span>
-      </div>
-      <div class="code-block">
-<pre><span class="cmt">// command/dispatcher.go — new generic function</span>
+        <!-- CQ-G1 -->
+        <div class="card">
+          <div class="card-top">
+            <div>
+              <div class="card-id">CQ-G1</div>
+              <h3><code>command.RegisterTyped[C]</code> — mirror the <code>query</code> pattern</h3>
+            </div>
+            <span class="severity api">New API</span>
+          </div>
+          <p class="card-desc">
+            The <code>query</code> package has <code>RegisterTyped[Q, R]</code> and
+            <code>DispatchTyped[T]</code> — the "typed bookend" pattern that eliminates runtime type
+            assertions for consumers. The <code>command</code> package has no equivalent. Every
+            consumer must write the same <code>cmd.(*ConcreteCommand)</code> assertion + error
+            wrapping boilerplate. This is a 6× repetition in go-localsync alone.
+          </p>
+          <div class="file-refs">
+            <span class="file-ref"
+              >command/dispatcher.go <span class="line">:—</span> (no RegisterTyped)</span
+            >
+            <span class="file-ref"
+              >query/dispatcher.go <span class="line">:77</span> (RegisterTyped — exists)</span
+            >
+            <span class="file-ref"
+              >query/dispatcher.go <span class="line">:130</span> (DispatchTyped — exists)</span
+            >
+          </div>
+          <div class="code-block">
+            <pre><span class="cmt">// command/dispatcher.go — new generic function</span>
 <span class="kw">type</span> <span class="type">TypedHandler</span>[C <span class="type">Command</span>] <span class="kw">func</span>(ctx context.<span class="type">Context</span>, cmd C) <span class="type">error</span>
 
 <span class="kw">func</span> <span class="fn">RegisterTyped</span>[C <span class="type">Command</span>](
@@ -1312,57 +1655,78 @@ section + section { border-top: 1px solid var(--border-subtle); }
     <span class="kw">return</span> <span class="fn">handler</span>(ctx, typed)
   })
 }</pre>
-      </div>
-      <div class="steps">
-        <div class="step">
-          <div class="step-num">1</div>
-          <div class="step-content">
-            <p><strong>Add <code>TypedHandler[C]</code> and <code>RegisterTyped[C]</code></strong> to the command package. The assertion is tested once in the library instead of repeated in every consumer. Add <code>ErrTypeMismatch</code> as a new sentinel error in the error taxonomy (Rejection family).</p>
+          </div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num">1</div>
+              <div class="step-content">
+                <p>
+                  <strong
+                    >Add <code>TypedHandler[C]</code> and <code>RegisterTyped[C]</code></strong
+                  >
+                  to the command package. The assertion is tested once in the library instead of
+                  repeated in every consumer. Add <code>ErrTypeMismatch</code> as a new sentinel
+                  error in the error taxonomy (Rejection family).
+                </p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <div class="step-content">
+                <p>
+                  <strong>Optionally add <code>DispatchTyped[C]</code></strong> that accepts a
+                  <code>C</code> directly and wraps it in the untyped dispatch. Less critical since
+                  <code>Dispatch(ctx, cmd)</code> already accepts the concrete type via the
+                  <code>Command</code> interface.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="callout">
+            <span
+              ><strong>Symmetry:</strong> <code>query</code> has
+              <code>RegisterTyped[Q, R]</code> because queries return typed results.
+              <code>command</code> only needs <code>RegisterTyped[C]</code> (one type param) because
+              commands return <code>error</code> only. This is the simpler case.</span
+            >
+          </div>
+          <div class="impact-grid">
+            <div class="impact-item">
+              <div class="impact-label">Effort</div>
+              <div class="impact-value">1–2 hours</div>
+            </div>
+            <div class="impact-item">
+              <div class="impact-label">Risk</div>
+              <div class="impact-value">Low (additive)</div>
+            </div>
+            <div class="impact-item">
+              <div class="impact-label">Breaking</div>
+              <div class="impact-value">No — purely additive</div>
+            </div>
           </div>
         </div>
-        <div class="step">
-          <div class="step-num">2</div>
-          <div class="step-content">
-            <p><strong>Optionally add <code>DispatchTyped[C]</code></strong> that accepts a <code>C</code> directly and wraps it in the untyped dispatch. Less critical since <code>Dispatch(ctx, cmd)</code> already accepts the concrete type via the <code>Command</code> interface.</p>
-          </div>
-        </div>
-      </div>
-      <div class="callout">
-        <span><strong>Symmetry:</strong> <code>query</code> has <code>RegisterTyped[Q, R]</code> because queries return typed results. <code>command</code> only needs <code>RegisterTyped[C]</code> (one type param) because commands return <code>error</code> only. This is the simpler case.</span>
-      </div>
-      <div class="impact-grid">
-        <div class="impact-item">
-          <div class="impact-label">Effort</div>
-          <div class="impact-value">1–2 hours</div>
-        </div>
-        <div class="impact-item">
-          <div class="impact-label">Risk</div>
-          <div class="impact-value">Low (additive)</div>
-        </div>
-        <div class="impact-item">
-          <div class="impact-label">Breaking</div>
-          <div class="impact-value">No — purely additive</div>
-        </div>
-      </div>
-    </div>
 
-    <!-- CQ-G2 -->
-    <div class="card">
-      <div class="card-top">
-        <div>
-          <div class="card-id">CQ-G2</div>
-          <h3><code>DecideResult[R]</code> — typed domain result via second type parameter</h3>
-        </div>
-        <span class="severity api">Revises CQ-1</span>
-      </div>
-      <p class="card-desc">
-        CQ-1 proposes <code>Annotations map[string]any</code>. Generics offer a stronger alternative: <strong>a second type parameter <code>R</code> on <code>DecideFunc</code></strong> that carries a typed domain result. This eliminates runtime assertions on annotation values and makes the domain result a first-class part of the library's type system.
-      </p>
-      <div class="diff-grid">
-        <div>
-          <div class="diff-label before"><span class="dot"></span> CQ-1 as proposed</div>
-          <div class="code-block">
-<pre><span class="kw">type</span> <span class="type">DecideResult</span> <span class="kw">struct</span> {
+        <!-- CQ-G2 -->
+        <div class="card">
+          <div class="card-top">
+            <div>
+              <div class="card-id">CQ-G2</div>
+              <h3><code>DecideResult[R]</code> — typed domain result via second type parameter</h3>
+            </div>
+            <span class="severity api">Revises CQ-1</span>
+          </div>
+          <p class="card-desc">
+            CQ-1 proposes <code>Annotations map[string]any</code>. Generics offer a stronger
+            alternative:
+            <strong>a second type parameter <code>R</code> on <code>DecideFunc</code></strong> that
+            carries a typed domain result. This eliminates runtime assertions on annotation values
+            and makes the domain result a first-class part of the library's type system.
+          </p>
+          <div class="diff-grid">
+            <div>
+              <div class="diff-label before"><span class="dot"></span> CQ-1 as proposed</div>
+              <div class="code-block">
+                <pre><span class="kw">type</span> <span class="type">DecideResult</span> <span class="kw">struct</span> {
   Events     []event.<span class="type">Event</span>
   Annotations <span class="kw">map</span>[<span class="kw">string</span>]<span class="kw">any</span>
 }
@@ -1370,12 +1734,14 @@ section + section { border-top: 1px solid var(--border-subtle); }
 <span class="kw">type</span> <span class="type">DecideFunc</span>[S <span class="kw">any</span>] <span class="kw">func</span>(
   state S, ver event.<span class="type">Version</span>,
 ) (*<span class="type">DecideResult</span>, <span class="type">error</span>)</pre>
-          </div>
-        </div>
-        <div>
-          <div class="diff-label after"><span class="dot"></span> With typed result (generics)</div>
-          <div class="code-block">
-<pre><span class="kw">type</span> <span class="type">DecideResult</span>[R <span class="kw">any</span>] <span class="kw">struct</span> {
+              </div>
+            </div>
+            <div>
+              <div class="diff-label after">
+                <span class="dot"></span> With typed result (generics)
+              </div>
+              <div class="code-block">
+                <pre><span class="kw">type</span> <span class="type">DecideResult</span>[R <span class="kw">any</span>] <span class="kw">struct</span> {
   Events []event.<span class="type">Event</span>
   Result R
 }
@@ -1386,86 +1752,180 @@ section + section { border-top: 1px solid var(--border-subtle); }
 
 <span class="cmt">// Simple alias for consumers who don't need results:</span>
 <span class="kw">type</span> <span class="type">SimpleDecideFunc</span>[S <span class="kw">any</span>] = <span class="type">DecideFunc</span>[S, <span class="kw">struct</span>{}]</pre>
+              </div>
+            </div>
+          </div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num">1</div>
+              <div class="step-content">
+                <p>
+                  <strong>Add the second type parameter.</strong>
+                  <code>Repository[S, R]</code> carries both types. <code>Execute</code> returns
+                  <code>(*DecideResult[R], error)</code>. Existing code that doesn't care about the
+                  result uses <code>Repository[S, struct{}]</code> via the
+                  <code>SimpleDecideFunc[S]</code> alias — backward compatible in spirit, though the
+                  type signature changes.
+                </p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <div class="step-content">
+                <p>
+                  <strong>Provide v2 shim.</strong>
+                  <code>ExecuteSimple(ctx, id, aggType, decide SimpleDecideFunc[S]) error</code>
+                  wraps the typed version and discards the result. Consumers who don't need domain
+                  results don't see the complexity.
+                </p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">3</div>
+              <div class="step-content">
+                <p>
+                  <strong>Consumer side (go-localsync):</strong> Define
+                  <code
+                    >type SyncDecision struct { Action SyncAction; WasNew bool; Conflict string
+                    }</code
+                  >. Return it from <code>DecideSync</code>. The <code>countingDecide</code> hack
+                  disappears — the domain result flows through the type system.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="callout">
+            <span
+              ><strong>Tradeoff:</strong> Two-parameter generics increase the learning curve. The
+              mitigation is the <code>SimpleDecideFunc[S]</code> alias — most consumers never see
+              <code>R</code>. Only consumers who need domain semantics ("was this a create or an
+              update?") opt into the full <code>DecideFunc[S, R]</code>.</span
+            >
+          </div>
+          <div class="impact-grid">
+            <div class="impact-item">
+              <div class="impact-label">Effort</div>
+              <div class="impact-value">3–4 hours</div>
+            </div>
+            <div class="impact-item">
+              <div class="impact-label">Risk</div>
+              <div class="impact-value">Breaking (v3)</div>
+            </div>
+            <div class="impact-item">
+              <div class="impact-label">Replaces</div>
+              <div class="impact-value">CQ-1's map[string]any</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Not worth it -->
+        <div class="card">
+          <div class="card-top">
+            <div>
+              <div class="card-id">Note</div>
+              <h3>What's NOT worth genericizing</h3>
+            </div>
+          </div>
+          <div style="font-size: 14px; color: var(--text-secondary)">
+            <div
+              style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px 20px; margin-top: 8px"
+            >
+              <span
+                style="
+                  color: var(--text-muted);
+                  font-weight: 600;
+                  font-size: 12px;
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+                "
+                >Pattern</span
+              >
+              <span
+                style="
+                  color: var(--text-muted);
+                  font-weight: 600;
+                  font-size: 12px;
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+                "
+                >Why not</span
+              >
+
+              <span
+                style="
+                  font-family: &quot;JetBrains Mono&quot;, monospace;
+                  font-size: 12px;
+                  color: var(--text-primary);
+                "
+                ><code>Event[T]</code> typed payloads</span
+              >
+              <span
+                >Go can't express union types — the <code>DecodePayload[T]</code> + codec pattern is
+                the right tradeoff</span
+              >
+
+              <span
+                style="
+                  font-family: &quot;JetBrains Mono&quot;, monospace;
+                  font-size: 12px;
+                  color: var(--text-primary);
+                "
+                ><code>EventSink[AggType]</code></span
+              >
+              <span
+                >Aggregates handle multiple event types — a type param would be rigid and
+                restrictive</span
+              >
+
+              <span
+                style="
+                  font-family: &quot;JetBrains Mono&quot;, monospace;
+                  font-size: 12px;
+                  color: var(--text-primary);
+                "
+                >Error types</span
+              >
+              <span
+                >Go's <code>error</code> interface + the 5-family taxonomy is already the right
+                abstraction</span
+              >
+
+              <span
+                style="
+                  font-family: &quot;JetBrains Mono&quot;, monospace;
+                  font-size: 12px;
+                  color: var(--text-primary);
+                "
+                ><code>dispatcher[H, M]</code></span
+              >
+              <span
+                >Already generic — this is the foundation that both <code>command</code> and
+                <code>query</code> build on</span
+              >
+
+              <span
+                style="
+                  font-family: &quot;JetBrains Mono&quot;, monospace;
+                  font-size: 12px;
+                  color: var(--text-primary);
+                "
+                ><code>listing.Page[T]</code></span
+              >
+              <span
+                >Already generic — and the cursor-based pagination is the correct model for
+                append-only streams</span
+              >
+            </div>
           </div>
         </div>
       </div>
-      <div class="steps">
-        <div class="step">
-          <div class="step-num">1</div>
-          <div class="step-content">
-            <p><strong>Add the second type parameter.</strong> <code>Repository[S, R]</code> carries both types. <code>Execute</code> returns <code>(*DecideResult[R], error)</code>. Existing code that doesn't care about the result uses <code>Repository[S, struct{}]</code> via the <code>SimpleDecideFunc[S]</code> alias — backward compatible in spirit, though the type signature changes.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-num">2</div>
-          <div class="step-content">
-            <p><strong>Provide v2 shim.</strong> <code>ExecuteSimple(ctx, id, aggType, decide SimpleDecideFunc[S]) error</code> wraps the typed version and discards the result. Consumers who don't need domain results don't see the complexity.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-num">3</div>
-          <div class="step-content">
-            <p><strong>Consumer side (go-localsync):</strong> Define <code>type SyncDecision struct { Action SyncAction; WasNew bool; Conflict string }</code>. Return it from <code>DecideSync</code>. The <code>countingDecide</code> hack disappears — the domain result flows through the type system.</p>
-          </div>
-        </div>
+    </section>
+
+    <footer class="footer">
+      <div class="container">
+        Generated from architecture review ·
+        <a href="https://github.com/larsartmann/go-cqrs-lite">go-cqrs-lite</a> · June 2026
       </div>
-      <div class="callout">
-        <span><strong>Tradeoff:</strong> Two-parameter generics increase the learning curve. The mitigation is the <code>SimpleDecideFunc[S]</code> alias — most consumers never see <code>R</code>. Only consumers who need domain semantics ("was this a create or an update?") opt into the full <code>DecideFunc[S, R]</code>.</span>
-      </div>
-      <div class="impact-grid">
-        <div class="impact-item">
-          <div class="impact-label">Effort</div>
-          <div class="impact-value">3–4 hours</div>
-        </div>
-        <div class="impact-item">
-          <div class="impact-label">Risk</div>
-          <div class="impact-value">Breaking (v3)</div>
-        </div>
-        <div class="impact-item">
-          <div class="impact-label">Replaces</div>
-          <div class="impact-value">CQ-1's map[string]any</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Not worth it -->
-    <div class="card">
-      <div class="card-top">
-        <div>
-          <div class="card-id">Note</div>
-          <h3>What's NOT worth genericizing</h3>
-        </div>
-      </div>
-      <div style="font-size:14px;color:var(--text-secondary);">
-        <div style="display:grid;grid-template-columns:1fr 2fr;gap:8px 20px;margin-top:8px;">
-          <span style="color:var(--text-muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;">Pattern</span>
-          <span style="color:var(--text-muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;">Why not</span>
-
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-primary);"><code>Event[T]</code> typed payloads</span>
-          <span>Go can't express union types — the <code>DecodePayload[T]</code> + codec pattern is the right tradeoff</span>
-
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-primary);"><code>EventSink[AggType]</code></span>
-          <span>Aggregates handle multiple event types — a type param would be rigid and restrictive</span>
-
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-primary);">Error types</span>
-          <span>Go's <code>error</code> interface + the 5-family taxonomy is already the right abstraction</span>
-
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-primary);"><code>dispatcher[H, M]</code></span>
-          <span>Already generic — this is the foundation that both <code>command</code> and <code>query</code> build on</span>
-
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-primary);"><code>listing.Page[T]</code></span>
-          <span>Already generic — and the cursor-based pagination is the correct model for append-only streams</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<footer class="footer">
-  <div class="container">
-    Generated from architecture review · <a href="https://github.com/larsartmann/go-cqrs-lite">go-cqrs-lite</a> · June 2026
-  </div>
-</footer>
-
-</body>
+    </footer>
+  </body>
 </html>

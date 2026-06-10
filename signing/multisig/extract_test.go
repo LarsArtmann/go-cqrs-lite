@@ -8,14 +8,23 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2"
+	"github.com/larsartmann/go-cqrs-lite/signing/v2/internal/testutil"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2/multisig"
 )
+
+func parseAggID(s string) id.AggregateID {
+	v, err := id.ParseAggregateID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
 
 func TestExtractMultiSignature(t *testing.T) {
 	t.Parallel()
 
 	deviceMulti, _ := newDeviceMultiSigner(t)
-	evt := makeTestEvent(t)
+	evt := testutil.MakeTestEvent(t)
 
 	t.Run("extract from unsigned event", func(t *testing.T) {
 		t.Parallel()
@@ -48,7 +57,7 @@ func TestVerifyAll_MissingVerifier(t *testing.T) {
 	t.Parallel()
 
 	deviceMulti, _ := newDeviceMultiSigner(t)
-	evt := makeTestEvent(t)
+	evt := testutil.MakeTestEvent(t)
 
 	clone, _ := deviceMulti.Sign(evt)
 
@@ -63,10 +72,10 @@ func TestVerifyAll_FailingVerifier(t *testing.T) {
 	t.Parallel()
 
 	deviceMulti, _ := newDeviceMultiSigner(t)
-	evt := makeTestEvent(t)
+	evt := testutil.MakeTestEvent(t)
 
 	clone, _ := deviceMulti.Sign(evt)
-	tampered := tamperEvent(t, clone)
+	tampered := testutil.TamperEvent(t, clone)
 
 	pubKey, _, _ := ed25519.GenerateKey(nil)
 	verifier, _ := signing.NewEd25519Verifier(pubKey)
@@ -81,7 +90,7 @@ func TestVerifyAll_FailingVerifier(t *testing.T) {
 func TestExtractMultiSignature_InvalidJSON(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 	evt, err := event.NewEvent(
 		"test.invalid", aggID, "Test", 1, []byte(`{}`),
 		event.WithMetadata(event.Metadata{
@@ -152,7 +161,7 @@ func TestMultiSignerEndToEnd(t *testing.T) {
 		t.Fatalf("create server multi-signer: %v", err)
 	}
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 	deviceEvent, evtErr := event.NewEvent(
 		"user.created",
 		aggID,

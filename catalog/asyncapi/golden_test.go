@@ -2,9 +2,7 @@ package asyncapi_test
 
 import (
 	"flag"
-	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v2/asyncapi"
@@ -13,10 +11,6 @@ import (
 
 //nolint:gochecknoglobals // golden test pattern requires package-level flag
 var update = flag.Bool("update", false, "update golden files")
-
-func goldenDir() string {
-	return filepath.Join("..", "testdata", "golden")
-}
 
 func TestGolden_AsyncAPIJSON(t *testing.T) {
 	cat := cattest.BuildTestCatalog()
@@ -28,25 +22,8 @@ func TestGolden_AsyncAPIJSON(t *testing.T) {
 		t.Fatalf("MarshalJSON: %v", err)
 	}
 
-	goldenPath := filepath.Join(goldenDir(), "asyncapi.json")
-
-	if *update {
-		err := os.WriteFile(goldenPath, append(got, '\n'), 0o644)
-		if err != nil {
-			t.Fatalf("write golden: %v", err)
-		}
-
-		return
-	}
-
-	want, err := os.ReadFile(goldenPath)
-	if err != nil {
-		t.Fatalf("read golden: %v", err)
-	}
-
-	if strings.TrimSpace(string(got)) != strings.TrimSpace(string(want)) {
-		t.Errorf("AsyncAPI JSON mismatch (run with -update to refresh golden files)")
-	}
+	cattest.AssertGolden(t, filepath.Join(cattest.GoldenDir(), "asyncapi.json"),
+		got, *update, "AsyncAPI JSON mismatch (run with -update to refresh golden files)")
 }
 
 func TestGolden_AsyncAPIYAML(t *testing.T) {
@@ -59,23 +36,6 @@ func TestGolden_AsyncAPIYAML(t *testing.T) {
 		t.Fatalf("MarshalYAML: %v", err)
 	}
 
-	goldenPath := filepath.Join(goldenDir(), "asyncapi.yaml")
-
-	if *update {
-		err := os.WriteFile(goldenPath, append(got, '\n'), 0o644)
-		if err != nil {
-			t.Fatalf("write golden: %v", err)
-		}
-
-		return
-	}
-
-	want, err := os.ReadFile(goldenPath)
-	if err != nil {
-		t.Fatalf("read golden: %v", err)
-	}
-
-	if strings.TrimSpace(string(got)) != strings.TrimSpace(string(want)) {
-		t.Errorf("AsyncAPI YAML mismatch (run with -update to refresh golden files)")
-	}
+	cattest.AssertGolden(t, filepath.Join(cattest.GoldenDir(), "asyncapi.yaml"),
+		got, *update, "AsyncAPI YAML mismatch (run with -update to refresh golden files)")
 }

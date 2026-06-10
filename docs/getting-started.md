@@ -134,20 +134,20 @@ Query   → Dispatcher → Handler            Projection
 
 ## Modules
 
-| Module      | Import Path                                | Purpose                                    |
-| ----------- | ------------------------------------------ | ------------------------------------------ |
-| event       | `…/event/v2`                               | Events, Store, Bus, reactive streams       |
-| command     | `…/command/v2`                             | Commands, Dispatcher, typed handlers        |
-| query       | `…/query/v2`                               | Queries, Dispatcher, typed results          |
-| decider     | `…/decider/v2`                             | Pure-function aggregate pattern             |
-| id          | `…/id/v2`                                  | Branded IDs (AggregateID, EventID, etc.)    |
-| projection  | `…/projection/v2`                          | Catch-up projections with replay            |
-| memory      | `…/memory/v2`                              | In-memory implementations (testing)         |
-| storage     | `…/storage/v2`                             | PostgreSQL, SQLite, Turso, Pebble stores    |
-| middleware  | `…/middleware/v2`                           | Logging, retry, recovery, validation, etc.  |
-| catalog     | `…/catalog/v2`                             | Auto-documentation (AsyncAPI, EventCatalog) |
-| schema      | `…/schema/v2`                              | Schema evolution (upcasters)                |
-| signing     | `…/signing/v2`                             | Event signing/verification (HMAC, Ed25519)  |
+| Module     | Import Path       | Purpose                                     |
+| ---------- | ----------------- | ------------------------------------------- |
+| event      | `…/event/v2`      | Events, Store, Bus, reactive streams        |
+| command    | `…/command/v2`    | Commands, Dispatcher, typed handlers        |
+| query      | `…/query/v2`      | Queries, Dispatcher, typed results          |
+| decider    | `…/decider/v2`    | Pure-function aggregate pattern             |
+| id         | `…/id/v2`         | Branded IDs (AggregateID, EventID, etc.)    |
+| projection | `…/projection/v2` | Catch-up projections with replay            |
+| memory     | `…/memory/v2`     | In-memory implementations (testing)         |
+| storage    | `…/storage/v2`    | PostgreSQL, SQLite, Turso, Pebble stores    |
+| middleware | `…/middleware/v2` | Logging, retry, recovery, validation, etc.  |
+| catalog    | `…/catalog/v2`    | Auto-documentation (AsyncAPI, EventCatalog) |
+| schema     | `…/schema/v2`     | Schema evolution (upcasters)                |
+| signing    | `…/signing/v2`    | Event signing/verification (HMAC, Ed25519)  |
 
 ## Next Steps
 

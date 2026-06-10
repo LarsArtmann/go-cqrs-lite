@@ -8,19 +8,59 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
+func parseAggID(s string) id.AggregateID {
+	v, err := id.ParseAggregateID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+func parseCausationID(s string) id.CausationID {
+	v, err := id.ParseCausationID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+func parseCorrID(s string) id.CorrelationID {
+	v, err := id.ParseCorrelationID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+func parseRequestID(s string) id.RequestID {
+	v, err := id.ParseRequestID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+func parseUserID(s string) id.UserID {
+	v, err := id.ParseUserID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 func TestEventOptions(t *testing.T) {
 	t.Parallel()
 
 	evt, err := event.NewEvent(
 		"TestEvent",
-		id.MustParseAggregateID("01HK154DK8FZYV2ANMQ6B0N1JY"),
+		parseAggID("01HK154DK8FZYV2ANMQ6B0N1JY"),
 		"TestAggregate",
 		1,
 		nil,
-		event.WithCorrelationID(id.MustParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH")),
-		event.WithCausationID(id.MustParseCausationID("01HK154FHRS5276AC3V7GRNTYM")),
-		event.WithUserID(id.MustParseUserID("01HK1543TRR6BB4AF65NQX5V8S")),
-		event.WithRequestID(id.MustParseRequestID("01HK154GH03H0ZJCWQ2PEYSCZW")),
+		event.WithCorrelationID(parseCorrID("01HK154EJG2GP2SR75DK1Q1TBH")),
+		event.WithCausationID(parseCausationID("01HK154FHRS5276AC3V7GRNTYM")),
+		event.WithUserID(parseUserID("01HK1543TRR6BB4AF65NQX5V8S")),
+		event.WithRequestID(parseRequestID("01HK154GH03H0ZJCWQ2PEYSCZW")),
 		event.WithSource(event.Source("test-service")),
 		event.WithIPAddress(event.IPAddress("127.0.0.1")),
 		event.WithUserAgent(event.UserAgent("test-agent")),
@@ -31,19 +71,19 @@ func TestEventOptions(t *testing.T) {
 	}
 
 	m := evt.Metadata()
-	if m.CorrelationID != id.MustParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH") {
+	if m.CorrelationID != parseCorrID("01HK154EJG2GP2SR75DK1Q1TBH") {
 		t.Errorf("expected correlation ID corr-123, got %s", m.CorrelationID)
 	}
 
-	if m.CausationID != id.MustParseCausationID("01HK154FHRS5276AC3V7GRNTYM") {
+	if m.CausationID != parseCausationID("01HK154FHRS5276AC3V7GRNTYM") {
 		t.Errorf("expected causation ID cause-456, got %s", m.CausationID)
 	}
 
-	if m.UserID != id.MustParseUserID("01HK1543TRR6BB4AF65NQX5V8S") {
+	if m.UserID != parseUserID("01HK1543TRR6BB4AF65NQX5V8S") {
 		t.Errorf("expected user ID user-789, got %s", m.UserID)
 	}
 
-	if m.RequestID != id.MustParseRequestID("01HK154GH03H0ZJCWQ2PEYSCZW") {
+	if m.RequestID != parseRequestID("01HK154GH03H0ZJCWQ2PEYSCZW") {
 		t.Errorf("expected request ID req-001, got %s", m.RequestID)
 	}
 
@@ -87,7 +127,7 @@ func TestEvent_MetadataDefensiveCopy(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		parseAggID("01HK1540X0841Y0A6BSX1VKR95"),
 		"User",
 		1,
 		nil,
@@ -110,11 +150,11 @@ func TestWithMetadata(t *testing.T) {
 	t.Parallel()
 
 	custom := event.NewMetadata()
-	custom.CorrelationID = id.MustParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH")
+	custom.CorrelationID = parseCorrID("01HK154EJG2GP2SR75DK1Q1TBH")
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		parseAggID("01HK1540X0841Y0A6BSX1VKR95"),
 		"User",
 		1,
 		nil,
@@ -135,12 +175,12 @@ func TestWithMetadata(t *testing.T) {
 func TestWithMetadata_MergesInsteadOfReplace(t *testing.T) {
 	t.Parallel()
 
-	correlationID := id.MustParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH")
+	correlationID := parseCorrID("01HK154EJG2GP2SR75DK1Q1TBH")
 	userID := id.NewUserID()
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		parseAggID("01HK1540X0841Y0A6BSX1VKR95"),
 		"User",
 		1,
 		nil,
@@ -170,7 +210,7 @@ func TestWithMetadata_NilExisting(t *testing.T) {
 	meta := event.Metadata{Source: "test"}
 	evt, err := event.NewEvent(
 		"UserCreated",
-		id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		parseAggID("01HK1540X0841Y0A6BSX1VKR95"),
 		"User",
 		1,
 		nil,
@@ -213,7 +253,7 @@ func TestWithCustom_NilCustomMap(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		parseAggID("01HK1540X0841Y0A6BSX1VKR95"),
 		"User",
 		1,
 		nil,
@@ -232,7 +272,7 @@ func TestWithCustom_ExistingCustomMap(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		parseAggID("01HK1540X0841Y0A6BSX1VKR95"),
 		"User",
 		1,
 		nil,
@@ -309,10 +349,10 @@ func TestEnsureMetadata_WhenNil(t *testing.T) {
 
 	core := &event.ImmutableEvent{}
 
-	opt := event.WithCorrelationID(id.MustParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH"))
+	opt := event.WithCorrelationID(parseCorrID("01HK154EJG2GP2SR75DK1Q1TBH"))
 	opt(core)
 
-	if core.Metadata().CorrelationID != id.MustParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH") {
+	if core.Metadata().CorrelationID != parseCorrID("01HK154EJG2GP2SR75DK1Q1TBH") {
 		t.Errorf("expected correlation ID to be set, got %s", core.Metadata().CorrelationID)
 	}
 }

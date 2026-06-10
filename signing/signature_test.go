@@ -10,7 +10,16 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2"
+	"github.com/larsartmann/go-cqrs-lite/signing/v2/internal/testutil"
 )
+
+func parseAggID(s string) id.AggregateID {
+	v, err := id.ParseAggregateID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
 
 func TestSignature(t *testing.T) {
 	t.Parallel()
@@ -51,7 +60,7 @@ func TestAttachAndExtractSignature(t *testing.T) {
 
 	key := []byte("my-secret-key-thirty-two-bytes!!")
 	signer, _ := signing.NewHMAC(key)
-	evt := makeTestEvent(t)
+	evt := testutil.MakeTestEvent(t)
 	sig, _ := signer.Sign(evt)
 
 	t.Run("attach and extract roundtrip", func(t *testing.T) {
@@ -145,7 +154,7 @@ func TestCanonicalPayload_Deterministic(t *testing.T) {
 	t.Parallel()
 
 	// Create two identical events
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 	opts := []event.Option{
 		event.WithSchemaVersion(2),
 	}
@@ -239,7 +248,7 @@ func TestEd25519_Deterministic(t *testing.T) {
 	}
 
 	signer, _ := signing.NewEd25519(privKey)
-	evt := makeTestEvent(t)
+	evt := testutil.MakeTestEvent(t)
 
 	sig1, _ := signer.Sign(evt)
 	sig2, _ := signer.Sign(evt)
@@ -305,7 +314,7 @@ func TestSignature_UnmarshalJSON_BadBase64(t *testing.T) {
 func TestCanonicalPayload_EdgeCases(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 
 	t.Run("nil payload", func(t *testing.T) {
 		t.Parallel()

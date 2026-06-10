@@ -6,6 +6,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2"
+	"github.com/larsartmann/go-cqrs-lite/signing/v2/internal/testutil"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2/multisig"
 )
 
@@ -17,12 +18,12 @@ func TestMultiSignMiddleware(t *testing.T) {
 	t.Run("signs events before publishing", func(t *testing.T) {
 		t.Parallel()
 
-		pub, publishedPtr := collectingPublisher()
+		pub, publishedPtr := testutil.CollectingPublisher()
 
 		mw := multisig.MultiSignMiddleware(deviceMulti)
 		signedPub := mw(pub)
 
-		evt := makeTestEvent(t)
+		evt := testutil.MakeTestEvent(t)
 		if err := signedPub.Publish(context.Background(), evt); err != nil {
 			t.Fatalf("publish: %v", err)
 		}
@@ -60,12 +61,12 @@ func TestRequireMultiSigMiddleware(t *testing.T) {
 	t.Run("rejects unsigned events", func(t *testing.T) {
 		t.Parallel()
 
-		handler, wasCalled := trackingHandler()
+		handler, wasCalled := testutil.TrackingHandler()
 
 		mw := multisig.RequireMultiSigMiddleware(verifiers)
 		wrapped := mw(handler)
 
-		evt := makeTestEvent(t)
+		evt := testutil.MakeTestEvent(t)
 		if err := wrapped(context.Background(), evt); err == nil {
 			t.Fatal("expected error for unsigned event")
 		}
@@ -77,12 +78,12 @@ func TestRequireMultiSigMiddleware(t *testing.T) {
 	t.Run("rejects partially signed events", func(t *testing.T) {
 		t.Parallel()
 
-		handler := noopHandler
+		handler := testutil.NoopHandler
 
 		mw := multisig.RequireMultiSigMiddleware(verifiers)
 		wrapped := mw(handler)
 
-		evt := makeTestEvent(t)
+		evt := testutil.MakeTestEvent(t)
 		clone, _ := deviceMulti.Sign(evt)
 
 		if err := wrapped(context.Background(), clone); err == nil {
@@ -93,12 +94,12 @@ func TestRequireMultiSigMiddleware(t *testing.T) {
 	t.Run("allows fully signed events", func(t *testing.T) {
 		t.Parallel()
 
-		handler, wasCalled := trackingHandler()
+		handler, wasCalled := testutil.TrackingHandler()
 
 		mw := multisig.RequireMultiSigMiddleware(verifiers)
 		wrapped := mw(handler)
 
-		evt := makeTestEvent(t)
+		evt := testutil.MakeTestEvent(t)
 		clone1, _ := deviceMulti.Sign(evt)
 		clone2, _ := serverMulti.Sign(clone1)
 
@@ -116,15 +117,15 @@ func TestMultiVerifyMiddleware_RejectsTampered(t *testing.T) {
 
 	deviceMulti, _ := newDeviceMultiSigner(t)
 
-	handler := noopHandler
+	handler := testutil.NoopHandler
 
 	mw := multisig.MultiVerifyMiddleware(deviceMulti)
 	wrapped := mw(handler)
 
-	evt := makeTestEvent(t)
+	evt := testutil.MakeTestEvent(t)
 	clone, _ := deviceMulti.Sign(evt)
 
-	tampered := tamperEvent(t, clone)
+	tampered := testutil.TamperEvent(t, clone)
 
 	err := wrapped(context.Background(), tampered)
 	if err == nil {
@@ -137,12 +138,12 @@ func TestMultiVerifyMiddleware_NoMultiSig(t *testing.T) {
 
 	deviceMulti, _ := newDeviceMultiSigner(t)
 
-	handler, wasCalled := trackingHandler()
+	handler, wasCalled := testutil.TrackingHandler()
 
 	mw := multisig.MultiVerifyMiddleware(deviceMulti)
 	wrapped := mw(handler)
 
-	evt := makeTestEvent(t)
+	evt := testutil.MakeTestEvent(t)
 	if err := wrapped(context.Background(), evt); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -155,7 +156,7 @@ func TestMultiVerifyMiddleware_NoMultiSig(t *testing.T) {
 func TestRequireMultiSigMiddleware_NilEvent(t *testing.T) {
 	t.Parallel()
 
-	handler := noopHandler
+	handler := testutil.NoopHandler
 
 	key := []byte("nil-event-test-key-thirty-two-by!")
 	verifier, _ := signing.NewHMAC(key)
@@ -181,12 +182,12 @@ func TestMultiVerifyMiddlewareFor(t *testing.T) {
 	t.Run("allows valid signature", func(t *testing.T) {
 		t.Parallel()
 
-		handler, wasCalled := trackingHandler()
+		handler, wasCalled := testutil.TrackingHandler()
 
 		mw := multisig.MultiVerifyMiddlewareFor(multisig.Actor("device"), deviceVerifier)
 		wrapped := mw(handler)
 
-		evt := makeTestEvent(t)
+		evt := testutil.MakeTestEvent(t)
 		clone, _ := deviceMulti.Sign(evt)
 		clone2, _ := serverMulti.Sign(clone)
 
@@ -202,15 +203,15 @@ func TestMultiVerifyMiddlewareFor(t *testing.T) {
 	t.Run("rejects tampered event", func(t *testing.T) {
 		t.Parallel()
 
-		handler := noopHandler
+		handler := testutil.NoopHandler
 
 		mw := multisig.MultiVerifyMiddlewareFor(multisig.Actor("device"), deviceVerifier)
 		wrapped := mw(handler)
 
-		evt := makeTestEvent(t)
+		evt := testutil.MakeTestEvent(t)
 		clone, _ := deviceMulti.Sign(evt)
 
-		tampered := tamperEvent(t, clone)
+		tampered := testutil.TamperEvent(t, clone)
 
 		if err := wrapped(context.Background(), tampered); err == nil {
 			t.Fatal("expected error for tampered event")
@@ -220,12 +221,12 @@ func TestMultiVerifyMiddlewareFor(t *testing.T) {
 	t.Run("passes through unsigned event", func(t *testing.T) {
 		t.Parallel()
 
-		handler, wasCalled := trackingHandler()
+		handler, wasCalled := testutil.TrackingHandler()
 
 		mw := multisig.MultiVerifyMiddlewareFor(multisig.Actor("device"), deviceVerifier)
 		wrapped := mw(handler)
 
-		evt := makeTestEvent(t)
+		evt := testutil.MakeTestEvent(t)
 		if err := wrapped(context.Background(), evt); err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -238,12 +239,12 @@ func TestMultiVerifyMiddlewareFor(t *testing.T) {
 	t.Run("rejects missing actor signature", func(t *testing.T) {
 		t.Parallel()
 
-		handler := noopHandler
+		handler := testutil.NoopHandler
 
 		mw := multisig.MultiVerifyMiddlewareFor(multisig.Actor("device"), deviceVerifier)
 		wrapped := mw(handler)
 
-		evt := makeTestEvent(t)
+		evt := testutil.MakeTestEvent(t)
 		clone, _ := serverMulti.Sign(evt)
 
 		if err := wrapped(context.Background(), clone); err == nil {
@@ -273,9 +274,9 @@ func TestMultiSigMiddlewareNilGuards(t *testing.T) {
 		t.Parallel()
 
 		mw := multisig.MultiVerifyMiddleware(nil)
-		handler := mw(noopHandler)
+		handler := mw(testutil.NoopHandler)
 
-		err := handler(context.Background(), makeTestEvent(t))
+		err := handler(context.Background(), testutil.MakeTestEvent(t))
 		if err == nil {
 			t.Fatal("expected rejection error for nil signer")
 		}
@@ -285,9 +286,9 @@ func TestMultiSigMiddlewareNilGuards(t *testing.T) {
 		t.Parallel()
 
 		mw := multisig.MultiVerifyMiddlewareFor(multisig.Actor("device"), nil)
-		handler := mw(noopHandler)
+		handler := mw(testutil.NoopHandler)
 
-		err := handler(context.Background(), makeTestEvent(t))
+		err := handler(context.Background(), testutil.MakeTestEvent(t))
 		if err == nil {
 			t.Fatal("expected rejection error for nil verifier")
 		}
@@ -297,9 +298,9 @@ func TestMultiSigMiddlewareNilGuards(t *testing.T) {
 		t.Parallel()
 
 		mw := multisig.RequireMultiSigMiddleware(map[multisig.Actor]signing.Verifier{})
-		handler := mw(noopHandler)
+		handler := mw(testutil.NoopHandler)
 
-		err := handler(context.Background(), makeTestEvent(t))
+		err := handler(context.Background(), testutil.MakeTestEvent(t))
 		if err == nil {
 			t.Fatal("expected rejection error for empty verifiers map")
 		}
@@ -313,7 +314,7 @@ func TestCorruptedMultiSigMiddleware(t *testing.T) {
 
 	makeCorruptMultiSigEvent := func(t *testing.T) event.Event {
 		t.Helper()
-		evt := makeTestEvent(t)
+		evt := testutil.MakeTestEvent(t)
 		corrupt, err := event.NewEvent(
 			evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
 			evt.Payload(),
@@ -331,7 +332,7 @@ func TestCorruptedMultiSigMiddleware(t *testing.T) {
 	t.Run("MultiVerifyMiddleware rejects corrupt multi-sig", func(t *testing.T) {
 		t.Parallel()
 
-		handler := noopHandler
+		handler := testutil.NoopHandler
 		mw := multisig.MultiVerifyMiddleware(deviceMulti)
 		wrapped := mw(handler)
 
@@ -347,7 +348,7 @@ func TestCorruptedMultiSigMiddleware(t *testing.T) {
 
 		key := []byte("corrupt-test-key-thirty-two-bytes!")
 		verifier, _ := signing.NewHMAC(key)
-		handler := noopHandler
+		handler := testutil.NoopHandler
 		mw := multisig.MultiVerifyMiddlewareFor(multisig.Actor("device"), verifier)
 		wrapped := mw(handler)
 

@@ -10,6 +10,14 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
+func parseAggID(s string) id.AggregateID {
+	v, err := id.ParseAggregateID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 func TestProjectionFunc(t *testing.T) {
 	t.Parallel()
 
@@ -110,7 +118,7 @@ func TestNewProjection_WithDecode(t *testing.T) {
 		[]event.Type{"UserCreated"},
 	)
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`))
 

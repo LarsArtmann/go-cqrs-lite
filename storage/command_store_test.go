@@ -11,6 +11,14 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/storage/v2"
 )
 
+func parseAggID(s string) id.AggregateID {
+	v, err := id.ParseAggregateID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 func newTestCommandStore(t *testing.T) *storage.SQLCommandStore {
 	t.Helper()
 
@@ -76,7 +84,7 @@ func TestSQLCommandStore_SaveAndLoad(t *testing.T) {
 
 	store := newTestCommandStore(t)
 	ctx := context.Background()
-	ref := command.NewAggregateRef("User", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	ref := command.NewAggregateRef("User", parseAggID("01HK1540X0841Y0A6BSX1VKR95"))
 
 	cmd1 := testCommand(t, "CreateUser", ref)
 	cmd2 := testCommand(t, "UpdateUser", ref)
@@ -114,7 +122,7 @@ func TestSQLCommandStore_DuplicateCommand(t *testing.T) {
 
 	store := newTestCommandStore(t)
 	ctx := context.Background()
-	ref := command.NewAggregateRef("User", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	ref := command.NewAggregateRef("User", parseAggID("01HK1540X0841Y0A6BSX1VKR95"))
 
 	cmd := testCommand(t, "CreateUser", ref)
 
@@ -138,7 +146,7 @@ func TestSQLCommandStore_AppendBatch(t *testing.T) {
 
 	store := newTestCommandStore(t)
 	ctx := context.Background()
-	ref := command.NewAggregateRef("User", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	ref := command.NewAggregateRef("User", parseAggID("01HK1540X0841Y0A6BSX1VKR95"))
 
 	cmd1 := testCommand(t, "CreateUser", ref)
 	cmd2 := testCommand(t, "UpdateUser", ref)
@@ -163,7 +171,7 @@ func TestSQLCommandStore_Load_NotFound(t *testing.T) {
 
 	store := newTestCommandStore(t)
 	ctx := context.Background()
-	ref := command.NewAggregateRef("User", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	ref := command.NewAggregateRef("User", parseAggID("01HK1540X0841Y0A6BSX1VKR95"))
 
 	_, err := store.Load(ctx, ref)
 	if err == nil {
@@ -180,7 +188,7 @@ func TestSQLCommandStore_LoadFromTimestamp(t *testing.T) {
 
 	store := newTestCommandStore(t)
 	ctx := context.Background()
-	ref := command.NewAggregateRef("User", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	ref := command.NewAggregateRef("User", parseAggID("01HK1540X0841Y0A6BSX1VKR95"))
 
 	cmd2, err := command.NewPersistedCommand("UpdateUser", ref, nil, command.WithReceivedAt(
 		time.Date(2025, 1, 15, 10, 0, 0, 0, time.UTC),
@@ -215,7 +223,7 @@ func TestSQLCommandStore_LoadToTimestamp(t *testing.T) {
 
 	store := newTestCommandStore(t)
 	ctx := context.Background()
-	ref := command.NewAggregateRef("User", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	ref := command.NewAggregateRef("User", parseAggID("01HK1540X0841Y0A6BSX1VKR95"))
 
 	cmd1, err := command.NewPersistedCommand("CreateUser", ref, nil, command.WithReceivedAt(
 		time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC),
@@ -250,7 +258,7 @@ func TestSQLCommandStore_Close(t *testing.T) {
 
 	store := newTestCommandStore(t)
 	ctx := context.Background()
-	ref := command.NewAggregateRef("User", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	ref := command.NewAggregateRef("User", parseAggID("01HK1540X0841Y0A6BSX1VKR95"))
 
 	err := store.Close()
 	if err != nil {

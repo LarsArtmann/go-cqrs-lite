@@ -19,6 +19,23 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
+func mustNewCmd(commandType command.Type, aggregateID id.AggregateID, opts ...command.Option) *command.BasicCommand {
+	cmd, err := command.New(commandType, aggregateID, opts...)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func mustNewQuery(queryType query.Type) *query.BasicQuery {
+	q, err := query.New(queryType)
+	if err != nil {
+		panic(err)
+	}
+	return q
+}
+
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -150,7 +167,7 @@ func BenchmarkScale_CommandDispatch(b *testing.B) {
 
 	for b.Loop() {
 		for i := range 100 {
-			cmd := command.MustNew(command.Type(fmt.Sprintf("cmd.%d", i)), aggID)
+			cmd := mustNewCmd(command.Type(fmt.Sprintf("cmd.%d", i)), aggID)
 			err := dispatcher.Dispatch(ctx, cmd)
 			if err != nil {
 				b.Fatalf("dispatch: %v", err)
@@ -502,7 +519,7 @@ func BenchmarkScale_QueryDispatch_1000Handlers(b *testing.B) {
 
 	for b.Loop() {
 		for i := range handlerCount {
-			q := query.MustNew(query.Type(fmt.Sprintf("query.%d", i)))
+			q := mustNewQuery(query.Type(fmt.Sprintf("query.%d", i)))
 			_, err := dispatcher.Dispatch(ctx, q)
 			if err != nil {
 				b.Fatalf("dispatch: %v", err)
@@ -550,7 +567,7 @@ func BenchmarkScale_QueryDispatch_PaginatedResults(b *testing.B) {
 
 	for b.Loop() {
 		for _, ps := range pageSizes {
-			q := query.MustNew(query.Type(fmt.Sprintf("list.page%d", ps)))
+			q := mustNewQuery(query.Type(fmt.Sprintf("list.page%d", ps)))
 			_, err := dispatcher.Dispatch(ctx, q)
 			if err != nil {
 				b.Fatalf("dispatch: %v", err)
@@ -731,7 +748,7 @@ func BenchmarkScale_FullPipeline_1KAggregates(b *testing.B) {
 			benchCreateItem(b, repo, context.Background(), aggID)
 		}
 
-		q := query.MustNew("list.items")
+		q := mustNewQuery("list.items")
 		_, err := queryDisp.Dispatch(context.Background(), q)
 		if err != nil {
 			b.Fatalf("Dispatch: %v", err)
@@ -776,7 +793,7 @@ func BenchmarkScale_Concurrent_10KCommands_8Goroutines(b *testing.B) {
 				aggID := id.NewAggregateID()
 
 				for range opsPerWorker {
-					cmd := command.MustNew("bench.cmd", aggID)
+					cmd := mustNewCmd("bench.cmd", aggID)
 					_ = dispatcher.Dispatch(ctx, cmd)
 				}
 			}()

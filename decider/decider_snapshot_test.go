@@ -11,6 +11,15 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 )
 
+func mustEveryN(n int) snapshot.SnapshotStrategy {
+	s, err := snapshot.EveryNEvents(n)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+
 func TestExecute_WithSnapshot(t *testing.T) {
 	t.Parallel()
 
@@ -18,7 +27,7 @@ func TestExecute_WithSnapshot(t *testing.T) {
 
 	repo := newCounterSnapshotRepo(
 		t, store, bus, snapshotStore, codec,
-		decider.WithSnapshotStrategy[counterState](snapshot.MustEveryNEvents(2)),
+		decider.WithSnapshotStrategy[counterState](mustEveryN(2)),
 	)
 
 	aggID := id.NewAggregateID()
@@ -148,7 +157,7 @@ func TestExecute_SaveSnapshotError(t *testing.T) {
 
 	repo := newCounterSnapshotRepo(
 		t, store, bus, snapshotStore, codec,
-		decider.WithSnapshotStrategy[counterState](snapshot.MustEveryNEvents(1)),
+		decider.WithSnapshotStrategy[counterState](mustEveryN(1)),
 	)
 
 	aggID := id.NewAggregateID()
@@ -177,7 +186,7 @@ func TestExecute_SaveSnapshotFoldError(t *testing.T) {
 		store, bus, d,
 		decider.WithSnapshotStore[counterState](snapshotStore),
 		decider.WithCodec[counterState](codec),
-		decider.WithSnapshotStrategy[counterState](snapshot.MustEveryNEvents(1)),
+		decider.WithSnapshotStrategy[counterState](mustEveryN(1)),
 	)
 	if err != nil {
 		t.Fatalf("NewRepository: %v", err)
@@ -205,7 +214,7 @@ func TestEveryNEvents_PanicsOnNegative(t *testing.T) {
 		}
 	}()
 
-	snapshot.MustEveryNEvents(-1)
+	mustEveryN(-1)
 }
 
 func TestLoad_SnapshotWithEventsAfter(t *testing.T) {

@@ -8,6 +8,15 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
+func mustNewCmd(commandType command.Type, aggregateID id.AggregateID, opts ...command.Option) *command.BasicCommand {
+	cmd, err := command.New(commandType, aggregateID, opts...)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+
 func BenchmarkNew(b *testing.B) {
 	b.ReportAllocs()
 
@@ -31,7 +40,7 @@ func BenchmarkMustNew(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_ = command.MustNew("bench.cmd", aggID)
+		_ = mustNewCmd("bench.cmd", aggID)
 	}
 }
 

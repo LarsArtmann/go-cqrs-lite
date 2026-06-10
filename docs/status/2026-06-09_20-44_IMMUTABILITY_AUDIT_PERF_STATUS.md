@@ -16,15 +16,15 @@
 
 ### P1: Mutability leak fixes (6 issues fixed)
 
-| Leak | Module | Fix |
-|------|--------|-----|
-| `PersistedCommand.Metadata()` returns shared map | command | → `c.metadata.Clone()` |
-| `BasicCommand.Metadata()` returns shared map | command | → `c.metadata.Clone()` |
-| `getRefsUnsorted()` returns internal cache slice | listing | → `slices.Clone(cached)` |
-| `projectionFunc.EventTypes()` returns internal slice | event | → `slices.Clone(p.eventTypes)` |
-| `NewProjection` stores caller's slice directly | event | → `slices.Clone(eventTypes)` on intake |
-| `builtProjection.EventTypes()` returns internal slice | projection | → `slices.Clone(p.eventTypes)` |
-| `Builder.Build()` shares eventTypes with builder | projection | → `slices.Clone(types)` on build |
+| Leak                                                  | Module     | Fix                                    |
+| ----------------------------------------------------- | ---------- | -------------------------------------- |
+| `PersistedCommand.Metadata()` returns shared map      | command    | → `c.metadata.Clone()`                 |
+| `BasicCommand.Metadata()` returns shared map          | command    | → `c.metadata.Clone()`                 |
+| `getRefsUnsorted()` returns internal cache slice      | listing    | → `slices.Clone(cached)`               |
+| `projectionFunc.EventTypes()` returns internal slice  | event      | → `slices.Clone(p.eventTypes)`         |
+| `NewProjection` stores caller's slice directly        | event      | → `slices.Clone(eventTypes)` on intake |
+| `builtProjection.EventTypes()` returns internal slice | projection | → `slices.Clone(p.eventTypes)`         |
+| `Builder.Build()` shares eventTypes with builder      | projection | → `slices.Clone(types)` on build       |
 
 ### Mutation-safety tests (4 new tests)
 
@@ -100,33 +100,33 @@
 
 Sorted by Impact × Effort (Pareto):
 
-| # | Priority | Task | Impact | Effort |
-|---|----------|------|--------|--------|
-| 1 | P0 | Fix pre-existing golden test failures in `codec/` and `middleware/` | Test hygiene | S |
-| 2 | P1 | Document immutability contract on `Event` interface | Consumer safety | S |
-| 3 | P1 | Eliminate `MarkTombstone` double-clone | Perf (alloc reduction) | S |
-| 4 | P1 | Add `DecodePayloads` optimization (batch version uses same `payloadForDecode`) | Perf | S |
-| 5 | P1 | Fix `MultiSignature.Get()` returning mutable pointer | Safety | S |
-| 6 | P1 | Audit `event.Builder.WithPayload()` — clone on intake | Safety | S |
-| 7 | P2 | Benchmark `Metadata.Clone()` overhead on hot paths | Visibility | S |
-| 8 | P2 | Add property-based immutability tests with `rapid` | Test rigor | M |
-| 9 | P2 | Run `nix run .#bench` baseline comparison before/after this change | Regression detection | S |
-| 10 | P2 | Consider removing `Signature.Bytes()` clone (redundant) | Micro-perf | S |
-| 11 | P2 | Add `go:generate` target for running immutability audits | DX | M |
-| 12 | P3 | Evaluate `io.Reader` for payload streaming (large payloads) | Architecture | L |
-| 13 | P3 | Consider `sync.Pool` for event payload buffers | Perf (GC pressure) | M |
-| 14 | P3 | Add allocation profiling to CI (`-allocspace`) | Visibility | M |
-| 15 | P3 | Document the `payloadForDecode` pattern in AGENTS.md | Knowledge | S |
-| 16 | P3 | Review `event.Builder` for other mutability issues | Safety | M |
-| 17 | P3 | Consider `[]byte` -> `string` for immutable payloads where possible | Perf (no copy needed) | L |
-| 18 | P4 | Add fuzz tests for payload encode/decode roundtrip | Robustness | M |
-| 19 | P4 | Evaluate `google/uuid` vs `oklog/ulid` for event ID generation perf | Perf | M |
-| 20 | P4 | Profile real-world event processing pipeline end-to-end | Visibility | L |
-| 21 | P4 | Consider `unsafe.String` / `unsafe.Slice` for zero-copy JSON interop | Perf (advanced) | L |
-| 22 | P4 | Add `PooledEvent` type for high-throughput scenarios | Perf | L |
-| 23 | P4 | Evaluate `golang.org/x/exp/constraints` for type-safe payload generics | DX | M |
-| 24 | P5 | Write ADR for the `payloadForDecode` optimization pattern | Documentation | S |
-| 25 | P5 | Consider `copier` or `deepcopy` library for complex struct cloning | DX | M |
+| #   | Priority | Task                                                                           | Impact                 | Effort |
+| --- | -------- | ------------------------------------------------------------------------------ | ---------------------- | ------ |
+| 1   | P0       | Fix pre-existing golden test failures in `codec/` and `middleware/`            | Test hygiene           | S      |
+| 2   | P1       | Document immutability contract on `Event` interface                            | Consumer safety        | S      |
+| 3   | P1       | Eliminate `MarkTombstone` double-clone                                         | Perf (alloc reduction) | S      |
+| 4   | P1       | Add `DecodePayloads` optimization (batch version uses same `payloadForDecode`) | Perf                   | S      |
+| 5   | P1       | Fix `MultiSignature.Get()` returning mutable pointer                           | Safety                 | S      |
+| 6   | P1       | Audit `event.Builder.WithPayload()` — clone on intake                          | Safety                 | S      |
+| 7   | P2       | Benchmark `Metadata.Clone()` overhead on hot paths                             | Visibility             | S      |
+| 8   | P2       | Add property-based immutability tests with `rapid`                             | Test rigor             | M      |
+| 9   | P2       | Run `nix run .#bench` baseline comparison before/after this change             | Regression detection   | S      |
+| 10  | P2       | Consider removing `Signature.Bytes()` clone (redundant)                        | Micro-perf             | S      |
+| 11  | P2       | Add `go:generate` target for running immutability audits                       | DX                     | M      |
+| 12  | P3       | Evaluate `io.Reader` for payload streaming (large payloads)                    | Architecture           | L      |
+| 13  | P3       | Consider `sync.Pool` for event payload buffers                                 | Perf (GC pressure)     | M      |
+| 14  | P3       | Add allocation profiling to CI (`-allocspace`)                                 | Visibility             | M      |
+| 15  | P3       | Document the `payloadForDecode` pattern in AGENTS.md                           | Knowledge              | S      |
+| 16  | P3       | Review `event.Builder` for other mutability issues                             | Safety                 | M      |
+| 17  | P3       | Consider `[]byte` -> `string` for immutable payloads where possible            | Perf (no copy needed)  | L      |
+| 18  | P4       | Add fuzz tests for payload encode/decode roundtrip                             | Robustness             | M      |
+| 19  | P4       | Evaluate `google/uuid` vs `oklog/ulid` for event ID generation perf            | Perf                   | M      |
+| 20  | P4       | Profile real-world event processing pipeline end-to-end                        | Visibility             | L      |
+| 21  | P4       | Consider `unsafe.String` / `unsafe.Slice` for zero-copy JSON interop           | Perf (advanced)        | L      |
+| 22  | P4       | Add `PooledEvent` type for high-throughput scenarios                           | Perf                   | L      |
+| 23  | P4       | Evaluate `golang.org/x/exp/constraints` for type-safe payload generics         | DX                     | M      |
+| 24  | P5       | Write ADR for the `payloadForDecode` optimization pattern                      | Documentation          | S      |
+| 25  | P5       | Consider `copier` or `deepcopy` library for complex struct cloning             | DX                     | M      |
 
 ---
 
@@ -135,6 +135,7 @@ Sorted by Impact × Effort (Pareto):
 **Should `Payload()` clone at all?**
 
 The current design clones defensively on every `Payload()` call. But in practice:
+
 - **99% of callers** only read the bytes (JSON decode, signing hash, logging)
 - **The only mutation path** is test code that explicitly verifies isolation
 - The clone costs 37–1165 ns per call depending on payload size

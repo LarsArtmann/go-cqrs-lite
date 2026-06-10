@@ -49,11 +49,11 @@ Most callers only **read** the bytes (decoding, signing, serialization, SQL inse
 
 ## Benchmark Evidence
 
-| Path | 16B payload | 256B payload |
-|------|-------------|--------------|
-| `Payload()` (clone) | ~37 ns, 1 alloc | ~65 ns, 1 alloc |
-| `PayloadReadOnly()` (zero-copy) | ~1 ns, 0 allocs | ~1 ns, 0 allocs |
-| `DecodePayload` (optimized) | Matches zero-copy | Matches zero-copy |
+| Path                            | 16B payload       | 256B payload      |
+| ------------------------------- | ----------------- | ----------------- |
+| `Payload()` (clone)             | ~37 ns, 1 alloc   | ~65 ns, 1 alloc   |
+| `PayloadReadOnly()` (zero-copy) | ~1 ns, 0 allocs   | ~1 ns, 0 allocs   |
+| `DecodePayload` (optimized)     | Matches zero-copy | Matches zero-copy |
 
 ## Updated Files
 

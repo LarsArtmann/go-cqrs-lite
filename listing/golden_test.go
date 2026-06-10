@@ -13,6 +13,14 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/listing/v2"
 )
 
+func parseAggID(s string) id.AggregateID {
+	v, err := id.ParseAggregateID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 var update = flag.Bool("update", false, "update golden files")
 
 func testListingStatus(
@@ -36,7 +44,7 @@ func testListingStatus(
 }
 
 func TestGolden_AggregateStatusJSON(t *testing.T) {
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 
 	statuses := []listing.AggregateStatus{
 		testListingStatus(
@@ -81,7 +89,7 @@ func TestGolden_AggregateStatusJSON(t *testing.T) {
 }
 
 func TestGolden_PageJSON(t *testing.T) {
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 
 	page := listing.Page[listing.AggregateStatus]{
 		Items: []listing.AggregateStatus{

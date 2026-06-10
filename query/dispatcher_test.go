@@ -9,6 +9,15 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
+func mustNewQuery(queryType query.Type) *query.BasicQuery {
+	q, err := query.New(queryType)
+	if err != nil {
+		panic(err)
+	}
+	return q
+}
+
+
 func registerHandler(d *query.Dispatcher, name query.Type, result any) {
 	_ = d.Register(name, func(_ context.Context, _ query.Query) (any, error) {
 		return result, nil
@@ -37,7 +46,7 @@ func TestNew_EmptyType(t *testing.T) {
 func TestMustNew_PanicsOnEmptyType(t *testing.T) {
 	t.Parallel()
 
-	eventtest.AssertPanics(t, func() { _ = query.MustNew("") })
+	eventtest.AssertPanics(t, func() { _ = mustNewQuery("") })
 }
 
 func TestDispatcher_Dispatch_HandlerError(t *testing.T) {
@@ -51,7 +60,7 @@ func TestDispatcher_Dispatch_HandlerError(t *testing.T) {
 		return nil, handlerErr
 	})
 
-	q := query.MustNew("FailQuery")
+	q := mustNewQuery("FailQuery")
 
 	_, err := d.Dispatch(ctx, q)
 	if err == nil {
@@ -68,7 +77,7 @@ func TestDispatcher_Dispatch_QueryNotSupported_ErrorChain(t *testing.T) {
 
 	d := query.NewDispatcher()
 
-	q := query.MustNew("UnknownQuery")
+	q := mustNewQuery("UnknownQuery")
 
 	_, err := d.Dispatch(context.Background(), q)
 	if err == nil {
@@ -106,7 +115,7 @@ func TestDispatcher_Closed_DispatchErrorChain(t *testing.T) {
 	d := query.NewDispatcher()
 	_ = d.Close()
 
-	q := query.MustNew("TestQuery")
+	q := mustNewQuery("TestQuery")
 
 	_, err := d.Dispatch(context.Background(), q)
 	if err == nil {
@@ -143,7 +152,7 @@ func TestDispatcher_Dispatch_Success(t *testing.T) {
 
 	registerHandler(d, "TestQuery", "result")
 
-	q := query.MustNew("TestQuery")
+	q := mustNewQuery("TestQuery")
 
 	result, err := d.Dispatch(context.Background(), q)
 	if err != nil {
@@ -162,7 +171,7 @@ func TestDispatcher_Dispatch_WrappedClosedError(t *testing.T) {
 	registerHandler(d, "TestQuery", "")
 	_ = d.Close()
 
-	q := query.MustNew("TestQuery")
+	q := mustNewQuery("TestQuery")
 
 	_, err := d.Dispatch(context.Background(), q)
 	if err == nil {
@@ -179,7 +188,7 @@ func TestDispatchTyped_DispatchError(t *testing.T) {
 
 	d := query.NewDispatcher()
 
-	q := query.MustNew("UnknownQuery")
+	q := mustNewQuery("UnknownQuery")
 
 	_, err := query.DispatchTyped[string](context.Background(), d, q)
 	if err == nil {
@@ -196,7 +205,7 @@ func TestDispatcher_Use(t *testing.T) {
 
 	registerHandler(d, "TestQuery", "result")
 
-	q := query.MustNew("TestQuery")
+	q := mustNewQuery("TestQuery")
 
 	result, err := d.Dispatch(context.Background(), q)
 	if err != nil {
@@ -231,7 +240,7 @@ func TestDispatchTyped_TypeMismatch(t *testing.T) {
 
 	registerHandler(d, "IntQuery", 42)
 
-	q := query.MustNew("IntQuery")
+	q := mustNewQuery("IntQuery")
 
 	_, err := query.DispatchTyped[string](context.Background(), d, q)
 	if err == nil {
@@ -246,7 +255,7 @@ func TestDispatchTyped_Success(t *testing.T) {
 
 	registerHandler(d, "StringQuery", "hello")
 
-	q := query.MustNew("StringQuery")
+	q := mustNewQuery("StringQuery")
 
 	result, err := query.DispatchTyped[string](context.Background(), d, q)
 	if err != nil {
@@ -275,7 +284,7 @@ func TestRegisterTyped_Success(t *testing.T) {
 		t.Fatalf("RegisterTyped() error = %v", err)
 	}
 
-	q := query.MustNew("GetUser")
+	q := mustNewQuery("GetUser")
 
 	result, err := query.DispatchTyped[*User](context.Background(), d, q)
 	if err != nil {
@@ -305,7 +314,7 @@ func TestRegisterTyped_HandlerError(t *testing.T) {
 		t.Fatalf("RegisterTyped() error = %v", err)
 	}
 
-	q := query.MustNew("FailQuery")
+	q := mustNewQuery("FailQuery")
 
 	_, err = query.DispatchTyped[string](context.Background(), d, q)
 	if err == nil {
@@ -353,7 +362,7 @@ func TestRegisterTyped_WorksWithMiddleware(t *testing.T) {
 		t.Fatalf("RegisterTyped() error = %v", err)
 	}
 
-	q := query.MustNew("MWQuery")
+	q := mustNewQuery("MWQuery")
 
 	result, err := query.DispatchTyped[int](context.Background(), d, q)
 	if err != nil {

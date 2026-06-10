@@ -7,6 +7,14 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
+func parseAggID(s string) id.AggregateID {
+	v, err := id.ParseAggregateID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 func newTestUpcaster(typ event.Type, version event.SchemaVersion, payload string) Upcaster {
 	return NewUpcaster(typ, version, func(evt event.Event) (*event.ImmutableEvent, error) {
 		return event.NewEvent(typ, evt.AggregateID(), "User", evt.Version(), []byte(payload))
@@ -15,7 +23,7 @@ func newTestUpcaster(typ event.Type, version event.SchemaVersion, payload string
 
 func newTestEvent(version int, payload string) (*upcasterRegistry, event.Event) {
 	registry := newUpcasterRegistry()
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 	evt, _ := event.NewEvent("UserCreated", aggID, "User", event.Version(version), []byte(payload))
 
 	return registry, evt
@@ -28,7 +36,7 @@ func TestUpcasterFunc(t *testing.T) {
 		"UserCreated",
 		1,
 		func(_ event.Event) (*event.ImmutableEvent, error) {
-			aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+			aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 
 			return event.NewEvent("UserCreated", aggID, "User", 2, nil)
 		},
@@ -48,7 +56,7 @@ func TestUpcasterRegistry_NoUpcasters(t *testing.T) {
 
 	registry := newUpcasterRegistry()
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, err := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`))
 	if err != nil {
@@ -130,7 +138,7 @@ func TestUpcasterRegistry_DifferentEventTypes(t *testing.T) {
 	registry := newUpcasterRegistry()
 	registerUserCreatedUpcasterV1(registry)
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, _ := event.NewEvent("OrderPlaced", aggID, "Order", 5, []byte(`{}`))
 
@@ -175,7 +183,7 @@ func TestUpcasterRegistry_VersionSorting(t *testing.T) {
 	registerTrackingUpcaster(registry, 2, &applied)
 	registerTrackingUpcaster(registry, 1, &applied)
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, _ := event.NewEvent("UserCreated", aggID, "User", 3, nil)
 
@@ -199,7 +207,7 @@ func TestUpcasterRegistry_AlreadyCurrentVersion(t *testing.T) {
 	registerTrackingUpcaster(registry, 1, &applied)
 	registerTrackingUpcaster(registry, 2, &applied)
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, _ := event.NewEvent("UserCreated", aggID, "User", 10, nil, event.WithSchemaVersion(3))
 
@@ -227,7 +235,7 @@ func TestUpcasterRegistry_PartialChain(t *testing.T) {
 	registerTrackingUpcaster(registry, 1, &applied)
 	registerTrackingUpcaster(registry, 2, &applied)
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, _ := event.NewEvent("UserCreated", aggID, "User", 8, nil, event.WithSchemaVersion(2))
 
@@ -255,7 +263,7 @@ func TestUpcasterRegistry_AutoIncrementsSchemaVersion(t *testing.T) {
 	registry := newUpcasterRegistry()
 	registerUserCreatedUpcasterV1(registry)
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, _ := event.NewEvent("UserCreated", aggID, "User", 5, nil)
 

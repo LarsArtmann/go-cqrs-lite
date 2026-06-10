@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/signing/v2"
+	"github.com/larsartmann/go-cqrs-lite/signing/v2/internal/testutil"
 )
 
 func TestEd25519Signer(t *testing.T) {
@@ -37,7 +38,7 @@ func TestEd25519Signer(t *testing.T) {
 		t.Parallel()
 
 		signer, _ := signing.NewEd25519(privKey)
-		evt := makeTestEvent(t)
+		evt := testutil.MakeTestEvent(t)
 
 		sig, err := signer.Sign(evt)
 		if err != nil {
@@ -71,7 +72,7 @@ func TestEd25519Verifier(t *testing.T) {
 	signer, _ := signing.NewEd25519(privKey)
 	verifier, _ := signing.NewEd25519Verifier(pubKey)
 
-	evt := makeTestEvent(t)
+	evt := testutil.MakeTestEvent(t)
 	sig, _ := signer.Sign(evt)
 
 	t.Run("verify valid signature", func(t *testing.T) {
@@ -86,7 +87,7 @@ func TestEd25519Verifier(t *testing.T) {
 	t.Run("verify tampered event", func(t *testing.T) {
 		t.Parallel()
 
-		tampered := tamperEvent(t, evt)
+		tampered := testutil.TamperEvent(t, evt)
 
 		err := verifier.Verify(tampered, sig)
 		if err == nil {

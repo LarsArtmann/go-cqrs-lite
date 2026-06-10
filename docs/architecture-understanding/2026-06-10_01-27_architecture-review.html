@@ -1,231 +1,790 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>go-cqrs-lite Architecture Review — 2026-06-10</title>
-<style>
-  body { max-width: 70em; margin: 0 auto; padding: 1em 2em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1a1a1a; line-height: 1.6; }
-  h1 { font-size: 1.8em; border-bottom: 2px solid #2563eb; padding-bottom: 0.3em; }
-  h2 { font-size: 1.4em; color: #1e40af; margin-top: 2em; }
-  h3 { font-size: 1.1em; color: #374151; }
-  table { border-collapse: collapse; width: 100%; margin: 1em 0; font-size: 0.9em; }
-  th, td { border: 1px solid #d1d5db; padding: 0.5em 0.75em; text-align: left; }
-  th { background: #eff6ff; font-weight: 600; }
-  tr:nth-child(even) { background: #f9fafb; }
-  .critical { color: #dc2626; font-weight: 700; }
-  .warning { color: #d97706; font-weight: 700; }
-  .good { color: #059669; font-weight: 700; }
-  .badge { display: inline-block; padding: 0.1em 0.5em; border-radius: 4px; font-size: 0.85em; font-weight: 600; }
-  .badge-critical { background: #fecaca; color: #991b1b; }
-  .badge-warning { background: #fef3c7; color: #92400e; }
-  .badge-good { background: #d1fae5; color: #065f46; }
-  .badge-info { background: #dbeafe; color: #1e40af; }
-  pre { background: #1e293b; color: #e2e8f0; padding: 1em; border-radius: 6px; overflow-x: auto; font-size: 0.85em; }
-  .card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 1em 1.5em; margin: 1em 0; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-  .metric-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1em; margin: 1em 0; }
-  .metric { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 0.75em 1em; text-align: center; }
-  .metric-value { font-size: 2em; font-weight: 700; color: #0369a1; }
-  .metric-label { font-size: 0.85em; color: #64748b; }
-  .toc { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1em 1.5em; margin: 1em 0; }
-  .toc a { color: #2563eb; text-decoration: none; }
-  .toc a:hover { text-decoration: underline; }
-  .toc ul { padding-left: 1.5em; }
-  code { background: #f1f5f9; padding: 0.1em 0.3em; border-radius: 3px; font-size: 0.9em; }
-</style>
-</head>
-<body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>go-cqrs-lite Architecture Review — 2026-06-10</title>
+    <style>
+      body {
+        max-width: 70em;
+        margin: 0 auto;
+        padding: 1em 2em;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        color: #1a1a1a;
+        line-height: 1.6;
+      }
+      h1 {
+        font-size: 1.8em;
+        border-bottom: 2px solid #2563eb;
+        padding-bottom: 0.3em;
+      }
+      h2 {
+        font-size: 1.4em;
+        color: #1e40af;
+        margin-top: 2em;
+      }
+      h3 {
+        font-size: 1.1em;
+        color: #374151;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 1em 0;
+        font-size: 0.9em;
+      }
+      th,
+      td {
+        border: 1px solid #d1d5db;
+        padding: 0.5em 0.75em;
+        text-align: left;
+      }
+      th {
+        background: #eff6ff;
+        font-weight: 600;
+      }
+      tr:nth-child(even) {
+        background: #f9fafb;
+      }
+      .critical {
+        color: #dc2626;
+        font-weight: 700;
+      }
+      .warning {
+        color: #d97706;
+        font-weight: 700;
+      }
+      .good {
+        color: #059669;
+        font-weight: 700;
+      }
+      .badge {
+        display: inline-block;
+        padding: 0.1em 0.5em;
+        border-radius: 4px;
+        font-size: 0.85em;
+        font-weight: 600;
+      }
+      .badge-critical {
+        background: #fecaca;
+        color: #991b1b;
+      }
+      .badge-warning {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      .badge-good {
+        background: #d1fae5;
+        color: #065f46;
+      }
+      .badge-info {
+        background: #dbeafe;
+        color: #1e40af;
+      }
+      pre {
+        background: #1e293b;
+        color: #e2e8f0;
+        padding: 1em;
+        border-radius: 6px;
+        overflow-x: auto;
+        font-size: 0.85em;
+      }
+      .card {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1em 1.5em;
+        margin: 1em 0;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+      .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1em;
+        margin: 1em 0;
+      }
+      .metric {
+        background: #f0f9ff;
+        border: 1px solid #bae6fd;
+        border-radius: 8px;
+        padding: 0.75em 1em;
+        text-align: center;
+      }
+      .metric-value {
+        font-size: 2em;
+        font-weight: 700;
+        color: #0369a1;
+      }
+      .metric-label {
+        font-size: 0.85em;
+        color: #64748b;
+      }
+      .toc {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 1em 1.5em;
+        margin: 1em 0;
+      }
+      .toc a {
+        color: #2563eb;
+        text-decoration: none;
+      }
+      .toc a:hover {
+        text-decoration: underline;
+      }
+      .toc ul {
+        padding-left: 1.5em;
+      }
+      code {
+        background: #f1f5f9;
+        padding: 0.1em 0.3em;
+        border-radius: 3px;
+        font-size: 0.9em;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>go-cqrs-lite Architecture Review</h1>
 
-<h1>go-cqrs-lite Architecture Review</h1>
+    <div
+      style="
+        background: #fef2f2;
+        border: 2px solid #dc2626;
+        border-radius: 8px;
+        padding: 1em 1.5em;
+        margin: 1em 0;
+      "
+    >
+      <strong style="color: #dc2626">CORRECTION (2026-06-10):</strong> This review incorrectly
+      claims "4 bidirectional import cycles" in the production dependency graph.
+      <strong
+        >Analysis of actual production code confirms the dependency graph is a clean DAG.</strong
+      >
+      The apparent cycles exist only in <code>go.mod</code> files because Go does not separate
+      test-only dependencies. For example, <code>event/go.mod</code> lists command, query, memory,
+      schema, and snapshot as dependencies, but
+      <strong>production event code imports ZERO from these modules</strong> — they are used
+      exclusively in <code>_test.go</code> files and <code>eventtest/</code>. The recommended
+      cycle-breaking actions (extract eventtest, remove event→command, etc.) are therefore about
+      reducing test-dep binary bloat, not fixing compile-time cycles.
+    </div>
 
-<div style="background:#fef2f2;border:2px solid #dc2626;border-radius:8px;padding:1em 1.5em;margin:1em 0;">
-<strong style="color:#dc2626;">CORRECTION (2026-06-10):</strong> This review incorrectly claims "4 bidirectional import cycles" in the production dependency graph.
-<strong>Analysis of actual production code confirms the dependency graph is a clean DAG.</strong>
-The apparent cycles exist only in <code>go.mod</code> files because Go does not separate test-only dependencies.
-For example, <code>event/go.mod</code> lists command, query, memory, schema, and snapshot as dependencies,
-but <strong>production event code imports ZERO from these modules</strong> — they are used exclusively in
-<code>_test.go</code> files and <code>eventtest/</code>. The recommended cycle-breaking actions (extract eventtest,
-remove event→command, etc.) are therefore about reducing test-dep binary bloat, not fixing compile-time cycles.
-</div>
+    <p>
+      <strong>Date:</strong> 2026-06-10 · <strong>Reviewer:</strong> Automated Architecture Analysis
+      · <strong>Scope:</strong> 22 library modules + 2 cmd tools
+    </p>
 
-<p><strong>Date:</strong> 2026-06-10 · <strong>Reviewer:</strong> Automated Architecture Analysis · <strong>Scope:</strong> 22 library modules + 2 cmd tools</p>
+    <div class="metric-grid">
+      <div class="metric">
+        <div class="metric-value">31</div>
+        <div class="metric-label">Total Modules</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">22</div>
+        <div class="metric-label">Library Modules</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">4</div>
+        <div class="metric-label">Circular Dependencies</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">7</div>
+        <div class="metric-label">Max Direct Deps</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">5</div>
+        <div class="metric-label">Clean Leaf Modules</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">12</div>
+        <div class="metric-label">Test Deps in Prod go.mod</div>
+      </div>
+    </div>
 
-<div class="metric-grid">
-  <div class="metric"><div class="metric-value">31</div><div class="metric-label">Total Modules</div></div>
-  <div class="metric"><div class="metric-value">22</div><div class="metric-label">Library Modules</div></div>
-  <div class="metric"><div class="metric-value">4</div><div class="metric-label">Circular Dependencies</div></div>
-  <div class="metric"><div class="metric-value">7</div><div class="metric-label">Max Direct Deps</div></div>
-  <div class="metric"><div class="metric-value">5</div><div class="metric-label">Clean Leaf Modules</div></div>
-  <div class="metric"><div class="metric-value">12</div><div class="metric-label">Test Deps in Prod go.mod</div></div>
-</div>
+    <div class="toc">
+      <strong>Table of Contents</strong>
+      <ul>
+        <li><a href="#executive-summary">Executive Summary</a></li>
+        <li><a href="#dependency-dag">Dependency DAG</a></li>
+        <li><a href="#circular-dependencies">Circular Dependencies (Critical)</a></li>
+        <li><a href="#coupling-hotspots">Coupling Hotspots</a></li>
+        <li><a href="#test-deps">Test Dependencies in Production go.mod</a></li>
+        <li><a href="#layer-violations">Layer Violations</a></li>
+        <li><a href="#strengths">Strengths</a></li>
+        <li><a href="#recommendations">Recommendations</a></li>
+      </ul>
+    </div>
 
-<div class="toc">
-<strong>Table of Contents</strong>
-<ul>
-  <li><a href="#executive-summary">Executive Summary</a></li>
-  <li><a href="#dependency-dag">Dependency DAG</a></li>
-  <li><a href="#circular-dependencies">Circular Dependencies (Critical)</a></li>
-  <li><a href="#coupling-hotspots">Coupling Hotspots</a></li>
-  <li><a href="#test-deps">Test Dependencies in Production go.mod</a></li>
-  <li><a href="#layer-violations">Layer Violations</a></li>
-  <li><a href="#strengths">Strengths</a></li>
-  <li><a href="#recommendations">Recommendations</a></li>
-</ul>
-</div>
+    <h2 id="executive-summary">Executive Summary</h2>
+    <div class="card">
+      <p>
+        The go-cqrs-lite library has
+        <span class="good">excellent modular structure at the macro level</span> — 22 independently
+        versioned library modules with clear layer separation. The ISP-split interfaces,
+        pure-function decider pattern, and composition-over-inheritance design are textbook examples
+        of Go library architecture.
+      </p>
+      <p>
+        However, <span class="critical">4 circular dependencies between core modules</span> (event,
+        command, memory, snapshot) prevent true independent compilation and versioning.
+        Additionally,
+        <span class="warning"
+          >12 of 22 modules have test-only dependencies in their production go.mod files</span
+        >, causing unnecessary binary bloat for consumers.
+      </p>
+      <p>
+        The most impactful improvement would be
+        <strong>breaking the event ↔ command cycle</strong> by extracting shared types
+        (AggregateRef, Metadata) into a thin shared module.
+      </p>
+    </div>
 
-<h2 id="executive-summary">Executive Summary</h2>
-<div class="card">
-<p>The go-cqrs-lite library has <span class="good">excellent modular structure at the macro level</span> — 22 independently versioned library modules with clear layer separation. The ISP-split interfaces, pure-function decider pattern, and composition-over-inheritance design are textbook examples of Go library architecture.</p>
-<p>However, <span class="critical">4 circular dependencies between core modules</span> (event, command, memory, snapshot) prevent true independent compilation and versioning. Additionally, <span class="warning">12 of 22 modules have test-only dependencies in their production go.mod files</span>, causing unnecessary binary bloat for consumers.</p>
-<p>The most impactful improvement would be <strong>breaking the event ↔ command cycle</strong> by extracting shared types (AggregateRef, Metadata) into a thin shared module.</p>
-</div>
+    <h2 id="dependency-dag">Dependency DAG</h2>
+    <div class="card">
+      <h3>Layer 0 — Leaf Modules (zero internal deps)</h3>
+      <table>
+        <tr>
+          <th>Module</th>
+          <th>External Deps</th>
+          <th>Notes</th>
+        </tr>
+        <tr>
+          <td><code>codec</code></td>
+          <td>None</td>
+          <td class="good">Purest module</td>
+        </tr>
+        <tr>
+          <td><code>id</code></td>
+          <td>go-branded-id, ulid/v2</td>
+          <td>⚠️ <code>rapid</code> in prod go.mod</td>
+        </tr>
+        <tr>
+          <td><code>dispatcher</code></td>
+          <td>go-error-family</td>
+          <td class="good">Clean</td>
+        </tr>
+        <tr>
+          <td><code>catalog</code></td>
+          <td>go-faster/yaml, go-error-family</td>
+          <td class="good">Fully standalone</td>
+        </tr>
+        <tr>
+          <td><code>otel</code></td>
+          <td>OTel SDK</td>
+          <td>Shared observability</td>
+        </tr>
+      </table>
 
-<h2 id="dependency-dag">Dependency DAG</h2>
-<div class="card">
-<h3>Layer 0 — Leaf Modules (zero internal deps)</h3>
-<table>
-<tr><th>Module</th><th>External Deps</th><th>Notes</th></tr>
-<tr><td><code>codec</code></td><td>None</td><td class="good">Purest module</td></tr>
-<tr><td><code>id</code></td><td>go-branded-id, ulid/v2</td><td>⚠️ <code>rapid</code> in prod go.mod</td></tr>
-<tr><td><code>dispatcher</code></td><td>go-error-family</td><td class="good">Clean</td></tr>
-<tr><td><code>catalog</code></td><td>go-faster/yaml, go-error-family</td><td class="good">Fully standalone</td></tr>
-<tr><td><code>otel</code></td><td>OTel SDK</td><td>Shared observability</td></tr>
-</table>
+      <h3>Layer 1 — Core CQRS Modules</h3>
+      <table>
+        <tr>
+          <th>Module</th>
+          <th>Internal Deps</th>
+          <th>External Deps</th>
+        </tr>
+        <tr>
+          <td><code>event</code></td>
+          <td>codec, command, id, memory, query, schema, snapshot</td>
+          <td>go-error-family, samber/ro</td>
+        </tr>
+        <tr>
+          <td><code>command</code></td>
+          <td>dispatcher, event, id</td>
+          <td>go-error-family</td>
+        </tr>
+        <tr>
+          <td><code>query</code></td>
+          <td>dispatcher, event</td>
+          <td>go-error-family</td>
+        </tr>
+        <tr>
+          <td><code>decider</code></td>
+          <td>codec, event, id, memory, otel, snapshot</td>
+          <td>None external</td>
+        </tr>
+        <tr>
+          <td><code>schema</code></td>
+          <td>event, id, memory</td>
+          <td>None external</td>
+        </tr>
+        <tr>
+          <td><code>snapshot</code></td>
+          <td>codec, event, id, memory</td>
+          <td>None external</td>
+        </tr>
+        <tr>
+          <td><code>memory</code></td>
+          <td>command, dispatcher, event, id, snapshot</td>
+          <td>None external</td>
+        </tr>
+        <tr>
+          <td><code>listing</code></td>
+          <td>event, id, memory</td>
+          <td>None external</td>
+        </tr>
+      </table>
 
-<h3>Layer 1 — Core CQRS Modules</h3>
-<table>
-<tr><th>Module</th><th>Internal Deps</th><th>External Deps</th></tr>
-<tr><td><code>event</code></td><td>codec, command, id, memory, query, schema, snapshot</td><td>go-error-family, samber/ro</td></tr>
-<tr><td><code>command</code></td><td>dispatcher, event, id</td><td>go-error-family</td></tr>
-<tr><td><code>query</code></td><td>dispatcher, event</td><td>go-error-family</td></tr>
-<tr><td><code>decider</code></td><td>codec, event, id, memory, otel, snapshot</td><td>None external</td></tr>
-<tr><td><code>schema</code></td><td>event, id, memory</td><td>None external</td></tr>
-<tr><td><code>snapshot</code></td><td>codec, event, id, memory</td><td>None external</td></tr>
-<tr><td><code>memory</code></td><td>command, dispatcher, event, id, snapshot</td><td>None external</td></tr>
-<tr><td><code>listing</code></td><td>event, id, memory</td><td>None external</td></tr>
-</table>
+      <h3>Layer 2 — Infrastructure / Adapter Modules</h3>
+      <table>
+        <tr>
+          <th>Module</th>
+          <th>Internal Deps</th>
+          <th>External Deps</th>
+        </tr>
+        <tr>
+          <td><code>middleware</code></td>
+          <td>command, event, id, memory, otel, query</td>
+          <td>OTel SDK</td>
+        </tr>
+        <tr>
+          <td><code>signing</code></td>
+          <td>event, id</td>
+          <td>None external</td>
+        </tr>
+        <tr>
+          <td><code>projection</code></td>
+          <td>codec, event, id, memory, otel</td>
+          <td>golang.org/x/sync</td>
+        </tr>
+        <tr>
+          <td><code>storage</code></td>
+          <td>codec, command, event, id, listing, otel, snapshot</td>
+          <td>go-sqlmock, modernc.org/sqlite</td>
+        </tr>
+        <tr>
+          <td><code>watermill</code></td>
+          <td>event, id, memory</td>
+          <td>ThreeDotsLabs/watermill</td>
+        </tr>
+        <tr>
+          <td><code>pebble</code></td>
+          <td>codec, event, id</td>
+          <td>cockroachdb/pebble</td>
+        </tr>
+        <tr>
+          <td><code>turso</code></td>
+          <td>event, id, snapshot, storage</td>
+          <td>turso database driver</td>
+        </tr>
+      </table>
 
-<h3>Layer 2 — Infrastructure / Adapter Modules</h3>
-<table>
-<tr><th>Module</th><th>Internal Deps</th><th>External Deps</th></tr>
-<tr><td><code>middleware</code></td><td>command, event, id, memory, otel, query</td><td>OTel SDK</td></tr>
-<tr><td><code>signing</code></td><td>event, id</td><td>None external</td></tr>
-<tr><td><code>projection</code></td><td>codec, event, id, memory, otel</td><td>golang.org/x/sync</td></tr>
-<tr><td><code>storage</code></td><td>codec, command, event, id, listing, otel, snapshot</td><td>go-sqlmock, modernc.org/sqlite</td></tr>
-<tr><td><code>watermill</code></td><td>event, id, memory</td><td>ThreeDotsLabs/watermill</td></tr>
-<tr><td><code>pebble</code></td><td>codec, event, id</td><td>cockroachdb/pebble</td></tr>
-<tr><td><code>turso</code></td><td>event, id, snapshot, storage</td><td>turso database driver</td></tr>
-</table>
+      <h3>Layer 3 — Integration / Test</h3>
+      <table>
+        <tr>
+          <th>Module</th>
+          <th>Internal Deps</th>
+          <th>Notes</th>
+        </tr>
+        <tr>
+          <td><code>integration</code></td>
+          <td>14 of 21 library modules</td>
+          <td>Top-level test harness (expected)</td>
+        </tr>
+      </table>
+    </div>
 
-<h3>Layer 3 — Integration / Test</h3>
-<table>
-<tr><th>Module</th><th>Internal Deps</th><th>Notes</th></tr>
-<tr><td><code>integration</code></td><td>14 of 21 library modules</td><td>Top-level test harness (expected)</td></tr>
-</table>
-</div>
+    <h2 id="circular-dependencies">
+      Circular Dependencies <span class="badge badge-critical">CRITICAL</span>
+    </h2>
+    <div class="card">
+      <p>
+        Four bidirectional import cycles exist in the core module graph. These prevent independent
+        compilation and versioning of the affected modules.
+      </p>
+      <table>
+        <tr>
+          <th>#</th>
+          <th>Cycle</th>
+          <th>Impact</th>
+        </tr>
+        <tr>
+          <td>1</td>
+          <td><code>event</code> ↔ <code>command</code></td>
+          <td>
+            Core event types coupled to command dispatch; shared types (AggregateRef, Metadata) live
+            in wrong module
+          </td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td><code>event</code> ↔ <code>memory</code></td>
+          <td>
+            Event test suite imports memory; memory implements event interfaces — should be
+            one-directional
+          </td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td><code>memory</code> ↔ <code>snapshot</code></td>
+          <td>
+            In-memory store depends on snapshot abstractions AND snapshot depends on memory types
+          </td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td>
+            3-node: <code>memory</code> → <code>command</code> → <code>event</code> →
+            <code>memory</code>
+          </td>
+          <td>Transitive cycle through the bidirectional edges above</td>
+        </tr>
+      </table>
+      <h3>Root Cause</h3>
+      <p>
+        The primary issue is that <code>event</code> is both a domain types module AND a test
+        infrastructure module. Its <code>eventtest</code> sub-package depends on
+        <code>memory</code> (for shared store suite), and its main package depends on
+        <code>command</code> and <code>query</code> (for CatalogDispatcher integration).
+      </p>
+      <h3>Fix Strategy</h3>
+      <ol>
+        <li>
+          <strong>Extract <code>eventtest</code></strong> from <code>event</code> go.mod — move to
+          its own module (it already has its own directory). This breaks event ↔ memory.
+        </li>
+        <li>
+          <strong>Extract shared types</strong> (AggregateRef, Metadata) from command into event,
+          then remove event → command dependency. CatalogDispatcher should be in command, not event.
+        </li>
+        <li>
+          <strong>Unidirectional snapshot</strong>: snapshot should depend on event only, not
+          memory. Move memory snapshot implementation's interface dependency.
+        </li>
+      </ol>
+    </div>
 
-<h2 id="circular-dependencies">Circular Dependencies <span class="badge badge-critical">CRITICAL</span></h2>
-<div class="card">
-<p>Four bidirectional import cycles exist in the core module graph. These prevent independent compilation and versioning of the affected modules.</p>
-<table>
-<tr><th>#</th><th>Cycle</th><th>Impact</th></tr>
-<tr><td>1</td><td><code>event</code> ↔ <code>command</code></td><td>Core event types coupled to command dispatch; shared types (AggregateRef, Metadata) live in wrong module</td></tr>
-<tr><td>2</td><td><code>event</code> ↔ <code>memory</code></td><td>Event test suite imports memory; memory implements event interfaces — should be one-directional</td></tr>
-<tr><td>3</td><td><code>memory</code> ↔ <code>snapshot</code></td><td>In-memory store depends on snapshot abstractions AND snapshot depends on memory types</td></tr>
-<tr><td>4</td><td>3-node: <code>memory</code> → <code>command</code> → <code>event</code> → <code>memory</code></td><td>Transitive cycle through the bidirectional edges above</td></tr>
-</table>
-<h3>Root Cause</h3>
-<p>The primary issue is that <code>event</code> is both a domain types module AND a test infrastructure module. Its <code>eventtest</code> sub-package depends on <code>memory</code> (for shared store suite), and its main package depends on <code>command</code> and <code>query</code> (for CatalogDispatcher integration).</p>
-<h3>Fix Strategy</h3>
-<ol>
-  <li><strong>Extract <code>eventtest</code></strong> from <code>event</code> go.mod — move to its own module (it already has its own directory). This breaks event ↔ memory.</li>
-  <li><strong>Extract shared types</strong> (AggregateRef, Metadata) from command into event, then remove event → command dependency. CatalogDispatcher should be in command, not event.</li>
-  <li><strong>Unidirectional snapshot</strong>: snapshot should depend on event only, not memory. Move memory snapshot implementation's interface dependency.</li>
-</ol>
-</div>
+    <h2 id="coupling-hotspots">Coupling Hotspots</h2>
+    <div class="card">
+      <table>
+        <tr>
+          <th>Rank</th>
+          <th>Module</th>
+          <th>Direct Internal Deps</th>
+          <th>Assessment</th>
+        </tr>
+        <tr>
+          <td>1</td>
+          <td><code>event</code></td>
+          <td>7</td>
+          <td>
+            <span class="badge badge-critical">Too many</span> — event should be a thin domain
+            module, not the center of the dependency universe
+          </td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td><code>storage</code></td>
+          <td>7</td>
+          <td>
+            <span class="badge badge-warning">Heavy</span> — SQL adapter depends on listing, otel,
+            snapshot, command — concerns mixed
+          </td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td><code>middleware</code></td>
+          <td>6</td>
+          <td>
+            <span class="badge badge-warning">Expected</span> — cross-cutting middleware naturally
+            depends on all message types
+          </td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td><code>decider</code></td>
+          <td>6</td>
+          <td>
+            <span class="badge badge-warning">Expected</span> — aggregate orchestrator touches many
+            subsystems
+          </td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td><code>projection</code></td>
+          <td>5</td>
+          <td><span class="badge badge-info">Reasonable</span></td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td><code>memory</code></td>
+          <td>5</td>
+          <td>
+            <span class="badge badge-info">Reasonable</span> — in-memory implementations of many
+            interfaces
+          </td>
+        </tr>
+      </table>
+    </div>
 
-<h2 id="coupling-hotspots">Coupling Hotspots</h2>
-<div class="card">
-<table>
-<tr><th>Rank</th><th>Module</th><th>Direct Internal Deps</th><th>Assessment</th></tr>
-<tr><td>1</td><td><code>event</code></td><td>7</td><td><span class="badge badge-critical">Too many</span> — event should be a thin domain module, not the center of the dependency universe</td></tr>
-<tr><td>2</td><td><code>storage</code></td><td>7</td><td><span class="badge badge-warning">Heavy</span> — SQL adapter depends on listing, otel, snapshot, command — concerns mixed</td></tr>
-<tr><td>3</td><td><code>middleware</code></td><td>6</td><td><span class="badge badge-warning">Expected</span> — cross-cutting middleware naturally depends on all message types</td></tr>
-<tr><td>4</td><td><code>decider</code></td><td>6</td><td><span class="badge badge-warning">Expected</span> — aggregate orchestrator touches many subsystems</td></tr>
-<tr><td>5</td><td><code>projection</code></td><td>5</td><td><span class="badge badge-info">Reasonable</span></td></tr>
-<tr><td>6</td><td><code>memory</code></td><td>5</td><td><span class="badge badge-info">Reasonable</span> — in-memory implementations of many interfaces</td></tr>
-</table>
-</div>
+    <h2 id="test-deps">
+      Test Dependencies in Production go.mod <span class="badge badge-warning">MEDIUM</span>
+    </h2>
+    <div class="card">
+      <p>
+        12 of 22 modules list test-only libraries (ginkgo, gomega, rapid, go-sqlmock) as direct
+        dependencies in their production go.mod. This means consumers who import these modules
+        transitively pull in the entire test framework at runtime.
+      </p>
+      <table>
+        <tr>
+          <th>Module</th>
+          <th>Test Libraries in Direct Require</th>
+        </tr>
+        <tr>
+          <td><code>event</code></td>
+          <td>ginkgo/v2, gomega, rapid</td>
+        </tr>
+        <tr>
+          <td><code>command</code></td>
+          <td>ginkgo/v2, gomega, rapid</td>
+        </tr>
+        <tr>
+          <td><code>query</code></td>
+          <td>ginkgo/v2, gomega, rapid</td>
+        </tr>
+        <tr>
+          <td><code>decider</code></td>
+          <td>ginkgo/v2, gomega, rapid</td>
+        </tr>
+        <tr>
+          <td><code>memory</code></td>
+          <td>ginkgo/v2, gomega</td>
+        </tr>
+        <tr>
+          <td><code>middleware</code></td>
+          <td>ginkgo/v2, gomega</td>
+        </tr>
+        <tr>
+          <td><code>signing</code></td>
+          <td>ginkgo/v2, gomega</td>
+        </tr>
+        <tr>
+          <td><code>projection</code></td>
+          <td>ginkgo/v2, gomega</td>
+        </tr>
+        <tr>
+          <td><code>listing</code></td>
+          <td>ginkgo/v2, gomega</td>
+        </tr>
+        <tr>
+          <td><code>id</code></td>
+          <td>rapid</td>
+        </tr>
+        <tr>
+          <td><code>otel</code></td>
+          <td>gomega</td>
+        </tr>
+        <tr>
+          <td><code>storage</code></td>
+          <td>go-sqlmock</td>
+        </tr>
+      </table>
+      <h3>Impact</h3>
+      <p>
+        Go does not have a separate test-only require block. However, these deps should be listed as
+        <code>// indirect</code> or moved to a separate test module. The current setup means
+        <code>go mod tidy</code> won't remove them because they ARE used in
+        <code>_test.go</code> files. The real fix is to move test suites into separate test modules
+        or use Go 1.26's improved test dependency handling.
+      </p>
+    </div>
 
-<h2 id="test-deps">Test Dependencies in Production go.mod <span class="badge badge-warning">MEDIUM</span></h2>
-<div class="card">
-<p>12 of 22 modules list test-only libraries (ginkgo, gomega, rapid, go-sqlmock) as direct dependencies in their production go.mod. This means consumers who import these modules transitively pull in the entire test framework at runtime.</p>
-<table>
-<tr><th>Module</th><th>Test Libraries in Direct Require</th></tr>
-<tr><td><code>event</code></td><td>ginkgo/v2, gomega, rapid</td></tr>
-<tr><td><code>command</code></td><td>ginkgo/v2, gomega, rapid</td></tr>
-<tr><td><code>query</code></td><td>ginkgo/v2, gomega, rapid</td></tr>
-<tr><td><code>decider</code></td><td>ginkgo/v2, gomega, rapid</td></tr>
-<tr><td><code>memory</code></td><td>ginkgo/v2, gomega</td></tr>
-<tr><td><code>middleware</code></td><td>ginkgo/v2, gomega</td></tr>
-<tr><td><code>signing</code></td><td>ginkgo/v2, gomega</td></tr>
-<tr><td><code>projection</code></td><td>ginkgo/v2, gomega</td></tr>
-<tr><td><code>listing</code></td><td>ginkgo/v2, gomega</td></tr>
-<tr><td><code>id</code></td><td>rapid</td></tr>
-<tr><td><code>otel</code></td><td>gomega</td></tr>
-<tr><td><code>storage</code></td><td>go-sqlmock</td></tr>
-</table>
-<h3>Impact</h3>
-<p>Go does not have a separate test-only require block. However, these deps should be listed as <code>// indirect</code> or moved to a separate test module. The current setup means <code>go mod tidy</code> won't remove them because they ARE used in <code>_test.go</code> files. The real fix is to move test suites into separate test modules or use Go 1.26's improved test dependency handling.</p>
-</div>
+    <h2 id="layer-violations">Layer Violations</h2>
+    <div class="card">
+      <table>
+        <tr>
+          <th>Violation</th>
+          <th>From → To</th>
+          <th>Why It's Wrong</th>
+          <th>Severity</th>
+        </tr>
+        <tr>
+          <td>Storage depends on Listing</td>
+          <td><code>storage</code> → <code>listing</code></td>
+          <td>Persistence layer depends on a read-model utility — should be injected</td>
+          <td class="warning">Medium</td>
+        </tr>
+        <tr>
+          <td>Event depends on Query</td>
+          <td><code>event</code> → <code>query</code></td>
+          <td>
+            Core event types shouldn't know about query dispatching — CatalogDispatcher concern
+          </td>
+          <td class="warning">Medium</td>
+        </tr>
+        <tr>
+          <td>Event depends on Command</td>
+          <td><code>event</code> → <code>command</code></td>
+          <td>
+            Core event types shouldn't know about command dispatch — CatalogDispatcher concern
+          </td>
+          <td class="critical">High</td>
+        </tr>
+        <tr>
+          <td>Event depends on Memory</td>
+          <td><code>event</code> → <code>memory</code></td>
+          <td>Core module depends on test infrastructure — eventtest sub-package</td>
+          <td class="critical">High</td>
+        </tr>
+        <tr>
+          <td>Decider depends on OTel</td>
+          <td><code>decider</code> → <code>otel</code></td>
+          <td>Domain logic depends on observability SDK — should be injected via middleware</td>
+          <td class="warning">Medium</td>
+        </tr>
+        <tr>
+          <td>Storage depends on OTel</td>
+          <td><code>storage</code> → <code>otel</code></td>
+          <td>SQL adapter hard-wires observability — should be optional via middleware</td>
+          <td class="warning">Medium</td>
+        </tr>
+      </table>
+    </div>
 
-<h2 id="layer-violations">Layer Violations</h2>
-<div class="card">
-<table>
-<tr><th>Violation</th><th>From → To</th><th>Why It's Wrong</th><th>Severity</th></tr>
-<tr><td>Storage depends on Listing</td><td><code>storage</code> → <code>listing</code></td><td>Persistence layer depends on a read-model utility — should be injected</td><td class="warning">Medium</td></tr>
-<tr><td>Event depends on Query</td><td><code>event</code> → <code>query</code></td><td>Core event types shouldn't know about query dispatching — CatalogDispatcher concern</td><td class="warning">Medium</td></tr>
-<tr><td>Event depends on Command</td><td><code>event</code> → <code>command</code></td><td>Core event types shouldn't know about command dispatch — CatalogDispatcher concern</td><td class="critical">High</td></tr>
-<tr><td>Event depends on Memory</td><td><code>event</code> → <code>memory</code></td><td>Core module depends on test infrastructure — eventtest sub-package</td><td class="critical">High</td></tr>
-<tr><td>Decider depends on OTel</td><td><code>decider</code> → <code>otel</code></td><td>Domain logic depends on observability SDK — should be injected via middleware</td><td class="warning">Medium</td></tr>
-<tr><td>Storage depends on OTel</td><td><code>storage</code> → <code>otel</code></td><td>SQL adapter hard-wires observability — should be optional via middleware</td><td class="warning">Medium</td></tr>
-</table>
-</div>
+    <h2 id="strengths">Strengths</h2>
+    <div class="card">
+      <table>
+        <tr>
+          <th>Strength</th>
+          <th>Evidence</th>
+        </tr>
+        <tr>
+          <td>ISP-split interfaces</td>
+          <td>
+            Store = EventSink + EventSource; SnapshotStore = SnapshotSink + SnapshotSource;
+            CommandStore = CommandSink + CommandSource
+          </td>
+        </tr>
+        <tr>
+          <td>Interface-first design</td>
+          <td>All core types are interfaces — Bus, Store, Journal, Publisher, etc.</td>
+        </tr>
+        <tr>
+          <td>Pure-function decider</td>
+          <td>Decider[State] with Fold function — no mutation, no side effects, fully testable</td>
+        </tr>
+        <tr>
+          <td>Composition over inheritance</td>
+          <td>Middleware chains, event bus operators, subscriber adapters</td>
+        </tr>
+        <tr>
+          <td>Branded IDs</td>
+          <td>
+            Phantom type parameters for compile-time ID safety — AggregateID vs EventID vs UserID
+          </td>
+        </tr>
+        <tr>
+          <td>5-family error taxonomy</td>
+          <td>Rejection/Conflict/Transient/Infrastructure/Corruption with IsRetryable()</td>
+        </tr>
+        <tr>
+          <td>Clean leaf modules</td>
+          <td>codec, dispatcher, id, catalog — zero internal deps, fully standalone</td>
+        </tr>
+        <tr>
+          <td>Multi-module workspace</td>
+          <td>go.work with 31 entries, each module independently versioned</td>
+        </tr>
+        <tr>
+          <td>Comprehensive test suite</td>
+          <td>84-100% coverage, BDD tests, property-based tests, integration tests</td>
+        </tr>
+        <tr>
+          <td>Zero lint issues</td>
+          <td>golangci-lint clean across all 22 library modules</td>
+        </tr>
+      </table>
+    </div>
 
-<h2 id="strengths">Strengths</h2>
-<div class="card">
-<table>
-<tr><th>Strength</th><th>Evidence</th></tr>
-<tr><td>ISP-split interfaces</td><td>Store = EventSink + EventSource; SnapshotStore = SnapshotSink + SnapshotSource; CommandStore = CommandSink + CommandSource</td></tr>
-<tr><td>Interface-first design</td><td>All core types are interfaces — Bus, Store, Journal, Publisher, etc.</td></tr>
-<tr><td>Pure-function decider</td><td>Decider[State] with Fold function — no mutation, no side effects, fully testable</td></tr>
-<tr><td>Composition over inheritance</td><td>Middleware chains, event bus operators, subscriber adapters</td></tr>
-<tr><td>Branded IDs</td><td>Phantom type parameters for compile-time ID safety — AggregateID vs EventID vs UserID</td></tr>
-<tr><td>5-family error taxonomy</td><td>Rejection/Conflict/Transient/Infrastructure/Corruption with IsRetryable()</td></tr>
-<tr><td>Clean leaf modules</td><td>codec, dispatcher, id, catalog — zero internal deps, fully standalone</td></tr>
-<tr><td>Multi-module workspace</td><td>go.work with 31 entries, each module independently versioned</td></tr>
-<tr><td>Comprehensive test suite</td><td>84-100% coverage, BDD tests, property-based tests, integration tests</td></tr>
-<tr><td>Zero lint issues</td><td>golangci-lint clean across all 22 library modules</td></tr>
-</table>
-</div>
+    <h2 id="recommendations">Recommendations (Prioritized)</h2>
+    <div class="card">
+      <table>
+        <tr>
+          <th>#</th>
+          <th>Recommendation</th>
+          <th>Impact</th>
+          <th>Effort</th>
+          <th>Priority</th>
+        </tr>
+        <tr>
+          <td>1</td>
+          <td><strong>Extract eventtest</strong> from event go.mod into its own module</td>
+          <td>Breaks event↔memory cycle, reduces event deps from 7→5</td>
+          <td>Medium</td>
+          <td class="critical">P0</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>
+            <strong>Remove event→command</strong> by moving CatalogDispatcher to command module
+          </td>
+          <td>Breaks event↔command cycle, makes event a true domain module</td>
+          <td>Low</td>
+          <td class="critical">P0</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td><strong>Remove event→query</strong> by moving CatalogDispatcher to query module</td>
+          <td>Breaks event→query dependency</td>
+          <td>Low</td>
+          <td class="critical">P0</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td>
+            <strong>Fix memory↔snapshot</strong> by making snapshot depend only on event, not memory
+          </td>
+          <td>Breaks memory↔snapshot cycle</td>
+          <td>Medium</td>
+          <td class="critical">P0</td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td>
+            <strong>Clean test deps</strong> — move ginkgo/gomega/rapid to separate test modules
+          </td>
+          <td>Reduces consumer binary bloat</td>
+          <td>High</td>
+          <td class="warning">P1</td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td><strong>Remove storage→listing</strong> — inject listing dependency via interface</td>
+          <td>Reduces storage coupling from 7→6</td>
+          <td>Low</td>
+          <td class="warning">P1</td>
+        </tr>
+        <tr>
+          <td>7</td>
+          <td>
+            <strong>Make OTel optional</strong> — decider/storage should inject tracer, not import
+            otel
+          </td>
+          <td>Decouples domain from observability</td>
+          <td>Medium</td>
+          <td class="warning">P1</td>
+        </tr>
+        <tr>
+          <td>8</td>
+          <td><strong>Document module layer graph</strong> — add DAG diagram to docs/</td>
+          <td>Helps contributors understand boundaries</td>
+          <td>Low</td>
+          <td>P2</td>
+        </tr>
+      </table>
+    </div>
 
-<h2 id="recommendations">Recommendations (Prioritized)</h2>
-<div class="card">
-<table>
-<tr><th>#</th><th>Recommendation</th><th>Impact</th><th>Effort</th><th>Priority</th></tr>
-<tr><td>1</td><td><strong>Extract eventtest</strong> from event go.mod into its own module</td><td>Breaks event↔memory cycle, reduces event deps from 7→5</td><td>Medium</td><td class="critical">P0</td></tr>
-<tr><td>2</td><td><strong>Remove event→command</strong> by moving CatalogDispatcher to command module</td><td>Breaks event↔command cycle, makes event a true domain module</td><td>Low</td><td class="critical">P0</td></tr>
-<tr><td>3</td><td><strong>Remove event→query</strong> by moving CatalogDispatcher to query module</td><td>Breaks event→query dependency</td><td>Low</td><td class="critical">P0</td></tr>
-<tr><td>4</td><td><strong>Fix memory↔snapshot</strong> by making snapshot depend only on event, not memory</td><td>Breaks memory↔snapshot cycle</td><td>Medium</td><td class="critical">P0</td></tr>
-<tr><td>5</td><td><strong>Clean test deps</strong> — move ginkgo/gomega/rapid to separate test modules</td><td>Reduces consumer binary bloat</td><td>High</td><td class="warning">P1</td></tr>
-<tr><td>6</td><td><strong>Remove storage→listing</strong> — inject listing dependency via interface</td><td>Reduces storage coupling from 7→6</td><td>Low</td><td class="warning">P1</td></tr>
-<tr><td>7</td><td><strong>Make OTel optional</strong> — decider/storage should inject tracer, not import otel</td><td>Decouples domain from observability</td><td>Medium</td><td class="warning">P1</td></tr>
-<tr><td>8</td><td><strong>Document module layer graph</strong> — add DAG diagram to docs/</td><td>Helps contributors understand boundaries</td><td>Low</td><td>P2</td></tr>
-</table>
-</div>
-
-<footer style="margin-top: 3em; padding-top: 1em; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 0.85em;">
-  Generated by automated architecture review · go-cqrs-lite v2.2.0 · 2026-06-10
-</footer>
-</body>
+    <footer
+      style="
+        margin-top: 3em;
+        padding-top: 1em;
+        border-top: 1px solid #e5e7eb;
+        color: #6b7280;
+        font-size: 0.85em;
+      "
+    >
+      Generated by automated architecture review · go-cqrs-lite v2.2.0 · 2026-06-10
+    </footer>
+  </body>
 </html>

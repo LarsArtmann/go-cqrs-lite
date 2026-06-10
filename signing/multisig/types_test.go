@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/signing/v2"
+	"github.com/larsartmann/go-cqrs-lite/signing/v2/internal/testutil"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2/multisig"
 )
 
@@ -219,7 +220,7 @@ func TestMultiSigner_WithClock(t *testing.T) {
 		t.Fatalf("create deterministic multi-signer: %v", err)
 	}
 
-	evt := makeTestEvent(t)
+	evt := testutil.MakeTestEvent(t)
 	clone, _ := deterministic.Sign(evt)
 
 	extracted, _ := multisig.ExtractMultiSignature(clone)

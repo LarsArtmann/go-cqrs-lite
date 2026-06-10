@@ -7,6 +7,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2"
+	"github.com/larsartmann/go-cqrs-lite/signing/v2/internal/testutil"
 )
 
 func TestSignMiddleware(t *testing.T) {
@@ -18,12 +19,12 @@ func TestSignMiddleware(t *testing.T) {
 	t.Run("signs events before publishing", func(t *testing.T) {
 		t.Parallel()
 
-		pub, publishedPtr := collectingPublisher()
+		pub, publishedPtr := testutil.CollectingPublisher()
 
 		mw := signing.SignMiddleware(signer)
 		signedPub := mw(pub)
 
-		evt := makeTestEvent(t)
+		evt := testutil.MakeTestEvent(t)
 		err := signedPub.Publish(context.Background(), evt)
 		if err != nil {
 			t.Fatalf("publish: %v", err)
@@ -53,7 +54,7 @@ func TestSignMiddleware(t *testing.T) {
 		signedPub := mw(pub)
 
 		// Normal event should succeed
-		evt := makeTestEvent(t)
+		evt := testutil.MakeTestEvent(t)
 		err := signedPub.Publish(context.Background(), evt)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -70,12 +71,12 @@ func TestVerifyMiddleware(t *testing.T) {
 	t.Run("allows unsigned events", func(t *testing.T) {
 		t.Parallel()
 
-		handler, wasCalled := trackingHandler()
+		handler, wasCalled := testutil.TrackingHandler()
 
 		mw := signing.VerifyMiddleware(signer)
 		wrapped := mw(handler)
 
-		evt := makeTestEvent(t)
+		evt := testutil.MakeTestEvent(t)
 		err := wrapped(context.Background(), evt)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -88,12 +89,12 @@ func TestVerifyMiddleware(t *testing.T) {
 	t.Run("allows valid signed events", func(t *testing.T) {
 		t.Parallel()
 
-		handler, wasCalled := trackingHandler()
+		handler, wasCalled := testutil.TrackingHandler()
 
 		mw := signing.VerifyMiddleware(signer)
 		wrapped := mw(handler)
 
-		evt := makeTestEvent(t)
+		evt := testutil.MakeTestEvent(t)
 		sig, _ := signer.Sign(evt)
 		clone, _ := signing.AttachSignature(evt, sig)
 
@@ -109,15 +110,15 @@ func TestVerifyMiddleware(t *testing.T) {
 	t.Run("rejects tampered signed events", func(t *testing.T) {
 		t.Parallel()
 
-		handler := noopHandler
+		handler := testutil.NoopHandler
 
 		mw := signing.VerifyMiddleware(signer)
 		wrapped := mw(handler)
 
-		evt := makeTestEvent(t)
+		evt := testutil.MakeTestEvent(t)
 		sig, _ := signer.Sign(evt)
 		clone, _ := signing.AttachSignature(evt, sig)
-		tampered := tamperEvent(t, clone)
+		tampered := testutil.TamperEvent(t, clone)
 
 		err := wrapped(context.Background(), tampered)
 		if err == nil {
@@ -128,12 +129,12 @@ func TestVerifyMiddleware(t *testing.T) {
 	t.Run("rejects corrupt signature metadata", func(t *testing.T) {
 		t.Parallel()
 
-		handler, wasCalled := trackingHandler()
+		handler, wasCalled := testutil.TrackingHandler()
 
 		mw := signing.VerifyMiddleware(signer)
 		wrapped := mw(handler)
 
-		evt := makeTestEvent(t)
+		evt := testutil.MakeTestEvent(t)
 		corrupt, _ := event.NewEvent(
 			evt.Type(),
 			evt.AggregateID(),
@@ -164,12 +165,12 @@ func TestRequireSignatureMiddleware(t *testing.T) {
 	t.Run("rejects unsigned events", func(t *testing.T) {
 		t.Parallel()
 
-		handler := noopHandler
+		handler := testutil.NoopHandler
 
 		mw := signing.RequireSignatureMiddleware(signer)
 		wrapped := mw(handler)
 
-		evt := makeTestEvent(t)
+		evt := testutil.MakeTestEvent(t)
 		err := wrapped(context.Background(), evt)
 		if err == nil {
 			t.Fatal("expected error for unsigned event")
@@ -179,12 +180,12 @@ func TestRequireSignatureMiddleware(t *testing.T) {
 	t.Run("allows valid signed events", func(t *testing.T) {
 		t.Parallel()
 
-		handler, wasCalled := trackingHandler()
+		handler, wasCalled := testutil.TrackingHandler()
 
 		mw := signing.RequireSignatureMiddleware(signer)
 		wrapped := mw(handler)
 
-		evt := makeTestEvent(t)
+		evt := testutil.MakeTestEvent(t)
 		sig, _ := signer.Sign(evt)
 		clone, _ := signing.AttachSignature(evt, sig)
 
@@ -243,7 +244,7 @@ func TestMiddlewareNilGuards(t *testing.T) {
 
 		mw := signing.VerifyMiddleware(nil)
 		handler := mw(func(_ context.Context, _ event.Event) error { return nil })
-		evt := makeTestEvent(t)
+		evt := testutil.MakeTestEvent(t)
 		err := handler(context.Background(), evt)
 		if err == nil {
 			t.Fatal("expected error from nil verifier middleware")
@@ -257,7 +258,7 @@ func TestMiddlewareNilGuards(t *testing.T) {
 
 			mw := signing.RequireSignatureMiddleware(nil)
 			handler := mw(func(_ context.Context, _ event.Event) error { return nil })
-			evt := makeTestEvent(t)
+			evt := testutil.MakeTestEvent(t)
 			err := handler(context.Background(), evt)
 			if err == nil {
 				t.Fatal("expected error from nil verifier middleware")

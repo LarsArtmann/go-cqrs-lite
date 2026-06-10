@@ -97,31 +97,20 @@ func TestBuilder_Build_InvalidEventType(t *testing.T) {
 	}
 }
 
-func TestBuilder_MustBuild(t *testing.T) {
+func TestBuilder_Build_ReturnsEvent(t *testing.T) {
 	t.Parallel()
 
 	aggID := id.NewAggregateID()
 	b := newBuilder("TestEvent", aggID, "TestAggregate", Version(1))
 
-	evt := b.MustBuild()
+	evt, err := b.Build()
+	if err != nil {
+		t.Fatalf("Build: %v", err)
+	}
 
 	if evt.Type() != "TestEvent" {
 		t.Errorf("expected type TestEvent, got %s", evt.Type())
 	}
-}
-
-func TestBuilder_MustBuild_Panics(t *testing.T) {
-	t.Parallel()
-
-	b := newBuilder("", id.AggregateID{}, "", Version(0))
-
-	defer func() {
-		if r := recover(); r == nil {
-			t.Error("expected panic for invalid event")
-		}
-	}()
-
-	b.MustBuild()
 }
 
 func TestBuilder_Build_WithOptions(t *testing.T) {

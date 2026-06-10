@@ -38,6 +38,31 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 )
 
+func mustEveryN(n int) snapshot.SnapshotStrategy {
+	s, err := snapshot.EveryNEvents(n)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func mustNewCmd(commandType command.Type, aggregateID id.AggregateID, opts ...command.Option) *command.BasicCommand {
+	cmd, err := command.New(commandType, aggregateID, opts...)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func mustNewQuery(queryType query.Type) *query.BasicQuery {
+	q, err := query.New(queryType)
+	if err != nil {
+		panic(err)
+	}
+	return q
+}
+
+
 // ---------------------------------------------------------------------------
 // Domain types — realistic e-commerce order model
 // ---------------------------------------------------------------------------
@@ -82,7 +107,7 @@ func benchNewOrderRepo(
 	repo, err := decider.NewRepository(
 		store, bus, d,
 		decider.WithSnapshotStore[OrderState](memSnap),
-		decider.WithSnapshotStrategy[OrderState](snapshot.MustEveryNEvents(snapEvery)),
+		decider.WithSnapshotStrategy[OrderState](mustEveryN(snapEvery)),
 		decider.WithCodec[OrderState](codec.JSONCodec{}),
 	)
 	if err != nil {
@@ -346,12 +371,12 @@ func BenchmarkRealistic_FullPipeline(b *testing.B) {
 		projected.Store(0)
 
 		for _, aggID := range aggIDs {
-			cmd := command.MustNew("create.order", aggID)
+			cmd := mustNewCmd("create.order", aggID)
 			if err := cmdDisp.Dispatch(context.Background(), cmd); err != nil {
 				b.Fatalf("create: %v", err)
 			}
 
-			cmd = command.MustNew("add.item", aggID)
+			cmd = mustNewCmd("add.item", aggID)
 			if err := cmdDisp.Dispatch(context.Background(), cmd); err != nil {
 				b.Fatalf("add: %v", err)
 			}
@@ -752,7 +777,7 @@ func BenchmarkRealistic_QueryDispatch(b *testing.B) {
 
 	for b.Loop() {
 		for range 1000 {
-			q := query.MustNew("list.orders")
+			q := mustNewQuery("list.orders")
 			if _, err := dispatcher.Dispatch(ctx, q); err != nil {
 				b.Fatalf("Dispatch: %v", err)
 			}

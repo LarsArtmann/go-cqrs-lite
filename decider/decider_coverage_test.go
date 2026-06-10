@@ -14,6 +14,15 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 )
 
+func mustEveryN(n int) snapshot.SnapshotStrategy {
+	s, err := snapshot.EveryNEvents(n)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+
 func executeCreateEvent(
 	t *testing.T,
 	repo *decider.Repository[counterState],
@@ -159,7 +168,7 @@ func TestExecute_SnapshotCodecEncodeError(t *testing.T) {
 		store, bus, counterDecider(),
 		decider.WithSnapshotStore[counterState](snapshotStore),
 		decider.WithCodec[counterState](codec),
-		decider.WithSnapshotStrategy[counterState](snapshot.MustEveryNEvents(1)),
+		decider.WithSnapshotStrategy[counterState](mustEveryN(1)),
 	)
 	if err != nil {
 		t.Fatalf("NewRepository: %v", err)

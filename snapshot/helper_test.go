@@ -10,6 +10,23 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 )
 
+func mustEveryN(n int) snapshot.SnapshotStrategy {
+	s, err := snapshot.EveryNEvents(n)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+
+func parseAggID(s string) id.AggregateID {
+	v, err := id.ParseAggregateID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 type mockSink struct {
 	saved []snapshot.Snapshot
 }
@@ -35,7 +52,7 @@ func TestShouldSnapshot_AllNil(t *testing.T) {
 func TestShouldSnapshot_NilSnapshotStore(t *testing.T) {
 	t.Parallel()
 
-	strategy := snapshot.MustEveryNEvents(3)
+	strategy := mustEveryN(3)
 
 	if snapshot.ShouldSnapshot(strategy, nil, &codec.JSONCodec{}, "User", event.Version(3)) {
 		t.Error("expected false when snapshot store is nil")
@@ -45,7 +62,7 @@ func TestShouldSnapshot_NilSnapshotStore(t *testing.T) {
 func TestShouldSnapshot_NilCodec(t *testing.T) {
 	t.Parallel()
 
-	strategy := snapshot.MustEveryNEvents(3)
+	strategy := mustEveryN(3)
 	store := &mockSink{}
 
 	if snapshot.ShouldSnapshot(strategy, store, nil, "User", event.Version(3)) {
@@ -56,7 +73,7 @@ func TestShouldSnapshot_NilCodec(t *testing.T) {
 func TestShouldSnapshot_True(t *testing.T) {
 	t.Parallel()
 
-	strategy := snapshot.MustEveryNEvents(3)
+	strategy := mustEveryN(3)
 	store := &mockSink{}
 
 	if !snapshot.ShouldSnapshot(strategy, store, &codec.JSONCodec{}, "User", event.Version(6)) {
@@ -67,7 +84,7 @@ func TestShouldSnapshot_True(t *testing.T) {
 func TestShouldSnapshot_VersionNotMultiple(t *testing.T) {
 	t.Parallel()
 
-	strategy := snapshot.MustEveryNEvents(3)
+	strategy := mustEveryN(3)
 	store := &mockSink{}
 
 	if snapshot.ShouldSnapshot(strategy, store, &codec.JSONCodec{}, "User", event.Version(4)) {
@@ -79,7 +96,7 @@ func TestSaveSnapshot_Success(t *testing.T) {
 	t.Parallel()
 
 	store := &mockSink{}
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 
 	err := snapshot.SaveSnapshot(
 		context.Background(),

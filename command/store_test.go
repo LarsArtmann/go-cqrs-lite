@@ -10,8 +10,32 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
+func parseAggID(s string) id.AggregateID {
+	v, err := id.ParseAggregateID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+func parseCmdAggType(s string) command.AggregateType {
+	v, err := command.ParseAggregateType(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+func parseCommandID(s string) id.CommandID {
+	v, err := id.ParseCommandID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 func validRef() command.AggregateRef {
-	return command.NewAggregateRef("User", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	return command.NewAggregateRef("User", parseAggID("01HK1540X0841Y0A6BSX1VKR95"))
 }
 
 func TestNewPersistedCommand_Success(t *testing.T) {
@@ -154,7 +178,7 @@ func TestNewPersistedCommand_EmptyType(t *testing.T) {
 func TestNewPersistedCommand_EmptyAggregateType(t *testing.T) {
 	t.Parallel()
 
-	ref := command.NewAggregateRef("", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	ref := command.NewAggregateRef("", parseAggID("01HK1540X0841Y0A6BSX1VKR95"))
 
 	_, err := command.NewPersistedCommand("CreateUser", ref, nil)
 	if err == nil {
@@ -201,7 +225,7 @@ func TestNewPersistedCommand_WithCommandID(t *testing.T) {
 	t.Parallel()
 
 	ref := validRef()
-	cmdID := id.MustParseCommandID("01HK1540X0841Y0A6BSX1VKR95")
+	cmdID := parseCommandID("01HK1540X0841Y0A6BSX1VKR95")
 
 	cmd, err := command.NewPersistedCommand("CreateUser", ref, nil, command.WithCommandID(cmdID))
 	if err != nil {
@@ -232,7 +256,7 @@ func TestPersistedCommand_String(t *testing.T) {
 	t.Parallel()
 
 	ref := validRef()
-	cmdID := id.MustParseCommandID("01HK1540X0841Y0A6BSX1VKR95")
+	cmdID := parseCommandID("01HK1540X0841Y0A6BSX1VKR95")
 
 	cmd, err := command.NewPersistedCommand("CreateUser", ref, nil, command.WithCommandID(cmdID))
 	if err != nil {
@@ -252,7 +276,7 @@ func TestPersistedCommand_String(t *testing.T) {
 func TestAggregateRef_String(t *testing.T) {
 	t.Parallel()
 
-	ref := command.NewAggregateRef("User", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	ref := command.NewAggregateRef("User", parseAggID("01HK1540X0841Y0A6BSX1VKR95"))
 	s := ref.String()
 
 	if s == "" {
@@ -305,7 +329,7 @@ func TestAggregateType_MustParse_Panics(t *testing.T) {
 		}
 	}()
 
-	command.MustParseAggregateType("")
+	parseCmdAggType("")
 }
 
 func TestAggregateType_IsZero(t *testing.T) {
@@ -357,7 +381,7 @@ func TestCommandID_MustParse_Panics(t *testing.T) {
 		}
 	}()
 
-	id.MustParseCommandID("not-a-valid-ulid")
+	parseCommandID("not-a-valid-ulid")
 }
 
 func TestStoreInterface_CompileTime(t *testing.T) {

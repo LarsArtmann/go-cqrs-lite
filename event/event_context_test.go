@@ -9,6 +9,14 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
+func parseAggID(s string) id.AggregateID {
+	v, err := id.ParseAggregateID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 func TestEventContext_DeadlineMethod(t *testing.T) {
 	t.Parallel()
 
@@ -17,7 +25,7 @@ func TestEventContext_DeadlineMethod(t *testing.T) {
 
 		evt, err := event.NewEvent(
 			"TestEvent",
-			id.MustParseAggregateID("01HK154DK8FZYV2ANMQ6B0N1JY"),
+			parseAggID("01HK154DK8FZYV2ANMQ6B0N1JY"),
 			"TestAggregate",
 			1,
 			nil,
@@ -41,7 +49,7 @@ func TestEventContext_DeadlineMethod(t *testing.T) {
 		deadline := time.Now().Add(1 * time.Hour)
 		evt, err := event.NewEvent(
 			"TestEvent",
-			id.MustParseAggregateID("01HK154DK8FZYV2ANMQ6B0N1JY"),
+			parseAggID("01HK154DK8FZYV2ANMQ6B0N1JY"),
 			"TestAggregate",
 			1,
 			nil,
@@ -73,7 +81,7 @@ func TestEventContext_FromContext(t *testing.T) {
 
 		evt, err := event.NewEvent(
 			"TestEvent",
-			id.MustParseAggregateID("01HK154DK8FZYV2ANMQ6B0N1JY"),
+			parseAggID("01HK154DK8FZYV2ANMQ6B0N1JY"),
 			"TestAggregate",
 			1,
 			nil,
@@ -102,7 +110,7 @@ func TestEventContext_FromContext(t *testing.T) {
 
 		evt, err := event.NewEvent(
 			"TestEvent",
-			id.MustParseAggregateID("01HK154DK8FZYV2ANMQ6B0N1JY"),
+			parseAggID("01HK154DK8FZYV2ANMQ6B0N1JY"),
 			"TestAggregate",
 			1,
 			nil,
@@ -128,7 +136,7 @@ func TestEventContext_Clone(t *testing.T) {
 		deadline := time.Now().Add(1 * time.Hour)
 		evt, err := event.NewEvent(
 			"TestEvent",
-			id.MustParseAggregateID("01HK154DK8FZYV2ANMQ6B0N1JY"),
+			parseAggID("01HK154DK8FZYV2ANMQ6B0N1JY"),
 			"TestAggregate",
 			1,
 			nil,

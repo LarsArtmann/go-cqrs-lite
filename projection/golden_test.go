@@ -17,6 +17,14 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 )
 
+func parseAggID(s string) id.AggregateID {
+	v, err := id.ParseAggregateID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 var update = flag.Bool("update", false, "update golden files")
 
 func goldenDir() string {
@@ -65,7 +73,7 @@ func buildReplayCatalog(t *testing.T) []processedEvent {
 	store := memory.NewMemoryStore()
 	t.Cleanup(func() { _ = store.Close() })
 
-	aggID := id.MustParseAggregateID("01ARYZ6S41TSV4RRFFQ69G5FAV")
+	aggID := parseAggID("01ARYZ6S41TSV4RRFFQ69G5FAV")
 	ref := event.NewAggregateRef("Order", aggID)
 
 	now := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)

@@ -7,7 +7,16 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2"
+	"github.com/larsartmann/go-cqrs-lite/signing/v2/internal/testutil"
 )
+
+func parseAggID(s string) id.AggregateID {
+	v, err := id.ParseAggregateID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
 
 func TestHMACSigner_New(t *testing.T) {
 	t.Parallel()
@@ -53,7 +62,7 @@ func TestHMACSigner_SignAndVerify(t *testing.T) {
 		t.Fatalf("create signer: %v", err)
 	}
 
-	evt := makeTestEvent(t)
+	evt := testutil.MakeTestEvent(t)
 
 	t.Run("sign produces non-empty signature", func(t *testing.T) {
 		t.Parallel()
@@ -90,7 +99,7 @@ func TestHMACSigner_SignAndVerify(t *testing.T) {
 		}
 
 		// Tamper with payload by creating a new event
-		tampered := tamperEvent(t, evt)
+		tampered := testutil.TamperEvent(t, evt)
 
 		err = signer.Verify(tampered, sig)
 		if err == nil {
@@ -143,7 +152,7 @@ func TestHMACSigner_Deterministic(t *testing.T) {
 		t.Fatalf("create signer 2: %v", err)
 	}
 
-	evt := makeTestEvent(t)
+	evt := testutil.MakeTestEvent(t)
 
 	sig1, err := signer1.Sign(evt)
 	if err != nil {
@@ -169,7 +178,7 @@ func TestHMACSigner_DifferentKeys(t *testing.T) {
 	signer1, _ := signing.NewHMAC(key1)
 	signer2, _ := signing.NewHMAC(key2)
 
-	evt := makeTestEvent(t)
+	evt := testutil.MakeTestEvent(t)
 
 	sig1, _ := signer1.Sign(evt)
 	sig2, _ := signer2.Sign(evt)
@@ -185,7 +194,7 @@ func TestEmptyPayloadEvent(t *testing.T) {
 	key := []byte("my-secret-key-thirty-two-bytes!!")
 	signer, _ := signing.NewHMAC(key)
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 	evt, err := event.NewEvent("test.empty", aggID, "Test", 1, nil)
 	if err != nil {
 		t.Fatalf("create event: %v", err)

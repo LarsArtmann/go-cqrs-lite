@@ -15,6 +15,22 @@ import (
 	pb "github.com/larsartmann/go-cqrs-lite/pebble/v2"
 )
 
+func parseAggID(s string) id.AggregateID {
+	v, err := id.ParseAggregateID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+func parseEventID(s string) id.EventID {
+	v, err := id.ParseEventID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 var update = flag.Bool("update", false, "update golden files")
 
 func TestGolden_EventStoreRoundTrip(t *testing.T) {
@@ -28,7 +44,7 @@ func TestGolden_EventStoreRoundTrip(t *testing.T) {
 	store := pb.NewStore(db, nil)
 	t.Cleanup(func() { _ = store.Close() })
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 	ref := event.NewAggregateRef("Order", aggID)
 
 	types := []struct {
@@ -45,7 +61,7 @@ func TestGolden_EventStoreRoundTrip(t *testing.T) {
 	evts := make([]event.Event, len(types))
 
 	for i, tc := range types {
-		evtID := id.MustParseEventID("01HK1540X0841Y0A6BSX1VKR9" + string(rune('A'+i)))
+		evtID := parseEventID("01HK1540X0841Y0A6BSX1VKR9" + string(rune('A'+i)))
 
 		evt, err := event.NewEvent(
 			tc.typ, aggID, "Order", event.Version(tc.version),

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/signing/v2"
+	"github.com/larsartmann/go-cqrs-lite/signing/v2/internal/testutil"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2/multisig"
 )
 
@@ -12,7 +13,7 @@ func TestMultiSigner_SignAddsActor(t *testing.T) {
 	t.Parallel()
 
 	deviceMulti, _ := newDeviceMultiSigner(t)
-	evt := makeTestEvent(t)
+	evt := testutil.MakeTestEvent(t)
 
 	clone, err := deviceMulti.Sign(evt)
 	if err != nil {
@@ -36,7 +37,7 @@ func TestMultiSigner_MultipleActors(t *testing.T) {
 
 	deviceMulti, _ := newDeviceMultiSigner(t)
 	serverMulti := newServerMultiSigner(t)
-	evt := makeTestEvent(t)
+	evt := testutil.MakeTestEvent(t)
 
 	clone1, err := deviceMulti.Sign(evt)
 	if err != nil {
@@ -65,7 +66,7 @@ func TestMultiSigner_ReSignReplaces(t *testing.T) {
 	t.Parallel()
 
 	deviceMulti, _ := newDeviceMultiSigner(t)
-	evt := makeTestEvent(t)
+	evt := testutil.MakeTestEvent(t)
 
 	clone1, err := deviceMulti.Sign(evt)
 	if err != nil {
@@ -112,7 +113,7 @@ func TestMultiSigner_VerifyOwnSignature(t *testing.T) {
 	t.Parallel()
 
 	deviceMulti, _ := newDeviceMultiSigner(t)
-	evt := makeTestEvent(t)
+	evt := testutil.MakeTestEvent(t)
 
 	clone, _ := deviceMulti.Sign(evt)
 	if err := deviceMulti.Verify(clone); err != nil {
@@ -125,7 +126,7 @@ func TestMultiSigner_VerifyDualSigned(t *testing.T) {
 
 	deviceMulti, _ := newDeviceMultiSigner(t)
 	serverMulti := newServerMultiSigner(t)
-	evt := makeTestEvent(t)
+	evt := testutil.MakeTestEvent(t)
 
 	clone1, _ := deviceMulti.Sign(evt)
 	clone2, _ := serverMulti.Sign(clone1)
@@ -144,7 +145,7 @@ func TestMultiSigner_VerifyMissingActor(t *testing.T) {
 
 	deviceMulti, _ := newDeviceMultiSigner(t)
 	serverMulti := newServerMultiSigner(t)
-	evt := makeTestEvent(t)
+	evt := testutil.MakeTestEvent(t)
 
 	clone, _ := deviceMulti.Sign(evt)
 	if err := serverMulti.Verify(clone); err == nil {
@@ -156,12 +157,12 @@ func TestMultiSigner_VerifyTampered(t *testing.T) {
 	t.Parallel()
 
 	deviceMulti, _ := newDeviceMultiSigner(t)
-	evt := makeTestEvent(t)
+	evt := testutil.MakeTestEvent(t)
 
 	clone, _ := deviceMulti.Sign(evt)
 	origMD := clone.Metadata()
 
-	tampered := tamperEvent(t, clone)
+	tampered := testutil.TamperEvent(t, clone)
 	_ = origMD // tampered already has different metadata; test verifies Verify detects tampering
 
 	if err := deviceMulti.Verify(tampered); err == nil {
@@ -190,7 +191,7 @@ func TestMultiSigner_VerifyActor(t *testing.T) {
 		t.Fatalf("create device multi-signer: %v", err)
 	}
 	serverMulti := newServerMultiSigner(t)
-	evt := makeTestEvent(t)
+	evt := testutil.MakeTestEvent(t)
 
 	clone1, _ := deviceMulti.Sign(evt)
 	clone2, _ := serverMulti.Sign(clone1)
@@ -232,7 +233,7 @@ func TestMultiSigner_VerifyActor_NoSignature(t *testing.T) {
 	deviceMulti, _ := newDeviceMultiSigner(t)
 	serverMulti := newServerMultiSigner(t)
 
-	evt := makeTestEvent(t)
+	evt := testutil.MakeTestEvent(t)
 	clone, _ := serverMulti.Sign(evt)
 
 	pubKey, _, _ := ed25519.GenerateKey(nil)
@@ -247,10 +248,10 @@ func TestMultiSigner_VerifyActor_BadSignature(t *testing.T) {
 	t.Parallel()
 
 	deviceMulti, devicePubKey := newDeviceMultiSigner(t)
-	evt := makeTestEvent(t)
+	evt := testutil.MakeTestEvent(t)
 	clone, _ := deviceMulti.Sign(evt)
 
-	tampered := tamperEvent(t, clone)
+	tampered := testutil.TamperEvent(t, clone)
 
 	deviceVerifier, _ := signing.NewEd25519Verifier(devicePubKey)
 

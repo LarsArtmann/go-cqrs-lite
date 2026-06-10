@@ -13,13 +13,21 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 )
 
+func parseAggID(s string) id.AggregateID {
+	v, err := id.ParseAggregateID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 func TestMemoryStore_SaveAndLoad(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 	evt1 := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 	evt2 := eventtest.QuickEvent("UserUpdated", aggID, "User", 1, nil)
 
@@ -57,7 +65,7 @@ func TestMemoryStore_VersionConflict(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 	evt := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 
 	err := store.Save(
@@ -81,7 +89,7 @@ func TestMemoryStore_AggregateNotFound(t *testing.T) {
 		ctx,
 		event.NewAggregateRef(
 			event.AggregateType("User"),
-			id.MustParseAggregateID("01HK154KER4E8AJ20Q4JD5TJ1E"),
+			parseAggID("01HK154KER4E8AJ20Q4JD5TJ1E"),
 		),
 	)
 	if err == nil {
@@ -95,7 +103,7 @@ func TestMemoryStore_LoadFromVersion(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := id.MustParseAggregateID("01HK154ME034FVHK95R554AKSE")
+	aggID := parseAggID("01HK154ME034FVHK95R554AKSE")
 	evt1 := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 	evt2 := eventtest.QuickEvent("UserUpdated", aggID, "User", 1, nil)
 	evt3 := eventtest.QuickEvent("UserDeleted", aggID, "User", 2, nil)
@@ -127,7 +135,7 @@ func TestMemoryStore_Closed(t *testing.T) {
 
 	_ = store.Close()
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 	evt := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 
 	err := store.Save(
@@ -152,7 +160,7 @@ func TestMemoryStore_ClosedLoad(t *testing.T) {
 		ctx,
 		event.NewAggregateRef(
 			event.AggregateType("User"),
-			id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+			parseAggID("01HK1540X0841Y0A6BSX1VKR95"),
 		),
 	)
 	if err == nil {
@@ -167,7 +175,7 @@ func TestMemoryStore_ClosedLoadFromVersion(t *testing.T) {
 	ctx := context.Background()
 	_ = store.Close()
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 
 	_, err := store.LoadFromVersion(
 		ctx,
@@ -185,7 +193,7 @@ func TestMemoryStore_LoadFromVersion_NotFound(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := id.MustParseAggregateID("01HK154KER4E8AJ20Q4JD5TJ1E")
+	aggID := parseAggID("01HK154KER4E8AJ20Q4JD5TJ1E")
 
 	_, err := store.LoadFromVersion(
 		ctx,
@@ -203,7 +211,7 @@ func TestMemoryStore_LoadFromVersion_AtEnd(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := id.MustParseAggregateID("01HK154PCGXJ80RFXRASTMSSK0")
+	aggID := parseAggID("01HK154PCGXJ80RFXRASTMSSK0")
 	evt := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 	_ = store.Save(
 		ctx,
@@ -230,7 +238,7 @@ func TestMemoryStore_AppendBatch(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := id.MustParseAggregateID("01HK154QBR6CK7JX737HQB4V58")
+	aggID := parseAggID("01HK154QBR6CK7JX737HQB4V58")
 	evt1 := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 	evt2 := eventtest.QuickEvent("UserUpdated", aggID, "User", 1, nil)
 	evt3 := eventtest.QuickEvent("UserDeleted", aggID, "User", 2, nil)
@@ -258,7 +266,7 @@ func TestMemoryStore_AppendBatch_AppendsToExisting(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := id.MustParseAggregateID("01HK154RB0WD5V767Z27XMXRX0")
+	aggID := parseAggID("01HK154RB0WD5V767Z27XMXRX0")
 	evt1 := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 	_ = store.Save(
 		ctx,
@@ -293,7 +301,7 @@ func TestMemoryStore_AppendBatch_Closed(t *testing.T) {
 	store := memory.NewMemoryStore()
 	_ = store.Close()
 
-	aggID := id.MustParseAggregateID("01HK154SA8Y7AMZCYV919GE46K")
+	aggID := parseAggID("01HK154SA8Y7AMZCYV919GE46K")
 	evt := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 
 	err := store.AppendBatch(
@@ -361,7 +369,7 @@ func TestMemoryStore_LoadToVersion(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 	evt1 := eventtest.QuickEvent("Created", aggID, "User", 1, nil)
 	evt2 := eventtest.QuickEvent("Updated", aggID, "User", 1, nil)
 	evt3 := eventtest.QuickEvent("Deleted", aggID, "User", 2, nil)
@@ -387,7 +395,7 @@ func TestMemoryStore_LoadToVersion_ExceedsStreamLength(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 	evt := eventtest.QuickEvent("Created", aggID, "User", 1, nil)
 
 	_ = store.AppendBatch(
@@ -411,7 +419,7 @@ func TestMemoryStore_LoadToVersion_NotFound(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 
 	_, err := store.LoadToVersion(ctx, event.NewAggregateRef(event.AggregateType("User"), aggID), 5)
 	if !errors.Is(err, event.ErrAggregateNotFound) {
@@ -441,7 +449,7 @@ func TestMemoryStore_LoadToTimestamp(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 
 	now, aggID := eventtest.MakeLoadToTimestampFixtures(
 		t,
@@ -468,7 +476,7 @@ func TestMemoryStore_LoadToTimestamp_NotFound(t *testing.T) {
 
 	_, err := store.LoadToTimestamp(
 		context.Background(),
-		event.NewAggregateRef("User", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")),
+		event.NewAggregateRef("User", parseAggID("01HK1540X0841Y0A6BSX1VKR95")),
 		time.Now(),
 	)
 	if !errors.Is(err, event.ErrAggregateNotFound) {
@@ -576,7 +584,7 @@ func TestMemoryStore_LoadBackwards(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 	evt1 := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 	evt2 := eventtest.QuickEvent("UserUpdated", aggID, "User", 2, nil)
 	evt3 := eventtest.QuickEvent("UserDeleted", aggID, "User", 3, nil)
@@ -614,7 +622,7 @@ func TestMemoryStore_LoadBackwards_NotFound(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 
 	backwardsLoader := event.BackwardsSource(store)
 	_, err := backwardsLoader.LoadBackwards(

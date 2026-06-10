@@ -10,10 +10,27 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
+func mustNewCmd(commandType command.Type, aggregateID id.AggregateID, opts ...command.Option) *command.BasicCommand {
+	cmd, err := command.New(commandType, aggregateID, opts...)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+
+func parseAggID(s string) id.AggregateID {
+	v, err := id.ParseAggregateID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 func TestNew_EmptyType(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 
 	_, err := command.New("", aggID)
 	if err == nil {
@@ -41,14 +58,14 @@ func TestNew_ZeroAggregateID(t *testing.T) {
 func TestMustNew_PanicsOnEmptyType(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
-	eventtest.AssertPanics(t, func() { _ = command.MustNew("", aggID) })
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	eventtest.AssertPanics(t, func() { _ = mustNewCmd("", aggID) })
 }
 
 func TestMustNew_PanicsOnZeroAggregateID(t *testing.T) {
 	t.Parallel()
 
-	eventtest.AssertPanics(t, func() { _ = command.MustNew("CreateUser", id.AggregateID{}) })
+	eventtest.AssertPanics(t, func() { _ = mustNewCmd("CreateUser", id.AggregateID{}) })
 }
 
 func TestDispatcher_Dispatch_HandlerError(t *testing.T) {
@@ -62,7 +79,7 @@ func TestDispatcher_Dispatch_HandlerError(t *testing.T) {
 		return handlerErr
 	})
 
-	cmd := command.MustNew("FailCommand", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	cmd := mustNewCmd("FailCommand", parseAggID("01HK1540X0841Y0A6BSX1VKR95"))
 
 	err := d.Dispatch(ctx, cmd)
 	if err == nil {
@@ -80,7 +97,7 @@ func TestDispatcher_Dispatch_HandlerNotFound_ErrorChain(t *testing.T) {
 	d := command.NewDispatcher()
 	ctx := context.Background()
 
-	cmd := command.MustNew("UnknownCmd", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	cmd := mustNewCmd("UnknownCmd", parseAggID("01HK1540X0841Y0A6BSX1VKR95"))
 
 	err := d.Dispatch(ctx, cmd)
 	if err == nil {
@@ -114,7 +131,7 @@ func TestDispatcher_Closed_DispatchErrorChain(t *testing.T) {
 	d := command.NewDispatcher()
 	_ = d.Close()
 
-	cmd := command.MustNew("TestCmd", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	cmd := mustNewCmd("TestCmd", parseAggID("01HK1540X0841Y0A6BSX1VKR95"))
 
 	err := d.Dispatch(context.Background(), cmd)
 	if err == nil {
@@ -158,7 +175,7 @@ func TestDispatcher_Use(t *testing.T) {
 
 	_ = d.Register("TestCmd", noopCommandHandler())
 
-	cmd := command.MustNew("TestCmd", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	cmd := mustNewCmd("TestCmd", parseAggID("01HK1540X0841Y0A6BSX1VKR95"))
 
 	err := d.Dispatch(context.Background(), cmd)
 	if err != nil {
@@ -190,7 +207,7 @@ func TestDispatcher_Dispatch_Success(t *testing.T) {
 
 	_ = d.Register("TestCmd", callbackCommandHandler(&called))
 
-	cmd := command.MustNew("TestCmd", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	cmd := mustNewCmd("TestCmd", parseAggID("01HK1540X0841Y0A6BSX1VKR95"))
 
 	err := d.Dispatch(context.Background(), cmd)
 	if err != nil {
@@ -209,7 +226,7 @@ func TestDispatcher_Dispatch_WrappedClosedError(t *testing.T) {
 	_ = d.Register("TestCmd", noopCommandHandler())
 	_ = d.Close()
 
-	cmd := command.MustNew("TestCmd", id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	cmd := mustNewCmd("TestCmd", parseAggID("01HK1540X0841Y0A6BSX1VKR95"))
 
 	err := d.Dispatch(context.Background(), cmd)
 	if err == nil {

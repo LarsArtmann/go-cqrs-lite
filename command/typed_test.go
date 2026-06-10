@@ -9,6 +9,15 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
+func mustNewCmd(commandType command.Type, aggregateID id.AggregateID, opts ...command.Option) *command.BasicCommand {
+	cmd, err := command.New(commandType, aggregateID, opts...)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+
 var errTestFailure = errors.New("test failure")
 
 type testTypedCmd struct {
@@ -34,7 +43,7 @@ func TestRegisterTyped_Success(t *testing.T) {
 	}
 
 	cmd := &testTypedCmd{
-		BasicCommand: command.MustNew("test.cmd", id.NewAggregateID()),
+		BasicCommand: mustNewCmd("test.cmd", id.NewAggregateID()),
 		Payload:      "hello",
 	}
 
@@ -55,7 +64,7 @@ func TestRegisterTyped_HandlerError(t *testing.T) {
 		t.Fatalf("RegisterTyped() error = %v", err)
 	}
 
-	cmd := &testTypedCmd{BasicCommand: command.MustNew("fail.cmd", id.NewAggregateID())}
+	cmd := &testTypedCmd{BasicCommand: mustNewCmd("fail.cmd", id.NewAggregateID())}
 
 	if err := d.Dispatch(context.Background(), cmd); !errors.Is(err, errTestFailure) {
 		t.Fatalf("expected errTestFailure, got %v", err)
@@ -100,7 +109,7 @@ func TestRegisterTyped_WorksWithMiddleware(t *testing.T) {
 		t.Fatalf("RegisterTyped() error = %v", err)
 	}
 
-	cmd := &testTypedCmd{BasicCommand: command.MustNew("mw.cmd", id.NewAggregateID())}
+	cmd := &testTypedCmd{BasicCommand: mustNewCmd("mw.cmd", id.NewAggregateID())}
 
 	if err := d.Dispatch(context.Background(), cmd); err != nil {
 		t.Fatalf("Dispatch() error = %v", err)

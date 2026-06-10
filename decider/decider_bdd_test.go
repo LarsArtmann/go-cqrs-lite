@@ -15,6 +15,15 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 )
 
+func mustEveryN(n int) snapshot.SnapshotStrategy {
+	s, err := snapshot.EveryNEvents(n)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+
 // bddCounter models a simple counter aggregate for BDD scenarios.
 type bddCounter struct {
 	Value int
@@ -40,15 +49,12 @@ func bddCounterDecider() decider.Decider[bddCounter] {
 	}
 }
 
-func makeCreateEvent(aggID id.AggregateID, version event.Version) event.Event {
-	evt, err := event.NewEvent("CounterCreated", aggID, "Counter", version, []byte(`{}`))
-	Expect(err).ToNot(HaveOccurred())
-
-	return evt
-}
-
-func makeIncrementEvent(aggID id.AggregateID, version event.Version) event.Event {
-	evt, err := event.NewEvent("CounterIncremented", aggID, "Counter", version, []byte(`{}`))
+func makeCounterEvent(
+	eventType event.Type,
+	aggID id.AggregateID,
+	version event.Version,
+) event.Event {
+	evt, err := event.NewEvent(eventType, aggID, "Counter", version, []byte(`{}`))
 	Expect(err).ToNot(HaveOccurred())
 
 	return evt
@@ -65,10 +71,10 @@ func executeCounterNTimes(
 			ctx, aggID, "Counter",
 			func(_ bddCounter, v event.Version) ([]event.Event, error) {
 				if v == 0 {
-					return []event.Event{makeCreateEvent(aggID, v+1)}, nil
+					return []event.Event{makeCounterEvent("CounterCreated", aggID, v+1)}, nil
 				}
 
-				return []event.Event{makeIncrementEvent(aggID, v+1)}, nil
+				return []event.Event{makeCounterEvent("CounterIncremented", aggID, v+1)}, nil
 			},
 		)
 		Expect(err).ToNot(HaveOccurred())
@@ -85,7 +91,7 @@ func newSnapshotRepo(
 		store, bus, bddCounterDecider(),
 		decider.WithSnapshotStore[bddCounter](snapStore),
 		decider.WithCodec[bddCounter](codec.JSONCodec{}),
-		decider.WithSnapshotStrategy[bddCounter](snapshot.MustEveryNEvents(n)),
+		decider.WithSnapshotStrategy[bddCounter](mustEveryN(n)),
 	)
 }
 
@@ -97,7 +103,7 @@ func createCounter(
 	err := repo.Execute(
 		ctx, aggID, "Counter",
 		func(_ bddCounter, v event.Version) ([]event.Event, error) {
-			return []event.Event{makeCreateEvent(aggID, v+1)}, nil
+			return []event.Event{makeCounterEvent("CounterCreated", aggID, v+1)}, nil
 		},
 	)
 	Expect(err).ToNot(HaveOccurred())
@@ -111,7 +117,7 @@ func incrementCounter(
 	err := repo.Execute(
 		ctx, aggID, "Counter",
 		func(_ bddCounter, v event.Version) ([]event.Event, error) {
-			return []event.Event{makeIncrementEvent(aggID, v+1)}, nil
+			return []event.Event{makeCounterEvent("CounterIncremented", aggID, v+1)}, nil
 		},
 	)
 	Expect(err).ToNot(HaveOccurred())
@@ -167,7 +173,7 @@ var _ = Describe("Decider Repository", func() {
 				err := repo.Execute(
 					ctx, aggID, "Counter",
 					func(_ bddCounter, v event.Version) ([]event.Event, error) {
-						return []event.Event{makeCreateEvent(aggID, v+1)}, nil
+						return []event.Event{makeCounterEvent("CounterCreated", aggID, v+1)}, nil
 					},
 				)
 				Expect(err).ToNot(HaveOccurred())
@@ -230,7 +236,9 @@ var _ = Describe("Decider Repository", func() {
 							receivedState = state
 							receivedVersion = v
 
-							return []event.Event{makeIncrementEvent(aggID, v+1)}, nil
+							return []event.Event{
+								makeCounterEvent("CounterIncremented", aggID, v+1),
+							}, nil
 						},
 					)
 					Expect(err).ToNot(HaveOccurred())
@@ -246,9 +254,9 @@ var _ = Describe("Decider Repository", func() {
 					ctx, aggID, "Counter",
 					func(_ bddCounter, v event.Version) ([]event.Event, error) {
 						return []event.Event{
-							makeCreateEvent(aggID, v+1),
-							makeIncrementEvent(aggID, v+2),
-							makeIncrementEvent(aggID, v+3),
+							makeCounterEvent("CounterCreated", aggID, v+1),
+							makeCounterEvent("CounterIncremented", aggID, v+2),
+							makeCounterEvent("CounterIncremented", aggID, v+3),
 						}, nil
 					},
 				)

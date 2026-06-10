@@ -10,15 +10,47 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
+func parseCausationID(s string) id.CausationID {
+	v, err := id.ParseCausationID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+func parseCorrID(s string) id.CorrelationID {
+	v, err := id.ParseCorrelationID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+func parseRequestID(s string) id.RequestID {
+	v, err := id.ParseRequestID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+func parseUserID(s string) id.UserID {
+	v, err := id.ParseUserID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 var _ = Describe("Event Creation", func() {
 	Describe("As a developer creating domain events", func() {
 		Context("when I create an event with all metadata", func() {
 			It("should preserve every field including tracing IDs", func() {
 				aggID := id.NewAggregateID()
-				corrID := id.MustParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH")
-				causeID := id.MustParseCausationID("01HK154FHRS5276AC3V7GRNTYM")
-				uID := id.MustParseUserID("01HK1543TRR6BB4AF65NQX5V8S")
-				reqID := id.MustParseRequestID("01HK154HG8WXD9A15YBY6FZJYW")
+				corrID := parseCorrID("01HK154EJG2GP2SR75DK1Q1TBH")
+				causeID := parseCausationID("01HK154FHRS5276AC3V7GRNTYM")
+				uID := parseUserID("01HK1543TRR6BB4AF65NQX5V8S")
+				reqID := parseRequestID("01HK154HG8WXD9A15YBY6FZJYW")
 
 				evt, err := event.NewEvent(
 					event.Type("UserRegistered"),
@@ -41,15 +73,15 @@ var _ = Describe("Event Creation", func() {
 				Expect(evt.Payload()).To(ContainSubstring("alice@example.com"))
 				Expect(
 					evt.Metadata().CorrelationID,
-				).To(Equal(id.MustParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH")))
+				).To(Equal(parseCorrID("01HK154EJG2GP2SR75DK1Q1TBH")))
 				Expect(evt.Metadata().CausationID).To(
-					Equal(id.MustParseCausationID("01HK154FHRS5276AC3V7GRNTYM")),
+					Equal(parseCausationID("01HK154FHRS5276AC3V7GRNTYM")),
 				)
 				Expect(evt.Metadata().UserID).To(
-					Equal(id.MustParseUserID("01HK1543TRR6BB4AF65NQX5V8S")),
+					Equal(parseUserID("01HK1543TRR6BB4AF65NQX5V8S")),
 				)
 				Expect(evt.Metadata().RequestID).To(
-					Equal(id.MustParseRequestID("01HK154HG8WXD9A15YBY6FZJYW")),
+					Equal(parseRequestID("01HK154HG8WXD9A15YBY6FZJYW")),
 				)
 				Expect(evt.Metadata().Source).To(Equal(event.Source("api")))
 				Expect(evt.OccurredAt()).To(BeTemporally("<", time.Now().Add(time.Second)))

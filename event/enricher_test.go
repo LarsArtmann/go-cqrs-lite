@@ -7,15 +7,39 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
+func parseAggID(s string) id.AggregateID {
+	v, err := id.ParseAggregateID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+func parseCorrID(s string) id.CorrelationID {
+	v, err := id.ParseCorrelationID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+func parseUserID(s string) id.UserID {
+	v, err := id.ParseUserID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 func TestEnrichEvent(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 
 	enricher := ContextEnricher(func(_ context.Context) []Option {
 		return []Option{
-			WithCorrelationID(id.MustParseCorrelationID("01JBCORR0LATI0ON0ID0000001")),
-			WithUserID(id.MustParseUserID("01JBUSER0ID000000000000001")),
+			WithCorrelationID(parseCorrID("01JBCORR0LATI0ON0ID0000001")),
+			WithUserID(parseUserID("01JBUSER0ID000000000000001")),
 		}
 	})
 
@@ -39,11 +63,11 @@ func TestEnrichEvent(t *testing.T) {
 func TestCompositeEnricher(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 
 	first := ContextEnricher(func(_ context.Context) []Option {
 		return []Option{
-			WithCorrelationID(id.MustParseCorrelationID("01JBCORR0LATI0ON0ID0000001")),
+			WithCorrelationID(parseCorrID("01JBCORR0LATI0ON0ID0000001")),
 		}
 	})
 
@@ -77,7 +101,7 @@ func TestCompositeEnricher_Empty(t *testing.T) {
 
 	composite := CompositeEnricher()
 
-	aggID := id.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, err := NewEvent("UserCreated", aggID, "User", 1, nil)
 	if err != nil {

@@ -11,13 +11,21 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 )
 
-var testBusAggID = id.MustParseAggregateID("01HK154JFGAXYZMTS0FYGXF6RC")
+func parseAggID(s string) id.AggregateID {
+	v, err := id.ParseAggregateID(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
 
-var testBusUserAggID = id.MustParseAggregateID(
+var testBusAggID = parseAggID("01HK154JFGAXYZMTS0FYGXF6RC")
+
+var testBusUserAggID = parseAggID(
 	"01HK1540X0841Y0A6BSX1VKR95",
 )
 
-var testBusOrderAggID = id.MustParseAggregateID(
+var testBusOrderAggID = parseAggID(
 	"01HK1541W8PVV4E88DV993TP2A",
 )
 

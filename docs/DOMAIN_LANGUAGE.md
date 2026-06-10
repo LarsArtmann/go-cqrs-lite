@@ -28,23 +28,23 @@ If a word means something different to a consumer than to an implementer, it is 
 
 ### CQRS
 
-| Term              | Definition                                                               | Context                                                                    |
-| ----------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
-| **Command**       | Action that mutates state                                                | Dispatched to exactly one handler; may produce events                      |
-| **Query**         | Request for read-only data                                               | Dispatched to exactly one handler; returns a result                        |
-| **Dispatcher**    | Routes commands/queries to registered handlers                           | `command.Dispatcher`, `query.Dispatcher`                                   |
-| **Handler**       | Function that processes a command or query                               | `command.Handler`, `query.Handler`                                         |
-| **Decider**       | Pure-function aggregate: fold state from events, decide new events       | `decider.Decider[State]` — no side effects, fully testable                 |
-| **Repository**    | Loads aggregate state, executes decider, saves events                    | `decider.Repository[State]` — orchestrates Store + Bus + optional Snapshot |
-| **Bus**           | Message bus for publishing/subscribing to events                         | `event.Bus` — Publisher + Subscriber                                       |
+| Term           | Definition                                                         | Context                                                                    |
+| -------------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------- |
+| **Command**    | Action that mutates state                                          | Dispatched to exactly one handler; may produce events                      |
+| **Query**      | Request for read-only data                                         | Dispatched to exactly one handler; returns a result                        |
+| **Dispatcher** | Routes commands/queries to registered handlers                     | `command.Dispatcher`, `query.Dispatcher`                                   |
+| **Handler**    | Function that processes a command or query                         | `command.Handler`, `query.Handler`                                         |
+| **Decider**    | Pure-function aggregate: fold state from events, decide new events | `decider.Decider[State]` — no side effects, fully testable                 |
+| **Repository** | Loads aggregate state, executes decider, saves events              | `decider.Repository[State]` — orchestrates Store + Bus + optional Snapshot |
+| **Bus**        | Message bus for publishing/subscribing to events                   | `event.Bus` — Publisher + Subscriber                                       |
 
 ### Storage
 
-| Term                   | Definition                                                        | Context                                                                                               |
-| ---------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| **Dialect**            | SQL dialect abstraction (`PostgresDialect`, `SQLiteDialect`)      | Handles placeholder style, timestamp format, DDL                                                      |
-| **Store** (SQL)        | `SQLEventStore` — SQL-backed implementation of `event.Store`      | `NewSQLiteEventStore(db)`, `NewSQLEventStore(db)`                                                     |
-| **Pebble Store**       | Embedded KV event store (no SQL dependency)                       | `pebble.NewPebbleStore(db, logger)`                                                                   |
+| Term             | Definition                                                   | Context                                           |
+| ---------------- | ------------------------------------------------------------ | ------------------------------------------------- |
+| **Dialect**      | SQL dialect abstraction (`PostgresDialect`, `SQLiteDialect`) | Handles placeholder style, timestamp format, DDL  |
+| **Store** (SQL)  | `SQLEventStore` — SQL-backed implementation of `event.Store` | `NewSQLiteEventStore(db)`, `NewSQLEventStore(db)` |
+| **Pebble Store** | Embedded KV event store (no SQL dependency)                  | `pebble.NewPebbleStore(db, logger)`               |
 
 ### Saga
 

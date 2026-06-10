@@ -148,32 +148,6 @@ func TestWithCommandMetadata(t *testing.T) {
 	}
 }
 
-func TestMustParseAggregateType(t *testing.T) {
-	t.Parallel()
-
-	t.Run("valid type", func(t *testing.T) {
-		t.Parallel()
-
-		aggType := command.MustParseAggregateType("User")
-		if aggType.String() != "User" {
-			t.Errorf("expected 'User', got %q", aggType.String())
-		}
-	})
-
-	t.Run("empty panics", func(t *testing.T) {
-		t.Parallel()
-
-		defer func() {
-			r := recover()
-			if r == nil {
-				t.Error("expected panic for empty aggregate type")
-			}
-		}()
-
-		command.MustParseAggregateType("")
-	})
-}
-
 func TestDispatchOnClosed(t *testing.T) {
 	d := command.NewDispatcher()
 
