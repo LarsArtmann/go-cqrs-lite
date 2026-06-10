@@ -143,7 +143,7 @@ func TestCommand_MetadataIsolation(t *testing.T) {
 	m1.Custom["key"] = "value"
 
 	m2 := cmd.Metadata()
-	if m2.Custom != nil {
+	if _, ok := m2.Custom["key"]; ok {
 		t.Error("mutating Metadata() return value should not affect internal state")
 	}
 }

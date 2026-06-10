@@ -291,7 +291,7 @@ func TestDispatcher_Close(t *testing.T) {
 		t.Errorf("Close() error = %v", err)
 	}
 
-	if !d.Lifecycle.IsClosed() {
+	if !d.IsClosed() {
 		t.Error("dispatcher should be closed")
 	}
 }

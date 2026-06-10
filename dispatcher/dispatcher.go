@@ -46,7 +46,7 @@ func (c *middlewareChain[H, M]) Middleware() []M {
 type Dispatcher[H any, M any] struct {
 	handlers   map[string]H
 	handlersMu sync.RWMutex
-	Lifecycle  Lifecycle
+	lifecycle  Lifecycle
 	middleware middlewareChain[H, M]
 }
 
@@ -55,7 +55,7 @@ func NewDispatcher[H, M any]() *Dispatcher[H, M] {
 	return &Dispatcher[H, M]{
 		handlers:   make(map[string]H),
 		handlersMu: sync.RWMutex{},
-		Lifecycle:  Lifecycle{mu: sync.RWMutex{}, closed: false},
+		lifecycle:  Lifecycle{mu: sync.RWMutex{}, closed: false},
 		middleware: middlewareChain[H, M]{mu: sync.RWMutex{}, middleware: nil},
 	}
 }
@@ -69,7 +69,7 @@ func (d *Dispatcher[H, M]) Use(middleware ...M) {
 // The wrap function converts middleware and handler into a wrapped handler.
 // Middleware must be configured via Use() before Register() is called.
 func (d *Dispatcher[H, M]) Register(t string, handler H, wrap func(M, H) H) error {
-	err := d.Lifecycle.CheckClosed(ErrDispatcherClosed)
+	err := d.lifecycle.CheckClosed(ErrDispatcherClosed)
 	if err != nil {
 		return err
 	}
@@ -103,7 +103,7 @@ func (d *Dispatcher[H, M]) getHandler(t string) (H, bool) {
 // Dispatch returns the wrapped handler for a type.
 // The caller is responsible for invoking the returned handler with appropriate arguments.
 func (d *Dispatcher[H, M]) Dispatch(t string) (H, error) {
-	err := d.Lifecycle.CheckClosed(ErrDispatcherClosed)
+	err := d.lifecycle.CheckClosed(ErrDispatcherClosed)
 	if err != nil {
 		var zero H
 
@@ -126,5 +126,15 @@ func (d *Dispatcher[H, M]) Dispatch(t string) (H, error) {
 
 // Close marks the dispatcher as closed.
 func (d *Dispatcher[H, M]) Close() error {
-	return d.Lifecycle.Close()
+	return d.lifecycle.Close()
+}
+
+// IsClosed reports whether the dispatcher has been closed.
+func (d *Dispatcher[H, M]) IsClosed() bool {
+	return d.lifecycle.IsClosed()
+}
+
+// CheckClosed returns the provided error if the dispatcher is closed.
+func (d *Dispatcher[H, M]) CheckClosed(closedErr error) error {
+	return d.lifecycle.CheckClosed(closedErr)
 }

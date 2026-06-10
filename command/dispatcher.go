@@ -84,7 +84,7 @@ func (d *Dispatcher) Dispatch(ctx context.Context, cmd Command) error {
 }
 
 func (d *Dispatcher) checkClosed(code, msg string) error {
-	err := d.inner.Lifecycle.CheckClosed(ErrDispatcherClosed)
+	err := d.inner.CheckClosed(ErrDispatcherClosed)
 	if err != nil {
 		return errorfamily.WrapInfrastructure(err, code, msg)
 	}

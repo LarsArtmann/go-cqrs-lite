@@ -118,7 +118,7 @@ func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
 }
 
 func (d *Dispatcher) ensureOpen(code, msg string) error {
-	closedErr := d.inner.Lifecycle.CheckClosed(ErrDispatcherClosed)
+	closedErr := d.inner.CheckClosed(ErrDispatcherClosed)
 	if closedErr != nil {
 		return errorfamily.WrapInfrastructure(closedErr, code, msg)
 	}
