@@ -1,6 +1,7 @@
 package event
 
 import (
+	"cmp"
 	"fmt"
 	"net/netip"
 	"strconv"
@@ -148,15 +149,7 @@ func (v Version) Mod(n int) int { return int(v) % n }
 
 // Cmp compares two Versions. Returns -1, 0, or +1.
 func (v Version) Cmp(other Version) int {
-	if v < other {
-		return -1
-	}
-
-	if v > other {
-		return 1
-	}
-
-	return 0
+	return cmp.Compare(v, other)
 }
 
 // CheckVersionConflict verifies that existingLen matches the expected version.
