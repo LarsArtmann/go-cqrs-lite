@@ -23,16 +23,6 @@ func ParseType(s string) (Type, error) {
 	return Type(s), nil
 }
 
-// MustParseType is like ParseType but panics on invalid input.
-func MustParseType(s string) Type {
-	t, err := ParseType(s)
-	if err != nil {
-		panic("query.MustParseType: " + err.Error())
-	}
-
-	return t
-}
-
 // Query represents a read-side query.
 type Query interface {
 	Type() Type

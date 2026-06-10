@@ -27,16 +27,6 @@ func ParseType(s string) (Type, error) {
 	return Type(s), nil
 }
 
-// MustParseType is like ParseType but panics on invalid input.
-func MustParseType(s string) Type {
-	t, err := ParseType(s)
-	if err != nil {
-		panic("event.MustParseType: " + err.Error())
-	}
-
-	return t
-}
-
 // AggregateType is a type identifier for aggregate roots.
 type AggregateType string
 

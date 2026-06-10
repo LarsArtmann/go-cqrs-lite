@@ -26,16 +26,6 @@ func ParseType(s string) (Type, error) {
 	return Type(s), nil
 }
 
-// MustParseType is like ParseType but panics on invalid input.
-func MustParseType(s string) Type {
-	t, err := ParseType(s)
-	if err != nil {
-		panic("command.MustParseType: " + err.Error())
-	}
-
-	return t
-}
-
 // Command represents a domain command.
 type Command interface {
 	Type() Type
