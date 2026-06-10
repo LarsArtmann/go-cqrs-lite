@@ -3,6 +3,7 @@ package pebble
 import (
 	"context"
 	"fmt"
+	"hash/fnv"
 	"log/slog"
 	"sync"
 
@@ -11,19 +12,20 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
+const lockShardCount = 256
+
 // EventStore implements go-cqrs-lite/event.Store using Pebble.
 //
 // Save uses per-aggregate locking to prevent concurrent writes from silently
 // overwriting each other (Pebble batch commits are atomic, but two goroutines
-// can both pass checkVersion before either commits). The lock map grows with
-// the number of unique aggregates — bounded by actual data volume for an
-// embedded single-process store.
+// can both pass checkVersion before either commits). A fixed-size sharded
+// mutex pool avoids unbounded memory growth from a sync.Map.
 type EventStore struct {
 	db            *pebble.DB
 	logger        *slog.Logger
 	prefix        string
 	journalPrefix string
-	locks         sync.Map // map[string]*sync.Mutex — one per aggregate
+	lockShards    [lockShardCount]sync.Mutex
 	syncWrites    bool
 }
 
@@ -128,32 +130,14 @@ func (a *EventStore) Save(
 	return a.commitAndLog(batch, "events saved", ref, len(events))
 }
 
-func (a *EventStore) aggregateLockKey(
-	ref event.AggregateRef,
-) string {
-	return string(ref.Type) + ":" + ref.ID.String()
+func (a *EventStore) lockShard(ref event.AggregateRef) *sync.Mutex {
+	h := fnv.New32a()
+	_, _ = h.Write([]byte(ref.Type))
+	_, _ = h.Write([]byte(ref.ID.String()))
+
+	return &a.lockShards[h.Sum32()%lockShardCount]
 }
 
-func (a *EventStore) lockAggregate(
-	ref event.AggregateRef,
-) {
-	key := a.aggregateLockKey(ref)
+func (a *EventStore) lockAggregate(ref event.AggregateRef) { a.lockShard(ref).Lock() }
 
-	m := &sync.Mutex{}
-
-	actual, loaded := a.locks.LoadOrStore(key, m)
-	if loaded {
-		m = actual.(*sync.Mutex) //nolint:forcetypeassert // guaranteed by LoadOrStore above
-	}
-
-	m.Lock()
-}
-
-func (a *EventStore) unlockAggregate(
-	ref event.AggregateRef,
-) {
-	key := a.aggregateLockKey(ref)
-
-	val, _ := a.locks.Load(key)
-	val.(*sync.Mutex).Unlock() //nolint:forcetypeassert // key only stored with *sync.Mutex via lockAggregate
-}
+func (a *EventStore) unlockAggregate(ref event.AggregateRef) { a.lockShard(ref).Unlock() }
