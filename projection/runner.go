@@ -105,7 +105,10 @@ func (r *Runner) Run(ctx context.Context) error {
 		return ErrAlreadyRunning
 	}
 	defer r.running.Store(false)
-	defer close(r.done)
+
+	done := make(chan struct{})
+	r.done = done
+	defer close(done)
 
 	ctx, r.cancel = context.WithCancel(ctx)
 
