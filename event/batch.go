@@ -58,21 +58,3 @@ func NewEvents(
 
 	return events, nil
 }
-
-// MustNewEvents creates multiple events in batch, panicking on error.
-// See NewEvents for details.
-func MustNewEvents(
-	aggregateID id.AggregateID,
-	aggregateType AggregateType,
-	version Version,
-	eventTypes []Type,
-	payloads []any,
-	opts ...Option,
-) []Event {
-	events, err := NewEvents(aggregateID, aggregateType, version, eventTypes, payloads, opts...)
-	if err != nil {
-		panic(err)
-	}
-
-	return events
-}

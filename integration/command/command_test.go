@@ -17,7 +17,6 @@ func mustNewCmd(commandType command.Type, aggregateID id.AggregateID, opts ...co
 	return cmd
 }
 
-
 func parseAggID(s string) id.AggregateID {
 	v, err := id.ParseAggregateID(s)
 	if err != nil {

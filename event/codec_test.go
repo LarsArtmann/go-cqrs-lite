@@ -10,7 +10,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
-
 func TestJSONCodec_Encode(t *testing.T) {
 	t.Parallel()
 

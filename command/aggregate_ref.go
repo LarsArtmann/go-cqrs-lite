@@ -20,15 +20,6 @@ func ParseAggregateType(s string) (AggregateType, error) {
 	return t, nil
 }
 
-func MustParseAggregateType(s string) AggregateType {
-	t, err := event.ParseAggregateType(s)
-	if err != nil {
-		panic(fmt.Sprintf("command.MustParseAggregateType: %v", err))
-	}
-
-	return t
-}
-
 func NewAggregateRef(aggregateType AggregateType, aggregateID id.AggregateID) AggregateRef {
 	return event.NewAggregateRef(aggregateType, aggregateID)
 }

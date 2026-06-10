@@ -8,7 +8,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
-
 func parseCausationID(s string) id.CausationID {
 	v, err := id.ParseCausationID(s)
 	if err != nil {
@@ -16,7 +15,6 @@ func parseCausationID(s string) id.CausationID {
 	}
 	return v
 }
-
 
 func parseRequestID(s string) id.RequestID {
 	v, err := id.ParseRequestID(s)

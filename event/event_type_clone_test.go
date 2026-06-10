@@ -8,8 +8,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
-
-
 func parseEventID(s string) id.EventID {
 	v, err := id.ParseEventID(s)
 	if err != nil {
@@ -112,19 +110,6 @@ func TestParseAggregateType_Empty(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for empty aggregate type")
 	}
-}
-
-func TestMustParseAggregateType_Panics(t *testing.T) {
-	t.Parallel()
-
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Fatal("expected panic")
-		}
-	}()
-
-	event.MustParseAggregateType("")
 }
 
 func TestClone_DeepCopy(t *testing.T) {

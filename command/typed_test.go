@@ -17,7 +17,6 @@ func mustNewCmd(commandType command.Type, aggregateID id.AggregateID, opts ...co
 	return cmd
 }
 
-
 var errTestFailure = errors.New("test failure")
 
 type testTypedCmd struct {

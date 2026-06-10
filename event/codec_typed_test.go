@@ -6,10 +6,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
-
-
 
 func TestNew_StructPayload(t *testing.T) {
 	t.Parallel()

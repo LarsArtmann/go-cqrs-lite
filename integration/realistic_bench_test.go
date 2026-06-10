@@ -62,7 +62,6 @@ func mustNewQuery(queryType query.Type) *query.BasicQuery {
 	return q
 }
 
-
 // ---------------------------------------------------------------------------
 // Domain types — realistic e-commerce order model
 // ---------------------------------------------------------------------------

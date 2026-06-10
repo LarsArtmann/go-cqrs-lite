@@ -16,7 +16,6 @@ func mustNewCmd(commandType command.Type, aggregateID id.AggregateID, opts ...co
 	return cmd
 }
 
-
 func BenchmarkNew(b *testing.B) {
 	b.ReportAllocs()
 

@@ -14,15 +14,6 @@ func EveryNEvents(n int) (SnapshotStrategy, error) {
 	return &everyN{interval: n}, nil
 }
 
-func MustEveryNEvents(n int) SnapshotStrategy {
-	s, err := EveryNEvents(n)
-	if err != nil {
-		panic("snapshot.MustEveryNEvents: " + err.Error())
-	}
-
-	return s
-}
-
 type everyN struct{ interval int }
 
 var _ SnapshotStrategy = (*everyN)(nil)

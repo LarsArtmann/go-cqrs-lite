@@ -2,7 +2,6 @@ package query
 
 import (
 	"context"
-	"fmt"
 )
 
 // Type identifies a query type.
@@ -45,17 +44,6 @@ func New(queryType Type) (*BasicQuery, error) {
 	}
 
 	return &BasicQuery{queryType: queryType}, nil
-}
-
-// MustNew creates a new query or panics on validation failure.
-// Use only in tests where inputs are guaranteed valid.
-func MustNew(queryType Type) *BasicQuery {
-	q, err := New(queryType)
-	if err != nil {
-		panic(fmt.Sprintf("query.MustNew: %v", err))
-	}
-
-	return q
 }
 
 // Middleware wraps query handlers for cross-cutting concerns.

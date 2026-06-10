@@ -16,7 +16,6 @@ func mustNewCmd(commandType command.Type, aggregateID id.AggregateID, opts ...co
 	return cmd
 }
 
-
 func benchmarkDispatch(b *testing.B, dispatcher *command.Dispatcher) {
 	cmd := mustNewCmd("bench.cmd", id.NewAggregateID())
 	ctx := context.Background()

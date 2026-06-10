@@ -1,7 +1,6 @@
 package event
 
 import (
-	"fmt"
 	"slices"
 
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
@@ -86,13 +85,4 @@ func (b *builder) Build() (*ImmutableEvent, error) {
 		b.payload,
 		b.opts,
 	), nil
-}
-
-func (b *builder) MustBuild() *ImmutableEvent {
-	evt, err := b.Build()
-	if err != nil {
-		panic(fmt.Sprintf("event.builder.MustBuild: %v", err))
-	}
-
-	return evt
 }

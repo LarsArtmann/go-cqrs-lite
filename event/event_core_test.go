@@ -9,7 +9,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
-
 func TestNewEvent_Valid(t *testing.T) {
 	t.Parallel()
 

@@ -10,7 +10,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
-
 func TestProjectionFunc(t *testing.T) {
 	t.Parallel()
 

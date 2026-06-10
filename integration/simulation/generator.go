@@ -85,13 +85,3 @@ func DefaultUserGenerator() *EventGenerator {
 		},
 	)
 }
-
-// MustSerialize serializes a value to JSON bytes, panicking on error.
-func MustSerialize(v any) []byte {
-	data, err := json.Marshal(v)
-	if err != nil {
-		panic(fmt.Sprintf("serialize: %v", err))
-	}
-
-	return data
-}
