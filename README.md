@@ -1,7 +1,7 @@
 # go-cqrs-lite
 
 [![CI](https://github.com/LarsArtmann/go-cqrs-lite/actions/workflows/ci.yml/badge.svg)](https://github.com/LarsArtmann/go-cqrs-lite/actions/workflows/ci.yml)
-[![Go Reference](https://pkg.go.dev/badge/github.com/LarsArtmann/go-cqrs-lite/event/v2.svg)](https://pkg.go.dev/github.com/LarsArtmann/go-cqrs-lite/event/v2)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/event/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v2)
 
 A lightweight CQRS (Command Query Responsibility Segregation) library for Go with support for Event Sourcing, strongly-typed domain identifiers, and auto-documentation generation.
 
