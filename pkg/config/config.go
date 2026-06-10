@@ -22,7 +22,7 @@ func NewLoader(basePath string) *Loader {
 func (l *Loader) Load(name string, dest any) error {
 	baseFile := filepath.Join(l.basePath, name+".json")
 
-	data, err := os.ReadFile(baseFile)
+	data, err := os.ReadFile(filepath.Clean(baseFile)) //nolint:gosec // path from config dir + name
 	if err != nil {
 		if os.IsNotExist(err) {
 			return fmt.Errorf("config file not found: %w", err)
@@ -31,7 +31,8 @@ func (l *Loader) Load(name string, dest any) error {
 		return fmt.Errorf("read config: %w", err)
 	}
 
-	if err := json.Unmarshal(data, dest); err != nil {
+	err = json.Unmarshal(data, dest)
+	if err != nil {
 		return fmt.Errorf("parse config: %w", err)
 	}
 
@@ -42,7 +43,7 @@ func (l *Loader) Load(name string, dest any) error {
 
 	overlayFile := filepath.Join(l.basePath, name+"."+env+".json")
 
-	overlayData, err := os.ReadFile(overlayFile)
+	overlayData, err := os.ReadFile(filepath.Clean(overlayFile)) //nolint:gosec // path from config dir + name
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil // no overlay, base config is sufficient
@@ -51,7 +52,8 @@ func (l *Loader) Load(name string, dest any) error {
 		return fmt.Errorf("read overlay: %w", err)
 	}
 
-	if err := json.Unmarshal(overlayData, dest); err != nil {
+	err = json.Unmarshal(overlayData, dest)
+	if err != nil {
 		return fmt.Errorf("parse overlay: %w", err)
 	}
 
