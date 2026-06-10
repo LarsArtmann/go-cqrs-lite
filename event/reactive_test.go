@@ -438,7 +438,7 @@ func TestMap(t *testing.T) {
 
 	bus := event.NewEventBus()
 
-	mapped := ro.Pipe1(bus, event.Map(func(e event.Event) event.Event {
+	mapped := ro.Pipe1(bus, ro.Map(func(e event.Event) event.Event {
 		return e
 	}))
 
@@ -464,7 +464,7 @@ func TestTap(t *testing.T) {
 
 	var sideEffectCount int
 
-	tapped := ro.Pipe1(bus, event.Tap(func(e event.Event) {
+	tapped := ro.Pipe1(bus, ro.TapOnNext(func(e event.Event) {
 		sideEffectCount++
 	}))
 
@@ -578,9 +578,9 @@ func TestScanState(t *testing.T) {
 
 	type count struct{ Total int }
 
-	scanned := ro.Pipe1(bus, event.ScanState(count{}, func(state count, e event.Event) count {
+	scanned := ro.Pipe1(bus, ro.Scan(func(state count, e event.Event) count {
 		return count{Total: state.Total + 1}
-	}))
+	}, count{}))
 
 	var results []count
 

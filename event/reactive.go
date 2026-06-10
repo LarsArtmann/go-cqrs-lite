@@ -108,25 +108,6 @@ func HandlerToObserverWithContext(ctx context.Context, handler Handler) ro.Obser
 	return obs
 }
 
-// Map transforms events in a reactive stream.
-func Map(transform func(Event) Event) func(ro.Observable[Event]) ro.Observable[Event] {
-	return ro.Map(transform)
-}
-
-// ScanState accumulates state over an event stream. Initial is the starting state,
-// and accumulator folds each event into the current state, producing a new state.
-func ScanState[S any](
-	initial S,
-	accumulator func(S, Event) S,
-) func(ro.Observable[Event]) ro.Observable[S] {
-	return ro.Scan(accumulator, initial)
-}
-
-// Tap performs a side effect for each event without changing the stream.
-func Tap(fn func(Event)) func(ro.Observable[Event]) ro.Observable[Event] {
-	return ro.TapOnNext(fn)
-}
-
 // Observable is a named type for event observables, improving discoverability
 // over the raw ro.Observable[Event].
 type Observable = ro.Observable[Event]
