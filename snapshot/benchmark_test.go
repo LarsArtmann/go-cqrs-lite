@@ -8,7 +8,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 )
 
@@ -33,7 +32,7 @@ func BenchmarkEveryNEvents_ShouldSnapshot(b *testing.B) {
 		b.Fatalf("EveryNEvents: %v", err)
 	}
 
-	sink := memory.NewMemorySnapshotStore()
+	sink := newFakeStore()
 	b.Cleanup(func() { _ = sink.Close() })
 
 	b.ResetTimer()
@@ -49,7 +48,7 @@ func BenchmarkEveryNEvents_ShouldSnapshot(b *testing.B) {
 func BenchmarkSaveSnapshot(b *testing.B) {
 	b.ReportAllocs()
 
-	sink := memory.NewMemorySnapshotStore()
+	sink := newFakeStore()
 	b.Cleanup(func() { _ = sink.Close() })
 
 	aggID := id.NewAggregateID()
@@ -73,7 +72,7 @@ func BenchmarkSaveSnapshot(b *testing.B) {
 func BenchmarkMemorySnapshotStore_Load(b *testing.B) {
 	b.ReportAllocs()
 
-	sink := memory.NewMemorySnapshotStore()
+	sink := newFakeStore()
 	b.Cleanup(func() { _ = sink.Close() })
 
 	aggID := id.NewAggregateID()

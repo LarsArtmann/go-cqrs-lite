@@ -7,7 +7,6 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 )
 
@@ -34,7 +33,7 @@ func ExampleMustEveryNEvents() {
 }
 
 func ExampleSnapshotStore() {
-	store := memory.NewMemorySnapshotStore()
+	store := newFakeStore()
 
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("User", aggID)
