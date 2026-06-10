@@ -26,6 +26,7 @@ exclude:
   - dist
   - "*.pb.go"
   - "*.gen.go"
+  - "**/testdata/golden/**"
 
 # Auto-fix settings
 auto_fix: false

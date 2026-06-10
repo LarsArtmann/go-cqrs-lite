@@ -3,6 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/example/user
 go 1.26.3
 
 require (
+	github.com/larsartmann/go-cqrs-lite v0.0.0
 	github.com/larsartmann/go-cqrs-lite/catalog/v2 v2.2.0
 	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.2.0
 	github.com/larsartmann/go-cqrs-lite/command/v2 v2.2.0
@@ -44,6 +45,7 @@ require (
 )
 
 replace (
+	github.com/larsartmann/go-cqrs-lite => ../..
 	github.com/larsartmann/go-cqrs-lite/catalog/v2 => ../../catalog
 	github.com/larsartmann/go-cqrs-lite/codec/v2 => ../../codec
 	github.com/larsartmann/go-cqrs-lite/command/v2 => ../../command
