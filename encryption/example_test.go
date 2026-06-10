@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/larsartmann/go-cqrs-lite/encryption/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/encryption/v2"
 )
 
 func ExampleNewAES256GCM() {
