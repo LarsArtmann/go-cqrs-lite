@@ -3,10 +3,12 @@ package event_test
 import (
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/decider/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v2"
 	"github.com/larsartmann/go-cqrs-lite/projection/v2"
+	"github.com/larsartmann/go-cqrs-lite/query/v2"
 	"github.com/larsartmann/go-cqrs-lite/storage/v2"
 )
 
@@ -71,5 +73,25 @@ func TestClassify_MiddlewareSentinels(t *testing.T) {
 
 	if event.Classify(middleware.ErrPanicRecovered) != event.Corruption {
 		t.Error("middleware.ErrPanicRecovered should be Corruption")
+	}
+}
+
+func TestClassify_CommandQuerySentinels(t *testing.T) {
+	t.Parallel()
+
+	if event.Classify(command.ErrHandlerNotFound) != event.Rejection {
+		t.Error("command.ErrHandlerNotFound should be Rejection")
+	}
+
+	if event.Classify(command.ErrDispatcherClosed) != event.Infrastructure {
+		t.Error("command.ErrDispatcherClosed should be Infrastructure")
+	}
+
+	if event.Classify(query.ErrHandlerNotFound) != event.Rejection {
+		t.Error("query.ErrHandlerNotFound should be Rejection")
+	}
+
+	if event.Classify(query.ErrDispatcherClosed) != event.Infrastructure {
+		t.Error("query.ErrDispatcherClosed should be Infrastructure")
 	}
 }

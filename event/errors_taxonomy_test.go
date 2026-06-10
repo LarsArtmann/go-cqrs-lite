@@ -8,9 +8,7 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/query/v2"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 )
 
@@ -344,25 +342,5 @@ func TestError_Is(t *testing.T) {
 
 	if err1.Is(errors.New("unrelated")) {
 		t.Error("Is should not match non-*Error targets")
-	}
-}
-
-func TestClassify_CommandQuerySentinels(t *testing.T) {
-	t.Parallel()
-
-	if event.Classify(command.ErrHandlerNotFound) != event.Rejection {
-		t.Error("ErrHandlerNotFound should be Rejection")
-	}
-
-	if event.Classify(command.ErrDispatcherClosed) != event.Infrastructure {
-		t.Error("command.ErrDispatcherClosed should be Infrastructure")
-	}
-
-	if event.Classify(query.ErrHandlerNotFound) != event.Rejection {
-		t.Error("ErrHandlerNotFound should be Rejection")
-	}
-
-	if event.Classify(query.ErrDispatcherClosed) != event.Infrastructure {
-		t.Error("query.ErrDispatcherClosed should be Infrastructure")
 	}
 }

@@ -4,10 +4,8 @@ go 1.26.3
 
 require (
 	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.2.0
-	github.com/larsartmann/go-cqrs-lite/command/v2 v2.2.0
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.2.0
 	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.2.0
-	github.com/larsartmann/go-cqrs-lite/query/v2 v2.2.0
 	github.com/larsartmann/go-cqrs-lite/schema/v2 v2.2.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.2.0
 	github.com/larsartmann/go-error-family v0.3.0
@@ -24,6 +22,7 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/pprof v0.0.0-20260507013755-92041b743c96 // indirect
 	github.com/larsartmann/go-branded-id v0.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v2 v2.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.2.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/samber/lo v1.53.0 // indirect
@@ -43,7 +42,6 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 => ../dispatcher
 	github.com/larsartmann/go-cqrs-lite/id/v2 => ../id
 	github.com/larsartmann/go-cqrs-lite/memory/v2 => ../memory
-	github.com/larsartmann/go-cqrs-lite/query/v2 => ../query
 	github.com/larsartmann/go-cqrs-lite/schema/v2 => ../schema
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../snapshot
 )
