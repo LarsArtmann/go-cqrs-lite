@@ -45,23 +45,6 @@ func Parse[T any](s string) (Of[T], error) {
 	return cbid.NewID[T](id), nil
 }
 
-// MustParse converts a ULID string to a strongly-typed ID, panicking on error.
-//
-// WARNING: This function panics if the input is not a valid ULID. Use only in:
-//   - Test code where the input is guaranteed valid
-//   - Initialization code with hardcoded valid IDs
-//   - When you explicitly want a panic on invalid input
-//
-// For production code, prefer Parse[T]() which returns an error.
-func MustParse[T any](s string) Of[T] {
-	parsed, err := Parse[T](s)
-	if err != nil {
-		panic(fmt.Sprintf("id.MustParse: %v (input: %q)", err, s))
-	}
-
-	return parsed
-}
-
 // ULID returns the timestamp encoded in the ID.
 func ULID[T any](id Of[T]) time.Time {
 	return ulid.Time(id.Get().Time())

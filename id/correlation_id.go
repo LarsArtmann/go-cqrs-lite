@@ -16,8 +16,3 @@ func NewCorrelationID() CorrelationID {
 func ParseCorrelationID(s string) (CorrelationID, error) {
 	return Parse[correlationMarker](s)
 }
-
-// MustParseCorrelationID converts a string to a CorrelationID, panicking on error.
-func MustParseCorrelationID(s string) CorrelationID {
-	return MustParse[correlationMarker](s)
-}

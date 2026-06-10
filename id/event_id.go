@@ -16,8 +16,3 @@ func NewEventID() EventID {
 func ParseEventID(s string) (EventID, error) {
 	return Parse[eventMarker](s)
 }
-
-// MustParseEventID converts a string to an EventID, panicking on error.
-func MustParseEventID(s string) EventID {
-	return MustParse[eventMarker](s)
-}

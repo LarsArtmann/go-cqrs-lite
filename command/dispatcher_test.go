@@ -15,7 +15,7 @@ func mustNewCmd(commandType command.Type, aggregateID id.AggregateID, opts ...co
 	if err != nil {
 		panic(err)
 	}
-	return s
+	return cmd
 }
 
 

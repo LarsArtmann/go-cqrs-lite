@@ -46,16 +46,6 @@ func ParseAggregateType(s string) (AggregateType, error) {
 	return AggregateType(s), nil
 }
 
-// MustParseAggregateType is like ParseAggregateType but panics on invalid input.
-func MustParseAggregateType(s string) AggregateType {
-	t, err := ParseAggregateType(s)
-	if err != nil {
-		panic("event.MustParseAggregateType: " + err.Error())
-	}
-
-	return t
-}
-
 // Event represents an immutable domain event with rich metadata.
 //
 // Implementations must ensure that mutable return values ([]byte, maps, slices)

@@ -16,8 +16,3 @@ func NewCausationID() CausationID {
 func ParseCausationID(s string) (CausationID, error) {
 	return Parse[causationMarker](s)
 }
-
-// MustParseCausationID converts a string to a CausationID, panicking on error.
-func MustParseCausationID(s string) CausationID {
-	return MustParse[causationMarker](s)
-}

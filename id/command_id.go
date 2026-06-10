@@ -15,9 +15,3 @@ func NewCommandID() CommandID {
 func ParseCommandID(s string) (CommandID, error) {
 	return Parse[commandMarker](s)
 }
-
-// MustParseCommandID parses a string into a CommandID.
-// Panics if the string is not a valid ULID.
-func MustParseCommandID(s string) CommandID {
-	return MustParse[commandMarker](s)
-}

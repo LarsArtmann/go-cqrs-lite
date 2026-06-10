@@ -45,16 +45,6 @@ func ParseAggregateID(s string) (AggregateID, error) {
 	return cbid.NewID[AggregateMarker](s), nil
 }
 
-// MustParseAggregateID converts a string to an AggregateID, panicking on error.
-func MustParseAggregateID(s string) AggregateID {
-	parsed, err := ParseAggregateID(s)
-	if err != nil {
-		panic(fmt.Sprintf("id.MustParseAggregateID: %v (input: %q)", err, s))
-	}
-
-	return parsed
-}
-
 // DeriveAggregateID creates a deterministic AggregateID from a namespace and
 // one or more key strings using SHA-256. Same inputs always produce the same ID.
 // Useful for stable IDs in idempotent workflows (e.g., "lock:" + userID + ":" + resourceID).

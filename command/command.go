@@ -80,14 +80,3 @@ func New(commandType Type, aggregateID id.AggregateID, opts ...Option) (*BasicCo
 
 	return cmd, nil
 }
-
-// MustNew creates a new command or panics on validation failure.
-// Use only in tests where inputs are guaranteed valid.
-func MustNew(commandType Type, aggregateID id.AggregateID, opts ...Option) *BasicCommand {
-	c, err := New(commandType, aggregateID, opts...)
-	if err != nil {
-		panic(fmt.Sprintf("command.MustNew: %v", err))
-	}
-
-	return c
-}

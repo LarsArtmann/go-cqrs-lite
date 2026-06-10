@@ -320,18 +320,6 @@ func TestAggregateType_Parse(t *testing.T) {
 	}
 }
 
-func TestAggregateType_MustParse_Panics(t *testing.T) {
-	t.Parallel()
-
-	defer func() {
-		if recover() == nil {
-			t.Error("expected panic for empty aggregate type")
-		}
-	}()
-
-	parseCmdAggType("")
-}
-
 func TestAggregateType_IsZero(t *testing.T) {
 	t.Parallel()
 
@@ -369,19 +357,6 @@ func TestCommandID_ParseEmpty(t *testing.T) {
 	if err == nil {
 		t.Error("expected error for empty string")
 	}
-}
-
-func TestCommandID_MustParse_Panics(t *testing.T) {
-	t.Parallel()
-
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Error("expected panic for invalid command ID")
-		}
-	}()
-
-	parseCommandID("not-a-valid-ulid")
 }
 
 func TestStoreInterface_CompileTime(t *testing.T) {

@@ -16,8 +16,3 @@ func NewRequestID() RequestID {
 func ParseRequestID(s string) (RequestID, error) {
 	return Parse[requestMarker](s)
 }
-
-// MustParseRequestID converts a string to a RequestID, panicking on error.
-func MustParseRequestID(s string) RequestID {
-	return MustParse[requestMarker](s)
-}

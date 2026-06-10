@@ -16,8 +16,3 @@ func NewUserID() UserID {
 func ParseUserID(s string) (UserID, error) {
 	return Parse[userMarker](s)
 }
-
-// MustParseUserID converts a string to a UserID, panicking on error.
-func MustParseUserID(s string) UserID {
-	return MustParse[userMarker](s)
-}

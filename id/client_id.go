@@ -16,8 +16,3 @@ func NewClientID() ClientID {
 func ParseClientID(s string) (ClientID, error) {
 	return Parse[clientMarker](s)
 }
-
-// MustParseClientID converts a string to a ClientID, panicking on error.
-func MustParseClientID(s string) ClientID {
-	return MustParse[clientMarker](s)
-}
