@@ -4,6 +4,55 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Fixed
+
+- **pebble/serialization.go** — handle `MarshalMetadataJSON` error instead of discarding it
+- **middleware/sse.go** — fix send-on-closed-channel race between `handleEvent` and `RemoveClient`
+- **middleware/sse.go** — `NewSSEBroker` now returns `(*SSEBroker, error)` instead of nil on error
+- **middleware/circuit_breaker.go** — `ErrCircuitBreakerOpen` uses error taxonomy instead of bare `errors.New`
+- **middleware/circuit_breaker.go** — add nil guard for `IsFailure` callback (defaults to `event.IsRetryable`)
+- **middleware/retry.go** — `ErrRetryCanceled` sentinel now actually used on context cancellation
+- **pebble/store.go** — `NewStore(nil, ...)` panics with clear message instead of nil pointer dereference
+- **decider/decider.go** — add `slog.WarnContext` fallback for snapshot failures (previously OTel-only)
+- **projection/runner.go** — create fresh done channel per `Run` invocation
+- **projection/runner.go** — `Runner.Close()` now waits for `Run` to complete
+- **decider/decider.go** — stop double-wrapping classified errors in `opError`
+- **event/types.go** — `Version.Cmp` simplified to `cmp.Compare`
+
+### Changed
+
+- **event/errors.go** — added doc comments to all 30 exported error symbols
+- **command/errors.go** — removed unused `WrapTransient` re-export
+- **storage/sql/base.go** — extracted `ClosableBase` to deduplicate store lifecycle boilerplate
+- **event/go.mod** — removed `query/v2` direct dependency (test moved to integration/)
+- **snapshot/go.mod** — removed `memory/v2` dependency (replaced with inline fakeStore)
+
+### Removed
+
+- **event/** — `Map`, `ScanState`, `Tap` reactive wrappers (test-only, polluted public API)
+- **event/** — `StreamKey` free function (duplicated `AggregateRef.StreamKey()` method)
+
+### Fixed (Prior Session)
+
+- **event/** — `NewMetadata` now initializes `Custom` map
+- **event/** — renamed `WithNewCodec` → `WithCodec` (kept deprecated alias)
+- **decider/, projection/** — renamed `ErrNilBus` → `ErrNilPublisher`/`ErrNilSubscriber`
+- **event/** — added `IsReplay(ctx)` context getter
+- **dispatcher/** — unexported `Lifecycle` field, added method delegation
+- **listing/, storage/** — deduplicated `listRefsFromStatus`
+- **storage/** — `AggregateProjection` uses `Dialect.Placeholder()` (Postgres-compatible)
+- **pebble/** — `countEvents` uses `iter.Last()` instead of full scan
+
+### Docs
+
+- **README.md** — fixed Quick Start `Save`/`Load` API signatures
+- **README.md** — fixed Go Reference badge case (lowercase module path)
+- **README.md** — removed duplicate "Strong IDs" row in comparison table
+- **docs/getting-started.md** — full rewrite for v2 multi-module API
+- **TODO_LIST.md** — marked 21 items done across audit sessions
+
 ## [2.2.0] - 2026-06-08
 
 81 commits since v2.1.0. Operational readiness, testing rigor, and developer experience release.
