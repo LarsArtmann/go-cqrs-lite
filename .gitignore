@@ -76,5 +76,8 @@ result
 result-*
 .direnv/
 # Copy/paste detection report
-/report/jscpd-report.json# Saga example binary
+/reports/
+/report/jscpd-report.json
+
+# Saga example binary
 /saga-pattern
