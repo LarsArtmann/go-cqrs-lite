@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/aggregate"
+	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
@@ -54,7 +55,7 @@ func (h *UpdateTodoHandler) Handle(ctx context.Context, cmd command.Command) err
 
 	return h.execute(
 		ctx, typed.AggregateID(),
-		aggregate.DecideUpdate(typed.AggregateID(), typed.Title, typed.Description),
+		aggregate.DecideUpdate(typed.AggregateID(), domain.Title(typed.Title), domain.Description(typed.Description)),
 	)
 }
 

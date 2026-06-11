@@ -7,8 +7,8 @@ import (
 
 type CreateUserCmd struct {
 	aggregateID id.AggregateID
-	email       string
-	name        string
+	email       Email
+	name        DisplayName
 }
 
 func (c *CreateUserCmd) Type() command.Type          { return cmdCreateUser }
@@ -24,7 +24,7 @@ func (c *ChangeUserNameCmd) AggregateID() id.AggregateID { return c.aggregateID 
 
 type DeleteUserCmd struct {
 	aggregateID id.AggregateID
-	reason      string
+	reason      Reason
 }
 
 func (c *DeleteUserCmd) Type() command.Type          { return cmdDeleteUser }
@@ -32,8 +32,8 @@ func (c *DeleteUserCmd) AggregateID() id.AggregateID { return c.aggregateID }
 
 type RebirthUserCmd struct {
 	aggregateID id.AggregateID
-	email       string
-	name        string
+	email       Email
+	name        DisplayName
 }
 
 func (c *RebirthUserCmd) Type() command.Type          { return cmdRebirthUser }

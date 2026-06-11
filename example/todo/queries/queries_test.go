@@ -239,7 +239,7 @@ func (f *fakeReadModel) List(filter domain.TodoFilter) ([]*domain.Todo, error) {
 	}
 	results := make([]*domain.Todo, 0)
 	for _, todo := range f.todoList {
-		if filter.Priority != nil && todo.Priority != *filter.Priority {
+		if filter.Priority != nil && todo.Priority != domain.Priority(*filter.Priority) {
 			continue
 		}
 		if filter.Status != nil && todo.Status != *filter.Status {

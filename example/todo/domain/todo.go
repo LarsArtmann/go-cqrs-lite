@@ -30,12 +30,30 @@ func (s TodoStatus) IsValid() bool {
 	return false
 }
 
+type Title string
+
+func (t Title) String() string { return string(t) }
+
+func (t Title) IsZero() bool { return t == "" }
+
+type Description string
+
+func (d Description) String() string { return string(d) }
+
+func (d Description) IsZero() bool { return d == "" }
+
+type Priority int
+
+func (p Priority) Int() int { return int(p) }
+
+func (p Priority) IsZero() bool { return p == 0 }
+
 type Todo struct {
 	ID          TodoID     `json:"id"`
-	Title       string     `json:"title"`
-	Description string     `json:"description"`
+	Title       Title      `json:"title"`
+	Description Description `json:"description"`
 	Status      TodoStatus `json:"status"`
-	Priority    int        `json:"priority"`
+	Priority    Priority   `json:"priority"`
 	Tags        []string   `json:"tags"`
 	CreatedAt   time.Time  `json:"createdAt"`
 	UpdatedAt   time.Time  `json:"updatedAt"`

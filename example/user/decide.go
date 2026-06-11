@@ -9,7 +9,7 @@ import (
 
 func decideCreateUser(
 	aggID id.AggregateID,
-	email, name string,
+	email Email, name DisplayName,
 ) func(UserState, event.Version) ([]event.Event, error) {
 	return func(state UserState, version event.Version) ([]event.Event, error) {
 		if state.Email != "" {
@@ -18,13 +18,6 @@ func decideCreateUser(
 		}
 
 		if email == "" {
-			return nil, event.NewRejection("user.create.email_required",
-				"email is required")
-		}
-
-		evt, err := event.NewEvent(
-			eventUserCreated, aggID, aggregateType, version.Increment(),
-			mustMarshal(UserCreatedPayload{Email: email, Name: name}),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("create UserCreated event: %w", err)

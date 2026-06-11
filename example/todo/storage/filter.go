@@ -10,7 +10,7 @@ func matchesFilter(todo *domain.Todo, filter domain.TodoFilter) bool {
 	if filter.Status != nil && todo.Status != *filter.Status {
 		return false
 	}
-	if filter.Priority != nil && todo.Priority != *filter.Priority {
+	if filter.Priority != nil && todo.Priority != domain.Priority(*filter.Priority) {
 		return false
 	}
 	if len(filter.Tags) > 0 {
@@ -26,8 +26,8 @@ func matchesFilter(todo *domain.Todo, filter domain.TodoFilter) bool {
 	}
 	if filter.Search != "" {
 		searchLower := strings.ToLower(filter.Search)
-		if !strings.Contains(strings.ToLower(todo.Title), searchLower) &&
-			!strings.Contains(strings.ToLower(todo.Description), searchLower) {
+		if !strings.Contains(strings.ToLower(string(todo.Title)), searchLower) &&
+			!strings.Contains(strings.ToLower(string(todo.Description)), searchLower) {
 			return false
 		}
 	}

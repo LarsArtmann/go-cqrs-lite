@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/aggregate"
+	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
@@ -63,9 +64,9 @@ func (h *CreateTodoHandler) Handle(ctx context.Context, cmd command.Command) err
 		ctx, createCmd.AggregateID(),
 		aggregate.DecideCreate(
 			createCmd.AggregateID(),
-			createCmd.Title,
-			createCmd.Description,
-			createCmd.Priority,
+			domain.Title(createCmd.Title),
+			domain.Description(createCmd.Description),
+			domain.Priority(createCmd.Priority),
 			createCmd.Tags,
 		),
 	)

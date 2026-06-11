@@ -40,8 +40,8 @@ type GetTodoResult struct {
 
 func FromDomain(t *domain.Todo) *GetTodoResult {
 	return &GetTodoResult{
-		ID: t.ID, Title: t.Title, Description: t.Description,
-		Status: t.Status, Priority: t.Priority, Tags: t.Tags,
+		ID: t.ID, Title: string(t.Title), Description: string(t.Description),
+		Status: t.Status, Priority: int(t.Priority), Tags: t.Tags,
 		CreatedAt: t.CreatedAt, UpdatedAt: t.UpdatedAt,
 		CompletedAt: t.CompletedAt, Version: t.Version,
 	}

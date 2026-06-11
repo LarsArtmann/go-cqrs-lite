@@ -11,10 +11,10 @@ import (
 )
 
 type TodoState struct {
-	Title       string
-	Description string
+	Title       domain.Title
+	Description domain.Description
 	Status      domain.TodoStatus
-	Priority    int
+	Priority    domain.Priority
 	Tags        []string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
@@ -106,8 +106,9 @@ func (s TodoState) ToDomain(todoID domain.TodoID, version int64) *domain.Todo {
 
 func DecideCreate(
 	aggID id.AggregateID,
-	title, description string,
-	priority int,
+	title domain.Title,
+	description domain.Description,
+	priority domain.Priority,
 	tags []string,
 ) decider.DecideFunc[TodoState] {
 	return func(state TodoState, version event.Version) ([]event.Event, error) {
@@ -137,7 +138,8 @@ func DecideCreate(
 
 func DecideUpdate(
 	aggID id.AggregateID,
-	title, description string,
+	title domain.Title,
+	description domain.Description,
 ) decider.DecideFunc[TodoState] {
 	return func(state TodoState, version event.Version) ([]event.Event, error) {
 		if state.Deleted {
@@ -229,6 +231,33 @@ func DecideChangeStatus(
 		}
 
 		evt, err := newEventFromPayload(eventType, aggID, int(version)+1, payload)
+		if err != nil {
+			return nil, err
+		}
+
+		return []event.Event{evt}, nil
+	}
+}
+
+func DecideComplete(aggID id.AggregateID) decider.DecideFunc[TodoState] {
+	return func(state TodoState, version event.Version) ([]event.Event, error) {
+		if state.Deleted {
+			return nil, domain.ErrNotFound
+		}
+
+		if state.IsNew() {
+			return nil, domain.ErrNotFound
+		}
+
+		now := time.Now().UTC()
+		payload := TodoPayload{
+			Title: state.Title, Description: state.Description,
+			Status: domain.StatusCompleted, Priority: state.Priority,
+			Tags: state.Tags, CreatedAt: state.CreatedAt,
+			UpdatedAt: now, CompletedAt: &now,
+		}
+
+		evt, err := newEventFromPayload(EventCompleted, aggID, int(version)+1, payload)
 		if err != nil {
 			return nil, err
 		}

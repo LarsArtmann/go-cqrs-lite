@@ -6,10 +6,10 @@ import (
 )
 
 type UserState struct {
-	Email        string
-	Name         string
+	Email        Email
+	Name         DisplayName
 	Deleted      bool
-	DeleteReason string
+	DeleteReason Reason
 }
 
 func unmarshalAs[T any](evt event.Event) (T, error) {
@@ -24,7 +24,7 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 			return state, err
 		}
 
-		return UserState{Email: p.Email, Name: p.Name}, nil
+		return UserState{Email: Email(p.Email), Name: DisplayName(p.Name)}, nil
 	case eventUserNameChanged:
 		p, err := unmarshalAs[UserNameChangedPayload](evt)
 		if err != nil {
@@ -33,7 +33,7 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 
 		return UserState{
 			Email:        state.Email,
-			Name:         p.Name,
+			Name:         DisplayName(p.Name),
 			Deleted:      state.Deleted,
 			DeleteReason: state.DeleteReason,
 		}, nil
@@ -47,7 +47,7 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 			Email:        state.Email,
 			Name:         state.Name,
 			Deleted:      true,
-			DeleteReason: p.Reason,
+			DeleteReason: Reason(p.Reason),
 		}, nil
 	case eventUserReborn:
 		p, err := unmarshalAs[UserRebornPayload](evt)
@@ -55,7 +55,7 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 			return state, err
 		}
 
-		return UserState{Email: p.Email, Name: p.Name, Deleted: false}, nil
+		return UserState{Email: Email(p.Email), Name: DisplayName(p.Name), Deleted: false}, nil
 	default:
 		return state, nil
 	}
