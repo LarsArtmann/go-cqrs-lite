@@ -2,9 +2,7 @@
   "status": "pass",
   "version": "2.2.0",
   "releaseId": "2026-06-08",
-  "notes": [
-    "All systems nominal"
-  ],
+  "notes": ["All systems nominal"],
   "checks": {
     "event-store": {
       "componentType": "datastore",

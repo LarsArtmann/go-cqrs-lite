@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Design proposal for a domain-aware binary serialization codec in go-cqrs-lite: wire format, zero-copy decode, architecture, and benchmarks."
+      content="Design proposal for event serialization in go-cqrs-lite: three candidate architectures — FlatBuffers, all-CBOR, and custom binary + CBOR."
     />
-    <title>Binary Wire Codec — go-cqrs-lite Serialization Blueprint</title>
+    <title>Serialization Blueprint — go-cqrs-lite</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -34,6 +34,7 @@
         --warn: #8c6b1f;
         --danger: #8c1a1a;
         --info: #1a3a5c;
+        --purple: #6d28d9;
 
         --max-width: 820px;
         --sidebar-width: 220px;
@@ -56,6 +57,7 @@
           --warn: #fbbf24;
           --danger: #f87171;
           --info: #60a5fa;
+          --purple: #a78bfa;
         }
       }
 
@@ -85,8 +87,6 @@
         color: var(--text);
       }
 
-      /* ── Layout ────────────────────────────────────────── */
-
       .page {
         display: grid;
         grid-template-columns: var(--sidebar-width) 1fr;
@@ -100,8 +100,6 @@
           grid-template-columns: 1fr;
         }
       }
-
-      /* ── Sidebar ───────────────────────────────────────── */
 
       .sidebar {
         position: sticky;
@@ -181,7 +179,6 @@
         color: var(--text);
         border-left-color: var(--border);
       }
-
       .sidebar-nav a.active {
         color: var(--accent);
         border-left-color: var(--accent);
@@ -217,20 +214,15 @@
         }
       }
 
-      /* ── Main ──────────────────────────────────────────── */
-
       .main {
         padding: 3rem var(--gutter) 5rem;
         max-width: var(--max-width);
       }
-
       @media (max-width: 900px) {
         .main {
           padding: 2rem 1.5rem;
         }
       }
-
-      /* ── Typography ────────────────────────────────────── */
 
       h1 {
         font-family: var(--font-serif);
@@ -290,34 +282,27 @@
         margin: 0.9em 0;
         max-width: 65ch;
       }
-
       strong {
         color: var(--text);
         font-weight: 600;
       }
-
       a {
         color: var(--accent);
         text-decoration: underline;
         text-underline-offset: 2px;
       }
-
       a:hover {
         opacity: 0.85;
       }
-
       ul,
       ol {
         padding-left: 1.5rem;
         color: var(--text-secondary);
         margin: 0.75em 0;
       }
-
       li {
         margin-bottom: 0.35rem;
       }
-
-      /* ── Code ──────────────────────────────────────────── */
 
       code {
         font-family: var(--font-mono);
@@ -346,8 +331,6 @@
         font-size: inherit;
       }
 
-      /* ── Tables ────────────────────────────────────────── */
-
       table {
         width: 100%;
         border-collapse: collapse;
@@ -372,12 +355,9 @@
         border-bottom: 1px solid var(--border);
         color: var(--text-secondary);
       }
-
       tr:hover td {
         background: var(--surface);
       }
-
-      /* ── Custom Components ─────────────────────────────── */
 
       .callout {
         border-left: 3px solid var(--accent);
@@ -386,7 +366,6 @@
         margin: 1.5rem 0;
         border-radius: 0 6px 6px 0;
       }
-
       .callout p {
         margin: 0.3em 0;
       }
@@ -396,7 +375,6 @@
       .callout p:last-child {
         margin-bottom: 0;
       }
-
       .callout.warn {
         border-left-color: var(--warn);
       }
@@ -415,7 +393,6 @@
         letter-spacing: 0.05em;
         margin-bottom: 0.4rem;
       }
-
       .callout.warn .callout-title {
         color: var(--warn);
       }
@@ -424,6 +401,352 @@
       }
       .callout.info .callout-title {
         color: var(--info);
+      }
+
+      .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 1rem;
+        margin: 1.5rem 0;
+      }
+
+      .metric-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 1rem 1.25rem;
+        text-align: center;
+      }
+
+      .metric-value {
+        font-family: var(--font-serif);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1.1;
+        color: var(--text);
+        letter-spacing: -0.02em;
+      }
+      .metric-value.accent {
+        color: var(--accent);
+      }
+      .metric-value.success {
+        color: var(--success);
+      }
+
+      .metric-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-tertiary);
+        margin-top: 0.35rem;
+      }
+
+      .wire-diagram {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0;
+        margin: 1.5rem 0;
+        overflow: hidden;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        line-height: 1.6;
+      }
+
+      .wire-diagram .wire-header {
+        background: var(--surface);
+        padding: 0.6rem 1rem;
+        border-bottom: 1px solid var(--border);
+        font-family: var(--font-sans);
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-tertiary);
+      }
+
+      .wire-diagram pre {
+        border: none;
+        margin: 0;
+        padding: 1rem 1.25rem;
+        background: none;
+        font-size: 0.8rem;
+        line-height: 1.65;
+      }
+
+      .wire-diagram .comment {
+        color: var(--text-tertiary);
+      }
+      .wire-diagram .field-name {
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .wire-diagram .size-info {
+        color: var(--info);
+      }
+
+      .badge {
+        display: inline-block;
+        font-family: var(--font-sans);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        padding: 0.15em 0.5em;
+        border-radius: 3px;
+        vertical-align: middle;
+        margin-left: 0.3em;
+      }
+      .badge.new {
+        background: var(--accent-muted);
+        color: var(--accent);
+      }
+      .badge.existing {
+        background: var(--surface);
+        color: var(--text-tertiary);
+        border: 1px solid var(--border);
+      }
+      .badge.zero-dep {
+        background: #d4edda;
+        color: var(--success);
+      }
+      .badge.candidate {
+        background: rgba(109, 40, 217, 0.12);
+        color: var(--purple);
+      }
+      .badge.rejected {
+        background: var(--surface);
+        color: var(--text-tertiary);
+        border: 1px solid var(--border);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        .badge.zero-dep {
+          background: #1a3a2a;
+        }
+        .badge.candidate {
+          background: rgba(167, 139, 250, 0.12);
+        }
+      }
+
+      .bar-chart {
+        margin: 1.5rem 0;
+      }
+
+      .bar-row {
+        display: grid;
+        grid-template-columns: 12rem 1fr 4.5rem;
+        gap: 0.5rem;
+        align-items: center;
+        margin-bottom: 0.4rem;
+      }
+
+      .bar-label {
+        font-size: 0.82rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        text-align: right;
+      }
+
+      .bar-track {
+        height: 24px;
+        background: var(--surface);
+        border-radius: 3px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .bar-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.4s ease;
+      }
+      .bar-fill.json {
+        background: var(--accent);
+        opacity: 0.7;
+      }
+      .bar-fill.cbor {
+        background: var(--success);
+      }
+      .bar-fill.flatbuf {
+        background: var(--info);
+      }
+      .bar-fill.custom {
+        background: var(--purple);
+      }
+
+      .bar-value {
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        color: var(--text-tertiary);
+      }
+
+      .flow-steps {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+        margin: 1.5rem 0;
+      }
+
+      .flow-step {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 0.4rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+      }
+
+      .flow-arrow {
+        font-family: var(--font-mono);
+        color: var(--text-tertiary);
+        font-size: 1rem;
+      }
+
+      .flow-step.hot {
+        border-color: var(--accent);
+        background: var(--accent-muted);
+        color: var(--accent);
+        font-weight: 600;
+      }
+
+      .compare-strip {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        overflow: hidden;
+        margin: 1.5rem 0;
+      }
+
+      @media (max-width: 600px) {
+        .compare-strip {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .compare-cell {
+        background: var(--bg-elevated);
+        padding: 1rem 1.25rem;
+      }
+
+      .compare-cell-title {
+        font-family: var(--font-sans);
+        font-weight: 700;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.6rem;
+      }
+
+      .compare-cell-title.json {
+        color: var(--accent);
+      }
+      .compare-cell-title.cbor {
+        color: var(--success);
+      }
+      .compare-cell-title.flatbuf {
+        color: var(--info);
+      }
+      .compare-cell-title.custom {
+        color: var(--purple);
+      }
+
+      .compare-cell p {
+        font-size: 0.85rem;
+        margin: 0.3em 0;
+      }
+      .compare-cell code {
+        font-size: 0.82em;
+      }
+
+      .file-tree {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 1rem 1.25rem;
+        margin: 1.5rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+      }
+
+      .file-tree .existing {
+        color: var(--text-tertiary);
+      }
+      .file-tree .new {
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .file-tree .comment {
+        color: var(--text-tertiary);
+        font-style: italic;
+      }
+
+      .phase {
+        display: grid;
+        grid-template-columns: 4rem 1fr;
+        gap: 0 1rem;
+        margin: 1.5rem 0;
+      }
+
+      .phase-marker {
+        grid-row: 1 / span 3;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 0.2rem;
+      }
+
+      .phase-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--accent);
+        flex-shrink: 0;
+      }
+      .phase-dot.green {
+        background: var(--success);
+      }
+
+      .phase-line {
+        width: 2px;
+        flex: 1;
+        background: var(--border);
+        margin-top: 0.3rem;
+      }
+
+      .phase-label {
+        font-family: var(--font-sans);
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--text-tertiary);
+      }
+
+      .phase-title {
+        font-family: var(--font-serif);
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 0.25rem;
+      }
+
+      .phase-desc {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        max-width: 60ch;
+        margin-bottom: 0.4rem;
+      }
+      .phase-detail {
+        font-size: 0.82rem;
+        color: var(--text-tertiary);
       }
 
       .hex-grid {
@@ -501,397 +824,6 @@
         }
       }
 
-      .metric-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-        gap: 1rem;
-        margin: 1.5rem 0;
-      }
-
-      .metric-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        padding: 1rem 1.25rem;
-        text-align: center;
-      }
-
-      .metric-value {
-        font-family: var(--font-serif);
-        font-size: 2rem;
-        font-weight: 800;
-        line-height: 1.1;
-        color: var(--text);
-        letter-spacing: -0.02em;
-      }
-
-      .metric-value.accent {
-        color: var(--accent);
-      }
-      .metric-value.success {
-        color: var(--success);
-      }
-
-      .metric-label {
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: var(--text-tertiary);
-        margin-top: 0.35rem;
-      }
-
-      /* Wire diagram */
-      .wire-diagram {
-        background: var(--bg-elevated);
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        padding: 0;
-        margin: 1.5rem 0;
-        overflow: hidden;
-        font-family: var(--font-mono);
-        font-size: 0.8rem;
-        line-height: 1.6;
-      }
-
-      .wire-diagram .wire-header {
-        background: var(--surface);
-        padding: 0.6rem 1rem;
-        border-bottom: 1px solid var(--border);
-        font-family: var(--font-sans);
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--text-tertiary);
-      }
-
-      .wire-diagram pre {
-        border: none;
-        margin: 0;
-        padding: 1rem 1.25rem;
-        background: none;
-        font-size: 0.8rem;
-        line-height: 1.65;
-      }
-
-      .wire-diagram .comment {
-        color: var(--text-tertiary);
-      }
-      .wire-diagram .field-name {
-        color: var(--accent);
-        font-weight: 600;
-      }
-      .wire-diagram .size-info {
-        color: var(--info);
-      }
-
-      /* Architecture diagram */
-      .arch-box {
-        display: grid;
-        grid-template-columns: 1fr auto 1fr;
-        gap: 0.75rem;
-        align-items: stretch;
-        margin: 1.5rem 0;
-      }
-
-      @media (max-width: 700px) {
-        .arch-box {
-          grid-template-columns: 1fr;
-        }
-        .arch-arrow {
-          display: none;
-        }
-      }
-
-      .arch-layer {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        padding: 1rem 1.25rem;
-      }
-
-      .arch-layer-title {
-        font-family: var(--font-sans);
-        font-weight: 700;
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--text-tertiary);
-        margin-bottom: 0.5rem;
-      }
-
-      .arch-layer-body {
-        font-size: 0.88rem;
-        color: var(--text-secondary);
-      }
-
-      .arch-arrow {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: var(--font-mono);
-        font-size: 1.5rem;
-        color: var(--text-tertiary);
-      }
-
-      /* File tree */
-      .file-tree {
-        background: var(--bg-elevated);
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        padding: 1rem 1.25rem;
-        margin: 1.5rem 0;
-        font-family: var(--font-mono);
-        font-size: 0.82rem;
-        line-height: 1.7;
-      }
-
-      .file-tree .existing {
-        color: var(--text-tertiary);
-      }
-      .file-tree .new {
-        color: var(--accent);
-        font-weight: 600;
-      }
-      .file-tree .comment {
-        color: var(--text-tertiary);
-        font-style: italic;
-      }
-
-      /* Phase timeline */
-      .phase {
-        display: grid;
-        grid-template-columns: 4rem 1fr;
-        gap: 0 1rem;
-        margin: 1.5rem 0;
-      }
-
-      .phase-marker {
-        grid-row: 1 / span 3;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding-top: 0.2rem;
-      }
-
-      .phase-dot {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background: var(--accent);
-        flex-shrink: 0;
-      }
-
-      .phase-dot.green {
-        background: var(--success);
-      }
-
-      .phase-line {
-        width: 2px;
-        flex: 1;
-        background: var(--border);
-        margin-top: 0.3rem;
-      }
-
-      .phase-label {
-        font-family: var(--font-sans);
-        font-weight: 700;
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: var(--text-tertiary);
-      }
-
-      .phase-title {
-        font-family: var(--font-serif);
-        font-size: 1.15rem;
-        font-weight: 700;
-        color: var(--text);
-        margin-bottom: 0.25rem;
-      }
-
-      .phase-desc {
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-        max-width: 60ch;
-        margin-bottom: 0.4rem;
-      }
-
-      .phase-detail {
-        font-size: 0.82rem;
-        color: var(--text-tertiary);
-      }
-
-      /* Bar chart */
-      .bar-chart {
-        margin: 1.5rem 0;
-      }
-
-      .bar-row {
-        display: grid;
-        grid-template-columns: 10rem 1fr 4rem;
-        gap: 0.5rem;
-        align-items: center;
-        margin-bottom: 0.4rem;
-      }
-
-      .bar-label {
-        font-size: 0.82rem;
-        font-weight: 500;
-        color: var(--text-secondary);
-        text-align: right;
-      }
-
-      .bar-track {
-        height: 24px;
-        background: var(--surface);
-        border-radius: 3px;
-        overflow: hidden;
-        position: relative;
-      }
-
-      .bar-fill {
-        height: 100%;
-        border-radius: 3px;
-        transition: width 0.4s ease;
-      }
-
-      .bar-fill.json {
-        background: var(--accent);
-        opacity: 0.7;
-      }
-      .bar-fill.binary {
-        background: var(--success);
-      }
-      .bar-fill.flatbuf {
-        background: var(--info);
-      }
-
-      .bar-value {
-        font-family: var(--font-mono);
-        font-size: 0.8rem;
-        color: var(--text-tertiary);
-      }
-
-      /* Badge */
-      .badge {
-        display: inline-block;
-        font-family: var(--font-sans);
-        font-size: 0.7rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        padding: 0.15em 0.5em;
-        border-radius: 3px;
-        vertical-align: middle;
-        margin-left: 0.3em;
-      }
-
-      .badge.new {
-        background: var(--accent-muted);
-        color: var(--accent);
-      }
-      .badge.existing {
-        background: var(--surface);
-        color: var(--text-tertiary);
-        border: 1px solid var(--border);
-      }
-      .badge.zero-dep {
-        background: #d4edda;
-        color: var(--success);
-      }
-
-      @media (prefers-color-scheme: dark) {
-        .badge.zero-dep {
-          background: #1a3a2a;
-        }
-      }
-
-      /* Comparison strip */
-      .compare-strip {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 1px;
-        background: var(--border);
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        overflow: hidden;
-        margin: 1.5rem 0;
-      }
-
-      @media (max-width: 600px) {
-        .compare-strip {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      .compare-cell {
-        background: var(--bg-elevated);
-        padding: 1rem 1.25rem;
-      }
-
-      .compare-cell-title {
-        font-family: var(--font-sans);
-        font-weight: 700;
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: 0.6rem;
-      }
-
-      .compare-cell-title.json {
-        color: var(--accent);
-      }
-      .compare-cell-title.binary {
-        color: var(--success);
-      }
-      .compare-cell-title.flatbuf {
-        color: var(--info);
-      }
-
-      .compare-cell p {
-        font-size: 0.85rem;
-        margin: 0.3em 0;
-      }
-
-      .compare-cell code {
-        font-size: 0.82em;
-      }
-
-      /* Flow diagram */
-      .flow-steps {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        align-items: center;
-        margin: 1.5rem 0;
-      }
-
-      .flow-step {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 4px;
-        padding: 0.4rem 0.75rem;
-        font-family: var(--font-mono);
-        font-size: 0.8rem;
-        color: var(--text-secondary);
-      }
-
-      .flow-arrow {
-        font-family: var(--font-mono);
-        color: var(--text-tertiary);
-        font-size: 1rem;
-      }
-
-      .flow-step.hot {
-        border-color: var(--accent);
-        background: var(--accent-muted);
-        color: var(--accent);
-        font-weight: 600;
-      }
-
-      /* Section divider */
       hr {
         border: none;
         border-top: 1px solid var(--border);
@@ -901,40 +833,40 @@
   </head>
   <body>
     <div class="page">
-      <!-- Sidebar -->
       <nav class="sidebar">
         <a href="#" class="sidebar-brand">
-          Binary Wire Codec
-          <span>Serialization Blueprint</span>
+          Serialization Blueprint
+          <span>go-cqrs-lite codec/</span>
         </a>
 
         <ol class="sidebar-nav">
           <li><a href="#problem">The Problem</a></li>
           <li><a href="#current-state">Current State</a></li>
-          <li><a href="#wire-format">Wire Format</a></li>
-          <li><a href="#architecture">Three-Layer Design</a></li>
+          <li><a href="#candidates">Three Candidates</a></li>
+          <li><a href="#flatbuffers">Option A: FlatBuffers</a></li>
+          <li><a href="#all-cbor">Option B: All-in CBOR</a></li>
+          <li><a href="#custom-cbor">Option C: Custom Binary + CBOR</a></li>
           <li><a href="#performance">Projected Performance</a></li>
           <li><a href="#integration">Integration Points</a></li>
           <li><a href="#file-structure">File Structure</a></li>
           <li><a href="#phases">Build Phases</a></li>
-          <li><a href="#decisions">Key Decisions</a></li>
-          <li><a href="#alternatives">Alternatives Considered</a></li>
+          <li><a href="#dismissed">What We Dismissed</a></li>
           <li><a href="#appendix-base64">Appendix: Why Base64?</a></li>
         </ol>
 
         <div class="sidebar-meta">
           go-cqrs-lite &middot; codec/<br />
-          Zero-dependency proposal<br />
+          Three-candidate analysis<br />
           June 2026
         </div>
       </nav>
 
-      <!-- Main content -->
       <main class="main">
-        <h1>Binary Wire Codec</h1>
+        <h1>Serialization Blueprint</h1>
         <p class="subtitle">
-          A domain-aware binary serialization layer for the event envelope, designed to eliminate
-          reflection, base64 inflation, and triple-encode round-trips in go-cqrs-lite.
+          Three architectures for zero-overhead event serialization in go-cqrs-lite &mdash;
+          FlatBuffers, CBOR, and custom binary &mdash; analyzed against a library that consumers
+          extend with their own types.
         </p>
 
         <!-- ── The Problem ────────────────────────────── -->
@@ -1012,9 +944,9 @@
           <p>
             Two implementations exist: <code>JSONCodec</code> (wraps <code>encoding/json</code>) and
             <code>RawCodec</code> (passthrough for <code>[]byte</code>). The payload lifecycle
-            across the event module is already optimized with zero-copy internal reads via
-            <code>PayloadReadOnly()</code> and <code>payloadForDecode()</code> &mdash; but the
-            <em>wire format</em> remains pure JSON.
+            already has zero-copy internal reads via <code>PayloadReadOnly()</code> and
+            <code>payloadForDecode()</code> &mdash; but the <em>wire format</em>
+            remains pure JSON.
           </p>
 
           <h3>Where serialization happens today</h3>
@@ -1056,30 +988,369 @@
             </tbody>
           </table>
 
+          <h3>Why Pebble doesn't use the codec</h3>
+
+          <p>
+            Pebble imports <code>codec/v2</code> but only for reading the
+            <code>Encoding</code> field on deserialization. The envelope serialization bypasses the
+            codec entirely &mdash; it builds its own <code>serializableEvent</code> struct and calls
+            <code>json.Marshal</code> directly. Why? Because <code>codec.Codec</code> is a
+            struct&harr;bytes abstraction for <strong>payloads</strong>. It doesn't know what an
+            event envelope is. There's no <code>EncodeEvent(Event)</code> method. This gap is
+            exactly what any of the three candidate architectures would fill.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- ── Three Candidates ───────────────────────── -->
+        <section id="candidates">
+          <h2>Three Candidates</h2>
+
+          <p>
+            After researching the landscape &mdash; CBOR, FlatBuffers, msgpack, protobuf, Chronicle
+            Wire, ConnectRPC, Buf &mdash; three architectures remain viable. msgpack was eliminated:
+            it lacks deterministic encoding (signing hazard), has no RFC standard, and CBOR
+            dominates it on every axis that matters.
+          </p>
+
+          <div class="compare-strip">
+            <div class="compare-cell">
+              <div class="compare-cell-title flatbuf">A: FlatBuffers</div>
+              <p>Zero-copy everything</p>
+              <p>~10x faster decode</p>
+              <p>0&ndash;1 allocs total</p>
+              <p>
+                <strong>Trade-off:</strong> code generation required, <code>.fbs</code> schema per
+                event type
+              </p>
+            </div>
+            <div class="compare-cell">
+              <div class="compare-cell-title cbor">B: All-in CBOR</div>
+              <p>IETF standard (RFC 8949)</p>
+              <p>Native byte strings, no base64</p>
+              <p>Deterministic encoding (signing-safe)</p>
+              <p><strong>Trade-off:</strong> still uses reflection for envelope, no zero-copy</p>
+            </div>
+            <div class="compare-cell">
+              <div class="compare-cell-title custom">C: Custom Binary + CBOR</div>
+              <p>Zero-copy envelope parse</p>
+              <p>CBOR for payload (standards-based)</p>
+              <p>No base64, no reflection on envelope</p>
+              <p><strong>Trade-off:</strong> custom format needs spec and tooling</p>
+            </div>
+          </div>
+
+          <h3>How they relate to each other</h3>
+
+          <p>
+            The three options are not variants of the same thing. They operate at different
+            abstraction levels and can be composed:
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th></th>
+                <th>Envelope (type, ID, version, timestamp)</th>
+                <th>Payload (UserCreated, OrderPlaced)</th>
+                <th>Zero-copy access</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>FlatBuffers</strong></td>
+                <td>FlatBuffers schema (code gen)</td>
+                <td>FlatBuffers schema (code gen)</td>
+                <td>Envelope + payload</td>
+              </tr>
+              <tr>
+                <td><strong>All-in CBOR</strong></td>
+                <td>CBOR map (struct tags)</td>
+                <td>CBOR map (struct tags)</td>
+                <td>Neither</td>
+              </tr>
+              <tr>
+                <td><strong>Custom + CBOR</strong></td>
+                <td>Fixed-offset binary header</td>
+                <td>CBOR (struct tags)</td>
+                <td>Envelope only</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <hr />
+
+        <!-- ── Option A: FlatBuffers ──────────────────── -->
+        <section id="flatbuffers">
+          <h2>Option A: FlatBuffers</h2>
+
+          <p>
+            Google's <strong>FlatBuffers</strong> is a zero-copy serialization library. You define a
+            schema per type, generate Go code, and access fields directly from the byte buffer
+            without parsing or allocating. Used in Android, games, and latency-critical systems.
+          </p>
+
+          <h3>How it would work</h3>
+
+          <p>
+            Define a FlatBuffers schema for the event envelope and one schema per event payload
+            type. Generate Go code via
+            <code>flatc --go</code>. Events are created and read directly from flat buffer bytes.
+          </p>
+
+          <pre><code>// Example schema: event_envelope.fbs
+table EventEnvelope {
+    id:            string;
+    event_type:    string;
+    aggregate_id:  string;
+    aggregate_type:string;
+    version:       uint32;
+    schema_version:uint32;
+    payload:       [ubyte];
+    encoding:      string;
+    occurred_at:   int64;
+    metadata:      Metadata;
+}
+table Metadata {
+    correlation_id: string;
+    causation_id:   string;
+    custom:         [KVPair];
+}
+table KVPair { key: string; value: string; }
+root_type EventEnvelope;</code></pre>
+
+          <h3>Strengths</h3>
+          <ul>
+            <li>
+              <strong>True zero-copy decode</strong> &mdash; no deserialization. Access fields at
+              byte offsets.
+            </li>
+            <li>
+              <strong>Zero allocs</strong> on read &mdash; the buffer is the object. No intermediate
+              structs.
+            </li>
+            <li><strong>~10x faster decode</strong> than JSON for typical event shapes.</li>
+            <li>
+              <strong>Schema evolution</strong> built in &mdash; add fields without breaking old
+              readers.
+            </li>
+            <li>
+              <strong>Cross-language</strong> &mdash; generated code in Go, Rust, Java, C++, Python.
+            </li>
+          </ul>
+
+          <h3>Weaknesses</h3>
+          <ul>
+            <li>
+              <strong>Code generation required</strong> &mdash; consumers must run
+              <code>flatc --go</code> for every event type. This is a significant adoption friction
+              for a library.
+            </li>
+            <li>
+              <strong>Schema per event type</strong> &mdash; go-cqrs-lite consumers define plain Go
+              structs today. FlatBuffers would require <code>.fbs</code> files for each one.
+              Violates the "no opinionated transport" principle.
+            </li>
+            <li>
+              <strong>Opaque on disk</strong> &mdash; stored events are binary blobs. No
+              <code>SELECT</code> inspection, no debug without tooling.
+            </li>
+            <li>
+              <strong>Builder pattern overhead</strong> &mdash; creating events is verbose.
+              FlatBuffer builders require offset management that's more complex than
+              <code>event.New()</code>.
+            </li>
+            <li>
+              <strong>Not self-describing</strong> &mdash; a FlatBuffer blob without its schema is
+              uninterpretable. Schema lock-in is permanent.
+            </li>
+          </ul>
+
           <div class="callout info">
-            <div class="callout-title">What's already good</div>
+            <div class="callout-title">The library vs. application distinction</div>
             <p>
-              The internal zero-copy paths (<code>PayloadReadOnly</code>,
-              <code>payloadForDecode</code>, <code>encodingForCopy</code>) are solid. The win is on
-              the <em>wire format</em>, not the in-process access patterns.
+              FlatBuffers is excellent for applications that own their event types and control their
+              build pipeline. go-cqrs-lite is a
+              <strong>library</strong> that consumers extend with their own types. Requiring
+              consumers to define <code>.fbs</code> schemas and run code generation would
+              fundamentally change the adoption model.
+            </p>
+          </div>
+
+          <h3>Verdict</h3>
+          <p>
+            Viable as a future <strong>opt-in mode</strong> for consumers who need extreme
+            throughput and are willing to adopt FlatBuffers schemas. Not suitable as the default or
+            only option.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- ── Option B: All-in CBOR ──────────────────── -->
+        <section id="all-cbor">
+          <h2>Option B: All-in CBOR</h2>
+
+          <p>
+            <strong>CBOR</strong> (RFC 8949, IETF Internet Standard) is a binary data format that
+            replaces JSON. It has native byte string support, deterministic encoding, and a
+            production-grade Go library (<code>fxamacker/cbor</code>) with an API identical to
+            <code>encoding/json</code>.
+          </p>
+
+          <h3>Why CBOR over msgpack</h3>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>CBOR (RFC 8949)</th>
+                <th>Msgpack</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Standard</td>
+                <td>IETF Internet Standard</td>
+                <td>Community format, no RFC</td>
+              </tr>
+              <tr>
+                <td>Binary data</td>
+                <td>Major type 2 (byte strings) &mdash; explicit binary/text separation</td>
+                <td>Ambiguous "raw" type</td>
+              </tr>
+              <tr>
+                <td>Deterministic encoding</td>
+                <td>Yes (RFC 8949 &sect;4.2) &mdash; same struct = same bytes</td>
+                <td>No &mdash; map ordering undefined</td>
+              </tr>
+              <tr>
+                <td>Signing-safe</td>
+                <td>Yes &mdash; deterministic encoding means HMAC/Ed25519 is stable</td>
+                <td>No &mdash; non-deterministic map ordering can break signatures</td>
+              </tr>
+              <tr>
+                <td>Self-describing</td>
+                <td>Yes &mdash; any CBOR decoder can read it</td>
+                <td>Mostly, but ambiguous types</td>
+              </tr>
+              <tr>
+                <td>Go library</td>
+                <td>
+                  <code>fxamacker/cbor</code> &mdash; no <code>unsafe</code>, 100x faster rejection
+                </td>
+                <td><code>vmihailenco/msgpack/v5</code></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>How it would work</h3>
+
+          <p>
+            Replace <code>JSONCodec</code> with <code>CBORCodec</code> for both envelope and
+            payload. The envelope struct gets CBOR struct tags. The payload uses the same
+            <code>Codec</code> interface &mdash; consumers just pass
+            <code>CBORCodec{}</code> instead of <code>JSONCodec{}</code>.
+          </p>
+
+          <pre><code>// CBORCodec implements Codec using fxamacker/cbor.
+type CBORCodec struct{}
+
+func (CBORCodec) Encoding() Encoding { return EncodingCBOR }
+func (CBORCodec) Encode(v any) ([]byte, error) { return cbor.Marshal(v) }
+func (CBORCodec) Decode(data []byte, v any) error { return cbor.Unmarshal(data, v) }</code></pre>
+
+          <p>
+            For Pebble, the <code>serializableEvent</code> struct gets CBOR tags instead of JSON
+            tags. The payload field is a byte string (major type 2) &mdash; no base64. On disk, the
+            event is a CBOR map that any CBOR decoder can inspect.
+          </p>
+
+          <h3>Strengths</h3>
+          <ul>
+            <li>
+              <strong>Minimal change</strong> &mdash; drop-in replacement for
+              <code>JSONCodec</code>. Same <code>Codec</code> interface, same struct tags pattern,
+              same consumer API.
+            </li>
+            <li>
+              <strong>Base64 eliminated</strong> &mdash; CBOR byte strings store raw binary. No
+              encoding tax.
+            </li>
+            <li>
+              <strong>IETF standard</strong> &mdash; not a proprietary format. Tooling exists across
+              languages.
+            </li>
+            <li>
+              <strong>Deterministic encoding</strong> &mdash; signing works correctly. Same struct
+              always produces same bytes.
+            </li>
+            <li>
+              <strong>Self-describing</strong> &mdash; stored events can be inspected with any CBOR
+              decoder. <code>cbor.diagnose()</code> converts to human-readable text.
+            </li>
+            <li>
+              <strong>One dependency</strong> &mdash; <code>fxamacker/cbor</code>. Zero transitive
+              deps.
+            </li>
+            <li>
+              <strong>No code generation</strong> &mdash; consumers keep using plain Go structs with
+              struct tags.
+            </li>
+          </ul>
+
+          <h3>Weaknesses</h3>
+          <ul>
+            <li>
+              <strong>Reflection-based</strong> &mdash; <code>cbor.Marshal</code>/<code
+                >Unmarshal</code
+              >
+              still use reflection. Not zero-copy. Slower than hand-rolled binary.
+            </li>
+            <li>
+              <strong>No zero-copy envelope parse</strong> &mdash; must decode the entire CBOR
+              structure to access fields. Can't read just the event type without parsing the whole
+              map.
+            </li>
+            <li>
+              <strong>~2-3x improvement</strong> &mdash; meaningful but not transformative. The
+              ceiling is limited by reflection overhead.
+            </li>
+            <li>
+              <strong>Not human-readable on disk</strong> &mdash; CBOR is binary. Better than
+              base64-in-JSON, but you still need a decoder to inspect stored events. JSON you can
+              read with <code>cat</code>.
+            </li>
+          </ul>
+
+          <div class="callout success">
+            <div class="callout-title">The pragmatic choice</div>
+            <p>
+              All-in CBOR is the <strong>highest ROI option</strong>. Minimal code change, one
+              well-maintained dependency, eliminates base64, adds deterministic encoding for
+              signing, and gives ~2-3x performance improvement. It doesn't achieve the theoretical
+              maximum &mdash; but it gets 80% of the benefit for 20% of the effort.
             </p>
           </div>
         </section>
 
         <hr />
 
-        <!-- ── Wire Format ────────────────────────────── -->
-        <section id="wire-format">
-          <h2>The Wire Format</h2>
+        <!-- ── Option C: Custom Binary + CBOR ─────────── -->
+        <section id="custom-cbor">
+          <h2>Option C: Custom Binary + CBOR</h2>
 
           <p>
-            Not a generic binary marshaller. A <strong>domain-aware</strong>
-            format where the event envelope has fixed structure and the payload is opaque bytes. The
-            codec knows the shape of an event; it doesn't care what's inside the payload.
+            A <strong>domain-aware binary envelope</strong> for the fixed event metadata, paired
+            with <strong>CBOR</strong> for the variable payload. The envelope is a hand-rolled
+            fixed-offset binary header &mdash; zero-copy, zero-reflection. The payload is
+            CBOR-encoded &mdash; standards-compliant, deterministic, signing-safe.
           </p>
 
           <div class="wire-diagram">
-            <div class="wire-header">Event Wire Layout</div>
+            <div class="wire-header">Event Wire Layout (Custom Binary Envelope)</div>
             <pre>
 <span class="comment"> ┌──────────────────────────────────────────────────────┐</span>
 <span class="comment"> │</span>  <span class="field-name">Header</span>  <span class="size-info">(32 bytes, fixed)</span>                           <span class="comment">│</span>
@@ -1102,9 +1373,9 @@
 <span class="comment"> │</span>  [16]           <span class="field-name">aggregate_id</span>   <span class="size-info">raw ULID, no string</span>  <span class="comment">│</span>
 <span class="comment"> │</span>  [16]           <span class="field-name">event_id</span>       <span class="size-info">raw ULID, no string</span>  <span class="comment">│</span>
 <span class="comment"> ├──────────────────────────────────────────────────────┤</span>
-<span class="comment"> │</span>  <span class="field-name">Payload</span>  <span class="size-info">(opaque, no encoding)</span>                  <span class="comment">│</span>
+<span class="comment"> │</span>  <span class="field-name">Payload</span>  <span class="size-info">(CBOR-encoded domain struct)</span>           <span class="comment">│</span>
 <span class="comment"> │</span>                                                       <span class="comment">│</span>
-<span class="comment"> │</span>  [payload_len]  <span class="field-name">bytes</span>          <span class="size-info">raw, no base64</span>       <span class="comment">│</span>
+<span class="comment"> │</span>  [payload_len]  <span class="field-name">CBOR bytes</span>    <span class="size-info">raw, no base64</span>        <span class="comment">│</span>
 <span class="comment"> ├──────────────────────────────────────────────────────┤</span>
 <span class="comment"> │</span>  <span class="field-name">Metadata</span>  <span class="size-info">(optional, keyed by flags)</span>             <span class="comment">│</span>
 <span class="comment"> │</span>                                                       <span class="comment">│</span>
@@ -1113,129 +1384,64 @@
 <span class="comment"> └──────────────────────────────────────────────────────┘</span></pre>
           </div>
 
-          <h3>Flag bitfield</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>Bit</th>
-                <th>Meaning</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><code>0x01</code></td>
-                <td>Has metadata block</td>
-              </tr>
-              <tr>
-                <td><code>0x02</code></td>
-                <td>Has non-zero schema version</td>
-              </tr>
-              <tr>
-                <td><code>0x04</code></td>
-                <td>Payload encoding = raw (vs json default)</td>
-              </tr>
-              <tr>
-                <td><code>0x08&ndash;0x80</code></td>
-                <td>Reserved for future use</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <h3>Why this shape</h3>
+          <h3>Strengths</h3>
           <ul>
             <li>
-              <strong>Fixed 32-byte header</strong> &mdash; parse envelope without branching. One
-              bounds check, then direct offset reads.
+              <strong>Zero-copy envelope parse</strong> &mdash; read event type, version, timestamp
+              at fixed offsets. No parsing. ~5-10 ns.
             </li>
             <li>
-              <strong>ULIDs as raw 16 bytes</strong> &mdash; no string encoding.
-              <code>id.EventID</code> already implements <code>BinaryMarshaler</code>. Saves 10
-              bytes per ID (26-char string &rarr; 16 raw bytes).
+              <strong>Zero reflection on envelope</strong> &mdash; hand-rolled encode/decode for 10
+              fixed fields. No struct tags, no reflection.
             </li>
             <li>
-              <strong>Payload is opaque</strong> &mdash; the envelope codec doesn't inspect it.
-              Payload encoding (JSON, msgpack, flatbuffers) is orthogonal and pluggable.
+              <strong>CBOR payload</strong> &mdash; standards-based, deterministic, signing-safe.
+              Consumers keep using plain Go structs.
+            </li>
+            <li><strong>No base64</strong> &mdash; payload bytes go raw into the wire layout.</li>
+            <li>
+              <strong>ULIDs as raw 16 bytes</strong> &mdash; saves 10 bytes per ID (26-char string
+              &rarr; 16 raw bytes).
             </li>
             <li>
-              <strong>No base64</strong> &mdash; binary payloads stored directly. This alone saves
-              33% on Pebble storage.
-            </li>
-            <li>
-              <strong>Metadata optional</strong> &mdash; most events have sparse metadata. The flag
-              bit gates the entire metadata section.
-            </li>
-            <li>
-              <strong>Length-prefixed KV for metadata</strong> &mdash; no JSON object overhead.
-              Simple <code>[key_len][key][val_len][val]</code> pairs.
+              <strong>Envelope codec is dependency-free</strong> &mdash; pure
+              <code>encoding/binary</code> + <code>unsafe</code>. Only the payload codec
+              (<code>fxamacker/cbor</code>) adds a dependency.
             </li>
           </ul>
-        </section>
 
-        <hr />
+          <h3>Weaknesses</h3>
+          <ul>
+            <li>
+              <strong>Custom format</strong> &mdash; the envelope is not self-describing. Needs its
+              own spec, versioning, and diagnostic tooling.
+            </li>
+            <li>
+              <strong>Implementation complexity</strong> &mdash; hand-rolling an encoder/decoder
+              with <code>unsafe</code> is more work than <code>cbor.Marshal</code>.
+            </li>
+            <li>
+              <strong>Two formats to understand</strong> &mdash; the envelope is custom binary, the
+              payload is CBOR. Debugging requires understanding both.
+            </li>
+            <li>
+              <strong>Marginal gain over all-CBOR</strong> &mdash; the envelope decode is ~3-5x
+              faster than CBOR, but the payload decode (CBOR) is the same. Total round-trip
+              improvement may be ~30-50% over all-CBOR, not 3x.
+            </li>
+            <li>
+              <strong>Only matters for Pebble</strong> &mdash; SQL stores already use columns. The
+              custom envelope only benefits embedded KV stores.
+            </li>
+          </ul>
 
-        <!-- ── Three-Layer Architecture ───────────────── -->
-        <section id="architecture">
-          <h2>Three-Layer Architecture</h2>
-
-          <p>
-            The design separates concerns into three composable layers. Each layer can be used
-            independently. Consumers pick their stack.
-          </p>
-
-          <div class="arch-box">
-            <div class="arch-layer">
-              <div class="arch-layer-title">Layer 1 &middot; Binary Envelope</div>
-              <div class="arch-layer-body">
-                Serializes the event envelope: header + fixed fields. Zero-copy read path via
-                <code>unsafe.Slice</code> / <code>unsafe.String</code>. No reflection. No allocs on
-                envelope decode. <br /><br />
-                <strong>File:</strong> <code>binary.go</code> <span class="badge new">new</span>
-                <span class="badge zero-dep">0 deps</span>
-              </div>
-            </div>
-            <div class="arch-arrow">&harr;</div>
-            <div class="arch-layer">
-              <div class="arch-layer-title">Layer 2 &middot; Payload Codec</div>
-              <div class="arch-layer-body">
-                The existing <code>codec.Codec</code> interface. Handles struct &harr; bytes for the
-                payload only. Pluggable: <br /><br />
-                <code>JSONCodec</code> <span class="badge existing">existing</span>
-                &middot;
-                <code>RawCodec</code> <span class="badge existing">existing</span>
-                &middot;
-                <code>MsgpackCodec</code> <span class="badge new">new</span>
-              </div>
-            </div>
-          </div>
-
-          <div style="display: flex; justify-content: center; margin: -0.5rem 0">
-            <div class="arch-arrow" style="font-size: 1.2rem; color: var(--text-tertiary)">
-              &darr; composes into &darr;
-            </div>
-          </div>
-
-          <div style="max-width: 50%; margin: 0.75rem auto">
-            <div class="arch-layer">
-              <div class="arch-layer-title">Layer 3 &middot; Composed Codec</div>
-              <div class="arch-layer-body">
-                Wires Layer 1 + Layer 2 into a single <code>Codec</code>. <br /><br />
-                <strong>Encode:</strong> marshal payload &rarr; wrap in binary envelope
-                <br />
-                <strong>Decode:</strong> parse envelope (zero-copy) &rarr; decode payload lazily
-                <br /><br />
-                <strong>File:</strong> <code>composed.go</code> <span class="badge new">new</span>
-                <span class="badge zero-dep">0 deps</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="callout success">
-            <div class="callout-title">Existing API preserved</div>
+          <div class="callout">
+            <div class="callout-title">The engineering trade-off</div>
             <p>
-              <code>BinaryCodec</code> and <code>ComposedCodec</code> both implement the existing
-              <code>codec.Codec</code> interface. No API changes to event, command, query, or
-              storage modules. They just get a new <code>Encoding</code> value:
-              <code>"binary"</code>.
+              Custom binary + CBOR is the <strong>theoretically optimal</strong>
+              solution. But the gain over all-in CBOR is marginal for most use cases. The zero-copy
+              envelope parse saves ~30-50 ns per event on replay. Over 100K events, that's ~3-5 ms.
+              Worth it for latency-critical replay paths, but not a game-changer for most consumers.
             </p>
           </div>
         </section>
@@ -1247,30 +1453,33 @@
           <h2>Projected Performance</h2>
 
           <p>
-            Estimates based on Go <code>encoding/json</code> benchmarks vs hand-rolled binary
-            encoding with <code>unsafe</code> zero-copy, msgpack
-            <code>vmihailenco/msgpack/v5</code> throughput, and flatbuffers
-            <code>google/flatbuffers/go</code> zero-copy decode. Actual numbers will come from
-            benchmarks in CI.
+            Estimates based on <code>encoding/json</code> benchmarks,
+            <code>fxamacker/cbor</code> throughput, FlatBuffers zero-copy characteristics, and
+            hand-rolled binary encoding with <code>unsafe</code>. Actual numbers from CI benchmarks.
           </p>
 
-          <h3>Wire size comparison (typical UserCreated event)</h3>
+          <h3>Wire size (typical UserCreated event, ~100 byte payload)</h3>
 
           <div class="bar-chart">
             <div class="bar-row">
-              <div class="bar-label">JSON envelope</div>
+              <div class="bar-label">JSON envelope (today)</div>
               <div class="bar-track"><div class="bar-fill json" style="width: 100%"></div></div>
               <div class="bar-value">~400 B</div>
             </div>
             <div class="bar-row">
-              <div class="bar-label">Binary + msgpack</div>
-              <div class="bar-track"><div class="bar-fill binary" style="width: 55%"></div></div>
-              <div class="bar-value">~220 B</div>
+              <div class="bar-label">All-in CBOR</div>
+              <div class="bar-track"><div class="bar-fill cbor" style="width: 50%"></div></div>
+              <div class="bar-value">~200 B</div>
             </div>
             <div class="bar-row">
-              <div class="bar-label">Binary + flatbuf</div>
-              <div class="bar-track"><div class="bar-fill flatbuf" style="width: 45%"></div></div>
-              <div class="bar-value">~180 B</div>
+              <div class="bar-label">Custom binary + CBOR</div>
+              <div class="bar-track"><div class="bar-fill custom" style="width: 40%"></div></div>
+              <div class="bar-value">~160 B</div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">FlatBuffers</div>
+              <div class="bar-track"><div class="bar-fill flatbuf" style="width: 35%"></div></div>
+              <div class="bar-value">~140 B</div>
             </div>
           </div>
 
@@ -1278,19 +1487,24 @@
 
           <div class="bar-chart">
             <div class="bar-row">
-              <div class="bar-label">JSONCodec</div>
+              <div class="bar-label">JSONCodec (today)</div>
               <div class="bar-track"><div class="bar-fill json" style="width: 100%"></div></div>
               <div class="bar-value">~150 ns/op</div>
             </div>
             <div class="bar-row">
-              <div class="bar-label">Binary + msgpack</div>
-              <div class="bar-track"><div class="bar-fill binary" style="width: 27%"></div></div>
-              <div class="bar-value">~40 ns/op</div>
+              <div class="bar-label">All-in CBOR</div>
+              <div class="bar-track"><div class="bar-fill cbor" style="width: 45%"></div></div>
+              <div class="bar-value">~65 ns/op</div>
             </div>
             <div class="bar-row">
-              <div class="bar-label">Binary + flatbuf</div>
-              <div class="bar-track"><div class="bar-fill flatbuf" style="width: 10%"></div></div>
-              <div class="bar-value">~15 ns/op</div>
+              <div class="bar-label">Custom binary + CBOR</div>
+              <div class="bar-track"><div class="bar-fill custom" style="width: 30%"></div></div>
+              <div class="bar-value">~45 ns/op</div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">FlatBuffers</div>
+              <div class="bar-track"><div class="bar-fill flatbuf" style="width: 12%"></div></div>
+              <div class="bar-value">~18 ns/op</div>
             </div>
           </div>
 
@@ -1298,70 +1512,105 @@
 
           <div class="bar-chart">
             <div class="bar-row">
-              <div class="bar-label">JSONCodec</div>
+              <div class="bar-label">JSONCodec (today)</div>
               <div class="bar-track"><div class="bar-fill json" style="width: 100%"></div></div>
               <div class="bar-value">~200 ns/op</div>
             </div>
             <div class="bar-row">
-              <div class="bar-label">Binary + msgpack</div>
-              <div class="bar-track"><div class="bar-fill binary" style="width: 30%"></div></div>
-              <div class="bar-value">~60 ns/op</div>
+              <div class="bar-label">All-in CBOR</div>
+              <div class="bar-track"><div class="bar-fill cbor" style="width: 35%"></div></div>
+              <div class="bar-value">~70 ns/op</div>
             </div>
             <div class="bar-row">
-              <div class="bar-label">Binary + flatbuf</div>
+              <div class="bar-label">Custom binary + CBOR</div>
+              <div class="bar-track"><div class="bar-fill custom" style="width: 22%"></div></div>
+              <div class="bar-value">~45 ns/op</div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">FlatBuffers</div>
               <div class="bar-track"><div class="bar-fill flatbuf" style="width: 5%"></div></div>
               <div class="bar-value">~10 ns/op</div>
             </div>
           </div>
 
-          <h3>Allocation comparison</h3>
+          <h3>Full comparison</h3>
 
           <table>
             <thead>
               <tr>
-                <th>Codec</th>
-                <th>Encode allocs</th>
-                <th>Decode allocs</th>
-                <th>Pebble base64 tax</th>
+                <th>Property</th>
+                <th>JSON (today)</th>
+                <th>All-in CBOR</th>
+                <th>Custom + CBOR</th>
+                <th>FlatBuffers</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td><code>JSONCodec</code> <span class="badge existing">today</span></td>
+                <td>Encode allocs</td>
                 <td>3&ndash;4</td>
-                <td>4&ndash;5</td>
-                <td>+33%</td>
-              </tr>
-              <tr>
-                <td><code>Binary + Msgpack</code> <span class="badge new">proposed</span></td>
                 <td>1&ndash;2</td>
-                <td>2&ndash;3</td>
-                <td>0%</td>
+                <td>1&ndash;2</td>
+                <td>0&ndash;1</td>
               </tr>
               <tr>
-                <td><code>Binary + Flatbuf</code> <span class="badge new">future</span></td>
+                <td>Decode allocs</td>
+                <td>4&ndash;5</td>
+                <td>2&ndash;3</td>
+                <td>1&ndash;2</td>
                 <td>0&ndash;1</td>
-                <td>0&ndash;1</td>
-                <td>0%</td>
+              </tr>
+              <tr>
+                <td>Base64 tax</td>
+                <td style="color: var(--danger)">+33%</td>
+                <td style="color: var(--success)">0%</td>
+                <td style="color: var(--success)">0%</td>
+                <td style="color: var(--success)">0%</td>
+              </tr>
+              <tr>
+                <td>Reflection overhead</td>
+                <td>Full</td>
+                <td>Full</td>
+                <td>Envelope: none. Payload: full</td>
+                <td>None</td>
+              </tr>
+              <tr>
+                <td>Deterministic encoding</td>
+                <td style="color: var(--danger)">No</td>
+                <td style="color: var(--success)">Yes</td>
+                <td style="color: var(--success)">Yes</td>
+                <td style="color: var(--success)">Yes</td>
+              </tr>
+              <tr>
+                <td>Self-describing</td>
+                <td style="color: var(--success)">Yes</td>
+                <td style="color: var(--success)">Yes</td>
+                <td style="color: var(--warn)">Payload only</td>
+                <td style="color: var(--danger)">No</td>
+              </tr>
+              <tr>
+                <td>Code generation required</td>
+                <td>No</td>
+                <td>No</td>
+                <td>No</td>
+                <td style="color: var(--danger)">Yes (.fbs per type)</td>
+              </tr>
+              <tr>
+                <td>New dependencies</td>
+                <td>&mdash;</td>
+                <td>1 (fxamacker/cbor)</td>
+                <td>1 (fxamacker/cbor)</td>
+                <td>1 (google/flatbuffers)</td>
+              </tr>
+              <tr>
+                <td>Consumer API change</td>
+                <td>&mdash;</td>
+                <td>None (swap Codec impl)</td>
+                <td>None (swap Codec impl)</td>
+                <td>Major (schema + code gen)</td>
               </tr>
             </tbody>
           </table>
-
-          <div class="callout">
-            <div class="callout-title">The Real Win</div>
-            <p>
-              The biggest gain isn't the binary envelope &mdash; it's
-              <strong>eliminating the triple-encode for Pebble</strong>. Today
-              <code>json.Marshal(serializableEvent)</code> base64-encodes the payload. A binary
-              envelope stores payload bytes raw. That one change saves 33% storage and one entire
-              encode/decode cycle.
-            </p>
-            <p>
-              The second biggest win: <strong>zero-copy envelope parsing</strong>. When replaying
-              100K events, you parse the 32-byte header once, then hand the payload slice directly
-              to the inner codec &mdash; no <code>json.Unmarshal</code> of the envelope at all.
-            </p>
-          </div>
         </section>
 
         <hr />
@@ -1373,39 +1622,40 @@
           <h3>Pebble store</h3>
           <p>
             Today <code>pebble/serialization.go</code> uses
-            <code>json.Marshal(serializableEvent{})</code>. Replace with
-            <code>BinaryCodec.Encode(evt)</code>. The payload bytes go raw into the value &mdash; no
-            base64, no JSON envelope overhead. On load, <code>BinaryCodec.Decode()</code> parses the
-            header in a single pass.
+            <code>json.Marshal(serializableEvent{})</code>. With CBOR, replace
+            <code>json</code> with <code>cbor</code> &mdash; same struct, same tags, no base64. With
+            custom binary, replace the entire function with <code>BinaryCodec.Encode(evt)</code>.
+            FlatBuffers would replace it with flat buffer construction.
           </p>
 
           <h3>SQL store</h3>
           <p>
-            Already stores payload as raw <code>[]byte</code> in a BLOB column. The binary codec
-            doesn't change SQL's column layout. It only changes how the <em>payload</em> is encoded
-            before insertion &mdash; msgpack instead of JSON, for events that opt in.
+            Already stores payload as raw <code>[]byte</code> in a BLOB column. The codec only
+            changes how the <em>payload</em> is encoded before insertion &mdash; CBOR instead of
+            JSON. No column layout changes.
           </p>
 
           <h3>Event creation</h3>
           <p>
-            <code>event.New()</code> already accepts a <code>codec.Codec</code> parameter. Pass a
-            <code>ComposedCodec{Envelope: BinaryCodec{}, Payload: MsgpackCodec{}}</code> and events
-            are created with binary encoding. The <code>encoding</code> field on
-            <code>ImmutableEvent</code> records <code>"binary"</code> &mdash; the same validation
-            flow in <code>DecodePayload</code> works unchanged.
+            <code>event.New()</code> already accepts a <code>codec.Codec</code> parameter. Pass
+            <code>CBORCodec{}</code> and events are created with CBOR encoding. The
+            <code>encoding</code> field on <code>ImmutableEvent</code> records <code>"cbor"</code>.
+            <code>DecodePayload</code> validation works unchanged.
           </p>
 
           <h3>Signing</h3>
           <p>
-            <code>signing.SignMiddleware</code> hashes <code>PayloadReadOnly(evt)</code> &mdash; the
-            raw bytes. Binary encoding is transparent to signing. No changes needed.
+            CBOR's deterministic encoding is a <strong>direct win for signing</strong>. Today, JSON
+            map ordering is undefined &mdash; the same struct can produce different bytes on
+            different runs, potentially breaking HMAC/Ed25519 verification. CBOR deterministic mode
+            guarantees same struct = same bytes.
           </p>
 
           <h3>Catalog / AsyncAPI / OpenAPI exporters</h3>
           <p>
-            The catalog reads event metadata, not wire format. The
-            <code>Encoding</code> field already records the codec used. Catalog exporters continue
-            to describe the logical schema (JSON Schema), not the physical encoding.
+            Catalog reads event metadata, not wire format. The
+            <code>Encoding</code> field records the codec used. Exporters describe the logical
+            schema (JSON Schema), not the physical encoding. No changes needed.
           </p>
         </section>
 
@@ -1415,7 +1665,7 @@
         <section id="file-structure">
           <h2>File Structure</h2>
 
-          <p>Everything lives inside the existing <code>codec/</code> module. No new modules.</p>
+          <p>Everything lives inside the existing <code>codec/</code> module.</p>
 
           <div class="file-tree">
             <span class="existing">codec/</span>
@@ -1426,45 +1676,46 @@
             <span class="existing"> raw.go</span> <span class="comment">// existing: RawCodec</span>
             <span class="existing"> errors.go</span> <span class="comment">// existing</span>
             <span class="existing"> doc.go</span> <span class="comment">// existing</span>
+            <span class="new"> cbor.go</span>
+            <span class="comment">// CBORCodec: fxamacker/cbor wrapper</span>
             <span class="new"> binary.go</span>
-            <span class="comment">// BinaryCodec: envelope encode/decode</span>
+            <span class="comment">// BinaryCodec: envelope encode/decode (Option C)</span>
             <span class="new"> binary_header.go</span>
             <span class="comment">// header constants, flag bitfield, offsets</span>
             <span class="new"> binary_decode.go</span>
             <span class="comment">// zero-copy decoder with unsafe</span>
             <span class="new"> composed.go</span>
-            <span class="comment">// ComposedCodec: envelope + payload</span>
-            <span class="new"> msgpack.go</span>
-            <span class="comment">// MsgpackCodec: vmihailenco/msgpack</span>
+            <span class="comment">// ComposedCodec: binary envelope + CBOR payload</span>
             <span class="existing"> codec_test.go</span>
-            <span class="comment">// existing + binary round-trip tests</span>
+            <span class="comment">// existing + CBOR round-trip tests</span>
             <span class="existing"> codec_fuzz_test.go</span>
-            <span class="comment">// existing + binary fuzz</span>
+            <span class="comment">// existing + CBOR fuzz</span>
+            <span class="new"> cbor_test.go</span>
+            <span class="comment">// CBORCodec round-trip/bench</span>
             <span class="new"> binary_test.go</span>
-            <span class="comment">// envelope encode/decode/bench</span>
-            <span class="new"> msgpack_test.go</span>
-            <span class="comment">// msgpack round-trip/bench</span>
+            <span class="comment">// envelope encode/decode/bench (Option C)</span>
             <span class="new"> composed_test.go</span>
-            <span class="comment">// composed round-trip/bench</span>
+            <span class="comment">// composed round-trip/bench (Option C)</span>
             <span class="existing"> benchmark_test.go</span>
             <span class="comment">// existing + comparative benchmarks</span>
             <span class="existing"> golden_test.go</span>
-            <span class="comment">// existing + binary golden</span>
+            <span class="comment">// existing + CBOR/binary golden</span>
             <span class="existing"> testdata/golden/</span>
             <span class="existing"> json_encode.json</span>
             <span class="existing"> raw_passthrough.bin</span>
+            <span class="new"> cbor_event.cbor</span>
+            <span class="comment">// CBOR golden fixture</span>
             <span class="new"> binary_event.bin</span>
-            <span class="comment">// golden binary fixture</span>
+            <span class="comment">// binary golden fixture (Option C)</span>
           </div>
 
           <div class="callout info">
             <div class="callout-title">Dependency budget</div>
             <p>
-              <code>BinaryCodec</code>: zero new dependencies. Pure <code>encoding/binary</code> +
-              <code>unsafe</code>.<br />
-              <code>MsgpackCodec</code>: one new dependency,
-              <code>github.com/vmihailenco/msgpack/v5</code>. Must pass dependency budget review per
-              AGENTS.md layer rules.
+              <code>CBORCodec</code>: one new dependency (<code>github.com/fxamacker/cbor</code>).
+              Zero transitive deps. Must pass dependency budget review.<br />
+              <code>BinaryCodec</code> (Option C): zero new dependencies. Pure
+              <code>encoding/binary</code> + <code>unsafe</code>.
             </p>
           </div>
         </section>
@@ -1482,14 +1733,15 @@
             </div>
             <div>
               <div class="phase-label">Phase 1 &middot; Foundation</div>
-              <div class="phase-title">Binary Envelope Codec</div>
+              <div class="phase-title">CBORCodec</div>
               <div class="phase-desc">
-                Implement <code>BinaryCodec</code> in <code>codec/</code>. Header constants, encode,
-                zero-copy decode, round-trip tests, fuzz tests, comparative benchmarks against
-                <code>JSONCodec</code>. No new dependencies.
+                Implement <code>CBORCodec</code> in <code>codec/</code>. Wrap
+                <code>fxamacker/cbor</code> behind the existing <code>Codec</code> interface.
+                Round-trip tests, fuzz tests, comparative benchmarks against <code>JSONCodec</code>.
+                Deterministic encoding verification.
               </div>
               <div class="phase-detail">
-                ~1 day &middot; Zero new deps &middot; Immediate Pebble win
+                ~2 hours &middot; 1 new dep &middot; Immediate base64 elimination
               </div>
             </div>
           </div>
@@ -1501,15 +1753,15 @@
             </div>
             <div>
               <div class="phase-label">Phase 2 &middot; Integration</div>
-              <div class="phase-title">Pebble Store Migration</div>
+              <div class="phase-title">Pebble + SQL Migration</div>
               <div class="phase-desc">
                 Switch <code>pebble/serialization.go</code> from
-                <code>json.Marshal(serializableEvent{})</code> to <code>BinaryCodec.Encode()</code>.
-                Wire the binary codec into the Pebble event store. Run benchmarks. Verify no
-                regressions.
+                <code>json.Marshal(serializableEvent{})</code> to <code>CBORCodec.Encode()</code>.
+                Update SQL payload encoding. Run benchmarks. Verify signing works with deterministic
+                CBOR.
               </div>
               <div class="phase-detail">
-                ~2 hours &middot; Measurable storage &amp; throughput win
+                ~3 hours &middot; Measurable storage &amp; throughput win
               </div>
             </div>
           </div>
@@ -1520,15 +1772,16 @@
               <div class="phase-line"></div>
             </div>
             <div>
-              <div class="phase-label">Phase 3 &middot; Payload Codec</div>
-              <div class="phase-title">MsgpackCodec + ComposedCodec</div>
+              <div class="phase-label">Phase 3 &middot; Optional</div>
+              <div class="phase-title">Binary Envelope Codec (Option C)</div>
               <div class="phase-desc">
-                Implement <code>MsgpackCodec</code> as an alternative payload codec. Implement
-                <code>ComposedCodec</code> that wires envelope + payload codec together. Benchmarks
-                showing msgpack vs JSON payload encoding under binary envelope.
+                If CBOR performance is insufficient for replay-heavy workloads, implement
+                <code>BinaryCodec</code> for the envelope. Zero-copy decode via <code>unsafe</code>.
+                <code>ComposedCodec</code>
+                wires binary envelope + CBOR payload. No new dependencies.
               </div>
               <div class="phase-detail">
-                ~3 hours &middot; 1 new dep (msgpack) &middot; Requires budget review
+                ~1 day &middot; Zero new deps &middot; Only if CBOR ceiling is too low
               </div>
             </div>
           </div>
@@ -1539,12 +1792,12 @@
             </div>
             <div>
               <div class="phase-label">Phase 4 &middot; Future</div>
-              <div class="phase-title">Flatbuffers Codec (optional)</div>
+              <div class="phase-title">FlatBuffers Codec (Option A)</div>
               <div class="phase-desc">
-                A <code>FlatCodec</code> using <code>google/flatbuffers</code>
-                for true zero-copy decode. No allocs at all on the read path. Requires generated
-                schemas per event type &mdash; only worth it for consumers with extreme throughput
-                requirements.
+                If consumers need true zero-copy for extreme throughput, add
+                <code>FlatCodec</code> as an opt-in codec. Requires consumers to define
+                <code>.fbs</code> schemas and run code generation. Available as an importable codec,
+                not a default.
               </div>
               <div class="phase-detail">
                 ~1 day &middot; Code generation &middot; Opt-in for power users
@@ -1555,56 +1808,55 @@
 
         <hr />
 
-        <!-- ── Key Decisions ──────────────────────────── -->
-        <section id="decisions">
-          <h2>Key Decisions</h2>
+        <!-- ── What We Dismissed ──────────────────────── -->
+        <section id="dismissed">
+          <h2>What We Dismissed</h2>
 
-          <h3>Custom binary, not protobuf or msgpack for the envelope</h3>
+          <h3>Msgpack</h3>
           <p>
-            The event envelope has a fixed, known structure. Protobuf adds varint overhead, field
-            tags, and schema dependency for no gain. Msgpack for the envelope would still require
-            reflection. A hand-rolled binary format with fixed offsets gives O(1) field access and
-            zero reflection.
+            Lacks deterministic encoding &mdash; map ordering is undefined, which means HMAC/Ed25519
+            signatures can break across runs. No RFC standard. Ambiguous "raw" type conflates binary
+            and text. CBOR dominates msgpack on every axis that matters for event sourcing.
+            Eliminated.
           </p>
 
-          <h3>Payload encoding is orthogonal</h3>
+          <h3>Protobuf / Buf</h3>
           <p>
-            The binary envelope treats the payload as opaque bytes. Whether the consumer uses JSON,
-            msgpack, protobuf, or raw bytes for their domain data is their choice. The envelope just
-            carries the bytes and records the encoding via the flags bitfield. This preserves the
-            library's "no opinionated transport" principle.
+            Requires <code>.proto</code> schemas per event type, code generation, and the
+            <code>google.golang.org/protobuf</code> dependency (~2MB). go-cqrs-lite is a library
+            consumers extend with their own types &mdash; requiring protobuf schemas would
+            fundamentally change the adoption model. Buf's schema governance (breaking-change
+            detection, BSR) is excellent for organizations but wrong for a library. The governance
+            happens in the consumer's repo, not ours.
           </p>
 
-          <h3>unsafe for zero-copy string conversion</h3>
+          <h3>ConnectRPC</h3>
           <p>
-            <code>unsafe.String(&amp;buf[offset], len)</code> and
-            <code>unsafe.Slice(&amp;str[0], len)</code> for converting between
-            <code>[]byte</code> and <code>string</code> without allocation. This is the same pattern
-            used by <code>strings.Builder</code>, <code>strconv</code>, and the standard library's
-            own fast paths. The alternative (allocating a string copy per field) defeats the purpose
-            of the binary format.
+            An RPC framework, not a serialization format. Its streaming envelope (<code
+              >[1 byte flags][4 bytes length][payload]</code
+            >) validates our design principle &mdash; thin binary frame around opaque bytes &mdash;
+            but ConnectRPC wraps RPC messages, not domain events. The envelope has 3 fields. Our
+            events need 10+. Built for service-to-service HTTP communication, not in-process event
+            serialization.
           </p>
 
-          <h3>Backward compatibility via format version</h3>
+          <h3>Gob encoding</h3>
           <p>
-            The header's <code>version</code> byte enables future format changes without breaking
-            existing stored data. A decoder that sees version 2 can branch to a different layout
-            while still supporting version 1.
+            Go-specific, not cross-language. Type registration complexity. No random field access.
+            No deterministic encoding.
           </p>
 
-          <h3>No streaming / incremental decode</h3>
+          <h3>Compression (zstd/snappy)</h3>
           <p>
-            Events fit in memory. This is a CQRS library, not a streaming framework. The entire wire
-            blob is available before decode starts. This simplifies the implementation enormously
-            and avoids the complexity of partial reads, buffering, and framing.
+            Orthogonal concern. Compression is a transport-layer optimization, not a codec concern.
+            Can be layered on top via middleware at any point. Not part of this proposal.
           </p>
-        </section>
 
-        <hr />
-
-        <!-- ── Alternatives Considered ────────────────── -->
-        <section id="alternatives">
-          <h2>Alternatives Considered</h2>
+          <h3>"Just optimize JSONCodec"</h3>
+          <p>
+            Can't fix base64 tax. Can't fix reflection overhead. Can't achieve deterministic
+            encoding. Can't do zero-copy decode. The ceiling is too low.
+          </p>
 
           <table>
             <thead>
@@ -1616,107 +1868,46 @@
             </thead>
             <tbody>
               <tr>
-                <td><strong>Protobuf envelope</strong></td>
-                <td>Rejected</td>
+                <td><strong>Msgpack</strong></td>
+                <td><span class="badge rejected">Eliminated</span></td>
                 <td>
-                  Requires .proto schema, code generation, and adds
-                  <code>google.golang.org/protobuf</code> dep. Overkill for a fixed 10-field
-                  envelope.
+                  No deterministic encoding (signing hazard), no RFC, ambiguous binary type. CBOR
+                  dominates on every axis.
                 </td>
               </tr>
               <tr>
-                <td><strong>Msgpack for everything</strong></td>
-                <td>Partial</td>
+                <td><strong>Protobuf / Buf</strong></td>
+                <td><span class="badge rejected">Wrong level</span></td>
                 <td>
-                  Good for payload encoding (Phase 3), but the envelope still pays reflection cost.
-                  Binary header is faster for fixed-structure data.
+                  Schema per event type + code generation = wrong for a library. Buf's governance is
+                  for organizations, not libraries.
                 </td>
               </tr>
               <tr>
-                <td><strong>Flatbuffers for everything</strong></td>
-                <td>Future option</td>
+                <td><strong>ConnectRPC</strong></td>
+                <td><span class="badge rejected">Wrong abstraction</span></td>
                 <td>
-                  Zero-copy is compelling, but requires per-event-type schema generation. Too
-                  opinionated for the library's design. Available as Phase 4 opt-in.
+                  RPC framework, not serialization. Envelope has 3 fields. Events need 10+. Built
+                  for HTTP, not in-process.
                 </td>
               </tr>
               <tr>
-                <td><strong>Gob encoding</strong></td>
-                <td>Rejected</td>
-                <td>
-                  Go-specific, not cross-language. Type registration complexity. No random field
-                  access.
-                </td>
+                <td><strong>Gob</strong></td>
+                <td><span class="badge rejected">Rejected</span></td>
+                <td>Go-only, type registration, no deterministic encoding.</td>
               </tr>
               <tr>
-                <td><strong>CBOR (RFC 8949)</strong></td>
-                <td>Deferred</td>
-                <td>
-                  Attractive standard, but no compelling advantage over msgpack for this use case.
-                  Could be added as another payload codec later.
-                </td>
+                <td><strong>Compression</strong></td>
+                <td><span class="badge rejected">Orthogonal</span></td>
+                <td>Transport concern, not codec. Layer on top via middleware.</td>
               </tr>
               <tr>
-                <td><strong>Compress payload (zstd/snappy)</strong></td>
-                <td>Orthogonal</td>
-                <td>
-                  Compression is a transport concern, not a codec concern. Can be layered on top via
-                  middleware. Not part of this proposal.
-                </td>
-              </tr>
-              <tr>
-                <td><strong>Just optimize JSONCodec</strong></td>
-                <td>Insufficient</td>
-                <td>
-                  Can't fix base64 tax. Can't fix reflection overhead. Can't achieve zero-copy
-                  decode. The ceiling is too low.
-                </td>
+                <td><strong>Optimize JSON</strong></td>
+                <td><span class="badge rejected">Insufficient</span></td>
+                <td>Can't fix base64, reflection, or determinism. Ceiling too low.</td>
               </tr>
             </tbody>
           </table>
-
-          <div class="compare-strip">
-            <div class="compare-cell">
-              <div class="compare-cell-title json">JSON (today)</div>
-              <p>Human-readable</p>
-              <p>Debuggable in any tool</p>
-              <p>Cross-language by default</p>
-              <p>
-                <strong>But:</strong> 33% base64 tax, reflection on every field, 3&ndash;4
-                allocs/encode
-              </p>
-            </div>
-            <div class="compare-cell">
-              <div class="compare-cell-title binary">Binary + Msgpack</div>
-              <p>Zero-copy envelope parse</p>
-              <p>No base64, raw bytes</p>
-              <p>~3x faster encode/decode</p>
-              <p>
-                <strong>Trade-off:</strong> opaque on disk, requires tooling to inspect stored
-                events
-              </p>
-            </div>
-            <div class="compare-cell">
-              <div class="compare-cell-title flatbuf">Binary + Flatbuf</div>
-              <p>Zero-copy everything</p>
-              <p>~10x faster decode</p>
-              <p>0&ndash;1 allocs total</p>
-              <p>
-                <strong>Trade-off:</strong> code generation required, schema per event type, steeper
-                learning curve
-              </p>
-            </div>
-          </div>
-
-          <div class="callout success">
-            <div class="callout-title">Consumer choice preserved</div>
-            <p>
-              This proposal adds options without removing anything. The existing
-              <code>JSONCodec</code> remains the default. Binary codecs are opt-in. Consumers who
-              value debuggability over throughput keep JSON. Consumers who need maximum performance
-              opt into binary. The library stays unopinionated.
-            </p>
-          </div>
         </section>
 
         <hr />
@@ -1754,8 +1945,8 @@
           <h3>Could we use a better binary-to-text encoding?</h3>
 
           <p>
-            In theory, yes. In practice, none of them solve the real problem. The problem isn't
-            base64 specifically &mdash; it's
+            In theory, yes. In practice, none solve the real problem. The problem isn't base64
+            &mdash; it's
             <strong>putting binary data inside a text format</strong>.
           </p>
 
@@ -1772,8 +1963,7 @@
               <div class="hex-card-title" style="color: var(--text)">Base64</div>
               <div class="hex-card-overhead">+33%</div>
               <div class="hex-card-desc">
-                4 chars per 3 bytes. Current default via <code>encoding/json</code>. Zero-config but
-                unfixable.
+                4 chars per 3 bytes. Current default. Zero-config but unfixable.
               </div>
               <div class="verdict-tag current">Current (not a choice)</div>
             </div>
@@ -1804,18 +1994,7 @@
             </div>
           </div>
 
-          <div class="callout">
-            <div class="callout-title">The ceiling problem</div>
-            <p>
-              Even Base122 at +7% is still an overhead. And none of these fix the
-              <em>other</em> costs: reflection-based marshaling, double-allocation (encode +
-              decode), and the structural overhead of JSON key-value pairs in the envelope.
-              Switching from Base64 to Base91 saves ~19% of the payload size but changes nothing
-              about the 3-pass serialization pipeline or the reflection cost.
-            </p>
-          </div>
-
-          <h3>The three real solutions, ranked</h3>
+          <h3>The real solutions</h3>
 
           <table>
             <thead>
@@ -1830,54 +2009,46 @@
             <tbody>
               <tr>
                 <td><strong>1</strong></td>
-                <td><strong>Binary envelope</strong> <span class="badge new">proposed</span></td>
-                <td style="color: var(--success)">Fully</td>
-                <td style="color: var(--success)">
-                  Envelope: fully. Payload: depends on inner codec
+                <td>
+                  <strong>All-in CBOR</strong>
+                  <span class="badge candidate">recommended first</span>
                 </td>
-                <td>~1 day</td>
+                <td style="color: var(--success)">Fully (native byte strings)</td>
+                <td style="color: var(--warn)">No (still uses reflection)</td>
+                <td>~5 hours</td>
               </tr>
               <tr>
                 <td><strong>2</strong></td>
-                <td><strong>Msgpack / CBOR envelope</strong></td>
-                <td style="color: var(--success)">Fully (native binary)</td>
-                <td style="color: var(--warn)">
-                  Partially (still uses reflection for envelope struct)
+                <td>
+                  <strong>Custom binary + CBOR</strong>
+                  <span class="badge candidate">if CBOR ceiling too low</span>
                 </td>
-                <td>~3 hours</td>
+                <td style="color: var(--success)">Fully</td>
+                <td style="color: var(--success)">
+                  Envelope: fully. Payload: no (CBOR reflection)
+                </td>
+                <td>~1.5 days</td>
               </tr>
               <tr>
                 <td><strong>3</strong></td>
-                <td><strong>Split Pebble keys</strong></td>
-                <td style="color: var(--success)">Fully (payload stored separately)</td>
-                <td style="color: var(--danger)">No (envelope still JSON)</td>
-                <td>~4 hours</td>
+                <td>
+                  <strong>FlatBuffers</strong>
+                  <span class="badge candidate">opt-in extreme perf</span>
+                </td>
+                <td style="color: var(--success)">Fully</td>
+                <td style="color: var(--success)">Fully (code gen, no reflection)</td>
+                <td>~2 days + consumer effort</td>
               </tr>
             </tbody>
           </table>
 
-          <h4>What is "split Pebble keys"?</h4>
-
-          <p>
-            Store the JSON envelope and the raw payload bytes as two separate key-value pairs in
-            Pebble. The envelope gets a key like
-            <code>evt:{id}:meta</code>, the payload gets <code>evt:{id}:data</code>. On load, read
-            both and reassemble. This avoids base64 without changing the codec at all.
-          </p>
-
-          <p>
-            The cost: doubles the number of Pebble keys, complicates range scans (ReadAll must
-            interleave two key prefixes), and adds per-event latency from two reads instead of one.
-            It's a tactical patch, not a structural fix. Listed here for completeness.
-          </p>
-
           <div class="callout success">
             <div class="callout-title">Bottom line</div>
             <p>
-              Every binary-to-text encoding is a band-aid. The real answer is
-              <strong>don't put binary data inside a text format</strong>. The binary wire codec
-              eliminates the problem at the root: payload bytes go raw into the wire layout. No
-              encoding step. No overhead. No ceiling.
+              Every binary-to-text encoding is a band-aid. The answer is
+              <strong>don't put binary data inside a text format</strong>. CBOR's byte strings
+              (major type 2) store raw binary with zero overhead. The signing bonus (deterministic
+              encoding) makes CBOR the clear first step.
             </p>
           </div>
         </section>

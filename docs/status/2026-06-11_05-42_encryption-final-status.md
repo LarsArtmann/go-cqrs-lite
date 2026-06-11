@@ -8,37 +8,37 @@
 
 ## A) FULLY DONE
 
-| Feature | Detail |
-|---------|--------|
-| **AES-256-GCM** | `NewAES256GCM(key)` — stdlib-only, AES-NI accelerated, 12-byte nonce |
-| **XChaCha20-Poly1305** | `NewXChaCha20Poly1305(key)` — recommended default, 24-byte nonce, constant-time |
-| **Core interfaces** | `Encrypter`, `Decrypter`, `EncrypterDecrypter` — both algorithms behind same interface |
-| **Algorithmer interface** | Optional exported interface for algorithm reporting. Go-idiomatic ISP (like `io.StringWriter`). Auto-detected by middleware |
-| **Algorithm identification** | `Algorithm` type (`AES256GCM`, `XChaCha20Poly1305`), `ExtractAlgorithm()`, stored in `event.encryption.algorithm` metadata |
-| **KeyID type** | Strong type replacing raw `string` for key rotation scenarios |
-| **Key ID support** | `WithKeyID(KeyID)`, `WithMiddlewareKeyID(KeyID)`, `ExtractKeyID()`, stored in `event.encryption.key-id` metadata |
-| **KeyResolver interface** | `KeyResolver` + `KeyResolverFunc` adapter for decrypter selection by key ID. Enables KMS/vault integration |
-| **Ciphertext type** | `Ciphertext []byte` — opaque blob, `IsZero`, `Equal` (constant-time), `Bytes`, `String`, JSON serialization |
-| **Event helpers** | `AttachEncryption`, `ExtractCiphertext`, `HasEncryption` — metadata envelope with base64 |
-| **Middleware** | `EncryptMiddleware` (publish, auto-detects algorithm), `DecryptMiddleware` (subscribe, cleans metadata) |
-| **Codec wrapper** | `NewCodec(inner codec.Codec, enc EncrypterDecrypter)` — composable, not combinable. Returns `EncryptionEncoding = "encrypted"` |
-| **Sentinel errors** | 4 classified errors via go-error-family |
-| **Self-review fixes** | Removed redundant `slices.Clone`, fixed vestigial metadata, constant-time `Equal` |
-| **Signing dep removed** | Fixed critical module graph violation — encryption/ no longer imports signing/ (committed 3x due to parallel session re-introductions) |
-| **BDD tests** | 20 Ginkgo specs (AES-GCM, XChaCha20, middleware, codec wrapper) |
-| **Unit tests** | 30+ tests (both algorithms, ciphertext, codec, middleware, algorithm, key ID) |
-| **Fuzz tests** | 5 fuzz tests (AES-GCM roundtrip+corrupt, XChaCha20 roundtrip+corrupt, Ciphertext JSON) |
-| **Property-based tests** | 4 rapid tests (involution AES+XChaCha20, non-determinism, isolation) |
-| **Golden tests** | 6 tests (Ciphertext JSON values, codec wrapper round-trips) |
-| **Example tests** | 4 runnable examples (AES-GCM, XChaCha20, middleware, codec wrapper) |
-| **Integration tests** | 3 tests (sign+encrypt full flow, codec wrapper, algorithm detection) |
-| **Benchmarks** | 9 benchmarks (raw encrypt/decrypt/roundtrip for both + codec wrapper encode/decode/roundtrip) |
-| **Package docs** | `doc.go` with algorithm comparison, key ID, codec wrapper docs |
-| **README** | Full rewrite with algorithm comparison table, algorithm ID section, key rotation section |
-| **codec/ docs** | Documents `encryption.NewCodec` wrapper in codec package docs |
-| **AGENTS.md** | Module list, test command, module tree, key patterns, dependencies updated |
-| **API stability** | Added to `cmd/api-stability/` — 54 exported symbols in golden file |
-| **Module graph** | Layer 4 (same as signing, memory, otel). 0 lint issues in encryption/ |
+| Feature                      | Detail                                                                                                                                 |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **AES-256-GCM**              | `NewAES256GCM(key)` — stdlib-only, AES-NI accelerated, 12-byte nonce                                                                   |
+| **XChaCha20-Poly1305**       | `NewXChaCha20Poly1305(key)` — recommended default, 24-byte nonce, constant-time                                                        |
+| **Core interfaces**          | `Encrypter`, `Decrypter`, `EncrypterDecrypter` — both algorithms behind same interface                                                 |
+| **Algorithmer interface**    | Optional exported interface for algorithm reporting. Go-idiomatic ISP (like `io.StringWriter`). Auto-detected by middleware            |
+| **Algorithm identification** | `Algorithm` type (`AES256GCM`, `XChaCha20Poly1305`), `ExtractAlgorithm()`, stored in `event.encryption.algorithm` metadata             |
+| **KeyID type**               | Strong type replacing raw `string` for key rotation scenarios                                                                          |
+| **Key ID support**           | `WithKeyID(KeyID)`, `WithMiddlewareKeyID(KeyID)`, `ExtractKeyID()`, stored in `event.encryption.key-id` metadata                       |
+| **KeyResolver interface**    | `KeyResolver` + `KeyResolverFunc` adapter for decrypter selection by key ID. Enables KMS/vault integration                             |
+| **Ciphertext type**          | `Ciphertext []byte` — opaque blob, `IsZero`, `Equal` (constant-time), `Bytes`, `String`, JSON serialization                            |
+| **Event helpers**            | `AttachEncryption`, `ExtractCiphertext`, `HasEncryption` — metadata envelope with base64                                               |
+| **Middleware**               | `EncryptMiddleware` (publish, auto-detects algorithm), `DecryptMiddleware` (subscribe, cleans metadata)                                |
+| **Codec wrapper**            | `NewCodec(inner codec.Codec, enc EncrypterDecrypter)` — composable, not combinable. Returns `EncryptionEncoding = "encrypted"`         |
+| **Sentinel errors**          | 4 classified errors via go-error-family                                                                                                |
+| **Self-review fixes**        | Removed redundant `slices.Clone`, fixed vestigial metadata, constant-time `Equal`                                                      |
+| **Signing dep removed**      | Fixed critical module graph violation — encryption/ no longer imports signing/ (committed 3x due to parallel session re-introductions) |
+| **BDD tests**                | 20 Ginkgo specs (AES-GCM, XChaCha20, middleware, codec wrapper)                                                                        |
+| **Unit tests**               | 30+ tests (both algorithms, ciphertext, codec, middleware, algorithm, key ID)                                                          |
+| **Fuzz tests**               | 5 fuzz tests (AES-GCM roundtrip+corrupt, XChaCha20 roundtrip+corrupt, Ciphertext JSON)                                                 |
+| **Property-based tests**     | 4 rapid tests (involution AES+XChaCha20, non-determinism, isolation)                                                                   |
+| **Golden tests**             | 6 tests (Ciphertext JSON values, codec wrapper round-trips)                                                                            |
+| **Example tests**            | 4 runnable examples (AES-GCM, XChaCha20, middleware, codec wrapper)                                                                    |
+| **Integration tests**        | 3 tests (sign+encrypt full flow, codec wrapper, algorithm detection)                                                                   |
+| **Benchmarks**               | 9 benchmarks (raw encrypt/decrypt/roundtrip for both + codec wrapper encode/decode/roundtrip)                                          |
+| **Package docs**             | `doc.go` with algorithm comparison, key ID, codec wrapper docs                                                                         |
+| **README**                   | Full rewrite with algorithm comparison table, algorithm ID section, key rotation section                                               |
+| **codec/ docs**              | Documents `encryption.NewCodec` wrapper in codec package docs                                                                          |
+| **AGENTS.md**                | Module list, test command, module tree, key patterns, dependencies updated                                                             |
+| **API stability**            | Added to `cmd/api-stability/` — 54 exported symbols in golden file                                                                     |
+| **Module graph**             | Layer 4 (same as signing, memory, otel). 0 lint issues in encryption/                                                                  |
 
 **Test counts:** 20 BDD + 30+ unit + 5 fuzz + 4 property + 6 golden + 4 examples + 3 integration = **76+ tests, all green**
 
@@ -70,41 +70,45 @@ b67cb375 feat(encryption): add KeyResolver interface for key rotation, document 
 
 ## B) PARTIALLY DONE
 
-| Item | What's done | What's missing |
-|------|-------------|----------------|
+| Item                       | What's done                                                                                                            | What's missing                                                             |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
 | Deduplication with signing | Identified ~80% overlap. Correctly decided against extraction to event/ (premature abstraction, intentional isolation) | If a third module emerges with the same pattern, reconsider shared helpers |
 
 ## C) NOT STARTED
 
-| Item | Impact | Effort | Reason |
-|------|--------|--------|--------|
-| `example/encryption/` project | Medium | 30m | `example_test.go` covers basic usage; dedicated example is lower priority |
-| Catalog schema integration | Low | 30m | catalog/ has no encryption awareness; not a blocker for library consumers |
-| Field-level encryption (`encryption/fieldlevel/`) | High | 4h | Large feature, needs dedicated sprint |
-| Key envelope encryption helper (KMS pattern) | Medium | 2h | KeyResolver is the interface; concrete KMS impl is consumer-specific |
-| Streaming encryption for large payloads | Medium | 4h | Needs `io.Reader`/`io.Writer` AEAD streaming API |
-| FIPS 140-2 compliance mode | Low | Small | Niche requirement, not requested by consumers |
-| Storage wrapper (`storage.EncryptedEventStore`) | High | 2h | Would simplify consumer setup but adds coupling |
+| Item                                              | Impact | Effort | Reason                                                                    |
+| ------------------------------------------------- | ------ | ------ | ------------------------------------------------------------------------- |
+| `example/encryption/` project                     | Medium | 30m    | `example_test.go` covers basic usage; dedicated example is lower priority |
+| Catalog schema integration                        | Low    | 30m    | catalog/ has no encryption awareness; not a blocker for library consumers |
+| Field-level encryption (`encryption/fieldlevel/`) | High   | 4h     | Large feature, needs dedicated sprint                                     |
+| Key envelope encryption helper (KMS pattern)      | Medium | 2h     | KeyResolver is the interface; concrete KMS impl is consumer-specific      |
+| Streaming encryption for large payloads           | Medium | 4h     | Needs `io.Reader`/`io.Writer` AEAD streaming API                          |
+| FIPS 140-2 compliance mode                        | Low    | Small  | Niche requirement, not requested by consumers                             |
+| Storage wrapper (`storage.EncryptedEventStore`)   | High   | 2h     | Would simplify consumer setup but adds coupling                           |
 
 ## D) TOTALLY FUCKED UP (and FIXED)
 
-| Bug | Severity | Fix | Status |
-|-----|----------|-----|--------|
-| `signing/v2` import leaked into `middleware.go` | **CRITICAL** — module graph violation: encryption/ imported signing/ | Restored local `rejectingPublishMiddleware`/`rejectingHandlerMiddleware` | **FIXED** in 34b60025 |
-| `fuzz_test.go` used `Encrypter` but called `.Decrypt()` | Medium — build failure | Changed helper to `EncrypterDecrypter` | **FIXED** in 34b60025 |
-| `property_test.go` same type mismatch | Medium | Changed helper to `EncrypterDecrypter` | **FIXED** in 34b60025 |
-| Parallel session re-introduced signing import 2x | Medium | Re-fixed each time, committed each fix | **FIXED** permanently via commit 34b60025 |
+| Bug                                                     | Severity                                                             | Fix                                                                      | Status                                    |
+| ------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------- |
+| `signing/v2` import leaked into `middleware.go`         | **CRITICAL** — module graph violation: encryption/ imported signing/ | Restored local `rejectingPublishMiddleware`/`rejectingHandlerMiddleware` | **FIXED** in 34b60025                     |
+| `fuzz_test.go` used `Encrypter` but called `.Decrypt()` | Medium — build failure                                               | Changed helper to `EncrypterDecrypter`                                   | **FIXED** in 34b60025                     |
+| `property_test.go` same type mismatch                   | Medium                                                               | Changed helper to `EncrypterDecrypter`                                   | **FIXED** in 34b60025                     |
+| Parallel session re-introduced signing import 2x        | Medium                                                               | Re-fixed each time, committed each fix                                   | **FIXED** permanently via commit 34b60025 |
 
 ## E) WHAT WE SHOULD IMPROVE
 
 ### 1. `EncryptionEncoding = "encrypted"` hides inner codec
+
 The codec wrapper returns `"encrypted"` as encoding. Schema exporters and `validateEncodingMatch` won't know the original format. This is a design tradeoff we accepted (composable, not combinable) but could surprise consumers. Options:
+
 - Keep `"encrypted"` — if payload is encrypted, the encoding IS encrypted, not JSON
 - Use `"encrypted+json"` — carries inner codec identity but creates a new namespace
 - Document the limitation clearly (done in codec/doc.go)
 
 ### 2. No built-in key rotation strategy
+
 `KeyResolver` is the interface, but consumers must build their own implementation. A `StaticKeyResolver` helper (map-based) could cover 80% of use cases:
+
 ```go
 resolver := encryption.NewStaticKeyResolver(map[encryption.KeyID]encryption.Decrypter{
     "key-v1": decV1,
@@ -113,48 +117,52 @@ resolver := encryption.NewStaticKeyResolver(map[encryption.KeyID]encryption.Decr
 ```
 
 ### 3. No streaming encryption
+
 Both implementations hold the entire plaintext/ciphertext in memory. For multi-GB payloads, this is a non-starter. Would need streaming AEAD API.
 
 ### 4. `testdata/golden/` is empty
+
 Golden tests use inline assertions rather than file-based golden comparison. Moving to file-based would make updates easier (`go test -update`).
 
 ### 5. No storage integration
+
 The storage/ module (SQL event store) doesn't know about encryption. A `storage.NewEncryptedEventStore(store, enc)` wrapper could simplify consumer setup but adds coupling.
 
 ### 6. No example project
+
 `example_test.go` covers basics but a full `example/encryption/` project demonstrating sign+encrypt+storage would be valuable.
 
 ## F) Top 25 Things to Do Next
 
 Sorted by impact × ease (Pareto):
 
-| # | Task | Impact | Effort | Status |
-|---|------|--------|--------|--------|
-| 1 | Add `StaticKeyResolver` helper (map-based) | High | 10m | Not started |
-| 2 | Verify all examples compile with `go test -run Example` | Medium | 5m | Done |
-| 3 | Add `encryption/v2` to CI per-module test matrix | Medium | 5m | Partially (api-stability done) |
-| 4 | Move golden tests to file-based fixtures | Medium | 20m | Not started |
-| 5 | Add `encrypted+json` encoding option | Medium | 15m | Deferred (tradeoff accepted) |
-| 6 | Add versioned ciphertext format (prefix byte for algorithm) | Medium | 30m | Not started |
-| 7 | Create `example/encryption/` project | Medium | 30m | Not started |
-| 8 | Add storage wrapper: `storage.NewEncryptedEventStore` | High | 2h | Not started |
-| 9 | Streaming encryption for large payloads | High | 4h | Not started |
-| 10 | Field-level encryption (`encryption/fieldlevel/`) | High | 4h | Not started |
-| 11 | Key envelope encryption helper (KMS pattern) | Medium | 2h | Not started |
-| 12 | Add `encryption/v2` to `.golangci.yml` depguard allow list | Low | 5m | Not started |
-| 13 | Benchmark: compare with encrypt-then-MAC vs AEAD | Low | 30m | Not started |
-| 14 | Consider `golang.org/x/crypto/nacl/secretbox` as alternative | Low | 30m | Not started |
-| 15 | Add `Ciphertext.UnmarshalFrom(io.Reader)` for streaming decode | Low | 1h | Not started |
-| 16 | Investigate Google Tink integration | Medium | 2h | Not started |
-| 17 | Add encryption to catalog/ schema exporter | Low | 30m | Not started |
-| 18 | Add `encryption/v2` to flake.nix if applicable | Low | 10m | Not started |
-| 19 | Consider `Algorithm()` as method on `Encrypter` interface | Medium | 20m | Deferred (Algorithmer is better ISP) |
-| 20 | Add `encryption/v2` to module layer budget in check-layers | Medium | 5m | Not started |
-| 21 | Add codec wrapper to pkg.go.dev examples in doc.go | Low | 10m | Done (in doc.go) |
-| 22 | Add `EncryptionEncoding` documentation to codec/ module | Low | 10m | Done |
-| 23 | Update HTML design review to reflect XChaCha20 addition | Low | 15m | Not started |
-| 24 | Consider `errors.Is` for codec wrapper decrypt failures | Low | 5m | Already works via `%w` |
-| 25 | Push all commits and verify CI passes | Medium | 5m | Done |
+| #   | Task                                                           | Impact | Effort | Status                               |
+| --- | -------------------------------------------------------------- | ------ | ------ | ------------------------------------ |
+| 1   | Add `StaticKeyResolver` helper (map-based)                     | High   | 10m    | Not started                          |
+| 2   | Verify all examples compile with `go test -run Example`        | Medium | 5m     | Done                                 |
+| 3   | Add `encryption/v2` to CI per-module test matrix               | Medium | 5m     | Partially (api-stability done)       |
+| 4   | Move golden tests to file-based fixtures                       | Medium | 20m    | Not started                          |
+| 5   | Add `encrypted+json` encoding option                           | Medium | 15m    | Deferred (tradeoff accepted)         |
+| 6   | Add versioned ciphertext format (prefix byte for algorithm)    | Medium | 30m    | Not started                          |
+| 7   | Create `example/encryption/` project                           | Medium | 30m    | Not started                          |
+| 8   | Add storage wrapper: `storage.NewEncryptedEventStore`          | High   | 2h     | Not started                          |
+| 9   | Streaming encryption for large payloads                        | High   | 4h     | Not started                          |
+| 10  | Field-level encryption (`encryption/fieldlevel/`)              | High   | 4h     | Not started                          |
+| 11  | Key envelope encryption helper (KMS pattern)                   | Medium | 2h     | Not started                          |
+| 12  | Add `encryption/v2` to `.golangci.yml` depguard allow list     | Low    | 5m     | Not started                          |
+| 13  | Benchmark: compare with encrypt-then-MAC vs AEAD               | Low    | 30m    | Not started                          |
+| 14  | Consider `golang.org/x/crypto/nacl/secretbox` as alternative   | Low    | 30m    | Not started                          |
+| 15  | Add `Ciphertext.UnmarshalFrom(io.Reader)` for streaming decode | Low    | 1h     | Not started                          |
+| 16  | Investigate Google Tink integration                            | Medium | 2h     | Not started                          |
+| 17  | Add encryption to catalog/ schema exporter                     | Low    | 30m    | Not started                          |
+| 18  | Add `encryption/v2` to flake.nix if applicable                 | Low    | 10m    | Not started                          |
+| 19  | Consider `Algorithm()` as method on `Encrypter` interface      | Medium | 20m    | Deferred (Algorithmer is better ISP) |
+| 20  | Add `encryption/v2` to module layer budget in check-layers     | Medium | 5m     | Not started                          |
+| 21  | Add codec wrapper to pkg.go.dev examples in doc.go             | Low    | 10m    | Done (in doc.go)                     |
+| 22  | Add `EncryptionEncoding` documentation to codec/ module        | Low    | 10m    | Done                                 |
+| 23  | Update HTML design review to reflect XChaCha20 addition        | Low    | 15m    | Not started                          |
+| 24  | Consider `errors.Is` for codec wrapper decrypt failures        | Low    | 5m     | Already works via `%w`               |
+| 25  | Push all commits and verify CI passes                          | Medium | 5m     | Done                                 |
 
 ## G) Top #1 Question I Cannot Figure Out Myself
 
@@ -163,10 +171,12 @@ Sorted by impact × ease (Pareto):
 Current approach (chosen): `Algorithmer` is an optional interface. `detectAlgorithm()` uses type assertion. This is Go-idiomatic (like `io.StringWriter` alongside `io.Writer`) and preserves ISP. Third-party `Encrypter` implementations can satisfy it if they want algorithm reporting.
 
 But there's a real tension:
+
 - **Without `Algorithm()` on `Encrypter`**: Consumers who receive an `Encrypter` cannot tell which algorithm it is without a type assertion. The middleware must detect via `Algorithmer` — if the implementation doesn't satisfy it, no algorithm metadata is stored.
 - **With `Algorithm()` on `Encrypter`**: Every implementation must report its algorithm. Clean, but adds a method to the core interface. For consumers who only need `Encrypt()`, this is unnecessary coupling.
 
 I chose `Algorithmer` because:
+
 1. ISP — `Encrypter` should only do encryption
 2. Go convention — optional capabilities via separate interfaces
 3. Backward compatibility — adding `Algorithm()` to `Encrypter` would be a breaking change for third-party implementations
@@ -221,10 +231,10 @@ Layer 5: middleware/, storage/, projection/, listing/, watermill/, pebble/, turs
 
 ## Dependencies
 
-| Category | Packages |
-|----------|----------|
+| Category   | Packages                                                                |
+| ---------- | ----------------------------------------------------------------------- |
 | Production | `event/v2`, `id/v2`, `codec/v2`, `golang.org/x/crypto/chacha20poly1305` |
-| Test-only | `onsi/ginkgo/v2`, `onsi/gomega`, `pgregory.net/rapid` |
+| Test-only  | `onsi/ginkgo/v2`, `onsi/gomega`, `pgregory.net/rapid`                   |
 
 ## Design Decisions
 

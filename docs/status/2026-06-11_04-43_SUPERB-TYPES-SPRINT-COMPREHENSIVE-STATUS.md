@@ -11,15 +11,15 @@
 
 ### Sprint Accomplishments (commits `4a542363` → `c521af96`)
 
-| Commit | What |
-|--------|------|
+| Commit     | What                                                                                           |
+| ---------- | ---------------------------------------------------------------------------------------------- |
 | `4a542363` | Strong IDs + library phantom types (healthcheck, SSE, saga, turso, event reconstruction chain) |
-| `8f5f0d31` | Example compilation fixes (catalog-server, user Protocol cast) |
-| `6828c32f` | ErrorExporter deprecation alias (`ErrorExporter = Exporter[error]`) |
-| `812868b0` | Catalog strong-ID fixes (DisplayID, MessageID, cattest typed params) |
-| `360e41e9` | Docs: interface consolidation & test dedup research findings |
-| `c521af96` | Example/todo phantom types complete + example/user phantom types |
-| `41b15b95` | Golden test fixture refresh (codec + middleware) |
+| `8f5f0d31` | Example compilation fixes (catalog-server, user Protocol cast)                                 |
+| `6828c32f` | ErrorExporter deprecation alias (`ErrorExporter = Exporter[error]`)                            |
+| `812868b0` | Catalog strong-ID fixes (DisplayID, MessageID, cattest typed params)                           |
+| `360e41e9` | Docs: interface consolidation & test dedup research findings                                   |
+| `c521af96` | Example/todo phantom types complete + example/user phantom types                               |
+| `41b15b95` | Golden test fixture refresh (codec + middleware)                                               |
 
 ### Phantom Type Inventory (21 phantom types across codebase)
 
@@ -27,6 +27,7 @@
 `Name`, `Version`, `Summary`, `Title`, `Description`, `Address`, `Protocol`, `Host`, `Email`, `URL`, `ContentType`, `DeliveryGuarantee`, `Method`, `Icon`, `Color`, `Language`, `Role` + `DisplayID` in d2/connections.go
 
 **Library types:**
+
 - `event.Type`, `event.AggregateType`, `event.Source`, `event.IPAddress`, `event.UserAgent`, `event.MetadataKey`
 - `command.Type`, `query.Type`
 - `middleware.ReleaseID`, `middleware.ComponentID`, `middleware.HealthStatus`, `middleware.SSEClientID`
@@ -34,19 +35,20 @@
 - `signing.SignatureAlgorithm`, `signing.Actor`
 
 **Example types (local, per-module):**
+
 - `example/todo/domain`: `Title`, `Description`, `Priority`
 - `example/user`: `Email`, `DisplayName`, `Reason`
 
 ### Metric Progress
 
-| Metric | Start | Current | Target | Status |
-|--------|-------|---------|--------|--------|
-| Phantom violations | 315 | 233 | <150 | 🟡 In progress |
-| Strong-ID violations | 25 | 3 | 0 (3 intentional) | ✅ Done |
-| Error handling score | 92/100 | 95/100 | 95+ | ✅ Done |
-| Composition health | 98/100 | 99/100 | 95+ | ✅ Done |
-| Test pass rate | 37/38 | 38/38 | 38/38 | ✅ Done |
-| Golden tests | 2 stale | 0 stale | 0 | ✅ Done |
+| Metric               | Start   | Current | Target            | Status         |
+| -------------------- | ------- | ------- | ----------------- | -------------- |
+| Phantom violations   | 315     | 233     | <150              | 🟡 In progress |
+| Strong-ID violations | 25      | 3       | 0 (3 intentional) | ✅ Done        |
+| Error handling score | 92/100  | 95/100  | 95+               | ✅ Done        |
+| Composition health   | 98/100  | 99/100  | 95+               | ✅ Done        |
+| Test pass rate       | 37/38   | 38/38   | 38/38             | ✅ Done        |
+| Golden tests         | 2 stale | 0 stale | 0                 | ✅ Done        |
 
 ---
 
@@ -56,22 +58,23 @@
 
 **Breakdown of the 233 violations:**
 
-| Category | Count | Fixable? | ROI |
-|----------|-------|----------|-----|
-| **Catalog serialization structs** (asyncapi/types.go, openapi/types.go, d2/exporter.go) | ~90 | No — JSON/YAML spec fields must be `string` for marshaling | Zero |
-| **Catalog option/builder functions** (build.go, builders.go, config fns) | ~40 | Technically yes — use catalog.Name etc. | Low (internal, no consumers) |
-| **Catalog test helpers** (cattest/) | ~20 | Technically yes | Very low |
-| **Middleware internal params** (msgKind, label, Kind) | ~28 | No — these are log/trace formatting strings | Zero |
-| **Storage/SQL internals** (table, aggType, prefix, query) | ~26 | No — SQL query builder internals | Zero |
-| **OTel helpers** (component, eventType, unit) | ~14 | No — constrained by OTel API (`string` attrs) | Zero |
-| **Pebble internals** (prefix, limit, syncWrites) | ~8 | No — store config, not domain types | Zero |
-| **Example modules** (user, todo, projection, etc.) | ~12 | Partially — JSON payloads must stay `string` | Low |
-| **Event internals** (eventtest helpers, replay filter) | ~9 | Partially — internal function params | Low |
-| **Other** (memory, listing, dispatcher, query, projection, watermill) | ~15 | Mostly no — constrained by interfaces | Zero |
+| Category                                                                                | Count | Fixable?                                                   | ROI                          |
+| --------------------------------------------------------------------------------------- | ----- | ---------------------------------------------------------- | ---------------------------- |
+| **Catalog serialization structs** (asyncapi/types.go, openapi/types.go, d2/exporter.go) | ~90   | No — JSON/YAML spec fields must be `string` for marshaling | Zero                         |
+| **Catalog option/builder functions** (build.go, builders.go, config fns)                | ~40   | Technically yes — use catalog.Name etc.                    | Low (internal, no consumers) |
+| **Catalog test helpers** (cattest/)                                                     | ~20   | Technically yes                                            | Very low                     |
+| **Middleware internal params** (msgKind, label, Kind)                                   | ~28   | No — these are log/trace formatting strings                | Zero                         |
+| **Storage/SQL internals** (table, aggType, prefix, query)                               | ~26   | No — SQL query builder internals                           | Zero                         |
+| **OTel helpers** (component, eventType, unit)                                           | ~14   | No — constrained by OTel API (`string` attrs)              | Zero                         |
+| **Pebble internals** (prefix, limit, syncWrites)                                        | ~8    | No — store config, not domain types                        | Zero                         |
+| **Example modules** (user, todo, projection, etc.)                                      | ~12   | Partially — JSON payloads must stay `string`               | Low                          |
+| **Event internals** (eventtest helpers, replay filter)                                  | ~9    | Partially — internal function params                       | Low                          |
+| **Other** (memory, listing, dispatcher, query, projection, watermill)                   | ~15   | Mostly no — constrained by interfaces                      | Zero                         |
 
 **True actionable violations: ~15-25** (catalog option functions + a few example struct fields that aren't JSON payloads).
 
 **Key insight:** We've already picked all the high-value fruit. The domain model types in catalog, event, command, query, middleware, turso, and signing all use phantom types. The remaining violations are:
+
 1. **Serialization struct fields** — must stay `string` for JSON/YAML interop
 2. **Internal function params** — log messages, SQL query builders, OTel attributes
 3. **Interface-constrained params** — Watermill's `topic string`, etc.
@@ -154,48 +157,48 @@ Sorted by **impact × effort** (Pareto principle):
 
 ### Tier 1: Quick Wins (5 min each, high impact)
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 1 | Add `String()` + `IsZero()` methods to all 17 catalog phantom types in `types_phantom.go` | Consistency, pattern alignment | 5 min |
-| 2 | Add `String()` + `IsZero()` to `catalog.DisplayID` | Same pattern | 1 min |
-| 3 | Fix `example/todo/domain.Priority` — add `Int()` method (it's `type Priority int`, not string) | Cleaner boundary casts | 2 min |
-| 4 | Configure branching-flow to exclude serialization structs from phantom analysis (or add lint suppression comments) | Accurate violation count | 5 min |
-| 5 | Fix/Remove the broken BuildFlow pre-commit hook | Prevent silent staging | 5 min |
+| #   | Task                                                                                                               | Impact                         | Effort |
+| --- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------ | ------ |
+| 1   | Add `String()` + `IsZero()` methods to all 17 catalog phantom types in `types_phantom.go`                          | Consistency, pattern alignment | 5 min  |
+| 2   | Add `String()` + `IsZero()` to `catalog.DisplayID`                                                                 | Same pattern                   | 1 min  |
+| 3   | Fix `example/todo/domain.Priority` — add `Int()` method (it's `type Priority int`, not string)                     | Cleaner boundary casts         | 2 min  |
+| 4   | Configure branching-flow to exclude serialization structs from phantom analysis (or add lint suppression comments) | Accurate violation count       | 5 min  |
+| 5   | Fix/Remove the broken BuildFlow pre-commit hook                                                                    | Prevent silent staging         | 5 min  |
 
 ### Tier 2: Medium Effort, Good Value (15-30 min each)
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 6 | Use catalog phantom types in builder/option functions (`build.go`, `channel_config.go`, `service_config.go`, `message_config.go`) | ~15 violations eliminated | 20 min |
-| 7 | Use catalog phantom types in cattest helpers (`builders.go` title/summary params) | ~10 violations eliminated | 15 min |
-| 8 | Add `encoding.TextMarshaler` to catalog phantom types — enables direct JSON use | Eliminates ~40 string() casts in exporters | 30 min |
-| 9 | Type `query.Pagination` fields as `Page uint` and `PageSize uint` phantom types with validation | Domain safety | 15 min |
-| 10 | Type `projection.HealthReport` fields — `Healthy` → `HealthStatus` enum, `Checkpoint` → typed | Clarity | 15 min |
-| 11 | Fix error context in `memory/store_load.go:35` and `middleware/recovery.go:34` (include `op`/`msgKind`/`typeName` in error format strings) | Error handling 95→97 | 10 min |
+| #   | Task                                                                                                                                       | Impact                                     | Effort |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------ | ------ |
+| 6   | Use catalog phantom types in builder/option functions (`build.go`, `channel_config.go`, `service_config.go`, `message_config.go`)          | ~15 violations eliminated                  | 20 min |
+| 7   | Use catalog phantom types in cattest helpers (`builders.go` title/summary params)                                                          | ~10 violations eliminated                  | 15 min |
+| 8   | Add `encoding.TextMarshaler` to catalog phantom types — enables direct JSON use                                                            | Eliminates ~40 string() casts in exporters | 30 min |
+| 9   | Type `query.Pagination` fields as `Page uint` and `PageSize uint` phantom types with validation                                            | Domain safety                              | 15 min |
+| 10  | Type `projection.HealthReport` fields — `Healthy` → `HealthStatus` enum, `Checkpoint` → typed                                              | Clarity                                    | 15 min |
+| 11  | Fix error context in `memory/store_load.go:35` and `middleware/recovery.go:34` (include `op`/`msgKind`/`typeName` in error format strings) | Error handling 95→97                       | 10 min |
 
 ### Tier 3: Lower ROI, Consider Carefully
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 12 | Type `storage/sql` query builder params (`table`, `aggType`, `prefix`) | Internal safety | 30 min |
-| 13 | Type `pebble` store config fields (`prefix`, `journalPrefix`) | Config safety | 15 min |
-| 14 | Type `otel` helper params (`component`, `eventType`, `unit`) | Constrained by OTel API | 20 min |
-| 15 | Type `watermill` topic params | Constrained by Watermill API | 10 min |
-| 16 | Type `memory` store internal params (`op`) | Internal only | 10 min |
-| 17 | Type `listing` reader params | Internal only | 5 min |
-| 18 | Type `dispatcher` lifecycle state | Internal only | 5 min |
-| 19 | Convert `bool` fields to enums where flagged (`Deprecated`, `Deleted`, `ownDB`, `syncWrites`) | Debatable value | 45 min |
-| 20 | Extract shared phantom type generation pattern (go:generate or generic helper) | DRY | 30 min |
+| #   | Task                                                                                          | Impact                       | Effort |
+| --- | --------------------------------------------------------------------------------------------- | ---------------------------- | ------ |
+| 12  | Type `storage/sql` query builder params (`table`, `aggType`, `prefix`)                        | Internal safety              | 30 min |
+| 13  | Type `pebble` store config fields (`prefix`, `journalPrefix`)                                 | Config safety                | 15 min |
+| 14  | Type `otel` helper params (`component`, `eventType`, `unit`)                                  | Constrained by OTel API      | 20 min |
+| 15  | Type `watermill` topic params                                                                 | Constrained by Watermill API | 10 min |
+| 16  | Type `memory` store internal params (`op`)                                                    | Internal only                | 10 min |
+| 17  | Type `listing` reader params                                                                  | Internal only                | 5 min  |
+| 18  | Type `dispatcher` lifecycle state                                                             | Internal only                | 5 min  |
+| 19  | Convert `bool` fields to enums where flagged (`Deprecated`, `Deleted`, `ownDB`, `syncWrites`) | Debatable value              | 45 min |
+| 20  | Extract shared phantom type generation pattern (go:generate or generic helper)                | DRY                          | 30 min |
 
 ### Tier 4: Strategic / Future
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 21 | Evaluate `mnd` (magic number detector) — fix the `10` in gracefulshutdown default timeout | Code quality | 5 min |
-| 22 | Consider `bool` enum conversion for `catalog.Message.Deprecated` — `DeprecatedStatus Active|Deprecated` | Domain clarity | 15 min |
-| 23 | Add catalog diff/breaking-change detection tool (from TODO_LIST.md) | Consumer safety | 4+ hours |
-| 24 | Consider `go-branded-id` patterns for remaining strong-ID violations (`openapi.OperationID`, `FlowStep.ID`, `FlowEdge.ID`) | Completeness | 30 min |
-| 25 | Evaluate whether branching-flow phantom analysis should have a "serialization struct" exclusion mode | Tooling | 2+ hours |
+| #   | Task                                                                                                                       | Impact          | Effort         |
+| --- | -------------------------------------------------------------------------------------------------------------------------- | --------------- | -------------- | ------ |
+| 21  | Evaluate `mnd` (magic number detector) — fix the `10` in gracefulshutdown default timeout                                  | Code quality    | 5 min          |
+| 22  | Consider `bool` enum conversion for `catalog.Message.Deprecated` — `DeprecatedStatus Active                                | Deprecated`     | Domain clarity | 15 min |
+| 23  | Add catalog diff/breaking-change detection tool (from TODO_LIST.md)                                                        | Consumer safety | 4+ hours       |
+| 24  | Consider `go-branded-id` patterns for remaining strong-ID violations (`openapi.OperationID`, `FlowStep.ID`, `FlowEdge.ID`) | Completeness    | 30 min         |
+| 25  | Evaluate whether branching-flow phantom analysis should have a "serialization struct" exclusion mode                       | Tooling         | 2+ hours       |
 
 ---
 
@@ -204,6 +207,7 @@ Sorted by **impact × effort** (Pareto principle):
 **Should we invest more time driving the phantom violation count from 233 down, or is the current state "good enough"?**
 
 The analysis shows:
+
 - **233 violations** sounds bad, but ~60% (140) are in serialization structs, OTel/Watermill-constrained params, or SQL query builder internals where phantom types add no value and would create noise
 - **~25 are truly actionable** (catalog builder functions, test helpers, a few example struct fields)
 - Fixing those 25 would take ~2 hours and bring the count to ~208 — still looks "high" but is honestly the floor
@@ -216,13 +220,13 @@ The question is: **should we configure branching-flow to exclude serialization s
 
 ## Current branching-flow Scores
 
-| Linter | Score/Count | Status |
-|--------|-------------|--------|
-| Error Handling | 95.0/100 (Good) | ✅ |
-| Duplicate Types | 15 groups (5 actionable) | 🟡 Examples only |
-| Phantom Types | 233 violations | 🟡 ~60% false positives |
-| Panic Conditions | 2 detections | ✅ Both guarded |
-| Strong ID | 3 violations | ✅ All intentional |
-| Boolean Blindness | 0 violations | ✅ |
-| Composition Health | 99/100 (Good) | ✅ |
-| Anti-Patterns | 2 large structs | 🟡 Message/Service 16-17 fields |
+| Linter             | Score/Count              | Status                          |
+| ------------------ | ------------------------ | ------------------------------- |
+| Error Handling     | 95.0/100 (Good)          | ✅                              |
+| Duplicate Types    | 15 groups (5 actionable) | 🟡 Examples only                |
+| Phantom Types      | 233 violations           | 🟡 ~60% false positives         |
+| Panic Conditions   | 2 detections             | ✅ Both guarded                 |
+| Strong ID          | 3 violations             | ✅ All intentional              |
+| Boolean Blindness  | 0 violations             | ✅                              |
+| Composition Health | 99/100 (Good)            | ✅                              |
+| Anti-Patterns      | 2 large structs          | 🟡 Message/Service 16-17 fields |
