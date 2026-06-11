@@ -212,6 +212,7 @@ func FuzzVersionedStore_Load_NilSource(f *testing.F) {
 		vs, err := schema.NewVersionedStore(nil)
 		if err == nil {
 			t.Error("expected error for nil store")
+
 			return
 		}
 		_ = vs
