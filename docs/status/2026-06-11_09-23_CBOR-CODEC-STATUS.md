@@ -1,8 +1,8 @@
 # Status Report: CBOR Codec Implementation
 
-**Date:** 2026-06-11 09:23 UTC
+**Date:** 2026-06-11 09:23 UTC (updated 09:35)
 **Branch:** master
-**Commit:** 25027eac (HEAD)
+**Commit:** 25027eac (initial), subsequent fixes applied
 
 ---
 
@@ -10,7 +10,7 @@
 
 ### Core Implementation
 
-- `codec/cbor.go`: `CBORCodec` struct with canonical (deterministic) encoding via `fxamacker/cbor/v2`
+- `codec/cbor.go`: `CBORCodec` struct with canonical (deterministic) encoding via `fxamacker/cbor/v2`. Uses IIFE for `cborEncMode` with proper error handling (panics at init if EncMode creation fails).
 - `codec/codec.go`: `EncodingCBOR = "cbor"` constant added
 - `codec/doc.go`: Updated package documentation listing all 3 codecs
 - `.golangci.yml`: Added `fxamacker/cbor` to depguard allow list
@@ -18,16 +18,21 @@
 
 ### Tests
 
-- `codec/codec_test.go`: 6 CBOR-specific unit tests
+- `codec/codec_test.go`: 9 CBOR-specific unit tests
   - `TestCBORCodec_Encoding` — verifies Encoding() returns "cbor"
   - `TestCBORCodec_RoundTrip` — struct round-trip
   - `TestCBORCodec_Encode_Map` — map[string]any round-trip
   - `TestCBORCodec_Decode_InvalidCBOR` — error on garbage input
   - `TestCBORCodec_Encode_Nil` — nil handling
   - `TestCBORCodec_Encode_Deterministic` — 10-iteration map determinism
-- `codec/codec_fuzz_test.go`: `FuzzCBORCodec_Roundtrip` with 7 JSON seed corpus entries
-- `codec/benchmark_test.go`: `BenchmarkCBORCodec_Encode` and `Decode`
+  - `TestCBORCodec_Decode_EmptyData` — edge case for empty input
+  - `TestCBORCodec_RoundTrip_Time` — time.Time CBOR tag support
+  - `TestCBORCodec_RoundTrip_ByteSlice` — native byte strings (no base64)
+- `codec/codec_fuzz_test.go`: `FuzzCBORCodec_Roundtrip` with pure CBOR seed corpus (7 entries)
+- `codec/benchmark_test.go`: `BenchmarkCBORCodec_Encode`, `Decode`, and `BenchmarkCodecComparison_Encode/Decode`
 - `codec/golden_test.go`: `TestGolden_CBORCodec_Encode` + `testdata/golden/cbor_encode.bin`
+- `codec/example_test.go`: `ExampleCBORCodec` for pkg.go.dev
+- `event/codec_test.go`: `TestDecodePayload_CBORCodec` — end-to-end event.New() with CBOR
 - `TestInterfaceCompliance` updated to include CBOR
 
 ### Integration Verification
