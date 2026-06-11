@@ -13,6 +13,12 @@ func (a Algorithm) String() string { return string(a) }
 
 func (a Algorithm) IsZero() bool { return a == "" }
 
+type KeyID string
+
+func (k KeyID) String() string { return string(k) }
+
+func (k KeyID) IsZero() bool { return k == "" }
+
 const (
 	AlgorithmKey event.MetadataKey = "event.encryption.algorithm"
 	KeyIDKey     event.MetadataKey = "event.encryption.key-id"
@@ -44,7 +50,7 @@ func ExtractAlgorithm(evt event.Event) (Algorithm, error) {
 	return alg, nil
 }
 
-func ExtractKeyID(evt event.Event) (string, error) {
+func ExtractKeyID(evt event.Event) (KeyID, error) {
 	if evt == nil {
 		return "", ErrNilEvent
 	}
@@ -59,5 +65,5 @@ func ExtractKeyID(evt event.Event) (string, error) {
 		return "", nil
 	}
 
-	return v, nil
+	return KeyID(v), nil
 }

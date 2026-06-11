@@ -10,12 +10,12 @@ const MetadataKey event.MetadataKey = "event.encrypted"
 
 type attachConfig struct {
 	algorithm Algorithm
-	keyID     string
+	keyID     KeyID
 }
 
 type AttachOption func(*attachConfig)
 
-func WithKeyID(id string) AttachOption {
+func WithKeyID(id KeyID) AttachOption {
 	return func(c *attachConfig) { c.keyID = id }
 }
 
@@ -43,8 +43,8 @@ func AttachEncryption(evt event.Event, ciphertext Ciphertext, opts ...AttachOpti
 		eventOpts = append(eventOpts, event.WithCustom(AlgorithmKey, cfg.algorithm.String()))
 	}
 
-	if cfg.keyID != "" {
-		eventOpts = append(eventOpts, event.WithCustom(KeyIDKey, cfg.keyID))
+	if !cfg.keyID.IsZero() {
+		eventOpts = append(eventOpts, event.WithCustom(KeyIDKey, cfg.keyID.String()))
 	}
 
 	clone, err := event.NewEvent(

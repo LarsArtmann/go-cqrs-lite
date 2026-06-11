@@ -62,7 +62,7 @@ func TestAttachEncryption_WithKeyID(t *testing.T) {
 		t.Fatalf("Encrypt: %v", err)
 	}
 
-	attached, err := AttachEncryption(evt, ct, WithKeyID("key-v1"))
+	attached, err := AttachEncryption(evt, ct, WithKeyID(KeyID("key-v1")))
 	if err != nil {
 		t.Fatalf("AttachEncryption: %v", err)
 	}
@@ -72,7 +72,7 @@ func TestAttachEncryption_WithKeyID(t *testing.T) {
 		t.Fatalf("ExtractKeyID: %v", err)
 	}
 
-	if keyID != "key-v1" {
+	if keyID.String() != "key-v1" {
 		t.Fatalf("expected key ID %q, got %q", "key-v1", keyID)
 	}
 }
@@ -98,7 +98,7 @@ func TestAttachEncryption_WithAlgorithmAndKeyID(t *testing.T) {
 	attached, err := AttachEncryption(
 		evt, ct,
 		func(c *attachConfig) { c.algorithm = XChaCha20Poly1305 },
-		WithKeyID("key-v2"),
+		WithKeyID(KeyID("key-v2")),
 	)
 	if err != nil {
 		t.Fatalf("AttachEncryption: %v", err)
@@ -110,7 +110,7 @@ func TestAttachEncryption_WithAlgorithmAndKeyID(t *testing.T) {
 	}
 
 	keyID, _ := ExtractKeyID(attached)
-	if keyID != "key-v2" {
+	if keyID.String() != "key-v2" {
 		t.Fatalf("expected key-v2, got %s", keyID)
 	}
 }
@@ -158,7 +158,7 @@ func TestEncryptMiddleware_WithKeyID(t *testing.T) {
 
 	var captured event.Event
 
-	mw := EncryptMiddleware(enc, WithMiddlewareKeyID("rotation-key-3"))
+	mw := EncryptMiddleware(enc, WithMiddlewareKeyID(KeyID("rotation-key-3")))
 	publisher := mw(event.PublisherFunc(func(_ context.Context, events ...event.Event) error {
 		captured = events[0]
 
@@ -172,7 +172,7 @@ func TestEncryptMiddleware_WithKeyID(t *testing.T) {
 		t.Fatalf("ExtractKeyID: %v", err)
 	}
 
-	if keyID != "rotation-key-3" {
+	if keyID.String() != "rotation-key-3" {
 		t.Fatalf("expected rotation-key-3, got %s", keyID)
 	}
 
@@ -194,7 +194,7 @@ func TestDecryptMiddleware_RemovesAlgorithmAndKeyID(t *testing.T) {
 
 	var decrypted event.Event
 
-	encMw := EncryptMiddleware(enc, WithMiddlewareKeyID("k1"))
+	encMw := EncryptMiddleware(enc, WithMiddlewareKeyID(KeyID("k1")))
 	decMw := DecryptMiddleware(enc)
 
 	publish := encMw(event.PublisherFunc(func(_ context.Context, events ...event.Event) error {

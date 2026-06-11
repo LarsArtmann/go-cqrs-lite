@@ -8,12 +8,12 @@ import (
 )
 
 type middlewareConfig struct {
-	keyID string
+	keyID KeyID
 }
 
 type MiddlewareOption func(*middlewareConfig)
 
-func WithMiddlewareKeyID(id string) MiddlewareOption {
+func WithMiddlewareKeyID(id KeyID) MiddlewareOption {
 	return func(c *middlewareConfig) { c.keyID = id }
 }
 
@@ -58,7 +58,7 @@ func EncryptMiddleware(encrypter Encrypter, opts ...MiddlewareOption) event.Publ
 					attachOpts = append(attachOpts, func(c *attachConfig) { c.algorithm = alg })
 				}
 
-				if cfg.keyID != "" {
+				if !cfg.keyID.IsZero() {
 					attachOpts = append(attachOpts, WithKeyID(cfg.keyID))
 				}
 
