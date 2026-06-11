@@ -31,7 +31,7 @@ func TestSignAndEncryptFullFlow(t *testing.T) {
 	xchacha, _ := encryption.NewXChaCha20Poly1305(encryptKey)
 
 	_ = bus.UsePublish(signing.SignMiddleware(hmacSigner))
-	_ = bus.UsePublish(encryption.EncryptMiddleware(xchacha, encryption.WithMiddlewareKeyID("key-v1")))
+	_ = bus.UsePublish(encryption.EncryptMiddleware(xchacha, encryption.WithMiddlewareKeyID(encryption.KeyID("key-v1"))))
 
 	_ = bus.Use(encryption.DecryptMiddleware(xchacha))
 	_ = bus.Use(signing.VerifyMiddleware(hmacSigner))
@@ -150,7 +150,7 @@ func TestEncryptMiddleware_DetectsAlgorithm_Integration(t *testing.T) {
 
 	aes, _ := encryption.NewAES256GCM(key)
 
-	_ = bus.UsePublish(encryption.EncryptMiddleware(aes, encryption.WithMiddlewareKeyID("aes-key-1")))
+	_ = bus.UsePublish(encryption.EncryptMiddleware(aes, encryption.WithMiddlewareKeyID(encryption.KeyID("aes-key-1"))))
 
 	var intercepted []event.Event
 

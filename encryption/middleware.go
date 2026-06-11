@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/signing/v2"
 )
 
 type middlewareConfig struct {
@@ -17,9 +16,25 @@ func WithMiddlewareKeyID(id KeyID) MiddlewareOption {
 	return func(c *middlewareConfig) { c.keyID = id }
 }
 
+func rejectingPublishMiddleware(code, msg string) event.PublishMiddleware {
+	return func(_ event.Publisher) event.Publisher {
+		return event.PublisherFunc(func(_ context.Context, _ ...event.Event) error {
+			return event.NewRejection(code, msg)
+		})
+	}
+}
+
+func rejectingHandlerMiddleware(code, msg string) event.Middleware {
+	return func(_ event.Handler) event.Handler {
+		return func(_ context.Context, _ event.Event) error {
+			return event.NewRejection(code, msg)
+		}
+	}
+}
+
 func EncryptMiddleware(encrypter Encrypter, opts ...MiddlewareOption) event.PublishMiddleware {
 	if encrypter == nil {
-		return signing.RejectingPublishMiddleware(
+		return rejectingPublishMiddleware(
 			"encryption.nil_encrypter",
 			"EncryptMiddleware called with nil encrypter",
 		)
@@ -81,7 +96,7 @@ func EncryptMiddleware(encrypter Encrypter, opts ...MiddlewareOption) event.Publ
 
 func DecryptMiddleware(decrypter Decrypter) event.Middleware {
 	if decrypter == nil {
-		return signing.RejectingHandlerMiddleware(
+		return rejectingHandlerMiddleware(
 			"encryption.nil_decrypter",
 			"DecryptMiddleware called with nil decrypter",
 		)
@@ -133,11 +148,7 @@ func DecryptMiddleware(decrypter Decrypter) event.Middleware {
 }
 
 func detectAlgorithm(encrypter Encrypter) Algorithm {
-	type algorithmer interface {
-		Algorithm() Algorithm
-	}
-
-	if a, ok := encrypter.(algorithmer); ok {
+	if a, ok := encrypter.(Algorithmer); ok {
 		return a.Algorithm()
 	}
 

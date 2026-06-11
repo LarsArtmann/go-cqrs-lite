@@ -53,9 +53,12 @@ enc, err := encryption.NewAES256GCM(key) // key must be 32 bytes
 
 ```go
 enc, _ := encryption.NewXChaCha20Poly1305(key)
-bus.UsePublish(encryption.EncryptMiddleware(enc))
+
+// With algorithm identification + key ID for key rotation:
+bus.UsePublish(encryption.EncryptMiddleware(enc, encryption.WithMiddlewareKeyID("key-v2")))
 
 // Every published event's payload is automatically encrypted
+// Algorithm ("xchacha20-poly1305") and key ID ("key-v2") are stored in event metadata
 ```
 
 ### Auto-Decrypt on Handle
@@ -99,8 +102,37 @@ bus.Use(signing.VerifyMiddleware(signer))
 - **Composable, not combinable**: codec/ stays pure (Layer 0, zero deps). Encryption wraps any codec via `NewCodec`
 - **Random nonce per encryption**: Prepended to ciphertext
 - **Ciphertext in metadata**: Base64-encoded ciphertext stored in event custom metadata (`event.encrypted`)
+- **Algorithm identification**: EncryptMiddleware auto-detects algorithm and stores it in `event.encryption.algorithm` metadata
+- **Key rotation support**: Optional key ID stored in `event.encryption.key-id` metadata for multi-key scenarios
 - **Constant-time comparison**: `Ciphertext.Equal` uses `crypto/subtle.ConstantTimeCompare`
 - **Composable middleware**: EncryptMiddleware and DecryptMiddleware integrate with the event bus
+
+## Algorithm Identification
+
+The middleware automatically detects which algorithm produced a given ciphertext:
+
+```go
+alg, err := encryption.ExtractAlgorithm(evt)
+// alg == encryption.AES256GCM or encryption.XChaCha20Poly1305
+```
+
+Both implementations report their algorithm via an `Algorithm()` method. The middleware stores it in event metadata so consumers can identify which algorithm was used without trying both.
+
+## Key Rotation
+
+For multi-key scenarios (e.g., rotating encryption keys), use `WithMiddlewareKeyID`:
+
+```go
+// Publisher: encrypt with key-v2
+bus.UsePublish(encryption.EncryptMiddleware(encV2, encryption.WithMiddlewareKeyID("key-v2")))
+
+// Consumer: select decrypter based on key ID from event metadata
+keyID, _ := encryption.ExtractKeyID(evt)
+decrypter := keyLookup[keyID] // consumer provides this map
+plaintext, _ := decrypter.Decrypt(ct)
+```
+
+The key ID is stored alongside the ciphertext in event metadata. DecryptMiddleware removes all encryption metadata (ciphertext, algorithm, key ID) after decryption.
 
 ## Performance
 
