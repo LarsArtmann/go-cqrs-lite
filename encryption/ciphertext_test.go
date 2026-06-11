@@ -52,15 +52,15 @@ func TestCiphertext_JSONRoundTrip(t *testing.T) {
 func TestCiphertext_Equal(t *testing.T) {
 	t.Parallel()
 
-	a := encryption.Ciphertext([]byte{1, 2, 3})
-	b := encryption.Ciphertext([]byte{1, 2, 3})
-	c := encryption.Ciphertext([]byte{4, 5, 6})
+	firstCT := encryption.Ciphertext([]byte{1, 2, 3})
+	secondCT := encryption.Ciphertext([]byte{1, 2, 3})
+	thirdCT := encryption.Ciphertext([]byte{4, 5, 6})
 
-	if !a.Equal(b) {
+	if !firstCT.Equal(secondCT) {
 		t.Error("equal ciphertexts should be equal")
 	}
 
-	if a.Equal(c) {
+	if firstCT.Equal(thirdCT) {
 		t.Error("different ciphertexts should not be equal")
 	}
 }

@@ -111,41 +111,43 @@ func FuzzAggregateStatus_MarshalOnly(f *testing.F) {
 	f.Add("id-3", "Y", int64(0), uint(0), int(-1))
 	f.Add("id-4", "Z", int64(0), uint(0), int(99))
 
-	f.Fuzz(func(t *testing.T, aggID, aggType string, version int64, eventCount uint, statusInt int) {
-		if version < 0 {
-			version = 0
-		}
-
-		idVal, err := id.ParseAggregateID(aggID)
-		if err != nil {
-			return
-		}
-
-		status := event.TombstoneStatus(statusInt)
-
-		original := listing.AggregateStatus{
-			Ref: listing.AggregateListing{
-				ID:          idVal,
-				Type:        event.AggregateType(aggType),
-				Version:     event.Version(version),
-				EventCount:  eventCount,
-				LastEventAt: time.Unix(0, 0).UTC(),
-			},
-			Status: status,
-		}
-
-		// Marshal must never panic, regardless of status int value.
-		data, err := json.Marshal(original)
-		if err != nil {
-			t.Fatalf("Marshal: %v", err)
-		}
-
-		// The marshaled status is a string ("active", "tombstoned", "undetermined", or "TombstoneStatus(N)").
-		if statusInt >= 0 && statusInt <= 2 {
-			expected := []string{`"active"`, `"tombstoned"`, `"undetermined"`}[statusInt]
-			if !strings.Contains(string(data), expected) {
-				t.Errorf("Marshal: expected to contain %s, got %s", expected, data)
+	f.Fuzz(
+		func(t *testing.T, aggID, aggType string, version int64, eventCount uint, statusInt int) {
+			if version < 0 {
+				version = 0
 			}
-		}
-	})
+
+			idVal, err := id.ParseAggregateID(aggID)
+			if err != nil {
+				return
+			}
+
+			status := event.TombstoneStatus(statusInt)
+
+			original := listing.AggregateStatus{
+				Ref: listing.AggregateListing{
+					ID:          idVal,
+					Type:        event.AggregateType(aggType),
+					Version:     event.Version(version),
+					EventCount:  eventCount,
+					LastEventAt: time.Unix(0, 0).UTC(),
+				},
+				Status: status,
+			}
+
+			// Marshal must never panic, regardless of status int value.
+			data, err := json.Marshal(original)
+			if err != nil {
+				t.Fatalf("Marshal: %v", err)
+			}
+
+			// The marshaled status is a string ("active", "tombstoned", "undetermined", or "TombstoneStatus(N)").
+			if statusInt >= 0 && statusInt <= 2 {
+				expected := []string{`"active"`, `"tombstoned"`, `"undetermined"`}[statusInt]
+				if !strings.Contains(string(data), expected) {
+					t.Errorf("Marshal: expected to contain %s, got %s", expected, data)
+				}
+			}
+		},
+	)
 }

@@ -50,5 +50,5 @@ func (c *encryptingCodec) Decode(data []byte, v any) error {
 		return fmt.Errorf("encryption codec: decrypt: %w", err)
 	}
 
-	return c.inner.Decode(plaintext, v)
+	return c.inner.Decode(plaintext, v) //nolint:wrapcheck
 }
