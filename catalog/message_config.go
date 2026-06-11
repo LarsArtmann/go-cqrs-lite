@@ -187,7 +187,14 @@ func newMessageBuilder[T any](
 }
 
 func camelCaseToHuman(s string) string {
-	knownSuffixes := []string{"Command", "Cmd", "Event", "Evt", "Query", "Qry"} //nolint:goconst // intentional suffix list
+	knownSuffixes := []string{ //nolint:goconst // intentional suffix list
+		"Command",
+		"Cmd",
+		"Event",
+		"Evt",
+		"Query",
+		"Qry",
+	}
 
 	for _, suffix := range knownSuffixes {
 		if stripped, ok := strings.CutSuffix(s, suffix); ok && stripped != "" {
