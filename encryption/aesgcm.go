@@ -50,7 +50,7 @@ func (e *aes256gcm) Encrypt(plaintext []byte) (Ciphertext, error) {
 	}
 
 	nonce := make([]byte, aesGCMNonceSize)
-	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+	if _, err := io.ReadFull(rand.Reader, nonce); err != nil { //nolint:noinlineerr
 		return nil, event.WrapInfrastructure(err, "encryption.nonce_gen", "generate nonce")
 	}
 
