@@ -189,15 +189,16 @@ func TestStartSaveSpan(t *testing.T) {
 
 func TestCommitTx(t *testing.T) {
 	db := openSQLite(t)
+	ctx := context.Background()
 
-	_, _ = db.Exec("CREATE TABLE test (id INTEGER PRIMARY KEY)")
+	_, _ = db.ExecContext(ctx, "CREATE TABLE test (id INTEGER PRIMARY KEY)")
 
-	tx, err := db.Begin()
+	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
-		t.Fatalf("Begin: %v", err)
+		t.Fatalf("BeginTx: %v", err)
 	}
 
-	_, _ = tx.Exec("INSERT INTO test (id) VALUES (1)")
+	_, _ = tx.ExecContext(ctx, "INSERT INTO test (id) VALUES (1)")
 
 	if err := sqlpkg.CommitTx(tx); err != nil {
 		t.Fatalf("CommitTx: %v", err)
@@ -206,10 +207,11 @@ func TestCommitTx(t *testing.T) {
 
 func TestScanSlice_Empty(t *testing.T) {
 	db := openSQLite(t)
+	ctx := context.Background()
 
-	_, _ = db.Exec("CREATE TABLE test (val TEXT)")
+	_, _ = db.ExecContext(ctx, "CREATE TABLE test (val TEXT)")
 
-	rows, err := db.Query("SELECT val FROM test")
+	rows, err := db.QueryContext(ctx, "SELECT val FROM test")
 	if err != nil {
 		t.Fatalf("Query: %v", err)
 	}
@@ -230,12 +232,13 @@ func TestScanSlice_Empty(t *testing.T) {
 
 func TestScanSlice_WithData(t *testing.T) {
 	db := openSQLite(t)
+	ctx := context.Background()
 
-	_, _ = db.Exec("CREATE TABLE test (val TEXT)")
-	_, _ = db.Exec("INSERT INTO test (val) VALUES ('a')")
-	_, _ = db.Exec("INSERT INTO test (val) VALUES ('b')")
+	_, _ = db.ExecContext(ctx, "CREATE TABLE test (val TEXT)")
+	_, _ = db.ExecContext(ctx, "INSERT INTO test (val) VALUES ('a')")
+	_, _ = db.ExecContext(ctx, "INSERT INTO test (val) VALUES ('b')")
 
-	rows, err := db.Query("SELECT val FROM test ORDER BY val")
+	rows, err := db.QueryContext(ctx, "SELECT val FROM test ORDER BY val")
 	if err != nil {
 		t.Fatalf("Query: %v", err)
 	}
