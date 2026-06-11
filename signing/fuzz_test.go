@@ -11,17 +11,21 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/signing/v2"
 )
 
-// fuzzEvent builds an event with the given random fields. The fuzz driver
-// controls type/aggregate/payload/occurred-at/version/etc. to exercise every
-// possible combination without ever panicking.
+// fuzzEvent builds an event with the given fields. Returns (evt, true) on
+// success, (nil, false) if the parameters violate event.NewEvent validation
+// (e.g., empty event type). Callers must skip the iteration in the false case.
 func fuzzEvent(
 	t *testing.T,
 	eventType, aggType string,
 	version int,
 	schemaVersion int,
 	payload []byte,
-) event.Event {
+) (event.Event, bool) {
 	t.Helper()
+
+	if eventType == "" || aggType == "" {
+		return nil, false
+	}
 
 	evt, err := event.NewEvent(
 		event.Type(eventType),
@@ -32,10 +36,10 @@ func fuzzEvent(
 		event.WithSchemaVersion(event.SchemaVersion(schemaVersion)),
 	)
 	if err != nil {
-		t.Fatalf("fuzzEvent: %v", err)
+		return nil, false
 	}
 
-	return evt
+	return evt, true
 }
 
 // FuzzHMAC_SignVerifyRoundtrip signs random events with HMAC and verifies
@@ -56,7 +60,6 @@ func FuzzHMAC_SignVerifyRoundtrip(f *testing.F) {
 		version, schema   int
 	}{
 		{"user.created", "User", `{"name":"a"}`, 1, 1},
-		{"", "", "", 0, 0},
 		{"x", "Y", strings.Repeat("z", 4096), 9999, 9999},
 		{"a.b.c", "A_B", `{"nested":{"x":1}}`, 1, 1},
 	}
@@ -71,7 +74,10 @@ func FuzzHMAC_SignVerifyRoundtrip(f *testing.F) {
 				return
 			}
 
-			evt := fuzzEvent(t, typ, agg, version, schema, []byte(payload))
+			evt, ok := fuzzEvent(t, typ, agg, version, schema, []byte(payload))
+			if !ok {
+				return
+			}
 
 			sig, err := signer.Sign(evt)
 			if err != nil {
@@ -90,8 +96,8 @@ func FuzzHMAC_SignVerifyRoundtrip(f *testing.F) {
 }
 
 // FuzzHMAC_TamperReject ensures HMAC verification rejects when ANY part of
-// the event is modified (payload, type, aggregate, version, occurred-at).
-// Uses two independently-constructed events that differ in exactly one field.
+// the event is modified (payload byte is flipped). Critical security
+// invariant: HMAC must NEVER verify a tampered event.
 func FuzzHMAC_TamperReject(f *testing.F) {
 	key := make([]byte, signing.MinimumKeyLength)
 	if _, err := rand.Read(key); err != nil {
@@ -117,21 +123,27 @@ func FuzzHMAC_TamperReject(f *testing.F) {
 
 	f.Fuzz(
 		func(t *testing.T, typ, agg string, version int, payload string) {
-			original := fuzzEvent(t, typ, agg, version, 1, []byte(payload))
+			original, ok := fuzzEvent(t, typ, agg, version, 1, []byte(payload))
+			if !ok {
+				return
+			}
 
 			sig, err := signer.Sign(original)
 			if err != nil {
 				t.Fatalf("Sign: %v", err)
 			}
 
-			// Tamper: flip one byte of the payload
-			flippedPayload := []byte(payload)
-			if len(flippedPayload) == 0 {
+			if len(payload) == 0 {
 				return
 			}
 
-			flippedPayload[0] ^= 0xff
-			tampered := fuzzEvent(t, typ, agg, version, 1, flippedPayload)
+			flipped := []byte(payload)
+			flipped[0] ^= 0xff
+
+			tampered, ok := fuzzEvent(t, typ, agg, version, 1, flipped)
+			if !ok {
+				return
+			}
 
 			if err := signer.Verify(tampered, sig); err == nil {
 				t.Fatal("HMAC verified a tampered event — critical security bug")
@@ -156,15 +168,17 @@ func FuzzHMAC_NilAndZeroGuards(f *testing.F) {
 	f.Add([]byte{})
 
 	f.Fuzz(func(t *testing.T, payload []byte) {
-		// Zero signature must be rejected on verify path
 		var zeroSig signing.Signature
-		evt := fuzzEvent(t, "t", "A", 1, 1, payload)
+
+		evt, ok := fuzzEvent(t, "t", "A", 1, 1, payload)
+		if !ok {
+			return
+		}
 
 		if err := signer.Verify(evt, zeroSig); err == nil {
 			t.Error("zero signature accepted on Verify")
 		}
 
-		// Nil event rejected
 		if _, err := signer.Sign(nil); err == nil {
 			t.Error("Sign accepted nil event")
 		}
@@ -197,7 +211,6 @@ func FuzzEd25519_SignVerifyRoundtrip(f *testing.F) {
 		version, schema   int
 	}{
 		{"u.created", "U", `{}`, 1, 1},
-		{"", "", "", 0, 0},
 		{"x.y", "A", strings.Repeat("p", 1024), 100, 1},
 	}
 
@@ -211,7 +224,10 @@ func FuzzEd25519_SignVerifyRoundtrip(f *testing.F) {
 				return
 			}
 
-			evt := fuzzEvent(t, typ, agg, version, schema, []byte(payload))
+			evt, ok := fuzzEvent(t, typ, agg, version, schema, []byte(payload))
+			if !ok {
+				return
+			}
 
 			sig, err := signer.Sign(evt)
 			if err != nil {
@@ -249,7 +265,10 @@ func FuzzEd25519_TamperReject(f *testing.F) {
 	f.Add("u.created", "U", 1, `{"a":1}`)
 
 	f.Fuzz(func(t *testing.T, typ, agg string, version int, payload string) {
-		original := fuzzEvent(t, typ, agg, version, 1, []byte(payload))
+		original, ok := fuzzEvent(t, typ, agg, version, 1, []byte(payload))
+		if !ok {
+			return
+		}
 
 		sig, err := signer.Sign(original)
 		if err != nil {
@@ -262,7 +281,11 @@ func FuzzEd25519_TamperReject(f *testing.F) {
 
 		flipped := []byte(payload)
 		flipped[0] ^= 0xff
-		tampered := fuzzEvent(t, typ, agg, version, 1, flipped)
+
+		tampered, ok := fuzzEvent(t, typ, agg, version, 1, flipped)
+		if !ok {
+			return
+		}
 
 		if err := verifier.Verify(tampered, sig); err == nil {
 			t.Fatal("Ed25519 verified a tampered event — critical security bug")
@@ -284,7 +307,6 @@ func FuzzSignature_UnmarshalJSON(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, input string) {
 		var sig signing.Signature
-		// Must not panic on any input
 		_ = sig.UnmarshalJSON([]byte(input))
 	})
 }
@@ -293,21 +315,23 @@ func FuzzSignature_UnmarshalJSON(f *testing.F) {
 // Custom metadata. Every event that can be built must extract safely.
 func FuzzExtractSignature_FromRandomEvent(f *testing.F) {
 	f.Add("user.created", "User", `{"k":"v"}`)
-	f.Add("", "", "")
 	f.Add("a", "b", `{"with":"data","num":42}`)
 
 	f.Fuzz(func(t *testing.T, typ, agg, payload string) {
-		evt := fuzzEvent(t, typ, agg, 1, 1, []byte(payload))
+		evt, ok := fuzzEvent(t, typ, agg, 1, 1, []byte(payload))
+		if !ok {
+			return
+		}
 
 		// No signature attached yet — must return ErrNilSignature
-		_, err := signing.ExtractSignature(evt)
-		if err == nil {
+		if _, err := signing.ExtractSignature(evt); err == nil {
 			t.Error("expected error extracting signature from unsigned event")
 		}
 
-		// Sign and re-attach, then re-extract
 		key := make([]byte, signing.MinimumKeyLength)
-		_, _ = rand.Read(key)
+		if _, err := rand.Read(key); err != nil {
+			t.Fatalf("rand: %v", err)
+		}
 
 		signer, err := signing.NewHMAC(key)
 		if err != nil {
@@ -333,7 +357,6 @@ func FuzzExtractSignature_FromRandomEvent(f *testing.F) {
 			t.Error("extracted signature does not match attached signature")
 		}
 
-		// nil event must be rejected
 		if _, err := signing.ExtractSignature(nil); err == nil {
 			t.Error("ExtractSignature accepted nil event")
 		}
