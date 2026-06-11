@@ -73,7 +73,7 @@ func TestSharedInsertEvents_Success(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Begin: %v", err)
 	}
-	t.Cleanup(func() { _ = tx.Rollback() })
+	defer tx.Rollback()
 
 	events := []event.Event{makeTestEvent(t, 1), makeTestEvent(t, 2)}
 
@@ -99,6 +99,33 @@ func TestSharedInsertEvents_Success(t *testing.T) {
 	}
 }
 
+func TestSharedInsertEvents_ErrorPath(t *testing.T) {
+	t.Parallel()
+
+	db := setupEventsTable(t)
+	ref := event.NewAggregateRef("User", id.NewAggregateID())
+
+	tx, err := db.Begin()
+	if err != nil {
+		t.Fatalf("Begin: %v", err)
+	}
+	defer tx.Rollback()
+
+	// Close the transaction so the insert fails
+	if err := tx.Rollback(); err != nil {
+		t.Fatalf("rollback: %v", err)
+	}
+
+	err = sqlpkg.SharedInsertEvents(
+		context.Background(), tx, ref, []event.Event{makeTestEvent(t, 1)},
+		sqliteInsertQuery(),
+		func(t time.Time) any { return t.Format(time.RFC3339Nano) },
+	)
+	if err == nil {
+		t.Fatal("expected error for closed transaction")
+	}
+}
+
 func TestSharedCheckVersion_Match(t *testing.T) {
 	t.Parallel()
 
@@ -110,6 +137,7 @@ func TestSharedCheckVersion_Match(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Begin: %v", err)
 	}
+	defer tx.Rollback()
 
 	_ = sqlpkg.SharedInsertEvents(
 		context.Background(), tx, ref, []event.Event{evt},
@@ -127,7 +155,36 @@ func TestSharedCheckVersion_Match(t *testing.T) {
 		t.Fatalf("SharedCheckVersion: %v", err)
 	}
 
-	_ = tx.Commit()
+	if err := tx.Commit(); err != nil {
+		t.Fatalf("Commit: %v", err)
+	}
+}
+
+func TestSharedCheckVersion_DBError(t *testing.T) {
+	t.Parallel()
+
+	db := setupEventsTable(t)
+	ref := event.NewAggregateRef("User", id.NewAggregateID())
+
+	tx, err := db.Begin()
+	if err != nil {
+		t.Fatalf("Begin: %v", err)
+	}
+	defer tx.Rollback()
+
+	if err := tx.Rollback(); err != nil {
+		t.Fatalf("rollback: %v", err)
+	}
+
+	query := fmt.Sprintf(
+		"SELECT COALESCE(MAX(version), 0) FROM %s WHERE aggregate_type = ? AND aggregate_id = ?",
+		sqlpkg.TableEvents,
+	)
+
+	err = sqlpkg.SharedCheckVersion(context.Background(), tx, ref, event.Version(0), query)
+	if err == nil {
+		t.Fatal("expected error for closed transaction")
+	}
 }
 
 func TestSharedCheckVersion_Mismatch(t *testing.T) {
@@ -140,6 +197,7 @@ func TestSharedCheckVersion_Mismatch(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Begin: %v", err)
 	}
+	defer tx.Rollback()
 
 	// No events inserted, so MAX(version) = 0
 	query := fmt.Sprintf(
@@ -155,8 +213,51 @@ func TestSharedCheckVersion_Mismatch(t *testing.T) {
 	if !errors.Is(err, sqlpkg.ErrConcurrencyConflict) {
 		t.Errorf("err = %v, want ErrConcurrencyConflict", err)
 	}
+}
 
-	_ = tx.Rollback()
+func TestSharedCheckpointLoad_DBError(t *testing.T) {
+	t.Parallel()
+
+	db := setupCheckpointsTable(t)
+	_ = db.Close()
+
+	_, err := sqlpkg.SharedCheckpointLoad(
+		context.Background(), db, "my-projection", sqlpkg.SQLiteDialect{},
+	)
+	if err == nil {
+		t.Fatal("expected error for closed database")
+	}
+}
+
+func TestSharedCheckpointSave_DBError(t *testing.T) {
+	t.Parallel()
+
+	db := setupCheckpointsTable(t)
+	_ = db.Close()
+
+	err := sqlpkg.SharedCheckpointSave(
+		context.Background(), db, "my-projection",
+		event.Checkpoint{EventID: id.NewEventID(), ProcessedAt: time.Now()},
+		sqlpkg.SQLiteDialect{},
+	)
+	if err == nil {
+		t.Fatal("expected error for closed database")
+	}
+}
+
+func TestDeleteByAggregate_ErrorPath(t *testing.T) {
+	t.Parallel()
+
+	db := setupEventsTable(t)
+	_ = db.Close()
+
+	ref := event.NewAggregateRef("User", id.NewAggregateID())
+	ctx := context.Background()
+
+	err := sqlpkg.DeleteByAggregate(db, ctx, ref, sqlpkg.TableEvents, "?", "?", "events")
+	if err == nil {
+		t.Fatal("expected error for closed database")
+	}
 }
 
 func TestSharedCheckpointLoad_NoRows(t *testing.T) {
