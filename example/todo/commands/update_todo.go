@@ -54,8 +54,13 @@ func (h *UpdateTodoHandler) Handle(ctx context.Context, cmd command.Command) err
 	}
 
 	return h.execute(
-		ctx, typed.AggregateID(),
-		aggregate.DecideUpdate(typed.AggregateID(), domain.Title(typed.Title), domain.Description(typed.Description)),
+		ctx,
+		typed.AggregateID(),
+		aggregate.DecideUpdate(
+			typed.AggregateID(),
+			domain.Title(typed.Title),
+			domain.Description(typed.Description),
+		),
 	)
 }
 

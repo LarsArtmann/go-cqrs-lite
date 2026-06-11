@@ -110,11 +110,19 @@ func executeCounterCommand(
 	Expect(err).ToNot(HaveOccurred())
 }
 
-func createCounter(ctx context.Context, repo *decider.Repository[bddCounter], aggID id.AggregateID) {
+func createCounter(
+	ctx context.Context,
+	repo *decider.Repository[bddCounter],
+	aggID id.AggregateID,
+) {
 	executeCounterCommand(ctx, repo, aggID, "CounterCreated")
 }
 
-func incrementCounter(ctx context.Context, repo *decider.Repository[bddCounter], aggID id.AggregateID) {
+func incrementCounter(
+	ctx context.Context,
+	repo *decider.Repository[bddCounter],
+	aggID id.AggregateID,
+) {
 	executeCounterCommand(ctx, repo, aggID, "CounterIncremented")
 }
 

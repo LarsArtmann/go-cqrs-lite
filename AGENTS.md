@@ -61,7 +61,7 @@ go-cqrs-lite/
 ├── listing/             # AggregateListing, AggregateStatus, tombstone detection, StatusMiddleware, InMemoryAggregateReader
 ├── watermill/           # Watermill protocol adapter (publisher/subscriber)
 ├── pebble/              # Embedded key-value event store (PebbleDB)
-├── codec/               # Payload encoding: JSON, Raw passthrough
+├── codec/               # Payload encoding: JSON, CBOR (deterministic), Raw passthrough
 ├── turso/               # Turso database connector (embedded LibSQL sync)
 ├── cmd/cqrs-gen/        # Code generator: typed handler registration from Go structs
 ├── cmd/api-stability/   # API surface checker: compares exported symbols against golden file
@@ -190,7 +190,7 @@ marked, _ := event.MarkTombstone(evt)   // sets tombstone metadata
 
 | Category   | Packages                                                                                                                                                                                                              |
 | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Production | oklog/ulid/v2, go-branded-id, go-error-family, samber/ro (event, command, query); go-faster/yaml (catalog); go.opentelemetry.io/otel (otel, event, storage, middleware, projection); golang.org/x/crypto (encryption) |
+| Production | oklog/ulid/v2, go-branded-id, go-error-family, samber/ro (event, command, query); go-faster/yaml (catalog); go.opentelemetry.io/otel (otel, event, storage, middleware, projection); golang.org/x/crypto (encryption); fxamacker/cbor/v2 (codec) |
 | Test-only  | onsi/ginkgo/v2, onsi/gomega, pgregory.net/rapid (event, encryption)                                                                                                                                                   |
 
 **Coverage**: 84–100% across 32 packages. See `docs/status/` for latest.

@@ -30,7 +30,11 @@ func NewXChaCha20Poly1305(key []byte) (*xchacha20, error) {
 
 	aead, err := chacha20poly1305.NewX(key)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "encryption.xchacha20_init", "initialize XChaCha20-Poly1305")
+		return nil, event.WrapInfrastructure(
+			err,
+			"encryption.xchacha20_init",
+			"initialize XChaCha20-Poly1305",
+		)
 	}
 
 	return &xchacha20{aead: aead}, nil
@@ -45,7 +49,11 @@ func (e *xchacha20) Encrypt(plaintext []byte) (Ciphertext, error) {
 
 	nonce := make([]byte, xchacha20NonceSize)
 	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-		return nil, event.WrapInfrastructure(err, "encryption.xchacha20_nonce_gen", "generate nonce")
+		return nil, event.WrapInfrastructure(
+			err,
+			"encryption.xchacha20_nonce_gen",
+			"generate nonce",
+		)
 	}
 
 	sealed := e.aead.Seal(nil, nonce, plaintext, nil)
@@ -76,7 +84,11 @@ func (e *xchacha20) Decrypt(ciphertext Ciphertext) ([]byte, error) {
 
 	plaintext, err := e.aead.Open(nil, nonce, data, nil)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "encryption.xchacha20_decrypt", "decrypt ciphertext")
+		return nil, event.WrapInfrastructure(
+			err,
+			"encryption.xchacha20_decrypt",
+			"decrypt ciphertext",
+		)
 	}
 
 	return plaintext, nil

@@ -1,10 +1,11 @@
 // Package codec provides payload encoding and decoding for event sourcing.
 //
 // The Codec interface abstracts serialization so that stores, snapshots, and
-// event construction can work with any encoding format. Two implementations
+// event construction can work with any encoding format. Three implementations
 // are provided:
 //
 //   - JSONCodec: standard encoding/json marshal/unmarshal
+//   - CBORCodec: fxamacker/cbor with canonical (deterministic) map ordering
 //   - RawCodec: passthrough for pre-encoded []byte payloads
 //
 // # Usage

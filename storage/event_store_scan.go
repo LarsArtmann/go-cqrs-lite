@@ -63,8 +63,18 @@ func (s *SQLEventStore) scanEvent(rows *sql.Rows) (event.Event, error) {
 		return nil, event.WrapCorruption(err, "storage.parse_aggregate_id",
 			fmt.Sprintf("parse aggregate ID %q for %s v%d", aggIDStr, aggType, version))
 	}
-	return sqlpkg.ReconstructEvent(parsedEventID, event.Type(eventType), event.AggregateType(aggType), parsedAggID,
-		version, schemaVersion, payload, metadataJSON, occurredAt, codec.Encoding(encoding))
+	return sqlpkg.ReconstructEvent(
+		parsedEventID,
+		event.Type(eventType),
+		event.AggregateType(aggType),
+		parsedAggID,
+		version,
+		schemaVersion,
+		payload,
+		metadataJSON,
+		occurredAt,
+		codec.Encoding(encoding),
+	)
 }
 
 func (s *SQLEventStore) insertEvents(

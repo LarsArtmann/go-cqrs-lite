@@ -106,7 +106,12 @@ func (a *EventStore) ReadFrom(
 
 	err = checkIteratorError(iter)
 	if err != nil {
-		return nil, fmt.Errorf("iterator error in journal (limit=%d, after=%s): %w", limit, afterEventID, err)
+		return nil, fmt.Errorf(
+			"iterator error in journal (limit=%d, after=%s): %w",
+			limit,
+			afterEventID,
+			err,
+		)
 	}
 
 	return events, nil

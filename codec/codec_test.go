@@ -142,6 +142,7 @@ func TestRawCodec_Decode_IsCopy(t *testing.T) {
 func TestInterfaceCompliance(t *testing.T) {
 	t.Parallel()
 	codecs := map[string]Codec{
+		"CBOR": CBORCodec{},
 		"JSON": JSONCodec{},
 		"Raw":  RawCodec{},
 	}
@@ -183,6 +184,116 @@ func TestJSONCodec_Encode_Nil(t *testing.T) {
 
 	if string(data) != "null" {
 		t.Errorf("Encode(nil) = %q, want %q", string(data), "null")
+	}
+}
+
+func TestCBORCodec_Encoding(t *testing.T) {
+	t.Parallel()
+	c := CBORCodec{}
+	if got := c.Encoding(); got != EncodingCBOR {
+		t.Errorf("Encoding() = %q, want %q", got, EncodingCBOR)
+	}
+}
+
+func TestCBORCodec_RoundTrip(t *testing.T) {
+	t.Parallel()
+	c := CBORCodec{}
+
+	type payload struct {
+		Name string `json:"name"`
+		Age  int    `json:"age"`
+	}
+
+	original := payload{Name: "Alice", Age: 30}
+
+	data, err := c.Encode(original)
+	if err != nil {
+		t.Fatalf("Encode() error: %v", err)
+	}
+
+	var decoded payload
+	err = c.Decode(data, &decoded)
+	if err != nil {
+		t.Fatalf("Decode() error: %v", err)
+	}
+
+	if decoded != original {
+		t.Errorf("round-trip mismatch: got %+v, want %+v", decoded, original)
+	}
+}
+
+func TestCBORCodec_Encode_Map(t *testing.T) {
+	t.Parallel()
+	c := CBORCodec{}
+
+	m := map[string]any{"key": "value", "num": uint64(42)}
+
+	data, err := c.Encode(m)
+	if err != nil {
+		t.Fatalf("Encode() error: %v", err)
+	}
+
+	var result map[string]any
+	err = c.Decode(data, &result)
+	if err != nil {
+		t.Fatalf("Decode() error: %v", err)
+	}
+
+	if result["key"] != "value" {
+		t.Errorf("got key=%v, want value", result["key"])
+	}
+}
+
+func TestCBORCodec_Decode_InvalidCBOR(t *testing.T) {
+	t.Parallel()
+	c := CBORCodec{}
+
+	var v any
+	err := c.Decode([]byte("not cbor"), &v)
+	if err == nil {
+		t.Fatal("expected error for invalid CBOR")
+	}
+}
+
+func TestCBORCodec_Encode_Nil(t *testing.T) {
+	t.Parallel()
+	c := CBORCodec{}
+
+	data, err := c.Encode(nil)
+	if err != nil {
+		t.Fatalf("Encode(nil) error: %v", err)
+	}
+
+	var v any
+	if err := c.Decode(data, &v); err != nil {
+		t.Fatalf("Decode(nil CBOR) error: %v", err)
+	}
+
+	if v != nil {
+		t.Errorf("Decode(encode(nil)) = %v, want nil", v)
+	}
+}
+
+func TestCBORCodec_Encode_Deterministic(t *testing.T) {
+	t.Parallel()
+	c := CBORCodec{}
+
+	payload := map[string]string{"b": "2", "a": "1", "c": "3"}
+
+	first, err := c.Encode(payload)
+	if err != nil {
+		t.Fatalf("Encode() error: %v", err)
+	}
+
+	for range 10 {
+		got, err := c.Encode(payload)
+		if err != nil {
+			t.Fatalf("Encode() error: %v", err)
+		}
+
+		if string(got) != string(first) {
+			t.Fatalf("CBOR encoding is not deterministic: got %x, want %x", got, first)
+		}
 	}
 }
 

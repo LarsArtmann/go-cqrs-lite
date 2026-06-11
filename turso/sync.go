@@ -24,7 +24,12 @@ type SyncDB struct {
 // Local writes work offline. Call Push to send changes, Pull to receive.
 //
 // The caller is responsible for closing the returned SyncDB.
-func OpenSync(ctx context.Context, dbPath DbPath, remoteURL RemoteURL, authToken AuthToken) (*SyncDB, error) {
+func OpenSync(
+	ctx context.Context,
+	dbPath DbPath,
+	remoteURL RemoteURL,
+	authToken AuthToken,
+) (*SyncDB, error) {
 	if remoteURL != "" && strings.HasPrefix(string(dbPath), ":memory:") {
 		return nil, event.WrapRejection(
 			ErrMemorySync,

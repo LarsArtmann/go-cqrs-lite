@@ -82,7 +82,9 @@ func TestEncryptProducesDifferentCiphertexts(t *testing.T) {
 		ct2, _ := enc.Encrypt(plaintext)
 
 		if ct1.Equal(ct2) {
-			t.Fatal("two encryptions of same plaintext should produce different ciphertexts (random nonce)")
+			t.Fatal(
+				"two encryptions of same plaintext should produce different ciphertexts (random nonce)",
+			)
 		}
 	})
 }

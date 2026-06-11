@@ -40,6 +40,41 @@ func FuzzJSONCodec_Roundtrip(f *testing.F) {
 	})
 }
 
+func FuzzCBORCodec_Roundtrip(f *testing.F) {
+	f.Add(`{"name":"Alice","age":30}`)
+	f.Add(`{}`)
+	f.Add(`null`)
+	f.Add(`[]`)
+	f.Add(`"hello"`)
+	f.Add(`42`)
+	f.Add(`true`)
+
+	f.Fuzz(func(t *testing.T, input string) {
+		if !utf8.ValidString(input) {
+			t.Skip()
+		}
+
+		c := codec.JSONCodec{}
+
+		var decoded any
+		if err := c.Decode([]byte(input), &decoded); err != nil {
+			t.Skip()
+		}
+
+		cborCodec := codec.CBORCodec{}
+
+		encoded, err := cborCodec.Encode(decoded)
+		if err != nil {
+			t.Fatalf("Encode(%v): %v", decoded, err)
+		}
+
+		var redecoded any
+		if err := cborCodec.Decode(encoded, &redecoded); err != nil {
+			t.Fatalf("Decode(re-encoded): %v", err)
+		}
+	})
+}
+
 func FuzzRawCodec_Passthrough(f *testing.F) {
 	f.Add([]byte(`{"raw":true}`))
 	f.Add([]byte{})

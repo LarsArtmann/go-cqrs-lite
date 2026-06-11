@@ -290,7 +290,15 @@ func TestExporter_Export_MultipleServices(t *testing.T) {
 		"1.0.0",
 		"",
 	)
-	cattest.AddEvent(t, reg, catalog.ServiceID("svc-b"), catalog.MessageID("DoneB"), "DoneB", "1.0.0", catalog.Sends)
+	cattest.AddEvent(
+		t,
+		reg,
+		catalog.ServiceID("svc-b"),
+		catalog.MessageID("DoneB"),
+		"DoneB",
+		"1.0.0",
+		catalog.Sends,
+	)
 
 	cat := cattest.Build(t, reg)
 	doc := NewExporter("Multi", "1.0.0").Export(cat)

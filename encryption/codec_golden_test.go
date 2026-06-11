@@ -65,7 +65,9 @@ func TestCodecWrapper_GoldenEmptyPayload(t *testing.T) {
 	}
 
 	if len(encoded) == 0 {
-		t.Fatal("nil payload encodes via JSON codec (produces 'null'), so output should be encrypted")
+		t.Fatal(
+			"nil payload encodes via JSON codec (produces 'null'), so output should be encrypted",
+		)
 	}
 
 	var result map[string]any

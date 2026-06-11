@@ -33,7 +33,11 @@ func (s *MemoryCheckpointStore) Load(
 ) (event.Checkpoint, error) {
 	err := s.CheckClosed(dispatcher.ErrDispatcherClosed)
 	if err != nil {
-		return event.Checkpoint{}, fmt.Errorf("load checkpoint for projection %q: %w", projectionName, err)
+		return event.Checkpoint{}, fmt.Errorf(
+			"load checkpoint for projection %q: %w",
+			projectionName,
+			err,
+		)
 	}
 
 	s.mu.RLock()

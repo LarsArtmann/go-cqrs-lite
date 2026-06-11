@@ -73,6 +73,33 @@ func TestGolden_JSONCodec_Encode(t *testing.T) {
 	})
 }
 
+func TestGolden_CBORCodec_Encode(t *testing.T) {
+	c := codec.CBORCodec{}
+
+	payload := goldenPayload{Email: "alice@example.com", Name: "Alice", Age: 30}
+
+	got, err := c.Encode(payload)
+	if err != nil {
+		t.Fatalf("encode: %v", err)
+	}
+
+	goldenPath := filepath.Join(goldenDir(), "cbor_encode.bin")
+
+	assertCodecGolden(t, goldenPath, got, func(actual, expected []byte) {
+		if len(expected) > 0 && expected[len(expected)-1] == '\n' {
+			expected = expected[:len(expected)-1]
+		}
+
+		if string(actual) != string(expected) {
+			t.Errorf(
+				"CBOR encode mismatch (run with -update to refresh golden files)\n got: %x\nwant: %x",
+				actual,
+				expected,
+			)
+		}
+	})
+}
+
 func TestGolden_RawCodec_Passthrough(t *testing.T) {
 	c := codec.RawCodec{}
 

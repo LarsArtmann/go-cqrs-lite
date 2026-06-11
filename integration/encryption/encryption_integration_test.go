@@ -32,7 +32,10 @@ func TestSignAndEncryptFullFlow(t *testing.T) {
 
 	_ = bus.UsePublish(signing.SignMiddleware(hmacSigner))
 	_ = bus.UsePublish(
-		encryption.EncryptMiddleware(xchacha, encryption.WithMiddlewareKeyID(encryption.KeyID("key-v1"))),
+		encryption.EncryptMiddleware(
+			xchacha,
+			encryption.WithMiddlewareKeyID(encryption.KeyID("key-v1")),
+		),
 	)
 
 	_ = bus.Use(encryption.DecryptMiddleware(xchacha))
@@ -152,7 +155,12 @@ func TestEncryptMiddleware_DetectsAlgorithm_Integration(t *testing.T) {
 
 	aes, _ := encryption.NewAES256GCM(key)
 
-	_ = bus.UsePublish(encryption.EncryptMiddleware(aes, encryption.WithMiddlewareKeyID(encryption.KeyID("aes-key-1"))))
+	_ = bus.UsePublish(
+		encryption.EncryptMiddleware(
+			aes,
+			encryption.WithMiddlewareKeyID(encryption.KeyID("aes-key-1")),
+		),
+	)
 
 	var intercepted []event.Event
 
@@ -164,7 +172,13 @@ func TestEncryptMiddleware_DetectsAlgorithm_Integration(t *testing.T) {
 		t.Fatalf("subscribe: %v", err)
 	}
 
-	evt, _ := event.NewEvent("test.event", id.NewAggregateID(), "Test", 1, []byte(`{"data":"test"}`))
+	evt, _ := event.NewEvent(
+		"test.event",
+		id.NewAggregateID(),
+		"Test",
+		1,
+		[]byte(`{"data":"test"}`),
+	)
 	_ = bus.Publish(ctx, evt)
 
 	time.Sleep(50 * time.Millisecond)

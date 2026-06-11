@@ -5,6 +5,7 @@ type Encoding string
 
 const (
 	EncodingJSON Encoding = "json"
+	EncodingCBOR Encoding = "cbor"
 	EncodingRaw  Encoding = "raw"
 )
 

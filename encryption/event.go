@@ -19,7 +19,11 @@ func WithKeyID(id KeyID) AttachOption {
 	return func(c *attachConfig) { c.keyID = id }
 }
 
-func AttachEncryption(evt event.Event, ciphertext Ciphertext, opts ...AttachOption) (*event.ImmutableEvent, error) {
+func AttachEncryption(
+	evt event.Event,
+	ciphertext Ciphertext,
+	opts ...AttachOption,
+) (*event.ImmutableEvent, error) {
 	if evt == nil {
 		return nil, ErrNilEvent
 	}

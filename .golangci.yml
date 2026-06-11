@@ -151,6 +151,7 @@ linters:
             - github.com/ThreeDotsLabs/watermill
             - github.com/samber/ro
             - github.com/samber/lo
+            - github.com/fxamacker/cbor
             - pgregory.net/rapid
             - go/ast
             - go/parser

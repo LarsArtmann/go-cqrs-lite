@@ -190,9 +190,12 @@ func NewTestCreateOrderFlow(title string) catalog.Flow {
 		Summary: "",
 		Steps: []catalog.FlowStep{
 			{
-				ID:        "1",
-				Title:     catalog.Title(title),
-				Message:   &catalog.FlowStepRef{ID: catalog.MessageID(testCreateOrderMsgID), Version: ""},
+				ID:    "1",
+				Title: catalog.Title(title),
+				Message: &catalog.FlowStepRef{
+					ID:      catalog.MessageID(testCreateOrderMsgID),
+					Version: "",
+				},
 				Summary:   "",
 				Service:   nil,
 				Channel:   nil,
