@@ -57,13 +57,19 @@ func Shutdown(cfg Config, hooks ...Hook) {
 			defer wg.Done()
 			defer func() {
 				if r := recover(); r != nil {
-					errCh <- ErrHookPanicked
+					select {
+					case errCh <- ErrHookPanicked:
+					default:
+					}
 				}
 			}()
 
 			err := h(ctx)
 			if err != nil {
-				errCh <- err
+				select {
+				case errCh <- err:
+				default:
+				}
 			}
 		}(hook)
 	}
