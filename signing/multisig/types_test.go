@@ -12,6 +12,61 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/signing/v2/multisig"
 )
 
+// newDeviceMultiSignerTB accepts testing.TB so fuzzers (which pass *testing.F)
+// can reuse the helper. Existing *testing.T callers use newDeviceMultiSigner.
+func newDeviceMultiSignerTB(tb testing.TB) (*multisig.MultiSigner, ed25519.PublicKey) {
+	tb.Helper()
+
+	pubKey, privKey, err := ed25519.GenerateKey(nil)
+	if err != nil {
+		tb.Fatalf("generate key: %v", err)
+	}
+
+	signer, signerErr := signing.NewEd25519(privKey)
+	if signerErr != nil {
+		tb.Fatalf("create signer: %v", signerErr)
+	}
+
+	verifier, verifierErr := signing.NewEd25519Verifier(pubKey)
+	if verifierErr != nil {
+		tb.Fatalf("create verifier: %v", verifierErr)
+	}
+
+	deviceMulti, err := multisig.NewMultiSigner(
+		multisig.Actor("device"),
+		multisig.AlgorithmEd25519,
+		signer,
+		multisig.WithVerifier(verifier),
+	)
+	if err != nil {
+		tb.Fatalf("create device multi-signer: %v", err)
+	}
+
+	return deviceMulti, pubKey
+}
+
+// newServerMultiSignerTB accepts testing.TB for the same reason.
+func newServerMultiSignerTB(tb testing.TB) *multisig.MultiSigner {
+	tb.Helper()
+
+	key := []byte("server-secret-key-thirty-two-by!")
+	signer, err := signing.NewHMAC(key)
+	if err != nil {
+		tb.Fatalf("create HMAC signer: %v", err)
+	}
+
+	serverMulti, err := multisig.NewMultiSigner(
+		multisig.Actor("server"),
+		multisig.AlgorithmHMACSHA256,
+		signer,
+	)
+	if err != nil {
+		tb.Fatalf("create server multi-signer: %v", err)
+	}
+
+	return serverMulti
+}
+
 func newDeviceMultiSigner(t *testing.T) (*multisig.MultiSigner, ed25519.PublicKey) {
 	t.Helper()
 
