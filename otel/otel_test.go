@@ -247,3 +247,70 @@ func TestNameConstant(t *testing.T) {
 
 	g.Expect(Name).To(Equal("github.com/larsartmann/go-cqrs-lite"))
 }
+
+func TestWithAttributes(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
+	opt := WithAttributes(AttrString("key", "value"))
+	g.Expect(opt).ToNot(BeNil())
+}
+
+func TestWithSpanKind(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
+	opt := WithSpanKind(SpanKindServer)
+	g.Expect(opt).ToNot(BeNil())
+}
+
+func TestAttrString(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
+	kv := AttrString("key", "value")
+	g.Expect(kv.Key).To(Equal(attribute.Key("key")))
+	g.Expect(kv.Value).To(Equal(attribute.StringValue("value")))
+}
+
+func TestAttrInt(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
+	kv := AttrInt("count", 42)
+	g.Expect(kv.Key).To(Equal(attribute.Key("count")))
+	g.Expect(kv.Value).To(Equal(attribute.IntValue(42)))
+}
+
+func TestAttrInt64(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
+	kv := AttrInt64("size", 1024)
+	g.Expect(kv.Key).To(Equal(attribute.Key("size")))
+	g.Expect(kv.Value).To(Equal(attribute.Int64Value(1024)))
+}
+
+func TestMetricWithAttributes(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
+	opt := MetricWithAttributes(AttrString("key", "value"))
+	g.Expect(opt).ToNot(BeNil())
+}
+
+func TestMetricWithDescription(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
+	opt := MetricWithDescription("test description")
+	g.Expect(opt).ToNot(BeNil())
+}
+
+func TestMetricWithUnit(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
+	opt := MetricWithUnit("ms")
+	g.Expect(opt).ToNot(BeNil())
+}
