@@ -12,6 +12,7 @@ use (
 	./encryption
 	./event
 	./example/catalog-server
+	./example/cbor-codec
 	./example/listing
 	./example/projection
 	./example/saga-pattern

@@ -378,7 +378,11 @@ func TestCBORCodec_SmallerThanJSON(t *testing.T) {
 	}
 
 	if len(cborData) >= len(jsonData) {
-		t.Errorf("CBOR (%d bytes) should be smaller than JSON (%d bytes)", len(cborData), len(jsonData))
+		t.Errorf(
+			"CBOR (%d bytes) should be smaller than JSON (%d bytes)",
+			len(cborData),
+			len(jsonData),
+		)
 	}
 }
 
@@ -435,6 +439,33 @@ func TestCBORCodec_RoundTrip_NestedStruct(t *testing.T) {
 	}
 
 	var decoded Person
+	err = c.Decode(data, &decoded)
+	if err != nil {
+		t.Fatalf("Decode() error: %v", err)
+	}
+
+	if decoded != original {
+		t.Errorf("round-trip mismatch: got %+v, want %+v", decoded, original)
+	}
+}
+
+func TestCBORCodec_StructTags(t *testing.T) {
+	t.Parallel()
+	c := CBORCodec{}
+
+	type tagged struct {
+		Name string `json:"name" cbor:"name"`
+		Age  int    `json:"age"  cbor:"age"`
+	}
+
+	original := tagged{Name: "Bob", Age: 25}
+
+	data, err := c.Encode(original)
+	if err != nil {
+		t.Fatalf("Encode() error: %v", err)
+	}
+
+	var decoded tagged
 	err = c.Decode(data, &decoded)
 	if err != nil {
 		t.Fatalf("Decode() error: %v", err)

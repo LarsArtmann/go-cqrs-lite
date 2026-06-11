@@ -21,6 +21,23 @@ var cborEncMode = func() cbor.EncMode {
 	return em
 }()
 
+// cborDecMode provides the default CBOR decoding mode with duplicate map key
+// enforcement. Decode uses a configured DecMode for explicit control over
+// decoding behavior, mirroring the encode-side EncMode pattern.
+//
+//nolint:gochecknoglobals // concurrency-safe DecMode, created once at package init
+var cborDecMode = func() cbor.DecMode {
+	//nolint:exhaustruct // only DupMapKey is intentional; all other fields use library defaults
+	opts := cbor.DecOptions{DupMapKey: cbor.DupMapKeyEnforcedAPF}
+
+	dm, err := opts.DecMode()
+	if err != nil {
+		panic("codec: failed to create CBOR decoding mode: " + err.Error())
+	}
+
+	return dm
+}()
+
 func (CBORCodec) Encoding() Encoding { return EncodingCBOR }
 
 // Encode marshals a value to canonical CBOR bytes with deterministic map ordering.
@@ -31,6 +48,6 @@ func (CBORCodec) Encode(v any) ([]byte, error) {
 
 // Decode unmarshals CBOR bytes into a value.
 func (CBORCodec) Decode(data []byte, v any) error {
-	//nolint:wrapcheck // thin wrapper over cbor.Unmarshal
-	return cbor.Unmarshal(data, v)
+	//nolint:wrapcheck // thin wrapper over cbor DecMode.Unmarshal
+	return cborDecMode.Unmarshal(data, v)
 }
