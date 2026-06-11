@@ -14,9 +14,9 @@ func TestOpenSync_MemoryWithRemote(t *testing.T) {
 
 	_, err := turso.OpenSync(
 		context.Background(),
-		":memory:",
-		"libsql://example.turso.io",
-		"test-token",
+		turso.DbPath(":memory:"),
+		turso.RemoteURL("libsql://example.turso.io"),
+		turso.AuthToken("test-token"),
 	)
 	if err == nil {
 		t.Fatal("expected error for in-memory database with remote sync")
@@ -37,7 +37,7 @@ func TestOpenSync_FilePathWithoutRemote(t *testing.T) {
 
 	dbPath := t.TempDir() + "/test.db"
 
-	database, err := turso.Open(dbPath)
+	database, err := turso.Open(turso.DbPath(dbPath))
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}

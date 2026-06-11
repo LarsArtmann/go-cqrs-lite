@@ -24,8 +24,8 @@ type SyncDB struct {
 // Local writes work offline. Call Push to send changes, Pull to receive.
 //
 // The caller is responsible for closing the returned SyncDB.
-func OpenSync(ctx context.Context, dbPath, remoteURL, authToken string) (*SyncDB, error) {
-	if remoteURL != "" && strings.HasPrefix(dbPath, ":memory:") {
+func OpenSync(ctx context.Context, dbPath DbPath, remoteURL RemoteURL, authToken AuthToken) (*SyncDB, error) {
+	if remoteURL != "" && strings.HasPrefix(string(dbPath), ":memory:") {
 		return nil, event.WrapRejection(
 			ErrMemorySync,
 			"storage.turso_memory_sync",
@@ -39,20 +39,20 @@ func OpenSync(ctx context.Context, dbPath, remoteURL, authToken string) (*SyncDB
 	syncDb, err := tursoclient.NewTursoSyncDb(
 		ctx,
 		tursoclient.TursoSyncDbConfig{ //nolint:exhaustruct // only required fields; others use library defaults
-			Path:      dbPath,
-			RemoteUrl: remoteURL,
-			AuthToken: authToken,
+			Path:      string(dbPath),
+			RemoteUrl: string(remoteURL),
+			AuthToken: string(authToken),
 		},
 	)
 	if err != nil {
 		return nil, event.WrapInfrastructure(err, "storage.create_turso_sync",
-			"create turso sync db for "+remoteURL)
+			"create turso sync db for "+string(remoteURL))
 	}
 
 	database, err := syncDb.Connect(ctx)
 	if err != nil {
 		return nil, event.WrapInfrastructure(err, "storage.connect_turso_sync",
-			"connect turso sync db for "+remoteURL)
+			"connect turso sync db for "+string(remoteURL))
 	}
 
 	return &SyncDB{DB: database, syncDb: syncDb}, nil

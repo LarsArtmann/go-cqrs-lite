@@ -8,15 +8,36 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/storage/v2"
 )
 
+// DbPath is a phantom type for local database file paths.
+type DbPath string
+
+func (p DbPath) String() string { return string(p) }
+
+func (p DbPath) IsZero() bool { return p == "" }
+
+// RemoteURL is a phantom type for Turso remote server URLs.
+type RemoteURL string
+
+func (u RemoteURL) String() string { return string(u) }
+
+func (u RemoteURL) IsZero() bool { return u == "" }
+
+// AuthToken is a phantom type for Turso authentication tokens.
+type AuthToken string
+
+func (t AuthToken) String() string { return string(t) }
+
+func (t AuthToken) IsZero() bool { return t == "" }
+
 // Open opens a local Turso database file and returns a *sql.DB
 // compatible with all SQLite* adapters in this package.
 //
 // The caller is responsible for closing the returned *sql.DB.
-func Open(dbPath string) (*sql.DB, error) {
-	database, err := sql.Open("turso", dbPath)
+func Open(dbPath DbPath) (*sql.DB, error) {
+	database, err := sql.Open("turso", string(dbPath))
 	if err != nil {
 		return nil, event.WrapInfrastructure(err, "turso.open",
-			"open turso database at "+dbPath)
+			"open turso database at "+string(dbPath))
 	}
 
 	return database, nil

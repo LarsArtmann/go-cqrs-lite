@@ -13,7 +13,8 @@ import (
 // The errCodePrefix parameter is used for error attribution (e.g., "storage", "pebble").
 func ReconstructEventFromFields(
 	eventID id.EventID,
-	eventType, aggType string,
+	eventType Type,
+	aggType AggregateType,
 	aggID id.AggregateID,
 	version, schemaVersion int,
 	payload, metadataJSON []byte,
@@ -24,7 +25,7 @@ func ReconstructEventFromFields(
 	metaOpts, err := UnmarshalMetadataJSON(
 		metadataJSON,
 		errCodePrefix+".unmarshal_metadata",
-		eventType,
+		string(eventType),
 	)
 	if err != nil {
 		return nil, WrapCorruption(
@@ -54,16 +55,16 @@ func ReconstructEventFromFields(
 	}
 
 	evt, err := NewEvent(
-		Type(eventType),
+		eventType,
 		aggID,
-		AggregateType(aggType),
+		aggType,
 		Version(version),
 		payload,
 		opts...,
 	)
 	if err != nil {
 		return nil, WrapCorruption(err, errCodePrefix+".reconstruct_event",
-			"reconstruct event "+eventType)
+			"reconstruct event "+string(eventType))
 	}
 
 	return evt, nil

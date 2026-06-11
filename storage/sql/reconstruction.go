@@ -46,7 +46,8 @@ func ScanSlice[T any](rows *sql.Rows, fn func(*sql.Rows) (T, error)) ([]T, error
 // ReconstructEvent rebuilds an event.ImmutableEvent from database row fields.
 func ReconstructEvent(
 	eventID id.EventID,
-	eventType, aggType string,
+	eventType event.Type,
+	aggType event.AggregateType,
 	aggID id.AggregateID,
 	version, schemaVersion int,
 	payload, metadataJSON []byte,

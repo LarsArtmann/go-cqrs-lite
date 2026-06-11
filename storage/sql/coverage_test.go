@@ -58,7 +58,7 @@ func TestReconstructEvent(t *testing.T) {
 	now := time.Now().UTC().Truncate(time.Millisecond)
 
 	evt, err := sqlpkg.ReconstructEvent(
-		eventID, "user.created", "User", aggID,
+		eventID, event.Type("user.created"), event.AggregateType("User"), aggID,
 		1, 1,
 		[]byte(`{"name":"Alice"}`),
 		[]byte(`{}`),

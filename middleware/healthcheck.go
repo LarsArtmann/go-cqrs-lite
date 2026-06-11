@@ -8,6 +8,20 @@ import (
 	"time"
 )
 
+// ReleaseID identifies a specific deployment release.
+type ReleaseID string
+
+func (r ReleaseID) String() string { return string(r) }
+
+func (r ReleaseID) IsZero() bool { return r == "" }
+
+// ComponentID identifies a specific infrastructure component.
+type ComponentID string
+
+func (c ComponentID) String() string { return string(c) }
+
+func (c ComponentID) IsZero() bool { return c == "" }
+
 // HealthStatus represents the health status of a component.
 type HealthStatus string
 
@@ -21,7 +35,7 @@ const (
 type HealthCheckResponse struct {
 	Status    HealthStatus      `json:"status"`
 	Version   string            `json:"version,omitempty"`
-	ReleaseID string            `json:"releaseId,omitempty"`
+	ReleaseID    ReleaseID         `json:"releaseId,omitempty"`
 	Notes     []string          `json:"notes,omitempty"`
 	Output    string            `json:"output,omitempty"`
 	Checks    map[string]Check  `json:"checks,omitempty"`
@@ -30,7 +44,7 @@ type HealthCheckResponse struct {
 
 // Check represents a single health check probe.
 type Check struct {
-	ComponentID       string            `json:"componentId,omitempty"`
+	ComponentID       ComponentID       `json:"componentId,omitempty"`
 	ComponentType     string            `json:"componentType,omitempty"`
 	ObservedValue     any               `json:"observedValue,omitempty"`
 	ObservedUnit      string            `json:"observedUnit,omitempty"`
@@ -94,7 +108,7 @@ func runChecks(ctx context.Context, now string, checks []HealthChecker, resp *He
 			result.Time = now
 		}
 
-		name := result.ComponentID
+		name := string(result.ComponentID)
 
 		if name == "" {
 			name = "check-" + strconv.Itoa(i)

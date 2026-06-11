@@ -44,7 +44,7 @@ func (a *EventStore) deserializeEvent(data []byte) (event.Event, error) {
 	}
 
 	evt, err := event.ReconstructEventFromFields(
-		s.ID, s.Type, s.AggregateType, s.AggregateID,
+		s.ID, event.Type(s.Type), event.AggregateType(s.AggregateType), s.AggregateID,
 		s.Version, s.SchemaVersion,
 		s.Payload, metadataJSON,
 		time.Unix(0, s.OccurredAt),

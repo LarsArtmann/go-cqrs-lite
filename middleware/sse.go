@@ -9,10 +9,17 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
+// SSEClientID identifies a connected SSE client.
+type SSEClientID string
+
+func (c SSEClientID) String() string { return string(c) }
+
+func (c SSEClientID) IsZero() bool { return c == "" }
+
 // SSEBroker bridges an event bus to Server-Sent Events HTTP clients.
 type SSEBroker struct {
 	mu      sync.RWMutex
-	clients map[string]chan event.Event
+	clients map[SSEClientID]chan event.Event
 	handler event.Handler
 	cancel  context.CancelFunc
 }
@@ -27,7 +34,7 @@ func NewSSEBroker(bus event.Bus) (*SSEBroker, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	b := &SSEBroker{ //nolint:exhaustruct // mu zero-value is ready, handler set below
-		clients: make(map[string]chan event.Event),
+		clients: make(map[SSEClientID]chan event.Event),
 		cancel:  cancel,
 	}
 
@@ -70,7 +77,7 @@ func (b *SSEBroker) handleEvent(_ context.Context, evt event.Event) error {
 const sseChannelBufSize = 100
 
 // AddClient registers a new SSE client and returns its event channel.
-func (b *SSEBroker) AddClient(id string) chan event.Event {
+func (b *SSEBroker) AddClient(id SSEClientID) chan event.Event {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
@@ -84,7 +91,7 @@ func (b *SSEBroker) AddClient(id string) chan event.Event {
 // The channel is not closed to avoid send-on-closed-channel races with
 // concurrent handleEvent calls. The channel will be garbage-collected
 // once the SSE handler releases its reference.
-func (b *SSEBroker) RemoveClient(id string) {
+func (b *SSEBroker) RemoveClient(id SSEClientID) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
@@ -110,7 +117,7 @@ func (b *SSEBroker) Close() {
 		close(ch)
 	}
 
-	b.clients = make(map[string]chan event.Event)
+	b.clients = make(map[SSEClientID]chan event.Event)
 }
 
 // SSEHandler returns an HTTP handler that streams events to a client.
@@ -135,8 +142,8 @@ func SSEHandler(broker *SSEBroker) http.Handler {
 			return
 		}
 
-		ch := broker.AddClient(clientID)
-		defer broker.RemoveClient(clientID)
+		ch := broker.AddClient(SSEClientID(clientID))
+		defer broker.RemoveClient(SSEClientID(clientID))
 
 		for {
 			select {

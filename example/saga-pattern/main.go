@@ -34,16 +34,21 @@ const (
 	settleDelay    = 200 * time.Millisecond
 )
 
+// OrderID is a phantom type for order identifiers in the saga example.
+type OrderID string
+
+func (o OrderID) String() string { return string(o) }
+
 // --- Domain events ---
 
 type (
-	InventoryReserved struct{ OrderID string }
-	InventoryReleased struct{ OrderID string }
-	PaymentCharged    struct{ OrderID string }
-	PaymentRefunded   struct{ OrderID string }
-	OrderConfirmed    struct{ OrderID string }
+	InventoryReserved struct{ OrderID OrderID }
+	InventoryReleased struct{ OrderID OrderID }
+	PaymentCharged    struct{ OrderID OrderID }
+	PaymentRefunded   struct{ OrderID OrderID }
+	OrderConfirmed    struct{ OrderID OrderID }
 	StepFailed        struct {
-		OrderID string
+		OrderID OrderID
 		Step    string
 		Reason  string
 	}
@@ -62,7 +67,7 @@ const (
 
 type sagaState struct {
 	mu           sync.Mutex
-	OrderID      string
+	OrderID      OrderID
 	CurrentStep  int
 	Status       sagaStatus
 	Compensating bool
@@ -152,7 +157,7 @@ func run() error {
 
 	orderID := id.NewAggregateID()
 	state := &sagaState{
-		OrderID:     orderID.String(),
+		OrderID:     OrderID(orderID.String()),
 		CurrentStep: 0,
 		Status:      statusRunning,
 	}
@@ -255,7 +260,7 @@ func run() error {
 	fmt.Printf("Order ID: %s\n\n", orderID)
 
 	if err := dispatcher.dispatch(ctx, "reserve-inventory", orderID,
-		InventoryReserved{OrderID: orderID.String()}); err != nil {
+		InventoryReserved{OrderID: OrderID(orderID.String())}); err != nil {
 		return fmt.Errorf("dispatch reserve-inventory: %w", err)
 	}
 
