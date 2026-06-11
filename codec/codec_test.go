@@ -358,6 +358,127 @@ func TestCBORCodec_RoundTrip_ByteSlice(t *testing.T) {
 	}
 }
 
+func TestCBORCodec_SmallerThanJSON(t *testing.T) {
+	t.Parallel()
+
+	payload := map[string]string{
+		"name":  "Alice",
+		"email": "alice@example.com",
+		"city":  "Berlin",
+	}
+
+	cborData, err := CBORCodec{}.Encode(payload)
+	if err != nil {
+		t.Fatalf("CBOR Encode: %v", err)
+	}
+
+	jsonData, err := JSONCodec{}.Encode(payload)
+	if err != nil {
+		t.Fatalf("JSON Encode: %v", err)
+	}
+
+	if len(cborData) >= len(jsonData) {
+		t.Errorf("CBOR (%d bytes) should be smaller than JSON (%d bytes)", len(cborData), len(jsonData))
+	}
+}
+
+func TestCBORCodec_RoundTrip_Slice(t *testing.T) {
+	t.Parallel()
+	c := CBORCodec{}
+
+	original := []string{"alpha", "beta", "gamma"}
+
+	data, err := c.Encode(original)
+	if err != nil {
+		t.Fatalf("Encode() error: %v", err)
+	}
+
+	var decoded []string
+	err = c.Decode(data, &decoded)
+	if err != nil {
+		t.Fatalf("Decode() error: %v", err)
+	}
+
+	if len(decoded) != len(original) {
+		t.Fatalf("len = %d, want %d", len(decoded), len(original))
+	}
+
+	for i := range original {
+		if decoded[i] != original[i] {
+			t.Errorf("decoded[%d] = %q, want %q", i, decoded[i], original[i])
+		}
+	}
+}
+
+func TestCBORCodec_RoundTrip_NestedStruct(t *testing.T) {
+	t.Parallel()
+	c := CBORCodec{}
+
+	type Address struct {
+		City    string `json:"city"`
+		Country string `json:"country"`
+	}
+
+	type Person struct {
+		Name    string  `json:"name"`
+		Address Address `json:"address"`
+	}
+
+	original := Person{
+		Name:    "Alice",
+		Address: Address{City: "Berlin", Country: "DE"},
+	}
+
+	data, err := c.Encode(original)
+	if err != nil {
+		t.Fatalf("Encode() error: %v", err)
+	}
+
+	var decoded Person
+	err = c.Decode(data, &decoded)
+	if err != nil {
+		t.Fatalf("Decode() error: %v", err)
+	}
+
+	if decoded != original {
+		t.Errorf("round-trip mismatch: got %+v, want %+v", decoded, original)
+	}
+}
+
+func TestCBORCodec_SigningDeterminism(t *testing.T) {
+	t.Parallel()
+	c := CBORCodec{}
+
+	payload := map[string]any{
+		"user":    "alice",
+		"action":  "login",
+		"success": true,
+		"count":   uint64(42),
+	}
+
+	encoded1, err := c.Encode(payload)
+	if err != nil {
+		t.Fatalf("Encode 1: %v", err)
+	}
+
+	encoded2, err := c.Encode(payload)
+	if err != nil {
+		t.Fatalf("Encode 2: %v", err)
+	}
+
+	encoded3, err := c.Encode(payload)
+	if err != nil {
+		t.Fatalf("Encode 3: %v", err)
+	}
+
+	if string(encoded1) != string(encoded2) || string(encoded2) != string(encoded3) {
+		t.Fatal("CBOR encoding must be deterministic for signing safety")
+	}
+
+	h1 := len(encoded1)
+	_ = h1
+}
+
 func TestJSONCodec_Decode_EmptyData(t *testing.T) {
 	t.Parallel()
 	c := JSONCodec{}

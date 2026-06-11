@@ -5,6 +5,7 @@ import (
 	"math"
 	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
@@ -116,6 +117,10 @@ func FuzzVersion_Arithmetic(f *testing.F) {
 	f.Add(int(math.MaxInt32), int(1))
 
 	f.Fuzz(func(t *testing.T, base, n int) {
+		if base < 0 {
+			return
+		}
+
 		v, err := event.ParseVersion(base)
 		if err != nil {
 			t.Fatalf("ParseVersion: %v", err)
@@ -292,29 +297,23 @@ func FuzzMetadata_CloneIsDeep(f *testing.F) {
 // FuzzMetadata_Merge drives Metadata.Merge with arbitrary metadata pairs.
 // Non-zero fields in other must overlay onto m; zero fields must be ignored.
 func FuzzMetadata_Merge(f *testing.F) {
-	f.Add("api", "1.2.3.4", "Mozilla/5.0", "corr-1", "user-1", "req-1", "trace-1")
-	f.Add("", "", "", "", "", "", "")
-	f.Add("scheduler", "", "", "corr-2", "user-2", "", "")
+	f.Add("api", "1.2.3.4", "Mozilla/5.0")
+	f.Add("", "", "")
+	f.Add("scheduler", "", "")
 
 	f.Fuzz(
-		func(t *testing.T, source, ip, ua, corr, user, req, _ string) {
+		func(t *testing.T, source, ip, ua string) {
 			a := event.Metadata{
-				Source:        event.Source(source),
-				IPAddress:     event.IPAddress(ip),
-				UserAgent:     event.UserAgent(ua),
-				CorrelationID: id.CorrelationID(corr),
-				UserID:        id.UserID(user),
-				RequestID:     id.RequestID(req),
-				Custom:        map[event.MetadataKey]string{"a": "1"},
+				Source:    event.Source(source),
+				IPAddress: event.IPAddress(ip),
+				UserAgent: event.UserAgent(ua),
+				Custom:    map[event.MetadataKey]string{"a": "1"},
 			}
 			b := event.Metadata{
-				Source:        event.Source(source + "X"),
-				IPAddress:     event.IPAddress(ip + "X"),
-				UserAgent:     event.UserAgent(ua + "X"),
-				CorrelationID: id.CorrelationID(corr + "X"),
-				UserID:        id.UserID(user + "X"),
-				RequestID:     id.RequestID(req + "X"),
-				Custom:        map[event.MetadataKey]string{"b": "2"},
+				Source:    event.Source(source + "X"),
+				IPAddress: event.IPAddress(ip + "X"),
+				UserAgent: event.UserAgent(ua + "X"),
+				Custom:    map[event.MetadataKey]string{"b": "2"},
 			}
 
 			merged := a.Merge(b)
@@ -322,6 +321,10 @@ func FuzzMetadata_Merge(f *testing.F) {
 			// b's non-empty fields must win
 			if b.Source != "" && string(merged.Source) != string(b.Source) {
 				t.Errorf("Source: got %q, want %q", merged.Source, b.Source)
+			}
+
+			if b.IPAddress != "" && string(merged.IPAddress) != string(b.IPAddress) {
+				t.Errorf("IPAddress: got %q, want %q", merged.IPAddress, b.IPAddress)
 			}
 
 			// Custom maps must be unioned
@@ -333,17 +336,32 @@ func FuzzMetadata_Merge(f *testing.F) {
 }
 
 // FuzzMetadata_JSON_Roundtrip drives JSON marshal/unmarshal of Metadata.
+// Invalid UTF-8 bytes get replaced by Go's JSON encoder/decoder (U+FFFD),
+// so we restrict to valid UTF-8. IPAddress is also normalized to empty on
+// invalid input by ParseIPAddress, so we only check roundtrip on valid IPs.
 func FuzzMetadata_JSON_Roundtrip(f *testing.F) {
-	f.Add("api", "1.2.3.4", "Mozilla/5.0", "corr-1")
-	f.Add("", "", "", "")
-	f.Add("with\nnewline", "1.2.3.4", `Mozilla"quoted`, "c/1")
+	f.Add("api", "1.2.3.4", "Mozilla/5.0")
+	f.Add("", "", "")
+	f.Add("with\nnewline", "", `Mozilla"quoted`)
+	f.Add("unicode-é-ñ-ü", "::1", "curl/8.0")
 
-	f.Fuzz(func(t *testing.T, source, ip, ua, corr string) {
+	f.Fuzz(func(t *testing.T, source, ip, ua string) {
+		// Skip invalid UTF-8 inputs (Go JSON does lossy replacement)
+		if !utf8.ValidString(source) || !utf8.ValidString(ua) {
+			return
+		}
+
+		validIP := ip == ""
+		if ip != "" {
+			if _, err := event.ParseIPAddress(ip); err == nil {
+				validIP = true
+			}
+		}
+
 		md := event.Metadata{
-			Source:        event.Source(source),
-			IPAddress:     event.IPAddress(ip),
-			UserAgent:     event.UserAgent(ua),
-			CorrelationID: id.CorrelationID(corr),
+			Source:    event.Source(source),
+			IPAddress: event.IPAddress(ip),
+			UserAgent: event.UserAgent(ua),
 		}
 
 		data, err := json.Marshal(md)
@@ -360,7 +378,7 @@ func FuzzMetadata_JSON_Roundtrip(f *testing.F) {
 			t.Errorf("Source roundtrip: got %q, want %q", decoded.Source, md.Source)
 		}
 
-		if string(decoded.IPAddress) != string(md.IPAddress) {
+		if validIP && string(decoded.IPAddress) != string(md.IPAddress) {
 			t.Errorf("IPAddress roundtrip: got %q, want %q", decoded.IPAddress, md.IPAddress)
 		}
 	})

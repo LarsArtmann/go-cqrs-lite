@@ -107,3 +107,116 @@ func FuzzRawCodec_Passthrough(f *testing.F) {
 		}
 	})
 }
+
+// FuzzCBORCodec_Determinism ensures CBOR canonical encoding produces the
+// same bytes regardless of input map key order. Critical for
+// content-addressed storage and signature determinism.
+func FuzzCBORCodec_Determinism(f *testing.F) {
+	c := codec.CBORCodec{}
+
+	// Seeds: each is a map with two entries encoded in different insertion
+	// orders. Canonical encoding must produce identical bytes.
+	seeds := []map[string]any{
+		{"a": uint64(1), "b": uint64(2)},
+		{"z": "last", "a": "first"},
+		{"n": float64(3.14)},
+	}
+
+	for _, s := range seeds {
+		b, err := c.Encode(s)
+		if err != nil {
+			f.Fatalf("seed encode: %v", err)
+		}
+		f.Add(b)
+	}
+
+	f.Fuzz(func(t *testing.T, _ []byte) {
+		// Build maps in two different insertion orders; both must encode
+		// to the same byte sequence (canonical form sorts map keys).
+		original := map[string]any{
+			"alpha":  uint64(1),
+			"beta":   "hello",
+			"gamma":  true,
+			"delta":  []any{uint64(1), uint64(2), uint64(3)},
+			"nested": map[string]any{"k": "v"},
+		}
+		reordered := map[string]any{
+			"delta":  []any{uint64(1), uint64(2), uint64(3)},
+			"alpha":  uint64(1),
+			"nested": map[string]any{"k": "v"},
+			"gamma":  true,
+			"beta":   "hello",
+		}
+
+		encodedOrig, err := c.Encode(original)
+		if err != nil {
+			t.Fatalf("Encode original: %v", err)
+		}
+
+		encodedReord, err := c.Encode(reordered)
+		if err != nil {
+			t.Fatalf("Encode reordered: %v", err)
+		}
+
+		if string(encodedOrig) != string(encodedReord) {
+			t.Errorf("CBOR encoding not canonical: %x vs %x", encodedOrig, encodedReord)
+		}
+	})
+}
+
+// FuzzCBORCodec_DecodeNeverPanics exercises CBOR decode on arbitrary bytes
+// — must always return an error rather than panic, even on garbage input.
+func FuzzCBORCodec_DecodeNeverPanics(f *testing.F) {
+	f.Add([]byte{0x00})
+	f.Add([]byte{0xff, 0xff, 0xff})
+	f.Add([]byte{})
+	f.Add([]byte{0xa1, 0x61, 0x62}) // map(1) { text(1) "b" } but no value
+
+	f.Fuzz(func(t *testing.T, input []byte) {
+		c := codec.CBORCodec{}
+
+		var into any
+		// Should not panic
+		_ = c.Decode(input, &into)
+	})
+}
+
+// FuzzJSONCodec_TypedRoundtrip exercises JSON codec with a typed struct
+// target. Catches cases where generic roundtrip succeeds but typed
+// roundtrip fails (e.g., missing fields, type coercion issues).
+func FuzzJSONCodec_TypedRoundtrip(f *testing.F) {
+	type point struct {
+		X int    `json:"x"`
+		Y int    `json:"y"`
+		N string `json:"n,omitempty"`
+	}
+
+	f.Add(`{"x":1,"y":2}`)
+	f.Add(`{"x":0,"y":0}`)
+	f.Add(`{"x":-1,"y":-2,"n":"named"}`)
+	f.Add(`{}`)
+	f.Add(`{"x":1}`)
+
+	f.Fuzz(func(t *testing.T, input string) {
+		c := codec.JSONCodec{}
+
+		var p point
+		if err := c.Decode([]byte(input), &p); err != nil {
+			t.Skip()
+		}
+
+		encoded, err := c.Encode(p)
+		if err != nil {
+			t.Fatalf("Encode: %v", err)
+		}
+
+		var redecoded point
+		if err := c.Decode(encoded, &redecoded); err != nil {
+			t.Fatalf("Decode roundtrip: %v", err)
+		}
+
+		if redecoded != p {
+			t.Errorf("typed roundtrip mismatch: got %+v, want %+v", redecoded, p)
+		}
+	})
+}

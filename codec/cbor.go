@@ -2,8 +2,9 @@ package codec
 
 import "github.com/fxamacker/cbor/v2"
 
-// CBORCodec implements Codec using fxamacker/cbor (IETF STD 94 / RFC 8949).
-// Encoding uses canonical mode with sorted map keys for deterministic output.
+// CBORCodec implements Codec using fxamacker/cbor with canonical encoding
+// (RFC 7049: sorted map keys, shortest floats). Canonical mode is deterministic,
+// making CBORCodec safe for content-addressed storage and cryptographic signing.
 type CBORCodec struct{}
 
 var _ Codec = CBORCodec{}
