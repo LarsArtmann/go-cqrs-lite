@@ -90,14 +90,14 @@ func QueryRows[T any](
 	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, cfg.WrapError(err, "storage.query_"+cfg.Table,
-			p.ErrMsg+" (where="+p.Where+")")
+			p.ErrMsg+fmt.Sprintf(" (%s=%v, where=%s)", aggType, aggID, p.Where))
 	}
 	defer func() { _ = rows.Close() }()
 
 	results, err := cfg.ScanRows(rows)
 	if err != nil {
 		return nil, cfg.WrapError(err, "storage.scan_"+cfg.Table,
-			p.ErrMsg+" (where="+p.Where+")")
+			p.ErrMsg+fmt.Sprintf(" (%s=%v, where=%s)", aggType, aggID, p.Where))
 	}
 
 	if p.RequireHit && len(results) == 0 {
