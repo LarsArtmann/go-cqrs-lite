@@ -11,7 +11,14 @@ var _ Codec = CBORCodec{}
 // cborEncMode provides canonical (deterministic) CBOR encoding with sorted map keys.
 //
 //nolint:gochecknoglobals // concurrency-safe EncMode, created once at package init
-var cborEncMode, _ = cbor.CanonicalEncOptions().EncMode()
+var cborEncMode = func() cbor.EncMode {
+	em, err := cbor.CanonicalEncOptions().EncMode()
+	if err != nil {
+		panic("codec: failed to create CBOR canonical encoding mode: " + err.Error())
+	}
+
+	return em
+}()
 
 func (CBORCodec) Encoding() Encoding { return EncodingCBOR }
 

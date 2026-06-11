@@ -41,35 +41,40 @@ func FuzzJSONCodec_Roundtrip(f *testing.F) {
 }
 
 func FuzzCBORCodec_Roundtrip(f *testing.F) {
-	f.Add(`{"name":"Alice","age":30}`)
-	f.Add(`{}`)
-	f.Add(`null`)
-	f.Add(`[]`)
-	f.Add(`"hello"`)
-	f.Add(`42`)
-	f.Add(`true`)
+	c := codec.CBORCodec{}
 
-	f.Fuzz(func(t *testing.T, input string) {
-		if !utf8.ValidString(input) {
-			t.Skip()
+	seeds := []any{
+		map[string]any{"name": "Alice", "age": uint64(30)},
+		map[string]any{},
+		nil,
+		[]any{},
+		"hello",
+		uint64(42),
+		true,
+	}
+
+	for _, seed := range seeds {
+		b, err := c.Encode(seed)
+		if err != nil {
+			f.Fatalf("seed encode: %v", err)
 		}
 
-		c := codec.JSONCodec{}
+		f.Add(b)
+	}
 
+	f.Fuzz(func(t *testing.T, input []byte) {
 		var decoded any
-		if err := c.Decode([]byte(input), &decoded); err != nil {
+		if err := c.Decode(input, &decoded); err != nil {
 			t.Skip()
 		}
 
-		cborCodec := codec.CBORCodec{}
-
-		encoded, err := cborCodec.Encode(decoded)
+		encoded, err := c.Encode(decoded)
 		if err != nil {
 			t.Fatalf("Encode(%v): %v", decoded, err)
 		}
 
 		var redecoded any
-		if err := cborCodec.Decode(encoded, &redecoded); err != nil {
+		if err := c.Decode(encoded, &redecoded); err != nil {
 			t.Fatalf("Decode(re-encoded): %v", err)
 		}
 	})

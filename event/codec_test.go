@@ -288,6 +288,35 @@ func TestDecodePayload_EncodingMismatch(t *testing.T) {
 	}
 }
 
+func TestDecodePayload_CBORCodec(t *testing.T) {
+	t.Parallel()
+
+	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+
+	payload := struct{ Name string }{Name: "Alice"}
+
+	evt, err := event.New(
+		"UserCreated", aggID, "User", 1, payload,
+		event.WithCodec(codecpkg.CBORCodec{}),
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	if evt.Encoding() != codecpkg.EncodingCBOR {
+		t.Errorf("Encoding() = %q, want %q", evt.Encoding(), codecpkg.EncodingCBOR)
+	}
+
+	result, err := event.DecodePayload[struct{ Name string }](evt, codecpkg.CBORCodec{})
+	if err != nil {
+		t.Fatalf("DecodePayload: %v", err)
+	}
+
+	if result.Name != "Alice" {
+		t.Errorf("Name = %q, want Alice", result.Name)
+	}
+}
+
 func TestDecodePayload_EncodingMatch(t *testing.T) {
 	t.Parallel()
 

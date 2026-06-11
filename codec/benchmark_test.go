@@ -70,6 +70,69 @@ func BenchmarkCBORCodec_Decode(b *testing.B) {
 	}
 }
 
+func BenchmarkCodecComparison_Encode(b *testing.B) {
+	b.ReportAllocs()
+
+	jsonCodec := codec.JSONCodec{}
+	cborCodec := codec.CBORCodec{}
+	payload := map[string]string{"name": "Alice", "email": "alice@example.com"}
+
+	b.Run("JSON", func(b *testing.B) {
+		b.ReportAllocs()
+		b.ResetTimer()
+		for b.Loop() {
+			_, err := jsonCodec.Encode(payload)
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+
+	b.Run("CBOR", func(b *testing.B) {
+		b.ReportAllocs()
+		b.ResetTimer()
+		for b.Loop() {
+			_, err := cborCodec.Encode(payload)
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}
+
+func BenchmarkCodecComparison_Decode(b *testing.B) {
+	b.ReportAllocs()
+
+	jsonCodec := codec.JSONCodec{}
+	cborCodec := codec.CBORCodec{}
+	payload := map[string]string{"name": "Alice", "email": "alice@example.com"}
+
+	jsonData, _ := jsonCodec.Encode(payload)
+	cborData, _ := cborCodec.Encode(payload)
+
+	b.Run("JSON", func(b *testing.B) {
+		b.ReportAllocs()
+		b.ResetTimer()
+		for b.Loop() {
+			var result map[string]string
+			if err := jsonCodec.Decode(jsonData, &result); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+
+	b.Run("CBOR", func(b *testing.B) {
+		b.ReportAllocs()
+		b.ResetTimer()
+		for b.Loop() {
+			var result map[string]string
+			if err := cborCodec.Decode(cborData, &result); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}
+
 func BenchmarkRawCodec_Encode(b *testing.B) {
 	b.ReportAllocs()
 

@@ -1,8 +1,10 @@
 package codec
 
 import (
+	"bytes"
 	"encoding/json"
 	"testing"
+	"time"
 )
 
 func TestJSONCodec_Encoding(t *testing.T) {
@@ -294,6 +296,65 @@ func TestCBORCodec_Encode_Deterministic(t *testing.T) {
 		if string(got) != string(first) {
 			t.Fatalf("CBOR encoding is not deterministic: got %x, want %x", got, first)
 		}
+	}
+}
+
+func TestCBORCodec_Decode_EmptyData(t *testing.T) {
+	t.Parallel()
+	c := CBORCodec{}
+
+	var v map[string]any
+	err := c.Decode([]byte{}, &v)
+	if err == nil {
+		t.Fatal("expected error for empty data")
+	}
+}
+
+func TestCBORCodec_RoundTrip_Time(t *testing.T) {
+	t.Parallel()
+	c := CBORCodec{}
+
+	now := time.Date(2024, 6, 11, 9, 0, 0, 0, time.UTC)
+
+	data, err := c.Encode(now)
+	if err != nil {
+		t.Fatalf("Encode(time) error: %v", err)
+	}
+
+	var decoded time.Time
+	err = c.Decode(data, &decoded)
+	if err != nil {
+		t.Fatalf("Decode(time) error: %v", err)
+	}
+
+	if !decoded.Equal(now) {
+		t.Errorf("round-trip mismatch: got %v, want %v", decoded, now)
+	}
+}
+
+func TestCBORCodec_RoundTrip_ByteSlice(t *testing.T) {
+	t.Parallel()
+	c := CBORCodec{}
+
+	type payload struct {
+		Data []byte `json:"data"`
+	}
+
+	original := payload{Data: []byte{0x00, 0x01, 0x02, 0xff}}
+
+	data, err := c.Encode(original)
+	if err != nil {
+		t.Fatalf("Encode() error: %v", err)
+	}
+
+	var decoded payload
+	err = c.Decode(data, &decoded)
+	if err != nil {
+		t.Fatalf("Decode() error: %v", err)
+	}
+
+	if !bytes.Equal(decoded.Data, original.Data) {
+		t.Errorf("round-trip mismatch: got %x, want %x", decoded.Data, original.Data)
 	}
 }
 

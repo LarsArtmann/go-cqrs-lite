@@ -35,6 +35,35 @@ func ExampleJSONCodec() {
 	// Alice
 }
 
+func ExampleCBORCodec() {
+	c := codec.CBORCodec{}
+
+	type User struct {
+		Name string `json:"name"`
+	}
+
+	data, err := c.Encode(User{Name: "Alice"})
+	if err != nil {
+		fmt.Println("error:", err)
+
+		return
+	}
+
+	var user User
+
+	err = c.Decode(data, &user)
+	if err != nil {
+		fmt.Println("error:", err)
+
+		return
+	}
+
+	fmt.Println(user.Name)
+
+	// Output:
+	// Alice
+}
+
 func ExampleRawCodec() {
 	c := codec.RawCodec{}
 

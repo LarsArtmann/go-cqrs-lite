@@ -188,10 +188,10 @@ marked, _ := event.MarkTombstone(evt)   // sets tombstone metadata
 
 ## Dependencies
 
-| Category   | Packages                                                                                                                                                                                                              |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Category   | Packages                                                                                                                                                                                                                                         |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Production | oklog/ulid/v2, go-branded-id, go-error-family, samber/ro (event, command, query); go-faster/yaml (catalog); go.opentelemetry.io/otel (otel, event, storage, middleware, projection); golang.org/x/crypto (encryption); fxamacker/cbor/v2 (codec) |
-| Test-only  | onsi/ginkgo/v2, onsi/gomega, pgregory.net/rapid (event, encryption)                                                                                                                                                   |
+| Test-only  | onsi/ginkgo/v2, onsi/gomega, pgregory.net/rapid (event, encryption)                                                                                                                                                                              |
 
 **Coverage**: 84–100% across 32 packages. See `docs/status/` for latest.
 
