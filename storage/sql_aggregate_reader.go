@@ -19,9 +19,9 @@ const (
 
 // SQLAggregateReader queries a projection table maintained by AggregateProjection.
 type SQLAggregateReader struct {
-	db        *sql.DB
-	dialect   sqlpkg.Dialect
-	tableName string
+	db      *sql.DB
+	dialect sqlpkg.Dialect
+	table   listingTable
 }
 
 var _ listing.AggregateReader = (*SQLAggregateReader)(nil)
@@ -32,16 +32,16 @@ func NewSQLAggregateReader(
 	tablePrefix string,
 	dialect sqlpkg.Dialect,
 ) (*SQLAggregateReader, error) {
-	err := validateListingTablePrefix(tablePrefix)
+	tbl, err := newListingTable(tablePrefix)
 	if err != nil {
 		return nil, event.NewRejection("listing.invalid_prefix",
 			"invalid table prefix")
 	}
 
 	return &SQLAggregateReader{
-		db:        db,
-		dialect:   dialect,
-		tableName: tablePrefix + "listing_aggregates",
+		db:      db,
+		dialect: dialect,
+		table:   tbl,
 	}, nil
 }
 
@@ -112,7 +112,7 @@ func (r *SQLAggregateReader) buildListQuery(opts listing.ListOptions) (string, [
 
 	query := fmt.Sprintf(
 		"SELECT aggregate_type, aggregate_id, version, event_count, last_event_at, tombstone_status FROM %s WHERE %s ORDER BY aggregate_id LIMIT %s",
-		r.tableName,
+		r.table.name,
 		strings.Join(conditions, " AND "),
 		r.dialect.Placeholder(pi),
 	)

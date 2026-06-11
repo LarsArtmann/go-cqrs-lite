@@ -294,37 +294,35 @@ func FuzzMultiSig_Ed25519KeyLength(f *testing.F) {
 			return
 		}
 
+		// Build truncated keys; pass-through for any keyLen >= the
+		// canonical size (no truncation, full valid key).
 		truncPub := pub
-		if keyLen < len(pub) {
+		if keyLen < ed25519.PublicKeySize {
 			truncPub = pub[:keyLen]
 		}
 
 		truncPriv := priv
-		if keyLen < len(priv) {
+		if keyLen < ed25519.PrivateKeySize {
 			truncPriv = priv[:keyLen]
 		}
 
 		_, signerErr := signing.NewEd25519(truncPriv)
 		_, verifierErr := signing.NewEd25519Verifier(truncPub)
 
-		if keyLen == ed25519.PrivateKeySize {
-			if signerErr != nil {
-				t.Errorf("valid private key rejected: %v", signerErr)
-			}
-		} else {
-			if signerErr == nil {
-				t.Errorf("invalid private key length %d accepted", keyLen)
-			}
+		// Signer accepts iff priv length is exactly PrivateKeySize.
+		wantSignerOK := len(truncPriv) == ed25519.PrivateKeySize
+		gotSignerOK := signerErr == nil
+		if wantSignerOK != gotSignerOK {
+			t.Errorf("NewEd25519(len=%d): got ok=%v, want ok=%v (err=%v)",
+				len(truncPriv), gotSignerOK, wantSignerOK, signerErr)
 		}
 
-		if keyLen == ed25519.PublicKeySize {
-			if verifierErr != nil {
-				t.Errorf("valid public key rejected: %v", verifierErr)
-			}
-		} else {
-			if verifierErr == nil {
-				t.Errorf("invalid public key length %d accepted", keyLen)
-			}
+		// Verifier accepts iff pub length is exactly PublicKeySize.
+		wantVerifierOK := len(truncPub) == ed25519.PublicKeySize
+		gotVerifierOK := verifierErr == nil
+		if wantVerifierOK != gotVerifierOK {
+			t.Errorf("NewEd25519Verifier(len=%d): got ok=%v, want ok=%v (err=%v)",
+				len(truncPub), gotVerifierOK, wantVerifierOK, verifierErr)
 		}
 	})
 }

@@ -82,4 +82,3 @@ func BenchmarkRealistic_ConcurrentDecider(b *testing.B) {
 	b.ReportMetric(float64(workers), "goroutines")
 	b.ReportMetric(float64(totalOps)/b.Elapsed().Seconds(), "executes/sec")
 }
-
