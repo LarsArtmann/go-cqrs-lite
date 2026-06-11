@@ -45,7 +45,7 @@ func LoadWithSpan[T any](
 	aggID any,
 ) ([]T, error) {
 	if err := checkClosed(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("load %s %v: %w", aggType, aggID, err)
 	}
 
 	ctx, span := cqrsotel.StartSpan(
@@ -58,7 +58,7 @@ func LoadWithSpan[T any](
 	results, err := QueryRows(ctx, db, d, cfg, p, aggType, aggID)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
-		return nil, err
+		return nil, fmt.Errorf("query %s %v: %w", aggType, aggID, err)
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt(p.CountAttr, len(results)))

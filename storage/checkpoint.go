@@ -10,7 +10,7 @@ import (
 )
 
 type SQLCheckpointStore struct {
-	sqlpkg.Base
+	sqlpkg.DBHandle
 }
 
 func NewSQLCheckpointStore(db *sql.DB) (*SQLCheckpointStore, error) {
@@ -26,11 +26,11 @@ func NewSQLCheckpointStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLCheckpo
 }
 
 func newSQLCheckpointStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLCheckpointStore, error) {
-	base, err := sqlpkg.NewBase(db, d)
+	handle, err := sqlpkg.NewDBHandle(db, d)
 	if err != nil {
 		return nil, err
 	}
-	return &SQLCheckpointStore{Base: base}, nil
+	return &SQLCheckpointStore{DBHandle: handle}, nil
 }
 
 func CheckpointSchema() string       { return sqlpkg.PostgresDialect{}.CheckpointSchema() }

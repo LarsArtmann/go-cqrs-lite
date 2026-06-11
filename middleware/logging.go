@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -39,7 +40,7 @@ func logWithContext(
 			"error", err,
 		)
 
-		return err
+		return fmt.Errorf("%s %s: %w", prefix, msgType, err)
 	}
 
 	logger.Info(

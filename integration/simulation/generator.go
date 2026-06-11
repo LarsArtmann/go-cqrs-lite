@@ -62,7 +62,10 @@ func (g *EventGenerator) GenerateMulti(aggregates, eventsPerAggregate int) ([]ev
 
 		events, err := event.NewEvents(aggID, g.aggregateType, 1, types, payloads)
 		if err != nil {
-			return nil, fmt.Errorf("generate aggregate %d: %w", aggIdx, err)
+			return nil, fmt.Errorf(
+				"generate aggregate %d/%d (eventsPerAggregate=%d): %w",
+				aggIdx+1, aggregates, eventsPerAggregate, err,
+			)
 		}
 
 		allEvents = append(allEvents, events...)

@@ -81,7 +81,7 @@ func (a *EventStore) ReadFrom(
 	for iter.First(); iter.Valid(); iter.Next() {
 		evt, err := a.deserializeEvent(iter.Value())
 		if err != nil {
-			return nil, a.corruptEventErr(string(iter.Key()), err)
+			return nil, fmt.Errorf("corrupt event in journal (limit=%d, after=%s): %w", limit, afterEventID, a.corruptEventErr(string(iter.Key()), err))
 		}
 
 		if skipping {
@@ -101,7 +101,7 @@ func (a *EventStore) ReadFrom(
 
 	err = checkIteratorError(iter)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("iterator error in journal (limit=%d, after=%s): %w", limit, afterEventID, err)
 	}
 
 	return events, nil

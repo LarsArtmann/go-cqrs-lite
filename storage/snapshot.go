@@ -14,7 +14,7 @@ import (
 
 // SQLSnapshotStore implements snapshot.SnapshotStore backed by a SQL database.
 type SQLSnapshotStore struct {
-	sqlpkg.Base
+	sqlpkg.DBHandle
 }
 
 // NewSQLSnapshotStore creates a new SQLSnapshotStore using the PostgreSQL dialect.
@@ -33,11 +33,11 @@ func NewSQLSnapshotStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLSnapshotS
 }
 
 func newSQLSnapshotStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLSnapshotStore, error) {
-	base, err := sqlpkg.NewBase(db, d)
+	handle, err := sqlpkg.NewDBHandle(db, d)
 	if err != nil {
 		return nil, err
 	}
-	return &SQLSnapshotStore{Base: base}, nil
+	return &SQLSnapshotStore{DBHandle: handle}, nil
 }
 
 // SnapshotSchema returns the PostgreSQL DDL for the snapshots table.

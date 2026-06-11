@@ -247,16 +247,16 @@ func TestParseSQLiteTimestamp_Invalid(t *testing.T) {
 	}
 }
 
-func TestNewBase_NilDB(t *testing.T) {
+func TestNewDBHandle_NilDB(t *testing.T) {
 	t.Parallel()
 
-	_, err := sqlpkg.NewBase(nil, sqlpkg.SQLiteDialect{})
+	_, err := sqlpkg.NewDBHandle(nil, sqlpkg.SQLiteDialect{})
 	if err == nil {
 		t.Fatal("expected error for nil DB")
 	}
 }
 
-func TestNewBase_Valid(t *testing.T) {
+func TestNewDBHandle_Valid(t *testing.T) {
 	t.Parallel()
 
 	db, err := openTestDB(t)
@@ -264,23 +264,23 @@ func TestNewBase_Valid(t *testing.T) {
 		t.Fatalf("open db: %v", err)
 	}
 
-	base, err := sqlpkg.NewBase(db, sqlpkg.SQLiteDialect{})
+	handle, err := sqlpkg.NewDBHandle(db, sqlpkg.SQLiteDialect{})
 	if err != nil {
-		t.Fatalf("NewBase: %v", err)
+		t.Fatalf("NewDBHandle: %v", err)
 	}
 
-	if base.DB != db {
+	if handle.DB != db {
 		t.Error("DB not set")
 	}
 }
 
-func TestBase_Close(t *testing.T) {
+func TestDBHandle_Close(t *testing.T) {
 	t.Parallel()
 
 	db, _ := openTestDB(t)
-	base, _ := sqlpkg.NewBase(db, sqlpkg.SQLiteDialect{})
+	handle, _ := sqlpkg.NewDBHandle(db, sqlpkg.SQLiteDialect{})
 
-	if err := base.Close(); err != nil {
+	if err := handle.Close(); err != nil {
 		t.Errorf("Close: %v", err)
 	}
 }

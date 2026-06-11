@@ -12,7 +12,7 @@ import (
 
 // SQLEventStore persists events in a SQL database with optimistic concurrency.
 type SQLEventStore struct {
-	*sqlpkg.ClosableBase
+	*sqlpkg.OwnedDBHandle
 }
 
 // NewSQLEventStore creates a new SQL-backed event store using PostgreSQL dialect.
@@ -38,12 +38,12 @@ func NewSQLEventStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLEventStore, 
 }
 
 func newSQLEventStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLEventStore, error) {
-	base, err := sqlpkg.NewClosableBase(db, d, false)
+	handle, err := sqlpkg.NewOwnedDBHandle(db, d, false)
 	if err != nil {
 		return nil, err
 	}
 
-	return &SQLEventStore{ClosableBase: base}, nil
+	return &SQLEventStore{OwnedDBHandle: handle}, nil
 }
 
 func (s *SQLEventStore) checkClosed() error {

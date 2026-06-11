@@ -9,7 +9,7 @@ import (
 
 // SQLCommandStore persists commands in a SQL database.
 type SQLCommandStore struct {
-	*sqlpkg.ClosableBase
+	*sqlpkg.OwnedDBHandle
 }
 
 // NewSQLCommandStore creates a new PostgreSQL-backed command store.
@@ -35,12 +35,12 @@ func NewSQLCommandStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLCommandSto
 }
 
 func newSQLCommandStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLCommandStore, error) {
-	base, err := sqlpkg.NewClosableBase(db, d, false)
+	handle, err := sqlpkg.NewOwnedDBHandle(db, d, false)
 	if err != nil {
 		return nil, err
 	}
 
-	return &SQLCommandStore{ClosableBase: base}, nil
+	return &SQLCommandStore{OwnedDBHandle: handle}, nil
 }
 
 func (s *SQLCommandStore) checkClosed() error {

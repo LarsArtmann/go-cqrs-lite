@@ -5,52 +5,52 @@ import (
 	"sync/atomic"
 )
 
-// Base holds the shared database connection and dialect for all SQL stores.
+// DBHandle holds the shared database connection and dialect for all SQL stores.
 // Embed this struct in store implementations to avoid duplicating the DB and Dialect fields.
-type Base struct {
+type DBHandle struct {
 	DB      *sql.DB
 	Dialect Dialect
 }
 
-// NewBase creates a Base with the given DB and Dialect, returning ErrNilDB if db is nil.
-func NewBase(db *sql.DB, d Dialect) (Base, error) {
+// NewDBHandle creates a DBHandle with the given DB and Dialect, returning ErrNilDB if db is nil.
+func NewDBHandle(db *sql.DB, d Dialect) (DBHandle, error) {
 	if db == nil {
-		return Base{}, ErrNilDB
+		return DBHandle{}, ErrNilDB
 	}
 
-	return Base{DB: db, Dialect: d}, nil
+	return DBHandle{DB: db, Dialect: d}, nil
 }
 
-// Close is a no-op for Base (the DB connection lifetime is managed externally).
-func (Base) Close() error { return nil }
+// Close is a no-op for DBHandle (the DB connection lifetime is managed externally).
+func (DBHandle) Close() error { return nil }
 
-// ClosableBase extends Base with ownership tracking and a closed state.
+// OwnedDBHandle extends DBHandle with ownership tracking and a closed state.
 // Embed this in stores that need their own Close/checkClosed lifecycle.
-type ClosableBase struct {
-	Base
+type OwnedDBHandle struct {
+	DBHandle
 
 	ownDB  bool
 	closed atomic.Bool
 }
 
-// NewClosableBase creates a ClosableBase with the given DB, Dialect, and ownership flag.
-func NewClosableBase(db *sql.DB, d Dialect, ownDB bool) (*ClosableBase, error) {
-	base, err := NewBase(db, d)
+// NewOwnedDBHandle creates an OwnedDBHandle with the given DB, Dialect, and ownership flag.
+func NewOwnedDBHandle(db *sql.DB, d Dialect, ownDB bool) (*OwnedDBHandle, error) {
+	handle, err := NewDBHandle(db, d)
 	if err != nil {
 		return nil, err
 	}
 
-	return &ClosableBase{Base: base, ownDB: ownDB}, nil
+	return &OwnedDBHandle{DBHandle: handle, ownDB: ownDB}, nil
 }
 
-// SetOwnership marks the underlying *sql.DB as owned by this base,
+// SetOwnership marks the underlying *sql.DB as owned by this handle,
 // meaning Close will also close the DB connection.
-func (b *ClosableBase) SetOwnership(ownDB bool) {
+func (b *OwnedDBHandle) SetOwnership(ownDB bool) {
 	b.ownDB = ownDB
 }
 
 // Close marks the store as closed. If ownDB is true, also closes the underlying *sql.DB.
-func (b *ClosableBase) Close() error {
+func (b *OwnedDBHandle) Close() error {
 	b.closed.Store(true)
 
 	if b.ownDB {
@@ -61,7 +61,7 @@ func (b *ClosableBase) Close() error {
 }
 
 // CheckClosed returns closedErr if the store has been closed, nil otherwise.
-func (b *ClosableBase) CheckClosed(closedErr error) error {
+func (b *OwnedDBHandle) CheckClosed(closedErr error) error {
 	if b.closed.Load() {
 		return closedErr
 	}

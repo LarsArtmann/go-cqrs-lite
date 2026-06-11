@@ -7,8 +7,8 @@ import (
 	"github.com/cockroachdb/pebble"
 )
 
-// PebbleBase contains shared fields for Pebble-based storage.
-type PebbleBase struct {
+// PebbleHandle contains shared fields for Pebble-based storage.
+type PebbleHandle struct {
 	db     *pebble.DB
 	logger *slog.Logger
 	mu     sync.RWMutex
