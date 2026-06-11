@@ -1,25 +1,20 @@
 package asyncapi
 
-// URI is a branded string type for AsyncAPI document identifiers (e.g. "urn:com.example:api").
+import (
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
+)
+
 type URI string
 
-// Document represents an AsyncAPI 3.0 specification document.
 type Document struct {
 	AsyncAPI           string               `json:"asyncapi"                     yaml:"asyncapi"`
 	ID                 URI                  `json:"id,omitempty"                 yaml:"id,omitempty"`
-	Info               Info                 `json:"info"                         yaml:"info"`
+	Info               catalog.DocumentInfo `json:"info"                         yaml:"info"`
 	DefaultContentType string               `json:"defaultContentType,omitempty" yaml:"defaultContentType,omitempty"`
 	Servers            map[string]Server    `json:"servers,omitempty"            yaml:"servers,omitempty"`
 	Channels           map[string]Channel   `json:"channels"                     yaml:"channels"`
 	Operations         map[string]Operation `json:"operations"                   yaml:"operations"`
 	Components         Components           `json:"components"                   yaml:"components"`
-}
-
-// Info contains metadata about the AsyncAPI document.
-type Info struct {
-	Title       string `json:"title"                 yaml:"title"`
-	Version     string `json:"version"               yaml:"version"`
-	Description string `json:"description,omitempty" yaml:"description,omitempty"`
 }
 
 // Server describes a server connection in the AsyncAPI specification.

@@ -214,7 +214,7 @@ func TestDocument_MarshalYAML(t *testing.T) {
 
 	doc := &Document{
 		OpenAPI:    "3.0.3",
-		Info:       Info{Title: "Test", Version: "1.0.0"},
+		Info:       catalog.DocumentInfo{Title: "Test", Version: "1.0.0"},
 		Paths:      map[string]*PathItem{},
 		Components: Components{Schemas: map[string]any{}},
 	}

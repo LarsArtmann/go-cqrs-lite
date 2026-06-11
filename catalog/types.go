@@ -40,6 +40,12 @@ func (id UserID) String() string { return string(id) }
 
 type Direction string
 
+type DocumentInfo struct {
+	Title       string `json:"title"                 yaml:"title"`
+	Version     string `json:"version"               yaml:"version"`
+	Description string `json:"description,omitempty" yaml:"description,omitempty"`
+}
+
 const (
 	Sends    Direction = "sends"
 	Receives Direction = "receives"

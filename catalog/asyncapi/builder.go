@@ -33,7 +33,7 @@ func (e *Exporter) newDocument() *Document {
 			strings.ToLower(strings.ReplaceAll(e.serviceName, " ", "")),
 		)),
 		DefaultContentType: contentType,
-		Info: Info{
+		Info: catalog.DocumentInfo{
 			Title: e.serviceName, Version: e.version, Description: e.description,
 		},
 		Channels:   make(map[string]Channel),

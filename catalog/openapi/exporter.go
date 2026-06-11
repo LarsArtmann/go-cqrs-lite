@@ -59,7 +59,7 @@ func NewExporter(title, version string, opts ...Option) *Exporter {
 func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 	doc := &Document{
 		OpenAPI: openAPIVersion,
-		Info: Info{
+		Info: catalog.DocumentInfo{
 			Title:       e.title,
 			Version:     e.version,
 			Description: e.description,

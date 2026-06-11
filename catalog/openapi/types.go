@@ -1,20 +1,17 @@
 package openapi
 
+import (
+	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
+)
+
 // Document represents an OpenAPI 3.0 specification document.
 type Document struct {
-	OpenAPI    string               `json:"openapi"`
-	Info       Info                 `json:"info"`
-	Servers    []Server             `json:"servers,omitempty"`
-	Paths      map[string]*PathItem `json:"paths"`
-	Components Components           `json:"components"`
-	Tags       []Tag                `json:"tags,omitempty"`
-}
-
-// Info contains metadata about the API.
-type Info struct {
-	Title       string `json:"title"`
-	Version     string `json:"version"`
-	Description string `json:"description,omitempty"`
+	OpenAPI    string                 `json:"openapi"`
+	Info       catalog.DocumentInfo   `json:"info"`
+	Servers    []Server               `json:"servers,omitempty"`
+	Paths      map[string]*PathItem   `json:"paths"`
+	Components Components             `json:"components"`
+	Tags       []Tag                  `json:"tags,omitempty"`
 }
 
 // Server describes a server URL.
