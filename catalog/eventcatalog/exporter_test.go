@@ -15,7 +15,7 @@ func newCommand(id string) catalog.Message {
 	msg := catalog.Message{
 		Kind:    catalog.CommandMessage,
 		ID:      catalog.MessageID(id),
-		Name:    id,
+		Name:    catalog.Name(id),
 		Version: "1.0.0",
 	}
 
@@ -26,7 +26,7 @@ func newEvent(id, name string, direction catalog.Direction) catalog.Message {
 	return catalog.Message{
 		Kind:      catalog.EventMessage,
 		ID:        catalog.MessageID(id),
-		Name:      name,
+		Name:      catalog.Name(name),
 		Version:   "1.0.0",
 		Direction: direction,
 	}

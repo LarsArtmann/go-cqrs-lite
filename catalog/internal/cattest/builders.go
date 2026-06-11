@@ -23,8 +23,8 @@ func AddService(
 
 	r.AddService(catalog.Service{
 		ID:      id,
-		Name:    name,
-		Version: version,
+		Name:    catalog.Name(name),
+		Version: catalog.Version(version),
 	})
 
 	return r
@@ -41,9 +41,9 @@ func AddDomain(
 
 	r.AddDomain(catalog.Domain{
 		ID:       id,
-		Name:     name,
-		Version:  version,
-		Summary:  summary,
+		Name:     catalog.Name(name),
+		Version:  catalog.Version(version),
+		Summary:  catalog.Summary(summary),
 		Services: services,
 	})
 }
@@ -62,9 +62,9 @@ func AddMessageSimple(
 	msg := catalog.Message{
 		Kind:    kind,
 		ID:      messageID,
-		Name:    name,
-		Version: version,
-		Summary: summary,
+		Name:    catalog.Name(name),
+		Version: catalog.Version(version),
+		Summary: catalog.Summary(summary),
 	}
 
 	addFn(serviceID, msg)
@@ -85,8 +85,8 @@ func AddEventSimple(
 	msg := catalog.Message{
 		Kind:      catalog.EventMessage,
 		ID:        messageID,
-		Name:      name,
-		Version:   version,
+		Name:      catalog.Name(name),
+		Version:   catalog.Version(version),
 		Direction: direction,
 	}
 
@@ -127,8 +127,8 @@ func AddCommandWithSchema(
 	msg := catalog.Message{
 		Kind:    catalog.CommandMessage,
 		ID:      messageID,
-		Name:    name,
-		Version: version,
+		Name:    catalog.Name(name),
+		Version: catalog.Version(version),
 		Schema:  schema,
 	}
 	r.AddCommand(serviceID, msg)
@@ -149,9 +149,9 @@ func AddEventWithSummary(
 	msg := catalog.Message{
 		Kind:      catalog.EventMessage,
 		ID:        messageID,
-		Name:      name,
-		Version:   version,
-		Summary:   summary,
+		Name:      catalog.Name(name),
+		Version:   catalog.Version(version),
+		Summary:   catalog.Summary(summary),
 		Direction: direction,
 	}
 	r.AddEvent(serviceID, msg)
@@ -172,8 +172,8 @@ func AddCommandWithExamples(
 	msg := catalog.Message{
 		Kind:     catalog.CommandMessage,
 		ID:       messageID,
-		Name:     name,
-		Version:  version,
+		Name:     catalog.Name(name),
+		Version:  catalog.Version(version),
 		Examples: examples,
 	}
 	r.AddCommand(serviceID, msg)
@@ -189,7 +189,7 @@ func NewTestCreateOrderFlow(title string) catalog.Flow {
 		Steps: []catalog.FlowStep{
 			{
 				ID:        "1",
-				Title:     title,
+				Title:     catalog.Title(title),
 				Message:   &catalog.FlowStepRef{ID: string(testCreateOrderMsgID), Version: ""},
 				Summary:   "",
 				Service:   nil,
@@ -327,9 +327,9 @@ func AddServiceWithSummary(
 
 	r.AddService(catalog.Service{
 		ID:      id,
-		Name:    name,
-		Version: version,
-		Summary: summary,
+		Name:    catalog.Name(name),
+		Version: catalog.Version(version),
+		Summary: catalog.Summary(summary),
 	})
 
 	return r
@@ -345,8 +345,8 @@ func AddDataStore(
 
 	r.AddDataStore(catalog.DataStore{
 		ID:            id,
-		Name:          name,
-		Version:       version,
+		Name:          catalog.Name(name),
+		Version:       catalog.Version(version),
 		ContainerType: containerType,
 	})
 
@@ -362,12 +362,17 @@ func AddChannel(
 ) *catalog.Registry {
 	tb.Helper()
 
+	protos := make([]catalog.Protocol, len(protocols))
+	for i, p := range protocols {
+		protos[i] = catalog.Protocol(p)
+	}
+
 	r.AddChannel(catalog.Channel{
 		ID:        id,
-		Name:      name,
-		Version:   version,
-		Summary:   summary,
-		Protocols: protocols,
+		Name:      catalog.Name(name),
+		Version:   catalog.Version(version),
+		Summary:   catalog.Summary(summary),
+		Protocols: protos,
 	})
 
 	return r
@@ -381,7 +386,7 @@ func AddCreateOrderCommand(
 	tb.Helper()
 
 	r.AddCommand("order-svc", catalog.Message{
-		Kind: catalog.CommandMessage, ID: "CreateOrder", Name: name,
+		Kind: catalog.CommandMessage, ID: "CreateOrder", Name: catalog.Name(name),
 		Version: "1.0.0", Summary: "Create a new order",
 	})
 }

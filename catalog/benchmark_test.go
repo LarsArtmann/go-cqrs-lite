@@ -81,7 +81,7 @@ func BenchmarkEventCatalog_Export(b *testing.B) {
 		reg.AddEvent("svc", catalog.Message{
 			Kind:      catalog.EventMessage,
 			ID:        catalog.MessageID("Evt" + string(rune('A'+i))),
-			Name:      "Evt" + string(rune('A'+i)),
+			Name:      catalog.Name("Evt" + string(rune('A'+i))),
 			Version:   "1.0.0",
 			Direction: catalog.Sends,
 		})

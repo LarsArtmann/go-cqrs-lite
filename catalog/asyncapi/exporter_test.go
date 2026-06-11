@@ -13,7 +13,7 @@ func basicCommand(id string) catalog.Message {
 	return catalog.Message{
 		Kind:    catalog.CommandMessage,
 		ID:      catalog.MessageID(id),
-		Name:    id,
+		Name:    catalog.Name(id),
 		Version: "1.0.0",
 	}
 }

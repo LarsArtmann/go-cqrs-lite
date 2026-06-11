@@ -303,7 +303,7 @@ func TestRegistry_BuildWithChannels(t *testing.T) {
 		Name:      "Channel 1",
 		Version:   "1.0.0",
 		Address:   "topic1",
-		Protocols: []string{"kafka"},
+		Protocols: []catalog.Protocol{"kafka"},
 		Messages:  []catalog.MessageID{"msg1"},
 		Summary:   "A test channel",
 	})

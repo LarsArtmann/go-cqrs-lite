@@ -22,7 +22,7 @@ func TestExporter_Export_Channel(t *testing.T) {
 		Version:   "1.0.0",
 		Summary:   "All order-related events",
 		Address:   "orders.{env}.events",
-		Protocols: []string{"kafka"},
+		Protocols: []catalog.Protocol{"kafka"},
 		Owners:    []string{"platform-team"},
 	})
 
@@ -355,7 +355,7 @@ func TestExporter_Export_FullIntegration(t *testing.T) {
 	})
 	reg.AddChannel(catalog.Channel{
 		ID: "order-events", Name: "Order Events", Version: "1.0.0",
-		Protocols: []string{"kafka"},
+		Protocols: []catalog.Protocol{"kafka"},
 	})
 	reg.AddDataStore(catalog.DataStore{
 		ID: "orders-db", Name: "Orders DB", Version: "1.0.0",

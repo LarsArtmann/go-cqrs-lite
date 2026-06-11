@@ -45,7 +45,7 @@ func BuildTestCatalog() *catalog.Catalog {
 	})
 	reg.AddChannel(catalog.Channel{
 		ID: "order-events", Name: "Order Events", Version: testVersion,
-		Summary: "All order-related events", Protocols: []string{"kafka"},
+		Summary: "All order-related events", Protocols: []catalog.Protocol{"kafka"},
 	})
 	reg.AddDataStore(catalog.DataStore{
 		ID: "orders-db", Name: "Orders Database", Version: testVersion,

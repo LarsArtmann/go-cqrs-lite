@@ -125,7 +125,7 @@ func TestWriteServiceFrontmatter_FullFields(t *testing.T) {
 	writeSpecifications(md, svc.Specifications)
 	writeAttachments(md, svc.Attachments)
 	writeIDListField(md, "flows", svc.Flows)
-	md.finish(svc.Name, svc.Summary)
+	md.finish(string(svc.Name), string(svc.Summary))
 
 	out := md.String()
 

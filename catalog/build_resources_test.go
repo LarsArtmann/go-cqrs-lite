@@ -53,7 +53,7 @@ func TestBuilder_AddChannel(t *testing.T) {
 	b := catalog.NewBuilder("Test", "1.0.0")
 	b.AddChannel(catalog.Channel{
 		ID: "order-events", Name: "Order Events", Version: "1.0.0",
-		Protocols: []string{"kafka"}, Address: "orders.events",
+		Protocols: []catalog.Protocol{"kafka"}, Address: "orders.events",
 	})
 
 	cat := b.Build()
