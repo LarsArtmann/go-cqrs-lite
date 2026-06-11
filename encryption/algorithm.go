@@ -67,3 +67,23 @@ func ExtractKeyID(evt event.Event) (KeyID, error) {
 
 	return KeyID(v), nil
 }
+
+// KeyResolver selects a Decrypter based on the key ID embedded in an encrypted event.
+// Implementations typically look up keys from a map, vault, or KMS.
+//
+// Usage:
+//
+//	resolver := encryption.KeyResolverFunc(func(id encryption.KeyID) (encryption.Decrypter, error) {
+//	    dec, ok := keys[id]
+//	    if !ok {
+//	        return nil, fmt.Errorf("unknown key: %s", id)
+//	    }
+//	    return dec, nil
+//	})
+type KeyResolver interface {
+	Resolve(keyID KeyID) (Decrypter, error)
+}
+
+type KeyResolverFunc func(KeyID) (Decrypter, error)
+
+func (f KeyResolverFunc) Resolve(keyID KeyID) (Decrypter, error) { return f(keyID) }

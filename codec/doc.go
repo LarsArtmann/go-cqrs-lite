@@ -18,4 +18,9 @@
 //
 // The Codec is used by event.New (auto-marshal payloads), event.DecodePayload[T]
 // (typed decode), and snapshot stores (serialize aggregate state).
+//
+// The encryption module provides a composable codec wrapper (encryption.NewCodec)
+// that wraps any Codec with transparent encrypt-on-encode / decrypt-on-decode.
+// It reports its own encoding ("encrypted") and is used with event.WithCodec
+// to create events with encrypted payloads.
 package codec
