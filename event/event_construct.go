@@ -9,6 +9,12 @@ import (
 // Clone returns a deep copy of the event. The returned event is fully independent —
 // mutations to its payload or metadata will not affect the original.
 func (e *ImmutableEvent) Clone() *ImmutableEvent {
+	var clonedOpts *eventOptions
+	if e.opts != nil {
+		cloned := *e.opts
+		clonedOpts = &cloned
+	}
+
 	return &ImmutableEvent{
 		id:            e.id,
 		eventType:     e.eventType,
@@ -20,7 +26,7 @@ func (e *ImmutableEvent) Clone() *ImmutableEvent {
 		payload:       slices.Clone(e.payload),
 		metadata:      e.Metadata(),
 		occurredAt:    e.occurredAt,
-		opts:          e.opts,
+		opts:          clonedOpts,
 	}
 }
 
