@@ -6,8 +6,10 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
+	nopmetric "go.opentelemetry.io/otel/metric/noop"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -24,6 +26,37 @@ func testTracerWithRecorder() (*sdktrace.TracerProvider, *tracetest.SpanRecorder
 	provider := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
 
 	return provider, recorder
+}
+
+func TestNewMeter_UsesGlobalProvider(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
+	reader := sdkmetric.NewManualReader()
+	provider := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+	otel.SetMeterProvider(provider)
+	t.Cleanup(func() { otel.SetMeterProvider(nopmetric.NewMeterProvider()) })
+
+	m := NewMeter("coverage-test")
+	g.Expect(m).ToNot(BeNil())
+
+	counter, err := m.Int64Counter("test.counter")
+	g.Expect(err).ToNot(HaveOccurred())
+	counter.Add(context.Background(), 1)
+
+	var rm metricdata.ResourceMetrics
+	g.Expect(reader.Collect(context.Background(), &rm)).To(Succeed())
+	g.Expect(rm.ScopeMetrics).To(HaveLen(1))
+	g.Expect(rm.ScopeMetrics[0].Scope.Name).
+		To(Equal("github.com/larsartmann/go-cqrs-lite/coverage-test/v2"))
+}
+
+func TestNewMeter_NopProvider(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
+	m := NewMeter("nop-test")
+	g.Expect(m).ToNot(BeNil())
 }
 
 func TestNewTracer_ReturnsTracerWithCorrectName(t *testing.T) {

@@ -314,3 +314,27 @@ func openTestDB(t *testing.T) (*sql.DB, error) {
 
 	return sql.Open("sqlite", ":memory:")
 }
+
+func TestPostgresDialect_CommandSchema(t *testing.T) {
+	t.Parallel()
+
+	s := sqlpkg.PostgresDialect{}.CommandSchema()
+	if s == "" {
+		t.Error("CommandSchema returned empty string")
+	}
+	if !contains(s, "commands") {
+		t.Error("CommandSchema should contain 'commands' table")
+	}
+}
+
+func TestSQLiteDialect_CommandSchema(t *testing.T) {
+	t.Parallel()
+
+	s := sqlpkg.SQLiteDialect{}.CommandSchema()
+	if s == "" {
+		t.Error("CommandSchema returned empty string")
+	}
+	if !contains(s, "commands") {
+		t.Error("CommandSchema should contain 'commands' table")
+	}
+}

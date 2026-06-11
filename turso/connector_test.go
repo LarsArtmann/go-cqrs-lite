@@ -170,3 +170,63 @@ func TestBackwardCompatAliases(t *testing.T) {
 		t.Error("OpenTursoSync alias is nil")
 	}
 }
+
+func TestDbPath_IsZero(t *testing.T) {
+	t.Parallel()
+
+	if turso.DbPath("").IsZero() != true {
+		t.Error("empty DbPath should be zero")
+	}
+	if turso.DbPath("/tmp/test.db").IsZero() != false {
+		t.Error("non-empty DbPath should not be zero")
+	}
+}
+
+func TestDbPath_String(t *testing.T) {
+	t.Parallel()
+
+	p := turso.DbPath("/tmp/test.db")
+	if p.String() != "/tmp/test.db" {
+		t.Errorf("DbPath.String() = %q, want %q", p.String(), "/tmp/test.db")
+	}
+}
+
+func TestRemoteURL_IsZero(t *testing.T) {
+	t.Parallel()
+
+	if turso.RemoteURL("").IsZero() != true {
+		t.Error("empty RemoteURL should be zero")
+	}
+	if turso.RemoteURL("libsql://example.turso.io").IsZero() != false {
+		t.Error("non-empty RemoteURL should not be zero")
+	}
+}
+
+func TestRemoteURL_String(t *testing.T) {
+	t.Parallel()
+
+	u := turso.RemoteURL("libsql://example.turso.io")
+	if u.String() != "libsql://example.turso.io" {
+		t.Errorf("RemoteURL.String() = %q, want %q", u.String(), "libsql://example.turso.io")
+	}
+}
+
+func TestAuthToken_IsZero(t *testing.T) {
+	t.Parallel()
+
+	if turso.AuthToken("").IsZero() != true {
+		t.Error("empty AuthToken should be zero")
+	}
+	if turso.AuthToken("secret").IsZero() != false {
+		t.Error("non-empty AuthToken should not be zero")
+	}
+}
+
+func TestAuthToken_String(t *testing.T) {
+	t.Parallel()
+
+	a := turso.AuthToken("secret")
+	if a.String() != "secret" {
+		t.Errorf("AuthToken.String() = %q, want %q", a.String(), "secret")
+	}
+}

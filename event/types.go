@@ -234,15 +234,7 @@ func (sv SchemaVersion) Sub(n int) SchemaVersion {
 
 // Cmp compares two SchemaVersions. Returns -1, 0, or +1.
 func (sv SchemaVersion) Cmp(other SchemaVersion) int {
-	if sv < other {
-		return -1
-	}
-
-	if sv > other {
-		return 1
-	}
-
-	return 0
+	return cmp.Compare(sv, other)
 }
 
 func (v Version) MarshalJSON() ([]byte, error) { return json.Marshal(v.Int()) }
