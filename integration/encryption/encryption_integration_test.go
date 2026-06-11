@@ -31,7 +31,9 @@ func TestSignAndEncryptFullFlow(t *testing.T) {
 	xchacha, _ := encryption.NewXChaCha20Poly1305(encryptKey)
 
 	_ = bus.UsePublish(signing.SignMiddleware(hmacSigner))
-	_ = bus.UsePublish(encryption.EncryptMiddleware(xchacha, encryption.WithMiddlewareKeyID(encryption.KeyID("key-v1"))))
+	_ = bus.UsePublish(
+		encryption.EncryptMiddleware(xchacha, encryption.WithMiddlewareKeyID(encryption.KeyID("key-v1"))),
+	)
 
 	_ = bus.Use(encryption.DecryptMiddleware(xchacha))
 	_ = bus.Use(signing.VerifyMiddleware(hmacSigner))
