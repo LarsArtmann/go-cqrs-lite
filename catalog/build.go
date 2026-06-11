@@ -52,7 +52,7 @@ func (b *Builder) AddDomain(
 	id DomainID, name, version, summary string,
 	serviceIDs ...ServiceID,
 ) {
-	b.registry.AddDomain(Domain{ //nolint:exhaustruct
+	b.registry.AddDomain(Domain{ //nolint:exhaustruct // optional fields omitted by design
 		ID:       id,
 		Name:     Name(name),
 		Version:  Version(version),

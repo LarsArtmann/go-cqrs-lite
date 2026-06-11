@@ -59,7 +59,7 @@ func AssertGolden(t *testing.T, goldenPath string, got []byte, update bool, mism
 	t.Helper()
 
 	if update {
-		err := os.WriteFile(goldenPath, append(got, '\n'), 0o644) //nolint:mnd
+		err := os.WriteFile(goldenPath, append(got, '\n'), 0o644) //nolint:mnd // standard file permission
 		if err != nil {
 			t.Fatalf("write golden: %v", err)
 		}

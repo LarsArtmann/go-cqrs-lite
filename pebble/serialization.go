@@ -120,11 +120,11 @@ type serializableEvent struct {
 	ID            id.EventID     `json:"id"`
 	Type          string         `json:"type"`
 	AggregateID   id.AggregateID `json:"aggregate_id"`   //nolint:tagliatelle // on-disk format uses snake_case
-	AggregateType string         `json:"aggregate_type"` //nolint:tagliatelle
+	AggregateType string         `json:"aggregate_type"` //nolint:tagliatelle // on-disk/external format uses snake_case
 	Version       int            `json:"version"`
-	SchemaVersion int            `json:"schema_version,omitempty"` //nolint:tagliatelle
+	SchemaVersion int            `json:"schema_version,omitempty"` //nolint:tagliatelle // on-disk/external format uses snake_case
 	Payload       []byte         `json:"payload"`
-	OccurredAt    int64          `json:"occurred_at"` //nolint:tagliatelle
+	OccurredAt    int64          `json:"occurred_at"` //nolint:tagliatelle // on-disk/external format uses snake_case
 	Metadata      event.Metadata `json:"metadata"`
 	Encoding      string         `json:"encoding,omitempty"`
 }

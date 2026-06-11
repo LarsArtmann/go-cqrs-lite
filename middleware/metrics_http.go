@@ -12,14 +12,14 @@ import (
 // JSON tags use snake_case per Prometheus/OpenMetrics convention.
 type MetricsSnapshot struct {
 	Timestamp     string  `json:"timestamp"`
-	UptimeSeconds float64 `json:"uptime_seconds"`  //nolint:tagliatelle
-	RequestsTotal uint64  `json:"requests_total"`  //nolint:tagliatelle
-	RequestsError uint64  `json:"requests_error"`  //nolint:tagliatelle
-	AvgResponseMs float64 `json:"avg_response_ms"` //nolint:tagliatelle
+	UptimeSeconds float64 `json:"uptime_seconds"`  //nolint:tagliatelle // on-disk/external format uses snake_case
+	RequestsTotal uint64  `json:"requests_total"`  //nolint:tagliatelle // on-disk/external format uses snake_case
+	RequestsError uint64  `json:"requests_error"`  //nolint:tagliatelle // on-disk/external format uses snake_case
+	AvgResponseMs float64 `json:"avg_response_ms"` //nolint:tagliatelle // on-disk/external format uses snake_case
 	Goroutines    int     `json:"goroutines"`
-	MemoryAllocMB float64 `json:"memory_alloc_mb"` //nolint:tagliatelle
-	MemorySysMB   float64 `json:"memory_sys_mb"`   //nolint:tagliatelle
-	GCCount       uint32  `json:"gc_count"`        //nolint:tagliatelle
+	MemoryAllocMB float64 `json:"memory_alloc_mb"` //nolint:tagliatelle // on-disk/external format uses snake_case
+	MemorySysMB   float64 `json:"memory_sys_mb"`   //nolint:tagliatelle // on-disk/external format uses snake_case
+	GCCount       uint32  `json:"gc_count"`        //nolint:tagliatelle // on-disk/external format uses snake_case
 }
 
 // MetricsCollector tracks HTTP request metrics.

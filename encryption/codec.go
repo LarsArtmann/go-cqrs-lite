@@ -42,7 +42,7 @@ func (c *encryptingCodec) Encode(v any) ([]byte, error) {
 
 func (c *encryptingCodec) Decode(data []byte, v any) error {
 	if len(data) == 0 {
-		return c.inner.Decode(data, v) //nolint:wrapcheck
+		return c.inner.Decode(data, v) //nolint:wrapcheck // transparent delegation
 	}
 
 	plaintext, err := c.decrypter.Decrypt(Ciphertext(data))
@@ -50,5 +50,5 @@ func (c *encryptingCodec) Decode(data []byte, v any) error {
 		return fmt.Errorf("encryption codec: decrypt: %w", err)
 	}
 
-	return c.inner.Decode(plaintext, v) //nolint:wrapcheck
+	return c.inner.Decode(plaintext, v) //nolint:wrapcheck // transparent delegation
 }

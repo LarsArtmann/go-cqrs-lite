@@ -148,7 +148,7 @@ func (s *MemoryCommandStore) LoadToTimestamp(
 
 // Close marks the store as closed. Subsequent operations return ErrStoreClosed.
 func (s *MemoryCommandStore) Close() error {
-	return s.Lifecycle.Close() //nolint:wrapcheck
+	return s.Lifecycle.Close() //nolint:wrapcheck // transparent delegation, caller wraps
 }
 
 func (s *MemoryCommandStore) checkDuplicate(cmdID id.CommandID, suffix string) error {

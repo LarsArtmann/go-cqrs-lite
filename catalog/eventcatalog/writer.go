@@ -11,7 +11,7 @@ import (
 )
 
 func (e *Exporter) writeMDXFile(path, content string) error {
-	return os.WriteFile(path, []byte(content), filePerm) //nolint:wrapcheck
+	return os.WriteFile(path, []byte(content), filePerm) //nolint:wrapcheck // os.WriteFile returns direct error
 }
 
 func (e *Exporter) writeSchema(dir string, schema *catalog.Schema) error {
@@ -27,7 +27,7 @@ func (e *Exporter) writeSchema(dir string, schema *catalog.Schema) error {
 		return fmt.Errorf("marshal schema: %w", err)
 	}
 
-	return os.WriteFile(filepath.Join(schemaDir, "schema.json"), data, filePerm) //nolint:wrapcheck
+	return os.WriteFile(filepath.Join(schemaDir, "schema.json"), data, filePerm) //nolint:wrapcheck // os.WriteFile returns direct error
 }
 
 func (e *Exporter) writeExamples(dir string, examples []json.RawMessage) error {
@@ -40,7 +40,7 @@ func (e *Exporter) writeExamples(dir string, examples []json.RawMessage) error {
 		return fmt.Errorf("marshal examples for dir %s: %w", dir, err)
 	}
 
-	return os.WriteFile(filepath.Join(dir, "examples.json"), data, filePerm) //nolint:wrapcheck
+	return os.WriteFile(filepath.Join(dir, "examples.json"), data, filePerm) //nolint:wrapcheck // os.WriteFile returns direct error
 }
 
 func (e *Exporter) writeConfig(cat *catalog.Catalog) error {
@@ -81,7 +81,7 @@ func (e *Exporter) writePackageJSON(cat *catalog.Catalog) error {
 		return fmt.Errorf("marshal package.json: %w", err)
 	}
 
-	return os.WriteFile( //nolint:wrapcheck
+	return os.WriteFile( //nolint:wrapcheck // os.WriteFile returns direct error
 		filepath.Join(e.outputDir, "package.json"),
 		data,
 		filePerm,

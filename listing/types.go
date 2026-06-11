@@ -15,8 +15,8 @@ type AggregateListing struct {
 	ID          id.AggregateID      `json:"id"`
 	Type        event.AggregateType `json:"type"`
 	Version     event.Version       `json:"version"`
-	EventCount  uint                `json:"event_count"`   //nolint:tagliatelle
-	LastEventAt time.Time           `json:"last_event_at"` //nolint:tagliatelle
+	EventCount  uint                `json:"event_count"`   //nolint:tagliatelle // on-disk/external format uses snake_case
+	LastEventAt time.Time           `json:"last_event_at"` //nolint:tagliatelle // on-disk/external format uses snake_case
 }
 
 // AggregateStatus pairs an aggregate with its computed tombstone state.

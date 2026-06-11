@@ -201,7 +201,7 @@ func (ds *DocsServer) serveJSON(w http.ResponseWriter, v any) {
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "  ")
 
-	//nolint:errchkjson
+	//nolint:errchkjson // known-safe JSON template string
 	_ = enc.Encode(v)
 }
 

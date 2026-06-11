@@ -9,7 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
-type Ciphertext []byte //nolint:recvcheck
+type Ciphertext []byte //nolint:recvcheck // value receiver for immutable type
 
 func (c Ciphertext) IsZero() bool { return len(c) == 0 }
 

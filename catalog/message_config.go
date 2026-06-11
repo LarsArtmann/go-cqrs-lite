@@ -34,7 +34,7 @@ type messageBuilder struct {
 }
 
 func (m *messageBuilder) apply(serviceID ServiceID, reg *Registry) {
-	msg := Message{ //nolint:exhaustruct
+	msg := Message{ //nolint:exhaustruct // optional fields omitted by design
 		Kind:       m.kind,
 		ID:         m.id,
 		Name:       Name(m.name),
@@ -169,7 +169,7 @@ func newMessageBuilder[T any](
 	name := camelCaseToHuman(rt.Name())
 	sch := schema.FromReflect(rt)
 
-	msgBuilder := &messageBuilder{ //nolint:exhaustruct
+	msgBuilder := &messageBuilder{ //nolint:exhaustruct // optional fields omitted by design
 		kind:      kind,
 		id:        id,
 		name:      name,
@@ -187,7 +187,7 @@ func newMessageBuilder[T any](
 }
 
 func camelCaseToHuman(s string) string {
-	knownSuffixes := []string{"Command", "Cmd", "Event", "Evt", "Query", "Qry"} //nolint:goconst
+	knownSuffixes := []string{"Command", "Cmd", "Event", "Evt", "Query", "Qry"} //nolint:goconst // intentional suffix list
 
 	for _, suffix := range knownSuffixes {
 		if stripped, ok := strings.CutSuffix(s, suffix); ok && stripped != "" {

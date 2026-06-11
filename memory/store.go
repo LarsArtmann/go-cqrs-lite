@@ -93,7 +93,7 @@ func (s *MemoryStore) AppendBatch(
 
 // Close marks the store as closed. Subsequent operations return ErrStoreClosed.
 func (s *MemoryStore) Close() error {
-	return s.Lifecycle.Close() //nolint:wrapcheck
+	return s.Lifecycle.Close() //nolint:wrapcheck // transparent delegation, caller wraps
 }
 
 func (s *MemoryStore) appendToGlobalLog(streamKey string, events []event.Event) {

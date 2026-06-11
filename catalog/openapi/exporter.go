@@ -98,7 +98,7 @@ func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 
 func jsonContent(schema any) map[string]MediaType {
 	return map[string]MediaType{
-		contentType: {Schema: schema}, //nolint:exhaustruct
+		contentType: {Schema: schema}, //nolint:exhaustruct // optional fields omitted by design
 	}
 }
 
@@ -124,9 +124,9 @@ func (e *Exporter) addCommand(
 
 	obj := objectSchema()
 
-	//nolint:exhaustruct
+	//nolint:exhaustruct // optional fields omitted by design
 	doc.Paths[path] = &PathItem{
-		Post: &Operation{ //nolint:exhaustruct
+		Post: &Operation{ //nolint:exhaustruct // optional fields omitted by design
 			Tags:        []string{tagName},
 			Summary:     string(msg.Name),
 			Description: string(msg.Summary),
@@ -154,7 +154,7 @@ func (e *Exporter) addQuery(
 	path := fmt.Sprintf("%s/%s/%s", e.basePath, serviceID, caseutil.ToKebab(string(msg.ID)))
 	schemaRef := e.addSchema(doc, msg)
 
-	op := &Operation{ //nolint:exhaustruct
+	op := &Operation{ //nolint:exhaustruct // optional fields omitted by design
 		Tags:        []string{tagName},
 		Summary:     string(msg.Name),
 		Description: string(msg.Summary),
@@ -168,7 +168,7 @@ func (e *Exporter) addQuery(
 
 	path, op.Parameters = extractIDParameter(path, msg.Schema)
 
-	//nolint:exhaustruct
+	//nolint:exhaustruct // optional fields omitted by design
 	doc.Paths[path] = &PathItem{
 		Get: op,
 	}
@@ -204,9 +204,9 @@ func (e *Exporter) addEvent(
 	path := fmt.Sprintf("%s/%s/events/%s", e.basePath, serviceID, caseutil.ToKebab(string(msg.ID)))
 	schemaRef := e.addSchema(doc, msg)
 
-	//nolint:exhaustruct
+	//nolint:exhaustruct // optional fields omitted by design
 	doc.Paths[path] = &PathItem{
-		Post: &Operation{ //nolint:exhaustruct
+		Post: &Operation{ //nolint:exhaustruct // optional fields omitted by design
 			Tags:        []string{tagName},
 			Summary:     "Event: " + string(msg.Name),
 			Description: string(msg.Summary),

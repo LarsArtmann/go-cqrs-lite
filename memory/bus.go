@@ -214,5 +214,5 @@ func (b *MemoryBus) SubscribeAll(handler event.Handler) error {
 
 // Close marks the bus as closed. Subsequent Publish, Subscribe, or Use calls return ErrBusClosed.
 func (b *MemoryBus) Close() error {
-	return b.Lifecycle.Close() //nolint:wrapcheck
+	return b.Lifecycle.Close() //nolint:wrapcheck // transparent delegation, caller wraps
 }

@@ -57,7 +57,7 @@ func opError(
 ) error {
 	prefix := ref.Type.String() + " " + ref.ID.String() + ": "
 
-	inner := fmt.Errorf(prefix+msg, args...) //nolint:err113
+	inner := fmt.Errorf(prefix+msg, args...) //nolint:err113 // dynamic error message in hot path
 
 	family := event.Classify(inner)
 	if family == event.Rejection || family == event.Conflict ||

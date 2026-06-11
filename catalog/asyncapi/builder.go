@@ -13,7 +13,7 @@ func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 
 	if e.host != "" {
 		doc.Servers = map[string]Server{
-			e.serverName: { //nolint:exhaustruct
+			e.serverName: { //nolint:exhaustruct // optional fields omitted by design
 				Host: e.host, Protocol: e.protocol,
 				Description: "Message broker",
 			},
@@ -26,7 +26,7 @@ func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 }
 
 func (e *Exporter) newDocument() *Document {
-	return &Document{ //nolint:exhaustruct
+	return &Document{ //nolint:exhaustruct // optional fields omitted by design
 		AsyncAPI: asyncAPIVersion,
 		ID: URI(fmt.Sprintf(
 			"urn:%s:api",
