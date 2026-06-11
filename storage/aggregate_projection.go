@@ -4,29 +4,15 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"regexp"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
 )
 
-var validListingTablePrefix = regexp.MustCompile(`^[a-z_][a-z0-9_]*$`)
-
-func validateListingTablePrefix(prefix string) error {
-	if !validListingTablePrefix.MatchString(prefix) {
-		return event.NewRejection(
-			"listing.invalid_table_prefix",
-			"invalid table prefix: must match ^[a-z_][a-z0-9_]*$",
-		)
-	}
-
-	return nil
-}
-
 type AggregateProjection struct {
-	db        *sql.DB
-	dialect   sqlpkg.Dialect
-	tableName string
+	db      *sql.DB
+	dialect sqlpkg.Dialect
+	table   listingTable
 }
 
 func NewAggregateProjection(
@@ -35,16 +21,16 @@ func NewAggregateProjection(
 	tablePrefix string,
 	dialect sqlpkg.Dialect,
 ) (*AggregateProjection, error) {
-	err := validateListingTablePrefix(tablePrefix)
+	tbl, err := newListingTable(tablePrefix)
 	if err != nil {
 		return nil, event.WrapRejection(err, "listing.invalid_table_prefix",
 			fmt.Sprintf("invalid table prefix %q", tablePrefix))
 	}
 
 	p := &AggregateProjection{
-		db:        db,
-		dialect:   dialect,
-		tableName: tablePrefix + "listing_aggregates",
+		db:      db,
+		dialect: dialect,
+		table:   tbl,
 	}
 
 	err = p.createTable(ctx)
