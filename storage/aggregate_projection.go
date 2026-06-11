@@ -66,7 +66,7 @@ func (p *AggregateProjection) Handle(ctx context.Context, evt event.Event) error
 				ON CONFLICT (aggregate_type, aggregate_id) DO UPDATE SET
 					version = excluded.version,
 					event_count = %s.event_count + 1,
-					last_event_at = excluded.last_event_at`, p.tableName, p1, p2, p3, p4, p.tableName),
+					last_event_at = excluded.last_event_at`, p.table.name, p1, p2, p3, p4, p.table.name),
 			evt.AggregateType(),
 			evt.AggregateID().String(),
 			evt.Version().Int(),
@@ -91,7 +91,7 @@ func (p *AggregateProjection) Handle(ctx context.Context, evt event.Event) error
 				version = excluded.version,
 				event_count = %s.event_count + 1,
 				last_event_at = excluded.last_event_at,
-				tombstone_status = excluded.tombstone_status`, p.tableName, p1, p2, p3, p4, p5, p.tableName),
+				tombstone_status = excluded.tombstone_status`, p.table.name, p1, p2, p3, p4, p5, p.table.name),
 		evt.AggregateType(),
 		evt.AggregateID().String(),
 		evt.Version().Int(),
@@ -111,7 +111,7 @@ func (p *AggregateProjection) createTable(ctx context.Context) error {
 		last_event_at   TIMESTAMP NOT NULL,
 		tombstone_status INT NOT NULL DEFAULT 0,
 		PRIMARY KEY (aggregate_type, aggregate_id)
-	)`, p.tableName))
+	)`, p.table.name))
 
 	return err
 }

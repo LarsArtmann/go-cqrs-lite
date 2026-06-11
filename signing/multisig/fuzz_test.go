@@ -328,15 +328,3 @@ func FuzzMultiSig_Ed25519KeyLength(f *testing.F) {
 		}
 	})
 }
-
-// idNewAggregateID is a tiny inline helper to avoid importing id in this file
-// (we already depend on signing/multisig's transitive deps).
-func idNewAggregateID() idLikeAggregateID { return randID() }
-
-// We can't import id directly without a go.mod change; use ULID-style string.
-type idLikeAggregateID = signingID
-
-// signingID is a minimal stand-in: the multi-sig code only uses
-// evt.AggregateID() in the Sign path, not for cryptographic purposes. We
-// can pass any non-empty string. But event.NewEvent takes id.AggregateID — so
-// we need a real import. Add it.
