@@ -51,7 +51,7 @@ func generateEventCatalog(outputDir string) error {
 	builder.AddChannel(catalog.Channel{
 		ID: "user-events", Name: "User Events", Version: "1.0.0",
 		Summary:   "All user-related domain events",
-		Protocols: []string{"kafka"},
+		Protocols: []catalog.Protocol{"kafka"},
 	})
 
 	builder.AddTeam(catalog.Team{

@@ -55,8 +55,8 @@ func addEvent(
 	}
 
 	reg.AddEvent("user-service", catalog.Message{
-		Kind: catalog.EventMessage, ID: msgID, Name: name,
-		Version: "1.0.0", Summary: summary, Direction: direction,
+		Kind: catalog.EventMessage, ID: msgID, Name: catalog.Name(name),
+		Version: "1.0.0", Summary: catalog.Summary(summary), Direction: direction,
 		Schema: schema,
 	})
 }
