@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2/internal/testutil"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2/multisig"
@@ -205,9 +206,8 @@ func FuzzMultiSig_ExtractFromCorruptJSON(f *testing.F) {
 	f.Add(`{"entries":[{"actor":"","algorithm":"","sig":"","signedAt":""}]}`)
 
 	f.Fuzz(func(t *testing.T, jsonValue string) {
-		aggID := idNewAggregateID()
 		evt, err := event.NewEvent(
-			"test.fuzz", aggID, "Test", 1, nil,
+			"test.fuzz", id.NewAggregateID(), "Test", 1, nil,
 			event.WithMetadata(event.Metadata{
 				Custom: map[event.MetadataKey]string{
 					multisig.MultiSigMetadataKey: jsonValue,
