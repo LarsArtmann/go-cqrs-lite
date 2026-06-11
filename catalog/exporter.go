@@ -12,6 +12,6 @@ type Exporter[T any] interface {
 
 // ErrorExporter is a variant of Exporter that can fail.
 // Use this for exporters that write to filesystem or external services.
-type ErrorExporter interface {
-	Export(cat *Catalog) error
-}
+//
+// Deprecated: Use Exporter[error] instead.
+type ErrorExporter = Exporter[error]
