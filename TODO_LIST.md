@@ -46,7 +46,7 @@
 - [x] ~~Fix catalog/registry.go Build() corruption + nondeterministic maps~~ — DONE
 - [x] ~~Fix catalog/docserver XSS~~ — DONE (html/template)
 - [x] ~~Fix watermill double-close panic~~ — DONE (sync.Once)
-- [x] ~~Fix watermill MustParse* panic on untrusted input~~ — DONE (Parse* + error return)
+- [x] ~~Fix watermill MustParse\* panic on untrusted input~~ — DONE (Parse\* + error return)
 - [x] ~~Fix memory/checkpoint missing CheckClosed~~ — DONE
 - [x] ~~Fix signing middleware nil signer/verifier panic~~ — DONE
 - [x] ~~Fix cmd/api-stability wrong module paths~~ — DONE
@@ -210,8 +210,8 @@
 - [ ] **Verify all `//nolint` comments have justification** — Most suppressions lack explanation. Standardize `//nolint:linter // reason` format
 - [ ] **Audit and reduce nolint suppressions** — 123 total across project. 31 `errcheck`, 25 `wrapcheck`, 23 `exhaustruct`
 - [ ] **Reduce catalog/ nolint suppressions** — 36 total, worst package. Suggests design issues
-- [x] ~~**Fix catalog/registry_build.go deduplication~~ — DONE (generic `sortedCopy[K, V, S]`)
-- [x] ~~**Fix catalog/registry_copy.go deduplication~~ — DONE (generic `copyPtr[T]`)
+- [x] ~~\*\*Fix catalog/registry_build.go deduplication~~ — DONE (generic `sortedCopy[K, V, S]`)
+- [x] ~~\*\*Fix catalog/registry_copy.go deduplication~~ — DONE (generic `copyPtr[T]`)
 
 ### Documentation
 
@@ -222,12 +222,12 @@
 - [ ] **Add listing/ package-level example** — `List`, `StatusMiddleware`, `InMemoryAggregateReader`
 - [ ] **Add README section linking to docs/benchmarks/** — Consumers should know perf characteristics exist
 - [ ] **Document CBOR usage patterns** — codec/README.md exists but lacks consumer-facing CBOR examples
-- [x] ~~**Document time-travel API~~ — DONE
-- [x] ~~**Document "state is disposable"~~ — DONE
-- [x] ~~**Document determinism rule~~ — DONE
-- [x] ~~**Document versioned event names convention~~ — DONE
-- [x] ~~**Document soft deletes over hard deletes~~ — DONE
-- [x] ~~**Document offline-first metadata conventions~~ — DONE
+- [x] ~~\*\*Document time-travel API~~ — DONE
+- [x] ~~\*\*Document "state is disposable"~~ — DONE
+- [x] ~~\*\*Document determinism rule~~ — DONE
+- [x] ~~\*\*Document versioned event names convention~~ — DONE
+- [x] ~~\*\*Document soft deletes over hard deletes~~ — DONE
+- [x] ~~\*\*Document offline-first metadata conventions~~ — DONE
 
 ### Performance
 
@@ -259,7 +259,7 @@
 - [ ] **Fix CBOR fuzz test** — Uses JSONCodec as intermediary decoder, should use pure CBOR seed corpus
 - [ ] **Add CBOR DecMode configuration** — Match encode/decode expectations, enable strict mode
 - [ ] **Evaluate CoreDetEncOptions vs CanonicalEncOptions** — Which is right default for signing safety?
-- [x] ~~**Fix codec/raw.go json.RawMessage support~~ — DONE
+- [x] ~~\*\*Fix codec/raw.go json.RawMessage support~~ — DONE
 
 ### v2 Breaking Changes (Deferred)
 

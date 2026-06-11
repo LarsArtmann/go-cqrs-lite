@@ -1724,7 +1724,8 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
             <code>json</code> with <code>cbor</code> &mdash; same struct, same tags, no base64. With
             custom binary, replace the entire function with <code>BinaryCodec.Encode(evt)</code>.
             FlatBuffers would replace it with flat buffer construction.
-            <strong>Status:</strong> Phase 2 done. Pebble uses CBOR canonical encoding with JSON backward compat.
+            <strong>Status:</strong> Phase 2 done. Pebble uses CBOR canonical encoding with JSON
+            backward compat.
           </p>
 
           <h3>SQL store</h3>
@@ -1876,16 +1877,19 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
               <div class="phase-line"></div>
             </div>
             <div>
-              <div class="phase-label">Phase 2 &middot; Integration <span class="verdict-tag done">DONE</span></div>
+              <div class="phase-label">
+                Phase 2 &middot; Integration <span class="verdict-tag done">DONE</span>
+              </div>
               <div class="phase-title">Pebble CBOR Envelope Migration</div>
               <div class="phase-desc">
                 Switched <code>pebble/serialization.go</code> from
-                <code>json.Marshal(serializableEvent{})</code> to CBOR canonical encoding.
-                Format sniff (<code>isCBOR()</code>) reads both CBOR (current) and JSON (legacy)
-                envelopes for backward compatibility. Base64 tax eliminated.
+                <code>json.Marshal(serializableEvent{})</code> to CBOR canonical encoding. Format
+                sniff (<code>isCBOR()</code>) reads both CBOR (current) and JSON (legacy) envelopes
+                for backward compatibility. Base64 tax eliminated.
               </div>
               <div class="phase-detail">
-                <strong>Shipped</strong> &middot; 12 new tests, 2 fuzz tests, 3 benchmarks &middot; All existing tests pass
+                <strong>Shipped</strong> &middot; 12 new tests, 2 fuzz tests, 3 benchmarks &middot;
+                All existing tests pass
               </div>
             </div>
           </div>
