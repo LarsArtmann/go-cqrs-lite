@@ -27,7 +27,11 @@ func (e *Exporter) writeSchema(dir string, schema *catalog.Schema) error {
 		return fmt.Errorf("marshal schema: %w", err)
 	}
 
-	return os.WriteFile(filepath.Join(schemaDir, "schema.json"), data, filePerm) //nolint:wrapcheck // os.WriteFile returns direct error
+	return os.WriteFile( //nolint:wrapcheck // os.WriteFile returns direct error
+		filepath.Join(schemaDir, "schema.json"),
+		data,
+		filePerm,
+	)
 }
 
 func (e *Exporter) writeExamples(dir string, examples []json.RawMessage) error {
@@ -40,7 +44,11 @@ func (e *Exporter) writeExamples(dir string, examples []json.RawMessage) error {
 		return fmt.Errorf("marshal examples for dir %s: %w", dir, err)
 	}
 
-	return os.WriteFile(filepath.Join(dir, "examples.json"), data, filePerm) //nolint:wrapcheck // os.WriteFile returns direct error
+	return os.WriteFile( //nolint:wrapcheck // os.WriteFile returns direct error
+		filepath.Join(dir, "examples.json"),
+		data,
+		filePerm,
+	)
 }
 
 func (e *Exporter) writeConfig(cat *catalog.Catalog) error {
