@@ -16,7 +16,7 @@ func (c *CreateUserCmd) AggregateID() id.AggregateID { return c.aggregateID }
 
 type ChangeUserNameCmd struct {
 	aggregateID id.AggregateID
-	name        string
+	name        DisplayName
 }
 
 func (c *ChangeUserNameCmd) Type() command.Type          { return cmdChangeUserName }

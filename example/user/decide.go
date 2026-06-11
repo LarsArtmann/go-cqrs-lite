@@ -18,6 +18,13 @@ func decideCreateUser(
 		}
 
 		if email == "" {
+			return nil, event.NewRejection("user.create.email_required",
+				"email is required")
+		}
+
+		evt, err := event.NewEvent(
+			eventUserCreated, aggID, aggregateType, version.Increment(),
+			mustMarshal(UserCreatedPayload{Email: string(email), Name: string(name)}),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("create UserCreated event: %w", err)
@@ -29,7 +36,7 @@ func decideCreateUser(
 
 func decideChangeName(
 	aggID id.AggregateID,
-	name string,
+	name DisplayName,
 ) func(UserState, event.Version) ([]event.Event, error) {
 	return func(state UserState, version event.Version) ([]event.Event, error) {
 		if state.Email == "" {
@@ -49,7 +56,7 @@ func decideChangeName(
 
 		evt, err := event.NewEvent(
 			eventUserNameChanged, aggID, aggregateType, version.Increment(),
-			mustMarshal(UserNameChangedPayload{Name: name}),
+			mustMarshal(UserNameChangedPayload{Name: string(name)}),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("create UserNameChanged event: %w", err)
@@ -61,7 +68,7 @@ func decideChangeName(
 
 func decideDeleteUser(
 	aggID id.AggregateID,
-	reason string,
+	reason Reason,
 ) func(UserState, event.Version) ([]event.Event, error) {
 	return func(state UserState, version event.Version) ([]event.Event, error) {
 		if state.Email == "" {
@@ -76,7 +83,7 @@ func decideDeleteUser(
 
 		evt, err := event.NewEvent(
 			eventUserDeleted, aggID, aggregateType, version.Increment(),
-			mustMarshal(UserDeletedPayload{Reason: reason}),
+			mustMarshal(UserDeletedPayload{Reason: string(reason)}),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("create UserDeleted event: %w", err)
@@ -93,7 +100,7 @@ func decideDeleteUser(
 
 func decideRebirthUser(
 	aggID id.AggregateID,
-	email, name string,
+	email Email, name DisplayName,
 ) func(UserState, event.Version) ([]event.Event, error) {
 	return func(state UserState, version event.Version) ([]event.Event, error) {
 		if !state.Deleted {
@@ -108,7 +115,7 @@ func decideRebirthUser(
 
 		evt, err := event.NewEvent(
 			eventUserReborn, aggID, aggregateType, version.Increment(),
-			mustMarshal(UserRebornPayload{Email: email, Name: name}),
+			mustMarshal(UserRebornPayload{Email: string(email), Name: string(name)}),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("create UserReborn event: %w", err)

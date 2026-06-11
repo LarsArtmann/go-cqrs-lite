@@ -19,7 +19,15 @@ func TestFold_Created(t *testing.T) {
 	t.Parallel()
 	aggID := testAggID()
 	now := time.Now().UTC()
-	events := mustDecide(aggregate.DecideCreate(aggID, domain.Title("Title"), domain.Description("desc"), domain.Priority(1), []string{"tag"}))
+	events := mustDecide(
+		aggregate.DecideCreate(
+			aggID,
+			domain.Title("Title"),
+			domain.Description("desc"),
+			domain.Priority(1),
+			[]string{"tag"},
+		),
+	)
 
 	state, err := aggregate.Fold(aggregate.InitialState, events[0])
 	if err != nil {
@@ -53,7 +61,11 @@ func TestFold_Created(t *testing.T) {
 func TestFold_Updated(t *testing.T) {
 	t.Parallel()
 	aggID := testAggID()
-	events := createThenDecide(t, aggID, aggregate.DecideUpdate(aggID, domain.Title("New Title"), domain.Description("new desc")))
+	events := createThenDecide(
+		t,
+		aggID,
+		aggregate.DecideUpdate(aggID, domain.Title("New Title"), domain.Description("new desc")),
+	)
 
 	state := foldAll(t, events)
 
@@ -117,7 +129,9 @@ func TestFold_Deleted(t *testing.T) {
 
 func TestDecideCreate_Success(t *testing.T) {
 	t.Parallel()
-	events := mustDecide(aggregate.DecideCreate(testAggID(), domain.Title("Title"), domain.Description("desc"), domain.Priority(1), nil))
+	events := mustDecide(
+		aggregate.DecideCreate(testAggID(), domain.Title("Title"), domain.Description("desc"), domain.Priority(1), nil),
+	)
 
 	if len(events) != 1 {
 		t.Fatalf("events count = %d, want 1", len(events))
@@ -129,7 +143,9 @@ func TestDecideCreate_Success(t *testing.T) {
 
 func TestDecideCreate_EmptyTitle(t *testing.T) {
 	t.Parallel()
-	_, err := invoke(aggregate.DecideCreate(testAggID(), domain.Title(""), domain.Description("desc"), domain.Priority(1), nil))
+	_, err := invoke(
+		aggregate.DecideCreate(testAggID(), domain.Title(""), domain.Description("desc"), domain.Priority(1), nil),
+	)
 	if !errors.Is(err, domain.ErrEmptyTitle) {
 		t.Errorf("error = %v, want ErrEmptyTitle", err)
 	}
@@ -138,7 +154,9 @@ func TestDecideCreate_EmptyTitle(t *testing.T) {
 func TestDecideCreate_AlreadyExists(t *testing.T) {
 	t.Parallel()
 	aggID := testAggID()
-	created := mustDecide(aggregate.DecideCreate(aggID, domain.Title("First"), domain.Description(""), domain.Priority(1), nil))
+	created := mustDecide(
+		aggregate.DecideCreate(aggID, domain.Title("First"), domain.Description(""), domain.Priority(1), nil),
+	)
 	state := foldAll(t, created)
 
 	_, err := invoke(
@@ -154,7 +172,11 @@ func TestDecideCreate_AlreadyExists(t *testing.T) {
 func TestDecideUpdate_Success(t *testing.T) {
 	t.Parallel()
 	aggID := testAggID()
-	events := createThenDecide(t, aggID, aggregate.DecideUpdate(aggID, domain.Title("Updated"), domain.Description("new desc")))
+	events := createThenDecide(
+		t,
+		aggID,
+		aggregate.DecideUpdate(aggID, domain.Title("Updated"), domain.Description("new desc")),
+	)
 
 	if len(events) != 2 {
 		t.Fatalf("events count = %d, want 2", len(events))
@@ -170,10 +192,16 @@ func TestDecideUpdate_Success(t *testing.T) {
 func TestDecideUpdate_EmptyTitle(t *testing.T) {
 	t.Parallel()
 	aggID := testAggID()
-	created := mustDecide(aggregate.DecideCreate(aggID, domain.Title("Title"), domain.Description(""), domain.Priority(1), nil))
+	created := mustDecide(
+		aggregate.DecideCreate(aggID, domain.Title("Title"), domain.Description(""), domain.Priority(1), nil),
+	)
 	state := foldAll(t, created)
 
-	_, err := invoke(aggregate.DecideUpdate(aggID, domain.Title(""), domain.Description("desc")), withState(state), withVersion(1))
+	_, err := invoke(
+		aggregate.DecideUpdate(aggID, domain.Title(""), domain.Description("desc")),
+		withState(state),
+		withVersion(1),
+	)
 	if !errors.Is(err, domain.ErrEmptyTitle) {
 		t.Errorf("error = %v, want ErrEmptyTitle", err)
 	}
@@ -184,7 +212,11 @@ func TestDecideUpdate_Deleted(t *testing.T) {
 	aggID := testAggID()
 	state := createDeleteState(t, aggID)
 
-	_, err := invoke(aggregate.DecideUpdate(aggID, domain.Title("New"), domain.Description("desc")), withState(state), withVersion(2))
+	_, err := invoke(
+		aggregate.DecideUpdate(aggID, domain.Title("New"), domain.Description("desc")),
+		withState(state),
+		withVersion(2),
+	)
 	if !errors.Is(err, domain.ErrNotFound) {
 		t.Errorf("error = %v, want ErrNotFound", err)
 	}
@@ -259,7 +291,9 @@ func TestDecideChangeStatus_Completed(t *testing.T) {
 func TestDecideChangeStatus_Invalid(t *testing.T) {
 	t.Parallel()
 	aggID := testAggID()
-	created := mustDecide(aggregate.DecideCreate(aggID, domain.Title("Title"), domain.Description(""), domain.Priority(1), nil))
+	created := mustDecide(
+		aggregate.DecideCreate(aggID, domain.Title("Title"), domain.Description(""), domain.Priority(1), nil),
+	)
 	state := foldAll(t, created)
 
 	_, err := invoke(
@@ -324,7 +358,9 @@ func TestTodoState_IsNew(t *testing.T) {
 	}
 
 	aggID := testAggID()
-	events := mustDecide(aggregate.DecideCreate(aggID, domain.Title("Title"), domain.Description(""), domain.Priority(1), nil))
+	events := mustDecide(
+		aggregate.DecideCreate(aggID, domain.Title("Title"), domain.Description(""), domain.Priority(1), nil),
+	)
 	state := foldAll(t, events)
 	if state.IsNew() {
 		t.Error("state after create.IsNew() = true, want false")
@@ -336,7 +372,13 @@ func TestFullLifecycle(t *testing.T) {
 	aggID := testAggID()
 
 	created := mustDecide(
-		aggregate.DecideCreate(aggID, domain.Title("Buy milk"), domain.Description("from store"), domain.Priority(2), []string{"errands"}),
+		aggregate.DecideCreate(
+			aggID,
+			domain.Title("Buy milk"),
+			domain.Description("from store"),
+			domain.Priority(2),
+			[]string{"errands"},
+		),
 	)
 	state := foldAll(t, created)
 	if state.Title != "Buy milk" {
@@ -346,7 +388,12 @@ func TestFullLifecycle(t *testing.T) {
 		t.Error("Deleted = true, want false")
 	}
 
-	updated := mustDecideFrom(t, state, 1, aggregate.DecideUpdate(aggID, domain.Title("Buy oat milk"), domain.Description("organic")))
+	updated := mustDecideFrom(
+		t,
+		state,
+		1,
+		aggregate.DecideUpdate(aggID, domain.Title("Buy oat milk"), domain.Description("organic")),
+	)
 	state = foldAllFrom(t, state, updated)
 	if state.Title != "Buy oat milk" {
 		t.Errorf("Title = %q, want %q", state.Title, "Buy oat milk")
@@ -440,7 +487,9 @@ func createThenDecide(
 	next decider.DecideFunc[aggregate.TodoState],
 ) []event.Event {
 	t.Helper()
-	created := mustDecide(aggregate.DecideCreate(aggID, domain.Title("Title"), domain.Description(""), domain.Priority(1), nil))
+	created := mustDecide(
+		aggregate.DecideCreate(aggID, domain.Title("Title"), domain.Description(""), domain.Priority(1), nil),
+	)
 	state := foldAll(t, created)
 	nextEvents := mustDecideFrom(t, state, 1, next)
 
@@ -472,7 +521,9 @@ func foldAllFrom(
 
 func createDeleteState(t *testing.T, aggID id.AggregateID) aggregate.TodoState {
 	t.Helper()
-	created := mustDecide(aggregate.DecideCreate(aggID, domain.Title("Title"), domain.Description(""), domain.Priority(1), nil))
+	created := mustDecide(
+		aggregate.DecideCreate(aggID, domain.Title("Title"), domain.Description(""), domain.Priority(1), nil),
+	)
 	state := foldAll(t, created)
 	deleted := mustDecideFrom(t, state, 1, aggregate.DecideDelete(aggID))
 

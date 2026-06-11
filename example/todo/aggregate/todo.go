@@ -25,14 +25,14 @@ const (
 var codec = codecpkg.JSONCodec{}
 
 type TodoPayload struct {
-	Title       domain.Title      `json:"title"`
+	Title       domain.Title       `json:"title"`
 	Description domain.Description `json:"description"`
-	Status      domain.TodoStatus `json:"status"`
-	Priority    domain.Priority   `json:"priority"`
-	Tags        []string          `json:"tags"`
-	CreatedAt   time.Time         `json:"created_at"`
-	UpdatedAt   time.Time         `json:"updated_at"`
-	CompletedAt *time.Time        `json:"completed_at,omitempty"`
+	Status      domain.TodoStatus  `json:"status"`
+	Priority    domain.Priority    `json:"priority"`
+	Tags        []string           `json:"tags"`
+	CreatedAt   time.Time          `json:"created_at"`
+	UpdatedAt   time.Time          `json:"updated_at"`
+	CompletedAt *time.Time         `json:"completed_at,omitempty"`
 }
 
 const (

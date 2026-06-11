@@ -151,7 +151,15 @@ func TestExporter_Export_EventReceive(t *testing.T) {
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
 	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Service", "1.0.0")
-	cattest.AddEvent(t, reg, catalog.ServiceID("svc"), catalog.MessageID("OrderCreated"), "OrderCreated", "1.0.0", catalog.Receives)
+	cattest.AddEvent(
+		t,
+		reg,
+		catalog.ServiceID("svc"),
+		catalog.MessageID("OrderCreated"),
+		"OrderCreated",
+		"1.0.0",
+		catalog.Receives,
+	)
 
 	cat := cattest.Build(t, reg)
 	exp := NewExporter("Service", "1.0.0")

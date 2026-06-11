@@ -49,16 +49,16 @@ func (p Priority) Int() int { return int(p) }
 func (p Priority) IsZero() bool { return p == 0 }
 
 type Todo struct {
-	ID          TodoID     `json:"id"`
-	Title       Title      `json:"title"`
+	ID          TodoID      `json:"id"`
+	Title       Title       `json:"title"`
 	Description Description `json:"description"`
-	Status      TodoStatus `json:"status"`
-	Priority    Priority   `json:"priority"`
-	Tags        []string   `json:"tags"`
-	CreatedAt   time.Time  `json:"createdAt"`
-	UpdatedAt   time.Time  `json:"updatedAt"`
-	CompletedAt *time.Time `json:"completedAt,omitempty"`
-	Version     int64      `json:"version"`
+	Status      TodoStatus  `json:"status"`
+	Priority    Priority    `json:"priority"`
+	Tags        []string    `json:"tags"`
+	CreatedAt   time.Time   `json:"createdAt"`
+	UpdatedAt   time.Time   `json:"updatedAt"`
+	CompletedAt *time.Time  `json:"completedAt,omitempty"`
+	Version     int64       `json:"version"`
 }
 
 func (t *Todo) Clone() *Todo {

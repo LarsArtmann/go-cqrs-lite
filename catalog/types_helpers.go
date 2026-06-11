@@ -47,7 +47,7 @@ type Attachment struct {
 
 type Ref struct {
 	ID      MessageID `json:"id"`
-	Version Version `json:"version,omitempty"`
+	Version Version   `json:"version,omitempty"`
 }
 
 type ChannelParam struct {

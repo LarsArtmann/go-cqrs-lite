@@ -511,7 +511,15 @@ func TestExporter_Export_MessageWithoutSummary(t *testing.T) {
 
 	reg := cattest.NewRegistry(t, "Test", "1.0.0")
 	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Service", "1.0.0")
-	cattest.AddEvent(t, reg, catalog.ServiceID("svc"), catalog.MessageID("PlainEvent"), "PlainEvent", "1.0.0", catalog.Sends)
+	cattest.AddEvent(
+		t,
+		reg,
+		catalog.ServiceID("svc"),
+		catalog.MessageID("PlainEvent"),
+		"PlainEvent",
+		"1.0.0",
+		catalog.Sends,
+	)
 
 	tmpDir := exportCatalog(t, reg)
 
