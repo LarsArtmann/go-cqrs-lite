@@ -209,13 +209,13 @@ func FuzzVersionedStore_Load_NilSource(f *testing.F) {
 	f.Add("evt")
 
 	f.Fuzz(func(t *testing.T, sourceType string) {
-		vs, err := schema.NewVersionedStore(nil)
+		versionedStore, err := schema.NewVersionedStore(nil)
 		if err == nil {
 			t.Error("expected error for nil store")
 
 			return
 		}
-		_ = vs
+		_ = versionedStore
 		_ = context.Background()
 	})
 }
