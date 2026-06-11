@@ -75,9 +75,6 @@
           modulePaths = builtins.concatStringsSep " " (map (m: "./${m}/...") testModules);
 
           examplePaths = builtins.concatStringsSep " " [
-            "./example/projection/..."
-            "./example/saga-pattern/..."
-            "./example/storage/..."
             "./example/todo/..."
             "./example/user/..."
           ];

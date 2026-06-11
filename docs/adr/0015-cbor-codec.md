@@ -28,13 +28,13 @@ Add `CBORCodec` using `fxamacker/cbor/v2` with canonical encoding (RFC 7049):
 
 ### Why CBOR over alternatives
 
-| Alternative | Rejected because |
-|---|---|
-| **msgpack** | No deterministic encoding mode (signing hazard). No IETF standard. Ambiguous "raw" type. |
-| **protobuf** | Requires code generation per event type — wrong for a library where consumers define their own types. |
-| **FlatBuffers** | Requires schema compilation per event type. Good for zero-copy reads but event sourcing is append-only. |
-| **gob** | Go-specific, includes type names in output (brittle), security concerns with untrusted input. |
-| **custom binary** | Reinventing the wheel. CBOR already solves this with IETF standardization. |
+| Alternative       | Rejected because                                                                                        |
+| ----------------- | ------------------------------------------------------------------------------------------------------- |
+| **msgpack**       | No deterministic encoding mode (signing hazard). No IETF standard. Ambiguous "raw" type.                |
+| **protobuf**      | Requires code generation per event type — wrong for a library where consumers define their own types.   |
+| **FlatBuffers**   | Requires schema compilation per event type. Good for zero-copy reads but event sourcing is append-only. |
+| **gob**           | Go-specific, includes type names in output (brittle), security concerns with untrusted input.           |
+| **custom binary** | Reinventing the wheel. CBOR already solves this with IETF standardization.                              |
 
 ### Why `fxamacker/cbor` specifically
 

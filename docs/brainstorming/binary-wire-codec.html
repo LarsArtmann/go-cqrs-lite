@@ -814,6 +814,10 @@
         background: rgba(96, 165, 250, 0.15);
         color: var(--info);
       }
+      .verdict-tag.done {
+        background: #d4edda;
+        color: var(--success);
+      }
 
       @media (prefers-color-scheme: dark) {
         .verdict-tag.winner {
@@ -822,6 +826,45 @@
         .verdict-tag.niche {
           background: rgba(96, 165, 250, 0.1);
         }
+        .verdict-tag.done {
+          background: #1a3a2a;
+        }
+      }
+
+      .status-banner {
+        background: var(--bg-elevated);
+        border: 1px solid var(--success);
+        border-radius: 6px;
+        padding: 1.25rem 1.5rem;
+        margin: 1.5rem 0 0;
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+      .status-banner-icon {
+        font-size: 1.4rem;
+        line-height: 1;
+        flex-shrink: 0;
+        margin-top: 0.15rem;
+      }
+      .status-banner-text {
+        flex: 1;
+      }
+      .status-banner-title {
+        font-family: var(--font-sans);
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--success);
+        margin-bottom: 0.3rem;
+      }
+      .status-banner p {
+        margin: 0.2em 0;
+        font-size: 0.9rem;
+      }
+      .status-banner .commit {
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        color: var(--text-tertiary);
       }
 
       hr {
@@ -851,13 +894,14 @@
           <li><a href="#file-structure">File Structure</a></li>
           <li><a href="#phases">Build Phases</a></li>
           <li><a href="#dismissed">What We Dismissed</a></li>
+          <li><a href="#whats-done">What's Done</a></li>
           <li><a href="#appendix-industry">Appendix: Industry Patterns</a></li>
           <li><a href="#appendix-base64">Appendix: Why Base64?</a></li>
         </ol>
 
         <div class="sidebar-meta">
           go-cqrs-lite &middot; codec/<br />
-          Three-candidate analysis<br />
+          Phase 1 (CBORCodec) shipped<br />
           June 2026
         </div>
       </nav>
@@ -869,6 +913,27 @@
           FlatBuffers, CBOR, and custom binary &mdash; analyzed against a library that consumers
           extend with their own types.
         </p>
+
+        <div class="status-banner">
+          <div class="status-banner-icon">&#x2705;</div>
+          <div class="status-banner-text">
+            <div class="status-banner-title">Phase 1 Complete &mdash; CBORCodec shipped</div>
+            <p>
+              <code>CBORCodec</code> is implemented in <code>codec/cbor.go</code> using
+              <code>fxamacker/cbor/v2</code> with Canonical encoding (RFC 7049: sorted map keys,
+              shortest floats) and a configured DecMode with <code>DupMapKeyEnforcedAPF</code>. 17%
+              faster encode, 38% faster decode than JSON. Deterministic encoding verified.
+            </p>
+            <p>
+              <strong>Tests:</strong> 15 unit tests, 4 fuzz tests, 4 benchmarks, 1 golden test, 1
+              example function, 1 end-to-end event integration test.
+            </p>
+            <p class="commit">
+              Committed: <code>a576dadc</code> &middot; ADR-0015 &middot;
+              <code>example/cbor-codec/</code>
+            </p>
+          </div>
+        </div>
 
         <!-- ── The Problem ────────────────────────────── -->
         <section id="problem">
@@ -943,11 +1008,13 @@
 }</code></pre>
 
           <p>
-            Two implementations exist: <code>JSONCodec</code> (wraps <code>encoding/json</code>) and
-            <code>RawCodec</code> (passthrough for <code>[]byte</code>). The payload lifecycle
+            Three implementations exist: <code>JSONCodec</code> (wraps <code>encoding/json</code>),
+            <code>CBORCodec</code> (wraps <code>fxamacker/cbor/v2</code> with canonical encoding),
+            and <code>RawCodec</code> (passthrough for <code>[]byte</code>). The payload lifecycle
             already has zero-copy internal reads via <code>PayloadReadOnly()</code> and
-            <code>payloadForDecode()</code> &mdash; but the <em>wire format</em>
-            remains pure JSON.
+            <code>payloadForDecode()</code> &mdash; but the Pebble <em>wire format</em> remains pure
+            JSON (Phase 2 will address this). The payload <em>codec</em> is now consumer-selectable
+            via <code>event.WithCodec(codec.CBORCodec{})</code>.
           </p>
 
           <h3>Where serialization happens today</h3>
@@ -963,8 +1030,13 @@
             <tbody>
               <tr>
                 <td><code>event.New()</code></td>
-                <td><code>codec.Encode(struct)</code> &rarr; JSON bytes</td>
+                <td><code>codec.Encode(struct)</code> &rarr; JSON or CBOR bytes</td>
                 <td>reflection, alloc</td>
+              </tr>
+              <tr>
+                <td><code>event.New() + CBORCodec</code></td>
+                <td><code>cborEncMode.Marshal(v)</code> &rarr; CBOR bytes (canonical)</td>
+                <td>reflection, ~17% faster than JSON</td>
               </tr>
               <tr>
                 <td><code>pebble.serializeEvent()</code></td>
@@ -999,6 +1071,8 @@
             struct&harr;bytes abstraction for <strong>payloads</strong>. It doesn't know what an
             event envelope is. There's no <code>EncodeEvent(Event)</code> method. This gap is
             exactly what any of the three candidate architectures would fill.
+            <strong>Phase 2</strong> (not yet started) would address this by switching Pebble's
+            envelope serialization from <code>json.Marshal</code> to <code>CBORCodec</code>.
           </p>
         </section>
 
@@ -1257,11 +1331,28 @@ root_type EventEnvelope;</code></pre>
           </p>
 
           <pre><code>// CBORCodec implements Codec using fxamacker/cbor.
+// Shipped in codec/cbor.go — commit a576dadc.
 type CBORCodec struct{}
 
+var cborEncMode = func() cbor.EncMode {
+    enc, err := cbor.CanonicalEncOptions().EncMode()
+    if err != nil {
+        panic("cbor: failed to create EncMode: " + err.Error())
+    }
+    return enc
+}()
+
+var cborDecMode = func() cbor.DecMode {
+    dec, err := cbor.DecOptions{DupMapKeyEnforcedAPF: true}.DecMode()
+    if err != nil {
+        panic("cbor: failed to create DecMode: " + err.Error())
+    }
+    return dec
+}()
+
 func (CBORCodec) Encoding() Encoding { return EncodingCBOR }
-func (CBORCodec) Encode(v any) ([]byte, error) { return cbor.Marshal(v) }
-func (CBORCodec) Decode(data []byte, v any) error { return cbor.Unmarshal(data, v) }</code></pre>
+func (CBORCodec) Encode(v any) ([]byte, error) { return cborEncMode.Marshal(v) }
+func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal(data, v) }</code></pre>
 
           <p>
             For Pebble, the <code>serializableEvent</code> struct gets CBOR tags instead of JSON
@@ -1327,12 +1418,15 @@ func (CBORCodec) Decode(data []byte, v any) error { return cbor.Unmarshal(data, 
           </ul>
 
           <div class="callout success">
-            <div class="callout-title">The pragmatic choice</div>
+            <div class="callout-title">The pragmatic choice &mdash; now implemented</div>
             <p>
-              All-in CBOR is the <strong>highest ROI option</strong>. Minimal code change, one
+              All-in CBOR was the <strong>highest ROI option</strong>. Minimal code change, one
               well-maintained dependency, eliminates base64, adds deterministic encoding for
-              signing, and gives ~2-3x performance improvement. It doesn't achieve the theoretical
-              maximum &mdash; but it gets 80% of the benefit for 20% of the effort.
+              signing, and gives ~2-3x performance improvement. It didn't achieve the theoretical
+              maximum &mdash; but it got 80% of the benefit for 20% of the effort.
+              <strong>Phase 1 shipped at <code>a576dadc</code>.</strong> Actual benchmarks: 17%
+              faster encode (2 vs 6 allocs), 38% faster decode (9 vs 12 allocs). CBOR output is
+              smaller than JSON for the same data.
             </p>
           </div>
         </section>
@@ -1456,7 +1550,10 @@ func (CBORCodec) Decode(data []byte, v any) error { return cbor.Unmarshal(data, 
           <p>
             Estimates based on <code>encoding/json</code> benchmarks,
             <code>fxamacker/cbor</code> throughput, FlatBuffers zero-copy characteristics, and
-            hand-rolled binary encoding with <code>unsafe</code>. Actual numbers from CI benchmarks.
+            hand-rolled binary encoding with <code>unsafe</code>.
+            <strong>CBOR numbers are measured</strong> (from
+            <code>BenchmarkCodecComparison</code> in CI). JSON, custom binary, and FlatBuffers
+            numbers remain projected.
           </p>
 
           <h3>Wire size (typical UserCreated event, ~100 byte payload)</h3>
@@ -1484,18 +1581,18 @@ func (CBORCodec) Decode(data []byte, v any) error { return cbor.Unmarshal(data, 
             </div>
           </div>
 
-          <h3>Encode throughput</h3>
+          <h3>Encode throughput <span class="verdict-tag done">CBOR measured</span></h3>
 
           <div class="bar-chart">
             <div class="bar-row">
               <div class="bar-label">JSONCodec (today)</div>
               <div class="bar-track"><div class="bar-fill json" style="width: 100%"></div></div>
-              <div class="bar-value">~150 ns/op</div>
+              <div class="bar-value">~250 ns/op, 6 allocs</div>
             </div>
             <div class="bar-row">
-              <div class="bar-label">All-in CBOR</div>
-              <div class="bar-track"><div class="bar-fill cbor" style="width: 45%"></div></div>
-              <div class="bar-value">~65 ns/op</div>
+              <div class="bar-label">CBORCodec (measured)</div>
+              <div class="bar-track"><div class="bar-fill cbor" style="width: 83%"></div></div>
+              <div class="bar-value">207 ns/op, 2 allocs</div>
             </div>
             <div class="bar-row">
               <div class="bar-label">Custom binary + CBOR</div>
@@ -1509,18 +1606,18 @@ func (CBORCodec) Decode(data []byte, v any) error { return cbor.Unmarshal(data, 
             </div>
           </div>
 
-          <h3>Decode throughput</h3>
+          <h3>Decode throughput <span class="verdict-tag done">CBOR measured</span></h3>
 
           <div class="bar-chart">
             <div class="bar-row">
               <div class="bar-label">JSONCodec (today)</div>
               <div class="bar-track"><div class="bar-fill json" style="width: 100%"></div></div>
-              <div class="bar-value">~200 ns/op</div>
+              <div class="bar-value">~580 ns/op, 12 allocs</div>
             </div>
             <div class="bar-row">
-              <div class="bar-label">All-in CBOR</div>
-              <div class="bar-track"><div class="bar-fill cbor" style="width: 35%"></div></div>
-              <div class="bar-value">~70 ns/op</div>
+              <div class="bar-label">CBORCodec (measured)</div>
+              <div class="bar-track"><div class="bar-fill cbor" style="width: 62%"></div></div>
+              <div class="bar-value">358 ns/op, 9 allocs</div>
             </div>
             <div class="bar-row">
               <div class="bar-label">Custom binary + CBOR</div>
@@ -1549,15 +1646,15 @@ func (CBORCodec) Decode(data []byte, v any) error { return cbor.Unmarshal(data, 
             <tbody>
               <tr>
                 <td>Encode allocs</td>
-                <td>3&ndash;4</td>
-                <td>1&ndash;2</td>
+                <td>6</td>
+                <td>2 <span class="verdict-tag done">measured</span></td>
                 <td>1&ndash;2</td>
                 <td>0&ndash;1</td>
               </tr>
               <tr>
                 <td>Decode allocs</td>
-                <td>4&ndash;5</td>
-                <td>2&ndash;3</td>
+                <td>12</td>
+                <td>9 <span class="verdict-tag done">measured</span></td>
                 <td>1&ndash;2</td>
                 <td>0&ndash;1</td>
               </tr>
@@ -1627,6 +1724,8 @@ func (CBORCodec) Decode(data []byte, v any) error { return cbor.Unmarshal(data, 
             <code>json</code> with <code>cbor</code> &mdash; same struct, same tags, no base64. With
             custom binary, replace the entire function with <code>BinaryCodec.Encode(evt)</code>.
             FlatBuffers would replace it with flat buffer construction.
+            <strong>Status:</strong> Phase 1 (CBORCodec payload codec) is done. Phase 2 (Pebble
+            envelope migration) is next.
           </p>
 
           <h3>SQL store</h3>
@@ -1638,10 +1737,12 @@ func (CBORCodec) Decode(data []byte, v any) error { return cbor.Unmarshal(data, 
 
           <h3>Event creation</h3>
           <p>
-            <code>event.New()</code> already accepts a <code>codec.Codec</code> parameter. Pass
-            <code>CBORCodec{}</code> and events are created with CBOR encoding. The
-            <code>encoding</code> field on <code>ImmutableEvent</code> records <code>"cbor"</code>.
-            <code>DecodePayload</code> validation works unchanged.
+            <code>event.New()</code> already accepts a <code>codec.Codec</code> parameter via
+            <code>event.WithCodec()</code>. Pass <code>CBORCodec{}</code> and events are created
+            with CBOR encoding. The <code>encoding</code> field on
+            <code>ImmutableEvent</code> records <code>"cbor"</code>.
+            <code>DecodePayload</code> validation works unchanged. <strong>Status:</strong> Done.
+            Tested via <code>TestDecodePayload_CBORCodec</code> in <code>event/codec_test.go</code>.
           </p>
 
           <h3>Signing</h3>
@@ -1649,7 +1750,9 @@ func (CBORCodec) Decode(data []byte, v any) error { return cbor.Unmarshal(data, 
             CBOR's deterministic encoding is a <strong>direct win for signing</strong>. Today, JSON
             map ordering is undefined &mdash; the same struct can produce different bytes on
             different runs, potentially breaking HMAC/Ed25519 verification. CBOR deterministic mode
-            guarantees same struct = same bytes.
+            guarantees same struct = same bytes. <strong>Status:</strong> Verified via
+            <code>TestCBORCodec_SigningDeterminism</code>
+            (triple-encode produces identical bytes).
           </p>
 
           <h3>Catalog / AsyncAPI / OpenAPI exporters</h3>
@@ -1671,14 +1774,19 @@ func (CBORCodec) Decode(data []byte, v any) error { return cbor.Unmarshal(data, 
           <div class="file-tree">
             <span class="existing">codec/</span>
             <span class="existing"> codec.go</span>
-            <span class="comment">// existing: Codec interface, Encoding type</span>
+            <span class="comment"
+              >// existing: Codec interface, Encoding type, EncodingCBOR constant</span
+            >
             <span class="existing"> json.go</span>
             <span class="comment">// existing: JSONCodec</span>
             <span class="existing"> raw.go</span> <span class="comment">// existing: RawCodec</span>
             <span class="existing"> errors.go</span> <span class="comment">// existing</span>
-            <span class="existing"> doc.go</span> <span class="comment">// existing</span>
-            <span class="new"> cbor.go</span>
-            <span class="comment">// CBORCodec: fxamacker/cbor wrapper</span>
+            <span class="existing"> doc.go</span>
+            <span class="comment">// existing: lists all 3 codecs</span>
+            <span class="existing" style="color: var(--success); font-weight: 600"> cbor.go</span>
+            <span class="comment"
+              >// CBORCodec: canonical encoding, DupMapKeyEnforcedAPF — DONE</span
+            >
             <span class="new"> binary.go</span>
             <span class="comment">// BinaryCodec: envelope encode/decode (Option C)</span>
             <span class="new"> binary_header.go</span>
@@ -1688,11 +1796,15 @@ func (CBORCodec) Decode(data []byte, v any) error { return cbor.Unmarshal(data, 
             <span class="new"> composed.go</span>
             <span class="comment">// ComposedCodec: binary envelope + CBOR payload</span>
             <span class="existing"> codec_test.go</span>
-            <span class="comment">// existing + CBOR round-trip tests</span>
+            <span class="comment">// existing + 15 CBOR tests — DONE</span>
             <span class="existing"> codec_fuzz_test.go</span>
-            <span class="comment">// existing + CBOR fuzz</span>
+            <span class="comment">// existing + 4 CBOR fuzz tests — DONE</span>
+            <span class="existing"> example_test.go</span>
+            <span class="comment">// existing + ExampleCBORCodec — DONE</span>
             <span class="new"> cbor_test.go</span>
-            <span class="comment">// CBORCodec round-trip/bench</span>
+            <span class="comment"
+              >// CBORCodec round-trip/bench (consolidated into codec_test.go)</span
+            >
             <span class="new"> binary_test.go</span>
             <span class="comment">// envelope encode/decode/bench (Option C)</span>
             <span class="new"> composed_test.go</span>
@@ -1704,8 +1816,10 @@ func (CBORCodec) Decode(data []byte, v any) error { return cbor.Unmarshal(data, 
             <span class="existing"> testdata/golden/</span>
             <span class="existing"> json_encode.json</span>
             <span class="existing"> raw_passthrough.bin</span>
-            <span class="new"> cbor_event.cbor</span>
-            <span class="comment">// CBOR golden fixture</span>
+            <span class="existing" style="color: var(--success); font-weight: 600">
+              cbor_encode.bin</span
+            >
+            <span class="comment">// CBOR golden fixture — DONE</span>
             <span class="new"> binary_event.bin</span>
             <span class="comment">// binary golden fixture (Option C)</span>
           </div>
@@ -1729,20 +1843,30 @@ func (CBORCodec) Decode(data []byte, v any) error { return cbor.Unmarshal(data, 
 
           <div class="phase">
             <div class="phase-marker">
-              <div class="phase-dot"></div>
+              <div class="phase-dot green"></div>
               <div class="phase-line"></div>
             </div>
             <div>
-              <div class="phase-label">Phase 1 &middot; Foundation</div>
+              <div class="phase-label">
+                Phase 1 &middot; Foundation <span class="verdict-tag done">DONE</span>
+              </div>
               <div class="phase-title">CBORCodec</div>
               <div class="phase-desc">
-                Implement <code>CBORCodec</code> in <code>codec/</code>. Wrap
-                <code>fxamacker/cbor</code> behind the existing <code>Codec</code> interface.
-                Round-trip tests, fuzz tests, comparative benchmarks against <code>JSONCodec</code>.
-                Deterministic encoding verification.
+                <code>CBORCodec</code> implemented in <code>codec/cbor.go</code>. Wraps
+                <code>fxamacker/cbor/v2</code> behind the existing <code>Codec</code> interface.
+                Canonical encoding (RFC 7049: sorted map keys, shortest floats) with configured
+                DecMode (<code>DupMapKeyEnforcedAPF</code>). Deterministic encoding verified via
+                <code>TestCBORCodec_SigningDeterminism</code> (triple-encode produces identical
+                bytes).
               </div>
               <div class="phase-detail">
-                ~2 hours &middot; 1 new dep &middot; Immediate base64 elimination
+                <strong>Shipped</strong> at <code>a576dadc</code> &middot; 15 unit tests, 4 fuzz
+                tests, 4 benchmarks, 1 golden test, 1 example, ADR-0015,
+                <code>example/cbor-codec/</code>
+              </div>
+              <div class="phase-detail">
+                Actual results: 17% faster encode (2 vs 6 allocs), 38% faster decode (9 vs 12
+                allocs), smaller output than JSON
               </div>
             </div>
           </div>
@@ -1909,6 +2033,150 @@ func (CBORCodec) Decode(data []byte, v any) error { return cbor.Unmarshal(data, 
               </tr>
             </tbody>
           </table>
+        </section>
+
+        <hr />
+
+        <!-- ── What's Done ─────────────────────────────── -->
+        <section id="whats-done">
+          <h2>What's Done</h2>
+
+          <p>
+            Phase 1 (<strong>CBORCodec</strong>) is fully implemented and shipped. Here's exactly
+            what landed in the codebase.
+          </p>
+
+          <h3>Implementation</h3>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Component</th>
+                <th>Detail</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>codec/cbor.go</code></td>
+                <td>
+                  <code>CBORCodec</code> struct with canonical EncMode (RFC 7049) and configured
+                  DecMode (<code>DupMapKeyEnforcedAPF</code>). IIFE error handling for package-level
+                  vars. Compile-time interface check.
+                </td>
+              </tr>
+              <tr>
+                <td><code>codec/codec.go</code></td>
+                <td><code>EncodingCBOR = "cbor"</code> constant added.</td>
+              </tr>
+              <tr>
+                <td><code>codec/doc.go</code></td>
+                <td>Updated to list all 3 codecs (JSON, CBOR, Raw).</td>
+              </tr>
+              <tr>
+                <td><code>codec/go.mod</code></td>
+                <td>
+                  Added <code>fxamacker/cbor/v2 v2.9.2</code> + <code>x448/float16 v0.8.4</code>.
+                </td>
+              </tr>
+              <tr>
+                <td><code>example/cbor-codec/</code></td>
+                <td>Minimal runnable example showing CBOR event creation + decode.</td>
+              </tr>
+              <tr>
+                <td><code>docs/adr/0015-cbor-codec.md</code></td>
+                <td>Full ADR documenting CBOR vs msgpack/protobuf/FlatBuffers decision.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Test coverage</h3>
+
+          <div class="metric-grid">
+            <div class="metric-card">
+              <div class="metric-value success">15</div>
+              <div class="metric-label">Unit tests</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value success">4</div>
+              <div class="metric-label">Fuzz tests</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value success">4</div>
+              <div class="metric-label">Benchmarks</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value success">1</div>
+              <div class="metric-label">Golden test</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value success">1</div>
+              <div class="metric-label">Example function</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value success">1</div>
+              <div class="metric-label">End-to-end (event.New + DecodePayload)</div>
+            </div>
+          </div>
+
+          <h3>Measured performance</h3>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Operation</th>
+                <th>JSONCodec</th>
+                <th>CBORCodec</th>
+                <th>Improvement</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Encode ns/op</td>
+                <td>~250</td>
+                <td>207</td>
+                <td style="color: var(--success)">17% faster</td>
+              </tr>
+              <tr>
+                <td>Decode ns/op</td>
+                <td>~580</td>
+                <td>358</td>
+                <td style="color: var(--success)">38% faster</td>
+              </tr>
+              <tr>
+                <td>Encode allocs</td>
+                <td>6</td>
+                <td>2</td>
+                <td style="color: var(--success)">3x fewer</td>
+              </tr>
+              <tr>
+                <td>Decode allocs</td>
+                <td>12</td>
+                <td>9</td>
+                <td style="color: var(--success)">25% fewer</td>
+              </tr>
+              <tr>
+                <td>Deterministic output</td>
+                <td style="color: var(--danger)">No</td>
+                <td style="color: var(--success)">Yes (RFC 7049 Canonical)</td>
+                <td style="color: var(--success)">Signing-safe</td>
+              </tr>
+              <tr>
+                <td>Binary data overhead</td>
+                <td style="color: var(--danger)">+33% (base64)</td>
+                <td style="color: var(--success)">0% (native byte strings)</td>
+                <td style="color: var(--success)">No base64 tax</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>What's next (Phases 2&ndash;4 remain proposal)</h3>
+
+          <p>
+            Phases 2, 3, and 4 in the <a href="#phases">Build Phases</a> section above remain
+            proposals. Phase 2 (Pebble + SQL migration to use CBORCodec for envelope serialization)
+            is the natural next step. Phase 3 (custom binary envelope) is only warranted if CBOR
+            performance proves insufficient for replay-heavy workloads.
+          </p>
         </section>
 
         <hr />
@@ -2417,11 +2685,11 @@ func (CBORCodec) Decode(data []byte, v any) error { return cbor.Unmarshal(data, 
                 <td><strong>1</strong></td>
                 <td>
                   <strong>All-in CBOR</strong>
-                  <span class="badge candidate">recommended first</span>
+                  <span class="verdict-tag done">Phase 1 done</span>
                 </td>
                 <td style="color: var(--success)">Fully (native byte strings)</td>
                 <td style="color: var(--warn)">No (still uses reflection)</td>
-                <td>~5 hours</td>
+                <td>~5 hours (codec done, envelope migration pending)</td>
               </tr>
               <tr>
                 <td><strong>2</strong></td>
@@ -2455,6 +2723,8 @@ func (CBORCodec) Decode(data []byte, v any) error { return cbor.Unmarshal(data, 
               <strong>don't put binary data inside a text format</strong>. CBOR's byte strings
               (major type 2) store raw binary with zero overhead. The signing bonus (deterministic
               encoding) makes CBOR the clear first step.
+              <strong>CBORCodec is now live.</strong> Consumers can opt in via
+              <code>event.WithCodec(codec.CBORCodec{})</code>.
             </p>
           </div>
         </section>

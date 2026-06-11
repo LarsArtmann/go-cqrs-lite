@@ -6,17 +6,17 @@ Expanded fuzzing coverage from **18 → 78 fuzzers** across 8 modules. All new f
 
 ## Coverage Map
 
-| Module | Before | After | New fuzzers | Focus areas |
-|---|---|---|---|---|
-| `signing/` | 1 | 8 | +7 | HMAC/Ed25519 sign-verify-tamper, base64, nil guards |
-| `signing/multisig/` | 0 | 8 | +8 | Multi-actor chains, JSON corruption, key-length edge cases |
-| `encryption/` | 6 | 15 | +9 | Codec roundtrip, Algorithm/KeyID extract, middleware nil guards |
-| `event/` | 7 | 19 | +12 | Parser fuzzers, Version/SchemaVersion arithmetic, Metadata Clone/Merge/JSON |
-| `id/` | 1 | 10 | +9 | ParseAggregateID, DeriveAggregateID determinism, JSON roundtrip, ULID entropy |
-| `listing/` | 0 | 3 | +3 | AggregateListing/Status JSON roundtrip, TombstonePolicy String |
-| `codec/` | 3 | 6 | +3 | CBOR determinism (canonical), CBOR decode-no-panic, JSON typed roundtrip |
-| `schema/` | 0 | 6 | +6 | Upcaster metadata, VersionedStore nil guards, upcast pipeline |
-| **Total** | **18** | **78** | **+60** | — |
+| Module              | Before | After  | New fuzzers | Focus areas                                                                   |
+| ------------------- | ------ | ------ | ----------- | ----------------------------------------------------------------------------- |
+| `signing/`          | 1      | 8      | +7          | HMAC/Ed25519 sign-verify-tamper, base64, nil guards                           |
+| `signing/multisig/` | 0      | 8      | +8          | Multi-actor chains, JSON corruption, key-length edge cases                    |
+| `encryption/`       | 6      | 15     | +9          | Codec roundtrip, Algorithm/KeyID extract, middleware nil guards               |
+| `event/`            | 7      | 19     | +12         | Parser fuzzers, Version/SchemaVersion arithmetic, Metadata Clone/Merge/JSON   |
+| `id/`               | 1      | 10     | +9          | ParseAggregateID, DeriveAggregateID determinism, JSON roundtrip, ULID entropy |
+| `listing/`          | 0      | 3      | +3          | AggregateListing/Status JSON roundtrip, TombstonePolicy String                |
+| `codec/`            | 3      | 6      | +3          | CBOR determinism (canonical), CBOR decode-no-panic, JSON typed roundtrip      |
+| `schema/`           | 0      | 6      | +6          | Upcaster metadata, VersionedStore nil guards, upcast pipeline                 |
+| **Total**           | **18** | **78** | **+60**     | —                                                                             |
 
 ## Pareto-Ordered Themes
 

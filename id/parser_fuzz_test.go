@@ -25,11 +25,13 @@ func FuzzParseAggregateID(f *testing.F) {
 			if err == nil {
 				t.Error("expected error for empty input")
 			}
+
 			return
 		}
 
 		if err != nil {
 			t.Errorf("unexpected error for %q: %v", input, err)
+
 			return
 		}
 
@@ -52,18 +54,18 @@ func FuzzDeriveAggregateID_Deterministic(f *testing.F) {
 	f.Add(strings.Repeat("a", 100), "b", strings.Repeat("c", 100))
 
 	f.Fuzz(func(t *testing.T, namespace, key1, key2 string) {
-		a := id.DeriveAggregateID(namespace, key1, key2)
-		b := id.DeriveAggregateID(namespace, key1, key2)
+		derived := id.DeriveAggregateID(namespace, key1, key2)
+		derived2 := id.DeriveAggregateID(namespace, key1, key2)
 
-		if !a.Equal(b) {
+		if !derived.Equal(derived2) {
 			t.Error("DeriveAggregateID is not deterministic")
 		}
 
-		if a.IsZero() {
+		if derived.IsZero() {
 			t.Error("DeriveAggregateID returned IsZero")
 		}
 
-		if a.String() == "" {
+		if derived.String() == "" {
 			t.Error("DeriveAggregateID returned empty string")
 		}
 	})
@@ -77,21 +79,22 @@ func FuzzDeriveAggregateID_DifferentInputs(f *testing.F) {
 	f.Add("a", "x", "a", "y")
 
 	f.Fuzz(func(t *testing.T, ns1, k1, ns2, k2 string) {
-		a := id.DeriveAggregateID(ns1, k1)
-		b := id.DeriveAggregateID(ns2, k2)
+		derived := id.DeriveAggregateID(ns1, k1)
+		derived2 := id.DeriveAggregateID(ns2, k2)
 
 		// If both inputs are exactly equal, IDs must be equal.
 		if ns1 == ns2 && k1 == k2 {
-			if !a.Equal(b) {
+			if !derived.Equal(derived2) {
 				t.Error("equal inputs should produce equal IDs")
 			}
+
 			return
 		}
 
 		// Otherwise, IDs should differ (modulo SHA-256 collisions,
 		// which are astronomically improbable for arbitrary fuzz input).
-		if a.Equal(b) {
-			t.Errorf("different inputs produced equal IDs: %q == %q", a, b)
+		if derived.Equal(derived2) {
+			t.Errorf("different inputs produced equal IDs: %q == %q", derived, derived2)
 		}
 	})
 }
@@ -206,17 +209,17 @@ func FuzzCompareIDs(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, _, _ int) {
 		// Two different IDs
-		a := id.New[id.AggregateID]()
-		b := id.New[id.AggregateID]()
+		idA := id.New[id.AggregateID]()
+		idB := id.New[id.AggregateID]()
 
-		cmpAB := id.CompareIDs(a, b)
-		cmpBA := id.CompareIDs(b, a)
+		cmpAB := id.CompareIDs(idA, idB)
+		cmpBA := id.CompareIDs(idB, idA)
 
 		if cmpAB != -cmpBA {
 			t.Errorf("CompareIDs not anti-symmetric: cmp(a,b)=%d, cmp(b,a)=%d", cmpAB, cmpBA)
 		}
 
-		cmpAA := id.CompareIDs(a, a)
+		cmpAA := id.CompareIDs(idA, idA)
 		if cmpAA != 0 {
 			t.Errorf("CompareIDs(a, a) should be 0, got %d", cmpAA)
 		}

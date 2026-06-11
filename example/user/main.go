@@ -44,9 +44,6 @@ func main() {
 	runTombstoneRebirthDemo(ctx, cmdDisp, deciderRepo, userID)
 	runErrorDemo(ctx, cmdDisp)
 	runEventCatalog()
-	demonstrateConfig()
-	demonstrateSSE(bus)
-	demonstrateDualStore()
 
 	fmt.Println("=== Demo Complete ===")
 	fmt.Printf("  Events published: %d\n", len(publishedEvents))
