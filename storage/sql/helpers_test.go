@@ -19,7 +19,8 @@ func setupEventsTable(t *testing.T) *sql.DB {
 	t.Helper()
 
 	db := openSQLite(t)
-	_, err := db.Exec(sqlpkg.SQLiteSchema())
+	ctx := context.Background()
+	_, err := db.ExecContext(ctx, sqlpkg.SQLiteSchema())
 	if err != nil {
 		t.Fatalf("create events table: %v", err)
 	}
@@ -31,7 +32,8 @@ func setupCheckpointsTable(t *testing.T) *sql.DB {
 	t.Helper()
 
 	db := openSQLite(t)
-	_, err := db.Exec(sqlpkg.SQLiteDialect{}.CheckpointSchema())
+	ctx := context.Background()
+	_, err := db.ExecContext(ctx, sqlpkg.SQLiteDialect{}.CheckpointSchema())
 	if err != nil {
 		t.Fatalf("create checkpoints table: %v", err)
 	}
@@ -63,22 +65,37 @@ func sqliteInsertQuery() string {
 	)
 }
 
+func beginTx(t *testing.T, db *sql.DB) *sql.Tx {
+	t.Helper()
+
+	tx, err := db.BeginTx(context.Background(), nil)
+	if err != nil {
+		t.Fatalf("BeginTx: %v", err)
+	}
+
+	return tx
+}
+
+func rollbackOnFail(t *testing.T, tx *sql.Tx) {
+	t.Helper()
+
+	_ = tx.Rollback()
+}
+
 func TestSharedInsertEvents_Success(t *testing.T) {
 	t.Parallel()
 
 	db := setupEventsTable(t)
 	ref := event.NewAggregateRef("User", id.NewAggregateID())
+	ctx := context.Background()
 
-	tx, err := db.Begin()
-	if err != nil {
-		t.Fatalf("Begin: %v", err)
-	}
-	defer tx.Rollback()
+	tx := beginTx(t, db)
+	defer rollbackOnFail(t, tx)
 
 	events := []event.Event{makeTestEvent(t, 1), makeTestEvent(t, 2)}
 
-	err = sqlpkg.SharedInsertEvents(
-		context.Background(), tx, ref, events,
+	err := sqlpkg.SharedInsertEvents(
+		ctx, tx, ref, events,
 		sqliteInsertQuery(),
 		func(t time.Time) any { return t.Format(time.RFC3339Nano) },
 	)
@@ -91,7 +108,7 @@ func TestSharedInsertEvents_Success(t *testing.T) {
 	}
 
 	var count int
-	if err := db.QueryRow("SELECT COUNT(*) FROM events").Scan(&count); err != nil {
+	if err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM events").Scan(&count); err != nil {
 		t.Fatalf("count: %v", err)
 	}
 	if count != 2 {
@@ -105,18 +122,13 @@ func TestSharedInsertEvents_ErrorPath(t *testing.T) {
 	db := setupEventsTable(t)
 	ref := event.NewAggregateRef("User", id.NewAggregateID())
 
-	tx, err := db.Begin()
-	if err != nil {
-		t.Fatalf("Begin: %v", err)
-	}
-	defer tx.Rollback()
+	tx := beginTx(t, db)
 
-	// Close the transaction so the insert fails
 	if err := tx.Rollback(); err != nil {
 		t.Fatalf("rollback: %v", err)
 	}
 
-	err = sqlpkg.SharedInsertEvents(
+	err := sqlpkg.SharedInsertEvents(
 		context.Background(), tx, ref, []event.Event{makeTestEvent(t, 1)},
 		sqliteInsertQuery(),
 		func(t time.Time) any { return t.Format(time.RFC3339Nano) },
@@ -131,16 +143,14 @@ func TestSharedCheckVersion_Match(t *testing.T) {
 
 	db := setupEventsTable(t)
 	ref := event.NewAggregateRef("User", id.NewAggregateID())
+	ctx := context.Background()
 
 	evt := makeTestEvent(t, 1)
-	tx, err := db.Begin()
-	if err != nil {
-		t.Fatalf("Begin: %v", err)
-	}
-	defer tx.Rollback()
+	tx := beginTx(t, db)
+	defer rollbackOnFail(t, tx)
 
 	_ = sqlpkg.SharedInsertEvents(
-		context.Background(), tx, ref, []event.Event{evt},
+		ctx, tx, ref, []event.Event{evt},
 		sqliteInsertQuery(),
 		func(t time.Time) any { return t.Format(time.RFC3339Nano) },
 	)
@@ -150,7 +160,7 @@ func TestSharedCheckVersion_Match(t *testing.T) {
 		sqlpkg.TableEvents,
 	)
 
-	err = sqlpkg.SharedCheckVersion(context.Background(), tx, ref, event.Version(1), query)
+	err := sqlpkg.SharedCheckVersion(ctx, tx, ref, event.Version(1), query)
 	if err != nil {
 		t.Fatalf("SharedCheckVersion: %v", err)
 	}
@@ -166,12 +176,7 @@ func TestSharedCheckVersion_DBError(t *testing.T) {
 	db := setupEventsTable(t)
 	ref := event.NewAggregateRef("User", id.NewAggregateID())
 
-	tx, err := db.Begin()
-	if err != nil {
-		t.Fatalf("Begin: %v", err)
-	}
-	defer tx.Rollback()
-
+	tx := beginTx(t, db)
 	if err := tx.Rollback(); err != nil {
 		t.Fatalf("rollback: %v", err)
 	}
@@ -181,7 +186,7 @@ func TestSharedCheckVersion_DBError(t *testing.T) {
 		sqlpkg.TableEvents,
 	)
 
-	err = sqlpkg.SharedCheckVersion(context.Background(), tx, ref, event.Version(0), query)
+	err := sqlpkg.SharedCheckVersion(context.Background(), tx, ref, event.Version(0), query)
 	if err == nil {
 		t.Fatal("expected error for closed transaction")
 	}
@@ -193,19 +198,15 @@ func TestSharedCheckVersion_Mismatch(t *testing.T) {
 	db := setupEventsTable(t)
 	ref := event.NewAggregateRef("User", id.NewAggregateID())
 
-	tx, err := db.Begin()
-	if err != nil {
-		t.Fatalf("Begin: %v", err)
-	}
-	defer tx.Rollback()
+	tx := beginTx(t, db)
+	defer rollbackOnFail(t, tx)
 
-	// No events inserted, so MAX(version) = 0
 	query := fmt.Sprintf(
 		"SELECT COALESCE(MAX(version), 0) FROM %s WHERE aggregate_type = ? AND aggregate_id = ?",
 		sqlpkg.TableEvents,
 	)
 
-	err = sqlpkg.SharedCheckVersion(context.Background(), tx, ref, event.Version(5), query)
+	err := sqlpkg.SharedCheckVersion(context.Background(), tx, ref, event.Version(5), query)
 	if err == nil {
 		t.Fatal("expected version conflict error")
 	}
@@ -309,10 +310,7 @@ func TestDeleteByAggregate(t *testing.T) {
 	ref := event.NewAggregateRef("User", id.NewAggregateID())
 	ctx := context.Background()
 
-	tx, err := db.Begin()
-	if err != nil {
-		t.Fatalf("Begin: %v", err)
-	}
+	tx := beginTx(t, db)
 
 	_ = sqlpkg.SharedInsertEvents(
 		ctx, tx, ref, []event.Event{makeTestEvent(t, 1)},
@@ -321,13 +319,13 @@ func TestDeleteByAggregate(t *testing.T) {
 	)
 	_ = tx.Commit()
 
-	err = sqlpkg.DeleteByAggregate(db, ctx, ref, sqlpkg.TableEvents, "?", "?", "events")
+	err := sqlpkg.DeleteByAggregate(db, ctx, ref, sqlpkg.TableEvents, "?", "?", "events")
 	if err != nil {
 		t.Fatalf("DeleteByAggregate: %v", err)
 	}
 
 	var count int
-	if err := db.QueryRow("SELECT COUNT(*) FROM events").Scan(&count); err != nil {
+	if err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM events").Scan(&count); err != nil {
 		t.Fatalf("count: %v", err)
 	}
 	if count != 0 {
@@ -344,7 +342,7 @@ func TestDeleteByAggregate_OtherAggregateUntouched(t *testing.T) {
 	ref2 := event.NewAggregateRef("User", id.NewAggregateID())
 
 	for _, ref := range []event.AggregateRef{ref1, ref2} {
-		tx, _ := db.Begin()
+		tx := beginTx(t, db)
 		_ = sqlpkg.SharedInsertEvents(
 			ctx, tx, ref, []event.Event{makeTestEvent(t, 1)},
 			sqliteInsertQuery(),
@@ -359,7 +357,7 @@ func TestDeleteByAggregate_OtherAggregateUntouched(t *testing.T) {
 	}
 
 	var count int
-	if err := db.QueryRow("SELECT COUNT(*) FROM events").Scan(&count); err != nil {
+	if err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM events").Scan(&count); err != nil {
 		t.Fatalf("count: %v", err)
 	}
 	if count != 1 {

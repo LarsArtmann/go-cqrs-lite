@@ -193,7 +193,7 @@ func NewTestCreateOrderFlow(title string) catalog.Flow {
 				ID:    "1",
 				Title: catalog.Title(title),
 				Message: &catalog.FlowStepRef{
-					ID:      catalog.MessageID(testCreateOrderMsgID),
+					ID:      testCreateOrderMsgID,
 					Version: "",
 				},
 				Summary:   "",
