@@ -89,3 +89,66 @@ func BenchmarkEventStore_LoadToTimestamp(b *testing.B) {
 		})
 	}
 }
+
+func BenchmarkSerializeEnvelope(b *testing.B) {
+	b.ReportAllocs()
+
+	store := newPebbleBenchStore(b)
+	aggID := id.NewAggregateID()
+
+	evt, err := event.NewEvent("BenchEvent", aggID, "Bench", event.Version(1),
+		[]byte(`{"name":"benchmark","value":42}`))
+	if err != nil {
+		b.Fatalf("create event: %v", err)
+	}
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		_, err := store.serializeEvent(evt)
+		if err != nil {
+			b.Fatalf("serialize: %v", err)
+		}
+	}
+}
+
+func BenchmarkDeserializeEnvelope(b *testing.B) {
+	b.ReportAllocs()
+
+	store := newPebbleBenchStore(b)
+	aggID := id.NewAggregateID()
+
+	evt, err := event.NewEvent("BenchEvent", aggID, "Bench", event.Version(1),
+		[]byte(`{"name":"benchmark","value":42}`))
+	if err != nil {
+		b.Fatalf("create event: %v", err)
+	}
+
+	data, err := store.serializeEvent(evt)
+	if err != nil {
+		b.Fatalf("serialize: %v", err)
+	}
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		_, err := store.deserializeEvent(data)
+		if err != nil {
+			b.Fatalf("deserialize: %v", err)
+		}
+	}
+}
+
+func newPebbleBenchStore(b *testing.B) *EventStore {
+	b.Helper()
+
+	dir := b.TempDir()
+	database, err := pebble.Open(dir, &pebble.Options{})
+	if err != nil {
+		b.Fatalf("open pebble: %v", err)
+	}
+
+	b.Cleanup(func() { _ = database.Close() })
+
+	return NewStore(database, slog.Default())
+}

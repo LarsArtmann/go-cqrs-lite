@@ -1724,8 +1724,7 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
             <code>json</code> with <code>cbor</code> &mdash; same struct, same tags, no base64. With
             custom binary, replace the entire function with <code>BinaryCodec.Encode(evt)</code>.
             FlatBuffers would replace it with flat buffer construction.
-            <strong>Status:</strong> Phase 1 (CBORCodec payload codec) is done. Phase 2 (Pebble
-            envelope migration) is next.
+            <strong>Status:</strong> Phase 2 done. Pebble uses CBOR canonical encoding with JSON backward compat.
           </p>
 
           <h3>SQL store</h3>
@@ -1873,20 +1872,20 @@ func (CBORCodec) Decode(data []byte, v any) error { return cborDecMode.Unmarshal
 
           <div class="phase">
             <div class="phase-marker">
-              <div class="phase-dot"></div>
+              <div class="phase-dot green"></div>
               <div class="phase-line"></div>
             </div>
             <div>
-              <div class="phase-label">Phase 2 &middot; Integration</div>
-              <div class="phase-title">Pebble + SQL Migration</div>
+              <div class="phase-label">Phase 2 &middot; Integration <span class="verdict-tag done">DONE</span></div>
+              <div class="phase-title">Pebble CBOR Envelope Migration</div>
               <div class="phase-desc">
-                Switch <code>pebble/serialization.go</code> from
-                <code>json.Marshal(serializableEvent{})</code> to <code>CBORCodec.Encode()</code>.
-                Update SQL payload encoding. Run benchmarks. Verify signing works with deterministic
-                CBOR.
+                Switched <code>pebble/serialization.go</code> from
+                <code>json.Marshal(serializableEvent{})</code> to CBOR canonical encoding.
+                Format sniff (<code>isCBOR()</code>) reads both CBOR (current) and JSON (legacy)
+                envelopes for backward compatibility. Base64 tax eliminated.
               </div>
               <div class="phase-detail">
-                ~3 hours &middot; Measurable storage &amp; throughput win
+                <strong>Shipped</strong> &middot; 12 new tests, 2 fuzz tests, 3 benchmarks &middot; All existing tests pass
               </div>
             </div>
           </div>

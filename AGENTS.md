@@ -60,7 +60,7 @@ go-cqrs-lite/
 ├── otel/                # Shared OpenTelemetry helpers: Tracer, Meter, Spans, Attributes
 ├── listing/             # AggregateListing, AggregateStatus, tombstone detection, StatusMiddleware, InMemoryAggregateReader
 ├── watermill/           # Watermill protocol adapter (publisher/subscriber)
-├── pebble/              # Embedded key-value event store (PebbleDB)
+├── pebble/              # Embedded key-value event store (PebbleDB), CBOR envelope with JSON backward compat
 ├── codec/               # Payload encoding: JSON, CBOR (deterministic), Raw passthrough
 ├── turso/               # Turso database connector (embedded LibSQL sync)
 ├── cmd/cqrs-gen/        # Code generator: typed handler registration from Go structs
