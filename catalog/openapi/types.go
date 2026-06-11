@@ -6,12 +6,12 @@ import (
 
 // Document represents an OpenAPI 3.0 specification document.
 type Document struct {
-	OpenAPI    string                 `json:"openapi"`
-	Info       catalog.DocumentInfo   `json:"info"`
-	Servers    []Server               `json:"servers,omitempty"`
-	Paths      map[string]*PathItem   `json:"paths"`
-	Components Components             `json:"components"`
-	Tags       []Tag                  `json:"tags,omitempty"`
+	OpenAPI    string               `json:"openapi"`
+	Info       catalog.DocumentInfo `json:"info"`
+	Servers    []Server             `json:"servers,omitempty"`
+	Paths      map[string]*PathItem `json:"paths"`
+	Components Components           `json:"components"`
+	Tags       []Tag                `json:"tags,omitempty"`
 }
 
 // Server describes a server URL.

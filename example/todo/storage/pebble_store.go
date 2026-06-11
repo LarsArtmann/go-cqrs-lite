@@ -28,7 +28,7 @@ func NewPebbleStore(dbPath string, logger *slog.Logger) (*PebbleStore, error) {
 		return nil, fmt.Errorf("failed to open pebble db at %s: %w", dbPath, err)
 	}
 	return &PebbleStore{
-	PebbleHandle: PebbleHandle{db: db, logger: logger, prefix: "todo:"},
+		PebbleHandle: PebbleHandle{db: db, logger: logger, prefix: "todo:"},
 	}, nil
 }
 

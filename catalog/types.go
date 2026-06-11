@@ -137,7 +137,7 @@ type Channel struct {
 	Address           Address                 `json:"address,omitempty"`
 	Protocols         []Protocol              `json:"protocols,omitempty"`
 	Messages          []MessageID             `json:"messages,omitempty"`
-	DeliveryGuarantee DeliveryGuarantee        `json:"deliveryGuarantee,omitempty"`
+	DeliveryGuarantee DeliveryGuarantee       `json:"deliveryGuarantee,omitempty"`
 	Parameters        map[string]ChannelParam `json:"parameters,omitempty"`
 	Routes            []ChannelRoute          `json:"routes,omitempty"`
 	Owners            []string                `json:"owners,omitempty"`
@@ -145,15 +145,15 @@ type Channel struct {
 }
 
 type Catalog struct {
-	Title      Title      `json:"title"`
-	Version    Version    `json:"version"`
-	Services   []Service  `json:"services"`
-	Domains    []Domain   `json:"domains,omitempty"`
-	Channels   []Channel  `json:"channels,omitempty"`
+	Title      Title       `json:"title"`
+	Version    Version     `json:"version"`
+	Services   []Service   `json:"services"`
+	Domains    []Domain    `json:"domains,omitempty"`
+	Channels   []Channel   `json:"channels,omitempty"`
 	DataStores []DataStore `json:"dataStores,omitempty"`
-	Flows      []Flow     `json:"flows,omitempty"`
-	Teams      []Team     `json:"teams,omitempty"`
-	Users      []User     `json:"users,omitempty"`
+	Flows      []Flow      `json:"flows,omitempty"`
+	Teams      []Team      `json:"teams,omitempty"`
+	Users      []User      `json:"users,omitempty"`
 }
 
 // Key returns the unique key for the message: msg.ID if set, otherwise msg.Name.

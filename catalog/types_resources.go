@@ -2,17 +2,17 @@ package catalog
 
 // DataStore represents a data store (database, cache, object store, etc.).
 type DataStore struct {
-	ID             DataStoreID      `json:"id"`
-	Name           Name             `json:"name"`
-	Version        Version          `json:"version"`
-	Summary        Summary          `json:"summary,omitempty"`
-	ContainerType  string           `json:"containerType"`
-	Technology     string           `json:"technology,omitempty"`
-	Classification string           `json:"classification,omitempty"`
-	Retention      string           `json:"retention,omitempty"`
-	Residency      string           `json:"residency,omitempty"`
-	Owners         []string         `json:"owners,omitempty"`
-	Badges         []Badge          `json:"badges,omitempty"`
+	ID             DataStoreID `json:"id"`
+	Name           Name        `json:"name"`
+	Version        Version     `json:"version"`
+	Summary        Summary     `json:"summary,omitempty"`
+	ContainerType  string      `json:"containerType"`
+	Technology     string      `json:"technology,omitempty"`
+	Classification string      `json:"classification,omitempty"`
+	Retention      string      `json:"retention,omitempty"`
+	Residency      string      `json:"residency,omitempty"`
+	Owners         []string    `json:"owners,omitempty"`
+	Badges         []Badge     `json:"badges,omitempty"`
 }
 
 // Flow represents a message flow with ordered steps between services and messages.

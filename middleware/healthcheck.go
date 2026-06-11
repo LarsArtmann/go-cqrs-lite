@@ -35,7 +35,7 @@ const (
 type HealthCheckResponse struct {
 	Status    HealthStatus      `json:"status"`
 	Version   string            `json:"version,omitempty"`
-	ReleaseID    ReleaseID         `json:"releaseId,omitempty"`
+	ReleaseID ReleaseID         `json:"releaseId,omitempty"`
 	Notes     []string          `json:"notes,omitempty"`
 	Output    string            `json:"output,omitempty"`
 	Checks    map[string]Check  `json:"checks,omitempty"`
