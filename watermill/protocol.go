@@ -112,7 +112,7 @@ func messageToEvent(topic string, msg *message.Message) (event.Event, error) {
 	opts := []event.Option{event.WithSchemaVersion(event.SchemaVersion(schemaVersion))}
 
 	if eventOpts, err := parseOptionalFields(md); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("topic %s: parse optional fields: %w", topic, err)
 	} else {
 		opts = append(opts, eventOpts...)
 	}
