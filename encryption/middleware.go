@@ -40,7 +40,7 @@ func EncryptMiddleware(encrypter Encrypter, opts ...MiddlewareOption) event.Publ
 		)
 	}
 
-	cfg := middlewareConfig{}
+	cfg := middlewareConfig{} //nolint:exhaustruct
 	for _, o := range opts {
 		o(&cfg)
 	}

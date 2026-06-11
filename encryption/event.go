@@ -28,7 +28,7 @@ func AttachEncryption(
 		return nil, ErrNilEvent
 	}
 
-	cfg := attachConfig{}
+	cfg := attachConfig{} //nolint:exhaustruct
 	for _, o := range opts {
 		o(&cfg)
 	}
