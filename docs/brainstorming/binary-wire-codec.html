@@ -851,6 +851,7 @@
           <li><a href="#file-structure">File Structure</a></li>
           <li><a href="#phases">Build Phases</a></li>
           <li><a href="#dismissed">What We Dismissed</a></li>
+          <li><a href="#appendix-industry">Appendix: Industry Patterns</a></li>
           <li><a href="#appendix-base64">Appendix: Why Base64?</a></li>
         </ol>
 
@@ -1908,6 +1909,411 @@ func (CBORCodec) Decode(data []byte, v any) error { return cbor.Unmarshal(data, 
               </tr>
             </tbody>
           </table>
+        </section>
+
+        <hr />
+
+        <!-- ── Appendix: Industry Patterns ─────────────── -->
+        <section id="appendix-industry">
+          <h2>Appendix: Industry Patterns</h2>
+
+          <p>
+            Six systems that have solved event storage at scale. Each made different serialization
+            choices. Here's what we can learn.
+          </p>
+
+          <h3>1. EventStoreDB &mdash; Custom binary, opaque to the outside world</h3>
+
+          <p>
+            EventStoreDB stores events in append-only chunk files (256 MiB each). The physical
+            format is a <strong>custom binary record layout</strong>
+            with a fixed header per record: event type, stream ID, sequence number, timestamp,
+            metadata, and payload as raw bytes. The payload is opaque &mdash; EventStoreDB never
+            inspects it. Metadata (correlation IDs, custom headers) is stored as a separate field,
+            not inside the payload.
+          </p>
+
+          <p>
+            Indexes are maintained in PTables (persistent sorted tables) with bloom filters for
+            stream existence. Scavenging (compaction) rewrites chunks to remove tombstoned events.
+          </p>
+
+          <h4>What we learn</h4>
+          <ul>
+            <li>
+              <strong>Envelope and payload are separate</strong> &mdash; the store never parses the
+              payload. This is our Layer 1/Layer 2 split.
+            </li>
+            <li>
+              <strong>Fixed-header binary records</strong> &mdash; validates the custom binary
+              approach for Option C.
+            </li>
+            <li>
+              <strong>Append-only is king</strong> &mdash; no in-place updates, no delete. Events
+              are immutable. go-cqrs-lite already follows this (tombstone over delete).
+            </li>
+            <li>
+              <strong>Index is separate from data</strong> &mdash; EventStoreDB doesn't parse
+              records to find events. It uses offset-based indexes. Our Pebble keys already serve
+              this role.
+            </li>
+          </ul>
+
+          <h3>2. Apache Kafka &mdash; Zero-copy, batch-level compression, varint encoding</h3>
+
+          <p>
+            Kafka's record batch format is a masterclass in systems engineering. Records are grouped
+            into batches with a shared header: base offset, CRC-32C checksum, compression type,
+            producer ID, and timestamp deltas. Individual records use
+            <strong>varint encoding</strong> for lengths and deltas, keeping overhead minimal.
+            Headers are key-value byte pairs (similar to our metadata KV pairs).
+          </p>
+
+          <p>
+            The throughput secret isn't the format &mdash; it's
+            <strong>zero-copy transfer</strong> via Linux <code>sendfile()</code>. Data flows
+            directly from disk page cache to network socket without entering userspace. 4.1x
+            throughput, 3.9x less CPU.
+          </p>
+
+          <h4>What we learn</h4>
+          <ul>
+            <li>
+              <strong>Batch-level compression</strong> &mdash; compress at the batch boundary, not
+              per-record. Single-event compression has &lt;5% savings. Batched compression gets
+              65-70%. go-cqrs-lite should compress batches, not individual events.
+            </li>
+            <li>
+              <strong>Varint encoding for small values</strong> &mdash; Kafka uses varints for
+              lengths and deltas. Our version field (often 1-10) wastes 3 bytes as uint32. Varints
+              would be 1 byte.
+            </li>
+            <li>
+              <strong>Timestamp deltas, not absolute</strong> &mdash; Kafka stores base timestamp
+              per batch, then deltas per record. For events within an aggregate, timestamps are
+              close together. Delta encoding saves bytes.
+            </li>
+            <li>
+              <strong>Zero-copy is a transport concern</strong> &mdash; it's about
+              <code>sendfile()</code>, not serialization format. We can't apply this to in-process
+              reads, but it's relevant for any network transport layer consumers build.
+            </li>
+          </ul>
+
+          <h3>
+            3. Axon Framework &mdash; Serializer-per-concern, upcasting as first-class citizen
+          </h3>
+
+          <p>
+            Axon uses <strong>different serializers for different concerns</strong>: one for events
+            (long-term storage), one for commands/queries (distributed messages), one for internal
+            state (tokens, sagas, snapshots). The event serializer defaults to XStream (XML) or
+            Jackson (JSON). Axon 5 uses SQL columns for event metadata and BLOB for payload.
+          </p>
+
+          <p>
+            Axon's most notable contribution: <strong>structured upcasting</strong>. Events have a
+            <code>version</code> field (called "revision"). Upcasters transform old event structures
+            to new ones during replay. One-to-one, one-to-many, and context-aware upcasting are all
+            supported.
+          </p>
+
+          <h4>What we learn</h4>
+          <ul>
+            <li>
+              <strong>Serializer-per-concern is the right pattern</strong> &mdash; events need
+              long-term stability. Commands need speed. Snapshots need compactness. go-cqrs-lite's
+              <code>codec.Codec</code> already allows this (consumers pass different codecs). We
+              should document this pattern.
+            </li>
+            <li>
+              <strong>Upcasting is orthogonal to serialization</strong> &mdash; our
+              <code>schema/</code> module already handles this. The codec doesn't need to know about
+              schema evolution.
+            </li>
+            <li>
+              <strong>Metadata as first-class SQL columns</strong> &mdash; Axon 5 indexes aggregate
+              type, sequence number, timestamp as columns. This is what our SQL store already does.
+              Validates the design.
+            </li>
+            <li>
+              <strong>XML is still alive in 2026</strong> &mdash; Axon defaults to XStream. If the
+              Java ecosystem can ship XML-based event sourcing at scale, CBOR is not a risky choice.
+            </li>
+          </ul>
+
+          <h3>4. Lagom &mdash; JSON with compression threshold, Akka underneath</h3>
+
+          <p>
+            Lagom wraps Akka Persistence with higher-level abstractions. Events are stored as
+            <strong>JSON via Jackson</strong> in Cassandra BLOB columns. Events larger than 32 KB
+            are automatically compressed. The Cassandra schema separates <code>event</code> (BLOB),
+            <code>ser_id</code> (serializer identifier), <code>ser_manifest</code>, and
+            <code>tags</code> into distinct columns.
+          </p>
+
+          <h4>What we learn</h4>
+          <ul>
+            <li>
+              <strong>Compression threshold</strong> &mdash; compress events above a configurable
+              size, leave small events uncompressed. This avoids the CPU cost of compression on tiny
+              payloads. Our codec could add a <code>CompressedCodec</code> wrapper that delegates
+              compression to a threshold.
+            </li>
+            <li>
+              <strong>Serializer identifier in the record</strong> &mdash; Lagom stores
+              <code>ser_id</code> and <code>ser_manifest</code> alongside each event. This allows
+              multiple serializers to coexist in the same journal. Our <code>Encoding</code> field
+              already does this, but only stores the format name. A numeric serializer ID would be
+              more compact.
+            </li>
+            <li>
+              <strong>JSON at scale works</strong> &mdash; Lagom powers production systems with JSON
+              serialization. The argument that JSON is "too slow" for event sourcing is overstated.
+              CBOR is already a significant improvement over JSON; we don't need custom binary to be
+              production-viable.
+            </li>
+          </ul>
+
+          <h3>5. Akka Persistence &mdash; Pluggable serialization, Jackson CBOR support</h3>
+
+          <p>
+            Akka Persistence provides a <strong>pluggable serialization infrastructure</strong> with
+            binding-based resolution: you register which serializer handles which type. Out of the
+            box: Jackson JSON, <strong>Jackson CBOR</strong>, and Protobuf. Event adapters separate
+            domain model from storage model. Schema evolution via
+            <code>SerializerWithStringManifest</code> and upcasting.
+          </p>
+
+          <p>
+            Notably, <strong>Akka recommends CBOR as a first-class option</strong> via
+            <code>CborSerializable</code>. Same Jackson API, binary wire format, native byte
+            support. This is essentially our Option B.
+          </p>
+
+          <h4>What we learn</h4>
+          <ul>
+            <li>
+              <strong>CBOR is production-proven in the Akka ecosystem</strong> &mdash; not
+              experimental. Major deployments use Akka CBOR serialization for event-sourced systems.
+            </li>
+            <li>
+              <strong>Event adapters separate domain from storage</strong> &mdash; write adapters
+              convert domain events to storage format, read adapters convert back. This is what our
+              <code>Codec</code> interface already does, but the explicit separation of write/read
+              adapters is a cleaner pattern to consider.
+            </li>
+            <li>
+              <strong>String manifests for schema evolution</strong> &mdash; instead of class names
+              (fragile, refactoring-hostile), Akka uses string manifests to identify event types.
+              Our <code>event.Type</code> is already a string, not a Go type name. Good.
+            </li>
+            <li>
+              <strong>Multiple serialization bindings coexist</strong> &mdash; the journal can
+              contain events serialized with different serializers. Our <code>Encoding</code> field
+              per event already supports this.
+            </li>
+          </ul>
+
+          <h3>6. Datomic &mdash; Datom as the universal primitive, Fressian encoding</h3>
+
+          <p>
+            Datomic takes a fundamentally different approach. Facts are stored as
+            <strong>datoms</strong> &mdash; 5-tuples of (Entity, Attribute, Value, Transaction,
+            Operation). The storage format uses <strong>Fressian</strong>, a compact binary encoding
+            optimized for Clojure data structures. Attribute IDs are compressed to 32-bit ints.
+            Transaction ID and operation boolean are fused into a single <code>tOp</code> field.
+          </p>
+
+          <p>
+            Four covering indexes (EAVT, AVET, AEVT, VAET) are maintained as immutable segments in
+            S3. Time travel is free &mdash; every database value is a point-in-time snapshot. No
+            separate audit system needed.
+          </p>
+
+          <h4>What we learn</h4>
+          <ul>
+            <li>
+              <strong>Bit fusion for small fields</strong> &mdash; Datomic packs transaction ID +
+              operation into a single <code>long</code> (shift + LSB). Our flags bitfield does the
+              same for has_metadata, has_schema_version, encoding. This pattern is universal in
+              efficient binary formats.
+            </li>
+            <li>
+              <strong>Index structure is separate from data</strong> &mdash; Datomic's indexes are
+              materialized views of the datom log, stored as immutable segments. The log is
+              append-only. Indexes are rebuilt periodically. This validates our approach: the event
+              store is the log, projections are the indexes.
+            </li>
+            <li>
+              <strong>Fressian is a precedent for custom binary in the JVM</strong> &mdash; even the
+              Java/Clojure ecosystem, with its culture of standard formats, builds custom binary
+              encodings when performance matters. We're not crazy for considering it.
+            </li>
+            <li>
+              <strong>Universal primitive vs. domain-specific format</strong> &mdash; Datomic stores
+              everything as datoms. go-cqrs-lite stores everything as events. Datomic's universalism
+              gives it flexibility (any query pattern via index selection). Our specificity gives us
+              performance (fixed envelope, domain-aware layout). The trade-off is clear:
+              universality costs parsing, specificity costs flexibility.
+            </li>
+          </ul>
+
+          <div class="callout info">
+            <div class="callout-title">Synthesis</div>
+            <p>The industry converges on a consistent set of patterns:</p>
+            <ul>
+              <li>
+                <strong>Envelope and payload are separate</strong> (EventStoreDB, Axon, Lagom,
+                Kafka)
+              </li>
+              <li>
+                <strong>The store never parses the payload</strong> (EventStoreDB, Kafka, Axon)
+              </li>
+              <li>
+                <strong>Metadata is a separate concern from payload</strong> (EventStoreDB, Axon,
+                Lagom, Kafka headers)
+              </li>
+              <li>
+                <strong>Serializer identifier travels with the record</strong> (Lagom
+                <code>ser_id</code>, Akka manifest, our <code>Encoding</code>)
+              </li>
+              <li>
+                <strong>CBOR is production-proven</strong> (Akka recommends it as first-class)
+              </li>
+              <li>
+                <strong>Compression is a batch-level concern</strong> (Kafka, Lagom threshold)
+              </li>
+              <li>
+                <strong>Custom binary formats exist when performance matters</strong> (EventStoreDB,
+                Datomic/Fressian, Chronicle Wire)
+              </li>
+              <li><strong>Materialized views in SQLite for instant reads</strong> (LiveStore)</li>
+            </ul>
+            <p>
+              None of these systems use msgpack. Several use CBOR. Most use JSON for the payload and
+              custom binary or structured columns for the envelope. LiveStore demonstrates that
+              SQLite-based materialization can eliminate the need for fast envelope parsing entirely
+              &mdash; the read path is SQL, not event replay. Our Option B (all-in CBOR) follows the
+              Akka pattern. Our Option C (custom binary + CBOR) follows the EventStoreDB pattern.
+              Both are well-precedented in production.
+            </p>
+          </div>
+
+          <h3>7. LiveStore &mdash; Reactive SQLite, git-inspired sync, materialization-first</h3>
+
+          <p>
+            <a href="https://livestore.dev/">LiveStore</a> is a TypeScript state management
+            framework built on event sourcing, reactive SQLite, and git-inspired sync. It replaces
+            Redux/MobX with an embedded SQLite database that is automatically kept in sync via
+            materializers. Events are the source of truth; SQLite tables are derived views.
+          </p>
+
+          <h4>Architecture</h4>
+          <ul>
+            <li>
+              <strong>Three nodes per client</strong> &mdash; Client Session (in-memory pending
+              events), Client Leader (durable eventlog + materialized SQLite), Sync Backend
+              (authoritative append-only log).
+            </li>
+            <li>
+              <strong>Event format</strong>:
+              <code>{ name, args, seqNum, parentSeqNum, clientId, sessionId }</code>. Args are
+              schema-validated via Effect Schema. Events are versioned
+              (<code>v1.TodoCreated</code>).
+            </li>
+            <li>
+              <strong>Sequence numbers are composite</strong>:
+              <code>{ global, client, rebaseGeneration }</code>. Global is assigned by sync backend.
+              Client tracks local events. Rebase generation increments on conflict resolution.
+              Events render as strings: <code>e5</code>, <code>e5.1</code>, <code>e5r1</code>.
+            </li>
+            <li>
+              <strong>Materializers</strong> map events to SQLite operations. Each event handler
+              returns SQL insert/update/delete. The materialized SQLite database is the query layer
+              &mdash; no event replay on read.
+            </li>
+            <li>
+              <strong>Git-inspired sync</strong>: pull before push, rebase local events on top of
+              upstream changes, push confirmed events. Conflict resolution is last-write-wins by
+              default, customizable.
+            </li>
+            <li>
+              <strong>Encoded events</strong> use JSON for args (Date &rarr; ISO string, binary
+              &rarr; base64). Stored in SQLite as structured columns.
+            </li>
+          </ul>
+
+          <h4>What we learn</h4>
+
+          <ul>
+            <li>
+              <strong>Materialization eliminates the need for fast envelope parsing</strong> &mdash;
+              LiveStore's read path is SQL on materialized tables, not event replay. The eventlog is
+              the write-only source of truth. This means envelope decode speed (our Option C's main
+              advantage over Option B) matters less when reads go through materialized projections.
+              Our <code>projection/</code> module already follows this pattern.
+            </li>
+            <li>
+              <strong>SQLite as the read model is a validated architecture</strong> &mdash;
+              LiveStore achieves 120 FPS with reactive SQLite queries. Our
+              <code>turso/</code> module (embedded LibSQL) is the same idea. The event store writes;
+              the SQL read model reads. The codec only matters on the write/replay path.
+            </li>
+            <li>
+              <strong>Versioned event names as schema evolution</strong> &mdash;
+              <code>v1.TodoCreated</code>, <code>v2.TodoCreated</code>. New versions are new event
+              types. Old versions never deleted. This is simpler than upcasting and avoids the
+              migration complexity. Our <code>schema/</code> module handles upcasting, but versioned
+              names are a lighter alternative for many consumers.
+            </li>
+            <li>
+              <strong>Unknown event handling is configurable</strong> &mdash; older clients
+              receiving newer events can warn, ignore, fail, or callback. This is a production-grade
+              concern we don't address yet. When the codec changes, old events must still be
+              readable.
+            </li>
+            <li>
+              <strong>Parent sequence numbers for causal ordering</strong> &mdash; every event
+              points to its parent, enabling DAG-based conflict detection and deterministic rebase.
+              Our events have version numbers (per-aggregate sequence) but no cross-aggregate causal
+              links. For multi-aggregate workflows, this is worth considering.
+            </li>
+            <li>
+              <strong>Rebasing, not rejecting</strong> &mdash; when two clients commit concurrently,
+              LiveStore rebases the loser's events on top of the winner's, rather than rejecting.
+              This is a fundamentally different conflict model than "last write wins" or "reject and
+              retry." go-cqrs-lite currently has no rebasing story for distributed scenarios.
+            </li>
+          </ul>
+
+          <div class="callout info">
+            <div class="callout-title">LiveStore's implications for our codec choice</div>
+            <p>
+              LiveStore proves that
+              <strong
+                >JSON encoding is fast enough when reads are served from materialized SQLite</strong
+              >. The eventlog is written once, replayed rarely (only on leader restart), and never
+              queried directly for UI reads. This means:
+            </p>
+            <ul>
+              <li>
+                <strong>Option B (all-in CBOR) is more than sufficient</strong> if most reads go
+                through projections. The codec only matters for event append and occasional replay.
+              </li>
+              <li>
+                <strong
+                  >Option C (custom binary) is only worth it for heavy replay workloads</strong
+                >
+                &mdash; initial load, full rebuild, or batch processing over millions of events.
+              </li>
+              <li>
+                <strong>The real investment should be in materialization quality</strong>, not
+                envelope decode speed. A fast projection pipeline with SQLite/LibSQL gives more
+                user-facing performance than a custom binary envelope.
+              </li>
+            </ul>
+          </div>
         </section>
 
         <hr />
