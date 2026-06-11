@@ -151,7 +151,7 @@ func TestExporter_Export_EventReceive(t *testing.T) {
 
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
 	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Service", "1.0.0")
-	cattest.AddEvent(t, reg, "svc", "OrderCreated", "OrderCreated", "1.0.0", catalog.Receives)
+	cattest.AddEvent(t, reg, catalog.ServiceID("svc"), catalog.MessageID("OrderCreated"), "OrderCreated", "1.0.0", catalog.Receives)
 
 	cat := cattest.Build(t, reg)
 	exp := NewExporter("Service", "1.0.0")
@@ -282,7 +282,7 @@ func TestExporter_Export_MultipleServices(t *testing.T) {
 		"1.0.0",
 		"",
 	)
-	cattest.AddEvent(t, reg, "svc-b", "DoneB", "DoneB", "1.0.0", catalog.Sends)
+	cattest.AddEvent(t, reg, catalog.ServiceID("svc-b"), catalog.MessageID("DoneB"), "DoneB", "1.0.0", catalog.Sends)
 
 	cat := cattest.Build(t, reg)
 	doc := NewExporter("Multi", "1.0.0").Export(cat)
@@ -452,7 +452,7 @@ func TestExporter_Export_Examples(t *testing.T) {
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
 	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Svc", "1.0.0")
 	cattest.AddCommandWithExample(
-		t, reg, "CreateOrder", "CreateOrder", "1.0.0",
+		t, reg, catalog.MessageID("CreateOrder"), "CreateOrder", "1.0.0",
 		`{"orderId":"abc","amount":42.5}`,
 	)
 

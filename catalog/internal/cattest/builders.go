@@ -98,7 +98,9 @@ func AddEventSimple(
 func AddEvent(
 	tb testing.TB,
 	r *catalog.Registry,
-	serviceID, messageID, name, version string,
+	serviceID catalog.ServiceID,
+	messageID catalog.MessageID,
+	name, version string,
 	direction catalog.Direction,
 ) *catalog.Registry {
 	tb.Helper()
@@ -106,8 +108,8 @@ func AddEvent(
 	return AddEventSimple(
 		tb,
 		r,
-		catalog.ServiceID(serviceID),
-		catalog.MessageID(messageID),
+		serviceID,
+		messageID,
 		name,
 		version,
 		direction,
@@ -190,7 +192,7 @@ func NewTestCreateOrderFlow(title string) catalog.Flow {
 			{
 				ID:        "1",
 				Title:     catalog.Title(title),
-				Message:   &catalog.FlowStepRef{ID: string(testCreateOrderMsgID), Version: ""},
+				Message:   &catalog.FlowStepRef{ID: catalog.MessageID(testCreateOrderMsgID), Version: ""},
 				Summary:   "",
 				Service:   nil,
 				Channel:   nil,
@@ -302,7 +304,8 @@ func AddServiceWithCommand(
 func AddCommandWithExample(
 	tb testing.TB,
 	r *catalog.Registry,
-	messageID, name, version, payload string,
+	messageID catalog.MessageID,
+	name, version, payload string,
 ) *catalog.Registry {
 	tb.Helper()
 
@@ -310,7 +313,7 @@ func AddCommandWithExample(
 		tb,
 		r,
 		catalog.ServiceID("svc"),
-		catalog.MessageID(messageID),
+		messageID,
 		name,
 		version,
 		json.RawMessage(payload),

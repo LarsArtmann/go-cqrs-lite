@@ -46,7 +46,7 @@ type Attachment struct {
 }
 
 type Ref struct {
-	ID      string  `json:"id"`
+	ID      MessageID `json:"id"`
 	Version Version `json:"version,omitempty"`
 }
 

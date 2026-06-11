@@ -7,9 +7,16 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
 )
 
+// DisplayID is a sanitized identifier used in diagram rendering.
+type DisplayID string
+
+func (d DisplayID) String() string { return string(d) }
+
+func (d DisplayID) IsZero() bool { return d == "" }
+
 type eventOwner struct {
-	serviceDisplayID string
-	eventDisplayID   string
+	serviceDisplayID DisplayID
+	eventDisplayID   DisplayID
 }
 
 // Export generates a D2 diagram string from the given catalog.
@@ -33,14 +40,14 @@ func (e *Exporter) writeInternalConnections(buf *strings.Builder, svc catalog.Se
 		return
 	}
 
-	serviceDisplayID := sanitizeID(string(svc.ID))
+	serviceDisplayID := DisplayID(sanitizeID(string(svc.ID)))
 
 	writeInternalEdges(buf, serviceDisplayID, svc)
 
 	buf.WriteString("\n")
 }
 
-func writeInternalEdges(buf *strings.Builder, serviceDisplayID string, svc catalog.Service) {
+func writeInternalEdges(buf *strings.Builder, serviceDisplayID DisplayID, svc catalog.Service) {
 	for _, cmd := range svc.Commands {
 		commandDisplayID := sanitizeID(string(catalog.Key(cmd)))
 		fmt.Fprintf(
@@ -92,13 +99,13 @@ func buildPublisherReceiverMaps(
 	receivers := make(map[catalog.MessageID][]eventOwner)
 
 	for _, svc := range cat.Services {
-		serviceDisplayID := sanitizeID(string(svc.ID))
+		serviceDisplayID := DisplayID(sanitizeID(string(svc.ID)))
 
 		for _, evt := range svc.Events {
 			messageID := catalog.Key(evt)
 			owner := eventOwner{
 				serviceDisplayID: serviceDisplayID,
-				eventDisplayID:   sanitizeID(string(messageID)),
+				eventDisplayID:   DisplayID(sanitizeID(string(messageID))),
 			}
 
 			switch evt.Direction {
@@ -172,7 +179,7 @@ func (e *Exporter) writeDomains(buf *strings.Builder, cat *catalog.Catalog) {
 		)
 
 		for _, svcRef := range domain.Services {
-			serviceDisplayID := sanitizeID(string(svcRef))
+			serviceDisplayID := DisplayID(sanitizeID(string(svcRef)))
 
 			fmt.Fprintf(buf, "domain_%s -> %s: \"contains\" {\n", domainDisplayID, serviceDisplayID)
 

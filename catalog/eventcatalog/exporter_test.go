@@ -465,7 +465,7 @@ func TestExporter_Export_ExamplesFile(t *testing.T) {
 	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
 	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Svc", "1.0.0")
 	cattest.AddCommandWithExample(
-		t, reg, "CreateOrder", "CreateOrder", "1.0.0",
+		t, reg, catalog.MessageID("CreateOrder"), "CreateOrder", "1.0.0",
 		`{"orderId":"abc-123","amount":42.5}`,
 	)
 
@@ -511,7 +511,7 @@ func TestExporter_Export_MessageWithoutSummary(t *testing.T) {
 
 	reg := cattest.NewRegistry(t, "Test", "1.0.0")
 	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Service", "1.0.0")
-	cattest.AddEvent(t, reg, "svc", "PlainEvent", "PlainEvent", "1.0.0", catalog.Sends)
+	cattest.AddEvent(t, reg, catalog.ServiceID("svc"), catalog.MessageID("PlainEvent"), "PlainEvent", "1.0.0", catalog.Sends)
 
 	tmpDir := exportCatalog(t, reg)
 
