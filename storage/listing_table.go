@@ -1,12 +1,16 @@
 package storage
 
-import "regexp"
+import (
+	"regexp"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+)
 
 var validListingTablePrefix = regexp.MustCompile(`^[a-z_][a-z0-9_]*$`)
 
 func validateListingTablePrefix(prefix string) error {
 	if !validListingTablePrefix.MatchString(prefix) {
-		return NewRejection(
+		return event.NewRejection(
 			"listing.invalid_table_prefix",
 			"invalid table prefix: must match ^[a-z_][a-z0-9_]*$",
 		)
