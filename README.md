@@ -119,7 +119,7 @@ func main() {
 }
 ```
 
-See `example/user/` for a complete example with the Decider pattern, middleware, and catalog generation.
+See `example/todo/` for a complete application with HTTP API, and `example/user/` for advanced patterns (signing, middleware, catalog).
 
 ### Recommended: Decider Pattern
 

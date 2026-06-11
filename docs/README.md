@@ -46,13 +46,10 @@
 
 ## Examples
 
-| Example                | Demonstrates                                               |
-| ---------------------- | ---------------------------------------------------------- |
-| `example/user`         | Full CQRS + Event Sourcing with Decider pattern            |
-| `example/listing`      | Aggregate listing, tombstone filtering, cursor pagination  |
-| `example/storage`      | SQL-backed event store                                     |
-| `example/projection`   | Projection replay and live subscription                    |
-| `example/saga-pattern` | Saga-style orchestration via projection + command dispatch |
+| Example        | Demonstrates                                                                                            |
+| -------------- | ------------------------------------------------------------------------------------------------------- |
+| `example/todo` | Complete todo app: domain, aggregate, decider, commands, queries, projections, HTTP API, Pebble storage |
+| `example/user` | Advanced patterns: signing, middleware, catalog generation, tombstone/rebirth                           |
 
 ## API Surface
 

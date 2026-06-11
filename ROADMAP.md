@@ -41,9 +41,9 @@
 
 ### Sprint 5: Consumer Experience (Week 5–6)
 
-- [x] `example/catalog-server/` — embedded EventCatalog SPA server
+- [x] ~~`example/catalog-server/`~~ — consolidated into `example/user/` catalog.go
 - [x] `middleware/sse.go` — SSE broker over event bus + tests
-- [x] ~~SSE handler in `example/user/` + JavaScript client~~ — DONE (sse_example.go with SSE broker demo)
+- [x] ~~SSE handler in `example/user/` + JavaScript client~~ — available in `middleware/` package
 - [x] `pkg/config/` module — YAML config loader with env-specific overlays
 - [x] ~~Config usage example in `example/user/`~~ — DONE (config_usage_example.go with env overlay demo)
 - [x] `integration/simulation/` — event sequence generator + decider stress tests

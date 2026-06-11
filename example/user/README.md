@@ -1,6 +1,8 @@
 # User Service Example
 
-A reference-quality integration demonstrating the full go-cqrs-lite stack using the **Decider pattern** — pure functions for state reconstruction and command decisions, no mutable aggregate required.
+A focused demonstration of advanced go-cqrs-lite patterns using the **Decider pattern** — pure functions for state reconstruction and command decisions, no mutable aggregate required.
+
+For a complete application with HTTP API, see [`example/todo/`](../todo/).
 
 ## Quick Start
 
@@ -22,6 +24,7 @@ go test ./...  # runs all tests including the signing pipeline
 | **Query dispatch** with typed results                 | `queries.go`, `handlers.go`         | `query.DispatchTyped[T]`             |
 | **Middleware chain** — Recovery→Logging→Metrics→Retry | `main.go`, `middleware_adapters.go` | `dispatcher.Use`                     |
 | **Event signing** — HMAC-SHA256 sign/verify           | `main.go`                           | `signing.SignMiddleware`             |
+| **Tombstone + rebirth** — soft-delete lifecycle       | `decide.go`                         | `event.MarkTombstone`                |
 | **Error classification** — Rejection, Conflict        | `decide.go`                         | `event.NewRejection` / `NewConflict` |
 | **EventCatalog generation**                           | `catalog.go`                        | `catalog.NewBuilder`                 |
 
@@ -49,14 +52,14 @@ Command → Dispatcher → Handler → DeciderRepository.Execute()
 
 ```
 example/user
-├── core/command     → Dispatcher, RegisterTyped
-├── core/decider     → Decider[State], Repository
-├── core/event       → NewEvent, Version, errors
-├── core/query       → Dispatcher, DispatchTyped
-├── memory           → MemoryStore, MemoryBus
-├── middleware        → Recovery, Logging, Metrics, Retry
-├── signing          → HMAC, SignMiddleware, VerifyMiddleware
-└── catalog          → Builder, EventCatalog exporter
+├── command     → Dispatcher, RegisterTyped
+├── decider     → Decider[State], Repository
+├── event       → NewEvent, Version, errors
+├── query       → Dispatcher, DispatchTyped
+├── memory      → MemoryStore, MemoryBus
+├── middleware   → Recovery, Logging, Metrics, Retry
+├── signing     → HMAC, SignMiddleware, VerifyMiddleware
+└── catalog     → Builder, EventCatalog exporter
 ```
 
 ## File Structure
@@ -66,13 +69,15 @@ example/user/
 ├── main.go                # Wiring + demo flow
 ├── events.go              # Shared event payload types
 ├── state.go               # UserState + fold function
-├── decide.go              # decideCreateUser, decideChangeName
-├── commands.go            # CreateUserCmd, ChangeUserNameCmd
+├── decide.go              # decideCreateUser, decideChangeName, decideDeleteUser, decideRebirthUser
+├── commands.go            # CreateUserCmd, ChangeUserNameCmd, DeleteUserCmd, RebirthUserCmd
 ├── queries.go             # GetUserQuery, ListUsersQuery
 ├── projection.go          # ReadModelStore (projection + query source)
-├── handlers.go            # Command + query handler wiring
-├── catalog.go             # EventCatalog generation
+├── handlers.go            # Command + query handler wiring + projection runner
+├── catalog.go             # EventCatalog / D2 / AsyncAPI generation
 ├── middleware_adapters.go # Logger + Metrics adapters
+├── constants.go           # Event, command, and query type constants
+├── types.go               # Domain value types (Email, DisplayName, Reason)
 ├── main_test.go           # Unit + integration tests
 └── smoke_test.go          # Full-stack signing + error tests
 ```

@@ -151,7 +151,8 @@ Query   → Dispatcher → Handler            Projection
 
 ## Next Steps
 
-- See `example/user/` for a complete working demo with Decider + middleware + catalog
+- See `example/todo/` for a complete application with HTTP API, projections, and Pebble storage
+- See `example/user/` for advanced patterns (Decider, signing, middleware, catalog generation)
 - See `README.md` for the full Quick Start and feature comparison
 - Browse `docs/adr/` for architectural decisions
 - Check `FEATURES.md` for full feature inventory

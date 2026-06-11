@@ -456,7 +456,7 @@ Minimal CLI demo showing the event sourcing lifecycle:
 
 ## Saga Pattern — Removed
 
-> Saga-style orchestration is demonstrated via `example/saga-pattern/`.
+> Saga-style orchestration is demonstrated via `example/todo/` (projection + command dispatch).
 > No dedicated module is needed — sagas emerge from projection + command dispatch.
 
 ---

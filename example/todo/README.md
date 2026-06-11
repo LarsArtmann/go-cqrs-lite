@@ -129,4 +129,4 @@ GOPRIVATE='github.com/larsartmann/*' GONOSUMCHECK='*' go run ./cmd/api
 
 ## Related
 
-- [go-cqrs-lite/example/user](../user/) — Minimal CLI demo of the aggregate lifecycle
+- [go-cqrs-lite/example/user](../user/) — Advanced patterns: signing, middleware, catalog generation

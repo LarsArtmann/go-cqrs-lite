@@ -33,7 +33,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Monorepo Structure
 
-Multi-module Go workspace (`go.work`) with 31 modules (22 library + 6 examples + 1 integration + 2 cmd):
+Multi-module Go workspace (`go.work`) with 27 modules (22 library + 2 examples + 1 integration + 2 cmd):
 
 ```
 go-cqrs-lite/
@@ -207,7 +207,7 @@ Layer 5: middleware/, storage/, projection/, listing/, watermill/, pebble/, turs
 Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability
 ```
 
-> **Saga pattern**: No dedicated saga module. Multi-step orchestration emerges from projection + command dispatch. See `example/saga-pattern/`.
+> **Saga pattern**: No dedicated saga module. Multi-step orchestration emerges from projection + command dispatch. See `example/todo/` for a real projection-based architecture.
 
 **v2.1.0 Released**: Performance-focused release with 62 commits since v2.0.0. Major perf improvements (alloc reductions across event/signing/listing/catalog/memory), production bug fixes (HealthCheck OOM, race conditions, closed state tracking), new `query.TypedHandler[Q, R]`, and comprehensive benchmarking infrastructure. All 22 library + 2 cmd modules tagged at v2.1.0 with `/v2` semantic import paths. Replace directives in go.mod files are retained for `GOWORK=off` per-module CI (ignored by consumers). Consumers import via `github.com/larsartmann/go-cqrs-lite/event/v2` etc.
 
