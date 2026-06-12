@@ -30,11 +30,41 @@ type PlanRow struct {
 	Detail string
 }
 
+// Priority classifies how important a recommendation is.
+type Priority int
+
+const (
+	// PriorityOptional indicates an index that may help but is not critical.
+	PriorityOptional Priority = iota
+	// PriorityRecommended indicates an index that should be created for production.
+	PriorityRecommended
+	// PriorityCritical indicates an index that fixes a severe performance issue
+	// (e.g., full table scan on a query that runs frequently).
+	PriorityCritical
+)
+
+// String returns a human-readable priority name.
+func (p Priority) String() string {
+	switch p {
+	case PriorityCritical:
+		return "critical"
+	case PriorityRecommended:
+		return "recommended"
+	default:
+		return "optional"
+	}
+}
+
+// Version tracks which schema or advisor version produced this index/recommendation.
+type Version string
+
 // Recommendation is a suggested index with context.
 type Recommendation struct {
 	Index        Index
 	Explanation  string
 	QueryPattern string
+	Priority     Priority
+	AdvisorVer   Version
 }
 
 // AdvisorOption configures an Advisor.
@@ -313,7 +343,7 @@ func (a *Advisor) recommendationFromDetail(detail, query string) *Recommendation
 
 	table := m[1]
 
-	idx, reason := a.inferIndex(table, query)
+	idx, reason, priority := a.inferIndex(table, query)
 	if idx == nil {
 		return nil
 	}
@@ -322,10 +352,12 @@ func (a *Advisor) recommendationFromDetail(detail, query string) *Recommendation
 		Index:        *idx,
 		Explanation:  reason,
 		QueryPattern: query,
+		Priority:     priority,
+		AdvisorVer:   Version("v1"),
 	}
 }
 
-func (a *Advisor) inferIndex(table, query string) (*Index, string) {
+func (a *Advisor) inferIndex(table, query string) (*Index, string, Priority) {
 	queryUpper := strings.ToUpper(query)
 
 	switch table {
@@ -338,7 +370,7 @@ func (a *Advisor) inferIndex(table, query string) (*Index, string) {
 				Table:   "events",
 				Columns: []string{"aggregate_type", "aggregate_id", "version"},
 				Reason:  "avoid full table scan on aggregate version queries",
-			}, "aggregate load with version filter triggers SCAN TABLE"
+			}, "aggregate load with version filter triggers SCAN TABLE", PriorityCritical
 		}
 
 		if strings.Contains(queryUpper, "EVENT_TYPE") {
@@ -347,7 +379,7 @@ func (a *Advisor) inferIndex(table, query string) (*Index, string) {
 				Table:   "events",
 				Columns: []string{"event_type", "occurred_at"},
 				Reason:  "avoid full table scan on event type filter queries",
-			}, "event type projection queries trigger SCAN TABLE"
+			}, "event type projection queries trigger SCAN TABLE", PriorityRecommended
 		}
 
 		if strings.Contains(queryUpper, "OCCURRED_AT") && strings.Contains(queryUpper, "ID") {
@@ -356,7 +388,7 @@ func (a *Advisor) inferIndex(table, query string) (*Index, string) {
 				Table:   "events",
 				Columns: []string{"occurred_at", "id"},
 				Reason:  "avoid full table scan on cursor pagination",
-			}, "ReadFrom cursor pagination triggers SCAN TABLE"
+			}, "ReadFrom cursor pagination triggers SCAN TABLE", PriorityCritical
 		}
 	case "commands":
 		if strings.Contains(queryUpper, "AGGREGATE_TYPE") &&
@@ -366,7 +398,7 @@ func (a *Advisor) inferIndex(table, query string) (*Index, string) {
 				Table:   "commands",
 				Columns: []string{"aggregate_type", "aggregate_id", "received_at"},
 				Reason:  "avoid full table scan on command aggregate queries",
-			}, "command audit by aggregate triggers SCAN TABLE"
+			}, "command audit by aggregate triggers SCAN TABLE", PriorityRecommended
 		}
 
 		if strings.Contains(queryUpper, "COMMAND_TYPE") {
@@ -375,11 +407,11 @@ func (a *Advisor) inferIndex(table, query string) (*Index, string) {
 				Table:   "commands",
 				Columns: []string{"command_type", "received_at"},
 				Reason:  "avoid full table scan on command type queries",
-			}, "command type analytics triggers SCAN TABLE"
+			}, "command type analytics triggers SCAN TABLE", PriorityOptional
 		}
 	}
 
-	return nil, ""
+	return nil, "", PriorityOptional
 }
 
 func (a *Advisor) userTables(ctx context.Context) ([]string, error) {
