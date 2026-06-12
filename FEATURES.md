@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-06-12 (v2.3.0 release) · **Module count:** 27 (22 library + 2 examples + 1 integration + 2 cmd) · **Go version:** 1.26.3
+**Last audited:** 2026-06-12 (v2.3.0 release) · **Module count:** 28 (22 library + 2 examples + 1 integration + 2 cmd + turso/indexing sub-package) · **Go version:** 1.26.3
 
 ## Status Legend
 
@@ -523,6 +523,28 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | Remote sync             | `OpenSync(ctx, dbPath, remoteURL, authToken)` — `SyncDB` with `Push`, `Pull`, `Checkpoint`, `Stats`, `Close` | ✅     |
 | Phantom types           | `DbPath`, `RemoteURL`, `AuthToken` — compile-time type safety                                                | ✅     |
 | Backward-compat aliases | `OpenTurso`, `NewTursoEventStore`, etc. — deprecated aliases preserved                                       | ✅     |
+| Indexed schema init     | `InitSchemaWithIndexes`, `InitSchemaWithIndexesAndOptimizations` — tables + indexes + pragmas                | ✅     |
+| Index convenience       | `NewIndexAdvisor`, `NewAutoIndexer`, `ApplyCQRSIndexes`, `ApplyTursoOptimizations`                           | ✅     |
+
+### Turso Indexing (sub-package) ✅ FULLY_FUNCTIONAL
+
+> `import "github.com/larsartmann/go-cqrs-lite/turso/indexing"`
+
+| Feature                  | Detail                                                                                          | Status |
+| ------------------------ | ----------------------------------------------------------------------------------------------- | ------ |
+| EXPLAIN-based Advisor    | `Advisor` analyzes queries via `EXPLAIN QUERY PLAN` — detects missing indexes, full table scans | ✅     |
+| AutoIndexer              | `AutoIndexer` creates/drops indexes automatically — lifecycle with Enable/Disable/Apply         | ✅     |
+| CQRS index presets       | `RecommendedCQRSIndexes()` — pre-built IndexSet for event store tables                          | ✅     |
+| Per-table Policy         | `Policy` type — exclude tables, mark critical, skip auto-creation per table                     | ✅     |
+| Priority classification  | `Priority` enum (Critical/Recommended/Optional) on Recommendations                              | ✅     |
+| Dry-run mode             | `WithDryRun()` — prints DDL without executing                                                   | ✅     |
+| OTel tracing             | All major operations traced via OpenTelemetry spans                                             | ✅     |
+| Index usage stats        | `Stats(ctx, db)` — queries `sqlite_stat1` for index hit counts                                  | ✅     |
+| Unused index detection   | `UnusedIndexes(ctx, db)` — finds indexes with zero hits                                         | ✅     |
+| WAL checkpoint scheduler | `CheckpointScheduler` — background WAL auto-checkpoint                                          | ✅     |
+| Optimization pragmas     | `DefaultOptimizations`, `ApplyOptimizations`, `ApplyWAL` — cache size, memory map, ANALYZE      | ✅     |
+| Functional options       | `WithExcludedTables`, `WithAutoAnalyze` — configurable behavior                                 | ✅     |
+| Benchmarks               | Indexed vs unindexed `ReadFrom` benchmarks proving value                                        | ✅     |
 
 ---
 
@@ -682,6 +704,7 @@ Found during code reviews. See `docs/planning/` for details.
 | ---------------------------------------------------------- | -------- | ------------------- |
 | command re-exports event types (module boundary violation) | HIGH     | command             |
 | Reactive extensions not wired into dispatchers             | LOW      | event/command/query |
+| Pre-existing golden test drift (codec, middleware)         | LOW      | codec, middleware   |
 
 ---
 
@@ -733,6 +756,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `otel`                 | `…/otel/v2`                 | ✅ Production   |
 | `pebble`               | `…/pebble/v2`               | ✅ Production   |
 | `turso`                | `…/turso/v2`                | ✅ Production   |
+| `turso/indexing`       | `…/turso/v2/indexing`       | ✅ Production   |
 | `cmd/cqrs-gen`         | `…/cmd/cqrs-gen/v2`         | 🔧 Tool         |
 | `cmd/api-stability`    | `…/cmd/api-stability/v2`    | 🔧 Tool         |
 | `example/user`         | `…/example/user`            | 💡 Demo         |
