@@ -66,6 +66,18 @@ func ExampleAutoIndexer_ApplyCQRSIndexes() {
 	// true
 }
 
+func ExampleInitSchemaWithIndexesAndOptimizations() {
+	db, _ := turso.OpenInMemory()
+	defer func() { _ = db.Close() }()
+
+	_ = turso.InitSchemaWithIndexesAndOptimizations(context.Background(), db)
+
+	fmt.Println("ready")
+
+	// Output:
+	// ready
+}
+
 func ExampleApplyOptimizations() {
 	db, _ := turso.OpenInMemory()
 	defer func() { _ = db.Close() }()

@@ -102,3 +102,31 @@ func TestInitSchemaWithIndexes(t *testing.T) {
 		t.Error("expected idx_events_cursor after InitSchemaWithIndexes")
 	}
 }
+
+func TestInitSchemaWithIndexesAndOptimizations(t *testing.T) {
+	t.Parallel()
+
+	db, err := turso.OpenInMemory()
+	if err != nil {
+		t.Fatalf("OpenInMemory: %v", err)
+	}
+
+	t.Cleanup(func() { _ = db.Close() })
+
+	if err := turso.InitSchemaWithIndexesAndOptimizations(context.Background(), db); err != nil {
+		t.Fatalf("InitSchemaWithIndexesAndOptimizations: %v", err)
+	}
+
+	advisor := indexing.NewAdvisor(db)
+	if err := advisor.ExistingIndexes(context.Background()); err != nil {
+		t.Fatalf("ExistingIndexes: %v", err)
+	}
+
+	if !advisor.HasIndex("idx_events_cursor") {
+		t.Error("expected idx_events_cursor after InitSchemaWithIndexesAndOptimizations")
+	}
+
+	if !advisor.HasIndex("idx_events_agg_ver") {
+		t.Error("expected idx_events_agg_ver after InitSchemaWithIndexesAndOptimizations")
+	}
+}

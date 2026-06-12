@@ -41,3 +41,15 @@ func InitSchemaWithIndexes(ctx context.Context, db *sql.DB) error {
 
 	return ApplyCQRSIndexes(ctx, db)
 }
+
+// InitSchemaWithIndexesAndOptimizations creates all tables, applies
+// CQRS-optimized indexes, AND applies performance PRAGMAs in a single
+// call. This is the most complete one-shot setup for production
+// Turso/LibSQL event-sourcing workloads.
+func InitSchemaWithIndexesAndOptimizations(ctx context.Context, db *sql.DB) error {
+	if err := InitSchemaWithIndexes(ctx, db); err != nil {
+		return err
+	}
+
+	return ApplyTursoOptimizations(ctx, db)
+}
