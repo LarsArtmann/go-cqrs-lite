@@ -154,3 +154,30 @@ func TestAdvisor_recommendationFromDetail_nil(t *testing.T) {
 		}
 	}
 }
+
+func TestAdvisor_WithExcludedTables(t *testing.T) {
+	t.Parallel()
+
+	database := setupTestDB(t)
+
+	// Insert a custom table that we will exclude.
+	_, err := database.ExecContext(context.Background(),
+		"CREATE TABLE audit_log (id TEXT PRIMARY KEY, message TEXT, created_at TEXT)")
+	if err != nil {
+		t.Fatalf("create table: %v", err)
+	}
+
+	advisor := indexing.NewAdvisor(database, indexing.WithExcludedTables("audit_log"))
+
+	recs, err := advisor.MissingIndexes(context.Background())
+	if err != nil {
+		t.Fatalf("MissingIndexes: %v", err)
+	}
+
+	// audit_log should not appear in the missing index recommendations.
+	for _, r := range recs {
+		if r.Index.Table == "audit_log" {
+			t.Errorf("audit_log should be excluded but found recommendation: %+v", r)
+		}
+	}
+}
