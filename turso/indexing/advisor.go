@@ -28,10 +28,9 @@ type PlanRow struct {
 
 // Recommendation is a suggested index with context.
 type Recommendation struct {
-	Index         Index
-	Reason        string
-	QueryPattern  string
-	EstimatedCost int // lower is better; parsed from plan detail if available
+	Index        Index
+	Explanation  string
+	QueryPattern string
 }
 
 // AdvisorOption configures an Advisor.
@@ -305,7 +304,7 @@ func (a *Advisor) recommendationFromDetail(detail, query string) *Recommendation
 
 	return &Recommendation{
 		Index:        *idx,
-		Reason:       reason,
+		Explanation:  reason,
 		QueryPattern: query,
 	}
 }

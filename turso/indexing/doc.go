@@ -14,7 +14,7 @@ package indexing
 //	recs, _ := advisor.AnalyzeQuery(ctx,
 //	    "SELECT * FROM events WHERE aggregate_type = ? AND aggregate_id = ?")
 //	for _, r := range recs {
-//	    fmt.Println(r.Reason, r.Index.DDL())
+//	    fmt.Println(r.Explanation, r.Index.DDL())
 //	}
 //
 // Quick start — auto-apply CQRS-optimized indexes:
