@@ -203,12 +203,14 @@ func benchAdvisor(b *testing.B, withIndexes bool) *sql.DB {
 
 	// Seed events for the same aggregate to make the queries realistic.
 	for i := 0; i < 1000; i++ {
-		_, err := db.ExecContext(context.Background(),
+		_, err := db.ExecContext(
+			context.Background(),
 			`INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, payload_encoding, metadata, occurred_at, created_at)
 			 VALUES (?, 'TestEvent', 'Test', ?, ?, 1, '{}', 'json', '{}', datetime('now'), datetime('now'))`,
 			fmt.Sprintf("evt-%d-%d", i, i%10),
 			fmt.Sprintf("agg-%d", i%10),
-			i+1)
+			i+1,
+		)
 		if err != nil {
 			b.Fatal(err)
 		}

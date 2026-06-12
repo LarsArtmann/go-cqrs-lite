@@ -42,7 +42,7 @@
 - [x] ~~Fix catalog/registry.go Build() corruption~~ — DONE
 - [x] ~~Fix catalog/docserver XSS~~ — DONE
 - [x] ~~Fix watermill double-close panic~~ — DONE
-- [x] ~~Fix watermill MustParse* panic on untrusted input~~ — DONE
+- [x] ~~Fix watermill MustParse\* panic on untrusted input~~ — DONE
 - [x] ~~Fix memory/checkpoint missing CheckClosed~~ — DONE
 - [x] ~~Fix signing middleware nil signer/verifier panic~~ — DONE
 - [x] ~~Fix cmd/api-stability wrong module paths~~ — DONE

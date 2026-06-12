@@ -29,40 +29,40 @@ from "good first draft", we executed 18 commits delivering:
 
 ## a) FULLY DONE ✅
 
-| # | Task | Commit | Group |
-|---|------|--------|-------|
-| 1 | AutoIndexer consistency fix (Apply/ApplyCQRSIndexes respect IsEnabled) | 9eaaf5b5 | Bug fix |
-| 2 | `Index.Partial` bool | 2a9dbd70 | Type API |
-| 3 | `IndexSet.DropDDL()` | 2a9dbd70 | Type API |
-| 4 | `turso/doc.go` discoverability update | 5b7802b8 | Docs |
-| 5 | `AdvisorOption` pattern (`WithExcludedTables`) | 4c99bb81 | Options |
-| 6 | `AutoIndexerOption` pattern (`WithAutoAnalyze`) | 4c99bb81 | Options |
-| 7 | `Recommendation.Reason` → `Explanation` rename | 53f13fc2 | Type clarity |
-| 8 | Removed dead `EstimatedCost` | 53f13fc2 | Cleanup |
-| 9 | `InitSchemaWithIndexesAndOptimizations` | e6a1c951 | Convenience |
-| 10 | OTel `Tracer()` setup + telemetry.go | 65a8eab2 | Observability |
-| 11 | OTel span on `Advisor.AnalyzeQuery` | 65a8eab2 | Observability |
-| 12 | OTel span on `AutoIndexer.Apply` | 65a8eab2 | Observability |
-| 13 | OTel span on `AutoIndexer.ApplyCQRSIndexes` | 65a8eab2 | Observability |
-| 14 | OTel span on `ApplyOptimizations` | 65a8eab2 | Observability |
-| 15 | `AutoIndexer.Close()` | 90d2a24a | Lifecycle |
-| 16 | `AutoIndexer.Drop(ctx, indexes...)` | 90d2a24a | Lifecycle |
-| 17 | `AutoIndexer.RecommendAndApply(ctx)` | 90d2a24a | Lifecycle |
-| 18 | `WithDryRun()` option + `LastDDL()` | 90d2a24a | Safety |
-| 19 | `Priority` enum (Optional/Recommended/Critical) | c8e06afb | Type model |
-| 20 | `Version` type | c8e06afb | Type model |
-| 21 | Priority wired into `inferIndex()` | c8e06afb | Type model |
-| 22 | `Stats(ctx, db)` | 8068927a | Observability |
-| 23 | `UnusedIndexes(ctx, db)` | 8068927a | Observability |
-| 24 | Test coverage for all new options | d12b4b3b | Tests |
-| 25 | `CheckpointScheduler` (WAL maintenance) | 3dbe9292 | Operations |
-| 26 | `BenchmarkReadFrom_WithIndexes` | 07672026 | Performance |
-| 27 | `BenchmarkReadFrom_WithoutIndexes` | 07672026 | Performance |
-| 28 | `BenchmarkAdvisor_MissingIndexes` | 07672026 | Performance |
-| 29 | Sub-package `README.md` | be5728d5 | Docs |
-| 30 | `CHANGELOG.md` | be5728d5 | Docs |
-| 31 | `Policy` type for per-table customization | e3183ef1 | Extensibility |
-| 32 | Comprehensive status reports (3 total) | 7d533931, 0fd9331b, 54d91142 | Docs |
+| #   | Task                                                                   | Commit                       | Group         |
+| --- | ---------------------------------------------------------------------- | ---------------------------- | ------------- |
+| 1   | AutoIndexer consistency fix (Apply/ApplyCQRSIndexes respect IsEnabled) | 9eaaf5b5                     | Bug fix       |
+| 2   | `Index.Partial` bool                                                   | 2a9dbd70                     | Type API      |
+| 3   | `IndexSet.DropDDL()`                                                   | 2a9dbd70                     | Type API      |
+| 4   | `turso/doc.go` discoverability update                                  | 5b7802b8                     | Docs          |
+| 5   | `AdvisorOption` pattern (`WithExcludedTables`)                         | 4c99bb81                     | Options       |
+| 6   | `AutoIndexerOption` pattern (`WithAutoAnalyze`)                        | 4c99bb81                     | Options       |
+| 7   | `Recommendation.Reason` → `Explanation` rename                         | 53f13fc2                     | Type clarity  |
+| 8   | Removed dead `EstimatedCost`                                           | 53f13fc2                     | Cleanup       |
+| 9   | `InitSchemaWithIndexesAndOptimizations`                                | e6a1c951                     | Convenience   |
+| 10  | OTel `Tracer()` setup + telemetry.go                                   | 65a8eab2                     | Observability |
+| 11  | OTel span on `Advisor.AnalyzeQuery`                                    | 65a8eab2                     | Observability |
+| 12  | OTel span on `AutoIndexer.Apply`                                       | 65a8eab2                     | Observability |
+| 13  | OTel span on `AutoIndexer.ApplyCQRSIndexes`                            | 65a8eab2                     | Observability |
+| 14  | OTel span on `ApplyOptimizations`                                      | 65a8eab2                     | Observability |
+| 15  | `AutoIndexer.Close()`                                                  | 90d2a24a                     | Lifecycle     |
+| 16  | `AutoIndexer.Drop(ctx, indexes...)`                                    | 90d2a24a                     | Lifecycle     |
+| 17  | `AutoIndexer.RecommendAndApply(ctx)`                                   | 90d2a24a                     | Lifecycle     |
+| 18  | `WithDryRun()` option + `LastDDL()`                                    | 90d2a24a                     | Safety        |
+| 19  | `Priority` enum (Optional/Recommended/Critical)                        | c8e06afb                     | Type model    |
+| 20  | `Version` type                                                         | c8e06afb                     | Type model    |
+| 21  | Priority wired into `inferIndex()`                                     | c8e06afb                     | Type model    |
+| 22  | `Stats(ctx, db)`                                                       | 8068927a                     | Observability |
+| 23  | `UnusedIndexes(ctx, db)`                                               | 8068927a                     | Observability |
+| 24  | Test coverage for all new options                                      | d12b4b3b                     | Tests         |
+| 25  | `CheckpointScheduler` (WAL maintenance)                                | 3dbe9292                     | Operations    |
+| 26  | `BenchmarkReadFrom_WithIndexes`                                        | 07672026                     | Performance   |
+| 27  | `BenchmarkReadFrom_WithoutIndexes`                                     | 07672026                     | Performance   |
+| 28  | `BenchmarkAdvisor_MissingIndexes`                                      | 07672026                     | Performance   |
+| 29  | Sub-package `README.md`                                                | be5728d5                     | Docs          |
+| 30  | `CHANGELOG.md`                                                         | be5728d5                     | Docs          |
+| 31  | `Policy` type for per-table customization                              | e3183ef1                     | Extensibility |
+| 32  | Comprehensive status reports (3 total)                                 | 7d533931, 0fd9331b, 54d91142 | Docs          |
 
 ---
 
@@ -172,33 +172,33 @@ don't support `mmap_size` or `PRAGMA optimize`, preventing false failures.
 
 ## f) Top #25 Things We Should Get Done Next
 
-| # | Priority | Task | Module | Effort | Value |
-|---|----------|------|--------|--------|-------|
-| 1 | 🔴 CRITICAL | Fix 5 `perfsprint` lint issues | turso/indexing | 15 min | HIGH |
-| 2 | 🔴 CRITICAL | Rename `db` → `database` in tests (6 files) | turso/indexing | 20 min | HIGH |
-| 3 | 🔴 CRITICAL | Remove 1 redundant `nolintlint` | turso/indexing | 5 min | MED |
-| 4 | 🟡 HIGH | Add `turso.ScheduleCheckpoint` root convenience | turso | 10 min | HIGH |
-| 5 | 🟡 HIGH | Add `WithIndexingHooks` option for lifecycle callbacks | turso/indexing | 25 min | HIGH |
-| 6 | 🟡 HIGH | Wire `Policy` into `AutoIndexer` for runtime use | turso/indexing | 20 min | HIGH |
-| 7 | 🟡 HIGH | Add `turso/indexing/policy_test.go` full integration test | turso/indexing | 20 min | MED |
-| 8 | 🟡 HIGH | Add benchmark regression detection to CI | .github | 1.5 hr | HIGH |
-| 9 | 🟡 HIGH | Benchmark with 100K+ events to show real index speedup | turso | 30 min | HIGH |
-| 10 | 🟢 MEDIUM | Integrate `Stats()` with `listing` module health check | listing | 2 hr | MED |
-| 11 | 🟢 MEDIUM | Add `AutoIndexer.RecommendOnly()` (returns DDL only) | turso/indexing | 15 min | MED |
-| 12 | 🟢 MEDIUM | Add `indexing.Priority.String()` consumer example | turso/indexing | 10 min | LOW |
-| 13 | 🟢 MEDIUM | `SyncIndexesWithEngine` background worker | turso | 1.5 hr | MED |
-| 14 | 🟢 MEDIUM | ADR: "Why we ship pre-calculated CQRS indexes" | docs | 45 min | MED |
-| 15 | 🟢 MEDIUM | `indexing.ExplainRec(rec)` for human-readable recommendation dump | turso/indexing | 30 min | MED |
-| 16 | 🟢 MEDIUM | `turso/indexing/policy.go` → accept `Policy` via option | turso/indexing | 15 min | MED |
-| 17 | 🟢 LOW | Postgres `pg_stat_user_indexes` reader for parity | storage | 1.5 hr | LOW |
-| 18 | 🟢 LOW | Add `Index.Cardinality` from `ANALYZE` row stats | turso/indexing | 30 min | LOW |
-| 19 | 🟢 LOW | `turso/indexing/hooks.go` — before/after create callbacks | turso/indexing | 45 min | LOW |
-| 20 | 🟢 LOW | Auto-tag v2.2.1 after lint cleanup | release | 15 min | MED |
-| 21 | 🟢 LOW | Add `ExamplePolicy` and `ExampleCheckpointScheduler` to README | docs | 15 min | LOW |
-| 22 | 🟢 LOW | `indexing.Compact()` for VACUUM guidance based on dead rows | turso/indexing | 1 hr | LOW |
-| 23 | 🟢 LOW | `turso/indexing/snapshot.go` — take index snapshot for rollback | turso/indexing | 1 hr | LOW |
-| 24 | 🟢 LOW | Add index usage trend tracking over time | turso/indexing | 2 hr | LOW |
-| 25 | 🟢 LOW | Document best practices in `docs/indexing-best-practices.md` | docs | 1 hr | LOW |
+| #   | Priority    | Task                                                              | Module         | Effort | Value |
+| --- | ----------- | ----------------------------------------------------------------- | -------------- | ------ | ----- |
+| 1   | 🔴 CRITICAL | Fix 5 `perfsprint` lint issues                                    | turso/indexing | 15 min | HIGH  |
+| 2   | 🔴 CRITICAL | Rename `db` → `database` in tests (6 files)                       | turso/indexing | 20 min | HIGH  |
+| 3   | 🔴 CRITICAL | Remove 1 redundant `nolintlint`                                   | turso/indexing | 5 min  | MED   |
+| 4   | 🟡 HIGH     | Add `turso.ScheduleCheckpoint` root convenience                   | turso          | 10 min | HIGH  |
+| 5   | 🟡 HIGH     | Add `WithIndexingHooks` option for lifecycle callbacks            | turso/indexing | 25 min | HIGH  |
+| 6   | 🟡 HIGH     | Wire `Policy` into `AutoIndexer` for runtime use                  | turso/indexing | 20 min | HIGH  |
+| 7   | 🟡 HIGH     | Add `turso/indexing/policy_test.go` full integration test         | turso/indexing | 20 min | MED   |
+| 8   | 🟡 HIGH     | Add benchmark regression detection to CI                          | .github        | 1.5 hr | HIGH  |
+| 9   | 🟡 HIGH     | Benchmark with 100K+ events to show real index speedup            | turso          | 30 min | HIGH  |
+| 10  | 🟢 MEDIUM   | Integrate `Stats()` with `listing` module health check            | listing        | 2 hr   | MED   |
+| 11  | 🟢 MEDIUM   | Add `AutoIndexer.RecommendOnly()` (returns DDL only)              | turso/indexing | 15 min | MED   |
+| 12  | 🟢 MEDIUM   | Add `indexing.Priority.String()` consumer example                 | turso/indexing | 10 min | LOW   |
+| 13  | 🟢 MEDIUM   | `SyncIndexesWithEngine` background worker                         | turso          | 1.5 hr | MED   |
+| 14  | 🟢 MEDIUM   | ADR: "Why we ship pre-calculated CQRS indexes"                    | docs           | 45 min | MED   |
+| 15  | 🟢 MEDIUM   | `indexing.ExplainRec(rec)` for human-readable recommendation dump | turso/indexing | 30 min | MED   |
+| 16  | 🟢 MEDIUM   | `turso/indexing/policy.go` → accept `Policy` via option           | turso/indexing | 15 min | MED   |
+| 17  | 🟢 LOW      | Postgres `pg_stat_user_indexes` reader for parity                 | storage        | 1.5 hr | LOW   |
+| 18  | 🟢 LOW      | Add `Index.Cardinality` from `ANALYZE` row stats                  | turso/indexing | 30 min | LOW   |
+| 19  | 🟢 LOW      | `turso/indexing/hooks.go` — before/after create callbacks         | turso/indexing | 45 min | LOW   |
+| 20  | 🟢 LOW      | Auto-tag v2.2.1 after lint cleanup                                | release        | 15 min | MED   |
+| 21  | 🟢 LOW      | Add `ExamplePolicy` and `ExampleCheckpointScheduler` to README    | docs           | 15 min | LOW   |
+| 22  | 🟢 LOW      | `indexing.Compact()` for VACUUM guidance based on dead rows       | turso/indexing | 1 hr   | LOW   |
+| 23  | 🟢 LOW      | `turso/indexing/snapshot.go` — take index snapshot for rollback   | turso/indexing | 1 hr   | LOW   |
+| 24  | 🟢 LOW      | Add index usage trend tracking over time                          | turso/indexing | 2 hr   | LOW   |
+| 25  | 🟢 LOW      | Document best practices in `docs/indexing-best-practices.md`      | docs           | 1 hr   | LOW   |
 
 ---
 
@@ -207,18 +207,21 @@ don't support `mmap_size` or `PRAGMA optimize`, preventing false failures.
 **"Should the `AutoIndexer` be merged into the `turso` root package as a `TursoIndexer` struct, or kept as a separate `indexing` sub-package?"**
 
 ### Arguments for sub-package (current state):
+
 - ISP-clean — consumers only import what they need
 - Easier to evolve independently of root `turso` types
 - Clear separation of concerns
 - Allows the `Advisor` to be used without `AutoIndexer`
 
 ### Arguments for merging into root:
+
 - Reduces import path depth (`turso.NewAutoIndexer` vs `turso/indexing.NewAutoIndexer`)
 - The convenience exports already exist in root (`turso.NewAutoIndexer`, `turso.ApplyCQRSIndexes`)
 - Other modules don't follow the sub-package pattern this aggressively
 - Some "advanced" features (Policy, dry-run) are more "nice-to-have" than "core"
 
 ### The tension:
+
 The sub-package structure is **architecturally cleaner** but
 **discoverability suffers**. The root package has 5 convenience
 functions for the most common case, but the advanced types
@@ -226,6 +229,7 @@ functions for the most common case, but the advanced types
 hidden one level deep.
 
 ### My recommendation:
+
 **Keep the sub-package** but **expand the root convenience** to cover
 all advanced operations via options. This gives both: clean architecture
 for power users, one-line access for everyone else.
@@ -237,26 +241,26 @@ I'd like confirmation before doing a major restructure.
 
 ## Module Health Snapshot
 
-| Module | Tests | Coverage | Lint | Status |
-|--------|-------|----------|------|--------|
-| event/v2 | ✅ | 89.4% | ✅ Zero | 🟢 Healthy |
-| storage/v2 | ✅ | 86.8% | ✅ Zero | 🟢 Healthy |
-| storage/v2/sql | ✅ | 34.7% | ✅ Zero | 🟢 Healthy |
-| turso/v2 | ✅ | 49.1% | ✅ Zero | 🟢 Healthy |
-| turso/v2/indexing | ✅ | **75.5%** | 🟡 50 minor | 🟢 Healthy |
-| All 28 other modules | ✅ | 67-100% | ✅ Zero | 🟢 Healthy |
+| Module               | Tests | Coverage  | Lint        | Status     |
+| -------------------- | ----- | --------- | ----------- | ---------- |
+| event/v2             | ✅    | 89.4%     | ✅ Zero     | 🟢 Healthy |
+| storage/v2           | ✅    | 86.8%     | ✅ Zero     | 🟢 Healthy |
+| storage/v2/sql       | ✅    | 34.7%     | ✅ Zero     | 🟢 Healthy |
+| turso/v2             | ✅    | 49.1%     | ✅ Zero     | 🟢 Healthy |
+| turso/v2/indexing    | ✅    | **75.5%** | 🟡 50 minor | 🟢 Healthy |
+| All 28 other modules | ✅    | 67-100%   | ✅ Zero     | 🟢 Healthy |
 
 ---
 
 ## Status Reports Written
 
-| Date | File | Purpose |
-|------|------|---------|
-| 2026-06-10 21:42 | `TURSO-INDEXING-AUTO-SMART-COMPLETE.md` | Initial sub-package delivery |
-| 2026-06-10 22:08 | `TURSO-INDEXING-REFINEMENT-COMPLETE.md` | Post-implementation refinement |
-| 2026-06-12 02:35 | `COMPREHENSIVE-EXECUTION-PLAN.md` | 48-task execution plan |
-| 2026-06-12 02:35 | `TURSO-INDEXING-FINAL-STATUS.md` | Sprint completion report |
-| 2026-06-12 04:05 | `TURSO-INDEXING-COMPREHENSIVE-STATUS.md` | This document |
+| Date             | File                                     | Purpose                        |
+| ---------------- | ---------------------------------------- | ------------------------------ |
+| 2026-06-10 21:42 | `TURSO-INDEXING-AUTO-SMART-COMPLETE.md`  | Initial sub-package delivery   |
+| 2026-06-10 22:08 | `TURSO-INDEXING-REFINEMENT-COMPLETE.md`  | Post-implementation refinement |
+| 2026-06-12 02:35 | `COMPREHENSIVE-EXECUTION-PLAN.md`        | 48-task execution plan         |
+| 2026-06-12 02:35 | `TURSO-INDEXING-FINAL-STATUS.md`         | Sprint completion report       |
+| 2026-06-12 04:05 | `TURSO-INDEXING-COMPREHENSIVE-STATUS.md` | This document                  |
 
 ---
 

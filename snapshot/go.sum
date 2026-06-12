@@ -15,6 +15,7 @@ github.com/google/pprof v0.0.0-20260507013755-92041b743c96/go.mod h1:MxpfABSjhmI
 github.com/larsartmann/go-branded-id v0.3.0 h1:3uE01+ymNTfsvtLMRSiux+6TjPZX5+frqR5Ub3Cj+w0=
 github.com/larsartmann/go-branded-id v0.3.0/go.mod h1:O9fhyzY3DxtLsswpR7XaI+VbCM9182ZbZQLjfFFanLk=
 github.com/larsartmann/go-cqrs-lite/command/v2 v2.3.0 h1:lTopAWb08bZu25clXQwhXQD0trNpavuXevI/NtXsCqs=
+github.com/larsartmann/go-cqrs-lite/command/v2 v2.3.0/go.mod h1:svBiVQP+QsBU/wfmLldtB96Op3qZSddnCI/x8KAlFOQ=
 github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.3.0 h1:n3op24MGFw+bjAQq/mRFoD/FEpaT17e6jvbvZS1VGNY=
 github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.3.0/go.mod h1:Y+gun/Vi0Yyrinarr4DcgZkjWDRlktqdeuM4YkXkKdQ=
 github.com/larsartmann/go-cqrs-lite/memory/v2 v2.2.0 h1:7r8xO8PFCPelV9KZJv8e+DEg8Or5e/TGn8fU62z1QfU=
