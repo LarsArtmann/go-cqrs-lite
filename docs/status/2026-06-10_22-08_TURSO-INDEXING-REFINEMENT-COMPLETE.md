@@ -24,6 +24,7 @@
 **Index.Partial:** New boolean flag making partial-index predicates explicit. Previously `Where` alone implied partial, but the intent wasn't discoverable from the type.
 
 **IndexSet.DropDDL():** Symmetric with `DDL()`. Returns `[]string` of `DROP INDEX IF EXISTS ...` statements. Useful for:
+
 - Rollback scripts
 - Migration down-paths
 - Testing (tear down indexes between benchmarks)
@@ -39,6 +40,7 @@ Package documentation now references `turso/indexing` sub-package and convenienc
 ### Commit 4: 4c99bb81 — Add functional options pattern
 
 **AdvisorOption:**
+
 ```go
 advisor := indexing.NewAdvisor(db, indexing.WithExcludedTables("sqlite_stat1", "sqlite_stat4"))
 ```
@@ -46,6 +48,7 @@ advisor := indexing.NewAdvisor(db, indexing.WithExcludedTables("sqlite_stat1", "
 Prevents the advisor from analyzing specific tables during `MissingIndexes()`.
 
 **AutoIndexerOption:**
+
 ```go
 auto := indexing.NewAutoIndexer(db, indexing.WithAutoAnalyze())
 ```
@@ -60,18 +63,18 @@ Follows the project's existing `SQLEventStoreOption` pattern from `storage/optio
 
 ## a) FULLY DONE ✅
 
-| # | Item | Status |
-|---|------|--------|
-| 1 | AutoIndexer consistency bug fix | ✅ Committed 9eaaf5b5 |
-| 2 | Index.Partial bool | ✅ Committed 2a9dbd70 |
-| 3 | IndexSet.DropDDL() | ✅ Committed 2a9dbd70 |
-| 4 | turso/doc.go indexing mention | ✅ Committed 5b7802b8 |
-| 5 | AdvisorOption pattern | ✅ Committed 4c99bb81 |
-| 6 | AutoIndexerOption pattern | ✅ Committed 4c99bb81 |
-| 7 | WithExcludedTables filter | ✅ Committed 4c99bb81 |
-| 8 | WithAutoAnalyze option | ✅ Committed 4c99bb81 |
-| 9 | Auto-run ANALYZE after index creation | ✅ Committed 4c99bb81 |
-| 10 | All tests pass (turso + indexing) | ✅ 100% pass rate |
+| #   | Item                                  | Status                |
+| --- | ------------------------------------- | --------------------- |
+| 1   | AutoIndexer consistency bug fix       | ✅ Committed 9eaaf5b5 |
+| 2   | Index.Partial bool                    | ✅ Committed 2a9dbd70 |
+| 3   | IndexSet.DropDDL()                    | ✅ Committed 2a9dbd70 |
+| 4   | turso/doc.go indexing mention         | ✅ Committed 5b7802b8 |
+| 5   | AdvisorOption pattern                 | ✅ Committed 4c99bb81 |
+| 6   | AutoIndexerOption pattern             | ✅ Committed 4c99bb81 |
+| 7   | WithExcludedTables filter             | ✅ Committed 4c99bb81 |
+| 8   | WithAutoAnalyze option                | ✅ Committed 4c99bb81 |
+| 9   | Auto-run ANALYZE after index creation | ✅ Committed 4c99bb81 |
+| 10  | All tests pass (turso + indexing)     | ✅ 100% pass rate     |
 
 ---
 
@@ -86,6 +89,7 @@ Follows the project's existing `SQLEventStoreOption` pattern from `storage/optio
 ### 2. Coverage (turso/v2/indexing: 70.4%)
 
 Good but not great. Untested paths:
+
 - `Advisor` with `WithExcludedTables` option
 - `AutoIndexer` with `WithAutoAnalyze` option
 - `maybeAnalyze()` when `autoAnalyze` is false (default path covered)
@@ -102,6 +106,7 @@ The functional options added new `varnamelen` instances in test code. No functio
 ### 1. OTel tracing for indexing operations
 
 The rest of the project traces everything (event store, command dispatch, query execution). Indexing operations are a blind spot:
+
 - `Advisor.AnalyzeQuery` could trace EXPLAIN execution time
 - `AutoIndexer.ApplyCQRSIndexes` could trace DDL execution time
 - `ApplyOptimizations` could trace PRAGMA execution time
@@ -109,6 +114,7 @@ The rest of the project traces everything (event store, command dispatch, query 
 ### 2. Performance benchmarks
 
 No before/after benchmarks proving that CQRS indexes improve query performance. Need:
+
 - `BenchmarkReadFrom_WithIndexes` vs `BenchmarkReadFrom_WithoutIndexes`
 - `BenchmarkLoadFromVersion_WithIndexes` vs `BenchmarkLoadFromVersion_WithoutIndexes`
 
@@ -159,23 +165,23 @@ No before/after benchmarks proving that CQRS indexes improve query performance. 
 
 ## f) Top #15 Things We Should Get Done Next!
 
-| # | Priority | Task | Module | Effort |
-|---|----------|------|--------|--------|
-| 1 | 🔴 CRITICAL | Rename `Recommendation.Reason` → `Explanation` | turso/indexing | 10 min |
-| 2 | 🔴 CRITICAL | Remove dead `Recommendation.EstimatedCost` | turso/indexing | 5 min |
-| 3 | 🔴 CRITICAL | Benchmark indexed vs unindexed `ReadFrom` | turso | 30 min |
-| 4 | 🟡 HIGH | Test `WithExcludedTables` and `WithAutoAnalyze` | turso/indexing | 20 min |
-| 5 | 🟡 HIGH | Add OTel tracing to indexing operations | turso/indexing | 25 min |
-| 6 | 🟡 HIGH | Add `indexing.IndexUsageStats(ctx, db)` | turso/indexing | 1.5 hrs |
-| 7 | 🟡 HIGH | Real Turso sync integration tests (build-tagged) | turso | 2 hrs |
-| 8 | 🟢 MEDIUM | Add `AutoIndexer.CleanupUnused(ctx)` | turso/indexing | 1 hr |
-| 9 | 🟢 MEDIUM | Add `InitSchemaWithIndexesAndOptimizations` | turso | 15 min |
-| 10 | 🟢 MEDIUM | `listing` integration: validate indexes before reads | listing | 2 hrs |
-| 11 | 🟢 MEDIUM | WAL checkpoint scheduling helper | turso | 1 hr |
-| 12 | 🟢 MEDIUM | Document index trade-offs (write amplification) | docs | 45 min |
-| 13 | 🟢 LOW | `AutoIndexer.Close()` + lifecycle cleanup | turso/indexing | 15 min |
-| 14 | 🟢 LOW | `indexing.DryRun` mode (print DDL, don't execute) | turso/indexing | 30 min |
-| 15 | 🟢 LOW | Publish ADR: "Why pre-calculated CQRS indexes" | docs/adr | 1 hr |
+| #   | Priority    | Task                                                 | Module         | Effort  |
+| --- | ----------- | ---------------------------------------------------- | -------------- | ------- |
+| 1   | 🔴 CRITICAL | Rename `Recommendation.Reason` → `Explanation`       | turso/indexing | 10 min  |
+| 2   | 🔴 CRITICAL | Remove dead `Recommendation.EstimatedCost`           | turso/indexing | 5 min   |
+| 3   | 🔴 CRITICAL | Benchmark indexed vs unindexed `ReadFrom`            | turso          | 30 min  |
+| 4   | 🟡 HIGH     | Test `WithExcludedTables` and `WithAutoAnalyze`      | turso/indexing | 20 min  |
+| 5   | 🟡 HIGH     | Add OTel tracing to indexing operations              | turso/indexing | 25 min  |
+| 6   | 🟡 HIGH     | Add `indexing.IndexUsageStats(ctx, db)`              | turso/indexing | 1.5 hrs |
+| 7   | 🟡 HIGH     | Real Turso sync integration tests (build-tagged)     | turso          | 2 hrs   |
+| 8   | 🟢 MEDIUM   | Add `AutoIndexer.CleanupUnused(ctx)`                 | turso/indexing | 1 hr    |
+| 9   | 🟢 MEDIUM   | Add `InitSchemaWithIndexesAndOptimizations`          | turso          | 15 min  |
+| 10  | 🟢 MEDIUM   | `listing` integration: validate indexes before reads | listing        | 2 hrs   |
+| 11  | 🟢 MEDIUM   | WAL checkpoint scheduling helper                     | turso          | 1 hr    |
+| 12  | 🟢 MEDIUM   | Document index trade-offs (write amplification)      | docs           | 45 min  |
+| 13  | 🟢 LOW      | `AutoIndexer.Close()` + lifecycle cleanup            | turso/indexing | 15 min  |
+| 14  | 🟢 LOW      | `indexing.DryRun` mode (print DDL, don't execute)    | turso/indexing | 30 min  |
+| 15  | 🟢 LOW      | Publish ADR: "Why pre-calculated CQRS indexes"       | docs/adr       | 1 hr    |
 
 ---
 
@@ -186,6 +192,7 @@ No before/after benchmarks proving that CQRS indexes improve query performance. 
 SQLite's `EXPLAIN QUERY PLAN` gives estimated costs, but these are unitless planner internals (loop counts, not milliseconds). A naive "cost reduction = 500" metric would be meaningless to consumers.
 
 Alternatives:
+
 - **A) Keep it qualitative** — `Index.Reason` + `Recommendation.Explanation` tell the story
 - **B) Add benchmark-driven metrics** — Run actual queries before/after and report latency delta
 - **C) Add `Index.Priority` enum** — `Critical` / `Recommended` / `Optional` based on scan frequency
@@ -196,14 +203,14 @@ My gut says (B) is the only honest approach, but it requires infrastructure (ben
 
 ## Module Health Snapshot
 
-| Module | Tests | Coverage | Lint | Status |
-|--------|-------|----------|------|--------|
-| event/v2 | ✅ | 89.4% | ✅ Zero | 🟢 Healthy |
-| storage/v2 | ✅ | 86.8% | ✅ Zero | 🟢 Healthy |
-| storage/v2/sql | ✅ | 34.7% | ✅ Zero | 🟢 Healthy |
-| turso/v2 | ✅ | 40.9% | ✅ Zero | 🟡 OK |
-| turso/v2/indexing | ✅ | 70.4% | 🟡 45 minor | 🟡 Good |
-| All 28 other modules | ✅ | 67-100% | ✅ Zero | 🟢 Healthy |
+| Module               | Tests | Coverage | Lint        | Status     |
+| -------------------- | ----- | -------- | ----------- | ---------- |
+| event/v2             | ✅    | 89.4%    | ✅ Zero     | 🟢 Healthy |
+| storage/v2           | ✅    | 86.8%    | ✅ Zero     | 🟢 Healthy |
+| storage/v2/sql       | ✅    | 34.7%    | ✅ Zero     | 🟢 Healthy |
+| turso/v2             | ✅    | 40.9%    | ✅ Zero     | 🟡 OK      |
+| turso/v2/indexing    | ✅    | 70.4%    | 🟡 45 minor | 🟡 Good    |
+| All 28 other modules | ✅    | 67-100%  | ✅ Zero     | 🟢 Healthy |
 
 ---
 

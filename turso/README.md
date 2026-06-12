@@ -68,13 +68,13 @@ turso.ApplyCQRSIndexes(ctx, db)
 
 `indexing.RecommendedCQRSIndexes()` returns pre-calculated indexes for common CQRS patterns:
 
-| Index | Columns | Purpose |
-|-------|---------|---------|
-| `idx_events_cursor` | `(occurred_at, id)` | Cursor pagination for `ReadFrom` / journal replay |
-| `idx_events_agg_ver` | `(aggregate_type, aggregate_id, version)` | Covering index for `LoadFromVersion` / `LoadToVersion` |
-| `idx_events_type_time` | `(event_type, occurred_at)` | Projection filters by event type with ordering |
-| `idx_commands_agg_time` | `(aggregate_type, aggregate_id, received_at)` | Command audit trail with time ordering |
-| `idx_commands_type_time` | `(command_type, received_at)` | Command type analytics |
+| Index                    | Columns                                       | Purpose                                                |
+| ------------------------ | --------------------------------------------- | ------------------------------------------------------ |
+| `idx_events_cursor`      | `(occurred_at, id)`                           | Cursor pagination for `ReadFrom` / journal replay      |
+| `idx_events_agg_ver`     | `(aggregate_type, aggregate_id, version)`     | Covering index for `LoadFromVersion` / `LoadToVersion` |
+| `idx_events_type_time`   | `(event_type, occurred_at)`                   | Projection filters by event type with ordering         |
+| `idx_commands_agg_time`  | `(aggregate_type, aggregate_id, received_at)` | Command audit trail with time ordering                 |
+| `idx_commands_type_time` | `(command_type, received_at)`                 | Command type analytics                                 |
 
 ### Index Advisor
 

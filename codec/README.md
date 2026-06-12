@@ -8,11 +8,11 @@ go get github.com/larsartmann/go-cqrs-lite/codec/v2
 
 ## Codecs
 
-| Codec        | Description                                              |
-| ------------ | -------------------------------------------------------- |
-| `JSONCodec`  | Standard `encoding/json` marshal/unmarshal               |
-| `CBORCodec`  | Canonical CBOR (RFC 7049) — deterministic, signing-safe  |
-| `RawCodec`   | Passthrough for pre-encoded `[]byte` payloads            |
+| Codec       | Description                                             |
+| ----------- | ------------------------------------------------------- |
+| `JSONCodec` | Standard `encoding/json` marshal/unmarshal              |
+| `CBORCodec` | Canonical CBOR (RFC 7049) — deterministic, signing-safe |
+| `RawCodec`  | Passthrough for pre-encoded `[]byte` payloads           |
 
 ## Interface
 

@@ -48,7 +48,7 @@ func (p *Policy) IsCritical(table string) bool {
 // ShouldSkipAutoCreate reports whether the policy disables auto-creation
 // for the given table.
 func (p *Policy) ShouldSkipAutoCreate(table string) bool {
-	if p ==nil {
+	if p == nil {
 		return false
 	}
 

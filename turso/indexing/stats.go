@@ -14,9 +14,9 @@ type IndexUsageStats struct {
 	Name      string
 	Table     string
 	Columns   []string
-	HasStats  bool   // whether sqlite_stat1 entry exists
-	RowEst    int64  // estimated row count
-	SizeBytes int64  // approximate index size
+	HasStats  bool  // whether sqlite_stat1 entry exists
+	RowEst    int64 // estimated row count
+	SizeBytes int64 // approximate index size
 }
 
 // Stats scans sqlite_master and sqlite_stat1 to report index usage

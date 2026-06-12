@@ -19,23 +19,23 @@ func Tracer() trace.Tracer {
 
 // Attribute keys for indexing telemetry.
 const (
-	AttrIndexName   = "indexing.index.name"
-	AttrIndexTable  = "indexing.index.table"
-	AttrIndexUnique = "indexing.index.unique"
-	AttrScanDetected = "indexing.scan.detected"
+	AttrIndexName           = "indexing.index.name"
+	AttrIndexTable          = "indexing.index.table"
+	AttrIndexUnique         = "indexing.index.unique"
+	AttrScanDetected        = "indexing.scan.detected"
 	AttrRecommendationCount = "indexing.recommendation.count"
 )
 
 // SpanNames for common operations.
 const (
-	SpanAdvisorAnalyzeQuery    = "indexing.advisor.analyze_query"
-	SpanAdvisorAnalyzeTable    = "indexing.advisor.analyze_table"
-	SpanAdvisorMissingIndexes  = "indexing.advisor.missing_indexes"
-	SpanAutoIndexerApply       = "indexing.auto_indexer.apply"
-	SpanAutoIndexerApplyCQRS   = "indexing.auto_indexer.apply_cqrs"
-	SpanAutoIndexerDrop        = "indexing.auto_indexer.drop"
-	SpanOptimizationsApply     = "indexing.optimizations.apply"
-	SpanOptimizationsPragma    = "indexing.optimizations.pragma"
+	SpanAdvisorAnalyzeQuery   = "indexing.advisor.analyze_query"
+	SpanAdvisorAnalyzeTable   = "indexing.advisor.analyze_table"
+	SpanAdvisorMissingIndexes = "indexing.advisor.missing_indexes"
+	SpanAutoIndexerApply      = "indexing.auto_indexer.apply"
+	SpanAutoIndexerApplyCQRS  = "indexing.auto_indexer.apply_cqrs"
+	SpanAutoIndexerDrop       = "indexing.auto_indexer.drop"
+	SpanOptimizationsApply    = "indexing.optimizations.apply"
+	SpanOptimizationsPragma   = "indexing.optimizations.pragma"
 )
 
 // startIndexingSpan starts a span with the indexing tracer and

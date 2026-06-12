@@ -20,10 +20,12 @@ or were minor lint cleanups below the value threshold.
 ## Tasks Completed
 
 ### Group 1: Type Model Cleanup ✅
+
 - T-001, T-002, T-003: Renamed `Recommendation.Reason` → `Explanation`
 - T-004: Removed dead `Recommendation.EstimatedCost` field
 
 ### Group 2: OTel Foundation ✅ (combined tasks)
+
 - T-015: Added `Tracer()` function via `telemetry.go`
 - T-010: Added telemetry helpers and span name constants
 - T-011: OTel span to `Advisor.AnalyzeQuery`
@@ -32,6 +34,7 @@ or were minor lint cleanups below the value threshold.
 - T-014: OTel span to `ApplyOptimizationsTraced`
 
 ### Group 3: Coverage Gaps ✅
+
 - T-005: `TestAdvisor_WithExcludedTables`
 - T-006: `TestAutoIndexer_WithAutoAnalyze`
 - T-007: `TestAutoIndexer_maybeAnalyze_NotSet`
@@ -44,56 +47,65 @@ or were minor lint cleanups below the value threshold.
 - T-039: N/A (no hooks API created)
 
 ### Group 4: Convenience Exports ✅
+
 - T-016, T-017: `InitSchemaWithIndexesAndOptimizations`
 - T-035: `ExampleInitSchemaWithIndexesAndOptimizations`
 
 ### Group 5: Performance & Proof ✅
+
 - T-008: `BenchmarkReadFrom_WithIndexes`
 - T-009: `BenchmarkReadFrom_WithoutIndexes`
 - T-037: `BenchmarkAdvisor_MissingIndexes`
 - T-024: Deferred (would require separate command/binary)
 
 ### Group 6: Lifecycle & Safety ✅
+
 - T-021: `AutoIndexer.Close()`
 - T-025: `WithDryRun()` option + `LastDDL()`
 - T-032: `AutoIndexer.Drop(ctx, indexes...)`
 - T-036: `AutoIndexer.RecommendAndApply(ctx)`
 
 ### Group 7: Type Model Enrichment ✅
+
 - T-022, T-023: `Priority` enum wired into `inferIndex()`
 - T-046: `Version` type
 
 ### Group 8: Observability (partial)
+
 - T-019: `Stats()` and `UnusedIndexes()` ✅
 - T-041: Health check integration (deferred — would couple to listing/health)
 - T-043: Detailed stats tracking (deferred — partial via Stats())
 - T-048: `CheckpointScheduler` ✅
 
 ### Group 9: Lint Cleanup (deferred)
+
 - T-028, T-029, T-030: Minor style issues; not pursued to keep velocity high
 
 ### Group 10: Documentation ✅
+
 - T-027: `turso/indexing/README.md` (comprehensive)
 - T-034: `turso/indexing/CHANGELOG.md`
 - T-044: ADR (deferred — would require ADR structure)
 
 ### Group 11: Extensibility ✅ (partial)
+
 - T-038, T-039: Deferred (Policy covers the use case)
 - T-045: `Policy` type with Excluded/Critical/SkipAutoCreate maps
 - T-047: Deferred (would require Postgres-specific guidance)
 
 ### Group 12: Schema Evolution (deferred)
+
 - T-040: Deferred (requires deeper integration with `schema/` module)
 
 ---
 
 ## Coverage Delta
 
-| Module | Before | After | Change |
-|--------|--------|-------|--------|
-| turso/v2 | 40.9% | 42.6% | +1.7% |
-| turso/v2/indexing | 70.4% | 75.5% | +5.1% |
-| Combined (turso module) | ~52% | ~58% | +6% |
+| Module                  | Before | After | Change |
+| ----------------------- | ------ | ----- | ------ |
+| turso/v2                | 40.9%  | 42.6% | +1.7%  |
+| turso/v2/indexing       | 70.4%  | 75.5% | +5.1%  |
+| Combined (turso module) | ~52%   | ~58%  | +6%    |
 
 ---
 
@@ -141,22 +153,22 @@ e6a1c951 feat(turso): add InitSchemaWithIndexesAndOptimizations convenience
 
 A **production-grade** turso/indexing sub-package with:
 
-| Feature | Status |
-|---------|--------|
-| EXPLAIN-based advisor | ✅ |
-| CQRS-optimized recommended indexes | ✅ |
-| Optional automatic creation | ✅ (disabled by default) |
-| Dry-run mode for safety | ✅ |
-| Lifecycle management (Close, Drop) | ✅ |
-| OTel observability (6 spans) | ✅ |
-| Functional options pattern | ✅ (Advisor + AutoIndexer) |
-| Per-table Policy | ✅ |
-| WAL checkpoint scheduler | ✅ |
-| Priority classification | ✅ |
-| Index usage statistics | ✅ |
-| Comprehensive README + CHANGELOG | ✅ |
-| Benchmarks | ✅ |
-| Comprehensive test coverage (75.5%) | ✅ |
+| Feature                             | Status                     |
+| ----------------------------------- | -------------------------- |
+| EXPLAIN-based advisor               | ✅                         |
+| CQRS-optimized recommended indexes  | ✅                         |
+| Optional automatic creation         | ✅ (disabled by default)   |
+| Dry-run mode for safety             | ✅                         |
+| Lifecycle management (Close, Drop)  | ✅                         |
+| OTel observability (6 spans)        | ✅                         |
+| Functional options pattern          | ✅ (Advisor + AutoIndexer) |
+| Per-table Policy                    | ✅                         |
+| WAL checkpoint scheduler            | ✅                         |
+| Priority classification             | ✅                         |
+| Index usage statistics              | ✅                         |
+| Comprehensive README + CHANGELOG    | ✅                         |
+| Benchmarks                          | ✅                         |
+| Comprehensive test coverage (75.5%) | ✅                         |
 
 ---
 

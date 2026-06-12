@@ -87,7 +87,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Multiple lint issues** — nlreturn, varnameld, noctx, errcheck, unconvert, nolintlint
 - **`event.NewMetadata`** now initializes `Custom` map
 - **`dispatcher/Lifecycle`** field unexported, added method delegation
-- **`event: renamed `WithNewCodec` → `WithCodec`** (kept deprecated alias)
+- **`event: renamed `WithNewCodec`→`WithCodec`** (kept deprecated alias)
 - **Config loader path traversal** — `filepath.Clean` sanitizes paths (gosec G304)
 - **Graceful shutdown select guards** on errCh sends to prevent panic
 

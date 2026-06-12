@@ -3,12 +3,12 @@ module github.com/larsartmann/go-cqrs-lite/middleware/v2
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/command/v2 v2.2.0
-	github.com/larsartmann/go-cqrs-lite/event/v2 v2.2.0
-	github.com/larsartmann/go-cqrs-lite/id/v2 v2.2.0
+	github.com/larsartmann/go-cqrs-lite/command/v2 v2.3.0
+	github.com/larsartmann/go-cqrs-lite/event/v2 v2.3.0
+	github.com/larsartmann/go-cqrs-lite/id/v2 v2.3.0
 	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.2.0
 	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.2.0
-	github.com/larsartmann/go-cqrs-lite/query/v2 v2.2.0
+	github.com/larsartmann/go-cqrs-lite/query/v2 v2.3.0
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0
 	go.opentelemetry.io/otel v1.44.0
@@ -28,8 +28,8 @@ require (
 	github.com/google/pprof v0.0.0-20260507013755-92041b743c96 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.2.0 // indirect
 	github.com/larsartmann/go-error-family v0.3.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
