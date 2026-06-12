@@ -213,6 +213,8 @@ Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability
 
 **v2.2.0 Released**: Operational readiness, testing rigor, and developer experience release with 81 commits since v2.1.0. Health check/metrics/SSE middleware, config loader, graceful shutdown, Docker packaging, property-based tests (rapid), snapshot tests, simulation framework, benchmark baseline regression detection in CI, gosec security scanning, module layer architecture checks, module READMEs, and doc.go with pkg.go.dev examples across 12 modules.
 
+**v2.3.0 Released**: Lint hygiene, coverage, and release readiness with 231 commits since v2.2.0. Zero lint issues across all 27 modules, CBOR codec + Pebble CBOR envelope, encryption module (XChaCha20-Poly1305 + AES-256-GCM), phantom types across library, command store interfaces, OTel abstraction via `otel/` re-exports, ADR-0008–0015, comprehensive fuzz/property/snapshot testing, storage/sql coverage 37.4%→89.2%, otel 73.0%→97.3%.
+
 > **Historical details**: Session milestones, catalog architecture, and known issues in
 > [`docs/sessions/SESSION_MILESTONES.md`](docs/sessions/SESSION_MILESTONES.md)
 > and [`docs/planning/CATALOG_ARCHITECTURE.md`](docs/planning/CATALOG_ARCHITECTURE.md).

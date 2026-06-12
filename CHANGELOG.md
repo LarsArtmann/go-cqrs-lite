@@ -4,68 +4,125 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+## [2.3.0] - 2026-06-12
+
+231 commits since v2.2.0. Lint hygiene, coverage improvements, CBOR codec, encryption module, phantom types, and release readiness.
+
+### Added
+
+- **CBOR codec** (`codec/`) — `CBORCodec` with deterministic canonical encoding, sorted map keys, `DecMode` option
+- **Pebble CBOR envelope** (`pebble/serialization.go`) — events serialized as CBOR with JSON backward compatibility layer
+- **Encryption module** (`encryption/`) — XChaCha20-Poly1305, AES-256-GCM, `Algorithm` enum, `KeyID` phantom type, `KeyResolver` interface, composable `NewCodec` wrapper, `EncryptMiddleware`/`DecryptMiddleware`
+- **Command store interfaces** (`command/`) — `CommandSink`, `CommandSource`, `Store` (Sink+Source) for persisted command logs
+- **SQL CommandStore** (`storage/`) — `SQLCommandStore` with Save, AppendBatch, Load, LoadFromTimestamp, LoadToTimestamp
+- **SQL Backend facade** (`storage/`) — `SQLBackend` returning EventStore, SnapshotStore, CheckpointStore, CommandStore
+- **Phantom types** across library modules — `DbPath`, `RemoteURL`, `AuthToken` (turso); `KeyID` (encryption); `Algorithm` (encryption); `DisplayID` (catalog); type-safe domain IDs in examples
+- **Event binary blob helpers** (`event/`) — `AttachBlob`, `ExtractBlob`, `HasBlob` for signing/encryption
+- **`command.TypedHandler[Q, R]`** with `RegisterTyped[Q, R]` — type-safe command handler
+- **`event.DecodePayloads[T]()`** — batch payload deserialization
+- **Listing table schema** (`storage/`) — DDL + repository for aggregate status persistence
+- **ADR-0008 through ADR-0015** — 8 new architecture decision records (TypedHandler, immutability, OTel re-exports, error taxonomy, CBOR, encryption, saga, config)
+- **ADR index** (`docs/adr/README.md`) — complete index of all 15 ADRs with titles, dates, status
+- **Comprehensive fuzz testing** — fuzz tests in codec, encryption, signing/multisig, integration
+- **Property-based tests** — `pgregory.net/rapid` in command, query, event, decider, id modules
+- **go-snaps snapshot tests** — catalog, integration, projection golden test coverage
+- **Benchmark infrastructure** — realistic scale benchmarks, fuzz benchmarks, multisig concurrent benchmarks
+- **gosec security scanning** in CI with SARIF upload
+- **Module layer check** — `.go-arch-lint.yml` architecture rules enforced in CI
+- **17 scale benchmarks** across modules (10K–1M events)
+- **`pkg/config/`** — YAML config loader with env-specific overlays
+- **`pkg/gracefulshutdown/`** — signal-aware shutdown with timeout and hook support
+- **Docker packaging** for `example/user/` (multi-stage Dockerfile + docker-compose.yml)
+- **SSE broker** (`middleware/sse.go`) — server-sent events over event bus
+- **Health check middleware** (`middleware/healthcheck.go`) — `/health`, `/health/live`, `/health/ready`
+- **Metrics HTTP handler** (`middleware/metrics_http.go`) — request count, error rate, avg response time
+- **EventCatalog docserver** (`catalog/docserver/`) — embedded SPA with AsyncAPI + Scalar rendering
+- **`integration/simulation/`** — event sequence generator + decider stress tests
+- **Encryption integration** — end-to-end encrypt→sign→verify→decrypt round-trip tests
+- **Test coverage:** storage/sql 37.4%→89.2%, otel 73.0%→97.3%, turso 26.8%→39.0%
+
+### Changed
+
+- **Pebble: migrated event envelope from JSON to CBOR encoding** — deterministic, compact binary format
+- **Pebble: sharded mutex pool** (FNV-1a hash, 256 shards) replaces unbounded `sync.Map` — bounded memory, zero allocations
+- **storage/sql: extracted generic `LoadWithSpan[T]` + `QueryRows[T]`** — eliminated event/command store load duplication
+- **storage/sql: context-aware SQL methods** throughout — `BeginTx`, `ExecContext`, `QueryRowContext` (no more `noctx` lint)
+- **storage/sql: `ClosableBase` extracted** — deduplicated store lifecycle boilerplate
+- **OTel abstraction** — modules import `otel/` re-exports instead of `go.opentelemetry.io` directly (decider, storage, middleware, projection)
+- **Error wrapping** — replaced `fmt.Errorf` wrapping classified errors with `WrapRejection`/`WrapCorruption` across memory, pebble, storage, listing
+- **`command/command.go`** — added `Type.IsZero()`, `ParseType()`, `MustParseType()` to match `event.Type` API
+- **`query/query.go`** — added `Type.IsZero()`, `ParseType()`, `MustParseType()` to match `event.Type` API
+- **`event/types.go`** — `SchemaVersion.Cmp` now uses `cmp.Compare` (matches `Version.Cmp`)
+- **`event/errors.go`** — doc comments on all 30 exported error symbols
+- **`event/Clone()`** — deep-copies `eventOptions` pointer to prevent shared mutation
+- **`event: Map/ScanState/Tap` reactive wrappers removed** (unused, no consumers)
+- **`event: StreamKey` free function removed** (unused)
+- **All 120 `//nolint` suppressions** now have documented `// reason` justifications
+- **0 lint issues** across all 27 modules — first zero-lint release
+- **`golang.org/x/exp`** bumped across all workspace modules
+- **`storage/AggregateProjection`** uses `Dialect.Placeholder()` (Postgres-compatible)
+- **`listing/AggregateRef` renamed to `AggregateListing`** with JSON tags
+- **`catalog: ErrorExporter` deprecated** as type alias to `Exporter[error]`
+- **`catalog: asyncapi.Info` and `openapi.Info` consolidated** into shared `DocumentInfo`
+- **`snapshot: json tags`** added to `Snapshot` struct
+- **Dissolved `core/` module** — all sub-packages are flat peer-level modules (v2.0.0, maintained in v2.3.0)
+- **`event.Snapshot*` types moved to `snapshot/` package** — all consumers updated
+- **`dispatcher/Lifecycle` field unexported** with method delegation added
 
 ### Fixed
 
-- **pebble/serialization.go** — handle `MarshalMetadataJSON` error instead of discarding it
-- **middleware/sse.go** — fix send-on-closed-channel race between `handleEvent` and `RemoveClient`
-- **middleware/sse.go** — `NewSSEBroker` now returns `(*SSEBroker, error)` instead of nil on error
-- **middleware/circuit_breaker.go** — `ErrCircuitBreakerOpen` uses error taxonomy instead of bare `errors.New`
-- **middleware/circuit_breaker.go** — add nil guard for `IsFailure` callback (defaults to `event.IsRetryable`)
-- **middleware/retry.go** — `ErrRetryCanceled` sentinel now actually used on context cancellation
-- **pebble/store.go** — `NewStore(nil, ...)` panics with clear message instead of nil pointer dereference
-- **decider/decider.go** — add `slog.WarnContext` fallback for snapshot failures (previously OTel-only)
-- **projection/runner.go** — create fresh done channel per `Run` invocation
-- **projection/runner.go** — `Runner.Close()` now waits for `Run` to complete
-- **decider/decider.go** — stop double-wrapping classified errors in `opError`
-- **event/types.go** — `Version.Cmp` simplified to `cmp.Compare`
+- **SSE broker send-on-closed-channel race** — `handleEvent`/`RemoveClient` synchronization
+- **SSE broker constructor** — `NewSSEBroker` now returns `(*SSEBroker, error)` instead of nil on error
+- **Circuit breaker nil `IsFailure` guard** — defaults to `event.IsRetryable`
+- **Circuit breaker error taxonomy** — `ErrCircuitBreakerOpen` uses error taxonomy instead of bare `errors.New`
+- **Projection Runner double-wrapping classified errors** in `opError`
+- **Projection Runner fresh done channel** per `Run` invocation
+- **Projection Runner `Close()`** now waits for `Run` to complete
+- **Clone shared opts pointer** — deep-copy `eventOptions` prevents shared mutation
+- **Retry middleware** — `ErrRetryCanceled` sentinel actually used on context cancellation
+- **Pebble `NewStore(nil, ...)` panics** with clear message instead of nil pointer dereference
+- **Pebble `countEvents` uses `iter.Last()`** instead of full scan
+- **Pebble `MarshalMetadataJSON` error** — handled instead of discarded
+- **Decider `slog.WarnContext` fallback** for snapshot failures (previously OTel-only)
+- **Multiple lint issues** — nlreturn, varnameld, noctx, errcheck, unconvert, nolintlint
+- **`event.NewMetadata`** now initializes `Custom` map
+- **`dispatcher/Lifecycle`** field unexported, added method delegation
+- **`event: renamed `WithNewCodec` → `WithCodec`** (kept deprecated alias)
+- **Config loader path traversal** — `filepath.Clean` sanitizes paths (gosec G304)
+- **Graceful shutdown select guards** on errCh sends to prevent panic
 
-### Changed
+### Performance
 
-- **event/errors.go** — added doc comments to all 30 exported error symbols
-- **command/errors.go** — removed unused `WrapTransient` re-export
-- **storage/sql/base.go** — extracted `ClosableBase` to deduplicate store lifecycle boilerplate
-- **event/go.mod** — removed `query/v2` direct dependency (test moved to integration/)
-- **snapshot/go.mod** — removed `memory/v2` dependency (replaced with inline fakeStore)
+- **`catalog.SchemaFromType` cached by `reflect.Type`** — 553ns→8ns, 15→0 allocs
+- **`event.New()` lazy-initializes metadata map** — 3→2 allocs per event
+- **`event.New()` moves clock/newCodec/deadline to `eventOptions` pointer** — 48B saved per event
+- **`event.PayloadReadOnly()` zero-copy** for internal paths (signing, pebble, storage, middleware)
+- **`event.DecodePayload` bypasses `Payload()` clone** for zero-copy decoding
+- **`listing` caches sorted aggregate index** — 25× faster listing
+- **`memory` replaces O(n log n) `collectAllSorted`** with append-only global log
+- **`signing.canonicalPayload()` eliminates alloc overhead**
 
-### Changed
+### Security
 
-- **pebble/store.go** — replaced unbounded `sync.Map` lock with fixed [256]`sync.Mutex` sharded pool (bounded memory, zero allocations)
-- **storage/sql/query_engine.go** — extracted generic `LoadWithSpan[T]` + `QueryRows[T]` to eliminate event/command store load duplication
-- **storage/command_store_scan.go** — replaced `MustParseAggregateType` with error-returning `ParseAggregateType` to prevent panics on corrupt data
-- **memory/store_load.go, memory/command_store.go, pebble/save.go, storage/aggregate_projection.go** — replaced `fmt.Errorf` wrapping classified errors with proper `WrapRejection`/`WrapCorruption` to preserve `errors.Is()`/`errors.As()` chains
-- **command/command.go** — added `Type.IsZero()`, `ParseType()`, `MustParseType()` to match `event.Type` API surface
-- **query/query.go** — added `Type.IsZero()`, `ParseType()`, `MustParseType()` to match `event.Type` API surface
-- **TODO_LIST.md** — marked items done/deferred
+- **gosec scanning** in CI with SARIF upload
+- **Module layer check** enforced in CI
+- **Config loader path traversal fix** (G304)
+- **Constant-time ciphertext comparison** in encryption module
 
 ### Removed
 
-- **storage/options.go** — deleted `NewSQLEventStoreWithOptions`, `WithOwnership`, `SQLEventStoreOption` (zero external consumers)
-- **storage/doc.go** — removed 5 unused re-exports (`Dialect`, `PostgresDialect`, `ErrConcurrencyConflict`, `ErrUnsupportedTimestamp`, `ErrUnexpectedTimeType`, `Schema`, `SQLiteSchema`)
-- **pebble/config.go** — deleted entire config abstraction layer (`Backend`, `Config`, `NewConfig`, `NewEventStore`, etc.)
-- **pebble/example_test.go** — deleted (tested only deleted config API)
-- **pebble/errors.go** — removed `ErrPebbleProviderRequired` (only used by deleted config.go)
-- **turso/errors.go** — removed `ErrTursoMemorySync` backward-compat alias (zero external refs)
-
-### Fixed (Prior Session)
-
-- **event/** — `NewMetadata` now initializes `Custom` map
-- **event/** — renamed `WithNewCodec` → `WithCodec` (kept deprecated alias)
-- **decider/, projection/** — renamed `ErrNilBus` → `ErrNilPublisher`/`ErrNilSubscriber`
-- **event/** — added `IsReplay(ctx)` context getter
-- **dispatcher/** — unexported `Lifecycle` field, added method delegation
-- **listing/, storage/** — deduplicated `listRefsFromStatus`
-- **storage/** — `AggregateProjection` uses `Dialect.Placeholder()` (Postgres-compatible)
-- **pebble/** — `countEvents` uses `iter.Last()` instead of full scan
-
-### Docs
-
-- **README.md** — fixed Quick Start `Save`/`Load` API signatures
-- **README.md** — fixed Go Reference badge case (lowercase module path)
-- **README.md** — removed duplicate "Strong IDs" row in comparison table
-- **docs/getting-started.md** — full rewrite for v2 multi-module API
-- **TODO_LIST.md** — marked 21 items done across audit sessions
+- **`storage/options.go`** — deleted `NewSQLEventStoreWithOptions`, `WithOwnership`, `SQLEventStoreOption` (zero external consumers)
+- **`storage/doc.go`** — removed 5 unused re-exports
+- **`pebble/config.go`** — deleted entire config abstraction layer (`Backend`, `Config`, `NewConfig`, etc.)
+- **`pebble/example_test.go`** — tested only deleted config API
+- **`pebble/errors.go`** — removed `ErrPebbleProviderRequired`
+- **`turso/errors.go`** — removed `ErrTursoMemorySync` backward-compat alias
+- **All `MustParse`/`MustParseType` panic wrappers** removed from command, query, event test code
+- **Deprecated backward-compat aliases** from `pebble/` module
+- **Dead code and unused APIs** across multiple modules
+- **`command/errors.go`** — removed unused `WrapTransient` re-export
+- **`event/go.mod`** — removed `query/v2` direct dependency
+- **`snapshot/go.mod`** — removed `memory/v2` dependency
 
 ## [2.2.0] - 2026-06-08
 

@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-06-11 (verified against source) · **Module count:** 27 (22 library + 2 examples + 1 integration + 2 cmd) · **Go version:** 1.26.3
+**Last audited:** 2026-06-12 (v2.3.0 release) · **Module count:** 27 (22 library + 2 examples + 1 integration + 2 cmd) · **Go version:** 1.26.3
 
 ## Status Legend
 
@@ -682,8 +682,6 @@ Found during code reviews. See `docs/planning/` for details.
 | ---------------------------------------------------------- | -------- | ------------------- |
 | command re-exports event types (module boundary violation) | HIGH     | command             |
 | Reactive extensions not wired into dispatchers             | LOW      | event/command/query |
-| turso module low coverage (28.6%)                          | LOW      | turso               |
-| storage/sql sub-package low coverage (34.7%)               | LOW      | storage/sql         |
 
 ---
 
