@@ -3,6 +3,7 @@ package indexing_test
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/turso/v2"
@@ -179,5 +180,89 @@ func TestAdvisor_WithExcludedTables(t *testing.T) {
 		if r.Index.Table == "audit_log" {
 			t.Errorf("audit_log should be excluded but found recommendation: %+v", r)
 		}
+	}
+}
+
+func benchAdvisor(b *testing.B, withIndexes bool) *sql.DB {
+	b.Helper()
+
+	db, err := turso.OpenInMemory()
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	b.Cleanup(func() { _ = db.Close() })
+
+	if err := turso.InitSchema(context.Background(), db); err != nil {
+		b.Fatal(err)
+	}
+
+	if withIndexes {
+		_ = turso.ApplyCQRSIndexes(context.Background(), db)
+	}
+
+	// Seed events for the same aggregate to make the queries realistic.
+	for i := 0; i < 1000; i++ {
+		_, err := db.ExecContext(context.Background(),
+			`INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, payload_encoding, metadata, occurred_at, created_at)
+			 VALUES (?, 'TestEvent', 'Test', ?, ?, 1, '{}', 'json', '{}', datetime('now'), datetime('now'))`,
+			fmt.Sprintf("evt-%d-%d", i, i%10),
+			fmt.Sprintf("agg-%d", i%10),
+			i+1)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+
+	return db
+}
+
+func BenchmarkReadFrom_WithIndexes(b *testing.B) {
+	db := benchAdvisor(b, true)
+	ctx := context.Background()
+	aggID := "agg-5"
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		rows, err := db.QueryContext(ctx,
+			`SELECT * FROM events
+			 WHERE aggregate_type = ? AND aggregate_id = ? AND occurred_at > '2020-01-01' AND id > 'evt-0-0'
+			 ORDER BY occurred_at ASC, id ASC LIMIT 100`,
+			"Test", aggID)
+		if err == nil {
+			_ = rows.Close()
+		}
+	}
+}
+
+func BenchmarkReadFrom_WithoutIndexes(b *testing.B) {
+	db := benchAdvisor(b, false)
+	ctx := context.Background()
+	aggID := "agg-5"
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		rows, err := db.QueryContext(ctx,
+			`SELECT * FROM events
+			 WHERE aggregate_type = ? AND aggregate_id = ? AND occurred_at > '2020-01-01' AND id > 'evt-0-0'
+			 ORDER BY occurred_at ASC, id ASC LIMIT 100`,
+			"Test", aggID)
+		if err == nil {
+			_ = rows.Close()
+		}
+	}
+}
+
+func BenchmarkAdvisor_MissingIndexes(b *testing.B) {
+	db := benchAdvisor(b, true)
+	ctx := context.Background()
+	advisor := indexing.NewAdvisor(db)
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		_, _ = advisor.MissingIndexes(ctx)
 	}
 }
