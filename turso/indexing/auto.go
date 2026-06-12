@@ -7,7 +7,11 @@ import (
 	"strings"
 	"sync"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
 )
 
 // AutoIndexerOption configures an AutoIndexer.
@@ -70,14 +74,28 @@ func (a *AutoIndexer) IsEnabled() bool {
 // Skips indexes that already exist.
 // Returns a rejection error if the auto-indexer is not enabled.
 func (a *AutoIndexer) Apply(ctx context.Context, recs []Recommendation) error {
+	ctx, span := startIndexingSpan(
+		ctx,
+		SpanAutoIndexerApply,
+		trace.WithAttributes(attribute.Int(AttrRecommendationCount, len(recs))),
+	)
+	defer endSpan(span, nil)
+
 	if !a.IsEnabled() {
-		return event.NewRejection("indexing.disabled",
+		err := event.NewRejection("indexing.disabled",
 			"auto-indexer is disabled: call Enable() first")
+		cqrsotel.RecordError(span, err)
+
+		return err
 	}
 
 	if err := a.advisor.ExistingIndexes(ctx); err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return err
 	}
+
+	created := 0
 
 	for _, rec := range recs {
 		if a.advisor.HasIndex(rec.Index.Name) {
@@ -85,12 +103,23 @@ func (a *AutoIndexer) Apply(ctx context.Context, recs []Recommendation) error {
 		}
 
 		if err := a.createIndex(ctx, rec.Index); err != nil {
-			return event.WrapInfrastructure(err, "indexing.create_index",
+			wrappedErr := event.WrapInfrastructure(err, "indexing.create_index",
 				fmt.Sprintf("create index %s on %s", rec.Index.Name, rec.Index.Table))
+			cqrsotel.RecordError(span, wrappedErr)
+
+			return wrappedErr
 		}
+
+		created++
 	}
 
-	return a.maybeAnalyze(ctx)
+	span.SetAttributes(attribute.Int("indexing.index.created", created))
+
+	if err := a.maybeAnalyze(ctx); err != nil {
+		cqrsotel.RecordError(span, err)
+	}
+
+	return nil
 }
 
 func (a *AutoIndexer) maybeAnalyze(ctx context.Context) error {
@@ -103,16 +132,27 @@ func (a *AutoIndexer) maybeAnalyze(ctx context.Context) error {
 
 // ApplyRecommended runs MissingIndexes and applies all recommendations.
 func (a *AutoIndexer) ApplyRecommended(ctx context.Context) error {
+	ctx, span := startIndexingSpan(ctx, "indexing.auto_indexer.apply_recommended")
+	defer endSpan(span, nil)
+
 	if !a.IsEnabled() {
-		return event.NewRejection("indexing.disabled",
+		err := event.NewRejection("indexing.disabled",
 			"auto-indexer is disabled: call Enable() first")
+		cqrsotel.RecordError(span, err)
+
+		return err
 	}
 
 	recs, err := a.advisor.MissingIndexes(ctx)
 	if err != nil {
-		return event.WrapInfrastructure(err, "indexing.missing_indexes",
+		wrappedErr := event.WrapInfrastructure(err, "indexing.missing_indexes",
 			"find missing indexes")
+		cqrsotel.RecordError(span, wrappedErr)
+
+		return wrappedErr
 	}
+
+	span.SetAttributes(attribute.Int(AttrRecommendationCount, len(recs)))
 
 	return a.Apply(ctx, recs)
 }
@@ -121,14 +161,24 @@ func (a *AutoIndexer) ApplyRecommended(ctx context.Context) error {
 // This is the fastest way to get production-ready CQRS indexing.
 // Returns a rejection error if the auto-indexer is not enabled.
 func (a *AutoIndexer) ApplyCQRSIndexes(ctx context.Context) error {
+	ctx, span := startIndexingSpan(ctx, SpanAutoIndexerApplyCQRS)
+	defer endSpan(span, nil)
+
 	if !a.IsEnabled() {
-		return event.NewRejection("indexing.disabled",
+		err := event.NewRejection("indexing.disabled",
 			"auto-indexer is disabled: call Enable() first")
+		cqrsotel.RecordError(span, err)
+
+		return err
 	}
 
 	if err := a.advisor.ExistingIndexes(ctx); err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return err
 	}
+
+	created := 0
 
 	for _, idx := range RecommendedCQRSIndexes() {
 		if a.advisor.HasIndex(idx.Name) {
@@ -136,12 +186,24 @@ func (a *AutoIndexer) ApplyCQRSIndexes(ctx context.Context) error {
 		}
 
 		if err := a.createIndex(ctx, idx); err != nil {
-			return event.WrapInfrastructure(err, "indexing.create_cqrs_index",
+			wrappedErr := event.WrapInfrastructure(err, "indexing.create_cqrs_index",
 				fmt.Sprintf("create CQRS index %s", idx.Name))
+			cqrsotel.RecordError(span, wrappedErr)
+
+			return wrappedErr
 		}
+
+		recordIndexAttributes(span, idx)
+		created++
 	}
 
-	return a.maybeAnalyze(ctx)
+	span.SetAttributes(attribute.Int("indexing.index.created", created))
+
+	if err := a.maybeAnalyze(ctx); err != nil {
+		cqrsotel.RecordError(span, err)
+	}
+
+	return nil
 }
 
 // Recommendations returns current recommendations without applying them.

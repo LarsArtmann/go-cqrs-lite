@@ -8,7 +8,11 @@ import (
 	"strings"
 	"sync"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
 )
 
 var (
@@ -77,13 +81,25 @@ func (a *Advisor) AnalyzeQuery(
 	query string,
 	args ...any,
 ) ([]Recommendation, error) {
+	ctx, span := startIndexingSpan(
+		ctx,
+		SpanAdvisorAnalyzeQuery,
+		trace.WithAttributes(attribute.String("db.statement", query)),
+	)
+	defer endSpan(span, nil)
+
 	plan, err := a.explain(ctx, query, args...)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return nil, event.WrapInfrastructure(err, "indexing.explain",
 			"explain query plan")
 	}
 
-	return a.recommendationsFromPlan(plan, query), nil
+	recs := a.recommendationsFromPlan(plan, query)
+	span.SetAttributes(attribute.Int(AttrRecommendationCount, len(recs)))
+
+	return recs, nil
 }
 
 // AnalyzeTable checks common CQRS query patterns against a table and

@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"strings"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
@@ -29,6 +32,20 @@ func DefaultOptimizations() []Pragma {
 
 // ApplyOptimizations sets all DefaultOptimizations PRAGMAs on the database.
 func ApplyOptimizations(ctx context.Context, db *sql.DB) error {
+	return applyPragmas(ctx, db, DefaultOptimizations())
+}
+
+// ApplyOptimizationsTraced sets DefaultOptimizations PRAGMAs with OTel
+// instrumentation. The span records pragma count and unsupported-pragma
+// count as attributes.
+func ApplyOptimizationsTraced(ctx context.Context, db *sql.DB) error {
+	_, span := startIndexingSpan(
+		ctx,
+		SpanOptimizationsApply,
+		trace.WithAttributes(attribute.Int("indexing.pragma.count", len(DefaultOptimizations()))),
+	)
+	defer endSpan(span, nil)
+
 	return applyPragmas(ctx, db, DefaultOptimizations())
 }
 
