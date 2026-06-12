@@ -115,11 +115,7 @@
 
 ### Documentation
 
-- [ ] **Add godoc examples for decider package** — `Execute`, `Load`, `Repository` patterns have no runnable examples
-- [ ] **Add godoc examples for projection package** — `Runner`, `Builder`, `On[T]()` patterns have no examples
-- [ ] **Add godoc examples for signing package** — HMAC + Ed25519 setup, middleware configuration
-- [ ] **Add godoc examples for schema package** — `Upcaster`, `VersionedStore` usage
-- [ ] **Add listing/ package-level example** — `List`, `StatusMiddleware`, `InMemoryAggregateReader`
+- [ ] **Add godoc examples for listing package** — `List`, `StatusMiddleware`, `InMemoryAggregateReader`
 - [ ] **Add README section linking to docs/benchmarks/** — Consumers should know perf characteristics exist
 - [ ] **Document CBOR usage patterns** — codec/README.md exists but lacks consumer-facing CBOR examples
 - [x] ~~Document time-travel API~~ — DONE
@@ -168,10 +164,14 @@
 ### Polish
 
 - [ ] **Add `go-snaps` across remaining modules** — signing, middleware, storage, listing, watermill, pebble, turso, codec, otel, schema, snapshot, memory (some already have golden tests)
-- [ ] **Add CBOR fuzz test** — No fuzz_test.go in codec/. Should test pure CBOR→CBOR fidelity without JSON intermediary
+- [ ] **Add CBOR fuzz test for pure CBOR→CBOR** — codec_fuzz_test.go exists but should test pure CBOR fidelity without JSON intermediary
 - [ ] **Add CBOR DecMode configuration** — Match encode/decode expectations, enable strict mode
 - [ ] **Evaluate CoreDetEncOptions vs CanonicalEncOptions** — Which is right default for signing safety?
 - [x] ~~Fix codec/raw.go json.RawMessage support~~ — DONE
+- [x] ~~Godoc examples for decider~~ — DONE (example_test.go)
+- [x] ~~Godoc examples for projection~~ — DONE (example_test.go)
+- [x] ~~Godoc examples for signing~~ — DONE (6 examples across signing/ and signing/multisig/)
+- [x] ~~Godoc examples for schema~~ — DONE (example_test.go)
 - [x] ~~Remove unused `backend` field from Pebble store~~ — DONE (Backend type removed)
 - [x] ~~Fix CBOR cborEncMode error handling~~ — DONE (panics on init failure, not silently dropped)
 - [x] ~~Fix listing/InMemoryAggregateReader caching~~ — DONE (has cached field, rebuildCache, InvalidateCache)
