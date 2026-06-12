@@ -22,6 +22,25 @@ func WithAutoAnalyze() AutoIndexerOption {
 	return func(a *AutoIndexer) { a.autoAnalyze = true }
 }
 
+// WithDryRun prevents any DDL execution. DDL statements are collected
+// and returned by ApplyCQRSIndexes (via a callback) instead of being
+// executed. Useful for testing and review.
+func WithDryRun() AutoIndexerOption {
+	return func(a *AutoIndexer) { a.dryRun = true }
+}
+
+// LastDDL returns the DDL statements that would have been executed
+// by the most recent Apply* call. Only populated when WithDryRun is set.
+func (a *AutoIndexer) LastDDL() []string {
+	a.mu.RLock()
+	defer a.mu.RUnlock()
+
+	out := make([]string, len(a.lastDDL))
+	copy(out, a.lastDDL)
+
+	return out
+}
+
 // AutoIndexer applies index recommendations automatically.
 // Call Enable to allow it to create indexes; call Disable to stop.
 type AutoIndexer struct {
@@ -30,6 +49,8 @@ type AutoIndexer struct {
 	mu          sync.RWMutex
 	enabled     bool
 	autoAnalyze bool
+	dryRun      bool
+	lastDDL     []string
 }
 
 // NewAutoIndexer creates an auto-indexer for the given database.
@@ -211,8 +232,75 @@ func (a *AutoIndexer) Recommendations(ctx context.Context) ([]Recommendation, er
 	return a.advisor.MissingIndexes(ctx) //nolint:wrapcheck // transparent delegation
 }
 
+// Close releases any resources held by the AutoIndexer.
+// The underlying *sql.DB is owned by the caller and not closed.
+func (a *AutoIndexer) Close() error {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	a.enabled = false
+
+	return nil
+}
+
+// Drop removes the given indexes from the database.
+// Skips indexes that don't exist. Returns a rejection error if the
+// auto-indexer is not enabled.
+func (a *AutoIndexer) Drop(ctx context.Context, indexes ...Index) error {
+	ctx, span := startIndexingSpan(
+		ctx,
+		SpanAutoIndexerDrop,
+		trace.WithAttributes(attribute.Int("indexing.index.count", len(indexes))),
+	)
+	defer endSpan(span, nil)
+
+	if !a.IsEnabled() {
+		err := event.NewRejection("indexing.disabled",
+			"auto-indexer is disabled: call Enable() first")
+		cqrsotel.RecordError(span, err)
+
+		return err
+	}
+
+	dropped := 0
+
+	for _, idx := range indexes {
+		ddl := idx.DropDDL()
+
+		_, err := a.db.ExecContext(ctx, ddl)
+		if err != nil {
+			wrappedErr := event.WrapInfrastructure(err, "indexing.drop_index",
+				fmt.Sprintf("drop index %s", idx.Name))
+			cqrsotel.RecordError(span, wrappedErr)
+
+			return wrappedErr
+		}
+
+		dropped++
+	}
+
+	span.SetAttributes(attribute.Int("indexing.index.dropped", dropped))
+
+	return nil
+}
+
+// RecommendAndApply combines MissingIndexes and ApplyRecommended in one call.
+// Convenience for the most common auto-indexing workflow.
+func (a *AutoIndexer) RecommendAndApply(ctx context.Context) error {
+	return a.ApplyRecommended(ctx) //nolint:wrapcheck // transparent delegation
+}
+
 func (a *AutoIndexer) createIndex(ctx context.Context, idx Index) error {
 	ddl := idx.DDL()
+
+	a.mu.Lock()
+	a.lastDDL = append(a.lastDDL, ddl)
+	dryRun := a.dryRun
+	a.mu.Unlock()
+
+	if dryRun {
+		return nil
+	}
 
 	_, err := a.db.ExecContext(ctx, ddl)
 	if err != nil {
