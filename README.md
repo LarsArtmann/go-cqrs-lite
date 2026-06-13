@@ -658,13 +658,13 @@ func main() {
 | Event Signing      | ✅           | ❌      | ❌      |
 | Schema Evolution   | ✅           | ❌      | ❌      |
 | Aggregate Listing  | ✅           | ❌      | ❌      |
-| Saga / Process Mgr | ✅           | ❌      | ❌      |
+| Saga / Process Mgr | ⚡(pattern)  | ❌      | ❌      |
 | Stream Loading     | ✅           | ❌      | ❌      |
 | Watermill Adapter  | ✅           | ❌      | ❌      |
 
 ## Project Status
 
-**Phase:** Active Development (v2.2.0 released)
+**Phase:** Active Development (v2.3.0 released)
 
 | Phase         | Status      | Description                                       |
 | ------------- | ----------- | ------------------------------------------------- |

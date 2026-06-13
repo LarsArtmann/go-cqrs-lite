@@ -220,3 +220,51 @@ func FuzzJSONCodec_TypedRoundtrip(f *testing.F) {
 		}
 	})
 }
+
+// FuzzCBORCodec_TypedRoundtrip exercises CBOR codec with a typed struct
+// target through a pure CBOR→CBOR path. Catches type coercion issues
+// that might not surface with generic any roundtrips.
+func FuzzCBORCodec_TypedRoundtrip(f *testing.F) {
+	type record struct {
+		Name string `json:"name"`
+		Age  uint   `json:"age"`
+	}
+
+	c := codec.CBORCodec{}
+
+	seeds := []record{
+		{Name: "Alice", Age: 30},
+		{Name: "", Age: 0},
+		{Name: "Bob", Age: 255},
+	}
+
+	for _, s := range seeds {
+		b, err := c.Encode(s)
+		if err != nil {
+			f.Fatalf("seed encode: %v", err)
+		}
+
+		f.Add(b)
+	}
+
+	f.Fuzz(func(t *testing.T, input []byte) {
+		var p record
+		if err := c.Decode(input, &p); err != nil {
+			t.Skip()
+		}
+
+		encoded, err := c.Encode(p)
+		if err != nil {
+			t.Fatalf("Encode: %v", err)
+		}
+
+		var redecoded record
+		if err := c.Decode(encoded, &redecoded); err != nil {
+			t.Fatalf("Decode roundtrip: %v", err)
+		}
+
+		if redecoded != p {
+			t.Errorf("typed roundtrip mismatch: got %+v, want %+v", redecoded, p)
+		}
+	})
+}

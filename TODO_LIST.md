@@ -1,9 +1,9 @@
 # TODO List
 
 **Generated:** 2026-06-12
-**Reconciled:** 2026-06-12 — verified against source code, all docs/status/, docs/planning/, ROADMAP.md, FEATURES.md, and CHANGELOG.md
+**Updated:** 2026-06-13 — post-comprehensive audit (code quality, architecture, naming, BDD, docs freshness, modularization)
 **Version:** v2.3.0 (commit `4e221fbc`)
-**Test Status:** 38/40 packages pass. 2 pre-existing golden test failures: `codec/TestGolden_JSONCodec_Encode` (compact vs indented), `middleware/TestGolden_HealthCheckResponse` (golden drift)
+**Test Status:** 39/40 packages pass. 1 remaining golden test failure: `codec/TestGolden_JSONCodec_Encode` (compact vs indented)
 
 ## Legend
 
@@ -143,7 +143,7 @@
 
 ### Encryption Module
 
-- [ ] **Add `StaticKeyResolver` helper (map-based)** — 80% use case for key rotation
+- [x] ~~Add `StaticKeyResolver` helper (map-based)~~ — DONE (static_resolver.go)
 - [ ] **Add versioned ciphertext format (prefix byte for algorithm)** — Future-proof algorithm changes
 - [ ] **Add `example/encryption/` project** — Standalone example demonstrating full encryption lifecycle
 - [ ] **Add storage wrapper: `storage.NewEncryptedEventStore`** — Convenience for encrypted stores
@@ -186,7 +186,19 @@
 ### Pre-existing Test Failures
 
 - [ ] **Fix `codec/TestGolden_JSONCodec_Encode`** — Golden file expects indented JSON but codec outputs compact JSON. Update golden file with `-update`
-- [ ] **Fix `middleware/TestGolden_HealthCheckResponse`** — Golden file drift. Update with `-update`
+- [x] ~~Fix `middleware/TestGolden_HealthCheckResponse`~~ — DONE (updated golden file 2026-06-13)
+
+### New Findings (2026-06-13 Audit)
+
+- [ ] **Fix 2 catalog lint issues** — `goconst` (string `Cmd` repeated 3x) and `nolintlint` (unused nolint directive) in `catalog/message_config.go`
+- [ ] **Fix `encryption/static_resolver.go` mapsloop hint** — Replace manual `m[k]=v` loop with `maps.Copy`
+- [ ] **Fix 3 nil context warnings in encryption tests** — `algorithm_test.go` lines 137, 168, 210 pass `nil` context
+- [ ] **Clean up `pkg/` directory** — `config/` and `gracefulshutdown/` exist but aren't in `go.work` and aren't referenced by any module
+- [ ] **Update README.md** — Missing `encryption` and `turso` module sections; module table missing entries
+- [ ] **Add `testutil/` to AGENTS.md module list** — Exists in `go.work` but not documented
+- [ ] **Extract shared base64 decode helper** — `signing/signature.go` and `encryption/ciphertext.go` have identical UnmarshalJSON with URL-safe→Standard fallback (2 clone groups)
+- [ ] **Add BDD tests for `catalog/`** — Largest module without BDD coverage; complex consumer-facing API
+- [ ] **Consider reactive Bus bridge** — Unify `event.Bus` (imperative) with `event.EventBus = ro.Subject[Event]` (reactive)
 
 ### Superb Types (Phantom Types)
 
@@ -342,4 +354,4 @@
 
 ---
 
-_Items verified against source on 2026-06-12. Total done/verified: 190+. Total open actionable: ~50 (medium + low). Total planned/future: ~45._
+_Items verified against source on 2026-06-13. Total done/verified: 192+. Total open actionable: ~60 (medium + low + new audit findings). Total planned/future: ~45._

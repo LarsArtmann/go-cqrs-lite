@@ -105,7 +105,7 @@ watermill/     — Watermill protocol adapter
 | [0002](0002-error-taxonomy.md)                   | Error Taxonomy via go-error-family    | 2026-05-03 | Accepted |
 | [0003](0003-multi-module-monorepo.md)            | Multi-Module Monorepo with go.work    | 2026-04-24 | Accepted |
 | [0004](0004-saga-process-manager.md)             | Saga/Process Manager Pattern          | —          | Accepted |
-| 0005                                             | _(gap — no ADR-0005 was issued)_      | —          | —        |
+| [0005](0005-tombstone-soft-delete.md)            | Tombstone Soft-Delete Pattern         | 2026-05-10 | Accepted |
 | [0006](0006-sink-source-split.md)                | Sink/Source ISP Split                 | —          | Accepted |
 | [0007](0007-gopls-workspace-workaround.md)       | gopls Workspace Workaround            | —          | Accepted |
 | [0008](0008-typed-handler-signature.md)          | Typed Handler Signature               | —          | Accepted |

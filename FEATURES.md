@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-06-12 (v2.3.0 release) · **Module count:** 28 (22 library + 2 examples + 1 integration + 2 cmd + turso/indexing sub-package) · **Go version:** 1.26.3
+**Last audited:** 2026-06-13 (post v2.3.0 audit) · **Module count:** 28 (22 library + 2 examples + 1 integration + 2 cmd + turso/indexing sub-package) · **Go version:** 1.26.3
 
 ## Status Legend
 
@@ -768,7 +768,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 | Guarantee              | Detail                                                                           |
 | ---------------------- | -------------------------------------------------------------------------------- |
-| Zero lint issues       | Clean golangci-lint across all modules                                           |
+| Near-zero lint issues  | 2 minor issues in catalog (goconst, nolintlint); 25/27 modules clean             |
 | Race-free              | `go test -race` passes across all modules                                        |
 | Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                   |
 | Interface-first        | All core types are interfaces — provide your own implementations                 |

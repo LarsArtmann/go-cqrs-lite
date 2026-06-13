@@ -2,6 +2,9 @@ package query
 
 import (
 	"context"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 // Type identifies a query type.
@@ -27,9 +30,43 @@ type Query interface {
 	Type() Type
 }
 
+// Metadata contains tracing and contextual information for queries.
+// Alias of event.Metadata to enable correlation across the CQRS pipeline
+// without field duplication.
+type Metadata = event.Metadata
+
+// NewMetadata creates a Metadata with all fields initialized to zero values.
+func NewMetadata() Metadata {
+	return event.NewMetadata()
+}
+
+// Option configures query creation.
+type Option func(*BasicQuery)
+
+// WithCorrelationID sets the correlation ID for distributed tracing.
+func WithCorrelationID(v id.CorrelationID) Option {
+	return func(q *BasicQuery) { q.metadata.CorrelationID = v }
+}
+
+// WithCausationID sets the causation ID (indicates what triggered this query).
+func WithCausationID(v id.CausationID) Option {
+	return func(q *BasicQuery) { q.metadata.CausationID = v }
+}
+
+// WithUserID sets the user ID who issued the query.
+func WithUserID(v id.UserID) Option {
+	return func(q *BasicQuery) { q.metadata.UserID = v }
+}
+
+// WithRequestID sets the request ID for debugging.
+func WithRequestID(v id.RequestID) Option {
+	return func(q *BasicQuery) { q.metadata.RequestID = v }
+}
+
 // BasicQuery provides a default implementation.
 type BasicQuery struct {
 	queryType Type
+	metadata  Metadata
 }
 
 var _ Query = (*BasicQuery)(nil)
@@ -37,13 +74,25 @@ var _ Query = (*BasicQuery)(nil)
 // Type returns the query type.
 func (q *BasicQuery) Type() Type { return q.queryType }
 
+// Metadata returns a defensive copy of the query metadata.
+func (q *BasicQuery) Metadata() Metadata { return q.metadata.Clone() }
+
 // New creates a new query with validation.
-func New(queryType Type) (*BasicQuery, error) {
+func New(queryType Type, opts ...Option) (*BasicQuery, error) {
 	if queryType == "" {
 		return nil, ErrEmptyQueryType
 	}
 
-	return &BasicQuery{queryType: queryType}, nil
+	q := &BasicQuery{
+		queryType: queryType,
+		metadata:  NewMetadata(),
+	}
+
+	for _, opt := range opts {
+		opt(q)
+	}
+
+	return q, nil
 }
 
 // Middleware wraps query handlers for cross-cutting concerns.

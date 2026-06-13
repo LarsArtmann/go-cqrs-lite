@@ -26,19 +26,31 @@ type DataStoreID string
 
 func (id DataStoreID) String() string { return string(id) }
 
+func (id DataStoreID) IsZero() bool { return id == "" }
+
 type FlowID string
 
 func (id FlowID) String() string { return string(id) }
+
+func (id FlowID) IsZero() bool { return id == "" }
 
 type TeamID string
 
 func (id TeamID) String() string { return string(id) }
 
+func (id TeamID) IsZero() bool { return id == "" }
+
 type UserID string
 
 func (id UserID) String() string { return string(id) }
 
+func (id UserID) IsZero() bool { return id == "" }
+
 type Direction string
+
+func (d Direction) String() string { return string(d) }
+
+func (d Direction) IsZero() bool { return d == "" }
 
 type DocumentInfo struct {
 	Title       string `json:"title"                 yaml:"title"`
@@ -52,6 +64,10 @@ const (
 )
 
 type MessageKind string
+
+func (k MessageKind) String() string { return string(k) }
+
+func (k MessageKind) IsZero() bool { return k == "" }
 
 const (
 	CommandMessage MessageKind = "command"

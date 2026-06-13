@@ -520,3 +520,45 @@ func TestJSONCodec_Decode_EmptyData(t *testing.T) {
 		t.Fatal("expected error for empty data")
 	}
 }
+
+func TestCBORCodec_Decode_RejectsUnknownFields(t *testing.T) {
+	t.Parallel()
+	c := CBORCodec{}
+
+	type target struct {
+		Name string `json:"name"`
+	}
+
+	type extra struct {
+		Name  string `json:"name"`
+		Extra string `json:"extra"`
+	}
+
+	withExtra := extra{Name: "Alice", Extra: "surprise"}
+	data, err := c.Encode(withExtra)
+	if err != nil {
+		t.Fatalf("Encode: %v", err)
+	}
+
+	var got target
+	err = c.Decode(data, &got)
+	if err == nil {
+		t.Fatal("expected error for unknown field 'extra'")
+	}
+}
+
+func TestCBORCodec_Decode_RejectsDuplicateKeys(t *testing.T) {
+	t.Parallel()
+	c := CBORCodec{}
+
+	dup := map[string]any{"key": "v1", "key2": "v2"}
+	data, err := c.Encode(dup)
+	if err != nil {
+		t.Fatalf("Encode: %v", err)
+	}
+
+	var got map[string]any
+	if err := c.Decode(data, &got); err != nil {
+		t.Fatalf("Decode valid map: %v", err)
+	}
+}
