@@ -77,7 +77,10 @@ func MigrateWithIndexing(
 	}
 
 	if autoIndexer != nil && autoIndexer.IsEnabled() {
-		_ = analyzeAfterSchemaChange(ctx, autoIndexer)
+		if err := analyzeAfterSchemaChange(ctx, autoIndexer); err != nil {
+			return event.WrapInfrastructure(err, "indexing.migrate",
+				"analyze indexes after migration")
+		}
 	}
 
 	return nil
