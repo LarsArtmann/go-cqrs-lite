@@ -133,5 +133,3 @@ func TestStaticKeyResolver_RoundTrip(t *testing.T) {
 func aes256Key() []byte {
 	return []byte("0123456789abcdef0123456789abcdef")
 }
-
-

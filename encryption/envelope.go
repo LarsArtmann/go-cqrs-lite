@@ -20,10 +20,10 @@ const (
 // algorithm changes. Future versions can add fields without breaking consumers
 // that only inspect the Version field.
 type Envelope struct {
-	Version     string     `json:"v"`
-	Ciphertext  Ciphertext `json:"ct"`
-	Algorithm   Algorithm  `json:"alg,omitempty"`
-	KeyID       KeyID      `json:"kid,omitempty"`
+	Version    string     `json:"v"`
+	Ciphertext Ciphertext `json:"ct"`
+	Algorithm  Algorithm  `json:"alg,omitempty"`
+	KeyID      KeyID      `json:"kid,omitempty"`
 }
 
 // MarshalEnvelope serializes an Envelope to a base64-encoded JSON string.

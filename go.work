@@ -11,6 +11,7 @@ use (
 	./dispatcher
 	./encryption
 	./event
+	./example/encryption
 	./example/todo
 	./example/user
 	./id

@@ -51,6 +51,7 @@ type AutoIndexer struct {
 	autoAnalyze bool
 	dryRun      bool
 	lastDDL     []string
+	hooksConfig hooks
 }
 
 // NewAutoIndexer creates an auto-indexer for the given database.
@@ -265,6 +266,10 @@ func (a *AutoIndexer) Drop(ctx context.Context, indexes ...Index) error {
 	dropped := 0
 
 	for _, idx := range indexes {
+		if err := a.hooksConfig.fireBeforeDrop(ctx, idx, a); err != nil {
+			return err
+		}
+
 		ddl := idx.DropDDL()
 
 		_, err := a.db.ExecContext(ctx, ddl)
@@ -276,6 +281,7 @@ func (a *AutoIndexer) Drop(ctx context.Context, indexes ...Index) error {
 			return wrappedErr
 		}
 
+		a.hooksConfig.fireAfterDrop(ctx, idx, a)
 		dropped++
 	}
 
@@ -291,6 +297,10 @@ func (a *AutoIndexer) RecommendAndApply(ctx context.Context) error {
 }
 
 func (a *AutoIndexer) createIndex(ctx context.Context, idx Index) error {
+	if err := a.hooksConfig.fireBeforeCreate(ctx, idx, a); err != nil {
+		return err
+	}
+
 	ddl := idx.DDL()
 
 	a.mu.Lock()
@@ -299,18 +309,21 @@ func (a *AutoIndexer) createIndex(ctx context.Context, idx Index) error {
 	a.mu.Unlock()
 
 	if dryRun {
+		a.hooksConfig.fireAfterCreate(ctx, idx, a)
+
 		return nil
 	}
 
 	_, err := a.db.ExecContext(ctx, ddl)
 	if err != nil {
-		// Ignore "index already exists" errors from race conditions.
 		if strings.Contains(err.Error(), "already exists") {
 			return nil
 		}
 
 		return err //nolint:wrapcheck // caller wraps with context
 	}
+
+	a.hooksConfig.fireAfterCreate(ctx, idx, a)
 
 	return nil
 }
