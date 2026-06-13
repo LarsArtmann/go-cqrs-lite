@@ -2,6 +2,7 @@ package encryption
 
 import (
 	"fmt"
+	"maps"
 	"sort"
 	"strings"
 )
@@ -23,9 +24,7 @@ type StaticKeyResolver struct {
 // The map is copied internally so mutations to the original do not affect the resolver.
 func NewStaticKeyResolver(keys map[KeyID]Decrypter) *StaticKeyResolver {
 	copied := make(map[KeyID]Decrypter, len(keys))
-	for k, v := range keys {
-		copied[k] = v
-	}
+	maps.Copy(copied, keys)
 
 	return &StaticKeyResolver{keys: copied}
 }

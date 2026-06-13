@@ -11,7 +11,7 @@ func TestWithIndexingHooks(t *testing.T) {
 	var beforeCreateCalled, afterCreateCalled bool
 	var beforeDropCalled, afterDropCalled bool
 
-	hooks := newHooks()
+	hooks := hooks{}
 	WithBeforeCreateHook(func(ctx context.Context, hctx HookContext) error {
 		beforeCreateCalled = true
 		return nil
@@ -62,7 +62,7 @@ func TestWithIndexingHooks(t *testing.T) {
 func TestBeforeCreateHookVeto(t *testing.T) {
 	t.Parallel()
 
-	hooks := newHooks()
+	hooks := hooks{}
 	WithBeforeCreateHook(func(ctx context.Context, hctx HookContext) error {
 		return ErrTestVeto
 	})(&hooks)
@@ -76,7 +76,7 @@ func TestBeforeCreateHookVeto(t *testing.T) {
 func TestBeforeDropHookVeto(t *testing.T) {
 	t.Parallel()
 
-	hooks := newHooks()
+	hooks := hooks{}
 	WithBeforeDropHook(func(ctx context.Context, hctx HookContext) error {
 		return ErrTestVeto
 	})(&hooks)
@@ -103,7 +103,7 @@ func TestHookEventTypes(t *testing.T) {
 		return nil
 	}
 
-	hooks := newHooks()
+	hooks := hooks{}
 	WithBeforeCreateHook(trackEvent)(&hooks)
 	WithAfterCreateHook(trackEvent)(&hooks)
 	WithBeforeDropHook(trackEvent)(&hooks)
@@ -136,7 +136,7 @@ func TestMultipleHooksCalledInOrder(t *testing.T) {
 
 	var order []string
 
-	hooks := newHooks()
+	hooks := hooks{}
 	WithBeforeCreateHook(func(ctx context.Context, hctx HookContext) error {
 		order = append(order, "first")
 		return nil

@@ -85,10 +85,6 @@ func WithIndexingHooks(opts ...IndexingHooksOption) AutoIndexerOption {
 	}
 }
 
-func newHooks() hooks {
-	return hooks{}
-}
-
 func (h *hooks) fireBeforeCreate(ctx context.Context, idx Index, a *AutoIndexer) error {
 	hctx := HookContext{Event: HookBeforeCreate, Index: idx, AutoIndexer: a}
 	for _, hook := range h.beforeCreate {

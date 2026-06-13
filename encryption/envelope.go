@@ -13,6 +13,8 @@ const (
 	EnvelopeVersionV1 = "v1"
 
 	// EnvelopeKey is the metadata key for the ciphertext envelope.
+// Opt-in: consumers who want envelope-based metadata can use this key
+// when storing encrypted payloads via their own integration code.
 	EnvelopeKey event.MetadataKey = "event.encryption.envelope"
 )
 
