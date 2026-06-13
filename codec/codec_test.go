@@ -521,7 +521,7 @@ func TestJSONCodec_Decode_EmptyData(t *testing.T) {
 	}
 }
 
-func TestCBORCodec_Decode_RejectsUnknownFields(t *testing.T) {
+func TestCBORCodec_Decode_IgnoresUnknownFields(t *testing.T) {
 	t.Parallel()
 	c := CBORCodec{}
 
@@ -542,8 +542,11 @@ func TestCBORCodec_Decode_RejectsUnknownFields(t *testing.T) {
 
 	var got target
 	err = c.Decode(data, &got)
-	if err == nil {
-		t.Fatal("expected error for unknown field 'extra'")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if got.Name != "Alice" {
+		t.Fatalf("got %q, want %q", got.Name, "Alice")
 	}
 }
 

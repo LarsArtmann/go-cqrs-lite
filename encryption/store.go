@@ -26,7 +26,15 @@ var (
 // This is a convenience wrapper that composes EncryptMiddleware and
 // DecryptMiddleware for consumers who want store-level encryption
 // without configuring a bus.
-func NewEncryptedStore(inner event.Store, ed EncrypterDecrypter, opts ...MiddlewareOption) *encryptedStore {
+func NewEncryptedStore(inner event.Store, ed EncrypterDecrypter, opts ...MiddlewareOption) (*encryptedStore, error) {
+	if inner == nil {
+		return nil, ErrNilEvent
+	}
+
+	if ed == nil {
+		return nil, ErrInvalidKey
+	}
+
 	cfg := middlewareConfig{} //nolint:exhaustruct // zero-valued fields are ready
 	for _, o := range opts {
 		o(&cfg)
@@ -37,7 +45,7 @@ func NewEncryptedStore(inner event.Store, ed EncrypterDecrypter, opts ...Middlew
 		enc:   ed,
 		dec:   ed,
 		keyID: cfg.keyID,
-	}
+	}, nil
 }
 
 func (s *encryptedStore) Save(
@@ -125,43 +133,12 @@ func (s *encryptedStore) encryptEvents(events []event.Event) ([]event.Event, err
 	result := make([]event.Event, 0, len(events))
 
 	for _, evt := range events {
-		payload := event.PayloadReadOnly(evt)
-		if len(payload) == 0 {
-			result = append(result, evt)
-
-			continue
-		}
-
-		ct, err := s.enc.Encrypt(payload)
+		encrypted, err := encryptEvent(evt, s.enc, s.keyID)
 		if err != nil {
-			return nil, event.WrapInfrastructure(
-				err,
-				"encryption.encrypt_event",
-				"encrypt event "+string(evt.Type()),
-			)
+			return nil, err
 		}
 
-		var attachOpts []AttachOption
-
-		alg := detectAlgorithm(s.enc)
-		if !alg.IsZero() {
-			attachOpts = append(attachOpts, func(c *attachConfig) { c.algorithm = alg })
-		}
-
-		if !s.keyID.IsZero() {
-			attachOpts = append(attachOpts, WithKeyID(s.keyID))
-		}
-
-		clone, err := AttachEncryption(evt, ct, attachOpts...)
-		if err != nil {
-			return nil, event.WrapInfrastructure(
-				err,
-				"encryption.attach_ciphertext",
-				"attach ciphertext to event "+string(evt.Type()),
-			)
-		}
-
-		result = append(result, clone)
+		result = append(result, encrypted)
 	}
 
 	return result, nil
@@ -171,47 +148,12 @@ func (s *encryptedStore) decryptEvents(events []event.Event) ([]event.Event, err
 	result := make([]event.Event, 0, len(events))
 
 	for _, evt := range events {
-		ct, err := ExtractCiphertext(evt)
+		decrypted, err := decryptEvent(evt, s.dec)
 		if err != nil {
-			result = append(result, evt)
-
-			continue
+			return nil, err
 		}
 
-		plaintext, err := s.dec.Decrypt(ct)
-		if err != nil {
-			return nil, event.WrapInfrastructure(
-				err,
-				"encryption.decrypt_event",
-				"decrypt event "+string(evt.Type()),
-			)
-		}
-
-		md := evt.Metadata().Clone()
-		delete(md.Custom, MetadataKey)
-		delete(md.Custom, AlgorithmKey)
-		delete(md.Custom, KeyIDKey)
-
-		plainEvt, err := event.NewEvent(
-			evt.Type(),
-			evt.AggregateID(),
-			evt.AggregateType(),
-			evt.Version(),
-			plaintext,
-			event.WithEventID(evt.ID()),
-			event.WithOccurredAt(evt.OccurredAt()),
-			event.WithSchemaVersion(evt.SchemaVersion()),
-			event.WithMetadata(md),
-		)
-		if err != nil {
-			return nil, event.WrapInfrastructure(
-				err,
-				"encryption.rebuild_event",
-				"rebuild decrypted event "+string(evt.Type()),
-			)
-		}
-
-		result = append(result, plainEvt)
+		result = append(result, decrypted)
 	}
 
 	return result, nil

@@ -45,48 +45,17 @@ func EncryptMiddleware(encrypter Encrypter, opts ...MiddlewareOption) event.Publ
 		o(&cfg)
 	}
 
-	alg := detectAlgorithm(encrypter)
-
 	return func(next event.Publisher) event.Publisher {
 		return event.PublisherFunc(func(ctx context.Context, events ...event.Event) error {
 			encrypted := make([]event.Event, 0, len(events))
 
 			for _, evt := range events {
-				payload := event.PayloadReadOnly(evt)
-				if len(payload) == 0 {
-					encrypted = append(encrypted, evt)
-
-					continue
-				}
-
-				ct, err := encrypter.Encrypt(payload)
+				enc, err := encryptEvent(evt, encrypter, cfg.keyID)
 				if err != nil {
-					return event.WrapInfrastructure(
-						err,
-						"encryption.encrypt_event",
-						"encrypt event "+string(evt.Type()),
-					)
+					return err
 				}
 
-				attachOpts := []AttachOption{}
-				if !alg.IsZero() {
-					attachOpts = append(attachOpts, func(c *attachConfig) { c.algorithm = alg })
-				}
-
-				if !cfg.keyID.IsZero() {
-					attachOpts = append(attachOpts, WithKeyID(cfg.keyID))
-				}
-
-				clone, err := AttachEncryption(evt, ct, attachOpts...)
-				if err != nil {
-					return event.WrapInfrastructure(
-						err,
-						"encryption.attach_ciphertext",
-						"attach ciphertext to event "+string(evt.Type()),
-					)
-				}
-
-				encrypted = append(encrypted, clone)
+				encrypted = append(encrypted, enc)
 			}
 
 			return next.Publish(ctx, encrypted...)
@@ -104,45 +73,12 @@ func DecryptMiddleware(decrypter Decrypter) event.Middleware {
 
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
-			ct, err := ExtractCiphertext(evt)
+			decrypted, err := decryptEvent(evt, decrypter)
 			if err != nil {
-				return next(ctx, evt)
+				return err
 			}
 
-			plaintext, err := decrypter.Decrypt(ct)
-			if err != nil {
-				return event.WrapInfrastructure(
-					err,
-					"encryption.decrypt_event",
-					"decrypt event "+string(evt.Type()),
-				)
-			}
-
-			md := evt.Metadata().Clone()
-			delete(md.Custom, MetadataKey)
-			delete(md.Custom, AlgorithmKey)
-			delete(md.Custom, KeyIDKey)
-
-			plainEvt, err := event.NewEvent(
-				evt.Type(),
-				evt.AggregateID(),
-				evt.AggregateType(),
-				evt.Version(),
-				plaintext,
-				event.WithEventID(evt.ID()),
-				event.WithOccurredAt(evt.OccurredAt()),
-				event.WithSchemaVersion(evt.SchemaVersion()),
-				event.WithMetadata(md),
-			)
-			if err != nil {
-				return event.WrapInfrastructure(
-					err,
-					"encryption.rebuild_event",
-					"rebuild decrypted event "+string(evt.Type()),
-				)
-			}
-
-			return next(ctx, plainEvt)
+			return next(ctx, decrypted)
 		}
 	}
 }

@@ -20,7 +20,7 @@ func TestEncryptedStore_SaveAndLoad(t *testing.T) {
 	}
 
 	inner := eventtest.NewFakeStore()
-	store := NewEncryptedStore(inner, ed)
+	store, err := NewEncryptedStore(inner, ed)
 
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("User", aggID)
@@ -57,7 +57,10 @@ func TestEncryptedStore_WithKeyID(t *testing.T) {
 	ed, _ := NewAES256GCM(key)
 
 	inner := eventtest.NewFakeStore()
-	store := NewEncryptedStore(inner, ed, WithMiddlewareKeyID("key-v1"))
+	store, err := NewEncryptedStore(inner, ed, WithMiddlewareKeyID("key-v1"))
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("User", aggID)
@@ -89,7 +92,7 @@ func TestEncryptedStore_LoadFromVersion(t *testing.T) {
 	ed, _ := NewAES256GCM(key)
 
 	inner := eventtest.NewFakeStore()
-	store := NewEncryptedStore(inner, ed)
+	store, err := NewEncryptedStore(inner, ed)
 
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("User", aggID)
@@ -121,7 +124,7 @@ func TestEncryptedStore_LoadToVersion(t *testing.T) {
 	ed, _ := NewAES256GCM(key)
 
 	inner := eventtest.NewFakeStore()
-	store := NewEncryptedStore(inner, ed)
+	store, err := NewEncryptedStore(inner, ed)
 
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("User", aggID)
@@ -149,7 +152,7 @@ func TestEncryptedStore_LoadToTimestamp(t *testing.T) {
 	ed, _ := NewAES256GCM(key)
 
 	inner := eventtest.NewFakeStore()
-	store := NewEncryptedStore(inner, ed)
+	store, err := NewEncryptedStore(inner, ed)
 
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("User", aggID)
@@ -176,7 +179,7 @@ func TestEncryptedStore_AppendBatch(t *testing.T) {
 	ed, _ := NewAES256GCM(key)
 
 	inner := eventtest.NewFakeStore()
-	store := NewEncryptedStore(inner, ed)
+	store, err := NewEncryptedStore(inner, ed)
 
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("User", aggID)
@@ -209,7 +212,7 @@ func TestEncryptedStore_EmptyPayload(t *testing.T) {
 	ed, _ := NewAES256GCM(key)
 
 	inner := eventtest.NewFakeStore()
-	store := NewEncryptedStore(inner, ed)
+	store, _ := NewEncryptedStore(inner, ed)
 
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("User", aggID)

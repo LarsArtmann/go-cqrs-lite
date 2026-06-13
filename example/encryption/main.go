@@ -49,13 +49,12 @@ func busLevelEncryption(ctx context.Context) {
 	}
 
 	var captured event.Event
-	handler := bus.Use(func(next event.Handler) event.Handler {
+	bus.Use(func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
 			captured = evt
 			return next(ctx, evt)
 		}
 	})
-	_ = handler
 
 	if err := bus.Publish(ctx, evt); err != nil {
 		log.Fatal(err)
@@ -73,7 +72,10 @@ func storeLevelEncryption(ctx context.Context) {
 	}
 
 	inner := memory.NewMemoryStore()
-	store := encryption.NewEncryptedStore(inner, ed, encryption.WithMiddlewareKeyID("key-v1"))
+	store, err := encryption.NewEncryptedStore(inner, ed, encryption.WithMiddlewareKeyID("key-v1"))
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("User", aggID)
@@ -88,14 +90,21 @@ func storeLevelEncryption(ctx context.Context) {
 		log.Fatal(err)
 	}
 
-	raw, _ := inner.Load(ctx, ref)
+	raw, err := inner.Load(ctx, ref)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	fmt.Printf("Raw stored payload (encrypted): %s\n", truncate(string(event.PayloadReadOnly(raw[0])), 40))
 
-	loaded, _ := store.Load(ctx, ref)
+	loaded, err := store.Load(ctx, ref)
+	if err != nil {
+		log.Fatal(err)
+	}
 	fmt.Printf("Decrypted payload: %s\n", string(event.PayloadReadOnly(loaded[0])))
 }
 
-func keyRotation(ctx context.Context) {
+func keyRotation(_ context.Context) {
 	oldKey := []byte("old-key-0123456789abcdef01234567")
 	newKey := []byte("new-key-0123456789abcdef01234567")
 

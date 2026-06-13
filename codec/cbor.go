@@ -21,16 +21,14 @@ var cborEncMode = func() cbor.EncMode {
 	return em
 }()
 
-// cborDecMode provides the default CBOR decoding mode with strict validation:
-// duplicate map keys are rejected and unknown struct fields cause errors.
+// cborDecMode provides the default CBOR decoding mode with duplicate map key
+// enforcement. Decode uses a configured DecMode for explicit control over
+// decoding behavior, mirroring the encode-side EncMode pattern.
 //
 //nolint:gochecknoglobals // concurrency-safe DecMode, created once at package init
 var cborDecMode = func() cbor.DecMode {
-	//nolint:exhaustruct // only intentional fields; all other fields use library defaults
-	opts := cbor.DecOptions{
-		DupMapKey:         cbor.DupMapKeyEnforcedAPF,
-		ExtraReturnErrors: cbor.ExtraDecErrorUnknownField,
-	}
+	//nolint:exhaustruct // only DupMapKey is intentional; all other fields use library defaults
+	opts := cbor.DecOptions{DupMapKey: cbor.DupMapKeyEnforcedAPF}
 
 	dm, err := opts.DecMode()
 	if err != nil {
