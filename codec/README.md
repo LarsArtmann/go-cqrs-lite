@@ -49,14 +49,14 @@ store uses CBOR internally for its on-disk envelope format.
 
 ### CBOR Strict Decoding
 
-The CBOR decoder enforces strict validation:
+The CBOR decoder enforces strict validation for data integrity:
 
 - **Duplicate map keys** are rejected (not silently overwritten)
-- **Unknown struct fields** cause decode errors (not silently ignored)
+- **Unknown struct fields** are silently ignored for forward compatibility
 
-This catches schema mismatches early — if a producer adds a field that the
-consumer doesn't know about, the consumer gets an explicit error instead of
-silently dropping data.
+This balances strictness (duplicate keys are always a bug) with forward
+compatibility — producers can add fields without breaking consumers that
+haven't been updated yet.
 
 ### When to Use CBOR vs JSON
 
