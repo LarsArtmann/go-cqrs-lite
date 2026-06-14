@@ -3315,11 +3315,16 @@ func (e *ImmutableEvent) Metadata() Metadata {
         <div class="callout success" style="margin-bottom: 2rem">
           <div class="callout-title">Headline Results (5-run averages)</div>
           <p>
-            <strong>MemoryBus Publish:</strong> 34% faster, 67% fewer allocs (48→16 B, 3→1 allocs).<br />
+            <strong>MemoryBus Publish:</strong> 34% faster, 67% fewer allocs (48→16 B, 3→1
+            allocs).<br />
             <strong>MemoryStore Load:</strong> 58% faster, 50% less memory.<br />
-            <strong>Projection 100K events:</strong> 10.5M fewer allocations (-10.4%), 583 MB less memory (-9.7%).<br />
+            <strong>Projection 100K events:</strong> 10.5M fewer allocations (-10.4%), 583 MB less
+            memory (-9.7%).<br />
             <strong>Pebble LoadToTimestamp:</strong> 21–23% faster, 26% less memory.<br />
-            <em style="color: var(--muted)">Note: Single-iteration ns/op benchmarks have ±15% variance. Allocation and byte deltas are deterministic and are the reliable signal.</em>
+            <em style="color: var(--muted)"
+              >Note: Single-iteration ns/op benchmarks have ±15% variance. Allocation and byte
+              deltas are deterministic and are the reliable signal.</em
+            >
           </p>
         </div>
 
@@ -3393,7 +3398,9 @@ func (e *ImmutableEvent) Metadata() Metadata {
               </td>
             </tr>
             <tr style="border-bottom: 1px solid var(--border)">
-              <td style="padding: 0.4rem 0.5rem"><strong>Scale_Projection_100Projections_100K</strong></td>
+              <td style="padding: 0.4rem 0.5rem">
+                <strong>Scale_Projection_100Projections_100K</strong>
+              </td>
               <td style="padding: 0.4rem 0.5rem">T3/T4+Fix</td>
               <td class="num" style="padding: 0.4rem 0.5rem">4,283,248</td>
               <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
@@ -3524,16 +3531,16 @@ func (e *ImmutableEvent) Metadata() Metadata {
               zero-alloc (Builder path only)
             </div>
             <p style="font-size: 0.82rem; color: var(--muted)">
-              <code>lookupSlices()</code> returns pre-built handler slices. Only benefits projections
-              created via <code>projection.Builder</code>. Most users use
+              <code>lookupSlices()</code> returns pre-built handler slices. Only benefits
+              projections created via <code>projection.Builder</code>. Most users use
               <code>event.NewProjection()</code> which was unaffected until the Runner caching fix
               (T15).
             </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--red)">
             <div class="card-title">
-              <span class="dot" style="background: var(--red)"></span>T4: Projection EventTypes
-              fast path (originally dead code)
+              <span class="dot" style="background: var(--red)"></span>T4: Projection EventTypes fast
+              path (originally dead code)
             </div>
             <p style="font-size: 0.82rem; color: var(--muted)">
               Type assertion checked <code>*builtProjection</code> but benchmarks use
@@ -3649,23 +3656,31 @@ func (e *ImmutableEvent) Metadata() Metadata {
           </div>
         </div>
 
-        <div class="callout" style="margin-top: 2rem; border-left: 3px solid var(--yellow); background: rgba(250, 204, 21, 0.06)">
+        <div
+          class="callout"
+          style="
+            margin-top: 2rem;
+            border-left: 3px solid var(--yellow);
+            background: rgba(250, 204, 21, 0.06);
+          "
+        >
           <div class="callout-title" style="color: var(--yellow)">⚠ Honest Assessment</div>
           <p>
             <strong>What worked:</strong> MemoryBus pre-computation (T12), MemoryStore double-copy
             elimination (T6), Pebble double serialization (T1), SSE goroutine leak fix (T7), lazy
             metadata map (T2), SQL template caching (T5). These delivered measurable, deterministic
-            allocation reductions.<br><br>
-            <strong>What was originally broken:</strong> T3 and T4 were dead code for the most common
-            projection path (<code>event.NewProjection</code>). The <code>*builtProjection</code> type
-            assertion in <code>subscribesTo()</code> never matched <code>*projectionFunc</code>.
-            The real fix (T15) caches event types in the Runner at registration time, eliminating
-            10.5M clone allocations (100K events × 100 projections) in the scale benchmark.<br><br>
+            allocation reductions.<br /><br />
+            <strong>What was originally broken:</strong> T3 and T4 were dead code for the most
+            common projection path (<code>event.NewProjection</code>). The
+            <code>*builtProjection</code> type assertion in <code>subscribesTo()</code> never
+            matched <code>*projectionFunc</code>. The real fix (T15) caches event types in the
+            Runner at registration time, eliminating 10.5M clone allocations (100K events × 100
+            projections) in the scale benchmark.<br /><br />
             <strong>What's still not measured:</strong> Pebble single-serialization improvement (T1)
             and CircuitBreaker atomic fast path (T11) need dedicated micro-benchmarks to quantify.
             Single-iteration ns/op numbers have ±15% variance — allocation deltas are the reliable
             signal. Full 5-run benchstat comparison is in
-            <code>benchmarks/2026-06-14_post-optimization.txt</code>.<br><br>
+            <code>benchmarks/2026-06-14_post-optimization.txt</code>.<br /><br />
             All 40 test packages pass, zero lint issues, race detector clean on all changed modules.
           </p>
         </div>

@@ -6,7 +6,7 @@ require (
 	github.com/cockroachdb/pebble v1.1.5
 	github.com/fxamacker/cbor/v2 v2.9.2
 	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.3.0
-	github.com/larsartmann/go-cqrs-lite/event/v2 v2.3.0
+	github.com/larsartmann/go-cqrs-lite/event/v2 v2.3.1
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.3.0
 )
 

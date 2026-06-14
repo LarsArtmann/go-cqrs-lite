@@ -6,7 +6,7 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.3.0
 	github.com/larsartmann/go-cqrs-lite/command/v2 v2.3.0
-	github.com/larsartmann/go-cqrs-lite/event/v2 v2.3.0
+	github.com/larsartmann/go-cqrs-lite/event/v2 v2.3.1
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.3.0
 	github.com/larsartmann/go-cqrs-lite/listing/v2 v2.3.0
 	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.3.0

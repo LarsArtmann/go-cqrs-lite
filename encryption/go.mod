@@ -11,7 +11,7 @@ replace (
 
 require (
 	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.3.0
-	github.com/larsartmann/go-cqrs-lite/event/v2 v2.3.0
+	github.com/larsartmann/go-cqrs-lite/event/v2 v2.3.1
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.3.0
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0

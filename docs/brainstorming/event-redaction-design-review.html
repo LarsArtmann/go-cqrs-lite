@@ -1,0 +1,1136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Design review: role-based event redaction pattern evaluated for the go-cqrs-lite library."
+    />
+    <title>Event Redaction — Design Review for go-cqrs-lite</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,700;0,6..72,800;1,6..72,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --font-serif: "Newsreader", Georgia, "Times New Roman", serif;
+        --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+        --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+        --bg: #fdfcfa;
+        --bg-elevated: #ffffff;
+        --surface: #f5f4f0;
+        --border: #d4d2cc;
+        --border-strong: #a8a59c;
+        --text: #1a1917;
+        --text-secondary: #4a4946;
+        --text-tertiary: #787671;
+        --accent: #c41e3a;
+        --accent-muted: #e8c4ca;
+        --success: #1a5c3a;
+        --warn: #8c6b1f;
+        --danger: #8c1a1a;
+        --info: #1a3a5c;
+
+        --max-width: 820px;
+        --sidebar-width: 220px;
+        --gutter: 2.5rem;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0d0d0c;
+          --bg-elevated: #161614;
+          --surface: #1e1e1b;
+          --border: #2e2e2a;
+          --border-strong: #4a4a44;
+          --text: #e8e6e1;
+          --text-secondary: #a8a59c;
+          --text-tertiary: #6a6862;
+          --accent: #e85d75;
+          --accent-muted: #5c2a32;
+          --success: #4ade80;
+          --warn: #fbbf24;
+          --danger: #f87171;
+          --info: #60a5fa;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 1rem;
+        font-size: 16px;
+      }
+
+      body {
+        font-family: var(--font-sans);
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.7;
+        font-size: 0.95rem;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      ::selection {
+        background: var(--accent-muted);
+        color: var(--text);
+      }
+
+      /* LAYOUT */
+      .page {
+        display: grid;
+        grid-template-columns: var(--sidebar-width) 1fr;
+        max-width: calc(var(--sidebar-width) + var(--max-width) + var(--gutter) * 2);
+        margin: 0 auto;
+        min-height: 100vh;
+      }
+
+      @media (max-width: 900px) {
+        .page {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* SIDEBAR */
+      .sidebar {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        padding: 2.5rem 1.5rem;
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        gap: 2.5rem;
+        overflow-y: auto;
+      }
+
+      @media (max-width: 900px) {
+        .sidebar {
+          position: static;
+          height: auto;
+          border-right: none;
+          border-bottom: 1px solid var(--border);
+          padding: 1.5rem;
+          flex-direction: row;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 1rem;
+        }
+      }
+
+      .sidebar-brand {
+        font-family: var(--font-serif);
+        font-weight: 800;
+        font-size: 1.3rem;
+        line-height: 1.1;
+        color: var(--text);
+        text-decoration: none;
+        letter-spacing: -0.02em;
+      }
+
+      .sidebar-brand span {
+        display: block;
+        font-family: var(--font-sans);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--text-tertiary);
+        margin-top: 0.3rem;
+      }
+
+      .sidebar-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        list-style: none;
+      }
+
+      @media (max-width: 900px) {
+        .sidebar-nav {
+          flex-direction: row;
+          flex-wrap: wrap;
+        }
+      }
+
+      .sidebar-nav a {
+        display: block;
+        padding: 0.35rem 0.6rem;
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 0.82rem;
+        font-weight: 500;
+        border-left: 2px solid transparent;
+        transition:
+          color 0.15s,
+          border-color 0.15s;
+      }
+
+      .sidebar-nav a:hover {
+        color: var(--text);
+        border-left-color: var(--border);
+      }
+
+      .sidebar-meta {
+        margin-top: auto;
+        font-size: 0.72rem;
+        color: var(--text-tertiary);
+        line-height: 1.6;
+      }
+
+      @media (max-width: 900px) {
+        .sidebar-meta {
+          display: none;
+        }
+      }
+
+      /* MAIN */
+      .main {
+        padding: 3rem var(--gutter) 5rem;
+        max-width: var(--max-width);
+      }
+
+      @media (max-width: 900px) {
+        .main {
+          padding: 2rem 1.5rem;
+        }
+      }
+
+      /* TYPOGRAPHY */
+      h1 {
+        font-family: var(--font-serif);
+        font-size: clamp(2.6rem, 6vw, 3.6rem);
+        font-weight: 800;
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+        color: var(--text);
+        margin-bottom: 1.5rem;
+      }
+
+      h2 {
+        font-family: var(--font-serif);
+        font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+        font-weight: 700;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        margin-top: 4rem;
+        margin-bottom: 1.25rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid var(--text);
+        color: var(--text);
+      }
+
+      h3 {
+        font-family: var(--font-serif);
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-top: 2.5rem;
+        margin-bottom: 0.75rem;
+        color: var(--text);
+        letter-spacing: -0.01em;
+      }
+
+      h4 {
+        font-family: var(--font-sans);
+        font-size: 0.78rem;
+        font-weight: 700;
+        margin-bottom: 0.4rem;
+        color: var(--text);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      p {
+        color: var(--text-secondary);
+        margin: 0.9em 0;
+        max-width: 65ch;
+      }
+
+      p.lead {
+        font-family: var(--font-serif);
+        font-size: 1.2rem;
+        line-height: 1.55;
+        color: var(--text-secondary);
+        font-style: italic;
+        margin-bottom: 2rem;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+
+      strong {
+        color: var(--text);
+        font-weight: 600;
+      }
+      em {
+        font-family: var(--font-serif);
+        font-style: italic;
+      }
+
+      hr {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 3rem 0;
+      }
+
+      /* SECTION NUMBERS */
+      .section-num {
+        font-family: var(--font-serif);
+        font-size: 0.7em;
+        font-weight: 400;
+        color: var(--text-tertiary);
+        margin-right: 0.5rem;
+        vertical-align: super;
+      }
+
+      /* VERDICT BANNER */
+      .verdict {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 1.5rem;
+        align-items: center;
+        margin: 2.5rem 0 1.5rem;
+        padding: 1.5rem 1.75rem;
+        background: var(--surface);
+        border-left: 4px solid var(--warn);
+      }
+
+      .verdict-mark {
+        font-family: var(--font-serif);
+        font-size: 3rem;
+        font-weight: 800;
+        line-height: 1;
+        color: var(--warn);
+      }
+
+      .verdict-text h4 {
+        text-transform: none;
+        letter-spacing: 0;
+        font-family: var(--font-serif);
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 0.4rem;
+      }
+
+      .verdict-text p {
+        margin: 0;
+        font-size: 0.92rem;
+      }
+
+      @media (max-width: 640px) {
+        .verdict {
+          grid-template-columns: 1fr;
+          gap: 0.75rem;
+        }
+        .verdict-mark {
+          font-size: 2.2rem;
+        }
+      }
+
+      /* TABLES */
+      .table-wrap {
+        overflow-x: auto;
+        margin: 1.5rem 0 2rem;
+        border: 1px solid var(--border);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        min-width: 600px;
+      }
+
+      th {
+        text-align: left;
+        padding: 0.8rem 1rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-tertiary);
+        background: var(--surface);
+        border-bottom: 1px solid var(--border-strong);
+        white-space: nowrap;
+      }
+
+      td {
+        padding: 0.85rem 1rem;
+        border-bottom: 1px solid var(--border);
+        color: var(--text-secondary);
+        vertical-align: top;
+      }
+
+      tr:last-child td {
+        border-bottom: none;
+      }
+      tbody tr {
+        transition: background 0.12s;
+      }
+      tbody tr:hover {
+        background: var(--surface);
+      }
+
+      /* TAGS */
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 500;
+        padding: 0.2rem 0.5rem;
+        border: 1px solid;
+        white-space: nowrap;
+        letter-spacing: 0.02em;
+      }
+      .tag-good {
+        color: var(--success);
+        border-color: var(--success);
+        background: transparent;
+      }
+      .tag-bad {
+        color: var(--danger);
+        border-color: var(--danger);
+        background: transparent;
+      }
+      .tag-mixed {
+        color: var(--warn);
+        border-color: var(--warn);
+        background: transparent;
+      }
+      .tag-idea {
+        color: var(--info);
+        border-color: var(--info);
+        background: transparent;
+      }
+
+      /* CODE */
+      code,
+      pre {
+        font-family: var(--font-mono);
+        font-size: 0.85em;
+      }
+
+      code {
+        padding: 0.1em 0.35em;
+        background: var(--surface);
+        color: var(--text);
+        font-weight: 500;
+      }
+
+      pre {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        padding: 1.25rem;
+        overflow-x: auto;
+        margin: 1rem 0 1.5rem;
+        line-height: 1.65;
+      }
+
+      pre code {
+        background: transparent;
+        padding: 0;
+        font-weight: 400;
+        font-size: 0.88em;
+      }
+
+      /* SYNTAX HIGHLIGHTING */
+      .hl-kw {
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .hl-type {
+        color: var(--text);
+        font-weight: 600;
+      }
+      .hl-func {
+        color: var(--text);
+        font-weight: 600;
+      }
+      .hl-str {
+        color: var(--success);
+      }
+      .hl-comment {
+        color: var(--text-tertiary);
+        font-style: italic;
+      }
+      .hl-field {
+        color: var(--text-secondary);
+      }
+
+      /* PROBLEM LIST */
+      .problem {
+        display: grid;
+        grid-template-columns: 2.5rem 1fr;
+        gap: 1rem;
+        margin: 0;
+        padding: 1.5rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .problem:first-of-type {
+        padding-top: 0.5rem;
+      }
+      .problem:last-of-type {
+        border-bottom: none;
+      }
+
+      .problem-num {
+        font-family: var(--font-serif);
+        font-size: 1.5rem;
+        font-weight: 800;
+        line-height: 1;
+        color: var(--danger);
+        text-align: right;
+        padding-top: 0.15rem;
+      }
+
+      .problem-body h4 {
+        font-family: var(--font-serif);
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 0 0 0.4rem;
+        text-transform: none;
+        letter-spacing: 0;
+        color: var(--text);
+      }
+
+      .problem-body p {
+        margin: 0.5rem 0;
+        font-size: 0.92rem;
+      }
+
+      /* COMPARISON GRID */
+      .compare {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        margin: 1.5rem 0 2rem;
+      }
+
+      @media (max-width: 640px) {
+        .compare {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .compare-cell {
+        background: var(--bg);
+        padding: 1.4rem 1.5rem;
+      }
+
+      .compare-cell.bad {
+        border-top: 3px solid var(--danger);
+      }
+      .compare-cell.good {
+        border-top: 3px solid var(--success);
+      }
+
+      .compare-cell h4 {
+        font-family: var(--font-serif);
+        font-size: 1.02rem;
+        font-weight: 700;
+        text-transform: none;
+        letter-spacing: 0;
+        margin-bottom: 0.6rem;
+      }
+
+      .compare-cell p {
+        margin: 0;
+        font-size: 0.88rem;
+      }
+
+      /* CALLOUTS */
+      .callout {
+        padding: 1.25rem 1.5rem;
+        background: var(--surface);
+        border-left: 3px solid var(--accent);
+        margin: 1.5rem 0;
+      }
+
+      .callout p {
+        margin: 0;
+      }
+      .callout strong {
+        color: var(--text);
+      }
+
+      .callout.warn {
+        border-left-color: var(--warn);
+      }
+      .callout.danger {
+        border-left-color: var(--danger);
+      }
+      .callout.idea {
+        border-left-color: var(--info);
+      }
+
+      /* PRINCIPLE GRID */
+      .principles {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        margin: 1.5rem 0 2rem;
+      }
+
+      @media (max-width: 640px) {
+        .principles {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .principle {
+        background: var(--bg);
+        padding: 1.3rem 1.4rem;
+      }
+
+      .principle h4 {
+        font-family: var(--font-serif);
+        font-size: 1.02rem;
+        font-weight: 700;
+        text-transform: none;
+        letter-spacing: 0;
+        margin-bottom: 0.4rem;
+      }
+
+      .principle p {
+        margin: 0;
+        font-size: 0.88rem;
+      }
+
+      /* LISTS */
+      ul.plain,
+      ol {
+        padding-left: 1.3rem;
+        margin: 0.9rem 0;
+      }
+      li {
+        margin: 0.5rem 0;
+        color: var(--text-secondary);
+      }
+      li::marker {
+        color: var(--text-tertiary);
+      }
+
+      /* FOOTER */
+      .footer {
+        margin-top: 4rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+        color: var(--text-tertiary);
+        font-size: 0.82rem;
+      }
+
+      /* PRINT */
+      @media print {
+        .sidebar {
+          display: none;
+        }
+        .page {
+          grid-template-columns: 1fr;
+        }
+        .main {
+          padding: 1rem;
+        }
+        body {
+          background: white;
+          color: black;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <aside class="sidebar">
+        <a href="#top" class="sidebar-brand">
+          Event Redaction
+          <span>Design Review</span>
+        </a>
+        <nav>
+          <ul class="sidebar-nav">
+            <li><a href="#summary">Verdict</a></li>
+            <li><a href="#what-works">What Works</a></li>
+            <li><a href="#problems">Problems</a></li>
+            <li><a href="#anti-vs-idiomatic">Anti vs. Idiomatic</a></li>
+            <li><a href="#target">Target Shape</a></li>
+            <li><a href="#interface">Proposed API</a></li>
+            <li><a href="#flag">Ethical Flag</a></li>
+            <li><a href="#recap">Recap</a></li>
+          </ul>
+        </nav>
+        <div class="sidebar-meta">
+          Design Review<br />
+          Pattern fit for go-cqrs-lite<br />
+          Generated 2026-06-14
+        </div>
+      </aside>
+
+      <main class="main" id="top">
+        <section class="hero">
+          <h1>Event Redaction, Reviewed</h1>
+          <p class="lead">
+            A privacy-filtering pattern — stripping sensitive payload fields before broadcasting
+            events to viewers based on role — evaluated against the design principles of
+            <code>go-cqrs-lite</code>. The <em>pattern</em> is legitimate; the reference
+            <em>implementation</em> leaks concerns in the wrong places.
+          </p>
+
+          <div class="verdict" id="summary">
+            <div class="verdict-mark">±</div>
+            <div class="verdict-text">
+              <h4>Steal the principle. Reject the implementation.</h4>
+              <p>
+                Role-based filtering at a read egress is architecturally consonant with the
+                library's existing boundary transformers (<code>signing/</code>,
+                <code>encryption/</code>, tombstone soft-delete). But hardcoding sensitivity into
+                the domain enum and mutating payload shape at one transport breaks the type system
+                and centralizes policy in the worst possible place.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="what-works">
+          <h2><span class="section-num">01</span>What the Design Gets Right</h2>
+          <p>
+            The core intuitions are sound. These two decisions alone place the design above naive
+            approaches that redact at write time or treat privacy as an afterthought.
+          </p>
+
+          <div class="principles">
+            <div class="principle">
+              <h4>Source of truth stays intact</h4>
+              <p>
+                Redaction is a <em>view</em> concern, applied at egress. The stored event is never
+                mutated. This is the correct boundary — the same principle the library already
+                applies to <code>signing</code> (sign-then-store, verify-on-read) and
+                <code>encryption</code> (encrypt-then-store, decrypt-on-read).
+              </p>
+            </div>
+            <div class="principle">
+              <h4>Two granularities of redaction</h4>
+              <p>
+                Distinguishing a full payload wipe (<code>redacted()</code>) from targeted
+                field-level stripping (<code>redact_window_title()</code>) is the right instinct.
+                Not every sensitive event needs wholesale erasure; some only need specific fields
+                masked.
+              </p>
+            </div>
+          </div>
+
+          <div class="callout">
+            <p>
+              <strong>Why this matters:</strong> redaction-at-egress composes naturally with the
+              library's existing read-side middleware stack. A consumer could layer decrypt → verify
+              → redact → trace on every read path, and the stored event would remain canonical and
+              auditable.
+            </p>
+          </div>
+        </section>
+
+        <section id="problems">
+          <h2><span class="section-num">02</span>Six Problems With the Implementation</h2>
+          <p>
+            Each problem below is a place where a policy concern was glued to a layer that should
+            not own it. Left unaddressed, they compound: the next transport added re-derives the
+            rules, the type contract erodes, and the admin cliff becomes a liability.
+          </p>
+
+          <div class="problem">
+            <div class="problem-num">1</div>
+            <div class="problem-body">
+              <h4>Sensitivity baked into the domain enum</h4>
+              <p>
+                <code>is_sensitive()</code> hardcoding 15 event types inside
+                <code>EventType</code> leaks a <strong>policy</strong> concern into the
+                <strong>domain</strong> layer. "Is this sensitive?" is a deployment- or
+                tenant-specific decision, not an intrinsic property of an event type. What counts as
+                sensitive in a healthcare context differs from a logistics system — the enum cannot
+                encode that.
+              </p>
+              <p>
+                In go-cqrs-lite terms, this belongs in configurable middleware or a projection
+                filter, not in the event type definition.
+              </p>
+            </div>
+          </div>
+
+          <div class="problem">
+            <div class="problem-num">2</div>
+            <div class="problem-body">
+              <h4>Redaction mutates the payload shape</h4>
+              <p>
+                <code>redacted()</code> replaces the payload with <code>{"redacted":true}</code>.
+                This breaks the typed contract: any consumer unmarshaling into
+                <code>UserCreated</code> now gets a silent structural mismatch. The type system can
+                no longer guarantee that a <code>UserCreated</code> event actually contains the
+                fields the type promises.
+              </p>
+              <p>
+                This is precisely the "make impossible states unrepresentable" violation the library
+                fights against. A redaction layer should produce a
+                <strong>properly-typed view</strong>
+                (zeroed or redacted-marker fields) or a distinct redacted envelope type — never a
+                shape-shifting payload.
+              </p>
+            </div>
+          </div>
+
+          <div class="problem">
+            <div class="problem-num">3</div>
+            <div class="problem-body">
+              <h4>Redaction gated at a single transport</h4>
+              <p>
+                Applying the filter only at the WebSocket broadcast boundary leaves the journal,
+                replay, projections, and any direct read API unprotected. Privacy filtering applied
+                at <em>one</em> egress point is a leak waiting to happen — the next transport added
+                (SSE, gRPC, HTTP) re-derives the policy and gets it wrong.
+              </p>
+              <p>
+                It must be a policy applied to <strong>all read egress</strong>, consistently, not
+                patched into each handler as it appears.
+              </p>
+            </div>
+          </div>
+
+          <div class="problem">
+            <div class="problem-num">4</div>
+            <div class="problem-body">
+              <h4>Branching logic in the transport layer</h4>
+              <p>
+                The <code>if / else if</code> chain in <code>ws.rs</code> couples role resolution,
+                permission flags, and event classification directly to the WebSocket handler. It is
+                fragile — note that <code>WindowFocused</code> is checked <em>before</em>
+                <code>is_sensitive()</code>, making the ordering load-bearing in a non-obvious way.
+                And it is untestable in isolation: you cannot exercise the redaction policy without
+                standing up a transport.
+              </p>
+              <p>
+                This should be a composable policy chain, testable against any
+                <code>event.Event</code> in isolation.
+              </p>
+            </div>
+          </div>
+
+          <div class="problem">
+            <div class="problem-num">5</div>
+            <div class="problem-body">
+              <h4>Full-wipe default discards analytic value</h4>
+              <p>
+                Defaulting regular users to whole-payload erasure on sensitive events throws away
+                information that could have been retained with field-level masking. A keystroke
+                event redacted to <code>{"key_count": 42, "keys": "[redacted]"}</code> preserves
+                analytics; <code>{"redacted": true}</code> preserves nothing.
+              </p>
+              <p>
+                Field-level redaction is almost always preferable to whole-payload erasure. The
+                default should bias toward retaining structure.
+              </p>
+            </div>
+          </div>
+
+          <div class="problem">
+            <div class="problem-num">6</div>
+            <div class="problem-body">
+              <h4>Admin bypass is a binary trap</h4>
+              <p>
+                "Admins see everything" means one compromised admin credential equals a full
+                surveillance feed. Real systems want attribute-based, field-level access — an
+                auditor may see <em>that</em> a clipboard event occurred without seeing
+                <em>what</em> was copied. A binary admin/not-admin cliff offers no middle ground.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="anti-vs-idiomatic">
+          <h2><span class="section-num">03</span>Anti-Pattern vs. Idiomatic</h2>
+          <p>
+            Each design decision has a wrong home and a right home. The move is always the same:
+            push policy out of the domain and into a composable, configurable layer.
+          </p>
+
+          <div class="compare">
+            <div class="compare-cell bad">
+              <h4>As Designed</h4>
+              <p>
+                <code>EventType::is_sensitive()</code> hardcodes 15 types inside the domain enum.
+                Policy cannot change without a code change and a redeploy.
+              </p>
+            </div>
+            <div class="compare-cell good">
+              <h4>Idiomatic</h4>
+              <p>
+                A <code>RedactionPolicy</code> maps event type → field rules, configured per
+                deployment or tenant. The domain knows nothing about sensitivity.
+              </p>
+            </div>
+          </div>
+
+          <div class="compare">
+            <div class="compare-cell bad">
+              <h4>As Designed</h4>
+              <p>
+                <code>redacted()</code> swaps the payload for <code>{"redacted":true}</code>,
+                breaking the typed unmarshal contract for every consumer.
+              </p>
+            </div>
+            <div class="compare-cell good">
+              <h4>Idiomatic</h4>
+              <p>
+                Redaction produces a <strong>typed view</strong> — same struct shape, fields zeroed
+                or replaced with sentinel values. Or a distinct <code>RedactedEvent</code> envelope
+                type that the type system can distinguish from a live event.
+              </p>
+            </div>
+          </div>
+
+          <div class="compare">
+            <div class="compare-cell bad">
+              <h4>As Designed</h4>
+              <p>
+                Redaction lives inside <code>ws.rs</code>. The journal, replay, projections, and any
+                future transport are unprotected and must re-derive the rules.
+              </p>
+            </div>
+            <div class="compare-cell good">
+              <h4>Idiomatic</h4>
+              <p>
+                Redaction is a read-side middleware applied on <strong>every egress path</strong> —
+                a sibling to <code>middleware.EventTracing</code> and
+                <code>encryption.DecryptMiddleware</code>.
+              </p>
+            </div>
+          </div>
+
+          <div class="compare">
+            <div class="compare-cell bad">
+              <h4>As Designed</h4>
+              <p>
+                Admins bypass all redaction. One compromised credential exposes the entire stream.
+              </p>
+            </div>
+            <div class="compare-cell good">
+              <h4>Idiomatic</h4>
+              <p>
+                Attribute-based access: roles map to <em>which fields</em> they may see, not a
+                binary see-all flag. An auditor sees metadata; a security officer sees payloads.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="target">
+          <h2><span class="section-num">04</span>The Target Shape in go-cqrs-lite</h2>
+          <p>
+            If this capability were added to the library, the idiomatic shape would fit cleanly into
+            the existing module graph — a sibling to the other boundary transformers, layered 4–5.
+          </p>
+
+          <div class="callout idea">
+            <p>
+              <strong>Proposed module:</strong> <code>redaction/</code> — a read-side middleware
+              that takes a <code>RedactionPolicy</code> and a viewer context, producing typed
+              redacted views. Composes with <code>signing/</code> and <code>encryption/</code>:
+              encrypt-then-sign the <em>original</em>, redact <em>per-viewer</em> on the way out.
+            </p>
+          </div>
+
+          <h3>Placement in the existing stack</h3>
+          <p>The pipeline on every read egress would compose as follows:</p>
+
+          <pre><code><span class="hl-comment">// Read egress pipeline (composed per transport, applied uniformly)</span>
+<span class="hl-comment">// 1. decrypt  — restore the canonical payload</span>
+<span class="hl-comment">// 2. verify   — confirm integrity / signature</span>
+<span class="hl-comment">// 3. redact   — apply viewer-aware field rules</span>
+<span class="hl-comment">// 4. trace    — record the access for audit</span>
+
+bus.Use(
+    encryption.<span class="hl-func">DecryptMiddleware</span>(enc),
+    signing.<span class="hl-func">VerifyMiddleware</span>(signer),
+    redaction.<span class="hl-func">Middleware</span>(policy),   <span class="hl-comment">// viewer from ctx</span>
+    middleware.<span class="hl-func">EventTracing</span>(tracer),
+)</code></pre>
+
+          <h3>How viewer identity reaches the policy</h3>
+          <p>
+            The library already has a precedent: correlation IDs and processing mode (<code
+              >ModeLive</code
+            >
+            / <code>ModeReplay</code>) travel as <code>context.Context</code> values. Viewer
+            identity should follow the same pattern — a context-scoped viewer, never resolved inside
+            a transport handler.
+          </p>
+
+          <pre><code><span class="hl-comment">// Attach viewer to context, same pattern as ProcessingMode</span>
+ctx := redaction.<span class="hl-func">WithViewer</span>(ctx, viewer)
+
+<span class="hl-comment">// Middleware reads it back</span>
+viewer := redaction.<span class="hl-func">ViewerFrom</span>(ctx)</code></pre>
+        </section>
+
+        <section id="interface">
+          <h2><span class="section-num">05</span>Proposed Interface Sketch</h2>
+          <p>
+            A first-draft shape for the <code>redaction/</code> package, consistent with the
+            library's interface-first, composition-over-inheritance conventions. The key contract: a
+            <code>View</code> is a distinct type from a live <code>Event</code>, so the type system
+            can tell them apart.
+          </p>
+
+          <pre><code><span class="hl-comment">// Package redaction provides viewer-aware payload filtering</span>
+<span class="hl-comment">// applied at read egress. The stored event is never modified.</span>
+
+<span class="hl-kw">type</span> <span class="hl-type">Viewer</span> <span class="hl-kw">struct</span> {
+    Roles     []<span class="hl-type">Role</span>      <span class="hl-comment">// e.g. "admin", "auditor", "user"</span>
+    Perms     []<span class="hl-type">Permission</span> <span class="hl-comment">// fine-grained, attribute-based</span>
+}
+
+<span class="hl-kw">type</span> <span class="hl-type">Rule</span> <span class="hl-kw">func</span>(payload <span class="hl-kw">map</span>[<span class="hl-type">string</span>]<span class="hl-kw">any</span>, v <span class="hl-type">Viewer</span>) <span class="hl-kw">map</span>[<span class="hl-type">string</span>]<span class="hl-kw">any</span>
+
+<span class="hl-kw">type</span> <span class="hl-type">Policy</span> <span class="hl-kw">struct</span> {
+    <span class="hl-comment">// eventType → field rules; configured per deployment/tenant</span>
+    Rules <span class="hl-kw">map</span>[<span class="hl-type">string</span>][]<span class="hl-type">Rule</span>
+}
+
+<span class="hl-comment">// Apply returns a typed View, never mutating the original event.</span>
+<span class="hl-kw">func</span> (p <span class="hl-type">Policy</span>) <span class="hl-func">Apply</span>(evt event.<span class="hl-type">Event</span>, v <span class="hl-type">Viewer</span>) (<span class="hl-type">View</span>, <span class="hl-kw">error</span>)
+
+<span class="hl-comment">// View is a redacted projection of an event. Distinct type so</span>
+<span class="hl-comment">// consumers cannot accidentally treat it as a canonical event.</span>
+<span class="hl-kw">type</span> <span class="hl-type">View</span> <span class="hl-kw">struct</span> {
+    <span class="hl-type">Event</span>  event.<span class="hl-type">Event</span>      <span class="hl-comment">// metadata preserved</span>
+    <span class="hl-type">Payload</span> []<span class="hl-kw">byte</span>       <span class="hl-comment">// redacted, still valid JSON for its type</span>
+}
+
+<span class="hl-comment">// Middleware wires the policy into the read pipeline.</span>
+<span class="hl-kw">func</span> <span class="hl-func">Middleware</span>(p <span class="hl-type">Policy</span>) event.<span class="hl-type">Middleware</span></code></pre>
+
+          <div class="callout warn">
+            <p>
+              <strong>Design note:</strong> whether <code>View</code> should wrap the original event
+              or be a fully standalone type is worth a dedicated decision. The constraint is that a
+              redacted view must never be passable where a canonical event is expected — the type
+              system must enforce the distinction.
+            </p>
+          </div>
+        </section>
+
+        <section id="flag">
+          <h2><span class="section-num">06</span>An Ethical Flag Worth Naming</h2>
+          <p>
+            The event taxonomy in the reference — keystrokes, screenshots, audio capture, clipboard,
+            SMS, sudo/SSH authentication — is unambiguous employee and user surveillance territory.
+            That context explains <em>why</em> the design defaults to aggressive full-wipe redaction
+            and a hard admin cliff: the product is built around monitoring people.
+          </p>
+
+          <div class="callout danger">
+            <p>
+              <strong>The pattern is general and legitimate</strong> — GDPR / PII filtering,
+              role-based read views, field-level masking are all standard, defensible privacy
+              techniques. Transfer the <em>pattern</em> to the library freely.
+              <strong>The sensitive-type catalog is not.</strong> It is domain-specific to a
+              surveillance product and does not belong in a general-purpose CQRS library.
+            </p>
+          </div>
+
+          <p>
+            The library's contribution should be the <em>mechanism</em> — a composable, configurable
+            redaction layer that any consumer can populate with their own rules. The library should
+            ship with no opinion about what counts as sensitive.
+          </p>
+        </section>
+
+        <section id="recap">
+          <h2><span class="section-num">07</span>Recap</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Aspect</th>
+                  <th>As Designed</th>
+                  <th>For go-cqrs-lite</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Source of truth</td>
+                  <td>Unmodified — correct</td>
+                  <td><span class="tag tag-good">Keep</span></td>
+                </tr>
+                <tr>
+                  <td>Redaction granularity</td>
+                  <td>Full wipe + field-level — correct instinct</td>
+                  <td><span class="tag tag-good">Keep</span></td>
+                </tr>
+                <tr>
+                  <td>Sensitivity classification</td>
+                  <td>Hardcoded in domain enum</td>
+                  <td><span class="tag tag-bad">Reject</span> — external policy</td>
+                </tr>
+                <tr>
+                  <td>Payload shape</td>
+                  <td>Mutated to <code>{"redacted":true}</code></td>
+                  <td><span class="tag tag-bad">Reject</span> — typed views</td>
+                </tr>
+                <tr>
+                  <td>Egress coverage</td>
+                  <td>WebSocket only</td>
+                  <td><span class="tag tag-bad">Reject</span> — all read paths</td>
+                </tr>
+                <tr>
+                  <td>Policy location</td>
+                  <td>Inline in transport handler</td>
+                  <td><span class="tag tag-bad">Reject</span> — middleware</td>
+                </tr>
+                <tr>
+                  <td>Access model</td>
+                  <td>Binary admin bypass</td>
+                  <td><span class="tag tag-bad">Reject</span> — attribute-based</td>
+                </tr>
+                <tr>
+                  <td>Sensitive-type catalog</td>
+                  <td>Surveillance-specific</td>
+                  <td><span class="tag tag-bad">Reject</span> — consumer-defined</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout">
+            <p>
+              <strong>Bottom line:</strong> the redaction <em>pattern</em> belongs in a CQRS library
+              — every event-sourced system with multiple viewers eventually needs it. But it belongs
+              as a composable, policy-driven, type-preserving middleware that applies uniformly
+              across all read egress, not as hardcoded domain knowledge with shape-mutating output
+              patched into a single transport.
+            </p>
+          </div>
+        </section>
+
+        <div class="footer">
+          Design review · go-cqrs-lite · 2026-06-14<br />
+          Pattern evaluation only — no code changes proposed for the core modules.
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

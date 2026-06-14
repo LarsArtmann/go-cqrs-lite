@@ -18,8 +18,8 @@ github.com/larsartmann/go-cqrs-lite/codec/v2 v2.3.0 h1:iB6Iy/IKbNrGSHXhspjxcj0Kp
 github.com/larsartmann/go-cqrs-lite/codec/v2 v2.3.0/go.mod h1:CXE1J8vd0x+vB94tfK/BCyRc9GnZZKzOFVcvY8uHkdQ=
 github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.3.0 h1:n3op24MGFw+bjAQq/mRFoD/FEpaT17e6jvbvZS1VGNY=
 github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.3.0/go.mod h1:Y+gun/Vi0Yyrinarr4DcgZkjWDRlktqdeuM4YkXkKdQ=
-github.com/larsartmann/go-cqrs-lite/event/v2 v2.3.0 h1:icvXnnoI6j+bjZCl8JdVX7DB+1CnOt2anUKmIRDVXI4=
-github.com/larsartmann/go-cqrs-lite/event/v2 v2.3.0/go.mod h1:Kjbqloc4kbj8EUMEMgZ2/O4TpoowcV8AEtvsaeT88KY=
+github.com/larsartmann/go-cqrs-lite/event/v2 v2.3.1 h1:tuknnS9ezpd1BouHs8WaF+KzOTugQxWIM/Wd7KwgIrM=
+github.com/larsartmann/go-cqrs-lite/event/v2 v2.3.1/go.mod h1:D3TZA6u9REqHJgwZJo6UaAFffDtSZkQsg3VYdRDcMUQ=
 github.com/larsartmann/go-cqrs-lite/memory/v2 v2.2.0 h1:7r8xO8PFCPelV9KZJv8e+DEg8Or5e/TGn8fU62z1QfU=
 github.com/larsartmann/go-cqrs-lite/memory/v2 v2.2.0/go.mod h1:s6uvDur/J2k+5t/arbMo8t+u/WdYl8g9YYpo7yZbSkw=
 github.com/larsartmann/go-cqrs-lite/schema/v2 v2.2.0 h1:TVwgf/n+WBGmbSkGy4++BN2ACdchNewPbDYyyQTGKrs=
