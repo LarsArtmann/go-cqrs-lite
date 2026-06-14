@@ -6,7 +6,7 @@ require (
 	github.com/ThreeDotsLabs/watermill v1.5.2
 	github.com/larsartmann/go-cqrs-lite/event/v2 v2.3.0
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.3.0
-	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.2.0
+	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.3.0
 )
 
 require (
@@ -16,7 +16,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v2 v2.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.3.0 // indirect
 	github.com/larsartmann/go-error-family v0.3.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect

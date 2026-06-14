@@ -10,7 +10,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.3.0
 	github.com/larsartmann/go-cqrs-lite/listing/v2 v2.3.0
 	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.3.0
-	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.2.0
+	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.3.0
 	modernc.org/sqlite v1.52.0
 )
 

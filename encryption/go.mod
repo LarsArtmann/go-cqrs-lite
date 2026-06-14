@@ -28,7 +28,7 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/pprof v0.0.0-20260507013755-92041b743c96 // indirect
 	github.com/larsartmann/go-branded-id v0.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.3.0 // indirect
 	github.com/larsartmann/go-error-family v0.3.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/rogpeppe/go-internal v1.15.0 // indirect

@@ -5,9 +5,9 @@ go 1.26.3
 require (
 	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.3.0
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.3.0
-	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.2.0
-	github.com/larsartmann/go-cqrs-lite/schema/v2 v2.2.0
-	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.2.0
+	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.3.0
+	github.com/larsartmann/go-cqrs-lite/schema/v2 v2.3.0
+	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.3.0
 	github.com/larsartmann/go-error-family v0.3.0
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0
