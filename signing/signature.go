@@ -58,20 +58,13 @@ func (s *Signature) UnmarshalJSON(data []byte) error {
 		)
 	}
 
-	decoded, decodeErr := base64.URLEncoding.DecodeString(encoded)
-	if decodeErr != nil {
-		var fallbackErr error
-
-		decoded, fallbackErr = base64.StdEncoding.DecodeString(encoded)
-		if fallbackErr != nil {
-			return event.Newf(
-				event.Infrastructure,
-				"signing.decode_signature",
-				"decode signature: URL-safe: %v, standard: %v",
-				decodeErr,
-				fallbackErr,
-			)
-		}
+	decoded, err := event.DecodeBase64String(encoded)
+	if err != nil {
+		return event.WrapInfrastructure(
+			err,
+			"signing.decode_signature",
+			"decode signature base64",
+		)
 	}
 
 	*s = decoded

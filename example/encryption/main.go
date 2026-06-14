@@ -95,7 +95,10 @@ func storeLevelEncryption(ctx context.Context) {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Raw stored payload (encrypted): %s\n", truncate(string(event.PayloadReadOnly(raw[0])), 40))
+	fmt.Printf(
+		"Raw stored payload (encrypted): %s\n",
+		truncate(string(event.PayloadReadOnly(raw[0])), 40),
+	)
 
 	loaded, err := store.Load(ctx, ref)
 	if err != nil {

@@ -134,7 +134,7 @@ func TestEncryptMiddleware_DetectsAlgorithm(t *testing.T) {
 		return nil
 	}))
 
-	_ = publisher.Publish(nil, evt)
+	_ = publisher.Publish(context.Background(), evt)
 
 	alg, err := ExtractAlgorithm(captured)
 	if err != nil {
@@ -165,7 +165,7 @@ func TestEncryptMiddleware_WithKeyID(t *testing.T) {
 		return nil
 	}))
 
-	_ = publisher.Publish(nil, evt)
+	_ = publisher.Publish(context.Background(), evt)
 
 	keyID, err := ExtractKeyID(captured)
 	if err != nil {
@@ -204,10 +204,10 @@ func TestDecryptMiddleware_RemovesAlgorithmAndKeyID(t *testing.T) {
 			return nil
 		})
 
-		return handler(nil, events[0])
+		return handler(context.Background(), events[0])
 	}))
 
-	_ = publish.Publish(nil, original)
+	_ = publish.Publish(context.Background(), original)
 
 	_, err := ExtractAlgorithm(decrypted)
 	if err != nil {

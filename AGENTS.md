@@ -23,9 +23,9 @@ Consumers import what they need and compose their own stack. Not a framework —
 | Item      | Value                                                                                                                                                                                                                                                                                                                                                  |
 | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Language  | Go 1.26.3                                                                                                                                                                                                                                                                                                                                              |
-| Modules   | `event`, `command`, `query`, `decider`, `id`, `dispatcher`, `schema`, `snapshot`, `memory`, `catalog`, `middleware`, `integration`, `storage`, `projection`, `signing`, `encryption`, `otel`, `watermill`, `pebble`, `codec`, `turso`, `listing`, `cqrs-gen`, `api-stability`                                                                          |
+| Modules   | `event`, `command`, `query`, `decider`, `id`, `dispatcher`, `schema`, `snapshot`, `memory`, `catalog`, `middleware`, `integration`, `storage`, `projection`, `signing`, `encryption`, `otel`, `watermill`, `pebble`, `codec`, `turso`, `listing`, `testutil`, `cqrs-gen`, `api-stability`                                                                          |
 | Build     | `nix run .#build`                                                                                                                                                                                                                                                                                                                                      |
-| Test      | `nix run .#test` or `go test ./event/... ./command/... ./query/... ./decider/... ./id/... ./dispatcher/... ./schema/... ./snapshot/... ./memory/... ./catalog/... ./middleware/... ./integration/... ./projection/... ./signing/... ./encryption/... ./storage/... ./watermill/... ./pebble/... ./codec/... ./listing/... ./cmd/cqrs-gen/... -count=1` |
+| Test      | `nix run .#test` or `go test ./event/... ./command/... ./query/... ./decider/... ./id/... ./dispatcher/... ./schema/... ./snapshot/... ./memory/... ./catalog/... ./middleware/... ./integration/... ./projection/... ./signing/... ./encryption/... ./storage/... ./watermill/... ./pebble/... ./codec/... ./listing/... ./testutil/... ./cmd/cqrs-gen/... -count=1` |
 | Lint      | `nix run .#lint`                                                                                                                                                                                                                                                                                                                                       |
 | Format    | `nix fmt`                                                                                                                                                                                                                                                                                                                                              |
 | Dev shell | `nix develop`                                                                                                                                                                                                                                                                                                                                          |
@@ -33,7 +33,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Monorepo Structure
 
-Multi-module Go workspace (`go.work`) with 27 modules (22 library + 2 examples + 1 integration + 2 cmd):
+Multi-module Go workspace (`go.work`) with 28 modules (22 library + 1 integration + 3 examples + 2 cmd):
 
 ```
 go-cqrs-lite/
@@ -63,6 +63,7 @@ go-cqrs-lite/
 ├── pebble/              # Embedded key-value event store (PebbleDB), CBOR envelope with JSON backward compat
 ├── codec/               # Payload encoding: JSON, CBOR (deterministic), Raw passthrough
 ├── turso/               # Turso database connector (embedded LibSQL sync)
+├── testutil/            # Shared test helpers: MustNewCmd (cross-module test utilities)
 ├── cmd/cqrs-gen/        # Code generator: typed handler registration from Go structs
 ├── cmd/api-stability/   # API surface checker: compares exported symbols against golden file
 ├── integration/         # Cross-module tests (command, event, query, signing, encryption)
@@ -121,6 +122,10 @@ var seekable event.SeekableJournal = store // ReadFrom (position-based)
 // Tombstone soft-delete (no Delete on Store)
 status := event.DetectTombstone(events) // Active, Tombstoned, or Undetermined
 marked, _ := event.MarkTombstone(evt)   // sets tombstone metadata
+
+// Processing mode (replay vs live context)
+replayCtx := event.WithProcessingMode(ctx, event.ModeReplay)
+mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 
 // Reactive event streams (samber/ro)
 //   bus := event.NewEventBus()

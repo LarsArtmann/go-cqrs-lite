@@ -11,7 +11,11 @@ import (
 )
 
 func (e *Exporter) writeMDXFile(path, content string) error {
-	return os.WriteFile(path, []byte(content), filePerm) //nolint:wrapcheck // os.WriteFile returns direct error
+	return os.WriteFile( //nolint:wrapcheck // direct passthrough
+		path,
+		[]byte(content),
+		filePerm,
+	)
 }
 
 func (e *Exporter) writeSchema(dir string, schema *catalog.Schema) error {

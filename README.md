@@ -18,6 +18,7 @@ go-cqrs-lite provides the essential building blocks for implementing CQRS and Ev
 - **Decider Pattern** - Functional aggregate approach with pure functions (recommended)
 - **Projections** - Build read models from events with replay support
 - **Event Signing** - HMAC-SHA256 and Ed25519 event authentication
+- **Event Encryption** - XChaCha20-Poly1305 and AES-256-GCM payload encryption with key rotation
 - **Schema Evolution** - Upcast legacy events transparently via VersionedStore
 - **Aggregate Listing** - Read model for listing/querying aggregates with tombstone support
 - **Strongly-Typed IDs** - Branded identifier types to prevent mixing up IDs
@@ -51,6 +52,12 @@ go get github.com/larsartmann/go-cqrs-lite/middleware/v2
 
 # Projection runner with replay and live subscription
 go get github.com/larsartmann/go-cqrs-lite/projection/v2
+
+# Event signing (HMAC-SHA256, Ed25519, multi-sig)
+go get github.com/larsartmann/go-cqrs-lite/signing/v2
+
+# Event encryption (XChaCha20-Poly1305, AES-256-GCM)
+go get github.com/larsartmann/go-cqrs-lite/encryption/v2
 
 # Watermill message bus adapter
 go get github.com/larsartmann/go-cqrs-lite/watermill/v2
@@ -349,6 +356,34 @@ evt, _ := event.NewEvent(
     event.WithClock(clock), // deterministic OccurredAt
 )
 // evt.OccurredAt() == fixedTime, every time
+```
+
+### Event Encryption
+
+Encrypt event payloads at rest and in transit with modern AEAD ciphers:
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/encryption/v2"
+
+// XChaCha20-Poly1305 (recommended: nonce-misuse resistant, 24-byte nonce)
+key := make([]byte, 32) // use a real key derivation function in production
+enc, _ := encryption.NewXChaCha20Poly1305(key)
+
+// Or AES-256-GCM (hardware-accelerated on most CPUs)
+// enc, _ := encryption.NewAES256GCM(key)
+
+// Encrypt on publish, decrypt on receive
+bus.UsePublish(encryption.EncryptMiddleware(enc, encryption.WithMiddlewareKeyID("key-v1")))
+bus.Use(encryption.DecryptMiddleware(enc))
+
+// Key rotation via StaticKeyResolver
+resolver := encryption.NewStaticKeyResolver(map[encryption.KeyID]encryption.Decrypter{
+    "key-v1": oldDecrypter,
+    "key-v2": enc,
+})
+
+// Composable codec wrapper (encrypt + encode in one step)
+codec := encryption.NewCodec(codec.JSONCodec{}, enc)
 ```
 
 ## Catalog Integration
@@ -656,6 +691,7 @@ func main() {
 | Auto-docs          | ✅           | ❌      | ❌      |
 | Middleware         | ✅           | ❌      | ❌      |
 | Event Signing      | ✅           | ❌      | ❌      |
+| Event Encryption   | ✅           | ❌      | ❌      |
 | Schema Evolution   | ✅           | ❌      | ❌      |
 | Aggregate Listing  | ✅           | ❌      | ❌      |
 | Saga / Process Mgr | ⚡(pattern)  | ❌      | ❌      |
@@ -677,6 +713,7 @@ func main() {
 | Projections   | ✅ Complete | Runner with replay, live, retry, DLQ              |
 | Storage       | ✅ Complete | SQLite, Turso, PostgreSQL, Pebble, In-Memory      |
 | Signing       | ✅ Complete | HMAC-SHA256 + Ed25519 + Multi-sig                 |
+| Encryption    | ✅ Complete | XChaCha20-Poly1305 + AES-256-GCM + Key rotation   |
 | Catalog       | ✅ Complete | AsyncAPI, EventCatalog, OpenAPI, D2               |
 | CI/CD         | ✅ Complete | GitHub Actions, Nix flake, linting                |
 

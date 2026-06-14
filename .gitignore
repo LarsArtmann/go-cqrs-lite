@@ -81,3 +81,4 @@ result-*
 
 # Saga example binary
 /saga-pattern
+example/encryption/encryption

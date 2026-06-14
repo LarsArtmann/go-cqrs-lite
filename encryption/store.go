@@ -26,7 +26,11 @@ var (
 // This is a convenience wrapper that composes EncryptMiddleware and
 // DecryptMiddleware for consumers who want store-level encryption
 // without configuring a bus.
-func NewEncryptedStore(inner event.Store, ed EncrypterDecrypter, opts ...MiddlewareOption) (*encryptedStore, error) {
+func NewEncryptedStore(
+	inner event.Store,
+	ed EncrypterDecrypter,
+	opts ...MiddlewareOption,
+) (*encryptedStore, error) {
 	if inner == nil {
 		return nil, ErrNilEvent
 	}

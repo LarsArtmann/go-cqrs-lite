@@ -86,7 +86,9 @@ func TestUnmarshalEnvelope_InvalidJSON(t *testing.T) {
 func TestUnmarshalEnvelope_MissingVersion(t *testing.T) {
 	t.Parallel()
 
-	encoded := base64.URLEncoding.EncodeToString([]byte(`{"ct":"ZGF0YQ==","alg":"xchacha20-poly1305"}`))
+	encoded := base64.URLEncoding.EncodeToString(
+		[]byte(`{"ct":"ZGF0YQ==","alg":"xchacha20-poly1305"}`),
+	)
 	_, err := UnmarshalEnvelope(encoded)
 	if err == nil {
 		t.Fatal("expected error for missing version")

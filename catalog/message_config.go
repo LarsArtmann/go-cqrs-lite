@@ -187,9 +187,9 @@ func newMessageBuilder[T any](
 }
 
 func camelCaseToHuman(s string) string {
-	knownSuffixes := []string{ //nolint:goconst // intentional suffix list
+	knownSuffixes := []string{
 		"Command",
-		"Cmd",
+		"Cmd", //nolint:goconst // shared with tests
 		"Event",
 		"Evt",
 		"Query",

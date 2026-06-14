@@ -268,3 +268,41 @@ func TestIsReplay(t *testing.T) {
 		t.Error("WithReplay(true) should be replay")
 	}
 }
+
+func TestProcessingMode(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	t.Run("default is live", func(t *testing.T) {
+		t.Parallel()
+
+		if got := event.ProcessingModeFrom(ctx); got != event.ModeLive {
+			t.Errorf("ProcessingModeFrom(bg) = %q, want %q", got, event.ModeLive)
+		}
+	})
+
+	t.Run("replay mode round-trips", func(t *testing.T) {
+		t.Parallel()
+
+		replayCtx := event.WithProcessingMode(ctx, event.ModeReplay)
+		if got := event.ProcessingModeFrom(replayCtx); got != event.ModeReplay {
+			t.Errorf("ProcessingModeFrom(replay) = %q, want %q", got, event.ModeReplay)
+		}
+		if !event.IsReplay(replayCtx) {
+			t.Error("IsReplay should be true for ModeReplay")
+		}
+	})
+
+	t.Run("live mode round-trips", func(t *testing.T) {
+		t.Parallel()
+
+		liveCtx := event.WithProcessingMode(ctx, event.ModeLive)
+		if got := event.ProcessingModeFrom(liveCtx); got != event.ModeLive {
+			t.Errorf("ProcessingModeFrom(live) = %q, want %q", got, event.ModeLive)
+		}
+		if event.IsReplay(liveCtx) {
+			t.Error("IsReplay should be false for ModeLive")
+		}
+	})
+}

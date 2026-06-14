@@ -1,9 +1,9 @@
 # TODO List
 
 **Generated:** 2026-06-12
-**Updated:** 2026-06-13 — post-comprehensive audit (code quality, architecture, naming, BDD, docs freshness, modularization)
+**Updated:** 2026-06-14 — post-audit cleanup (lint fixes, nil context, base64 helper, BDD tests, ProcessingMode enum, README/AGENTS updates)
 **Version:** v2.3.0 (commit `4e221fbc`)
-**Test Status:** 39/40 packages pass. 1 remaining golden test failure: `codec/TestGolden_JSONCodec_Encode` (compact vs indented)
+**Test Status:** 40/40 packages pass. All golden tests passing.
 
 ## Legend
 
@@ -185,35 +185,35 @@
 
 ### Pre-existing Test Failures
 
-- [ ] **Fix `codec/TestGolden_JSONCodec_Encode`** — Golden file expects indented JSON but codec outputs compact JSON. Update golden file with `-update`
+- [x] ~~**Fix `codec/TestGolden_JSONCodec_Encode`**~~ — DONE (golden file already compact, test passes)
 - [x] ~~Fix `middleware/TestGolden_HealthCheckResponse`~~ — DONE (updated golden file 2026-06-13)
 
 ### New Findings (2026-06-13 Audit)
 
-- [ ] **Fix 2 catalog lint issues** — `goconst` (string `Cmd` repeated 3x) and `nolintlint` (unused nolint directive) in `catalog/message_config.go`
-- [ ] **Fix `encryption/static_resolver.go` mapsloop hint** — Replace manual `m[k]=v` loop with `maps.Copy`
-- [ ] **Fix 3 nil context warnings in encryption tests** — `algorithm_test.go` lines 137, 168, 210 pass `nil` context
-- [ ] **Clean up `pkg/` directory** — `config/` and `gracefulshutdown/` exist but aren't in `go.work` and aren't referenced by any module
-- [ ] **Update README.md** — Missing `encryption` and `turso` module sections; module table missing entries
-- [ ] **Add `testutil/` to AGENTS.md module list** — Exists in `go.work` but not documented
-- [ ] **Extract shared base64 decode helper** — `signing/signature.go` and `encryption/ciphertext.go` have identical UnmarshalJSON with URL-safe→Standard fallback (2 clone groups)
-- [ ] **Add BDD tests for `catalog/`** — Largest module without BDD coverage; complex consumer-facing API
-- [ ] **Consider reactive Bus bridge** — Unify `event.Bus` (imperative) with `event.EventBus = ro.Subject[Event]` (reactive)
+- [x] ~~**Fix 2 catalog lint issues**~~ — DONE (moved `//nolint:goconst` to correct line in `catalog/message_config.go`)
+- [x] ~~**Fix `encryption/static_resolver.go` mapsloop hint**~~ — VERIFIED (already uses `maps.Copy`)
+- [x] ~~**Fix 3 nil context warnings in encryption tests**~~ — DONE (replaced `nil` with `context.Background()` in `algorithm_test.go`)
+- [x] ~~**Clean up `pkg/` directory**~~ — DONE (removed orphaned `pkg/config/` and `pkg/gracefulshutdown/` via `git rm`)
+- [x] ~~**Update README.md**~~ — DONE (added encryption section + install commands + comparison/status table entries; turso already documented)
+- [x] ~~**Add `testutil/` to AGENTS.md module list**~~ — DONE (added to Modules row, tree, test command; fixed module count 27→28)
+- [x] ~~**Extract shared base64 decode helper**~~ — DONE (added `event.DecodeBase64String`, refactored signing + encryption)
+- [x] ~~**Add BDD tests for `catalog/`**~~ — DONE (16 Ginkgo specs: Builder, Registry, Validation, JSON serialization)
+- [x] ~~**Consider reactive Bus bridge**~~ — EVALUATED: SKIP. Reactive `EventBus` has zero production consumers; all real code uses imperative `Bus`. Bridge would connect dead code to live code. YAGNI.
 
 ### Superb Types (Phantom Types)
 
-- [ ] **Add `String()` + `IsZero()` to all 17 catalog phantom types** — Bare `type X string` definitions lack methods
-- [ ] **Add `Int()` method to `example/todo/domain.Priority`** — `type Priority int` but requires explicit casts
-- [ ] **Bool→Enum conversions** — 7 locations (catalog/schema, catalog/asyncapi, dispatcher, event/replay, storage/sql, pebble, projection)
-- [ ] **Split `catalog.Message` into Message+MessageMeta** — 17 fields → structured embedding
-- [ ] **Split `catalog.Service` into Service+ServiceMeta** — 16 fields → structured embedding
+- [x] ~~**Add `String()` + `IsZero()` to all 17 catalog phantom types**~~ — VERIFIED (already implemented in `catalog/types_phantom.go`)
+- [x] ~~**Add `Int()` method to `example/todo/domain.Priority`**~~ — VERIFIED (already implemented)
+- [x] ~~**Bool→Enum conversions**~~ — PARTIAL: Added `ProcessingMode` enum to `event/replay.go` (non-breaking, additive). Remaining 6 skipped: 4 are spec-mandated booleans (JSON Schema/AsyncAPI use `bool`), 2 are internal 2-state fields (YAGNI without a third state).
+- [v3] **Split `catalog.Message` into Message+MessageMeta** — 17 fields → structured embedding. BREAKING: changes exported struct literal construction. Defer to v3.
+- [v3] **Split `catalog.Service` into Service+ServiceMeta** — 16 fields → structured embedding. BREAKING. Defer to v3.
 
 ### Process
 
-- [ ] **Add benchmark regression detection in CI** — Baselines exist but no automated gate
-- [ ] **Add `go vulncheck` to CI** — Security hardening
-- [ ] **Docker build CI step (linux/amd64 + linux/arm64)** — Multi-arch Docker builds not in CI
-- [ ] **Playwright E2E tests for example/user/** — Health + command→event→query flow
+- [x] ~~**Add benchmark regression detection in CI**~~ — VERIFIED (ci.yml `benchmark` job compares vs baseline with >2x warning). Warning-only (not hard fail) — correct for noisy benchmarks.
+- [x] ~~**Add `go vulncheck` to CI**~~ — VERIFIED (ci.yml `govulncheck` job runs on all modules)
+- [x] ~~**Docker build CI step (linux/amd64 + linux/arm64)**~~ — VERIFIED (ci.yml `docker-build` job builds multi-arch)
+- [ ] **Playwright E2E tests for example/user/** — Health + command→event→query flow. Requires browser testing infrastructure (Node.js + Playwright). Future/ROADMAP item.
 
 ### v2 Breaking Changes (Deferred)
 

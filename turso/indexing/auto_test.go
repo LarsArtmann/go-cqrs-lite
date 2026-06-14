@@ -179,7 +179,10 @@ func TestAutoIndexer_Drop_Disabled(t *testing.T) {
 	db := setupTestDB(t)
 	auto := indexing.NewAutoIndexer(db)
 
-	err := auto.Drop(context.Background(), indexing.Index{Name: "foo", Table: "events", Columns: []string{"x"}})
+	err := auto.Drop(
+		context.Background(),
+		indexing.Index{Name: "foo", Table: "events", Columns: []string{"x"}},
+	)
 	if err == nil {
 		t.Fatal("expected error when disabled")
 	}

@@ -9,6 +9,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
 )
 
+const goldenFilePerm = 0o644
+
 func Build(tb testing.TB, r *catalog.Registry) *catalog.Catalog {
 	tb.Helper()
 
@@ -59,7 +61,11 @@ func AssertGolden(t *testing.T, goldenPath string, got []byte, update bool, mism
 	t.Helper()
 
 	if update {
-		err := os.WriteFile(goldenPath, append(got, '\n'), 0o644) //nolint:mnd // standard file permission
+		err := os.WriteFile(
+			goldenPath,
+			append(got, '\n'),
+			goldenFilePerm,
+		)
 		if err != nil {
 			t.Fatalf("write golden: %v", err)
 		}

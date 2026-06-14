@@ -41,20 +41,13 @@ func (c *Ciphertext) UnmarshalJSON(data []byte) error {
 		)
 	}
 
-	decoded, decodeErr := base64.URLEncoding.DecodeString(encoded)
-	if decodeErr != nil {
-		var fallbackErr error
-
-		decoded, fallbackErr = base64.StdEncoding.DecodeString(encoded)
-		if fallbackErr != nil {
-			return event.Newf(
-				event.Infrastructure,
-				"encryption.decode_ciphertext",
-				"decode ciphertext: URL-safe: %v, standard: %v",
-				decodeErr,
-				fallbackErr,
-			)
-		}
+	decoded, err := event.DecodeBase64String(encoded)
+	if err != nil {
+		return event.WrapInfrastructure(
+			err,
+			"encryption.decode_ciphertext",
+			"decode ciphertext base64",
+		)
 	}
 
 	*c = decoded

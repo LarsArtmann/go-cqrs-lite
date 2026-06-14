@@ -145,7 +145,7 @@ func (r *Runner) replay(ctx context.Context) error {
 		span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrEventCount, len(events)))
 
 		for _, evt := range events {
-			replayCtx := event.WithReplay(ctx, true)
+			replayCtx := event.WithProcessingMode(ctx, event.ModeReplay)
 
 			hErr := r.handleAndCheckpoint(replayCtx, p, evt)
 			if hErr != nil {
