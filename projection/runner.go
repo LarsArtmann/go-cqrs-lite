@@ -13,6 +13,13 @@ import (
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
 )
 
+// projectionEntry pairs a Projection with its event types cached at registration time.
+// This eliminates per-event EventTypes() calls (which clone) on the hot dispatch path.
+type projectionEntry struct {
+	projection event.Projection
+	eventTypes []event.Type
+}
+
 // Runner orchestrates projection replay from an event journal and live subscription via an event bus.
 // Each registered projection tracks its own checkpoint independently.
 type Runner struct {
@@ -21,7 +28,7 @@ type Runner struct {
 	checkpoint  event.CheckpointStore
 	opts        runnerOptions
 	logger      *slog.Logger
-	projections []event.Projection
+	projections []projectionEntry
 	cancel      context.CancelFunc
 	running     atomic.Bool
 	done        chan struct{}
@@ -77,13 +84,16 @@ func (r *Runner) Register(p event.Projection) error {
 	}
 
 	for _, existing := range r.projections {
-		if existing.Name() == p.Name() {
+		if existing.projection.Name() == p.Name() {
 			return event.WrapConflict(ErrDuplicateProjection, "projection.duplicate_name",
 				"duplicate projection: "+p.Name())
 		}
 	}
 
-	r.projections = append(r.projections, p)
+	r.projections = append(r.projections, projectionEntry{
+		projection: p,
+		eventTypes: p.EventTypes(),
+	})
 
 	return nil
 }
@@ -127,14 +137,20 @@ func (r *Runner) Run(ctx context.Context) error {
 func (r *Runner) replay(ctx context.Context) error {
 	seekable, hasSeekable := r.journal.(event.SeekableJournal)
 
-	for _, p := range r.projections {
+	for _, entry := range r.projections {
 		ctx, span := cqrsotel.StartSpan(
 			ctx, tracer(), "projection.replay",
 			cqrsotel.SpanKindClient,
-			cqrsotel.WithAttributes(projectionAttrs(p.Name())...),
+			cqrsotel.WithAttributes(projectionAttrs(entry.projection.Name())...),
 		)
 
-		events, err := r.loadReplayEvents(ctx, seekable, hasSeekable, p)
+		events, err := r.loadReplayEvents(
+			ctx,
+			seekable,
+			hasSeekable,
+			entry.projection,
+			entry.eventTypes,
+		)
 		if err != nil {
 			cqrsotel.RecordError(span, err)
 			span.End()
@@ -147,13 +163,13 @@ func (r *Runner) replay(ctx context.Context) error {
 		for _, evt := range events {
 			replayCtx := event.WithProcessingMode(ctx, event.ModeReplay)
 
-			hErr := r.handleAndCheckpoint(replayCtx, p, evt)
+			hErr := r.handleAndCheckpoint(replayCtx, entry.projection, evt)
 			if hErr != nil {
 				cqrsotel.RecordError(span, hErr)
 				span.End()
 
 				return event.WrapCorruption(hErr, "projection.replay_event",
-					"replay "+p.Name()+" event "+evt.ID().String())
+					"replay "+entry.projection.Name()+" event "+evt.ID().String())
 			}
 		}
 
@@ -168,6 +184,7 @@ func (r *Runner) loadReplayEvents(
 	seekable event.SeekableJournal,
 	hasSeekable bool,
 	p event.Projection,
+	eventTypes []event.Type,
 ) ([]event.Event, error) {
 	checkpoint, cpErr := r.checkpoint.Load(ctx, p.Name())
 	if cpErr != nil {
@@ -182,7 +199,7 @@ func (r *Runner) loadReplayEvents(
 				"load events from position for "+p.Name())
 		}
 
-		return filterByEventTypes(loaded, p.EventTypes()), nil
+		return filterByEventTypes(loaded, eventTypes), nil
 	}
 
 	allEvents, lErr := r.journal.ReadAll(ctx)
@@ -191,7 +208,7 @@ func (r *Runner) loadReplayEvents(
 			"load all events")
 	}
 
-	return filterFromCheckpoint(allEvents, p.EventTypes(), checkpoint), nil
+	return filterFromCheckpoint(allEvents, eventTypes, checkpoint), nil
 }
 
 func (r *Runner) handleAndCheckpoint(

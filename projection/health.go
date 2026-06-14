@@ -32,8 +32,8 @@ func (r *Runner) HealthCheck(ctx context.Context) error {
 // Useful for health check reporting.
 func (r *Runner) RegisteredProjections() []string {
 	names := make([]string, len(r.projections))
-	for i, p := range r.projections {
-		names[i] = p.Name()
+	for i, entry := range r.projections {
+		names[i] = entry.projection.Name()
 	}
 
 	return names
@@ -66,12 +66,12 @@ func (r *Runner) DetailedHealthCheck(ctx context.Context) *HealthStatus {
 		Projections: make([]ProjectionHealth, 0, len(r.projections)),
 	}
 
-	for _, p := range r.projections {
+	for _, entry := range r.projections {
 		projHealth := ProjectionHealth{
-			Name: p.Name(),
+			Name: entry.projection.Name(),
 		}
 
-		checkpoint, err := r.checkpoint.Load(ctx, p.Name())
+		checkpoint, err := r.checkpoint.Load(ctx, entry.projection.Name())
 		if err != nil {
 			projHealth.Healthy = false
 			projHealth.Error = err.Error()

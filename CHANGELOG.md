@@ -6,14 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-14 Pareto-ranked performance optimizations across 6 modules. No public API changes, no disk format changes, no breaking behavior. All improvements verified with tests + race detector + lint.
+15 performance optimizations across 7 modules. No public API changes, no disk format changes, no breaking behavior. Verified with 5-run benchmark averages (allocation deltas are deterministic and reliable; ns/op has ±15% variance), tests + race detector + lint.
 
 ### Performance
 
 - **Pebble double serialization eliminated** (`pebble/`) — events serialized once, `batch.Set` called for both event and journal keys. Halves CPU and disk bytes per write
 - **Event lazy metadata map initialization** (`event/`) — `NewMetadata()` returns zero-value struct instead of always allocating a map. Eliminates 1 heap allocation per event when no custom metadata is set
-- **Projection handler Lookup zero-allocation** (`projection/`) — `lookupSlices()` returns pre-built handler slices directly instead of allocating a combined slice per event. Eliminates 91M allocations in the 100K-event projection benchmark
-- **Projection EventTypes internal fast path** (`projection/`) — `subscribesTo()` accesses `eventTypes` field directly, bypassing public `EventTypes()` clone. Public API still clones for safety
+- **Projection handler Lookup zero-allocation** (`projection/`) — `lookupSlices()` returns pre-built handler slices directly instead of allocating a combined slice per event. Only benefits `projection.Builder`-created projections
+- **Projection Runner event type caching** (`projection/`) — Runner caches `p.EventTypes()` once at `Register()` time, eliminating 10.5M per-event clone allocations (100K events × 100 projections) in the scale benchmark. This is the real fix for the projection allocation hotspot — the original T3/T4 `*builtProjection` type assertion was dead code for `event.NewProjection()` users. Also pre-allocates the candidates slice in `dispatchToProjections`
 - **SQL template strings cached per dialect** (`storage/`) — INSERT SQL built once at `SQLEventStore` construction, eliminating `fmt.Sprintf` per call
 - **MemoryStore Load double-copy eliminated** (`memory/`) — removed redundant `slices.Clone` wrapper on already-fresh slice from `getEvents()`
 - **SSE vestigial goroutine removed** (`middleware/`) — removed useless `go func() { <-ctx.Done() }()` goroutine leak. Consolidated 3× `fmt.Fprintf` into single write

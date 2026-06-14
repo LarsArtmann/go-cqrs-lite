@@ -1,0 +1,26 @@
+# Projection 100K Benchmark — 5-Run Before/After Comparison
+# BenchmarkScale_ProjectionProcessing_100Projections_100KEvents
+# Run with: -bench=BenchmarkScale_ProjectionProcessing -benchmem -count=5
+
+## BEFORE (commit f0e512f8, pre-Runner-caching-fix)
+BenchmarkScale_ProjectionProcessing_100Projections_100KEvents-32    1  4053405903 ns/op  2467046 proj-evt/s  6004974104 B/op  100912112 allocs/op
+BenchmarkScale_ProjectionProcessing_100Projections_100KEvents-32    1  5305312660 ns/op  1884895 proj-evt/s  6005363840 B/op  100912959 allocs/op
+BenchmarkScale_ProjectionProcessing_100Projections_100KEvents-32    1  4187428703 ns/op  2388086 proj-evt/s  6005147008 B/op  100912203 allocs/op
+BenchmarkScale_ProjectionProcessing_100Projections_100KEvents-32    1  4004820100 ns/op  2496976 proj-evt/s  6005142736 B/op  100912556 allocs/op
+BenchmarkScale_ProjectionProcessing_100Projections_100KEvents-32    1  3864696661 ns/op  2587513 proj-evt/s  6005160384 B/op  100912706 allocs/op
+
+Average:  4,283,248,825 ns/op | 6,005,158,361 B/op | 100,912,507 allocs/op
+
+## AFTER (Runner caches event types at Register() time)
+BenchmarkScale_ProjectionProcessing_100Projections_100KEvents-32    1  3666397609 ns/op  2727460 proj-evt/s  5421390320 B/op  90410755 allocs/op
+BenchmarkScale_ProjectionProcessing_100Projections_100KEvents-32    1  3673207195 ns/op  2722402 proj-evt/s  5421566568 B/op  90411027 allocs/op
+BenchmarkScale_ProjectionProcessing_100Projections_100KEvents-32    1  4068400071 ns/op  2457886 proj-evt/s  5421646792 B/op  90411166 allocs/op
+BenchmarkScale_ProjectionProcessing_100Projections_100KEvents-32    1  3771155685 ns/op  2651687 proj-evt/s  5421579048 B/op  90410981 allocs/op
+BenchmarkScale_ProjectionProcessing_100Projections_100KEvents-32    1  3688072019 ns/op  2711428 proj-evt/s  5421621936 B/op  90411147 allocs/op
+
+Average:  3,773,446,516 ns/op | 5,421,560,932 B/op | 90,410,095 allocs/op
+
+## DELTA
+Time:         -510s (-11.9%)  [noisy, ranges overlap]
+Memory:       -583 MB (-9.7%)
+Allocations:  -10.5M (-10.4%)  [deterministic, consistent across all 5 runs]

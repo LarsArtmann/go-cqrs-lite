@@ -3306,26 +3306,29 @@ func (e *ImmutableEvent) Metadata() Metadata {
           <div>
             <h2>Post-Optimization Results</h2>
             <div class="desc">
-              14 Pareto-ranked optimizations applied · all findings resolved · verified with tests + race detector + lint
+              14 Pareto-ranked optimizations applied · all findings resolved · verified with tests +
+              race detector + lint
             </div>
           </div>
         </div>
 
         <div class="callout success" style="margin-bottom: 2rem">
-          <div class="callout-title">Headline Results</div>
+          <div class="callout-title">Headline Results (5-run averages)</div>
           <p>
-            <strong>MemoryBus Publish:</strong> 3× throughput (48M → 145M events/sec), 100% allocation elimination.<br>
-            <strong>MemoryStore Load:</strong> 58% faster, 50% less memory.<br>
-            <strong>Pebble LoadToTimestamp:</strong> 21–23% faster, 26% less memory.<br>
-            <strong>SQL Save:</strong> 3 fewer allocations per save (template caching).
+            <strong>MemoryBus Publish:</strong> 34% faster, 67% fewer allocs (48→16 B, 3→1 allocs).<br />
+            <strong>MemoryStore Load:</strong> 58% faster, 50% less memory.<br />
+            <strong>Projection 100K events:</strong> 10.5M fewer allocations (-10.4%), 583 MB less memory (-9.7%).<br />
+            <strong>Pebble LoadToTimestamp:</strong> 21–23% faster, 26% less memory.<br />
+            <em style="color: var(--muted)">Note: Single-iteration ns/op benchmarks have ±15% variance. Allocation and byte deltas are deterministic and are the reliable signal.</em>
           </p>
         </div>
 
         <h3>Before / After Benchmark Comparison</h3>
         <p style="color: var(--muted); font-size: 0.85rem; margin-bottom: 1rem">
-          Baseline captured at v2.3.0 pre-optimization (<code>benchmarks/benchmark-baseline.txt</code>).
-          Post-optimization run with <code>-count=1 -benchmem</code> on the same hardware.
-          Single-iteration benchmarks have ±10–15% variance; focus on allocation and byte deltas which are deterministic.
+          Baseline captured at v2.3.0 pre-optimization
+          (<code>benchmarks/benchmark-baseline.txt</code>). Post-optimization run with
+          <code>-count=1 -benchmem</code> on the same hardware. Single-iteration benchmarks have
+          ±10–15% variance; focus on allocation and byte deltas which are deterministic.
         </p>
         <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem">
           <thead>
@@ -3345,61 +3348,101 @@ func (e *ImmutableEvent) Metadata() Metadata {
               <td style="padding: 0.4rem 0.5rem"><strong>MemoryBus_Publish</strong></td>
               <td style="padding: 0.4rem 0.5rem">T12</td>
               <td class="num" style="padding: 0.4rem 0.5rem">67.7</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">44.7</td>
+              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+                44.7
+              </td>
               <td class="num" style="padding: 0.4rem 0.5rem">48</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">16</td>
+              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+                16
+              </td>
               <td class="num" style="padding: 0.4rem 0.5rem">3</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">1</td>
+              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+                1
+              </td>
             </tr>
             <tr style="border-bottom: 1px solid var(--border)">
               <td style="padding: 0.4rem 0.5rem"><strong>MemoryBus_Publish_10Subs</strong></td>
               <td style="padding: 0.4rem 0.5rem">T12</td>
               <td class="num" style="padding: 0.4rem 0.5rem">72.1</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">52.6</td>
+              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+                52.6
+              </td>
               <td class="num" style="padding: 0.4rem 0.5rem">48</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">16</td>
+              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+                16
+              </td>
               <td class="num" style="padding: 0.4rem 0.5rem">3</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">1</td>
+              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+                1
+              </td>
             </tr>
             <tr style="border-bottom: 1px solid var(--border)">
               <td style="padding: 0.4rem 0.5rem"><strong>MemoryStore_Load</strong></td>
               <td style="padding: 0.4rem 0.5rem">T6</td>
               <td class="num" style="padding: 0.4rem 0.5rem">609.7</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">254.6</td>
+              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+                254.6
+              </td>
               <td class="num" style="padding: 0.4rem 0.5rem">3584</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">1792</td>
+              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+                1792
+              </td>
               <td class="num" style="padding: 0.4rem 0.5rem">2</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">1</td>
+              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+                1
+              </td>
             </tr>
             <tr style="border-bottom: 1px solid var(--border)">
-              <td style="padding: 0.4rem 0.5rem"><strong>Scale_EventPublish_100K</strong></td>
-              <td style="padding: 0.4rem 0.5rem">T12</td>
-              <td class="num" style="padding: 0.4rem 0.5rem">2077</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">687</td>
-              <td class="num" style="padding: 0.4rem 0.5rem">1616</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">0</td>
-              <td class="num" style="padding: 0.4rem 0.5rem">101</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">0</td>
+              <td style="padding: 0.4rem 0.5rem"><strong>Scale_Projection_100Projections_100K</strong></td>
+              <td style="padding: 0.4rem 0.5rem">T3/T4+Fix</td>
+              <td class="num" style="padding: 0.4rem 0.5rem">4,283,248</td>
+              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+                3,773,354
+              </td>
+              <td class="num" style="padding: 0.4rem 0.5rem">6,005,158</td>
+              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+                5,421,580
+              </td>
+              <td class="num" style="padding: 0.4rem 0.5rem">100,912,507</td>
+              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+                90,410,135
+              </td>
             </tr>
             <tr style="border-bottom: 1px solid var(--border)">
-              <td style="padding: 0.4rem 0.5rem"><strong>Pebble_LoadToTimestamp/FullScan</strong></td>
+              <td style="padding: 0.4rem 0.5rem">
+                <strong>Pebble_LoadToTimestamp/FullScan</strong>
+              </td>
               <td style="padding: 0.4rem 0.5rem">T1,T13</td>
               <td class="num" style="padding: 0.4rem 0.5rem">5,147,023</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">4,043,293</td>
+              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+                4,043,293
+              </td>
               <td class="num" style="padding: 0.4rem 0.5rem">2,206,541</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">1,626,240</td>
+              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+                1,626,240
+              </td>
               <td class="num" style="padding: 0.4rem 0.5rem">38,036</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">29,032</td>
+              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+                29,032
+              </td>
             </tr>
             <tr style="border-bottom: 1px solid var(--border)">
-              <td style="padding: 0.4rem 0.5rem"><strong>Pebble_LoadToTimestamp/EarlyTerm</strong></td>
+              <td style="padding: 0.4rem 0.5rem">
+                <strong>Pebble_LoadToTimestamp/EarlyTerm</strong>
+              </td>
               <td style="padding: 0.4rem 0.5rem">T1,T13</td>
               <td class="num" style="padding: 0.4rem 0.5rem">533,857</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">410,937</td>
+              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+                410,937
+              </td>
               <td class="num" style="padding: 0.4rem 0.5rem">226,245</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">167,047</td>
+              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+                167,047
+              </td>
               <td class="num" style="padding: 0.4rem 0.5rem">3,894</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">2,976</td>
+              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+                2,976
+              </td>
             </tr>
             <tr style="border-bottom: 1px solid var(--border)">
               <td style="padding: 0.4rem 0.5rem">SQLiteEventStore_Save</td>
@@ -3409,7 +3452,9 @@ func (e *ImmutableEvent) Metadata() Metadata {
               <td class="num" style="padding: 0.4rem 0.5rem">3,983</td>
               <td class="num" style="padding: 0.4rem 0.5rem">4,370</td>
               <td class="num" style="padding: 0.4rem 0.5rem">91</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">88</td>
+              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+                88
+              </td>
             </tr>
             <tr style="border-bottom: 1px solid var(--border)">
               <td style="padding: 0.4rem 0.5rem">SQLEventStore_Save</td>
@@ -3419,7 +3464,9 @@ func (e *ImmutableEvent) Metadata() Metadata {
               <td class="num" style="padding: 0.4rem 0.5rem">12,785</td>
               <td class="num" style="padding: 0.4rem 0.5rem">13,180</td>
               <td class="num" style="padding: 0.4rem 0.5rem">174</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">171</td>
+              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+                171
+              </td>
             </tr>
             <tr style="border-bottom: 1px solid var(--border)">
               <td style="padding: 0.4rem 0.5rem">Decider_Execute_1000×100</td>
@@ -3427,9 +3474,13 @@ func (e *ImmutableEvent) Metadata() Metadata {
               <td class="num" style="padding: 0.4rem 0.5rem">7,853,926</td>
               <td class="num" style="padding: 0.4rem 0.5rem">8,095,366</td>
               <td class="num" style="padding: 0.4rem 0.5rem">8,761,527</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">5,698,253</td>
+              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+                5,698,253
+              </td>
               <td class="num" style="padding: 0.4rem 0.5rem">31,027</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">28,027</td>
+              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+                28,027
+              </td>
             </tr>
             <tr>
               <td style="padding: 0.4rem 0.5rem">Event_BusPublish</td>
@@ -3437,7 +3488,9 @@ func (e *ImmutableEvent) Metadata() Metadata {
               <td class="num" style="padding: 0.4rem 0.5rem">269.8</td>
               <td class="num" style="padding: 0.4rem 0.5rem">273.0</td>
               <td class="num" style="padding: 0.4rem 0.5rem">927</td>
-              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">844</td>
+              <td class="num" style="padding: 0.4rem 0.5rem; color: var(--green); font-weight: 600">
+                844
+              </td>
               <td class="num" style="padding: 0.4rem 0.5rem">0</td>
               <td class="num" style="padding: 0.4rem 0.5rem">0</td>
             </tr>
@@ -3447,71 +3500,173 @@ func (e *ImmutableEvent) Metadata() Metadata {
         <h3 style="margin-top: 2.5rem">All 14 Optimizations — Status</h3>
         <div class="card-grid" style="grid-template-columns: repeat(auto-fill, minmax(340px, 1fr))">
           <div class="card" style="border-left: 3px solid var(--green)">
-            <div class="card-title"><span class="dot" style="background: var(--green)"></span>T1: Pebble double serialization</div>
-            <p style="font-size: 0.82rem; color: var(--muted)">Serialize once per event, <code>batch.Set</code> for both keys. Halves CPU + disk bytes.</p>
+            <div class="card-title">
+              <span class="dot" style="background: var(--green)"></span>T1: Pebble double
+              serialization
+            </div>
+            <p style="font-size: 0.82rem; color: var(--muted)">
+              Serialize once per event, <code>batch.Set</code> for both keys. Halves CPU + disk
+              bytes.
+            </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
-            <div class="card-title"><span class="dot" style="background: var(--green)"></span>T2: Event lazy metadata map</div>
-            <p style="font-size: 0.82rem; color: var(--muted)"><code>NewMetadata()</code> returns zero-value struct. Map allocated only when <code>EnsureCustom</code> is called.</p>
+            <div class="card-title">
+              <span class="dot" style="background: var(--green)"></span>T2: Event lazy metadata map
+            </div>
+            <p style="font-size: 0.82rem; color: var(--muted)">
+              <code>NewMetadata()</code> returns zero-value struct. Map allocated only when
+              <code>EnsureCustom</code> is called.
+            </p>
+          </div>
+          <div class="card" style="border-left: 3px solid var(--yellow)">
+            <div class="card-title">
+              <span class="dot" style="background: var(--yellow)"></span>T3: Projection Lookup
+              zero-alloc (Builder path only)
+            </div>
+            <p style="font-size: 0.82rem; color: var(--muted)">
+              <code>lookupSlices()</code> returns pre-built handler slices. Only benefits projections
+              created via <code>projection.Builder</code>. Most users use
+              <code>event.NewProjection()</code> which was unaffected until the Runner caching fix
+              (T15).
+            </p>
+          </div>
+          <div class="card" style="border-left: 3px solid var(--red)">
+            <div class="card-title">
+              <span class="dot" style="background: var(--red)"></span>T4: Projection EventTypes
+              fast path (originally dead code)
+            </div>
+            <p style="font-size: 0.82rem; color: var(--muted)">
+              Type assertion checked <code>*builtProjection</code> but benchmarks use
+              <code>event.NewProjection()</code> (<code>*projectionFunc</code>). Fast path never
+              triggered. <strong>Fixed by T15</strong> — Runner now caches types at registration for
+              ALL projection types.
+            </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
-            <div class="card-title"><span class="dot" style="background: var(--green)"></span>T3: Projection Lookup zero-alloc</div>
-            <p style="font-size: 0.82rem; color: var(--muted)"><code>lookupSlices()</code> returns pre-built handler slices. Zero allocation per event in Handle().</p>
+            <div class="card-title">
+              <span class="dot" style="background: var(--green)"></span>T5: SQL template cached per
+              dialect
+            </div>
+            <p style="font-size: 0.82rem; color: var(--muted)">
+              INSERT SQL built once at construction. Eliminates <code>fmt.Sprintf</code> per call.
+            </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
-            <div class="card-title"><span class="dot" style="background: var(--green)"></span>T4: Projection EventTypes fast path</div>
-            <p style="font-size: 0.82rem; color: var(--muted)"><code>subscribesTo()</code> accesses <code>eventTypes</code> field directly. Public API still clones.</p>
+            <div class="card-title">
+              <span class="dot" style="background: var(--green)"></span>T6: MemoryStore Load
+              double-copy
+            </div>
+            <p style="font-size: 0.82rem; color: var(--muted)">
+              Removed redundant <code>slices.Clone</code> wrapper on already-fresh slice from
+              <code>getEvents()</code>.
+            </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
-            <div class="card-title"><span class="dot" style="background: var(--green)"></span>T5: SQL template cached per dialect</div>
-            <p style="font-size: 0.82rem; color: var(--muted)">INSERT SQL built once at construction. Eliminates <code>fmt.Sprintf</code> per call.</p>
+            <div class="card-title">
+              <span class="dot" style="background: var(--green)"></span>T7: SSE goroutine leak
+              removed
+            </div>
+            <p style="font-size: 0.82rem; color: var(--muted)">
+              Removed pointless goroutine. Consolidated 3× <code>fmt.Fprintf</code> into single
+              write.
+            </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
-            <div class="card-title"><span class="dot" style="background: var(--green)"></span>T6: MemoryStore Load double-copy</div>
-            <p style="font-size: 0.82rem; color: var(--muted)">Removed redundant <code>slices.Clone</code> wrapper on already-fresh slice from <code>getEvents()</code>.</p>
+            <div class="card-title">
+              <span class="dot" style="background: var(--green)"></span>T8: Merge EnsureCustom
+              hoisted
+            </div>
+            <p style="font-size: 0.82rem; color: var(--muted)">
+              <code>EnsureCustom</code> called once before loop instead of per-iteration nil-check.
+            </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
-            <div class="card-title"><span class="dot" style="background: var(--green)"></span>T7: SSE goroutine leak removed</div>
-            <p style="font-size: 0.82rem; color: var(--muted)">Removed pointless goroutine. Consolidated 3× <code>fmt.Fprintf</code> into single write.</p>
+            <div class="card-title">
+              <span class="dot" style="background: var(--green)"></span>T9: FilterByTimestamp
+              pre-sized
+            </div>
+            <p style="font-size: 0.82rem; color: var(--muted)">
+              <code>make([]Event, 0, len(events))</code> eliminates nil-slice append growth.
+            </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
-            <div class="card-title"><span class="dot" style="background: var(--green)"></span>T8: Merge EnsureCustom hoisted</div>
-            <p style="font-size: 0.82rem; color: var(--muted)"><code>EnsureCustom</code> called once before loop instead of per-iteration nil-check.</p>
+            <div class="card-title">
+              <span class="dot" style="background: var(--green)"></span>T10: ScanSlice capacity hint
+            </div>
+            <p style="font-size: 0.82rem; color: var(--muted)">
+              Initial capacity of 64 reduces log₂(N) growth copies during large Loads.
+            </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
-            <div class="card-title"><span class="dot" style="background: var(--green)"></span>T9: FilterByTimestamp pre-sized</div>
-            <p style="font-size: 0.82rem; color: var(--muted)"><code>make([]Event, 0, len(events))</code> eliminates nil-slice append growth.</p>
+            <div class="card-title">
+              <span class="dot" style="background: var(--green)"></span>T11: CircuitBreaker atomic
+            </div>
+            <p style="font-size: 0.82rem; color: var(--muted)">
+              <code>atomic.Int32</code> replaces mutex in happy path. Lock-free
+              <code>state.Load()</code> check.
+            </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
-            <div class="card-title"><span class="dot" style="background: var(--green)"></span>T10: ScanSlice capacity hint</div>
-            <p style="font-size: 0.82rem; color: var(--muted)">Initial capacity of 64 reduces log₂(N) growth copies during large Loads.</p>
+            <div class="card-title">
+              <span class="dot" style="background: var(--green)"></span>T12: MemoryBus middleware
+              pre-compute
+            </div>
+            <p style="font-size: 0.82rem; color: var(--muted)">
+              Chains rebuilt on <code>Use()</code>/<code>UsePublish()</code> only. Zero per-publish
+              closure allocation.
+            </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
-            <div class="card-title"><span class="dot" style="background: var(--green)"></span>T11: CircuitBreaker atomic</div>
-            <p style="font-size: 0.82rem; color: var(--muted)"><code>atomic.Int32</code> replaces mutex in happy path. Lock-free <code>state.Load()</code> check.</p>
+            <div class="card-title">
+              <span class="dot" style="background: var(--green)"></span>T13: Pebble ReadFrom
+              key-based skip
+            </div>
+            <p style="font-size: 0.82rem; color: var(--muted)">
+              Parse event ID from journal key via <code>journalKeyEventID()</code> instead of
+              CBOR-deserializing.
+            </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
-            <div class="card-title"><span class="dot" style="background: var(--green)"></span>T12: MemoryBus middleware pre-compute</div>
-            <p style="font-size: 0.82rem; color: var(--muted)">Chains rebuilt on <code>Use()</code>/<code>UsePublish()</code> only. Zero per-publish closure allocation.</p>
+            <div class="card-title">
+              <span class="dot" style="background: var(--green)"></span>T14: SQL multi-VALUES INSERT
+            </div>
+            <p style="font-size: 0.82rem; color: var(--muted)">
+              Single multi-VALUES statement. SQLite 999-param limit handled via automatic chunking
+              (99 events/batch).
+            </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
-            <div class="card-title"><span class="dot" style="background: var(--green)"></span>T13: Pebble ReadFrom key-based skip</div>
-            <p style="font-size: 0.82rem; color: var(--muted)">Parse event ID from journal key via <code>journalKeyEventID()</code> instead of CBOR-deserializing.</p>
-          </div>
-          <div class="card" style="border-left: 3px solid var(--green)">
-            <div class="card-title"><span class="dot" style="background: var(--green)"></span>T14: SQL multi-VALUES INSERT</div>
-            <p style="font-size: 0.82rem; color: var(--muted)">Single multi-VALUES statement. SQLite 999-param limit handled via automatic chunking (99 events/batch).</p>
+            <div class="card-title">
+              <span class="dot" style="background: var(--green)"></span>T15: Runner event type
+              caching (the real fix)
+            </div>
+            <p style="font-size: 0.82rem; color: var(--muted)">
+              Runner caches <code>p.EventTypes()</code> once at <code>Register()</code> time.
+              Eliminates 10M per-event clone allocations in the 100K projection benchmark. This is
+              the fix that makes T3/T4 effective for ALL projection types, not just
+              <code>Builder</code>-created ones. Also pre-allocates the candidates slice.
+            </p>
           </div>
         </div>
 
-        <div class="callout" style="margin-top: 2rem; border-left: 3px solid var(--green); background: rgba(74, 222, 128, 0.06)">
-          <div class="callout-title" style="color: var(--green)">✅ All 14 Findings Resolved</div>
+        <div class="callout" style="margin-top: 2rem; border-left: 3px solid var(--yellow); background: rgba(250, 204, 21, 0.06)">
+          <div class="callout-title" style="color: var(--yellow)">⚠ Honest Assessment</div>
           <p>
-            Every finding from the original audit has been addressed. The optimizations preserve the
-            public API, disk format compatibility, and the immutability-first contract. All 40 test
-            packages pass with zero lint issues. Race detector passes on all changed modules.
-            See <code>docs/planning/2026-06-14_16-30_PERFORMANCE_OPTIMIZATION_PLAN.md</code> for the
-            full Pareto analysis and <code>CHANGELOG.md</code> for the detailed change list.
+            <strong>What worked:</strong> MemoryBus pre-computation (T12), MemoryStore double-copy
+            elimination (T6), Pebble double serialization (T1), SSE goroutine leak fix (T7), lazy
+            metadata map (T2), SQL template caching (T5). These delivered measurable, deterministic
+            allocation reductions.<br><br>
+            <strong>What was originally broken:</strong> T3 and T4 were dead code for the most common
+            projection path (<code>event.NewProjection</code>). The <code>*builtProjection</code> type
+            assertion in <code>subscribesTo()</code> never matched <code>*projectionFunc</code>.
+            The real fix (T15) caches event types in the Runner at registration time, eliminating
+            10.5M clone allocations (100K events × 100 projections) in the scale benchmark.<br><br>
+            <strong>What's still not measured:</strong> Pebble single-serialization improvement (T1)
+            and CircuitBreaker atomic fast path (T11) need dedicated micro-benchmarks to quantify.
+            Single-iteration ns/op numbers have ±15% variance — allocation deltas are the reliable
+            signal. Full 5-run benchstat comparison is in
+            <code>benchmarks/2026-06-14_post-optimization.txt</code>.<br><br>
+            All 40 test packages pass, zero lint issues, race detector clean on all changed modules.
           </p>
         </div>
       </div>
@@ -3520,7 +3675,10 @@ func (e *ImmutableEvent) Metadata() Metadata {
     <!-- ════════════════════════ FOOTER ════════════════════════ -->
     <footer>
       <div class="container">
-        <p>Generated 2026-06-14 · Updated with post-optimization results · go-cqrs-lite v2.3.0 · 28 modules · Go 1.26.3</p>
+        <p>
+          Generated 2026-06-14 · Updated with post-optimization results · go-cqrs-lite v2.3.0 · 28
+          modules · Go 1.26.3
+        </p>
         <p style="margin-top: 0.3rem">
           All benchmarks run on AMD Ryzen AI MAX+ 395 (32 threads, 96 GB RAM) with
           <code>-count=1 -benchmem</code>. Baseline: <code>benchmarks/benchmark-baseline.txt</code>.

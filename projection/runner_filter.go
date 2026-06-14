@@ -6,14 +6,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
-func subscribesTo(p event.Projection, eventType event.Type) bool {
-	if bp, ok := p.(*builtProjection); ok {
-		types := bp.eventTypes
-		return len(types) == 0 || slices.Contains(types, eventType)
-	}
-
-	types := p.EventTypes()
-
+func subscribesTo(types []event.Type, eventType event.Type) bool {
 	return len(types) == 0 || slices.Contains(types, eventType)
 }
 

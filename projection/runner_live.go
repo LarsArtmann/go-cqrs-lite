@@ -33,11 +33,11 @@ func (r *Runner) subscribeLive(ctx context.Context) error {
 }
 
 func (r *Runner) dispatchToProjections(ctx context.Context, evt event.Event) {
-	var candidates []event.Projection
+	candidates := make([]event.Projection, 0, len(r.projections))
 
-	for _, p := range r.projections {
-		if subscribesTo(p, evt.Type()) {
-			candidates = append(candidates, p)
+	for _, entry := range r.projections {
+		if subscribesTo(entry.eventTypes, evt.Type()) {
+			candidates = append(candidates, entry.projection)
 		}
 	}
 
