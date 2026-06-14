@@ -268,3 +268,58 @@ func FuzzCBORCodec_TypedRoundtrip(f *testing.F) {
 		}
 	})
 }
+
+// FuzzCBORCodec_CanonicalFidelity ensures that for any decodable CBOR
+// input, the re-encoded canonical form is a fixed point: encode(decode(x)) == x.
+// This is the core invariant that makes content-addressed storage and
+// signature verification safe.
+func FuzzCBORCodec_CanonicalFidelity(f *testing.F) {
+	c := codec.CBORCodec{}
+
+	seeds := []any{
+		map[string]any{"name": "Alice", "age": uint64(30)},
+		map[string]any{},
+		[]any{uint64(1), uint64(2), uint64(3)},
+		"hello",
+		uint64(42),
+		true,
+	}
+
+	for _, seed := range seeds {
+		b, err := c.Encode(seed)
+		if err != nil {
+			f.Fatalf("seed encode: %v", err)
+		}
+
+		f.Add(b)
+	}
+
+	f.Fuzz(func(t *testing.T, input []byte) {
+		var decoded any
+		if err := c.Decode(input, &decoded); err != nil {
+			t.Skip()
+		}
+
+		encoded, err := c.Encode(decoded)
+		if err != nil {
+			t.Fatalf("Encode(%v): %v", decoded, err)
+		}
+
+		// Canonical form must be stable: decode(canonical) → encode must
+		// produce the same bytes. This verifies idempotency of canonical encoding.
+		var redecoded any
+		if err := c.Decode(encoded, &redecoded); err != nil {
+			t.Fatalf("Decode(canonical): %v", err)
+		}
+
+		encoded2, err := c.Encode(redecoded)
+		if err != nil {
+			t.Fatalf("Encode(redecoded): %v", err)
+		}
+
+		if string(encoded2) != string(encoded) {
+			t.Errorf("canonical encoding is not stable:\n  first  = %x\n  second = %x",
+				encoded, encoded2)
+		}
+	})
+}

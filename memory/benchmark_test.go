@@ -2,6 +2,8 @@ package memory_test
 
 import (
 	"context"
+	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
@@ -93,6 +95,54 @@ func BenchmarkMemoryBus_Publish(b *testing.B) {
 
 	for b.Loop() {
 		_ = bus.Publish(ctx, evt)
+	}
+}
+
+func BenchmarkMemoryStore_ConcurrentWriters(b *testing.B) {
+	b.ReportAllocs()
+
+	store := memory.NewMemoryStore()
+	b.Cleanup(func() { _ = store.Close() })
+
+	ctx := context.Background()
+
+	for _, concurrency := range []int{1, 4, 8, 16} {
+		b.Run(fmt.Sprintf("writers=%d", concurrency), func(b *testing.B) {
+			b.ReportAllocs()
+
+			aggIDs := make([]id.AggregateID, concurrency)
+			refs := make([]event.AggregateRef, concurrency)
+
+			for i := range concurrency {
+				aggIDs[i] = id.NewAggregateID()
+				refs[i] = event.NewAggregateRef("Bench", aggIDs[i])
+			}
+
+			b.ResetTimer()
+
+			var wg sync.WaitGroup
+			wg.Add(concurrency)
+
+			for w := range concurrency {
+				go func(workerID int) {
+					defer wg.Done()
+
+					for i := range b.N {
+						version := event.Version(i + 1)
+						evt, _ := event.NewEvent(
+							"BenchEvent",
+							aggIDs[workerID],
+							"Bench",
+							version,
+							nil,
+						)
+						_ = store.Save(ctx, refs[workerID], []event.Event{evt}, version-1)
+					}
+				}(w)
+			}
+
+			wg.Wait()
+		})
 	}
 }
 

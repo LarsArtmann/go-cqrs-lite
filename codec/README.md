@@ -68,6 +68,28 @@ haven't been updated yet.
 | Pre-encoded payloads                   | `RawCodec`        | Zero-copy passthrough               |
 | High-throughput event streams          | `CBORCodec`       | Smaller encoded size, faster decode |
 
+### CBOR with Event Signing
+
+CBOR's deterministic encoding makes it ideal for signed event payloads — the same
+data always produces the same bytes, so signatures are reproducible:
+
+```go
+// Use CBOR for deterministic event payloads
+c := codec.CBORCodec{}
+data, _ := c.Encode(payload)
+
+// Sign the canonical CBOR bytes (same input → same signature every time)
+signer, _ := signing.NewHMAC(secret)
+sig, _ := signer.Sign(data)
+
+// Verify on the consumer side
+if !signer.Verify(data, sig) {
+    return errors.New("signature mismatch")
+}
+var decoded MyPayload
+_ = c.Decode(data, &decoded)
+```
+
 ### Encoding Metadata
 
 Each codec reports its encoding via the `Encoding()` method:
