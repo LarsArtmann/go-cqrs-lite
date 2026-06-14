@@ -1,10 +1,10 @@
 # ADR-0016: Outbox Pattern for Reliable Event Publishing
 
-| Field   | Value         |
-| ------- | ------------- |
-| Date    | 2026-06-14    |
-| Status  | Proposed      |
-| Decider | Lars Artmann  |
+| Field   | Value        |
+| ------- | ------------ |
+| Date    | 2026-06-14   |
+| Status  | Proposed     |
+| Decider | Lars Artmann |
 
 ## Context
 

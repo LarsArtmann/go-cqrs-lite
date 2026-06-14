@@ -1,10 +1,10 @@
 # ADR-0017: Schema Registry for Event Validation
 
-| Field   | Value         |
-| ------- | ------------- |
-| Date    | 2026-06-14    |
-| Status  | Proposed      |
-| Decider | Lars Artmann  |
+| Field   | Value        |
+| ------- | ------------ |
+| Date    | 2026-06-14   |
+| Status  | Proposed     |
+| Decider | Lars Artmann |
 
 ## Context
 
@@ -13,6 +13,7 @@ types. Without validation, malformed events can corrupt projections and crash
 consumers.
 
 The library already has:
+
 - `schema/` module for upcasting (transforming old event versions on load)
 - `catalog/schema/` for JSON Schema generation from Go types via reflection
 - `codec/` for encoding/decoding (JSON, CBOR, Raw)
