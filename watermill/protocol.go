@@ -142,14 +142,14 @@ func parseSchemaVersion(md message.Metadata, topic string) (int, error) {
 		return 1, nil
 	}
 
-	sv, err := parseInt(svStr, metaSchemaVersion)
+	version, err := parseInt(svStr, metaSchemaVersion)
 	if err != nil {
 		return 0, event.WrapRejection(err,
 			"watermill.parse_schema_version_failed",
 			fmt.Sprintf("topic %s: parse %s", topic, metaSchemaVersion))
 	}
 
-	return sv, nil
+	return version, nil
 }
 
 func parseOptionalFields(md message.Metadata) ([]event.Option, error) {

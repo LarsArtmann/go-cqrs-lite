@@ -231,3 +231,85 @@ func TestEncryptedStore_EmptyPayload(t *testing.T) {
 		t.Error("empty payload should pass through unencrypted")
 	}
 }
+
+func TestEncryptedStore_ReadAll(t *testing.T) {
+	t.Parallel()
+
+	key := aes256Key()
+	ed, _ := NewAES256GCM(key)
+
+	inner := eventtest.NewFakeStore()
+	store, _ := NewEncryptedStore(inner, ed)
+
+	aggID := id.NewAggregateID()
+	ref := event.NewAggregateRef("User", aggID)
+
+	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1,
+		[]byte(`{"name":"Alice"}`))
+
+	ctx := context.Background()
+	_ = store.Save(ctx, ref, []event.Event{evt}, 0)
+
+	all, err := store.ReadAll(ctx)
+	if err != nil {
+		t.Fatalf("ReadAll: %v", err)
+	}
+
+	if len(all) != 1 {
+		t.Fatalf("expected 1 event, got %d", len(all))
+	}
+
+	if string(event.PayloadReadOnly(all[0])) != `{"name":"Alice"}` {
+		t.Errorf("payload mismatch: got %s", event.PayloadReadOnly(all[0]))
+	}
+}
+
+func TestEncryptedStore_ReadFrom(t *testing.T) {
+	t.Parallel()
+
+	key := aes256Key()
+	ed, _ := NewAES256GCM(key)
+
+	inner := eventtest.NewFakeStore()
+	store, _ := NewEncryptedStore(inner, ed)
+
+	aggID := id.NewAggregateID()
+	ref := event.NewAggregateRef("User", aggID)
+
+	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1,
+		[]byte(`{"name":"Bob"}`))
+
+	ctx := context.Background()
+	_ = store.Save(ctx, ref, []event.Event{evt}, 0)
+
+	fromResult, err := store.ReadFrom(ctx, id.NewEventID(), 10)
+	if err != nil {
+		t.Fatalf("ReadFrom: %v", err)
+	}
+
+	if len(fromResult) != 1 {
+		t.Fatalf("expected 1 event, got %d", len(fromResult))
+	}
+
+	if string(event.PayloadReadOnly(fromResult[0])) != `{"name":"Bob"}` {
+		t.Errorf("payload mismatch: got %s", event.PayloadReadOnly(fromResult[0]))
+	}
+}
+
+func TestEncryptedStore_LoadBackwards_NotSupported(t *testing.T) {
+	t.Parallel()
+
+	key := aes256Key()
+	ed, _ := NewAES256GCM(key)
+
+	inner := eventtest.NewFakeStore()
+	store, _ := NewEncryptedStore(inner, ed)
+
+	aggID := id.NewAggregateID()
+	ref := event.NewAggregateRef("User", aggID)
+
+	_, err := store.LoadBackwards(context.Background(), ref)
+	if err == nil {
+		t.Fatal("expected error for LoadBackwards on non-BackwardsSource store")
+	}
+}

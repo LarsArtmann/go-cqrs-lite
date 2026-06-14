@@ -1,5 +1,3 @@
-package indexing
-
 // Package indexing provides auto-smart index management for Turso/LibSQL
 // databases used in CQRS event-sourcing workloads.
 //
@@ -26,3 +24,4 @@ package indexing
 // Quick start — apply Turso performance pragmas:
 //
 //	_ = indexing.ApplyOptimizations(ctx, db)
+package indexing

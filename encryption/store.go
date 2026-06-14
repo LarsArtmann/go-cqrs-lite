@@ -2,9 +2,11 @@ package encryption
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 type encryptedStore struct {
@@ -15,8 +17,11 @@ type encryptedStore struct {
 }
 
 var (
-	_ event.EventSink   = (*encryptedStore)(nil)
-	_ event.EventSource = (*encryptedStore)(nil)
+	_ event.EventSink       = (*encryptedStore)(nil)
+	_ event.EventSource     = (*encryptedStore)(nil)
+	_ event.Journal         = (*encryptedStore)(nil)
+	_ event.SeekableJournal = (*encryptedStore)(nil)
+	_ event.BackwardsSource = (*encryptedStore)(nil)
 )
 
 // NewEncryptedStore wraps an event.Store with transparent encryption on
@@ -123,6 +128,61 @@ func (s *encryptedStore) LoadToTimestamp(
 	timestamp time.Time,
 ) ([]event.Event, error) {
 	events, err := s.inner.LoadToTimestamp(ctx, ref, timestamp)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.decryptEvents(events)
+}
+
+// ReadAll delegates to the inner store's Journal.ReadAll if supported,
+// then decrypts all events.
+func (s *encryptedStore) ReadAll(ctx context.Context) ([]event.Event, error) {
+	journal, ok := s.inner.(event.Journal)
+	if !ok {
+		return nil, fmt.Errorf("encryptedStore: inner store %T does not implement event.Journal", s.inner)
+	}
+
+	events, err := journal.ReadAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.decryptEvents(events)
+}
+
+// ReadFrom delegates to the inner store's SeekableJournal.ReadFrom if supported,
+// then decrypts all events.
+func (s *encryptedStore) ReadFrom(
+	ctx context.Context,
+	afterEventID id.EventID,
+	limit int,
+) ([]event.Event, error) {
+	seekable, ok := s.inner.(event.SeekableJournal)
+	if !ok {
+		return nil, fmt.Errorf("encryptedStore: inner store %T does not implement event.SeekableJournal", s.inner)
+	}
+
+	events, err := seekable.ReadFrom(ctx, afterEventID, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.decryptEvents(events)
+}
+
+// LoadBackwards delegates to the inner store's BackwardsSource.LoadBackwards
+// if supported, then decrypts all events.
+func (s *encryptedStore) LoadBackwards(
+	ctx context.Context,
+	ref event.AggregateRef,
+) ([]event.Event, error) {
+	backwards, ok := s.inner.(event.BackwardsSource)
+	if !ok {
+		return nil, fmt.Errorf("encryptedStore: inner store %T does not implement event.BackwardsSource", s.inner)
+	}
+
+	events, err := backwards.LoadBackwards(ctx, ref)
 	if err != nil {
 		return nil, err
 	}
