@@ -1,0 +1,498 @@
+this derivation will be built:
+  /nix/store/5x8ijcir11z85i9n66cii6wg9xa0s15b-bench.drv
+building '/nix/store/5x8ijcir11z85i9n66cii6wg9xa0s15b-bench.drv'...
+Running Suite: Event Core BDD Suite - /home/lars/projects/go-cqrs-lite/event
+============================================================================
+Random Seed: [1m1781452903[0m
+
+Will run [1m44[0m of [1m44[0m specs
+[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m
+
+[38;5;10m[1mRan 44 of 44 Specs in 0.001 seconds[0m
+[38;5;10m[1mSUCCESS![0m -- [38;5;10m[1m44 Passed[0m | [38;5;9m[1m0 Failed[0m | [38;5;11m[1m0 Pending[0m | [38;5;14m[1m0 Skipped[0m
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/event/v2
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkPayload/slices.Clone/16B-32         	81051086	        12.78 ns/op	      16 B/op	       1 allocs/op
+BenchmarkPayload/make_copy/16B-32            	670938928	         1.659 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPayload/append/16B-32               	89651295	        12.86 ns/op	      16 B/op	       1 allocs/op
+BenchmarkPayload/slices.Clone/256B-32        	22336106	        56.27 ns/op	     256 B/op	       1 allocs/op
+BenchmarkPayload/make_copy/256B-32           	21977726	        46.56 ns/op	     256 B/op	       1 allocs/op
+BenchmarkPayload/append/256B-32              	36780372	        48.47 ns/op	     256 B/op	       1 allocs/op
+BenchmarkPayload/slices.Clone/1KB-32         	 6645051	       167.9 ns/op	    1024 B/op	       1 allocs/op
+BenchmarkPayload/make_copy/1KB-32            	 8687376	       162.3 ns/op	    1024 B/op	       1 allocs/op
+BenchmarkPayload/append/1KB-32               	 6619431	       171.7 ns/op	    1024 B/op	       1 allocs/op
+BenchmarkPayload/slices.Clone/4KB-32         	 2298530	       600.2 ns/op	    4096 B/op	       1 allocs/op
+BenchmarkPayload/make_copy/4KB-32            	 2095131	       604.8 ns/op	    4096 B/op	       1 allocs/op
+BenchmarkPayload/append/4KB-32               	 1904990	       649.6 ns/op	    4096 B/op	       1 allocs/op
+BenchmarkPayload/slices.Clone/16KB-32        	  701306	      1649 ns/op	   16384 B/op	       1 allocs/op
+BenchmarkPayload/make_copy/16KB-32           	  761782	      1884 ns/op	   16384 B/op	       1 allocs/op
+BenchmarkPayload/append/16KB-32              	  794416	      1722 ns/op	   16384 B/op	       1 allocs/op
+BenchmarkPayload/slices.Clone/64KB-32        	  217923	      5341 ns/op	   65536 B/op	       1 allocs/op
+BenchmarkPayload/make_copy/64KB-32           	  245103	      5493 ns/op	   65536 B/op	       1 allocs/op
+BenchmarkPayload/append/64KB-32              	  229647	      5530 ns/op	   65536 B/op	       1 allocs/op
+BenchmarkPayload_access/Payload/16B-32       	89372272	        13.58 ns/op	      16 B/op	       1 allocs/op
+BenchmarkPayload_access/direct_field/16B-32  	1000000000	         0.4809 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPayload_access/Payload/256B-32      	27805250	        44.19 ns/op	     256 B/op	       1 allocs/op
+BenchmarkPayload_access/direct_field/256B-32 	1000000000	         0.4691 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPayload_access/Payload/1KB-32       	 9290006	       145.1 ns/op	    1024 B/op	       1 allocs/op
+BenchmarkPayload_access/direct_field/1KB-32  	1000000000	         0.4918 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPayload_access/Payload/4KB-32       	 1720340	       664.3 ns/op	    4096 B/op	       1 allocs/op
+BenchmarkPayload_access/direct_field/4KB-32  	1000000000	         0.4779 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodePayload_clone_vs_direct/via_Payload-32         	 1610492	       742.4 ns/op	     752 B/op	      16 allocs/op
+BenchmarkDecodePayload_clone_vs_direct/direct_field-32        	 1698427	       704.3 ns/op	     688 B/op	      15 allocs/op
+BenchmarkDecodePayload_clone_vs_direct/DecodePayload_optimized-32         	 1479960	       820.0 ns/op	     880 B/op	      18 allocs/op
+BenchmarkMetadata_access/Clone/with_custom-32                             	13615918	        81.91 ns/op	     336 B/op	       2 allocs/op
+BenchmarkMetadata_access/Clone/no_custom-32                               	100000000	        11.50 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMetadata_access/value_copy-32                                    	1000000000	         1.072 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPayloadReadOnly/Payload-32                                       	57457062	        19.18 ns/op	      64 B/op	       1 allocs/op
+BenchmarkPayloadReadOnly/PayloadReadOnly-32                               	1000000000	         0.4688 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNewEvent-32                                                      	 6095624	       191.9 ns/op	     304 B/op	       2 allocs/op
+BenchmarkNewEvent_WithOptions-32                                          	 6447208	       192.0 ns/op	     304 B/op	       2 allocs/op
+BenchmarkNew_TypedPayload-32                                              	 2695542	       428.0 ns/op	     737 B/op	       8 allocs/op
+BenchmarkClassify-32                                                      	147065056	         8.117 ns/op	       0 B/op	       0 allocs/op
+BenchmarkIsRetryable-32                                                   	146248900	         8.109 ns/op	       0 B/op	       0 allocs/op
+BenchmarkBusPublish-32                                                    	 4671501	       273.0 ns/op	     844 B/op	       0 allocs/op
+BenchmarkDecodePayload-32                                                 	 2873998	       409.3 ns/op	     544 B/op	       9 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/event/v2	46.457s
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/event/v2/eventtest	0.053s
+Running Suite: Command BDD Suite - /home/lars/projects/go-cqrs-lite/command
+===========================================================================
+Random Seed: [1m1781452950[0m
+
+Will run [1m12[0m of [1m12[0m specs
+[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m
+
+[38;5;10m[1mRan 12 of 12 Specs in 0.001 seconds[0m
+[38;5;10m[1mSUCCESS![0m -- [38;5;10m[1m12 Passed[0m | [38;5;9m[1m0 Failed[0m | [38;5;11m[1m0 Pending[0m | [38;5;14m[1m0 Skipped[0m
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/command/v2
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkNew-32                         	36846949	        33.21 ns/op	     160 B/op	       1 allocs/op
+BenchmarkMustNew-32                     	31070829	        45.30 ns/op	     160 B/op	       1 allocs/op
+BenchmarkNew_WithMetadata-32            	16544396	        60.85 ns/op	     160 B/op	       1 allocs/op
+BenchmarkDispatcher_Register-32         	 6301306	       180.9 ns/op	     416 B/op	       4 allocs/op
+BenchmarkDispatcher_RegisterTyped-32    	 6046375	       288.6 ns/op	     440 B/op	       5 allocs/op
+BenchmarkNewMetadata-32                 	928375971	         1.197 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/command/v2	7.646s
+Running Suite: Query Core BDD Suite - /home/lars/projects/go-cqrs-lite/query
+============================================================================
+Random Seed: [1m1781452958[0m
+
+Will run [1m9[0m of [1m9[0m specs
+[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m
+
+[38;5;10m[1mRan 9 of 9 Specs in 0.002 seconds[0m
+[38;5;10m[1mSUCCESS![0m -- [38;5;10m[1m9 Passed[0m | [38;5;9m[1m0 Failed[0m | [38;5;11m[1m0 Pending[0m | [38;5;14m[1m0 Skipped[0m
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/query/v2
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkNew-32                    	29926531	        39.21 ns/op	     144 B/op	       1 allocs/op
+BenchmarkMustNew-32                	32696542	        36.20 ns/op	     144 B/op	       1 allocs/op
+BenchmarkDispatchTyped-32          	21721448	        55.63 ns/op	      48 B/op	       1 allocs/op
+BenchmarkNewPagination-32          	1000000000	         0.3285 ns/op	       0 B/op	       0 allocs/op
+BenchmarkNewPaginatedResult-32     	294998812	         4.071 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPagination_Validate-32    	1000000000	         1.123 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/query/v2	6.231s
+Running Suite: Decider BDD Suite - /home/lars/projects/go-cqrs-lite/decider
+===========================================================================
+Random Seed: [1m1781452964[0m
+
+Will run [1m12[0m of [1m12[0m specs
+[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m
+
+[38;5;10m[1mRan 12 of 12 Specs in 0.001 seconds[0m
+[38;5;10m[1mSUCCESS![0m -- [38;5;10m[1m12 Passed[0m | [38;5;9m[1m0 Failed[0m | [38;5;11m[1m0 Pending[0m | [38;5;14m[1m0 Skipped[0m
+2026/06/14 18:02:44 WARN snapshot fold failed ref=Counter:01KV3DY0FMG5YYAZECSA9FAXCW event_type=CounterCreated error="corrupt payload"
+2026/06/14 18:02:44 WARN snapshot save failed ref=Counter:01KV3DY0FM96H4ETWX6W15VWZK version=1 error="[infrastructure] snapshot.save_failed: save snapshot for Counter 01KV3DY0FM96H4ETWX6W15VWZK\n  at: 2026-06-14T16:02:44Z\n  caused by: disk full"
+2026/06/14 18:02:44 WARN snapshot encode failed ref=Counter:01KV3DY0FM4J9K93QXDBNHMP6X error="encode failed"
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/decider/v2
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkDecider_Execute-32           	  548401	      2304 ns/op	    1889 B/op	      32 allocs/op
+BenchmarkDecider_Execute_Update-32    	   40656	    109828 ns/op	  332673 B/op	      30 allocs/op
+BenchmarkDecider_Load-32              	 1151210	      1062 ns/op	    2380 B/op	      13 allocs/op
+BenchmarkDecider_Fold-32              	 4607620	       268.5 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/decider/v2	8.219s
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/id/v2
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkNew-32              	11513604	       102.0 ns/op	      16 B/op	       1 allocs/op
+BenchmarkParse-32            	66510462	        17.47 ns/op	       0 B/op	       0 allocs/op
+BenchmarkParse_Invalid-32    	 9486207	       123.9 ns/op	     240 B/op	       3 allocs/op
+BenchmarkString-32           	24751588	        48.86 ns/op	      80 B/op	       3 allocs/op
+BenchmarkMarshalJSON-32      	12159560	        99.85 ns/op	      80 B/op	       3 allocs/op
+BenchmarkMarshalText-32      	20151337	        61.49 ns/op	     112 B/op	       4 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/id/v2	7.182s
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/dispatcher/v2
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkNewDispatcher-32          	18613890	        61.92 ns/op	     160 B/op	       2 allocs/op
+BenchmarkDispatcher_Register-32    	 4199817	       277.6 ns/op	     208 B/op	       1 allocs/op
+BenchmarkDispatcher_Dispatch-32    	49799721	        24.14 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDispatcher_Close-32       	22410490	        53.50 ns/op	     160 B/op	       2 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/dispatcher/v2	145.595s
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/schema/v2
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkNewUpcaster-32            	1000000000	         0.7198 ns/op	       0 B/op	       0 allocs/op
+BenchmarkVersionedStore_Load-32    	   52390	     22697 ns/op	   37376 B/op	     405 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/schema/v2	1.914s
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/snapshot/v2
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkEveryNEvents-32                   	1000000000	         0.5322 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEveryNEvents_ShouldSnapshot-32    	856088186	         1.402 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSaveSnapshot-32                   	 5292481	       247.9 ns/op	     176 B/op	       5 allocs/op
+BenchmarkMemorySnapshotStore_Load-32       	 7758196	       159.8 ns/op	      80 B/op	       4 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/snapshot/v2	4.289s
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/codec/v2
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkJSONCodec_Encode-32          	 4894747	       243.3 ns/op	     192 B/op	       6 allocs/op
+BenchmarkJSONCodec_Decode-32          	 2095180	       564.9 ns/op	     592 B/op	      12 allocs/op
+BenchmarkCBORCodec_Encode-32          	 6045538	       199.1 ns/op	      96 B/op	       2 allocs/op
+BenchmarkCBORCodec_Decode-32          	 3791623	       320.0 ns/op	     416 B/op	       9 allocs/op
+BenchmarkCodecComparison_Encode/JSON-32         	 4391210	       359.1 ns/op	     192 B/op	       6 allocs/op
+BenchmarkCodecComparison_Encode/CBOR-32         	 2486566	       452.1 ns/op	      96 B/op	       2 allocs/op
+BenchmarkCodecComparison_Decode/JSON-32         	 1000000	      1082 ns/op	     592 B/op	      12 allocs/op
+BenchmarkCodecComparison_Decode/CBOR-32         	 1840798	       618.8 ns/op	     416 B/op	       9 allocs/op
+BenchmarkRawCodec_Encode-32                     	47081688	        30.33 ns/op	      24 B/op	       1 allocs/op
+BenchmarkRawCodec_Decode-32                     	43506850	        25.50 ns/op	      48 B/op	       2 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/codec/v2	12.263s
+Running Suite: Memory BDD Suite - /home/lars/projects/go-cqrs-lite/memory
+=========================================================================
+Random Seed: [1m1781453143[0m
+
+Will run [1m15[0m of [1m15[0m specs
+[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m
+
+[38;5;10m[1mRan 15 of 15 Specs in 0.001 seconds[0m
+[38;5;10m[1mSUCCESS![0m -- [38;5;10m[1m15 Passed[0m | [38;5;9m[1m0 Failed[0m | [38;5;11m[1m0 Pending[0m | [38;5;14m[1m0 Skipped[0m
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/memory/v2
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkMemoryStore_Save-32                    	 2127222	       533.9 ns/op	     656 B/op	       8 allocs/op
+BenchmarkMemoryStore_Load-32                    	 5147874	       254.6 ns/op	    1792 B/op	       1 allocs/op
+BenchmarkMemoryStore_ReadAll-32                 	  446776	      2643 ns/op	   16384 B/op	       1 allocs/op
+BenchmarkMemoryBus_Publish-32                   	26171023	        44.69 ns/op	      16 B/op	       1 allocs/op
+BenchmarkMemoryStore_ConcurrentWriters/writers=1-32         	 1872832	       685.5 ns/op	     536 B/op	       3 allocs/op
+BenchmarkMemoryStore_ConcurrentWriters/writers=4-32         	  333306	      3028 ns/op	    2632 B/op	      12 allocs/op
+BenchmarkMemoryStore_ConcurrentWriters/writers=8-32         	  233388	      5557 ns/op	    3504 B/op	      24 allocs/op
+BenchmarkMemoryStore_ConcurrentWriters/writers=16-32        	  108548	     13046 ns/op	   11316 B/op	      48 allocs/op
+BenchmarkMemoryBus_Publish_10Subscribers-32                 	23191431	        52.57 ns/op	      16 B/op	       1 allocs/op
+BenchmarkMemoryStore_ReadAll_Scale/100Events-32             	 3234472	       370.8 ns/op	    1792 B/op	       1 allocs/op
+BenchmarkMemoryStore_ReadAll_Scale/1000Events-32            	  329737	      3363 ns/op	   16384 B/op	       1 allocs/op
+BenchmarkMemoryStore_ReadAll_Scale/10000Events-32           	   48405	     25095 ns/op	  163840 B/op	       1 allocs/op
+BenchmarkMemoryStore_ReadAll_Scale/100000Events-32          	    8316	    144593 ns/op	 1605632 B/op	       1 allocs/op
+BenchmarkMemoryStore_ReadFrom_Scale/100Events-32            	41416294	        29.92 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMemoryStore_ReadFrom_Scale/1000Events-32           	40536660	        28.26 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMemoryStore_ReadFrom_Scale/10000Events-32          	43683156	        27.19 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMemoryStore_ReadFrom_Scale/100000Events-32         	43983500	        27.06 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMemoryStore_Save_Concurrent-32                     	 1000000	      1922 ns/op	     918 B/op	       6 allocs/op
+BenchmarkMemoryStore_ReadWrite_Concurrent-32                	 1000000	     17402 ns/op	   52151 B/op	       8 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/memory/v2	46.790s
+Running Suite: Catalog BDD Suite - /home/lars/projects/go-cqrs-lite/catalog
+===========================================================================
+Random Seed: [1m1781453190[0m
+
+Will run [1m16[0m of [1m16[0m specs
+[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m
+
+[38;5;10m[1mRan 16 of 16 Specs in 0.001 seconds[0m
+[38;5;10m[1mSUCCESS![0m -- [38;5;10m[1m16 Passed[0m | [38;5;9m[1m0 Failed[0m | [38;5;11m[1m0 Pending[0m | [38;5;14m[1m0 Skipped[0m
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/catalog/v2
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkRegistry_Build-32          	  796122	      1298 ns/op	    2688 B/op	      37 allocs/op
+BenchmarkSchemaFromType-32          	136890238	         8.824 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAsyncAPI_Export-32         	  540109	      2432 ns/op	    5223 B/op	      46 allocs/op
+BenchmarkAsyncAPI_MarshalYAML-32    	   49416	     23785 ns/op	    7650 B/op	     235 allocs/op
+BenchmarkEventCatalog_Export-32     	   43549	     24063 ns/op	   10645 B/op	     110 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/catalog/v2	6.696s
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/catalog/v2/asyncapi	0.003s
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/catalog/v2/d2	0.003s
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/catalog/v2/docserver	0.010s
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/catalog/v2/eventcatalog	0.005s
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/catalog/v2/internal/caseutil	0.002s
+?   	github.com/larsartmann/go-cqrs-lite/catalog/v2/internal/cattest	[no test files]
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/catalog/v2/openapi	0.002s
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/catalog/v2/schema	0.002s
+Running Suite: Middleware BDD Suite - /home/lars/projects/go-cqrs-lite/middleware
+=================================================================================
+Random Seed: [1m1781453197[0m
+
+Will run [1m10[0m of [1m10[0m specs
+[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m
+
+[38;5;10m[1mRan 10 of 10 Specs in 0.003 seconds[0m
+[38;5;10m[1mSUCCESS![0m -- [38;5;10m[1m10 Passed[0m | [38;5;9m[1m0 Failed[0m | [38;5;11m[1m0 Pending[0m | [38;5;14m[1m0 Skipped[0m
+2026/06/14 18:06:37 WARN circuit breaker rejected operation=test.cmd error="[infrastructure] middleware.circuit_breaker_open: circuit breaker open\n  at: 2026-06-14T16:06:37Z"
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/middleware/v2
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkCommandLogging-32       	 7696346	       155.6 ns/op	     112 B/op	       6 allocs/op
+BenchmarkCommandRecovery-32      	229206540	         5.209 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCommandValidation-32    	290931146	         4.312 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCommandRetry-32         	184890316	         6.469 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/middleware/v2	5.200s
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/integration/v2
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkScale_Concurrent_10KCommands_8Goroutines-32                	     122	   9793524 ns/op	   8168664 commands/sec	16643090 B/op	  160032 allocs/op
+BenchmarkScale_Concurrent_DeciderExecute_4Goroutines-32             	     100	  11698690 ns/op	    341919 executes/sec	 8470415 B/op	  144054 allocs/op
+BenchmarkScale_DeciderExecute_ManyAggregates-32                     	  477903	      2539 ns/op	    2187 B/op	      34 allocs/op
+BenchmarkScale_DeciderExecute_1000Aggregates_100UpdatesEach-32      	     465	   8095366 ns/op	    123527 executes/sec	 5698253 B/op	   28027 allocs/op
+BenchmarkScale_DeciderLoad_10KAggregates-32                         	      76	  15425583 ns/op	    648274 loads/sec	14320428 B/op	  120000 allocs/op
+BenchmarkScale_EventCreation_WithPayload-32                         	 5528690	       209.0 ns/op	   4785074 events/sec	     352 B/op	       3 allocs/op
+BenchmarkScale_EventSave_10KAggregates_100EventsEach-32             	       2	 578555644 ns/op	   1728442 events/sec	523419896 B/op	 2063243 allocs/op
+BenchmarkScale_EventPublish_MemoryBus_100KEvents-32                 	 1727952	       686.6 ns/op	 145646584 events/sec	       0 B/op	       0 allocs/op
+BenchmarkScale_Listing_10KAggregates-32                             	    3788	    311640 ns/op	      3209 list-ops/sec	 2417417 B/op	       8 allocs/op
+BenchmarkScale_Listing_PaginateThrough10K-32                        	      14	  76322103 ns/op	    131024 items-iterated/sec	482714119 B/op	    1922 allocs/op
+BenchmarkScale_FullPipeline_1KAggregates-32                         	     320	   7361727 ns/op	    135838 aggregates/sec	 4987755 B/op	   38058 allocs/op
+BenchmarkScale_ProjectionRegistration_1000-32                       	   75096	    119266 ns/op	      8385 registrations/sec	     181 B/op	       3 allocs/op
+BenchmarkScale_ProjectionProcessing_100Projections_100KEvents-32    	       1	6260889146 ns/op	   1597209 projection-events/sec	6006191728 B/op	100914744 allocs/op
+BenchmarkScale_QueryDispatch_1000Handlers-32                        	    8323	    139126 ns/op	   7187704 queries/sec	  197536 B/op	    3744 allocs/op
+BenchmarkScale_QueryDispatch_PaginatedResults-32                    	 1765119	       677.2 ns/op	   5906518 queries/sec	    1098 B/op	      17 allocs/op
+BenchmarkScale_CommandDispatch-32                                   	   87018	     13580 ns/op	   7363616 commands/sec	   20006 B/op	     300 allocs/op
+BenchmarkScale_EventCreation-32                                     	 5972289	       199.0 ns/op	   5024551 events/sec	     304 B/op	       2 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/integration/v2	42.130s
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/integration/v2/command
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkDispatcher_Dispatch-32                   	22608692	        54.28 ns/op	      48 B/op	       1 allocs/op
+BenchmarkDispatcher_Dispatch_WithMiddleware-32    	22803009	        54.71 ns/op	      48 B/op	       1 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/integration/v2/command	2.479s
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/integration/v2/encryption	0.053s
+Running Suite: Event BDD Suite - /home/lars/projects/go-cqrs-lite/integration/event
+===================================================================================
+Random Seed: [1m1781453247[0m
+
+Will run [1m24[0m of [1m24[0m specs
+[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m
+
+[38;5;10m[1mRan 24 of 24 Specs in 0.001 seconds[0m
+[38;5;10m[1mSUCCESS![0m -- [38;5;10m[1m24 Passed[0m | [38;5;9m[1m0 Failed[0m | [38;5;11m[1m0 Pending[0m | [38;5;14m[1m0 Skipped[0m
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/integration/v2/event
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkNewEvent-32             	 6304870	       188.2 ns/op	     304 B/op	       2 allocs/op
+BenchmarkMemoryBus_Publish-32    	24293672	        48.00 ns/op	      16 B/op	       1 allocs/op
+BenchmarkMemoryStore_Save-32     	 2655094	       454.8 ns/op	     656 B/op	       8 allocs/op
+BenchmarkMemoryStore_Load-32     	 4550822	       264.4 ns/op	     288 B/op	       6 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/integration/v2/event	4.772s
+Running Suite: Query BDD Suite - /home/lars/projects/go-cqrs-lite/integration/query
+===================================================================================
+Random Seed: [1m1781453251[0m
+
+Will run [1m6[0m of [1m6[0m specs
+[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m
+
+[38;5;10m[1mRan 6 of 6 Specs in 0.000 seconds[0m
+[38;5;10m[1mSUCCESS![0m -- [38;5;10m[1m6 Passed[0m | [38;5;9m[1m0 Failed[0m | [38;5;11m[1m0 Pending[0m | [38;5;14m[1m0 Skipped[0m
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/integration/v2/query
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkDispatcher_Dispatch-32                   	21512511	        56.42 ns/op	      48 B/op	       1 allocs/op
+BenchmarkDispatcher_Dispatch_WithMiddleware-32    	20630624	        58.72 ns/op	      48 B/op	       1 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/integration/v2/query	2.432s
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/integration/v2/signing	0.053s
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/integration/v2/simulation
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkEventGenerator_Generate-32    	   16479	     71119 ns/op	   92133 B/op	    1205 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/integration/v2/simulation	1.176s
+Running Suite: Projection BDD Suite - /home/lars/projects/go-cqrs-lite/projection
+=================================================================================
+Random Seed: [1m1781453255[0m
+
+Will run [1m11[0m of [1m11[0m specs
+[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m
+
+[38;5;10m[1mRan 11 of 11 Specs in 0.063 seconds[0m
+[38;5;10m[1mSUCCESS![0m -- [38;5;10m[1m11 Passed[0m | [38;5;9m[1m0 Failed[0m | [38;5;11m[1m0 Pending[0m | [38;5;14m[1m0 Skipped[0m
+2026/06/14 18:07:35 ERROR projection handler failed projection=no-retry-proj event_id=01KV3E6X0DDEMJR050CJ5AMHXH event_type=UserCreated error="[corruption] projection.non_retryable: projection no-retry-proj non-retryable error\n  at: 2026-06-14T16:07:35Z\n  caused by: [conflict] projection.handle_event: projection no-retry-proj handle event UserCreated\n  at: 2026-06-14T16:07:35Z\n  caused by: [conflict] already.exists: duplicate entity\n  at: 2026-06-14T16:07:35Z"
+2026/06/14 18:07:35 ERROR projection handler failed projection=failing-projection event_id=01KV3E6X20RG9RZT7MMBRWYGQ6 event_type=user.created error="[corruption] projection.non_retryable: projection failing-projection non-retryable error\n  at: 2026-06-14T16:07:35Z\n  caused by: [transient] projection.handle_event: projection failing-projection handle event user.created\n  at: 2026-06-14T16:07:35Z\n  caused by: always fails"
+2026/06/14 18:07:35 ERROR projection handler failed projection=retry-projection event_id=01KV3E6X20JB5T4V0S6FYS3CYS event_type=user.created error="[transient] projection.retry_exhausted: projection \"retry-projection\" retry exhausted after 2 attempts\n  at: 2026-06-14T16:07:35Z\n  caused by: [transient] projection.handle_event: projection retry-projection handle event user.created\n  at: 2026-06-14T16:07:35Z\n  caused by: always fails"
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/projection/v2
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkRunner_Register-32             	   73192	    118280 ns/op	     163 B/op	       3 allocs/op
+BenchmarkRunner_NewRunner-32            	 4347427	       268.7 ns/op	     688 B/op	       9 allocs/op
+BenchmarkRunner_CurrentCheckpoint-32    	39881208	        29.69 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/projection/v2	11.273s
+Running Suite: Signing BDD Suite - /home/lars/projects/go-cqrs-lite/signing
+===========================================================================
+Random Seed: [1m1781453266[0m
+
+Will run [1m12[0m of [1m12[0m specs
+[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m
+
+[38;5;10m[1mRan 12 of 12 Specs in 0.001 seconds[0m
+[38;5;10m[1mSUCCESS![0m -- [38;5;10m[1m12 Passed[0m | [38;5;9m[1m0 Failed[0m | [38;5;11m[1m0 Pending[0m | [38;5;14m[1m0 Skipped[0m
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/signing/v2
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkCanonicalPayload-32    	 5271680	       229.7 ns/op	     336 B/op	       5 allocs/op
+BenchmarkHMAC_Sign-32           	 1725962	       678.4 ns/op	     848 B/op	      11 allocs/op
+BenchmarkHMAC_Verify-32         	 1714934	       704.7 ns/op	     848 B/op	      11 allocs/op
+BenchmarkEd25519_Sign-32        	   84400	     13714 ns/op	     400 B/op	       6 allocs/op
+BenchmarkEd25519_Verify-32      	   39310	     30954 ns/op	     336 B/op	       5 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/signing/v2	5.977s
+?   	github.com/larsartmann/go-cqrs-lite/signing/v2/internal/testutil	[no test files]
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/signing/v2/multisig	0.006s
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/storage/v2
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkSQLEventStore_Load-32                	   10000	    120375 ns/op	   14217 B/op	     134 allocs/op
+BenchmarkSQLEventStore_Save-32                	   10000	   1056023 ns/op	   13180 B/op	     171 allocs/op
+BenchmarkSQLEventStore_LoadToVersion-32       	   10000	    119384 ns/op	   14453 B/op	     140 allocs/op
+BenchmarkSQLiteEventStore_Save-32             	   41230	     30428 ns/op	    4370 B/op	      88 allocs/op
+BenchmarkSQLiteEventStore_Load-32             	   26066	     46037 ns/op	   19860 B/op	     489 allocs/op
+BenchmarkSQLiteEventStore_ReadAll-32          	    3271	    347752 ns/op	  164247 B/op	    4343 allocs/op
+BenchmarkSQLiteEventStore_LoadToVersion-32    	   12014	     98999 ns/op	   43634 B/op	    1139 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/storage/v2	17.811s
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/storage/v2/sql	0.008s
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/watermill/v2
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkEventToMessage-32              	 2977898	       400.9 ns/op	     960 B/op	      16 allocs/op
+BenchmarkMessageToEvent-32              	 2294662	       523.0 ns/op	     608 B/op	      10 allocs/op
+BenchmarkPublisherAdapter_Publish-32    	 1998402	       605.2 ns/op	     624 B/op	      11 allocs/op
+BenchmarkBuildMetadata-32               	 8829776	       136.8 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/watermill/v2	4.816s
+Running Suite: Encryption BDD Suite - /home/lars/projects/go-cqrs-lite/encryption
+=================================================================================
+Random Seed: [1m1781453295[0m
+
+Will run [1m20[0m of [1m20[0m specs
+[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m
+
+[38;5;10m[1mRan 20 of 20 Specs in 0.001 seconds[0m
+[38;5;10m[1mSUCCESS![0m -- [38;5;10m[1m20 Passed[0m | [38;5;9m[1m0 Failed[0m | [38;5;11m[1m0 Pending[0m | [38;5;14m[1m0 Skipped[0m
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/encryption/v2
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkAES256GCM_Encrypt-32                   	 2563636	       577.0 ns/op	    2320 B/op	       3 allocs/op
+BenchmarkAES256GCM_Decrypt-32                   	 3741470	       286.3 ns/op	    1024 B/op	       1 allocs/op
+BenchmarkAES256GCM_RoundTrip-32                 	 1556520	       782.5 ns/op	    3344 B/op	       4 allocs/op
+BenchmarkXChaCha20Poly1305_Encrypt-32           	 1401312	       780.9 ns/op	    2328 B/op	       3 allocs/op
+BenchmarkXChaCha20Poly1305_Decrypt-32           	 1974579	       606.0 ns/op	    1024 B/op	       1 allocs/op
+BenchmarkCodecWrapper_XChaCha20_Encode-32       	 2585419	       488.4 ns/op	     280 B/op	       6 allocs/op
+BenchmarkCodecWrapper_XChaCha20_Decode-32       	 2317197	       530.0 ns/op	     280 B/op	       7 allocs/op
+BenchmarkCodecWrapper_XChaCha20_RoundTrip-32    	 1000000	      1110 ns/op	     545 B/op	      12 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/encryption/v2	13.752s
+Running Suite: Stream BDD Suite - /home/lars/projects/go-cqrs-lite/listing
+==========================================================================
+Random Seed: [1m1781453309[0m
+
+Will run [1m4[0m of [1m4[0m specs
+[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m
+
+[38;5;10m[1mRan 4 of 4 Specs in 0.000 seconds[0m
+[38;5;10m[1mSUCCESS![0m -- [38;5;10m[1m4 Passed[0m | [38;5;9m[1m0 Failed[0m | [38;5;11m[1m0 Pending[0m | [38;5;14m[1m0 Skipped[0m
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/listing/v2
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkInMemoryList/1000Aggregates-32     	   25839	     48149 ns/op	  249932 B/op	       6 allocs/op
+BenchmarkInMemoryList/100Aggregates-32      	  228603	      4531 ns/op	   25408 B/op	       6 allocs/op
+BenchmarkInMemoryList/SmallPages-32         	   52730	     21787 ns/op	  123331 B/op	       6 allocs/op
+BenchmarkInMemoryList_TombstoneFilter-32    	   35218	     33033 ns/op	  176199 B/op	       6 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/listing/v2	4.604s
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/otel/v2	0.004s
+2026/06/14 18:08:33 [JOB 1] WAL file /tmp/TestEventStore_Persistence3805212639/001/000002.log with log number 000002 stopped reading at offset: 635; replayed 2 keys in 1 batches
+2026/06/14 18:08:33 [JOB 1] WAL file /tmp/TestEventStore_Persistence_CBOR2396673542/001/000002.log with log number 000002 stopped reading at offset: 656; replayed 2 keys in 1 batches
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/pebble/v2
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkEventStore_LoadToTimestamp/EarlyTermination-32         	    2846	    410937 ns/op	  167047 B/op	    2976 allocs/op
+BenchmarkEventStore_LoadToTimestamp/FullScan-32                 	     292	   4043293 ns/op	 1626240 B/op	   29032 allocs/op
+BenchmarkSerializeEnvelope-32                                   	 2589033	       456.5 ns/op	     609 B/op	       5 allocs/op
+BenchmarkDeserializeEnvelope-32                                 	  307278	      3998 ns/op	    1600 B/op	      29 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/pebble/v2	4.833s
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/turso/v2
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkTursoEventStore_Save-32    	   14502	     82501 ns/op	   23522 B/op	     362 allocs/op
+BenchmarkTursoEventStore_Load-32    	    1101	   1023152 ns/op	  995513 B/op	   16451 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/turso/v2	2.501s
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/turso/v2/indexing
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkReadFrom_WithIndexes-32       	   83593	     14235 ns/op	    3576 B/op	      51 allocs/op
+BenchmarkReadFrom_WithoutIndexes-32    	   92830	     13021 ns/op	    3576 B/op	      51 allocs/op
+BenchmarkAdvisor_MissingIndexes-32     	    6446	    166918 ns/op	  111411 B/op	    1681 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/turso/v2/indexing	3.711s
+invalid type "invalid": must be 'command' or 'query'
+generated 1 handlers → /tmp/TestRun_DefaultPath2608224525/001/gen.go
+generated 1 handlers → /tmp/TestRun_SuccessfulCommand1523131199/001/handlers_gen.go
+generated 1 handlers → /tmp/TestRun_SuccessfulQueryWithCustomPkg3626444850/001/queries_gen.go
+no cqrs markers found
+write: open /nonexistent/dir/handlers_gen.go: no such file or directory
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v2	0.003s
