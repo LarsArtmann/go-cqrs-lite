@@ -279,6 +279,7 @@ func FuzzMetadata_CloneIsDeep(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, k, v string) {
 		md := event.NewMetadata()
+		event.EnsureCustom(&md)
 		md.Custom[event.MetadataKey(k)] = v
 
 		cp := md.Clone()

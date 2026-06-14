@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
@@ -65,25 +66,30 @@ func (c CircuitBreakerConfig) Validate() error {
 }
 
 type circuitBreaker struct {
+	state     atomic.Int32
+	failures  atomic.Int32
+	successes atomic.Int32
+
 	mu          sync.Mutex
-	state       circuitState
-	failures    int
-	successes   int
 	lastFailure time.Time
 	config      CircuitBreakerConfig
 }
 
 func (cb *circuitBreaker) allow() error {
-	cb.mu.Lock()
-	defer cb.mu.Unlock()
-
-	switch cb.state {
+	switch circuitState(cb.state.Load()) {
 	case circuitClosed:
 		return nil
 	case circuitOpen:
+		cb.mu.Lock()
+		defer cb.mu.Unlock()
+
+		if circuitState(cb.state.Load()) != circuitOpen {
+			return nil
+		}
+
 		if time.Since(cb.lastFailure) > cb.config.Timeout {
-			cb.state = circuitHalfOpen
-			cb.successes = 0
+			cb.state.Store(int32(circuitHalfOpen))
+			cb.successes.Store(0)
 
 			return nil
 		}
@@ -93,21 +99,28 @@ func (cb *circuitBreaker) allow() error {
 		return nil
 	}
 
-	panic("unreachable")
+	return nil
 }
 
 func (cb *circuitBreaker) recordSuccess() {
-	cb.mu.Lock()
-	defer cb.mu.Unlock()
+	switch circuitState(cb.state.Load()) {
+	case circuitHalfOpen:
+		cb.mu.Lock()
+		defer cb.mu.Unlock()
 
-	if cb.state == circuitHalfOpen {
-		cb.successes++
-		if cb.successes >= cb.config.SuccessThreshold {
-			cb.state = circuitClosed
-			cb.failures = 0
+		if circuitState(cb.state.Load()) != circuitHalfOpen {
+			cb.failures.Store(0)
+
+			return
 		}
-	} else {
-		cb.failures = 0
+
+		newSuccesses := int(cb.successes.Add(1))
+		if newSuccesses >= cb.config.SuccessThreshold {
+			cb.state.Store(int32(circuitClosed))
+			cb.failures.Store(0)
+		}
+	case circuitClosed, circuitOpen:
+		cb.failures.Store(0)
 	}
 }
 
@@ -115,25 +128,24 @@ func (cb *circuitBreaker) recordFailure() {
 	cb.mu.Lock()
 	defer cb.mu.Unlock()
 
-	cb.failures++
+	cb.failures.Add(1)
 	cb.lastFailure = time.Now()
 
-	if cb.state == circuitHalfOpen {
-		cb.state = circuitOpen
-	} else if cb.failures >= cb.config.FailureThreshold {
-		cb.state = circuitOpen
+	if circuitState(cb.state.Load()) == circuitHalfOpen {
+		cb.state.Store(int32(circuitOpen))
+	} else if int(cb.failures.Load()) >= cb.config.FailureThreshold {
+		cb.state.Store(int32(circuitOpen))
 	}
 }
 
 func newCircuitBreaker(config CircuitBreakerConfig) *circuitBreaker {
-	return &circuitBreaker{
-		mu:          sync.Mutex{},
-		state:       circuitClosed,
-		failures:    0,
-		successes:   0,
+	breaker := &circuitBreaker{ //nolint:exhaustruct // atomics are zero-valued
 		lastFailure: time.Time{},
 		config:      config,
 	}
+	breaker.state.Store(int32(circuitClosed))
+
+	return breaker
 }
 
 func (cb *circuitBreaker) execute(

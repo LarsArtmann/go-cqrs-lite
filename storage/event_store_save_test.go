@@ -153,16 +153,13 @@ func TestSQLEventStore_AppendBatch_Success(t *testing.T) {
 	evt2 := testEventWithAggID(t, "UserCreated", aggID, 2)
 
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(
+	mock.ExpectExec("INSERT INTO events.*VALUES.*").WithArgs(
 		evt1.ID(),
 		"UserCreated", "User", evt1.AggregateID(), 1, evt1.SchemaVersion().Int(), evt1.Payload(), sqlmock.AnyArg(), sqlmock.AnyArg(), evt1.OccurredAt(),
-	).
-		WillReturnResult(sqlmock.NewResult(1, 1))
-	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).WithArgs(
 		evt2.ID(),
 		"UserCreated", "User", evt2.AggregateID(), 2, evt2.SchemaVersion().Int(), evt2.Payload(), sqlmock.AnyArg(), sqlmock.AnyArg(), evt2.OccurredAt(),
 	).
-		WillReturnResult(sqlmock.NewResult(2, 1))
+		WillReturnResult(sqlmock.NewResult(2, 2))
 	mock.ExpectCommit()
 
 	err := store.AppendBatch(
@@ -213,7 +210,7 @@ func TestSQLEventStore_AppendBatch_InsertError(t *testing.T) {
 	evt := testEvent(t)
 
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta(insertQuery)).
+	mock.ExpectExec("INSERT INTO events.*VALUES.*").
 		WillReturnError(errors.New("insert failed"))
 	mock.ExpectRollback()
 	err := appendBatchEvt(t, store, evt)

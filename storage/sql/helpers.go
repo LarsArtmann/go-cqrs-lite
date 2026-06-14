@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
@@ -79,6 +80,92 @@ func SharedInsertEvents(
 			return event.WrapInfrastructure(err, "storage.insert_event",
 				"insert event "+string(evt.Type()))
 		}
+	}
+
+	return nil
+}
+
+const eventColumnsPerRow = 10
+
+const maxSQLiteParameters = 999
+
+// SharedBatchInsertEvents inserts multiple events using a single multi-VALUES
+// INSERT statement, reducing network round-trips for batch writes.
+// For SQLite, events are chunked to respect the 999-parameter limit.
+func SharedBatchInsertEvents(
+	ctx context.Context,
+	tx *sql.Tx,
+	ref event.AggregateRef,
+	events []event.Event,
+	dialect Dialect,
+	formatTime func(time.Time) any,
+) error {
+	if len(events) == 0 {
+		return nil
+	}
+
+	maxPerBatch := maxSQLiteParameters / eventColumnsPerRow
+
+	for start := 0; start < len(events); start += maxPerBatch {
+		end := min(start+maxPerBatch, len(events))
+		batch := events[start:end]
+
+		err := insertMultiValues(ctx, tx, ref, batch, dialect, formatTime)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func insertMultiValues(
+	ctx context.Context,
+	tx *sql.Tx,
+	ref event.AggregateRef,
+	events []event.Event,
+	dialect Dialect,
+	formatTime func(time.Time) any,
+) error {
+	n := len(events)
+	valueGroups := make([]string, n)
+	args := make([]any, 0, n*eventColumnsPerRow)
+
+	for i, evt := range events {
+		metadata, err := MarshalMetadata(evt.Metadata())
+		if err != nil {
+			return event.WrapCorruption(err, "storage.marshal_metadata",
+				"marshal metadata for event "+string(evt.Type()))
+		}
+
+		offset := i * eventColumnsPerRow
+		valueGroups[i] = "(" + Placeholders(dialect, eventColumnsPerRow, offset) + ")"
+
+		args = append(
+			args,
+			evt.ID(),
+			string(evt.Type()),
+			string(ref.Type),
+			ref.ID,
+			evt.Version(),
+			evt.SchemaVersion().Int(),
+			event.PayloadReadOnly(evt),
+			string(evt.Encoding()),
+			metadata,
+			formatTime(evt.OccurredAt()),
+		)
+	}
+
+	query := fmt.Sprintf(
+		`INSERT INTO %s (id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, payload_encoding, metadata, occurred_at) VALUES %s`,
+		TableEvents,
+		strings.Join(valueGroups, ", "),
+	)
+
+	_, err := tx.ExecContext(ctx, query, args...)
+	if err != nil {
+		return event.WrapInfrastructure(err, "storage.batch_insert_events",
+			fmt.Sprintf("batch insert %d events", n))
 	}
 
 	return nil

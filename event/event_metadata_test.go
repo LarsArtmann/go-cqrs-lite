@@ -96,12 +96,17 @@ func TestNewMetadata(t *testing.T) {
 
 	m := event.NewMetadata()
 
-	if m.Custom == nil {
-		t.Error("Custom map should be initialized, not nil")
+	if m.Custom != nil {
+		t.Error("Custom map should be nil (lazy init) for zero-allocation construction")
 	}
 
 	if len(m.Custom) != 0 {
 		t.Errorf("Custom map should be empty, got %v", m.Custom)
+	}
+
+	event.EnsureCustom(&m)
+	if m.Custom == nil {
+		t.Error("EnsureCustom should initialize the Custom map")
 	}
 
 	if !m.CorrelationID.IsZero() {

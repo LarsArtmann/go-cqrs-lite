@@ -83,11 +83,16 @@ func (s *SQLEventStore) insertEvents(
 	ref event.AggregateRef,
 	events []event.Event,
 ) error {
+	return sqlpkg.SharedBatchInsertEvents(ctx, tx, ref, events, s.Dialect, s.Dialect.FormatTime)
+}
+
+func buildInsertEventSQL(d sqlpkg.Dialect) string {
 	ph := make([]string, eventColumnCount)
 	for i := range eventColumnCount {
-		ph[i] = s.Dialect.Placeholder(i + 1)
+		ph[i] = d.Placeholder(i + 1)
 	}
-	insertSQL := fmt.Sprintf(
+
+	return fmt.Sprintf(
 		`INSERT INTO `+sqlpkg.TableEvents+` (id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, payload_encoding, metadata, occurred_at)
 		VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)`,
 		ph[0],
@@ -101,5 +106,4 @@ func (s *SQLEventStore) insertEvents(
 		ph[8],
 		ph[9],
 	)
-	return sqlpkg.SharedInsertEvents(ctx, tx, ref, events, insertSQL, s.Dialect.FormatTime)
 }

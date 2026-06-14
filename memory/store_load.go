@@ -10,7 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
-// Load returns all events for an aggregate. Returns a defensive copy.
+// Load returns all events for an aggregate.
 // Returns ErrAggregateNotFound if no events exist for the aggregate.
 func (s *MemoryStore) Load(
 	_ context.Context,
@@ -21,7 +21,7 @@ func (s *MemoryStore) Load(
 		return nil, err
 	}
 
-	return copyEvents(events), nil
+	return events, nil
 }
 
 // loadFiltered is a shared helper that loads events for an aggregate and applies a filter function.
@@ -35,7 +35,7 @@ func (s *MemoryStore) loadFiltered(
 		return nil, fmt.Errorf("op=%s: %w", op, err)
 	}
 
-	return copyEvents(filter(events)), nil
+	return filter(events), nil
 }
 
 // LoadFromVersion returns events starting from the given version (exclusive). Returns a defensive copy.

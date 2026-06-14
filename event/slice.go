@@ -21,7 +21,7 @@ func SliceToVersion(events []Event, maxVersion Version) []Event {
 
 // FilterByTimestamp returns events where OccurredAt <= maxTime.
 func FilterByTimestamp(events []Event, maxTime time.Time) []Event {
-	var filtered []Event
+	filtered := make([]Event, 0, len(events))
 
 	for _, e := range events {
 		if !e.OccurredAt().After(maxTime) {

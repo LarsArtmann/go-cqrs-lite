@@ -21,27 +21,6 @@ func (a *EventStore) journalKey(evt event.Event) []byte {
 	)
 }
 
-// appendToJournal writes journal entries for each event into the batch.
-func (a *EventStore) appendToJournal(batch *pebble.Batch, events []event.Event) error {
-	for _, evt := range events {
-		jKey := a.journalKey(evt)
-
-		data, err := a.serializeEvent(evt)
-		if err != nil {
-			return event.WrapCorruption(err, "pebble.journal_serialize",
-				"serialize event for journal "+evt.ID().String())
-		}
-
-		err = a.addToBatch(batch, jKey, data)
-		if err != nil {
-			return event.WrapInfrastructure(err, "pebble.journal_write",
-				"write journal entry for "+evt.ID().String())
-		}
-	}
-
-	return nil
-}
-
 // ReadAll retrieves all events across all aggregates, ordered by OccurredAt.
 // Implements event.Journal by scanning the journal key prefix.
 func (a *EventStore) ReadAll(_ context.Context) ([]event.Event, error) {
@@ -77,8 +56,17 @@ func (a *EventStore) ReadFrom(
 	defer func() { _ = iter.Close() }()
 
 	skipping := !afterEventID.IsZero()
+	targetID := afterEventID.String()
 
 	for iter.First(); iter.Valid(); iter.Next() {
+		if skipping {
+			if journalKeyEventID(iter.Key()) == targetID {
+				skipping = false
+			}
+
+			continue
+		}
+
 		evt, err := a.deserializeEvent(iter.Value())
 		if err != nil {
 			return nil, fmt.Errorf(
@@ -87,14 +75,6 @@ func (a *EventStore) ReadFrom(
 				afterEventID,
 				a.corruptEventErr(string(iter.Key()), err),
 			)
-		}
-
-		if skipping {
-			if evt.ID() == afterEventID {
-				skipping = false
-			}
-
-			continue
 		}
 
 		events = append(events, evt)
@@ -115,4 +95,16 @@ func (a *EventStore) ReadFrom(
 	}
 
 	return events, nil
+}
+
+// journalKeyEventID extracts the event ID portion from a journal key.
+// Journal key format: {prefix}{020d_timestamp}:{eventID}.
+func journalKeyEventID(key []byte) string {
+	for i := len(key) - 1; i >= 0; i-- { //nolint:modernize // reverse scan is clearer here
+		if key[i] == ':' {
+			return string(key[i+1:])
+		}
+	}
+
+	return string(key)
 }

@@ -18,9 +18,10 @@ type Metadata struct {
 	Custom        map[MetadataKey]string `json:"custom,omitempty"`
 }
 
-// NewMetadata creates a Metadata with all fields initialized, including the Custom map.
+// NewMetadata creates a Metadata with zero-value fields.
+// The Custom map is lazily initialized on first write via EnsureCustom.
 func NewMetadata() Metadata {
-	return Metadata{Custom: make(map[MetadataKey]string)}
+	return Metadata{}
 }
 
 // Clone returns a deep copy of the metadata.
@@ -74,9 +75,12 @@ func (m Metadata) Merge(other Metadata) Metadata {
 		result.UserAgent = other.UserAgent
 	}
 
-	for k, v := range other.Custom {
+	if len(other.Custom) > 0 {
 		EnsureCustom(&result)
-		result.Custom[k] = v
+
+		for k, v := range other.Custom {
+			result.Custom[k] = v
+		}
 	}
 
 	return result

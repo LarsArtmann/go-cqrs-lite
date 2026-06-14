@@ -23,7 +23,7 @@ func SQLiteSchema() string {
 
 // ScanSlice is a generic helper that deduplicates event scanning.
 func ScanSlice[T any](rows *sql.Rows, fn func(*sql.Rows) (T, error)) ([]T, error) {
-	var result []T
+	result := make([]T, 0, 64)
 
 	for rows.Next() {
 		item, err := fn(rows)

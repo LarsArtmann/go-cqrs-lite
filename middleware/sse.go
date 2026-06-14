@@ -31,7 +31,7 @@ func NewSSEBroker(bus event.Bus) (*SSEBroker, error) {
 		return nil, event.NewInfrastructure("middleware.nil_bus", "event bus is required")
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	_, cancel := context.WithCancel(context.Background())
 
 	b := &SSEBroker{ //nolint:exhaustruct // mu zero-value is ready, handler set below
 		clients: make(map[SSEClientID]chan event.Event),
@@ -52,10 +52,6 @@ func NewSSEBroker(bus event.Bus) (*SSEBroker, error) {
 			"subscribe to event bus",
 		)
 	}
-
-	go func() {
-		<-ctx.Done()
-	}()
 
 	return b, nil
 }
@@ -152,9 +148,8 @@ func SSEHandler(broker *SSEBroker) http.Handler {
 					return
 				}
 
-				_, _ = fmt.Fprintf(w, "event: %s\n", evt.Type())
-				_, _ = fmt.Fprintf(w, "id: %s\n", evt.ID().String())
-				_, _ = fmt.Fprintf(w, "data: %s\n\n", string(event.PayloadReadOnly(evt)))
+				_, _ = fmt.Fprintf(w, "event: %s\nid: %s\ndata: %s\n\n",
+					evt.Type(), evt.ID().String(), string(event.PayloadReadOnly(evt)))
 
 				flusher.Flush()
 			case <-r.Context().Done():

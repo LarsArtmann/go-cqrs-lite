@@ -7,6 +7,11 @@ import (
 )
 
 func subscribesTo(p event.Projection, eventType event.Type) bool {
+	if bp, ok := p.(*builtProjection); ok {
+		types := bp.eventTypes
+		return len(types) == 0 || slices.Contains(types, eventType)
+	}
+
 	types := p.EventTypes()
 
 	return len(types) == 0 || slices.Contains(types, eventType)

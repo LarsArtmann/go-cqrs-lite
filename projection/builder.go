@@ -80,9 +80,16 @@ func (p *builtProjection) Name() string             { return p.name }
 func (p *builtProjection) EventTypes() []event.Type { return slices.Clone(p.eventTypes) }
 
 func (p *builtProjection) Handle(ctx context.Context, evt event.Event) error {
-	handlers := p.registry.Lookup(evt.Type())
+	specific, wildcard := p.registry.lookupSlices(evt.Type())
 
-	for _, h := range handlers {
+	for _, h := range specific {
+		err := h(ctx, evt)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, h := range wildcard {
 		err := h(ctx, evt)
 		if err != nil {
 			return err

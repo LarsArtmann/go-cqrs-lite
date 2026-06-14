@@ -28,16 +28,11 @@ func (a *EventStore) AppendBatch(
 	for _, evt := range events {
 		key := a.eventKey(ref, evt.Version())
 
-		err := a.serializeAndAddToBatch(batch, key, evt)
+		err := a.serializeAndAddToBatchWithJournal(batch, key, evt)
 		if err != nil {
 			return event.WrapCorruption(err, "pebble.serialize_event",
 				fmt.Sprintf("serialize event %s for %s %s", evt.Type(), ref.Type, ref.ID))
 		}
-	}
-
-	err := a.appendToJournal(batch, events)
-	if err != nil {
-		return err
 	}
 
 	return a.commitAndLog(
@@ -79,10 +74,13 @@ func (a *EventStore) logEventOperation(
 	)
 }
 
-// serializeAndAddToBatch serializes an event and adds it to the batch.
-func (a *EventStore) serializeAndAddToBatch(
+// serializeAndAddToBatchWithJournal serializes an event once and writes it to
+// both the aggregate event key and the global journal key. This eliminates the
+// duplicate serialization that previously occurred when appendToJournal
+// re-serialized every event from scratch.
+func (a *EventStore) serializeAndAddToBatchWithJournal(
 	batch *pebble.Batch,
-	key []byte,
+	eventKey []byte,
 	evt event.Event,
 ) error {
 	data, err := a.serializeEvent(evt)
@@ -91,7 +89,14 @@ func (a *EventStore) serializeAndAddToBatch(
 			"failed to serialize event")
 	}
 
-	return a.addToBatch(batch, key, data)
+	err = a.addToBatch(batch, eventKey, data)
+	if err != nil {
+		return err
+	}
+
+	journalKey := a.journalKey(evt)
+
+	return a.addToBatch(batch, journalKey, data)
 }
 
 // addToBatch is a helper that adds a key-value pair to a batch with error handling.

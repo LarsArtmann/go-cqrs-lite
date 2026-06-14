@@ -106,14 +106,14 @@ func (a *EventStore) writeEventsToBatch(
 
 		key := a.eventKey(ref, event.Version(expectedEventVersion))
 
-		err = a.serializeAndAddToBatch(batch, key, evt)
+		err = a.serializeAndAddToBatchWithJournal(batch, key, evt)
 		if err != nil {
 			return event.WrapCorruption(err, "pebble.serialize_event",
 				fmt.Sprintf("serialize event %d for %s %s", i, ref.Type, ref.ID))
 		}
 	}
 
-	return a.appendToJournal(batch, events)
+	return nil
 }
 
 func validateEventOwnership(

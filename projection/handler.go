@@ -64,6 +64,16 @@ func (r *HandlerRegistry) Lookup(eventType event.Type) []event.Handler {
 	return result
 }
 
+// lookupSlices returns the specific and wildcard handler slices directly
+// without allocating a combined slice. Used on the hot event-dispatch path.
+// Callers must not modify the returned slices.
+func (r *HandlerRegistry) lookupSlices(eventType event.Type) ([]event.Handler, []event.Handler) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	return r.handlers[eventType], r.wildcard
+}
+
 // EventTypes returns all registered event types.
 func (r *HandlerRegistry) EventTypes() []event.Type {
 	r.mu.RLock()

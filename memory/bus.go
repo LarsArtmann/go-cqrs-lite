@@ -20,6 +20,8 @@ type MemoryBus struct {
 	allHandlers       []event.Handler
 	middleware        []event.Middleware
 	publishMiddleware []event.PublishMiddleware
+	cachedHandler     event.Handler
+	cachedPublisher   event.Publisher
 }
 
 var (
@@ -30,9 +32,13 @@ var (
 // NewMemoryBus creates a new in-memory event bus.
 func NewMemoryBus() *MemoryBus {
 	//nolint:exhaustruct // embedded Lifecycle has unexported fields from different package
-	return &MemoryBus{
+	b := &MemoryBus{
 		handlers: make(map[event.Type][]event.Handler),
 	}
+	b.rebuildHandlerChain()
+	b.rebuildPublisherChain()
+
+	return b
 }
 
 func (b *MemoryBus) useLocked(name string, fn func()) error {
@@ -54,6 +60,7 @@ func (b *MemoryBus) useLocked(name string, fn func()) error {
 func (b *MemoryBus) Use(mw ...event.Middleware) error {
 	return b.useLocked("use middleware", func() {
 		b.middleware = append(b.middleware, mw...)
+		b.rebuildHandlerChain()
 	})
 }
 
@@ -61,7 +68,69 @@ func (b *MemoryBus) Use(mw ...event.Middleware) error {
 func (b *MemoryBus) UsePublish(mw ...event.PublishMiddleware) error {
 	return b.useLocked("use publish middleware", func() {
 		b.publishMiddleware = append(b.publishMiddleware, mw...)
+		b.rebuildPublisherChain()
 	})
+}
+
+func (b *MemoryBus) rebuildHandlerChain() {
+	inner := event.Handler(func(ctx context.Context, e event.Event) error {
+		err := b.notifyHandlers(ctx, e, b.allHandlers, "all-handler")
+		if err != nil {
+			return event.WrapInfrastructure(
+				err,
+				"memory.notify_all_handlers_failed",
+				"notify all-handlers for "+string(e.Type()),
+			)
+		}
+
+		err = b.notifyHandlers(ctx, e, b.handlers[e.Type()], "handler")
+		if err != nil {
+			return event.WrapInfrastructure(
+				err,
+				"memory.notify_handler_failed",
+				"notify handler for "+string(e.Type()),
+			)
+		}
+
+		return nil
+	})
+
+	for _, m := range slices.Backward(b.middleware) {
+		inner = m(inner)
+	}
+
+	b.cachedHandler = inner
+}
+
+func (b *MemoryBus) rebuildPublisherChain() {
+	inner := event.PublisherFunc(func(ctx context.Context, events ...event.Event) error {
+		b.mu.RLock()
+		defer b.mu.RUnlock()
+
+		for i, evt := range events {
+			err := b.publishEvent(ctx, evt)
+			if err != nil {
+				return event.Wrapf(
+					err,
+					event.Infrastructure,
+					"memory.publish_event_failed",
+					"failed to publish event %d (%s) from batch of %d events",
+					i,
+					evt.Type(),
+					len(events),
+				)
+			}
+		}
+
+		return nil
+	})
+
+	publisher := event.Publisher(inner)
+	for _, m := range slices.Backward(b.publishMiddleware) {
+		publisher = m(publisher)
+	}
+
+	b.cachedPublisher = publisher
 }
 
 // Publish sends events to all matching subscribers.
@@ -86,35 +155,8 @@ func (b *MemoryBus) Publish(ctx context.Context, events ...event.Event) error {
 	}
 
 	b.mu.RLock()
-	publishMw := b.publishMiddleware
+	publisher := b.cachedPublisher
 	b.mu.RUnlock()
-
-	inner := event.PublisherFunc(func(ctx context.Context, events ...event.Event) error {
-		b.mu.RLock()
-		defer b.mu.RUnlock()
-
-		for i, evt := range events {
-			err := b.publishEvent(ctx, evt)
-			if err != nil {
-				return event.Wrapf(
-					err,
-					event.Infrastructure,
-					"memory.publish_event_failed",
-					"failed to publish event %d (%s) from batch of %d events",
-					i,
-					evt.Type(),
-					len(events),
-				)
-			}
-		}
-
-		return nil
-	})
-
-	publisher := event.Publisher(inner)
-	for _, m := range slices.Backward(publishMw) {
-		publisher = m(publisher)
-	}
 
 	err = publisher.Publish(ctx, events...)
 	if err != nil {
@@ -125,33 +167,7 @@ func (b *MemoryBus) Publish(ctx context.Context, events ...event.Event) error {
 }
 
 func (b *MemoryBus) publishEvent(ctx context.Context, evt event.Event) error {
-	handler := func(ctx context.Context, e event.Event) error {
-		err := b.notifyHandlers(ctx, e, b.allHandlers, "all-handler")
-		if err != nil {
-			return event.WrapInfrastructure(
-				err,
-				"memory.notify_all_handlers_failed",
-				"notify all-handlers for "+string(e.Type()),
-			)
-		}
-
-		err = b.notifyHandlers(ctx, e, b.handlers[e.Type()], "handler")
-		if err != nil {
-			return event.WrapInfrastructure(
-				err,
-				"memory.notify_handler_failed",
-				"notify handler for "+string(e.Type()),
-			)
-		}
-
-		return nil
-	}
-
-	for _, m := range slices.Backward(b.middleware) {
-		handler = m(handler)
-	}
-
-	return handler(ctx, evt)
+	return b.cachedHandler(ctx, evt)
 }
 
 func (b *MemoryBus) notifyHandlers(
