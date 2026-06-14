@@ -116,3 +116,6 @@ watermill/     — Watermill protocol adapter
 | [0013](0013-zero-copy-payload-for-decode.md)     | Zero-Copy Payload for Decode          | —          | Accepted |
 | [0014](0014-test-only-dependencies-in-go-mod.md) | Test-Only Dependencies in go.mod      | —          | Accepted |
 | [0015](0015-cbor-codec.md)                       | CBOR Codec                            | —          | Accepted |
+| [0016](0016-outbox-pattern.md)                   | Outbox Pattern                        | 2026-06-14 | Proposed |
+| [0017](0017-schema-registry.md)                  | Schema Registry for Event Validation  | 2026-06-14 | Proposed |
+| [0018](0018-distributed-checkpointing.md)        | Distributed Checkpointing             | 2026-06-14 | Proposed |

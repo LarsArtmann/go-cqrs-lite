@@ -5,6 +5,11 @@ import "github.com/fxamacker/cbor/v2"
 // CBORCodec implements Codec using fxamacker/cbor with canonical encoding
 // (RFC 7049: sorted map keys, shortest floats). Canonical mode is deterministic,
 // making CBORCodec safe for content-addressed storage and cryptographic signing.
+//
+// Encoding mode: CanonicalEncOptions (RFC 7049 §3.9 "Canonical CBOR").
+// Evaluated CoreDetEncOptions (RFC 7049bis "Core Deterministic") — not adopted
+// because it uses SortBytewiseLexical vs SortLengthFirst, changing all output
+// bytes and breaking existing stored CBOR data + signatures.
 type CBORCodec struct{}
 
 var _ Codec = CBORCodec{}

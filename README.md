@@ -725,12 +725,12 @@ Benchmark results are available in [docs/benchmarks/](docs/benchmarks/README.md)
 
 Key numbers (AMD RYZEN AI MAX+ 395, Go 1.26.3):
 
-| Operation | ns/op | allocs |
-|-----------|------:|-------:|
-| `NewEvent` | 182 | 2 |
-| `BusPublish` | 293 | 0 |
-| `HMAC Sign` | 637 | 11 |
-| `DecodePayload` | 409 | 9 |
+| Operation       | ns/op | allocs |
+| --------------- | ----: | -----: |
+| `NewEvent`      |   182 |      2 |
+| `BusPublish`    |   293 |      0 |
+| `HMAC Sign`     |   637 |     11 |
+| `DecodePayload` |   409 |      9 |
 
 Run your own: `go test ./... -bench=. -benchmem -run=^$ -count=1`
 

@@ -104,8 +104,8 @@
 
 ### Code Quality
 
-- [ ] **Fix ADR numbering gap** — ADR-0005 is missing; README lists ADR-0001 through ADR-0015 but 0005 is a gap. Decide: add placeholder or renumber
-- [ ] **cmd/api-stability zero tests** — API surface checker has no test coverage. The tool guards breaking changes but is itself untested
+- [x] ~~**Fix ADR numbering gap**~~ — FALSE POSITIVE: ADR-0005 (tombstone-soft-delete) exists and is in the index
+- [x] ~~**cmd/api-stability zero tests**~~ — FALSE POSITIVE: already has TestAPISurfaceCheck + TestAPISurfaceUpdateIdempotent
 - [ ] **query.BasicQuery has no metadata** — Unlike `BasicCommand`, queries carry no correlation/tracing context. Makes distributed tracing through query path inconsistent with command/event
 - [ ] **eventtest/ as separate module** — event/go.mod lists 5 test-only deps (command, query, memory, schema, snapshot) that bloat consumer transitive deps. Extracting eventtest to its own go.mod would clean this up. ACCEPTED/WONTFIX — breaking change for consumers
 - [ ] **Clean test deps from 12 production go.mod files** — 12 modules have test-only deps in production require blocks. Go doesn't support separate test-only require blocks
@@ -115,9 +115,9 @@
 
 ### Documentation
 
-- [ ] **Add godoc examples for listing package** — `List`, `StatusMiddleware`, `InMemoryAggregateReader`
-- [ ] **Add README section linking to docs/benchmarks/** — Consumers should know perf characteristics exist
-- [ ] **Document CBOR usage patterns** — codec/README.md exists but lacks consumer-facing CBOR examples
+- [ ] **Add godoc examples for listing package** — DONE: Added 3 new examples (NewListBuilder, StatusMiddleware, CacheInvalidationMiddleware)
+- [x] ~~**Add README section linking to docs/benchmarks/**~~ — DONE: Added Performance section with key benchmark numbers and link to docs/benchmarks/
+- [x] ~~**Document CBOR usage patterns**~~ — DONE: Added "CBOR with Event Signing" example to codec/README.md
 - [x] ~~Document time-travel API~~ — DONE
 - [x] ~~Document soft deletes over hard deletes~~ — DONE
 - [x] ~~Document offline-first metadata conventions~~ — DONE
@@ -127,14 +127,14 @@
 - [ ] **Arena allocation experiment in event module** — High-throughput event creation could benefit from arena allocation
 - [ ] **Zero-allocation event encoding path** — `jsonv2` experiment behind build tag
 - [ ] **SIMD-accelerated event serialization** — Go experiment for large payload encoding
-- [ ] **Benchmark MemoryStore with concurrent writers** — Stress-test for race conditions under load
-- [ ] **Profile allocation patterns** — Compare JSON vs CBOR allocations with `go test -benchmem`
+- [x] ~~**Benchmark MemoryStore with concurrent writers**~~ — DONE: Added BenchmarkMemoryStore_ConcurrentWriters (1/4/8/16 writers, race-safe)
+- [x] ~~**Profile allocation patterns**~~ — VERIFIED: BenchmarkCodecComparison_Encode/Decode already compares JSON vs CBOR with -benchmem
 
 ### Features (No Design Yet)
 
-- [ ] **Outbox pattern design doc** — Reliable at-least-once event publishing. Mentioned in ROADMAP but no ADR or prototype
-- [ ] **Schema registry design doc** — JSON Schema middleware for event validation. Mentioned in ROADMAP but no design exists
-- [ ] **Distributed checkpointing for projections** — Multiple projection instances sharing checkpoint state
+- [x] ~~**Outbox pattern design doc**~~ — DONE: ADR-0016 (Proposed). Consumer concern, not library module.
+- [x] ~~**Schema registry design doc**~~ — DONE: ADR-0017 (Proposed). Middleware-based validation with auto-generated schemas.
+- [x] ~~**Distributed checkpointing for projections**~~ — DONE: ADR-0018 (Proposed). Consumer concern via existing CheckpointStore interface.
 
 ### Coverage Gaps
 
@@ -144,8 +144,8 @@
 ### Encryption Module
 
 - [x] ~~Add `StaticKeyResolver` helper (map-based)~~ — DONE (static_resolver.go)
-- [ ] **Add versioned ciphertext format (prefix byte for algorithm)** — Future-proof algorithm changes
-- [ ] **Add `example/encryption/` project** — Standalone example demonstrating full encryption lifecycle
+- [x] ~~**Add versioned ciphertext format (prefix byte for algorithm)**~~ — DONE: WrapCiphertext/UnwrapCiphertext with [version:1][algorithm:1][ciphertext:N] envelope, backward compatible
+- [x] ~~**Add `example/encryption/` project**~~ — VERIFIED: Already builds and works
 - [ ] **Add storage wrapper: `storage.NewEncryptedEventStore`** — Convenience for encrypted stores
 - [ ] **Field-level encryption (`encryption/fieldlevel/`)** — Per-field encryption for selective payload protection
 
@@ -164,9 +164,9 @@
 ### Polish
 
 - [ ] **Add `go-snaps` across remaining modules** — signing, middleware, storage, listing, watermill, pebble, turso, codec, otel, schema, snapshot, memory (some already have golden tests)
-- [ ] **Add CBOR fuzz test for pure CBOR→CBOR** — codec_fuzz_test.go exists but should test pure CBOR fidelity without JSON intermediary
-- [ ] **Add CBOR DecMode configuration** — Match encode/decode expectations, enable strict mode
-- [ ] **Evaluate CoreDetEncOptions vs CanonicalEncOptions** — Which is right default for signing safety?
+- [x] ~~**Add CBOR fuzz test for pure CBOR→CBOR**~~ — DONE: Added FuzzCBORCodec_CanonicalFidelity testing encode→decode→encode idempotency
+- [x] ~~**Add CBOR DecMode configuration**~~ — VERIFIED: Already configured with DupMapKeyEnforcedAPF, matching encode-side EncMode pattern
+- [x] ~~**Evaluate CoreDetEncOptions vs CanonicalEncOptions**~~ — EVALUATED: Keep CanonicalEncOptions. Switching to CoreDet changes all output bytes (SortBytewiseLexical vs SortLengthFirst), breaking existing stored CBOR + signatures. Decision documented in codec/cbor.go.
 - [x] ~~Fix codec/raw.go json.RawMessage support~~ — DONE
 - [x] ~~Godoc examples for decider~~ — DONE (example_test.go)
 - [x] ~~Godoc examples for projection~~ — DONE (example_test.go)
