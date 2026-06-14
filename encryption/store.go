@@ -33,14 +33,14 @@ var (
 // without configuring a bus.
 func NewEncryptedStore(
 	inner event.Store,
-	ed EncrypterDecrypter,
+	cipher EncrypterDecrypter,
 	opts ...MiddlewareOption,
 ) (*encryptedStore, error) {
 	if inner == nil {
 		return nil, ErrNilEvent
 	}
 
-	if ed == nil {
+	if cipher == nil {
 		return nil, ErrInvalidKey
 	}
 
@@ -51,8 +51,8 @@ func NewEncryptedStore(
 
 	return &encryptedStore{
 		inner: inner,
-		enc:   ed,
-		dec:   ed,
+		enc:   cipher,
+		dec:   cipher,
 		keyID: cfg.keyID,
 	}, nil
 }
@@ -140,7 +140,7 @@ func (s *encryptedStore) LoadToTimestamp(
 func (s *encryptedStore) ReadAll(ctx context.Context) ([]event.Event, error) {
 	journal, ok := s.inner.(event.Journal)
 	if !ok {
-		return nil, fmt.Errorf("encryptedStore: inner store %T does not implement event.Journal", s.inner)
+		return nil, fmt.Errorf("%w: %T", ErrInnerStoreNotJournal, s.inner)
 	}
 
 	events, err := journal.ReadAll(ctx)
@@ -160,7 +160,7 @@ func (s *encryptedStore) ReadFrom(
 ) ([]event.Event, error) {
 	seekable, ok := s.inner.(event.SeekableJournal)
 	if !ok {
-		return nil, fmt.Errorf("encryptedStore: inner store %T does not implement event.SeekableJournal", s.inner)
+		return nil, fmt.Errorf("%w: %T", ErrInnerStoreNotSeekable, s.inner)
 	}
 
 	events, err := seekable.ReadFrom(ctx, afterEventID, limit)
@@ -179,7 +179,7 @@ func (s *encryptedStore) LoadBackwards(
 ) ([]event.Event, error) {
 	backwards, ok := s.inner.(event.BackwardsSource)
 	if !ok {
-		return nil, fmt.Errorf("encryptedStore: inner store %T does not implement event.BackwardsSource", s.inner)
+		return nil, fmt.Errorf("%w: %T", ErrInnerStoreNotBackwards, s.inner)
 	}
 
 	events, err := backwards.LoadBackwards(ctx, ref)

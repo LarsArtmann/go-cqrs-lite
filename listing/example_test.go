@@ -67,7 +67,7 @@ func ExampleStatusMiddleware() {
 	deleteTypes := []event.Type{"user.deleted"}
 	rebirthTypes := []event.Type{"user.restored"}
 
-	bus.UsePublish(listing.StatusMiddleware(deleteTypes, rebirthTypes))
+	_ = bus.UsePublish(listing.StatusMiddleware(deleteTypes, rebirthTypes))
 
 	fmt.Println("StatusMiddleware installed")
 
@@ -81,7 +81,7 @@ func ExampleCacheInvalidationMiddleware() {
 	bus := memory.NewMemoryBus()
 
 	// Invalidate reader cache whenever events are published
-	bus.UsePublish(listing.CacheInvalidationMiddleware(reader))
+	_ = bus.UsePublish(listing.CacheInvalidationMiddleware(reader))
 
 	// Seed an aggregate
 	aggID := id.NewAggregateID()

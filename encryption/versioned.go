@@ -1,26 +1,39 @@
 package encryption
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 // CiphertextVersion identifies the envelope format version.
 type CiphertextVersion byte
 
 const (
 	// CiphertextV1 is the first versioned envelope format.
-	// Layout: [version:1][algorithm:1][ciphertext:N]
+	// Layout: [version:1][algorithm:1][ciphertext:N].
 	CiphertextV1 CiphertextVersion = 0x01
+)
+
+const (
+	algIDAES     byte = 0x01
+	algIDXChaCha byte = 0x02
 )
 
 // algorithmID maps Algorithm constants to single-byte identifiers for
 // compact storage inside the versioned envelope.
+//
+//nolint:gochecknoglobals // immutable lookup table for envelope serialization
 var algorithmID = map[Algorithm]byte{
-	AES256GCM:         0x01,
-	XChaCha20Poly1305: 0x02,
+	AES256GCM:         algIDAES,
+	XChaCha20Poly1305: algIDXChaCha,
 }
 
+// idToAlgorithm is the reverse lookup for decryption.
+//
+//nolint:gochecknoglobals // immutable lookup table for envelope deserialization
 var idToAlgorithm = map[byte]Algorithm{
-	0x01: AES256GCM,
-	0x02: XChaCha20Poly1305,
+	algIDAES:     AES256GCM,
+	algIDXChaCha: XChaCha20Poly1305,
 }
 
 const versionHeaderLen = 2 // version byte + algorithm byte
@@ -29,13 +42,13 @@ const versionHeaderLen = 2 // version byte + algorithm byte
 // identifier, producing a self-describing envelope that does not depend
 // on external metadata for decryption.
 //
-// Layout: [version:1][algorithm:1][ciphertext:N]
+// Layout: [version:1][algorithm:1][ciphertext:N].
 //
 // Use UnwrapCiphertext to reverse this operation.
 func WrapCiphertext(raw Ciphertext, alg Algorithm) (Ciphertext, error) {
 	algID, ok := algorithmID[alg]
 	if !ok {
-		return nil, fmt.Errorf("encryption.wrap_ciphertext: unknown algorithm %q", alg)
+		return nil, fmt.Errorf("%w: %q", ErrUnknownAlgorithm, alg)
 	}
 
 	result := make(Ciphertext, 0, versionHeaderLen+len(raw))
@@ -54,24 +67,23 @@ func WrapCiphertext(raw Ciphertext, alg Algorithm) (Ciphertext, error) {
 // versioning was introduced.
 func UnwrapCiphertext(data Ciphertext) (Algorithm, Ciphertext, error) {
 	if len(data) < versionHeaderLen {
-		// Too short for a version header; treat as raw unversioned ciphertext.
 		return "", data, nil
 	}
 
 	version := CiphertextVersion(data[0])
 	if version != CiphertextV1 {
-		// Not a recognized version; treat as raw unversioned ciphertext.
 		return "", data, nil
 	}
 
 	algID := data[1]
+
 	alg, ok := idToAlgorithm[algID]
 	if !ok {
-		return "", nil, fmt.Errorf(
-			"encryption.unwrap_ciphertext: unknown algorithm ID 0x%02x",
-			algID,
-		)
+		return "", nil, fmt.Errorf("%w: %s", ErrUnknownAlgorithmID,
+			strconv.FormatUint(uint64(algID), hexBase))
 	}
 
 	return alg, data[versionHeaderLen:], nil
 }
+
+const hexBase = 16

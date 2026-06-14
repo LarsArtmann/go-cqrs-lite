@@ -20,7 +20,7 @@ func TestEncryptedStore_SaveAndLoad(t *testing.T) {
 	}
 
 	inner := eventtest.NewFakeStore()
-	store, err := NewEncryptedStore(inner, ed)
+	store, _ := NewEncryptedStore(inner, ed)
 
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("User", aggID)
@@ -92,7 +92,7 @@ func TestEncryptedStore_LoadFromVersion(t *testing.T) {
 	ed, _ := NewAES256GCM(key)
 
 	inner := eventtest.NewFakeStore()
-	store, err := NewEncryptedStore(inner, ed)
+	store, _ := NewEncryptedStore(inner, ed)
 
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("User", aggID)
@@ -124,7 +124,7 @@ func TestEncryptedStore_LoadToVersion(t *testing.T) {
 	ed, _ := NewAES256GCM(key)
 
 	inner := eventtest.NewFakeStore()
-	store, err := NewEncryptedStore(inner, ed)
+	store, _ := NewEncryptedStore(inner, ed)
 
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("User", aggID)
@@ -152,7 +152,7 @@ func TestEncryptedStore_LoadToTimestamp(t *testing.T) {
 	ed, _ := NewAES256GCM(key)
 
 	inner := eventtest.NewFakeStore()
-	store, err := NewEncryptedStore(inner, ed)
+	store, _ := NewEncryptedStore(inner, ed)
 
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("User", aggID)
@@ -179,7 +179,7 @@ func TestEncryptedStore_AppendBatch(t *testing.T) {
 	ed, _ := NewAES256GCM(key)
 
 	inner := eventtest.NewFakeStore()
-	store, err := NewEncryptedStore(inner, ed)
+	store, _ := NewEncryptedStore(inner, ed)
 
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("User", aggID)

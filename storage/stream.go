@@ -34,6 +34,12 @@ func (s *SQLEventStore) LoadStream(
 		cqrsotel.RecordError(span, err)
 		return nil, event.WrapInfrastructure(err, "storage.stream_query", "sql stream query")
 	}
+
+	if err := rows.Err(); err != nil {
+		cqrsotel.RecordError(span, err)
+		return nil, event.WrapInfrastructure(err, "storage.stream_init", "sql stream init check")
+	}
+
 	return &sqlEventStream{rows: rows, store: s}, nil
 }
 

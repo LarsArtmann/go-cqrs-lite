@@ -100,6 +100,11 @@ func QueryRows[T any](
 			p.ErrMsg+fmt.Sprintf(" (%s=%v, where=%s)", aggType, aggID, p.Where))
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, cfg.WrapError(err, "storage.rows_err_"+cfg.Table,
+			p.ErrMsg+fmt.Sprintf(" (%s=%v, where=%s)", aggType, aggID, p.Where))
+	}
+
 	if p.RequireHit && len(results) == 0 {
 		return nil, cfg.WrapEmpty(cfg.NotFound, "storage.not_found",
 			fmt.Sprintf("no %s found for %s %v", cfg.DomainNoun, aggType, aggID))

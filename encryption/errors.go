@@ -22,4 +22,34 @@ var (
 		"encryption.nil_event",
 		"event is nil",
 	)
+
+	ErrInnerStoreNotJournal = event.NewRejection(
+		"encryption.inner_store_not_journal",
+		"inner store does not implement event.Journal",
+	)
+
+	ErrInnerStoreNotSeekable = event.NewRejection(
+		"encryption.inner_store_not_seekable",
+		"inner store does not implement event.SeekableJournal",
+	)
+
+	ErrInnerStoreNotBackwards = event.NewRejection(
+		"encryption.inner_store_not_backwards",
+		"inner store does not implement event.BackwardsSource",
+	)
+
+	ErrUnknownAlgorithm = event.NewRejection(
+		"encryption.unknown_algorithm",
+		"unknown encryption algorithm",
+	)
+
+	ErrUnknownAlgorithmID = event.NewRejection(
+		"encryption.unknown_algorithm_id",
+		"unknown algorithm ID in versioned ciphertext",
+	)
+
+	ErrUnknownKeyID = event.NewRejection(
+		"encryption.unknown_key_id",
+		"unknown key ID",
+	)
 )

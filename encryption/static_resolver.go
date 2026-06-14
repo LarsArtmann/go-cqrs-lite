@@ -33,7 +33,8 @@ func (r *StaticKeyResolver) Resolve(keyID KeyID) (Decrypter, error) {
 	dec, ok := r.keys[keyID]
 	if !ok {
 		available := r.availableKeys()
-		return nil, fmt.Errorf("encryption: unknown key %q (available: %s)", keyID, available)
+
+		return nil, fmt.Errorf("%w: %q (available: %s)", ErrUnknownKeyID, keyID, available)
 	}
 
 	return dec, nil

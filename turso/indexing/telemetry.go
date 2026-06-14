@@ -2,8 +2,6 @@ package indexing
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -67,30 +65,4 @@ func recordIndexAttributes(span trace.Span, idx Index) {
 		attribute.String(AttrIndexTable, idx.Table),
 		attribute.Bool(AttrIndexUnique, idx.Unique),
 	)
-}
-
-// execAndTrace executes a DDL or DML statement, tracing it.
-// The statement parameter is logged as an attribute for debugging.
-// Use this for index creation, dropping, and ANALYZE statements.
-func execAndTrace(
-	ctx context.Context,
-	db *sql.DB,
-	spanName, sqlLabel string,
-	ddl string,
-) error {
-	_, span := startIndexingSpan(
-		ctx,
-		spanName,
-		trace.WithAttributes(attribute.String("db.statement", sqlLabel)),
-	)
-	defer endSpan(span, nil)
-
-	_, err := db.ExecContext(ctx, ddl)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
-
-		return fmt.Errorf("%s: %w", sqlLabel, err)
-	}
-
-	return nil
 }

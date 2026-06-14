@@ -12,7 +12,7 @@ func encryptEvent(evt event.Event, enc Encrypter, keyID KeyID) (event.Event, err
 		return evt, nil
 	}
 
-	ct, err := enc.Encrypt(payload)
+	ciphertext, err := enc.Encrypt(payload)
 	if err != nil {
 		return nil, event.WrapInfrastructure(
 			err,
@@ -32,7 +32,7 @@ func encryptEvent(evt event.Event, enc Encrypter, keyID KeyID) (event.Event, err
 		attachOpts = append(attachOpts, WithKeyID(keyID))
 	}
 
-	clone, err := AttachEncryption(evt, ct, attachOpts...)
+	clone, err := AttachEncryption(evt, ciphertext, attachOpts...)
 	if err != nil {
 		return nil, event.WrapInfrastructure(
 			err,
@@ -49,7 +49,7 @@ func encryptEvent(evt event.Event, enc Encrypter, keyID KeyID) (event.Event, err
 func decryptEvent(evt event.Event, dec Decrypter) (event.Event, error) {
 	ct, err := ExtractCiphertext(evt)
 	if err != nil {
-		return evt, nil
+		return evt, nil //nolint:nilerr // empty payload passthrough is intentional
 	}
 
 	plaintext, err := dec.Decrypt(ct)

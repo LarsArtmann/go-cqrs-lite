@@ -3,7 +3,6 @@ package encryption
 import (
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
@@ -66,7 +65,7 @@ func UnmarshalEnvelope(encoded string) (Envelope, error) {
 	if env.Version == "" {
 		return Envelope{}, event.NewRejection(
 			"encryption.missing_envelope_version",
-			fmt.Sprintf("envelope has no version field: %s", string(data)),
+			"envelope has no version field: "+string(data),
 		)
 	}
 

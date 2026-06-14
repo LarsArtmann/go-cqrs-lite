@@ -157,6 +157,7 @@ linters:
             - go/parser
             - go/token
             - golang.org/x/tools
+            - golang.org/x/crypto
             - golang.org/x/sync
     exhaustruct:
       exclude:
@@ -301,6 +302,13 @@ linters:
           - usestdlibvars
           - nolintlint
           - varnamelen
+      - path: encryption/.*_test.go$
+        linters:
+          - contextcheck
+          - varnamelen
+      - path: encryption/store.go$
+        linters:
+          - wrapcheck
       - path: storage/
         linters:
           - dupl
@@ -314,10 +322,40 @@ linters:
           - wrapcheck
           - nlreturn
           - noinlineerr
+          - wsl_v5
+      - path: encryption/(aesgcm|xchacha20|envelope)\.go$
+        linters:
+          - noinlineerr
+          - nlreturn
           - dupword
           - forcetypeassert
-          - rowserrcheck
           - wsl_v5
+      - path: turso/indexing/
+        linters:
+          - exhaustruct
+          - goconst
+          - exhaustive
+          - errcheck
+          - errorlint
+          - nlreturn
+          - noinlineerr
+          - wsl_v5
+          - modernize
+          - perfsprint
+          - predeclared
+          - nolintlint
+          - wrapcheck
+          - varnamelen
+      - path: turso/indexing\.go$
+        linters:
+          - noinlineerr
+      - path: turso/.*_test\.go$
+        linters:
+          - rowserrcheck
+          - sqlclosecheck
+          - unqueryvet
+          - staticcheck
+          - varnamelen
       - path: saga/
         linters:
           - nlreturn

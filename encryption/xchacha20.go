@@ -51,7 +51,7 @@ func (e *xchacha20) Encrypt(plaintext []byte) (Ciphertext, error) {
 	if _, err := io.ReadFull(
 		rand.Reader,
 		nonce,
-	); err != nil { //nolint:noinlineerr // error used immediately in if-statement
+	); err != nil {
 		return nil, event.WrapInfrastructure(
 			err,
 			"encryption.xchacha20_nonce_gen",

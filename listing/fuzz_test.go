@@ -90,11 +90,9 @@ func FuzzTombstonePolicy_String(f *testing.F) {
 			if got != expected {
 				t.Errorf("String(%d): got %q, want %q", raw, got, expected)
 			}
-		} else {
+		} else if !strings.HasPrefix(got, "TombstonePolicy(") {
 			// Out-of-range must use default format
-			if !strings.HasPrefix(got, "TombstonePolicy(") {
-				t.Errorf("out-of-range String(%d): got %q, want default format", raw, got)
-			}
+			t.Errorf("out-of-range String(%d): got %q, want default format", raw, got)
 		}
 	})
 }

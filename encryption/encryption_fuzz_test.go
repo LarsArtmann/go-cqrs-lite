@@ -85,7 +85,7 @@ func FuzzEncryptingCodec_Roundtrip(f *testing.F) {
 			t.Fatalf("Decode: %v", err)
 		}
 
-		if string(got) != string(payload) {
+		if string(got) != payload {
 			t.Errorf("roundtrip mismatch: got %q, want %q", got, payload)
 		}
 	})

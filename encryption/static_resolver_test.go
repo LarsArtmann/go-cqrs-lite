@@ -1,6 +1,7 @@
 package encryption
 
 import (
+	"errors"
 	"testing"
 )
 
@@ -47,9 +48,8 @@ func TestStaticKeyResolver_UnknownKey(t *testing.T) {
 		t.Fatal("expected error for unknown key")
 	}
 
-	want := `encryption: unknown key "key-v99" (available: key-v1)`
-	if got := err.Error(); got != want {
-		t.Errorf("error message:\n got: %s\nwant: %s", got, want)
+	if !errors.Is(err, ErrUnknownKeyID) {
+		t.Errorf("expected ErrUnknownKeyID, got: %v", err)
 	}
 }
 
@@ -67,9 +67,8 @@ func TestStaticKeyResolver_AvailableKeys(t *testing.T) {
 		t.Fatal("expected error for missing key")
 	}
 
-	want := `encryption: unknown key "key-missing" (available: key-alpha, key-beta)`
-	if got := err.Error(); got != want {
-		t.Errorf("error message:\n got: %s\nwant: %s", got, want)
+	if !errors.Is(err, ErrUnknownKeyID) {
+		t.Errorf("expected ErrUnknownKeyID, got: %v", err)
 	}
 }
 
