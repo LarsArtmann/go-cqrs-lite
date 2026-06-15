@@ -2,10 +2,12 @@ package memory
 
 import (
 	"context"
+	"io"
 	"slices"
 	"sync"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/dispatcher/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
@@ -13,6 +15,8 @@ import (
 // MemoryQueryStore is an in-memory implementation of query.QueryStore.
 // It logs every query for audit purposes — "who queried what data and when?".
 type MemoryQueryStore struct {
+	dispatcher.Lifecycle
+
 	mu      sync.RWMutex
 	queries []*query.PersistedQuery
 	idIndex map[id.RequestID]int
@@ -22,15 +26,21 @@ var (
 	_ query.QueryStore           = (*MemoryQueryStore)(nil)
 	_ query.QueryJournal         = (*MemoryQueryStore)(nil)
 	_ query.SeekableQueryJournal = (*MemoryQueryStore)(nil)
+	_ io.Closer                  = (*MemoryQueryStore)(nil)
 )
 
 func NewMemoryQueryStore() *MemoryQueryStore {
-	return &MemoryQueryStore{ //nolint:exhaustruct // zero-valued sync.RWMutex is ready
+	return &MemoryQueryStore{ //nolint:exhaustruct // embedded Lifecycle has unexported fields from different package
 		idIndex: make(map[id.RequestID]int),
 	}
 }
 
 func (s *MemoryQueryStore) SaveQuery(_ context.Context, q *query.PersistedQuery) error {
+	err := s.CheckClosed(query.ErrStoreClosed)
+	if err != nil {
+		return query.WrapInfrastructure(err, "memory.save_query_failed", "memory query store save")
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -44,10 +54,19 @@ func (s *MemoryQueryStore) LoadQueries(
 	_ context.Context,
 	after time.Time,
 ) ([]*query.PersistedQuery, error) {
+	err := s.CheckClosed(query.ErrStoreClosed)
+	if err != nil {
+		return nil, query.WrapInfrastructure(
+			err,
+			"memory.load_queries_failed",
+			"memory query store load queries",
+		)
+	}
+
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	var result []*query.PersistedQuery
+	result := make([]*query.PersistedQuery, 0, len(s.queries))
 
 	for _, q := range s.queries {
 		if q.ReceivedAt().After(after) {
@@ -59,6 +78,15 @@ func (s *MemoryQueryStore) LoadQueries(
 }
 
 func (s *MemoryQueryStore) ReadAllQueries(_ context.Context) ([]*query.PersistedQuery, error) {
+	err := s.CheckClosed(query.ErrStoreClosed)
+	if err != nil {
+		return nil, query.WrapInfrastructure(
+			err,
+			"memory.readall_queries_failed",
+			"memory query journal readall",
+		)
+	}
+
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -70,6 +98,15 @@ func (s *MemoryQueryStore) ReadQueriesFrom(
 	afterRequestID id.RequestID,
 	limit int,
 ) ([]*query.PersistedQuery, error) {
+	err := s.CheckClosed(query.ErrStoreClosed)
+	if err != nil {
+		return nil, query.WrapInfrastructure(
+			err,
+			"memory.readqueries_from_failed",
+			"memory query journal readfrom",
+		)
+	}
+
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -93,4 +130,7 @@ func (s *MemoryQueryStore) ReadQueriesFrom(
 	return slices.Clone(s.queries[startIdx:end]), nil
 }
 
-func (s *MemoryQueryStore) Close() error { return nil }
+// Close marks the store as closed. Subsequent operations return ErrStoreClosed.
+func (s *MemoryQueryStore) Close() error {
+	return s.Lifecycle.Close() //nolint:wrapcheck // transparent delegation, caller wraps
+}

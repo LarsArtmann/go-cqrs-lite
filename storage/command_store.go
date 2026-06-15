@@ -47,4 +47,8 @@ func (s *SQLCommandStore) checkClosed() error {
 	return s.CheckClosed(command.ErrStoreClosed)
 }
 
-var _ command.Store = (*SQLCommandStore)(nil)
+var (
+	_ command.Store                  = (*SQLCommandStore)(nil)
+	_ command.CommandJournal         = (*SQLCommandStore)(nil)
+	_ command.SeekableCommandJournal = (*SQLCommandStore)(nil)
+)

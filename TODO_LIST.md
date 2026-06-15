@@ -13,26 +13,20 @@
 
 ---
 
-## HIGH — CQRS Audit Trail (Active Sprint)
+## HIGH — Remaining CQRS Audit Trail Work
 
-Symmetric persistence for commands and queries, matching the existing event journal pattern. Interfaces and memory implementations are done; tests and SQL backends remain.
+The CQRS audit trail feature (command/query persistence with journal support) is now **fully implemented** across memory and SQL backends. Remaining items:
 
-- [ ] **Tests for `MemoryCommandStore` journal methods** — `ReadAll` ordering, `ReadFrom` position-based pagination, closed-store behavior, empty-store edge cases (`memory/command_store.go`)
-- [ ] **Tests for `query/store.go`** — `NewPersistedQuery` validation (empty type rejection), `Payload()` defensive copy, `Metadata()` clone (`query/store_test.go`)
-- [ ] **Tests for `MemoryQueryStore`** — `SaveQuery`, `LoadQueries` (after-time filter), `ReadAllQueries`, `ReadQueriesFrom` (position-based) (`memory/query_store_test.go`)
-- [ ] **Add query module store sentinel errors** — `ErrQueryStoreClosed`, `ErrQueryNotFound`, `ErrDuplicateQuery` (command module has these; query parity gap)
-- [ ] **Update `query/doc.go`** — Document `PersistedQuery`, `QuerySink/Source/Store`, `QueryJournal`, `SeekableQueryJournal` with usage examples
-- [ ] **Add `SQLCommandStore` journal support** — `ReadAll`, `ReadFrom` methods for SQL-backed command persistence
-- [ ] **Add `SQLQueryStore`** — SQL backend for query persistence (parity with `SQLCommandStore`)
-- [ ] **Add `SQLBackend.QueryStore()`** — Facade method on SQL backend
+- [ ] **`query.BasicQuery` has no metadata** — Unlike `BasicCommand`, queries carry no correlation/tracing context. Makes distributed tracing through the query path inconsistent with command/event.
+- [ ] **Fix SQLCommandStore metadata roundtrip** — `scanCommand` in `storage/command_store_scan.go` drops metadata on load (SQLQueryStore already handles this correctly). Apply the same pattern used in `query_store_scan.go`.
 
 ---
 
 ## MEDIUM
 
-- [ ] **`query.BasicQuery` has no metadata** — Unlike `BasicCommand`, queries carry no correlation/tracing context. Makes distributed tracing through the query path inconsistent with command/event.
 - [ ] **`go-snaps` across remaining modules** — signing, middleware, storage, listing, watermill, pebble, turso, codec, otel, schema, snapshot, memory (some already have golden tests)
 - [ ] **Docker build CI step** — linux/amd64 + linux/arm64 multi-arch build in GitHub Actions
+- [ ] **Add `replace` directive CI check** — Script that verifies all modules pass `GOWORK=off go test` to catch the silent regression class
 
 ---
 
@@ -60,4 +54,4 @@ Symmetric persistence for commands and queries, matching the existing event jour
 
 ---
 
-_15 open items + 8 deferred breaking changes. See [ROADMAP.md](ROADMAP.md) for long-term vision and sprint history._
+_6 open items + 8 deferred breaking changes. See [ROADMAP.md](ROADMAP.md) for long-term vision and sprint history._

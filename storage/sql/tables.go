@@ -9,6 +9,8 @@ const (
 	TableSnapshots = "snapshots"
 	// TableCheckpoints is the SQL table name for checkpoints.
 	TableCheckpoints = "checkpoints"
+	// TableQueries is the SQL table name for queries.
+	TableQueries = "queries"
 )
 
 // EventColumns is the standard SELECT column list for event queries.
@@ -16,3 +18,6 @@ const EventColumns = "id, event_type, aggregate_type, aggregate_id, version, sch
 
 // CommandColumns is the standard SELECT column list for command queries.
 const CommandColumns = "id, command_type, aggregate_type, aggregate_id, payload, metadata, received_at"
+
+// QueryColumns is the standard SELECT column list for query queries.
+const QueryColumns = "id, query_type, payload, metadata, received_at"

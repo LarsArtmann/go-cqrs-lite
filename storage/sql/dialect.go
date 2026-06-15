@@ -19,6 +19,7 @@ type Dialect interface {
 	ParseTime(src any) (time.Time, error)
 	EventSchema() string
 	CommandSchema() string
+	QuerySchema() string
 	SnapshotSchema() string
 	CheckpointSchema() string
 }
@@ -97,6 +98,20 @@ func (PostgresDialect) SnapshotSchema() string {
     created_at      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     PRIMARY KEY (aggregate_type, aggregate_id)
 );`
+}
+
+func (PostgresDialect) QuerySchema() string {
+	return `CREATE TABLE IF NOT EXISTS queries (
+    id               TEXT PRIMARY KEY,
+    query_type       VARCHAR(255) NOT NULL,
+    payload          BYTEA,
+    metadata         JSONB,
+    received_at      TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_queries_type ON queries(query_type);
+CREATE INDEX IF NOT EXISTS idx_queries_received_at ON queries(received_at);`
 }
 
 func (PostgresDialect) CheckpointSchema() string {
@@ -181,6 +196,20 @@ func (SQLiteDialect) SnapshotSchema() string {
     created_at      TEXT NOT NULL DEFAULT (datetime('now')),
     PRIMARY KEY (aggregate_type, aggregate_id)
 );`
+}
+
+func (SQLiteDialect) QuerySchema() string {
+	return `CREATE TABLE IF NOT EXISTS queries (
+    id               TEXT PRIMARY KEY,
+    query_type       TEXT NOT NULL,
+    payload          BLOB,
+    metadata         TEXT,
+    received_at      TEXT NOT NULL,
+    created_at       TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_queries_type ON queries(query_type);
+CREATE INDEX IF NOT EXISTS idx_queries_received_at ON queries(received_at);`
 }
 
 func (SQLiteDialect) CheckpointSchema() string {

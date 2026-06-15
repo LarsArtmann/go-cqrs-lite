@@ -28,4 +28,20 @@
 //
 //	cmds.Use(middleware.CommandLogging(logger))
 //	cmds.Use(middleware.CommandRecovery())
+//
+// # Command Persistence (Audit Trail)
+//
+// PersistedCommand captures every received command with full audit metadata
+// (type, aggregate ref, payload, received-at timestamp). Use a CommandStore
+// to save and load commands for audit and replay:
+//
+//	store := memory.NewMemoryCommandStore()
+//	cmd, _ := command.NewPersistedCommand("user.create", ref, payload)
+//	store.Save(ctx, ref, cmd)
+//	loaded, _ := store.Load(ctx, ref)
+//
+// For cross-aggregate audit, use the CommandJournal interface:
+//
+//	all, _ := store.ReadAll(ctx)              // all commands, ordered by received_at
+//	page, _ := store.ReadFrom(ctx, lastID, 100) // position-based pagination
 package command

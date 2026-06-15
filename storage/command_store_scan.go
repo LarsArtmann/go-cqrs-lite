@@ -2,6 +2,7 @@ package storage
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
@@ -73,12 +74,25 @@ func (s *SQLCommandStore) scanCommand(rows *sql.Rows) (*command.PersistedCommand
 
 	ref := command.NewAggregateRef(parsedAggType, parsedAggID)
 
+	opts := []command.PersistOption{
+		command.WithCommandID(parsedCommandID),
+		command.WithReceivedAt(receivedAt),
+	}
+
+	if len(metadataJSON) > 0 {
+		var meta command.Metadata
+		if jsonErr := json.Unmarshal(metadataJSON, &meta); jsonErr != nil {
+			return nil, command.WrapCorruption(jsonErr, "storage.parse_command_metadata",
+				fmt.Sprintf("unmarshal metadata for %s command (id %s)", commandType, commandIDStr))
+		}
+		opts = append(opts, command.WithCommandMetadata(meta))
+	}
+
 	cmd, err := command.NewPersistedCommand(
 		command.Type(commandType),
 		ref,
 		payload,
-		command.WithCommandID(parsedCommandID),
-		command.WithReceivedAt(receivedAt),
+		opts...,
 	)
 	if err != nil {
 		return nil, command.WrapCorruption(err, "storage.reconstruct_command",
