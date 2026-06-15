@@ -142,8 +142,8 @@ func BenchmarkScale_ProjectionProcessing_Parallel(b *testing.B) {
 		{"Parallelism8", 8},
 	}
 
-	for _, sz := range sizes {
-		b.Run(sz.name, func(b *testing.B) {
+	for _, tc := range sizes {
+		b.Run(tc.name, func(b *testing.B) {
 			b.ReportAllocs()
 
 			store := memory.NewMemoryStore()
@@ -160,7 +160,7 @@ func BenchmarkScale_ProjectionProcessing_Parallel(b *testing.B) {
 
 			runner, err := projection.NewRunner(
 				store, bus, checkpoint,
-				projection.WithParallelism(sz.parallelism),
+				projection.WithParallelism(tc.parallelism),
 			)
 			if err != nil {
 				b.Fatalf("NewRunner: %v", err)
