@@ -30,7 +30,7 @@ func (s *SQLCommandStore) Save(
 	)
 	defer span.End()
 
-	return s.withTx(ctx, span, func(tx *sql.Tx) error {
+	return sqlpkg.RunInTx(ctx, s.DB, span, func(tx *sql.Tx) error {
 		err := s.insertCommand(ctx, tx, ref, cmd)
 		if err != nil {
 			cqrsotel.RecordError(span, err)
@@ -70,7 +70,7 @@ func (s *SQLCommandStore) AppendBatch(
 	)
 	defer span.End()
 
-	return s.withTx(ctx, span, func(tx *sql.Tx) error {
+	return sqlpkg.RunInTx(ctx, s.DB, span, func(tx *sql.Tx) error {
 		for _, cmd := range cmds {
 			err := s.insertCommand(ctx, tx, ref, cmd)
 			if err != nil {
@@ -83,34 +83,6 @@ func (s *SQLCommandStore) AppendBatch(
 
 		return nil
 	})
-}
-
-func (s *SQLCommandStore) withTx(
-	ctx context.Context,
-	span cqrsotel.Span,
-	fn func(*sql.Tx) error,
-) error {
-	tx, err := s.DB.BeginTx(ctx, nil)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
-
-		return command.WrapInfrastructure(err, "storage.begin_tx", "begin transaction")
-	}
-
-	defer func() {
-		_ = tx.Rollback()
-	}()
-
-	if err := fn(tx); err != nil {
-		return err
-	}
-
-	err = sqlpkg.CommitTx(tx)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
-	}
-
-	return err
 }
 
 func (s *SQLCommandStore) insertCommand(

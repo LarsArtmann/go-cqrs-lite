@@ -29,7 +29,7 @@ func (s *SQLQueryStore) SaveQuery(
 	)
 	defer span.End()
 
-	return s.withTx(ctx, span, func(tx *sql.Tx) error {
+	return sqlpkg.RunInTx(ctx, s.DB, span, func(tx *sql.Tx) error {
 		err := s.insertQuery(ctx, tx, q)
 		if err != nil {
 			cqrsotel.RecordError(span, err)
@@ -38,33 +38,6 @@ func (s *SQLQueryStore) SaveQuery(
 		}
 		return nil
 	})
-}
-
-func (s *SQLQueryStore) withTx(
-	ctx context.Context,
-	span cqrsotel.Span,
-	fn func(*sql.Tx) error,
-) error {
-	tx, err := s.DB.BeginTx(ctx, nil)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
-		return query.WrapInfrastructure(err, "storage.begin_tx", "begin transaction")
-	}
-
-	defer func() {
-		_ = tx.Rollback()
-	}()
-
-	if err := fn(tx); err != nil {
-		return err
-	}
-
-	err = sqlpkg.CommitTx(tx)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
-	}
-
-	return err
 }
 
 func (s *SQLQueryStore) insertQuery(
