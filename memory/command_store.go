@@ -26,8 +26,10 @@ type MemoryCommandStore struct {
 }
 
 var (
-	_ command.Store = (*MemoryCommandStore)(nil)
-	_ io.Closer     = (*MemoryCommandStore)(nil)
+	_ command.Store                  = (*MemoryCommandStore)(nil)
+	_ command.CommandJournal         = (*MemoryCommandStore)(nil)
+	_ command.SeekableCommandJournal = (*MemoryCommandStore)(nil)
+	_ io.Closer                      = (*MemoryCommandStore)(nil)
 )
 
 // NewMemoryCommandStore creates a new in-memory command store.
@@ -149,6 +151,64 @@ func (s *MemoryCommandStore) LoadToTimestamp(
 // Close marks the store as closed. Subsequent operations return ErrStoreClosed.
 func (s *MemoryCommandStore) Close() error {
 	return s.Lifecycle.Close() //nolint:wrapcheck // transparent delegation, caller wraps
+}
+
+// ReadAll returns all commands across all aggregates, ordered by insertion
+// (which matches ReceivedAt order since commands are appended on receipt).
+// Implements command.CommandJournal.
+func (s *MemoryCommandStore) ReadAll(_ context.Context) ([]*command.PersistedCommand, error) {
+	err := s.CheckClosed(command.ErrStoreClosed)
+	if err != nil {
+		return nil, event.WrapInfrastructure(
+			err,
+			"memory.readall_failed",
+			"memory command journal readall",
+		)
+	}
+
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return slices.Clone(s.globalLog), nil
+}
+
+// ReadFrom returns commands after the given CommandID, ordered by insertion.
+// Implements command.SeekableCommandJournal for position-based command replay.
+func (s *MemoryCommandStore) ReadFrom(
+	_ context.Context,
+	afterCommandID id.CommandID,
+	limit int,
+) ([]*command.PersistedCommand, error) {
+	err := s.CheckClosed(command.ErrStoreClosed)
+	if err != nil {
+		return nil, event.WrapInfrastructure(
+			err,
+			"memory.readfrom_failed",
+			"memory command journal readfrom",
+		)
+	}
+
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	startIdx := 0
+
+	if afterCommandID != (id.CommandID{}) {
+		idx, exists := s.commandIDIndex[afterCommandID]
+		if !exists {
+			return nil, nil
+		}
+
+		startIdx = idx + 1
+	}
+
+	end := min(startIdx+limit, len(s.globalLog))
+
+	if startIdx >= len(s.globalLog) {
+		return nil, nil
+	}
+
+	return slices.Clone(s.globalLog[startIdx:end]), nil
 }
 
 func (s *MemoryCommandStore) checkDuplicate(cmdID id.CommandID, suffix string) error {
