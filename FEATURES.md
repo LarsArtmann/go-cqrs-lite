@@ -44,19 +44,19 @@
 
 > `import "github.com/larsartmann/go-cqrs-lite/query"`
 
-| Feature              | Detail                                                                             | Status |
-| -------------------- | ---------------------------------------------------------------------------------- | ------ |
-| Query dispatch       | `Dispatcher.Dispatch(ctx, query)` returns `(any, error)`                           | ✅     |
-| Typed dispatch       | `DispatchTyped[T](ctx, dispatcher, query)` — generic type-safe result extraction   | ✅     |
-| Handler registration | Same pattern as command — duplicate guard, lifecycle                               | ✅     |
-| Middleware chain     | Same pattern as command                                                            | ✅     |
-| Pagination           | `Pagination` struct with `Page`, `PageSize`, `Offset()`, `Validate()`              | ✅     |
-| Paginated results    | `PaginatedResult[T]` with `HasNext()`, `HasPrev()`, computed `TotalPages`          | ✅     |
-| TypedHandler[Q, R]   | `RegisterTyped[Q, R]` — type-safe handler receiving `Q` and returning `(R, error)` | ✅     |
-| PersistedQuery       | Stored query with full audit metadata (ID, Type, ReceivedAt, Payload, Metadata)   | ✅     |
-| Query store interfaces | `QuerySink`, `QuerySource`, `QueryStore` (Sink+Source) — persisted query log    | ✅     |
-| QueryJournal         | `ReadAllQueries(ctx)` — global query log for audit ("who queried what and when?") | ✅     |
-| SeekableQueryJournal | `ReadQueriesFrom(ctx, afterRequestID, limit)` — position-based query replay      | ✅     |
+| Feature                | Detail                                                                             | Status |
+| ---------------------- | ---------------------------------------------------------------------------------- | ------ |
+| Query dispatch         | `Dispatcher.Dispatch(ctx, query)` returns `(any, error)`                           | ✅     |
+| Typed dispatch         | `DispatchTyped[T](ctx, dispatcher, query)` — generic type-safe result extraction   | ✅     |
+| Handler registration   | Same pattern as command — duplicate guard, lifecycle                               | ✅     |
+| Middleware chain       | Same pattern as command                                                            | ✅     |
+| Pagination             | `Pagination` struct with `Page`, `PageSize`, `Offset()`, `Validate()`              | ✅     |
+| Paginated results      | `PaginatedResult[T]` with `HasNext()`, `HasPrev()`, computed `TotalPages`          | ✅     |
+| TypedHandler[Q, R]     | `RegisterTyped[Q, R]` — type-safe handler receiving `Q` and returning `(R, error)` | ✅     |
+| PersistedQuery         | Stored query with full audit metadata (ID, Type, ReceivedAt, Payload, Metadata)    | ✅     |
+| Query store interfaces | `QuerySink`, `QuerySource`, `QueryStore` (Sink+Source) — persisted query log       | ✅     |
+| QueryJournal           | `ReadAllQueries(ctx)` — global query log for audit ("who queried what and when?")  | ✅     |
+| SeekableQueryJournal   | `ReadQueriesFrom(ctx, afterRequestID, limit)` — position-based query replay        | ✅     |
 
 **Defaults:** Page 1, PageSize 20, max 100.
 **Sentinel errors:** `ErrHandlerNotFound`, `ErrDispatcherClosed`, `ErrEmptyQueryType`, `ErrTypeAssertion`
@@ -200,8 +200,8 @@
 | MemoryBus             | `event.Bus` with typed `Subscribe` + `SubscribeAll` + handler/publish middleware                         | 🧪     |
 | MemorySnapshotStore   | `snapshot.SnapshotStore` with deep-copy snapshots, version-aware `LoadAtVersion`                         | 🧪     |
 | MemoryCheckpointStore | `event.CheckpointStore` for projection checkpointing                                                     | 🧪     |
-| MemoryCommandStore    | `command.Store` + `CommandJournal` + `SeekableCommandJournal` for persisted command log            | 🧪     |
-| MemoryQueryStore      | `query.QueryStore` + `QueryJournal` + `SeekableQueryJournal` for persisted query audit log        | 🧪     |
+| MemoryCommandStore    | `command.Store` + `CommandJournal` + `SeekableCommandJournal` for persisted command log                  | 🧪     |
+| MemoryQueryStore      | `query.QueryStore` + `QueryJournal` + `SeekableQueryJournal` for persisted query audit log               | 🧪     |
 
 **Intended use:** Testing and development only. All implementations are thread-safe (`sync.RWMutex`), support `Close()` lifecycle, and return defensive copies.
 
@@ -705,14 +705,14 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 
 Found during code reviews. See `docs/planning/` for details.
 
-| Issue                                                      | Severity | Module              |
-| ---------------------------------------------------------- | -------- | ------------------- |
-| CommandJournal/SeekableCommandJournal in MemoryCommandStore untested | MEDIUM   | memory              |
-| Query store interfaces (PersistedQuery, QueryStore, QueryJournal) untested | MEDIUM   | query, memory       |
+| Issue                                                                                         | Severity | Module              |
+| --------------------------------------------------------------------------------------------- | -------- | ------------------- |
+| CommandJournal/SeekableCommandJournal in MemoryCommandStore untested                          | MEDIUM   | memory              |
+| Query store interfaces (PersistedQuery, QueryStore, QueryJournal) untested                    | MEDIUM   | query, memory       |
 | Query module lacks store-specific sentinel errors (`ErrQueryStoreClosed`, `ErrQueryNotFound`) | LOW      | query               |
-| command re-exports event types (module boundary violation) | HIGH     | command             |
-| Reactive extensions not wired into dispatchers             | LOW      | event/command/query |
-| Pre-existing golden test drift (codec, middleware)         | LOW      | codec, middleware   |
+| command re-exports event types (module boundary violation)                                    | HIGH     | command             |
+| Reactive extensions not wired into dispatchers                                                | LOW      | event/command/query |
+| Pre-existing golden test drift (codec, middleware)                                            | LOW      | codec, middleware   |
 
 ---
 
@@ -720,12 +720,12 @@ Found during code reviews. See `docs/planning/` for details.
 
 Features mentioned in project docs/planning but with **no production code yet**:
 
-| Feature                      | Description                                                                                               |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Reactive CommandBus/QueryBus | `ro.Subject[Command]` / `ro.Subject[Query]` reactive streams (mentioned in AGENTS.md but not implemented) |
-| Schema registry              | JSON Schema middleware for event validation                                                               |
-| PostgreSQL integration tests | testcontainers-based real PG testing                                                                      |
-| Documentation site           | Docusaurus/MkDocs/Hugo site                                                                               |
+| Feature                      | Description                                                                                                 |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Reactive CommandBus/QueryBus | `ro.Subject[Command]` / `ro.Subject[Query]` reactive streams — event module has these, command/query do not |
+| Schema registry              | JSON Schema middleware for event validation                                                                 |
+| PostgreSQL integration tests | testcontainers-based real PG testing                                                                        |
+| Documentation site           | Docusaurus/MkDocs/Hugo site                                                                                 |
 
 ---
 
@@ -776,7 +776,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 | Guarantee              | Detail                                                                           |
 | ---------------------- | -------------------------------------------------------------------------------- |
-| Near-zero lint issues  | 0 lint issues across all 27 modules (v2.3.0 audit)                                |
+| Near-zero lint issues  | 0 lint issues across all 27 modules (v2.3.0 audit)                               |
 | Race-free              | `go test -race` passes across all modules                                        |
 | Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                   |
 | Interface-first        | All core types are interfaces — provide your own implementations                 |

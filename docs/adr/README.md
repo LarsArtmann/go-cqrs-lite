@@ -99,24 +99,24 @@ watermill/     — Watermill protocol adapter
 
 ## Index
 
-| ADR                                              | Title                                 | Date       | Status   |
-| ------------------------------------------------ | ------------------------------------- | ---------- | -------- |
-| [0001](0001-decider-over-aggregate.md)           | Decider Pattern over Aggregate Root   | 2026-04-29 | Accepted |
-| [0002](0002-error-taxonomy.md)                   | Error Taxonomy via go-error-family    | 2026-05-03 | Accepted |
-| [0003](0003-multi-module-monorepo.md)            | Multi-Module Monorepo with go.work    | 2026-04-24 | Accepted |
-| [0004](0004-saga-process-manager.md)             | Saga/Process Manager Pattern          | —          | Accepted |
-| [0005](0005-tombstone-soft-delete.md)            | Tombstone Soft-Delete Pattern         | 2026-05-10 | Accepted |
-| [0006](0006-sink-source-split.md)                | Sink/Source ISP Split                 | —          | Accepted |
-| [0007](0007-gopls-workspace-workaround.md)       | gopls Workspace Workaround            | —          | Accepted |
-| [0008](0008-typed-handler-signature.md)          | Typed Handler Signature               | —          | Accepted |
-| [0009](0009-pebble-scope-event-store-only.md)    | Pebble Scope: Event Store Only        | —          | Accepted |
-| [0010](0010-remove-io-closer-from-interfaces.md) | Remove io.Closer from Core Interfaces | —          | Accepted |
-| [0011](0011-unify-err-dispatcher-closed.md)      | Unify ErrDispatcherClosed             | —          | Accepted |
-| [0012](0012-split-catalog-modules.md)            | Split Catalog into Sub-Modules        | —          | Accepted |
-| [0013](0013-zero-copy-payload-for-decode.md)     | Zero-Copy Payload for Decode          | —          | Accepted |
-| [0014](0014-test-only-dependencies-in-go-mod.md) | Test-Only Dependencies in go.mod      | —          | Accepted |
-| [0015](0015-cbor-codec.md)                       | CBOR Codec                            | —          | Accepted |
-| [0016](0016-outbox-pattern.md)                   | Outbox Pattern                        | 2026-06-14 | Proposed |
-| [0017](0017-schema-registry.md)                  | Schema Registry for Event Validation  | 2026-06-14 | Proposed |
-| [0018](0018-distributed-checkpointing.md)        | Distributed Checkpointing             | 2026-06-14 | Proposed |
-| [0020](0020-performance-optimization-patterns.md) | Performance Optimization Patterns   | 2026-06-14 | Accepted |
+| ADR                                               | Title                                 | Date       | Status   |
+| ------------------------------------------------- | ------------------------------------- | ---------- | -------- |
+| [0001](0001-decider-over-aggregate.md)            | Decider Pattern over Aggregate Root   | 2026-04-29 | Accepted |
+| [0002](0002-error-taxonomy.md)                    | Error Taxonomy via go-error-family    | 2026-05-03 | Accepted |
+| [0003](0003-multi-module-monorepo.md)             | Multi-Module Monorepo with go.work    | 2026-04-24 | Accepted |
+| [0004](0004-saga-process-manager.md)              | Saga/Process Manager Pattern          | —          | Accepted |
+| [0005](0005-tombstone-soft-delete.md)             | Tombstone Soft-Delete Pattern         | 2026-05-10 | Accepted |
+| [0006](0006-sink-source-split.md)                 | Sink/Source ISP Split                 | —          | Accepted |
+| [0007](0007-gopls-workspace-workaround.md)        | gopls Workspace Workaround            | —          | Accepted |
+| [0008](0008-typed-handler-signature.md)           | Typed Handler Signature               | —          | Accepted |
+| [0009](0009-pebble-scope-event-store-only.md)     | Pebble Scope: Event Store Only        | —          | Accepted |
+| [0010](0010-remove-io-closer-from-interfaces.md)  | Remove io.Closer from Core Interfaces | —          | Accepted |
+| [0011](0011-unify-err-dispatcher-closed.md)       | Unify ErrDispatcherClosed             | —          | Accepted |
+| [0012](0012-split-catalog-modules.md)             | Split Catalog into Sub-Modules        | —          | Accepted |
+| [0013](0013-zero-copy-payload-for-decode.md)      | Zero-Copy Payload for Decode          | —          | Accepted |
+| [0014](0014-test-only-dependencies-in-go-mod.md)  | Test-Only Dependencies in go.mod      | —          | Accepted |
+| [0015](0015-cbor-codec.md)                        | CBOR Codec                            | —          | Accepted |
+| [0016](0016-outbox-pattern.md)                    | Outbox Pattern                        | 2026-06-14 | Proposed |
+| [0017](0017-schema-registry.md)                   | Schema Registry for Event Validation  | 2026-06-14 | Proposed |
+| [0018](0018-distributed-checkpointing.md)         | Distributed Checkpointing             | 2026-06-14 | Proposed |
+| [0020](0020-performance-optimization-patterns.md) | Performance Optimization Patterns     | 2026-06-14 | Accepted |

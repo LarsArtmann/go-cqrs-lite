@@ -37,19 +37,19 @@ Multi-module Go workspace (`go.work`) with 28 modules (22 library + 1 integratio
 
 ```
 go-cqrs-lite/
-├── event/               # EventSink, EventSource, Store, Journal, Bus, ImmutableEvent, NewEvent, Clone
-│                        # Reactive: EventBus, NewReplayEventBus, NewBehaviorEventBus, FilterEventType/Types, ReplayFilter, HandlerToObserver, Map, ScanState, Tap
+├── event/               # EventSink, EventSource, Store, Journal, SeekableJournal, Bus, ImmutableEvent, NewEvent, Clone
+│                        # Reactive: EventBus, NewReplayEventBus, NewBehaviorEventBus, FilterEventType/Types, ReplayFilter, HandlerToObserver
 │   └── eventtest/       # FakeStore, FakeBus, FakeSnapshotStore, event factories, test assertions
-├── command/             # Dispatcher, Handler, Middleware, Command, BasicCommand
-│                        # Reactive: CommandBus (= ro.Subject[Command]), FilterCommandType
-├── query/               # Dispatcher, Handler, Pagination, PaginatedResult[T], RegisterTyped[T]
-│                        # Reactive: QueryBus (= ro.Subject[Query]), FilterQueryType
+├── command/             # Dispatcher, Handler, Middleware, Command, BasicCommand, PersistedCommand
+│                        # Store: CommandSink, CommandSource, Store, CommandJournal, SeekableCommandJournal
+├── query/               # Dispatcher, Handler, Pagination, PaginatedResult[T], RegisterTyped[Q,R], TypedHandler[Q,R]
+│                        # Store: PersistedQuery, QuerySink, QuerySource, QueryStore, QueryJournal, SeekableQueryJournal
 ├── decider/             # Decider[State], Repository[State], Execute, Load (pure-function style)
 ├── id/                  # Branded IDs: id.Of[T] = cbid.ID[T, ulid.ULID], AggregateID, EventID, etc.
 ├── dispatcher/          # Generic Dispatcher[H, M] with LifecycleMixin
 ├── schema/              # Upcaster, VersionedStore, upcasterRegistry (schema evolution)
 ├── snapshot/            # Snapshot, SnapshotSink/Source/Store, SnapshotStrategy, EveryNEvents
-├── memory/              # MemoryStore, MemoryBus, MemorySnapshotStore, MemoryCheckpointStore (in-memory test impls)
+├── memory/              # MemoryStore, MemoryBus, MemorySnapshotStore, MemoryCheckpointStore, MemoryCommandStore, MemoryQueryStore (in-memory test impls)
 ├── catalog/             # Registry, SchemaFromType[T](), AsyncAPI/D2/EventCatalog/OpenAPI exporters
 │   └── schema/          # JSON Schema types, reflection engine, YAML serialization
 ├── middleware/           # Logging, Retry, Recovery, Validation, Metrics, OTel Tracing+Metrics (command+event+query)
@@ -128,19 +128,27 @@ marked, _ := event.MarkTombstone(evt)   // sets tombstone metadata
 replayCtx := event.WithProcessingMode(ctx, event.ModeReplay)
 mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 
-// Reactive event streams (samber/ro)
+// Reactive event streams (samber/ro) — event module only
 //   bus := event.NewEventBus()
 //   bus.Subscribe(ro.OnNext(func(e event.Event) { ... }))
 //   filtered := ro.Pipe1(bus, event.FilterEventType("user.created"))
 //   observer := event.HandlerToObserver(myHandler)
 //   bus.Next(evt)
 //   bus.Complete()
+// Note: command/query do NOT have reactive bus types. Only event/ has reactive extensions.
+
+// Command & query persistence (audit trail)
+//   cmd, _ := command.NewPersistedCommand("user.create", ref, payload)
+//   cmdStore.Save(ctx, ref, cmd)         // CommandSink
+//   cmds, _ := cmdStore.Load(ctx, ref)   // CommandSource
+//   var journal command.CommandJournal = cmdStore        // ReadAll (global)
+//   var seekable command.SeekableCommandJournal = cmdStore // ReadFrom(afterCmdID, limit)
 //
-//   cmdBus := command.NewCommandBus()
-//   cmdBus.Subscribe(ro.OnNext(func(c command.Command) { ... }))
-//
-//   queryBus := query.NewQueryBus()
-//   queryBus.Subscribe(ro.OnNext(func(q query.Query) { ... }))
+//   pq, _ := query.NewPersistedQuery("user.get", payload)
+//   qStore.SaveQuery(ctx, pq)            // QuerySink
+//   queries, _ := qStore.LoadQueries(ctx, after) // QuerySource
+//   var qJournal query.QueryJournal = qStore             // ReadAllQueries
+//   var qSeekable query.SeekableQueryJournal = qStore     // ReadQueriesFrom(afterReqID, limit)
 
 // Event upcasting (schema migration on load)
 //   upcaster := schema.NewUpcaster("UserCreated", 1, func(evt event.Event) (*event.ImmutableEvent, error) {

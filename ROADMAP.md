@@ -62,6 +62,20 @@
 - [ ] `jsonv2` codec experiment behind build tag
 - [ ] Arena allocation experiment in event module
 
+### Sprint 7: CQRS Audit Trail (Post v2.3.0 — In Progress)
+
+Symmetric persistence across all three CQRS message types (events, commands, queries) for complete auditability.
+
+- [x] Command journal interfaces (`CommandJournal`, `SeekableCommandJournal`)
+- [x] `MemoryCommandStore.ReadAll()` + `ReadFrom()` implementation
+- [x] Query store interfaces (`PersistedQuery`, `QuerySink/Source/Store`, `QueryJournal`, `SeekableQueryJournal`)
+- [x] `MemoryQueryStore` implementation
+- [ ] Tests for command journal + query store (memory implementations)
+- [ ] Query module store-specific sentinel errors (`ErrQueryStoreClosed`, `ErrQueryNotFound`)
+- [ ] `SQLCommandStore` → add journal support (`ReadAll`, `ReadFrom`)
+- [ ] `SQLQueryStore` — SQL backend for query persistence (parity with `SQLCommandStore`)
+- [ ] `SQLBackend.QueryStore()` facade method
+
 ---
 
 ## Long Term Vision (6–12 Months)
@@ -110,4 +124,4 @@
 
 ---
 
-_Last updated: 2026-06-12 (v2.3.0 release)_
+_Last updated: 2026-06-15 (post v2.3.0 — CQRS audit trail sprint in progress)_

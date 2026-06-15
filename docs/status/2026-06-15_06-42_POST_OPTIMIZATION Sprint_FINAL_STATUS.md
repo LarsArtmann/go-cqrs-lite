@@ -11,31 +11,33 @@
 
 ### Performance Optimizations (15 total, all verified)
 
-| ID | Optimization | Module | Verified By | Key Result |
-|----|-------------|--------|------------|------------|
-| T1 | Pebble double serialization eliminated | pebble | Dedicated Save benchmark | 14µs/op, 36 allocs per single-event save |
-| T2 | Event lazy metadata map initialization | event | `AllocsPerRun` test | `NewMetadata()` = **0 allocs** |
-| T3 | Projection handler Lookup zero-alloc | projection | Code review | Builder-only path; superseded by T15 |
-| T4 | Projection EventTypes internal fast path | projection | Dead code removed | Originally broken; fixed by T15 |
-| T5 | SQL template strings cached per dialect | storage | Tests pass | 3 fewer allocs per SQL Save |
-| T6 | MemoryStore Load double-copy eliminated | memory | Benchmark | 3584→1792 B/op, 2→1 allocs |
-| T7 | SSE vestigial goroutine removed | middleware | Code review | Goroutine leak eliminated |
-| T8 | Merge EnsureCustom hoisted before loop | event | Tests pass | Per-iteration nil-check removed |
-| T9 | FilterByTimestamp pre-sized slice | event | `AllocsPerRun` test | **1 alloc** (result slice only) |
-| T10 | ScanSlice pre-allocated with cap 64 | storage | Tests pass | Reduces log₂(N) growth copies |
-| T11 | CircuitBreaker atomic state machine | middleware | **Dedicated benchmark** | **9.3 ns/op, 0 allocs** happy path |
-| T12 | MemoryBus middleware pre-computation | memory | Benchmark | 48→16 B, 3→1 allocs per publish |
-| T13 | Pebble ReadFrom key-based skip | pebble | LoadToTimestamp benchmark | 21-23% faster, 26% less memory |
-| T14 | SQL multi-VALUES INSERT batching | storage | Tests pass | SQLite 999-param chunking (99/batch) |
-| T15 | **Runner event type caching** (the real fix) | projection | **5-run benchmark** | **-10.5M allocs (-10.4%)**, -583 MB (-9.7%) |
+| ID  | Optimization                                 | Module     | Verified By               | Key Result                                  |
+| --- | -------------------------------------------- | ---------- | ------------------------- | ------------------------------------------- |
+| T1  | Pebble double serialization eliminated       | pebble     | Dedicated Save benchmark  | 14µs/op, 36 allocs per single-event save    |
+| T2  | Event lazy metadata map initialization       | event      | `AllocsPerRun` test       | `NewMetadata()` = **0 allocs**              |
+| T3  | Projection handler Lookup zero-alloc         | projection | Code review               | Builder-only path; superseded by T15        |
+| T4  | Projection EventTypes internal fast path     | projection | Dead code removed         | Originally broken; fixed by T15             |
+| T5  | SQL template strings cached per dialect      | storage    | Tests pass                | 3 fewer allocs per SQL Save                 |
+| T6  | MemoryStore Load double-copy eliminated      | memory     | Benchmark                 | 3584→1792 B/op, 2→1 allocs                  |
+| T7  | SSE vestigial goroutine removed              | middleware | Code review               | Goroutine leak eliminated                   |
+| T8  | Merge EnsureCustom hoisted before loop       | event      | Tests pass                | Per-iteration nil-check removed             |
+| T9  | FilterByTimestamp pre-sized slice            | event      | `AllocsPerRun` test       | **1 alloc** (result slice only)             |
+| T10 | ScanSlice pre-allocated with cap 64          | storage    | Tests pass                | Reduces log₂(N) growth copies               |
+| T11 | CircuitBreaker atomic state machine          | middleware | **Dedicated benchmark**   | **9.3 ns/op, 0 allocs** happy path          |
+| T12 | MemoryBus middleware pre-computation         | memory     | Benchmark                 | 48→16 B, 3→1 allocs per publish             |
+| T13 | Pebble ReadFrom key-based skip               | pebble     | LoadToTimestamp benchmark | 21-23% faster, 26% less memory              |
+| T14 | SQL multi-VALUES INSERT batching             | storage    | Tests pass                | SQLite 999-param chunking (99/batch)        |
+| T15 | **Runner event type caching** (the real fix) | projection | **5-run benchmark**       | **-10.5M allocs (-10.4%)**, -583 MB (-9.7%) |
 
 ### Infrastructure & Tooling
+
 - **benchstat** — Built from golang/perf via `buildGoModule`, available as `nix run .#benchstat`
 - **govulncheck** — CVE scanner in devShell + `nix run .#vulncheck` app
 - **gitleaks** — Secret scanner in devShell + `nix run .#secrets-scan` app
 - **gosec** — Already in devShell (pre-existing)
 
 ### Benchmarks & Testing
+
 - **Pebble Save micro-benchmark** — `BenchmarkEventStore_Save_SingleEvent` + `AppendBatch_10Events`
 - **CircuitBreaker benchmark** — `HappyPath` (9.3 ns) + `Concurrent` (19.8 ns via `RunParallel`)
 - **Concurrent projection benchmark** — `Parallelism1/4/8` sub-benchmarks with `WithParallelism`
@@ -44,6 +46,7 @@
 - **Fresh post-optimization baseline** — 133 benchmarks in `benchmarks/2026-06-15_baseline.txt`
 
 ### Documentation
+
 - **Performance report** — Interactive HTML with honest before/after data at `docs/research/`
 - **Pareto optimization plan** — `docs/planning/2026-06-14_16-30_PERFORMANCE_OPTIMIZATION_PLAN.md`
 - **Post-mortem** — `docs/status/2026-06-14_18-31_PERFORMANCE_OPTIMIZATION_POST_MORTEM.md`
@@ -56,17 +59,20 @@
 ## b) PARTIALLY DONE ⚠
 
 ### Projection Interface Design
+
 - T15 caches event types at `Register()` time, eliminating per-event clones for ALL projection types
 - `Projection.EventTypes()` still clones on every public API call — the defensive cloning contract remains
 - A `SubscribesTo(Type) bool` method on the interface would eliminate this entirely but requires a v3.0 breaking change
 - **Status:** Working workaround in place; interface redesign deferred to maintainer decision
 
 ### Benchmark Coverage
+
 - Pebble Save, CircuitBreaker, MemoryBus, MemoryStore, Projection all have dedicated benchmarks
 - **Missing:** Dedicated SQL multi-VALUES INSERT benchmark (T14 improvement not micro-benchmarked)
 - **Missing:** `b.RunParallel` for MemoryBus and MemoryStore concurrent benchmarks
 
 ### /tmp Disk Space
+
 - `/tmp` is at 99% capacity (47GB tmpfs, 805MB free)
 - Coverage builds (`-coverprofile`) fail with "no space left on device"
 - Benchmark suite sometimes fails on later sub-packages due to build artifact exhaustion
@@ -99,6 +105,7 @@
 ### /tmp Disk Full
 
 The `/tmp` tmpfs is at 99% capacity. This caused:
+
 - Coverage builds to fail
 - Some benchmark sub-packages to fail with "fork/exec: no such file or directory"
 - Pre-commit hook (BuildFlow) to sometimes fail
@@ -110,17 +117,20 @@ The `/tmp` tmpfs is at 99% capacity. This caused:
 ## e) WHAT WE SHOULD IMPROVE!
 
 ### Process
+
 1. **Always read benchmark test code** before claiming an optimization affects that benchmark
 2. **Always scrutinize regressions** — investigate immediately, never hide
 3. **Use `-count=5` minimum** for all benchmark comparisons
 4. **Wire security tools into CI** — govulncheck and gitleaks are in devShell but NOT in GitHub Actions
 
 ### Architecture
+
 5. **Redesign `Projection` interface** — Add `SubscribesTo(Type) bool` to eliminate `EventTypes()` cloning
 6. **Two projection constructors** (`event.NewProjection` vs `projection.Builder`) create a split brain
 7. **Consolidate `filterByEventTypes` and `filterFromCheckpoint`** — Currently separate, could share logic
 
 ### Testing
+
 8. **Add `b.RunParallel` benchmarks** for MemoryBus and MemoryStore under concurrent load
 9. **SQL multi-VALUES INSERT benchmark** — T14 improvement not micro-benchmarked
 10. **Clean `/tmp`** — Coverage builds are broken due to disk space
@@ -130,12 +140,14 @@ The `/tmp` tmpfs is at 99% capacity. This caused:
 ## f) TOP 25 THINGS TO GET DONE NEXT
 
 ### High Impact — CI & Security
+
 1. **Wire govulncheck into GitHub Actions** — Currently only in devShell, needs CI step
 2. **Wire gitleaks into GitHub Actions** — Currently only in devShell, needs CI step
 3. **Add `benchstat` regression detection in CI** — Compare benchmarks against baseline on PRs
 4. **Clean `/tmp` disk space** — Coverage builds broken, needs `trash /tmp/go-build*`
 
 ### High Impact — Performance
+
 5. **Redesign `Projection` interface** — Add `SubscribesTo(Type) bool` for v3.0
 6. **SQLite timestamp INTEGER storage** (Finding #7) — Eliminate 6-format parse loop
 7. **Add `LIMIT` to Load methods** (Finding #12) — Prevent OOM on large aggregates
@@ -143,6 +155,7 @@ The `/tmp` tmpfs is at 99% capacity. This caused:
 9. **SQL multi-VALUES INSERT micro-benchmark** — Prove T14 improvement quantitatively
 
 ### Medium Impact — Quality & Coverage
+
 10. **Turso coverage** — 49.1% → 80%+ via integration tests
 11. **MemoryBus `RunParallel` benchmark** — Measure contention under concurrent publishers
 12. **MemoryStore `RunParallel` benchmark** — Measure read/write contention
@@ -153,6 +166,7 @@ The `/tmp` tmpfs is at 99% capacity. This caused:
 17. **Pebble ReadFrom reverse index** — T13 parses keys but still linear scans; index → O(log n)
 
 ### Lower Impact — Polish
+
 18. **ADR-0021: Projection interface redesign** — Document the v3 `SubscribesTo` decision
 19. **Pebble `sync.Pool` for batch buffers** — Revisit pooling for `[]byte` (not events)
 20. **Unify `filterByEventTypes` + `filterFromCheckpoint`** — Share checkpoint-skip logic
@@ -169,6 +183,7 @@ The `/tmp` tmpfs is at 99% capacity. This caused:
 ### Should we bump to v3.0 to redesign the `Projection` interface?
 
 The current interface:
+
 ```go
 type Projection interface {
     Name() string
@@ -180,6 +195,7 @@ type Projection interface {
 **T15 works around the allocation problem** by caching at registration time. But 90.4M allocations remain in the projection benchmark (from event creation, bus publish, checkpoint saves, OTel spans — not from EventTypes cloning anymore).
 
 Adding `SubscribesTo(Type) bool` to the interface would eliminate the `EventTypes()` method entirely on the hot path, but:
+
 - It's a **breaking public API change** — every consumer's `Projection` implementation must add a method
 - T15 already eliminates the per-event `EventTypes()` clone — the workaround works
 - The remaining 90.4M allocations are from other sources, not EventTypes
@@ -190,36 +206,37 @@ Adding `SubscribesTo(Type) bool` to the interface would eliminate the `EventType
 
 ## Project Metrics Snapshot
 
-| Metric | Value |
-|--------|-------|
-| Go modules | 29 (22 library + 3 examples + 2 cmd + 1 integration + 1 testutil) |
-| Go files | 693 |
-| Lines of Go | 88,052 |
-| ADRs | 19 (0019 is skipped, 0020 added) |
-| Benchmark files | 7 (including 5-run comparison and fresh baseline) |
-| Test packages | 40 (all passing) |
-| Lint modules | 23 (all zero issues) |
-| Race detector | 6/6 key modules clean |
-| Open TODO/FIXME | 0 |
-| Security scans | gitleaks clean, govulncheck available |
-| Go version | 1.26.3 |
-| Platform | linux/amd64, AMD Ryzen AI MAX+ 395 (32 threads, 96 GB RAM) |
-| `/tmp` disk | 99% full (805MB free of 47GB) |
+| Metric          | Value                                                             |
+| --------------- | ----------------------------------------------------------------- |
+| Go modules      | 29 (22 library + 3 examples + 2 cmd + 1 integration + 1 testutil) |
+| Go files        | 693                                                               |
+| Lines of Go     | 88,052                                                            |
+| ADRs            | 19 (0019 is skipped, 0020 added)                                  |
+| Benchmark files | 7 (including 5-run comparison and fresh baseline)                 |
+| Test packages   | 40 (all passing)                                                  |
+| Lint modules    | 23 (all zero issues)                                              |
+| Race detector   | 6/6 key modules clean                                             |
+| Open TODO/FIXME | 0                                                                 |
+| Security scans  | gitleaks clean, govulncheck available                             |
+| Go version      | 1.26.3                                                            |
+| Platform        | linux/amd64, AMD Ryzen AI MAX+ 395 (32 threads, 96 GB RAM)        |
+| `/tmp` disk     | 99% full (805MB free of 47GB)                                     |
 
 ### Key Benchmark Results (from `2026-06-15_baseline.txt`)
 
-| Benchmark | ns/op | B/op | allocs/op |
-|-----------|-------|------|-----------|
-| CircuitBreaker_HappyPath | **9.3** | **0** | **0** |
-| CircuitBreaker_Concurrent | **19.8** | **0** | **0** |
-| MemoryBus_Publish | **46.4** | **16** | **1** |
-| MemoryStore_Load | **303** | **1792** | **1** |
-| Decider_Fold | **330** | **0** | **0** |
-| Dispatcher_Dispatch | **24.1** | **0** | **0** |
-| Event_Publish_100K | **696** | **0** | **0** |
-| Projection_100K | 7.8B ns | 5.4 GB | 90.4M |
+| Benchmark                 | ns/op    | B/op     | allocs/op |
+| ------------------------- | -------- | -------- | --------- |
+| CircuitBreaker_HappyPath  | **9.3**  | **0**    | **0**     |
+| CircuitBreaker_Concurrent | **19.8** | **0**    | **0**     |
+| MemoryBus_Publish         | **46.4** | **16**   | **1**     |
+| MemoryStore_Load          | **303**  | **1792** | **1**     |
+| Decider_Fold              | **330**  | **0**    | **0**     |
+| Dispatcher_Dispatch       | **24.1** | **0**    | **0**     |
+| Event_Publish_100K        | **696**  | **0**    | **0**     |
+| Projection_100K           | 7.8B ns  | 5.4 GB   | 90.4M     |
 
 ### Commit Chain (This Session)
+
 ```
 e49d1659 fix(lint): rename sz→tc in projection benchmark (varnamelen)
 27c39549 docs(bench): fresh post-optimization baseline + ADR-0020 index entry
