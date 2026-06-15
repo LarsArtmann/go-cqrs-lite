@@ -95,15 +95,13 @@ func TestSnapshotStore_Load_NotFound(t *testing.T) {
 func TestSnapshotStore_LoadAtVersion_NotFound(t *testing.T) {
 	t.Parallel()
 
-	store := newSnapshotStore(t)
-	ctx := context.Background()
-	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Order", aggID)
-
 	t.Run("no snapshot at all", func(t *testing.T) {
 		t.Parallel()
 
-		_, err := store.LoadAtVersion(ctx, ref, event.Version(10))
+		store := newSnapshotStore(t)
+		ref := event.NewAggregateRef("Order", id.NewAggregateID())
+
+		_, err := store.LoadAtVersion(context.Background(), ref, event.Version(10))
 		if !errors.Is(err, snapshot.ErrSnapshotNotFound) {
 			t.Fatalf("expected ErrSnapshotNotFound, got: %v", err)
 		}
@@ -111,6 +109,11 @@ func TestSnapshotStore_LoadAtVersion_NotFound(t *testing.T) {
 
 	t.Run("snapshot version too high", func(t *testing.T) {
 		t.Parallel()
+
+		store := newSnapshotStore(t)
+		ctx := context.Background()
+		aggID := id.NewAggregateID()
+		ref := event.NewAggregateRef("Order", aggID)
 
 		snap := testSnapshot(t, aggID, 5, `{"status":"shipped"}`)
 		if err := store.Save(ctx, snap); err != nil {

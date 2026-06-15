@@ -12,6 +12,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 )
 
@@ -76,13 +77,20 @@ func NewSnapshotStore(
 // aggregate. Snapshots older than the currently stored version are silently
 // ignored to prevent state regressions.
 func (s *SnapshotStore) Save(
-	_ context.Context,
+	ctx context.Context,
 	snap snapshot.Snapshot,
 ) error {
+	_, span := startAggregateSpan(ctx, "pebble.snapshot.save",
+		event.NewAggregateRef(snap.AggregateType, snap.AggregateID),
+		cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, snap.Version.Int()))
+	defer span.End()
+
 	key := s.snapshotKey(snap.AggregateType, snap.AggregateID)
 
 	existing, found, err := s.loadRaw(key)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return err
 	}
 
@@ -102,12 +110,16 @@ func (s *SnapshotStore) Save(
 
 	data, err := serializeSnapshot(snap)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return event.WrapCorruption(err, "pebble.serialize_snapshot",
 			fmt.Sprintf("serialize snapshot for %s %s", snap.AggregateType, snap.AggregateID))
 	}
 
 	err = s.db.Set(key, data, s.writeOptions())
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return event.WrapInfrastructure(err, "pebble.write_snapshot",
 			fmt.Sprintf("write snapshot for %s %s", snap.AggregateType, snap.AggregateID))
 	}
@@ -118,19 +130,26 @@ func (s *SnapshotStore) Save(
 // Load returns the latest snapshot for the aggregate.
 // Returns snapshot.ErrSnapshotNotFound when no snapshot exists.
 func (s *SnapshotStore) Load(
-	_ context.Context,
+	ctx context.Context,
 	ref event.AggregateRef,
 ) (*snapshot.Snapshot, error) {
+	_, span := startAggregateSpan(ctx, "pebble.snapshot.load", ref)
+	defer span.End()
+
 	key := s.snapshotKey(ref.Type, ref.ID)
 
 	raw, found, err := s.loadRaw(key)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return nil, err
 	}
 
 	if !found {
 		return nil, snapshot.ErrSnapshotNotFound
 	}
+
+	span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, raw.Version))
 
 	return raw.toSnapshot(ref), nil
 }
@@ -139,14 +158,20 @@ func (s *SnapshotStore) Load(
 // than or equal to the requested version. Returns snapshot.ErrSnapshotNotFound
 // when no such snapshot exists.
 func (s *SnapshotStore) LoadAtVersion(
-	_ context.Context,
+	ctx context.Context,
 	ref event.AggregateRef,
 	version event.Version,
 ) (*snapshot.Snapshot, error) {
+	_, span := startAggregateSpan(ctx, "pebble.snapshot.load_at_version", ref,
+		cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, version.Int()))
+	defer span.End()
+
 	key := s.snapshotKey(ref.Type, ref.ID)
 
 	raw, found, err := s.loadRaw(key)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return nil, err
 	}
 
@@ -160,13 +185,18 @@ func (s *SnapshotStore) LoadAtVersion(
 // Delete removes the snapshot for the given aggregate. A no-op if no snapshot
 // exists.
 func (s *SnapshotStore) Delete(
-	_ context.Context,
+	ctx context.Context,
 	ref event.AggregateRef,
 ) error {
+	_, span := startAggregateSpan(ctx, "pebble.snapshot.delete", ref)
+	defer span.End()
+
 	key := s.snapshotKey(ref.Type, ref.ID)
 
 	err := s.db.Delete(key, s.writeOptions())
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return event.WrapInfrastructure(err, "pebble.delete_snapshot",
 			fmt.Sprintf("delete snapshot for %s %s", ref.Type, ref.ID))
 	}

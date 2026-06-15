@@ -12,6 +12,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
 )
 
 // CheckpointStore implements event.CheckpointStore backed by Pebble.
@@ -73,10 +74,13 @@ func NewCheckpointStore(
 
 // Save persists the checkpoint for a projection. Overwrites any prior value.
 func (s *CheckpointStore) Save(
-	_ context.Context,
+	ctx context.Context,
 	projectionName string,
 	checkpoint event.Checkpoint,
 ) error {
+	_, span := startProjectionSpan(ctx, "pebble.checkpoint.save", projectionName)
+	defer span.End()
+
 	if projectionName == "" {
 		return event.NewRejection("pebble.empty_projection_name",
 			"projection name must not be empty")
@@ -86,12 +90,16 @@ func (s *CheckpointStore) Save(
 
 	data, err := serializeCheckpoint(checkpoint)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return event.WrapCorruption(err, "pebble.serialize_checkpoint",
 			"serialize checkpoint for projection "+projectionName)
 	}
 
 	err = s.db.Set(key, data, s.writeOptions())
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return event.WrapInfrastructure(err, "pebble.write_checkpoint",
 			"write checkpoint for projection "+projectionName)
 	}
@@ -104,12 +112,17 @@ func (s *CheckpointStore) Save(
 // can distinguish "first run" (zero) from a stored checkpoint without checking
 // errors.
 func (s *CheckpointStore) Load(
-	_ context.Context,
+	ctx context.Context,
 	projectionName string,
 ) (event.Checkpoint, error) {
+	_, span := startProjectionSpan(ctx, "pebble.checkpoint.load", projectionName)
+	defer span.End()
+
 	if projectionName == "" {
-		return event.Checkpoint{}, event.NewRejection("pebble.empty_projection_name",
-			"projection name must not be empty")
+		return event.Checkpoint{ //nolint:exhaustruct // zero-value checkpoint on error
+				EventID: id.EventID{},
+			}, event.NewRejection("pebble.empty_projection_name",
+				"projection name must not be empty")
 	}
 
 	key := s.checkpointKey(projectionName)
@@ -121,6 +134,8 @@ func (s *CheckpointStore) Load(
 				EventID: id.EventID{},
 			}, nil
 		}
+
+		cqrsotel.RecordError(span, err)
 
 		return event.Checkpoint{ //nolint:exhaustruct // zero-value checkpoint on error
 				EventID: id.EventID{},
@@ -135,6 +150,8 @@ func (s *CheckpointStore) Load(
 
 	checkpoint, err := deserializeCheckpoint(buf)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return event.Checkpoint{ //nolint:exhaustruct // zero-value checkpoint on error
 				EventID: id.EventID{},
 			}, event.WrapCorruption(err, "pebble.deserialize_checkpoint",
