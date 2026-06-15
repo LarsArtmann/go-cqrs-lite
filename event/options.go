@@ -95,6 +95,8 @@ type MetadataKey string
 const (
 	MetadataKeyClientID         MetadataKey = "client.id"
 	MetadataKeyClientOccurredAt MetadataKey = "client.occurred_at"
+	MetadataKeyCommandType      MetadataKey = "command.type"
+	MetadataKeyCommandID        MetadataKey = "command.id"
 )
 
 // WithCustom sets a custom metadata field.

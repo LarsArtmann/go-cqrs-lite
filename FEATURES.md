@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-06-13 (post v2.3.0 audit) · **Module count:** 28 (22 library + 2 examples + 1 integration + 2 cmd + turso/indexing sub-package) · **Go version:** 1.26.3
+**Last audited:** 2026-06-15 (post command journal + query store interfaces) · **Module count:** 28 (22 library + 2 examples + 1 integration + 2 cmd + turso/indexing sub-package) · **Go version:** 1.26.3
 
 ## Status Legend
 
@@ -37,8 +37,8 @@
 | Metadata options         | `WithCorrelationID`, `WithCausationID`, `WithUserID`, `WithRequestID`                            | ✅     |
 | Persisted command        | `PersistedCommand` struct with ID, Type, AggregateRef, ReceivedAt, Payload, Metadata             | ✅     |
 | Command store interfaces | `CommandSink`, `CommandSource`, `Store` (Sink+Source) — persisted command log                    | ✅     |
-
-**Sentinel errors:** `ErrHandlerNotFound`, `ErrDispatcherClosed`, `ErrEmptyCommandType`, `ErrNilAggregateID`, `ErrTypeAssertion`, `ErrEmptyAggregateType`, `ErrDuplicateCommand`, `ErrCommandNotFound`, `ErrStoreClosed`
+| CommandJournal           | `ReadAll(ctx)` — global command log ordered by ReceivedAt; audit trail of every command          | ✅     |
+| SeekableCommandJournal   | `ReadFrom(ctx, afterCommandID, limit)` — position-based command replay with ULID checkpoints     | ✅     |
 
 ### Query Dispatcher ✅ FULLY_FUNCTIONAL
 
@@ -53,6 +53,10 @@
 | Pagination           | `Pagination` struct with `Page`, `PageSize`, `Offset()`, `Validate()`              | ✅     |
 | Paginated results    | `PaginatedResult[T]` with `HasNext()`, `HasPrev()`, computed `TotalPages`          | ✅     |
 | TypedHandler[Q, R]   | `RegisterTyped[Q, R]` — type-safe handler receiving `Q` and returning `(R, error)` | ✅     |
+| PersistedQuery       | Stored query with full audit metadata (ID, Type, ReceivedAt, Payload, Metadata)   | ✅     |
+| Query store interfaces | `QuerySink`, `QuerySource`, `QueryStore` (Sink+Source) — persisted query log    | ✅     |
+| QueryJournal         | `ReadAllQueries(ctx)` — global query log for audit ("who queried what and when?") | ✅     |
+| SeekableQueryJournal | `ReadQueriesFrom(ctx, afterRequestID, limit)` — position-based query replay      | ✅     |
 
 **Defaults:** Page 1, PageSize 20, max 100.
 **Sentinel errors:** `ErrHandlerNotFound`, `ErrDispatcherClosed`, `ErrEmptyQueryType`, `ErrTypeAssertion`
@@ -196,7 +200,8 @@
 | MemoryBus             | `event.Bus` with typed `Subscribe` + `SubscribeAll` + handler/publish middleware                         | 🧪     |
 | MemorySnapshotStore   | `snapshot.SnapshotStore` with deep-copy snapshots, version-aware `LoadAtVersion`                         | 🧪     |
 | MemoryCheckpointStore | `event.CheckpointStore` for projection checkpointing                                                     | 🧪     |
-| MemoryCommandStore    | `command.Store` for persisted command log                                                                | 🧪     |
+| MemoryCommandStore    | `command.Store` + `CommandJournal` + `SeekableCommandJournal` for persisted command log            | 🧪     |
+| MemoryQueryStore      | `query.QueryStore` + `QueryJournal` + `SeekableQueryJournal` for persisted query audit log        | 🧪     |
 
 **Intended use:** Testing and development only. All implementations are thread-safe (`sync.RWMutex`), support `Close()` lifecycle, and return defensive copies.
 
@@ -702,6 +707,9 @@ Found during code reviews. See `docs/planning/` for details.
 
 | Issue                                                      | Severity | Module              |
 | ---------------------------------------------------------- | -------- | ------------------- |
+| CommandJournal/SeekableCommandJournal in MemoryCommandStore untested | MEDIUM   | memory              |
+| Query store interfaces (PersistedQuery, QueryStore, QueryJournal) untested | MEDIUM   | query, memory       |
+| Query module lacks store-specific sentinel errors (`ErrQueryStoreClosed`, `ErrQueryNotFound`) | LOW      | query               |
 | command re-exports event types (module boundary violation) | HIGH     | command             |
 | Reactive extensions not wired into dispatchers             | LOW      | event/command/query |
 | Pre-existing golden test drift (codec, middleware)         | LOW      | codec, middleware   |
@@ -768,7 +776,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 | Guarantee              | Detail                                                                           |
 | ---------------------- | -------------------------------------------------------------------------------- |
-| Near-zero lint issues  | 2 minor issues in catalog (goconst, nolintlint); 25/27 modules clean             |
+| Near-zero lint issues  | 0 lint issues across all 27 modules (v2.3.0 audit)                                |
 | Race-free              | `go test -race` passes across all modules                                        |
 | Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                   |
 | Interface-first        | All core types are interfaces — provide your own implementations                 |

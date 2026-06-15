@@ -1,9 +1,9 @@
 # TODO List
 
 **Generated:** 2026-06-12
-**Updated:** 2026-06-14 — Phase 3 completion (encryptedStore Journal support, go.mod fixes, turso tests, field-level encryption docs, turso indexing guidance)
+**Updated:** 2026-06-15 — Command journal (CommandJournal/SeekableCommandJournal) interfaces + memory impl, query store interfaces (PersistedQuery/QueryStore/QueryJournal/SeekableQueryJournal) + MemoryQueryStore
 **Version:** v2.3.0
-**Test Status:** All modules pass build/test/lint. 0 lint issues.
+**Test Status:** All modules pass build/test/lint. 0 lint issues. New journal/store interfaces lack dedicated tests (see HIGH priority below).
 
 ## Legend
 
@@ -71,6 +71,20 @@
 - [x] ~~Fix watermill silently drops malformed ID parse errors~~ — DONE
 - [x] ~~Fix event/batch.go vs event_new.go marshal duplication~~ — DONE
 - [x] ~~Fix schema versioned_source.go 4 near-identical load methods~~ — DONE
+
+### CQRS Audit Trail — Command & Query Persistence (In Progress)
+
+- [x] ~~Add CommandJournal + SeekableCommandJournal interfaces~~ — DONE (`command/store.go`)
+- [x] ~~Implement MemoryCommandStore.ReadAll + ReadFrom~~ — DONE (`memory/command_store.go`)
+- [x] ~~Add PersistedQuery + QuerySink/QuerySource/QueryStore interfaces~~ — DONE (`query/store.go`)
+- [x] ~~Add QueryJournal + SeekableQueryJournal interfaces~~ — DONE (`query/store.go`)
+- [x] ~~Implement MemoryQueryStore~~ — DONE (`memory/query_store.go`)
+- [ ] **Add tests for MemoryCommandStore CommandJournal/SeekableCommandJournal** — `ReadAll` and `ReadFrom` (position-based replay) are untested. Verify ordering, limit, closed-store behavior.
+- [ ] **Add tests for query/store.go** — `PersistedQuery` construction, `NewPersistedQuery` validation (empty type rejection), `Payload()` defensive copy, `Metadata()` clone
+- [ ] **Add tests for MemoryQueryStore** — `SaveQuery`, `LoadQueries` (after-time filter), `ReadAllQueries`, `ReadQueriesFrom` (position-based), empty-store edge cases
+- [ ] **Add query module store-specific sentinel errors** — Missing `ErrQueryStoreClosed`, `ErrQueryNotFound`, `ErrDuplicateQuery` (command module has these; query module parity gap)
+- [ ] **Update query/doc.go** — Document `PersistedQuery`, `QuerySink/Source/Store`, `QueryJournal`, `SeekableQueryJournal` types with usage examples
+- [ ] **Add SQLQueryStore to storage module** — Parity with `SQLCommandStore`. SQL backend for query persistence/audit.
 
 ### Middleware Consolidation
 
@@ -333,7 +347,7 @@
 - ~~`MustNew` panic helper~~ — DOES NOT EXIST. Only test-local `mustNewCmd` helper
 - ~~`CatalogDispatcher` embedded in command/query dispatchers~~ — DOES NOT EXIST
 - ~~`BatchProjection` optional interface~~ — DOES NOT EXIST
-- ~~`Reactive CommandBus/QueryBus`~~ — DOES NOT EXIST as separate types. `ro.Subject[Command]` mentioned in AGENTS.md but never implemented
+- ~~`Reactive CommandBus/QueryBus`~~ — DOES NOT EXIST as separate types. `ro.Subject[Command]` mentioned in old AGENTS.md but never implemented. Event module has reactive extensions (`EventBus`); command/query do not.
 - ~~`Outbox pattern`~~ — REMOVED from library scope. Lives in example/ only
 - ~~`Saga module`~~ — DECLINED. Saga pattern demonstrated via example/todo
 - ~~`GraphQL query adapter`~~ — DECLINED. Framework-level concern
@@ -354,4 +368,4 @@
 
 ---
 
-_Items verified against source on 2026-06-13. Total done/verified: 192+. Total open actionable: ~60 (medium + low + new audit findings). Total planned/future: ~45._
+_Items verified against source on 2026-06-15. Total done/verified: 197+. Total open actionable: ~66 (includes 6 new command/query audit trail items). Total planned/future: ~45._

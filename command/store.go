@@ -151,5 +151,9 @@ type CommandJournal interface {
 // checkpoint, process them, then resume from the last CommandID.
 type SeekableCommandJournal interface {
 	CommandJournal
-	ReadFrom(ctx context.Context, afterCommandID id.CommandID, limit int) ([]*PersistedCommand, error)
+	ReadFrom(
+		ctx context.Context,
+		afterCommandID id.CommandID,
+		limit int,
+	) ([]*PersistedCommand, error)
 }

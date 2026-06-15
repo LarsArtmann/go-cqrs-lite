@@ -41,4 +41,9 @@ type PublishMiddleware func(Publisher) Publisher
 // PublisherFunc is a function adapter for Publisher.
 type PublisherFunc func(ctx context.Context, cmds ...Command) error
 
-func (f PublisherFunc) Publish(ctx context.Context, cmds ...Command) error { return f(ctx, cmds...) }
+func (f PublisherFunc) Publish(
+	ctx context.Context,
+	cmds ...Command,
+) error {
+	return f(ctx, cmds...)
+}
