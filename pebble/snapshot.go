@@ -58,7 +58,7 @@ func NewSnapshotStore(
 		panic("pebble: NewSnapshotStore called with nil db")
 	}
 
-	s := &SnapshotStore{ //nolint:exhaustruct // zero values are valid defaults
+	s := &SnapshotStore{
 		db:         database,
 		logger:     logger,
 		prefix:     "cqrs_snapshot:",
@@ -81,12 +81,12 @@ func (s *SnapshotStore) Save(
 ) error {
 	key := s.snapshotKey(snap.AggregateType, snap.AggregateID)
 
-	existing, err := s.loadRaw(key)
+	existing, found, err := s.loadRaw(key)
 	if err != nil {
 		return err
 	}
 
-	if existing != nil && existing.Version > snap.Version.Int() {
+	if found && existing.Version > snap.Version.Int() {
 		if s.logger != nil {
 			s.logger.Debug(
 				"ignoring older snapshot",
@@ -106,7 +106,8 @@ func (s *SnapshotStore) Save(
 			fmt.Sprintf("serialize snapshot for %s %s", snap.AggregateType, snap.AggregateID))
 	}
 
-	if err := s.db.Set(key, data, s.writeOptions()); err != nil {
+	err = s.db.Set(key, data, s.writeOptions())
+	if err != nil {
 		return event.WrapInfrastructure(err, "pebble.write_snapshot",
 			fmt.Sprintf("write snapshot for %s %s", snap.AggregateType, snap.AggregateID))
 	}
@@ -122,12 +123,12 @@ func (s *SnapshotStore) Load(
 ) (*snapshot.Snapshot, error) {
 	key := s.snapshotKey(ref.Type, ref.ID)
 
-	raw, err := s.loadRaw(key)
+	raw, found, err := s.loadRaw(key)
 	if err != nil {
 		return nil, err
 	}
 
-	if raw == nil {
+	if !found {
 		return nil, snapshot.ErrSnapshotNotFound
 	}
 
@@ -144,12 +145,12 @@ func (s *SnapshotStore) LoadAtVersion(
 ) (*snapshot.Snapshot, error) {
 	key := s.snapshotKey(ref.Type, ref.ID)
 
-	raw, err := s.loadRaw(key)
+	raw, found, err := s.loadRaw(key)
 	if err != nil {
 		return nil, err
 	}
 
-	if raw == nil || raw.Version > version.Int() {
+	if !found || raw.Version > version.Int() {
 		return nil, snapshot.ErrSnapshotNotFound
 	}
 
@@ -164,7 +165,8 @@ func (s *SnapshotStore) Delete(
 ) error {
 	key := s.snapshotKey(ref.Type, ref.ID)
 
-	if err := s.db.Delete(key, s.writeOptions()); err != nil {
+	err := s.db.Delete(key, s.writeOptions())
+	if err != nil {
 		return event.WrapInfrastructure(err, "pebble.delete_snapshot",
 			fmt.Sprintf("delete snapshot for %s %s", ref.Type, ref.ID))
 	}
@@ -191,14 +193,16 @@ func (s *SnapshotStore) writeOptions() *pebble.WriteOptions {
 	return nil
 }
 
-func (s *SnapshotStore) loadRaw(key []byte) (*storedSnapshot, error) {
+// loadRaw reads and deserializes a snapshot by key.
+// Returns (nil, false, nil) when the key does not exist (not an error).
+func (s *SnapshotStore) loadRaw(key []byte) (*serializableSnapshot, bool, error) {
 	val, closer, err := s.db.Get(key)
 	if err != nil {
 		if errors.Is(err, pebble.ErrNotFound) {
-			return nil, nil
+			return nil, false, nil
 		}
 
-		return nil, event.WrapInfrastructure(err, "pebble.read_snapshot",
+		return nil, false, event.WrapInfrastructure(err, "pebble.read_snapshot",
 			"read snapshot at key "+string(key))
 	}
 
@@ -210,11 +214,11 @@ func (s *SnapshotStore) loadRaw(key []byte) (*storedSnapshot, error) {
 
 	stored, err := deserializeSnapshot(buf)
 	if err != nil {
-		return nil, event.WrapCorruption(err, "pebble.deserialize_snapshot",
+		return nil, false, event.WrapCorruption(err, "pebble.deserialize_snapshot",
 			"deserialize snapshot at key "+string(key))
 	}
 
-	return stored, nil
+	return stored, true, nil
 }
 
 // serializableSnapshot is the CBOR envelope for stored snapshots.
@@ -227,10 +231,7 @@ type serializableSnapshot struct {
 	CreatedAt     int64          `json:"created_at"` //nolint:tagliatelle // on-disk format uses snake_case
 }
 
-// storedSnapshot is a deserialized snapshot awaiting conversion.
-type storedSnapshot serializableSnapshot
-
-func (s *storedSnapshot) toSnapshot(ref event.AggregateRef) *snapshot.Snapshot {
+func (s *serializableSnapshot) toSnapshot(ref event.AggregateRef) *snapshot.Snapshot {
 	return &snapshot.Snapshot{
 		AggregateID:   ref.ID,
 		AggregateType: ref.Type,
@@ -252,23 +253,23 @@ func serializeSnapshot(snap snapshot.Snapshot) ([]byte, error) {
 	return pebbleEncMode.Marshal(s) //nolint:wrapcheck // storage serialization, not domain error
 }
 
-func deserializeSnapshot(data []byte) (*storedSnapshot, error) {
+func deserializeSnapshot(data []byte) (*serializableSnapshot, error) {
 	var s serializableSnapshot
 
 	if isCBOR(data) {
-		if err := pebbleDecMode.Unmarshal(data, &s); err != nil {
+		err := pebbleDecMode.Unmarshal(data, &s)
+		if err != nil {
 			return nil, fmt.Errorf("cbor unmarshal snapshot: %w", err)
 		}
 	} else {
 		// Legacy JSON fallback for snapshots written before CBOR migration.
-		if err := json.Unmarshal(data, &s); err != nil {
+		err := json.Unmarshal(data, &s)
+		if err != nil {
 			return nil, fmt.Errorf("json unmarshal snapshot: %w", err)
 		}
 	}
 
-	stored := storedSnapshot(s)
-
-	return &stored, nil
+	return &s, nil
 }
 
 var (

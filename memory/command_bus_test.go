@@ -104,6 +104,7 @@ func TestMemoryCommandBus_Subscribe_TypeIsolation(t *testing.T) {
 
 	if err := bus.Subscribe("CreateUser", func(_ context.Context, _ command.Command) error {
 		createCount.Add(1)
+
 		return nil
 	}); err != nil {
 		t.Fatalf("Subscribe Create: %v", err)
@@ -111,6 +112,7 @@ func TestMemoryCommandBus_Subscribe_TypeIsolation(t *testing.T) {
 
 	if err := bus.Subscribe("UpdateUser", func(_ context.Context, _ command.Command) error {
 		updateCount.Add(1)
+
 		return nil
 	}); err != nil {
 		t.Fatalf("Subscribe Update: %v", err)
@@ -139,12 +141,12 @@ func TestMemoryCommandBus_SubscribeAll(t *testing.T) {
 	bus := memory.NewMemoryCommandBus()
 	ctx := context.Background()
 
-	var mu sync.Mutex
+	var mutex sync.Mutex
 	received := make(map[command.Type]int)
 
 	err := bus.SubscribeAll(func(_ context.Context, cmd command.Command) error {
-		mu.Lock()
-		defer mu.Unlock()
+		mutex.Lock()
+		defer mutex.Unlock()
 		received[cmd.Type()]++
 
 		return nil
@@ -162,8 +164,8 @@ func TestMemoryCommandBus_SubscribeAll(t *testing.T) {
 		t.Fatalf("Publish: %v", err)
 	}
 
-	mu.Lock()
-	defer mu.Unlock()
+	mutex.Lock()
+	defer mutex.Unlock()
 
 	if len(received) != 3 {
 		t.Fatalf("expected 3 distinct types received, got %d: %v", len(received), received)
@@ -186,6 +188,7 @@ func TestMemoryCommandBus_SubscribeAll_FiresWithTypeHandlers(t *testing.T) {
 
 	if err := bus.Subscribe("CreateUser", func(_ context.Context, _ command.Command) error {
 		typeCount.Add(1)
+
 		return nil
 	}); err != nil {
 		t.Fatalf("Subscribe: %v", err)
@@ -193,6 +196,7 @@ func TestMemoryCommandBus_SubscribeAll_FiresWithTypeHandlers(t *testing.T) {
 
 	if err := bus.SubscribeAll(func(_ context.Context, _ command.Command) error {
 		allCount.Add(1)
+
 		return nil
 	}); err != nil {
 		t.Fatalf("SubscribeAll: %v", err)
@@ -226,6 +230,7 @@ func TestMemoryCommandBus_Middleware(t *testing.T) {
 				calls = append(calls, name+":before")
 				err := next(ctx, cmd)
 				calls = append(calls, name+":after")
+
 				return err
 			}
 		}
@@ -238,6 +243,7 @@ func TestMemoryCommandBus_Middleware(t *testing.T) {
 	var handlerCalled atomic.Bool
 	if err := bus.Subscribe("CreateUser", func(_ context.Context, _ command.Command) error {
 		handlerCalled.Store(true)
+
 		return nil
 	}); err != nil {
 		t.Fatalf("Subscribe: %v", err)
@@ -283,6 +289,7 @@ func TestMemoryCommandBus_Middleware_AfterSubscribe(t *testing.T) {
 	if err := bus.Use(func(next command.Handler) command.Handler {
 		return func(ctx context.Context, cmd command.Command) error {
 			mwSeen.Store(true)
+
 			return next(ctx, cmd)
 		}
 	}); err != nil {
@@ -307,6 +314,7 @@ func TestMemoryCommandBus_Publish_Variadic_MultipleCommands(t *testing.T) {
 	var count atomic.Int32
 	if err := bus.SubscribeAll(func(_ context.Context, _ command.Command) error {
 		count.Add(1)
+
 		return nil
 	}); err != nil {
 		t.Fatalf("SubscribeAll: %v", err)
@@ -440,6 +448,7 @@ func TestMemoryCommandBus_Concurrent(t *testing.T) {
 
 	if err := bus.SubscribeAll(func(_ context.Context, _ command.Command) error {
 		count.Add(1)
+
 		return nil
 	}); err != nil {
 		t.Fatalf("SubscribeAll: %v", err)
@@ -460,11 +469,13 @@ func TestMemoryCommandBus_Concurrent(t *testing.T) {
 				cmd, err := command.New("CreateUser", aggID)
 				if err != nil {
 					t.Errorf("New: %v", err)
+
 					return
 				}
 
 				if err := bus.Publish(ctx, cmd); err != nil {
 					t.Errorf("Publish: %v", err)
+
 					return
 				}
 			}

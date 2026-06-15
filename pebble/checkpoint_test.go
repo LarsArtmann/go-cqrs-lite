@@ -2,7 +2,6 @@ package pebble
 
 import (
 	"context"
-	"errors"
 	"log/slog"
 	"testing"
 	"time"
@@ -17,7 +16,7 @@ func newCheckpointStore(t *testing.T) *CheckpointStore {
 	t.Helper()
 
 	dir := t.TempDir()
-	db, err := pebble.Open(dir, &pebble.Options{}) //nolint:varnamelt,varnamelen // test fixture
+	db, err := pebble.Open(dir, &pebble.Options{}) //nolint:varnamelen // test fixture
 	if err != nil {
 		t.Fatalf("open pebble: %v", err)
 	}
@@ -33,12 +32,12 @@ func TestCheckpointStore_SaveAndLoad(t *testing.T) {
 	store := newCheckpointStore(t)
 	ctx := context.Background()
 	processedAt := time.Date(2025, 6, 15, 12, 30, 0, 0, time.UTC)
-	cp := event.Checkpoint{
+	checkpoint := event.Checkpoint{
 		EventID:     id.NewEventID(),
 		ProcessedAt: processedAt,
 	}
 
-	if err := store.Save(ctx, "user-projection", cp); err != nil {
+	if err := store.Save(ctx, "user-projection", checkpoint); err != nil {
 		t.Fatalf("Save: %v", err)
 	}
 
@@ -47,8 +46,8 @@ func TestCheckpointStore_SaveAndLoad(t *testing.T) {
 		t.Fatalf("Load: %v", err)
 	}
 
-	if loaded.EventID != cp.EventID {
-		t.Errorf("EventID = %s, want %s", loaded.EventID, cp.EventID)
+	if loaded.EventID != checkpoint.EventID {
+		t.Errorf("EventID = %s, want %s", loaded.EventID, checkpoint.EventID)
 	}
 
 	if !loaded.ProcessedAt.Equal(processedAt) {
@@ -203,7 +202,7 @@ func TestCheckpointStore_SharedDB_WithEventStore(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	db, err := pebble.Open(dir, &pebble.Options{}) //nolint:varnamelt,varnamelen // test fixture
+	db, err := pebble.Open(dir, &pebble.Options{}) //nolint:varnamelen // test fixture
 	if err != nil {
 		t.Fatalf("open pebble: %v", err)
 	}
@@ -223,8 +222,8 @@ func TestCheckpointStore_SharedDB_WithEventStore(t *testing.T) {
 		t.Fatalf("event Save: %v", err)
 	}
 
-	cp := event.Checkpoint{EventID: evt.ID(), ProcessedAt: time.Now()}
-	if err := cpStore.Save(ctx, "issue-projection", cp); err != nil {
+	checkpoint := event.Checkpoint{EventID: evt.ID(), ProcessedAt: time.Now()}
+	if err := cpStore.Save(ctx, "issue-projection", checkpoint); err != nil {
 		t.Fatalf("checkpoint Save: %v", err)
 	}
 
@@ -244,10 +243,5 @@ func TestCheckpointStore_SharedDB_WithEventStore(t *testing.T) {
 
 	if len(events) != 1 {
 		t.Errorf("events = %d, want 1 (checkpoint should not pollute journal)", len(events))
-	}
-
-	// Sanity check: no error type leaked through wrapper.
-	if errors.Is(err, event.ErrAggregateNotFound) { //nolint:staticcheck // intentional sanity check
-		t.Fatal("unexpected ErrAggregateNotFound")
 	}
 }

@@ -18,7 +18,7 @@ func newSnapshotStore(t *testing.T) *SnapshotStore {
 	t.Helper()
 
 	dir := t.TempDir()
-	db, err := pebble.Open(dir, &pebble.Options{}) //nolint:varnamelt,varnamelen // test fixture
+	db, err := pebble.Open(dir, &pebble.Options{}) //nolint:varnamelen // test fixture
 	if err != nil {
 		t.Fatalf("open pebble: %v", err)
 	}
@@ -161,63 +161,65 @@ func TestSnapshotStore_LoadAtVersion_AtOrAfter(t *testing.T) {
 	}
 }
 
-func TestSnapshotStore_Save_OverwritesWithNewer(t *testing.T) {
+func TestSnapshotStore_Save_VersionPrecedence(t *testing.T) {
 	t.Parallel()
 
-	store := newSnapshotStore(t)
-	ctx := context.Background()
-	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Order", aggID)
-
-	if err := store.Save(ctx, testSnapshot(t, aggID, 3, `{"status":"placed"}`)); err != nil {
-		t.Fatalf("Save v3: %v", err)
+	tests := []struct {
+		name        string
+		first       int
+		firstState  string
+		second      int
+		secondState string
+		wantVersion int
+		wantState   string
+	}{
+		{
+			name:  "newer overwrites older",
+			first: 3, firstState: `{"status":"placed"}`,
+			second: 7, secondState: `{"status":"delivered"}`,
+			wantVersion: 7, wantState: `{"status":"delivered"}`,
+		},
+		{
+			name:  "older is ignored",
+			first: 5, firstState: `{"status":"shipped"}`,
+			second: 3, secondState: `{"status":"placed"}`,
+			wantVersion: 5, wantState: `{"status":"shipped"}`,
+		},
 	}
 
-	if err := store.Save(ctx, testSnapshot(t, aggID, 7, `{"status":"delivered"}`)); err != nil {
-		t.Fatalf("Save v7: %v", err)
-	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-	loaded, err := store.Load(ctx, ref)
-	if err != nil {
-		t.Fatalf("Load: %v", err)
-	}
+			store := newSnapshotStore(t)
+			ctx := context.Background()
+			aggID := id.NewAggregateID()
+			ref := event.NewAggregateRef("Order", aggID)
 
-	if loaded.Version.Int() != 7 {
-		t.Errorf("Version = %d, want 7 (latest)", loaded.Version.Int())
-	}
+			if err := store.Save(ctx, testSnapshot(t, aggID, tt.first, tt.firstState)); err != nil {
+				t.Fatalf("Save first: %v", err)
+			}
 
-	if string(loaded.State) != `{"status":"delivered"}` {
-		t.Errorf("State = %q, want delivered", string(loaded.State))
-	}
-}
+			if err := store.Save(
+				ctx,
+				testSnapshot(t, aggID, tt.second, tt.secondState),
+			); err != nil {
+				t.Fatalf("Save second: %v", err)
+			}
 
-func TestSnapshotStore_Save_IgnoresOlderVersion(t *testing.T) {
-	t.Parallel()
+			loaded, err := store.Load(ctx, ref)
+			if err != nil {
+				t.Fatalf("Load: %v", err)
+			}
 
-	store := newSnapshotStore(t)
-	ctx := context.Background()
-	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Order", aggID)
+			if loaded.Version.Int() != tt.wantVersion {
+				t.Errorf("Version = %d, want %d", loaded.Version.Int(), tt.wantVersion)
+			}
 
-	if err := store.Save(ctx, testSnapshot(t, aggID, 5, `{"status":"shipped"}`)); err != nil {
-		t.Fatalf("Save v5: %v", err)
-	}
-
-	if err := store.Save(ctx, testSnapshot(t, aggID, 3, `{"status":"placed"}`)); err != nil {
-		t.Fatalf("Save v3 (older): %v", err)
-	}
-
-	loaded, err := store.Load(ctx, ref)
-	if err != nil {
-		t.Fatalf("Load: %v", err)
-	}
-
-	if loaded.Version.Int() != 5 {
-		t.Errorf("Version = %d, want 5 (should not downgrade)", loaded.Version.Int())
-	}
-
-	if string(loaded.State) != `{"status":"shipped"}` {
-		t.Errorf("State = %q, want shipped", string(loaded.State))
+			if string(loaded.State) != tt.wantState {
+				t.Errorf("State = %q, want %q", string(loaded.State), tt.wantState)
+			}
+		})
 	}
 }
 
@@ -290,7 +292,7 @@ func TestSnapshotStore_SharedDB_WithEventStore(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	db, err := pebble.Open(dir, &pebble.Options{}) //nolint:varnamelt,varnamelen // test fixture
+	db, err := pebble.Open(dir, &pebble.Options{}) //nolint:varnamelen // test fixture
 	if err != nil {
 		t.Fatalf("open pebble: %v", err)
 	}

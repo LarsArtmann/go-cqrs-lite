@@ -57,7 +57,7 @@ func NewCheckpointStore(
 		panic("pebble: NewCheckpointStore called with nil db")
 	}
 
-	s := &CheckpointStore{ //nolint:exhaustruct // zero values are valid defaults
+	s := &CheckpointStore{
 		db:         database,
 		logger:     logger,
 		prefix:     "cqrs_checkpoint:",
@@ -75,7 +75,7 @@ func NewCheckpointStore(
 func (s *CheckpointStore) Save(
 	_ context.Context,
 	projectionName string,
-	cp event.Checkpoint,
+	checkpoint event.Checkpoint,
 ) error {
 	if projectionName == "" {
 		return event.NewRejection("pebble.empty_projection_name",
@@ -84,13 +84,14 @@ func (s *CheckpointStore) Save(
 
 	key := s.checkpointKey(projectionName)
 
-	data, err := serializeCheckpoint(cp)
+	data, err := serializeCheckpoint(checkpoint)
 	if err != nil {
 		return event.WrapCorruption(err, "pebble.serialize_checkpoint",
 			"serialize checkpoint for projection "+projectionName)
 	}
 
-	if err := s.db.Set(key, data, s.writeOptions()); err != nil {
+	err = s.db.Set(key, data, s.writeOptions())
+	if err != nil {
 		return event.WrapInfrastructure(err, "pebble.write_checkpoint",
 			"write checkpoint for projection "+projectionName)
 	}
@@ -116,11 +117,15 @@ func (s *CheckpointStore) Load(
 	val, closer, err := s.db.Get(key)
 	if err != nil {
 		if errors.Is(err, pebble.ErrNotFound) {
-			return event.Checkpoint{}, nil
+			return event.Checkpoint{ //nolint:exhaustruct // zero ProcessedAt is intentional for "not found"
+				EventID: id.EventID{},
+			}, nil
 		}
 
-		return event.Checkpoint{}, event.WrapInfrastructure(err, "pebble.read_checkpoint",
-			"read checkpoint for projection "+projectionName)
+		return event.Checkpoint{ //nolint:exhaustruct // zero-value checkpoint on error
+				EventID: id.EventID{},
+			}, event.WrapInfrastructure(err, "pebble.read_checkpoint",
+				"read checkpoint for projection "+projectionName)
 	}
 
 	defer func() { _ = closer.Close() }()
@@ -128,13 +133,15 @@ func (s *CheckpointStore) Load(
 	buf := make([]byte, len(val))
 	copy(buf, val)
 
-	cp, err := deserializeCheckpoint(buf)
+	checkpoint, err := deserializeCheckpoint(buf)
 	if err != nil {
-		return event.Checkpoint{}, event.WrapCorruption(err, "pebble.deserialize_checkpoint",
-			"deserialize checkpoint for projection "+projectionName)
+		return event.Checkpoint{ //nolint:exhaustruct // zero-value checkpoint on error
+				EventID: id.EventID{},
+			}, event.WrapCorruption(err, "pebble.deserialize_checkpoint",
+				"deserialize checkpoint for projection "+projectionName)
 	}
 
-	return cp, nil
+	return checkpoint, nil
 }
 
 // Close is a no-op; the underlying *pebble.DB is owned by the caller.
@@ -159,10 +166,10 @@ type serializableCheckpoint struct {
 	ProcessedAt int64      `json:"processed_at"` //nolint:tagliatelle // on-disk format uses snake_case
 }
 
-func serializeCheckpoint(cp event.Checkpoint) ([]byte, error) {
+func serializeCheckpoint(checkpoint event.Checkpoint) ([]byte, error) {
 	s := serializableCheckpoint{
-		EventID:     cp.EventID,
-		ProcessedAt: cp.ProcessedAt.UnixNano(),
+		EventID:     checkpoint.EventID,
+		ProcessedAt: checkpoint.ProcessedAt.UnixNano(),
 	}
 
 	return pebbleEncMode.Marshal(s) //nolint:wrapcheck // storage serialization, not domain error
@@ -172,12 +179,14 @@ func deserializeCheckpoint(data []byte) (event.Checkpoint, error) {
 	var s serializableCheckpoint
 
 	if isCBOR(data) {
-		if err := pebbleDecMode.Unmarshal(data, &s); err != nil {
+		err := pebbleDecMode.Unmarshal(data, &s)
+		if err != nil {
 			return event.Checkpoint{}, fmt.Errorf("cbor unmarshal checkpoint: %w", err)
 		}
 	} else {
 		// Legacy JSON fallback for checkpoints written before CBOR migration.
-		if err := json.Unmarshal(data, &s); err != nil {
+		err := json.Unmarshal(data, &s)
+		if err != nil {
 			return event.Checkpoint{}, fmt.Errorf("json unmarshal checkpoint: %w", err)
 		}
 	}
