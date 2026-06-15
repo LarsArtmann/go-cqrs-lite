@@ -192,14 +192,14 @@ func BenchmarkEventStore_AppendBatch_10Events(b *testing.B) {
 		ref := event.NewAggregateRef("Bench", aggID)
 
 		events := make([]event.Event, 10)
-		for j := range 10 {
-			evt, err := event.NewEvent("BenchBatch", aggID, "Bench", event.Version(j+1),
-				[]byte(`{"name":"batch","idx":`+strconv.Itoa(j)+`}`))
+		for idx := range 10 {
+			evt, err := event.NewEvent("BenchBatch", aggID, "Bench", event.Version(idx+1),
+				[]byte(`{"name":"batch","idx":`+strconv.Itoa(idx)+`}`))
 			if err != nil {
-				b.Fatalf("create event %d: %v", j, err)
+				b.Fatalf("create event %d: %v", idx, err)
 			}
 
-			events[j] = evt
+			events[idx] = evt
 		}
 
 		err := store.AppendBatch(ctx, ref, events)
