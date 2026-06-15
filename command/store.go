@@ -133,3 +133,23 @@ type Store interface {
 	CommandSink
 	CommandSource
 }
+
+// CommandJournal reads all commands across all aggregates, ordered by
+// ReceivedAt. This is the command-side equivalent of event.Journal —
+// it provides a complete audit trail of every command ever dispatched.
+//
+// Use cases: audit ("who issued what commands and when?"), replay
+// debugging, analytics ("which command types are most frequent?").
+type CommandJournal interface {
+	ReadAll(ctx context.Context) ([]*PersistedCommand, error)
+}
+
+// SeekableCommandJournal extends CommandJournal with position-based reading.
+// Position is based on CommandID (ULID-based, time-sortable).
+//
+// Enables incremental command replay: read commands in batches from a
+// checkpoint, process them, then resume from the last CommandID.
+type SeekableCommandJournal interface {
+	CommandJournal
+	ReadFrom(ctx context.Context, afterCommandID id.CommandID, limit int) ([]*PersistedCommand, error)
+}
