@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strconv"
 	"testing"
 	"time"
 
@@ -151,4 +152,59 @@ func newPebbleBenchStore(b *testing.B) *EventStore {
 	b.Cleanup(func() { _ = database.Close() })
 
 	return NewStore(database, slog.Default())
+}
+
+func BenchmarkEventStore_Save_SingleEvent(b *testing.B) {
+	b.ReportAllocs()
+
+	store := newPebbleBenchStore(b)
+	ctx := context.Background()
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		aggID := id.NewAggregateID()
+		ref := event.NewAggregateRef("Bench", aggID)
+
+		evt, err := event.NewEvent("BenchSaved", aggID, "Bench", event.Version(1),
+			[]byte(`{"name":"save-bench","value":42}`))
+		if err != nil {
+			b.Fatalf("create event: %v", err)
+		}
+
+		err = store.Save(ctx, ref, []event.Event{evt}, event.Version(0))
+		if err != nil {
+			b.Fatalf("Save: %v", err)
+		}
+	}
+}
+
+func BenchmarkEventStore_AppendBatch_10Events(b *testing.B) {
+	b.ReportAllocs()
+
+	store := newPebbleBenchStore(b)
+	ctx := context.Background()
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		aggID := id.NewAggregateID()
+		ref := event.NewAggregateRef("Bench", aggID)
+
+		events := make([]event.Event, 10)
+		for j := range 10 {
+			evt, err := event.NewEvent("BenchBatch", aggID, "Bench", event.Version(j+1),
+				[]byte(`{"name":"batch","idx":`+strconv.Itoa(j)+`}`))
+			if err != nil {
+				b.Fatalf("create event %d: %v", j, err)
+			}
+
+			events[j] = evt
+		}
+
+		err := store.AppendBatch(ctx, ref, events)
+		if err != nil {
+			b.Fatalf("AppendBatch: %v", err)
+		}
+	}
 }

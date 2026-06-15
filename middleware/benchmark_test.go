@@ -40,3 +40,36 @@ func BenchmarkCommandRetry(b *testing.B) {
 	b.ReportAllocs()
 	benchCommandMiddleware(b, CommandRetry(DefaultRetryConfig()))
 }
+
+func BenchmarkCircuitBreaker_HappyPath(b *testing.B) {
+	b.ReportAllocs()
+	mw := CommandCircuitBreaker(DefaultCircuitBreakerConfig())
+	handler := mw(NoopCommandHandler())
+
+	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+	ctx := context.Background()
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		_ = handler(ctx, cmd)
+	}
+}
+
+func BenchmarkCircuitBreaker_Concurrent(b *testing.B) {
+	b.ReportAllocs()
+
+	mw := CommandCircuitBreaker(DefaultCircuitBreakerConfig())
+	handler := mw(NoopCommandHandler())
+	ctx := context.Background()
+
+	b.ResetTimer()
+
+	b.RunParallel(func(pb *testing.PB) {
+		cmd := &testCommand{aggregateID: id.NewAggregateID()}
+
+		for pb.Next() {
+			_ = handler(ctx, cmd)
+		}
+	})
+}
