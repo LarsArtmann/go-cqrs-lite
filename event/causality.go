@@ -21,7 +21,11 @@ type causalityCtx struct {
 //
 //	ctx = event.WithCommandCausality(ctx, "create_user", cmdID)
 //	// pass ctx to decider.Execute — events will carry command metadata
-func WithCommandCausality(ctx context.Context, commandType string, commandID id.CommandID) context.Context {
+func WithCommandCausality(
+	ctx context.Context,
+	commandType string,
+	commandID id.CommandID,
+) context.Context {
 	return context.WithValue(ctx, ctxKeyCausality{}, causalityCtx{
 		commandType: commandType,
 		commandID:   commandID,
@@ -30,7 +34,9 @@ func WithCommandCausality(ctx context.Context, commandType string, commandID id.
 
 // CommandCausalityFromContext returns the command type and ID stored in the
 // context, if any. Returns zero values if no command causality was set.
-func CommandCausalityFromContext(ctx context.Context) (commandType string, commandID id.CommandID, ok bool) {
+func CommandCausalityFromContext(
+	ctx context.Context,
+) (commandType string, commandID id.CommandID, ok bool) {
 	v, exists := ctx.Value(ctxKeyCausality{}).(causalityCtx)
 	if !exists {
 		return "", id.CommandID{}, false

@@ -66,14 +66,22 @@ func (b *MemoryCommandBus) notify(ctx context.Context, cmd command.Command) erro
 	for _, handler := range typeHandlers {
 		err := handler(ctx, cmd)
 		if err != nil {
-			return event.WrapInfrastructure(err, "memory.command_bus", fmt.Sprintf("handler for %s", cmdType))
+			return event.WrapInfrastructure(
+				err,
+				"memory.command_bus",
+				fmt.Sprintf("handler for %s", cmdType),
+			)
 		}
 	}
 
 	for _, handler := range allHandlers {
 		err := handler(ctx, cmd)
 		if err != nil {
-			return event.WrapInfrastructure(err, "memory.command_bus", fmt.Sprintf("all-handler for %s", cmdType))
+			return event.WrapInfrastructure(
+				err,
+				"memory.command_bus",
+				fmt.Sprintf("all-handler for %s", cmdType),
+			)
 		}
 	}
 

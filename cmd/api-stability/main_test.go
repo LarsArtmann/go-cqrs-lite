@@ -28,7 +28,8 @@ func TestAPISurfaceCheck(t *testing.T) {
 }
 
 func TestAPISurfaceUpdateIdempotent(t *testing.T) {
-	t.Parallel()
+	// Serial: writes the golden file. Must not overlap with TestAPISurfaceCheck
+	// which reads the golden file concurrently.
 
 	projectRoot := filepath.Join(".", "..", "..")
 	goldenPath := filepath.Join(projectRoot, "docs", "api_surface.txt")
