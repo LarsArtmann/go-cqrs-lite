@@ -42,6 +42,7 @@ go-cqrs-lite/
 │   └── eventtest/       # FakeStore, FakeBus, FakeSnapshotStore, event factories, test assertions
 ├── command/             # Dispatcher, Handler, Middleware, Command, BasicCommand, PersistedCommand
 │                        # Store: CommandSink, CommandSource, Store, CommandJournal, SeekableCommandJournal
+│                        # Bus: Publisher, Subscriber, Bus, PublishMiddleware (command pub/sub)
 ├── query/               # Dispatcher, Handler, Pagination, PaginatedResult[T], RegisterTyped[Q,R], TypedHandler[Q,R]
 │                        # Store: PersistedQuery, QuerySink, QuerySource, QueryStore, QueryJournal, SeekableQueryJournal
 ├── decider/             # Decider[State], Repository[State], Execute, Load (pure-function style)
@@ -49,7 +50,7 @@ go-cqrs-lite/
 ├── dispatcher/          # Generic Dispatcher[H, M] with LifecycleMixin
 ├── schema/              # Upcaster, VersionedStore, upcasterRegistry (schema evolution)
 ├── snapshot/            # Snapshot, SnapshotSink/Source/Store, SnapshotStrategy, EveryNEvents
-├── memory/              # MemoryStore, MemoryBus, MemorySnapshotStore, MemoryCheckpointStore, MemoryCommandStore, MemoryQueryStore (in-memory test impls)
+├── memory/              # MemoryStore, MemoryBus, MemorySnapshotStore, MemoryCheckpointStore, MemoryCommandStore, MemoryCommandBus, MemoryQueryStore (in-memory test impls)
 ├── catalog/             # Registry, SchemaFromType[T](), AsyncAPI/D2/EventCatalog/OpenAPI exporters
 │   └── schema/          # JSON Schema types, reflection engine, YAML serialization
 ├── middleware/           # Logging, Retry, Recovery, Validation, Metrics, OTel Tracing+Metrics (command+event+query)
@@ -60,7 +61,7 @@ go-cqrs-lite/
 ├── otel/                # Shared OpenTelemetry helpers: Tracer, Meter, Spans, Attributes
 ├── listing/             # AggregateListing, AggregateStatus, tombstone detection, StatusMiddleware, InMemoryAggregateReader
 ├── watermill/           # Watermill protocol adapter (publisher/subscriber)
-├── pebble/              # Embedded key-value event store (PebbleDB), CBOR envelope with JSON backward compat
+├── pebble/              # Embedded KV store (PebbleDB): EventStore, SnapshotStore, CheckpointStore. CBOR envelope, shared DB via disjoint key prefixes
 ├── codec/               # Payload encoding: JSON, CBOR (deterministic), Raw passthrough
 ├── turso/               # Turso database connector (embedded LibSQL sync)
 ├── testutil/            # Shared test helpers: MustNewCmd (cross-module test utilities)
@@ -149,6 +150,26 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   queries, _ := qStore.LoadQueries(ctx, after) // QuerySource
 //   var qJournal query.QueryJournal = qStore             // ReadAllQueries
 //   var qSeekable query.SeekableQueryJournal = qStore     // ReadQueriesFrom(afterReqID, limit)
+
+// Command bus (pub/sub) — reactive command dispatch
+//   bus := memory.NewMemoryCommandBus()
+//   bus.Subscribe("user.create", handlerFunc)  // typed subscription
+//   bus.SubscribeAll(auditHandler)             // catch-all (audit log)
+//   bus.Use(middleware.CommandTracing(tracer)) // middleware chain
+//   bus.Publish(ctx, cmd1, cmd2)               // variadic publish
+
+// Event causality (command → event traceability)
+//   ctx = event.WithCommandCausality(ctx, "user.create", cmdID)
+//   // decider.Repository applies CommandCausalityEnricher(ctx) automatically;
+//   // resulting events carry metadata.command.type and metadata.command.id
+//   cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
+
+// Pebble single-DB full stack (events + snapshots + checkpoints)
+//   db, _ := pebble.Open(dir, &pebble.Options{})
+//   eventStore := pebble.NewStore(db, logger)
+//   snapStore  := pebble.NewSnapshotStore(db, logger)
+//   cpStore    := pebble.NewCheckpointStore(db, logger)
+//   // All three share db via disjoint key prefixes (cqrs_event:, cqrs_snapshot:, cqrs_checkpoint:)
 
 // Event upcasting (schema migration on load)
 //   upcaster := schema.NewUpcaster("UserCreated", 1, func(evt event.Event) (*event.ImmutableEvent, error) {

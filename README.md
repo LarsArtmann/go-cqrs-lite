@@ -76,7 +76,7 @@ Every module has its own README with detailed usage, types, and examples.
 | Module         | Purpose                                                                         | README                         |
 | -------------- | ------------------------------------------------------------------------------- | ------------------------------ |
 | **event**      | Immutable events, store/bus interfaces, event sourcing, 5-family error taxonomy | [README](event/README.md)      |
-| **command**    | Typed command dispatch, middleware, audit journal                               | [README](command/README.md)    |
+| **command**    | Typed command dispatch, middleware, audit journal, pub/sub bus                  | [README](command/README.md)    |
 | **query**      | Typed query dispatch, pagination, audit journal                                 | [README](query/README.md)      |
 | **decider**    | Pure-function aggregate pattern (load → fold → decide → save)                   | [README](decider/README.md)    |
 | **id**         | Branded IDs backed by ULID — impossible to mix up ID types                      | [README](id/README.md)         |
@@ -85,14 +85,14 @@ Every module has its own README with detailed usage, types, and examples.
 
 ### Persistence
 
-| Module       | Purpose                                                           | README                       |
-| ------------ | ----------------------------------------------------------------- | ---------------------------- |
-| **memory**   | In-memory store/bus/snapshot/checkpoint — for tests & dev         | [README](memory/README.md)   |
-| **storage**  | SQL event/snapshot/checkpoint stores (PostgreSQL, SQLite)         | [README](storage/README.md)  |
-| **pebble**   | Embedded KV event store (PebbleDB) with CBOR envelopes            | [README](pebble/README.md)   |
-| **turso**    | Turso/LibSQL connector with offline-first sync + indexing advisor | [README](turso/README.md)    |
-| **snapshot** | Snapshot types, strategies, store interfaces                      | [README](snapshot/README.md) |
-| **schema**   | Schema evolution via upcasters and VersionedStore                 | [README](schema/README.md)   |
+| Module       | Purpose                                                               | README                       |
+| ------------ | --------------------------------------------------------------------- | ---------------------------- |
+| **memory**   | In-memory store/bus/snapshot/checkpoint/command-bus — for tests & dev | [README](memory/README.md)   |
+| **storage**  | SQL event/snapshot/checkpoint/command stores (PostgreSQL, SQLite)     | [README](storage/README.md)  |
+| **pebble**   | Embedded KV: event/snapshot/checkpoint stores (PebbleDB + CBOR)       | [README](pebble/README.md)   |
+| **turso**    | Turso/LibSQL connector with offline-first sync + indexing advisor     | [README](turso/README.md)    |
+| **snapshot** | Snapshot types, strategies, store interfaces                          | [README](snapshot/README.md) |
+| **schema**   | Schema evolution via upcasters and VersionedStore                     | [README](schema/README.md)   |
 
 ### Infrastructure
 

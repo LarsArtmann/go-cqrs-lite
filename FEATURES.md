@@ -39,6 +39,9 @@
 | Command store interfaces | `CommandSink`, `CommandSource`, `Store` (Sink+Source) — persisted command log                    | ✅     |
 | CommandJournal           | `ReadAll(ctx)` — global command log ordered by ReceivedAt; audit trail of every command          | ✅     |
 | SeekableCommandJournal   | `ReadFrom(ctx, afterCommandID, limit)` — position-based command replay with ULID checkpoints     | ✅     |
+| Command Bus              | `Bus` (with `io.Closer`): `Publish`, `Subscribe`, `SubscribeAll`, `Use` — command pub/sub        | ✅     |
+| Publisher / Subscriber   | ISP split: `Publisher.Publish(ctx, cmds...)`, `Subscriber.Subscribe(type, handler)`              | ✅     |
+| PublishMiddleware        | `PublishMiddleware` wraps the publish path for cross-cutting concerns (signing, tracing)         | ✅     |
 
 ### Query Dispatcher ✅ FULLY_FUNCTIONAL
 
@@ -97,6 +100,7 @@
 | Stream loading        | `StreamLoader` interface + `EventStream` cursor + `StoreStreamAdapter`                                                                                                                                                                                                                                                     | ✅     |
 | Reactive streams      | `EventBus = ro.Subject[Event]`, `NewEventBus`, `NewReplayEventBus`, `NewBehaviorEventBus`, `FilterEventType`, `FilterEventTypes`, `ReplayFilter`, `HandlerToObserver`                                                                                                                                                      | ✅     |
 | Slice helpers         | `SliceFromVersion`, `SliceToVersion`, `FilterByTimestamp` — in-memory event slicing                                                                                                                                                                                                                                        | ✅     |
+| Command causality     | `WithCommandCausality(ctx, type, id)` + `CommandCausalityEnricher` — auto-tag events with the command that caused them                                                                                                                                                                                                     | ✅     |
 | Checkpoint            | `Checkpoint` struct + `CheckpointSink/Source/Store` interfaces for projection positioning                                                                                                                                                                                                                                  | ✅     |
 | Clock injection       | `Clock` type + `WithClock` option for deterministic testing                                                                                                                                                                                                                                                                | ✅     |
 | Error taxonomy        | 5-family: Rejection / Conflict / Transient / Infrastructure / Corruption; 12 helper funcs (`New*`, `Wrap*`, `Classify`, `IsRetryable`); 16 sentinel errors                                                                                                                                                                 | ✅     |
@@ -201,6 +205,7 @@
 | MemorySnapshotStore   | `snapshot.SnapshotStore` with deep-copy snapshots, version-aware `LoadAtVersion`                         | 🧪     |
 | MemoryCheckpointStore | `event.CheckpointStore` for projection checkpointing                                                     | 🧪     |
 | MemoryCommandStore    | `command.Store` + `CommandJournal` + `SeekableCommandJournal` for persisted command log                  | 🧪     |
+| MemoryCommandBus      | `command.Bus` with typed `Subscribe` + `SubscribeAll` + middleware chain                                 | 🧪     |
 | MemoryQueryStore      | `query.QueryStore` + `QueryJournal` + `SeekableQueryJournal` for persisted query audit log               | 🧪     |
 
 **Intended use:** Testing and development only. All implementations are thread-safe (`sync.RWMutex`), support `Close()` lifecycle, and return defensive copies.
@@ -515,6 +520,10 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | SeekableJournal        | `ReadFrom(afterEventID, limit)` — position-based replay                                | ✅     |
 | Async writes           | `WithAsyncWrites()` option — disables Pebble sync on commit for throughput             | ✅     |
 | Nil-safe logging       | All log operations nil-safe — no panics on nil logger                                  | ✅     |
+| SnapshotStore          | `NewSnapshotStore(db, logger)` — CBOR envelope, ignores older versions on Save         | ✅     |
+| Snapshot LoadAtVersion | "At or before" semantics — returns snapshot when stored version ≤ requested            | ✅     |
+| CheckpointStore        | `NewCheckpointStore(db, logger)` — CBOR envelope, returns zero checkpoint if missing   | ✅     |
+| Shared DB              | Event + Snapshot + Checkpoint stores share one `*pebble.DB` via disjoint key prefixes  | ✅     |
 
 ### Turso Database Connector
 
