@@ -119,3 +119,4 @@ watermill/     — Watermill protocol adapter
 | [0016](0016-outbox-pattern.md)                   | Outbox Pattern                        | 2026-06-14 | Proposed |
 | [0017](0017-schema-registry.md)                  | Schema Registry for Event Validation  | 2026-06-14 | Proposed |
 | [0018](0018-distributed-checkpointing.md)        | Distributed Checkpointing             | 2026-06-14 | Proposed |
+| [0020](0020-performance-optimization-patterns.md) | Performance Optimization Patterns   | 2026-06-14 | Accepted |
