@@ -57,7 +57,8 @@ go-cqrs-lite/
 ├── signing/             # Event signing/verification: HMAC-SHA256, Ed25519, multisig, middleware
 ├── encryption/          # Event payload encryption: XChaCha20-Poly1305, AES-256-GCM, codec wrapper, middleware
 ├── projection/          # Runner (replay+live), HandlerRegistry, Builder with On[T]()
-├── storage/             # SQLEventStore, SQLSnapshotStore, SQLCheckpointStore (PG/SQLite/Turso)
+├── storage/             # SQLEventStore, SQLSnapshotStore, SQLCheckpointStore, SQLCommandStore, SQLQueryStore (PG/SQLite/Turso)
+│   └── sql/             # Dialect, DBHandle, OwnedDBHandle, QueryEngine, RunInTx, IsDuplicateKeyError, ScanSlice, CommitTx
 ├── otel/                # Shared OpenTelemetry helpers: Tracer, Meter, Spans, Attributes
 ├── listing/             # AggregateListing, AggregateStatus, tombstone detection, StatusMiddleware, InMemoryAggregateReader
 ├── watermill/           # Watermill protocol adapter (publisher/subscriber)
@@ -204,6 +205,13 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   meter := otel.GetMeterProvider().Meter("my-app")
 //   recorder, _ := middleware.NewOTelMetricsRecorder(meter)
 //   cmdDispatcher.Use(middleware.CommandMetrics(recorder))
+
+// SQL backend facade — all stores share one *sql.DB connection
+//   backend, _ := storage.NewSQLiteBackend(db)  // or NewSQLBackend for Postgres
+//   eventStore  := backend.EventStore()                   // *SQLEventStore (eager)
+//   cmdStore, _ := backend.CommandStore()                 // *SQLCommandStore (lazy, goroutine-safe)
+//   qStore, _   := backend.QueryStore()                   // *SQLQueryStore (lazy, goroutine-safe)
+//   // Each store embeds *sqlpkg.OwnedDBHandle for Close/checkClosed lifecycle
 ```
 
 ## Testing
@@ -220,6 +228,8 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 - For `gosec` G115 (integer overflow) conversions, extract a helper function that isolates the `uint64()`/`uint32()` call on a short single line
 - Keep `//nolint` comments under ~40 chars to survive formatting
 - When adding new dependencies, add them to `.golangci.yml` depguard allow list at the same time
+- **SQL store helpers live in `storage/sql/`** — `RunInTx`, `IsDuplicateKeyError`, `CommitTx`, `ScanSlice`, `MarshalMetadata`. Don't duplicate transaction/duplicate-key logic in domain-specific store files. The `sql` package already imports `otel` for span recording.
+- **`scanCommand` and `scanQuery` must unmarshal metadata** — both scan a `metadataJSON []byte` column. Use `json.Unmarshal` into `command.Metadata` / `query.Metadata` (aliases for `event.Metadata`), then pass via `WithCommandMetadata` / `WithQueryMetadata`. Forgetting this causes silent metadata loss on SQL load.
 
 ## Dependencies
 
