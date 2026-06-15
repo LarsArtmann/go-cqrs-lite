@@ -82,3 +82,5 @@ result-*
 # Saga example binary
 /saga-pattern
 example/encryption/encryption
+turso/indexing/:memory:
+turso/indexing/:memory:-wal
