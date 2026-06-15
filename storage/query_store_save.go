@@ -99,7 +99,7 @@ func (s *SQLQueryStore) insertQuery(
 		s.Dialect.FormatTime(q.ReceivedAt()),
 	)
 	if err != nil {
-		if isDuplicateKeyError(err) {
+		if sqlpkg.IsDuplicateKeyError(err) {
 			return query.WrapConflict(
 				query.ErrDuplicateQuery,
 				"storage.duplicate_query",

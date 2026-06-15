@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
@@ -155,7 +154,7 @@ func (s *SQLCommandStore) insertCommand(
 		s.Dialect.FormatTime(cmd.ReceivedAt()),
 	)
 	if err != nil {
-		if isDuplicateKeyError(err) {
+		if sqlpkg.IsDuplicateKeyError(err) {
 			return command.WrapConflict(
 				command.ErrDuplicateCommand,
 				"storage.duplicate_command",
@@ -168,15 +167,4 @@ func (s *SQLCommandStore) insertCommand(
 	}
 
 	return nil
-}
-
-func isDuplicateKeyError(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	msg := err.Error()
-
-	return strings.Contains(msg, "UNIQUE constraint failed") ||
-		strings.Contains(msg, "duplicate key value violates unique constraint")
 }
