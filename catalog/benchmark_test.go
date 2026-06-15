@@ -4,8 +4,6 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
-	"github.com/larsartmann/go-cqrs-lite/catalog/v2/asyncapi"
-	"github.com/larsartmann/go-cqrs-lite/catalog/v2/eventcatalog"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v2/internal/cattest"
 )
 
@@ -47,52 +45,5 @@ func BenchmarkSchemaFromType(b *testing.B) {
 
 	for b.Loop() {
 		catalog.SchemaFromType[Order]()
-	}
-}
-
-func BenchmarkAsyncAPI_Export(b *testing.B) {
-	b.ReportAllocs()
-	cat := benchmarkRegistryWithCommand(b)
-
-	b.ResetTimer()
-
-	for b.Loop() {
-		asyncapi.NewExporter("Bench", "1.0.0").Export(cat)
-	}
-}
-
-func BenchmarkAsyncAPI_MarshalYAML(b *testing.B) {
-	b.ReportAllocs()
-	cat := benchmarkRegistryWithCommand(b)
-	doc := asyncapi.NewExporter("Bench", "1.0.0").Export(cat)
-
-	b.ResetTimer()
-
-	for b.Loop() {
-		_, _ = doc.MarshalYAML()
-	}
-}
-
-func BenchmarkEventCatalog_Export(b *testing.B) {
-	b.ReportAllocs()
-	reg := newBenchRegistry()
-
-	for i := range 10 {
-		reg.AddEvent("svc", catalog.Message{
-			Kind:      catalog.EventMessage,
-			ID:        catalog.MessageID("Evt" + string(rune('A'+i))),
-			Name:      catalog.Name("Evt" + string(rune('A'+i))),
-			Version:   "1.0.0",
-			Direction: catalog.Sends,
-		})
-	}
-
-	cat := reg.Build()
-
-	b.ResetTimer()
-
-	for b.Loop() {
-		exp := eventcatalog.NewExporter(b.TempDir())
-		_ = exp.Export(cat)
 	}
 }

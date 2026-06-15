@@ -4,6 +4,9 @@ go 1.26.3
 
 require (
 	github.com/larsartmann/go-cqrs-lite/catalog/v2 v2.3.0
+	github.com/larsartmann/go-cqrs-lite/catalog/v2/asyncapi v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/catalog/v2/d2 v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/catalog/v2/eventcatalog v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.3.0
 	github.com/larsartmann/go-cqrs-lite/command/v2 v2.3.0
 	github.com/larsartmann/go-cqrs-lite/decider/v2 v2.3.0
@@ -47,6 +50,9 @@ require (
 
 replace (
 	github.com/larsartmann/go-cqrs-lite/catalog/v2 => ../../catalog
+	github.com/larsartmann/go-cqrs-lite/catalog/v2/asyncapi => ../../catalog/asyncapi
+	github.com/larsartmann/go-cqrs-lite/catalog/v2/d2 => ../../catalog/d2
+	github.com/larsartmann/go-cqrs-lite/catalog/v2/eventcatalog => ../../catalog/eventcatalog
 	github.com/larsartmann/go-cqrs-lite/codec/v2 => ../../codec
 	github.com/larsartmann/go-cqrs-lite/command/v2 => ../../command
 	github.com/larsartmann/go-cqrs-lite/decider/v2 => ../../decider
