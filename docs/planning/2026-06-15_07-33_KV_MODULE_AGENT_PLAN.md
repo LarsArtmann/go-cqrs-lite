@@ -77,6 +77,7 @@ type Batch interface {
 ### Step 1: Create kv/ module (45min)
 
 **1.1** Create the module structure:
+
 ```
 kv/
 ├── go.mod           ← module github.com/larsartmann/go-cqrs-lite/kv/v2, go 1.26.3, zero deps
@@ -91,6 +92,7 @@ kv/
 **1.2** `kv/kv.go` — Define the 5 interfaces exactly as above.
 
 **1.3** `kv/errors.go`:
+
 ```go
 package kv
 
@@ -103,6 +105,7 @@ var (
 ```
 
 **1.4** `kv/mem.go` — In-memory implementation using `sort.Slice` or a B-tree:
+
 ```go
 // memStore implements kv.Store using an in-memory sorted map.
 // Keys are sorted lexicographically for correct iteration order.
@@ -115,6 +118,7 @@ type memStore struct {
 ```
 
 **1.5** `kv/doc.go` — Package documentation with usage example:
+
 ```go
 // Package kv defines a minimal key-value store abstraction for
 // embedded KV backends (Pebble, BadgerDB, bbolt).
@@ -159,6 +163,7 @@ func TestMemStore_Close(t *testing.T)       // operations after close return Err
 
 **2.2** These tests also serve as a contract — any future adapter (pebble, badger, bbolt)
 should pass the same test suite. Consider using a test suite function:
+
 ```go
 func TestStoreContract(t *testing.T, store kv.Store) { ... }
 ```
@@ -168,6 +173,7 @@ func TestStoreContract(t *testing.T, store kv.Store) { ... }
 ### Step 3: Pebble adapter — implement kv.Store (45min)
 
 **3.1** Read existing pebble code:
+
 ```bash
 # Understand key encoding
 grep -n 'cqrs_event:\|cqrs_snapshot:\|cqrs_checkpoint:' pebble/*.go | grep -v _test
@@ -178,6 +184,7 @@ grep -n 'Batch\|batch' pebble/save.go
 ```
 
 **3.2** Create `pebble/kv_adapter.go`:
+
 ```go
 package pebble
 
@@ -252,6 +259,7 @@ func (s *pebbleStore) Close() error {
 **3.3** Implement `pebbleIterator` and `pebbleBatch` types.
 
 **3.4** Add `kv/v2` dependency to `pebble/go.mod`:
+
 ```bash
 cd pebble
 GOWORK=off go get github.com/larsartmann/go-cqrs-lite/kv/v2@latest
@@ -270,11 +278,13 @@ GOWORK=off go mod tidy
 **This is the highest-risk step.** The existing pebble event store works. Only do this if confident.
 
 **4.1** Read all pebble store files to understand what calls `*pebble.DB` directly:
+
 ```bash
 grep -n '\.db\.' pebble/store.go pebble/save.go pebble/load.go pebble/journal.go
 ```
 
 **4.2** Change the `EventStore` struct to hold `kv.Store` instead of `*pebble.DB`:
+
 ```go
 // Before:
 type EventStore struct {
@@ -290,6 +300,7 @@ type EventStore struct {
 ```
 
 **4.3** Update `NewStore` to accept `kv.Store`:
+
 ```go
 // Before:
 func NewStore(db *pebble.DB, logger *slog.Logger) *EventStore
@@ -299,6 +310,7 @@ func NewStore(store kv.Store, logger *slog.Logger) *EventStore
 ```
 
 **4.4** Keep a convenience constructor that wraps Pebble:
+
 ```go
 func NewPebbleStore(db *pebble.DB, logger *slog.Logger) *EventStore {
     return NewStore(NewKVStore(db), logger)
@@ -318,6 +330,7 @@ func NewPebbleStore(db *pebble.DB, logger *slog.Logger) *EventStore {
 **Now trivial** — they just encode/decode values and use `kv.Store` for persistence.
 
 **5.1** `pebble/snapshot.go`:
+
 ```go
 func NewSnapshotStore(store kv.Store) *SnapshotStore { ... }
 // Save: encode snapshot to bytes, kv.Set(cqrs_snapshot:{type}:{id}, bytes)
@@ -325,6 +338,7 @@ func NewSnapshotStore(store kv.Store) *SnapshotStore { ... }
 ```
 
 **5.2** `pebble/checkpoint.go`:
+
 ```go
 func NewCheckpointStore(store kv.Store) *CheckpointStore { ... }
 // Save: kv.Set(cqrs_checkpoint:{name}, eventID)

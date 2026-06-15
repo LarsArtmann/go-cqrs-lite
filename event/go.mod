@@ -45,6 +45,7 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 => ../dispatcher
 	github.com/larsartmann/go-cqrs-lite/id/v2 => ../id
 	github.com/larsartmann/go-cqrs-lite/memory/v2 => ../memory
+	github.com/larsartmann/go-cqrs-lite/query/v2 => ../query
 	github.com/larsartmann/go-cqrs-lite/schema/v2 => ../schema
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../snapshot
 )

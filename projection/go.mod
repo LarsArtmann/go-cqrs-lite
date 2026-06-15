@@ -53,5 +53,6 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/id/v2 => ../id
 	github.com/larsartmann/go-cqrs-lite/memory/v2 => ../memory
 	github.com/larsartmann/go-cqrs-lite/otel/v2 => ../otel
+	github.com/larsartmann/go-cqrs-lite/query/v2 => ../query
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../snapshot
 )
