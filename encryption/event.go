@@ -75,23 +75,13 @@ func ExtractCiphertext(evt event.Event) (Ciphertext, error) {
 		return nil, ErrNilEvent
 	}
 
-	md := evt.Metadata()
-	if md.Custom == nil {
-		return nil, ErrNilCiphertext
-	}
-
-	encoded, ok := md.Custom[MetadataKey]
-	if !ok || encoded == "" {
-		return nil, ErrNilCiphertext
-	}
-
-	decoded, err := base64.URLEncoding.DecodeString(encoded)
+	decoded, found, err := event.ExtractCustomBytes(evt, MetadataKey)
 	if err != nil {
-		return nil, event.WrapInfrastructure(
-			err,
-			"encryption.decode_ciphertext",
-			"decode ciphertext from base64",
-		)
+		return nil, err
+	}
+
+	if !found {
+		return nil, ErrNilCiphertext
 	}
 
 	return Ciphertext(decoded), nil

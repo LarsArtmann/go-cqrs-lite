@@ -62,23 +62,13 @@ func ExtractSignature(evt event.Event) (Signature, error) {
 		return nil, ErrNilEvent
 	}
 
-	md := evt.Metadata()
-	if md.Custom == nil {
-		return nil, ErrNilSignature
-	}
-
-	encoded, ok := md.Custom[MetadataKey]
-	if !ok || encoded == "" {
-		return nil, ErrNilSignature
-	}
-
-	decoded, err := base64.URLEncoding.DecodeString(encoded)
+	decoded, found, err := event.ExtractCustomBytes(evt, MetadataKey)
 	if err != nil {
-		return nil, event.WrapInfrastructure(
-			err,
-			"signing.decode_signature",
-			"decode signature from base64",
-		)
+		return nil, err
+	}
+
+	if !found {
+		return nil, ErrNilSignature
 	}
 
 	return Signature(decoded), nil
