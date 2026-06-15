@@ -153,7 +153,8 @@ func TestMemoryCommandBus_SubscribeAll(t *testing.T) {
 		t.Fatalf("SubscribeAll: %v", err)
 	}
 
-	if err := bus.Publish(ctx,
+	if err := bus.Publish(
+		ctx,
 		newTestCommand(t, "CreateUser"),
 		newTestCommand(t, "UpdateUser"),
 		newTestCommand(t, "DeleteUser"),
@@ -311,7 +312,8 @@ func TestMemoryCommandBus_Publish_Variadic_MultipleCommands(t *testing.T) {
 		t.Fatalf("SubscribeAll: %v", err)
 	}
 
-	if err := bus.Publish(ctx,
+	if err := bus.Publish(
+		ctx,
 		newTestCommand(t, "CreateUser"),
 		newTestCommand(t, "UpdateUser"),
 	); err != nil {
