@@ -37,6 +37,7 @@
           ...
         }:
         let
+          inherit (pkgs) lib;
           goPkg = pkgs.go_1_26;
 
           goTags = [
@@ -87,6 +88,19 @@
           };
 
           goModules = [ goPkg ];
+
+          benchstat = pkgs.buildGoModule {
+            pname = "benchstat";
+            version = "unstable-2026-06-14";
+            src = pkgs.fetchFromGitHub {
+              owner = "golang";
+              repo = "perf";
+              rev = "master";
+              hash = "sha256-NA6V4sHZlvHCfdV2758IoMrDFAszmfrTjszZ+HB+PbM=";
+            };
+            subPackages = [ "cmd/benchstat" ];
+            vendorHash = "sha256-qGQpf0T1qBcu+25VF2xnbvImj+Fs81Ru9tho/0RJwzo=";
+          };
         in
         {
           treefmt = {
@@ -110,6 +124,8 @@
               pkgs.trash-cli
               pkgs.gosec
               pkgs.go-arch-lint
+              pkgs.govulncheck
+              pkgs.gitleaks
             ];
 
             GOWORK = "off";
@@ -165,6 +181,23 @@
             clean = mkApp "clean" [ goPkg pkgs.trash-cli ] ''
               ${pkgs.trash-cli}/bin/trash-put coverage.out 2>/dev/null || true
               ${goPkg}/bin/go clean -testcache
+            '';
+
+            benchstat = mkApp "benchstat" [ benchstat ] ''
+              ${benchstat}/bin/benchstat "$@"
+            '';
+
+            vulncheck = mkApp "vulncheck" [ goPkg ] ''
+              ${goPkg}/bin/go vet -vettool=which govulncheck 2>/dev/null || true
+              for mod in ${builtins.concatStringsSep " " testModules}; do
+                echo "==> Vulnerability scan: $mod"
+                (cd "$mod" && GOWORK=off ${goPkg}/bin/go list -json ./... | ${pkgs.govulncheck}/bin/govulncheck -mode=source 2>/dev/null || true)
+              done
+            '';
+
+            secrets-scan = mkApp "secrets-scan" [ pkgs.gitleaks ] ''
+              ${pkgs.gitleaks}/bin/gitleaks detect --source . --no-banner --no-git 2>/dev/null || true
+              echo "==> Secret scan complete"
             '';
           };
         };
