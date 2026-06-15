@@ -231,6 +231,10 @@ func TestSQLCommandStore_MetadataRoundtrip(t *testing.T) {
 
 	gotJournal := all[0].Metadata()
 	if gotJournal.CorrelationID != meta.CorrelationID {
-		t.Errorf("Journal CorrelationID mismatch: got %v, want %v", gotJournal.CorrelationID, meta.CorrelationID)
+		t.Errorf(
+			"Journal CorrelationID mismatch: got %v, want %v",
+			gotJournal.CorrelationID,
+			meta.CorrelationID,
+		)
 	}
 }
