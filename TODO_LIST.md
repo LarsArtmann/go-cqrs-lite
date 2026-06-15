@@ -18,6 +18,7 @@
 The CQRS audit trail feature (command/query persistence with journal support) is now **fully implemented** across memory, SQL, **and Pebble** backends. Pebble now has complete backend parity: EventStore + Journal + SnapshotStore + CheckpointStore, all sharing a single `*pebble.DB` via disjoint key prefixes.
 
 **Completed in this session:**
+
 - [x] Pebble SnapshotStore (`NewSnapshotStore`) — CBOR envelope, ignores older versions
 - [x] Pebble CheckpointStore (`NewCheckpointStore`) — CBOR envelope, zero-value on miss
 - [x] Pebble Journal + SeekableJournal (was already implemented)
@@ -28,8 +29,7 @@ The CQRS audit trail feature (command/query persistence with journal support) is
 
 Remaining items:
 
-- [ ] **`query.BasicQuery` has no metadata** — Unlike `BasicCommand`, queries carry no correlation/tracing context. Makes distributed tracing through the query path inconsistent with command/event.
-- [ ] **Fix SQLCommandStore metadata roundtrip** — `scanCommand` in `storage/command_store_scan.go` drops metadata on load (SQLQueryStore already handles this correctly). Apply the same pattern used in `query_store_scan.go`.
+- [ ] **Extract shared SQL helpers** — `withTx` (~25 lines) and `isDuplicateKeyError` (~10 lines) are duplicated across `SQLCommandStore` and `SQLQueryStore`. Move to `storage/sql/` package.
 
 ---
 
@@ -66,4 +66,4 @@ Remaining items:
 
 ---
 
-_7 open items + 8 deferred breaking changes. See [ROADMAP.md](ROADMAP.md) for long-term vision and sprint history._
+_5 open items + 8 deferred breaking changes. See [ROADMAP.md](ROADMAP.md) for long-term vision and sprint history._
