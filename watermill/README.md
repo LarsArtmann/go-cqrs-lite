@@ -1,5 +1,7 @@
 # watermill — Watermill Protocol Adapter
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/watermill/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/watermill/v2)
+
 Protocol adapters between go-cqrs-lite event interfaces and the [Watermill](https://watermill.io/) message bus library.
 
 ```bash

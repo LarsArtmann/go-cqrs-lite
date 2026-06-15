@@ -1,5 +1,7 @@
 # codec — Payload Encoding for Event Sourcing
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/codec/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/codec/v2)
+
 Encoding/decoding for event payloads. Provides the `Codec` interface used by stores, snapshots, and event construction.
 
 ```bash

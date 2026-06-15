@@ -1,13 +1,13 @@
-# storage — SQL and Pebble Event Store Backends
+# storage — SQL Event Store Backends
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/storage.svg)](https://pkg.go.dev/github.com/LarsArtmann/go-cqrs-lite/storage)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/storage/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/storage/v2)
 
 Persistent event store implementations for PostgreSQL, SQLite, and SQLite-compatible backends. Implements the `event.Store`, `snapshot.SnapshotStore`, and `event.CheckpointStore` interfaces.
 
 > **Pebble and Turso are now separate modules.** See `github.com/larsartmann/go-cqrs-lite/pebble` and `github.com/larsartmann/go-cqrs-lite/turso` for those backends.
 
 ```bash
-go get github.com/larsartmann/go-cqrs-lite/storage
+go get github.com/larsartmann/go-cqrs-lite/storage/v2
 ```
 
 ## Quick Start: SQLite
@@ -111,9 +111,8 @@ storage.SQLiteEnableWAL(ctx, db)   // write-ahead logging for performance
 // PostgreSQL
 storage.PostgresInitSchema(ctx, db) // creates all tables
 
-// Turso
-db, _ := storage.OpenTurso("myapp.db")
-storage.TursoInitSchema(ctx, db)
+// Turso is a separate module: github.com/larsartmann/go-cqrs-lite/turso
+// See the Turso section below
 ```
 
 ### DDL Functions
@@ -177,8 +176,9 @@ store, _ := turso.NewEventStore(db)
 
 ## Dependencies
 
-| Dependency           | Purpose                     |
-| -------------------- | --------------------------- |
-| `event`              | Event/ID interfaces         |
-| `snapshot`           | Snapshot persistence        |
-| `cockroachdb/pebble` | PebbleEventStore (optional) |
+| Dependency | Purpose              |
+| ---------- | -------------------- |
+| `event`    | Event/ID interfaces  |
+| `snapshot` | Snapshot persistence |
+| `otel`     | OTel helpers         |
+| `listing`  | Aggregate listing    |

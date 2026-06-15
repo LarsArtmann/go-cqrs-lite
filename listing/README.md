@@ -1,6 +1,12 @@
-# listing
+# listing — Aggregate Listing Read Model
+
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/listing/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/listing/v2)
 
 CQRS read model for aggregate listing and tombstone (soft-delete) management.
+
+```bash
+go get github.com/larsartmann/go-cqrs-lite/listing/v2
+```
 
 ## Overview
 
@@ -178,7 +184,11 @@ Implementations: `InMemoryAggregateReader`, `SQLAggregateReader`.
 
 ## Dependencies
 
-- `github.com/larsartmann/go-cqrs-lite/core` (event types, IDs, tombstone detection)
+| Dependency                       | Purpose                          |
+| -------------------------------- | -------------------------------- |
+| [event/v2](../event/README.md)   | Event types, tombstone detection |
+| [id/v2](../id/README.md)         | AggregateID                      |
+| [memory/v2](../memory/README.md) | In-memory reader for testing     |
 
 ## Test Coverage
 

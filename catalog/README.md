@@ -1,11 +1,11 @@
 # catalog — API Documentation Generation from Go Types
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/catalog.svg)](https://pkg.go.dev/github.com/LarsArtmann/go-cqrs-lite/catalog)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/catalog/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/catalog/v2)
 
 Automatically generate [AsyncAPI 3.0](https://www.asyncapi.com/) specs, [EventCatalog](https://www.eventcatalog.dev/) documentation, [OpenAPI/Swagger](https://swagger.io/specification/) specs, and [D2](https://d2lang.com/) architecture diagrams from your Go CQRS types.
 
 ```bash
-go get github.com/larsartmann/go-cqrs-lite/catalog
+go get github.com/larsartmann/go-cqrs-lite/catalog/v2
 ```
 
 ## Packages
@@ -188,7 +188,6 @@ type UserID string      // catalog.UserID
 
 ## Dependencies
 
-| Dependency       | Purpose          |
-| ---------------- | ---------------- |
-| `core`           | Event types, IDs |
-| `go-faster/yaml` | YAML marshaling  |
+| Dependency       | Purpose         |
+| ---------------- | --------------- |
+| `go-faster/yaml` | YAML marshaling |

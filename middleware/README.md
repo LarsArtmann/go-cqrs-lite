@@ -1,5 +1,7 @@
 # middleware — Cross-Cutting Concerns for CQRS
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/middleware/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/middleware/v2)
+
 Pre-built middleware for command, event, and query handlers. **24 middleware factories** covering 8 concerns across all 3 message types.
 
 ```bash

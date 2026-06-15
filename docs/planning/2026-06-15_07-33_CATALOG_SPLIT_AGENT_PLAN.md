@@ -54,6 +54,7 @@ catalog/
 ### Step 1: Split catalog/asyncapi → own module (30min)
 
 **1.1** Create `catalog/asyncapi/go.mod`:
+
 ```
 module github.com/larsartmann/go-cqrs-lite/catalog/v2/asyncapi
 
@@ -123,6 +124,7 @@ Same pattern. Note: docserver has `embed.FS` assets — make sure those stay wit
 
 **6.1** Run full suite: `nix run .#build && nix run .#test && nix run .#lint`.
 **6.2** Verify `GOWORK=off` builds work for ALL split modules:
+
 ```bash
 for mod in catalog/asyncapi catalog/openapi catalog/d2 catalog/eventcatalog catalog/docserver; do
     echo "=== $mod ==="
@@ -131,6 +133,7 @@ done
 ```
 
 **6.3** Clean up catalog core `go.mod` — remove deps only needed by exporters:
+
 ```bash
 cd catalog && GOWORK=off go mod tidy
 ```

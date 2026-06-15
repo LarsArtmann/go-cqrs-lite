@@ -12,6 +12,7 @@ Tiers 1+2 of the command/query full-depth plan are done (commits `b84f2c74` thro
 memory/ has implementations, and event/ has causality tracking.
 
 What remains:
+
 1. **Pebble completeness** — currently only implements `event.Store`. Needs Journal, SnapshotStore, CheckpointStore.
 2. **SQL CommandJournal** — `storage.SQLCommandStore` needs ReadAll/ReadFrom methods.
 3. **Tests** for MemoryCommandBus and event causality.
@@ -36,6 +37,7 @@ Run: `grep -rn 'ReadAll\|ReadFrom\|Journal' pebble/` to verify what exists.
 ### Step 1: Audit Pebble — what's already implemented? (15min)
 
 **1.1** Run these checks and record results:
+
 ```bash
 grep -rn 'func.*ReadAll\|func.*ReadFrom' pebble/ --include='*.go' | grep -v _test
 grep -rn 'SnapshotStore\|SnapshotSink\|SnapshotSource' pebble/ --include='*.go' | grep -v _test
@@ -51,6 +53,7 @@ grep -rn 'CheckpointStore\|CheckpointSink\|CheckpointSource' pebble/ --include='
 If Step 1 shows Journal is already implemented, SKIP this step.
 
 **2.1** Create `pebble/journal.go`:
+
 ```go
 package pebble
 
@@ -64,6 +67,7 @@ func (s *EventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
 ```
 
 **2.2** Implement ReadFrom (SeekableJournal):
+
 ```go
 func (s *EventStore) ReadFrom(ctx context.Context, afterEventID id.EventID, limit int) ([]event.Event, error) {
     // Find the position of afterEventID in the global log
@@ -72,6 +76,7 @@ func (s *EventStore) ReadFrom(ctx context.Context, afterEventID id.EventID, limi
 ```
 
 **2.3** Add compile-time assertions:
+
 ```go
 var (
     _ event.Journal         = (*EventStore)(nil)
@@ -86,12 +91,14 @@ var (
 ### Step 3: Implement Pebble SnapshotStore (1hr)
 
 **3.1** Understand snapshot key schema:
+
 ```go
 // Snapshot key format: cqrs_snapshot:{aggType}:{aggID}:{version}
 // Or:                  cqrs_snapshot:{aggType}:{aggID}  (latest only)
 ```
 
 **3.2** Create `pebble/snapshot.go`:
+
 ```go
 package pebble
 
@@ -126,6 +133,7 @@ func (s *SnapshotStore) LoadAtVersion(ctx context.Context, ref event.AggregateRe
 ```
 
 **3.3** Add `snapshot/v2` and `codec/v2` dependencies to `pebble/go.mod`:
+
 ```bash
 cd pebble
 GOWORK=off go get github.com/larsartmann/go-cqrs-lite/snapshot/v2@v2.3.0
@@ -141,6 +149,7 @@ GOWORK=off go mod tidy
 ### Step 4: Implement Pebble CheckpointStore (30min)
 
 **4.1** Create `pebble/checkpoint.go`:
+
 ```go
 package pebble
 
@@ -174,6 +183,7 @@ func (s *CheckpointStore) Load(ctx context.Context, projectionName string) (even
 **5.2** Add `ReadAll` and `ReadFrom` methods to `SQLCommandStore`:
 
 Create or edit `storage/command_store_journal.go`:
+
 ```go
 package storage
 
@@ -197,6 +207,7 @@ func (s *SQLCommandStore) ReadFrom(ctx context.Context, afterCommandID id.Comman
 ```
 
 **5.3** Add compile-time assertions:
+
 ```go
 var _ command.CommandJournal = (*SQLCommandStore)(nil)
 var _ command.SeekableCommandJournal = (*SQLCommandStore)(nil)
@@ -209,6 +220,7 @@ var _ command.SeekableCommandJournal = (*SQLCommandStore)(nil)
 ### Step 6: Test MemoryCommandBus (30min)
 
 **6.1** Create `memory/command_bus_test.go`:
+
 ```go
 func TestMemoryCommandBus_PublishSubscribe(t *testing.T) {
     // Create bus, subscribe to type, publish, verify handler called
@@ -233,6 +245,7 @@ func TestMemoryCommandBus_Close(t *testing.T) {
 ### Step 7: Test event causality (30min)
 
 **7.1** Create `event/causality_test.go`:
+
 ```go
 func TestWithCommandCausality(t *testing.T) {
     // Set context with command causality, enrich events, verify metadata
@@ -250,6 +263,7 @@ func TestCommandCausalityEnricher(t *testing.T) {
 ### Step 8: Update documentation (30min)
 
 **8.1** Update `FEATURES.md`:
+
 - Add CommandJournal/SeekableCommandJournal to command section
 - Add CommandBus/Publisher/Subscriber to command section
 - Add QuerySink/Source/Store/Journal to query section
@@ -257,14 +271,17 @@ func TestCommandCausalityEnricher(t *testing.T) {
 - Add event causality to event section
 
 **8.2** Update `AGENTS.md`:
+
 - Update module structure tree
 - Add new interfaces to Key Patterns section
 - Update module count
 
 **8.3** Update `TODO_LIST.md`:
+
 - Mark all completed items as DONE
 
 **8.4** Update `README.md`:
+
 - Add note about command/query persistence in features table
 
 **8.5** Commit: `docs: update for command/query full depth + pebble completeness`.

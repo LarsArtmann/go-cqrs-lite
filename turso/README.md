@@ -1,5 +1,7 @@
 # turso — Turso Database Connectors
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/turso/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/turso/v2)
+
 CQRS storage adapters for [Turso](https://turso.tech/) databases (embedded LibSQL/SQLite).
 
 ```bash

@@ -211,19 +211,19 @@ graph TD
 
 ### Completed — Tier 1+2 (1%→51% + 4%→64%)
 
-| # | Task | Commit | Status | Notes |
-|---|------|--------|--------|-------|
-| T1 | CommandJournal + SeekableCommandJournal | `b84f2c74` | ✅ DONE | 2 new interfaces in command/store.go |
-| T2 | Decider schema documentation | `b84f2c74` | ✅ DONE | Documented composition pattern in doc.go instead of adding hard dep |
-| T3 | CommandBus + Publisher + Subscriber | `b84f2c74` | ✅ DONE | command/bus.go: Publisher, Subscriber, Bus, PublishMiddleware, PublisherFunc |
-| T4 | CommandJournal on MemoryCommandStore | `5373f77e` | ✅ DONE | ReadAll + ReadFrom implemented + lint clean |
-| T5 | QuerySink/Source/Store interfaces | `5373f77e` | ✅ DONE | query/store.go: PersistedQuery, 6 interfaces |
-| T6 | QueryJournal + SeekableQueryJournal | `5373f77e` | ✅ DONE | Merged into T5 (same file) |
-| T7 | MemoryQueryStore | `5373f77e` | ✅ DONE | memory/query_store.go with full Store+Journal impl |
-| T8 | Command-event causality enricher | `5e49dc06` | ✅ DONE | event/causality.go: WithCommandCausality, CommandCausalityEnricher, metadata keys |
-| T9 | MemoryCommandBus | `5e49dc06` | ✅ DONE | memory/command_bus.go: full Bus impl with middleware chain |
-| T20a | Tests: CommandJournal | `0c0cd5b3` | ✅ DONE | memory/command_journal_test.go: ReadAll, ReadFrom, limit |
-| T20b | Tests: QueryStore | `0c0cd5b3` | ✅ DONE | memory/query_store_test.go: Save, ReadAll, ReadFrom |
+| #    | Task                                    | Commit     | Status  | Notes                                                                             |
+| ---- | --------------------------------------- | ---------- | ------- | --------------------------------------------------------------------------------- |
+| T1   | CommandJournal + SeekableCommandJournal | `b84f2c74` | ✅ DONE | 2 new interfaces in command/store.go                                              |
+| T2   | Decider schema documentation            | `b84f2c74` | ✅ DONE | Documented composition pattern in doc.go instead of adding hard dep               |
+| T3   | CommandBus + Publisher + Subscriber     | `b84f2c74` | ✅ DONE | command/bus.go: Publisher, Subscriber, Bus, PublishMiddleware, PublisherFunc      |
+| T4   | CommandJournal on MemoryCommandStore    | `5373f77e` | ✅ DONE | ReadAll + ReadFrom implemented + lint clean                                       |
+| T5   | QuerySink/Source/Store interfaces       | `5373f77e` | ✅ DONE | query/store.go: PersistedQuery, 6 interfaces                                      |
+| T6   | QueryJournal + SeekableQueryJournal     | `5373f77e` | ✅ DONE | Merged into T5 (same file)                                                        |
+| T7   | MemoryQueryStore                        | `5373f77e` | ✅ DONE | memory/query_store.go with full Store+Journal impl                                |
+| T8   | Command-event causality enricher        | `5e49dc06` | ✅ DONE | event/causality.go: WithCommandCausality, CommandCausalityEnricher, metadata keys |
+| T9   | MemoryCommandBus                        | `5e49dc06` | ✅ DONE | memory/command_bus.go: full Bus impl with middleware chain                        |
+| T20a | Tests: CommandJournal                   | `0c0cd5b3` | ✅ DONE | memory/command_journal_test.go: ReadAll, ReadFrom, limit                          |
+| T20b | Tests: QueryStore                       | `0c0cd5b3` | ✅ DONE | memory/query_store_test.go: Save, ReadAll, ReadFrom                               |
 
 **Build: PASS · Tests: 40/40 · Lint: 0 issues across 23 modules**
 
@@ -259,17 +259,17 @@ memory/:
 
 ### Remaining — Tier 3 (20% → 80%)
 
-| # | Task | Effort | Risk | Priority |
-|---|------|--------|------|----------|
-| T10 | CommandJournal on SQLCommandStore | 1hr | Low | High |
-| T11 | Pebble Journal + SeekableJournal | 1hr | Medium | High |
-| T12 | Pebble SnapshotStore | 1hr | Medium | Medium |
-| T13 | Pebble CheckpointStore | 30min | Medium | Medium |
-| T14-T18 | Split 5 catalog exporters | 2.5hr | High* | Medium |
-| T19 | kv/ interface module | 1hr | Low | Low |
-| T20c | Test: MemoryCommandBus | 30min | None | High |
-| T20d | Test: event causality | 30min | None | High |
-| T21 | Documentation updates | 30min | None | Medium |
+| #       | Task                              | Effort | Risk   | Priority |
+| ------- | --------------------------------- | ------ | ------ | -------- |
+| T10     | CommandJournal on SQLCommandStore | 1hr    | Low    | High     |
+| T11     | Pebble Journal + SeekableJournal  | 1hr    | Medium | High     |
+| T12     | Pebble SnapshotStore              | 1hr    | Medium | Medium   |
+| T13     | Pebble CheckpointStore            | 30min  | Medium | Medium   |
+| T14-T18 | Split 5 catalog exporters         | 2.5hr  | High\* | Medium   |
+| T19     | kv/ interface module              | 1hr    | Low    | Low      |
+| T20c    | Test: MemoryCommandBus            | 30min  | None   | High     |
+| T20d    | Test: event causality             | 30min  | None   | High     |
+| T21     | Documentation updates             | 30min  | None   | Medium   |
 
 \* Catalog split risk: go.work + replace directive restructuring. Each exporter
 keeps its import path — consumers see no change — but CI, go.work, and module
