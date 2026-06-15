@@ -186,10 +186,13 @@ func newMessageBuilder[T any](
 	return msgBuilder
 }
 
+// cmdSuffix is extracted to a constant because it appears 3+ times across the codebase.
+const cmdSuffix = "Cmd"
+
 func camelCaseToHuman(s string) string {
 	knownSuffixes := []string{
 		"Command",
-		"Cmd", //nolint:goconst // shared with tests
+		cmdSuffix,
 		"Event",
 		"Evt",
 		"Query",
