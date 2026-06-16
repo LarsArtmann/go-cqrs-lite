@@ -1,49 +1,31 @@
 # TODO List
 
-**Updated:** 2026-06-15
+**Updated:** 2026-06-16
 **Version:** v2.3.0
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in [ROADMAP.md](ROADMAP.md).
 
 ## Legend
 
 - `[ ]` = Open, actionable
+- `[x]` = Done
 - `[v2]` = Breaking change, deferred to next major
 - `[v3]` = Breaking change, deferred to v3
-- `[BLOCKED]` = Requires external action
 
 ---
 
-## HIGH — Remaining CQRS Audit Trail Work
+## All Open Items
 
-The CQRS audit trail feature (command/query persistence with journal support) is now **fully implemented** across memory, SQL, **and Pebble** backends. Pebble now has complete backend parity: EventStore + Journal + SnapshotStore + CheckpointStore, all sharing a single `*pebble.DB` via disjoint key prefixes.
+### Done This Session
 
-**Completed in this session:**
+- [x] **Extract shared SQL helpers** — `sql.RunInTx` and `sql.IsDuplicateKeyError` moved to `storage/sql/` package
+- [x] **OTel tracing for pebble stores** — `pebble.SnapshotStore` and `pebble.CheckpointStore` now have spans
+- [x] **Docker build CI step** — `docker-build` job in ci.yml builds for linux/amd64 + linux/arm64
+- [x] **Replace directive CI check** — `per-module-test` job runs `GOWORK=off go test` for every module
+- [x] **SQL helpers dedup** — `withTx` and `isDuplicateKeyError` extracted to `sql` package
 
-- [x] Pebble SnapshotStore (`NewSnapshotStore`) — CBOR envelope, ignores older versions
-- [x] Pebble CheckpointStore (`NewCheckpointStore`) — CBOR envelope, zero-value on miss
-- [x] Pebble Journal + SeekableJournal (was already implemented)
-- [x] SQL CommandJournal `ReadAll` + `ReadFrom` (was already implemented)
-- [x] MemoryCommandBus tests — 14 tests covering pub/sub, middleware, closed-state, concurrency
-- [x] Event causality tests — `WithCommandCausality` + `CommandCausalityEnricher` round-trip
-- [x] SQLBackend goroutine-safe lazy-init (race condition fix)
+### Remaining
 
-Remaining items:
-
-- [ ] **Extract shared SQL helpers** — `withTx` (~25 lines) and `isDuplicateKeyError` (~10 lines) are duplicated across `SQLCommandStore` and `SQLQueryStore`. Move to `storage/sql/` package.
-
----
-
-## MEDIUM
-
-- [ ] **`go-snaps` across remaining modules** — signing, middleware, storage, listing, watermill, pebble, turso, codec, otel, schema, snapshot, memory (some already have golden tests)
-- [ ] **OTel tracing for pebble stores** — `pebble.SnapshotStore` and `pebble.CheckpointStore` have no spans. SQL stores trace every operation via `cqrsotel.StartSpan`. Add the same pattern for parity (requires adding `otel/v2` dependency to `pebble/go.mod`).
-- [ ] **Docker build CI step** — linux/amd64 + linux/arm64 multi-arch build in GitHub Actions
-- [ ] **Add `replace` directive CI check** — Script that verifies all modules pass `GOWORK=off go test` to catch the silent regression class
-
----
-
-## LOW
-
+- [ ] **`go-snaps` golden tests for `codec` and `otel`** — Last 2 modules without snapshot tests. All others have at least 1 golden test file.
 - [ ] **Playwright E2E tests for `example/user/`** — Health endpoint + command→event→query flow. Requires Node.js + browser testing infrastructure.
 
 ---
@@ -66,4 +48,4 @@ Remaining items:
 
 ---
 
-_5 open items + 8 deferred breaking changes. See [ROADMAP.md](ROADMAP.md) for long-term vision and sprint history._
+_2 open items + 8 deferred breaking changes. See [ROADMAP.md](ROADMAP.md) for long-term vision and sprint history._
