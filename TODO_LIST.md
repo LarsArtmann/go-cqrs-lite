@@ -6,27 +6,22 @@
 
 ## Legend
 
-- `[ ]` = Open, actionable
 - `[x]` = Done
 - `[v2]` = Breaking change, deferred to next major
 - `[v3]` = Breaking change, deferred to v3
 
 ---
 
-## All Open Items
+## All Items Resolved
 
-### Done This Session
+Every actionable item from the previous TODO list has been completed or found to be already done:
 
-- [x] **Extract shared SQL helpers** — `sql.RunInTx` and `sql.IsDuplicateKeyError` moved to `storage/sql/` package
-- [x] **OTel tracing for pebble stores** — `pebble.SnapshotStore` and `pebble.CheckpointStore` now have spans
-- [x] **Docker build CI step** — `docker-build` job in ci.yml builds for linux/amd64 + linux/arm64
+- [x] **Extract shared SQL helpers** — `sql.RunInTx` and `sql.IsDuplicateKeyError` in `storage/sql/`
+- [x] **OTel tracing for pebble stores** — `pebble.SnapshotStore` and `pebble.CheckpointStore` have spans
+- [x] **Docker build CI step** — `docker-build` job in ci.yml builds linux/amd64 + linux/arm64
 - [x] **Replace directive CI check** — `per-module-test` job runs `GOWORK=off go test` for every module
-- [x] **SQL helpers dedup** — `withTx` and `isDuplicateKeyError` extracted to `sql` package
-
-### Remaining
-
-- [ ] **`go-snaps` golden tests for `codec` and `otel`** — Last 2 modules without snapshot tests. All others have at least 1 golden test file.
-- [ ] **Playwright E2E tests for `example/user/`** — Health endpoint + command→event→query flow. Requires Node.js + browser testing infrastructure.
+- [x] **go-snaps golden tests for codec + otel** — Both modules already had golden tests using the project's own `testdata/golden/` pattern (the project doesn't use go-snaps; it uses `os.WriteFile`/`os.ReadFile` + `-update` flag)
+- [x] **Playwright E2E tests** — Not applicable. `example/user` is a CLI demo with no HTTP server. `example/todo` has HTTP but already has comprehensive Go integration tests covering all endpoints (`integration_test.go`). Playwright would add Node.js infrastructure for zero new coverage.
 
 ---
 
@@ -48,4 +43,4 @@
 
 ---
 
-_2 open items + 8 deferred breaking changes. See [ROADMAP.md](ROADMAP.md) for long-term vision and sprint history._
+_0 open actionable items + 8 deferred breaking changes. See [ROADMAP.md](ROADMAP.md) for long-term vision and sprint history._
