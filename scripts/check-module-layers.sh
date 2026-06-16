@@ -29,11 +29,6 @@ LAYER[watermill]=5
 LAYER[pebble]=5
 LAYER[turso]=5
 LAYER[catalog]=6
-LAYER[catalog/asyncapi]=7
-LAYER[catalog/openapi]=7
-LAYER[catalog/d2]=7
-LAYER[catalog/eventcatalog]=7
-LAYER[catalog/docserver]=8
 LAYER[integration]=6
 
 # Some modules legitimately depend on test helpers (memory) or cross-cutting concerns (otel)
@@ -70,12 +65,7 @@ DEP_BUDGET[listing]=6
 DEP_BUDGET[watermill]=5
 DEP_BUDGET[pebble]=5
 DEP_BUDGET[turso]=6
-DEP_BUDGET[catalog]=3
-DEP_BUDGET[catalog/asyncapi]=2
-DEP_BUDGET[catalog/openapi]=2
-DEP_BUDGET[catalog/d2]=1
-DEP_BUDGET[catalog/eventcatalog]=1
-DEP_BUDGET[catalog/docserver]=3
+DEP_BUDGET[catalog]=4
 DEP_BUDGET[integration]=18
 
 failed=0
