@@ -68,7 +68,12 @@ func (s *ReadModelStore) Handle(_ context.Context, evt event.Event) error {
 	case eventUserNameChanged:
 		p, err := event.DecodePayload[UserNameChangedPayload](evt, c)
 		if err != nil {
-			return event.Newf(event.Infrastructure, "user.projection.2", "decode UserNameChanged in projection: %v", err)
+			return event.Newf(
+				event.Infrastructure,
+				"user.projection.2",
+				"decode UserNameChanged in projection: %v",
+				err,
+			)
 		}
 
 		if existing, ok := s.users[aggID]; ok {

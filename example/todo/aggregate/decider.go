@@ -42,7 +42,13 @@ func Fold(state TodoState, evt event.Event) (TodoState, error) {
 
 	codec := codecpkg.JSONCodec{}
 	if err := codec.Decode(evt.Payload(), &payload); err != nil {
-		return state, event.Newf(event.Infrastructure, "todo.aggregate.decider.1", "decode payload for event %s: %v", evt.Type(), err)
+		return state, event.Newf(
+			event.Infrastructure,
+			"todo.aggregate.decider.1",
+			"decode payload for event %s: %v",
+			evt.Type(),
+			err,
+		)
 	}
 
 	switch evt.Type() {
@@ -58,7 +64,13 @@ func Fold(state TodoState, evt event.Event) (TodoState, error) {
 
 		return state, nil
 	default:
-		return state, event.Newf(event.Infrastructure, "todo.aggregate.decider.2", "%v: %s", ErrUnknownEventType, evt.Type())
+		return state, event.Newf(
+			event.Infrastructure,
+			"todo.aggregate.decider.2",
+			"%v: %s",
+			ErrUnknownEventType,
+			evt.Type(),
+		)
 	}
 }
 
@@ -276,7 +288,8 @@ func newEventFromPayload(
 ) (event.Event, error) {
 	data, err := codecpkg.JSONCodec{}.Encode(payload)
 	if err != nil {
-		return nil, event.Newf(event.Infrastructure, "todo.aggregate.decider.3", 
+		return nil, event.Newf(
+			event.Infrastructure, "todo.aggregate.decider.3",
 			"marshal payload for event %s aggregate %s version %d: %v",
 			eventType,
 			aggID,

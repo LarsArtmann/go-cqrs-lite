@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"encoding/json"
 	"errors"
 	"log/slog"
@@ -9,10 +8,14 @@ import (
 
 	"github.com/cockroachdb/pebble"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
 )
 
-var ErrBackupNotImplemented = event.NewInfrastructure("todo.backup_not_implemented", "backup not implemented - use file-level backup")
+var ErrBackupNotImplemented = event.NewInfrastructure(
+	"todo.backup_not_implemented",
+	"backup not implemented - use file-level backup",
+)
 
 type PebbleStore struct {
 	PebbleHandle
@@ -20,12 +23,24 @@ type PebbleStore struct {
 
 func NewPebbleStore(dbPath string, logger *slog.Logger) (*PebbleStore, error) {
 	if err := os.MkdirAll(dbPath, 0o750); err != nil {
-		return nil, event.Newf(event.Infrastructure, "todo.storage.pebble_store.1", "failed to create data directory %s: %v", dbPath, err)
+		return nil, event.Newf(
+			event.Infrastructure,
+			"todo.storage.pebble_store.1",
+			"failed to create data directory %s: %v",
+			dbPath,
+			err,
+		)
 	}
 	opts := &pebble.Options{MaxOpenFiles: 1000}
 	db, err := pebble.Open(dbPath, opts)
 	if err != nil {
-		return nil, event.Newf(event.Infrastructure, "todo.storage.pebble_store.2", "failed to open pebble db at %s: %v", dbPath, err)
+		return nil, event.Newf(
+			event.Infrastructure,
+			"todo.storage.pebble_store.2",
+			"failed to open pebble db at %s: %v",
+			dbPath,
+			err,
+		)
 	}
 	return &PebbleStore{
 		PebbleHandle: PebbleHandle{db: db, logger: logger, prefix: "todo:"},
@@ -43,14 +58,32 @@ func (s *PebbleStore) Get(id domain.TodoID) (*domain.Todo, error) {
 	value, closer, err := s.db.Get(s.key(id))
 	if err != nil {
 		if errors.Is(err, pebble.ErrNotFound) {
-			return nil, event.Newf(event.Infrastructure, "todo.storage.pebble_store.3", "todo %s not found: %v", id.String(), domain.ErrNotFound)
+			return nil, event.Newf(
+				event.Infrastructure,
+				"todo.storage.pebble_store.3",
+				"todo %s not found: %v",
+				id.String(),
+				domain.ErrNotFound,
+			)
 		}
-		return nil, event.Newf(event.Infrastructure, "todo.storage.pebble_store.4", "failed to get todo %s: %v", id.String(), err)
+		return nil, event.Newf(
+			event.Infrastructure,
+			"todo.storage.pebble_store.4",
+			"failed to get todo %s: %v",
+			id.String(),
+			err,
+		)
 	}
 	defer func() { _ = closer.Close() }()
 	var todo domain.Todo
 	if err := json.Unmarshal(value, &todo); err != nil {
-		return nil, event.Newf(event.Infrastructure, "todo.storage.pebble_store.5", "failed to unmarshal todo %s: %v", id, err)
+		return nil, event.Newf(
+			event.Infrastructure,
+			"todo.storage.pebble_store.5",
+			"failed to unmarshal todo %s: %v",
+			id,
+			err,
+		)
 	}
 	return &todo, nil
 }
@@ -104,7 +137,13 @@ func (s *PebbleStore) Delete(id domain.TodoID) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if err := s.db.Delete(s.key(id), pebble.Sync); err != nil {
-		return event.Newf(event.Infrastructure, "todo.storage.pebble_store.9", "failed to delete todo %s: %v", id.String(), err)
+		return event.Newf(
+			event.Infrastructure,
+			"todo.storage.pebble_store.9",
+			"failed to delete todo %s: %v",
+			id.String(),
+			err,
+		)
 	}
 	return nil
 }

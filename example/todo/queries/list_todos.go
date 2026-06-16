@@ -1,10 +1,10 @@
 package queries
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"context"
 	"encoding/json"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
@@ -57,7 +57,13 @@ func (h *ListTodosHandler) Handle(
 
 	todos, err := h.readModel.List(filter)
 	if err != nil {
-		return nil, event.Newf(event.Infrastructure, "todo.queries.list_todos.2", "failed to list todos with filter %+v: %v", filter, err)
+		return nil, event.Newf(
+			event.Infrastructure,
+			"todo.queries.list_todos.2",
+			"failed to list todos with filter %+v: %v",
+			filter,
+			err,
+		)
 	}
 
 	results := make([]*GetTodoResult, len(todos))

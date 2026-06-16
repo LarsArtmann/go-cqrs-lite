@@ -70,7 +70,8 @@ func registerQueryHandlers(
 		func(_ context.Context, q *GetUserQuery) (ReadModel, error) {
 			readModelResult, ok := readModel.Get(q.aggregateID)
 			if !ok {
-				return readModelResult, event.Newf(event.Infrastructure, "user.handlers.1", 
+				return readModelResult, event.Newf(
+					event.Infrastructure, "user.handlers.1",
 					"user %s: %v",
 					q.aggregateID,
 					event.ErrAggregateNotFound,

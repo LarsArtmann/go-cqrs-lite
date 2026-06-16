@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/v2/asyncapi"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v2/d2"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v2/eventcatalog"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 const outputFilePerm = 0o600

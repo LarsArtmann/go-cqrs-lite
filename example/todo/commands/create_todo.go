@@ -28,7 +28,8 @@ func NewCreateTodoCommand(
 ) (*CreateTodoCommand, error) {
 	core, err := command.New(aggregate.CommandCreate, todoID)
 	if err != nil {
-		return nil, event.Newf(event.Infrastructure, "todo.commands.create_todo.1", 
+		return nil, event.Newf(
+			event.Infrastructure, "todo.commands.create_todo.1",
 			"new create todo command for todo %s (title=%q, description=%q, priority=%d): %v",
 			todoID,
 			title,

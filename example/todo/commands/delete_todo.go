@@ -15,7 +15,13 @@ type DeleteTodoCommand struct{ command.BasicCommand }
 func NewDeleteTodoCommand(todoID id.AggregateID) (*DeleteTodoCommand, error) {
 	core, err := command.New(aggregate.CommandDelete, todoID)
 	if err != nil {
-		return nil, event.Newf(event.Infrastructure, "todo.commands.delete_todo.1", "new delete todo command for todo %s: %v", todoID, err)
+		return nil, event.Newf(
+			event.Infrastructure,
+			"todo.commands.delete_todo.1",
+			"new delete todo command for todo %s: %v",
+			todoID,
+			err,
+		)
 	}
 
 	return &DeleteTodoCommand{BasicCommand: *core}, nil

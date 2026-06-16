@@ -24,7 +24,8 @@ func NewUpdateTodoCommand(
 ) (*UpdateTodoCommand, error) {
 	core, err := command.New(aggregate.CommandUpdate, todoID)
 	if err != nil {
-		return nil, event.Newf(event.Infrastructure, "todo.commands.update_todo.1", 
+		return nil, event.Newf(
+			event.Infrastructure, "todo.commands.update_todo.1",
 			"new update todo command for todo %s (title=%q, description=%q): %v",
 			todoID,
 			title,

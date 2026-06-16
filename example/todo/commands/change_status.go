@@ -23,7 +23,13 @@ func NewChangeStatusCommand(
 ) (*ChangeStatusCommand, error) {
 	core, err := command.New(aggregate.CommandChangeStatus, todoID)
 	if err != nil {
-		return nil, event.Newf(event.Infrastructure, "todo.commands.change_status.1", "new change status command for todo %s: %v", todoID, err)
+		return nil, event.Newf(
+			event.Infrastructure,
+			"todo.commands.change_status.1",
+			"new change status command for todo %s: %v",
+			todoID,
+			err,
+		)
 	}
 
 	return &ChangeStatusCommand{

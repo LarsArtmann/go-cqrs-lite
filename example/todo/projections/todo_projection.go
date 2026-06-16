@@ -34,7 +34,13 @@ func (p *TodoProjection) Handle(_ context.Context, evt event.Event) error {
 	case aggregate.EventDeleted:
 		todoID, err := domain.ParseTodoID(evt.AggregateID().String())
 		if err != nil {
-			return event.Newf(event.Infrastructure, "todo.projections.todo_projection.1", "failed to parse aggregate ID %s: %v", evt.AggregateID(), err)
+			return event.Newf(
+				event.Infrastructure,
+				"todo.projections.todo_projection.1",
+				"failed to parse aggregate ID %s: %v",
+				evt.AggregateID(),
+				err,
+			)
 		}
 
 		return p.store.Delete(todoID)
@@ -49,7 +55,14 @@ func (p *TodoProjection) Handle(_ context.Context, evt event.Event) error {
 func (p *TodoProjection) handleUpsert(evt event.Event) error {
 	todo, err := payloadToTodo(evt)
 	if err != nil {
-		return event.Newf(event.Infrastructure, "todo.projections.todo_projection.2", "handle %s event %s: %v", evt.Type(), evt.AggregateID(), err)
+		return event.Newf(
+			event.Infrastructure,
+			"todo.projections.todo_projection.2",
+			"handle %s event %s: %v",
+			evt.Type(),
+			evt.AggregateID(),
+			err,
+		)
 	}
 
 	return p.store.Put(todo)
@@ -58,14 +71,21 @@ func (p *TodoProjection) handleUpsert(evt event.Event) error {
 func payloadToTodo(evt event.Event) (*domain.Todo, error) {
 	todoID, err := domain.ParseTodoID(evt.AggregateID().String())
 	if err != nil {
-		return nil, event.Newf(event.Infrastructure, "todo.projections.todo_projection.3", "failed to parse aggregate ID %s: %v", evt.AggregateID(), err)
+		return nil, event.Newf(
+			event.Infrastructure,
+			"todo.projections.todo_projection.3",
+			"failed to parse aggregate ID %s: %v",
+			evt.AggregateID(),
+			err,
+		)
 	}
 
 	var payload aggregate.TodoPayload
 
 	codec := codecpkg.JSONCodec{}
 	if err := codec.Decode(evt.Payload(), &payload); err != nil {
-		return nil, event.Newf(event.Infrastructure, "todo.projections.todo_projection.4", 
+		return nil, event.Newf(
+			event.Infrastructure, "todo.projections.todo_projection.4",
 			"failed to decode todo payload for event %s: %v",
 			evt.AggregateID(),
 			err,

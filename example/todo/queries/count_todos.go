@@ -1,10 +1,10 @@
 package queries
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"context"
 	"encoding/json"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
@@ -48,7 +48,13 @@ func (h *CountTodosHandler) Handle(
 
 	count, err := h.readModel.Count(filter)
 	if err != nil {
-		return nil, event.Newf(event.Infrastructure, "todo.queries.count_todos.2", "failed to count todos with filter %+v: %v", filter, err)
+		return nil, event.Newf(
+			event.Infrastructure,
+			"todo.queries.count_todos.2",
+			"failed to count todos with filter %+v: %v",
+			filter,
+			err,
+		)
 	}
 
 	return &CountTodosResult{Count: count}, nil
