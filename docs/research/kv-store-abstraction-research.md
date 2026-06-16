@@ -479,13 +479,13 @@ These belong in the specific backend module, NOT in `kv/`:
 
 ## 8. Decision Matrix
 
-| Option                      | Pros                                     | Cons                                                     | Verdict             |
-| --------------------------- | ---------------------------------------- | -------------------------------------------------------- | ------------------- |
-| **Use gokv**                | 30+ backends, actively maintained        | No iteration, no batch, string keys, auto-marshalling    | ❌ Reject           |
-| **Use valkeyrie**           | Watch, Lock, AtomicPut, 6 backends       | No batch, string keys, distributed focus, heavy          | ❌ Reject           |
-| **Use hyddenio/kv**         | Closest fit, modern API                  | Too new, lexkey dep, 3 backends, no community            | ❌ Reject           |
-| **Define own `kv/` module** | Exact fit, zero deps, controls semantics | More work (~300 lines total)                             | ✅ **Implemented**  |
-| **Keep direct Pebble dep**  | Zero work, already works                 | Locked to one backend, violates "data store independent" | Still in use        |
+| Option                      | Pros                                     | Cons                                                     | Verdict            |
+| --------------------------- | ---------------------------------------- | -------------------------------------------------------- | ------------------ |
+| **Use gokv**                | 30+ backends, actively maintained        | No iteration, no batch, string keys, auto-marshalling    | ❌ Reject          |
+| **Use valkeyrie**           | Watch, Lock, AtomicPut, 6 backends       | No batch, string keys, distributed focus, heavy          | ❌ Reject          |
+| **Use hyddenio/kv**         | Closest fit, modern API                  | Too new, lexkey dep, 3 backends, no community            | ❌ Reject          |
+| **Define own `kv/` module** | Exact fit, zero deps, controls semantics | More work (~300 lines total)                             | ✅ **Implemented** |
+| **Keep direct Pebble dep**  | Zero work, already works                 | Locked to one backend, violates "data store independent" | Still in use       |
 
 ---
 

@@ -10,13 +10,13 @@ go get github.com/larsartmann/go-cqrs-lite/kv/v2
 
 ## Interfaces
 
-| Interface    | Methods                                    | Purpose                                  |
-| ------------ | ------------------------------------------ | ---------------------------------------- |
-| `Store`      | `Reader` + `Writer` + `Close`              | Full read-write access                   |
-| `Reader`     | `Get`, `Has`, `NewIterator`                | Read-only access                         |
-| `Writer`     | `Set`, `Delete`, `Batch`                   | Write access                             |
-| `Iterator`   | `Next`, `Key`, `Value`, `Error`, `Close`   | Ordered key-value iteration (snapshot)   |
-| `Batch`      | `Set`, `Delete`, `Commit`, `Close`         | Atomic multi-key writes                  |
+| Interface  | Methods                                  | Purpose                                |
+| ---------- | ---------------------------------------- | -------------------------------------- |
+| `Store`    | `Reader` + `Writer` + `Close`            | Full read-write access                 |
+| `Reader`   | `Get`, `Has`, `NewIterator`              | Read-only access                       |
+| `Writer`   | `Set`, `Delete`, `Batch`                 | Write access                           |
+| `Iterator` | `Next`, `Key`, `Value`, `Error`, `Close` | Ordered key-value iteration (snapshot) |
+| `Batch`    | `Set`, `Delete`, `Commit`, `Close`       | Atomic multi-key writes                |
 
 ## Usage
 
