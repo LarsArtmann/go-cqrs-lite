@@ -76,6 +76,7 @@ func (q *ListTodosQuery) MarshalJSON() ([]byte, error) {
 
 	return json.Marshal(&struct {
 		*Alias
+
 		Type string `json:"type"`
 	}{
 		Type:  string(ListTodosQueryType),

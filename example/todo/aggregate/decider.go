@@ -40,6 +40,7 @@ func Fold(state TodoState, evt event.Event) (TodoState, error) {
 	}
 
 	var payload TodoPayload
+
 	codec := codecpkg.JSONCodec{}
 	if err := codec.Decode(evt.Payload(), &payload); err != nil {
 		return state, fmt.Errorf("decode payload for event %s: %w", evt.Type(), err)

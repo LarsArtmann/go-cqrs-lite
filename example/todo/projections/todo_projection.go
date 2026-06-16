@@ -63,6 +63,7 @@ func payloadToTodo(evt event.Event) (*domain.Todo, error) {
 	}
 
 	var payload aggregate.TodoPayload
+
 	codec := codecpkg.JSONCodec{}
 	if err := codec.Decode(evt.Payload(), &payload); err != nil {
 		return nil, fmt.Errorf(

@@ -3716,12 +3716,12 @@ func (e *ImmutableEvent) Metadata() Metadata {
             matched <code>*projectionFunc</code>. The real fix (T15) caches event types in the
             Runner at registration time, eliminating 10.5M clone allocations (100K events × 100
             projections) in the scale benchmark.<br /><br />
-            <strong>What's still not measured:</strong> Pebble single-serialization improvement (T1)
-            and CircuitBreaker atomic fast path (T11) need dedicated micro-benchmarks to quantify.
-            Single-iteration ns/op numbers have ±15% variance — allocation deltas are the reliable
-            signal. Full 5-run benchstat comparison is in
-            <code>benchmarks/2026-06-14_post-optimization.txt</code>.<br /><br />
-            All 40 test packages pass, zero lint issues, race detector clean on all changed modules.
+            <strong>What's now measured:</strong> Pebble single-event Save (13.2 µs) and
+            AppendBatch (23.4 µs) benchmarks confirm T1. CircuitBreaker HappyPath (9.3 ns/op,
+            0 B, 0 allocs) and Concurrent (19.7 ns/op) benchmarks confirm T11. CBOR
+            serialize/deserialize benchmarks added for Pebble envelope.
+            Full benchmark baseline: <code>benchmarks/2026-06-16_update.txt</code>.<br /><br />
+            All 40+ test packages pass, zero lint issues, race detector clean on all modules.
           </p>
         </div>
       </div>
@@ -3731,13 +3731,13 @@ func (e *ImmutableEvent) Metadata() Metadata {
     <footer>
       <div class="container">
         <p>
-          Generated 2026-06-14 · Updated with post-optimization results · go-cqrs-lite v2.3.0 · 28
+          Updated 2026-06-16 · go-cqrs-lite v2.3.0 · 33
           modules · Go 1.26.3
         </p>
         <p style="margin-top: 0.3rem">
           All benchmarks run on AMD Ryzen AI MAX+ 395 (32 threads, 96 GB RAM) with
           <code>-count=1 -benchmem</code>. Baseline: <code>benchmarks/benchmark-baseline.txt</code>.
-          Post-optimization: <code>benchmarks/2026-06-14_post-optimization.txt</code>.
+          Latest: <code>benchmarks/2026-06-16_update.txt</code>.
         </p>
       </div>
     </footer>

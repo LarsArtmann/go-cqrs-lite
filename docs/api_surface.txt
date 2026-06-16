@@ -111,11 +111,15 @@ catalog/method IsZero
 catalog/method IsZero
 catalog/method IsZero
 catalog/method IsZero
+catalog/method IsZero
+catalog/method IsZero
 catalog/method Registry
 catalog/method SetChannelOptions
 catalog/method SetDomainOptions
 catalog/method SetServiceMeta
 catalog/method SetServiceOptions
+catalog/method String
+catalog/method String
 catalog/method String
 catalog/method String
 catalog/method String
@@ -184,7 +188,9 @@ catalog/type DomainID
 catalog/type DomainOption
 catalog/type Email
 catalog/type ErrorExporter
+catalog/type FlowEdgeID
 catalog/type FlowID
+catalog/type FlowStepID
 catalog/type FlowStepRef
 catalog/type Host
 catalog/type Icon
