@@ -59,6 +59,7 @@ jobs:
           - schema
           - snapshot
           - codec
+          - kv
           - memory
           - catalog
           - middleware

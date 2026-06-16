@@ -26,7 +26,7 @@ jobs:
 
       - name: Build
         run: |
-          for mod in event command query memory storage middleware projection signing encryption listing pebble codec otel schema snapshot dispatcher id catalog; do
+          for mod in event command query memory storage middleware projection signing encryption listing pebble codec kv otel schema snapshot dispatcher id catalog; do
             echo "::group::Build $mod"
             (cd "$mod" && GOWORK=off go build ./...)
             echo "::endgroup::"
@@ -34,7 +34,7 @@ jobs:
 
       - name: Test
         run: |
-          for mod in event command query memory storage middleware projection signing encryption listing pebble codec otel schema snapshot dispatcher id catalog; do
+          for mod in event command query memory storage middleware projection signing encryption listing pebble codec kv otel schema snapshot dispatcher id catalog; do
             echo "::group::Test $mod"
             (cd "$mod" && GOWORK=off go test -v -race ./...)
             echo "::endgroup::"
@@ -43,7 +43,7 @@ jobs:
       - name: Run govulncheck
         run: |
           go install golang.org/x/vuln/cmd/govulncheck@latest
-          for mod in event command query memory storage middleware projection signing encryption listing pebble codec otel schema snapshot dispatcher id catalog; do
+          for mod in event command query memory storage middleware projection signing encryption listing pebble codec kv otel schema snapshot dispatcher id catalog; do
             echo "::group::govulncheck $mod"
             (cd "$mod" && GOWORK=off govulncheck ./...)
             echo "::endgroup::"
