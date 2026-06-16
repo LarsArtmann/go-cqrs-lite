@@ -18,12 +18,12 @@ No flag parameters, no arrow-shaped deep nesting, and no long if-else-if chains 
 
 ### Severity tally
 
-| Severity | Count | Where |
-| --- | --- | --- |
-| **HIGH** | 3 | `decider/load.go`, `cmd/api-stability/main.go`, `storage/sql/base.go` |
-| **MEDIUM** | 8 | mostly `turso/indexing/advisor.go`, `cmd/cqrs-gen`, `catalog/internal/caseutil` |
-| **LOW** | 5 | cosmetic, optional |
-| **Acceptable / by-design** | 4 | documented idioms (deprecated API, `reflect.Kind` switch, test-harness `update bool`) |
+| Severity                   | Count | Where                                                                                 |
+| -------------------------- | ----- | ------------------------------------------------------------------------------------- |
+| **HIGH**                   | 3     | `decider/load.go`, `cmd/api-stability/main.go`, `storage/sql/base.go`                 |
+| **MEDIUM**                 | 8     | mostly `turso/indexing/advisor.go`, `cmd/cqrs-gen`, `catalog/internal/caseutil`       |
+| **LOW**                    | 5     | cosmetic, optional                                                                    |
+| **Acceptable / by-design** | 4     | documented idioms (deprecated API, `reflect.Kind` switch, test-harness `update bool`) |
 
 ### Pareto note
 
@@ -46,7 +46,7 @@ if family == event.Rejection || family == event.Conflict ||
 return event.WrapInfrastructure(inner, "decider.op_error", inner.Error())
 ```
 
-**Why it's a problem:** Comparing the same variable (`family`) against four named constants with `||` is the textbook "complex boolean expression + if-else chain in OR form". It is hard to scan, easy to mis-edit (drop one term), and duplicates information that already lives in the `event` package's 5-family taxonomy. The check is really *"is this a known non-Infrastructure family?"*, but that intent is invisible.
+**Why it's a problem:** Comparing the same variable (`family`) against four named constants with `||` is the textbook "complex boolean expression + if-else chain in OR form". It is hard to scan, easy to mis-edit (drop one term), and duplicates information that already lives in the `event` package's 5-family taxonomy. The check is really _"is this a known non-Infrastructure family?"_, but that intent is invisible.
 
 **Recommended fix:** a `switch`, or better, a set-membership helper in `event/` so the intent is named:
 
@@ -103,6 +103,7 @@ for _, pkg := range pkgs {            // 1
 ```
 
 **Why it's a problem:**
+
 1. **Arrow shape** — the innermost bodies sit at depth 6–7, the classic unreadable pyramid.
 2. **Double responsibility in one loop** — type exports, value exports, AND func exports are all collected inline, and `f.Decls` is walked twice (once at line 136, once at line 175). This mixes three concerns, making the function hard to test/extend.
 3. A fourth export kind (e.g. type aliases, generics) would require reaching into the most-deeply-nested block.
@@ -138,7 +139,7 @@ func NewOwnedDBHandle(db *sql.DB, d Dialect, ownDB bool) (*OwnedDBHandle, error)
 func (b *OwnedDBHandle) SetOwnership(ownDB bool) { b.ownDB = ownDB }
 ```
 
-**Why it's a problem:** `ownDB bool` makes `Close()` perform two completely different actions (close the underlying `*sql.DB`, or not) chosen by a caller-supplied boolean. A reader of `handle.Close()` cannot know which path runs without tracing the flag value back to its construction site. This is the canonical "flag argument" smell. The `SetOwnership` setter is worse: it lets lifecycle semantics be silently toggled *after* construction — a latent foot-gun for double-close/connection-leak bugs.
+**Why it's a problem:** `ownDB bool` makes `Close()` perform two completely different actions (close the underlying `*sql.DB`, or not) chosen by a caller-supplied boolean. A reader of `handle.Close()` cannot know which path runs without tracing the flag value back to its construction site. This is the canonical "flag argument" smell. The `SetOwnership` setter is worse: it lets lifecycle semantics be silently toggled _after_ construction — a latent foot-gun for double-close/connection-leak bugs.
 
 **Recommended fix:** replace the flag with two self-documenting constructors (the public API already has `NewSQLBackend` vs `NewSQLiteBackend`, so callers are used to choosing a constructor):
 
@@ -150,7 +151,7 @@ func NewOwnedDBHandle(db *sql.DB, d Dialect) (*OwnedDBHandle, error)
 func NewBorrowedDBHandle(db *sql.DB, d Dialect) (*OwnedDBHandle, error)
 ```
 
-Then delete `SetOwnership`. If a mutable ownership transfer is genuinely needed (e.g. "backend created the DB, later handed to the store"), expose an explicit `TransferOwnership()` that documents *why*, rather than a generic bool setter. Note: this is a public-API change — gate behind a minor version bump.
+Then delete `SetOwnership`. If a mutable ownership transfer is genuinely needed (e.g. "backend created the DB, later handed to the store"), expose an explicit `TransferOwnership()` that documents _why_, rather than a generic bool setter. Note: this is a public-API change — gate behind a minor version bump.
 
 ---
 
@@ -247,9 +248,9 @@ for i, r := range runes {            // 1
 
 A 10-case `switch k` mapping `reflect.Kind → JSON type`.
 
-**Why it's borderline:** This is the largest switch in the codebase. However, mapping `reflect.Kind` to a JSON schema type is *inherently* a switch-shaped problem and Go idiom strongly favors a switch here. Converting the simple cases to a `map[reflect.Kind]Type` is possible but gains little (most arms already group kinds, e.g. `reflect.Int, reflect.Int8, …`).
+**Why it's borderline:** This is the largest switch in the codebase. However, mapping `reflect.Kind` to a JSON schema type is _inherently_ a switch-shaped problem and Go idiom strongly favors a switch here. Converting the simple cases to a `map[reflect.Kind]Type` is possible but gains little (most arms already group kinds, e.g. `reflect.Int, reflect.Int8, …`).
 
-**Verdict:** Leave as a switch (idiomatic). Listed only so it is on record as *considered and accepted*.
+**Verdict:** Leave as a switch (idiomatic). Listed only so it is on record as _considered and accepted_.
 
 ---
 
@@ -267,25 +268,25 @@ if lower == "id" || lower == "aggregate_id" || strings.HasSuffix(lower, "_id") {
 
 ## LOW severity (optional polish)
 
-| File:Line | Pattern | Note |
-| --- | --- | --- |
-| `catalog/d2/connections.go:39` | `len(svc.Commands)==0 && len(svc.Events)==0 && len(svc.Queries)==0` | Extract `svc.hasMessages()` / `svc.IsEmpty()` — improves readability of a repeated guard. |
-| `decider/decider.go:74` | `r.snapshotStrategy != nil && (r.snapshotStore == nil \|\| r.codec == nil)` | A clear invariant-validation guard. Acceptable as-is; could extract `snapshotConfigComplete() bool` only if reused. |
-| `catalog/internal/cattest/catalog.go:60` & `event/eventtest/golden.go:14` | `AssertGolden(..., update bool)` | Common test-harness idiom (the `update` golden flag). Acceptable; not a production API. |
-| `cmd/cqrs-gen/main.go:123` | `d.IsDir() \|\| !strings.HasSuffix(path, ".go") \|\| strings.HasSuffix(path, "_test.go")` | Three conditions but each is a distinct, readable filter clause. Fine. |
-| `catalog/internal/caseutil/convert.go:20` | `i+1 < len(runes) && runes[i+1] >= 'a' && runes[i+1] <= 'z'` | Dense rune-range idiom; collapses if M6's `shouldPrependSeparator` helper is added. |
+| File:Line                                                                 | Pattern                                                                                   | Note                                                                                                                |
+| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `catalog/d2/connections.go:39`                                            | `len(svc.Commands)==0 && len(svc.Events)==0 && len(svc.Queries)==0`                       | Extract `svc.hasMessages()` / `svc.IsEmpty()` — improves readability of a repeated guard.                           |
+| `decider/decider.go:74`                                                   | `r.snapshotStrategy != nil && (r.snapshotStore == nil \|\| r.codec == nil)`               | A clear invariant-validation guard. Acceptable as-is; could extract `snapshotConfigComplete() bool` only if reused. |
+| `catalog/internal/cattest/catalog.go:60` & `event/eventtest/golden.go:14` | `AssertGolden(..., update bool)`                                                          | Common test-harness idiom (the `update` golden flag). Acceptable; not a production API.                             |
+| `cmd/cqrs-gen/main.go:123`                                                | `d.IsDir() \|\| !strings.HasSuffix(path, ".go") \|\| strings.HasSuffix(path, "_test.go")` | Three conditions but each is a distinct, readable filter clause. Fine.                                              |
+| `catalog/internal/caseutil/convert.go:20`                                 | `i+1 < len(runes) && runes[i+1] >= 'a' && runes[i+1] <= 'z'`                              | Dense rune-range idiom; collapses if M6's `shouldPrependSeparator` helper is added.                                 |
 
 ---
 
 ## Acceptable / by-design (no action)
 
-| Site | Pattern | Why it's fine |
-| --- | --- | --- |
-| `event/event_new.go:76` | `switch v := payload.(type)` (3 cases incl. default) | Idiomatic Go type switch; only distinguishes `[]byte` / `json.RawMessage` / marshal-default. |
-| `codec/raw.go:18` | `switch b := v.(type)` | Same — tiny type switch, fine. |
-| `event/tombstone.go:23`, `listing/types.go:48` | `switch` over a small enum (3 cases) | Correct use of switch for enum-to-string / enum semantics. |
-| `middleware/circuit_breaker.go:79,106` | `switch circuitState(...)` | State machine; switch is the right tool. |
-| `event/replay.go:38` `WithReplay(ctx, replay bool)` | Bool param | **Already deprecated** in favor of `WithProcessingMode(ctx, ModeReplay)`. Intentionally retained for back-compat. |
+| Site                                                | Pattern                                              | Why it's fine                                                                                                     |
+| --------------------------------------------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `event/event_new.go:76`                             | `switch v := payload.(type)` (3 cases incl. default) | Idiomatic Go type switch; only distinguishes `[]byte` / `json.RawMessage` / marshal-default.                      |
+| `codec/raw.go:18`                                   | `switch b := v.(type)`                               | Same — tiny type switch, fine.                                                                                    |
+| `event/tombstone.go:23`, `listing/types.go:48`      | `switch` over a small enum (3 cases)                 | Correct use of switch for enum-to-string / enum semantics.                                                        |
+| `middleware/circuit_breaker.go:79,106`              | `switch circuitState(...)`                           | State machine; switch is the right tool.                                                                          |
+| `event/replay.go:38` `WithReplay(ctx, replay bool)` | Bool param                                           | **Already deprecated** in favor of `WithProcessingMode(ctx, ModeReplay)`. Intentionally retained for back-compat. |
 
 ---
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -17,7 +18,8 @@ func TestAPISurfaceCheck(t *testing.T) {
 		t.Skip("golden file does not exist; run with -update first")
 	}
 
-	cmd := exec.Command("go", "run", ".")
+	ctx := context.Background()
+	cmd := exec.CommandContext(ctx, "go", "run", ".")
 	cmd.Dir = "."
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -43,7 +45,8 @@ func TestAPISurfaceUpdateIdempotent(t *testing.T) {
 		t.Fatalf("read golden: %v", err)
 	}
 
-	cmd := exec.Command("go", "run", ".", "-update")
+	ctx := context.Background()
+	cmd := exec.CommandContext(ctx, "go", "run", ".", "-update")
 	cmd.Dir = "."
 	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Fatalf("update run failed: %s\n%s", err, out)
@@ -56,7 +59,7 @@ func TestAPISurfaceUpdateIdempotent(t *testing.T) {
 
 	if string(original) != string(updated) {
 		t.Errorf("golden file changed after update — API surface is not stable")
-		if err := os.WriteFile(goldenPath, original, 0o644); err != nil {
+		if err := os.WriteFile(goldenPath, original, 0o600); err != nil {
 			t.Logf("failed to restore golden: %v", err)
 		}
 	}

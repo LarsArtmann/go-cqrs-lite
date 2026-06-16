@@ -748,11 +748,12 @@
     <!-- ════════════════════════ HERO ════════════════════════ -->
     <div class="hero">
       <div class="container">
-        <span class="badge">Performance Analysis · v2.3.0</span>
+        <span class="badge">Performance Analysis · v2.3.0 · Updated 2026-06-16</span>
         <h1>go-cqrs-lite Performance Report</h1>
         <p class="subtitle">
           A comprehensive, benchmarked review of CPU, memory, disk I/O, network, and concurrency
-          characteristics across all 28 modules of the CQRS/Event Sourcing library.
+          characteristics across all 33 modules of the CQRS/Event Sourcing library, including the
+          command bus, event causality, audit trail, and catalog split.
         </p>
         <div class="meta-grid">
           <div class="meta-card">
@@ -769,11 +770,11 @@
           </div>
           <div class="meta-card">
             <div class="label">Modules</div>
-            <div class="value">28</div>
+            <div class="value">33</div>
           </div>
           <div class="meta-card">
             <div class="label">Date</div>
-            <div class="value">2026-06-14</div>
+            <div class="value">2026-06-16</div>
           </div>
         </div>
       </div>
@@ -843,12 +844,12 @@
           <div class="dashboard-card disk">
             <h3>💿 Disk</h3>
             <div class="score-line">
-              <span class="verdict v-fair">Fair</span
-              ><span class="c-muted" style="font-size: 0.8rem">SQL: 1 INSERT/event</span>
+              <span class="verdict v-good">Good</span
+              ><span class="c-muted" style="font-size: 0.8rem">SQL: multi-VALUES batch</span>
             </div>
             <p>
-              Pebble: double serialization bug. SQL: no multi-VALUES batch, per-row timestamp parse.
-              Unbounded Load memory.
+              Pebble single-serialization fixed. SQL multi-VALUES INSERT with 999-param chunking.
+              Full CQRS stack on one Pebble DB (events + snapshots + checkpoints).
             </p>
           </div>
           <div class="dashboard-card net">
@@ -876,12 +877,12 @@
           <div class="dashboard-card other">
             <h3>⚙️ Concurrency</h3>
             <div class="score-line">
-              <span class="verdict v-good">Good</span
-              ><span class="c-muted" style="font-size: 0.8rem">10M cmd/sec concurrent</span>
+              <span class="verdict v-excellent">Excellent</span
+              ><span class="c-muted" style="font-size: 0.8rem">7.1M cmd/sec concurrent</span>
             </div>
             <p>
-              Excellent sharded-lock design in Pebble. CircuitBreaker mutex is a bottleneck. SSE
-              broker has a goroutine leak.
+              Sharded-lock design in Pebble. CircuitBreaker now uses atomic fast path (9.3 ns/op).
+              MemoryCommandBus mirrors MemoryBus with pre-computed middleware chain.
             </p>
           </div>
         </div>
@@ -889,22 +890,30 @@
         <div class="callout success">
           <div class="callout-title">What's excellent</div>
           <p>
-            Command/query dispatch at <strong>52–55 ns/op</strong>, zero-allocation
-            <code>Fold</code> at <strong>255 ns/op</strong>, pre-wrapped middleware at registration
-            time, zero-copy <code>PayloadReadOnly()</code> fast path, and CBOR codec modes cached at
-            package init. The pure-function decider design means the hot fold loop has
-            <strong>zero allocations</strong>.
+            Command/query dispatch at <strong>50–53 ns/op</strong>, zero-allocation
+            <code>Fold</code> at <strong>268 ns/op</strong>, pre-wrapped middleware at registration
+            time, zero-copy <code>PayloadReadOnly()</code> fast path, CBOR codec modes cached at
+            package init, CircuitBreaker atomic fast path at <strong>9.3 ns/op</strong> with zero
+            allocations, MemoryBus publish at <strong>45.6 ns/op</strong> (1 alloc), and the
+            pure-function decider fold loop has <strong>zero allocations</strong>.
           </p>
         </div>
-        <div class="callout danger">
-          <div class="callout-title">What needs attention</div>
+        <div class="callout warn">
+          <div class="callout-title">Previously identified — now resolved</div>
           <p>
-            Pebble writes every event <strong>twice</strong> (double serialization + 2× disk bytes).
-            SQL saves fire <strong>one INSERT per event</strong> with no multi-row batching.
-            <code>NewMetadata()</code> unconditionally allocates a map for every event even when
-            unused. The <code>MemoryBus</code> holds an
-            <strong>RLock for the entire duration of handler execution</strong>. The projection
-            pipeline allocates a new handler slice <strong>per event</strong>.
+            All 14 critical/high findings from the 2026-06-14 report have been resolved: pebble
+            double serialization (T1), lazy metadata map (T2), SQL multi-VALUES batch (T14),
+            CircuitBreaker atomic (T11), MemoryBus pre-compute (T12), SSE goroutine leak (T7),
+            MemoryStore double-copy (T6), and projection event type caching (T15). See the
+            <a href="#results" class="ref">Optimization Results</a> section for details.
+          </p>
+        </div>
+        <div class="callout warn">
+          <div class="callout-title">Remaining items to watch</div>
+          <p>
+            SQLite/Turso still parses timestamps via 6-layout loop (no INTEGER nanos). SQL
+            <code>Load</code> materializes entire streams with no LIMIT. Turso
+            <code>MaxOpenConns(1)</code> creates pool starvation under sync.
           </p>
         </div>
       </div>

@@ -11,35 +11,50 @@ import (
 	"strings"
 )
 
-var modules = []string{
-	"command",
-	"event",
-	"query",
-	"decider",
-	"id",
-	"dispatcher",
-	"memory",
-	"catalog",
-	"middleware",
-	"signing",
-	"encryption",
-	"projection",
-	"listing",
-	"otel",
-	"storage",
-	"event/eventtest",
-	"watermill",
-}
-
 func main() {
+	modules := []string{
+		"command",
+		"event",
+		"query",
+		"decider",
+		"id",
+		"dispatcher",
+		"memory",
+		"catalog",
+		"middleware",
+		"signing",
+		"encryption",
+		"projection",
+		"listing",
+		"otel",
+		"storage",
+		"event/eventtest",
+		"watermill",
+	}
+
 	projectRoot := filepath.Join(".", "..", "..")
 	goldenPath := filepath.Join(projectRoot, "docs", "api_surface.txt")
 
+	exports := collectAllModuleExports(modules, projectRoot)
+
+	sort.Strings(exports)
+
+	if len(os.Args) > 1 && os.Args[1] == "-update" {
+		writeGoldenFile(goldenPath, exports)
+		return
+	}
+
+	verifyGoldenFile(goldenPath, exports)
+}
+
+func collectAllModuleExports(modules []string, projectRoot string) []string {
 	var exports []string
 
 	for _, mod := range modules {
 		modPath := filepath.Join(projectRoot, mod)
-		if _, err := os.Stat(modPath); os.IsNotExist(err) {
+
+		_, err := os.Stat(modPath)
+		if os.IsNotExist(err) {
 			continue
 		}
 
@@ -55,60 +70,40 @@ func main() {
 		}
 	}
 
-	sort.Strings(exports)
+	return exports
+}
 
-	if len(os.Args) > 1 && os.Args[1] == "-update" {
-		err := os.MkdirAll(filepath.Dir(goldenPath), 0o755)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "mkdir: %v\n", err)
-			os.Exit(1)
-		}
+func writeGoldenFile(goldenPath string, exports []string) {
+	cleanPath := filepath.Clean(goldenPath)
 
-		err = os.WriteFile(goldenPath, []byte(strings.Join(exports, "\n")+"\n"), 0o644)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "write: %v\n", err)
-			os.Exit(1)
-		}
-
-		fmt.Printf("Updated %s (%d exports)\n", goldenPath, len(exports))
-		os.Exit(0)
+	err := os.MkdirAll(filepath.Dir(cleanPath), 0o750)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "mkdir: %v\n", err)
+		os.Exit(1)
 	}
 
-	data, err := os.ReadFile(goldenPath)
+	err = os.WriteFile(cleanPath, []byte(strings.Join(exports, "\n")+"\n"), 0o600)
 	if err != nil {
-		if os.IsNotExist(err) {
-			fmt.Fprintf(
-				os.Stderr,
-				"golden file %s does not exist; run with -update to create\n",
-				goldenPath,
-			)
-			os.Exit(1)
-		}
-
-		fmt.Fprintf(os.Stderr, "read: %v\n", err)
+		fmt.Fprintf(os.Stderr, "write: %v\n", err)
 		os.Exit(1)
+	}
+
+	fmt.Fprintf(os.Stdout, "Updated %s (%d exports)\n", cleanPath, len(exports))
+	os.Exit(0)
+}
+
+func verifyGoldenFile(goldenPath string, exports []string) {
+	cleanPath := filepath.Clean(goldenPath)
+
+	data, err := os.ReadFile(cleanPath) //nolint:gosec // G304: path is constructed from known project root
+	if err != nil {
+		handleReadError(cleanPath, err)
 	}
 
 	expected := strings.Split(strings.TrimSpace(string(data)), "\n")
 
 	if len(exports) != len(expected) {
-		missing, added := diff(expected, exports)
-		fmt.Fprintf(
-			os.Stderr,
-			"API surface mismatch: %d expected, %d actual\n",
-			len(expected),
-			len(exports),
-		)
-
-		if len(missing) > 0 {
-			fmt.Fprintf(os.Stderr, "REMOVED exports:\n  %s\n", strings.Join(missing, "\n  "))
-		}
-
-		if len(added) > 0 {
-			fmt.Fprintf(os.Stderr, "NEW exports:\n  %s\n", strings.Join(added, "\n  "))
-		}
-
-		os.Exit(1)
+		reportMismatch(expected, exports)
 	}
 
 	for i, exp := range expected {
@@ -118,72 +113,76 @@ func main() {
 		}
 	}
 
-	fmt.Printf("API surface OK: %d exports verified\n", len(exports))
+	fmt.Fprintf(os.Stdout, "API surface OK: %d exports verified\n", len(exports))
+}
+
+func handleReadError(goldenPath string, err error) {
+	if os.IsNotExist(err) {
+		fmt.Fprintf(
+			os.Stderr,
+			"golden file %s does not exist; run with -update to create\n",
+			goldenPath,
+		)
+		os.Exit(1)
+	}
+
+	fmt.Fprintf(os.Stderr, "read: %v\n", err)
+	os.Exit(1)
+}
+
+func reportMismatch(expected, exports []string) {
+	missing, added := diff(expected, exports)
+	fmt.Fprintf(
+		os.Stderr,
+		"API surface mismatch: %d expected, %d actual\n",
+		len(expected),
+		len(exports),
+	)
+
+	if len(missing) > 0 {
+		fmt.Fprintf(os.Stderr, "REMOVED exports:\n  %s\n", strings.Join(missing, "\n  "))
+	}
+
+	if len(added) > 0 {
+		fmt.Fprintf(os.Stderr, "NEW exports:\n  %s\n", strings.Join(added, "\n  "))
+	}
+
+	os.Exit(1)
 }
 
 func collectExports(dir string) ([]string, error) {
 	fset := token.NewFileSet()
 
-	pkgs, err := parser.ParseDir(fset, dir, nonTestFilter, 0)
+	entries, err := os.ReadDir(dir)
 	if err != nil {
-		return nil, fmt.Errorf("parse dir %s: %w", dir, err)
+		return nil, fmt.Errorf("read dir %s: %w", dir, err)
+	}
+
+	pkgFiles := make(map[string][]*ast.File)
+
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".go") {
+			continue
+		}
+
+		if strings.HasSuffix(entry.Name(), "_test.go") {
+			continue
+		}
+
+		file, err := parser.ParseFile(fset, filepath.Join(dir, entry.Name()), nil, 0)
+		if err != nil {
+			return nil, fmt.Errorf("parse file %s: %w", entry.Name(), err)
+		}
+
+		pkgName := file.Name.Name
+		pkgFiles[pkgName] = append(pkgFiles[pkgName], file)
 	}
 
 	var exports []string
 
-	for _, pkg := range pkgs {
-		for _, f := range pkg.Files {
-			for _, decl := range f.Decls {
-				genDecl, ok := decl.(*ast.GenDecl)
-				if !ok {
-					continue
-				}
-
-				for _, spec := range genDecl.Specs {
-					ts, ok := spec.(*ast.TypeSpec)
-					if !ok || !ts.Name.IsExported() {
-						continue
-					}
-
-					switch ts.Type.(type) {
-					case *ast.InterfaceType:
-						exports = append(exports, "interface "+ts.Name.Name)
-					case *ast.StructType:
-						exports = append(exports, "struct "+ts.Name.Name)
-					default:
-						exports = append(exports, "type "+ts.Name.Name)
-					}
-				}
-
-				if genDecl.Tok.String() == "var" || genDecl.Tok.String() == "const" {
-					prefix := strings.ToLower(genDecl.Tok.String())
-					for _, spec := range genDecl.Specs {
-						vs, ok := spec.(*ast.ValueSpec)
-						if !ok {
-							continue
-						}
-
-						for _, name := range vs.Names {
-							if name.IsExported() {
-								exports = append(exports, prefix+" "+name.Name)
-							}
-						}
-					}
-				}
-			}
-
-			for _, decl := range f.Decls {
-				fn, ok := decl.(*ast.FuncDecl)
-				if !ok || !fn.Name.IsExported() {
-					continue
-				}
-
-				if fn.Recv == nil {
-					exports = append(exports, "func "+fn.Name.Name)
-				} else {
-					exports = append(exports, "method "+fn.Name.Name)
-				}
-			}
+	for _, files := range pkgFiles {
+		for _, file := range files {
+			exports = append(exports, collectFileExports(file)...)
 		}
 	}
 
@@ -192,11 +191,64 @@ func collectExports(dir string) ([]string, error) {
 	return exports, nil
 }
 
-func nonTestFilter(fi os.FileInfo) bool {
-	return !strings.HasSuffix(fi.Name(), "_test.go")
+func collectFileExports(file *ast.File) []string {
+	var exports []string
+
+	for _, decl := range file.Decls {
+		switch d := decl.(type) {
+		case *ast.GenDecl:
+			exports = append(exports, collectGenDeclExports(d)...)
+		case *ast.FuncDecl:
+			if d.Name.IsExported() {
+				if d.Recv == nil {
+					exports = append(exports, "func "+d.Name.Name)
+				} else {
+					exports = append(exports, "method "+d.Name.Name)
+				}
+			}
+		}
+	}
+
+	return exports
 }
 
-func diff(expected, actual []string) (missing, added []string) {
+func collectGenDeclExports(genDecl *ast.GenDecl) []string {
+	var exports []string
+
+	for _, spec := range genDecl.Specs {
+		switch s := spec.(type) {
+		case *ast.TypeSpec:
+			if !s.Name.IsExported() {
+				continue
+			}
+
+			exports = append(exports, typeExportName(s))
+		case *ast.ValueSpec:
+			prefix := strings.ToLower(genDecl.Tok.String())
+
+			for _, name := range s.Names {
+				if name.IsExported() {
+					exports = append(exports, prefix+" "+name.Name)
+				}
+			}
+		}
+	}
+
+	return exports
+}
+
+func typeExportName(ts *ast.TypeSpec) string {
+	switch ts.Type.(type) {
+	case *ast.InterfaceType:
+		return "interface " + ts.Name.Name
+	case *ast.StructType:
+		return "struct " + ts.Name.Name
+	default:
+		return "type " + ts.Name.Name
+	}
+}
+
+func diff(expected, actual []string) ([]string, []string) {
 	expSet := make(map[string]struct{}, len(expected))
 	for _, e := range expected {
 		expSet[e] = struct{}{}
@@ -207,11 +259,15 @@ func diff(expected, actual []string) (missing, added []string) {
 		actSet[a] = struct{}{}
 	}
 
+	var missing []string
+
 	for _, e := range expected {
 		if _, ok := actSet[e]; !ok {
 			missing = append(missing, e)
 		}
 	}
+
+	var added []string
 
 	for _, a := range actual {
 		if _, ok := expSet[a]; !ok {
