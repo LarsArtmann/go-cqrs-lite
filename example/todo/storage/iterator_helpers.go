@@ -48,7 +48,13 @@ func newPrefixIter(db *pebble.DB, prefix string) (*pebble.Iterator, error) {
 func handleIteratorError(iter *pebble.Iterator, prefix string) error {
 	err := iter.Error()
 	if err != nil {
-		return event.Newf(event.Infrastructure, "todo.storage.iterator_helpers.2", "%s: %v", prefix, err)
+		return event.Newf(
+			event.Infrastructure,
+			"todo.storage.iterator_helpers.2",
+			"%s: %v",
+			prefix,
+			err,
+		)
 	}
 
 	return nil

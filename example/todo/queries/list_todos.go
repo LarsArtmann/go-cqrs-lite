@@ -24,7 +24,12 @@ type ListTodosQuery struct {
 func NewListTodosQuery() (*ListTodosQuery, error) {
 	core, err := query.New(ListTodosQueryType)
 	if err != nil {
-		return nil, event.Newf(event.Infrastructure, "todo.queries.list_todos.1", "new list todos query: %v", err)
+		return nil, event.Newf(
+			event.Infrastructure,
+			"todo.queries.list_todos.1",
+			"new list todos query: %v",
+			err,
+		)
 	}
 
 	return &ListTodosQuery{

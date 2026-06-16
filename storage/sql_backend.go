@@ -2,6 +2,7 @@ package storage
 
 import (
 	"database/sql"
+	"errors"
 	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
@@ -13,10 +14,14 @@ import (
 type SQLBackend struct {
 	store *SQLEventStore
 
-	cmdMu      sync.Mutex
-	cmdStore   *SQLCommandStore
-	queryMu    sync.Mutex
-	queryStore *SQLQueryStore
+	cmdMu        sync.Mutex
+	cmdStore     *SQLCommandStore
+	queryMu      sync.Mutex
+	queryStore   *SQLQueryStore
+	snapMu       sync.Mutex
+	snapStore    *SQLSnapshotStore
+	checkpointMu sync.Mutex
+	cpStore      *SQLCheckpointStore
 }
 
 func NewSQLBackend(db *sql.DB) (*SQLBackend, error) {
@@ -81,4 +86,80 @@ func (b *SQLBackend) QueryStore() (*SQLQueryStore, error) {
 	b.queryStore = store
 
 	return store, nil
+}
+
+// SnapshotStore returns the SQL snapshot store, creating it on first call.
+// All calls return the same instance. Goroutine-safe.
+func (b *SQLBackend) SnapshotStore() (*SQLSnapshotStore, error) {
+	b.snapMu.Lock()
+	defer b.snapMu.Unlock()
+
+	if b.snapStore != nil {
+		return b.snapStore, nil
+	}
+
+	store, err := newSQLSnapshotStoreWithDialect(b.store.DB, b.store.Dialect)
+	if err != nil {
+		return nil, event.WrapInfrastructure(err, "backend.snapshot_store", "snapshot store")
+	}
+
+	b.snapStore = store
+
+	return store, nil
+}
+
+// CheckpointStore returns the SQL checkpoint store, creating it on first call.
+// All calls return the same instance. Goroutine-safe.
+func (b *SQLBackend) CheckpointStore() (*SQLCheckpointStore, error) {
+	b.checkpointMu.Lock()
+	defer b.checkpointMu.Unlock()
+
+	if b.cpStore != nil {
+		return b.cpStore, nil
+	}
+
+	store, err := newSQLCheckpointStoreWithDialect(b.store.DB, b.store.Dialect)
+	if err != nil {
+		return nil, event.WrapInfrastructure(err, "backend.checkpoint_store", "checkpoint store")
+	}
+
+	b.cpStore = store
+
+	return store, nil
+}
+
+// Close closes all stores created through this backend.
+// The underlying *sql.DB is NOT closed — it is borrowed from the caller.
+func (b *SQLBackend) Close() error {
+	var errs []error
+
+	if b.cmdStore != nil {
+		if err := b.cmdStore.Close(); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	if b.queryStore != nil {
+		if err := b.queryStore.Close(); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	if b.snapStore != nil {
+		if err := b.snapStore.Close(); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	if b.cpStore != nil {
+		if err := b.cpStore.Close(); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	if err := b.store.Close(); err != nil {
+		errs = append(errs, err)
+	}
+
+	return errors.Join(errs...)
 }

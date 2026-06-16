@@ -43,4 +43,16 @@
 //	cqrs_journal:{nanoseconds}:{eventID}  — global event ordering index
 //	cqrs_snapshot:{type}:{id}             — one snapshot per aggregate
 //	cqrs_checkpoint:{projectionName}      — one checkpoint per projection
+//
+// The prefixes are disjoint — no prefix is a substring of another. This
+// guarantees that scans over one store's keyspace never accidentally
+// surface another store's data. If you add custom key prefixes via
+// future options, ensure they do not collide with these four.
+//
+// # Logger
+//
+// All stores accept a *slog.Logger. Pass nil to disable logging — nil-safe
+// logging is enforced throughout. When a logger is provided, stores emit
+// Debug-level entries for save/load operations and Warn-level entries for
+// corrupt data detection.
 package pebble

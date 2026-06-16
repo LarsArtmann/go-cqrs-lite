@@ -25,7 +25,12 @@ func decideCreateUser(
 			mustMarshal(UserCreatedPayload{Email: string(email), Name: string(name)}),
 		)
 		if err != nil {
-			return nil, event.Newf(event.Infrastructure, "user.decide.1", "create UserCreated event: %v", err)
+			return nil, event.Newf(
+				event.Infrastructure,
+				"user.decide.1",
+				"create UserCreated event: %v",
+				err,
+			)
 		}
 
 		return []event.Event{evt}, nil
@@ -57,7 +62,12 @@ func decideChangeName(
 			mustMarshal(UserNameChangedPayload{Name: string(name)}),
 		)
 		if err != nil {
-			return nil, event.Newf(event.Infrastructure, "user.decide.2", "create UserNameChanged event: %v", err)
+			return nil, event.Newf(
+				event.Infrastructure,
+				"user.decide.2",
+				"create UserNameChanged event: %v",
+				err,
+			)
 		}
 
 		return []event.Event{evt}, nil
@@ -84,12 +94,22 @@ func decideDeleteUser(
 			mustMarshal(UserDeletedPayload{Reason: string(reason)}),
 		)
 		if err != nil {
-			return nil, event.Newf(event.Infrastructure, "user.decide.3", "create UserDeleted event: %v", err)
+			return nil, event.Newf(
+				event.Infrastructure,
+				"user.decide.3",
+				"create UserDeleted event: %v",
+				err,
+			)
 		}
 
 		marked, markErr := event.MarkTombstone(evt)
 		if markErr != nil {
-			return nil, event.Newf(event.Infrastructure, "user.decide.4", "mark tombstone: %v", markErr)
+			return nil, event.Newf(
+				event.Infrastructure,
+				"user.decide.4",
+				"mark tombstone: %v",
+				markErr,
+			)
 		}
 
 		return []event.Event{marked}, nil
@@ -116,7 +136,12 @@ func decideRebirthUser(
 			mustMarshal(UserRebornPayload{Email: string(email), Name: string(name)}),
 		)
 		if err != nil {
-			return nil, event.Newf(event.Infrastructure, "user.decide.5", "create UserReborn event: %v", err)
+			return nil, event.Newf(
+				event.Infrastructure,
+				"user.decide.5",
+				"create UserReborn event: %v",
+				err,
+			)
 		}
 
 		return []event.Event{evt}, nil

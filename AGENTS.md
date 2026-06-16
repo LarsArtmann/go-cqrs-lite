@@ -23,9 +23,9 @@ Consumers import what they need and compose their own stack. Not a framework —
 | Item      | Value                                                                                                                                                                                                                                                                                                                                                                 |
 | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Language  | Go 1.26.3                                                                                                                                                                                                                                                                                                                                                             |
-| Modules   | `event`, `command`, `query`, `decider`, `id`, `dispatcher`, `schema`, `snapshot`, `memory`, `catalog`, `middleware`, `integration`, `storage`, `projection`, `signing`, `encryption`, `otel`, `watermill`, `pebble`, `codec`, `turso`, `listing`, `testutil`, `cqrs-gen`, `api-stability`                                                                             |
+| Modules   | `event`, `command`, `query`, `decider`, `id`, `dispatcher`, `schema`, `snapshot`, `memory`, `catalog`, `middleware`, `integration`, `storage`, `projection`, `signing`, `encryption`, `otel`, `watermill`, `pebble`, `codec`, `kv`, `turso`, `listing`, `testutil`, `cqrs-gen`, `api-stability`                                                                        |
 | Build     | `nix run .#build`                                                                                                                                                                                                                                                                                                                                                     |
-| Test      | `nix run .#test` or `go test ./event/... ./command/... ./query/... ./decider/... ./id/... ./dispatcher/... ./schema/... ./snapshot/... ./memory/... ./catalog/... ./middleware/... ./integration/... ./projection/... ./signing/... ./encryption/... ./storage/... ./watermill/... ./pebble/... ./codec/... ./listing/... ./testutil/... ./cmd/cqrs-gen/... -count=1` |
+| Test      | `nix run .#test` or `go test ./event/... ./command/... ./query/... ./decider/... ./id/... ./dispatcher/... ./schema/... ./snapshot/... ./memory/... ./catalog/... ./middleware/... ./integration/... ./projection/... ./signing/... ./encryption/... ./storage/... ./watermill/... ./pebble/... ./codec/... ./kv/... ./listing/... ./testutil/... ./cmd/cqrs-gen/... -count=1` |
 | Lint      | `nix run .#lint`                                                                                                                                                                                                                                                                                                                                                      |
 | Format    | `nix fmt`                                                                                                                                                                                                                                                                                                                                                             |
 | Dev shell | `nix develop`                                                                                                                                                                                                                                                                                                                                                         |
@@ -165,12 +165,19 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   // resulting events carry metadata.command.type and metadata.command.id
 //   cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 
-// Pebble single-DB full stack (events + snapshots + checkpoints)
+// Pebble single-DB full stack — PebbleBackend facade (preferred)
+//   backend, _ := pebble.Open(dir, &pebble.Options{}, logger)
+//   defer backend.Close() // closes DB AND all stores
+//   eventStore := backend.EventStore()
+//   snapStore  := backend.SnapshotStore()
+//   cpStore    := backend.CheckpointStore()
+//   // All three share db via disjoint key prefixes (cqrs_event:, cqrs_snapshot:, cqrs_checkpoint:)
+//
+// Pebble single-DB manual wiring (advanced)
 //   db, _ := pebble.Open(dir, &pebble.Options{})
 //   eventStore := pebble.NewStore(db, logger)
 //   snapStore  := pebble.NewSnapshotStore(db, logger)
 //   cpStore    := pebble.NewCheckpointStore(db, logger)
-//   // All three share db via disjoint key prefixes (cqrs_event:, cqrs_snapshot:, cqrs_checkpoint:)
 
 // Event upcasting (schema migration on load)
 //   upcaster := schema.NewUpcaster("UserCreated", 1, func(evt event.Event) (*event.ImmutableEvent, error) {
@@ -211,6 +218,9 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   eventStore  := backend.EventStore()                   // *SQLEventStore (eager)
 //   cmdStore, _ := backend.CommandStore()                 // *SQLCommandStore (lazy, goroutine-safe)
 //   qStore, _   := backend.QueryStore()                   // *SQLQueryStore (lazy, goroutine-safe)
+//   snapStore,_ := backend.SnapshotStore()                // *SQLSnapshotStore (lazy, goroutine-safe)
+//   cpStore, _  := backend.CheckpointStore()              // *SQLCheckpointStore (lazy, goroutine-safe)
+//   defer backend.Close()                                 // closes all stores (NOT the *sql.DB)
 //   // Each store embeds *sqlpkg.OwnedDBHandle for Close/checkClosed lifecycle
 ```
 
@@ -243,7 +253,7 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 **Module Graph**:
 
 ```
-Layer 0: id/, dispatcher/, codec/         (leaf modules, no internal deps)
+Layer 0: id/, dispatcher/, codec/, kv/         (leaf modules, no internal deps)
 Layer 1: event/ (→id, codec, ro), command/ (→id, dispatcher, ro), query/ (→dispatcher, ro)
 Layer 2: schema/ (→event), snapshot/ (→event)
 Layer 3: decider/ (→event, snapshot)

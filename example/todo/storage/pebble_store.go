@@ -96,7 +96,12 @@ func (s *PebbleStore) List(filter domain.TodoFilter) ([]*domain.Todo, error) {
 	skipped := 0
 	iter, err := newPrefixIter(s.db, s.prefix)
 	if err != nil {
-		return nil, event.Newf(event.Infrastructure, "todo.storage.pebble_store.6", "list todos: %v", err)
+		return nil, event.Newf(
+			event.Infrastructure,
+			"todo.storage.pebble_store.6",
+			"list todos: %v",
+			err,
+		)
 	}
 	defer func() { _ = iter.Close() }()
 	for iter.First(); iter.Valid(); iter.Next() {
@@ -125,10 +130,20 @@ func (s *PebbleStore) Put(todo *domain.Todo) error {
 	defer s.mu.Unlock()
 	data, err := json.Marshal(todo)
 	if err != nil {
-		return event.Newf(event.Infrastructure, "todo.storage.pebble_store.7", "failed to marshal todo: %v", err)
+		return event.Newf(
+			event.Infrastructure,
+			"todo.storage.pebble_store.7",
+			"failed to marshal todo: %v",
+			err,
+		)
 	}
 	if err := s.db.Set(s.key(todo.ID), data, pebble.Sync); err != nil {
-		return event.Newf(event.Infrastructure, "todo.storage.pebble_store.8", "failed to put todo: %v", err)
+		return event.Newf(
+			event.Infrastructure,
+			"todo.storage.pebble_store.8",
+			"failed to put todo: %v",
+			err,
+		)
 	}
 	return nil
 }
@@ -154,7 +169,12 @@ func (s *PebbleStore) Count(filter domain.TodoFilter) (int, error) {
 	count := 0
 	iter, err := newPrefixIter(s.db, s.prefix)
 	if err != nil {
-		return 0, event.Newf(event.Infrastructure, "todo.storage.pebble_store.10", "count todos: %v", err)
+		return 0, event.Newf(
+			event.Infrastructure,
+			"todo.storage.pebble_store.10",
+			"count todos: %v",
+			err,
+		)
 	}
 	defer func() { _ = iter.Close() }()
 	for iter.First(); iter.Valid(); iter.Next() {

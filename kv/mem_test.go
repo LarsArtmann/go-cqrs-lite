@@ -12,12 +12,13 @@ func TestMemStore_SetAndGet(t *testing.T) {
 	t.Parallel()
 
 	s := NewMemStore()
-	defer s.Close()
+	defer func() { _ = s.Close() }()
 
 	key := []byte("user:1")
 	val := []byte(`{"name":"alice"}`)
 
-	if err := s.Set(key, val); err != nil {
+	err := s.Set(key, val)
+	if err != nil {
 		t.Fatalf("Set: %v", err)
 	}
 
@@ -35,7 +36,7 @@ func TestMemStore_GetNotFound(t *testing.T) {
 	t.Parallel()
 
 	s := NewMemStore()
-	defer s.Close()
+	defer func() { _ = s.Close() }()
 
 	_, err := s.Get([]byte("missing"))
 	if !errors.Is(err, ErrNotFound) {
@@ -47,9 +48,10 @@ func TestMemStore_Has(t *testing.T) {
 	t.Parallel()
 
 	s := NewMemStore()
-	defer s.Close()
+	defer func() { _ = s.Close() }()
 
-	if err := s.Set([]byte("k1"), []byte("v1")); err != nil {
+	err := s.Set([]byte("k1"), []byte("v1"))
+	if err != nil {
 		t.Fatal(err)
 	}
 
@@ -76,19 +78,21 @@ func TestMemStore_Delete(t *testing.T) {
 	t.Parallel()
 
 	s := NewMemStore()
-	defer s.Close()
+	defer func() { _ = s.Close() }()
 
 	key := []byte("k1")
 
-	if err := s.Set(key, []byte("v1")); err != nil {
+	err := s.Set(key, []byte("v1"))
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err := s.Delete(key); err != nil {
+	err = s.Delete(key)
+	if err != nil {
 		t.Fatalf("Delete: %v", err)
 	}
 
-	_, err := s.Get(key)
+	_, err = s.Get(key)
 	if !errors.Is(err, ErrNotFound) {
 		t.Fatalf("Get after delete: err = %v, want ErrNotFound", err)
 	}
@@ -98,9 +102,10 @@ func TestMemStore_DeleteMissing(t *testing.T) {
 	t.Parallel()
 
 	s := NewMemStore()
-	defer s.Close()
+	defer func() { _ = s.Close() }()
 
-	if err := s.Delete([]byte("never-existed")); err != nil {
+	err := s.Delete([]byte("never-existed"))
+	if err != nil {
 		t.Fatalf("Delete missing should be no-op, got: %v", err)
 	}
 }
@@ -111,7 +116,7 @@ func TestMemStore_GetReturnsClone(t *testing.T) {
 	t.Parallel()
 
 	s := NewMemStore()
-	defer s.Close()
+	defer func() { _ = s.Close() }()
 
 	original := []byte("value")
 	_ = s.Set([]byte("k"), original)
@@ -129,7 +134,7 @@ func TestMemStore_SetClonesValue(t *testing.T) {
 	t.Parallel()
 
 	s := NewMemStore()
-	defer s.Close()
+	defer func() { _ = s.Close() }()
 
 	val := []byte("value")
 	_ = s.Set([]byte("k"), val)
@@ -151,27 +156,33 @@ func TestMemStore_CloseBlocksOps(t *testing.T) {
 
 	want := ErrClosed
 
-	if _, err := s.Get([]byte("k")); !errors.Is(err, want) {
+	_, err := s.Get([]byte("k"))
+	if !errors.Is(err, want) {
 		t.Fatalf("Get after close: %v, want %v", err, want)
 	}
 
-	if _, err := s.Has([]byte("k")); !errors.Is(err, want) {
+	_, err = s.Has([]byte("k"))
+	if !errors.Is(err, want) {
 		t.Fatalf("Has after close: %v, want %v", err, want)
 	}
 
-	if err := s.Set([]byte("k"), []byte("v")); !errors.Is(err, want) {
+	err = s.Set([]byte("k"), []byte("v"))
+	if !errors.Is(err, want) {
 		t.Fatalf("Set after close: %v, want %v", err, want)
 	}
 
-	if err := s.Delete([]byte("k")); !errors.Is(err, want) {
+	err = s.Delete([]byte("k"))
+	if !errors.Is(err, want) {
 		t.Fatalf("Delete after close: %v, want %v", err, want)
 	}
 
-	if _, err := s.Batch(); !errors.Is(err, want) {
+	_, err = s.Batch()
+	if !errors.Is(err, want) {
 		t.Fatalf("Batch after close: %v, want %v", err, want)
 	}
 
-	if _, err := s.NewIterator(nil); !errors.Is(err, want) {
+	_, err = s.NewIterator(nil)
+	if !errors.Is(err, want) {
 		t.Fatalf("NewIterator after close: %v, want %v", err, want)
 	}
 }
@@ -182,7 +193,7 @@ func TestMemStore_IteratorOrdering(t *testing.T) {
 	t.Parallel()
 
 	s := NewMemStore()
-	defer s.Close()
+	defer func() { _ = s.Close() }()
 
 	keys := []string{"c", "a", "b", "e", "d"}
 	for _, k := range keys {
@@ -194,7 +205,7 @@ func TestMemStore_IteratorOrdering(t *testing.T) {
 		t.Fatalf("NewIterator: %v", err)
 	}
 
-	defer iter.Close()
+	defer func() { _ = iter.Close() }()
 
 	var got []string
 
@@ -219,7 +230,7 @@ func TestMemStore_IteratorPrefix(t *testing.T) {
 	t.Parallel()
 
 	s := NewMemStore()
-	defer s.Close()
+	defer func() { _ = s.Close() }()
 
 	_ = s.Set([]byte("user:1"), []byte("alice"))
 	_ = s.Set([]byte("user:2"), []byte("bob"))
@@ -230,7 +241,7 @@ func TestMemStore_IteratorPrefix(t *testing.T) {
 		t.Fatalf("NewIterator: %v", err)
 	}
 
-	defer iter.Close()
+	defer func() { _ = iter.Close() }()
 
 	var got []string
 
@@ -242,11 +253,11 @@ func TestMemStore_IteratorPrefix(t *testing.T) {
 		t.Fatalf("prefix iterator returned %d keys, want 2", len(got))
 	}
 
-	if string(got[0]) != "user:1" {
+	if got[0] != "user:1" {
 		t.Errorf("first key = %q, want %q", got[0], "user:1")
 	}
 
-	if string(got[1]) != "user:2" {
+	if got[1] != "user:2" {
 		t.Errorf("second key = %q, want %q", got[1], "user:2")
 	}
 }
@@ -255,12 +266,12 @@ func TestMemStore_IteratorValue(t *testing.T) {
 	t.Parallel()
 
 	s := NewMemStore()
-	defer s.Close()
+	defer func() { _ = s.Close() }()
 
 	_ = s.Set([]byte("k1"), []byte("val1"))
 
 	iter, _ := s.NewIterator(nil)
-	defer iter.Close()
+	defer func() { _ = iter.Close() }()
 
 	if !iter.Next() {
 		t.Fatal("Next = false, want true")
@@ -279,14 +290,14 @@ func TestMemStore_IteratorEmpty(t *testing.T) {
 	t.Parallel()
 
 	s := NewMemStore()
-	defer s.Close()
+	defer func() { _ = s.Close() }()
 
 	iter, err := s.NewIterator(nil)
 	if err != nil {
 		t.Fatalf("NewIterator: %v", err)
 	}
 
-	defer iter.Close()
+	defer func() { _ = iter.Close() }()
 
 	if iter.Next() {
 		t.Fatal("Next on empty store = true, want false")
@@ -299,7 +310,7 @@ func TestMemStore_BatchCommit(t *testing.T) {
 	t.Parallel()
 
 	s := NewMemStore()
-	defer s.Close()
+	defer func() { _ = s.Close() }()
 
 	_ = s.Set([]byte("existing"), []byte("old"))
 
@@ -312,7 +323,8 @@ func TestMemStore_BatchCommit(t *testing.T) {
 	_ = batch.Set([]byte("b"), []byte("2"))
 	_ = batch.Delete([]byte("existing"))
 
-	if err := batch.Commit(); err != nil {
+	err = batch.Commit()
+	if err != nil {
 		t.Fatalf("Commit: %v", err)
 	}
 
@@ -336,17 +348,18 @@ func TestMemStore_BatchCloseDiscards(t *testing.T) {
 	t.Parallel()
 
 	s := NewMemStore()
-	defer s.Close()
+	defer func() { _ = s.Close() }()
 
 	batch, _ := s.Batch()
 	_ = batch.Set([]byte("a"), []byte("1"))
 	_ = batch.Close()
 
-	if err := batch.Commit(); !errors.Is(err, ErrClosed) {
+	err := batch.Commit()
+	if !errors.Is(err, ErrClosed) {
 		t.Fatalf("Commit after Close: %v, want ErrClosed", err)
 	}
 
-	_, err := s.Get([]byte("a"))
+	_, err = s.Get([]byte("a"))
 	if !errors.Is(err, ErrNotFound) {
 		t.Errorf("Get after discarded batch: err = %v, want ErrNotFound", err)
 	}
@@ -356,13 +369,14 @@ func TestMemStore_BatchAfterCommit(t *testing.T) {
 	t.Parallel()
 
 	s := NewMemStore()
-	defer s.Close()
+	defer func() { _ = s.Close() }()
 
 	batch, _ := s.Batch()
 	_ = batch.Set([]byte("a"), []byte("1"))
 	_ = batch.Commit()
 
-	if err := batch.Set([]byte("b"), []byte("2")); !errors.Is(err, ErrClosed) {
+	err := batch.Set([]byte("b"), []byte("2"))
+	if !errors.Is(err, ErrClosed) {
 		t.Fatalf("Set after Commit: %v, want ErrClosed", err)
 	}
 }

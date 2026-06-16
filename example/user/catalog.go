@@ -76,7 +76,13 @@ func generateEventCatalog(outputDir string) error {
 	}
 
 	if err := eventcatalog.NewExporter(outputDir).Export(cat); err != nil {
-		return event.Newf(event.Infrastructure, "user.catalog.1", "export eventcatalog to %s: %v", outputDir, err)
+		return event.Newf(
+			event.Infrastructure,
+			"user.catalog.1",
+			"export eventcatalog to %s: %v",
+			outputDir,
+			err,
+		)
 	}
 
 	d2Output := d2.NewExporter("User Service", "1.0.0").Export(cat)
@@ -90,7 +96,13 @@ func generateEventCatalog(outputDir string) error {
 
 	asyncPath := filepath.Join(outputDir, "asyncapi.json")
 	if err := os.WriteFile(asyncPath, mustMarshal(asyncDoc), outputFilePerm); err != nil {
-		return event.Newf(event.Infrastructure, "user.catalog.3", "write asyncapi to %s: %v", asyncPath, err)
+		return event.Newf(
+			event.Infrastructure,
+			"user.catalog.3",
+			"write asyncapi to %s: %v",
+			asyncPath,
+			err,
+		)
 	}
 
 	fmt.Printf("  [catalog] Exported EventCatalog, D2, AsyncAPI to %s\n", outputDir)

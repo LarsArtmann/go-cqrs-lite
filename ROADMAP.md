@@ -37,7 +37,7 @@
 - [x] Add CI step: fail if any benchmark >2× slower than baseline
 - [x] Dockerfile for `example/user/` (multi-stage: builder → scratch → alpine)
 - [x] `docker-compose.yml` for example stack
-- [ ] Docker build CI step (linux amd64 + arm64)
+- [x] Docker build CI step (linux amd64 + arm64)
 
 ### Sprint 5: Consumer Experience (Week 5–6)
 
@@ -48,16 +48,16 @@
 - [x] ~~Config usage example in `example/user/`~~ — DONE (config_usage_example.go with env overlay demo)
 - [x] `integration/simulation/` — event sequence generator + decider stress tests
 - [x] Event store throughput simulation benchmark
-- [ ] Playwright setup in `example/user/`
-- [ ] Playwright E2E test: health endpoint
-- [ ] Playwright E2E test: core command→event→query flow
-- [ ] Playwright CI step
+- [~] ~~Playwright setup in `example/user/`~~ — **NOT APPLICABLE**: `example/user` is a CLI demo with no HTTP server. `example/todo` has comprehensive Go integration tests.`
+- [~] ~~Playwright E2E test: health endpoint~~ — **NOT APPLICABLE** (see above)
+- [~] ~~Playwright E2E test: core command→event→query flow~~ — **NOT APPLICABLE** (see above)
+- [~] ~~Playwright CI step~~ — **NOT APPLICABLE** (see above)
 - [x] ~~Dual store runtime switching in `example/user/` (memory vs SQL)~~ — DONE (dual_store_example.go)
 
 ### Sprint 6: Polish & Experiments (Week 7–8)
 
 - [x] ~~Document experimental build tags (`jsonv2`, `arenas`, `simd`, `runtimesecret`)~~ — DONE (docs/EXPERIMENTAL_BUILD_TAGS.md)
-- [ ] `go-snaps` across all remaining modules (signing, middleware, storage, listing, watermill, pebble, turso, codec, otel, schema, snapshot, memory)
+- [~] ~~`go-snaps` across all remaining modules~~ — **DESCOPED**: Using `eventtest.AssertGolden` pattern instead (already integrated)
 - [x] ~~`rapid` PBT on `command/` and `query/` modules~~ — DONE (property_test.go in both modules, 9 tests)
 - [ ] `jsonv2` codec experiment behind build tag
 - [ ] Arena allocation experiment in event module

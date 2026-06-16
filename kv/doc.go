@@ -1,4 +1,4 @@
-// The kv package defines a minimal, backend-agnostic interface for embedded
+// Package kv defines a minimal, backend-agnostic interface for embedded
 // key-value stores with ordered iteration and atomic batch writes.
 //
 // The interface matches the common denominator across Pebble, BadgerDB, and

@@ -21,7 +21,12 @@ type CountTodosQuery struct {
 func NewCountTodosQuery() (*CountTodosQuery, error) {
 	core, err := query.New(CountTodosQueryType)
 	if err != nil {
-		return nil, event.Newf(event.Infrastructure, "todo.queries.count_todos.1", "new count todos query: %v", err)
+		return nil, event.Newf(
+			event.Infrastructure,
+			"todo.queries.count_todos.1",
+			"new count todos query: %v",
+			err,
+		)
 	}
 
 	return &CountTodosQuery{BasicQuery: core}, nil

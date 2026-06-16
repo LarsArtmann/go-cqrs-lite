@@ -61,7 +61,12 @@ func (s *ReadModelStore) Handle(_ context.Context, evt event.Event) error {
 	case eventUserCreated:
 		p, err := event.DecodePayload[UserCreatedPayload](evt, c)
 		if err != nil {
-			return event.Newf(event.Infrastructure, "user.projection.1", "decode UserCreated in projection: %v", err)
+			return event.Newf(
+				event.Infrastructure,
+				"user.projection.1",
+				"decode UserCreated in projection: %v",
+				err,
+			)
 		}
 
 		s.users[aggID] = ReadModel(p)
@@ -85,7 +90,12 @@ func (s *ReadModelStore) Handle(_ context.Context, evt event.Event) error {
 	case eventUserReborn:
 		p, err := event.DecodePayload[UserRebornPayload](evt, c)
 		if err != nil {
-			return event.Newf(event.Infrastructure, "user.projection.3", "decode UserReborn in projection: %v", err)
+			return event.Newf(
+				event.Infrastructure,
+				"user.projection.3",
+				"decode UserReborn in projection: %v",
+				err,
+			)
 		}
 
 		s.users[aggID] = ReadModel(p)

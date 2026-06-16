@@ -12,6 +12,7 @@ declare -A LAYER
 LAYER[id]=0
 LAYER[dispatcher]=0
 LAYER[codec]=0
+LAYER[kv]=0
 LAYER[event]=1
 LAYER[command]=1
 LAYER[query]=1
@@ -49,6 +50,7 @@ declare -A DEP_BUDGET
 DEP_BUDGET[id]=3
 DEP_BUDGET[dispatcher]=0
 DEP_BUDGET[codec]=0
+DEP_BUDGET[kv]=1
 DEP_BUDGET[event]=13
 DEP_BUDGET[command]=8
 DEP_BUDGET[query]=7
