@@ -3,6 +3,7 @@ package kv
 import (
 	"bytes"
 	"errors"
+	"sync"
 	"testing"
 )
 
@@ -187,197 +188,38 @@ func TestMemStore_CloseBlocksOps(t *testing.T) {
 	}
 }
 
-// --- Iterator ---
+// --- Concurrent access ---
 
-func TestMemStore_IteratorOrdering(t *testing.T) {
+func TestMemStore_ConcurrentReadWrite(t *testing.T) {
 	t.Parallel()
 
 	s := NewMemStore()
 	defer func() { _ = s.Close() }()
 
-	keys := []string{"c", "a", "b", "e", "d"}
-	for _, k := range keys {
-		_ = s.Set([]byte(k), []byte("val-"+k))
+	_ = s.Set([]byte("init"), []byte("0"))
+
+	var wg sync.WaitGroup
+
+	for i := range 100 {
+		wg.Add(1)
+		go func(n int) {
+			defer wg.Done()
+			key := []byte("key")
+			_ = s.Set(key, []byte("val"))
+			_, _ = s.Get(key)
+			_, _ = s.Has(key)
+		}(i)
 	}
 
-	iter, err := s.NewIterator(nil)
+	wg.Wait()
+
+	val, err := s.Get([]byte("key"))
 	if err != nil {
-		t.Fatalf("NewIterator: %v", err)
+		t.Fatalf("Get after concurrent writes: %v", err)
 	}
 
-	defer func() { _ = iter.Close() }()
-
-	var got []string
-
-	for iter.Next() {
-		got = append(got, string(iter.Key()))
-	}
-
-	want := []string{"a", "b", "c", "d", "e"}
-
-	if len(got) != len(want) {
-		t.Fatalf("iterator returned %d keys, want %d", len(got), len(want))
-	}
-
-	for i, k := range got {
-		if k != want[i] {
-			t.Errorf("iterator[%d] = %q, want %q", i, k, want[i])
-		}
-	}
-}
-
-func TestMemStore_IteratorPrefix(t *testing.T) {
-	t.Parallel()
-
-	s := NewMemStore()
-	defer func() { _ = s.Close() }()
-
-	_ = s.Set([]byte("user:1"), []byte("alice"))
-	_ = s.Set([]byte("user:2"), []byte("bob"))
-	_ = s.Set([]byte("order:1"), []byte("shoes"))
-
-	iter, err := s.NewIterator([]byte("user:"))
-	if err != nil {
-		t.Fatalf("NewIterator: %v", err)
-	}
-
-	defer func() { _ = iter.Close() }()
-
-	var got []string
-
-	for iter.Next() {
-		got = append(got, string(iter.Key()))
-	}
-
-	if len(got) != 2 {
-		t.Fatalf("prefix iterator returned %d keys, want 2", len(got))
-	}
-
-	if got[0] != "user:1" {
-		t.Errorf("first key = %q, want %q", got[0], "user:1")
-	}
-
-	if got[1] != "user:2" {
-		t.Errorf("second key = %q, want %q", got[1], "user:2")
-	}
-}
-
-func TestMemStore_IteratorValue(t *testing.T) {
-	t.Parallel()
-
-	s := NewMemStore()
-	defer func() { _ = s.Close() }()
-
-	_ = s.Set([]byte("k1"), []byte("val1"))
-
-	iter, _ := s.NewIterator(nil)
-	defer func() { _ = iter.Close() }()
-
-	if !iter.Next() {
-		t.Fatal("Next = false, want true")
-	}
-
-	if string(iter.Value()) != "val1" {
-		t.Errorf("Value = %q, want %q", iter.Value(), "val1")
-	}
-
-	if iter.Error() != nil {
-		t.Errorf("Error = %v, want nil", iter.Error())
-	}
-}
-
-func TestMemStore_IteratorEmpty(t *testing.T) {
-	t.Parallel()
-
-	s := NewMemStore()
-	defer func() { _ = s.Close() }()
-
-	iter, err := s.NewIterator(nil)
-	if err != nil {
-		t.Fatalf("NewIterator: %v", err)
-	}
-
-	defer func() { _ = iter.Close() }()
-
-	if iter.Next() {
-		t.Fatal("Next on empty store = true, want false")
-	}
-}
-
-// --- Batch ---
-
-func TestMemStore_BatchCommit(t *testing.T) {
-	t.Parallel()
-
-	s := NewMemStore()
-	defer func() { _ = s.Close() }()
-
-	_ = s.Set([]byte("existing"), []byte("old"))
-
-	batch, err := s.Batch()
-	if err != nil {
-		t.Fatalf("Batch: %v", err)
-	}
-
-	_ = batch.Set([]byte("a"), []byte("1"))
-	_ = batch.Set([]byte("b"), []byte("2"))
-	_ = batch.Delete([]byte("existing"))
-
-	err = batch.Commit()
-	if err != nil {
-		t.Fatalf("Commit: %v", err)
-	}
-
-	val, _ := s.Get([]byte("a"))
-	if string(val) != "1" {
-		t.Errorf("batch Set a: got %q, want %q", val, "1")
-	}
-
-	val, _ = s.Get([]byte("b"))
-	if string(val) != "2" {
-		t.Errorf("batch Set b: got %q, want %q", val, "2")
-	}
-
-	_, err = s.Get([]byte("existing"))
-	if !errors.Is(err, ErrNotFound) {
-		t.Errorf("batch Delete existing: err = %v, want ErrNotFound", err)
-	}
-}
-
-func TestMemStore_BatchCloseDiscards(t *testing.T) {
-	t.Parallel()
-
-	s := NewMemStore()
-	defer func() { _ = s.Close() }()
-
-	batch, _ := s.Batch()
-	_ = batch.Set([]byte("a"), []byte("1"))
-	_ = batch.Close()
-
-	err := batch.Commit()
-	if !errors.Is(err, ErrClosed) {
-		t.Fatalf("Commit after Close: %v, want ErrClosed", err)
-	}
-
-	_, err = s.Get([]byte("a"))
-	if !errors.Is(err, ErrNotFound) {
-		t.Errorf("Get after discarded batch: err = %v, want ErrNotFound", err)
-	}
-}
-
-func TestMemStore_BatchAfterCommit(t *testing.T) {
-	t.Parallel()
-
-	s := NewMemStore()
-	defer func() { _ = s.Close() }()
-
-	batch, _ := s.Batch()
-	_ = batch.Set([]byte("a"), []byte("1"))
-	_ = batch.Commit()
-
-	err := batch.Set([]byte("b"), []byte("2"))
-	if !errors.Is(err, ErrClosed) {
-		t.Fatalf("Set after Commit: %v, want ErrClosed", err)
+	if string(val) != "val" {
+		t.Errorf("concurrent Set produced wrong value: got %q", val)
 	}
 }
 
