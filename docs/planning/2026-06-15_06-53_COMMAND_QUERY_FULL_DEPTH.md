@@ -257,20 +257,40 @@ memory/:
   NEW: MemoryCommandStore.ReadAll/ReadFrom (Journal impl)
 ```
 
-### Remaining — Tier 3 (20% → 80%)
+### Completed — Tier 3 (20% → 80%)
 
-| #       | Task                              | Effort | Risk   | Priority |
-| ------- | --------------------------------- | ------ | ------ | -------- |
-| T10     | CommandJournal on SQLCommandStore | 1hr    | Low    | High     |
-| T11     | Pebble Journal + SeekableJournal  | 1hr    | Medium | High     |
-| T12     | Pebble SnapshotStore              | 1hr    | Medium | Medium   |
-| T13     | Pebble CheckpointStore            | 30min  | Medium | Medium   |
-| T14-T18 | Split 5 catalog exporters         | 2.5hr  | High\* | Medium   |
-| T19     | kv/ interface module              | 1hr    | Low    | Low      |
-| T20c    | Test: MemoryCommandBus            | 30min  | None   | High     |
-| T20d    | Test: event causality             | 30min  | None   | High     |
-| T21     | Documentation updates             | 30min  | None   | Medium   |
+| #       | Task                              | Commit     | Status  | Notes                                                                      |
+| ------- | --------------------------------- | ---------- | ------- | -------------------------------------------------------------------------- |
+| T10     | CommandJournal on SQLCommandStore | `bf7b3ed8` | ✅ DONE | storage/command_store_journal.go — ReadAll + ReadFrom                      |
+| T11     | Pebble Journal + SeekableJournal  | `aae771e4` | ✅ DONE | pebble/journal.go — ReadAll + ReadFrom, deterministic timestamp tests      |
+| T12     | Pebble SnapshotStore              | `e0e2418e` | ✅ DONE | pebble/snapshot.go — CBOR envelope, OTel tracing, shared DB via key prefix |
+| T13     | Pebble CheckpointStore            | `e0e2418e` | ✅ DONE | pebble/checkpoint.go — CBOR envelope, OTel tracing                         |
+| T14-T18 | Split 5 catalog exporters         | `e5695da9` | ✅ DONE | asyncapi, openapi, d2, eventcatalog, docserver — each own go.mod + go.work |
+| T20c    | Test: MemoryCommandBus            | `75533808` | ✅ DONE | memory/command_bus_test.go — publish, subscribe, middleware, close         |
+| T20d    | Test: event causality             | `21d28fd2` | ✅ DONE | event/causality_test.go — WithCommandCausality + CommandCausalityEnricher  |
+| T21     | Documentation updates             | multiple   | ✅ DONE | AGENTS.md, doc.go (pebble), FEATURES.md, TODO_LIST.md all updated          |
+| T19     | kv/ interface module              | —          | ⏭ SKIP | Descoped — pebble snapshot/checkpoint implemented directly on `*pebble.DB` |
 
-\* Catalog split risk: go.work + replace directive restructuring. Each exporter
-keeps its import path — consumers see no change — but CI, go.work, and module
-management complexity increases significantly.
+**All 21 tasks resolved. Plan fully executed (T19 descoped — see KV_MODULE_AGENT_PLAN.md).**
+
+### What Pebble Gained
+
+```
+pebble/:
+  NEW: Journal + SeekableJournal (pebble/journal.go)
+  NEW: SnapshotStore (pebble/snapshot.go) — CBOR envelope, shared DB via cqrs_snapshot: prefix
+  NEW: CheckpointStore (pebble/checkpoint.go) — CBOR envelope, shared DB via cqrs_checkpoint: prefix
+  NEW: OTel tracing on all store operations
+```
+
+### What Catalog Gained
+
+```
+catalog/:
+  NEW MODULE: catalog/v2/asyncapi      (own go.mod, depends on go-faster/yaml)
+  NEW MODULE: catalog/v2/openapi       (own go.mod)
+  NEW MODULE: catalog/v2/d2            (own go.mod)
+  NEW MODULE: catalog/v2/eventcatalog  (own go.mod)
+  NEW MODULE: catalog/v2/docserver     (own go.mod, includes embed.FS assets)
+  Import paths unchanged — consumers see no difference
+```

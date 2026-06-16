@@ -1,5 +1,22 @@
 # AI Agent Plan: kv/ Interface Module + Pebble Refactor
 
+> **Status: ⏭ DESCOPED** · **Decision date:** 2026-06-15
+>
+> This plan was **not executed**. Pebble SnapshotStore and CheckpointStore were
+> implemented directly on `*pebble.DB` (commit `e0e2418e`) without a `kv.Store`
+> abstraction layer. The kv/ module was descoped because:
+>
+> 1. The abstraction added complexity without immediate consumer demand for
+>    alternative KV backends (BadgerDB, bbolt).
+> 2. Pebble's native API already provides iteration, batch writes, and byte-slice
+>    keys — the `kv.Store` interface would be a thin wrapper with no added value.
+> 3. The "Everything Else" plan (EVERYTHING_ELSE_AGENT_PLAN.md) implemented
+>    SnapshotStore and CheckpointStore directly, making this plan's prerequisite
+>    unnecessary.
+>
+> This plan remains as reference for future KV backend interchangeability work
+> if/when a second KV backend (BadgerDB, bbolt) is added.
+>
 > **For:** AI coding agent (Crush, Claude, GPT, etc.) · **Estimated time:** 3-4 hours
 >
 > **Prerequisite for:** Pebble SnapshotStore, Pebble CheckpointStore, future badger/bbolt backends.
@@ -374,13 +391,13 @@ Step 3) without refactoring the existing event store.
 ## Checklist
 
 ```
-[ ] Step 1: kv/ module created (5 interfaces, errors, mem impl)
-[ ] Step 2: Contract tests pass
-[ ] Step 3: Pebble adapter implements kv.Store
-[ ] Step 3: Pebble adapter passes contract tests
-[ ] Step 4: (optional) Pebble event store refactored to use kv.Store
-[ ] Step 5: Pebble SnapshotStore implemented via kv.Store
-[ ] Step 5: Pebble CheckpointStore implemented via kv.Store
-[ ] Full suite: nix run .#build && nix run .#test && nix run .#lint — ALL PASS
-[ ] All changes committed and pushed
+[~] Step 1: kv/ module created (5 interfaces, errors, mem impl)          ← DESCOPED
+[~] Step 2: Contract tests pass                                           ← DESCOPED
+[~] Step 3: Pebble adapter implements kv.Store                            ← DESCOPED
+[~] Step 3: Pebble adapter passes contract tests                          ← DESCOPED
+[~] Step 4: (optional) Pebble event store refactored to use kv.Store      ← DESCOPED
+[x] Step 5: Pebble SnapshotStore implemented                              ← DONE (directly on *pebble.DB, commit e0e2418e)
+[x] Step 5: Pebble CheckpointStore implemented                            ← DONE (directly on *pebble.DB, commit e0e2418e)
+[x] Full suite: nix run .#build && nix run .#test && nix run .#lint — ALL PASS
+[x] All changes committed
 ```

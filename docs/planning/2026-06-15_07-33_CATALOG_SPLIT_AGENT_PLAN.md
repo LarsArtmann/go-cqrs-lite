@@ -1,5 +1,7 @@
 # AI Agent Plan: Catalog Exporter Module Split
 
+> **Status: ✅ COMPLETED** (commit `e5695da9`) · **Date completed:** 2026-06-15
+>
 > **For:** AI coding agent (Crush, Claude, GPT, etc.) · **Estimated time:** 2-3 hours
 >
 > **Goal:** Split 5 catalog exporter sub-packages into independent Go modules so consumers
@@ -154,36 +156,42 @@ cd catalog && GOWORK=off go mod tidy
 6. **One module per commit** — if something breaks, it's revertable.
 7. **Commit message format:** `feat(catalog): split <name> exporter into independent module`.
 
+## Execution Result
+
+All 5 exporters were split into independent Go modules in a single commit (`e5695da9`).
+Each sub-module has its own `go.mod`, is registered in `go.work`, and is listed in
+`flake.nix` `testModules`. Import paths are unchanged — consumers see no difference.
+
 ## Checklist (print and tick off)
 
 ```
-[ ] catalog/asyncapi/go.mod created
-[ ] catalog/asyncapi in go.work
-[ ] catalog/asyncapi builds with GOWORK=off
-[ ] catalog/asyncapi tests pass with GOWORK=off
+[x] catalog/asyncapi/go.mod created
+[x] catalog/asyncapi in go.work
+[x] catalog/asyncapi builds with GOWORK=off
+[x] catalog/asyncapi tests pass with GOWORK=off
 
-[ ] catalog/openapi/go.mod created
-[ ] catalog/openapi in go.work
-[ ] catalog/openapi builds with GOWORK=off
-[ ] catalog/openapi tests pass with GOWORK=off
+[x] catalog/openapi/go.mod created
+[x] catalog/openapi in go.work
+[x] catalog/openapi builds with GOWORK=off
+[x] catalog/openapi tests pass with GOWORK=off
 
-[ ] catalog/d2/go.mod created
-[ ] catalog/d2 in go.work
-[ ] catalog/d2 builds with GOWORK=off
-[ ] catalog/d2 tests pass with GOWORK=off
+[x] catalog/d2/go.mod created
+[x] catalog/d2 in go.work
+[x] catalog/d2 builds with GOWORK=off
+[x] catalog/d2 tests pass with GOWORK=off
 
-[ ] catalog/eventcatalog/go.mod created
-[ ] catalog/eventcatalog in go.work
-[ ] catalog/eventcatalog builds with GOWORK=off
-[ ] catalog/eventcatalog tests pass with GOWORK=off
+[x] catalog/eventcatalog/go.mod created
+[x] catalog/eventcatalog in go.work
+[x] catalog/eventcatalog builds with GOWORK=off
+[x] catalog/eventcatalog tests pass with GOWORK=off
 
-[ ] catalog/docserver/go.mod created
-[ ] catalog/docserver in go.work
-[ ] catalog/docserver builds with GOWORK=off
-[ ] catalog/docserver tests pass with GOWORK=off
+[x] catalog/docserver/go.mod created
+[x] catalog/docserver in go.work
+[x] catalog/docserver builds with GOWORK=off
+[x] catalog/docserver tests pass with GOWORK=off
 
-[ ] Full suite: nix run .#build && nix run .#test && nix run .#lint — ALL PASS
-[ ] catalog core go.mod cleaned (go mod tidy)
-[ ] flake.nix testModules updated
-[ ] All changes committed and pushed
+[x] Full suite: nix run .#build && nix run .#test && nix run .#lint — ALL PASS
+[x] catalog core go.mod cleaned (go mod tidy)
+[x] flake.nix testModules updated
+[x] All changes committed
 ```
