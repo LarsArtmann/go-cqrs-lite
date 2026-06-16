@@ -283,7 +283,7 @@ func (a *Advisor) explain(
 ) ([]PlanRow, error) {
 	rows, err := a.db.QueryContext(ctx, "EXPLAIN QUERY PLAN "+query, args...)
 	if err != nil {
-		return nil, err //nolint:wrapcheck // internal helper
+		return nil, fmt.Errorf("query=%v: %w", query, err)
 	}
 
 	defer func() { _ = rows.Close() }()

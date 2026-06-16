@@ -151,14 +151,18 @@ func queryStat1(ctx context.Context, db *sql.DB) ([]stat1Row, error) {
 		var name, stat string
 
 		if err := rows.Scan(&name, &stat); err != nil {
-			return nil, err //nolint:wrapcheck // internal helper
+			return nil, fmt.Errorf("stat=%v: %w", stat, err)
 		}
 
 		rows := parseStat1Rows(stat)
 		out = append(out, stat1Row{Name: name, Rows: rows})
 	}
 
-	return out, rows.Err() //nolint:wrapcheck // internal helper
+	if err := rows.Err(); err != nil {
+		return out, fmt.Errorf("sqlite_stat1 iteration: %w", err)
+	}
+
+	return out, nil
 }
 
 func parseStat1Rows(stat string) int64 {
