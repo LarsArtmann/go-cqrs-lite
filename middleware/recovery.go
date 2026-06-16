@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
@@ -32,7 +31,7 @@ func handleRecovery(cfg middlewareConfig, msgKind, typeName string, r any) error
 		)
 	}
 
-	return fmt.Errorf("msgKind=%s, typeName=%s: %w", msgKind, typeName, err)
+	return event.Wrapf(err, event.Corruption, "middleware.recovery", "msgKind=%s, typeName=%s", msgKind, typeName)
 }
 
 // NewRecovery returns a generic middleware that recovers from panics.

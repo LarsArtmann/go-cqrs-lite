@@ -6,7 +6,7 @@
 
 Every open item was compiled from: TODO_LIST.md, FEATURES.md, ROADMAP.md, latest status
 report (Top 25), all planning docs, and codebase verification. Items already done were
-removed. Blocked items (external repos/owner decisions) are excluded. Deferred v2/v3
+removed. Blocked items (external repos/owner decisions) are excluded. Deferred v3
 breaking changes are listed separately at the end.
 
 ---
@@ -19,9 +19,9 @@ breaking changes are listed separately at the end.
 | 2    | High-impact code (4% → 64%)        | 18      | ~3.5 hr    |
 | 3    | Quality lift (20% → 80%)           | 22      | ~6 hr      |
 | 4    | Infrastructure & CI                | 12      | ~6 hr      |
-| 5    | Major features (long-term)         | 42      | ~40+ hr    |
-| 6    | Deferred v2/v3 breaking changes    | 8       | Next major |
-| —    | **Total actionable micro-tasks**   | **108** | **~58 hr** |
+| 5    | Major features (long-term)         | 16      | ~30+ hr    |
+| 6    | Deferred breaking changes (v3/v4)  | 8       | Next major |
+| —    | **Total actionable micro-tasks**   | **104** | **~54 hr** |
 
 ---
 
@@ -131,35 +131,33 @@ breaking changes are listed separately at the end.
 
 > Each item is a significant feature requiring its own design + implementation cycle.
 
-| ID   | Feature                                                                     | Module       | Impact              | Est  |
-| ---- | --------------------------------------------------------------------------- | ------------ | ------------------- | ---- |
-| 5.1  | **Outbox pattern** — design + implement reliable at-least-once publishing   | new module   | HIGH (reliability)  | 8hr  |
-| 5.2  | **Schema registry** — JSON Schema validation middleware for events          | new module   | HIGH (correctness)  | 6hr  |
-| 5.3  | **Distributed checkpointing** — multi-instance projection coordination      | projection   | MED (scale)         | 6hr  |
-| 5.4  | **Reactive CommandBus** — `ro.Subject[Command]` reactive streams            | command      | MED (reactive)      | 4hr  |
-| 5.5  | **Reactive QueryBus** — `ro.Subject[Query]` reactive streams                | query        | MED (reactive)      | 4hr  |
-| 5.6  | **cqrs-gen v2** — code generator with struct tag scanning                   | cmd/cqrs-gen | MED (DX)            | 8hr  |
-| 5.7  | **gRPC transport adapter** — gRPC wrapper for command/query dispatch        | new module   | MED (interop)       | 6hr  |
-| 5.8  | **NATS/Redis Stream adapter** — message broker integration                  | new module   | MED (interop)       | 6hr  |
-| 5.9  | **Prometheus metrics exporter** — replace custom MetricsRecorder            | middleware   | MED (observability) | 4hr  |
-| 5.10 | **Structured logging middleware** — configurable slog levels                | middleware   | MED (observability) | 4hr  |
-| 5.11 | **Distributed tracing propagation** — span context across module boundaries | otel         | MED (observability) | 4hr  |
-| 5.12 | **Built-in pprof endpoints** — profiling HTTP handler                       | middleware   | LOW (debugging)     | 2hr  |
-| 5.13 | **Documentation site** — Docusaurus/MkDocs/Hugo                             | docs         | MED (DX)            | 8hr  |
-| 5.14 | **jsonv2 codec experiment** — behind build tag                              | codec        | LOW (experimental)  | 4hr  |
-| 5.15 | **Arena allocation experiment** — event module behind build tag             | event        | LOW (experimental)  | 4hr  |
-| 5.16 | **SIMD-accelerated serialization** — Go experiment                          | event        | LOW (experimental)  | 8hr  |
-| 5.17 | **Streaming event reads** — `StreamLoader` without materializing full slice | event        | MED (scale)         | 6hr  |
-| 5.18 | **Saga module** — orchestrated multi-step transactions                      | new module   | HIGH (reliability)  | 12hr |
-| 5.19 | **WASM compilation target** — decider module for browser/edge               | decider      | LOW (experimental)  | 8hr  |
+| ID   | Feature                                                                     | Module       | Impact              | Est |
+| ---- | --------------------------------------------------------------------------- | ------------ | ------------------- | --- |
+| 5.1  | **Schema registry** — JSON Schema validation middleware for events          | new module   | HIGH (correctness)  | 6hr |
+| 5.2  | **Distributed checkpointing** — multi-instance projection coordination      | projection   | MED (scale)         | 6hr |
+| 5.3  | **Reactive CommandBus** — `ro.Subject[Command]` reactive streams            | command      | MED (reactive)      | 4hr |
+| 5.4  | **Reactive QueryBus** — `ro.Subject[Query]` reactive streams                | query        | MED (reactive)      | 4hr |
+| 5.5  | **cqrs-gen v2** — code generator with struct tag scanning                   | cmd/cqrs-gen | MED (DX)            | 8hr |
+| 5.6  | **gRPC transport adapter** — gRPC wrapper for command/query dispatch        | new module   | MED (interop)       | 6hr |
+| 5.7  | **NATS/Redis Stream adapter** — message broker integration                  | new module   | MED (interop)       | 6hr |
+| 5.8  | **Prometheus metrics exporter** — replace custom MetricsRecorder            | middleware   | MED (observability) | 4hr |
+| 5.9  | **Structured logging middleware** — configurable slog levels                | middleware   | MED (observability) | 4hr |
+| 5.10 | **Distributed tracing propagation** — span context across module boundaries | otel         | MED (observability) | 4hr |
+| 5.11 | **Built-in pprof endpoints** — profiling HTTP handler                       | middleware   | LOW (debugging)     | 2hr |
+| 5.12 | **Documentation site** — Docusaurus/MkDocs/Hugo                             | docs         | MED (DX)            | 8hr |
+| 5.13 | **jsonv2 codec experiment** — behind build tag                              | codec        | LOW (experimental)  | 4hr |
+| 5.14 | **Arena allocation experiment** — event module behind build tag             | event        | LOW (experimental)  | 4hr |
+| 5.15 | **SIMD-accelerated serialization** — Go experiment                          | event        | LOW (experimental)  | 8hr |
+| 5.16 | **Streaming event reads** — `StreamLoader` without materializing full slice | event        | MED (scale)         | 6hr |
+| 5.17 | **WASM compilation target** — decider module for browser/edge               | decider      | LOW (experimental)  | 8hr |
 
 ---
 
-## Tier 6: Deferred Breaking Changes
+## Tier 6: Deferred Breaking Changes (Next Major — v3)
 
-> These require a major version bump. Listed for completeness — not actionable now.
+> We're at v2.3+. These require a v3 major bump. Listed for completeness — not actionable now.
 
-### v2 (Next Major)
+### v3 (Next Major)
 
 | ID  | Change                                                   | ADR      | Impact                  |
 | --- | -------------------------------------------------------- | -------- | ----------------------- |
@@ -170,7 +168,7 @@ breaking changes are listed separately at the end.
 | 6.5 | Move HTTP code out of middleware → transport/ module     | —        | Separation of concerns  |
 | 6.6 | Fix `query.Handler` returns `any` → `TypedHandler[T]`    | —        | Type safety             |
 
-### v3 (Future Major)
+### v4 (Future Major)
 
 | ID  | Change                                                         | Impact         |
 | --- | -------------------------------------------------------------- | -------------- |
@@ -181,16 +179,18 @@ breaking changes are listed separately at the end.
 
 ## Descoped / Declined (For Reference)
 
-| Item                                                  | Reason                                                                  |
-| ----------------------------------------------------- | ----------------------------------------------------------------------- |
-| `kv/` interface module                                | No second KV backend exists; thin wrapper adds complexity without value |
-| Field-level encryption (`encryption/fieldlevel/`)     | No consumer demand; would add API surface                               |
-| Turso indexing: comparison report generator           | Indexing advisor covers core need                                       |
-| Turso indexing: hooks API (`turso.WithIndexingHooks`) | No consumer demand                                                      |
-| Turso indexing: health check integration              | Would couple turso to listing/ unnecessarily                            |
-| go-snaps across all modules                           | Using `eventtest.AssertGolden` instead — already integrated             |
-| GraphQL query adapter                                 | Framework-level concern, not library scope                              |
-| `WithNoCopy()` optimization                           | Risky for a library, deferred indefinitely                              |
+| Item                                                  | Reason                                                                                                                                                                             |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `kv/` interface module                                | No second KV backend exists; thin wrapper adds complexity without value                                                                                                            |
+| **Outbox pattern**                                    | \*\*Removed. Use [Watermill](https://github.com/ThreeDotsLabs/watermill) for reliable at-least-once publishing — `watermill/` adapter already exists in this repo. Don't reinvent. |
+| **Saga module**                                       | **Hard no.** Vertical scaling (bigger server) is the right answer for this library's scope. Multi-instance orchestration is the consumer's concern, not a CQRS library's.          |
+| **GraphQL query adapter**                             | **Hard no.** Framework-level concern, not library scope.                                                                                                                           |
+| Field-level encryption (`encryption/fieldlevel/`)     | No consumer demand; would add API surface                                                                                                                                          |
+| Turso indexing: comparison report generator           | Indexing advisor covers core need                                                                                                                                                  |
+| Turso indexing: hooks API (`turso.WithIndexingHooks`) | No consumer demand                                                                                                                                                                 |
+| Turso indexing: health check integration              | Would couple turso to listing/ unnecessarily                                                                                                                                       |
+| go-snaps across all modules                           | Using `eventtest.AssertGolden` instead — already integrated                                                                                                                        |
+| `WithNoCopy()` optimization                           | Risky for a library, deferred indefinitely                                                                                                                                         |
 
 ---
 
@@ -210,7 +210,7 @@ breaking changes are listed separately at the end.
 ## Safety Rules
 
 1. **Library, not framework** — every change must preserve consumer import paths
-2. **Additive only** — no breaking changes until v2/v3
+2. **Additive only** — no breaking changes until v3
 3. **Build must pass** — `nix run .#build` after each task group
 4. **Tests must pass** — `nix run .#test` after each task group
 5. **Lint must pass** — `nix run .#lint` after each task group

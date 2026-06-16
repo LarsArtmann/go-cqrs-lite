@@ -40,7 +40,7 @@ func NewSQLEventStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLEventStore, 
 }
 
 func newSQLEventStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLEventStore, error) {
-	handle, err := sqlpkg.NewOwnedDBHandle(db, d, false)
+	handle, err := sqlpkg.NewBorrowedDBHandle(db, d)
 	if err != nil {
 		return nil, err
 	}

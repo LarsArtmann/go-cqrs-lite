@@ -2,7 +2,6 @@ package memory
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/dispatcher/v2"
@@ -33,11 +32,8 @@ func (s *MemoryCheckpointStore) Load(
 ) (event.Checkpoint, error) {
 	err := s.CheckClosed(dispatcher.ErrDispatcherClosed)
 	if err != nil {
-		return event.Checkpoint{}, fmt.Errorf(
-			"load checkpoint for projection %q: %w",
-			projectionName,
-			err,
-		)
+		return event.Checkpoint{}, event.Wrapf(err, event.Infrastructure,
+			"memory.checkpoint_load", "load checkpoint for projection %q", projectionName)
 	}
 
 	s.mu.RLock()
@@ -54,7 +50,8 @@ func (s *MemoryCheckpointStore) Save(
 ) error {
 	err := s.CheckClosed(dispatcher.ErrDispatcherClosed)
 	if err != nil {
-		return fmt.Errorf("save checkpoint for projection %q: %w", projectionName, err)
+		return event.Wrapf(err, event.Infrastructure,
+			"memory.checkpoint_save", "save checkpoint for projection %q", projectionName)
 	}
 
 	s.mu.Lock()

@@ -34,7 +34,7 @@ func NewSQLQueryStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLQueryStore, 
 }
 
 func newSQLQueryStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLQueryStore, error) {
-	handle, err := sqlpkg.NewOwnedDBHandle(db, d, false)
+	handle, err := sqlpkg.NewBorrowedDBHandle(db, d)
 	if err != nil {
 		return nil, err
 	}

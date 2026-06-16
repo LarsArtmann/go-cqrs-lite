@@ -7,8 +7,8 @@
 ## Legend
 
 - `[x]` = Done
-- `[v2]` = Breaking change, deferred to next major
-- `[v3]` = Breaking change, deferred to v3
+- `[v3]` = Breaking change, deferred to next major (v3)
+- `[v4]` = Breaking change, deferred to v4
 
 ---
 
@@ -27,19 +27,19 @@ Every actionable item from the previous TODO list has been completed or found to
 
 ## Deferred Breaking Changes
 
-### v2 (Next Major)
+### v3 (Next Major — currently v2.3+)
 
-- [v2] **Remove `io.Closer` from core interfaces** — ADR-0010 accepted. Affects `event.Store`, `snapshot.SnapshotStore`, `command.Store`.
-- [v2] **Split `event.Store` into Writer/Reader/Deleter** — ADR-0010 direction.
-- [v2] **Add global `TransactionID` branded type** — Cross-aggregate consistency tracking.
-- [v2] **Make event Core truly immutable** — Currently opts pointer is shallow-copied on Clone (payload/metadata are deep-copied).
-- [v2] **Move HTTP code out of middleware** — SSE, healthcheck, metrics_http → transport/ module.
-- [v2] **Fix `query.Handler` returns `any`** — Generic `TypedHandler[T]` returning `(T, error)` instead of `(any, error)`.
+- [v3] **Remove `io.Closer` from core interfaces** — ADR-0010 accepted. Affects `event.Store`, `snapshot.SnapshotStore`, `command.Store`.
+- [v3] **Split `event.Store` into Writer/Reader/Deleter** — ADR-0010 direction.
+- [v3] **Add global `TransactionID` branded type** — Cross-aggregate consistency tracking.
+- [v3] **Make event Core truly immutable** — Currently opts pointer is shallow-copied on Clone (payload/metadata are deep-copied).
+- [v3] **Move HTTP code out of middleware** — SSE, healthcheck, metrics_http → transport/ module.
+- [v3] **Fix `query.Handler` returns `any`** — Generic `TypedHandler[T]` returning `(T, error)` instead of `(any, error)`.
 
-### v3
+### v4
 
-- [v3] **Split `catalog.Message` into Message + MessageMeta** — 17 fields → structured embedding. Changes exported struct literal construction.
-- [v3] **Split `catalog.Service` into Service + ServiceMeta** — 16 fields → structured embedding.
+- [v4] **Split `catalog.Message` into Message + MessageMeta** — 17 fields → structured embedding. Changes exported struct literal construction.
+- [v4] **Split `catalog.Service` into Service + ServiceMeta** — 16 fields → structured embedding.
 
 ---
 

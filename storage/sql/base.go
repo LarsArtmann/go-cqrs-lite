@@ -33,8 +33,22 @@ type OwnedDBHandle struct {
 	closed atomic.Bool
 }
 
-// NewOwnedDBHandle creates an OwnedDBHandle with the given DB, Dialect, and ownership flag.
-func NewOwnedDBHandle(db *sql.DB, d Dialect, ownDB bool) (*OwnedDBHandle, error) {
+// NewBorrowedDBHandle creates an OwnedDBHandle that tracks closed state
+// but does NOT close the underlying *sql.DB on Close. The caller retains
+// ownership of the DB connection. This is the default for all SQL stores
+// that share a backend-managed connection.
+func NewBorrowedDBHandle(db *sql.DB, d Dialect) (*OwnedDBHandle, error) {
+	return newOwnedDBHandle(db, d, false)
+}
+
+// NewOwningDBHandle creates an OwnedDBHandle whose Close will also close
+// the underlying *sql.DB. Use this when the handle is the sole owner of
+// the connection (e.g. standalone stores that create their own *sql.DB).
+func NewOwningDBHandle(db *sql.DB, d Dialect) (*OwnedDBHandle, error) {
+	return newOwnedDBHandle(db, d, true)
+}
+
+func newOwnedDBHandle(db *sql.DB, d Dialect, ownDB bool) (*OwnedDBHandle, error) {
 	handle, err := NewDBHandle(db, d)
 	if err != nil {
 		return nil, err
@@ -43,8 +57,15 @@ func NewOwnedDBHandle(db *sql.DB, d Dialect, ownDB bool) (*OwnedDBHandle, error)
 	return &OwnedDBHandle{DBHandle: handle, ownDB: ownDB}, nil
 }
 
-// SetOwnership marks the underlying *sql.DB as owned by this handle,
-// meaning Close will also close the DB connection.
+// Deprecated: Use [NewBorrowedDBHandle] or [NewOwningDBHandle] instead.
+// The ownDB bool flag makes Close behavior ambiguous at the call site.
+func NewOwnedDBHandle(db *sql.DB, d Dialect, ownDB bool) (*OwnedDBHandle, error) {
+	return newOwnedDBHandle(db, d, ownDB)
+}
+
+// Deprecated: Use [NewOwningDBHandle] at construction time instead.
+// Mutating ownership after construction can cause double-close or connection
+// leaks if the lifecycle assumption changes mid-flight.
 func (b *OwnedDBHandle) SetOwnership(ownDB bool) {
 	b.ownDB = ownDB
 }

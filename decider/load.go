@@ -3,7 +3,7 @@ package decider
 import (
 	"context"
 	"errors"
-	"fmt"
+	"strings"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
@@ -56,16 +56,25 @@ func opError(
 	args ...any,
 ) error {
 	prefix := ref.Type.String() + " " + ref.ID.String() + ": "
+	fmtMsg := strings.ReplaceAll(prefix+msg, "%w", "%v")
 
-	inner := fmt.Errorf(prefix+msg, args...) //nolint:err113 // dynamic error message in hot path
-
-	family := event.Classify(inner)
-	if family == event.Rejection || family == event.Conflict ||
-		family == event.Transient || family == event.Corruption {
-		return inner
+	var errs []error
+	for _, arg := range args {
+		if e, ok := arg.(error); ok {
+			errs = append(errs, e)
+		}
 	}
 
-	return event.WrapInfrastructure(inner, "decider.op_error", inner.Error())
+	if len(errs) == 0 {
+		return event.Newf(event.Infrastructure, "decider.op_error", fmtMsg, args...)
+	}
+
+	var cause error = errs[0]
+	if len(errs) > 1 {
+		cause = event.Compose(errs...)
+	}
+
+	return event.Wrapf(cause, event.Classify(cause), "decider.op_error", fmtMsg, args...)
 }
 
 // LoadAtVersion reconstructs state from events up to and including maxVersion.

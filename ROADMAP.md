@@ -62,7 +62,7 @@
 - [ ] `jsonv2` codec experiment behind build tag
 - [ ] Arena allocation experiment in event module
 
-### Sprint 7: CQRS Audit Trail (Post v2.3.0 — In Progress)
+### Sprint 7: CQRS Audit Trail (Post v2.3.0 — ✅ COMPLETE)
 
 Symmetric persistence across all three CQRS message types (events, commands, queries) for complete auditability.
 
@@ -70,11 +70,11 @@ Symmetric persistence across all three CQRS message types (events, commands, que
 - [x] `MemoryCommandStore.ReadAll()` + `ReadFrom()` implementation
 - [x] Query store interfaces (`PersistedQuery`, `QuerySink/Source/Store`, `QueryJournal`, `SeekableQueryJournal`)
 - [x] `MemoryQueryStore` implementation
-- [ ] Tests for command journal + query store (memory implementations)
-- [ ] Query module store-specific sentinel errors (`ErrQueryStoreClosed`, `ErrQueryNotFound`)
-- [ ] `SQLCommandStore` → add journal support (`ReadAll`, `ReadFrom`)
-- [ ] `SQLQueryStore` — SQL backend for query persistence (parity with `SQLCommandStore`)
-- [ ] `SQLBackend.QueryStore()` facade method
+- [x] ~~Tests for command journal + query store (memory implementations)~~ — DONE (`0c0cd5b3`)
+- [x] ~~Query module store-specific sentinel errors~~ — DONE (`query/errors.go`: `ErrStoreClosed`, `ErrQueryNotFound`)
+- [x] ~~`SQLCommandStore` → add journal support~~ — DONE (`bf7b3ed8`)
+- [x] ~~`SQLQueryStore` — SQL backend~~ — DONE (`bf7b3ed8`)
+- [x] ~~`SQLBackend.QueryStore()` facade method~~ — DONE (`bf7b3ed8`)
 
 ---
 
@@ -89,8 +89,8 @@ Symmetric persistence across all three CQRS message types (events, commands, que
 
 ### Reliability
 
-- [ ] Outbox pattern implementation (reliable at-least-once publishing)
-- [ ] Saga module (orchestrated multi-step transactions)
+- [~] ~~Outbox pattern~~ — **REMOVED**. Use [Watermill](https://github.com/ThreeDotsLabs/watermill) for reliable at-least-once publishing. The `watermill/` adapter already exists in this repo.
+- [~] ~~Saga module~~ — **HARD NO**. Vertical scaling (bigger server) is sufficient for this library's scope. Multi-instance orchestration is the consumer's concern.
 - [ ] Event schema registry with validation middleware
 - [ ] Distributed checkpointing for projections
 
@@ -100,7 +100,7 @@ Symmetric persistence across all three CQRS message types (events, commands, que
 - [ ] WebAssembly compilation target for decider module
 - [ ] gRPC transport adapter
 - [ ] NATS / Redis Stream adapter
-- [~] GraphQL query adapter for projections → **DECLINED**: framework-level concern, not library scope
+- [~] GraphQL query adapter for projections → **HARD NO**: framework-level concern, not library scope
 
 ### Observability
 
@@ -124,4 +124,4 @@ Symmetric persistence across all three CQRS message types (events, commands, que
 
 ---
 
-_Last updated: 2026-06-15 (post v2.3.0 — CQRS audit trail sprint in progress)_
+_Last updated: 2026-06-16 (Sprint 7 complete, outbox+saga removed, version numbers fixed for v2.3+)_

@@ -108,7 +108,7 @@ func TestMarshalMetadata_Roundtrip(t *testing.T) {
 func TestOwnedDBHandle_NilDB(t *testing.T) {
 	t.Parallel()
 
-	_, err := sqlpkg.NewOwnedDBHandle(nil, sqlpkg.SQLiteDialect{}, false)
+	_, err := sqlpkg.NewBorrowedDBHandle(nil, sqlpkg.SQLiteDialect{})
 	if err == nil {
 		t.Error("expected error for nil DB")
 	}
@@ -117,9 +117,9 @@ func TestOwnedDBHandle_NilDB(t *testing.T) {
 func TestOwnedDBHandle_Lifecycle(t *testing.T) {
 	db := openSQLite(t)
 
-	cb, err := sqlpkg.NewOwnedDBHandle(db, sqlpkg.SQLiteDialect{}, false)
+	cb, err := sqlpkg.NewBorrowedDBHandle(db, sqlpkg.SQLiteDialect{})
 	if err != nil {
-		t.Fatalf("NewOwnedDBHandle: %v", err)
+		t.Fatalf("NewBorrowedDBHandle: %v", err)
 	}
 
 	if err := cb.CheckClosed(errors.New("closed")); err != nil {
@@ -138,12 +138,10 @@ func TestOwnedDBHandle_Lifecycle(t *testing.T) {
 func TestOwnedDBHandle_OwnedDB(t *testing.T) {
 	db := openSQLite(t)
 
-	cb, err := sqlpkg.NewOwnedDBHandle(db, sqlpkg.SQLiteDialect{}, true)
+	cb, err := sqlpkg.NewOwningDBHandle(db, sqlpkg.SQLiteDialect{})
 	if err != nil {
-		t.Fatalf("NewOwnedDBHandle: %v", err)
+		t.Fatalf("NewOwningDBHandle: %v", err)
 	}
-
-	cb.SetOwnership(true)
 
 	if err := cb.Close(); err != nil {
 		t.Fatalf("Close with owned DB: %v", err)

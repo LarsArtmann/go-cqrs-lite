@@ -32,7 +32,7 @@ func (s *MemoryStore) loadFiltered(
 ) ([]event.Event, error) {
 	events, err := s.getEvents(ref, op)
 	if err != nil {
-		return nil, fmt.Errorf("op=%s: %w", op, err)
+		return nil, event.Wrapf(err, event.Classify(err), "memory.load_filtered", "op=%s", op)
 	}
 
 	return filter(events), nil

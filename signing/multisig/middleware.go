@@ -2,7 +2,6 @@ package multisig
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2"
@@ -68,7 +67,7 @@ func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware {
 			)
 			if handled {
 				if err != nil {
-					return fmt.Errorf("multi-verify extract: %w", err)
+					return event.WrapCorruption(err, "signing.multi_verify_extract", "multi-verify extract")
 				}
 
 				return nil
@@ -112,7 +111,7 @@ func MultiVerifyMiddlewareFor(actor Actor, verifier signing.Verifier) event.Midd
 			)
 			if handled {
 				if err != nil {
-					return fmt.Errorf("multi-verify-for extract: %w", err)
+					return event.WrapCorruption(err, "signing.multi_verify_for_extract", "multi-verify-for extract")
 				}
 
 				return nil
