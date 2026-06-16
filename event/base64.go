@@ -1,6 +1,9 @@
 package event
 
-import "encoding/base64"
+import (
+	"encoding/base64"
+	"fmt"
+)
 
 // DecodeBase64String decodes a base64-encoded string, trying URL-safe
 // encoding first, then falling back to standard base64 for backward
@@ -14,5 +17,9 @@ func DecodeBase64String(encoded string) ([]byte, error) {
 		decoded, err = base64.StdEncoding.DecodeString(encoded)
 	}
 
-	return decoded, err
+	if err != nil {
+		return decoded, fmt.Errorf("encoded=%v: %w", encoded, err)
+	}
+
+	return decoded, nil
 }

@@ -160,12 +160,12 @@ func (s *encryptedStore) ReadFrom(
 ) ([]event.Event, error) {
 	seekable, ok := s.inner.(event.SeekableJournal)
 	if !ok {
-		return nil, fmt.Errorf("%w: %T", ErrInnerStoreNotSeekable, s.inner)
+		return nil, fmt.Errorf("limit=%d: %w: %T", limit, ErrInnerStoreNotSeekable, s.inner)
 	}
 
 	events, err := seekable.ReadFrom(ctx, afterEventID, limit)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("limit=%d: %w", limit, err)
 	}
 
 	return s.decryptEvents(events)

@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"fmt"
 	"regexp"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
@@ -29,7 +30,7 @@ type listingTable struct {
 
 func newListingTable(prefix string) (listingTable, error) {
 	if err := validateListingTablePrefix(prefix); err != nil {
-		return listingTable{}, err
+		return listingTable{}, fmt.Errorf("prefix=%v: %w", prefix, err)
 	}
 
 	return listingTable{name: prefix + "listing_aggregates"}, nil
