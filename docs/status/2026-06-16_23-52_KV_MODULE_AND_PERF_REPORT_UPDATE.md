@@ -22,6 +22,7 @@ The performance characteristics report (`docs/research/2026-06-14_PERFORMANCE_CH
 ### KV Store Abstraction Research Doc Updated
 
 `docs/research/kv-store-abstraction-research.md` updated from "DESCOPED" to "IMPLEMENTED":
+
 - Status header updated, TL;DR revised
 - Decision matrix updated (kv/ → ✅ Implemented)
 - Resolution section rewritten
@@ -32,20 +33,21 @@ The performance characteristics report (`docs/research/2026-06-14_PERFORMANCE_CH
 
 New Layer 0 leaf module with zero internal dependencies:
 
-| File | Lines | Purpose |
-|---|---|---|
-| `kv.go` | 82 | `Store`, `Reader`, `Writer`, `Iterator`, `Batch` interfaces |
-| `errors.go` | 10 | `ErrNotFound` (Rejection), `ErrClosed` (Infrastructure) |
-| `mem.go` | 204 | `MemStore` + `memIterator` with sorted iteration |
-| `mem_batch.go` | 76 | `memBatch` with atomic commit |
-| `doc.go` | 72 | Package doc with usage examples |
-| `benchmark_test.go` | 102 | 6 benchmarks (Set 49ns, Get 24ns, Has 14ns) |
-| `mem_test.go` | 236 | CRUD, cloning, closed-state, concurrent access tests |
-| `mem_iterator_test.go` | 146 | Ordering, prefix, value, empty, snapshot tests |
-| `mem_batch_test.go` | 81 | Commit, close-discard, after-commit tests |
-| `README.md` | 55 | Interface table, usage example, MemStore description |
+| File                   | Lines | Purpose                                                     |
+| ---------------------- | ----- | ----------------------------------------------------------- |
+| `kv.go`                | 82    | `Store`, `Reader`, `Writer`, `Iterator`, `Batch` interfaces |
+| `errors.go`            | 10    | `ErrNotFound` (Rejection), `ErrClosed` (Infrastructure)     |
+| `mem.go`               | 204   | `MemStore` + `memIterator` with sorted iteration            |
+| `mem_batch.go`         | 76    | `memBatch` with atomic commit                               |
+| `doc.go`               | 72    | Package doc with usage examples                             |
+| `benchmark_test.go`    | 102   | 6 benchmarks (Set 49ns, Get 24ns, Has 14ns)                 |
+| `mem_test.go`          | 236   | CRUD, cloning, closed-state, concurrent access tests        |
+| `mem_iterator_test.go` | 146   | Ordering, prefix, value, empty, snapshot tests              |
+| `mem_batch_test.go`    | 81    | Commit, close-discard, after-commit tests                   |
+| `README.md`            | 55    | Interface table, usage example, MemStore description        |
 
 **Metrics:**
+
 - 94.9% test coverage, 18 tests, 6 benchmarks
 - Zero lint issues
 - Race detector clean
@@ -78,7 +80,7 @@ New Layer 0 leaf module with zero internal dependencies:
 ### Pebble Module — Pre-existing Issues
 
 - **Untracked files**: `pebble/coverage_test.go` and `pebble/fuzz_test.go` exist on disk but were never committed (from a previous session). These are NOT from this session's work.
-- **Fmt drift**: `nix fmt` reformatted some pebble files (ctx→_ unused variable, error wrapping). These changes were reverted to avoid committing work we didn't author.
+- **Fmt drift**: `nix fmt` reformatted some pebble files (ctx→\_ unused variable, error wrapping). These changes were reverted to avoid committing work we didn't author.
 - **Build failure in workspace mode**: pebble fails to build in `nix run .#test` due to the untracked `fuzz_test.go` referencing a type conversion that doesn't compile. Standalone (`GOWORK=off go test ./...`) it passes fine.
 
 ### Turso Tests — Pre-existing Flaky
@@ -140,53 +142,53 @@ New Layer 0 leaf module with zero internal dependencies:
 
 ### Critical (blocks CI/CD)
 
-| # | Task | Impact | Effort |
-|---|---|---|---|
-| 1 | Delete or commit `pebble/coverage_test.go` and `pebble/fuzz_test.go` | Unblocks workspace build | 5 min |
-| 2 | Fix turso `TestEventStore_LoadNonExistent` error classification | Unblocks turso CI | 30 min |
-| 3 | Fix pebble `fuzz_test.go` type conversion error (`[16]byte → EventID`) | Unblocks pebble CI | 15 min |
+| #   | Task                                                                   | Impact                   | Effort |
+| --- | ---------------------------------------------------------------------- | ------------------------ | ------ |
+| 1   | Delete or commit `pebble/coverage_test.go` and `pebble/fuzz_test.go`   | Unblocks workspace build | 5 min  |
+| 2   | Fix turso `TestEventStore_LoadNonExistent` error classification        | Unblocks turso CI        | 30 min |
+| 3   | Fix pebble `fuzz_test.go` type conversion error (`[16]byte → EventID`) | Unblocks pebble CI       | 15 min |
 
 ### High Impact
 
-| # | Task | Impact | Effort |
-|---|---|---|---|
-| 4 | Update module layer budgets (codec→2, pebble→7, storage→11, integration→19) | Honest budgets | 5 min |
-| 5 | Write `pebble/adapter.go` implementing `kv.Store` (~80 lines) | First kv/ consumer | 2 hours |
-| 6 | Update FEATURES.md module count (28→34) and add kv/ | Doc accuracy | 15 min |
-| 7 | Add `kv/` to `.golangci.yml` depguard allow list if needed | Lint correctness | 5 min |
-| 8 | Update `docs/research/2026-06-14_PERFORMANCE_CHARACTERISTICS_REPORT.html` module count to 34 | Report accuracy | 5 min |
+| #   | Task                                                                                         | Impact             | Effort  |
+| --- | -------------------------------------------------------------------------------------------- | ------------------ | ------- |
+| 4   | Update module layer budgets (codec→2, pebble→7, storage→11, integration→19)                  | Honest budgets     | 5 min   |
+| 5   | Write `pebble/adapter.go` implementing `kv.Store` (~80 lines)                                | First kv/ consumer | 2 hours |
+| 6   | Update FEATURES.md module count (28→34) and add kv/                                          | Doc accuracy       | 15 min  |
+| 7   | Add `kv/` to `.golangci.yml` depguard allow list if needed                                   | Lint correctness   | 5 min   |
+| 8   | Update `docs/research/2026-06-14_PERFORMANCE_CHARACTERISTICS_REPORT.html` module count to 34 | Report accuracy    | 5 min   |
 
 ### Medium Impact
 
-| # | Task | Impact | Effort |
-|---|---|---|---|
-| 9 | Refactor pebble event store to depend on `kv.Store` instead of `*pebble.DB` | Backend agnosticism | 4 hours |
-| 10 | Add `badger/` adapter module (~100 lines) | Second KV backend | 3 hours |
-| 11 | Add concurrent batch test (multiple goroutines committing batches) | Test thoroughness | 30 min |
-| 12 | Add `kv.Store` conformance test suite (like `eventtest`) | Adapter validation | 2 hours |
-| 13 | Add property-based test for MemStore ordering (rapid) | Test rigor | 1 hour |
-| 14 | Benchmark MemStore with 10K keys (scale test) | Performance data | 30 min |
-| 15 | Document kv/ in README.md root project file | Discoverability | 10 min |
+| #   | Task                                                                        | Impact              | Effort  |
+| --- | --------------------------------------------------------------------------- | ------------------- | ------- |
+| 9   | Refactor pebble event store to depend on `kv.Store` instead of `*pebble.DB` | Backend agnosticism | 4 hours |
+| 10  | Add `badger/` adapter module (~100 lines)                                   | Second KV backend   | 3 hours |
+| 11  | Add concurrent batch test (multiple goroutines committing batches)          | Test thoroughness   | 30 min  |
+| 12  | Add `kv.Store` conformance test suite (like `eventtest`)                    | Adapter validation  | 2 hours |
+| 13  | Add property-based test for MemStore ordering (rapid)                       | Test rigor          | 1 hour  |
+| 14  | Benchmark MemStore with 10K keys (scale test)                               | Performance data    | 30 min  |
+| 15  | Document kv/ in README.md root project file                                 | Discoverability     | 10 min  |
 
 ### Refinement
 
-| # | Task | Impact | Effort |
-|---|---|---|---|
-| 16 | Add `kv.ErrKeyEmpty` sentinel for empty key validation | API robustness | 15 min |
-| 17 | Consider `context.Context` on kv.Store methods | Cancellation | 1 hour (interface change) |
-| 18 | Add `Store.DeleteRange(prefix)` method | Bulk operations | 1 hour |
-| 19 | Consider `sync.Pool` for iterator allocation in MemStore | Performance | 30 min |
-| 20 | Add fuzz test for MemStore (rapid-based) | Test rigor | 1 hour |
+| #   | Task                                                     | Impact          | Effort                    |
+| --- | -------------------------------------------------------- | --------------- | ------------------------- |
+| 16  | Add `kv.ErrKeyEmpty` sentinel for empty key validation   | API robustness  | 15 min                    |
+| 17  | Consider `context.Context` on kv.Store methods           | Cancellation    | 1 hour (interface change) |
+| 18  | Add `Store.DeleteRange(prefix)` method                   | Bulk operations | 1 hour                    |
+| 19  | Consider `sync.Pool` for iterator allocation in MemStore | Performance     | 30 min                    |
+| 20  | Add fuzz test for MemStore (rapid-based)                 | Test rigor      | 1 hour                    |
 
 ### Documentation & Process
 
-| # | Task | Impact | Effort |
-|---|---|---|---|
-| 21 | Update ROADMAP.md with kv/ module and future adapters | Planning | 15 min |
-| 22 | Create `kv/example_test.go` with `ExampleMemStore` function | pkg.go.dev | 30 min |
-| 23 | Add kv/ benchmarks to performance report | Report completeness | 15 min |
-| 24 | Audit all modules for `io.Closer` consistency (ADR-0010/0021) | API consistency | 1 hour |
-| 25 | Run `govulncheck` on kv/ module | Security | 5 min |
+| #   | Task                                                          | Impact              | Effort |
+| --- | ------------------------------------------------------------- | ------------------- | ------ |
+| 21  | Update ROADMAP.md with kv/ module and future adapters         | Planning            | 15 min |
+| 22  | Create `kv/example_test.go` with `ExampleMemStore` function   | pkg.go.dev          | 30 min |
+| 23  | Add kv/ benchmarks to performance report                      | Report completeness | 15 min |
+| 24  | Audit all modules for `io.Closer` consistency (ADR-0010/0021) | API consistency     | 1 hour |
+| 25  | Run `govulncheck` on kv/ module                               | Security            | 5 min  |
 
 ---
 
@@ -206,11 +208,11 @@ This is the single biggest blocker — it causes the pebble workspace build fail
 
 ## Test & Lint Summary
 
-| Check | Status |
-|---|---|
-| `nix run .#test` | 40 ok, 2 FAIL (pebble workspace build, turso classification) |
-| `nix run .#lint` | 1 issue (pebble typecheck from untracked file) |
-| `nix run .#check-layers` | 4 budget overruns (pre-existing) |
-| kv/ standalone | ✅ Build, vet, test (race), lint, coverage (94.9%) |
-| Git | Clean working tree (2 pre-existing untracked pebble files) |
-| Pushed | ✅ `consolidate-catalog` branch pushed to origin |
+| Check                    | Status                                                       |
+| ------------------------ | ------------------------------------------------------------ |
+| `nix run .#test`         | 40 ok, 2 FAIL (pebble workspace build, turso classification) |
+| `nix run .#lint`         | 1 issue (pebble typecheck from untracked file)               |
+| `nix run .#check-layers` | 4 budget overruns (pre-existing)                             |
+| kv/ standalone           | ✅ Build, vet, test (race), lint, coverage (94.9%)           |
+| Git                      | Clean working tree (2 pre-existing untracked pebble files)   |
+| Pushed                   | ✅ `consolidate-catalog` branch pushed to origin             |

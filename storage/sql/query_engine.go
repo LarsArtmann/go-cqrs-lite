@@ -67,14 +67,10 @@ func LoadWithSpan[T any](
 	results, err := QueryRows(ctx, db, d, cfg, p, aggType, aggID)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
-		return nil, errorfamily.Wrapf(
-			err,
-			errorfamily.Infrastructure,
-			"storage.sql_query",
-			"query %s %v",
-			aggType,
-			aggID,
-		)
+
+		// Return as-is: QueryRows already classified the error via
+		// cfg.WrapError (Infrastructure) or cfg.WrapEmpty (Rejection).
+		return nil, err
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt(p.CountAttr, len(results)))

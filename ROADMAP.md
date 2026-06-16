@@ -38,6 +38,7 @@
 - [x] Dockerfile for `example/user/` (multi-stage: builder → scratch → alpine)
 - [x] `docker-compose.yml` for example stack
 - [x] Docker build CI step (linux amd64 + arm64)
+- [x] PostgreSQL integration tests (`pg_integration_test.go` with `-tags=integration`)
 
 ### Sprint 5: Consumer Experience (Week 5–6)
 
@@ -59,8 +60,8 @@
 - [x] ~~Document experimental build tags (`jsonv2`, `arenas`, `simd`, `runtimesecret`)~~ — DONE (docs/EXPERIMENTAL_BUILD_TAGS.md)
 - [~] ~~`go-snaps` across all remaining modules~~ — **DESCOPED**: Using `eventtest.AssertGolden` pattern instead (already integrated)
 - [x] ~~`rapid` PBT on `command/` and `query/` modules~~ — DONE (property_test.go in both modules, 9 tests)
-- [ ] `jsonv2` codec experiment behind build tag
-- [ ] Arena allocation experiment in event module
+- [~] ~~`jsonv2` codec experiment behind build tag~~ — **EXPERIMENTAL**: Not yet available in stable Go. Tracked in `docs/EXPERIMENTAL_BUILD_TAGS.md`
+- [~] ~~Arena allocation experiment in event module~~ — **EXPERIMENTAL**: Not yet available in stable Go. Tracked in `docs/EXPERIMENTAL_BUILD_TAGS.md`
 
 ### Sprint 7: CQRS Audit Trail (Post v2.3.0 — ✅ COMPLETE)
 

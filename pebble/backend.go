@@ -13,40 +13,37 @@ import (
 // Unlike SQLBackend (which borrows the *sql.DB), Backend OWNS the *pebble.DB.
 // Calling Close() closes the database AND all stores.
 type Backend struct {
-	db       *pebble.DB
+	database *pebble.DB
 	events   *EventStore
-	snapshot *SnapshotStore   //nolint:unused // lazy-initialized on first call
-	checkpt  *CheckpointStore //nolint:unused // lazy-initialized on first call
-	// snapshot and checkpoint are created eagerly in Open() — they share the db.
-	// The nolint:unused suppressions above are placeholders in case future
-	// refactoring moves to lazy initialization.
+	snapshot *SnapshotStore
+	checkpt  *CheckpointStore
 }
 
 // Open creates a new Backend by opening a Pebble database at the given directory.
 // The Backend owns the *pebble.DB — Close() will close it.
 func Open(dir string, opts *pebble.Options, logger *slog.Logger) (*Backend, error) {
-	db, err := pebble.Open(dir, opts)
+	database, err := pebble.Open(dir, opts)
 	if err != nil {
 		return nil, fmt.Errorf("pebble: open backend: %w", err)
 	}
 
 	return &Backend{
-		db:       db,
-		events:   NewStore(db, logger),
-		snapshot: NewSnapshotStore(db, logger),
-		checkpt:  NewCheckpointStore(db, logger),
+		database: database,
+		events:   NewStore(database, logger),
+		snapshot: NewSnapshotStore(database, logger),
+		checkpt:  NewCheckpointStore(database, logger),
 	}, nil
 }
 
 // NewBackend wraps an existing *pebble.DB into a Backend.
 // The Backend does NOT own the DB — the caller is responsible for closing it.
 // Use Open() instead if you want the Backend to own the DB lifecycle.
-func NewBackend(db *pebble.DB, logger *slog.Logger) *Backend {
+func NewBackend(database *pebble.DB, logger *slog.Logger) *Backend {
 	return &Backend{
-		db:       db,
-		events:   NewStore(db, logger),
-		snapshot: NewSnapshotStore(db, logger),
-		checkpt:  NewCheckpointStore(db, logger),
+		database: database,
+		events:   NewStore(database, logger),
+		snapshot: NewSnapshotStore(database, logger),
+		checkpt:  NewCheckpointStore(database, logger),
 	}
 }
 
@@ -62,7 +59,10 @@ func (b *Backend) CheckpointStore() *CheckpointStore { return b.checkpt }
 // Close closes all stores and the underlying *pebble.DB.
 // After Close, all store operations will return ErrClosed.
 func (b *Backend) Close() error {
-	// Pebble stores don't hold external resources beyond the DB handle.
-	// Closing the DB invalidates all iterators and future operations.
-	return b.db.Close()
+	err := b.database.Close()
+	if err != nil {
+		return fmt.Errorf("pebble: close backend: %w", err)
+	}
+
+	return nil
 }

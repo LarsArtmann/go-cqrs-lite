@@ -57,7 +57,7 @@ func (a *EventStore) Load(
 	ctx context.Context,
 	ref event.AggregateRef,
 ) ([]event.Event, error) {
-	ctx, span := startAggregateSpan(ctx, "pebble.event.load", ref)
+	_, span := startAggregateSpan(ctx, "pebble.event.load", ref)
 	defer span.End()
 
 	prefix := a.aggregatePrefix(ref)
@@ -82,7 +82,7 @@ func (a *EventStore) LoadFromVersion(
 	ref event.AggregateRef,
 	version event.Version,
 ) ([]event.Event, error) {
-	ctx, span := startAggregateSpan(ctx, "pebble.event.load_from_version", ref,
+	_, span := startAggregateSpan(ctx, "pebble.event.load_from_version", ref,
 		cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, version.Int()))
 	defer span.End()
 
@@ -128,7 +128,7 @@ func (a *EventStore) LoadToVersion(
 	ref event.AggregateRef,
 	maxVersion event.Version,
 ) ([]event.Event, error) {
-	ctx, span := startAggregateSpan(ctx, "pebble.event.load_to_version", ref,
+	_, span := startAggregateSpan(ctx, "pebble.event.load_to_version", ref,
 		cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, maxVersion.Int()))
 	defer span.End()
 
@@ -155,7 +155,7 @@ func (a *EventStore) LoadToTimestamp(
 	ref event.AggregateRef,
 	maxTime time.Time,
 ) ([]event.Event, error) {
-	ctx, span := startAggregateSpan(ctx, "pebble.event.load_to_timestamp", ref)
+	_, span := startAggregateSpan(ctx, "pebble.event.load_to_timestamp", ref)
 	defer span.End()
 
 	upperBound := a.aggregateUpperBound(ref)

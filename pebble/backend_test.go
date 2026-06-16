@@ -96,12 +96,12 @@ func TestBackend_FullStack(t *testing.T) {
 	}
 
 	// Save a checkpoint
-	cp := event.Checkpoint{
+	checkpoint := event.Checkpoint{
 		EventID:     evt.ID(),
 		ProcessedAt: time.Now(),
 	}
 
-	if err := cpStore.Save(ctx, "test-projection", cp); err != nil {
+	if err := cpStore.Save(ctx, "test-projection", checkpoint); err != nil {
 		t.Fatalf("Checkpoint Save failed: %v", err)
 	}
 
@@ -129,16 +129,17 @@ func TestBackend_NewBackend_WrapsExistingDB(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	db, err := pebble.Open(dir, &pebble.Options{})
+	database, err := pebble.Open(dir, &pebble.Options{})
 	if err != nil {
 		t.Fatalf("pebble.Open failed: %v", err)
 	}
 
-	t.Cleanup(func() { _ = db.Close() })
+	t.Cleanup(func() { _ = database.Close() })
 
-	backend := cqrspebble.NewBackend(db, slog.Default())
+	backend := cqrspebble.NewBackend(database, slog.Default())
 
-	if backend.EventStore() == nil || backend.SnapshotStore() == nil || backend.CheckpointStore() == nil {
+	if backend.EventStore() == nil || backend.SnapshotStore() == nil ||
+		backend.CheckpointStore() == nil {
 		t.Fatal("one or more stores returned nil")
 	}
 }
@@ -162,7 +163,7 @@ func TestBackend_ReadFrom(t *testing.T) {
 	baseTime := time.Now()
 
 	// Save 5 events
-	var events []event.Event
+	events := make([]event.Event, 0, 5)
 
 	for i := range 5 {
 		evt, err := event.NewEvent(

@@ -99,7 +99,7 @@ func (a *EventStore) Save(
 		return nil
 	}
 
-	ctx, span := startAggregateSpan(ctx, "pebble.event.save", ref,
+	_, span := startAggregateSpan(ctx, "pebble.event.save", ref,
 		cqrsotel.AttrInt("event.count", len(events)),
 		cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, expectedVersion.Int()))
 	defer span.End()
@@ -137,7 +137,8 @@ func (a *EventStore) Save(
 		)
 	}
 
-	if err := a.commitAndLog(batch, "events saved", ref, len(events)); err != nil {
+	err = a.commitAndLog(batch, "events saved", ref, len(events))
+	if err != nil {
 		cqrsotel.RecordError(span, err)
 
 		return err
