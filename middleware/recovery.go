@@ -31,7 +31,14 @@ func handleRecovery(cfg middlewareConfig, msgKind, typeName string, r any) error
 		)
 	}
 
-	return event.Wrapf(err, event.Corruption, "middleware.recovery", "msgKind=%s, typeName=%s", msgKind, typeName)
+	return event.Wrapf(
+		err,
+		event.Corruption,
+		"middleware.recovery",
+		"msgKind=%s, typeName=%s",
+		msgKind,
+		typeName,
+	)
 }
 
 // NewRecovery returns a generic middleware that recovers from panics.

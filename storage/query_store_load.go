@@ -93,8 +93,8 @@ func (s *SQLQueryStore) ReadQueriesFrom(
 	limit int,
 ) ([]*query.PersistedQuery, error) {
 	if err := s.checkClosed(); err != nil {
-		return nil, fmt.Errorf("read from query store (limit=%d, after=%s): %w",
-			limit, afterRequestID, err)
+		return nil, query.Wrapf(err, query.Infrastructure, "storage.query_read_from",
+			"read from query store (limit=%d, after=%s)", limit, afterRequestID)
 	}
 
 	ctx, span := cqrsotel.StartSpan(

@@ -141,7 +141,7 @@ func queryStat1(ctx context.Context, db *sql.DB) ([]stat1Row, error) {
 	rows, err := db.QueryContext(ctx, "SELECT idx, stat FROM sqlite_stat1")
 	if err != nil {
 		// sqlite_stat1 may not exist if ANALYZE has not been run.
-		return nil, fmt.Errorf("sqlite_stat1: %w", err)
+		return nil, event.Wrapf(err, event.Infrastructure, "turso.stat1_query", "sqlite_stat1")
 	}
 	defer func() { _ = rows.Close() }()
 
@@ -151,7 +151,7 @@ func queryStat1(ctx context.Context, db *sql.DB) ([]stat1Row, error) {
 		var name, stat string
 
 		if err := rows.Scan(&name, &stat); err != nil {
-			return nil, fmt.Errorf("stat=%v: %w", stat, err)
+			return nil, event.Wrapf(err, event.Infrastructure, "turso.stat1_scan", "stat=%v", stat)
 		}
 
 		rows := parseStat1Rows(stat)
@@ -159,7 +159,12 @@ func queryStat1(ctx context.Context, db *sql.DB) ([]stat1Row, error) {
 	}
 
 	if err := rows.Err(); err != nil {
-		return out, fmt.Errorf("sqlite_stat1 iteration: %w", err)
+		return out, event.Wrapf(
+			err,
+			event.Infrastructure,
+			"turso.stat1_iter",
+			"sqlite_stat1 iteration",
+		)
 	}
 
 	return out, nil

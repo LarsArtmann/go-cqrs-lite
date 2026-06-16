@@ -1,10 +1,11 @@
 package encryption
 
 import (
-	"fmt"
 	"maps"
 	"sort"
 	"strings"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // StaticKeyResolver resolves keys from a static map. It implements KeyResolver
@@ -34,7 +35,14 @@ func (r *StaticKeyResolver) Resolve(keyID KeyID) (Decrypter, error) {
 	if !ok {
 		available := r.availableKeys()
 
-		return nil, fmt.Errorf("%w: %q (available: %s)", ErrUnknownKeyID, keyID, available)
+		return nil, errorfamily.Wrapf(
+			ErrUnknownKeyID,
+			errorfamily.Rejection,
+			"encryption.unknown_key_id",
+			"%q (available: %s)",
+			keyID,
+			available,
+		)
 	}
 
 	return dec, nil

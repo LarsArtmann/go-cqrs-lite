@@ -180,9 +180,7 @@ func extractIDParameter(path string, schema *catalog.Schema) (string, []Paramete
 	}
 
 	for fieldName, prop := range schema.Properties {
-		lower := strings.ToLower(fieldName)
-
-		if lower == "id" || lower == "aggregate_id" || strings.HasSuffix(lower, "_id") {
+		if isIDField(strings.ToLower(fieldName)) {
 			path = fmt.Sprintf("%s/{%s}", path, fieldName)
 
 			return path, []Parameter{{
@@ -193,6 +191,10 @@ func extractIDParameter(path string, schema *catalog.Schema) (string, []Paramete
 	}
 
 	return path, nil
+}
+
+func isIDField(lower string) bool {
+	return lower == "id" || strings.HasSuffix(lower, "_id")
 }
 
 func (e *Exporter) addEvent(

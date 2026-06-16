@@ -67,7 +67,11 @@ func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware {
 			)
 			if handled {
 				if err != nil {
-					return event.WrapCorruption(err, "signing.multi_verify_extract", "multi-verify extract")
+					return event.WrapCorruption(
+						err,
+						"signing.multi_verify_extract",
+						"multi-verify extract",
+					)
 				}
 
 				return nil
@@ -111,7 +115,11 @@ func MultiVerifyMiddlewareFor(actor Actor, verifier signing.Verifier) event.Midd
 			)
 			if handled {
 				if err != nil {
-					return event.WrapCorruption(err, "signing.multi_verify_for_extract", "multi-verify-for extract")
+					return event.WrapCorruption(
+						err,
+						"signing.multi_verify_for_extract",
+						"multi-verify-for extract",
+					)
 				}
 
 				return nil

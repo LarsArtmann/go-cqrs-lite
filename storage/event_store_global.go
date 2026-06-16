@@ -44,7 +44,8 @@ func (s *SQLEventStore) ReadFrom(
 	limit int,
 ) ([]event.Event, error) {
 	if err := s.checkClosed(); err != nil {
-		return nil, fmt.Errorf("read from store (limit=%d, after=%s): %w", limit, afterEventID, err)
+		return nil, event.Wrapf(err, event.Infrastructure, "storage.event_read_from",
+			"read from store (limit=%d, after=%s)", limit, afterEventID)
 	}
 
 	ctx, span := cqrsotel.StartSpan(

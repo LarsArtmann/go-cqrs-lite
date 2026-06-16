@@ -1,8 +1,9 @@
 package encryption
 
 import (
-	"fmt"
 	"strconv"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // CiphertextVersion identifies the envelope format version.
@@ -48,7 +49,13 @@ const versionHeaderLen = 2 // version byte + algorithm byte
 func WrapCiphertext(raw Ciphertext, alg Algorithm) (Ciphertext, error) {
 	algID, ok := algorithmID[alg]
 	if !ok {
-		return nil, fmt.Errorf("%w: %q", ErrUnknownAlgorithm, alg)
+		return nil, errorfamily.Wrapf(
+			ErrUnknownAlgorithm,
+			errorfamily.Rejection,
+			"encryption.unknown_algorithm",
+			"%q",
+			alg,
+		)
 	}
 
 	result := make(Ciphertext, 0, versionHeaderLen+len(raw))
@@ -79,8 +86,8 @@ func UnwrapCiphertext(data Ciphertext) (Algorithm, Ciphertext, error) {
 
 	alg, ok := idToAlgorithm[algID]
 	if !ok {
-		return "", nil, fmt.Errorf("%w: %s", ErrUnknownAlgorithmID,
-			strconv.FormatUint(uint64(algID), hexBase))
+		return "", nil, errorfamily.Wrapf(ErrUnknownAlgorithmID, errorfamily.Rejection,
+			"encryption.unknown_algorithm_id", "%s", strconv.FormatUint(uint64(algID), hexBase))
 	}
 
 	return alg, data[versionHeaderLen:], nil

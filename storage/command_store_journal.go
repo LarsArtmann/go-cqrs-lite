@@ -57,8 +57,8 @@ func (s *SQLCommandStore) ReadFrom(
 	limit int,
 ) ([]*command.PersistedCommand, error) {
 	if err := s.checkClosed(); err != nil {
-		return nil, fmt.Errorf("read from command store (limit=%d, after=%s): %w",
-			limit, afterCommandID, err)
+		return nil, command.Wrapf(err, command.Infrastructure, "storage.command_read_from",
+			"read from command store (limit=%d, after=%s)", limit, afterCommandID)
 	}
 
 	ctx, span := cqrsotel.StartSpan(

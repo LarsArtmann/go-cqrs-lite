@@ -280,13 +280,23 @@ func deserializeSnapshot(data []byte) (*serializableSnapshot, error) {
 	if isCBOR(data) {
 		err := pebbleDecMode.Unmarshal(data, &s)
 		if err != nil {
-			return nil, fmt.Errorf("cbor unmarshal snapshot: %w", err)
+			return nil, event.Wrapf(
+				err,
+				event.Corruption,
+				"pebble.snapshot_cbor",
+				"cbor unmarshal snapshot",
+			)
 		}
 	} else {
 		// Legacy JSON fallback for snapshots written before CBOR migration.
 		err := json.Unmarshal(data, &s)
 		if err != nil {
-			return nil, fmt.Errorf("json unmarshal snapshot: %w", err)
+			return nil, event.Wrapf(
+				err,
+				event.Corruption,
+				"pebble.snapshot_json",
+				"json unmarshal snapshot",
+			)
 		}
 	}
 

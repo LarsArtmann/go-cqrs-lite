@@ -13,26 +13,14 @@ func ToSeparated(s string, sep byte) string {
 	for i, c := range runes {
 		switch {
 		case c >= 'A' && c <= 'Z':
-			if i > 0 {
-				prev := runes[i-1]
-				prevIsUpper := prev >= 'A' && prev <= 'Z'
-				prevIsLower := prev >= 'a' && prev <= 'z'
-				nextIsLower := i+1 < len(runes) && runes[i+1] >= 'a' && runes[i+1] <= 'z'
-
-				if prevIsLower || (prevIsUpper && nextIsLower) {
-					result = append(result, sep)
-				}
+			if shouldPrependSepBeforeUpper(runes, i) {
+				result = append(result, sep)
 			}
 
 			result = append(result, byte(c+'a'-'A'))
 		case c >= '0' && c <= '9':
-			if i > 0 {
-				prev := runes[i-1]
-				isLetter := (prev >= 'a' && prev <= 'z') || (prev >= 'A' && prev <= 'Z')
-
-				if isLetter {
-					result = append(result, sep)
-				}
+			if shouldPrependSepBeforeDigit(runes, i) {
+				result = append(result, sep)
 			}
 
 			result = append(result, byte(c))
@@ -44,6 +32,29 @@ func ToSeparated(s string, sep byte) string {
 	}
 
 	return string(result)
+}
+
+func shouldPrependSepBeforeUpper(runes []rune, i int) bool {
+	if i == 0 {
+		return false
+	}
+
+	prev := runes[i-1]
+	prevIsUpper := prev >= 'A' && prev <= 'Z'
+	prevIsLower := prev >= 'a' && prev <= 'z'
+	nextIsLower := i+1 < len(runes) && runes[i+1] >= 'a' && runes[i+1] <= 'z'
+
+	return prevIsLower || (prevIsUpper && nextIsLower)
+}
+
+func shouldPrependSepBeforeDigit(runes []rune, i int) bool {
+	if i == 0 {
+		return false
+	}
+
+	prev := runes[i-1]
+
+	return (prev >= 'a' && prev <= 'z') || (prev >= 'A' && prev <= 'Z')
 }
 
 // DotSeparated converts CamelCase to dot.separated format.

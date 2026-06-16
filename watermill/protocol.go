@@ -1,7 +1,6 @@
 package watermill
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -112,7 +111,13 @@ func messageToEvent(topic string, msg *message.Message) (event.Event, error) {
 	opts := []event.Option{event.WithSchemaVersion(event.SchemaVersion(schemaVersion))}
 
 	if eventOpts, err := parseOptionalFields(md); err != nil {
-		return nil, fmt.Errorf("topic %s: parse optional fields: %w", topic, err)
+		return nil, event.Wrapf(
+			err,
+			event.Rejection,
+			"watermill.parse_optional",
+			"topic %s: parse optional fields",
+			topic,
+		)
 	} else {
 		opts = append(opts, eventOpts...)
 	}
@@ -226,7 +231,7 @@ func buildMetadata(md message.Metadata) (event.Metadata, error) {
 		}
 	}
 
-	return m, errors.Join(errs...)
+	return m, event.Compose(errs...)
 }
 
 func parseIDField[T any](

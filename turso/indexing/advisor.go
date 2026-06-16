@@ -226,54 +226,7 @@ type queryPattern struct {
 }
 
 func (a *Advisor) tableQueryPatterns(table string) []queryPattern {
-	switch table {
-	case "events":
-		return []queryPattern{
-			{
-				Query: "SELECT * FROM events WHERE aggregate_type = ? AND aggregate_id = ? ORDER BY version ASC",
-				Args:  []any{"User", "dummy-id"},
-			},
-			{
-				Query: "SELECT * FROM events WHERE aggregate_type = ? AND aggregate_id = ? AND version > ? ORDER BY version ASC",
-				Args:  []any{"User", "dummy-id", 1},
-			},
-			{
-				Query: "SELECT * FROM events WHERE event_type = ? ORDER BY occurred_at ASC",
-				Args:  []any{"UserCreated"},
-			},
-			{
-				Query: "SELECT * FROM events ORDER BY occurred_at ASC, id ASC LIMIT ?",
-				Args:  []any{100},
-			},
-		}
-	case "commands":
-		return []queryPattern{
-			{
-				Query: "SELECT * FROM commands WHERE aggregate_type = ? AND aggregate_id = ? ORDER BY received_at ASC",
-				Args:  []any{"User", "dummy-id"},
-			},
-			{
-				Query: "SELECT * FROM commands WHERE command_type = ? ORDER BY received_at ASC",
-				Args:  []any{"CreateUser"},
-			},
-		}
-	case "snapshots":
-		return []queryPattern{
-			{
-				Query: "SELECT * FROM snapshots WHERE aggregate_type = ? AND aggregate_id = ?",
-				Args:  []any{"User", "dummy-id"},
-			},
-		}
-	case "checkpoints":
-		return []queryPattern{
-			{
-				Query: "SELECT * FROM checkpoints WHERE projection_name = ?",
-				Args:  []any{"user-projection"},
-			},
-		}
-	}
-
-	return nil
+	return queryPatternsByTable[table]
 }
 
 func (a *Advisor) explain(
@@ -283,7 +236,7 @@ func (a *Advisor) explain(
 ) ([]PlanRow, error) {
 	rows, err := a.db.QueryContext(ctx, "EXPLAIN QUERY PLAN "+query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("query=%v: %w", query, err)
+		return nil, event.Wrapf(err, event.Infrastructure, "turso.explain_query", "query=%v", query)
 	}
 
 	defer func() { _ = rows.Close() }()
@@ -327,12 +280,10 @@ func (a *Advisor) recommendationsFromPlan(plan []PlanRow, query string) []Recomm
 func (a *Advisor) recommendationFromDetail(detail, query string) *Recommendation {
 	detail = strings.TrimSpace(detail)
 
-	// If it's using an index or the primary key, no recommendation needed.
-	if searchIndexRe.MatchString(detail) ||
-		searchCoverRe.MatchString(detail) ||
-		usingIntegerPK.MatchString(detail) ||
-		autoIndexRe.MatchString(detail) {
-		return nil
+	for _, re := range advisoryRegexes {
+		if re.MatchString(detail) {
+			return nil
+		}
 	}
 
 	// Check for full table scan.
@@ -360,54 +311,11 @@ func (a *Advisor) recommendationFromDetail(detail, query string) *Recommendation
 func (a *Advisor) inferIndex(table, query string) (*Index, string, Priority) {
 	queryUpper := strings.ToUpper(query)
 
-	switch table {
-	case "events":
-		if strings.Contains(queryUpper, "AGGREGATE_TYPE") &&
-			strings.Contains(queryUpper, "AGGREGATE_ID") &&
-			strings.Contains(queryUpper, "VERSION") {
-			return &Index{
-				Name:    "idx_events_agg_ver",
-				Table:   "events",
-				Columns: []string{"aggregate_type", "aggregate_id", "version"},
-				Reason:  "avoid full table scan on aggregate version queries",
-			}, "aggregate load with version filter triggers SCAN TABLE", PriorityCritical
-		}
+	for _, rule := range indexInferenceRules[table] {
+		if containsAll(queryUpper, rule.needs...) {
+			idx := rule.index
 
-		if strings.Contains(queryUpper, "EVENT_TYPE") {
-			return &Index{
-				Name:    "idx_events_type_time",
-				Table:   "events",
-				Columns: []string{"event_type", "occurred_at"},
-				Reason:  "avoid full table scan on event type filter queries",
-			}, "event type projection queries trigger SCAN TABLE", PriorityRecommended
-		}
-
-		if strings.Contains(queryUpper, "OCCURRED_AT") && strings.Contains(queryUpper, "ID") {
-			return &Index{
-				Name:    "idx_events_cursor",
-				Table:   "events",
-				Columns: []string{"occurred_at", "id"},
-				Reason:  "avoid full table scan on cursor pagination",
-			}, "ReadFrom cursor pagination triggers SCAN TABLE", PriorityCritical
-		}
-	case "commands":
-		if strings.Contains(queryUpper, "AGGREGATE_TYPE") &&
-			strings.Contains(queryUpper, "AGGREGATE_ID") {
-			return &Index{
-				Name:    "idx_commands_agg_time",
-				Table:   "commands",
-				Columns: []string{"aggregate_type", "aggregate_id", "received_at"},
-				Reason:  "avoid full table scan on command aggregate queries",
-			}, "command audit by aggregate triggers SCAN TABLE", PriorityRecommended
-		}
-
-		if strings.Contains(queryUpper, "COMMAND_TYPE") {
-			return &Index{
-				Name:    "idx_commands_type_time",
-				Table:   "commands",
-				Columns: []string{"command_type", "received_at"},
-				Reason:  "avoid full table scan on command type queries",
-			}, "command type analytics triggers SCAN TABLE", PriorityOptional
+			return &idx, rule.reason, rule.priority
 		}
 	}
 

@@ -1,7 +1,7 @@
 package encryption
 
 import (
-	"fmt"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 )
@@ -25,7 +25,12 @@ func (c *encryptingCodec) Encoding() codec.Encoding { return EncryptionEncoding 
 func (c *encryptingCodec) Encode(v any) ([]byte, error) {
 	plaintext, err := c.inner.Encode(v)
 	if err != nil {
-		return nil, fmt.Errorf("encryption codec: inner encode: %w", err)
+		return nil, errorfamily.Wrapf(
+			err,
+			errorfamily.Infrastructure,
+			"encryption.codec_inner_encode",
+			"inner encode",
+		)
 	}
 
 	if len(plaintext) == 0 {
@@ -34,7 +39,12 @@ func (c *encryptingCodec) Encode(v any) ([]byte, error) {
 
 	ct, err := c.encrypter.Encrypt(plaintext)
 	if err != nil {
-		return nil, fmt.Errorf("encryption codec: encrypt: %w", err)
+		return nil, errorfamily.Wrapf(
+			err,
+			errorfamily.Infrastructure,
+			"encryption.codec_encrypt",
+			"encrypt",
+		)
 	}
 
 	return ct.Bytes(), nil
@@ -47,7 +57,7 @@ func (c *encryptingCodec) Decode(data []byte, v any) error {
 
 	plaintext, err := c.decrypter.Decrypt(Ciphertext(data))
 	if err != nil {
-		return fmt.Errorf("encryption codec: decrypt: %w", err)
+		return errorfamily.Wrapf(err, errorfamily.Corruption, "encryption.codec_decrypt", "decrypt")
 	}
 
 	return c.inner.Decode(plaintext, v) //nolint:wrapcheck // transparent delegation

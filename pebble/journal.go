@@ -69,11 +69,11 @@ func (a *EventStore) ReadFrom(
 
 		evt, err := a.deserializeEvent(iter.Value())
 		if err != nil {
-			return nil, fmt.Errorf(
-				"corrupt event in journal (limit=%d, after=%s): %w",
-				limit,
-				afterEventID,
+			return nil, event.Wrapf(
 				a.corruptEventErr(string(iter.Key()), err),
+				event.Corruption, "pebble.journal_corrupt_event",
+				"corrupt event in journal (limit=%d, after=%s)",
+				limit, afterEventID,
 			)
 		}
 
@@ -86,12 +86,8 @@ func (a *EventStore) ReadFrom(
 
 	err = checkIteratorError(iter)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"iterator error in journal (limit=%d, after=%s): %w",
-			limit,
-			afterEventID,
-			err,
-		)
+		return nil, event.Wrapf(err, event.Infrastructure, "pebble.journal_iterator",
+			"iterator error in journal (limit=%d, after=%s)", limit, afterEventID)
 	}
 
 	return events, nil

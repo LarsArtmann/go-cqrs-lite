@@ -189,13 +189,23 @@ func deserializeCheckpoint(data []byte) (event.Checkpoint, error) {
 	if isCBOR(data) {
 		err := pebbleDecMode.Unmarshal(data, &s)
 		if err != nil {
-			return event.Checkpoint{}, fmt.Errorf("cbor unmarshal checkpoint: %w", err)
+			return event.Checkpoint{}, event.Wrapf(
+				err,
+				event.Corruption,
+				"pebble.checkpoint_cbor",
+				"cbor unmarshal checkpoint",
+			)
 		}
 	} else {
 		// Legacy JSON fallback for checkpoints written before CBOR migration.
 		err := json.Unmarshal(data, &s)
 		if err != nil {
-			return event.Checkpoint{}, fmt.Errorf("json unmarshal checkpoint: %w", err)
+			return event.Checkpoint{}, event.Wrapf(
+				err,
+				event.Corruption,
+				"pebble.checkpoint_json",
+				"json unmarshal checkpoint",
+			)
 		}
 	}
 

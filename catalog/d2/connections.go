@@ -36,7 +36,7 @@ func (e *Exporter) Export(cat *catalog.Catalog) string {
 }
 
 func (e *Exporter) writeInternalConnections(buf *strings.Builder, svc catalog.Service) {
-	if len(svc.Commands) == 0 && len(svc.Events) == 0 && len(svc.Queries) == 0 {
+	if !hasMessages(svc) {
 		return
 	}
 
@@ -90,6 +90,10 @@ func eventAction(evt catalog.Message) string {
 	}
 
 	return "publishes"
+}
+
+func hasMessages(svc catalog.Service) bool {
+	return len(svc.Commands) > 0 || len(svc.Events) > 0 || len(svc.Queries) > 0
 }
 
 func buildPublisherReceiverMaps(

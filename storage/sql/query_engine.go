@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
 )
 
@@ -45,7 +47,14 @@ func LoadWithSpan[T any](
 	aggID any,
 ) ([]T, error) {
 	if err := checkClosed(); err != nil {
-		return nil, fmt.Errorf("load %s %v: %w", aggType, aggID, err)
+		return nil, errorfamily.Wrapf(
+			err,
+			errorfamily.Infrastructure,
+			"storage.sql_load",
+			"load %s %v",
+			aggType,
+			aggID,
+		)
 	}
 
 	ctx, span := cqrsotel.StartSpan(
@@ -58,7 +67,14 @@ func LoadWithSpan[T any](
 	results, err := QueryRows(ctx, db, d, cfg, p, aggType, aggID)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
-		return nil, fmt.Errorf("query %s %v: %w", aggType, aggID, err)
+		return nil, errorfamily.Wrapf(
+			err,
+			errorfamily.Infrastructure,
+			"storage.sql_query",
+			"query %s %v",
+			aggType,
+			aggID,
+		)
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt(p.CountAttr, len(results)))

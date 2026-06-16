@@ -71,11 +71,15 @@ func NewRepository[State any](
 		opt(r)
 	}
 
-	if r.snapshotStrategy != nil && (r.snapshotStore == nil || r.codec == nil) {
+	if r.snapshotConfigIncomplete() {
 		return nil, ErrIncompleteSnapshotConfig
 	}
 
 	return r, nil
+}
+
+func (r *Repository[State]) snapshotConfigIncomplete() bool {
+	return r.snapshotStrategy != nil && (r.snapshotStore == nil || r.codec == nil)
 }
 
 // DecideFunc is the signature for a decision function.

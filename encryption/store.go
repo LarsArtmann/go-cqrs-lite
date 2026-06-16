@@ -2,7 +2,6 @@ package encryption
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
@@ -140,7 +139,8 @@ func (s *encryptedStore) LoadToTimestamp(
 func (s *encryptedStore) ReadAll(ctx context.Context) ([]event.Event, error) {
 	journal, ok := s.inner.(event.Journal)
 	if !ok {
-		return nil, fmt.Errorf("%w: %T", ErrInnerStoreNotJournal, s.inner)
+		return nil, event.Wrapf(ErrInnerStoreNotJournal, event.Rejection,
+			"encryption.store_not_journal", "inner store %T does not implement Journal", s.inner)
 	}
 
 	events, err := journal.ReadAll(ctx)
@@ -160,12 +160,25 @@ func (s *encryptedStore) ReadFrom(
 ) ([]event.Event, error) {
 	seekable, ok := s.inner.(event.SeekableJournal)
 	if !ok {
-		return nil, fmt.Errorf("limit=%d: %w: %T", limit, ErrInnerStoreNotSeekable, s.inner)
+		return nil, event.Wrapf(
+			ErrInnerStoreNotSeekable,
+			event.Rejection,
+			"encryption.store_not_seekable",
+			"limit=%d: inner store %T does not implement SeekableJournal",
+			limit,
+			s.inner,
+		)
 	}
 
 	events, err := seekable.ReadFrom(ctx, afterEventID, limit)
 	if err != nil {
-		return nil, fmt.Errorf("limit=%d: %w", limit, err)
+		return nil, event.Wrapf(
+			err,
+			event.Infrastructure,
+			"encryption.read_from",
+			"limit=%d",
+			limit,
+		)
 	}
 
 	return s.decryptEvents(events)
@@ -179,7 +192,13 @@ func (s *encryptedStore) LoadBackwards(
 ) ([]event.Event, error) {
 	backwards, ok := s.inner.(event.BackwardsSource)
 	if !ok {
-		return nil, fmt.Errorf("%w: %T", ErrInnerStoreNotBackwards, s.inner)
+		return nil, event.Wrapf(
+			ErrInnerStoreNotBackwards,
+			event.Rejection,
+			"encryption.store_not_backwards",
+			"inner store %T does not implement BackwardsSource",
+			s.inner,
+		)
 	}
 
 	events, err := backwards.LoadBackwards(ctx, ref)
