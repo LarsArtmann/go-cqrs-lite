@@ -1232,10 +1232,10 @@
             The library's CPU profile is dominated by <strong>serialization</strong> (JSON/CBOR
             marshal), <strong>cryptography</strong> (HMAC/AES/Ed25519), and
             <strong>map operations</strong> (metadata clone, dispatch lookup). Core dispatch and
-            fold paths are essentially optimal. The pebble double-serialization has been fixed
-            (T1), and SQL multi-VALUES INSERT now batches events (T14). The remaining CPU waste is
-            the <strong>SQL per-row timestamp string parsing</strong> on SQLite/Turso (6-layout
-            loop per row).
+            fold paths are essentially optimal. The pebble double-serialization has been fixed (T1),
+            and SQL multi-VALUES INSERT now batches events (T14). The remaining CPU waste is the
+            <strong>SQL per-row timestamp string parsing</strong> on SQLite/Turso (6-layout loop per
+            row).
           </p>
         </div>
       </div>
@@ -1422,7 +1422,8 @@ func (e *ImmutableEvent) Metadata() Metadata {
             <code>Metadata{}</code> struct — the <code>Custom</code> map is
             <strong>lazily allocated</strong> only when <code>EnsureCustom()</code> is called.
             Benchmark: <code>NewMetadata</code> at <strong>1.04 ns/op, 0 B, 0 allocs</strong>.
-            <code>Metadata.Clone()</code> with no custom map is <strong>11.4 ns/op, 0 B, 0 allocs</strong>.
+            <code>Metadata.Clone()</code> with no custom map is
+            <strong>11.4 ns/op, 0 B, 0 allocs</strong>.
           </p>
         </div>
 
@@ -1594,18 +1595,20 @@ func (e *ImmutableEvent) Metadata() Metadata {
             <div class="card-grid">
               <div class="card">
                 <div class="card-title">
-                  <span class="dot" style="background: var(--green)"></span>Multi-VALUES INSERT — Resolved (T14)
+                  <span class="dot" style="background: var(--green)"></span>Multi-VALUES INSERT —
+                  Resolved (T14)
                 </div>
                 <p style="font-size: 0.84rem; color: var(--muted)">
                   <code>SharedBatchInsertEvents</code> (<code>sql/helpers.go:92</code>) now uses a
                   single multi-VALUES <code>INSERT</code> with automatic SQLite 999-parameter
-                  chunking (99 events/batch). N events = 1 statement (or
-                  <code>ceil(N/99)</code> for SQLite).
+                  chunking (99 events/batch). N events = 1 statement (or <code>ceil(N/99)</code> for
+                  SQLite).
                 </p>
               </div>
               <div class="card">
                 <div class="card-title">
-                  <span class="dot" style="background: var(--green)"></span>SQL template cached — Resolved (T5)
+                  <span class="dot" style="background: var(--green)"></span>SQL template cached —
+                  Resolved (T5)
                 </div>
                 <p style="font-size: 0.84rem; color: var(--muted)">
                   INSERT SQL is now built once at construction per dialect. Eliminates
@@ -1737,8 +1740,8 @@ func (e *ImmutableEvent) Metadata() Metadata {
               <li><code>cqrs_checkpoint:</code> — CheckpointStore (projection positions)</li>
             </ul>
             <p>
-              All three share a single <code>*pebble.DB</code> with no contention. SnapshotStore
-              and CheckpointStore are CBOR-encoded, support optional async writes, and include OTel
+              All three share a single <code>*pebble.DB</code> with no contention. SnapshotStore and
+              CheckpointStore are CBOR-encoded, support optional async writes, and include OTel
               tracing spans.
             </p>
 
@@ -1746,10 +1749,9 @@ func (e *ImmutableEvent) Metadata() Metadata {
               <div class="callout-title">Double Serialization — Resolved (T1)</div>
               <p>
                 <code>serializeAndAddToBatchWithJournal</code> now serializes every event
-                <strong>once</strong> and reuses the same <code>data</code> slice for both
-                the aggregate key and the journal key. This halves CBOR encode CPU and disk
-                bytes. The benchmark shows single-event Save at 13.2 µs and 10-event batch
-                at 23.4 µs.
+                <strong>once</strong> and reuses the same <code>data</code> slice for both the
+                aggregate key and the journal key. This halves CBOR encode CPU and disk bytes. The
+                benchmark shows single-event Save at 13.2 µs and 10-event batch at 23.4 µs.
               </p>
             </div>
 
@@ -2279,11 +2281,12 @@ func (e *ImmutableEvent) Metadata() Metadata {
         <div class="callout success">
           <div class="callout-title">CircuitBreaker: Atomic Fast Path — Resolved (T11)</div>
           <p>
-            The circuit breaker hot path now uses <code>atomic.Int32</code> for state, failures,
-            and successes. The <code>allow()</code> check in the closed (happy) state is a
+            The circuit breaker hot path now uses <code>atomic.Int32</code> for state, failures, and
+            successes. The <code>allow()</code> check in the closed (happy) state is a
             <strong>lock-free atomic load</strong> — zero mutex contention. Benchmark:
             <strong>9.3 ns/op, 0 B, 0 allocs</strong> single-threaded,
-            <strong>19.7 ns/op</strong> under <code>b.RunParallel</code>. The <code>sync.Mutex</code>
+            <strong>19.7 ns/op</strong> under <code>b.RunParallel</code>. The
+            <code>sync.Mutex</code>
             is only acquired for state transitions (open→half-open, failure counting).
           </p>
         </div>
@@ -2295,8 +2298,8 @@ func (e *ImmutableEvent) Metadata() Metadata {
             <strong>entire duration of handler execution</strong>. Concurrent publishes share the
             RLock (fine), but any <code>Subscribe</code>/<code>Use</code>/<code>UsePublish</code>
             call is blocked until ALL in-flight handlers complete. The middleware chain is
-            <strong>pre-computed</strong> on <code>Use()</code>/<code>UsePublish()</code> (T12) — zero
-            per-publish closure allocation.
+            <strong>pre-computed</strong> on <code>Use()</code>/<code>UsePublish()</code> (T12) —
+            zero per-publish closure allocation.
           </p>
         </div>
 
@@ -2411,10 +2414,12 @@ func (e *ImmutableEvent) Metadata() Metadata {
         <div class="card-grid">
           <div class="card" style="border-left: 3px solid var(--green)">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>Pebble single serialization (T1)
+              <span class="dot" style="background: var(--green)"></span>Pebble single serialization
+              (T1)
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              Serialize once, <code>batch.Set</code> for both keys. Halves CBOR encode CPU + disk bytes.
+              Serialize once, <code>batch.Set</code> for both keys. Halves CBOR encode CPU + disk
+              bytes.
             </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
@@ -2428,7 +2433,8 @@ func (e *ImmutableEvent) Metadata() Metadata {
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>Projection handler/event-type cache (T3/T15)
+              <span class="dot" style="background: var(--green)"></span>Projection
+              handler/event-type cache (T3/T15)
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
               Runner caches <code>EventTypes()</code> at <code>Register()</code> time. Builder uses
@@ -2446,7 +2452,8 @@ func (e *ImmutableEvent) Metadata() Metadata {
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>ScanSlice capacity hint (T10)
+              <span class="dot" style="background: var(--green)"></span>ScanSlice capacity hint
+              (T10)
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
               Pre-allocate <code>make([]T, 0, 64)</code> instead of nil + append. Reduces log₂(N)
@@ -2458,8 +2465,8 @@ func (e *ImmutableEvent) Metadata() Metadata {
               <span class="dot" style="background: var(--green)"></span>MemoryStore single-copy (T6)
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              Removed redundant <code>slices.Clone</code> wrapper on already-fresh slice.
-              Load now 844 ns/op, 1,792 B, 1 alloc.
+              Removed redundant <code>slices.Clone</code> wrapper on already-fresh slice. Load now
+              844 ns/op, 1,792 B, 1 alloc.
             </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
@@ -2467,13 +2474,14 @@ func (e *ImmutableEvent) Metadata() Metadata {
               <span class="dot" style="background: var(--green)"></span>MemoryBus pre-compute (T12)
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              Chains rebuilt on <code>Use()</code>/<code>UsePublish()</code> only. Publish now
-              45.6 ns/op, 16 B, 1 alloc.
+              Chains rebuilt on <code>Use()</code>/<code>UsePublish()</code> only. Publish now 45.6
+              ns/op, 16 B, 1 alloc.
             </p>
           </div>
           <div class="card" style="border-left: 3px solid var(--green)">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>SQL multi-VALUES INSERT (T14)
+              <span class="dot" style="background: var(--green)"></span>SQL multi-VALUES INSERT
+              (T14)
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
               Single multi-VALUES statement. SQLite 999-param limit handled via automatic chunking
@@ -3176,9 +3184,9 @@ func (e *ImmutableEvent) Metadata() Metadata {
             <div class="priority-body">
               <div class="title">SQLite/Turso 6-layout timestamp parse loop</div>
               <div class="detail">
-                Every row read tries 6 time formats in a loop (<code>sql/sqlite.go:10</code>). Storing
-                timestamps as INTEGER Unix nanos (like Pebble) eliminates the parse entirely.
-                Requires a schema migration — deferred until a breaking v3.
+                Every row read tries 6 time formats in a loop (<code>sql/sqlite.go:10</code>).
+                Storing timestamps as INTEGER Unix nanos (like Pebble) eliminates the parse
+                entirely. Requires a schema migration — deferred until a breaking v3.
               </div>
               <div class="ref-link">storage/sql/sqlite.go:10</div>
             </div>
@@ -3211,8 +3219,8 @@ func (e *ImmutableEvent) Metadata() Metadata {
               <div class="title">All medium items resolved (T7, T9, T10, T11, T12, T14)</div>
               <div class="detail">
                 SSE goroutine leak (T7), MemoryBus pre-compute (T12), CircuitBreaker atomic (T11),
-                SQL multi-VALUES (T14), ScanSlice hint (T10), MemoryStore double-copy (T6) —
-                all resolved. See Optimization Results for details.
+                SQL multi-VALUES (T14), ScanSlice hint (T10), MemoryStore double-copy (T6) — all
+                resolved. See Optimization Results for details.
               </div>
             </div>
             <span class="verdict v-excellent">Resolved</span>
@@ -3223,7 +3231,8 @@ func (e *ImmutableEvent) Metadata() Metadata {
         <div class="card-grid">
           <div class="card">
             <div class="card-title">
-              <span class="dot" style="background: var(--green)"></span>CircuitBreaker atomic fast path
+              <span class="dot" style="background: var(--green)"></span>CircuitBreaker atomic fast
+              path
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
               <code>atomic.Int32</code> for state/failures/successes. Happy path is lock-free at
@@ -3235,8 +3244,8 @@ func (e *ImmutableEvent) Metadata() Metadata {
               <span class="dot" style="background: var(--green)"></span>MemoryBus pre-computed chain
             </div>
             <p style="font-size: 0.84rem; color: var(--muted)">
-              Middleware chain rebuilt on <code>Use()</code>/<code>UsePublish()</code> only. Publish at
-              <strong>45.6 ns/op, 1 alloc</strong>. Same pattern applied to MemoryCommandBus.
+              Middleware chain rebuilt on <code>Use()</code>/<code>UsePublish()</code> only. Publish
+              at <strong>45.6 ns/op, 1 alloc</strong>. Same pattern applied to MemoryCommandBus.
             </p>
           </div>
           <div class="card">
@@ -3327,9 +3336,9 @@ func (e *ImmutableEvent) Metadata() Metadata {
           <div class="callout-title">Final Assessment</div>
           <p>
             go-cqrs-lite is a <strong>well-engineered library</strong> with excellent core-path
-            performance (dispatch at 26 ns, fold at 0 allocs, CircuitBreaker at 9.3 ns with 0 allocs).
-            All 14 performance findings from the 2026-06-14 analysis have been resolved in the
-            optimization sprint (T1–T15). The two remaining items (SQLite timestamp parse loop,
+            performance (dispatch at 26 ns, fold at 0 allocs, CircuitBreaker at 9.3 ns with 0
+            allocs). All 14 performance findings from the 2026-06-14 analysis have been resolved in
+            the optimization sprint (T1–T15). The two remaining items (SQLite timestamp parse loop,
             unbounded Load memory) are architectural constraints deferred to a future breaking
             release. The design philosophy of immutability-first, zero-copy internal reads, and
             defensive cloning on public accessors is sound and well-executed.
@@ -3716,11 +3725,11 @@ func (e *ImmutableEvent) Metadata() Metadata {
             matched <code>*projectionFunc</code>. The real fix (T15) caches event types in the
             Runner at registration time, eliminating 10.5M clone allocations (100K events × 100
             projections) in the scale benchmark.<br /><br />
-            <strong>What's now measured:</strong> Pebble single-event Save (13.2 µs) and
-            AppendBatch (23.4 µs) benchmarks confirm T1. CircuitBreaker HappyPath (9.3 ns/op,
-            0 B, 0 allocs) and Concurrent (19.7 ns/op) benchmarks confirm T11. CBOR
-            serialize/deserialize benchmarks added for Pebble envelope.
-            Full benchmark baseline: <code>benchmarks/2026-06-16_update.txt</code>.<br /><br />
+            <strong>What's now measured:</strong> Pebble single-event Save (13.2 µs) and AppendBatch
+            (23.4 µs) benchmarks confirm T1. CircuitBreaker HappyPath (9.3 ns/op, 0 B, 0 allocs) and
+            Concurrent (19.7 ns/op) benchmarks confirm T11. CBOR serialize/deserialize benchmarks
+            added for Pebble envelope. Full benchmark baseline:
+            <code>benchmarks/2026-06-16_update.txt</code>.<br /><br />
             All 40+ test packages pass, zero lint issues, race detector clean on all modules.
           </p>
         </div>
@@ -3730,10 +3739,7 @@ func (e *ImmutableEvent) Metadata() Metadata {
     <!-- ════════════════════════ FOOTER ════════════════════════ -->
     <footer>
       <div class="container">
-        <p>
-          Updated 2026-06-16 · go-cqrs-lite v2.3.0 · 33
-          modules · Go 1.26.3
-        </p>
+        <p>Updated 2026-06-16 · go-cqrs-lite v2.3.0 · 33 modules · Go 1.26.3</p>
         <p style="margin-top: 0.3rem">
           All benchmarks run on AMD Ryzen AI MAX+ 395 (32 threads, 96 GB RAM) with
           <code>-count=1 -benchmem</code>. Baseline: <code>benchmarks/benchmark-baseline.txt</code>.

@@ -140,7 +140,7 @@ func doGet(ctx context.Context, url string) (*http.Response, error) {
 	return http.DefaultClient.Do(req)
 }
 
-func doPost(ctx context.Context, url, contentType string, body string) (*http.Response, error) {
+func doPost(ctx context.Context, url, contentType, body string) (*http.Response, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, strings.NewReader(body))
 	if err != nil {
 		return nil, err
@@ -150,7 +150,7 @@ func doPost(ctx context.Context, url, contentType string, body string) (*http.Re
 	return http.DefaultClient.Do(req)
 }
 
-func doRequest(ctx context.Context, method, url string, body string) (*http.Response, error) {
+func doRequest(ctx context.Context, method, url, body string) (*http.Response, error) {
 	var bodyReader io.Reader
 	if body != "" {
 		bodyReader = strings.NewReader(body)
