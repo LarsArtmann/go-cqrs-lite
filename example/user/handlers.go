@@ -15,6 +15,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
+const runnerStartupDelay = 50 * time.Millisecond
+
 func registerCommandHandlers(
 	dispatcher *command.Dispatcher,
 	deciderRepo *decider.Repository[UserState],
@@ -110,7 +112,7 @@ func registerProjection(
 		}
 	}()
 
-	time.Sleep(50 * time.Millisecond) // let runner subscribe before events flow
+	time.Sleep(runnerStartupDelay) // let runner subscribe before events flow
 
 	return runner
 }

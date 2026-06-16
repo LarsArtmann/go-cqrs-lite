@@ -26,10 +26,7 @@ import (
 // The store shares the Pebble DB with other stores (event, checkpoint) via
 // disjoint key prefixes, so a single *pebble.DB can back the full CQRS stack.
 type SnapshotStore struct {
-	db         *pebble.DB
-	logger     *slog.Logger
-	prefix     string
-	syncWrites bool
+	storeBase
 }
 
 // SnapshotOption configures a SnapshotStore.
@@ -60,10 +57,12 @@ func NewSnapshotStore(
 	}
 
 	s := &SnapshotStore{
-		db:         database,
-		logger:     logger,
-		prefix:     "cqrs_snapshot:",
-		syncWrites: true,
+		storeBase: storeBase{
+			db:         database,
+			logger:     logger,
+			prefix:     "cqrs_snapshot:",
+			syncWrites: true,
+		},
 	}
 
 	for _, opt := range opts {
@@ -213,14 +212,6 @@ func (s *SnapshotStore) snapshotKey(
 	aggID id.AggregateID,
 ) []byte {
 	return fmt.Appendf(nil, "%s%s:%s", s.prefix, aggType, aggID)
-}
-
-func (s *SnapshotStore) writeOptions() *pebble.WriteOptions {
-	if s.syncWrites {
-		return pebble.Sync
-	}
-
-	return nil
 }
 
 // loadRaw reads and deserializes a snapshot by key.

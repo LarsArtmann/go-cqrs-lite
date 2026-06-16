@@ -39,7 +39,7 @@ func TestTodoState_ToDomain(t *testing.T) {
 
 func TestTodoState_IsNew(t *testing.T) {
 	t.Parallel()
-	if !aggregate.InitialState.IsNew() {
+	if !(aggregate.TodoState{}).IsNew() {
 		t.Error("InitialState.IsNew() = false, want true")
 	}
 

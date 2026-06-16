@@ -30,7 +30,7 @@ func (p *TodoProjection) EventTypes() []event.Type {
 	}
 }
 
-func (p *TodoProjection) Handle(ctx context.Context, evt event.Event) error {
+func (p *TodoProjection) Handle(_ context.Context, evt event.Event) error {
 	switch evt.Type() {
 	case aggregate.EventDeleted:
 		todoID, err := domain.ParseTodoID(evt.AggregateID().String())
@@ -56,8 +56,6 @@ func (p *TodoProjection) handleUpsert(evt event.Event) error {
 	return p.store.Put(todo)
 }
 
-var codec = codecpkg.JSONCodec{}
-
 func payloadToTodo(evt event.Event) (*domain.Todo, error) {
 	todoID, err := domain.ParseTodoID(evt.AggregateID().String())
 	if err != nil {
@@ -65,6 +63,7 @@ func payloadToTodo(evt event.Event) (*domain.Todo, error) {
 	}
 
 	var payload aggregate.TodoPayload
+	codec := codecpkg.JSONCodec{}
 	if err := codec.Decode(evt.Payload(), &payload); err != nil {
 		return nil, fmt.Errorf(
 			"failed to decode todo payload for event %s: %w",

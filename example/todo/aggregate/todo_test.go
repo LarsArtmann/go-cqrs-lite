@@ -28,7 +28,7 @@ func TestFold_Created(t *testing.T) {
 		),
 	)
 
-	state, err := aggregate.Fold(aggregate.InitialState, events[0])
+	state, err := aggregate.Fold(aggregate.TodoState{}, events[0])
 	if err != nil {
 		t.Fatalf("Fold: %v", err)
 	}
@@ -139,7 +139,7 @@ func invoke(
 	f decider.DecideFunc[aggregate.TodoState],
 	opts ...decideOption,
 ) ([]event.Event, error) {
-	o := &decideOpts{state: aggregate.InitialState, version: 0}
+	o := &decideOpts{state: aggregate.TodoState{}, version: 0}
 	for _, opt := range opts {
 		opt(o)
 	}
@@ -201,7 +201,7 @@ func createThenDecide(
 func foldAll(t *testing.T, events []event.Event) aggregate.TodoState {
 	t.Helper()
 
-	return foldAllFrom(t, aggregate.InitialState, events)
+	return foldAllFrom(t, aggregate.TodoState{}, events)
 }
 
 func foldAllFrom(

@@ -13,7 +13,7 @@ import (
 type GetTodoQuery struct {
 	*query.BasicQuery
 
-	TodoID domain.TodoID `json:"todo_id"`
+	TodoID domain.TodoID `json:"todoId"`
 }
 
 func NewGetTodoQuery(todoID domain.TodoID) (*GetTodoQuery, error) {
@@ -32,9 +32,9 @@ type GetTodoResult struct {
 	Status      domain.TodoStatus `json:"status"`
 	Priority    int               `json:"priority"`
 	Tags        []string          `json:"tags"`
-	CreatedAt   time.Time         `json:"created_at"`
-	UpdatedAt   time.Time         `json:"updated_at"`
-	CompletedAt *time.Time        `json:"completed_at,omitempty"`
+	CreatedAt   time.Time         `json:"createdAt"`
+	UpdatedAt   time.Time         `json:"updatedAt"`
+	CompletedAt *time.Time        `json:"completedAt,omitempty"`
 	Version     int64             `json:"version"`
 }
 
@@ -53,7 +53,7 @@ func NewGetTodoHandler(readModel domain.TodoReadModel) *GetTodoHandler {
 	return &GetTodoHandler{readModel: readModel}
 }
 
-func (h *GetTodoHandler) Handle(ctx context.Context, q *GetTodoQuery) (*GetTodoResult, error) {
+func (h *GetTodoHandler) Handle(_ context.Context, q *GetTodoQuery) (*GetTodoResult, error) {
 	todo, err := h.readModel.Get(q.TodoID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get todo %s: %w", q.TodoID, err)
@@ -66,8 +66,8 @@ func (q *GetTodoQuery) MarshalJSON() ([]byte, error) {
 	type Alias GetTodoQuery
 
 	return json.Marshal(&struct {
-		Type string `json:"type"`
 		*Alias
+		Type string `json:"type"`
 	}{
 		Type:  string(GetTodoQueryType),
 		Alias: (*Alias)(q),

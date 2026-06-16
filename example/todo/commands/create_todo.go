@@ -76,8 +76,8 @@ func (c *CreateTodoCommand) MarshalJSON() ([]byte, error) {
 	type Alias CreateTodoCommand
 
 	return json.Marshal(&struct {
-		Type string `json:"type"`
 		*Alias
+		Type string `json:"type"`
 	}{
 		Type:  string(CommandTypeCreate),
 		Alias: (*Alias)(c),

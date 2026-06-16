@@ -4,10 +4,11 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
+	"strconv"
 	"time"
-
-	httputil "github.com/larsartmann/httputil"
 )
+
+const corsMaxAgeSeconds = 86400
 
 func loggingMiddleware(logger *slog.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -26,16 +27,20 @@ func loggingMiddleware(logger *slog.Logger) func(http.Handler) http.Handler {
 }
 
 func corsMiddleware(next http.Handler) http.Handler {
-	return httputil.CORS(httputil.CORSConfig{
-		AllowedOrigins:     []string{"*"},
-		AllowAllOrigins:    true,
-		AllowedMethods:     []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
-		AllowedHeaders:     []string{"Content-Type", "Authorization"},
-		ExposedHeaders:     []string{},
-		AllowCredentials:   false,
-		MaxAge:             86400,
-		OptionsPassthrough: false,
-	})(next)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Max-Age", strconv.Itoa(corsMaxAgeSeconds))
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
 
 func chainMiddleware(

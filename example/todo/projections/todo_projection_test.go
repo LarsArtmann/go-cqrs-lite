@@ -25,7 +25,7 @@ func (m *mockReadModel) Get(todoID domain.TodoID) (*domain.Todo, error) {
 }
 
 func (m *mockReadModel) List(_ domain.TodoFilter) ([]*domain.Todo, error) {
-	var result []*domain.Todo
+	result := make([]*domain.Todo, 0, len(m.todos))
 	for _, t := range m.todos {
 		result = append(result, t)
 	}

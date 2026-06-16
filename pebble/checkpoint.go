@@ -25,10 +25,7 @@ import (
 // The store shares the Pebble DB with other stores (event, snapshot) via
 // disjoint key prefixes, so a single *pebble.DB can back the full CQRS stack.
 type CheckpointStore struct {
-	db         *pebble.DB
-	logger     *slog.Logger
-	prefix     string
-	syncWrites bool
+	storeBase
 }
 
 // CheckpointOption configures a CheckpointStore.
@@ -59,10 +56,12 @@ func NewCheckpointStore(
 	}
 
 	s := &CheckpointStore{
-		db:         database,
-		logger:     logger,
-		prefix:     "cqrs_checkpoint:",
-		syncWrites: true,
+		storeBase: storeBase{
+			db:         database,
+			logger:     logger,
+			prefix:     "cqrs_checkpoint:",
+			syncWrites: true,
+		},
 	}
 
 	for _, opt := range opts {
@@ -167,14 +166,6 @@ func (s *CheckpointStore) Close() error { return nil }
 
 func (s *CheckpointStore) checkpointKey(projectionName string) []byte {
 	return fmt.Appendf(nil, "%s%s", s.prefix, projectionName)
-}
-
-func (s *CheckpointStore) writeOptions() *pebble.WriteOptions {
-	if s.syncWrites {
-		return pebble.Sync
-	}
-
-	return nil
 }
 
 // serializableCheckpoint is the CBOR envelope for stored checkpoints.

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	codecpkg "github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/decider/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
@@ -22,15 +23,15 @@ type TodoState struct {
 	Deleted     bool
 }
 
-var InitialState = TodoState{}
-
 func (s TodoState) IsNew() bool {
 	return s.Title == "" && s.CreatedAt.IsZero()
 }
 
-var TodoDecider = decider.Decider[TodoState]{
-	Initial: InitialState,
-	Fold:    Fold,
+func NewTodoDecider() decider.Decider[TodoState] {
+	return decider.Decider[TodoState]{
+		Initial: TodoState{},
+		Fold:    Fold,
+	}
 }
 
 func Fold(state TodoState, evt event.Event) (TodoState, error) {
@@ -39,6 +40,7 @@ func Fold(state TodoState, evt event.Event) (TodoState, error) {
 	}
 
 	var payload TodoPayload
+	codec := codecpkg.JSONCodec{}
 	if err := codec.Decode(evt.Payload(), &payload); err != nil {
 		return state, fmt.Errorf("decode payload for event %s: %w", evt.Type(), err)
 	}
@@ -56,7 +58,7 @@ func Fold(state TodoState, evt event.Event) (TodoState, error) {
 
 		return state, nil
 	default:
-		return state, fmt.Errorf("unknown event type: %s", evt.Type())
+		return state, fmt.Errorf("%w: %s", ErrUnknownEventType, evt.Type())
 	}
 }
 
@@ -272,7 +274,7 @@ func newEventFromPayload(
 	version int,
 	payload TodoPayload,
 ) (event.Event, error) {
-	data, err := codec.Encode(payload)
+	data, err := codecpkg.JSONCodec{}.Encode(payload)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"marshal payload for event %s aggregate %s version %d: %w",

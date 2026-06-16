@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -96,8 +97,8 @@ func setupTestMux(t *testing.T) *http.ServeMux {
 
 	mux := http.NewServeMux()
 	registerTodoRoutes(mux, cmdDisp, queryDisp)
-	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
-		writeJSON(w, http.StatusOK, map[string]any{"status": "healthy"})
+	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, http.StatusOK, map[string]string{"status": statusHealthy})
 	})
 
 	return mux
@@ -123,15 +124,59 @@ func assertStatus(t *testing.T, resp *http.Response, want int, label string) {
 	}
 }
 
+func closeBody(t *testing.T, resp *http.Response) {
+	t.Helper()
+	if err := resp.Body.Close(); err != nil {
+		t.Errorf("close response body: %v", err)
+	}
+}
+
+func doGet(ctx context.Context, url string) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return http.DefaultClient.Do(req)
+}
+
+func doPost(ctx context.Context, url, contentType string, body string) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, strings.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", contentType)
+
+	return http.DefaultClient.Do(req)
+}
+
+func doRequest(ctx context.Context, method, url string, body string) (*http.Response, error) {
+	var bodyReader io.Reader
+	if body != "" {
+		bodyReader = strings.NewReader(body)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, method, url, bodyReader)
+	if err != nil {
+		return nil, err
+	}
+	if body != "" {
+		req.Header.Set("Content-Type", "application/json")
+	}
+
+	return http.DefaultClient.Do(req)
+}
+
 func TestHealthEndpoint(t *testing.T) {
 	t.Parallel()
 	_, srv := setupTestServer(t)
 
-	resp, err := http.Get(srv.URL + "/health")
+	ctx := context.Background()
+	resp, err := doGet(ctx, srv.URL+"/health")
 	if err != nil {
 		t.Fatalf("Get: %v", err)
 	}
-	defer resp.Body.Close()
+	defer closeBody(t, resp)
 
 	assertStatus(t, resp, http.StatusOK, "")
 
@@ -139,8 +184,8 @@ func TestHealthEndpoint(t *testing.T) {
 	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
 		t.Fatalf("Decode: %v", err)
 	}
-	if body["status"] != "healthy" {
-		t.Errorf("status = %v, want %q", body["status"], "healthy")
+	if body["status"] != statusHealthy {
+		t.Errorf("status = %v, want %q", body["status"], statusHealthy)
 	}
 }
 
@@ -148,12 +193,13 @@ func TestCreateTodo_Success(t *testing.T) {
 	t.Parallel()
 	_, srv := setupTestServer(t)
 
+	ctx := context.Background()
 	body := `{"title":"Buy milk","description":"from store","priority":2,"tags":["errands"]}`
-	resp, err := http.Post(srv.URL+"/api/v1/todos", "application/json", strings.NewReader(body))
+	resp, err := doPost(ctx, srv.URL+"/api/v1/todos", "application/json", body)
 	if err != nil {
 		t.Fatalf("Post: %v", err)
 	}
-	defer resp.Body.Close()
+	defer closeBody(t, resp)
 
 	assertStatus(t, resp, http.StatusCreated, "")
 
@@ -170,12 +216,13 @@ func TestCreateTodo_EmptyTitle(t *testing.T) {
 	t.Parallel()
 	_, srv := setupTestServer(t)
 
+	ctx := context.Background()
 	body := `{"title":"","description":"no title"}`
-	resp, err := http.Post(srv.URL+"/api/v1/todos", "application/json", strings.NewReader(body))
+	resp, err := doPost(ctx, srv.URL+"/api/v1/todos", "application/json", body)
 	if err != nil {
 		t.Fatalf("Post: %v", err)
 	}
-	defer resp.Body.Close()
+	defer closeBody(t, resp)
 
 	assertStatus(t, resp, http.StatusInternalServerError, "")
 }
@@ -184,11 +231,12 @@ func TestListTodos_Empty(t *testing.T) {
 	t.Parallel()
 	_, srv := setupTestServer(t)
 
-	resp, err := http.Get(srv.URL + "/api/v1/todos")
+	ctx := context.Background()
+	resp, err := doGet(ctx, srv.URL+"/api/v1/todos")
 	if err != nil {
 		t.Fatalf("Get: %v", err)
 	}
-	defer resp.Body.Close()
+	defer closeBody(t, resp)
 
 	assertStatus(t, resp, http.StatusOK, "")
 }
@@ -197,24 +245,22 @@ func TestGetTodo_NotFound(t *testing.T) {
 	t.Parallel()
 	_, srv := setupTestServer(t)
 
-	resp, err := http.Get(srv.URL + "/api/v1/todos/nonexistent")
+	ctx := context.Background()
+	resp, err := doGet(ctx, srv.URL+"/api/v1/todos/nonexistent")
 	if err != nil {
 		t.Fatalf("Get: %v", err)
 	}
-	defer resp.Body.Close()
+	defer closeBody(t, resp)
 
 	assertStatus(t, resp, http.StatusBadRequest, "")
 }
 
 func TestFullCommandLifecycle(t *testing.T) {
 	_, srv := setupTestServer(t)
+	ctx := context.Background()
 
 	createBody := `{"title":"Test Todo","description":"test desc","priority":1,"tags":["test"]}`
-	resp, err := http.Post(
-		srv.URL+"/api/v1/todos",
-		"application/json",
-		strings.NewReader(createBody),
-	)
+	resp, err := doPost(ctx, srv.URL+"/api/v1/todos", "application/json", createBody)
 	if err != nil {
 		t.Fatalf("Post: %v", err)
 	}
@@ -224,72 +270,60 @@ func TestFullCommandLifecycle(t *testing.T) {
 	if err := json.NewDecoder(resp.Body).Decode(&createResult); err != nil {
 		t.Fatalf("Decode: %v", err)
 	}
-	resp.Body.Close()
-	todoID := createResult["id"].(string)
-	if todoID == "" {
-		t.Fatal("todoID is empty")
+	closeBody(t, resp)
+
+	todoID, ok := createResult["id"].(string)
+	if !ok || todoID == "" {
+		t.Fatal("todoID is empty or wrong type")
 	}
 
-	resp, err = http.Get(srv.URL + "/api/v1/todos/" + todoID)
+	resp, err = doGet(ctx, srv.URL+"/api/v1/todos/"+todoID)
 	if err != nil {
 		t.Fatalf("Get: %v", err)
 	}
 	assertStatus(t, resp, http.StatusOK, "Get")
-	resp.Body.Close()
+	closeBody(t, resp)
 
 	updateBody := `{"title":"Updated Todo","description":"updated"}`
-	req, _ := http.NewRequest(
-		http.MethodPut,
-		srv.URL+"/api/v1/todos/"+todoID,
-		strings.NewReader(updateBody),
-	)
-	req.Header.Set("Content-Type", "application/json")
-	resp, err = http.DefaultClient.Do(req)
+	resp, err = doRequest(ctx, http.MethodPut, srv.URL+"/api/v1/todos/"+todoID, updateBody)
 	if err != nil {
 		t.Fatalf("Put: %v", err)
 	}
 	assertStatus(t, resp, http.StatusOK, "Update")
-	resp.Body.Close()
+	closeBody(t, resp)
 
 	statusBody := `{"status":"completed"}`
-	req, _ = http.NewRequest(
+	resp, err = doRequest(
+		ctx,
 		http.MethodPatch,
 		srv.URL+"/api/v1/todos/"+todoID+"/status",
-		strings.NewReader(statusBody),
+		statusBody,
 	)
-	req.Header.Set("Content-Type", "application/json")
-	resp, err = http.DefaultClient.Do(req)
 	if err != nil {
 		t.Fatalf("Patch: %v", err)
 	}
 	assertStatus(t, resp, http.StatusNoContent, "StatusChange")
-	resp.Body.Close()
+	closeBody(t, resp)
 
-	req, _ = http.NewRequest(http.MethodDelete, srv.URL+"/api/v1/todos/"+todoID, nil)
-	resp, err = http.DefaultClient.Do(req)
+	resp, err = doRequest(ctx, http.MethodDelete, srv.URL+"/api/v1/todos/"+todoID, "")
 	if err != nil {
 		t.Fatalf("Delete: %v", err)
 	}
 	assertStatus(t, resp, http.StatusNoContent, "Delete")
-	resp.Body.Close()
+	closeBody(t, resp)
 }
 
 func TestUpdateTodo_InvalidID(t *testing.T) {
 	t.Parallel()
 	_, srv := setupTestServer(t)
 
+	ctx := context.Background()
 	body := `{"title":"Updated","description":"test"}`
-	req, _ := http.NewRequest(
-		http.MethodPut,
-		srv.URL+"/api/v1/todos/invalid-id",
-		strings.NewReader(body),
-	)
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := doRequest(ctx, http.MethodPut, srv.URL+"/api/v1/todos/invalid-id", body)
 	if err != nil {
 		t.Fatalf("Do: %v", err)
 	}
-	defer resp.Body.Close()
+	defer closeBody(t, resp)
 
 	assertStatus(t, resp, http.StatusOK, "")
 }

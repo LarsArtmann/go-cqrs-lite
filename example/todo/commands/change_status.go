@@ -55,8 +55,8 @@ func (c *ChangeStatusCommand) MarshalJSON() ([]byte, error) {
 	type Alias ChangeStatusCommand
 
 	return json.Marshal(&struct {
-		Type string `json:"type"`
 		*Alias
+		Type string `json:"type"`
 	}{
 		Type:  string(CommandTypeChangeStatus),
 		Alias: (*Alias)(c),

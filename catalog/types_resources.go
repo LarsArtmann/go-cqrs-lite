@@ -28,7 +28,7 @@ type Flow struct {
 // FlowStep represents a single step in a flow diagram.
 // Exactly one of Service, Message, Channel, Actor, ExternalSystem, or Custom should be set.
 type FlowStep struct {
-	ID        string          `json:"id"`
+	ID        FlowStepID      `json:"id"`
 	Title     Title           `json:"title"`
 	Summary   Summary         `json:"summary,omitempty"`
 	Service   *FlowStepRef    `json:"service,omitempty"`
@@ -63,8 +63,8 @@ type FlowCustomNode struct {
 
 // FlowEdge connects one step to the next with an optional label.
 type FlowEdge struct {
-	ID    string `json:"id"`
-	Label string `json:"label,omitempty"`
+	ID    FlowEdgeID `json:"id"`
+	Label string     `json:"label,omitempty"`
 }
 
 // Team represents a team that owns catalog resources.

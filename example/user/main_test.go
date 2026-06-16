@@ -22,7 +22,7 @@ import (
 func subscribeReadModel(
 	journal event.Journal,
 	bus *memory.MemoryBus,
-	rm *ReadModelStore,
+	readModel *ReadModelStore,
 ) *projection.Runner {
 	checkpointStore := memory.NewMemoryCheckpointStore()
 
@@ -31,7 +31,7 @@ func subscribeReadModel(
 		log.Fatalf("create runner: %v", err)
 	}
 
-	if err := runner.Register(rm); err != nil {
+	if err := runner.Register(readModel); err != nil {
 		log.Fatalf("register projection: %v", err)
 	}
 

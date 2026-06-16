@@ -68,13 +68,13 @@ func TestFullStack_WithSigning(t *testing.T) {
 		t.Fatalf("create user with signing: %v", err)
 	}
 
-	rm, ok := readModel.Get(userID)
+	user, ok := readModel.Get(userID)
 	if !ok {
 		t.Fatal("expected user in read model after signed create")
 	}
 
-	if rm.Email != "signed@test.com" {
-		t.Errorf("expected email signed@test.com, got %s", rm.Email)
+	if user.Email != "signed@test.com" {
+		t.Errorf("expected email signed@test.com, got %s", user.Email)
 	}
 
 	result, err := query.DispatchTyped[ReadModel](ctx, qryDisp, &GetUserQuery{aggregateID: userID})

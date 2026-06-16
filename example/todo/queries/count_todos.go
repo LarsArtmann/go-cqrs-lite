@@ -38,7 +38,7 @@ func NewCountTodosHandler(readModel domain.TodoReadModel) *CountTodosHandler {
 }
 
 func (h *CountTodosHandler) Handle(
-	ctx context.Context,
+	_ context.Context,
 	q *CountTodosQuery,
 ) (*CountTodosResult, error) {
 	filter := domain.TodoFilter{
@@ -58,8 +58,8 @@ func (q *CountTodosQuery) MarshalJSON() ([]byte, error) {
 	type Alias CountTodosQuery
 
 	return json.Marshal(&struct {
-		Type string `json:"type"`
 		*Alias
+		Type string `json:"type"`
 	}{
 		Type:  string(CountTodosQueryType),
 		Alias: (*Alias)(q),

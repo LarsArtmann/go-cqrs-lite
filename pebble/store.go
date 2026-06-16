@@ -21,12 +21,10 @@ const lockShardCount = 256
 // can both pass checkVersion before either commits). A fixed-size sharded
 // mutex pool avoids unbounded memory growth from a sync.Map.
 type EventStore struct {
-	db            *pebble.DB
-	logger        *slog.Logger
-	prefix        string
+	storeBase
+
 	journalPrefix string
 	lockShards    [lockShardCount]sync.Mutex
-	syncWrites    bool
 }
 
 // StoreOption configures a EventStore.
@@ -46,12 +44,14 @@ func NewStore(database *pebble.DB, logger *slog.Logger, opts ...StoreOption) *Ev
 		panic("pebble: NewStore called with nil db")
 	}
 
-	s := &EventStore{ //nolint:exhaustruct // locks initialized lazily
-		db:            database,
-		logger:        logger,
-		prefix:        "cqrs_event:",
+	s := &EventStore{ //nolint:exhaustruct // lockShards initialized lazily
+		storeBase: storeBase{
+			db:         database,
+			logger:     logger,
+			prefix:     "cqrs_event:",
+			syncWrites: true,
+		},
 		journalPrefix: "cqrs_journal:",
-		syncWrites:    true,
 	}
 
 	for _, opt := range opts {

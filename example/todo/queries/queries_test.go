@@ -14,7 +14,7 @@ import (
 
 func TestGetTodoHandler_Handle(t *testing.T) {
 	t.Parallel()
-	rm := &fakeReadModel{
+	readModel := &fakeReadModel{
 		todos: map[domain.TodoID]*domain.Todo{
 			testTodoID: {
 				ID:          testTodoID,
@@ -29,7 +29,7 @@ func TestGetTodoHandler_Handle(t *testing.T) {
 			},
 		},
 	}
-	h := NewGetTodoHandler(rm)
+	h := NewGetTodoHandler(readModel)
 	q, err := NewGetTodoQuery(testTodoID)
 	if err != nil {
 		t.Fatalf("NewGetTodoQuery: %v", err)
@@ -52,8 +52,8 @@ func TestGetTodoHandler_Handle(t *testing.T) {
 
 func TestGetTodoHandler_Handle_NotFound(t *testing.T) {
 	t.Parallel()
-	rm := &fakeReadModel{todos: map[domain.TodoID]*domain.Todo{}}
-	h := NewGetTodoHandler(rm)
+	readModel := &fakeReadModel{todos: map[domain.TodoID]*domain.Todo{}}
+	h := NewGetTodoHandler(readModel)
 	q, err := NewGetTodoQuery(testTodoID)
 	if err != nil {
 		t.Fatalf("NewGetTodoQuery: %v", err)
@@ -69,14 +69,14 @@ func TestListTodosHandler_Handle(t *testing.T) {
 	priority := 3
 	todo1 := domain.NewTodoID()
 	todo2 := domain.NewTodoID()
-	rm := &fakeReadModel{
+	readModel := &fakeReadModel{
 		todoList: []*domain.Todo{
 			{ID: todo1, Title: "Todo 1", Status: domain.StatusPending, Priority: 3},
 			{ID: todo2, Title: "Todo 2", Status: domain.StatusCompleted, Priority: 3},
 			{ID: domain.NewTodoID(), Title: "Todo 3", Status: domain.StatusInProgress, Priority: 5},
 		},
 	}
-	h := NewListTodosHandler(rm)
+	h := NewListTodosHandler(readModel)
 	q, err := NewListTodosQuery()
 	if err != nil {
 		t.Fatalf("NewListTodosQuery: %v", err)
@@ -98,8 +98,8 @@ func TestListTodosHandler_Handle(t *testing.T) {
 
 func TestListTodosHandler_Handle_ErrorFromReadModel(t *testing.T) {
 	t.Parallel()
-	rm := &fakeReadModel{listErr: errors.New("read model unavailable")}
-	h := NewListTodosHandler(rm)
+	readModel := &fakeReadModel{listErr: errors.New("read model unavailable")}
+	h := NewListTodosHandler(readModel)
 	q, err := NewListTodosQuery()
 	if err != nil {
 		t.Fatalf("NewListTodosQuery: %v", err)
@@ -112,14 +112,14 @@ func TestListTodosHandler_Handle_ErrorFromReadModel(t *testing.T) {
 
 func TestCountTodosHandler_Handle(t *testing.T) {
 	t.Parallel()
-	rm := &fakeReadModel{
+	readModel := &fakeReadModel{
 		todoList: []*domain.Todo{
 			{ID: testTodoID, Title: "Todo 1", Status: domain.StatusPending},
 			{ID: domain.NewTodoID(), Title: "Todo 2", Status: domain.StatusCompleted},
 			{ID: domain.NewTodoID(), Title: "Todo 3", Status: domain.StatusCompleted},
 		},
 	}
-	h := NewCountTodosHandler(rm)
+	h := NewCountTodosHandler(readModel)
 	q, err := NewCountTodosQuery()
 	if err != nil {
 		t.Fatalf("NewCountTodosQuery: %v", err)
@@ -136,8 +136,8 @@ func TestCountTodosHandler_Handle(t *testing.T) {
 
 func TestCountTodosHandler_Handle_ErrorFromReadModel(t *testing.T) {
 	t.Parallel()
-	rm := &fakeReadModel{countErr: errors.New("db unavailable")}
-	h := NewCountTodosHandler(rm)
+	readModel := &fakeReadModel{countErr: errors.New("db unavailable")}
+	h := NewCountTodosHandler(readModel)
 	q, err := NewCountTodosQuery()
 	if err != nil {
 		t.Fatalf("NewCountTodosQuery: %v", err)

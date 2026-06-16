@@ -20,7 +20,7 @@ type CommandHandler struct {
 
 func NewHandler(events event.Store, eventBus event.Publisher) CommandHandler {
 	repo, err := decider.NewRepository(
-		events, eventBus, todoaggregate.TodoDecider,
+		events, eventBus, todoaggregate.NewTodoDecider(),
 	)
 	if err != nil {
 		panic(fmt.Sprintf("failed to create repository: %v", err))

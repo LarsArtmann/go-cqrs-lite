@@ -110,14 +110,6 @@ func (a *EventStore) addToBatch(batch *pebble.Batch, key, data []byte) error {
 	return nil
 }
 
-func (a *EventStore) writeOptions() *pebble.WriteOptions {
-	if a.syncWrites {
-		return pebble.Sync
-	}
-
-	return nil
-}
-
 // commitAndLog commits the batch and logs the operation.
 func (a *EventStore) commitAndLog(
 	batch *pebble.Batch,

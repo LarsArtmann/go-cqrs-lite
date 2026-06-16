@@ -60,8 +60,6 @@ github.com/larsartmann/go-cqrs-lite/schema/v2 v2.3.0 h1:bRQh9uSmJTUtLKJEnxQQmLcH
 github.com/larsartmann/go-cqrs-lite/schema/v2 v2.3.0/go.mod h1:iC+/0JMdqxgb1n4f10q69N+z+7MDNDFUTF2ybCHYZoE=
 github.com/larsartmann/go-error-family v0.3.0 h1:ozA/xt9C+o+4o6bbt/vrMZDCL+ZvBjJVV79fjNkz3+8=
 github.com/larsartmann/go-error-family v0.3.0/go.mod h1:Fz+CKBOHHFZAeiZ/GFbY0JiiXBei+SqY8nznz2XpeaM=
-github.com/larsartmann/httputil v0.2.0 h1:0DHSMJVuEoApO1L89zNzSE661Nao6CPwV2IsFVtKKJU=
-github.com/larsartmann/httputil v0.2.0/go.mod h1:OfsRBnA+R+2sSJJapE0J/qwMF58e7BdmaExdr+RH1yk=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/oklog/ulid/v2 v2.1.1 h1:suPZ4ARWLOJLegGFiZZ1dFAkqzhMjL3J1TzI+5wHz8s=

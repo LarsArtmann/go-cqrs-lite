@@ -41,6 +41,7 @@ func main() {
 
 	if len(os.Args) > 1 && os.Args[1] == "-update" {
 		writeGoldenFile(goldenPath, exports)
+
 		return
 	}
 
@@ -73,29 +74,35 @@ func collectAllModuleExports(modules []string, projectRoot string) []string {
 	return exports
 }
 
+const (
+	goldenDirPerms  = 0o750
+	goldenFilePerms = 0o600
+)
+
 func writeGoldenFile(goldenPath string, exports []string) {
 	cleanPath := filepath.Clean(goldenPath)
 
-	err := os.MkdirAll(filepath.Dir(cleanPath), 0o750)
+	err := os.MkdirAll(filepath.Dir(cleanPath), goldenDirPerms)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "mkdir: %v\n", err)
 		os.Exit(1)
 	}
 
-	err = os.WriteFile(cleanPath, []byte(strings.Join(exports, "\n")+"\n"), 0o600)
+	err = os.WriteFile(cleanPath, []byte(strings.Join(exports, "\n")+"\n"), goldenFilePerms)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "write: %v\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Fprintf(os.Stdout, "Updated %s (%d exports)\n", cleanPath, len(exports))
+	_, _ = fmt.Fprintf(os.Stdout, "Updated %s (%d exports)\n", cleanPath, len(exports))
+
 	os.Exit(0)
 }
 
 func verifyGoldenFile(goldenPath string, exports []string) {
 	cleanPath := filepath.Clean(goldenPath)
 
-	data, err := os.ReadFile(cleanPath) //nolint:gosec // G304: path is constructed from known project root
+	data, err := os.ReadFile(cleanPath)
 	if err != nil {
 		handleReadError(cleanPath, err)
 	}
@@ -113,7 +120,7 @@ func verifyGoldenFile(goldenPath string, exports []string) {
 		}
 	}
 
-	fmt.Fprintf(os.Stdout, "API surface OK: %d exports verified\n", len(exports))
+	_, _ = fmt.Fprintf(os.Stdout, "API surface OK: %d exports verified\n", len(exports))
 }
 
 func handleReadError(goldenPath string, err error) {

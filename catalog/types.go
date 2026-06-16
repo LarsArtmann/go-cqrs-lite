@@ -34,6 +34,18 @@ func (id FlowID) String() string { return string(id) }
 
 func (id FlowID) IsZero() bool { return id == "" }
 
+type FlowStepID string
+
+func (id FlowStepID) String() string { return string(id) }
+
+func (id FlowStepID) IsZero() bool { return id == "" }
+
+type FlowEdgeID string
+
+func (id FlowEdgeID) String() string { return string(id) }
+
+func (id FlowEdgeID) IsZero() bool { return id == "" }
+
 type TeamID string
 
 func (id TeamID) String() string { return string(id) }

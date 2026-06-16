@@ -9,6 +9,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
+const defaultPageSize = 20
+
 type ListTodosQuery struct {
 	*query.BasicQuery
 
@@ -27,7 +29,7 @@ func NewListTodosQuery() (*ListTodosQuery, error) {
 
 	return &ListTodosQuery{
 		BasicQuery: core,
-		Pagination: query.NewPagination(1, 20),
+		Pagination: query.NewPagination(1, defaultPageSize),
 	}, nil
 }
 
@@ -43,7 +45,7 @@ func NewListTodosHandler(readModel domain.TodoReadModel) *ListTodosHandler {
 }
 
 func (h *ListTodosHandler) Handle(
-	ctx context.Context,
+	_ context.Context,
 	q *ListTodosQuery,
 ) (*ListTodosResult, error) {
 	filter := domain.TodoFilter{
@@ -73,8 +75,8 @@ func (q *ListTodosQuery) MarshalJSON() ([]byte, error) {
 	type Alias ListTodosQuery
 
 	return json.Marshal(&struct {
-		Type string `json:"type"`
 		*Alias
+		Type string `json:"type"`
 	}{
 		Type:  string(ListTodosQueryType),
 		Alias: (*Alias)(q),

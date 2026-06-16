@@ -44,8 +44,8 @@ func (c *DeleteTodoCommand) MarshalJSON() ([]byte, error) {
 	type Alias DeleteTodoCommand
 
 	return json.Marshal(&struct {
-		Type string `json:"type"`
 		*Alias
+		Type string `json:"type"`
 	}{
 		Type:  string(CommandTypeDelete),
 		Alias: (*Alias)(c),

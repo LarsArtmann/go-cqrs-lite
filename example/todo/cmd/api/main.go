@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -24,19 +25,31 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
+const (
+	statusHealthy     = "healthy"
+	readHeaderTimeout = 10 * time.Second
+	shutdownTimeout   = 30 * time.Second
+)
+
 func main() {
 	logger := slog.Default()
 	logger.Info("Starting Todo Example — Event Sourcing + CQRS + Projections")
 
+	if err := run(logger); err != nil {
+		logger.Error("Fatal error", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
+}
+
+func run(logger *slog.Logger) error {
 	ctx := context.Background()
 	dataDir := getEnv("DATA_DIR", "./data")
 
 	readModelStore, err := storage.NewPebbleStore(dataDir, logger)
 	if err != nil {
-		logger.Error("Failed to create read model store", slog.String("error", err.Error()))
-		os.Exit(1)
+		return fmt.Errorf("create read model store: %w", err)
 	}
-	defer readModelStore.Close()
+	defer func() { _ = readModelStore.Close() }()
 
 	eventStore := cqrsPebble.NewStore(readModelStore.DB(), logger)
 	eventBus := memory.NewMemoryBus()
@@ -47,13 +60,11 @@ func main() {
 
 	runner, err := projection.NewRunner(eventStore, eventBus, checkpointStore)
 	if err != nil {
-		logger.Error("Failed to create projection runner", slog.String("error", err.Error()))
-		os.Exit(1)
+		return fmt.Errorf("create projection runner: %w", err)
 	}
 
 	if err := runner.Register(todoProjection); err != nil {
-		logger.Error("Failed to register projection", slog.String("error", err.Error()))
-		os.Exit(1)
+		return fmt.Errorf("register projection: %w", err)
 	}
 
 	go func() {
@@ -65,22 +76,33 @@ func main() {
 	cmdDisp := command.NewDispatcher()
 	queryDisp := query.NewDispatcher()
 
-	_ = cmdDisp.Register(
+	if err := cmdDisp.Register(
 		aggregate.CommandCreate,
 		commands.NewCreateTodoHandler(eventStore, eventBus).Handle,
-	)
-	_ = cmdDisp.Register(
+	); err != nil {
+		return fmt.Errorf("register create command: %w", err)
+	}
+
+	if err := cmdDisp.Register(
 		aggregate.CommandUpdate,
 		commands.NewUpdateTodoHandler(eventStore, eventBus).Handle,
-	)
-	_ = cmdDisp.Register(
+	); err != nil {
+		return fmt.Errorf("register update command: %w", err)
+	}
+
+	if err := cmdDisp.Register(
 		aggregate.CommandDelete,
 		commands.NewDeleteTodoHandler(eventStore, eventBus).Handle,
-	)
-	_ = cmdDisp.Register(
+	); err != nil {
+		return fmt.Errorf("register delete command: %w", err)
+	}
+
+	if err := cmdDisp.Register(
 		aggregate.CommandChangeStatus,
 		commands.NewChangeStatusHandler(eventStore, eventBus).Handle,
-	)
+	); err != nil {
+		return fmt.Errorf("register change status command: %w", err)
+	}
 
 	registerQueryHandlers(queryDisp, readModelStore)
 
@@ -90,7 +112,7 @@ func main() {
 		writeJSON(
 			w,
 			http.StatusOK,
-			map[string]any{"status": "healthy", "timestamp": time.Now().UTC().Unix()},
+			map[string]string{"status": statusHealthy},
 		)
 	})
 
@@ -103,29 +125,43 @@ func main() {
 	)
 
 	port := getEnv("PORT", "8080")
-	srv := &http.Server{Addr: ":" + port, Handler: handler, ReadHeaderTimeout: 10 * time.Second}
+	srv := &http.Server{
+		Addr:              ":" + port,
+		Handler:           handler,
+		ReadHeaderTimeout: readHeaderTimeout,
+	}
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	serverErr := make(chan error, 1)
 
 	go func() {
 		logger.Info("Server starting", slog.String("port", port))
 
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			logger.Error("Server failed", slog.String("error", err.Error()))
-			os.Exit(1)
+			serverErr <- err
 		}
 	}()
 
-	<-quit
+	select {
+	case err := <-serverErr:
+		return fmt.Errorf("server failed: %w", err)
+	case <-quit:
+	}
+
 	logger.Info("Shutting down...")
 
-	shutdownCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(ctx, shutdownTimeout)
 	defer cancel()
 
-	_ = srv.Shutdown(shutdownCtx)
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		return fmt.Errorf("server shutdown: %w", err)
+	}
 
 	logger.Info("Server exited")
+
+	return nil
 }
 
 func registerQueryHandlers(qDisp *query.Dispatcher, store *storage.PebbleStore) {
@@ -157,7 +193,10 @@ func getEnv(key, defaultValue string) string {
 func writeJSON(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(v)
+
+	if err := json.NewEncoder(w).Encode(v); err != nil {
+		slog.Default().Error("failed to encode JSON response", slog.String("error", err.Error()))
+	}
 }
 
 func parseAggregateID(r *http.Request) (id.AggregateID, error) {
