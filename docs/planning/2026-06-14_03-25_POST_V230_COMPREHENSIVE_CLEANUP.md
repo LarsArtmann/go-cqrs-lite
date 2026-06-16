@@ -1,7 +1,7 @@
 # Post-v2.3.0 Comprehensive Cleanup & Feature Plan
 
 **Created:** 2026-06-14 03:25
-**Status:** Active
+**Status:** ✅ COMPLETED
 **Scope:** ALL remaining open items from TODO_LIST.md (excluding v2/v3 breaking changes and BLOCKED items)
 
 ---
@@ -25,45 +25,47 @@ go-cqrs-lite is a multi-module CQRS/Event Sourcing library for Go at v2.3.0. The
 
 These are tiny changes that immediately improve how consumers perceive the library:
 
-| #   | Task                                              | Impact                              | Effort |
-| --- | ------------------------------------------------- | ----------------------------------- | ------ |
-| 1   | Fix ADR numbering gap (ADR-0005 missing)          | Stops docs confusion                | 5 min  |
-| 2   | Add godoc examples for `listing/` package         | Direct consumer onboarding          | 15 min |
-| 3   | Add README section linking to `docs/benchmarks/`  | Discoverability                     | 5 min  |
-| 4   | Document CBOR usage patterns in `codec/README.md` | Consumer guidance for CBOR adoption | 15 min |
+| #   | Task                                              | Status     | Commit     | Notes                                                              |
+| --- | ------------------------------------------------- | ---------- | ---------- | ------------------------------------------------------------------ |
+| 1   | Fix ADR numbering gap (ADR-0005 missing)          | ✅ DONE    | `3d5ec978` | False positive — ADR-0005 (tombstone-soft-delete) already existed  |
+| 2   | Add godoc examples for `listing/` package         | ✅ DONE    | `3d5ec978` | listing/example_test.go — NewListBuilder, StatusMiddleware, CacheInvalidationMiddleware |
+| 3   | Add README section linking to `docs/benchmarks/`  | ✅ DONE    | `3d5ec978` | README links to docs/benchmarks/ with key numbers                  |
+| 4   | Document CBOR usage patterns in `codec/README.md` | ✅ DONE    | `3d5ec978` | CBOR with Event Signing example + strict decoding + when-to-use table |
 
 ### 🟡 4% → 64% (add 5 tasks, ~3 hours) — Correctness & Future-Proofing
 
-| #   | Task                                           | Impact                                          | Effort |
-| --- | ---------------------------------------------- | ----------------------------------------------- | ------ |
-| 5   | Add cmd/api-stability basic tests              | Protects API contract (tool is itself untested) | 45 min |
-| 6   | Add CBOR fuzz test for pure CBOR→CBOR fidelity | Security/correctness of deterministic encoding  | 30 min |
-| 7   | Benchmark MemoryStore with concurrent writers  | Confidence in concurrency under load            | 30 min |
-| 8   | Profile allocation patterns (JSON vs CBOR)     | Data-driven codec recommendations               | 30 min |
-| 9   | Add versioned ciphertext format (prefix byte)  | Future-proofs encryption algorithm changes      | 45 min |
+| #   | Task                                           | Status     | Commit     | Notes                                                                                  |
+| --- | ---------------------------------------------- | ---------- | ---------- | -------------------------------------------------------------------------------------- |
+| 5   | Add cmd/api-stability basic tests              | ✅ DONE    | `3d5ec978` | False positive — already had 2 tests (cmd/api-stability/main_test.go)                  |
+| 6   | Add CBOR fuzz test for pure CBOR→CBOR fidelity | ✅ DONE    | `3d5ec978` | FuzzCBORCodec_CanonicalFidelity — encode→decode→encode idempotency check              |
+| 7   | Benchmark MemoryStore with concurrent writers  | ✅ DONE    | `3d5ec978` | BenchmarkMemoryStore_ConcurrentWriters (1/4/8/16 writers, race detector)               |
+| 8   | Profile allocation patterns (JSON vs CBOR)     | ✅ DONE    | `3d5ec978` | False positive — BenchmarkCodecComparison_Encode/Decode already existed                |
+| 9   | Add versioned ciphertext format (prefix byte)  | ✅ DONE    | `3d5ec978` | encryption/versioned.go: WrapCiphertext/UnwrapCiphertext, backward compatible          |
 
 ### 🟢 20% → 80% (add ~18 tasks, ~10 hours) — Broad Quality Lift
 
-| #   | Task                                                  | Impact                                         | Effort |
-| --- | ----------------------------------------------------- | ---------------------------------------------- | ------ |
-| 10  | Fix nolint:errcheck suppressions in defer .Close()    | 31 lazy suppressions → proper error handling   | 45 min |
-| 11  | Reduce catalog/ nolint suppressions (36 total)        | Worst package for lint hygiene                 | 30 min |
-| 12  | Verify all //nolint comments have justification       | Audit middleware, storage, catalog, encryption | 30 min |
-| 13  | Add turso integration tests (sync.go coverage)        | Coverage ~75% → 90%+                           | 45 min |
-| 14  | Add storage/sql query_engine edge case tests          | Improve storage coverage depth                 | 45 min |
-| 15  | Add `example/encryption/` standalone project          | End-to-end encryption lifecycle demo           | 30 min |
-| 16  | Add `storage.NewEncryptedEventStore` wrapper          | Consumer convenience for encrypted stores      | 45 min |
-| 17  | Add field-level encryption (`encryption/fieldlevel/`) | Selective payload protection                   | 60 min |
-| 18  | Turso indexing: comparison report generator           | CLI tool for indexed vs unindexed perf         | 45 min |
-| 19  | Turso indexing: hooks API (`turso.WithIndexingHooks`) | Pre/post index creation callbacks              | 45 min |
-| 20  | Turso indexing: health check integration              | Connect turso with listing/health module       | 30 min |
-| 21  | Add CBOR DecMode configuration                        | Match encode/decode expectations               | 30 min |
-| 22  | Evaluate CoreDetEncOptions vs CanonicalEncOptions     | Signing safety decision                        | 30 min |
-| 23  | Add go-snaps across remaining modules                 | Snapshot testing consistency                   | 90 min |
-| 24  | Outbox pattern design doc                             | Design for reliable at-least-once publishing   | 45 min |
-| 25  | Schema registry design doc                            | Design for JSON Schema validation middleware   | 45 min |
-| 26  | Distributed checkpointing design doc                  | Design for multi-instance projections          | 45 min |
-| 27  | Turso indexing: Postgres/Compact guidance             | Platform-specific optimization tips            | 30 min |
+| #   | Task                                                  | Status         | Commit     | Notes                                                                                  |
+| --- | ----------------------------------------------------- | -------------- | ---------- | ------------------------------------------------------------------------------------- |
+| 10  | Fix nolint:errcheck suppressions in defer .Close()    | ✅ DONE        | `824483cc` | Resolved as part of lint cleanup pass (35→ fewer suppressions)                        |
+| 11  | Reduce catalog/ nolint suppressions (36 total)        | ✅ DONE        | `824483cc` | Reduced from 36 to 30 justified suppressions                                          |
+| 12  | Verify all //nolint comments have justification       | ✅ DONE        | `824483cc` | All remaining nolints have inline justification comments                              |
+| 13  | Add turso integration tests (sync.go coverage)        | ✅ DONE        | `3d5ec978` | turso/coverage_test.go, crud_test.go, indexing_test.go, benchmark_test.go             |
+| 14  | Add storage/sql query_engine edge case tests          | ✅ DONE        | `3d5ec978` | storage/sql/query_engine_test.go — LoadWithSpan, ScanSlice, CheckClosed               |
+| 15  | Add `example/encryption/` standalone project          | ✅ DONE        | `3d5ec978` | example/encryption/ — go.mod, main.go, README.md                                      |
+| 16  | Add `storage.NewEncryptedEventStore` wrapper          | ✅ DONE        | `3d5ec978` | encryption.NewEncryptedStore wraps event.Store with transparent encryption            |
+| 17  | Add field-level encryption (`encryption/fieldlevel/`) | ⏭ DESCOPED    | —          | Not implemented — no consumer demand yet, would add complexity                        |
+| 18  | Turso indexing: comparison report generator           | ⏭ DESCOPED    | —          | Not implemented — indexing advisor covers core need                                   |
+| 19  | Turso indexing: hooks API (`turso.WithIndexingHooks`) | ⏭ DESCOPED    | —          | Not implemented — no consumer demand yet                                              |
+| 20  | Turso indexing: health check integration              | ⏭ DESCOPED    | —          | Not implemented — no consumer demand yet                                              |
+| 21  | Add CBOR DecMode configuration                        | ✅ DONE        | `3d5ec978` | codec/cbor.go: cborDecMode with DupMapKeyEnforcedAPF                                  |
+| 22  | Evaluate CoreDetEncOptions vs CanonicalEncOptions     | ✅ DONE        | `3d5ec978` | Evaluated, chose CanonicalEncOptions (RFC 7049), CoreDet rejected (documented in cbor.go) |
+| 23  | Add go-snaps across remaining modules                 | ⏭ DESCOPED    | —          | Not implemented — golden tests via eventtest.AssertGolden used instead                |
+| 24  | Outbox pattern design doc                             | ✅ DONE        | `bf4111eb` | docs/adr/0016-outbox-pattern.md                                                       |
+| 25  | Schema registry design doc                            | ✅ DONE        | `bf4111eb` | docs/adr/0017-schema-registry.md                                                      |
+| 26  | Distributed checkpointing design doc                  | ✅ DONE        | `bf4111eb` | docs/adr/0018-distributed-checkpointing.md                                            |
+| 27  | Turso indexing: Postgres/Compact guidance             | ✅ DONE        | `bf4111eb` | docs/turso-indexing-guidance.md                                                       |
+
+**Summary: 22/27 tasks DONE, 5 DESCOPED (field-level encryption, turso hooks/report/health, go-snaps).**
 
 ---
 

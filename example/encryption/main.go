@@ -17,6 +17,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 )
 
+const truncateLength = 40
+
 func main() {
 	ctx := context.Background()
 
@@ -32,16 +34,26 @@ func main() {
 
 func busLevelEncryption(ctx context.Context) {
 	key := []byte("0123456789abcdef0123456789abcdef") // 32-byte AES-256 key
-	ed, err := encryption.NewAES256GCM(key)
+
+	encrypter, err := encryption.NewAES256GCM(key)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	bus := memory.NewMemoryBus()
-	bus.UsePublish(encryption.EncryptMiddleware(ed, encryption.WithMiddlewareKeyID("key-v1")))
-	bus.Use(encryption.DecryptMiddleware(ed))
+
+	if err := bus.UsePublish(
+		encryption.EncryptMiddleware(encrypter, encryption.WithMiddlewareKeyID("key-v1")),
+	); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := bus.Use(encryption.DecryptMiddleware(encrypter)); err != nil {
+		log.Fatal(err)
+	}
 
 	aggID := id.NewAggregateID()
+
 	evt, err := event.NewEvent("UserCreated", aggID, "User", 1,
 		[]byte(`{"name":"Alice","email":"secret@example.com"}`))
 	if err != nil {
@@ -49,12 +61,16 @@ func busLevelEncryption(ctx context.Context) {
 	}
 
 	var captured event.Event
-	bus.Use(func(next event.Handler) event.Handler {
+
+	if err := bus.Use(func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
 			captured = evt
+
 			return next(ctx, evt)
 		}
-	})
+	}); err != nil {
+		log.Fatal(err)
+	}
 
 	if err := bus.Publish(ctx, evt); err != nil {
 		log.Fatal(err)
@@ -66,13 +82,17 @@ func busLevelEncryption(ctx context.Context) {
 
 func storeLevelEncryption(ctx context.Context) {
 	key := []byte("0123456789abcdef0123456789abcdef")
-	ed, err := encryption.NewAES256GCM(key)
+
+	encrypter, err := encryption.NewAES256GCM(key)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	inner := memory.NewMemoryStore()
-	store, err := encryption.NewEncryptedStore(inner, ed, encryption.WithMiddlewareKeyID("key-v1"))
+
+	store, err := encryption.NewEncryptedStore(
+		inner, encrypter, encryption.WithMiddlewareKeyID("key-v1"),
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -97,13 +117,14 @@ func storeLevelEncryption(ctx context.Context) {
 
 	fmt.Printf(
 		"Raw stored payload (encrypted): %s\n",
-		truncate(string(event.PayloadReadOnly(raw[0])), 40),
+		truncate(string(event.PayloadReadOnly(raw[0])), truncateLength),
 	)
 
 	loaded, err := store.Load(ctx, ref)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	fmt.Printf("Decrypted payload: %s\n", string(event.PayloadReadOnly(loaded[0])))
 }
 
@@ -125,14 +146,15 @@ func keyRotation(_ context.Context) {
 	}
 
 	_ = decV1
+
 	fmt.Printf("Resolver has keys: resolved key-v1 successfully\n")
 	fmt.Printf("Available keys: key-v1, key-v2\n")
 }
 
-func truncate(s string, max int) string {
-	if len(s) <= max {
+func truncate(s string, maxLen int) string {
+	if len(s) <= maxLen {
 		return s
 	}
 
-	return s[:max] + "..."
+	return s[:maxLen] + "..."
 }

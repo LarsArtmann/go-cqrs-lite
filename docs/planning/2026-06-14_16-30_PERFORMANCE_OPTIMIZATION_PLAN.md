@@ -1,5 +1,13 @@
 # Performance Optimization Plan — Pareto-Driven
 
+> **Status: ✅ COMPLETED** · **Date completed:** 2026-06-14
+>
+> All 14 optimizations implemented in commit `4002fa87`. T3/T4 root cause
+> subsequently fixed in `df6b35dd` (cached at Register() time instead of via
+> type assertion). Benchmarks + report updated in `f0e512f8` + `27c39549`.
+> ADR-0020 documents the patterns adopted. AGENTS.md Design Principle #16
+> records the lessons learned.
+>
 > **Date:** 2026-06-14
 > **Source:** `docs/research/2026-06-14_PERFORMANCE_CHARACTERISTICS_REPORT.html`
 > **Goal:** Eliminate the highest-impact performance inefficiencies across all 28 modules without breaking the public API or existing tests.
@@ -140,28 +148,28 @@ graph TD
 
 > Sorted by impact (Pareto tier) then effort. 18 tasks total.
 
-| ID  | Task                                             | Module     | Tier | Impact   | Effort | Risk | Depends On |
-| --- | ------------------------------------------------ | ---------- | ---- | -------- | ------ | ---- | ---------- |
-| T1  | Eliminate double serialization on Save           | pebble     | 1%   | CRITICAL | 45min  | LOW  | —          |
-| T2  | Lazy metadata map initialization                 | event      | 1%   | CRITICAL | 45min  | LOW  | —          |
-| T3  | Cache projection handler Lookup result           | projection | 4%   | HIGH     | 45min  | LOW  | T2         |
-| T4  | Projection EventTypes() return immutable slice   | projection | 4%   | HIGH     | 15min  | LOW  | T3         |
-| T5  | Cache SQL template strings per dialect           | storage    | 20%  | MED      | 30min  | LOW  | —          |
-| T6  | Eliminate MemoryStore Load double-copy           | memory     | 20%  | MED      | 30min  | LOW  | —          |
-| T7  | Remove SSE vestigial goroutine + optimize format | middleware | 20%  | MED      | 30min  | LOW  | —          |
-| T8  | Hoist EnsureCustom before Merge loop             | event      | 20%  | LOW      | 15min  | LOW  | T2         |
-| T9  | Pre-size FilterByTimestamp result slice          | event      | 20%  | LOW      | 15min  | LOW  | —          |
-| T10 | Pre-allocate ScanSlice with capacity hint        | storage    | 20%  | LOW      | 15min  | LOW  | —          |
-| T11 | CircuitBreaker atomic state machine              | middleware | rest | HIGH     | 60min  | MED  | —          |
-| T12 | MemoryBus middleware pre-computation             | memory     | rest | HIGH     | 60min  | MED  | T6         |
-| T13 | Pebble ReadFrom SeekGE optimization              | pebble     | rest | HIGH     | 90min  | MED  | T1         |
-| T14 | SQL multi-VALUES INSERT batching                 | storage    | rest | HIGH     | 90min  | MED  | T5         |
-| T15 | Full benchmark suite + before/after data         | all        | —    | VERIFY   | 60min  | —    | T1–T14     |
-| T16 | Update performance report HTML                   | docs       | —    | DOC      | 30min  | —    | T15        |
-| T17 | Update AGENTS.md with optimization notes         | docs       | —    | DOC      | 30min  | —    | T15        |
-| T18 | Full test suite verification (28 modules)        | all        | —    | VERIFY   | 60min  | —    | T1–T14     |
+| ID  | Task                                             | Module     | Tier | Impact   | Status  | Commit     |
+| --- | ------------------------------------------------ | ---------- | ---- | -------- | ------- | ---------- |
+| T1  | Eliminate double serialization on Save           | pebble     | 1%   | CRITICAL | ✅ DONE | `4002fa87` |
+| T2  | Lazy metadata map initialization                 | event      | 1%   | CRITICAL | ✅ DONE | `4002fa87` |
+| T3  | Cache projection handler Lookup result           | projection | 4%   | HIGH     | ✅ DONE | `df6b35dd` |
+| T4  | Projection EventTypes() return immutable slice   | projection | 4%   | HIGH     | ✅ DONE | `df6b35dd` |
+| T5  | Cache SQL template strings per dialect           | storage    | 20%  | MED      | ✅ DONE | `4002fa87` |
+| T6  | Eliminate MemoryStore Load double-copy           | memory     | 20%  | MED      | ✅ DONE | `4002fa87` |
+| T7  | Remove SSE vestigial goroutine + optimize format | middleware | 20%  | MED      | ✅ DONE | `4002fa87` |
+| T8  | Hoist EnsureCustom before Merge loop             | event      | 20%  | LOW      | ✅ DONE | `4002fa87` |
+| T9  | Pre-size FilterByTimestamp result slice          | event      | 20%  | LOW      | ✅ DONE | `4002fa87` |
+| T10 | Pre-allocate ScanSlice with capacity hint        | storage    | 20%  | LOW      | ✅ DONE | `4002fa87` |
+| T11 | CircuitBreaker atomic state machine              | middleware | rest | HIGH     | ✅ DONE | `4002fa87` |
+| T12 | MemoryBus middleware pre-computation             | memory     | rest | HIGH     | ✅ DONE | `4002fa87` |
+| T13 | Pebble ReadFrom SeekGE optimization              | pebble     | rest | HIGH     | ✅ DONE | `4002fa87` |
+| T14 | SQL multi-VALUES INSERT batching                 | storage    | rest | HIGH     | ✅ DONE | `4002fa87` |
+| T15 | Full benchmark suite + before/after data         | all        | —    | VERIFY   | ✅ DONE | `27c39549` |
+| T16 | Update performance report HTML                   | docs       | —    | DOC      | ✅ DONE | `f0e512f8` |
+| T17 | Update AGENTS.md with optimization notes         | docs       | —    | DOC      | ✅ DONE | `f0e512f8` |
+| T18 | Full test suite verification (28 modules)        | all        | —    | VERIFY   | ✅ DONE | `4002fa87` |
 
-**Total estimated effort:** ~13.5 hours
+**All 18 tasks completed.** T1-T14 implemented in `4002fa87`, T3/T4 root cause fix in `df6b35dd`, benchmarks in `27c39549`, docs in `f0e512f8`.
 
 ---
 
@@ -173,89 +181,89 @@ graph TD
 
 | ID   | Micro Task                                                           | Module | Est   | Status |
 | ---- | -------------------------------------------------------------------- | ------ | ----- | ------ |
-| M1.1 | Read pebble/save.go writeEventsToBatch flow                          | pebble | 5min  | ⬜     |
-| M1.2 | Refactor: serialize once in writeEventsToBatch, pass data to journal | pebble | 10min | ⬜     |
-| M1.3 | Refactor appendToJournal to accept pre-serialized []byte             | pebble | 10min | ⬜     |
-| M1.4 | Run pebble tests (GOWORK=off)                                        | pebble | 10min | ⬜     |
-| M1.5 | Run pebble benchmarks before/after                                   | pebble | 10min | ⬜     |
-| M2.1 | Read event/metadata.go — enumerate all write paths to Custom map     | event  | 10min | ⬜     |
-| M2.2 | Change NewMetadata() to return zero-value Metadata (no map alloc)    | event  | 5min  | ⬜     |
-| M2.3 | Verify all write paths call EnsureCustom before writing              | event  | 10min | ⬜     |
-| M2.4 | Run event tests (GOWORK=off)                                         | event  | 10min | ⬜     |
-| M2.5 | Run event benchmarks — verify alloc reduction                        | event  | 10min | ⬜     |
+| M1.1 | Read pebble/save.go writeEventsToBatch flow                          | pebble | 5min  | ✅     |
+| M1.2 | Refactor: serialize once in writeEventsToBatch, pass data to journal | pebble | 10min | ✅     |
+| M1.3 | Refactor appendToJournal to accept pre-serialized []byte             | pebble | 10min | ✅     |
+| M1.4 | Run pebble tests (GOWORK=off)                                        | pebble | 10min | ✅     |
+| M1.5 | Run pebble benchmarks before/after                                   | pebble | 10min | ✅     |
+| M2.1 | Read event/metadata.go — enumerate all write paths to Custom map     | event  | 10min | ✅     |
+| M2.2 | Change NewMetadata() to return zero-value Metadata (no map alloc)    | event  | 5min  | ✅     |
+| M2.3 | Verify all write paths call EnsureCustom before writing              | event  | 10min | ✅     |
+| M2.4 | Run event tests (GOWORK=off)                                         | event  | 10min | ✅     |
+| M2.5 | Run event benchmarks — verify alloc reduction                        | event  | 10min | ✅     |
 
 ### Phase 2: 4% → 64% Impact
 
 | ID   | Micro Task                                                           | Module     | Est   | Status |
 | ---- | -------------------------------------------------------------------- | ---------- | ----- | ------ |
-| M3.1 | Read projection/handler.go Lookup + builder.go call sites            | projection | 10min | ⬜     |
-| M3.2 | Implement cached Lookup: pre-build combined slice at registration    | projection | 15min | ⬜     |
-| M3.3 | Run projection tests                                                 | projection | 10min | ⬜     |
-| M3.4 | Run integration scale projection benchmark                           | projection | 10min | ⬜     |
-| M4.1 | Change builtProjection.EventTypes() to return backing slice directly | projection | 5min  | ⬜     |
-| M4.2 | Add immutability documentation comment                               | projection | 5min  | ⬜     |
-| M4.3 | Run projection tests                                                 | projection | 10min | ⬜     |
+| M3.1 | Read projection/handler.go Lookup + builder.go call sites            | projection | 10min | ✅     |
+| M3.2 | Implement cached Lookup: pre-build combined slice at registration    | projection | 15min | ✅     |
+| M3.3 | Run projection tests                                                 | projection | 10min | ✅     |
+| M3.4 | Run integration scale projection benchmark                           | projection | 10min | ✅     |
+| M4.1 | Change builtProjection.EventTypes() to return backing slice directly | projection | 5min  | ✅     |
+| M4.2 | Add immutability documentation comment                               | projection | 5min  | ✅     |
+| M4.3 | Run projection tests                                                 | projection | 10min | ✅     |
 
 ### Phase 3: 20% → 80% Impact
 
 | ID    | Micro Task                                                                | Module     | Est   | Status |
 | ----- | ------------------------------------------------------------------------- | ---------- | ----- | ------ |
-| M5.1  | Read storage/event_store_scan.go insertEvents + query_engine.go           | storage    | 10min | ⬜     |
-| M5.2  | Cache INSERT/SELECT SQL strings per dialect at SQLEventStore construction | storage    | 15min | ⬜     |
-| M5.3  | Run storage tests                                                         | storage    | 10min | ⬜     |
-| M6.1  | Read memory/store_load.go getEvents + copyEvents flow                     | memory     | 5min  | ⬜     |
-| M6.2  | Remove redundant copyEvents wrapper — return getEvents result directly    | memory     | 10min | ⬜     |
-| M6.3  | Run memory tests                                                          | memory     | 10min | ⬜     |
-| M7.1  | Remove vestigial goroutine in SSE broker NewBroker                        | middleware | 5min  | ⬜     |
-| M7.2  | Replace 3× fmt.Fprintf with single pooled bytes.Buffer write              | middleware | 15min | ⬜     |
-| M7.3  | Run middleware tests                                                      | middleware | 10min | ⬜     |
-| M8.1  | Move EnsureCustom call before the Merge loop                              | event      | 5min  | ⬜     |
-| M8.2  | Run event tests                                                           | event      | 10min | ⬜     |
-| M9.1  | Pre-size FilterByTimestamp: make([]Event, 0, len(events))                 | event      | 5min  | ⬜     |
-| M9.2  | Run event tests                                                           | event      | 5min  | ⬜     |
-| M10.1 | Read storage/sql/reconstruction.go ScanSlice                              | storage    | 5min  | ⬜     |
-| M10.2 | Add initial capacity hint (make([]T, 0, 64)) to ScanSlice                 | storage    | 10min | ⬜     |
-| M10.3 | Run storage tests                                                         | storage    | 10min | ⬜     |
+| M5.1  | Read storage/event_store_scan.go insertEvents + query_engine.go           | storage    | 10min | ✅     |
+| M5.2  | Cache INSERT/SELECT SQL strings per dialect at SQLEventStore construction | storage    | 15min | ✅     |
+| M5.3  | Run storage tests                                                         | storage    | 10min | ✅     |
+| M6.1  | Read memory/store_load.go getEvents + copyEvents flow                     | memory     | 5min  | ✅     |
+| M6.2  | Remove redundant copyEvents wrapper — return getEvents result directly    | memory     | 10min | ✅     |
+| M6.3  | Run memory tests                                                          | memory     | 10min | ✅     |
+| M7.1  | Remove vestigial goroutine in SSE broker NewBroker                        | middleware | 5min  | ✅     |
+| M7.2  | Replace 3× fmt.Fprintf with single pooled bytes.Buffer write              | middleware | 15min | ✅     |
+| M7.3  | Run middleware tests                                                      | middleware | 10min | ✅     |
+| M8.1  | Move EnsureCustom call before the Merge loop                              | event      | 5min  | ✅     |
+| M8.2  | Run event tests                                                           | event      | 10min | ✅     |
+| M9.1  | Pre-size FilterByTimestamp: make([]Event, 0, len(events))                 | event      | 5min  | ✅     |
+| M9.2  | Run event tests                                                           | event      | 5min  | ✅     |
+| M10.1 | Read storage/sql/reconstruction.go ScanSlice                              | storage    | 5min  | ✅     |
+| M10.2 | Add initial capacity hint (make([]T, 0, 64)) to ScanSlice                 | storage    | 10min | ✅     |
+| M10.3 | Run storage tests                                                         | storage    | 10min | ✅     |
 
 ### Phase 4: Remaining Optimizations
 
 | ID    | Micro Task                                                         | Module     | Est   | Status |
 | ----- | ------------------------------------------------------------------ | ---------- | ----- | ------ |
-| M11.1 | Read middleware/circuit_breaker.go execute() + allow/recordSuccess | middleware | 10min | ⬜     |
-| M11.2 | Replace Mutex with atomic.Int32 for state + failure count          | middleware | 15min | ⬜     |
-| M11.3 | Refactor allow() to use atomic CAS                                 | middleware | 15min | ⬜     |
-| M11.4 | Refactor recordSuccess/recordFailure to use atomic ops             | middleware | 15min | ⬜     |
-| M11.5 | Run middleware tests + race detector                               | middleware | 15min | ⬜     |
-| M12.1 | Read memory/bus.go Publish + publishEvent middleware chain         | memory     | 10min | ⬜     |
-| M12.2 | Pre-compute middleware chain on UsePublish/Use, rebuild on change  | memory     | 15min | ⬜     |
-| M12.3 | Run memory tests                                                   | memory     | 10min | ⬜     |
-| M12.4 | Run memory bus benchmarks                                          | memory     | 10min | ⬜     |
-| M13.1 | Read pebble/journal.go ReadFrom iteration + journal key format     | pebble     | 10min | ⬜     |
-| M13.2 | Implement iter.SeekGE to journal key instead of linear skip        | pebble     | 15min | ⬜     |
-| M13.3 | Handle edge case: afterEventID not found in journal                | pebble     | 10min | ⬜     |
-| M13.4 | Run pebble tests                                                   | pebble     | 10min | ⬜     |
-| M13.5 | Run pebble benchmarks — verify ReadFrom improvement                | pebble     | 10min | ⬜     |
-| M14.1 | Read storage/sql/helpers.go SharedInsertEvents                     | storage    | 10min | ⬜     |
-| M14.2 | Implement multi-VALUES INSERT builder with param limit handling    | storage    | 15min | ⬜     |
-| M14.3 | Handle SQLite 999-param limit: chunk large batches                 | storage    | 15min | ⬜     |
-| M14.4 | Run storage tests (SQLite real + PostgreSQL mock)                  | storage    | 15min | ⬜     |
-| M14.5 | Run storage benchmarks                                             | storage    | 10min | ⬜     |
+| M11.1 | Read middleware/circuit_breaker.go execute() + allow/recordSuccess | middleware | 10min | ✅     |
+| M11.2 | Replace Mutex with atomic.Int32 for state + failure count          | middleware | 15min | ✅     |
+| M11.3 | Refactor allow() to use atomic CAS                                 | middleware | 15min | ✅     |
+| M11.4 | Refactor recordSuccess/recordFailure to use atomic ops             | middleware | 15min | ✅     |
+| M11.5 | Run middleware tests + race detector                               | middleware | 15min | ✅     |
+| M12.1 | Read memory/bus.go Publish + publishEvent middleware chain         | memory     | 10min | ✅     |
+| M12.2 | Pre-compute middleware chain on UsePublish/Use, rebuild on change  | memory     | 15min | ✅     |
+| M12.3 | Run memory tests                                                   | memory     | 10min | ✅     |
+| M12.4 | Run memory bus benchmarks                                          | memory     | 10min | ✅     |
+| M13.1 | Read pebble/journal.go ReadFrom iteration + journal key format     | pebble     | 10min | ✅     |
+| M13.2 | Implement iter.SeekGE to journal key instead of linear skip        | pebble     | 15min | ✅     |
+| M13.3 | Handle edge case: afterEventID not found in journal                | pebble     | 10min | ✅     |
+| M13.4 | Run pebble tests                                                   | pebble     | 10min | ✅     |
+| M13.5 | Run pebble benchmarks — verify ReadFrom improvement                | pebble     | 10min | ✅     |
+| M14.1 | Read storage/sql/helpers.go SharedInsertEvents                     | storage    | 10min | ✅     |
+| M14.2 | Implement multi-VALUES INSERT builder with param limit handling    | storage    | 15min | ✅     |
+| M14.3 | Handle SQLite 999-param limit: chunk large batches                 | storage    | 15min | ✅     |
+| M14.4 | Run storage tests (SQLite real + PostgreSQL mock)                  | storage    | 15min | ✅     |
+| M14.5 | Run storage benchmarks                                             | storage    | 10min | ✅     |
 
 ### Phase 5: Verification & Documentation
 
 | ID    | Micro Task                                                 | Module | Est   | Status |
 | ----- | ---------------------------------------------------------- | ------ | ----- | ------ |
-| M15.1 | Run full benchmark suite (nix run .#test or per-module)    | all    | 15min | ⬜     |
-| M15.2 | Compare before/after benchmark data with benchstat         | all    | 15min | ⬜     |
-| M15.3 | Run full test suite with race detector                     | all    | 15min | ⬜     |
-| M15.4 | Run lint (nix run .#lint)                                  | all    | 15min | ⬜     |
-| M15.5 | Format code (nix fmt)                                      | all    | 5min  | ⬜     |
-| M15.6 | Check module layers (nix run .#check-layers)               | all    | 10min | ⬜     |
-| M16.1 | Update performance report HTML with improvement data       | docs   | 15min | ⬜     |
-| M17.1 | Update AGENTS.md Design Principles with optimization notes | docs   | 10min | ⬜     |
-| M17.2 | Update CHANGELOG.md with performance improvements          | docs   | 10min | ⬜     |
-| M18.1 | Git commit all changes with detailed message               | all    | 10min | ⬜     |
-| M18.2 | Git push                                                   | all    | 5min  | ⬜     |
+| M15.1 | Run full benchmark suite (nix run .#test or per-module)    | all    | 15min | ✅     |
+| M15.2 | Compare before/after benchmark data with benchstat         | all    | 15min | ✅     |
+| M15.3 | Run full test suite with race detector                     | all    | 15min | ✅     |
+| M15.4 | Run lint (nix run .#lint)                                  | all    | 15min | ✅     |
+| M15.5 | Format code (nix fmt)                                      | all    | 5min  | ✅     |
+| M15.6 | Check module layers (nix run .#check-layers)               | all    | 10min | ✅     |
+| M16.1 | Update performance report HTML with improvement data       | docs   | 15min | ✅     |
+| M17.1 | Update AGENTS.md Design Principles with optimization notes | docs   | 10min | ✅     |
+| M17.2 | Update CHANGELOG.md with performance improvements          | docs   | 10min | ✅     |
+| M18.1 | Git commit all changes with detailed message               | all    | 10min | ✅     |
+| M18.2 | Git push                                                   | all    | 5min  | ✅     |
 
 ---
 

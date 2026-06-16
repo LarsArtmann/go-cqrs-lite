@@ -298,3 +298,22 @@ BenchmarkCircuitBreaker_HappyPath-32     	128939545	         9.308 ns/op	       
 BenchmarkCircuitBreaker_Concurrent-32    	59824453	        19.74 ns/op	       0 B/op	       0 allocs/op
 PASS
 ok  	github.com/larsartmann/go-cqrs-lite/middleware/v2	7.571s
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/integration/v2
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkScale_Concurrent_10KCommands_8Goroutines-32                	     100	  11192718 ns/op	   7147504 commands/sec	16642985 B/op	  160032 allocs/op
+BenchmarkScale_Concurrent_DeciderExecute_4Goroutines-32             	      60	  22866500 ns/op	    174928 executes/sec	 8948777 B/op	  144080 allocs/op
+BenchmarkScale_DeciderExecute_ManyAggregates-32                     	  504847	      2617 ns/op	    2182 B/op	      34 allocs/op
+BenchmarkScale_DeciderExecute_1000Aggregates_100UpdatesEach-32      	     418	   9472641 ns/op	    105567 executes/sec	 5225332 B/op	   28027 allocs/op
+BenchmarkScale_DeciderLoad_10KAggregates-32                         	      64	  20929189 ns/op	    477802 loads/sec	14320419 B/op	  120000 allocs/op
+BenchmarkScale_EventCreation_WithPayload-32                         	 4994170	       236.0 ns/op	   4237519 events/sec	     352 B/op	       3 allocs/op
+BenchmarkScale_EventSave_10KAggregates_100EventsEach-32             	       2	 616902280 ns/op	   1621002 events/sec	523447208 B/op	 2063245 allocs/op
+BenchmarkScale_EventPublish_MemoryBus_100KEvents-32                 	 1724305	       693.0 ns/op	 144295850 events/sec	       0 B/op	       0 allocs/op
+BenchmarkScale_Listing_10KAggregates-32                             	    3333	    356598 ns/op	      2804 list-ops/sec	 2417514 B/op	       9 allocs/op
+BenchmarkScale_Listing_PaginateThrough10K-32                        	      13	  82099414 ns/op	    121804 items-iterated/sec	482729100 B/op	    1979 allocs/op
+BenchmarkScale_FullPipeline_1KAggregates-32                         	     279	   6542217 ns/op	    152853 aggregates/sec	 4623876 B/op	   37066 allocs/op
+BenchmarkScale_ProjectionRegistration_1000-32                       	   66082	    116504 ns/op	      8583 registrations/sec	     314 B/op	       4 allocs/op
+BenchmarkScale_ProjectionProcessing_100Projections_100KEvents-32    	       1	3523736351 ns/op	   2837881 projection-events/sec	5422319960 B/op	90412175 allocs/op
+BenchmarkScale_ProjectionProcessing_Parallel/Parallelism1-32        	       6	 185272409 ns/op	   2698729 projection-events/sec	272720529 B/op	 4540650 allocs/op
+BenchmarkScale_ProjectionProcessing_Parallel/Parallelism4-32        	       2	 507945434 ns/op	    984358 projection-events/sec	320663160 B/op	 5595337 allocs/op
