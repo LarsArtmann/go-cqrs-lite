@@ -2,7 +2,6 @@ package eventtest
 
 import (
 	"context"
-	"errors"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
@@ -29,13 +28,13 @@ func NoopEventPublisher() event.Publisher {
 
 func FailingEventPublisher(msg string) event.Publisher {
 	return event.PublisherFunc(func(_ context.Context, _ ...event.Event) error {
-		return errors.New(msg) //nolint:err113 // test helper with dynamic message
+		return event.NewRejection("eventtest.failing_publisher", msg)
 	})
 }
 
 func FailingEventHandler(msg string) event.Handler {
 	return func(_ context.Context, _ event.Event) error {
-		return errors.New(msg) //nolint:err113 // test helper with dynamic message
+		return event.NewRejection("eventtest.failing_handler", msg)
 	}
 }
 

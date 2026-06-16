@@ -2,10 +2,10 @@ package id
 
 import (
 	"crypto/rand"
-	"fmt"
 	"time"
 
 	cbid "github.com/larsartmann/go-branded-id"
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/oklog/ulid/v2"
 )
 
@@ -32,14 +32,27 @@ func Parse[T any](s string) (Of[T], error) {
 	if s == "" {
 		var zero Of[T]
 
-		return zero, fmt.Errorf("cannot parse empty string as %T: %w", zero, errEmptyString)
+		return zero, errorfamily.Wrapf(
+			errEmptyString,
+			errorfamily.Rejection,
+			"id.parse_empty",
+			"cannot parse empty string as %T",
+			zero,
+		)
 	}
 
 	id, err := ulid.Parse(s)
 	if err != nil {
 		var zero Of[T]
 
-		return zero, fmt.Errorf("cannot parse %q as ULID for %T: %w", s, zero, err)
+		return zero, errorfamily.Wrapf(
+			err,
+			errorfamily.Rejection,
+			"id.parse_ulid",
+			"cannot parse %q as ULID for %T",
+			s,
+			zero,
+		)
 	}
 
 	return cbid.NewID[T](id), nil

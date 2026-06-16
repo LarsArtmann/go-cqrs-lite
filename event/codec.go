@@ -1,7 +1,6 @@
 package event
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
@@ -117,11 +116,9 @@ func validateEncodingMatch(evt Event, c codec.Codec) error {
 
 	codecEnc := c.Encoding()
 	if codecEnc != evtEnc {
-		return WrapRejection(
-			fmt.Errorf("event encoding %q does not match codec encoding %q", evtEnc, codecEnc),
-			"event.encoding_mismatch",
-			"decode payload for event "+string(evt.Type()),
-		)
+		return Newf(Rejection, "event.encoding_mismatch",
+			"event encoding %q does not match codec encoding %q (decode payload for event %s)",
+			evtEnc, codecEnc, evt.Type())
 	}
 
 	return nil

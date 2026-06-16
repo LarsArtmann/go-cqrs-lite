@@ -2,7 +2,6 @@ package event
 
 import (
 	"encoding/base64"
-	"fmt"
 )
 
 // DecodeBase64String decodes a base64-encoded string, trying URL-safe
@@ -18,7 +17,7 @@ func DecodeBase64String(encoded string) ([]byte, error) {
 	}
 
 	if err != nil {
-		return decoded, fmt.Errorf("encoded=%v: %w", encoded, err)
+		return decoded, Wrapf(err, Corruption, "event.base64_decode", "encoded=%v", encoded)
 	}
 
 	return decoded, nil

@@ -2,7 +2,6 @@ package eventtest
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
@@ -168,12 +167,8 @@ func (s *FakeStore) ReadFrom(
 
 	all, err := s.ReadAll(ctx)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"read all for ReadFrom (limit=%d, after=%s): %w",
-			limit,
-			afterEventID,
-			err,
-		)
+		return nil, event.Wrapf(err, event.Infrastructure, "eventtest.read_from",
+			"read all for ReadFrom (limit=%d, after=%s)", limit, afterEventID)
 	}
 
 	startIdx := 0

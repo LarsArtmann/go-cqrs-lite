@@ -8,6 +8,7 @@ import (
 	"time"
 
 	cbid "github.com/larsartmann/go-branded-id"
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/oklog/ulid/v2"
 )
 
@@ -39,7 +40,12 @@ func ParseAggregateID(s string) (AggregateID, error) {
 	if s == "" {
 		var zero AggregateID
 
-		return zero, fmt.Errorf("cannot parse empty string as AggregateID: %w", errEmptyString)
+		return zero, errorfamily.Wrapf(
+			errEmptyString,
+			errorfamily.Rejection,
+			"id.parse_aggregate_empty",
+			"cannot parse empty string as AggregateID",
+		)
 	}
 
 	return cbid.NewID[AggregateMarker](s), nil

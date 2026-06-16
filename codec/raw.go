@@ -2,7 +2,8 @@ package codec
 
 import (
 	"encoding/json"
-	"fmt"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // RawCodec implements Codec as a passthrough for []byte.
@@ -21,7 +22,7 @@ func (RawCodec) Encode(v any) ([]byte, error) {
 	case json.RawMessage:
 		return b, nil
 	default:
-		return nil, fmt.Errorf("%w: got %T", ErrEncodeRawType, v)
+		return nil, errorfamily.Wrapf(ErrEncodeRawType, errorfamily.Rejection, "codec.raw_encode_type", "got %T", v)
 	}
 }
 
@@ -29,7 +30,7 @@ func (RawCodec) Encode(v any) ([]byte, error) {
 func (RawCodec) Decode(data []byte, v any) error {
 	p, ok := v.(*[]byte)
 	if !ok {
-		return fmt.Errorf("%w: got %T", ErrDecodeRawType, v)
+		return errorfamily.Wrapf(ErrDecodeRawType, errorfamily.Rejection, "codec.raw_decode_type", "got %T", v)
 	}
 
 	cp := make([]byte, len(data))

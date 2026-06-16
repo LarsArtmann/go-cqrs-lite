@@ -1,5 +1,5 @@
 package id
 
-import "errors"
+import errorfamily "github.com/larsartmann/go-error-family"
 
-var errEmptyString = errors.New("empty string")
+var errEmptyString = errorfamily.NewRejection("id.empty_string", "empty string")

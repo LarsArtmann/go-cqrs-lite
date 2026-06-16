@@ -1,8 +1,8 @@
 package codec
 
-import "errors"
+import errorfamily "github.com/larsartmann/go-error-family"
 
 var (
-	ErrEncodeRawType = errors.New("raw codec: expected []byte")
-	ErrDecodeRawType = errors.New("raw codec: expected *[]byte target")
+	ErrEncodeRawType = errorfamily.NewRejection("codec.raw_encode_type", "raw codec: expected []byte")
+	ErrDecodeRawType = errorfamily.NewRejection("codec.raw_decode_type", "raw codec: expected *[]byte target")
 )
