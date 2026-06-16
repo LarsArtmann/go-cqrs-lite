@@ -72,6 +72,7 @@
             "storage"
             "watermill"
             "encryption"
+            "kv"
             "listing"
             "otel"
             "pebble"

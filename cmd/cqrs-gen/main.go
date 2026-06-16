@@ -25,6 +25,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 const (
@@ -126,7 +128,7 @@ func scanPath(root, genType string) ([]Entry, error) {
 
 		found, err := scanFile(path, genType)
 		if err != nil {
-			return fmt.Errorf("scan %s: %w", path, err)
+			return errorfamily.Wrapf(err, errorfamily.Infrastructure, "cqrs_gen.scan", "scan %s", path)
 		}
 		entries = append(entries, found...)
 		return nil

@@ -1,7 +1,6 @@
 package catalog
 
 import (
-	"fmt"
 	"sync"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -193,7 +192,14 @@ func (r *Registry) AddServiceToDomain(serviceID ServiceID, domainID DomainID) er
 
 	d, ok := r.domains[domainID]
 	if !ok {
-		return fmt.Errorf("add service %q to domain %q: %w", serviceID, domainID, ErrDomainNotFound)
+		return errorfamily.Newf(
+			errorfamily.Infrastructure,
+			"catalog.registry.1",
+			"add service %q to domain %q: %v",
+			serviceID,
+			domainID,
+			ErrDomainNotFound,
+		)
 	}
 
 	d.Services = append(d.Services, serviceID)

@@ -37,7 +37,7 @@ func (c *encryptingCodec) Encode(v any) ([]byte, error) {
 		return nil, nil
 	}
 
-	ct, err := c.encrypter.Encrypt(plaintext)
+	ciphertext, err := c.encrypter.Encrypt(plaintext)
 	if err != nil {
 		return nil, errorfamily.Wrapf(
 			err,
@@ -47,7 +47,7 @@ func (c *encryptingCodec) Encode(v any) ([]byte, error) {
 		)
 	}
 
-	return ct.Bytes(), nil
+	return ciphertext.Bytes(), nil
 }
 
 func (c *encryptingCodec) Decode(data []byte, v any) error {

@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
 )
 
@@ -13,7 +15,12 @@ func (e *Exporter) writeChannel(ch catalog.Channel) error {
 
 	err := os.MkdirAll(dir, dirPerm)
 	if err != nil {
-		return fmt.Errorf("create channel dir: %w", err)
+		return errorfamily.Newf(
+			errorfamily.Infrastructure,
+			"catalog.exporter_resources.1",
+			"create channel dir: %v",
+			err,
+		)
 	}
 
 	md := newFrontmatterWriter()
@@ -87,7 +94,12 @@ func (e *Exporter) writeDataStore(ds catalog.DataStore) error {
 
 	err := os.MkdirAll(dir, dirPerm)
 	if err != nil {
-		return fmt.Errorf("create data store dir: %w", err)
+		return errorfamily.Newf(
+			errorfamily.Infrastructure,
+			"catalog.exporter_resources.2",
+			"create data store dir: %v",
+			err,
+		)
 	}
 
 	md := newFrontmatterWriter()

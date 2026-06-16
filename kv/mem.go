@@ -107,24 +107,19 @@ func (s *MemStore) NewIterator(prefix []byte) (Iterator, error) {
 		return nil, err
 	}
 
-	type kvPair struct {
-		key   []byte
-		value []byte
-	}
-
-	var pairs []kvPair
+	var pairs []memKV
 
 	for k, v := range s.data {
 		bk := []byte(k)
 		if len(prefix) == 0 || bytes.HasPrefix(bk, prefix) {
-			pairs = append(pairs, kvPair{
+			pairs = append(pairs, memKV{
 				key:   slices.Clone(bk),
 				value: slices.Clone(v),
 			})
 		}
 	}
 
-	slices.SortFunc(pairs, func(a, b kvPair) int {
+	slices.SortFunc(pairs, func(a, b memKV) int {
 		return bytes.Compare(a.key, b.key)
 	})
 

@@ -1,9 +1,9 @@
 package queries
 
 import (
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"context"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
@@ -19,7 +19,7 @@ type GetTodoQuery struct {
 func NewGetTodoQuery(todoID domain.TodoID) (*GetTodoQuery, error) {
 	core, err := query.New(GetTodoQueryType)
 	if err != nil {
-		return nil, fmt.Errorf("new get todo query for todo %s: %w", todoID, err)
+		return nil, event.Newf(event.Infrastructure, "todo.queries.get_todo.1", "new get todo query for todo %s: %v", todoID, err)
 	}
 
 	return &GetTodoQuery{BasicQuery: core, TodoID: todoID}, nil
@@ -56,7 +56,7 @@ func NewGetTodoHandler(readModel domain.TodoReadModel) *GetTodoHandler {
 func (h *GetTodoHandler) Handle(_ context.Context, q *GetTodoQuery) (*GetTodoResult, error) {
 	todo, err := h.readModel.Get(q.TodoID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get todo %s: %w", q.TodoID, err)
+		return nil, event.Newf(event.Infrastructure, "todo.queries.get_todo.2", "failed to get todo %s: %v", q.TodoID, err)
 	}
 
 	return FromDomain(todo), nil

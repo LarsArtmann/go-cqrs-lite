@@ -1,10 +1,10 @@
 package main
 
 import (
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -47,7 +47,7 @@ func run(logger *slog.Logger) error {
 
 	readModelStore, err := storage.NewPebbleStore(dataDir, logger)
 	if err != nil {
-		return fmt.Errorf("create read model store: %w", err)
+		return event.Newf(event.Infrastructure, "todo.cmd.api.main.1", "create read model store: %v", err)
 	}
 	defer func() { _ = readModelStore.Close() }()
 
@@ -60,11 +60,11 @@ func run(logger *slog.Logger) error {
 
 	runner, err := projection.NewRunner(eventStore, eventBus, checkpointStore)
 	if err != nil {
-		return fmt.Errorf("create projection runner: %w", err)
+		return event.Newf(event.Infrastructure, "todo.cmd.api.main.2", "create projection runner: %v", err)
 	}
 
 	if err := runner.Register(todoProjection); err != nil {
-		return fmt.Errorf("register projection: %w", err)
+		return event.Newf(event.Infrastructure, "todo.cmd.api.main.3", "register projection: %v", err)
 	}
 
 	go func() {
@@ -80,28 +80,28 @@ func run(logger *slog.Logger) error {
 		aggregate.CommandCreate,
 		commands.NewCreateTodoHandler(eventStore, eventBus).Handle,
 	); err != nil {
-		return fmt.Errorf("register create command: %w", err)
+		return event.Newf(event.Infrastructure, "todo.cmd.api.main.4", "register create command: %v", err)
 	}
 
 	if err := cmdDisp.Register(
 		aggregate.CommandUpdate,
 		commands.NewUpdateTodoHandler(eventStore, eventBus).Handle,
 	); err != nil {
-		return fmt.Errorf("register update command: %w", err)
+		return event.Newf(event.Infrastructure, "todo.cmd.api.main.5", "register update command: %v", err)
 	}
 
 	if err := cmdDisp.Register(
 		aggregate.CommandDelete,
 		commands.NewDeleteTodoHandler(eventStore, eventBus).Handle,
 	); err != nil {
-		return fmt.Errorf("register delete command: %w", err)
+		return event.Newf(event.Infrastructure, "todo.cmd.api.main.6", "register delete command: %v", err)
 	}
 
 	if err := cmdDisp.Register(
 		aggregate.CommandChangeStatus,
 		commands.NewChangeStatusHandler(eventStore, eventBus).Handle,
 	); err != nil {
-		return fmt.Errorf("register change status command: %w", err)
+		return event.Newf(event.Infrastructure, "todo.cmd.api.main.7", "register change status command: %v", err)
 	}
 
 	registerQueryHandlers(queryDisp, readModelStore)
@@ -146,7 +146,7 @@ func run(logger *slog.Logger) error {
 
 	select {
 	case err := <-serverErr:
-		return fmt.Errorf("server failed: %w", err)
+		return event.Newf(event.Infrastructure, "todo.cmd.api.main.8", "server failed: %v", err)
 	case <-quit:
 	}
 
@@ -156,7 +156,7 @@ func run(logger *slog.Logger) error {
 	defer cancel()
 
 	if err := srv.Shutdown(shutdownCtx); err != nil {
-		return fmt.Errorf("server shutdown: %w", err)
+		return event.Newf(event.Infrastructure, "todo.cmd.api.main.9", "server shutdown: %v", err)
 	}
 
 	logger.Info("Server exited")

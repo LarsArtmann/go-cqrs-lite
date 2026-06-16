@@ -1,9 +1,9 @@
 package queries
 
 import (
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
@@ -21,7 +21,7 @@ type CountTodosQuery struct {
 func NewCountTodosQuery() (*CountTodosQuery, error) {
 	core, err := query.New(CountTodosQueryType)
 	if err != nil {
-		return nil, fmt.Errorf("new count todos query: %w", err)
+		return nil, event.Newf(event.Infrastructure, "todo.queries.count_todos.1", "new count todos query: %v", err)
 	}
 
 	return &CountTodosQuery{BasicQuery: core}, nil
@@ -48,7 +48,7 @@ func (h *CountTodosHandler) Handle(
 
 	count, err := h.readModel.Count(filter)
 	if err != nil {
-		return nil, fmt.Errorf("failed to count todos with filter %+v: %w", filter, err)
+		return nil, event.Newf(event.Infrastructure, "todo.queries.count_todos.2", "failed to count todos with filter %+v: %v", filter, err)
 	}
 
 	return &CountTodosResult{Count: count}, nil

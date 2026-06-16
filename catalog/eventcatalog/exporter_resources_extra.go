@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
 )
 
@@ -14,7 +16,12 @@ func (e *Exporter) writeFlow(f catalog.Flow) error {
 
 	err := os.MkdirAll(dir, dirPerm)
 	if err != nil {
-		return fmt.Errorf("create flow dir: %w", err)
+		return errorfamily.Newf(
+			errorfamily.Infrastructure,
+			"catalog.exporter_resources_extra.1",
+			"create flow dir: %v",
+			err,
+		)
 	}
 
 	md := newFrontmatterWriter()
@@ -102,7 +109,12 @@ func (e *Exporter) writeTeam(team catalog.Team) error {
 
 	err := os.MkdirAll(dir, dirPerm)
 	if err != nil {
-		return fmt.Errorf("create teams dir: %w", err)
+		return errorfamily.Newf(
+			errorfamily.Infrastructure,
+			"catalog.exporter_resources_extra.2",
+			"create teams dir: %v",
+			err,
+		)
 	}
 
 	md := newFrontmatterWriter()
@@ -133,7 +145,12 @@ func (e *Exporter) writeUser(user catalog.User) error {
 
 	err := os.MkdirAll(dir, dirPerm)
 	if err != nil {
-		return fmt.Errorf("create users dir: %w", err)
+		return errorfamily.Newf(
+			errorfamily.Infrastructure,
+			"catalog.exporter_resources_extra.3",
+			"create users dir: %v",
+			err,
+		)
 	}
 
 	var sb strings.Builder

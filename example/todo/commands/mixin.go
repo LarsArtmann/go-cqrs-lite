@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
@@ -12,7 +11,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
-var ErrInvalidCommandType = errors.New("invalid command type")
+var ErrInvalidCommandType = event.NewRejection("todo.invalid_command_type", "invalid command type")
 
 type CommandHandler struct {
 	repo *decider.Repository[todoaggregate.TodoState]
@@ -40,12 +39,12 @@ func (m *CommandHandler) execute(
 func requireCommandType[T any](cmd command.Command, expected string) (T, error) {
 	var zero T
 	if cmd == nil {
-		return zero, fmt.Errorf("%w: expected %s, got nil", ErrInvalidCommandType, expected)
+		return zero, event.Newf(event.Infrastructure, "todo.commands.mixin.1", "%v: expected %s, got nil", ErrInvalidCommandType, expected)
 	}
 
 	typed, ok := cmd.(T)
 	if !ok {
-		return zero, fmt.Errorf("%w: expected %s, got %T", ErrInvalidCommandType, expected, cmd)
+		return zero, event.Newf(event.Infrastructure, "todo.commands.mixin.2", "%v: expected %s, got %T", ErrInvalidCommandType, expected, cmd)
 	}
 
 	return typed, nil

@@ -3,6 +3,7 @@
 **Date:** 2026-06-16
 **Scope:** All non-test `*.go` files across the monorepo (347 files: library modules, `example/`, `cmd/`).
 **Method:** Pattern-based grep heuristics + manual inspection of every candidate site. Every finding below was read in source before reporting — no false-positive template matches.
+**Status:** All actionable findings **RESOLVED**. See "Resolution Log" at bottom.
 
 ---
 
@@ -306,3 +307,26 @@ Everything in **LOW** is optional; **Acceptable** items need no change.
 ## Conclusion
 
 No branching-flow anti-patterns reach the **library's public API surface** with one exception (H3, the `ownDB` flag — already borderline-common). The genuinely harmful branching lives entirely in `cmd/` tools and the `turso` advisor heuristic, which is the right place for "ugly but contained" logic. Fixing the three HIGH items and the single `turso` pass would leave the codebase effectively free of branching-flow smells.
+
+---
+
+## Resolution Log
+
+All actionable findings resolved. Tests + lint pass for all changed modules.
+
+| Finding | Resolution | Files Changed |
+| --- | --- | --- |
+| **H1** (4-way OR → switch) | **Already resolved** by commit `adb8e5e1` (error-family migration rewrote `opError` to use `event.Compose`/`event.Wrapf` — no more OR-chain). Fixed 2 pre-existing lint issues in the same file to unblock pipeline. | `decider/load.go` |
+| **H2** (arrow nesting) | **Already resolved** — `collectExports` already split into `collectFileExports` + `collectGenDeclExports` + `typeExportName` helpers (max 3 levels). | — |
+| **H3** (ownDB bool flag) | Added `NewBorrowedDBHandle(db, d)` and `NewOwningDBHandle(db, d)` as preferred constructors. Deprecated `NewOwnedDBHandle(db, d, ownDB bool)` and `SetOwnership(bool)`. Updated all 3 production callers + tests to use clean API. | `storage/sql/base.go`, `storage/sql/coverage_test.go`, `storage/event_store.go`, `storage/command_store.go`, `storage/query_store.go` |
+| **M1** (string-branched codegen) | Extracted `genSpec` map with `writeEntry` closures. Two named writer functions (`writeCommandHandler`, `writeQueryHandler`). Adding a new gen type is now a single map entry. | `cmd/cqrs-gen/main.go` |
+| **M2** (switch → map) | `tableQueryPatterns` now a package-level `queryPatternsByTable` map; method is a one-liner lookup. | `turso/indexing/advisor_data.go` (new), `turso/indexing/advisor.go` |
+| **M3** (if-chain → table-driven) | `inferIndex` now iterates `indexInferenceRules[table]` — a data table of `{needs []string, index, reason, priority}`. First match wins, preserving exact semantics. | `turso/indexing/advisor_data.go`, `turso/indexing/advisor.go` |
+| **M4** (regex OR → slice) | `advisoryRegexes` is now a `[]*regexp.Regexp` slice; `recommendationFromDetail` loops over it. | `turso/indexing/advisor_data.go`, `turso/indexing/advisor.go` |
+| **M5** (3× Contains → helper) | `containsAll(s, substrs...)` helper used by M3's table-driven matching. | `turso/indexing/advisor_data.go` |
+| **M6** (4-level nesting) | Extracted `shouldPrependSepBeforeUpper` and `shouldPrependSepBeforeDigit` helpers. `ToSeparated` body now max 2 levels. | `catalog/internal/caseutil/convert.go` |
+| **M7** (reflect.Kind switch) | **Accepted** — idiomatic switch for reflect.Kind→type mapping. No action needed. | — |
+| **M8** (id field OR-chain) | Extracted `isIDField(lower string) bool` helper. Also removed redundant `"aggregate_id"` check (subsumed by `_id` suffix test). | `catalog/openapi/exporter.go` |
+| **LOW** (d2 hasMessages) | Extracted `hasMessages(svc)` helper. | `catalog/d2/connections.go` |
+| **LOW** (decider snapshot guard) | Extracted `snapshotConfigIncomplete()` method. | `decider/decider.go` |
+| **Pre-existing lint fixes** | Fixed 3 pre-existing lint issues to unblock pipeline: ST1023 + wsl_v5 in `decider/load.go`, gci in `catalog/schema/yaml.go`, varnamelen in `encryption/codec.go`. | 3 files |

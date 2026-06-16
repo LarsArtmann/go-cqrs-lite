@@ -3,11 +3,6 @@ go 1.26.3
 use (
 	.
 	./catalog
-	./catalog/asyncapi
-	./catalog/d2
-	./catalog/docserver
-	./catalog/eventcatalog
-	./catalog/openapi
 	./cmd/api-stability
 	./cmd/cqrs-gen
 	./codec
@@ -21,6 +16,7 @@ use (
 	./example/user
 	./id
 	./integration
+	./kv
 	./listing
 	./memory
 	./middleware

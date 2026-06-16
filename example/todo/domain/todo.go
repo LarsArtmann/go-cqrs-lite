@@ -1,15 +1,15 @@
 package domain
 
 import (
-	"errors"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"time"
 )
 
 var (
-	ErrEmptyTitle     = errors.New("todo title cannot be empty")
-	ErrInvalidStatus  = errors.New("invalid todo status")
-	ErrNotFound       = errors.New("todo not found")
-	ErrConcurrentEdit = errors.New("concurrent edit detected")
+	ErrEmptyTitle     = event.NewRejection("todo.domain.todo.1", "todo title cannot be empty")
+	ErrInvalidStatus  = event.NewRejection("todo.domain.todo.2", "invalid todo status")
+	ErrNotFound       = event.NewRejection("todo.domain.todo.3", "todo not found")
+	ErrConcurrentEdit = event.NewRejection("todo.domain.todo.4", "concurrent edit detected")
 )
 
 type TodoStatus string

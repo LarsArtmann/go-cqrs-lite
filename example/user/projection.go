@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
@@ -62,14 +61,14 @@ func (s *ReadModelStore) Handle(_ context.Context, evt event.Event) error {
 	case eventUserCreated:
 		p, err := event.DecodePayload[UserCreatedPayload](evt, c)
 		if err != nil {
-			return fmt.Errorf("decode UserCreated in projection: %w", err)
+			return event.Newf(event.Infrastructure, "user.projection.1", "decode UserCreated in projection: %v", err)
 		}
 
 		s.users[aggID] = ReadModel(p)
 	case eventUserNameChanged:
 		p, err := event.DecodePayload[UserNameChangedPayload](evt, c)
 		if err != nil {
-			return fmt.Errorf("decode UserNameChanged in projection: %w", err)
+			return event.Newf(event.Infrastructure, "user.projection.2", "decode UserNameChanged in projection: %v", err)
 		}
 
 		if existing, ok := s.users[aggID]; ok {
@@ -81,7 +80,7 @@ func (s *ReadModelStore) Handle(_ context.Context, evt event.Event) error {
 	case eventUserReborn:
 		p, err := event.DecodePayload[UserRebornPayload](evt, c)
 		if err != nil {
-			return fmt.Errorf("decode UserReborn in projection: %w", err)
+			return event.Newf(event.Infrastructure, "user.projection.3", "decode UserReborn in projection: %v", err)
 		}
 
 		s.users[aggID] = ReadModel(p)

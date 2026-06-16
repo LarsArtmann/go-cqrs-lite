@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"fmt"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
@@ -21,7 +21,7 @@ func (s *MemoryStore) Get(id domain.TodoID) (*domain.Todo, error) {
 	defer s.mu.RUnlock()
 	todo, ok := s.todos[id.String()]
 	if !ok {
-		return nil, fmt.Errorf("todo %s not found: %w", id.String(), domain.ErrNotFound)
+		return nil, event.Newf(event.Infrastructure, "todo.storage.memory_store.1", "todo %s not found: %v", id.String(), domain.ErrNotFound)
 	}
 	return todo.Clone(), nil
 }
@@ -60,7 +60,7 @@ func (s *MemoryStore) Delete(id domain.TodoID) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if _, exists := s.todos[id.String()]; !exists {
-		return fmt.Errorf("todo %s not found: %w", id.String(), domain.ErrNotFound)
+		return event.Newf(event.Infrastructure, "todo.storage.memory_store.2", "todo %s not found: %v", id.String(), domain.ErrNotFound)
 	}
 	delete(s.todos, id.String())
 	return nil

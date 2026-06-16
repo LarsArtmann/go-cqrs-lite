@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -75,21 +76,21 @@ func generateEventCatalog(outputDir string) error {
 	}
 
 	if err := eventcatalog.NewExporter(outputDir).Export(cat); err != nil {
-		return fmt.Errorf("export eventcatalog to %s: %w", outputDir, err)
+		return event.Newf(event.Infrastructure, "user.catalog.1", "export eventcatalog to %s: %v", outputDir, err)
 	}
 
 	d2Output := d2.NewExporter("User Service", "1.0.0").Export(cat)
 
 	d2Path := filepath.Join(outputDir, "architecture.d2")
 	if err := os.WriteFile(d2Path, []byte(d2Output), outputFilePerm); err != nil {
-		return fmt.Errorf("write d2 to %s: %w", d2Path, err)
+		return event.Newf(event.Infrastructure, "user.catalog.2", "write d2 to %s: %v", d2Path, err)
 	}
 
 	asyncDoc := asyncapi.NewExporter("User Service", "1.0.0").Export(cat)
 
 	asyncPath := filepath.Join(outputDir, "asyncapi.json")
 	if err := os.WriteFile(asyncPath, mustMarshal(asyncDoc), outputFilePerm); err != nil {
-		return fmt.Errorf("write asyncapi to %s: %w", asyncPath, err)
+		return event.Newf(event.Infrastructure, "user.catalog.3", "write asyncapi to %s: %v", asyncPath, err)
 	}
 
 	fmt.Printf("  [catalog] Exported EventCatalog, D2, AsyncAPI to %s\n", outputDir)

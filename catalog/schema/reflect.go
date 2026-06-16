@@ -5,7 +5,6 @@ package schema
 import (
 	"cmp"
 	"encoding/json"
-	"fmt"
 	"reflect"
 	"strings"
 	"sync"
@@ -42,14 +41,24 @@ func ToAny(s *Schema) (any, error) {
 
 	raw, err := json.Marshal(s)
 	if err != nil {
-		return nil, fmt.Errorf("marshal schema to JSON: %w", err)
+		return nil, errorfamily.Newf(
+			errorfamily.Infrastructure,
+			"catalog.reflect.1",
+			"marshal schema to JSON: %v",
+			err,
+		)
 	}
 
 	var result any
 
 	err = json.Unmarshal(raw, &result)
 	if err != nil {
-		return nil, fmt.Errorf("unmarshal schema to any: %w", err)
+		return nil, errorfamily.Newf(
+			errorfamily.Infrastructure,
+			"catalog.reflect.2",
+			"unmarshal schema to any: %v",
+			err,
+		)
 	}
 
 	return result, nil

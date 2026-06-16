@@ -1,7 +1,6 @@
 package aggregate
 
 import (
-	"fmt"
 	"time"
 
 	codecpkg "github.com/larsartmann/go-cqrs-lite/codec/v2"
@@ -43,7 +42,7 @@ func Fold(state TodoState, evt event.Event) (TodoState, error) {
 
 	codec := codecpkg.JSONCodec{}
 	if err := codec.Decode(evt.Payload(), &payload); err != nil {
-		return state, fmt.Errorf("decode payload for event %s: %w", evt.Type(), err)
+		return state, event.Newf(event.Infrastructure, "todo.aggregate.decider.1", "decode payload for event %s: %v", evt.Type(), err)
 	}
 
 	switch evt.Type() {
@@ -59,7 +58,7 @@ func Fold(state TodoState, evt event.Event) (TodoState, error) {
 
 		return state, nil
 	default:
-		return state, fmt.Errorf("%w: %s", ErrUnknownEventType, evt.Type())
+		return state, event.Newf(event.Infrastructure, "todo.aggregate.decider.2", "%v: %s", ErrUnknownEventType, evt.Type())
 	}
 }
 
@@ -277,8 +276,8 @@ func newEventFromPayload(
 ) (event.Event, error) {
 	data, err := codecpkg.JSONCodec{}.Encode(payload)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"marshal payload for event %s aggregate %s version %d: %w",
+		return nil, event.Newf(event.Infrastructure, "todo.aggregate.decider.3", 
+			"marshal payload for event %s aggregate %s version %d: %v",
 			eventType,
 			aggID,
 			version,

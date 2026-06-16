@@ -3,7 +3,6 @@ package commands
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
@@ -16,7 +15,7 @@ type DeleteTodoCommand struct{ command.BasicCommand }
 func NewDeleteTodoCommand(todoID id.AggregateID) (*DeleteTodoCommand, error) {
 	core, err := command.New(aggregate.CommandDelete, todoID)
 	if err != nil {
-		return nil, fmt.Errorf("new delete todo command for todo %s: %w", todoID, err)
+		return nil, event.Newf(event.Infrastructure, "todo.commands.delete_todo.1", "new delete todo command for todo %s: %v", todoID, err)
 	}
 
 	return &DeleteTodoCommand{BasicCommand: *core}, nil
