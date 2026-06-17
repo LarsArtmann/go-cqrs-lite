@@ -3,7 +3,6 @@ package decider
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 
@@ -28,7 +27,7 @@ func (r *Repository[State]) loadFromStore(
 				return r.store.Load(ctx, ref)
 			})
 			if loadErr != nil {
-				return nil, fmt.Errorf("singleflight load: %w", loadErr)
+				return nil, loadErr //nolint:wrapcheck // passthrough from our own store.Load via singleflight
 			}
 
 			events, _ := v.([]event.Event)
