@@ -92,6 +92,7 @@ Every module has its own README with detailed usage, types, and examples.
 | **memory**   | In-memory store/bus/snapshot/checkpoint/command-bus — for tests & dev | [README](memory/README.md)   |
 | **storage**  | SQL event/snapshot/checkpoint/command stores (PostgreSQL, SQLite)     | [README](storage/README.md)  |
 | **pebble**   | Embedded KV: event/snapshot/checkpoint stores (PebbleDB + CBOR)       | [README](pebble/README.md)   |
+| **kv**       | Layer-0 KV store abstraction: Store, MemStore, Iterator, Batch        | [README](kv/README.md)       |
 | **turso**    | Turso/LibSQL connector with offline-first sync + indexing advisor     | [README](turso/README.md)    |
 | **snapshot** | Snapshot types, strategies, store interfaces                          | [README](snapshot/README.md) |
 | **schema**   | Schema evolution via upcasters and VersionedStore                     | [README](schema/README.md)   |
@@ -152,7 +153,7 @@ Every module has its own README with detailed usage, types, and examples.
 
 ## Status
 
-**v2.3.0** — 28 modules, 84–100% test coverage, 0 lint issues. Active development.
+**v2.3.0** — 29 modules, 84–100% test coverage, 0 lint issues. Active development.
 
 See [FEATURES.md](FEATURES.md) for the full feature inventory and [docs/](docs/) for architecture decisions (ADRs), benchmarks, and storage guides.
 

@@ -91,7 +91,7 @@ go-cqrs-lite/
 10. **Multi-module isolation** — Each module has its own `go.mod` with only needed deps.
 11. **Tombstone over delete** — Soft-delete via metadata (TombstoneStatus: Active/Tombstoned/Undetermined). No Delete on Store.
 12. **Dependency budgets** — Per-module direct PRODUCTION dep limits enforced by `nix run .#check-layers`. Test-only packages (gomega, ginkgo, rapid) are excluded from the count. Adding production deps requires explicit budget review.
-13. **OTel through otel/** — Modules import `otel/` re-exports instead of `go.opentelemetry.io` directly. OTel SDK is indirect in decider, projection, storage, middleware go.mod files. The `otel/` module now re-exports `Int64Counter`, `AddOption`, `AddSpanEvent()`, `ServiceResourceAttributes()`, `CQRSHistogramBoundaries`, and `CounterAddWithAttributes()` for rate metrics, span events, service identification, and histogram customization.
+13. **OTel through otel/** — Modules import `otel/` re-exports instead of `go.opentelemetry.io` directly. OTel SDK is indirect in decider, projection, storage, middleware go.mod files. The `otel/` module re-exports `Int64Counter`, `AddOption`, `AddSpanEvent()`, `ServiceResourceAttributes()`, `CQRSHistogramBoundaries`, `NewCQRSViews()`, and `CounterAddWithAttributes()` for rate metrics, span events, service identification, histogram customization, and metric views.
 14. **Zero-copy internal reads** — `PayloadReadOnly(evt)` bypasses `Payload()` clone for read-only paths via `*ImmutableEvent` type assertion. Used by signing (SHA-256 hashing, CloneEvent), pebble (json.Marshal), storage/sql (ExecContext), middleware/sse (string conversion). Internal-only `payloadForDecode()` and `encodingForCopy()` for same-package paths.
 15. **Defensive clone on all public accessors** — `Payload()` returns `slices.Clone`, `Metadata()` returns `.Clone()`, `EventTypes()` returns `slices.Clone`, `MultiSignature.Get()` returns a copy, `WithCommandMetadata` clones on intake. The `Event` interface documents this contract for third-party implementors.
 16. **Hot-path zero-allocation discipline** — Public API clones stay, but internal hot paths eliminate allocs via: lazy map init (`NewMetadata()` returns zero-value), pre-computed middleware chains (`MemoryBus` rebuilds on `Use()`/`UsePublish()` only), cached SQL templates (built once at construction), pre-sized result slices (`make([]T, 0, hint)`), lock-free fast paths (`CircuitBreaker` uses `atomic.Int32`), batch SQL inserts (multi-VALUES with SQLite 999-param chunking), and Runner event type caching (caches `p.EventTypes()` once at `Register()` time, eliminating per-event clones for ALL projection types). **Lesson learned**: type assertions for fast paths (`*builtProjection`) are dead code if users create types via different constructors (`event.NewProjection`). Cache at the integration boundary instead. See `docs/planning/2026-06-14_16-30_PERFORMANCE_OPTIMIZATION_PLAN.md` for the full Pareto analysis.
@@ -359,8 +359,6 @@ Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability
 ```
 
 > **Saga pattern**: No dedicated saga module. Multi-step orchestration emerges from projection + command dispatch. See `example/todo/` for a real projection-based architecture.
-
-
 
 > **Historical details**: Session milestones, catalog architecture, and known issues in
 > [`docs/sessions/SESSION_MILESTONES.md`](docs/sessions/SESSION_MILESTONES.md)

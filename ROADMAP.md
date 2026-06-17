@@ -106,7 +106,7 @@ Symmetric persistence across all three CQRS message types (events, commands, que
 
 ### Observability
 
-- [ ] Built-in pprof endpoints
+- [x] ~~Built-in pprof endpoints~~ — **DONE**: `middleware.ProfilingHandler()` and `middleware.RegisterProfiling()` expose all pprof endpoints via `net/http`
 - [ ] Custom metrics exporter (Prometheus format)
 - [ ] Structured logging middleware with configurable levels
 - [ ] Distributed tracing span propagation across module boundaries
@@ -126,4 +126,4 @@ Symmetric persistence across all three CQRS message types (events, commands, que
 
 ---
 
-_Last updated: 2026-06-17 (Sprint 7 complete; projection replay→live dedup gap documented as known issue)_
+_Last updated: 2026-06-17 (Sprint 7 complete; pprof marked done; projection replay→live dedup gap documented as known issue)_

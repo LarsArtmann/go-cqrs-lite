@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-06-17 (post pebble KV adapter + turso lint fixes) · **Module count:** 30 modules (23 library + 1 integration + 3 examples + 2 cmd + turso/indexing sub-package) · **Go version:** 1.26.3
+**Last audited:** 2026-06-17 (post dependency utilization audit + ghost API cleanup) · **Module count:** 30 modules (23 library + 1 integration + 3 examples + 2 cmd + turso/indexing sub-package) · **Go version:** 1.26.3
 
 ## Status Legend
 
@@ -103,6 +103,7 @@
 | PayloadReadOnly       | Zero-copy read access for internal paths (signing, pebble, storage, middleware)                                                                                                                                                                                                                                            | ✅     |
 | Stream loading        | `StreamLoader` interface + `EventStream` cursor + `StoreStreamAdapter`                                                                                                                                                                                                                                                     | ✅     |
 | Reactive streams      | `EventBus = ro.Subject[Event]`, `NewEventBus`, `NewReplayEventBus`, `NewBehaviorEventBus`, `FilterEventType`, `FilterEventTypes`, `ReplayFilter`, `HandlerToObserver`                                                                                                                                                      | ✅     |
+| Stream deduplication  | `DistinctByEventID()`, `DistinctByAggregateID()` — samber/ro operators for reactive pipeline deduplication                                                                                                                                                                                                                 | ✅     |
 | Slice helpers         | `SliceFromVersion`, `SliceToVersion`, `FilterByTimestamp` — in-memory event slicing                                                                                                                                                                                                                                        | ✅     |
 | Command causality     | `WithCommandCausality(ctx, type, id)` + `CommandCausalityEnricher` — auto-tag events with the command that caused them                                                                                                                                                                                                     | ✅     |
 | Checkpoint            | `Checkpoint` struct + `CheckpointSink/Source/Store` interfaces for projection positioning                                                                                                                                                                                                                                  | ✅     |
@@ -193,7 +194,10 @@
 | Codec interface    | `Codec` — `Encoding()`, `Encode(v)`, `Decode(data, v)`          | ✅     |
 | JSON codec         | `JSONCodec` — standard JSON encoding                            | ✅     |
 | CBOR codec         | `CBORCodec` — deterministic canonical CBOR with sorted map keys | ✅     |
+| CBOR compact codec | `CBORCompactCodec` — ~35% smaller via `toarray` positional mode | ✅     |
 | Raw passthrough    | `RawCodec` — `[]byte` pass-through (no encoding)                | ✅     |
+| BufferEncoder      | Optional `BufferEncoder` interface — zero-alloc encoding into caller buffer | ✅     |
+| CBOR diagnostic    | `Diagnose(data)` — human-readable CBOR output for debugging     | ✅     |
 | Encoding constants | `EncodingJSON`, `EncodingCBOR`, `EncodingRaw`                   | ✅     |
 
 ---
@@ -338,6 +342,13 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | SSEBroker   | Server-Sent Events broker with `AddClient`, `RemoveClient`, `ClientCount`, `Close` | ✅     |
 | SSEHandler  | `net/http` handler for SSE connections with client ID extraction                   | ✅     |
 | Thread-safe | Concurrent client management with proper channel lifecycle                         | ✅     |
+
+### Profiling ✅
+
+| Feature           | Detail                                                          | Status |
+| ----------------- | --------------------------------------------------------------- | ------ |
+| ProfilingHandler  | `ProfilingHandler(prefix)` — `net/http` handler for pprof endpoints | ✅     |
+| RegisterProfiling | `RegisterProfiling(mux)` — registers pprof on existing ServeMux | ✅     |
 
 ---
 
@@ -620,13 +631,16 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 
 | Feature            | Detail                                                                                                                                                                                       | Status |
 | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| Type aliases       | `Tracer`, `Span`, `SpanKind`, `KeyValue`, `Meter`, `Float64Histogram` — re-exported from OTel                                                                                                | ✅     |
+| Type aliases       | `Tracer`, `Span`, `SpanKind`, `KeyValue`, `Meter`, `Float64Histogram`, `Int64Counter` — re-exported from OTel                                                                               | ✅     |
 | Tracer factory     | `NewTracer(component)` — creates OTel Tracer with standard instrumentation name                                                                                                              | ✅     |
 | Meter factory      | `NewMeter(component)` — creates OTel Meter                                                                                                                                                   | ✅     |
-| Span helpers       | `StartSpan`, `RecordError`, `EndWithError`, `AggregateAttrs`, `CommandAttrs`, `EventAttrs`, `QueryAttrs`                                                                                     | ✅     |
+| Span helpers       | `StartSpan`, `RecordError`, `EndWithError`, `AddSpanEvent`, `AggregateAttrs`, `CommandAttrs`, `EventAttrs`, `QueryAttrs`                                                                     | ✅     |
 | Context helpers    | `SpanFromContext`, `TraceIDFromContext`, `SpanIDFromContext`                                                                                                                                 | ✅     |
-| Attribute helpers  | `AttrString`, `AttrInt`, `AttrInt64`, `WithAttributes`, `WithSpanKind`                                                                                                                       | ✅     |
-| Metric helpers     | `MetricWithAttributes`, `MetricWithDescription`, `MetricWithUnit`                                                                                                                            | ✅     |
+| Attribute helpers  | `AttrString`, `AttrInt`, `AttrInt64`, `WithAttributes`, `WithSpanKind`, `ServiceResourceAttributes`                                                                                          | ✅     |
+| Metric helpers     | `MetricWithAttributes`, `MetricWithDescription`, `MetricWithUnit`, `CounterAddWithAttributes`, `AddOption`                                                                                   | ✅     |
+| Metric views       | `NewCQRSViews()`, `CQRSHistogramBoundaries` — OTel SDK views with optimized CQRS latency buckets for all `cqrs.*` instruments                                                                | ✅     |
+| Correlation        | `WithCorrelationID`, `CorrelationIDFromContext` — baggage-based correlation propagation                                                                                                      | ✅     |
+| W3C propagation    | `NewTextMapPropagator()` — W3C trace context + baggage propagator                                                                                                                            | ✅     |
 | Logging helpers    | `ComponentLogger`, `ContextLogger` — structured logging with trace correlation                                                                                                               | ✅     |
 | Standard constants | `AttrMessageKind`, `AttrCommandType`, `AttrEventType`, `AttrQueryType`, `AttrAggregateType`, `AttrAggregateID`, `AttrAggregateVersion`, `AttrEventCount`, `AttrProjectionName`, `AttrStatus` | ✅     |
 
@@ -643,6 +657,8 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | SubscriberAdapter   | `NewSubscriberAdapter(bus)` — wraps `event.Bus` as `message.Subscriber`, feeds `<-chan *message.Message` | ✅     |
 | Full event fidelity | 15 metadata keys preserve ID, type, aggregate, version, schema version, all metadata fields              | ✅     |
 | Custom metadata     | `custom.*` prefix preserves all custom metadata entries                                                  | ✅     |
+| Correlation ID MW   | `CorrelationIDMiddleware()` — injects correlation ID into message metadata                               | ✅     |
+| Retry middleware    | `NewRetryMiddleware(config)` + `DefaultRetryConfig()` — retry with backoff for handler errors            | ✅     |
 
 ---
 
@@ -736,12 +752,12 @@ Found during code reviews. See `docs/planning/` for details.
 
 Features mentioned in project docs/planning but with **no production code yet**:
 
-| Feature                      | Description                                                                                                 |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Reactive CommandBus/QueryBus | `ro.Subject[Command]` / `ro.Subject[Query]` reactive streams — event module has these, command/query do not |
-| Schema registry              | JSON Schema middleware for event validation                                                                 |
-| PostgreSQL integration tests | testcontainers-based real PG testing                                                                        |
-| Documentation site           | Docusaurus/MkDocs/Hugo site                                                                                 |
+| Feature               | Description                                          |
+| --------------------- | ---------------------------------------------------- |
+| Schema registry       | JSON Schema middleware for event validation          |
+| PostgreSQL testcontainers | testcontainers-based real PG testing             |
+| Documentation site    | Docusaurus/MkDocs/Hugo site                          |
+| Streaming event reads | `EventIterator` — without materializing full slice   |
 
 ---
 
