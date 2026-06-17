@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
+	"golang.org/x/sync/singleflight"
 )
 
 // Decider defines how to reconstruct state from events.
@@ -38,6 +39,7 @@ type Repository[State any] struct {
 	snapshotStrategy snapshot.SnapshotStrategy
 	enricher         event.ContextEnricher
 	decider          Decider[State]
+	loadGroup        singleflight.Group
 }
 
 // NewRepository creates a decider-backed repository.

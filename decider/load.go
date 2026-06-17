@@ -20,7 +20,20 @@ func (r *Repository[State]) loadFromStore(
 	ref := event.NewAggregateRef(aggregateType, aggregateID)
 
 	return r.loadByEvents(
-		func() ([]event.Event, error) { return r.store.Load(ctx, ref) },
+		func() ([]event.Event, error) {
+			key := ref.Type.String() + "/" + ref.ID.String()
+
+			v, loadErr, _ := r.loadGroup.Do(key, func() (any, error) {
+				return r.store.Load(ctx, ref)
+			})
+			if loadErr != nil {
+				return nil, loadErr
+			}
+
+			events, _ := v.([]event.Event)
+
+			return events, nil
+		},
 		ref,
 	)
 }

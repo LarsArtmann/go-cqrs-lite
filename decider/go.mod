@@ -11,6 +11,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.4.0
 	github.com/onsi/ginkgo/v2 v2.31.0
 	github.com/onsi/gomega v1.42.0
+	golang.org/x/sync v0.21.0
 	pgregory.net/rapid v1.3.0
 )
 
@@ -40,7 +41,6 @@ require (
 	golang.org/x/exp v0.0.0-20260611194520-c48552f49976 // indirect
 	golang.org/x/mod v0.37.0 // indirect
 	golang.org/x/net v0.56.0 // indirect
-	golang.org/x/sync v0.21.0 // indirect
 	golang.org/x/sys v0.46.0 // indirect
 	golang.org/x/text v0.38.0 // indirect
 	golang.org/x/tools v0.46.0 // indirect
