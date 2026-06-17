@@ -20,7 +20,7 @@ Turso uses embedded LibSQL with optional cloud sync. Indexing behavior:
   indexes before production. The advisor inspects `EXPLAIN QUERY PLAN` output.
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/turso/indexing"
+import "github.com/larsartmann/go-cqrs-lite/turso/v2/indexing"
 
 auto := indexing.NewAutoIndexer(db,
     indexing.WithIndexingHooks(
@@ -78,14 +78,17 @@ CREATE INDEX CONCURRENTLY idx_events_cursor
 ## Health Check Integration
 
 The `middleware` package provides a health check HTTP handler. To monitor a
-Turso/LibSQL database connection:
+Turso/LibSQL database connection opened via `turso.Open`:
 
 ```go
 import (
+    "context"
     "database/sql"
+    "fmt"
     "net/http"
 
     "github.com/larsartmann/go-cqrs-lite/middleware"
+    "github.com/larsartmann/go-cqrs-lite/turso/v2"
 )
 
 func tursoHealthChecker(db *sql.DB) middleware.HealthChecker {
@@ -103,28 +106,62 @@ func tursoHealthChecker(db *sql.DB) middleware.HealthChecker {
 }
 
 // Usage:
+db, _ := turso.Open(turso.DbPath("local.db"))
+turso.ConfigurePool(db)
+
 handler := middleware.HealthCheckHandler("1.0.0", tursoHealthChecker(db))
 http.Handle("/health", handler)
 ```
 
-For the embedded Turso connector (`turso.NewConnector`), wrap the underlying
-`*sql.DB`:
+### Health Check for SyncDB
+
+For a sync-enabled database (`turso.OpenSync`), use the built-in
+`SyncDB.HealthCheck` method directly:
 
 ```go
-conn, _ := turso.NewConnector("file:local.db")
-db := conn.DB()
-handler := middleware.HealthCheckHandler("1.0.0", tursoHealthChecker(db))
+syncDB, _ := turso.OpenSync(ctx,
+    turso.DbPath("local.db"),
+    turso.RemoteURL("libsql://my-db.turso.io"),
+    turso.AuthToken("token"),
+)
+defer syncDB.Close()
+
+func tursoSyncHealthChecker(syncDB *turso.SyncDB) middleware.HealthChecker {
+    return func(ctx context.Context) middleware.Check {
+        if err := syncDB.HealthCheck(ctx); err != nil {
+            return middleware.Check{
+                Status: middleware.HealthStatusFail,
+                Output: fmt.Sprintf("turso sync ping failed: %v", err),
+            }
+        }
+        return middleware.Check{
+            Status: middleware.HealthStatusPass,
+        }
+    }
+}
+
+handler := middleware.HealthCheckHandler("1.0.0", tursoSyncHealthChecker(syncDB))
+http.Handle("/health", handler)
 ```
 
 ### Index Health
 
-To check whether auto-indexing has run and how many indexes exist:
+To check whether auto-indexing has run and how many indexes exist, use
+`indexing.Stats` to list all indexes with their query-planner statistics:
 
 ```go
 advisor := indexing.NewAdvisor(db)
-indexes, _ := advisor.ListIndexes(ctx, "events")
-if len(indexes) < 3 {
+_ = advisor.ExistingIndexes(ctx)
+
+allStats, _ := indexing.Stats(ctx, db)
+if len(allStats) < 3 {
     log.Warn("events table has fewer than expected indexes")
+}
+
+// Find indexes that the query planner has never used.
+unused, _ := indexing.UnusedIndexes(ctx, db)
+for _, idx := range unused {
+    log.Printf("unused index: %s on %s", idx.Name, idx.Table)
 }
 ```
 
@@ -133,20 +170,28 @@ if len(indexes) < 3 {
 ## Comparison: Indexed vs Unindexed
 
 The `indexing.Advisor` provides `AnalyzeQuery` which returns recommendations
-with explanations. Use it to demonstrate the impact of indexes:
+with priority classifications. Use it to find queries that need indexes:
 
 ```go
 advisor := indexing.NewAdvisor(db)
 
-// Before indexing
+// Find missing indexes for a specific query.
 recs, _ := advisor.AnalyzeQuery(ctx,
-    "SELECT * FROM events WHERE aggregate_type = ? AND aggregate_id = ?")
+    "SELECT * FROM events WHERE aggregate_type = ? AND aggregate_id = ?",
+    "User", "user-id")
 for _, r := range recs {
-    if r.Severity == indexing.SeverityWarning || r.Severity == indexing.SeverityCritical {
-        log.Printf("MISSING INDEX: %s — %s", r.Index.DDL(), r.Explanation)
+    if r.Priority == indexing.PriorityCritical ||
+        r.Priority == indexing.PriorityRecommended {
+        log.Printf("MISSING INDEX (%s): %s — %s",
+            r.Priority, r.Index.DDL(), r.Explanation)
     }
 }
 
-// After applying recommended indexes
-_ = advisor.CreateRecommended(ctx)
+// Find missing indexes across all CQRS tables at once.
+allRecs, _ := advisor.MissingIndexes(ctx)
+
+// Apply all recommendations automatically.
+auto := indexing.NewAutoIndexer(db)
+auto.Enable()
+_ = auto.Apply(ctx, allRecs)
 ```

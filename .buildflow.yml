@@ -27,6 +27,7 @@ exclude:
   - "*.pb.go"
   - "*.gen.go"
   - "**/testdata/golden/**"
+  - "**/docserver/static/**"
 
 # Auto-fix settings
 auto_fix: false

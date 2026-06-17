@@ -1,17 +1,17 @@
 # KV Store Abstraction Research
 
 > **Date:** 2026-05-29 | **Updated:** 2026-06-16
-> **Status: ⏭ DESCOPED** — The `kv/` module was never created. Pebble SnapshotStore
-> and CheckpointStore were built directly on `*pebble.DB` instead.
+> **Status: ✅ IMPLEMENTED** — The `kv/` module now exists as a Layer 0 leaf module
+> with zero production dependencies. It provides the `Store`, `Reader`, `Writer`,
+> `Iterator`, and `Batch` interfaces exactly as designed in §5, plus an in-memory
+> implementation (`MemStore`) for testing. Future Pebble/BadgerDB/bbolt adapters
+> can implement these interfaces.
 > **Question:** Is there a meta-API for key-value stores that go-cqrs-lite should adopt instead of depending directly on Pebble?
 >
-> **Resolution (2026-06-15):** The recommendation below was descoped. Pebble's native
-> API already provides iteration, batch writes, and byte-slice keys — the `kv.Store`
-> interface would have been a thin wrapper with no added value without a second KV
-> backend (BadgerDB, bbolt) to justify it. See
-> [`docs/planning/2026-06-15_07-33_KV_MODULE_AGENT_PLAN.md`](../planning/2026-06-15_07-33_KV_MODULE_AGENT_PLAN.md)
-> for the full descope rationale. This document remains as a reference for future
-> KV backend interchangeability work.
+> **History:** Originally descoped on 2026-06-15 because Pebble's native API was
+> sufficient. The `kv/` module was subsequently implemented on 2026-06-16 as a
+> standalone, zero-dependency interface module — the interface design from this
+> research proved correct and was implemented verbatim.
 
 ---
 
@@ -19,13 +19,12 @@
 
 **No existing Go KV meta-API fits our needs.** All popular abstraction libraries lack iteration, range scans, and atomic batch writes — the three operations our event store requires. The original recommendation was to **define our own minimal `kv/` module** with ~15 methods across 3 interfaces.
 
-> **Resolution (2026-06-15):** **Descoped.** The `kv/` module was never built.
-> Pebble's native API already provides everything we need (iteration, batch writes,
-> byte-slice keys). Without a second KV backend consumer, the abstraction would be
-> a thin wrapper adding complexity with zero value. The `pebble/` module now contains
-> EventStore, SnapshotStore, and CheckpointStore — all built directly on `*pebble.DB`
-> via disjoint key prefixes (`cqrs_event:`, `cqrs_snapshot:`, `cqrs_checkpoint:`).
-> This research remains valid as a reference if/when a second KV backend is needed.
+> **Implementation (2026-06-16):** **Implemented.** The `kv/` module now exists
+> as a Layer 0 leaf module with zero production dependencies. It provides the
+> `Store`, `Reader`, `Writer`, `Iterator`, and `Batch` interfaces exactly as
+> designed in §5 below, plus `MemStore` — an in-memory implementation for testing.
+> Future Pebble/BadgerDB/bbolt adapters can implement these interfaces to provide
+> backend interchangeability.
 
 ---
 
@@ -480,35 +479,39 @@ These belong in the specific backend module, NOT in `kv/`:
 
 ## 8. Decision Matrix
 
-| Option                      | Pros                                     | Cons                                                     | Verdict             |
-| --------------------------- | ---------------------------------------- | -------------------------------------------------------- | ------------------- |
-| **Use gokv**                | 30+ backends, actively maintained        | No iteration, no batch, string keys, auto-marshalling    | ❌ Reject           |
-| **Use valkeyrie**           | Watch, Lock, AtomicPut, 6 backends       | No batch, string keys, distributed focus, heavy          | ❌ Reject           |
-| **Use hyddenio/kv**         | Closest fit, modern API                  | Too new, lexkey dep, 3 backends, no community            | ❌ Reject           |
-| **Define own `kv/` module** | Exact fit, zero deps, controls semantics | More work (~300 lines total)                             | Descoped 2026-06-15 |
-| **Keep direct Pebble dep**  | Zero work, already works                 | Locked to one backend, violates "data store independent" | ✅ **Chosen**       |
+| Option                      | Pros                                     | Cons                                                     | Verdict            |
+| --------------------------- | ---------------------------------------- | -------------------------------------------------------- | ------------------ |
+| **Use gokv**                | 30+ backends, actively maintained        | No iteration, no batch, string keys, auto-marshalling    | ❌ Reject          |
+| **Use valkeyrie**           | Watch, Lock, AtomicPut, 6 backends       | No batch, string keys, distributed focus, heavy          | ❌ Reject          |
+| **Use hyddenio/kv**         | Closest fit, modern API                  | Too new, lexkey dep, 3 backends, no community            | ❌ Reject          |
+| **Define own `kv/` module** | Exact fit, zero deps, controls semantics | More work (~300 lines total)                             | ✅ **Implemented** |
+| **Keep direct Pebble dep**  | Zero work, already works                 | Locked to one backend, violates "data store independent" | Still in use       |
 
 ---
 
-## 9. Resolution (2026-06-15): Descoped
+## 9. Resolution (2026-06-16): Implemented
 
-**The `kv/` module was never created.** The "Keep direct Pebble dep" fallback was chosen instead.
+**The `kv/` module was implemented** as a Layer 0 leaf module with zero
+production dependencies. The interface design from §5 was implemented verbatim.
 
-### What happened instead
+### What was built
 
-The `pebble/` module was extended to cover the full CQRS stack directly on `*pebble.DB`:
+The `kv/` module provides:
 
-- **EventStore** — events under `cqrs_event:{type}:{id}:{version}` (unchanged)
-- **SnapshotStore** — snapshots under `cqrs_snapshot:{type}:{id}` (added commit `e0e2418e`)
-- **CheckpointStore** — projection positions under `cqrs_checkpoint:{name}` (added commit `e0e2418e`)
+- **5 interfaces** (Store, Reader, Writer, Iterator, Batch) — 14 methods total
+- **MemStore** — in-memory implementation with sorted iteration, atomic batches,
+  and defensive cloning (safe for concurrent use)
+- **Zero production dependencies** — stdlib only
+- **94.4% test coverage** with 16 tests covering all operations, closed-state
+  behavior, defensive cloning, and interface conformance
+- **6 benchmarks** (Set, Get, Has, Delete, BatchCommit, Iterator)
 
-All three share a single `*pebble.DB` via disjoint key prefixes. No abstraction layer was needed.
+### Current status
 
-### Why the abstraction was descoped
-
-1. **No second KV backend exists** — Pebble is the only embedded KV store in the project. A `kv/` interface with one implementation is dead abstraction.
-2. **Pebble's API is already the right shape** — byte-slice keys, lexicographic iteration, atomic batch writes. The `kv.Store` interface would be a 1:1 pass-through.
-3. **SnapshotStore/CheckpointStore were implemented directly** — the "Everything Else" agent plan built them on `*pebble.DB`, making the kv/ prerequisite unnecessary.
+The `pebble/` module still depends directly on `*pebble.DB`. A future refactor
+could add a `pebble/adapter.go` implementing `kv.Store`, then rewrite the event
+store logic to depend only on `kv.Store`. This is deferred until a second KV
+backend (BadgerDB, bbolt) is actually needed.
 
 ### When to revisit
 

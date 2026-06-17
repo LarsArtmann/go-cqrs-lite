@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func main() {
@@ -162,7 +164,13 @@ func collectExports(dir string) ([]string, error) {
 
 	entries, err := os.ReadDir(dir)
 	if err != nil {
-		return nil, fmt.Errorf("read dir %s: %w", dir, err)
+		return nil, errorfamily.Wrapf(
+			err,
+			errorfamily.Infrastructure,
+			"api_stability.read_dir",
+			"read dir %s",
+			dir,
+		)
 	}
 
 	pkgFiles := make(map[string][]*ast.File)
@@ -178,7 +186,13 @@ func collectExports(dir string) ([]string, error) {
 
 		file, err := parser.ParseFile(fset, filepath.Join(dir, entry.Name()), nil, 0)
 		if err != nil {
-			return nil, fmt.Errorf("parse file %s: %w", entry.Name(), err)
+			return nil, errorfamily.Wrapf(
+				err,
+				errorfamily.Infrastructure,
+				"api_stability.parse_file",
+				"parse file %s",
+				entry.Name(),
+			)
 		}
 
 		pkgName := file.Name.Name

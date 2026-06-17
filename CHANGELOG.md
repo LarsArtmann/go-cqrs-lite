@@ -25,6 +25,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Pebble ReadFrom key-based skip** (`pebble/`) — during cursor skip phase, parse event ID from journal key via `journalKeyEventID()` instead of CBOR-deserializing every skipped event
 - **SQL multi-VALUES INSERT batching** (`storage/`) — single `INSERT INTO events ... VALUES (..), (..), (..)` statement replaces N individual INSERTs. SQLite 999-parameter limit handled via automatic chunking (99 events/batch)
 
+### Added
+
+- **Reactive CommandBus and QueryBus** (`command/`, `query/`) — `NewCommandBus`, `NewQueryBus`, `FilterCommandType`, `FilterQueryType`, `HandlerToObserver`, plus replay/behavior variants. Mirrors the existing reactive event API for command and query streams
+- **PebbleBackend facade** (`pebble/`) — `Open()` and `NewBackend()` provide a single shared-DB entry point for Pebble-backed EventStore, SnapshotStore, and CheckpointStore, with clear ownership semantics
+- **SQLBackend lifecycle facade** (`storage/`) — `SnapshotStore()`, `CheckpointStore()`, and `Close()` methods complete the SQL backend full-stack facade
+- **KV module** (`kv/`) — Layer-0 in-memory key-value store abstraction (`MemStore`) with snapshot iteration and atomic batch commit
+- **`command.Compose` and `query.Compose`** — re-export `go-error-family.Compose` for classified multi-error composition in command and query modules
+- **Integration tests** (`integration/`) — end-to-end tests for pebble-backed projection Runner (replay + live) and decider Repository with Pebble SnapshotStore
+- **Pebble KV Store adapter** (`pebble/`) — `NewKVStore()` wraps `*pebble.DB` as `kv.Store`, making pebble the first real consumer of the kv/ abstraction. Supports owned and borrowed DB lifecycle, prefix-bounded iteration, atomic batch commit, and `ErrNotFound`/`ErrClosed` error mapping
+- **Built-in pprof endpoints** (`middleware/`) — `ProfilingHandler()` and `RegisterProfiling()` expose Go runtime profiling (heap, goroutine, CPU, allocs, block, mutex) via standard `/debug/pprof/` paths
+- **Pebble benchmarks** (`pebble/`) — 4 benchmarks (Save100, SaveLoad100, Save1, LoadEmpty) for performance regression tracking
+- **KV contract tests** (`pebble/`) — 10-test contract suite run against both PebbleAdapter and MemStore, proving semantic equivalence
+- **Compose tests** (`command/`, `query/`) — 5 tests each for `Compose` error composition (nil, single, multiple, classified, mixed)
+- **PostgreSQL CI** (`.github/workflows/ci.yml`) — `postgres-integration` job with PostgreSQL 16 service container wired to storage integration tests
+
+### Fixed
+
+- **Turso error classification** (`storage/sql/query_engine.go`) — `QueryRows` no longer re-wraps classified errors as Infrastructure, preserving Rejection semantics for `LoadNonExistent`
+- **Module layer budgets** (`scripts/check-module-layers.sh`) — budgets updated to reflect actual direct dependencies: codec 2, pebble 8, storage 11, turso 10, integration 19
+- **Turso lint hygiene** (`turso/indexing/advisor_data.go`) — cleared 3 pre-existing `gochecknoglobals` findings on static advisor data tables
+
+### Infrastructure
+
+- **CI replace-directives check** — `scripts/check-replace-directives.sh` now runs in GitHub Actions to verify every module `replace` directive matches `go.work`
+- **`cmd/api-stability` in CI matrix** — per-module-test job now tests the API stability checker in isolation
+
 ## [2.3.0] - 2026-06-12
 
 231 commits since v2.2.0. Lint hygiene, coverage improvements, CBOR codec, encryption module, phantom types, and release readiness.

@@ -44,4 +44,15 @@
 //
 //	all, _ := store.ReadAll(ctx)              // all commands, ordered by received_at
 //	page, _ := store.ReadFrom(ctx, lastID, 100) // position-based pagination
+//
+// # Reactive CommandBus
+//
+// For command streams and pub/sub-style reactive dispatch, use a CommandBus
+// backed by github.com/samber/ro. Filter by type, convert handlers to observers,
+// or wire the bus into an event-driven pipeline:
+//
+//	bus := command.NewCommandBus()
+//	filtered := ro.Pipe1(bus, command.FilterCommandType("user.create"))
+//	filtered.Subscribe(command.HandlerToObserver(myHandler))
+//	bus.Next(createCmd)
 package command

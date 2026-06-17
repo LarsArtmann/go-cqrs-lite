@@ -2,9 +2,9 @@ package schema
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/go-faster/yaml"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func JSONToYAML(jsonBytes []byte) ([]byte, error) {
@@ -12,12 +12,22 @@ func JSONToYAML(jsonBytes []byte) ([]byte, error) {
 
 	err := json.Unmarshal(jsonBytes, &obj)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal JSON: %w", err)
+		return nil, errorfamily.Newf(
+			errorfamily.Infrastructure,
+			"catalog.yaml.1",
+			"failed to unmarshal JSON: %v",
+			err,
+		)
 	}
 
 	out, err := yaml.Marshal(obj)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal YAML: %w", err)
+		return nil, errorfamily.Newf(
+			errorfamily.Infrastructure,
+			"catalog.yaml.2",
+			"failed to marshal YAML: %v",
+			err,
+		)
 	}
 
 	return out, nil

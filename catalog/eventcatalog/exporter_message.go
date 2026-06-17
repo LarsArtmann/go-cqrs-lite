@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
 )
 
@@ -19,20 +21,41 @@ func (e *Exporter) writeMessage(
 
 	err := os.MkdirAll(dir, dirPerm)
 	if err != nil {
-		return fmt.Errorf("create message dir for %s/%s: %w", serviceID, kind, err)
+		return errorfamily.Newf(
+			errorfamily.Infrastructure,
+			"catalog.exporter_message.1",
+			"create message dir for %s/%s: %v",
+			serviceID,
+			kind,
+			err,
+		)
 	}
 
 	md := buildMessageFrontmatter(messageID, msg)
 
 	err = e.writeMDXFile(filepath.Join(dir, indexFile), md.String())
 	if err != nil {
-		return fmt.Errorf("write message file for %s/%s: %w", serviceID, kind, err)
+		return errorfamily.Newf(
+			errorfamily.Infrastructure,
+			"catalog.exporter_message.2",
+			"write message file for %s/%s: %v",
+			serviceID,
+			kind,
+			err,
+		)
 	}
 
 	if msg.Schema != nil {
 		err = e.writeSchema(dir, msg.Schema)
 		if err != nil {
-			return fmt.Errorf("write schema for %s/%s: %w", serviceID, kind, err)
+			return errorfamily.Newf(
+				errorfamily.Infrastructure,
+				"catalog.exporter_message.3",
+				"write schema for %s/%s: %v",
+				serviceID,
+				kind,
+				err,
+			)
 		}
 	}
 

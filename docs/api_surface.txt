@@ -538,6 +538,7 @@ event/func CheckVersionConflict
 event/func Classify
 event/func CommandCausalityEnricher
 event/func CommandCausalityFromContext
+event/func Compose
 event/func CompositeEnricher
 event/func DecodeBase64String
 event/func DecodePayload

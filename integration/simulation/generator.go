@@ -40,7 +40,13 @@ func (g *EventGenerator) Generate(count int) ([]event.Event, error) {
 
 	events, err := event.NewEvents(aggID, g.aggregateType, 1, types, payloads)
 	if err != nil {
-		return nil, fmt.Errorf("generate %d events: %w", count, err)
+		return nil, event.Wrapf(
+			err,
+			event.Infrastructure,
+			"simulation.generate",
+			"generate %d events",
+			count,
+		)
 	}
 
 	return events, nil
@@ -62,9 +68,14 @@ func (g *EventGenerator) GenerateMulti(aggregates, eventsPerAggregate int) ([]ev
 
 		events, err := event.NewEvents(aggID, g.aggregateType, 1, types, payloads)
 		if err != nil {
-			return nil, fmt.Errorf(
-				"generate aggregate %d/%d (eventsPerAggregate=%d): %w",
-				aggIdx+1, aggregates, eventsPerAggregate, err,
+			return nil, event.Wrapf(
+				err,
+				event.Infrastructure,
+				"simulation.generate_multi",
+				"generate aggregate %d/%d (eventsPerAggregate=%d)",
+				aggIdx+1,
+				aggregates,
+				eventsPerAggregate,
 			)
 		}
 

@@ -5,6 +5,11 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
+// AggregateType and AggregateRef are type aliases for the event package types.
+// These exist so command consumers can import everything from command/
+// without adding a direct event/ dependency for these core identifiers.
+// This is an intentional convenience re-export, not a layering violation:
+// commands operate on the same aggregate identity as events.
 type AggregateType = event.AggregateType
 
 type AggregateRef = event.AggregateRef

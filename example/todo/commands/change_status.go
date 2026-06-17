@@ -3,7 +3,6 @@ package commands
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
@@ -24,7 +23,13 @@ func NewChangeStatusCommand(
 ) (*ChangeStatusCommand, error) {
 	core, err := command.New(aggregate.CommandChangeStatus, todoID)
 	if err != nil {
-		return nil, fmt.Errorf("new change status command for todo %s: %w", todoID, err)
+		return nil, event.Newf(
+			event.Infrastructure,
+			"todo.commands.change_status.1",
+			"new change status command for todo %s: %v",
+			todoID,
+			err,
+		)
 	}
 
 	return &ChangeStatusCommand{

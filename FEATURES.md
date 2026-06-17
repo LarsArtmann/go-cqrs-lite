@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-06-15 (post command journal + query store interfaces) · **Module count:** 28 (22 library + 2 examples + 1 integration + 2 cmd + turso/indexing sub-package) · **Go version:** 1.26.3
+**Last audited:** 2026-06-17 (post pebble KV adapter + turso lint fixes) · **Module count:** 30 modules (23 library + 1 integration + 3 examples + 2 cmd + turso/indexing sub-package) · **Go version:** 1.26.3
 
 ## Status Legend
 
@@ -42,6 +42,8 @@
 | Command Bus              | `Bus` (with `io.Closer`): `Publish`, `Subscribe`, `SubscribeAll`, `Use` — command pub/sub        | ✅     |
 | Publisher / Subscriber   | ISP split: `Publisher.Publish(ctx, cmds...)`, `Subscriber.Subscribe(type, handler)`              | ✅     |
 | PublishMiddleware        | `PublishMiddleware` wraps the publish path for cross-cutting concerns (signing, tracing)         | ✅     |
+| Reactive CommandBus      | `NewCommandBus`, `NewReplayCommandBus`, `NewBehaviorCommandBus`, `FilterCommandType(s)`          | 🧪     |
+| HandlerToObserver        | `HandlerToObserver(handler)` converts a `Handler` into an `ro.Observer[Command]`                 | 🧪     |
 
 ### Query Dispatcher ✅ FULLY_FUNCTIONAL
 
@@ -60,6 +62,8 @@
 | Query store interfaces | `QuerySink`, `QuerySource`, `QueryStore` (Sink+Source) — persisted query log       | ✅     |
 | QueryJournal           | `ReadAllQueries(ctx)` — global query log for audit ("who queried what and when?")  | ✅     |
 | SeekableQueryJournal   | `ReadQueriesFrom(ctx, afterRequestID, limit)` — position-based query replay        | ✅     |
+| Reactive QueryBus      | `NewQueryBus`, `NewReplayQueryBus`, `NewBehaviorQueryBus`, `FilterQueryType(s)`    | 🧪     |
+| HandlerToObserver      | `HandlerToObserver(handler)` converts a `Handler` into an `ro.Observer[Query]`     | 🧪     |
 
 **Defaults:** Page 1, PageSize 20, max 100.
 **Sentinel errors:** `ErrHandlerNotFound`, `ErrDispatcherClosed`, `ErrEmptyQueryType`, `ErrTypeAssertion`
@@ -529,16 +533,19 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 
 > `import "github.com/larsartmann/go-cqrs-lite/turso"`
 
-| Feature                 | Detail                                                                                                       | Status |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------ | ------ |
-| Local DB                | `Open(dbPath)`, `OpenInMemory()` — embedded LibSQL                                                           | ✅     |
-| Schema init             | `InitSchema(ctx, db)` — delegates to `storage.SQLiteInitSchema`                                              | ✅     |
-| Convenience stores      | `NewEventStore`, `NewSnapshotStore`, `NewCheckpointStore` — thin wrappers over storage/                      | ✅     |
-| Remote sync             | `OpenSync(ctx, dbPath, remoteURL, authToken)` — `SyncDB` with `Push`, `Pull`, `Checkpoint`, `Stats`, `Close` | ✅     |
-| Phantom types           | `DbPath`, `RemoteURL`, `AuthToken` — compile-time type safety                                                | ✅     |
-| Backward-compat aliases | `OpenTurso`, `NewTursoEventStore`, etc. — deprecated aliases preserved                                       | ✅     |
-| Indexed schema init     | `InitSchemaWithIndexes`, `InitSchemaWithIndexesAndOptimizations` — tables + indexes + pragmas                | ✅     |
-| Index convenience       | `NewIndexAdvisor`, `NewAutoIndexer`, `ApplyCQRSIndexes`, `ApplyTursoOptimizations`                           | ✅     |
+| Feature                 | Detail                                                                                                                                                         | Status |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| Local DB                | `Open(dbPath)`, `OpenInMemory()` — embedded LibSQL                                                                                                             | ✅     |
+| Schema init             | `InitSchema(ctx, db)` — delegates to `storage.SQLiteInitSchema`                                                                                                | ✅     |
+| Backend facade          | `NewBackend(db)` — all 5 stores (event, command, query, snapshot, checkpoint) sharing one `*sql.DB`, goroutine-safe lazy init                                  | ✅     |
+| Convenience stores      | `NewEventStore`, `NewCommandStore`, `NewQueryStore`, `NewSnapshotStore`, `NewCheckpointStore` — thin wrappers over storage/                                    | ✅     |
+| Remote sync             | `OpenSync(ctx, dbPath, remoteURL, authToken)` — `SyncDB` with `Push`, `Pull`, `Checkpoint`, `Stats`, `HealthCheck`, `Close`                                    | ✅     |
+| Advanced sync config    | `OpenSyncWithConfig(ctx, ..., opts)` — `WithSyncClientName`, `WithSyncLongPollTimeout`, `WithSyncBusyTimeout`, `WithSyncBootstrapIfEmpty`, `WithSyncNamespace` | ✅     |
+| Phantom types           | `DbPath`, `RemoteURL`, `AuthToken` — compile-time type safety                                                                                                  | ✅     |
+| Pool configuration      | `ConfigurePool(db)` — caps `MaxOpenConns` at 1 for embedded LibSQL (required to avoid "database is locked")                                                    | ✅     |
+| Backward-compat aliases | `OpenTurso`, `NewTursoEventStore`, `NewTursoCommandStore`, `NewTursoQueryStore`, etc. — deprecated aliases preserved                                           | ✅     |
+| Indexed schema init     | `InitSchemaWithIndexes`, `InitSchemaWithIndexesAndOptimizations` — tables + indexes + pragmas                                                                  | ✅     |
+| Index convenience       | `NewIndexAdvisor`, `NewAutoIndexer`, `ApplyCQRSIndexes`, `ApplyTursoOptimizations`                                                                             | ✅     |
 
 ### Turso Indexing (sub-package) ✅ FULLY_FUNCTIONAL
 
@@ -551,7 +558,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | CQRS index presets       | `RecommendedCQRSIndexes()` — pre-built IndexSet for event store tables                          | ✅     |
 | Per-table Policy         | `Policy` type — exclude tables, mark critical, skip auto-creation per table                     | ✅     |
 | Priority classification  | `Priority` enum (Critical/Recommended/Optional) on Recommendations                              | ✅     |
-| Dry-run mode             | `WithDryRun()` — prints DDL without executing                                                   | ✅     |
+| Dry-run mode             | `WithDryRun()` — collects DDL via `LastDDL()` without executing                                 | ✅     |
 | OTel tracing             | All major operations traced via OpenTelemetry spans                                             | ✅     |
 | Index usage stats        | `Stats(ctx, db)` — queries `sqlite_stat1` for index hit counts                                  | ✅     |
 | Unused index detection   | `UnusedIndexes(ctx, db)` — finds indexes with zero hits                                         | ✅     |
@@ -752,6 +759,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `schema`               | `…/schema/v2`               | ✅ Production   |
 | `snapshot`             | `…/snapshot/v2`             | ✅ Production   |
 | `codec`                | `…/codec/v2`                | ✅ Production   |
+| `kv`                   | `…/kv/v2`                   | ✅ Production   |
 | `memory`               | `…/memory/v2`               | 🧪 Test utility |
 | `catalog`              | `…/catalog/v2`              | ✅ Production   |
 | `catalog/asyncapi`     | `…/catalog/v2/asyncapi`     | ✅ Production   |
@@ -774,10 +782,12 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `pebble`               | `…/pebble/v2`               | ✅ Production   |
 | `turso`                | `…/turso/v2`                | ✅ Production   |
 | `turso/indexing`       | `…/turso/v2/indexing`       | ✅ Production   |
+| `testutil`             | `…/testutil/v2`             | 🧪 Test utility |
 | `cmd/cqrs-gen`         | `…/cmd/cqrs-gen/v2`         | 🔧 Tool         |
 | `cmd/api-stability`    | `…/cmd/api-stability/v2`    | 🔧 Tool         |
 | `example/user`         | `…/example/user`            | 💡 Demo         |
 | `example/todo`         | `…/example/todo`            | 💡 Demo         |
+| `example/encryption`   | `…/example/encryption`      | 💡 Demo         |
 
 ---
 
@@ -785,7 +795,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 | Guarantee              | Detail                                                                           |
 | ---------------------- | -------------------------------------------------------------------------------- |
-| Near-zero lint issues  | 0 lint issues across all 27 modules (v2.3.0 audit)                               |
+| Near-zero lint issues  | 0 lint issues across all 30 modules (v2.3.0 audit)                               |
 | Race-free              | `go test -race` passes across all modules                                        |
 | Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                   |
 | Interface-first        | All core types are interfaces — provide your own implementations                 |

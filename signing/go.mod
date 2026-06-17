@@ -5,8 +5,8 @@ go 1.26.3
 require (
 	github.com/larsartmann/go-cqrs-lite/event/v2 v2.3.1
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.3.0
-	github.com/onsi/ginkgo/v2 v2.29.0
-	github.com/onsi/gomega v1.41.0
+	github.com/onsi/ginkgo/v2 v2.31.0
+	github.com/onsi/gomega v1.42.0
 )
 
 require (
@@ -16,7 +16,7 @@ require (
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/pprof v0.0.0-20260507013755-92041b743c96 // indirect
+	github.com/google/pprof v0.0.0-20260604005048-7023385849c0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.3.0 // indirect

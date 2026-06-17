@@ -59,6 +59,7 @@ func opError(
 	fmtMsg := strings.ReplaceAll(prefix+msg, "%w", "%v")
 
 	var errs []error
+
 	for _, arg := range args {
 		if e, ok := arg.(error); ok {
 			errs = append(errs, e)
@@ -69,7 +70,7 @@ func opError(
 		return event.Newf(event.Infrastructure, "decider.op_error", fmtMsg, args...)
 	}
 
-	var cause error = errs[0]
+	cause := errs[0]
 	if len(errs) > 1 {
 		cause = event.Compose(errs...)
 	}

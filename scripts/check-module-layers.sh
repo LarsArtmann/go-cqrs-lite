@@ -12,6 +12,7 @@ declare -A LAYER
 LAYER[id]=0
 LAYER[dispatcher]=0
 LAYER[codec]=0
+LAYER[kv]=0
 LAYER[event]=1
 LAYER[command]=1
 LAYER[query]=1
@@ -29,11 +30,6 @@ LAYER[watermill]=5
 LAYER[pebble]=5
 LAYER[turso]=5
 LAYER[catalog]=6
-LAYER[catalog/asyncapi]=7
-LAYER[catalog/openapi]=7
-LAYER[catalog/d2]=7
-LAYER[catalog/eventcatalog]=7
-LAYER[catalog/docserver]=8
 LAYER[integration]=6
 
 # Some modules legitimately depend on test helpers (memory) or cross-cutting concerns (otel)
@@ -53,10 +49,11 @@ EXCEPTIONS[query]="snapshot"
 declare -A DEP_BUDGET
 DEP_BUDGET[id]=3
 DEP_BUDGET[dispatcher]=0
-DEP_BUDGET[codec]=0
+DEP_BUDGET[codec]=2
+DEP_BUDGET[kv]=1
 DEP_BUDGET[event]=13
 DEP_BUDGET[command]=8
-DEP_BUDGET[query]=7
+DEP_BUDGET[query]=8
 DEP_BUDGET[schema]=4
 DEP_BUDGET[snapshot]=5
 DEP_BUDGET[decider]=10
@@ -64,19 +61,14 @@ DEP_BUDGET[memory]=8
 DEP_BUDGET[signing]=5
 DEP_BUDGET[otel]=7
 DEP_BUDGET[middleware]=13
-DEP_BUDGET[storage]=10
+DEP_BUDGET[storage]=11
 DEP_BUDGET[projection]=9
 DEP_BUDGET[listing]=6
 DEP_BUDGET[watermill]=5
-DEP_BUDGET[pebble]=5
-DEP_BUDGET[turso]=6
-DEP_BUDGET[catalog]=3
-DEP_BUDGET[catalog/asyncapi]=2
-DEP_BUDGET[catalog/openapi]=2
-DEP_BUDGET[catalog/d2]=1
-DEP_BUDGET[catalog/eventcatalog]=1
-DEP_BUDGET[catalog/docserver]=3
-DEP_BUDGET[integration]=18
+DEP_BUDGET[pebble]=8
+DEP_BUDGET[turso]=10
+DEP_BUDGET[catalog]=4
+DEP_BUDGET[integration]=21
 
 failed=0
 

@@ -20,16 +20,16 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Quick Reference
 
-| Item      | Value                                                                                                                                                                                                                                                                                                                                                                 |
-| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Language  | Go 1.26.3                                                                                                                                                                                                                                                                                                                                                             |
-| Modules   | `event`, `command`, `query`, `decider`, `id`, `dispatcher`, `schema`, `snapshot`, `memory`, `catalog`, `middleware`, `integration`, `storage`, `projection`, `signing`, `encryption`, `otel`, `watermill`, `pebble`, `codec`, `turso`, `listing`, `testutil`, `cqrs-gen`, `api-stability`                                                                             |
-| Build     | `nix run .#build`                                                                                                                                                                                                                                                                                                                                                     |
-| Test      | `nix run .#test` or `go test ./event/... ./command/... ./query/... ./decider/... ./id/... ./dispatcher/... ./schema/... ./snapshot/... ./memory/... ./catalog/... ./middleware/... ./integration/... ./projection/... ./signing/... ./encryption/... ./storage/... ./watermill/... ./pebble/... ./codec/... ./listing/... ./testutil/... ./cmd/cqrs-gen/... -count=1` |
-| Lint      | `nix run .#lint`                                                                                                                                                                                                                                                                                                                                                      |
-| Format    | `nix fmt`                                                                                                                                                                                                                                                                                                                                                             |
-| Dev shell | `nix develop`                                                                                                                                                                                                                                                                                                                                                         |
-| CI        | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module)                                                                                                                                                                                                                                                                         |
+| Item      | Value                                                                                                                                                                                                                                                                                                                                                                          |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Language  | Go 1.26.3                                                                                                                                                                                                                                                                                                                                                                      |
+| Modules   | `event`, `command`, `query`, `decider`, `id`, `dispatcher`, `schema`, `snapshot`, `memory`, `catalog`, `middleware`, `integration`, `storage`, `projection`, `signing`, `encryption`, `otel`, `watermill`, `pebble`, `codec`, `kv`, `turso`, `listing`, `testutil`, `cqrs-gen`, `api-stability`                                                                                |
+| Build     | `nix run .#build`                                                                                                                                                                                                                                                                                                                                                              |
+| Test      | `nix run .#test` or `go test ./event/... ./command/... ./query/... ./decider/... ./id/... ./dispatcher/... ./schema/... ./snapshot/... ./memory/... ./catalog/... ./middleware/... ./integration/... ./projection/... ./signing/... ./encryption/... ./storage/... ./watermill/... ./pebble/... ./codec/... ./kv/... ./listing/... ./testutil/... ./cmd/cqrs-gen/... -count=1` |
+| Lint      | `nix run .#lint`                                                                                                                                                                                                                                                                                                                                                               |
+| Format    | `nix fmt`                                                                                                                                                                                                                                                                                                                                                                      |
+| Dev shell | `nix develop`                                                                                                                                                                                                                                                                                                                                                                  |
+| CI        | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module)                                                                                                                                                                                                                                                                                  |
 
 ## Monorepo Structure
 
@@ -62,9 +62,10 @@ go-cqrs-lite/
 ├── otel/                # Shared OpenTelemetry helpers: Tracer, Meter, Spans, Attributes
 ├── listing/             # AggregateListing, AggregateStatus, tombstone detection, StatusMiddleware, InMemoryAggregateReader
 ├── watermill/           # Watermill protocol adapter (publisher/subscriber)
-├── pebble/              # Embedded KV store (PebbleDB): EventStore, SnapshotStore, CheckpointStore. CBOR envelope, shared DB via disjoint key prefixes
+├── pebble/              # Embedded KV store (PebbleDB): EventStore, SnapshotStore, CheckpointStore, KVAdapter (kv.Store). CBOR envelope, shared DB via disjoint key prefixes
 ├── codec/               # Payload encoding: JSON, CBOR (deterministic), Raw passthrough
 ├── turso/               # Turso database connector (embedded LibSQL sync)
+├── kv/                  # Layer-0 KV store abstraction: Store (Reader+Writer+Closer), MemStore, Iterator, Batch. Pebble is first consumer via pebble.KVAdapter (ADR-0023)
 ├── testutil/            # Shared test helpers: MustNewCmd (cross-module test utilities)
 ├── cmd/cqrs-gen/        # Code generator: typed handler registration from Go structs
 ├── cmd/api-stability/   # API surface checker: compares exported symbols against golden file
@@ -165,12 +166,27 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   // resulting events carry metadata.command.type and metadata.command.id
 //   cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 
-// Pebble single-DB full stack (events + snapshots + checkpoints)
+// Pebble single-DB full stack — PebbleBackend facade (preferred)
+//   backend, _ := pebble.Open(dir, &pebble.Options{}, logger)
+//   defer backend.Close() // closes DB AND all stores
+//   eventStore := backend.EventStore()
+//   snapStore  := backend.SnapshotStore()
+//   cpStore    := backend.CheckpointStore()
+//   // All three share db via disjoint key prefixes (cqrs_event:, cqrs_snapshot:, cqrs_checkpoint:)
+//
+// Pebble single-DB manual wiring (advanced)
 //   db, _ := pebble.Open(dir, &pebble.Options{})
 //   eventStore := pebble.NewStore(db, logger)
 //   snapStore  := pebble.NewSnapshotStore(db, logger)
 //   cpStore    := pebble.NewCheckpointStore(db, logger)
-//   // All three share db via disjoint key prefixes (cqrs_event:, cqrs_snapshot:, cqrs_checkpoint:)
+
+// Pebble as kv.Store (generic KV interface, ADR-0023)
+//   kvStore := pebble.NewKVStore(db, pebble.WithKVSyncWrites())
+//   defer kvStore.Close()
+//   kvStore.Set([]byte("k"), []byte("v"))    // → nil
+//   val, _ := kvStore.Get([]byte("k"))        // → "v"
+//   batch, _ := kvStore.Batch()               // atomic writes
+//   // WithBorrowedDB() = adapter doesn't close the DB (shared via Backend)
 
 // Event upcasting (schema migration on load)
 //   upcaster := schema.NewUpcaster("UserCreated", 1, func(evt event.Event) (*event.ImmutableEvent, error) {
@@ -211,6 +227,9 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   eventStore  := backend.EventStore()                   // *SQLEventStore (eager)
 //   cmdStore, _ := backend.CommandStore()                 // *SQLCommandStore (lazy, goroutine-safe)
 //   qStore, _   := backend.QueryStore()                   // *SQLQueryStore (lazy, goroutine-safe)
+//   snapStore,_ := backend.SnapshotStore()                // *SQLSnapshotStore (lazy, goroutine-safe)
+//   cpStore, _  := backend.CheckpointStore()              // *SQLCheckpointStore (lazy, goroutine-safe)
+//   defer backend.Close()                                 // closes all stores (NOT the *sql.DB)
 //   // Each store embeds *sqlpkg.OwnedDBHandle for Close/checkClosed lifecycle
 ```
 
@@ -243,7 +262,7 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 **Module Graph**:
 
 ```
-Layer 0: id/, dispatcher/, codec/         (leaf modules, no internal deps)
+Layer 0: id/, dispatcher/, codec/, kv/         (leaf modules, no internal deps)
 Layer 1: event/ (→id, codec, ro), command/ (→id, dispatcher, ro), query/ (→dispatcher, ro)
 Layer 2: schema/ (→event), snapshot/ (→event)
 Layer 3: decider/ (→event, snapshot)

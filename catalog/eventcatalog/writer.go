@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
 )
 
@@ -23,12 +25,24 @@ func (e *Exporter) writeSchema(dir string, schema *catalog.Schema) error {
 
 	err := os.MkdirAll(schemaDir, dirPerm)
 	if err != nil {
-		return fmt.Errorf("create schema dir %s in %s: %w", schemaDir, dir, err)
+		return errorfamily.Newf(
+			errorfamily.Infrastructure,
+			"catalog.writer.1",
+			"create schema dir %s in %s: %v",
+			schemaDir,
+			dir,
+			err,
+		)
 	}
 
 	data, err := catalog.SchemaToJSON(schema)
 	if err != nil {
-		return fmt.Errorf("marshal schema: %w", err)
+		return errorfamily.Newf(
+			errorfamily.Infrastructure,
+			"catalog.writer.2",
+			"marshal schema: %v",
+			err,
+		)
 	}
 
 	return os.WriteFile( //nolint:wrapcheck // os.WriteFile returns direct error
@@ -45,7 +59,13 @@ func (e *Exporter) writeExamples(dir string, examples []json.RawMessage) error {
 
 	data, err := json.MarshalIndent(examples, "", "  ")
 	if err != nil {
-		return fmt.Errorf("marshal examples for dir %s: %w", dir, err)
+		return errorfamily.Newf(
+			errorfamily.Infrastructure,
+			"catalog.writer.3",
+			"marshal examples for dir %s: %v",
+			dir,
+			err,
+		)
 	}
 
 	return os.WriteFile( //nolint:wrapcheck // os.WriteFile returns direct error
@@ -70,7 +90,12 @@ func (e *Exporter) writeConfig(cat *catalog.Catalog) error {
 		filePerm,
 	)
 	if err != nil {
-		return fmt.Errorf("write config: %w", err)
+		return errorfamily.Newf(
+			errorfamily.Infrastructure,
+			"catalog.writer.4",
+			"write config: %v",
+			err,
+		)
 	}
 
 	return e.writePackageJSON(cat)
@@ -90,7 +115,12 @@ func (e *Exporter) writePackageJSON(cat *catalog.Catalog) error {
 
 	data, err := json.MarshalIndent(pkg, "", "  ")
 	if err != nil {
-		return fmt.Errorf("marshal package.json: %w", err)
+		return errorfamily.Newf(
+			errorfamily.Infrastructure,
+			"catalog.writer.5",
+			"marshal package.json: %v",
+			err,
+		)
 	}
 
 	return os.WriteFile( //nolint:wrapcheck // os.WriteFile returns direct error

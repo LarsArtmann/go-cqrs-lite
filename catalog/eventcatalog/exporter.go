@@ -1,9 +1,10 @@
 package eventcatalog
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
 )
@@ -31,7 +32,13 @@ func (e *Exporter) Export(cat *catalog.Catalog) error {
 	for _, svc := range enriched.Services {
 		err := e.writeService(svc)
 		if err != nil {
-			return fmt.Errorf("write service %s: %w", svc.ID, err)
+			return errorfamily.Newf(
+				errorfamily.Infrastructure,
+				"catalog.exporter.1",
+				"write service %s: %v",
+				svc.ID,
+				err,
+			)
 		}
 
 		err = e.writeServiceMessages(svc)
@@ -43,48 +50,89 @@ func (e *Exporter) Export(cat *catalog.Catalog) error {
 	for _, domain := range enriched.Domains {
 		err := e.writeDomain(domain)
 		if err != nil {
-			return fmt.Errorf("write domain %s: %w", domain.ID, err)
+			return errorfamily.Newf(
+				errorfamily.Infrastructure,
+				"catalog.exporter.2",
+				"write domain %s: %v",
+				domain.ID,
+				err,
+			)
 		}
 	}
 
 	for _, ch := range enriched.Channels {
 		err := e.writeChannel(ch)
 		if err != nil {
-			return fmt.Errorf("write channel %s: %w", ch.ID, err)
+			return errorfamily.Newf(
+				errorfamily.Infrastructure,
+				"catalog.exporter.3",
+				"write channel %s: %v",
+				ch.ID,
+				err,
+			)
 		}
 	}
 
 	for _, ds := range enriched.DataStores {
 		err := e.writeDataStore(ds)
 		if err != nil {
-			return fmt.Errorf("write data store %s: %w", ds.ID, err)
+			return errorfamily.Newf(
+				errorfamily.Infrastructure,
+				"catalog.exporter.4",
+				"write data store %s: %v",
+				ds.ID,
+				err,
+			)
 		}
 	}
 
 	for _, f := range enriched.Flows {
 		err := e.writeFlow(f)
 		if err != nil {
-			return fmt.Errorf("write flow %s: %w", f.ID, err)
+			return errorfamily.Newf(
+				errorfamily.Infrastructure,
+				"catalog.exporter.5",
+				"write flow %s: %v",
+				f.ID,
+				err,
+			)
 		}
 	}
 
 	for _, team := range enriched.Teams {
 		err := e.writeTeam(team)
 		if err != nil {
-			return fmt.Errorf("write team %s: %w", team.ID, err)
+			return errorfamily.Newf(
+				errorfamily.Infrastructure,
+				"catalog.exporter.6",
+				"write team %s: %v",
+				team.ID,
+				err,
+			)
 		}
 	}
 
 	for _, user := range enriched.Users {
 		err := e.writeUser(user)
 		if err != nil {
-			return fmt.Errorf("write user %s: %w", user.ID, err)
+			return errorfamily.Newf(
+				errorfamily.Infrastructure,
+				"catalog.exporter.7",
+				"write user %s: %v",
+				user.ID,
+				err,
+			)
 		}
 	}
 
 	err := e.writeConfig(cat)
 	if err != nil {
-		return fmt.Errorf("write config: %w", err)
+		return errorfamily.Newf(
+			errorfamily.Infrastructure,
+			"catalog.exporter.8",
+			"write config: %v",
+			err,
+		)
 	}
 
 	return e.writeLLMsTxt(cat)
@@ -96,21 +144,39 @@ func (e *Exporter) writeServiceMessages(svc catalog.Service) error {
 	for _, cmd := range svc.Commands {
 		err := e.writeMessage(serviceID, "commands", cmd)
 		if err != nil {
-			return fmt.Errorf("write command %s: %w", cmd.ID, err)
+			return errorfamily.Newf(
+				errorfamily.Infrastructure,
+				"catalog.exporter.9",
+				"write command %s: %v",
+				cmd.ID,
+				err,
+			)
 		}
 	}
 
 	for _, evt := range svc.Events {
 		err := e.writeMessage(serviceID, "events", evt)
 		if err != nil {
-			return fmt.Errorf("write event %s: %w", evt.ID, err)
+			return errorfamily.Newf(
+				errorfamily.Infrastructure,
+				"catalog.exporter.10",
+				"write event %s: %v",
+				evt.ID,
+				err,
+			)
 		}
 	}
 
 	for _, q := range svc.Queries {
 		err := e.writeMessage(serviceID, "queries", q)
 		if err != nil {
-			return fmt.Errorf("write query %s: %w", q.ID, err)
+			return errorfamily.Newf(
+				errorfamily.Infrastructure,
+				"catalog.exporter.11",
+				"write query %s: %v",
+				q.ID,
+				err,
+			)
 		}
 	}
 
@@ -122,7 +188,12 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 
 	err := os.MkdirAll(dir, dirPerm)
 	if err != nil {
-		return fmt.Errorf("create service dir: %w", err)
+		return errorfamily.Newf(
+			errorfamily.Infrastructure,
+			"catalog.exporter.12",
+			"create service dir: %v",
+			err,
+		)
 	}
 
 	md := newFrontmatterWriter()
@@ -189,7 +260,12 @@ func (e *Exporter) writeDomain(domain catalog.Domain) error {
 
 	err := os.MkdirAll(dir, dirPerm)
 	if err != nil {
-		return fmt.Errorf("create domain dir: %w", err)
+		return errorfamily.Newf(
+			errorfamily.Infrastructure,
+			"catalog.exporter.13",
+			"create domain dir: %v",
+			err,
+		)
 	}
 
 	md := newFrontmatterWriter()

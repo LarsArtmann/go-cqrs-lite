@@ -172,7 +172,7 @@ func queryStat1(ctx context.Context, db *sql.DB) ([]stat1Row, error) {
 
 func parseStat1Rows(stat string) int64 {
 	// Format: "rows=12345 ...". Take the first integer.
-	for _, part := range strings.Fields(stat) {
+	for part := range strings.FieldsSeq(stat) {
 		if strings.HasPrefix(part, "rows=") {
 			var n int64
 			_, _ = fmt.Sscanf(part, "rows=%d", &n)

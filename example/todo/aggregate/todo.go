@@ -1,7 +1,6 @@
 package aggregate
 
 import (
-	"errors"
 	"time"
 
 	cqrsCommand "github.com/larsartmann/go-cqrs-lite/command/v2"
@@ -10,8 +9,8 @@ import (
 )
 
 var (
-	ErrTodoAlreadyExists = errors.New("todo already exists")
-	ErrUnknownEventType  = errors.New("unknown event type")
+	ErrTodoAlreadyExists = event.NewRejection("todo.aggregate.todo.1", "todo already exists")
+	ErrUnknownEventType  = event.NewRejection("todo.aggregate.todo.2", "unknown event type")
 )
 
 const AggregateType event.AggregateType = "todo"

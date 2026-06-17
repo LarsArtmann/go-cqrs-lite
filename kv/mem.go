@@ -17,7 +17,7 @@ type MemStore struct {
 
 // NewMemStore creates a new empty [MemStore].
 func NewMemStore() *MemStore {
-	return &MemStore{
+	return &MemStore{ //nolint:exhaustruct // zero-value fields are intentional
 		data: make(map[string][]byte),
 	}
 }
@@ -37,7 +37,8 @@ func (s *MemStore) Get(key []byte) ([]byte, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	if err := s.checkClosed(); err != nil {
+	err := s.checkClosed()
+	if err != nil {
 		return nil, err
 	}
 
@@ -53,7 +54,8 @@ func (s *MemStore) Has(key []byte) (bool, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	if err := s.checkClosed(); err != nil {
+	err := s.checkClosed()
+	if err != nil {
 		return false, err
 	}
 
@@ -66,7 +68,8 @@ func (s *MemStore) Set(key, value []byte) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if err := s.checkClosed(); err != nil {
+	err := s.checkClosed()
+	if err != nil {
 		return err
 	}
 
@@ -79,7 +82,8 @@ func (s *MemStore) Delete(key []byte) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if err := s.checkClosed(); err != nil {
+	err := s.checkClosed()
+	if err != nil {
 		return err
 	}
 
@@ -92,43 +96,26 @@ func (s *MemStore) Batch() (Batch, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	if err := s.checkClosed(); err != nil {
+	err := s.checkClosed()
+	if err != nil {
 		return nil, err
 	}
 
-	return &memBatch{store: s}, nil
+	return &memBatch{store: s}, nil //nolint:exhaustruct // zero-value fields are intentional
 }
 
 func (s *MemStore) NewIterator(prefix []byte) (Iterator, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	if err := s.checkClosed(); err != nil {
+	err := s.checkClosed()
+	if err != nil {
 		return nil, err
 	}
 
-	type kvPair struct {
-		key   []byte
-		value []byte
-	}
+	pairs := collectSorted(s.data, prefix)
 
-	var pairs []kvPair
-
-	for k, v := range s.data {
-		bk := []byte(k)
-		if len(prefix) == 0 || bytes.HasPrefix(bk, prefix) {
-			pairs = append(pairs, kvPair{
-				key:   slices.Clone(bk),
-				value: slices.Clone(v),
-			})
-		}
-	}
-
-	slices.SortFunc(pairs, func(a, b kvPair) int {
-		return bytes.Compare(a.key, b.key)
-	})
-
-	return &memIterator{pairs: pairs}, nil
+	return &memIterator{pairs: pairs}, nil //nolint:exhaustruct // zero-value fields are intentional
 }
 
 func (s *MemStore) Close() error {
@@ -141,12 +128,34 @@ func (s *MemStore) Close() error {
 	return nil
 }
 
-// ── memIterator ──────────────────────────────────────────────
+// ── helpers ──────────────────────────────────────────────────
 
 type memKV struct {
 	key   []byte
 	value []byte
 }
+
+func collectSorted(data map[string][]byte, prefix []byte) []memKV {
+	var pairs []memKV
+
+	for k, v := range data {
+		bk := []byte(k)
+		if len(prefix) == 0 || bytes.HasPrefix(bk, prefix) {
+			pairs = append(pairs, memKV{
+				key:   slices.Clone(bk),
+				value: slices.Clone(v),
+			})
+		}
+	}
+
+	slices.SortFunc(pairs, func(a, b memKV) int {
+		return bytes.Compare(a.key, b.key)
+	})
+
+	return pairs
+}
+
+// ── memIterator ──────────────────────────────────────────────
 
 type memIterator struct {
 	pairs  []memKV
@@ -190,80 +199,6 @@ func (it *memIterator) Error() error {
 func (it *memIterator) Close() error {
 	it.closed = true
 	it.pairs = nil
-
-	return nil
-}
-
-// ── memBatch ─────────────────────────────────────────────────
-
-type batchOp struct {
-	isDelete bool
-	key      []byte
-	value    []byte
-}
-
-type memBatch struct {
-	store  *MemStore
-	ops    []batchOp
-	closed bool
-}
-
-var _ Batch = (*memBatch)(nil)
-
-func (b *memBatch) Set(key, value []byte) error {
-	if b.closed {
-		return ErrClosed
-	}
-
-	b.ops = append(b.ops, batchOp{
-		key:   slices.Clone(key),
-		value: slices.Clone(value),
-	})
-
-	return nil
-}
-
-func (b *memBatch) Delete(key []byte) error {
-	if b.closed {
-		return ErrClosed
-	}
-
-	b.ops = append(b.ops, batchOp{
-		isDelete: true,
-		key:      slices.Clone(key),
-	})
-
-	return nil
-}
-
-func (b *memBatch) Commit() error {
-	if b.closed {
-		return ErrClosed
-	}
-
-	defer b.Close()
-
-	b.store.mu.Lock()
-	defer b.store.mu.Unlock()
-
-	if err := b.store.checkClosed(); err != nil {
-		return err
-	}
-
-	for _, op := range b.ops {
-		if op.isDelete {
-			delete(b.store.data, string(op.key))
-		} else {
-			b.store.data[string(op.key)] = op.value
-		}
-	}
-
-	return nil
-}
-
-func (b *memBatch) Close() error {
-	b.closed = true
-	b.ops = nil
 
 	return nil
 }

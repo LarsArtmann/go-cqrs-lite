@@ -10,6 +10,7 @@ import (
 	"github.com/cockroachdb/pebble"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
 )
 
 const lockShardCount = 256
@@ -89,7 +90,7 @@ func (a *EventStore) aggregateUpperBound(
 
 // Save implements event.Store.Save with per-aggregate locking for concurrency safety.
 func (a *EventStore) Save(
-	_ context.Context,
+	ctx context.Context,
 	ref event.AggregateRef,
 	events []event.Event,
 	expectedVersion event.Version,
@@ -98,11 +99,18 @@ func (a *EventStore) Save(
 		return nil
 	}
 
+	_, span := startAggregateSpan(ctx, "pebble.event.save", ref,
+		cqrsotel.AttrInt("event.count", len(events)),
+		cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, expectedVersion.Int()))
+	defer span.End()
+
 	a.lockAggregate(ref)
 	defer a.unlockAggregate(ref)
 
 	err := a.checkVersion(ref, expectedVersion)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return event.WrapInfrastructure(err, "pebble.check_version",
 			fmt.Sprintf("pebble check version for %s %s", ref.Type, ref.ID))
 	}
@@ -115,6 +123,8 @@ func (a *EventStore) Save(
 		batch, ref, events, expectedVersion,
 	)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return event.WrapInfrastructure(
 			err,
 			"pebble.write_events",
@@ -127,7 +137,14 @@ func (a *EventStore) Save(
 		)
 	}
 
-	return a.commitAndLog(batch, "events saved", ref, len(events))
+	err = a.commitAndLog(batch, "events saved", ref, len(events))
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+
+		return err
+	}
+
+	return nil
 }
 
 func (a *EventStore) lockShard(ref event.AggregateRef) *sync.Mutex {

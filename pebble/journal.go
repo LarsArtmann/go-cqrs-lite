@@ -8,6 +8,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
 )
 
 // journalKey generates a globally-ordered key for the journal index.
@@ -23,20 +24,38 @@ func (a *EventStore) journalKey(evt event.Event) []byte {
 
 // ReadAll retrieves all events across all aggregates, ordered by OccurredAt.
 // Implements event.Journal by scanning the journal key prefix.
-func (a *EventStore) ReadAll(_ context.Context) ([]event.Event, error) {
+func (a *EventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
+	_, span := cqrsotel.StartSpan(ctx, tracer(), "pebble.journal.read_all",
+		cqrsotel.SpanKindClient)
+	defer span.End()
+
 	lowerBound := []byte(a.journalPrefix)
 	upperBound := []byte(a.journalPrefix + "\xff")
 
-	return a.iterateEvents(lowerBound, upperBound, nil)
+	events, err := a.iterateEvents(lowerBound, upperBound, nil)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+
+		return nil, err
+	}
+
+	span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))
+
+	return events, nil
 }
 
 // ReadFrom retrieves events ordered by OccurredAt, starting after the given event ID.
 // Implements event.SeekableJournal for efficient projection catch-up.
 func (a *EventStore) ReadFrom(
-	_ context.Context,
+	ctx context.Context,
 	afterEventID id.EventID,
 	limit int,
 ) ([]event.Event, error) {
+	_, span := cqrsotel.StartSpan(ctx, tracer(), "pebble.journal.read_from",
+		cqrsotel.SpanKindClient,
+		cqrsotel.WithAttributes(cqrsotel.AttrInt("limit", limit)))
+	defer span.End()
+
 	var events []event.Event
 
 	lowerBound := []byte(a.journalPrefix)
@@ -49,6 +68,8 @@ func (a *EventStore) ReadFrom(
 		},
 	)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return nil, event.WrapInfrastructure(err, "pebble.read_from",
 			"create iterator for ReadFrom")
 	}
@@ -86,9 +107,13 @@ func (a *EventStore) ReadFrom(
 
 	err = checkIteratorError(iter)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return nil, event.Wrapf(err, event.Infrastructure, "pebble.journal_iterator",
 			"iterator error in journal (limit=%d, after=%s)", limit, afterEventID)
 	}
+
+	span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))
 
 	return events, nil
 }

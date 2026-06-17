@@ -70,6 +70,7 @@ example/todo/cmd/api/api
 # CLI tool binaries
 /api-stability
 /cmd/cqrs-gen/cqrs-gen
+/cmd/api-stability/api-stability
 
 # Nix
 result

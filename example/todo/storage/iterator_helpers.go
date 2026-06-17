@@ -2,10 +2,11 @@ package storage
 
 import (
 	"encoding/json"
-	"fmt"
 	"log/slog"
 
 	"github.com/cockroachdb/pebble"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 // unmarshalFromIter unmarshals the current iterator value into dest.
@@ -31,7 +32,13 @@ func newPrefixIter(db *pebble.DB, prefix string) (*pebble.Iterator, error) {
 		UpperBound: []byte(prefix + "\xff"),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create iterator for prefix %q: %w", prefix, err)
+		return nil, event.Newf(
+			event.Infrastructure,
+			"todo.storage.iterator_helpers.1",
+			"failed to create iterator for prefix %q: %v",
+			prefix,
+			err,
+		)
 	}
 
 	return iter, nil
@@ -41,7 +48,13 @@ func newPrefixIter(db *pebble.DB, prefix string) (*pebble.Iterator, error) {
 func handleIteratorError(iter *pebble.Iterator, prefix string) error {
 	err := iter.Error()
 	if err != nil {
-		return fmt.Errorf("%s: %w", prefix, err)
+		return event.Newf(
+			event.Infrastructure,
+			"todo.storage.iterator_helpers.2",
+			"%s: %v",
+			prefix,
+			err,
+		)
 	}
 
 	return nil

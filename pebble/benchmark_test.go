@@ -1,0 +1,132 @@
+package pebble
+
+import (
+	"context"
+	"fmt"
+	"log/slog"
+	"os"
+	"testing"
+
+	"github.com/cockroachdb/pebble"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
+)
+
+func makeBenchEvents(n int, ref event.AggregateRef) []event.Event {
+	events := make([]event.Event, n)
+
+	for i := range n {
+		evt, err := event.NewEvent(
+			event.Type(fmt.Sprintf("test.event.%d", i)),
+			ref.ID,
+			ref.Type,
+			event.Version(i+1),
+			nil,
+		)
+		if err != nil {
+			panic(fmt.Sprintf("makeBenchEvents: %v", err))
+		}
+
+		events[i] = evt
+	}
+
+	return events
+}
+
+func openBenchStore(b *testing.B) (*EventStore, func()) {
+	b.Helper()
+
+	dir := b.TempDir()
+	database, err := pebble.Open(dir, &pebble.Options{})
+	if err != nil {
+		b.Fatalf("pebble.Open: %v", err)
+	}
+
+	store := NewStore(
+		database,
+		slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError})),
+	)
+
+	return store, func() { _ = store.Close() }
+}
+
+func BenchmarkPebbleStore_Save100(b *testing.B) {
+	store, cleanup := openBenchStore(b)
+	defer cleanup()
+
+	ctx := context.Background()
+
+	b.ResetTimer()
+
+	for i := range b.N {
+		ref := event.NewAggregateRef("Bench", id.NewAggregateID())
+		events := makeBenchEvents(100, ref)
+
+		err := store.Save(ctx, ref, events, event.Version(i*100))
+		if err != nil {
+			b.Fatalf("Save: %v", err)
+		}
+	}
+}
+
+func BenchmarkPebbleStore_SaveLoad100(b *testing.B) {
+	store, cleanup := openBenchStore(b)
+	defer cleanup()
+
+	ctx := context.Background()
+	ref := event.NewAggregateRef("BenchLoad", id.NewAggregateID())
+
+	events := makeBenchEvents(100, ref)
+
+	err := store.Save(ctx, ref, events, event.Version(0))
+	if err != nil {
+		b.Fatalf("pre-save: %v", err)
+	}
+
+	b.ResetTimer()
+
+	for range b.N {
+		_, err := store.Load(ctx, ref)
+		if err != nil {
+			b.Fatalf("Load: %v", err)
+		}
+	}
+}
+
+func BenchmarkPebbleStore_Save1(b *testing.B) {
+	store, cleanup := openBenchStore(b)
+	defer cleanup()
+
+	ctx := context.Background()
+
+	b.ResetTimer()
+
+	for range b.N {
+		ref := event.NewAggregateRef("Bench1", id.NewAggregateID())
+
+		evt, err := event.NewEvent("test.event", ref.ID, ref.Type, event.Version(1), nil)
+		if err != nil {
+			b.Fatalf("NewEvent: %v", err)
+		}
+
+		err = store.Save(ctx, ref, []event.Event{evt}, event.Version(0))
+		if err != nil {
+			b.Fatalf("Save: %v", err)
+		}
+	}
+}
+
+func BenchmarkPebbleStore_LoadEmpty(b *testing.B) {
+	store, cleanup := openBenchStore(b)
+	defer cleanup()
+
+	ctx := context.Background()
+	ref := event.NewAggregateRef("BenchEmpty", id.NewAggregateID())
+
+	b.ResetTimer()
+
+	for range b.N {
+		_, _ = store.Load(ctx, ref)
+	}
+}

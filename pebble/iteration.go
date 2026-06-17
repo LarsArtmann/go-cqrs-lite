@@ -7,6 +7,7 @@ import (
 	"github.com/cockroachdb/pebble"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
 )
 
 // eventPredicate returns true when iteration should stop BEFORE appending
@@ -53,26 +54,51 @@ func (a *EventStore) iterateEvents(
 
 // Load implements event.Store.Load.
 func (a *EventStore) Load(
-	_ context.Context,
+	ctx context.Context,
 	ref event.AggregateRef,
 ) ([]event.Event, error) {
+	_, span := startAggregateSpan(ctx, "pebble.event.load", ref)
+	defer span.End()
+
 	prefix := a.aggregatePrefix(ref)
 	upperBound := a.aggregateUpperBound(ref)
 
-	return a.iterateEvents(prefix, upperBound, nil)
+	events, err := a.iterateEvents(prefix, upperBound, nil)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+
+		return nil, err
+	}
+
+	span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))
+
+	return events, nil
 }
 
 // LoadFromVersion implements event.Store.LoadFromVersion.
 // Returns events with version strictly greater than the given version.
 func (a *EventStore) LoadFromVersion(
-	_ context.Context,
+	ctx context.Context,
 	ref event.AggregateRef,
 	version event.Version,
 ) ([]event.Event, error) {
+	_, span := startAggregateSpan(ctx, "pebble.event.load_from_version", ref,
+		cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, version.Int()))
+	defer span.End()
+
 	lowerBound := a.eventKey(ref, version+1)
 	upperBound := a.aggregateUpperBound(ref)
 
-	return a.iterateEvents(lowerBound, upperBound, nil)
+	events, err := a.iterateEvents(lowerBound, upperBound, nil)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+
+		return nil, err
+	}
+
+	span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))
+
+	return events, nil
 }
 
 // loadFiltered iterates events and returns them filtered by predicate.
@@ -98,13 +124,26 @@ func (a *EventStore) loadFiltered(
 
 // LoadToVersion retrieves events up to and including maxVersion.
 func (a *EventStore) LoadToVersion(
-	_ context.Context,
+	ctx context.Context,
 	ref event.AggregateRef,
 	maxVersion event.Version,
 ) ([]event.Event, error) {
+	_, span := startAggregateSpan(ctx, "pebble.event.load_to_version", ref,
+		cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, maxVersion.Int()))
+	defer span.End()
+
 	upperBound := a.eventKey(ref, maxVersion+1)
 
-	return a.loadFiltered(ref, upperBound, nil)
+	events, err := a.loadFiltered(ref, upperBound, nil)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+
+		return nil, err
+	}
+
+	span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))
+
+	return events, nil
 }
 
 // LoadToTimestamp retrieves events where OccurredAt <= maxTime.
@@ -112,14 +151,26 @@ func (a *EventStore) LoadToVersion(
 // OccurredAt is monotonically increasing, the iterator stops as soon as it
 // encounters an event past maxTime — avoiding a full aggregate scan.
 func (a *EventStore) LoadToTimestamp(
-	_ context.Context,
+	ctx context.Context,
 	ref event.AggregateRef,
 	maxTime time.Time,
 ) ([]event.Event, error) {
+	_, span := startAggregateSpan(ctx, "pebble.event.load_to_timestamp", ref)
+	defer span.End()
+
 	upperBound := a.aggregateUpperBound(ref)
 	predicate := func(evt event.Event) bool {
 		return evt.OccurredAt().After(maxTime)
 	}
 
-	return a.loadFiltered(ref, upperBound, predicate)
+	events, err := a.loadFiltered(ref, upperBound, predicate)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+
+		return nil, err
+	}
+
+	span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))
+
+	return events, nil
 }

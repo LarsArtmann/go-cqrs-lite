@@ -3,7 +3,6 @@ package commands
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
@@ -29,8 +28,9 @@ func NewCreateTodoCommand(
 ) (*CreateTodoCommand, error) {
 	core, err := command.New(aggregate.CommandCreate, todoID)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"new create todo command for todo %s (title=%q, description=%q, priority=%d): %w",
+		return nil, event.Newf(
+			event.Infrastructure, "todo.commands.create_todo.1",
+			"new create todo command for todo %s (title=%q, description=%q, priority=%d): %v",
 			todoID,
 			title,
 			description,

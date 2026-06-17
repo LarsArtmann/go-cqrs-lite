@@ -3,8 +3,8 @@ package queries
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
@@ -24,7 +24,12 @@ type ListTodosQuery struct {
 func NewListTodosQuery() (*ListTodosQuery, error) {
 	core, err := query.New(ListTodosQueryType)
 	if err != nil {
-		return nil, fmt.Errorf("new list todos query: %w", err)
+		return nil, event.Newf(
+			event.Infrastructure,
+			"todo.queries.list_todos.1",
+			"new list todos query: %v",
+			err,
+		)
 	}
 
 	return &ListTodosQuery{
@@ -57,7 +62,13 @@ func (h *ListTodosHandler) Handle(
 
 	todos, err := h.readModel.List(filter)
 	if err != nil {
-		return nil, fmt.Errorf("failed to list todos with filter %+v: %w", filter, err)
+		return nil, event.Newf(
+			event.Infrastructure,
+			"todo.queries.list_todos.2",
+			"failed to list todos with filter %+v: %v",
+			filter,
+			err,
+		)
 	}
 
 	results := make([]*GetTodoResult, len(todos))

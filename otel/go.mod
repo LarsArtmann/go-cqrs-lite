@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/otel/v2
 go 1.26.3
 
 require (
-	github.com/onsi/gomega v1.41.0
+	github.com/onsi/gomega v1.42.0
 	go.opentelemetry.io/otel v1.44.0
 	go.opentelemetry.io/otel/metric v1.44.0
 	go.opentelemetry.io/otel/sdk v1.44.0
