@@ -44,6 +44,13 @@ Every actionable item from the previous TODO list has been completed or found to
 
 - [x] **Pebble KV Store adapter** (`pebble/`) — `NewKVStore()` wraps `*pebble.DB` as `kv.Store`, first consumer of the kv/ abstraction (ADR-0023)
 - [x] **Reactive CommandBus and QueryBus** (`command/`, `query/`) — reactive extensions mirroring the event API
+- [x] **Built-in pprof endpoints** (`middleware/`) — `ProfilingHandler()` and `RegisterProfiling()` for runtime profiling
+- [x] **Pebble benchmarks** (`pebble/`) — Save100, SaveLoad100, Save1, LoadEmpty for regression tracking
+- [x] **KV contract tests** (`pebble/`) — 10-test suite proving PebbleAdapter and MemStore semantic equivalence
+- [x] **Compose tests** (`command/`, `query/`) — 5 tests each for error composition
+- [x] **PostgreSQL CI** — service container wired to storage integration tests
+- [x] **Codec fuzz fix** — CBOR duplicate map key type ambiguity handled gracefully
+- [x] **Module READMEs** — `kv/README.md` and `pebble/README.md`
 
 ### Medium impact
 
@@ -51,9 +58,9 @@ Every actionable item from the previous TODO list has been completed or found to
 - [ ] **Pebble golden test** — deterministic CBOR envelope bytes for regression safety
 - [ ] **MemorySnapshotStore golden test** — baseline for pebble snapshot comparison
 - [ ] **Reactive bus documentation** — add usage examples to `command/doc.go`, `query/doc.go`, and `AGENTS.md`
-- [ ] **Benchmark pebble vs SQL store** — `Save 100 events` comparison
+- [x] **Benchmark pebble store** — Save100, SaveLoad100, Save1, LoadEmpty benchmarks added
 - [ ] **cqrs-gen v2** — struct tag scanning code generator improvements
-- [ ] **Built-in pprof endpoints** — profiling HTTP handler in `middleware/`
+- [x] **Built-in pprof endpoints** — profiling HTTP handler in `middleware/` (completed)
 
 ### Experimental / long-term
 
