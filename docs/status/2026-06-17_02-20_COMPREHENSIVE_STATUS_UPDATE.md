@@ -3,7 +3,7 @@
 **Project:** go-cqrs-lite  
 **Branch:** consolidate-catalog  
 **Date:** 2026-06-17 02:20:28 CEST  
-**Reporter:** Crush (automated status report)  
+**Reporter:** Crush (automated status report)
 
 ---
 
@@ -18,12 +18,14 @@ CI is green for normal tests and lint, but `nix run .#test-race` is red in `turs
 ## a) FULLY DONE
 
 ### Architecture & Consolidation
+
 - Catalog consolidation: 5 catalog sub-modules collapsed into a single `catalog/` module with packages under it (ADR-0017 implemented).
 - `kv/` module introduced as Layer 0 with `Store`, `Reader`, `Writer`, `Iterator`, `Batch` interfaces and in-memory `MemStore` reference implementation.
 - ADR-0022 written documenting the KV abstraction rationale and iterator semantics.
 - Layer-budget script updated to account for new module graph.
 
 ### CI / Build Infrastructure
+
 - `.github/workflows/ci.yml` updated with `replace-directives` validation job.
 - `cmd/api-stability` added to per-module test matrix.
 - `kv/` module added to CI test matrix and release workflow.
@@ -32,17 +34,20 @@ CI is green for normal tests and lint, but `nix run .#test-race` is red in `turs
 - `nix run .#build`, `nix run .#test`, `nix run .#lint`, `nix run .#vet`, `nix run .#check-layers` all pass.
 
 ### Testing
+
 - Reactive bus tests added: `command/reactive_test.go`, `query/reactive_test.go`.
 - Pebble integration tests added: `integration/pebble_test.go`.
 - All 41 test packages passing in normal mode (`go test ./...` and `nix run .#test`).
 
 ### Reactive Bus Extensions
+
 - `command/` reactive `CommandBus`, `Publisher`, `Subscriber`, `PublishMiddleware` documented and tested.
 - `query/` reactive `QueryBus` documented and tested.
 - `command/doc.go` and `query/doc.go` updated with reactive bus examples.
 - `Compose` helper re-exported via `command/errors.go` and `query/errors.go`.
 
 ### Documentation
+
 - `CHANGELOG.md` updated with unreleased entries for reactive buses, PebbleBackend, SQLBackend, kv module, Compose, integration tests.
 - `FEATURES.md` updated with correct module count and kv/reactive bus status.
 - `TODO_LIST.md` populated with Tier 5 open items.
@@ -50,6 +55,7 @@ CI is green for normal tests and lint, but `nix run .#test-race` is red in `turs
 - Previous comprehensive status reports written to `docs/status/`.
 
 ### Miscellaneous Cleanup
+
 - `.gitignore` updated to ignore `/cmd/api-stability/api-stability` binary.
 - `cmd/cqrs-gen/main.go` linted with `//nolint` for `genSpecs` global.
 - `turso/indexing/advisor_data.go` lint comments added for static data tables.
@@ -60,6 +66,7 @@ CI is green for normal tests and lint, but `nix run .#test-race` is red in `turs
 ## b) PARTIALLY DONE
 
 ### KV Module Integration into Pebble — IN PROGRESS
+
 - **Design complete:** mapping `*pebble.DB` → `kv.Store` is clear.
 - **Files not yet created:** `pebble/adapter.go`, `pebble/adapter_test.go`.
 - **Dependencies not yet wired:** `pebble/go.mod` does not yet require `kv/v2`.
@@ -68,6 +75,7 @@ CI is green for normal tests and lint, but `nix run .#test-race` is red in `turs
 This is the current active work item. The previous session was interrupted before implementation started.
 
 ### Self-Review Findings
+
 - Brutal self-review initiated via `brutal-self-review` skill.
 - `kv/` ghost system identified and selected for remediation (option B).
 - Other self-review findings remain unaddressed:
@@ -76,6 +84,7 @@ This is the current active work item. The previous session was interrupted befor
   - Any additional ghost systems or split brains discovered during review not yet triaged.
 
 ### Race Condition Remediation
+
 - `nix run .#test-race` still fails in `turso/indexing` checkpoint scheduler tests.
 - Failure is pre-existing and unrelated to current work, but remains un-fixed.
 
@@ -169,6 +178,7 @@ This is the current active work item. The previous session was interrupted befor
 **Is the `kv.Store` abstraction intended to be a public, first-class module that consumers use directly (e.g., for custom projections or read models), or is it primarily an internal implementation detail for pebble/storage backends?**
 
 The answer determines:
+
 - Whether `kv.Store` needs a rich public API (transactions, snapshots, range scans) or just the current thin interface.
 - Whether `pebble.Adapter` should live in `pebble/` (as planned) or if a separate `kv-pebble/` module is warranted.
 - Whether the adapter should own the `*pebble.DB` lifecycle or always borrow it.
@@ -208,4 +218,4 @@ The interfaces currently look consumer-facing, but there is no consumer document
 
 ---
 
-*End of status report.*
+_End of status report._

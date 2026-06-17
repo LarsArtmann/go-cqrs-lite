@@ -42,8 +42,8 @@
 | Command Bus              | `Bus` (with `io.Closer`): `Publish`, `Subscribe`, `SubscribeAll`, `Use` — command pub/sub        | ✅     |
 | Publisher / Subscriber   | ISP split: `Publisher.Publish(ctx, cmds...)`, `Subscriber.Subscribe(type, handler)`              | ✅     |
 | PublishMiddleware        | `PublishMiddleware` wraps the publish path for cross-cutting concerns (signing, tracing)         | ✅     |
-| Reactive CommandBus      | `NewCommandBus`, `NewReplayCommandBus`, `NewBehaviorCommandBus`, `FilterCommandType(s)`         | 🧪     |
-| HandlerToObserver        | `HandlerToObserver(handler)` converts a `Handler` into an `ro.Observer[Command]`                  | 🧪     |
+| Reactive CommandBus      | `NewCommandBus`, `NewReplayCommandBus`, `NewBehaviorCommandBus`, `FilterCommandType(s)`          | 🧪     |
+| HandlerToObserver        | `HandlerToObserver(handler)` converts a `Handler` into an `ro.Observer[Command]`                 | 🧪     |
 
 ### Query Dispatcher ✅ FULLY_FUNCTIONAL
 
@@ -62,8 +62,8 @@
 | Query store interfaces | `QuerySink`, `QuerySource`, `QueryStore` (Sink+Source) — persisted query log       | ✅     |
 | QueryJournal           | `ReadAllQueries(ctx)` — global query log for audit ("who queried what and when?")  | ✅     |
 | SeekableQueryJournal   | `ReadQueriesFrom(ctx, afterRequestID, limit)` — position-based query replay        | ✅     |
-| Reactive QueryBus      | `NewQueryBus`, `NewReplayQueryBus`, `NewBehaviorQueryBus`, `FilterQueryType(s)`     | 🧪     |
-| HandlerToObserver      | `HandlerToObserver(handler)` converts a `Handler` into an `ro.Observer[Query]`      | 🧪     |
+| Reactive QueryBus      | `NewQueryBus`, `NewReplayQueryBus`, `NewBehaviorQueryBus`, `FilterQueryType(s)`    | 🧪     |
+| HandlerToObserver      | `HandlerToObserver(handler)` converts a `Handler` into an `ro.Observer[Query]`     | 🧪     |
 
 **Defaults:** Page 1, PageSize 20, max 100.
 **Sentinel errors:** `ErrHandlerNotFound`, `ErrDispatcherClosed`, `ErrEmptyQueryType`, `ErrTypeAssertion`
