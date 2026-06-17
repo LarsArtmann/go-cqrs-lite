@@ -180,7 +180,8 @@ func BenchmarkCBORCompact_vs_Canon_Size(b *testing.B) {
 	canonicalData, _ := canonical.Encode(payload)
 	compactData, _ := compact.Encode(payload)
 
-	b.Logf("CBOR (canonical): %d bytes, CBOR (compact): %d bytes, savings: %.1f%%",
+	b.Logf(
+		"CBOR (canonical): %d bytes, CBOR (compact): %d bytes, savings: %.1f%%",
 		len(canonicalData), len(compactData),
 		float64(len(canonicalData)-len(compactData))/float64(len(canonicalData))*100,
 	)

@@ -138,7 +138,12 @@ func TestLoad_WithLoadCoalescingDisabled(t *testing.T) {
 		Fold:    foldCounter,
 	}
 
-	repo, err := decider.NewRepository(store, bus, d, decider.WithLoadCoalescing[counterState](false))
+	repo, err := decider.NewRepository(
+		store,
+		bus,
+		d,
+		decider.WithLoadCoalescing[counterState](false),
+	)
 	if err != nil {
 		t.Fatalf("NewRepository: %v", err)
 	}

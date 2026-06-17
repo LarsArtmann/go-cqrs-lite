@@ -21,7 +21,11 @@ func setupBenchStore(b *testing.B) (id.AggregateID, *eventtest.FakeStore) {
 		b.Fatalf("NewEvent: %v", err)
 	}
 
-	err = store.AppendBatch(context.Background(), event.NewAggregateRef("Counter", aggID), []event.Event{evt})
+	err = store.AppendBatch(
+		context.Background(),
+		event.NewAggregateRef("Counter", aggID),
+		[]event.Event{evt},
+	)
 	if err != nil {
 		b.Fatalf("AppendBatch: %v", err)
 	}
@@ -65,7 +69,12 @@ func BenchmarkLoad_NoCoalescing(b *testing.B) {
 		Fold:    foldCounter,
 	}
 
-	repo, err := decider.NewRepository(store, bus, d, decider.WithLoadCoalescing[counterState](false))
+	repo, err := decider.NewRepository(
+		store,
+		bus,
+		d,
+		decider.WithLoadCoalescing[counterState](false),
+	)
 	if err != nil {
 		b.Fatalf("NewRepository: %v", err)
 	}

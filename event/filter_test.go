@@ -9,7 +9,11 @@ import (
 	ro "github.com/samber/ro"
 )
 
-func mustNewTestEventForAggregate(t *testing.T, eventType event.Type, aggID id.AggregateID) event.Event {
+func mustNewTestEventForAggregate(
+	t *testing.T,
+	eventType event.Type,
+	aggID id.AggregateID,
+) event.Event {
 	t.Helper()
 
 	evt, err := event.NewEvent(eventType, aggID, "Test", 1, nil)
