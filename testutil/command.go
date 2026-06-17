@@ -1,4 +1,3 @@
-// Package testutil provides shared test helpers for go-cqrs-lite.
 package testutil
 
 import (
