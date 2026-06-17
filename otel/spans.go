@@ -48,3 +48,9 @@ func EndWithError(span trace.Span, err error) {
 func ComponentTracer(component string) string {
 	return fmt.Sprintf("%s/%s/v2", Name, component)
 }
+
+// AddSpanEvent records a structured event on the span with optional attributes.
+// Use for meaningful operational milestones like "retry_attempt", "checkpoint_committed".
+func AddSpanEvent(span trace.Span, name string, attrs ...KeyValue) {
+	span.AddEvent(name, trace.WithAttributes(attrs...))
+}

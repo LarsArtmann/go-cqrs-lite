@@ -176,3 +176,19 @@ retryable := event.IsRetryable(err) // → false
 go test ./... -v         # run all tests
 go test -run FullStack   # run only smoke tests
 ```
+
+## Related
+
+**Sibling examples:**
+- [go-cqrs-lite/example/todo](../todo/) — Full application with HTTP API, projections, Pebble storage
+- [go-cqrs-lite/example/encryption](../encryption/) — Event encryption patterns: bus, store, key rotation
+
+**Modules demonstrated:**
+- [event/v2](../../event/README.md) — Event sourcing core
+- [command/v2](../../command/README.md) — Typed command dispatch
+- [query/v2](../../query/README.md) — Typed query dispatch
+- [decider/v2](../../decider/README.md) — Pure-function aggregate pattern
+- [signing/v2](../../signing/README.md) — HMAC-SHA256 event signing
+- [middleware/v2](../../middleware/README.md) — Recovery → Logging → Metrics → Retry chain
+- [catalog/v2](../../catalog/README.md) — AsyncAPI / EventCatalog / D2 generation
+- [memory/v2](../../memory/README.md) — In-memory store and bus

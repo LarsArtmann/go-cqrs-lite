@@ -95,3 +95,14 @@ and lets multiple stores share one DB without use-after-close hazards.
 `EventStore.Close` **does** close the underlying DB; the caller must not share
 that DB with other stores afterward. If you need shared-DB usage, do not call
 `EventStore.Close` and let the parent process release the DB instead.
+
+## Related Modules
+
+- [**event/v2**](../event/README.md) — `Store`, `Journal`, `SeekableJournal`, `CheckpointStore` interfaces implemented here
+- [**snapshot/v2**](../snapshot/README.md) — `SnapshotStore` interface implemented here
+- [**decider/v2**](../decider/README.md) — Provides `EventStore` + `SnapshotStore` to the aggregate repository
+- [**projection/v2**](../projection/README.md) — Provides `EventStore` + `CheckpointStore` to the projection runner
+- [**kv/v2**](../kv/README.md) — `pebble.NewKVStore` implements the generic `kv.Store` interface
+- [**storage/v2**](../storage/README.md) — Sibling backend (PostgreSQL/SQLite)
+- [**memory/v2**](../memory/README.md) — In-memory reference implementations
+- [**codec/v2**](../codec/README.md) — CBOR codec used for the on-disk envelope format

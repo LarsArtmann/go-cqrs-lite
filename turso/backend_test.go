@@ -515,7 +515,11 @@ func verifyCheckpointStoreRoundtrip(
 	}
 
 	if updated.EventID != secondEventID {
-		t.Fatalf("checkpoint EventID = %v, want %v (after overwrite)", updated.EventID, secondEventID)
+		t.Fatalf(
+			"checkpoint EventID = %v, want %v (after overwrite)",
+			updated.EventID,
+			secondEventID,
+		)
 	}
 }
 

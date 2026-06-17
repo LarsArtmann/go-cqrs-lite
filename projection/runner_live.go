@@ -8,6 +8,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
 )
 
 func (r *Runner) subscribeLive(ctx context.Context) error {
@@ -108,6 +109,13 @@ func (r *Runner) handleWithRetry(ctx context.Context, p event.Projection, evt ev
 		if r.opts.retryMaxDelay > 0 && delay > r.opts.retryMaxDelay {
 			delay = r.opts.retryMaxDelay
 		}
+
+		cqrsotel.AddSpanEvent(
+			cqrsotel.SpanFromContext(ctx), "retry_attempt",
+			cqrsotel.AttrString("projection", p.Name()),
+			cqrsotel.AttrInt("attempt", attempt),
+			cqrsotel.AttrString("delay", delay.String()),
+		)
 
 		timer := time.NewTimer(delay)
 		select {

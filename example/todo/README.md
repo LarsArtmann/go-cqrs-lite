@@ -129,4 +129,15 @@ GOPRIVATE='github.com/larsartmann/*' GONOSUMCHECK='*' go run ./cmd/api
 
 ## Related
 
+**Sibling examples:**
 - [go-cqrs-lite/example/user](../user/) — Advanced patterns: signing, middleware, catalog generation
+- [go-cqrs-lite/example/encryption](../encryption/) — Event encryption patterns: bus, store, key rotation
+
+**Modules demonstrated:**
+- [event/v2](../../event/README.md) — Event sourcing core
+- [command/v2](../../command/README.md) — Typed command dispatch
+- [query/v2](../../query/README.md) — Typed query dispatch against the read model
+- [decider/v2](../../decider/README.md) — Pure-function aggregate pattern
+- [projection/v2](../../projection/README.md) — Replay + live projection runner
+- [pebble/v2](../../pebble/README.md) — Embedded PebbleDB event store
+- [memory/v2](../../memory/README.md) — In-memory event bus

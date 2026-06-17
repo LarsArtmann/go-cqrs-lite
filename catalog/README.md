@@ -191,3 +191,10 @@ type UserID string      // catalog.UserID
 | Dependency       | Purpose         |
 | ---------------- | --------------- |
 | `go-faster/yaml` | YAML marshaling |
+
+## Related Modules
+
+- [**command/v2**](../command/README.md) — Generates docs for command types
+- [**event/v2**](../event/README.md) — Generates docs for event types
+- [**query/v2**](../query/README.md) — Generates docs for query types
+- [**dispatcher/v2**](../dispatcher/README.md) — `CatalogDispatcher` for introspection

@@ -234,6 +234,12 @@ func (r *Runner) handleAndCheckpoint(
 			"projection "+p.Name()+" handle event "+string(evt.Type()))
 	}
 
+	cqrsotel.AddSpanEvent(
+		span, "checkpoint_saved",
+		cqrsotel.AttrString("projection", p.Name()),
+		cqrsotel.AttrString("event_id", evt.ID().String()),
+	)
+
 	return r.checkpoint.Save(
 		ctx,
 		p.Name(),

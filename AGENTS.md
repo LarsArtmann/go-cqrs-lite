@@ -2,7 +2,7 @@
 
 > **THIS IS A LIBRARY/SDK — NOT AN APPLICATION.**
 >
-> Consumers import modules (`core`, `storage`, `memory`, `catalog`, etc.) into THEIR projects.
+> Consumers import modules (`event`, `command`, `decider`, `storage`, `memory`, `catalog`, etc.) into THEIR projects.
 > There is no "main app." Every module is independently importable.
 >
 > | If you catch yourself thinking…              | STOP — this is a LIBRARY, not an app                                                                                                       |
@@ -17,6 +17,8 @@
 A lightweight CQRS **library/SDK** for Go with Event Sourcing support, branded IDs, and auto-documentation generation.
 
 Consumers import what they need and compose their own stack. Not a framework — no opinionated transport, message broker, or SQL driver.
+
+> **AI consumer guide:** [`SKILL.md`](SKILL.md) is the canonical reference for AI agents using this library — module decision matrix, composition recipes, conventions, and anti-patterns. This file (AGENTS.md) is for contributors working **inside** the repo.
 
 ## Quick Reference
 
@@ -89,7 +91,7 @@ go-cqrs-lite/
 10. **Multi-module isolation** — Each module has its own `go.mod` with only needed deps.
 11. **Tombstone over delete** — Soft-delete via metadata (TombstoneStatus: Active/Tombstoned/Undetermined). No Delete on Store.
 12. **Dependency budgets** — Per-module direct dep limits enforced by `nix run .#check-layers`. Adding deps requires explicit budget review.
-13. **OTel through otel/** — Modules import `otel/` re-exports instead of `go.opentelemetry.io` directly. OTel SDK is indirect in decider, projection, storage, middleware go.mod files.
+13. **OTel through otel/** — Modules import `otel/` re-exports instead of `go.opentelemetry.io` directly. OTel SDK is indirect in decider, projection, storage, middleware go.mod files. The `otel/` module now re-exports `Int64Counter`, `AddOption`, `AddSpanEvent()`, `ServiceResourceAttributes()`, `CQRSHistogramBoundaries`, and `CounterAddWithAttributes()` for rate metrics, span events, service identification, and histogram customization.
 14. **Zero-copy internal reads** — `PayloadReadOnly(evt)` bypasses `Payload()` clone for read-only paths via `*ImmutableEvent` type assertion. Used by signing (SHA-256 hashing, CloneEvent), pebble (json.Marshal), storage/sql (ExecContext), middleware/sse (string conversion). Internal-only `payloadForDecode()` and `encodingForCopy()` for same-package paths.
 15. **Defensive clone on all public accessors** — `Payload()` returns `slices.Clone`, `Metadata()` returns `.Clone()`, `EventTypes()` returns `slices.Clone`, `MultiSignature.Get()` returns a copy, `WithCommandMetadata` clones on intake. The `Event` interface documents this contract for third-party implementors.
 16. **Hot-path zero-allocation discipline** — Public API clones stay, but internal hot paths eliminate allocs via: lazy map init (`NewMetadata()` returns zero-value), pre-computed middleware chains (`MemoryBus` rebuilds on `Use()`/`UsePublish()` only), cached SQL templates (built once at construction), pre-sized result slices (`make([]T, 0, hint)`), lock-free fast paths (`CircuitBreaker` uses `atomic.Int32`), batch SQL inserts (multi-VALUES with SQLite 999-param chunking), and Runner event type caching (caches `p.EventTypes()` once at `Register()` time, eliminating per-event clones for ALL projection types). **Lesson learned**: type assertions for fast paths (`*builtProjection`) are dead code if users create types via different constructors (`event.NewProjection`). Cache at the integration boundary instead. See `docs/planning/2026-06-14_16-30_PERFORMANCE_OPTIMIZATION_PLAN.md` for the full Pareto analysis.
@@ -235,6 +237,40 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   meter := otel.GetMeterProvider().Meter("my-app")
 //   recorder, _ := middleware.NewOTelMetricsRecorder(meter)
 //   cmdDispatcher.Use(middleware.CommandMetrics(recorder))
+//
+//   // Rate metrics (Int64Counter + Float64Histogram)
+//   counter, _ := meter.Int64Counter("cqrs.operation.count")
+//   cmdDispatcher.Use(middleware.CommandOTelMetricsWithCounter(histogram, counter))
+//
+//   // Span events for projection retry observability
+//   cqrsotel.AddSpanEvent(span, "retry_attempt", cqrsotel.AttrInt("attempt", 2))
+//
+//   // Service identification in traces
+//   attrs := cqrsotel.ServiceResourceAttributes("my-app", "1.0.0", "instance-1")
+//
+//   // Custom histogram boundaries for CQRS latency ranges
+//   _ = cqrsotel.CQRSHistogramBoundaries // [0.05, 0.1, ..., 10000] ms
+
+// CBOR compact codec (opt-in, ~35% smaller payloads via toarray)
+//   codec := codec.CBORCompactCodec{}  // NOT compatible with CBORCodec data
+//   data, _ := codec.Encode(event)     // struct fields encoded as positional array
+//
+//   // Human-readable CBOR for debugging
+//   diag, _ := codec.Diagnose(cborData)
+//   log.Printf("CBOR: %s", diag)
+
+// Pebble recommended defaults (bloom filter, concurrent compactions, logging)
+//   backend, _ := pebble.Open(dir, pebble.DefaultOptions(), logger)
+//   // Or with operational logging:
+//   backend, _ := pebble.Open(dir, pebble.DefaultOptionsWithLogging(logger), logger)
+//
+//   // LSM metrics for health checks
+//   metrics := backend.Metrics()
+//   hitRate := float64(metrics.BlockCacheHits) /
+//       float64(metrics.BlockCacheHits + metrics.BlockCacheMisses)
+
+// SQLite busy_timeout (eliminates "database is locked" errors)
+//   _ = storage.SQLiteEnableWAL(ctx, db)  // now includes busy_timeout=5000
 
 // SQL backend facade — all stores share one *sql.DB connection
 //   backend, _ := storage.NewSQLiteBackend(db)  // or NewSQLBackend for Postgres

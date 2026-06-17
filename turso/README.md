@@ -229,3 +229,14 @@ fmt.Println(idx.DropDDL())  // DROP INDEX IF EXISTS ...
 ```
 
 [SyncOption]: https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/turso/v2#SyncOption
+
+## Related Modules
+
+- [**storage/v2**](../storage/README.md) — Turso delegates SQL store implementations to this module
+- [**pebble/v2**](../pebble/README.md) — Sibling embedded backend (PebbleDB)
+- [**memory/v2**](../memory/README.md) — In-memory implementations for tests
+- [**event/v2**](../event/README.md) — Event store interface
+- [**command/v2**](../command/README.md) — Command store interface
+- [**query/v2**](../query/README.md) — Query store interface
+- [**snapshot/v2**](../snapshot/README.md) — Snapshot store interface
+- [**otel/v2**](../otel/README.md) — Index analysis emits spans via `otel/` re-exports

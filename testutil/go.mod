@@ -22,6 +22,7 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/exp v0.0.0-20260611194520-c48552f49976 // indirect
 	golang.org/x/text v0.38.0 // indirect
+	pgregory.net/rapid v1.3.0 // indirect
 )
 
 replace (

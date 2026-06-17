@@ -151,8 +151,10 @@ Query   → Dispatcher → Handler            Projection
 
 ## Next Steps
 
+- **[SKILL.md](../SKILL.md)** — The AI consumer guide: module decision matrix, composition recipes, conventions, anti-patterns
 - See `example/todo/` for a complete application with HTTP API, projections, and Pebble storage
 - See `example/user/` for advanced patterns (Decider, signing, middleware, catalog generation)
+- See `example/encryption/` for event encryption patterns (bus, store, key rotation)
 - See `README.md` for the full Quick Start and feature comparison
 - Browse `docs/adr/` for architectural decisions
 - Check `FEATURES.md` for full feature inventory

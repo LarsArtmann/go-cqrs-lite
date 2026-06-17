@@ -200,3 +200,11 @@ Implementations: `InMemoryAggregateReader`, `SQLAggregateReader`.
 - ListBuilder: PageSize clamping (zero, max), cursor at end, cross-type listing
 - In-memory reader: active/tombstoned filtering, pagination, empty journal
 - StatusMiddleware: tombstone, rebirth, passthrough
+
+## Related Modules
+
+- [**projection/v2**](../projection/README.md) — Register `AggregateProjection` with the runner to populate the reader
+- [**storage/v2**](../storage/README.md) — SQL-backed `AggregateReader` for PostgreSQL/SQLite
+- [**event/v2**](../event/README.md) — Tombstone detection and event types
+- [**id/v2**](../id/README.md) — `AggregateID` type
+- [**memory/v2**](../memory/README.md) — `InMemoryAggregateReader` for tests

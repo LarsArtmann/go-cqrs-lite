@@ -51,5 +51,13 @@ resolver := encryption.NewStaticKeyResolver(map[encryption.KeyID]encryption.Decr
 
 ## Related Modules
 
-- [encryption/v2](../../encryption/README.md) — The library module this example demonstrates
+**Sibling examples:**
 - [example/todo](../todo/README.md) — Full application example
+- [example/user](../user/README.md) — Advanced patterns: signing, middleware, catalog
+
+**Modules demonstrated:**
+- [encryption/v2](../../encryption/README.md) — The library module this example demonstrates
+- [signing/v2](../../signing/README.md) — Sign then encrypt for tamper-proof + confidential streams
+- [codec/v2](../../codec/README.md) — `encryption.NewCodec` wraps a codec with encryption
+- [event/v2](../../event/README.md) — Event model and bus
+- [memory/v2](../../memory/README.md) — In-memory store and bus for the demo

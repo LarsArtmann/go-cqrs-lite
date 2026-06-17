@@ -150,3 +150,10 @@ XChaCha20Poly1305_Decrypt      ~600ns/op    2 allocs/op
 - **Key management**: This module handles encryption, not key management. Use your cloud provider's KMS or HashiCorp Vault.
 - **AES-GCM nonce space**: 12-byte random nonces have a birthday bound at ~2^48 per key. Rotate keys well before this limit. XChaCha20's 24-byte nonce eliminates this concern.
 - **Key rotation**: Design your system for key rotation. Store the key ID alongside encrypted events.
+
+## Related Modules
+
+- [**signing/v2**](../signing/README.md) — Sign then encrypt for tamper-proof + confidential streams
+- [**codec/v2**](../codec/README.md) — `encryption.NewCodec` wraps a codec with transparent encryption
+- [**event/v2**](../event/README.md) — Encrypts event payloads via `bus.UsePublish` / `bus.Use`
+- [**middleware/v2**](../middleware/README.md) — `EncryptMiddleware` / `DecryptMiddleware` re-exported here

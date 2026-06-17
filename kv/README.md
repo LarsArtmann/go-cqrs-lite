@@ -45,3 +45,8 @@ for iter.Next() {
 ## MemStore
 
 The in-memory implementation is safe for concurrent use and returns point-in-time snapshots from `NewIterator`. All public accessors (`Get`, `Set`) defensively clone byte slices.
+
+## Related Modules
+
+- [**pebble/v2**](../pebble/README.md) — Implements `kv.Store` via `pebble.NewKVStore` (first concrete backend)
+- [**memory/v2**](../memory/README.md) — `kv.NewMemStore` is the reference in-memory implementation

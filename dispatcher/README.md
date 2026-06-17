@@ -15,3 +15,9 @@ go get github.com/larsartmann/go-cqrs-lite/dispatcher/v2
 | `Dispatcher[H, M]`          | Generic handler + middleware dispatcher            |
 | `LifecycleMixin`            | Embedded Close() support — rejects ops after close |
 | `CatalogDispatcher[KT, VT]` | Embeddable catalog introspection                   |
+
+## Related Modules
+
+- [**command/v2**](../command/README.md) — `command.Dispatcher` embeds `Dispatcher[Handler, Command]`
+- [**query/v2**](../query/README.md) — `query.Dispatcher` embeds `Dispatcher[Handler, Query]`
+- [**catalog/v2**](../catalog/README.md) — Uses `CatalogDispatcher` for introspection

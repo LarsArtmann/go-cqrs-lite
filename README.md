@@ -5,6 +5,8 @@
 
 A lightweight CQRS + Event Sourcing **library** for Go. Import only what you need — each module has its own `go.mod` with minimal dependencies. Not a framework: no opinionated transport, broker, or SQL driver.
 
+> **Using this library with an AI assistant?** Read [`SKILL.md`](SKILL.md) — the single-source guide with a module decision matrix, copy-paste composition recipes, conventions, and anti-patterns.
+
 ## Quick Start
 
 ```bash

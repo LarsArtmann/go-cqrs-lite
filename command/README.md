@@ -67,5 +67,7 @@ batch, _ := store.ReadFrom(ctx, lastCmdID, 100)
 
 - [event/v2](../event/README.md) — Event store/bus with matching Journal/SeekableJournal pattern
 - [query/v2](../query/README.md) — Query dispatch with parallel PersistedQuery/QueryStore
+- [decider/v2](../decider/README.md) — Execute commands via the aggregate repository
 - [memory/v2](../memory/README.md) — `MemoryCommandStore` in-memory implementation
+- [middleware/v2](../middleware/README.md) — Logging, retry, recovery, tracing for commands
 - [id/v2](../id/README.md) — Branded `CommandID` and `AggregateID`

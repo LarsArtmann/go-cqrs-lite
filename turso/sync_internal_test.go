@@ -302,9 +302,12 @@ func TestOpenSyncWithConfig_FactorySuccess(t *testing.T) {
 	t.Cleanup(func() { _ = testDB.Close() })
 
 	fakeEngine := &fakeSyncEngine{pullChanged: true}
-	withSwappedFactory(t, func(_ context.Context, _ tursoclient.TursoSyncDbConfig) (syncDbConnection, error) {
-		return syncDbConnection{db: testDB, engine: fakeEngine}, nil
-	})
+	withSwappedFactory(
+		t,
+		func(_ context.Context, _ tursoclient.TursoSyncDbConfig) (syncDbConnection, error) {
+			return syncDbConnection{db: testDB, engine: fakeEngine}, nil
+		},
+	)
 
 	sdb, err := OpenSyncWithConfig(
 		context.Background(),
@@ -344,9 +347,12 @@ func TestOpenSyncWithConfig_FactoryError(t *testing.T) {
 	// NOT parallel — swaps package-level createSyncDb.
 
 	sentinel := errors.New("network unreachable")
-	withSwappedFactory(t, func(_ context.Context, _ tursoclient.TursoSyncDbConfig) (syncDbConnection, error) {
-		return syncDbConnection{}, sentinel
-	})
+	withSwappedFactory(
+		t,
+		func(_ context.Context, _ tursoclient.TursoSyncDbConfig) (syncDbConnection, error) {
+			return syncDbConnection{}, sentinel
+		},
+	)
 
 	_, err := OpenSyncWithConfig(
 		context.Background(),
@@ -372,11 +378,14 @@ func TestOpenSyncWithConfig_OptionsAppliedToConfig(t *testing.T) {
 	// NOT parallel — swaps package-level createSyncDb.
 
 	var capturedCfg tursoclient.TursoSyncDbConfig
-	withSwappedFactory(t, func(_ context.Context, cfg tursoclient.TursoSyncDbConfig) (syncDbConnection, error) {
-		capturedCfg = cfg
+	withSwappedFactory(
+		t,
+		func(_ context.Context, cfg tursoclient.TursoSyncDbConfig) (syncDbConnection, error) {
+			capturedCfg = cfg
 
-		return syncDbConnection{}, errors.New("stop")
-	})
+			return syncDbConnection{}, errors.New("stop")
+		},
+	)
 
 	_, _ = OpenSyncWithConfig(
 		context.Background(),

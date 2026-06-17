@@ -3,6 +3,7 @@ package pebble
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/cockroachdb/pebble"
 
@@ -46,6 +47,12 @@ func (a *EventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
 
 // ReadFrom retrieves events ordered by OccurredAt, starting after the given event ID.
 // Implements event.SeekableJournal for efficient projection catch-up.
+//
+// Optimization: when afterEventID is non-zero, the ULID timestamp embedded in
+// the ID narrows the iterator's lower bound. This avoids scanning the entire
+// journal on every catch-up page. A 1-minute buffer ensures correctness even
+// when OccurredAt differs from the ULID generation time. If the target is not
+// found in the narrowed range, a full scan is performed as fallback.
 func (a *EventStore) ReadFrom(
 	ctx context.Context,
 	afterEventID id.EventID,
@@ -56,11 +63,68 @@ func (a *EventStore) ReadFrom(
 		cqrsotel.WithAttributes(cqrsotel.AttrInt("limit", limit)))
 	defer span.End()
 
-	var events []event.Event
-
-	lowerBound := []byte(a.journalPrefix)
 	upperBound := []byte(a.journalPrefix + "\xff")
 
+	// Fast path: no afterEventID, collect from beginning.
+	if afterEventID.IsZero() {
+		events, err := a.scanJournal([]byte(a.journalPrefix), upperBound, "", limit)
+		if err != nil {
+			cqrsotel.RecordError(span, err)
+			return nil, err
+		}
+
+		span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))
+		return events, nil
+	}
+
+	// Optimized path: narrow lower bound using ULID timestamp.
+	targetID := afterEventID.String()
+	ulidTime := id.ULID(afterEventID)
+	narrowedLower := fmt.Appendf(nil, "%s%020d", a.journalPrefix,
+		ulidTime.Add(-journalSeekBuffer).UnixNano())
+
+	events, found, err := a.scanJournalWithSkip(narrowedLower, upperBound, targetID, limit)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+		return nil, err
+	}
+
+	// Fallback: target not in narrowed range (rare edge case — backdated event).
+	if !found {
+		events, _, err = a.scanJournalWithSkip([]byte(a.journalPrefix), upperBound,
+			targetID, limit)
+		if err != nil {
+			cqrsotel.RecordError(span, err)
+			return nil, err
+		}
+	}
+
+	span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))
+	return events, nil
+}
+
+// journalSeekBuffer is subtracted from the ULID timestamp to create a
+// conservative lower bound for narrowed journal scans.
+const journalSeekBuffer = time.Minute
+
+// scanJournal scans between bounds and collects up to limit events.
+func (a *EventStore) scanJournal(
+	lowerBound, upperBound []byte,
+	_ string,
+	limit int,
+) ([]event.Event, error) {
+	events, _, err := a.scanJournalWithSkip(lowerBound, upperBound, "", limit)
+	return events, err
+}
+
+// scanJournalWithSkip scans between bounds. If targetID is non-empty, events
+// are skipped until the matching journal key is found.
+// Returns (events, targetFound, error).
+func (a *EventStore) scanJournalWithSkip(
+	lowerBound, upperBound []byte,
+	targetID string,
+	limit int,
+) ([]event.Event, bool, error) {
 	iter, err := a.db.NewIter(
 		&pebble.IterOptions{ //nolint:exhaustruct // only Lower/Upper bound needed
 			LowerBound: lowerBound,
@@ -68,21 +132,22 @@ func (a *EventStore) ReadFrom(
 		},
 	)
 	if err != nil {
-		cqrsotel.RecordError(span, err)
-
-		return nil, event.WrapInfrastructure(err, "pebble.read_from",
-			"create iterator for ReadFrom")
+		return nil, false, event.WrapInfrastructure(err, "pebble.scan_journal",
+			"create iterator")
 	}
 
 	defer func() { _ = iter.Close() }()
 
-	skipping := !afterEventID.IsZero()
-	targetID := afterEventID.String()
+	skipping := targetID != ""
+	found := false
+
+	var events []event.Event
 
 	for iter.First(); iter.Valid(); iter.Next() {
 		if skipping {
 			if journalKeyEventID(iter.Key()) == targetID {
 				skipping = false
+				found = true
 			}
 
 			continue
@@ -90,11 +155,10 @@ func (a *EventStore) ReadFrom(
 
 		evt, err := a.deserializeEvent(iter.Value())
 		if err != nil {
-			return nil, event.Wrapf(
+			return nil, found, event.Wrapf(
 				a.corruptEventErr(string(iter.Key()), err),
 				event.Corruption, "pebble.journal_corrupt_event",
-				"corrupt event in journal (limit=%d, after=%s)",
-				limit, afterEventID,
+				"corrupt event in journal (limit=%d)", limit,
 			)
 		}
 
@@ -105,17 +169,12 @@ func (a *EventStore) ReadFrom(
 		}
 	}
 
-	err = checkIteratorError(iter)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
-
-		return nil, event.Wrapf(err, event.Infrastructure, "pebble.journal_iterator",
-			"iterator error in journal (limit=%d, after=%s)", limit, afterEventID)
+	if err := checkIteratorError(iter); err != nil {
+		return nil, found, event.Wrapf(err, event.Infrastructure, "pebble.journal_iterator",
+			"iterator error in journal (limit=%d)", limit)
 	}
 
-	span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))
-
-	return events, nil
+	return events, found, nil
 }
 
 // journalKeyEventID extracts the event ID portion from a journal key.

@@ -18,3 +18,11 @@ store.Save(ctx, snapshot.Snapshot{
 loaded, _ := store.LoadAtVersion(ctx, ref, 10)
 strategy, _ := snapshot.EveryNEvents(100)
 ```
+
+## Related Modules
+
+- [**event/v2**](../event/README.md) — `event.Version` type used in snapshots
+- [**decider/v2**](../decider/README.md) — `WithSnapshotStore` + `WithSnapshotStrategy` for aggregate loading
+- [**memory/v2**](../memory/README.md) — `MemorySnapshotStore` for tests
+- [**storage/v2**](../storage/README.md) — `SQLSnapshotStore` for PostgreSQL/SQLite
+- [**pebble/v2**](../pebble/README.md) — `SnapshotStore` backed by PebbleDB

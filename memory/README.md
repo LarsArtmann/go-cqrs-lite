@@ -50,3 +50,6 @@ All implementations support `Close()` lifecycle and return defensive copies.
 - [command/v2](../command/README.md) — Command store/journal interfaces
 - [query/v2](../query/README.md) — Query store/journal interfaces
 - [snapshot/v2](../snapshot/README.md) — Snapshot store interfaces
+- [projection/v2](../projection/README.md) — `MemoryCheckpointStore` for projection tests
+- [storage/v2](../storage/README.md) — Production SQL implementations
+- [pebble/v2](../pebble/README.md) — Production embedded (PebbleDB) implementations

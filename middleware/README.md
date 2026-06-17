@@ -65,3 +65,12 @@ cmds.Use(middleware.CommandLogging(logger))
 cmds.Use(middleware.CommandRecovery())
 cmds.Use(middleware.CommandRetry(3, 100*time.Millisecond))
 ```
+
+## Related Modules
+
+- [**command/v2**](../command/README.md) — `command.Dispatcher.Use()` applies command middleware
+- [**event/v2**](../event/README.md) — `event.Bus.Use()` / `UsePublish()` applies event middleware
+- [**query/v2**](../query/README.md) — `query.Dispatcher.Use()` applies query middleware
+- [**signing/v2**](../signing/README.md) — `EventSignMiddleware` / `EventVerifyMiddleware` live here
+- [**encryption/v2**](../encryption/README.md) — `EncryptMiddleware` / `DecryptMiddleware` live here
+- [**otel/v2**](../otel/README.md) — Tracing middleware uses OTel tracers from this module

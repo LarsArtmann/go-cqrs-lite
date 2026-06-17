@@ -28,3 +28,10 @@ AggregateID, EventID, CorrelationID, CausationID, RequestID, UserID, ClientID, C
 ## Serialization
 
 All IDs support JSON (including null), binary, text, and SQL Scan/Value.
+
+## Related Modules
+
+- [**event/v2**](../event/README.md) — Uses `AggregateID`, `EventID`, `CorrelationID`, `CausationID`
+- [**command/v2**](../command/README.md) — Uses `AggregateID`, `CommandID`
+- [**query/v2**](../query/README.md) — Uses `RequestID`
+- [**decider/v2**](../decider/README.md) — Aggregates keyed by branded `AggregateID`

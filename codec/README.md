@@ -102,3 +102,10 @@ fmt.Println(c.Encoding()) // "cbor"
 ```
 
 The `Encoding` type constants are `EncodingJSON`, `EncodingCBOR`, and `EncodingRaw`.
+
+## Related Modules
+
+- [**event/v2**](../event/README.md) — `DecodePayload[T]` accepts a `Codec` to decode payloads
+- [**signing/v2**](../signing/README.md) — CBOR's deterministic encoding makes signatures reproducible
+- [**encryption/v2**](../encryption/README.md) — `encryption.NewCodec` wraps a codec with encryption
+- [**pebble/v2**](../pebble/README.md) — Uses CBOR internally for its on-disk envelope format

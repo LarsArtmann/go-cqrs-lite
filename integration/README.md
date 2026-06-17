@@ -22,3 +22,11 @@ go test ./integration/... -count=1
 # Specific package
 go test ./integration/signing/... -v -count=1
 ```
+
+## Related Modules
+
+- [**command/v2**](../command/README.md) — Command dispatch roundtrip tests
+- [**event/v2**](../event/README.md) — Event store/load/bus integration
+- [**query/v2**](../query/README.md) — Typed result extraction tests
+- [**memory/v2**](../memory/README.md) — In-memory store/bus used as test fixtures
+- [**signing/v2**](../signing/README.md) — Sign → verify → middleware chain tests

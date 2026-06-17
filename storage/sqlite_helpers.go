@@ -48,9 +48,14 @@ func SQLiteInitSchema(ctx context.Context, db *sql.DB) error {
 }
 
 func SQLiteEnableWAL(ctx context.Context, db *sql.DB) error {
-	_, err := db.ExecContext(ctx, "PRAGMA journal_mode=WAL")
-	if err != nil {
-		return event.WrapInfrastructure(err, "storage.enable_wal", "enable WAL mode")
+	pragmas := []string{
+		"PRAGMA journal_mode=WAL",
+		"PRAGMA busy_timeout=5000",
+	}
+	for _, pragma := range pragmas {
+		if _, err := db.ExecContext(ctx, pragma); err != nil {
+			return event.WrapInfrastructure(err, "storage.enable_wal", "exec "+pragma)
+		}
 	}
 	return nil
 }

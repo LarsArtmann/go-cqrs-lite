@@ -38,3 +38,8 @@ messages, _ := subscriber.Subscribe(ctx, "user.created")
 | ------------------------- | ------------------------------------------------------------- |
 | `ThreeDotsLabs/watermill` | Message bus interface (message.Publisher, message.Subscriber) |
 | `event`                   | Event interfaces and error types                              |
+
+## Related Modules
+
+- [**event/v2**](../event/README.md) — Adapts `event.Publisher` / `event.Bus` to the Watermill interface
+- [**memory/v2**](../memory/README.md) — `MemoryBus` used in the adapter example

@@ -1,70 +1,98 @@
 # go-cqrs-lite Documentation
 
-> A lightweight CQRS + Event Sourcing library for Go with branded IDs, tombstone soft-delete, and auto-documentation generation.
+> A lightweight CQRS + Event Sourcing **library** for Go with branded IDs, tombstone soft-delete, and auto-documentation generation.
 
 ## Getting Started
 
-- **[Getting Started Guide](getting-started.md)** — Quick start tutorial
-- **[README](../README.md)** — Project overview and quick reference
-- **[Migration Guide v1](MIGRATION_v1.md)** — Upgrade guide for breaking changes
+| Resource | Audience | Description |
+|----------|----------|-------------|
+| **[Getting Started Guide](getting-started.md)** | New users | Step-by-step tutorial: events → commands → decider → branded IDs |
+| **[Project README](../README.md)** | All | Quick start, module index, feature comparison |
+| **[SKILL.md](../SKILL.md)** | AI agents | Single-source AI consumer guide: decision matrix, recipes, conventions |
+| **[Migration Guide v1](MIGRATION_v1.md)** | Upgraders | Upgrade guide for v1 → v2 breaking changes |
+| **[API Migration](MIGRATION.md)** | Upgraders | `query.Handler: any → TypedHandler[T]` migration |
 
-## Architecture
+## Guides
 
-- **[Architecture Patterns](ARCHITECTURE_PATTERNS.md)** — CQRS, Event Sourcing, and Decider patterns
-- **[Storage Guide](STORAGE_GUIDE.md)** — SQL event store, snapshots, outbox, checkpoint stores
+- **[Architecture Patterns](ARCHITECTURE_PATTERNS.md)** — CQRS, Event Sourcing, and Decider patterns explained
+- **[Storage Guide](STORAGE_GUIDE.md)** — SQL event store, snapshots, checkpoint stores, backend facade
 - **[Signing Architecture](signing-architecture.md)** — Event signing with HMAC-SHA256 and Ed25519
-- **[Error Taxonomy](error-taxonomy.md)** — 5-family error classification system
-- **[Domain Language](DOMAIN_LANGUAGE.md)** — Glossary of domain terms
-
-## Architecture Decision Records (ADR)
-
-| ADR                                            | Title                      | Status                                            |
-| ---------------------------------------------- | -------------------------- | ------------------------------------------------- |
-| [0001](adr/0001-decider-over-aggregate.md)     | Decider over Aggregate     | Accepted                                          |
-| [0002](adr/0002-error-taxonomy.md)             | Error Taxonomy             | Accepted                                          |
-| [0003](adr/0003-multi-module-monorepo.md)      | Multi-Module Monorepo      | Accepted                                          |
-| [0004](adr/0004-saga-process-manager.md)       | Saga Process Manager       | Superseded — removed, see `example/saga-pattern/` |
-| [0005](adr/0005-outbox-pattern.md)             | Outbox Pattern             | Accepted                                          |
-| [0006](adr/0006-sink-source-split.md)          | Sink/Source ISP Split      | Accepted                                          |
-| [0007](adr/0007-gopls-workspace-workaround.md) | gopls Workspace Workaround | Accepted                                          |
+- **[Error Taxonomy](error-taxonomy.md)** — 5-family error classification system (Rejection / Conflict / Transient / Infrastructure / Corruption)
+- **[Domain Language](DOMAIN_LANGUAGE.md)** — Glossary of domain terms and ubiquitous language
+- **[Turso Indexing Guidance](turso-indexing-guidance.md)** — Index management for Turso/LibSQL
 
 ## Modules
 
-| Module        | Purpose                                                              |
-| ------------- | -------------------------------------------------------------------- |
-| `core`        | Command, Event, Query, Decider, Branded IDs                          |
-| `memory`      | In-memory Store, Bus, SnapshotStore                                  |
-| `storage`     | SQL Store (PG/SQLite/Turso), Outbox, Checkpoint                      |
-| `middleware`  | Logging, Retry, Recovery, Metrics, OTel, Circuit Breaker, Validation |
-| `projection`  | Replay + Live runner, HandlerRegistry                                |
-| `stream`      | Aggregate listing, Tombstone filtering, Cursor pagination            |
-| `catalog`     | Registry, AsyncAPI/D2/OpenAPI exporters                              |
-| `signing`     | Event signing/verification (HMAC, Ed25519)                           |
-| `otel`        | Shared OpenTelemetry helpers (Tracer, Meter, Spans, Attributes)      |
-| `watermill`   | Watermill protocol adapter                                           |
-| `testhelpers` | Noop/Failing/Panic handlers, FakeStore, FakeBus                      |
+The authoritative module index with README links lives in the **[project README](../README.md)** (28 modules across Core / Persistence / Infrastructure / Tooling / Examples). Each module also has a `doc.go` rendered on [pkg.go.dev](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v2).
 
 ## Examples
 
-| Example        | Demonstrates                                                                                            |
-| -------------- | ------------------------------------------------------------------------------------------------------- |
-| `example/todo` | Complete todo app: domain, aggregate, decider, commands, queries, projections, HTTP API, Pebble storage |
-| `example/user` | Advanced patterns: signing, middleware, catalog generation, tombstone/rebirth                           |
+| Example | Demonstrates | README |
+|---------|--------------|--------|
+| **todo** | Full app: HTTP API, decider, projections, queries, Pebble storage | [example/todo](../example/todo/README.md) |
+| **user** | Advanced: signing, middleware chains, catalog gen, tombstone/rebirth | [example/user](../example/user/README.md) |
+| **encryption** | Bus-level + store-level encryption, key rotation | [example/encryption](../example/encryption/README.md) |
 
-## API Surface
+## Architecture Decision Records (ADR)
 
-- **[API Surface Snapshot](api_surface.txt)** — Machine-readable list of all 992 exported symbols
-- Run `go run ./cmd/api-stability/ -update` to regenerate
-- Run `go run ./cmd/api-stability/` to verify no breaking changes
+23 ADRs documenting key architectural decisions. Full text in [`adr/`](adr/); the [ADR index](adr/README.md) contains summaries.
 
-## Quality & Status
+| ADR | Title | Status |
+|-----|-------|--------|
+| [0001](adr/0001-decider-over-aggregate.md) | Decider Pattern Over OO Aggregate | Accepted |
+| [0002](adr/0002-error-taxonomy.md) | Error Taxonomy with Five Families | Accepted |
+| [0003](adr/0003-multi-module-monorepo.md) | Multi-Module Monorepo Structure | Accepted |
+| [0004](adr/0004-saga-process-manager.md) | Saga / Process Manager Module | Accepted |
+| [0005](adr/0005-tombstone-soft-delete.md) | Tombstone Soft-Delete Pattern | Accepted |
+| [0006](adr/0006-sink-source-split.md) | Sink/Source Split for Event Store Interface | Accepted |
+| [0007](adr/0007-gopls-workspace-workaround.md) | gopls Multi-Module Workspace Workaround | Accepted |
+| [0008](adr/0008-typed-handler-signature.md) | TypedHandler Dual Type Parameters | Accepted |
+| [0009](adr/0009-pebble-scope-event-store-only.md) | Pebble Module Scope | Accepted |
+| [0010](adr/0010-remove-io-closer-from-interfaces.md) | Remove io.Closer from Core Interfaces | Accepted |
+| [0011](adr/0011-unify-err-dispatcher-closed.md) | Unify ErrDispatcherClosed | Accepted |
+| [0012](adr/0012-split-catalog-modules.md) | Split Catalog into Sub-Modules | Accepted |
+| [0013](adr/0013-zero-copy-payload-for-decode.md) | Zero-Copy Payload Access | Accepted |
+| [0014](adr/0014-test-only-dependencies-in-go-mod.md) | Test-Only Dependencies in go.mod | Accepted |
+| [0015](adr/0015-cbor-codec.md) | CBOR Codec for Binary Payload Encoding | Accepted |
+| [0016](adr/0016-outbox-pattern.md) | Outbox Pattern for Reliable Event Publishing | Declined — use Watermill |
+| [0017](adr/0017-schema-registry.md) | Schema Registry for Event Validation | Proposed |
+| [0018](adr/0018-distributed-checkpointing.md) | Distributed Checkpointing for Projections | Proposed |
+| [0019](adr/0019-cbor-envelope-format.md) | CBOR Envelope Format for Pebble Stores | Accepted |
+| [0020](adr/0020-performance-optimization-patterns.md) | Performance Optimization Patterns | Accepted |
+| [0021](adr/0021-store-close-semantics.md) | Store Close() Semantics — Shared DB Pattern | Accepted |
+| [0022](adr/0022-kv-store-abstraction.md) | KV Store Abstraction Module | Accepted |
+| [0023](adr/0023-pebble-kv-adapter.md) | Pebble KV Store Adapter | Accepted |
 
-- **[Status Reports](status/)** — Comprehensive status snapshots
-- **[Planning](planning/)** — Execution plans and roadmaps
-- **[Research](research/)** — Technology evaluations and deep dives
+## API Reference
+
+- **[API Surface Snapshot](api_surface.txt)** — Machine-readable list of all exported symbols
+- **[pkg.go.dev](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v2)** — Godoc for every module
+- Run `go run ./cmd/api-stability/ -update` to regenerate the surface snapshot
+- Run `go run ./cmd/api-stability/` to verify no breaking changes against the golden file
+
+## Benchmarks
+
+- **[Benchmarks](benchmarks/README.md)** — Performance baselines and regression detection
 
 ## Diagrams
 
 - [Module Architecture](architecture-understanding/) — D2 diagrams of current and target architecture
 - [Perfect World Modules](perfect-world-modules.svg) — Ideal module layout
-- [Web Client Communication](web-client-communication.svg) — Client→Server event flow
+- [Web Client Communication](web-client-communication.svg) — Client → Server event flow
+
+---
+
+## Internal Development Artifacts
+
+> **Not user documentation.** These are historical development records — status snapshots, execution plans, research notes, and code reviews. Useful for understanding the project's evolution, not for learning the library.
+
+| Directory | Contents |
+|-----------|----------|
+| [`status/`](status/) | Comprehensive status snapshots from each development session |
+| [`planning/`](planning/) | Execution plans, Pareto analyses, and roadmaps |
+| [`research/`](research/) | Technology evaluations, deep dives, and design proposals |
+| [`quality/`](quality/) | Code quality scans, architecture reviews, naming audits |
+| [`sessions/`](sessions/) | Session history and milestones |
+| [`modularization/`](modularization/) | Module boundary analysis and restructuring history |
+| [`brainstorming/`](brainstorming/) | Design explorations and concept drafts |
+| [`feedback/`](feedback/) | External feedback and comparison reports |

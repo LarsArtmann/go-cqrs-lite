@@ -15,3 +15,8 @@ upcaster := schema.NewUpcaster("UserCreated", 1, upcastFunc)
 versioned, _ := schema.NewVersionedStore(store, upcaster)
 events, _ := versioned.Load(ctx, ref)
 ```
+
+## Related Modules
+
+- [**event/v2**](../event/README.md) — `VersionedStore` wraps an `event.Store`
+- [**decider/v2**](../decider/README.md) — Apply upcasters transparently when loading aggregate state

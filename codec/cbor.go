@@ -56,3 +56,15 @@ func (CBORCodec) Decode(data []byte, v any) error {
 	//nolint:wrapcheck // thin wrapper over cbor DecMode.Unmarshal
 	return cborDecMode.Unmarshal(data, v)
 }
+
+// Diagnose converts CBOR bytes to extended diagnostic notation (EDN) — a
+// human-readable representation of CBOR data. Useful for debugging corrupt
+// events or inspecting raw CBOR payloads without decoding into a Go struct.
+//
+//	cborData, _ := codec.CBORCodec{}.Encode(event)
+//	diag, _ := codec.Diagnose(cborData)
+//	log.Printf("CBOR event: %s", diag)
+func Diagnose(data []byte) (string, error) {
+	//nolint:wrapcheck // thin wrapper over cbor.Diagnose
+	return cbor.Diagnose(data)
+}
