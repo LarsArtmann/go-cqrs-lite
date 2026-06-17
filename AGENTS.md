@@ -360,11 +360,7 @@ Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability
 
 > **Saga pattern**: No dedicated saga module. Multi-step orchestration emerges from projection + command dispatch. See `example/todo/` for a real projection-based architecture.
 
-**v2.1.0 Released**: Performance-focused release with 62 commits since v2.0.0. Major perf improvements (alloc reductions across event/signing/listing/catalog/memory), production bug fixes (HealthCheck OOM, race conditions, closed state tracking), new `query.TypedHandler[Q, R]`, and comprehensive benchmarking infrastructure. All 22 library + 2 cmd modules tagged at v2.1.0 with `/v2` semantic import paths. Replace directives in go.mod files are retained for `GOWORK=off` per-module CI (ignored by consumers). Consumers import via `github.com/larsartmann/go-cqrs-lite/event/v2` etc.
 
-**v2.2.0 Released**: Operational readiness, testing rigor, and developer experience release with 81 commits since v2.1.0. Health check/metrics/SSE middleware, config loader, graceful shutdown, Docker packaging, property-based tests (rapid), snapshot tests, simulation framework, benchmark baseline regression detection in CI, gosec security scanning, module layer architecture checks, module READMEs, and doc.go with pkg.go.dev examples across 12 modules.
-
-**v2.3.0 Released**: Lint hygiene, coverage, and release readiness with 231 commits since v2.2.0. Zero lint issues across all 27 modules, CBOR codec + Pebble CBOR envelope, encryption module (XChaCha20-Poly1305 + AES-256-GCM), phantom types across library, command store interfaces, OTel abstraction via `otel/` re-exports, ADR-0008–0015, comprehensive fuzz/property/snapshot testing, storage/sql coverage 37.4%→89.2%, otel 73.0%→97.3%.
 
 > **Historical details**: Session milestones, catalog architecture, and known issues in
 > [`docs/sessions/SESSION_MILESTONES.md`](docs/sessions/SESSION_MILESTONES.md)

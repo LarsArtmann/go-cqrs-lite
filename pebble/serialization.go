@@ -52,7 +52,9 @@ func isCBOR(data []byte) bool {
 }
 
 // serializeEvent converts a CQRS event to CBOR.
-// Falls back to JSON encoding if CBOR encoding fails.
+// Uses pebbleEncMode.Marshal directly: fxamacker/cbor already pools encode
+// buffers internally, so this is the lowest-allocation path for producing an
+// owned []byte that Pebble can store.
 func (a *EventStore) serializeEvent(evt event.Event) ([]byte, error) {
 	s := serializableEvent{
 		ID:            evt.ID(),
