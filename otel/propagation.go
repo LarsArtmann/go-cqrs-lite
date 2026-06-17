@@ -62,9 +62,9 @@ func NewTextMapPropagator() propagation.TextMapPropagator {
 func NewCQRSViews() []sdkmetric.View {
 	return []sdkmetric.View{
 		sdkmetric.NewView(
-			sdkmetric.Instrument{
+			sdkmetric.Instrument{ //nolint:exhaustruct // only Name is a filter criteria
 				Name: "cqrs.",
-			}, //nolint:exhaustruct // only Name is a filter criteria
+			},
 			sdkmetric.Stream{ //nolint:exhaustruct // only Aggregation is configured
 				Aggregation: sdkmetric.AggregationExplicitBucketHistogram{ //nolint:exhaustruct // NoMinMax defaults to false
 					Boundaries: CQRSHistogramBoundaries,
