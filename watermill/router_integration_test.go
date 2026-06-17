@@ -73,7 +73,7 @@ func TestRouterIntegration_CorrelationIDAndRetry(t *testing.T) {
 	)
 
 	// Run router
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
 
 	routerReady := make(chan struct{})
