@@ -44,8 +44,13 @@ EXCEPTIONS[turso]="storage listing"
 EXCEPTIONS[command]="snapshot"
 EXCEPTIONS[query]="snapshot"
 
-# Dependency budgets: maximum direct (non-indirect) dependencies per module.
+# Test-only packages that don't count against production dep budgets.
+# These are test infrastructure (assertions, PBT, mocking) used across all modules.
+TEST_PACKAGES="github.com/onsi/gomega github.com/onsi/ginkgo/v2 pgregory.net/rapid"
+
+# Dependency budgets: maximum direct PRODUCTION dependencies per module.
 # Budgets are intentionally tight — new deps require explicit review.
+# Test-only deps (gomega, rapid, ginkgo) are excluded from the count.
 declare -A DEP_BUDGET
 DEP_BUDGET[id]=3
 DEP_BUDGET[dispatcher]=0
@@ -88,8 +93,17 @@ for mod in "${!DEP_BUDGET[@]}"; do
         END{print count+0}
     ' "$gomod")
 
-    if [ "$direct" -gt "$budget" ]; then
-        echo "BUDGET: ${mod} has ${direct} direct deps (budget: ${budget})"
+    # Subtract test-only packages from the count (they don't add production weight)
+    test_deps=0
+    for pkg in $TEST_PACKAGES; do
+        if grep -q "[[:space:]]${pkg} " "$gomod" 2>/dev/null; then
+            test_deps=$((test_deps + 1))
+        fi
+    done
+    prod_deps=$((direct - test_deps))
+
+    if [ "$prod_deps" -gt "$budget" ]; then
+        echo "BUDGET: ${mod} has ${prod_deps} production deps (budget: ${budget}, total: ${direct}, test: ${test_deps})"
         failed=1
     fi
 done
