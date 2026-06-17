@@ -2126,11 +2126,14 @@
               </div>
               <div class="finding resolved">
                 <div class="finding-body">
-                  <div class="finding-title">✓ <code>SQLiteEnableForeignKeys</code> helper added</div>
+                  <div class="finding-title">
+                    ✓ <code>SQLiteEnableForeignKeys</code> helper added
+                  </div>
                   <div class="finding-desc">
-                    <strong>RESOLVED:</strong> <code>SQLiteEnableForeignKeys(ctx, db)</code> provides
-                    opt-in <code>PRAGMA foreign_keys=ON</code>. Not enabled by default to avoid
-                    breaking existing DBs with orphaned references.
+                    <strong>RESOLVED:</strong>
+                    <code>SQLiteEnableForeignKeys(ctx, db)</code> provides opt-in
+                    <code>PRAGMA foreign_keys=ON</code>. Not enabled by default to avoid breaking
+                    existing DBs with orphaned references.
                   </div>
                 </div>
               </div>
@@ -2446,7 +2449,8 @@
                     ✓ <code>hkdf</code> for key derivation — DeriveKey implemented
                   </div>
                   <div class="finding-desc">
-                    <strong>RESOLVED:</strong> <code>encryption.DeriveKey(masterKey, info, length)</code>
+                    <strong>RESOLVED:</strong>
+                    <code>encryption.DeriveKey(masterKey, info, length)</code>
                     uses HKDF-SHA256 to derive per-tenant, per-rotation subkeys from a master key.
                   </div>
                 </div>

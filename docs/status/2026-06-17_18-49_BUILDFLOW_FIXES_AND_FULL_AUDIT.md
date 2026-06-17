@@ -6,17 +6,17 @@
 
 ## Executive Summary
 
-| Metric | Value |
-|--------|-------|
-| **Version** | v2.4.0 (26 library + 3 example + 2 cmd + 1 integration modules) |
-| **Go files** | 770 total (366 production, 404 test) |
-| **Lines of code** | 33,590 production / 68,245 test |
-| **Test functions** | 2,076 across 355 test files |
-| **ADRs** | 24 |
-| **Status/planning docs** | 85 status + 65 planning |
-| **Git state** | Clean master, 0 commits ahead of origin |
-| **Module test pass** | 26/26 modules + 3/3 examples all green |
-| **Lint** | Clean (0 issues across event, pebble, storage spot-checks) |
+| Metric                     | Value                                                                         |
+| -------------------------- | ----------------------------------------------------------------------------- |
+| **Version**                | v2.4.0 (26 library + 3 example + 2 cmd + 1 integration modules)               |
+| **Go files**               | 770 total (366 production, 404 test)                                          |
+| **Lines of code**          | 33,590 production / 68,245 test                                               |
+| **Test functions**         | 2,076 across 355 test files                                                   |
+| **ADRs**                   | 24                                                                            |
+| **Status/planning docs**   | 85 status + 65 planning                                                       |
+| **Git state**              | Clean master, 0 commits ahead of origin                                       |
+| **Module test pass**       | 26/26 modules + 3/3 examples all green                                        |
+| **Lint**                   | Clean (0 issues across event, pebble, storage spot-checks)                    |
 | **Coverage (key modules)** | event 93.2% · decider 99.4% · encryption 87.0% · pebble 84.7% · storage 82.1% |
 
 ---
@@ -25,12 +25,12 @@
 
 ### BuildFlow CI Fixes (this session)
 
-| Fix | Root Cause | Resolution |
-|-----|-----------|------------|
+| Fix                          | Root Cause                                                                                                                               | Resolution                                                                                                              |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | `todo-check` false positives | `.buildflow.yml` had wrong key name `todo_severity` (silently ignored → defaulted to `info`, which matches OPTIMIZE in "Optimized path") | Corrected to `todo_min_severity: warning` + rephrased two comments ("Optimized" → "Fast path", "optimized" → "applied") |
-| `go-fix` failure | Multi-module workspace root has no Go packages → `go fix ./...` matched nothing → exit 1 | Added root `doc.go` with package declaration |
-| `modernize` failure | Same root cause as go-fix — no root packages | Same fix (root `doc.go`) |
-| `npm-update` failure | Gitignored generated output `example/user/eventcatalog-output/package.json` scanned by buildflow | Added `**/eventcatalog-output/**` to exclude patterns |
+| `go-fix` failure             | Multi-module workspace root has no Go packages → `go fix ./...` matched nothing → exit 1                                                 | Added root `doc.go` with package declaration                                                                            |
+| `modernize` failure          | Same root cause as go-fix — no root packages                                                                                             | Same fix (root `doc.go`)                                                                                                |
+| `npm-update` failure         | Gitignored generated output `example/user/eventcatalog-output/package.json` scanned by buildflow                                         | Added `**/eventcatalog-output/**` to exclude patterns                                                                   |
 
 ### Core Library (v2.4.0 — all stable)
 
@@ -106,14 +106,14 @@
 
 ## B) PARTIALLY DONE ⚠️
 
-| Area | Status | Gap |
-|------|--------|-----|
-| **Pebble coverage** | 84.7% | Target 85%+; error branches in `helpers.go`, `serialization.go` uncovered |
-| **Pebble golden test** | Missing | Deterministic CBOR envelope bytes for regression safety (listed in TODO_LIST) |
-| **MemorySnapshotStore golden test** | Missing | Baseline for pebble snapshot comparison |
-| **Reactive buses** | 🧪 Experimental | CommandBus, QueryBus, EventBus all work but marked experimental — API may change |
-| **Turso indexing** | 🧪 Working | Auto-indexer, advisor, recommended indexes all functional but sub-package is relatively new |
-| **Catalog docserver** | Works but vendored JS | `catalog/docserver/static/*.js` are large vendored bundles (asyncapi-react, scalar) |
+| Area                                | Status                | Gap                                                                                         |
+| ----------------------------------- | --------------------- | ------------------------------------------------------------------------------------------- |
+| **Pebble coverage**                 | 84.7%                 | Target 85%+; error branches in `helpers.go`, `serialization.go` uncovered                   |
+| **Pebble golden test**              | Missing               | Deterministic CBOR envelope bytes for regression safety (listed in TODO_LIST)               |
+| **MemorySnapshotStore golden test** | Missing               | Baseline for pebble snapshot comparison                                                     |
+| **Reactive buses**                  | 🧪 Experimental       | CommandBus, QueryBus, EventBus all work but marked experimental — API may change            |
+| **Turso indexing**                  | 🧪 Working            | Auto-indexer, advisor, recommended indexes all functional but sub-package is relatively new |
+| **Catalog docserver**               | Works but vendored JS | `catalog/docserver/static/*.js` are large vendored bundles (asyncapi-react, scalar)         |
 
 ---
 
@@ -141,6 +141,7 @@
 ### Deferred Breaking Changes
 
 **v3 (next major):**
+
 - Remove `io.Closer` from core interfaces (ADR-0010)
 - Add global `TransactionID` branded type
 - Make event Core truly immutable (deep copy opts pointer)
@@ -148,6 +149,7 @@
 - Fix `query.Handler` returns `any` → Generic TypedHandler returning `(T, error)`
 
 **v4:**
+
 - Split `catalog.Message` into Message + MessageMeta (17 fields → structured)
 - Split `catalog.Service` into Service + ServiceMeta (16 fields → structured)
 
@@ -162,6 +164,7 @@ error: flake 'git+file:///home/lars/projects/go-cqrs-lite' does not provide attr
 ```
 
 The flake uses `apps.*` for all build automation (test, build, vet, lint, etc.) but never defines `packages.default`. This means:
+
 - `nix build .` fails
 - BuildFlow's `nix-build` step fails
 - Any consumer expecting `nix build` to work gets nothing
@@ -266,14 +269,14 @@ The branch name suggests an active catalog consolidation effort, but `git log` s
 
 ## Uncommitted Changes (This Session)
 
-| File | Change | Reason |
-|------|--------|--------|
-| `.buildflow.yml` | `todo_severity` → `todo_min_severity: warning` + added eventcatalog-output exclude | Fix todo-check false positives |
-| `doc.go` (new) | Root package declaration | Fix go-fix/modernize "matched no packages" |
-| `pebble/journal.go` | "Optimized path" → "Fast path" | Remove OPTIMIZE false positive |
-| `turso/indexing/example_test.go` | "optimized" → "applied" | Remove OPTIMIZE false positive |
-| `flake.lock` | nixpkgs bumped (auto, by buildflow nix-flake-update step) | Side effect of buildflow run |
-| `CODE_OF_CONDUCT.md` (untracked) | Unknown origin | Needs decision: commit or remove |
+| File                             | Change                                                                             | Reason                                     |
+| -------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------ |
+| `.buildflow.yml`                 | `todo_severity` → `todo_min_severity: warning` + added eventcatalog-output exclude | Fix todo-check false positives             |
+| `doc.go` (new)                   | Root package declaration                                                           | Fix go-fix/modernize "matched no packages" |
+| `pebble/journal.go`              | "Optimized path" → "Fast path"                                                     | Remove OPTIMIZE false positive             |
+| `turso/indexing/example_test.go` | "optimized" → "applied"                                                            | Remove OPTIMIZE false positive             |
+| `flake.lock`                     | nixpkgs bumped (auto, by buildflow nix-flake-update step)                          | Side effect of buildflow run               |
+| `CODE_OF_CONDUCT.md` (untracked) | Unknown origin                                                                     | Needs decision: commit or remove           |
 
 ---
 

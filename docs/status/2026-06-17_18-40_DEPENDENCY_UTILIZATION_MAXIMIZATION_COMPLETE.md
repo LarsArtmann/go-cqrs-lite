@@ -8,38 +8,38 @@
 
 ### Dependency Utilization Features (18 total, all implemented)
 
-| Feature | Module | Commit | Impact |
-|---------|--------|--------|--------|
-| singleflight load coalescing | decider | `98308192` | 🔴 N concurrent loads → 1 DB query |
-| SQLiteEnableForeignKeys helper | storage | `019fac95` | 🟡 Opt-in referential integrity |
-| HKDF DeriveKey (multi-tenant) | encryption | `88a29b21` | 🟡 Per-tenant key derivation |
-| Pebble DefaultOptions (bloom+compaction) | pebble | `5df4051` | 🟡 Production-grade defaults |
-| Pebble DefaultOptionsWithLogging | pebble | `5df4051` | 🟡 Operational event alerts |
-| Backend.Metrics + BlockCacheHitRate | pebble | `5df4051` | 🟡 LSM telemetry exposure |
-| CBORCompactCodec + ExtraReturnErrors | codec | `5df4051` | 🟡 Schema drift detection |
-| CBOR Diagnose() | codec | `5df4051` | 🟢 Human-readable CBOR debug |
-| OTel Int64Counter + helpers | otel, middleware | `5df4051` | 🔴 Rate metrics (events/s, cmds/s) |
-| OTel ServiceResourceAttributes | otel | `5df4051` | 🟡 Multi-service trace attribution |
-| OTel CQRSHistogramBoundaries | otel | `5df4051` | 🟡 CQRS-optimized latency buckets |
-| OTel AddSpanEvent helper | otel, projection | `5df4051` | 🟡 Retry/checkpoint span events |
-| ULID Monotonic entropy | id | `5df4051` | 🟡 Guaranteed within-ms ordering |
-| SQLite busy_timeout=5000 | storage | `5df4051` | 🟡 Eliminates "database is locked" |
-| Pebble ULID-narrowed journal scan | pebble | `7af5325d` | 🔴 O(n)→O(log n) projection catch-up |
-| pebbleLogger fmt.Sprintf fix | pebble | `7af5325d` | 🔴 Real bug: all event logging broken |
-| Dead code removal (scanJournal) | pebble | `7af5325d` | 🟢 Cleanup |
-| testutil rapid generators | testutil | `5df4051` | 🟡 Shared test infrastructure |
+| Feature                                  | Module           | Commit     | Impact                                |
+| ---------------------------------------- | ---------------- | ---------- | ------------------------------------- |
+| singleflight load coalescing             | decider          | `98308192` | 🔴 N concurrent loads → 1 DB query    |
+| SQLiteEnableForeignKeys helper           | storage          | `019fac95` | 🟡 Opt-in referential integrity       |
+| HKDF DeriveKey (multi-tenant)            | encryption       | `88a29b21` | 🟡 Per-tenant key derivation          |
+| Pebble DefaultOptions (bloom+compaction) | pebble           | `5df4051`  | 🟡 Production-grade defaults          |
+| Pebble DefaultOptionsWithLogging         | pebble           | `5df4051`  | 🟡 Operational event alerts           |
+| Backend.Metrics + BlockCacheHitRate      | pebble           | `5df4051`  | 🟡 LSM telemetry exposure             |
+| CBORCompactCodec + ExtraReturnErrors     | codec            | `5df4051`  | 🟡 Schema drift detection             |
+| CBOR Diagnose()                          | codec            | `5df4051`  | 🟢 Human-readable CBOR debug          |
+| OTel Int64Counter + helpers              | otel, middleware | `5df4051`  | 🔴 Rate metrics (events/s, cmds/s)    |
+| OTel ServiceResourceAttributes           | otel             | `5df4051`  | 🟡 Multi-service trace attribution    |
+| OTel CQRSHistogramBoundaries             | otel             | `5df4051`  | 🟡 CQRS-optimized latency buckets     |
+| OTel AddSpanEvent helper                 | otel, projection | `5df4051`  | 🟡 Retry/checkpoint span events       |
+| ULID Monotonic entropy                   | id               | `5df4051`  | 🟡 Guaranteed within-ms ordering      |
+| SQLite busy_timeout=5000                 | storage          | `5df4051`  | 🟡 Eliminates "database is locked"    |
+| Pebble ULID-narrowed journal scan        | pebble           | `7af5325d` | 🔴 O(n)→O(log n) projection catch-up  |
+| pebbleLogger fmt.Sprintf fix             | pebble           | `7af5325d` | 🔴 Real bug: all event logging broken |
+| Dead code removal (scanJournal)          | pebble           | `7af5325d` | 🟢 Cleanup                            |
+| testutil rapid generators                | testutil         | `5df4051`  | 🟡 Shared test infrastructure         |
 
 ### Tests Added (all passing, race-clean, lint-clean)
 
-| Test file | What it verifies |
-|-----------|-----------------|
-| `decider/decider_singleflight_test.go` | Concurrent load coalescing (5 goroutines → 1 store.Load) |
-| `pebble/journal_scan_test.go` | Narrowed scan: midpoint, last-event, zero-ID (100 events) |
-| `pebble/options_metrics_test.go` | DefaultOptions opens real DB + write/read round-trip |
-| `storage/sqlite_helpers_test.go` | busy_timeout=5000 + foreign_keys=ON PRAGMAs |
-| `encryption/hkdf_test.go` | HKDF determinism, uniqueness, validation (6 tests) |
-| `testutil/rapidgen_test.go` | Rapid generators produce valid values (4×100 iterations) |
-| `catalog/asyncapi/yaml_roundtrip_test.go` | AsyncAPI Document YAML round-trip |
+| Test file                                 | What it verifies                                          |
+| ----------------------------------------- | --------------------------------------------------------- |
+| `decider/decider_singleflight_test.go`    | Concurrent load coalescing (5 goroutines → 1 store.Load)  |
+| `pebble/journal_scan_test.go`             | Narrowed scan: midpoint, last-event, zero-ID (100 events) |
+| `pebble/options_metrics_test.go`          | DefaultOptions opens real DB + write/read round-trip      |
+| `storage/sqlite_helpers_test.go`          | busy_timeout=5000 + foreign_keys=ON PRAGMAs               |
+| `encryption/hkdf_test.go`                 | HKDF determinism, uniqueness, validation (6 tests)        |
+| `testutil/rapidgen_test.go`               | Rapid generators produce valid values (4×100 iterations)  |
+| `catalog/asyncapi/yaml_roundtrip_test.go` | AsyncAPI Document YAML round-trip                         |
 
 ### Documentation Updated
 
@@ -54,15 +54,15 @@
 
 ## B) PARTIALLY DONE 🟡
 
-| Item | What's done | What's missing |
-|------|-------------|----------------|
-| **samber/ro utilization (8%)** | Basic pub/sub + Pipe1 + Filter | BufferTime, GroupBy, RetryWithConfig, Catch, Scan, ~80 operators unused |
-| **Watermill utilization (3%)** | Publisher/Subscriber adapter | Router, middleware chain, retry/DLQ, entire infrastructure layer bypassed |
-| **CBOR utilization (12%)** | CanonicalEncOptions, CompactCodec, Diagnose | MarshalToBuffer (zero-alloc), streaming, TagSet, keyasint/omitzero tags |
-| **OTel utilization (35%)** | Tracing, metrics, counters, resource attrs, span events | Baggage propagation, Views, Exemplars, sampler config, TextMapPropagator |
-| **gomega utilization (20%)** | Equal, HaveOccurred, BeNumerically | MatchJSON, ConsistOf, HaveField/HaveValue, custom matchers |
-| **rapid utilization (10%)** | StringMatching, IntRange, Check in testutil | State machine testing, shrink testing, custom generators per module |
-| **HTML audit report** | All critical findings resolved | Quick Wins row 10 (TimeUnixDynamic) still pending — correctly, it IS pending |
+| Item                           | What's done                                             | What's missing                                                               |
+| ------------------------------ | ------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| **samber/ro utilization (8%)** | Basic pub/sub + Pipe1 + Filter                          | BufferTime, GroupBy, RetryWithConfig, Catch, Scan, ~80 operators unused      |
+| **Watermill utilization (3%)** | Publisher/Subscriber adapter                            | Router, middleware chain, retry/DLQ, entire infrastructure layer bypassed    |
+| **CBOR utilization (12%)**     | CanonicalEncOptions, CompactCodec, Diagnose             | MarshalToBuffer (zero-alloc), streaming, TagSet, keyasint/omitzero tags      |
+| **OTel utilization (35%)**     | Tracing, metrics, counters, resource attrs, span events | Baggage propagation, Views, Exemplars, sampler config, TextMapPropagator     |
+| **gomega utilization (20%)**   | Equal, HaveOccurred, BeNumerically                      | MatchJSON, ConsistOf, HaveField/HaveValue, custom matchers                   |
+| **rapid utilization (10%)**    | StringMatching, IntRange, Check in testutil             | State machine testing, shrink testing, custom generators per module          |
+| **HTML audit report**          | All critical findings resolved                          | Quick Wins row 10 (TimeUnixDynamic) still pending — correctly, it IS pending |
 
 ---
 
@@ -124,48 +124,48 @@ Sorted by impact × effort ratio:
 
 ### High Impact, Low Effort (do first)
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 1 | **`go mod tidy` in all modules** (command, decider, encryption, event, id, query) | Unblocks gopls, CI | 5m |
-| 2 | **Commit pre-existing changes** (`.buildflow.yml`, `flake.lock`, `pebble/journal.go`, `turso/indexing/example_test.go`, `doc.go`, `CODE_OF_CONDUCT.md`) | Clean working tree | 5m |
-| 3 | **CBOR `toarray` documentation** — add doc example showing consumers how to use `cbor:",toarray"` on their payloads | 30-40% smaller events for consumers who opt in | 15m |
-| 4 | **Add `gomega.ConsistOf` / `MatchJSON` to existing tests** — replace manual slice comparison boilerplate | Cleaner tests, better failure messages | 30m |
-| 5 | **Watermill Router spike** — evaluate if Router can replace projection wiring in example/todo | Potential architecture simplification | 1h |
+| #   | Task                                                                                                                                                    | Impact                                         | Effort |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- | ------ |
+| 1   | **`go mod tidy` in all modules** (command, decider, encryption, event, id, query)                                                                       | Unblocks gopls, CI                             | 5m     |
+| 2   | **Commit pre-existing changes** (`.buildflow.yml`, `flake.lock`, `pebble/journal.go`, `turso/indexing/example_test.go`, `doc.go`, `CODE_OF_CONDUCT.md`) | Clean working tree                             | 5m     |
+| 3   | **CBOR `toarray` documentation** — add doc example showing consumers how to use `cbor:",toarray"` on their payloads                                     | 30-40% smaller events for consumers who opt in | 15m    |
+| 4   | **Add `gomega.ConsistOf` / `MatchJSON` to existing tests** — replace manual slice comparison boilerplate                                                | Cleaner tests, better failure messages         | 30m    |
+| 5   | **Watermill Router spike** — evaluate if Router can replace projection wiring in example/todo                                                           | Potential architecture simplification          | 1h     |
 
 ### High Impact, Medium Effort
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 6 | **samber/ro BufferTime for projection batching** — batch events by time window before handler dispatch | Fewer DB writes, better throughput | 2h |
-| 7 | **samber/ro GroupBy for aggregate routing** — route events by aggregate type in the reactive pipeline | Cleaner event routing | 2h |
-| 8 | **rapid state machine testing** for decider — generate command sequences, verify aggregate invariants | Catches ordering bugs | 3h |
-| 9 | **Pebble `db.NewSnapshot()` for consistent reads** — point-in-time snapshots for journal reads | Eliminates read-write inconsistency | 3h |
-| 10 | **OTel baggage propagation** — propagate correlation IDs across service boundaries | Cross-service tracing | 3h |
-| 11 | **CBOR `MarshalToBuffer` for zero-alloc encoding** — reuse buffers in hot paths | Reduced GC pressure | 2h |
-| 12 | **Concurrent singleflight benchmark** — A/B comparison with/without singleflight | Proves performance benefit | 1h |
-| 13 | **Watermill middleware chain** — replace custom retry/DLQ with Watermill's built-in | Less custom code | 3h |
+| #   | Task                                                                                                   | Impact                              | Effort |
+| --- | ------------------------------------------------------------------------------------------------------ | ----------------------------------- | ------ |
+| 6   | **samber/ro BufferTime for projection batching** — batch events by time window before handler dispatch | Fewer DB writes, better throughput  | 2h     |
+| 7   | **samber/ro GroupBy for aggregate routing** — route events by aggregate type in the reactive pipeline  | Cleaner event routing               | 2h     |
+| 8   | **rapid state machine testing** for decider — generate command sequences, verify aggregate invariants  | Catches ordering bugs               | 3h     |
+| 9   | **Pebble `db.NewSnapshot()` for consistent reads** — point-in-time snapshots for journal reads         | Eliminates read-write inconsistency | 3h     |
+| 10  | **OTel baggage propagation** — propagate correlation IDs across service boundaries                     | Cross-service tracing               | 3h     |
+| 11  | **CBOR `MarshalToBuffer` for zero-alloc encoding** — reuse buffers in hot paths                        | Reduced GC pressure                 | 2h     |
+| 12  | **Concurrent singleflight benchmark** — A/B comparison with/without singleflight                       | Proves performance benefit          | 1h     |
+| 13  | **Watermill middleware chain** — replace custom retry/DLQ with Watermill's built-in                    | Less custom code                    | 3h     |
 
 ### Medium Impact, Various Effort
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 14 | **`WithLoadCoalescing(false)` option** — let consumers disable singleflight when using external cache | API flexibility | 30m |
-| 15 | **OTel Views for custom metric aggregation** — enable CQRS-specific dashboard views | Better observability | 2h |
-| 16 | **rapid generators per module** — module-specific event/command generators in testutil | Reusable test infrastructure | 2h |
-| 17 | **Pebble `CompactionFilter` for TTL expiry** — automatic event retention | Storage management | 3h |
-| 18 | **Pebble `db.DeleteRange` for retention** — bulk delete old events | Storage management | 2h |
-| 19 | **samber/ro RetryWithConfig** — retry transient store failures reactively | Resilience | 2h |
-| 20 | **gomega custom matchers** — `HaveEventCount(n)`, `HaveAggregateVersion(v)` | Test readability | 1h |
+| #   | Task                                                                                                  | Impact                       | Effort |
+| --- | ----------------------------------------------------------------------------------------------------- | ---------------------------- | ------ |
+| 14  | **`WithLoadCoalescing(false)` option** — let consumers disable singleflight when using external cache | API flexibility              | 30m    |
+| 15  | **OTel Views for custom metric aggregation** — enable CQRS-specific dashboard views                   | Better observability         | 2h     |
+| 16  | **rapid generators per module** — module-specific event/command generators in testutil                | Reusable test infrastructure | 2h     |
+| 17  | **Pebble `CompactionFilter` for TTL expiry** — automatic event retention                              | Storage management           | 3h     |
+| 18  | **Pebble `db.DeleteRange` for retention** — bulk delete old events                                    | Storage management           | 2h     |
+| 19  | **samber/ro RetryWithConfig** — retry transient store failures reactively                             | Resilience                   | 2h     |
+| 20  | **gomega custom matchers** — `HaveEventCount(n)`, `HaveAggregateVersion(v)`                           | Test readability             | 1h     |
 
 ### Lower Priority
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 21 | **Pebble `db.Checkpoint` for backups** — point-in-time DB snapshots | Disaster recovery | 2h |
-| 22 | **Pebble `db.Ingest` for bulk load** — sstable ingestion for data migration | Fast bulk imports | 3h |
-| 23 | **CBOR `TagSet` for custom type tags** — typed CBOR encoding for domain types | Type safety | 2h |
-| 24 | **OTel Exemplars** — link metrics to traces | Debugging | 2h |
-| 25 | **Ginkgo DescribeTable for table-driven BDD** — replace manual test loops | Test maintainability | 1h |
+| #   | Task                                                                          | Impact               | Effort |
+| --- | ----------------------------------------------------------------------------- | -------------------- | ------ |
+| 21  | **Pebble `db.Checkpoint` for backups** — point-in-time DB snapshots           | Disaster recovery    | 2h     |
+| 22  | **Pebble `db.Ingest` for bulk load** — sstable ingestion for data migration   | Fast bulk imports    | 3h     |
+| 23  | **CBOR `TagSet` for custom type tags** — typed CBOR encoding for domain types | Type safety          | 2h     |
+| 24  | **OTel Exemplars** — link metrics to traces                                   | Debugging            | 2h     |
+| 25  | **Ginkgo DescribeTable for table-driven BDD** — replace manual test loops     | Test maintainability | 1h     |
 
 ---
 
@@ -176,11 +176,13 @@ Sorted by impact × effort ratio:
 **The question: should we invest in using ro as a full reactive pipeline, or is the current pub/sub usage the right level of abstraction for a CQRS library?**
 
 Arguments for deeper ro usage:
+
 - BufferTime would batch events for projection writes
 - GroupBy would enable per-aggregate-type reactive pipelines
 - RetryWithConfig would handle transient store failures reactively
 
 Arguments against:
+
 - ro adds complexity that consumers must understand
 - The library is a CQRS/ES library, not a reactive framework
 - Consumers who want reactive pipelines can compose ro themselves
@@ -192,13 +194,13 @@ Arguments against:
 
 ## Summary Metrics
 
-| Metric | Value |
-|--------|-------|
-| Total features implemented | 18 |
-| Total tests added | 19 test functions across 7 files |
-| Modules touched | decider, storage, encryption, pebble, testutil, codec, otel, middleware, id, projection |
-| Commits this session | 17 |
-| Lint status | 0 issues across all changed modules |
-| Test status | All passing with `-race` |
-| Pre-existing uncommitted changes | 4 modified files, 2 untracked files (not ours) |
-| Average dependency utilization | ~24% → ~28% (estimated after our changes) |
+| Metric                           | Value                                                                                   |
+| -------------------------------- | --------------------------------------------------------------------------------------- |
+| Total features implemented       | 18                                                                                      |
+| Total tests added                | 19 test functions across 7 files                                                        |
+| Modules touched                  | decider, storage, encryption, pebble, testutil, codec, otel, middleware, id, projection |
+| Commits this session             | 17                                                                                      |
+| Lint status                      | 0 issues across all changed modules                                                     |
+| Test status                      | All passing with `-race`                                                                |
+| Pre-existing uncommitted changes | 4 modified files, 2 untracked files (not ours)                                          |
+| Average dependency utilization   | ~24% → ~28% (estimated after our changes)                                               |
