@@ -1,7 +1,7 @@
 # TODO List
 
-**Updated:** 2026-06-16
-**Version:** v2.3.0
+**Updated:** 2026-06-17
+**Version:** v2.4.0
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in [ROADMAP.md](ROADMAP.md).
 
 ## Legend
@@ -38,7 +38,7 @@ Every actionable item from the previous TODO list has been completed or found to
 - [ ] **Prometheus metrics exporter** — replace custom `MetricsRecorder` in `middleware/`
 - [ ] **Structured logging middleware** — configurable `slog` levels for command/event/query processing
 - [ ] **Distributed tracing propagation** — span context across module boundaries
-- [ ] **PostgreSQL CI service container** — wire `storage/pg_integration_test.go` into GitHub Actions
+- [x] **PostgreSQL CI service container** — wired into GitHub Actions
 
 ### Recently completed
 
@@ -57,7 +57,7 @@ Every actionable item from the previous TODO list has been completed or found to
 - [ ] **Pebble coverage 85%+** — currently ~84%; target error branches in `helpers.go`, `serialization.go`
 - [ ] **Pebble golden test** — deterministic CBOR envelope bytes for regression safety
 - [ ] **MemorySnapshotStore golden test** — baseline for pebble snapshot comparison
-- [ ] **Reactive bus documentation** — add usage examples to `command/doc.go`, `query/doc.go`, and `AGENTS.md`
+- [x] **Reactive bus documentation** — usage examples added to `command/doc.go`, `query/doc.go`, and `AGENTS.md`
 - [x] **Benchmark pebble store** — Save100, SaveLoad100, Save1, LoadEmpty benchmarks added
 - [ ] **cqrs-gen v2** — struct tag scanning code generator improvements
 - [x] **Built-in pprof endpoints** — profiling HTTP handler in `middleware/` (completed)
