@@ -95,6 +95,7 @@ go-cqrs-lite/
 14. **Zero-copy internal reads** — `PayloadReadOnly(evt)` bypasses `Payload()` clone for read-only paths via `*ImmutableEvent` type assertion. Used by signing (SHA-256 hashing, CloneEvent), pebble (json.Marshal), storage/sql (ExecContext), middleware/sse (string conversion). Internal-only `payloadForDecode()` and `encodingForCopy()` for same-package paths.
 15. **Defensive clone on all public accessors** — `Payload()` returns `slices.Clone`, `Metadata()` returns `.Clone()`, `EventTypes()` returns `slices.Clone`, `MultiSignature.Get()` returns a copy, `WithCommandMetadata` clones on intake. The `Event` interface documents this contract for third-party implementors.
 16. **Hot-path zero-allocation discipline** — Public API clones stay, but internal hot paths eliminate allocs via: lazy map init (`NewMetadata()` returns zero-value), pre-computed middleware chains (`MemoryBus` rebuilds on `Use()`/`UsePublish()` only), cached SQL templates (built once at construction), pre-sized result slices (`make([]T, 0, hint)`), lock-free fast paths (`CircuitBreaker` uses `atomic.Int32`), batch SQL inserts (multi-VALUES with SQLite 999-param chunking), and Runner event type caching (caches `p.EventTypes()` once at `Register()` time, eliminating per-event clones for ALL projection types). **Lesson learned**: type assertions for fast paths (`*builtProjection`) are dead code if users create types via different constructors (`event.NewProjection`). Cache at the integration boundary instead. See `docs/planning/2026-06-14_16-30_PERFORMANCE_OPTIMIZATION_PLAN.md` for the full Pareto analysis.
+17. **Load coalescing via singleflight** — `decider.Repository[State]` uses `singleflight.Group` to coalesce concurrent `Load` calls for the same aggregate into one `store.Load` query. Events are immutable (`*ImmutableEvent`), so sharing the loaded slice across callers is safe. Only load is coalesced — Save/Publish still execute independently per caller.
 
 ## Error Handling
 
@@ -281,6 +282,18 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   cpStore, _  := backend.CheckpointStore()              // *SQLCheckpointStore (lazy, goroutine-safe)
 //   defer backend.Close()                                 // closes all stores (NOT the *sql.DB)
 //   // Each store embeds *sqlpkg.OwnedDBHandle for Close/checkClosed lifecycle
+
+// SQLite foreign keys (opt-in referential integrity)
+//   _ = storage.SQLiteEnableForeignKeys(ctx, db)  // PRAGMA foreign_keys=ON
+
+// HKDF key derivation (multi-tenant encryption)
+//   key, _ := encryption.DeriveKey(masterKey, "tenant:acme", 32)  // HKDF-SHA256
+//   enc, _ := encryption.NewXChaCha20Poly1305(key)
+
+// Decider singleflight (concurrent load coalescing)
+//   // Repository[State] uses singleflight.Group internally — concurrent Load
+//   // calls for the same aggregate coalesce into one store.Load query.
+//   // No API change needed; it's transparent.
 ```
 
 ## Testing
