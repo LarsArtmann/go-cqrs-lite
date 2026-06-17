@@ -1291,7 +1291,7 @@
           <h2 class="section-title">Ranked by impact × effort ratio — implementation status</h2>
           <p class="section-desc">
             The highest-leverage changes to extract more value from existing dependencies.
-            <strong>9 of 10 completed.</strong> Items marked
+            <strong>10 of 10 completed.</strong> Items marked
             <span class="tier-badge t1">✅ done</span> are in the codebase with tests and
             lint-clean.
           </p>
@@ -1475,7 +1475,7 @@
             <div class="opp-body">
               <div class="opp-title">
                 Use singleflight to dedup concurrent aggregate loads
-                <span class="tier-badge t3">⏳ pending</span>
+                <span class="tier-badge t1">✅ done</span>
               </div>
               <div class="opp-desc">
                 When multiple concurrent commands target the same aggregate,
@@ -1531,7 +1531,7 @@
             <div class="opp-body">
               <div class="opp-title">
                 Add HKDF for multi-tenant encryption key derivation
-                <span class="tier-badge t3">⏳ pending</span>
+                <span class="tier-badge t1">✅ done</span>
               </div>
               <div class="opp-desc">
                 Currently encryption keys are raw 32-byte keys passed directly.
@@ -2110,25 +2110,27 @@
               <span class="chip green">PRAGMA wal_checkpoint(TRUNCATE)</span>
             </div>
 
-            <div class="deepdive-section-title missing">✗ Gaps</div>
+            <div class="deepdive-section-title used">✓ Resolved gaps</div>
             <div class="findings">
-              <div class="finding critical">
+              <div class="finding resolved">
                 <div class="finding-body">
                   <div class="finding-title">
-                    No <code>PRAGMA busy_timeout</code> on SQLite path
+                    ✓ <code>PRAGMA busy_timeout=5000</code> now set by SQLiteEnableWAL
                   </div>
                   <div class="finding-desc">
-                    Set on Turso path only. With WAL + concurrent readers, the plain SQLite path can
-                    hit "database is locked" errors.
+                    <strong>RESOLVED:</strong> <code>SQLiteEnableWAL</code> now includes
+                    <code>PRAGMA busy_timeout=5000</code>, eliminating "database is locked" errors
+                    with WAL + concurrent readers.
                   </div>
                 </div>
               </div>
-              <div class="finding critical">
+              <div class="finding resolved">
                 <div class="finding-body">
-                  <div class="finding-title">No <code>PRAGMA foreign_keys=ON</code></div>
+                  <div class="finding-title">✓ <code>SQLiteEnableForeignKeys</code> helper added</div>
                   <div class="finding-desc">
-                    Checkpoint/snapshot tables reference (aggregate_type, aggregate_id) without
-                    enforcement. FKs would catch data integrity bugs.
+                    <strong>RESOLVED:</strong> <code>SQLiteEnableForeignKeys(ctx, db)</code> provides
+                    opt-in <code>PRAGMA foreign_keys=ON</code>. Not enabled by default to avoid
+                    breaking existing DBs with orphaned references.
                   </div>
                 </div>
               </div>
@@ -2493,17 +2495,17 @@
               <span class="chip green">g.Go + g.Wait</span>
             </div>
 
-            <div class="deepdive-section-title missing">✗ Gap</div>
+            <div class="deepdive-section-title used">✓ Resolved</div>
             <div class="findings">
-              <div class="finding critical">
+              <div class="finding resolved">
                 <div class="finding-body">
                   <div class="finding-title">
-                    No <code>singleflight.Group</code> — load amplification under contention
+                    ✓ <code>singleflight.Group</code> coalesces concurrent loads
                   </div>
                   <div class="finding-desc">
-                    Multiple concurrent commands targeting the same aggregate load events
-                    independently. singleflight coalesces them into one DB query. In
-                    <code>decider/load.go</code>.
+                    <strong>RESOLVED:</strong> <code>decider.Repository[State]</code> uses
+                    <code>singleflight.Group</code> internally to coalesce concurrent Load calls for
+                    the same aggregate into a single store.Load query. Transparent — no API change.
                   </div>
                 </div>
               </div>
@@ -2631,15 +2633,15 @@
 
             <div class="deepdive-section-title missing">✗ Minor gaps</div>
             <div class="findings">
-              <div class="finding warning">
+              <div class="finding resolved">
                 <div class="finding-body">
                   <div class="finding-title">
-                    No monotonic entropy / <code>ulid.Monotonic</code>
+                    ✓ Monotonic entropy via <code>ulid.Monotonic</code>
                   </div>
                   <div class="finding-desc">
-                    Using <code>rand.Reader</code> (cryptographic, slower). Monotonic entropy
-                    guarantees sortability within same millisecond and is faster — important for
-                    high-throughput event generation.
+                    <strong>RESOLVED:</strong> Switched to <code>ulid.Monotonic</code> entropy with
+                    mutex guard for guaranteed ordering within same millisecond. Tested for
+                    monotonicity, concurrent safety, and uniqueness.
                   </div>
                 </div>
               </div>
@@ -2703,7 +2705,7 @@
           <p class="section-desc">
             These are the highest ROI changes — each takes less than an hour and uses features
             already available in existing dependencies. No new deps.
-            <strong>8 of 10 completed.</strong> Items marked
+            <strong>11 of 12 completed.</strong> Items marked
             <span class="tier-badge t1">✅ done</span> are in the codebase with tests and
             lint-clean.
           </p>
@@ -2800,14 +2802,14 @@
                 <td>Add <code>singleflight</code> for aggregate load dedup</td>
                 <td>x/sync</td>
                 <td><span class="tier-badge t2">load amp ↓</span></td>
-                <td><span class="tier-badge t3">pending</span></td>
+                <td><span class="tier-badge t1">✅ done</span></td>
               </tr>
               <tr>
                 <td>12</td>
                 <td>Add HKDF for multi-tenant encryption key derivation</td>
                 <td>x/crypto</td>
                 <td><span class="tier-badge t2">security</span></td>
-                <td><span class="tier-badge t3">pending</span></td>
+                <td><span class="tier-badge t1">✅ done</span></td>
               </tr>
             </tbody>
           </table>
