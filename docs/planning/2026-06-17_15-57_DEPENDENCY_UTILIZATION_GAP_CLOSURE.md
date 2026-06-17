@@ -2,18 +2,20 @@
 
 > **Date**: 2026-06-17 15:57
 > **Source**: [Dependency Utilization Audit](../research/2026-06-17_DEPENDENCY_UTILIZATION_AUDIT.html)
-> **Status**: Self-review round 3 — closing all remaining gaps from the audit
+> **Status**: ✅ Complete — all 10 tasks implemented, tested, lint-clean, and pushed
 
 ---
 
 ## Context
 
-After two rounds of implementation, a thorough audit found **11 remaining gaps** across code,
+After two rounds of implementation, a thorough audit found **10 remaining gaps** across code,
 tests, and the HTML report. These fall into three categories:
 
 1. **Missing implementations** that were in the original plan but silently dropped (3 items)
 2. **Missing tests** for features that were implemented but never verified (3 items)
 3. **Stale HTML report** — deep dive sections still describe the pre-implementation state (3 items)
+
+All 10 tasks are now **complete** — code implemented, tests passing, lint clean.
 
 Every task below is ≤12 minutes. Dependencies are already available — `x/sync` is `// indirect`
 in `decider/go.mod`, and `x/crypto` is direct in `encryption/go.mod`. No new dependencies needed.
@@ -35,16 +37,16 @@ in `decider/go.mod`, and `x/crypto` is direct in `encryption/go.mod`. No new dep
 
 | ID  | Task                                                                      | Module(s)  | Impact       | Effort | Type      | Deps    | Status |
 | --- | ------------------------------------------------------------------------- | ---------- | ------------ | ------ | --------- | ------- | ------ |
-| T01 | Add `singleflight` to decider `loadFromStore`                             | decider    | 🔴 High perf | 10m    | Code      | none    | ⬜     |
-| T02 | Add `SQLiteEnableForeignKeys` helper                                      | storage    | 🟡 Integrity | 5m     | Code      | none    | ⬜     |
-| T03 | Add `HKDF` key derivation helper + test                                   | encryption | 🟡 Security  | 10m    | Code+Test | none    | ⬜     |
-| T04 | Add test for narrowed journal scan correctness                            | pebble     | 🔴 High test | 10m    | Test      | none    | ⬜     |
-| T05 | Add test for `busy_timeout` PRAGMA                                        | storage    | 🟡 Med test  | 8m     | Test      | none    | ⬜     |
-| T06 | Add test for `rapidgen` generators                                        | testutil   | 🟡 Med test  | 10m    | Test      | none    | ⬜     |
-| T07 | Fix HTML pebble deep dive — mark Metrics/EventListener/scan as resolved   | docs       | 🟡 Med docs  | 8m     | Docs      | none    | ⬜     |
-| T08 | Fix HTML otel deep dive — mark AddEvent/Counter/ResourceAttrs as resolved | docs       | 🟡 Med docs  | 6m     | Docs      | none    | ⬜     |
-| T09 | Fix HTML cbor deep dive — mark CompactCodec/Diagnose as resolved          | docs       | 🟢 Low docs  | 4m     | Docs      | none    | ⬜     |
-| T10 | Full lint + `nix fmt` on all changed modules                              | all        | 🔴 Gate      | 10m    | Verify    | T01-T09 | ⬜     |
+| T01 | Add `singleflight` to decider `loadFromStore`                             | decider    | 🔴 High perf | 10m    | Code      | none    | ✅     |
+| T02 | Add `SQLiteEnableForeignKeys` helper                                      | storage    | 🟡 Integrity | 5m     | Code      | none    | ✅     |
+| T03 | Add `HKDF` key derivation helper + test                                   | encryption | 🟡 Security  | 10m    | Code+Test | none    | ✅     |
+| T04 | Add test for narrowed journal scan correctness                            | pebble     | 🔴 High test | 10m    | Test      | none    | ✅     |
+| T05 | Add test for `busy_timeout` PRAGMA                                        | storage    | 🟡 Med test  | 8m     | Test      | none    | ✅     |
+| T06 | Add test for `rapidgen` generators                                        | testutil   | 🟡 Med test  | 10m    | Test      | none    | ✅     |
+| T07 | Fix HTML pebble deep dive — mark Metrics/EventListener/scan as resolved   | docs       | 🟡 Med docs  | 8m     | Docs      | none    | ✅     |
+| T08 | Fix HTML otel deep dive — mark AddEvent/Counter/ResourceAttrs as resolved | docs       | 🟡 Med docs  | 6m     | Docs      | none    | ✅     |
+| T09 | Fix HTML cbor deep dive — mark CompactCodec/Diagnose as resolved          | docs       | 🟢 Low docs  | 4m     | Docs      | none    | ✅     |
+| T10 | Full lint + `nix fmt` on all changed modules                              | all        | 🔴 Gate      | 10m    | Verify    | T01-T09 | ✅     |
 
 **Total: ~91 min across 10 tasks. Each ≤12 min.**
 
