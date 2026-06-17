@@ -40,6 +40,11 @@ Every actionable item from the previous TODO list has been completed or found to
 - [ ] **Distributed tracing propagation** — span context across module boundaries
 - [ ] **PostgreSQL CI service container** — wire `storage/pg_integration_test.go` into GitHub Actions
 
+### Recently completed
+
+- [x] **Pebble KV Store adapter** (`pebble/`) — `NewKVStore()` wraps `*pebble.DB` as `kv.Store`, first consumer of the kv/ abstraction (ADR-0023)
+- [x] **Reactive CommandBus and QueryBus** (`command/`, `query/`) — reactive extensions mirroring the event API
+
 ### Medium impact
 
 - [ ] **Pebble coverage 85%+** — currently ~84%; target error branches in `helpers.go`, `serialization.go`
@@ -67,7 +72,7 @@ Every actionable item from the previous TODO list has been completed or found to
 ### v3 (Next Major — currently v2.3+)
 
 - [v3] **Remove `io.Closer` from core interfaces** — ADR-0010 accepted. Affects `event.Store`, `snapshot.SnapshotStore`, `command.Store`.
-- [v3] **Split `event.Store` into Writer/Reader/Deleter** — ADR-0010 direction.
+- ~~Split `event.Store` into Writer/Reader/Deleter~~ — **ALREADY SATISFIED**: Sink/Source split exists, tombstones handle soft-delete
 - [v3] **Add global `TransactionID` branded type** — Cross-aggregate consistency tracking.
 - [v3] **Make event Core truly immutable** — Currently opts pointer is shallow-copied on Clone (payload/metadata are deep-copied).
 - [v3] **Move HTTP code out of middleware** — SSE, healthcheck, metrics_http → transport/ module.

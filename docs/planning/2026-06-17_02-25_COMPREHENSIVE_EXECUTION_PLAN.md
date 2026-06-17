@@ -170,7 +170,7 @@ Deferred breaking changes (`T092`–`T099`, v3/v4) and low-impact raw ideas. Sch
 | ID   | Task (≤12 min)                                                | Parent      | Impact | Effort | Cust | Deps      |
 | ---- | ------------------------------------------------------------- | ----------- | ------ | ------ | ---- | --------- |
 | T092 | v3: Remove `io.Closer` from core interfaces (ADR-0010)        | v3 breaking | 4      | 3      | H    | v3 branch |
-| T093 | v3: Split `event.Store` into Writer/Reader/Deleter            | v3 breaking | 4      | 4      | H    | T092      |
+| ~~T093~~ | ~~v3: Split `event.Store` into Writer/Reader/Deleter~~            | ~~v3 breaking~~ | ~~4~~  | ~~4~~  | ~~H~~    | **REMOVED — Sink/Source split + tombstones already satisfy this** |
 | T094 | v3: Add global `TransactionID` branded type                   | v3 breaking | 3      | 2      | M    | v3 branch |
 | T095 | v3: Make event Core truly immutable                           | v3 breaking | 3      | 2      | M    | v3 branch |
 | T096 | v3: Move HTTP code out of `middleware/` → `transport/` module | v3 breaking | 3      | 3      | M    | v3 branch |
