@@ -97,6 +97,42 @@ func WithSyncBusyTimeout(d time.Duration) SyncOption {
 	}
 }
 
+// syncDbConnection bundles the three outputs of opening a Turso sync database:
+// the sync client, the SQL connection, and the engine interface for sync operations.
+type syncDbConnection struct {
+	syncDb *tursoclient.TursoSyncDb
+	db     *sql.DB
+	engine syncEngine
+}
+
+// createSyncDb opens a connected Turso sync database from a config.
+// This is a variable so tests can swap it without needing a live server.
+//
+//nolint:gochecknoglobals // swappable for testability
+var createSyncDb = realCreateSyncDb
+
+// realCreateSyncDb calls the Turso client to create and connect a sync database.
+func realCreateSyncDb(
+	ctx context.Context,
+	cfg tursoclient.TursoSyncDbConfig,
+) (syncDbConnection, error) {
+	syncDb, err := tursoclient.NewTursoSyncDb(ctx, cfg)
+	if err != nil {
+		return syncDbConnection{}, fmt.Errorf(
+			"turso: NewTursoSyncDb: %w", err,
+		)
+	}
+
+	database, err := syncDb.Connect(ctx)
+	if err != nil {
+		return syncDbConnection{}, fmt.Errorf(
+			"turso: sync db connect: %w", err,
+		)
+	}
+
+	return syncDbConnection{syncDb: syncDb, db: database, engine: syncDb}, nil
+}
+
 // OpenSyncWithConfig opens a Turso sync database with advanced configuration.
 // It is the configurable variant of [OpenSync].
 //
@@ -131,19 +167,13 @@ func OpenSyncWithConfig(
 		opt(&cfg)
 	}
 
-	syncDb, err := tursoclient.NewTursoSyncDb(ctx, cfg)
+	conn, err := createSyncDb(ctx, cfg)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "storage.create_turso_sync",
-			"create turso sync db for "+string(remoteURL))
+		return nil, event.WrapInfrastructure(err, "storage.open_turso_sync",
+			"open turso sync db for "+string(remoteURL))
 	}
 
-	database, err := syncDb.Connect(ctx)
-	if err != nil {
-		return nil, event.WrapInfrastructure(err, "storage.connect_turso_sync",
-			"connect turso sync db for "+string(remoteURL))
-	}
-
-	return &SyncDB{DB: database, syncDb: syncDb, engine: syncDb}, nil
+	return &SyncDB{DB: conn.db, syncDb: conn.syncDb, engine: conn.engine}, nil
 }
 
 // Push sends local writes to the remote Turso server.

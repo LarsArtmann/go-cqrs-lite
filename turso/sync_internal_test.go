@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	tursoclient "turso.tech/database/tursogo"
 
@@ -274,5 +275,140 @@ func TestSyncDB_Close(t *testing.T) {
 	sdb := newSyncDBWithEngine(db, &fakeSyncEngine{})
 	if err := sdb.Close(); err != nil {
 		t.Fatalf("Close() error = %v, want nil", err)
+	}
+}
+
+// withSwappedFactory replaces createSyncDb for the duration of the test.
+// The original is restored automatically via t.Cleanup.
+// Tests using this MUST NOT call t.Parallel (shared global state).
+func withSwappedFactory(
+	t *testing.T,
+	fn func(context.Context, tursoclient.TursoSyncDbConfig) (syncDbConnection, error),
+) {
+	t.Helper()
+
+	orig := createSyncDb
+	t.Cleanup(func() { createSyncDb = orig })
+	createSyncDb = fn
+}
+
+func TestOpenSyncWithConfig_FactorySuccess(t *testing.T) {
+	// NOT parallel — swaps package-level createSyncDb.
+
+	testDB, err := OpenTemp(t.TempDir())
+	if err != nil {
+		t.Fatalf("OpenTemp: %v", err)
+	}
+	t.Cleanup(func() { _ = testDB.Close() })
+
+	fakeEngine := &fakeSyncEngine{pullChanged: true}
+	withSwappedFactory(t, func(_ context.Context, _ tursoclient.TursoSyncDbConfig) (syncDbConnection, error) {
+		return syncDbConnection{db: testDB, engine: fakeEngine}, nil
+	})
+
+	sdb, err := OpenSyncWithConfig(
+		context.Background(),
+		DbPath("/tmp/test.db"),
+		RemoteURL("libsql://fake.turso.io"),
+		AuthToken("token"),
+		WithSyncClientName("test-client"),
+	)
+	if err != nil {
+		t.Fatalf("OpenSyncWithConfig: %v", err)
+	}
+
+	if sdb.DB != testDB {
+		t.Error("SyncDB.DB should be the factory-provided database")
+	}
+
+	if sdb.SyncClient() != nil {
+		t.Error("SyncClient() should be nil when factory provides no sync client")
+	}
+
+	// Verify the fake engine is wired — Pull should work without network.
+	changed, err := sdb.Pull(context.Background())
+	if err != nil {
+		t.Fatalf("Pull via factory engine: %v", err)
+	}
+
+	if !changed {
+		t.Error("Pull changed = false, want true from fake engine")
+	}
+
+	if fakeEngine.pullCalls != 1 {
+		t.Errorf("pullCalls = %d, want 1", fakeEngine.pullCalls)
+	}
+}
+
+func TestOpenSyncWithConfig_FactoryError(t *testing.T) {
+	// NOT parallel — swaps package-level createSyncDb.
+
+	sentinel := errors.New("network unreachable")
+	withSwappedFactory(t, func(_ context.Context, _ tursoclient.TursoSyncDbConfig) (syncDbConnection, error) {
+		return syncDbConnection{}, sentinel
+	})
+
+	_, err := OpenSyncWithConfig(
+		context.Background(),
+		DbPath("/tmp/test.db"),
+		RemoteURL("libsql://fake.turso.io"),
+		AuthToken("token"),
+	)
+
+	if err == nil {
+		t.Fatal("OpenSyncWithConfig error = nil, want error")
+	}
+
+	if !errors.Is(err, sentinel) {
+		t.Errorf("error should wrap sentinel: got %v", err)
+	}
+
+	if !isInfraError(t, err) {
+		t.Errorf("error should be Infrastructure family: got %v", err)
+	}
+}
+
+func TestOpenSyncWithConfig_OptionsAppliedToConfig(t *testing.T) {
+	// NOT parallel — swaps package-level createSyncDb.
+
+	var capturedCfg tursoclient.TursoSyncDbConfig
+	withSwappedFactory(t, func(_ context.Context, cfg tursoclient.TursoSyncDbConfig) (syncDbConnection, error) {
+		capturedCfg = cfg
+
+		return syncDbConnection{}, errors.New("stop")
+	})
+
+	_, _ = OpenSyncWithConfig(
+		context.Background(),
+		DbPath("/tmp/real.db"),
+		RemoteURL("libsql://real.turso.io"),
+		AuthToken("secret-token"),
+		WithSyncClientName("my-app"),
+		WithSyncNamespace("my-ns"),
+		WithSyncBusyTimeout(5*time.Second),
+	)
+
+	if capturedCfg.Path != "/tmp/real.db" {
+		t.Errorf("cfg.Path = %q, want /tmp/real.db", capturedCfg.Path)
+	}
+
+	if capturedCfg.RemoteUrl != "libsql://real.turso.io" {
+		t.Errorf("cfg.RemoteUrl = %q, want libsql://real.turso.io", capturedCfg.RemoteUrl)
+	}
+
+	if capturedCfg.AuthToken != "secret-token" {
+		t.Errorf("cfg.AuthToken = %q, want secret-token", capturedCfg.AuthToken)
+	}
+
+	if capturedCfg.ClientName != "my-app" {
+		t.Errorf("cfg.ClientName = %q, want my-app", capturedCfg.ClientName)
+	}
+
+	if capturedCfg.Namespace != "my-ns" {
+		t.Errorf("cfg.Namespace = %q, want my-ns", capturedCfg.Namespace)
+	}
+
+	if capturedCfg.BusyTimeout != 5000 {
+		t.Errorf("cfg.BusyTimeout = %d, want 5000", capturedCfg.BusyTimeout)
 	}
 }
