@@ -56,4 +56,10 @@
 // occurs — all callers receive the same immutable event slice. This is transparent:
 // no API change, no configuration needed. Only load is coalesced; Save and Publish
 // still execute independently per caller.
+//
+// To disable coalescing (e.g. when the store provides its own caching), pass
+// WithLoadCoalescing[State](false):
+//
+//	repo, _ := decider.NewRepository(store, bus, d,
+//	    decider.WithLoadCoalescing[MyState](false))
 package decider

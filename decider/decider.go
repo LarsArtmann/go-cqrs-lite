@@ -41,6 +41,7 @@ type Repository[State any] struct {
 	enricher         event.ContextEnricher
 	decider          Decider[State]
 	loadGroup        singleflight.Group
+	loadCoalescing   bool
 }
 
 // NewRepository creates a decider-backed repository.
@@ -65,9 +66,10 @@ func NewRepository[State any](
 	}
 
 	r := &Repository[State]{ //nolint:exhaustruct // options fill remaining fields
-		store:     store,
-		publisher: publisher,
-		decider:   decider,
+		store:          store,
+		publisher:      publisher,
+		decider:        decider,
+		loadCoalescing: true,
 	}
 
 	for _, opt := range opts {

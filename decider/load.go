@@ -21,6 +21,10 @@ func (r *Repository[State]) loadFromStore(
 
 	return r.loadByEvents(
 		func() ([]event.Event, error) {
+			if !r.loadCoalescing {
+				return r.store.Load(ctx, ref)
+			}
+
 			key := ref.Type.String() + "/" + ref.ID.String()
 
 			v, loadErr, _ := r.loadGroup.Do(key, func() (any, error) {

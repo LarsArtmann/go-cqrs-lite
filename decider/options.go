@@ -41,3 +41,13 @@ func WithEnricher[State any](enricher event.ContextEnricher) RepositoryOption[St
 		r.enricher = enricher
 	}
 }
+
+// WithLoadCoalescing enables or disables singleflight load coalescing.
+// Enabled by default — concurrent loads of the same aggregate share a
+// single store.Load call. Pass false to disable when the store already
+// provides its own caching or deduplication layer.
+func WithLoadCoalescing[State any](enabled bool) RepositoryOption[State] {
+	return func(r *Repository[State]) {
+		r.loadCoalescing = enabled
+	}
+}

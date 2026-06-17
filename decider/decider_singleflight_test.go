@@ -125,3 +125,54 @@ func TestLoad_DifferentAggregatesNotCoalesced(t *testing.T) {
 		t.Errorf("store.Load called %d times, want 2 (different aggregates not coalesced)", got)
 	}
 }
+
+func TestLoad_WithLoadCoalescingDisabled(t *testing.T) {
+	t.Parallel()
+
+	inner := eventtest.NewFakeStore()
+	bus := eventtest.NewFakeBus()
+	store := &countLoadStore{Store: inner}
+
+	d := decider.Decider[counterState]{
+		Initial: counterState{},
+		Fold:    foldCounter,
+	}
+
+	repo, err := decider.NewRepository(store, bus, d, decider.WithLoadCoalescing[counterState](false))
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	aggID := id.NewAggregateID()
+
+	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
+		makeEvent(t, "CounterCreated", aggID, 1),
+	})
+
+	const numGoroutines = 5
+
+	var wg sync.WaitGroup
+
+	for range numGoroutines {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			_, _, loadErr := repo.Load(context.Background(), aggID, "Counter")
+			if loadErr != nil {
+				t.Errorf("Load error: %v", loadErr)
+
+				return
+			}
+		}()
+	}
+	wg.Wait()
+
+	if got := store.count.Load(); got != numGoroutines {
+		t.Errorf(
+			"store.Load called %d times, want %d (coalescing disabled)",
+			got,
+			numGoroutines,
+		)
+	}
+}
