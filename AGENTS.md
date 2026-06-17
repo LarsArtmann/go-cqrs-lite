@@ -295,6 +295,29 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   // Repository[State] uses singleflight.Group internally — concurrent Load
 //   // calls for the same aggregate coalesce into one store.Load query.
 //   // No API change needed; it's transparent.
+
+// Event stream deduplication (samber/ro)
+//   bus := event.NewEventBus()
+//   deduped := ro.Pipe1(bus, event.DistinctByEventID()) // suppress duplicate event IDs
+//   perAgg := ro.Pipe1(bus, event.DistinctByAggregateID()) // first event per aggregate
+
+// OTel distributed correlation (baggage propagation)
+//   ctx = cqrsotel.WithCorrelationID(ctx, "abc-123") // store in baggage
+//   corrID := cqrsotel.CorrelationIDFromContext(ctx)  // retrieve from baggage
+//   otel.SetTextMapPropagator(cqrsotel.NewTextMapPropagator()) // W3C trace + baggage
+
+// Watermill middleware wrappers
+//   router.AddMiddleware(watermill.CorrelationIDMiddleware())
+//   router.AddMiddleware(watermill.NewRetryMiddleware(watermill.DefaultRetryConfig()))
+
+// Pebble backup, retention, consistent reads
+//   backend.Checkpoint("backups/2026-06-17")         // point-in-time DB snapshot
+//   backend.DeleteEventsBefore(time.Now().AddDate(0,0,-90)) // journal retention
+//   snap := backend.NewSnapshot(); defer snap.Close() // consistent read view
+
+// Codec zero-allocation encoding (BufferEncoder)
+//   buf := &bytes.Buffer{}
+//   if be, ok := codec.(codec.BufferEncoder); ok { be.EncodeToBuffer(payload, buf) }
 ```
 
 ## Testing

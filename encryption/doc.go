@@ -73,6 +73,36 @@
 // DeriveKey is deterministic: the same masterKey + info always produce the same
 // derived key. Different info values produce independent keys.
 //
+// # Key Derivation: HKDF vs Argon2id
+//
+// DeriveKey uses HKDF-SHA256 for deriving keys FROM a master key (already
+// high-entropy, e.g., from KMS). This is the correct choice for server-side
+// multi-tenant encryption where the master key is strong.
+//
+// For client-side encryption where the key derives from a HUMAN PASSPHRASE,
+// use argon2id (golang.org/x/crypto/argon2) instead. Argon2id is a
+// memory-hard KDF designed to resist GPU/ASIC brute-force attacks:
+//
+//	// salt must be unique per user (store alongside ciphertext)
+//	salt := make([]byte, 16)
+//	crypto_rand.Read(salt)
+//	key := argon2.IDKey([]byte(passphrase), salt, time=3, memory=64*1024, threads=4, keyLen=32)
+//
+// Tradeoff: HKDF is fast (microseconds) but requires a high-entropy input.
+// Argon2id is slow (100ms+) by design but tolerates low-entropy passphrases.
+// This library does NOT implement argon2id because passphrase-based key
+// derivation is a client-side concern, not a server-side library concern.
+//
+// # Hashing: SHA-256 vs BLAKE2b
+//
+// The signing module uses HMAC-SHA256 for event authentication. BLAKE2b
+// (golang.org/x/crypto/blake2b) is a faster alternative (~2-3x on 64-bit)
+// for non-cryptographic checksums and content-addressed storage. However,
+// HMAC-BLAKE2b is not widely standardized and NIST has not approved it for
+// HMAC use. HMAC-SHA256 remains the recommended choice for cryptographic
+// signing paths. Consider BLAKE2b only for internal checksums where
+// standard compliance is not required.
+//
 // Design principles:
 //   - Two algorithms behind the same Encrypter/Decrypter interface
 //   - No external crypto dependencies beyond Go stdlib + golang.org/x/crypto
