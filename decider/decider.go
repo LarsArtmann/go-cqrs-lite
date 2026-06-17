@@ -4,12 +4,13 @@ import (
 	"context"
 	"log/slog"
 
+	"golang.org/x/sync/singleflight"
+
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
-	"golang.org/x/sync/singleflight"
 )
 
 // Decider defines how to reconstruct state from events.
