@@ -35,6 +35,7 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.4.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/kv/v2 v2.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.4.0 // indirect
 	github.com/larsartmann/go-error-family v0.4.0 // indirect
@@ -67,6 +68,7 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 => ../../dispatcher
 	github.com/larsartmann/go-cqrs-lite/event/v2 => ../../event
 	github.com/larsartmann/go-cqrs-lite/id/v2 => ../../id
+	github.com/larsartmann/go-cqrs-lite/kv/v2 => ../../kv
 	github.com/larsartmann/go-cqrs-lite/memory/v2 => ../../memory
 	github.com/larsartmann/go-cqrs-lite/otel/v2 => ../../otel
 	github.com/larsartmann/go-cqrs-lite/pebble/v2 => ../../pebble

@@ -19,66 +19,73 @@ The `consolidate-catalog` branch is in **excellent shape**. All major work items
 ## a) FULLY DONE ✅
 
 ### Pebble KV Adapter (ADR-0023)
-| Item | Status |
-|------|--------|
-| `pebble/adapter.go` — KVAdapter implementing `kv.Store` | ✅ |
-| `pebble/adapter_test.go` — 17 tests (CRUD, iteration, batch, close, errors) | ✅ |
-| `pebble/go.mod` — kv/v2 dependency + replace directive | ✅ |
-| Layer budget bumped (pebble 7→8, turso 8→10) | ✅ |
-| ADR-0023 written and indexed in README | ✅ |
-| CHANGELOG + FEATURES updated | ✅ |
+
+| Item                                                                        | Status |
+| --------------------------------------------------------------------------- | ------ |
+| `pebble/adapter.go` — KVAdapter implementing `kv.Store`                     | ✅     |
+| `pebble/adapter_test.go` — 17 tests (CRUD, iteration, batch, close, errors) | ✅     |
+| `pebble/go.mod` — kv/v2 dependency + replace directive                      | ✅     |
+| Layer budget bumped (pebble 7→8, turso 8→10)                                | ✅     |
+| ADR-0023 written and indexed in README                                      | ✅     |
+| CHANGELOG + FEATURES updated                                                | ✅     |
 
 ### Turso Backend Upgrade (`86917faa`)
-| Item | Status |
-|------|--------|
-| `Backend` facade — 5 stores sharing one `*sql.DB` | ✅ |
-| `NewCommandStore` / `NewQueryStore` constructors | ✅ |
-| `ConfigurePool` re-export | ✅ |
-| `OpenSyncWithConfig` + 5 `SyncOption` variants | ✅ |
-| Backend tests (`turso/backend_test.go`) | ✅ |
-| Coverage tests (`turso/indexing/coverage_test.go`) | ✅ |
-| Sync tests (`turso/sync_test.go`) | ✅ |
-| Turso lint fixes (noinlineerr, contextcheck, nlreturn, nolintlint, prealloc, staticcheck) | ✅ |
+
+| Item                                                                                      | Status |
+| ----------------------------------------------------------------------------------------- | ------ |
+| `Backend` facade — 5 stores sharing one `*sql.DB`                                         | ✅     |
+| `NewCommandStore` / `NewQueryStore` constructors                                          | ✅     |
+| `ConfigurePool` re-export                                                                 | ✅     |
+| `OpenSyncWithConfig` + 5 `SyncOption` variants                                            | ✅     |
+| Backend tests (`turso/backend_test.go`)                                                   | ✅     |
+| Coverage tests (`turso/indexing/coverage_test.go`)                                        | ✅     |
+| Sync tests (`turso/sync_test.go`)                                                         | ✅     |
+| Turso lint fixes (noinlineerr, contextcheck, nlreturn, nolintlint, prealloc, staticcheck) | ✅     |
 
 ### Reactive Buses (`4518336f`, `34d84d7f`)
-| Item | Status |
-|------|--------|
-| `command/reactive_test.go` — CommandBus reactive tests | ✅ |
-| `query/reactive_test.go` — QueryBus reactive tests | ✅ |
-| `command/doc.go`, `query/doc.go` — reactive bus docs | ✅ |
-| `command.Compose` / `query.Compose` re-export | ✅ |
+
+| Item                                                   | Status |
+| ------------------------------------------------------ | ------ |
+| `command/reactive_test.go` — CommandBus reactive tests | ✅     |
+| `query/reactive_test.go` — QueryBus reactive tests     | ✅     |
+| `command/doc.go`, `query/doc.go` — reactive bus docs   | ✅     |
+| `command.Compose` / `query.Compose` re-export          | ✅     |
 
 ### Integration & Infrastructure
-| Item | Status |
-|------|--------|
-| `integration/pebble_test.go` — pebble projection + snapshot E2E | ✅ |
-| `.buildflow.yml` — excluded vendored JS from todo-check | ✅ |
-| `scripts/check-module-layers.sh` — budgets updated | ✅ |
-| CI: replace-directives job, api-stability in matrix | ✅ |
-| Comprehensive execution plan (`docs/planning/`) | ✅ |
-| TODO_LIST updated — T093 removed (already satisfied by Sink/Source + tombstones) | ✅ |
+
+| Item                                                                             | Status |
+| -------------------------------------------------------------------------------- | ------ |
+| `integration/pebble_test.go` — pebble projection + snapshot E2E                  | ✅     |
+| `.buildflow.yml` — excluded vendored JS from todo-check                          | ✅     |
+| `scripts/check-module-layers.sh` — budgets updated                               | ✅     |
+| CI: replace-directives job, api-stability in matrix                              | ✅     |
+| Comprehensive execution plan (`docs/planning/`)                                  | ✅     |
+| TODO_LIST updated — T093 removed (already satisfied by Sink/Source + tombstones) | ✅     |
 
 ### Verification Results
-| Check | Result |
-|-------|--------|
-| Lint (all 24 modules) | ✅ 0 issues |
-| Tests (41 packages) | ✅ All pass |
+
+| Check                                                     | Result       |
+| --------------------------------------------------------- | ------------ |
+| Lint (all 24 modules)                                     | ✅ 0 issues  |
+| Tests (41 packages)                                       | ✅ All pass  |
 | Race detector (pebble, event, kv, turso, storage, memory) | ✅ All clean |
-| Layer check | ✅ Pass |
-| Replace directives | ✅ Valid |
-| TODO comment check | ✅ 0 TODOs |
+| Layer check                                               | ✅ Pass      |
+| Replace directives                                        | ✅ Valid     |
+| TODO comment check                                        | ✅ 0 TODOs   |
 
 ---
 
 ## b) PARTIALLY DONE 🔄
 
 ### Branch Merge Readiness
+
 - Code quality: ready.
 - Tests: ready (codec fuzz pre-existing failure aside).
 - Docs: ready.
 - **Not done:** Final squash/rebase, PR creation, merge to `master`, tag release.
 
 ### Codec Fuzz Corpus
+
 - Turso fuzz corpus added (`86917faa`).
 - `codec/` fuzz corpus exists but `FuzzCBORCodec_Roundtrip` has one failing seed corpus entry (`5c4177600a024103`) — pre-existing, unrelated to current work.
 
@@ -138,33 +145,33 @@ The `consolidate-catalog` branch is in **excellent shape**. All major work items
 
 ## f) Top #25 Things We Should Get Done Next
 
-| # | Task | Impact | Effort | Priority |
-|---|------|--------|--------|----------|
-| 1 | Merge `consolidate-catalog` → `master` | 5 | 1 | P0 |
-| 2 | Tag v2.4.0 release | 5 | 1 | P0 |
-| 3 | Fix codec fuzz seed (`5c4177600a024103`) | 4 | 1 | P0 |
-| 4 | Add kv contract tests vs pebble adapter | 4 | 2 | P1 |
-| 5 | Module README: `kv/` | 3 | 1 | P1 |
-| 6 | Module README: `pebble/` | 3 | 1 | P1 |
-| 7 | PostgreSQL CI service container | 4 | 2 | P1 |
-| 8 | Schema registry validation middleware (ADR-0017) | 5 | 5 | P1 |
-| 9 | Prometheus metrics exporter | 4 | 4 | P1 |
-| 10 | Structured logging middleware (`slog`) | 4 | 3 | P1 |
-| 11 | Distributed tracing propagation | 4 | 5 | P1 |
-| 12 | Distributed checkpointing (ADR-0018) | 4 | 6 | P2 |
-| 13 | Pebble coverage → 85%+ | 3 | 3 | P2 |
-| 14 | Pebble golden test (CBOR envelope) | 3 | 3 | P2 |
-| 15 | Benchmark: pebble vs SQL store | 3 | 3 | P2 |
-| 16 | Performance baseline update | 3 | 1 | P2 |
-| 17 | cqrs-gen v2 (struct-tag scanning) | 3 | 5 | P2 |
-| 18 | pprof endpoints in `middleware/` | 3 | 3 | P2 |
-| 19 | gRPC transport adapter | 3 | 6 | P3 |
-| 20 | NATS/Redis Stream adapter | 3 | 6 | P3 |
-| 21 | Streaming event reads (`StreamLoader`) | 3 | 5 | P3 |
-| 22 | Documentation site | 3 | 5 | P3 |
-| 23 | WASM target for `decider` | 3 | 5 | P3 |
-| 24 | v3 breaking changes (branch: v3) | 4 | 15 | P4 |
-| 25 | v4 breaking changes (branch: v4) | 3 | 6 | P4 |
+| #   | Task                                             | Impact | Effort | Priority |
+| --- | ------------------------------------------------ | ------ | ------ | -------- |
+| 1   | Merge `consolidate-catalog` → `master`           | 5      | 1      | P0       |
+| 2   | Tag v2.4.0 release                               | 5      | 1      | P0       |
+| 3   | Fix codec fuzz seed (`5c4177600a024103`)         | 4      | 1      | P0       |
+| 4   | Add kv contract tests vs pebble adapter          | 4      | 2      | P1       |
+| 5   | Module README: `kv/`                             | 3      | 1      | P1       |
+| 6   | Module README: `pebble/`                         | 3      | 1      | P1       |
+| 7   | PostgreSQL CI service container                  | 4      | 2      | P1       |
+| 8   | Schema registry validation middleware (ADR-0017) | 5      | 5      | P1       |
+| 9   | Prometheus metrics exporter                      | 4      | 4      | P1       |
+| 10  | Structured logging middleware (`slog`)           | 4      | 3      | P1       |
+| 11  | Distributed tracing propagation                  | 4      | 5      | P1       |
+| 12  | Distributed checkpointing (ADR-0018)             | 4      | 6      | P2       |
+| 13  | Pebble coverage → 85%+                           | 3      | 3      | P2       |
+| 14  | Pebble golden test (CBOR envelope)               | 3      | 3      | P2       |
+| 15  | Benchmark: pebble vs SQL store                   | 3      | 3      | P2       |
+| 16  | Performance baseline update                      | 3      | 1      | P2       |
+| 17  | cqrs-gen v2 (struct-tag scanning)                | 3      | 5      | P2       |
+| 18  | pprof endpoints in `middleware/`                 | 3      | 3      | P2       |
+| 19  | gRPC transport adapter                           | 3      | 6      | P3       |
+| 20  | NATS/Redis Stream adapter                        | 3      | 6      | P3       |
+| 21  | Streaming event reads (`StreamLoader`)           | 3      | 5      | P3       |
+| 22  | Documentation site                               | 3      | 5      | P3       |
+| 23  | WASM target for `decider`                        | 3      | 5      | P3       |
+| 24  | v3 breaking changes (branch: v3)                 | 4      | 15     | P4       |
+| 25  | v4 breaking changes (branch: v4)                 | 3      | 6      | P4       |
 
 ---
 
@@ -173,6 +180,7 @@ The `consolidate-catalog` branch is in **excellent shape**. All major work items
 **Should we squash the `consolidate-catalog` branch into a single commit before merging to `master`, or preserve the granular commit history?**
 
 The branch has 10+ commits spanning:
+
 - Catalog consolidation (5 modules → 1)
 - Reactive bus extensions
 - Pebble KV adapter
@@ -203,4 +211,4 @@ This is a judgment call about repository hygiene philosophy that I can't resolve
 
 ---
 
-*Report generated 2026-06-17 09:15 CEST.*
+_Report generated 2026-06-17 09:15 CEST._

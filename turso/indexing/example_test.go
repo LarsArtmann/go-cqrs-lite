@@ -31,7 +31,7 @@ func ExampleRecommendedCQRSIndexes() {
 }
 
 func ExampleAdvisor_AnalyzeQuery() {
-	db, _ := turso.OpenInMemory()
+	db, _ := turso.OpenTemp("")
 	defer func() { _ = db.Close() }()
 
 	_ = turso.InitSchema(context.Background(), db)
@@ -48,7 +48,7 @@ func ExampleAdvisor_AnalyzeQuery() {
 }
 
 func ExampleAutoIndexer_ApplyCQRSIndexes() {
-	db, _ := turso.OpenInMemory()
+	db, _ := turso.OpenTemp("")
 	defer func() { _ = db.Close() }()
 
 	_ = turso.InitSchema(context.Background(), db)
@@ -67,7 +67,7 @@ func ExampleAutoIndexer_ApplyCQRSIndexes() {
 }
 
 func ExampleInitSchemaWithIndexesAndOptimizations() {
-	db, _ := turso.OpenInMemory()
+	db, _ := turso.OpenTemp("")
 	defer func() { _ = db.Close() }()
 
 	_ = turso.InitSchemaWithIndexesAndOptimizations(context.Background(), db)
@@ -79,7 +79,7 @@ func ExampleInitSchemaWithIndexesAndOptimizations() {
 }
 
 func ExampleApplyOptimizations() {
-	db, _ := turso.OpenInMemory()
+	db, _ := turso.OpenTemp("")
 	defer func() { _ = db.Close() }()
 
 	_ = indexing.ApplyOptimizations(context.Background(), db)

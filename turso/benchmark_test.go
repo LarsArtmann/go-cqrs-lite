@@ -13,7 +13,7 @@ import (
 func benchTursoEventStore(b *testing.B) (*storage.SQLEventStore, func()) {
 	b.Helper()
 
-	conn, err := turso.OpenInMemory()
+	conn, err := turso.OpenTemp(b.TempDir())
 	if err != nil {
 		b.Fatal(err)
 	}

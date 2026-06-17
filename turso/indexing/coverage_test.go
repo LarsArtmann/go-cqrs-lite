@@ -13,9 +13,9 @@ import (
 func setupIndexingDB(t *testing.T) *sql.DB {
 	t.Helper()
 
-	db, err := turso.OpenInMemory()
+	db, err := turso.OpenTemp(t.TempDir())
 	if err != nil {
-		t.Fatalf("OpenInMemory: %v", err)
+		t.Fatalf("OpenTemp: %v", err)
 	}
 
 	t.Cleanup(func() { _ = db.Close() })

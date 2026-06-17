@@ -206,9 +206,9 @@ func TestEventStore_Save_VersionConflict(t *testing.T) {
 func TestSnapshotStore_Overwrite(t *testing.T) {
 	t.Parallel()
 
-	database, err := turso.OpenInMemory()
+	database, err := turso.OpenTemp(t.TempDir())
 	if err != nil {
-		t.Fatalf("OpenInMemory: %v", err)
+		t.Fatalf("OpenTemp: %v", err)
 	}
 
 	t.Cleanup(func() { _ = database.Close() })
@@ -262,9 +262,9 @@ func TestSnapshotStore_Overwrite(t *testing.T) {
 func TestSnapshotStore_LoadNonExistent(t *testing.T) {
 	t.Parallel()
 
-	database, err := turso.OpenInMemory()
+	database, err := turso.OpenTemp(t.TempDir())
 	if err != nil {
-		t.Fatalf("OpenInMemory: %v", err)
+		t.Fatalf("OpenTemp: %v", err)
 	}
 
 	t.Cleanup(func() { _ = database.Close() })
@@ -289,9 +289,9 @@ func TestSnapshotStore_LoadNonExistent(t *testing.T) {
 func TestCheckpointStore_Overwrite(t *testing.T) {
 	t.Parallel()
 
-	database, err := turso.OpenInMemory()
+	database, err := turso.OpenTemp(t.TempDir())
 	if err != nil {
-		t.Fatalf("OpenInMemory: %v", err)
+		t.Fatalf("OpenTemp: %v", err)
 	}
 
 	t.Cleanup(func() { _ = database.Close() })
@@ -358,9 +358,9 @@ func TestNewCheckpointStore_NilDB(t *testing.T) {
 func TestInitSchema_Idempotent(t *testing.T) {
 	t.Parallel()
 
-	database, err := turso.OpenInMemory()
+	database, err := turso.OpenTemp(t.TempDir())
 	if err != nil {
-		t.Fatalf("OpenInMemory: %v", err)
+		t.Fatalf("OpenTemp: %v", err)
 	}
 
 	t.Cleanup(func() { _ = database.Close() })
@@ -455,9 +455,9 @@ func TestEventStore_MultipleAppendBatch(t *testing.T) {
 func TestStorageConstructor_AcceptsStorageSQL(t *testing.T) {
 	t.Parallel()
 
-	database, err := turso.OpenInMemory()
+	database, err := turso.OpenTemp(t.TempDir())
 	if err != nil {
-		t.Fatalf("OpenInMemory: %v", err)
+		t.Fatalf("OpenTemp: %v", err)
 	}
 
 	t.Cleanup(func() { _ = database.Close() })

@@ -78,23 +78,26 @@ func (s *CheckpointScheduler) runOnce(ctx context.Context) error {
 }
 
 // Stop halts the background scheduler. Safe to call multiple times.
+// Blocks until the background goroutine has fully exited.
 func (s *CheckpointScheduler) Stop() {
 	s.mu.Lock()
-	defer s.mu.Unlock()
 
 	if s.stopped {
+		s.mu.Unlock()
+
 		return
 	}
 
 	s.stopped = true
 
+	var done chan struct{}
 	if s.stop != nil {
 		close(s.stop)
 		s.stop = nil
+		done = s.done
+		s.done = nil
 	}
 
-	done := s.done
-	s.done = nil
 	s.mu.Unlock()
 
 	if done != nil {

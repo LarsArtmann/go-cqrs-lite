@@ -13,9 +13,10 @@ import (
 func setupTestDB(t *testing.T) *sql.DB {
 	t.Helper()
 
-	db, err := turso.OpenInMemory()
+	dir := t.TempDir()
+	db, err := turso.OpenTemp(dir)
 	if err != nil {
-		t.Fatalf("OpenInMemory: %v", err)
+		t.Fatalf("OpenTemp: %v", err)
 	}
 
 	t.Cleanup(func() { _ = db.Close() })
@@ -49,9 +50,9 @@ func TestAdvisor_AnalyzeQuery_DetectsScan(t *testing.T) {
 	t.Parallel()
 
 	// Use a fresh schema WITHOUT CQRS indexes.
-	db, err := turso.OpenInMemory()
+	db, err := turso.OpenTemp(t.TempDir())
 	if err != nil {
-		t.Fatalf("OpenInMemory: %v", err)
+		t.Fatalf("OpenTemp: %v", err)
 	}
 	t.Cleanup(func() { _ = db.Close() })
 
@@ -221,9 +222,9 @@ func TestAdvisor_ScanDetection_Golden(t *testing.T) { //nolint:tparallel // subt
 	t.Parallel()
 
 	// Use a fresh schema WITHOUT CQRS indexes so scans occur.
-	db, err := turso.OpenInMemory()
+	db, err := turso.OpenTemp(t.TempDir())
 	if err != nil {
-		t.Fatalf("OpenInMemory: %v", err)
+		t.Fatalf("OpenTemp: %v", err)
 	}
 	t.Cleanup(func() { _ = db.Close() })
 
@@ -304,9 +305,9 @@ func TestAdvisor_ScanDetection_Golden(t *testing.T) { //nolint:tparallel // subt
 func TestAdvisor_NoScanAfterCQRSIndexes(t *testing.T) {
 	t.Parallel()
 
-	db, err := turso.OpenInMemory()
+	db, err := turso.OpenTemp(t.TempDir())
 	if err != nil {
-		t.Fatalf("OpenInMemory: %v", err)
+		t.Fatalf("OpenTemp: %v", err)
 	}
 	t.Cleanup(func() { _ = db.Close() })
 
@@ -335,7 +336,7 @@ func TestAdvisor_NoScanAfterCQRSIndexes(t *testing.T) {
 func benchAdvisor(b *testing.B, withIndexes bool) *sql.DB {
 	b.Helper()
 
-	db, err := turso.OpenInMemory()
+	db, err := turso.OpenTemp(b.TempDir())
 	if err != nil {
 		b.Fatal(err)
 	}

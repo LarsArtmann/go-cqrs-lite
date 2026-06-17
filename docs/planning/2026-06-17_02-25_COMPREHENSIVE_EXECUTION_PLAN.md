@@ -167,16 +167,16 @@ Deferred breaking changes (`T092`–`T099`, v3/v4) and low-impact raw ideas. Sch
 
 ### P4 — DEFERRED BREAKING CHANGES
 
-| ID   | Task (≤12 min)                                                | Parent      | Impact | Effort | Cust | Deps      |
-| ---- | ------------------------------------------------------------- | ----------- | ------ | ------ | ---- | --------- |
-| T092 | v3: Remove `io.Closer` from core interfaces (ADR-0010)        | v3 breaking | 4      | 3      | H    | v3 branch |
-| ~~T093~~ | ~~v3: Split `event.Store` into Writer/Reader/Deleter~~            | ~~v3 breaking~~ | ~~4~~  | ~~4~~  | ~~H~~    | **REMOVED — Sink/Source split + tombstones already satisfy this** |
-| T094 | v3: Add global `TransactionID` branded type                   | v3 breaking | 3      | 2      | M    | v3 branch |
-| T095 | v3: Make event Core truly immutable                           | v3 breaking | 3      | 2      | M    | v3 branch |
-| T096 | v3: Move HTTP code out of `middleware/` → `transport/` module | v3 breaking | 3      | 3      | M    | v3 branch |
-| T097 | v3: Fix `query.Handler` returns `any` → `TypedHandler[T]`     | v3 breaking | 4      | 2      | H    | v3 branch |
-| T098 | v4: Split `catalog.Message` into Message + MessageMeta        | v4 breaking | 3      | 3      | M    | v4 branch |
-| T099 | v4: Split `catalog.Service` into Service + ServiceMeta        | v4 breaking | 3      | 3      | M    | v4 branch |
+| ID       | Task (≤12 min)                                                | Parent          | Impact | Effort | Cust  | Deps                                                              |
+| -------- | ------------------------------------------------------------- | --------------- | ------ | ------ | ----- | ----------------------------------------------------------------- |
+| T092     | v3: Remove `io.Closer` from core interfaces (ADR-0010)        | v3 breaking     | 4      | 3      | H     | v3 branch                                                         |
+| ~~T093~~ | ~~v3: Split `event.Store` into Writer/Reader/Deleter~~        | ~~v3 breaking~~ | ~~4~~  | ~~4~~  | ~~H~~ | **REMOVED — Sink/Source split + tombstones already satisfy this** |
+| T094     | v3: Add global `TransactionID` branded type                   | v3 breaking     | 3      | 2      | M     | v3 branch                                                         |
+| T095     | v3: Make event Core truly immutable                           | v3 breaking     | 3      | 2      | M     | v3 branch                                                         |
+| T096     | v3: Move HTTP code out of `middleware/` → `transport/` module | v3 breaking     | 3      | 3      | M     | v3 branch                                                         |
+| T097     | v3: Fix `query.Handler` returns `any` → `TypedHandler[T]`     | v3 breaking     | 4      | 2      | H     | v3 branch                                                         |
+| T098     | v4: Split `catalog.Message` into Message + MessageMeta        | v4 breaking     | 3      | 3      | M     | v4 branch                                                         |
+| T099     | v4: Split `catalog.Service` into Service + ServiceMeta        | v4 breaking     | 3      | 3      | M     | v4 branch                                                         |
 
 ---
 

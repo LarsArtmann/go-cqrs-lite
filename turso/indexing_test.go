@@ -12,9 +12,9 @@ import (
 func setupIndexingTestDB(t *testing.T) *sql.DB {
 	t.Helper()
 
-	db, err := turso.OpenInMemory()
+	db, err := turso.OpenTemp(t.TempDir())
 	if err != nil {
-		t.Fatalf("OpenInMemory: %v", err)
+		t.Fatalf("OpenTemp: %v", err)
 	}
 
 	t.Cleanup(func() { _ = db.Close() })
@@ -82,9 +82,9 @@ func TestApplyCQRSIndexes(t *testing.T) {
 func TestInitSchemaWithIndexes(t *testing.T) {
 	t.Parallel()
 
-	db, err := turso.OpenInMemory()
+	db, err := turso.OpenTemp(t.TempDir())
 	if err != nil {
-		t.Fatalf("OpenInMemory: %v", err)
+		t.Fatalf("OpenTemp: %v", err)
 	}
 
 	t.Cleanup(func() { _ = db.Close() })
@@ -106,9 +106,9 @@ func TestInitSchemaWithIndexes(t *testing.T) {
 func TestInitSchemaWithIndexesAndOptimizations(t *testing.T) {
 	t.Parallel()
 
-	db, err := turso.OpenInMemory()
+	db, err := turso.OpenTemp(t.TempDir())
 	if err != nil {
-		t.Fatalf("OpenInMemory: %v", err)
+		t.Fatalf("OpenTemp: %v", err)
 	}
 
 	t.Cleanup(func() { _ = db.Close() })

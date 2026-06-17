@@ -8,7 +8,7 @@ import (
 )
 
 func ExampleOpenInMemory() {
-	conn, err := turso.OpenInMemory()
+	conn, err := turso.OpenTemp("")
 	if err != nil {
 		fmt.Println("error:", err)
 
@@ -40,7 +40,7 @@ func ExampleOpen() {
 }
 
 func ExampleNewEventStore() {
-	conn, _ := turso.OpenInMemory()
+	conn, _ := turso.OpenTemp("")
 	defer func() { _ = conn.Close() }()
 
 	store, err := turso.NewEventStore(conn)
@@ -59,7 +59,7 @@ func ExampleNewEventStore() {
 }
 
 func ExampleNewCommandStore() {
-	db, _ := turso.OpenInMemory()
+	db, _ := turso.OpenTemp("")
 	defer func() { _ = db.Close() }()
 
 	_ = turso.InitSchema(context.Background(), db)
@@ -80,7 +80,7 @@ func ExampleNewCommandStore() {
 }
 
 func ExampleNewQueryStore() {
-	db, _ := turso.OpenInMemory()
+	db, _ := turso.OpenTemp("")
 	defer func() { _ = db.Close() }()
 
 	_ = turso.InitSchema(context.Background(), db)
@@ -101,7 +101,7 @@ func ExampleNewQueryStore() {
 }
 
 func ExampleNewBackend() {
-	db, _ := turso.OpenInMemory()
+	db, _ := turso.OpenTemp("")
 	defer func() { _ = db.Close() }()
 
 	_ = turso.InitSchema(context.Background(), db)
@@ -127,7 +127,7 @@ func ExampleNewBackend() {
 }
 
 func ExampleConfigurePool() {
-	db, _ := turso.OpenInMemory()
+	db, _ := turso.OpenTemp("")
 	defer func() { _ = db.Close() }()
 
 	turso.ConfigurePool(db)
@@ -142,7 +142,7 @@ func ExampleConfigurePool() {
 func ExampleInitSchemaWithIndexesAndOptimizations() {
 	ctx := context.Background()
 
-	db, _ := turso.OpenInMemory()
+	db, _ := turso.OpenTemp("")
 	defer func() { _ = db.Close() }()
 
 	if err := turso.InitSchemaWithIndexesAndOptimizations(ctx, db); err != nil {

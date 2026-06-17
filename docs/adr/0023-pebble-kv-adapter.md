@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-17  
 **Status:** Accepted  
-**Deciders:** Lars Artmann, Crush  
+**Deciders:** Lars Artmann, Crush
 
 ## Context
 
@@ -31,16 +31,19 @@ Implement `pebble.KVAdapter` — a thin adapter that maps `*pebble.DB` to `kv.St
 ## Consequences
 
 ### Positive
+
 - **kv/ module validated:** The interface is proven fit for purpose against a real storage engine.
 - **Ghost system eliminated:** `kv/` now has a production-grade consumer.
 - **Future storage backends:** Any module that accepts `kv.Store` can use Pebble directly.
 - **Contract testing:** The kv/ test suite can be run against the pebble adapter to verify conformance.
 
 ### Negative
+
 - **+1 direct dependency** for pebble (7 → 8). Budget was consciously raised.
 - **Two iterator APIs:** Pebble's native API and kv.Iterator coexist. The adapter does NOT replace existing pebble store internals — they continue to use `*pebble.DB` directly for performance-critical paths.
 
 ### Neutral
+
 - The existing `EventStore`, `SnapshotStore`, and `CheckpointStore` do NOT use `kv.Store` internally. This is by design — those stores have specialized needs (CBOR serialization, journaling, OTel spans) that would be awkward to express through the generic interface. The adapter is for consumers who want a simple KV API over Pebble.
 
 ## Alternatives Considered

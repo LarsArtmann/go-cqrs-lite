@@ -16,9 +16,9 @@ import (
 func newBackendDB(t *testing.T) (*storage.SQLBackend, func()) {
 	t.Helper()
 
-	db, err := turso.OpenInMemory()
+	db, err := turso.OpenTemp(t.TempDir())
 	if err != nil {
-		t.Fatalf("OpenInMemory: %v", err)
+		t.Fatalf("OpenTemp: %v", err)
 	}
 
 	if err := turso.InitSchema(context.Background(), db); err != nil {
@@ -275,9 +275,9 @@ func TestBackend_Close(t *testing.T) {
 func TestNewCommandStore(t *testing.T) {
 	t.Parallel()
 
-	db, err := turso.OpenInMemory()
+	db, err := turso.OpenTemp(t.TempDir())
 	if err != nil {
-		t.Fatalf("OpenInMemory: %v", err)
+		t.Fatalf("OpenTemp: %v", err)
 	}
 	defer func() { _ = db.Close() }()
 
@@ -298,9 +298,9 @@ func TestNewCommandStore(t *testing.T) {
 func TestNewQueryStore(t *testing.T) {
 	t.Parallel()
 
-	db, err := turso.OpenInMemory()
+	db, err := turso.OpenTemp(t.TempDir())
 	if err != nil {
-		t.Fatalf("OpenInMemory: %v", err)
+		t.Fatalf("OpenTemp: %v", err)
 	}
 	defer func() { _ = db.Close() }()
 
@@ -337,9 +337,9 @@ func TestNewTursoQueryStoreAlias(t *testing.T) {
 func TestConfigurePool(t *testing.T) {
 	t.Parallel()
 
-	db, err := turso.OpenInMemory()
+	db, err := turso.OpenTemp(t.TempDir())
 	if err != nil {
-		t.Fatalf("OpenInMemory: %v", err)
+		t.Fatalf("OpenTemp: %v", err)
 	}
 	defer func() { _ = db.Close() }()
 

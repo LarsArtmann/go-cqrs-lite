@@ -15,9 +15,9 @@ import (
 func setupEventStore(t *testing.T) (*storage.SQLEventStore, context.Context) {
 	t.Helper()
 
-	database, err := turso.OpenInMemory()
+	database, err := turso.OpenTemp(t.TempDir())
 	if err != nil {
-		t.Fatalf("OpenInMemory: %v", err)
+		t.Fatalf("OpenTemp: %v", err)
 	}
 
 	t.Cleanup(func() { _ = database.Close() })
@@ -171,9 +171,9 @@ func TestEventStore_ReadAll(t *testing.T) {
 func TestSnapshotStore_SaveAndLoad(t *testing.T) {
 	t.Parallel()
 
-	database, err := turso.OpenInMemory()
+	database, err := turso.OpenTemp(t.TempDir())
 	if err != nil {
-		t.Fatalf("OpenInMemory: %v", err)
+		t.Fatalf("OpenTemp: %v", err)
 	}
 
 	t.Cleanup(func() { _ = database.Close() })
@@ -216,9 +216,9 @@ func TestSnapshotStore_SaveAndLoad(t *testing.T) {
 func TestCheckpointStore_SaveAndLoad(t *testing.T) {
 	t.Parallel()
 
-	database, err := turso.OpenInMemory()
+	database, err := turso.OpenTemp(t.TempDir())
 	if err != nil {
-		t.Fatalf("OpenInMemory: %v", err)
+		t.Fatalf("OpenTemp: %v", err)
 	}
 
 	t.Cleanup(func() { _ = database.Close() })
@@ -253,9 +253,9 @@ func TestCheckpointStore_SaveAndLoad(t *testing.T) {
 func TestCheckpointStore_LoadEmpty(t *testing.T) {
 	t.Parallel()
 
-	database, err := turso.OpenInMemory()
+	database, err := turso.OpenTemp(t.TempDir())
 	if err != nil {
-		t.Fatalf("OpenInMemory: %v", err)
+		t.Fatalf("OpenTemp: %v", err)
 	}
 
 	t.Cleanup(func() { _ = database.Close() })

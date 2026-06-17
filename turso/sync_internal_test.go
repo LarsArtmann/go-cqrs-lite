@@ -232,9 +232,9 @@ func isInfraError(t *testing.T, err error) bool {
 func TestSyncDB_HealthCheck_Success(t *testing.T) {
 	t.Parallel()
 
-	db, err := OpenInMemory()
+	db, err := OpenTemp(t.TempDir())
 	if err != nil {
-		t.Fatalf("OpenInMemory: %v", err)
+		t.Fatalf("OpenTemp: %v", err)
 	}
 	defer func() { _ = db.Close() }()
 
@@ -247,9 +247,9 @@ func TestSyncDB_HealthCheck_Success(t *testing.T) {
 func TestSyncDB_HealthCheck_ClosedDB(t *testing.T) {
 	t.Parallel()
 
-	db, err := OpenInMemory()
+	db, err := OpenTemp(t.TempDir())
 	if err != nil {
-		t.Fatalf("OpenInMemory: %v", err)
+		t.Fatalf("OpenTemp: %v", err)
 	}
 	_ = db.Close()
 
@@ -266,9 +266,9 @@ func TestSyncDB_HealthCheck_ClosedDB(t *testing.T) {
 func TestSyncDB_Close(t *testing.T) {
 	t.Parallel()
 
-	db, err := OpenInMemory()
+	db, err := OpenTemp(t.TempDir())
 	if err != nil {
-		t.Fatalf("OpenInMemory: %v", err)
+		t.Fatalf("OpenTemp: %v", err)
 	}
 
 	sdb := newSyncDBWithEngine(db, &fakeSyncEngine{})

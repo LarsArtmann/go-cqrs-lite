@@ -13,60 +13,60 @@
 
 ### Session work — Turso module upgrade + red module fixes
 
-| Work item | Commit | Status |
-|-----------|--------|--------|
-| **Turso `Backend` facade** — all 5 stores sharing one `*sql.DB`, goroutine-safe lazy init | `86917faa` | ✅ |
-| **`NewCommandStore` / `NewQueryStore`** — symmetric constructors | `86917faa` | ✅ |
-| **`ConfigurePool`** — caps `MaxOpenConns` at 1 for embedded LibSQL | `86917faa` | ✅ |
-| **`OpenSyncWithConfig` + `SyncOption`** — 5 options for advanced sync tuning | `86917faa` | ✅ |
-| **`SyncDB.HealthCheck(ctx)`** — for k8s/readiness probes | `86917faa` | ✅ |
-| **`SyncDB.SyncClient()`** — escape hatch to underlying Turso sync client | `86917faa` | ✅ |
-| **Critical bug fix: `scanTableRe` regex** — missed ALL scans (modern SQLite outputs `SCAN events`, not `SCAN TABLE events`) | `86917faa` | ✅ |
-| **Critical bug fix: `CheckpointScheduler` data race** — `run()` read `s.stop` without lock | `86917faa` | ✅ |
-| **`doc.go` rewritten** — full package doc with 6 quick-start sections | `86917faa` | ✅ |
-| **README.md fixed** — corrected phantom-type examples, signatures, new docs | `86917faa` | ✅ |
-| **`docs/turso-indexing-guidance.md` fixed** — removed 6+ non-existent APIs | `86917faa` | ✅ |
-| **`FEATURES.md` updated** — fixed dry-run wording, added Backend/stores/sync | `86917faa` | ✅ |
+| Work item                                                                                                                   | Commit     | Status |
+| --------------------------------------------------------------------------------------------------------------------------- | ---------- | ------ |
+| **Turso `Backend` facade** — all 5 stores sharing one `*sql.DB`, goroutine-safe lazy init                                   | `86917faa` | ✅     |
+| **`NewCommandStore` / `NewQueryStore`** — symmetric constructors                                                            | `86917faa` | ✅     |
+| **`ConfigurePool`** — caps `MaxOpenConns` at 1 for embedded LibSQL                                                          | `86917faa` | ✅     |
+| **`OpenSyncWithConfig` + `SyncOption`** — 5 options for advanced sync tuning                                                | `86917faa` | ✅     |
+| **`SyncDB.HealthCheck(ctx)`** — for k8s/readiness probes                                                                    | `86917faa` | ✅     |
+| **`SyncDB.SyncClient()`** — escape hatch to underlying Turso sync client                                                    | `86917faa` | ✅     |
+| **Critical bug fix: `scanTableRe` regex** — missed ALL scans (modern SQLite outputs `SCAN events`, not `SCAN TABLE events`) | `86917faa` | ✅     |
+| **Critical bug fix: `CheckpointScheduler` data race** — `run()` read `s.stop` without lock                                  | `86917faa` | ✅     |
+| **`doc.go` rewritten** — full package doc with 6 quick-start sections                                                       | `86917faa` | ✅     |
+| **README.md fixed** — corrected phantom-type examples, signatures, new docs                                                 | `86917faa` | ✅     |
+| **`docs/turso-indexing-guidance.md` fixed** — removed 6+ non-existent APIs                                                  | `86917faa` | ✅     |
+| **`FEATURES.md` updated** — fixed dry-run wording, added Backend/stores/sync                                                | `86917faa` | ✅     |
 
 ### Red module fixes (this session)
 
-| Work item | Commit | Status |
-|-----------|--------|--------|
-| **`integration/go.sum` missing `kv/v2` entry** — added replace directive + `go mod tidy` | `5c29235b` | ✅ |
-| **`pebble/go.mod` missing `kv/v2`** — added via `go mod tidy` | `5c29235b` | ✅ |
-| **CBOR codec fuzz corpus broken seed** — removed + test updated to skip non-roundtrippable inputs | `5c29235b` | ✅ |
-| **Compose tests for command/query** — nil, single, multiple, classified errors | `5c29235b` | ✅ |
-| **KV contract test suite in pebble** — `runKVStoreContract` validates interface conformance | `5c29235b` | ✅ |
+| Work item                                                                                         | Commit     | Status |
+| ------------------------------------------------------------------------------------------------- | ---------- | ------ |
+| **`integration/go.sum` missing `kv/v2` entry** — added replace directive + `go mod tidy`          | `5c29235b` | ✅     |
+| **`pebble/go.mod` missing `kv/v2`** — added via `go mod tidy`                                     | `5c29235b` | ✅     |
+| **CBOR codec fuzz corpus broken seed** — removed + test updated to skip non-roundtrippable inputs | `5c29235b` | ✅     |
+| **Compose tests for command/query** — nil, single, multiple, classified errors                    | `5c29235b` | ✅     |
+| **KV contract test suite in pebble** — `runKVStoreContract` validates interface conformance       | `5c29235b` | ✅     |
 
 ### Module health (ALL 24 modules GREEN under `GOWORK=off`)
 
-| Module | Tests | Coverage | Notes |
-|--------|-------|----------|-------|
-| event | ✅ | 93.0% | — |
-| command | ✅ | 96.9% | Compose tests added |
-| query | ✅ | 79.0% | Compose tests added |
-| decider | ✅ | 99.4% | Best coverage |
-| id | ✅ | — | Leaf module |
-| dispatcher | ✅ | — | Leaf module |
-| schema | ✅ | — | — |
-| snapshot | ✅ | — | — |
-| memory | ✅ | — | — |
-| catalog | ✅ | 84.5% | — |
-| middleware | ✅ | 93.5% | — |
-| storage | ✅ | 82.1% | — |
-| projection | ✅ | — | — |
-| signing | ✅ | — | — |
-| encryption | ✅ | — | — |
-| otel | ✅ | — | — |
-| watermill | ✅ | — | — |
-| pebble | ✅ | 82.9% | KV contract tests added |
-| codec | ✅ | 88.9% | Fuzz corpus fixed |
-| kv | ✅ | 94.9% | — |
-| listing | ✅ | — | — |
-| testutil | ⚪ | — | No test files (expected) |
-| turso | ✅ | 54.5% | sync.go needs network |
-| turso/indexing | ✅ | 85.7% | Scan regex fixed, race fixed |
-| integration | ✅ | — | go.sum fixed |
+| Module         | Tests | Coverage | Notes                        |
+| -------------- | ----- | -------- | ---------------------------- |
+| event          | ✅    | 93.0%    | —                            |
+| command        | ✅    | 96.9%    | Compose tests added          |
+| query          | ✅    | 79.0%    | Compose tests added          |
+| decider        | ✅    | 99.4%    | Best coverage                |
+| id             | ✅    | —        | Leaf module                  |
+| dispatcher     | ✅    | —        | Leaf module                  |
+| schema         | ✅    | —        | —                            |
+| snapshot       | ✅    | —        | —                            |
+| memory         | ✅    | —        | —                            |
+| catalog        | ✅    | 84.5%    | —                            |
+| middleware     | ✅    | 93.5%    | —                            |
+| storage        | ✅    | 82.1%    | —                            |
+| projection     | ✅    | —        | —                            |
+| signing        | ✅    | —        | —                            |
+| encryption     | ✅    | —        | —                            |
+| otel           | ✅    | —        | —                            |
+| watermill      | ✅    | —        | —                            |
+| pebble         | ✅    | 82.9%    | KV contract tests added      |
+| codec          | ✅    | 88.9%    | Fuzz corpus fixed            |
+| kv             | ✅    | 94.9%    | —                            |
+| listing        | ✅    | —        | —                            |
+| testutil       | ⚪    | —        | No test files (expected)     |
+| turso          | ✅    | 54.5%    | sync.go needs network        |
+| turso/indexing | ✅    | 85.7%    | Scan regex fixed, race fixed |
+| integration    | ✅    | —        | go.sum fixed                 |
 
 ### Releases shipped
 
@@ -78,34 +78,34 @@
 
 ## b) PARTIALLY DONE 🟡
 
-| Item | Status | Gap |
-|------|--------|-----|
-| **Advisor golden test** | In-progress, uncommitted | `TestAdvisor_ScanDetection_Golden` written but one subtest (`aggregate_version_with_filter_scan`) fails because the UNIQUE autoindex already covers that query — only `cursor_pagination_scan` truly scans. Needs cleanup: remove the non-scanning subtest. |
-| **Pebble KV contract test refactor** | Uncommitted (418 line diff) | Tests pass but the refactored structure (`testContractGetSet` etc. vs single `runKVStoreContract`) is uncommitted. Needs review. |
-| **Turso package coverage** | 54.5% | `sync.go` (Push/Pull/Checkpoint/Stats/HealthCheck) requires a live Turso server. All testable paths covered. |
-| **`consolidate-catalog` branch** | Ahead of origin by 5 commits | Not yet merged to master. Needs PR + final review. |
-| **v2.4.0 release** | Planning done, execution started | Turso Backend, sync config, bug fixes done. Schema registry, Prometheus, structured logging not started. |
+| Item                                 | Status                           | Gap                                                                                                                                                                                                                                                         |
+| ------------------------------------ | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Advisor golden test**              | In-progress, uncommitted         | `TestAdvisor_ScanDetection_Golden` written but one subtest (`aggregate_version_with_filter_scan`) fails because the UNIQUE autoindex already covers that query — only `cursor_pagination_scan` truly scans. Needs cleanup: remove the non-scanning subtest. |
+| **Pebble KV contract test refactor** | Uncommitted (418 line diff)      | Tests pass but the refactored structure (`testContractGetSet` etc. vs single `runKVStoreContract`) is uncommitted. Needs review.                                                                                                                            |
+| **Turso package coverage**           | 54.5%                            | `sync.go` (Push/Pull/Checkpoint/Stats/HealthCheck) requires a live Turso server. All testable paths covered.                                                                                                                                                |
+| **`consolidate-catalog` branch**     | Ahead of origin by 5 commits     | Not yet merged to master. Needs PR + final review.                                                                                                                                                                                                          |
+| **v2.4.0 release**                   | Planning done, execution started | Turso Backend, sync config, bug fixes done. Schema registry, Prometheus, structured logging not started.                                                                                                                                                    |
 
 ---
 
 ## c) NOT STARTED ⬜
 
-| ID | Task | Priority |
-|----|------|----------|
-| T018–T020 | **Schema registry** — JSON Schema validation middleware (ADR-0017) | P1 |
-| T021–T023 | **Distributed checkpointing** — multi-instance projection coordination (ADR-0018) | P1 |
-| T024–T026 | **Prometheus exporter** — replace custom `MetricsRecorder` | P1 |
-| T027–T029 | **Structured logging** — configurable `slog` levels middleware | P1 |
-| T030–T032 | **Distributed tracing propagation** — span context across module boundaries | P1 |
-| T033–T035 | **PostgreSQL CI** — service container in GitHub Actions | P1 |
-| T045–T047 | **cqrs-gen v2** — struct tag scanning | P2 |
-| T048–T049 | **pprof endpoints** — profiling HTTP handler | P2 |
-| T059 | **Module README for `kv/`** | P2 |
-| T041–T043 | **Reactive bus docs** — command/doc.go, query/doc.go, AGENTS.md | P2 |
-| T069–T074 | **gRPC / NATS adapters** | P3 |
-| T075–T077 | **Streaming event reads** | P3 |
-| T080 | **WASM target** for decider module | P3 |
-| T081–T082 | **Documentation site** | P3 |
+| ID        | Task                                                                              | Priority |
+| --------- | --------------------------------------------------------------------------------- | -------- |
+| T018–T020 | **Schema registry** — JSON Schema validation middleware (ADR-0017)                | P1       |
+| T021–T023 | **Distributed checkpointing** — multi-instance projection coordination (ADR-0018) | P1       |
+| T024–T026 | **Prometheus exporter** — replace custom `MetricsRecorder`                        | P1       |
+| T027–T029 | **Structured logging** — configurable `slog` levels middleware                    | P1       |
+| T030–T032 | **Distributed tracing propagation** — span context across module boundaries       | P1       |
+| T033–T035 | **PostgreSQL CI** — service container in GitHub Actions                           | P1       |
+| T045–T047 | **cqrs-gen v2** — struct tag scanning                                             | P2       |
+| T048–T049 | **pprof endpoints** — profiling HTTP handler                                      | P2       |
+| T059      | **Module README for `kv/`**                                                       | P2       |
+| T041–T043 | **Reactive bus docs** — command/doc.go, query/doc.go, AGENTS.md                   | P2       |
+| T069–T074 | **gRPC / NATS adapters**                                                          | P3       |
+| T075–T077 | **Streaming event reads**                                                         | P3       |
+| T080      | **WASM target** for decider module                                                | P3       |
+| T081–T082 | **Documentation site**                                                            | P3       |
 
 ---
 
@@ -156,33 +156,33 @@ TestAdvisor_ScanDetection_Golden/aggregate_version_with_filter_scan
 
 ## f) Top #25 Things We Should Get Done Next! 🎯
 
-| # | Task | Impact | Effort | Rationale |
-|---|------|--------|--------|-----------|
-| 1 | **Fix uncommitted advisor golden test** — remove non-scanning subtest, commit | P0 | 5 min | One red test in working tree |
-| 2 | **Commit pebble KV contract test refactor** | P0 | 5 min | 418 lines uncommitted, tests pass |
-| 3 | **Push branch to remote** — `git push` | P0 | 1 min | 5 commits ahead of origin |
-| 4 | **Add `-race` to CI for all modules** | P0 | 30 min | The checkpoint race existed for weeks |
-| 5 | **Merge `consolidate-catalog` to master** — open PR | P0 | 30 min | Unblocks v2.4.0 |
-| 6 | **Tag v2.4.0** — turso Backend, sync config, bug fixes, KV adapter | P1 | 15 min | Consumers waiting for Backend facade |
-| 7 | **Add doc-link checker script** | P1 | 1 hr | Docs drift is systemic |
-| 8 | **Pre-commit hook: validate fuzz corpus seeds** | P1 | 30 min | Prevents broken seed commits |
-| 9 | **Schema registry (T018–T020)** — JSON Schema validation middleware | P1 | 2 hr | Most-requested feature |
-| 10 | **Prometheus exporter (T024–T026)** | P1 | 2 hr | Observability gap |
-| 11 | **Structured logging middleware (T027–T029)** | P1 | 1.5 hr | Production debugging |
-| 12 | **PostgreSQL CI service container (T033–T035)** | P1 | 1 hr | PG integration tests exist but don't run in CI |
-| 13 | **Fix `storage.checkClosed()` sentinel** | P2 | 20 min | Per-call allocation waste |
-| 14 | **Extract Turso sync interface** for testability | P2 | 1.5 hr | Enables testing 45% of turso |
-| 15 | **Reactive bus docs (T041–T043)** | P2 | 45 min | Code done, undocumented |
-| 16 | **Pebble coverage 85%+ (T036–T038)** | P2 | 1 hr | Currently 82.9% |
-| 17 | **Module README for `kv/` (T059)** | P2 | 30 min | Public API, no docs |
-| 18 | **Benchmark pebble vs SQL store (T044)** | P2 | 1 hr | No comparative baseline |
-| 19 | **Distributed checkpointing (T021–T023)** | P2 | 3 hr | Multi-instance projections |
-| 20 | **Distributed tracing propagation (T030–T032)** | P2 | 2.5 hr | Cross-module span context |
-| 21 | **pprof endpoints (T048–T049)** | P2 | 1 hr | Production profiling |
-| 22 | **cqrs-gen v2 (T045–T047)** | P2 | 3 hr | Code generator improvement |
-| 23 | **Documentation site (T081–T082)** | P3 | 3 hr | Consumer onboarding |
-| 24 | **Streaming event reads (T075–T077)** | P3 | 2.5 hr | Large aggregate loading |
-| 25 | **WASM target for decider (T080)** | P3 | 3 hr | Edge deployment |
+| #   | Task                                                                          | Impact | Effort | Rationale                                      |
+| --- | ----------------------------------------------------------------------------- | ------ | ------ | ---------------------------------------------- |
+| 1   | **Fix uncommitted advisor golden test** — remove non-scanning subtest, commit | P0     | 5 min  | One red test in working tree                   |
+| 2   | **Commit pebble KV contract test refactor**                                   | P0     | 5 min  | 418 lines uncommitted, tests pass              |
+| 3   | **Push branch to remote** — `git push`                                        | P0     | 1 min  | 5 commits ahead of origin                      |
+| 4   | **Add `-race` to CI for all modules**                                         | P0     | 30 min | The checkpoint race existed for weeks          |
+| 5   | **Merge `consolidate-catalog` to master** — open PR                           | P0     | 30 min | Unblocks v2.4.0                                |
+| 6   | **Tag v2.4.0** — turso Backend, sync config, bug fixes, KV adapter            | P1     | 15 min | Consumers waiting for Backend facade           |
+| 7   | **Add doc-link checker script**                                               | P1     | 1 hr   | Docs drift is systemic                         |
+| 8   | **Pre-commit hook: validate fuzz corpus seeds**                               | P1     | 30 min | Prevents broken seed commits                   |
+| 9   | **Schema registry (T018–T020)** — JSON Schema validation middleware           | P1     | 2 hr   | Most-requested feature                         |
+| 10  | **Prometheus exporter (T024–T026)**                                           | P1     | 2 hr   | Observability gap                              |
+| 11  | **Structured logging middleware (T027–T029)**                                 | P1     | 1.5 hr | Production debugging                           |
+| 12  | **PostgreSQL CI service container (T033–T035)**                               | P1     | 1 hr   | PG integration tests exist but don't run in CI |
+| 13  | **Fix `storage.checkClosed()` sentinel**                                      | P2     | 20 min | Per-call allocation waste                      |
+| 14  | **Extract Turso sync interface** for testability                              | P2     | 1.5 hr | Enables testing 45% of turso                   |
+| 15  | **Reactive bus docs (T041–T043)**                                             | P2     | 45 min | Code done, undocumented                        |
+| 16  | **Pebble coverage 85%+ (T036–T038)**                                          | P2     | 1 hr   | Currently 82.9%                                |
+| 17  | **Module README for `kv/` (T059)**                                            | P2     | 30 min | Public API, no docs                            |
+| 18  | **Benchmark pebble vs SQL store (T044)**                                      | P2     | 1 hr   | No comparative baseline                        |
+| 19  | **Distributed checkpointing (T021–T023)**                                     | P2     | 3 hr   | Multi-instance projections                     |
+| 20  | **Distributed tracing propagation (T030–T032)**                               | P2     | 2.5 hr | Cross-module span context                      |
+| 21  | **pprof endpoints (T048–T049)**                                               | P2     | 1 hr   | Production profiling                           |
+| 22  | **cqrs-gen v2 (T045–T047)**                                                   | P2     | 3 hr   | Code generator improvement                     |
+| 23  | **Documentation site (T081–T082)**                                            | P3     | 3 hr   | Consumer onboarding                            |
+| 24  | **Streaming event reads (T075–T077)**                                         | P3     | 2.5 hr | Large aggregate loading                        |
+| 25  | **WASM target for decider (T080)**                                            | P3     | 3 hr   | Edge deployment                                |
 
 ---
 
@@ -191,6 +191,7 @@ TestAdvisor_ScanDetection_Golden/aggregate_version_with_filter_scan
 **Should the `consolidate-catalog` branch merge to master NOW, or wait for the P1 feature cluster (schema registry, Prometheus, structured logging)?**
 
 The branch contains:
+
 - ✅ Turso Backend facade + sync config + bug fixes
 - ✅ Pebble KV adapter + contract tests
 - ✅ Reactive CommandBus/QueryBus
@@ -198,12 +199,14 @@ The branch contains:
 - ✅ All 24 modules green, lint clean, race clean
 
 Arguments for **merge now**:
+
 - 5+ commits ahead, risk of divergence grows
 - Everything is green and tested
 - v2.4.0 can ship the Turso improvements immediately
 - Schema registry etc. can ship as v2.5.0
 
 Arguments for **wait**:
+
 - Schema registry, Prometheus, structured logging are "most-requested" features
 - Shipping v2.4.0 without them means another release cycle before consumers get them
 - The branch name `consolidate-catalog` suggests it was meant to do more

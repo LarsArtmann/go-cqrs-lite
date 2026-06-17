@@ -3,6 +3,8 @@ package turso
 import (
 	"context"
 	"database/sql"
+	"os"
+	"path/filepath"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/storage/v2"
@@ -45,8 +47,39 @@ func Open(dbPath DbPath) (*sql.DB, error) {
 
 // OpenInMemory opens an in-memory Turso database and returns a *sql.DB.
 // Useful for testing and development.
+//
+// Forces MaxOpenConns=1 because SQLite ":memory:" databases are per-connection —
+// each new connection gets its own empty database. Without this, parallel tests
+// intermittently see "no such table" when the pool hands out a fresh connection.
+//
+// For parallel test suites that need many simultaneous databases, prefer
+// [OpenTemp] with per-test temp directories — the LibSQL native engine
+// has resource limits that ":memory:" can exhaust under heavy parallelism.
 func OpenInMemory() (*sql.DB, error) {
-	return Open(":memory:")
+	database, err := Open(":memory:")
+	if err != nil {
+		return nil, err
+	}
+
+	database.SetMaxOpenConns(1)
+
+	return database, nil
+}
+
+// OpenTemp opens a file-backed Turso database in the given directory.
+// If dir is empty, uses the OS temp directory. The caller is responsible for
+// closing the returned *sql.DB. For tests, pair with t.TempDir().
+//
+// Prefer this over [OpenInMemory] for parallel test suites — file-backed
+// databases don't exhaust the LibSQL engine's native in-memory resource pool.
+func OpenTemp(dir string) (*sql.DB, error) {
+	if dir == "" {
+		dir = os.TempDir()
+	}
+
+	path := filepath.Join(dir, "test.db")
+
+	return Open(DbPath(path))
 }
 
 // InitSchema creates all required tables in a Turso database.
