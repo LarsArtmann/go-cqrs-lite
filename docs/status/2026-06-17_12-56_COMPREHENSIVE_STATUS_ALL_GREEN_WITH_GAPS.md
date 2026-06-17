@@ -36,7 +36,7 @@
 
 | Item                 | Current State     | What's Left                                                                                                                                                            |
 | -------------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Turso coverage**   | 79.1% (was 54.5%) | `OpenSyncWithConfig` only 16.7% — the `tursoclient.NewTursoSyncDb` call needs network. `SyncClient()` 0% — trivial accessor. Target: 85%+                              |
+| **Turso coverage**   | 83.3% (was 79.1%) | `OpenSyncWithConfig` now 100% via swappable `createSyncDb` factory. `realCreateSyncDb` at 0% genuinely needs network. Remaining gap: `connector.go` error paths. Target: 85%+ |
 | **Pebble coverage**  | 84.5% (was 82.9%) | All closed-store defensive branches now covered (Set/Delete/Has/NewIterator/Batch). Remaining: hard-to-trigger pebble write-error paths. Target: 85%+                  |
 | **Query coverage**   | 88.1% (was 79.0%) | `errors.go` now 100% (16 re-export funcs tested via table test). Dispatcher.Close() at 75% is dead defensive code (inner.Close() always returns nil). ✅ Above target. |
 | **Storage coverage** | 82.1%             | SQL error paths, snapshot store edge cases                                                                                                                             |
@@ -130,7 +130,7 @@ A head-to-head benchmark would help consumers choose between backends and provid
 | --- | ---------------------------------------------------- | ------ | ------ | ------------------------------------------------- |
 | 1   | ~~Query `errors.go` table test (10 funcs at 0%)~~    | Medium | 15min  | Coverage ✅ DONE (79%→88.1%)                      |
 | 2   | ~~Pebble adapter error-branch tests (closed store)~~ | High   | 30min  | Coverage ✅ DONE (82.9%→84.5%)                    |
-| 3   | Turso `OpenSyncWithConfig` factory extraction        | High   | 45min  | Testability                                       |
+| 3   | ~~Turso `OpenSyncWithConfig` factory extraction~~    | High   | 45min  | Testability ✅ DONE (79%→83.3%)                   |
 | 4   | Prometheus metrics exporter                          | High   | 2h     | Feature                                           |
 | 5   | Structured logging middleware (slog)                 | High   | 2h     | Feature                                           |
 | 6   | Pebble vs SQL event store benchmark                  | Medium | 1h     | Benchmark                                         |
@@ -195,7 +195,7 @@ The `if closeErr != nil` branch in `query/dispatcher.go:150` is unreachable beca
 | pebble         | 84.5%    | ✅ Green     | Closed-store branches covered    |
 | codec          | 88.9%    | ✅ Green     |                                  |
 | kv             | 94.9%    | ✅ Green     |                                  |
-| turso          | 79.1%    | ⚠️ Yellow    | OpenSyncWithConfig needs network |
+| turso          | 83.3%    | ✅ Green     | Factory extraction done           |
 | listing        | 94.9%    | ✅ Green     |                                  |
 | turso/indexing | 86.7%    | ✅ Green     |                                  |
 
