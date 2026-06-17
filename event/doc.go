@@ -33,6 +33,26 @@
 //	bus := event.NewEventBus()
 //	filtered := ro.Pipe1(bus, event.FilterEventType("user.created"))
 //
+// Reactive operators compose via ro.Pipe1/2/3:
+//
+//	// Filter + dedup pipeline
+//	pipeline := ro.Pipe2(
+//	    bus,
+//	    event.FilterEventType("user.created"),
+//	    event.DistinctByEventID(),
+//	)
+//	pipeline.Subscribe(ro.OnNext(func(e event.Event) { ... }))
+//
+//	// Multi-type filter with aggregate dedup
+//	multiPipeline := ro.Pipe2(
+//	    bus,
+//	    event.FilterEventTypes("user.created", "user.updated"),
+//	    event.DistinctByAggregateID(), // only first event per aggregate
+//	)
+//
+// Available operators: FilterEventType, FilterEventTypes, ReplayFilter,
+// DistinctByEventID, DistinctByAggregateID, HandlerToObserver.
+//
 // # Error Taxonomy
 //
 // Five families: Rejection, Conflict, Transient, Infrastructure, Corruption.

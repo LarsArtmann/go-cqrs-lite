@@ -4,6 +4,8 @@ import (
 	"context"
 
 	ro "github.com/samber/ro"
+
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 // EventBus is a reactive subject for event streams.
@@ -68,6 +70,20 @@ func ReplayFilter(
 
 		return true
 	})
+}
+
+// DistinctByEventID returns an operator that suppresses duplicate events by ID.
+// When the same event is emitted through multiple paths (e.g. journal replay +
+// live bus), this prevents processing the same event twice per subscription.
+func DistinctByEventID() func(ro.Observable[Event]) ro.Observable[Event] {
+	return ro.DistinctBy(func(e Event) id.EventID { return e.ID() })
+}
+
+// DistinctByAggregateID returns an operator that emits only the first event per
+// aggregate ID within a subscription. Useful for "latest state per aggregate"
+// projections where only the most recent event matters.
+func DistinctByAggregateID() func(ro.Observable[Event]) ro.Observable[Event] {
+	return ro.DistinctBy(func(e Event) string { return e.AggregateID().String() })
 }
 
 // HandlerToObserver converts an event.Handler into a ro.Observer[Event].
