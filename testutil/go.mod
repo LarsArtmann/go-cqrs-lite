@@ -5,6 +5,7 @@ go 1.26.3
 require (
 	github.com/larsartmann/go-cqrs-lite/command/v2 v2.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.4.0
+	pgregory.net/rapid v1.3.0
 )
 
 require (
@@ -22,7 +23,6 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/exp v0.0.0-20260611194520-c48552f49976 // indirect
 	golang.org/x/text v0.38.0 // indirect
-	pgregory.net/rapid v1.3.0 // indirect
 )
 
 replace (
