@@ -84,8 +84,8 @@ func ExampleApplyOptimizations() {
 
 	_ = indexing.ApplyOptimizations(context.Background(), db)
 
-	fmt.Println("optimized")
+	fmt.Println("applied")
 
 	// Output:
-	// optimized
+	// applied
 }

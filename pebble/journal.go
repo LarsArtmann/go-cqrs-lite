@@ -79,7 +79,7 @@ func (a *EventStore) ReadFrom(
 		return events, nil
 	}
 
-	// Optimized path: narrow lower bound using ULID timestamp.
+	// Fast path: narrow lower bound using ULID timestamp.
 	targetID := afterEventID.String()
 
 	ulidTime := id.ULID(afterEventID)

@@ -12,10 +12,9 @@ max_concurrency: 4
 max_file_size: 350 # lines
 dupl_threshold: 30 # tokens
 
-# TODO comment severity: info, error
-# "info" fails on false positives (e.g. "// DotSeparated" parsed as "TODO:")
-# "error" only fails on actual error-level TODOs
-todo_severity: error
+# TODO pattern minimum severity: info, warning, error, critical
+# info = all patterns, warning = skip TODO/NOTE/OPTIMIZE, error = only FIXME/XXX/BUG, critical = BUG only
+todo_min_severity: warning
 
 # Patterns to exclude from checks
 exclude:
@@ -28,6 +27,7 @@ exclude:
   - "*.gen.go"
   - "**/testdata/golden/**"
   - "**/docserver/static/**"
+  - "**/eventcatalog-output/**"
 
 # Auto-fix settings
 auto_fix: false
