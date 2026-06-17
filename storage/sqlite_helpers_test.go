@@ -206,3 +206,55 @@ func TestSQLiteInitSchema_CreatesTables(t *testing.T) {
 		}
 	}
 }
+
+func TestSQLiteEnableWAL_BusyTimeout(t *testing.T) {
+	db, err := OpenSQLite(t.TempDir() + "/test.db")
+	if err != nil {
+		t.Fatalf("OpenSQLite: %v", err)
+	}
+
+	defer func() { _ = db.Close() }()
+
+	if err := SQLiteEnableWAL(context.Background(), db); err != nil {
+		t.Fatalf("SQLiteEnableWAL: %v", err)
+	}
+
+	var busyTimeout int
+
+	err = db.QueryRowContext(context.Background(), "PRAGMA busy_timeout").Scan(&busyTimeout)
+	if err != nil {
+		t.Fatalf("query busy_timeout: %v", err)
+	}
+
+	const expected = 5000
+
+	if busyTimeout != expected {
+		t.Errorf("busy_timeout = %d, want %d", busyTimeout, expected)
+	}
+}
+
+func TestSQLiteEnableForeignKeys(t *testing.T) {
+	t.Parallel()
+
+	db, err := OpenSQLite(t.TempDir() + "/test.db")
+	if err != nil {
+		t.Fatalf("OpenSQLite: %v", err)
+	}
+
+	defer func() { _ = db.Close() }()
+
+	if err := SQLiteEnableForeignKeys(context.Background(), db); err != nil {
+		t.Fatalf("SQLiteEnableForeignKeys: %v", err)
+	}
+
+	var fkEnabled int
+
+	err = db.QueryRowContext(context.Background(), "PRAGMA foreign_keys").Scan(&fkEnabled)
+	if err != nil {
+		t.Fatalf("query foreign_keys: %v", err)
+	}
+
+	if fkEnabled != 1 {
+		t.Errorf("foreign_keys = %d, want 1", fkEnabled)
+	}
+}
