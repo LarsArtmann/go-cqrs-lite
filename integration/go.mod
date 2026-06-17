@@ -51,6 +51,7 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/kv/v2 v2.3.0 // indirect
 	github.com/larsartmann/go-error-family v0.3.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
@@ -87,6 +88,7 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/encryption/v2 => ../encryption
 	github.com/larsartmann/go-cqrs-lite/event/v2 => ../event
 	github.com/larsartmann/go-cqrs-lite/id/v2 => ../id
+	github.com/larsartmann/go-cqrs-lite/kv/v2 => ../kv
 	github.com/larsartmann/go-cqrs-lite/listing/v2 => ../listing
 	github.com/larsartmann/go-cqrs-lite/memory/v2 => ../memory
 	github.com/larsartmann/go-cqrs-lite/middleware/v2 => ../middleware
