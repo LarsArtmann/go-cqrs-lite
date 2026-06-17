@@ -164,3 +164,45 @@ func BenchmarkRawCodec_Decode(b *testing.B) {
 		}
 	}
 }
+
+func BenchmarkCBORCompact_vs_Canon_Size(b *testing.B) {
+	type eventPayload struct {
+		Name    string
+		Email   string
+		Version int
+		Active  bool
+	}
+	payload := eventPayload{Name: "Alice", Email: "alice@example.com", Version: 42, Active: true}
+
+	canonical := codec.CBORCodec{}
+	compact := codec.CBORCompactCodec{}
+
+	canonicalData, _ := canonical.Encode(payload)
+	compactData, _ := compact.Encode(payload)
+
+	b.Logf("CBOR (canonical): %d bytes, CBOR (compact): %d bytes, savings: %.1f%%",
+		len(canonicalData), len(compactData),
+		float64(len(canonicalData)-len(compactData))/float64(len(canonicalData))*100,
+	)
+
+	codecs := []struct {
+		name string
+		c    codec.Codec
+	}{
+		{"Canonical", canonical},
+		{"Compact", compact},
+	}
+
+	for _, tc := range codecs {
+		b.Run(tc.name+"/Encode", func(b *testing.B) {
+			b.ReportAllocs()
+			b.ResetTimer()
+			for b.Loop() {
+				_, err := tc.c.Encode(payload)
+				if err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+	}
+}

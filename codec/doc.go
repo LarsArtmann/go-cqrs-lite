@@ -59,4 +59,32 @@
 //	if be, ok := codec.(codec.BufferEncoder); ok {
 //	    _ = be.EncodeToBuffer(payload, buf)
 //	}
+//
+// # CBOR Compact Struct Tags
+//
+// fxamacker/cbor supports two struct tags for further payload optimization:
+//
+// keyasint — encode struct fields as integer keys instead of string keys.
+// This eliminates field-name strings entirely, ideal for high-frequency
+// events with many fields.
+//
+//	type OrderPlaced struct {
+//	    _      struct{} `cbor:",keyasint"`
+//	    UserID uint64   `cbor:"1,keyasint"`
+//	    ItemID uint64   `cbor:"2,keyasint"`
+//	    Qty    int      `cbor:"3,keyasint"`
+//	}
+//
+// omitzero — omit fields that are zero-valued. Reduces payload size for
+// events where many fields are optional.
+//
+//	type UserUpdated struct {
+//	    Name  string `cbor:"name"`
+//	    Email string `cbor:"email,omitempty"`
+//	    Bio   string `cbor:"bio,omitzero"`
+//	}
+//
+// Both tags work with CBORCodec and CBORCompactCodec. Once adopted, the
+// integer key mapping is part of the wire format — changing key numbers
+// breaks existing data.
 package codec
