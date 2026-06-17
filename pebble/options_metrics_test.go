@@ -1,10 +1,14 @@
 package pebble
 
 import (
+	"context"
 	"log/slog"
 	"testing"
 
 	"github.com/onsi/gomega"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 func TestDefaultOptions(t *testing.T) {
@@ -65,4 +69,43 @@ func TestBackendMetrics(t *testing.T) {
 	m := backend.Metrics()
 	g.Expect(m.NumFilesTotal).To(gomega.BeNumerically(">=", 0))
 	g.Expect(m.BlockCacheHitRate()).To(gomega.BeNumerically(">=", 0.0))
+}
+
+func TestDefaultOptions_OpensRealDBAndWorks(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	opts := DefaultOptions()
+
+	backend, err := Open(dir, opts, slog.Default())
+	if err != nil {
+		t.Fatalf("Open with DefaultOptions: %v", err)
+	}
+
+	defer func() { _ = backend.Close() }()
+
+	store := backend.EventStore()
+	cfg := issueStoreConfig()
+	aggID := id.NewAggregateID()
+	ref := event.NewAggregateRef("Issue", aggID)
+
+	evt := cfg.NewTestEvent(t, aggID, 1)
+
+	err = store.Save(context.Background(), ref, []event.Event{evt}, event.Version(0))
+	if err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+
+	loaded, err := store.Load(context.Background(), ref)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+
+	if len(loaded) != 1 {
+		t.Fatalf("got %d events, want 1", len(loaded))
+	}
+
+	if loaded[0].ID() != evt.ID() {
+		t.Errorf("event ID = %s, want %s", loaded[0].ID(), evt.ID())
+	}
 }
