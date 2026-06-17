@@ -459,6 +459,68 @@ func TestKVAdapter_DoubleCloseIsSafe(t *testing.T) {
 	}
 }
 
+// TestKVAdapter_OperationsAfterClose verifies every operation returns kv.ErrClosed
+// once the store is closed. This exercises the checkClosed guard in each method.
+func TestKVAdapter_OperationsAfterClose(t *testing.T) {
+	t.Parallel()
+
+	store := openTestKVStore(t)
+
+	if err := store.Set([]byte("seed"), []byte("v")); err != nil {
+		t.Fatalf("seed Set before close: %v", err)
+	}
+
+	if err := store.Close(); err != nil {
+		t.Fatalf("Close: %v", err)
+	}
+
+	t.Run("Set", func(t *testing.T) {
+		t.Parallel()
+		if err := store.Set([]byte("k"), []byte("v")); !errors.Is(err, kv.ErrClosed) {
+			t.Fatalf("Set after close: got %v, want kv.ErrClosed", err)
+		}
+	})
+
+	t.Run("Delete", func(t *testing.T) {
+		t.Parallel()
+		if err := store.Delete([]byte("k")); !errors.Is(err, kv.ErrClosed) {
+			t.Fatalf("Delete after close: got %v, want kv.ErrClosed", err)
+		}
+	})
+
+	t.Run("Has", func(t *testing.T) {
+		t.Parallel()
+		_, err := store.Has([]byte("k"))
+		if !errors.Is(err, kv.ErrClosed) {
+			t.Fatalf("Has after close: got %v, want kv.ErrClosed", err)
+		}
+	})
+
+	t.Run("Get", func(t *testing.T) {
+		t.Parallel()
+		_, err := store.Get([]byte("k"))
+		if !errors.Is(err, kv.ErrClosed) {
+			t.Fatalf("Get after close: got %v, want kv.ErrClosed", err)
+		}
+	})
+
+	t.Run("NewIterator", func(t *testing.T) {
+		t.Parallel()
+		_, err := store.NewIterator(nil)
+		if !errors.Is(err, kv.ErrClosed) {
+			t.Fatalf("NewIterator after close: got %v, want kv.ErrClosed", err)
+		}
+	})
+
+	t.Run("Batch", func(t *testing.T) {
+		t.Parallel()
+		_, err := store.Batch()
+		if !errors.Is(err, kv.ErrClosed) {
+			t.Fatalf("Batch after close: got %v, want kv.ErrClosed", err)
+		}
+	})
+}
+
 // ── prefixUpperBound tests ────────────────────────────────────
 
 func TestPrefixUpperBound(t *testing.T) {
@@ -471,7 +533,10 @@ func TestPrefixUpperBound(t *testing.T) {
 		{"abc", "abd"},
 		{"a", "b"},
 		{"\x00", "\x01"},
-		{"a\xff", "b"}, // overflow: last byte 0xff, previous increments
+		{"a\xff", "b"},               // overflow: last byte 0xff, previous increments
+		{"\xff", "\xff\xff"},         // all bytes 0xff: needs prefix + 0xff sentinel
+		{"\xff\xff", "\xff\xff\xff"}, // multi-byte all-0xff overflow
+		{"ab\xff\xff", "ac"},         // two trailing 0xff bytes, middle byte increments
 	}
 
 	for _, tt := range tests {

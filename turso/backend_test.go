@@ -2,13 +2,16 @@ package turso_test
 
 import (
 	"context"
+	"strconv"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
+	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 	"github.com/larsartmann/go-cqrs-lite/storage/v2"
 	"github.com/larsartmann/go-cqrs-lite/turso/v2"
 )
@@ -315,6 +318,237 @@ func TestNewQueryStore(t *testing.T) {
 
 	if store == nil {
 		t.Fatal("expected non-nil query store")
+	}
+}
+
+// TestBackend_FullLifecycle verifies the Backend facade end-to-end: all four
+// store types (Event, Snapshot, Checkpoint, Command) coexist on a single shared
+// *sql.DB with the full schema initialized. This catches cross-store schema
+// conflicts and lifecycle wiring that per-store tests miss (see status report E4).
+//
+//nolint:tparallel // subtests share one SQLite DB; concurrent writes hit stale-snapshot errors
+func TestBackend_FullLifecycle(t *testing.T) {
+	t.Parallel()
+
+	backend, cleanup := newBackendDB(t)
+	t.Cleanup(cleanup)
+
+	ctx := context.Background()
+	aggID := id.NewAggregateID()
+	ref := event.NewAggregateRef("Issue", aggID)
+
+	t.Run("EventStore_SaveLoadMultiVersion", func(t *testing.T) {
+		verifyEventStoreRoundtrip(t, ctx, backend, aggID, ref)
+	})
+
+	t.Run("SnapshotStore_SaveLoadDelete", func(t *testing.T) {
+		verifySnapshotStoreRoundtrip(t, ctx, backend, aggID, ref)
+	})
+
+	t.Run("CheckpointStore_SaveLoadUpdate", func(t *testing.T) {
+		verifyCheckpointStoreRoundtrip(t, ctx, backend)
+	})
+
+	t.Run("CommandStore_PersistsAlongsideEvents", func(t *testing.T) {
+		verifyCommandStoreRoundtrip(t, ctx, backend, aggID)
+	})
+}
+
+func verifyEventStoreRoundtrip(
+	t *testing.T,
+	ctx context.Context,
+	backend *storage.SQLBackend,
+	aggID id.AggregateID,
+	ref event.AggregateRef,
+) {
+	t.Helper()
+
+	store := backend.EventStore()
+	if store == nil {
+		t.Fatal("EventStore() returned nil")
+	}
+
+	var expectedVersion event.Version
+
+	for i := 1; i <= 3; i++ {
+		evt, err := event.NewEvent(
+			"issue.updated", aggID, "Issue", event.Version(i),
+			[]byte(`{"n":`+strconv.Itoa(i)+`}`),
+		)
+		if err != nil {
+			t.Fatalf("NewEvent #%d: %v", i, err)
+		}
+
+		if err := store.Save(ctx, ref, []event.Event{evt}, expectedVersion); err != nil {
+			t.Fatalf("Save #%d (expectedVersion=%d): %v", i, expectedVersion, err)
+		}
+
+		expectedVersion = event.Version(i)
+	}
+
+	loaded, err := store.Load(ctx, ref)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+
+	if len(loaded) != 3 {
+		t.Fatalf("expected 3 events, got %d", len(loaded))
+	}
+
+	for i, evt := range loaded {
+		if evt.Version() != event.Version(i+1) {
+			t.Fatalf("event[%d].Version = %d, want %d", i, evt.Version(), i+1)
+		}
+	}
+}
+
+func verifySnapshotStoreRoundtrip(
+	t *testing.T,
+	ctx context.Context,
+	backend *storage.SQLBackend,
+	aggID id.AggregateID,
+	ref event.AggregateRef,
+) {
+	t.Helper()
+
+	snapStore, err := backend.SnapshotStore()
+	if err != nil {
+		t.Fatalf("SnapshotStore: %v", err)
+	}
+
+	state := []byte(`{"title":"snapshot-issue","status":"open"}`)
+	snap := snapshot.Snapshot{
+		AggregateID:   aggID,
+		AggregateType: "Issue",
+		Version:       3,
+		State:         state,
+		CreatedAt:     time.Now().Truncate(time.Microsecond),
+	}
+
+	if err := snapStore.Save(ctx, snap); err != nil {
+		t.Fatalf("Save snapshot: %v", err)
+	}
+
+	loaded, err := snapStore.Load(ctx, ref)
+	if err != nil {
+		t.Fatalf("Load snapshot: %v", err)
+	}
+
+	if loaded == nil {
+		t.Fatal("Load returned nil snapshot")
+	}
+
+	if loaded.Version != 3 {
+		t.Fatalf("snapshot Version = %d, want 3", loaded.Version)
+	}
+
+	if string(loaded.State) != string(state) {
+		t.Fatalf("snapshot State = %q, want %q", loaded.State, state)
+	}
+
+	atVersion, err := snapStore.LoadAtVersion(ctx, ref, 3)
+	if err != nil {
+		t.Fatalf("LoadAtVersion: %v", err)
+	}
+
+	if atVersion.Version != 3 {
+		t.Fatalf("LoadAtVersion Version = %d, want 3", atVersion.Version)
+	}
+
+	if err := snapStore.Delete(ctx, ref); err != nil {
+		t.Fatalf("Delete snapshot: %v", err)
+	}
+
+	// After Delete the snapshot is gone: Load returns nil + not-found error.
+	if _, err := snapStore.Load(ctx, ref); err == nil {
+		t.Fatal("Load after Delete: expected error, got snapshot")
+	}
+}
+
+func verifyCheckpointStoreRoundtrip(
+	t *testing.T,
+	ctx context.Context,
+	backend *storage.SQLBackend,
+) {
+	t.Helper()
+
+	cpStore, err := backend.CheckpointStore()
+	if err != nil {
+		t.Fatalf("CheckpointStore: %v", err)
+	}
+
+	const projection = "issue_projection"
+
+	// Empty projection returns zero checkpoint, no error.
+	initial, err := cpStore.Load(ctx, projection)
+	if err != nil {
+		t.Fatalf("Load (initial): %v", err)
+	}
+
+	if !initial.IsZero() {
+		t.Fatalf("initial checkpoint should be zero, got %v", initial)
+	}
+
+	firstEventID := id.NewEventID()
+	if err := cpStore.Save(ctx, projection, event.Checkpoint{EventID: firstEventID}); err != nil {
+		t.Fatalf("Save (first): %v", err)
+	}
+
+	loaded, err := cpStore.Load(ctx, projection)
+	if err != nil {
+		t.Fatalf("Load (after first save): %v", err)
+	}
+
+	if loaded.EventID != firstEventID {
+		t.Fatalf("checkpoint EventID = %v, want %v", loaded.EventID, firstEventID)
+	}
+
+	// Overwrite (update) the checkpoint.
+	secondEventID := id.NewEventID()
+	if err := cpStore.Save(ctx, projection, event.Checkpoint{EventID: secondEventID}); err != nil {
+		t.Fatalf("Save (overwrite): %v", err)
+	}
+
+	updated, err := cpStore.Load(ctx, projection)
+	if err != nil {
+		t.Fatalf("Load (after overwrite): %v", err)
+	}
+
+	if updated.EventID != secondEventID {
+		t.Fatalf("checkpoint EventID = %v, want %v (after overwrite)", updated.EventID, secondEventID)
+	}
+}
+
+func verifyCommandStoreRoundtrip(
+	t *testing.T,
+	ctx context.Context,
+	backend *storage.SQLBackend,
+	aggID id.AggregateID,
+) {
+	t.Helper()
+
+	cmdStore, err := backend.CommandStore()
+	if err != nil {
+		t.Fatalf("CommandStore: %v", err)
+	}
+
+	cmdRef := command.NewAggregateRef("Issue", aggID)
+	cmd, err := command.NewPersistedCommand("issue.update", cmdRef, []byte(`{"status":"open"}`))
+	if err != nil {
+		t.Fatalf("NewPersistedCommand: %v", err)
+	}
+
+	if err := cmdStore.Save(ctx, cmdRef, cmd); err != nil {
+		t.Fatalf("Save command: %v", err)
+	}
+
+	loaded, err := cmdStore.Load(ctx, cmdRef)
+	if err != nil {
+		t.Fatalf("Load command: %v", err)
+	}
+
+	if len(loaded) != 1 {
+		t.Fatalf("expected 1 command, got %d", len(loaded))
 	}
 }
 
