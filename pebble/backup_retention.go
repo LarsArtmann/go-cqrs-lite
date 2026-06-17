@@ -42,9 +42,17 @@ func (b *Backend) NewSnapshot() *pebble.Snapshot {
 
 // DeleteEventsBefore deletes journal entries older than the given timestamp.
 // This is a bulk retention operation — all journal keys with a timestamp
-// component before cutoff are removed in a single range tombstone. The
-// per-aggregate event log (cqrs_event:) is NOT affected — only the global
-// journal index (cqrs_journal:) is pruned.
+// component before cutoff are removed in a single range tombstone.
+//
+// IMPORTANT: Only the global journal index (cqrs_journal:) is pruned.
+// Per-aggregate event logs (cqrs_event:) are NOT affected — aggregates
+// remain fully reconstructable via Load() after retention. This means:
+//   - ReadAll (global replay) will NOT return pruned events
+//   - Load (per-aggregate) WILL still return all events for an aggregate
+//
+// This is intentional: projections that need to rebuild from scratch after
+// retention must use snapshots to seed state, then replay from the journal.
+// Aggregates that are still active retain their full event history.
 //
 // Use this for time-based retention policies:
 //
