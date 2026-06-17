@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-06-17 (post dependency utilization audit + ghost API cleanup) · **Module count:** 30 modules (23 library + 1 integration + 3 examples + 2 cmd + turso/indexing sub-package) · **Go version:** 1.26.3
+**Last audited:** 2026-06-17 (post dependency utilization audit + ghost API cleanup) · **Module count:** 29 modules (23 library + 1 integration + 3 examples + 2 cmd) · **Go version:** 1.26.3
 
 ## Status Legend
 
@@ -189,16 +189,16 @@
 
 > `import "github.com/larsartmann/go-cqrs-lite/codec"`
 
-| Feature            | Detail                                                          | Status |
-| ------------------ | --------------------------------------------------------------- | ------ |
-| Codec interface    | `Codec` — `Encoding()`, `Encode(v)`, `Decode(data, v)`          | ✅     |
-| JSON codec         | `JSONCodec` — standard JSON encoding                            | ✅     |
-| CBOR codec         | `CBORCodec` — deterministic canonical CBOR with sorted map keys | ✅     |
-| CBOR compact codec | `CBORCompactCodec` — ~35% smaller via `toarray` positional mode | ✅     |
-| Raw passthrough    | `RawCodec` — `[]byte` pass-through (no encoding)                | ✅     |
+| Feature            | Detail                                                                      | Status |
+| ------------------ | --------------------------------------------------------------------------- | ------ |
+| Codec interface    | `Codec` — `Encoding()`, `Encode(v)`, `Decode(data, v)`                      | ✅     |
+| JSON codec         | `JSONCodec` — standard JSON encoding                                        | ✅     |
+| CBOR codec         | `CBORCodec` — deterministic canonical CBOR with sorted map keys             | ✅     |
+| CBOR compact codec | `CBORCompactCodec` — ~35% smaller via `toarray` positional mode             | ✅     |
+| Raw passthrough    | `RawCodec` — `[]byte` pass-through (no encoding)                            | ✅     |
 | BufferEncoder      | Optional `BufferEncoder` interface — zero-alloc encoding into caller buffer | ✅     |
-| CBOR diagnostic    | `Diagnose(data)` — human-readable CBOR output for debugging     | ✅     |
-| Encoding constants | `EncodingJSON`, `EncodingCBOR`, `EncodingRaw`                   | ✅     |
+| CBOR diagnostic    | `Diagnose(data)` — human-readable CBOR output for debugging                 | ✅     |
+| Encoding constants | `EncodingJSON`, `EncodingCBOR`, `EncodingRaw`                               | ✅     |
 
 ---
 
@@ -345,10 +345,10 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 
 ### Profiling ✅
 
-| Feature           | Detail                                                          | Status |
-| ----------------- | --------------------------------------------------------------- | ------ |
+| Feature           | Detail                                                              | Status |
+| ----------------- | ------------------------------------------------------------------- | ------ |
 | ProfilingHandler  | `ProfilingHandler(prefix)` — `net/http` handler for pprof endpoints | ✅     |
-| RegisterProfiling | `RegisterProfiling(mux)` — registers pprof on existing ServeMux | ✅     |
+| RegisterProfiling | `RegisterProfiling(mux)` — registers pprof on existing ServeMux     | ✅     |
 
 ---
 
@@ -631,7 +631,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 
 | Feature            | Detail                                                                                                                                                                                       | Status |
 | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| Type aliases       | `Tracer`, `Span`, `SpanKind`, `KeyValue`, `Meter`, `Float64Histogram`, `Int64Counter` — re-exported from OTel                                                                               | ✅     |
+| Type aliases       | `Tracer`, `Span`, `SpanKind`, `KeyValue`, `Meter`, `Float64Histogram`, `Int64Counter` — re-exported from OTel                                                                                | ✅     |
 | Tracer factory     | `NewTracer(component)` — creates OTel Tracer with standard instrumentation name                                                                                                              | ✅     |
 | Meter factory      | `NewMeter(component)` — creates OTel Meter                                                                                                                                                   | ✅     |
 | Span helpers       | `StartSpan`, `RecordError`, `EndWithError`, `AddSpanEvent`, `AggregateAttrs`, `CommandAttrs`, `EventAttrs`, `QueryAttrs`                                                                     | ✅     |
@@ -752,12 +752,12 @@ Found during code reviews. See `docs/planning/` for details.
 
 Features mentioned in project docs/planning but with **no production code yet**:
 
-| Feature               | Description                                          |
-| --------------------- | ---------------------------------------------------- |
-| Schema registry       | JSON Schema middleware for event validation          |
-| PostgreSQL testcontainers | testcontainers-based real PG testing             |
-| Documentation site    | Docusaurus/MkDocs/Hugo site                          |
-| Streaming event reads | `EventIterator` — without materializing full slice   |
+| Feature                   | Description                                        |
+| ------------------------- | -------------------------------------------------- |
+| Schema registry           | JSON Schema middleware for event validation        |
+| PostgreSQL testcontainers | testcontainers-based real PG testing               |
+| Documentation site        | Docusaurus/MkDocs/Hugo site                        |
+| Streaming event reads     | `EventIterator` — without materializing full slice |
 
 ---
 
@@ -811,7 +811,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 | Guarantee              | Detail                                                                           |
 | ---------------------- | -------------------------------------------------------------------------------- |
-| Near-zero lint issues  | 0 lint issues across all 30 modules (v2.3.0 audit)                               |
+| Near-zero lint issues  | 0 lint issues across all 29 modules (v2.3.0 audit)                               |
 | Race-free              | `go test -race` passes across all modules                                        |
 | Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                   |
 | Interface-first        | All core types are interfaces — provide your own implementations                 |

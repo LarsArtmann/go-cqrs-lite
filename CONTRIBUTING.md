@@ -63,7 +63,7 @@ gofumpt -w .
 
 ## Project Structure
 
-Multi-module Go workspace with 30 modules:
+Multi-module Go workspace with 29 modules:
 
 ```
 event/         # Event system (Event, EventSink, EventSource, Bus)
