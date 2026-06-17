@@ -314,3 +314,36 @@ func TestMetricWithUnit(t *testing.T) {
 	opt := MetricWithUnit("ms")
 	g.Expect(opt).ToNot(BeNil())
 }
+
+func TestNewCQRSViews_AppliesHistogramBoundaries(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
+	reader := sdkmetric.NewManualReader()
+	provider := sdkmetric.NewMeterProvider(
+		sdkmetric.WithReader(reader),
+		sdkmetric.WithView(NewCQRSViews()...),
+	)
+	defer func() { _ = provider.Shutdown(context.Background()) }()
+
+	meter := provider.Meter("test")
+	hist, err := meter.Float64Histogram("cqrs.test.latency")
+	g.Expect(err).ToNot(HaveOccurred())
+
+	hist.Record(context.Background(), 0.5)
+	hist.Record(context.Background(), 50.0)
+	hist.Record(context.Background(), 5000.0)
+
+	var rm metricdata.ResourceMetrics
+	g.Expect(reader.Collect(context.Background(), &rm)).To(Succeed())
+	g.Expect(rm.ScopeMetrics).To(HaveLen(1))
+	g.Expect(rm.ScopeMetrics[0].Metrics).To(HaveLen(1))
+
+	metric := rm.ScopeMetrics[0].Metrics[0]
+	histogram, ok := metric.Data.(metricdata.Histogram[float64])
+	g.Expect(ok).To(BeTrue(), "expected histogram data")
+	g.Expect(histogram.DataPoints).To(HaveLen(1))
+
+	buckets := histogram.DataPoints[0].Bounds
+	g.Expect(buckets).To(Equal(CQRSHistogramBoundaries))
+}
