@@ -123,3 +123,4 @@ watermill/     — Watermill protocol adapter
 | [0020](0020-performance-optimization-patterns.md) | Performance Optimization Patterns     | 2026-06-14 | Accepted                 |
 | [0021](0021-store-close-semantics.md)             | Store Close() Semantics               | 2026-06-16 | Accepted                 |
 | [0022](0022-kv-store-abstraction.md)              | KV Store Abstraction Module           | 2026-06-16 | Accepted                 |
+| [0023](0023-pebble-kv-adapter.md)                 | Pebble KV Store Adapter               | 2026-06-17 | Accepted                 |

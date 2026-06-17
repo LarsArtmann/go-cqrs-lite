@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-06-17 (post kv module + reactive buses + pebble integration tests) · **Module count:** 30 modules (23 library + 1 integration + 3 examples + 2 cmd + turso/indexing sub-package) · **Go version:** 1.26.3
+**Last audited:** 2026-06-17 (post pebble KV adapter + turso lint fixes) · **Module count:** 30 modules (23 library + 1 integration + 3 examples + 2 cmd + turso/indexing sub-package) · **Go version:** 1.26.3
 
 ## Status Legend
 
@@ -533,16 +533,19 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 
 > `import "github.com/larsartmann/go-cqrs-lite/turso"`
 
-| Feature                 | Detail                                                                                                       | Status |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------ | ------ |
-| Local DB                | `Open(dbPath)`, `OpenInMemory()` — embedded LibSQL                                                           | ✅     |
-| Schema init             | `InitSchema(ctx, db)` — delegates to `storage.SQLiteInitSchema`                                              | ✅     |
-| Convenience stores      | `NewEventStore`, `NewSnapshotStore`, `NewCheckpointStore` — thin wrappers over storage/                      | ✅     |
-| Remote sync             | `OpenSync(ctx, dbPath, remoteURL, authToken)` — `SyncDB` with `Push`, `Pull`, `Checkpoint`, `Stats`, `Close` | ✅     |
-| Phantom types           | `DbPath`, `RemoteURL`, `AuthToken` — compile-time type safety                                                | ✅     |
-| Backward-compat aliases | `OpenTurso`, `NewTursoEventStore`, etc. — deprecated aliases preserved                                       | ✅     |
-| Indexed schema init     | `InitSchemaWithIndexes`, `InitSchemaWithIndexesAndOptimizations` — tables + indexes + pragmas                | ✅     |
-| Index convenience       | `NewIndexAdvisor`, `NewAutoIndexer`, `ApplyCQRSIndexes`, `ApplyTursoOptimizations`                           | ✅     |
+| Feature                 | Detail                                                                                                                                                         | Status |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| Local DB                | `Open(dbPath)`, `OpenInMemory()` — embedded LibSQL                                                                                                             | ✅     |
+| Schema init             | `InitSchema(ctx, db)` — delegates to `storage.SQLiteInitSchema`                                                                                                | ✅     |
+| Backend facade          | `NewBackend(db)` — all 5 stores (event, command, query, snapshot, checkpoint) sharing one `*sql.DB`, goroutine-safe lazy init                                  | ✅     |
+| Convenience stores      | `NewEventStore`, `NewCommandStore`, `NewQueryStore`, `NewSnapshotStore`, `NewCheckpointStore` — thin wrappers over storage/                                    | ✅     |
+| Remote sync             | `OpenSync(ctx, dbPath, remoteURL, authToken)` — `SyncDB` with `Push`, `Pull`, `Checkpoint`, `Stats`, `HealthCheck`, `Close`                                    | ✅     |
+| Advanced sync config    | `OpenSyncWithConfig(ctx, ..., opts)` — `WithSyncClientName`, `WithSyncLongPollTimeout`, `WithSyncBusyTimeout`, `WithSyncBootstrapIfEmpty`, `WithSyncNamespace` | ✅     |
+| Phantom types           | `DbPath`, `RemoteURL`, `AuthToken` — compile-time type safety                                                                                                  | ✅     |
+| Pool configuration      | `ConfigurePool(db)` — caps `MaxOpenConns` at 1 for embedded LibSQL (required to avoid "database is locked")                                                    | ✅     |
+| Backward-compat aliases | `OpenTurso`, `NewTursoEventStore`, `NewTursoCommandStore`, `NewTursoQueryStore`, etc. — deprecated aliases preserved                                           | ✅     |
+| Indexed schema init     | `InitSchemaWithIndexes`, `InitSchemaWithIndexesAndOptimizations` — tables + indexes + pragmas                                                                  | ✅     |
+| Index convenience       | `NewIndexAdvisor`, `NewAutoIndexer`, `ApplyCQRSIndexes`, `ApplyTursoOptimizations`                                                                             | ✅     |
 
 ### Turso Indexing (sub-package) ✅ FULLY_FUNCTIONAL
 
@@ -555,7 +558,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | CQRS index presets       | `RecommendedCQRSIndexes()` — pre-built IndexSet for event store tables                          | ✅     |
 | Per-table Policy         | `Policy` type — exclude tables, mark critical, skip auto-creation per table                     | ✅     |
 | Priority classification  | `Priority` enum (Critical/Recommended/Optional) on Recommendations                              | ✅     |
-| Dry-run mode             | `WithDryRun()` — prints DDL without executing                                                   | ✅     |
+| Dry-run mode             | `WithDryRun()` — collects DDL via `LastDDL()` without executing                                 | ✅     |
 | OTel tracing             | All major operations traced via OpenTelemetry spans                                             | ✅     |
 | Index usage stats        | `Stats(ctx, db)` — queries `sqlite_stat1` for index hit counts                                  | ✅     |
 | Unused index detection   | `UnusedIndexes(ctx, db)` — finds indexes with zero hits                                         | ✅     |
