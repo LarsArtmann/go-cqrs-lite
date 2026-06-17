@@ -226,10 +226,16 @@ command/const Infrastructure
 command/const Rejection
 command/const Transient
 command/func Classify
+command/func Compose
 command/func ExitCode
+command/func FilterCommandType
+command/func FilterCommandTypes
+command/func HandlerToObserver
 command/func IsRetryable
 command/func New
 command/func NewAggregateRef
+command/func NewBehaviorCommandBus
+command/func NewCommandBus
 command/func NewConflict
 command/func NewCorruption
 command/func NewDispatcher
@@ -237,6 +243,7 @@ command/func NewInfrastructure
 command/func NewMetadata
 command/func NewPersistedCommand
 command/func NewRejection
+command/func NewReplayCommandBus
 command/func NewTransient
 command/func Newf
 command/func ParseAggregateType
@@ -288,11 +295,13 @@ command/struct Dispatcher
 command/struct PersistedCommand
 command/type AggregateRef
 command/type AggregateType
+command/type CommandBus
 command/type Error
 command/type Family
 command/type Handler
 command/type Metadata
 command/type Middleware
+command/type Observable
 command/type Option
 command/type PersistOption
 command/type PublishMiddleware
@@ -907,6 +916,7 @@ middleware/func NewSSEBroker
 middleware/func NewTraceLogging
 middleware/func NewTracing
 middleware/func NewValidation
+middleware/func ProfilingHandler
 middleware/func QueryCircuitBreaker
 middleware/func QueryLogging
 middleware/func QueryMetrics
@@ -916,6 +926,7 @@ middleware/func QueryRetry
 middleware/func QueryTraceLogging
 middleware/func QueryTracing
 middleware/func QueryValidation
+middleware/func RegisterProfiling
 middleware/func SSEHandler
 middleware/func WithLogger
 middleware/interface MetricsRecorder
@@ -1067,10 +1078,15 @@ query/const Infrastructure
 query/const Rejection
 query/const Transient
 query/func Classify
+query/func Compose
 query/func DispatchTyped
 query/func ExitCode
+query/func FilterQueryType
+query/func FilterQueryTypes
+query/func HandlerToObserver
 query/func IsRetryable
 query/func New
+query/func NewBehaviorQueryBus
 query/func NewConflict
 query/func NewCorruption
 query/func NewDispatcher
@@ -1079,7 +1095,9 @@ query/func NewMetadata
 query/func NewPaginatedResult
 query/func NewPagination
 query/func NewPersistedQuery
+query/func NewQueryBus
 query/func NewRejection
+query/func NewReplayQueryBus
 query/func NewTransient
 query/func Newf
 query/func ParseType
@@ -1131,7 +1149,9 @@ query/type Family
 query/type Handler
 query/type Metadata
 query/type Middleware
+query/type Observable
 query/type Option
+query/type QueryBus
 query/type QueryPersistOption
 query/type Type
 query/type TypedHandler
@@ -1209,6 +1229,8 @@ storage/func SQLiteSnapshotSchema
 storage/func SnapshotSchema
 storage/method AppendBatch
 storage/method AppendBatch
+storage/method CheckpointStore
+storage/method Close
 storage/method Close
 storage/method CommandStore
 storage/method Delete
@@ -1245,6 +1267,7 @@ storage/method Save
 storage/method Save
 storage/method Save
 storage/method SaveQuery
+storage/method SnapshotStore
 storage/struct AggregateProjection
 storage/struct SQLAggregateReader
 storage/struct SQLBackend
