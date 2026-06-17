@@ -10,11 +10,32 @@ go get github.com/larsartmann/go-cqrs-lite/projection/v2
 
 ## Quick Start
 
+**Option A: Builder + typed handlers (recommended for simple projections)**
+
 ```go
 b := projection.NewBuilder("user-projection")
-b.On("user.created", handler)
-runner := b.Runner(store, bus)
+projection.On[UserCreated](b, "user.created", codec.JSONCodec{}, func(ctx context.Context, e UserCreated) error {
+    // update read model
+    return nil
+})
+proj := b.Build()
+
+runner, _ := projection.NewRunner(store, bus, checkpointStore)
+_ = runner.Register(proj)
 go runner.Run(ctx)
+```
+
+**Option B: Manual event.Projection implementation (full control)**
+
+```go
+type TodoProjection struct{ store ReadModel }
+func (p *TodoProjection) Name() string { return "todo-read-model" }
+func (p *TodoProjection) EventTypes() []event.Type { return []event.Type{"todo.created"} }
+func (p *TodoProjection) Handle(ctx context.Context, evt event.Event) error { /* ... */ return nil }
+
+runner, _ := projection.NewRunner(store, bus, checkpointStore)
+_ = runner.Register(&TodoProjection{store: rm})
+go runner.Run(ctx) // replays history, then tails live events
 ```
 
 ## Related Modules

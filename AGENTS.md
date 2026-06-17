@@ -197,7 +197,7 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   cpStore    := pebble.NewCheckpointStore(db, logger)
 
 // Pebble as kv.Store (generic KV interface, ADR-0023)
-//   kvStore := pebble.NewKVStore(db, pebble.WithKVSyncWrites())
+//   kvStore := pebble.NewKVStore(db, pebble.WithSyncWrites())
 //   defer kvStore.Close()
 //   kvStore.Set([]byte("k"), []byte("v"))    // → nil
 //   val, _ := kvStore.Get([]byte("k"))        // → "v"

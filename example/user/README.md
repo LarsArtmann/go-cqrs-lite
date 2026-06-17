@@ -180,10 +180,12 @@ go test -run FullStack   # run only smoke tests
 ## Related
 
 **Sibling examples:**
+
 - [go-cqrs-lite/example/todo](../todo/) — Full application with HTTP API, projections, Pebble storage
 - [go-cqrs-lite/example/encryption](../encryption/) — Event encryption patterns: bus, store, key rotation
 
 **Modules demonstrated:**
+
 - [event/v2](../../event/README.md) — Event sourcing core
 - [command/v2](../../command/README.md) — Typed command dispatch
 - [query/v2](../../query/README.md) — Typed query dispatch
