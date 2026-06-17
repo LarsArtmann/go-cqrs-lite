@@ -12,9 +12,9 @@ require (
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v2 v2.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v2 v2.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/query/v2 v2.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/query/v2 v2.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.4.0 // indirect
 	github.com/larsartmann/go-error-family v0.4.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect

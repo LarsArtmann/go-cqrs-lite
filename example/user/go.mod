@@ -3,17 +3,17 @@ module github.com/larsartmann/go-cqrs-lite/example/user
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/catalog/v2 v2.3.0
+	github.com/larsartmann/go-cqrs-lite/catalog/v2 v2.4.0
 	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.4.0
-	github.com/larsartmann/go-cqrs-lite/command/v2 v2.3.0
-	github.com/larsartmann/go-cqrs-lite/decider/v2 v2.3.0
+	github.com/larsartmann/go-cqrs-lite/command/v2 v2.4.0
+	github.com/larsartmann/go-cqrs-lite/decider/v2 v2.4.0
 	github.com/larsartmann/go-cqrs-lite/event/v2 v2.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.4.0
-	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.3.0
-	github.com/larsartmann/go-cqrs-lite/middleware/v2 v2.3.0
-	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.3.0
-	github.com/larsartmann/go-cqrs-lite/query/v2 v2.3.0
-	github.com/larsartmann/go-cqrs-lite/signing/v2 v2.2.0
+	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.4.0
+	github.com/larsartmann/go-cqrs-lite/middleware/v2 v2.4.0
+	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.4.0
+	github.com/larsartmann/go-cqrs-lite/query/v2 v2.4.0
+	github.com/larsartmann/go-cqrs-lite/signing/v2 v2.4.0
 )
 
 require (

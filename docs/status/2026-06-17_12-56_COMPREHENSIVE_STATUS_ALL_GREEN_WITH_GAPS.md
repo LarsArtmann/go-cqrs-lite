@@ -34,12 +34,12 @@
 
 ## B. Partially Done
 
-| Item                 | Current State     | What's Left                                                                                                                                                            |
-| -------------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Item                 | Current State     | What's Left                                                                                                                                                                   |
+| -------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Turso coverage**   | 83.3% (was 79.1%) | `OpenSyncWithConfig` now 100% via swappable `createSyncDb` factory. `realCreateSyncDb` at 0% genuinely needs network. Remaining gap: `connector.go` error paths. Target: 85%+ |
-| **Pebble coverage**  | 84.5% (was 82.9%) | All closed-store defensive branches now covered (Set/Delete/Has/NewIterator/Batch). Remaining: hard-to-trigger pebble write-error paths. Target: 85%+                  |
-| **Query coverage**   | 88.1% (was 79.0%) | `errors.go` now 100% (16 re-export funcs tested via table test). Dispatcher.Close() at 75% is dead defensive code (inner.Close() always returns nil). ✅ Above target. |
-| **Storage coverage** | 82.1%             | SQL error paths, snapshot store edge cases                                                                                                                             |
+| **Pebble coverage**  | 84.5% (was 82.9%) | All closed-store defensive branches now covered (Set/Delete/Has/NewIterator/Batch). Remaining: hard-to-trigger pebble write-error paths. Target: 85%+                         |
+| **Query coverage**   | 88.1% (was 79.0%) | `errors.go` now 100% (16 re-export funcs tested via table test). Dispatcher.Close() at 75% is dead defensive code (inner.Close() always returns nil). ✅ Above target.        |
+| **Storage coverage** | 82.1%             | SQL error paths, snapshot store edge cases                                                                                                                                    |
 
 ---
 
@@ -172,31 +172,31 @@ The `if closeErr != nil` branch in `query/dispatcher.go:150` is unreachable beca
 
 ## Module Health Dashboard
 
-| Module         | Coverage | Status       | Notes                            |
-| -------------- | -------- | ------------ | -------------------------------- |
-| event          | 93.0%    | ✅ Green     | Core, stable                     |
-| command        | 96.9%    | ✅ Green     |                                  |
-| query          | 88.1%    | ✅ Green     | errors.go now 100%               |
-| decider        | 99.4%    | ✅ Excellent |                                  |
-| id             | 97.5%    | ✅ Green     |                                  |
-| dispatcher     | 98.0%    | ✅ Green     |                                  |
-| schema         | 91.4%    | ✅ Green     |                                  |
-| snapshot       | 88.9%    | ✅ Green     |                                  |
-| memory         | 98.5%    | ✅ Excellent |                                  |
-| catalog        | 84.5%    | ✅ Green     |                                  |
-| middleware     | 93.9%    | ✅ Green     |                                  |
-| integration    | 92.3%    | ✅ Green     |                                  |
-| storage        | 82.1%    | ⚠️ Yellow    | SQL error paths                  |
-| projection     | 90.8%    | ✅ Green     |                                  |
-| signing        | 94.5%    | ✅ Green     |                                  |
-| encryption     | 86.9%    | ✅ Green     |                                  |
-| otel           | 97.3%    | ✅ Green     |                                  |
-| watermill      | 94.3%    | ✅ Green     |                                  |
-| pebble         | 84.5%    | ✅ Green     | Closed-store branches covered    |
-| codec          | 88.9%    | ✅ Green     |                                  |
-| kv             | 94.9%    | ✅ Green     |                                  |
-| turso          | 83.3%    | ✅ Green     | Factory extraction done           |
-| listing        | 94.9%    | ✅ Green     |                                  |
-| turso/indexing | 86.7%    | ✅ Green     |                                  |
+| Module         | Coverage | Status       | Notes                         |
+| -------------- | -------- | ------------ | ----------------------------- |
+| event          | 93.0%    | ✅ Green     | Core, stable                  |
+| command        | 96.9%    | ✅ Green     |                               |
+| query          | 88.1%    | ✅ Green     | errors.go now 100%            |
+| decider        | 99.4%    | ✅ Excellent |                               |
+| id             | 97.5%    | ✅ Green     |                               |
+| dispatcher     | 98.0%    | ✅ Green     |                               |
+| schema         | 91.4%    | ✅ Green     |                               |
+| snapshot       | 88.9%    | ✅ Green     |                               |
+| memory         | 98.5%    | ✅ Excellent |                               |
+| catalog        | 84.5%    | ✅ Green     |                               |
+| middleware     | 93.9%    | ✅ Green     |                               |
+| integration    | 92.3%    | ✅ Green     |                               |
+| storage        | 82.1%    | ⚠️ Yellow    | SQL error paths               |
+| projection     | 90.8%    | ✅ Green     |                               |
+| signing        | 94.5%    | ✅ Green     |                               |
+| encryption     | 86.9%    | ✅ Green     |                               |
+| otel           | 97.3%    | ✅ Green     |                               |
+| watermill      | 94.3%    | ✅ Green     |                               |
+| pebble         | 84.5%    | ✅ Green     | Closed-store branches covered |
+| codec          | 88.9%    | ✅ Green     |                               |
+| kv             | 94.9%    | ✅ Green     |                               |
+| turso          | 83.3%    | ✅ Green     | Factory extraction done       |
+| listing        | 94.9%    | ✅ Green     |                               |
+| turso/indexing | 86.7%    | ✅ Green     |                               |
 
 **All 23 modules: build ✅, test ✅, lint ✅, race ✅**

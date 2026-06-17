@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/testutil/v2
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/command/v2 v2.3.0
+	github.com/larsartmann/go-cqrs-lite/command/v2 v2.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.4.0
 )
 
