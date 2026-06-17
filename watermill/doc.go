@@ -17,4 +17,46 @@
 //
 //	adapter := watermill.NewSubscriberAdapter(eventBus)
 //	messages, _ := adapter.Subscribe(ctx, "user.created")
+//
+// # Router Integration
+//
+// Watermill's Router connects publishers and subscribers with middleware
+// (correlation IDs, retry, poison queue). Use the adapter functions to bridge
+// go-cqrs-lite events into a Watermill router:
+//
+//	router, _ := message.NewRouter(message.RouterConfig{}, logger)
+//
+//	// Add middleware: correlation ID propagation + retry with backoff
+//	router.AddMiddleware(watermill.CorrelationIDMiddleware())
+//	router.AddMiddleware(watermill.NewRetryMiddleware(watermill.DefaultRetryConfig()))
+//
+//	// Bridge event bus to Watermill messages
+//	subAdapter := watermill.NewSubscriberAdapter(eventBus)
+//	pubAdapter := watermill.NewPublisherAdapter(eventBus)
+//
+//	router.AddHandler("project-events", "user.created", subAdapter,
+//	    "projection-updated", pubAdapter, func(msg *message.Message) ([]*message.Message, error) {
+//	        // process event, return new messages to publish
+//	        return []*message.Message{}, nil
+//	    })
+//
+//	router.Run(ctx) // blocks until context cancelled
+//
+// # Middleware Wrappers
+//
+// Pre-configured middleware wrappers simplify common patterns:
+//
+//	// Correlation ID propagation across handler chains
+//	corrMiddleware := watermill.CorrelationIDMiddleware()
+//
+//	// Retry with exponential backoff (5 retries, 100ms→10s range)
+//	retryMiddleware := watermill.NewRetryMiddleware(watermill.DefaultRetryConfig())
+//
+//	// Custom retry configuration
+//	retryMiddleware = watermill.NewRetryMiddleware(watermill.RetryConfig{
+//	    MaxRetries:      10,
+//	    InitialInterval: 50 * time.Millisecond,
+//	    MaxInterval:     5 * time.Second,
+//	    Multiplier:      1.5,
+//	})
 package watermill
