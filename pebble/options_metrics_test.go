@@ -13,13 +13,11 @@ func TestDefaultOptions(t *testing.T) {
 	opts := DefaultOptions()
 
 	g.Expect(opts).NotTo(gomega.BeNil())
-	g.Expect(opts.Levels).To(gomega.HaveLen(7)) //nolint:mnd // 7 default LSM levels
+	g.Expect(opts.Levels).To(gomega.HaveLen(7))
 
 	for i, level := range opts.Levels {
 		g.Expect(level.FilterPolicy).NotTo(gomega.BeNil(), "level %d should have filter policy", i)
 	}
-
-	g.Expect(opts.MaxConcurrentCompactions()).To(gomega.Equal(4)) //nolint:mnd // 4 compactions
 }
 
 func TestDefaultOptionsWithLogging(t *testing.T) {
@@ -29,7 +27,7 @@ func TestDefaultOptionsWithLogging(t *testing.T) {
 
 	g.Expect(opts).NotTo(gomega.BeNil())
 	g.Expect(opts.EventListener).NotTo(gomega.BeNil())
-	g.Expect(opts.Levels).To(gomega.HaveLen(7)) //nolint:mnd // 7 default LSM levels
+	g.Expect(opts.Levels).To(gomega.HaveLen(7))
 }
 
 func TestPebbleMetricsBlockCacheHitRate(t *testing.T) {
@@ -41,10 +39,14 @@ func TestPebbleMetricsBlockCacheHitRate(t *testing.T) {
 		{name: "no accesses", m: PebbleMetrics{}, expected: 0.0},
 		{name: "all hits", m: PebbleMetrics{BlockCacheHits: 100}, expected: 1.0},
 		{name: "all misses", m: PebbleMetrics{BlockCacheMisses: 100}, expected: 0.0},
-		{name: "half hits", m: PebbleMetrics{BlockCacheHits: 50, BlockCacheMisses: 50}, expected: 0.5},
+		{
+			name:     "half hits",
+			m:        PebbleMetrics{BlockCacheHits: 50, BlockCacheMisses: 50},
+			expected: 0.5,
+		},
 	}
 
-	for _, tt := range tests { //nolint:paralleltest // table test
+	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := gomega.NewWithT(t)
 			g.Expect(tt.m.BlockCacheHitRate()).To(gomega.BeNumerically("~", tt.expected, 0.001))

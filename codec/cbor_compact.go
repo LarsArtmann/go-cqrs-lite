@@ -29,6 +29,7 @@ var _ Codec = CBORCompactCodec{}
 //nolint:gochecknoglobals // concurrency-safe EncMode, created once at package init
 var compactEncMode = func() cbor.EncMode {
 	opts := cbor.CoreDetEncOptions()
+
 	em, err := opts.EncMode()
 	if err != nil {
 		panic("codec: failed to create CBOR compact encoding mode: " + err.Error())
@@ -39,10 +40,11 @@ var compactEncMode = func() cbor.EncMode {
 
 //nolint:gochecknoglobals // concurrency-safe DecMode, created once at package init
 var compactDecMode = func() cbor.DecMode {
-	opts := cbor.DecOptions{
+	opts := cbor.DecOptions{ //nolint:exhaustruct // only strict-mode fields needed
 		DupMapKey:         cbor.DupMapKeyEnforcedAPF,
 		ExtraReturnErrors: cbor.ExtraDecErrorUnknownField,
 	}
+
 	dm, err := opts.DecMode()
 	if err != nil {
 		panic("codec: failed to create CBOR compact decoding mode: " + err.Error())

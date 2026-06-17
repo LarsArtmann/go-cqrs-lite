@@ -70,15 +70,18 @@ func (a *EventStore) ReadFrom(
 		events, _, err := a.scanJournalWithSkip([]byte(a.journalPrefix), upperBound, "", limit)
 		if err != nil {
 			cqrsotel.RecordError(span, err)
+
 			return nil, err
 		}
 
 		span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))
+
 		return events, nil
 	}
 
 	// Optimized path: narrow lower bound using ULID timestamp.
 	targetID := afterEventID.String()
+
 	ulidTime := id.ULID(afterEventID)
 	narrowedLower := fmt.Appendf(nil, "%s%020d", a.journalPrefix,
 		ulidTime.Add(-journalSeekBuffer).UnixNano())
@@ -86,6 +89,7 @@ func (a *EventStore) ReadFrom(
 	events, found, err := a.scanJournalWithSkip(narrowedLower, upperBound, targetID, limit)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
+
 		return nil, err
 	}
 
@@ -95,11 +99,13 @@ func (a *EventStore) ReadFrom(
 			targetID, limit)
 		if err != nil {
 			cqrsotel.RecordError(span, err)
+
 			return nil, err
 		}
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))
+
 	return events, nil
 }
 
@@ -159,7 +165,8 @@ func (a *EventStore) scanJournalWithSkip(
 		}
 	}
 
-	if err := checkIteratorError(iter); err != nil {
+	err = checkIteratorError(iter)
+	if err != nil {
 		return nil, found, event.Wrapf(err, event.Infrastructure, "pebble.journal_iterator",
 			"iterator error in journal (limit=%d)", limit)
 	}

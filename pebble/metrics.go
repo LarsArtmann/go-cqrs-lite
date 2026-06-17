@@ -34,8 +34,8 @@ func (b *Backend) Metrics() PebbleMetrics {
 	perLevel := make([]int64, len(m.Levels))
 
 	for i, lvl := range m.Levels {
-		perLevel[i] = int64(lvl.NumFiles)
-		numFiles += int64(lvl.NumFiles)
+		perLevel[i] = lvl.NumFiles
+		numFiles += lvl.NumFiles
 	}
 
 	return PebbleMetrics{

@@ -31,7 +31,6 @@ require (
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.4.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
-	github.com/rogpeppe/go-internal v1.15.0 // indirect
 	github.com/samber/lo v1.53.0 // indirect
 	github.com/samber/ro v0.3.0 // indirect
 	github.com/tidwall/gjson v1.19.0 // indirect
@@ -46,5 +45,4 @@ require (
 	golang.org/x/text v0.38.0 // indirect
 	golang.org/x/tools v0.46.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
-	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )

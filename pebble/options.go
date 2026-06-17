@@ -8,6 +8,8 @@ import (
 	"github.com/cockroachdb/pebble/bloom"
 )
 
+const bloomFilterBitsPerKey = 10
+
 // DefaultOptions returns recommended pebble.Options for CQRS event store workloads.
 // These defaults optimize for the read-heavy, append-only access pattern of
 // event sourcing: bloom filters for fast point reads, concurrent compactions
@@ -22,7 +24,7 @@ func DefaultOptions() *pebble.Options {
 
 	// Bloom filters dramatically reduce read amplification for point Gets
 	// (snapshot/checkpoint lookups). 10 bits per key gives ~1% FPR.
-	filterPolicy := bloom.FilterPolicy(10)
+	filterPolicy := bloom.FilterPolicy(bloomFilterBitsPerKey)
 	opts.Levels = make([]pebble.LevelOptions, 7) //nolint:mnd // 7 default LSM levels
 
 	for i := range opts.Levels {

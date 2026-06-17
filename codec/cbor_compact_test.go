@@ -37,13 +37,13 @@ func TestCBORCompactCodecRejectsUnknownFields(t *testing.T) {
 		Name string `json:"name"`
 	}
 	type v2 struct {
-		Name    string `json:"name"`
-		NewFunc string `json:"new_field"`
+		Name     string `json:"name"`
+		NewField string `json:"newField"`
 	}
 
 	codec := CBORCompactCodec{}
 
-	data, err := codec.Encode(v2{Name: "test", NewFunc: "extra"})
+	data, err := codec.Encode(v2{Name: "test", NewField: "extra"})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	var decoded v1

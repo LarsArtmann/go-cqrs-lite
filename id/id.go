@@ -20,6 +20,8 @@ type Of[T any] = cbid.ID[T, ulid.ULID]
 
 // ulidMu guards the monotonic entropy source to ensure thread-safe
 // ULID generation with guaranteed ordering within the same millisecond.
+//
+//nolint:gochecknoglobals // guards the monotonic entropy source
 var ulidMu sync.Mutex
 
 // mono is a monotonic entropy source that guarantees ULIDs generated within
@@ -27,6 +29,7 @@ var ulidMu sync.Mutex
 // where event ordering must be deterministic.
 //
 //nolint:gochecknoglobals // package-level monotonic entropy, guarded by ulidMu
+//nolint:gochecknoglobals // thread-safe monotonic entropy source
 var mono = ulid.Monotonic(rand.Reader, 0)
 
 func newULID() ulid.ULID {
