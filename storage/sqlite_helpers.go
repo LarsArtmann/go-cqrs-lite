@@ -60,6 +60,21 @@ func SQLiteEnableWAL(ctx context.Context, db *sql.DB) error {
 	return nil
 }
 
+// SQLiteEnableForeignKeys turns on SQLite foreign-key enforcement for the
+// given connection. This is opt-in (not enabled by default) because existing
+// databases may contain orphaned references that would cause errors once
+// enforcement is active. Call after opening the database if referential
+// integrity is required.
+func SQLiteEnableForeignKeys(ctx context.Context, db *sql.DB) error {
+	const pragma = "PRAGMA foreign_keys=ON"
+
+	if _, err := db.ExecContext(ctx, pragma); err != nil {
+		return event.WrapInfrastructure(err, "storage.enable_foreign_keys", "exec "+pragma)
+	}
+
+	return nil
+}
+
 func ConfigureSQLitePool(db *sql.DB) { db.SetMaxOpenConns(1) }
 func ConfigureTursoPool(db *sql.DB)  { db.SetMaxOpenConns(1) }
 
