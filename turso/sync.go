@@ -12,6 +12,15 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
+// syncEngine abstracts the Turso sync operations for testability.
+// *tursoclient.TursoSyncDb satisfies this interface in production.
+type syncEngine interface {
+	Push(ctx context.Context) error
+	Pull(ctx context.Context) (bool, error)
+	Checkpoint(ctx context.Context) error
+	Stats(ctx context.Context) (tursoclient.TursoSyncDbStats, error)
+}
+
 // SyncDB wraps a Turso database with remote sync capabilities.
 // It provides the *sql.DB for queries and exposes Push/Pull/Checkpoint/Stats
 // for sync control.
@@ -19,6 +28,7 @@ type SyncDB struct {
 	*sql.DB
 
 	syncDb *tursoclient.TursoSyncDb
+	engine syncEngine
 }
 
 // OpenSync opens a Turso database that syncs with a remote server.
@@ -133,12 +143,12 @@ func OpenSyncWithConfig(
 			"connect turso sync db for "+string(remoteURL))
 	}
 
-	return &SyncDB{DB: database, syncDb: syncDb}, nil
+	return &SyncDB{DB: database, syncDb: syncDb, engine: syncDb}, nil
 }
 
 // Push sends local writes to the remote Turso server.
 func (t *SyncDB) Push(ctx context.Context) error {
-	err := t.syncDb.Push(ctx)
+	err := t.engine.Push(ctx)
 	if err != nil {
 		return event.WrapInfrastructure(err, "storage.turso_push",
 			"turso push")
@@ -150,7 +160,7 @@ func (t *SyncDB) Push(ctx context.Context) error {
 // Pull fetches remote changes into the local database.
 // Returns true if any changes were received.
 func (t *SyncDB) Pull(ctx context.Context) (bool, error) {
-	changed, err := t.syncDb.Pull(ctx)
+	changed, err := t.engine.Pull(ctx)
 	if err != nil {
 		return changed, event.WrapInfrastructure(err, "storage.turso_pull",
 			"turso pull")
@@ -161,7 +171,7 @@ func (t *SyncDB) Pull(ctx context.Context) (bool, error) {
 
 // Checkpoint writes the WAL into the main database file.
 func (t *SyncDB) Checkpoint(ctx context.Context) error {
-	err := t.syncDb.Checkpoint(ctx)
+	err := t.engine.Checkpoint(ctx)
 	if err != nil {
 		return event.WrapInfrastructure(err, "storage.turso_checkpoint",
 			"turso checkpoint")
@@ -178,7 +188,7 @@ func (t *SyncDB) Close() error {
 
 // Stats returns sync statistics (WAL size, bytes sent/received).
 func (t *SyncDB) Stats(ctx context.Context) (tursoclient.TursoSyncDbStats, error) {
-	stats, err := t.syncDb.Stats(ctx)
+	stats, err := t.engine.Stats(ctx)
 	if err != nil {
 		return stats, event.WrapInfrastructure(err, "storage.turso_stats",
 			"turso stats")
@@ -211,6 +221,17 @@ func (t *SyncDB) HealthCheck(ctx context.Context) error {
 // this — the SyncDB methods cover the common cases.
 func (t *SyncDB) SyncClient() *tursoclient.TursoSyncDb {
 	return t.syncDb
+}
+
+// newSyncDBWithEngine creates a SyncDB with a custom sync engine for testing.
+// The engine replaces the real Turso sync client so Push/Pull/Checkpoint/Stats
+// can be exercised without a live server. syncDb is nil — SyncClient() returns nil.
+func newSyncDBWithEngine(db *sql.DB, engine syncEngine) *SyncDB {
+	return &SyncDB{
+		DB:     db,
+		syncDb: nil,
+		engine: engine,
+	}
 }
 
 // Backward-compatible aliases.

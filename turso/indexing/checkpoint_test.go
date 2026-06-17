@@ -15,7 +15,7 @@ func TestCheckpointScheduler_StartStop(t *testing.T) {
 	sched := indexing.NewCheckpointScheduler(database, 100*time.Millisecond)
 
 	sched.Start(context.Background())
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(150 * time.Millisecond) // allow at least one checkpoint tick
 	sched.Stop()
 
 	// No panic = success. Verify idempotency.
@@ -44,6 +44,6 @@ func TestCheckpointScheduler_MultipleStarts(t *testing.T) {
 	sched.Start(context.Background())
 	sched.Start(context.Background())
 
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(150 * time.Millisecond)
 	sched.Stop()
 }

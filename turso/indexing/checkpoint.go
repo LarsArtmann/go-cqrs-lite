@@ -18,6 +18,7 @@ type CheckpointScheduler struct {
 	interval time.Duration
 	mu       sync.Mutex
 	stop     chan struct{}
+	done     chan struct{}
 	stopped  bool
 }
 
@@ -41,12 +42,16 @@ func (s *CheckpointScheduler) Start(ctx context.Context) {
 	}
 
 	stop := make(chan struct{})
+	done := make(chan struct{})
 	s.stop = stop
+	s.done = done
 
-	go s.run(ctx, stop)
+	go s.run(ctx, stop, done)
 }
 
-func (s *CheckpointScheduler) run(ctx context.Context, stop <-chan struct{}) {
+func (s *CheckpointScheduler) run(ctx context.Context, stop <-chan struct{}, done chan<- struct{}) {
+	defer close(done)
+
 	ticker := time.NewTicker(s.interval)
 	defer ticker.Stop()
 
@@ -86,5 +91,13 @@ func (s *CheckpointScheduler) Stop() {
 	if s.stop != nil {
 		close(s.stop)
 		s.stop = nil
+	}
+
+	done := s.done
+	s.done = nil
+	s.mu.Unlock()
+
+	if done != nil {
+		<-done
 	}
 }

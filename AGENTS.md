@@ -43,8 +43,10 @@ go-cqrs-lite/
 ├── command/             # Dispatcher, Handler, Middleware, Command, BasicCommand, PersistedCommand
 │                        # Store: CommandSink, CommandSource, Store, CommandJournal, SeekableCommandJournal
 │                        # Bus: Publisher, Subscriber, Bus, PublishMiddleware (command pub/sub)
+│                        # Reactive: CommandBus, FilterCommandType/Types, HandlerToObserver
 ├── query/               # Dispatcher, Handler, Pagination, PaginatedResult[T], RegisterTyped[Q,R], TypedHandler[Q,R]
 │                        # Store: PersistedQuery, QuerySink, QuerySource, QueryStore, QueryJournal, SeekableQueryJournal
+│                        # Reactive: QueryBus, FilterQueryType/Types, HandlerToObserver
 ├── decider/             # Decider[State], Repository[State], Execute, Load (pure-function style)
 ├── id/                  # Branded IDs: id.Of[T] = cbid.ID[T, ulid.ULID], AggregateID, EventID, etc.
 ├── dispatcher/          # Generic Dispatcher[H, M] with LifecycleMixin
@@ -131,14 +133,26 @@ marked, _ := event.MarkTombstone(evt)   // sets tombstone metadata
 replayCtx := event.WithProcessingMode(ctx, event.ModeReplay)
 mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 
-// Reactive event streams (samber/ro) — event module only
+// Reactive streams (samber/ro) — event, command, and query modules
+//   // Event streams
 //   bus := event.NewEventBus()
 //   bus.Subscribe(ro.OnNext(func(e event.Event) { ... }))
 //   filtered := ro.Pipe1(bus, event.FilterEventType("user.created"))
 //   observer := event.HandlerToObserver(myHandler)
 //   bus.Next(evt)
 //   bus.Complete()
-// Note: command/query do NOT have reactive bus types. Only event/ has reactive extensions.
+//
+//   // Command streams (pub/sub-style reactive dispatch)
+//   cmdBus := command.NewCommandBus()
+//   cmdFiltered := ro.Pipe1(cmdBus, command.FilterCommandType("user.create"))
+//   cmdFiltered.Subscribe(command.HandlerToObserver(myHandler))
+//   cmdBus.Next(createCmd)
+//
+//   // Query streams
+//   qBus := query.NewQueryBus()
+//   qFiltered := ro.Pipe1(qBus, query.FilterQueryType("user.get"))
+//   qFiltered.Subscribe(query.HandlerToObserver(myHandler))
+//   qBus.Next(getQuery)
 
 // Command & query persistence (audit trail)
 //   cmd, _ := command.NewPersistedCommand("user.create", ref, payload)
