@@ -94,6 +94,7 @@ Symmetric persistence across all three CQRS message types (events, commands, que
 - [~] ~~Saga module~~ — **HARD NO**. Vertical scaling (bigger server) is sufficient for this library's scope. Multi-instance orchestration is the consumer's concern.
 - [ ] Event schema registry with validation middleware
 - [ ] Distributed checkpointing for projections
+- [~] **Projection replay→live dedup gap** — **KNOWN ISSUE**. Events can be processed twice during catch-up when projection switches from replay to live. Mitigations: `event.DistinctByEventID()` operator for reactive pipelines, and idempotent projection handlers. Full fix requires buffering/caching duplicate events at the replay→live boundary; deferred until design review.
 
 ### Consumer Experience
 
@@ -125,4 +126,4 @@ Symmetric persistence across all three CQRS message types (events, commands, que
 
 ---
 
-_Last updated: 2026-06-16 (Sprint 7 complete, outbox+saga removed, version numbers fixed for v2.3+)_
+_Last updated: 2026-06-17 (Sprint 7 complete; projection replay→live dedup gap documented as known issue)_
