@@ -5,7 +5,7 @@
 // The rapidgen.go file provides generators and helpers for property-based
 // testing with pgregory.net/rapid. These generators produce valid CQRS
 // domain values (event types, aggregate types, versions, metadata maps,
-// timestamps, event slices) for use in property tests.
+// timestamps) for use in property tests.
 //
 // # Usage
 //
@@ -31,16 +31,10 @@
 //
 // # Reproducible Failures
 //
-// When a rapid test fails, it prints the failing seed. Set RAPID_SEED=<seed>
-// to reproduce that exact failure:
+// When a rapid test fails, it prints the failing seed. Set the standard
+// `-rapid.seed=<seed>` flag to reproduce that exact failure:
 //
-//	RAPID_SEED=12345 go test -run TestEventProperty ./...
-//
-// Use SeedFromEnv to log the seed in test output:
-//
-//	if seed, ok := testutil.SeedFromEnv(); ok {
-//	    t.Logf("reproducing rapid failure with seed %d", seed)
-//	}
+//	go test -run TestEventProperty ./... -rapid.seed=12345
 //
 // # Available Generators
 //
@@ -50,5 +44,4 @@
 //   - NonEmptyString(): non-empty strings up to 200 chars
 //   - MetadataMap(): random string→string maps for metadata testing
 //   - Timestamp(): UTC timestamps between 2000 and 2100
-//   - EventSlice[T](gen, min, max): slices of varying length
 package testutil

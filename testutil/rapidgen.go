@@ -1,8 +1,6 @@
 package testutil
 
 import (
-	"fmt"
-	"os"
 	"time"
 
 	"pgregory.net/rapid"
@@ -46,37 +44,4 @@ func Timestamp() *rapid.Generator[time.Time] {
 		),
 		func(sec int64) time.Time { return time.Unix(sec, 0).UTC() },
 	)
-}
-
-// EventSlice generates a rapid generator for slices of varying length (minLen
-// to maxLen elements) produced by the given element generator. Reduces
-// boilerplate when generating test event sequences.
-func EventSlice[T any](elem *rapid.Generator[T], minLen, maxLen int) *rapid.Generator[[]T] {
-	return rapid.SliceOfN(elem, minLen, maxLen)
-}
-
-// SeedFromEnv reads the RAPID_SEED environment variable for reproducible
-// property-based test failures. When rapid reports a failure, it prints the
-// seed. Set RAPID_SEED=<seed> to reproduce that exact failure on the next run.
-// Returns the seed and true when set; 0 and false otherwise.
-//
-//	seed, ok := testutil.SeedFromEnv()
-//	if ok {
-//	    t.Logf("reproducing rapid failure with seed %d", seed)
-//	}
-//	rapid.Check(t, func(rt *rapid.T) { ... })
-func SeedFromEnv() (int64, bool) {
-	val := os.Getenv("RAPID_SEED")
-	if val == "" {
-		return 0, false
-	}
-
-	var seed int64
-
-	_, err := fmt.Sscanf(val, "%d", &seed)
-	if err != nil {
-		return 0, false
-	}
-
-	return seed, true
 }
