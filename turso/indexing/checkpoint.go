@@ -40,18 +40,19 @@ func (s *CheckpointScheduler) Start(ctx context.Context) {
 		return // disabled
 	}
 
-	s.stop = make(chan struct{})
+	stop := make(chan struct{})
+	s.stop = stop
 
-	go s.run(ctx)
+	go s.run(ctx, stop)
 }
 
-func (s *CheckpointScheduler) run(ctx context.Context) {
+func (s *CheckpointScheduler) run(ctx context.Context, stop <-chan struct{}) {
 	ticker := time.NewTicker(s.interval)
 	defer ticker.Stop()
 
 	for {
 		select {
-		case <-s.stop:
+		case <-stop:
 			return
 		case <-ctx.Done():
 			return

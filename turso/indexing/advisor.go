@@ -16,7 +16,10 @@ import (
 )
 
 var (
-	scanTableRe    = regexp.MustCompile(`SCAN TABLE\s+(\S+)`)
+	// scanTableRe matches SQLite EXPLAIN QUERY PLAN scan output.
+	// Supports both legacy ("SCAN TABLE events") and modern ("SCAN events")
+	// formats — older SQLite includes "TABLE", newer versions omit it.
+	scanTableRe    = regexp.MustCompile(`SCAN\s+(?:TABLE\s+)?(\S+)`)
 	searchIndexRe  = regexp.MustCompile(`USING INDEX\s+(\S+)`)
 	searchCoverRe  = regexp.MustCompile(`USING COVERING INDEX\s+(\S+)`)
 	autoIndexRe    = regexp.MustCompile(`sqlite_autoindex_`)

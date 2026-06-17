@@ -80,6 +80,39 @@ func NewCheckpointStore(db *sql.DB) (*storage.SQLCheckpointStore, error) {
 	)
 }
 
+// NewCommandStore creates a command audit store backed by a Turso database.
+// Delegates to NewSQLiteCommandStore — Turso uses the same SQL dialect as SQLite.
+// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
+func NewCommandStore(db *sql.DB) (*storage.SQLCommandStore, error) {
+	return storage.NewSQLiteCommandStore( //nolint:wrapcheck // transparent delegation to storage
+		db,
+	)
+}
+
+// NewQueryStore creates a query audit store backed by a Turso database.
+// Delegates to NewSQLiteQueryStore — Turso uses the same SQL dialect as SQLite.
+// The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
+func NewQueryStore(db *sql.DB) (*storage.SQLQueryStore, error) {
+	return storage.NewSQLiteQueryStore( //nolint:wrapcheck // transparent delegation to storage
+		db,
+	)
+}
+
+// ConfigurePool sets connection-pool defaults recommended for embedded
+// LibSQL/Turso databases. Embedded LibSQL serializes writes through a single
+// connection, so the pool is capped at one open connection to avoid
+// "database is locked" errors under concurrent load.
+//
+// Call once after [Open] or [OpenSync]:
+//
+//	db, _ := turso.Open(turso.DbPath("app.db"))
+//	turso.ConfigurePool(db)
+//
+// Delegates to [storage.ConfigureTursoPool].
+func ConfigurePool(db *sql.DB) {
+	storage.ConfigureTursoPool(db)
+}
+
 //nolint:gochecknoglobals // backward-compatible aliases
 var (
 	OpenTurso               = Open
@@ -88,4 +121,6 @@ var (
 	NewTursoEventStore      = NewEventStore
 	NewTursoSnapshotStore   = NewSnapshotStore
 	NewTursoCheckpointStore = NewCheckpointStore
+	NewTursoCommandStore    = NewCommandStore
+	NewTursoQueryStore      = NewQueryStore
 )

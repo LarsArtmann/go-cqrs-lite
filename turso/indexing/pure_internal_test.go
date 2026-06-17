@@ -158,3 +158,39 @@ func TestInferIndex_NoMatch(t *testing.T) {
 		t.Errorf("expected nil for unmatched query, got %+v", idx)
 	}
 }
+
+func TestScanTableRegex(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		detail string
+		table  string
+		match  bool
+	}{
+		{name: "modern_format", detail: "SCAN events", table: "events", match: true},
+		{name: "legacy_format", detail: "SCAN TABLE events", table: "events", match: true},
+		{name: "modern_with_alias", detail: "SCAN events AS e", table: "events", match: true},
+		{name: "search_not_scan", detail: "SEARCH events USING INDEX", table: "", match: false},
+		{name: "empty", detail: "", table: "", match: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			m := scanTableRe.FindStringSubmatch(tt.detail)
+			if tt.match {
+				if m == nil {
+					t.Errorf("expected match for %q", tt.detail)
+					return
+				}
+				if m[1] != tt.table {
+					t.Errorf("table: got %q, want %q", m[1], tt.table)
+				}
+			} else if m != nil {
+				t.Errorf("expected no match for %q, got table %q", tt.detail, m[1])
+			}
+		})
+	}
+}
