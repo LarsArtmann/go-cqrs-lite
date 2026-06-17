@@ -1614,6 +1614,7 @@
               <span class="chip green">First / Next / Last / Valid</span>
               <span class="chip green">Sync write option</span>
               <span class="chip green">Manual key prefixes</span>
+              <span class="chip green">Options.Levels tuning (DefaultOptions)</span>
             </div>
 
             <div class="deepdive-section-title used">✓ Resolved gaps</div>
@@ -1688,7 +1689,6 @@
               <span class="chip red">db.DeleteRange (retention)</span>
               <span class="chip red">batch.Merge (counters)</span>
               <span class="chip red">CompactionFilter (TTL expiry)</span>
-              <span class="chip green">Options.Levels tuning (DefaultOptions)</span>
               <span class="chip red">IndexedBatch</span>
               <span class="chip red">SingleDelete</span>
               <span class="chip red">iter.Prev / Clone / SeekLT</span>
@@ -1836,6 +1836,8 @@
               <span class="chip green">EncMode.Marshal</span>
               <span class="chip green">DecMode.Unmarshal</span>
               <span class="chip green">DecOptions{DupMapKey} (1 of 28 fields)</span>
+              <span class="chip green">Diagnose (human-readable debugging)</span>
+              <span class="chip green">CoreDetEncOptions (CBORCompactCodec)</span>
             </div>
 
             <div class="deepdive-section-title used">✓ Resolved gaps</div>
@@ -1880,14 +1882,12 @@
             <div class="chip-list">
               <span class="chip red">MarshalToBuffer (zero-alloc)</span>
               <span class="chip red">Encoder/Decoder (streaming)</span>
-              <span class="chip green">Diagnose (human-readable debugging)</span>
               <span class="chip red">Wellformed (pre-check)</span>
               <span class="chip red">TagSet (CBOR tags)</span>
               <span class="chip red">keyasint struct tag</span>
               <span class="chip red">omitzero struct tag</span>
               <span class="chip red">Marshaler/Unmarshaler interfaces</span>
               <span class="chip red">JSONMarshalerTranscoder</span>
-              <span class="chip green">CoreDetEncOptions (CBORCompactCodec)</span>
             </div>
 
             <div class="deepdive-section-title good">✓ What's done right</div>
@@ -2440,12 +2440,14 @@
 
             <div class="deepdive-section-title missing">✗ High-value unused</div>
             <div class="findings">
-              <div class="finding warning">
+              <div class="finding resolved">
                 <div class="finding-body">
-                  <div class="finding-title">No <code>hkdf</code> for key derivation</div>
+                  <div class="finding-title">
+                    ✓ <code>hkdf</code> for key derivation — DeriveKey implemented
+                  </div>
                   <div class="finding-desc">
-                    Keys are raw 32-byte values. HKDF derives per-tenant, per-rotation subkeys from
-                    a master key — the industry standard for multi-tenant encryption.
+                    <strong>RESOLVED:</strong> <code>encryption.DeriveKey(masterKey, info, length)</code>
+                    uses HKDF-SHA256 to derive per-tenant, per-rotation subkeys from a master key.
                   </div>
                 </div>
               </div>
