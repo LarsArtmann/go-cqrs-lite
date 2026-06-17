@@ -74,4 +74,18 @@
 //
 //	backend, _ := pebble.Open("data", nil, slog.Default())
 //	rate := backend.Metrics().BlockCacheHitRate()
+//
+// # Close Semantics
+//
+// Unlike the SQL Backend (which borrows the *sql.DB and does NOT close it),
+// the Pebble Backend OWNS the *pebble.DB. Calling backend.Close() closes the
+// database AND all stores created from it. After Close, all store operations
+// return ErrClosed.
+//
+//	backend, _ := pebble.Open("data", opts, slog.Default())
+//	defer backend.Close() // closes DB + all stores
+//
+// When wiring stores manually (NewStore, NewSnapshotStore, etc.) from a
+// shared *pebble.DB, the caller is responsible for closing the DB after all
+// stores are done. Using Backend avoids this manual lifecycle management.
 package pebble
