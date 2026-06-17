@@ -62,9 +62,10 @@ go-cqrs-lite/
 ├── otel/                # Shared OpenTelemetry helpers: Tracer, Meter, Spans, Attributes
 ├── listing/             # AggregateListing, AggregateStatus, tombstone detection, StatusMiddleware, InMemoryAggregateReader
 ├── watermill/           # Watermill protocol adapter (publisher/subscriber)
-├── pebble/              # Embedded KV store (PebbleDB): EventStore, SnapshotStore, CheckpointStore. CBOR envelope, shared DB via disjoint key prefixes
+├── pebble/              # Embedded KV store (PebbleDB): EventStore, SnapshotStore, CheckpointStore, KVAdapter (kv.Store). CBOR envelope, shared DB via disjoint key prefixes
 ├── codec/               # Payload encoding: JSON, CBOR (deterministic), Raw passthrough
 ├── turso/               # Turso database connector (embedded LibSQL sync)
+├── kv/                  # Layer-0 KV store abstraction: Store (Reader+Writer+Closer), MemStore, Iterator, Batch. Pebble is first consumer via pebble.KVAdapter (ADR-0023)
 ├── testutil/            # Shared test helpers: MustNewCmd (cross-module test utilities)
 ├── cmd/cqrs-gen/        # Code generator: typed handler registration from Go structs
 ├── cmd/api-stability/   # API surface checker: compares exported symbols against golden file
@@ -178,6 +179,14 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   eventStore := pebble.NewStore(db, logger)
 //   snapStore  := pebble.NewSnapshotStore(db, logger)
 //   cpStore    := pebble.NewCheckpointStore(db, logger)
+
+// Pebble as kv.Store (generic KV interface, ADR-0023)
+//   kvStore := pebble.NewKVStore(db, pebble.WithKVSyncWrites())
+//   defer kvStore.Close()
+//   kvStore.Set([]byte("k"), []byte("v"))    // → nil
+//   val, _ := kvStore.Get([]byte("k"))        // → "v"
+//   batch, _ := kvStore.Batch()               // atomic writes
+//   // WithBorrowedDB() = adapter doesn't close the DB (shared via Backend)
 
 // Event upcasting (schema migration on load)
 //   upcaster := schema.NewUpcaster("UserCreated", 1, func(evt event.Event) (*event.ImmutableEvent, error) {
