@@ -1,6 +1,8 @@
 package testutil
 
 import (
+	"time"
+
 	"pgregory.net/rapid"
 )
 
@@ -23,4 +25,30 @@ func Version() *rapid.Generator[int] {
 // NonEmptyString generates a non-empty string within a reasonable length.
 func NonEmptyString() *rapid.Generator[string] {
 	return rapid.StringN(1, 100, 200) //nolint:mnd // test range
+}
+
+// MetadataMap generates a rapid generator for event.Metadata maps with
+// random string keys and values. Useful for property-based testing of
+// serialization, signing, and encryption round-trips.
+func MetadataMap() *rapid.Generator[map[string]string] {
+	return rapid.MapOf(NonEmptyString(), NonEmptyString())
+}
+
+// Timestamp generates a rapid generator for timestamps within a reasonable
+// range (year 2000 to year 2100).
+func Timestamp() *rapid.Generator[time.Time] {
+	return rapid.Map(
+		rapid.Int64Range(
+			946684800,  //nolint:mnd // 2000-01-01 UTC
+			4102444800, //nolint:mnd // 2100-01-01 UTC
+		),
+		func(sec int64) time.Time { return time.Unix(sec, 0).UTC() },
+	)
+}
+
+// EventSlice generates a rapid generator for slices of varying length (minLen
+// to maxLen elements) produced by the given element generator. Reduces
+// boilerplate when generating test event sequences.
+func EventSlice[T any](elem *rapid.Generator[T], minLen, maxLen int) *rapid.Generator[[]T] {
+	return rapid.SliceOfN(elem, minLen, maxLen)
 }

@@ -343,6 +343,49 @@ var _ = Describe("Schema Evolution", func() {
 	})
 })
 
+var _ = Describe("Gomega Matcher Adoption", func() {
+	Describe("As a developer comparing event payloads", func() {
+		Context("when JSON payloads have different key ordering", func() {
+			It("should match semantically using MatchJSON regardless of field order", func() {
+				aggID := id.NewAggregateID()
+				evt1, err := event.NewEvent("UserCreated", aggID, "User", 1,
+					[]byte(`{"name":"Alice","email":"a@b.com"}`))
+				Expect(err).ToNot(HaveOccurred())
+
+				evt2, err := event.NewEvent("UserCreated", aggID, "User", 1,
+					[]byte(`{"email":"a@b.com","name":"Alice"}`))
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(string(evt1.Payload())).To(MatchJSON(evt2.Payload()))
+			})
+		})
+	})
+
+	Describe("As a developer checking event types unordered", func() {
+		Context("when events arrive in any order", func() {
+			It("should verify types with ConsistOf regardless of ordering", func() {
+				aggID := id.NewAggregateID()
+				events := []event.Event{
+					mustNewEvent("UserCreated", aggID, "User", 1),
+					mustNewEvent("UserUpdated", aggID, "User", 2),
+					mustNewEvent("UserDeleted", aggID, "User", 3),
+				}
+
+				types := make([]event.Type, len(events))
+				for i, evt := range events {
+					types[i] = evt.Type()
+				}
+
+				Expect(types).To(ConsistOf(
+					event.Type("UserCreated"),
+					event.Type("UserUpdated"),
+					event.Type("UserDeleted"),
+				))
+			})
+		})
+	})
+})
+
 var _ = Describe("Error Classification", func() {
 	Describe("As a developer building retry logic", func() {
 		Context("when I classify errors", func() {
