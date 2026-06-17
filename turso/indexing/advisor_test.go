@@ -48,21 +48,50 @@ func TestAdvisor_AnalyzeQuery_NoScan(t *testing.T) {
 func TestAdvisor_AnalyzeQuery_DetectsScan(t *testing.T) {
 	t.Parallel()
 
-	db := setupTestDB(t)
+	// Use a fresh schema WITHOUT CQRS indexes.
+	db, err := turso.OpenInMemory()
+	if err != nil {
+		t.Fatalf("OpenInMemory: %v", err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+
+	if err := turso.InitSchema(context.Background(), db); err != nil {
+		t.Fatalf("InitSchema: %v", err)
+	}
+
 	advisor := indexing.NewAdvisor(db)
 
-	// Query on events with event_type filter but no index on just event_type
-	// (existing idx_events_type IS on event_type, so this might not scan).
-	// Use a query that definitely scans: metadata JSON access.
+	// Cursor pagination query — the base schema has no index on
+	// (occurred_at, id), so this produces a SCAN. The advisor should
+	// detect it and recommend idx_events_cursor.
 	recs, err := advisor.AnalyzeQuery(context.Background(),
-		"SELECT * FROM events WHERE metadata LIKE ?", "%test%")
+		"SELECT * FROM events ORDER BY occurred_at ASC, id ASC LIMIT ?",
+		100)
 	if err != nil {
 		t.Fatalf("AnalyzeQuery: %v", err)
 	}
 
-	// A LIKE on metadata will almost certainly scan.
 	if len(recs) == 0 {
-		t.Skip("no scan detected — SQLite may use an unexpected optimization")
+		t.Fatal("expected at least 1 recommendation for cursor pagination scan")
+	}
+
+	// Verify the correct index was recommended.
+	found := false
+	for _, r := range recs {
+		if r.Index.Name == "idx_events_cursor" {
+			found = true
+			if r.Priority != indexing.PriorityCritical {
+				t.Errorf("expected Critical priority, got %s", r.Priority)
+			}
+		}
+	}
+
+	if !found {
+		names := make([]string, 0, len(recs))
+		for _, r := range recs {
+			names = append(names, r.Index.Name)
+		}
+		t.Errorf("expected recommendation for idx_events_cursor, got: %v", names)
 	}
 }
 

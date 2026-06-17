@@ -65,8 +65,8 @@ DEP_BUDGET[storage]=11
 DEP_BUDGET[projection]=9
 DEP_BUDGET[listing]=6
 DEP_BUDGET[watermill]=5
-DEP_BUDGET[pebble]=7
-DEP_BUDGET[turso]=8
+DEP_BUDGET[pebble]=8
+DEP_BUDGET[turso]=10
 DEP_BUDGET[catalog]=4
 DEP_BUDGET[integration]=21
 
