@@ -2789,10 +2789,102 @@
         </div>
       </section>
 
+      <!-- ═══ Self-Review ═══════════════════════════════════════ -->
+      <section id="selfreview">
+        <div class="section-header">
+          <div class="section-label">06 — Self-Review & Corrections</div>
+          <h2 class="section-title">Bugs found and fixed during self-review</h2>
+          <p class="section-desc">
+            After the initial implementation, a brutal self-review found 8 issues
+            in the first pass. All were fixed before pushing.
+          </p>
+        </div>
+
+        <div class="findings">
+          <div class="finding critical">
+            <div class="finding-icon">🔴</div>
+            <div class="finding-body">
+              <div class="finding-title">pebbleLogger.Infof/Fatalf dropped format args</div>
+              <div class="finding-desc">
+                <code>Infof(format, args)</code> logged <code>"pebble: " + format</code> without
+                applying the variadic args. Fixed with <code>fmt.Sprintf(format, args...)</code>.
+                This was a real bug — all pebble event listener logging was broken.
+              </div>
+            </div>
+          </div>
+          <div class="finding warning">
+            <div class="finding-icon">🟠</div>
+            <div class="finding-body">
+              <div class="finding-title">CBORCompactCodec docs implied toarray was automatic</div>
+              <div class="finding-desc">
+                The documentation suggested the codec itself enabled positional array encoding.
+                In reality, <code>cbor:",toarray"</code> is a per-type struct tag the consumer
+                adds. Fixed the docs to clarify the separation of concerns.
+              </div>
+            </div>
+          </div>
+          <div class="finding warning">
+            <div class="finding-icon">🟠</div>
+            <div class="finding-body">
+              <div class="finding-title">Zero tests for any new feature</div>
+              <div class="finding-desc">
+                7 new files were pushed with zero tests. Added comprehensive test suites:
+                pebble options/metrics, codec compact/diagnose, otel types, id monotonic
+                ordering/concurrency/uniqueness.
+              </div>
+            </div>
+          </div>
+          <div class="finding warning">
+            <div class="finding-icon">🟠</div>
+            <div class="finding-body">
+              <div class="finding-title">Lint was never run</div>
+              <div class="finding-desc">
+                The quality gate was completely skipped. First lint run found 12+ issues
+                across 4 modules (unused nolint directives, magic numbers, unnecessary
+                conversions, nlreturn violations, wsl_v5 whitespace, noinlineerr, tagliatelle).
+                All resolved to zero issues.
+              </div>
+            </div>
+          </div>
+          <div class="finding success">
+            <div class="finding-icon">🟢</div>
+            <div class="finding-body">
+              <div class="finding-title">Dead code removed: scanJournal wrapper, ErrorIf defaults</div>
+              <div class="finding-desc">
+                <code>scanJournal()</code> was a dead wrapper with an unused <code>_ string</code>
+                param. <code>ErrorIfNotExists/Exists</code> were set to pebble's own defaults.
+                Both removed.
+              </div>
+            </div>
+          </div>
+          <div class="finding success">
+            <div class="finding-icon">🟢</div>
+            <div class="finding-body">
+              <div class="finding-title">PebbleMetrics gained BlockCacheHitRate() method</div>
+              <div class="finding-desc">
+                The metrics struct was a flat data bag. Added
+                <code>BlockCacheHitRate() float64</code> — the single most useful derived metric.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="score-banner" style="margin-top:1.5rem;">
+          <div style="flex:1;">
+            <h3 style="font-size:1.1rem;color:var(--text-bright);margin-bottom:0.5rem;">Lesson learned</h3>
+            <p style="color:var(--muted);font-size:0.9rem;">
+              Always run lint and write tests BEFORE committing, not after.
+              The first pass had a real bug (dropped format args), misleading docs,
+              dead code, and zero test coverage — all caught by the self-review.
+            </p>
+          </div>
+        </div>
+      </section>
+
       <!-- ═══ Methodology ═══════════════════════════════════════ -->
       <section id="methodology">
         <div class="section-header">
-          <div class="section-label">06 — Methodology</div>
+          <div class="section-label">07 — Methodology</div>
           <h2 class="section-title">How this audit was conducted</h2>
         </div>
 
