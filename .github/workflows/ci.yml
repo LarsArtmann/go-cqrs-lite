@@ -275,3 +275,36 @@ jobs:
 
       - name: Build for linux/arm64
         run: docker build --platform linux/arm64 -t user:arm64 ./example/user
+
+  postgres-integration:
+    name: PostgreSQL Integration Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: cqrs
+          POSTGRES_PASSWORD: cqrs
+          POSTGRES_DB: cqrs_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cqrs"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@v17
+
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Run PostgreSQL integration tests
+        env:
+          DATABASE_URL: postgres://cqrs:cqrs@localhost:5432/cqrs_test?sslmode=disable
+        run: |
+          cd storage && GOWORK=off go test -tags=integration -v -count=1 \
+            -run TestPostgres ./...
