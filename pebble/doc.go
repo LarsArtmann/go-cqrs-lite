@@ -55,4 +55,23 @@
 // logging is enforced throughout. When a logger is provided, stores emit
 // Debug-level entries for save/load operations and Warn-level entries for
 // corrupt data detection.
+//
+// # Recommended Options
+//
+// Use DefaultOptions for production-grade defaults: bloom filter policy per
+// level, concurrent compactions, and 64MB block cache. For operational
+// observability, use DefaultOptionsWithLogging which attaches an EventListener
+// that logs write stalls, flushes, and compactions via slog.
+//
+//	opts := pebble.DefaultOptions()
+//	backend, _ := pebble.Open("data", opts, slog.Default())
+//
+// # Metrics
+//
+// Backend.Metrics exposes pebble's internal telemetry: block cache hit rate,
+// compaction debt, WAL bytes, memtable count. Use BlockCacheHitRate for the
+// single most useful operational signal.
+//
+//	backend, _ := pebble.Open("data", nil, slog.Default())
+//	rate := backend.Metrics().BlockCacheHitRate()
 package pebble

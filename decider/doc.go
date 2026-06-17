@@ -47,4 +47,13 @@
 //	)
 //	repo, _ := decider.NewRepository[UserState](store, bus, d)
 //	// repo.Load now returns events with schema version 2, even if stored as v1
+//
+// # Load Coalescing
+//
+// Repository uses singleflight.Group internally to coalesce concurrent Load
+// calls for the same aggregate into a single store.Load query. When N goroutines
+// execute commands targeting the same aggregate simultaneously, only one DB read
+// occurs — all callers receive the same immutable event slice. This is transparent:
+// no API change, no configuration needed. Only load is coalesced; Save and Publish
+// still execute independently per caller.
 package decider

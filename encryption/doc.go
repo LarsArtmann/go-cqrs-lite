@@ -60,6 +60,19 @@
 //	bus.UsePublish(encryption.EncryptMiddleware(enc))
 //	bus.Use(encryption.DecryptMiddleware(enc))
 //
+// # Key Derivation (HKDF)
+//
+// For multi-tenant systems, DeriveKey uses HKDF-SHA256 (RFC 5869) to derive
+// per-tenant encryption keys from a single master key. The info parameter
+// provides domain separation:
+//
+//	masterKey := []byte("32-byte-master-key-from-kms")
+//	tenantKey, _ := encryption.DeriveKey(masterKey, "tenant:acme-corp", 32)
+//	enc, _ := encryption.NewXChaCha20Poly1305(tenantKey)
+//
+// DeriveKey is deterministic: the same masterKey + info always produce the same
+// derived key. Different info values produce independent keys.
+//
 // Design principles:
 //   - Two algorithms behind the same Encrypter/Decrypter interface
 //   - No external crypto dependencies beyond Go stdlib + golang.org/x/crypto
