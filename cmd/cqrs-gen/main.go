@@ -219,6 +219,7 @@ type genSpec struct {
 	writeEntry func(b *strings.Builder, e Entry)
 }
 
+//nolint:gochecknoglobals // static code-generation dispatch table; data, not state
 var genSpecs = map[string]genSpec{
 	genTypeCommand: {
 		imports:    commandImports,

@@ -64,6 +64,13 @@ func Newf(family Family, code, format string, args ...any) *Error {
 	return errorfamily.Newf(family, code, format, args...)
 }
 
+// Compose joins multiple errors into one, preserving all in the Unwrap chain.
+//
+//nolint:wrapcheck // re-export wrapper
+func Compose(errs ...error) error {
+	return errorfamily.Compose(errs...)
+}
+
 func ExitCode(err error) int { return errorfamily.ExitCode(err) }
 
 // ErrHandlerNotFound is returned when no handler is registered for a command.

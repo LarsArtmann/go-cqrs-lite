@@ -74,6 +74,7 @@ jobs:
           - pebble
           - turso
           - cmd/cqrs-gen
+          - cmd/api-stability
     steps:
       - uses: actions/checkout@v4
 
@@ -115,6 +116,15 @@ jobs:
             echo "::error::One or more packages below 80% coverage"
             exit 1
           fi
+
+  replace-directives:
+    name: Replace Directives Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify go.mod replace directives match go.work
+        run: bash scripts/check-replace-directives.sh
 
   go-work-sync:
     name: go.work sync check

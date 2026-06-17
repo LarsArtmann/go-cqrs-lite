@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-06-15 (post command journal + query store interfaces) · **Module count:** 28 (22 library + 2 examples + 1 integration + 2 cmd + turso/indexing sub-package) · **Go version:** 1.26.3
+**Last audited:** 2026-06-17 (post kv module + reactive buses + pebble integration tests) · **Module count:** 30 modules (23 library + 1 integration + 3 examples + 2 cmd + turso/indexing sub-package) · **Go version:** 1.26.3
 
 ## Status Legend
 
@@ -42,6 +42,8 @@
 | Command Bus              | `Bus` (with `io.Closer`): `Publish`, `Subscribe`, `SubscribeAll`, `Use` — command pub/sub        | ✅     |
 | Publisher / Subscriber   | ISP split: `Publisher.Publish(ctx, cmds...)`, `Subscriber.Subscribe(type, handler)`              | ✅     |
 | PublishMiddleware        | `PublishMiddleware` wraps the publish path for cross-cutting concerns (signing, tracing)         | ✅     |
+| Reactive CommandBus      | `NewCommandBus`, `NewReplayCommandBus`, `NewBehaviorCommandBus`, `FilterCommandType(s)`         | 🧪     |
+| HandlerToObserver        | `HandlerToObserver(handler)` converts a `Handler` into an `ro.Observer[Command]`                  | 🧪     |
 
 ### Query Dispatcher ✅ FULLY_FUNCTIONAL
 
@@ -60,6 +62,8 @@
 | Query store interfaces | `QuerySink`, `QuerySource`, `QueryStore` (Sink+Source) — persisted query log       | ✅     |
 | QueryJournal           | `ReadAllQueries(ctx)` — global query log for audit ("who queried what and when?")  | ✅     |
 | SeekableQueryJournal   | `ReadQueriesFrom(ctx, afterRequestID, limit)` — position-based query replay        | ✅     |
+| Reactive QueryBus      | `NewQueryBus`, `NewReplayQueryBus`, `NewBehaviorQueryBus`, `FilterQueryType(s)`     | 🧪     |
+| HandlerToObserver      | `HandlerToObserver(handler)` converts a `Handler` into an `ro.Observer[Query]`      | 🧪     |
 
 **Defaults:** Page 1, PageSize 20, max 100.
 **Sentinel errors:** `ErrHandlerNotFound`, `ErrDispatcherClosed`, `ErrEmptyQueryType`, `ErrTypeAssertion`
@@ -752,6 +756,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `schema`               | `…/schema/v2`               | ✅ Production   |
 | `snapshot`             | `…/snapshot/v2`             | ✅ Production   |
 | `codec`                | `…/codec/v2`                | ✅ Production   |
+| `kv`                   | `…/kv/v2`                   | ✅ Production   |
 | `memory`               | `…/memory/v2`               | 🧪 Test utility |
 | `catalog`              | `…/catalog/v2`              | ✅ Production   |
 | `catalog/asyncapi`     | `…/catalog/v2/asyncapi`     | ✅ Production   |
@@ -774,10 +779,12 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `pebble`               | `…/pebble/v2`               | ✅ Production   |
 | `turso`                | `…/turso/v2`                | ✅ Production   |
 | `turso/indexing`       | `…/turso/v2/indexing`       | ✅ Production   |
+| `testutil`             | `…/testutil/v2`             | 🧪 Test utility |
 | `cmd/cqrs-gen`         | `…/cmd/cqrs-gen/v2`         | 🔧 Tool         |
 | `cmd/api-stability`    | `…/cmd/api-stability/v2`    | 🔧 Tool         |
 | `example/user`         | `…/example/user`            | 💡 Demo         |
 | `example/todo`         | `…/example/todo`            | 💡 Demo         |
+| `example/encryption`   | `…/example/encryption`      | 💡 Demo         |
 
 ---
 
@@ -785,7 +792,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 | Guarantee              | Detail                                                                           |
 | ---------------------- | -------------------------------------------------------------------------------- |
-| Near-zero lint issues  | 0 lint issues across all 27 modules (v2.3.0 audit)                               |
+| Near-zero lint issues  | 0 lint issues across all 30 modules (v2.3.0 audit)                               |
 | Race-free              | `go test -race` passes across all modules                                        |
 | Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                   |
 | Interface-first        | All core types are interfaces — provide your own implementations                 |

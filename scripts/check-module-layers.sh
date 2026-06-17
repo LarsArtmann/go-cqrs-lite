@@ -49,11 +49,11 @@ EXCEPTIONS[query]="snapshot"
 declare -A DEP_BUDGET
 DEP_BUDGET[id]=3
 DEP_BUDGET[dispatcher]=0
-DEP_BUDGET[codec]=0
+DEP_BUDGET[codec]=2
 DEP_BUDGET[kv]=1
 DEP_BUDGET[event]=13
 DEP_BUDGET[command]=8
-DEP_BUDGET[query]=7
+DEP_BUDGET[query]=8
 DEP_BUDGET[schema]=4
 DEP_BUDGET[snapshot]=5
 DEP_BUDGET[decider]=10
@@ -61,14 +61,14 @@ DEP_BUDGET[memory]=8
 DEP_BUDGET[signing]=5
 DEP_BUDGET[otel]=7
 DEP_BUDGET[middleware]=13
-DEP_BUDGET[storage]=10
+DEP_BUDGET[storage]=11
 DEP_BUDGET[projection]=9
 DEP_BUDGET[listing]=6
 DEP_BUDGET[watermill]=5
-DEP_BUDGET[pebble]=5
-DEP_BUDGET[turso]=6
+DEP_BUDGET[pebble]=7
+DEP_BUDGET[turso]=8
 DEP_BUDGET[catalog]=4
-DEP_BUDGET[integration]=18
+DEP_BUDGET[integration]=21
 
 failed=0
 

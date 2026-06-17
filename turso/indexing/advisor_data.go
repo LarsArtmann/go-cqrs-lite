@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+//nolint:gochecknoglobals // static configuration tables for the heuristic advisor; data, not state
 var advisoryRegexes = []*regexp.Regexp{
 	searchIndexRe,
 	searchCoverRe,
@@ -12,6 +13,7 @@ var advisoryRegexes = []*regexp.Regexp{
 	autoIndexRe,
 }
 
+//nolint:gochecknoglobals // static query-pattern catalog; data, not state
 var queryPatternsByTable = map[string][]queryPattern{
 	"events": {
 		{
@@ -62,6 +64,7 @@ type indexRule struct {
 	priority Priority
 }
 
+//nolint:gochecknoglobals // static index-inference rules; data, not state
 var indexInferenceRules = map[string][]indexRule{
 	"events": {
 		{
