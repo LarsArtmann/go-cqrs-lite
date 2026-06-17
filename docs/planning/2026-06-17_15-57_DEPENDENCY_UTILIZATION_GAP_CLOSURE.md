@@ -22,29 +22,29 @@ in `decider/go.mod`, and `x/crypto` is direct in `encryption/go.mod`. No new dep
 
 ## Anti-Verschlimmbesser Guardrails
 
-| Risk | Mitigation |
-|------|-----------|
-| singleflight changes Execute semantics | Only coalesces *concurrent identical loads* — same return value, same error |
-| foreign_keys breaks existing DBs | Helper function only, NOT enabled by default |
-| HKDF changes key format | New `DeriveKey` function, existing keys untouched |
-| Deep dive HTML edits | Mark findings as "RESOLVED" rather than deleting — preserves audit trail |
+| Risk                                   | Mitigation                                                                  |
+| -------------------------------------- | --------------------------------------------------------------------------- |
+| singleflight changes Execute semantics | Only coalesces _concurrent identical loads_ — same return value, same error |
+| foreign_keys breaks existing DBs       | Helper function only, NOT enabled by default                                |
+| HKDF changes key format                | New `DeriveKey` function, existing keys untouched                           |
+| Deep dive HTML edits                   | Mark findings as "RESOLVED" rather than deleting — preserves audit trail    |
 
 ---
 
 ## Task List (sorted by impact / effort)
 
-| ID | Task | Module(s) | Impact | Effort | Type | Deps | Status |
-|----|------|-----------|--------|--------|------|------|--------|
-| T01 | Add `singleflight` to decider `loadFromStore` | decider | 🔴 High perf | 10m | Code | none | ⬜ |
-| T02 | Add `SQLiteEnableForeignKeys` helper | storage | 🟡 Integrity | 5m | Code | none | ⬜ |
-| T03 | Add `HKDF` key derivation helper + test | encryption | 🟡 Security | 10m | Code+Test | none | ⬜ |
-| T04 | Add test for narrowed journal scan correctness | pebble | 🔴 High test | 10m | Test | none | ⬜ |
-| T05 | Add test for `busy_timeout` PRAGMA | storage | 🟡 Med test | 8m | Test | none | ⬜ |
-| T06 | Add test for `rapidgen` generators | testutil | 🟡 Med test | 10m | Test | none | ⬜ |
-| T07 | Fix HTML pebble deep dive — mark Metrics/EventListener/scan as resolved | docs | 🟡 Med docs | 8m | Docs | none | ⬜ |
-| T08 | Fix HTML otel deep dive — mark AddEvent/Counter/ResourceAttrs as resolved | docs | 🟡 Med docs | 6m | Docs | none | ⬜ |
-| T09 | Fix HTML cbor deep dive — mark CompactCodec/Diagnose as resolved | docs | 🟢 Low docs | 4m | Docs | none | ⬜ |
-| T10 | Full lint + `nix fmt` on all changed modules | all | 🔴 Gate | 10m | Verify | T01-T09 | ⬜ |
+| ID  | Task                                                                      | Module(s)  | Impact       | Effort | Type      | Deps    | Status |
+| --- | ------------------------------------------------------------------------- | ---------- | ------------ | ------ | --------- | ------- | ------ |
+| T01 | Add `singleflight` to decider `loadFromStore`                             | decider    | 🔴 High perf | 10m    | Code      | none    | ⬜     |
+| T02 | Add `SQLiteEnableForeignKeys` helper                                      | storage    | 🟡 Integrity | 5m     | Code      | none    | ⬜     |
+| T03 | Add `HKDF` key derivation helper + test                                   | encryption | 🟡 Security  | 10m    | Code+Test | none    | ⬜     |
+| T04 | Add test for narrowed journal scan correctness                            | pebble     | 🔴 High test | 10m    | Test      | none    | ⬜     |
+| T05 | Add test for `busy_timeout` PRAGMA                                        | storage    | 🟡 Med test  | 8m     | Test      | none    | ⬜     |
+| T06 | Add test for `rapidgen` generators                                        | testutil   | 🟡 Med test  | 10m    | Test      | none    | ⬜     |
+| T07 | Fix HTML pebble deep dive — mark Metrics/EventListener/scan as resolved   | docs       | 🟡 Med docs  | 8m     | Docs      | none    | ⬜     |
+| T08 | Fix HTML otel deep dive — mark AddEvent/Counter/ResourceAttrs as resolved | docs       | 🟡 Med docs  | 6m     | Docs      | none    | ⬜     |
+| T09 | Fix HTML cbor deep dive — mark CompactCodec/Diagnose as resolved          | docs       | 🟢 Low docs  | 4m     | Docs      | none    | ⬜     |
+| T10 | Full lint + `nix fmt` on all changed modules                              | all        | 🔴 Gate      | 10m    | Verify    | T01-T09 | ⬜     |
 
 **Total: ~91 min across 10 tasks. Each ≤12 min.**
 
@@ -59,6 +59,7 @@ DB queries. `singleflight.Group` coalesces them into one query. `x/sync` is alre
 in `decider/go.mod` — promoting it to direct costs zero new deps.
 
 **How**:
+
 1. Add `loadGroup singleflight.Group` field to `Repository[State]` struct
 2. Wrap the `r.store.Load(ctx, ref)` call in `loadFromStore` with `r.loadGroup.Do(key, fn)`
 3. Key = `ref.Type + "/" + ref.ID.String()`
@@ -81,6 +82,7 @@ can't enable it by default (existing DBs may have orphaned references), a helper
 consumers opt in.
 
 **How**:
+
 1. Add `SQLiteEnableForeignKeys(ctx, db)` to `storage/sqlite_helpers.go`
 2. Executes `PRAGMA foreign_keys=ON`
 
@@ -96,6 +98,7 @@ consumers opt in.
 is already a direct dependency in `encryption/go.mod` — zero new deps.
 
 **How**:
+
 1. Add `DeriveKey(masterKey []byte, info string, length int) ([]byte, error)` to `encryption/`
 2. Uses `hkdf.New(sha256.New, masterKey, nil, []byte(info))`
 3. Add test verifying determinism (same master + info = same key) and uniqueness (different info = different key)
@@ -113,6 +116,7 @@ O(n)→O(log n) on projection catch-up. It has zero tests. If the narrowing logi
 catch-up silently stops returning events.
 
 **How**:
+
 1. Write 100 events to a pebble EventStore
 2. Call `ReadFrom(ctx, events[50].ID(), 10)` — should return events[51:60]
 3. Call `ReadFrom(ctx, events[99].ID(), 10)` — should return empty (nothing after last)
@@ -130,6 +134,7 @@ catch-up silently stops returning events.
 was actually applied.
 
 **How**:
+
 1. Open in-memory SQLite, call `SQLiteEnableWAL`
 2. Query `PRAGMA busy_timeout` and assert it returns 5000
 
@@ -145,6 +150,7 @@ was actually applied.
 `[no test files]`.
 
 **How**:
+
 1. Test `EventType()` generates strings matching the regex
 2. Test `AggregateType()` same
 3. Test `Version()` returns 1-10000
@@ -163,6 +169,7 @@ was actually applied.
 implemented.
 
 **How**:
+
 1. In the pebble deep dive `✗ Critical gaps` section, mark Metrics and EventListener as RESOLVED
 2. Update the "No SeekGE" finding to note the ULID timestamp narrowing approach
 3. Move resolved items to a "✓ Resolved" subsection
@@ -179,6 +186,7 @@ implemented.
 "No histogram boundaries" — all implemented.
 
 **How**:
+
 1. In the otel deep dive `✗ High-value gaps` section, mark all 4 as RESOLVED
 2. Update the `✗ Also unused` chips to remove AddEvent, Counter, boundaries
 
@@ -194,6 +202,7 @@ implemented.
 `CBORCompactCodec`.
 
 **How**:
+
 1. Mark the toarray and ExtraReturnErrors findings as RESOLVED
 2. Update the `✗ Also unused` chips to add CBORCompactCodec and Diagnose to the used list
 
@@ -208,6 +217,7 @@ implemented.
 **Why**: Quality gate. Every changed module must pass `golangci-lint` and `nix fmt` before push.
 
 **How**:
+
 1. Run `nix fmt`
 2. Run `golangci-lint` in: decider, storage, encryption, pebble, testutil
 3. Fix any issues found
@@ -261,10 +271,10 @@ graph TD
 
 ## What This Plan Does NOT Include (and Why)
 
-| Excluded | Reason |
-|----------|--------|
-| CBOR `TimeUnixDynamic` | serializableEvent uses `int64`, not `time.Time` — can't use native time encoding without wire format change |
-| samber/ro `BufferTime`/`Retry`/`Catch` | Architecture change to projection pipeline, not a gap closure |
-| Watermill `TestSuite` | Low ROI — adapter works, conformance tests add marginal value |
-| gomega `MatchJSON`/`ConsistOf` adoption | Test style improvement, not a feature gap |
-| Replacing `go-faster/yaml` | Churn for zero value |
+| Excluded                                | Reason                                                                                                      |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| CBOR `TimeUnixDynamic`                  | serializableEvent uses `int64`, not `time.Time` — can't use native time encoding without wire format change |
+| samber/ro `BufferTime`/`Retry`/`Catch`  | Architecture change to projection pipeline, not a gap closure                                               |
+| Watermill `TestSuite`                   | Low ROI — adapter works, conformance tests add marginal value                                               |
+| gomega `MatchJSON`/`ConsistOf` adoption | Test style improvement, not a feature gap                                                                   |
+| Replacing `go-faster/yaml`              | Churn for zero value                                                                                        |

@@ -45,15 +45,15 @@ func TestEventStore_ReadFrom_NarrowedScan_Midpoint(t *testing.T) {
 	t.Parallel()
 
 	store := newPebbleTestStore(t)
-	events := writeJournalEvents(t, store, 100) //nolint:mnd // test size
+	events := writeJournalEvents(t, store, 100)
 
 	// ReadFrom after events[50] with limit 10 → expect events[51:60].
-	result, err := store.ReadFrom(context.Background(), events[50].ID(), 10) //nolint:mnd // test limit
+	result, err := store.ReadFrom(context.Background(), events[50].ID(), 10)
 	if err != nil {
 		t.Fatalf("ReadFrom: %v", err)
 	}
 
-	if len(result) != 10 { //nolint:mnd // test limit
+	if len(result) != 10 {
 		t.Fatalf("got %d events, want 10", len(result))
 	}
 
@@ -68,10 +68,10 @@ func TestEventStore_ReadFrom_NarrowedScan_LastEvent(t *testing.T) {
 	t.Parallel()
 
 	store := newPebbleTestStore(t)
-	events := writeJournalEvents(t, store, 100) //nolint:mnd // test size
+	events := writeJournalEvents(t, store, 100)
 
 	// ReadFrom after the last event → expect empty.
-	result, err := store.ReadFrom(context.Background(), events[99].ID(), 10) //nolint:mnd // test limit
+	result, err := store.ReadFrom(context.Background(), events[99].ID(), 10)
 	if err != nil {
 		t.Fatalf("ReadFrom: %v", err)
 	}
@@ -85,15 +85,15 @@ func TestEventStore_ReadFrom_NarrowedScan_ZeroID(t *testing.T) {
 	t.Parallel()
 
 	store := newPebbleTestStore(t)
-	events := writeJournalEvents(t, store, 100) //nolint:mnd // test size
+	events := writeJournalEvents(t, store, 100)
 
 	// ReadFrom with zero ID → expect first 10 events.
-	result, err := store.ReadFrom(context.Background(), id.EventID{}, 10) //nolint:mnd // test limit
+	result, err := store.ReadFrom(context.Background(), id.EventID{}, 10)
 	if err != nil {
 		t.Fatalf("ReadFrom: %v", err)
 	}
 
-	if len(result) != 10 { //nolint:mnd // test limit
+	if len(result) != 10 {
 		t.Fatalf("got %d events, want 10", len(result))
 	}
 

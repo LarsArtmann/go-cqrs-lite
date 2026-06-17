@@ -17,12 +17,13 @@ import (
 // that ensures concurrent callers overlap, testing singleflight coalescing.
 type countLoadStore struct {
 	event.Store
+
 	count atomic.Int32
 }
 
 func (c *countLoadStore) Load(ctx context.Context, ref event.AggregateRef) ([]event.Event, error) {
 	c.count.Add(1)
-	time.Sleep(50 * time.Millisecond) //nolint:mnd // ensure goroutines overlap
+	time.Sleep(50 * time.Millisecond)
 
 	return c.Store.Load(ctx, ref)
 }

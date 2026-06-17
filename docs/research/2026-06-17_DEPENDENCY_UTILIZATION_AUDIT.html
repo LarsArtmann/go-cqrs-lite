@@ -1620,10 +1620,12 @@
             <div class="findings">
               <div class="finding resolved">
                 <div class="finding-body">
-                  <div class="finding-title">✓ <code>db.Metrics()</code> — LSM telemetry now exposed</div>
+                  <div class="finding-title">
+                    ✓ <code>db.Metrics()</code> — LSM telemetry now exposed
+                  </div>
                   <div class="finding-desc">
-                    <strong>RESOLVED:</strong> <code>Backend.Metrics()</code> exposes block cache hit rate,
-                    compaction debt, write-stall duration, WAL bytes, and memtable count.
+                    <strong>RESOLVED:</strong> <code>Backend.Metrics()</code> exposes block cache
+                    hit rate, compaction debt, write-stall duration, WAL bytes, and memtable count.
                     <code>BlockCacheHitRate()</code> method provides the key operational signal.
                   </div>
                 </div>
@@ -1642,12 +1644,13 @@
               <div class="finding resolved">
                 <div class="finding-body">
                   <div class="finding-title">
-                    ✓ <code>EventListener</code> — operational alerts wired via DefaultOptionsWithLogging
+                    ✓ <code>EventListener</code> — operational alerts wired via
+                    DefaultOptionsWithLogging
                   </div>
                   <div class="finding-desc">
                     <strong>RESOLVED:</strong> <code>DefaultOptionsWithLogging()</code> attaches a
-                    <code>pebble.EventListener</code> that logs WriteStallBegin, FlushEnd, CompactionEnd,
-                    DiskSlow, TableCreated/Deleted via slog.
+                    <code>pebble.EventListener</code> that logs WriteStallBegin, FlushEnd,
+                    CompactionEnd, DiskSlow, TableCreated/Deleted via slog.
                   </div>
                 </div>
               </div>
@@ -1657,15 +1660,18 @@
                     ✓ <code>ReadFrom</code> narrowed via ULID timestamp — O(log n) instead of O(n)
                   </div>
                   <div class="finding-desc">
-                    <strong>RESOLVED:</strong> <code>ReadFrom</code> now extracts the ULID timestamp from
-                    afterEventID and narrows the iterator lower bound (minus 1-minute buffer). Falls back
-                    to full scan if target not in narrowed range. Verified by 100-event scan tests.
+                    <strong>RESOLVED:</strong> <code>ReadFrom</code> now extracts the ULID timestamp
+                    from afterEventID and narrows the iterator lower bound (minus 1-minute buffer).
+                    Falls back to full scan if target not in narrowed range. Verified by 100-event
+                    scan tests.
                   </div>
                 </div>
               </div>
               <div class="finding resolved">
                 <div class="finding-body">
-                  <div class="finding-title">✓ Bloom <code>FilterPolicy</code> added via DefaultOptions</div>
+                  <div class="finding-title">
+                    ✓ Bloom <code>FilterPolicy</code> added via DefaultOptions
+                  </div>
                   <div class="finding-desc">
                     <strong>RESOLVED:</strong> <code>DefaultOptions()</code> includes
                     <code>bloom.FilterPolicy(10)</code> per level and concurrent compaction tuning.
@@ -1858,11 +1864,13 @@
               </div>
               <div class="finding resolved">
                 <div class="finding-body">
-                  <div class="finding-title">✓ <code>ExtraReturnErrors(UnknownField)</code> via CBORCompactCodec</div>
+                  <div class="finding-title">
+                    ✓ <code>ExtraReturnErrors(UnknownField)</code> via CBORCompactCodec
+                  </div>
                   <div class="finding-desc">
                     <strong>RESOLVED:</strong> <code>CBORCompactCodec</code> uses
-                    <code>ExtraReturnErrors(UnknownField)</code> for schema drift detection.
-                    Also includes <code>Diagnose()</code> for human-readable CBOR debugging.
+                    <code>ExtraReturnErrors(UnknownField)</code> for schema drift detection. Also
+                    includes <code>Diagnose()</code> for human-readable CBOR debugging.
                   </div>
                 </div>
               </div>
@@ -2014,7 +2022,9 @@
             <div class="findings">
               <div class="finding resolved">
                 <div class="finding-body">
-                  <div class="finding-title">✓ <code>span.AddEvent()</code> — structured span events added</div>
+                  <div class="finding-title">
+                    ✓ <code>span.AddEvent()</code> — structured span events added
+                  </div>
                   <div class="finding-desc">
                     <strong>RESOLVED:</strong> <code>otel.AddSpanEvent()</code> helper added.
                     Projection runner now emits span events for retry attempts and checkpoint saves.
@@ -2025,8 +2035,8 @@
                 <div class="finding-body">
                   <div class="finding-title">✓ <code>Int64Counter</code> instruments added</div>
                   <div class="finding-desc">
-                    <strong>RESOLVED:</strong> <code>OTelMetricsRecorder</code> now includes Int64Counter
-                    for events-saved, commands-dispatched, queries-handled via
+                    <strong>RESOLVED:</strong> <code>OTelMetricsRecorder</code> now includes
+                    Int64Counter for events-saved, commands-dispatched, queries-handled via
                     <code>NewOTelMetricsWithCounter()</code>.
                   </div>
                 </div>

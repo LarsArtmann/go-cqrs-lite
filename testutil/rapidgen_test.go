@@ -4,8 +4,9 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/testutil/v2"
 	"pgregory.net/rapid"
+
+	"github.com/larsartmann/go-cqrs-lite/testutil/v2"
 )
 
 var eventPattern = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9._-]{2,63}$`)
@@ -40,7 +41,7 @@ func TestVersion_GeneratesInRange(t *testing.T) {
 		if val < 1 {
 			t.Errorf("Version() = %d, want >= 1", val)
 		}
-		if val > 10000 { //nolint:mnd // test range
+		if val > 10000 {
 			t.Errorf("Version() = %d, want <= 10000", val)
 		}
 	})

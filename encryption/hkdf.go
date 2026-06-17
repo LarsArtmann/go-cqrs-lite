@@ -36,7 +36,8 @@ func DeriveKey(masterKey []byte, info string, length int) ([]byte, error) {
 	reader := hkdf.New(sha256.New, masterKey, nil, []byte(info))
 	key := make([]byte, length)
 
-	if _, err := io.ReadFull(reader, key); err != nil {
+	_, err := io.ReadFull(reader, key)
+	if err != nil {
 		return nil, event.WrapInfrastructure(
 			err,
 			"encryption.derive_key",
