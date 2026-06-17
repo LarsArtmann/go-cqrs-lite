@@ -1,6 +1,9 @@
 package codec
 
-import "encoding/json"
+import (
+	"bytes"
+	"encoding/json"
+)
 
 // JSONCodec implements Codec using encoding/json.
 type JSONCodec struct{}
@@ -19,4 +22,11 @@ func (JSONCodec) Encode(v any) ([]byte, error) {
 func (JSONCodec) Decode(data []byte, v any) error {
 	//nolint:wrapcheck // thin wrapper over json.Unmarshal
 	return json.Unmarshal(data, v)
+}
+
+// EncodeToBuffer writes JSON encoding of v directly into buf,
+// avoiding the allocation that Encode returns. Implements BufferEncoder.
+func (JSONCodec) EncodeToBuffer(v any, buf *bytes.Buffer) error {
+	//nolint:wrapcheck // thin wrapper over json.Encoder.Encode
+	return json.NewEncoder(buf).Encode(v)
 }

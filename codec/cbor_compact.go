@@ -1,6 +1,10 @@
 package codec
 
-import "github.com/fxamacker/cbor/v2"
+import (
+	"bytes"
+
+	"github.com/fxamacker/cbor/v2"
+)
 
 // CBORCompactCodec is an opt-in Codec that uses stricter decoding than CBORCodec.
 // It uses CoreDetEncOptions (RFC 8949 "Core Deterministic") for encoding and
@@ -66,4 +70,11 @@ func (CBORCompactCodec) Encode(v any) ([]byte, error) {
 func (CBORCompactCodec) Decode(data []byte, v any) error {
 	//nolint:wrapcheck // thin wrapper over cbor DecMode.Unmarshal
 	return compactDecMode.Unmarshal(data, v)
+}
+
+// EncodeToBuffer writes compact CBOR encoding of v directly into buf,
+// avoiding the allocation that Encode returns. Implements BufferEncoder.
+func (CBORCompactCodec) EncodeToBuffer(v any, buf *bytes.Buffer) error {
+	//nolint:wrapcheck // thin wrapper over cbor Encoder.Encode
+	return compactEncMode.NewEncoder(buf).Encode(v)
 }

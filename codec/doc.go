@@ -24,4 +24,39 @@
 // that wraps any Codec with transparent encrypt-on-encode / decrypt-on-decode.
 // It reports its own encoding ("encrypted") and is used with event.WithCodec
 // to create events with encrypted payloads.
+//
+// # CBOR Compact Encoding (toarray)
+//
+// For maximum payload size reduction (~30-40%), add the cbor:",toarray" struct
+// tag to event payload types. This encodes structs as positional CBOR arrays
+// instead of keyed maps, eliminating field-name string overhead entirely.
+//
+//	type UserCreated struct {
+//	    _     struct{} `cbor:",toarray"`
+//	    Name  string
+//	    Email string
+//	    Time  int64
+//	}
+//
+// Without toarray (map encoding):  {"Name":"Alice","Email":"a@b.com","Time":1700000000}
+// With toarray (array encoding):   ["Alice","a@b.com",1700000000]
+//
+// The toarray tag works with both CBORCodec and CBORCompactCodec. It is a
+// per-type decision — mix array-encoded and map-encoded types freely. Once a
+// struct uses toarray, field ORDER is part of the wire format and cannot be
+// reordered without breaking existing data. Add new fields only at the end.
+//
+// For additional compactness, use CBORCompactCodec (CoreDetEncOptions +
+// ExtraReturnErrors for schema drift detection). See CBORCompactCodec docs.
+//
+// # Zero-Allocation Encoding
+//
+// Codecs that implement the BufferEncoder interface can write directly into a
+// caller-provided bytes.Buffer, avoiding the allocation returned by Encode.
+// This is useful in hot paths where buffer reuse eliminates GC pressure.
+//
+//	buf := &bytes.Buffer{}
+//	if be, ok := codec.(codec.BufferEncoder); ok {
+//	    _ = be.EncodeToBuffer(payload, buf)
+//	}
 package codec

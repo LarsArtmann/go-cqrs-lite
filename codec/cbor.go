@@ -1,6 +1,10 @@
 package codec
 
-import "github.com/fxamacker/cbor/v2"
+import (
+	"bytes"
+
+	"github.com/fxamacker/cbor/v2"
+)
 
 // CBORCodec implements Codec using fxamacker/cbor with canonical encoding
 // (RFC 7049: sorted map keys, shortest floats). Canonical mode is deterministic,
@@ -67,4 +71,11 @@ func (CBORCodec) Decode(data []byte, v any) error {
 func Diagnose(data []byte) (string, error) {
 	//nolint:wrapcheck // thin wrapper over cbor.Diagnose
 	return cbor.Diagnose(data)
+}
+
+// EncodeToBuffer writes canonical CBOR encoding of v directly into buf,
+// avoiding the allocation that Encode returns. Implements BufferEncoder.
+func (CBORCodec) EncodeToBuffer(v any, buf *bytes.Buffer) error {
+	//nolint:wrapcheck // thin wrapper over cbor Encoder.Encode
+	return cborEncMode.NewEncoder(buf).Encode(v)
 }

@@ -565,3 +565,47 @@ func TestCBORCodec_Decode_RejectsDuplicateKeys(t *testing.T) {
 		t.Fatalf("Decode valid map: %v", err)
 	}
 }
+
+func TestBufferEncoder_AllCodecs(t *testing.T) {
+	t.Parallel()
+
+	type payload struct {
+		Name string
+		Age  int
+	}
+	original := payload{Name: "Alice", Age: 30}
+
+	codecs := []struct {
+		name string
+		c    Codec
+	}{
+		{"JSON", JSONCodec{}},
+		{"CBOR", CBORCodec{}},
+		{"CBORCompact", CBORCompactCodec{}},
+	}
+
+	for _, tc := range codecs {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			bufEncoder, ok := tc.c.(BufferEncoder)
+			if !ok {
+				t.Fatalf("%s does not implement BufferEncoder", tc.name)
+			}
+
+			buf := &bytes.Buffer{}
+			if err := bufEncoder.EncodeToBuffer(original, buf); err != nil {
+				t.Fatalf("EncodeToBuffer: %v", err)
+			}
+
+			var decoded payload
+			if err := tc.c.Decode(buf.Bytes(), &decoded); err != nil {
+				t.Fatalf("Decode: %v", err)
+			}
+
+			if decoded.Name != original.Name || decoded.Age != original.Age {
+				t.Errorf("round-trip mismatch: got %+v, want %+v", decoded, original)
+			}
+		})
+	}
+}
