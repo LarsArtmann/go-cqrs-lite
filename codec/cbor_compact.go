@@ -2,19 +2,19 @@ package codec
 
 import "github.com/fxamacker/cbor/v2"
 
-// CBORCompactCodec is an opt-in Codec that produces smaller CBOR output by
-// encoding structs as positional arrays (toarray) instead of maps.
+// CBORCompactCodec is an opt-in Codec that uses stricter decoding than CBORCodec.
+// It uses CoreDetEncOptions (RFC 8949 "Core Deterministic") for encoding and
+// ExtraReturnErrors(UnknownField) for decoding — rejecting unknown fields on
+// decode as a schema drift detection mechanism.
 //
 // This codec is NOT compatible with data written by CBORCodec (which uses
-// map encoding). Use it only for new event stores where backward compatibility
-// with CBORCodec-encoded data is not required.
+// CanonicalEncOptions with length-first sort). Use it only for new event stores.
 //
-// For existing data, continue using CBORCodec. For new stores where payload
-// size matters (e.g., high-volume event stores), CBORCompactCodec can reduce
-// encoded size by 30-40% by eliminating field-name string keys.
-//
-// Encoding mode: CoreDetEncOptions (RFC 8949 "Core Deterministic").
-// Decoding mode: DupMapKey enforcement + unknown field error (strict).
+// For even smaller payloads, consumers should add `cbor:",toarray"` struct tags
+// to their event payload types. This encodes structs as positional CBOR arrays
+// instead of maps, eliminating field-name string keys (~30-40% reduction).
+// The toarray tag is separate from this codec — the codec enables the strict
+// encoding/decoding modes, and the consumer opts into per-type compactness.
 //
 //	type MyEvent struct {
 //	    _           struct{} `cbor:",toarray"`
@@ -22,8 +22,6 @@ import "github.com/fxamacker/cbor/v2"
 //	    Payload     []byte
 //	    OccurredAt  int64
 //	}
-//	// Encodes as [3]("event-id", bytes, 1234567890) instead of
-//	// {1: "event-id", 2: bytes, 3: 1234567890}
 type CBORCompactCodec struct{}
 
 var _ Codec = CBORCompactCodec{}

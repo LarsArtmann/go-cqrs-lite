@@ -67,7 +67,7 @@ func (a *EventStore) ReadFrom(
 
 	// Fast path: no afterEventID, collect from beginning.
 	if afterEventID.IsZero() {
-		events, err := a.scanJournal([]byte(a.journalPrefix), upperBound, "", limit)
+		events, _, err := a.scanJournalWithSkip([]byte(a.journalPrefix), upperBound, "", limit)
 		if err != nil {
 			cqrsotel.RecordError(span, err)
 			return nil, err
@@ -106,16 +106,6 @@ func (a *EventStore) ReadFrom(
 // journalSeekBuffer is subtracted from the ULID timestamp to create a
 // conservative lower bound for narrowed journal scans.
 const journalSeekBuffer = time.Minute
-
-// scanJournal scans between bounds and collects up to limit events.
-func (a *EventStore) scanJournal(
-	lowerBound, upperBound []byte,
-	_ string,
-	limit int,
-) ([]event.Event, error) {
-	events, _, err := a.scanJournalWithSkip(lowerBound, upperBound, "", limit)
-	return events, err
-}
 
 // scanJournalWithSkip scans between bounds. If targetID is non-empty, events
 // are skipped until the matching journal key is found.

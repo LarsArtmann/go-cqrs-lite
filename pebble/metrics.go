@@ -14,6 +14,17 @@ type PebbleMetrics struct {
 	CompactionDurationNanos int64
 }
 
+// BlockCacheHitRate returns the block cache hit rate as a fraction [0.0, 1.0].
+// Returns 0.0 when there are no cache accesses yet.
+func (m PebbleMetrics) BlockCacheHitRate() float64 {
+	total := m.BlockCacheHits + m.BlockCacheMisses
+	if total == 0 {
+		return 0
+	}
+
+	return float64(m.BlockCacheHits) / float64(total)
+}
+
 // Metrics returns key operational metrics from the underlying Pebble database.
 // Use these for health checks, capacity planning, and performance debugging.
 func (b *Backend) Metrics() PebbleMetrics {

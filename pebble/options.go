@@ -1,6 +1,7 @@
 package pebble
 
 import (
+	"fmt"
 	"log/slog"
 
 	"github.com/cockroachdb/pebble"
@@ -32,10 +33,6 @@ func DefaultOptions() *pebble.Options {
 	// Concurrent compactions improve write throughput on multi-core systems.
 	opts.MaxConcurrentCompactions = func() int { return 4 } //nolint:mnd // 4 compactions for multi-core
 
-	// Disable error-on-exists so Open succeeds on existing directories.
-	opts.ErrorIfNotExists = false
-	opts.ErrorIfExists = false
-
 	return opts
 }
 
@@ -57,9 +54,9 @@ type pebbleLogger struct {
 }
 
 func (l pebbleLogger) Infof(format string, args ...any) {
-	l.logger.Info("pebble: " + format)
+	l.logger.Info(fmt.Sprintf(format, args...))
 }
 
 func (l pebbleLogger) Fatalf(format string, args ...any) {
-	l.logger.Error("pebble fatal: " + format)
+	l.logger.Error(fmt.Sprintf(format, args...))
 }
