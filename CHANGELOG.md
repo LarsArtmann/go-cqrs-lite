@@ -6,6 +6,45 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2.5.0] - 2026-06-18
+
+70 commits since v2.4.0. Pebble backup/retention/consistent reads, OpenTelemetry baggage correlation + metric views + propagator, load coalescing via singleflight, HKDF multi-tenant key derivation, CBOR streaming, reactive event dedup operators, Watermill middleware wrappers, and turso race fixes. No breaking API changes.
+
+### Added
+
+- **Pebble backup, retention, and consistent reads** (`pebble/`) — `PebbleBackend.Checkpoint(dir)` for point-in-time DB snapshots, `DeleteEventsBefore(ts)` for journal retention, and `NewSnapshot()` for consistent read views via Pebble snapshots
+- **OTel baggage correlation IDs** (`otel/`) — `WithCorrelationID(ctx, id)` and `CorrelationIDFromContext(ctx)` propagate correlation IDs across distributed service boundaries via W3C baggage
+- **OTel TextMapPropagator** (`otel/`) — `NewTextMapPropagator()` implements W3C trace context + baggage propagation for inject/extract across transports
+- **OTel CQRS metric views** (`otel/`) — `NewCQRSViews()` configures customized histogram boundaries (`CQRSHistogramBoundaries`) for CQRS latency ranges; `ServiceResourceAttributes()` for service identification; `CounterAddWithAttributes()` and `AddSpanEvent()` helpers for rate metrics and span events
+- **Decider load coalescing via singleflight** (`decider/`) — `Repository[State]` now coalesces concurrent `Load` calls for the same aggregate into one `store.Load` query. Events are immutable (`*ImmutableEvent`), so sharing the loaded slice is safe. Disable via `WithLoadCoalescing[State](false)`
+- **HKDF key derivation** (`encryption/`) — `DeriveKey(masterKey, info, length)` derives per-tenant/subscope keys via HKDF-SHA256, enabling multi-tenant encryption without separate master keys
+- **SQLite foreign keys helper** (`storage/`) — `SQLiteEnableForeignKeys(ctx, db)` enables `PRAGMA foreign_keys=ON` for opt-in referential integrity
+- **Codec BufferEncoder interface** (`codec/`) — `BufferEncoder` extension enables zero-allocation encoding directly into a caller-provided `*bytes.Buffer` via `EncodeToBuffer(payload, buf)`, bypassing intermediate allocations
+- **Event stream deduplication operators** (`event/`) — `DistinctByEventID()` suppresses duplicate event IDs; `DistinctByAggregateID()` keeps only the first event per aggregate. Composable via `ro.Pipe1`
+- **Watermill middleware wrappers** (`watermill/`) — `CorrelationIDMiddleware()` and `NewRetryMiddleware(config)` for Watermill routers, plus Router integration support
+- **CBOR streaming and compact codec docs** (`codec/`) — `CBORCompactCodec` documentation (struct fields as positional array, ~35% smaller payloads); `Diagnose()` for human-readable CBOR debugging
+- **Testutil seed control** (`testutil/`) — seed control helper and rapid testing generator patterns for reproducible randomized tests
+
+### Changed
+
+- **Dependency upgrades** — `go-error-family` v0.3.0 → v0.4.0; `go-branded-id` v0.3.0 → v0.3.1 across all consuming modules
+- **API surface growth** — 1266 → 1289 exports (29 new public symbols), golden file updated
+- **Testutil ghost API removal** (`testutil/`) — removed non-functional `EventSlice` and `SeedFromEnv` exports (dead code that never worked; technically a public surface reduction but no behavioral impact)
+
+### Fixed
+
+- **Turso CheckpointScheduler race** (`turso/indexing/`) — `Stop()` now drains the checkpoint goroutine via a `done` channel before returning, preventing goroutine leaks and races on repeated Start/Stop cycles
+- **Turso parallel test flakiness** (`turso/`) — eliminated flaky parallel test failures by isolating state and increasing checkpoint test timing margins
+- **Decider singleflight error passthrough** (`decider/`) — singleflight errors now pass through verbatim instead of being wrapped with `fmt.Errorf`, preserving error classification (Rejection/Conflict/etc.) via `errors.Is`
+- **OTel NewCQRSViews wildcard** (`otel/`) — corrected view instrument name wildcard matching so all CQRS histograms receive custom boundaries
+- **Production dependency budget accuracy** (`scripts/check-module-layers.sh`) — test-only packages (gomega, ginkgo, rapid) now excluded from the production dep count, reflecting true direct dependency budgets
+
+### Infrastructure
+
+- **Watermill Router integration test** — end-to-end test for CorrelationID + Retry middleware through a real Watermill Router
+
+## [2.4.0] - 2026-06-17
+
 15 performance optimizations across 7 modules. No public API changes, no disk format changes, no breaking behavior. Verified with 5-run benchmark averages (allocation deltas are deterministic and reliable; ns/op has ±15% variance), tests + race detector + lint.
 
 ### Performance

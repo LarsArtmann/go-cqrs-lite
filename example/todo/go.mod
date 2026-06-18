@@ -4,15 +4,15 @@ go 1.26.3
 
 require (
 	github.com/cockroachdb/pebble v1.1.5
-	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.4.0
-	github.com/larsartmann/go-cqrs-lite/command/v2 v2.4.0
-	github.com/larsartmann/go-cqrs-lite/decider/v2 v2.4.0
-	github.com/larsartmann/go-cqrs-lite/event/v2 v2.4.0
-	github.com/larsartmann/go-cqrs-lite/id/v2 v2.4.0
-	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.4.0
-	github.com/larsartmann/go-cqrs-lite/pebble/v2 v2.4.0
-	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.4.0
-	github.com/larsartmann/go-cqrs-lite/query/v2 v2.4.0
+	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.5.0
+	github.com/larsartmann/go-cqrs-lite/command/v2 v2.5.0
+	github.com/larsartmann/go-cqrs-lite/decider/v2 v2.5.0
+	github.com/larsartmann/go-cqrs-lite/event/v2 v2.5.0
+	github.com/larsartmann/go-cqrs-lite/id/v2 v2.5.0
+	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.5.0
+	github.com/larsartmann/go-cqrs-lite/pebble/v2 v2.5.0
+	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.5.0
+	github.com/larsartmann/go-cqrs-lite/query/v2 v2.5.0
 )
 
 require (
@@ -35,10 +35,10 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/kv/v2 v2.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.4.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/kv/v2 v2.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.5.0 // indirect
 	github.com/larsartmann/go-error-family v0.4.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
