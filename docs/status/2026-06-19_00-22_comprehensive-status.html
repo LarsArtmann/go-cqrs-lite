@@ -814,7 +814,10 @@
           </div>
           <div class="hero-badge">Status Report &middot; 2026-06-19</div>
           <h1>go-cqrs-lite Comprehensive Status</h1>
-          <p class="hero-subtitle">CQRS-HTMX upstream gaps resolved, API consistency achieved, 30-module Go library healthy and green.</p>
+          <p class="hero-subtitle">
+            CQRS-HTMX upstream gaps resolved, API consistency achieved, 30-module Go library healthy
+            and green.
+          </p>
         </div>
 
         <!-- Inline TOC (alternative to sidebar; pick one) -->
@@ -863,12 +866,21 @@
 
         <div class="card card-solution">
           <h4>Build / Test / Lint: ALL GREEN</h4>
-          <p><strong>nix run .#build</strong> &mdash; 30 modules compile. <strong>nix run .#test</strong> &mdash; 30+ packages pass with <code>-race</code> on id + projection. <strong>nix run .#lint</strong> &mdash; 0 issues across 24 linted modules. <strong>api-stability</strong> &mdash; 1328 exports verified against golden file.</p>
+          <p>
+            <strong>nix run .#build</strong> &mdash; 30 modules compile.
+            <strong>nix run .#test</strong> &mdash; 30+ packages pass with <code>-race</code> on id
+            + projection. <strong>nix run .#lint</strong> &mdash; 0 issues across 24 linted modules.
+            <strong>api-stability</strong> &mdash; 1328 exports verified against golden file.
+          </p>
         </div>
 
         <div class="card">
           <h4>Git State</h4>
-          <p>Branch <code>master</code>, clean tree, all commits pushed to origin. Last commit: <code>0e8a66a7</code> (docs(projection): add ExampleRunner). 7 commits in this session arc addressing cqrs-htmx upstream gaps.</p>
+          <p>
+            Branch <code>master</code>, clean tree, all commits pushed to origin. Last commit:
+            <code>0e8a66a7</code> (docs(projection): add ExampleRunner). 7 commits in this session
+            arc addressing cqrs-htmx upstream gaps.
+          </p>
         </div>
 
         <!-- ==================== FULLY DONE ==================== -->
@@ -876,47 +888,93 @@
 
         <div class="card card-solution">
           <h4>Gap #1: Projection replay/live split</h4>
-          <p><code>Runner.RunReplay(ctx)</code> (synchronous catch-up) + <code>Runner.RunLive(ctx)</code> (background tail) shipped. 3-state atomic lifecycle (<code>idle&rarr;ready&rarr;live</code>) with <code>CompareAndSwap</code> guards makes invalid transitions unrepresentable. <code>ErrReplayRequired</code> returned if <code>RunLive</code> called before <code>RunReplay</code>. <code>Run()</code> preserved as convenience wrapper. 6 tests covering read-your-writes, double-call guards, Close safety, concurrent corruption. <code>ExampleRunner</code> godoc shows the pattern.</p>
+          <p>
+            <code>Runner.RunReplay(ctx)</code> (synchronous catch-up) +
+            <code>Runner.RunLive(ctx)</code> (background tail) shipped. 3-state atomic lifecycle
+            (<code>idle&rarr;ready&rarr;live</code>) with <code>CompareAndSwap</code> guards makes
+            invalid transitions unrepresentable. <code>ErrReplayRequired</code> returned if
+            <code>RunLive</code> called before <code>RunReplay</code>. <code>Run()</code> preserved
+            as convenience wrapper. 6 tests covering read-your-writes, double-call guards, Close
+            safety, concurrent corruption. <code>ExampleRunner</code> godoc shows the pattern.
+          </p>
         </div>
 
         <div class="card card-solution">
           <h4>Gap #2: Exported marker types</h4>
-          <p>All 8 phantom marker types exported (<code>AggregateMarker</code>, <code>UserMarker</code>, <code>CorrelationMarker</code>, <code>RequestMarker</code>, <code>CausationMarker</code>, <code>ClientMarker</code>, <code>CommandMarker</code>, <code>EventMarker</code>). External-package test (<code>id_test</code>) proves downstream usability. ADR-0024 records the decision and rationale.</p>
+          <p>
+            All 8 phantom marker types exported (<code>AggregateMarker</code>,
+            <code>UserMarker</code>, <code>CorrelationMarker</code>, <code>RequestMarker</code>,
+            <code>CausationMarker</code>, <code>ClientMarker</code>, <code>CommandMarker</code>,
+            <code>EventMarker</code>). External-package test (<code>id_test</code>) proves
+            downstream usability. ADR-0024 records the decision and rationale.
+          </p>
         </div>
 
         <div class="card card-solution">
           <h4>Documentation closed out</h4>
-          <p>SKILL.md updated with RunReplay+RunLive example (was stale <code>runner.Run</code>). CHANGELOG Unreleased section lists all 8 markers. FEATURES.md updated. Feedback doc marked RESOLVED with commit refs. ADR-0024 + index entry. projection/README.md read-your-writes section. projection/doc.go package docs.</p>
+          <p>
+            SKILL.md updated with RunReplay+RunLive example (was stale <code>runner.Run</code>).
+            CHANGELOG Unreleased section lists all 8 markers. FEATURES.md updated. Feedback doc
+            marked RESOLVED with commit refs. ADR-0024 + index entry. projection/README.md
+            read-your-writes section. projection/doc.go package docs.
+          </p>
         </div>
 
         <div class="card card-solution">
           <h4>Core library modules (24 library + 3 example + 2 cmd + 1 integration)</h4>
-          <p>All 30 modules compile independently with <code>GOWORK=off</code>. Multi-module workspace via <code>go.work</code>. Layer-0 through Layer-6 dependency graph clean. Per-module <code>go.mod</code> with dependency budgets enforced by <code>nix run .#check-layers</code>.</p>
+          <p>
+            All 30 modules compile independently with <code>GOWORK=off</code>. Multi-module
+            workspace via <code>go.work</code>. Layer-0 through Layer-6 dependency graph clean.
+            Per-module <code>go.mod</code> with dependency budgets enforced by
+            <code>nix run .#check-layers</code>.
+          </p>
         </div>
 
         <div class="card card-solution">
           <h4>Security &amp; crypto stack</h4>
-          <p>HMAC-SHA256 + Ed25519 event signing (multisig support). XChaCha20-Poly1305 + AES-256-GCM encryption with HKDF key derivation for multi-tenant. Event causality tracking. Tombstone soft-delete. All production deps vetted.</p>
+          <p>
+            HMAC-SHA256 + Ed25519 event signing (multisig support). XChaCha20-Poly1305 + AES-256-GCM
+            encryption with HKDF key derivation for multi-tenant. Event causality tracking.
+            Tombstone soft-delete. All production deps vetted.
+          </p>
         </div>
 
         <div class="card card-solution">
           <h4>Observability</h4>
-          <p>OTel tracing + metrics through <code>otel/</code> re-export module (not direct go.opentelemetry.io imports). CQRS histogram views, baggage correlation IDs, W3C propagator. <code>NewCQRSViews</code> wildcard bug fixed. <code>AddSpanEvent</code> for projection retry observability.</p>
+          <p>
+            OTel tracing + metrics through <code>otel/</code> re-export module (not direct
+            go.opentelemetry.io imports). CQRS histogram views, baggage correlation IDs, W3C
+            propagator. <code>NewCQRSViews</code> wildcard bug fixed. <code>AddSpanEvent</code> for
+            projection retry observability.
+          </p>
         </div>
 
         <div class="card card-solution">
           <h4>Storage backends</h4>
-          <p>SQL (Postgres/SQLite/Turso) with shared <code>*sql.DB</code> facade. Pebble embedded KV with backup/retention/consistent reads. KV abstraction (<code>kv.Store</code>) with Pebble adapter (ADR-0023). Reactive event/command/query buses via samber/ro.</p>
+          <p>
+            SQL (Postgres/SQLite/Turso) with shared <code>*sql.DB</code> facade. Pebble embedded KV
+            with backup/retention/consistent reads. KV abstraction (<code>kv.Store</code>) with
+            Pebble adapter (ADR-0023). Reactive event/command/query buses via samber/ro.
+          </p>
         </div>
 
         <div class="card card-solution">
           <h4>API stability contract</h4>
-          <p><code>cmd/api-stability</code> golden file tracks 1328 exports. Any added/removed/changed export is detected on CI. Run from <code>cmd/api-stability/</code> directory (gotcha: relative path computation).</p>
+          <p>
+            <code>cmd/api-stability</code> golden file tracks 1328 exports. Any
+            added/removed/changed export is detected on CI. Run from
+            <code>cmd/api-stability/</code> directory (gotcha: relative path computation).
+          </p>
         </div>
 
         <div class="card card-solution">
           <h4>v2.5.0 release shipped</h4>
-          <p>70 commits since v2.4.0. Pebble backup/retention/consistent reads, OTel baggage + metric views + propagator, load coalescing via singleflight, HKDF multi-tenant key derivation, CBOR streaming, reactive event dedup operators, Watermill middleware wrappers, turso race fixes. No breaking API changes.</p>
+          <p>
+            70 commits since v2.4.0. Pebble backup/retention/consistent reads, OTel baggage + metric
+            views + propagator, load coalescing via singleflight, HKDF multi-tenant key derivation,
+            CBOR streaming, reactive event dedup operators, Watermill middleware wrappers, turso
+            race fixes. No breaking API changes.
+          </p>
         </div>
 
         <!-- ==================== PARTIALLY DONE ==================== -->
@@ -924,27 +982,49 @@
 
         <div class="card card-warning">
           <h4>Projection dedup integration</h4>
-          <p><code>event.DistinctByEventID()</code> and <code>event.DistinctByAggregateID()</code> shipped in event module (samber/ro operators), but NOT wired into projection Runner catch-up. There's a replay&rarr;live dedup gap where the same event could theoretically be processed twice across the boundary. Needs reactive pipeline refactor of <code>projection/runner.go</code>.</p>
+          <p>
+            <code>event.DistinctByEventID()</code> and
+            <code>event.DistinctByAggregateID()</code> shipped in event module (samber/ro
+            operators), but NOT wired into projection Runner catch-up. There's a replay&rarr;live
+            dedup gap where the same event could theoretically be processed twice across the
+            boundary. Needs reactive pipeline refactor of <code>projection/runner.go</code>.
+          </p>
         </div>
 
         <div class="card card-warning">
           <h4>OTel baggage &rarr; event enricher</h4>
-          <p><code>WithCorrelationID</code>/<code>CorrelationIDFromContext</code> exist in otel module, but there's no automatic enricher that reads baggage and sets domain correlation ID on events. Manual wiring required. Low effort, high consistency value.</p>
+          <p>
+            <code>WithCorrelationID</code>/<code>CorrelationIDFromContext</code> exist in otel
+            module, but there's no automatic enricher that reads baggage and sets domain correlation
+            ID on events. Manual wiring required. Low effort, high consistency value.
+          </p>
         </div>
 
         <div class="card card-warning">
           <h4>Pebble coverage</h4>
-          <p>Currently ~84%. Target 85%+. Error branches in <code>helpers.go</code> and <code>serialization.go</code> need coverage. 6 benchmarks exist (Save100, SaveLoad100, Save1, LoadEmpty). KV contract tests (10-test suite) prove adapter equivalence.</p>
+          <p>
+            Currently ~84%. Target 85%+. Error branches in <code>helpers.go</code> and
+            <code>serialization.go</code> need coverage. 6 benchmarks exist (Save100, SaveLoad100,
+            Save1, LoadEmpty). KV contract tests (10-test suite) prove adapter equivalence.
+          </p>
         </div>
 
         <div class="card card-warning">
           <h4>catalog/ AsyncAPI / OpenAPI / D2 exporters</h4>
-          <p>All 4 exporters have golden tests and produce valid output. But they have zero external consumers in this repo (expected for a library). The quality gate is &quot;would a consumer trust this?&quot; &mdash; needs real-world validation.</p>
+          <p>
+            All 4 exporters have golden tests and produce valid output. But they have zero external
+            consumers in this repo (expected for a library). The quality gate is &quot;would a
+            consumer trust this?&quot; &mdash; needs real-world validation.
+          </p>
         </div>
 
         <div class="card card-warning">
           <h4>Schema evolution (schema/)</h4>
-          <p><code>Upcaster</code> and <code>VersionedStore</code> are functional and tested. ADR-0017 (schema registry middleware with JSON Schema validation) is Proposed but not implemented. The infrastructure exists but the validation gate doesn't.</p>
+          <p>
+            <code>Upcaster</code> and <code>VersionedStore</code> are functional and tested.
+            ADR-0017 (schema registry middleware with JSON Schema validation) is Proposed but not
+            implemented. The infrastructure exists but the validation gate doesn't.
+          </p>
         </div>
 
         <!-- ==================== NOT STARTED ==================== -->
@@ -952,7 +1032,10 @@
 
         <div class="card">
           <h4>Schema registry middleware (ADR-0017)</h4>
-          <p>JSON Schema validation middleware for events. Infrastructure in <code>catalog/schema/</code> exists. Status: Proposed.</p>
+          <p>
+            JSON Schema validation middleware for events. Infrastructure in
+            <code>catalog/schema/</code> exists. Status: Proposed.
+          </p>
         </div>
 
         <div class="card">
@@ -962,12 +1045,18 @@
 
         <div class="card">
           <h4>Prometheus metrics exporter</h4>
-          <p>OTel&rarr;Prometheus bridge to replace custom <code>MetricsRecorder</code> in <code>middleware/</code>.</p>
+          <p>
+            OTel&rarr;Prometheus bridge to replace custom <code>MetricsRecorder</code> in
+            <code>middleware/</code>.
+          </p>
         </div>
 
         <div class="card">
           <h4>Streaming event reads</h4>
-          <p><code>EventIterator</code> interface for <code>event.Store</code> to avoid materializing full slices. Currently all reads return <code>[]Event</code>.</p>
+          <p>
+            <code>EventIterator</code> interface for <code>event.Store</code> to avoid materializing
+            full slices. Currently all reads return <code>[]Event</code>.
+          </p>
         </div>
 
         <div class="card">
@@ -985,76 +1074,330 @@
           <p>Docusaurus / MkDocs / Hugo. No work started.</p>
         </div>
 
-        <!-- Table with Badges -->
-        <h2>Issue Table</h2>
+        <!-- ==================== TOTALLY FUCKED UP ==================== -->
+        <h2 id="broken"><span class="num">04</span>Totally Fucked Up</h2>
+
+        <div class="card card-solution">
+          <h4>Nothing is critically broken</h4>
+          <p>
+            Build passes. Tests pass. Lint is clean. API stability verified. No blocking issues. The
+            codebase is in a healthy state.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>gopls false positives: 17 "pgregory.net/rapid not in go.mod" diagnostics</h4>
+          <p>
+            <strong>These are NOT real errors.</strong> The dependency IS declared in all 8 module
+            go.mod files (command, decider, encryption, event, id, integration, query, testutil).
+            Tests compile and pass with <code>GOWORK=off go test</code>. The gopls LSP doesn't
+            understand the per-module go.mod workspace structure and reports phantom "go mod tidy"
+            errors. This is a <strong>tooling annoyance, not a code issue</strong>, but it pollutes
+            the diagnostics panel and erodes trust.
+          </p>
+          <div class="callout callout-warning">
+            <strong>Impact</strong>
+            Noise in IDE. May mask real errors. Confusing for new contributors who see 17 red
+            squiggles on clean code.
+          </div>
+        </div>
+
+        <!-- ==================== IMPROVE ==================== -->
+        <h2 id="improve"><span class="num">05</span>What We Should Improve</h2>
+
+        <div class="card card-problem">
+          <h4>1. Close projection replay&rarr;live dedup gap</h4>
+          <p>
+            <code>event.DistinctByEventID()</code> exists but isn't wired into the Runner. An event
+            processed at the replay/live boundary could be handled twice. This is the highest-value
+            incomplete work for consumer correctness.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>2. Fix or suppress gopls false-positive diagnostics</h4>
+          <p>
+            17 phantom "pgregory.net/rapid not in go.mod" errors. Either: (a) add a workspace-level
+            gopls hint file, (b) file a gopls issue for multi-module workspace support, or (c) add
+            inline <code>//nolint</code> suppressions. Option (a) is cleanest.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>3. Real-world consumer validation</h4>
+          <p>
+            The library has zero known external consumers besides cqrs-htmx (which just gave us
+            feedback). The quality gate is "would a consumer trust this?" &mdash; we need real
+            adoption signal. The catalog exporters, storage backends, and reactive APIs are all
+            unvalidated in production.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>4. Documentation site</h4>
+          <p>
+            SKILL.md is excellent for AI consumers. But human developers coming from pkg.go.dev get
+            godoc only. A Hugo/MkDocs site with composition recipes would lower the barrier.
+          </p>
+        </div>
+
+        <div class="card">
+          <h4>5. Schema registry (ADR-0017) &mdash; from Proposed to Accepted</h4>
+          <p>
+            The infrastructure (<code>catalog/schema/</code>) exists. The gap is the validation
+            middleware. This would make event contracts enforceable, not just documented.
+          </p>
+        </div>
+
+        <div class="card">
+          <h4>6. Benchmark regression CI</h4>
+          <p>
+            <code>benchmark-baseline.txt</code> exists and CI should fail if &gt;2&times; slower.
+            Verify this is actually enforced in ci.yml &mdash; the baseline may be stale.
+          </p>
+        </div>
+
+        <!-- ==================== TOP 25 NEXT ==================== -->
+        <h2 id="next"><span class="num">06</span>Top 25 Things To Do Next</h2>
+        <p>Sorted by impact &times; customer value &divide; effort.</p>
         <table>
           <thead>
             <tr>
               <th>#</th>
-              <th>Severity</th>
-              <th>Issue</th>
-              <th>Status</th>
+              <th>Priority</th>
+              <th>Task</th>
+              <th>Effort</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td>1</td>
               <td><span class="badge badge-critical">Critical</span></td>
-              <td>Missing error handling</td>
-              <td><span class="badge badge-fixed">Fixed</span></td>
+              <td>
+                Wire <code>DistinctByEventID()</code> into projection Runner catch-up (close
+                replay&rarr;live dedup gap)
+              </td>
+              <td>~4h</td>
             </tr>
             <tr>
               <td>2</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>
+                Add <code>OTelCorrelationEnricher</code> &mdash; auto-read baggage &rarr; set domain
+                correlation ID on events
+              </td>
+              <td>~2h</td>
+            </tr>
+            <tr>
+              <td>3</td>
               <td><span class="badge badge-high">High</span></td>
-              <td>Race condition</td>
-              <td><span class="badge badge-low">Open</span></td>
+              <td>
+                Implement schema registry middleware (ADR-0017) &mdash; JSON Schema validation gate
+                for events
+              </td>
+              <td>~1 day</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>
+                Fix or suppress gopls <code>pgregory.net/rapid</code> false positives (17 phantom
+                diagnostics)
+              </td>
+              <td>~1h</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>
+                Prometheus metrics exporter &mdash; OTel&rarr;Prom bridge to replace
+                <code>MetricsRecorder</code>
+              </td>
+              <td>~4h</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>
+                Pebble coverage to 85%+ &mdash; target error branches in <code>helpers.go</code>,
+                <code>serialization.go</code>
+              </td>
+              <td>~3h</td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>
+                Real-world consumer validation &mdash; dogfood in cqrs-htmx or a new example app
+              </td>
+              <td>~2 days</td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>
+                <code>EventIterator</code> streaming reads &mdash; avoid materializing full
+                <code>[]Event</code> slices
+              </td>
+              <td>~6h</td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>
+                Release v2.6.0 &mdash; cut CHANGELOG Unreleased section into a versioned release
+              </td>
+              <td>~30min</td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>cqrs-gen v2 &mdash; struct tag scanning code generator improvements</td>
+              <td>~1 day</td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>
+                Pebble CompactionFilter &mdash; time-based TTL for automatic event expiry in LSM
+                tree
+              </td>
+              <td>~4h</td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>
+                Verify benchmark regression CI is enforced (ci.yml &gt;2&times; baseline check may
+                be stale)
+              </td>
+              <td>~1h</td>
+            </tr>
+            <tr>
+              <td>13</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>
+                Distributed checkpointing (ADR-0018) &mdash; multi-instance projection coordination
+              </td>
+              <td>~3 days</td>
+            </tr>
+            <tr>
+              <td>14</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Documentation site (Hugo/MkDocs) &mdash; composition recipes beyond godoc</td>
+              <td>~2 days</td>
+            </tr>
+            <tr>
+              <td>15</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>gRPC transport adapter module</td>
+              <td>~1 day</td>
+            </tr>
+            <tr>
+              <td>16</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>NATS message broker adapter module</td>
+              <td>~1 day</td>
+            </tr>
+            <tr>
+              <td>17</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Redis Stream adapter module</td>
+              <td>~1 day</td>
+            </tr>
+            <tr>
+              <td>18</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>
+                <code>jsonv2</code> codec experiment behind build tag (pending Go stdlib
+                stabilization)
+              </td>
+              <td>~3h</td>
+            </tr>
+            <tr>
+              <td>19</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Arena allocation experiment behind build tag + Go experiment flag</td>
+              <td>~4h</td>
+            </tr>
+            <tr>
+              <td>20</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>WASM compilation target for <code>decider</code> module (browser/edge)</td>
+              <td>~2 days</td>
+            </tr>
+            <tr>
+              <td>21</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>
+                Update <code>example/todo/</code> to demonstrate <code>RunReplay</code> +
+                <code>RunLive</code> split
+              </td>
+              <td>~1h</td>
+            </tr>
+            <tr>
+              <td>22</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>
+                Review <code>closeOnce</code> limitation &mdash; second <code>Close()</code> on
+                reused runner is silent no-op
+              </td>
+              <td>~2h</td>
+            </tr>
+            <tr>
+              <td>23</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Add integration test: projection + SQL store end-to-end read-your-writes</td>
+              <td>~3h</td>
+            </tr>
+            <tr>
+              <td>24</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>
+                Go 1.26 <code>t.Context()</code> adoption in tests (gopls hints flagged 2 sites)
+              </td>
+              <td>~1h</td>
+            </tr>
+            <tr>
+              <td>25</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>
+                Stale baseline benchmark refresh &mdash; re-record
+                <code>benchmark-baseline.txt</code>
+              </td>
+              <td>~30min</td>
             </tr>
           </tbody>
         </table>
 
-        <!-- Before/After Comparison -->
-        <h2 id="proposal">Before / After</h2>
-        <div class="compare-header">
-          <div class="compare-before">Before</div>
-          <div class="compare-after">After</div>
-        </div>
-        <div class="compare-row">
-          <div>
-            <pre><code><span class="tok-comment">// Old code</span>
-<span class="tok-keyword">func</span> <span class="tok-func">process</span>(data <span class="tok-type">interface</span>{}) { }</code></pre>
-          </div>
-          <div>
-            <pre><code><span class="tok-comment">// New code</span>
-<span class="tok-keyword">func</span> <span class="tok-func">process</span>[T <span class="tok-type">any</span>](data T) { }</code></pre>
-          </div>
-        </div>
-
-        <!-- ASCII Diagram -->
-        <h2>Dependency Tree</h2>
-        <div class="dep-tree">
-          <span class="root">root</span> ├── <span class="ok">wanted-dep</span> └──
-          <span class="unwanted">unwanted-dep</span>
-        </div>
-
-        <!-- Numbered Steps -->
-        <h2 id="plan"><span class="num">03</span>Migration Plan</h2>
-        <div class="migration-step">
-          <div class="migration-num">1</div>
-          <div class="migration-content">
-            <h4>Add generic type parameter</h4>
-            <p>Update the function signature to accept a type parameter.</p>
-          </div>
-        </div>
-        <div class="migration-step">
-          <div class="migration-num">2</div>
-          <div class="migration-content">
-            <h4>Update all call sites</h4>
-            <p>Pass explicit types at each call site for type safety.</p>
+        <!-- ==================== TOP QUESTION ==================== -->
+        <h2 id="question"><span class="num">07</span>Top Question I Cannot Answer</h2>
+        <div class="card card-problem">
+          <h4>
+            Should this library pursue real-world adoption, or remain a reference implementation?
+          </h4>
+          <p>
+            The library is architecturally sound: 30 modules, 1328 exports, 24 ADRs, clean layer
+            graph, zero lint issues. But it has exactly
+            <strong>one external consumer</strong> (cqrs-htmx) that just gave us feedback. The Top
+            25 list above assumes adoption is the goal (real-world validation, docs site, broker
+            adapters, gRPC transport). But if this is a
+            <strong>reference implementation / learning project</strong>, then the high-value work
+            is different: deepen the ADRs, add more examples, write blog posts, and stop adding
+            features.
+          </p>
+          <div class="callout callout-warning">
+            <strong>Why I can't figure this out</strong>
+            The codebase is too good to be a throwaway, too clean to be production-hardened, and too
+            feature-rich to be a toy. The signal from cqrs-htmx feedback suggests real adoption
+            intent, but one consumer is not a trend. This determines whether tasks #7, #14-17, #20
+            are worth doing at all.
           </div>
         </div>
 
         <footer class="footer">
-          Generated YYYY-MM-DD &middot; All claims verified against source code where noted
+          Generated 2026-06-19 &middot; Verified: build (30 modules), test (30+ packages, -race on
+          id+projection), lint (0 issues), api-stability (1328 exports)
         </footer>
       </main>
     </div>
