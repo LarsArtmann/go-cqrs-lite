@@ -783,7 +783,11 @@ id/func ParseRequestID
 id/func ParseUserID
 id/func ULID
 id/struct AggregateMarker
+id/struct CausationMarker
+id/struct ClientMarker
+id/struct CommandMarker
 id/struct CorrelationMarker
+id/struct EventMarker
 id/struct RequestMarker
 id/struct UserMarker
 id/type AggregateID

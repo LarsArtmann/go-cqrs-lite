@@ -107,7 +107,7 @@ func TestEncoding(t *testing.T) {
 			name:      "binary",
 			testValue: testULID,
 			marshal: func(id string) ([]byte, error) {
-				return mustParse[eventMarker](id).MarshalBinary()
+				return mustParse[EventMarker](id).MarshalBinary()
 			},
 			unmarshal: func(id *EventID, data []byte) error {
 				return id.UnmarshalBinary(data)
@@ -119,7 +119,7 @@ func TestEncoding(t *testing.T) {
 			name:      "text",
 			testValue: testULID,
 			marshal: func(id string) ([]byte, error) {
-				return mustParse[eventMarker](id).MarshalText()
+				return mustParse[EventMarker](id).MarshalText()
 			},
 			unmarshal: func(id *EventID, data []byte) error {
 				return id.UnmarshalText(data)
@@ -157,7 +157,7 @@ func TestEncoding(t *testing.T) {
 
 				var data []byte
 				if tc.name == "binary" {
-					data, _ = mustParse[eventMarker](tc.testValue).MarshalBinary()
+					data, _ = mustParse[EventMarker](tc.testValue).MarshalBinary()
 				} else {
 					data = []byte(tc.testValue)
 				}

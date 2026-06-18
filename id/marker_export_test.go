@@ -14,26 +14,23 @@ import (
 func TestExportedMarkers_DownstreamUsable(t *testing.T) {
 	t.Parallel()
 
-	// A downstream package can construct branded IDs straight from the markers,
-	// using them as type arguments exactly as BrandNamer / JSON tooling requires.
-	userID := id.New[id.UserMarker]()
-	corrID := id.New[id.CorrelationMarker]()
-	reqID := id.New[id.RequestMarker]()
-
-	if userID.String() == "" {
-		t.Error("UserMarker ID has empty string representation")
+	markers := []struct {
+		name string
+		id   string
+	}{
+		{"AggregateMarker", id.New[id.AggregateMarker]().String()},
+		{"UserMarker", id.New[id.UserMarker]().String()},
+		{"CorrelationMarker", id.New[id.CorrelationMarker]().String()},
+		{"RequestMarker", id.New[id.RequestMarker]().String()},
+		{"CausationMarker", id.New[id.CausationMarker]().String()},
+		{"ClientMarker", id.New[id.ClientMarker]().String()},
+		{"CommandMarker", id.New[id.CommandMarker]().String()},
+		{"EventMarker", id.New[id.EventMarker]().String()},
 	}
 
-	if corrID.String() == "" {
-		t.Error("CorrelationMarker ID has empty string representation")
-	}
-
-	if reqID.String() == "" {
-		t.Error("RequestMarker ID has empty string representation")
-	}
-
-	// The convenience constructors are unaffected by the rename.
-	if id.NewUserID().String() == "" {
-		t.Error("NewUserID produced empty ID")
+	for _, m := range markers {
+		if m.id == "" {
+			t.Errorf("%s produced empty string representation", m.name)
+		}
 	}
 }
