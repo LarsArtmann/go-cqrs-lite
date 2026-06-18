@@ -234,6 +234,7 @@ func TestRunner_ConcurrentRunLive_NoCorruption(t *testing.T) {
 			defer wg.Done()
 
 			err := runner.RunLive(ctx)
+
 			switch {
 			case err == nil:
 				success.Add(1)
@@ -245,26 +246,43 @@ func TestRunner_ConcurrentRunLive_NoCorruption(t *testing.T) {
 		}()
 	}
 
-	wg.Wait()
+	// Wait for the CAS storm to settle: 15 losers should return quickly.
+	for range 100 {
+		if rejected.Load() == 15 {
+			break
+		}
 
-	if success.Load() != 1 {
-		t.Errorf("expected exactly 1 winning RunLive, got %d", success.Load())
+		time.Sleep(5 * time.Millisecond)
 	}
 
 	if rejected.Load() != 15 {
-		t.Errorf("expected 15 rejected RunLive, got %d", rejected.Load())
+		t.Fatalf("expected 15 rejected RunLive, got %d", rejected.Load())
 	}
 
-	// Close must return promptly: a clobbered done channel would hang here.
-	done := make(chan struct{})
+	// Exactly one winner should be blocking on subscribeLive right now.
+	if !runner.IsRunning() {
+		t.Fatal("expected IsRunning() true after concurrent RunLive")
+	}
+
+	// Cancel the context so the winner exits; then verify exactly 1 success.
+	cancel()
+	wg.Wait()
+
+	if success.Load() != 1 {
+		t.Fatalf("expected exactly 1 winning RunLive, got %d", success.Load())
+	}
+
+	// The winner is still blocking on subscribeLive. Close must read the
+	// winner's done/cancel pair (not a clobbered loser's) and stop it.
+	closeDone := make(chan struct{})
 
 	go func() {
 		_ = runner.Close()
-		close(done)
+		close(closeDone)
 	}()
 
 	select {
-	case <-done:
+	case <-closeDone:
 	case <-time.After(2 * time.Second):
 		t.Fatal("Close hung — done/cancel were corrupted by concurrent RunLive")
 	}
