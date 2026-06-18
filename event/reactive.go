@@ -75,8 +75,55 @@ func ReplayFilter(
 // DistinctByEventID returns an operator that suppresses duplicate events by ID.
 // When the same event is emitted through multiple paths (e.g. journal replay +
 // live bus), this prevents processing the same event twice per subscription.
+//
+// For bridging replay→live dedup (where you need to seed the seen-set with
+// IDs from a prior phase), use DistinctByEventIDWith instead.
 func DistinctByEventID() func(ro.Observable[Event]) ro.Observable[Event] {
-	return ro.DistinctBy(func(e Event) id.EventID { return e.ID() })
+	return DistinctByEventIDWith(nil)
+}
+
+// DistinctByEventIDWith returns an operator that suppresses duplicate events
+// by ID, pre-seeded with already-seen IDs. Pass the event IDs from a prior
+// phase (e.g. journal replay) so the live stream skips them automatically:
+//
+//	deduped := ro.Pipe1(live, event.DistinctByEventIDWith(replayIDs))
+//
+// A nil seed map is equivalent to DistinctByEventID().
+func DistinctByEventIDWith(
+	seen map[id.EventID]struct{},
+) func(ro.Observable[Event]) ro.Observable[Event] {
+	return func(source ro.Observable[Event]) ro.Observable[Event] {
+		return ro.NewUnsafeObservableWithContext(
+			func(subscriberCtx context.Context, destination ro.Observer[Event]) ro.Teardown {
+				localSeen := make(map[id.EventID]struct{}, len(seen))
+
+				for k := range seen {
+					localSeen[k] = struct{}{}
+				}
+
+				sub := source.SubscribeWithContext(
+					subscriberCtx,
+					ro.NewObserverWithContext(
+						func(ctx context.Context, evt Event) {
+							eid := evt.ID()
+
+							if _, ok := localSeen[eid]; ok {
+								return
+							}
+
+							localSeen[eid] = struct{}{}
+
+							destination.NextWithContext(ctx, evt)
+						},
+						destination.ErrorWithContext,
+						destination.CompleteWithContext,
+					),
+				)
+
+				return sub.Unsubscribe
+			},
+		)
+	}
 }
 
 // DistinctByAggregateID returns an operator that emits only the first event per
@@ -122,6 +169,44 @@ func HandlerToObserverWithContext(ctx context.Context, handler Handler) ro.Obser
 	)
 
 	return obs
+}
+
+// SubscriberToObservable adapts a callback-based Subscriber into a reactive
+// Observable. Each subscription calls SubscribeAll internally; events are
+// forwarded to the observer via NextWithContext.
+//
+// When the subscription context is cancelled (or the subscription is
+// unsubscribed), the internal handler becomes a no-op: it checks ctx.Err()
+// and the observer's IsClosed() before forwarding.
+//
+// Note: the underlying Subscriber (e.g. memory.MemoryBus) does not support
+// handler removal, so the handler closure stays registered for the lifetime
+// of the Subscriber. This is acceptable for testing and single-process
+// deployments. Production message buses should implement their own
+// Observable adapter with proper cleanup.
+func SubscriberToObservable(sub Subscriber) ro.Observable[Event] {
+	return ro.NewObservableWithContext(
+		func(ctx context.Context, dest ro.Observer[Event]) ro.Teardown {
+			handler := func(handlerCtx context.Context, evt Event) error {
+				if ctx.Err() != nil {
+					return nil
+				}
+
+				if !dest.IsClosed() {
+					dest.NextWithContext(handlerCtx, evt)
+				}
+
+				return nil
+			}
+
+			err := sub.SubscribeAll(handler)
+			if err != nil {
+				dest.ErrorWithContext(ctx, err)
+			}
+
+			return nil
+		},
+	)
 }
 
 // Observable is a named type for event observables, improving discoverability

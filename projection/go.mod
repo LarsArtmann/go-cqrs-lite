@@ -10,6 +10,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.5.0
 	github.com/onsi/ginkgo/v2 v2.31.0
 	github.com/onsi/gomega v1.42.0
+	github.com/samber/ro v0.3.0
 	golang.org/x/sync v0.21.0
 )
 
@@ -31,7 +32,6 @@ require (
 	github.com/larsartmann/go-error-family v0.4.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/samber/lo v1.53.0 // indirect
-	github.com/samber/ro v0.3.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.44.0 // indirect

@@ -558,6 +558,7 @@ event/func DecodePayloads
 event/func DetectTombstone
 event/func DistinctByAggregateID
 event/func DistinctByEventID
+event/func DistinctByEventIDWith
 event/func EnsureCustom
 event/func ExitCode
 event/func ExtractCustomBytes
@@ -602,6 +603,7 @@ event/func ReconstructEventFromFields
 event/func ReplayFilter
 event/func SliceFromVersion
 event/func SliceToVersion
+event/func SubscriberToObservable
 event/func UnmarshalMetadataJSON
 event/func WithCausationID
 event/func WithClientID

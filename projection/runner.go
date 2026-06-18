@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
 )
 
@@ -37,6 +38,7 @@ type Runner struct {
 	opts        runnerOptions
 	logger      *slog.Logger
 	projections []projectionEntry
+	replayIDs   map[id.EventID]struct{}
 	cancel      context.CancelFunc
 	state       atomic.Int32
 	done        chan struct{}
@@ -79,6 +81,7 @@ func NewRunner(
 		checkpoint: checkpoint,
 		opts:       o,
 		logger:     logger,
+		replayIDs:  make(map[id.EventID]struct{}),
 		cancel:     cancel,
 		done:       make(chan struct{}),
 	}, nil
@@ -134,6 +137,8 @@ func (r *Runner) RunReplay(ctx context.Context) error {
 	if r.journal == nil {
 		return nil
 	}
+
+	r.replayIDs = make(map[id.EventID]struct{})
 
 	err := r.replay(ctx)
 	if err != nil {
@@ -231,6 +236,8 @@ func (r *Runner) replay(ctx context.Context) error {
 		span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrEventCount, len(events)))
 
 		for _, evt := range events {
+			r.replayIDs[evt.ID()] = struct{}{}
+
 			replayCtx := event.WithProcessingMode(ctx, event.ModeReplay)
 
 			hErr := r.handleAndCheckpoint(replayCtx, entry.projection, evt)

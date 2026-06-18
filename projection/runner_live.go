@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	ro "github.com/samber/ro"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
@@ -12,23 +13,38 @@ import (
 )
 
 func (r *Runner) subscribeLive(ctx context.Context) error {
-	handler := func(ctx context.Context, evt event.Event) error {
-		if r.state.Load() != runnerStateLive {
-			return nil
-		}
+	liveStream := event.SubscriberToObservable(r.subscriber)
 
-		r.dispatchToProjections(ctx, evt)
+	deduped := ro.Pipe1(liveStream, event.DistinctByEventIDWith(r.replayIDs))
 
-		return nil
-	}
+	var subscribeErr error
 
-	err := r.subscriber.SubscribeAll(handler)
-	if err != nil {
-		return event.WrapInfrastructure(err, "projection.subscribe",
+	obs := ro.NewObserverWithContext(
+		func(ctx context.Context, evt event.Event) {
+			if r.state.Load() != runnerStateLive {
+				return
+			}
+
+			r.dispatchToProjections(ctx, evt)
+		},
+		func(_ context.Context, err error) {
+			subscribeErr = err
+		},
+		func(_ context.Context) {},
+	)
+
+	sub := deduped.SubscribeWithContext(ctx, obs)
+
+	if subscribeErr != nil {
+		sub.Unsubscribe()
+
+		return event.WrapInfrastructure(subscribeErr, "projection.subscribe",
 			"subscribe to event bus")
 	}
 
 	<-ctx.Done()
+
+	sub.Unsubscribe()
 
 	return nil
 }
