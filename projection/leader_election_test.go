@@ -46,9 +46,9 @@ func TestAlwaysLeader_ImplementsLeaderElection(t *testing.T) {
 // TestLeaderElection_NeverLeader tests a mock that never holds leadership.
 type neverLeader struct{}
 
-func (neverLeader) IsLeader(context.Context) bool                 { return false }
-func (neverLeader) WaitForLeadership(ctx context.Context) error    { return ctx.Err() }
-func (neverLeader) Resign(context.Context) error                   { return nil }
+func (neverLeader) IsLeader(context.Context) bool               { return false }
+func (neverLeader) WaitForLeadership(ctx context.Context) error { return ctx.Err() }
+func (neverLeader) Resign(context.Context) error                { return nil }
 
 func TestLeaderElection_InterfaceCompliance(t *testing.T) {
 	t.Parallel()

@@ -9,6 +9,7 @@
 ## Context
 
 Several experimental features are being explored:
+
 - **jsonv2 codec** — Go's upcoming JSON v2 (encoding/json/v2)
 - **Arena allocation** — Go experiment for bulk memory allocation
 - **SIMD operations** — Vectorized crypto/encoding
@@ -30,6 +31,7 @@ They are NOT compiled into default builds.
 ```
 
 Each experiment is:
+
 1. A separate file (`codec_jsonv2.go`, `event_arena.go`) with the build tag
 2. Documented in `docs/EXPERIMENTAL_BUILD_TAGS.md`
 3. Tested only when the experiment is enabled
@@ -38,6 +40,7 @@ Each experiment is:
 ### WASM Compilation
 
 The following modules compile to WASM (`GOOS=js GOARCH=wasm`):
+
 - `id/` — branded IDs, ULID generation
 - `codec/` — JSON, CBOR encoding
 - `dispatcher/` — generic dispatch

@@ -1,0 +1,57 @@
+site_name: go-cqrs-lite
+site_description: Lightweight CQRS library for Go with Event Sourcing, branded IDs, and auto-documentation
+site_url: https://larsartmann.github.io/go-cqrs-lite/
+repo_url: https://github.com/LarsArtmann/go-cqrs-lite
+repo_name: LarsArtmann/go-cqrs-lite
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - search.highlight
+    - content.code.copy
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Quick Start: getting-started.md
+      - Storage Guide: STORAGE_GUIDE.md
+      - Migration: MIGRATION.md
+  - Modules:
+      - event: modules/event.md
+      - command: modules/command.md
+      - query: modules/query.md
+      - decider: modules/decider.md
+      - storage: modules/storage.md
+      - projection: modules/projection.md
+  - Architecture:
+      - Patterns: ARCHITECTURE_PATTERNS.md
+      - Domain Language: DOMAIN_LANGUAGE.md
+      - Error Taxonomy: error-taxonomy.md
+  - ADRs: adr/README.md
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - pymdownx.details
+  - toc:
+      permalink: true
