@@ -116,8 +116,8 @@ evt, err := event.NewEvent("user.created", userID, "User", event.Version(1),
 decider := decider.Decider[State]{Initial: State{}, Fold: foldFunc}
 result, err := decider.Repository[State].Execute(ctx, repo, aggregateID, decider, command)
 
-// Branded IDs
-type UserID = id.Of[userMarker]
+// Branded IDs (markers are exported: UserMarker, CorrelationMarker, RequestMarker, AggregateMarker)
+type UserID = id.Of[id.UserMarker]
 uid := id.New[UserID]()
 
 // Query dispatch (type-safe)

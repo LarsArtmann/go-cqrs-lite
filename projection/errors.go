@@ -41,4 +41,10 @@ var (
 		"projection.already_running",
 		"projection: runner is already running",
 	)
+
+	// ErrReplayRequired is returned when RunLive is called before RunReplay completed.
+	ErrReplayRequired = event.NewRejection(
+		"projection.replay_required",
+		"projection: RunReplay must be called before RunLive",
+	)
 )

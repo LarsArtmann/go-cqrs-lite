@@ -783,6 +783,9 @@ id/func ParseRequestID
 id/func ParseUserID
 id/func ULID
 id/struct AggregateMarker
+id/struct CorrelationMarker
+id/struct RequestMarker
+id/struct UserMarker
 id/type AggregateID
 id/type CausationID
 id/type ClientID
@@ -1082,6 +1085,8 @@ projection/method Register
 projection/method RegisteredProjections
 projection/method Reset
 projection/method Run
+projection/method RunLive
+projection/method RunReplay
 projection/struct Builder
 projection/struct HandlerRegistry
 projection/struct HealthStatus
@@ -1096,6 +1101,7 @@ projection/var ErrNilCheckpoint
 projection/var ErrNilHandler
 projection/var ErrNilSubscriber
 projection/var ErrNoProjections
+projection/var ErrReplayRequired
 query/const Conflict
 query/const Corruption
 query/const Infrastructure

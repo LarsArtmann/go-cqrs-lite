@@ -31,6 +31,16 @@
 //	_ = runner.Register(proj)
 //	go runner.Run(ctx)
 //
+// # Read-Your-Writes: RunReplay + RunLive
+//
+// Run is a convenience wrapper around two phases. For read-your-writes
+// consistency (e.g. in tests or right after startup), call them separately so
+// the read model is guaranteed caught up before you serve traffic:
+//
+//	if err := runner.RunReplay(ctx); err != nil { return err } // synchronous
+//	go func() { _ = runner.RunLive(ctx) }()                    // background tail
+//	// read model is caught up here — no time.Sleep needed
+//
 // # Handler Registration
 //
 // On[T] is a package-level generic function (not a method on Builder) that

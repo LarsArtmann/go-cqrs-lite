@@ -20,6 +20,14 @@ type projectionEntry struct {
 	eventTypes []event.Type
 }
 
+// runnerState* are the Runner lifecycle states, guarded by Runner.state.
+// The runner transitions idle → ready (RunReplay) → live (RunLive) → idle.
+const (
+	runnerStateIdle  int32 = 0 // no run active; RunReplay is allowed
+	runnerStateReady int32 = 1 // RunReplay completed; RunLive is allowed
+	runnerStateLive  int32 = 2 // RunLive is blocking on the live subscription
+)
+
 // Runner orchestrates projection replay from an event journal and live subscription via an event bus.
 // Each registered projection tracks its own checkpoint independently.
 type Runner struct {
@@ -30,7 +38,7 @@ type Runner struct {
 	logger      *slog.Logger
 	projections []projectionEntry
 	cancel      context.CancelFunc
-	running     atomic.Bool
+	state       atomic.Int32
 	done        chan struct{}
 	closeOnce   sync.Once
 }
@@ -98,11 +106,19 @@ func (r *Runner) Register(p event.Projection) error {
 	return nil
 }
 
-// Run replays historical events from the loader (if non-nil), then subscribes to live events.
-// Blocks until the context is cancelled or Close is called. Returns ErrNoProjections if no projections are registered.
-func (r *Runner) Run(ctx context.Context) error {
+// RunReplay replays historical events from the journal (if non-nil) and returns
+// once every registered projection has caught up to the current event stream.
+// It is the synchronous, non-blocking half of the projection lifecycle and
+// enables read-your-writes consistency: after RunReplay returns, the read model
+// reflects all previously committed events, so callers may query it immediately.
+//
+// RunReplay must be followed by RunLive (or use Run, which calls both). It
+// returns ErrNoProjections if no projections are registered, ErrAlreadyRunning
+// if the runner is active, and a wrapped Infrastructure error on replay failure
+// (the runner returns to idle and may be retried).
+func (r *Runner) RunReplay(ctx context.Context) error {
 	ctx, span := cqrsotel.StartSpan(
-		ctx, tracer(), "projection.run",
+		ctx, tracer(), "projection.run_replay",
 		cqrsotel.SpanKindClient,
 	)
 	defer span.End()
@@ -111,27 +127,81 @@ func (r *Runner) Run(ctx context.Context) error {
 		return ErrNoProjections
 	}
 
-	if !r.running.CompareAndSwap(false, true) {
+	if !r.state.CompareAndSwap(runnerStateIdle, runnerStateReady) {
 		return ErrAlreadyRunning
 	}
-	defer r.running.Store(false)
 
-	done := make(chan struct{})
-
-	r.done = done
-	defer close(done)
-
-	ctx, r.cancel = context.WithCancel(ctx)
-
-	if r.journal != nil {
-		err := r.replay(ctx)
-		if err != nil {
-			return event.WrapInfrastructure(err, "projection.replay",
-				"replay failed")
-		}
+	if r.journal == nil {
+		return nil
 	}
 
+	err := r.replay(ctx)
+	if err != nil {
+		r.state.Store(runnerStateIdle)
+
+		return event.WrapInfrastructure(err, "projection.replay", "replay failed")
+	}
+
+	return nil
+}
+
+// RunLive subscribes to live events from the bus and blocks until ctx is
+// cancelled or Close is called. RunReplay must have completed successfully
+// first; otherwise RunLive returns ErrReplayRequired.
+func (r *Runner) RunLive(ctx context.Context) error {
+	if r.state.Load() == runnerStateIdle {
+		return ErrReplayRequired
+	}
+
+	if r.state.Load() == runnerStateLive {
+		return ErrAlreadyRunning
+	}
+
+	if !r.state.CompareAndSwap(runnerStateReady, runnerStateLive) {
+		return ErrAlreadyRunning
+	}
+
+	// We own the live phase: assign shutdown fields AFTER winning the CAS so a
+	// concurrent (losing) RunLive caller cannot clobber them.
+	done := make(chan struct{})
+	ctx, cancel := context.WithCancel(ctx)
+
+	r.done = done
+	r.cancel = cancel
+
+	defer cancel()
+
+	defer func() {
+		r.state.Store(runnerStateIdle)
+		close(done)
+	}()
+
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "projection.run_live",
+		cqrsotel.SpanKindClient,
+	)
+	defer span.End()
+
 	return r.subscribeLive(ctx)
+}
+
+// Run is a convenience wrapper that calls RunReplay followed by RunLive.
+// It replays historical events from the journal (if non-nil), then subscribes to
+// live events. Blocks until the context is cancelled or Close is called.
+// Returns ErrNoProjections if no projections are registered.
+func (r *Runner) Run(ctx context.Context) error {
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "projection.run",
+		cqrsotel.SpanKindClient,
+	)
+	defer span.End()
+
+	err := r.RunReplay(ctx)
+	if err != nil {
+		return err
+	}
+
+	return r.RunLive(ctx)
 }
 
 func (r *Runner) replay(ctx context.Context) error {
@@ -260,16 +330,20 @@ func (r *Runner) Reset(ctx context.Context, projectionName string) error {
 	return r.checkpoint.Save(ctx, projectionName, event.Checkpoint{})
 }
 
-// Close cancels the internal context and waits for Run to return.
-// Safe to call multiple times. If Run was never called, returns immediately.
+// Close cancels the run context and waits for RunLive to return.
+// Safe to call multiple times. If the runner never reached the live phase it
+// returns immediately. A ready-only lifecycle (RunReplay without RunLive) is
+// reset to idle so the runner can be reused.
 func (r *Runner) Close() error {
 	r.closeOnce.Do(func() {
 		r.cancel()
 	})
 
-	if r.running.Load() {
+	if r.state.Load() == runnerStateLive {
 		<-r.done
 	}
+
+	r.state.CompareAndSwap(runnerStateReady, runnerStateIdle)
 
 	return nil
 }

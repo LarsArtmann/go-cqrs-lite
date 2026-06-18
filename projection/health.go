@@ -39,9 +39,10 @@ func (r *Runner) RegisteredProjections() []string {
 	return names
 }
 
-// IsRunning returns true if the runner has an active subscription (Run was called).
+// IsRunning returns true if the runner has an active run lifecycle
+// (RunReplay has started and RunLive has not yet finished).
 func (r *Runner) IsRunning() bool {
-	return r.running.Load()
+	return r.state.Load() != runnerStateIdle
 }
 
 // HealthStatus contains the health check result for a runner.

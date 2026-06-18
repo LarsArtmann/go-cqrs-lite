@@ -134,16 +134,17 @@
 
 > `import "github.com/larsartmann/go-cqrs-lite/id"`
 
-| Feature                | Detail                                                                                                   | Status |
-| ---------------------- | -------------------------------------------------------------------------------------------------------- | ------ |
-| Generic branded type   | `id.Of[T]` — phantom type parameter for compile-time safety                                              | ✅     |
-| ULID-backed            | Binary-sortable, time-ordered, 16-byte binary form                                                       | ✅     |
-| 8 built-in types       | `AggregateID`, `EventID`, `CorrelationID`, `CausationID`, `RequestID`, `UserID`, `ClientID`, `CommandID` | ✅     |
-| Custom branded types   | `type OrderID = id.Of[OrderMarker]` — users can create their own                                         | ✅     |
-| All serialization      | JSON (incl. `null`), binary, text, SQL `Scan`/`Value`                                                    | ✅     |
-| Convenience funcs      | `New[T]()`, `Parse[T]()`, `ULID[T]()`, `FromPtr[T]()`, `CompareIDs[T]()`                                 | ✅     |
-| AggregateID derivation | `DeriveAggregateID()` — deterministic ID from namespace + key                                            | ✅     |
-| Timestamp extraction   | `ULID(id)` extracts embedded timestamp                                                                   | ✅     |
+| Feature                | Detail                                                                                                      | Status |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------- | ------ |
+| Generic branded type   | `id.Of[T]` — phantom type parameter for compile-time safety                                                 | ✅     |
+| ULID-backed            | Binary-sortable, time-ordered, 16-byte binary form                                                          | ✅     |
+| 8 built-in types       | `AggregateID`, `EventID`, `CorrelationID`, `CausationID`, `RequestID`, `UserID`, `ClientID`, `CommandID`    | ✅     |
+| Custom branded types   | `type OrderID = id.Of[OrderMarker]` — users can create their own                                            | ✅     |
+| Exported markers       | `AggregateMarker`, `UserMarker`, `CorrelationMarker`, `RequestMarker` — for downstream `BrandNamer` tooling | ✅     |
+| All serialization      | JSON (incl. `null`), binary, text, SQL `Scan`/`Value`                                                       | ✅     |
+| Convenience funcs      | `New[T]()`, `Parse[T]()`, `ULID[T]()`, `FromPtr[T]()`, `CompareIDs[T]()`                                    | ✅     |
+| AggregateID derivation | `DeriveAggregateID()` — deterministic ID from namespace + key                                               | ✅     |
+| Timestamp extraction   | `ULID(id)` extracts embedded timestamp                                                                      | ✅     |
 
 ### Generic Dispatcher ✅ FULLY_FUNCTIONAL
 
@@ -587,6 +588,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | Feature                   | Detail                                                                                        | Status |
 | ------------------------- | --------------------------------------------------------------------------------------------- | ------ |
 | Runner                    | `NewRunner(journal, subscriber, checkpoint, opts...)` — replay → live                         | ✅     |
+| Replay/live split         | `RunReplay(ctx)` (synchronous catch-up) + `RunLive(ctx)` (background tail); `Run` calls both  | ✅     |
 | Builder + On[T]()         | `NewBuilder(name)` + `On[T](builder, eventType, handler)` — type-safe                         | ✅     |
 | HandlerRegistry           | Thread-safe `On(eventType, handler)`, `OnAll(handler)`, `Lookup`                              | ✅     |
 | Checkpoint per projection | `CurrentCheckpoint(ctx, name)` — read last-processed event ID                                 | ✅     |
@@ -602,7 +604,7 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | Duplicate name guard      | `Register()` rejects projections with same `Name()`                                           | ✅     |
 | Health check              | `Runner.HealthCheck(ctx)`, `Runner.DetailedHealthCheck(ctx)` — projection-level health status | ✅     |
 
-**Sentinel errors:** `ErrNilHandler`, `ErrNilSubscriber`, `ErrNilCheckpoint`, `ErrNoProjections`, `ErrDuplicateProjection`, `ErrAlreadyRunning`
+**Sentinel errors:** `ErrNilHandler`, `ErrNilSubscriber`, `ErrNilCheckpoint`, `ErrNoProjections`, `ErrDuplicateProjection`, `ErrAlreadyRunning`, `ErrReplayRequired`
 
 ---
 

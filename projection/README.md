@@ -38,6 +38,18 @@ _ = runner.Register(&TodoProjection{store: rm})
 go runner.Run(ctx) // replays history, then tails live events
 ```
 
+## Read-Your-Writes: RunReplay + RunLive
+
+`Run` is a convenience wrapper around two phases. For read-your-writes
+consistency (e.g. in tests or right after startup), call them separately so the
+read model is guaranteed caught up before you serve traffic:
+
+```go
+if err := runner.RunReplay(ctx); err != nil { return err } // synchronous catch-up
+go func() { _ = runner.RunLive(ctx) }()                    // background live tail
+// read model reflects all committed events here — no time.Sleep needed
+```
+
 ## Related Modules
 
 - [**event/v2**](../event/README.md) — Event store/bus and `CheckpointStore` interfaces the runner consumes
