@@ -154,7 +154,7 @@ The issues in section (b) are known limitations, not bugs — they're documented
 | 6   | Real journal→bus overlap integration test                            | Medium       | 2h    | ★☆☆   |
 | 7   | Schema registry middleware (ADR-0017)                                | High         | 1d    | ★☆☆   |
 | 8   | Prometheus metrics exporter                                          | High         | 4h    | ★★☆   |
-| 9   | `id.TraceID` type for arbitrary-string correlation                   | Medium       | 2h    | ★★☆   |
+| 9   | ~~`id.TraceID` type for arbitrary-string correlation~~ **REJECTED** — ULID stays for domain; OTel corr stays in custom metadata | ~~Rejected~~ | ~~2h~~ | ☆☆☆ |
 | 10  | `UnsubscribeAll()` on `event.Subscriber` (breaking)                  | High         | 2h    | ★★☆   |
 | 11  | Streaming event reads (`EventIterator`)                              | Medium       | 4h    | ★☆☆   |
 | 12  | Pebble coverage 85%+                                                 | Low          | 2h    | ★☆☆   |
@@ -174,30 +174,28 @@ The issues in section (b) are known limitations, not bugs — they're documented
 
 ---
 
-## g) Top Question I Cannot Figure Out Myself
+## g) Top Question — RESOLVED
 
-**Should `id.CorrelationID` remain ULID-only, or should we introduce a separate `TraceID` type for arbitrary-string correlation?**
+**Decision: `id.CorrelationID` remains ULID-only. No `TraceID` type. OTel correlation stays in custom metadata.**
 
-The current design stores OTel correlation IDs as custom metadata (`event.WithCustom`),
-which works but is not type-safe. The alternative — making `CorrelationID` accept arbitrary
-strings — would break all existing consumers that rely on ULID parsing.
+ULID is the right choice for domain IDs — time-sortable, collision-resistant, compact. The
+friction isn't with ULID itself; it's that OTel's ecosystem uses a structurally incompatible
+ID format (32-char hex strings that can't parse as ULID).
 
-A third option is a new `id.TraceID = Of[TraceMarker]` backed by `string` instead of ULID,
-giving us:
+The two concepts answer different questions:
 
-- `event.Metadata.TraceID id.TraceID` — typed field for distributed trace correlation
-- `event.Metadata.CorrelationID id.CorrelationID` — typed ULID for domain causation
+- **`id.CorrelationID` (ULID)** — "Which command produced this event?" (domain, in-service)
+- **OTel correlation (arbitrary string in custom metadata)** — "Which distributed trace does
+  this request belong to?" (infrastructure, cross-service)
 
-This requires deciding: is distributed trace correlation a first-class concept in the domain
-model, or an infrastructure concern that belongs in custom metadata?
+This is correct separation of concerns, not a workaround:
 
-I lean toward keeping it in custom metadata (`OTelCorrelationEnricher` as-is) because:
+1. Trace IDs come from outside the system — they're infrastructure, not domain
+2. `MetadataKeyOTelCorrelationID` + `OTelCorrelationIDFromEvent` give a typed API surface
+3. No breaking change needed
 
-1. It avoids a breaking change
-2. Trace IDs are infrastructure, not domain
-3. The enricher pattern is already composable and tested
-
-But I'm open to the `TraceID` approach if you value type safety over stability.
+A `TraceID` typed field could be added later if a consumer needs compile-time safety for
+trace correlation, but it's YAGNI until that need is real.
 
 ---
 
@@ -219,5 +217,5 @@ Commits this session:
   d8a77d3b feat(middleware): add OTelCorrelationEnricher bridging baggage to events
   be8c81ae docs: update all project docs for replay→live dedup and OTel enricher
 
-Branch: master (4 commits ahead of origin/master)
+Branch: master (pushed to origin)
 ```

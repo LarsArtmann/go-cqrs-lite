@@ -1171,39 +1171,40 @@ app := <span class="hl-func">NewApp</span>(stk) <span class="hl-comment">// comm
           <h2><span class="section-num">08</span>The Split-Topology Case</h2>
           <p>
             The most interesting design challenge — and the one the prompt specifically asks for
-            &mdash; is running <strong>multiple databases</strong>. The natural split is not by
-            capability but by <strong>workload role</strong>: a <em>write store</em> (events +
-            commands) and a <em>read store</em> (materialised views + snapshots). This is where
-            presets earn their keep, because the <code>Stack</code> must compose capabilities from
-            different providers rather than inherit them from one backend.
+            &mdash; is running <strong>multiple databases</strong>. The natural split is by the
+            <strong>shared concept</strong> that justifies co-location: a <em>journal</em> (events +
+            commands — the append-only record of facts) and <em>projections</em> (read models +
+            snapshots — derived state). This is where presets earn their keep, because the
+            <code>Stack</code> must compose capabilities from different providers rather than
+            inherit them from one backend.
           </p>
 
-          <h3>Why split by role, not by capability</h3>
+          <h3>Why split by concept, not by capability</h3>
 
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>Role</th>
+                  <th>Bundle</th>
                   <th>Capabilities</th>
-                  <th>Workload</th>
+                  <th>Shared characteristic</th>
                   <th>Why they share a DB</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td><strong>Write store</strong></td>
+                  <td><strong>Journal</strong></td>
                   <td>Events + Commands</td>
-                  <td>Append-only, write-heavy</td>
+                  <td>Append-only record of facts</td>
                   <td>
-                    Same durability needs; can persist a command and its resulting events in one
-                    transaction.
+                    Same durability and ordering needs; a command and its resulting events can be
+                    persisted in one transaction.
                   </td>
                 </tr>
                 <tr>
-                  <td><strong>Read store</strong></td>
+                  <td><strong>Projections</strong></td>
                   <td>Read Models + Snapshots</td>
-                  <td>Read-heavy, upsertable</td>
+                  <td>Derived, rebuildable state</td>
                   <td>
                     Both rebuildable from events; a snapshot is just another materialised view of
                     aggregate state.
@@ -1219,24 +1220,72 @@ app := <span class="hl-func">NewApp</span>(stk) <span class="hl-comment">// comm
               Splitting events and commands into <em>separate</em> databases buys nothing — same
               workload, same durability — and loses the atomic &ldquo;persist command + resulting
               events&rdquo; transaction. Granular capability splitting is still available for those
-              who need it, but role-based bundling is the better default.
+              who need it, but concept-based bundling is the better default.
             </p>
           </div>
 
-          <h3>Role-based providers</h3>
+          <h3>Naming discipline: three concerns, never conflated</h3>
           <p>
-            A single backend can implement <em>multiple</em> <code>Provide</code> methods. A preset
-            package ships role helpers that bundle the capabilities that belong together and share
-            one connection:
+            The worst bundle names conflate three separate concerns — <em>file contents</em>,
+            <em>tuning profile</em>, and <em>capabilities</em> — into one word, which forces it to
+            lie about something. The discipline: name each concern honestly and separately.
           </p>
 
-          <pre><code><span class="hl-comment">// Two SQLite databases, grouped by workload role.</span>
-write, _ := sqlite.<span class="hl-func">WriteStore</span>(<span class="hl-str">"data/write.db"</span>, logger)  <span class="hl-comment">// events + commands</span>
-read,  _ := sqlite.<span class="hl-func">ReadStore</span>(<span class="hl-str">"data/views.db"</span>, logger)  <span class="hl-comment">// views + snapshots</span>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Concern</th>
+                  <th>Bad (lies)</th>
+                  <th>Good (honest)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>File contents</strong></td>
+                  <td>
+                    <code>write.db</code>, <code>read.db</code>, <code>events.db</code>¹,
+                    <code>app.db</code>
+                  </td>
+                  <td>
+                    <code>journal.db</code>, <code>views.db</code>, <code>projections.db</code>
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Bundle name</strong></td>
+                  <td><code>WriteStore</code>, <code>ReadStore</code>, <code>EventLog</code>²</td>
+                  <td><code>Journal</code>, <code>Projections</code></td>
+                </tr>
+                <tr>
+                  <td><strong>Tuning profile</strong></td>
+                  <td>(implicit, undocumented)</td>
+                  <td><code>sqlite.ForAppends()</code>, <code>sqlite.ForReads()</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            ¹ <code>events.db</code> lies because it also holds commands. ² <code>EventLog</code>
+            names one member and hides the other — a half-truth that breeds false trust.
+            <code>Journal</code> names the <em>shared concept</em> (both events and commands are
+            journal entries) without pretending either is absent.
+          </p>
+
+          <h3>Concept-based bundles</h3>
+          <p>
+            A single backend can implement <em>multiple</em> <code>Provide</code> methods. A preset
+            package ships concept bundles that group the capabilities sharing one connection. The
+            name comes from the shared domain concept, never from one member or from a CRUD verb:
+          </p>
+
+          <pre><code><span class="hl-comment">// Two SQLite databases, grouped by shared concept.</span>
+journal, _ := sqlite.<span class="hl-func">Journal</span>(<span class="hl-str">"data/journal.db"</span>, logger)      <span class="hl-comment">// events + commands</span>
+views,   _ := sqlite.<span class="hl-func">Projections</span>(<span class="hl-str">"data/views.db"</span>, logger)    <span class="hl-comment">// read models + snapshots</span>
 
 stk, err := stack.<span class="hl-func">Compose</span>(
-    write,                                            <span class="hl-comment">// provides Events + Commands</span>
-    read,                                             <span class="hl-comment">// provides ReadModels + Snapshots</span>
+    journal,                                          <span class="hl-comment">// provides Events + Commands</span>
+    views,                                            <span class="hl-comment">// provides ReadModels + Snapshots</span>
     stack.<span class="hl-func">WithCheckpoints</span>(memory.<span class="hl-func">CheckpointStore</span>()), <span class="hl-comment">// tiny, ephemeral is fine</span>
     stack.<span class="hl-func">WithBus</span>(memory.<span class="hl-func">Bus</span>()),                   <span class="hl-comment">// single-process</span>
 )
@@ -1248,35 +1297,40 @@ stk, err := stack.<span class="hl-func">Compose</span>(
             contributions from all providers:
           </p>
 
-          <pre><code><span class="hl-comment">// sqlite.WriteStore implements both — they share one *sql.DB.</span>
-<span class="hl-kw">func</span> (w *<span class="hl-type">WriteStore</span>) <span class="hl-func">ProvideEvents</span>() <span class="hl-type">event.Store</span>     { <span class="hl-kw">return</span> w.events }
-<span class="hl-kw">func</span> (w *<span class="hl-type">WriteStore</span>) <span class="hl-func">ProvideCommands</span>() <span class="hl-type">command.Store</span> { <span class="hl-kw">return</span> w.commands }
-<span class="hl-kw">func</span> (w *<span class="hl-type">WriteStore</span>) <span class="hl-func">Close</span>() <span class="hl-kw">error</span>                    { <span class="hl-kw">return</span> w.db.<span class="hl-func">Close</span>() }
+          <pre><code><span class="hl-comment">// sqlite.Journal implements both — they share one *sql.DB.</span>
+<span class="hl-kw">func</span> (j *<span class="hl-type">Journal</span>) <span class="hl-func">ProvideEvents</span>() <span class="hl-type">event.Store</span>     { <span class="hl-kw">return</span> j.events }
+<span class="hl-kw">func</span> (j *<span class="hl-type">Journal</span>) <span class="hl-func">ProvideCommands</span>() <span class="hl-type">command.Store</span> { <span class="hl-kw">return</span> j.commands }
+<span class="hl-kw">func</span> (j *<span class="hl-type">Journal</span>) <span class="hl-func">Close</span>() <span class="hl-kw">error</span>                    { <span class="hl-kw">return</span> j.db.<span class="hl-func">Close</span>() }
 
-<span class="hl-comment">// sqlite.ReadStore implements both — a different *sql.DB.</span>
-<span class="hl-kw">func</span> (r *<span class="hl-type">ReadStore</span>) <span class="hl-func">ProvideReadModels</span>() <span class="hl-type">readmodel.Store</span>    { <span class="hl-kw">return</span> r.views }
-<span class="hl-kw">func</span> (r *<span class="hl-type">ReadStore</span>) <span class="hl-func">ProvideSnapshots</span>() <span class="hl-type">snapshot.Store</span>    { <span class="hl-kw">return</span> r.snaps }
-<span class="hl-kw">func</span> (r *<span class="hl-type">ReadStore</span>) <span class="hl-func">Close</span>() <span class="hl-kw">error</span>                        { <span class="hl-kw">return</span> r.db.<span class="hl-func">Close</span>() }</code></pre>
+<span class="hl-comment">// sqlite.Projections implements both — a different *sql.DB.</span>
+<span class="hl-kw">func</span> (p *<span class="hl-type">Projections</span>) <span class="hl-func">ProvideReadModels</span>() <span class="hl-type">readmodel.Store</span> { <span class="hl-kw">return</span> p.views }
+<span class="hl-kw">func</span> (p *<span class="hl-type">Projections</span>) <span class="hl-func">ProvideSnapshots</span>() <span class="hl-type">snapshot.Store</span> { <span class="hl-kw">return</span> p.snaps }
+<span class="hl-kw">func</span> (p *<span class="hl-type">Projections</span>) <span class="hl-func">Close</span>() <span class="hl-kw">error</span>                        { <span class="hl-kw">return</span> p.db.<span class="hl-func">Close</span>() }</code></pre>
 
           <h3>The escape hatch: per-capability control</h3>
           <p>
-            For topologies that don't fit the write/read split — heterogeneous backends (events on
-            Postgres, views on Pebble, bus on NATS) — the same <code>Compose</code> API accepts
-            granular per-capability providers:
+            For topologies that don't fit the journal/projections split — heterogeneous backends
+            (events on Postgres, views on Pebble, bus on NATS) — the same <code>Compose</code> API
+            accepts granular per-capability providers. Each line tells the exact truth about one
+            thing; no bundle has to summarise two:
           </p>
 
           <pre><code><span class="hl-comment">// Full granularity: every capability on its own backend.</span>
+journalDB, _ := sqlite.<span class="hl-func">Open</span>(<span class="hl-str">"data/journal.db"</span>, sqlite.<span class="hl-func">ForAppends</span>())
+viewsDB,    _ := sqlite.<span class="hl-func">Open</span>(<span class="hl-str">"data/views.db"</span>, sqlite.<span class="hl-func">ForReads</span>())
+
 stk, err := stack.<span class="hl-func">Compose</span>(
-    stack.<span class="hl-func">WithEvents</span>(postgres.<span class="hl-func">EventStore</span>(dsn)),
-    stack.<span class="hl-func">WithReadModels</span>(pebble.<span class="hl-func">ReadModels</span>(<span class="hl-str">"data/views"</span>)),
+    stack.<span class="hl-func">Events</span>(journalDB),                        <span class="hl-comment">// one capability, one honest line</span>
+    stack.<span class="hl-func">Commands</span>(journalDB),
+    stack.<span class="hl-func">ReadModels</span>(viewsDB),
+    stack.<span class="hl-func">Snapshots</span>(viewsDB),
     stack.<span class="hl-func">WithBus</span>(nats.<span class="hl-func">Bus</span>(natsURL)),
-    <span class="hl-comment">// ...snapshots, checkpoints, commands as needed</span>
 )</code></pre>
 
           <p>
             Get the <code>Provider</code> interface right here and the single-backend presets fall
             out for free — a preset is just <code>Compose(WithProvider(backend))</code> with
-            sensible defaults. Role helpers are thin wrappers over the same primitive.
+            sensible defaults. Concept bundles are thin wrappers over the same primitive.
           </p>
         </section>
 
