@@ -391,6 +391,104 @@ func TestMustAbs(t *testing.T) {
 	}
 }
 
+func TestScanFile_StructTagMarker(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	src := filepath.Join(tmp, "commands.go")
+
+	content := `package example
+
+type CreateUserCmd struct {
+	_    struct{} ` + "`" + `cqrs:"command:CreateUser"` + "`" + `
+	Name string
+}
+
+type DeleteUserCmd struct {
+	_  struct{} ` + "`" + `cqrs:"command:DeleteUser"` + "`" + `
+	ID string
+}
+
+type PlainStruct struct {
+	Name string
+}`
+	if err := os.WriteFile(src, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	entries, err := scanFile(src, "command")
+	if err != nil {
+		t.Fatalf("scan: %v", err)
+	}
+
+	if len(entries) != 2 {
+		t.Fatalf("expected 2 entries, got %d", len(entries))
+	}
+
+	assertEntry(t, entries[0], "0", "CreateUser", "CreateUserCmd")
+	assertEntry(t, entries[1], "1", "DeleteUser", "DeleteUserCmd")
+}
+
+func TestScanFile_StructTagQuery(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	src := filepath.Join(tmp, "queries.go")
+
+	content := `package example
+
+type GetUserQuery struct {
+	_ struct{} ` + "`" + `cqrs:"query:GetUser"` + "`" + `
+	ID string
+}`
+	if err := os.WriteFile(src, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	entries, err := scanFile(src, "query")
+	if err != nil {
+		t.Fatalf("scan: %v", err)
+	}
+
+	if len(entries) != 1 {
+		t.Fatalf("expected 1 entry, got %d", len(entries))
+	}
+
+	assertEntry(t, entries[0], "", "GetUser", "GetUserQuery")
+}
+
+func TestScanFile_CommentOverridesStructTag(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	src := filepath.Join(tmp, "commands.go")
+
+	// When both comment and struct tag are present, the comment wins
+	content := `package example
+
+//cqrs:command FromComment
+type CreateUserCmd struct {
+	_ struct{} ` + "`" + `cqrs:"command:FromTag"` + "`" + `
+}`
+	if err := os.WriteFile(src, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	entries, err := scanFile(src, "command")
+	if err != nil {
+		t.Fatalf("scan: %v", err)
+	}
+
+	if len(entries) != 1 {
+		t.Fatalf("expected 1 entry, got %d", len(entries))
+	}
+
+	if entries[0].CommandType != "FromComment" {
+		t.Errorf("expected comment marker 'FromComment' to win, got %q",
+			entries[0].CommandType)
+	}
+}
+
 func TestRun_InvalidType(t *testing.T) {
 	t.Parallel()
 

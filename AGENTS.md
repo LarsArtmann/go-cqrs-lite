@@ -310,9 +310,8 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   router.AddMiddleware(watermill.CorrelationIDMiddleware())
 //   router.AddMiddleware(watermill.NewRetryMiddleware(watermill.DefaultRetryConfig()))
 
-// Pebble backup, retention, consistent reads
+// Pebble backup and consistent reads
 //   backend.Checkpoint("backups/2026-06-17")         // point-in-time DB snapshot
-//   backend.DeleteEventsBefore(time.Now().AddDate(0,0,-90)) // journal retention
 //   snap := backend.NewSnapshot(); defer snap.Close() // consistent read view
 
 // Codec zero-allocation encoding (BufferEncoder)

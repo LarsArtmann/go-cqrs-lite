@@ -98,16 +98,6 @@
 // The checkpoint directory contains a complete, restorable Pebble DB.
 // Upload to S3/GCS or copy to another machine.
 //
-// # Retention
-//
-// Backend.DeleteEventsBefore prunes journal entries older than a cutoff:
-//
-//	backend.DeleteEventsBefore(time.Now().AddDate(0, 0, -90)) // 90-day retention
-//	backend.Flush() // persist range tombstone
-//
-// Only the global journal index is pruned — per-aggregate event logs persist.
-// Space is reclaimed when Pebble compacts the range tombstone.
-//
 // # Consistent Reads
 //
 // Backend.NewSnapshot returns a point-in-time consistent read view:

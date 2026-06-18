@@ -2,7 +2,6 @@ package pebble
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/cockroachdb/pebble"
 )
@@ -40,48 +39,8 @@ func (b *Backend) NewSnapshot() *pebble.Snapshot {
 	return b.database.NewSnapshot()
 }
 
-// DeleteEventsBefore deletes journal entries older than the given timestamp.
-// This is a bulk retention operation — all journal keys with a timestamp
-// component before cutoff are removed in a single range tombstone.
-//
-// IMPORTANT: Only the global journal index (cqrs_journal:) is pruned.
-// Per-aggregate event logs (cqrs_event:) are NOT affected — aggregates
-// remain fully reconstructable via Load() after retention. This means:
-//   - ReadAll (global replay) will NOT return pruned events
-//   - Load (per-aggregate) WILL still return all events for an aggregate
-//
-// This is intentional: projections that need to rebuild from scratch after
-// retention must use snapshots to seed state, then replay from the journal.
-// Aggregates that are still active retain their full event history.
-//
-// Use this for time-based retention policies:
-//
-//	// Delete journal entries older than 90 days
-//	cutoff := time.Now().AddDate(0, 0, -90)
-//	err := backend.DeleteEventsBefore(cutoff)
-//
-// Note: This does not reclaim disk space immediately. Space is reclaimed
-// when Pebble compacts the range tombstone. Use Flush() afterward to trigger
-// a flush, or wait for background compaction.
-func (b *Backend) DeleteEventsBefore(cutoff time.Time) error {
-	nanos := cutoff.UnixNano()
-
-	// Journal keys are formatted as cqrs_journal:{020d_unix_nano}:{eventID}
-	// We construct a prefix that sorts before any key with a timestamp >= cutoff.
-	lowerBound := []byte("cqrs_journal:")
-	upperBound := fmt.Appendf([]byte("cqrs_journal:"), "%020d", nanos)
-
-	err := b.database.DeleteRange(lowerBound, upperBound, nil)
-	if err != nil {
-		return fmt.Errorf("pebble: delete journal before %s: %w", cutoff.Format(time.RFC3339), err)
-	}
-
-	return nil
-}
-
 // Flush forces a flush of the memtable to disk, triggering a level-0
-// compaction. Useful after DeleteEventsBefore to ensure range tombstones
-// are persisted and eligible for compaction.
+// compaction. Useful to ensure durability of recent writes.
 func (b *Backend) Flush() error {
 	err := b.database.Flush()
 	if err != nil {

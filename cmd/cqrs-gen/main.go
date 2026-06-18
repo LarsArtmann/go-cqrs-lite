@@ -24,6 +24,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -152,6 +153,7 @@ func scanFile(path, genType string) ([]Entry, error) {
 
 	var entries []Entry
 	prefix := "//cqrs:" + genType + " "
+	tagKey := genType
 
 	for _, decl := range f.Decls {
 		genDecl, ok := decl.(*ast.GenDecl)
@@ -165,10 +167,19 @@ func scanFile(path, genType string) ([]Entry, error) {
 				continue
 			}
 
+			// Check comment marker first (backward compat)
 			cmdType := extractMarker(genDecl.Doc, prefix)
 			if cmdType == "" {
 				cmdType = extractMarker(ts.Doc, prefix)
 			}
+
+			// Fall back to struct tag
+			if cmdType == "" {
+				if structType, ok := ts.Type.(*ast.StructType); ok {
+					cmdType = extractStructTag(structType, tagKey)
+				}
+			}
+
 			if cmdType == "" {
 				continue
 			}
@@ -188,11 +199,47 @@ func extractMarker(doc *ast.CommentGroup, prefix string) string {
 	if doc == nil {
 		return ""
 	}
+
 	for _, c := range doc.List {
 		if after, ok := strings.CutPrefix(c.Text, prefix); ok {
 			return after
 		}
 	}
+
+	return ""
+}
+
+// extractStructTag scans a struct's fields for a `cqrs:"command:CreateUser"` or
+// `cqrs:"query:GetUser"` tag on a special _ (underscore) field used as a
+// type-level marker. This provides a cleaner alternative to comment markers:
+//
+//	type CreateUserCmd struct {
+//	    _ struct{} `cqrs:"command:CreateUser"`
+//	    Name string
+//	}
+func extractStructTag(st *ast.StructType, key string) string {
+	if st.Fields == nil {
+		return ""
+	}
+
+	for _, field := range st.Fields.List {
+		if field.Tag == nil {
+			continue
+		}
+
+		tagValue := strings.Trim(field.Tag.Value, "`")
+		cqrsTag := reflect.StructTag(tagValue).Get("cqrs")
+		if cqrsTag == "" {
+			continue
+		}
+
+		// Tag format: "command:CreateUser" or "query:GetUser"
+		parts := strings.SplitN(cqrsTag, ":", 2)
+		if len(parts) == 2 && parts[0] == key {
+			return parts[1]
+		}
+	}
+
 	return ""
 }
 

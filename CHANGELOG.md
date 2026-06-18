@@ -21,7 +21,7 @@ Additive, backward-compatible changes addressing cqrs-htmx upstream API gaps. No
 
 ### Added
 
-- **Pebble backup, retention, and consistent reads** (`pebble/`) — `PebbleBackend.Checkpoint(dir)` for point-in-time DB snapshots, `DeleteEventsBefore(ts)` for journal retention, and `NewSnapshot()` for consistent read views via Pebble snapshots
+- **Pebble backup and consistent reads** (`pebble/`) — `PebbleBackend.Checkpoint(dir)` for point-in-time DB snapshots and `NewSnapshot()` for consistent read views via Pebble snapshots
 - **OTel baggage correlation IDs** (`otel/`) — `WithCorrelationID(ctx, id)` and `CorrelationIDFromContext(ctx)` propagate correlation IDs across distributed service boundaries via W3C baggage
 - **OTel TextMapPropagator** (`otel/`) — `NewTextMapPropagator()` implements W3C trace context + baggage propagation for inject/extract across transports
 - **OTel CQRS metric views** (`otel/`) — `NewCQRSViews()` configures customized histogram boundaries (`CQRSHistogramBoundaries`) for CQRS latency ranges; `ServiceResourceAttributes()` for service identification; `CounterAddWithAttributes()` and `AddSpanEvent()` helpers for rate metrics and span events

@@ -228,5 +228,6 @@ type testWriter struct{ t *testing.T }
 
 func (w *testWriter) Write(p []byte) (int, error) {
 	w.t.Logf("%s", p)
+
 	return len(p), nil
 }

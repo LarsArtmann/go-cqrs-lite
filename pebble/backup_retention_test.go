@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
@@ -134,55 +133,5 @@ func TestBackend_NewSnapshot_ConsistentReads(t *testing.T) {
 	// Second event was written AFTER snapshot — its keys must be invisible.
 	if count > 2 {
 		t.Errorf("snapshot saw %d keys, expected at most 2 (one event before snapshot)", count)
-	}
-}
-
-func TestBackend_DeleteEventsBefore(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-
-	backend, err := pebble.Open(dir, pebble.DefaultOptions(), nil)
-	if err != nil {
-		t.Fatalf("Open: %v", err)
-	}
-
-	defer func() { _ = backend.Close() }()
-
-	store := backend.EventStore()
-
-	aggID := id.NewAggregateID()
-
-	events := make([]event.Event, 5)
-
-	for i := range events {
-		evt, _ := event.NewEvent("UserUpdated", aggID, "User", event.Version(i+1), []byte(`{}`))
-		events[i] = evt
-	}
-
-	if err := store.Save(context.Background(), event.NewAggregateRef("User", aggID),
-		events, 0); err != nil {
-		t.Fatalf("Save: %v", err)
-	}
-
-	if err := backend.Flush(); err != nil {
-		t.Fatalf("Flush: %v", err)
-	}
-
-	cutoff := time.Now().Add(1 * time.Hour)
-
-	if err := backend.DeleteEventsBefore(cutoff); err != nil {
-		t.Fatalf("DeleteEventsBefore: %v", err)
-	}
-
-	if err := backend.Flush(); err != nil {
-		t.Fatalf("Flush after delete: %v", err)
-	}
-
-	// The DeleteRange tombstone is in place. Full verification requires
-	// compaction to run, but the operation should not error.
-	_, err = store.ReadAll(context.Background())
-	if err != nil {
-		t.Fatalf("ReadAll after delete: %v", err)
 	}
 }
