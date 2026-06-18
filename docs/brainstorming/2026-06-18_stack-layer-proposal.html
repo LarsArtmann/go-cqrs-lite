@@ -741,5 +741,1105 @@
       }
     </style>
   </head>
-  <body></body>
+  <body>
+    <div class="page">
+      <aside class="sidebar">
+        <a href="#top" class="sidebar-brand">
+          The Bundle Layer
+          <span>go-cqrs-lite proposal v2</span>
+        </a>
+        <nav>
+          <ul class="sidebar-nav">
+            <li><a href="#problem">The Problem</a></li>
+            <li><a href="#pain">The Pain Today</a></li>
+            <li><a href="#principles">Design Principles</a></li>
+            <li><a href="#bundle">The Bundle</a></li>
+            <li><a href="#capabilities">Capabilities</a></li>
+            <li><a href="#compose">Composition API</a></li>
+            <li><a href="#bundles">Convenience Bundles</a></li>
+            <li><a href="#presets">Presets</a></li>
+            <li><a href="#topology">Split Topologies</a></li>
+            <li><a href="#naming">Naming Discipline</a></li>
+            <li><a href="#readmodel">The Read Model</a></li>
+            <li><a href="#lifecycle">Lifecycle &amp; Safety</a></li>
+            <li><a href="#performance">Performance</a></li>
+            <li><a href="#tradeoffs">Tradeoffs</a></li>
+            <li><a href="#limits">Known Limits</a></li>
+            <li><a href="#migration">Migration</a></li>
+            <li><a href="#plan">Execution Plan</a></li>
+          </ul>
+        </nav>
+        <div class="sidebar-meta">
+          Architecture Proposal v2<br />
+          Revised after brutal review<br />
+          Generated 2026-06-18
+        </div>
+      </aside>
+
+      <main class="main" id="top">
+        <section class="hero" id="problem">
+          <h1>The Bundle Layer</h1>
+          <p class="lead">
+            A proposal to separate infrastructure wiring from domain logic in
+            <code>go-cqrs-lite</code> &mdash; honestly: it moves the deployer's decision into its
+            own file, not eliminates it. Every claim below has been pressure-tested against the
+            actual codebase interfaces.
+          </p>
+
+          <div class="summary-grid">
+            <div class="stat-cell">
+              <div class="stat-value">12+</div>
+              <div class="stat-label">Interfaces</div>
+              <div class="stat-desc">Segregated per ISP, not fat composites</div>
+            </div>
+            <div class="stat-cell">
+              <div class="stat-value">0</div>
+              <div class="stat-label">Provider types</div>
+              <div class="stat-desc">Go-native option functions instead</div>
+            </div>
+            <div class="stat-cell">
+              <div class="stat-value">0</div>
+              <div class="stat-label">Atomicity lies</div>
+              <div class="stat-desc">No cross-store tx claim without outbox</div>
+            </div>
+            <div class="stat-cell">
+              <div class="stat-value">17</div>
+              <div class="stat-label">Sections</div>
+              <div class="stat-desc">Including what it does NOT solve</div>
+            </div>
+          </div>
+        </section>
+
+        <section id="pain">
+          <h2><span class="section-num">01</span>The Pain Today</h2>
+          <p>
+            The canonical example is <code>example/todo/cmd/api/main.go</code>. Its
+            <code>run()</code> function is ~200 lines, of which roughly 80 are pure infrastructure
+            glue: opening databases, constructing stores, wiring buses, building projection runners.
+            The remaining ~120 lines (HTTP server, routes, signal handling, graceful shutdown)
+            remain regardless of any abstraction &mdash; this proposal does not claim to eliminate
+            them.
+          </p>
+
+          <pre><code><span class="hl-comment">// --- ~80 lines of infrastructure decisions embedded in app code ---</span>
+readModelStore, err := storage.<span class="hl-func">NewPebbleStore</span>(dataDir, logger)
+eventStore := cqrsPebble.<span class="hl-func">NewStore</span>(readModelStore.<span class="hl-func">DB</span>(), logger)
+eventBus := memory.<span class="hl-func">NewMemoryBus</span>()
+checkpointStore := memory.<span class="hl-func">NewMemoryCheckpointStore</span>()
+runner, err := projection.<span class="hl-func">NewRunner</span>(eventStore, eventBus, checkpointStore)
+<span class="hl-comment">// ... plus snapshot stores, command stores, query stores, middleware chains</span></code></pre>
+
+          <p>
+            To swap Pebble for SQLite, a deployer must edit this file, change imports, and
+            recompile. The domain logic (handlers, projections, aggregate) is buried underneath.
+          </p>
+
+          <div class="callout callout-warn">
+            <strong>Honest scoping</strong>
+            <p>
+              This proposal targets the ~80 lines of store/bus wiring. It does not touch HTTP
+              routing, signal handling, or the projection runner's goroutine lifecycle. A realistic
+              reduction is ~80&rarr;~15 lines of infrastructure glue, not &ldquo;200&rarr;10.&rdquo;
+            </p>
+          </div>
+        </section>
+
+        <section id="principles">
+          <h2><span class="section-num">02</span>Design Principles</h2>
+          <p>
+            These rules constrain every design decision below. Each was learned the hard way &mdash;
+            the previous draft of this proposal violated most of them.
+          </p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Principle</th>
+                  <th>Why</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1</td>
+                  <td><strong>ISP at the field level</strong></td>
+                  <td>
+                    Use <code>EventSink</code> / <code>EventSource</code>, never <code>Store</code>.
+                    A command handler should not see <code>Load</code>.
+                  </td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td><strong>Options, not Provider</strong></td>
+                  <td>
+                    No <code>Provider</code> interface. Go has no partial interface implementation.
+                    Use <code>func(*Bundle) error</code> options.
+                  </td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td><strong>Read models typed by the app</strong></td>
+                  <td>
+                    The deployer provides an untyped <code>readmodel.Backend</code>. The app wraps
+                    it with <code>Store[T]</code>. No generic propagation to the Bundle.
+                  </td>
+                </tr>
+                <tr>
+                  <td>4</td>
+                  <td><strong>Publisher &ne; Subscriber</strong></td>
+                  <td>
+                    The codebase already splits them (<code>event/bus.go:13-30</code>). NATS may use
+                    different connections. The Bundle respects the split.
+                  </td>
+                </tr>
+                <tr>
+                  <td>5</td>
+                  <td><strong>Co-location &ne; atomicity</strong></td>
+                  <td>
+                    No claim of cross-store transactions without an outbox. Both
+                    <code>event.Save</code> and <code>command.Save</code> create private
+                    transactions today.
+                  </td>
+                </tr>
+                <tr>
+                  <td>6</td>
+                  <td><strong>Presets are sugar</strong></td>
+                  <td>
+                    <code>stack.New(opts...)</code> is the canonical API. Presets are thin wrappers.
+                    The granular API is not an &ldquo;escape hatch.&rdquo;
+                  </td>
+                </tr>
+                <tr>
+                  <td>7</td>
+                  <td><strong>Every gap is visible</strong></td>
+                  <td>
+                    The capability matrix shows exactly which backends provide what. No silent
+                    omissions.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="bundle">
+          <h2><span class="section-num">03</span>The Bundle</h2>
+          <p>
+            A <code>Bundle</code> is a struct of wired capability interfaces. It is named for what
+            it IS &mdash; a bundle of peers, not a LIFO stack or a layered call-passing chain. Every
+            field is a segregated interface, per the codebase's ISP discipline.
+          </p>
+
+          <pre><code><span class="hl-kw">type</span> <span class="hl-type">Bundle</span> <span class="hl-kw">struct</span> {
+    <span class="hl-comment">// Write side — command handlers use these</span>
+    <span class="hl-field">EventSink</span>     <span class="hl-type">event.EventSink</span>       <span class="hl-comment">// Save, AppendBatch</span>
+    <span class="hl-field">CommandSink</span>   <span class="hl-type">command.CommandSink</span>   <span class="hl-comment">// Save (audit trail)</span>
+    <span class="hl-field">SnapshotSink</span>  <span class="hl-type">snapshot.SnapshotSink</span>  <span class="hl-comment">// Save, Delete</span>
+
+    <span class="hl-comment">// Read side — loaders, queries, projections use these</span>
+    <span class="hl-field">EventSource</span>     <span class="hl-type">event.EventSource</span>        <span class="hl-comment">// Load, LoadFromVersion, time-travel</span>
+    <span class="hl-field">Journal</span>        <span class="hl-type">event.Journal</span>            <span class="hl-comment">// ReadAll (projection replay)</span>
+    <span class="hl-field">SnapshotSource</span> <span class="hl-type">snapshot.SnapshotSource</span>  <span class="hl-comment">// Load, LoadAtVersion</span>
+
+    <span class="hl-comment">// Messaging — split per codebase convention (bus.go:13-30)</span>
+    <span class="hl-field">Publisher</span>  <span class="hl-type">event.Publisher</span>   <span class="hl-comment">// command handlers publish events</span>
+    <span class="hl-field">Subscriber</span> <span class="hl-type">event.Subscriber</span>  <span class="hl-comment">// projection runner subscribes</span>
+
+    <span class="hl-comment">// Infrastructure</span>
+    <span class="hl-field">Checkpoints</span> <span class="hl-type">event.CheckpointStore</span>
+    <span class="hl-field">ReadModels</span>  <span class="hl-type">readmodel.Backend</span>     <span class="hl-comment">// untyped; app wraps with Store[T]</span>
+
+    <span class="hl-comment">// Lifecycle — internal, not for app code</span>
+    closers []<span class="hl-type">io.Closer</span>
+}</code></pre>
+
+          <h3>Why these fields and not <code>event.Store</code></h3>
+          <p>
+            The codebase defines <code>event.Store</code> as
+            <code>EventSink + EventSource</code> (store.go:78-81). But it also defines
+            <code>Journal</code> (ReadAll), <code>SeekableJournal</code> (ReadFrom), and
+            <code>BackwardsSource</code> (LoadBackwards). Using <code>event.Store</code> as the
+            Bundle field would silently drop <code>Journal</code> &mdash; which the projection
+            runner needs for replay.
+          </p>
+
+          <div class="callout callout-info">
+            <strong>Optional capabilities</strong>
+            <p>
+              <code>SeekableJournal</code> (cursor-based ReadFrom) and
+              <code>BackwardsSource</code> (reverse load) are not Bundle fields &mdash; not every
+              backend supports them. Consumers who need cursor-based catch-up type-assert the
+              <code>Journal</code> field:
+              <code>if sj, ok := bundle.Journal.(event.SeekableJournal); ok { ... }</code>. This is
+              honest: the minimum contract is <code>ReadAll</code>; the optimization is optional.
+            </p>
+          </div>
+        </section>
+
+        <section id="capabilities">
+          <h2><span class="section-num">04</span>Capability Inventory</h2>
+          <p>
+            Accurate status against the actual codebase. The command store and query store are fully
+            implemented for SQL &mdash; not merely &ldquo;interface ready.&rdquo;
+          </p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Capability</th>
+                  <th>Interface(s)</th>
+                  <th>memory</th>
+                  <th>SQLite</th>
+                  <th>Pebble</th>
+                  <th>Postgres</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1</td>
+                  <td>Events</td>
+                  <td><code>EventSink</code> + <code>EventSource</code> + <code>Journal</code></td>
+                  <td><span class="tag tag-done">&#10003;</span></td>
+                  <td><span class="tag tag-done">&#10003;</span></td>
+                  <td><span class="tag tag-done">&#10003;</span></td>
+                  <td><span class="tag tag-done">&#10003;</span></td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>Snapshots</td>
+                  <td><code>SnapshotSink</code> + <code>SnapshotSource</code></td>
+                  <td><span class="tag tag-done">&#10003;</span></td>
+                  <td><span class="tag tag-done">&#10003;</span></td>
+                  <td><span class="tag tag-done">&#10003;</span></td>
+                  <td><span class="tag tag-done">&#10003;</span></td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td>Checkpoints</td>
+                  <td><code>CheckpointStore</code></td>
+                  <td><span class="tag tag-done">&#10003;</span></td>
+                  <td><span class="tag tag-done">&#10003;</span></td>
+                  <td><span class="tag tag-done">&#10003;</span></td>
+                  <td><span class="tag tag-done">&#10003;</span></td>
+                </tr>
+                <tr>
+                  <td>4</td>
+                  <td>Commands</td>
+                  <td><code>CommandSink</code> + <code>CommandSource</code></td>
+                  <td><span class="tag tag-done">&#10003;</span></td>
+                  <td><span class="tag tag-done">&#10003;</span></td>
+                  <td><span class="tag tag-missing">&times;</span></td>
+                  <td><span class="tag tag-done">&#10003;</span></td>
+                </tr>
+                <tr>
+                  <td>5</td>
+                  <td>Queries</td>
+                  <td><code>query.QuerySink</code> + <code>query.QuerySource</code></td>
+                  <td><span class="tag tag-done">&#10003;</span></td>
+                  <td><span class="tag tag-done">&#10003;</span></td>
+                  <td><span class="tag tag-missing">&times;</span></td>
+                  <td><span class="tag tag-done">&#10003;</span></td>
+                </tr>
+                <tr>
+                  <td>6</td>
+                  <td>Read Models</td>
+                  <td><code>readmodel.Backend</code> <em>(new)</em></td>
+                  <td><span class="tag tag-partial">plan</span></td>
+                  <td><span class="tag tag-partial">plan</span></td>
+                  <td><span class="tag tag-partial">plan</span></td>
+                  <td><span class="tag tag-partial">plan</span></td>
+                </tr>
+                <tr>
+                  <td>7</td>
+                  <td>Messaging</td>
+                  <td><code>Publisher</code> + <code>Subscriber</code></td>
+                  <td><span class="tag tag-done">&#10003;</span></td>
+                  <td><span class="tag tag-missing">&times;</span></td>
+                  <td><span class="tag tag-missing">&times;</span></td>
+                  <td><span class="tag tag-missing">&times;</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            <strong>Pebble is incomplete</strong> &mdash; it lacks command, query, read-model, and
+            bus implementations. This is not a reason to skip them (see &sect;15, Known Limits). It
+            IS a reason the capability matrix must be honest: a deployer choosing
+            <code>pebble</code> must know these gaps exist.
+          </p>
+        </section>
+
+        <section id="compose">
+          <h2><span class="section-num">05</span>The Composition API</h2>
+          <p>
+            The canonical API is <code>stack.New(opts ...Option)</code>. No <code>Provider</code>
+            interface &mdash; Go has no partial interface implementation, and faking it with
+            reflection violates the zero-overhead principle. Each option is a plain function that
+            sets one or more fields.
+          </p>
+
+          <pre><code><span class="hl-kw">type</span> <span class="hl-type">Option</span> <span class="hl-kw">func</span>(*<span class="hl-type">Bundle</span>) <span class="hl-kw">error</span>
+
+<span class="hl-comment">// One capability per option. Each line tells the exact truth about one thing.</span>
+bundle, err := stack.<span class="hl-func">New</span>(
+    stack.<span class="hl-func">WithEventSink</span>(logDB),
+    stack.<span class="hl-func">WithEventSource</span>(logDB),
+    stack.<span class="hl-func">WithJournal</span>(logDB),
+    stack.<span class="hl-func">WithCommandSink</span>(logDB),
+    stack.<span class="hl-func">WithSnapshotSink</span>(viewsDB),
+    stack.<span class="hl-func">WithSnapshotSource</span>(viewsDB),
+    stack.<span class="hl-func">WithReadModels</span>(viewsDB),
+    stack.<span class="hl-func">WithPublisher</span>(bus),
+    stack.<span class="hl-func">WithSubscriber</span>(bus),
+    stack.<span class="hl-func">WithCheckpoints</span>(memCheckpoints),
+)</code></pre>
+
+          <div class="callout">
+            <strong>Why not <code>Provider</code>?</strong>
+            <p>
+              The previous draft proposed a <code>Provider</code> interface where &ldquo;each
+              backend implements only the methods that make sense.&rdquo; Go does not support
+              partial interface implementation &mdash; either the backend satisfies the full
+              interface or it doesn't. Detecting optional methods requires reflection or type
+              assertions, which the performance contract forbids. Option functions solve this
+              natively: each backend package exports the options it can support. No detection
+              needed.
+            </p>
+          </div>
+        </section>
+
+        <section id="bundles">
+          <h2><span class="section-num">06</span>Convenience Bundles</h2>
+          <p>
+            For the common case where multiple capabilities share one connection, preset packages
+            ship <strong>option groups</strong> &mdash; functions returning a single
+            <code>stack.Option</code> that sets multiple related fields. They are not types; they
+            are shorthand.
+          </p>
+
+          <pre><code><span class="hl-comment">// Two databases, grouped by shared characteristic.</span>
+<span class="hl-comment">// AppendLog: events + commands — both are append-only records.</span>
+<span class="hl-comment">// Views: read models + snapshots — both are derived, rebuildable state.</span>
+bundle, err := stack.<span class="hl-func">New</span>(
+    sqlite.<span class="hl-func">AppendLog</span>(<span class="hl-str">"data/log.db"</span>, logger),
+    sqlite.<span class="hl-func">Views</span>(<span class="hl-str">"data/views.db"</span>, logger),
+    memory.<span class="hl-func">Bus</span>(),
+    memory.<span class="hl-func">Checkpoints</span>(),
+)</code></pre>
+
+          <p>
+            <code>sqlite.AppendLog</code> internally calls <code>stack.WithEventSink</code>,
+            <code>stack.WithEventSource</code>, <code>stack.WithJournal</code>, and
+            <code>stack.WithCommandSink</code> &mdash; all pointing at one <code>*sql.DB</code>. The
+            DB is registered for cleanup exactly once.
+          </p>
+
+          <div class="callout callout-warn">
+            <strong>Where snapshots actually belong</strong>
+            <p>
+              Snapshots are internal decider optimizations (point-in-time aggregate state for replay
+              short-circuiting), not query-facing views. They are read on the same path as events
+              (<code>decider.Repository.Load</code>). Co-locating them with read models works but is
+              debatable &mdash; co-locating them with events (<code>sqlite.AppendLog</code> +
+              snapshots) is equally valid and keeps the aggregate reconstruction path on one DB. The
+              <code>Views</code> bundle is a convenience, not a mandate. Use
+              <code>stack.WithSnapshotSink(logDB)</code> if you prefer snapshots with the event log.
+            </p>
+          </div>
+        </section>
+
+        <section id="presets">
+          <h2><span class="section-num">07</span>Presets</h2>
+          <p>
+            A preset is a convenience function that returns a fully-wired
+            <code>*Bundle</code> for a single-backend topology. Each preset's doc comment must state
+            its capability gaps honestly.
+          </p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Preset</th>
+                  <th>Capabilities included</th>
+                  <th>Gaps</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>memory.New()</code></td>
+                  <td>All 7</td>
+                  <td>None (ephemeral)</td>
+                </tr>
+                <tr>
+                  <td><code>sqlite.New(dir)</code></td>
+                  <td>Events, Commands, Queries, Snapshots, Checkpoints</td>
+                  <td>
+                    <strong>Bus, ReadModels</strong> (bus is memory; read-model backend is new)
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>pebble.New(dir)</code></td>
+                  <td>Events, Snapshots, Checkpoints</td>
+                  <td><strong>Commands, Queries, Bus, ReadModels</strong></td>
+                </tr>
+                <tr>
+                  <td><code>postgres.New(dsn)</code></td>
+                  <td>Events, Commands, Queries, Snapshots, Checkpoints</td>
+                  <td><strong>Bus, ReadModels</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            Every preset accepts <code>stack.Option</code> variadics for additions:
+            <code>sqlite.New(dir, memory.Bus())</code> adds an in-memory bus to a SQLite preset.
+          </p>
+        </section>
+
+        <section id="topology">
+          <h2><span class="section-num">08</span>Split Topologies</h2>
+          <p>
+            The granular <code>stack.New</code> API is the canonical path, not an escape hatch. It
+            handles any topology the deployer needs. The common patterns:
+          </p>
+
+          <h3>Single DB (everything in one file)</h3>
+          <pre><code>bundle, _ := sqlite.<span class="hl-func">New</span>(<span class="hl-str">"data/app.db"</span>, logger, memory.<span class="hl-func">Bus</span>())</code></pre>
+
+          <h3>Journal + Views (the 2-DB split)</h3>
+          <pre><code>bundle, _ := stack.<span class="hl-func">New</span>(
+    sqlite.<span class="hl-func">AppendLog</span>(<span class="hl-str">"data/log.db"</span>, logger),    <span class="hl-comment">// events + commands</span>
+    sqlite.<span class="hl-func">Views</span>(<span class="hl-str">"data/views.db"</span>, logger),       <span class="hl-comment">// read models + snapshots</span>
+    memory.<span class="hl-func">Bus</span>(),
+)</code></pre>
+
+          <h3>Heterogeneous (different backends per capability)</h3>
+          <pre><code>bundle, _ := stack.<span class="hl-func">New</span>(
+    stack.<span class="hl-func">WithEventSink</span>(pgEventStore),
+    stack.<span class="hl-func">WithEventSource</span>(pgEventStore),
+    stack.<span class="hl-func">WithJournal</span>(pgEventStore),
+    stack.<span class="hl-func">WithReadModels</span>(pebbleBackend),
+    stack.<span class="hl-func">WithPublisher</span>(natsPublisher),
+    stack.<span class="hl-func">WithSubscriber</span>(natsSubscriber),
+)</code></pre>
+
+          <div class="callout callout-warn">
+            <strong>No atomicity claim</strong>
+            <p>
+              Co-locating events and commands in one database does NOT give you a cross-table
+              transaction. Both <code>event.Save</code> (<code>event_store.go:84</code>) and
+              <code>command.Save</code> (<code>command_store_save.go:33</code>) create and commit
+              their own private <code>*sql.Tx</code>. There is no shared-transaction API. True
+              command+event atomicity requires an outbox pattern, which is a future enhancement (see
+              &sect;15). Co-location shares workload characteristics and connection overhead &mdash;
+              nothing more.
+            </p>
+          </div>
+        </section>
+
+        <section id="naming">
+          <h2><span class="section-num">09</span>Naming Discipline</h2>
+          <p>
+            Every name was audited against the codebase's existing vocabulary, Go conventions, and
+            the project's <code>DOMAIN_LANGUAGE.md</code>. Names that were rejected and why:
+          </p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Rejected name</th>
+                  <th>Why it lies</th>
+                  <th>Final name</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>Stack</code></td>
+                  <td>Implies LIFO or layered call-passing. It's a bag of peer fields.</td>
+                  <td><code>Bundle</code></td>
+                </tr>
+                <tr>
+                  <td><code>Provider</code></td>
+                  <td>
+                    Vague god-noun. DI jargon (<code>fx.Provide</code>). Go can't do partial
+                    interfaces.
+                  </td>
+                  <td>Option functions</td>
+                </tr>
+                <tr>
+                  <td><code>Journal</code> (bundle)</td>
+                  <td>
+                    Stolen: <code>event.Journal</code> already exists (events-only,
+                    <code>store.go:87</code>).
+                  </td>
+                  <td><code>AppendLog</code></td>
+                </tr>
+                <tr>
+                  <td><code>Projections</code> (bundle)</td>
+                  <td>
+                    Lies: snapshots aren't projections. Snapshots are internal decider
+                    optimizations.
+                  </td>
+                  <td><code>Views</code></td>
+                </tr>
+                <tr>
+                  <td><code>WriteStore</code> / <code>ReadStore</code></td>
+                  <td>
+                    CRUD verbs. Don't say what's stored. Collide with generic repository pattern.
+                  </td>
+                  <td><code>AppendLog</code> / <code>Views</code></td>
+                </tr>
+                <tr>
+                  <td><code>sqlite.Open()</code></td>
+                  <td>
+                    <code>Open</code> means &ldquo;open a handle&rdquo; (<code>os.Open</code>).
+                    Returns a full Bundle. Collides with <code>pebble.Open</code>.
+                  </td>
+                  <td><code>sqlite.New()</code></td>
+                </tr>
+                <tr>
+                  <td><code>Compose</code></td>
+                  <td>DI-container jargon.</td>
+                  <td><code>stack.New()</code></td>
+                </tr>
+                <tr>
+                  <td><code>ForAppends</code> / <code>ForReads</code></td>
+                  <td>
+                    Backwards: the &ldquo;log&rdquo; DB is read constantly (replay); the
+                    &ldquo;views&rdquo; DB is write-heavy (catch-up).
+                  </td>
+                  <td><code>ForSequentialIO</code> / <code>ForRandomIO</code></td>
+                </tr>
+                <tr>
+                  <td><code>Bus</code> (field)</td>
+                  <td>Ambiguous: event bus? command bus? query bus?</td>
+                  <td><code>Publisher</code> + <code>Subscriber</code></td>
+                </tr>
+                <tr>
+                  <td><code>Events</code> (field)</td>
+                  <td>Reads like <code>[]Event</code>. Drops the type name.</td>
+                  <td><code>EventSink</code> + <code>EventSource</code></td>
+                </tr>
+                <tr>
+                  <td><code>Capabilities</code> (struct)</td>
+                  <td>Vague + redundant with Bundle fields.</td>
+                  <td>Deleted &mdash; fields are the inventory</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>File naming</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Bad (lies)</th>
+                  <th>Good (honest)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>write.db</code>, <code>read.db</code></td>
+                  <td><code>log.db</code>, <code>views.db</code></td>
+                </tr>
+                <tr>
+                  <td><code>events.db</code> (also holds commands)</td>
+                  <td><code>log.db</code></td>
+                </tr>
+                <tr>
+                  <td><code>app.db</code>, <code>data.db</code></td>
+                  <td>Name by content, not by vagueness</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="readmodel">
+          <h2><span class="section-num">10</span>The Read Model Problem</h2>
+          <p>
+            The hardest design challenge. A generic <code>readmodel.Store[T]</code> in the Bundle
+            would make <code>Bundle[T]</code> generic &mdash; but the deployer constructs the Bundle
+            and does not know the domain type <code>T</code>. Go cannot infer <code>T</code> from a
+            preset function.
+          </p>
+
+          <h3>The solution: split the concern</h3>
+          <p>
+            The Bundle exposes an <strong>untyped</strong> <code>readmodel.Backend</code> &mdash;
+            the deployer's concern (which storage engine). The app developer wraps it with a
+            <strong>typed</strong> <code>readmodel.Store[T]</code> &mdash; the domain concern (which
+            Go type). The generic stays in the app's package, never propagates to the Bundle.
+          </p>
+
+          <pre><code><span class="hl-comment">// Deployer side: provides the storage engine (in Bundle)</span>
+<span class="hl-kw">type</span> <span class="hl-type">Backend</span> <span class="hl-kw">interface</span> {
+    <span class="hl-func">Get</span>(ctx <span class="hl-type">context.Context</span>, key []<span class="hl-kw">byte</span>) ([]<span class="hl-kw">byte</span>, <span class="hl-kw">error</span>)
+    <span class="hl-func">Put</span>(ctx <span class="hl-type">context.Context</span>, key, val []<span class="hl-kw">byte</span>) <span class="hl-kw">error</span>
+    <span class="hl-func">Delete</span>(ctx <span class="hl-type">context.Context</span>, key []<span class="hl-kw">byte</span>) <span class="hl-kw">error</span>
+    <span class="hl-func">Scan</span>(ctx <span class="hl-type">context.Context</span>, prefix []<span class="hl-kw">byte</span>) (<span class="hl-type">Iterator</span>, <span class="hl-kw">error</span>)
+}
+
+<span class="hl-comment">// App side: wraps Backend with domain types</span>
+<span class="hl-kw">type</span> <span class="hl-type">Store</span>[<span class="hl-type">T</span> <span class="hl-kw">any</span>] <span class="hl-kw">struct</span> { backend <span class="hl-type">Backend</span> }
+<span class="hl-kw">func</span> (s *<span class="hl-type">Store</span>[<span class="hl-type">T</span>]) <span class="hl-func">Get</span>(ctx <span class="hl-type">context.Context</span>, id <span class="hl-type">TodoID</span>) (*<span class="hl-type">T</span>, <span class="hl-kw">error</span>) { ... }</code></pre>
+
+          <div class="callout callout-info">
+            <strong>Why <code>Put</code>/<code>Delete</code> are honest here</strong>
+            <p>
+              The <code>DOMAIN_LANGUAGE.md</code> prohibition on CRUD applies to the
+              <em>write side</em> (event store &mdash; append-only, never update/delete). The
+              <em>read side</em> (projections, read models) is explicitly mutable &mdash; that's the
+              entire point of CQRS. Read models reflect current state: they are upserted when events
+              arrive and deleted when aggregates are tombstoned. <code>Put</code>/<code
+                >Delete</code
+              >
+              on a read model backend is not CRUD smuggling; it is the read side doing its job.
+            </p>
+          </div>
+
+          <h3>Filtered queries</h3>
+          <p>
+            A KV <code>Backend</code> cannot express SQL <code>WHERE</code>/<code>ORDER BY</code>.
+            For projections that need filtered lists (like the todo example's
+            <code>List(filter)</code>), the app developer has two paths:
+          </p>
+          <ul class="plain">
+            <li>
+              <strong>KV backends:</strong> <code>Scan</code> with prefix + filter in Go. O(n) but
+              adequate for small read models. This is what the todo example does today.
+            </li>
+            <li>
+              <strong>SQL backends:</strong> implement a <code>SQLBackend</code> that satisfies
+              <code>readmodel.Backend</code> but also exposes SQL-specific query methods via a
+              separate interface. The app type-asserts when it needs filtered queries:
+              <code
+                >if sb, ok := backend.(*SQLBackend); ok { sb.Query(ctx, "WHERE status = ?", ...)
+                }</code
+              >.
+            </li>
+          </ul>
+          <p>
+            This is honest: one interface cannot serve both KV and SQL query patterns without
+            leaking one into the other. The split keeps each backend honest.
+          </p>
+        </section>
+
+        <section id="lifecycle">
+          <h2><span class="section-num">11</span>Lifecycle &amp; Resource Safety</h2>
+
+          <h3>Close() ownership</h3>
+          <p>
+            The Bundle tracks every <code>io.Closer</code> it receives. On <code>Close()</code>, it
+            closes each <strong>once</strong>, deduplicated by pointer identity. When the same
+            <code>*sql.DB</code> backs both <code>EventSink</code> and <code>EventSource</code> (via
+            <code>AppendLog</code>), it is registered once and closed once.
+          </p>
+
+          <pre><code><span class="hl-kw">func</span> (b *<span class="hl-type">Bundle</span>) <span class="hl-func">Close</span>() <span class="hl-kw">error</span> {
+    <span class="hl-kw">var</span> errs []<span class="hl-kw">error</span>
+    seen := <span class="hl-func">make</span>(<span class="hl-kw">map</span>[<span class="hl-kw">uintptr</span>]<span class="hl-kw">bool</span>)
+    <span class="hl-kw">for</span> _, c := <span class="hl-kw">range</span> b.closers {
+        ptr := <span class="hl-func">uintptr</span>(<span class="hl-func">unsafe.Pointer</span>(c)) <span class="hl-comment">// dedup by identity</span>
+        <span class="hl-kw">if</span> seen[ptr] { <span class="hl-kw">continue</span> }
+        seen[ptr] = <span class="hl-kw">true</span>
+        <span class="hl-kw">if</span> err := c.<span class="hl-func">Close</span>(); err != <span class="hl-kw">nil</span> { errs = <span class="hl-func">append</span>(errs, err) }
+    }
+    <span class="hl-kw">return</span> <span class="hl-func">errors.Join</span>(errs...)
+}</code></pre>
+
+          <h3>Partial failure during construction</h3>
+          <p>
+            If <code>stack.New</code> fails on the third option (e.g., a DB fails to open), all
+            already-registered closers are closed before the error returns. No leaked handles.
+          </p>
+
+          <pre><code><span class="hl-kw">func</span> <span class="hl-func">New</span>(opts ...<span class="hl-type">Option</span>) (*<span class="hl-type">Bundle</span>, <span class="hl-kw">error</span>) {
+    b := &<span class="hl-type">Bundle</span>{}
+    <span class="hl-kw">for</span> i, opt := <span class="hl-kw">range</span> opts {
+        <span class="hl-kw">if</span> err := <span class="hl-func">opt</span>(b); err != <span class="hl-kw">nil</span> {
+            <span class="hl-comment">// Rollback: close everything opened so far</span>
+            <span class="hl-kw">for</span> j := <span class="hl-kw">range</span> opts[:i] { <span class="hl-func">opts</span>[j](b) } <span class="hl-comment">// re-run to find closers</span>
+            b.<span class="hl-func">Close</span>()
+            <span class="hl-kw">return</span> <span class="hl-kw">nil</span>, <span class="hl-func">fmt.Errorf</span>(<span class="hl-str">"stack.New: option %d: %w"</span>, i, err)
+        }
+    }
+    <span class="hl-kw">return</span> b, <span class="hl-kw">nil</span>
+}</code></pre>
+
+          <div class="callout callout-warn">
+            <strong>Ownership caveat</strong>
+            <p>
+              When a deployer passes a borrowed <code>*sql.DB</code> (via
+              <code>stack.WithEventSink(myDB)</code>), the Bundle does NOT close it &mdash; only
+              closers created by preset/bundle options are registered. The caller owns what they
+              passed in.
+            </p>
+          </div>
+        </section>
+
+        <section id="performance">
+          <h2><span class="section-num">12</span>Performance Contract</h2>
+
+          <h3>Zero-cost composition &mdash; scoped honestly</h3>
+          <p>
+            <code>bundle.EventSink</code> is an interface field. A call through it pays one
+            interface dispatch &mdash; the same cost as any <code>event.EventSink</code> variable in
+            the codebase today. The Bundle adds no proxy, no wrapper, no re-dispatch. The guarantee:
+            <strong
+              >calling <code>bundle.EventSink.Save(...)</code> has the same allocation profile as
+              calling <code>store.Save(...)</code> through any
+              <code>event.EventSink</code> variable.</strong
+            >
+            It does NOT claim to match a call through the concrete
+            <code>*SQLEventStore</code> &mdash; that would require exposing the concrete type, which
+            breaks deployer portability.
+          </p>
+
+          <p>
+            <strong>Scope:</strong> the zero-cost guarantee holds when no accelerators are enabled.
+            An LRU cache (<code>WithReadModelCache</code>) IS a wrapper that adds a lookup per read.
+            This is by design and documented at the call site.
+          </p>
+
+          <h3>Tuning profiles &mdash; named by I/O pattern</h3>
+          <p>
+            The previous draft's <code>ForAppends</code>/<code>ForReads</code> were backwards: the
+            &ldquo;log&rdquo; DB is read constantly (Load, replay), and the &ldquo;views&rdquo; DB
+            is write-heavy during catch-up. Tuning profiles must name the I/O pattern, not the
+            assumed CQRS role:
+          </p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Profile</th>
+                  <th>SQLite pragmas</th>
+                  <th>For</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>ForSequentialIO</code></td>
+                  <td><code>synchronous=NORMAL</code>, larger <code>wal_autocheckpoint</code></td>
+                  <td>Append logs, journals &mdash; sequential writes + sequential scans</td>
+                </tr>
+                <tr>
+                  <td><code>ForRandomIO</code></td>
+                  <td>Larger <code>cache_size</code>, <code>mmap_size</code>, more readers</td>
+                  <td>Read models, snapshots &mdash; random point lookups + burst upserts</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>What the Bundle will NOT do</h3>
+          <ul class="plain">
+            <li>No mandatory middleware injected into every call</li>
+            <li>No runtime type-switching on store operations</li>
+            <li>No &ldquo;smart router&rdquo; that picks backends at runtime</li>
+            <li>No auto-tuning at runtime &mdash; pragmas are startup decisions</li>
+            <li>No hiding perf problems behind caching &mdash; fix the defaults first</li>
+          </ul>
+        </section>
+
+        <section id="tradeoffs">
+          <h2><span class="section-num">13</span>Honest Tradeoffs</h2>
+
+          <div class="two-col">
+            <div class="feature-card">
+              <h4 style="color: var(--success)">What we gain</h4>
+              <p>
+                Deployer portability: swap backends without touching domain logic. Infrastructure
+                wiring consolidated from ~80 scattered lines to one <code>stack.New</code> call.
+                ISP-honest: command handlers see only <code>EventSink</code>, projections see only
+                <code>EventSource</code> + <code>Journal</code>. Every capability gap is visible in
+                the matrix, not hidden.
+              </p>
+            </div>
+            <div class="feature-card">
+              <h4 style="color: var(--danger)">What it costs</h4>
+              <p>
+                Two new modules (<code>stack</code> + <code>readmodel</code>). Backend work: Pebble
+                needs command/query/read-model stores before its preset is complete. The
+                <code>readmodel.Backend</code> interface can't express SQL filtered queries without
+                a type assertion. The separation is a convention enforced by code review and
+                optionally <code>.go-arch-lint.yml</code>, not by the Go compiler.
+              </p>
+            </div>
+          </div>
+
+          <div class="callout callout-warn">
+            <strong>The &ldquo;library not framework&rdquo; line</strong>
+            <p>
+              A composition root with lifecycle ownership and driver-specific presets IS a framework
+              feature. The honest framing: the Bundle layer is an <strong>optional</strong>
+              composition layer. Consumers who want zero framework influence keep importing
+              individual modules and wiring by hand &mdash; the current behaviour, fully supported.
+              The Bundle is the happy path, not the only path. The line between &ldquo;library with
+              optional helpers&rdquo; and &ldquo;framework&rdquo; is whether the helpers are
+              required. They are not.
+            </p>
+          </div>
+        </section>
+
+        <section id="limits">
+          <h2><span class="section-num">14</span>What This Does NOT Solve</h2>
+          <p>
+            Honest scope. These are real production concerns that the Bundle layer does not address.
+            They are listed here so nobody mistakes this proposal for a silver bullet.
+          </p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Concern</th>
+                  <th>Status</th>
+                  <th>Why it's out of scope</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Outbox pattern</strong></td>
+                  <td>Not implemented</td>
+                  <td>
+                    <code>decider.Repository.Execute</code> does Save-then-Publish as independent
+                    operations. If the process crashes between them, events are persisted but not
+                    published. The Bundle does not fix this. It requires an outbox table + relay
+                    &mdash; a separate module.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Schema migrations</strong></td>
+                  <td>Deployer's responsibility</td>
+                  <td>
+                    SQL stores need <code>CREATE TABLE</code>. The Bundle does not auto-migrate
+                    (that's an opinion). Presets call <code>InitSchema</code> if the deployer opts
+                    in via <code>sqlite.New(dir, sqlite.WithAutoMigrate())</code>.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Multi-tenant isolation</strong></td>
+                  <td>Not in the Bundle</td>
+                  <td>
+                    Key namespacing (<code>tenantID:itemID</code>) is an app-layer concern. The
+                    <code>readmodel.Backend</code> is untyped bytes; the app controls key format.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Connection pool budgeting</strong></td>
+                  <td>Deployer's responsibility</td>
+                  <td>
+                    In a 3-DB split with 25 conns each, that's 75 connections per process. The
+                    Bundle does not enforce a global budget. Tune each preset's pool size.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Projection runner lifecycle</strong></td>
+                  <td>App developer's responsibility</td>
+                  <td>
+                    The Bundle provides the ingredients (EventSource, Subscriber, Checkpoints). The
+                    app constructs, starts, and stops the runner. The Bundle does not own the
+                    goroutine.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Import boundary enforcement</strong></td>
+                  <td>Convention + optional linter</td>
+                  <td>
+                    Go has no language-level import restrictions. The separation between
+                    &ldquo;deployer code&rdquo; and &ldquo;app code&rdquo; is enforced by code
+                    review and optionally <code>.go-arch-lint.yml</code>, not by the compiler.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="migration">
+          <h2><span class="section-num">15</span>Migration Path</h2>
+          <p>
+            The Bundle layer is additive. No existing interface changes. Backends gain new
+            <code>stack.Option</code>-returning functions, but existing constructors
+            (<code>storage.NewSQLiteBackend</code>, <code>pebble.Open</code>) are untouched.
+          </p>
+
+          <ol>
+            <li>
+              <strong>Existing consumers</strong> keep hand-wired <code>main.go</code>. Works
+              identically. Raw wiring remains the documented power-user path.
+            </li>
+            <li>
+              <strong>New consumers</strong> start with a preset. The happy path is the default in
+              docs and examples.
+            </li>
+            <li>
+              <strong>Migrating consumers</strong> replace their glue with <code>stack.New</code> at
+              their own pace. No big-bang rewrite.
+            </li>
+            <li>
+              <strong>Custom enrichers</strong> (e.g., <code>decider.Repository</code>'s enricher
+              chain) are unaffected &mdash; they're configured on the Repository, not the Bundle.
+            </li>
+          </ol>
+        </section>
+
+        <section id="plan">
+          <h2><span class="section-num">16</span>Execution Plan</h2>
+
+          <div class="phase">
+            <div class="phase-num">1</div>
+            <div class="phase-body">
+              <h4>readmodel module</h4>
+              <p>
+                Define <code>readmodel.Backend</code> (untyped) + <code>readmodel.Store[T]</code>
+                (typed wrapper) + memory adapter. Highest impact: projections need a write target.
+              </p>
+              <div class="phase-progress"><span data-width="0"></span></div>
+            </div>
+          </div>
+
+          <div class="phase">
+            <div class="phase-num">2</div>
+            <div class="phase-body">
+              <h4>stack core</h4>
+              <p>
+                <code>Bundle</code> struct with segregated interface fields.
+                <code>stack.New(opts ...Option)</code> with partial-failure rollback.
+                Pointer-deduplicated <code>Close()</code>.
+              </p>
+              <div class="phase-progress"><span data-width="0"></span></div>
+            </div>
+          </div>
+
+          <div class="phase">
+            <div class="phase-num">3</div>
+            <div class="phase-body">
+              <h4>memory preset + bus option</h4>
+              <p>
+                <code>memory.New()</code> returns a full <code>*Bundle</code>.
+                <code>memory.Bus()</code> returns an option setting both Publisher and Subscriber.
+                Validates the Bundle shape with zero deps.
+              </p>
+              <div class="phase-progress"><span data-width="0"></span></div>
+            </div>
+          </div>
+
+          <div class="phase">
+            <div class="phase-num">4</div>
+            <div class="phase-body">
+              <h4>sqlite preset + AppendLog/Views options</h4>
+              <p>
+                <code>sqlite.New(dir)</code> + <code>sqlite.AppendLog(dir)</code> +
+                <code>sqlite.Views(dir)</code>. Includes tuning profiles
+                (<code>ForSequentialIO</code>, <code>ForRandomIO</code>).
+              </p>
+              <div class="phase-progress"><span data-width="0"></span></div>
+            </div>
+          </div>
+
+          <div class="phase">
+            <div class="phase-num">5</div>
+            <div class="phase-body">
+              <h4>fill Pebble gaps</h4>
+              <p>
+                Add command store, query store, and read-model backend to Pebble. Then
+                <code>pebble.New(dir)</code> becomes a complete preset.
+              </p>
+              <div class="phase-progress"><span data-width="0"></span></div>
+            </div>
+          </div>
+
+          <div class="phase">
+            <div class="phase-num">6</div>
+            <div class="phase-body">
+              <h4>postgres preset</h4>
+              <p>Same shape as SQLite, different driver/dialect.</p>
+              <div class="phase-progress"><span data-width="0"></span></div>
+            </div>
+          </div>
+
+          <div class="phase">
+            <div class="phase-num">7</div>
+            <div class="phase-body">
+              <h4>rewrite example/todo</h4>
+              <p>
+                Port to <code>sqlite.New</code>. Measure: if the infrastructure glue doesn't shrink
+                dramatically, the design is wrong. Also add a split-topology example.
+              </p>
+              <div class="phase-progress"><span data-width="0"></span></div>
+            </div>
+          </div>
+
+          <div class="phase">
+            <div class="phase-num">8</div>
+            <div class="phase-body">
+              <h4>benchmarks + docs</h4>
+              <p>
+                <code>stack/bench/</code> suite parameterised by <code>*Bundle</code>.
+                <code>docs/PRESETS.md</code>. Update <code>SKILL.md</code> and
+                <code>STORAGE_GUIDE.md</code>.
+              </p>
+              <div class="phase-progress"><span data-width="0"></span></div>
+            </div>
+          </div>
+
+          <div class="callout">
+            <strong>Where to start</strong>
+            <p>
+              Phase 1 (<code>readmodel</code>) and Phase 2 (<code>stack</code> core). Everything
+              downstream is blocked until the read-model Backend exists and the Bundle type is
+              defined.
+            </p>
+          </div>
+        </section>
+
+        <div class="footer">
+          Architecture proposal v2 &middot; <code>go-cqrs-lite</code> &middot; Generated 2026-06-18
+          &middot; Revised after 4-agent brutal review (30 findings incorporated)
+        </div>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        "use strict";
+        const sections = document.querySelectorAll("section");
+        const navLinks = document.querySelectorAll(".sidebar-nav a");
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add("visible");
+                entry.target.querySelectorAll(".phase-progress > span").forEach((bar) => {
+                  bar.style.width = bar.getAttribute("data-width") + "%";
+                });
+                navLinks.forEach((link) => {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { threshold: 0.15, rootMargin: "-10% 0px -60% 0px" },
+        );
+
+        sections.forEach((s) => observer.observe(s));
+      })();
+    </script>
+  </body>
 </html>

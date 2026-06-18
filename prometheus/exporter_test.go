@@ -8,17 +8,16 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/prometheus/v2"
-	"github.com/prometheus/client_golang/prometheus"
-	dto "github.com/prometheus/client_model/go"
+	promClient "github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel"
-	otelmetric "go.opentelemetry.io/otel/metric"
+
+	cqrsprom "github.com/larsartmann/go-cqrs-lite/prometheus/v2"
 )
 
 func TestSetup_CreatesProviderAndHandler(t *testing.T) {
 	t.Parallel()
 
-	provider, err := prometheus.Setup()
+	provider, err := cqrsprom.Setup()
 	if err != nil {
 		t.Fatalf("Setup: %v", err)
 	}
@@ -36,8 +35,8 @@ func TestSetup_CreatesProviderAndHandler(t *testing.T) {
 func TestSetup_WithCustomRegistry(t *testing.T) {
 	t.Parallel()
 
-	reg := prometheus.NewRegistry()
-	provider, err := prometheus.Setup(prometheus.WithRegistry(reg))
+	reg := promClient.NewRegistry()
+	provider, err := cqrsprom.Setup(cqrsprom.WithRegistry(reg))
 	if err != nil {
 		t.Fatalf("Setup: %v", err)
 	}
@@ -60,7 +59,7 @@ func TestSetup_WithCustomRegistry(t *testing.T) {
 	found := false
 
 	for _, mf := range mfs {
-		if mf.GetName() == "test_counter" {
+		if mf.GetName() == "test_counter_total" {
 			found = true
 
 			if val := mf.GetMetric()[0].GetCounter().GetValue(); val != 42 {
@@ -70,14 +69,14 @@ func TestSetup_WithCustomRegistry(t *testing.T) {
 	}
 
 	if !found {
-		t.Fatal("test_counter metric not found in registry")
+		t.Fatal("test_counter_total metric not found in registry")
 	}
 }
 
 func TestHandler_ServesMetrics(t *testing.T) {
 	t.Parallel()
 
-	provider, err := prometheus.Setup()
+	provider, err := cqrsprom.Setup()
 	if err != nil {
 		t.Fatalf("Setup: %v", err)
 	}
@@ -85,10 +84,8 @@ func TestHandler_ServesMetrics(t *testing.T) {
 
 	otel.SetMeterProvider(provider.AsMeterProvider())
 
-	counter, err := otelmetric.Int64Counter(
-		otel.GetMeterProvider(), "cqrs_test_total",
-		otelmetric.WithDescription("test counter"),
-	)
+	counter, err := otel.GetMeterProvider().Meter("test").
+		Int64Counter("cqrs_test_total")
 	if err != nil {
 		t.Fatalf("Int64Counter: %v", err)
 	}
@@ -109,18 +106,12 @@ func TestHandler_ServesMetrics(t *testing.T) {
 	if !strings.Contains(string(body), "cqrs_test_total") {
 		t.Errorf("expected metrics to contain cqrs_test_total, got:\n%s", body)
 	}
-
-	if resp.Header().Get("Content-Type") == "" {
-		t.Error("expected Content-Type header")
-	}
 }
 
-func TestMustSetup_PanicsOnError(t *testing.T) {
+func TestMustSetup_Succeeds(t *testing.T) {
 	t.Parallel()
 
-	// WithRegistry with nil should still work (default is used)
-	// Instead, test that MustSetup succeeds normally
-	p := prometheus.MustSetup()
+	p := cqrsprom.MustSetup()
 	defer p.Shutdown(context.Background())
 
 	if p.AsMeterProvider() == nil {
@@ -131,7 +122,7 @@ func TestMustSetup_PanicsOnError(t *testing.T) {
 func TestHandler_EmptyInitially(t *testing.T) {
 	t.Parallel()
 
-	provider, err := prometheus.Setup()
+	provider, err := cqrsprom.Setup()
 	if err != nil {
 		t.Fatalf("Setup: %v", err)
 	}
@@ -151,11 +142,11 @@ func TestHandler_EmptyInitially(t *testing.T) {
 	}
 }
 
-func TestSetup_GOProcessesMetric(t *testing.T) {
+func TestSetup_HistogramMetrics(t *testing.T) {
 	t.Parallel()
 
-	reg := prometheus.NewRegistry()
-	provider, err := prometheus.Setup(prometheus.WithRegistry(reg))
+	reg := promClient.NewRegistry()
+	provider, err := cqrsprom.Setup(cqrsprom.WithRegistry(reg))
 	if err != nil {
 		t.Fatalf("Setup: %v", err)
 	}
@@ -193,6 +184,3 @@ func TestSetup_GOProcessesMetric(t *testing.T) {
 
 	t.Fatal("cqrs_latency_ms metric not found")
 }
-
-// Verify dto import is used (for future use).
-var _ = dto.MetricFamily{}

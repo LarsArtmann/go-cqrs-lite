@@ -105,6 +105,7 @@ func RegisterTypeWithValidator[T any](
 func (v *Validator) RegisterType(eventType event.Type, t reflect.Type) {
 	v.mu.Lock()
 	defer v.mu.Unlock()
+
 	v.types[eventType] = t
 }
 
@@ -136,7 +137,8 @@ func (v *Validator) Validate(evt event.Event) error {
 
 	instance := reflect.New(t).Interface()
 
-	if err := v.decode(payload, instance); err != nil {
+	err := v.decode(payload, instance)
+	if err != nil {
 		return event.WrapRejection(
 			err,
 			"schema.decode_failed",
@@ -146,11 +148,12 @@ func (v *Validator) Validate(evt event.Event) error {
 
 	if customValidate != nil {
 		val := reflect.ValueOf(instance)
-		if val.Kind() == reflect.Ptr && !val.IsNil() {
+		if val.Kind() == reflect.Pointer && !val.IsNil() {
 			val = val.Elem()
 		}
 
-		if err := customValidate(val.Interface()); err != nil {
+		err := customValidate(val.Interface())
+		if err != nil {
 			return event.WrapRejection(
 				err,
 				"schema.validation_failed",
