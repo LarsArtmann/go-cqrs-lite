@@ -103,7 +103,7 @@
 | PayloadReadOnly       | Zero-copy read access for internal paths (signing, pebble, storage, middleware)                                                                                                                                                                                                                                            | ✅     |
 | Stream loading        | `StreamLoader` interface + `EventStream` cursor + `StoreStreamAdapter`                                                                                                                                                                                                                                                     | ✅     |
 | Reactive streams      | `EventBus = ro.Subject[Event]`, `NewEventBus`, `NewReplayEventBus`, `NewBehaviorEventBus`, `FilterEventType`, `FilterEventTypes`, `ReplayFilter`, `HandlerToObserver`                                                                                                                                                      | ✅     |
-| Stream deduplication  | `DistinctByEventID()`, `DistinctByEventIDWith(seen)`, `DistinctByAggregateID()`, `SubscriberToObservable` — wired into projection Runner replay→live boundary                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | ✅     |
+| Stream deduplication  | `DistinctByEventID()`, `DistinctByEventIDWith(seen)`, `DistinctByAggregateID()`, `SubscriberToObservable` — wired into projection Runner replay→live boundary                                                                                                                                                              | ✅     |
 | Slice helpers         | `SliceFromVersion`, `SliceToVersion`, `FilterByTimestamp` — in-memory event slicing                                                                                                                                                                                                                                        | ✅     |
 | Command causality     | `WithCommandCausality(ctx, type, id)` + `CommandCausalityEnricher` — auto-tag events with the command that caused them                                                                                                                                                                                                     | ✅     |
 | Checkpoint            | `Checkpoint` struct + `CheckpointSink/Source/Store` interfaces for projection positioning                                                                                                                                                                                                                                  | ✅     |
@@ -306,10 +306,10 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 
 ### Enrichers ✅
 
-| Factory                    | Purpose                                                          |
-| -------------------------- | ---------------------------------------------------------------- |
-| `OTelCorrelationEnricher`  | Bridges OTel baggage → event custom metadata (`otel.correlation_id`) |
-| `OTelCorrelationIDFromEvent` | Extracts the stored OTel correlation ID from an event          |
+| Factory                      | Purpose                                                              |
+| ---------------------------- | -------------------------------------------------------------------- |
+| `OTelCorrelationEnricher`    | Bridges OTel baggage → event custom metadata (`otel.correlation_id`) |
+| `OTelCorrelationIDFromEvent` | Extracts the stored OTel correlation ID from an event                |
 
 | Factory                       | Behavior                                          |
 | ----------------------------- | ------------------------------------------------- |

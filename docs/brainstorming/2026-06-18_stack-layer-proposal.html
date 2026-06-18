@@ -1171,43 +1171,112 @@ app := <span class="hl-func">NewApp</span>(stk) <span class="hl-comment">// comm
           <h2><span class="section-num">08</span>The Split-Topology Case</h2>
           <p>
             The most interesting design challenge — and the one the prompt specifically asks for
-            &mdash; is running <strong>multiple databases</strong>: one for command + event
-            sourcing, one for the query log, one for materialised views. This is where presets earn
-            their keep, because the <code>Stack</code> must compose capabilities from different
-            providers rather than inherit them from one backend.
+            &mdash; is running <strong>multiple databases</strong>. The natural split is not by
+            capability but by <strong>workload role</strong>: a <em>write store</em> (events +
+            commands) and a <em>read store</em> (materialised views + snapshots). This is where
+            presets earn their keep, because the <code>Stack</code> must compose capabilities from
+            different providers rather than inherit them from one backend.
           </p>
 
-          <p>The <code>stack.Compose</code> builder assembles a Stack capability-by-capability:</p>
+          <h3>Why split by role, not by capability</h3>
 
-          <pre><code><span class="hl-comment">// Three SQLite databases, each tuned for its workload.</span>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Role</th>
+                  <th>Capabilities</th>
+                  <th>Workload</th>
+                  <th>Why they share a DB</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Write store</strong></td>
+                  <td>Events + Commands</td>
+                  <td>Append-only, write-heavy</td>
+                  <td>
+                    Same durability needs; can persist a command and its resulting events in one
+                    transaction.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Read store</strong></td>
+                  <td>Read Models + Snapshots</td>
+                  <td>Read-heavy, upsertable</td>
+                  <td>
+                    Both rebuildable from events; a snapshot is just another materialised view of
+                    aggregate state.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout callout-warn">
+            <strong>The anti-pattern this avoids</strong>
+            <p>
+              Splitting events and commands into <em>separate</em> databases buys nothing — same
+              workload, same durability — and loses the atomic &ldquo;persist command + resulting
+              events&rdquo; transaction. Granular capability splitting is still available for those
+              who need it, but role-based bundling is the better default.
+            </p>
+          </div>
+
+          <h3>Role-based providers</h3>
+          <p>
+            A single backend can implement <em>multiple</em> <code>Provide</code> methods. A preset
+            package ships role helpers that bundle the capabilities that belong together and share
+            one connection:
+          </p>
+
+          <pre><code><span class="hl-comment">// Two SQLite databases, grouped by workload role.</span>
+write, _ := sqlite.<span class="hl-func">WriteStore</span>(<span class="hl-str">"data/write.db"</span>, logger)  <span class="hl-comment">// events + commands</span>
+read,  _ := sqlite.<span class="hl-func">ReadStore</span>(<span class="hl-str">"data/views.db"</span>, logger)  <span class="hl-comment">// views + snapshots</span>
+
 stk, err := stack.<span class="hl-func">Compose</span>(
-    stack.<span class="hl-func">WithEvents</span>(sqlite.<span class="hl-func">EventStore</span>(<span class="hl-str">"data/events.db"</span>)),
-    stack.<span class="hl-func">WithCommands</span>(sqlite.<span class="hl-func">CommandStore</span>(<span class="hl-str">"data/commands.db"</span>)),
-    stack.<span class="hl-func">WithReadModels</span>(sqlite.<span class="hl-func">ReadModels</span>(<span class="hl-str">"data/views.db"</span>)),
-    stack.<span class="hl-func">WithBus</span>(memory.<span class="hl-func">Bus</span>()), <span class="hl-comment">// transient, single-process</span>
-    stack.<span class="hl-func">WithSnapshots</span>(sqlite.<span class="hl-func">SnapshotStore</span>(<span class="hl-str">"data/events.db"</span>)),
-    stack.<span class="hl-func">WithCheckpoints</span>(memory.<span class="hl-func">CheckpointStore</span>()),
+    write,                                            <span class="hl-comment">// provides Events + Commands</span>
+    read,                                             <span class="hl-comment">// provides ReadModels + Snapshots</span>
+    stack.<span class="hl-func">WithCheckpoints</span>(memory.<span class="hl-func">CheckpointStore</span>()), <span class="hl-comment">// tiny, ephemeral is fine</span>
+    stack.<span class="hl-func">WithBus</span>(memory.<span class="hl-func">Bus</span>()),                   <span class="hl-comment">// single-process</span>
 )
-<span class="hl-kw">defer</span> stk.<span class="hl-func">Close</span>() <span class="hl-comment">// closes every provider that owns a resource</span></code></pre>
+<span class="hl-kw">defer</span> stk.<span class="hl-func">Close</span>() <span class="hl-comment">// closes each provider once — no double-close</span></code></pre>
 
           <p>
-            The same <code>Compose</code> API handles heterogeneous backends: events on Postgres,
-            read models on Pebble, bus on NATS. The <code>Provider</code> interface — implemented by
-            every backend facade — is the contract that makes this work:
+            The <code>Provider</code> interface is multi-capability: each backend implements only
+            the <code>Provide</code> methods that make sense for it, and <code>Compose</code> merges
+            contributions from all providers:
           </p>
 
-          <pre><code><span class="hl-comment">// Every backend facade implements the relevant Provide methods.</span>
-<span class="hl-kw">type</span> <span class="hl-type">Provider</span> <span class="hl-kw">interface</span> {
-    <span class="hl-func">ProvideEvents</span>() <span class="hl-type">event.Store</span>
-    <span class="hl-func">ProvideSnapshots</span>() <span class="hl-type">snapshot.SnapshotStore</span>
-    <span class="hl-func">ProvideCheckpoints</span>() <span class="hl-type">event.CheckpointStore</span>
-    <span class="hl-func">ProvideReadModels</span>() <span class="hl-type">readmodel.Store</span>
-}</code></pre>
+          <pre><code><span class="hl-comment">// sqlite.WriteStore implements both — they share one *sql.DB.</span>
+<span class="hl-kw">func</span> (w *<span class="hl-type">WriteStore</span>) <span class="hl-func">ProvideEvents</span>() <span class="hl-type">event.Store</span>     { <span class="hl-kw">return</span> w.events }
+<span class="hl-kw">func</span> (w *<span class="hl-type">WriteStore</span>) <span class="hl-func">ProvideCommands</span>() <span class="hl-type">command.Store</span> { <span class="hl-kw">return</span> w.commands }
+<span class="hl-kw">func</span> (w *<span class="hl-type">WriteStore</span>) <span class="hl-func">Close</span>() <span class="hl-kw">error</span>                    { <span class="hl-kw">return</span> w.db.<span class="hl-func">Close</span>() }
+
+<span class="hl-comment">// sqlite.ReadStore implements both — a different *sql.DB.</span>
+<span class="hl-kw">func</span> (r *<span class="hl-type">ReadStore</span>) <span class="hl-func">ProvideReadModels</span>() <span class="hl-type">readmodel.Store</span>    { <span class="hl-kw">return</span> r.views }
+<span class="hl-kw">func</span> (r *<span class="hl-type">ReadStore</span>) <span class="hl-func">ProvideSnapshots</span>() <span class="hl-type">snapshot.Store</span>    { <span class="hl-kw">return</span> r.snaps }
+<span class="hl-kw">func</span> (r *<span class="hl-type">ReadStore</span>) <span class="hl-func">Close</span>() <span class="hl-kw">error</span>                        { <span class="hl-kw">return</span> r.db.<span class="hl-func">Close</span>() }</code></pre>
+
+          <h3>The escape hatch: per-capability control</h3>
+          <p>
+            For topologies that don't fit the write/read split — heterogeneous backends (events on
+            Postgres, views on Pebble, bus on NATS) — the same <code>Compose</code> API accepts
+            granular per-capability providers:
+          </p>
+
+          <pre><code><span class="hl-comment">// Full granularity: every capability on its own backend.</span>
+stk, err := stack.<span class="hl-func">Compose</span>(
+    stack.<span class="hl-func">WithEvents</span>(postgres.<span class="hl-func">EventStore</span>(dsn)),
+    stack.<span class="hl-func">WithReadModels</span>(pebble.<span class="hl-func">ReadModels</span>(<span class="hl-str">"data/views"</span>)),
+    stack.<span class="hl-func">WithBus</span>(nats.<span class="hl-func">Bus</span>(natsURL)),
+    <span class="hl-comment">// ...snapshots, checkpoints, commands as needed</span>
+)</code></pre>
 
           <p>
             Get the <code>Provider</code> interface right here and the single-backend presets fall
             out for free — a preset is just <code>Compose(WithProvider(backend))</code> with
-            sensible defaults.
+            sensible defaults. Role helpers are thin wrappers over the same primitive.
           </p>
         </section>
 
