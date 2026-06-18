@@ -134,17 +134,17 @@
 
 > `import "github.com/larsartmann/go-cqrs-lite/id"`
 
-| Feature                | Detail                                                                                                      | Status |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------- | ------ |
-| Generic branded type   | `id.Of[T]` — phantom type parameter for compile-time safety                                                 | ✅     |
-| ULID-backed            | Binary-sortable, time-ordered, 16-byte binary form                                                          | ✅     |
-| 8 built-in types       | `AggregateID`, `EventID`, `CorrelationID`, `CausationID`, `RequestID`, `UserID`, `ClientID`, `CommandID`    | ✅     |
-| Custom branded types   | `type OrderID = id.Of[OrderMarker]` — users can create their own                                            | ✅     |
+| Feature                | Detail                                                                                                                                                        | Status |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| Generic branded type   | `id.Of[T]` — phantom type parameter for compile-time safety                                                                                                   | ✅     |
+| ULID-backed            | Binary-sortable, time-ordered, 16-byte binary form                                                                                                            | ✅     |
+| 8 built-in types       | `AggregateID`, `EventID`, `CorrelationID`, `CausationID`, `RequestID`, `UserID`, `ClientID`, `CommandID`                                                      | ✅     |
+| Custom branded types   | `type OrderID = id.Of[OrderMarker]` — users can create their own                                                                                              | ✅     |
 | Exported markers       | All 8 phantom markers exported (`Aggregate`, `User`, `Correlation`, `Request`, `Causation`, `Client`, `Command`, `Event`) for downstream `BrandNamer` tooling | ✅     |
-| All serialization      | JSON (incl. `null`), binary, text, SQL `Scan`/`Value`                                                       | ✅     |
-| Convenience funcs      | `New[T]()`, `Parse[T]()`, `ULID[T]()`, `FromPtr[T]()`, `CompareIDs[T]()`                                    | ✅     |
-| AggregateID derivation | `DeriveAggregateID()` — deterministic ID from namespace + key                                               | ✅     |
-| Timestamp extraction   | `ULID(id)` extracts embedded timestamp                                                                      | ✅     |
+| All serialization      | JSON (incl. `null`), binary, text, SQL `Scan`/`Value`                                                                                                         | ✅     |
+| Convenience funcs      | `New[T]()`, `Parse[T]()`, `ULID[T]()`, `FromPtr[T]()`, `CompareIDs[T]()`                                                                                      | ✅     |
+| AggregateID derivation | `DeriveAggregateID()` — deterministic ID from namespace + key                                                                                                 | ✅     |
+| Timestamp extraction   | `ULID(id)` extracts embedded timestamp                                                                                                                        | ✅     |
 
 ### Generic Dispatcher ✅ FULLY_FUNCTIONAL
 

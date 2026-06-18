@@ -16,16 +16,16 @@ This created a **split brain in the type model**: half the branded IDs could be 
 
 **Export all 8 phantom marker types.** The full set:
 
-| Marker               | Branded Type     |
-| -------------------- | ---------------- |
-| `AggregateMarker`    | `AggregateID`    |
-| `UserMarker`         | `UserID`         |
-| `CorrelationMarker`  | `CorrelationID`  |
-| `RequestMarker`      | `RequestID`      |
-| `CausationMarker`    | `CausationID`    |
-| `ClientMarker`       | `ClientID`       |
-| `CommandMarker`      | `CommandID`      |
-| `EventMarker`        | `EventID`        |
+| Marker              | Branded Type    |
+| ------------------- | --------------- |
+| `AggregateMarker`   | `AggregateID`   |
+| `UserMarker`        | `UserID`        |
+| `CorrelationMarker` | `CorrelationID` |
+| `RequestMarker`     | `RequestID`     |
+| `CausationMarker`   | `CausationID`   |
+| `ClientMarker`      | `ClientID`      |
+| `CommandMarker`     | `CommandID`     |
+| `EventMarker`       | `EventID`       |
 
 ### Rationale
 
