@@ -19,8 +19,7 @@
 - [ ] **Schema registry** — JSON Schema validation middleware for events (ADR-0017). Uses `catalog/schema/` infrastructure.
 - [ ] **Distributed checkpointing** — multi-instance projection coordination (ADR-0018). Large scope.
 - [ ] **Prometheus metrics exporter** — OTel→Prometheus bridge to replace custom `MetricsRecorder` in `middleware/`.
-- [ ] **Projection dedup integration** — Wire `event.DistinctByEventID()` into projection Runner catch-up to close the replay→live dedup gap. Requires reactive pipeline refactor of `projection/runner.go`.
-- [ ] **OTel baggage → event enricher** — Optional `OTelCorrelationEnricher` that reads baggage from context and sets domain correlation ID on events.
+- [ ] **Schema registry** placeholder — moved here from High impact (schema registry is now High impact above).
 
 ### Medium impact
 
@@ -42,6 +41,8 @@
 
 ## Recently Completed
 
+- [x] **Projection replay→live dedup** — Reactive pipeline refactor: `SubscriberToObservable` adapts callback-based `Subscriber` to `ro.Observable[Event]`; `DistinctByEventIDWith(seen)` seeds dedup with replay IDs. Runner's `subscribeLive` now builds `live → DistinctByEventIDWith(replayIDs) → handler` pipeline. Zero duplicate processing at the replay→live boundary.
+- [x] **OTel baggage → event enricher** — `middleware.OTelCorrelationEnricher` bridges OTel baggage correlation IDs into event metadata via `event.WithCustom`. Composes with `CommandCausalityEnricher` via `CompositeEnricher`. Placed in `middleware/` (Layer 5) which imports both `event/` and `otel/`.
 - [x] **Ghost API cleanup** — Removed `EventSlice[T]` and `SeedFromEnv()` from `testutil/` (trivial wrappers with zero consumers).
 - [x] **NewCQRSViews bug fix** — OTel `NewCQRSViews()` instrument name filter was `"cqrs."` (exact match, matched nothing). Fixed to `"cqrs.*"` (wildcard). MeterProvider integration test added.
 - [x] **Layer violation fix** — All 3 pre-existing budget violations (`id`, `codec`, `pebble`) resolved by excluding test-only deps (gomega, ginkgo, rapid) from the production dep count.

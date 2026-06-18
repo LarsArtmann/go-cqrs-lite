@@ -94,7 +94,7 @@ Symmetric persistence across all three CQRS message types (events, commands, que
 - [~] ~~Saga module~~ — **HARD NO**. Vertical scaling (bigger server) is sufficient for this library's scope. Multi-instance orchestration is the consumer's concern.
 - [ ] Event schema registry with validation middleware
 - [ ] Distributed checkpointing for projections
-- [~] **Projection replay→live dedup gap** — **KNOWN ISSUE**. Events can be processed twice during catch-up when projection switches from replay to live. Mitigations: `event.DistinctByEventID()` operator for reactive pipelines, and idempotent projection handlers. Full fix requires buffering/caching duplicate events at the replay→live boundary; deferred until design review.
+- [x] ~~**Projection replay→live dedup gap**~~ — **FIXED** (commit `8d4ea2cc`). The Runner's `subscribeLive` now builds a reactive pipeline: `live → DistinctByEventIDWith(replayIDs) → handler`. Event IDs from journal replay seed the dedup set, so overlap-window duplicates are silently suppressed. New exports: `event.SubscriberToObservable`, `event.DistinctByEventIDWith`.
 
 ### Consumer Experience
 
@@ -126,4 +126,4 @@ Symmetric persistence across all three CQRS message types (events, commands, que
 
 ---
 
-_Last updated: 2026-06-17 (Sprint 7 complete; pprof marked done; projection replay→live dedup gap documented as known issue)_
+_Last updated: 2026-06-19 (Sprint 8: replay→live dedup closed; OTel correlation enricher added)_

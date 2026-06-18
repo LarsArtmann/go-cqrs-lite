@@ -60,7 +60,15 @@
 // request belong to?"
 //
 // They use different ID types (branded ULID vs arbitrary string) and serve
-// different purposes. Propagate both:
+// different purposes. To automate bridging them, use
+// middleware.OTelCorrelationEnricher:
+//
+//	decider.WithEnricher(event.CompositeEnricher(
+//	    event.CommandCausalityEnricher,
+//	    middleware.OTelCorrelationEnricher,
+//	))
+//
+// Or propagate both manually for full control:
 //
 //	// In the command handler:
 //	ctx = cqrsotel.WithCorrelationID(ctx, traceID.String())
