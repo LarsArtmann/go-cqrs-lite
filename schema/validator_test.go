@@ -1,0 +1,189 @@
+package schema
+
+import (
+	"encoding/json"
+	"errors"
+	"testing"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
+)
+
+type userCreatedPayload struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
+func testEvent(t *testing.T, eventType string, payload []byte) event.Event {
+	t.Helper()
+
+	aggID := id.NewAggregateID()
+	evt, err := event.NewEvent(
+		event.Type(eventType), aggID, "User", 1, payload,
+	)
+	if err != nil {
+		t.Fatalf("NewEvent: %v", err)
+	}
+
+	return evt
+}
+
+func TestValidator_ValidPayload_Passes(t *testing.T) {
+	t.Parallel()
+
+	v := NewValidator()
+	RegisterType[userCreatedPayload](v, "user.created")
+
+	payload, _ := json.Marshal(userCreatedPayload{Name: "Alice", Email: "alice@test.com"})
+	evt := testEvent(t, "user.created", payload)
+
+	if err := v.Validate(evt); err != nil {
+		t.Fatalf("expected valid payload to pass, got: %v", err)
+	}
+}
+
+func TestValidator_InvalidPayload_Rejected(t *testing.T) {
+	t.Parallel()
+
+	v := NewValidator()
+	RegisterType[userCreatedPayload](v, "user.created")
+
+	evt := testEvent(t, "user.created", []byte(`{"name": 123}`))
+
+	err := v.Validate(evt)
+	if err == nil {
+		t.Fatal("expected rejection for malformed payload")
+	}
+
+	if event.Classify(err) != event.Rejection {
+		t.Fatalf("expected Rejection error, got %T: %v", err, err)
+	}
+}
+
+func TestValidator_MalformedJSON_Rejected(t *testing.T) {
+	t.Parallel()
+
+	v := NewValidator()
+	RegisterType[userCreatedPayload](v, "user.created")
+
+	evt := testEvent(t, "user.created", []byte(`{broken`))
+
+	err := v.Validate(evt)
+	if err == nil {
+		t.Fatal("expected rejection for malformed JSON")
+	}
+}
+
+func TestValidator_UnregisteredType_LenientMode(t *testing.T) {
+	t.Parallel()
+
+	v := NewValidator()
+
+	evt := testEvent(t, "unknown.event", []byte(`{"anything": true}`))
+
+	if err := v.Validate(evt); err != nil {
+		t.Fatalf("expected unregistered type to pass in lenient mode, got: %v", err)
+	}
+}
+
+func TestValidator_UnregisteredType_StrictMode(t *testing.T) {
+	t.Parallel()
+
+	v := NewValidator(WithStrictMode())
+
+	evt := testEvent(t, "unknown.event", []byte(`{}`))
+
+	err := v.Validate(evt)
+	if err == nil {
+		t.Fatal("expected rejection for unregistered type in strict mode")
+	}
+
+	if event.Classify(err) != event.Rejection {
+		t.Fatalf("expected Rejection error, got %T: %v", err, err)
+	}
+}
+
+func TestValidator_CustomValidation(t *testing.T) {
+	t.Parallel()
+
+	v := NewValidator()
+	RegisterTypeWithValidator(v, "user.created", func(u userCreatedPayload) error {
+		if u.Name == "" {
+			return errors.New("name is required")
+		}
+
+		return nil
+	})
+
+	tests := []struct {
+		name    string
+		payload userCreatedPayload
+		wantErr bool
+	}{
+		{"valid", userCreatedPayload{Name: "Bob", Email: "bob@test.com"}, false},
+		{"empty name", userCreatedPayload{Name: "", Email: "x@test.com"}, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			payload, _ := json.Marshal(tt.payload)
+			evt := testEvent(t, "user.created", payload)
+
+			err := v.Validate(evt)
+			if tt.wantErr && err == nil {
+				t.Fatal("expected validation error, got nil")
+			}
+
+			if !tt.wantErr && err != nil {
+				t.Fatalf("expected no error, got: %v", err)
+			}
+		})
+	}
+}
+
+func TestValidator_EmptyPayload_Passes(t *testing.T) {
+	t.Parallel()
+
+	v := NewValidator()
+	RegisterType[userCreatedPayload](v, "user.created")
+
+	evt := testEvent(t, "user.created", nil)
+
+	if err := v.Validate(evt); err != nil {
+		t.Fatalf("expected empty payload to pass, got: %v", err)
+	}
+}
+
+func TestValidator_RegisteredTypes(t *testing.T) {
+	t.Parallel()
+
+	v := NewValidator()
+	RegisterType[userCreatedPayload](v, "user.created")
+	RegisterType[userCreatedPayload](v, "user.updated")
+
+	types := v.RegisteredTypes()
+	if len(types) != 2 {
+		t.Fatalf("expected 2 registered types, got %d", len(types))
+	}
+}
+
+func TestValidator_WithCustomCodec(t *testing.T) {
+	t.Parallel()
+
+	// Simple uppercase "codec" for testing
+	upperCodec := func(data []byte, v any) error {
+		return json.Unmarshal(data, v) // just delegate to JSON for the test
+	}
+
+	v := NewValidator(WithCodec(upperCodec))
+	RegisterType[userCreatedPayload](v, "user.created")
+
+	payload, _ := json.Marshal(userCreatedPayload{Name: "Alice"})
+	evt := testEvent(t, "user.created", payload)
+
+	if err := v.Validate(evt); err != nil {
+		t.Fatalf("expected valid payload with custom codec to pass, got: %v", err)
+	}
+}

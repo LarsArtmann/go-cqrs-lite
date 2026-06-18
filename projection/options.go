@@ -15,6 +15,7 @@ type runnerOptions struct {
 	logger        *slog.Logger
 	deadLetter    DeadLetterHandler
 	parallelism   int
+	dedupCapacity int
 }
 
 // DeadLetterHandler is called when a projection handler fails after all retries are exhausted.
@@ -66,5 +67,17 @@ func WithDeadLetterHandler(h DeadLetterHandler) RunnerOption {
 func WithParallelism(n int) RunnerOption {
 	return func(o *runnerOptions) {
 		o.parallelism = n
+	}
+}
+
+// WithDedupCapacity sets a bounded capacity for the live-stream dedup ring.
+// When set (> 0), the Runner uses DistinctByEventIDBoundedWith instead of
+// DistinctByEventIDWith, evicting the oldest seen IDs (FIFO) once capacity is
+// reached. This bounds memory for long-running (24/7) projections.
+//
+// A value of 0 (default) uses unbounded dedup (exact, but grows forever).
+func WithDedupCapacity(n int) RunnerOption {
+	return func(o *runnerOptions) {
+		o.dedupCapacity = n
 	}
 }

@@ -15,7 +15,13 @@ import (
 func (r *Runner) subscribeLive(ctx context.Context) error {
 	liveStream := event.SubscriberToObservable(r.subscriber)
 
-	deduped := ro.Pipe1(liveStream, event.DistinctByEventIDWith(r.replayIDs))
+	var deduped ro.Observable[event.Event]
+	if r.opts.dedupCapacity > 0 {
+		deduped = ro.Pipe1(liveStream,
+			event.DistinctByEventIDBoundedWith(r.opts.dedupCapacity, r.replayIDs))
+	} else {
+		deduped = ro.Pipe1(liveStream, event.DistinctByEventIDWith(r.replayIDs))
+	}
 
 	var subscribeErr error
 

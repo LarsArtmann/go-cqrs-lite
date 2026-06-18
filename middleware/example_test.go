@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v2"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
 )
 
 func ExampleNewRecovery() {
@@ -44,4 +45,22 @@ func ExampleNewLogging() {
 
 	// Output:
 	// true
+}
+
+func ExampleOTelCorrelationEnricher() {
+	ctx := cqrsotel.WithCorrelationID(context.Background(), "4bf92f3577b34da6a3ce929d0e0e4736")
+
+	opts := middleware.OTelCorrelationEnricher(ctx)
+
+	aggID := id.NewAggregateID()
+	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{}`))
+
+	for _, opt := range opts {
+		opt(evt)
+	}
+
+	fmt.Println(middleware.OTelCorrelationIDFromEvent(evt))
+
+	// Output:
+	// 4bf92f3577b34da6a3ce929d0e0e4736
 }

@@ -144,33 +144,33 @@ The issues in section (b) are known limitations, not bugs — they're documented
 
 ## f) Top 25 Next Tasks (sorted by impact/work ratio)
 
-| #   | Task                                                                 | Impact       | Work  | Ratio |
-| --- | -------------------------------------------------------------------- | ------------ | ----- | ----- |
-| 1   | Add `ExampleOTelCorrelationEnricher` to `middleware/example_test.go` | High         | 15min | ★★★   |
-| 2   | Update `SKILL.md` with new APIs (dedup pipeline, enricher)           | High         | 30min | ★★★   |
-| 3   | Fix/suppress gopls false positives (17 phantom errors)               | Medium       | 1h    | ★★☆   |
-| 4   | Add `DistinctByEventIDBounded(cap)` with ring eviction               | Medium       | 1h    | ★★☆   |
-| 5   | Add `WithDedupCapacity(n)` option to projection Runner               | Medium       | 30min | ★★☆   |
-| 6   | Real journal→bus overlap integration test                            | Medium       | 2h    | ★☆☆   |
-| 7   | Schema registry middleware (ADR-0017)                                | High         | 1d    | ★☆☆   |
-| 8   | Prometheus metrics exporter                                          | High         | 4h    | ★★☆   |
-| 9   | ~~`id.TraceID` type for arbitrary-string correlation~~ **REJECTED** — ULID stays for domain; OTel corr stays in custom metadata | ~~Rejected~~ | ~~2h~~ | ☆☆☆ |
-| 10  | `UnsubscribeAll()` on `event.Subscriber` (breaking)                  | High         | 2h    | ★★☆   |
-| 11  | Streaming event reads (`EventIterator`)                              | Medium       | 4h    | ★☆☆   |
-| 12  | Pebble coverage 85%+                                                 | Low          | 2h    | ★☆☆   |
-| 13  | Pebble CompactionFilter (TTL-based event expiry)                     | Medium       | 4h    | ★☆☆   |
-| 14  | Distributed checkpointing (ADR-0018)                                 | High         | 1d    | ★☆☆   |
-| 15  | cqrs-gen v2 with struct tag scanning                                 | Medium       | 1d    | ★☆☆   |
-| 16  | gRPC transport adapter                                               | Medium       | 1d    | ★☆☆   |
-| 17  | NATS/Redis Stream adapter                                            | Medium       | 1d    | ★☆☆   |
-| 18  | Property-based integration testing                                   | Medium       | 4h    | ★☆☆   |
-| 19  | jsonv2 codec experiment                                              | Low          | 2h    | ★☆☆   |
-| 20  | Arena allocation experiment                                          | Experimental | 1d    | ★☆☆   |
-| 21  | WASM compilation target                                              | Experimental | 2d    | ☆☆☆   |
-| 22  | Documentation site (Docusaurus/MkDocs)                               | Medium       | 1d    | ★☆☆   |
-| 23  | Performance regression dashboard                                     | Low          | 1d    | ☆☆☆   |
-| 24  | Multi-tenant event store                                             | Experimental | 2d    | ☆☆☆   |
-| 25  | Event archival to S3/GCS                                             | Experimental | 1d    | ☆☆☆   |
+| #   | Task                                                                                                                            | Impact       | Work   | Ratio |
+| --- | ------------------------------------------------------------------------------------------------------------------------------- | ------------ | ------ | ----- |
+| 1   | Add `ExampleOTelCorrelationEnricher` to `middleware/example_test.go`                                                            | High         | 15min  | ★★★   |
+| 2   | Update `SKILL.md` with new APIs (dedup pipeline, enricher)                                                                      | High         | 30min  | ★★★   |
+| 3   | Fix/suppress gopls false positives (17 phantom errors)                                                                          | Medium       | 1h     | ★★☆   |
+| 4   | Add `DistinctByEventIDBounded(cap)` with ring eviction                                                                          | Medium       | 1h     | ★★☆   |
+| 5   | Add `WithDedupCapacity(n)` option to projection Runner                                                                          | Medium       | 30min  | ★★☆   |
+| 6   | Real journal→bus overlap integration test                                                                                       | Medium       | 2h     | ★☆☆   |
+| 7   | Schema registry middleware (ADR-0017)                                                                                           | High         | 1d     | ★☆☆   |
+| 8   | Prometheus metrics exporter                                                                                                     | High         | 4h     | ★★☆   |
+| 9   | ~~`id.TraceID` type for arbitrary-string correlation~~ **REJECTED** — ULID stays for domain; OTel corr stays in custom metadata | ~~Rejected~~ | ~~2h~~ | ☆☆☆   |
+| 10  | `UnsubscribeAll()` on `event.Subscriber` (breaking)                                                                             | High         | 2h     | ★★☆   |
+| 11  | Streaming event reads (`EventIterator`)                                                                                         | Medium       | 4h     | ★☆☆   |
+| 12  | Pebble coverage 85%+                                                                                                            | Low          | 2h     | ★☆☆   |
+| 13  | Pebble CompactionFilter (TTL-based event expiry)                                                                                | Medium       | 4h     | ★☆☆   |
+| 14  | Distributed checkpointing (ADR-0018)                                                                                            | High         | 1d     | ★☆☆   |
+| 15  | cqrs-gen v2 with struct tag scanning                                                                                            | Medium       | 1d     | ★☆☆   |
+| 16  | gRPC transport adapter                                                                                                          | Medium       | 1d     | ★☆☆   |
+| 17  | NATS/Redis Stream adapter                                                                                                       | Medium       | 1d     | ★☆☆   |
+| 18  | Property-based integration testing                                                                                              | Medium       | 4h     | ★☆☆   |
+| 19  | jsonv2 codec experiment                                                                                                         | Low          | 2h     | ★☆☆   |
+| 20  | Arena allocation experiment                                                                                                     | Experimental | 1d     | ★☆☆   |
+| 21  | WASM compilation target                                                                                                         | Experimental | 2d     | ☆☆☆   |
+| 22  | Documentation site (Docusaurus/MkDocs)                                                                                          | Medium       | 1d     | ★☆☆   |
+| 23  | Performance regression dashboard                                                                                                | Low          | 1d     | ☆☆☆   |
+| 24  | Multi-tenant event store                                                                                                        | Experimental | 2d     | ☆☆☆   |
+| 25  | Event archival to S3/GCS                                                                                                        | Experimental | 1d     | ☆☆☆   |
 
 ---
 

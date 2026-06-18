@@ -3,7 +3,7 @@
 | Field   | Value        |
 | ------- | ------------ |
 | Date    | 2026-06-14   |
-| Status  | Proposed     |
+| Status  | Accepted     |
 | Decider | Lars Artmann |
 
 ## Context

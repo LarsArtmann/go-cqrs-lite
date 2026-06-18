@@ -20,10 +20,14 @@ Document the workaround rather than restructure the project. The multi-module ap
 
 ## Workarounds
 
-1. **Restart gopls**: Run `:LspRestart` (Neovim) or `Go: Restart Language Server` (VS Code)
-2. **Run `go mod tidy`** in the affected module directory
-3. **Verify with `go build`**: If `go build ./...` passes, the LSP errors are phantom
-4. **Per-module verification**: Use `GOWORK=off go build ./...` inside a module to confirm isolation
+1. **Disable the `mod_tidy` analyzer**: The false positives come from gopls's
+   `mod_tidy` analyzer running in workspace mode. Disable it via:
+   - VS Code: `.vscode/settings.json` (included in repo root)
+   - Neovim: `lspconfig.gopls.settings.gopls.analzers.gopls.mod_tidy = false`
+2. **Restart gopls**: Run `:LspRestart` (Neovim) or `Go: Restart Language Server` (VS Code)
+3. **Run `go mod tidy`** in the affected module directory
+4. **Verify with `go build`**: If `go build ./...` passes, the LSP errors are phantom
+5. **Per-module verification**: Use `GOWORK=off go build ./...` inside a module to confirm isolation
 
 ## Consequences
 
