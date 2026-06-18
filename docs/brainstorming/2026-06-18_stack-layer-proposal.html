@@ -1,0 +1,1559 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Architecture proposal: the Stack layer — decoupling application code from infrastructure decisions in go-cqrs-lite."
+    />
+    <title>The Stack Layer — go-cqrs-lite Deployment-First Proposal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,700;0,6..72,800;1,6..72,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --font-serif: "Newsreader", Georgia, "Times New Roman", serif;
+        --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+        --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+        --bg: #fdfcfa;
+        --bg-elevated: #ffffff;
+        --surface: #f5f4f0;
+        --border: #d4d2cc;
+        --border-strong: #a8a59c;
+        --text: #1a1917;
+        --text-secondary: #4a4946;
+        --text-tertiary: #787671;
+        --accent: #c41e3a;
+        --accent-muted: #e8c4ca;
+        --success: #1a5c3a;
+        --warn: #8c6b1f;
+        --danger: #8c1a1a;
+        --info: #1a3a5c;
+
+        --max-width: 820px;
+        --sidebar-width: 220px;
+        --gutter: 2.5rem;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0d0d0c;
+          --bg-elevated: #161614;
+          --surface: #1e1e1b;
+          --border: #2e2e2a;
+          --border-strong: #4a4a44;
+          --text: #e8e6e1;
+          --text-secondary: #a8a59c;
+          --text-tertiary: #6a6862;
+          --accent: #e85d75;
+          --accent-muted: #5c2a32;
+          --success: #4ade80;
+          --warn: #fbbf24;
+          --danger: #f87171;
+          --info: #60a5fa;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 1rem;
+        font-size: 16px;
+      }
+
+      body {
+        font-family: var(--font-sans);
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.7;
+        font-size: 0.95rem;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      ::selection {
+        background: var(--accent-muted);
+        color: var(--text);
+      }
+
+      /* LAYOUT */
+      .page {
+        display: grid;
+        grid-template-columns: var(--sidebar-width) 1fr;
+        max-width: calc(var(--sidebar-width) + var(--max-width) + var(--gutter) * 2);
+        margin: 0 auto;
+        min-height: 100vh;
+      }
+
+      @media (max-width: 900px) {
+        .page {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* SIDEBAR */
+      .sidebar {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        padding: 2.5rem 1.5rem;
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        gap: 2.5rem;
+        overflow-y: auto;
+      }
+
+      @media (max-width: 900px) {
+        .sidebar {
+          position: static;
+          height: auto;
+          border-right: none;
+          border-bottom: 1px solid var(--border);
+          padding: 1.5rem;
+          flex-direction: row;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 1rem;
+        }
+      }
+
+      .sidebar-brand {
+        font-family: var(--font-serif);
+        font-weight: 800;
+        font-size: 1.3rem;
+        line-height: 1.1;
+        color: var(--text);
+        text-decoration: none;
+        letter-spacing: -0.02em;
+      }
+
+      .sidebar-brand span {
+        display: block;
+        font-family: var(--font-sans);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--text-tertiary);
+        margin-top: 0.3rem;
+      }
+
+      .sidebar-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        list-style: none;
+      }
+
+      @media (max-width: 900px) {
+        .sidebar-nav {
+          flex-direction: row;
+          flex-wrap: wrap;
+        }
+      }
+
+      .sidebar-nav a {
+        display: block;
+        padding: 0.35rem 0.6rem;
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 0.82rem;
+        font-weight: 500;
+        border-radius: 0;
+        border-left: 2px solid transparent;
+        transition:
+          color 0.15s,
+          border-color 0.15s;
+      }
+
+      .sidebar-nav a:hover {
+        color: var(--text);
+        border-left-color: var(--border);
+      }
+
+      .sidebar-nav a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        font-weight: 600;
+      }
+
+      @media (max-width: 900px) {
+        .sidebar-nav a {
+          border-left: none;
+          border-bottom: 2px solid transparent;
+          padding: 0.3rem 0.5rem;
+        }
+        .sidebar-nav a:hover {
+          border-bottom-color: var(--border);
+          border-left-color: transparent;
+        }
+        .sidebar-nav a.active {
+          border-bottom-color: var(--accent);
+          border-left-color: transparent;
+        }
+      }
+
+      .sidebar-meta {
+        margin-top: auto;
+        font-size: 0.72rem;
+        color: var(--text-tertiary);
+        line-height: 1.6;
+      }
+
+      @media (max-width: 900px) {
+        .sidebar-meta {
+          display: none;
+        }
+      }
+
+      /* MAIN */
+      .main {
+        padding: 3rem var(--gutter) 5rem;
+        max-width: var(--max-width);
+      }
+
+      @media (max-width: 900px) {
+        .main {
+          padding: 2rem 1.5rem;
+        }
+      }
+
+      /* TYPOGRAPHY */
+      h1 {
+        font-family: var(--font-serif);
+        font-size: clamp(2.8rem, 6vw, 4rem);
+        font-weight: 800;
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+        color: var(--text);
+        margin-bottom: 1.5rem;
+      }
+
+      h2 {
+        font-family: var(--font-serif);
+        font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+        font-weight: 700;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        margin-top: 4rem;
+        margin-bottom: 1.25rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid var(--text);
+        color: var(--text);
+      }
+
+      h3 {
+        font-family: var(--font-serif);
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-top: 2.5rem;
+        margin-bottom: 0.75rem;
+        color: var(--text);
+        letter-spacing: -0.01em;
+      }
+
+      h4 {
+        font-family: var(--font-sans);
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 0.4rem;
+        color: var(--text);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      p {
+        color: var(--text-secondary);
+        margin: 0.9em 0;
+        max-width: 65ch;
+      }
+
+      p.lead {
+        font-family: var(--font-serif);
+        font-size: 1.25rem;
+        line-height: 1.55;
+        color: var(--text-secondary);
+        font-style: italic;
+        margin-bottom: 2rem;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+
+      strong {
+        color: var(--text);
+        font-weight: 600;
+      }
+      em {
+        font-family: var(--font-serif);
+        font-style: italic;
+      }
+
+      /* RULE */
+      hr {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 3rem 0;
+      }
+
+      /* SECTION NUMBERS */
+      .section-num {
+        font-family: var(--font-serif);
+        font-size: 0.7em;
+        font-weight: 400;
+        color: var(--text-tertiary);
+        margin-right: 0.5rem;
+        vertical-align: super;
+      }
+
+      /* SUMMARY GRID */
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        margin: 2.5rem 0 1.5rem;
+      }
+
+      @media (max-width: 700px) {
+        .summary-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      .stat-cell {
+        background: var(--bg);
+        padding: 1.25rem 1.5rem;
+        text-align: center;
+      }
+
+      .stat-value {
+        font-family: var(--font-serif);
+        font-size: 2.2rem;
+        font-weight: 800;
+        line-height: 1.1;
+        color: var(--text);
+        margin-bottom: 0.3rem;
+      }
+
+      .stat-label {
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-tertiary);
+        margin-bottom: 0.3rem;
+      }
+
+      .stat-desc {
+        font-size: 0.8rem;
+        color: var(--text-tertiary);
+        line-height: 1.4;
+      }
+
+      /* TABLES */
+      .table-wrap {
+        overflow-x: auto;
+        margin: 1.5rem 0 2rem;
+        border: 1px solid var(--border);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        min-width: 600px;
+      }
+
+      th {
+        text-align: left;
+        padding: 0.8rem 1rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-tertiary);
+        background: var(--surface);
+        border-bottom: 1px solid var(--border-strong);
+        white-space: nowrap;
+      }
+
+      td {
+        padding: 0.85rem 1rem;
+        border-bottom: 1px solid var(--border);
+        color: var(--text-secondary);
+        vertical-align: top;
+      }
+
+      tr:last-child td {
+        border-bottom: none;
+      }
+      tbody tr {
+        transition: background 0.12s;
+      }
+      tbody tr:hover {
+        background: var(--surface);
+      }
+
+      /* TAGS */
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 500;
+        padding: 0.2rem 0.5rem;
+        border: 1px solid;
+        white-space: nowrap;
+        letter-spacing: 0.02em;
+      }
+
+      .tag-done {
+        color: var(--success);
+        border-color: var(--success);
+        background: transparent;
+      }
+      .tag-partial {
+        color: var(--warn);
+        border-color: var(--warn);
+        background: transparent;
+      }
+      .tag-missing {
+        color: var(--danger);
+        border-color: var(--danger);
+        background: transparent;
+      }
+      .tag-idea {
+        color: var(--info);
+        border-color: var(--info);
+        background: transparent;
+      }
+
+      /* CODE */
+      code,
+      pre {
+        font-family: var(--font-mono);
+        font-size: 0.85em;
+      }
+
+      code {
+        padding: 0.1em 0.35em;
+        background: var(--surface);
+        color: var(--text);
+        font-weight: 500;
+      }
+
+      pre {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        padding: 1.25rem;
+        overflow-x: auto;
+        margin: 1rem 0 1.5rem;
+        line-height: 1.65;
+      }
+
+      pre code {
+        background: transparent;
+        padding: 0;
+        font-weight: 400;
+        font-size: 0.88em;
+      }
+
+      /* SYNTAX HIGHLIGHTING — restrained */
+      .hl-kw {
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .hl-type {
+        color: var(--text);
+        font-weight: 600;
+      }
+      .hl-func {
+        color: var(--text);
+        font-weight: 600;
+      }
+      .hl-str {
+        color: var(--success);
+      }
+      .hl-comment {
+        color: var(--text-tertiary);
+        font-style: italic;
+      }
+      .hl-field {
+        color: var(--text-secondary);
+      }
+
+      /* PHASES */
+      .phase {
+        display: grid;
+        grid-template-columns: 2.5rem 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.25rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .phase:first-of-type {
+        padding-top: 0;
+      }
+      .phase:last-of-type {
+        border-bottom: none;
+      }
+
+      .phase-num {
+        font-family: var(--font-serif);
+        font-size: 1.6rem;
+        font-weight: 800;
+        line-height: 1;
+        color: var(--text-tertiary);
+        text-align: right;
+        padding-top: 0.1rem;
+      }
+
+      .phase-body h4 {
+        font-family: var(--font-serif);
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 0 0 0.3rem;
+        text-transform: none;
+        letter-spacing: 0;
+      }
+
+      .phase-body p {
+        margin: 0;
+        font-size: 0.92rem;
+      }
+
+      .phase-progress {
+        width: 100%;
+        height: 2px;
+        background: var(--border);
+        margin-top: 0.75rem;
+      }
+
+      .phase-progress > span {
+        display: block;
+        height: 100%;
+        background: var(--accent);
+        transition: width 1s ease-out;
+        width: 0;
+      }
+
+      /* GRIDS */
+      .two-col {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        margin: 1.5rem 0;
+      }
+
+      @media (max-width: 640px) {
+        .two-col {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .feature-card {
+        padding: 1.5rem;
+        background: var(--bg);
+      }
+
+      .feature-card h4 {
+        font-family: var(--font-serif);
+        font-size: 1.05rem;
+        font-weight: 700;
+        text-transform: none;
+        letter-spacing: 0;
+        margin-bottom: 0.4rem;
+      }
+
+      .feature-card p {
+        margin: 0;
+        font-size: 0.9rem;
+      }
+
+      /* CALLOUTS */
+      .callout {
+        padding: 1.25rem 1.5rem;
+        background: var(--surface);
+        border-left: 3px solid var(--accent);
+        margin: 1.5rem 0;
+      }
+
+      .callout p {
+        margin: 0;
+      }
+      .callout strong {
+        color: var(--text);
+      }
+
+      .callout-warn {
+        border-left-color: var(--warn);
+      }
+      .callout-info {
+        border-left-color: var(--info);
+      }
+
+      /* ACTOR GRID */
+      .actor-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        margin: 1.5rem 0 2rem;
+      }
+
+      @media (max-width: 640px) {
+        .actor-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .actor {
+        padding: 1.5rem;
+        background: var(--bg);
+      }
+
+      .actor h4 {
+        font-family: var(--font-serif);
+        font-size: 1.1rem;
+        font-weight: 700;
+        text-transform: none;
+        letter-spacing: 0;
+        margin-bottom: 0.5rem;
+        color: var(--accent);
+      }
+
+      .actor p {
+        margin: 0;
+        font-size: 0.88rem;
+      }
+
+      .actor .role {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-tertiary);
+        margin-bottom: 0.6rem;
+      }
+
+      /* LAYER DIAGRAM */
+      .layer-diagram {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        line-height: 1.85;
+        color: var(--text-secondary);
+        overflow-x: auto;
+      }
+
+      .layer-diagram .lyr {
+        display: block;
+        padding: 0.4rem 0.7rem;
+        margin: 0.3rem 0;
+        border: 1px solid var(--border);
+        background: var(--bg-elevated);
+      }
+      .layer-diagram .lyr-3 {
+        border-left: 4px solid var(--accent);
+      }
+      .layer-diagram .lyr-2 {
+        border-left: 4px solid var(--info);
+      }
+      .layer-diagram .lyr-1 {
+        border-left: 4px solid var(--success);
+      }
+      .layer-diagram .lbl {
+        color: var(--text-tertiary);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-top: 0.6rem;
+        margin-bottom: 0.1rem;
+      }
+      .layer-diagram .arrow {
+        color: var(--text-tertiary);
+        text-align: center;
+        font-size: 0.7rem;
+        margin: 0.1rem 0;
+      }
+
+      /* LISTS */
+      ul.plain,
+      ol {
+        padding-left: 1.3rem;
+        margin: 0.9rem 0;
+      }
+      li {
+        margin: 0.5rem 0;
+        color: var(--text-secondary);
+      }
+      li::marker {
+        color: var(--text-tertiary);
+      }
+
+      /* FOOTER */
+      .footer {
+        margin-top: 4rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+        color: var(--text-tertiary);
+        font-size: 0.82rem;
+      }
+
+      /* PRINT */
+      @media print {
+        .sidebar {
+          display: none;
+        }
+        .page {
+          grid-template-columns: 1fr;
+        }
+        .main {
+          padding: 1rem;
+        }
+        body {
+          background: white;
+          color: black;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <aside class="sidebar">
+        <a href="#top" class="sidebar-brand">
+          The Stack Layer
+          <span>go-cqrs-lite proposal</span>
+        </a>
+        <nav>
+          <ul class="sidebar-nav">
+            <li><a href="#problem">The Problem</a></li>
+            <li><a href="#pain">The Pain Today</a></li>
+            <li><a href="#idea">The Core Idea</a></li>
+            <li><a href="#actors">Three Actors</a></li>
+            <li><a href="#architecture">Architecture</a></li>
+            <li><a href="#capabilities">Capabilities</a></li>
+            <li><a href="#presets">Preset Catalog</a></li>
+            <li><a href="#split">Split Topology</a></li>
+            <li><a href="#recommendations">Recommendations</a></li>
+            <li><a href="#decisions">Design Decisions</a></li>
+            <li><a href="#tradeoffs">Tradeoffs</a></li>
+            <li><a href="#correction">A Correction</a></li>
+            <li><a href="#migration">Migration</a></li>
+            <li><a href="#plan">Execution Plan</a></li>
+          </ul>
+        </nav>
+        <div class="sidebar-meta">
+          Architecture Proposal<br />
+          Deployment-first design<br />
+          Generated 2026-06-18
+        </div>
+      </aside>
+
+      <main class="main" id="top">
+        <section class="hero">
+          <h1>The Stack Layer</h1>
+          <p class="lead">
+            A proposal to decouple application code from infrastructure decisions in
+            <code>go-cqrs-lite</code> — so the person <em>deploying</em> the app chooses where data
+            lives, while the person <em>writing</em> the app never imports a backend.
+          </p>
+
+          <div class="summary-grid">
+            <div class="stat-cell">
+              <div class="stat-value">7</div>
+              <div class="stat-label">Capabilities</div>
+              <div class="stat-desc">A Stack bundles all of them</div>
+            </div>
+            <div class="stat-cell">
+              <div class="stat-value">1</div>
+              <div class="stat-label">Import</div>
+              <div class="stat-desc">Deployer pulls one preset</div>
+            </div>
+            <div class="stat-cell">
+              <div class="stat-value">0</div>
+              <div class="stat-label">Backend deps</div>
+              <div class="stat-desc">In app code's import graph</div>
+            </div>
+            <div class="stat-cell">
+              <div class="stat-value">N</div>
+              <div class="stat-label">Topologies</div>
+              <div class="stat-desc">Memory → split multi-DB</div>
+            </div>
+          </div>
+        </section>
+
+        <section id="problem">
+          <h2><span class="section-num">01</span>The Problem</h2>
+          <p>
+            go-cqrs-lite is a <strong>library</strong>, not a framework. Its design principle is
+            explicit: consumers import what they need, compose their own stack, and no opinionated
+            transport, broker, or SQL driver is forced on them.
+          </p>
+          <p>
+            That principle is correct — and it has an unintended consequence. Because the library
+            provides excellent <em>primitives</em> (stores, buses, dispatchers, projections) but no
+            <em>composition root</em>, every consumer must write the same ~150 lines of glue: open
+            the database, build the backend facade, pull each store out, create the bus, construct
+            the projection runner, register projections, wire the dispatchers, and manage the close
+            lifecycle.
+          </p>
+          <p>
+            That glue <strong>is</strong> the infrastructure decision. And today it lives inside the
+            consumer's application code — exactly where the deployer cannot reach it without editing
+            Go source.
+          </p>
+
+          <div class="callout callout-warn">
+            <strong>The tension</strong>
+            <p>
+              &ldquo;Library, not framework&rdquo; says: don't force a backend. But &ldquo;consumers
+              should not decide on infrastructure&rdquo; says: don't make them wire it either. These
+              are compatible only if the wiring lives in an <em>optional</em> layer that the
+              deployer controls.
+            </p>
+          </div>
+        </section>
+
+        <section id="pain">
+          <h2><span class="section-num">02</span>The Pain Today</h2>
+          <p>
+            The canonical example is <code>example/todo/cmd/api/main.go</code>. It is a real,
+            working application — and its <code>run()</code> function is a wall of infrastructure
+            wiring. Here is the actual shape of it, abbreviated:
+          </p>
+
+          <pre><code><span class="hl-comment">// --- The deployer's decision, hardcoded into app code ---</span>
+dataDir := <span class="hl-func">getEnv</span>(<span class="hl-str">"DATA_DIR"</span>, <span class="hl-str">"./data"</span>)
+readModelStore, err := storage.<span class="hl-func">NewPebbleStore</span>(dataDir, logger)
+<span class="hl-kw">if</span> err != <span class="hl-kw">nil</span> { <span class="hl-kw">return</span> err }
+<span class="hl-kw">defer</span> <span class="hl-func">readModelStore</span>.<span class="hl-func">Close</span>()
+
+eventStore := cqrsPebble.<span class="hl-func">NewStore</span>(readModelStore.<span class="hl-func">DB</span>(), logger)
+eventBus := memory.<span class="hl-func">NewMemoryBus</span>()
+checkpointStore := memory.<span class="hl-func">NewMemoryCheckpointStore</span>()
+
+runner, err := projection.<span class="hl-func">NewRunner</span>(eventStore, eventBus, checkpointStore)
+runner.<span class="hl-func">Register</span>(todoProjection)
+<span class="hl-kw">go</span> runner.<span class="hl-func">Run</span>(ctx)
+
+<span class="hl-comment">// --- 4 more Register calls, query wiring, HTTP server ---</span></code></pre>
+
+          <p>
+            Every line above the comment marker is a <strong>deployment decision</strong>: which
+            database, which bus, which checkpoint store, where read models live. To change any of
+            it, a deployer must edit this file, change imports, and recompile. The application
+            developer's domain logic (the handlers, the projection) is buried underneath the
+            infrastructure noise.
+          </p>
+
+          <div class="two-col">
+            <div class="feature-card">
+              <h4>What the app developer cares about</h4>
+              <p>
+                Commands, queries, the aggregate's <code>Decide</code> and <code>Fold</code>
+                functions, and the projection that turns events into read models. None of these
+                should know whether the backing store is SQLite, Pebble, or Postgres.
+              </p>
+            </div>
+            <div class="feature-card">
+              <h4>What the deployer cares about</h4>
+              <p>
+                Where data lives, how it's backed up, whether it's embedded or remote, whether the
+                bus is in-memory or NATS. None of these should require rewriting command handlers.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="idea">
+          <h2><span class="section-num">03</span>The Core Idea</h2>
+          <p>
+            Add a single <strong>optional</strong> composition layer — the <code>stack</code> module
+            — that sits above the existing backend facades. It does three things:
+          </p>
+
+          <ol>
+            <li>
+              <strong>Bundles capabilities.</strong> A <code>Stack</code> is a struct holding every
+              store, bus, and dispatcher the app needs, wired together and lifecycle-managed.
+            </li>
+            <li>
+              <strong>Offers presets.</strong> One function call produces a fully-wired Stack for a
+              given backend (<code>sqlite.Open</code>, <code>pebble.Open</code>,
+              <code>memory.New</code>).
+            </li>
+            <li>
+              <strong>Stays out of the way.</strong> Consumers who want full control keep importing
+              individual modules and wiring manually — exactly as today. Nothing breaks.
+            </li>
+          </ol>
+
+          <div class="callout">
+            <strong>The separation principle</strong>
+            <p>
+              Application code's import graph never touches a backend package. The deployer's import
+              graph touches exactly one preset. This is enforceable, testable, and is the single
+              property that makes the goal real.
+            </p>
+          </div>
+
+          <p>The result: the same <code>run()</code> function becomes this —</p>
+
+          <pre><code><span class="hl-comment">// Deployer's entire decision: one line.</span>
+stk, err := sqlite.<span class="hl-func">Open</span>(<span class="hl-str">"./data/app.db"</span>, sqlite.<span class="hl-func">WithBus</span>(), logger)
+<span class="hl-kw">if</span> err != <span class="hl-kw">nil</span> { <span class="hl-kw">return</span> err }
+<span class="hl-kw">defer</span> stk.<span class="hl-func">Close</span>()
+
+<span class="hl-comment">// App developer wires ONLY domain logic.</span>
+runner, _ := projection.<span class="hl-func">NewRunner</span>(stk.<span class="hl-field">Events</span>, stk.<span class="hl-field">Bus</span>, stk.<span class="hl-field">Checkpoints</span>)
+runner.<span class="hl-func">Register</span>(<span class="hl-func">NewTodoProjection</span>(stk.<span class="hl-field">ReadModels</span>))
+<span class="hl-kw">go</span> runner.<span class="hl-func">Run</span>(ctx)
+
+app := <span class="hl-func">NewApp</span>(stk) <span class="hl-comment">// commands + queries against stk.Events / stk.ReadModels</span>
+<span class="hl-kw">return</span> app.<span class="hl-func">Serve</span>(<span class="hl-str">":8080"</span>)</code></pre>
+
+          <p>
+            Swapping SQLite for Postgres is a one-line change in the deployer's code. The
+            application developer changes <strong>nothing</strong>.
+          </p>
+        </section>
+
+        <section id="actors">
+          <h2><span class="section-num">04</span>Three Actors, Three Responsibilities</h2>
+          <p>
+            The frame that makes this design legible: recognise that three distinct people touch a
+            go-cqrs-lite application, and give each one a clean boundary.
+          </p>
+
+          <div class="actor-grid">
+            <div class="actor">
+              <div class="role">Layer 0</div>
+              <h4>Library Author</h4>
+              <p>
+                Defines capability interfaces (<code>event.Store</code>,
+                <code>snapshot.SnapshotStore</code>, <code>readmodel.Store</code>) and ships backend
+                implementations. Decides <em>what is possible</em>.
+              </p>
+            </div>
+            <div class="actor">
+              <div class="role">Deployer</div>
+              <h4>Operator / DevOps</h4>
+              <p>
+                Picks <em>where data lives</em> via one preset call. Chooses topology: single
+                SQLite, embedded Pebble, managed Postgres, or a split multi-DB layout. Never writes
+                domain logic.
+              </p>
+            </div>
+            <div class="actor">
+              <div class="role">Layer 1+</div>
+              <h4>App Developer</h4>
+              <p>
+                Writes <em>what the app does</em>: aggregates, commands, queries, projections.
+                Imports <code>event</code>, <code>command</code>, <code>query</code>,
+                <code>decider</code>, <code>projection</code>. Never imports a backend.
+              </p>
+            </div>
+          </div>
+
+          <p>
+            Today, the deployer and app developer are collapsed into one person staring at
+            <code>main.go</code>. The Stack layer gives the deployer their own file — typically
+            <code>main.go</code> or <code>wire.go</code> — and frees the rest of the codebase from
+            infrastructure imports.
+          </p>
+        </section>
+
+        <section id="architecture">
+          <h2><span class="section-num">05</span>Architecture</h2>
+          <p>Three layers, stacked. Each layer only knows the one below it.</p>
+
+          <div class="layer-diagram">
+            <div class="lbl">Layer 3 — Deployer's entry point (one import)</div>
+            <div class="lyr lyr-3">
+              PRESETS &nbsp; stack/sqlite.Open() · stack/pebble.Open() · stack/memory.New()<br />
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+              stack/postgres.Open() · stack.Compose(...)
+            </div>
+            <div class="arrow">▲ builds</div>
+
+            <div class="lbl">Layer 2 — Composition root (new module)</div>
+            <div class="lyr lyr-2">
+              STACK &nbsp; type Stack { Events, Snapshots, Checkpoints,<br />
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Commands,
+              Queries, ReadModels, Bus }<br />
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; func (s *Stack) Close() error
+              &nbsp;// unified lifecycle
+            </div>
+            <div class="arrow">▲ composed from</div>
+
+            <div class="lbl">Layer 1 — Backends (already exist)</div>
+            <div class="lyr lyr-1">
+              storage.SQLBackend &nbsp;·&nbsp; pebble.Backend &nbsp;·&nbsp; turso.Backend<br />
+              memory.* &nbsp; (+ future persistent bus adapters)
+            </div>
+          </div>
+
+          <p>
+            Layers 0 and 1 are unchanged. Layer 2 is the new <code>stack</code> module. Layer 3 is a
+            family of preset sub-packages. The deployer imports one sub-package from Layer 3; the
+            app developer imports modules from Layer 0. Neither crosses into the other's territory.
+          </p>
+
+          <div class="callout callout-info">
+            <strong>Why this preserves &ldquo;library, not framework&rdquo;</strong>
+            <p>
+              The Stack is opt-in. Core types stay pure interfaces with no backend knowledge. A
+              consumer who wants maximum control still wires stores by hand from Layer 1 — the
+              current behaviour, fully supported and documented. Presets are the happy path, not the
+              only path.
+            </p>
+          </div>
+        </section>
+
+        <section id="capabilities">
+          <h2><span class="section-num">06</span>Capability Inventory</h2>
+          <p>
+            A Stack holds seven capabilities. These are the only storage touchpoints in the entire
+            library (documented in
+            <code>docs/research/storage-environment-mapping.md</code>). Each maps to an existing
+            interface — except the read model, which needs a new module.
+          </p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Capability</th>
+                  <th>Interface</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1</td>
+                  <td><strong>Event Store</strong></td>
+                  <td><code>event.Store</code></td>
+                  <td><span class="tag tag-done">Solid</span></td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td><strong>Snapshot Store</strong></td>
+                  <td><code>snapshot.SnapshotStore</code></td>
+                  <td><span class="tag tag-done">Solid</span></td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td><strong>Checkpoint Store</strong></td>
+                  <td><code>event.CheckpointStore</code></td>
+                  <td><span class="tag tag-done">Solid</span></td>
+                </tr>
+                <tr>
+                  <td>4</td>
+                  <td><strong>Command Store</strong></td>
+                  <td><code>command.Store</code></td>
+                  <td><span class="tag tag-partial">Interface ready</span></td>
+                </tr>
+                <tr>
+                  <td>5</td>
+                  <td><strong>Query Store</strong></td>
+                  <td><code>query.Store</code></td>
+                  <td><span class="tag tag-partial">Interface ready</span></td>
+                </tr>
+                <tr>
+                  <td>6</td>
+                  <td><strong>Read Model Store</strong></td>
+                  <td><code>readmodel.Store[T]</code> &nbsp;<em>new</em></td>
+                  <td><span class="tag tag-missing">Missing</span></td>
+                </tr>
+                <tr>
+                  <td>7</td>
+                  <td><strong>Message Bus</strong></td>
+                  <td><code>event.Bus</code></td>
+                  <td><span class="tag tag-done">In-memory</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            The read model store is the one capability with no formal module today. Every consumer
+            reinvents it (<code>example/todo/storage/</code>). It is the single highest-impact
+            addition, and it unblocks presets — because projections need somewhere to write their
+            materialised views.
+          </p>
+        </section>
+
+        <section id="presets">
+          <h2><span class="section-num">07</span>Preset Catalog</h2>
+          <p>
+            Presets are convenience functions that produce a wired <code>Stack</code>. Each is a
+            sub-package so a consumer only links the backend they actually use.
+          </p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Preset</th>
+                  <th>Topology</th>
+                  <th>Best For</th>
+                  <th>Deps</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>memory.New()</code></td>
+                  <td>All in-memory</td>
+                  <td>Tests, CI, prototypes</td>
+                  <td>zero</td>
+                </tr>
+                <tr>
+                  <td><code>sqlite.Open(dir)</code></td>
+                  <td>1 SQLite file</td>
+                  <td>Local-first, single-process, MVP</td>
+                  <td>sqlite driver</td>
+                </tr>
+                <tr>
+                  <td><code>pebble.Open(dir)</code></td>
+                  <td>1 Pebble DB</td>
+                  <td>Embedded, write-heavy, single-process</td>
+                  <td>pebble</td>
+                </tr>
+                <tr>
+                  <td><code>postgres.Open(dsn)</code></td>
+                  <td>1 Postgres DB</td>
+                  <td>Managed prod, multi-process</td>
+                  <td>pgx</td>
+                </tr>
+                <tr>
+                  <td><code>stack.Compose(...)</code></td>
+                  <td>Mixed / split</td>
+                  <td>Multiple stores by capability</td>
+                  <td>varies</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            Every preset returns the same <code>*Stack</code> type. Application code receives a
+            <code>*Stack</code> and is oblivious to which preset built it. That polymorphism
+            <em>is</em> the deployer's freedom.
+          </p>
+        </section>
+
+        <section id="split">
+          <h2><span class="section-num">08</span>The Split-Topology Case</h2>
+          <p>
+            The most interesting design challenge — and the one the prompt specifically asks for
+            &mdash; is running <strong>multiple databases</strong>: one for command + event
+            sourcing, one for the query log, one for materialised views. This is where presets earn
+            their keep, because the <code>Stack</code> must compose capabilities from different
+            providers rather than inherit them from one backend.
+          </p>
+
+          <p>The <code>stack.Compose</code> builder assembles a Stack capability-by-capability:</p>
+
+          <pre><code><span class="hl-comment">// Three SQLite databases, each tuned for its workload.</span>
+stk, err := stack.<span class="hl-func">Compose</span>(
+    stack.<span class="hl-func">WithEvents</span>(sqlite.<span class="hl-func">EventStore</span>(<span class="hl-str">"data/events.db"</span>)),
+    stack.<span class="hl-func">WithCommands</span>(sqlite.<span class="hl-func">CommandStore</span>(<span class="hl-str">"data/commands.db"</span>)),
+    stack.<span class="hl-func">WithReadModels</span>(sqlite.<span class="hl-func">ReadModels</span>(<span class="hl-str">"data/views.db"</span>)),
+    stack.<span class="hl-func">WithBus</span>(memory.<span class="hl-func">Bus</span>()), <span class="hl-comment">// transient, single-process</span>
+    stack.<span class="hl-func">WithSnapshots</span>(sqlite.<span class="hl-func">SnapshotStore</span>(<span class="hl-str">"data/events.db"</span>)),
+    stack.<span class="hl-func">WithCheckpoints</span>(memory.<span class="hl-func">CheckpointStore</span>()),
+)
+<span class="hl-kw">defer</span> stk.<span class="hl-func">Close</span>() <span class="hl-comment">// closes every provider that owns a resource</span></code></pre>
+
+          <p>
+            The same <code>Compose</code> API handles heterogeneous backends: events on Postgres,
+            read models on Pebble, bus on NATS. The <code>Provider</code> interface — implemented by
+            every backend facade — is the contract that makes this work:
+          </p>
+
+          <pre><code><span class="hl-comment">// Every backend facade implements the relevant Provide methods.</span>
+<span class="hl-kw">type</span> <span class="hl-type">Provider</span> <span class="hl-kw">interface</span> {
+    <span class="hl-func">ProvideEvents</span>() <span class="hl-type">event.Store</span>
+    <span class="hl-func">ProvideSnapshots</span>() <span class="hl-type">snapshot.SnapshotStore</span>
+    <span class="hl-func">ProvideCheckpoints</span>() <span class="hl-type">event.CheckpointStore</span>
+    <span class="hl-func">ProvideReadModels</span>() <span class="hl-type">readmodel.Store</span>
+}</code></pre>
+
+          <p>
+            Get the <code>Provider</code> interface right here and the single-backend presets fall
+            out for free — a preset is just <code>Compose(WithProvider(backend))</code> with
+            sensible defaults.
+          </p>
+        </section>
+
+        <section id="recommendations">
+          <h2><span class="section-num">09</span>Recommendations as Data</h2>
+          <p>
+            The prompt asks for <em>recommendations</em>: guidance that some data (projections,
+            materialised views) may be better placed in a SQL, KV, columnar, or graph database. The
+            research is already done in <code>docs/research/storage-environment-mapping.md</code> —
+            a per-capability, per-environment matrix. The Stack layer surfaces it as a first-class
+            reference rather than a buried research note.
+          </p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Capability</th>
+                  <th>Local / embedded</th>
+                  <th>Managed prod</th>
+                  <th>Why</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Event Store</td>
+                  <td>SQLite / Pebble</td>
+                  <td>PostgreSQL</td>
+                  <td>Append-only log; needs ordering + optimistic concurrency</td>
+                </tr>
+                <tr>
+                  <td>Read Models</td>
+                  <td>SQLite / Pebble</td>
+                  <td>PostgreSQL / DynamoDB / Firestore</td>
+                  <td>Read-heavy; rebuildable from events; flexible queries</td>
+                </tr>
+                <tr>
+                  <td>Snapshots / Checkpoints</td>
+                  <td>SQLite / Pebble</td>
+                  <td>etcd (K8s) / DynamoDB / Firestore</td>
+                  <td>Tiny KV; point lookups; frequent overwrites</td>
+                </tr>
+                <tr>
+                  <td>Command / Query log</td>
+                  <td>SQLite</td>
+                  <td>PostgreSQL (shared)</td>
+                  <td>Audit trail; lower volume than events</td>
+                </tr>
+                <tr>
+                  <td>Message Bus</td>
+                  <td>memory</td>
+                  <td>NATS / Redis / SNS+SQS</td>
+                  <td>Transient delivery; multi-node fan-out</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout callout-info">
+            <strong>Where recommendations live</strong>
+            <p>
+              In documentation (<code>docs/PRESETS.md</code>) and as structured comments in the
+              preset packages — not as runtime code that adds imports and complexity. A preset's doc
+              comment states its sweet spot and its limits. The deployer reads it; the app never
+              executes it.
+            </p>
+          </div>
+        </section>
+
+        <section id="decisions">
+          <h2><span class="section-num">10</span>Design Decisions</h2>
+
+          <h3>Naming: <code>stack</code></h3>
+          <p>
+            A Stack is literally a stack of capabilities wired to one topology. The name
+            <code>Backend</code> is already taken by per-DB facades (<code>pebble.Backend</code>,
+            <code>storage.SQLBackend</code>), so <code>stack</code> sits one layer above cleanly.
+            Alternatives <code>app</code>, <code>runtime</code>, <code>preset</code> either lie
+            about scope or collide with existing vocabulary.
+          </p>
+
+          <h3>Module topology: one module, sub-packages</h3>
+          <p>
+            One <code>stack/</code> module with preset sub-packages (<code>stack/sqlite</code>,
+            <code>stack/pebble</code>, <code>stack/postgres</code>, <code>stack/memory</code>).
+            Single import root, but each sub-package is its own compilation unit — a consumer using
+            only <code>stack/sqlite</code> never links Pebble. This mirrors the existing
+            <code>catalog/asyncapi</code>, <code>catalog/openapi</code> pattern in this repo and
+            avoids the over-modularization the project's own docs warn against.
+          </p>
+
+          <h3>Read model: generic, both adapters from day one</h3>
+          <p>
+            <code>readmodel.Store[T any]</code> with a KV-shaped contract (<code>Get</code> /
+            <code>Put</code> / <code>Delete</code> / <code>Iter</code>) plus an SQL adapter for
+            filtered-list queries. The KV contract covers 90% of projection needs and has three
+            ready adapters (Pebble via <code>kv.Store</code>, memory, future Redis). Define the
+            generic once; ship both adapters.
+          </p>
+
+          <h3>All capabilities are first-class</h3>
+          <p>
+            Every backend should eventually provide all seven capabilities. No capability is treated
+            as &ldquo;probably unused.&rdquo; This is a public library; its consumers are external
+            and invisible. A missing implementation is a real gap for someone, not a candidate for
+            YAGNI.
+          </p>
+        </section>
+
+        <section id="tradeoffs">
+          <h2><span class="section-num">11</span>Honest Tradeoffs</h2>
+
+          <div class="two-col">
+            <div class="feature-card">
+              <h4 style="color: var(--success)">What we gain</h4>
+              <p>
+                Deployer portability (one-line backend swap). Application code becomes
+                backend-agnostic by construction. Dramatically simpler onboarding — the todo example
+                shrinks from ~150 glue lines to ~10. A clear answer to &ldquo;how do I run this in
+                prod?&rdquo;
+              </p>
+            </div>
+            <div class="feature-card">
+              <h4 style="color: var(--danger)">What it costs</h4>
+              <p>
+                A new module (<code>stack</code>) plus a new module (<code>readmodel</code>) =
+                surface area to maintain and test. Presets can hide power-user knobs — mitigated by
+                the <code>stack.Compose</code> escape hatch and raw wiring remaining fully
+                supported.
+              </p>
+            </div>
+          </div>
+
+          <div class="callout callout-warn">
+            <strong>The constraint to respect</strong>
+            <p>
+              A generic <code>readmodel.Store[T]</code> will not fit every conceivable projection
+              shape. Some consumers need columnar or graph storage for specific views. The answer is
+              not to cram every storage model into one interface — it is to let those consumers
+              implement <code>readmodel.Store</code> themselves (or bypass it) while the presets
+              cover the common 90%. Presets serve the majority; the interface serves the rest.
+            </p>
+          </div>
+        </section>
+
+        <section id="correction">
+          <h2><span class="section-num">12</span>A Correction</h2>
+          <p>
+            An earlier draft of this proposal dismissed the command store gap with &ldquo;zero
+            consumers today for a reason&rdquo; and recommended skipping it as YAGNI. That was
+            wrong. This is a public library — its consumers live outside this repo and are
+            invisible. The project's own <code>AGENTS.md</code> states it plainly:
+          </p>
+
+          <div class="callout">
+            <p>
+              &ldquo;Zero internal consumers is the EXPECTED state. Deleting external-facing API is
+              breaking the product.&rdquo;
+            </p>
+          </div>
+
+          <p>
+            The command store and query store interfaces exist, are exported, and may well be
+            implemented by external consumers right now. The correct posture is: every capability
+            gap is a real gap, and the Stack layer should make it trivial for any backend to fill
+            all of them. This proposal treats all seven capabilities as equally important.
+          </p>
+        </section>
+
+        <section id="migration">
+          <h2><span class="section-num">13</span>Non-Breaking Migration</h2>
+          <p>
+            The Stack layer is purely additive. Nothing about the existing modules, interfaces, or
+            wiring changes. The migration is opt-in and gradual:
+          </p>
+
+          <ol>
+            <li>
+              <strong>Existing consumers</strong> keep their hand-wired <code>main.go</code> and it
+              continues to work identically. Raw wiring remains documented as the power-user path.
+            </li>
+            <li>
+              <strong>New consumers</strong> start with a preset. The happy path is now the default
+              in docs and examples.
+            </li>
+            <li>
+              <strong>Migrating consumers</strong> move their glue into a preset call at their own
+              pace. No big-bang rewrite.
+            </li>
+          </ol>
+
+          <p>
+            The proof is in the example: if rewriting <code>example/todo</code> on
+            <code>stack/sqlite</code> does not produce a dramatically simpler <code>main.go</code>,
+            the design is wrong and should be iterated before shipping.
+          </p>
+        </section>
+
+        <section id="plan">
+          <h2><span class="section-num">14</span>Execution Plan</h2>
+          <p>Nine phases, ordered by what unblocks what. Each is independently shippable.</p>
+
+          <div class="phase">
+            <div class="phase-num">1</div>
+            <div class="phase-body">
+              <h4>readmodel module</h4>
+              <p>
+                Define generic <code>readmodel.Store[T]</code> + memory adapter. This unblocks
+                presets — projections need a write target. Highest impact, smallest scope.
+              </p>
+              <div class="phase-progress"><span data-width="0"></span></div>
+            </div>
+          </div>
+
+          <div class="phase">
+            <div class="phase-num">2</div>
+            <div class="phase-body">
+              <h4>stack core</h4>
+              <p>
+                <code>Capabilities</code> struct, <code>Stack</code> type,
+                <code>Provider</code> interface, <code>Compose</code> builder, unified
+                <code>Close()</code>.
+              </p>
+              <div class="phase-progress"><span data-width="0"></span></div>
+            </div>
+          </div>
+
+          <div class="phase">
+            <div class="phase-num">3</div>
+            <div class="phase-body">
+              <h4>stack/memory preset</h4>
+              <p>Fastest to build; validates the Stack shape with zero external deps.</p>
+              <div class="phase-progress"><span data-width="0"></span></div>
+            </div>
+          </div>
+
+          <div class="phase">
+            <div class="phase-num">4</div>
+            <div class="phase-body">
+              <h4>stack/sqlite preset</h4>
+              <p>The &ldquo;one file for everything&rdquo; MVP case. The most common deployment.</p>
+              <div class="phase-progress"><span data-width="0"></span></div>
+            </div>
+          </div>
+
+          <div class="phase">
+            <div class="phase-num">5</div>
+            <div class="phase-body">
+              <h4>stack/pebble preset</h4>
+              <p>Embedded KV, single-process prod. Shares the Provider contract with SQLite.</p>
+              <div class="phase-progress"><span data-width="0"></span></div>
+            </div>
+          </div>
+
+          <div class="phase">
+            <div class="phase-num">6</div>
+            <div class="phase-body">
+              <h4>split topology</h4>
+              <p>
+                <code>stack.Compose</code> with per-capability providers — the 3-database case. This
+                is where the <code>Provider</code> interface is stress-tested.
+              </p>
+              <div class="phase-progress"><span data-width="0"></span></div>
+            </div>
+          </div>
+
+          <div class="phase">
+            <div class="phase-num">7</div>
+            <div class="phase-body">
+              <h4>stack/postgres preset</h4>
+              <p>Managed prod. Same shape as SQLite, different driver and dialect.</p>
+              <div class="phase-progress"><span data-width="0"></span></div>
+            </div>
+          </div>
+
+          <div class="phase">
+            <div class="phase-num">8</div>
+            <div class="phase-body">
+              <h4>rewrite example/todo</h4>
+              <p>
+                Port <code>example/todo</code> to <code>stack/sqlite</code>. Add a split-topology
+                example. Measure the line-count and clarity delta. If it's not dramatic, iterate.
+              </p>
+              <div class="phase-progress"><span data-width="0"></span></div>
+            </div>
+          </div>
+
+          <div class="phase">
+            <div class="phase-num">9</div>
+            <div class="phase-body">
+              <h4>docs + recommendations</h4>
+              <p>
+                <code>docs/PRESETS.md</code> reference. Update <code>STORAGE_GUIDE.md</code> and
+                <code>SKILL.md</code> to lead with presets. Encode the recommendation matrix.
+              </p>
+              <div class="phase-progress"><span data-width="0"></span></div>
+            </div>
+          </div>
+
+          <div class="callout">
+            <strong>Where to start</strong>
+            <p>
+              Phase 1 (<code>readmodel</code>) and Phase 2 (<code>stack</code> core). Everything
+              downstream is blocked until the read model exists and the Stack type is defined. The
+              split-topology case (Phase 6) is the real design test — it forces the
+              <code>Provider</code> interface to be a composition of parts, not a single backend.
+              Get that right and the single-backend presets are trivial.
+            </p>
+          </div>
+        </section>
+
+        <div class="footer">
+          Architecture proposal &middot; <code>go-cqrs-lite</code> &middot; Generated 2026-06-18
+          &middot; Status: draft for review
+        </div>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        "use strict";
+        const sections = document.querySelectorAll("section");
+        const navLinks = document.querySelectorAll(".sidebar-nav a");
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add("visible");
+                entry.target.querySelectorAll(".phase-progress > span").forEach((bar) => {
+                  bar.style.width = bar.getAttribute("data-width") + "%";
+                });
+                navLinks.forEach((link) => {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { threshold: 0.15, rootMargin: "-10% 0px -60% 0px" },
+        );
+
+        sections.forEach((s) => observer.observe(s));
+      })();
+    </script>
+  </body>
+</html>
