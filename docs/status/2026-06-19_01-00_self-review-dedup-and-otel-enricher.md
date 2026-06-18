@@ -12,6 +12,7 @@
 subscription were processed twice, silently corrupting non-idempotent projections.
 
 **Implementation:**
+
 - `event.SubscriberToObservable(sub)` — adapts callback-based `Subscriber` to `ro.Observable[Event]`
 - `event.DistinctByEventIDWith(seen)` — seeded dedup operator; nil seed = `DistinctByEventID()`
 - `projection/runner.go` — `replayIDs` map populated during `replay()`, reset each `RunReplay`
@@ -25,6 +26,7 @@ subscription were processed twice, silently corrupting non-idempotent projection
 correlation IDs (domain-level) were disconnected — traces couldn't join to the event journal.
 
 **Implementation:**
+
 - `middleware.OTelCorrelationEnricher` — reads baggage via `otel.CorrelationIDFromContext`, stores as `event.WithCustom`
 - `middleware.OTelCorrelationIDFromEvent` — extracts stored value
 - `middleware.MetadataKeyOTelCorrelationID` — canonical key constant (`"otel.correlation_id"`)
@@ -38,6 +40,7 @@ with `CommandCausalityEnricher`, and extraction from unset event.
 ### Documentation Updates (commit `be8c81ae`)
 
 All canonical docs updated to reflect both features:
+
 - `TODO_LIST.md` — both tasks flipped to completed
 - `ROADMAP.md` — dedup gap KNOWN ISSUE → FIXED
 - `CHANGELOG.md` — Unreleased entries added
@@ -70,6 +73,7 @@ The handler becomes a no-op (guards on `ctx.Err()`) but remains in the bus's han
 ### SKILL.md not updated
 
 The canonical AI consumer reference (`SKILL.md`) doesn't mention:
+
 - `SubscriberToObservable`, `DistinctByEventIDWith`
 - `OTelCorrelationEnricher`
 - The projection Runner's built-in dedup
@@ -110,7 +114,7 @@ The issues in section (b) are known limitations, not bugs — they're documented
 2. **`event.Subscriber` lacks cleanup** — `SubscribeAll(handler)` returns `error`, not a
    subscription handle. There's no way to unsubscribe. The reactive world (`ro.Observable`)
    has proper `Subscription.Unsubscribe()`, but the callback world doesn't.
-   
+
    **Recommendation:** Add `UnsubscribeAll() error` to `Subscriber` interface (breaking change)
    or return a `Subscription` from `SubscribeAll` (also breaking). Alternatively, add a
    `CloseableSubscriber` interface for opt-in cleanup.
@@ -140,33 +144,33 @@ The issues in section (b) are known limitations, not bugs — they're documented
 
 ## f) Top 25 Next Tasks (sorted by impact/work ratio)
 
-| # | Task | Impact | Work | Ratio |
-|---|------|--------|------|-------|
-| 1 | Add `ExampleOTelCorrelationEnricher` to `middleware/example_test.go` | High | 15min | ★★★ |
-| 2 | Update `SKILL.md` with new APIs (dedup pipeline, enricher) | High | 30min | ★★★ |
-| 3 | Fix/suppress gopls false positives (17 phantom errors) | Medium | 1h | ★★☆ |
-| 4 | Add `DistinctByEventIDBounded(cap)` with ring eviction | Medium | 1h | ★★☆ |
-| 5 | Add `WithDedupCapacity(n)` option to projection Runner | Medium | 30min | ★★☆ |
-| 6 | Real journal→bus overlap integration test | Medium | 2h | ★☆☆ |
-| 7 | Schema registry middleware (ADR-0017) | High | 1d | ★☆☆ |
-| 8 | Prometheus metrics exporter | High | 4h | ★★☆ |
-| 9 | `id.TraceID` type for arbitrary-string correlation | Medium | 2h | ★★☆ |
-| 10 | `UnsubscribeAll()` on `event.Subscriber` (breaking) | High | 2h | ★★☆ |
-| 11 | Streaming event reads (`EventIterator`) | Medium | 4h | ★☆☆ |
-| 12 | Pebble coverage 85%+ | Low | 2h | ★☆☆ |
-| 13 | Pebble CompactionFilter (TTL-based event expiry) | Medium | 4h | ★☆☆ |
-| 14 | Distributed checkpointing (ADR-0018) | High | 1d | ★☆☆ |
-| 15 | cqrs-gen v2 with struct tag scanning | Medium | 1d | ★☆☆ |
-| 16 | gRPC transport adapter | Medium | 1d | ★☆☆ |
-| 17 | NATS/Redis Stream adapter | Medium | 1d | ★☆☆ |
-| 18 | Property-based integration testing | Medium | 4h | ★☆☆ |
-| 19 | jsonv2 codec experiment | Low | 2h | ★☆☆ |
-| 20 | Arena allocation experiment | Experimental | 1d | ★☆☆ |
-| 21 | WASM compilation target | Experimental | 2d | ☆☆☆ |
-| 22 | Documentation site (Docusaurus/MkDocs) | Medium | 1d | ★☆☆ |
-| 23 | Performance regression dashboard | Low | 1d | ☆☆☆ |
-| 24 | Multi-tenant event store | Experimental | 2d | ☆☆☆ |
-| 25 | Event archival to S3/GCS | Experimental | 1d | ☆☆☆ |
+| #   | Task                                                                 | Impact       | Work  | Ratio |
+| --- | -------------------------------------------------------------------- | ------------ | ----- | ----- |
+| 1   | Add `ExampleOTelCorrelationEnricher` to `middleware/example_test.go` | High         | 15min | ★★★   |
+| 2   | Update `SKILL.md` with new APIs (dedup pipeline, enricher)           | High         | 30min | ★★★   |
+| 3   | Fix/suppress gopls false positives (17 phantom errors)               | Medium       | 1h    | ★★☆   |
+| 4   | Add `DistinctByEventIDBounded(cap)` with ring eviction               | Medium       | 1h    | ★★☆   |
+| 5   | Add `WithDedupCapacity(n)` option to projection Runner               | Medium       | 30min | ★★☆   |
+| 6   | Real journal→bus overlap integration test                            | Medium       | 2h    | ★☆☆   |
+| 7   | Schema registry middleware (ADR-0017)                                | High         | 1d    | ★☆☆   |
+| 8   | Prometheus metrics exporter                                          | High         | 4h    | ★★☆   |
+| 9   | `id.TraceID` type for arbitrary-string correlation                   | Medium       | 2h    | ★★☆   |
+| 10  | `UnsubscribeAll()` on `event.Subscriber` (breaking)                  | High         | 2h    | ★★☆   |
+| 11  | Streaming event reads (`EventIterator`)                              | Medium       | 4h    | ★☆☆   |
+| 12  | Pebble coverage 85%+                                                 | Low          | 2h    | ★☆☆   |
+| 13  | Pebble CompactionFilter (TTL-based event expiry)                     | Medium       | 4h    | ★☆☆   |
+| 14  | Distributed checkpointing (ADR-0018)                                 | High         | 1d    | ★☆☆   |
+| 15  | cqrs-gen v2 with struct tag scanning                                 | Medium       | 1d    | ★☆☆   |
+| 16  | gRPC transport adapter                                               | Medium       | 1d    | ★☆☆   |
+| 17  | NATS/Redis Stream adapter                                            | Medium       | 1d    | ★☆☆   |
+| 18  | Property-based integration testing                                   | Medium       | 4h    | ★☆☆   |
+| 19  | jsonv2 codec experiment                                              | Low          | 2h    | ★☆☆   |
+| 20  | Arena allocation experiment                                          | Experimental | 1d    | ★☆☆   |
+| 21  | WASM compilation target                                              | Experimental | 2d    | ☆☆☆   |
+| 22  | Documentation site (Docusaurus/MkDocs)                               | Medium       | 1d    | ★☆☆   |
+| 23  | Performance regression dashboard                                     | Low          | 1d    | ☆☆☆   |
+| 24  | Multi-tenant event store                                             | Experimental | 2d    | ☆☆☆   |
+| 25  | Event archival to S3/GCS                                             | Experimental | 1d    | ☆☆☆   |
 
 ---
 
@@ -180,6 +184,7 @@ strings — would break all existing consumers that rely on ULID parsing.
 
 A third option is a new `id.TraceID = Of[TraceMarker]` backed by `string` instead of ULID,
 giving us:
+
 - `event.Metadata.TraceID id.TraceID` — typed field for distributed trace correlation
 - `event.Metadata.CorrelationID id.CorrelationID` — typed ULID for domain causation
 
@@ -187,6 +192,7 @@ This requires deciding: is distributed trace correlation a first-class concept i
 model, or an infrastructure concern that belongs in custom metadata?
 
 I lean toward keeping it in custom metadata (`OTelCorrelationEnricher` as-is) because:
+
 1. It avoids a breaking change
 2. Trace IDs are infrastructure, not domain
 3. The enricher pattern is already composable and tested
