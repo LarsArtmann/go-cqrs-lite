@@ -891,6 +891,7 @@ memory/var ErrHandlerNil
 middleware/const HealthStatusFail
 middleware/const HealthStatusPass
 middleware/const HealthStatusWarn
+middleware/const MetadataKeyOTelCorrelationID
 middleware/func AsCommand
 middleware/func AsEvent
 middleware/func AsQuery
@@ -933,6 +934,8 @@ middleware/func NewSSEBroker
 middleware/func NewTraceLogging
 middleware/func NewTracing
 middleware/func NewValidation
+middleware/func OTelCorrelationEnricher
+middleware/func OTelCorrelationIDFromEvent
 middleware/func ProfilingHandler
 middleware/func QueryCircuitBreaker
 middleware/func QueryLogging
