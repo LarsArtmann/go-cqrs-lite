@@ -2,6 +2,11 @@
 
 **From:** cqrs-htmx consumer · **Date:** 2026-06-18
 
+> **Status: RESOLVED** (2026-06-18) — Both gaps addressed in commits
+> `132106e6` (projection split + 3 markers) and `c565d183` (remaining 5 markers
+> exported for API consistency). `RunReplay`/`RunLive` shipped; all 8 marker
+> types exported. See CHANGELOG `[Unreleased]` and ADR-0024.
+
 ---
 
 ## 1. `projection/v2`: Split `Runner.Run()` into replay + live phases

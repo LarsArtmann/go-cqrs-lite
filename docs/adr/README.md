@@ -124,3 +124,4 @@ watermill/     — Watermill protocol adapter
 | [0021](0021-store-close-semantics.md)             | Store Close() Semantics               | 2026-06-16 | Accepted                 |
 | [0022](0022-kv-store-abstraction.md)              | KV Store Abstraction Module           | 2026-06-16 | Accepted                 |
 | [0023](0023-pebble-kv-adapter.md)                 | Pebble KV Store Adapter               | 2026-06-17 | Accepted                 |
+| [0024](0024-exported-id-markers.md)               | Exported ID Marker Types              | 2026-06-18 | Accepted                 |

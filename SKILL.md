@@ -182,7 +182,11 @@ func (p *TodoProjection) Handle(ctx context.Context, evt event.Event) error {
 // Wire the runner: eventStore + eventBus + checkpointStore
 runner, _ := projection.NewRunner(eventStore, eventBus, checkpointStore)
 _ = runner.Register(&TodoProjection{store: readModel})
-go runner.Run(ctx) // replays history, then tails live events
+
+// Read-your-writes: replay synchronously, then tail live in the background.
+if err := runner.RunReplay(ctx); err != nil { /* handle */ }  // blocks until caught up
+go func() { _ = runner.RunLive(ctx) }()                      // background tail
+// ← read model is guaranteed caught up here, no sleep needed
 ```
 
 Query the read model with type-safe dispatch:
@@ -412,7 +416,7 @@ cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 
 | Module       | Import          | One-liner                                                                                                                                                                                                              |
 | ------------ | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id`         | `id/v2`         | Branded IDs: `id.Of[T]` = `cbid.ID[T, ulid.ULID]`. `AggregateID`, `EventID`, custom via `id.Of[struct{}]`.                                                                                                             |
+| `id`         | `id/v2`         | Branded IDs: `id.Of[T]` = `cbid.ID[T, ulid.ULID]`. All 8 markers exported (`AggregateMarker`, `EventMarker`, `CommandMarker`, …) for `BrandNamer` integration. Custom via `id.Of[struct{}]`.                             |
 | `dispatcher` | `dispatcher/v2` | Generic `Dispatcher[H, M]` with `LifecycleMixin`. Base for command/query dispatchers.                                                                                                                                  |
 | `codec`      | `codec/v2`      | Payload encoding: `JSONCodec{}`, `CBORCodec{}` (deterministic), `RawCodec{}`.                                                                                                                                          |
 | `event`      | `event/v2`      | `Event`, `Store` (=`EventSink`+`EventSource`), `Bus`, `Journal`, `SeekableJournal`, `NewEvent`, `NewEvents`, `DecodePayload[T]`, 5-family errors, reactive `EventBus` (samber/ro), tombstone, causality, `Checkpoint`. |

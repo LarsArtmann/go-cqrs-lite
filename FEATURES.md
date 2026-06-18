@@ -140,7 +140,7 @@
 | ULID-backed            | Binary-sortable, time-ordered, 16-byte binary form                                                          | ✅     |
 | 8 built-in types       | `AggregateID`, `EventID`, `CorrelationID`, `CausationID`, `RequestID`, `UserID`, `ClientID`, `CommandID`    | ✅     |
 | Custom branded types   | `type OrderID = id.Of[OrderMarker]` — users can create their own                                            | ✅     |
-| Exported markers       | `AggregateMarker`, `UserMarker`, `CorrelationMarker`, `RequestMarker` — for downstream `BrandNamer` tooling | ✅     |
+| Exported markers       | All 8 phantom markers exported (`Aggregate`, `User`, `Correlation`, `Request`, `Causation`, `Client`, `Command`, `Event`) for downstream `BrandNamer` tooling | ✅     |
 | All serialization      | JSON (incl. `null`), binary, text, SQL `Scan`/`Value`                                                       | ✅     |
 | Convenience funcs      | `New[T]()`, `Parse[T]()`, `ULID[T]()`, `FromPtr[T]()`, `CompareIDs[T]()`                                    | ✅     |
 | AggregateID derivation | `DeriveAggregateID()` — deterministic ID from namespace + key                                               | ✅     |
