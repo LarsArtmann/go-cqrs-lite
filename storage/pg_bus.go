@@ -30,13 +30,17 @@ const defaultRefetchDelay = 50 * time.Millisecond
 
 // notifyPayload is the lightweight JSON sent via NOTIFY.
 // It carries only references — never the event payload itself — to stay
-// well under Postgres's 8KB NOTIFY payload limit.
+// well under Postgres's 8KB NOTIFY payload limit. All fields are branded
+// domain types: JSON (de)serialization is handled by each type's
+// MarshalText/UnmarshalText (ULID for IDs, plain string for Type/AggregateType,
+// custom MarshalJSON for Version). This eliminates the string-roundtrip
+// (String() → parse) the previous version did on the receive side.
 type notifyPayload struct {
-	EventID       string `json:"eid"`
-	EventType     string `json:"et"`
-	AggregateType string `json:"at"`
-	AggregateID   string `json:"aid"`
-	Version       int    `json:"v"`
+	EventID       id.EventID          `json:"eid"`
+	EventType     event.Type          `json:"et"`
+	AggregateType event.AggregateType `json:"at"`
+	AggregateID   id.AggregateID      `json:"aid"`
+	Version       event.Version       `json:"v"`
 }
 
 // NotificationListener abstracts the driver-specific LISTEN mechanism.
@@ -286,11 +290,11 @@ func (b *PostgresBus) publishOne(ctx context.Context, evt event.Event) error {
 	}
 
 	payload := notifyPayload{
-		EventID:       evt.ID().String(),
-		EventType:     string(evt.Type()),
-		AggregateType: string(evt.AggregateType()),
-		AggregateID:   evt.AggregateID().String(),
-		Version:       evt.Version().Int(),
+		EventID:       evt.ID(),
+		EventType:     evt.Type(),
+		AggregateType: evt.AggregateType(),
+		AggregateID:   evt.AggregateID(),
+		Version:       evt.Version(),
 	}
 
 	payloadJSON, err := json.Marshal(payload)
@@ -463,14 +467,8 @@ func (b *PostgresBus) refetchEvent(ctx context.Context, np notifyPayload) (event
 func (b *PostgresBus) refetchByID(
 	ctx context.Context,
 	loader EventByIDLoader,
-	eventIDStr string,
+	eventID id.EventID,
 ) (event.Event, error) {
-	eventID, err := id.ParseEventID(eventIDStr)
-	if err != nil {
-		return nil, event.WrapCorruption(err, "storage.pg_bus_parse_event_id",
-			"parse event ID from notify payload: "+eventIDStr)
-	}
-
 	var lastErr error
 
 	for range b.opts.refetchAttempts {
@@ -493,25 +491,19 @@ func (b *PostgresBus) refetchByID(
 	}
 
 	return nil, event.WrapInfrastructure(lastErr, "storage.pg_bus_refetch_by_id",
-		"re-fetch event "+eventIDStr+" after "+strconv.Itoa(b.opts.refetchAttempts)+" attempts")
+		"re-fetch event "+eventID.String()+" after "+strconv.Itoa(b.opts.refetchAttempts)+" attempts")
 }
 
 func (b *PostgresBus) refetchByVersion(ctx context.Context, np notifyPayload) (event.Event, error) {
-	aggID, err := id.ParseAggregateID(np.AggregateID)
-	if err != nil {
-		return nil, event.WrapCorruption(err, "storage.pg_bus_parse_agg_id",
-			"parse aggregate ID from notify payload: "+np.AggregateID)
-	}
-
-	ref := event.NewAggregateRef(event.AggregateType(np.AggregateType), aggID)
+	ref := event.NewAggregateRef(np.AggregateType, np.AggregateID)
 
 	var lastErr error
 
 	for range b.opts.refetchAttempts {
-		events, loadErr := b.store.LoadFromVersion(ctx, ref, event.Version(np.Version-1))
+		events, loadErr := b.store.LoadFromVersion(ctx, ref, np.Version-1)
 		if loadErr == nil {
 			for _, evt := range events {
-				if evt.Version().Int() == np.Version {
+				if evt.Version() == np.Version {
 					return evt, nil
 				}
 			}
@@ -528,13 +520,13 @@ func (b *PostgresBus) refetchByVersion(ctx context.Context, np notifyPayload) (e
 
 	if lastErr != nil {
 		return nil, event.WrapInfrastructure(lastErr, "storage.pg_bus_refetch",
-			"re-fetch event "+np.EventID+" after "+strconv.Itoa(b.opts.refetchAttempts)+" attempts")
+			"re-fetch event "+np.EventID.String()+" after "+strconv.Itoa(b.opts.refetchAttempts)+" attempts")
 	}
 
 	return nil, event.WrapInfrastructure(
 		errEventNotFoundAfterRetries,
 		"storage.pg_bus_refetch_not_found",
-		"event "+np.EventID+" not found after re-fetch attempts",
+		"event "+np.EventID.String()+" not found after re-fetch attempts",
 	)
 }
 
