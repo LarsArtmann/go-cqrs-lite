@@ -15,23 +15,47 @@ import (
 
 func main() {
 	modules := []string{
-		"command",
-		"event",
-		"query",
-		"decider",
+		// Layer 0: leaf modules
 		"id",
 		"dispatcher",
+		"codec",
+		"kv",
+		// Layer 1
+		"event",
+		"event/eventtest",
+		"command",
+		"query",
+		// Layer 2
+		"schema",
+		"snapshot",
+		// Layer 3
+		"decider",
+		// Layer 4
 		"memory",
-		"catalog",
-		"middleware",
 		"signing",
 		"encryption",
+		"otel",
+		// Layer 5
+		"middleware",
+		"storage",
+		"storage/sql",
 		"projection",
 		"listing",
-		"otel",
-		"storage",
-		"event/eventtest",
 		"watermill",
+		"pebble",
+		"turso",
+		"prometheus",
+		// Read models + composition (Bundle layer)
+		"readmodel",
+		"readmodel/cache",
+		"stack",
+		"stack/memory",
+		"stack/sqlite",
+		"stack/pebble",
+		"stack/postgres",
+		// Tooling + catalog
+		"testutil",
+		"catalog",
 	}
 
 	projectRoot := filepath.Join(".", "..", "..")
