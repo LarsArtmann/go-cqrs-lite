@@ -25,6 +25,7 @@ use (
 	./projection
 	./prometheus
 	./query
+	./readmodel
 	./schema
 	./signing
 	./snapshot
