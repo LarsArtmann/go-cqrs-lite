@@ -29,6 +29,7 @@ use (
 	./schema
 	./signing
 	./snapshot
+	./stack
 	./storage
 	./testutil
 	./turso
