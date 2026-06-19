@@ -22,7 +22,7 @@ type config struct {
 }
 
 func defaultConfig() config {
-	return config{autoMigrate: true}
+	return config{autoMigrate: true} //nolint:exhaustruct // options fill fields
 }
 
 // WithoutAutoMigrate skips schema creation. Use this when you manage schemas
@@ -110,7 +110,9 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 
 		return nil, fmt.Errorf("postgres preset: bus: %w", err)
 	}
+
 	stackOpts = append(stackOpts, stack.WithBus(bus))
+
 	if busCleanup != nil {
 		stackOpts = append(stackOpts, stack.WithCloser(busCleanup))
 	}
@@ -148,7 +150,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 // cleanup. Otherwise the bus is an in-memory implementation for single-process
 // use.
 func buildBus(
-	db *sql.DB,
+	dbHandle *sql.DB,
 	store event.EventSource,
 	cfg config,
 ) (event.Bus, io.Closer, error) {
@@ -156,7 +158,7 @@ func buildBus(
 		return memory.NewMemoryBus(), nil, nil
 	}
 
-	pgBus, err := storage.NewPostgresBus(db, store, cfg.listener, cfg.busOpts...)
+	pgBus, err := storage.NewPostgresBus(dbHandle, store, cfg.listener, cfg.busOpts...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("create postgres bus: %w", err)
 	}

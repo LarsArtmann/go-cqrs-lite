@@ -48,11 +48,18 @@ var ErrListenerAlreadyListening = errors.New("pgx_listener: already listening")
 // ErrListenerClosed is returned when Listen is called after Close.
 var ErrListenerClosed = errors.New("pgx_listener: closed")
 
+// errEmptyChannelName is the sentinel for empty channel-name input.
+var errEmptyChannelName = errors.New("pgx_listener: empty channel name")
+
+// errInvalidChannelName is the base error for invalid channel-name input.
+// The invalid value is included via fmt.Errorf wrapping.
+var errInvalidChannelName = errors.New("pgx_listener: invalid channel name (must be [A-Za-z_][A-Za-z0-9_]*)")
+
 // NewPgxListener wraps an existing pgxpool for LISTEN/NOTIFY. The caller
 // retains ownership of the pool; closing the listener only releases the
 // dedicated connection it acquired, not the pool itself.
 func NewPgxListener(pool *pgxpool.Pool, opts ...PgxListenerOption) *PgxListener {
-	l := &PgxListener{
+	l := &PgxListener{ //nolint:exhaustruct // fields set lazily on Listen/Close
 		pool:          pool,
 		notifications: make(chan string, defaultListenerQueue),
 		logger:        slog.Default(),
@@ -134,7 +141,8 @@ func (l *PgxListener) Listen(ctx context.Context, channel string) error {
 		return ErrListenerAlreadyListening
 	}
 
-	if err := validateChannelName(channel); err != nil {
+	err := validateChannelName(channel)
+	if err != nil {
 		return err
 	}
 
@@ -149,6 +157,7 @@ func (l *PgxListener) Listen(ctx context.Context, channel string) error {
 	_, err = conn.Exec(ctx, fmt.Sprintf(`LISTEN "%s"`, channel))
 	if err != nil {
 		conn.Release()
+
 		return fmt.Errorf("pgx_listener: LISTEN %q: %w", channel, err)
 	}
 
@@ -173,12 +182,14 @@ func (l *PgxListener) receiveLoop(ctx context.Context) {
 				// Context cancellation — expected on Close. Exit quietly.
 				return
 			}
+
 			l.logger.ErrorContext(
 				ctx,
 				"pgx_listener: WaitForNotification failed; exiting receive loop",
 				"error",
 				err,
 			)
+
 			return
 		}
 
@@ -206,8 +217,6 @@ func (l *PgxListener) Notifications() <-chan string {
 // Close releases the dedicated connection (and the pool, if owned). Safe to
 // call multiple times.
 func (l *PgxListener) Close() error {
-	var firstErr error
-
 	l.closeOnce.Do(func() {
 		l.closed.Store(true)
 
@@ -225,7 +234,7 @@ func (l *PgxListener) Close() error {
 		}
 	})
 
-	return firstErr
+	return nil
 }
 
 // validateChannelName rejects names that are not safe Postgres identifiers.
@@ -233,17 +242,14 @@ func (l *PgxListener) Close() error {
 // so allow-listing is the SQL-injection defence.
 func validateChannelName(channel string) error {
 	if channel == "" {
-		return errors.New("pgx_listener: empty channel name")
+		return errEmptyChannelName
 	}
 
 	for i, r := range channel {
 		ok := r == '_' || (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') ||
 			(i > 0 && r >= '0' && r <= '9')
 		if !ok {
-			return fmt.Errorf(
-				"pgx_listener: invalid channel name %q (must be [A-Za-z_][A-Za-z0-9_]*)",
-				channel,
-			)
+			return fmt.Errorf("%w: %q", errInvalidChannelName, channel)
 		}
 	}
 

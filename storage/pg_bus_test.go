@@ -484,15 +484,15 @@ func (v *versionOnlySource) LoadFromVersion(
 }
 
 func (v *versionOnlySource) LoadToVersion(
-	ctx context.Context, ref event.AggregateRef, max event.Version,
+	ctx context.Context, ref event.AggregateRef, maxVer event.Version,
 ) ([]event.Event, error) {
-	return v.inner.LoadToVersion(ctx, ref, max)
+	return v.inner.LoadToVersion(ctx, ref, maxVer)
 }
 
 func (v *versionOnlySource) LoadToTimestamp(
-	ctx context.Context, ref event.AggregateRef, max time.Time,
+	ctx context.Context, ref event.AggregateRef, maxTime time.Time,
 ) ([]event.Event, error) {
-	return v.inner.LoadToTimestamp(ctx, ref, max)
+	return v.inner.LoadToTimestamp(ctx, ref, maxTime)
 }
 
 func (v *versionOnlySource) Close() error { return v.inner.Close() }
