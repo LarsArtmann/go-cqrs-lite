@@ -77,7 +77,7 @@ type Bundle struct {
 // Returns an error only if validation fails (see [Bundle.validate]).
 // At least one capability must be set; an entirely empty Bundle is a bug.
 func New(opts ...Option) (*Bundle, error) {
-	b := &Bundle{}
+	b := &Bundle{} //nolint:exhaustruct // options fill fields
 
 	for _, opt := range opts {
 		if opt != nil {
@@ -85,7 +85,8 @@ func New(opts ...Option) (*Bundle, error) {
 		}
 	}
 
-	if err := b.validate(); err != nil {
+	err := b.validate()
+	if err != nil {
 		// Close anything that was registered, since the Bundle is unusable.
 		_ = b.Close()
 
@@ -117,7 +118,7 @@ func (b *Bundle) Close() error {
 
 		seen[c] = struct{}{}
 
-		if err := c.Close(); err != nil {
+		if err := c.Close(); err != nil { //nolint:noinlineerr // closer loop
 			errs = append(errs, err)
 		}
 	}

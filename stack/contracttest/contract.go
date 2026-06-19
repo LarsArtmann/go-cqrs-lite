@@ -30,6 +30,8 @@ import (
 // The caller is responsible for calling Bundle.Close.
 type Factory func(t *testing.T) (*stack.Bundle, error)
 
+const expectedEventCount = 2
+
 type contractKey string
 
 func (k contractKey) String() string { return string(k) }
@@ -52,6 +54,7 @@ func RunSuite(t *testing.T, factory Factory) {
 }
 
 func testBundleFields(t *testing.T, factory Factory) {
+	t.Helper()
 	t.Parallel()
 
 	b, err := factory(t)
@@ -87,6 +90,7 @@ func testBundleFields(t *testing.T, factory Factory) {
 }
 
 func testEventRoundtrip(t *testing.T, factory Factory) {
+	t.Helper()
 	t.Parallel()
 
 	b, err := factory(t)
@@ -112,7 +116,8 @@ func testEventRoundtrip(t *testing.T, factory Factory) {
 		t.Fatalf("NewEvents: %v", err)
 	}
 
-	if err := b.EventSink.Save(ctx, ref, events, 0); err != nil {
+	err = b.EventSink.Save(ctx, ref, events, 0)
+	if err != nil {
 		t.Fatalf("Save: %v", err)
 	}
 
@@ -121,7 +126,7 @@ func testEventRoundtrip(t *testing.T, factory Factory) {
 		t.Fatalf("Load: %v", err)
 	}
 
-	if len(loaded) != 2 {
+	if len(loaded) != expectedEventCount {
 		t.Fatalf("expected 2 events, got %d", len(loaded))
 	}
 
@@ -135,6 +140,7 @@ func testEventRoundtrip(t *testing.T, factory Factory) {
 }
 
 func testCommandRoundtrip(t *testing.T, factory Factory) {
+	t.Helper()
 	t.Parallel()
 
 	b, err := factory(t)
@@ -158,7 +164,8 @@ func testCommandRoundtrip(t *testing.T, factory Factory) {
 		t.Fatalf("NewPersistedCommand: %v", err)
 	}
 
-	if err := b.CommandSink.Save(ctx, ref, cmd); err != nil {
+	err = b.CommandSink.Save(ctx, ref, cmd)
+	if err != nil {
 		t.Fatalf("Save command: %v", err)
 	}
 
@@ -173,6 +180,7 @@ func testCommandRoundtrip(t *testing.T, factory Factory) {
 }
 
 func testReadModelRoundtrip(t *testing.T, factory Factory) {
+	t.Helper()
 	t.Parallel()
 
 	b, err := factory(t)
@@ -192,7 +200,8 @@ func testReadModelRoundtrip(t *testing.T, factory Factory) {
 
 	ctx := context.Background()
 
-	if err := store.Set(ctx, "1", &contractView{Title: "test", Done: false}); err != nil {
+	err = store.Set(ctx, "1", &contractView{Title: "test", Done: false})
+	if err != nil {
 		t.Fatalf("Set: %v", err)
 	}
 
@@ -207,6 +216,7 @@ func testReadModelRoundtrip(t *testing.T, factory Factory) {
 }
 
 func testCloseIdempotent(t *testing.T, factory Factory) {
+	t.Helper()
 	t.Parallel()
 
 	b, err := factory(t)
@@ -214,11 +224,11 @@ func testCloseIdempotent(t *testing.T, factory Factory) {
 		t.Fatalf("factory: %v", err)
 	}
 
-	if err := b.Close(); err != nil {
+	if err := b.Close(); err != nil { //nolint:noinlineerr // test assertion
 		t.Fatalf("first Close: %v", err)
 	}
 
-	if err := b.Close(); err != nil {
+	if err := b.Close(); err != nil { //nolint:noinlineerr // test assertion
 		t.Fatalf("second Close: %v", err)
 	}
 }

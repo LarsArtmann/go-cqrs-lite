@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -11,6 +12,12 @@ import (
 )
 
 const defaultCapacity = 1000
+
+// Sentinel errors for CachedStore construction.
+var (
+	ErrNilStore        = errors.New("cache: store must not be nil")
+	ErrInvalidCapacity = errors.New("cache: capacity must be positive")
+)
 
 // CachedStore wraps a [readmodel.Store] with an in-memory Otter cache.
 //
@@ -57,20 +64,20 @@ func New[T any, K fmt.Stringer](
 	opts ...Option[T, K],
 ) (*CachedStore[T, K], error) {
 	if store == nil {
-		return nil, fmt.Errorf("cache: store must not be nil")
+		return nil, ErrNilStore
 	}
 
-	cfg := config[T, K]{capacity: defaultCapacity}
+	cfg := config[T, K]{capacity: defaultCapacity, ttl: 0}
 
 	for _, opt := range opts {
 		opt(&cfg)
 	}
 
 	if cfg.capacity <= 0 {
-		return nil, fmt.Errorf("cache: capacity must be positive, got %d", cfg.capacity)
+		return nil, fmt.Errorf("%w: got %d", ErrInvalidCapacity, cfg.capacity)
 	}
 
-	otterOpts := &otter.Options[string, *T]{
+	otterOpts := &otter.Options[string, *T]{ //nolint:exhaustruct // only MaximumSize needed by default
 		MaximumSize: cfg.capacity,
 	}
 
@@ -98,7 +105,7 @@ func (cs *CachedStore[T, K]) Get(ctx context.Context, id K) (*T, error) {
 
 	val, err := cs.store.Get(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cache: get %s: %w", key, err)
 	}
 
 	cs.cache.Set(key, val)
@@ -113,13 +120,19 @@ func (cs *CachedStore[T, K]) Has(ctx context.Context, id K) (bool, error) {
 		return true, nil
 	}
 
-	return cs.store.Has(ctx, id)
+	has, err := cs.store.Has(ctx, id)
+	if err != nil {
+		return false, fmt.Errorf("cache: has %s: %w", id.String(), err)
+	}
+
+	return has, nil
 }
 
 // Set writes val to the store and updates the cache (write-through).
 func (cs *CachedStore[T, K]) Set(ctx context.Context, id K, val *T) error {
-	if err := cs.store.Set(ctx, id, val); err != nil {
-		return err
+	err := cs.store.Set(ctx, id, val)
+	if err != nil {
+		return fmt.Errorf("cache: set %s: %w", id.String(), err)
 	}
 
 	cs.cache.Set(id.String(), val)
@@ -129,8 +142,9 @@ func (cs *CachedStore[T, K]) Set(ctx context.Context, id K, val *T) error {
 
 // Delete removes the value from the store and invalidates the cache entry.
 func (cs *CachedStore[T, K]) Delete(ctx context.Context, id K) error {
-	if err := cs.store.Delete(ctx, id); err != nil {
-		return err
+	err := cs.store.Delete(ctx, id)
+	if err != nil {
+		return fmt.Errorf("cache: delete %s: %w", id.String(), err)
 	}
 
 	cs.cache.Invalidate(id.String())
@@ -140,7 +154,12 @@ func (cs *CachedStore[T, K]) Delete(ctx context.Context, id K) error {
 
 // Scan returns all values matching the prefix. Always bypasses the cache.
 func (cs *CachedStore[T, K]) Scan(ctx context.Context, prefix []byte) ([]*T, error) {
-	return cs.store.Scan(ctx, prefix)
+	results, err := cs.store.Scan(ctx, prefix)
+	if err != nil {
+		return nil, fmt.Errorf("cache: scan: %w", err)
+	}
+
+	return results, nil
 }
 
 // Backend returns the underlying readmodel.Backend.

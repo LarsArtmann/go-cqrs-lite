@@ -24,6 +24,7 @@ type countingCloser struct {
 
 func (c *countingCloser) Close() error {
 	c.count.Add(1)
+
 	return nil
 }
 

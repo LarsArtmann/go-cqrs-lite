@@ -96,7 +96,12 @@ func (b *Bundle) ProjectionRunner(
 		return nil, ErrMissingCheckpoint
 	}
 
-	return projection.NewRunner(b.Journal, b.Subscriber, b.CheckpointStore, opts...)
+	runner, err := projection.NewRunner(b.Journal, b.Subscriber, b.CheckpointStore, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("stack: create projection runner: %w", err)
+	}
+
+	return runner, nil
 }
 
 // eventStore recovers the composite event.Store from the Bundle's segregated
