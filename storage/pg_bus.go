@@ -180,8 +180,13 @@ var errNilEventSource = event.NewInfrastructure(
 	"storage: nil event source",
 )
 
-// errEventNotFoundAfterRetries is a static sentinel for re-fetch failures.
-var errEventNotFoundAfterRetries = errors.New("event not found after retries")
+// errEventNotFoundAfterRetries is the classified sentinel for re-fetch
+// failures. Uses event.NewInfrastructure for consistency with the rest of
+// the storage error taxonomy (go-error-family); supports errors.Is/As.
+var errEventNotFoundAfterRetries = event.NewInfrastructure(
+	"storage.event_not_found_after_retries",
+	"event not found after retries",
+)
 
 // NewPostgresBus creates a LISTEN/NOTIFY-backed event bus.
 // The db is used for NOTIFY (SELECT pg_notify). The store is used by the
