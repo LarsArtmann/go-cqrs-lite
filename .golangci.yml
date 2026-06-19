@@ -159,6 +159,8 @@ linters:
             - golang.org/x/tools
             - golang.org/x/crypto
             - golang.org/x/sync
+            - github.com/prometheus/client_golang
+            - github.com/prometheus/client_model
     exhaustruct:
       exclude:
         - os/exec.Cmd

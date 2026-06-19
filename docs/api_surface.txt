@@ -558,6 +558,8 @@ event/func DecodePayloads
 event/func DetectTombstone
 event/func DistinctByAggregateID
 event/func DistinctByEventID
+event/func DistinctByEventIDBounded
+event/func DistinctByEventIDBoundedWith
 event/func DistinctByEventIDWith
 event/func EnsureCustom
 event/func ExitCode
@@ -575,6 +577,7 @@ event/func MarkTombstone
 event/func MarshalMetadataJSON
 event/func New
 event/func NewAggregateRef
+event/func NewArenaBatchBuilder
 event/func NewBehaviorEventBus
 event/func NewConflict
 event/func NewCorruption
@@ -586,6 +589,7 @@ event/func NewMetadata
 event/func NewProjection
 event/func NewRejection
 event/func NewReplayEventBus
+event/func NewSliceIterator
 event/func NewSliceStream
 event/func NewStoreStreamAdapter
 event/func NewTransient
@@ -640,6 +644,7 @@ event/interface CheckpointSink
 event/interface CheckpointSource
 event/interface CheckpointStore
 event/interface Event
+event/interface EventIterator
 event/interface EventSink
 event/interface EventSource
 event/interface EventStream
@@ -649,6 +654,8 @@ event/interface Publisher
 event/interface SeekableJournal
 event/interface Store
 event/interface StreamLoader
+event/interface StreamingJournal
+event/interface StreamingSource
 event/interface Subscriber
 event/method Add
 event/method Add
@@ -657,6 +664,7 @@ event/method AggregateType
 event/method Build
 event/method Clone
 event/method Clone
+event/method Close
 event/method Close
 event/method Cmp
 event/method Cmp
@@ -693,6 +701,8 @@ event/method Merge
 event/method Metadata
 event/method Mod
 event/method Name
+event/method NewImmutableEvent
+event/method Next
 event/method Next
 event/method OccurredAt
 event/method Payload
@@ -723,9 +733,11 @@ event/method WithOptions
 event/method WithPayload
 event/method WithUserID
 event/struct AggregateRef
+event/struct ArenaBatchBuilder
 event/struct Checkpoint
 event/struct ImmutableEvent
 event/struct Metadata
+event/struct SliceIterator
 event/struct StoreStreamAdapter
 event/type AggregateType
 event/type Clock
@@ -1071,11 +1083,13 @@ projection/func NewHandlerRegistry
 projection/func NewRunner
 projection/func On
 projection/func WithDeadLetterHandler
+projection/func WithDedupCapacity
 projection/func WithLogger
 projection/func WithParallelism
 projection/func WithRetry
 projection/func WithRetryMaxDelay
 projection/interface HealthChecker
+projection/interface LeaderElection
 projection/method Build
 projection/method Close
 projection/method CurrentCheckpoint
@@ -1085,6 +1099,7 @@ projection/method EventTypes
 projection/method Handle
 projection/method HasHandlers
 projection/method HealthCheck
+projection/method IsLeader
 projection/method IsRunning
 projection/method Lookup
 projection/method Name
@@ -1093,9 +1108,12 @@ projection/method OnAll
 projection/method Register
 projection/method RegisteredProjections
 projection/method Reset
+projection/method Resign
 projection/method Run
 projection/method RunLive
 projection/method RunReplay
+projection/method WaitForLeadership
+projection/struct AlwaysLeader
 projection/struct Builder
 projection/struct HandlerRegistry
 projection/struct HealthStatus

@@ -210,7 +210,8 @@
       p {
         margin: 0 0 1rem;
       }
-      p code, li code {
+      p code,
+      li code {
         background: var(--surface-sunken);
         padding: 0.1rem 0.35rem;
         font-size: 0.86em;
@@ -793,6 +794,102 @@
         font-size: 0.88rem;
       }
 
+      /* --- Decision matrix --- */
+      .matrix {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+        border: 2px solid var(--text);
+      }
+      .matrix th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.64rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      .matrix th:last-child {
+        border-right: none;
+      }
+      .matrix td {
+        padding: 0.55rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+        vertical-align: middle;
+      }
+      .matrix td:last-child {
+        border-right: none;
+      }
+      .matrix tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      .matrix td.weight {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--accent);
+        white-space: nowrap;
+      }
+      .matrix td.win {
+        color: var(--solution);
+        font-weight: 800;
+        font-family: var(--font-mono);
+      }
+      .matrix td.lose {
+        color: var(--problem);
+        font-weight: 800;
+        font-family: var(--font-mono);
+      }
+      .matrix tr.matrix-total td {
+        background: var(--text) !important;
+        color: var(--surface);
+        font-weight: 900;
+        font-family: var(--font-mono);
+      }
+      .matrix tr.matrix-total td.win {
+        color: #95e1d3;
+      }
+
+      /* --- Alternative option cards --- */
+      .alt-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .alt-card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .alt-card.alt-pick {
+        border-left-color: var(--solution);
+      }
+      .alt-card.alt-dismiss {
+        border-left-color: var(--problem);
+      }
+      .alt-card.alt-baseline {
+        border-left-color: var(--warning);
+      }
+      .alt-card h3 {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 0.3rem;
+      }
+      .alt-card p {
+        font-size: 0.9rem;
+        margin-bottom: 0;
+        color: var(--text-muted);
+      }
+
       /* --- Migration / numbered steps --- */
       .migration-step {
         display: grid;
@@ -942,8 +1039,11 @@
           <a href="#what-is-sqlc">What is sqlc</a>
           <a href="#benefits">Benefits</a>
           <a href="#pro-contra">Pro / Contra</a>
+          <a href="#matrix">Decision matrix</a>
+          <a href="#alternatives">Alternatives</a>
           <a href="#fit">Fit analysis</a>
           <a href="#plan">Action plan</a>
+          <a href="#risks">Risks &amp; open Qs</a>
           <a href="#recommendation">Recommendation</a>
           <a href="#appendix">Appendix</a>
         </nav>
@@ -976,24 +1076,24 @@
         <!-- Scorecard -->
         <section id="scorecard" class="scorecard">
           <div class="score-card score-good">
-            <div class="score">8</div>
-            <div class="label">Concrete benefits</div>
+            <div class="score">0–2</div>
+            <div class="label">Phases to adopt now</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">High</div>
+            <div class="label">Confidence</div>
           </div>
           <div class="score-card score-warn">
-            <div class="score">5</div>
-            <div class="label">Real costs</div>
-          </div>
-          <div class="score-card score-bad">
-            <div class="score">3</div>
-            <div class="label">Poor-fit queries</div>
+            <div class="score">~60%</div>
+            <div class="label">Queries type-safe</div>
           </div>
           <div class="score-card">
-            <div class="score">~25</div>
-            <div class="label">Distinct SQL templates today</div>
+            <div class="score">290</div>
+            <div class="label">Scan lines (verified)</div>
           </div>
-          <div class="score-card">
-            <div class="score">0</div>
-            <div class="label">New runtime deps</div>
+          <div class="score-card score-good">
+            <div class="score">Low</div>
+            <div class="label">Rollback risk</div>
           </div>
         </section>
 
@@ -1002,17 +1102,21 @@
           <h2><span class="num">00</span>Bottom line</h2>
           <p>
             <strong>Yes, partially and incrementally.</strong> The <code>storage/</code> module
-            carries ~25 hand-written SQL templates with scan destinations whose ordering is only
-            implicitly coupled to the SQL string — a bug class that sqlc eliminates at compile time.
-            But sqlc is fundamentally static, so the dynamic parts (variable-arity batch inserts,
-            runtime-assembled <code>WHERE</code> fragments) must stay hand-written.
+            carries 290 lines of hand-written scan code (verified) plus ~39 DML operations whose
+            scan destinations are only implicitly coupled to the SQL string — a bug class that sqlc
+            eliminates at compile time. But sqlc is fundamentally static, so the dynamic parts
+            (variable-arity batch inserts, runtime-assembled <code>WHERE</code> fragments) must stay
+            hand-written. Realistic coverage is ~60% of queries.
           </p>
           <div class="callout callout-amber">
             <strong>The honest verdict:</strong>
-            sqlc would meaningfully improve ~15 of the ~25 queries (the static, hand-scanned ones),
-            at the cost of dialect duplication and a new code-gen step. The biggest immediate win —
-            extracting schema to <code>.sql</code> files — is valuable <em>even if you never adopt
-            sqlc</em>, because it kills today's dual source of truth (Go strings + golden fixtures).
+            sqlc would type-safe ~15 of ~25 query shapes, at the cost of dialect duplication and a
+            new code-gen step. <strong>The LOC reduction is modest</strong> (~100–150 lines, not 300
+            — the branded-ID / time / error reconstruction stays as adapter code); the real win is
+            <em>compile-time column-order safety</em> + schema unification. The biggest immediate
+            win — extracting schema to <code>.sql</code> files — is valuable
+            <em>even if you never adopt sqlc</em>, because it kills today's dual source of truth (Go
+            strings + golden fixtures).
           </div>
         </section>
 
@@ -1029,8 +1133,8 @@
               <h3>Where SQL lives</h3>
               <p>
                 Embedded Go string literals in <code>storage/sql/dialect.go:53-221</code> (all DDL),
-                <code>storage/sql/helpers.go</code> (shared DML), and per-store files. <strong>Not
-                greppable as SQL</strong> — schema and queries are interleaved with Go.
+                <code>storage/sql/helpers.go</code> (shared DML), and per-store files.
+                <strong>Not greppable as SQL</strong> — schema and queries are interleaved with Go.
               </p>
             </div>
             <div class="card card-warning">
@@ -1058,25 +1162,47 @@
           </div>
           <div class="compare-row">
             <div>
-              <pre><code><span class="tok-comment">// Scan dest order is implicit knowledge</span>
+              <pre><code><span class="tok-comment">// 10 dests in a fixed order — implicit coupling</span>
 <span class="tok-keyword">func</span> (s *<span class="tok-type">SQLEventStore</span>) <span class="tok-func">scanEvent</span>(rows *sql.<span class="tok-type">Rows</span>) (...) {
-  <span class="tok-keyword">var</span> id, eventType, aggType, aggID <span class="tok-type">string</span>
-  <span class="tok-keyword">var</span> version <span class="tok-type">uint64</span>
-  <span class="tok-comment">// ... 10 destinations ...</span>
-  <span class="tok-keyword">return</span> rows.<span class="tok-func">Scan</span>(&amp;id, &amp;eventType,
-    &amp;aggType, &amp;aggID, &amp;version, <span class="tok-comment">/* ... */</span>)</code></pre>
+  <span class="tok-keyword">var</span> eventIDStr, eventType <span class="tok-type">string</span>
+  <span class="tok-keyword">var</span> aggType, aggIDStr <span class="tok-type">string</span>
+  <span class="tok-keyword">var</span> version, schemaVersion <span class="tok-type">int</span>
+  <span class="tok-keyword">var</span> payload []<span class="tok-type">byte</span>
+  <span class="tok-keyword">var</span> encoding <span class="tok-type">string</span>
+  <span class="tok-keyword">var</span> metadataJSON []<span class="tok-type">byte</span>
+  timeDest := s.Dialect.<span class="tok-func">ScanTimeDest</span>()
+  err := rows.<span class="tok-func">Scan</span>(&amp;eventIDStr, &amp;eventType,
+    &amp;aggType, &amp;aggIDStr, &amp;version,
+    &amp;schemaVersion, &amp;payload, &amp;encoding,
+    &amp;metadataJSON, timeDest)
+  <span class="tok-comment">// ...then ~65 lines of reconstruction:</span>
+  <span class="tok-comment">// ParseTime, ParseEventID, build event</span></code></pre>
             </div>
             <div>
-              <pre><code><span class="tok-comment">// Scan generated FROM the SQL itself</span>
+              <pre><code><span class="tok-comment">-- schema.sql + query.sql are the source</span>
 <span class="tok-comment">-- name: LoadEvents :many</span>
-<span class="tok-keyword">SELECT</span> id, event_type, aggregate_type, ...
+<span class="tok-keyword">SELECT</span> id, event_type, aggregate_type, aggregate_id,
+       version, schema_version, payload, payload_encoding,
+       metadata, occurred_at
 <span class="tok-keyword">FROM</span> events
 <span class="tok-keyword">WHERE</span> aggregate_type = $<span class="tok-number">1</span>
   <span class="tok-keyword">AND</span> aggregate_id = $<span class="tok-number">2</span>
 <span class="tok-keyword">ORDER BY</span> version <span class="tok-keyword">ASC</span>;
 
-<span class="tok-comment">// → sqlc emits the struct + Scan()</span></code></pre>
+<span class="tok-comment">// → sqlc emits LoadEventsRow struct +</span>
+<span class="tok-comment">//   Scan derived FROM the SELECT list.</span>
+<span class="tok-comment">//   Adapter (row → event.Event) stays.</span></code></pre>
             </div>
+          </div>
+
+          <div class="callout callout-warning">
+            <strong>What sqlc does NOT eliminate:</strong>
+            the ~65 lines of domain reconstruction after the Scan — parsing time, reconstructing
+            branded IDs (<code>id.ParseEventID</code>), and wrapping errors in the 5-family
+            taxonomy. sqlc replaces the
+            <em>brittle column-order Scan + the row struct + placeholder injection</em>; the typed
+            domain adapter stays hand-written. This is why the LOC win is modest (~100–150 lines)
+            and the safety win is the real prize.
           </div>
 
           <h3>Compensating linters already enabled</h3>
@@ -1084,7 +1210,12 @@
             Tellingly, <code>.golangci.yml</code> already enables the linters that exist
             <em>precisely because</em> hand-written SQL is fragile:
           </p>
-          <div class="dep-tree"><span class="root">.golangci.yml</span> ├── <span class="ok">sqlclosecheck  (rows.Close() correctness)</span> ├── <span class="ok">rowserrcheck    (rows.Err() correctness)</span> └── <span class="ok">unqueryvet      (sql.Rows misuse)</span></div>
+          <div class="dep-tree">
+            <span class="root">.golangci.yml</span> ├──
+            <span class="ok">sqlclosecheck (rows.Close() correctness)</span> ├──
+            <span class="ok">rowserrcheck (rows.Err() correctness)</span> └──
+            <span class="ok">unqueryvet (sql.Rows misuse)</span>
+          </div>
 
           <h3>The dialect abstraction</h3>
           <p>
@@ -1121,7 +1252,9 @@
               </tr>
               <tr>
                 <td>Structural divergence</td>
-                <td colspan="2">SQLite 999-param chunking in <code>SharedBatchInsertEvents</code></td>
+                <td colspan="2">
+                  SQLite 999-param chunking in <code>SharedBatchInsertEvents</code>
+                </td>
                 <td><code>helpers.go:107</code></td>
               </tr>
             </tbody>
@@ -1165,10 +1298,10 @@
 
           <div class="callout callout-teal">
             <strong>Key capability:</strong>
-            A single <code>sqlc.yaml</code> can declare <strong>multiple engines</strong>
-            side-by-side — e.g. one PostgreSQL block and one SQLite block, each emitting to its own
-            package. This maps cleanly onto the existing <code>PostgresDialect</code> /
-            <code>SQLiteDialect</code> split.
+            A single <code>sqlc.yaml</code> can declare
+            <strong>multiple engines</strong> side-by-side — e.g. one PostgreSQL block and one
+            SQLite block, each emitting to its own package. This maps cleanly onto the existing
+            <code>PostgresDialect</code> / <code>SQLiteDialect</code> split.
           </div>
         </section>
 
@@ -1177,7 +1310,8 @@
           <h2><span class="num">03</span>Concrete benefits</h2>
           <p>
             Each benefit below is tied to specific code locations in <code>storage/</code>, not
-            abstract claims.
+            abstract claims. Verified against the current source (3,455 production lines, 290 scan
+            lines, ~39 DML operations across the module).
           </p>
 
           <div class="strengths">
@@ -1185,73 +1319,93 @@
               <div class="check">1</div>
               <div class="text">
                 <strong>Compile-time scan correctness — the biggest win</strong>
-                <span>Every <code>rows.Scan(&amp;id, &amp;type, ...)</code> today has dest order
-                implicitly coupled to a SQL string built elsewhere. sqlc generates the scan
-                <em>from</em> the SQL → the entire bug class vanishes. Affects
-                <code>event_store_scan.go:20-44</code>, <code>command_store_scan.go:17-103</code>,
-                <code>query_store_scan.go:17-78</code>, <code>snapshot.go:147-178</code>.</span>
+                <span
+                  >Every <code>rows.Scan(&amp;id, &amp;type, ...)</code> today has dest order
+                  implicitly coupled to a SQL string built elsewhere. sqlc generates the scan
+                  <em>from</em> the SQL → the entire bug class vanishes. Affects
+                  <code>event_store_scan.go:20-44</code>, <code>command_store_scan.go:17-103</code>,
+                  <code>query_store_scan.go:17-78</code>, <code>snapshot.go:147-178</code>.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">2</div>
               <div class="text">
-                <strong>Deletes ~300 lines of scan boilerplate</strong>
-                <span><code>scanEvent</code> / <code>scanCommand</code> / <code>scanQuery</code> and
-                their <code>ScanSlice</code> plumbing all become generated code.</span>
+                <strong>Removes the brittle Scan + placeholder injection</strong>
+                <span
+                  >The ~25-line column-order <code>rows.Scan</code> per store, the row struct, and
+                  the <code>fmt.Sprintf</code>+<code>Placeholder(n)</code> calls sprayed across ~25
+                  queries all become generated. Net ~100–150 lines removed (the branded-ID / time /
+                  error reconstruction stays as adapter code) — a modest LOC win, but the column
+                  reordering bug class is gone for good.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">3</div>
               <div class="text">
                 <strong>Single source of truth for schema</strong>
-                <span>Today DDL lives in Go strings <em>and</em> is mirrored as golden
-                <code>.sql</code> fixtures. With sqlc the <code>.sql</code> is the <strong>input</strong>;
-                Go is generated; golden tests become redundant.</span>
+                <span
+                  >Today DDL lives in Go strings <em>and</em> is mirrored as golden
+                  <code>.sql</code> fixtures. With sqlc the <code>.sql</code> is the
+                  <strong>input</strong>; Go is generated; golden tests become redundant.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">4</div>
               <div class="text">
                 <strong>Removes placeholder injection</strong>
-                <span><code>fmt.Sprintf(..., s.Dialect.Placeholder(n))</code> disappears from ~25
-                queries; sqlc emits fixed <code>$1</code>/<code>?</code> per engine.</span>
+                <span
+                  ><code>fmt.Sprintf(..., s.Dialect.Placeholder(n))</code> disappears from ~25
+                  queries; sqlc emits fixed <code>$1</code>/<code>?</code> per engine.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">5</div>
               <div class="text">
                 <strong>Kills the time-round-trip hack</strong>
-                <span><code>ScanTimeDest</code> / <code>FormatTime</code> /
-                <code>ParseTime</code> / <code>ParseSQLiteTimestamp</code> exist solely because
-                SQLite stores time as text. Per-engine generated code scans natively (PG) / parses
-                text (SQLite) internally.</span>
+                <span
+                  ><code>ScanTimeDest</code> / <code>FormatTime</code> / <code>ParseTime</code> /
+                  <code>ParseSQLiteTimestamp</code> exist solely because SQLite stores time as text.
+                  Per-engine generated code scans natively (PG) / parses text (SQLite)
+                  internally.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">6</div>
               <div class="text">
                 <strong>Forces a real migration story</strong>
-                <span>Today there are <strong>zero</strong> migration files —
-                <code>InitSchema</code> does drop+recreate. sqlc schema files pair naturally with
-                <code>golang-migrate</code> / <code>atlas</code>, closing a genuine
-                production-readiness gap.</span>
+                <span
+                  >Today there are <strong>zero</strong> migration files —
+                  <code>InitSchema</code> does drop+recreate. sqlc schema files pair naturally with
+                  <code>golang-migrate</code> / <code>atlas</code>, closing a genuine
+                  production-readiness gap.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">7</div>
               <div class="text">
                 <strong>Clean on the dependency budget</strong>
-                <span>Generated code imports only <code>database/sql</code> — <strong>zero new
-                runtime deps</strong>, consistent with the per-module budgets enforced by
-                <code>nix run .#check-layers</code>. sqlc itself is a dev-only binary.</span>
+                <span
+                  >Generated code imports only <code>database/sql</code> —
+                  <strong>zero new runtime deps</strong>, consistent with the per-module budgets
+                  enforced by <code>nix run .#check-layers</code>. sqlc itself is a dev-only
+                  binary.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">8</div>
               <div class="text">
                 <strong>Boosts the catalog story</strong>
-                <span>Real <code>.sql</code> DDL can feed ERD / dbdocs tooling alongside the
-                existing AsyncAPI / OpenAPI exporters in <code>catalog/</code>.</span>
+                <span
+                  >Real <code>.sql</code> DDL can feed ERD / dbdocs tooling alongside the existing
+                  AsyncAPI / OpenAPI exporters in <code>catalog/</code>.</span
+                >
               </div>
             </div>
           </div>
@@ -1271,23 +1425,32 @@
               <ul>
                 <li>
                   <strong>Compile-time type safety</strong>
-                  <span>SQL and Go stay in sync by construction; column reorder can no longer cause
-                  silent scan corruption.</span>
+                  <span
+                    >SQL and Go stay in sync by construction; column reorder can no longer cause
+                    silent scan corruption.</span
+                  >
                 </li>
                 <li>
-                  <strong>Scan-code elimination</strong>
-                  <span>~300 lines of hand-written <code>scan*</code> functions and
-                  <code>ScanSlice</code> plumbing deleted.</span>
+                  <strong>Scan + injection elimination</strong>
+                  <span
+                    >~100–150 lines of brittle <code>Scan</code> + row structs +
+                    <code>fmt.Sprintf</code>+Placeholder plumbing deleted (domain reconstruction
+                    stays).</span
+                  >
                 </li>
                 <li>
                   <strong>Unified schema source</strong>
-                  <span>One <code>.sql</code> file is the input; golden fixtures become
-                  assertions-on-generated-output or are deleted.</span>
+                  <span
+                    >One <code>.sql</code> file is the input; golden fixtures become
+                    assertions-on-generated-output or are deleted.</span
+                  >
                 </li>
                 <li>
                   <strong>No placeholder injection</strong>
-                  <span>Fixed per-engine SQL replaces ~25 <code>fmt.Sprintf</code>+Placeholder
-                  call sites.</span>
+                  <span
+                    >Fixed per-engine SQL replaces ~25 <code>fmt.Sprintf</code>+Placeholder call
+                    sites.</span
+                  >
                 </li>
                 <li>
                   <strong>No SQLite time-string hack</strong>
@@ -1295,18 +1458,24 @@
                 </li>
                 <li>
                   <strong>Native migration opening</strong>
-                  <span>Schema files become a natural home for <code>golang-migrate</code> /
-                  <code>atlas</code>.</span>
+                  <span
+                    >Schema files become a natural home for <code>golang-migrate</code> /
+                    <code>atlas</code>.</span
+                  >
                 </li>
                 <li>
                   <strong>Zero new runtime deps</strong>
-                  <span>Generated code uses only <code>database/sql</code>; honors the dependency
-                  budget.</span>
+                  <span
+                    >Generated code uses only <code>database/sql</code>; honors the dependency
+                    budget.</span
+                  >
                 </li>
                 <li>
                   <strong>Greppable SQL</strong>
-                  <span>Queries live in <code>.sql</code> files, searchable as SQL — not buried in
-                  Go string concatenation.</span>
+                  <span
+                    >Queries live in <code>.sql</code> files, searchable as SQL — not buried in Go
+                    string concatenation.</span
+                  >
                 </li>
               </ul>
             </div>
@@ -1315,31 +1484,42 @@
               <ul>
                 <li>
                   <strong>Dialect duplication</strong>
-                  <span>sqlc emits one package per engine → <code>pg/</code> + <code>sqlite/</code>.
-                  You lose the single-file <code>Dialect</code> indirection.</span>
+                  <span
+                    >sqlc emits one package per engine → <code>pg/</code> + <code>sqlite/</code>.
+                    You lose the single-file <code>Dialect</code> indirection.</span
+                  >
                 </li>
                 <li>
                   <strong>Dynamic queries don't fit</strong>
-                  <span><code>SharedBatchInsertEvents</code> (variable multi-VALUES + 999-param
-                  chunking), <code>buildListQuery</code>, and <code>LoadParams.Where</code>
-                  fragments are runtime-built — sqlc is fundamentally static.</span>
+                  <span
+                    ><code>SharedBatchInsertEvents</code> (variable multi-VALUES + 999-param
+                    chunking), <code>buildListQuery</code>, and
+                    <code>LoadParams.Where</code> fragments are runtime-built — sqlc is
+                    fundamentally static.</span
+                  >
                 </li>
                 <li>
                   <strong>The generic <code>QueryRows[T]</code> engine breaks</strong>
-                  <span>Load / LoadFromVersion / LoadToVersion / LoadToTimestamp / LoadBackwards
-                  are assembled dynamically. They become 5 explicit sqlc queries per store, or stay
-                  hand-written.</span>
+                  <span
+                    >Load / LoadFromVersion / LoadToVersion / LoadToTimestamp / LoadBackwards are
+                    assembled dynamically. They become 5 explicit sqlc queries per store, or stay
+                    hand-written.</span
+                  >
                 </li>
                 <li>
                   <strong>Scope limited to <code>storage/</code></strong>
-                  <span><code>pebble/</code>, <code>kv/</code>, <code>turso/</code>,
-                  <code>memory/</code> are not SQL and gain nothing.</span>
+                  <span
+                    ><code>pebble/</code>, <code>kv/</code>, <code>turso/</code>,
+                    <code>memory/</code> are not SQL and gain nothing.</span
+                  >
                 </li>
                 <li>
                   <strong>New contributor workflow step</strong>
-                  <span>Editing a query now means: edit <code>.sql</code> →
-                  <code>sqlc generate</code> → commit generated code. sqlc must enter the nix
-                  devShell.</span>
+                  <span
+                    >Editing a query now means: edit <code>.sql</code> →
+                    <code>sqlc generate</code> → commit generated code. sqlc must enter the nix
+                    devShell.</span
+                  >
                 </li>
               </ul>
             </div>
@@ -1355,12 +1535,150 @@
           </div>
         </section>
 
+        <!-- Decision matrix -->
+        <section id="matrix">
+          <h2><span class="num">05</span>Weighted decision matrix</h2>
+          <p>
+            Pro/Contra as parallel lists don't yield a verdict. This matrix weights each criterion
+            by how much it matters to a <em>library</em>, scores both paths 0–10, and computes the
+            weighted delta. Scores are judgments, not measurements — but they make the net call
+            explicit and debatable.
+          </p>
+
+          <table class="matrix">
+            <thead>
+              <tr>
+                <th>Criterion</th>
+                <th>Weight</th>
+                <th>Status quo</th>
+                <th>sqlc (partial)</th>
+                <th>Delta</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Scan column-order type safety</td>
+                <td class="weight">×3</td>
+                <td>3 — fragile, linter-compensated</td>
+                <td>9 — generated from SQL</td>
+                <td class="win">+18</td>
+              </tr>
+              <tr>
+                <td>Schema single-source-of-truth</td>
+                <td class="weight">×2</td>
+                <td>3 — Go strings + golden fixtures</td>
+                <td>9 — <code>.sql</code> is the input</td>
+                <td class="win">+12</td>
+              </tr>
+              <tr>
+                <td>Dynamic / runtime-assembled queries</td>
+                <td class="weight">×2</td>
+                <td>9 — <code>QueryRows[T]</code> + WHERE frags</td>
+                <td>3 — fundamentally static</td>
+                <td class="lose">−12</td>
+              </tr>
+              <tr>
+                <td>Migration story (for consumers)</td>
+                <td class="weight">×1</td>
+                <td>2 — drop+recreate only</td>
+                <td>7 — opens <code>golang-migrate</code>/<code>atlas</code></td>
+                <td class="win">+5</td>
+              </tr>
+              <tr>
+                <td>Dependency-budget cleanliness</td>
+                <td class="weight">×1</td>
+                <td>8 — no codegen dep</td>
+                <td>9 — zero runtime deps (dev binary)</td>
+                <td class="win">+1</td>
+              </tr>
+              <tr>
+                <td>Contributor friction</td>
+                <td class="weight">×1</td>
+                <td>8 — edit Go strings</td>
+                <td>6 — new <code>sqlc generate</code> step</td>
+                <td class="lose">−2</td>
+              </tr>
+              <tr class="matrix-total">
+                <td colspan="4">Net weighted delta (higher = favor sqlc)</td>
+                <td class="win">+22</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="callout callout-teal">
+            <strong>Reading the matrix:</strong>
+            the net is clearly favorable (+22), but it is carried almost entirely by
+            <em>type safety</em> and <em>schema unification</em>. If you devalue those (e.g. you
+            trust the linters and never touch the schema), the case weakens fast — which is exactly
+            why
+            <strong>Phase 1 (schema extraction) is the highest-value, lowest-regret step</strong>:
+            it captures the schema-unification gain independently of the sqlc decision.
+          </div>
+        </section>
+
+        <!-- Alternatives considered -->
+        <section id="alternatives">
+          <h2><span class="num">06</span>Alternatives considered</h2>
+          <p>
+            sqlc is one of several ways to address hand-written SQL pain. Naming and dismissing the
+            alternatives makes the recommendation honest rather than default.
+          </p>
+
+          <div class="alt-grid">
+            <div class="alt-card alt-pick">
+              <h3>sqlc <span class="badge badge-fixed">pick</span></h3>
+              <p>
+                Compile SQL → type-safe Go. Static only, but maps to ~60% of our queries. Zero
+                runtime deps. This report's recommendation (Phases 0–2).
+              </p>
+            </div>
+            <div class="alt-card alt-dismiss">
+              <h3>jet <span class="badge badge-critical">dismiss</span></h3>
+              <p>
+                Type-safe query builder with per-table codegen. Fully dynamic — but heavier output,
+                more opinionated, and overkill for ~25 fixed queries. We don't need a query DSL.
+              </p>
+            </div>
+            <div class="alt-card alt-dismiss">
+              <h3>scaneo / sq <span class="badge badge-critical">dismiss</span></h3>
+              <p>
+                Lightweight scan-only generators (emit struct + <code>Scan</code> from a table, no
+                query codegen). Solves only half the problem — leaves placeholder injection and
+                schema duplication untouched. sqlc is a strict superset.
+              </p>
+            </div>
+            <div class="alt-card alt-dismiss">
+              <h3>squirrel / goqu <span class="badge badge-critical">dismiss</span></h3>
+              <p>
+                Runtime query builders. Dynamic, but <strong>not type-safe</strong> — the exact bug
+                class we're solving — and they add a runtime dependency, violating the budget.
+              </p>
+            </div>
+            <div class="alt-card alt-baseline">
+              <h3>Plain refactor <span class="badge badge-high">baseline</span></h3>
+              <p>
+                Phase 1 alone: extract schema to <code>.sql</code>, keep hand-written queries. The
+                honest "do nothing fancy" option — and the correct fallback if the Phase 0 spike
+                disappoints.
+              </p>
+            </div>
+            <div class="alt-card alt-baseline">
+              <h3>Status quo <span class="badge badge-medium">do nothing</span></h3>
+              <p>
+                Keep Go-string SQL + linters. Defensible today, but the dual schema source and the
+                scan-order fragility remain. Acceptable only if the codebase stops evolving.
+              </p>
+            </div>
+          </div>
+        </section>
+
         <!-- Fit analysis -->
         <section id="fit">
-          <h2><span class="num">05</span>Where sqlc fits — and where it doesn't</h2>
+          <h2><span class="num">07</span>Where sqlc fits — and where it doesn't</h2>
           <p>
-            The decision is per-query, not all-or-nothing. Here is the full inventory of the ~25
-            distinct SQL templates, classified by fit.
+            The decision is per-query, not all-or-nothing. The module has ~39 DML operations that
+            collapse to ~25 distinct query shapes (many repeat across event/command/query stores).
+            Here is the shape inventory, classified by fit.
           </p>
 
           <table>
@@ -1449,7 +1767,9 @@
                 <td>Load / LoadFromVersion / LoadToVersion / LoadToTimestamp / LoadBackwards</td>
                 <td><code>event_store_load.go</code></td>
                 <td class="no">Poor</td>
-                <td>Dynamic <code>LoadParams.Where</code> fragments into <code>QueryRows[T]</code></td>
+                <td>
+                  Dynamic <code>LoadParams.Where</code> fragments into <code>QueryRows[T]</code>
+                </td>
               </tr>
               <tr>
                 <td>buildListQuery (dynamic WHERE + LIMIT n+1)</td>
@@ -1495,23 +1815,30 @@
 
         <!-- Action plan -->
         <section id="plan">
-          <h2><span class="num">06</span>Phased, reversible action plan</h2>
+          <h2><span class="num">08</span>Phased, reversible action plan</h2>
           <p>
-            Each phase is independently shippable and independently revertible. The early phases are
-            low-risk and high-signal; the later phases are where the real tradeoffs live.
+            Each phase is independently shippable and revertible. Effort is T-shirt sized against
+            the current <code>storage/</code> structure; rollback cost is what it takes to undo if
+            the phase disappoints. The early phases are low-risk and high-signal; the later phases
+            are where the real tradeoffs live.
           </p>
 
           <div class="migration-step">
             <div class="migration-num">0</div>
             <div class="migration-content">
-              <h4>Spike — one query, isolated, deleted afterward</h4>
+              <h4>
+                Spike — one query, isolated, deleted afterward
+                <span class="badge badge-low">effort: S</span>
+                <span class="badge badge-fixed">rollback: delete dir</span>
+              </h4>
               <p>
                 Add <code>sqlc</code> to <code>flake.nix</code> devShell only. Create
                 <code>storage/spike/sqlc/</code> with a minimal SQLite <code>sqlc.yaml</code>,
                 <code>schema.sql</code> (extracted from <code>SQLiteDialect.EventSchema()</code>),
-                and one query: <code>-- name: LoadSnapshot :one</code>. Run <code>sqlc generate</code>;
-                compare generated Go against <code>snapshot.go:142-178</code>. <strong>Decision
-                gate:</strong> was the generated code better? Delete the spike. If yes → Phase 1.
+                and one query: <code>-- name: LoadSnapshot :one</code>. Run
+                <code>sqlc generate</code>; compare generated Go against
+                <code>snapshot.go:142-178</code>. <strong>Decision gate:</strong> was the generated
+                code better? Delete the spike. If yes → Phase 1.
               </p>
             </div>
           </div>
@@ -1519,13 +1846,20 @@
           <div class="migration-step step-solution">
             <div class="migration-num">1</div>
             <div class="migration-content">
-              <h4>Extract schema to .sql files — pure refactor, no behavior change</h4>
+              <h4>
+                Extract schema to .sql files — pure refactor, no behavior change
+                <span class="badge badge-low">effort: S–M</span>
+                <span class="badge badge-fixed">rollback: revert embed</span>
+              </h4>
               <p>
                 Move DDL out of <code>dialect.go:53-221</code> into
-                <code>storage/sql/schema/{postgres,sqlite}/*.sql</code>. Have <code>dialect.go</code>
-                <code>//go:embed</code> these files so <code>InitSchema</code> still works and
-                golden tests still pass. <strong>This unifies the two sources immediately — a win
-                before any sqlc adoption.</strong>
+                <code>storage/sql/schema/{postgres,sqlite}/*.sql</code>. Have
+                <code>dialect.go</code> <code>//go:embed</code> these files so
+                <code>InitSchema</code> still works and golden tests still pass.
+                <strong
+                  >This unifies the two sources immediately — a win before any sqlc
+                  adoption.</strong
+                >
               </p>
             </div>
           </div>
@@ -1533,7 +1867,11 @@
           <div class="migration-step step-solution">
             <div class="migration-num">2</div>
             <div class="migration-content">
-              <h4>First real queries — snapshot + checkpoint</h4>
+              <h4>
+                First real queries — snapshot + checkpoint
+                <span class="badge badge-medium">effort: M</span>
+                <span class="badge badge-fixed">rollback: restore hand-scan</span>
+              </h4>
               <p>
                 Add <code>sqlc.yaml</code> with two engines (pg, sqlite), output to internal
                 <code>storage/sql/pg</code> + <code>storage/sql/sqlite</code>. Convert snapshot
@@ -1547,7 +1885,11 @@
           <div class="migration-step step-warning">
             <div class="migration-num">3</div>
             <div class="migration-content">
-              <h4>Inserts + journal reads</h4>
+              <h4>
+                Inserts + journal reads
+                <span class="badge badge-medium">effort: M–L</span>
+                <span class="badge badge-high">rollback: per-query revert</span>
+              </h4>
               <p>
                 Convert single-row inserts (event/command/query) and the 3×
                 ReadAll/ReadFrom/fromStart. <strong>Decide explicitly:</strong> keep
@@ -1560,7 +1902,11 @@
           <div class="migration-step step-warning">
             <div class="migration-num">4</div>
             <div class="migration-content">
-              <h4>Decide on migrations</h4>
+              <h4>
+                Decide on migrations
+                <span class="badge badge-critical">effort: L</span>
+                <span class="badge badge-critical">rollback: hard</span>
+              </h4>
               <p>
                 Evaluate pairing the <code>.sql</code> schema with <code>golang-migrate</code> /
                 <code>atlas</code> to replace <code>InitSchema</code> drop-recreate. This is a
@@ -1570,13 +1916,74 @@
           </div>
         </section>
 
+        <!-- Risks & open questions -->
+        <section id="risks">
+          <h2><span class="num">09</span>Risks &amp; open questions</h2>
+          <p>
+            What could go wrong, and what the Phase 0 spike must answer before committing. An honest
+            brainstorm names its unknowns.
+          </p>
+
+          <div class="grid-2">
+            <div class="issue issue-important">
+              <span class="severity severity-important">Risk</span>
+              <h3>SQLite engine maturity vs PostgreSQL</h3>
+              <div class="where">sqlc engine parity</div>
+              <p>
+                PostgreSQL is sqlc's first-class engine; SQLite support is solid but historically a
+                step behind on edge cases. Our <code>modernc.org/sqlite</code> driver + TEXT time
+                column is an unusual combination. <strong>Phase 0 must verify</strong> the generated
+                SQLite code round-trips our schema, especially time columns.
+              </p>
+            </div>
+            <div class="issue issue-important">
+              <span class="severity severity-important">Risk</span>
+              <h3>ON CONFLICT / RETURNING divergence</h3>
+              <div class="where">snapshot upsert, inserts</div>
+              <p>
+                Our snapshot upsert uses <code>ON CONFLICT DO UPDATE</code>. sqlc handles this, but
+                PG (<code>RETURNING</code>) and SQLite codegen differ. Phase 0 must confirm both
+                engines generate working upsert code for our exact statement.
+              </p>
+            </div>
+            <div class="issue issue-nice">
+              <span class="severity severity-nice">Open question</span>
+              <h3>Public API isolation</h3>
+              <div class="where">module boundary</div>
+              <p>
+                This is a <strong>library</strong> — generated code must live in an internal package
+                and not leak into the public surface. Confirm sqlc can emit to
+                <code>storage/sql/internal/...</code> without consumers seeing it.
+              </p>
+            </div>
+            <div class="issue issue-nice">
+              <span class="severity severity-nice">Open question</span>
+              <h3>CI verification mode</h3>
+              <div class="where">sqlc.yaml database.managed</div>
+              <p>
+                sqlc can verify queries against a live DB (<code>database.managed</code>) or parse
+                the schema file. Which mode fits our Nix CI without a DB service? Default
+                (parse-only) likely suffices, but needs confirmation.
+              </p>
+            </div>
+          </div>
+
+          <div class="callout callout-amber">
+            <strong>The escape hatch:</strong>
+            every risk above is answered by Phase 0 — a throwaway spike that touches no production
+            code. If the spike reveals a blocker (SQLite time handling, ON CONFLICT, internal
+            package emission), we fall back to the <em>Plain refactor</em> baseline (Phase 1 alone)
+            and lose nothing.
+          </div>
+        </section>
+
         <!-- Recommendation -->
         <section id="recommendation">
-          <h2><span class="num">07</span>Recommendation</h2>
+          <h2><span class="num">10</span>Recommendation</h2>
           <p>
             <strong>Do not rewrite <code>storage/</code> wholesale.</strong> Start with the ~15
-            queries that are fully static and hand-scanned today — they convert 1:1 and deliver
-            ~80% of the type-safety gain on ~20% of the risk surface.
+            queries that are fully static and hand-scanned today — they convert 1:1 and deliver ~80%
+            of the type-safety gain on ~20% of the risk surface.
           </p>
 
           <div class="callout callout-teal">
@@ -1602,7 +2009,7 @@
 
         <!-- Appendix -->
         <section id="appendix">
-          <h2><span class="num">08</span>Appendix — priority matrix</h2>
+          <h2><span class="num">11</span>Appendix — priority matrix</h2>
           <p>
             All actionable items, sorted by impact-to-effort ratio (Pareto). Effort is relative to
             the <code>storage/</code> module's existing structure.
@@ -1667,8 +2074,9 @@
         <!-- Footer -->
         <footer class="footer">
           <p>
-            Generated 2026-06-19 &middot; All claims verified against <code>storage/</code> source
-            code &middot; Mode: exploration (analysis + plan, not an implemented change)
+            Generated 2026-06-19 &middot; Reviewed against <code>storage/v2</code> (3,455 prod
+            lines, 290 scan lines, ~39 DML ops — all verified) &middot; Mode: exploration (analysis
+            + plan, not an implemented change)
           </p>
         </footer>
       </main>

@@ -21,7 +21,7 @@ func TestSetup_CreatesProviderAndHandler(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Setup: %v", err)
 	}
-	defer provider.Shutdown(context.Background())
+	defer func() { _ = provider.Shutdown(context.Background()) }()
 
 	if provider.AsMeterProvider() == nil {
 		t.Fatal("expected non-nil MeterProvider")
@@ -40,7 +40,7 @@ func TestSetup_WithCustomRegistry(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Setup: %v", err)
 	}
-	defer provider.Shutdown(context.Background())
+	defer func() { _ = provider.Shutdown(context.Background()) }()
 
 	counter, err := provider.AsMeterProvider().
 		Meter("test").
@@ -51,18 +51,18 @@ func TestSetup_WithCustomRegistry(t *testing.T) {
 
 	counter.Add(context.Background(), 42)
 
-	mfs, err := reg.Gather()
+	metricFamilies, err := reg.Gather()
 	if err != nil {
 		t.Fatalf("Gather: %v", err)
 	}
 
 	found := false
 
-	for _, mf := range mfs {
-		if mf.GetName() == "test_counter_total" {
+	for _, family := range metricFamilies {
+		if family.GetName() == "test_counter_total" {
 			found = true
 
-			if val := mf.GetMetric()[0].GetCounter().GetValue(); val != 42 {
+			if val := family.GetMetric()[0].GetCounter().GetValue(); val != 42 {
 				t.Errorf("expected counter value 42, got %f", val)
 			}
 		}
@@ -80,7 +80,7 @@ func TestHandler_ServesMetrics(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Setup: %v", err)
 	}
-	defer provider.Shutdown(context.Background())
+	defer func() { _ = provider.Shutdown(context.Background()) }()
 
 	otel.SetMeterProvider(provider.AsMeterProvider())
 
@@ -95,11 +95,16 @@ func TestHandler_ServesMetrics(t *testing.T) {
 	ts := httptest.NewServer(provider.Handler())
 	defer ts.Close()
 
-	resp, err := http.Get(ts.URL)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, ts.URL, nil)
+	if err != nil {
+		t.Fatalf("NewRequest: %v", err)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		t.Fatalf("GET /metrics: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, _ := io.ReadAll(resp.Body)
 
@@ -112,7 +117,7 @@ func TestMustSetup_Succeeds(t *testing.T) {
 	t.Parallel()
 
 	p := cqrsprom.MustSetup()
-	defer p.Shutdown(context.Background())
+	defer func() { _ = p.Shutdown(context.Background()) }()
 
 	if p.AsMeterProvider() == nil {
 		t.Fatal("expected non-nil MeterProvider from MustSetup")
@@ -126,16 +131,21 @@ func TestHandler_EmptyInitially(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Setup: %v", err)
 	}
-	defer provider.Shutdown(context.Background())
+	defer func() { _ = provider.Shutdown(context.Background()) }()
 
 	ts := httptest.NewServer(provider.Handler())
 	defer ts.Close()
 
-	resp, err := http.Get(ts.URL)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, ts.URL, nil)
+	if err != nil {
+		t.Fatalf("NewRequest: %v", err)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		t.Fatalf("GET /metrics: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("expected 200, got %d", resp.StatusCode)
@@ -150,7 +160,7 @@ func TestSetup_HistogramMetrics(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Setup: %v", err)
 	}
-	defer provider.Shutdown(context.Background())
+	defer func() { _ = provider.Shutdown(context.Background()) }()
 
 	meter := provider.AsMeterProvider().Meter("test-app")
 	hist, err := meter.Float64Histogram("cqrs_latency_ms")
@@ -162,20 +172,20 @@ func TestSetup_HistogramMetrics(t *testing.T) {
 	hist.Record(context.Background(), 25.0)
 	hist.Record(context.Background(), 5.0)
 
-	mfs, err := reg.Gather()
+	metricFamilies, err := reg.Gather()
 	if err != nil {
 		t.Fatalf("Gather: %v", err)
 	}
 
-	for _, mf := range mfs {
-		if mf.GetName() == "cqrs_latency_ms" {
-			if len(mf.GetMetric()) != 1 {
-				t.Fatalf("expected 1 metric, got %d", len(mf.GetMetric()))
+	for _, family := range metricFamilies {
+		if family.GetName() == "cqrs_latency_ms" {
+			if len(family.GetMetric()) != 1 {
+				t.Fatalf("expected 1 metric, got %d", len(family.GetMetric()))
 			}
 
-			hist := mf.GetMetric()[0].GetHistogram()
-			if hist.GetSampleCount() != 3 {
-				t.Errorf("expected 3 samples, got %d", hist.GetSampleCount())
+			histData := family.GetMetric()[0].GetHistogram()
+			if histData.GetSampleCount() != 3 {
+				t.Errorf("expected 3 samples, got %d", histData.GetSampleCount())
 			}
 
 			return

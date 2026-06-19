@@ -63,6 +63,7 @@
             "middleware"
             "integration"
             "projection"
+            "prometheus"
             "signing"
             "storage"
             "watermill"

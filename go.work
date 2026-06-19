@@ -23,6 +23,7 @@ use (
 	./otel
 	./pebble
 	./projection
+	./prometheus
 	./query
 	./schema
 	./signing

@@ -2,6 +2,8 @@ package prometheus
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -54,7 +56,7 @@ func (p *Provider) Handler() http.Handler {
 
 // Shutdown flushes pending metrics and releases resources.
 func (p *Provider) Shutdown(ctx context.Context) error {
-	return p.meterProvider.Shutdown(ctx)
+	return fmt.Errorf("shutdown: %w", p.meterProvider.Shutdown(ctx))
 }
 
 // Setup creates a Prometheus-backed MeterProvider and HTTP handler in one call.
@@ -69,7 +71,7 @@ func (p *Provider) Shutdown(ctx context.Context) error {
 //	otel.SetMeterProvider(provider.AsMeterProvider())
 //	mux.Handle("/metrics", provider.Handler())
 func Setup(opts ...Option) (*Provider, error) {
-	cfg := &config{}
+	cfg := &config{} //nolint:exhaustruct // options applied below
 
 	for _, opt := range opts {
 		opt(cfg)
@@ -83,18 +85,23 @@ func Setup(opts ...Option) (*Provider, error) {
 		otelprom.WithRegisterer(cfg.registry),
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create prometheus exporter: %w", err)
 	}
 
-	mp := metric.NewMeterProvider(metric.WithReader(exporter))
+	meterProvider := metric.NewMeterProvider(metric.WithReader(exporter))
+
+	gatherer, ok := cfg.registry.(prometheus.Gatherer)
+	if !ok {
+		return nil, errNotGatherer
+	}
 
 	handler := promhttp.HandlerFor(
-		cfg.registry.(prometheus.Gatherer),
+		gatherer,
 		cfg.handlerOpts,
 	)
 
 	return &Provider{
-		meterProvider: mp,
+		meterProvider: meterProvider,
 		handler:       handler,
 	}, nil
 }
@@ -109,3 +116,5 @@ func MustSetup(opts ...Option) *Provider {
 
 	return p
 }
+
+var errNotGatherer = errors.New("registry does not implement prometheus.Gatherer")
