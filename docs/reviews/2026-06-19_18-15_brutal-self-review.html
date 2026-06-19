@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brutal Self-Review — 2026-06-19</title>
+<style>
+:root {
+  --color-graphite: #0e0e10;
+  --color-graphite-2: #18181d;
+  --color-graphite-3: #16161a;
+  --color-bone: #f4f4f0;
+  --color-red: #ff6b6b;
+  --color-blue: #6eb5ff;
+  --color-yellow: #f4d35e;
+  --color-amber: #ffb347;
+  --color-green: #6bd968;
+  --surface: var(--color-graphite);
+  --surface-raised: var(--color-graphite-2);
+  --surface-sunken: var(--color-graphite-3);
+  --text: var(--color-bone);
+  --text-muted: #a0a0a8;
+  --text-faint: #6a6a72;
+  --border: #2a2a2e;
+  --border-strong: #3a3a3e;
+  --accent: var(--color-amber);
+  --problem: var(--color-red);
+  --solution: var(--color-green);
+  --warning: var(--color-yellow);
+  --radius: 0px;
+  --font-heading: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono: "SF Mono", "Cascadia Code", "Fira Code", monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  font-size: 15px;
+}
+.container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+h1 { font-size: 2.2rem; font-weight: 900; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
+h2 { font-size: 1.5rem; font-weight: 800; margin-top: 2.5rem; margin-bottom: 1rem; border-bottom: 2px solid var(--border-strong); padding-bottom: 0.5rem; }
+h3 { font-size: 1.15rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.75rem; color: var(--accent); }
+p { margin-bottom: 0.75rem; color: var(--text-muted); }
+strong { color: var(--text); font-weight: 700; }
+code { font-family: var(--font-mono); background: var(--surface-sunken); padding: 0.15em 0.4em; font-size: 0.9em; color: var(--color-blue); }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+.stat-card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.2rem; border-left: 4px solid var(--accent); }
+.stat-card .num { font-size: 2.5rem; font-weight: 900; line-height: 1; }
+.stat-card .label { font-size: 0.85rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.3rem; }
+.stat-card.problem { border-left-color: var(--problem); }
+.stat-card.problem .num { color: var(--problem); }
+.stat-card.warning { border-left-color: var(--warning); }
+.stat-card.warning .num { color: var(--warning); }
+.stat-card.solution { border-left-color: var(--solution); }
+.stat-card.solution .num { color: var(--solution); }
+.card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.2rem; margin-bottom: 1rem; }
+.card-problem { border-left: 4px solid var(--problem); }
+.card-warning { border-left: 4px solid var(--warning); }
+.card-solution { border-left: 4px solid var(--solution); }
+.card .title { font-weight: 800; font-size: 1.05rem; margin-bottom: 0.5rem; }
+.card-problem .title { color: var(--problem); }
+.card-warning .title { color: var(--warning); }
+.card-solution .title { color: var(--solution); }
+.card .body { color: var(--text-muted); }
+.card .body code { color: var(--color-blue); }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+th, td { text-align: left; padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border); }
+th { color: var(--text-faint); text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
+td code { font-size: 0.85em; }
+.badge { display: inline-block; padding: 0.15em 0.6em; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+.badge-critical { background: var(--problem); color: var(--surface); }
+.badge-high { background: var(--warning); color: var(--surface); }
+.badge-medium { background: var(--color-blue); color: var(--surface); }
+.badge-low { background: var(--text-faint); color: var(--surface); }
+.badge-done { background: var(--solution); color: var(--surface); }
+ol { list-style: none; counter-reset: step; }
+ol li { counter-increment: step; padding: 0.8rem 0 0.8rem 3rem; position: relative; border-bottom: 1px solid var(--border); }
+ol li::before { content: counter(step); position: absolute; left: 0; top: 0.8rem; width: 2rem; height: 2rem; background: var(--accent); color: var(--surface); font-weight: 900; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
+.severity { font-weight: 800; }
+.severity-critical { color: var(--problem); }
+.severity-high { color: var(--warning); }
+.toc { background: var(--surface-sunken); padding: 1rem 1.5rem; margin: 1.5rem 0; border: 1px solid var(--border); }
+.toc a { color: var(--color-blue); text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+.toc ul { list-style: none; padding-left: 1rem; }
+.toc > ul > li { margin-bottom: 0.3rem; }
+blockquote { border-left: 4px solid var(--problem); padding: 0.5rem 1rem; margin: 1rem 0; background: var(--surface-sunken); color: var(--text-muted); font-style: italic; }
+.meta { color: var(--text-faint); font-size: 0.85rem; margin-bottom: 2rem; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Brutal Self-Review</h1>
+<p class="meta">2026-06-19 18:15 CEST · Session: 10 commits (streaming, DistributedRunner, PostgresBus, cqrs-gen events, WASM, docs)</p>
+
+<div class="stat-grid">
+  <div class="stat-card problem"><div class="num">1</div><div class="label">Ghost System</div></div>
+  <div class="stat-card problem"><div class="num">2</div><div class="label">Split Brains</div></div>
+  <div class="stat-card warning"><div class="num">3</div><div class="label">Correctness Bugs</div></div>
+  <div class="stat-card warning"><div class="num">2</div><div class="label">Dishonest Claims</div></div>
+  <div class="stat-card solution"><div class="num">6</div><div class="label">Solid Deliverables</div></div>
+</div>
+
+<div class="toc">
+  <strong>Contents</strong>
+  <ul>
+    <li><a href="#q1">1. What did you forget?</a></li>
+    <li><a href="#q2">2. What is something that's stupid?</a></li>
+    <li><a href="#q3">3. What could you have done better?</a></li>
+    <li><a href="#q4">4. What could you still improve?</a></li>
+    <li><a href="#q5">5. Did you lie?</a></li>
+    <li><a href="#q7">7. Ghost systems?</a></li>
+    <li><a href="#q10">10. Split brains?</a></li>
+    <li><a href="#plan">Execution Plan</a></li>
+  </ul>
+</div>
+
+<h2 id="q1">1. What did you forget?</h2>
+
+<div class="card card-problem">
+  <div class="title">PostgresBus is NOT wired into stack/postgres — GHOST SYSTEM</div>
+  <div class="body">
+    <p>I built <code>storage.PostgresBus</code> (500+ lines, full <code>event.Bus</code> implementation, LISTEN/NOTIFY with re-fetch) but <strong>never wired it into <code>stack/postgres</code></strong>. The preset at <code>stack/postgres/preset.go:80</code> still uses <code>memory.NewMemoryBus()</code>.</p>
+    <p>This means no consumer can use the distributed bus through the Bundle layer — which is the entire point of the library. I shipped a feature that is invisible to every consumer.</p>
+    <p><strong>Root cause:</strong> I built the bus in isolation, wrote mock-based tests, and moved on to the next TODO without integration.</p>
+  </div>
+</div>
+
+<div class="card card-warning">
+  <div class="title">Pebble ReadStreamFrom missing full-scan fallback</div>
+  <div class="body">
+    <p>The original <code>ReadFrom</code> has a two-pass strategy: try narrowed range using ULID timestamp, fall back to full scan if target not found (handles backdated events). My <code>ReadStreamFrom</code> only does the narrowed range. For backdated events, the streaming version silently returns nothing while the slice version works.</p>
+  </div>
+</div>
+
+<div class="card card-warning">
+  <div class="title">No real-Postgres test for PostgresBus</div>
+  <div class="body">
+    <p>ADR-0027 explicitly called out "real-Postgres testing" as a requirement. I tested with a <strong>mock listener + SQLite</strong>, which doesn't verify <code>pg_notify()</code> works or that the LISTEN path functions. The CI postgres container exists but I didn't add a test for it.</p>
+  </div>
+</div>
+
+<h2 id="q2">2. What is something that's stupid?</h2>
+
+<div class="card card-problem">
+  <div class="title">refetchEvent design: O(N) version scan instead of O(1) indexed lookup</div>
+  <div class="body">
+    <p>The <code>refetchEvent</code> method calls <code>store.LoadFromVersion(ctx, ref, version-1)</code> and then scans the returned slice for the matching version. For an aggregate with 10,000 events, a NOTIFY for version 9999 triggers a load of event 9999+ (potentially many events), then a linear scan.</p>
+    <p><strong>The correct design:</strong> add a <code>LoadByEventID(eventID)</code> method to the event store — one indexed <code>SELECT ... WHERE id = ?</code> query. The event ID is already in the NOTIFY payload; the version scan is unnecessary indirection.</p>
+  </div>
+</div>
+
+<div class="card card-warning">
+  <div class="title">DistributedRunner test uses time.Sleep(100ms) — RACY</div>
+  <div class="body">
+    <p><code>TestDistributedRunner_LeadershipLost</code> sleeps 100ms then flips the leadership flag. On a slow CI runner, 100ms might not be enough for the goroutine to reach the monitoring loop. Should use deterministic synchronization (a channel or condition that signals "monitor started").</p>
+  </div>
+</div>
+
+<h2 id="q3">3. What could you have done better?</h2>
+
+<div class="card card-warning">
+  <div class="title">Wire-first development: integrate through presets BEFORE testing</div>
+  <div class="body">
+    <p>If I had wired <code>PostgresBus</code> into <code>stack/postgres</code> first, the integration test would have immediately shown that it doesn't work with SQLite (no <code>pg_notify</code>) and I would have designed the <code>NotificationListener</code> abstraction from real usage, not theory.</p>
+  </div>
+</div>
+
+<h2 id="q4">4. What could you still improve?</h2>
+
+<div class="card card-solution">
+  <div class="title">Type model: notifyPayload should carry only an EventID</div>
+  <div class="body">
+    <p>Currently <code>notifyPayload</code> carries 5 stringly-typed fields (EventID, EventType, AggregateType, AggregateID, Version). After adding <code>LoadByEventID</code>, the NOTIFY payload can shrink to just the event ID — simpler, smaller, less coupling.</p>
+  </div>
+</div>
+
+<h2 id="q5">5. Did you lie?</h2>
+
+<div class="card card-problem">
+  <div class="title">YES — two dishonest claims</div>
+  <div class="body">
+    <ol>
+      <li><strong>"Postgres LISTEN/NOTIFY event bus — completed"</strong> in TODO_LIST and CHANGELOG. It's not — it's unwired, untested against real Postgres, and the re-fetch design is inefficient. It's a prototype, not a completed feature.</li>
+      <li><strong>"ADR-0027 status: Deferred → Superseded"</strong> — premature. The ADR's requirements (real-Postgres testing, listener lifecycle) are NOT met.</li>
+    </ol>
+  </div>
+</div>
+
+<h2 id="q7">7. Ghost systems?</h2>
+
+<div class="card card-problem">
+  <div class="title">YES: storage.PostgresBus</div>
+  <div class="body">
+    <p>Built but not wired into any preset. No consumer can use it through the Bundle layer. Must be integrated into <code>stack/postgres</code> (with a <code>NotificationListener</code> factory) or it's dead code.</p>
+    <p><strong>Action:</strong> Add a <code>WithPostgresBus(listener)</code> option to <code>stack/postgres</code>. Provide a concrete pgx-based listener. Or at minimum, document clearly that the consumer must wire it manually.</p>
+  </div>
+</div>
+
+<h2 id="q10">10. Split brains?</h2>
+
+<div class="card card-problem">
+  <div class="title">Pebble ReadStreamFrom vs ReadFrom — different behavior</div>
+  <div class="body">
+    <p>The streaming version doesn't have the full-scan fallback. Same interface contract, different behavior. A consumer switching from <code>ReadFrom</code> to <code>ReadStreamFrom</code> could silently miss events on backdated aggregates.</p>
+  </div>
+</div>
+
+<div class="card card-warning">
+  <div class="title">stack/postgres docs lie about bus</div>
+  <div class="body">
+    <p><code>stack/postgres/preset.go:40</code> says "PostgreSQL has no pub/sub semantics" but <code>storage.PostgresBus</code> implements exactly that. The doc is stale.</p>
+  </div>
+</div>
+
+<h2 id="plan">Prioritized Execution Plan</h2>
+
+<p>Sorted by <strong>impact / effort</strong> ratio (highest first).</p>
+
+<table>
+  <tr>
+    <th>#</th>
+    <th>Task</th>
+    <th>Severity</th>
+    <th>Effort</th>
+    <th>Impact</th>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td><strong>Add <code>LoadByEventID</code></strong> to <code>SQLEventStore</code> — indexed <code>SELECT WHERE id = ?</code>. Use it in <code>refetchEvent</code>. Simplifies <code>notifyPayload</code> to just EventID.</td>
+    <td><span class="badge badge-critical">Critical</span></td>
+    <td>20 min</td>
+    <td>Fixes correctness + simplifies design</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td><strong>Fix pebble <code>ReadStreamFrom</code> fallback</strong> — add the full-scan fallback path that matches <code>ReadFrom</code>. Eliminates split brain.</td>
+    <td><span class="badge badge-critical">Critical</span></td>
+    <td>15 min</td>
+    <td>Eliminates split brain</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td><strong>Fix DistributedRunner test raciness</strong> — replace <code>time.Sleep</code> with deterministic channel-based synchronization.</td>
+    <td><span class="badge badge-high">High</span></td>
+    <td>10 min</td>
+    <td>Eliminates flaky test</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td><strong>Correct ADR-0027 and CHANGELOG</strong> — revert "Superseded" to "Partially Implemented". Be honest about what's tested vs not.</td>
+    <td><span class="badge badge-high">High</span></td>
+    <td>10 min</td>
+    <td>Honesty</td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td><strong>Update stack/postgres docs</strong> — remove stale "no pub/sub" claim. Document PostgresBus as opt-in via <code>WithBus</code>.</td>
+    <td><span class="badge badge-medium">Medium</span></td>
+    <td>10 min</td>
+    <td>Doc accuracy</td>
+  </tr>
+</table>
+
+<h3>What went RIGHT (preserve these)</h3>
+
+<div class="card card-solution">
+  <div class="title">Streaming consolidation was correct</div>
+  <div class="body">
+    <p>Removing the ghost <code>StreamLoader</code>/<code>EventStream</code> types and consolidating on the shipped <code>EventIterator</code> (io.EOF pattern) was the right call. The old types never compiled against the real interface — genuinely dead code.</p>
+  </div>
+</div>
+
+<div class="card card-solution">
+  <div class="title">cqrs-gen event handler generation is clean</div>
+  <div class="body">
+    <p>The <code>-type=event</code> generation follows the exact same pattern as command/query, uses the existing <code>projection.On[T]()</code> function, and has comprehensive tests. This is a solid, small, well-scoped feature.</p>
+  </div>
+</div>
+
+<div class="card card-solution">
+  <div class="title">WASM fix was surgical</div>
+  <div class="body">
+    <p>Moving <code>NewCQRSViews()</code> behind <code>//go:build !js</code> was the minimal fix. One function, one build tag, 7/7 modules compile. No over-engineering.</p>
+  </div>
+</div>
+
+</div>
+</body>
+</html>
