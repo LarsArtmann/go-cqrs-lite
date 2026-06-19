@@ -10,9 +10,11 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.5.0
-	github.com/larsartmann/go-cqrs-lite/pebble/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.5.0
+	github.com/larsartmann/go-cqrs-lite/readmodel/v2 v2.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/stack/pebble/v2 v2.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-00010101000000-000000000000
 )
 
 require (
@@ -38,6 +40,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v2 v2.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/pebble/v2 v2.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.5.0 // indirect
 	github.com/larsartmann/go-error-family v0.4.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
@@ -77,5 +80,8 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/pebble/v2 => ../../pebble
 	github.com/larsartmann/go-cqrs-lite/projection/v2 => ../../projection
 	github.com/larsartmann/go-cqrs-lite/query/v2 => ../../query
+	github.com/larsartmann/go-cqrs-lite/readmodel/v2 => ../../readmodel
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../../snapshot
+	github.com/larsartmann/go-cqrs-lite/stack/pebble/v2 => ../../stack/pebble
+	github.com/larsartmann/go-cqrs-lite/stack/v2 => ../../stack
 )

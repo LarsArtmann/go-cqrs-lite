@@ -11,16 +11,18 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/aggregate"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/commands"
+	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/projections"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/queries"
-	"github.com/larsartmann/go-cqrs-lite/example/todo/storage"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/memory/v2"
-	cqrsPebble "github.com/larsartmann/go-cqrs-lite/pebble/v2"
+	"github.com/larsartmann/go-cqrs-lite/readmodel/v2"
+	cqrsPebble "github.com/larsartmann/go-cqrs-lite/stack/pebble/v2"
+	"github.com/larsartmann/go-cqrs-lite/stack/v2"
 	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
@@ -45,32 +47,32 @@ func run(logger *slog.Logger) error {
 	ctx := context.Background()
 	dataDir := getEnv("DATA_DIR", "./data")
 
-	readModelStore, err := storage.NewPebbleStore(dataDir, logger)
+	// One call wires the full CQRS stack: event store, command store, query
+	// store, snapshot store, checkpoint store, read-model backend, and event
+	// bus — all backed by a single PebbleDB at dataDir.
+	bundle, err := cqrsPebble.New(dataDir)
 	if err != nil {
-		return event.Newf(
-			event.Infrastructure,
-			"todo.cmd.api.main.1",
-			"create read model store: %v",
-			err,
-		)
+		return event.Newf(event.Infrastructure, "todo.cmd.api.main.1", "create bundle: %v", err)
 	}
-	defer func() { _ = readModelStore.Close() }()
 
-	eventStore := cqrsPebble.NewStore(readModelStore.DB(), logger)
-	eventBus := memory.NewMemoryBus()
+	defer func() { _ = bundle.Close() }()
+
+	// Typed read-model store over the Bundle's shared KV backend.
+	rmStore, err := stack.ReadModel[domain.Todo, domain.TodoID](
+		bundle, codec.JSONCodec{},
+		readmodel.WithKeyPrefix[domain.Todo, domain.TodoID]("todos:"),
+	)
+	if err != nil {
+		return event.Newf(event.Infrastructure, "todo.cmd.api.main.2", "create read model store: %v", err)
+	}
+
+	readModelStore := newReadModelAdapter(rmStore)
 
 	todoProjection := projections.NewTodoProjection(readModelStore)
 
-	checkpointStore := memory.NewMemoryCheckpointStore()
-
-	runner, err := projection.NewRunner(eventStore, eventBus, checkpointStore)
+	runner, err := projection.NewRunner(bundle.Journal, bundle.Subscriber, bundle.CheckpointStore)
 	if err != nil {
-		return event.Newf(
-			event.Infrastructure,
-			"todo.cmd.api.main.2",
-			"create projection runner: %v",
-			err,
-		)
+		return event.Newf(event.Infrastructure, "todo.cmd.api.main.3", "create projection runner: %v", err)
 	}
 
 	if err := runner.Register(todoProjection); err != nil {
@@ -91,52 +93,37 @@ func run(logger *slog.Logger) error {
 	cmdDisp := command.NewDispatcher()
 	queryDisp := query.NewDispatcher()
 
+	// Command handlers need the composite event.Store (Save + Load).
+	// The Bundle segregates EventSink/EventSource for ISP, but every preset
+	// backs both from the same store, so the assertion always succeeds.
+	eventStore := bundle.EventSink.(event.Store)
+
 	if err := cmdDisp.Register(
 		aggregate.CommandCreate,
-		commands.NewCreateTodoHandler(eventStore, eventBus).Handle,
+		commands.NewCreateTodoHandler(eventStore, bundle.Publisher).Handle,
 	); err != nil {
-		return event.Newf(
-			event.Infrastructure,
-			"todo.cmd.api.main.4",
-			"register create command: %v",
-			err,
-		)
+		return event.Newf(event.Infrastructure, "todo.cmd.api.main.4", "register create command: %v", err)
 	}
 
 	if err := cmdDisp.Register(
 		aggregate.CommandUpdate,
-		commands.NewUpdateTodoHandler(eventStore, eventBus).Handle,
+		commands.NewUpdateTodoHandler(eventStore, bundle.Publisher).Handle,
 	); err != nil {
-		return event.Newf(
-			event.Infrastructure,
-			"todo.cmd.api.main.5",
-			"register update command: %v",
-			err,
-		)
+		return event.Newf(event.Infrastructure, "todo.cmd.api.main.5", "register update command: %v", err)
 	}
 
 	if err := cmdDisp.Register(
 		aggregate.CommandDelete,
-		commands.NewDeleteTodoHandler(eventStore, eventBus).Handle,
+		commands.NewDeleteTodoHandler(eventStore, bundle.Publisher).Handle,
 	); err != nil {
-		return event.Newf(
-			event.Infrastructure,
-			"todo.cmd.api.main.6",
-			"register delete command: %v",
-			err,
-		)
+		return event.Newf(event.Infrastructure, "todo.cmd.api.main.6", "register delete command: %v", err)
 	}
 
 	if err := cmdDisp.Register(
 		aggregate.CommandChangeStatus,
-		commands.NewChangeStatusHandler(eventStore, eventBus).Handle,
+		commands.NewChangeStatusHandler(eventStore, bundle.Publisher).Handle,
 	); err != nil {
-		return event.Newf(
-			event.Infrastructure,
-			"todo.cmd.api.main.7",
-			"register change status command: %v",
-			err,
-		)
+		return event.Newf(event.Infrastructure, "todo.cmd.api.main.7", "register change status command: %v", err)
 	}
 
 	registerQueryHandlers(queryDisp, readModelStore)
@@ -199,7 +186,7 @@ func run(logger *slog.Logger) error {
 	return nil
 }
 
-func registerQueryHandlers(qDisp *query.Dispatcher, store *storage.PebbleStore) {
+func registerQueryHandlers(qDisp *query.Dispatcher, store domain.TodoReadModel) {
 	_ = query.RegisterTyped(
 		qDisp,
 		queries.GetTodoQueryType,
