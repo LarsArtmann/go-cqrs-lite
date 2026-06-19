@@ -77,6 +77,30 @@ Symmetric persistence across all three CQRS message types (events, commands, que
 - [x] ~~`SQLQueryStore` — SQL backend~~ — DONE (`bf7b3ed8`)
 - [x] ~~`SQLBackend.QueryStore()` facade method~~ — DONE (`bf7b3ed8`)
 
+### Sprint 8: Bundle Composition Layer (v2.7.0 — ✅ COMPLETE)
+
+The overarching goal: **consumers stop deciding on infrastructure.** A deployer
+picks a backend via one preset call; the application imports only `readmodel`
+and `stack`, never a storage driver. Eight new modules shipped this release.
+
+- [x] `readmodel/` — typed `Store[T,K]` over `kv.Store` with codec + key prefixing
+- [x] `readmodel/cache/` — Otter-backed `CachedStore[T,K]` decorator (write-through)
+- [x] `stack/` — `Bundle` composition root (ISP-honest fields, pointer-dedup Close)
+- [x] Presets: `stack/memory`, `stack/sqlite`, `stack/pebble`, `stack/postgres`
+- [x] `stack/bench/` — zero-overhead benchmarks
+- [x] Typed stores: `TypedSnapshot[State]`, `TypedCommandStore[P]`, `TypedQueryStore[P]`
+- [x] Pebble gaps: CommandStore, QueryStore, `ReadModels()` on Backend
+- [x] **Persistent read models for SQL presets** — `storage.SQLKVStore` (kv.Store over `cqrs_kv`); SQLite + Postgres presets now keep read models across restarts
+- [x] Shared contract test suite (`stack/contracttest`) — 5 tests × 4 presets
+- [x] Postgres preset tests run in CI (env-var mismatch fixed)
+
+### Post-Bundle direction (next themes)
+
+- **Multi-process pub/sub** — Postgres `LISTEN/NOTIFY` event bus (or NATS/Redis transport adapter) so presets work across >1 process; today all presets use an in-memory bus.
+- **Operability helpers** — health-check, graceful-shutdown, and backup/restore exposed from `stack/` presets (Pebble `Checkpoint` is available but not surfaced).
+- **Transports** — `transport/grpc`, `transport/nats`, `transport/redis` per ADR-0025, composing over the Bundle.
+- **Read-model query ergonomics** — secondary indexes / ranged scans for large read-model sets (today `Scan` filters in memory).
+
 ---
 
 ## Long Term Vision (6–12 Months)

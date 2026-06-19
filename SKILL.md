@@ -99,9 +99,9 @@ Available presets:
 | Preset | Module | Backend | Read Models |
 |--------|--------|---------|-------------|
 | Memory | `stack/memory` | In-memory | Memory KV |
-| SQLite | `stack/sqlite` | SQLite (modernc) | Memory KV |
+| SQLite | `stack/sqlite` | SQLite (modernc) | SQL KV (persistent) |
 | Pebble | `stack/pebble` | PebbleDB (LSM) | Pebble KV |
-| Postgres | `stack/postgres` | PostgreSQL (pgx) | Memory KV |
+| Postgres | `stack/postgres` | PostgreSQL (pgx) | SQL KV (persistent) |
 
 Read-model cache decorator:
 

@@ -22,9 +22,9 @@ store, _ := stack.ReadModel[TodoView, TodoID](b, codec.JSONCodec{},
 | Preset | Module | Backend | Persistent | Bus | Read Models |
 |--------|--------|---------|------------|-----|-------------|
 | Memory | `stack/memory` | In-memory | No | Memory | Memory KV |
-| SQLite | `stack/sqlite` | SQLite (modernc) | Yes | Memory | Memory KV |
+| SQLite | `stack/sqlite` | SQLite (modernc) | Yes | Memory | SQL KV (cqrs_kv) |
 | Pebble | `stack/pebble` | PebbleDB (LSM) | Yes | Memory | Pebble KV |
-| Postgres | `stack/postgres` | PostgreSQL (pgx) | Yes | Memory | Memory KV |
+| Postgres | `stack/postgres` | PostgreSQL (pgx) | Yes | Memory | SQL KV (cqrs_kv) |
 
 All presets wire every capability: event store + bus, command store, query
 store, snapshot store, checkpoint store, and read-model backend.
@@ -102,6 +102,11 @@ type Bundle struct {
 Fields may be nil. Accessors return an error when a required capability is absent.
 
 ## Read Models
+
+Read models are **persisted to the same database** as events for SQLite, Pebble,
+and Postgres presets (via a SQL `kv.Store` over the `cqrs_kv` table, or a shared
+Pebble KV adapter). Only the Memory preset holds read models in process memory.
+This means a read model survives a process restart for every persistent preset.
 
 ```go
 store, _ := stack.ReadModel[TodoView, TodoID](b, codec.JSONCodec{},
