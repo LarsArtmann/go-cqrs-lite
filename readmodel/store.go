@@ -32,7 +32,7 @@ type Store[T any, K fmt.Stringer] struct {
 // The default codec is [codec.JSONCodec]; the default key encoding is the
 // key's String() form.
 func New[T any, K fmt.Stringer](backend Backend, opts ...Option[T, K]) *Store[T, K] {
-	s := &Store[T, K]{
+	s := &Store[T, K]{ //nolint:exhaustruct // prefix set via WithKeyPrefix option
 		backend: backend,
 		codec:   codec.JSONCodec{},
 		keyFunc: func(k K) []byte { return []byte(k.String()) },
@@ -50,12 +50,13 @@ func New[T any, K fmt.Stringer](backend Backend, opts ...Option[T, K]) *Store[T,
 func (s *Store[T, K]) Get(_ context.Context, id K) (*T, error) {
 	data, err := s.backend.Get(s.key(id))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("readmodel: get key %q: %w", s.key(id), err)
 	}
 
 	var val T
 
-	if err := s.codec.Decode(data, &val); err != nil {
+	err = s.codec.Decode(data, &val)
+	if err != nil {
 		return nil, fmt.Errorf("readmodel: decode key %q: %w", s.key(id), err)
 	}
 
@@ -64,13 +65,18 @@ func (s *Store[T, K]) Get(_ context.Context, id K) (*T, error) {
 
 // Has reports whether a value exists for id without reading it.
 func (s *Store[T, K]) Has(_ context.Context, id K) (bool, error) {
-	return s.backend.Has(s.key(id))
+	has, err := s.backend.Has(s.key(id))
+	if err != nil {
+		return false, fmt.Errorf("readmodel: has key %q: %w", s.key(id), err)
+	}
+
+	return has, nil
 }
 
 // Set encodes val and stores it under id, replacing any existing value.
 func (s *Store[T, K]) Set(_ context.Context, id K, val *T) error {
 	if val == nil {
-		return fmt.Errorf("readmodel: Set called with nil value for key %q", s.key(id))
+		return fmt.Errorf("%w for key %q", errNilValue, s.key(id))
 	}
 
 	data, err := s.codec.Encode(val)
@@ -78,12 +84,22 @@ func (s *Store[T, K]) Set(_ context.Context, id K, val *T) error {
 		return fmt.Errorf("readmodel: encode key %q: %w", s.key(id), err)
 	}
 
-	return s.backend.Set(s.key(id), data)
+	err = s.backend.Set(s.key(id), data)
+	if err != nil {
+		return fmt.Errorf("readmodel: set key %q: %w", s.key(id), err)
+	}
+
+	return nil
 }
 
 // Delete removes the value for id. Deleting a missing key is a no-op.
 func (s *Store[T, K]) Delete(_ context.Context, id K) error {
-	return s.backend.Delete(s.key(id))
+	err := s.backend.Delete(s.key(id))
+	if err != nil {
+		return fmt.Errorf("readmodel: delete key %q: %w", s.key(id), err)
+	}
+
+	return nil
 }
 
 // Scan returns all values whose keys start with the store's key prefix
@@ -111,14 +127,16 @@ func (s *Store[T, K]) Scan(_ context.Context, prefix []byte) ([]*T, error) {
 	for iter.Next() {
 		var val T
 
-		if err := s.codec.Decode(iter.Value(), &val); err != nil {
+		err = s.codec.Decode(iter.Value(), &val)
+		if err != nil {
 			return nil, fmt.Errorf("readmodel: scan decode key %q: %w", iter.Key(), err)
 		}
 
 		results = append(results, &val)
 	}
 
-	if err := iter.Error(); err != nil {
+	err = iter.Error()
+	if err != nil {
 		return nil, fmt.Errorf("readmodel: scan iteration: %w", err)
 	}
 

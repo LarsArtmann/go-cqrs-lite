@@ -42,8 +42,8 @@ func TestStore_GetSet_Roundtrip(t *testing.T) {
 	store := newStore(t)
 	ctx := context.Background()
 
-	in := &todo{Title: "write tests", Complete: false}
-	if err := store.Set(ctx, "1", in); err != nil {
+	input := &todo{Title: "write tests", Complete: false}
+	if err := store.Set(ctx, "1", input); err != nil {
 		t.Fatalf("Set: %v", err)
 	}
 
@@ -52,8 +52,8 @@ func TestStore_GetSet_Roundtrip(t *testing.T) {
 		t.Fatalf("Get: %v", err)
 	}
 
-	if got.Title != in.Title || got.Complete != in.Complete {
-		t.Fatalf("roundtrip mismatch: got %+v, want %+v", got, in)
+	if got.Title != input.Title || got.Complete != input.Complete {
+		t.Fatalf("roundtrip mismatch: got %+v, want %+v", got, input)
 	}
 }
 
@@ -213,9 +213,9 @@ func TestStore_WithCodec_CBOR(t *testing.T) {
 	)
 
 	ctx := context.Background()
-	in := &todo{Title: "cbor roundtrip", Complete: true}
+	input := &todo{Title: "cbor roundtrip", Complete: true}
 
-	if err := store.Set(ctx, "1", in); err != nil {
+	if err := store.Set(ctx, "1", input); err != nil {
 		t.Fatalf("Set: %v", err)
 	}
 
@@ -224,7 +224,7 @@ func TestStore_WithCodec_CBOR(t *testing.T) {
 		t.Fatalf("Get: %v", err)
 	}
 
-	if got.Title != in.Title || !got.Complete {
+	if got.Title != input.Title || !got.Complete {
 		t.Fatalf("CBOR roundtrip mismatch: got %+v", got)
 	}
 }

@@ -47,7 +47,7 @@ func TestEventStore_MetadataRoundtrip(t *testing.T) {
 
 func TestEventStore_Close(t *testing.T) {
 	dir := t.TempDir()
-	db, err := pebble.Open(dir, &pebble.Options{})
+	db, err := pebble.Open(dir, &pebble.Options{}) //nolint:varnamelen
 	if err != nil {
 		t.Fatalf("open pebble: %v", err)
 	}
@@ -67,7 +67,7 @@ func TestEventStore_Close(t *testing.T) {
 func TestEventStore_Persistence(t *testing.T) {
 	dir := t.TempDir()
 
-	db, err := pebble.Open(dir, &pebble.Options{})
+	db, err := pebble.Open(dir, &pebble.Options{}) //nolint:varnamelen
 	if err != nil {
 		t.Fatalf("open pebble: %v", err)
 	}

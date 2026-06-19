@@ -2,6 +2,7 @@ package pebble
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
@@ -27,9 +28,12 @@ func (s *QueryStore) serializeQuery(q *query.PersistedQuery) ([]byte, error) {
 		Metadata:   q.Metadata(),
 	}
 
-	return pebbleEncMode.Marshal(
-		serialized,
-	) //nolint:wrapcheck // storage serialization, not domain error
+	data, err := pebbleEncMode.Marshal(serialized)
+	if err != nil {
+		return nil, fmt.Errorf("pebble: marshal query: %w", err)
+	}
+
+	return data, nil
 }
 
 func (s *QueryStore) deserializeQuery(data []byte) (*query.PersistedQuery, error) {

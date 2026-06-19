@@ -2,6 +2,7 @@ package pebble
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
@@ -32,9 +33,12 @@ func (s *CommandStore) serializeCommand(cmd *command.PersistedCommand) ([]byte, 
 		Metadata:      cmd.Metadata(),
 	}
 
-	return pebbleEncMode.Marshal(
-		serialized,
-	) //nolint:wrapcheck // storage serialization, not domain error
+	data, err := pebbleEncMode.Marshal(serialized)
+	if err != nil {
+		return nil, fmt.Errorf("pebble: marshal command: %w", err)
+	}
+
+	return data, nil
 }
 
 func (s *CommandStore) deserializeCommand(data []byte) (*command.PersistedCommand, error) {

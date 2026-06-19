@@ -24,7 +24,7 @@
 //	type TodoID = id.Of[TodoMarker]
 //
 //	store := readmodel.New[Todo, TodoID](backend)
-//	todo, err := store.Get(ctx, todoID)
+//	got, err := store.Get(ctx, id)
 //
 // For plain string keys, declare a one-line named type with a String method:
 //

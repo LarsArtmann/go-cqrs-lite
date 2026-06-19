@@ -39,12 +39,14 @@ func ExampleNew() {
 
 	if err := store.Set(ctx, id, &exampleTodo{Title: "ship the bundle layer"}); err != nil {
 		fmt.Println("Set:", err)
+
 		return
 	}
 
 	got, err := store.Get(ctx, id)
 	if err != nil {
 		fmt.Println("Get:", err)
+
 		return
 	}
 

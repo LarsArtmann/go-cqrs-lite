@@ -38,7 +38,7 @@ var update = flag.Bool("update", false, "update golden files")
 func TestGolden_EventStoreRoundTrip(t *testing.T) {
 	dir := t.TempDir()
 
-	db, err := pebble.Open(dir, &pebble.Options{})
+	db, err := pebble.Open(dir, &pebble.Options{}) //nolint:varnamelen
 	if err != nil {
 		t.Fatalf("open db: %v", err)
 	}

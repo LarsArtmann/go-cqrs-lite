@@ -2,6 +2,7 @@ package pebble
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/fxamacker/cbor/v2"
@@ -69,7 +70,12 @@ func (a *EventStore) serializeEvent(evt event.Event) ([]byte, error) {
 		Encoding:      string(evt.Encoding()),
 	}
 
-	return pebbleEncMode.Marshal(s) //nolint:wrapcheck // storage serialization, not domain error
+	data, err := pebbleEncMode.Marshal(s)
+	if err != nil {
+		return nil, fmt.Errorf("pebble: marshal event: %w", err)
+	}
+
+	return data, nil
 }
 
 // deserializeEvent converts CBOR (or legacy JSON) to a CQRS-compatible event.
