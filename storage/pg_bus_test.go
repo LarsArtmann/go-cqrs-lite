@@ -20,12 +20,22 @@ import (
 type mockListener struct {
 	notifications chan string
 	closed        atomic.Bool
+	listenedCh    string
+	listenErr     error
+	listenSignal  chan struct{} // closed once Listen() has been called
 }
 
 func newMockListener() *mockListener {
 	return &mockListener{
 		notifications: make(chan string, 10),
+		listenSignal:  make(chan struct{}),
 	}
+}
+
+func (m *mockListener) Listen(_ context.Context, channel string) error {
+	m.listenedCh = channel
+	close(m.listenSignal)
+	return m.listenErr
 }
 
 func (m *mockListener) Notifications() <-chan string { return m.notifications }
@@ -33,8 +43,17 @@ func (m *mockListener) Notifications() <-chan string { return m.notifications }
 func (m *mockListener) Close() error {
 	m.closed.Store(true)
 	close(m.notifications)
-
 	return nil
+}
+
+// waitForListen blocks until Listen() is called or the test times out.
+func (m *mockListener) waitForListen(t *testing.T) {
+	t.Helper()
+	select {
+	case <-m.listenSignal:
+	case <-time.After(2 * time.Second):
+		t.Fatal("mockListener.Listen was not called within 2s")
+	}
 }
 
 // noopNotify is a notifyFunc that does nothing (for testing with SQLite).
@@ -99,6 +118,42 @@ func TestPostgresBus_NilListener(t *testing.T) {
 	_, err := storage.NewPostgresBus(db, store, nil)
 	if err == nil {
 		t.Fatal("expected error for nil listener")
+	}
+}
+
+func TestPostgresBus_ListenCalledWithChannel(t *testing.T) {
+	t.Parallel()
+
+	store := newBusTestStore(t)
+	db, _ := storage.OpenSQLiteInMemory()
+	t.Cleanup(func() { _ = db.Close() })
+
+	listener := newMockListener()
+	bus, err := storage.NewPostgresBus(db, store, listener,
+		storage.WithBusChannel("custom_ch"))
+	if err != nil {
+		t.Fatalf("NewPostgresBus: %v", err)
+	}
+	t.Cleanup(func() { _ = bus.Close() })
+
+	listener.waitForListen(t)
+
+	if listener.listenedCh != "custom_ch" {
+		t.Fatalf("expected Listen on custom_ch, got %q", listener.listenedCh)
+	}
+}
+
+func TestPostgresBus_ListenError(t *testing.T) {
+	store := newBusTestStore(t)
+	db, _ := storage.OpenSQLiteInMemory()
+	t.Cleanup(func() { _ = db.Close() })
+
+	listener := newMockListener()
+	listener.listenErr = errors.New("simulated LISTEN failure")
+
+	_, err := storage.NewPostgresBus(db, store, listener)
+	if err == nil {
+		t.Fatal("expected error when Listen fails")
 	}
 }
 

@@ -42,13 +42,21 @@ type notifyPayload struct {
 // NotificationListener abstracts the driver-specific LISTEN mechanism.
 // Consumers implement this for their Postgres driver:
 //
-//	// lib/pq example
-//	type PQListener struct { l *pq.Listener }
-//	func (p *PQListener) Notifications() <-chan string { ... }
-//	func (p *PQListener) Close() error { ... }
+//	// pgxpool-based example
+//	type PgxListener struct { pool *pgxpool.Pool }
+//	func (p *PgxListener) Listen(ctx context.Context, ch string) error { ... }
+//	func (p *PgxListener) Notifications() <-chan string { ... }
+//	func (p *PgxListener) Close() error { ... }
 //
-// The bus reads payloads from Notifications() in a background goroutine.
+// The bus calls Listen itself (with the configured channel) before starting
+// its receive goroutine, so the consumer never has to remember the call.
 type NotificationListener interface {
+	// Listen subscribes to NOTIFY on the given channel. Must be called once
+	// before Notifications() starts delivering payloads. The listener may use
+	// ctx only for the LISTEN handshake; the receive loop is owned by the
+	// listener and cancelled via Close.
+	Listen(ctx context.Context, channel string) error
+
 	// Notifications returns a channel that receives NOTIFY payload strings.
 	// The channel is closed when the listener stops.
 	Notifications() <-chan string
@@ -176,8 +184,8 @@ var errEventNotFoundAfterRetries = errors.New("event not found after retries")
 // listener to re-fetch full events when notifications arrive from other processes.
 // The listener provides the driver-specific LISTEN mechanism.
 //
-// The listener's Listen(channel) must have been called before or at construction.
-// The bus starts a background goroutine to process incoming notifications.
+// The bus calls listener.Listen(channel) itself before starting its receive
+// goroutine; consumers do not need to pre-arm the listener.
 func NewPostgresBus(
 	db *sql.DB,
 	store event.EventSource,
@@ -211,19 +219,25 @@ func NewPostgresBus(
 		opt(&o)
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+
+	if err := listener.Listen(ctx, o.channel); err != nil {
+		cancel()
+		return nil, event.WrapInfrastructure(err, "storage.pg_bus_listen",
+			"listener.Listen on channel "+o.channel)
+	}
+
 	b := &PostgresBus{
 		db:       db,
 		store:    store,
 		opts:     o,
 		listener: listener,
 		handlers: make(map[event.Type][]event.Handler),
+		cancelFn: cancel,
 	}
 
 	b.rebuildHandlerChain()
 	b.rebuildPublisherChain()
-
-	ctx, cancel := context.WithCancel(context.Background())
-	b.cancelFn = cancel
 
 	b.wg.Add(1)
 
