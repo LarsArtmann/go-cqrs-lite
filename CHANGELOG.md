@@ -6,7 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-Additive, backward-compatible changes addressing cqrs-htmx upstream API gaps. No existing API removed or renamed.
+## [2.6.0] - 2026-06-19
+
+27 commits since v2.5.0. Two new modules (schema validator, prometheus exporter), projection replay/live split, replay→live dedup pipeline, OTel correlation enricher, bounded dedup, streaming event reads, exported ID marker types, cqrs-gen struct tags, and leader election interface.
+
+`pebble.DeleteEventsBefore` (added in v2.5.0, the immediately prior release ~24h earlier) is removed: it contradicted event-sourcing immutability and no consumer could depend on it between releases. No other existing API removed or renamed.
 
 ### Added
 
@@ -23,7 +27,7 @@ Additive, backward-compatible changes addressing cqrs-htmx upstream API gaps. No
 
 ### Removed
 
-- **Pebble `DeleteEventsBefore`** (`pebble/v2`) — Removed. Events are immutable truth; automatic event deletion contradicts event sourcing principles. The `Flush()` method remains for durability control
+- **Pebble `DeleteEventsBefore`** (`pebble/v2`) — Removed. Events are immutable truth; automatic event deletion contradicts event sourcing principles. Introduced in v2.5.0 (immediately prior release) and removed before any consumer could adopt it. The `Flush()` method remains for durability control
 
 ## [2.5.0] - 2026-06-18
 

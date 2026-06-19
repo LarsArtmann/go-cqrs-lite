@@ -50,6 +50,7 @@ The module works but imports **zero cqrs-lite modules**. It's a generic OTel→P
 ### 3. MkDocs documentation site — SCAFFOLD ONLY
 
 `mkdocs.yml` exists with correct theme config, but:
+
 - No `docs/index.md` homepage
 - No content populated
 - No GitHub Pages deployment workflow
@@ -82,11 +83,13 @@ References `goexperiment.simd` as an experiment, but no SIMD code exists anywher
 ### 1. `event/streaming_source.go` — DEAD DUPLICATE CODE
 
 This is the worst mistake. The codebase already has a streaming design in `event/stream.go`:
+
 - `StreamLoader` interface with `Stream(ctx, ref) (EventStream, error)`
 - `EventStream` interface with `Next() (Event, bool)`, `Err() error`, `Close()`
 - Implemented by `MemoryStore`, `SQLEventStore`, and `StoreStreamAdapter`
 
 I created a **competing design** in `streaming_source.go`:
+
 - `EventIterator` with `Next() (Event, error)`, `Close() error` (uses `io.EOF` instead of bool)
 - `StreamingSource` with `LoadStream`, `LoadStreamFromVersion`
 - `StreamingJournal` with `ReadStream`, `ReadStreamFrom`
@@ -98,6 +101,7 @@ Two streaming designs in the same module, incompatible contracts, one implemente
 ### 2. `codec/jsonv2_experiment.go` — WON'T COMPILE
 
 The file imports `encoding/json/v2` but uses v1 API:
+
 - `json.Marshal(v)` — v2 returns `(jsontext.Value, error)`, not `([]byte, error)`
 - `json.Unmarshal(data, v)` — v2 has different arity: `Unmarshal[T](jsontext.Value) (T, error)`
 
@@ -155,33 +159,33 @@ The `LeaderElection` interface has a doc comment showing `runner.RunWithLeaderEl
 
 ## f) Top 25 Next Tasks (sorted by impact/work ratio)
 
-| # | Task | Impact | Work | Ratio |
-|---|------|--------|------|-------|
-| 1 | Delete `event/streaming_source.go` (dead duplicate of stream.go) | High | 5min | ★★★ |
-| 2 | Fix `projection/leader_election.go` doc (remove fake method) or wire into Runner | High | 15min | ★★★ |
-| 3 | Update `SKILL.md` with new APIs (dedup, enricher, validator, prometheus) | High | 30min | ★★★ |
-| 4 | Delete or fix `codec/jsonv2_experiment.go` (won't compile) | Medium | 5min | ★★★ |
-| 5 | Delete or fix `wasm/main.go` (proves nothing) | Low | 5min | ★★★ |
-| 6 | Rename `schema.Validator` → `schema.PayloadValidator` (honest naming) | Medium | 15min | ★★☆ |
-| 7 | Add prometheus + middleware integration example_test.go | Medium | 15min | ★★☆ |
-| 8 | Fix ADR-0026 (remove phantom SIMD reference) | Low | 2min | ★★☆ |
-| 9 | Remove ADR-0017 "uses catalog/schema/" false claim | Low | 2min | ★★☆ |
-| 10 | Integrate `santhosh-tekuri/jsonschema/v6` for real validation | High | 2h | ★☆☆ |
-| 11 | Implement `StreamingSource` on `SQLEventStore` (if streaming_source.go stays) | Medium | 2h | ★☆☆ |
-| 12 | Implement `StreamingSource` on Pebble `EventStore` | Medium | 2h | ★☆☆ |
-| 13 | Wire `LeaderElection` into Runner (optional leader check before RunLive) | High | 1h | ★★☆ |
-| 14 | Add `prometheus.SetupWithCQRSMetrics()` convenience function | Low | 15min | ★☆☆ |
-| 15 | Populate MkDocs site content (index.md, getting-started) | Medium | 2h | ★☆☆ |
-| 16 | Add GitHub Actions workflow for MkDocs deployment | Low | 30min | ★☆☆ |
-| 17 | Consolidate streaming: make `EventStream` use `(Event, error)` with `io.EOF` | Medium | 1h | ★☆☆ |
-| 18 | Fix arena experiment doc (`arena.NewArena()` → `arena.New()`) | Low | 2min | ★★☆ |
-| 19 | Add cqrs-gen `-type=event` handler generation | Medium | 1h | ★☆☆ |
-| 20 | Add property-based tests for bounded dedup ring (rapid) | Low | 30min | ★☆☆ |
-| 21 | Add integration test: prometheus → middleware.CommandMetrics → /metrics | Medium | 30min | ★★☆ |
-| 22 | Add `schema.ValidatorFromCatalog(cat)` auto-registration from catalog types | Medium | 1h | ★☆☆ |
-| 23 | Document streaming design decision (ADR: bool vs io.EOF contract) | Low | 30min | ★☆☆ |
-| 24 | Add `projection.WithLeaderElection(le)` Runner option | Medium | 30min | ★★☆ |
-| 25 | Audit all doc comments for fabricated usage examples | Medium | 1h | ★☆☆ |
+| #   | Task                                                                             | Impact | Work  | Ratio |
+| --- | -------------------------------------------------------------------------------- | ------ | ----- | ----- |
+| 1   | Delete `event/streaming_source.go` (dead duplicate of stream.go)                 | High   | 5min  | ★★★   |
+| 2   | Fix `projection/leader_election.go` doc (remove fake method) or wire into Runner | High   | 15min | ★★★   |
+| 3   | Update `SKILL.md` with new APIs (dedup, enricher, validator, prometheus)         | High   | 30min | ★★★   |
+| 4   | Delete or fix `codec/jsonv2_experiment.go` (won't compile)                       | Medium | 5min  | ★★★   |
+| 5   | Delete or fix `wasm/main.go` (proves nothing)                                    | Low    | 5min  | ★★★   |
+| 6   | Rename `schema.Validator` → `schema.PayloadValidator` (honest naming)            | Medium | 15min | ★★☆   |
+| 7   | Add prometheus + middleware integration example_test.go                          | Medium | 15min | ★★☆   |
+| 8   | Fix ADR-0026 (remove phantom SIMD reference)                                     | Low    | 2min  | ★★☆   |
+| 9   | Remove ADR-0017 "uses catalog/schema/" false claim                               | Low    | 2min  | ★★☆   |
+| 10  | Integrate `santhosh-tekuri/jsonschema/v6` for real validation                    | High   | 2h    | ★☆☆   |
+| 11  | Implement `StreamingSource` on `SQLEventStore` (if streaming_source.go stays)    | Medium | 2h    | ★☆☆   |
+| 12  | Implement `StreamingSource` on Pebble `EventStore`                               | Medium | 2h    | ★☆☆   |
+| 13  | Wire `LeaderElection` into Runner (optional leader check before RunLive)         | High   | 1h    | ★★☆   |
+| 14  | Add `prometheus.SetupWithCQRSMetrics()` convenience function                     | Low    | 15min | ★☆☆   |
+| 15  | Populate MkDocs site content (index.md, getting-started)                         | Medium | 2h    | ★☆☆   |
+| 16  | Add GitHub Actions workflow for MkDocs deployment                                | Low    | 30min | ★☆☆   |
+| 17  | Consolidate streaming: make `EventStream` use `(Event, error)` with `io.EOF`     | Medium | 1h    | ★☆☆   |
+| 18  | Fix arena experiment doc (`arena.NewArena()` → `arena.New()`)                    | Low    | 2min  | ★★☆   |
+| 19  | Add cqrs-gen `-type=event` handler generation                                    | Medium | 1h    | ★☆☆   |
+| 20  | Add property-based tests for bounded dedup ring (rapid)                          | Low    | 30min | ★☆☆   |
+| 21  | Add integration test: prometheus → middleware.CommandMetrics → /metrics          | Medium | 30min | ★★☆   |
+| 22  | Add `schema.ValidatorFromCatalog(cat)` auto-registration from catalog types      | Medium | 1h    | ★☆☆   |
+| 23  | Document streaming design decision (ADR: bool vs io.EOF contract)                | Low    | 30min | ★☆☆   |
+| 24  | Add `projection.WithLeaderElection(le)` Runner option                            | Medium | 30min | ★★☆   |
+| 25  | Audit all doc comments for fabricated usage examples                             | Medium | 1h    | ★☆☆   |
 
 ---
 
@@ -209,16 +213,16 @@ My recommendation: **Delete `streaming_source.go` entirely.** The existing `stre
 
 ## Session Commit History
 
-| Commit | Description |
-|--------|-------------|
-| `a8d8bebe` | Arena experiment doc, mkdocs nav, Flush doc cleanup |
-| `da10d6a6` | CHANGELOG + FEATURES updated with all new modules |
-| `015f1989` | Wire prometheus into go.work + flake.nix, fix 19 lint issues |
+| Commit     | Description                                                     |
+| ---------- | --------------------------------------------------------------- |
+| `a8d8bebe` | Arena experiment doc, mkdocs nav, Flush doc cleanup             |
+| `da10d6a6` | CHANGELOG + FEATURES updated with all new modules               |
+| `015f1989` | Wire prometheus into go.work + flake.nix, fix 19 lint issues    |
 | `0f5e5e0e` | Schema validator lint fixes, leader election, TODO_LIST rewrite |
-| `75bec97f` | Experimental features (jsonv2, arena), MkDocs, Prometheus deps |
-| `f6a6a01f` | Event streaming source, leader election, cqrs-gen struct tags |
-| `7e9d1c77` | Prometheus bridge, Pebble corruption tests, schema validator |
-| `282b6956` | Prometheus exporter, reactive dedup, schema validator |
+| `75bec97f` | Experimental features (jsonv2, arena), MkDocs, Prometheus deps  |
+| `f6a6a01f` | Event streaming source, leader election, cqrs-gen struct tags   |
+| `7e9d1c77` | Prometheus bridge, Pebble corruption tests, schema validator    |
+| `282b6956` | Prometheus exporter, reactive dedup, schema validator           |
 
 ---
 
