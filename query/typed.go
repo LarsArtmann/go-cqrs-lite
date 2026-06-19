@@ -1,0 +1,97 @@
+package query
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/codec/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
+)
+
+// TypedQuery is a query with a typed payload P, closing the type-safety hole
+// where [PersistedQuery].Payload is an untyped []byte.
+type TypedQuery[P any] struct {
+	ID         id.RequestID
+	Type       Type
+	ReceivedAt time.Time
+	Payload    P
+	Metadata   Metadata
+}
+
+// TypedQueryStore adapts an untyped [QueryStore] plus a [codec.Codec] into a
+// typed interface over P. It handles encode/decode at the store boundary.
+type TypedQueryStore[P any] struct {
+	store QueryStore
+	codec codec.Codec
+}
+
+// NewTypedQueryStore creates a typed adapter over store using c for payload
+// serialization. If c is nil, [codec.JSONCodec] is used.
+func NewTypedQueryStore[P any](store QueryStore, c codec.Codec) *TypedQueryStore[P] {
+	if c == nil {
+		c = codec.JSONCodec{}
+	}
+
+	return &TypedQueryStore[P]{store: store, codec: c}
+}
+
+// SaveQuery encodes q.Payload and delegates to the underlying [QueryStore].
+func (t *TypedQueryStore[P]) SaveQuery(ctx context.Context, q TypedQuery[P]) error {
+	data, err := t.codec.Encode(q.Payload)
+	if err != nil {
+		return fmt.Errorf("query: encode typed payload: %w", err)
+	}
+
+	opts := []QueryPersistOption{
+		WithQueryMetadata(q.Metadata),
+	}
+
+	if q.ReceivedAt.IsZero() {
+		opts = append(opts, WithQueryReceivedAt(time.Now()))
+	} else {
+		opts = append(opts, WithQueryReceivedAt(q.ReceivedAt))
+	}
+
+	if q.ID != (id.RequestID{}) {
+		opts = append(opts, WithQueryID(q.ID))
+	}
+
+	persisted, err := NewPersistedQuery(q.Type, data, opts...)
+	if err != nil {
+		return err
+	}
+
+	return t.store.SaveQuery(ctx, persisted)
+}
+
+// LoadQueries retrieves all queries after `after`, decoding each payload into P.
+func (t *TypedQueryStore[P]) LoadQueries(
+	ctx context.Context,
+	after time.Time,
+) ([]TypedQuery[P], error) {
+	queries, err := t.store.LoadQueries(ctx, after)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]TypedQuery[P], 0, len(queries))
+
+	for _, q := range queries {
+		var payload P
+
+		if err := t.codec.Decode(q.Payload(), &payload); err != nil {
+			return nil, fmt.Errorf("query: decode typed payload for %s: %w", q.ID(), err)
+		}
+
+		result = append(result, TypedQuery[P]{
+			ID:         q.ID(),
+			Type:       q.Type(),
+			ReceivedAt: q.ReceivedAt(),
+			Payload:    payload,
+			Metadata:   q.Metadata(),
+		})
+	}
+
+	return result, nil
+}
