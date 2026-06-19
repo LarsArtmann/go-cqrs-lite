@@ -121,3 +121,42 @@ func TestTypedCommandStore_NilCodecDefaultsToJSON(t *testing.T) {
 		t.Errorf("Title = %q, want %q", loaded[0].Payload.Title, "nil codec test")
 	}
 }
+
+func TestTypedCommandStore_AppendBatch(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	store := memory.NewMemoryCommandStore()
+
+	ts := command.NewTypedCommandStore[createTodoPayload](store, codec.JSONCodec{})
+
+	ref := command.NewAggregateRef("Order", id.NewAggregateID())
+
+	cmds := []command.TypedPersistedCommand[createTodoPayload]{
+		{Type: "order.create", Payload: createTodoPayload{Title: "first"}},
+		{Type: "order.create", Payload: createTodoPayload{Title: "second"}},
+		{Type: "order.create", Payload: createTodoPayload{Title: "third"}},
+	}
+
+	err := ts.AppendBatch(ctx, ref, cmds)
+	if err != nil {
+		t.Fatalf("AppendBatch: %v", err)
+	}
+
+	loaded, err := ts.Load(ctx, ref)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+
+	if len(loaded) != 3 {
+		t.Fatalf("expected 3 commands, got %d", len(loaded))
+	}
+
+	if loaded[0].Payload.Title != "first" {
+		t.Errorf("first payload Title = %q, want %q", loaded[0].Payload.Title, "first")
+	}
+
+	if loaded[2].Payload.Title != "third" {
+		t.Errorf("third payload Title = %q, want %q", loaded[2].Payload.Title, "third")
+	}
+}

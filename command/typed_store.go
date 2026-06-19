@@ -85,6 +85,51 @@ func (t *TypedCommandStore[P]) Save(
 	return nil
 }
 
+// AppendBatch persists multiple typed commands atomically. Each command's
+// payload is encoded via the codec before delegating to the underlying [Store].
+func (t *TypedCommandStore[P]) AppendBatch(
+	ctx context.Context,
+	ref AggregateRef,
+	cmds []TypedPersistedCommand[P],
+) error {
+	persisted := make([]*PersistedCommand, 0, len(cmds))
+
+	for i, cmd := range cmds {
+		data, err := t.codec.Encode(cmd.Payload)
+		if err != nil {
+			return fmt.Errorf("command: encode typed payload at index %d: %w", i, err)
+		}
+
+		opts := []PersistOption{
+			WithCommandMetadata(cmd.Metadata),
+		}
+
+		if cmd.ReceivedAt.IsZero() {
+			opts = append(opts, WithReceivedAt(time.Now()))
+		} else {
+			opts = append(opts, WithReceivedAt(cmd.ReceivedAt))
+		}
+
+		if cmd.ID != (id.CommandID{}) {
+			opts = append(opts, WithCommandID(cmd.ID))
+		}
+
+		p, err := NewPersistedCommand(cmd.Type, ref, data, opts...)
+		if err != nil {
+			return err
+		}
+
+		persisted = append(persisted, p)
+	}
+
+	err := t.store.AppendBatch(ctx, ref, persisted)
+	if err != nil {
+		return WrapInfrastructure(err, "command.typed_store.append_batch", "append typed commands")
+	}
+
+	return nil
+}
+
 // Load retrieves all commands for ref, decoding each payload into P.
 func (t *TypedCommandStore[P]) Load(
 	ctx context.Context,
