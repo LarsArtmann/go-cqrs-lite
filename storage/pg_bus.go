@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io"
 	"log/slog"
+	"slices"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -167,6 +168,9 @@ var errNilEventSource = event.NewInfrastructure(
 	"storage: nil event source",
 )
 
+// errEventNotFoundAfterRetries is a static sentinel for re-fetch failures.
+var errEventNotFoundAfterRetries = errors.New("event not found after retries")
+
 // NewPostgresBus creates a LISTEN/NOTIFY-backed event bus.
 // The db is used for NOTIFY (SELECT pg_notify). The store is used by the
 // listener to re-fetch full events when notifications arrive from other processes.
@@ -255,8 +259,8 @@ func (b *PostgresBus) rebuildPublisherChain() {
 		return nil
 	})
 
-	for i := len(b.publishMiddleware) - 1; i >= 0; i-- {
-		inner = b.publishMiddleware[i](inner)
+	for _, m := range slices.Backward(b.publishMiddleware) {
+		inner = m(inner)
 	}
 
 	b.cachedPublisher = inner
@@ -321,8 +325,8 @@ func (b *PostgresBus) rebuildHandlerChain() {
 		return nil
 	})
 
-	for i := len(b.middleware) - 1; i >= 0; i-- {
-		inner = b.middleware[i](inner)
+	for _, m := range slices.Backward(b.middleware) {
+		inner = m(inner)
 	}
 
 	b.cachedHandler = inner
@@ -464,7 +468,7 @@ func (b *PostgresBus) refetchEvent(ctx context.Context, np notifyPayload) (event
 	}
 
 	return nil, event.WrapInfrastructure(
-		errors.New("event not found after retries"),
+		errEventNotFoundAfterRetries,
 		"storage.pg_bus_refetch_not_found",
 		"event "+np.EventID+" not found after re-fetch attempts",
 	)

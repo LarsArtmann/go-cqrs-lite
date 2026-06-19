@@ -99,7 +99,7 @@ func TestDistributedRunner_AlwaysLeader(t *testing.T) {
 		t.Fatalf("Register: %v", err)
 	}
 
-	dr, err := projection.NewDistributedRunner(runner, projection.AlwaysLeader{},
+	distRunner, err := projection.NewDistributedRunner(runner, projection.AlwaysLeader{},
 		projection.WithLeadershipCheckInterval(50*time.Millisecond))
 	if err != nil {
 		t.Fatalf("NewDistributedRunner: %v", err)
@@ -108,7 +108,7 @@ func TestDistributedRunner_AlwaysLeader(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 	defer cancel()
 
-	err = dr.Run(ctx)
+	err = distRunner.Run(ctx)
 	if err != nil && !errors.Is(err, context.DeadlineExceeded) {
 		t.Fatalf("Run: %v", err)
 	}
@@ -138,7 +138,7 @@ func TestDistributedRunner_LeadershipLost(t *testing.T) {
 
 	leader := &controllableLeader{}
 
-	dr, err := projection.NewDistributedRunner(runner, leader,
+	distRunner, err := projection.NewDistributedRunner(runner, leader,
 		projection.WithLeadershipCheckInterval(20*time.Millisecond))
 	if err != nil {
 		t.Fatalf("NewDistributedRunner: %v", err)
@@ -147,7 +147,7 @@ func TestDistributedRunner_LeadershipLost(t *testing.T) {
 	runDone := make(chan error, 1)
 
 	go func() {
-		runDone <- dr.Run(context.Background())
+		runDone <- distRunner.Run(context.Background())
 	}()
 
 	time.Sleep(100 * time.Millisecond)
@@ -196,12 +196,12 @@ func TestDistributedRunner_WaitForLeadershipFails(t *testing.T) {
 	waitErr := errors.New("election unavailable")
 	leader := &controllableLeader{waitErr: waitErr}
 
-	dr, err := projection.NewDistributedRunner(runner, leader)
+	distRunner, err := projection.NewDistributedRunner(runner, leader)
 	if err != nil {
 		t.Fatalf("NewDistributedRunner: %v", err)
 	}
 
-	err = dr.Run(context.Background())
+	err = distRunner.Run(context.Background())
 	if err == nil {
 		t.Fatal("expected error when WaitForLeadership fails")
 	}
@@ -212,12 +212,12 @@ func TestDistributedRunner_RunnerAccessor(t *testing.T) {
 
 	runner, _, _ := newDistTestRunner(t)
 
-	dr, err := projection.NewDistributedRunner(runner, projection.AlwaysLeader{})
+	distRunner, err := projection.NewDistributedRunner(runner, projection.AlwaysLeader{})
 	if err != nil {
 		t.Fatalf("NewDistributedRunner: %v", err)
 	}
 
-	if dr.Runner() != runner {
+	if distRunner.Runner() != runner {
 		t.Error("Runner() should return the underlying runner")
 	}
 }

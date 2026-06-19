@@ -96,6 +96,9 @@ func NewDistributedRunner(
 	}, nil
 }
 
+// resignTimeout is the maximum time to wait when resigning leadership during shutdown.
+const resignTimeout = 10 * time.Second
+
 // Run waits for leadership, then runs the projection (replay + live).
 // During live processing, it periodically checks IsLeader. If leadership is
 // lost, it cancels the live subscription and returns ErrLeadershipLost.
@@ -110,7 +113,8 @@ func (dr *DistributedRunner) Run(ctx context.Context) error {
 		cqrsotel.SpanKindClient)
 	defer span.End()
 
-	if err := dr.election.WaitForLeadership(ctx); err != nil {
+	err := dr.election.WaitForLeadership(ctx)
+	if err != nil {
 		cqrsotel.RecordError(span, err)
 
 		return event.Wrapf(err, event.Infrastructure, "projection.wait_for_leadership",
@@ -119,14 +123,9 @@ func (dr *DistributedRunner) Run(ctx context.Context) error {
 
 	dr.logger.InfoContext(ctx, "acquired leadership, starting projection runner")
 
-	defer func() {
-		resignCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-
-		if err := dr.election.Resign(resignCtx); err != nil {
-			dr.logger.WarnContext(resignCtx, "failed to resign leadership", "error", err)
-		}
-	}()
+	resignCtx, resignCancel := context.WithTimeout(ctx, resignTimeout)
+	defer resignCancel()
+	defer dr.resignLeadership(resignCtx)
 
 	leaderCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -152,6 +151,14 @@ func (dr *DistributedRunner) Run(ctx context.Context) error {
 	return runErr
 }
 
+// resignLeadership attempts to release leadership during shutdown.
+func (dr *DistributedRunner) resignLeadership(ctx context.Context) {
+	err := dr.election.Resign(ctx)
+	if err != nil {
+		dr.logger.WarnContext(ctx, "failed to resign leadership", "error", err)
+	}
+}
+
 // monitorLeadership periodically checks IsLeader. If leadership is lost,
 // it cancels the context and sends ErrLeadershipLost to lostCh.
 func (dr *DistributedRunner) monitorLeadership(
@@ -169,7 +176,9 @@ func (dr *DistributedRunner) monitorLeadership(
 		case <-ticker.C:
 			if !dr.election.IsLeader(ctx) {
 				dr.logger.InfoContext(ctx, "leadership lost, stopping projection runner")
+
 				lostCh <- ErrLeadershipLost
+
 				cancel()
 
 				return

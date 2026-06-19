@@ -12,10 +12,10 @@ import (
 // in a SliceIterator. This exists for interface conformance so consumers can
 // type-assert to event.StreamingSource uniformly across store implementations.
 func (s *MemoryStore) LoadStream(
-	_ context.Context,
+	ctx context.Context,
 	ref event.AggregateRef,
 ) (event.EventIterator, error) {
-	events, err := s.Load(context.Background(), ref)
+	events, err := s.Load(ctx, ref)
 	if err != nil {
 		return nil, err
 	}
@@ -25,11 +25,11 @@ func (s *MemoryStore) LoadStream(
 
 // LoadStreamFromVersion is the streaming equivalent of LoadFromVersion.
 func (s *MemoryStore) LoadStreamFromVersion(
-	_ context.Context,
+	ctx context.Context,
 	ref event.AggregateRef,
 	version event.Version,
 ) (event.EventIterator, error) {
-	events, err := s.LoadFromVersion(context.Background(), ref, version)
+	events, err := s.LoadFromVersion(ctx, ref, version)
 	if err != nil {
 		return nil, err
 	}
@@ -38,8 +38,8 @@ func (s *MemoryStore) LoadStreamFromVersion(
 }
 
 // ReadStream is the streaming equivalent of ReadAll.
-func (s *MemoryStore) ReadStream(_ context.Context) (event.EventIterator, error) {
-	events, err := s.ReadAll(context.Background())
+func (s *MemoryStore) ReadStream(ctx context.Context) (event.EventIterator, error) {
+	events, err := s.ReadAll(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -49,11 +49,11 @@ func (s *MemoryStore) ReadStream(_ context.Context) (event.EventIterator, error)
 
 // ReadStreamFrom is the streaming equivalent of ReadFrom.
 func (s *MemoryStore) ReadStreamFrom(
-	_ context.Context,
+	ctx context.Context,
 	afterEventID id.EventID,
 	limit int,
 ) (event.EventIterator, error) {
-	events, err := s.ReadFrom(context.Background(), afterEventID, limit)
+	events, err := s.ReadFrom(ctx, afterEventID, limit)
 	if err != nil {
 		return nil, err
 	}

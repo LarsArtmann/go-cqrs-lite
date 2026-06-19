@@ -73,7 +73,8 @@ func (it *pebbleEventIterator) Next() (event.Event, error) {
 		return evt, nil
 	}
 
-	if err := checkIteratorError(it.iter); err != nil {
+	err := checkIteratorError(it.iter)
+	if err != nil {
 		it.firstErr = event.Wrapf(err, event.Infrastructure, "pebble.stream_iterator",
 			"iterator error during stream iteration")
 
@@ -90,7 +91,12 @@ func (it *pebbleEventIterator) Close() error {
 
 	it.closed = true
 
-	return it.iter.Close()
+	err := it.iter.Close()
+	if err != nil {
+		return fmt.Errorf("close pebble iterator: %w", err)
+	}
+
+	return nil
 }
 
 // newPebbleIterator creates a pebbleEventIterator over the given key range.
@@ -110,7 +116,7 @@ func (a *EventStore) newPebbleIterator(
 			"create streaming iterator")
 	}
 
-	return &pebbleEventIterator{
+	return &pebbleEventIterator{ //nolint:exhaustruct // lazy-init fields
 		iter:      iter,
 		store:     a,
 		skipUntil: skipID,

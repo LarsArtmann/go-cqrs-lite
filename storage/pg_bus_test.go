@@ -207,13 +207,16 @@ func TestPostgresBus_NotificationRefetch(t *testing.T) {
 		return nil
 	})
 
-	payload, _ := json.Marshal(map[string]any{
+	payload, marshalErr := json.Marshal(map[string]any{
 		"eid": evt.ID().String(),
 		"et":  "test.updated",
 		"at":  "Test",
 		"aid": aggID.String(),
 		"v":   1,
 	})
+	if marshalErr != nil {
+		t.Fatalf("marshal: %v", marshalErr)
+	}
 
 	listener.notifications <- string(payload)
 

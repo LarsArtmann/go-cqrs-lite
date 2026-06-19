@@ -18,7 +18,7 @@ func newStreamTestStore(t *testing.T) *cqrspebble.EventStore {
 	t.Helper()
 
 	dir := t.TempDir()
-	database, err := pebble.Open(dir, &pebble.Options{}) //nolint:exhaustruct // test helper
+	database, err := pebble.Open(dir, &pebble.Options{})
 	if err != nil {
 		t.Fatalf("pebble.Open: %v", err)
 	}

@@ -89,7 +89,7 @@ func (s *SQLEventStore) streamByAggregate(
 	ref event.AggregateRef,
 	where string,
 	extraArgs []any,
-	spanName string,
+	_ string,
 ) (event.EventIterator, error) {
 	if err := s.checkClosed(); err != nil {
 		return nil, err
