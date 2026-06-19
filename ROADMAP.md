@@ -96,7 +96,7 @@ and `stack`, never a storage driver. Eight new modules shipped this release.
 
 ### Post-Bundle direction (next themes)
 
-- **Multi-process pub/sub** — Postgres `LISTEN/NOTIFY` event bus (or NATS/Redis transport adapter) so presets work across >1 process; today all presets use an in-memory bus.
+- [x] **Multi-process pub/sub** — Postgres `LISTEN/NOTIFY` event bus (`storage.PostgresBus`) with lightweight reference payloads, driver-agnostic `NotificationListener` interface, and re-fetch with visibility-gap retry.
 - **Operability helpers** — health-check, graceful-shutdown, and backup/restore exposed from `stack/` presets (Pebble `Checkpoint` is available but not surfaced).
 - **Transports** — `transport/grpc`, `transport/nats`, `transport/redis` per ADR-0025, composing over the Bundle.
 - **Read-model query ergonomics** — secondary indexes / ranged scans for large read-model sets (today `Scan` filters in memory).
@@ -110,20 +110,20 @@ and `stack`, never a storage driver. Eight new modules shipped this release.
 - [ ] SIMD-accelerated event serialization (Go experiment)
 - [ ] Arena allocation for high-throughput event creation
 - [ ] Zero-allocation event encoding path (jsonv2)
-- [ ] Streaming event reads without materializing full slice
+- [x] ~~Streaming event reads without materializing full slice~~ — DONE: `StreamingSource`/`StreamingJournal` implemented on SQL, Pebble, and Memory stores
 
 ### Reliability
 
 - [~] ~~Outbox pattern~~ — **REMOVED**. Use [Watermill](https://github.com/ThreeDotsLabs/watermill) for reliable at-least-once publishing. The `watermill/` adapter already exists in this repo.
 - [~] ~~Saga module~~ — **HARD NO**. Vertical scaling (bigger server) is sufficient for this library's scope. Multi-instance orchestration is the consumer's concern.
 - [ ] Event schema registry with validation middleware
-- [ ] Distributed checkpointing for projections
+- [x] ~~Distributed checkpointing for projections~~ — DONE: `DistributedRunner` with `LeaderElection` gating
 - [x] ~~**Projection replay→live dedup gap**~~ — **FIXED** (commit `8d4ea2cc`). The Runner's `subscribeLive` now builds a reactive pipeline: `live → DistinctByEventIDWith(replayIDs) → handler`. Event IDs from journal replay seed the dedup set, so overlap-window duplicates are silently suppressed. New exports: `event.SubscriberToObservable`, `event.DistinctByEventIDWith`.
 
 ### Consumer Experience
 
-- [ ] Code generator (`cqrs-gen`) v2 with struct tag scanning
-- [ ] WebAssembly compilation target for decider module
+- [x] ~~Code generator (`cqrs-gen`) v2 with struct tag scanning~~ — DONE: v3 adds event handler generation (`-type=event`)
+- [x] ~~WebAssembly compilation target for decider module~~ — DONE: 7/7 core modules compile to WASM
 - [ ] gRPC transport adapter
 - [ ] NATS / Redis Stream adapter
 - [~] GraphQL query adapter for projections → **HARD NO**: framework-level concern, not library scope
@@ -150,4 +150,4 @@ and `stack`, never a storage driver. Eight new modules shipped this release.
 
 ---
 
-_Last updated: 2026-06-19 (Sprint 8: replay→live dedup closed; OTel correlation enricher added)_
+_Last updated: 2026-06-19 (Sprint 9: streaming reads, DistributedRunner, PostgresBus, cqrs-gen events, WASM 7/7)_

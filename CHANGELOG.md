@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Streaming event reads** — `StreamingSource`/`StreamingJournal` now implemented on all three stores: `SQLEventStore` (cursor-based via `*sql.Rows`), Pebble `EventStore` (iterator-based with limit + skip), `MemoryStore` (SliceIterator-wrapped). Consumers can type-assert to streaming interfaces uniformly across backends.
+- **DistributedRunner** (`projection/`) — Wraps a projection Runner with `LeaderElection` gating. Waits for leadership, runs replay+live, periodically checks `IsLeader` (default 5s), stops gracefully on loss, resigns on exit. `WithLeadershipCheckInterval` option for tuning detection latency.
+- **cqrs-gen event handler generation** (`cmd/cqrs-gen/`) — `-type=event` generates typed projection handler registration functions via `projection.On[T]()`. Supports both `//cqrs:event` comment markers and `cqrs:"event:Type"` struct tags.
+- **Postgres LISTEN/NOTIFY event bus** (`storage/`) — `PostgresBus` implements `event.Bus` using `SELECT pg_notify()` with lightweight JSON reference payloads (under 8KB). `NotificationListener` interface abstracts driver-specific LISTEN. Listener re-fetches full events from store with retry for visibility-gap handling. ADR-0027 status: Deferred → Superseded.
+- **Documentation site content** — `docs/index.md` landing page with value proposition, quick start, module overview, presets comparison table.
+
+### Changed
+
+- **Ghost streaming interfaces removed** — Consolidated the old `StreamLoader`/`EventStream` types (bool-based `Next()` + `Err()`) into the shipped `EventIterator` interface (standard Go `io.EOF` pattern). Dead code that never compiled against the real interface is gone.
+- **WASM compilation** — All 7 core modules (id, codec, dispatcher, event, command, query, decider) now compile to `GOOS=js GOARCH=wasm`. Moved `NewCQRSViews()` behind `//go:build !js` to exclude the OTel SDK's `os/user` dependency.
+- **API surface** — 1806 → 1834 exports.
+
 ## [2.7.0] - 2026-06-19
 
 The **Bundle composition layer**: consumers stop deciding on infrastructure. A deployer picks a backend via one preset call; the application imports only `readmodel` and `stack` and never touches a storage driver. 8 new modules (~5,500 lines), persistent read models for every preset, a shared contract suite, and a zero-lint release gate.

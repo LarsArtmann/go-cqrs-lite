@@ -14,30 +14,23 @@
 
 ## Open Items
 
-### High impact
-
-- [ ] **Distributed checkpointing — implementation** — ADR-0018 accepted, `LeaderElection` interface in `projection/`. Consumers implement coordination (Redis, etcd, k8s). Library provides `AlwaysLeader` default. Future: `DistributedRunner` wrapper with pluggable lock.
-
-### Medium impact
-
-- [ ] **Postgres LISTEN/NOTIFY event bus** — Deferred to v2.8.0 (ADR-0027). All v2.7.0 presets use an in-memory bus (single-process). A distributed bus must solve the 8KB NOTIFY limit (notify-with-reference + listener re-fetch), listener lifecycle, and real-Postgres testing. Consumers can already supply any `event.Bus` via `stack.WithBus`.
-
-- [ ] **Streaming event reads — store implementation** — `EventIterator`, `StreamingSource`, `StreamingJournal` interfaces added to `event/`. `SliceIterator` adapter exists. SQL and Pebble stores should implement streaming variants for large aggregates.
-- [ ] **cqrs-gen v3 — event handler generation** — Struct tag scanning added (`cqrs:"command:CreateUser"`). Event handler generation (`-type=event`) still needed.
-
 ### Experimental / long-term
 
 - [ ] **gRPC transport adapter** — ADR-0025 accepted. Separate `transport/grpc/` module with protobuf dispatch.
 - [ ] **NATS/Redis Stream adapter** — ADR-0025 accepted. Separate `transport/nats/` and `transport/redis/` modules.
 - [ ] **jsonv2 codec experiment** — `codec/jsonv2_experiment.go` exists behind `goexperiment.jsonv2` build tag (ADR-0026). Pending Go stdlib stabilization.
 - [ ] **Arena allocation experiment** — `event/arena_experiment.go` exists behind `goexperiment.arenas` build tag (ADR-0026). Pending Go arena API stabilization.
-- [ ] **WASM compilation** — 6 of 7 core modules compile to `GOOS=js GOARCH=wasm` (id, codec, dispatcher, event, command, query). `decider/` blocked by OTel SDK `os/user` dependency.
-- [ ] **Documentation site** — MkDocs Material scaffold created (`mkdocs.yml`). Content population and GitHub Pages deployment pending.
 
 ---
 
 ## Recently Completed
 
+- [x] **Streaming event reads — store implementations** — `StreamingSource`/`StreamingJournal` implemented on `SQLEventStore` (cursor-based via `*sql.Rows`), Pebble `EventStore` (iterator-based with limit + skip), and `MemoryStore` (SliceIterator-wrapped). Consolidated ghost `StreamLoader`/`EventStream` types into the shipped `EventIterator` interface.
+- [x] **Distributed checkpointing — DistributedRunner** — `projection.DistributedRunner` wraps a Runner with `LeaderElection` gating: waits for leadership, runs replay+live, periodically checks `IsLeader`, stops gracefully on loss, resigns on exit. `WithLeadershipCheckInterval` option.
+- [x] **cqrs-gen v3 — event handler generation** — `-type=event` generates typed projection handler registration via `projection.On[T]()`. Supports both `//cqrs:event` comment markers and `cqrs:"event:Type"` struct tags.
+- [x] **Postgres LISTEN/NOTIFY event bus** — `storage.PostgresBus` implements `event.Bus` using `SELECT pg_notify()` with lightweight JSON reference payloads (under 8KB). `NotificationListener` interface abstracts driver-specific LISTEN. Listener re-fetches full events from store with retry (visibility gap handling). ADR-0027 status: Deferred → Superseded.
+- [x] **WASM compilation — 7/7 core modules** — Moved `NewCQRSViews()` behind `//go:build !js` tag (OTel SDK `os/user` dependency). All 7 core modules (id, codec, dispatcher, event, command, query, decider) now compile to `GOOS=js GOARCH=wasm`.
+- [x] **Documentation site content** — Created `docs/index.md` landing page with value proposition, quick start, module overview, and presets comparison. Updated `mkdocs.yml` nav with Bundle Presets and Reference sections.
 - [x] **Bundle composition layer** (`stack/v2`) — v2.7.0. `Bundle` with ISP-honest fields + pointer-dedup Close; repository/read-model helpers as top-level generic functions.
 - [x] **Bundle presets** (`stack/{memory,sqlite,pebble,postgres}/v2`) — one-call wiring of every store + bus + read-model backend.
 - [x] **Typed read-model store + cache** (`readmodel/v2`, `readmodel/cache/v2`) — `Store[T,K]` over `kv.Store`; Otter-backed `CachedStore[T,K]`.
@@ -92,4 +85,4 @@
 
 ---
 
-_8 open actionable items + 7 deferred breaking changes. See [ROADMAP.md](ROADMAP.md) for long-term vision._
+_4 open items (all experimental/blocked by external dependencies) + 7 deferred breaking changes. See [ROADMAP.md](ROADMAP.md) for long-term vision._
