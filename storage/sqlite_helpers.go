@@ -44,6 +44,7 @@ func SQLiteInitSchema(ctx context.Context, db *sql.DB) error {
 		sqlpkg.SQLiteDialect{}.QuerySchema(),
 		sqlpkg.SQLiteDialect{}.SnapshotSchema(),
 		sqlpkg.SQLiteDialect{}.CheckpointSchema(),
+		sqlpkg.SQLiteDialect{}.KVSchema(),
 	})
 }
 
@@ -89,6 +90,7 @@ func PostgresInitSchema(ctx context.Context, db *sql.DB) error {
 			pg.QuerySchema(),
 			pg.SnapshotSchema(),
 			pg.CheckpointSchema(),
+			pg.KVSchema(),
 		},
 	)
 }

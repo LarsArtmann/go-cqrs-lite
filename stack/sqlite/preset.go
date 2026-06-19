@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/larsartmann/go-cqrs-lite/kv/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/stack/v2"
 	"github.com/larsartmann/go-cqrs-lite/storage/v2"
@@ -45,10 +44,9 @@ func WithoutAutoMigrate() Option {
 // ":memory:" for an ephemeral in-process database. The database is opened
 // with the pure-Go modernc.org/sqlite driver (no CGo required).
 //
-// Events, commands, queries, snapshots, and checkpoints are persisted to the
-// database. The event bus uses an in-memory implementation (memory.NewMemoryBus)
-// since SQLite has no pub/sub semantics. Read models use an in-memory KV store
-// (kv.MemStore); a SQL-backed KV adapter is future work.
+// Events, commands, queries, snapshots, checkpoints, AND read models are all
+// persisted to the database. The event bus uses an in-memory implementation
+// (memory.NewMemoryBus) since SQLite has no pub/sub semantics.
 //
 // On any setup failure the database is closed before the error is returned —
 // no resource leaks. The returned Bundle owns the *sql.DB; Close releases it.
@@ -73,8 +71,16 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	// Bus is in-memory (SQLite has no pub/sub).
 	stackOpts = append(stackOpts, stack.WithBus(memory.NewMemoryBus()))
 
-	// Read models are in-memory until a SQL-backed kv.Store exists.
-	stackOpts = append(stackOpts, stack.WithReadModels(kv.NewMemStore()))
+	// Read models persist in the same database via a SQL-backed kv.Store.
+	kvStore, err := backend.KVStore()
+	if err != nil {
+		_ = backend.Close()
+		_ = db.Close()
+
+		return nil, fmt.Errorf("sqlite: kv store: %w", err)
+	}
+
+	stackOpts = append(stackOpts, stack.WithReadModels(kvStore))
 
 	// Register lifecycle: backend closes stores, dbCloser closes the DB.
 	// Order matters — stores must close before the DB.

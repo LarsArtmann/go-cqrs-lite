@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/kv/v2"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
 )
 
@@ -22,6 +23,9 @@ type SQLBackend struct {
 	snapStore    *SQLSnapshotStore
 	checkpointMu sync.Mutex
 	cpStore      *SQLCheckpointStore
+
+	kvMu    sync.Mutex
+	kvStore *SQLKVStore
 }
 
 func NewSQLBackend(db *sql.DB) (*SQLBackend, error) {
@@ -128,6 +132,29 @@ func (b *SQLBackend) CheckpointStore() (*SQLCheckpointStore, error) {
 	return store, nil
 }
 
+// KVStore returns a [kv.Store] backed by the cqrs_kv table, creating it on
+// first call. All calls return the same instance. Goroutine-safe.
+//
+// Use this as the read-model backend for SQL-backed presets so that read
+// models persist across process restarts instead of living only in memory.
+func (b *SQLBackend) KVStore() (kv.Store, error) {
+	b.kvMu.Lock()
+	defer b.kvMu.Unlock()
+
+	if b.kvStore != nil {
+		return b.kvStore, nil
+	}
+
+	store, err := newSQLKVStoreWithDialect(b.store.DB, b.store.Dialect)
+	if err != nil {
+		return nil, event.WrapInfrastructure(err, "backend.kv_store", "kv store")
+	}
+
+	b.kvStore = store
+
+	return store, nil
+}
+
 // Close closes all stores created through this backend.
 // The underlying *sql.DB is NOT closed — it is borrowed from the caller.
 func (b *SQLBackend) Close() error {
@@ -153,6 +180,12 @@ func (b *SQLBackend) Close() error {
 
 	if b.cpStore != nil {
 		if err := b.cpStore.Close(); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	if b.kvStore != nil {
+		if err := b.kvStore.Close(); err != nil {
 			errs = append(errs, err)
 		}
 	}

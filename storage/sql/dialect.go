@@ -22,6 +22,7 @@ type Dialect interface {
 	QuerySchema() string
 	SnapshotSchema() string
 	CheckpointSchema() string
+	KVSchema() string
 }
 
 // PostgresDialect is the Dialect for PostgreSQL databases.
@@ -122,6 +123,13 @@ func (PostgresDialect) CheckpointSchema() string {
 );`
 }
 
+func (PostgresDialect) KVSchema() string {
+	return `CREATE TABLE IF NOT EXISTS cqrs_kv (
+    key   BYTEA PRIMARY KEY,
+    value BYTEA NOT NULL
+);`
+}
+
 // SQLiteDialect is the Dialect for SQLite databases.
 type SQLiteDialect struct{}
 
@@ -218,6 +226,13 @@ func (SQLiteDialect) CheckpointSchema() string {
     event_id        TEXT NOT NULL,
     processed_at    TEXT NOT NULL DEFAULT(datetime('now'))
 );`
+}
+
+func (SQLiteDialect) KVSchema() string {
+	return `CREATE TABLE IF NOT EXISTS cqrs_kv (
+    key   BLOB PRIMARY KEY,
+    value BLOB NOT NULL
+) WITHOUT ROWID;`
 }
 
 // Placeholders returns a comma-separated list of placeholders for the given count.

@@ -112,8 +112,7 @@ func TestNew_E2E_EventSaveLoadRoundtrip(t *testing.T) {
 }
 
 // E2E: read-model roundtrip through the SQLite preset.
-// Read models are currently in-memory (kv.MemStore); this test verifies the
-// wiring works end-to-end even though read models aren't SQL-persisted yet.
+// Read models are persisted to the cqrs_kv table (SQL kv.Store).
 func TestNew_E2E_ReadModelRoundtrip(t *testing.T) {
 	t.Parallel()
 
@@ -148,6 +147,65 @@ func TestNew_E2E_ReadModelRoundtrip(t *testing.T) {
 
 	if got.Title != "persisted" || !got.Done {
 		t.Fatalf("read model mismatch: %+v", got)
+	}
+}
+
+// E2E: read models now PERSIST across a process restart, because the SQLite
+// preset backs them with a SQL kv.Store (cqrs_kv table) instead of kv.MemStore.
+// This is the defining behaviour of the persistent read-model feature.
+func TestNew_E2E_ReadModelPersistence(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	dsn := filepath.Join(dir, "persist.db")
+
+	// First instance: write a read model, then close.
+	writer, err := sqlite.New(dsn)
+	if err != nil {
+		t.Fatalf("New writer: %v", err)
+	}
+
+	wStore, err := stack.ReadModel[todoView, todoKey](
+		writer, codec.JSONCodec{},
+		readmodel.WithKeyPrefix[todoView, todoKey]("todos:"),
+	)
+	if err != nil {
+		t.Fatalf("ReadModel writer: %v", err)
+	}
+
+	ctx := context.Background()
+
+	if err := wStore.Set(ctx, "1", &todoView{Title: "survives restart", Done: true}); err != nil {
+		t.Fatalf("Set: %v", err)
+	}
+
+	if err := writer.Close(); err != nil {
+		t.Fatalf("Close writer: %v", err)
+	}
+
+	// Second instance on the same DSN: the read model must still be there.
+	reader, err := sqlite.New(dsn)
+	if err != nil {
+		t.Fatalf("New reader: %v", err)
+	}
+
+	defer func() { _ = reader.Close() }()
+
+	rStore, err := stack.ReadModel[todoView, todoKey](
+		reader, codec.JSONCodec{},
+		readmodel.WithKeyPrefix[todoView, todoKey]("todos:"),
+	)
+	if err != nil {
+		t.Fatalf("ReadModel reader: %v", err)
+	}
+
+	got, err := rStore.Get(ctx, "1")
+	if err != nil {
+		t.Fatalf("Get after reopen: %v", err)
+	}
+
+	if got.Title != "survives restart" || !got.Done {
+		t.Fatalf("read model did not persist across reopen: %+v", got)
 	}
 }
 

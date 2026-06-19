@@ -6,7 +6,6 @@ require (
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/larsartmann/go-cqrs-lite/event/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.5.0
-	github.com/larsartmann/go-cqrs-lite/kv/v2 v2.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/storage/v2 v2.5.0
@@ -26,6 +25,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/command/v2 v2.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v2 v2.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/kv/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v2 v2.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.0.0-00010101000000-000000000000 // indirect

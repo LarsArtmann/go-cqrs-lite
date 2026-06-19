@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/larsartmann/go-cqrs-lite/kv/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/stack/v2"
 	"github.com/larsartmann/go-cqrs-lite/storage/v2"
@@ -36,10 +35,9 @@ func WithoutAutoMigrate() Option {
 // "postgres://user:pass@localhost:5432/myapp?sslmode=disable". The database is
 // opened with the pure-Go pgx driver (no CGo required).
 //
-// Events, commands, queries, snapshots, and checkpoints are persisted to the
-// database. The event bus uses an in-memory implementation (memory.NewMemoryBus)
-// since PostgreSQL has no pub/sub semantics. Read models use an in-memory KV
-// store (kv.MemStore).
+// Events, commands, queries, snapshots, checkpoints, AND read models are all
+// persisted to the database. The event bus uses an in-memory implementation
+// (memory.NewMemoryBus) since PostgreSQL has no pub/sub semantics.
 //
 // On any setup failure the database is closed before the error is returned —
 // no resource leaks. The returned Bundle owns the *sql.DB; Close releases it.
@@ -80,7 +78,17 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	stackOpts := buildOptions(backend)
 
 	stackOpts = append(stackOpts, stack.WithBus(memory.NewMemoryBus()))
-	stackOpts = append(stackOpts, stack.WithReadModels(kv.NewMemStore()))
+
+	// Read models persist in the same database via a SQL-backed kv.Store.
+	kvStore, err := backend.KVStore()
+	if err != nil {
+		_ = backend.Close()
+		_ = db.Close()
+
+		return nil, fmt.Errorf("postgres preset: kv store: %w", err)
+	}
+
+	stackOpts = append(stackOpts, stack.WithReadModels(kvStore))
 	stackOpts = append(
 		stackOpts,
 		stack.WithCloser(backend),
