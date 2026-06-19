@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/stack/postgres/v2
 go 1.26.3
 
 require (
-	github.com/jackc/pgx/v5 v5.7.1
+	github.com/jackc/pgx/v5 v5.10.0
 	github.com/larsartmann/go-cqrs-lite/event/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.5.0
