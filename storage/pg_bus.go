@@ -15,6 +15,8 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
 )
 
 // DefaultPostgresBusChannel is the default LISTEN/NOTIFY channel name.
@@ -290,7 +292,18 @@ func (b *PostgresBus) rebuildPublisherChain() {
 }
 
 func (b *PostgresBus) publishOne(ctx context.Context, evt event.Event) error {
+	ctx, span := cqrsotel.StartSpan(
+		ctx, sqlpkg.Tracer(), "pg_bus.publish",
+		cqrsotel.SpanKindInternal,
+		cqrsotel.WithAttributes(
+			cqrsotel.AttrString("cqrs.event.type", string(evt.Type())),
+			cqrsotel.AttrString("cqrs.event.id", evt.ID().String()),
+		),
+	)
+	defer span.End()
+
 	if err := b.dispatchLocal(ctx, evt); err != nil {
+		cqrsotel.RecordError(span, err)
 		return err
 	}
 
@@ -304,12 +317,14 @@ func (b *PostgresBus) publishOne(ctx context.Context, evt event.Event) error {
 
 	payloadJSON, err := json.Marshal(payload)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
 		return event.WrapInfrastructure(err, "storage.pg_bus_marshal",
 			"marshal notify payload for "+string(evt.Type()))
 	}
 
 	err = b.opts.notifyFn(ctx, b.opts.channel, string(payloadJSON))
 	if err != nil {
+		cqrsotel.RecordError(span, err)
 		return event.WrapInfrastructure(err, "storage.pg_bus_notify",
 			"send NOTIFY for "+string(evt.Type()))
 	}
@@ -434,19 +449,30 @@ func (b *PostgresBus) handleNotification(ctx context.Context, payload string) {
 	var np notifyPayload
 	if err := json.Unmarshal([]byte(payload), &np); err != nil {
 		b.opts.logger.ErrorContext(ctx, "failed to unmarshal notify payload", "error", err)
-
 		return
 	}
 
+	ctx, span := cqrsotel.StartSpan(
+		ctx, sqlpkg.Tracer(), "pg_bus.handle_notification",
+		cqrsotel.SpanKindConsumer,
+		cqrsotel.WithAttributes(
+			cqrsotel.AttrString("cqrs.event.type", string(np.EventType)),
+			cqrsotel.AttrString("cqrs.event.id", np.EventID.String()),
+			cqrsotel.AttrString("cqrs.aggregate.type", string(np.AggregateType)),
+		),
+	)
+	defer span.End()
+
 	evt, err := b.refetchEvent(ctx, np)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
 		b.opts.logger.ErrorContext(ctx, "failed to re-fetch event from store",
 			"event_id", np.EventID, "type", np.EventType, "error", err)
-
 		return
 	}
 
 	if err := b.dispatchLocal(ctx, evt); err != nil {
+		cqrsotel.RecordError(span, err)
 		b.opts.logger.ErrorContext(ctx, "failed to dispatch re-fetched event",
 			"event_id", np.EventID, "type", np.EventType, "error", err)
 	}
