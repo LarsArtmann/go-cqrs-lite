@@ -16,4 +16,5 @@ func main() {
 	fmt.Println("  - event: event creation, metadata, tombstone detection")
 	fmt.Println("  - command: command creation, typed handlers")
 	fmt.Println("  - query: query dispatch, pagination")
+	fmt.Println("  - decider: pure-function aggregate decision logic")
 }
