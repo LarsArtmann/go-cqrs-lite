@@ -63,7 +63,7 @@ gofumpt -w .
 
 ## Project Structure
 
-Multi-module Go workspace with 29 modules:
+Multi-module Go workspace with 30 modules:
 
 ```
 event/         # Event system (Event, EventSink, EventSource, Bus)
@@ -81,6 +81,7 @@ signing/       # Event signing (HMAC, Ed25519)
 projection/    # Projection runner (replay + live)
 storage/       # SQL event store (PostgreSQL, SQLite, Turso)
 otel/          # OpenTelemetry helpers
+prometheus/    # OTel→Prometheus metrics bridge
 listing/       # Aggregate listing
 watermill/     # Watermill protocol adapter
 pebble/        # PebbleDB event store

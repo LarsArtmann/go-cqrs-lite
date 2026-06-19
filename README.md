@@ -153,7 +153,7 @@ Every module has its own README with detailed usage, types, and examples.
 
 ## Status
 
-**v2.3.0** — 29 modules, 84–100% test coverage, 0 lint issues. Active development.
+**v2.6.0** — 30 modules, 84–100% test coverage, 0 lint issues. Active development.
 
 See [FEATURES.md](FEATURES.md) for the full feature inventory and [docs/](docs/) for architecture decisions (ADRs), benchmarks, and storage guides.
 

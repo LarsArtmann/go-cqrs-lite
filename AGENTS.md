@@ -22,20 +22,20 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Quick Reference
 
-| Item      | Value                                                                                                                                                                                                                                                                                                                                                                          |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Language  | Go 1.26.3                                                                                                                                                                                                                                                                                                                                                                      |
-| Modules   | `event`, `command`, `query`, `decider`, `id`, `dispatcher`, `schema`, `snapshot`, `memory`, `catalog`, `middleware`, `integration`, `storage`, `projection`, `signing`, `encryption`, `otel`, `watermill`, `pebble`, `codec`, `kv`, `turso`, `listing`, `testutil`, `cqrs-gen`, `api-stability`                                                                                |
-| Build     | `nix run .#build`                                                                                                                                                                                                                                                                                                                                                              |
-| Test      | `nix run .#test` or `go test ./event/... ./command/... ./query/... ./decider/... ./id/... ./dispatcher/... ./schema/... ./snapshot/... ./memory/... ./catalog/... ./middleware/... ./integration/... ./projection/... ./signing/... ./encryption/... ./storage/... ./watermill/... ./pebble/... ./codec/... ./kv/... ./listing/... ./testutil/... ./cmd/cqrs-gen/... -count=1` |
-| Lint      | `nix run .#lint`                                                                                                                                                                                                                                                                                                                                                               |
-| Format    | `nix fmt`                                                                                                                                                                                                                                                                                                                                                                      |
-| Dev shell | `nix develop`                                                                                                                                                                                                                                                                                                                                                                  |
-| CI        | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module)                                                                                                                                                                                                                                                                                  |
+| Item      | Value                                                                                                                                                                                                                                                                                                                                                                                           |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Language  | Go 1.26.3                                                                                                                                                                                                                                                                                                                                                                                       |
+| Modules   | `event`, `command`, `query`, `decider`, `id`, `dispatcher`, `schema`, `snapshot`, `memory`, `catalog`, `middleware`, `integration`, `storage`, `projection`, `signing`, `encryption`, `otel`, `prometheus`, `watermill`, `pebble`, `codec`, `kv`, `turso`, `listing`, `testutil`, `cqrs-gen`, `api-stability`                                                                                   |
+| Build     | `nix run .#build`                                                                                                                                                                                                                                                                                                                                                                               |
+| Test      | `nix run .#test` or `go test ./event/... ./command/... ./query/... ./decider/... ./id/... ./dispatcher/... ./schema/... ./snapshot/... ./memory/... ./catalog/... ./middleware/... ./integration/... ./projection/... ./signing/... ./encryption/... ./storage/... ./watermill/... ./pebble/... ./codec/... ./kv/... ./listing/... ./testutil/... ./cmd/cqrs-gen/... ./prometheus/... -count=1` |
+| Lint      | `nix run .#lint`                                                                                                                                                                                                                                                                                                                                                                                |
+| Format    | `nix fmt`                                                                                                                                                                                                                                                                                                                                                                                       |
+| Dev shell | `nix develop`                                                                                                                                                                                                                                                                                                                                                                                   |
+| CI        | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module)                                                                                                                                                                                                                                                                                                   |
 
 ## Monorepo Structure
 
-Multi-module Go workspace (`go.work`) with 29 modules (23 library + 1 integration + 3 examples + 2 cmd):
+Multi-module Go workspace (`go.work`) with 30 modules (24 library + 1 integration + 3 examples + 2 cmd):
 
 ```
 go-cqrs-lite/
@@ -52,7 +52,7 @@ go-cqrs-lite/
 ├── decider/             # Decider[State], Repository[State], Execute, Load (pure-function style)
 ├── id/                  # Branded IDs: id.Of[T] = cbid.ID[T, ulid.ULID], AggregateID, EventID, etc.
 ├── dispatcher/          # Generic Dispatcher[H, M] with LifecycleMixin
-├── schema/              # Upcaster, VersionedStore, upcasterRegistry (schema evolution)
+├── schema/              # Upcaster, VersionedStore, upcasterRegistry (schema evolution); Validator with RegisterType[T]() (ADR-0017)
 ├── snapshot/            # Snapshot, SnapshotSink/Source/Store, SnapshotStrategy, EveryNEvents
 ├── memory/              # MemoryStore, MemoryBus, MemorySnapshotStore, MemoryCheckpointStore, MemoryCommandStore, MemoryCommandBus, MemoryQueryStore (in-memory test impls)
 ├── catalog/             # Registry, SchemaFromType[T](), AsyncAPI/D2/EventCatalog/OpenAPI exporters
@@ -64,6 +64,7 @@ go-cqrs-lite/
 ├── storage/             # SQLEventStore, SQLSnapshotStore, SQLCheckpointStore, SQLCommandStore, SQLQueryStore (PG/SQLite/Turso)
 │   └── sql/             # Dialect, DBHandle, OwnedDBHandle, QueryEngine, RunInTx, IsDuplicateKeyError, ScanSlice, CommitTx
 ├── otel/                # Shared OpenTelemetry helpers: Tracer, Meter, Spans, Attributes
+├── prometheus/         # OTel→Prometheus metrics bridge: Setup() MeterProvider + /metrics HTTP handler, WithRegistry(), MustSetup()
 ├── listing/             # AggregateListing, AggregateStatus, tombstone detection, StatusMiddleware, InMemoryAggregateReader
 ├── watermill/           # Watermill protocol adapter (publisher/subscriber)
 ├── pebble/              # Embedded KV store (PebbleDB): EventStore, SnapshotStore, CheckpointStore, KVAdapter (kv.Store). CBOR envelope, shared DB via disjoint key prefixes
@@ -338,10 +339,10 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 
 ## Dependencies
 
-| Category   | Packages                                                                                                                                                                                                                                         |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Production | oklog/ulid/v2, go-branded-id, go-error-family, samber/ro (event, command, query); go-faster/yaml (catalog); go.opentelemetry.io/otel (otel, event, storage, middleware, projection); golang.org/x/crypto (encryption); fxamacker/cbor/v2 (codec) |
-| Test-only  | onsi/ginkgo/v2, onsi/gomega, pgregory.net/rapid (event, encryption)                                                                                                                                                                              |
+| Category   | Packages                                                                                                                                                                                                                                                                                            |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Production | oklog/ulid/v2, go-branded-id, go-error-family, samber/ro (event, command, query); go-faster/yaml (catalog); go.opentelemetry.io/otel (otel, event, storage, middleware, projection, prometheus); prometheus/client_golang (prometheus); golang.org/x/crypto (encryption); fxamacker/cbor/v2 (codec) |
+| Test-only  | onsi/ginkgo/v2, onsi/gomega, pgregory.net/rapid (event, encryption)                                                                                                                                                                                                                                 |
 
 **Coverage**: 84–100% across 32 packages. See `docs/status/` for latest.
 
@@ -353,7 +354,7 @@ Layer 1: event/ (→id, codec, ro), command/ (→id, dispatcher, ro), query/ (�
 Layer 2: schema/ (→event), snapshot/ (→event)
 Layer 3: decider/ (→event, snapshot)
 Layer 4: memory/, signing/, encryption/, otel/
-Layer 5: middleware/, storage/, projection/, listing/, watermill/, pebble/, turso/
+Layer 5: middleware/, storage/, projection/, listing/, watermill/, pebble/, turso/, prometheus/
 Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability
 ```
 
