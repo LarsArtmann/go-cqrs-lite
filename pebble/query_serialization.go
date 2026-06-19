@@ -19,7 +19,7 @@ type serializableQuery struct {
 }
 
 func (s *QueryStore) serializeQuery(q *query.PersistedQuery) ([]byte, error) {
-	sq := serializableQuery{
+	serialized := serializableQuery{
 		ID:         q.ID(),
 		Type:       string(q.Type()),
 		ReceivedAt: q.ReceivedAt().UnixNano(),
@@ -27,20 +27,22 @@ func (s *QueryStore) serializeQuery(q *query.PersistedQuery) ([]byte, error) {
 		Metadata:   q.Metadata(),
 	}
 
-	return pebbleEncMode.Marshal(sq) //nolint:wrapcheck // storage serialization, not domain error
+	return pebbleEncMode.Marshal(
+		serialized,
+	) //nolint:wrapcheck // storage serialization, not domain error
 }
 
 func (s *QueryStore) deserializeQuery(data []byte) (*query.PersistedQuery, error) {
-	var sq serializableQuery
+	var serialized serializableQuery
 
 	var err error
 
 	if isCBOR(data) {
-		err = pebbleDecMode.Unmarshal(data, &sq)
+		err = pebbleDecMode.Unmarshal(data, &serialized)
 	} else {
 		err = json.Unmarshal(
 			data,
-			&sq,
+			&serialized,
 		) //nolint:nolintlint // legacy JSON fallback for backward compat
 	}
 
@@ -50,11 +52,11 @@ func (s *QueryStore) deserializeQuery(data []byte) (*query.PersistedQuery, error
 	}
 
 	q, err := query.NewPersistedQuery(
-		query.Type(sq.Type),
-		sq.Payload,
-		query.WithQueryID(sq.ID),
-		query.WithQueryReceivedAt(time.Unix(0, sq.ReceivedAt)),
-		query.WithQueryMetadata(sq.Metadata),
+		query.Type(serialized.Type),
+		serialized.Payload,
+		query.WithQueryID(serialized.ID),
+		query.WithQueryReceivedAt(time.Unix(0, serialized.ReceivedAt)),
+		query.WithQueryMetadata(serialized.Metadata),
 	)
 	if err != nil {
 		return nil, event.WrapCorruption(err, "pebble.reconstruct_query",

@@ -10,7 +10,6 @@ import (
 	"github.com/cockroachdb/pebble"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
 )
@@ -93,7 +92,7 @@ func (s *CommandStore) Save(
 	ref command.AggregateRef,
 	cmd *command.PersistedCommand,
 ) error {
-	_, span := startAggregateSpan(ctx, "pebble.command.save", event.AggregateRef(ref),
+	_, span := startAggregateSpan(ctx, "pebble.command.save", ref,
 		cqrsotel.AttrString("command.type", string(cmd.Type())))
 	defer span.End()
 
@@ -115,13 +114,15 @@ func (s *CommandStore) Save(
 	batch := s.db.NewBatch()
 	defer func() { _ = batch.Close() }()
 
-	if err := s.writeCommandToBatch(batch, ref, cmd.ID(), jKey, data); err != nil {
+	err = s.writeCommandToBatch(batch, ref, cmd.ID(), jKey, data)
+	if err != nil {
 		cqrsotel.RecordError(span, err)
 
 		return err
 	}
 
-	if err := batch.Commit(s.writeOptions()); err != nil {
+	err = batch.Commit(s.writeOptions())
+	if err != nil {
 		cqrsotel.RecordError(span, err)
 
 		return command.WrapInfrastructure(err, "pebble.command_commit",
@@ -143,7 +144,7 @@ func (s *CommandStore) AppendBatch(
 		return nil
 	}
 
-	_, span := startAggregateSpan(ctx, "pebble.command.append_batch", event.AggregateRef(ref),
+	_, span := startAggregateSpan(ctx, "pebble.command.append_batch", ref,
 		cqrsotel.AttrInt("command.count", len(cmds)))
 	defer span.End()
 
@@ -175,14 +176,16 @@ func (s *CommandStore) AppendBatch(
 				fmt.Sprintf("serialize command %s", cmd.ID()))
 		}
 
-		if err := s.writeCommandToBatch(batch, ref, cmd.ID(), jKey, data); err != nil {
+		err = s.writeCommandToBatch(batch, ref, cmd.ID(), jKey, data)
+		if err != nil {
 			cqrsotel.RecordError(span, err)
 
 			return err
 		}
 	}
 
-	if err := batch.Commit(s.writeOptions()); err != nil {
+	err := batch.Commit(s.writeOptions())
+	if err != nil {
 		cqrsotel.RecordError(span, err)
 
 		return command.WrapInfrastructure(err, "pebble.command_batch_commit",
@@ -211,12 +214,14 @@ func (s *CommandStore) writeCommandToBatch(
 ) error {
 	aKey := s.commandKey(ref, cmdID)
 
-	if err := batch.Set(aKey, data, nil); err != nil {
+	err := batch.Set(aKey, data, nil)
+	if err != nil {
 		return command.WrapInfrastructure(err, "pebble.command_aggregate_key",
 			"add command to aggregate index")
 	}
 
-	if err := batch.Set(journalKey, data, nil); err != nil {
+	err = batch.Set(journalKey, data, nil)
+	if err != nil {
 		return command.WrapInfrastructure(err, "pebble.command_journal_key",
 			"add command to journal index")
 	}

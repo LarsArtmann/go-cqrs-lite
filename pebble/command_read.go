@@ -17,7 +17,7 @@ func (s *CommandStore) Load(
 	ctx context.Context,
 	ref command.AggregateRef,
 ) ([]*command.PersistedCommand, error) {
-	_, span := startAggregateSpan(ctx, "pebble.command.load", event.AggregateRef(ref))
+	_, span := startAggregateSpan(ctx, "pebble.command.load", ref)
 	defer span.End()
 
 	cmds, err := s.scanCommands(
@@ -45,7 +45,7 @@ func (s *CommandStore) LoadFromTimestamp(
 	_, span := startAggregateSpan(
 		ctx,
 		"pebble.command.load_from_timestamp",
-		event.AggregateRef(ref),
+		ref,
 	)
 	defer span.End()
 
@@ -70,7 +70,7 @@ func (s *CommandStore) LoadToTimestamp(
 	ref command.AggregateRef,
 	maxTime time.Time,
 ) ([]*command.PersistedCommand, error) {
-	_, span := startAggregateSpan(ctx, "pebble.command.load_to_timestamp", event.AggregateRef(ref))
+	_, span := startAggregateSpan(ctx, "pebble.command.load_to_timestamp", ref)
 	defer span.End()
 
 	cmds, err := s.scanCommands(
@@ -204,7 +204,8 @@ func (s *CommandStore) scanCommands(
 		}
 	}
 
-	if err := checkIteratorError(iter); err != nil {
+	err = checkIteratorError(iter)
+	if err != nil {
 		return nil, event.WrapInfrastructure(err, "pebble.command_iter_error",
 			"command iterator error")
 	}

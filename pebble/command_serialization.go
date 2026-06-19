@@ -22,7 +22,7 @@ type serializableCommand struct {
 }
 
 func (s *CommandStore) serializeCommand(cmd *command.PersistedCommand) ([]byte, error) {
-	sc := serializableCommand{
+	serialized := serializableCommand{
 		ID:            cmd.ID(),
 		Type:          string(cmd.Type()),
 		AggregateID:   cmd.AggregateID(),
@@ -32,20 +32,22 @@ func (s *CommandStore) serializeCommand(cmd *command.PersistedCommand) ([]byte, 
 		Metadata:      cmd.Metadata(),
 	}
 
-	return pebbleEncMode.Marshal(sc) //nolint:wrapcheck // storage serialization, not domain error
+	return pebbleEncMode.Marshal(
+		serialized,
+	) //nolint:wrapcheck // storage serialization, not domain error
 }
 
 func (s *CommandStore) deserializeCommand(data []byte) (*command.PersistedCommand, error) {
-	var sc serializableCommand
+	var serialized serializableCommand
 
 	var err error
 
 	if isCBOR(data) {
-		err = pebbleDecMode.Unmarshal(data, &sc)
+		err = pebbleDecMode.Unmarshal(data, &serialized)
 	} else {
 		err = json.Unmarshal(
 			data,
-			&sc,
+			&serialized,
 		) //nolint:nolintlint // legacy JSON fallback for backward compat
 	}
 
@@ -55,17 +57,17 @@ func (s *CommandStore) deserializeCommand(data []byte) (*command.PersistedComman
 	}
 
 	ref := command.NewAggregateRef(
-		command.AggregateType(sc.AggregateType),
-		sc.AggregateID,
+		command.AggregateType(serialized.AggregateType),
+		serialized.AggregateID,
 	)
 
 	cmd, err := command.NewPersistedCommand(
-		command.Type(sc.Type),
+		command.Type(serialized.Type),
 		ref,
-		sc.Payload,
-		command.WithCommandID(sc.ID),
-		command.WithReceivedAt(time.Unix(0, sc.ReceivedAt)),
-		command.WithCommandMetadata(sc.Metadata),
+		serialized.Payload,
+		command.WithCommandID(serialized.ID),
+		command.WithReceivedAt(time.Unix(0, serialized.ReceivedAt)),
+		command.WithCommandMetadata(serialized.Metadata),
 	)
 	if err != nil {
 		return nil, event.WrapCorruption(err, "pebble.reconstruct_command",

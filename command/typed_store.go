@@ -77,7 +77,8 @@ func (t *TypedCommandStore[P]) Save(
 		return err
 	}
 
-	return t.store.Save(ctx, ref, persisted)
+	return WrapInfrastructure(t.store.Save(ctx, ref, persisted),
+		"command.typed_store.save", "save typed command")
 }
 
 // Load retrieves all commands for ref, decoding each payload into P.
@@ -87,7 +88,7 @@ func (t *TypedCommandStore[P]) Load(
 ) ([]TypedPersistedCommand[P], error) {
 	cmds, err := t.store.Load(ctx, ref)
 	if err != nil {
-		return nil, err
+		return nil, WrapInfrastructure(err, "command.typed_store.load", "load typed commands")
 	}
 
 	result := make([]TypedPersistedCommand[P], 0, len(cmds))
@@ -95,7 +96,8 @@ func (t *TypedCommandStore[P]) Load(
 	for _, cmd := range cmds {
 		var payload P
 
-		if err := t.codec.Decode(cmd.Payload(), &payload); err != nil {
+		err := t.codec.Decode(cmd.Payload(), &payload)
+		if err != nil {
 			return nil, fmt.Errorf("command: decode typed payload for %s: %w", cmd.ID(), err)
 		}
 

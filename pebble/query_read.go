@@ -140,7 +140,8 @@ func (s *QueryStore) scanQueries(
 		}
 	}
 
-	if err := checkIteratorError(iter); err != nil {
+	err = checkIteratorError(iter)
+	if err != nil {
 		return nil, event.WrapInfrastructure(err, "pebble.query_iter_error",
 			"query iterator error")
 	}

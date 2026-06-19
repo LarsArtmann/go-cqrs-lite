@@ -62,7 +62,8 @@ func (t *TypedQueryStore[P]) SaveQuery(ctx context.Context, q TypedQuery[P]) err
 		return err
 	}
 
-	return t.store.SaveQuery(ctx, persisted)
+	return WrapInfrastructure(t.store.SaveQuery(ctx, persisted),
+		"query.typed_store.save", "save typed query")
 }
 
 // LoadQueries retrieves all queries after `after`, decoding each payload into P.
@@ -72,7 +73,7 @@ func (t *TypedQueryStore[P]) LoadQueries(
 ) ([]TypedQuery[P], error) {
 	queries, err := t.store.LoadQueries(ctx, after)
 	if err != nil {
-		return nil, err
+		return nil, WrapInfrastructure(err, "query.typed_store.load", "load typed queries")
 	}
 
 	result := make([]TypedQuery[P], 0, len(queries))
@@ -80,7 +81,8 @@ func (t *TypedQueryStore[P]) LoadQueries(
 	for _, q := range queries {
 		var payload P
 
-		if err := t.codec.Decode(q.Payload(), &payload); err != nil {
+		err := t.codec.Decode(q.Payload(), &payload)
+		if err != nil {
 			return nil, fmt.Errorf("query: decode typed payload for %s: %w", q.ID(), err)
 		}
 

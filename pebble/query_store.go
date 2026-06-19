@@ -101,7 +101,8 @@ func (s *QueryStore) SaveQuery(
 			fmt.Sprintf("serialize query %s", q.ID()))
 	}
 
-	if err := s.db.Set(key, data, s.writeOptions()); err != nil {
+	err = s.db.Set(key, data, s.writeOptions())
+	if err != nil {
 		cqrsotel.RecordError(span, err)
 
 		return query.WrapInfrastructure(err, "pebble.query_write",

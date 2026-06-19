@@ -19,14 +19,14 @@ func newCommandStore(t *testing.T) *cqrspebble.CommandStore {
 
 	dir := t.TempDir()
 
-	db, err := pebble.Open(dir, &pebble.Options{})
+	database, err := pebble.Open(dir, &pebble.Options{})
 	if err != nil {
 		t.Fatalf("open pebble: %v", err)
 	}
 
-	t.Cleanup(func() { _ = db.Close() })
+	t.Cleanup(func() { _ = database.Close() })
 
-	return cqrspebble.NewCommandStore(db, slog.Default())
+	return cqrspebble.NewCommandStore(database, slog.Default())
 }
 
 func mustCreateCommand(
@@ -170,7 +170,7 @@ func TestCommandStore_ReadFrom(t *testing.T) {
 
 	ref := command.NewAggregateRef("User", id.NewAggregateID())
 
-	var cmdIDs []id.CommandID
+	cmdIDs := make([]id.CommandID, 0, 5)
 
 	for i := range 5 {
 		cmd := mustCreateCommand(t, "user.action", ref)

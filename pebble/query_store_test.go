@@ -19,14 +19,14 @@ func newQueryStore(t *testing.T) *cqrspebble.QueryStore {
 
 	dir := t.TempDir()
 
-	db, err := pebble.Open(dir, &pebble.Options{})
+	database, err := pebble.Open(dir, &pebble.Options{})
 	if err != nil {
 		t.Fatalf("open pebble: %v", err)
 	}
 
-	t.Cleanup(func() { _ = db.Close() })
+	t.Cleanup(func() { _ = database.Close() })
 
-	return cqrspebble.NewQueryStore(db, slog.Default())
+	return cqrspebble.NewQueryStore(database, slog.Default())
 }
 
 func mustCreateQuery(t *testing.T, queryType string) *query.PersistedQuery {
@@ -51,16 +51,16 @@ func TestQueryStore_SaveAndLoadQueries(t *testing.T) {
 
 	before := time.Now()
 
-	q1 := mustCreateQuery(t, "user.list")
-	if err := store.SaveQuery(ctx, q1); err != nil {
-		t.Fatalf("SaveQuery q1: %v", err)
+	firstQuery := mustCreateQuery(t, "user.list")
+	if err := store.SaveQuery(ctx, firstQuery); err != nil {
+		t.Fatalf("SaveQuery firstQuery: %v", err)
 	}
 
 	time.Sleep(2 * time.Millisecond)
 
-	q2 := mustCreateQuery(t, "order.search")
-	if err := store.SaveQuery(ctx, q2); err != nil {
-		t.Fatalf("SaveQuery q2: %v", err)
+	secondQuery := mustCreateQuery(t, "order.search")
+	if err := store.SaveQuery(ctx, secondQuery); err != nil {
+		t.Fatalf("SaveQuery secondQuery: %v", err)
 	}
 
 	// Load all after `before` → both
@@ -74,7 +74,7 @@ func TestQueryStore_SaveAndLoadQueries(t *testing.T) {
 	}
 
 	// Load after q1's timestamp → only q2
-	mid := q1.ReceivedAt()
+	mid := firstQuery.ReceivedAt()
 	filtered, err := store.LoadQueries(ctx, mid)
 	if err != nil {
 		t.Fatalf("LoadQueries filtered: %v", err)
@@ -84,7 +84,7 @@ func TestQueryStore_SaveAndLoadQueries(t *testing.T) {
 		t.Fatalf("expected 1 query after mid, got %d", len(filtered))
 	}
 
-	if filtered[0].ID() != q2.ID() {
+	if filtered[0].ID() != secondQuery.ID() {
 		t.Errorf("expected q2, got %s", filtered[0].ID())
 	}
 }
@@ -138,7 +138,7 @@ func TestQueryStore_ReadQueriesFrom(t *testing.T) {
 	ctx := context.Background()
 	store := newQueryStore(t)
 
-	var queryIDs []id.RequestID
+	queryIDs := make([]id.RequestID, 0, 5)
 
 	for range 5 {
 		q := mustCreateQuery(t, "user.list")
