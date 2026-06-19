@@ -462,3 +462,119 @@ func TestPostgresBus_NotificationBadJSON(t *testing.T) {
 		t.Log("bus should not crash on bad JSON")
 	}
 }
+
+// versionOnlySource wraps an event.EventSource but deliberately does NOT
+// implement storage.EventByIDLoader. This forces PostgresBus.refetchEvent
+// onto the refetchByVersion fallback path, exercising the version-scan code.
+type versionOnlySource struct {
+	inner event.EventSource
+}
+
+func (v *versionOnlySource) Load(ctx context.Context, ref event.AggregateRef) ([]event.Event, error) {
+	return v.inner.Load(ctx, ref)
+}
+
+func (v *versionOnlySource) LoadFromVersion(
+	ctx context.Context, ref event.AggregateRef, ver event.Version,
+) ([]event.Event, error) {
+	return v.inner.LoadFromVersion(ctx, ref, ver)
+}
+
+func (v *versionOnlySource) LoadToVersion(
+	ctx context.Context, ref event.AggregateRef, max event.Version,
+) ([]event.Event, error) {
+	return v.inner.LoadToVersion(ctx, ref, max)
+}
+
+func (v *versionOnlySource) LoadToTimestamp(
+	ctx context.Context, ref event.AggregateRef, max time.Time,
+) ([]event.Event, error) {
+	return v.inner.LoadToTimestamp(ctx, ref, max)
+}
+
+func (v *versionOnlySource) Close() error { return v.inner.Close() }
+
+// Compile-time: versionOnlySource satisfies EventSource but NOT EventByIDLoader.
+var _ event.EventSource = (*versionOnlySource)(nil)
+
+// TestPostgresBus_RefetchVersionFallback verifies the refetchByVersion path
+// is used when the store does NOT implement EventByIDLoader. This is the
+// fallback for stores like MemoryStore and Pebble (until they gain
+// LoadByEventID). It sends a NOTIFY with an aggregate reference, and asserts
+// the listener re-fetches and dispatches the event via LoadFromVersion.
+func TestPostgresBus_RefetchVersionFallback(t *testing.T) {
+	t.Parallel()
+
+	inner := newBusTestStore(t)
+	store := &versionOnlySource{inner: inner}
+
+	db, _ := storage.OpenSQLiteInMemory()
+	t.Cleanup(func() { _ = db.Close() })
+
+	listener := newMockListener()
+
+	bus, err := storage.NewPostgresBus(db, store, listener,
+		storage.WithRefetchDelay(time.Millisecond),
+		storage.WithNotifyFunc(noopNotify),
+	)
+	if err != nil {
+		t.Fatalf("NewPostgresBus: %v", err)
+	}
+	t.Cleanup(func() { _ = bus.Close() })
+
+	ctx := context.Background()
+	aggID := id.NewAggregateID()
+	ref := event.NewAggregateRef("Test", aggID)
+
+	evt, err := event.NewEvent("test.versioned", aggID, "Test", event.Version(1),
+		[]byte(`{"n":1}`))
+	if err != nil {
+		t.Fatalf("NewEvent: %v", err)
+	}
+
+	if err := inner.Save(ctx, ref, []event.Event{evt}, event.Version(0)); err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+
+	var received atomic.Int64
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	_ = bus.Subscribe("test.versioned", func(_ context.Context, e event.Event) error {
+		if e.ID() == evt.ID() {
+			received.Add(1)
+			wg.Done()
+		}
+		return nil
+	})
+
+	// Build the payload manually (simulating a NOTIFY from another process)
+	// and inject it via the mock listener channel.
+	payload, marshalErr := json.Marshal(map[string]any{
+		"eid": evt.ID().String(),
+		"et":  "test.versioned",
+		"at":  "Test",
+		"aid": aggID.String(),
+		"v":   1,
+	})
+	if marshalErr != nil {
+		t.Fatalf("marshal: %v", marshalErr)
+	}
+
+	listener.notifications <- string(payload)
+
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		if received.Load() != 1 {
+			t.Fatalf("expected 1 delivery, got %d", received.Load())
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("timeout: version-scan fallback did not deliver event within 2s")
+	}
+}
