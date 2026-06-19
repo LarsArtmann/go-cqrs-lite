@@ -16,12 +16,15 @@ LAYER[kv]=0
 LAYER[event]=1
 LAYER[command]=1
 LAYER[query]=1
+LAYER[readmodel]=1
 LAYER[schema]=2
 LAYER[snapshot]=2
+LAYER[readmodel/cache]=2
 LAYER[decider]=3
 LAYER[memory]=4
 LAYER[signing]=4
 LAYER[otel]=4
+LAYER[stack]=4
 LAYER[middleware]=5
 LAYER[storage]=5
 LAYER[projection]=5
@@ -29,8 +32,13 @@ LAYER[listing]=5
 LAYER[watermill]=5
 LAYER[pebble]=5
 LAYER[turso]=5
+LAYER[stack/memory]=5
+LAYER[stack/sqlite]=5
+LAYER[stack/pebble]=5
+LAYER[stack/postgres]=5
 LAYER[catalog]=6
 LAYER[integration]=6
+LAYER[stack/bench]=6
 
 # Some modules legitimately depend on test helpers (memory) or cross-cutting concerns (otel)
 # These are documented exceptions to the strict layer rules
@@ -72,6 +80,14 @@ DEP_BUDGET[listing]=6
 DEP_BUDGET[watermill]=5
 DEP_BUDGET[pebble]=8
 DEP_BUDGET[turso]=10
+DEP_BUDGET[readmodel]=2
+DEP_BUDGET[readmodel/cache]=3
+DEP_BUDGET[stack]=10
+DEP_BUDGET[stack/memory]=4
+DEP_BUDGET[stack/sqlite]=5
+DEP_BUDGET[stack/pebble]=4
+DEP_BUDGET[stack/postgres]=6
+DEP_BUDGET[stack/bench]=7
 DEP_BUDGET[catalog]=4
 DEP_BUDGET[integration]=21
 

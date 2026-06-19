@@ -73,6 +73,14 @@
             "otel"
             "pebble"
             "turso"
+            "readmodel"
+            "readmodel/cache"
+            "stack"
+            "stack/memory"
+            "stack/sqlite"
+            "stack/pebble"
+            "stack/postgres"
+            "stack/bench"
             "cmd/cqrs-gen"
           ];
           modulePaths = builtins.concatStringsSep " " (map (m: "./${m}/...") testModules);
