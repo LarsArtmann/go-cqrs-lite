@@ -119,7 +119,8 @@ func TestNew_E2E_ReadModelRoundtrip(t *testing.T) {
 
 	defer func() { _ = b.Close() }()
 
-	store, err := stack.ReadModel[todoView, todoKey](b, codec.JSONCodec{},
+	store, err := stack.ReadModel[todoView, todoKey](
+		b, codec.JSONCodec{},
 		readmodel.WithKeyPrefix[todoView, todoKey]("todos:"),
 	)
 	if err != nil {
@@ -158,7 +159,8 @@ func TestNew_E2E_PersistenceAcrossBundles(t *testing.T) {
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("Todo", aggID)
 
-	events, err := event.NewEvents(aggID, "Todo", 0,
+	events, err := event.NewEvents(
+		aggID, "Todo", 0,
 		[]event.Type{"todo.created"},
 		[]any{map[string]any{"title": "persistent"}},
 	)

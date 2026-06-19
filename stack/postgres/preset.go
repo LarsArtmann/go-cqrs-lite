@@ -80,7 +80,8 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 
 	stackOpts = append(stackOpts, stack.WithBus(memory.NewMemoryBus()))
 	stackOpts = append(stackOpts, stack.WithReadModels(kv.NewMemStore()))
-	stackOpts = append(stackOpts,
+	stackOpts = append(
+		stackOpts,
 		stack.WithCloser(backend),
 		stack.WithCloser(&funcCloser{fn: db.Close}),
 	)

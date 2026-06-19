@@ -17,8 +17,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
+	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/readmodel/v2"
@@ -100,7 +100,8 @@ func testEventRoundtrip(t *testing.T, factory Factory) {
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("Contract", aggID)
 
-	events, err := event.NewEvents(aggID, "Contract", 0,
+	events, err := event.NewEvents(
+		aggID, "Contract", 0,
 		[]event.Type{"contract.created", "contract.updated"},
 		[]any{
 			map[string]any{"name": "alpha"},
@@ -181,7 +182,8 @@ func testReadModelRoundtrip(t *testing.T, factory Factory) {
 
 	defer func() { _ = b.Close() }()
 
-	store, err := stack.ReadModel[contractView, contractKey](b, codec.JSONCodec{},
+	store, err := stack.ReadModel[contractView, contractKey](
+		b, codec.JSONCodec{},
 		readmodel.WithKeyPrefix[contractView, contractKey]("contract:"),
 	)
 	if err != nil {

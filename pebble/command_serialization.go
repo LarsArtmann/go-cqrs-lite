@@ -43,7 +43,10 @@ func (s *CommandStore) deserializeCommand(data []byte) (*command.PersistedComman
 	if isCBOR(data) {
 		err = pebbleDecMode.Unmarshal(data, &sc)
 	} else {
-		err = json.Unmarshal(data, &sc) //nolint:nolintlint // legacy JSON fallback for backward compat
+		err = json.Unmarshal(
+			data,
+			&sc,
+		) //nolint:nolintlint // legacy JSON fallback for backward compat
 	}
 
 	if err != nil {

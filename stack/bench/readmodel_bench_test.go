@@ -32,7 +32,8 @@ func BenchmarkBundle_ReadModelGet(b *testing.B) {
 
 	defer func() { _ = bundle.Close() }()
 
-	store := readmodel.New[benchView, benchKey](bundle.ReadModels,
+	store := readmodel.New[benchView, benchKey](
+		bundle.ReadModels,
 		readmodel.WithKeyPrefix[benchView, benchKey]("bench:"),
 	)
 
@@ -57,7 +58,8 @@ func BenchmarkDirect_ReadModelGet(b *testing.B) {
 	backend := kv.NewMemStore()
 	defer func() { _ = backend.Close() }()
 
-	store := readmodel.New[benchView, benchKey](backend,
+	store := readmodel.New[benchView, benchKey](
+		backend,
 		readmodel.WithKeyPrefix[benchView, benchKey]("bench:"),
 	)
 

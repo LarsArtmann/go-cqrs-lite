@@ -116,7 +116,8 @@ func TestNew_E2E_ReadModelRoundtrip(t *testing.T) {
 
 	defer func() { _ = b.Close() }()
 
-	store, err := stack.ReadModel[todoView, todoKey](b, codec.JSONCodec{},
+	store, err := stack.ReadModel[todoView, todoKey](
+		b, codec.JSONCodec{},
 		readmodel.WithKeyPrefix[todoView, todoKey]("todos:"),
 	)
 	if err != nil {

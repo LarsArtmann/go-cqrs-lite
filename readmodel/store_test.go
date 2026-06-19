@@ -27,7 +27,10 @@ type todo struct {
 	Complete bool   `json:"complete"`
 }
 
-func newStore(t *testing.T, opts ...readmodel.Option[todo, todoKey]) *readmodel.Store[todo, todoKey] {
+func newStore(
+	t *testing.T,
+	opts ...readmodel.Option[todo, todoKey],
+) *readmodel.Store[todo, todoKey] {
 	t.Helper()
 
 	return readmodel.New[todo, todoKey](kv.NewMemStore(), opts...)

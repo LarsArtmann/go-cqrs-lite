@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
-	"github.com/larsartmann/go-cqrs-lite/readmodel/v2"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
+	"github.com/larsartmann/go-cqrs-lite/readmodel/v2"
 )
 
 // readModelAdapter bridges readmodel.Store[Todo, TodoID] to domain.TodoReadModel.

@@ -11,11 +11,11 @@ import (
 
 // serializableQuery is the CBOR (and legacy JSON) storage format for queries.
 type serializableQuery struct {
-	ID         id.RequestID     `json:"id"`
-	Type       string           `json:"type"`
-	ReceivedAt int64            `json:"received_at"` //nolint:tagliatelle // on-disk format uses snake_case
-	Payload    []byte           `json:"payload"`
-	Metadata   query.Metadata   `json:"metadata"`
+	ID         id.RequestID   `json:"id"`
+	Type       string         `json:"type"`
+	ReceivedAt int64          `json:"received_at"` //nolint:tagliatelle // on-disk format uses snake_case
+	Payload    []byte         `json:"payload"`
+	Metadata   query.Metadata `json:"metadata"`
 }
 
 func (s *QueryStore) serializeQuery(q *query.PersistedQuery) ([]byte, error) {
@@ -38,7 +38,10 @@ func (s *QueryStore) deserializeQuery(data []byte) (*query.PersistedQuery, error
 	if isCBOR(data) {
 		err = pebbleDecMode.Unmarshal(data, &sq)
 	} else {
-		err = json.Unmarshal(data, &sq) //nolint:nolintlint // legacy JSON fallback for backward compat
+		err = json.Unmarshal(
+			data,
+			&sq,
+		) //nolint:nolintlint // legacy JSON fallback for backward compat
 	}
 
 	if err != nil {

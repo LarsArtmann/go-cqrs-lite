@@ -12,7 +12,9 @@ var (
 	// ErrMissingEventStore is returned by accessors that require a composite
 	// event.Store. It means the Bundle was configured without
 	// [WithEventStore] (or a preset that sets one).
-	ErrMissingEventStore = errors.New("stack: bundle has no event.Store (use WithEventStore or a preset)")
+	ErrMissingEventStore = errors.New(
+		"stack: bundle has no event.Store (use WithEventStore or a preset)",
+	)
 
 	// ErrMissingPublisher is returned by [Bundle.Repository] when the Bundle
 	// has no event.Publisher. A repository needs one to publish saved events.
@@ -20,7 +22,9 @@ var (
 
 	// ErrMissingReadModels is returned by [Bundle.ReadModel] when the Bundle
 	// has no read-model backend.
-	ErrMissingReadModels = errors.New("stack: bundle has no read-model backend (use WithReadModels)")
+	ErrMissingReadModels = errors.New(
+		"stack: bundle has no read-model backend (use WithReadModels)",
+	)
 
 	// ErrMissingJournal is returned by [Bundle.ProjectionRunner] when the
 	// Bundle has no event.Journal for projection replay.

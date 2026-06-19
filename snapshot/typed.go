@@ -80,7 +80,12 @@ func NewTypedStore[State any](store SnapshotStore, c codec.Codec) *TypedStore[St
 func (t *TypedStore[State]) Save(ctx context.Context, snapshot TypedSnapshot[State]) error {
 	encoded, err := t.codec.Encode(snapshot.State)
 	if err != nil {
-		return fmt.Errorf("snapshot: encode state for %s v%d: %w", snapshot.AggregateID, snapshot.Version, err)
+		return fmt.Errorf(
+			"snapshot: encode state for %s v%d: %w",
+			snapshot.AggregateID,
+			snapshot.Version,
+			err,
+		)
 	}
 
 	return t.store.Save(ctx, Snapshot{
@@ -98,7 +103,10 @@ func (t *TypedStore[State]) Delete(ctx context.Context, ref event.AggregateRef) 
 }
 
 // Load retrieves the snapshot for ref and decodes its State.
-func (t *TypedStore[State]) Load(ctx context.Context, ref event.AggregateRef) (*TypedSnapshot[State], error) {
+func (t *TypedStore[State]) Load(
+	ctx context.Context,
+	ref event.AggregateRef,
+) (*TypedSnapshot[State], error) {
 	raw, err := t.store.Load(ctx, ref)
 	if err != nil {
 		return nil, err
@@ -129,7 +137,12 @@ func (t *TypedStore[State]) decode(raw *Snapshot) (*TypedSnapshot[State], error)
 	var state State
 
 	if err := t.codec.Decode(raw.State, &state); err != nil {
-		return nil, fmt.Errorf("snapshot: decode state for %s v%d: %w", raw.AggregateID, raw.Version, err)
+		return nil, fmt.Errorf(
+			"snapshot: decode state for %s v%d: %w",
+			raw.AggregateID,
+			raw.Version,
+			err,
+		)
 	}
 
 	return &TypedSnapshot[State]{

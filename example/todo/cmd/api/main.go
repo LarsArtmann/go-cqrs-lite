@@ -20,11 +20,11 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/example/todo/projections"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/queries"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/projection/v2"
+	"github.com/larsartmann/go-cqrs-lite/query/v2"
 	"github.com/larsartmann/go-cqrs-lite/readmodel/v2"
 	cqrsPebble "github.com/larsartmann/go-cqrs-lite/stack/pebble/v2"
 	"github.com/larsartmann/go-cqrs-lite/stack/v2"
-	"github.com/larsartmann/go-cqrs-lite/projection/v2"
-	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
 const (
@@ -63,7 +63,12 @@ func run(logger *slog.Logger) error {
 		readmodel.WithKeyPrefix[domain.Todo, domain.TodoID]("todos:"),
 	)
 	if err != nil {
-		return event.Newf(event.Infrastructure, "todo.cmd.api.main.2", "create read model store: %v", err)
+		return event.Newf(
+			event.Infrastructure,
+			"todo.cmd.api.main.2",
+			"create read model store: %v",
+			err,
+		)
 	}
 
 	readModelStore := newReadModelAdapter(rmStore)
@@ -72,7 +77,12 @@ func run(logger *slog.Logger) error {
 
 	runner, err := projection.NewRunner(bundle.Journal, bundle.Subscriber, bundle.CheckpointStore)
 	if err != nil {
-		return event.Newf(event.Infrastructure, "todo.cmd.api.main.3", "create projection runner: %v", err)
+		return event.Newf(
+			event.Infrastructure,
+			"todo.cmd.api.main.3",
+			"create projection runner: %v",
+			err,
+		)
 	}
 
 	if err := runner.Register(todoProjection); err != nil {
@@ -102,28 +112,48 @@ func run(logger *slog.Logger) error {
 		aggregate.CommandCreate,
 		commands.NewCreateTodoHandler(eventStore, bundle.Publisher).Handle,
 	); err != nil {
-		return event.Newf(event.Infrastructure, "todo.cmd.api.main.4", "register create command: %v", err)
+		return event.Newf(
+			event.Infrastructure,
+			"todo.cmd.api.main.4",
+			"register create command: %v",
+			err,
+		)
 	}
 
 	if err := cmdDisp.Register(
 		aggregate.CommandUpdate,
 		commands.NewUpdateTodoHandler(eventStore, bundle.Publisher).Handle,
 	); err != nil {
-		return event.Newf(event.Infrastructure, "todo.cmd.api.main.5", "register update command: %v", err)
+		return event.Newf(
+			event.Infrastructure,
+			"todo.cmd.api.main.5",
+			"register update command: %v",
+			err,
+		)
 	}
 
 	if err := cmdDisp.Register(
 		aggregate.CommandDelete,
 		commands.NewDeleteTodoHandler(eventStore, bundle.Publisher).Handle,
 	); err != nil {
-		return event.Newf(event.Infrastructure, "todo.cmd.api.main.6", "register delete command: %v", err)
+		return event.Newf(
+			event.Infrastructure,
+			"todo.cmd.api.main.6",
+			"register delete command: %v",
+			err,
+		)
 	}
 
 	if err := cmdDisp.Register(
 		aggregate.CommandChangeStatus,
 		commands.NewChangeStatusHandler(eventStore, bundle.Publisher).Handle,
 	); err != nil {
-		return event.Newf(event.Infrastructure, "todo.cmd.api.main.7", "register change status command: %v", err)
+		return event.Newf(
+			event.Infrastructure,
+			"todo.cmd.api.main.7",
+			"register change status command: %v",
+			err,
+		)
 	}
 
 	registerQueryHandlers(queryDisp, readModelStore)

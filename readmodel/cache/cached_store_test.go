@@ -8,8 +8,8 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/kv/v2"
-	"github.com/larsartmann/go-cqrs-lite/readmodel/v2"
 	"github.com/larsartmann/go-cqrs-lite/readmodel/cache/v2"
+	"github.com/larsartmann/go-cqrs-lite/readmodel/v2"
 )
 
 type testKey string
@@ -27,7 +27,8 @@ func newTestStore(t *testing.T) (*readmodel.Store[testView, testKey], *kv.MemSto
 	backend := kv.NewMemStore()
 	t.Cleanup(func() { _ = backend.Close() })
 
-	store := readmodel.New[testView, testKey](backend,
+	store := readmodel.New[testView, testKey](
+		backend,
 		readmodel.WithKeyPrefix[testView, testKey]("views:"),
 	)
 
@@ -218,7 +219,8 @@ func TestCachedStore_TTLExpiration(t *testing.T) {
 	store, _ := newTestStore(t)
 	ctx := context.Background()
 
-	cached, err := cache.New[testView, testKey](store,
+	cached, err := cache.New[testView, testKey](
+		store,
 		cache.WithTTL[testView, testKey](50*time.Millisecond),
 	)
 	if err != nil {

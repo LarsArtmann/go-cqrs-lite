@@ -26,7 +26,8 @@ func BenchmarkBundle_EventSave(b *testing.B) {
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("Bench", aggID)
 
-	events, _ := event.NewEvents(aggID, "Bench", 0,
+	events, _ := event.NewEvents(
+		aggID, "Bench", 0,
 		[]event.Type{"bench.created"},
 		[]any{map[string]any{"n": 1}},
 	)
@@ -52,7 +53,8 @@ func BenchmarkDirect_EventSave(b *testing.B) {
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("Bench", aggID)
 
-	events, _ := event.NewEvents(aggID, "Bench", 0,
+	events, _ := event.NewEvents(
+		aggID, "Bench", 0,
 		[]event.Type{"bench.created"},
 		[]any{map[string]any{"n": 1}},
 	)
@@ -69,8 +71,19 @@ func BenchmarkDirect_EventSave(b *testing.B) {
 	}
 }
 
-func mustReversion(b *testing.B, evt event.Event, aggID id.AggregateID, version event.Version) event.Event {
-	evt2, err := event.NewEvent(evt.Type(), aggID, evt.AggregateType(), version, event.PayloadReadOnly(evt))
+func mustReversion(
+	b *testing.B,
+	evt event.Event,
+	aggID id.AggregateID,
+	version event.Version,
+) event.Event {
+	evt2, err := event.NewEvent(
+		evt.Type(),
+		aggID,
+		evt.AggregateType(),
+		version,
+		event.PayloadReadOnly(evt),
+	)
 	if err != nil {
 		b.Fatal(err)
 	}

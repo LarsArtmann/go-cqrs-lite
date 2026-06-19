@@ -29,7 +29,11 @@ func newCommandStore(t *testing.T) *cqrspebble.CommandStore {
 	return cqrspebble.NewCommandStore(db, slog.Default())
 }
 
-func mustCreateCommand(t *testing.T, cmdType string, ref command.AggregateRef) *command.PersistedCommand {
+func mustCreateCommand(
+	t *testing.T,
+	cmdType string,
+	ref command.AggregateRef,
+) *command.PersistedCommand {
 	t.Helper()
 
 	cmd, err := command.NewPersistedCommand(

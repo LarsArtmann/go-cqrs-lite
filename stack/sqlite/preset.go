@@ -78,7 +78,11 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 
 	// Register lifecycle: backend closes stores, dbCloser closes the DB.
 	// Order matters — stores must close before the DB.
-	stackOpts = append(stackOpts, stack.WithCloser(backend), stack.WithCloser(&funcCloser{fn: db.Close}))
+	stackOpts = append(
+		stackOpts,
+		stack.WithCloser(backend),
+		stack.WithCloser(&funcCloser{fn: db.Close}),
+	)
 
 	b, err := stack.New(stackOpts...)
 	if err != nil {

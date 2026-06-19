@@ -42,7 +42,11 @@ func (s *CommandStore) LoadFromTimestamp(
 	ref command.AggregateRef,
 	after time.Time,
 ) ([]*command.PersistedCommand, error) {
-	_, span := startAggregateSpan(ctx, "pebble.command.load_from_timestamp", event.AggregateRef(ref))
+	_, span := startAggregateSpan(
+		ctx,
+		"pebble.command.load_from_timestamp",
+		event.AggregateRef(ref),
+	)
 	defer span.End()
 
 	cmds, err := s.scanCommands(
