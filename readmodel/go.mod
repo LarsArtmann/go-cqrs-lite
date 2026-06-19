@@ -3,8 +3,8 @@ module github.com/larsartmann/go-cqrs-lite/readmodel/v2
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/kv/v2 v2.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.6.0
+	github.com/larsartmann/go-cqrs-lite/kv/v2 v2.6.0
 )
 
 require (

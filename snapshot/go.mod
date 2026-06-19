@@ -3,9 +3,9 @@ module github.com/larsartmann/go-cqrs-lite/snapshot/v2
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.5.0
-	github.com/larsartmann/go-cqrs-lite/event/v2 v2.5.0
-	github.com/larsartmann/go-cqrs-lite/id/v2 v2.5.0
+	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.6.0
+	github.com/larsartmann/go-cqrs-lite/event/v2 v2.6.0
+	github.com/larsartmann/go-cqrs-lite/id/v2 v2.6.0
 )
 
 require (

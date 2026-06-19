@@ -4,11 +4,11 @@ go 1.26.3
 
 require (
 	github.com/jackc/pgx/v5 v5.10.0
-	github.com/larsartmann/go-cqrs-lite/event/v2 v2.5.0
-	github.com/larsartmann/go-cqrs-lite/id/v2 v2.5.0
-	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.5.0
-	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/storage/v2 v2.5.0
+	github.com/larsartmann/go-cqrs-lite/event/v2 v2.6.0
+	github.com/larsartmann/go-cqrs-lite/id/v2 v2.6.0
+	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.6.0
+	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-20260619185119-4f782d7f4179
+	github.com/larsartmann/go-cqrs-lite/storage/v2 v2.6.0
 	pgregory.net/rapid v1.3.0
 )
 
@@ -22,17 +22,17 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v2 v2.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/decider/v2 v2.0.0-00010101000000-000000000000 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v2 v2.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/decider/v2 v2.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v2 v2.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/listing/v2 v2.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.0.0-00010101000000-000000000000 // indirect
-	github.com/larsartmann/go-cqrs-lite/query/v2 v2.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/readmodel/v2 v2.0.0-00010101000000-000000000000 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/listing/v2 v2.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/query/v2 v2.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/readmodel/v2 v2.0.0-20260619185119-4f782d7f4179 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-error-family v0.4.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/samber/lo v1.53.0 // indirect

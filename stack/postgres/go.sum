@@ -34,8 +34,8 @@ github.com/jackc/puddle/v2 v2.2.2 h1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo
 github.com/jackc/puddle/v2 v2.2.2/go.mod h1:vriiEXHvEE654aYKXXjOvZM39qJ0q+azkZFrfEOc3H4=
 github.com/larsartmann/go-branded-id v0.3.1 h1:n53Vz3MCUy3S8YfW/v+zxL/qT96iiXZOT6p46HZysyA=
 github.com/larsartmann/go-branded-id v0.3.1/go.mod h1:fiv3t1PyNCITnE/8KtymGCUz7tQRuQxF+8oqNdFmA/Y=
-github.com/larsartmann/go-cqrs-lite/listing/v2 v2.5.0 h1:ftQJK+jjc3SClnoeUmRnQMOzLC/WuP5K6Hlx4645jJA=
-github.com/larsartmann/go-cqrs-lite/listing/v2 v2.5.0/go.mod h1:0xnEjaoT85zyPb0656PHRd1VQN8aEuQk7DAmoswSys8=
+github.com/larsartmann/go-cqrs-lite/listing/v2 v2.6.0 h1:q9qnFc5cU9FvuJzXDtjxH0iCSP7hItMx5mOQkpn7syE=
+github.com/larsartmann/go-cqrs-lite/listing/v2 v2.6.0/go.mod h1:0xnEjaoT85zyPb0656PHRd1VQN8aEuQk7DAmoswSys8=
 github.com/larsartmann/go-cqrs-lite/schema/v2 v2.5.0 h1:Ky6Z11Oy2ddgi2cQzvLH7u2y7y1CU2pkq/V1whw75J4=
 github.com/larsartmann/go-cqrs-lite/schema/v2 v2.5.0/go.mod h1:Syo7Ys9UmrF4WB/Sw+8MCeewiw2W5AMzNHy+zQsxSvM=
 github.com/larsartmann/go-error-family v0.4.0 h1:y4ykkSJJaqr7jtilitrdX+bByVAm6UTlTbccQMlu1Fw=
