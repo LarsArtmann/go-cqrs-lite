@@ -3,7 +3,6 @@ module github.com/larsartmann/go-cqrs-lite/example/todo
 go 1.26.3
 
 require (
-	github.com/cockroachdb/pebble v1.1.5
 	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/command/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/decider/v2 v2.5.0
@@ -13,6 +12,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/readmodel/v2 v2.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/stack/memory/v2 v2.0.0-20260619055429-dbf63b8ae359
 	github.com/larsartmann/go-cqrs-lite/stack/pebble/v2 v2.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-00010101000000-000000000000
 )
@@ -24,6 +24,7 @@ require (
 	github.com/cockroachdb/errors v1.14.0 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240816210425-c5d0cb0b6fc0 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20241215232642-bb51bb14a506 // indirect
+	github.com/cockroachdb/pebble v1.1.5 // indirect
 	github.com/cockroachdb/redact v1.1.8 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20250429170803-42689b6311bb // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
@@ -82,6 +83,7 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/query/v2 => ../../query
 	github.com/larsartmann/go-cqrs-lite/readmodel/v2 => ../../readmodel
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../../snapshot
+	github.com/larsartmann/go-cqrs-lite/stack/memory/v2 => ../../stack/memory
 	github.com/larsartmann/go-cqrs-lite/stack/pebble/v2 => ../../stack/pebble
 	github.com/larsartmann/go-cqrs-lite/stack/v2 => ../../stack
 )

@@ -9,29 +9,45 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/aggregate"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/commands"
+	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/projections"
-	"github.com/larsartmann/go-cqrs-lite/example/todo/queries"
-	"github.com/larsartmann/go-cqrs-lite/example/todo/storage"
-	cqrsmemory "github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
+	"github.com/larsartmann/go-cqrs-lite/readmodel/v2"
+	cqrsmemory "github.com/larsartmann/go-cqrs-lite/stack/memory/v2"
+	"github.com/larsartmann/go-cqrs-lite/stack/v2"
 )
 
 func setupTestMux(t *testing.T) *http.ServeMux {
 	t.Helper()
 
-	readModelStore, _ := storage.NewMemoryStore()
+	bundle, err := cqrsmemory.New()
+	if err != nil {
+		t.Fatalf("create bundle: %v", err)
+	}
 
-	eventStore := cqrsmemory.NewMemoryStore()
-	eventBus := cqrsmemory.NewMemoryBus()
+	t.Cleanup(func() { _ = bundle.Close() })
+
+	rmStore, err := stack.ReadModel[domain.Todo, domain.TodoID](
+		bundle, codec.JSONCodec{},
+		readmodel.WithKeyPrefix[domain.Todo, domain.TodoID]("todos:"),
+	)
+	if err != nil {
+		t.Fatalf("create read model store: %v", err)
+	}
+
+	readModelStore := newReadModelAdapter(rmStore)
+
+	eventStore := bundle.EventSink.(event.Store)
 
 	todoProjection := projections.NewTodoProjection(readModelStore)
 
-	checkpointStore := cqrsmemory.NewMemoryCheckpointStore()
-	runner, err := projection.NewRunner(eventStore, eventBus, checkpointStore)
+	runner, err := projection.NewRunner(bundle.Journal, bundle.Subscriber, bundle.CheckpointStore)
 	if err != nil {
 		t.Fatalf("create runner: %v", err)
 	}
@@ -47,53 +63,30 @@ func setupTestMux(t *testing.T) *http.ServeMux {
 
 	if err := cmdDisp.Register(
 		aggregate.CommandCreate,
-		commands.NewCreateTodoHandler(eventStore, eventBus).Handle,
+		commands.NewCreateTodoHandler(eventStore, bundle.Publisher).Handle,
 	); err != nil {
 		t.Fatalf("Register CommandCreate: %v", err)
 	}
 	if err := cmdDisp.Register(
 		aggregate.CommandUpdate,
-		commands.NewUpdateTodoHandler(eventStore, eventBus).Handle,
+		commands.NewUpdateTodoHandler(eventStore, bundle.Publisher).Handle,
 	); err != nil {
 		t.Fatalf("Register CommandUpdate: %v", err)
 	}
 	if err := cmdDisp.Register(
 		aggregate.CommandDelete,
-		commands.NewDeleteTodoHandler(eventStore, eventBus).Handle,
+		commands.NewDeleteTodoHandler(eventStore, bundle.Publisher).Handle,
 	); err != nil {
 		t.Fatalf("Register CommandDelete: %v", err)
 	}
 	if err := cmdDisp.Register(
 		aggregate.CommandChangeStatus,
-		commands.NewChangeStatusHandler(eventStore, eventBus).Handle,
+		commands.NewChangeStatusHandler(eventStore, bundle.Publisher).Handle,
 	); err != nil {
 		t.Fatalf("Register CommandChangeStatus: %v", err)
 	}
 
-	getHandler := queries.NewGetTodoHandler(readModelStore)
-	if err := query.RegisterTyped(
-		queryDisp,
-		queries.GetTodoQueryType,
-		getHandler.Handle,
-	); err != nil {
-		t.Fatalf("Register GetTodo: %v", err)
-	}
-	listHandler := queries.NewListTodosHandler(readModelStore)
-	if err := query.RegisterTyped(
-		queryDisp,
-		queries.ListTodosQueryType,
-		listHandler.Handle,
-	); err != nil {
-		t.Fatalf("Register ListTodos: %v", err)
-	}
-	countHandler := queries.NewCountTodosHandler(readModelStore)
-	if err := query.RegisterTyped(
-		queryDisp,
-		queries.CountTodosQueryType,
-		countHandler.Handle,
-	); err != nil {
-		t.Fatalf("Register CountTodos: %v", err)
-	}
+	registerQueryHandlers(queryDisp, readModelStore)
 
 	mux := http.NewServeMux()
 	registerTodoRoutes(mux, cmdDisp, queryDisp)
