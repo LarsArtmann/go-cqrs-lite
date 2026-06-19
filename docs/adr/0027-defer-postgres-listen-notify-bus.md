@@ -1,10 +1,10 @@
 # ADR-0027: Postgres LISTEN/NOTIFY Event Bus
 
-| Field   | Value          |
-| ------- | -------------- |
-| Date    | 2026-06-19     |
+| Field   | Value                                                                                                               |
+| ------- | ------------------------------------------------------------------------------------------------------------------- |
+| Date    | 2026-06-19                                                                                                          |
 | Status  | Implemented — PostgresBus wired into stack/postgres, pgx-based PgxListener shipped, real-PG integration tests in CI |
-| Decider | Lars Artmann   |
+| Decider | Lars Artmann                                                                                                        |
 
 ## Context
 

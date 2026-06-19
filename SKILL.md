@@ -29,7 +29,7 @@ Query   → Dispatcher → Handler → Read Model
 | **Write model**   | How do I decide + persist changes?          | `event`, `command`, `decider`, `id`                                |
 | **Read model**    | How do I build queryable state from events? | `projection`, `listing`, `query`                                   |
 | **Storage**       | Where do events/snapshots/checkpoints live? | `memory`, `storage`, `pebble`, `turso`, `kv`, `stack`              |
-| **Read models**   | How do I store/query typed projections?     | `readmodel`, `readmodel/cache`                                      |
+| **Read models**   | How do I store/query typed projections?     | `readmodel`, `readmodel/cache`                                     |
 | **Cross-cutting** | Security, evolution, observability, docs    | `signing`, `encryption`, `schema`, `middleware`, `otel`, `catalog` |
 
 You do NOT need all of them. Start with the minimal recipe (§2), then bolt on capabilities.
@@ -38,35 +38,35 @@ You do NOT need all of them. Start with the minimal recipe (§2), then bolt on c
 
 ## 1. Module Decision Matrix — "I want to…"
 
-| If you want to…                                     | Use                                   | See recipe |
-| --------------------------------------------------- | ------------------------------------- | ---------- |
-| Create/store/load events                            | `event`                               | §2.1       |
-| Dispatch type-safe commands                         | `command`                             | §2.1       |
-| Run an event-sourced aggregate                      | `decider`                             | §2.1       |
-| Generate unique, type-safe IDs                      | `id`                                  | §2.1       |
-| Encode payloads as JSON/CBOR                        | `codec`                               | §2.1       |
-| Build a read model from events                      | `projection`                          | §2.3       |
-| Dispatch type-safe queries                          | `query`                               | §2.3       |
-| List all aggregates + their status                  | `listing`                             | §6.4       |
-| Persist to PostgreSQL / SQLite                      | `storage`                             | §2.2       |
-| Persist to embedded PebbleDB                        | `pebble`                              | §2.2       |
-| Offline-first sync via LibSQL                       | `turso`                               | §6.6       |
-| Generic key-value abstraction                       | `kv`                                  | §6.7       |
-| Snapshot aggregates for speed                       | `snapshot`                            | §2.4       |
-| Evolve event schemas over time                      | `schema`                              | §2.5       |
-| Make event streams tamper-proof                     | `signing`                             | §2.6       |
-| Encrypt confidential payloads                       | `encryption`                          | §2.7       |
-| Add logging/retry/recovery/circuit-breaker          | `middleware`                          | §2.8       |
-| Add OpenTelemetry tracing/metrics                   | `otel` + `middleware`                 | §2.8       |
-| Auto-generate AsyncAPI/OpenAPI/EventCatalog/D2 docs | `catalog`                             | §2.9       |
-| Soft-delete aggregates without data loss            | `event` (tombstone metadata)          | §6.1       |
-| Generate typed handler boilerplate                  | `cmd/cqrs-gen`                        | §6.8       |
-| Publish events to Watermill router                  | `watermill`                           | §6.5       |
-| Reactive streams (pub/sub with filters)             | `event`/`command`/`query` (samber/ro) | §6.2       |
-| In-memory implementations for tests/dev             | `memory`                              | §2.1       |
-| One-call infrastructure wiring (Bundle presets)     | `stack/memory`, `stack/sqlite`, `stack/pebble`, `stack/postgres` | §2.0 |
-| Typed read-model store over KV backend              | `readmodel`                           | §2.0       |
-| Cache decorator for read models                     | `readmodel/cache`                     | §2.0       |
+| If you want to…                                     | Use                                                              | See recipe |
+| --------------------------------------------------- | ---------------------------------------------------------------- | ---------- |
+| Create/store/load events                            | `event`                                                          | §2.1       |
+| Dispatch type-safe commands                         | `command`                                                        | §2.1       |
+| Run an event-sourced aggregate                      | `decider`                                                        | §2.1       |
+| Generate unique, type-safe IDs                      | `id`                                                             | §2.1       |
+| Encode payloads as JSON/CBOR                        | `codec`                                                          | §2.1       |
+| Build a read model from events                      | `projection`                                                     | §2.3       |
+| Dispatch type-safe queries                          | `query`                                                          | §2.3       |
+| List all aggregates + their status                  | `listing`                                                        | §6.4       |
+| Persist to PostgreSQL / SQLite                      | `storage`                                                        | §2.2       |
+| Persist to embedded PebbleDB                        | `pebble`                                                         | §2.2       |
+| Offline-first sync via LibSQL                       | `turso`                                                          | §6.6       |
+| Generic key-value abstraction                       | `kv`                                                             | §6.7       |
+| Snapshot aggregates for speed                       | `snapshot`                                                       | §2.4       |
+| Evolve event schemas over time                      | `schema`                                                         | §2.5       |
+| Make event streams tamper-proof                     | `signing`                                                        | §2.6       |
+| Encrypt confidential payloads                       | `encryption`                                                     | §2.7       |
+| Add logging/retry/recovery/circuit-breaker          | `middleware`                                                     | §2.8       |
+| Add OpenTelemetry tracing/metrics                   | `otel` + `middleware`                                            | §2.8       |
+| Auto-generate AsyncAPI/OpenAPI/EventCatalog/D2 docs | `catalog`                                                        | §2.9       |
+| Soft-delete aggregates without data loss            | `event` (tombstone metadata)                                     | §6.1       |
+| Generate typed handler boilerplate                  | `cmd/cqrs-gen`                                                   | §6.8       |
+| Publish events to Watermill router                  | `watermill`                                                      | §6.5       |
+| Reactive streams (pub/sub with filters)             | `event`/`command`/`query` (samber/ro)                            | §6.2       |
+| In-memory implementations for tests/dev             | `memory`                                                         | §2.1       |
+| One-call infrastructure wiring (Bundle presets)     | `stack/memory`, `stack/sqlite`, `stack/pebble`, `stack/postgres` | §2.0       |
+| Typed read-model store over KV backend              | `readmodel`                                                      | §2.0       |
+| Cache decorator for read models                     | `readmodel/cache`                                                | §2.0       |
 
 ---
 
@@ -96,11 +96,11 @@ store, _ := stack.ReadModel[TodoView, TodoID](b, codec.JSONCodec{},
 
 Available presets:
 
-| Preset | Module | Backend | Read Models |
-|--------|--------|---------|-------------|
-| Memory | `stack/memory` | In-memory | Memory KV |
-| SQLite | `stack/sqlite` | SQLite (modernc) | SQL KV (persistent) |
-| Pebble | `stack/pebble` | PebbleDB (LSM) | Pebble KV |
+| Preset   | Module           | Backend          | Read Models         |
+| -------- | ---------------- | ---------------- | ------------------- |
+| Memory   | `stack/memory`   | In-memory        | Memory KV           |
+| SQLite   | `stack/sqlite`   | SQLite (modernc) | SQL KV (persistent) |
+| Pebble   | `stack/pebble`   | PebbleDB (LSM)   | Pebble KV           |
 | Postgres | `stack/postgres` | PostgreSQL (pgx) | SQL KV (persistent) |
 
 Read-model cache decorator:

@@ -22,39 +22,39 @@ This plan addresses ALL actionable items from the self-review.
 
 ### 1% → 51% of value (quick wins, critical trust)
 
-| # | Task | Impact | Effort | Status |
-|---|------|--------|--------|--------|
-| T1 | ROADMAP: mark 4 stale `[ ]` items as done (schema validator, prometheus, tracing, logging) | 🔴 HIGH (dishonest docs) | 5m | ✅ |
-| T2 | `TestPgxListener_CloseDoesNotDeadlock` regression test with explicit 2s timeout | 🔴 HIGH (prevents critical bug) | 10m | ✅ |
+| #   | Task                                                                                       | Impact                          | Effort | Status |
+| --- | ------------------------------------------------------------------------------------------ | ------------------------------- | ------ | ------ |
+| T1  | ROADMAP: mark 4 stale `[ ]` items as done (schema validator, prometheus, tracing, logging) | 🔴 HIGH (dishonest docs)        | 5m     | ✅     |
+| T2  | `TestPgxListener_CloseDoesNotDeadlock` regression test with explicit 2s timeout            | 🔴 HIGH (prevents critical bug) | 10m    | ✅     |
 
 ### 4% → 64% of value (production reliability)
 
-| # | Task | Impact | Effort | Status |
-|---|------|--------|--------|--------|
-| T4+T5 | PgxListener auto-reconnect: `reconnectConfig` + `WithReconnect`/`WithReconnectBackoff`/`WithoutReconnect` options; refactor `receiveLoop` → `receiveOnce` + reconnect loop with exponential backoff | 🔴 HIGH (silent delivery kill) | 25m | ✅ |
-| T6 | Reconnect unit tests: backoff calculation (table + rapid property), config options | 🟠 MED | 12m | ✅ |
+| #     | Task                                                                                                                                                                                                | Impact                         | Effort | Status |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ | ------ | ------ |
+| T4+T5 | PgxListener auto-reconnect: `reconnectConfig` + `WithReconnect`/`WithReconnectBackoff`/`WithoutReconnect` options; refactor `receiveLoop` → `receiveOnce` + reconnect loop with exponential backoff | 🔴 HIGH (silent delivery kill) | 25m    | ✅     |
+| T6    | Reconnect unit tests: backoff calculation (table + rapid property), config options                                                                                                                  | 🟠 MED                         | 12m    | ✅     |
 
 ### 20% → 80% of value (robustness + documentation)
 
-| # | Task | Impact | Effort | Status |
-|---|------|--------|--------|--------|
-| T3 | Property-based test for `validateChannelName` (3 properties × 100 inputs via rapid) | 🟡 MED | 12m | ✅ |
-| T7 | Document graceful drain behavior on `PgxListener.Close()` | 🟡 MED | 8m | ✅ |
-| T8 | Document PostgresBus backpressure strategy (channel fullness → server-side queue) | 🟡 MED | 8m | ✅ |
+| #   | Task                                                                                | Impact | Effort | Status |
+| --- | ----------------------------------------------------------------------------------- | ------ | ------ | ------ |
+| T3  | Property-based test for `validateChannelName` (3 properties × 100 inputs via rapid) | 🟡 MED | 12m    | ✅     |
+| T7  | Document graceful drain behavior on `PgxListener.Close()`                           | 🟡 MED | 8m     | ✅     |
+| T8  | Document PostgresBus backpressure strategy (channel fullness → server-side queue)   | 🟡 MED | 8m     | ✅     |
 
 ---
 
 ## Deferred / Blocked (not actionable now)
 
-| Item | Why Deferred | Effort |
-|------|-------------|--------|
-| gRPC transport adapter | ADR-0025 accepted. Separate module. Large scope. | 120m |
-| NATS/Redis Stream adapter | ADR-0025 accepted. Separate modules. | 90m each |
-| jsonv2 codec experiment | Behind build tag. Blocked on Go stdlib. | Blocked |
-| Arena allocation experiment | Behind build tag. Blocked on Go stdlib. | Blocked |
-| Pebble secondary index (LoadByEventID) | Needs schema migration. Full scan fallback works. | 60m |
-| Outbox pattern | Explicitly REMOVED per ROADMAP. Use Watermill. | N/A |
-| v3 breaking changes | Deferred to next major version. | 300m |
+| Item                                   | Why Deferred                                      | Effort   |
+| -------------------------------------- | ------------------------------------------------- | -------- |
+| gRPC transport adapter                 | ADR-0025 accepted. Separate module. Large scope.  | 120m     |
+| NATS/Redis Stream adapter              | ADR-0025 accepted. Separate modules.              | 90m each |
+| jsonv2 codec experiment                | Behind build tag. Blocked on Go stdlib.           | Blocked  |
+| Arena allocation experiment            | Behind build tag. Blocked on Go stdlib.           | Blocked  |
+| Pebble secondary index (LoadByEventID) | Needs schema migration. Full scan fallback works. | 60m      |
+| Outbox pattern                         | Explicitly REMOVED per ROADMAP. Use Watermill.    | N/A      |
+| v3 breaking changes                    | Deferred to next major version.                   | 300m     |
 
 ---
 

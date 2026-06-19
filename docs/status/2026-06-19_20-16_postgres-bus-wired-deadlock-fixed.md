@@ -16,63 +16,63 @@ The library has matured significantly across two major sessions. The PostgresBus
 
 ### Session 1 (16 commits: `63ecf010` → `0246b86e`)
 
-| Feature | Status | Evidence |
-|---------|--------|----------|
-| Streaming event reads (SQL + Pebble + Memory) | ✅ Done | `EventIterator` on all 3 stores, 8+6+3 tests |
-| DistributedRunner (LeaderElection gating) | ✅ Done | `projection.DistributedRunner`, 6 tests |
-| cqrs-gen v3 (event handler generation) | ✅ Done | `-type=event`, 3 tests |
-| Postgres LISTEN/NOTIFY bus (storage layer) | ✅ Done | `storage.PostgresBus`, 12 tests |
-| WASM compilation (7/7 core modules) | ✅ Done | `GOOS=js GOARCH=wasm` verified |
-| Documentation site (mkdocs landing page) | ✅ Done | `docs/index.md`, nav updated |
-| Self-review round 1 findings (5 fixes) | ✅ Done | LoadByEventID, Pebble fallback, test raciness, ADR honesty |
+| Feature                                       | Status  | Evidence                                                   |
+| --------------------------------------------- | ------- | ---------------------------------------------------------- |
+| Streaming event reads (SQL + Pebble + Memory) | ✅ Done | `EventIterator` on all 3 stores, 8+6+3 tests               |
+| DistributedRunner (LeaderElection gating)     | ✅ Done | `projection.DistributedRunner`, 6 tests                    |
+| cqrs-gen v3 (event handler generation)        | ✅ Done | `-type=event`, 3 tests                                     |
+| Postgres LISTEN/NOTIFY bus (storage layer)    | ✅ Done | `storage.PostgresBus`, 12 tests                            |
+| WASM compilation (7/7 core modules)           | ✅ Done | `GOOS=js GOARCH=wasm` verified                             |
+| Documentation site (mkdocs landing page)      | ✅ Done | `docs/index.md`, nav updated                               |
+| Self-review round 1 findings (5 fixes)        | ✅ Done | LoadByEventID, Pebble fallback, test raciness, ADR honesty |
 
 ### Session 2 (14 commits: `fba1fc2d` → `bf3a21a1`)
 
-| Feature | Status | Evidence |
-|---------|--------|----------|
-| pgx v5.7.1 → v5.10.0 (CVE fix) | ✅ Done | Critical memory-safety + low SQL-injection patched |
-| `NotificationListener.Listen(channel)` API | ✅ Done | Bus calls Listen itself; 2 new tests |
-| PgxListener (pgxpool-based LISTEN implementation) | ✅ Done | `stack/postgres/pg_listener.go`, 3 unit tests |
-| PostgresBus wired into stack/postgres preset | ✅ Done | `WithDistributedBus(listener)` option |
-| Real-Postgres integration tests (3 tests) | ✅ Done | Cross-bus delivery, channel validation, preset wiring |
-| CI updated for integration tests | ✅ Done | `-tags=integration` in postgres-integration job |
-| notifyPayload branded types (kill stringly-typed) | ✅ Done | `id.EventID`, `event.Type`, etc. |
-| Error sentinel consistency (go-error-family) | ✅ Done | `errEventNotFoundAfterRetries` classified |
-| OTel spans on PostgresBus | ✅ Done | `pg_bus.publish` + `pg_bus.handle_notification` |
-| refetchByVersion fallback test | ✅ Done | `versionOnlySource` wrapper, 1 test |
-| Docs sync (CHANGELOG, ADR-0027, TODO, ROADMAP) | ✅ Done | All reflect wired state |
-| API golden regenerated | ✅ Done | 1837 → 1849 exports |
+| Feature                                           | Status  | Evidence                                              |
+| ------------------------------------------------- | ------- | ----------------------------------------------------- |
+| pgx v5.7.1 → v5.10.0 (CVE fix)                    | ✅ Done | Critical memory-safety + low SQL-injection patched    |
+| `NotificationListener.Listen(channel)` API        | ✅ Done | Bus calls Listen itself; 2 new tests                  |
+| PgxListener (pgxpool-based LISTEN implementation) | ✅ Done | `stack/postgres/pg_listener.go`, 3 unit tests         |
+| PostgresBus wired into stack/postgres preset      | ✅ Done | `WithDistributedBus(listener)` option                 |
+| Real-Postgres integration tests (3 tests)         | ✅ Done | Cross-bus delivery, channel validation, preset wiring |
+| CI updated for integration tests                  | ✅ Done | `-tags=integration` in postgres-integration job       |
+| notifyPayload branded types (kill stringly-typed) | ✅ Done | `id.EventID`, `event.Type`, etc.                      |
+| Error sentinel consistency (go-error-family)      | ✅ Done | `errEventNotFoundAfterRetries` classified             |
+| OTel spans on PostgresBus                         | ✅ Done | `pg_bus.publish` + `pg_bus.handle_notification`       |
+| refetchByVersion fallback test                    | ✅ Done | `versionOnlySource` wrapper, 1 test                   |
+| Docs sync (CHANGELOG, ADR-0027, TODO, ROADMAP)    | ✅ Done | All reflect wired state                               |
+| API golden regenerated                            | ✅ Done | 1837 → 1849 exports                                   |
 
 ### Session 2.5 (uncommitted — in working tree)
 
-| Feature | Status | Evidence |
-|---------|--------|----------|
+| Feature                              | Status  | Evidence                                                                                                      |
+| ------------------------------------ | ------- | ------------------------------------------------------------------------------------------------------------- |
 | **PgxListener.Close() deadlock fix** | ✅ Done | Root cause: `Release()` does NOT interrupt `WaitForNotification`. Fixed by storing `cancelFn` + child context |
-| Integration test determinism | ✅ Done | Replaced `time.Sleep` polling with channel-based `select` |
+| Integration test determinism         | ✅ Done | Replaced `time.Sleep` polling with channel-based `select`                                                     |
 
 ---
 
 ## B) PARTIALLY DONE 🟡
 
-| Area | What's Done | What's Missing |
-|------|-------------|----------------|
-| **PostgresBus real-PG testing** | 3 integration tests written, CI job updated | Tests not yet verified against a REAL Postgres instance locally (no DB access). CI will validate on next push. |
-| **Pebble LoadByEventID** | SQL store has it; `EventByIDLoader` interface defined | Pebble store lacks it (deliberately skipped — full scan would be slower than the version-scan fallback; needs a secondary index) |
-| **PgxListener reconnect-on-error** | `receiveLoop` exits cleanly on connection loss | No automatic reconnect. A lost connection means the listener stops receiving NOTIFY until manually restarted. |
-| **Dependabot alerts** | pgx upgraded to v5.10.0 in code | GitHub's Dependabot may still show stale alerts (async re-scan) |
+| Area                               | What's Done                                           | What's Missing                                                                                                                   |
+| ---------------------------------- | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **PostgresBus real-PG testing**    | 3 integration tests written, CI job updated           | Tests not yet verified against a REAL Postgres instance locally (no DB access). CI will validate on next push.                   |
+| **Pebble LoadByEventID**           | SQL store has it; `EventByIDLoader` interface defined | Pebble store lacks it (deliberately skipped — full scan would be slower than the version-scan fallback; needs a secondary index) |
+| **PgxListener reconnect-on-error** | `receiveLoop` exits cleanly on connection loss        | No automatic reconnect. A lost connection means the listener stops receiving NOTIFY until manually restarted.                    |
+| **Dependabot alerts**              | pgx upgraded to v5.10.0 in code                       | GitHub's Dependabot may still show stale alerts (async re-scan)                                                                  |
 
 ---
 
 ## C) NOT STARTED ⬜
 
-| Area | Notes |
-|------|-------|
-| gRPC transport adapter | ADR-0025 accepted. Separate `transport/grpc/` module. Large scope. |
-| NATS/Redis Stream adapter | ADR-0025 accepted. Separate modules. Large scope. |
-| jsonv2 codec experiment | Behind `goexperiment.jsonv2` build tag. Blocked on Go stdlib stabilization. |
-| Arena allocation experiment | Behind `goexperiment.arenas` build tag. Blocked on Go stdlib stabilization. |
-| PgxListener auto-reconnect | See "Partially Done" above. Production hardening item. |
-| Pebble secondary index (event ID → key) | Would enable O(1) LoadByEventID on Pebble. Schema migration. |
+| Area                                    | Notes                                                                       |
+| --------------------------------------- | --------------------------------------------------------------------------- |
+| gRPC transport adapter                  | ADR-0025 accepted. Separate `transport/grpc/` module. Large scope.          |
+| NATS/Redis Stream adapter               | ADR-0025 accepted. Separate modules. Large scope.                           |
+| jsonv2 codec experiment                 | Behind `goexperiment.jsonv2` build tag. Blocked on Go stdlib stabilization. |
+| Arena allocation experiment             | Behind `goexperiment.arenas` build tag. Blocked on Go stdlib stabilization. |
+| PgxListener auto-reconnect              | See "Partially Done" above. Production hardening item.                      |
+| Pebble secondary index (event ID → key) | Would enable O(1) LoadByEventID on Pebble. Schema migration.                |
 
 ---
 
@@ -144,33 +144,33 @@ The library has matured significantly across two major sessions. The PostgresBus
 
 ## F) Top 25 Things to Get Done Next (Sorted by Impact/Effort)
 
-| # | Task | Impact | Effort | Tier |
-|---|------|--------|--------|------|
-| 1 | **Commit + push the deadlock fix** (in working tree) | 🔴 CRITICAL | 2m | P0 |
-| 2 | **Verify integration tests pass in CI** (push triggers CI) | 🔴 CRITICAL | 5m | P0 |
-| 3 | **Add `TestPgxListener_CloseDoesNotDeadlock`** regression test | 🔴 HIGH | 10m | P0 |
-| 4 | **PgxListener auto-reconnect** (backoff + re-LISTEN on conn loss) | 🔴 HIGH | 45m | P1 |
-| 5 | **PostgresBus backpressure strategy** (drop-oldest or block-and-warn) | 🟠 HIGH | 30m | P1 |
-| 6 | **Add PgxListener metrics** (notifications received/dropped/errors) | 🟠 MED | 20m | P1 |
-| 7 | **Shrink notifyPayload to EventID-only** (v2 format + capability check) | 🟡 MED | 25m | P1 |
-| 8 | **Property-based test for validateChannelName** (rapid) | 🟡 MED | 15m | P1 |
-| 9 | **Document graceful drain behavior** (in-flight handlers on Close) | 🟡 MED | 10m | P2 |
-| 10 | **PostgresBus example in `example/`** (multi-process demo) | 🟡 MED | 30m | P2 |
-| 11 | **Pebble secondary index** (event ID → journal key for O(1) LoadByEventID) | 🟢 LOW | 60m | P2 |
-| 12 | **Outbox pattern** (transactional event publishing via outbox table) | 🟠 HIGH | 90m | P2 |
-| 13 | **gRPC transport adapter** (ADR-0025, separate module) | 🟡 MED | 120m | P3 |
-| 14 | **NATS Stream adapter** (ADR-0025, separate module) | 🟡 MED | 90m | P3 |
-| 15 | **Redis Stream adapter** (ADR-0025, separate module) | 🟡 MED | 90m | P3 |
-| 16 | **jsonv2 codec experiment** (behind build tag, blocked on stdlib) | 🟢 LOW | Blocked | P3 |
-| 17 | **Arena allocation experiment** (behind build tag, blocked on stdlib) | 🟢 LOW | Blocked | P3 |
-| 18 | **SIMD-accelerated event serialization** (Go experiment) | 🟢 LOW | Blocked | P3 |
-| 19 | **Coverage gap analysis** (readmodel, stack/postgres presets) | 🟡 MED | 30m | P2 |
-| 20 | **CQRS dashboard** (web UI for inspecting aggregates/events/projections) | 🟢 LOW | 240m | P3 |
-| 21 | **Multi-tenant event store** (schema-per-tenant) | 🟢 LOW | 180m | P3 |
-| 22 | **Event archival to S3/GCS** | 🟢 LOW | 120m | P3 |
-| 23 | **Performance regression dashboard** (historical benchmark tracking) | 🟢 LOW | 90m | P3 |
-| 24 | **Chaos engineering integration** (random partitions, disk failures) | 🟢 LOW | 180m | P3 |
-| 25 | **v3 breaking changes** (remove io.Closer from core, global TransactionID, etc.) | 🟡 MED | 300m | P3 |
+| #   | Task                                                                             | Impact      | Effort  | Tier |
+| --- | -------------------------------------------------------------------------------- | ----------- | ------- | ---- |
+| 1   | **Commit + push the deadlock fix** (in working tree)                             | 🔴 CRITICAL | 2m      | P0   |
+| 2   | **Verify integration tests pass in CI** (push triggers CI)                       | 🔴 CRITICAL | 5m      | P0   |
+| 3   | **Add `TestPgxListener_CloseDoesNotDeadlock`** regression test                   | 🔴 HIGH     | 10m     | P0   |
+| 4   | **PgxListener auto-reconnect** (backoff + re-LISTEN on conn loss)                | 🔴 HIGH     | 45m     | P1   |
+| 5   | **PostgresBus backpressure strategy** (drop-oldest or block-and-warn)            | 🟠 HIGH     | 30m     | P1   |
+| 6   | **Add PgxListener metrics** (notifications received/dropped/errors)              | 🟠 MED      | 20m     | P1   |
+| 7   | **Shrink notifyPayload to EventID-only** (v2 format + capability check)          | 🟡 MED      | 25m     | P1   |
+| 8   | **Property-based test for validateChannelName** (rapid)                          | 🟡 MED      | 15m     | P1   |
+| 9   | **Document graceful drain behavior** (in-flight handlers on Close)               | 🟡 MED      | 10m     | P2   |
+| 10  | **PostgresBus example in `example/`** (multi-process demo)                       | 🟡 MED      | 30m     | P2   |
+| 11  | **Pebble secondary index** (event ID → journal key for O(1) LoadByEventID)       | 🟢 LOW      | 60m     | P2   |
+| 12  | **Outbox pattern** (transactional event publishing via outbox table)             | 🟠 HIGH     | 90m     | P2   |
+| 13  | **gRPC transport adapter** (ADR-0025, separate module)                           | 🟡 MED      | 120m    | P3   |
+| 14  | **NATS Stream adapter** (ADR-0025, separate module)                              | 🟡 MED      | 90m     | P3   |
+| 15  | **Redis Stream adapter** (ADR-0025, separate module)                             | 🟡 MED      | 90m     | P3   |
+| 16  | **jsonv2 codec experiment** (behind build tag, blocked on stdlib)                | 🟢 LOW      | Blocked | P3   |
+| 17  | **Arena allocation experiment** (behind build tag, blocked on stdlib)            | 🟢 LOW      | Blocked | P3   |
+| 18  | **SIMD-accelerated event serialization** (Go experiment)                         | 🟢 LOW      | Blocked | P3   |
+| 19  | **Coverage gap analysis** (readmodel, stack/postgres presets)                    | 🟡 MED      | 30m     | P2   |
+| 20  | **CQRS dashboard** (web UI for inspecting aggregates/events/projections)         | 🟢 LOW      | 240m    | P3   |
+| 21  | **Multi-tenant event store** (schema-per-tenant)                                 | 🟢 LOW      | 180m    | P3   |
+| 22  | **Event archival to S3/GCS**                                                     | 🟢 LOW      | 120m    | P3   |
+| 23  | **Performance regression dashboard** (historical benchmark tracking)             | 🟢 LOW      | 90m     | P3   |
+| 24  | **Chaos engineering integration** (random partitions, disk failures)             | 🟢 LOW      | 180m    | P3   |
+| 25  | **v3 breaking changes** (remove io.Closer from core, global TransactionID, etc.) | 🟡 MED      | 300m    | P3   |
 
 ---
 
@@ -179,10 +179,11 @@ The library has matured significantly across two major sessions. The PostgresBus
 **Should the PostgresBus use the SAME `*sql.DB` pool for both `pg_notify()` and event store operations, or should the listener's dedicated pgxpool.Conn be completely separate?**
 
 Currently:
+
 - **Publish side:** `*sql.DB` (pgx stdlib driver) — shared with event store reads/writes
 - **Listen side:** dedicated `*pgxpool.Conn` (pgx native) — separate from `*sql.DB`
 
-This means the publishing and listening sides use **different driver paths** into the same Postgres. The `*sql.DB` uses `pgx/v5/stdlib` (database/sql adapter); the listener uses `pgx/v5/pgxpool` (native pool). 
+This means the publishing and listening sides use **different driver paths** into the same Postgres. The `*sql.DB` uses `pgx/v5/stdlib` (database/sql adapter); the listener uses `pgx/v5/pgxpool` (native pool).
 
 I cannot determine if this mixed-driver approach has subtle compatibility issues (e.g., different timestamp parsing, different error types, different connection authentication) without running real-Postgres integration tests. The alternative is to make `PostgresBus` accept a `*pgxpool.Pool` directly (instead of `*sql.DB`), but that would pull pgx into the `storage` module (currently pgx-free) and break the driver-agnostic design.
 

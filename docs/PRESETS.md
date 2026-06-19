@@ -19,12 +19,12 @@ store, _ := stack.ReadModel[TodoView, TodoID](b, codec.JSONCodec{},
 
 ## Available Presets
 
-| Preset | Module | Backend | Persistent | Bus | Read Models |
-|--------|--------|---------|------------|-----|-------------|
-| Memory | `stack/memory` | In-memory | No | Memory | Memory KV |
-| SQLite | `stack/sqlite` | SQLite (modernc) | Yes | Memory | SQL KV (cqrs_kv) |
-| Pebble | `stack/pebble` | PebbleDB (LSM) | Yes | Memory | Pebble KV |
-| Postgres | `stack/postgres` | PostgreSQL (pgx) | Yes | Memory | SQL KV (cqrs_kv) |
+| Preset   | Module           | Backend          | Persistent | Bus    | Read Models      |
+| -------- | ---------------- | ---------------- | ---------- | ------ | ---------------- |
+| Memory   | `stack/memory`   | In-memory        | No         | Memory | Memory KV        |
+| SQLite   | `stack/sqlite`   | SQLite (modernc) | Yes        | Memory | SQL KV (cqrs_kv) |
+| Pebble   | `stack/pebble`   | PebbleDB (LSM)   | Yes        | Memory | Pebble KV        |
+| Postgres | `stack/postgres` | PostgreSQL (pgx) | Yes        | Memory | SQL KV (cqrs_kv) |
 
 All presets wire every capability: event store + bus, command store, query
 store, snapshot store, checkpoint store, and read-model backend.
