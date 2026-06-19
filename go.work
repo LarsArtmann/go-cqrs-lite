@@ -31,6 +31,7 @@ use (
 	./signing
 	./snapshot
 	./stack
+	./stack/bench
 	./stack/memory
 	./stack/pebble
 	./stack/postgres
