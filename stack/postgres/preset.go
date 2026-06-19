@@ -17,8 +17,8 @@ type Option func(*config)
 
 type config struct {
 	autoMigrate bool
-	listener    storage.NotificationListener  // nil → in-memory bus
-	busOpts     []storage.PostgresBusOption   // forwarded when listener != nil
+	listener    storage.NotificationListener // nil → in-memory bus
+	busOpts     []storage.PostgresBusOption  // forwarded when listener != nil
 }
 
 func defaultConfig() config {

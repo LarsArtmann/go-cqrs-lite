@@ -70,7 +70,11 @@ func NewPgxListener(pool *pgxpool.Pool, opts ...PgxListenerOption) *PgxListener 
 // LISTEN/NOTIFY. The pool (and connection) are owned by the listener and
 // closed on Close. Use this when the listener should not share a pool with
 // the publishing side.
-func NewPgxListenerFromDSN(ctx context.Context, dsn string, opts ...PgxListenerOption) (*PgxListener, error) {
+func NewPgxListenerFromDSN(
+	ctx context.Context,
+	dsn string,
+	opts ...PgxListenerOption,
+) (*PgxListener, error) {
 	cfg, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
 		return nil, fmt.Errorf("pgx_listener: parse dsn: %w", err)
@@ -169,8 +173,12 @@ func (l *PgxListener) receiveLoop(ctx context.Context) {
 				// Context cancellation — expected on Close. Exit quietly.
 				return
 			}
-			l.logger.ErrorContext(ctx, "pgx_listener: WaitForNotification failed; exiting receive loop",
-				"error", err)
+			l.logger.ErrorContext(
+				ctx,
+				"pgx_listener: WaitForNotification failed; exiting receive loop",
+				"error",
+				err,
+			)
 			return
 		}
 
@@ -232,7 +240,10 @@ func validateChannelName(channel string) error {
 		ok := r == '_' || (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') ||
 			(i > 0 && r >= '0' && r <= '9')
 		if !ok {
-			return fmt.Errorf("pgx_listener: invalid channel name %q (must be [A-Za-z_][A-Za-z0-9_]*)", channel)
+			return fmt.Errorf(
+				"pgx_listener: invalid channel name %q (must be [A-Za-z_][A-Za-z0-9_]*)",
+				channel,
+			)
 		}
 	}
 

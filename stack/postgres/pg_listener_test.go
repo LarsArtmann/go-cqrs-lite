@@ -81,4 +81,3 @@ func TestPgxListener_BadChannelName(t *testing.T) {
 		t.Fatal("expected error for invalid channel name")
 	}
 }
-

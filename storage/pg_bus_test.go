@@ -470,7 +470,10 @@ type versionOnlySource struct {
 	inner event.EventSource
 }
 
-func (v *versionOnlySource) Load(ctx context.Context, ref event.AggregateRef) ([]event.Event, error) {
+func (v *versionOnlySource) Load(
+	ctx context.Context,
+	ref event.AggregateRef,
+) ([]event.Event, error) {
 	return v.inner.Load(ctx, ref)
 }
 
@@ -513,7 +516,8 @@ func TestPostgresBus_RefetchVersionFallback(t *testing.T) {
 
 	listener := newMockListener()
 
-	bus, err := storage.NewPostgresBus(db, store, listener,
+	bus, err := storage.NewPostgresBus(
+		db, store, listener,
 		storage.WithRefetchDelay(time.Millisecond),
 		storage.WithNotifyFunc(noopNotify),
 	)

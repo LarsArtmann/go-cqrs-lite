@@ -521,8 +521,13 @@ func (b *PostgresBus) refetchByID(
 		}
 	}
 
-	return nil, event.WrapInfrastructure(lastErr, "storage.pg_bus_refetch_by_id",
-		"re-fetch event "+eventID.String()+" after "+strconv.Itoa(b.opts.refetchAttempts)+" attempts")
+	return nil, event.WrapInfrastructure(
+		lastErr,
+		"storage.pg_bus_refetch_by_id",
+		"re-fetch event "+eventID.String()+" after "+strconv.Itoa(
+			b.opts.refetchAttempts,
+		)+" attempts",
+	)
 }
 
 func (b *PostgresBus) refetchByVersion(ctx context.Context, np notifyPayload) (event.Event, error) {
@@ -550,8 +555,13 @@ func (b *PostgresBus) refetchByVersion(ctx context.Context, np notifyPayload) (e
 	}
 
 	if lastErr != nil {
-		return nil, event.WrapInfrastructure(lastErr, "storage.pg_bus_refetch",
-			"re-fetch event "+np.EventID.String()+" after "+strconv.Itoa(b.opts.refetchAttempts)+" attempts")
+		return nil, event.WrapInfrastructure(
+			lastErr,
+			"storage.pg_bus_refetch",
+			"re-fetch event "+np.EventID.String()+" after "+strconv.Itoa(
+				b.opts.refetchAttempts,
+			)+" attempts",
+		)
 	}
 
 	return nil, event.WrapInfrastructure(

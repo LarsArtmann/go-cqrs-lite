@@ -198,7 +198,8 @@ func TestPostgresBus_PresetWiring(t *testing.T) {
 		t.Fatalf("listener: %v", err)
 	}
 
-	bundle, err := postgres.New(dsn,
+	bundle, err := postgres.New(
+		dsn,
 		postgres.WithDistributedBus(listener,
 			storage.WithBusChannel(uniqueChannel(t))),
 	)
