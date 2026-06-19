@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-06-17 (post dependency utilization audit + ghost API cleanup) · **Module count:** 29 modules (23 library + 1 integration + 3 examples + 2 cmd) · **Go version:** 1.26.3
+**Last audited:** 2026-06-19 (v2.6.0 release: prometheus module added, module inventory re-verified) · **Module count:** 30 modules (24 library + 1 integration + 3 examples + 2 cmd) · **Go version:** 1.26.3
 
 ## Status Legend
 
