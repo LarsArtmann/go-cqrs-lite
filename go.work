@@ -30,6 +30,7 @@ use (
 	./signing
 	./snapshot
 	./stack
+	./stack/memory
 	./storage
 	./testutil
 	./turso
