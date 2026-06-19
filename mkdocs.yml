@@ -30,6 +30,7 @@ nav:
   - Home: index.md
   - Getting Started:
       - Quick Start: getting-started.md
+      - Bundle Presets: PRESETS.md
       - Storage Guide: STORAGE_GUIDE.md
       - Migration: MIGRATION.md
   - Architecture:
@@ -37,6 +38,8 @@ nav:
       - Domain Language: DOMAIN_LANGUAGE.md
       - Error Taxonomy: error-taxonomy.md
       - ADRs: adr/README.md
+  - Reference:
+      - Experimental Build Tags: EXPERIMENTAL_BUILD_TAGS.md
 
 markdown_extensions:
   - pymdownx.highlight:
