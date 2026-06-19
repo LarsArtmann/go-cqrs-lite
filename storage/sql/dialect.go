@@ -232,7 +232,7 @@ func (SQLiteDialect) KVSchema() string {
 	return `CREATE TABLE IF NOT EXISTS cqrs_kv (
     key   BLOB PRIMARY KEY,
     value BLOB NOT NULL
-) WITHOUT ROWID;`
+);`
 }
 
 // Placeholders returns a comma-separated list of placeholders for the given count.
