@@ -10,10 +10,20 @@ Additive, backward-compatible changes addressing cqrs-htmx upstream API gaps. No
 
 ### Added
 
+- **Schema registry validator** (`schema/v2`) — `Validator` with `RegisterType[T]()`, `RegisterTypeWithValidator[T]()`, strict/lenient modes, custom codec support. Returns `Rejection` errors on invalid payloads. ADR-0017 accepted
+- **Prometheus metrics exporter** (`prometheus/v2`) — New module wrapping OTel Prometheus exporter. `Setup()` creates a `MeterProvider` backed by a Prometheus registry and an HTTP handler for `/metrics`. `WithRegistry()`, `WithHandlerOptions()`, `MustSetup()`
+- **Bounded dedup** (`event/v2`, `projection/v2`) — `DistinctByEventIDBounded(cap)` with FIFO ring eviction for bounded memory in 24/7 projections. `DistinctByEventIDBoundedWith(cap, seen)` seeded variant. `WithDedupCapacity(n)` Runner option
+- **Streaming event reads** (`event/v2`) — `EventIterator` interface for one-at-a-time event reading without materializing slices. `StreamingSource` and `StreamingJournal` opt-in interfaces. `SliceIterator` adapts pre-loaded slices
+- **cqrs-gen struct tag scanning** (`cmd/cqrs-gen`) — Supports `cqrs:"command:CreateUser"` struct tags on `_ struct{}` fields in addition to `//cqrs:command CreateUser` comment markers. Comment markers take precedence
+- **LeaderElection interface** (`projection/v2`) — `LeaderElection` interface + `AlwaysLeader` default for distributed projection coordination per ADR-0018. Consumers implement coordination (Redis, etcd, k8s); library provides interface and default
 - **Projection replay/live split** (`projection/v2`) — `Runner.RunReplay(ctx)` replays historical events synchronously and returns once the read model is caught up (read-your-writes); `Runner.RunLive(ctx)` then tails live events in the background. `Run` remains as a convenience wrapper calling both. Eliminates `time.Sleep`-based catch-up hacks in consumers. Adds `ErrReplayRequired` when `RunLive` is called before `RunReplay`
 - **Replay→live dedup pipeline** (`event/v2`, `projection/v2`) — Closes the duplicate-processing gap at the replay→live boundary. New `event.SubscriberToObservable` adapts callback-based `Subscriber` to `ro.Observable[Event]`; `event.DistinctByEventIDWith(seen)` seeds the dedup set with IDs from journal replay. The Runner's live path now builds `live → DistinctByEventIDWith(replayIDs) → handler`, suppressing overlap-window duplicates
 - **OTel correlation enricher** (`middleware/v2`) — `OTelCorrelationEnricher` bridges OTel baggage correlation IDs into event metadata via `event.WithCustom`. Composes with `CommandCausalityEnricher` via `CompositeEnricher`. New `OTelCorrelationIDFromEvent` extractor and `MetadataKeyOTelCorrelationID` constant
 - **Exported ID marker types** (`id/v2`) — All 8 phantom marker types are now exported (`AggregateMarker`, `UserMarker`, `CorrelationMarker`, `RequestMarker`, `CausationMarker`, `ClientMarker`, `CommandMarker`, `EventMarker`), enabling downstream `go-branded-id` `BrandNamer` integration and other type-parameterized tooling against the root module's ID types
+
+### Removed
+
+- **Pebble `DeleteEventsBefore`** (`pebble/v2`) — Removed. Events are immutable truth; automatic event deletion contradicts event sourcing principles. The `Flush()` method remains for durability control
 
 ## [2.5.0] - 2026-06-18
 

@@ -170,6 +170,8 @@
 | Cycle detection      | Registry detects schema version revisits during upcast chain                         | ✅     |
 | VersionedStore       | `VersionedStore` wraps any `event.Store` — transparent upcasting on all read methods | ✅     |
 | Full load API        | `Load`, `LoadFromVersion`, `LoadToVersion`, `LoadToTimestamp` — all with upcasting   | ✅     |
+| Schema validator     | `Validator` with `RegisterType[T]()`, strict/lenient modes, custom codecs (ADR-0017) | ✅     |
+| Custom validators    | `RegisterTypeWithValidator[T](v, type, fn)` — business-rule validation after decode  | ✅     |
 
 ---
 
@@ -606,6 +608,9 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | Retry with backoff        | `WithRetry(count, delay)` — exponential backoff, only if `IsRetryable`                        | ✅     |
 | Dead letter queue         | `WithDeadLetterHandler(func)` — callback after retries exhausted                              | ✅     |
 | Parallel processing       | `WithParallelism(n)` — semaphore-bounded goroutine pool                                       | ✅     |
+| Replay→live dedup         | `DistinctByEventIDWith(seen)` seeded dedup; `WithDedupCapacity(n)` bounded ring for 24/7     | ✅     |
+| Bounded dedup             | `DistinctByEventIDBounded(cap)` with FIFO eviction — bounded memory for long-running streams | ✅     |
+| Leader election           | `LeaderElection` interface + `AlwaysLeader` default (ADR-0018)                               | ✅     |
 | Replay context marking    | `event.WithReplay(ctx, true)` during replay; handlers can distinguish                         | ✅     |
 | Close lifecycle           | `Runner.Close()` — cancel internal context, graceful shutdown                                 | ✅     |
 | Duplicate name guard      | `Register()` rejects projections with same `Name()`                                           | ✅     |
@@ -668,6 +673,19 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | Custom metadata     | `custom.*` prefix preserves all custom metadata entries                                                  | ✅     |
 | Correlation ID MW   | `CorrelationIDMiddleware()` — injects correlation ID into message metadata                               | ✅     |
 | Retry middleware    | `NewRetryMiddleware(config)` + `DefaultRetryConfig()` — retry with backoff for handler errors            | ✅     |
+
+---
+
+## Prometheus Metrics Exporter ✅ FULLY_FUNCTIONAL
+
+> `import "github.com/larsartmann/go-cqrs-lite/prometheus"`
+
+|| Feature             | Detail                                                                                            | Status |
+|| ------------------- | ------------------------------------------------------------------------------------------------- | ------ |
+|| OTel→Prom bridge    | `Setup()` — creates MeterProvider + HTTP handler backed by Prometheus registry                    | ✅     |
+|| Custom registry     | `WithRegistry(r)` — use a custom Prometheus registry                                              | ✅     |
+|| Handler options     | `WithHandlerOptions(opts)` — configure promhttp.HandlerOpts                                       | ✅     |
+|| MustSetup           | `MustSetup()` — panics on error, for main() init                                                  | ✅     |
 
 ---
 
