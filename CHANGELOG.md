@@ -6,6 +6,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2.7.0] - 2026-06-19
+
+The **Bundle composition layer**: consumers stop deciding on infrastructure. A deployer picks a backend via one preset call; the application imports only `readmodel` and `stack` and never touches a storage driver. 8 new modules (~5,500 lines), persistent read models for every preset, a shared contract suite, and a zero-lint release gate.
+
+### Added
+
+- **Bundle composition root** (`stack/v2`) — `Bundle` with ISP-honest fields (EventSink/EventSource/Journal kept separate, not a fat Store), `Option = func(*Bundle)`, pointer-deduplicated `Close()`, and rollback-on-validation. Repository/ReadModel helpers are top-level generic functions (`stack.Repository[State]`, `stack.ReadModel[T,K]`) since Go forbids generic methods.
+- **Bundle presets** — `stack/memory`, `stack/sqlite` (modernc, WAL, auto-migrate), `stack/pebble` (single PebbleDB for all stores via disjoint key prefixes), `stack/postgres` (pgx, auto-migrate). Each wires event store+bus, command/query/snapshot/checkpoint stores, and a read-model backend in one call.
+- **Typed read-model store** (`readmodel/v2`) — `Store[T any, K fmt.Stringer]` over `kv.Store` with codec + key prefixing; `Backend` is an alias for `kv.Store`, so `kv.MemStore`, `pebble.KVAdapter`, and the new SQL KV store all satisfy it.
+- **Read-model cache decorator** (`readmodel/cache/v2`) — Otter-backed `CachedStore[T,K]` (TinyLFU admission) with capacity + TTL, write-through.
+- **Typed stores** — `snapshot.TypedSnapshot[State]` + `TypedStore` (closes the `[]byte` hole on snapshot state); `command.TypedCommandStore[P]` (with `AppendBatch`); `query.TypedQueryStore[P]`. Encode/decode happens once at the adapter boundary.
+- **Pebble gaps closed** (`pebble/v2`) — `CommandStore`, `QueryStore`, and `ReadModels()` accessor on `Backend`; EventStore.Close() is now a no-op so the Backend owns the DB lifecycle (fixes a double-close).
+- **SQL-backed kv.Store** (`storage/v2`) — `SQLKVStore` implements `kv.Store` over a `cqrs_kv` table (Get/Set/Has/Delete/streaming-Iterator/transactional-Batch), exposed via `SQLBackend.KVStore()`. SQLite and Postgres presets now **persist read models across restarts** instead of using `kv.MemStore`. Verified by an E2E reopen test.
+- **Shared contract test suite** (`stack/contracttest`) — `RunSuite(t, factory)` runs 5 behavioural checks; 4 presets × 5 = 20 contract assertions.
+- **Zero-overhead benchmarks** (`stack/bench/v2`) — proves Bundle field access is a direct struct read (~0.20 ns/op).
+- **godoc example** (`stack/memory`) — `ExampleNew` renders the canonical Bundle entry point on pkg.go.dev.
+
+### Changed
+
+- **Dialect interface** (`storage/v2/sql`) — gained `KVSchema()` for the `cqrs_kv` table (BLOB for SQLite, BYTEA for Postgres). The only implementations are the in-package `PostgresDialect`/`SQLiteDialect`; upsert uses `ON CONFLICT(key) DO UPDATE … excluded.value`, identical across dialects.
+- **Lint app resilience** (`flake.nix`) — `nix run .#lint` now reports every failing module instead of aborting on the first (it ran under `errexit`).
+- **API surface** — 1351 → 1784 exports; golden file regenerated and the checker's module list expanded to 33 consumer-facing modules.
+- **Example rewrite** (`example/todo`) — uses the pebble Bundle preset + `readmodel.Store`; dead `storage/` package deleted (7 files).
+
+### Fixed
+
+- **Postgres preset tests ran in CI** — the `postgres-integration` job set `DATABASE_URL` (read by `storage` tests) but not `POSTGRES_TEST_DSN` (read by `stack/postgres` tests), so preset tests were silently skipped despite a running container. Now sets both and runs the preset suite.
+- **Zero lint violations** — 39 violations shipped under `--no--verify` in the first pass are now 0 across all 34 modules (readmodel, pebble, snapshot, stack presets cleaned up).
+- **Workspace** — `go work sync` applied; dependency budgets reconciled (`DEP_BUDGET[storage]` 11→12 for the new kv dep).
+
+### Infrastructure
+
+- CI matrix, `flake.nix`, `check-module-layers.sh`, and `.golangci.yml` updated for the 8 new modules (otter + pgx added to depguard).
+
 ## [2.6.0] - 2026-06-19
 
 27 commits since v2.5.0. Two new modules (schema validator, prometheus exporter), projection replay/live split, replay→live dedup pipeline, OTel correlation enricher, bounded dedup, streaming event reads, exported ID marker types, cqrs-gen struct tags, and leader election interface.

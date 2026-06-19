@@ -20,6 +20,8 @@
 
 ### Medium impact
 
+- [ ] **Postgres LISTEN/NOTIFY event bus** — Deferred to v2.8.0 (ADR-0027). All v2.7.0 presets use an in-memory bus (single-process). A distributed bus must solve the 8KB NOTIFY limit (notify-with-reference + listener re-fetch), listener lifecycle, and real-Postgres testing. Consumers can already supply any `event.Bus` via `stack.WithBus`.
+
 - [ ] **Streaming event reads — store implementation** — `EventIterator`, `StreamingSource`, `StreamingJournal` interfaces added to `event/`. `SliceIterator` adapter exists. SQL and Pebble stores should implement streaming variants for large aggregates.
 - [ ] **cqrs-gen v3 — event handler generation** — Struct tag scanning added (`cqrs:"command:CreateUser"`). Event handler generation (`-type=event`) still needed.
 
@@ -36,6 +38,13 @@
 
 ## Recently Completed
 
+- [x] **Bundle composition layer** (`stack/v2`) — v2.7.0. `Bundle` with ISP-honest fields + pointer-dedup Close; repository/read-model helpers as top-level generic functions.
+- [x] **Bundle presets** (`stack/{memory,sqlite,pebble,postgres}/v2`) — one-call wiring of every store + bus + read-model backend.
+- [x] **Typed read-model store + cache** (`readmodel/v2`, `readmodel/cache/v2`) — `Store[T,K]` over `kv.Store`; Otter-backed `CachedStore[T,K]`.
+- [x] **Typed stores** (`snapshot`, `command`, `query`) — `TypedSnapshot[State]`, `TypedCommandStore[P]`, `TypedQueryStore[P]`.
+- [x] **Persistent read models for SQL presets** (`storage/v2`) — `SQLKVStore` over `cqrs_kv`; SQLite + Postgres presets now keep read models across restarts.
+- [x] **Postgres preset tests in CI** — env-var mismatch fixed (`POSTGRES_TEST_DSN` now set in the postgres-integration job).
+- [x] **Zero lint violations** — 0 across all 34 modules; `nix run .#lint` now resilient (reports all failures).
 - [x] **Pebble DeleteEventsBefore removed** — Events are immutable truth. Removed the retention function, its test, and all doc references. Automatic event deletion is a footgun in an event sourcing library.
 - [x] **Pebble coverage 85%+** — From 84.6% to 86.6% via targeted error-branch tests.
 - [x] **Schema registry validator** (`schema/`) — `Validator` with `RegisterType[T]()`, `RegisterTypeWithValidator[T]()`, strict/lenient modes, custom codec support. ADR-0017 accepted.
@@ -83,4 +92,4 @@
 
 ---
 
-_7 open actionable items + 7 deferred breaking changes. See [ROADMAP.md](ROADMAP.md) for long-term vision._
+_8 open actionable items + 7 deferred breaking changes. See [ROADMAP.md](ROADMAP.md) for long-term vision._
