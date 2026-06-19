@@ -9,6 +9,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/storage/v2 v2.5.0
+	pgregory.net/rapid v1.3.0
 )
 
 require (

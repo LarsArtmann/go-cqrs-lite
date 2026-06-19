@@ -126,6 +126,13 @@ func defaultNotifyFunc(db *sql.DB) notifyFunc {
 // `SELECT pg_notify()`. The LISTEN side requires a driver-specific
 // NotificationListener that the consumer provides.
 //
+// Backpressure: the listener's notifications channel has a bounded buffer
+// (default 256). When a handler is slow and the buffer fills, the listener's
+// receive loop blocks, which in turn blocks WaitForNotification. Postgres
+// queues NOTIFY payloads server-side (default 8GB). If the server queue
+// overflows, Postgres forcibly disconnects all listeners. This is natural
+// backpressure — slow consumers must catch up or the connection is dropped.
+//
 // Usage:
 //
 //	db, _ := sql.Open("pgx", dsn)

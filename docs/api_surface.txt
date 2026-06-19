@@ -1551,7 +1551,10 @@ stack/postgres/func NewPgxListenerFromDSN
 stack/postgres/func WithDistributedBus
 stack/postgres/func WithPgxListenerLogger
 stack/postgres/func WithPgxListenerQueue
+stack/postgres/func WithReconnect
+stack/postgres/func WithReconnectBackoff
 stack/postgres/func WithoutAutoMigrate
+stack/postgres/func WithoutReconnect
 stack/postgres/method Close
 stack/postgres/method Close
 stack/postgres/method Listen

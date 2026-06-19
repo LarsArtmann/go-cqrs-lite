@@ -16,6 +16,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **PostgresBus otel spans** — `pg_bus.publish` (SpanKindInternal) and `pg_bus.handle_notification` (SpanKindConsumer) spans for distributed tracing of NOTIFY round-trips.
 - **Real-Postgres integration tests** (`stack/postgres/`) — Three `-tags=integration` tests covering the full LISTEN/NOTIFY round-trip, channel validation, and preset wiring. Run in CI's `postgres-integration` job.
 - **Documentation site content** — `docs/index.md` landing page with value proposition, quick start, module overview, presets comparison table.
+- **PgxListener auto-reconnect** (`stack/postgres/`) — On connection loss, the listener automatically re-acquires a connection and re-issues LISTEN with exponential backoff (default: 10 attempts, 1s→30s). Configurable via `WithReconnect(maxAttempts)`, `WithReconnectBackoff(initial, max)`, `WithoutReconnect()`. A dropped connection no longer silently kills event delivery.
+- **PgxListener deadlock regression test** — `TestPgxListener_CloseDoesNotDeadlock` asserts Close() returns within 2s when the receive loop is running, preventing regression of the critical cancelFn fix.
+- **Property-based channel-name validation** — `rapid` property tests (3 properties × 100 inputs) covering valid identifiers, digit-first rejection, and no-panic-on-arbitrary-input.
 
 ### Changed
 
@@ -23,7 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **WASM compilation** — All 7 core modules (id, codec, dispatcher, event, command, query, decider) now compile to `GOOS=js GOARCH=wasm`. Moved `NewCQRSViews()` behind `//go:build !js` to exclude the OTel SDK's `os/user` dependency.
 - **notifyPayload type model** — Replaced 5 stringly-typed fields with branded domain types (`id.EventID`, `event.Type`, `event.AggregateType`, `id.AggregateID`, `event.Version`). Eliminates the manual `String()`→`Parse` roundtrip on the receive side.
 - **pgx upgraded v5.7.1 → v5.10.0** — Patches critical memory-safety vulnerability (CVE) and SQL-injection via placeholder confusion.
-- **API surface** — 1806 → 1837+ exports.
+- **API surface** — 1806 → 1852 exports.
 
 ## [2.7.0] - 2026-06-19
 

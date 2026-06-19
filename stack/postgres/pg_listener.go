@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
@@ -22,6 +23,11 @@ import (
 // both run on it. The publishing side (SELECT pg_notify) goes through the
 // regular *sql.DB pool, so the listener does not contend with publishers.
 //
+// Auto-reconnect: if the connection drops (network blip, server restart),
+// the listener automatically re-acquires a connection and re-issues LISTEN
+// with exponential backoff (default: 10 attempts, 1s→30s). Disable with
+// [WithoutReconnect]. Tune with [WithReconnect] and [WithReconnectBackoff].
+//
 // Lifecycle:
 //
 //	listener, _ := postgres.NewPgxListener(ctx, pool)
@@ -34,6 +40,8 @@ type PgxListener struct {
 	cancelFn      context.CancelFunc // cancels the listen-specific child context
 	notifications chan string
 	logger        *slog.Logger
+	channel       string          // stored for reconnect (re-LISTEN after conn loss)
+	reconnectCfg  reconnectConfig // auto-reconnect settings
 
 	closeOnce sync.Once
 	done      chan struct{} // closed when the receive loop has exited
@@ -54,7 +62,9 @@ var errEmptyChannelName = errors.New("pgx_listener: empty channel name")
 
 // errInvalidChannelName is the base error for invalid channel-name input.
 // The invalid value is included via fmt.Errorf wrapping.
-var errInvalidChannelName = errors.New("pgx_listener: invalid channel name (must be [A-Za-z_][A-Za-z0-9_]*)")
+var errInvalidChannelName = errors.New(
+	"pgx_listener: invalid channel name (must be [A-Za-z_][A-Za-z0-9_]*)",
+)
 
 // NewPgxListener wraps an existing pgxpool for LISTEN/NOTIFY. The caller
 // retains ownership of the pool; closing the listener only releases the
@@ -65,6 +75,7 @@ func NewPgxListener(pool *pgxpool.Pool, opts ...PgxListenerOption) *PgxListener 
 		notifications: make(chan string, defaultListenerQueue),
 		logger:        slog.Default(),
 		done:          make(chan struct{}),
+		reconnectCfg:  defaultReconnectConfig(),
 	}
 
 	for _, opt := range opts {
@@ -125,6 +136,68 @@ func WithPgxListenerQueue(size int) PgxListenerOption {
 // defaultListenerQueue matches Postgres's typical NOTIFY burst tolerance.
 const defaultListenerQueue = 256
 
+// Reconnect defaults — overridable via WithReconnect / WithReconnectBackoff.
+const (
+	defaultReconnectMaxAttempts = 10
+	defaultReconnectInitBackoff = 1 * time.Second
+	defaultReconnectMaxBackoff  = 30 * time.Second
+	backoffShiftCap             = 10 // cap shift at 10 (1024×) to avoid Duration overflow
+)
+
+// reconnectConfig controls automatic reconnection when the LISTEN connection
+// drops. A dropped connection silently kills event delivery without it.
+type reconnectConfig struct {
+	enabled        bool
+	maxAttempts    int
+	initialBackoff time.Duration
+	maxBackoff     time.Duration
+}
+
+func defaultReconnectConfig() reconnectConfig {
+	return reconnectConfig{
+		enabled:        true,
+		maxAttempts:    defaultReconnectMaxAttempts,
+		initialBackoff: defaultReconnectInitBackoff,
+		maxBackoff:     defaultReconnectMaxBackoff,
+	}
+}
+
+// WithReconnect sets the maximum number of reconnect attempts after a
+// connection loss. Default is 10 attempts with exponential backoff
+// (1s → 2s → 4s → … → 30s cap). Set to 0 to disable auto-reconnect.
+func WithReconnect(maxAttempts int) PgxListenerOption {
+	return func(l *PgxListener) {
+		if maxAttempts <= 0 {
+			l.reconnectCfg.enabled = false
+		} else {
+			l.reconnectCfg.enabled = true
+			l.reconnectCfg.maxAttempts = maxAttempts
+		}
+	}
+}
+
+// WithReconnectBackoff configures the exponential backoff schedule for
+// auto-reconnect. initial is the delay before the first retry; maxDelay is the
+// cap on subsequent delays. Defaults: 1s initial, 30s max.
+func WithReconnectBackoff(initial, maxDelay time.Duration) PgxListenerOption {
+	return func(l *PgxListener) {
+		if initial > 0 {
+			l.reconnectCfg.initialBackoff = initial
+		}
+
+		if maxDelay > 0 {
+			l.reconnectCfg.maxBackoff = maxDelay
+		}
+	}
+}
+
+// WithoutReconnect disables auto-reconnect entirely. The listener will
+// stop receiving events when the connection drops and must be manually
+// restarted.
+func WithoutReconnect() PgxListenerOption {
+	return func(l *PgxListener) { l.reconnectCfg.enabled = false }
+}
+
 // Listen acquires a dedicated connection from the pool, issues LISTEN on the
 // given channel, and starts a background receive loop. The loop delivers
 // NOTIFY payloads to Notifications() until Close is called or the connection
@@ -174,43 +247,145 @@ func (l *PgxListener) Listen(ctx context.Context, channel string) error {
 
 	l.conn = conn
 	l.cancelFn = cancel
+	l.channel = channel
 
 	go l.receiveLoop(listenCtx)
 
 	return nil
 }
 
-// receiveLoop blocks on WaitForNotification and pushes payloads until ctx
-// is cancelled, the connection errors, or Close drains it. The loop exits
-// by closing the notifications channel — that's how consumers detect end-of-stream.
+// receiveLoop is the outer reconnect loop. It delegates one notification
+// cycle to receiveOnce, and on connection error attempts to reconnect with
+// exponential backoff. The loop exits (closing the notifications channel)
+// only when: the context is cancelled (Close), or all reconnect attempts
+// are exhausted. This is how consumers detect end-of-stream.
 func (l *PgxListener) receiveLoop(ctx context.Context) {
 	defer l.doneClose()
 
 	for {
-		// WaitForNotification returns on NOTIFY, ctx cancel, or connection loss.
-		notification, err := l.conn.Conn().WaitForNotification(ctx)
-		if err != nil {
-			if ctx.Err() != nil {
-				// Context cancellation — expected on Close. Exit quietly.
-				return
-			}
+		err := l.receiveOnce(ctx)
 
-			l.logger.ErrorContext(
-				ctx,
-				"pgx_listener: WaitForNotification failed; exiting receive loop",
-				"error",
-				err,
-			)
-
-			return
+		if ctx.Err() != nil {
+			return // Close called — exit quietly.
 		}
 
-		select {
-		case l.notifications <- notification.Payload:
-		case <-ctx.Done():
-			return
+		if err == nil {
+			continue
+		}
+
+		// Connection error — attempt reconnect.
+		if !l.reconnect(ctx, err) {
+			return // reconnect disabled or all attempts exhausted.
 		}
 	}
+}
+
+// receiveOnce blocks on a single WaitForNotification cycle and pushes the
+// payload to the notifications channel. Returns nil on success, or the
+// error from WaitForNotification / ctx cancellation.
+func (l *PgxListener) receiveOnce(ctx context.Context) error {
+	notification, err := l.conn.Conn().WaitForNotification(ctx)
+	if err != nil {
+		return fmt.Errorf("pgx_listener: wait for notification: %w", err)
+	}
+
+	select {
+	case l.notifications <- notification.Payload:
+		return nil
+	case <-ctx.Done():
+		return fmt.Errorf("pgx_listener: cancelled during send: %w", ctx.Err())
+	}
+}
+
+// reconnect attempts to re-acquire a connection and re-issue LISTEN after a
+// connection error. Returns true if reconnected successfully, false if
+// reconnect is disabled, the context was cancelled (Close), or all attempts
+// were exhausted.
+func (l *PgxListener) reconnect(ctx context.Context, lastErr error) bool {
+	if !l.reconnectCfg.enabled {
+		l.logger.ErrorContext(
+			ctx,
+			"pgx_listener: connection lost; auto-reconnect disabled",
+			"error", lastErr,
+		)
+
+		return false
+	}
+
+	for attempt := range l.reconnectCfg.maxAttempts {
+		delay := l.backoffDuration(attempt)
+
+		l.logger.WarnContext(
+			ctx,
+			"pgx_listener: reconnecting",
+			"attempt", attempt+1,
+			"max", l.reconnectCfg.maxAttempts,
+			"delay", delay,
+			"last_error", lastErr,
+		)
+
+		select {
+		case <-ctx.Done():
+			return false
+		case <-time.After(delay):
+		}
+
+		if l.conn != nil {
+			l.conn.Release()
+			l.conn = nil
+		}
+
+		conn, err := l.pool.Acquire(ctx)
+		if err != nil {
+			if ctx.Err() != nil {
+				return false
+			}
+
+			lastErr = err
+
+			continue
+		}
+
+		_, err = conn.Exec(ctx, fmt.Sprintf(`LISTEN "%s"`, l.channel))
+		if err != nil {
+			conn.Release()
+
+			if ctx.Err() != nil {
+				return false
+			}
+
+			lastErr = err
+
+			continue
+		}
+
+		l.conn = conn
+		l.logger.InfoContext(
+			ctx,
+			"pgx_listener: reconnected",
+			"attempt", attempt+1,
+		)
+
+		return true
+	}
+
+	l.logger.ErrorContext(
+		ctx,
+		"pgx_listener: reconnect failed after all attempts",
+		"attempts", l.reconnectCfg.maxAttempts,
+		"last_error", lastErr,
+	)
+
+	return false
+}
+
+// backoffDuration computes the exponential backoff delay for a given attempt
+// index (0-based). The delay doubles each attempt, capped at maxBackoff.
+func (l *PgxListener) backoffDuration(attempt int) time.Duration {
+	shift := min(attempt, backoffShiftCap)
+	delay := l.reconnectCfg.initialBackoff * time.Duration(1<<uint(shift))
+
+	return min(delay, l.reconnectCfg.maxBackoff)
 }
 
 // doneClose closes the notifications channel exactly once. Used as the
@@ -230,6 +405,10 @@ func (l *PgxListener) Notifications() <-chan string {
 // the receive loop), waits for the loop to exit, then releases the dedicated
 // connection and — if the listener owns the pool — closes the pool.
 // Safe to call multiple times (sync.Once guard).
+//
+// Graceful drain: after Close returns, the notifications channel is closed
+// (consumers detect end-of-stream). Any payload already buffered in the
+// channel remains readable until drained. No new NOTIFY payloads will arrive.
 func (l *PgxListener) Close() error {
 	l.closeOnce.Do(func() {
 		l.closed.Store(true)

@@ -116,7 +116,7 @@ and `stack`, never a storage driver. Eight new modules shipped this release.
 
 - [~] ~~Outbox pattern~~ — **REMOVED**. Use [Watermill](https://github.com/ThreeDotsLabs/watermill) for reliable at-least-once publishing. The `watermill/` adapter already exists in this repo.
 - [~] ~~Saga module~~ — **HARD NO**. Vertical scaling (bigger server) is sufficient for this library's scope. Multi-instance orchestration is the consumer's concern.
-- [ ] Event schema registry with validation middleware
+- [x] ~~Event schema registry with validation middleware~~ — **DONE**: `schema.Validator` with `RegisterType[T]()`, `RegisterTypeWithValidator[T]()`, strict/lenient modes, custom codec. ADR-0017 accepted.
 - [x] ~~Distributed checkpointing for projections~~ — DONE: `DistributedRunner` with `LeaderElection` gating
 - [x] ~~**Projection replay→live dedup gap**~~ — **FIXED** (commit `8d4ea2cc`). The Runner's `subscribeLive` now builds a reactive pipeline: `live → DistinctByEventIDWith(replayIDs) → handler`. Event IDs from journal replay seed the dedup set, so overlap-window duplicates are silently suppressed. New exports: `event.SubscriberToObservable`, `event.DistinctByEventIDWith`.
 
@@ -131,9 +131,9 @@ and `stack`, never a storage driver. Eight new modules shipped this release.
 ### Observability
 
 - [x] ~~Built-in pprof endpoints~~ — **DONE**: `middleware.ProfilingHandler()` and `middleware.RegisterProfiling()` expose all pprof endpoints via `net/http`
-- [ ] Custom metrics exporter (Prometheus format)
-- [ ] Structured logging middleware with configurable levels
-- [ ] Distributed tracing span propagation across module boundaries
+- [x] ~~Custom metrics exporter (Prometheus format)~~ — **DONE**: `prometheus/` module with `Setup()`, `WithRegistry()`, `MustSetup()`. OTel→Prometheus bridge.
+- [x] ~~Structured logging middleware with configurable levels~~ — **DONE**: `middleware.NewLogging[M]()` with `*slog.Logger` (levels configurable via `slog.HandlerOptions`). `EventLogging`, `CommandLogging`, `QueryLogging` constructors.
+- [x] ~~Distributed tracing span propagation across module boundaries~~ — **DONE**: OTel spans on event/command/query middleware (`EventTracing`, `EventPublishTracing`, `CommandTracing`). Baggage propagation via `cqrsotel.WithCorrelationID`, `cqrsotel.CorrelationIDFromContext`, `cqrsotel.NewTextMapPropagator` (W3C trace + baggage).
 
 ---
 
@@ -150,4 +150,4 @@ and `stack`, never a storage driver. Eight new modules shipped this release.
 
 ---
 
-_Last updated: 2026-06-19 (Sprint 9: streaming reads, DistributedRunner, PostgresBus wired+tested, cqrs-gen events, WASM 7/7, pgx CVE fix)_
+_Last updated: 2026-06-19 (Sprint 9: streaming reads, DistributedRunner, PostgresBus wired+tested+reconnect, cqrs-gen events, WASM 7/7, pgx CVE fix. ROADMAP freshness audit: 4 stale `[ ]` items marked done.)_
