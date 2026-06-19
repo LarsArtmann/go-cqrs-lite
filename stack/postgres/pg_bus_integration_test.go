@@ -100,8 +100,12 @@ func TestPostgresBus_E2E_RefetchAndDeliver(t *testing.T) {
 	t.Cleanup(func() { _ = busA.Close() })
 
 	var got atomic.Value // event.Event
+	received := make(chan event.Event, 1)
+
 	err = busA.Subscribe("user.created", func(_ context.Context, e event.Event) error {
 		got.Store(e)
+		received <- e
+
 		return nil
 	})
 	if err != nil {
@@ -141,28 +145,21 @@ func TestPostgresBus_E2E_RefetchAndDeliver(t *testing.T) {
 		t.Fatalf("Publish: %v", err)
 	}
 
-	// Wait for cross-bus delivery.
-	deadline := time.Now().Add(5 * time.Second)
-	for time.Now().Before(deadline) {
-		if v := got.Load(); v != nil {
-			received := v.(event.Event)
-			if received.ID() != evt.ID() {
-				t.Fatalf("received wrong event ID: got %s, want %s",
-					received.ID(), evt.ID())
-			}
-
-			if received.Type() != evt.Type() {
-				t.Fatalf("received wrong event type: got %s, want %s",
-					received.Type(), evt.Type())
-			}
-
-			return
+	// Wait for cross-bus delivery (deterministic via channel).
+	select {
+	case receivedEvt := <-received:
+		if receivedEvt.ID() != evt.ID() {
+			t.Fatalf("received wrong event ID: got %s, want %s",
+				receivedEvt.ID(), evt.ID())
 		}
 
-		time.Sleep(5 * time.Millisecond)
+		if receivedEvt.Type() != evt.Type() {
+			t.Fatalf("received wrong event type: got %s, want %s",
+				receivedEvt.Type(), evt.Type())
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("timeout: handler A was not invoked via LISTEN/NOTIFY within 5s")
 	}
-
-	t.Fatal("timeout: handler A was not invoked via LISTEN/NOTIFY within 5s")
 }
 
 // TestPostgresBus_BadChannelRejected confirms the listener validates channel
@@ -221,10 +218,12 @@ func TestPostgresBus_PresetWiring(t *testing.T) {
 	}
 
 	// Round-trip: subscribe, save, publish, wait for local delivery.
-	var got atomic.Value
+	received := make(chan event.Event, 1)
+
 	err = bundle.Subscriber.Subscribe("demo.happened",
 		func(_ context.Context, e event.Event) error {
-			got.Store(e)
+			received <- e
+
 			return nil
 		})
 	if err != nil {
@@ -247,20 +246,14 @@ func TestPostgresBus_PresetWiring(t *testing.T) {
 		t.Fatalf("Publish: %v", err)
 	}
 
-	// Local dispatch fires immediately on the publishing bus. Verify the
-	// handler saw the event within a short window.
-	deadline := time.Now().Add(2 * time.Second)
-	for time.Now().Before(deadline) {
-		if v := got.Load(); v != nil {
-			if v.(event.Event).ID() != evt.ID() {
-				t.Fatalf("received wrong event ID: got %v, want %s", v, evt.ID())
-			}
-
-			return
+	// Local dispatch fires synchronously in Publish. Verify via channel.
+	select {
+	case receivedEvt := <-received:
+		if receivedEvt.ID() != evt.ID() {
+			t.Fatalf("received wrong event ID: got %s, want %s",
+				receivedEvt.ID(), evt.ID())
 		}
-
-		time.Sleep(2 * time.Millisecond)
+	case <-time.After(2 * time.Second):
+		t.Fatal("timeout: local handler not invoked within 2s")
 	}
-
-	t.Fatal("timeout: local handler not invoked within 2s")
 }

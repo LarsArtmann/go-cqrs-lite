@@ -31,6 +31,7 @@ type PgxListener struct {
 	pool          *pgxpool.Pool
 	ownsPool      bool // true when this listener created the pool (and should close it)
 	conn          *pgxpool.Conn
+	cancelFn      context.CancelFunc // cancels the listen-specific child context
 	notifications chan string
 	logger        *slog.Logger
 
@@ -146,24 +147,35 @@ func (l *PgxListener) Listen(ctx context.Context, channel string) error {
 		return err
 	}
 
-	conn, err := l.pool.Acquire(ctx)
+	// Derive a child context so Close() can cancel the receive loop
+	// independently of the caller's context. This is critical: pgxpool's
+	// Conn.Release() does NOT interrupt in-flight WaitForNotification, so
+	// without our own cancel we would deadlock in Close() waiting on
+	// <-l.done while receiveLoop is stuck on WaitForNotification.
+	listenCtx, cancel := context.WithCancel(ctx)
+
+	conn, err := l.pool.Acquire(listenCtx)
 	if err != nil {
+		cancel()
+
 		return fmt.Errorf("pgx_listener: acquire conn: %w", err)
 	}
 
 	// Postgres LISTEN takes an unquoted identifier (lowercased) or a
 	// double-quoted identifier (case preserved). Quoting keeps arbitrary
 	// validated names round-tripping with pg_notify's string arg.
-	_, err = conn.Exec(ctx, fmt.Sprintf(`LISTEN "%s"`, channel))
+	_, err = conn.Exec(listenCtx, fmt.Sprintf(`LISTEN "%s"`, channel))
 	if err != nil {
+		cancel()
 		conn.Release()
 
 		return fmt.Errorf("pgx_listener: LISTEN %q: %w", channel, err)
 	}
 
 	l.conn = conn
+	l.cancelFn = cancel
 
-	go l.receiveLoop(ctx)
+	go l.receiveLoop(listenCtx)
 
 	return nil
 }
@@ -214,18 +226,30 @@ func (l *PgxListener) Notifications() <-chan string {
 	return l.notifications
 }
 
-// Close releases the dedicated connection (and the pool, if owned). Safe to
-// call multiple times.
+// Close cancels the listen context (which unblocks WaitForNotification in
+// the receive loop), waits for the loop to exit, then releases the dedicated
+// connection and — if the listener owns the pool — closes the pool.
+// Safe to call multiple times (sync.Once guard).
 func (l *PgxListener) Close() error {
 	l.closeOnce.Do(func() {
 		l.closed.Store(true)
 
-		if l.conn != nil {
-			// Closing the connection cancels any in-flight WaitForNotification,
-			// unblocking the receive loop.
-			l.conn.Release()
+		// Cancel the listen context FIRST. This unblocks receiveLoop's
+		// WaitForNotification, which otherwise blocks on the network fd
+		// indefinitely (pgxpool Conn.Release does NOT interrupt it).
+		if l.cancelFn != nil {
+			l.cancelFn()
+		}
 
-			<-l.done // wait for receiveLoop to exit cleanly
+		// Wait for receiveLoop to exit before touching conn or pool.
+		// Only wait if Listen was actually called (cancelFn set).
+		// This prevents pool.Close() from deadlocking on an unreleased conn.
+		if l.cancelFn != nil && l.done != nil {
+			<-l.done
+		}
+
+		if l.conn != nil {
+			l.conn.Release()
 			l.conn = nil
 		}
 
