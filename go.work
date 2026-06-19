@@ -26,6 +26,7 @@ use (
 	./prometheus
 	./query
 	./readmodel
+	./readmodel/cache
 	./schema
 	./signing
 	./snapshot
