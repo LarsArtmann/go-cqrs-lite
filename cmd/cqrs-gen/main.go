@@ -5,10 +5,13 @@
 //
 //	cqrs-gen -type=command -output=commands_gen.go ./...
 //	cqrs-gen -type=query -output=queries_gen.go ./...
+//	cqrs-gen -type=event -output=events_gen.go ./...
 //
 // Marker comments in source code:
 //
 //	//cqrs:command CreateUser
+//	//cqrs:query GetUser
+//	//cqrs:event UserCreated
 //	type CreateUserCmd struct {
 //	    *command.BasicCommand
 //	    Name string
@@ -33,6 +36,7 @@ import (
 const (
 	genTypeCommand = "command"
 	genTypeQuery   = "query"
+	genTypeEvent   = "event"
 )
 
 //nolint:gochecknoglobals // CLI flags
@@ -52,8 +56,8 @@ func main() {
 }
 
 func run(genType, outputFile, pkg string, paths []string) int {
-	if genType != genTypeCommand && genType != genTypeQuery {
-		fmt.Fprintf(os.Stderr, "invalid type %q: must be 'command' or 'query'\n", genType)
+	if genType != genTypeCommand && genType != genTypeQuery && genType != genTypeEvent {
+		fmt.Fprintf(os.Stderr, "invalid type %q: must be 'command', 'query', or 'event'\n", genType)
 		return 1
 	}
 
@@ -259,6 +263,16 @@ const (
 )
 
 `
+
+	eventImports = `import (
+	"context"
+
+	"github.com/larsartmann/go-cqrs-lite/codec/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/projection/v2"
+)
+
+`
 )
 
 type genSpec struct {
@@ -275,6 +289,10 @@ var genSpecs = map[string]genSpec{
 	genTypeQuery: {
 		imports:    queryImports,
 		writeEntry: writeQueryHandler,
+	},
+	genTypeEvent: {
+		imports:    eventImports,
+		writeEntry: writeEventHandler,
 	},
 }
 
@@ -311,6 +329,28 @@ func writeQueryHandler(b *strings.Builder, e Entry) {
 	fmt.Fprintf(
 		b,
 		"\treturn query.RegisterTyped[*%s, R](d, %q, handler)\n",
+		e.StructName,
+		e.CommandType,
+	)
+	b.WriteString("}\n\n")
+}
+
+func writeEventHandler(b *strings.Builder, e Entry) {
+	fmt.Fprintf(
+		b,
+		"// Register%sHandler registers a typed projection handler for %s events.\n",
+		e.StructName,
+		e.CommandType,
+	)
+	fmt.Fprintf(
+		b,
+		"func Register%sHandler(b *projection.Builder, c codec.Codec, handler func(context.Context, %s) error) error {\n",
+		e.StructName,
+		e.StructName,
+	)
+	fmt.Fprintf(
+		b,
+		"\treturn projection.On[%s](b, event.Type(%q), c, handler)\n",
 		e.StructName,
 		e.CommandType,
 	)

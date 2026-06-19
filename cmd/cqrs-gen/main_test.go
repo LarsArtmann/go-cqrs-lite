@@ -608,3 +608,81 @@ type CreateItemCmd struct{}`
 		t.Errorf("generated file missing handler, got: %s", generated)
 	}
 }
+
+func TestGenerate_Event(t *testing.T) {
+	t.Parallel()
+
+	entries := []Entry{
+		{CommandType: "UserCreated", StructName: "UserCreatedPayload"},
+	}
+
+	code := generate("handlers", "event", entries)
+
+	if !strings.Contains(code, "github.com/larsartmann/go-cqrs-lite/projection/v2") {
+		t.Error("missing projection import")
+	}
+
+	if !strings.Contains(code, "github.com/larsartmann/go-cqrs-lite/codec/v2") {
+		t.Error("missing codec import")
+	}
+
+	if !strings.Contains(code, "func RegisterUserCreatedPayloadHandler") {
+		t.Error("missing handler function")
+	}
+
+	if !strings.Contains(code, "func(context.Context, UserCreatedPayload) error") {
+		t.Error("handler should accept typed payload")
+	}
+
+	if !strings.Contains(code, "projection.On[UserCreatedPayload]") {
+		t.Error("should call projection.On[UserCreatedPayload]")
+	}
+
+	if !strings.Contains(code, `event.Type("UserCreated")`) {
+		t.Error("missing event type string")
+	}
+}
+
+func TestRun_SuccessfulEvent(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	content := "package example\n\n//cqrs:event UserCreated\ntype UserCreatedPayload struct{}\n"
+	writeTempGoFile(t, tmp, "event.go", content)
+
+	outputFile := filepath.Join(tmp, "gen.go")
+	code := run("event", outputFile, "", []string{tmp})
+	if code != 0 {
+		t.Errorf("expected exit 0, got %d", code)
+	}
+
+	generated, err := os.ReadFile(outputFile)
+	if err != nil {
+		t.Fatalf("output file not created: %v", err)
+	}
+
+	if !strings.Contains(string(generated), "RegisterUserCreatedPayloadHandler") {
+		t.Errorf("generated file missing handler, got: %s", generated)
+	}
+}
+
+func TestScanFile_EventStructTag(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	content := "package example\n\ntype UserCreatedPayload struct {\n\t_ struct{} `cqrs:\"event:UserCreated\"`\n}\n"
+	writeTempGoFile(t, tmp, "tag.go", content)
+
+	entries, err := scanFile(filepath.Join(tmp, "tag.go"), "event")
+	if err != nil {
+		t.Fatalf("scanFile: %v", err)
+	}
+
+	if len(entries) != 1 {
+		t.Fatalf("expected 1 entry, got %d", len(entries))
+	}
+
+	if entries[0].CommandType != "UserCreated" {
+		t.Errorf("CommandType = %q, want %q", entries[0].CommandType, "UserCreated")
+	}
+}
