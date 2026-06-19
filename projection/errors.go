@@ -47,4 +47,22 @@ var (
 		"projection.replay_required",
 		"projection: RunReplay must be called before RunLive",
 	)
+
+	// ErrNilLeaderElection is returned when a nil LeaderElection is passed to NewDistributedRunner.
+	ErrNilLeaderElection = event.NewInfrastructure(
+		"projection.nil_leader_election",
+		"projection: nil leader election",
+	)
+
+	// ErrNilRunner is returned when a nil Runner is passed to NewDistributedRunner.
+	ErrNilRunner = event.NewInfrastructure(
+		"projection.nil_runner",
+		"projection: nil runner",
+	)
+
+	// ErrLeadershipLost is returned when leadership is lost during live processing.
+	ErrLeadershipLost = event.NewConflict(
+		"projection.leadership_lost",
+		"projection: leadership lost during live processing",
+	)
 )
