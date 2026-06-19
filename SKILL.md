@@ -28,7 +28,8 @@ Query   → Dispatcher → Handler → Read Model
 | ----------------- | ------------------------------------------- | ------------------------------------------------------------------ |
 | **Write model**   | How do I decide + persist changes?          | `event`, `command`, `decider`, `id`                                |
 | **Read model**    | How do I build queryable state from events? | `projection`, `listing`, `query`                                   |
-| **Storage**       | Where do events/snapshots/checkpoints live? | `memory`, `storage`, `pebble`, `turso`, `kv`                       |
+| **Storage**       | Where do events/snapshots/checkpoints live? | `memory`, `storage`, `pebble`, `turso`, `kv`, `stack`              |
+| **Read models**   | How do I store/query typed projections?     | `readmodel`, `readmodel/cache`                                      |
 | **Cross-cutting** | Security, evolution, observability, docs    | `signing`, `encryption`, `schema`, `middleware`, `otel`, `catalog` |
 
 You do NOT need all of them. Start with the minimal recipe (§2), then bolt on capabilities.
@@ -63,10 +64,54 @@ You do NOT need all of them. Start with the minimal recipe (§2), then bolt on c
 | Publish events to Watermill router                  | `watermill`                           | §6.5       |
 | Reactive streams (pub/sub with filters)             | `event`/`command`/`query` (samber/ro) | §6.2       |
 | In-memory implementations for tests/dev             | `memory`                              | §2.1       |
+| One-call infrastructure wiring (Bundle presets)     | `stack/memory`, `stack/sqlite`, `stack/pebble`, `stack/postgres` | §2.0 |
+| Typed read-model store over KV backend              | `readmodel`                           | §2.0       |
+| Cache decorator for read models                     | `readmodel/cache`                     | §2.0       |
 
 ---
 
 ## 2. Composition Recipes (copy-paste, verified APIs)
+
+### 2.0 Bundle Presets — one-call infrastructure wiring
+
+> **New in v2.7.** Consumers should NOT decide on infrastructure manually.
+> The deployer picks a preset; the app developer never imports a backend.
+
+```go
+import cqrspebble "github.com/larsartmann/go-cqrs-lite/stack/pebble/v2"
+
+// One call wires: event store + bus, command store, query store,
+// snapshot store, checkpoint store, read-model backend.
+b, err := cqrspebble.New("/var/lib/myapp/pebble")
+defer b.Close()
+
+// Typed read model over the Bundle's shared KV backend
+store, _ := stack.ReadModel[TodoView, TodoID](b, codec.JSONCodec{},
+    readmodel.WithKeyPrefix[TodoView, TodoID]("todos:"))
+
+// Command handlers use b.EventSink (asserts to event.Store)
+// Queries use the read model store
+// Projections use b.Journal + b.Subscriber + b.CheckpointStore
+```
+
+Available presets:
+
+| Preset | Module | Backend | Read Models |
+|--------|--------|---------|-------------|
+| Memory | `stack/memory` | In-memory | Memory KV |
+| SQLite | `stack/sqlite` | SQLite (modernc) | Memory KV |
+| Pebble | `stack/pebble` | PebbleDB (LSM) | Pebble KV |
+| Postgres | `stack/postgres` | PostgreSQL (pgx) | Memory KV |
+
+Read-model cache decorator:
+
+```go
+cached, _ := cache.New(store,
+    cache.WithCapacity[TodoView, TodoID](10_000),
+    cache.WithTTL[TodoView, TodoID](5*time.Minute))
+```
+
+See [`docs/PRESETS.md`](docs/PRESETS.md) for full documentation.
 
 ### 2.1 Minimal Event Sourcing (event + command + decider + id + memory)
 

@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-06-19 (v2.6.0 release: prometheus module added, module inventory re-verified) · **Module count:** 30 modules (24 library + 1 integration + 3 examples + 2 cmd) · **Go version:** 1.26.3
+**Last audited:** 2026-06-19 (v2.7.0: Bundle layer — readmodel, stack presets, cache, benchmarks) · **Module count:** 38 modules · **Go version:** 1.26.3
 
 ## Status Legend
 
@@ -831,6 +831,14 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `example/user`         | `…/example/user`            | 💡 Demo         |
 | `example/todo`         | `…/example/todo`            | 💡 Demo         |
 | `example/encryption`   | `…/example/encryption`      | 💡 Demo         |
+| `readmodel`            | `…/readmodel/v2`            | ✅ Production   |
+| `readmodel/cache`      | `…/readmodel/cache/v2`      | ✅ Production   |
+| `stack`                | `…/stack/v2`                | ✅ Production   |
+| `stack/memory`         | `…/stack/memory/v2`         | ✅ Production   |
+| `stack/sqlite`         | `…/stack/sqlite/v2`         | ✅ Production   |
+| `stack/pebble`         | `…/stack/pebble/v2`         | ✅ Production   |
+| `stack/postgres`       | `…/stack/postgres/v2`       | ✅ Production   |
+| `stack/bench`          | `…/stack/bench/v2`          | 🧪 Benchmarks   |
 
 ---
 
