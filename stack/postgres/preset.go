@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/stack/v2"
 	"github.com/larsartmann/go-cqrs-lite/storage/v2"
@@ -16,6 +17,7 @@ type Option func(*config)
 
 type config struct {
 	autoMigrate bool
+	listener    storage.NotificationListener // nil → in-memory bus
 }
 
 func defaultConfig() config {
@@ -28,6 +30,18 @@ func WithoutAutoMigrate() Option {
 	return func(c *config) { c.autoMigrate = false }
 }
 
+// WithDistributedBus enables cross-process event propagation via Postgres
+// LISTEN/NOTIFY. The listener is typically a [PgxListener] constructed from
+// the same database DSN. When this option is set, the preset wires
+// [storage.PostgresBus] instead of the default in-memory bus; the listener
+// is registered with the Bundle for Close-time cleanup.
+//
+// Without this option, the preset uses memory.NewMemoryBus — fine for
+// single-process deployments but invisible to other processes sharing the DB.
+func WithDistributedBus(listener storage.NotificationListener) Option {
+	return func(c *config) { c.listener = listener }
+}
+
 // New opens a PostgreSQL database at dsn, configures it, and returns a
 // fully-wired [stack.Bundle].
 //
@@ -36,9 +50,9 @@ func WithoutAutoMigrate() Option {
 // opened with the pure-Go pgx driver (no CGo required).
 //
 // Events, commands, queries, snapshots, checkpoints, AND read models are all
-// persisted to the database. The event bus uses an in-memory implementation
-// (memory.NewMemoryBus) for single-process use. For multi-process pub/sub,
-// consumers can wire storage.PostgresBus (LISTEN/NOTIFY) via stack.WithBus.
+// persisted to the database. By default the event bus is in-memory
+// (memory.NewMemoryBus) for single-process use; pass [WithDistributedBus]
+// to wire storage.PostgresBus (LISTEN/NOTIFY) for multi-process pub/sub.
 //
 // On any setup failure the database is closed before the error is returned —
 // no resource leaks. The returned Bundle owns the *sql.DB; Close releases it.
@@ -78,7 +92,17 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 
 	stackOpts := buildOptions(backend)
 
-	stackOpts = append(stackOpts, stack.WithBus(memory.NewMemoryBus()))
+	bus, busCleanup, err := buildBus(db, backend.EventStore(), cfg)
+	if err != nil {
+		_ = backend.Close()
+		_ = db.Close()
+
+		return nil, fmt.Errorf("postgres preset: bus: %w", err)
+	}
+	stackOpts = append(stackOpts, stack.WithBus(bus))
+	if busCleanup != nil {
+		stackOpts = append(stackOpts, stack.WithCloser(busCleanup))
+	}
 
 	// Read models persist in the same database via a SQL-backed kv.Store.
 	kvStore, err := backend.KVStore()
@@ -105,6 +129,28 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	}
 
 	return b, nil
+}
+
+// buildBus returns the event bus to wire into the Bundle. When cfg.listener
+// is set, the bus is a storage.PostgresBus backed by Postgres LISTEN/NOTIFY
+// and the listener is returned so the caller can register it for Close-time
+// cleanup. Otherwise the bus is an in-memory implementation for single-process
+// use.
+func buildBus(
+	db *sql.DB,
+	store event.EventSource,
+	cfg config,
+) (event.Bus, io.Closer, error) {
+	if cfg.listener == nil {
+		return memory.NewMemoryBus(), nil, nil
+	}
+
+	pgBus, err := storage.NewPostgresBus(db, store, cfg.listener)
+	if err != nil {
+		return nil, nil, fmt.Errorf("create postgres bus: %w", err)
+	}
+
+	return pgBus, pgBus, nil
 }
 
 func buildOptions(backend *storage.SQLBackend) []stack.Option {
