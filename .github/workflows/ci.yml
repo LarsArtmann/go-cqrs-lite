@@ -313,6 +313,8 @@ jobs:
       - name: Run PostgreSQL integration tests
         env:
           DATABASE_URL: postgres://cqrs:cqrs@localhost:5432/cqrs_test?sslmode=disable
+          POSTGRES_TEST_DSN: postgres://cqrs:cqrs@localhost:5432/cqrs_test?sslmode=disable
         run: |
           cd storage && GOWORK=off go test -tags=integration -v -count=1 \
             -run TestPostgres ./...
+          cd ../stack/postgres && GOWORK=off go test -v -count=1 ./...

@@ -344,7 +344,7 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 | Production | oklog/ulid/v2, go-branded-id, go-error-family, samber/ro (event, command, query); go-faster/yaml (catalog); go.opentelemetry.io/otel (otel, event, storage, middleware, projection, prometheus); prometheus/client_golang (prometheus); golang.org/x/crypto (encryption); fxamacker/cbor/v2 (codec) |
 | Test-only  | onsi/ginkgo/v2, onsi/gomega, pgregory.net/rapid (event, encryption)                                                                                                                                                                                                                                 |
 
-**Coverage**: 84–100% across 32 packages. See `docs/status/` for latest.
+**Coverage**: core modules 84–100%; Bundle layer (readmodel, stack presets, cache) 0–87% — presets emphasise the shared contract suite + happy paths, so constructor error branches are lighter (stack/postgres shows 0% locally because its tests skip without `POSTGRES_TEST_DSN`). See `docs/status/` for latest.
 
 **Module Graph**:
 

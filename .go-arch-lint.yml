@@ -1,5 +1,10 @@
 # go-arch-lint configuration for go-cqrs-lite
-# Enforces module dependency layer rules per the architecture design.
+#
+# NOTE: This file is a SECONDARY, aspirational reference for the module layer
+# model. It is NOT enforced in CI. The authoritative, CI-enforced layer gate is
+# scripts/check-module-layers.sh (which passes). go-arch-lint currently reports
+# historical drift against this ruleset; treat the component list below as a
+# module inventory, and scripts/check-module-layers.sh as the source of truth.
 # https://github.com/fe3dback/go-arch-lint
 
 version: 3
@@ -60,6 +65,32 @@ components:
     in: example/**
   cmd:
     in: cmd/**
+  kv:
+    in: kv/**
+  prometheus:
+    in: prometheus/**
+  testutil:
+    in: testutil/**
+  encryption:
+    in: encryption/**
+  readmodel:
+    in: readmodel/**
+  readmodelcache:
+    in: readmodel/cache/**
+  storagesql:
+    in: storage/sql/**
+  stack:
+    in: stack/**
+  stackmemory:
+    in: stack/memory/**
+  stacksqlite:
+    in: stack/sqlite/**
+  stackpebble:
+    in: stack/pebble/**
+  stackpostgres:
+    in: stack/postgres/**
+  stackbench:
+    in: stack/bench/**
 
 # Layered dependency rules (Layer N can depend on Layer < N)
 # Layer 0: id, dispatcher, codec (no internal deps)
