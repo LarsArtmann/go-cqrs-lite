@@ -5,6 +5,8 @@ import (
 	"log/slog"
 
 	"github.com/cockroachdb/pebble"
+
+	"github.com/larsartmann/go-cqrs-lite/kv/v2"
 )
 
 // Backend is a facade that provides access to all Pebble-backed stores
@@ -15,8 +17,11 @@ import (
 type Backend struct {
 	database *pebble.DB
 	events   *EventStore
+	commands *CommandStore
+	queries  *QueryStore
 	snapshot *SnapshotStore
 	checkpt  *CheckpointStore
+	readMods kv.Store
 }
 
 // Open creates a new Backend by opening a Pebble database at the given directory.
@@ -27,34 +32,48 @@ func Open(dir string, opts *pebble.Options, logger *slog.Logger) (*Backend, erro
 		return nil, fmt.Errorf("pebble: open backend: %w", err)
 	}
 
-	return &Backend{
-		database: database,
-		events:   NewStore(database, logger),
-		snapshot: NewSnapshotStore(database, logger),
-		checkpt:  NewCheckpointStore(database, logger),
-	}, nil
+	return newBackend(database, logger, true), nil
 }
 
 // NewBackend wraps an existing *pebble.DB into a Backend.
 // The Backend does NOT own the DB — the caller is responsible for closing it.
 // Use Open() instead if you want the Backend to own the DB lifecycle.
 func NewBackend(database *pebble.DB, logger *slog.Logger) *Backend {
+	return newBackend(database, logger, false)
+}
+
+func newBackend(database *pebble.DB, logger *slog.Logger, ownsDB bool) *Backend {
 	return &Backend{
 		database: database,
 		events:   NewStore(database, logger),
+		commands: NewCommandStore(database, logger),
+		queries:  NewQueryStore(database, logger),
 		snapshot: NewSnapshotStore(database, logger),
 		checkpt:  NewCheckpointStore(database, logger),
+		readMods: NewKVStore(database, WithBorrowedDB(), WithKVSyncWrites()),
 	}
 }
 
 // EventStore returns the event store (Save, Load, Journal, SeekableJournal).
 func (b *Backend) EventStore() *EventStore { return b.events }
 
+// CommandStore returns the command store (Save, Load, CommandJournal, SeekableCommandJournal).
+func (b *Backend) CommandStore() *CommandStore { return b.commands }
+
+// QueryStore returns the query store (SaveQuery, LoadQueries, QueryJournal, SeekableQueryJournal).
+func (b *Backend) QueryStore() *QueryStore { return b.queries }
+
 // SnapshotStore returns the snapshot store.
 func (b *Backend) SnapshotStore() *SnapshotStore { return b.snapshot }
 
 // CheckpointStore returns the checkpoint store.
 func (b *Backend) CheckpointStore() *CheckpointStore { return b.checkpt }
+
+// ReadModels returns the shared key-value store for read models.
+// Each readmodel.Store should use WithKeyPrefix to avoid key collisions
+// between different read model types sharing this store.
+// The returned kv.Store does NOT own the *pebble.DB — Backend.Close() handles cleanup.
+func (b *Backend) ReadModels() kv.Store { return b.readMods }
 
 // Close closes all stores and the underlying *pebble.DB.
 // After Close, all store operations will return ErrClosed.
