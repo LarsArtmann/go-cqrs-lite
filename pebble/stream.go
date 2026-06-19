@@ -168,6 +168,13 @@ func (a *EventStore) ReadStream(ctx context.Context) (event.EventIterator, error
 }
 
 // ReadStreamFrom is the streaming equivalent of ReadFrom.
+//
+// Unlike ReadFrom, this always uses a full-range scan with skip-until.
+// The narrowed-range optimization (ULID timestamp - 1min) from ReadFrom
+// is NOT applied because the streaming iterator cannot efficiently detect
+// "target not found" to trigger a fallback scan. The full-range scan is
+// still O(1) memory (iterator-based) — it just scans a few more keys.
+// This eliminates the split brain between streaming and slice paths.
 func (a *EventStore) ReadStreamFrom(
 	ctx context.Context,
 	afterEventID id.EventID,
@@ -179,18 +186,13 @@ func (a *EventStore) ReadStreamFrom(
 	defer span.End()
 
 	upper := []byte(a.journalPrefix + "\xff")
+	lower := []byte(a.journalPrefix)
 
 	if afterEventID.IsZero() {
-		return a.newPebbleIterator([]byte(a.journalPrefix), upper, "", limit)
+		return a.newPebbleIterator(lower, upper, "", limit)
 	}
 
-	targetID := afterEventID.String()
-
-	ulidTime := id.ULID(afterEventID)
-	narrowedLower := fmt.Appendf(nil, "%s%020d", a.journalPrefix,
-		ulidTime.Add(-journalSeekBuffer).UnixNano())
-
-	return a.newPebbleIterator(narrowedLower, upper, targetID, limit)
+	return a.newPebbleIterator(lower, upper, afterEventID.String(), limit)
 }
 
 var (

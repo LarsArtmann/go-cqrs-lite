@@ -121,6 +121,7 @@ var (
 	)
 	ErrVersionConflict   = NewConflict("event.version_conflict", "version conflict")
 	ErrAggregateNotFound = NewRejection("event.aggregate_not_found", "aggregate not found")
+	ErrEventNotFound     = NewRejection("event.event_not_found", "event not found")
 	ErrBinaryNotFound    = NewRejection(
 		"event.binary_not_found",
 		"binary data not found in event metadata",

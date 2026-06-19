@@ -37,7 +37,8 @@ func WithoutAutoMigrate() Option {
 //
 // Events, commands, queries, snapshots, checkpoints, AND read models are all
 // persisted to the database. The event bus uses an in-memory implementation
-// (memory.NewMemoryBus) since PostgreSQL has no pub/sub semantics.
+// (memory.NewMemoryBus) for single-process use. For multi-process pub/sub,
+// consumers can wire storage.PostgresBus (LISTEN/NOTIFY) via stack.WithBus.
 //
 // On any setup failure the database is closed before the error is returned —
 // no resource leaks. The returned Bundle owns the *sql.DB; Close releases it.

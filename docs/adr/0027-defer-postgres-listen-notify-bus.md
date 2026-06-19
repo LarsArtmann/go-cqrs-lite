@@ -3,7 +3,7 @@
 | Field   | Value          |
 | ------- | -------------- |
 | Date    | 2026-06-19     |
-| Status  | Superseded — implemented in same session |
+| Status  | Partially Implemented — PostgresBus built but not wired into presets; needs real-PG testing |
 | Decider | Lars Artmann   |
 
 ## Context
@@ -53,13 +53,17 @@ harm consumer trust more than help it. The design must solve:
 
 ## Consequences
 
-- v2.7.0 Postgres preset is single-process only (events persist; pub/sub does
-  not cross processes). This is documented in `docs/PRESETS.md` and `ROADMAP.md`.
-- Multi-process consumers today compose their own bus (the library never
-  prevents this — `stack.New` accepts any `event.Bus` via `WithBus`).
-- A v2.8.0 task is opened: design and implement the distributed bus
-  (LISTEN/NOTIFY or outbox), with the re-fetch semantics and lifecycle worked
-  out and tested against the CI Postgres container.
+- The `storage.PostgresBus` exists and implements `event.Bus` via LISTEN/NOTIFY
+  with re-fetch. However, it is **not yet wired into `stack/postgres`** — the
+  preset still uses `memory.NewMemoryBus()`. Consumers must wire it manually
+  via `stack.WithBus(postgresBus)`.
+- Real-Postgres integration tests are **not yet written**. The existing tests
+  use a mock listener + SQLite, which verifies the bus logic but not the
+  actual `pg_notify()` / LISTEN path.
+- The `refetchEvent` path uses `LoadByEventID` (indexed lookup) when the store
+  supports `EventByIDLoader`, falling back to `LoadFromVersion` scan otherwise.
+- Remaining work: wire into preset, provide pgx-based `NotificationListener`,
+  add real-PG integration test.
 
 ## Forward references
 

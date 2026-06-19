@@ -21,6 +21,7 @@ type controllableLeader struct {
 	waitCalled   atomic.Bool
 	resignCalled atomic.Bool
 	waitErr      error
+	waitSignal   chan struct{}
 }
 
 func (c *controllableLeader) IsLeader(_ context.Context) bool {
@@ -29,6 +30,10 @@ func (c *controllableLeader) IsLeader(_ context.Context) bool {
 
 func (c *controllableLeader) WaitForLeadership(_ context.Context) error {
 	c.waitCalled.Store(true)
+	if c.waitSignal != nil {
+		close(c.waitSignal)
+	}
+
 	if c.waitErr != nil {
 		return c.waitErr
 	}
@@ -136,7 +141,7 @@ func TestDistributedRunner_LeadershipLost(t *testing.T) {
 		t.Fatalf("Register: %v", err)
 	}
 
-	leader := &controllableLeader{}
+	leader := &controllableLeader{waitSignal: make(chan struct{})}
 
 	distRunner, err := projection.NewDistributedRunner(runner, leader,
 		projection.WithLeadershipCheckInterval(20*time.Millisecond))
@@ -150,7 +155,11 @@ func TestDistributedRunner_LeadershipLost(t *testing.T) {
 		runDone <- distRunner.Run(context.Background())
 	}()
 
-	time.Sleep(100 * time.Millisecond)
+	// Wait until Run has started and entered the monitoring phase.
+	<-leader.waitSignal
+
+	// Wait for at least one check interval so the monitor is active.
+	time.Sleep(30 * time.Millisecond)
 
 	leader.leader.Store(false)
 

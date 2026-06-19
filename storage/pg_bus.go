@@ -432,7 +432,57 @@ func (b *PostgresBus) handleNotification(ctx context.Context, payload string) {
 // refetchEvent loads the full event from the store, retrying to handle
 // the visibility gap where a NOTIFY arrives before the producing transaction
 // is committed and visible to this connection.
+//
+// If the store implements EventByIDLoader (SQLEventStore does), uses the
+// efficient indexed LoadByEventID path. Otherwise falls back to LoadFromVersion
+// with a version scan.
 func (b *PostgresBus) refetchEvent(ctx context.Context, np notifyPayload) (event.Event, error) {
+	// Fast path: indexed lookup by event ID (O(1) query).
+	if byIDLoader, ok := b.store.(EventByIDLoader); ok {
+		return b.refetchByID(ctx, byIDLoader, np.EventID)
+	}
+
+	// Fallback: version scan (O(N) where N = events since version).
+	return b.refetchByVersion(ctx, np)
+}
+
+func (b *PostgresBus) refetchByID(
+	ctx context.Context,
+	loader EventByIDLoader,
+	eventIDStr string,
+) (event.Event, error) {
+	eventID, err := id.ParseEventID(eventIDStr)
+	if err != nil {
+		return nil, event.WrapCorruption(err, "storage.pg_bus_parse_event_id",
+			"parse event ID from notify payload: "+eventIDStr)
+	}
+
+	var lastErr error
+
+	for range b.opts.refetchAttempts {
+		evt, loadErr := loader.LoadByEventID(ctx, eventID)
+		if loadErr == nil {
+			return evt, nil
+		}
+
+		if !errors.Is(loadErr, event.ErrEventNotFound) {
+			return nil, loadErr
+		}
+
+		lastErr = loadErr
+
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(b.opts.refetchDelay):
+		}
+	}
+
+	return nil, event.WrapInfrastructure(lastErr, "storage.pg_bus_refetch_by_id",
+		"re-fetch event "+eventIDStr+" after "+strconv.Itoa(b.opts.refetchAttempts)+" attempts")
+}
+
+func (b *PostgresBus) refetchByVersion(ctx context.Context, np notifyPayload) (event.Event, error) {
 	aggID, err := id.ParseAggregateID(np.AggregateID)
 	if err != nil {
 		return nil, event.WrapCorruption(err, "storage.pg_bus_parse_agg_id",

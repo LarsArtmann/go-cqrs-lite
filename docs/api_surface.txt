@@ -797,6 +797,7 @@ event/var ErrBinaryNotFound
 event/var ErrBusClosed
 event/var ErrEmptyAggregateType
 event/var ErrEmptyEventType
+event/var ErrEventNotFound
 event/var ErrMismatchedEventCount
 event/var ErrNilAggregateID
 event/var ErrNilBus
@@ -1603,6 +1604,7 @@ storage/func WithBusChannel
 storage/func WithNotifyFunc
 storage/func WithRefetchAttempts
 storage/func WithRefetchDelay
+storage/interface EventByIDLoader
 storage/interface NotificationListener
 storage/method AppendBatch
 storage/method AppendBatch
@@ -1634,6 +1636,7 @@ storage/method Load
 storage/method Load
 storage/method LoadAtVersion
 storage/method LoadBackwards
+storage/method LoadByEventID
 storage/method LoadFromTimestamp
 storage/method LoadFromVersion
 storage/method LoadQueries
