@@ -17,7 +17,8 @@ type Option func(*config)
 
 type config struct {
 	autoMigrate bool
-	listener    storage.NotificationListener // nil → in-memory bus
+	listener    storage.NotificationListener  // nil → in-memory bus
+	busOpts     []storage.PostgresBusOption   // forwarded when listener != nil
 }
 
 func defaultConfig() config {
@@ -36,10 +37,20 @@ func WithoutAutoMigrate() Option {
 // [storage.PostgresBus] instead of the default in-memory bus; the listener
 // is registered with the Bundle for Close-time cleanup.
 //
+// Optional busOpts (e.g. [storage.WithBusChannel], [storage.WithRefetchAttempts])
+// are forwarded to [storage.NewPostgresBus] when the distributed bus is active.
+// They are ignored when no listener is set.
+//
 // Without this option, the preset uses memory.NewMemoryBus — fine for
 // single-process deployments but invisible to other processes sharing the DB.
-func WithDistributedBus(listener storage.NotificationListener) Option {
-	return func(c *config) { c.listener = listener }
+func WithDistributedBus(
+	listener storage.NotificationListener,
+	busOpts ...storage.PostgresBusOption,
+) Option {
+	return func(c *config) {
+		c.listener = listener
+		c.busOpts = busOpts
+	}
 }
 
 // New opens a PostgreSQL database at dsn, configures it, and returns a
@@ -145,7 +156,7 @@ func buildBus(
 		return memory.NewMemoryBus(), nil, nil
 	}
 
-	pgBus, err := storage.NewPostgresBus(db, store, cfg.listener)
+	pgBus, err := storage.NewPostgresBus(db, store, cfg.listener, cfg.busOpts...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("create postgres bus: %w", err)
 	}
