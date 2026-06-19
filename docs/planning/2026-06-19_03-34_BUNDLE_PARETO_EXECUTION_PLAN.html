@@ -450,6 +450,19 @@
     </style>
   </head>
   <body>
+    <div style="background:#991b1b;color:#fff;padding:1rem 1.5rem;font-family:Inter,system-ui,sans-serif;font-size:.95rem;line-height:1.5;">
+      <strong>⚠ EXECUTED — historical planning artifact.</strong>
+      This was the <em>build</em> plan for the Bundle layer. It was executed in v2.7.0
+      (see <code>docs/status/2026-06-19_15-45_BUNDLE_LAYER_v2.7.0_COMPREHENSIVE_STATUS.md</code>).
+      Key discoveries made during implementation are <strong>not</strong> reflected here:
+      <code>K</code> became <code>fmt.Stringer</code> (not <code>~string</code>); generic
+      methods are impossible so repository/read-model helpers are top-level functions;
+      <code>readmodel.Backend</code> is an alias for <code>kv.Store</code>; an Otter-based
+      <code>readmodel/cache</code> decorator and a SQL-backed <code>kv.Store</code> (persistent
+      read models for SQLite/Postgres presets) were added beyond this plan. The
+      authoritative finish plan is
+      <code>docs/planning/2026-06-19_15-53_V2.7.0_RELEASE_HARDENING_AND_PERSISTENT_READMODELS.md</code>.
+    </div>
     <div class="layout">
       <aside class="sidebar">
         <div class="label">Contents</div>

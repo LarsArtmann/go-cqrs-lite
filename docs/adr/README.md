@@ -125,3 +125,6 @@ watermill/     — Watermill protocol adapter
 | [0022](0022-kv-store-abstraction.md)              | KV Store Abstraction Module           | 2026-06-16 | Accepted                 |
 | [0023](0023-pebble-kv-adapter.md)                 | Pebble KV Store Adapter               | 2026-06-17 | Accepted                 |
 | [0024](0024-exported-id-markers.md)               | Exported ID Marker Types              | 2026-06-18 | Accepted                 |
+| [0025](0025-transport-adapter-strategy.md)        | Transport Adapter Strategy            | 2026-06-19 | Accepted                 |
+| [0026](0026-experimental-features.md)             | Experimental Features Policy          | 2026-06-19 | Accepted                 |
+| [0027](0027-defer-postgres-listen-notify-bus.md)  | Defer Postgres LISTEN/NOTIFY Bus      | 2026-06-19 | Deferred → v2.8.0        |
