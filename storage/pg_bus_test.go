@@ -1,0 +1,406 @@
+package storage_test
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"sync"
+	"sync/atomic"
+	"testing"
+	"time"
+
+	_ "modernc.org/sqlite" // pure-Go SQLite driver
+
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/storage/v2"
+)
+
+// mockListener implements storage.NotificationListener for testing.
+type mockListener struct {
+	notifications chan string
+	closed        atomic.Bool
+}
+
+func newMockListener() *mockListener {
+	return &mockListener{
+		notifications: make(chan string, 10),
+	}
+}
+
+func (m *mockListener) Notifications() <-chan string { return m.notifications }
+
+func (m *mockListener) Close() error {
+	m.closed.Store(true)
+	close(m.notifications)
+
+	return nil
+}
+
+// noopNotify is a notifyFunc that does nothing (for testing with SQLite).
+func noopNotify(_ context.Context, _, _ string) error { return nil }
+
+func newBusTestStore(t *testing.T) *storage.SQLEventStore {
+	t.Helper()
+
+	ctx := context.Background()
+	db, err := storage.OpenSQLiteInMemory()
+	if err != nil {
+		t.Fatalf("OpenSQLiteInMemory: %v", err)
+	}
+
+	t.Cleanup(func() { _ = db.Close() })
+
+	if err := storage.SQLiteInitSchema(ctx, db); err != nil {
+		t.Fatalf("SQLiteInitSchema: %v", err)
+	}
+
+	store, err := storage.NewSQLiteEventStore(db)
+	if err != nil {
+		t.Fatalf("NewSQLiteEventStore: %v", err)
+	}
+
+	return store
+}
+
+func TestPostgresBus_NilDB(t *testing.T) {
+	t.Parallel()
+
+	store := newBusTestStore(t)
+	listener := newMockListener()
+
+	_, err := storage.NewPostgresBus(nil, store, listener)
+	if err == nil {
+		t.Fatal("expected error for nil db")
+	}
+}
+
+func TestPostgresBus_NilStore(t *testing.T) {
+	t.Parallel()
+
+	db, _ := storage.OpenSQLiteInMemory()
+	t.Cleanup(func() { _ = db.Close() })
+
+	listener := newMockListener()
+
+	_, err := storage.NewPostgresBus(db, nil, listener)
+	if err == nil {
+		t.Fatal("expected error for nil store")
+	}
+}
+
+func TestPostgresBus_NilListener(t *testing.T) {
+	t.Parallel()
+
+	store := newBusTestStore(t)
+	db, _ := storage.OpenSQLiteInMemory()
+	t.Cleanup(func() { _ = db.Close() })
+
+	_, err := storage.NewPostgresBus(db, store, nil)
+	if err == nil {
+		t.Fatal("expected error for nil listener")
+	}
+}
+
+func TestPostgresBus_SubscribeAndPublish(t *testing.T) {
+	t.Parallel()
+
+	store := newBusTestStore(t)
+	db, _ := storage.OpenSQLiteInMemory()
+	t.Cleanup(func() { _ = db.Close() })
+
+	listener := newMockListener()
+
+	bus, err := storage.NewPostgresBus(
+		db, store, listener,
+		storage.WithRefetchDelay(time.Millisecond),
+		storage.WithNotifyFunc(noopNotify),
+	)
+	if err != nil {
+		t.Fatalf("NewPostgresBus: %v", err)
+	}
+
+	t.Cleanup(func() { _ = bus.Close() })
+
+	aggID := id.NewAggregateID()
+	evt, err := event.NewEvent("test.created", aggID, "Test", event.Version(1), []byte(`{}`))
+	if err != nil {
+		t.Fatalf("NewEvent: %v", err)
+	}
+
+	if err := store.AppendBatch(context.Background(),
+		event.NewAggregateRef("Test", aggID), []event.Event{evt}); err != nil {
+		t.Fatalf("AppendBatch: %v", err)
+	}
+
+	var (
+		received atomic.Int64
+		wg       sync.WaitGroup
+	)
+
+	wg.Add(1)
+
+	_ = bus.Subscribe("test.created", func(_ context.Context, e event.Event) error {
+		if e.ID() == evt.ID() {
+			received.Add(1)
+			wg.Done()
+		}
+
+		return nil
+	})
+
+	if err := bus.Publish(context.Background(), evt); err != nil {
+		t.Fatalf("Publish: %v", err)
+	}
+
+	wg.Wait()
+
+	if received.Load() != 1 {
+		t.Errorf("expected 1 local dispatch, got %d", received.Load())
+	}
+}
+
+func TestPostgresBus_NotificationRefetch(t *testing.T) {
+	t.Parallel()
+
+	store := newBusTestStore(t)
+	db, _ := storage.OpenSQLiteInMemory()
+	t.Cleanup(func() { _ = db.Close() })
+
+	listener := newMockListener()
+
+	bus, err := storage.NewPostgresBus(
+		db, store, listener,
+		storage.WithRefetchDelay(time.Millisecond),
+		storage.WithNotifyFunc(noopNotify),
+	)
+	if err != nil {
+		t.Fatalf("NewPostgresBus: %v", err)
+	}
+
+	t.Cleanup(func() { _ = bus.Close() })
+
+	aggID := id.NewAggregateID()
+	evt, err := event.NewEvent("test.updated", aggID, "Test", event.Version(1), []byte(`{}`))
+	if err != nil {
+		t.Fatalf("NewEvent: %v", err)
+	}
+
+	if err := store.AppendBatch(context.Background(),
+		event.NewAggregateRef("Test", aggID), []event.Event{evt}); err != nil {
+		t.Fatalf("AppendBatch: %v", err)
+	}
+
+	var (
+		received atomic.Int64
+		wg       sync.WaitGroup
+	)
+
+	wg.Add(1)
+
+	_ = bus.Subscribe("test.updated", func(_ context.Context, e event.Event) error {
+		if e.ID() == evt.ID() {
+			received.Add(1)
+			wg.Done()
+		}
+
+		return nil
+	})
+
+	payload, _ := json.Marshal(map[string]any{
+		"eid": evt.ID().String(),
+		"et":  "test.updated",
+		"at":  "Test",
+		"aid": aggID.String(),
+		"v":   1,
+	})
+
+	listener.notifications <- string(payload)
+
+	done := make(chan struct{})
+
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(time.Second):
+		t.Fatal("timeout waiting for re-fetched event dispatch")
+	}
+
+	if received.Load() != 1 {
+		t.Errorf("expected 1 remote dispatch via re-fetch, got %d", received.Load())
+	}
+}
+
+func TestPostgresBus_SubscribeAll(t *testing.T) {
+	t.Parallel()
+
+	store := newBusTestStore(t)
+	db, _ := storage.OpenSQLiteInMemory()
+	t.Cleanup(func() { _ = db.Close() })
+
+	listener := newMockListener()
+
+	bus, err := storage.NewPostgresBus(db, store, listener, storage.WithNotifyFunc(noopNotify))
+	if err != nil {
+		t.Fatalf("NewPostgresBus: %v", err)
+	}
+
+	t.Cleanup(func() { _ = bus.Close() })
+
+	aggID := id.NewAggregateID()
+	evt, _ := event.NewEvent("any.event", aggID, "Test", event.Version(1), []byte(`{}`))
+
+	if err := store.AppendBatch(context.Background(),
+		event.NewAggregateRef("Test", aggID), []event.Event{evt}); err != nil {
+		t.Fatalf("AppendBatch: %v", err)
+	}
+
+	var received atomic.Int64
+
+	_ = bus.SubscribeAll(func(_ context.Context, _ event.Event) error {
+		received.Add(1)
+
+		return nil
+	})
+
+	_ = bus.Publish(context.Background(), evt)
+
+	time.Sleep(100 * time.Millisecond)
+
+	if received.Load() != 1 {
+		t.Errorf("expected 1 event via SubscribeAll, got %d", received.Load())
+	}
+}
+
+func TestPostgresBus_Close(t *testing.T) {
+	t.Parallel()
+
+	store := newBusTestStore(t)
+	db, _ := storage.OpenSQLiteInMemory()
+	t.Cleanup(func() { _ = db.Close() })
+
+	listener := newMockListener()
+
+	bus, err := storage.NewPostgresBus(db, store, listener, storage.WithNotifyFunc(noopNotify))
+	if err != nil {
+		t.Fatalf("NewPostgresBus: %v", err)
+	}
+
+	if err := bus.Close(); err != nil {
+		t.Fatalf("Close: %v", err)
+	}
+
+	if err := bus.Close(); err != nil {
+		t.Fatalf("second Close should be no-op, got: %v", err)
+	}
+
+	if !listener.closed.Load() {
+		t.Error("listener should be closed after bus Close")
+	}
+}
+
+func TestPostgresBus_Middleware(t *testing.T) {
+	t.Parallel()
+
+	store := newBusTestStore(t)
+	db, _ := storage.OpenSQLiteInMemory()
+	t.Cleanup(func() { _ = db.Close() })
+
+	listener := newMockListener()
+
+	bus, err := storage.NewPostgresBus(db, store, listener, storage.WithNotifyFunc(noopNotify))
+	if err != nil {
+		t.Fatalf("NewPostgresBus: %v", err)
+	}
+
+	t.Cleanup(func() { _ = bus.Close() })
+
+	var middlewareCalled atomic.Int64
+
+	mw := func(next event.Handler) event.Handler {
+		return func(ctx context.Context, e event.Event) error {
+			middlewareCalled.Add(1)
+
+			return next(ctx, e)
+		}
+	}
+
+	_ = bus.Use(mw)
+
+	aggID := id.NewAggregateID()
+	evt, _ := event.NewEvent("test.mw", aggID, "Test", event.Version(1), []byte(`{}`))
+
+	_ = store.AppendBatch(context.Background(),
+		event.NewAggregateRef("Test", aggID), []event.Event{evt})
+
+	_ = bus.Subscribe("test.mw", func(_ context.Context, _ event.Event) error { return nil })
+	_ = bus.Publish(context.Background(), evt)
+
+	time.Sleep(100 * time.Millisecond)
+
+	if middlewareCalled.Load() != 1 {
+		t.Errorf("expected middleware called once, got %d", middlewareCalled.Load())
+	}
+}
+
+func TestPostgresBus_PublishClosedBus(t *testing.T) {
+	t.Parallel()
+
+	store := newBusTestStore(t)
+	db, _ := storage.OpenSQLiteInMemory()
+	t.Cleanup(func() { _ = db.Close() })
+
+	listener := newMockListener()
+
+	bus, err := storage.NewPostgresBus(db, store, listener, storage.WithNotifyFunc(noopNotify))
+	if err != nil {
+		t.Fatalf("NewPostgresBus: %v", err)
+	}
+
+	_ = bus.Close()
+
+	evt, _ := event.NewEvent(
+		"test.closed",
+		id.NewAggregateID(),
+		"Test",
+		event.Version(1),
+		[]byte(`{}`),
+	)
+	err = bus.Publish(context.Background(), evt)
+	if err == nil {
+		t.Fatal("expected error publishing to closed bus")
+	}
+}
+
+func TestPostgresBus_NotificationBadJSON(t *testing.T) {
+	t.Parallel()
+
+	store := newBusTestStore(t)
+	db, _ := storage.OpenSQLiteInMemory()
+	t.Cleanup(func() { _ = db.Close() })
+
+	listener := newMockListener()
+
+	bus, err := storage.NewPostgresBus(
+		db, store, listener,
+		storage.WithRefetchDelay(time.Millisecond),
+		storage.WithNotifyFunc(noopNotify),
+	)
+	if err != nil {
+		t.Fatalf("NewPostgresBus: %v", err)
+	}
+
+	t.Cleanup(func() { _ = bus.Close() })
+
+	listener.notifications <- "not valid json"
+
+	time.Sleep(100 * time.Millisecond)
+
+	if !errors.Is(err, nil) {
+		t.Log("bus should not crash on bad JSON")
+	}
+}

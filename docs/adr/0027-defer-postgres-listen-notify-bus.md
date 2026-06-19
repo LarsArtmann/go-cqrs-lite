@@ -3,7 +3,7 @@
 | Field   | Value          |
 | ------- | -------------- |
 | Date    | 2026-06-19     |
-| Status  | Deferred       |
+| Status  | Superseded — implemented in same session |
 | Decider | Lars Artmann   |
 
 ## Context
