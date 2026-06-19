@@ -48,7 +48,7 @@ func openBenchStore(b *testing.B) (*EventStore, func()) {
 		slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError})),
 	)
 
-	return store, func() { _ = store.Close() }
+	return store, func() { _ = database.Close() }
 }
 
 func BenchmarkPebbleStore_Save100(b *testing.B) {

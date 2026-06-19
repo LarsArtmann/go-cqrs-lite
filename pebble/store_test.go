@@ -54,9 +54,13 @@ func TestEventStore_Close(t *testing.T) {
 
 	store := NewStore(db, slog.Default())
 
-	err = store.Close()
-	if err != nil {
+	// Close is a no-op (Backend owns the DB lifecycle).
+	if err := store.Close(); err != nil {
 		t.Fatalf("Close: %v", err)
+	}
+
+	if err := db.Close(); err != nil {
+		t.Fatalf("db.Close: %v", err)
 	}
 }
 
@@ -83,9 +87,8 @@ func TestEventStore_Persistence(t *testing.T) {
 		t.Fatalf("Save: %v", err)
 	}
 
-	err = store.Close()
-	if err != nil {
-		t.Fatalf("Close: %v", err)
+	if err := db.Close(); err != nil {
+		t.Fatalf("db.Close: %v", err)
 	}
 
 	db2, err := pebble.Open(dir, &pebble.Options{})

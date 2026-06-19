@@ -44,7 +44,7 @@ func TestGolden_EventStoreRoundTrip(t *testing.T) {
 	}
 
 	store := pb.NewStore(db, nil)
-	t.Cleanup(func() { _ = store.Close() })
+	t.Cleanup(func() { _ = db.Close() })
 
 	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
 	ref := event.NewAggregateRef("Order", aggID)

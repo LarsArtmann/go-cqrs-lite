@@ -43,18 +43,10 @@ func (a *EventStore) AppendBatch(
 	)
 }
 
-// Close releases the Pebble database.
-func (a *EventStore) Close() error {
-	if a.db != nil {
-		err := a.db.Close()
-		if err != nil {
-			return event.WrapInfrastructure(err, "pebble.close_db",
-				"close pebble db")
-		}
-	}
-
-	return nil
-}
+// Close is a no-op; the underlying *pebble.DB is owned by the caller (or Backend).
+// Implemented to satisfy io.Closer for event.EventSink/EventSource.
+// Only [Backend.Close] closes the *pebble.DB.
+func (a *EventStore) Close() error { return nil }
 
 // logEventOperation logs a debug message for event operations.
 func (a *EventStore) logEventOperation(
