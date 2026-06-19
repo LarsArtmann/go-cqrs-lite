@@ -3,6 +3,7 @@ package memory_test
 import (
 	"context"
 	"errors"
+	"io"
 	"testing"
 	"time"
 
@@ -49,16 +50,16 @@ func TestMemoryStore_LoadStream(t *testing.T) {
 	var got []event.Type
 
 	for {
-		evt, ok := stream.Next()
-		if !ok {
+		evt, err := stream.Next()
+		if errors.Is(err, io.EOF) {
 			break
 		}
 
-		got = append(got, evt.Type())
-	}
+		if err != nil {
+			t.Fatalf("stream next: %v", err)
+		}
 
-	if err := stream.Err(); err != nil {
-		t.Fatalf("stream error: %v", err)
+		got = append(got, evt.Type())
 	}
 
 	if len(got) != 3 {

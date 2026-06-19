@@ -3,6 +3,7 @@ package event_test
 import (
 	"context"
 	"errors"
+	"io"
 	"testing"
 	"time"
 
@@ -12,7 +13,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 )
 
-func TestSliceStream_Next(t *testing.T) {
+func TestSliceIterator_Next(t *testing.T) {
 	t.Parallel()
 
 	aggID := id.NewAggregateID()
@@ -24,22 +25,22 @@ func TestSliceStream_Next(t *testing.T) {
 			event.Version(i+1), nil, event.WithClock(clock))
 	}
 
-	stream := event.NewSliceStream(events)
-	defer stream.Close() //nolint:errcheck // test helper
+	iter := event.NewSliceIterator(events)
+	defer iter.Close() //nolint:errcheck // test helper
 
 	var got []string
 
 	for {
-		evt, ok := stream.Next()
-		if !ok {
+		evt, err := iter.Next()
+		if errors.Is(err, io.EOF) {
 			break
 		}
 
-		got = append(got, string(evt.Type()))
-	}
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
-	if err := stream.Err(); err != nil {
-		t.Fatalf("stream error: %v", err)
+		got = append(got, string(evt.Type()))
 	}
 
 	want := []string{"user.created", "user.updated", "user.deleted"}
@@ -54,23 +55,19 @@ func TestSliceStream_Next(t *testing.T) {
 	}
 }
 
-func TestSliceStream_Empty(t *testing.T) {
+func TestSliceIterator_Empty(t *testing.T) {
 	t.Parallel()
 
-	stream := event.NewSliceStream(nil)
-	defer stream.Close() //nolint:errcheck // test helper
+	iter := event.NewSliceIterator(nil)
+	defer iter.Close() //nolint:errcheck // test helper
 
-	_, ok := stream.Next()
-	if ok {
-		t.Error("expected Next to return false for empty stream")
-	}
-
-	if err := stream.Err(); err != nil {
-		t.Fatalf("stream error: %v", err)
+	_, err := iter.Next()
+	if !errors.Is(err, io.EOF) {
+		t.Errorf("expected io.EOF for empty iterator, got %v", err)
 	}
 }
 
-func TestStoreStreamAdapter_LoadStream(t *testing.T) {
+func TestStreamingSource_MemoryStore_LoadStream(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
@@ -111,31 +108,28 @@ func TestStoreStreamAdapter_LoadStream(t *testing.T) {
 		t.Fatalf("append batch: %v", err)
 	}
 
-	adapter := event.NewStoreStreamAdapter(store)
+	var ss event.StreamingSource = store
 
-	stream, err := adapter.LoadStream(
-		ctx,
-		event.NewAggregateRef(event.AggregateType("Order"), aggID),
-	)
+	iter, err := ss.LoadStream(ctx, event.NewAggregateRef(event.AggregateType("Order"), aggID))
 	if err != nil {
-		t.Fatalf("load stream: %v", err)
+		t.Fatalf("LoadStream: %v", err)
 	}
 
-	defer stream.Close() //nolint:errcheck // test helper
+	defer iter.Close() //nolint:errcheck // test helper
 
 	var got []event.Version
 
 	for {
-		evt, ok := stream.Next()
-		if !ok {
+		evt, err := iter.Next()
+		if errors.Is(err, io.EOF) {
 			break
 		}
 
-		got = append(got, evt.Version())
-	}
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
-	if err := stream.Err(); err != nil {
-		t.Fatalf("stream error: %v", err)
+		got = append(got, evt.Version())
 	}
 
 	if len(got) != 2 {
@@ -145,29 +139,4 @@ func TestStoreStreamAdapter_LoadStream(t *testing.T) {
 	if got[0].Int() != 1 || got[1].Int() != 2 {
 		t.Errorf("versions = %v, want [1, 2]", got)
 	}
-}
-
-func TestStoreStreamAdapter_LoadStream_NotFound(t *testing.T) {
-	t.Parallel()
-
-	store := memory.NewMemoryStore()
-	defer store.Close() //nolint:errcheck // test helper
-
-	adapter := event.NewStoreStreamAdapter(store)
-
-	_, err := adapter.LoadStream(
-		context.Background(),
-		event.NewAggregateRef(event.AggregateType("Order"), id.NewAggregateID()),
-	)
-	if err == nil {
-		t.Fatal("expected error for non-existent aggregate")
-	}
-
-	if !isAggregateNotFound(err) {
-		t.Errorf("expected ErrAggregateNotFound, got %v", err)
-	}
-}
-
-func isAggregateNotFound(err error) bool {
-	return errors.Is(err, event.ErrAggregateNotFound)
 }

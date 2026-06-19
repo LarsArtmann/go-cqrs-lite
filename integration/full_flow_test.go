@@ -215,8 +215,8 @@ func TestFullFlow(t *testing.T) {
 	streamCount := 0
 
 	for {
-		_, ok := stream.Next()
-		if !ok {
+		_, err := stream.Next()
+		if err != nil {
 			break
 		}
 

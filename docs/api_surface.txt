@@ -630,8 +630,6 @@ event/func NewProjection
 event/func NewRejection
 event/func NewReplayEventBus
 event/func NewSliceIterator
-event/func NewSliceStream
-event/func NewStoreStreamAdapter
 event/func NewTransient
 event/func NewUserAgent
 event/func Newf
@@ -687,13 +685,11 @@ event/interface Event
 event/interface EventIterator
 event/interface EventSink
 event/interface EventSource
-event/interface EventStream
 event/interface Journal
 event/interface Projection
 event/interface Publisher
 event/interface SeekableJournal
 event/interface Store
-event/interface StreamLoader
 event/interface StreamingJournal
 event/interface StreamingSource
 event/interface Subscriber
@@ -705,14 +701,12 @@ event/method Build
 event/method Clone
 event/method Clone
 event/method Close
-event/method Close
 event/method Cmp
 event/method Cmp
 event/method Deadline
 event/method Decrement
 event/method Decrement
 event/method Encoding
-event/method Err
 event/method EventTypes
 event/method Handle
 event/method ID
@@ -734,7 +728,6 @@ event/method IsZero
 event/method IsZero
 event/method IsZero
 event/method IsZero
-event/method LoadStream
 event/method MarshalJSON
 event/method MarshalJSON
 event/method Merge
@@ -742,7 +735,6 @@ event/method Metadata
 event/method Mod
 event/method Name
 event/method NewImmutableEvent
-event/method Next
 event/method Next
 event/method OccurredAt
 event/method Payload
@@ -778,7 +770,6 @@ event/struct Checkpoint
 event/struct ImmutableEvent
 event/struct Metadata
 event/struct SliceIterator
-event/struct StoreStreamAdapter
 event/type AggregateType
 event/type Clock
 event/type ContextEnricher
@@ -934,6 +925,7 @@ memory/method LoadFromTimestamp
 memory/method LoadFromVersion
 memory/method LoadQueries
 memory/method LoadStream
+memory/method LoadStreamFromVersion
 memory/method LoadToTimestamp
 memory/method LoadToTimestamp
 memory/method LoadToVersion
@@ -945,6 +937,8 @@ memory/method ReadAllQueries
 memory/method ReadFrom
 memory/method ReadFrom
 memory/method ReadQueriesFrom
+memory/method ReadStream
+memory/method ReadStreamFrom
 memory/method Save
 memory/method Save
 memory/method Save
@@ -1178,6 +1172,7 @@ pebble/method Close
 pebble/method Close
 pebble/method Close
 pebble/method Close
+pebble/method Close
 pebble/method CommandStore
 pebble/method Commit
 pebble/method Delete
@@ -1199,12 +1194,15 @@ pebble/method LoadAtVersion
 pebble/method LoadFromTimestamp
 pebble/method LoadFromVersion
 pebble/method LoadQueries
+pebble/method LoadStream
+pebble/method LoadStreamFromVersion
 pebble/method LoadToTimestamp
 pebble/method LoadToTimestamp
 pebble/method LoadToVersion
 pebble/method Metrics
 pebble/method NewIterator
 pebble/method NewSnapshot
+pebble/method Next
 pebble/method Next
 pebble/method QueryStore
 pebble/method ReadAll
@@ -1214,6 +1212,8 @@ pebble/method ReadFrom
 pebble/method ReadFrom
 pebble/method ReadModels
 pebble/method ReadQueriesFrom
+pebble/method ReadStream
+pebble/method ReadStreamFrom
 pebble/method Save
 pebble/method Save
 pebble/method Save
@@ -1600,7 +1600,6 @@ storage/method Commit
 storage/method Delete
 storage/method Delete
 storage/method Delete
-storage/method Err
 storage/method Error
 storage/method EventStore
 storage/method EventTypes
@@ -1621,6 +1620,7 @@ storage/method LoadFromTimestamp
 storage/method LoadFromVersion
 storage/method LoadQueries
 storage/method LoadStream
+storage/method LoadStreamFromVersion
 storage/method LoadToTimestamp
 storage/method LoadToTimestamp
 storage/method LoadToVersion
@@ -1635,6 +1635,8 @@ storage/method ReadAllQueries
 storage/method ReadFrom
 storage/method ReadFrom
 storage/method ReadQueriesFrom
+storage/method ReadStream
+storage/method ReadStreamFrom
 storage/method Save
 storage/method Save
 storage/method Save
