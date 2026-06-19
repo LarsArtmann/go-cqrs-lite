@@ -7,6 +7,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/command/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/decider/v2 v2.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/event/v2 v2.5.0
+	github.com/larsartmann/go-cqrs-lite/id/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/kv/v2 v2.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.5.0
@@ -22,7 +23,6 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/id/v2 v2.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.5.0 // indirect
 	github.com/larsartmann/go-error-family v0.4.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect

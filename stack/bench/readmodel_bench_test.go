@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/kv/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/readmodel/v2"
@@ -106,6 +105,3 @@ func BenchmarkBundle_FieldAccess(b *testing.B) {
 		}
 	})
 }
-
-// Ensure codec import is used (for future read model codec benchmarks).
-var _ = codec.JSONCodec{}

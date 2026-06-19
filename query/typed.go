@@ -62,8 +62,12 @@ func (t *TypedQueryStore[P]) SaveQuery(ctx context.Context, q TypedQuery[P]) err
 		return err
 	}
 
-	return WrapInfrastructure(t.store.SaveQuery(ctx, persisted),
-		"query.typed_store.save", "save typed query")
+	err = t.store.SaveQuery(ctx, persisted)
+	if err != nil {
+		return WrapInfrastructure(err, "query.typed_store.save", "save typed query")
+	}
+
+	return nil
 }
 
 // LoadQueries retrieves all queries after `after`, decoding each payload into P.

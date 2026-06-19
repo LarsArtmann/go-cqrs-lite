@@ -77,8 +77,12 @@ func (t *TypedCommandStore[P]) Save(
 		return err
 	}
 
-	return WrapInfrastructure(t.store.Save(ctx, ref, persisted),
-		"command.typed_store.save", "save typed command")
+	err = t.store.Save(ctx, ref, persisted)
+	if err != nil {
+		return WrapInfrastructure(err, "command.typed_store.save", "save typed command")
+	}
+
+	return nil
 }
 
 // Load retrieves all commands for ref, decoding each payload into P.
