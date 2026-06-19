@@ -21,7 +21,7 @@ type config struct {
 
 func defaultConfig() config {
 	return config{
-		pebbleOpts: &pebble.Options{},
+		pebbleOpts: &pebble.Options{}, //nolint:exhaustruct // intentionally empty; override via WithPebbleOptions
 		logger:     slog.Default(),
 	}
 }
@@ -62,7 +62,7 @@ func New(dir string, opts ...Option) (*stack.Bundle, error) {
 		return nil, fmt.Errorf("pebble preset: open backend: %w", err)
 	}
 
-	return stack.New(
+	b, err := stack.New(
 		stack.WithEventStore(backend.EventStore()),
 		stack.WithCommandStore(backend.CommandStore()),
 		stack.WithQueryStore(backend.QueryStore()),
@@ -72,4 +72,9 @@ func New(dir string, opts ...Option) (*stack.Bundle, error) {
 		stack.WithBus(memory.NewMemoryBus()),
 		stack.WithCloser(backend),
 	)
+	if err != nil {
+		return nil, fmt.Errorf("pebble preset: wire bundle: %w", err)
+	}
+
+	return b, nil
 }

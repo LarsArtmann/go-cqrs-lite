@@ -24,7 +24,7 @@ func TestTypedStore_SaveLoad_Roundtrip(t *testing.T) {
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("Counter", aggID)
 
-	in := snapshot.TypedSnapshot[counterState]{
+	input := snapshot.TypedSnapshot[counterState]{
 		AggregateID:   aggID,
 		AggregateType: "Counter",
 		Version:       3,
@@ -33,7 +33,7 @@ func TestTypedStore_SaveLoad_Roundtrip(t *testing.T) {
 
 	ctx := context.Background()
 
-	if err := store.Save(ctx, in); err != nil {
+	if err := store.Save(ctx, input); err != nil {
 		t.Fatalf("Save: %v", err)
 	}
 

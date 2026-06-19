@@ -63,7 +63,7 @@ func New(dsn string, opts ...Option) (*stack.Bundle, error) {
 }
 
 func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
-	db, backend, err := openBackend(dsn, cfg)
+	db, backend, err := openBackend(dsn, cfg) //nolint:varnamelen
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 		_ = backend.Close()
 		_ = db.Close()
 
-		return nil, err
+		return nil, fmt.Errorf("sqlite: wire bundle: %w", err)
 	}
 
 	return b, nil
@@ -103,19 +103,23 @@ func buildOptions(backend *storage.SQLBackend) []stack.Option {
 		stack.WithEventStore(backend.EventStore()),
 	}
 
-	if cmdStore, err := backend.CommandStore(); err == nil {
+	cmdStore, err := backend.CommandStore()
+	if err == nil {
 		opts = append(opts, stack.WithCommandStore(cmdStore))
 	}
 
-	if queryStore, err := backend.QueryStore(); err == nil {
+	queryStore, err := backend.QueryStore()
+	if err == nil {
 		opts = append(opts, stack.WithQueryStore(queryStore))
 	}
 
-	if snapStore, err := backend.SnapshotStore(); err == nil {
+	snapStore, err := backend.SnapshotStore()
+	if err == nil {
 		opts = append(opts, stack.WithSnapshotStore(snapStore))
 	}
 
-	if cpStore, err := backend.CheckpointStore(); err == nil {
+	cpStore, err := backend.CheckpointStore()
+	if err == nil {
 		opts = append(opts, stack.WithCheckpointStore(cpStore))
 	}
 
@@ -125,7 +129,7 @@ func buildOptions(backend *storage.SQLBackend) []stack.Option {
 // openBackend opens the database, applies pragmas and schema, and returns
 // both the *sql.DB (for lifecycle) and the SQLBackend (for store access).
 func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
-	db, err := sql.Open("sqlite", dsn)
+	db, err := sql.Open("sqlite", dsn) //nolint:varnamelen
 	if err != nil {
 		return nil, nil, fmt.Errorf("sqlite: open %q: %w", dsn, err)
 	}
@@ -133,15 +137,19 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 	ctx := context.Background()
 
 	if cfg.wal {
-		if err := storage.SQLiteEnableWAL(ctx, db); err != nil {
+		err = storage.SQLiteEnableWAL(ctx, db)
+		if err != nil {
 			_ = db.Close()
+
 			return nil, nil, fmt.Errorf("sqlite: enable WAL: %w", err)
 		}
 	}
 
 	if cfg.autoMigrate {
-		if err := storage.SQLiteInitSchema(ctx, db); err != nil {
+		err = storage.SQLiteInitSchema(ctx, db)
+		if err != nil {
 			_ = db.Close()
+
 			return nil, nil, fmt.Errorf("sqlite: init schema: %w", err)
 		}
 	}
@@ -149,6 +157,7 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 	backend, err := storage.NewSQLiteBackend(db)
 	if err != nil {
 		_ = db.Close()
+
 		return nil, nil, fmt.Errorf("sqlite: create backend: %w", err)
 	}
 

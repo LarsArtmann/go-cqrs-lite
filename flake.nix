@@ -169,10 +169,12 @@
 
             lint = mkApp "lint" [ goPkg pkgs.golangci-lint ] ''
               configFile="$PWD/.golangci.yml"
+              failed=0
               for mod in ${builtins.concatStringsSep " " testModules}; do
                 echo "==> Linting $mod"
-                (cd "$mod" && ${pkgs.golangci-lint}/bin/golangci-lint run --config "$configFile" ./...)
+                (cd "$mod" && ${pkgs.golangci-lint}/bin/golangci-lint run --config "$configFile" ./...) || failed=1
               done
+              exit "$failed"
             '';
 
             coverage = mkApp "coverage" goModules ''

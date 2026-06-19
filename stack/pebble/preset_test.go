@@ -150,9 +150,9 @@ func TestNew_E2E_PersistenceAcrossBundles(t *testing.T) {
 	dbPath := filepath.Join(dir, "persist")
 
 	// First bundle: write data
-	b1, err := pebble.New(dbPath)
+	writer, err := pebble.New(dbPath)
 	if err != nil {
-		t.Fatalf("New b1: %v", err)
+		t.Fatalf("New writer: %v", err)
 	}
 
 	ctx := context.Background()
@@ -168,23 +168,23 @@ func TestNew_E2E_PersistenceAcrossBundles(t *testing.T) {
 		t.Fatalf("NewEvents: %v", err)
 	}
 
-	if err := b1.EventSink.Save(ctx, ref, events, 0); err != nil {
+	if err := writer.EventSink.Save(ctx, ref, events, 0); err != nil {
 		t.Fatalf("Save: %v", err)
 	}
 
-	if err := b1.Close(); err != nil {
-		t.Fatalf("Close b1: %v", err)
+	if err := writer.Close(); err != nil {
+		t.Fatalf("Close writer: %v", err)
 	}
 
 	// Second bundle: read data back from same directory
-	b2, err := pebble.New(dbPath)
+	reader, err := pebble.New(dbPath)
 	if err != nil {
-		t.Fatalf("New b2: %v", err)
+		t.Fatalf("New reader: %v", err)
 	}
 
-	defer func() { _ = b2.Close() }()
+	defer func() { _ = reader.Close() }()
 
-	loaded, err := b2.EventSource.Load(ctx, ref)
+	loaded, err := reader.EventSource.Load(ctx, ref)
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}

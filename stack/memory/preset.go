@@ -1,6 +1,8 @@
 package memory
 
 import (
+	"fmt"
+
 	"github.com/larsartmann/go-cqrs-lite/kv/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/stack/v2"
@@ -23,7 +25,7 @@ import (
 //	    stack.WithReadModels(kv.NewMemStore()),
 //	)
 func New() (*stack.Bundle, error) {
-	return stack.New(
+	b, err := stack.New(
 		stack.WithEventStore(memory.NewMemoryStore()),
 		stack.WithBus(memory.NewMemoryBus()),
 		stack.WithCommandStore(memory.NewMemoryCommandStore()),
@@ -32,4 +34,9 @@ func New() (*stack.Bundle, error) {
 		stack.WithCheckpointStore(memory.NewMemoryCheckpointStore()),
 		stack.WithReadModels(kv.NewMemStore()),
 	)
+	if err != nil {
+		return nil, fmt.Errorf("stack/memory: wire bundle: %w", err)
+	}
+
+	return b, nil
 }

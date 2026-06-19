@@ -54,7 +54,7 @@ func New(dsn string, opts ...Option) (*stack.Bundle, error) {
 }
 
 func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
-	db, err := sql.Open("pgx", dsn)
+	db, err := sql.Open("pgx", dsn) //nolint:varnamelen
 	if err != nil {
 		return nil, fmt.Errorf("postgres preset: open %q: %w", dsn, err)
 	}
@@ -62,7 +62,8 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	ctx := context.Background()
 
 	if cfg.autoMigrate {
-		if err := storage.PostgresInitSchema(ctx, db); err != nil {
+		err = storage.PostgresInitSchema(ctx, db)
+		if err != nil {
 			_ = db.Close()
 
 			return nil, fmt.Errorf("postgres preset: init schema: %w", err)
@@ -91,7 +92,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 		_ = backend.Close()
 		_ = db.Close()
 
-		return nil, err
+		return nil, fmt.Errorf("postgres preset: wire bundle: %w", err)
 	}
 
 	return b, nil
@@ -102,19 +103,23 @@ func buildOptions(backend *storage.SQLBackend) []stack.Option {
 		stack.WithEventStore(backend.EventStore()),
 	}
 
-	if cmdStore, err := backend.CommandStore(); err == nil {
+	cmdStore, err := backend.CommandStore()
+	if err == nil {
 		opts = append(opts, stack.WithCommandStore(cmdStore))
 	}
 
-	if queryStore, err := backend.QueryStore(); err == nil {
+	queryStore, err := backend.QueryStore()
+	if err == nil {
 		opts = append(opts, stack.WithQueryStore(queryStore))
 	}
 
-	if snapStore, err := backend.SnapshotStore(); err == nil {
+	snapStore, err := backend.SnapshotStore()
+	if err == nil {
 		opts = append(opts, stack.WithSnapshotStore(snapStore))
 	}
 
-	if cpStore, err := backend.CheckpointStore(); err == nil {
+	cpStore, err := backend.CheckpointStore()
+	if err == nil {
 		opts = append(opts, stack.WithCheckpointStore(cpStore))
 	}
 
