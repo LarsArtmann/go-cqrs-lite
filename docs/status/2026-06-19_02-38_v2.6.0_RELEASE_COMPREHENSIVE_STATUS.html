@@ -29,13 +29,28 @@
         --solution: var(--color-blue);
         --warning: var(--color-yellow);
         --radius: 0px;
-        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
       }
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      html { scroll-behavior: smooth; }
-      section[id], [id] { scroll-margin-top: 60px; }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
       body {
         background: var(--surface);
         color: var(--text);
@@ -44,82 +59,378 @@
         font-size: 16px;
         -webkit-font-smoothing: antialiased;
       }
-      .layout { display: grid; grid-template-columns: 240px 1fr; max-width: 1320px; margin: 0 auto; gap: 0; }
+      .layout {
+        display: grid;
+        grid-template-columns: 240px 1fr;
+        max-width: 1320px;
+        margin: 0 auto;
+        gap: 0;
+      }
       .sidebar {
-        position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto;
-        padding: 28px 20px; border-right: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        align-self: start;
+        height: 100vh;
+        overflow-y: auto;
+        padding: 28px 20px;
+        border-right: 1px solid var(--border);
       }
-      .sidebar .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--text-faint); margin-bottom: 12px; font-weight: 700; }
+      .sidebar .label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--text-faint);
+        margin-bottom: 12px;
+        font-weight: 700;
+      }
       .sidebar nav a {
-        display: block; padding: 7px 12px; color: var(--text-muted); text-decoration: none;
-        font-size: 14px; border-left: 2px solid transparent; transition: all 0.15s;
+        display: block;
+        padding: 7px 12px;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 14px;
+        border-left: 2px solid transparent;
+        transition: all 0.15s;
       }
-      .sidebar nav a:hover { color: var(--text); border-left-color: var(--accent); background: var(--surface-sunken); }
-      .main { padding: 0 48px 80px; min-width: 0; }
-      .hero { padding: 56px 0 40px; border-bottom: 1px solid var(--border); margin-bottom: 40px; position: relative; }
-      .hero-badge { display: inline-block; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.18em; color: var(--accent); padding: 5px 12px; border: 1px solid var(--accent); margin-bottom: 20px; }
-      .hero h1 { font-family: var(--font-heading); font-size: 44px; font-weight: 900; letter-spacing: -0.02em; line-height: 1.05; margin-bottom: 14px; }
-      .hero-subtitle { color: var(--text-muted); font-size: 17px; max-width: 720px; }
-      .hero-meta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
-      .tag { font-size: 12px; padding: 4px 10px; background: var(--surface-sunken); border: 1px solid var(--border); color: var(--text-muted); font-family: var(--font-mono); }
-      .tag.amber { color: var(--accent); border-color: var(--accent); }
-      h2 { font-family: var(--font-heading); font-size: 28px; font-weight: 800; letter-spacing: -0.015em; margin: 56px 0 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; gap: 14px; }
-      h2 .num { font-size: 18px; color: var(--accent); font-weight: 900; font-family: var(--font-mono); }
-      h3 { font-size: 19px; font-weight: 700; margin: 28px 0 12px; }
-      p { margin-bottom: 12px; color: var(--text-muted); }
-      p strong, li strong { color: var(--text); }
-      ul, ol { margin: 0 0 16px 20px; color: var(--text-muted); }
-      li { margin-bottom: 7px; }
-      code { font-family: var(--font-mono); font-size: 0.88em; background: var(--surface-sunken); padding: 2px 6px; color: var(--color-yellow); }
-      pre { background: var(--surface-sunken); padding: 16px; overflow-x: auto; border: 1px solid var(--border); margin-bottom: 16px; }
-      pre code { background: none; padding: 0; color: var(--text); }
-      .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin: 24px 0; }
-      .stat-card { background: var(--surface-raised); border: 1px solid var(--border); padding: 22px 20px; }
-      .stat-card .stat-value { font-size: 38px; font-weight: 900; font-family: var(--font-heading); line-height: 1; margin-bottom: 6px; }
-      .stat-card .stat-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-faint); font-weight: 700; }
-      .stat-good .stat-value { color: var(--solution); }
-      .stat-warn .stat-value { color: var(--warning); }
-      .stat-bad .stat-value { color: var(--problem); }
-      .stat-accent .stat-value { color: var(--accent); }
-      .card { background: var(--surface-raised); border: 1px solid var(--border); border-left: 3px solid var(--border-strong); padding: 20px 22px; margin-bottom: 14px; }
-      .card-problem { border-left-color: var(--problem); }
-      .card-solution { border-left-color: var(--solution); }
-      .card-warning { border-left-color: var(--warning); }
-      .card h3 { margin-top: 0; }
-      .card p:last-child, .card ul:last-child, .card ol:last-child { margin-bottom: 0; }
-      .card-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-      .strengths { margin: 20px 0; }
-      .strength { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); }
-      .strength:last-child { border-bottom: none; }
-      .strength .check { flex-shrink: 0; width: 26px; height: 26px; background: color-mix(in srgb, var(--solution) 18%, transparent); color: var(--solution); display: grid; place-items: center; font-weight: 900; font-size: 15px; }
-      .strength .text strong { display: block; margin-bottom: 2px; }
-      .strength .text span { font-size: 14px; color: var(--text-muted); }
-      .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 9px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; }
-      .badge-critical { background: color-mix(in srgb, var(--problem) 18%, transparent); color: var(--problem); border: 1px solid var(--problem); }
-      .badge-high { background: color-mix(in srgb, var(--warning) 18%, transparent); color: var(--warning); border: 1px solid var(--warning); }
-      .badge-medium { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); border: 1px solid var(--accent); }
-      .badge-low { background: var(--surface-sunken); color: var(--text-muted); border: 1px solid var(--border); }
-      .badge-fixed { background: color-mix(in srgb, var(--solution) 18%, transparent); color: var(--solution); border: 1px solid var(--solution); }
-      table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
-      th { text-align: left; padding: 10px 12px; border-bottom: 2px solid var(--border-strong); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-faint); font-weight: 700; }
-      td { padding: 11px 12px; border-bottom: 1px solid var(--border); color: var(--text-muted); vertical-align: top; }
-      td:first-child { color: var(--text); font-weight: 600; }
-      tr:hover td { background: var(--surface-sunken); }
-      .callout { padding: 16px 18px; margin: 16px 0; border-left: 3px solid; }
-      .callout-solution { border-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, transparent); }
-      .callout-warning { border-color: var(--warning); background: color-mix(in srgb, var(--warning) 8%, transparent); }
-      .callout strong { display: block; margin-bottom: 4px; }
-      .callout p { margin: 0; color: var(--text-muted); }
-      .question-box { background: var(--surface-raised); border: 2px solid var(--accent); padding: 28px 30px; margin: 24px 0; }
-      .question-box .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--accent); font-weight: 800; margin-bottom: 10px; }
-      .question-box h3 { color: var(--text); font-size: 21px; margin: 0 0 12px; }
-      .footer { margin-top: 64px; padding: 24px 0; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-faint); font-family: var(--font-mono); }
+      .sidebar nav a:hover {
+        color: var(--text);
+        border-left-color: var(--accent);
+        background: var(--surface-sunken);
+      }
+      .main {
+        padding: 0 48px 80px;
+        min-width: 0;
+      }
+      .hero {
+        padding: 56px 0 40px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 40px;
+        position: relative;
+      }
+      .hero-badge {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        color: var(--accent);
+        padding: 5px 12px;
+        border: 1px solid var(--accent);
+        margin-bottom: 20px;
+      }
+      .hero h1 {
+        font-family: var(--font-heading);
+        font-size: 44px;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        line-height: 1.05;
+        margin-bottom: 14px;
+      }
+      .hero-subtitle {
+        color: var(--text-muted);
+        font-size: 17px;
+        max-width: 720px;
+      }
+      .hero-meta {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+      }
+      .tag {
+        font-size: 12px;
+        padding: 4px 10px;
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+      .tag.amber {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      h2 {
+        font-family: var(--font-heading);
+        font-size: 28px;
+        font-weight: 800;
+        letter-spacing: -0.015em;
+        margin: 56px 0 20px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: baseline;
+        gap: 14px;
+      }
+      h2 .num {
+        font-size: 18px;
+        color: var(--accent);
+        font-weight: 900;
+        font-family: var(--font-mono);
+      }
+      h3 {
+        font-size: 19px;
+        font-weight: 700;
+        margin: 28px 0 12px;
+      }
+      p {
+        margin-bottom: 12px;
+        color: var(--text-muted);
+      }
+      p strong,
+      li strong {
+        color: var(--text);
+      }
+      ul,
+      ol {
+        margin: 0 0 16px 20px;
+        color: var(--text-muted);
+      }
+      li {
+        margin-bottom: 7px;
+      }
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 2px 6px;
+        color: var(--color-yellow);
+      }
+      pre {
+        background: var(--surface-sunken);
+        padding: 16px;
+        overflow-x: auto;
+        border: 1px solid var(--border);
+        margin-bottom: 16px;
+      }
+      pre code {
+        background: none;
+        padding: 0;
+        color: var(--text);
+      }
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 14px;
+        margin: 24px 0;
+      }
+      .stat-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 22px 20px;
+      }
+      .stat-card .stat-value {
+        font-size: 38px;
+        font-weight: 900;
+        font-family: var(--font-heading);
+        line-height: 1;
+        margin-bottom: 6px;
+      }
+      .stat-card .stat-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        font-weight: 700;
+      }
+      .stat-good .stat-value {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value {
+        color: var(--warning);
+      }
+      .stat-bad .stat-value {
+        color: var(--problem);
+      }
+      .stat-accent .stat-value {
+        color: var(--accent);
+      }
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--border-strong);
+        padding: 20px 22px;
+        margin-bottom: 14px;
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+      .card h3 {
+        margin-top: 0;
+      }
+      .card p:last-child,
+      .card ul:last-child,
+      .card ol:last-child {
+        margin-bottom: 0;
+      }
+      .card-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      .strengths {
+        margin: 20px 0;
+      }
+      .strength {
+        display: flex;
+        gap: 14px;
+        padding: 14px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength:last-child {
+        border-bottom: none;
+      }
+      .strength .check {
+        flex-shrink: 0;
+        width: 26px;
+        height: 26px;
+        background: color-mix(in srgb, var(--solution) 18%, transparent);
+        color: var(--solution);
+        display: grid;
+        place-items: center;
+        font-weight: 900;
+        font-size: 15px;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 2px;
+      }
+      .strength .text span {
+        font-size: 14px;
+        color: var(--text-muted);
+      }
+      .badge {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 9px;
+        font-family: var(--font-mono);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .badge-critical {
+        background: color-mix(in srgb, var(--problem) 18%, transparent);
+        color: var(--problem);
+        border: 1px solid var(--problem);
+      }
+      .badge-high {
+        background: color-mix(in srgb, var(--warning) 18%, transparent);
+        color: var(--warning);
+        border: 1px solid var(--warning);
+      }
+      .badge-medium {
+        background: color-mix(in srgb, var(--accent) 18%, transparent);
+        color: var(--accent);
+        border: 1px solid var(--accent);
+      }
+      .badge-low {
+        background: var(--surface-sunken);
+        color: var(--text-muted);
+        border: 1px solid var(--border);
+      }
+      .badge-fixed {
+        background: color-mix(in srgb, var(--solution) 18%, transparent);
+        color: var(--solution);
+        border: 1px solid var(--solution);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 16px 0;
+        font-size: 14px;
+      }
+      th {
+        text-align: left;
+        padding: 10px 12px;
+        border-bottom: 2px solid var(--border-strong);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-faint);
+        font-weight: 700;
+      }
+      td {
+        padding: 11px 12px;
+        border-bottom: 1px solid var(--border);
+        color: var(--text-muted);
+        vertical-align: top;
+      }
+      td:first-child {
+        color: var(--text);
+        font-weight: 600;
+      }
+      tr:hover td {
+        background: var(--surface-sunken);
+      }
+      .callout {
+        padding: 16px 18px;
+        margin: 16px 0;
+        border-left: 3px solid;
+      }
+      .callout-solution {
+        border-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, transparent);
+      }
+      .callout-warning {
+        border-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, transparent);
+      }
+      .callout strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+      .callout p {
+        margin: 0;
+        color: var(--text-muted);
+      }
+      .question-box {
+        background: var(--surface-raised);
+        border: 2px solid var(--accent);
+        padding: 28px 30px;
+        margin: 24px 0;
+      }
+      .question-box .eyebrow {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        font-weight: 800;
+        margin-bottom: 10px;
+      }
+      .question-box h3 {
+        color: var(--text);
+        font-size: 21px;
+        margin: 0 0 12px;
+      }
+      .footer {
+        margin-top: 64px;
+        padding: 24px 0;
+        border-top: 1px solid var(--border);
+        font-size: 13px;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
       @media (max-width: 1024px) {
-        .layout { grid-template-columns: 1fr; }
-        .sidebar { display: none; }
-        .main { padding: 0 20px 60px; }
-        .card-grid-2 { grid-template-columns: 1fr; }
-        .hero h1 { font-size: 32px; }
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        .sidebar {
+          display: none;
+        }
+        .main {
+          padding: 0 20px 60px;
+        }
+        .card-grid-2 {
+          grid-template-columns: 1fr;
+        }
+        .hero h1 {
+          font-size: 32px;
+        }
       }
     </style>
   </head>
@@ -144,9 +455,11 @@
           <div class="hero-badge">Comprehensive Status &middot; Post-Release</div>
           <h1>v2.6.0 Released — Library is Healthy, Roadmap is Lying</h1>
           <p class="hero-subtitle">
-            28 annotated tags cut lockstep at <code>413ea523</code>. Full test suite green, lint clean, layers pass.
-            The codebase is in its strongest shape ever — but <strong>ROADMAP.md has 5+ stale checkboxes</strong>
-            marking shipped features as open, and a design mistake (<code>pebble.DeleteEventsBefore</code>) escaped into a tagged release.
+            28 annotated tags cut lockstep at <code>413ea523</code>. Full test suite green, lint
+            clean, layers pass. The codebase is in its strongest shape ever — but
+            <strong>ROADMAP.md has 5+ stale checkboxes</strong>
+            marking shipped features as open, and a design mistake
+            (<code>pebble.DeleteEventsBefore</code>) escaped into a tagged release.
           </p>
           <div class="hero-meta">
             <span class="tag amber">v2.6.0</span>
@@ -159,116 +472,321 @@
         <section id="summary">
           <h2><span class="num">00</span>Summary</h2>
           <p>
-            This report captures the state of <strong>go-cqrs-lite</strong> immediately after cutting the <strong>v2.6.0</strong> release.
-            The release added two new modules (<code>schema</code> Validator, <code>prometheus</code> exporter), split projection
-            <code>Run</code> into <code>RunReplay</code>/<code>RunLive</code>, closed the replay&rarr;live dedup gap, and exported
-            all ID marker types. <code>pebble.DeleteEventsBefore</code> (shipped ~24h earlier in v2.5.0) was removed before adoption.
+            This report captures the state of <strong>go-cqrs-lite</strong> immediately after
+            cutting the <strong>v2.6.0</strong> release. The release added two new modules (<code
+              >schema</code
+            >
+            Validator, <code>prometheus</code> exporter), split projection <code>Run</code> into
+            <code>RunReplay</code>/<code>RunLive</code>, closed the replay&rarr;live dedup gap, and
+            exported all ID marker types. <code>pebble.DeleteEventsBefore</code> (shipped ~24h
+            earlier in v2.5.0) was removed before adoption.
           </p>
           <p>
-            <strong>Headline:</strong> the engineering foundation is excellent — tests pass, lint is zero-issue, coverage holds,
-            dependency budgets are clean. The problems are documentation hygiene and deferred breaking-change debt, not code quality.
+            <strong>Headline:</strong> the engineering foundation is excellent — tests pass, lint is
+            zero-issue, coverage holds, dependency budgets are clean. The problems are documentation
+            hygiene and deferred breaking-change debt, not code quality.
           </p>
         </section>
 
         <section id="stats">
           <h2><span class="num">&diams;</span>Snapshot</h2>
           <div class="stat-grid">
-            <div class="stat-card stat-good"><div class="stat-value">40/40</div><div class="stat-label">Test Packages Pass</div></div>
-            <div class="stat-card stat-good"><div class="stat-value">0</div><div class="stat-label">Lint Issues</div></div>
-            <div class="stat-card stat-good"><div class="stat-value">28</div><div class="stat-label">v2.6.0 Tags (Lockstep)</div></div>
-            <div class="stat-card stat-accent"><div class="stat-value">30</div><div class="stat-label">Modules (24 lib)</div></div>
-            <div class="stat-card stat-accent"><div class="stat-value">1351</div><div class="stat-label">API Exports</div></div>
-            <div class="stat-card stat-good"><div class="stat-value">26</div><div class="stat-label">ADRs Accepted</div></div>
-            <div class="stat-card stat-warn"><div class="stat-value">80&ndash;99%</div><div class="stat-label">Coverage Range</div></div>
-            <div class="stat-card stat-bad"><div class="stat-value">5+</div><div class="stat-label">Stale Roadmap Items</div></div>
+            <div class="stat-card stat-good">
+              <div class="stat-value">40/40</div>
+              <div class="stat-label">Test Packages Pass</div>
+            </div>
+            <div class="stat-card stat-good">
+              <div class="stat-value">0</div>
+              <div class="stat-label">Lint Issues</div>
+            </div>
+            <div class="stat-card stat-good">
+              <div class="stat-value">28</div>
+              <div class="stat-label">v2.6.0 Tags (Lockstep)</div>
+            </div>
+            <div class="stat-card stat-accent">
+              <div class="stat-value">30</div>
+              <div class="stat-label">Modules (24 lib)</div>
+            </div>
+            <div class="stat-card stat-accent">
+              <div class="stat-value">1351</div>
+              <div class="stat-label">API Exports</div>
+            </div>
+            <div class="stat-card stat-good">
+              <div class="stat-value">26</div>
+              <div class="stat-label">ADRs Accepted</div>
+            </div>
+            <div class="stat-card stat-warn">
+              <div class="stat-value">80&ndash;99%</div>
+              <div class="stat-label">Coverage Range</div>
+            </div>
+            <div class="stat-card stat-bad">
+              <div class="stat-value">5+</div>
+              <div class="stat-label">Stale Roadmap Items</div>
+            </div>
           </div>
           <div class="stat-grid">
-            <div class="stat-card"><div class="stat-value">35.2k</div><div class="stat-label">LOC (non-test)</div></div>
-            <div class="stat-card"><div class="stat-value">71.0k</div><div class="stat-label">LOC (tests)</div></div>
-            <div class="stat-card"><div class="stat-value">801</div><div class="stat-label">.go Files</div></div>
-            <div class="stat-card"><div class="stat-value">30</div><div class="stat-label">Commits since v2.5.0</div></div>
+            <div class="stat-card">
+              <div class="stat-value">35.2k</div>
+              <div class="stat-label">LOC (non-test)</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">71.0k</div>
+              <div class="stat-label">LOC (tests)</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">801</div>
+              <div class="stat-label">.go Files</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">30</div>
+              <div class="stat-label">Commits since v2.5.0</div>
+            </div>
           </div>
         </section>
 
         <section id="done">
           <h2><span class="num">A</span>Fully Done</h2>
-          <p>Shipped, tested, documented, tagged in v2.6.0. These are real, verified accomplishments.</p>
+          <p>
+            Shipped, tested, documented, tagged in v2.6.0. These are real, verified accomplishments.
+          </p>
           <div class="strengths">
-            <div class="strength"><div class="check">+</div><div class="text"><strong>v2.6.0 release cut cleanly</strong><span>28 annotated tags (27 modules + top-level), all pointing to <code>413ea523</code>. <code>prometheus/v2.6.0</code> is its first tag ever. Docs refreshed across AGENTS/README/CONTRIBUTING/FEATURES/CHANGELOG.</span></div></div>
-            <div class="strength"><div class="check">+</div><div class="text"><strong>Two new modules shipped</strong><span><code>schema</code> Validator (ADR-0017: <code>RegisterType[T]()</code>, strict/lenient modes) and <code>prometheus</code> OTel&rarr;Prom bridge (<code>Setup()</code>, <code>WithRegistry()</code>, <code>MustSetup()</code>).</span></div></div>
-            <div class="strength"><div class="check">+</div><div class="text"><strong>Projection replay/live split</strong><span><code>RunReplay(ctx)</code> synchronous catch-up + <code>RunLive(ctx)</code> background tail. Eliminates <code>time.Sleep</code> hacks in consumers. Read-your-writes semantics.</span></div></div>
-            <div class="strength"><div class="check">+</div><div class="text"><strong>Replay&rarr;live dedup gap closed</strong><span><code>SubscriberToObservable</code> + <code>DistinctByEventIDWith(seen)</code> seeds dedup with replay IDs. Overlap-window duplicates silently suppressed.</span></div></div>
-            <div class="strength"><div class="check">+</div><div class="text"><strong>OTel correlation enricher</strong><span><code>OTelCorrelationEnricher</code> bridges baggage&rarr;event metadata. Composes with <code>CommandCausalityEnricher</code> via <code>CompositeEnricher</code>.</span></div></div>
-            <div class="strength"><div class="check">+</div><div class="text"><strong>Full quality gate green</strong><span>Build EXIT 0, vet EXIT 0, 40/40 test packages pass, lint 0 issues, module-layer budget check passes, API surface stable at 1351 exports (verified via <code>cmd/api-stability</code>).</span></div></div>
-            <div class="strength"><div class="check">+</div><div class="text"><strong>Bounded dedup operators</strong><span><code>DistinctByEventIDBounded(cap)</code> with FIFO ring eviction for 24/7 projections. <code>WithDedupCapacity(n)</code> Runner option.</span></div></div>
-            <div class="strength"><div class="check">+</div><div class="text"><strong>Exported ID marker types</strong><span>All 8 phantom markers exported (<code>AggregateMarker</code>, <code>UserMarker</code>, etc.) enabling downstream <code>BrandNamer</code> integration.</span></div></div>
-            <div class="strength"><div class="check">+</div><div class="text"><strong>cqrs-gen struct tag scanning</strong><span><code>cqrs:"command:CreateUser"</code> tags on <code>_ struct{}</code> fields, in addition to comment markers.</span></div></div>
-            <div class="strength"><div class="check">+</div><div class="text"><strong>LeaderElection interface (ADR-0018)</strong><span><code>LeaderElection</code> + <code>AlwaysLeader</code> default for distributed projection coordination.</span></div></div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>v2.6.0 release cut cleanly</strong
+                ><span
+                  >28 annotated tags (27 modules + top-level), all pointing to
+                  <code>413ea523</code>. <code>prometheus/v2.6.0</code> is its first tag ever. Docs
+                  refreshed across AGENTS/README/CONTRIBUTING/FEATURES/CHANGELOG.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Two new modules shipped</strong
+                ><span
+                  ><code>schema</code> Validator (ADR-0017: <code>RegisterType[T]()</code>,
+                  strict/lenient modes) and <code>prometheus</code> OTel&rarr;Prom bridge
+                  (<code>Setup()</code>, <code>WithRegistry()</code>,
+                  <code>MustSetup()</code>).</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Projection replay/live split</strong
+                ><span
+                  ><code>RunReplay(ctx)</code> synchronous catch-up +
+                  <code>RunLive(ctx)</code> background tail. Eliminates
+                  <code>time.Sleep</code> hacks in consumers. Read-your-writes semantics.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Replay&rarr;live dedup gap closed</strong
+                ><span
+                  ><code>SubscriberToObservable</code> +
+                  <code>DistinctByEventIDWith(seen)</code> seeds dedup with replay IDs.
+                  Overlap-window duplicates silently suppressed.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>OTel correlation enricher</strong
+                ><span
+                  ><code>OTelCorrelationEnricher</code> bridges baggage&rarr;event metadata.
+                  Composes with <code>CommandCausalityEnricher</code> via
+                  <code>CompositeEnricher</code>.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Full quality gate green</strong
+                ><span
+                  >Build EXIT 0, vet EXIT 0, 40/40 test packages pass, lint 0 issues, module-layer
+                  budget check passes, API surface stable at 1351 exports (verified via
+                  <code>cmd/api-stability</code>).</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Bounded dedup operators</strong
+                ><span
+                  ><code>DistinctByEventIDBounded(cap)</code> with FIFO ring eviction for 24/7
+                  projections. <code>WithDedupCapacity(n)</code> Runner option.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Exported ID marker types</strong
+                ><span
+                  >All 8 phantom markers exported (<code>AggregateMarker</code>,
+                  <code>UserMarker</code>, etc.) enabling downstream
+                  <code>BrandNamer</code> integration.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>cqrs-gen struct tag scanning</strong
+                ><span
+                  ><code>cqrs:"command:CreateUser"</code> tags on <code>_ struct{}</code> fields, in
+                  addition to comment markers.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>LeaderElection interface (ADR-0018)</strong
+                ><span
+                  ><code>LeaderElection</code> + <code>AlwaysLeader</code> default for distributed
+                  projection coordination.</span
+                >
+              </div>
+            </div>
           </div>
         </section>
 
         <section id="partial">
           <h2><span class="num">B</span>Partially Done</h2>
-          <p>Interfaces or scaffolds exist, but implementations are incomplete. Each has a clear path to completion.</p>
+          <p>
+            Interfaces or scaffolds exist, but implementations are incomplete. Each has a clear path
+            to completion.
+          </p>
 
           <div class="card card-warning">
             <h3><span class="badge badge-high">Partial</span> Streaming event reads</h3>
-            <p><strong>Done:</strong> <code>EventIterator</code>, <code>StreamingSource</code>, <code>StreamingJournal</code> interfaces + <code>SliceIterator</code> adapter in <code>event/</code>.</p>
-            <p><strong>Missing:</strong> SQL and Pebble stores do not implement the streaming variants. Large aggregates still materialize full slices. High value for event-heavy domains.</p>
+            <p>
+              <strong>Done:</strong> <code>EventIterator</code>, <code>StreamingSource</code>,
+              <code>StreamingJournal</code> interfaces + <code>SliceIterator</code> adapter in
+              <code>event/</code>.
+            </p>
+            <p>
+              <strong>Missing:</strong> SQL and Pebble stores do not implement the streaming
+              variants. Large aggregates still materialize full slices. High value for event-heavy
+              domains.
+            </p>
           </div>
 
           <div class="card card-warning">
             <h3><span class="badge badge-high">Partial</span> WASM compilation</h3>
-            <p><strong>Done:</strong> 6 of 7 core modules compile to <code>GOOS=js GOARCH=wasm</code> (id, codec, dispatcher, event, command, query). Verification binary at <code>wasm/main.go</code>.</p>
-            <p><strong>Missing:</strong> <code>decider/</code> blocked by OTel SDK's <code>os/user</code> dependency. Needs dependency decoupling or a WASM-friendly OTel shim.</p>
+            <p>
+              <strong>Done:</strong> 6 of 7 core modules compile to
+              <code>GOOS=js GOARCH=wasm</code> (id, codec, dispatcher, event, command, query).
+              Verification binary at <code>wasm/main.go</code>.
+            </p>
+            <p>
+              <strong>Missing:</strong> <code>decider/</code> blocked by OTel SDK's
+              <code>os/user</code> dependency. Needs dependency decoupling or a WASM-friendly OTel
+              shim.
+            </p>
           </div>
 
           <div class="card card-warning">
             <h3><span class="badge badge-medium">Partial</span> Documentation site</h3>
-            <p><strong>Done:</strong> MkDocs Material scaffold created (<code>mkdocs.yml</code>, <code>docs/site/</code>). Theme configured.</p>
-            <p><strong>Missing:</strong> Content not populated. Not deployed to GitHub Pages. Currently dead scaffolding.</p>
+            <p>
+              <strong>Done:</strong> MkDocs Material scaffold created (<code>mkdocs.yml</code>,
+              <code>docs/site/</code>). Theme configured.
+            </p>
+            <p>
+              <strong>Missing:</strong> Content not populated. Not deployed to GitHub Pages.
+              Currently dead scaffolding.
+            </p>
           </div>
 
           <div class="card card-warning">
             <h3><span class="badge badge-medium">Partial</span> cqrs-gen code generator</h3>
-            <p><strong>Done:</strong> Command handler generation with struct-tag + comment-marker scanning.</p>
-            <p><strong>Missing:</strong> Event handler generation (<code>-type=event</code>) not implemented.</p>
+            <p>
+              <strong>Done:</strong> Command handler generation with struct-tag + comment-marker
+              scanning.
+            </p>
+            <p>
+              <strong>Missing:</strong> Event handler generation (<code>-type=event</code>) not
+              implemented.
+            </p>
           </div>
 
           <div class="card card-warning">
             <h3><span class="badge badge-medium">Partial</span> OTel distributed tracing</h3>
-            <p><strong>Done:</strong> Correlation enricher, baggage propagation (<code>WithCorrelationID</code>), TextMapPropagator, span events, metric views.</p>
-            <p><strong>Missing:</strong> "Span propagation across module boundaries" not uniformly wired everywhere. Some modules opt-in only.</p>
+            <p>
+              <strong>Done:</strong> Correlation enricher, baggage propagation
+              (<code>WithCorrelationID</code>), TextMapPropagator, span events, metric views.
+            </p>
+            <p>
+              <strong>Missing:</strong> "Span propagation across module boundaries" not uniformly
+              wired everywhere. Some modules opt-in only.
+            </p>
           </div>
         </section>
 
         <section id="not-started">
           <h2><span class="num">C</span>Not Started</h2>
-          <p>ADR-accepted or tracked, but zero implementation exists. These are the greenfield opportunities.</p>
+          <p>
+            ADR-accepted or tracked, but zero implementation exists. These are the greenfield
+            opportunities.
+          </p>
 
           <div class="card">
-            <h3><span class="badge badge-medium">Tracked</span> Distributed checkpointing implementation</h3>
-            <p><code>LeaderElection</code> interface exists (ADR-0018), but no <code>DistributedRunner</code> wrapper. Consumers must implement coordination (Redis, etcd, k8s) themselves today.</p>
+            <h3>
+              <span class="badge badge-medium">Tracked</span> Distributed checkpointing
+              implementation
+            </h3>
+            <p>
+              <code>LeaderElection</code> interface exists (ADR-0018), but no
+              <code>DistributedRunner</code> wrapper. Consumers must implement coordination (Redis,
+              etcd, k8s) themselves today.
+            </p>
           </div>
           <div class="card">
             <h3><span class="badge badge-medium">ADR-0025</span> gRPC transport adapter</h3>
-            <p>ADR accepted. No <code>transport/grpc/</code> module exists. Separate module with protobuf dispatch per the transport strategy.</p>
+            <p>
+              ADR accepted. No <code>transport/grpc/</code> module exists. Separate module with
+              protobuf dispatch per the transport strategy.
+            </p>
           </div>
           <div class="card">
             <h3><span class="badge badge-medium">ADR-0025</span> NATS / Redis Stream adapters</h3>
-            <p>ADR accepted. No <code>transport/nats/</code> or <code>transport/redis/</code> modules exist.</p>
+            <p>
+              ADR accepted. No <code>transport/nats/</code> or <code>transport/redis/</code> modules
+              exist.
+            </p>
           </div>
           <div class="card">
-            <h3><span class="badge badge-low">Experimental</span> jsonv2 / arena / SIMD experiments</h3>
-            <p>Stubs exist behind <code>goexperiment.*</code> build tags (ADR-0026). Blocked on Go stdlib stabilization — not actionable until upstream lands.</p>
+            <h3>
+              <span class="badge badge-low">Experimental</span> jsonv2 / arena / SIMD experiments
+            </h3>
+            <p>
+              Stubs exist behind <code>goexperiment.*</code> build tags (ADR-0026). Blocked on Go
+              stdlib stabilization — not actionable until upstream lands.
+            </p>
           </div>
           <div class="card">
             <h3><span class="badge badge-low">Idea</span> Structured logging middleware</h3>
-            <p>Configurable-level structured logging middleware not started. Current logging middleware is basic.</p>
+            <p>
+              Configurable-level structured logging middleware not started. Current logging
+              middleware is basic.
+            </p>
           </div>
           <div class="card">
             <h3><span class="badge badge-low">Idea</span> Performance regression dashboard</h3>
-            <p>Historical benchmark tracking. Baseline file exists (<code>benchmark-baseline.txt</code>) but no dashboard or trend visualization.</p>
+            <p>
+              Historical benchmark tracking. Baseline file exists
+              (<code>benchmark-baseline.txt</code>) but no dashboard or trend visualization.
+            </p>
           </div>
         </section>
 
@@ -277,28 +795,90 @@
           <p>The painful parts. Honest assessment of what went wrong.</p>
 
           <div class="card card-problem">
-            <h3><span class="badge badge-critical">Critical</span> ROADMAP.md lies about open work</h3>
-            <p><strong>The roadmap has 5+ checkboxes marked <code>[ ]</code> (open) that are actually DONE.</strong> This is the worst kind of doc drift — it makes the roadmap untrustworthy and hides real accomplishments.</p>
+            <h3>
+              <span class="badge badge-critical">Critical</span> ROADMAP.md lies about open work
+            </h3>
+            <p>
+              <strong
+                >The roadmap has 5+ checkboxes marked <code>[ ]</code> (open) that are actually
+                DONE.</strong
+              >
+              This is the worst kind of doc drift — it makes the roadmap untrustworthy and hides
+              real accomplishments.
+            </p>
             <ul>
-              <li><strong>"Code generator (cqrs-gen) v2 with struct tag scanning"</strong> <code>[ ]</code> &rarr; <strong>DONE</strong> (shipped v2.6.0, marked <code>[x]</code> in TODO_LIST)</li>
-              <li><strong>"Event schema registry with validation middleware"</strong> <code>[ ]</code> &rarr; <strong>DONE</strong> (<code>schema.Validator</code>, ADR-0017, shipped v2.6.0)</li>
-              <li><strong>"Custom metrics exporter (Prometheus format)"</strong> <code>[ ]</code> &rarr; <strong>DONE</strong> (entire <code>prometheus/</code> module shipped v2.6.0!)</li>
-              <li><strong>"Streaming event reads without materializing full slice"</strong> listed as open in Long-Term <code>[ ]</code> &rarr; interfaces <strong>DONE</strong> in v2.6.0 (only store impls remain)</li>
-              <li><strong>"Distributed tracing span propagation"</strong> <code>[ ]</code> &rarr; <strong>mostly done</strong> (OTel enricher + baggage propagation shipped)</li>
+              <li>
+                <strong>"Code generator (cqrs-gen) v2 with struct tag scanning"</strong>
+                <code>[ ]</code> &rarr; <strong>DONE</strong> (shipped v2.6.0, marked
+                <code>[x]</code> in TODO_LIST)
+              </li>
+              <li>
+                <strong>"Event schema registry with validation middleware"</strong>
+                <code>[ ]</code> &rarr; <strong>DONE</strong> (<code>schema.Validator</code>,
+                ADR-0017, shipped v2.6.0)
+              </li>
+              <li>
+                <strong>"Custom metrics exporter (Prometheus format)"</strong>
+                <code>[ ]</code> &rarr; <strong>DONE</strong> (entire
+                <code>prometheus/</code> module shipped v2.6.0!)
+              </li>
+              <li>
+                <strong>"Streaming event reads without materializing full slice"</strong> listed as
+                open in Long-Term <code>[ ]</code> &rarr; interfaces <strong>DONE</strong> in v2.6.0
+                (only store impls remain)
+              </li>
+              <li>
+                <strong>"Distributed tracing span propagation"</strong> <code>[ ]</code> &rarr;
+                <strong>mostly done</strong> (OTel enricher + baggage propagation shipped)
+              </li>
             </ul>
-            <div class="callout callout-warning"><strong>Impact</strong><p>A reader trusting the roadmap would think 5 major features are unbuilt. They're shipped. This actively misleads planning and makes the project look less complete than it is.</p></div>
+            <div class="callout callout-warning">
+              <strong>Impact</strong>
+              <p>
+                A reader trusting the roadmap would think 5 major features are unbuilt. They're
+                shipped. This actively misleads planning and makes the project look less complete
+                than it is.
+              </p>
+            </div>
           </div>
 
           <div class="card card-problem">
-            <h3><span class="badge badge-critical">Critical</span> Design mistake shipped to a tagged release</h3>
-            <p><strong><code>pebble.DeleteEventsBefore</code> shipped in v2.5.0</strong> — a method that automatically deletes events based on age. This directly contradicts the core event-sourcing principle that <strong>events are immutable truth</strong>. Automatic event deletion is a footgun in an event sourcing library.</p>
-            <p>It was removed in v2.6.0 before any consumer could depend on it (24h window), but it should never have passed review. This is a design-judgment gap, not a typo.</p>
-            <div class="callout callout-warning"><strong>Root cause</strong><p>Retention/cleanup features feel reasonable in isolation but contradict the library's foundational invariant. No pre-merge check asks "does this violate event sourcing immutability?"</p></div>
+            <h3>
+              <span class="badge badge-critical">Critical</span> Design mistake shipped to a tagged
+              release
+            </h3>
+            <p>
+              <strong><code>pebble.DeleteEventsBefore</code> shipped in v2.5.0</strong> — a method
+              that automatically deletes events based on age. This directly contradicts the core
+              event-sourcing principle that <strong>events are immutable truth</strong>. Automatic
+              event deletion is a footgun in an event sourcing library.
+            </p>
+            <p>
+              It was removed in v2.6.0 before any consumer could depend on it (24h window), but it
+              should never have passed review. This is a design-judgment gap, not a typo.
+            </p>
+            <div class="callout callout-warning">
+              <strong>Root cause</strong>
+              <p>
+                Retention/cleanup features feel reasonable in isolation but contradict the library's
+                foundational invariant. No pre-merge check asks "does this violate event sourcing
+                immutability?"
+              </p>
+            </div>
           </div>
 
           <div class="card card-problem">
-            <h3><span class="badge badge-high">High</span> <code>./...</code> from workspace root is unreliable</h3>
-            <p>Running <code>go test ./...</code> from the workspace root only tests <strong>1 package</strong> (the root module), not all workspace modules. The canonical test command in AGENTS.md must enumerate all 24 module paths explicitly. This is fragile — adding a new module means remembering to update the command, or tests silently don't run.</p>
+            <h3>
+              <span class="badge badge-high">High</span> <code>./...</code> from workspace root is
+              unreliable
+            </h3>
+            <p>
+              Running <code>go test ./...</code> from the workspace root only tests
+              <strong>1 package</strong> (the root module), not all workspace modules. The canonical
+              test command in AGENTS.md must enumerate all 24 module paths explicitly. This is
+              fragile — adding a new module means remembering to update the command, or tests
+              silently don't run.
+            </p>
           </div>
         </section>
 
@@ -307,33 +887,75 @@
 
           <div class="card card-warning">
             <h3>Roadmap checkbox hygiene</h3>
-            <p>5+ items in ROADMAP.md are marked open but are done. The roadmap and TODO_LIST disagree on the same features. Establish a rule: roadmap gets reconciled against TODO_LIST at every release.</p>
+            <p>
+              5+ items in ROADMAP.md are marked open but are done. The roadmap and TODO_LIST
+              disagree on the same features. Establish a rule: roadmap gets reconciled against
+              TODO_LIST at every release.
+            </p>
           </div>
           <div class="card card-warning">
             <h3>Coverage gaps in 5 modules</h3>
             <p>Five modules sit below 85% coverage — the project's stated floor:</p>
             <table>
-              <thead><tr><th>Module</th><th>Coverage</th><th>Gap</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>Module</th>
+                  <th>Coverage</th>
+                  <th>Gap</th>
+                </tr>
+              </thead>
               <tbody>
-                <tr><td>prometheus</td><td>80.0%</td><td>New module, thin tests — needs error-branch coverage</td></tr>
-                <tr><td>storage</td><td>82.1%</td><td>SQL error paths, dialect branches</td></tr>
-                <tr><td>turso</td><td>83.3%</td><td>Sync internals, connector errors</td></tr>
-                <tr><td>catalog</td><td>84.5%</td><td>Exporter edge cases</td></tr>
-                <tr><td>codec</td><td>84.8%</td><td>CBOR edge cases, error paths</td></tr>
+                <tr>
+                  <td>prometheus</td>
+                  <td>80.0%</td>
+                  <td>New module, thin tests — needs error-branch coverage</td>
+                </tr>
+                <tr>
+                  <td>storage</td>
+                  <td>82.1%</td>
+                  <td>SQL error paths, dialect branches</td>
+                </tr>
+                <tr>
+                  <td>turso</td>
+                  <td>83.3%</td>
+                  <td>Sync internals, connector errors</td>
+                </tr>
+                <tr>
+                  <td>catalog</td>
+                  <td>84.5%</td>
+                  <td>Exporter edge cases</td>
+                </tr>
+                <tr>
+                  <td>codec</td>
+                  <td>84.8%</td>
+                  <td>CBOR edge cases, error paths</td>
+                </tr>
               </tbody>
             </table>
           </div>
           <div class="card">
             <h3>Pre-merge invariant checklist</h3>
-            <p>No design mistake like <code>DeleteEventsBefore</code> should reach a tag. Add a review checklist item: "Does this feature violate any core principle (immutability, no-delete, tombstone-only)?"</p>
+            <p>
+              No design mistake like <code>DeleteEventsBefore</code> should reach a tag. Add a
+              review checklist item: "Does this feature violate any core principle (immutability,
+              no-delete, tombstone-only)?"
+            </p>
           </div>
           <div class="card">
             <h3>Workspace test command fragility</h3>
-            <p>The explicit module-enumeration in the test command will silently skip new modules if forgotten. Consider a <code>go.work</code>-aware test wrapper or a generated command.</p>
+            <p>
+              The explicit module-enumeration in the test command will silently skip new modules if
+              forgotten. Consider a <code>go.work</code>-aware test wrapper or a generated command.
+            </p>
           </div>
           <div class="card">
             <h3>Deferred breaking-change debt is growing</h3>
-            <p>5 v3-deferred + 2 v4-deferred breaking changes are accumulating (io.Closer removal, TransactionID, core immutability, HTTP-code move, <code>query.Handler</code> any-return, catalog splits). No trigger criteria for when to cut v3.</p>
+            <p>
+              5 v3-deferred + 2 v4-deferred breaking changes are accumulating (io.Closer removal,
+              TransactionID, core immutability, HTTP-code move,
+              <code>query.Handler</code> any-return, catalog splits). No trigger criteria for when
+              to cut v3.
+            </p>
           </div>
         </section>
 
@@ -341,33 +963,165 @@
           <h2><span class="num">F</span>Top 25 Things to Get Done Next</h2>
           <p>Sorted by impact (Pareto). High-trust/low-effort items first.</p>
           <table>
-            <thead><tr><th>#</th><th>Task</th><th>Impact</th><th>Effort</th></tr></thead>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Task</th>
+                <th>Impact</th>
+                <th>Effort</th>
+              </tr>
+            </thead>
             <tbody>
-              <tr><td>1</td><td>Fix ROADMAP.md stale checkboxes (5+ items marked open but done)</td><td><span class="badge badge-critical">Trust</span></td><td>10 min</td></tr>
-              <tr><td>2</td><td>Prometheus coverage 80% &rarr; 90%+ (new module, untested error paths)</td><td><span class="badge badge-high">Quality</span></td><td>2h</td></tr>
-              <tr><td>3</td><td>Storage coverage 82.1% &rarr; 90%+ (SQL error branches)</td><td><span class="badge badge-high">Quality</span></td><td>3h</td></tr>
-              <tr><td>4</td><td>Turso coverage 83.3% &rarr; 90%+ (sync internals)</td><td><span class="badge badge-high">Quality</span></td><td>3h</td></tr>
-              <tr><td>5</td><td>Streaming event reads &rarr; SQL store implementation</td><td><span class="badge badge-high">Feature</span></td><td>1 day</td></tr>
-              <tr><td>6</td><td>Streaming event reads &rarr; Pebble store implementation</td><td><span class="badge badge-high">Feature</span></td><td>1 day</td></tr>
-              <tr><td>7</td><td>Distributed checkpointing &rarr; DistributedRunner wrapper</td><td><span class="badge badge-high">Feature</span></td><td>2 days</td></tr>
-              <tr><td>8</td><td>cqrs-gen event handler generation (<code>-type=event</code>)</td><td><span class="badge badge-medium">Feature</span></td><td>1 day</td></tr>
-              <tr><td>9</td><td>Catalog coverage 84.5% &rarr; 90%+ (exporter edge cases)</td><td><span class="badge badge-medium">Quality</span></td><td>2h</td></tr>
-              <tr><td>10</td><td>Codec coverage 84.8% &rarr; 90%+ (CBOR edge cases)</td><td><span class="badge badge-medium">Quality</span></td><td>2h</td></tr>
-              <tr><td>11</td><td>Decouple decider OTel dep &rarr; unblock WASM compilation</td><td><span class="badge badge-medium">Feature</span></td><td>1 day</td></tr>
-              <tr><td>12</td><td>gRPC transport adapter module (ADR-0025 accepted)</td><td><span class="badge badge-medium">Feature</span></td><td>3 days</td></tr>
-              <tr><td>13</td><td>Populate MkDocs content + deploy to GitHub Pages</td><td><span class="badge badge-medium">Docs</span></td><td>2 days</td></tr>
-              <tr><td>14</td><td>Structured logging middleware with configurable levels</td><td><span class="badge badge-medium">Feature</span></td><td>1 day</td></tr>
-              <tr><td>15</td><td>Make workspace test command self-discovering (not hand-enumerated)</td><td><span class="badge badge-medium">DX</span></td><td>3h</td></tr>
-              <tr><td>16</td><td>NATS transport adapter module (ADR-0025)</td><td><span class="badge badge-low">Feature</span></td><td>2 days</td></tr>
-              <tr><td>17</td><td>Redis Stream transport adapter module (ADR-0025)</td><td><span class="badge badge-low">Feature</span></td><td>2 days</td></tr>
-              <tr><td>18</td><td>Performance regression dashboard (benchmark trend tracking)</td><td><span class="badge badge-low">Ops</span></td><td>2 days</td></tr>
-              <tr><td>19</td><td>Define v3.0.0 trigger criteria (7 deferred breaking changes growing)</td><td><span class="badge badge-medium">Strategy</span></td><td>Decision</td></tr>
-              <tr><td>20</td><td>Event stream compaction / log truncation strategies (raw idea)</td><td><span class="badge badge-low">Idea</span></td><td>Design</td></tr>
-              <tr><td>21</td><td>Multi-tenant event store (schema-per-tenant) (raw idea)</td><td><span class="badge badge-low">Idea</span></td><td>Design</td></tr>
-              <tr><td>22</td><td>Event archival to S3 / GCS / Azure Blob (raw idea)</td><td><span class="badge badge-low">Idea</span></td><td>Design</td></tr>
-              <tr><td>23</td><td>CQRS-lite dashboard web UI (inspect aggregates/events/projections)</td><td><span class="badge badge-low">Idea</span></td><td>Design</td></tr>
-              <tr><td>24</td><td>Automatic migration generator for schema evolution</td><td><span class="badge badge-low">Idea</span></td><td>Design</td></tr>
-              <tr><td>25</td><td>Property-based integration testing with state machine verification</td><td><span class="badge badge-low">Quality</span></td><td>Design</td></tr>
+              <tr>
+                <td>1</td>
+                <td>Fix ROADMAP.md stale checkboxes (5+ items marked open but done)</td>
+                <td><span class="badge badge-critical">Trust</span></td>
+                <td>10 min</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>Prometheus coverage 80% &rarr; 90%+ (new module, untested error paths)</td>
+                <td><span class="badge badge-high">Quality</span></td>
+                <td>2h</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>Storage coverage 82.1% &rarr; 90%+ (SQL error branches)</td>
+                <td><span class="badge badge-high">Quality</span></td>
+                <td>3h</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>Turso coverage 83.3% &rarr; 90%+ (sync internals)</td>
+                <td><span class="badge badge-high">Quality</span></td>
+                <td>3h</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>Streaming event reads &rarr; SQL store implementation</td>
+                <td><span class="badge badge-high">Feature</span></td>
+                <td>1 day</td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>Streaming event reads &rarr; Pebble store implementation</td>
+                <td><span class="badge badge-high">Feature</span></td>
+                <td>1 day</td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td>Distributed checkpointing &rarr; DistributedRunner wrapper</td>
+                <td><span class="badge badge-high">Feature</span></td>
+                <td>2 days</td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td>cqrs-gen event handler generation (<code>-type=event</code>)</td>
+                <td><span class="badge badge-medium">Feature</span></td>
+                <td>1 day</td>
+              </tr>
+              <tr>
+                <td>9</td>
+                <td>Catalog coverage 84.5% &rarr; 90%+ (exporter edge cases)</td>
+                <td><span class="badge badge-medium">Quality</span></td>
+                <td>2h</td>
+              </tr>
+              <tr>
+                <td>10</td>
+                <td>Codec coverage 84.8% &rarr; 90%+ (CBOR edge cases)</td>
+                <td><span class="badge badge-medium">Quality</span></td>
+                <td>2h</td>
+              </tr>
+              <tr>
+                <td>11</td>
+                <td>Decouple decider OTel dep &rarr; unblock WASM compilation</td>
+                <td><span class="badge badge-medium">Feature</span></td>
+                <td>1 day</td>
+              </tr>
+              <tr>
+                <td>12</td>
+                <td>gRPC transport adapter module (ADR-0025 accepted)</td>
+                <td><span class="badge badge-medium">Feature</span></td>
+                <td>3 days</td>
+              </tr>
+              <tr>
+                <td>13</td>
+                <td>Populate MkDocs content + deploy to GitHub Pages</td>
+                <td><span class="badge badge-medium">Docs</span></td>
+                <td>2 days</td>
+              </tr>
+              <tr>
+                <td>14</td>
+                <td>Structured logging middleware with configurable levels</td>
+                <td><span class="badge badge-medium">Feature</span></td>
+                <td>1 day</td>
+              </tr>
+              <tr>
+                <td>15</td>
+                <td>Make workspace test command self-discovering (not hand-enumerated)</td>
+                <td><span class="badge badge-medium">DX</span></td>
+                <td>3h</td>
+              </tr>
+              <tr>
+                <td>16</td>
+                <td>NATS transport adapter module (ADR-0025)</td>
+                <td><span class="badge badge-low">Feature</span></td>
+                <td>2 days</td>
+              </tr>
+              <tr>
+                <td>17</td>
+                <td>Redis Stream transport adapter module (ADR-0025)</td>
+                <td><span class="badge badge-low">Feature</span></td>
+                <td>2 days</td>
+              </tr>
+              <tr>
+                <td>18</td>
+                <td>Performance regression dashboard (benchmark trend tracking)</td>
+                <td><span class="badge badge-low">Ops</span></td>
+                <td>2 days</td>
+              </tr>
+              <tr>
+                <td>19</td>
+                <td>Define v3.0.0 trigger criteria (7 deferred breaking changes growing)</td>
+                <td><span class="badge badge-medium">Strategy</span></td>
+                <td>Decision</td>
+              </tr>
+              <tr>
+                <td>20</td>
+                <td>Event stream compaction / log truncation strategies (raw idea)</td>
+                <td><span class="badge badge-low">Idea</span></td>
+                <td>Design</td>
+              </tr>
+              <tr>
+                <td>21</td>
+                <td>Multi-tenant event store (schema-per-tenant) (raw idea)</td>
+                <td><span class="badge badge-low">Idea</span></td>
+                <td>Design</td>
+              </tr>
+              <tr>
+                <td>22</td>
+                <td>Event archival to S3 / GCS / Azure Blob (raw idea)</td>
+                <td><span class="badge badge-low">Idea</span></td>
+                <td>Design</td>
+              </tr>
+              <tr>
+                <td>23</td>
+                <td>CQRS-lite dashboard web UI (inspect aggregates/events/projections)</td>
+                <td><span class="badge badge-low">Idea</span></td>
+                <td>Design</td>
+              </tr>
+              <tr>
+                <td>24</td>
+                <td>Automatic migration generator for schema evolution</td>
+                <td><span class="badge badge-low">Idea</span></td>
+                <td>Design</td>
+              </tr>
+              <tr>
+                <td>25</td>
+                <td>Property-based integration testing with state machine verification</td>
+                <td><span class="badge badge-low">Quality</span></td>
+                <td>Design</td>
+              </tr>
             </tbody>
           </table>
         </section>
@@ -377,29 +1131,36 @@
           <div class="question-box">
             <div class="eyebrow">Question I Cannot Answer Myself</div>
             <h3>When do we cut v3.0.0?</h3>
-            <p style="margin-bottom: 14px;">
-              There are now <strong>5 v3-deferred and 2 v4-deferred breaking changes</strong> accumulating in TODO_LIST.md:
-              removing <code>io.Closer</code> from core interfaces (ADR-0010), adding a global <code>TransactionID</code>,
-              making event Core truly immutable, moving HTTP code out of middleware, fixing <code>query.Handler</code>'s
-              <code>any</code> return, and splitting <code>catalog.Message</code>/<code>Service</code> into structured embeddings.
+            <p style="margin-bottom: 14px">
+              There are now
+              <strong>5 v3-deferred and 2 v4-deferred breaking changes</strong> accumulating in
+              TODO_LIST.md: removing <code>io.Closer</code> from core interfaces (ADR-0010), adding
+              a global <code>TransactionID</code>, making event Core truly immutable, moving HTTP
+              code out of middleware, fixing <code>query.Handler</code>'s <code>any</code> return,
+              and splitting <code>catalog.Message</code>/<code>Service</code> into structured
+              embeddings.
             </p>
-            <p style="margin-bottom: 14px;">
-              I cannot determine the trigger criteria autonomously. Cutting v3 means changing all 27 module paths from
-              <code>/v2</code> &rarr; <code>/v3</code>, updating ~1,400 internal imports, and migrating <code>go.work</code> —
-              a real migration cost. But the debt grows with every release, and each deferred fix is a known design smell
-              that a consumer eventually hits.
+            <p style="margin-bottom: 14px">
+              I cannot determine the trigger criteria autonomously. Cutting v3 means changing all 27
+              module paths from
+              <code>/v2</code> &rarr; <code>/v3</code>, updating ~1,400 internal imports, and
+              migrating <code>go.work</code> — a real migration cost. But the debt grows with every
+              release, and each deferred fix is a known design smell that a consumer eventually
+              hits.
             </p>
-            <p style="margin-bottom: 0;">
-              <strong>My question:</strong> Is there a specific milestone, consumer-count threshold, or debt-count limit
-              (e.g., "when we hit 8 v3 items") that should trigger the v3 cut? Or do you want these deferred indefinitely
-              in favor of additive v2.x releases? This is a product/strategy call that depends on your adoption data and
-              release-cadence preference — I have no way to answer it from the code alone.
+            <p style="margin-bottom: 0">
+              <strong>My question:</strong> Is there a specific milestone, consumer-count threshold,
+              or debt-count limit (e.g., "when we hit 8 v3 items") that should trigger the v3 cut?
+              Or do you want these deferred indefinitely in favor of additive v2.x releases? This is
+              a product/strategy call that depends on your adoption data and release-cadence
+              preference — I have no way to answer it from the code alone.
             </p>
           </div>
         </section>
 
         <footer class="footer">
-          Generated 2026-06-19 02:38 CEST &middot; Reviewed against v2.6.0 (commit 413ea523) &middot; 30 modules, 1351 exports, 40/40 tests pass
+          Generated 2026-06-19 02:38 CEST &middot; Reviewed against v2.6.0 (commit 413ea523)
+          &middot; 30 modules, 1351 exports, 40/40 tests pass
         </footer>
       </main>
     </div>
