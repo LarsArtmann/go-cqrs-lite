@@ -40,7 +40,8 @@ func (b *Backend) NewSnapshot() *pebble.Snapshot {
 }
 
 // Flush forces a flush of the memtable to disk, triggering a level-0
-// compaction. Useful to ensure durability of recent writes.
+// compaction. Call after batch writes or before a checkpoint to ensure
+// all data is persisted to SST files.
 func (b *Backend) Flush() error {
 	err := b.database.Flush()
 	if err != nil {

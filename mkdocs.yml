@@ -32,18 +32,11 @@ nav:
       - Quick Start: getting-started.md
       - Storage Guide: STORAGE_GUIDE.md
       - Migration: MIGRATION.md
-  - Modules:
-      - event: modules/event.md
-      - command: modules/command.md
-      - query: modules/query.md
-      - decider: modules/decider.md
-      - storage: modules/storage.md
-      - projection: modules/projection.md
   - Architecture:
       - Patterns: ARCHITECTURE_PATTERNS.md
       - Domain Language: DOMAIN_LANGUAGE.md
       - Error Taxonomy: error-taxonomy.md
-  - ADRs: adr/README.md
+      - ADRs: adr/README.md
 
 markdown_extensions:
   - pymdownx.highlight:

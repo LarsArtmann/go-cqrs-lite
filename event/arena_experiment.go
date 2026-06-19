@@ -13,10 +13,10 @@ import "arena"
 //
 // Usage:
 //
-//	a := arena.NewArena[Event](100)
+//	a := arena.NewArena()
 //	defer a.Free()
 //	builder := NewArenaBatchBuilder(a)
-//	evt := builder.NewEvent(...)
+//	evt := builder.NewImmutableEvent()
 //
 // Note: arena allocation is experimental and may be removed in future Go versions.
 // See ADR-0026 for details.
