@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-06-17
+**Updated:** 2026-06-19
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in [ROADMAP.md](ROADMAP.md).
 
 ## Legend
@@ -16,45 +16,52 @@
 
 ### High impact
 
-- [ ] **Schema registry** — JSON Schema validation middleware for events (ADR-0017). Uses `catalog/schema/` infrastructure.
-- [ ] **Distributed checkpointing** — multi-instance projection coordination (ADR-0018). Large scope.
-- [ ] **Prometheus metrics exporter** — OTel→Prometheus bridge to replace custom `MetricsRecorder` in `middleware/`.
-- [ ] **Schema registry** placeholder — moved here from High impact (schema registry is now High impact above).
+- [ ] **Distributed checkpointing — implementation** — ADR-0018 accepted, `LeaderElection` interface in `projection/`. Consumers implement coordination (Redis, etcd, k8s). Library provides `AlwaysLeader` default. Future: `DistributedRunner` wrapper with pluggable lock.
 
 ### Medium impact
 
-- [ ] **Pebble coverage 85%+** — currently ~84%; target error branches in `helpers.go`, `serialization.go`.
-- [ ] **Pebble CompactionFilter** — time-based TTL for automatic event expiry in the LSM tree.
-- [ ] **Streaming event reads** — `EventIterator` interface for `event.Store` to avoid materializing full slices.
-- [ ] **cqrs-gen v2** — struct tag scanning code generator improvements.
+- [ ] **Streaming event reads — store implementation** — `EventIterator`, `StreamingSource`, `StreamingJournal` interfaces added to `event/`. `SliceIterator` adapter exists. SQL and Pebble stores should implement streaming variants for large aggregates.
+- [ ] **cqrs-gen v3 — event handler generation** — Struct tag scanning added (`cqrs:"command:CreateUser"`). Event handler generation (`-type=event`) still needed.
 
 ### Experimental / long-term
 
-- [ ] **gRPC transport adapter** — new module for command/query dispatch over gRPC.
-- [ ] **NATS/Redis Stream adapter** — message broker integration.
-- [ ] **jsonv2 codec experiment** — behind build tag, pending Go stdlib stabilization.
-- [ ] **Arena allocation experiment** — behind build tag and Go experiment flag.
-- [ ] **WASM compilation target** — decider module for browser/edge.
-- [ ] **Documentation site** — Docusaurus/MkDocs/Hugo.
+- [ ] **gRPC transport adapter** — ADR-0025 accepted. Separate `transport/grpc/` module with protobuf dispatch.
+- [ ] **NATS/Redis Stream adapter** — ADR-0025 accepted. Separate `transport/nats/` and `transport/redis/` modules.
+- [ ] **jsonv2 codec experiment** — `codec/jsonv2_experiment.go` exists behind `goexperiment.jsonv2` build tag (ADR-0026). Pending Go stdlib stabilization.
+- [ ] **Arena allocation experiment** — `event/arena_experiment.go` exists behind `goexperiment.arenas` build tag (ADR-0026). Pending Go arena API stabilization.
+- [ ] **WASM compilation** — 6 of 7 core modules compile to `GOOS=js GOARCH=wasm` (id, codec, dispatcher, event, command, query). `decider/` blocked by OTel SDK `os/user` dependency.
+- [ ] **Documentation site** — MkDocs Material scaffold created (`mkdocs.yml`). Content population and GitHub Pages deployment pending.
 
 ---
 
 ## Recently Completed
 
-- [x] **Projection replay→live dedup** — Reactive pipeline refactor: `SubscriberToObservable` adapts callback-based `Subscriber` to `ro.Observable[Event]`; `DistinctByEventIDWith(seen)` seeds dedup with replay IDs. Runner's `subscribeLive` now builds `live → DistinctByEventIDWith(replayIDs) → handler` pipeline. Zero duplicate processing at the replay→live boundary.
-- [x] **OTel baggage → event enricher** — `middleware.OTelCorrelationEnricher` bridges OTel baggage correlation IDs into event metadata via `event.WithCustom`. Composes with `CommandCausalityEnricher` via `CompositeEnricher`. Placed in `middleware/` (Layer 5) which imports both `event/` and `otel/`.
-- [x] **Ghost API cleanup** — Removed `EventSlice[T]` and `SeedFromEnv()` from `testutil/` (trivial wrappers with zero consumers).
-- [x] **NewCQRSViews bug fix** — OTel `NewCQRSViews()` instrument name filter was `"cqrs."` (exact match, matched nothing). Fixed to `"cqrs.*"` (wildcard). MeterProvider integration test added.
-- [x] **Layer violation fix** — All 3 pre-existing budget violations (`id`, `codec`, `pebble`) resolved by excluding test-only deps (gomega, ginkgo, rapid) from the production dep count.
-- [x] **Watermill integration test** — Router integration test for `CorrelationIDMiddleware()` + `NewRetryMiddleware()` verifying retry behavior and correlation ID propagation.
+- [x] **Pebble DeleteEventsBefore removed** — Events are immutable truth. Removed the retention function, its test, and all doc references. Automatic event deletion is a footgun in an event sourcing library.
+- [x] **Pebble coverage 85%+** — From 84.6% to 86.6% via targeted error-branch tests.
+- [x] **Schema registry validator** (`schema/`) — `Validator` with `RegisterType[T]()`, `RegisterTypeWithValidator[T]()`, strict/lenient modes, custom codec support. ADR-0017 accepted.
+- [x] **Prometheus metrics exporter** (`prometheus/`) — New module wrapping OTel Prometheus exporter. `Setup()`, `WithRegistry()`, `MustSetup()`. Full test suite.
+- [x] **cqrs-gen v2 struct tag scanning** (`cmd/cqrs-gen/`) — Supports `cqrs:"command:CreateUser"` struct tags in addition to comment markers. Comment markers take precedence.
+- [x] **LeaderElection interface** (`projection/`) — `LeaderElection` interface + `AlwaysLeader` default implementation for ADR-0018.
+- [x] **Streaming event interfaces** (`event/`) — `EventIterator`, `StreamingSource`, `StreamingJournal`, `SliceIterator` adapter.
+- [x] **Bounded dedup** (`event/`, `projection/`) — `DistinctByEventIDBounded(cap)` with FIFO ring eviction. `WithDedupCapacity(n)` Runner option for bounded memory in 24/7 projections.
+- [x] **gopls false positives suppressed** — `.vscode/settings.json` disables `mod_tidy` analyzer. ADR-0007 updated with root cause.
+- [x] **Transport adapter strategy** (ADR-0025) — Each transport (gRPC, NATS, Redis) gets a separate module. Core stays dependency-free.
+- [x] **Experimental features policy** (ADR-0026) — Build-tag-gated experiments documented. jsonv2 and arena stubs created.
+- [x] **WASM verification binary** (`wasm/main.go`) — Confirms 6/7 core modules compile to WASM.
+- [x] **Documentation site scaffold** (`mkdocs.yml`, `docs/site/`) — MkDocs Material theme configured.
+- [x] **Projection replay→live dedup** — Reactive pipeline refactor: `SubscriberToObservable` adapts callback-based `Subscriber` to `ro.Observable[Event]`; `DistinctByEventIDWith(seen)` seeds dedup with replay IDs.
+- [x] **OTel baggage → event enricher** — `middleware.OTelCorrelationEnricher` bridges OTel baggage correlation IDs into event metadata via `event.WithCustom`.
+- [x] **Ghost API cleanup** — Removed `EventSlice[T]` and `SeedFromEnv()` from `testutil/`.
+- [x] **NewCQRSViews bug fix** — OTel instrument name filter fixed from `"cqrs."` to `"cqrs.*"`.
+- [x] **Layer violation fix** — All 3 pre-existing budget violations resolved.
+- [x] **Watermill integration test** — Router integration test for `CorrelationIDMiddleware()` + `NewRetryMiddleware()`.
 - [x] **PostgreSQL CI service container** — wired into GitHub Actions.
-- [x] **Pebble KV Store adapter** (`pebble/`) — `NewKVStore()` wraps `*pebble.DB` as `kv.Store`, first consumer of the kv/ abstraction (ADR-0023).
-- [x] **Reactive CommandBus and QueryBus** (`command/`, `query/`) — reactive extensions mirroring the event API.
-- [x] **Built-in pprof endpoints** (`middleware/`) — `ProfilingHandler()` and `RegisterProfiling()` for runtime profiling.
-- [x] **Pebble benchmarks** (`pebble/`) — Save100, SaveLoad100, Save1, LoadEmpty for regression tracking.
-- [x] **KV contract tests** (`pebble/`) — 10-test suite proving PebbleAdapter and MemStore semantic equivalence.
-- [x] **PostgreSQL CI** — service container wired to storage integration tests.
-- [x] **Codec fuzz fix** — CBOR duplicate map key type ambiguity handled gracefully.
+- [x] **Pebble KV Store adapter** (`pebble/`) — `NewKVStore()` wraps `*pebble.DB` as `kv.Store`.
+- [x] **Reactive CommandBus and QueryBus** (`command/`, `query/`).
+- [x] **Built-in pprof endpoints** (`middleware/`).
+- [x] **Pebble benchmarks** (`pebble/`).
+- [x] **KV contract tests** (`pebble/`).
+- [x] **Codec fuzz fix** — CBOR duplicate map key type ambiguity handled.
 - [x] **Module READMEs** — `kv/README.md` and `pebble/README.md`.
 
 ---
@@ -65,15 +72,15 @@
 
 - [v3] **Remove `io.Closer` from core interfaces** — ADR-0010 accepted. Affects `event.Store`, `snapshot.SnapshotStore`, `command.Store`.
 - [v3] **Add global `TransactionID` branded type** — Cross-aggregate consistency tracking.
-- [v3] **Make event Core truly immutable** — Currently opts pointer is shallow-copied on Clone (payload/metadata are deep-copied).
+- [v3] **Make event Core truly immutable** — Currently opts pointer is shallow-copied on Clone.
 - [v3] **Move HTTP code out of middleware** — SSE, healthcheck, metrics_http → transport/ module.
-- [v3] **Fix `query.Handler` returns `any`** — Generic `TypedHandler[T]` returning `(T, error)` instead of `(any, error)`.
+- [v3] **Fix `query.Handler` returns `any`** — Generic `TypedHandler[T]` returning `(T, error)`.
 
 ### v4
 
-- [v4] **Split `catalog.Message` into Message + MessageMeta** — 17 fields → structured embedding. Changes exported struct literal construction.
+- [v4] **Split `catalog.Message` into Message + MessageMeta** — 17 fields → structured embedding.
 - [v4] **Split `catalog.Service` into Service + ServiceMeta** — 16 fields → structured embedding.
 
 ---
 
-_15 open actionable items + 7 deferred breaking changes. See [ROADMAP.md](ROADMAP.md) for long-term vision._
+_7 open actionable items + 7 deferred breaking changes. See [ROADMAP.md](ROADMAP.md) for long-term vision._

@@ -34,7 +34,10 @@ func TestValidator_ValidPayload_Passes(t *testing.T) {
 	v := NewValidator()
 	RegisterType[userCreatedPayload](v, "user.created")
 
-	payload, _ := json.Marshal(userCreatedPayload{Name: "Alice", Email: "alice@test.com"})
+	payload, err := json.Marshal(userCreatedPayload{Name: "Alice", Email: "alice@test.com"})
+	if err != nil {
+		t.Fatalf("Marshal: %v", err)
+	}
 	evt := testEvent(t, "user.created", payload)
 
 	if err := v.Validate(evt); err != nil {
@@ -128,10 +131,13 @@ func TestValidator_CustomValidation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			payload, _ := json.Marshal(tt.payload)
+			payload, err := json.Marshal(tt.payload)
+			if err != nil {
+				t.Fatalf("Marshal: %v", err)
+			}
 			evt := testEvent(t, "user.created", payload)
 
-			err := v.Validate(evt)
+			err = v.Validate(evt)
 			if tt.wantErr && err == nil {
 				t.Fatal("expected validation error, got nil")
 			}
@@ -172,15 +178,13 @@ func TestValidator_RegisteredTypes(t *testing.T) {
 func TestValidator_WithCustomCodec(t *testing.T) {
 	t.Parallel()
 
-	// Simple uppercase "codec" for testing
-	upperCodec := func(data []byte, v any) error {
-		return json.Unmarshal(data, v) // just delegate to JSON for the test
-	}
-
-	v := NewValidator(WithCodec(upperCodec))
+	v := NewValidator(WithCodec(json.Unmarshal))
 	RegisterType[userCreatedPayload](v, "user.created")
 
-	payload, _ := json.Marshal(userCreatedPayload{Name: "Alice"})
+	payload, err := json.Marshal(userCreatedPayload{Name: "Alice"})
+	if err != nil {
+		t.Fatalf("Marshal: %v", err)
+	}
 	evt := testEvent(t, "user.created", payload)
 
 	if err := v.Validate(evt); err != nil {

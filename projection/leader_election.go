@@ -42,7 +42,7 @@ type AlwaysLeader struct{}
 func (AlwaysLeader) IsLeader(context.Context) bool { return true }
 
 // WaitForLeadership returns immediately.
-func (AlwaysLeader) WaitForLeadership(ctx context.Context) error { return ctx.Err() }
+func (AlwaysLeader) WaitForLeadership(context.Context) error { return nil }
 
 // Resign is a no-op.
 func (AlwaysLeader) Resign(context.Context) error { return nil }

@@ -47,7 +47,11 @@ func TestEventStore_CorruptEventTriggersCorruptionError(t *testing.T) {
 	// The key format is cqrs_event:<aggType>:<aggID>:<version>
 	// We write garbage to a version-2 key that doesn't exist yet
 	corruptKey := []byte("cqrs_event:Test:" + aggID.String() + ":0000000002")
-	if err := database.Set(corruptKey, []byte("garbage-data-not-cbor-or-json"), pebble.Sync); err != nil {
+	if err := database.Set(
+		corruptKey,
+		[]byte("garbage-data-not-cbor-or-json"),
+		pebble.Sync,
+	); err != nil {
 		t.Fatalf("Set corrupt: %v", err)
 	}
 
