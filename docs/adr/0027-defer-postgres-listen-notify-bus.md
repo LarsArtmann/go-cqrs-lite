@@ -1,9 +1,9 @@
-# ADR-0027: Defer Postgres LISTEN/NOTIFY Event Bus to v2.8.0
+# ADR-0027: Postgres LISTEN/NOTIFY Event Bus
 
 | Field   | Value          |
 | ------- | -------------- |
 | Date    | 2026-06-19     |
-| Status  | Partially Implemented — PostgresBus built but not wired into presets; needs real-PG testing |
+| Status  | Implemented — PostgresBus wired into stack/postgres, pgx-based PgxListener shipped, real-PG integration tests in CI |
 | Decider | Lars Artmann   |
 
 ## Context
@@ -19,51 +19,69 @@ propagate events to each other. This was listed as a candidate v2.7.0 item.
 
 ## Decision
 
-**Defer the LISTEN/NOTIFY bus to v2.8.0. Ship v2.7.0 with the in-memory bus
-and document the single-process scope clearly.**
+**Implement the LISTEN/NOTIFY bus and wire it into the Postgres preset via
+an opt-in option. Ship the preset with the in-memory bus as default; consumers
+opt into distributed pub/sub with `WithDistributedBus(listener)`.**
 
-A `LISTEN`/`NOTIFY` bus is not a small feature, and doing it carelessly would
-harm consumer trust more than help it. The design must solve:
+The design solves:
 
 1. **8 KB NOTIFY payload limit.** Event payloads routinely exceed this, so
-   `NOTIFY` must carry only a lightweight reference (aggregate ID + event ID +
-   type) and the listener must **re-fetch** the full event from the event store.
-   That couples the bus to the store and introduces an ordering/visibility
+   `NOTIFY` carries only a lightweight reference (event ID + type + aggregate
+   ref + version) and the listener **re-fetches** the full event from the event
+   store. That couples the bus to the store and introduces an ordering/visibility
    question (the `NOTIFY` can arrive before the producing transaction is
-   visible to the listener's connection).
-2. **Listener lifecycle.** A long-lived goroutine per connection running
-   `LISTEN`, with context cancellation, reconnect-on-error, and clean
-   shutdown — non-trivial concurrency to get right.
-3. **Testing.** Meaningful tests require a running Postgres; the
-   `POSTGRES_TEST_DSN`-gated path now exists in CI, but a flaky distributed
-   test is worse than none.
-4. **Scope discipline.** v2.7.0's flagship is the Bundle composition layer +
-   persistent read models, both now complete and verified. Adding a
-   distributed pub/sub expands the release surface into territory that
-   deserves its own design pass.
+   visible to the listener's connection) — handled via configurable retry.
+2. **Listener lifecycle.** The `NotificationListener` interface encapsulates
+   driver-specific LISTEN. The bus calls `Listen(channel)` itself, starts a
+   background receive goroutine, and drains it cleanly on `Close` via
+   `sync.WaitGroup` + context cancellation.
+3. **Testing.** Three real-Postgres integration tests (`-tags=integration`)
+   run in CI's `postgres-integration` job: end-to-end cross-bus delivery,
+   channel validation, and full preset wiring.
+4. **pgx-based listener.** `PgxListener` in `stack/postgres/` implements
+   `NotificationListener` using a dedicated `pgxpool` connection. Channel-name
+   allow-listing defends against LISTEN SQL injection (Postgres does not
+   parameterize LISTEN).
+
+## Implementation
+
+- `storage.PostgresBus` — `event.Bus` implementation. Publishes via
+  `SELECT pg_notify()`, receives via `NotificationListener.Notifications()`.
+  Re-fetches events via `LoadByEventID` (O(1) indexed lookup on SQL stores)
+  or falls back to `LoadFromVersion` scan (for stores that don't implement
+  `EventByIDLoader`). OTel spans on publish + receive.
+- `stack/postgres.PgxListener` — `NotificationListener` using `pgxpool`.
+  `NewPgxListener(pool)` wraps an existing pool; `NewPgxListenerFromDSN(ctx, dsn)`
+  creates an owned single-conn pool.
+- `stack/postgres.WithDistributedBus(listener, busOpts...)` — preset option
+  that swaps `memory.NewMemoryBus` for `storage.PostgresBus` and registers
+  the bus for Close-time cleanup.
 
 ## Alternatives Considered
 
-- **Ship a minimal version now.** Rejected: the re-fetch + lifecycle concerns
-  make "minimal" fragile. A half-correct distributed bus is a reliability
-  footgun.
+- **Ship a minimal version in v2.7.0.** Rejected initially: the re-fetch +
+  lifecycle concerns make "minimal" fragile. Now fully implemented with
+  proper lifecycle, testing, and type safety.
 - **Use an outbox pattern instead.** Outbox + polling is more robust than
   `LISTEN`/`NOTIFY` but is a larger design still. Better suited to a dedicated
-  v2.8.0 effort, possibly as `transport/`-style modules (ADR-0025).
+  `transport/`-style module (ADR-0025) for consumers who need exactly-once
+  delivery guarantees.
 
 ## Consequences
 
-- The `storage.PostgresBus` exists and implements `event.Bus` via LISTEN/NOTIFY
-  with re-fetch. However, it is **not yet wired into `stack/postgres`** — the
-  preset still uses `memory.NewMemoryBus()`. Consumers must wire it manually
-  via `stack.WithBus(postgresBus)`.
-- Real-Postgres integration tests are **not yet written**. The existing tests
-  use a mock listener + SQLite, which verifies the bus logic but not the
-  actual `pg_notify()` / LISTEN path.
-- The `refetchEvent` path uses `LoadByEventID` (indexed lookup) when the store
-  supports `EventByIDLoader`, falling back to `LoadFromVersion` scan otherwise.
-- Remaining work: wire into preset, provide pgx-based `NotificationListener`,
-  add real-PG integration test.
+- The Postgres preset's default is still in-memory (`memory.NewMemoryBus`).
+  Consumers opt into distributed pub/sub explicitly via `WithDistributedBus`.
+  This preserves backwards compatibility and doesn't force a pgxpool dependency
+  on single-process deployments.
+- Stores that don't implement `EventByIDLoader` (MemoryStore, Pebble) use the
+  version-scan fallback for event refetch. This is O(events since version) per
+  aggregate — efficient enough for the typical refetch pattern.
+- The `notifyPayload` uses branded domain types (`id.EventID`, `event.Type`,
+  etc.) for JSON (de)serialization, eliminating manual string parsing on the
+  receive side.
+- pgx is a direct dependency of `stack/postgres` (for both the driver
+  registration and `PgxListener`). The `storage` module remains pgx-free;
+  `NotificationListener` is driver-agnostic.
 
 ## Forward references
 

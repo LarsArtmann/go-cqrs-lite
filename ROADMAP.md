@@ -96,7 +96,7 @@ and `stack`, never a storage driver. Eight new modules shipped this release.
 
 ### Post-Bundle direction (next themes)
 
-- [x] **Multi-process pub/sub** — Postgres `LISTEN/NOTIFY` event bus (`storage.PostgresBus`) with lightweight reference payloads, driver-agnostic `NotificationListener` interface, and re-fetch with visibility-gap retry.
+- [x] **Multi-process pub/sub** — Postgres `LISTEN/NOTIFY` event bus (`storage.PostgresBus`) with lightweight reference payloads, driver-agnostic `NotificationListener` interface (with `Listen(channel)`), and re-fetch with visibility-gap retry. Wired into `stack/postgres` via `WithDistributedBus(PgxListener)` — PgxListener uses pgxpool with a dedicated conn. Real-Postgres integration tests in CI.
 - **Operability helpers** — health-check, graceful-shutdown, and backup/restore exposed from `stack/` presets (Pebble `Checkpoint` is available but not surfaced).
 - **Transports** — `transport/grpc`, `transport/nats`, `transport/redis` per ADR-0025, composing over the Bundle.
 - **Read-model query ergonomics** — secondary indexes / ranged scans for large read-model sets (today `Scan` filters in memory).
@@ -150,4 +150,4 @@ and `stack`, never a storage driver. Eight new modules shipped this release.
 
 ---
 
-_Last updated: 2026-06-19 (Sprint 9: streaming reads, DistributedRunner, PostgresBus, cqrs-gen events, WASM 7/7)_
+_Last updated: 2026-06-19 (Sprint 9: streaming reads, DistributedRunner, PostgresBus wired+tested, cqrs-gen events, WASM 7/7, pgx CVE fix)_
