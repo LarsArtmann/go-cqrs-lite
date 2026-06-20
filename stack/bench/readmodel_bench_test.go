@@ -33,7 +33,7 @@ func BenchmarkBundle_ReadModelGet(b *testing.B) {
 
 	store := readmodel.New[benchView, benchKey](
 		bundle.ReadModels,
-		readmodel.WithKeyPrefix[benchView, benchKey]("bench:"),
+		kv.WithTypedKeyPrefix[benchView, benchKey]("bench:"),
 	)
 
 	ctx := context.Background()
@@ -59,7 +59,7 @@ func BenchmarkDirect_ReadModelGet(b *testing.B) {
 
 	store := readmodel.New[benchView, benchKey](
 		backend,
-		readmodel.WithKeyPrefix[benchView, benchKey]("bench:"),
+		kv.WithTypedKeyPrefix[benchView, benchKey]("bench:"),
 	)
 
 	ctx := context.Background()

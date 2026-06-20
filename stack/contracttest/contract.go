@@ -21,7 +21,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/readmodel/v2"
+	"github.com/larsartmann/go-cqrs-lite/kv/v2"
 	"github.com/larsartmann/go-cqrs-lite/stack/v2"
 )
 
@@ -192,7 +192,7 @@ func testReadModelRoundtrip(t *testing.T, factory Factory) {
 
 	store, err := stack.ReadModel[contractView, contractKey](
 		b, codec.JSONCodec{},
-		readmodel.WithKeyPrefix[contractView, contractKey]("contract:"),
+		kv.WithTypedKeyPrefix[contractView, contractKey]("contract:"),
 	)
 	if err != nil {
 		t.Fatalf("ReadModel: %v", err)

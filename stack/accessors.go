@@ -6,8 +6,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/decider/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/kv/v2"
 	"github.com/larsartmann/go-cqrs-lite/projection/v2"
-	"github.com/larsartmann/go-cqrs-lite/readmodel/v2"
 )
 
 // Repository constructs a typed [decider.Repository] over the Bundle's event
@@ -37,7 +37,7 @@ func Repository[State any](
 	return decider.NewRepository[State](store, b.Publisher, d, opts...)
 }
 
-// ReadModel constructs a typed [readmodel.Store] over the Bundle's read-model
+// ReadModel constructs a typed [kv.TypedStore] over the Bundle's read-model
 // backend.
 //
 // It is a top-level generic function (see [Repository] for why). Call it as:
@@ -50,12 +50,12 @@ func Repository[State any](
 // implement [fmt.Stringer], as branded IDs do).
 //
 // opts configure the Store (key prefix, custom key encoding) and are forwarded
-// to [readmodel.New]. If c is nil, [codec.JSONCodec] is used.
+// to [kv.NewTypedStore]. If c is nil, [codec.JSONCodec] is used.
 func ReadModel[T any, K fmt.Stringer](
 	b *Bundle,
 	c codec.Codec,
-	opts ...readmodel.Option[T, K],
-) (*readmodel.Store[T, K], error) {
+	opts ...kv.TypedOption[T, K],
+) (*kv.TypedStore[T, K], error) {
 	if b.ReadModels == nil {
 		return nil, ErrMissingReadModels
 	}
@@ -64,9 +64,9 @@ func ReadModel[T any, K fmt.Stringer](
 		c = codec.JSONCodec{}
 	}
 
-	allOpts := append([]readmodel.Option[T, K]{readmodel.WithCodec[T, K](c)}, opts...)
+	allOpts := append([]kv.TypedOption[T, K]{kv.WithTypedCodec[T, K](c)}, opts...)
 
-	return readmodel.New[T, K](b.ReadModels, allOpts...), nil
+	return kv.NewTypedStore[T, K](b.ReadModels, allOpts...), nil
 }
 
 // ProjectionRunner constructs a [projection.Runner] over the Bundle's journal,

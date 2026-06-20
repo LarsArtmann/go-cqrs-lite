@@ -5,22 +5,22 @@ import (
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
-	"github.com/larsartmann/go-cqrs-lite/readmodel/v2"
+	"github.com/larsartmann/go-cqrs-lite/kv/v2"
 )
 
-// readModelAdapter bridges readmodel.Store[Todo, TodoID] to domain.TodoReadModel.
+// readModelAdapter bridges kv.TypedStore[Todo, TodoID] to domain.TodoReadModel.
 //
 // This is the consumer-side glue: the library provides a typed key-value store,
 // and the consumer wraps it with domain-specific query logic (filtering by
 // status, tags, priority, full-text search). List and Count scan + filter
 // in memory; for large datasets, a consumer would add secondary indexes.
 type readModelAdapter struct {
-	store *readmodel.Store[domain.Todo, domain.TodoID]
+	store *kv.TypedStore[domain.Todo, domain.TodoID]
 }
 
 var _ domain.TodoReadModel = (*readModelAdapter)(nil)
 
-func newReadModelAdapter(store *readmodel.Store[domain.Todo, domain.TodoID]) *readModelAdapter {
+func newReadModelAdapter(store *kv.TypedStore[domain.Todo, domain.TodoID]) *readModelAdapter {
 	return &readModelAdapter{store: store}
 }
 

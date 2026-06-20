@@ -16,9 +16,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/example/todo/commands"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/projections"
+	"github.com/larsartmann/go-cqrs-lite/kv/v2"
 	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
-	"github.com/larsartmann/go-cqrs-lite/readmodel/v2"
 	cqrsmemory "github.com/larsartmann/go-cqrs-lite/stack/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/stack/v2"
 )
@@ -35,7 +35,7 @@ func setupTestMux(t *testing.T) *http.ServeMux {
 
 	rmStore, err := stack.ReadModel[domain.Todo, domain.TodoID](
 		bundle, codec.JSONCodec{},
-		readmodel.WithKeyPrefix[domain.Todo, domain.TodoID]("todos:"),
+		kv.WithTypedKeyPrefix[domain.Todo, domain.TodoID]("todos:"),
 	)
 	if err != nil {
 		t.Fatalf("create read model store: %v", err)

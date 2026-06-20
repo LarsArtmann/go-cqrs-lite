@@ -20,9 +20,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/example/todo/projections"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/queries"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/kv/v2"
 	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
-	"github.com/larsartmann/go-cqrs-lite/readmodel/v2"
 	cqrsPebble "github.com/larsartmann/go-cqrs-lite/stack/pebble/v2"
 	"github.com/larsartmann/go-cqrs-lite/stack/v2"
 )
@@ -60,7 +60,7 @@ func run(logger *slog.Logger) error {
 	// Typed read-model store over the Bundle's shared KV backend.
 	rmStore, err := stack.ReadModel[domain.Todo, domain.TodoID](
 		bundle, codec.JSONCodec{},
-		readmodel.WithKeyPrefix[domain.Todo, domain.TodoID]("todos:"),
+		kv.WithTypedKeyPrefix[domain.Todo, domain.TodoID]("todos:"),
 	)
 	if err != nil {
 		return event.Newf(

@@ -8,7 +8,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/readmodel/v2"
+	"github.com/larsartmann/go-cqrs-lite/kv/v2"
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v2"
 	"github.com/larsartmann/go-cqrs-lite/stack/v2"
 )
@@ -128,7 +128,7 @@ func TestNew_E2E_ReadModelRoundtrip(t *testing.T) {
 
 	store, err := stack.ReadModel[todoView, todoKey](
 		b, codec.JSONCodec{},
-		readmodel.WithKeyPrefix[todoView, todoKey]("todos:"),
+		kv.WithTypedKeyPrefix[todoView, todoKey]("todos:"),
 	)
 	if err != nil {
 		t.Fatalf("ReadModel: %v", err)
@@ -167,7 +167,7 @@ func TestNew_E2E_ReadModelPersistence(t *testing.T) {
 
 	wStore, err := stack.ReadModel[todoView, todoKey](
 		writer, codec.JSONCodec{},
-		readmodel.WithKeyPrefix[todoView, todoKey]("todos:"),
+		kv.WithTypedKeyPrefix[todoView, todoKey]("todos:"),
 	)
 	if err != nil {
 		t.Fatalf("ReadModel writer: %v", err)
@@ -193,7 +193,7 @@ func TestNew_E2E_ReadModelPersistence(t *testing.T) {
 
 	rStore, err := stack.ReadModel[todoView, todoKey](
 		reader, codec.JSONCodec{},
-		readmodel.WithKeyPrefix[todoView, todoKey]("todos:"),
+		kv.WithTypedKeyPrefix[todoView, todoKey]("todos:"),
 	)
 	if err != nil {
 		t.Fatalf("ReadModel reader: %v", err)

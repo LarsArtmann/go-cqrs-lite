@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
-	"github.com/larsartmann/go-cqrs-lite/readmodel/v2"
+	"github.com/larsartmann/go-cqrs-lite/kv/v2"
 	stackmemory "github.com/larsartmann/go-cqrs-lite/stack/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/stack/v2"
 )
@@ -29,7 +29,7 @@ func ExampleNew() {
 
 	store, err := stack.ReadModel[todoView, todoKey](
 		b, codec.JSONCodec{},
-		readmodel.WithKeyPrefix[todoView, todoKey]("todos:"),
+		kv.WithTypedKeyPrefix[todoView, todoKey]("todos:"),
 	)
 	if err != nil {
 		fmt.Println("error:", err)

@@ -5,8 +5,8 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/kv/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
-	"github.com/larsartmann/go-cqrs-lite/readmodel/v2"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 )
 
@@ -202,13 +202,13 @@ func WithCheckpointStore(s event.CheckpointStore) Option {
 	}
 }
 
-// WithReadModels sets the read-model backend (a [readmodel.Backend], which is
+// WithReadModels sets the read-model backend (a [kv.Store], which is
 // an alias for [kv.Store]) and registers it for Close.
 //
 // The deployer chooses the backend (kv.MemStore, pebble.KVAdapter, or a
 // future SQL adapter); the application accesses it via the typed
 // [Bundle.ReadModel] accessor.
-func WithReadModels(backend readmodel.Backend) Option {
+func WithReadModels(backend kv.Store) Option {
 	return func(b *Bundle) {
 		b.ReadModels = backend
 		b.registerCloser(backend)

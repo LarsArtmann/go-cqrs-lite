@@ -6,9 +6,9 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/kv/v2"
 	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
-	"github.com/larsartmann/go-cqrs-lite/readmodel/v2"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 )
 
@@ -58,7 +58,7 @@ type Bundle struct {
 	// ── Snapshots, checkpoints, read models ──
 	SnapshotStore   snapshot.SnapshotStore
 	CheckpointStore event.CheckpointStore
-	ReadModels      readmodel.Backend
+	ReadModels      kv.Store
 
 	// ── Projection runner prerequisites (optional) ──
 	// ProjectionJournal and ProjectionSubscriber are usually the same as
