@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/kv/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-20260620042302-bd4b2f85a28c
+	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-20260620153808-11056d4a2943
 	github.com/larsartmann/go-cqrs-lite/storage/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v2 v2.6.0
 	modernc.org/sqlite v1.52.0
@@ -28,11 +28,11 @@ require (
 	github.com/larsartmann/go-cqrs-lite/decider/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v2 v2.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-error-family v0.4.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
@@ -72,12 +72,12 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/event/v2 => ../../event
 	github.com/larsartmann/go-cqrs-lite/id/v2 => ../../id
 	github.com/larsartmann/go-cqrs-lite/kv/v2 => ../../kv
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 => ../../storage/memory
 	github.com/larsartmann/go-cqrs-lite/otel/v2 => ../../otel
 	github.com/larsartmann/go-cqrs-lite/projection/v2 => ../../projection
 	github.com/larsartmann/go-cqrs-lite/query/v2 => ../../query
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../../snapshot
 	github.com/larsartmann/go-cqrs-lite/stack/v2 => ..
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 => ../../storage/memory
 	github.com/larsartmann/go-cqrs-lite/storage/v2 => ../../storage
 )
 

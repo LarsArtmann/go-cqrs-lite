@@ -11,13 +11,13 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/listing/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/middleware/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/signing/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.6.0
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/storage/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/testutil/v2 v2.5.0
@@ -97,13 +97,13 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/id/v2 => ../id
 	github.com/larsartmann/go-cqrs-lite/kv/v2 => ../kv
 	github.com/larsartmann/go-cqrs-lite/listing/v2 => ../listing
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 => ../storage/memory
 	github.com/larsartmann/go-cqrs-lite/middleware/v2 => ../middleware
 	github.com/larsartmann/go-cqrs-lite/otel/v2 => ../otel
 	github.com/larsartmann/go-cqrs-lite/projection/v2 => ../projection
 	github.com/larsartmann/go-cqrs-lite/query/v2 => ../query
 	github.com/larsartmann/go-cqrs-lite/signing/v2 => ../signing
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../snapshot
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 => ../storage/memory
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v2 => ../storage/pebble
 	github.com/larsartmann/go-cqrs-lite/storage/v2 => ../storage
 	github.com/larsartmann/go-cqrs-lite/testutil/v2 => ../testutil

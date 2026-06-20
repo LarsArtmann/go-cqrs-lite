@@ -27,7 +27,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.6.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/samber/lo v1.53.0 // indirect
-	github.com/samber/ro v0.3.0
+	github.com/samber/ro v0.3.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/exp v0.0.0-20260611194520-c48552f49976 // indirect
@@ -44,6 +44,6 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 => ../dispatcher
 	github.com/larsartmann/go-cqrs-lite/event/v2 => ../event
 	github.com/larsartmann/go-cqrs-lite/id/v2 => ../id
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 => ../storage/memory
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../snapshot
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 => ../storage/memory
 )
