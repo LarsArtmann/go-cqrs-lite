@@ -164,13 +164,17 @@ jobs:
       - name: Check production files <= 350 lines
         run: |
           failed=false
-          find . -name "*.go" -not -name "*_test.go" -not -path "*/example/*" -not -path "*/testdata/*" | while read -r f; do
+          while IFS= read -r f; do
             lines=$(wc -l < "$f")
             if [ "$lines" -gt 350 ]; then
-              echo "::warning::$f has $lines lines (max 350)"
+              echo "::error::$f has $lines lines (max 350)"
               failed=true
             fi
-          done
+          done < <(find . -name "*.go" -not -name "*_test.go" \
+            -not -path "*/example/*" \
+            -not -path "*/testdata/*" \
+            -not -path "*/internal/cattest/*" \
+            -not -path "*/.git/*")
           if [ "$failed" = true ]; then
             echo "::error::One or more production files exceed 350 lines"
             exit 1
