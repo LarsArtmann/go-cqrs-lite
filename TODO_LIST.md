@@ -23,9 +23,6 @@
 
 ### v3 Breaking Changes (remaining)
 
-- [v3] **Delete ghost bus code** — `event/reactive*.go` (343 LOC). Replacement: `watermill.EventBus` + `bus.SubscribeAll`. Zero production consumers since projection/ deletion.
-- [v3] **Break command/query Metadata = event.Metadata alias** — `storage/sql.MarshalMetadata` takes `event.Metadata`. Cascades through SQL stores. (ADR-0031)
-- [v3] **Remove io.Closer from core interfaces** — ADR-0010 accepted. Affects `event.Store`, `snapshot.SnapshotStore`, `command.Store`.
 - [v3] **Move HTTP code out of middleware** — SSE, healthcheck, metrics_http → transport/ module.
 - [v3] **Make event Core truly immutable** — Currently opts pointer is shallow-copied on Clone.
 
@@ -36,6 +33,11 @@
 - [x] ~~Delete readmodel/ module~~ — DONE (merged into kv/, ADR-0032)
 - [x] ~~Delete projection/ module~~ — DONE (replaced by bus.SubscribeAll + stack.Materialize + CatchUpSubscriber, ADR-0030)
 - [x] ~~Fix query.Handler returns any~~ — TypedHandler shipped
+- [x] ~~Delete ghost bus code~~ — DONE (`event/reactive*.go` removed; watermill.EventBus + bus.SubscribeAll is the replacement)
+- [x] ~~Remove io.Closer from core interfaces~~ — DONE (ADR-0010; callers type-assert to io.Closer)
+- [x] ~~Break command/query Metadata = event.Metadata alias~~ — DONE (ADR-0031; each module owns its Metadata embedding event.Tracing)
+- [x] ~~Rename Decider.Fold → Apply~~ — DONE (naming honesty)
+- [x] ~~Make event.Event a concrete type~~ — DONE (`type Event = *ImmutableEvent`; interface removed, 7 type assertions deleted)
 
 ---
 
@@ -67,4 +69,4 @@
 
 ---
 
-_5 v3 breaking changes remaining + completed items. See [ROADMAP.md](ROADMAP.md) for long-term vision._
+_2 v3 breaking changes remaining + completed items. See [ROADMAP.md](ROADMAP.md) for long-term vision._

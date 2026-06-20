@@ -12,16 +12,18 @@ v3 is the next major version of go-cqrs-lite. It removes ghost code, tightens
 type safety, and consolidates the module structure. Every breaking change has
 been prepared additively in v2 — the v2 types you should migrate to already exist.
 
-| #   | Breaking Change                                     | ADR                                                     | Severity     | Files Affected                                                                |
-| --- | --------------------------------------------------- | ------------------------------------------------------- | ------------ | ----------------------------------------------------------------------------- |
-| 1   | Delete ghost bus implementations                    | [0028](../adr/0028-watermill-as-delivery-layer.md)      | High         | memory/bus.go (deleted), memory/command_bus.go (deleted), event/reactive\*.go |
-| 2   | Move memory/ stores → storage/memory/               | [0029](../adr/0029-storage-consolidation.md)            | **Done**     | Already shipped in v2.8                                                       |
-| 3   | Break command/query Metadata = event.Metadata alias | [0031](../adr/0031-metadata-split.md)                   | Medium       | storage/sql/marshal.go + cascade                                              |
-| 4   | Version → uint64                                    | —                                                       | **Done**     | Already shipped in v2.8                                                       |
-| 5   | Remove io.Closer from core interfaces               | [0010](../adr/0010-remove-io-closer-from-interfaces.md) | **Rejected** | Removes type safety (verschlimmbessern). ADR-0010 stays Proposed              |
-| 6   | Delete readmodel/ module (merged into kv/)          | [0032](../adr/0032-merge-readmodel-into-kv.md)          | **Done**     | Already shipped in v2.8                                                       |
-| 7   | query.Handler signature: any → generic              | —                                                       | Medium       | query/dispatcher.go                                                           |
-| 8   | encoding/json/v2 migration                          | [0026](../adr/0026-experimental-features.md)            | Low          | All golden tests                                                              |
+| #   | Breaking Change                                     | ADR                                                     | Severity     | Status                                                                |
+| --- | --------------------------------------------------- | ------------------------------------------------------- | ------------ | --------------------------------------------------------------------- |
+| 1   | Delete ghost bus implementations                    | [0028](../adr/0028-watermill-as-delivery-layer.md)      | High         | **Done** — memory buses + event/reactive\*.go deleted                 |
+| 2   | Move memory/ stores → storage/memory/               | [0029](../adr/0029-storage-consolidation.md)            | Done         | Shipped in v2.8                                                       |
+| 3   | Break command/query Metadata = event.Metadata alias | [0031](../adr/0031-metadata-split.md)                   | Medium       | **Done** — each module owns its Metadata embedding event.Tracing      |
+| 4   | Version → uint64                                    | —                                                       | Done         | Shipped in v2.8                                                       |
+| 5   | Remove io.Closer from core interfaces               | [0010](../adr/0010-remove-io-closer-from-interfaces.md) | Medium       | **Done** — callers type-assert to io.Closer                           |
+| 6   | Delete readmodel/ module (merged into kv/)          | [0032](../adr/0032-merge-readmodel-into-kv.md)          | Done         | Shipped in v2.8                                                       |
+| 7   | query.Handler signature: any → generic              | —                                                       | Medium       | TypedHandler shipped                                                  |
+| 8   | Rename Decider.Fold → Apply                         | —                                                       | Medium       | **Done** — field, errors, helpers renamed                             |
+| 9   | Make event.Event a concrete type                    | —                                                       | Low          | **Done** — `type Event = *ImmutableEvent`; zero call-site changes     |
+| 10  | encoding/json/v2 migration                          | [0026](../adr/0026-experimental-features.md)            | Low          | Deferred — pending Go stdlib stabilization                            |
 
 ---
 
@@ -84,9 +86,57 @@ evt, _ := event.NewEvent("user.created", id, "User", 1, payload,
 ctx = event.WithCorrelationID(ctx, corrID)
 ```
 
----
+### Step 5: Decider.Fold → Apply
 
-## What Gets Deleted in v3
+The aggregate event-applier field was renamed. "Fold" implied a generic
+left-fold over a collection; it is the domain event applier (one event).
+
+```go
+// BEFORE
+decider.Decider[State]{Initial: State{}, Fold: applyFunc}
+// AFTER
+decider.Decider[State]{Initial: State{}, Apply: applyFunc}
+```
+
+Errors renamed too: `ErrNilFold` → `ErrNilApply`, `ErrFoldFailed` → `ErrApplyFailed`.
+
+### Step 6: io.Closer removed from core interfaces
+
+Core interfaces no longer embed `io.Closer`. If you implemented a custom
+store/bus purely to satisfy `Close()`, you can delete the no-op method.
+If you relied on the interface guaranteeing Close, type-assert instead:
+
+```go
+// BEFORE — Close guaranteed by interface
+store.Close()
+// AFTER — type-assert; concrete impls still have Close()
+if c, ok := store.(io.Closer); ok { c.Close() }
+```
+
+All shipped concrete stores/buses retain their `Close()` method unchanged.
+
+### Step 7: command/query Metadata is no longer event.Metadata
+
+`command.Metadata` and `query.Metadata` are now their own structs
+(embedding `event.Tracing` + a `Custom` map), not aliases of
+`event.Metadata`. They no longer carry event-only fields (Tombstone,
+Causation). The tracing options (`WithCorrelationID`, etc.) are unchanged.
+
+If you called `event.EnsureCustom` on a command/query Metadata, use the
+module-local helper instead: `command.EnsureCustom(&m)` / `query.EnsureCustom(&m)`.
+
+### Step 8: event.Event is a concrete type
+
+`event.Event` is now `type Event = *ImmutableEvent` (a concrete pointer
+type alias), not an interface. This is transparent to almost all code —
+method calls, `[]event.Event`, `func(event.Event)` all work unchanged.
+
+If you wrote a custom type implementing the old `event.Event` interface
+(rare — `*ImmutableEvent` was the only production implementation), it no
+longer satisfies `event.Event`. Construct events via `event.NewEvent` /
+`event.New` instead.
+
+---
 
 ### Ghost bus code (ADR-0028)
 

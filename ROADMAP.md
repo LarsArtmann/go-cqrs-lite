@@ -17,15 +17,17 @@ All breaking changes have been prepared additively in v2 — the v2 types consum
 
 | #   | Breaking Change                                   | ADR                                                       | Status               |
 | --- | ------------------------------------------------- | --------------------------------------------------------- | -------------------- |
-| 1   | Delete ghost bus code (923 LOC)                   | [0028](docs/adr/0028-watermill-as-delivery-layer.md)      | Deprecated in v2     |
+| 1   | Delete ghost bus code (923 LOC)                   | [0028](docs/adr/0028-watermill-as-delivery-layer.md)      | Done                 |
 | 2   | Move memory/ → storage/memory/                    | [0029](docs/adr/0029-storage-consolidation.md)            | Done                 |
 | 3   | Version → uint64                                  | —                                                         | Done                 |
-| 4   | Break Metadata alias                              | [0031](docs/adr/0031-metadata-split.md)                   | Planned              |
-| 5   | Remove io.Closer from interfaces                  | [0010](docs/adr/0010-remove-io-closer-from-interfaces.md) | Planned              |
+| 4   | Break Metadata alias                              | [0031](docs/adr/0031-metadata-split.md)                   | Done                 |
+| 5   | Remove io.Closer from interfaces                  | [0010](docs/adr/0010-remove-io-closer-from-interfaces.md) | Done                 |
 | 6   | Delete readmodel/ (merged into kv/)               | [0032](docs/adr/0032-merge-readmodel-into-kv.md)          | Done                 |
 | 7   | Delete projection/ (composable stack replaces it) | [0030](docs/adr/0030-dissolve-projection.md)              | Done                 |
 | 8   | Move HTTP → transport/                            | [0025](docs/adr/0025-transport-adapter-strategy.md)       | Planned              |
 | 9   | query.Handler: any → generic                      | [0008](docs/adr/0008-typed-handler-signature.md)          | TypedHandler shipped |
+| 10  | Rename Decider.Fold → Apply                        | —                                                         | Done                 |
+| 11  | Make event.Event a concrete type                  | —                                                         | Done                 |
 
 ### Transport Adapters (ADR-0025)
 
