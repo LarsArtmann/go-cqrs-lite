@@ -3,7 +3,6 @@ package schema_test
 import (
 	"context"
 	"errors"
-	"fmt"
 	"testing"
 	"time"
 
@@ -20,13 +19,8 @@ type testUpcaster struct {
 
 func (u *testUpcaster) SourceType() event.Type             { return u.sourceType }
 func (u *testUpcaster) SourceVersion() event.SchemaVersion { return u.sourceVersion }
-func (u *testUpcaster) Upcast(evt event.Event) (*event.ImmutableEvent, error) {
-	immutable, ok := evt.(*event.ImmutableEvent)
-	if !ok {
-		return nil, fmt.Errorf("unexpected event type %T", evt)
-	}
-
-	return immutable, nil
+func (u *testUpcaster) Upcast(evt event.Event) (event.Event, error) {
+	return evt, nil
 }
 
 func TestVersionedStore_Load_NoUpcasters(t *testing.T) {
@@ -91,7 +85,7 @@ type versionUpcaster struct{}
 
 func (versionUpcaster) SourceType() event.Type             { return "test.upcast" }
 func (versionUpcaster) SourceVersion() event.SchemaVersion { return 1 }
-func (versionUpcaster) Upcast(evt event.Event) (*event.ImmutableEvent, error) {
+func (versionUpcaster) Upcast(evt event.Event) (event.Event, error) {
 	payload := string(evt.Payload())
 	if payload == "v1" {
 		payload = "v2"
@@ -389,7 +383,7 @@ type failingUpcaster struct{}
 
 func (*failingUpcaster) SourceType() event.Type             { return "test.upcast" }
 func (*failingUpcaster) SourceVersion() event.SchemaVersion { return 1 }
-func (*failingUpcaster) Upcast(_ event.Event) (*event.ImmutableEvent, error) {
+func (*failingUpcaster) Upcast(_ event.Event) (event.Event, error) {
 	return nil, errors.New("upcast intentionally failed")
 }
 

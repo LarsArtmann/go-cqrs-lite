@@ -46,32 +46,23 @@ func ParseAggregateType(s string) (AggregateType, error) {
 	return AggregateType(s), nil
 }
 
-// Event represents an immutable domain event with rich metadata.
+// Event is the concrete domain-event type: a pointer to [ImmutableEvent].
 //
-// Implementations must ensure that mutable return values ([]byte, maps, slices)
-// are safe copies — callers must be unable to mutate the event's internal state
-// through the returned reference. Specifically:
+// It is a type alias (not an interface) because ImmutableEvent is the single
+// implementation — an interface here bought multiple dispatch at the cost of
+// type assertions on every internal hot path. Making Event a concrete type
+// removes those assertions and lets the compiler inline accessors.
 //
-//   - Payload() must return a copy of the internal byte slice.
-//   - Metadata() must return a deep copy of the internal map.
+// As before, mutable return values are safe copies:
+//   - Payload() returns a clone of the internal byte slice.
+//   - Metadata() returns a deep copy of the internal map.
 //
-// Value-type accessors (ID, Type, AggregateID, etc.) are inherently safe since
-// they return by value.
-type Event interface {
-	ID() id.EventID
-	Type() Type
-	AggregateID() id.AggregateID
-	AggregateType() AggregateType
-	Version() Version
-	SchemaVersion() SchemaVersion
-	Encoding() codec.Encoding
-	Payload() []byte
-	Metadata() Metadata
-	OccurredAt() time.Time
-	Deadline() (time.Time, bool)
-}
+// Value-type accessors (ID, Type, AggregateID, etc.) are inherently safe.
+// A nil Event is a nil *ImmutableEvent; compare with == nil as usual.
+type Event = *ImmutableEvent
 
-// ImmutableEvent provides a default implementation of Event interface.
+// ImmutableEvent is the single concrete event value. Methods are defined on
+// the pointer receiver *ImmutableEvent, which is what [Event] aliases.
 type ImmutableEvent struct {
 	id            id.EventID
 	eventType     Type
@@ -91,8 +82,6 @@ type eventOptions struct {
 	newCodec codec.Codec
 	deadline time.Time
 }
-
-var _ Event = (*ImmutableEvent)(nil)
 
 // ID returns the event ID.
 func (e *ImmutableEvent) ID() id.EventID { return e.id }

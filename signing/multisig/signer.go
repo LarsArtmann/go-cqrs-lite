@@ -69,7 +69,7 @@ func (m *MultiSigner) Algorithm() SignatureAlgorithm { return m.algorithm }
 // If the event already has signatures, they are preserved. The new signature
 // is added to the end of the entries slice. If this actor has already signed,
 // the previous entry is replaced.
-func (m *MultiSigner) Sign(evt event.Event) (*event.ImmutableEvent, error) {
+func (m *MultiSigner) Sign(evt event.Event) (event.Event, error) {
 	if evt == nil {
 		return nil, signing.ErrNilEvent
 	}

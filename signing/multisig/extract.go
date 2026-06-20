@@ -105,7 +105,7 @@ func HasMultiSignature(evt event.Event) bool {
 func attachMultiSignature(
 	evt event.Event,
 	multiSig MultiSignature,
-) (*event.ImmutableEvent, error) {
+) (event.Event, error) {
 	encoded, err := json.Marshal(multiSig)
 	if err != nil {
 		return nil, event.WrapInfrastructure(

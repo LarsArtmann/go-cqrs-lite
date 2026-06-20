@@ -7,13 +7,13 @@ import (
 type Upcaster interface {
 	SourceType() event.Type
 	SourceVersion() event.SchemaVersion
-	Upcast(evt event.Event) (*event.ImmutableEvent, error)
+	Upcast(evt event.Event) (event.Event, error)
 }
 
 func NewUpcaster(
 	sourceType event.Type,
 	sourceVersion event.SchemaVersion,
-	upcast func(evt event.Event) (*event.ImmutableEvent, error),
+	upcast func(evt event.Event) (event.Event, error),
 ) Upcaster {
 	return &upcasterFunc{
 		sourceType:    sourceType,
@@ -25,14 +25,14 @@ func NewUpcaster(
 type upcasterFunc struct {
 	sourceType    event.Type
 	sourceVersion event.SchemaVersion
-	upcast        func(evt event.Event) (*event.ImmutableEvent, error)
+	upcast        func(evt event.Event) (event.Event, error)
 }
 
 func (u *upcasterFunc) SourceType() event.Type { return u.sourceType }
 
 func (u *upcasterFunc) SourceVersion() event.SchemaVersion { return u.sourceVersion }
 
-func (u *upcasterFunc) Upcast(evt event.Event) (*event.ImmutableEvent, error) {
+func (u *upcasterFunc) Upcast(evt event.Event) (event.Event, error) {
 	if u.upcast == nil {
 		return nil, ErrNilUpcaster
 	}

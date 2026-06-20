@@ -8,7 +8,7 @@ import (
 )
 
 func newTestUpcaster(typ event.Type, version event.SchemaVersion, payload string) Upcaster {
-	return NewUpcaster(typ, version, func(evt event.Event) (*event.ImmutableEvent, error) {
+	return NewUpcaster(typ, version, func(evt event.Event) (event.Event, error) {
 		return event.NewEvent(typ, evt.AggregateID(), "User", evt.Version(), []byte(payload))
 	})
 }
@@ -27,7 +27,7 @@ func TestUpcasterFunc(t *testing.T) {
 	uc := NewUpcaster(
 		"UserCreated",
 		1,
-		func(_ event.Event) (*event.ImmutableEvent, error) {
+		func(_ event.Event) (event.Event, error) {
 			aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
 			return event.NewEvent("UserCreated", aggID, "User", 2, nil)
@@ -112,7 +112,7 @@ func TestUpcasterRegistry_ChainedUpcasters(t *testing.T) {
 func registerUserCreatedUpcasterV1(registry *upcasterRegistry) {
 	registry.register(NewUpcaster(
 		"UserCreated", 1,
-		func(evt event.Event) (*event.ImmutableEvent, error) {
+		func(evt event.Event) (event.Event, error) {
 			return event.NewEvent(
 				"UserCreated",
 				evt.AggregateID(),
@@ -151,7 +151,7 @@ func registerTrackingUpcaster(
 ) {
 	registry.register(NewUpcaster(
 		"UserCreated", version,
-		func(evt event.Event) (*event.ImmutableEvent, error) {
+		func(evt event.Event) (event.Event, error) {
 			*applied = append(*applied, int(version))
 
 			return event.NewEvent(

@@ -20,7 +20,7 @@ func TestGolden_UpcasterOutput(t *testing.T) {
 	upcaster := schema.NewUpcaster(
 		"UserCreated",
 		1,
-		func(evt event.Event) (*event.ImmutableEvent, error) {
+		func(evt event.Event) (event.Event, error) {
 			newPayload, _ := json.Marshal(map[string]any{
 				"name":     "unknown",
 				"email":    string(evt.Payload()),

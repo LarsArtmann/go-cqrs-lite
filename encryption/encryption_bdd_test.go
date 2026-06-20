@@ -15,7 +15,7 @@ import (
 )
 
 var _ = Describe("Encryption", func() {
-	makeEvent := func(payload string) *event.ImmutableEvent {
+	makeEvent := func(payload string) event.Event {
 		aggID := id.NewAggregateID()
 		evt, err := event.NewEvent("user.created", aggID, "User", 1, []byte(payload))
 		Expect(err).NotTo(HaveOccurred())

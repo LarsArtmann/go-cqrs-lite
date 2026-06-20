@@ -26,7 +26,7 @@ const loadAllFromPositionQuery = `SELECT e.id, e.event_type, e.aggregate_type, e
 		WHERE (e.occurred_at > c.occurred_at) OR (e.occurred_at = c.occurred_at AND e.id > $2)
 		ORDER BY e.occurred_at ASC, e.id ASC LIMIT $3`
 
-func mockEventRowsForTest(evt *event.ImmutableEvent, aggID id.AggregateID) *sqlmock.Rows {
+func mockEventRowsForTest(evt event.Event, aggID id.AggregateID) *sqlmock.Rows {
 	return sqlmock.NewRows(eventColumns()).AddRow(
 		evt.ID(), "UserCreated", "User", aggID,
 		1, 1, evt.Payload(), "json", nil, evt.OccurredAt(),
@@ -137,7 +137,7 @@ func TestSQLEventStore_LoadToTimestamp_Mock_QueryError(t *testing.T) {
 	}
 }
 
-func mockLoadAllFromPosition(mock sqlmock.Sqlmock, evt *event.ImmutableEvent) {
+func mockLoadAllFromPosition(mock sqlmock.Sqlmock, evt event.Event) {
 	mock.ExpectQuery(regexp.QuoteMeta(loadAllFromPositionQuery)).
 		WithArgs(evt.ID().String(), evt.ID().String(), 10).
 		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(

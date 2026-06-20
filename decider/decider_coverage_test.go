@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"testing"
-	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/decider/v2"
@@ -35,31 +34,13 @@ func (f *failingCodec) Encoding() codec.Encoding     { return codec.EncodingJSON
 func (f *failingCodec) Encode(_ any) ([]byte, error) { return nil, f.err }
 func (f *failingCodec) Decode(_ []byte, _ any) error { return nil }
 
-type nonImmutableEvent struct{}
-
-func (nonImmutableEvent) ID() id.EventID                     { return id.NewEventID() }
-func (nonImmutableEvent) Type() event.Type                   { return "Test" }
-func (nonImmutableEvent) AggregateID() id.AggregateID        { return id.NewAggregateID() }
-func (nonImmutableEvent) AggregateType() event.AggregateType { return "Test" }
-func (nonImmutableEvent) Version() event.Version             { return 1 }
-func (nonImmutableEvent) SchemaVersion() event.SchemaVersion {
-	sv, _ := event.ParseSchemaVersion(1)
-
-	return sv
-}
-func (nonImmutableEvent) Payload() []byte             { return nil }
-func (nonImmutableEvent) Metadata() event.Metadata    { return event.Metadata{} }
-func (nonImmutableEvent) OccurredAt() time.Time       { return time.Now() }
-func (nonImmutableEvent) Encoding() codec.Encoding    { return codec.EncodingJSON }
-func (nonImmutableEvent) Deadline() (time.Time, bool) { return time.Time{}, false }
-
 func TestExecute_EnricherAppliesOptions(t *testing.T) {
 	t.Parallel()
 
 	enriched := false
 	enricher := func(_ context.Context) []event.Option {
 		return []event.Option{
-			func(_ *event.ImmutableEvent) { enriched = true },
+			func(_ event.Event) { enriched = true },
 		}
 	}
 
@@ -84,32 +65,6 @@ func TestExecute_EnricherReturnsEmptyOpts(t *testing.T) {
 	aggID := id.NewAggregateID()
 
 	if err := executeWithAggID(t, repo, aggID, counterCreatedEventFn(t, aggID)); err != nil {
-		t.Fatalf("Execute: %v", err)
-	}
-}
-
-func TestExecute_EnricherSkipsNonImmutableEvents(t *testing.T) {
-	t.Parallel()
-
-	enricher := func(_ context.Context) []event.Option {
-		return []event.Option{
-			func(_ *event.ImmutableEvent) {
-				t.Error("enricher should not be called for non-ImmutableEvent")
-			},
-		}
-	}
-
-	_, repo := newEnricherRepo(t, enricher)
-	aggID := id.NewAggregateID()
-
-	if err := executeWithAggID(
-		t,
-		repo,
-		aggID,
-		func(_ counterState, _ event.Version) ([]event.Event, error) {
-			return []event.Event{nonImmutableEvent{}}, nil
-		},
-	); err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
 }

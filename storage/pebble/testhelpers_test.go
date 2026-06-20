@@ -19,7 +19,7 @@ func saveCfgEvent(
 	store event.Store,
 	cfg storeTestConfig,
 	aggID id.AggregateID,
-	evt *event.ImmutableEvent,
+	evt event.Event,
 ) {
 	eventtest.SaveEvent(t, store, cfg, aggID, evt)
 }

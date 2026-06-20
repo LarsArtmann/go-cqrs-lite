@@ -41,22 +41,3 @@ func TestEncodingForCopy_WithExplicitEncoding(t *testing.T) {
 		t.Errorf("encodingForCopy = %q, want %q", got, "protobuf")
 	}
 }
-
-func TestEncodingForCopy_Fallback(t *testing.T) {
-	t.Parallel()
-
-	stub := &encodingStubEvent{encoding: codec.Encoding("custom")}
-
-	got := encodingForCopy(stub)
-	if got != codec.Encoding("custom") {
-		t.Errorf("encodingForCopy fallback = %q, want %q", got, "custom")
-	}
-}
-
-type encodingStubEvent struct {
-	Event
-	encoding codec.Encoding
-}
-
-func (e *encodingStubEvent) Encoding() codec.Encoding { return e.encoding }
-func (e *encodingStubEvent) Type() Type               { return "stub" }

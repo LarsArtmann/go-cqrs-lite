@@ -24,7 +24,7 @@ func FuzzNewUpcaster_SourceType(f *testing.F) {
 		uc := schema.NewUpcaster(
 			event.Type(sourceType),
 			event.SchemaVersion(sourceVersion),
-			func(evt event.Event) (*event.ImmutableEvent, error) {
+			func(evt event.Event) (event.Event, error) {
 				return event.NewEvent(
 					evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
 					evt.Payload(),
@@ -79,7 +79,7 @@ func FuzzNewVersionedStore_NilStore(f *testing.F) {
 		uc := schema.NewUpcaster(
 			event.Type(sourceType),
 			event.SchemaVersion(sourceVersion),
-			func(evt event.Event) (*event.ImmutableEvent, error) {
+			func(evt event.Event) (event.Event, error) {
 				return event.NewEvent(
 					evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
 					evt.Payload(),
@@ -110,7 +110,7 @@ func FuzzVersionedStore_UpcastAll(f *testing.F) {
 			uc := schema.NewUpcaster(
 				event.Type(sourceType),
 				event.SchemaVersion(1),
-				func(evt event.Event) (*event.ImmutableEvent, error) {
+				func(evt event.Event) (event.Event, error) {
 					return event.NewEvent(
 						evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
 						[]byte(upgradedPayload),
@@ -162,7 +162,7 @@ func FuzzVersionedStore_LoadFromArbitraryStream(f *testing.F) {
 			uc := schema.NewUpcaster(
 				event.Type(sourceType),
 				event.SchemaVersion(1),
-				func(evt event.Event) (*event.ImmutableEvent, error) {
+				func(evt event.Event) (event.Event, error) {
 					return event.NewEvent(
 						evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
 						[]byte(upgradedPayload),

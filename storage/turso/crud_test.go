@@ -34,7 +34,7 @@ func setupEventStore(t *testing.T) (*storage.SQLEventStore, context.Context) {
 	return store, context.Background()
 }
 
-func makeEvent(t *testing.T, aggID id.AggregateID, version int) *event.ImmutableEvent {
+func makeEvent(t *testing.T, aggID id.AggregateID, version int) event.Event {
 	t.Helper()
 
 	evt, err := event.NewEvent(
@@ -55,7 +55,7 @@ func saveEvent(
 	t *testing.T,
 	store *storage.SQLEventStore,
 	ctx context.Context,
-	evt *event.ImmutableEvent,
+	evt event.Event,
 	expectedVersion event.Version,
 ) {
 	t.Helper()

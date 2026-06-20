@@ -39,14 +39,10 @@ func DecodePayload[T any](evt Event, c codec.Codec) (T, error) {
 }
 
 // payloadForDecode returns the raw event payload for read-only use in decoding.
-// For *ImmutableEvent (the common case), it accesses the field directly to avoid
-// the defensive clone in Payload() — decoding only reads the bytes, never mutates.
+// It accesses the field directly to avoid the defensive clone in Payload() —
+// decoding only reads the bytes, never mutates.
 func payloadForDecode(evt Event) []byte {
-	if ie, ok := evt.(*ImmutableEvent); ok {
-		return ie.payload
-	}
-
-	return evt.Payload()
+	return evt.payload
 }
 
 // PayloadReadOnly returns the event's payload bytes without cloning.
@@ -55,10 +51,6 @@ func payloadForDecode(evt Event) []byte {
 // storage. Use this only for read-only operations (hashing, serialization,
 // decoding). For any path that needs ownership of the bytes, use [Event.Payload]
 // instead.
-//
-// For *ImmutableEvent (the only production implementation), this bypasses the
-// defensive clone entirely. Custom [Event] implementations fall back to
-// [Event.Payload], which returns a safe copy.
 func PayloadReadOnly(evt Event) []byte {
 	return payloadForDecode(evt)
 }
@@ -67,11 +59,7 @@ func PayloadReadOnly(evt Event) []byte {
 // Encoding() converts "" to "json", but copies should preserve the original
 // field value to avoid altering the event's stored representation.
 func encodingForCopy(evt Event) codec.Encoding {
-	if ie, ok := evt.(*ImmutableEvent); ok {
-		return ie.encoding
-	}
-
-	return evt.Encoding()
+	return evt.encoding
 }
 
 // DecodePayloads decodes multiple events' payloads into a slice of typed values.

@@ -406,7 +406,7 @@ func newUserCreatedEvent(
 	t *testing.T,
 	aggID id.AggregateID,
 	email, name string,
-) *event.ImmutableEvent {
+) event.Event {
 	t.Helper()
 	evt, err := event.NewEvent(
 		eventUserCreated, aggID, aggregateType, event.Version(1),

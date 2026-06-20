@@ -22,11 +22,7 @@ func TestOTelCorrelationEnricher_WithBaggage(t *testing.T) {
 	}
 
 	evt := eventtest.NewEvent(t, "test.event", id.NewAggregateID(), "Test", 1, nil)
-	immutable, ok := evt.(*event.ImmutableEvent)
-	if !ok {
-		t.Fatal("expected *ImmutableEvent")
-	}
-	opts[0](immutable)
+	opts[0](evt)
 
 	got := OTelCorrelationIDFromEvent(evt)
 	if got != "trace-abc-123" {
@@ -51,13 +47,9 @@ func TestOTelCorrelationEnricher_AcceptsArbitraryStrings(t *testing.T) {
 	ctx := cqrsotel.WithCorrelationID(context.Background(), traceID)
 
 	evt := eventtest.NewEvent(t, "test.event", id.NewAggregateID(), "Test", 1, nil)
-	immutable, ok := evt.(*event.ImmutableEvent)
-	if !ok {
-		t.Fatal("expected *ImmutableEvent")
-	}
 
 	for _, opt := range OTelCorrelationEnricher(ctx) {
-		opt(immutable)
+		opt(evt)
 	}
 
 	got := OTelCorrelationIDFromEvent(evt)
@@ -88,13 +80,9 @@ func TestOTelCorrelationEnricher_ComposesWithCommandCausality(t *testing.T) {
 	}
 
 	evt := eventtest.NewEvent(t, "user.created", id.NewAggregateID(), "User", 1, nil)
-	immutable, ok := evt.(*event.ImmutableEvent)
-	if !ok {
-		t.Fatal("expected *ImmutableEvent")
-	}
 
 	for _, opt := range opts {
-		opt(immutable)
+		opt(evt)
 	}
 
 	otelCorr := OTelCorrelationIDFromEvent(evt)

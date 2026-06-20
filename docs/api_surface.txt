@@ -668,7 +668,6 @@ event/interface Bus
 event/interface CheckpointSink
 event/interface CheckpointSource
 event/interface CheckpointStore
-event/interface Event
 event/interface EventIterator
 event/interface EventSink
 event/interface EventSource
@@ -767,6 +766,7 @@ event/type AggregateType
 event/type Clock
 event/type ContextEnricher
 event/type Error
+event/type Event
 event/type Family
 event/type Handler
 event/type IPAddress

@@ -15,7 +15,7 @@ func CloneEvent(
 	evt event.Event,
 	key event.MetadataKey,
 	value string,
-) (*event.ImmutableEvent, error) {
+) (event.Event, error) {
 	//nolint:wrapcheck // callers wrap with context
 	return event.NewEvent(
 		evt.Type(),
@@ -36,7 +36,7 @@ func CloneEvent(
 //
 // Use this to attach signatures to events before storage or transmission.
 // The signature can later be extracted with ExtractSignature for verification.
-func AttachSignature(evt event.Event, sig Signature) (*event.ImmutableEvent, error) {
+func AttachSignature(evt event.Event, sig Signature) (event.Event, error) {
 	if evt == nil {
 		return nil, ErrNilEvent
 	}

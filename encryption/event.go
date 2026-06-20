@@ -23,7 +23,7 @@ func AttachEncryption(
 	evt event.Event,
 	ciphertext Ciphertext,
 	opts ...AttachOption,
-) (*event.ImmutableEvent, error) {
+) (event.Event, error) {
 	if evt == nil {
 		return nil, ErrNilEvent
 	}

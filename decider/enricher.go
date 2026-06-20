@@ -17,13 +17,8 @@ func (r *Repository[State]) applyEnricher(ctx context.Context, events []event.Ev
 	}
 
 	for _, evt := range events {
-		immutable, ok := evt.(*event.ImmutableEvent)
-		if !ok {
-			continue
-		}
-
 		for _, opt := range opts {
-			opt(immutable)
+			opt(evt)
 		}
 	}
 }

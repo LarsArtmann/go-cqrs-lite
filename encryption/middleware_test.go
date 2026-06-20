@@ -21,7 +21,7 @@ func generateTestKey(t *testing.T) []byte {
 	return key
 }
 
-func makeTestEvent(t *testing.T, payload string) *event.ImmutableEvent {
+func makeTestEvent(t *testing.T, payload string) event.Event {
 	t.Helper()
 
 	aggID := id.NewAggregateID()

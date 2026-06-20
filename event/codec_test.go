@@ -373,22 +373,3 @@ func TestPayloadReadOnly_ReturnsInternalReference(t *testing.T) {
 		t.Errorf("PayloadReadOnly = %q, want %q", readOnly, payload)
 	}
 }
-
-func TestPayloadReadOnly_FallbackForCustomImplementation(t *testing.T) {
-	t.Parallel()
-
-	evt := &stubEvent{payload: []byte("stub")}
-
-	readOnly := event.PayloadReadOnly(evt)
-	if string(readOnly) != "stub" {
-		t.Errorf("PayloadReadOnly fallback = %q, want %q", readOnly, "stub")
-	}
-}
-
-type stubEvent struct {
-	event.Event
-	payload []byte
-}
-
-func (s *stubEvent) Payload() []byte  { return s.payload }
-func (s *stubEvent) Type() event.Type { return "stub" }

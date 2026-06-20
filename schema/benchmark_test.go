@@ -21,7 +21,7 @@ func benchEvent(tb testing.TB, aggID id.AggregateID, v event.Version) event.Even
 	return evt
 }
 
-func benchSchemaVersionUpgrade(evt event.Event) (*event.ImmutableEvent, error) {
+func benchSchemaVersionUpgrade(evt event.Event) (event.Event, error) {
 	return event.NewEvent(
 		evt.Type(), evt.AggregateID(), evt.AggregateType(),
 		evt.Version(), evt.Payload(),

@@ -74,25 +74,25 @@ func expectVersionCheck(mock sqlmock.Sqlmock, aggID id.AggregateID, version int)
 		WillReturnRows(sqlmock.NewRows([]string{"max"}).AddRow(version))
 }
 
-func expectSaveSuccess(mock sqlmock.Sqlmock, evt *event.ImmutableEvent) {
+func expectSaveSuccess(mock sqlmock.Sqlmock, evt event.Event) {
 	mock.ExpectBegin()
 	expectVersionCheck(mock, evt.AggregateID(), 0)
 	expectInsertSuccess(mock, evt)
 	mock.ExpectCommit()
 }
 
-func expectInsertExec(mock sqlmock.Sqlmock, evt *event.ImmutableEvent) *sqlmock.ExpectedExec {
+func expectInsertExec(mock sqlmock.Sqlmock, evt event.Event) *sqlmock.ExpectedExec {
 	return mock.ExpectExec("INSERT INTO events.*VALUES.*").WithArgs(
 		evt.ID(),
 		"UserCreated", "User", evt.AggregateID(), 1, evt.SchemaVersion().Int(), evt.Payload(), string(evt.Encoding()), sqlmock.AnyArg(), evt.OccurredAt(),
 	)
 }
 
-func expectInsertSuccess(mock sqlmock.Sqlmock, evt *event.ImmutableEvent) {
+func expectInsertSuccess(mock sqlmock.Sqlmock, evt event.Event) {
 	expectInsertExec(mock, evt).WillReturnResult(sqlmock.NewResult(1, 1))
 }
 
-func saveEvt(t *testing.T, store *SQLEventStore, evt *event.ImmutableEvent) error {
+func saveEvt(t *testing.T, store *SQLEventStore, evt event.Event) error {
 	t.Helper()
 
 	return store.Save(
@@ -102,7 +102,7 @@ func saveEvt(t *testing.T, store *SQLEventStore, evt *event.ImmutableEvent) erro
 	)
 }
 
-func appendBatchEvt(t *testing.T, store *SQLEventStore, evt *event.ImmutableEvent) error {
+func appendBatchEvt(t *testing.T, store *SQLEventStore, evt event.Event) error {
 	t.Helper()
 
 	return store.AppendBatch(
@@ -112,7 +112,7 @@ func appendBatchEvt(t *testing.T, store *SQLEventStore, evt *event.ImmutableEven
 	)
 }
 
-func testEvent(t *testing.T) *event.ImmutableEvent {
+func testEvent(t *testing.T) event.Event {
 	t.Helper()
 
 	return testEventWithAggID(t, "UserCreated", id.NewAggregateID(), 1)
@@ -124,7 +124,7 @@ func testEventWithAggID(
 	aggID id.AggregateID,
 	version event.Version,
 	opts ...event.Option,
-) *event.ImmutableEvent {
+) event.Event {
 	t.Helper()
 
 	evt, err := event.NewEvent(

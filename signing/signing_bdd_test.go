@@ -13,7 +13,7 @@ import (
 )
 
 var _ = Describe("Signing", func() {
-	makeEvent := func() *event.ImmutableEvent {
+	makeEvent := func() event.Event {
 		aggID := id.NewAggregateID()
 		evt, err := event.NewEvent("user.created", aggID, "User", 1, []byte(`{"name":"Alice"}`))
 		Expect(err).NotTo(HaveOccurred())
