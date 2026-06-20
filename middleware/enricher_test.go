@@ -81,7 +81,10 @@ func TestOTelCorrelationEnricher_ComposesWithCommandCausality(t *testing.T) {
 	opts := composite(ctx)
 
 	if len(opts) != 4 {
-		t.Fatalf("expected 4 options (causation + command type + command ID + otel corr), got %d", len(opts))
+		t.Fatalf(
+			"expected 4 options (causation + command type + command ID + otel corr), got %d",
+			len(opts),
+		)
 	}
 
 	evt := eventtest.NewEvent(t, "user.created", id.NewAggregateID(), "User", 1, nil)

@@ -57,7 +57,10 @@ func TestCatchUpSubscriber_Replay(t *testing.T) {
 
 		// Replay messages should be marked with ModeReplay.
 		if msg.Metadata.Get(metaProcessingMode) != string(event.ModeReplay) {
-			t.Fatalf("expected processing_mode=replay, got %s", msg.Metadata.Get(metaProcessingMode))
+			t.Fatalf(
+				"expected processing_mode=replay, got %s",
+				msg.Metadata.Get(metaProcessingMode),
+			)
 		}
 
 		msg.Ack()

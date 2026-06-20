@@ -40,7 +40,12 @@ func setupApp(ctx context.Context, logger *slog.Logger, dataDir string) (*app, e
 		kv.WithTypedKeyPrefix[domain.Todo, domain.TodoID]("todos:"),
 	)
 	if err != nil {
-		return nil, event.Newf(event.Infrastructure, "todo.setup.readmodel", "create read model store: %v", err)
+		return nil, event.Newf(
+			event.Infrastructure,
+			"todo.setup.readmodel",
+			"create read model store: %v",
+			err,
+		)
 	}
 
 	readModel := newReadModelAdapter(rmStore)

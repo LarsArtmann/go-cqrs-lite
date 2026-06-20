@@ -28,7 +28,10 @@ type TypedStore[T any, K fmt.Stringer] struct {
 // NewTypedStore creates a [TypedStore] over backend, applying the given options.
 // The default codec is [codec.JSONCodec]; the default key encoding is the
 // key's String() form.
-func NewTypedStore[T any, K fmt.Stringer](backend Store, opts ...TypedOption[T, K]) *TypedStore[T, K] {
+func NewTypedStore[T any, K fmt.Stringer](
+	backend Store,
+	opts ...TypedOption[T, K],
+) *TypedStore[T, K] {
 	s := &TypedStore[T, K]{ //nolint:exhaustruct // prefix set via WithKeyPrefix option
 		backend: backend,
 		codec:   codec.JSONCodec{},

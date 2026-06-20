@@ -31,7 +31,12 @@ func TestDeployerFirst_FullPipeline(t *testing.T) {
 
 	todoID := id.NewAggregateID()
 
-	if err := repo.Execute(ctx, todoID, aggregateType, decideCreate(todoID, "Write tests")); err != nil {
+	if err := repo.Execute(
+		ctx,
+		todoID,
+		aggregateType,
+		decideCreate(todoID, "Write tests"),
+	); err != nil {
 		t.Fatal(err)
 	}
 
@@ -121,7 +126,10 @@ func newTestBundle(t *testing.T) *stack.Bundle {
 	return bundle
 }
 
-func newTestMaterialize(t *testing.T, bundle *stack.Bundle) *stack.Materialize[TodoView, id.AggregateID] {
+func newTestMaterialize(
+	t *testing.T,
+	bundle *stack.Bundle,
+) *stack.Materialize[TodoView, id.AggregateID] {
 	t.Helper()
 
 	mat, err := stack.NewMaterialize[TodoView, id.AggregateID](bundle, codec.JSONCodec{}, todoKey)

@@ -80,7 +80,10 @@ func TestTypedStore_Scan(t *testing.T) {
 	store := kv.NewMemStore()
 	defer store.Close()
 
-	ts := kv.NewTypedStore[testUser, testID](store, kv.WithTypedKeyPrefix[testUser, testID]("users:"))
+	ts := kv.NewTypedStore[testUser, testID](
+		store,
+		kv.WithTypedKeyPrefix[testUser, testID]("users:"),
+	)
 
 	ctx := context.Background()
 

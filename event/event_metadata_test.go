@@ -318,7 +318,9 @@ func TestEnsureMetadata_WhenNil(t *testing.T) {
 	opt := event.WithCorrelationID(idtest.MustParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH"))
 	opt(core)
 
-	if core.Metadata().CorrelationID != idtest.MustParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH") {
+	if core.Metadata().CorrelationID != idtest.MustParseCorrelationID(
+		"01HK154EJG2GP2SR75DK1Q1TBH",
+	) {
 		t.Errorf("expected correlation ID to be set, got %s", core.Metadata().CorrelationID)
 	}
 }

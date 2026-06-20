@@ -5,16 +5,8 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
+	"github.com/larsartmann/go-cqrs-lite/query/v2/querytest"
 )
-
-func mustNewQuery(queryType query.Type) *query.BasicQuery {
-	q, err := query.New(queryType)
-	if err != nil {
-		panic(err)
-	}
-
-	return q
-}
 
 func BenchmarkNew(b *testing.B) {
 	b.ReportAllocs()
@@ -35,7 +27,7 @@ func BenchmarkMustNew(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_ = mustNewQuery("bench.query")
+		_ = querytest.MustNew("bench.query")
 	}
 }
 
@@ -53,7 +45,7 @@ func BenchmarkDispatchTyped(b *testing.B) {
 	}
 
 	ctx := context.Background()
-	q := mustNewQuery("bench.query")
+	q := querytest.MustNew("bench.query")
 
 	b.ResetTimer()
 

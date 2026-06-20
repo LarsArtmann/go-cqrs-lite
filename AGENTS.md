@@ -40,15 +40,12 @@ Multi-module Go workspace (`go.work`) with 38 modules (26 library + 6 stack pres
 ```
 go-cqrs-lite/
 ├── event/               # EventSink, EventSource, Store, Journal, SeekableJournal, Bus, ImmutableEvent, NewEvent, Clone
-│                        # Reactive: EventBus, NewReplayEventBus, NewBehaviorEventBus, FilterEventType/Types, ReplayFilter, HandlerToObserver
 │   └── eventtest/       # FakeStore, FakeBus, FakeSnapshotStore, event factories, test assertions
 ├── command/             # Dispatcher, Handler, Middleware, Command, BasicCommand, PersistedCommand
 │                        # Store: CommandSink, CommandSource, Store, CommandJournal, SeekableCommandJournal
 │                        # Bus: Publisher, Subscriber, Bus, PublishMiddleware (command pub/sub)
-│                        # Reactive: CommandBus, FilterCommandType/Types, HandlerToObserver
 ├── query/               # Dispatcher, Handler, Pagination, PaginatedResult[T], RegisterTyped[Q,R], TypedHandler[Q,R]
 │                        # Store: PersistedQuery, QuerySink, QuerySource, QueryStore, QueryJournal, SeekableQueryJournal
-│                        # Reactive: QueryBus, FilterQueryType/Types, HandlerToObserver
 ├── decider/             # Decider[State], Repository[State], Execute, Load (pure-function style)
 ├── id/                  # Branded IDs: id.Of[T] = cbid.ID[T, ulid.ULID], AggregateID, EventID, etc.
 ├── dispatcher/          # Generic Dispatcher[H, M] with LifecycleMixin
@@ -82,7 +79,7 @@ go-cqrs-lite/
 
 1. **Library, not framework** — Consumers import what they need. No opinionated transport, broker, or SQL driver.
 2. **Trustworthy modules** — Quality gate: "Would a consumer trust this enough to import it?"
-3. **Minimal dependencies** — event depends on `oklog/ulid`, `go-branded-id`, `go-error-family`, `samber/ro`.
+3. **Minimal dependencies** — event depends on `oklog/ulid`, `go-branded-id`, `go-error-family`.
 4. **Composition over inheritance** — Per Go best practices.
 5. **Interface-first design** — All core types are interfaces. Store = EventSink + EventSource (ISP split).
 6. **Interface Segregation** — Journal (ReadAll), SeekableJournal (ReadFrom), BackwardsSource.
@@ -138,27 +135,6 @@ marked, _ := event.MarkTombstone(evt)   // sets tombstone metadata
 replayCtx := event.WithProcessingMode(ctx, event.ModeReplay)
 mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 
-// Reactive streams (samber/ro) — event, command, and query modules
-//   // Event streams
-//   bus := event.NewEventBus()
-//   bus.Subscribe(ro.OnNext(func(e event.Event) { ... }))
-//   filtered := ro.Pipe1(bus, event.FilterEventType("user.created"))
-//   observer := event.HandlerToObserver(myHandler)
-//   bus.Next(evt)
-//   bus.Complete()
-//
-//   // Command streams (pub/sub-style reactive dispatch)
-//   cmdBus := command.NewCommandBus()
-//   cmdFiltered := ro.Pipe1(cmdBus, command.FilterCommandType("user.create"))
-//   cmdFiltered.Subscribe(command.HandlerToObserver(myHandler))
-//   cmdBus.Next(createCmd)
-//
-//   // Query streams
-//   qBus := query.NewQueryBus()
-//   qFiltered := ro.Pipe1(qBus, query.FilterQueryType("user.get"))
-//   qFiltered.Subscribe(query.HandlerToObserver(myHandler))
-//   qBus.Next(getQuery)
-
 // Command & query persistence (audit trail)
 //   cmd, _ := command.NewPersistedCommand("user.create", ref, payload)
 //   cmdStore.Save(ctx, ref, cmd)         // CommandSink
@@ -172,7 +148,7 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   var qJournal query.QueryJournal = qStore             // ReadAllQueries
 //   var qSeekable query.SeekableQueryJournal = qStore     // ReadQueriesFrom(afterReqID, limit)
 
-// Command bus (pub/sub) — reactive command dispatch
+// Command bus (pub/sub) — typed subscription dispatch
 //   bus := memory.NewMemoryCommandBus()
 //   bus.Subscribe("user.create", handlerFunc)  // typed subscription
 //   bus.SubscribeAll(auditHandler)             // catch-all (audit log)
@@ -297,11 +273,6 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   // calls for the same aggregate coalesce into one store.Load query.
 //   // No API change needed; it's transparent.
 
-// Event stream deduplication (samber/ro)
-//   bus := event.NewEventBus()
-//   deduped := ro.Pipe1(bus, event.DistinctByEventID()) // suppress duplicate event IDs
-//   perAgg := ro.Pipe1(bus, event.DistinctByAggregateID()) // first event per aggregate
-
 // OTel distributed correlation (baggage propagation)
 //   ctx = cqrsotel.WithCorrelationID(ctx, "abc-123") // store in baggage
 //   corrID := cqrsotel.CorrelationIDFromContext(ctx)  // retrieve from baggage
@@ -406,7 +377,7 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 
 | Category   | Packages                                                                                                                                                                                                                                                                                            |
 | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Production | oklog/ulid/v2, go-branded-id, go-error-family, samber/ro (event, command, query); go-faster/yaml (catalog); go.opentelemetry.io/otel (otel, event, storage, middleware, prometheus); prometheus/client_golang (prometheus); golang.org/x/crypto (encryption); fxamacker/cbor/v2 (codec) |
+| Production | oklog/ulid/v2, go-branded-id, go-error-family, go-faster/yaml (catalog); go.opentelemetry.io/otel (otel, event, storage, middleware, prometheus); prometheus/client_golang (prometheus); golang.org/x/crypto (encryption); fxamacker/cbor/v2 (codec) |
 | Test-only  | onsi/ginkgo/v2, onsi/gomega, pgregory.net/rapid (event, encryption)                                                                                                                                                                                                                                 |
 
 **Coverage**: core modules 84–100%; Bundle layer (stack presets, cache) 0–87% — presets emphasise the shared contract suite + happy paths, so constructor error branches are lighter (stack/postgres shows 0% locally because its tests skip without `POSTGRES_TEST_DSN`). See `docs/status/` for latest.

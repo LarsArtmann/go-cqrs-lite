@@ -62,7 +62,6 @@ You do NOT need all of them. Start with the minimal recipe (§2), then bolt on c
 | Soft-delete aggregates without data loss            | `event` (tombstone metadata)                                     | §6.1       |
 | Generate typed handler boilerplate                  | `cmd/cqrs-gen`                                                   | §6.8       |
 | Publish events to Watermill router                  | `watermill`                                                      | §6.5       |
-| Reactive streams (pub/sub with filters)             | `event`/`command`/`query` (samber/ro)                            | §6.2       |
 | In-memory implementations for tests/dev             | `memory`                                                         | §2.1       |
 | One-call infrastructure wiring (Bundle presets)     | `stack/memory`, `stack/sqlite`, `stack/pebble`, `stack/postgres` | §2.0       |
 | Typed read-model store over KV backend              | `readmodel`                                                      | §2.0       |
@@ -465,8 +464,8 @@ cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 | `dispatcher` | `dispatcher/v2` | Generic `Dispatcher[H, M]` with `LifecycleMixin`. Base for command/query dispatchers.                                                                                                                                            |
 | `codec`      | `codec/v2`      | Payload encoding: `JSONCodec{}`, `CBORCodec{}` (deterministic), `RawCodec{}`.                                                                                                                                                    |
 | `event`      | `event/v2`      | `Event`, `Store` (=`EventSink`+`EventSource`), `Bus`, `Journal`, `SeekableJournal`, `NewEvent`, `NewEvents`, `DecodePayload[T]`, 5-family errors, tombstone (`TombstoneMark`), causality (`Causation`), `Tracing`, `Checkpoint`. |
-| `command`    | `command/v2`    | `Dispatcher`, `Handler`, `RegisterTyped`, `BasicCommand`, `PersistedCommand`, `CommandSink`/`Source`, `CommandBus` (pub/sub), reactive `CommandBus`.                                                                             |
-| `query`      | `query/v2`      | `Dispatcher`, `TypedHandler[Q,R]`, `RegisterTyped`, `PaginatedResult[T]`, `PersistedQuery`, `QuerySink`/`Source`, reactive `QueryBus`.                                                                                           |
+| `command`    | `command/v2`    | `Dispatcher`, `Handler`, `RegisterTyped`, `BasicCommand`, `PersistedCommand`, `CommandSink`/`Source`, `CommandBus` (pub/sub).                                                                             |
+| `query`      | `query/v2`      | `Dispatcher`, `TypedHandler[Q,R]`, `RegisterTyped`, `PaginatedResult[T]`, `PersistedQuery`, `QuerySink`/`Source`.                                                                                           |
 | `decider`    | `decider/v2`    | `Decider[State]{Initial, Fold}`, `Repository[State]` (`Execute`, `Load`, `LoadAtVersion`), snapshot integration.                                                                                                                 |
 
 ### Read models (Layer 4–5)
@@ -526,24 +525,7 @@ status := event.DetectTombstone(events) // Active | Tombstoned | Undetermined
 // See example/user/ for the full tombstone + rebirth cycle
 ```
 
-### 6.2 Reactive Streams (samber/ro)
-
-```go
-// Event streams with filters
-bus := event.NewEventBus()
-filtered := ro.Pipe1(bus, event.FilterEventType("user.created"))
-filtered.Subscribe(event.HandlerToObserver(myHandler))
-
-// Command streams
-cmdBus := command.NewCommandBus()
-cmdFiltered := ro.Pipe1(cmdBus, command.FilterCommandType("user.create"))
-cmdFiltered.Subscribe(command.HandlerToObserver(myHandler))
-
-// Query streams
-qBus := query.NewQueryBus()
-```
-
-### 6.3 Command & Query Persistence (audit trail)
+### 6.2 Command & Query Persistence (audit trail)
 
 ```go
 // Persist commands for audit/replay
@@ -559,7 +541,7 @@ qStore.SaveQuery(ctx, pq)                 // QuerySink
 queries, _ := qStore.LoadQueries(ctx, after) // QuerySource
 ```
 
-### 6.4 Aggregate Listing (read model for all aggregates)
+### 6.3 Aggregate Listing (read model for all aggregates)
 
 ```go
 import (
@@ -578,7 +560,7 @@ builder := listing.NewListBuilder(reader)
 // reader.List() → []AggregateListing with Status: Active | Tombstoned
 ```
 
-### 6.5 Watermill Integration
+### 6.4 Watermill Integration
 
 ```go
 // Bridge go-cqrs-lite events to a Watermill router
@@ -588,7 +570,7 @@ messages, _ := subscriber.Subscribe(ctx, "user.created")
 // Use with standard Watermill handler funcs
 ```
 
-### 6.6 Turso Offline-First
+### 6.5 Turso Offline-First
 
 ```go
 import "github.com/larsartmann/go-cqrs-lite/turso/v2"
@@ -599,7 +581,7 @@ backend, _ := turso.NewBackend(db)
 // Or without sync: db, _ := turso.Open("file:local.db")
 ```
 
-### 6.7 Pebble as KV Store
+### 6.6 Pebble as KV Store
 
 ```go
 import (
@@ -614,7 +596,7 @@ kvStore.Set([]byte("k"), []byte("v"))
 val, _ := kvStore.Get([]byte("k"))
 ```
 
-### 6.8 Code Generation (cqrs-gen)
+### 6.7 Code Generation (cqrs-gen)
 
 ```bash
 go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v2@latest

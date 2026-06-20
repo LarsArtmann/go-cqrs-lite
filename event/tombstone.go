@@ -97,16 +97,31 @@ func DetectTombstone(events []Event) TombstoneStatus {
 // MarkTombstone copies an event and sets the tombstone metadata key.
 // Returns a new event; the original is unmodified.
 func MarkTombstone(evt Event) (*ImmutableEvent, error) {
-	return copyWithTombstoneMark(evt, TombstoneMark{Status: TombstoneTombstoned}, MetadataKeyTombstone, "mark tombstone")
+	return copyWithTombstoneMark(
+		evt,
+		TombstoneMark{Status: TombstoneTombstoned},
+		MetadataKeyTombstone,
+		"mark tombstone",
+	)
 }
 
 // MarkRebirth copies an event and sets the rebirth metadata key.
 // Returns a new event; the original is unmodified.
 func MarkRebirth(evt Event) (*ImmutableEvent, error) {
-	return copyWithTombstoneMark(evt, TombstoneMark{Status: TombstoneActive}, MetadataKeyRebirth, "mark rebirth")
+	return copyWithTombstoneMark(
+		evt,
+		TombstoneMark{Status: TombstoneActive},
+		MetadataKeyRebirth,
+		"mark rebirth",
+	)
 }
 
-func copyWithTombstoneMark(evt Event, mark TombstoneMark, key MetadataKey, label string) (*ImmutableEvent, error) {
+func copyWithTombstoneMark(
+	evt Event,
+	mark TombstoneMark,
+	key MetadataKey,
+	label string,
+) (*ImmutableEvent, error) {
 	if evt == nil {
 		return nil, NewRejection("event.nil_event", label+": event is required")
 	}

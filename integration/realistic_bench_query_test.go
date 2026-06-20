@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
+	"github.com/larsartmann/go-cqrs-lite/query/v2/querytest"
 )
 
 // ---------------------------------------------------------------------------
@@ -51,7 +52,7 @@ func BenchmarkRealistic_QueryDispatch(b *testing.B) {
 
 	for b.Loop() {
 		for range 1000 {
-			q := mustNewQuery("list.orders")
+			q := querytest.MustNew("list.orders")
 			if _, err := dispatcher.Dispatch(ctx, q); err != nil {
 				b.Fatalf("Dispatch: %v", err)
 			}

@@ -108,7 +108,10 @@ func NewCatchUpSubscriber(
 // Subscribe starts catch-up for the given topic: replay then live.
 // Returns a channel of messages. The topic is used as the checkpoint key
 // (projection name).
-func (s *CatchUpSubscriber) Subscribe(ctx context.Context, topic string) (<-chan *message.Message, error) {
+func (s *CatchUpSubscriber) Subscribe(
+	ctx context.Context,
+	topic string,
+) (<-chan *message.Message, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -263,7 +266,11 @@ func (s *CatchUpSubscriber) livePhase(ctx context.Context, sub *catchUpSubscript
 
 // saveCheckpoint persists the last-processed event ID for the given topic.
 // Best-effort: errors are logged by callers, not returned to the stream.
-func (s *CatchUpSubscriber) saveCheckpoint(ctx context.Context, topic string, eventID id.EventID) error {
+func (s *CatchUpSubscriber) saveCheckpoint(
+	ctx context.Context,
+	topic string,
+	eventID id.EventID,
+) error {
 	return s.checkpoint.Save(ctx, topic, event.Checkpoint{
 		EventID:     eventID,
 		ProcessedAt: time.Now(),

@@ -6,6 +6,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
+	"github.com/larsartmann/go-cqrs-lite/query/v2/querytest"
 )
 
 func registerHandler[T any](d *query.Dispatcher, queryType string, result T) {
@@ -33,7 +34,7 @@ func registerCallOrderHandler[T any](
 func TestNewQuery(t *testing.T) {
 	t.Parallel()
 
-	q := mustNewQuery("GetUser")
+	q := querytest.MustNew("GetUser")
 
 	if q.Type() != "GetUser" {
 		t.Errorf("expected type GetUser, got %s", q.Type())
@@ -43,7 +44,7 @@ func TestNewQuery(t *testing.T) {
 func TestBaseQuery_ImplementsInterface(t *testing.T) {
 	t.Parallel()
 
-	var _ query.Query = mustNewQuery("TestQuery")
+	var _ query.Query = querytest.MustNew("TestQuery")
 }
 
 func TestDispatcher_Register(t *testing.T) {
@@ -68,7 +69,7 @@ func TestDispatcher_Dispatch(t *testing.T) {
 
 	registerHandler(dispatcher, "GetUser", "user-123")
 
-	q := mustNewQuery("GetUser")
+	q := querytest.MustNew("GetUser")
 
 	result, err := dispatcher.Dispatch(context.Background(), q)
 	if err != nil {
@@ -85,7 +86,7 @@ func TestDispatcher_Dispatch_QueryNotSupported(t *testing.T) {
 
 	dispatcher := query.NewDispatcher()
 
-	q := mustNewQuery("UnknownQuery")
+	q := querytest.MustNew("UnknownQuery")
 
 	_, err := dispatcher.Dispatch(context.Background(), q)
 	if err == nil {
@@ -100,7 +101,7 @@ func TestDispatchTyped(t *testing.T) {
 
 	registerHandler(dispatcher, "GetUserName", "John Doe")
 
-	q := mustNewQuery("GetUserName")
+	q := querytest.MustNew("GetUserName")
 
 	result, err := query.DispatchTyped[string](context.Background(), dispatcher, q)
 	if err != nil {
@@ -119,7 +120,7 @@ func TestDispatchTyped_WrongType(t *testing.T) {
 
 	registerHandler(dispatcher, "GetCount", 42)
 
-	q := mustNewQuery("GetCount")
+	q := querytest.MustNew("GetCount")
 
 	_, err := query.DispatchTyped[string](context.Background(), dispatcher, q)
 	if err == nil {
@@ -141,7 +142,7 @@ func TestDispatcher_Middleware(t *testing.T) {
 
 	registerCallOrderHandler(dispatcher, "TestQuery", &callOrder, "result")
 
-	q := mustNewQuery("TestQuery")
+	q := querytest.MustNew("TestQuery")
 	_, _ = dispatcher.Dispatch(context.Background(), q)
 
 	eventtest.AssertCallOrder(t, callOrder, []string{"middleware1", "middleware2", "handler"})
@@ -162,7 +163,7 @@ func TestDispatcher_Closed(t *testing.T) {
 		t.Error("expected dispatcher closed error on Register")
 	}
 
-	q := mustNewQuery("TestQuery")
+	q := querytest.MustNew("TestQuery")
 
 	_, err = dispatcher.Dispatch(context.Background(), q)
 	if err == nil {

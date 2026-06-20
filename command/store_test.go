@@ -21,7 +21,10 @@ func parseCommandID(s string) id.CommandID {
 }
 
 func validRef() command.AggregateRef {
-	return command.NewAggregateRef("User", idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	return command.NewAggregateRef(
+		"User",
+		idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+	)
 }
 
 func TestNewPersistedCommand_Success(t *testing.T) {
@@ -262,7 +265,10 @@ func TestPersistedCommand_String(t *testing.T) {
 func TestAggregateRef_String(t *testing.T) {
 	t.Parallel()
 
-	ref := command.NewAggregateRef("User", idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	ref := command.NewAggregateRef(
+		"User",
+		idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+	)
 	s := ref.String()
 
 	if s == "" {

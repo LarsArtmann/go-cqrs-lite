@@ -14,16 +14,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
+	"github.com/larsartmann/go-cqrs-lite/query/v2/querytest"
 )
-
-func mustNewQuery(queryType query.Type) *query.BasicQuery {
-	q, err := query.New(queryType)
-	if err != nil {
-		panic(err)
-	}
-
-	return q
-}
 
 type bddCommand struct {
 	aggregateID id.AggregateID
@@ -223,7 +215,7 @@ var _ = Describe("Event and Query Middleware Variants", func() {
 					panic("query handler panic")
 				})
 
-				q := mustNewQuery("test.query")
+				q := querytest.MustNew("test.query")
 				result, err := handler(ctx, q)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("panic recovered"))

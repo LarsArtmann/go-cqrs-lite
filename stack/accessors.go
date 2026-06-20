@@ -170,7 +170,9 @@ func (b *Bundle) CatchUpSubscriber() (*cqrswatermill.CatchUpSubscriber, error) {
 
 	liveSub, ok := b.Subscriber.(*cqrswatermill.EventBus)
 	if !ok {
-		return nil, errors.New("stack: subscriber must be *watermill.EventBus for CatchUpSubscriber")
+		return nil, errors.New(
+			"stack: subscriber must be *watermill.EventBus for CatchUpSubscriber",
+		)
 	}
 
 	return cqrswatermill.NewCatchUpSubscriber(

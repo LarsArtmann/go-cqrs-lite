@@ -17,6 +17,7 @@ func main() {
 	modules := []string{
 		// Layer 0: leaf modules
 		"id",
+		"id/idtest",
 		"dispatcher",
 		"codec",
 		"kv",
@@ -25,6 +26,7 @@ func main() {
 		"event/eventtest",
 		"command",
 		"query",
+		"query/querytest",
 		// Layer 2
 		"schema",
 		"snapshot",

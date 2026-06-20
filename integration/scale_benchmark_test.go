@@ -15,15 +15,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/testutil/v2"
 )
 
-func mustNewQuery(queryType query.Type) *query.BasicQuery {
-	q, err := query.New(queryType)
-	if err != nil {
-		panic(err)
-	}
-
-	return q
-}
-
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------

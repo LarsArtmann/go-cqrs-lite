@@ -17,7 +17,10 @@ func TestSQLCommandStore_ReadAll(t *testing.T) {
 
 	store := newTestCommandStore(t)
 	ctx := context.Background()
-	ref := command.NewAggregateRef("User", idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	ref := command.NewAggregateRef(
+		"User",
+		idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+	)
 
 	cmd1 := testCommand(t, "CreateUser", ref)
 	cmd2 := testCommand(t, "UpdateUser", ref)
@@ -59,7 +62,10 @@ func TestSQLCommandStore_ReadFrom_ZeroID(t *testing.T) {
 
 	store := newTestCommandStore(t)
 	ctx := context.Background()
-	ref := command.NewAggregateRef("User", idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	ref := command.NewAggregateRef(
+		"User",
+		idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+	)
 
 	cmds := make([]*command.PersistedCommand, 3)
 	for i := range cmds {
@@ -85,7 +91,10 @@ func TestSQLCommandStore_ReadFrom_AfterID(t *testing.T) {
 
 	store := newTestCommandStore(t)
 	ctx := context.Background()
-	ref := command.NewAggregateRef("User", idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	ref := command.NewAggregateRef(
+		"User",
+		idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+	)
 
 	t1 := time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC)
 	t2 := time.Date(2025, 2, 1, 10, 0, 0, 0, time.UTC)
@@ -156,7 +165,10 @@ func TestSQLCommandStore_ReadFrom_NonExistentID(t *testing.T) {
 
 	store := newTestCommandStore(t)
 	ctx := context.Background()
-	ref := command.NewAggregateRef("User", idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	ref := command.NewAggregateRef(
+		"User",
+		idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+	)
 
 	cmd := testCommand(t, "CreateUser", ref)
 	if err := store.Save(ctx, ref, cmd); err != nil {
@@ -179,7 +191,10 @@ func TestSQLCommandStore_MetadataRoundtrip(t *testing.T) {
 
 	store := newTestCommandStore(t)
 	ctx := context.Background()
-	ref := command.NewAggregateRef("User", idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	ref := command.NewAggregateRef(
+		"User",
+		idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+	)
 
 	meta := command.NewMetadata()
 	meta.CorrelationID = id.NewCorrelationID()

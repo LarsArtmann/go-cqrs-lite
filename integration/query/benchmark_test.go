@@ -5,16 +5,8 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
+	"github.com/larsartmann/go-cqrs-lite/query/v2/querytest"
 )
-
-func mustNewQuery(queryType query.Type) *query.BasicQuery {
-	q, err := query.New(queryType)
-	if err != nil {
-		panic(err)
-	}
-
-	return q
-}
 
 func BenchmarkDispatcher_Dispatch(b *testing.B) {
 	b.ReportAllocs()
@@ -25,7 +17,7 @@ func BenchmarkDispatcher_Dispatch(b *testing.B) {
 		b.Fatalf("register: %v", err)
 	}
 
-	q := mustNewQuery("bench.query")
+	q := querytest.MustNew("bench.query")
 	ctx := context.Background()
 
 	for b.Loop() {
@@ -49,7 +41,7 @@ func BenchmarkDispatcher_Dispatch_WithMiddleware(b *testing.B) {
 		b.Fatalf("register: %v", err)
 	}
 
-	q := mustNewQuery("bench.query")
+	q := querytest.MustNew("bench.query")
 	ctx := context.Background()
 
 	for b.Loop() {

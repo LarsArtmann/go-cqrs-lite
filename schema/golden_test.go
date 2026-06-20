@@ -28,12 +28,17 @@ func TestGolden_UpcasterOutput(t *testing.T) {
 			})
 
 			return event.NewEvent(
-				evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
+				evt.Type(),
+				evt.AggregateID(),
+				evt.AggregateType(),
+				evt.Version(),
 				newPayload,
 				event.WithEventID(evt.ID()),
 				event.WithOccurredAt(evt.OccurredAt()),
 				event.WithSchemaVersion(2),
-				event.WithCorrelationID(idtest.MustParseCorrelationID("01HK1540X0841Y0A6BSX1VKR97")),
+				event.WithCorrelationID(
+					idtest.MustParseCorrelationID("01HK1540X0841Y0A6BSX1VKR97"),
+				),
 			)
 		},
 	)

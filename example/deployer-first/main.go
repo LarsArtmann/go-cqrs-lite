@@ -78,7 +78,12 @@ func main() {
 
 	todoID := id.NewAggregateID()
 
-	if err := repo.Execute(ctx, todoID, aggregateType, decideCreate(todoID, "Buy milk")); err != nil {
+	if err := repo.Execute(
+		ctx,
+		todoID,
+		aggregateType,
+		decideCreate(todoID, "Buy milk"),
+	); err != nil {
 		log.Fatalf("create todo: %v", err)
 	}
 

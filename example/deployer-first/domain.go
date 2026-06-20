@@ -144,7 +144,12 @@ func decideDelete(aggID id.AggregateID, reason string) DecideFunc {
 		// OnTombstone handles this — no hard delete.
 		marked, markErr := event.MarkTombstone(evt)
 		if markErr != nil {
-			return nil, event.Newf(event.Infrastructure, "todo.delete.2", "mark tombstone: %v", markErr)
+			return nil, event.Newf(
+				event.Infrastructure,
+				"todo.delete.2",
+				"mark tombstone: %v",
+				markErr,
+			)
 		}
 
 		return []event.Event{marked}, nil
