@@ -15,8 +15,11 @@ import (
 func buildTestMessage(evt event.Event, eventType string) *message.Message {
 	msg := message.NewMessage(evt.ID().String(), evt.Payload())
 	msg.Metadata.Set("event_type", eventType)
+	msg.Metadata.Set("event_id", evt.ID().String())
 	msg.Metadata.Set("aggregate_id", evt.AggregateID().String())
 	msg.Metadata.Set("aggregate_type", string(evt.AggregateType()))
+	msg.Metadata.Set("version", "1")
+	msg.Metadata.Set("schema_version", "1")
 
 	return msg
 }

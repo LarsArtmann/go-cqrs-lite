@@ -2,13 +2,11 @@ package stack
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/ThreeDotsLabs/watermill/message"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/kv/v2"
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v2"
 )
@@ -79,6 +77,7 @@ func (m *Materialize[V, K]) HandlerFunc() message.NoPublishHandlerFunc {
 
 		// Decode using the canonical watermill protocol.
 		topic := msg.Metadata.Get("event_type")
+
 		evt, err := cqrswatermill.MessageToEvent(topic, msg)
 		if err != nil {
 			return fmt.Errorf("materialize: decode message: %w", err)

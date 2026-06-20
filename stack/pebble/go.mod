@@ -8,8 +8,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/readmodel/v2 v2.0.0-20260620021809-ccb97a3c2b59
-	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-20260620021809-ccb97a3c2b59
+	github.com/larsartmann/go-cqrs-lite/readmodel/v2 v2.0.0-20260620040254-bdb6efd89733
+	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-20260620040254-bdb6efd89733
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v2 v2.6.0
 )
 
@@ -17,6 +17,7 @@ require (
 	github.com/DataDog/zstd v1.5.7 // indirect
 	github.com/ThreeDotsLabs/watermill v1.5.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cockroachdb/errors v1.14.0 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240816210425-c5d0cb0b6fc0 // indirect
@@ -43,6 +44,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/watermill/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-error-family v0.4.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
@@ -58,6 +60,7 @@ require (
 	github.com/rogpeppe/go-internal v1.15.0 // indirect
 	github.com/samber/lo v1.53.0 // indirect
 	github.com/samber/ro v0.3.0 // indirect
+	github.com/sony/gobreaker v1.0.0 // indirect
 	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect

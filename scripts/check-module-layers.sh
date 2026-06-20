@@ -24,7 +24,7 @@ LAYER[decider]=3
 LAYER[memory]=4
 LAYER[signing]=4
 LAYER[otel]=4
-LAYER[stack]=4
+LAYER[stack]=6
 LAYER[middleware]=5
 LAYER[storage]=5
 LAYER[projection]=5
@@ -32,13 +32,13 @@ LAYER[listing]=5
 LAYER[watermill]=5
 LAYER[storage/pebble]=5
 LAYER[storage/turso]=5
-LAYER[stack/memory]=5
-LAYER[stack/sqlite]=5
-LAYER[stack/pebble]=5
-LAYER[stack/postgres]=5
-LAYER[catalog]=6
-LAYER[integration]=6
-LAYER[stack/bench]=6
+LAYER[stack/memory]=6
+LAYER[stack/sqlite]=6
+LAYER[stack/pebble]=6
+LAYER[stack/postgres]=6
+LAYER[catalog]=7
+LAYER[integration]=7
+LAYER[stack/bench]=7
 
 # Some modules legitimately depend on test helpers (memory) or cross-cutting concerns (otel)
 # These are documented exceptions to the strict layer rules
