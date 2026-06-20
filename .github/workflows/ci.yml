@@ -60,21 +60,20 @@ jobs:
           - snapshot
           - codec
           - kv
-          - memory
+          - storage/memory
+          - storage/pebble
+          - storage/turso
           - catalog
           - middleware
           - integration
-          - projection
+          - transport/http
           - signing
           - storage
           - watermill
           - encryption
           - listing
           - otel
-          - pebble
-          - turso
-          - readmodel
-          - readmodel/cache
+          - testutil
           - stack
           - stack/memory
           - stack/sqlite
@@ -236,7 +235,7 @@ jobs:
 
       - name: Run gosec on core modules
         run: |
-          nix-shell -p gosec --run "gosec -fmt sarif -out gosec.sarif ./event/... ./command/... ./query/... ./decider/... ./storage/... ./middleware/... ./projection/... ./signing/... ./listing/..."
+          nix-shell -p gosec --run "gosec -fmt sarif -out gosec.sarif ./event/... ./command/... ./query/... ./decider/... ./storage/... ./middleware/... ./signing/... ./listing/... ./transport/http/..."
 
       - name: Upload SARIF to GitHub
         uses: github/codeql-action/upload-sarif@v3
