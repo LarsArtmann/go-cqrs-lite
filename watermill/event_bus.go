@@ -312,17 +312,24 @@ func (b *EventBus) ensureSubscriptionLocked() {
 
 				evt, decodeErr := MessageToEvent(b.topic, msg)
 				if decodeErr != nil {
+					// Decode failure is non-transient (same bytes → same error).
+					// Ack to prevent infinite retry loops, especially under
+					// BlockPublishUntilSubscriberAck which would deadlock.
 					b.logger.ErrorContext(b.subCtx, "watermill: decode message failed",
 						"error", decodeErr)
-					msg.Nack()
+					msg.Ack()
 
 					continue
 				}
 
 				if dispatchErr := b.dispatchLocal(b.subCtx, evt); dispatchErr != nil {
+					// Handler error is logged and Acked. Nack would cause GoChannel
+					// to retry the same message indefinitely (handler is deterministic),
+					// deadlocking under BlockPublishUntilSubscriberAck. Consumers who
+					// want retry semantics should wrap their handler with retry logic.
 					b.logger.ErrorContext(b.subCtx, "watermill: dispatch failed",
 						"event_type", evt.Type(), "error", dispatchErr)
-					msg.Nack()
+					msg.Ack()
 
 					continue
 				}

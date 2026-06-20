@@ -9,11 +9,10 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/kv/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/stack/memory/v2 v2.0.0-20260619055429-dbf63b8ae359
-	github.com/larsartmann/go-cqrs-lite/stack/pebble/v2 v2.0.0-20260620165220-989624d598a0
-	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-20260620165220-989624d598a0
+	github.com/larsartmann/go-cqrs-lite/stack/memory/v2 v2.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/stack/pebble/v2 v2.0.0-20260620182109-1d2f90e48542
+	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-20260620182109-1d2f90e48542
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 v2.6.0
 )
 
@@ -43,6 +42,7 @@ require (
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v2 v2.6.0 // indirect

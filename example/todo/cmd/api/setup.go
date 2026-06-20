@@ -17,7 +17,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/projections"
 	"github.com/larsartmann/go-cqrs-lite/kv/v2"
-	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 	cqrsPebble "github.com/larsartmann/go-cqrs-lite/stack/pebble/v2"
 	"github.com/larsartmann/go-cqrs-lite/stack/v2"
@@ -28,7 +27,6 @@ type app struct {
 	cmdDisp   *command.Dispatcher
 	queryDisp *query.Dispatcher
 	readModel domain.TodoReadModel
-	runner    *projection.Runner
 }
 
 func setupApp(ctx context.Context, logger *slog.Logger, dataDir string) (*app, error) {
@@ -47,8 +45,7 @@ func setupApp(ctx context.Context, logger *slog.Logger, dataDir string) (*app, e
 
 	readModel := newReadModelAdapter(rmStore)
 
-	runner, err := setupProjection(ctx, bundle, readModel, logger)
-	if err != nil {
+	if err := setupProjection(ctx, bundle, readModel, logger); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +56,6 @@ func setupApp(ctx context.Context, logger *slog.Logger, dataDir string) (*app, e
 		cmdDisp:   cmdDisp,
 		queryDisp: queryDisp,
 		readModel: readModel,
-		runner:    runner,
 	}, nil
 }
 
@@ -73,29 +69,16 @@ func setupBundle(dataDir string) (*stack.Bundle, error) {
 }
 
 func setupProjection(
-	ctx context.Context,
+	_ context.Context,
 	bundle *stack.Bundle,
 	readModel domain.TodoReadModel,
-	logger *slog.Logger,
-) (*projection.Runner, error) {
+	_ *slog.Logger,
+) error {
 	todoProjection := projections.NewTodoProjection(readModel)
 
-	runner, err := projection.NewRunner(bundle.Journal, bundle.Subscriber, bundle.CheckpointStore)
-	if err != nil {
-		return nil, event.Newf(event.Infrastructure, "todo.setup.projection", "create runner: %v", err)
-	}
-
-	if err := runner.Register(todoProjection); err != nil {
-		return nil, event.Newf(event.Infrastructure, "todo.setup.projection", "register projection: %v", err)
-	}
-
-	go func() {
-		if runErr := runner.Run(ctx); runErr != nil {
-			logger.Error("Projection runner stopped", slog.String("error", runErr.Error()))
-		}
-	}()
-
-	return runner, nil
+	return bundle.Subscriber.SubscribeAll(func(ctx context.Context, evt event.Event) error {
+		return todoProjection.Handle(ctx, evt)
+	})
 }
 
 func setupDispatchers(

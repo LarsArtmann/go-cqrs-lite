@@ -65,28 +65,6 @@ func writeQueryHandler(b *strings.Builder, e Entry) {
 	b.WriteString("}\n\n")
 }
 
-func writeEventHandler(b *strings.Builder, e Entry) {
-	fmt.Fprintf(
-		b,
-		"// Register%sHandler registers a typed projection handler for %s events.\n",
-		e.StructName,
-		e.CommandType,
-	)
-	fmt.Fprintf(
-		b,
-		"func Register%sHandler(b *projection.Builder, c codec.Codec, handler func(context.Context, %s) error) error {\n",
-		e.StructName,
-		e.StructName,
-	)
-	fmt.Fprintf(
-		b,
-		"\treturn projection.On[%s](b, event.Type(%q), c, handler)\n",
-		e.StructName,
-		e.CommandType,
-	)
-	b.WriteString("}\n\n")
-}
-
 func generate(pkg, genType string, entries []Entry) string {
 	spec := genSpecs[genType]
 

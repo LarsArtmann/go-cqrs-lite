@@ -2,19 +2,13 @@ package main
 
 import (
 	"context"
-	"log"
-	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/decider/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
-	"github.com/larsartmann/go-cqrs-lite/storage/memory/v2"
 )
-
-const runnerStartupDelay = 50 * time.Millisecond
 
 func registerCommandHandlers(
 	dispatcher *command.Dispatcher,
@@ -91,30 +85,14 @@ func registerQueryHandlers(
 }
 
 func registerProjection(
-	journal event.Journal,
-	bus event.Subscriber,
+	bus event.Bus,
 	readModel *ReadModelStore,
-) *projection.Runner {
-	checkpointStore := memory.NewMemoryCheckpointStore()
+) func() {
+	_ = bus.SubscribeAll(func(ctx context.Context, evt event.Event) error {
+		return readModel.Handle(ctx, evt)
+	})
 
-	runner, err := projection.NewRunner(journal, bus, checkpointStore)
-	if err != nil {
-		log.Fatalf("create projection runner: %v", err)
-	}
-
-	if err := runner.Register(readModel); err != nil {
-		log.Fatalf("register projection: %v", err)
-	}
-
-	go func() {
-		if runErr := runner.Run(context.Background()); runErr != nil {
-			log.Printf("projection runner stopped: %v", runErr)
-		}
-	}()
-
-	time.Sleep(runnerStartupDelay) // let runner subscribe before events flow
-
-	return runner
+	return func() {}
 }
 
 func trackPublishedEvents(bus event.Bus, published *[]event.Event) {

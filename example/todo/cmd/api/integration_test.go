@@ -18,7 +18,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/projections"
 	"github.com/larsartmann/go-cqrs-lite/kv/v2"
-	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 	cqrsmemory "github.com/larsartmann/go-cqrs-lite/stack/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/stack/v2"
@@ -47,17 +46,9 @@ func setupTestMux(t *testing.T) *http.ServeMux {
 	eventStore := bundle.EventSink.(event.Store)
 
 	todoProjection := projections.NewTodoProjection(readModelStore)
-
-	runner, err := projection.NewRunner(bundle.Journal, bundle.Subscriber, bundle.CheckpointStore)
-	if err != nil {
-		t.Fatalf("create runner: %v", err)
-	}
-	if err := runner.Register(todoProjection); err != nil {
-		t.Fatalf("register projection: %v", err)
-	}
-	go func() {
-		_ = runner.Run(context.Background())
-	}()
+	_ = bundle.Subscriber.SubscribeAll(func(ctx context.Context, evt event.Event) error {
+		return todoProjection.Handle(ctx, evt)
+	})
 
 	cmdDisp := command.NewDispatcher()
 	queryDisp := query.NewDispatcher()

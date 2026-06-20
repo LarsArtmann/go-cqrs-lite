@@ -618,8 +618,8 @@ func TestGenerate_Event(t *testing.T) {
 
 	code := generate("handlers", "event", entries)
 
-	if !strings.Contains(code, "github.com/larsartmann/go-cqrs-lite/projection/v2") {
-		t.Error("missing projection import")
+	if !strings.Contains(code, "github.com/larsartmann/go-cqrs-lite/event/v2") {
+		t.Error("missing event import")
 	}
 
 	if !strings.Contains(code, "github.com/larsartmann/go-cqrs-lite/codec/v2") {
@@ -634,8 +634,8 @@ func TestGenerate_Event(t *testing.T) {
 		t.Error("handler should accept typed payload")
 	}
 
-	if !strings.Contains(code, "projection.On[UserCreatedPayload]") {
-		t.Error("should call projection.On[UserCreatedPayload]")
+	if !strings.Contains(code, "bus.Subscribe(event.Type") {
+		t.Error("should call bus.Subscribe with event type")
 	}
 
 	if !strings.Contains(code, `event.Type("UserCreated")`) {
