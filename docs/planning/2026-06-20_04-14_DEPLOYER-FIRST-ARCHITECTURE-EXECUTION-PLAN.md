@@ -135,54 +135,54 @@ turso/   → storage/turso/    (module path: storage/turso/v2)
 
 The decisions and quick wins that unlock everything else. Most are non-breaking.
 
-| #   | Task                                                                                                     | Effort | Why 51%                                                       | Status |
-| --- | -------------------------------------------------------------------------------------------------------- | ------ | ------------------------------------------------------------- | ------ |
-| 1   | Write 5 ADRs (Watermill, storage consolidation, projection dissolution, Metadata split, readmodel merge) | 45 min | Decisions that clarify direction, unblock all subsequent work | ✅ Done |
+| #   | Task                                                                                                     | Effort | Why 51%                                                       | Status                                                     |
+| --- | -------------------------------------------------------------------------------------------------------- | ------ | ------------------------------------------------------------- | ---------------------------------------------------------- |
+| 1   | Write 5 ADRs (Watermill, storage consolidation, projection dissolution, Metadata split, readmodel merge) | 45 min | Decisions that clarify direction, unblock all subsequent work | ✅ Done                                                    |
 | 2   | Fix `omitempty` on Metadata ID fields + `maps.Copy` lint + stack error classification                    | 20 min | 3 trivial fixes, outsized JSON/correctness impact             | ✅ Done (maps.Copy only; omitempty+stack honestly skipped) |
-| 3   | Make Publisher optional in Decider (nil = skip publish)                                                  | 15 min | Unlocks pure-ES mode (no bus needed)                          | ✅ Done |
-| 4   | Clean event/go.mod — move test-only siblings to indirect                                                 | 30 min | Kills "hub" perception permanently                            | ✅ Done (per ADR-0014, already clean) |
+| 3   | Make Publisher optional in Decider (nil = skip publish)                                                  | 15 min | Unlocks pure-ES mode (no bus needed)                          | ✅ Done                                                    |
+| 4   | Clean event/go.mod — move test-only siblings to indirect                                                 | 30 min | Kills "hub" perception permanently                            | ✅ Done (per ADR-0014, already clean)                      |
 
 ### 4% Effort → 64% Value (Type Model + Structural Additions)
 
 Additive changes that improve type safety without breaking existing consumers.
 
-| #   | Task                                                | Effort | Reuse from                                          | Status |
-| --- | --------------------------------------------------- | ------ | --------------------------------------------------- | ------ |
-| 5   | Extract `Tracing` struct from `event.Metadata`      | 45 min | Existing fields, just extracted                     | ✅ Done (JSON shape preserved) |
+| #   | Task                                                | Effort | Reuse from                                          | Status                               |
+| --- | --------------------------------------------------- | ------ | --------------------------------------------------- | ------------------------------------ |
+| 5   | Extract `Tracing` struct from `event.Metadata`      | 45 min | Existing fields, just extracted                     | ✅ Done (JSON shape preserved)       |
 | 6   | Add `TombstoneMark` typed field to Metadata         | 30 min | `event.TombstoneStatus` already exists as iota enum | ✅ Done (typed + Custom back-compat) |
-| 7   | Add `Causation` typed struct to Metadata            | 30 min | `event.causalityCtx` fields already exist           | ✅ Done (uses id.CommandID) |
-| 8   | Evolve `Decider[State, Cmd]` (alongside existing)   | 60 min | Existing `Decider[State]` + `DecideFunc`            | ✅ Done (TypedDecider[State,Cmd]) |
-| 9   | Merge `readmodel.Store[T,K]` → `kv.TypedStore[T,K]` | 60 min | `readmodel/store.go` (159 LOC) moves verbatim       | ✅ Done |
-| 10  | Merge `readmodel/cache` → `kv.Cache[T,K]`           | 45 min | `readmodel/cache/cached_store.go` (173 LOC) moves   | ✅ Done |
+| 7   | Add `Causation` typed struct to Metadata            | 30 min | `event.causalityCtx` fields already exist           | ✅ Done (uses id.CommandID)          |
+| 8   | Evolve `Decider[State, Cmd]` (alongside existing)   | 60 min | Existing `Decider[State]` + `DecideFunc`            | ✅ Done (TypedDecider[State,Cmd])    |
+| 9   | Merge `readmodel.Store[T,K]` → `kv.TypedStore[T,K]` | 60 min | `readmodel/store.go` (159 LOC) moves verbatim       | ✅ Done                              |
+| 10  | Merge `readmodel/cache` → `kv.Cache[T,K]`           | 45 min | `readmodel/cache/cached_store.go` (173 LOC) moves   | ✅ Done                              |
 
 ### 20% Effort → 80% Value (New Infrastructure + Moves)
 
 The big structural changes — new delivery layer, materialization API, storage consolidation.
 
-| #   | Task                                                                                 | Effort | Reuse from                                                                            | Status |
-| --- | ------------------------------------------------------------------------------------ | ------ | ------------------------------------------------------------------------------------- | ------ |
-| 11  | Build `CatchUpSubscriber` (Watermill `message.Subscriber` impl)                      | 90 min | `projection/runner.go` replay loop (356 LOC), checkpoint logic                        | ✅ Done (checkpoint save fixed post-review) |
-| 12  | Build `stack.Materialize[V,K]` API (OnCreate/OnUpdate/OnTombstone/OnRebirth/OnEvent) | 90 min | `projection/builder.go` On[T] (100 LOC), `projection/handler.go` (97 LOC)             | ✅ Done (uses watermill.MessageToEvent) |
-| 13  | Build Watermill bidirectional adapter (cqrs ↔ message)                               | 90 min | Existing `watermill/protocol.go`, `watermill/publisher.go`, `watermill/subscriber.go` | ✅ Done |
-| 14  | Add `query.AuditMiddleware` (Off/Metadata/Full)                                      | 45 min | Mirror `command.Store` pattern                                                        | ✅ Done |
-| 15  | Build multi-DB SQLite preset (WithEventDB/WithQueryDB/WithViewDB)                    | 90 min | Existing `stack/sqlite/preset.go` (171 LOC)                                           | ✅ Done |
-| 16  | Move `pebble/` → `storage/pebble/` (subpath module)                                  | 60 min | `git mv` + import path update across workspace                                        | ✅ Done (files restored post-corruption) |
-| 17  | Move `turso/` → `storage/turso/` (subpath module)                                    | 45 min | Same pattern as pebble                                                                | ✅ Done (files restored post-corruption) |
+| #   | Task                                                                                 | Effort | Reuse from                                                                            | Status                                                                |
+| --- | ------------------------------------------------------------------------------------ | ------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 11  | Build `CatchUpSubscriber` (Watermill `message.Subscriber` impl)                      | 90 min | `projection/runner.go` replay loop (356 LOC), checkpoint logic                        | ✅ Done (checkpoint save fixed post-review)                           |
+| 12  | Build `stack.Materialize[V,K]` API (OnCreate/OnUpdate/OnTombstone/OnRebirth/OnEvent) | 90 min | `projection/builder.go` On[T] (100 LOC), `projection/handler.go` (97 LOC)             | ✅ Done (uses watermill.MessageToEvent)                               |
+| 13  | Build Watermill bidirectional adapter (cqrs ↔ message)                               | 90 min | Existing `watermill/protocol.go`, `watermill/publisher.go`, `watermill/subscriber.go` | ✅ Done                                                               |
+| 14  | Add `query.AuditMiddleware` (Off/Metadata/Full)                                      | 45 min | Mirror `command.Store` pattern                                                        | ✅ Done                                                               |
+| 15  | Build multi-DB SQLite preset (WithEventDB/WithQueryDB/WithViewDB)                    | 90 min | Existing `stack/sqlite/preset.go` (171 LOC)                                           | ✅ Done                                                               |
+| 16  | Move `pebble/` → `storage/pebble/` (subpath module)                                  | 60 min | `git mv` + import path update across workspace                                        | ✅ Done (files restored post-corruption)                              |
+| 17  | Move `turso/` → `storage/turso/` (subpath module)                                    | 45 min | Same pattern as pebble                                                                | ✅ Done (files restored post-corruption)                              |
 | 18  | Move indexing advisor → `storage/sql/indexing/`                                      | 30 min | `turso/indexing/` (advisor.go, auto.go)                                               | ❌ Skipped (storage/sql is not a module; indexing belongs with turso) |
-| 19  | Split `memory/` stores → `storage/memory/`, kill bus impls                           | 60 min | `memory/store.go` etc. move; `memory/bus.go` (390 LOC) dies                           | ⏸ Deferred (73 importers; needs T25 first) |
+| 19  | Split `memory/` stores → `storage/memory/`, kill bus impls                           | 60 min | `memory/store.go` etc. move; `memory/bus.go` (390 LOC) dies                           | ⏸ Deferred (73 importers; needs T25 first)                            |
 
 ### Remaining 80% Effort → Last 20% Value (Hardening + Migrations)
 
 Polish, type-level enforcement, library migrations.
 
-| #   | Task                                                                            | Effort | Status |
-| --- | ------------------------------------------------------------------------------- | ------ | ------ |
-| 20  | `encoding/json/v2` migration (82 files)                                         | 60 min | ⏸ Deferred (requires GOEXPERIMENT=jsonv2, experimental) |
-| 21  | Fix `IsDuplicateKeyError` to use typed error codes                              | 45 min | ✅ Done (PG SQLSTATE 23505 + SQLite code 2067) |
+| #   | Task                                                                            | Effort | Status                                                      |
+| --- | ------------------------------------------------------------------------------- | ------ | ----------------------------------------------------------- |
+| 20  | `encoding/json/v2` migration (82 files)                                         | 60 min | ⏸ Deferred (requires GOEXPERIMENT=jsonv2, experimental)     |
+| 21  | Fix `IsDuplicateKeyError` to use typed error codes                              | 45 min | ✅ Done (PG SQLSTATE 23505 + SQLite code 2067)              |
 | 22  | Add dependency-budget CI check                                                  | 30 min | ✅ Done (script already existed; updated paths + kv budget) |
-| 23  | sqlc Phase 1: Extract DDL to `.sql` + `//go:embed`                              | 90 min | ✅ Done (storage/sql/migrations/ + schema_embed.go) |
-| 24  | `Version` → `uint64`, `SchemaVersion` → `uint32`                                | 60 min | ⏸ Deferred (156 files; v3 boundary) |
-| 25  | Delete ghost code (MemoryBus, PostgresBus, reactive EventBus) — **v3 boundary** | 45 min | ⏸ Deferred (4 presets still use memory.NewMemoryBus) |
+| 23  | sqlc Phase 1: Extract DDL to `.sql` + `//go:embed`                              | 90 min | ✅ Done (storage/sql/migrations/ + schema_embed.go)         |
+| 24  | `Version` → `uint64`, `SchemaVersion` → `uint32`                                | 60 min | ⏸ Deferred (156 files; v3 boundary)                         |
+| 25  | Delete ghost code (MemoryBus, PostgresBus, reactive EventBus) — **v3 boundary** | 45 min | ⏸ Deferred (4 presets still use memory.NewMemoryBus)        |
 
 ---
 
@@ -190,31 +190,31 @@ Polish, type-level enforcement, library migrations.
 
 > Each task is 15–100 min. Sorted by **customer value first**, then impact, then effort.
 
-| Priority | ID  | Task                                          | Phase | Impact   | Effort | Breaking?        | Depends on    | Status |
-| -------- | --- | --------------------------------------------- | ----- | -------- | ------ | ---------------- | ------------- | ------ |
-| 🔴 P0    | T01 | Write 5 ADRs                                  | 1%    | Critical | 45 min | No               | —             | ✅ Done |
-| 🔴 P0    | T02 | Fix omitempty + lint + stack errors           | 1%    | High     | 20 min | No               | —             | ✅ Done |
-| 🔴 P0    | T03 | Make Publisher optional in Decider            | 1%    | High     | 15 min | No               | —             | ✅ Done |
-| 🔴 P0    | T04 | Clean event/go.mod hygiene                    | 1%    | High     | 30 min | No               | —             | ✅ Done |
-| 🟠 P1    | T05 | Extract Tracing struct from Metadata          | 4%    | High     | 45 min | No               | —             | ✅ Done |
-| 🟠 P1    | T06 | Add TombstoneMark typed field                 | 4%    | High     | 30 min | No               | T05           | ✅ Done |
-| 🟠 P1    | T07 | Add Causation typed struct                    | 4%    | Medium   | 30 min | No               | T05           | ✅ Done |
-| 🟠 P1    | T08 | Evolve Decider[State, Cmd]                    | 4%    | High     | 60 min | No (additive)    | —             | ✅ Done |
-| 🟠 P1    | T09 | Merge readmodel → kv.TypedStore               | 4%    | High     | 60 min | v3 import path   | —             | ✅ Done |
-| 🟠 P1    | T10 | Merge readmodel/cache → kv.Cache              | 4%    | Medium   | 45 min | v3 import path   | T09           | ✅ Done |
-| 🟡 P2    | T11 | Build CatchUpSubscriber                       | 20%   | Critical | 90 min | No (new code)    | T04           | ✅ Done |
-| 🟡 P2    | T12 | Build stack.Materialize[V,K]                  | 20%   | Critical | 90 min | No (new code)    | T09, T11      | ✅ Done |
-| 🟡 P2    | T13 | Watermill bidirectional adapter               | 20%   | High     | 90 min | No (new code)    | —             | ✅ Done |
-| 🟡 P2    | T14 | query.AuditMiddleware                         | 20%   | Medium   | 45 min | No               | —             | ✅ Done |
-| 🟡 P2    | T15 | Multi-DB SQLite preset                        | 20%   | High     | 90 min | No (additive)    | T09           | ✅ Done |
-| 🟡 P2    | T16 | Move pebble/ → storage/pebble/                | 20%   | Medium   | 60 min | v3 import path   | —             | ✅ Done |
-| 🟡 P2    | T17 | Move turso/ → storage/turso/                  | 20%   | Medium   | 45 min | v3 import path   | —             | ✅ Done |
+| Priority | ID  | Task                                          | Phase | Impact   | Effort | Breaking?        | Depends on    | Status     |
+| -------- | --- | --------------------------------------------- | ----- | -------- | ------ | ---------------- | ------------- | ---------- |
+| 🔴 P0    | T01 | Write 5 ADRs                                  | 1%    | Critical | 45 min | No               | —             | ✅ Done    |
+| 🔴 P0    | T02 | Fix omitempty + lint + stack errors           | 1%    | High     | 20 min | No               | —             | ✅ Done    |
+| 🔴 P0    | T03 | Make Publisher optional in Decider            | 1%    | High     | 15 min | No               | —             | ✅ Done    |
+| 🔴 P0    | T04 | Clean event/go.mod hygiene                    | 1%    | High     | 30 min | No               | —             | ✅ Done    |
+| 🟠 P1    | T05 | Extract Tracing struct from Metadata          | 4%    | High     | 45 min | No               | —             | ✅ Done    |
+| 🟠 P1    | T06 | Add TombstoneMark typed field                 | 4%    | High     | 30 min | No               | T05           | ✅ Done    |
+| 🟠 P1    | T07 | Add Causation typed struct                    | 4%    | Medium   | 30 min | No               | T05           | ✅ Done    |
+| 🟠 P1    | T08 | Evolve Decider[State, Cmd]                    | 4%    | High     | 60 min | No (additive)    | —             | ✅ Done    |
+| 🟠 P1    | T09 | Merge readmodel → kv.TypedStore               | 4%    | High     | 60 min | v3 import path   | —             | ✅ Done    |
+| 🟠 P1    | T10 | Merge readmodel/cache → kv.Cache              | 4%    | Medium   | 45 min | v3 import path   | T09           | ✅ Done    |
+| 🟡 P2    | T11 | Build CatchUpSubscriber                       | 20%   | Critical | 90 min | No (new code)    | T04           | ✅ Done    |
+| 🟡 P2    | T12 | Build stack.Materialize[V,K]                  | 20%   | Critical | 90 min | No (new code)    | T09, T11      | ✅ Done    |
+| 🟡 P2    | T13 | Watermill bidirectional adapter               | 20%   | High     | 90 min | No (new code)    | —             | ✅ Done    |
+| 🟡 P2    | T14 | query.AuditMiddleware                         | 20%   | Medium   | 45 min | No               | —             | ✅ Done    |
+| 🟡 P2    | T15 | Multi-DB SQLite preset                        | 20%   | High     | 90 min | No (additive)    | T09           | ✅ Done    |
+| 🟡 P2    | T16 | Move pebble/ → storage/pebble/                | 20%   | Medium   | 60 min | v3 import path   | —             | ✅ Done    |
+| 🟡 P2    | T17 | Move turso/ → storage/turso/                  | 20%   | Medium   | 45 min | v3 import path   | —             | ✅ Done    |
 | 🟡 P2    | T18 | Move indexing advisor → storage/sql/indexing/ | 20%   | Low      | 30 min | v3 import path   | T17           | ❌ Skipped |
 | 🟡 P2    | T19 | Split memory/ → storage/memory/ + kill buses  | 20%   | Medium   | 60 min | v3 import path   | T11, T13      | ⏸ Deferred |
 | 🟢 P3    | T20 | encoding/json/v2 migration                    | Rest  | Medium   | 60 min | No (compatible)  | —             | ⏸ Deferred |
-| 🟢 P3    | T21 | Fix IsDuplicateKeyError typed codes           | Rest  | Medium   | 45 min | No               | —             | ✅ Done |
-| 🟢 P3    | T22 | Dependency-budget CI                          | Rest  | Low      | 30 min | No               | T04           | ✅ Done |
-| 🟢 P3    | T23 | sqlc Phase 1: DDL extraction                  | Rest  | Medium   | 90 min | No               | —             | ✅ Done |
+| 🟢 P3    | T21 | Fix IsDuplicateKeyError typed codes           | Rest  | Medium   | 45 min | No               | —             | ✅ Done    |
+| 🟢 P3    | T22 | Dependency-budget CI                          | Rest  | Low      | 30 min | No               | T04           | ✅ Done    |
+| 🟢 P3    | T23 | sqlc Phase 1: DDL extraction                  | Rest  | Medium   | 90 min | No               | —             | ✅ Done    |
 | 🟢 P3    | T24 | Version → uint64, SchemaVersion → uint32      | Rest  | Medium   | 60 min | v3 (type change) | —             | ⏸ Deferred |
 | 🟢 P3    | T25 | Delete ghost code (buses, reactive)           | Rest  | Low      | 45 min | v3 (deletion)    | T11, T13, T19 | ⏸ Deferred |
 
