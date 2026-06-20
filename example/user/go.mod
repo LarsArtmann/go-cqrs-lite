@@ -70,4 +70,5 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/signing/v2 => ../../signing
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../../snapshot
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 => ../../storage/memory
+	github.com/larsartmann/go-cqrs-lite/watermill/v2 => ../../watermill
 )

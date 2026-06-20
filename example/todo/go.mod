@@ -12,8 +12,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/stack/memory/v2 v2.0.0-20260619055429-dbf63b8ae359
-	github.com/larsartmann/go-cqrs-lite/stack/pebble/v2 v2.0.0-20260620153808-11056d4a2943
-	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-20260620153808-11056d4a2943
+	github.com/larsartmann/go-cqrs-lite/stack/pebble/v2 v2.0.0-20260620165220-989624d598a0
+	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-20260620165220-989624d598a0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 v2.6.0
 )
 

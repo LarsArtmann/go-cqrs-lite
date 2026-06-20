@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/kv/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 v2.5.0
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 v2.6.0
 )
 
 require (
@@ -68,4 +68,5 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../../snapshot
 	github.com/larsartmann/go-cqrs-lite/stack/v2 => ..
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 => ../../storage/memory
+	github.com/larsartmann/go-cqrs-lite/watermill/v2 => ../../watermill
 )
