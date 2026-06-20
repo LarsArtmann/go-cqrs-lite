@@ -18,13 +18,14 @@ All breaking changes have been prepared additively in v2 — the v2 types consum
 | #   | Breaking Change                     | ADR                                                       | Status               |
 | --- | ----------------------------------- | --------------------------------------------------------- | -------------------- |
 | 1   | Delete ghost bus code (923 LOC)     | [0028](docs/adr/0028-watermill-as-delivery-layer.md)      | Deprecated in v2     |
-| 2   | Move memory/ → storage/memory/      | [0029](docs/adr/0029-storage-consolidation.md)            | Planned              |
-| 3   | Version → uint64                    | —                                                         | Planned              |
-| 4   | Break Metadata alias                | [0031](docs/adr/0031-metadata-split.md)                   | Planned              |
-| 5   | Remove io.Closer from interfaces    | [0010](docs/adr/0010-remove-io-closer-from-interfaces.md) | Planned              |
-| 6   | Delete readmodel/ (merged into kv/) | [0032](docs/adr/0032-merge-readmodel-into-kv.md)          | Planned              |
-| 7   | Move HTTP → transport/              | [0025](docs/adr/0025-transport-adapter-strategy.md)       | Planned              |
-| 8   | query.Handler: any → generic        | [0008](docs/adr/0008-typed-handler-signature.md)          | TypedHandler shipped |
+| 2   | Move memory/ → storage/memory/      | [0029](docs/adr/0029-storage-consolidation.md)            | Done                |
+| 3   | Version → uint64                    | —                                                         | Done                |
+| 4   | Break Metadata alias                | [0031](docs/adr/0031-metadata-split.md)                   | Planned             |
+| 5   | Remove io.Closer from interfaces    | [0010](docs/adr/0010-remove-io-closer-from-interfaces.md) | Planned             |
+| 6   | Delete readmodel/ (merged into kv/) | [0032](docs/adr/0032-merge-readmodel-into-kv.md)          | Done                |
+| 7   | Delete projection/ (composable stack replaces it) | [0030](docs/adr/0030-dissolve-projection.md)   | In progress         |
+| 8   | Move HTTP → transport/              | [0025](docs/adr/0025-transport-adapter-strategy.md)       | Planned             |
+| 9   | query.Handler: any → generic        | [0008](docs/adr/0008-typed-handler-signature.md)          | TypedHandler shipped |
 
 ### Transport Adapters (ADR-0025)
 
@@ -77,6 +78,7 @@ All breaking changes have been prepared additively in v2 — the v2 types consum
 
 - Event stream compaction / log truncation strategies
 - Multi-tenant event store (schema-per-tenant)
+- Distributed projection runner (leader election, multi-node coordination) — single-machine is sufficient for now; ROADMAP item with no deadline
 - Event archival to S3 / GCS / Azure Blob
 - CQRS-lite dashboard (web UI for inspecting aggregates, events, projections)
 - Automatic migration generator for schema evolution
@@ -85,4 +87,4 @@ All breaking changes have been prepared additively in v2 — the v2 types consum
 
 ---
 
-_Last updated: 2026-06-20 — v3 breaking changes documented in V3_MIGRATION.md, stale docs pruned (612→61 .md files)._
+_Last updated: 2026-06-20 — projection/ dissolution in progress (ADR-0030). Distributed projection is a ROADMAP item with no deadline._
