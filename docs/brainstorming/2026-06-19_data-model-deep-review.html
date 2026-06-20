@@ -692,9 +692,10 @@
           <a href="#theme-g" class="sub">G · Packaging</a>
           <a href="#redesign">§06 The Redesign</a>
           <a href="#rd-tree" class="sub">Module Tree</a>
-          <a href="#rd-delivery" class="sub">Watermill</a>
+          <a href="#rd-delivery" class="sub">Delivery + CatchUp</a>
           <a href="#rd-materialize" class="sub">Materialize</a>
           <a href="#rd-metadata" class="sub">Metadata Split</a>
+          <a href="#rd-libraries" class="sub">Library Choices</a>
           <a href="#deployer-api">§07 Deployer vs Consumer</a>
           <a href="#validation">§08 Validation Layer</a>
           <a href="#decisions">§09 Decision Log</a>
@@ -1160,11 +1161,22 @@
               <span class="node node-good">Watermill Router</span>
               <span class="arrow">+ leader election plugin</span>
             </div>
+            <div class="callout callout-warning">
+              <strong>Correction (after deep research):</strong> Watermill does NOT have built-in
+              replay/catch-up. It has no checkpoint store, no journal replay, no "catch up then
+              switch to live." What it DOES have: retry middleware, poison queue (DLQ),
+              deduplicator, same handler for in-process + broker. The replay problem is ours to
+              solve — but it's not hard. See <a href="#rd-delivery">§06 → CatchUpSubscriber</a> for
+              the ~300 LOC design based on Watermill's own FanOut pattern.
+            </div>
             <div class="callout callout-problem">
-              <strong>What dies:</strong> The entire <code>projection/</code> module. Replay logic →
-              Watermill catch-up plugin. Checkpoint → Watermill middleware. DLQ → Watermill poison
-              queue (already built, better than our fire-and-forget callback). Handler registration
-              → standard Watermill handler. ~1500 LOC of parallel delivery machinery → gone.
+              <strong>What dies:</strong> <code>projection.Runner</code>'s internal
+              live-subscription loop, its hand-rolled dedup, its fire-and-forget DLQ, its middleware
+              chain, its DistributedRunner. ~1200 LOC replaced by Watermill middleware. What STAYS
+              as new code: a ~300 LOC <code>CatchUpSubscriber</code> (Watermill
+              <code>message.Subscriber</code> impl) that does replay→live handoff. Net:
+              <strong>~900 LOC deleted</strong>, and the DLQ becomes durable (Watermill's
+              <code>PoisonQueue</code> middleware).
             </div>
           </div>
 
@@ -1312,28 +1324,147 @@
             <span class="unwanted">turso/</span> ← MOVED to storage/turso/
           </div>
 
-          <h3 id="rd-delivery">Delivery = Watermill (One Layer, Not Five)</h3>
+          <h3 id="rd-delivery">Delivery = Watermill + CatchUpSubscriber (~300 LOC)</h3>
           <p>
-            The <code>watermill/</code> adapter becomes <strong>bidirectional</strong> — cqrs events
-            go into Watermill, Watermill messages come back as cqrs events:
+            Deep research into Watermill's actual capabilities revealed a critical correction to
+            v3's first draft. Watermill <strong>does not</strong> have built-in replay/catch-up. The
+            honest split between "what Watermill gives us" and "what we must build" is:
           </p>
-          <pre><code><span class="tok-comment">// watermill/ — bidirectional adapters</span>
-
-<span class="tok-comment">// cqrs → Watermill: event.Publisher backed by Watermill</span>
-<span class="tok-keyword">func</span> <span class="tok-func">NewPublisher</span>(<span class="tok-generic">pub</span> <span class="tok-generic">message.Publisher</span>, <span class="tok-generic">topic</span> <span class="tok-type">string</span>, <span class="tok-generic">c</span> <span class="tok-generic">codec.Codec</span>) <span class="tok-generic">event.Publisher</span>
-
-<span class="tok-comment">// The decider only needs event.Publisher (1 method). That stays.</span>
-<span class="tok-comment">// Everything else — Bus, Subscriber, Middleware, reactive — goes to Watermill.</span>
-<span class="tok-comment">// Consumers register handlers directly on the Watermill Router.</span></code></pre>
+          <table>
+            <thead>
+              <tr>
+                <th>Capability</th>
+                <th>Watermill HAS it?</th>
+                <th>Our solution</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Live delivery (in-process)</td>
+                <td class="yes">✅ gochannel pubsub</td>
+                <td>Use directly</td>
+              </tr>
+              <tr>
+                <td>Live delivery (broker)</td>
+                <td class="yes">✅ Kafka/NATS/SQL plugins</td>
+                <td>Use directly</td>
+              </tr>
+              <tr>
+                <td>Retry with backoff</td>
+                <td class="yes">✅ middleware.Retry</td>
+                <td>Use directly</td>
+              </tr>
+              <tr>
+                <td>Dead-letter / poison queue</td>
+                <td class="yes">✅ middleware.PoisonQueue</td>
+                <td>Use directly (replaces fire-and-forget callback)</td>
+              </tr>
+              <tr>
+                <td>Dedup</td>
+                <td class="yes">✅ middleware.Deduplicator</td>
+                <td>Use directly</td>
+              </tr>
+              <tr>
+                <td>Same handler for in-proc + broker</td>
+                <td class="yes">✅ HandlerFunc is pubsub-agnostic</td>
+                <td>Use directly</td>
+              </tr>
+              <tr>
+                <td><strong>Replay from journal</strong></td>
+                <td class="no">❌ No checkpoint, no journal, no seek</td>
+                <td><strong>CatchUpSubscriber (~300 LOC)</strong></td>
+              </tr>
+              <tr>
+                <td><strong>Catch-up → live handoff</strong></td>
+                <td class="no">❌ No phase-transition concept</td>
+                <td><strong>CatchUpSubscriber</strong></td>
+              </tr>
+              <tr>
+                <td>Leader election</td>
+                <td class="no">❌ No plugin shipped</td>
+                <td>Keep existing LeaderElection interface</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="callout callout-solution">
+            <strong>Watermill characteristics analysis — which matter for CQRS/ES?</strong
+            ><br /><br />
+            Watermill pub/sub implementations can declare: ConsumerGroups, ExactlyOnceDelivery,
+            GuaranteedOrder, Persistent. Only <strong>one</strong> matters for correctness:<br /><br />
+            <strong>GuaranteedOrder</strong> — ⚠️ <em>Within-aggregate</em> ordering matters (events
+            must fold in version order). Cross-aggregate doesn't. Kafka per-partition handles
+            this.<br />
+            <strong>ExactlyOnce</strong> — ❌ Projections must be idempotent by design.
+            At-least-once is the correct contract. Exactly-once is expensive and unnecessary.<br />
+            <strong>Persistent</strong> — ❌ The event store IS the persistent source of truth. The
+            bus is a notification. Lose the bus? Replay from the store. Bus persistence = wasted
+            writes.<br />
+            <strong>ConsumerGroups</strong> — ⚠️ For Kafka/NATS scaling. Single-writer
+            (LeaderElection) covers most cases.
+          </div>
+          <h4>The CatchUpSubscriber Design</h4>
           <p>
+            This is a known pattern — EventStoreDB calls it
+            <strong>"Catch-Up Subscription"</strong>. The implementation follows Watermill's own
+            <code>FanOut</code> architecture: a custom <code>message.Subscriber</code> that wraps an
+            internal GoChannel, first pumping historical events from the journal, then seamlessly
+            switching to live.
+          </p>
+          <div class="dep-tree">
+            <span class="root">CatchUpSubscriber</span> (implements message.Subscriber) │ ├──
+            <span class="ok">Subscribe(ctx, topic)</span> → returns ONE channel │ ├──
+            <span class="ok">Phase 1: REPLAY</span> │ ├── Load checkpoint from event.CheckpointStore
+            │ ├── SeekableJournal.ReadFrom(checkpoint.EventID, limit) │ ├── Set ProcessingMode =
+            ModeReplay in message metadata │ └── Pump events into internal GoChannel │ ├──
+            <span class="ok">Phase 2: LIVE (seamless handoff)</span>
+            │ ├── Record journal "head" (latest EventID) at replay start │ ├── Replay up to head,
+            then start live bus subscription │ ├── Dedup overlap via middleware.Deduplicator │ └──
+            Pump live events into same GoChannel │ └── Handler sees ONE channel — no phase awareness
+            needed
+
+            <span class="ok">Checkpoint middleware</span>: └── After each message.Ack() → save
+            EventID to CheckpointStore
+          </div>
+          <pre><code><span class="tok-comment">// watermill/catchup_subscriber.go — ~300 LOC, based on FanOut pattern</span>
+
+<span class="tok-keyword">type</span> <span class="tok-generic">CatchUpSubscriber</span> <span class="tok-keyword">struct</span> {
+    <span class="tok-generic">journal</span>    <span class="tok-generic">event.SeekableJournal</span>
+    <span class="tok-generic">live</span>       <span class="tok-generic">message.Subscriber</span>      <span class="tok-comment">// gochannel or Kafka/NATS</span>
+    <span class="tok-generic">checkpoint</span> <span class="tok-generic">event.CheckpointStore</span>
+    <span class="tok-generic">codec</span>      <span class="tok-generic">codec.Codec</span>
+}
+
+<span class="tok-comment">// Subscribe returns one channel: replay first, then live, seamlessly.</span>
+<span class="tok-comment">// Implements message.Subscriber — Watermill Router accepts it directly.</span>
+<span class="tok-keyword">func</span> (<span class="tok-generic">s</span> *<span class="tok-generic">CatchUpSubscriber</span>) <span class="tok-func">Subscribe</span>(<span class="tok-generic">ctx</span>, <span class="tok-generic">topic</span>) (&lt;-<span class="tok-keyword">chan</span> *<span class="tok-generic">message.Message</span>, <span class="tok-type">error</span>)
+<span class="tok-keyword">func</span> (<span class="tok-generic">s</span> *<span class="tok-generic">CatchUpSubscriber</span>) <span class="tok-func">Close</span>() <span class="tok-type">error</span>
+
+<span class="tok-comment">// Usage — identical to any Watermill subscriber:</span>
+<span class="tok-generic">sub</span> := <span class="tok-func">watermill.NewCatchUpSubscriber</span>(<span class="tok-generic">journal</span>, <span class="tok-generic">goChan</span>, <span class="tok-generic">cpStore</span>, <span class="tok-generic">codec.JSONCodec{}</span>)
+<span class="tok-generic">router</span>, <span class="tok-generic">_</span> := <span class="tok-generic">message</span>.<span class="tok-func">NewRouter</span>(<span class="tok-generic">message.RouterConfig</span>{}, <span class="tok-generic">logger</span>)
+<span class="tok-generic">router</span>.<span class="tok-func">AddMiddleware</span>(<span class="tok-generic">middleware.Retry</span>{...}.<span class="tok-func">Middleware</span>())
+<span class="tok-generic">router</span>.<span class="tok-func">AddMiddleware</span>(<span class="tok-generic">middleware.PoisonQueue</span>(<span class="tok-generic">pub</span>, <span class="tok-string">"dead_letters"</span>))
+<span class="tok-generic">router</span>.<span class="tok-func">AddHandler</span>(<span class="tok-string">"user-view"</span>, <span class="tok-string">"events"</span>, <span class="tok-generic">sub</span>, <span class="tok-string">"views"</span>, <span class="tok-generic">pub</span>, <span class="tok-generic">mat</span>.<span class="tok-func">HandlerFunc</span>())
+<span class="tok-generic">router</span>.<span class="tok-func">Run</span>(<span class="tok-generic">ctx</span>)  <span class="tok-comment">// blocks — handles replay, live, retry, DLQ, dedup, checkpoint</span></code></pre>
+          <div class="callout callout-solution">
             <strong>What dies:</strong> <code>event.Bus</code>, <code>event.Subscriber</code>,
             <code>event.Middleware</code>, <code>event.PublishMiddleware</code>,
             <code>event.EventBus</code> (reactive), <code>memory.MemoryBus</code>,
             <code>memory.MemoryCommandBus</code>, <code>storage.PostgresBus</code>,
-            <code>projection.Runner</code>, <code>projection.DistributedRunner</code>,
-            <code>projection.Builder</code>, <code>middleware/retry</code>,
-            <code>middleware/circuit_breaker</code>. ~2000 LOC of parallel delivery machinery
-            replaced by Watermill's battle-tested Router.
+            <code>projection.Runner</code>'s internal machinery,
+            <code>projection.DistributedRunner</code>, <code>projection.Builder</code>,
+            <code>middleware/retry</code>, <code>middleware/circuit_breaker</code>. ~1200 LOC of
+            parallel delivery machinery replaced by Watermill's battle-tested middleware + ~300 LOC
+            CatchUpSubscriber.
+          </div>
+          <p>
+            <strong>event.Publisher</strong> stays (1 method, decider needs it). The decider's
+            <code>Execute</code> currently hard-requires a non-nil Publisher (<code
+              >decider.go:60</code
+            >
+            returns <code>ErrNilPublisher</code>). A pure-ES consumer (no projections, no bus) is
+            forced to provide a no-op. <strong>Fix:</strong> Make Publisher optional via
+            <code>WithPublisher(nil)</code> — skip publish step when nil.
           </p>
 
           <h3 id="rd-materialize">Materialization = kv.TypedStore + Watermill Handler</h3>
@@ -1375,7 +1506,13 @@
 <span class="tok-comment">// mat.View(ctx, id) — typed read from kv.TypedStore</span>
 <span class="tok-comment">// mat.List(ctx, kv.IncludeTombstoned) — show all, with Status field</span>
 <span class="tok-comment">// mat.List(ctx, kv.ExcludeTombstoned) — hide deleted (the default)</span>
-<span class="tok-comment">// mat.List(ctx, kv.OnlyTombstoned)   — show only deleted</span></code></pre>
+<span class="tok-comment">// mat.List(ctx, kv.OnlyTombstoned)   — show only deleted</span>
+
+<span class="tok-comment">// Escape hatch for non-CRUD projections (counters, feeds, cross-aggregate):</span>
+<span class="tok-generic">mat</span>.<span class="tok-func">OnEvent</span>[<span class="tok-generic">LoginRecorded</span>](<span class="tok-string">"user.login"</span>, <span class="tok-keyword">func</span>(<span class="tok-generic">ctx</span>, <span class="tok-generic">evt</span> <span class="tok-generic">LoginRecorded</span>, <span class="tok-generic">store</span> *<span class="tok-generic">kv.TypedStore</span>[<span class="tok-generic">UserView</span>,<span class="tok-generic">UserID</span>]) <span class="tok-type">error</span> {
+    <span class="tok-comment">// arbitrary logic — increment counter, append to feed, update multiple keys</span>
+    <span class="tok-keyword">return</span> <span class="tok-type">nil</span>
+})</code></pre>
           <div class="callout callout-warning">
             <strong>No OnDelete. Ever.</strong>
             The event store has no Delete (ADR-0006) — hard-removing a materialized row would
@@ -1425,6 +1562,91 @@
 <span class="tok-keyword">type</span> <span class="tok-generic">Metadata</span> <span class="tok-keyword">struct</span> {
     <span class="tok-generic">event.Tracing</span>                   <span class="tok-comment">// embedded — no CausationID for queries!</span>
 }</code></pre>
+          <h3 id="rd-libraries">Library Choices — What to Adopt, What to Reject</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Library</th>
+                <th>Decision</th>
+                <th>Rationale</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Watermill</strong> (ThreeDotsLabs)</td>
+                <td class="yes">✅ ADOPT — delivery layer</td>
+                <td>
+                  Replaces 5 parallel bus impls. Router + gochannel + middleware suite (Retry,
+                  PoisonQueue, Deduplicator). Same handler for in-process + broker. We build
+                  CatchUpSubscriber on top (~300 LOC).
+                </td>
+              </tr>
+              <tr>
+                <td><strong>samber/ro</strong></td>
+                <td class="yes">✅ KEEP</td>
+                <td>
+                  5 production files use it (event/command/query reactive + projection live).
+                  Reactive streams are a separate programming model from the bus — not redundant.
+                </td>
+              </tr>
+              <tr>
+                <td><strong>go-ozzo/ozzo-validation</strong></td>
+                <td class="no">❌ REJECT</td>
+                <td>
+                  <strong>Last release: October 2020.</strong> Unmaintained for 5+ years. Only 99
+                  commits. 3.7× slower than go-playground (99 allocs vs 14). The
+                  samber/ozzo-validation fork exists but is a signal of abandonment. The
+                  programmatic API is elegant but the project is dead.
+                </td>
+              </tr>
+              <tr>
+                <td><strong>go-playground/validator</strong></td>
+                <td class="no">❌ REJECT</td>
+                <td>
+                  Banned by how-to-golang policy. Struct-tag based — can't validate third-party
+                  types. Also: domain validation is <em>consumer code</em>, not library code. Our
+                  <code>schema.Validator</code> just checks "does it decode?" — that's sufficient
+                  for the core.
+                </td>
+              </tr>
+              <tr>
+                <td><strong>sivchari/govalid</strong></td>
+                <td class="no">❌ NOT NEEDED</td>
+                <td>
+                  Compile-time zero-alloc validation. Impressive, but our validator doesn't do
+                  field-level rule validation — it just decodes. govalid's value (struct-tag rules
+                  generated at build time) isn't what this validator does.
+                </td>
+              </tr>
+              <tr>
+                <td><strong>encoding/json/v2</strong></td>
+                <td class="yes">✅ MIGRATE (v3)</td>
+                <td>
+                  Currently on v1 everywhere (82 files). v2 exists behind build tag only. Go 1.26
+                  supports v2 natively. Should be in the execution plan — one global find-replace of
+                  the import path.
+                </td>
+              </tr>
+              <tr>
+                <td><strong>sqlc</strong></td>
+                <td class="yes">✅ PHASE 1 ONLY</td>
+                <td>
+                  Extract DDL to <code>.sql</code> files + <code>//go:embed</code>. Kills the dual
+                  source of truth between Go string DDL and golden fixtures. Phase 2: convert static
+                  queries (snapshot, checkpoint, version-check). Dynamic WHERE loads + batch inserts
+                  stay hand-written. Repo already has analysis doc.
+                </td>
+              </tr>
+              <tr>
+                <td><strong>maypok86/otter/v2</strong></td>
+                <td class="yes">✅ ALREADY USED</td>
+                <td>
+                  readmodel/cache uses otter v2.3.0. Compliant with how-to-golang policy. No change
+                  needed — merges into kv.Cache[T,K].
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </section>
 
         <section id="deployer-api">
