@@ -27,7 +27,7 @@ func BenchmarkMustNew(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_ = querytest.MustNew("bench.query")
+		_ = querytest.New(b, "bench.query")
 	}
 }
 
@@ -45,7 +45,7 @@ func BenchmarkDispatchTyped(b *testing.B) {
 	}
 
 	ctx := context.Background()
-	q := querytest.MustNew("bench.query")
+	q := querytest.New(b, "bench.query")
 
 	b.ResetTimer()
 

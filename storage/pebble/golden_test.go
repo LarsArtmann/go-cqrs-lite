@@ -28,7 +28,7 @@ func TestGolden_EventStoreRoundTrip(t *testing.T) {
 	store := pb.NewStore(db, nil)
 	t.Cleanup(func() { _ = db.Close() })
 
-	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
 	ref := event.NewAggregateRef("Order", aggID)
 
 	types := []struct {
@@ -45,7 +45,7 @@ func TestGolden_EventStoreRoundTrip(t *testing.T) {
 	evts := make([]event.Event, len(types))
 
 	for i, tc := range types {
-		evtID := idtest.MustParseEventID("01HK1540X0841Y0A6BSX1VKR9" + string(rune('A'+i)))
+		evtID := idtest.ParseEventID(t, "01HK1540X0841Y0A6BSX1VKR9"+string(rune('A'+i)))
 
 		evt, err := event.NewEvent(
 			tc.typ, aggID, "Order", event.Version(tc.version),

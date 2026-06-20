@@ -49,7 +49,7 @@ func TestSQLSnapshotStore_Save(t *testing.T) {
 	s, mock := newTestSnapshotStore(t)
 
 	snap := snapshot.Snapshot{
-		AggregateID:   idtest.MustParseAggregateID("01HGW5FPJPYK5RE8ACZDesWMY2"),
+		AggregateID:   idtest.ParseAggregateID(t, "01HGW5FPJPYK5RE8ACZDesWMY2"),
 		AggregateType: "User",
 		Version:       event.Version(5),
 		State:         []byte(`{"name":"John"}`),
@@ -77,7 +77,7 @@ func TestSQLSnapshotStore_Save_Error(t *testing.T) {
 	s, mock := newTestSnapshotStore(t)
 
 	snap := snapshot.Snapshot{
-		AggregateID:   idtest.MustParseAggregateID("01HGW5FPJPYK5RE8ACZDesWMY2"),
+		AggregateID:   idtest.ParseAggregateID(t, "01HGW5FPJPYK5RE8ACZDesWMY2"),
 		AggregateType: "User",
 		Version:       event.Version(1),
 		State:         []byte(`{}`),
@@ -109,7 +109,7 @@ func TestSQLSnapshotStore_Load(t *testing.T) {
 	t.Parallel()
 
 	s, mock := newTestSnapshotStore(t)
-	aggID := idtest.MustParseAggregateID("01HGW5FPJPYK5RE8ACZDesWMY2")
+	aggID := idtest.ParseAggregateID(t, "01HGW5FPJPYK5RE8ACZDesWMY2")
 	createdAt := time.Now().UTC().Truncate(time.Millisecond)
 
 	expectSnapshotLoadRows(mock, aggID, "John", createdAt)
@@ -136,7 +136,7 @@ func TestSQLSnapshotStore_Load_NotFound(t *testing.T) {
 	t.Parallel()
 
 	s, mock := newTestSnapshotStore(t)
-	aggID := idtest.MustParseAggregateID("01HGW5FPJPYK5RE8ACZDesWMY2")
+	aggID := idtest.ParseAggregateID(t, "01HGW5FPJPYK5RE8ACZDesWMY2")
 
 	mock.ExpectQuery(`SELECT version, state, created_at FROM snapshots`).
 		WithArgs("User", aggID).
@@ -156,7 +156,7 @@ func TestSQLSnapshotStore_Load_QueryError(t *testing.T) {
 	t.Parallel()
 
 	s, mock := newTestSnapshotStore(t)
-	aggID := idtest.MustParseAggregateID("01HGW5FPJPYK5RE8ACZDesWMY2")
+	aggID := idtest.ParseAggregateID(t, "01HGW5FPJPYK5RE8ACZDesWMY2")
 
 	mock.ExpectQuery(`SELECT version, state, created_at FROM snapshots`).
 		WithArgs("User", aggID).
@@ -172,7 +172,7 @@ func TestSQLSnapshotStore_LoadAtVersion(t *testing.T) {
 	t.Parallel()
 
 	s, mock := newTestSnapshotStore(t)
-	aggID := idtest.MustParseAggregateID("01HGW5FPJPYK5RE8ACZDesWMY2")
+	aggID := idtest.ParseAggregateID(t, "01HGW5FPJPYK5RE8ACZDesWMY2")
 	createdAt := time.Now().UTC().Truncate(time.Millisecond)
 
 	expectSnapshotLoadAtVersion(t, mock, aggID, 5, "Jane", createdAt)
@@ -223,7 +223,7 @@ func TestSQLSnapshotStore_LoadAtVersion_NotFound(t *testing.T) {
 			t.Parallel()
 
 			s, mock := newTestSnapshotStore(t)
-			aggID := idtest.MustParseAggregateID("01HGW5FPJPYK5RE8ACZDesWMY2")
+			aggID := idtest.ParseAggregateID(t, "01HGW5FPJPYK5RE8ACZDesWMY2")
 
 			mock.ExpectQuery(`SELECT version, state, created_at FROM snapshots`).
 				WithArgs("User", aggID, tt.version.Int()).
@@ -249,7 +249,7 @@ func TestSQLSnapshotStore_Delete(t *testing.T) {
 	t.Parallel()
 
 	s, mock := newTestSnapshotStore(t)
-	aggID := idtest.MustParseAggregateID("01HGW5FPJPYK5RE8ACZDesWMY2")
+	aggID := idtest.ParseAggregateID(t, "01HGW5FPJPYK5RE8ACZDesWMY2")
 
 	mock.ExpectExec(`DELETE FROM snapshots`).
 		WithArgs("User", aggID).
@@ -265,7 +265,7 @@ func TestSQLSnapshotStore_Delete_Error(t *testing.T) {
 	t.Parallel()
 
 	s, mock := newTestSnapshotStore(t)
-	aggID := idtest.MustParseAggregateID("01HGW5FPJPYK5RE8ACZDesWMY2")
+	aggID := idtest.ParseAggregateID(t, "01HGW5FPJPYK5RE8ACZDesWMY2")
 
 	mock.ExpectExec(`DELETE FROM snapshots`).
 		WithArgs("User", aggID).

@@ -7,10 +7,10 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v2/querytest"
 )
 
-func TestMustNew_HappyPath(t *testing.T) {
+func TestNew_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	q := querytest.MustNew("user.get")
+	q := querytest.New(t, "user.get")
 	if q == nil {
 		t.Fatal("expected non-nil query")
 	}
@@ -18,27 +18,4 @@ func TestMustNew_HappyPath(t *testing.T) {
 	if q.Type() != query.Type("user.get") {
 		t.Fatalf("expected type %q, got %q", "user.get", q.Type())
 	}
-}
-
-func TestMustNew_PanicsOnEmptyType(t *testing.T) {
-	t.Parallel()
-
-	if !didPanic(func() { _ = querytest.MustNew("") }) {
-		t.Fatal("expected panic for empty query type")
-	}
-}
-
-func didPanic(fn func()) bool {
-	var panicked bool
-
-	func() {
-		defer func() {
-			if recover() != nil {
-				panicked = true
-			}
-		}()
-		fn()
-	}()
-
-	return panicked
 }

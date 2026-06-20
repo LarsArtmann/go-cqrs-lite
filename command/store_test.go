@@ -19,17 +19,19 @@ func parseCommandID(s string) id.CommandID {
 	return v
 }
 
-func validRef() command.AggregateRef {
+func validRef(tb testing.TB) command.AggregateRef {
+	tb.Helper()
+
 	return command.NewAggregateRef(
 		"User",
-		idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseAggregateID(tb, "01HK1540X0841Y0A6BSX1VKR95"),
 	)
 }
 
 func TestNewPersistedCommand_Success(t *testing.T) {
 	t.Parallel()
 
-	ref := validRef()
+	ref := validRef(t)
 	payload := []byte(`{"name":"Alice"}`)
 
 	cmd, err := command.NewPersistedCommand("CreateUser", ref, payload)
@@ -76,7 +78,7 @@ func TestNewPersistedCommand_Success(t *testing.T) {
 func TestNewPersistedCommand_PayloadIsolation(t *testing.T) {
 	t.Parallel()
 
-	ref := validRef()
+	ref := validRef(t)
 	payload := []byte(`{"name":"Alice"}`)
 
 	cmd, err := command.NewPersistedCommand("CreateUser", ref, payload)
@@ -102,7 +104,7 @@ func TestNewPersistedCommand_PayloadIsolation(t *testing.T) {
 func TestNewPersistedCommand_MetadataIsolation(t *testing.T) {
 	t.Parallel()
 
-	ref := validRef()
+	ref := validRef(t)
 	meta := command.NewMetadata()
 	command.EnsureCustom(&meta)
 	meta.Custom["key1"] = "value1"
@@ -127,7 +129,7 @@ func TestNewPersistedCommand_MetadataIsolation(t *testing.T) {
 func TestWithCommandMetadata_IntakeIsolation(t *testing.T) {
 	t.Parallel()
 
-	ref := validRef()
+	ref := validRef(t)
 	meta := command.NewMetadata()
 	command.EnsureCustom(&meta)
 	meta.Custom["key"] = "original"
@@ -151,7 +153,7 @@ func TestWithCommandMetadata_IntakeIsolation(t *testing.T) {
 func TestNewPersistedCommand_EmptyType(t *testing.T) {
 	t.Parallel()
 
-	ref := validRef()
+	ref := validRef(t)
 
 	_, err := command.NewPersistedCommand("", ref, nil)
 	if err == nil {
@@ -166,7 +168,7 @@ func TestNewPersistedCommand_EmptyType(t *testing.T) {
 func TestNewPersistedCommand_EmptyAggregateType(t *testing.T) {
 	t.Parallel()
 
-	ref := command.NewAggregateRef("", idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
+	ref := command.NewAggregateRef("", idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"))
 
 	_, err := command.NewPersistedCommand("CreateUser", ref, nil)
 	if err == nil {
@@ -196,7 +198,7 @@ func TestNewPersistedCommand_ZeroAggregateID(t *testing.T) {
 func TestNewPersistedCommand_WithReceivedAt(t *testing.T) {
 	t.Parallel()
 
-	ref := validRef()
+	ref := validRef(t)
 	ts := time.Date(2025, 1, 15, 10, 30, 0, 0, time.UTC)
 
 	cmd, err := command.NewPersistedCommand("CreateUser", ref, nil, command.WithReceivedAt(ts))
@@ -212,7 +214,7 @@ func TestNewPersistedCommand_WithReceivedAt(t *testing.T) {
 func TestNewPersistedCommand_WithCommandID(t *testing.T) {
 	t.Parallel()
 
-	ref := validRef()
+	ref := validRef(t)
 	cmdID := parseCommandID("01HK1540X0841Y0A6BSX1VKR95")
 
 	cmd, err := command.NewPersistedCommand("CreateUser", ref, nil, command.WithCommandID(cmdID))
@@ -228,7 +230,7 @@ func TestNewPersistedCommand_WithCommandID(t *testing.T) {
 func TestNewPersistedCommand_NilPayload(t *testing.T) {
 	t.Parallel()
 
-	ref := validRef()
+	ref := validRef(t)
 
 	cmd, err := command.NewPersistedCommand("CreateUser", ref, nil)
 	if err != nil {
@@ -243,7 +245,7 @@ func TestNewPersistedCommand_NilPayload(t *testing.T) {
 func TestPersistedCommand_String(t *testing.T) {
 	t.Parallel()
 
-	ref := validRef()
+	ref := validRef(t)
 	cmdID := parseCommandID("01HK1540X0841Y0A6BSX1VKR95")
 
 	cmd, err := command.NewPersistedCommand("CreateUser", ref, nil, command.WithCommandID(cmdID))
@@ -266,7 +268,7 @@ func TestAggregateRef_String(t *testing.T) {
 
 	ref := command.NewAggregateRef(
 		"User",
-		idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 	)
 	s := ref.String()
 

@@ -17,7 +17,7 @@ func BenchmarkDispatcher_Dispatch(b *testing.B) {
 		b.Fatalf("register: %v", err)
 	}
 
-	q := querytest.MustNew("bench.query")
+	q := querytest.New(b, "bench.query")
 	ctx := context.Background()
 
 	for b.Loop() {
@@ -41,7 +41,7 @@ func BenchmarkDispatcher_Dispatch_WithMiddleware(b *testing.B) {
 		b.Fatalf("register: %v", err)
 	}
 
-	q := querytest.MustNew("bench.query")
+	q := querytest.New(b, "bench.query")
 	ctx := context.Background()
 
 	for b.Loop() {

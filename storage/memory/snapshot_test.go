@@ -47,7 +47,7 @@ func TestMemorySnapshotStore_SaveAndLoad(t *testing.T) {
 	store := memory.NewMemorySnapshotStore()
 	ctx := context.Background()
 
-	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
 	snapshot := newTestSnapshot(t, aggID, 5, "shipped")
 
 	err := store.Save(ctx, snapshot)
@@ -76,7 +76,7 @@ func TestMemorySnapshotStore_Load_NotFound(t *testing.T) {
 
 	store := memory.NewMemorySnapshotStore()
 
-	aggID := idtest.MustParseAggregateID("01HK154ME034FVHK95R554AKSE")
+	aggID := idtest.ParseAggregateID(t, "01HK154ME034FVHK95R554AKSE")
 
 	_, err := store.Load(
 		context.Background(),
@@ -93,7 +93,7 @@ func TestMemorySnapshotStore_Save_IgnoresOlderVersion(t *testing.T) {
 	store := memory.NewMemorySnapshotStore()
 	ctx := context.Background()
 
-	aggID := idtest.MustParseAggregateID("01HK154V8RH53JQZ4XRXR7XYJB")
+	aggID := idtest.ParseAggregateID(t, "01HK154V8RH53JQZ4XRXR7XYJB")
 	snapshotV5 := newTestSnapshot(t, aggID, 5, "shipped")
 
 	err := store.Save(ctx, snapshotV5)
@@ -122,7 +122,7 @@ func TestMemorySnapshotStore_Save_UpdatesNewerVersion(t *testing.T) {
 	store := memory.NewMemorySnapshotStore()
 	ctx := context.Background()
 
-	aggID := idtest.MustParseAggregateID("01HK154W80KZSKN04HJMMDCJDW")
+	aggID := idtest.ParseAggregateID(t, "01HK154W80KZSKN04HJMMDCJDW")
 	snapshotV3 := newTestSnapshot(t, aggID, 3, "placed")
 
 	err := store.Save(ctx, snapshotV3)
@@ -151,7 +151,7 @@ func TestMemorySnapshotStore_LoadAtVersion(t *testing.T) {
 	store := memory.NewMemorySnapshotStore()
 	ctx := context.Background()
 
-	aggID := idtest.MustParseAggregateID("01HK154X784RCKJT5QZC6MNJTS")
+	aggID := idtest.ParseAggregateID(t, "01HK154X784RCKJT5QZC6MNJTS")
 	snapshot := newTestSnapshot(t, aggID, 5, "shipped")
 
 	err := store.Save(ctx, snapshot)
@@ -179,7 +179,7 @@ func TestMemorySnapshotStore_LoadAtVersion(t *testing.T) {
 			},
 		}
 
-		orderID := idtest.MustParseAggregateID("01HK154X784RCKJT5QZC6MNJTS")
+		orderID := idtest.ParseAggregateID(t, "01HK154X784RCKJT5QZC6MNJTS")
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
@@ -281,7 +281,7 @@ func TestMemorySnapshotStore_Delete(t *testing.T) {
 	store := memory.NewMemorySnapshotStore()
 	ctx := context.Background()
 
-	aggID := idtest.MustParseAggregateID("01HK154V8RH53JQZ4XRXR7XYJB")
+	aggID := idtest.ParseAggregateID(t, "01HK154V8RH53JQZ4XRXR7XYJB")
 	snapshot := newTestSnapshot(t, aggID, 1, "")
 
 	err := store.Save(ctx, snapshot)

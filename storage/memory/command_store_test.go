@@ -12,10 +12,12 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v2"
 )
 
-func validCommandRef() command.AggregateRef {
+func validCommandRef(tb testing.TB) command.AggregateRef {
+	tb.Helper()
+
 	return command.NewAggregateRef(
 		"User",
-		idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseAggregateID(tb, "01HK1540X0841Y0A6BSX1VKR95"),
 	)
 }
 
@@ -39,7 +41,7 @@ func TestMemoryCommandStore_SaveAndLoad(t *testing.T) {
 
 	store := memory.NewMemoryCommandStore()
 	ctx := context.Background()
-	ref := validCommandRef()
+	ref := validCommandRef(t)
 
 	cmd1 := testPersistedCommand(t, "CreateUser", ref)
 	cmd2 := testPersistedCommand(t, "UpdateUser", ref)
@@ -77,7 +79,7 @@ func TestMemoryCommandStore_DuplicateCommand(t *testing.T) {
 
 	store := memory.NewMemoryCommandStore()
 	ctx := context.Background()
-	ref := validCommandRef()
+	ref := validCommandRef(t)
 
 	cmd := testPersistedCommand(t, "CreateUser", ref)
 
@@ -101,7 +103,7 @@ func TestMemoryCommandStore_AppendBatch(t *testing.T) {
 
 	store := memory.NewMemoryCommandStore()
 	ctx := context.Background()
-	ref := validCommandRef()
+	ref := validCommandRef(t)
 
 	cmd1 := testPersistedCommand(t, "CreateUser", ref)
 	cmd2 := testPersistedCommand(t, "UpdateUser", ref)
@@ -126,7 +128,7 @@ func TestMemoryCommandStore_AppendBatch_DuplicateInBatch(t *testing.T) {
 
 	store := memory.NewMemoryCommandStore()
 	ctx := context.Background()
-	ref := validCommandRef()
+	ref := validCommandRef(t)
 
 	cmd := testPersistedCommand(t, "CreateUser", ref)
 
@@ -145,7 +147,7 @@ func TestMemoryCommandStore_Load_NotFound(t *testing.T) {
 
 	store := memory.NewMemoryCommandStore()
 	ctx := context.Background()
-	ref := validCommandRef()
+	ref := validCommandRef(t)
 
 	_, err := store.Load(ctx, ref)
 	if err == nil {
@@ -161,7 +163,7 @@ func setupTimestampCommands(
 	t *testing.T,
 ) (*command.PersistedCommand, *command.PersistedCommand, *command.PersistedCommand, command.AggregateRef) {
 	t.Helper()
-	ref := validCommandRef()
+	ref := validCommandRef(t)
 
 	cmd1, err := command.NewPersistedCommand("CreateUser", ref, nil, command.WithReceivedAt(
 		time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC),
@@ -248,7 +250,7 @@ func TestMemoryCommandStore_Close(t *testing.T) {
 
 	store := memory.NewMemoryCommandStore()
 	ctx := context.Background()
-	ref := validCommandRef()
+	ref := validCommandRef(t)
 
 	err := store.Close()
 	if err != nil {
@@ -274,11 +276,11 @@ func TestMemoryCommandStore_MultipleAggregates(t *testing.T) {
 
 	ref1 := command.NewAggregateRef(
 		"User",
-		idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 	)
 	ref2 := command.NewAggregateRef(
 		"Order",
-		idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR96"),
+		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR96"),
 	)
 
 	cmd1 := testPersistedCommand(t, "CreateUser", ref1)

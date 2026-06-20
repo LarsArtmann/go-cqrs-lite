@@ -79,7 +79,7 @@ func TestSaveSnapshot_Success(t *testing.T) {
 	t.Parallel()
 
 	store := &mockSink{}
-	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	err := snapshot.SaveSnapshot(
 		context.Background(),

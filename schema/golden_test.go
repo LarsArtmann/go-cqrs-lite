@@ -37,7 +37,7 @@ func TestGolden_UpcasterOutput(t *testing.T) {
 				event.WithOccurredAt(evt.OccurredAt()),
 				event.WithSchemaVersion(2),
 				event.WithCorrelationID(
-					idtest.MustParseCorrelationID("01HK1540X0841Y0A6BSX1VKR97"),
+					idtest.ParseCorrelationID(t, "01HK1540X0841Y0A6BSX1VKR97"),
 				),
 			)
 		},
@@ -46,8 +46,8 @@ func TestGolden_UpcasterOutput(t *testing.T) {
 	store := memory.NewMemoryStore()
 	t.Cleanup(func() { _ = store.Close() })
 
-	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
-	evtID := idtest.MustParseEventID("01HK1540X0841Y0A6BSX1VKR96")
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	evtID := idtest.ParseEventID(t, "01HK1540X0841Y0A6BSX1VKR96")
 	ref := event.NewAggregateRef("User", aggID)
 
 	evt, err := event.NewEvent(

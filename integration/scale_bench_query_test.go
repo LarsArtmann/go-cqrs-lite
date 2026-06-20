@@ -37,7 +37,7 @@ func BenchmarkScale_QueryDispatch_1000Handlers(b *testing.B) {
 
 	for b.Loop() {
 		for i := range handlerCount {
-			q := querytest.MustNew(query.Type(fmt.Sprintf("query.%d", i)))
+			q := querytest.New(b, query.Type(fmt.Sprintf("query.%d", i)))
 			_, err := dispatcher.Dispatch(ctx, q)
 			if err != nil {
 				b.Fatalf("dispatch: %v", err)
@@ -85,7 +85,7 @@ func BenchmarkScale_QueryDispatch_PaginatedResults(b *testing.B) {
 
 	for b.Loop() {
 		for _, ps := range pageSizes {
-			q := querytest.MustNew(query.Type(fmt.Sprintf("list.page%d", ps)))
+			q := querytest.New(b, query.Type(fmt.Sprintf("list.page%d", ps)))
 			_, err := dispatcher.Dispatch(ctx, q)
 			if err != nil {
 				b.Fatalf("Dispatch: %v", err)

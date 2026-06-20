@@ -6,89 +6,72 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2/idtest"
 )
 
-// AggregateID is string-backed: only the empty string is invalid.
-// The ULID-backed types additionally reject malformed ULID strings.
-func TestMustParse_PanicsOnInvalidInput(t *testing.T) {
-	t.Parallel()
-
-	ulidOnly := []struct {
-		name string
-		fn   func(string)
-	}{
-		{"EventID", func(s string) { _ = idtest.MustParseEventID(s) }},
-		{"CorrelationID", func(s string) { _ = idtest.MustParseCorrelationID(s) }},
-		{"CausationID", func(s string) { _ = idtest.MustParseCausationID(s) }},
-		{"UserID", func(s string) { _ = idtest.MustParseUserID(s) }},
-		{"RequestID", func(s string) { _ = idtest.MustParseRequestID(s) }},
-	}
-
-	for _, tc := range ulidOnly {
-		t.Run(tc.name+"/panics", func(t *testing.T) {
-			t.Parallel()
-
-			for _, bad := range []string{"", "not-a-ulid", "tooShort"} {
-				if !didPanic(func() { tc.fn(bad) }) {
-					t.Fatalf("expected panic for input %q", bad)
-				}
-			}
-		})
-	}
-
-	t.Run("AggregateID/panics_on_empty", func(t *testing.T) {
-		t.Parallel()
-
-		if !didPanic(func() { _ = idtest.MustParseAggregateID("") }) {
-			t.Fatal("expected panic for empty AggregateID")
-		}
-	})
-
-	t.Run("AggregateID/accepts_non_ulid_string", func(t *testing.T) {
-		t.Parallel()
-
-		// AggregateID is string-backed: any non-empty string is valid.
-		if didPanic(func() { _ = idtest.MustParseAggregateID("lock_user1_user2") }) {
-			t.Fatal("must not panic for non-empty string AggregateID")
-		}
-	})
-}
-
 const validULID = "01HK1540X0841Y0A6BSX1VKR95"
 
-func TestMustParse_HappyPath(t *testing.T) {
+func TestParse_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	cases := []struct {
-		name string
-		fn   func(string)
-	}{
-		{"AggregateID", func(s string) { _ = idtest.MustParseAggregateID(s) }},
-		{"EventID", func(s string) { _ = idtest.MustParseEventID(s) }},
-		{"CorrelationID", func(s string) { _ = idtest.MustParseCorrelationID(s) }},
-		{"CausationID", func(s string) { _ = idtest.MustParseCausationID(s) }},
-		{"UserID", func(s string) { _ = idtest.MustParseUserID(s) }},
-		{"RequestID", func(s string) { _ = idtest.MustParseRequestID(s) }},
-	}
+	t.Run("AggregateID", func(t *testing.T) {
+		t.Parallel()
 
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+		got := idtest.ParseAggregateID(t, validULID)
+		if got.String() != validULID {
+			t.Fatalf("got %q, want %q", got, validULID)
+		}
+	})
 
-			tc.fn(validULID) // must not panic on a valid ULID
-		})
-	}
+	t.Run("EventID", func(t *testing.T) {
+		t.Parallel()
+
+		got := idtest.ParseEventID(t, validULID)
+		if got.String() != validULID {
+			t.Fatalf("got %q, want %q", got, validULID)
+		}
+	})
+
+	t.Run("CorrelationID", func(t *testing.T) {
+		t.Parallel()
+
+		got := idtest.ParseCorrelationID(t, validULID)
+		if got.String() != validULID {
+			t.Fatalf("got %q, want %q", got, validULID)
+		}
+	})
+
+	t.Run("CausationID", func(t *testing.T) {
+		t.Parallel()
+
+		got := idtest.ParseCausationID(t, validULID)
+		if got.String() != validULID {
+			t.Fatalf("got %q, want %q", got, validULID)
+		}
+	})
+
+	t.Run("UserID", func(t *testing.T) {
+		t.Parallel()
+
+		got := idtest.ParseUserID(t, validULID)
+		if got.String() != validULID {
+			t.Fatalf("got %q, want %q", got, validULID)
+		}
+	})
+
+	t.Run("RequestID", func(t *testing.T) {
+		t.Parallel()
+
+		got := idtest.ParseRequestID(t, validULID)
+		if got.String() != validULID {
+			t.Fatalf("got %q, want %q", got, validULID)
+		}
+	})
 }
 
-func didPanic(fn func()) bool {
-	var panicked bool
+// AggregateID is string-backed: any non-empty string is valid.
+func TestParseAggregateID_AcceptsNonULIDString(t *testing.T) {
+	t.Parallel()
 
-	func() {
-		defer func() {
-			if recover() != nil {
-				panicked = true
-			}
-		}()
-		fn()
-	}()
-
-	return panicked
+	got := idtest.ParseAggregateID(t, "lock_user1_user2")
+	if got.String() != "lock_user1_user2" {
+		t.Fatalf("got %q, want %q", got, "lock_user1_user2")
+	}
 }

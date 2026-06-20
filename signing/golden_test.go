@@ -65,8 +65,8 @@ func TestGolden_SignatureJSONEncoding(t *testing.T) {
 func fixedSignEvent(t *testing.T) event.Event {
 	t.Helper()
 
-	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
-	evtID := idtest.MustParseEventID("01HK1540X0841Y0A6BSX1VKR96")
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	evtID := idtest.ParseEventID(t, "01HK1540X0841Y0A6BSX1VKR96")
 
 	evt, err := event.NewEvent(
 		"order.created", aggID, "Order", 1,
@@ -74,7 +74,7 @@ func fixedSignEvent(t *testing.T) event.Event {
 		event.WithEventID(evtID),
 		event.WithOccurredAt(time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC)),
 		event.WithSchemaVersion(2),
-		event.WithCorrelationID(idtest.MustParseCorrelationID("01HK1540X0841Y0A6BSX1VKR97")),
+		event.WithCorrelationID(idtest.ParseCorrelationID(t, "01HK1540X0841Y0A6BSX1VKR97")),
 	)
 	if err != nil {
 		t.Fatalf("create event: %v", err)

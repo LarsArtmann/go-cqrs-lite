@@ -8,7 +8,6 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2/idtest"
 )
 
 var _ = Describe("Event Creation", func() {
@@ -16,10 +15,14 @@ var _ = Describe("Event Creation", func() {
 		Context("when I create an event with all metadata", func() {
 			It("should preserve every field including tracing IDs", func() {
 				aggID := id.NewAggregateID()
-				corrID := idtest.MustParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH")
-				causeID := idtest.MustParseCausationID("01HK154FHRS5276AC3V7GRNTYM")
-				uID := idtest.MustParseUserID("01HK1543TRR6BB4AF65NQX5V8S")
-				reqID := idtest.MustParseRequestID("01HK154HG8WXD9A15YBY6FZJYW")
+				corrID, err := id.ParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH")
+				Expect(err).ToNot(HaveOccurred())
+				causeID, err := id.ParseCausationID("01HK154FHRS5276AC3V7GRNTYM")
+				Expect(err).ToNot(HaveOccurred())
+				uID, err := id.ParseUserID("01HK1543TRR6BB4AF65NQX5V8S")
+				Expect(err).ToNot(HaveOccurred())
+				reqID, err := id.ParseRequestID("01HK154HG8WXD9A15YBY6FZJYW")
+				Expect(err).ToNot(HaveOccurred())
 
 				evt, err := event.NewEvent(
 					event.Type("UserRegistered"),
@@ -40,18 +43,10 @@ var _ = Describe("Event Creation", func() {
 				Expect(evt.AggregateType()).To(Equal(event.AggregateType("User")))
 				Expect(evt.Version()).To(Equal(event.Version(1)))
 				Expect(evt.Payload()).To(ContainSubstring("alice@example.com"))
-				Expect(
-					evt.Metadata().CorrelationID,
-				).To(Equal(idtest.MustParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH")))
-				Expect(evt.Metadata().CausationID).To(
-					Equal(idtest.MustParseCausationID("01HK154FHRS5276AC3V7GRNTYM")),
-				)
-				Expect(evt.Metadata().UserID).To(
-					Equal(idtest.MustParseUserID("01HK1543TRR6BB4AF65NQX5V8S")),
-				)
-				Expect(evt.Metadata().RequestID).To(
-					Equal(idtest.MustParseRequestID("01HK154HG8WXD9A15YBY6FZJYW")),
-				)
+				Expect(evt.Metadata().CorrelationID).To(Equal(corrID))
+				Expect(evt.Metadata().CausationID).To(Equal(causeID))
+				Expect(evt.Metadata().UserID).To(Equal(uID))
+				Expect(evt.Metadata().RequestID).To(Equal(reqID))
 				Expect(evt.Metadata().Source).To(Equal(event.Source("api")))
 				Expect(evt.OccurredAt()).To(BeTemporally("<", time.Now().Add(time.Second)))
 				Expect(evt.ID().IsZero()).To(BeFalse())

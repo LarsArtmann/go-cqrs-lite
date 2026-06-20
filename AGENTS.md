@@ -46,10 +46,10 @@ go-cqrs-lite/
 │                        # Bus: Publisher, Subscriber, Bus, PublishMiddleware (command pub/sub)
 ├── query/               # Dispatcher, Handler, Pagination, PaginatedResult[T], RegisterTyped[Q,R], TypedHandler[Q,R]
 │                        # Store: PersistedQuery, QuerySink, QuerySource, QueryStore, QueryJournal, SeekableQueryJournal
-│   └── querytest/       # MustNew panic-on-error test helper (cross-module test util)
+│   └── querytest/       # New(tb, queryType) test helper — tb.Fatalf on error, no panics
 ├── decider/             # Decider[State], Repository[State], Execute, Load (pure-function style)
 ├── id/                  # Branded IDs: id.Of[T] = cbid.ID[T, ulid.ULID], AggregateID, EventID, etc.
-│   └── idtest/          # MustParse* panic-on-error test helpers (cross-module test util)
+│   └── idtest/          # Parse*(tb, s) test helpers — tb.Fatalf on error, no panics
 ├── dispatcher/          # Generic Dispatcher[H, M] with LifecycleMixin
 ├── schema/              # Upcaster, VersionedStore, upcasterRegistry (schema evolution); Validator with RegisterType[T]() (ADR-0017)
 ├── snapshot/            # Snapshot, SnapshotSink/Source/Store, SnapshotStrategy, EveryNEvents

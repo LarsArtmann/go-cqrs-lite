@@ -15,7 +15,7 @@ func TestNewEvent_Valid(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 		"User",
 		1,
 		[]byte(`{"name":"John"}`),
@@ -32,7 +32,7 @@ func TestNewEvent_Valid(t *testing.T) {
 		t.Errorf("expected type UserCreated, got %s", evt.Type())
 	}
 
-	if evt.AggregateID() != idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95") {
+	if evt.AggregateID() != idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95") {
 		t.Errorf("expected aggregate ID user-123, got %s", evt.AggregateID())
 	}
 
@@ -59,7 +59,7 @@ func TestNewEvent_InvalidInputErrors(t *testing.T) {
 		{
 			name:          "empty event type",
 			eventType:     "",
-			aggregateID:   idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+			aggregateID:   idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 			aggregateType: "User",
 			version:       1,
 			wantErr:       event.ErrEmptyEventType,
@@ -75,7 +75,7 @@ func TestNewEvent_InvalidInputErrors(t *testing.T) {
 		{
 			name:          "missing aggregate type",
 			eventType:     "UserCreated",
-			aggregateID:   idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+			aggregateID:   idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 			aggregateType: "",
 			version:       1,
 			wantErr:       event.ErrEmptyAggregateType,
@@ -83,7 +83,7 @@ func TestNewEvent_InvalidInputErrors(t *testing.T) {
 		{
 			name:          "zero version",
 			eventType:     "UserCreated",
-			aggregateID:   idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+			aggregateID:   idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 			aggregateType: "User",
 			version:       0,
 		},
@@ -133,7 +133,7 @@ func TestNewEvent_ErrorMessagesContainContext(t *testing.T) {
 		{
 			name:          "missing aggregate type includes aggregate ID and event type",
 			eventType:     "OrderCreated",
-			aggregateID:   idtest.MustParseAggregateID("01HK154BMRQFY6Q98RCCEJDZ74"),
+			aggregateID:   idtest.ParseAggregateID(t, "01HK154BMRQFY6Q98RCCEJDZ74"),
 			aggregateType: "",
 			version:       1,
 			wantContains: []string{
@@ -145,7 +145,7 @@ func TestNewEvent_ErrorMessagesContainContext(t *testing.T) {
 		{
 			name:          "zero version includes aggregate ID and event type",
 			eventType:     "PaymentProcessed",
-			aggregateID:   idtest.MustParseAggregateID("01HK154CM00YYJAJGC0GE589E2"),
+			aggregateID:   idtest.ParseAggregateID(t, "01HK154CM00YYJAJGC0GE589E2"),
 			aggregateType: "Payment",
 			version:       0,
 			wantContains: []string{
@@ -186,7 +186,7 @@ func TestEventAccessors(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 		"User",
 		1,
 		[]byte(`{"name":"John"}`),
@@ -213,7 +213,7 @@ func TestEvent_PayloadNil(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 		"User",
 		1,
 		nil,
@@ -233,7 +233,7 @@ func TestEvent_PayloadConstructionCopy(t *testing.T) {
 	original := []byte("original")
 	evt, err := event.NewEvent(
 		"UserCreated",
-		idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 		"User",
 		1,
 		original,
@@ -254,7 +254,7 @@ func TestEvent_PayloadReturnIsImmutable(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 		"User",
 		1,
 		[]byte("immutable"),

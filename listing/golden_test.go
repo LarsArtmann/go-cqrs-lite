@@ -37,7 +37,7 @@ func testListingStatus(
 }
 
 func TestGolden_AggregateStatusJSON(t *testing.T) {
-	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	statuses := []listing.AggregateStatus{
 		testListingStatus(
@@ -82,7 +82,7 @@ func TestGolden_AggregateStatusJSON(t *testing.T) {
 }
 
 func TestGolden_PageJSON(t *testing.T) {
-	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	page := listing.Page[listing.AggregateStatus]{
 		Items: []listing.AggregateStatus{

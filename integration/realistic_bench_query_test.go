@@ -52,7 +52,7 @@ func BenchmarkRealistic_QueryDispatch(b *testing.B) {
 
 	for b.Loop() {
 		for range 1000 {
-			q := querytest.MustNew("list.orders")
+			q := querytest.New(t, "list.orders")
 			if _, err := dispatcher.Dispatch(ctx, q); err != nil {
 				b.Fatalf("Dispatch: %v", err)
 			}

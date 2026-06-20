@@ -12,7 +12,7 @@ import (
 func TestNew_StructPayload(t *testing.T) {
 	t.Parallel()
 
-	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
 	payload := struct {
 		Name  string `json:"name"`
 		Email string `json:"email"`
@@ -47,7 +47,7 @@ func TestNew_StructPayload(t *testing.T) {
 func TestNew_MapPayload(t *testing.T) {
 	t.Parallel()
 
-	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
 	payload := map[string]any{"key": "value"}
 
 	evt, err := event.New("test.event", aggID, "Test", event.Version(1), payload)
@@ -68,7 +68,7 @@ func TestNew_MapPayload(t *testing.T) {
 func TestNew_ByteSlicePayload(t *testing.T) {
 	t.Parallel()
 
-	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
 	data := []byte(`{"raw":true}`)
 
 	evt, err := event.New("test.raw", aggID, "Test", event.Version(1), data)
@@ -84,7 +84,7 @@ func TestNew_ByteSlicePayload(t *testing.T) {
 func TestNew_NilPayload(t *testing.T) {
 	t.Parallel()
 
-	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	_, err := event.New("test.nil", aggID, "Test", event.Version(1), nil)
 	if err == nil {
@@ -99,8 +99,8 @@ func TestNew_NilPayload(t *testing.T) {
 func TestNew_OptionsPreserved(t *testing.T) {
 	t.Parallel()
 
-	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
-	corrID := idtest.MustParseCorrelationID("01HK1549P84T9XF8R94E960633")
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	corrID := idtest.ParseCorrelationID(t, "01HK1549P84T9XF8R94E960633")
 	payload := map[string]any{"x": 1}
 
 	evt, err := event.New(

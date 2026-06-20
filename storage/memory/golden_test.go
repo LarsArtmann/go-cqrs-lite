@@ -20,7 +20,7 @@ func TestGolden_EventStoreRoundTrip(t *testing.T) {
 	store := memory.NewMemoryStore()
 	t.Cleanup(func() { _ = store.Close() })
 
-	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
 	ref := event.NewAggregateRef("Order", aggID)
 
 	types := []struct {
@@ -39,7 +39,7 @@ func TestGolden_EventStoreRoundTrip(t *testing.T) {
 	baseTime := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 
 	for i, tc := range types {
-		evtID := idtest.MustParseEventID("01HK1540X0841Y0A6BSX1VKR9" + string(rune('A'+i)))
+		evtID := idtest.ParseEventID(t, "01HK1540X0841Y0A6BSX1VKR9"+string(rune('A'+i)))
 
 		evt, err := event.NewEvent(
 			event.Type(tc.typ), aggID, "Order", event.Version(tc.version),
@@ -100,7 +100,7 @@ func TestGolden_SnapshotStoreRoundTrip(t *testing.T) {
 	store := memory.NewMemorySnapshotStore()
 	t.Cleanup(func() { _ = store.Close() })
 
-	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
 	ref := event.NewAggregateRef("User", aggID)
 
 	state, err := json.Marshal(map[string]string{"name": "Bob", "role": "admin"})

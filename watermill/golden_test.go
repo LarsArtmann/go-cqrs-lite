@@ -33,11 +33,11 @@ func TestGolden_MessageMetadata(t *testing.T) {
 		t.Fatalf("subscribe: %v", err)
 	}
 
-	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
-	evtID := idtest.MustParseEventID("01HK1540X0841Y0A6BSX1VKR96")
-	corrID := idtest.MustParseCorrelationID("01HK1540X0841Y0A6BSX1VKR97")
-	causID := idtest.MustParseCausationID("01HK1540X0841Y0A6BSX1VKR98")
-	userID := idtest.MustParseUserID("01HK1540X0841Y0A6BSX1VKR99")
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	evtID := idtest.ParseEventID(t, "01HK1540X0841Y0A6BSX1VKR96")
+	corrID := idtest.ParseCorrelationID(t, "01HK1540X0841Y0A6BSX1VKR97")
+	causID := idtest.ParseCausationID(t, "01HK1540X0841Y0A6BSX1VKR98")
+	userID := idtest.ParseUserID(t, "01HK1540X0841Y0A6BSX1VKR99")
 
 	evt, err := event.NewEvent(
 		"order.created", aggID, "Order", 1,

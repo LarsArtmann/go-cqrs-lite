@@ -13,9 +13,11 @@ func newTestUpcaster(typ event.Type, version event.SchemaVersion, payload string
 	})
 }
 
-func newTestEvent(version int, payload string) (*upcasterRegistry, event.Event) {
+func newTestEvent(tb testing.TB, version int, payload string) (*upcasterRegistry, event.Event) {
+	tb.Helper()
+
 	registry := newUpcasterRegistry()
-	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseAggregateID(tb, "01HK1540X0841Y0A6BSX1VKR95")
 	evt, _ := event.NewEvent("UserCreated", aggID, "User", event.Version(version), []byte(payload))
 
 	return registry, evt
@@ -28,7 +30,7 @@ func TestUpcasterFunc(t *testing.T) {
 		"UserCreated",
 		1,
 		func(_ event.Event) (event.Event, error) {
-			aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+			aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 			return event.NewEvent("UserCreated", aggID, "User", 2, nil)
 		},
@@ -48,7 +50,7 @@ func TestUpcasterRegistry_NoUpcasters(t *testing.T) {
 
 	registry := newUpcasterRegistry()
 
-	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, err := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`))
 	if err != nil {
@@ -68,7 +70,7 @@ func TestUpcasterRegistry_NoUpcasters(t *testing.T) {
 func TestUpcasterRegistry_SingleUpcaster(t *testing.T) {
 	t.Parallel()
 
-	registry, evt := newTestEvent(5, `{"name":"Alice"}`)
+	registry, evt := newTestEvent(t, 5, `{"name":"Alice"}`)
 	registry.register(newTestUpcaster("UserCreated", 1, `{"name":"Alice","email":""}`))
 
 	result, err := registry.upcast(evt)
@@ -88,7 +90,7 @@ func TestUpcasterRegistry_SingleUpcaster(t *testing.T) {
 func TestUpcasterRegistry_ChainedUpcasters(t *testing.T) {
 	t.Parallel()
 
-	registry, evt := newTestEvent(7, `{"name":"Alice"}`)
+	registry, evt := newTestEvent(t, 7, `{"name":"Alice"}`)
 	registry.register(newTestUpcaster("UserCreated", 1, `{"name":"Alice","email":""}`))
 	registry.register(
 		newTestUpcaster("UserCreated", 2, `{"name":"Alice","email":"","active":true}`),
@@ -130,7 +132,7 @@ func TestUpcasterRegistry_DifferentEventTypes(t *testing.T) {
 	registry := newUpcasterRegistry()
 	registerUserCreatedUpcasterV1(registry)
 
-	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, _ := event.NewEvent("OrderPlaced", aggID, "Order", 5, []byte(`{}`))
 
@@ -175,7 +177,7 @@ func TestUpcasterRegistry_VersionSorting(t *testing.T) {
 	registerTrackingUpcaster(registry, 2, &applied)
 	registerTrackingUpcaster(registry, 1, &applied)
 
-	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, _ := event.NewEvent("UserCreated", aggID, "User", 3, nil)
 
@@ -199,7 +201,7 @@ func TestUpcasterRegistry_AlreadyCurrentVersion(t *testing.T) {
 	registerTrackingUpcaster(registry, 1, &applied)
 	registerTrackingUpcaster(registry, 2, &applied)
 
-	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, _ := event.NewEvent("UserCreated", aggID, "User", 10, nil, event.WithSchemaVersion(3))
 
@@ -227,7 +229,7 @@ func TestUpcasterRegistry_PartialChain(t *testing.T) {
 	registerTrackingUpcaster(registry, 1, &applied)
 	registerTrackingUpcaster(registry, 2, &applied)
 
-	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, _ := event.NewEvent("UserCreated", aggID, "User", 8, nil, event.WithSchemaVersion(2))
 
@@ -255,7 +257,7 @@ func TestUpcasterRegistry_AutoIncrementsSchemaVersion(t *testing.T) {
 	registry := newUpcasterRegistry()
 	registerUserCreatedUpcasterV1(registry)
 
-	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, _ := event.NewEvent("UserCreated", aggID, "User", 5, nil)
 

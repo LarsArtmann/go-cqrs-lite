@@ -16,7 +16,7 @@ func TestMemoryStore_AppendBatch(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := idtest.MustParseAggregateID("01HK154QBR6CK7JX737HQB4V58")
+	aggID := idtest.ParseAggregateID(t, "01HK154QBR6CK7JX737HQB4V58")
 	evt1 := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 	evt2 := eventtest.QuickEvent("UserUpdated", aggID, "User", 1, nil)
 	evt3 := eventtest.QuickEvent("UserDeleted", aggID, "User", 2, nil)
@@ -44,7 +44,7 @@ func TestMemoryStore_AppendBatch_AppendsToExisting(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := idtest.MustParseAggregateID("01HK154RB0WD5V767Z27XMXRX0")
+	aggID := idtest.ParseAggregateID(t, "01HK154RB0WD5V767Z27XMXRX0")
 	evt1 := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 	_ = store.Save(
 		ctx,
@@ -79,7 +79,7 @@ func TestMemoryStore_AppendBatch_Closed(t *testing.T) {
 	store := memory.NewMemoryStore()
 	_ = store.Close()
 
-	aggID := idtest.MustParseAggregateID("01HK154SA8Y7AMZCYV919GE46K")
+	aggID := idtest.ParseAggregateID(t, "01HK154SA8Y7AMZCYV919GE46K")
 	evt := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 
 	err := store.AppendBatch(

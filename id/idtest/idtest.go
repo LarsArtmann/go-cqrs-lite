@@ -1,31 +1,54 @@
 package idtest
 
-import "github.com/larsartmann/go-cqrs-lite/id/v2"
+import (
+	"testing"
 
-// must unwraps a (value, error) pair, panicking on error. It backs every
-// MustParse* helper so the public API stays typed without repeating boilerplate.
-func must[T any](v T, err error) T {
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
+)
+
+func parse[T any](tb testing.TB, s string, fn func(string) (T, error)) T {
+	tb.Helper()
+
+	v, err := fn(s)
 	if err != nil {
-		panic(err)
+		tb.Fatalf("idtest: parse %q: %v", s, err)
 	}
 
 	return v
 }
 
-// MustParseAggregateID converts a string to an id.AggregateID, panicking on invalid input.
-func MustParseAggregateID(s string) id.AggregateID { return must(id.ParseAggregateID(s)) }
+func ParseAggregateID(tb testing.TB, s string) id.AggregateID {
+	tb.Helper()
 
-// MustParseEventID converts a string to an id.EventID, panicking on invalid input.
-func MustParseEventID(s string) id.EventID { return must(id.ParseEventID(s)) }
+	return parse(tb, s, id.ParseAggregateID)
+}
 
-// MustParseCorrelationID converts a string to an id.CorrelationID, panicking on invalid input.
-func MustParseCorrelationID(s string) id.CorrelationID { return must(id.ParseCorrelationID(s)) }
+func ParseEventID(tb testing.TB, s string) id.EventID {
+	tb.Helper()
 
-// MustParseCausationID converts a string to an id.CausationID, panicking on invalid input.
-func MustParseCausationID(s string) id.CausationID { return must(id.ParseCausationID(s)) }
+	return parse(tb, s, id.ParseEventID)
+}
 
-// MustParseUserID converts a string to an id.UserID, panicking on invalid input.
-func MustParseUserID(s string) id.UserID { return must(id.ParseUserID(s)) }
+func ParseCorrelationID(tb testing.TB, s string) id.CorrelationID {
+	tb.Helper()
 
-// MustParseRequestID converts a string to an id.RequestID, panicking on invalid input.
-func MustParseRequestID(s string) id.RequestID { return must(id.ParseRequestID(s)) }
+	return parse(tb, s, id.ParseCorrelationID)
+}
+
+func ParseCausationID(tb testing.TB, s string) id.CausationID {
+	tb.Helper()
+
+	return parse(tb, s, id.ParseCausationID)
+}
+
+func ParseUserID(tb testing.TB, s string) id.UserID {
+	tb.Helper()
+
+	return parse(tb, s, id.ParseUserID)
+}
+
+func ParseRequestID(tb testing.TB, s string) id.RequestID {
+	tb.Helper()
+
+	return parse(tb, s, id.ParseRequestID)
+}

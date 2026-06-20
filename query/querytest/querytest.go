@@ -1,15 +1,18 @@
 package querytest
 
-import "github.com/larsartmann/go-cqrs-lite/query/v2"
+import (
+	"testing"
 
-// must unwraps a (value, error) pair, panicking on error.
-func must[T any](v T, err error) T {
+	"github.com/larsartmann/go-cqrs-lite/query/v2"
+)
+
+func New(tb testing.TB, queryType query.Type) *query.BasicQuery {
+	tb.Helper()
+
+	q, err := query.New(queryType)
 	if err != nil {
-		panic(err)
+		tb.Fatalf("querytest: new query %q: %v", queryType, err)
 	}
 
-	return v
+	return q
 }
-
-// MustNew constructs a *query.BasicQuery from queryType, panicking on invalid input.
-func MustNew(queryType query.Type) *query.BasicQuery { return must(query.New(queryType)) }

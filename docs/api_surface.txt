@@ -821,12 +821,12 @@ id/func ParseEventID
 id/func ParseRequestID
 id/func ParseUserID
 id/func ULID
-id/idtest/func MustParseAggregateID
-id/idtest/func MustParseCausationID
-id/idtest/func MustParseCorrelationID
-id/idtest/func MustParseEventID
-id/idtest/func MustParseRequestID
-id/idtest/func MustParseUserID
+id/idtest/func ParseAggregateID
+id/idtest/func ParseCausationID
+id/idtest/func ParseCorrelationID
+id/idtest/func ParseEventID
+id/idtest/func ParseRequestID
+id/idtest/func ParseUserID
 id/struct AggregateMarker
 id/struct CausationMarker
 id/struct ClientMarker
@@ -1148,7 +1148,7 @@ query/method Type
 query/method Type
 query/method Use
 query/method Validate
-query/querytest/func MustNew
+query/querytest/func New
 query/struct BasicQuery
 query/struct Dispatcher
 query/struct Metadata

@@ -14,7 +14,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
-	"github.com/larsartmann/go-cqrs-lite/query/v2/querytest"
 )
 
 type bddCommand struct {
@@ -215,7 +214,8 @@ var _ = Describe("Event and Query Middleware Variants", func() {
 					panic("query handler panic")
 				})
 
-				q := querytest.MustNew("test.query")
+				q, err := query.New("test.query")
+				Expect(err).ToNot(HaveOccurred())
 				result, err := handler(ctx, q)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("panic recovered"))
