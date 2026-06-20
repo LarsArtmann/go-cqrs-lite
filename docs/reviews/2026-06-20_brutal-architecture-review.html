@@ -5,11 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Brutal Architecture Review · go-cqrs-lite · 2026-06-20</title>
     <style>
-      /* =========================================================================
-         BAUHAUS DARK — Dashboard template
-         Form follows function. Primary colors on graphite.
-         ========================================================================= */
-
       :root {
         --color-graphite: #0e0e10;
         --color-graphite-2: #18181d;
@@ -19,9 +14,9 @@
         --color-blue: #6eb5ff;
         --color-yellow: #f4d35e;
         --color-amber: #ffb347;
+        --color-green: #6bd968;
         --color-hairline: rgba(244, 244, 240, 0.12);
         --color-hairline-strong: rgba(244, 244, 240, 0.25);
-
         --surface: var(--color-graphite);
         --surface-raised: var(--color-graphite-2);
         --surface-sunken: var(--color-graphite-3);
@@ -34,8 +29,8 @@
         --problem: var(--color-red);
         --solution: var(--color-blue);
         --warning: var(--color-yellow);
+        --good: var(--color-green);
         --radius: 0px;
-
         --font-heading:
           ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
           Helvetica, Arial, sans-serif;
@@ -46,7 +41,6 @@
           ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
           monospace;
       }
-
       * {
         box-sizing: border-box;
         margin: 0;
@@ -59,7 +53,6 @@
       [id] {
         scroll-margin-top: 60px;
       }
-
       body {
         background: var(--surface);
         color: var(--text);
@@ -69,7 +62,6 @@
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
       }
-
       .top-bar {
         background: var(--text);
         color: var(--surface);
@@ -83,7 +75,6 @@
         justify-content: space-between;
         align-items: center;
       }
-
       .layout {
         display: flex;
         gap: 2.5rem;
@@ -135,7 +126,6 @@
         flex: 1;
         min-width: 0;
       }
-
       h1,
       h2,
       h3,
@@ -188,7 +178,6 @@
       strong {
         color: var(--text);
       }
-
       .hero {
         padding: 1.5rem 0 1.5rem;
         margin-bottom: 1.5rem;
@@ -244,7 +233,6 @@
         border-right: 28px solid transparent;
         border-bottom: 48px solid var(--warning);
       }
-
       .card {
         background: var(--surface-raised);
         border: 1px solid var(--border);
@@ -264,7 +252,6 @@
         border-left-color: var(--warning);
         background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
       }
-
       .issue {
         background: var(--surface-raised);
         border: 1px solid var(--border);
@@ -296,7 +283,6 @@
       .issue p:last-child {
         margin-bottom: 0;
       }
-
       .severity {
         display: inline-block;
         font-family: var(--font-mono);
@@ -317,7 +303,6 @@
       .severity-nice {
         background: var(--solution);
       }
-
       .badge {
         display: inline-block;
         font-family: var(--font-mono);
@@ -348,7 +333,10 @@
         color: var(--solution);
         border-color: var(--solution);
       }
-
+      .badge-good {
+        color: var(--good);
+        border-color: var(--good);
+      }
       .callout {
         margin: 0.8rem 0 0;
         padding: 0.7rem 0.9rem;
@@ -372,23 +360,19 @@
         border-left-color: var(--problem);
         background: color-mix(in srgb, var(--problem) 10%, transparent);
       }
-
-      .stat-grid,
-      .scorecard {
+      .stat-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         gap: 0.75rem;
         margin: 1rem 0 1.5rem;
       }
-      .stat-card,
-      .score-card {
+      .stat-card {
         background: var(--surface-raised);
         border: 1px solid var(--border);
         padding: 1.1rem 1rem;
         position: relative;
       }
-      .stat-card::before,
-      .score-card::before {
+      .stat-card::before {
         content: "";
         position: absolute;
         top: 0;
@@ -397,20 +381,16 @@
         height: 2px;
         background: var(--border-strong);
       }
-      .stat-bad::before,
-      .score-bad::before {
+      .stat-bad::before {
         background: var(--problem);
       }
-      .stat-good::before,
-      .score-good::before {
-        background: var(--solution);
+      .stat-good::before {
+        background: var(--good);
       }
-      .stat-warn::before,
-      .score-warn::before {
+      .stat-warn::before {
         background: var(--warning);
       }
-      .stat-value,
-      .score {
+      .stat-value {
         font-family: var(--font-heading);
         font-size: 2rem;
         font-weight: 800;
@@ -418,20 +398,16 @@
         letter-spacing: -0.03em;
         color: var(--text);
       }
-      .stat-bad .stat-value,
-      .score-bad .score {
+      .stat-bad .stat-value {
         color: var(--problem);
       }
-      .stat-good .stat-value,
-      .score-good .score {
-        color: var(--solution);
+      .stat-good .stat-value {
+        color: var(--good);
       }
-      .stat-warn .stat-value,
-      .score-warn .score {
+      .stat-warn .stat-value {
         color: var(--warning);
       }
-      .stat-label,
-      .score-card .label {
+      .stat-label {
         font-family: var(--font-mono);
         font-size: 0.65rem;
         font-weight: 600;
@@ -440,7 +416,6 @@
         color: var(--text-faint);
         margin-top: 0.5rem;
       }
-
       .strengths {
         display: grid;
         gap: 0.5rem;
@@ -456,7 +431,7 @@
       .strength .check {
         font-family: var(--font-mono);
         font-weight: 700;
-        color: var(--solution);
+        color: var(--good);
         font-size: 1.1rem;
         line-height: 1.4;
       }
@@ -468,7 +443,6 @@
         color: var(--text-muted);
         font-size: 0.9rem;
       }
-
       table {
         width: 100%;
         border-collapse: collapse;
@@ -500,7 +474,6 @@
         font-size: 0.8rem;
         color: var(--text-muted);
       }
-
       pre {
         background: var(--surface-sunken);
         border: 1px solid var(--border);
@@ -521,7 +494,7 @@
         color: var(--warning);
       }
       .tok-string {
-        color: var(--solution);
+        color: var(--good);
       }
       .tok-comment {
         color: var(--text-faint);
@@ -539,7 +512,47 @@
       .tok-punct {
         color: var(--text-muted);
       }
-
+      .tok-attr {
+        color: var(--accent);
+      }
+      .tok-removed {
+        color: var(--problem);
+        text-decoration: line-through;
+      }
+      .tok-added {
+        color: var(--good);
+      }
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--good);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
       .migration-step {
         display: grid;
         grid-template-columns: 48px 1fr;
@@ -565,7 +578,37 @@
         color: var(--text-muted);
         font-size: 0.92rem;
       }
-
+      .migration-effort {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.6rem;
+        padding: 0.15rem 0.4rem;
+        margin-left: 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-faint);
+        vertical-align: middle;
+      }
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--good);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
       .toc {
         background: var(--surface-raised);
         border: 1px solid var(--border);
@@ -592,7 +635,6 @@
       .toc a:hover {
         color: var(--accent);
       }
-
       .footer {
         margin-top: 2rem;
         padding-top: 1rem;
@@ -601,16 +643,34 @@
         color: var(--text-faint);
         font-family: var(--font-mono);
       }
-
-      .quote {
-        font-style: italic;
-        color: var(--text-muted);
-        padding: 0.5rem 1rem;
-        border-left: 3px solid var(--accent);
-        margin: 1rem 0;
-        font-size: 0.95rem;
+      .progress-bar {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        height: 20px;
+        position: relative;
+        margin: 0.5rem 0;
+        overflow: hidden;
       }
-
+      .progress-fill {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        padding-left: 0.5rem;
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: var(--surface);
+        white-space: nowrap;
+      }
+      .progress-bad {
+        background: var(--problem);
+      }
+      .progress-warn {
+        background: var(--warning);
+      }
+      .progress-good {
+        background: var(--good);
+      }
       @media (min-width: 1024px) {
         .sidebar {
           display: block;
@@ -626,11 +686,14 @@
           flex-wrap: wrap;
           gap: 0.3rem;
         }
-        .stat-grid,
-        .scorecard {
+        .stat-grid {
           grid-template-columns: repeat(2, 1fr);
         }
         .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
           grid-template-columns: 1fr;
         }
       }
@@ -638,31 +701,34 @@
   </head>
   <body>
     <div class="top-bar">
-      <span>BRUTAL ARCHITECTURE REVIEW</span>
+      <span>BRUTAL ARCHITECTURE REVIEW · V2</span>
       <span>2026-06-20</span>
-      <span>HARSH JUDGE HAT · ON</span>
+      <span>HARSH JUDGE HAT · MAXIMUM</span>
     </div>
-
     <div class="layout">
       <aside class="sidebar" data-nav>
         <nav>
           <div class="label">Contents</div>
-          <a href="#verdict">00 · Verdict</a>
-          <a href="#dashboard">01 · Dashboard</a>
-          <a href="#honest">02 · Did We Lie?</a>
-          <a href="#ghosts">03 · Ghost Systems</a>
-          <a href="#splitbrains">04 · Split Brains</a>
-          <a href="#ci">05 · CI Theater</a>
-          <a href="#rules">06 · Rules We Broke</a>
-          <a href="#scope">07 · Scope Creep</a>
-          <a href="#types">08 · Type Rot</a>
-          <a href="#docs">09 · Doc Obesity</a>
-          <a href="#forgotten">10 · What We Forgot</a>
-          <a href="#strengths">11 · Honest Strengths</a>
-          <a href="#plan">12 · Execution Plan</a>
+          <a href="#verdict">00 · The Verdict</a>
+          <a href="#dashboard">01 · The Numbers</a>
+          <a href="#velocity">02 · Velocity Cancer</a>
+          <a href="#honest">03 · Did We Lie?</a>
+          <a href="#ghosts">04 · Ghost Systems</a>
+          <a href="#tags">05 · Dead Build Tags</a>
+          <a href="#splitbrains">06 · Split Brains</a>
+          <a href="#ci">07 · CI Theater</a>
+          <a href="#rules">08 · Rules We Broke</a>
+          <a href="#errors">09 · Error Taxonomy Leak</a>
+          <a href="#scope">10 · Scope Creep</a>
+          <a href="#types">11 · Type Rot</a>
+          <a href="#tests">12 · Test Quality</a>
+          <a href="#deps">13 · Dependency Analysis</a>
+          <a href="#docs">14 · Doc Obesity</a>
+          <a href="#scorecard">15 · Module Scorecard</a>
+          <a href="#strengths">16 · Honest Strengths</a>
+          <a href="#plan">17 · Execution Plan</a>
         </nav>
       </aside>
-
       <main class="main">
         <div class="hero">
           <div class="hero-shapes">
@@ -670,70 +736,83 @@
             <div class="square"></div>
             <div class="tri"></div>
           </div>
-          <div class="hero-badge">Brutal Self-Review · No Mercy</div>
-          <h1>Your "Lightweight" CQRS Library Is Eating Itself</h1>
+          <div class="hero-badge">Brutal Self-Review · No Mercy · V2</div>
+          <h1>Your "Lightweight" CQRS Library Is Eating Itself Alive</h1>
           <p class="hero-subtitle">
-            40 KLOC of Go pretending to be a library while morphing into a framework, a docs empire,
-            a benchmark suite, a static-site generator, and a WASM demo. The code is competent. The
-            architecture has lost the plot.
+            40 KLOC of Go pretending to be a library, morphing into a framework, a docs empire, a
+            benchmark suite, a static-site generator, and a WASM demo — while shipping 3 dead build
+            tags, a broken CI gate, 88 unclassified errors, and 740 commits in 20 days. The code is
+            competent. The architecture has lost the plot.
           </p>
         </div>
-
         <nav class="toc">
           <h3>The Short Version</h3>
           <ul>
             <li><a href="#verdict">The one-paragraph verdict</a></li>
             <li>
-              <a href="#honest">3 outright lies in <code>AGENTS.md</code></a>
-            </li>
-            <li><a href="#ghosts">2 ghost systems still shipping</a></li>
-            <li><a href="#ci">1 CI gate that silently never fires</a></li>
-            <li>
-              <a href="#rules">22 files breaking your own 250-line rule</a>
+              <a href="#velocity"
+                >740 commits in 20 days (37/day) — this is not sustainable engineering</a
+              >
             </li>
             <li>
-              <a href="#docs">142 KLOC of markdown for 40 KLOC of code</a>
+              <a href="#honest">3 outright lies in AGENTS.md, with exact line citations</a>
+            </li>
+            <li>
+              <a href="#tags"
+                >3 of 4 "experimental" build tags are completely dead — they gate zero files</a
+              >
+            </li>
+            <li>
+              <a href="#ci"
+                >The file-size CI gate is structurally incapable of failing (reproduced)</a
+              >
+            </li>
+            <li>
+              <a href="#errors"
+                >88 <code>fmt.Errorf</code> calls bypass the 5-family error taxonomy</a
+              >
+            </li>
+            <li>
+              <a href="#deps"
+                >2 self-published external deps (go-branded-id, go-error-family) in 36 modules</a
+              >
             </li>
           </ul>
         </nav>
 
-        <!-- =================== VERDICT =================== -->
         <h2 id="verdict"><span class="num">00</span>The Verdict</h2>
-
         <div class="card card-problem">
           <h4>You can absolutely program. You can't absolutely stop.</h4>
           <p>
             The Go on display here is <strong>genuinely good</strong>: interface segregation done
-            right
-            (<code>EventSink</code>/<code>EventSource</code>/<code>Journal</code>/<code>SeekableJournal</code>),
-            typed handlers, branded IDs via <code>id.Of[T]</code>, real OpenTelemetry, decent error
-            taxonomy, property-based tests, golden tests, integration tests against a real Postgres
-            container. The unit of code quality is high.
+            right, typed handlers, branded IDs, real OpenTelemetry, a 5-family error taxonomy,
+            property-based tests, golden tests, integration tests against a real Postgres container.
+            The unit of code quality is high. This is not the work of someone who can't program.
           </p>
           <p>
             The problem is <strong>everything around the code</strong>. The repo is a case study in
-            <em>compulsive scope expansion</em>: every interesting thought becomes a module, every
-            proposal becomes 5 versions of a markdown file, every CI gate is added with a
-            <code>|| true</code> escape hatch so it can never fail, every architectural rule is
-            documented and then quietly broken. You're not building a library any more — you're
-            building a <strong>monument to the idea of a library</strong>, and the monument is
-            heavier than the library it commemorates.
+            <em>compulsive scope expansion driven by commit velocity</em>: 740 commits in 20 days
+            (37/day, 1 author), 53,726 net Go lines added in one month, 60,884 markdown lines added,
+            67,886 HTML lines added. Every interesting thought becomes a module, every proposal
+            becomes 5 versions of a markdown file, every CI gate is added with an escape hatch so it
+            can never fail, every architectural rule is documented and then quietly broken. You're
+            not building a library any more — you're building a
+            <strong>monument to the idea of a library</strong>, and the monument is now 3.5× heavier
+            than the library it commemorates.
           </p>
           <div class="callout callout-problem">
-            <strong>The real bug</strong>
-            is not in any <code>.go</code> file. It's the absence of a discipline that says
-            <em>"no"</em>. Every shiny object gets added. Nothing gets removed. Every release grows
-            the public API surface (1351 → 1784 → 1852 exports in three releases) without removing
-            anything, and the docs grow 3× faster than the code. This is how libraries die — not
-            from bugs, but from becoming unmaintainable through their own ambition.
+            <strong>The real bug</strong> is not in any <code>.go</code> file. It's the absence of a
+            discipline that says <em>"no"</em>. Every shiny object gets added. Nothing gets removed.
+            The API surface has grown 1,266 → 1,351 → 1,784 → 1,852 exports across four releases
+            without a single <code>Deprecated</code> or <code>Removed</code> entry in the changelog.
+            The docs grow 3× faster than the code. This is how libraries die — not from bugs, but
+            from becoming unmaintainable through their own unchecked ambition.
           </div>
         </div>
 
-        <!-- =================== DASHBOARD =================== -->
         <h2 id="dashboard">
           <span class="num">01</span>The Numbers Don't Lie (But AGENTS.md Does)
         </h2>
-
         <div class="stat-grid">
           <div class="stat-card">
             <div class="stat-value">40,297</div>
@@ -767,120 +846,212 @@
             <div class="stat-value">82.1%</div>
             <div class="stat-label">Coverage (overall)</div>
           </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">88</div>
+            <div class="stat-label">Unclassified errors</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">3 / 4</div>
+            <div class="stat-label">Dead build tags</div>
+          </div>
         </div>
-
+        <h3>Visual: doc-to-code ratio (the most damning metric)</h3>
+        <div class="progress-bar">
+          <div class="progress-fill progress-bad" style="width: 100%">142,759 lines markdown</div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill progress-warn" style="width: 28%">
+            40,297 lines production Go
+          </div>
+        </div>
+        <p style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-faint)">
+          For comparison: Go stdlib ≈ 1:1 · Linux kernel ≈ 0.5:1 · go-cqrs-lite:
+          <strong>3.5:1</strong>
+        </p>
         <div class="card card-problem">
           <h4>The markdown-to-code ratio is the single most damning number on this dashboard</h4>
           <p>
             <strong>142,759 lines of markdown for 40,297 lines of production Go.</strong>
-            That's a <strong>3.5× documentation-to-code ratio</strong>. For comparison, the Go
-            standard library ships roughly 1× doc-to-code. The Linux kernel is well under 0.5×. You
-            are writing <em>about</em> the library more than you are writing the library.
-          </p>
-          <p>
-            This is not a virtue. A library whose docs outweigh its code 3.5:1 is a library where no
-            one can find the actual contract anymore. Every decision has an ADR, every ADR has a
-            research doc, every research doc has 4 versions, and none of them are ever deleted.
+            A library whose docs outweigh its code 3.5:1 is a library where no one can find the
+            actual contract anymore. Every decision has an ADR, every ADR has a research doc, every
+            research doc has 4 versions, and none of them are ever deleted.
           </p>
         </div>
 
-        <!-- =================== HONEST =================== -->
-        <h2 id="honest"><span class="num">02</span>Did We Lie? Yes. Three Times.</h2>
+        <h2 id="velocity">
+          <span class="num">02</span>Velocity Cancer: 37 Commits/Day Is Not Engineering
+        </h2>
+        <div class="stat-grid">
+          <div class="stat-card stat-bad">
+            <div class="stat-value">741</div>
+            <div class="stat-label">Commits in June (20 days)</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">37</div>
+            <div class="stat-label">Commits per day</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">1</div>
+            <div class="stat-label">Distinct author</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">+53,726</div>
+            <div class="stat-label">Net Go lines added in June</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">+42,479</div>
+            <div class="stat-label">Net MD lines added in June</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">+67,886</div>
+            <div class="stat-label">HTML lines added in June</div>
+          </div>
+        </div>
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Velocity Warning</span>
+          <h3>
+            37 commits/day with 1 author is not a sign of productivity — it's a sign of compulsion
+          </h3>
+          <p>The most-changed files tell the real story. In 20 days:</p>
+          <table>
+            <thead>
+              <tr>
+                <th>File</th>
+                <th>Times changed</th>
+                <th>What it means</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="mono">AGENTS.md</td>
+                <td><strong>46×</strong></td>
+                <td>
+                  Your context file changes 2.3× per day. It's not stable context — it's a living
+                  document that contradicts itself between commits.
+                </td>
+              </tr>
+              <tr>
+                <td class="mono">TODO_LIST.md</td>
+                <td><strong>45×</strong></td>
+                <td>
+                  The TODO list churns faster than it can be completed. It's a wish journal, not a
+                  plan.
+                </td>
+              </tr>
+              <tr>
+                <td class="mono">FEATURES.md</td>
+                <td><strong>35×</strong></td>
+                <td>
+                  The feature inventory changes 1.75× per day. How can it be honest if it's never
+                  stable?
+                </td>
+              </tr>
+              <tr>
+                <td class="mono">CHANGELOG.md</td>
+                <td><strong>27×</strong></td>
+                <td>1.35 changelog edits per day for a library with zero known consumers.</td>
+              </tr>
+              <tr>
+                <td class="mono">example/todo/go.mod</td>
+                <td><strong>27×</strong></td>
+                <td>Dependency churn from the version drift problem (see §06).</td>
+              </tr>
+              <tr>
+                <td class="mono">pebble/go.sum</td>
+                <td><strong>33×</strong></td>
+                <td>Lock file churn from constant dependency re-pinning.</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="callout callout-problem">
+            <strong>The cost</strong> At 37 commits/day, no human reviewer can keep up — and since
+            there's only 1 author, there IS no reviewer. Every bug introduced ships immediately.
+            Every architectural drift compounds. The velocity IS the technical debt: you're moving
+            so fast that you can't notice you're going the wrong direction until you've added 3
+            modules in the wrong place.
+          </div>
+        </div>
 
-        <p>
-          Rule #5 in your own AGENTS.md says
-          <em
-            >"Challenge instructions and tool output — both can be wrong, contradictory, or
-            nonsensical."</em
-          >
-          So let's apply that to AGENTS.md itself.
-        </p>
-
+        <h2 id="honest"><span class="num">03</span>Did We Lie? Yes. Three Times. With Receipts.</h2>
         <div class="issue issue-critical">
           <span class="severity severity-critical">Lie #1</span>
           <h3>"30 modules (24 library + 1 integration + 3 examples + 2 cmd)"</h3>
-          <div class="where">AGENTS.md · Monorepo Structure section</div>
+          <div class="where">AGENTS.md · "Monorepo Structure" section</div>
           <p>
-            <strong>Actual count: 39 <code>go.mod</code> files.</strong> The AGENTS.md module roster
-            omits <code>stack/</code>, <code>stack/memory</code>, <code>stack/sqlite</code>,
+            <strong>Actual: 39 <code>go.mod</code> files.</strong> The headline omits
+            <code>stack/</code>, <code>stack/memory</code>, <code>stack/sqlite</code>,
             <code>stack/pebble</code>, <code>stack/postgres</code>, <code>stack/bench</code>,
-            <code>readmodel</code>, <code>readmodel/cache</code>, and <code>kv</code> from the
-            headline count. The list below the headline does include them, so the AGENTS.md is
-            internally contradictory with itself — the very definition of a split brain in
-            documentation.
+            <code>readmodel</code>, <code>readmodel/cache</code>, and <code>kv</code>. The list
+            under the headline includes them — AGENTS.md is internally contradictory.
           </p>
-          <div class="callout callout-solution">
-            <strong>Fix</strong>
-            Update the headline number to 39. Better: stop hardcoding a count that drifts every
-            release and compute it from
-            <code>go.work</code> at doc-generation time.
-          </div>
         </div>
-
         <div class="issue issue-critical">
           <span class="severity severity-critical">Lie #2</span>
-          <h3>
-            "No <code>any</code> types (except <code>dialect.go</code> for database/sql interop)"
-          </h3>
+          <h3>"No <code>any</code> types (except <code>dialect.go</code>)"</h3>
           <div class="where">AGENTS.md · Design Principle #9</div>
           <p>
-            Actual count of <code>any</code> usages outside <code>dialect.go</code> (excluding
-            generic <code>[T any]</code> syntax which is forced by Go):
-            <strong>165 runtime <code>any</code> positions</strong>. Examples that violate the
-            literal rule:
+            <strong>Actual: 165 runtime <code>any</code> positions</strong>
+            outside <code>dialect.go</code> (excluding <code>[T any]</code> generic syntax). Worst
+            offenders:
           </p>
-          <pre><code><span class="tok-comment">// schema/validator.go — runtime any in production validators</span>
-validators map[event.Type]<span class="tok-keyword">func</span>(<span class="tok-type">any</span>) error
-decode     <span class="tok-keyword">func</span>([]byte, <span class="tok-type">any</span>) error
-
-<span class="tok-comment">// encryption/codec.go, codec/json.go — Encode(v any)</span>
-<span class="tok-keyword">func</span> (c *encryptingCodec) Encode(v <span class="tok-type">any</span>) ([]byte, error)
-
-<span class="tok-comment">// query/dispatcher.go — the dispatcher return type IS any</span>
-<span class="tok-keyword">type</span> Handler = <span class="tok-keyword">func</span>(context.Context, Query) (<span class="tok-type">any</span>, error)
-
-<span class="tok-comment">// stack/contracttest/contract.go — []any{ map[string]any{...} }</span></code></pre>
+          <table>
+            <thead>
+              <tr>
+                <th>File</th>
+                <th><code>any</code> count</th>
+                <th>Why it's there</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="mono">turso/indexing/advisor_data.go</td>
+                <td>8</td>
+                <td>Index advisor statistics</td>
+              </tr>
+              <tr>
+                <td class="mono">schema/validator.go</td>
+                <td>7</td>
+                <td>
+                  Type-erased validator map:
+                  <code>map[event.Type]func(any) error</code>
+                </td>
+              </tr>
+              <tr>
+                <td class="mono">storage/sql/query_engine.go</td>
+                <td>7</td>
+                <td>SQL scan interface</td>
+              </tr>
+              <tr>
+                <td class="mono">query/dispatcher.go</td>
+                <td>7</td>
+                <td><code>Handler</code> returns <code>any</code> — THE primary type hole</td>
+              </tr>
+              <tr>
+                <td class="mono">id/id.go</td>
+                <td>6</td>
+                <td>Branded ID type alias: <code>type Of[T any]</code></td>
+              </tr>
+              <tr>
+                <td class="mono">decider/options.go</td>
+                <td>6</td>
+                <td>Decider option functions</td>
+              </tr>
+            </tbody>
+          </table>
           <p>
-            Some of these are legitimate (codec interfaces, generic dispatcher boundaries). But the
-            rule as written is false. You don't get to claim a strict-typing principle and then ship
-            165 exceptions to it. Either rewrite the rule to describe reality (<em
-              >"<code>any</code> only at codec / dispatcher boundaries"</em
-            >) or actually enforce it.
+            Some are legitimate (codec <code>Encode(v any)</code>, generic constraints). But the
+            rule as written is simply false. Either rewrite it to describe reality or enforce it.
           </p>
-          <div class="callout callout-warning">
-            <strong>Deeper issue</strong>
-            <code>query.Handler</code> returning <code>any</code> is the single biggest type-safety
-            hole in the library. Every <code>Dispatch</code> caller has to type-assert the result
-            and silently lose compile-time guarantees. This is what
-            <code>query.TypedHandler[Q, R]</code> was supposed to fix — and it exists, but the
-            untyped <code>Handler</code> is still the primary registration path documented in
-            AGENTS.md.
-          </div>
         </div>
-
         <div class="issue issue-critical">
           <span class="severity severity-critical">Lie #3</span>
-          <h3>"Max 250 lines/file, 30 lines/function"</h3>
-          <div class="where">AGENTS.md · Design Principle #9 · CI file-size-gate (set to 350)</div>
-          <p>Two contradictions in one rule:</p>
-          <ol>
-            <li>
-              <strong>The CI gate is set to 350 lines, not 250.</strong> The AGENTS.md rule and the
-              CI rule disagree by 40%. Neither matches the other.
-            </li>
-            <li>
-              <strong>The CI gate doesn't fire anyway.</strong> The script uses
-              <code>find … | while read</code>, which runs the <code>while</code> loop in a
-              subshell, so the <code>failed=true</code> set inside the loop body
-              <strong>never propagates to the outer shell</strong>. The gate exits 0 no matter how
-              many files violate the limit. Reproduced locally — see
-              <a href="#ci">§05 CI Theater</a>.
-            </li>
-          </ol>
+          <h3>
+            "Max 250 lines/file, 30 lines/function" — contradicted by CI (350) AND CI is broken
+          </h3>
+          <div class="where">AGENTS.md Principle #9 vs ci.yml file-size-gate</div>
           <p>
-            The actual damage:
-            <strong>22 production files exceed the documented 250-line limit</strong>,
-            <strong>7 exceed even the loose 350-line CI limit</strong>. Worst offenders:
+            Two contradictions in one rule. And the CI gate is
+            <strong>structurally broken</strong> (see <a href="#ci">§07</a>). The actual damage:
           </p>
           <table>
             <thead>
@@ -937,321 +1108,298 @@ decode     <span class="tok-keyword">func</span>([]byte, <span class="tok-type">
             </tbody>
           </table>
           <p>
-            And on the function-length side of the same rule:
-            <strong>30+ functions exceed the 30-line limit</strong>, the worst being
-            <code>example/todo/cmd/api/main.go:46 run()</code> at <strong>172 lines</strong>. That
-            function is the public "how to wire the whole stack" example. It's a wall of imperative
-            setup with no extraction.
+            <strong
+              >22 files exceed the documented 250-line limit. 7 exceed even the loose 350-line CI
+              limit.</strong
+            >
+            The worst function is
+            <code>example/todo/cmd/api/main.go:46 run()</code> at <strong>172 lines</strong> — the
+            public "how to use this library" example.
           </p>
-          <div class="callout callout-solution">
-            <strong>Fix (three things)</strong>
-            1. Pick one number and use it everywhere. 2. Fix the bash subshell bug. 3. Either delete
-            the rule or enforce it — pretending to enforce it is worse than no rule.
-          </div>
         </div>
 
-        <!-- =================== GHOSTS =================== -->
-        <h2 id="ghosts"><span class="num">03</span>Ghost Systems</h2>
-
+        <h2 id="ghosts"><span class="num">04</span>Ghost Systems</h2>
         <p>
           A ghost system is code that ships, builds, gets lint-clean, but is used by no one — not
-          even the project's own examples or integration tests. It exists because someone (you)
-          thought it
-          <em>might</em> be useful, then never came back to verify the hypothesis.
+          even the project's own examples. Found four.
         </p>
-
         <div class="issue issue-critical">
           <span class="severity severity-critical">Ghost #1</span>
-          <h3><code>wasm/main.go</code> — A 19-line binary that prints marketing copy</h3>
-          <div class="where">wasm/main.go · 19 LOC · zero imports of go-cqrs-lite</div>
+          <h3><code>wasm/main.go</code> — 19-line binary that prints marketing copy</h3>
+          <div class="where">wasm/main.go · 19 LOC · no go.mod · not in workspace · not in CI</div>
           <pre><code><span class="tok-comment">//go:build wasm</span>
 <span class="tok-keyword">package</span> main
 
 <span class="tok-keyword">func</span> <span class="tok-func">main</span>() {
     <span class="tok-builtin">fmt</span>.<span class="tok-func">Printf</span>(<span class="tok-string">"go-cqrs-lite WASM build: %s/%s\n"</span>, runtime.GOOS, runtime.GOARCH)
     <span class="tok-builtin">fmt</span>.<span class="tok-func">Println</span>(<span class="tok-string">"Core modules compiled successfully:"</span>)
-    <span class="tok-builtin">fmt</span>.<span class="tok-func">Println</span>(<span class="tok-string">"  - id: branded IDs, ULID generation"</span>)
-    <span class="tok-comment">// ... 5 more lines of fmt.Println</span>
+    <span class="tok-comment">// ... 5 more lines of fmt.Println describing what *might* compile</span>
 }</code></pre>
           <p>
-            This file: (a) has no <code>go.mod</code>, (b) is not in the workspace, (c) is not in
-            any CI matrix, (d) is not built by <code>nix run .#build</code>, (e) is not imported by
-            anything, (f) contains zero logic — it prints 7 lines of static text describing what
-            modules <em>theoretically</em> compile to WASM. It is documentation masquerading as
-            code, and it's wrong-by-construction: if any module stops compiling to WASM, this file
-            won't tell you because it never runs.
+            No <code>go.mod</code>, not in <code>go.work</code>, not in CI matrix, not built by
+            <code>nix run .#build</code>, not imported by anything, contains zero logic. It prints 7
+            lines of static text describing what modules <em>theoretically</em> compile to WASM.
           </p>
-          <div class="callout callout-solution">
-            <strong>Action</strong>
-            Either delete it, or — if WASM support is real — add a CI job that actually does
-            <code>GOOS=js GOARCH=wasm go build ./...</code> on the core modules and asserts success.
-            The current file is neither.
-          </div>
         </div>
-
-        <div class="issue issue-important">
-          <span class="severity severity-important">Ghost #2</span>
-          <h3><code>prometheus/</code> — a public module imported by nobody</h3>
-          <div class="where">prometheus/ · 141 LOC production · imported by 0 modules</div>
-          <p>
-            <code>rg "go-cqrs-lite/prometheus" --type go -l</code> returns exactly one file:
-            <code>prometheus/exporter_test.go</code>. The module is a public, versioned, released Go
-            module (<code>github.com/larsartmann/go-cqrs-lite/prometheus/v2</code>) with zero
-            consumers. None of the stack presets wire it. None of the examples use it. The
-            middleware module (<code>middleware/</code>) provides its own OTel-based metrics
-            recorder, so the Prometheus bridge is redundant with what's already in the box.
-          </p>
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Ghost #2</span>
+          <h3>3 of 4 experimental build tags are completely dead</h3>
+          <div class="where">
+            flake.nix goTags · event/arena_experiment.go · codec/jsonv2_experiment.go
+          </div>
+          <p><code>flake.nix</code> applies these tags to every build and test:</p>
+          <pre><code><span class="tok-attr">goTags</span> = [
+    <span class="tok-string">"goexperiment.arenas"</span>
+    <span class="tok-string">"goexperiment.goroutineleakprofile"</span>
+    <span class="tok-string">"goexperiment.runtimesecret"</span>
+    <span class="tok-string">"goexperiment.simd"</span>
+];</code></pre>
+          <p>Here's what each tag <em>actually</em> gates in the codebase:</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Tag</th>
+                <th>Files gated</th>
+                <th>Callers</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="mono">goexperiment.arenas</td>
+                <td>1 (<code>event/arena_experiment.go</code>)</td>
+                <td>0</td>
+                <td><span class="badge badge-critical">Dead code</span></td>
+              </tr>
+              <tr>
+                <td class="mono">goexperiment.goroutineleakprofile</td>
+                <td>0</td>
+                <td>—</td>
+                <td><span class="badge badge-critical">Inert</span></td>
+              </tr>
+              <tr>
+                <td class="mono">goexperiment.runtimesecret</td>
+                <td>0</td>
+                <td>—</td>
+                <td><span class="badge badge-critical">Inert</span></td>
+              </tr>
+              <tr>
+                <td class="mono">goexperiment.simd</td>
+                <td>0</td>
+                <td>—</td>
+                <td><span class="badge badge-critical">Inert</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="callout callout-problem">
+            <strong>The irony</strong> <code>goexperiment.jsonv2</code> — the ONE experimental tag
+            that gates a real, useful file (<code>codec/jsonv2_experiment.go</code>) — is
+            <strong>NOT in the <code>flake.nix</code> tag list</strong>. So the one live experiment
+            never compiles, and three dead tags are applied to every build. This is cargo-cult
+            complexity: tags that sound sophisticated but do nothing, while the one tag that would
+            do something is missing.
+          </div>
           <div class="callout callout-warning">
-            <strong>Counter-argument (be honest)</strong>
-            AGENTS.md correctly notes this is a library, so "zero internal consumers" is the
-            expected state for any module. That defense works for, say, <code>pebble/</code>. It
-            does not work for a metrics bridge whose entire reason for existing is to be plugged
-            into the metrics-emitting modules in the same repo. If the bundle presets don't use it,
-            it's because the contract is wrong, not because consumers haven't discovered it yet.
+            <strong>Consumer impact</strong> Every consumer of this library MUST pass these 4 tags
+            when building or testing their own code (because the library's source files reference
+            them transitively). They're paying a complexity tax for zero benefit. AGENTS.md calls
+            this "Go experimental build tags" as if it's a feature. It's a footgun.
           </div>
         </div>
-
         <div class="issue issue-important">
           <span class="severity severity-important">Ghost #3</span>
-          <h3><code>docs/site/</code> — a single README for an undeployed static site</h3>
-          <div class="where">docs/site/README.md · mkdocs.yml exists · zero deploy jobs in CI</div>
+          <h3><code>prometheus/</code> — public module imported by nobody</h3>
+          <div class="where">prometheus/ · 141 LOC production · 0 internal consumers</div>
           <p>
-            <code>mkdocs.yml</code> is configured (Material theme, tabs, repo links, site_url
-            pointing to <code>larsartmann.github.io/go-cqrs-lite</code>).
-            <code>docs/index.md</code>, <code>docs/getting-started.md</code>,
-            <code>docs/PRESETS.md</code>, <code>docs/STORAGE_GUIDE.md</code> are all written. And
-            <code>docs/site/README.md</code> exists. But there is no <code>mkdocs build</code> job,
-            no <code>mkdocs gh-deploy</code> job, no GitHub Pages workflow in
-            <code>.github/workflows/</code>. The site has never been deployed. The
-            <code>site_url</code> it points to is fictional.
+            <code>rg "go-cqrs-lite/prometheus" --type go -l</code> returns exactly one file:
+            <code>prometheus/exporter_test.go</code>. None of the stack presets wire it. The
+            middleware module provides its own OTel metrics recorder, making this bridge redundant.
           </p>
+        </div>
+        <div class="issue issue-important">
+          <span class="severity severity-important">Ghost #4</span>
+          <h3><code>docs/site/</code> + <code>mkdocs.yml</code> — never deployed</h3>
+          <div class="where">mkdocs.yml · docs/index.md · docs/site/README.md</div>
           <p>
-            This is the canonical "I'll set it up later" ghost: scaffolding committed with no
-            follow-through.
+            Full mkdocs configuration (Material theme, tabs, repo links,
+            <code>site_url: https://larsartmann.github.io/go-cqrs-lite/</code>), but zero
+            <code>mkdocs build</code> or <code>mkdocs gh-deploy</code> jobs in CI. The
+            <code>site_url</code> points to a GitHub Pages site that doesn't exist.
           </p>
-          <div class="callout callout-solution">
-            <strong>Action</strong>
-            Either delete <code>mkdocs.yml</code> and <code>docs/site/</code>, or wire up a 5-line
-            GitHub Actions job that runs <code>mkdocs gh-deploy</code> on push to master. Both are
-            10-minute fixes. Doing nothing keeps a ghost.
-          </div>
         </div>
 
-        <!-- =================== SPLIT BRAINS =================== -->
-        <h2 id="splitbrains"><span class="num">04</span>Split Brains</h2>
-
-        <p>A split brain is any place where two sources of truth disagree. Found six.</p>
-
+        <h2 id="splitbrains"><span class="num">06</span>Split Brains</h2>
         <div class="issue issue-critical">
           <span class="severity severity-critical">Split Brain #1</span>
-          <h3>memory/v2 published as v2.6.0 but pinned as v2.5.0 in 11 consumer modules</h3>
+          <h3>
+            <code>memory/v2</code> published as v2.6.0 but pinned as v2.5.0 in 11 consumer modules
+          </h3>
           <div class="where">
             command/, decider/, event/, integration/, listing/, middleware/, projection/, query/,
             schema/, stack/bench/, watermill/
           </div>
-          <p>
-            Commit <code>6bcd5543</code> ("chore(deps): bump monorepo internal module versions to
-            v2.6.0") bumped every sibling module <strong>except memory</strong> in those 11
-            consumers. So <code>command/v2 v2.6.0</code> depends on <code>memory/v2 v2.5.0</code>,
-            while <code>example/todo/v2</code> depends on <code>memory/v2 v2.6.0</code>. The local
-            <code>replace ../memory</code> directives hide this in dev, but anyone pulling
-            <code>command/v2 v2.6.0</code> from the Go proxy gets a dependency graph that references
-            the older memory release.
-          </p>
-          <p>
-            MVS will resolve it to v2.6.0 transitively, so it's not a hard runtime bug — but the
-            <em>declared</em> graph is inconsistent, and the next time memory makes a breaking
-            change the replace directives will mask it until release.
-          </p>
-          <div class="callout callout-solution">
-            <strong>Fix</strong>
-            One-liner per file:
-            <code>go mod edit -require=...memory/v2@v2.6.0</code>. Then add a CI check that
-            <code>rg "memory/v2 v2\." go.mod */go.mod | sort -u</code> returns exactly one version.
-            Better: stop hand-pinning sibling versions and use a release script.
+          <div class="dep-tree">
+            <span class="root">commit 6bcd5543</span> "bump monorepo internal module versions to
+            v2.6.0" ├── <span class="ok">command/v2</span> v2.5.0 → v2.6.0 ✓ ├──
+            <span class="ok">event/v2</span> v2.5.0 → v2.6.0 ✓ ├──
+            <span class="ok">decider/v2</span> v2.5.0 → v2.6.0 ✓ ├──
+            <span class="ok">id/v2</span> v2.5.0 → v2.6.0 ✓ ├──
+            <span class="unwanted">memory/v2</span> v2.5.0 →
+            <span class="unwanted">STILL v2.5.0</span> ✗ (in 11 modules!) └──
+            <span class="ok">stack/*</span>, <span class="ok">example/*</span> → v2.6.0 ✓
           </div>
+          <p>
+            Commit <code>6bcd5543</code> bumped every sibling module
+            <strong>except memory</strong> in 11 of 18 consumers.
+            <code>replace ../memory</code> directives hide this locally, but anyone pulling from the
+            Go proxy gets an inconsistent declared graph.
+          </p>
         </div>
-
         <div class="issue issue-critical">
           <span class="severity severity-critical">Split Brain #2</span>
           <h3>ADR-0027 filename says "defer", body says "Implemented"</h3>
           <div class="where">docs/adr/0027-defer-postgres-listen-notify-bus.md</div>
-          <p>
-            The filename is
-            <code>0027-defer-postgres-listen-notify-bus.md</code>. The first line of the ADR body
-            says:
-          </p>
-          <pre><code>| Status  | <span class="tok-string">Implemented — PostgresBus wired into stack/postgres,
-            pgx-based PgxListener shipped, real-PG integration tests in CI</span> |</code></pre>
-          <p>
-            So the URL/filename advertises a decision to <em>defer</em>, and the content describes a
-            decision to <em>ship</em>. Anyone scanning the ADR list by filename gets the wrong
-            answer.
-          </p>
+          <div class="compare-header">
+            <div class="compare-before">Filename</div>
+            <div class="compare-after">ADR body (line 1)</div>
+          </div>
+          <div class="compare-row">
+            <div>
+              <pre><code>0027-<span class="tok-removed">defer</span>-postgres-listen-notify-bus.md</code></pre>
+            </div>
+            <div>
+              <pre><code>| Status | <span class="tok-added">Implemented</span> — PostgresBus wired
+|        | into stack/postgres, pgx-based
+|        | PgxListener shipped, real-PG
+|        | integration tests in CI |</code></pre>
+            </div>
+          </div>
         </div>
-
         <div class="issue issue-important">
           <span class="severity severity-important">Split Brain #3</span>
-          <h3><code>.go-arch-lint.yml</code> literally says "I am not enforced"</h3>
+          <h3><code>.go-arch-lint.yml</code> documents its own uselessness</h3>
           <div class="where">.go-arch-lint.yml lines 1–6</div>
           <pre><code><span class="tok-comment"># NOTE: This file is a SECONDARY, aspirational reference for the module layer
 # model. It is NOT enforced in CI. The authoritative, CI-enforced layer gate is
 # scripts/check-module-layers.sh (which passes). go-arch-lint currently reports
 # historical drift against this ruleset; treat the component list below as a
 # module inventory, and scripts/check-module-layers.sh as the source of truth.</span></code></pre>
-          <p>
-            Two architectural lint configs in the repo, one of which admits it's drift-prone and
-            ignored. Delete <code>.go-arch-lint.yml</code> or fix it. Shipping a config that
-            documents its own uselessness is institutional self-awareness without institutional
-            follow-through.
-          </p>
+          <p>Two architectural lint configs, one admits it's ignored.</p>
         </div>
-
         <div class="issue issue-important">
           <span class="severity severity-important">Split Brain #4</span>
           <h3>
-            AGENTS.md test command vs <code>flake.nix</code>
-            <code>testModules</code>
+            AGENTS.md test command ≠ <code>flake.nix</code> <code>testModules</code> ≠ CI matrix
           </h3>
-          <div class="where">AGENTS.md "Test" row vs flake.nix lines 30–62</div>
-          <p>
-            AGENTS.md tells the reader to test
-            <code>./testutil/... ./cmd/api-stability/...</code> as part of the standard suite. The
-            actual <code>nix run .#test</code> app iterates <code>testModules</code> in
-            <code>flake.nix</code>, which
-            <strong>omits both <code>testutil</code> and <code>cmd/api-stability</code></strong
-            >. So the documented test command and the real test command test different things. CI's
-            per-module matrix <em>does</em> include <code>cmd/api-stability</code>, so CI and
-            <code>nix run .#test</code> disagree too.
-          </p>
+          <div class="where">AGENTS.md "Test" row vs flake.nix vs ci.yml</div>
+          <p>Three different definitions of "what gets tested":</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Source</th>
+                <th>Tests <code>testutil</code>?</th>
+                <th>Tests <code>cmd/api-stability</code>?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>AGENTS.md (documented)</td>
+                <td><span class="badge badge-fixed">Yes</span></td>
+                <td><span class="badge badge-fixed">Yes</span></td>
+              </tr>
+              <tr>
+                <td>flake.nix testModules</td>
+                <td><span class="badge badge-critical">No</span></td>
+                <td><span class="badge badge-critical">No</span></td>
+              </tr>
+              <tr>
+                <td>ci.yml per-module matrix</td>
+                <td><span class="badge badge-critical">No</span></td>
+                <td><span class="badge badge-fixed">Yes</span></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-
         <div class="issue issue-important">
           <span class="severity severity-important">Split Brain #5</span>
-          <h3>Coverage output in 4 different places</h3>
+          <h3>Coverage output scattered across 4 locations</h3>
           <div class="where">
-            coverage.out (root) · coverage/coverage.out (root, drwxr-x---) · reports/coverage.out ·
-            per-module cover.out
+            coverage.out (root) · coverage/ (drwxr-x---) · reports/ · per-module cover.out
           </div>
           <p>
-            Three different root-level artifacts (<code>coverage.out</code>,
-            <code>coverage/coverage.out</code>, <code>reports/coverage.out</code>) plus per-module
-            <code>cover.out</code> files in <code>catalog/</code>, <code>otel/</code>,
-            <code>storage/</code>, <code>turso/</code>, <code>cmd/cqrs-gen/</code>, etc. They're
-            gitignored so they don't ship, but they all exist on disk after running tests. Three of
-            those four locations are <em>also</em> referenced by different scripts and reports, so
-            no one knows which one is canonical. <code>reports/coverage.out</code> (525 KB) is the
-            largest single file in the repo after the lock files, and <code>reports/</code> exists
-            for no other reason.
+            Three root-level directories plus per-module files.
+            <code>reports/coverage.out</code> (525 KB) is the largest file in the repo after lock
+            files, and <code>reports/</code> exists for no other reason. All gitignored so none
+            ship, but the split brain on "where does coverage go" is real.
           </p>
         </div>
 
-        <div class="issue issue-nice">
-          <span class="severity severity-nice">Split Brain #6</span>
-          <h3>Research proposals never consolidated</h3>
-          <div class="where">docs/research/</div>
-          <p>
-            <code>2026-05-28_STREAM_API_PROPOSAL.md</code>, <code>STREAM_API_V2_PROPOSAL.md</code>,
-            <code>STREAM_API_V3_PROPOSAL.md</code>, <code>STREAM_API_V4_PROPOSAL.md</code>,
-            <code>STREAM_API_V4_SELF_CRITIQUE.md</code>. Five files for one design decision, none of
-            them deleted after the decision was made. Same with
-            <code>PROPOSAL-dissolve-core.html</code> and
-            <code>PROPOSAL-dissolve-core-v2.html</code>. <code>docs/research/</code> has
-            <strong>42 files (29 .md + 13 .html)</strong>, none of them with a clear "superseded by"
-            or "decided in ADR-XXXX" pointer.
-          </p>
-        </div>
-
-        <!-- =================== CI THEATER =================== -->
         <h2 id="ci">
-          <span class="num">05</span>CI Theater: Gates That Look Like Gates But Aren't
+          <span class="num">07</span>CI Theater: Gates That Look Like Gates But Aren't
         </h2>
-
         <div class="issue issue-critical">
-          <span class="severity severity-critical">Theater #1 · Critical</span>
-          <h3><code>file-size-gate</code> is structurally incapable of failing</h3>
+          <span class="severity severity-critical">Theater #1 · The Big One</span>
+          <h3>
+            <code>file-size-gate</code> is structurally incapable of failing — reproduced locally
+          </h3>
           <div class="where">.github/workflows/ci.yml · file-size-gate job</div>
           <pre><code><span class="tok-keyword">failed</span>=<span class="tok-string">false</span>
-<span class="tok-builtin">find</span> . -name <span class="tok-string">"*.go"</span> ... | <span class="tok-keyword">while read</span> -r f; <span class="tok-keyword">do</span>
+<span class="tok-builtin">find</span> . -name <span class="tok-string">"*.go"</span> ... | <span class="tok-keyword">while read</span> -r f; <span class="tok-keyword">do</span>   <span class="tok-comment"># ← PIPE = subshell!</span>
   <span class="tok-keyword">if</span> [ <span class="tok-string">"$lines"</span> -gt 350 ]; <span class="tok-keyword">then</span>
-    <span class="tok-builtin">echo</span> <span class="tok-string">"::warning::$f has $lines lines (max 350)"</span>
-    <span class="tok-keyword">failed</span>=<span class="tok-string">true</span>   <span class="tok-comment"># ← runs in a SUBSHELL because of the pipe</span>
+    <span class="tok-keyword">failed</span>=<span class="tok-string">true</span>   <span class="tok-comment"># ← dies in subshell, never propagates</span>
   <span class="tok-keyword">fi</span>
 <span class="tok-keyword">done</span>
-<span class="tok-keyword">if</span> [ <span class="tok-string">"$failed"</span> = <span class="tok-string">true</span> ]; <span class="tok-keyword">then exit 1</span>; <span class="tok-keyword">fi</span>
-<span class="tok-comment"># ↑ $failed is always false here. Gate ALWAYS passes.</span></code></pre>
+<span class="tok-comment"># ↑ $failed is ALWAYS false here. Gate exits 0. EVERY. TIME.</span></code></pre>
           <p>
-            <code>find … | while read</code> runs the <code>while</code> loop in a subshell. The
-            <code>failed=true</code> set inside never propagates back to the parent shell. I
-            reproduced this exactly with <code>sh -c '…'</code> on this repo: 7 violations found
-            inside the loop, <code>$failed=false</code> after the loop, exit 0.
+            <strong>Reproduced locally:</strong> ran the exact script pattern with
+            <code>sh -c '…'</code>. Result: 7 violations found inside the loop,
+            <code>$failed=false</code> after the loop, exit 0.
             <strong>This gate has never fired in the history of the project.</strong>
-            Every PR that added a 400-line file passed CI.
           </p>
           <div class="callout callout-solution">
-            <strong>Fix</strong>
-            Use process substitution so the loop runs in the parent shell:
-            <code>while read -r f; do …; done &lt; &lt;(find …)</code>. Or just write the loop in
-            Go.
+            <strong>Fix (1 character)</strong> Replace the pipe with process substitution:
+            <code>while read -r f; do …; done &lt; &lt;(find …)</code>. Now the loop runs in the
+            parent shell and <code>$failed</code> propagates.
           </div>
         </div>
-
         <div class="issue issue-critical">
-          <span class="severity severity-critical">Theater #2 · Critical</span>
-          <h3><code>gosec</code> runs with <code>-no-fail</code></h3>
+          <span class="severity severity-critical">Theater #2</span>
+          <h3><code>gosec</code> runs with <code>-no-fail</code> — can never break CI</h3>
           <div class="where">.github/workflows/ci.yml · gosec job</div>
-          <pre><code><span class="tok-builtin">gosec</span> -fmt sarif -out gosec.sarif <span class="tok-string">-no-fail</span> ./event/... ./command/... ...</code></pre>
+          <pre><code><span class="tok-builtin">gosec</span> -fmt sarif -out gosec.sarif <span class="tok-removed">-no-fail</span> ./event/... ./command/...</code></pre>
           <p>
             <code>-no-fail</code> means gosec returns exit 0 even if it finds critical
-            vulnerabilities. The SARIF is uploaded to GitHub for display, but the job itself can
-            never fail the build. So a SQL injection or hardcoded secret would surface as a nice
-            yellow badge in the GitHub UI and ship anyway.
+            vulnerabilities. The SARIF uploads to GitHub for a nice badge, but the job itself can
+            never fail the build.
           </p>
         </div>
-
         <div class="issue issue-important">
           <span class="severity severity-important">Theater #3</span>
           <h3>
-            <code>nix run .#vulncheck</code> and <code>nix run .#secrets-scan</code> have
+            <code>vulncheck</code> and <code>secrets-scan</code> have
             <code>|| true</code>
           </h3>
           <div class="where">flake.nix · apps.vulncheck, apps.secrets-scan</div>
-          <pre><code>${goPkg}/bin/go vet -vettool=$(<span class="tok-builtin">which</span> govulncheck) 2>/dev/null <span class="tok-string">|| true</span>
-(cd <span class="tok-string">"$mod"</span> && GOWORK=off ${goPkg}/bin/go list -json ./... \
-  | ${pkgs.govulncheck}/bin/govulncheck -mode=source 2>/dev/null <span class="tok-string">|| true</span>)
-${pkgs.gitleaks}/bin/gitleaks detect --source . --no-banner --no-git 2>/dev/null <span class="tok-string">|| true</span></code></pre>
           <p>
-            Both apps end with <code>|| true</code> and are not wired into CI as jobs at all. So
-            even if you run them locally, they print a green checkmark regardless of findings. This
-            is performative security — you have the tools installed, you have the apps defined, but
-            you have carefully arranged that they cannot inconvenience you.
+            Both end with <code>|| true</code> and are not wired into CI. They print a green
+            checkmark regardless of findings.
+            <strong>Performative security.</strong>
           </p>
         </div>
-
         <div class="issue issue-important">
           <span class="severity severity-important">Theater #4</span>
           <h3>
-            Benchmark regression check uses <code>::warning::</code> not
+            Benchmark regression check emits <code>::warning::</code> not
             <code>::error::</code>
           </h3>
           <div class="where">.github/workflows/ci.yml · benchmark job</div>
           <p>
-            A benchmark that regresses &gt;2× vs baseline produces a GitHub annotation, not a
-            failure. Performance regressions ship. Combined with the fact that
-            <code>benchmark-baseline.txt</code>
-            is committed to the repo and updated by hand, the gate is both toothless and easy to
-            gaslight (just commit a new baseline).
+            A &gt;2× regression produces an annotation, not a failure. And
+            <code>benchmark-baseline.txt</code> is committed and updated by hand — easy to gaslight.
           </p>
         </div>
 
-        <!-- =================== RULES WE BROKE =================== -->
-        <h2 id="rules"><span class="num">06</span>Rules You Wrote And Then Broke</h2>
-
-        <p>
-          AGENTS.md is full of strong principles. The codebase breaks them with the serenity of
-          someone who has never re-read their own principles.
-        </p>
-
+        <h2 id="rules"><span class="num">08</span>Rules You Wrote And Then Broke</h2>
         <table>
           <thead>
             <tr>
@@ -1262,25 +1410,15 @@ ${pkgs.gitleaks}/bin/gitleaks detect --source . --no-banner --no-git 2>/dev/null
           </thead>
           <tbody>
             <tr>
-              <td>
-                <strong>"Max 250 lines/file, 30 lines/function"</strong>
-                (Principle #9)
-              </td>
-              <td>
-                22 files &gt; 250 lines, 7 files &gt; 350 lines, 30+ functions &gt; 30 lines.
-                <code>storage/pg_bus.go</code> is 603 lines.
-              </td>
+              <td><strong>"Max 250 lines/file, 30 lines/function"</strong></td>
+              <td>22 files &gt; 250 lines, 7 &gt; 350 lines, 30+ functions &gt; 30 lines</td>
               <td><span class="badge badge-critical">Critical</span></td>
             </tr>
             <tr>
               <td>
                 <strong>"No <code>any</code> types (except <code>dialect.go</code>)"</strong>
-                (Principle #9)
               </td>
-              <td>
-                165 runtime <code>any</code> usages outside dialect.go (codec, validator,
-                dispatcher, contracttest)
-              </td>
+              <td>165 runtime <code>any</code> positions outside dialect.go</td>
               <td><span class="badge badge-critical">Critical</span></td>
             </tr>
             <tr>
@@ -1288,141 +1426,188 @@ ${pkgs.gitleaks}/bin/gitleaks detect --source . --no-banner --no-git 2>/dev/null
                 <strong>"Strong types — make impossible states unrepresentable"</strong>
               </td>
               <td>
-                <code>query.Handler</code> returns <code>any</code>.
-                <code>query.Dispatch</code> requires a type assertion at every call site.
+                <code>query.Handler</code> returns <code>any</code> — every caller loses
+                compile-time safety
               </td>
               <td><span class="badge badge-high">High</span></td>
             </tr>
             <tr>
-              <td><strong>"30 modules"</strong> headline (Monorepo Structure)</td>
-              <td>
-                39 <code>go.mod</code> files. The list under the headline even includes the missing
-                ones.
-              </td>
+              <td><strong>"30 modules"</strong></td>
+              <td>39 <code>go.mod</code> files</td>
               <td><span class="badge badge-high">High</span></td>
             </tr>
             <tr>
-              <td><strong>"Composition over inheritance"</strong> (Principle #4)</td>
+              <td><strong>"Errors as values — no panics"</strong></td>
               <td>
-                Generally honored. <code>example/todo</code> uses embedded
-                <code>CommandHandler</code> mixin which is composition-by-inheritance — borderline.
-              </td>
-              <td><span class="badge badge-low">Low</span></td>
-            </tr>
-            <tr>
-              <td><strong>"Errors as values — no panics"</strong> (Principle #8)</td>
-              <td>
-                29 <code>panic()</code> calls in production. Most are legit init-time CBOR/codec
-                setup failures (correct Go style). But <code>pebble/*.go</code> panics on nil-db
-                arguments that should be errors.
+                29 <code>panic()</code> calls. Most are legit CBOR init, but pebble panics on nil-db
+                (should be error)
               </td>
               <td><span class="badge badge-medium">Medium</span></td>
             </tr>
             <tr>
-              <td><strong>"Naming Is Architecture"</strong> (entire section)</td>
+              <td><strong>"Naming Is Architecture"</strong></td>
               <td>
-                Mostly good. <code>Handler</code> is a CQRS domain term so it's fine. But
-                <code>catalog.DocumentInfo</code>, <code>info</code>-suffixed types violate the rule
-                against "bags of fields".
+                Mostly good. <code>catalog.DocumentInfo</code> violates the "no Data/Info suffix"
+                rule
               </td>
               <td><span class="badge badge-low">Low</span></td>
             </tr>
           </tbody>
         </table>
 
-        <!-- =================== SCOPE CREEP =================== -->
-        <h2 id="scope"><span class="num">07</span>Scope Creep: This Is Not a Library Any More</h2>
-
-        <p>A "lightweight CQRS library" should be CQRS primitives. You have built:</p>
-
+        <h2 id="errors">
+          <span class="num">09</span>Error Taxonomy: 88 Escapees From the 5-Family System
+        </h2>
         <div class="card card-warning">
-          <h4>Things that are not CQRS primitives, in this "library"</h4>
-          <ul>
-            <li>
-              <strong>An entire static-site generator scaffolding</strong>
-              (<code>mkdocs.yml</code> + 10 mkdocs pages + a <code>docs/site/</code> dir that's
-              never deployed)
-            </li>
-            <li>
-              <strong>A documentation catalog system</strong>
-              (<code>catalog/</code>, 5,694 LOC production) that generates AsyncAPI, OpenAPI, D2
-              diagrams, and EventCatalog YAML — four different doc formats from one schema
-            </li>
-            <li>
-              <strong>A documentation HTTP server</strong>
-              (<code>catalog/docserver/</code>, 720 LOC) with embedded static assets that no one
-              imports outside <code>catalog/</code>
-            </li>
-            <li>
-              <strong>A Turso-specific indexing advisor</strong>
-              (<code>turso/indexing/</code>, ~1,400 LOC) with auto-indexer, dry-run mode, telemetry,
-              schema integration, optimization policy. AGENTS.md describes <code>turso/</code> as "a
-              Turso database connector (embedded LibSQL sync)". It is a database performance
-              engineering tool.
-            </li>
-            <li><strong>A code generator</strong> (<code>cmd/cqrs-gen</code>)</li>
-            <li>
-              <strong>An API surface stability checker</strong>
-              (<code>cmd/api-stability</code>)
-            </li>
-            <li><strong>A WASM demo binary</strong> (<code>wasm/</code>) that doesn't run</li>
-            <li>
-              <strong>A benchmark suite and regression baseline tracker</strong>
-              (<code>benchmarks/</code>, <code>benchmark-baseline.txt</code>,
-              <code>stack/bench/</code>)
-            </li>
-            <li>
-              <strong>A Prometheus metrics exporter</strong>
-              (<code>prometheus/</code>) that no one uses
-            </li>
-            <li>
-              <strong>A Watermill protocol adapter</strong>
-              (<code>watermill/</code>) for one specific third-party library
-            </li>
-            <li>
-              <strong>Four "stack preset" modules</strong>
-              (<code>stack/memory</code>, <code>stack/sqlite</code>, <code>stack/pebble</code>,
-              <code>stack/postgres</code>) — i.e., you have re-invented the framework you said you
-              weren't building
-            </li>
-            <li>
-              <strong>A read-model cache decorator</strong> as its own released module
-              (<code>readmodel/cache</code>)
-            </li>
-          </ul>
+          <h4>You built a beautiful 5-family error taxonomy. Then you didn't use it 88 times.</h4>
           <p>
-            Stop.
-            <strong>This is not a library any more, it is a CQRS distribution.</strong>
-            The original principle #1 — "Library, not framework — consumers import what they need" —
-            is still technically true at the package level, but at the project level you have built
-            everything a framework ships: presets, code generator, doc generator, observability
-            exporters, transport adapters. You are now maintaining a framework while telling
-            yourself you're maintaining a library.
+            AGENTS.md and ADR-0002 define a 5-family error classification:
+            <strong>Rejection / Conflict / Transient / Infrastructure / Corruption</strong>.
+            Implemented via <code>event.NewRejection()</code>, <code>event.WrapConflict()</code>,
+            etc. This is genuinely good design. The problem:
+            <strong>88 production-code <code>fmt.Errorf</code> calls bypass it entirely</strong>.
           </p>
         </div>
+        <div class="stat-grid">
+          <div class="stat-card stat-good">
+            <div class="stat-value">439</div>
+            <div class="stat-label">Classified errors (5-family)</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">88</div>
+            <div class="stat-label">fmt.Errorf (unclassified)</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">18</div>
+            <div class="stat-label">errors.New (unclassified)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">83%</div>
+            <div class="stat-label">Classification rate</div>
+          </div>
+        </div>
+        <p>Where the 88 escapees live:</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Module</th>
+              <th><code>fmt.Errorf</code> count</th>
+              <th>What they're doing wrong</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">pebble/adapter.go</td>
+              <td>12</td>
+              <td>KV adapter wrapping — should be <code>WrapInfrastructure</code></td>
+            </tr>
+            <tr>
+              <td class="mono">storage/kv_sql.go</td>
+              <td>11</td>
+              <td>
+                SQL KV store wrapping — should be
+                <code>WrapInfrastructure</code>
+              </td>
+            </tr>
+            <tr>
+              <td class="mono">readmodel/store.go</td>
+              <td>10</td>
+              <td>Read model errors — mix of Rejection (not found) and Infrastructure</td>
+            </tr>
+            <tr>
+              <td class="mono">stack/postgres/pg_listener.go</td>
+              <td>8</td>
+              <td>
+                Listener connection errors — should be
+                <code>WrapTransient</code>
+              </td>
+            </tr>
+            <tr>
+              <td class="mono">stack/postgres/preset.go</td>
+              <td>7</td>
+              <td>Preset wiring — should be <code>WrapInfrastructure</code></td>
+            </tr>
+            <tr>
+              <td class="mono">snapshot/typed.go</td>
+              <td>6</td>
+              <td>Snapshot codec errors — should be <code>WrapCorruption</code></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning">
+          <strong>Why this matters</strong> The entire point of a 5-family taxonomy is that
+          <em>consumers can switch on error family</em> — retry Transient, surface Corruption, log
+          Infrastructure. When 17% of errors are raw <code>fmt.Errorf</code>, consumers can't trust
+          the taxonomy. The contract has a hole.
+        </div>
 
+        <h2 id="scope"><span class="num">10</span>Scope Creep: This Is Not a Library Any More</h2>
+        <p>A "lightweight CQRS library" should be CQRS primitives. You have built:</p>
+        <div class="card card-warning">
+          <h4>Things in this "library" that are not CQRS primitives</h4>
+          <ul>
+            <li>
+              <strong>Static-site generator scaffolding</strong> — <code>mkdocs.yml</code> + 10
+              mkdocs pages, never deployed
+            </li>
+            <li>
+              <strong>Documentation catalog system</strong> — <code>catalog/</code> (5,694 LOC)
+              generating AsyncAPI, OpenAPI, D2, EventCatalog (4 formats from 1 schema)
+            </li>
+            <li>
+              <strong>Documentation HTTP server</strong> — <code>catalog/docserver/</code> (720 LOC)
+              with embedded static assets, imported by nobody
+            </li>
+            <li>
+              <strong>Turso indexing advisor</strong> — <code>turso/indexing/</code> (~1,400 LOC)
+              with auto-indexer, dry-run mode, telemetry, policy. AGENTS.md calls it "a connector".
+              It's a DB performance engineering tool.
+            </li>
+            <li><strong>Code generator</strong> — <code>cmd/cqrs-gen</code></li>
+            <li>
+              <strong>API surface checker</strong> —
+              <code>cmd/api-stability</code>
+            </li>
+            <li><strong>WASM demo</strong> — <code>wasm/</code> (doesn't run)</li>
+            <li>
+              <strong>Benchmark suite + baseline tracker</strong> — <code>benchmarks/</code>,
+              <code>benchmark-baseline.txt</code>,
+              <code>stack/bench/</code>
+            </li>
+            <li><strong>Prometheus exporter</strong> — <code>prometheus/</code> (0 consumers)</li>
+            <li>
+              <strong>Watermill adapter</strong> — <code>watermill/</code> for one third-party
+              library
+            </li>
+            <li>
+              <strong>Four stack presets</strong> — <code>stack/memory</code>,
+              <code>stack/sqlite</code>, <code>stack/pebble</code>, <code>stack/postgres</code> —
+              you re-invented the framework you said you weren't building
+            </li>
+            <li>
+              <strong>Cache decorator as its own released module</strong> —
+              <code>readmodel/cache</code>
+            </li>
+          </ul>
+        </div>
         <div class="issue issue-critical">
-          <span class="severity severity-critical">The YAGNI question</span>
+          <span class="severity severity-critical">YAGNI</span>
           <h3>How many consumers does each peripheral module actually have?</h3>
           <p>
-            You don't know, because none of this is published to a package registry that reports
-            download counts and you don't have a single real consumer in this repo (which is correct
-            for a library). But ask honestly: how many people are importing
+            You don't know. And you can't know, because none of this is published to a registry that
+            reports download counts. But ask honestly: how many people are importing
             <code>turso/indexing/advisor</code>? How many need the catalog docserver? How many want
             the AsyncAPI exporter specifically? You built all of these on speculation.
           </p>
           <div class="callout callout-problem">
-            <strong>The cost</strong>
-            Every peripheral module is a public API surface you have to maintain forever at v2
-            semver. The catalog module alone exports ~150 symbols. Every breaking change to
-            <code>event/</code> cascades into a coordinated release of 39 modules. You are paying
-            maintenance interest on capabilities that have never been validated by a single user.
+            <strong>The maintenance cost</strong> Every peripheral module is a public API surface
+            you maintain forever at v2 semver. Every breaking change to <code>event/</code> cascades
+            into a coordinated release of 39 modules. You are paying maintenance interest on
+            capabilities that have never been validated.
           </div>
         </div>
 
-        <!-- =================== TYPES =================== -->
-        <h2 id="types"><span class="num">08</span>Type Model: Where It Hurts</h2>
-
+        <h2 id="types"><span class="num">11</span>Type Model: Where It Hurts</h2>
         <div class="issue issue-critical">
           <span class="severity severity-critical">Type Hole #1</span>
           <h3><code>query.Handler</code> returns <code>any</code> — by design</h3>
@@ -1432,79 +1617,246 @@ ${pkgs.gitleaks}/bin/gitleaks detect --source . --no-banner --no-git 2>/dev/null
 
 <span class="tok-keyword">func</span> (d *<span class="tok-func">Dispatcher</span>) <span class="tok-func">Dispatch</span>(ctx context.Context, query Query) (<span class="tok-type">any</span>, error)
 
-<span class="tok-comment">// And the typed escape hatch:</span>
+<span class="tok-comment">// The typed escape hatch:</span>
 <span class="tok-keyword">func</span> <span class="tok-func">DispatchTyped</span>[R <span class="tok-type">any</span>](ctx context.Context, d *Dispatcher, q Query) (R, error) {
-    <span class="tok-comment">// internally does an unsafe type assertion on the any</span>
+    <span class="tok-comment">// internally does a runtime type assertion on the any — not compile-time safe</span>
 }</code></pre>
           <p>
-            The honest comment ("The return type is <code>any</code> because…") is good — at least
-            the lie is documented. But the result is that every consumer either uses
-            <code>DispatchTyped</code> (and pays a runtime type assertion plus an allocation) or
-            re-implements the assertion themselves. This is exactly the failure mode your
-            <em>"Strong types — make impossible states unrepresentable"</em>
-            principle warns against.
-          </p>
-          <p>
-            The root cause is that <code>Dispatcher</code> is a single registry for heterogeneous
-            query types, which forces the return type to be the LUB of all of them —
-            <code>any</code>. That's a real design tension, not a typo. The honest fix is to admit
-            that the untyped <code>Dispatcher</code> is a convenience layer and make
-            <code>TypedHandler[Q, R]</code> the <em>documented primary path</em>, with the
-            <code>any</code>-returning form deprecated or hidden. Right now both are equally
-            first-class, and the docs lean on the unsafe one.
+            Every consumer either uses <code>DispatchTyped</code> (runtime type assertion +
+            potential alloc) or re-implements the assertion. The untyped <code>Handler</code> and
+            the typed <code>TypedHandler[Q, R]</code> are both first-class in the docs. Pick one as
+            primary.
           </p>
         </div>
-
         <div class="issue issue-important">
           <span class="severity severity-important">Type Hole #2</span>
           <h3>
-            <code>schema.Validator</code> stores
-            <code>map[event.Type]func(any) error</code>
+            <code>schema.Validator</code> type-erases payloads to
+            <code>any</code>
           </h3>
-          <div class="where">schema/validator.go:35–36, 65, 95</div>
+          <div class="where">schema/validator.go:35–36</div>
           <p>
-            The validator type-erases the payload to <code>any</code>, validates it, and the caller
-            has to round-trip it back. <code>RegisterType[T]()</code> papers over this at
-            registration time (ADR-0017), but the stored map still type-erases. There is no way to
-            recover the original <code>T</code> from the validator, so consumers can't get a typed
-            payload out — they have to re-decode.
+            <code>validators map[event.Type]func(any) error</code> — callers can't recover the
+            original <code>T</code> after validation. They must re-decode.
+            <code>RegisterType[T]()</code> papers over this at registration time but the stored map
+            still erases.
           </p>
         </div>
-
         <div class="issue issue-nice">
           <span class="severity severity-nice">Type Win</span>
-          <h3>The branded ID work is genuinely good</h3>
+          <h3>The branded ID design is genuinely excellent</h3>
           <div class="where">id/</div>
           <p>
             <code>type Of[T any] = cbid.ID[T, ulid.ULID]</code> with phantom markers
-            (<code>UserMarker</code>, <code>CorrelationMarker</code>, etc.) is the correct pattern.
-            The tradeoff — depending on your own external <code>go-branded-id</code> library — is
-            debatable (the <code>how-to-golang</code> skill recommends
-            <code>go-composable-business-types</code> instead, and yours has zero external consumers
-            that aren't you), but the type-level design is solid.
+            (<code>UserMarker</code>, <code>CorrelationMarker</code>) is the correct pattern.
+            Impossible states made unrepresentable — exactly what the principle asks for.
           </p>
         </div>
 
-        <!-- =================== DOCS =================== -->
-        <h2 id="docs"><span class="num">09</span>Documentation Obesity</h2>
+        <h2 id="tests"><span class="num">12</span>Test Quality: Good Coverage, Real Problems</h2>
+        <div class="stat-grid">
+          <div class="stat-card stat-good">
+            <div class="stat-value">82.1%</div>
+            <div class="stat-label">Overall coverage</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Mock-framework deps</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">324</div>
+            <div class="stat-label">eventtest usages (real doubles)</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">49</div>
+            <div class="stat-label"><code>time.Sleep</code> in tests</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">67</div>
+            <div class="stat-label">Goroutines in tests</div>
+          </div>
+        </div>
+        <div class="card card-warning">
+          <h4>The good: zero mock frameworks, real test doubles, real Postgres in CI</h4>
+          <p>
+            No <code>testify/mock</code>, no <code>gomock</code>, no <code>mockgen</code>. Instead,
+            <code>eventtest.FakeStore</code>, <code>eventtest.FakeBus</code> — real implementations
+            of real interfaces, used 324 times across tests. And CI runs against a real
+            <code>postgres:16-alpine</code> container. This is how it should be done.
+          </p>
+        </div>
+        <div class="issue issue-important">
+          <span class="severity severity-important">Test Quality Issue #1</span>
+          <h3>49 <code>time.Sleep</code> calls in tests — racy by construction</h3>
+          <div class="where">pebble/, projection/, readmodel/cache/, decider/, watermill/</div>
+          <pre><code><span class="tok-comment">// pebble/command_store_test.go — relies on wall-clock for ULID ordering</span>
+<span class="tok-builtin">time</span>.<span class="tok-func">Sleep</span>(<span class="tok-number">2</span> * <span class="tok-builtin">time</span>.Millisecond) <span class="tok-comment">// ensure ULID time ordering</span>
 
+<span class="tok-comment">// projection/distributed_runner_test.go — 30ms "should be enough"</span>
+<span class="tok-builtin">time</span>.<span class="tok-func">Sleep</span>(<span class="tok-number">30</span> * <span class="tok-builtin">time</span>.Millisecond)
+
+<span class="tok-comment">// readmodel/cache/cached_store_test.go — 100ms for TTL expiry</span>
+<span class="tok-builtin">time</span>.<span class="tok-func">Sleep</span>(<span class="tok-number">100</span> * <span class="tok-builtin">time</span>.Millisecond)</code></pre>
+          <p>
+            On a slow CI runner, these will flake. The correct pattern is deterministic
+            synchronization: channels, <code>sync.Cond</code>, or injectable clocks.
+          </p>
+        </div>
+        <div class="issue issue-important">
+          <span class="severity severity-important">Test Quality Issue #2</span>
+          <h3>Packages below the 80% coverage gate</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Package</th>
+                <th>Coverage</th>
+                <th>Why</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="mono">stack/v2</td>
+                <td>39.3%</td>
+                <td>Bundle wiring barely tested</td>
+              </tr>
+              <tr>
+                <td class="mono">testutil/v2</td>
+                <td>23.5%</td>
+                <td>Test helpers with no tests for themselves</td>
+              </tr>
+              <tr>
+                <td class="mono">event/v2/eventtest</td>
+                <td>17.8%</td>
+                <td>Test doubles — exercised by consumers but not self-tested</td>
+              </tr>
+              <tr>
+                <td class="mono">storage/v2/sql</td>
+                <td>66.7%</td>
+                <td>SQL dialect helpers under-covered</td>
+              </tr>
+              <tr>
+                <td class="mono">catalog/internal/cattest</td>
+                <td>0%</td>
+                <td>No test files (test builders for catalog)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="deps"><span class="num">13</span>Dependency Analysis</h2>
+        <div class="issue issue-important">
+          <span class="severity severity-important">Self-published dependencies</span>
+          <h3>2 external libs published by the same author, used in 36 modules</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Dependency</th>
+                <th>Consumers</th>
+                <th>What it does</th>
+                <th>Could be inlined?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="mono">larsartmann/go-error-family</td>
+                <td>36 modules</td>
+                <td>Error classification (5-family taxonomy)</td>
+                <td>Yes — 3 types, 5 constructors, trivially portable</td>
+              </tr>
+              <tr>
+                <td class="mono">larsartmann/go-branded-id</td>
+                <td>28 modules</td>
+                <td>Branded ID type with JSON/SQL/Text marshaling</td>
+                <td>Partially — the type alias is 1 line, but marshaling is ~200 LOC</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            <code>how-to-golang</code> recommends <code>go-composable-business-types</code> for
+            branded IDs. Yours has zero external consumers that aren't you. The dependency on your
+            own external libs means: (a) every release of this repo requires coordinated releases of
+            2 other repos, (b) the bus factor is exactly 1, (c) consumers transitively depend on
+            libs maintained by one person with no governance.
+          </p>
+          <div class="callout callout-warning">
+            <strong>Not necessarily wrong</strong> Extracting <code>go-error-family</code> was a
+            reasonable modularity decision — it's a general-purpose error classification library,
+            not CQRS-specific. The concern is the governance model, not the extraction.
+          </div>
+        </div>
+        <h3>Module coupling (cross-module import count)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Module</th>
+              <th>Cross-module imports</th>
+              <th>Coupling level</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">storage</td>
+              <td>106</td>
+              <td><span class="badge badge-high">High</span></td>
+            </tr>
+            <tr>
+              <td class="mono">middleware</td>
+              <td>104</td>
+              <td><span class="badge badge-high">High</span></td>
+            </tr>
+            <tr>
+              <td class="mono">pebble</td>
+              <td>101</td>
+              <td><span class="badge badge-high">High</span></td>
+            </tr>
+            <tr>
+              <td class="mono">memory</td>
+              <td>83</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+            </tr>
+            <tr>
+              <td class="mono">projection</td>
+              <td>72</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+            </tr>
+            <tr>
+              <td class="mono">event</td>
+              <td>67</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+            </tr>
+            <tr>
+              <td class="mono">readmodel/cache</td>
+              <td>4</td>
+              <td><span class="badge badge-good">Low</span></td>
+            </tr>
+            <tr>
+              <td class="mono">otel</td>
+              <td>5</td>
+              <td><span class="badge badge-good">Low</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-faint)">
+          Note: high coupling in storage/middleware/pebble is expected for infrastructure modules.
+          The layer check (<code>scripts/check-module-layers.sh</code>) does pass and prevents
+          upward dependencies. Coupling is high but directional.
+        </p>
+
+        <h2 id="docs"><span class="num">14</span>Documentation Obesity</h2>
         <div class="card card-problem">
           <h4>142,759 lines of markdown. For a "lightweight" library.</h4>
-          <p>Breakdown of the bloat:</p>
           <table>
             <thead>
               <tr>
                 <th>Artifact</th>
-                <th>Count / Size</th>
+                <th>Size</th>
                 <th>Verdict</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td>
-                  Top-level markdown (<code>SKILL.md</code>,
-                  <code>AGENTS.md</code>, <code>FEATURES.md</code>, <code>CHANGELOG.md</code>,
-                  <code>README.md</code>, <code>TODO_LIST.md</code>, <code>ROADMAP.md</code>)
+                  Top-level markdown (SKILL, AGENTS, FEATURES, CHANGELOG, README, TODO, ROADMAP)
                 </td>
                 <td>3,013 lines</td>
                 <td>
@@ -1512,497 +1864,531 @@ ${pkgs.gitleaks}/bin/gitleaks detect --source . --no-banner --no-git 2>/dev/null
                 </td>
               </tr>
               <tr>
-                <td>ADRs in <code>docs/adr/</code></td>
+                <td>ADRs (<code>docs/adr/</code>)</td>
                 <td>27 ADRs</td>
-                <td>
-                  <span class="badge badge-medium">Many for shipped features, never pruned</span>
-                </td>
+                <td><span class="badge badge-medium">Never pruned</span></td>
               </tr>
               <tr>
                 <td><code>docs/research/</code></td>
-                <td>42 files (29 md + 13 html)</td>
+                <td>42 files</td>
                 <td>
                   <span class="badge badge-critical"
-                    >5 STREAM_API versions, 2 dissolve-core versions, never consolidated</span
+                    >5 STREAM_API versions, 2 dissolve-core versions</span
                   >
                 </td>
               </tr>
               <tr>
-                <td>HTML reports in <code>docs/</code></td>
+                <td>HTML reports</td>
                 <td>39 files / 2.4 MB</td>
                 <td>
-                  <span class="badge badge-medium"
-                    >Snapshot reports — never deleted after decisions are made</span
-                  >
+                  <span class="badge badge-medium">Snapshot reports, never deleted</span>
                 </td>
               </tr>
               <tr>
                 <td><code>docs/planning/</code></td>
-                <td>~30 files</td>
+                <td>~30 files + archive/</td>
                 <td>
-                  <span class="badge badge-medium"
-                    >Including an archive/ — you're archiving planning docs</span
-                  >
-                </td>
-              </tr>
-              <tr>
-                <td><code>docs/status/</code></td>
-                <td>~15 status snapshots</td>
-                <td>
-                  <span class="badge badge-low">Write-once snapshots — fine but accumulate</span>
-                </td>
-              </tr>
-              <tr>
-                <td><code>docs/sessions/</code></td>
-                <td>SESSION_HISTORY + SESSION_MILESTONES</td>
-                <td>
-                  <span class="badge badge-medium"
-                    >A library with session milestones is a library pretending to be a product</span
-                  >
+                  <span class="badge badge-medium">You're archiving planning docs</span>
                 </td>
               </tr>
             </tbody>
           </table>
-          <div class="callout callout-warning">
-            <strong>The trap</strong>
-            Every one of those files felt important when it was written. None of them feel important
-            enough to delete now. So they accumulate. The cost: anyone trying to understand the
-            actual library has to wade through 142 KLOC of context to find the 40 KLOC of code. The
-            signal-to-noise ratio is <strong>1:3.5 in favor of noise</strong>.
-          </div>
         </div>
 
-        <!-- =================== FORGOTTEN =================== -->
-        <h2 id="forgotten"><span class="num">10</span>What Did We Forget?</h2>
+        <h2 id="scorecard"><span class="num">15</span>Module Scorecard</h2>
+        <p>Honest assessment of every major module: exports, LOC, verdict.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Module</th>
+              <th>Exports</th>
+              <th>Prod LOC</th>
+              <th>Verdict</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">event</td>
+              <td>453</td>
+              <td>3,799</td>
+              <td>
+                <span class="badge badge-good">Core — well designed, bloated</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="mono">storage</td>
+              <td>425</td>
+              <td>4,611</td>
+              <td>
+                <span class="badge badge-high">Heavy, pg_bus.go needs splitting</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="mono">catalog</td>
+              <td>303</td>
+              <td>5,694</td>
+              <td>
+                <span class="badge badge-critical">Scope creep — 4 doc formats</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="mono">pebble</td>
+              <td>247</td>
+              <td>~2,500</td>
+              <td>
+                <span class="badge badge-medium">Solid but high coupling</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="mono">middleware</td>
+              <td>232</td>
+              <td>~1,800</td>
+              <td><span class="badge badge-good">Well structured</span></td>
+            </tr>
+            <tr>
+              <td class="mono">command</td>
+              <td>172</td>
+              <td>~900</td>
+              <td><span class="badge badge-good">Clean sister module</span></td>
+            </tr>
+            <tr>
+              <td class="mono">encryption</td>
+              <td>171</td>
+              <td>~1,200</td>
+              <td>
+                <span class="badge badge-good">Correct crypto, good API</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="mono">projection</td>
+              <td>157</td>
+              <td>~1,400</td>
+              <td>
+                <span class="badge badge-medium">runner.go too large</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="mono">query</td>
+              <td>154</td>
+              <td>~800</td>
+              <td>
+                <span class="badge badge-high">Handler returns any — type hole</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="mono">turso</td>
+              <td>145</td>
+              <td>2,404</td>
+              <td>
+                <span class="badge badge-critical"
+                  >Scope creep — indexing advisor is a product</span
+                >
+              </td>
+            </tr>
+            <tr>
+              <td class="mono">id</td>
+              <td>112</td>
+              <td>~500</td>
+              <td>
+                <span class="badge badge-good">Excellent branded IDs</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="mono">decider</td>
+              <td>95</td>
+              <td>~800</td>
+              <td>
+                <span class="badge badge-good">Pure-function design, singleflight</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="mono">prometheus</td>
+              <td>40</td>
+              <td>141</td>
+              <td>
+                <span class="badge badge-critical">Ghost module — 0 consumers</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="mono">wasm</td>
+              <td>0</td>
+              <td>19</td>
+              <td>
+                <span class="badge badge-critical">Ghost — marketing copy</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
-        <div class="card card-warning">
-          <h4>Forgotten #1: A real consumer</h4>
-          <p>
-            This repo has 39 modules and 3 example apps, none of which exercise the library the way
-            a real user would. <code>example/todo</code> is the closest, but it's grown into a
-            parallel codebase (its own <code>cmd/api/main.go</code> with a 172-line
-            <code>run()</code>, its own projections, its own Dockerfile) that's testing the example,
-            not the library. There is no "minimum realistic consumer" that catches API papercuts
-            before they ship.
-          </p>
-        </div>
-
-        <div class="card card-warning">
-          <h4>Forgotten #2: A deprecation policy</h4>
-          <p>
-            1,852 exported symbols. <code>CHANGELOG.md</code> is 517 lines and every entry is
-            "Added" or "Changed". <strong>Zero "Deprecated" / "Removed" entries.</strong> The
-            library has never removed anything. The public API only grows. At some point you'll want
-            to clean up the <code>any</code>-returning <code>query.Handler</code>, or the unwired
-            <code>prometheus/</code> module, or the redundant <code>StreamLoader</code> leftovers —
-            and there is no policy, no deprecation cycle, no tooling for doing it safely.
-          </p>
-        </div>
-
-        <div class="card card-warning">
-          <h4>Forgotten #3: A release discipline</h4>
-          <p>
-            740 commits in June 2026 alone (3 weeks, ~50 commits/day, 1 tag every ~25 commits). The
-            bump commit <code>6bcd5543</code> (which missed <code>memory</code> in 11 modules) shows
-            the cost: version coordination across 39 modules is hand-edit <code>go.mod</code> files.
-            There is no release script, no <code>go work sync</code> wrapper that catches version
-            drift, no <em>automated</em> check that all sibling-module versions agree.
-            <code>check-replace-directives.sh</code> validates <em>paths</em> but not versions.
-          </p>
-        </div>
-
-        <div class="card card-warning">
-          <h4>Forgotten #4: Multi-tenant / auth / security story</h4>
-          <p>
-            The library has signing, encryption, OTel — but no guidance on multi-tenant key
-            derivation boundaries, no example that wires signing + encryption + multi-tenant context
-            together. The HKDF example in AGENTS.md is one line. For a library that ships crypto
-            modules, the security story for actual deployment is thin.
-          </p>
-        </div>
-
-        <!-- =================== STRENGTHS =================== -->
         <h2 id="strengths"><span class="num">&diams;</span>Honest Strengths (Don't Lose These)</h2>
-
-        <p>
-          A brutal review that doesn't acknowledge what works is just whining. These are genuinely
-          good and should be preserved:
-        </p>
-
+        <p>A brutal review that doesn't acknowledge what works is just whining.</p>
         <div class="strengths">
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Real Postgres in CI</strong>
-              <span
-                >Not a mock — an actual postgres:16-alpine container with
-                <code>-tags=integration</code> tests for LISTEN/NOTIFY round-trip. This is rare and
-                valuable.</span
+              <strong>Real Postgres in CI</strong
+              ><span
+                >Not a mock — actual postgres:16-alpine container with -tags=integration tests for
+                LISTEN/NOTIFY round-trip.</span
               >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Property-based tests with <code>pgregory.net/rapid</code></strong>
-              <span
-                >Not just table-driven happy paths. The channel-name validation in stack/postgres
-                has 3 properties × 100 inputs. Real invariant testing.</span
+              <strong>Property-based tests with rapid</strong
+              ><span
+                >3 properties × 100 inputs for channel-name validation. Real invariant testing, not
+                happy paths.</span
               >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Interface segregation on stores</strong>
-              <span
-                ><code>EventSink</code> / <code>EventSource</code> / <code>Journal</code> /
-                <code>SeekableJournal</code> / <code>BackwardsSource</code> — consumers depend on
-                the narrowest interface they need. This is textbook ISP done correctly.</span
+              <strong>Interface segregation on stores</strong
+              ><span
+                >EventSink / EventSource / Journal / SeekableJournal / BackwardsSource — textbook
+                ISP.</span
               >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Zero lint violations across 34 modules</strong>
-              <span
-                >Reproduced: <code>nix run .#lint</code> returns "0 issues" for every module. Not "0
-                warnings we care about" — actually zero. Real discipline.</span
+              <strong>Zero lint violations across 34 modules</strong
+              ><span
+                >Reproduced: nix run .#lint returns "0 issues" for every module. Not "0 we care
+                about" — actually zero.</span
               >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Defensive cloning on all public accessors</strong>
-              <span
-                ><code>Payload()</code>, <code>Metadata()</code>, <code>EventTypes()</code>,
-                <code>MultiSignature.Get()</code> all clone on read. The contract is documented.
-                This is correct concurrent-Go hygiene that most libraries skip.</span
+              <strong>Defensive cloning on all public accessors</strong
+              ><span
+                >Payload(), Metadata(), EventTypes(), MultiSignature.Get() all clone. Documented
+                contract. Correct concurrent-Go hygiene.</span
               >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Hot-path zero-allocation discipline is real</strong>
-              <span
+              <strong>Hot-path zero-alloc discipline is real and measured</strong
+              ><span
                 >Lazy map init, pre-computed middleware chains, cached SQL templates, batch inserts
-                with SQLite 999-param chunking, projection event-type caching. Not aspirational —
-                measured and benchmarked.</span
+                with SQLite 999-param chunking, projection event-type caching.</span
               >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Per-module dependency budgets enforced in CI</strong>
-              <span
-                ><code>scripts/check-module-layers.sh</code> actually fails the build when a module
-                exceeds its <code>DEP_BUDGET</code>. This is more than most Go projects have.</span
+              <strong>Per-module dependency budgets enforced in CI</strong
+              ><span
+                >check-module-layers.sh actually fails the build when a module exceeds its
+                DEP_BUDGET. More than most Go projects have.</span
               >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Singleflight load coalescing in <code>decider.Repository</code></strong>
-              <span
-                >Concurrent <code>Load</code> calls for the same aggregate coalesce into one store
-                query, and the safety argument (immutable <code>*ImmutableEvent</code>) is correct
-                and documented.</span
+              <strong>Singleflight load coalescing in decider.Repository</strong
+              ><span
+                >Concurrent Load calls coalesce into one query. Safety argument (immutable
+                *ImmutableEvent) is correct and documented.</span
               >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong
-                >Build / vet / test / race / lint / coverage / per-module / layer / replace / docker
-                / postgres-integration — CI is broad</strong
-              >
-              <span
-                >10 distinct CI jobs. The bones of CI are excellent. The problems are in individual
-                gates (see §05), not in coverage of concerns.</span
+              <strong>API surface stability checker exists</strong
+              ><span
+                >cmd/api-stability with golden file + idempotent update test. The one piece of
+                process that actually catches API drift.</span
               >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>Branded IDs with phantom types</strong>
-              <span
-                ><code>type UserID = id.Of[id.UserMarker]</code> makes <code>UserID</code> and
-                <code>OrderID</code> compile-time distinct even though both are ULIDs. Impossible
-                states made unrepresentable — exactly what the principle asks for.</span
+              <strong>Branded IDs with phantom types</strong
+              ><span
+                >type UserID = id.Of[id.UserMarker] makes UserID and OrderID compile-time distinct.
+                Impossible states unrepresentable.</span
               >
             </div>
           </div>
         </div>
 
-        <!-- =================== PLAN =================== -->
-        <h2 id="plan"><span class="num">12</span>Prioritized Execution Plan</h2>
-
+        <h2 id="plan"><span class="num">17</span>Prioritized Execution Plan</h2>
         <p>
-          Sorted by <strong>impact ÷ effort</strong>. Highest-leverage fixes first. This is not a
-          wish list — each item is small, concrete, and verifiable.
+          Sorted by <strong>impact ÷ effort</strong>. Each item is small, concrete, and verifiable.
         </p>
-
         <div class="migration-step">
           <div class="migration-num">1</div>
           <div class="migration-content">
-            <h4>Fix the file-size-gate bash subshell bug · 5 min</h4>
+            <h4>
+              Fix the file-size-gate bash subshell bug
+              <span class="migration-effort">5 min</span>
+            </h4>
             <p>
-              In <code>.github/workflows/ci.yml</code> change <code>find … | while read</code> to
-              <code>while read … done &lt; &lt;(find …)</code> so the loop runs in the parent shell.
-              <strong>Immediately fails CI on the 7 files over 350 lines</strong>
-              and forces the conversation about splitting them. This is the highest-leverage 5
-              minutes you can spend.
+              Change <code>find … | while read</code> to
+              <code>while read … done &lt; &lt;(find …)</code>. Immediately fails CI on 7 files over
+              350 lines.
             </p>
           </div>
         </div>
-
         <div class="migration-step">
           <div class="migration-num">2</div>
           <div class="migration-content">
-            <h4>Stop the security theater · 15 min</h4>
+            <h4>
+              Delete 3 dead build tags from flake.nix
+              <span class="migration-effort">2 min</span>
+            </h4>
             <p>
-              Remove <code>-no-fail</code> from the gosec job. Remove <code>|| true</code> from
-              <code>nix run .#vulncheck</code> and <code>nix run .#secrets-scan</code>, then wire
-              both as CI jobs that can actually fail the build. Fix or suppress any findings they
-              surface. You either believe in security scanning or you don't — performative scanning
-              is worse than none because it provides false confidence.
+              Remove <code>goexperiment.goroutineleakprofile</code>,
+              <code>goexperiment.runtimesecret</code>, <code>goexperiment.simd</code> from
+              <code>goTags</code>. They gate zero files. Either delete
+              <code>goexperiment.arenas</code> too (dead code) or add
+              <code>goexperiment.jsonv2</code> (the one that matters).
             </p>
           </div>
         </div>
-
         <div class="migration-step">
           <div class="migration-num">3</div>
           <div class="migration-content">
-            <h4>Reconcile AGENTS.md with reality · 30 min</h4>
+            <h4>
+              Stop the security theater
+              <span class="migration-effort">15 min</span>
+            </h4>
             <p>
-              Three edits: (a) update "30 modules" to "39" or compute it dynamically; (b) rewrite
-              Principle #9's <code>any</code> rule to describe what's actually true (<em
-                >"<code>any</code> only at codec, validator, and dispatcher boundaries"</em
-              >); (c) pick one file-size limit (250 or 350) and use it consistently across AGENTS.md
-              and CI. Honesty about the rules you actually follow is more valuable than aspirational
-              rules.
+              Remove <code>-no-fail</code> from gosec. Remove <code>|| true</code> from vulncheck
+              and secrets-scan. Wire both as CI jobs that can fail the build.
             </p>
           </div>
         </div>
-
         <div class="migration-step">
           <div class="migration-num">4</div>
           <div class="migration-content">
-            <h4>Bump <code>memory/v2</code> to v2.6.0 in 11 consumer modules · 10 min</h4>
+            <h4>
+              Bump memory/v2 to v2.6.0 in 11 modules + add drift check
+              <span class="migration-effort">30 min</span>
+            </h4>
             <p>
-              Script it:
-              <code
-                >for m in command decider event integration listing middleware projection query
-                schema stack/bench watermill; do (cd $m &amp;&amp; go mod edit
-                -require=github.com/larsartmann/go-cqrs-lite/memory/v2@v2.6.0); done</code
-              >. Then add a CI check that fails on any sibling-version drift.
+              Script the bump, then add a CI check that
+              <code>rg "go-cqrs-lite/(\w+)/v2 v" */go.mod | sort -u</code> fails if any sibling has
+              version drift.
             </p>
           </div>
         </div>
-
         <div class="migration-step">
           <div class="migration-num">5</div>
           <div class="migration-content">
-            <h4>Delete <code>wasm/main.go</code> · 1 min</h4>
+            <h4>
+              Reconcile AGENTS.md with reality
+              <span class="migration-effort">30 min</span>
+            </h4>
             <p>
-              It builds nothing, it tests nothing, it documents nothing that shouldn't be in
-              <code>docs/EXPERIMENTAL_BUILD_TAGS.md</code>. If WASM support matters, add a CI job
-              that actually builds core modules for <code>GOOS=js GOARCH=wasm</code>. If it doesn't,
-              delete the file.
+              (a) "39 modules" or compute dynamically. (b) Rewrite the
+              <code>any</code> rule to describe reality. (c) Pick one file-size limit.
             </p>
           </div>
         </div>
-
         <div class="migration-step">
           <div class="migration-num">6</div>
           <div class="migration-content">
-            <h4>Delete or deploy <code>docs/site/</code> and <code>mkdocs.yml</code> · 30 min</h4>
+            <h4>Delete wasm/main.go <span class="migration-effort">1 min</span></h4>
             <p>
-              Either wire a <code>mkdocs gh-deploy</code> job (15 lines of YAML) or remove the
-              scaffolding. Don't ship a static-site generator configuration for a site that doesn't
-              exist.
+              It builds nothing, tests nothing, documents nothing. If WASM matters, add a CI job
+              that builds core modules for GOOS=js GOARCH=wasm.
             </p>
           </div>
         </div>
-
         <div class="migration-step">
           <div class="migration-num">7</div>
           <div class="migration-content">
             <h4>
-              Consolidate <code>docs/research/STREAM_API_*</code> into one decided ADR · 20 min
+              Delete or deploy mkdocs
+              <span class="migration-effort">30 min</span>
             </h4>
             <p>
-              Five files (V1–V4 + self-critique) for one decision. Keep the final decision as an
-              ADR, move the proposals to
-              <code>docs/research/archive/</code> with a header pointing to the ADR that resolved
-              them. Same treatment for the two <code>PROPOSAL-dissolve-core*</code> files. Establish
-              a rule:
-              <strong
-                >research docs must either be promoted to an ADR or archived within 30 days</strong
-              >.
+              Wire a <code>mkdocs gh-deploy</code> job (15 lines YAML) or remove the scaffolding.
             </p>
           </div>
         </div>
-
         <div class="migration-step">
           <div class="migration-num">8</div>
           <div class="migration-content">
-            <h4>Rename ADR-0027 to match its status · 2 min</h4>
+            <h4>
+              Classify the 88 unclassified errors
+              <span class="migration-effort">2 hours</span>
+            </h4>
             <p>
-              <code
-                >git mv docs/adr/0027-defer-postgres-listen-notify-bus.md
-                docs/adr/0027-postgres-listen-notify-bus.md</code
-              >. Filenames are part of the API for humans browsing the repo. A filename that says
-              "defer" while the body says "Implemented" is a lie by another name.
+              Convert <code>fmt.Errorf("pebble: …")</code> →
+              <code>event.WrapInfrastructure(err, "pebble.adapter", "…")</code>. Mechanical work,
+              closes the taxonomy contract hole.
             </p>
           </div>
         </div>
-
         <div class="migration-step">
           <div class="migration-num">9</div>
           <div class="migration-content">
             <h4>
-              Split <code>storage/pg_bus.go</code> (603 lines) and
-              <code>stack/postgres/pg_listener.go</code> (460 lines) · 1–2 hours
+              Consolidate docs/research/STREAM_API_* into one ADR
+              <span class="migration-effort">20 min</span>
             </h4>
             <p>
-              The first is the worst offender. Logical split:
-              <code>pg_bus.go</code> (types + constructor), <code>pg_bus_publish.go</code> (publish
-              path), <code>pg_bus_listen.go</code> (subscribe path),
-              <code>pg_bus_refetch.go</code> (re-fetch + retry). Same for
-              <code>pg_listener.go</code>: separate reconnect logic from listen loop.
+              5 files for one decision. Keep the final decision as an ADR, archive the rest with
+              "superseded by ADR-XXXX" headers.
             </p>
           </div>
         </div>
-
         <div class="migration-step">
           <div class="migration-num">10</div>
           <div class="migration-content">
-            <h4>Make <code>query.TypedHandler[Q, R]</code> the documented primary path · 1 hour</h4>
+            <h4>Rename ADR-0027 <span class="migration-effort">2 min</span></h4>
             <p>
-              Demote the <code>any</code>-returning <code>query.Handler</code> in docs. Update
-              AGENTS.md patterns to lead with <code>TypedHandler</code>. Add a lint rule (or
-              <code>// Deprecated:</code> comment) nudging new code away from the untyped form. This
-              closes the largest type-safety hole in the library.
+              <code
+                >git mv docs/adr/0027-defer-postgres-listen-notify-bus.md
+                docs/adr/0027-postgres-listen-notify-bus.md</code
+              >
             </p>
           </div>
         </div>
-
         <div class="migration-step">
           <div class="migration-num">11</div>
           <div class="migration-content">
             <h4>
-              Decide the fate of <code>prometheus/</code> and <code>turso/indexing/</code> · 1–2
-              hours thinking
+              Split pg_bus.go (603) and pg_listener.go (460)
+              <span class="migration-effort">2 hours</span>
             </h4>
             <p>
-              For <code>prometheus/</code>: either wire it into a stack preset (so the contract is
-              validated) or move it to a separate repo / branch as experimental. For
-              <code>turso/indexing/</code>: it's a 1,400-LOC database performance engineering tool
-              masquerading as a connector sub-package. Either promote it to its own top-level module
-              with honest scope, or move the advisor/auto-indexer behind an experimental build tag
-              until there's a real consumer.
+              pg_bus.go → types + publish + listen + refetch. pg_listener.go → reconnect + listen
+              loop.
             </p>
           </div>
         </div>
-
         <div class="migration-step">
           <div class="migration-num">12</div>
           <div class="migration-content">
-            <h4>Add an automated sibling-version drift check · 30 min</h4>
+            <h4>
+              Make TypedHandler[Q,R] the primary documented path
+              <span class="migration-effort">1 hour</span>
+            </h4>
             <p>
-              A 20-line CI script that runs
-              <code>rg "go-cqrs-lite/(\w+)/v2 v[\d.]+" */go.mod | awk '{print $2}' | sort -u</code>
-              and fails if more than one version of any sibling module is referenced. Catches the
-              v2.5.0/v2.6.0 drift class permanently.
+              Demote the <code>any</code>-returning Handler in docs. Lead with TypedHandler. Add
+              deprecation nudge.
             </p>
           </div>
         </div>
-
         <div class="migration-step">
           <div class="migration-num">13</div>
           <div class="migration-content">
             <h4>
-              Split <code>example/todo/cmd/api/main.go</code> <code>run()</code> (172 lines) · 1
-              hour
+              Replace time.Sleep in tests with deterministic sync
+              <span class="migration-effort">3 hours</span>
             </h4>
             <p>
-              This is the public face of the library — the example newcomers read first. A 172-line
-              function with no extraction is the wrong advertisement. Split into
-              <code>setupBundle</code>, <code>setupReadModel</code>, <code>setupProjection</code>,
-              <code>setupHTTP</code>. The example should read like the library's design wants it to
-              read.
+              49 sleeps. The pebble ULID-ordering ones can use a monotonic clock injection. The
+              projection ones can use channel-based signaling.
             </p>
           </div>
         </div>
-
         <div class="migration-step">
           <div class="migration-num">14</div>
           <div class="migration-content">
-            <h4>Introduce a quarterly docs-prune ritual · ongoing</h4>
+            <h4>
+              Decide the fate of prometheus/ and turso/indexing/
+              <span class="migration-effort">2 hours thinking</span>
+            </h4>
             <p>
-              Add a recurring item: every quarter, audit
-              <code>docs/research/</code>, <code>docs/brainstorming/</code>,
-              <code>docs/planning/</code>, and <code>docs/reviews/</code>. Anything older than 6
-              months that hasn't been promoted to an ADR, a feature, or a TODO gets archived or
-              deleted.
-              <strong>Target: get the markdown-to-code ratio under 1.0 within two quarters.</strong>
+              prometheus/: wire into a preset or move to experimental branch. turso/indexing/:
+              promote to top-level module or gate behind experimental tag.
+            </p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">15</div>
+          <div class="migration-content">
+            <h4>
+              Split example/todo run() (172 lines)
+              <span class="migration-effort">1 hour</span>
+            </h4>
+            <p>
+              This is the public face of the library. Split into setupBundle, setupReadModel,
+              setupProjection, setupHTTP.
+            </p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">16</div>
+          <div class="migration-content">
+            <h4>
+              Introduce a quarterly docs-prune ritual
+              <span class="migration-effort">ongoing</span>
+            </h4>
+            <p>
+              Every quarter: audit research/, brainstorming/, planning/, reviews/. Archive or delete
+              anything &gt;6 months old not promoted to ADR/feature/TODO.
+              <strong>Target: markdown-to-code ratio under 1.0 within two quarters.</strong>
+            </p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">17</div>
+          <div class="migration-content">
+            <h4>Slow down <span class="migration-effort">ongoing · hardest</span></h4>
+            <p>
+              37 commits/day is not sustainable. Before adding the next module, ask: "Would I
+              maintain this for 5 years for free?" If not, don't add it. The discipline of
+              <em>not building</em> is harder than the discipline of building well — and it's the
+              one this repo is missing.
             </p>
           </div>
         </div>
 
-        <!-- =================== Closing =================== -->
         <h2><span class="num">&diams;</span>The Bottom Line</h2>
-
         <div class="card card-problem">
           <p>
-            <strong>You can absolutely program in Go.</strong> The code quality on a per-function,
-            per-test, per-interface basis is in the top decile of open-source Go I've reviewed. The
-            interface segregation, the cloning discipline, the property tests, the real Postgres in
-            CI, the dependency budgets — these are not beginner moves. They are the moves of someone
-            who has read the right books and internalized them.
+            <strong>You can absolutely program in Go.</strong> The per-function, per-test,
+            per-interface quality is top-decile. The interface segregation, cloning discipline,
+            property tests, real Postgres in CI, dependency budgets — these are not beginner moves.
           </p>
           <p>
-            <strong>But you cannot stop, and that is the bug.</strong> Every release grows the
-            public API. Every interesting thought becomes a module. Every proposal becomes 5
-            versions. Every CI gate is added with an escape hatch. Every architectural rule is
-            documented and then broken. The library has not said "no" to itself in a long time, and
-            that is the single most dangerous failure mode for a piece of software that ships a
-            public API.
+            <strong>But you cannot stop, and that is the bug.</strong> Every release grows the API.
+            Every thought becomes a module. Every CI gate has an escape hatch. Every rule is
+            documented and then broken. The library hasn't said "no" to itself in a long time.
           </p>
           <p>
-            The 14-item plan above is small. None of it is "rewrite the world". The hardest item is
-            2 hours of work. The total time to clear the dashboard's red cards is probably a long
-            weekend.
+            The 17-item plan above is small. None of it is "rewrite the world". The total time to
+            clear the red cards is a long weekend.
             <strong>Do it before the next release</strong> — because the release after that will add
-            another module, another docs section, another 50 exports, and the gap between the
+            another module, another 50 exports, another dead build tag, and the gap between the
             library you have and the library you think you have will be wider still.
           </p>
           <div class="callout callout-problem">
-            <strong>One sentence, if you only read one</strong>
-            The code is good. The discipline around the code has decayed. Fix the discipline, and
-            the code stays good forever. Don't fix it, and the code rots under the weight of
-            everything you've built around it.
+            <strong>One sentence, if you only read one</strong> The code is good. The discipline
+            around the code has decayed. Fix the discipline, and the code stays good forever. Don't
+            fix it, and the code rots under the weight of everything you've built around it. And for
+            God's sake, delete the dead build tags.
           </div>
         </div>
 
         <footer class="footer">
-          Generated 2026-06-20 · All claims verified against source at HEAD (commit b174e1f9).
-          Numbers from <code>wc</code>, <code>rg</code>, <code>go test -cover</code>, and
-          <code>git log</code>. Severity assigned by impact-on-a-real-consumer, not by aesthetic
-          preference.
-          <strong>Harsh Judge Hat: worn.</strong>
+          Generated 2026-06-20 V2 (deeper evidence pass) · All claims verified against source at
+          HEAD (commit b174e1f9). Numbers from
+          <code>wc</code>, <code>rg</code>, <code>go test -cover</code>,
+          <code>git log --numstat</code>, and <code>git show</code>. Severity assigned by
+          impact-on-a-real-consumer, not by aesthetic preference.
+          <strong>Harsh Judge Hat: worn, tightened, still on.</strong>
         </footer>
       </main>
     </div>
-
     <script>
       (function () {
         if (!("IntersectionObserver" in window)) return;
