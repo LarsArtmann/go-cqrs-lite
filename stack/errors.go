@@ -37,4 +37,10 @@ var (
 	// ErrMissingCheckpoint is returned by [Bundle.ProjectionRunner] when the
 	// Bundle has no checkpoint store for tracking projection position.
 	ErrMissingCheckpoint = errors.New("stack: bundle has no checkpoint store")
+
+	// ErrMissingQueryStore is returned by [QueryAuditMiddleware] when the
+	// Bundle has no query sink for persisting audit records.
+	ErrMissingQueryStore = errors.New(
+		"stack: bundle has no query sink (use WithQueryStore)",
+	)
 )

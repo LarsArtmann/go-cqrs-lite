@@ -1,13 +1,17 @@
 package stack
 
 import (
+	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/decider/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/kv/v2"
 	"github.com/larsartmann/go-cqrs-lite/projection/v2"
+	"github.com/larsartmann/go-cqrs-lite/query/v2"
+	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v2"
 )
 
 // Repository constructs a typed [decider.Repository] over the Bundle's event
@@ -114,4 +118,110 @@ func (b *Bundle) eventStore() (event.Store, bool) {
 	store, ok := b.EventSink.(event.Store)
 
 	return store, ok
+}
+
+// TypedRepository constructs a [decider.TypedRepository] over the Bundle's
+// event store, binding both the State and Command type parameters at compile
+// time. The Decide function lives on the TypedDecider, not passed per-call.
+//
+// Call it as:
+//
+//	repo, err := stack.TypedRepository[UserState, CreateUser](bundle, typedDecider)
+//
+// This is the typed-command evolution of [Repository] (ADR-0001, Phase 6).
+// The legacy [Repository] remains for consumers who pass DecideFunc per-call.
+func TypedRepository[State, Cmd any](
+	b *Bundle,
+	d decider.TypedDecider[State, Cmd],
+	opts ...decider.RepositoryOption[State],
+) (*decider.TypedRepository[State, Cmd], error) {
+	store, ok := b.eventStore()
+	if !ok {
+		return nil, ErrMissingEventStore
+	}
+
+	return decider.NewTypedRepository[State, Cmd](store, b.Publisher, d, opts...)
+}
+
+// NewMaterialize constructs a [Materialize] over the Bundle's read-model backend.
+// It is the deployer-first projection builder: the consumer defines how events
+// create/update/tombstone view records; the deployer chose where the KV store
+// lives (SQLite, Pebble, memory).
+//
+// Call it as:
+//
+//	mat, err := stack.NewMaterialize[UserView, UserID](bundle, codec.JSONCodec{},
+//	    func(evt event.Event) (UserID, error) { ... })
+//
+// Then wire it as a Watermill handler: mat.HandlerFunc().
+func NewMaterialize[V any, K fmt.Stringer](
+	b *Bundle,
+	c codec.Codec,
+	keyFunc func(evt event.Event) (K, error),
+) (*Materialize[V, K], error) {
+	if b.ReadModels == nil {
+		return nil, ErrMissingReadModels
+	}
+
+	if c == nil {
+		c = codec.JSONCodec{}
+	}
+
+	store := kv.NewTypedStore[V, K](b.ReadModels, kv.WithTypedCodec[V, K](c))
+
+	return &Materialize[V, K]{
+		Store:        store,
+		KeyFromEvent: keyFunc,
+	}, nil
+}
+
+// CatchUpSubscriber constructs a [watermill.CatchUpSubscriber] over the
+// Bundle's seekable journal, live subscriber, and checkpoint store. The
+// subscriber replays journal events from the last checkpoint, then
+// seamlessly switches to live delivery.
+//
+// Call it as:
+//
+//	sub, err := stack.CatchUpSubscriber(bundle)
+//
+// All three prerequisites are required. Returns the relevant ErrMissing*
+// error if any is absent. The Bundle's Subscriber must be a *watermill.EventBus
+// (the default in all presets).
+func (b *Bundle) CatchUpSubscriber() (*cqrswatermill.CatchUpSubscriber, error) {
+	if b.SeekableJournal == nil {
+		return nil, ErrMissingJournal
+	}
+
+	if b.Subscriber == nil {
+		return nil, ErrMissingSubscriber
+	}
+
+	if b.CheckpointStore == nil {
+		return nil, ErrMissingCheckpoint
+	}
+
+	liveSub, ok := b.Subscriber.(*cqrswatermill.EventBus)
+	if !ok {
+		return nil, errors.New("stack: subscriber must be *watermill.EventBus for CatchUpSubscriber")
+	}
+
+	return cqrswatermill.NewCatchUpSubscriber(
+		b.SeekableJournal, liveSub.MessageSubscriber(), b.CheckpointStore, slog.Default(),
+	)
+}
+
+// QueryAuditMiddleware creates a [query.AuditMiddleware] from the Bundle's
+// query sink. The deployer chooses the audit level; the consumer applies
+// the middleware to their dispatcher:
+//
+//	mw, err := stack.QueryAuditMiddleware(bundle, query.AuditFull)
+//	d.Use(mw)
+//
+// Returns [ErrMissingQueryStore] if the Bundle has no query sink.
+func QueryAuditMiddleware(b *Bundle, level query.AuditLevel) (query.Middleware, error) {
+	if b.QuerySink == nil {
+		return nil, ErrMissingQueryStore
+	}
+
+	return query.AuditMiddleware(b.QuerySink, level, slog.Default()), nil
 }

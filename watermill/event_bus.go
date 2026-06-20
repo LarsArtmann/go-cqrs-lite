@@ -48,6 +48,11 @@ var (
 	_ io.Closer = (*EventBus)(nil)
 )
 
+// MessageSubscriber exposes the internal Watermill [message.Subscriber]
+// (GoChannel by default). This is needed for CatchUpSubscriber, which
+// requires a message.Subscriber for the live-delivery phase.
+func (b *EventBus) MessageSubscriber() message.Subscriber { return b.subscriber }
+
 // EventBusOption configures an EventBus.
 type EventBusOption func(*EventBus)
 
