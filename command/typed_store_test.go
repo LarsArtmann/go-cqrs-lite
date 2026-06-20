@@ -6,7 +6,6 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v2"
 )
@@ -67,7 +66,7 @@ func TestTypedCommandStore_PreservesMetadata(t *testing.T) {
 	ref := command.NewAggregateRef("Todo", id.NewAggregateID())
 
 	md := command.NewMetadata()
-	event.EnsureCustom(&md)
+	command.EnsureCustom(&md)
 	md.Custom["user_id"] = "user-123"
 
 	err := ts.Save(ctx, ref, command.TypedPersistedCommand[createTodoPayload]{

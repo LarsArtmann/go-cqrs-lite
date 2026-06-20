@@ -133,7 +133,7 @@ func TestWithCommandMetadata(t *testing.T) {
 	ref := command.NewAggregateRef("User", aggID)
 
 	md := command.NewMetadata()
-	md.Source = "test-service"
+	md.CorrelationID = id.NewCorrelationID()
 
 	cmd, err := command.NewPersistedCommand(
 		"CreateUser", ref, []byte(`{}`),
@@ -143,8 +143,8 @@ func TestWithCommandMetadata(t *testing.T) {
 		t.Fatalf("create persisted command: %v", err)
 	}
 
-	if cmd.Metadata().Source != "test-service" {
-		t.Errorf("expected source 'test-service', got %q", cmd.Metadata().Source)
+	if cmd.Metadata().CorrelationID != md.CorrelationID {
+		t.Errorf("expected correlation %q, got %q", md.CorrelationID, cmd.Metadata().CorrelationID)
 	}
 }
 

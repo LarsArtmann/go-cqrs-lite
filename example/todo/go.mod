@@ -11,8 +11,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/kv/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/stack/memory/v2 v2.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/stack/pebble/v2 v2.0.0-20260620194224-5481a6f496d9
-	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-20260620194224-5481a6f496d9
+	github.com/larsartmann/go-cqrs-lite/stack/pebble/v2 v2.0.0-20260620203023-8fee4d0f7e6e
+	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-20260620203023-8fee4d0f7e6e
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 v2.6.0
 )
 
@@ -58,8 +58,6 @@ require (
 	github.com/prometheus/common v0.69.0 // indirect
 	github.com/prometheus/procfs v0.20.1 // indirect
 	github.com/rogpeppe/go-internal v1.15.0 // indirect
-	github.com/samber/lo v1.53.0 // indirect
-	github.com/samber/ro v0.3.0 // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
 	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect

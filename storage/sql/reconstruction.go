@@ -2,6 +2,7 @@ package sql
 
 import (
 	"database/sql"
+	"encoding/json"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
@@ -66,9 +67,17 @@ func UnmarshalEventMetadata(data []byte, eventType string) ([]event.Option, erro
 	return event.UnmarshalMetadataJSON(data, "storage.unmarshal_metadata", eventType)
 }
 
-// MarshalMetadata serializes event metadata to JSON.
-func MarshalMetadata(m event.Metadata) ([]byte, error) {
-	return event.MarshalMetadataJSON(m, "storage.marshal_metadata")
+// MarshalMetadata serializes any metadata value to JSON.
+// Accepts event.Metadata, command.Metadata, or query.Metadata — all share the
+// embedded Tracing + Custom JSON shape, so the SQL layer need not depend on
+// any one module's concrete type (ADR-0031).
+func MarshalMetadata(m any) ([]byte, error) {
+	data, err := json.Marshal(m)
+	if err != nil {
+		return nil, event.WrapCorruption(err, "storage.marshal_metadata", "marshal metadata")
+	}
+
+	return data, nil
 }
 
 // CommitTx commits a transaction, wrapping errors with infrastructure context.

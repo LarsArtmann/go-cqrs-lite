@@ -262,6 +262,7 @@ command/const Rejection
 command/const Transient
 command/func Classify
 command/func Compose
+command/func EnsureCustom
 command/func ExitCode
 command/func IsRetryable
 command/func New
@@ -306,6 +307,7 @@ command/method AggregateID
 command/method AggregateRef
 command/method AggregateType
 command/method AppendBatch
+command/method Clone
 command/method Close
 command/method Dispatch
 command/method ID
@@ -325,6 +327,7 @@ command/method Type
 command/method Use
 command/struct BasicCommand
 command/struct Dispatcher
+command/struct Metadata
 command/struct PersistedCommand
 command/struct TypedCommandStore
 command/struct TypedPersistedCommand
@@ -333,7 +336,6 @@ command/type AggregateType
 command/type Error
 command/type Family
 command/type Handler
-command/type Metadata
 command/type Middleware
 command/type Option
 command/type PersistOption
@@ -1119,6 +1121,7 @@ query/func AuditMiddleware
 query/func Classify
 query/func Compose
 query/func DispatchTyped
+query/func EnsureCustom
 query/func ExitCode
 query/func IsRetryable
 query/func New
@@ -1155,6 +1158,7 @@ query/interface QuerySink
 query/interface QuerySource
 query/interface QueryStore
 query/interface SeekableQueryJournal
+query/method Clone
 query/method Close
 query/method Dispatch
 query/method HasNext
@@ -1178,6 +1182,7 @@ query/method Validate
 query/querytest/func MustNew
 query/struct BasicQuery
 query/struct Dispatcher
+query/struct Metadata
 query/struct PaginatedResult
 query/struct Pagination
 query/struct PersistedQuery
@@ -1187,7 +1192,6 @@ query/type AuditLevel
 query/type Error
 query/type Family
 query/type Handler
-query/type Metadata
 query/type Middleware
 query/type Option
 query/type QueryPersistOption

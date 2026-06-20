@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
@@ -139,7 +138,7 @@ func TestCommand_MetadataIsolation(t *testing.T) {
 	}
 
 	m1 := cmd.Metadata()
-	event.EnsureCustom(&m1)
+	command.EnsureCustom(&m1)
 	m1.Custom["key"] = "value"
 
 	m2 := cmd.Metadata()

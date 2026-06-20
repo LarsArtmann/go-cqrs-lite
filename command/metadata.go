@@ -1,18 +1,48 @@
 package command
 
 import (
+	"maps"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
 // Metadata contains tracing and contextual information for commands.
-// Alias of event.Metadata to enable correlation across the CQRS pipeline
-// without field duplication.
-type Metadata = event.Metadata
+// It embeds event.Tracing for the cross-cutting tracing identifiers and adds
+// a Custom map for arbitrary key-value metadata.
+//
+// Unlike the old alias of event.Metadata, command.Metadata does NOT carry
+// event-only concerns (Tombstone, Causation): commands have no tombstones and
+// no event-causation link. Each module owns its own Metadata so a change to
+// the event's shape cannot silently reshape commands. See ADR-0031.
+type Metadata struct {
+	event.Tracing
 
-// NewMetadata creates a Metadata with all fields initialized to zero values.
+	Custom map[event.MetadataKey]string `json:"custom,omitempty"`
+}
+
+// NewMetadata creates a Metadata with zero-value fields.
+// The Custom map is lazily initialized on first write via EnsureCustom.
 func NewMetadata() Metadata {
-	return event.NewMetadata()
+	return Metadata{}
+}
+
+// Clone returns a deep copy of the metadata.
+func (m Metadata) Clone() Metadata {
+	cp := m
+	if m.Custom != nil {
+		cp.Custom = maps.Clone(m.Custom)
+	}
+
+	return cp
+}
+
+// EnsureCustom lazily initializes the Custom map if nil.
+// Call before writing to m.Custom.
+func EnsureCustom(m *Metadata) {
+	if m.Custom == nil {
+		m.Custom = make(map[event.MetadataKey]string)
+	}
 }
 
 // Option configures command creation.

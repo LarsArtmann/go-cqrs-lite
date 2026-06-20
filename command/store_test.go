@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2/idtest"
 )
@@ -105,7 +104,7 @@ func TestNewPersistedCommand_MetadataIsolation(t *testing.T) {
 
 	ref := validRef()
 	meta := command.NewMetadata()
-	event.EnsureCustom(&meta)
+	command.EnsureCustom(&meta)
 	meta.Custom["key1"] = "value1"
 
 	cmd, err := command.NewPersistedCommand(
@@ -130,7 +129,7 @@ func TestWithCommandMetadata_IntakeIsolation(t *testing.T) {
 
 	ref := validRef()
 	meta := command.NewMetadata()
-	event.EnsureCustom(&meta)
+	command.EnsureCustom(&meta)
 	meta.Custom["key"] = "original"
 
 	cmd, err := command.NewPersistedCommand(

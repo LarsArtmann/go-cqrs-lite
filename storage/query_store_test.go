@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 	"github.com/larsartmann/go-cqrs-lite/storage/v2"
@@ -212,7 +211,7 @@ func TestSQLQueryStore_MetadataRoundtrip(t *testing.T) {
 	meta := query.NewMetadata()
 	meta.CorrelationID = id.NewCorrelationID()
 	meta.UserID = id.NewUserID()
-	event.EnsureCustom(&meta)
+	query.EnsureCustom(&meta)
 	meta.Custom["source"] = "test"
 
 	q, err := query.NewPersistedQuery("user.search", []byte(`{}`), query.WithQueryMetadata(meta))

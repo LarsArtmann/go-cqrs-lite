@@ -4,7 +4,6 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 )
 
@@ -97,7 +96,7 @@ func TestNewPersistedQuery_MetadataIsolation(t *testing.T) {
 	t.Parallel()
 
 	meta := query.NewMetadata()
-	event.EnsureCustom(&meta)
+	query.EnsureCustom(&meta)
 	meta.Custom["key1"] = "value1"
 
 	q, err := query.NewPersistedQuery(
@@ -121,7 +120,7 @@ func TestWithQueryMetadata_IntakeIsolation(t *testing.T) {
 	t.Parallel()
 
 	meta := query.NewMetadata()
-	event.EnsureCustom(&meta)
+	query.EnsureCustom(&meta)
 	meta.Custom["key"] = "original"
 
 	q, err := query.NewPersistedQuery(

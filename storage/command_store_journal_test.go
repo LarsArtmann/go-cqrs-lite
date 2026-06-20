@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2/idtest"
 )
@@ -199,7 +198,7 @@ func TestSQLCommandStore_MetadataRoundtrip(t *testing.T) {
 	meta := command.NewMetadata()
 	meta.CorrelationID = id.NewCorrelationID()
 	meta.UserID = id.NewUserID()
-	event.EnsureCustom(&meta)
+	command.EnsureCustom(&meta)
 	meta.Custom["source"] = "test"
 
 	cmd, err := command.NewPersistedCommand(
