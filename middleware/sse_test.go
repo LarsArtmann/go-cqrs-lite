@@ -67,7 +67,14 @@ func TestSSEHandler(t *testing.T) {
 		SSEHandler(broker).ServeHTTP(rec, req)
 	}()
 
-	time.Sleep(100 * time.Millisecond)
+	// Wait for SSE handler to register as a client (deterministic)
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) && broker.ClientCount() == 0 {
+		time.Sleep(5 * time.Millisecond)
+	}
+	if broker.ClientCount() == 0 {
+		t.Fatal("SSE handler did not register as client within timeout")
+	}
 
 	evt, err := event.NewEvent("TestEvent", id.NewAggregateID(), "Test", 1, []byte("test"))
 	if err != nil {

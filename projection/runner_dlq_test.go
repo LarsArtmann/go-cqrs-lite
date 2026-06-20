@@ -67,14 +67,26 @@ func TestRunner_DeadLetterHandler(t *testing.T) {
 		close(done)
 	}()
 
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(50 * time.Millisecond) // let runner subscribe before publishing
 
 	evt := mustCreateTestEvent(t, "user.created", id.NewAggregateID(), 1)
 	if pubErr := bus.Publish(t.Context(), evt); pubErr != nil {
 		t.Fatalf("Publish: %v", pubErr)
 	}
 
-	time.Sleep(100 * time.Millisecond)
+	// Wait for DLQ entry (deterministic poll)
+	dlqMu.Lock()
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) && len(dlqEntries) == 0 {
+		dlqMu.Unlock()
+		time.Sleep(5 * time.Millisecond)
+		dlqMu.Lock()
+	}
+	if len(dlqEntries) == 0 {
+		dlqMu.Unlock()
+		t.Fatal("expected dead letter entries, got none")
+	}
+	dlqMu.Unlock()
 	cancel()
 	<-done
 
@@ -188,14 +200,18 @@ func TestRunner_DeadLetterHandler_WithRetry(t *testing.T) {
 		close(done)
 	}()
 
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(50 * time.Millisecond) // let runner subscribe before publishing
 
 	evt := mustCreateTestEvent(t, "user.created", id.NewAggregateID(), 1)
 	if pubErr := bus.Publish(t.Context(), evt); pubErr != nil {
 		t.Fatalf("Publish: %v", pubErr)
 	}
 
-	time.Sleep(100 * time.Millisecond)
+	// Wait for DLQ processing (deterministic poll)
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) && dlqCount == 0 {
+		time.Sleep(5 * time.Millisecond)
+	}
 	cancel()
 	<-done
 

@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-06-19
+**Updated:** 2026-06-20
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in [ROADMAP.md](ROADMAP.md).
 
 ## Legend
@@ -21,68 +21,46 @@
 - [ ] **jsonv2 codec experiment** — `codec/jsonv2_experiment.go` exists behind `goexperiment.jsonv2` build tag (ADR-0026). Pending Go stdlib stabilization.
 - [ ] **Arena allocation experiment** — `event/arena_experiment.go` exists behind `goexperiment.arenas` build tag (ADR-0026). Pending Go arena API stabilization.
 
+### v3 Breaking Changes (in progress)
+
+- [v3] **Delete ghost bus code** — `memory/bus.go` (250 LOC), `memory/command_bus.go` (150 LOC), `storage/pg_bus.go` (265 LOC), `event/reactive*.go` (258 LOC). Replacement: `watermill.EventBus`. Deprecated in v2, all presets migrated.
+- [v3] **Move memory/ stores → storage/memory/** — Stores belong under storage/. Bus deletion must happen first.
+- [v3] **Version → uint64** — 156 files use `event.Version`. Negative versions were never valid.
+- [v3] **Break command/query Metadata = event.Metadata alias** — `storage/sql.MarshalMetadata` takes `event.Metadata`. Cascades through SQL stores.
+- [v3] **Remove io.Closer from core interfaces** — ADR-0010 accepted. Affects `event.Store`, `snapshot.SnapshotStore`, `command.Store`.
+- [v3] **Delete readmodel/ module** — Merged into kv/ (ADR-0032). `kv.TypedStore[T,K]` + `kv.Cache[T,K]` are the replacements.
+- [v3] **Move HTTP code out of middleware** — SSE, healthcheck, metrics_http → transport/ module.
+- [v3] **Make event Core truly immutable** — Currently opts pointer is shallow-copied on Clone.
+- [v3] **Fix query.Handler returns any** — Generic `TypedHandler[T]` returning `(T, error)`.
+
 ---
 
 ## Recently Completed
 
-- [x] **Streaming event reads — store implementations** — `StreamingSource`/`StreamingJournal` implemented on `SQLEventStore` (cursor-based via `*sql.Rows`), Pebble `EventStore` (iterator-based with limit + skip), and `MemoryStore` (SliceIterator-wrapped). Consolidated ghost `StreamLoader`/`EventStream` types into the shipped `EventIterator` interface.
-- [x] **Distributed checkpointing — DistributedRunner** — `projection.DistributedRunner` wraps a Runner with `LeaderElection` gating: waits for leadership, runs replay+live, periodically checks `IsLeader`, stops gracefully on loss, resigns on exit. `WithLeadershipCheckInterval` option.
-- [x] **cqrs-gen v3 — event handler generation** — `-type=event` generates typed projection handler registration via `projection.On[T]()`. Supports both `//cqrs:event` comment markers and `cqrs:"event:Type"` struct tags.
-- [x] **Postgres LISTEN/NOTIFY event bus** — `storage.PostgresBus` implements `event.Bus` using `SELECT pg_notify()` with lightweight reference payloads (under 8KB). `NotificationListener` interface with `Listen(channel)` abstracts driver-specific LISTEN. Listener re-fetches full events from store with retry (visibility gap handling). Uses `LoadByEventID` (indexed O(1) lookup) when store implements `EventByIDLoader`. **Wired into `stack/postgres` preset** via `WithDistributedBus(PgxListener)` option. PgxListener uses pgxpool with a dedicated conn for LISTEN. Real-Postgres integration tests in CI. ADR-0027 status: Implemented.
-- [x] **WASM compilation — 7/7 core modules** — Moved `NewCQRSViews()` behind `//go:build !js` tag (OTel SDK `os/user` dependency). All 7 core modules (id, codec, dispatcher, event, command, query, decider) now compile to `GOOS=js GOARCH=wasm`.
-- [x] **Documentation site content** — Created `docs/index.md` landing page with value proposition, quick start, module overview, and presets comparison. Updated `mkdocs.yml` nav with Bundle Presets and Reference sections.
-- [x] **Bundle composition layer** (`stack/v2`) — v2.7.0. `Bundle` with ISP-honest fields + pointer-dedup Close; repository/read-model helpers as top-level generic functions.
-- [x] **Bundle presets** (`stack/{memory,sqlite,pebble,postgres}/v2`) — one-call wiring of every store + bus + read-model backend.
-- [x] **Typed read-model store + cache** (`readmodel/v2`, `readmodel/cache/v2`) — `Store[T,K]` over `kv.Store`; Otter-backed `CachedStore[T,K]`.
-- [x] **Typed stores** (`snapshot`, `command`, `query`) — `TypedSnapshot[State]`, `TypedCommandStore[P]`, `TypedQueryStore[P]`.
-- [x] **Persistent read models for SQL presets** (`storage/v2`) — `SQLKVStore` over `cqrs_kv`; SQLite + Postgres presets now keep read models across restarts.
-- [x] **Postgres preset tests in CI** — env-var mismatch fixed (`POSTGRES_TEST_DSN` now set in the postgres-integration job).
-- [x] **Zero lint violations** — 0 across all 34 modules; `nix run .#lint` now resilient (reports all failures).
-- [x] **Pebble DeleteEventsBefore removed** — Events are immutable truth. Removed the retention function, its test, and all doc references. Automatic event deletion is a footgun in an event sourcing library.
-- [x] **Pebble coverage 85%+** — From 84.6% to 86.6% via targeted error-branch tests.
-- [x] **Schema registry validator** (`schema/`) — `Validator` with `RegisterType[T]()`, `RegisterTypeWithValidator[T]()`, strict/lenient modes, custom codec support. ADR-0017 accepted.
-- [x] **Prometheus metrics exporter** (`prometheus/`) — New module wrapping OTel Prometheus exporter. `Setup()`, `WithRegistry()`, `MustSetup()`. Full test suite.
-- [x] **cqrs-gen v2 struct tag scanning** (`cmd/cqrs-gen/`) — Supports `cqrs:"command:CreateUser"` struct tags in addition to comment markers. Comment markers take precedence.
-- [x] **LeaderElection interface** (`projection/`) — `LeaderElection` interface + `AlwaysLeader` default implementation for ADR-0018.
-- [x] **Streaming event interfaces** (`event/`) — `EventIterator`, `StreamingSource`, `StreamingJournal`, `SliceIterator` adapter.
-- [x] **Bounded dedup** (`event/`, `projection/`) — `DistinctByEventIDBounded(cap)` with FIFO ring eviction. `WithDedupCapacity(n)` Runner option for bounded memory in 24/7 projections.
-- [x] **gopls false positives suppressed** — `.vscode/settings.json` disables `mod_tidy` analyzer. ADR-0007 updated with root cause.
-- [x] **Transport adapter strategy** (ADR-0025) — Each transport (gRPC, NATS, Redis) gets a separate module. Core stays dependency-free.
-- [x] **Experimental features policy** (ADR-0026) — Build-tag-gated experiments documented. jsonv2 and arena stubs created.
-- [x] **WASM verification binary** (`wasm/main.go`) — Confirms 6/7 core modules compile to WASM.
-- [x] **Documentation site scaffold** (`mkdocs.yml`, `docs/site/`) — MkDocs Material theme configured.
-- [x] **Projection replay→live dedup** — Reactive pipeline refactor: `SubscriberToObservable` adapts callback-based `Subscriber` to `ro.Observable[Event]`; `DistinctByEventIDWith(seen)` seeds dedup with replay IDs.
-- [x] **OTel baggage → event enricher** — `middleware.OTelCorrelationEnricher` bridges OTel baggage correlation IDs into event metadata via `event.WithCustom`.
-- [x] **Ghost API cleanup** — Removed `EventSlice[T]` and `SeedFromEnv()` from `testutil/`.
-- [x] **NewCQRSViews bug fix** — OTel instrument name filter fixed from `"cqrs."` to `"cqrs.*"`.
-- [x] **Layer violation fix** — All 3 pre-existing budget violations resolved.
-- [x] **Watermill integration test** — Router integration test for `CorrelationIDMiddleware()` + `NewRetryMiddleware()`.
-- [x] **PostgreSQL CI service container** — wired into GitHub Actions.
-- [x] **Pebble KV Store adapter** (`pebble/`) — `NewKVStore()` wraps `*pebble.DB` as `kv.Store`.
-- [x] **Reactive CommandBus and QueryBus** (`command/`, `query/`).
-- [x] **Built-in pprof endpoints** (`middleware/`).
-- [x] **Pebble benchmarks** (`pebble/`).
-- [x] **KV contract tests** (`pebble/`).
-- [x] **Codec fuzz fix** — CBOR duplicate map key type ambiguity handled.
-- [x] **Module READMEs** — `kv/README.md` and `pebble/README.md`.
+- [x] **watermill.EventBus adapter** — Full `event.Bus` implementation using Watermill GoChannel. All 4 stack presets migrated from `memory.MemoryBus`.
+- [x] **TransactionID branded type** — Cross-aggregate consistency tracking phantom type.
+- [x] **Version drift CI check** — `scripts/check-version-drift.sh` detects sibling module version mismatches.
+- [x] **CI file-size gate fix** — Subshell bug fixed, gate now actually works.
+- [x] **File-size compliance** — All production files under 350 lines (7 files split).
+- [x] **Error taxonomy** — All `fmt.Errorf` calls classified into 5-family taxonomy.
+- [x] **Dead build tags removed** — goroutineleakprofile, runtimesecret, simd removed; goexperiment.jsonv2 added.
+- [x] **Security theater removed** — gosec `-no-fail`, vulncheck/secrets-scan `|| true` removed.
+- [x] **Deprecated notices** — Added to `memory.MemoryBus`, `memory.MemoryCommandBus`, `query.Handler`.
+- [x] **Streaming event reads** — `StreamingSource`/`StreamingJournal` on SQL, Pebble, Memory stores.
+- [x] **Distributed checkpointing** — `DistributedRunner` with `LeaderElection` gating.
+- [x] **cqrs-gen v3** — Event handler generation via `-type=event`.
+- [x] **Postgres LISTEN/NOTIFY event bus** — `storage.PostgresBus` with PgxListener.
+- [x] **WASM compilation** — 7/7 core modules compile to WASM.
+- [x] **Bundle composition layer** — `Bundle` with ISP-honest fields + 4 presets (memory, sqlite, pebble, postgres).
+- [x] **Typed read-model store + cache** — `readmodel.Store[T,K]` + `readmodel.CachedStore[T,K]`.
+- [x] **Typed stores** — `TypedSnapshot[State]`, `TypedCommandStore[P]`, `TypedQueryStore[P]`.
+- [x] **Schema registry validator** — `Validator` with `RegisterType[T]()`.
+- [x] **Prometheus metrics exporter** — `prometheus/` module with OTel bridge.
+- [x] **KV store abstraction** — `kv.Store` (Reader+Writer+Closer), Pebble `KVAdapter`.
+- [x] **CBOR compact codec** — ~35% smaller payloads via positional array encoding.
+- [x] **Event signing** — HMAC-SHA256, Ed25519, multisig.
+- [x] **Event encryption** — XChaCha20-Poly1305, AES-256-GCM.
 
 ---
 
-## Deferred Breaking Changes
-
-### v3 (Next Major)
-
-- [v3] **Remove `io.Closer` from core interfaces** — ADR-0010 accepted. Affects `event.Store`, `snapshot.SnapshotStore`, `command.Store`.
-- [v3] **Add global `TransactionID` branded type** — Cross-aggregate consistency tracking.
-- [v3] **Make event Core truly immutable** — Currently opts pointer is shallow-copied on Clone.
-- [v3] **Move HTTP code out of middleware** — SSE, healthcheck, metrics_http → transport/ module.
-- [v3] **Fix `query.Handler` returns `any`** — Generic `TypedHandler[T]` returning `(T, error)`.
-
-### v4
-
-- [v4] **Split `catalog.Message` into Message + MessageMeta** — 17 fields → structured embedding.
-- [v4] **Split `catalog.Service` into Service + ServiceMeta** — 16 fields → structured embedding.
-
----
-
-_4 open items (all experimental/blocked by external dependencies) + 7 deferred breaking changes. See [ROADMAP.md](ROADMAP.md) for long-term vision._
+_4 open items (experimental/blocked) + 9 v3 breaking changes. See [ROADMAP.md](ROADMAP.md) for long-term vision._

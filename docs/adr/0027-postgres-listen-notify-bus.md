@@ -85,6 +85,6 @@ The design solves:
 
 ## Forward references
 
-- See `docs/planning/2026-06-19_15-53_V2.7.0_RELEASE_HARDENING_AND_PERSISTENT_READMODELS.md`
+- 
   §4 (M20) for the original kill-switch rationale.
 - `ROADMAP.md` "Post-Bundle direction" lists this as the top multi-process theme.

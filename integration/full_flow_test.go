@@ -142,7 +142,8 @@ func TestFullFlow(t *testing.T) {
 		}
 	}()
 
-	// Small delay to let subscription set up
+	// Small delay to let subscription set up — the runner subscribes in Run(),
+	// which starts in a goroutine above. For in-process buses this is near-instant.
 	time.Sleep(10 * time.Millisecond)
 
 	// --- Execute command ---
@@ -163,9 +164,6 @@ func TestFullFlow(t *testing.T) {
 		t.Fatalf("dispatch create user: %v", err)
 	}
 
-	// Give projection time to process
-	time.Sleep(50 * time.Millisecond)
-
 	// --- Verify events stored ---
 	events, err := store.Load(ctx, event.NewAggregateRef(event.AggregateType("User"), aggID))
 	if err != nil {
@@ -178,7 +176,9 @@ func TestFullFlow(t *testing.T) {
 
 	eventtest.AssertEventType(t, events, 0, "UserCreated")
 
-	// --- Verify projection received live event ---
+	// --- Verify projection received live event (poll for eventual consistency) ---
+	waitForCondition(t, func() bool { return len(projectedNames) >= 1 }, 2*time.Second)
+
 	if len(projectedNames) != 1 {
 		t.Fatalf("expected 1 projected event, got %d", len(projectedNames))
 	}
