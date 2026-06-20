@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 )
@@ -25,7 +26,7 @@ func BenchmarkRealistic_ProjectionReplay(b *testing.B) {
 	eventsPerAgg := 100
 
 	store := memory.NewMemoryStore()
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	checkpoint := memory.NewMemoryCheckpointStore()
 	b.Cleanup(func() { _ = store.Close(); _ = bus.Close(); _ = checkpoint.Close() })
 

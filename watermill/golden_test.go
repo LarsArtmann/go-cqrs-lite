@@ -13,7 +13,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	wm "github.com/larsartmann/go-cqrs-lite/watermill/v2"
 )
 
@@ -65,7 +64,7 @@ func parseUserID(s string) id.UserID {
 var update = flag.Bool("update", false, "update golden files")
 
 func TestGolden_MessageMetadata(t *testing.T) {
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	t.Cleanup(func() { _ = bus.Close() })
 
 	subscriber := wm.NewSubscriberAdapter(bus)

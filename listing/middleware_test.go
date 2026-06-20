@@ -5,12 +5,13 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/listing/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 )
 
-func collectPublished(t *testing.T, bus *memory.MemoryBus, eventType event.Type) *[]event.Event {
+func collectPublished(t *testing.T, bus *eventtest.FakeBus, eventType event.Type) *[]event.Event {
 	t.Helper()
 
 	published := make([]event.Event, 0, 1)
@@ -29,10 +30,10 @@ func collectPublished(t *testing.T, bus *memory.MemoryBus, eventType event.Type)
 func setupStatusMiddlewareBus(
 	t *testing.T,
 	tombstoneTypes, rebirthTypes []event.Type,
-) *memory.MemoryBus {
+) *eventtest.FakeBus {
 	t.Helper()
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	_ = bus.UsePublish(listing.StatusMiddleware(tombstoneTypes, rebirthTypes))
 
 	return bus
@@ -40,7 +41,7 @@ func setupStatusMiddlewareBus(
 
 func assertPublishSingleEvent(
 	t *testing.T,
-	bus *memory.MemoryBus,
+	bus *eventtest.FakeBus,
 	evt event.Event,
 	eventType event.Type,
 	wantMetadataKey event.MetadataKey, wantMetadataVal string,
@@ -136,7 +137,7 @@ func TestCacheInvalidationMiddleware_InvalidatesAfterPublish(t *testing.T) {
 
 	store := memory.NewMemoryStore()
 	reader := listing.NewInMemoryAggregateReader(store)
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	_ = bus.UsePublish(listing.CacheInvalidationMiddleware(reader))
 
 	ctx := context.Background()

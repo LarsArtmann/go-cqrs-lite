@@ -11,7 +11,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	wm "github.com/larsartmann/go-cqrs-lite/watermill/v2"
 )
 
@@ -101,7 +100,7 @@ func TestMessageToEvent_ValidationErrors(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			bus := memory.NewMemoryBus()
+			bus := eventtest.NewFakeBus()
 			defer bus.Close()
 
 			publisher := wm.NewPublisherAdapter(bus)
@@ -121,7 +120,7 @@ func TestMessageToEvent_ValidationErrors(t *testing.T) {
 func TestMessageToEvent_NoCustomMetadata(t *testing.T) {
 	t.Parallel()
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	defer bus.Close()
 
 	subscriber := wm.NewSubscriberAdapter(bus)

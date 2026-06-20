@@ -11,6 +11,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/decider/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 )
@@ -86,7 +87,7 @@ func TestSnapshot_EventSerialization(t *testing.T) {
 	ctx := context.Background()
 	store := memory.NewMemoryStore()
 	defer store.Close() //nolint:errcheck // test helper
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	defer bus.Close() //nolint:errcheck // test helper
 
 	d := snapDecider()

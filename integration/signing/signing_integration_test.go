@@ -8,12 +8,11 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2/multisig"
 )
 
-func subscribeTo(t *testing.T, bus *memory.MemoryBus, topic string, received *[]event.Event) {
+func subscribeTo(t *testing.T, bus *eventtest.FakeBus, topic string, received *[]event.Event) {
 	t.Helper()
 	if err := bus.Subscribe(event.Type(topic), func(_ context.Context, evt event.Event) error {
 		*received = append(*received, evt)
@@ -32,7 +31,7 @@ func TestSigningFullFlow(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	defer bus.Close() //nolint:errcheck // test helper
 
 	deviceKey := []byte("device-secret-key-thirty-two-by!")
@@ -117,7 +116,7 @@ func TestSigningTamperDetection(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	defer bus.Close() //nolint:errcheck // test helper
 
 	deviceKey := []byte("tamper-device-key-thirty-two-by!")

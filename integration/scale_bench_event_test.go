@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 )
@@ -71,7 +72,7 @@ func BenchmarkScale_EventSave_10KAggregates_100EventsEach(b *testing.B) {
 func BenchmarkScale_EventPublish_MemoryBus_100KEvents(b *testing.B) {
 	b.ReportAllocs()
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	b.Cleanup(func() { _ = bus.Close() })
 
 	err := bus.SubscribeAll(noopEventHandler())

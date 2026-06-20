@@ -11,8 +11,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/decider/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 	cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v2"
@@ -46,7 +46,7 @@ func TestPebbleEventStoreWithProjectionRunner(t *testing.T) {
 
 	store := backend.EventStore()
 	checkpoints := backend.CheckpointStore()
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	defer bus.Close() //nolint:errcheck // test helper
 
 	// Seed two events before the runner starts so replay is exercised.
@@ -146,7 +146,7 @@ func TestPebbleSnapshotStoreWithDeciderRepository(t *testing.T) {
 
 	store := backend.EventStore()
 	snapStore := backend.SnapshotStore()
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	defer bus.Close() //nolint:errcheck // test helper
 
 	d := decider.Decider[counterState]{

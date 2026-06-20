@@ -97,10 +97,10 @@ func (b *subscribeSignalBus) SubscribeAll(handler event.Handler) error {
 func newTestRunnerWithReadyAndOpts(
 	t *testing.T,
 	opts ...projection.RunnerOption,
-) (*projection.Runner, *memory.MemoryBus, <-chan struct{}) {
+) (*projection.Runner, *eventtest.FakeBus, <-chan struct{}) {
 	t.Helper()
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	checkpoint := memory.NewMemoryCheckpointStore()
 
 	t.Cleanup(func() {
@@ -119,7 +119,7 @@ func newTestRunnerWithReadyAndOpts(
 	return runner, bus, ready
 }
 
-func newTestRunnerWithReady(t *testing.T) (*projection.Runner, *memory.MemoryBus, <-chan struct{}) {
+func newTestRunnerWithReady(t *testing.T) (*projection.Runner, *eventtest.FakeBus, <-chan struct{}) {
 	t.Helper()
 
 	return newTestRunnerWithReadyAndOpts(t)
@@ -128,10 +128,10 @@ func newTestRunnerWithReady(t *testing.T) (*projection.Runner, *memory.MemoryBus
 func newTestRunnerWithReadyAndCheckpoint(
 	t *testing.T,
 	checkpoint *memory.MemoryCheckpointStore,
-) (*projection.Runner, *memory.MemoryBus, <-chan struct{}) {
+) (*projection.Runner, *eventtest.FakeBus, <-chan struct{}) {
 	t.Helper()
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 
 	t.Cleanup(func() { _ = bus.Close() })
 
@@ -167,10 +167,10 @@ func drainChan[T any](t *testing.T, ch <-chan T, count int, label string) {
 	}
 }
 
-func newTestBusAndCheckpoint(t *testing.T) (*memory.MemoryBus, *memory.MemoryCheckpointStore) {
+func newTestBusAndCheckpoint(t *testing.T) (*eventtest.FakeBus, *memory.MemoryCheckpointStore) {
 	t.Helper()
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	checkpoint := memory.NewMemoryCheckpointStore()
 
 	t.Cleanup(func() {

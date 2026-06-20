@@ -10,6 +10,7 @@ import (
 	"github.com/onsi/gomega/types"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/projection/v2"
@@ -63,14 +64,14 @@ var _ = Describe("Projection Runner", func() {
 		ctx        context.Context
 		cancel     context.CancelFunc
 		store      *memory.MemoryStore
-		bus        *memory.MemoryBus
+		bus        *eventtest.FakeBus
 		checkpoint *memory.MemoryCheckpointStore
 	)
 
 	BeforeEach(func() {
 		ctx, cancel = context.WithCancel(context.Background())
 		store = memory.NewMemoryStore()
-		bus = memory.NewMemoryBus()
+		bus = eventtest.NewFakeBus()
 		checkpoint = memory.NewMemoryCheckpointStore()
 	})
 

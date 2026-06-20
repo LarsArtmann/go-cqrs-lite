@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 )
@@ -82,7 +83,7 @@ func BenchmarkMemoryStore_ReadAll(b *testing.B) {
 func BenchmarkMemoryBus_Publish(b *testing.B) {
 	b.ReportAllocs()
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	b.Cleanup(func() { _ = bus.Close() })
 
 	_ = bus.SubscribeAll(func(_ context.Context, _ event.Event) error { return nil })
@@ -149,7 +150,7 @@ func BenchmarkMemoryStore_ConcurrentWriters(b *testing.B) {
 func BenchmarkMemoryBus_Publish_10Subscribers(b *testing.B) {
 	b.ReportAllocs()
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	b.Cleanup(func() { _ = bus.Close() })
 
 	for range 10 {

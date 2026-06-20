@@ -17,7 +17,7 @@ func TestCatchUpSubscriber_Replay(t *testing.T) {
 	t.Parallel()
 
 	store := eventtest.NewFakeStore()
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	cpStore := memory.NewMemoryCheckpointStore()
 
 	// Seed the store with a historical event.
@@ -71,7 +71,7 @@ func TestCatchUpSubscriber_NilChecks(t *testing.T) {
 	t.Parallel()
 
 	store := eventtest.NewFakeStore()
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	cpStore := memory.NewMemoryCheckpointStore()
 
 	_, err := NewCatchUpSubscriber(nil, NewSubscriberAdapter(bus), cpStore, nil)

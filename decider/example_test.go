@@ -6,6 +6,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/decider/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 )
@@ -17,7 +18,7 @@ type UserState struct {
 
 func ExampleRepository_Execute() {
 	store := memory.NewMemoryStore()
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 
 	d := decider.Decider[UserState]{
 		Initial: UserState{},

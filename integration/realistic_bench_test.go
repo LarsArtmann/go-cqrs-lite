@@ -24,6 +24,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/decider/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
@@ -41,7 +42,7 @@ func mustEveryN(n int) snapshot.SnapshotStrategy {
 func benchNewOrderRepo(
 	b *testing.B,
 	store *memory.MemoryStore,
-	bus *memory.MemoryBus,
+	bus *eventtest.FakeBus,
 	snapEvery int,
 ) *decider.Repository[OrderState] {
 	b.Helper()

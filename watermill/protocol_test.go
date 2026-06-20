@@ -8,15 +8,15 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	wm "github.com/larsartmann/go-cqrs-lite/watermill/v2"
 )
 
 func TestRoundTrip(t *testing.T) {
 	t.Parallel()
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	defer bus.Close() //nolint:errcheck // test helper
 
 	publisher := wm.NewPublisherAdapter(bus)
@@ -101,7 +101,7 @@ func TestRoundTrip(t *testing.T) {
 func TestPublisherAdapter_BadMetadata(t *testing.T) {
 	t.Parallel()
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	defer bus.Close() //nolint:errcheck // test helper
 
 	publisher := wm.NewPublisherAdapter(bus)
@@ -117,7 +117,7 @@ func TestPublisherAdapter_BadMetadata(t *testing.T) {
 func TestPublisherAdapter_InvalidVersion(t *testing.T) {
 	t.Parallel()
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	defer bus.Close() //nolint:errcheck // test helper
 
 	publisher := wm.NewPublisherAdapter(bus)
@@ -135,7 +135,7 @@ func TestPublisherAdapter_InvalidVersion(t *testing.T) {
 func TestPublisherAdapter_CloseIdempotent(t *testing.T) {
 	t.Parallel()
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	publisher := wm.NewPublisherAdapter(bus)
 
 	if err := publisher.Close(); err != nil {
@@ -146,7 +146,7 @@ func TestPublisherAdapter_CloseIdempotent(t *testing.T) {
 func TestSubscriberAdapter_CloseIdempotent(t *testing.T) {
 	t.Parallel()
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	subscriber := wm.NewSubscriberAdapter(bus)
 
 	if err := subscriber.Close(); err != nil {

@@ -7,8 +7,8 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 )
 
 func benchEvent(tb testing.TB) event.Event {
@@ -59,7 +59,7 @@ func BenchmarkMessageToEvent(b *testing.B) {
 func BenchmarkPublisherAdapter_Publish(b *testing.B) {
 	b.ReportAllocs()
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	adapter := NewPublisherAdapter(bus)
 	b.Cleanup(func() { _ = adapter.Close(); _ = bus.Close() })
 

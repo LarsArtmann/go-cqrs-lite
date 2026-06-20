@@ -10,6 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/decider/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
@@ -154,7 +155,7 @@ var _ = Describe("Decider Repository", func() {
 	var (
 		ctx   context.Context
 		store *memory.MemoryStore
-		bus   *memory.MemoryBus
+		bus   *eventtest.FakeBus
 		repo  *decider.Repository[bddCounter]
 		aggID id.AggregateID
 	)
@@ -162,7 +163,7 @@ var _ = Describe("Decider Repository", func() {
 	BeforeEach(func() {
 		ctx = context.Background()
 		store = memory.NewMemoryStore()
-		bus = memory.NewMemoryBus()
+		bus = eventtest.NewFakeBus()
 		aggID = id.NewAggregateID()
 
 		var err error

@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 )
@@ -12,7 +13,7 @@ func TestRunner_Close(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	checkpoint := memory.NewMemoryCheckpointStore()
 
 	runner, err := projection.NewRunner(store, bus, checkpoint)
@@ -30,7 +31,7 @@ func TestWithLogger(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	checkpoint := memory.NewMemoryCheckpointStore()
 	logger := slog.Default()
 

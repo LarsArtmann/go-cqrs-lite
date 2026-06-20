@@ -31,7 +31,7 @@ func TestFullFlow(t *testing.T) {
 	store := memory.NewMemoryStore()
 	defer store.Close() //nolint:errcheck // test helper
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	defer bus.Close() //nolint:errcheck // test helper
 
 	// --- Build command dispatcher with middleware ---

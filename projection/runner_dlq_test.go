@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 )
@@ -16,7 +17,7 @@ import (
 func TestRunner_DeadLetterHandler(t *testing.T) {
 	t.Parallel()
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	store := memory.NewMemoryStore()
 	checkpointStore := memory.NewMemoryCheckpointStore()
 
@@ -109,7 +110,7 @@ func TestRunner_DeadLetterHandler(t *testing.T) {
 func TestRunner_Reset(t *testing.T) {
 	t.Parallel()
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	store := memory.NewMemoryStore()
 	checkpointStore := memory.NewMemoryCheckpointStore()
 
@@ -153,7 +154,7 @@ func TestRunner_Reset(t *testing.T) {
 func TestRunner_DeadLetterHandler_WithRetry(t *testing.T) {
 	t.Parallel()
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	store := memory.NewMemoryStore()
 	checkpointStore := memory.NewMemoryCheckpointStore()
 

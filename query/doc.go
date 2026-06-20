@@ -39,15 +39,4 @@
 //
 //	all, _ := store.ReadAllQueries(ctx)            // all queries, ordered by received_at
 //	page, _ := store.ReadQueriesFrom(ctx, lastID, 100) // position-based pagination
-//
-// # Reactive QueryBus
-//
-// For query streams and pub/sub-style reactive dispatch, use a QueryBus
-// backed by github.com/samber/ro. Filter by type, convert handlers to observers,
-// or wire the bus into an event-driven pipeline:
-//
-//	bus := query.NewQueryBus()
-//	filtered := ro.Pipe1(bus, query.FilterQueryType("user.get"))
-//	filtered.Subscribe(query.HandlerToObserver(myHandler))
-//	bus.Next(getQuery)
 package query

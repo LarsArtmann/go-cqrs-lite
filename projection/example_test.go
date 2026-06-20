@@ -6,6 +6,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/projection/v2"
@@ -42,7 +43,7 @@ func ExampleRunner() {
 	store := memory.NewMemoryStore()
 	defer func() { _ = store.Close() }()
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	defer func() { _ = bus.Close() }()
 
 	checkpoint := memory.NewMemoryCheckpointStore()

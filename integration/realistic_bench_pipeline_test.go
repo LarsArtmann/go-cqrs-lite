@@ -12,6 +12,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/decider/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/projection/v2"
@@ -30,7 +31,7 @@ func BenchmarkRealistic_FullPipeline(b *testing.B) {
 	aggCount := 10_000
 
 	store := memory.NewMemoryStore()
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	checkpoint := memory.NewMemoryCheckpointStore()
 	b.Cleanup(func() { _ = store.Close(); _ = bus.Close(); _ = checkpoint.Close() })
 

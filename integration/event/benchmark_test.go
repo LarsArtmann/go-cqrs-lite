@@ -21,7 +21,7 @@ func BenchmarkNewEvent(b *testing.B) {
 
 func BenchmarkMemoryBus_Publish(b *testing.B) {
 	b.ReportAllocs()
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 
 	err := bus.Subscribe("BenchEvent", eventtest.NoopEventHandler())
 	if err != nil {

@@ -194,12 +194,12 @@ var _ = Describe("MemoryStore", func() {
 var _ = Describe("MemoryBus", func() {
 	var (
 		ctx context.Context
-		bus *memory.MemoryBus
+		bus *eventtest.FakeBus
 	)
 
 	BeforeEach(func() {
 		ctx = context.Background()
-		bus = memory.NewMemoryBus()
+		bus = eventtest.NewFakeBus()
 	})
 
 	Describe("As a developer using the in-memory event bus", func() {

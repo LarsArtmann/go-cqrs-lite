@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/projection/v2"
@@ -49,7 +50,7 @@ func TestRunner_ReplayLiveDedup(t *testing.T) {
 
 	journal := &seekableJournalStore{events: []event.Event{evt1, evt2}}
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	checkpoint := memory.NewMemoryCheckpointStore()
 
 	t.Cleanup(func() {
@@ -129,7 +130,7 @@ func TestRunner_ReplayLiveDedup(t *testing.T) {
 func TestRunner_LiveStreamDedup(t *testing.T) {
 	t.Parallel()
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	checkpoint := memory.NewMemoryCheckpointStore()
 
 	t.Cleanup(func() {

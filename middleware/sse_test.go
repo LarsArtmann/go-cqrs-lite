@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 )
 
 func TestSSEBroker(t *testing.T) {
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	defer bus.Close() //nolint:errcheck // test helper
 
 	broker, err := NewSSEBroker(bus)
@@ -48,7 +48,7 @@ func TestSSEBroker(t *testing.T) {
 }
 
 func TestSSEHandler(t *testing.T) {
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	defer bus.Close() //nolint:errcheck // test helper
 
 	broker, err := NewSSEBroker(bus)
@@ -105,7 +105,7 @@ func TestSSEHandler(t *testing.T) {
 }
 
 func TestSSEHandler_MissingClient(t *testing.T) {
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	defer bus.Close() //nolint:errcheck // test helper
 
 	broker, err := NewSSEBroker(bus)

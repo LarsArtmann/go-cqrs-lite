@@ -13,6 +13,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/decider/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/projection/v2"
@@ -21,7 +22,7 @@ import (
 
 func subscribeReadModel(
 	journal event.Journal,
-	bus *memory.MemoryBus,
+	bus *eventtest.FakeBus,
 	readModel *ReadModelStore,
 ) *projection.Runner {
 	checkpointStore := memory.NewMemoryCheckpointStore()
@@ -255,7 +256,7 @@ func TestFullCQRS_Lifecycle(t *testing.T) {
 
 	ctx := context.Background()
 	store := memory.NewMemoryStore()
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	readModel := NewReadModelStore()
 
 	userDecider := decider.Decider[UserState]{

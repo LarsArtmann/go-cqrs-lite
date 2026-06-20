@@ -18,7 +18,7 @@ func TestTimeTravel_DeciderLoadAtVersion(t *testing.T) {
 
 	t.Cleanup(func() { _ = store.Close() })
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 
 	t.Cleanup(func() { _ = bus.Close() })
 

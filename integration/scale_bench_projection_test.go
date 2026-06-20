@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/projection/v2"
@@ -20,7 +21,7 @@ import (
 func BenchmarkScale_ProjectionRegistration_1000(b *testing.B) {
 	b.ReportAllocs()
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	b.Cleanup(func() { _ = bus.Close() })
 
 	checkpoint := memory.NewMemoryCheckpointStore()
@@ -56,7 +57,7 @@ func BenchmarkScale_ProjectionProcessing_100Projections_100KEvents(b *testing.B)
 	b.ReportAllocs()
 
 	store := memory.NewMemoryStore()
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	checkpoint := memory.NewMemoryCheckpointStore()
 	b.Cleanup(func() { _ = store.Close(); _ = bus.Close(); _ = checkpoint.Close() })
 
@@ -147,7 +148,7 @@ func BenchmarkScale_ProjectionProcessing_Parallel(b *testing.B) {
 			b.ReportAllocs()
 
 			store := memory.NewMemoryStore()
-			bus := memory.NewMemoryBus()
+			bus := eventtest.NewFakeBus()
 			checkpoint := memory.NewMemoryCheckpointStore()
 			b.Cleanup(func() {
 				_ = store.Close()

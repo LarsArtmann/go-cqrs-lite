@@ -104,7 +104,7 @@ func buildReplayCatalog(t *testing.T) []processedEvent {
 		t.Fatalf("save: %v", err)
 	}
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	t.Cleanup(func() { _ = bus.Close() })
 
 	cp := memory.NewMemoryCheckpointStore()

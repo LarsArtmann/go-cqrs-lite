@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/projection/v2"
@@ -39,7 +40,7 @@ func TestRunner_ReplayFromStore(t *testing.T) {
 		t.Fatalf("Save evt2: %v", err)
 	}
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 
 	t.Cleanup(func() { _ = bus.Close() })
 
@@ -143,7 +144,7 @@ func TestRunner_ReplayWithCheckpoint(t *testing.T) {
 		t.Fatalf("Save evt2: %v", err)
 	}
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 
 	t.Cleanup(func() { _ = bus.Close() })
 
@@ -237,7 +238,7 @@ func TestRunner_ReplayFiltersUnmatchedTypes(t *testing.T) {
 		t.Fatalf("Save orderEvt: %v", err)
 	}
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 
 	t.Cleanup(func() { _ = bus.Close() })
 
@@ -303,7 +304,7 @@ func TestRunner_ReplayWithSeekableJournal(t *testing.T) {
 
 	store := &seekableJournalStore{events: []event.Event{evt1, evt2, evt3}}
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 
 	t.Cleanup(func() { _ = bus.Close() })
 

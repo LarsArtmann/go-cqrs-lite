@@ -133,7 +133,7 @@ func TestRunner_ReplayError_ReadAllFails(t *testing.T) {
 func TestRunner_ReplayError_CheckpointLoadFails(t *testing.T) {
 	t.Parallel()
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 
 	t.Cleanup(func() { _ = bus.Close() })
 
@@ -171,7 +171,7 @@ func TestRunner_ReplayError_CheckpointLoadFails(t *testing.T) {
 func TestRunner_ReplayError_HandlerFails(t *testing.T) {
 	t.Parallel()
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 
 	t.Cleanup(func() { _ = bus.Close() })
 

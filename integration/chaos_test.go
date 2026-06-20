@@ -12,8 +12,8 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v2"
 )
 
@@ -125,7 +125,7 @@ func TestChaos_EventHandler_Panic_RecoveryMiddleware(t *testing.T) {
 	t.Parallel()
 	g := NewWithT(t)
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	t.Cleanup(func() { _ = bus.Close() })
 
 	err := bus.Use(middleware.EventRecovery())
@@ -181,7 +181,7 @@ func TestChaos_EventPublish_Fails(t *testing.T) {
 	t.Parallel()
 	g := NewWithT(t)
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	t.Cleanup(func() { _ = bus.Close() })
 
 	aggID := id.NewAggregateID()

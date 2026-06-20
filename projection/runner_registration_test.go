@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 )
@@ -21,7 +22,7 @@ func TestNewRunner_NilBus(t *testing.T) {
 func TestNewRunner_NilCheckpoint(t *testing.T) {
 	t.Parallel()
 
-	_, err := projection.NewRunner(nil, memory.NewMemoryBus(), nil)
+	_, err := projection.NewRunner(nil, eventtest.NewFakeBus(), nil)
 	if err == nil {
 		t.Fatal("expected error for nil checkpoint")
 	}
@@ -30,7 +31,7 @@ func TestNewRunner_NilCheckpoint(t *testing.T) {
 func TestNewRunner_NilLoaderIsOK(t *testing.T) {
 	t.Parallel()
 
-	_, err := projection.NewRunner(nil, memory.NewMemoryBus(), memory.NewMemoryCheckpointStore())
+	_, err := projection.NewRunner(nil, eventtest.NewFakeBus(), memory.NewMemoryCheckpointStore())
 	if err != nil {
 		t.Fatalf("nil loader should be ok: %v", err)
 	}

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/projection/v2"
@@ -40,7 +41,7 @@ func TestRunner_RunReplayThenRunLive_ReadYourWrites(t *testing.T) {
 		t.Fatalf("save evt2: %v", err)
 	}
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	t.Cleanup(func() { _ = bus.Close() })
 
 	checkpoint := memory.NewMemoryCheckpointStore()

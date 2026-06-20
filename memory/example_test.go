@@ -30,25 +30,3 @@ func ExampleNewMemoryStore() {
 	// Output:
 	// 1
 }
-
-func ExampleNewMemoryBus() {
-	bus := memory.NewMemoryBus()
-
-	var received event.Event
-
-	_ = bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
-		received = evt
-
-		return nil
-	})
-
-	aggID := id.NewAggregateID()
-	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`))
-
-	_ = bus.Publish(context.Background(), evt)
-
-	fmt.Println(received.Type())
-
-	// Output:
-	// UserCreated
-}

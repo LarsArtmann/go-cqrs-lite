@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/decider/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
@@ -48,7 +49,7 @@ func newBenchDeciderRepo(b *testing.B) (*decider.Repository[benchState], context
 	b.Helper()
 
 	store := memory.NewMemoryStore()
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	b.Cleanup(func() { _ = store.Close(); _ = bus.Close() })
 
 	repo, err := decider.NewRepository(store, bus, benchDecider())

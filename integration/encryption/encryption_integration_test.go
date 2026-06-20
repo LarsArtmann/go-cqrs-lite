@@ -8,8 +8,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/encryption/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2"
 )
 
@@ -17,7 +17,7 @@ func TestSignAndEncryptFullFlow(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	defer bus.Close() //nolint:errcheck // test helper
 
 	signingKey := []byte("signing-secret-key-thirty-two-by!")
@@ -145,7 +145,7 @@ func TestEncryptMiddleware_DetectsAlgorithm_Integration(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	defer bus.Close() //nolint:errcheck // test helper
 
 	key := make([]byte, 32)

@@ -9,8 +9,8 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v2"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
 )
@@ -80,7 +80,7 @@ func TestOTel_EventBus_EmitsSpans(t *testing.T) {
 
 	tracer := tracerProvider.Tracer(cqrsotel.ComponentTracer("test"))
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	defer bus.Close() //nolint:errcheck // test helper
 
 	_ = bus.Use(middleware.EventTracing(tracer))

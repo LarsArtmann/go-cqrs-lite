@@ -50,13 +50,13 @@ func (c *controllableLeader) Resign(_ context.Context) error {
 	return nil
 }
 
-func newDistTestRunner(t *testing.T) (*projection.Runner, *memory.MemoryStore, *memory.MemoryBus) {
+func newDistTestRunner(t *testing.T) (*projection.Runner, *memory.MemoryStore, *eventtest.FakeBus) {
 	t.Helper()
 
 	store := memory.NewMemoryStore()
 	t.Cleanup(func() { _ = store.Close() })
 
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 	t.Cleanup(func() { _ = bus.Close() })
 
 	checkpoint := memory.NewMemoryCheckpointStore()

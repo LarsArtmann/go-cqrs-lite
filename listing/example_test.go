@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/listing/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
@@ -62,7 +63,7 @@ func ExampleNewListBuilder() {
 }
 
 func ExampleStatusMiddleware() {
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 
 	deleteTypes := []event.Type{"user.deleted"}
 	rebirthTypes := []event.Type{"user.restored"}
@@ -78,7 +79,7 @@ func ExampleStatusMiddleware() {
 func ExampleCacheInvalidationMiddleware() {
 	store := memory.NewMemoryStore()
 	reader := listing.NewInMemoryAggregateReader(store)
-	bus := memory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 
 	// Invalidate reader cache whenever events are published
 	_ = bus.UsePublish(listing.CacheInvalidationMiddleware(reader))
