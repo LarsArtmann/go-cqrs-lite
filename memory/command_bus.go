@@ -15,6 +15,11 @@ import (
 // MemoryCommandBus is an in-memory implementation of command.Bus.
 // It mirrors memory.MemoryBus for the command side — enabling pub/sub
 // semantics for commands with middleware support.
+//
+// Deprecated: MemoryCommandBus is a ghost parallel implementation.
+// Use the Watermill-based command dispatcher for new code.
+// MemoryCommandBus will be removed in v3.
+// See ADR-0028 (Watermill as Delivery Layer).
 type MemoryCommandBus struct {
 	dispatcher.Lifecycle
 

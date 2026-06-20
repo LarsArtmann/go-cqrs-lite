@@ -6,7 +6,7 @@ require (
 	github.com/cockroachdb/pebble v1.1.5
 	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/command/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/decider/v2 v2.5.0
+	github.com/larsartmann/go-cqrs-lite/decider/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/encryption/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/event/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.6.0
@@ -14,7 +14,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/middleware/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.5.0
+	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/signing/v2 v2.5.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.6.0

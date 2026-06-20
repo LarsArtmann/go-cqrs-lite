@@ -258,6 +258,9 @@ jobs:
       - name: Verify module dependency layers
         run: bash scripts/check-module-layers.sh
 
+      - name: Check version drift
+        run: bash scripts/check-version-drift.sh
+
   govulncheck:
     name: Vulnerability Check (govulncheck)
     runs-on: ubuntu-latest

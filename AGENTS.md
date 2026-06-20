@@ -35,7 +35,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Monorepo Structure
 
-Multi-module Go workspace (`go.work`) with 30 modules (24 library + 1 integration + 3 examples + 2 cmd):
+Multi-module Go workspace (`go.work`) with 38 modules (26 library + 6 stack presets + 1 integration + 3 examples + 2 cmd):
 
 ```
 go-cqrs-lite/
@@ -89,7 +89,7 @@ go-cqrs-lite/
 6. **Interface Segregation** — Journal (ReadAll), SeekableJournal (ReadFrom), BackwardsSource.
 7. **Context-aware** — All handlers accept `context.Context`.
 8. **Errors as values** — No panics, explicit error returns, sentinel errors + `%w` wrapping.
-9. **Strong types** — No `any` types (except `dialect.go` for database/sql interop). Max 250 lines/file, 30 lines/function.
+9. **Strong types** — No `any` as a value type in domain/business logic. Legitimate exceptions: JSON schema serialization (`catalog/`: `map[string]any`, `Payload any`), `recover()` return value (`middleware/recovery.go`), and `database/sql` interop (`storage/sql/dialect.go`). Generic type constraints (`[T any]`) are standard Go and always allowed. Max 350 lines/file (CI-enforced), 30 lines/function.
 10. **Multi-module isolation** — Each module has its own `go.mod` with only needed deps.
 11. **Tombstone over delete** — Soft-delete via metadata (TombstoneStatus: Active/Tombstoned/Undetermined). No Delete on Store.
 12. **Dependency budgets** — Per-module direct PRODUCTION dep limits enforced by `nix run .#check-layers`. Test-only packages (gomega, ginkgo, rapid) are excluded from the count. Adding production deps requires explicit budget review.

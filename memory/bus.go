@@ -12,6 +12,10 @@ import (
 
 // MemoryBus is an in-memory implementation of event.Bus for testing and single-process deployments.
 // It is safe for concurrent use. Handler execution blocks publishers (see Publish docs).
+//
+// Deprecated: MemoryBus is a ghost parallel implementation alongside Watermill GoChannel.
+// Use watermill.EventBus (wrapping GoChannel) for new code. MemoryBus will be removed in v3.
+// See ADR-0028 (Watermill as Delivery Layer) and docs/migration/V3_MIGRATION.md.
 type MemoryBus struct {
 	dispatcher.Lifecycle
 
