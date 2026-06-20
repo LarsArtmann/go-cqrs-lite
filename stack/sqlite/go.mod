@@ -8,8 +8,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/kv/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/readmodel/v2 v2.0.0-20260620040254-bdb6efd89733
-	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-20260620040254-bdb6efd89733
+	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-20260620041722-7c4869be1ff6
 	github.com/larsartmann/go-cqrs-lite/storage/v2 v2.6.0
 	modernc.org/sqlite v1.52.0
 )

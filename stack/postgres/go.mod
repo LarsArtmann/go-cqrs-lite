@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-20260620040254-bdb6efd89733
+	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-20260620041722-7c4869be1ff6
 	github.com/larsartmann/go-cqrs-lite/storage/v2 v2.6.0
 	pgregory.net/rapid v1.3.0
 )
@@ -34,7 +34,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/readmodel/v2 v2.0.0-20260620040254-bdb6efd89733 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-error-family v0.4.0 // indirect

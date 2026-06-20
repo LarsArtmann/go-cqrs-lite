@@ -12,7 +12,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/kv/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/readmodel/v2 v2.0.0-20260620040254-bdb6efd89733
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v2 v2.6.0
 )
