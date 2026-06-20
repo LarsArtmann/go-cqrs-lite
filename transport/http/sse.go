@@ -2,9 +2,9 @@ package http
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
@@ -116,8 +116,14 @@ func (b *SSEBroker) Close() {
 	b.clients = make(map[SSEClientID]chan event.Event)
 }
 
+// DefaultSSEHeartbeat is the default interval for SSE keepalive comment frames.
+// Most ALB/Nginx/Cloudflare proxies kill idle connections after 60s.
+const DefaultSSEHeartbeat = 15 * time.Second
+
 // SSEHandler returns an HTTP handler that streams events to a client.
 // The clientID is extracted from the query parameter "client".
+// A heartbeat comment frame is sent every DefaultSSEHeartbeat to prevent
+// proxy/load-balancer idle timeouts.
 func SSEHandler(broker *SSEBroker) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		clientID := r.URL.Query().Get("client")
@@ -130,6 +136,7 @@ func SSEHandler(broker *SSEBroker) http.Handler {
 		w.Header().Set("Content-Type", "text/event-stream")
 		w.Header().Set("Cache-Control", "no-cache")
 		w.Header().Set("Connection", "keep-alive")
+		w.WriteHeader(http.StatusOK)
 
 		flusher, ok := w.(http.Flusher)
 		if !ok {
@@ -138,8 +145,13 @@ func SSEHandler(broker *SSEBroker) http.Handler {
 			return
 		}
 
+		flusher.Flush()
+
 		ch := broker.AddClient(SSEClientID(clientID))
 		defer broker.RemoveClient(SSEClientID(clientID))
+
+		ticker := time.NewTicker(DefaultSSEHeartbeat)
+		defer ticker.Stop()
 
 		for {
 			select {
@@ -148,8 +160,15 @@ func SSEHandler(broker *SSEBroker) http.Handler {
 					return
 				}
 
-				_, _ = fmt.Fprintf(w, "event: %s\nid: %s\ndata: %s\n\n",
-					evt.Type(), evt.ID().String(), string(event.PayloadReadOnly(evt)))
+				_ = WriteSSEEvent(w, SSEEvent{
+					Type: string(evt.Type()),
+					ID:   SSEEventID(evt.ID().String()),
+					Data: string(event.PayloadReadOnly(evt)),
+				})
+
+				flusher.Flush()
+			case <-ticker.C:
+				_ = WriteSSEHeartbeat(w)
 
 				flusher.Flush()
 			case <-r.Context().Done():
