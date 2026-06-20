@@ -47,6 +47,7 @@ func main() {
 		"pebble",
 		"turso",
 		"prometheus",
+		"transport/http",
 		// Composition (Bundle layer)
 		"stack",
 		"stack/memory",

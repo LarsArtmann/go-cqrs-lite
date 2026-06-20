@@ -330,7 +330,7 @@ meter := otel.GetMeterProvider().Meter("my-app")
 recorder, _ := middleware.NewOTelMetricsRecorder(meter)
 cmdDispatcher.Use(middleware.CommandMetrics(recorder))
 
-// Other middleware: Logging, Retry, Recovery, Validation, CircuitBreaker, HealthCheck, SSE
+// Other middleware: Logging, Retry, Recovery, Validation, CircuitBreaker
 cmdDispatcher.Use(middleware.CommandRecovery())
 cmdDispatcher.Use(middleware.CommandRetry(3, time.Second))
 ```
@@ -494,7 +494,8 @@ cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 | ------------ | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `signing`    | `signing/v2`    | `NewHMAC`, `NewEd25519`, `multisig`, `SignMiddleware`/`VerifyMiddleware`. Tamper-proof streams.                                                                      |
 | `encryption` | `encryption/v2` | `NewXChaCha20Poly1305`, `NewAES256GCM`, `Codec` wrapper, `EncryptMiddleware`/`DecryptMiddleware`, `StaticKeyResolver`.                                               |
-| `middleware` | `middleware/v2` | `Logging`, `Retry`, `Recovery`, `Validation`, `Metrics`, `CircuitBreaker`, `HealthCheck`, `SSE`, `EventTracing`, `CommandMetrics`, etc. For command + event + query. |
+| `middleware` | `middleware/v2` | `Logging`, `Retry`, `Recovery`, `Validation`, `Metrics`, `CircuitBreaker`, `EventTracing`, `CommandMetrics`, etc. For command + event + query. |
+| `transport/http` | `transport/http/v2` | `NewSSEBroker`, `SSEHandler`. Bridges `event.Bus` to Server-Sent Events HTTP clients. |
 | `otel`       | `otel/v2`       | `Tracer`, `Meter`, `Spans`, `Attributes`. Re-exports — import this, not go.opentelemetry.io.                                                                         |
 | `catalog`    | `catalog/v2`    | `Registry`, `SchemaFromType[T]()`, exporters: `asyncapi`, `d2`, `eventcatalog`, `openapi`.                                                                           |
 | `watermill`  | `watermill/v2`  | `EventBus` (GoChannel-backed, replaces `memory.MemoryBus`), `CatchUpSubscriber`, `EventPublisher`, `MessageToEvent`. ADR-0028.                                       |

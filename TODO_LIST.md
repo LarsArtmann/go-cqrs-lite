@@ -23,7 +23,6 @@
 
 ### v3 Breaking Changes (remaining)
 
-- [v3] **Move HTTP code out of middleware** — SSE, healthcheck, metrics_http → transport/ module.
 - [v3] **Make event Core truly immutable** — Currently opts pointer is shallow-copied on Clone.
 
 ### Completed v3 Breaking Changes
@@ -38,6 +37,7 @@
 - [x] ~~Break command/query Metadata = event.Metadata alias~~ — DONE (ADR-0031; each module owns its Metadata embedding event.Tracing)
 - [x] ~~Rename Decider.Fold → Apply~~ — DONE (naming honesty)
 - [x] ~~Make event.Event a concrete type~~ — DONE (`type Event = *ImmutableEvent`; interface removed, 7 type assertions deleted)
+- [x] ~~Move SSE to transport/http/~~ — DONE (ADR-0025; SSE moved, healthcheck/metrics_http/pprof deleted — generic utilities with zero CQRS deps and zero consumers)
 
 ---
 

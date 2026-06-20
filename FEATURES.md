@@ -267,13 +267,9 @@ Accepts any `MetricsRecorder` interface (`Observe`).
 | `EventOTelMetrics(meter)`       | Pre-wired OTel metrics for events                                |
 | `QueryOTelMetrics(meter)`       | Pre-wired OTel metrics for queries                               |
 
-### HTTP Metrics ✅
+### HTTP Metrics ❌ REMOVED
 
-| Feature           | Detail                                                     | Status |
-| ----------------- | ---------------------------------------------------------- | ------ |
-| MetricsCollector  | In-memory request metrics with `RecordRequest`, `Snapshot` | ✅     |
-| MetricsHandler    | `net/http` handler exposing JSON metrics endpoint          | ✅     |
-| MetricsMiddleware | HTTP middleware recording request count and latency        | ✅     |
+Deleted — generic utility with no CQRS dependencies. Use `prometheus/` module (OTel→Prometheus bridge) for metrics exposition.
 
 ### Recovery ✅
 
@@ -337,15 +333,13 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 
 **CircuitBreakerConfig:** `FailureThreshold` (default 5), `SuccessThreshold` (default 3), `Timeout` (default 30s), `IsFailure` predicate. Rejected requests return `ErrCircuitBreakerOpen` wrapped as transient.
 
-### Health Check ✅
+### Health Check ❌ REMOVED
 
-| Feature             | Detail                                                              | Status |
-| ------------------- | ------------------------------------------------------------------- | ------ |
-| HealthChecker       | Interface for health-checkable components                           | ✅     |
-| HealthCheckResponse | `Status` (Pass/Fail/Warn) + `Checks` map with per-component details | ✅     |
-| HealthCheckHandler  | `net/http` handler returning JSON health status                     | ✅     |
+Deleted — generic utility with no CQRS dependencies and zero consumers.
 
-### SSE Broker ✅
+### SSE Broker ✅ (moved to transport/http/)
+
+> `import "github.com/larsartmann/go-cqrs-lite/transport/http/v2"`
 
 | Feature     | Detail                                                                             | Status |
 | ----------- | ---------------------------------------------------------------------------------- | ------ |
@@ -353,12 +347,9 @@ OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`
 | SSEHandler  | `net/http` handler for SSE connections with client ID extraction                   | ✅     |
 | Thread-safe | Concurrent client management with proper channel lifecycle                         | ✅     |
 
-### Profiling ✅
+### Profiling ❌ REMOVED
 
-| Feature           | Detail                                                              | Status |
-| ----------------- | ------------------------------------------------------------------- | ------ |
-| ProfilingHandler  | `ProfilingHandler(prefix)` — `net/http` handler for pprof endpoints | ✅     |
-| RegisterProfiling | `RegisterProfiling(mux)` — registers pprof on existing ServeMux     | ✅     |
+Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` directly.
 
 ---
 

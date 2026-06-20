@@ -1,4 +1,4 @@
-package middleware
+package http
 
 import (
 	"context"
@@ -28,7 +28,7 @@ type SSEBroker struct {
 // Returns an error if bus subscription fails.
 func NewSSEBroker(bus event.Bus) (*SSEBroker, error) {
 	if bus == nil {
-		return nil, event.NewInfrastructure("middleware.nil_bus", "event bus is required")
+		return nil, event.NewInfrastructure("transport.http.nil_bus", "event bus is required")
 	}
 
 	_, cancel := context.WithCancel(context.Background())
@@ -48,7 +48,7 @@ func NewSSEBroker(bus event.Bus) (*SSEBroker, error) {
 
 		return nil, event.WrapInfrastructure(
 			err,
-			"middleware.sse_subscribe",
+			"transport.http.sse_subscribe",
 			"subscribe to event bus",
 		)
 	}

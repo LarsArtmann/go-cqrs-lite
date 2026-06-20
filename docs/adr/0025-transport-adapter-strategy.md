@@ -3,7 +3,7 @@
 | Field   | Value        |
 | ------- | ------------ |
 | Date    | 2026-06-19   |
-| Status  | Accepted     |
+| Status  | Implemented   |
 | Decider | Lars Artmann |
 
 ## Context
@@ -71,7 +71,7 @@ defines its own wire format.
 - **gRPC**: Not yet implemented. Planned as `transport/grpc/` module.
 - **NATS**: Not yet implemented. Planned as `transport/nats/` module.
 - **Redis**: Not yet implemented. Planned as `transport/redis/` module.
-- **HTTP**: Exists as middleware (SSE, healthcheck) — moves to `transport/http/` in v3.
+- **HTTP**: **Implemented.** SSE event delivery moved from `middleware/` to `transport/http/`. Generic HTTP utilities (healthcheck, metrics, pprof) were deleted — they had no CQRS dependencies and zero consumers.
 
 ## References
 

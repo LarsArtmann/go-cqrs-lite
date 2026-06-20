@@ -29,7 +29,7 @@ Most callers only **read** the bytes (decoding, signing, serialization, SQL inse
 - `signing/event.go` — `CloneEvent` passes to `NewEvent` (which clones once)
 - `pebble/serialization.go` — `json.Marshal` reads only
 - `storage/sql/helpers.go` — `ExecContext` reads only
-- `middleware/sse.go` — string conversion for SSE data frame
+- `transport/http/sse.go` — string conversion for SSE data frame
 
 `encodingForCopy(evt Event) codec.Encoding` preserves the raw encoding field without the `""`→`"json"` normalization that `Encoding()` applies. Used in `copyWithMetadata`.
 
@@ -64,5 +64,5 @@ Most callers only **read** the bytes (decoding, signing, serialization, SQL inse
 - `signing/event.go` — `CloneEvent` uses `PayloadReadOnly`
 - `pebble/serialization.go` — `serializeEvent` uses `PayloadReadOnly`
 - `storage/sql/helpers.go` — `SharedInsertEvents` uses `PayloadReadOnly`
-- `middleware/sse.go` — SSE data frame uses `PayloadReadOnly`
+- `transport/http/sse.go` — SSE data frame uses `PayloadReadOnly`
 - `event/benchmark_clone_test.go` — benchmarks confirming optimizations

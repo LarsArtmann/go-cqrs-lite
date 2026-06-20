@@ -1,10 +1,10 @@
 // Package middleware provides cross-cutting concerns for CQRS handlers.
-// Middleware factories, OTel correlation bridging, SSE broker, and profiling endpoints.
+// Middleware factories and OTel correlation bridging.
 //
 // # Available Concerns
 //
 // Logging, Recovery, Retry, Validation, Metrics, Tracing (OTel),
-// Circuit Breaker, Event Signing, OTel Correlation Enricher, and SSE Broker.
+// Circuit Breaker, Event Signing, and OTel Correlation Enricher.
 //
 // Each middleware concern has 3 variants: Command*, Event*, Query*.
 //

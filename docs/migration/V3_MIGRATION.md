@@ -24,6 +24,7 @@ been prepared additively in v2 — the v2 types you should migrate to already ex
 | 8   | Rename Decider.Fold → Apply                         | —                                                       | Medium       | **Done** — field, errors, helpers renamed                             |
 | 9   | Make event.Event a concrete type                    | —                                                       | Low          | **Done** — `type Event = *ImmutableEvent`; zero call-site changes     |
 | 10  | encoding/json/v2 migration                          | [0026](../adr/0026-experimental-features.md)            | Low          | Deferred — pending Go stdlib stabilization                            |
+| 11  | Move SSE → transport/http/, delete generic HTTP utils | [0025](../adr/0025-transport-adapter-strategy.md)       | Medium       | **Done** — SSE moved; healthcheck/metrics_http/pprof deleted (zero consumers) |
 
 ---
 
@@ -135,6 +136,30 @@ If you wrote a custom type implementing the old `event.Event` interface
 (rare — `*ImmutableEvent` was the only production implementation), it no
 longer satisfies `event.Event`. Construct events via `event.NewEvent` /
 `event.New` instead.
+
+### Step 9: SSE moved to transport/http/
+
+```go
+// BEFORE (v2)
+import "github.com/larsartmann/go-cqrs-lite/middleware/v2"
+broker, _ := middleware.NewSSEBroker(bus)
+handler := middleware.SSEHandler(broker)
+
+// AFTER (v3)
+import "github.com/larsartmann/go-cqrs-lite/transport/http/v2"
+broker, _ := http.NewSSEBroker(bus)
+handler := http.SSEHandler(broker)
+```
+
+The following middleware exports were **deleted** (generic utilities with
+zero CQRS dependencies and zero consumers):
+- `HealthCheckHandler`, `HealthChecker`, `HealthStatus`, `HealthCheckResponse`
+- `MetricsHandler`, `MetricsMiddleware`, `MetricsCollector`, `NewMetricsCollector`
+- `ProfilingHandler`, `RegisterProfiling`
+
+For health checks, write a 10-line `http.HandlerFunc`. For metrics, use
+the `prometheus/` module (OTel→Prometheus bridge). For pprof, use
+`import _ "net/http/pprof"` directly.
 
 ---
 

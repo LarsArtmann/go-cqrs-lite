@@ -24,13 +24,14 @@ All breaking changes have been prepared additively in v2 — the v2 types consum
 | 5   | Remove io.Closer from interfaces                  | [0010](docs/adr/0010-remove-io-closer-from-interfaces.md) | Done                 |
 | 6   | Delete readmodel/ (merged into kv/)               | [0032](docs/adr/0032-merge-readmodel-into-kv.md)          | Done                 |
 | 7   | Delete projection/ (composable stack replaces it) | [0030](docs/adr/0030-dissolve-projection.md)              | Done                 |
-| 8   | Move HTTP → transport/                            | [0025](docs/adr/0025-transport-adapter-strategy.md)       | Planned              |
+| 8   | Move SSE → transport/http/ + delete dead HTTP utils| [0025](docs/adr/0025-transport-adapter-strategy.md)       | Done                 |
 | 9   | query.Handler: any → generic                      | [0008](docs/adr/0008-typed-handler-signature.md)          | TypedHandler shipped |
 | 10  | Rename Decider.Fold → Apply                        | —                                                         | Done                 |
 | 11  | Make event.Event a concrete type                  | —                                                         | Done                 |
 
 ### Transport Adapters (ADR-0025)
 
+- [x] `transport/http/` — SSE event delivery (moved from middleware/). Healthcheck/metrics_http/pprof deleted (generic, zero CQRS deps, zero consumers).
 - [ ] `transport/grpc/` — protobuf command dispatch + event pub/sub
 - [ ] `transport/nats/` — JetStream publisher/subscriber
 - [ ] `transport/redis/` — Redis Streams publisher/subscriber
@@ -69,7 +70,7 @@ All breaking changes have been prepared additively in v2 — the v2 types consum
 
 ### Observability
 
-- [x] ~~Built-in pprof endpoints~~ — DONE
+- [x] ~~Built-in pprof endpoints~~ — DELETED (trivial net/http/pprof re-export, zero consumers)
 - [x] ~~Prometheus metrics exporter~~ — DONE
 - [x] ~~Structured logging middleware~~ — DONE
 - [x] ~~Distributed tracing span propagation~~ — DONE

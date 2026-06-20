@@ -57,10 +57,12 @@
             "snapshot"
             "codec"
             "storage/memory"
+            "storage/pebble"
+            "storage/turso"
             "catalog"
             "middleware"
             "integration"
-            "projection"
+            "transport/http"
             "prometheus"
             "signing"
             "storage"
@@ -69,10 +71,7 @@
             "kv"
             "listing"
             "otel"
-            "pebble"
-            "turso"
-            "readmodel"
-            "readmodel/cache"
+            "testutil"
             "stack"
             "stack/memory"
             "stack/sqlite"
@@ -86,6 +85,8 @@
           examplePaths = builtins.concatStringsSep " " [
             "./example/todo/..."
             "./example/user/..."
+            "./example/encryption/..."
+            "./example/deployer-first/..."
           ];
 
           allPaths = "${modulePaths} ${examplePaths}";
