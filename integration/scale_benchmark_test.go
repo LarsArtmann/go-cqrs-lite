@@ -21,7 +21,7 @@ import (
 
 type benchState struct{ Value int }
 
-func benchFold(_ benchState, evt event.Event) (benchState, error) {
+func benchApply(_ benchState, evt event.Event) (benchState, error) {
 	switch evt.Type() {
 	case "ItemCreated":
 		return benchState{Value: 1}, nil
@@ -33,7 +33,7 @@ func benchFold(_ benchState, evt event.Event) (benchState, error) {
 }
 
 func benchDecider() decider.Decider[benchState] {
-	return decider.Decider[benchState]{Initial: benchState{}, Fold: benchFold}
+	return decider.Decider[benchState]{Initial: benchState{}, Apply: benchApply}
 }
 
 func newBenchDeciderRepo(b *testing.B) (*decider.Repository[benchState], context.Context) {

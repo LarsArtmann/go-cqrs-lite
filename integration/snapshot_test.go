@@ -21,7 +21,7 @@ type snapUserState struct {
 	Email string
 }
 
-func foldSnapUser(state snapUserState, evt event.Event) (snapUserState, error) {
+func applySnapUser(state snapUserState, evt event.Event) (snapUserState, error) {
 	if evt.Type() == "UserCreated" {
 		var payload struct {
 			Name  string `json:"name"`
@@ -40,7 +40,7 @@ func foldSnapUser(state snapUserState, evt event.Event) (snapUserState, error) {
 func snapDecider() decider.Decider[snapUserState] {
 	return decider.Decider[snapUserState]{
 		Initial: snapUserState{},
-		Fold:    foldSnapUser,
+		Apply:   applySnapUser,
 	}
 }
 

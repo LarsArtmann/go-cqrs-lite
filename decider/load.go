@@ -50,14 +50,14 @@ func (r *Repository[State]) foldEvents(
 	var err error
 
 	for _, evt := range events {
-		state, err = r.decider.Fold(state, evt)
+		state, err = r.decider.Apply(state, evt)
 		if err != nil {
 			var zero State
 
 			return zero, opError(
 				ref,
 				"%w (event %s): %w",
-				ErrFoldFailed,
+				ErrApplyFailed,
 				evt.Type(),
 				err,
 			)

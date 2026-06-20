@@ -61,7 +61,7 @@ func BenchmarkRealistic_SnapshotVsReplay(b *testing.B) {
 	b.Run("Replay", func(b *testing.B) {
 		b.ReportAllocs()
 
-		plainDecider := decider.Decider[OrderState]{Initial: OrderState{}, Fold: foldOrder}
+		plainDecider := decider.Decider[OrderState]{Initial: OrderState{}, Apply: applyOrder}
 		replayRepo, _ := decider.NewRepository[OrderState](store, bus, plainDecider)
 
 		b.ResetTimer()

@@ -15,21 +15,21 @@ import (
 
 // Decider defines how to reconstruct state from events.
 //
-// State is the aggregate's domain state. Fold applies a single event to the
-// state, returning the updated state. Fold must be a pure function — it should
+// State is the aggregate's domain state. Apply applies a single event to the
+// state, returning the updated state. Apply must be a pure function — it should
 // not perform I/O or have side effects.
 //
-// If Fold returns an error (e.g. corrupted payload), Execute aborts and
-// returns ErrFoldFailed wrapping the cause.
+// If Apply returns an error (e.g. corrupted payload), Execute aborts and
+// returns ErrApplyFailed wrapping the cause.
 type Decider[State any] struct {
 	Initial State
-	Fold    func(state State, evt event.Event) (State, error)
+	Apply   func(state State, evt event.Event) (State, error)
 }
 
 // Repository loads and saves aggregates using pure functions.
 //
 // It wraps event.Store (persistence) and event.Publisher (publishing) behind a
-// Decider[State], providing load → fold → decide → save → publish semantics
+// Decider[State], providing load → apply → decide → save → publish semantics
 // without requiring the consumer to implement a mutable aggregate root
 // interface.
 type Repository[State any] struct {
@@ -46,7 +46,7 @@ type Repository[State any] struct {
 
 // NewRepository creates a decider-backed repository.
 //
-// Returns an error if store or decider.Fold is nil. The publisher may be nil
+// Returns an error if store or decider.Apply is nil. The publisher may be nil
 // for pure event-sourcing mode (events are persisted but not published);
 // set one via the publisher parameter or WithPublisher to enable pub/sub.
 func NewRepository[State any](
@@ -59,8 +59,8 @@ func NewRepository[State any](
 		return nil, ErrNilStore
 	}
 
-	if decider.Fold == nil {
-		return nil, ErrNilFold
+	if decider.Apply == nil {
+		return nil, ErrNilApply
 	}
 
 	r := &Repository[State]{ //nolint:exhaustruct // options fill remaining fields
@@ -182,13 +182,13 @@ func (r *Repository[State]) saveSnapshotAfterEvents(
 	for _, evt := range newEvents {
 		var foldErr error
 
-		finalState, foldErr = r.decider.Fold(finalState, evt)
+		finalState, foldErr = r.decider.Apply(finalState, evt)
 		if foldErr != nil {
-			err := opError(ref, "fold event %s for snapshot: %w", evt.Type(), foldErr)
+			err := opError(ref, "apply event %s for snapshot: %w", evt.Type(), foldErr)
 			cqrsotel.RecordError(cqrsotel.SpanFromContext(ctx), err)
 			slog.WarnContext(
 				ctx,
-				"snapshot fold failed",
+				"snapshot apply failed",
 				"ref",
 				ref,
 				"event_type",

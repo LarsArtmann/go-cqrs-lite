@@ -46,7 +46,7 @@ func foldBDDCounter(state bddCounter, evt event.Event) (bddCounter, error) {
 func bddCounterDecider() decider.Decider[bddCounter] {
 	return decider.Decider[bddCounter]{
 		Initial: bddCounter{Value: 0},
-		Fold:    foldBDDCounter,
+		Apply:   foldBDDCounter,
 	}
 }
 
@@ -190,7 +190,7 @@ var _ = Describe("Decider Repository", func() {
 		})
 
 		Context("when I apply multiple decisions to the same aggregate", func() {
-			It("should fold all events into the correct state", func() {
+			It("should apply all events into the correct state", func() {
 				createCounter(ctx, repo, aggID)
 				incrementCounter(ctx, repo, aggID)
 				incrementCounter(ctx, repo, aggID)
@@ -291,15 +291,15 @@ var _ = Describe("Decider Repository", func() {
 			})
 		})
 
-		Context("when I create a repository without a fold function", func() {
-			It("should reject my setup and explain that a fold function is required", func() {
+		Context("when I create a repository without a apply function", func() {
+			It("should reject my setup and explain that a apply function is required", func() {
 				_, err := decider.NewRepository(
 					store,
 					bus,
 					decider.Decider[bddCounter]{},
 				)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fold function is required"))
+				Expect(err.Error()).To(ContainSubstring("apply function is required"))
 			})
 		})
 	})

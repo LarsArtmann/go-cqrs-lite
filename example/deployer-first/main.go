@@ -70,7 +70,7 @@ func main() {
 	// ── CONSUMER: execute commands (events saved to journal) ────────────
 	repo, err := stack.Repository[TodoState](bundle, decider.Decider[TodoState]{
 		Initial: TodoState{},
-		Fold:    foldTodo,
+		Apply:   applyTodo,
 	})
 	if err != nil {
 		log.Fatalf("consumer: Repository: %v", err)

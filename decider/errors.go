@@ -19,10 +19,10 @@ var ErrNilPublisher = event.NewInfrastructure(
 // ErrNilBus is deprecated: use ErrNilPublisher instead.
 var ErrNilBus = ErrNilPublisher
 
-// ErrNilFold is returned by NewRepository when the decider Fold function is nil.
-var ErrNilFold = event.NewRejection(
+// ErrNilApply is returned by NewRepository when the decider Apply function is nil.
+var ErrNilApply = event.NewRejection(
 	"decider.nil_fold",
-	"fold function is required",
+	"apply function is required",
 )
 
 // ErrLoadFailed is returned when loading events from the store fails.
@@ -31,10 +31,10 @@ var ErrLoadFailed = event.NewTransient(
 	"failed to load events",
 )
 
-// ErrFoldFailed is returned when folding an event onto state fails.
-var ErrFoldFailed = event.NewCorruption(
+// ErrApplyFailed is returned when applying an event onto state fails.
+var ErrApplyFailed = event.NewCorruption(
 	"decider.fold_failed",
-	"failed to fold events",
+	"failed to apply events",
 )
 
 // ErrSaveFailed is returned when saving events to the store fails.

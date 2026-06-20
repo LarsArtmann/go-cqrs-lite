@@ -156,9 +156,9 @@ func TestFoldUser(t *testing.T) {
 
 	createdEvt := newUserCreatedEvent(t, aggID, "a@b.com", "A")
 
-	state, err := foldUser(UserState{}, createdEvt)
+	state, err := applyUser(UserState{}, createdEvt)
 	if err != nil {
-		t.Fatalf("fold UserCreated: %v", err)
+		t.Fatalf("apply UserCreated: %v", err)
 	}
 
 	if state.Email != "a@b.com" {
@@ -177,9 +177,9 @@ func TestFoldUser(t *testing.T) {
 		t.Fatalf("create event: %v", err)
 	}
 
-	state, err = foldUser(state, changedEvt)
+	state, err = applyUser(state, changedEvt)
 	if err != nil {
-		t.Fatalf("fold UserNameChanged: %v", err)
+		t.Fatalf("apply UserNameChanged: %v", err)
 	}
 
 	if state.Name != "B" {
@@ -242,7 +242,7 @@ func TestFullCQRS_Lifecycle(t *testing.T) {
 
 	userDecider := decider.Decider[UserState]{
 		Initial: UserState{},
-		Fold:    foldUser,
+		Apply:   applyUser,
 	}
 
 	deciderRepo, err := decider.NewRepository(store, bus, userDecider)

@@ -16,7 +16,7 @@ import (
 func TestNewRepository_NilChecks(t *testing.T) {
 	t.Parallel()
 
-	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
+	d := decider.Decider[counterState]{Initial: counterState{}, Apply: applyCounter}
 
 	_, err := decider.NewRepository(nil, eventtest.NewFakeBus(), d)
 	if !errors.Is(err, decider.ErrNilStore) {
@@ -30,16 +30,16 @@ func TestNewRepository_NilChecks(t *testing.T) {
 	}
 
 	_, err = decider.NewRepository(eventtest.NewFakeStore(), eventtest.NewFakeBus(),
-		decider.Decider[counterState]{Initial: counterState{}, Fold: nil})
-	if !errors.Is(err, decider.ErrNilFold) {
-		t.Fatalf("expected ErrNilFold, got %v", err)
+		decider.Decider[counterState]{Initial: counterState{}, Apply: nil})
+	if !errors.Is(err, decider.ErrNilApply) {
+		t.Fatalf("expected ErrNilApply, got %v", err)
 	}
 }
 
 func TestNewRepository_IncompleteSnapshotConfig(t *testing.T) {
 	t.Parallel()
 
-	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
+	d := decider.Decider[counterState]{Initial: counterState{}, Apply: applyCounter}
 	store := eventtest.NewFakeStore()
 	bus := eventtest.NewFakeBus()
 
@@ -115,11 +115,11 @@ func TestExecute_FoldError(t *testing.T) {
 		},
 	)
 	if err == nil {
-		t.Fatal("expected fold error")
+		t.Fatal("expected apply error")
 	}
 
-	if !errors.Is(err, decider.ErrFoldFailed) {
-		t.Fatalf("expected ErrFoldFailed, got %v", err)
+	if !errors.Is(err, decider.ErrApplyFailed) {
+		t.Fatalf("expected ErrApplyFailed, got %v", err)
 	}
 }
 
@@ -135,7 +135,7 @@ func TestExecute_SaveError(t *testing.T) {
 
 	bus := eventtest.NewFakeBus()
 
-	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
+	d := decider.Decider[counterState]{Initial: counterState{}, Apply: applyCounter}
 	repo, err := decider.NewRepository(store, bus, d)
 	if err != nil {
 		t.Fatalf("NewRepository: %v", err)
@@ -160,7 +160,7 @@ func TestExecute_PublishError(t *testing.T) {
 	bus := eventtest.NewFakeBus()
 	bus.PublishErr = errors.New("bus unavailable")
 
-	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
+	d := decider.Decider[counterState]{Initial: counterState{}, Apply: applyCounter}
 	repo, err := decider.NewRepository(store, bus, d)
 	if err != nil {
 		t.Fatalf("NewRepository: %v", err)
@@ -204,7 +204,7 @@ func TestExecute_Concurrent(t *testing.T) {
 
 	store := eventtest.NewFakeStore()
 	bus := eventtest.NewFakeBus()
-	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
+	d := decider.Decider[counterState]{Initial: counterState{}, Apply: applyCounter}
 
 	repo, err := decider.NewRepository(store, bus, d)
 	if err != nil {
@@ -229,7 +229,7 @@ func TestExecute_ContextCancellation(t *testing.T) {
 
 	store := &ctxCheckStore{Store: eventtest.NewFakeStore()}
 	bus := eventtest.NewFakeBus()
-	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
+	d := decider.Decider[counterState]{Initial: counterState{}, Apply: applyCounter}
 
 	repo, err := decider.NewRepository(store, bus, d)
 	if err != nil {

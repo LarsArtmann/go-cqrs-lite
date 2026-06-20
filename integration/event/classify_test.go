@@ -14,8 +14,8 @@ import (
 func TestClassify_DeciderSentinels(t *testing.T) {
 	t.Parallel()
 
-	if event.Classify(decider.ErrNilFold) != event.Rejection {
-		t.Error("decider.ErrNilFold should be Rejection")
+	if event.Classify(decider.ErrNilApply) != event.Rejection {
+		t.Error("decider.ErrNilApply should be Rejection")
 	}
 
 	if event.Classify(decider.ErrNilStore) != event.Infrastructure {

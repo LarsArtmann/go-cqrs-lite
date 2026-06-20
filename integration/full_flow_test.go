@@ -43,7 +43,7 @@ func TestFullFlow(t *testing.T) {
 	// --- Set up decider for User aggregate ---
 	userDecider := decider.Decider[UserState]{
 		Initial: UserState{},
-		Fold:    foldUserEvents,
+		Apply:   applyUserEvents,
 	}
 
 	userRepo, err := decider.NewRepository(store, bus, userDecider)
@@ -96,7 +96,7 @@ func TestFullFlow(t *testing.T) {
 			state := UserState{}
 
 			for _, evt := range events {
-				state, err = foldUserEvents(state, evt)
+				state, err = applyUserEvents(state, evt)
 				if err != nil {
 					return UserState{}, err
 				}
@@ -221,7 +221,7 @@ type GetUser struct {
 
 // --- Decider functions ---
 
-func foldUserEvents(state UserState, evt event.Event) (UserState, error) {
+func applyUserEvents(state UserState, evt event.Event) (UserState, error) {
 	switch evt.Type() {
 	case "UserCreated":
 		state.Name = string(evt.Payload())

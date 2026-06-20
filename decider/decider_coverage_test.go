@@ -183,7 +183,7 @@ func TestLoadFromSnapshot_FoldError(t *testing.T) {
 
 	d := decider.Decider[counterState]{
 		Initial: counterState{Value: 0},
-		Fold:    failingFold("fold always fails"),
+		Apply:   failingApply("apply always fails"),
 	}
 
 	repo, err := decider.NewRepository(
@@ -225,6 +225,6 @@ func TestLoadFromSnapshot_FoldError(t *testing.T) {
 
 	_, _, loadErr := repo.Load(context.Background(), aggID, "Counter")
 	if loadErr == nil {
-		t.Fatal("expected fold error from Load after snapshot")
+		t.Fatal("expected apply error from Load after snapshot")
 	}
 }

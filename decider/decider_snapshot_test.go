@@ -112,7 +112,7 @@ func TestLoad_SnapshotFoldError(t *testing.T) {
 
 	d := decider.Decider[counterState]{
 		Initial: counterState{},
-		Fold: func(_ counterState, evt event.Event) (counterState, error) {
+		Apply: func(_ counterState, evt event.Event) (counterState, error) {
 			if evt.Version() > 1 {
 				return counterState{}, errors.New("corrupted event")
 			}
@@ -132,11 +132,11 @@ func TestLoad_SnapshotFoldError(t *testing.T) {
 
 	_, _, err = repo.Load(t.Context(), aggID, "Counter")
 	if err == nil {
-		t.Fatal("expected fold error during snapshot replay")
+		t.Fatal("expected apply error during snapshot replay")
 	}
 
-	if !errors.Is(err, decider.ErrFoldFailed) {
-		t.Fatalf("expected ErrFoldFailed, got %v", err)
+	if !errors.Is(err, decider.ErrApplyFailed) {
+		t.Fatalf("expected ErrApplyFailed, got %v", err)
 	}
 }
 
@@ -168,7 +168,7 @@ func TestExecute_SaveSnapshotFoldError(t *testing.T) {
 
 	d := decider.Decider[counterState]{
 		Initial: counterState{Value: 0},
-		Fold: func(_ counterState, _ event.Event) (counterState, error) {
+		Apply: func(_ counterState, _ event.Event) (counterState, error) {
 			return counterState{}, foldErr
 		},
 	}
@@ -187,11 +187,11 @@ func TestExecute_SaveSnapshotFoldError(t *testing.T) {
 
 	err = executeAndIncrement(t, repo, aggID, "CounterCreated")
 	if err != nil {
-		t.Fatalf("Execute should succeed despite fold error during snapshot save: %v", err)
+		t.Fatalf("Execute should succeed despite apply error during snapshot save: %v", err)
 	}
 
 	if len(snapshotStore.Saved()) > 0 {
-		t.Fatal("snapshot should not be saved when fold fails")
+		t.Fatal("snapshot should not be saved when apply fails")
 	}
 }
 
@@ -248,7 +248,7 @@ func TestLoad_SnapshotStoreLoadFromVersionError(t *testing.T) {
 
 	d := decider.Decider[counterState]{
 		Initial: counterState{Value: 0},
-		Fold:    foldCounter,
+		Apply:   applyCounter,
 	}
 
 	store2 := store.LoadFromVersionFn(

@@ -147,7 +147,7 @@ func newTestRepo(t *testing.T, bundle *stack.Bundle) *decider.Repository[TodoSta
 
 	repo, err := stack.Repository[TodoState](bundle, decider.Decider[TodoState]{
 		Initial: TodoState{},
-		Fold:    foldTodo,
+		Apply:   applyTodo,
 	})
 	if err != nil {
 		t.Fatalf("Repository: %v", err)

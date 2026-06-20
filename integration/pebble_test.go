@@ -22,7 +22,7 @@ type counterState struct {
 	Value int
 }
 
-func foldCounter(s counterState, evt event.Event) (counterState, error) {
+func applyCounter(s counterState, evt event.Event) (counterState, error) {
 	switch evt.Type() {
 	case "CounterIncremented":
 		return counterState{Value: s.Value + 1}, nil
@@ -122,7 +122,7 @@ func TestPebbleSnapshotStoreWithDeciderRepository(t *testing.T) {
 
 	d := decider.Decider[counterState]{
 		Initial: counterState{},
-		Fold:    foldCounter,
+		Apply:   applyCounter,
 	}
 
 	strategy, err := snapshot.EveryNEvents(2)

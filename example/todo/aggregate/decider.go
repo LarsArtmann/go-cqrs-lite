@@ -29,11 +29,11 @@ func (s TodoState) IsNew() bool {
 func NewTodoDecider() decider.Decider[TodoState] {
 	return decider.Decider[TodoState]{
 		Initial: TodoState{},
-		Fold:    Fold,
+		Apply:   Apply,
 	}
 }
 
-func Fold(state TodoState, evt event.Event) (TodoState, error) {
+func Apply(state TodoState, evt event.Event) (TodoState, error) {
 	if len(evt.Payload()) == 0 {
 		return state, nil
 	}

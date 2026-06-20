@@ -14,7 +14,7 @@ import (
 
 func testAggID() id.AggregateID { return id.NewAggregateID() }
 
-func TestFold_Created(t *testing.T) {
+func TestApply_Created(t *testing.T) {
 	t.Parallel()
 	aggID := testAggID()
 	now := time.Now().UTC()
@@ -28,9 +28,9 @@ func TestFold_Created(t *testing.T) {
 		),
 	)
 
-	state, err := aggregate.Fold(aggregate.TodoState{}, events[0])
+	state, err := aggregate.Apply(aggregate.TodoState{}, events[0])
 	if err != nil {
-		t.Fatalf("Fold: %v", err)
+		t.Fatalf("Apply: %v", err)
 	}
 
 	if state.Title != "Title" {
@@ -57,7 +57,7 @@ func TestFold_Created(t *testing.T) {
 	}
 }
 
-func TestFold_Updated(t *testing.T) {
+func TestApply_Updated(t *testing.T) {
 	t.Parallel()
 	aggID := testAggID()
 	events := createThenDecide(
@@ -80,7 +80,7 @@ func TestFold_Updated(t *testing.T) {
 	}
 }
 
-func TestFold_StatusChanged(t *testing.T) {
+func TestApply_StatusChanged(t *testing.T) {
 	t.Parallel()
 	aggID := testAggID()
 	events := createThenDecide(
@@ -94,7 +94,7 @@ func TestFold_StatusChanged(t *testing.T) {
 	eventtest.AssertEqual(t, state.Status, domain.StatusInProgress, "Status")
 }
 
-func TestFold_Completed(t *testing.T) {
+func TestApply_Completed(t *testing.T) {
 	t.Parallel()
 	aggID := testAggID()
 	events := createThenDecide(
@@ -114,7 +114,7 @@ func TestFold_Completed(t *testing.T) {
 	}
 }
 
-func TestFold_Deleted(t *testing.T) {
+func TestApply_Deleted(t *testing.T) {
 	t.Parallel()
 	aggID := testAggID()
 	events := createThenDecide(t, aggID, aggregate.DecideDelete(aggID))
@@ -212,9 +212,9 @@ func foldAllFrom(
 	t.Helper()
 	for _, evt := range events {
 		var err error
-		state, err = aggregate.Fold(state, evt)
+		state, err = aggregate.Apply(state, evt)
 		if err != nil {
-			t.Fatalf("Fold: %v", err)
+			t.Fatalf("Apply: %v", err)
 		}
 	}
 

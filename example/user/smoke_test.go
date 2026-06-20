@@ -40,7 +40,7 @@ func TestFullStack_WithSigning(t *testing.T) {
 
 	userDecider := decider.Decider[UserState]{
 		Initial: UserState{},
-		Fold:    foldUser,
+		Apply:   applyUser,
 	}
 
 	deciderRepo, err := decider.NewRepository(store, bus, userDecider)
@@ -102,7 +102,7 @@ func TestFullStack_DuplicateUserRejection(t *testing.T) {
 
 	userDecider := decider.Decider[UserState]{
 		Initial: UserState{},
-		Fold:    foldUser,
+		Apply:   applyUser,
 	}
 
 	deciderRepo, err := decider.NewRepository(store, bus, userDecider)

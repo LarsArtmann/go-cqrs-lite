@@ -16,7 +16,7 @@ func unmarshalAs[T any](evt event.Event) (T, error) {
 	return event.DecodePayload[T](evt, codec.JSONCodec{})
 }
 
-func foldUser(state UserState, evt event.Event) (UserState, error) {
+func applyUser(state UserState, evt event.Event) (UserState, error) {
 	switch evt.Type() {
 	case eventUserCreated:
 		p, err := unmarshalAs[UserCreatedPayload](evt)

@@ -101,7 +101,7 @@ func BenchmarkDecider_Load(b *testing.B) {
 	}
 }
 
-func BenchmarkDecider_Fold(b *testing.B) {
+func BenchmarkDecider_Apply(b *testing.B) {
 	b.ReportAllocs()
 	events := make([]event.Event, 100)
 	aggID := id.NewAggregateID()
@@ -118,7 +118,7 @@ func BenchmarkDecider_Fold(b *testing.B) {
 		s := state
 
 		for _, evt := range events {
-			s, _ = foldCounter(s, evt)
+			s, _ = applyCounter(s, evt)
 		}
 	}
 }

@@ -36,7 +36,7 @@ type TodoDeletedPayload struct {
 	Reason string `json:"reason"`
 }
 
-// TodoState is the event-sourced aggregate state. Fold rebuilds it from events.
+// TodoState is the event-sourced aggregate state. Apply rebuilds it from events.
 
 type TodoState struct {
 	Title     string
@@ -47,7 +47,7 @@ type TodoState struct {
 
 var jsonCodec = codec.JSONCodec{}
 
-func foldTodo(state TodoState, evt event.Event) (TodoState, error) {
+func applyTodo(state TodoState, evt event.Event) (TodoState, error) {
 	switch evt.Type() {
 	case eventTodoCreated:
 		p, err := event.DecodePayload[TodoCreatedPayload](evt, jsonCodec)

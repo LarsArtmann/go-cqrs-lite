@@ -2,15 +2,15 @@
 //
 // A Decider[State] replaces mutable aggregate roots with two pure functions:
 //   - DecideFunc: takes current state + command, returns events
-//   - Fold: takes state + event, returns new state
+//   - Apply: takes state + event, returns new state
 //
-// The Repository[State] handles the full lifecycle: load → fold → decide → save → publish.
+// The Repository[State] handles the full lifecycle: load → apply → decide → save → publish.
 //
 // # Quick Start
 //
 //	d := decider.Decider[UserState]{
 //	    Initial: UserState{},
-//	    Fold: func(s UserState, evt event.Event) (UserState, error) {
+//	    Apply: func(s UserState, evt event.Event) (UserState, error) {
 //	        switch evt.Type() {
 //	        case "user.created":
 //	            return applyCreated(s, evt)

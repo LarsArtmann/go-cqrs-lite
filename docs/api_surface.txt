@@ -369,11 +369,11 @@ decider/struct TypedDecider
 decider/struct TypedRepository
 decider/type DecideFunc
 decider/type RepositoryOption
-decider/var ErrFoldFailed
+decider/var ErrApplyFailed
 decider/var ErrIncompleteSnapshotConfig
 decider/var ErrLoadFailed
+decider/var ErrNilApply
 decider/var ErrNilBus
-decider/var ErrNilFold
 decider/var ErrNilPublisher
 decider/var ErrNilStore
 decider/var ErrSaveFailed

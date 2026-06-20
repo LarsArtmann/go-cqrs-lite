@@ -37,7 +37,7 @@ func TestLoad_ConcurrentLoadsCoalescedBySingleflight(t *testing.T) {
 
 	d := decider.Decider[counterState]{
 		Initial: counterState{},
-		Fold:    foldCounter,
+		Apply:   applyCounter,
 	}
 
 	repo, err := decider.NewRepository(store, bus, d)
@@ -90,7 +90,7 @@ func TestLoad_DifferentAggregatesNotCoalesced(t *testing.T) {
 
 	d := decider.Decider[counterState]{
 		Initial: counterState{},
-		Fold:    foldCounter,
+		Apply:   applyCounter,
 	}
 
 	repo, err := decider.NewRepository(store, bus, d)
@@ -135,7 +135,7 @@ func TestLoad_WithLoadCoalescingDisabled(t *testing.T) {
 
 	d := decider.Decider[counterState]{
 		Initial: counterState{},
-		Fold:    foldCounter,
+		Apply:   applyCounter,
 	}
 
 	repo, err := decider.NewRepository(

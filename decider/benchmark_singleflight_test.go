@@ -41,7 +41,7 @@ func BenchmarkLoad_Coalesced(b *testing.B) {
 
 	d := decider.Decider[counterState]{
 		Initial: counterState{},
-		Fold:    foldCounter,
+		Apply:   applyCounter,
 	}
 
 	repo, err := decider.NewRepository(store, bus, d)
@@ -66,7 +66,7 @@ func BenchmarkLoad_NoCoalescing(b *testing.B) {
 
 	d := decider.Decider[counterState]{
 		Initial: counterState{},
-		Fold:    foldCounter,
+		Apply:   applyCounter,
 	}
 
 	repo, err := decider.NewRepository(

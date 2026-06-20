@@ -19,14 +19,14 @@ import (
 //	d := decider.TypedDecider[CounterState, IncrementCmd]{
 //		Initial: CounterState{},
 //		Decide:  decideIncrement, // func(CounterState, IncrementCmd) ([]event.Event, error)
-//		Fold:    foldCounter,     // func(CounterState, event.Event) (CounterState, error)
+//		Apply:    applyCounter,     // func(CounterState, event.Event) (CounterState, error)
 //	}
 //	repo, _ := decider.NewTypedRepository(store, bus, d)
 //	err := repo.ExecuteCommand(ctx, aggID, "Counter", IncrementCmd{Amount: 5})
 type TypedDecider[State any, Cmd any] struct {
 	Initial State
 	Decide  func(state State, cmd Cmd) ([]event.Event, error)
-	Fold    func(state State, evt event.Event) (State, error)
+	Apply   func(state State, evt event.Event) (State, error)
 }
 
 // TypedRepository is a command-bound repository that uses [TypedDecider].
@@ -47,7 +47,7 @@ func NewTypedRepository[State, Cmd any](
 ) (*TypedRepository[State, Cmd], error) {
 	legacyDecider := Decider[State]{
 		Initial: d.Initial,
-		Fold:    d.Fold,
+		Apply:   d.Apply,
 	}
 
 	inner, err := NewRepository(store, publisher, legacyDecider, opts...)

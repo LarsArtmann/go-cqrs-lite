@@ -28,9 +28,17 @@ func TestMustNew_PanicsOnEmptyType(t *testing.T) {
 	}
 }
 
-func didPanic(fn func()) (panicked bool) {
-	defer func() { panicked = recover() != nil }()
-	fn()
+func didPanic(fn func()) bool {
+	var panicked bool
+
+	func() {
+		defer func() {
+			if recover() != nil {
+				panicked = true
+			}
+		}()
+		fn()
+	}()
 
 	return panicked
 }

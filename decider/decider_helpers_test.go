@@ -33,7 +33,7 @@ func mustAppendBatch(
 	}
 }
 
-func foldCounter(state counterState, evt event.Event) (counterState, error) {
+func applyCounter(state counterState, evt event.Event) (counterState, error) {
 	switch evt.Type() {
 	case "CounterCreated":
 		return counterState{Value: 1}, nil
@@ -54,7 +54,7 @@ func newTestRepo(
 
 	d := decider.Decider[counterState]{
 		Initial: counterState{Value: 0},
-		Fold:    foldCounter,
+		Apply:   applyCounter,
 	}
 
 	repo, err := decider.NewRepository(store, bus, d)
@@ -139,10 +139,10 @@ func requireLoadState(
 }
 
 func counterDecider() decider.Decider[counterState] {
-	return decider.Decider[counterState]{Initial: counterState{Value: 0}, Fold: foldCounter}
+	return decider.Decider[counterState]{Initial: counterState{Value: 0}, Apply: applyCounter}
 }
 
-func failingFold(msg string) func(counterState, event.Event) (counterState, error) {
+func failingApply(msg string) func(counterState, event.Event) (counterState, error) {
 	return func(_ counterState, _ event.Event) (counterState, error) {
 		return counterState{}, errors.New(msg)
 	}
@@ -151,7 +151,7 @@ func failingFold(msg string) func(counterState, event.Event) (counterState, erro
 func failingDecider() decider.Decider[counterState] {
 	return decider.Decider[counterState]{
 		Initial: counterState{},
-		Fold:    failingFold("corrupted payload"),
+		Apply:   failingApply("corrupted payload"),
 	}
 }
 

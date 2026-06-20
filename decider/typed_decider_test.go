@@ -40,7 +40,7 @@ func TestTypedDecider_ExecuteCommand(t *testing.T) {
 	d := decider.TypedDecider[counterState, incrementCmd]{
 		Initial: counterState{Value: 0},
 		Decide:  decideIncrement,
-		Fold:    foldCounter,
+		Apply:   applyCounter,
 	}
 
 	repo, err := decider.NewTypedRepository[counterState, incrementCmd](store, bus, d)
@@ -78,7 +78,7 @@ func TestTypedDecider_NilPublisher(t *testing.T) {
 	d := decider.TypedDecider[counterState, incrementCmd]{
 		Initial: counterState{Value: 0},
 		Decide:  decideIncrement,
-		Fold:    foldCounter,
+		Apply:   applyCounter,
 	}
 
 	repo, err := decider.NewTypedRepository[counterState, incrementCmd](store, nil, d)

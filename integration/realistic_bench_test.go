@@ -50,7 +50,7 @@ func benchNewOrderRepo(
 	memSnap := memory.NewMemorySnapshotStore()
 	b.Cleanup(func() { _ = memSnap.Close() })
 
-	d := decider.Decider[OrderState]{Initial: OrderState{}, Fold: foldOrder}
+	d := decider.Decider[OrderState]{Initial: OrderState{}, Apply: applyOrder}
 	repo, err := decider.NewRepository(
 		store, bus, d,
 		decider.WithSnapshotStore[OrderState](memSnap),
@@ -100,7 +100,7 @@ type OrderState struct {
 	Cancelled bool
 }
 
-func foldOrder(_ OrderState, evt event.Event) (OrderState, error) {
+func applyOrder(_ OrderState, evt event.Event) (OrderState, error) {
 	switch evt.Type() {
 	case "OrderCreated":
 		var p OrderCreated

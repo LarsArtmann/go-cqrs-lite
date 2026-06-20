@@ -22,7 +22,7 @@ func ExampleRepository_Execute() {
 
 	d := decider.Decider[UserState]{
 		Initial: UserState{},
-		Fold: func(state UserState, evt event.Event) (UserState, error) {
+		Apply: func(state UserState, evt event.Event) (UserState, error) {
 			switch evt.Type() {
 			case "UserCreated":
 				state.Email = string(evt.Payload())

@@ -43,9 +43,9 @@ var generateEvent = rapid.Custom(func(t *rapid.T) event.Event {
 	return evt
 })
 
-// TestDeterministicFold checks that folding the same sequence of events
+// TestDeterministicApply checks that applying the same sequence of events
 // always produces the same state.
-func TestDeterministicFold(t *testing.T) {
+func TestDeterministicApply(t *testing.T) {
 	t.Parallel()
 
 	rapid.Check(t, func(t *rapid.T) {
@@ -53,18 +53,18 @@ func TestDeterministicFold(t *testing.T) {
 
 		d := decider.Decider[rapidCounterState]{
 			Initial: rapidCounterState{},
-			Fold:    foldRapidCounter,
+			Apply:   foldRapidCounter,
 		}
 
-		state1, err1 := foldAll(d.Initial, d.Fold, events)
-		state2, err2 := foldAll(d.Initial, d.Fold, events)
+		state1, err1 := foldAll(d.Initial, d.Apply, events)
+		state2, err2 := foldAll(d.Initial, d.Apply, events)
 
 		if err1 != nil || err2 != nil {
-			t.Skip("fold error")
+			t.Skip("apply error")
 		}
 
 		if state1 != state2 {
-			t.Fatalf("fold is not deterministic: %+v vs %+v", state1, state2)
+			t.Fatalf("apply is not deterministic: %+v vs %+v", state1, state2)
 		}
 	})
 }
@@ -103,9 +103,9 @@ func TestVersionMonotonicity(t *testing.T) {
 	})
 }
 
-// TestFoldAccumulation checks that folding produces deterministic results
-// and that the fold function correctly applies events.
-func TestFoldAccumulation(t *testing.T) {
+// TestApplyAccumulation checks that applying produces deterministic results
+// and that the apply function correctly applies events.
+func TestApplyAccumulation(t *testing.T) {
 	t.Parallel()
 
 	rapid.Check(t, func(t *rapid.T) {
@@ -113,12 +113,12 @@ func TestFoldAccumulation(t *testing.T) {
 
 		d := decider.Decider[rapidCounterState]{
 			Initial: rapidCounterState{},
-			Fold:    foldRapidCounter,
+			Apply:   foldRapidCounter,
 		}
 
-		state, err := foldAll(d.Initial, d.Fold, events)
+		state, err := foldAll(d.Initial, d.Apply, events)
 		if err != nil {
-			t.Skip("fold error")
+			t.Skip("apply error")
 		}
 
 		// Manually compute expected state
@@ -142,13 +142,13 @@ func TestFoldAccumulation(t *testing.T) {
 
 func foldAll[State any](
 	initial State,
-	fold func(State, event.Event) (State, error),
+	apply func(State, event.Event) (State, error),
 	events []event.Event,
 ) (State, error) {
 	state := initial
 	for _, evt := range events {
 		var err error
-		state, err = fold(state, evt)
+		state, err = apply(state, evt)
 		if err != nil {
 			return state, err
 		}

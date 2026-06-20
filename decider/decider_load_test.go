@@ -47,11 +47,11 @@ func TestLoad_FoldError(t *testing.T) {
 
 	_, _, err := repo.Load(t.Context(), aggID, "Counter")
 	if err == nil {
-		t.Fatal("expected fold error")
+		t.Fatal("expected apply error")
 	}
 
-	if !errors.Is(err, decider.ErrFoldFailed) {
-		t.Fatalf("expected ErrFoldFailed, got %v", err)
+	if !errors.Is(err, decider.ErrApplyFailed) {
+		t.Fatalf("expected ErrApplyFailed, got %v", err)
 	}
 }
 
@@ -67,7 +67,7 @@ func TestLoad_StoreLoadError(t *testing.T) {
 
 	d := decider.Decider[counterState]{
 		Initial: counterState{},
-		Fold:    foldCounter,
+		Apply:   applyCounter,
 	}
 
 	repo, err := decider.NewRepository(store, bus, d)
@@ -190,7 +190,7 @@ func TestRepository_LoadAtVersion_StoreError(t *testing.T) {
 
 	bus := eventtest.NewFakeBus()
 
-	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
+	d := decider.Decider[counterState]{Initial: counterState{}, Apply: applyCounter}
 
 	store := &errStore{
 		Store:            eventtest.NewFakeStore(),
@@ -213,7 +213,7 @@ func TestRepository_LoadAtTime_StoreError(t *testing.T) {
 
 	bus := eventtest.NewFakeBus()
 
-	d := decider.Decider[counterState]{Initial: counterState{}, Fold: foldCounter}
+	d := decider.Decider[counterState]{Initial: counterState{}, Apply: applyCounter}
 
 	store := &errStore{
 		Store:              eventtest.NewFakeStore(),
@@ -243,6 +243,6 @@ func TestRepository_LoadAtVersion_FoldError(t *testing.T) {
 
 	_, _, err := repo.LoadAtVersion(context.Background(), aggID, "Counter", 5)
 	if err == nil {
-		t.Fatal("expected fold error from LoadAtVersion")
+		t.Fatal("expected apply error from LoadAtVersion")
 	}
 }
