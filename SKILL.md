@@ -139,7 +139,7 @@ type UserCreated struct{ Name string }
 func main() {
     ctx := context.Background()
     store := memory.NewMemoryStore()
-    bus := memory.NewMemoryBus()
+    bus := watermill.NewEventBus()
 
     d := decider.Decider[UserState]{
         Initial: UserState{},
@@ -464,7 +464,7 @@ cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 | `id`         | `id/v2`         | Branded IDs: `id.Of[T]` = `cbid.ID[T, ulid.ULID]`. All 8 markers exported (`AggregateMarker`, `EventMarker`, `CommandMarker`, …) for `BrandNamer` integration. Custom via `id.Of[struct{}]`.                           |
 | `dispatcher` | `dispatcher/v2` | Generic `Dispatcher[H, M]` with `LifecycleMixin`. Base for command/query dispatchers.                                                                                                                                  |
 | `codec`      | `codec/v2`      | Payload encoding: `JSONCodec{}`, `CBORCodec{}` (deterministic), `RawCodec{}`.                                                                                                                                          |
-| `event`      | `event/v2`      | `Event`, `Store` (=`EventSink`+`EventSource`), `Bus`, `Journal`, `SeekableJournal`, `NewEvent`, `NewEvents`, `DecodePayload[T]`, 5-family errors, reactive `EventBus` (samber/ro), tombstone, causality, `Checkpoint`. |
+| `event`      | `event/v2`      | `Event`, `Store` (=`EventSink`+`EventSource`), `Bus`, `Journal`, `SeekableJournal`, `NewEvent`, `NewEvents`, `DecodePayload[T]`, 5-family errors, tombstone (`TombstoneMark`), causality (`Causation`), `Tracing`, `Checkpoint`. |
 | `command`    | `command/v2`    | `Dispatcher`, `Handler`, `RegisterTyped`, `BasicCommand`, `PersistedCommand`, `CommandSink`/`Source`, `CommandBus` (pub/sub), reactive `CommandBus`.                                                                   |
 | `query`      | `query/v2`      | `Dispatcher`, `TypedHandler[Q,R]`, `RegisterTyped`, `PaginatedResult[T]`, `PersistedQuery`, `QuerySink`/`Source`, reactive `QueryBus`.                                                                                 |
 | `decider`    | `decider/v2`    | `Decider[State]{Initial, Fold}`, `Repository[State]` (`Execute`, `Load`, `LoadAtVersion`), snapshot integration.                                                                                                       |
@@ -481,11 +481,11 @@ cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 
 | Module     | Import        | One-liner                                                                                                                                                                                                               |
 | ---------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `memory`   | `memory/v2`   | `MemoryStore`, `MemoryBus`, `MemorySnapshotStore`, `MemoryCheckpointStore`, `MemoryCommandStore`, `MemoryCommandBus`, `MemoryQueryStore`. Tests & dev.                                                                  |
+| `memory`   | `memory/v2`   | `MemoryStore`, `MemorySnapshotStore`, `MemoryCheckpointStore`, `MemoryCommandStore`, `MemoryQueryStore`. Tests & dev. (`MemoryBus`/`MemoryCommandBus` deprecated — use `watermill.EventBus`)              |
 | `storage`  | `storage/v2`  | `SQLEventStore`, `SQLSnapshotStore`, `SQLCheckpointStore`, `SQLCommandStore`, `SQLQueryStore`. PG/SQLite. `NewSQLiteBackend`/`NewSQLBackend` facade. `sql/` sub-package: `RunInTx`, `IsDuplicateKeyError`, `ScanSlice`. |
 | `pebble`   | `pebble/v2`   | `EventStore`, `SnapshotStore`, `CheckpointStore`, `NewKVStore`. CBOR envelope. Shared DB via disjoint key prefixes. `Open()` facade.                                                                                    |
 | `turso`    | `turso/v2`    | Turso/LibSQL connector, embedded sync, `indexing/` sub-package for index management. Delegates to `storage`.                                                                                                            |
-| `kv`       | `kv/v2`       | `Store` (Reader+Writer+Closer), `MemStore`, `Iterator`, `Batch`. Pebble implements via `NewKVStore`.                                                                                                                    |
+| `kv`       | `kv/v2`       | `Store` (Reader+Writer+Closer), `MemStore`, `Iterator`, `Batch`, `TypedStore[T,K]`, `Cache[T,K]` (Otter LRU).                                                                                                          |
 | `snapshot` | `snapshot/v2` | `Snapshot`, `SnapshotSink`/`Source`/`Store`, `SnapshotStrategy`, `EveryNEvents(n)`.                                                                                                                                     |
 | `schema`   | `schema/v2`   | `Upcaster`, `VersionedStore`, `upcasterRegistry`. Schema evolution on read.                                                                                                                                             |
 
@@ -498,7 +498,7 @@ cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 | `middleware` | `middleware/v2` | `Logging`, `Retry`, `Recovery`, `Validation`, `Metrics`, `CircuitBreaker`, `HealthCheck`, `SSE`, `EventTracing`, `CommandMetrics`, etc. For command + event + query. |
 | `otel`       | `otel/v2`       | `Tracer`, `Meter`, `Spans`, `Attributes`. Re-exports — import this, not go.opentelemetry.io.                                                                         |
 | `catalog`    | `catalog/v2`    | `Registry`, `SchemaFromType[T]()`, exporters: `asyncapi`, `d2`, `eventcatalog`, `openapi`.                                                                           |
-| `watermill`  | `watermill/v2`  | Adapter for Watermill message router. Bridges `event.Publisher`/`Bus`.                                                                                               |
+| `watermill`  | `watermill/v2`  | `EventBus` (GoChannel-backed, replaces `memory.MemoryBus`), `CatchUpSubscriber`, `EventPublisher`, `MessageToEvent`. ADR-0028.                                       |
 
 ### Tooling (Layer 6)
 
@@ -645,7 +645,7 @@ Generates typed `Register*` boilerplate.
 ```go
 // In-memory test implementations
 store := memory.NewMemoryStore()
-bus := memory.NewMemoryBus()
+bus := watermill.NewEventBus()
 snapStore := memory.NewMemorySnapshotStore()
 cpStore := memory.NewMemoryCheckpointStore()
 
