@@ -25,9 +25,9 @@ Consumers import what they need and compose their own stack. Not a framework —
 | Item      | Value                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Language  | Go 1.26.3                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| Modules   | `event`, `command`, `query`, `decider`, `id`, `dispatcher`, `schema`, `snapshot`, `memory`, `catalog`, `middleware`, `integration`, `storage`, `projection`, `signing`, `encryption`, `otel`, `prometheus`, `watermill`, `pebble`, `codec`, `kv`, `turso`, `listing`, `testutil`, `cqrs-gen`, `api-stability`, `readmodel`, `readmodel/cache`, `stack`, `stack/memory`, `stack/sqlite`, `stack/pebble`, `stack/postgres`, `stack/bench`                                                                                                           |
+| Modules   | `event`, `command`, `query`, `decider`, `id`, `dispatcher`, `schema`, `snapshot`, `memory`, `catalog`, `middleware`, `integration`, `storage`, `storage/pebble`, `storage/turso`, `projection`, `signing`, `encryption`, `otel`, `prometheus`, `watermill`, `codec`, `kv`, `listing`, `testutil`, `cqrs-gen`, `api-stability`, `readmodel`, `readmodel/cache`, `stack`, `stack/memory`, `stack/sqlite`, `stack/pebble`, `stack/postgres`, `stack/bench`                                                                                                                              |
 | Build     | `nix run .#build`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| Test      | `nix run .#test` or `go test ./event/... ./command/... ./query/... ./decider/... ./id/... ./dispatcher/... ./schema/... ./snapshot/... ./memory/... ./catalog/... ./middleware/... ./integration/... ./projection/... ./signing/... ./encryption/... ./storage/... ./watermill/... ./pebble/... ./codec/... ./kv/... ./listing/... ./testutil/... ./cmd/cqrs-gen/... ./prometheus/... ./readmodel/... ./readmodel/cache/... ./stack/... ./stack/memory/... ./stack/sqlite/... ./stack/pebble/... ./stack/postgres/... ./stack/bench/... -count=1` |
+| Test      | `nix run .#test` or `go test ./event/... ./command/... ./query/... ./decider/... ./id/... ./dispatcher/... ./schema/... ./snapshot/... ./memory/... ./catalog/... ./middleware/... ./integration/... ./projection/... ./signing/... ./encryption/... ./storage/... ./storage/pebble/... ./storage/turso/... ./watermill/... ./codec/... ./kv/... ./listing/... ./testutil/... ./cmd/cqrs-gen/... ./prometheus/... ./readmodel/... ./readmodel/cache/... ./stack/... ./stack/memory/... ./stack/sqlite/... ./stack/pebble/... ./stack/postgres/... ./stack/bench/... -count=1` |
 | Lint      | `nix run .#lint`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | Format    | `nix fmt`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | Dev shell | `nix develop`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
@@ -61,16 +61,17 @@ go-cqrs-lite/
 ├── signing/             # Event signing/verification: HMAC-SHA256, Ed25519, multisig, middleware
 ├── encryption/          # Event payload encryption: XChaCha20-Poly1305, AES-256-GCM, codec wrapper, middleware
 ├── projection/          # Runner (replay+live), HandlerRegistry, Builder with On[T]()
-├── storage/             # SQLEventStore, SQLSnapshotStore, SQLCheckpointStore, SQLCommandStore, SQLQueryStore (PG/SQLite/Turso)
-│   └── sql/             # Dialect, DBHandle, OwnedDBHandle, QueryEngine, RunInTx, IsDuplicateKeyError, ScanSlice, CommitTx
+├── storage/             # SQLEventStore, SQLSnapshotStore, SQLCheckpointStore, SQLCommandStore, SQLQueryStore (PG/SQLite/Turso), SQL schema DDL (embedded)
+│   ├── sql/             # Dialect, DBHandle, OwnedDBHandle, QueryEngine, RunInTx, IsDuplicateKeyError (typed codes + string fallback), ScanSlice, CommitTx, MarshalMetadata
+│   ├── migrations/      # Embedded .sql DDL files (postgres.sql, sqlite.sql) via //go:embed
+│   ├── pebble/          # Embedded KV store (PebbleDB): EventStore, SnapshotStore, CheckpointStore, KVAdapter (kv.Store). CBOR envelope, shared DB
+│   └── turso/           # Turso database connector (embedded LibSQL sync), indexing advisor
 ├── otel/                # Shared OpenTelemetry helpers: Tracer, Meter, Spans, Attributes
 ├── prometheus/         # OTel→Prometheus metrics bridge: Setup() MeterProvider + /metrics HTTP handler, WithRegistry(), MustSetup()
 ├── listing/             # AggregateListing, AggregateStatus, tombstone detection, StatusMiddleware, InMemoryAggregateReader
-├── watermill/           # Watermill protocol adapter (publisher/subscriber)
-├── pebble/              # Embedded KV store (PebbleDB): EventStore, SnapshotStore, CheckpointStore, KVAdapter (kv.Store). CBOR envelope, shared DB via disjoint key prefixes
+├── watermill/           # Watermill adapter: PublisherAdapter, SubscriberAdapter, EventPublisher (cqrs→Watermill), CatchUpSubscriber (replay+live+checkpoint), MessageToEvent
 ├── codec/               # Payload encoding: JSON, CBOR (deterministic), Raw passthrough
-├── turso/               # Turso database connector (embedded LibSQL sync)
-├── kv/                  # Layer-0 KV store abstraction: Store (Reader+Writer+Closer), MemStore, Iterator, Batch. Pebble is first consumer via pebble.KVAdapter (ADR-0023)
+├── kv/                  # Layer-0 KV store abstraction: Store, MemStore, Iterator, Batch. PLUS TypedStore[T,K] and Cache[T,K] (merged from readmodel, ADR-0032)
 ├── testutil/            # Shared test helpers: MustNewCmd (cross-module test utilities)
 ├── cmd/cqrs-gen/        # Code generator: typed handler registration from Go structs
 ├── cmd/api-stability/   # API surface checker: compares exported symbols against golden file
@@ -318,6 +319,59 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 // Codec zero-allocation encoding (BufferEncoder)
 //   buf := &bytes.Buffer{}
 //   if be, ok := codec.(codec.BufferEncoder); ok { be.EncodeToBuffer(payload, buf) }
+
+// Typed Metadata fields (ADR-0031)
+//   // Tracing is embedded in event.Metadata — field promotion keeps JSON shape
+//   md := evt.Metadata()
+//   fmt.Println(md.CorrelationID)  // promoted from Tracing
+//   if md.Tombstone != nil { ... } // typed tombstone mark
+//   if md.Causation != nil { ... } // typed command causation
+
+// TypedDecider[State, Cmd] — command type bound at compile time (ADR-0001)
+//   d := decider.TypedDecider[CounterState, IncrementCmd]{
+//       Initial: CounterState{},
+//       Decide:  decideIncrement,
+//       Fold:    foldCounter,
+//   }
+//   repo, _ := decider.NewTypedRepository(store, bus, d)
+//   err := repo.ExecuteCommand(ctx, aggID, "Counter", IncrementCmd{Amount: 5})
+
+// kv.TypedStore and kv.Cache (ADR-0032 — moved from readmodel)
+//   store := kv.NewTypedStore[UserView, UserID](kvBackend)
+//   cache, _ := kv.NewCache[UserView, UserID](store, kv.WithCacheCapacity(500))
+
+// Watermill CatchUpSubscriber (replay from journal + live handoff, ADR-0030)
+//   catchUp, _ := watermill.NewCatchUpSubscriber(journal, liveSub, cpStore, logger)
+//   defer catchUp.Close()
+//   msgs, _ := catchUp.Subscribe(ctx, "user.created")
+//   // Phase 1: replay historical events with ProcessingMode=ModeReplay
+//   // Phase 2: live handoff with EventID-based deduplication
+//   // Checkpoint saved after every forwarded event
+
+// stack.Materialize[V,K] — tombstone-aware projection builder (ADR-0030)
+//   mat := stack.Materialize[UserView, UserID]{
+//       Store:       kvStore,
+//       KeyFromEvent: func(evt event.Event) (UserID, error) { ... },
+//       OnCreate:    func(ctx, evt) (*UserView, error) { ... },
+//       OnUpdate:    func(ctx, evt, existing *UserView) (*UserView, error) { ... },
+//       OnTombstone: func(ctx, evt, existing *UserView) (*UserView, error) { ... },
+//   }
+//   router.AddNoPublisherHandler("users", topic, catchUpSub, mat.HandlerFunc())
+
+// Watermill EventPublisher — cqrs events → Watermill topic (ADR-0028)
+//   pub := watermill.NewEventPublisher(wmPublisher, "events")
+//   repo, _ := decider.NewRepository(store, pub, decider)
+
+// Multi-DB SQLite preset (deployer chooses database isolation)
+//   bundle, _ := sqlite.New(":memory:",
+//       sqlite.WithEventDB("events.db"),   // events+snapshots+checkpoints
+//       sqlite.WithQueryDB("queries.db"),  // command+query audit
+//       sqlite.WithViewDB("views.db"),     // read-model KV store
+//   )
+
+// Pure event-sourcing mode (no publisher needed)
+//   repo, _ := decider.NewRepository(store, nil, decider)
+//   // Events are persisted but NOT published — for pure ES without a bus
 ```
 
 ## Testing
