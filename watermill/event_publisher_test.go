@@ -3,6 +3,7 @@ package watermill
 import (
 	"context"
 	"testing"
+	"time"
 
 	gochannel "github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
 
@@ -62,19 +63,7 @@ func TestEventPublisher_RoundTrip(t *testing.T) {
 		}
 
 		msg.Ack()
-	case <-waitForTimeout():
+	case <-time.After(2 * time.Second):
 		t.Fatal("timed out waiting for message")
 	}
-}
-
-// waitForTimeout returns a channel that fires after 2 seconds.
-func waitForTimeout() <-chan struct{} {
-	ch := make(chan struct{})
-	go func() {
-		select {
-		case <-ch:
-		}
-	}()
-
-	return ch
 }
