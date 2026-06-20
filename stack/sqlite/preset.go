@@ -92,6 +92,34 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 
 	stackOpts := buildOptions(backend)
 
+	// Override: event store from separate DB if configured.
+	if cfg.eventDSN != "" {
+		eventOpts, eventCloser, eErr := openSecondaryStores(cfg.eventDSN, cfg, backend)
+		if eErr != nil {
+			_ = backend.Close()
+			_ = db.Close()
+
+			return nil, fmt.Errorf("sqlite: open event db: %w", eErr)
+		}
+
+		stackOpts = append(stackOpts, eventOpts...)
+		stackOpts = append(stackOpts, stack.WithCloser(eventCloser))
+	}
+
+	// Override: command/query stores from separate DB if configured.
+	if cfg.queryDSN != "" {
+		queryOpts, queryCloser, qErr := openSecondaryStores(cfg.queryDSN, cfg, backend)
+		if qErr != nil {
+			_ = backend.Close()
+			_ = db.Close()
+
+			return nil, fmt.Errorf("sqlite: open query db: %w", qErr)
+		}
+
+		stackOpts = append(stackOpts, queryOpts...)
+		stackOpts = append(stackOpts, stack.WithCloser(queryCloser))
+	}
+
 	// Bus is in-process GoChannel (SQLite has no pub/sub).
 	stackOpts = append(stackOpts, stack.WithBus(cqrswatermill.NewEventBus()))
 
@@ -262,6 +290,72 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 
 	return db, backend, nil
 }
+
+// openSecondaryStores opens a secondary SQLite database, creates a backend
+// from it, and returns stack.Option values for event, command, query,
+// snapshot, and checkpoint stores. The returned closer handles cleanup of
+// both the backend and the *sql.DB.
+func openSecondaryStores(
+	dsn string,
+	cfg config,
+	primaryBackend *storage.SQLBackend,
+) ([]stack.Option, io.Closer, error) {
+	secDB, err := openSecondaryDB(dsn, cfg)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	secBackend, err := storage.NewSQLiteBackend(secDB)
+	if err != nil {
+		_ = secDB.Close()
+
+		return nil, nil, fmt.Errorf("sqlite: create backend for %q: %w", dsn, err)
+	}
+
+	opts := []stack.Option{
+		stack.WithEventStore(secBackend.EventStore()),
+	}
+
+	if cmdStore, err := secBackend.CommandStore(); err == nil {
+		opts = append(opts, stack.WithCommandStore(cmdStore))
+	}
+
+	if qStore, err := secBackend.QueryStore(); err == nil {
+		opts = append(opts, stack.WithQueryStore(qStore))
+	}
+
+	if snapStore, err := secBackend.SnapshotStore(); err == nil {
+		opts = append(opts, stack.WithSnapshotStore(snapStore))
+	}
+
+	if cpStore, err := secBackend.CheckpointStore(); err == nil {
+		opts = append(opts, stack.WithCheckpointStore(cpStore))
+	}
+
+	closer := &multiCloser{closers: []io.Closer{secBackend, &funcCloser{fn: secDB.Close}}}
+
+	return opts, closer, nil
+}
+
+// multiCloser closes multiple io.Closers in order.
+type multiCloser struct {
+	closers []io.Closer
+}
+
+func (m *multiCloser) Close() error {
+	var firstErr error
+
+	for _, c := range m.closers {
+		err := c.Close()
+		if err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
+
+	return firstErr
+}
+
+var _ io.Closer = (*multiCloser)(nil)
 
 // funcCloser adapts a func() error into an io.Closer. It is a pointer-receiving
 // struct (not a function type) so it is comparable and can be used as a map

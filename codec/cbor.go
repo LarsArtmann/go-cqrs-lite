@@ -47,6 +47,11 @@ var cborDecMode = func() cbor.DecMode {
 	return dm
 }()
 
+// CBORDecMode returns the package-level [cbor.DecMode] with duplicate map key
+// enforcement enabled. External packages (e.g. storage/pebble) should use this
+// instead of creating their own identical DecMode.
+func CBORDecMode() cbor.DecMode { return cborDecMode }
+
 func (CBORCodec) Encoding() Encoding { return EncodingCBOR }
 
 // Encode marshals a value to canonical CBOR bytes with deterministic map ordering.

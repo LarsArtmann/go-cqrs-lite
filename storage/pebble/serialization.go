@@ -26,18 +26,8 @@ var pebbleEncMode = func() cbor.EncMode {
 }()
 
 // pebbleDecMode provides CBOR decoding with duplicate map key enforcement.
-//
-//nolint:gochecknoglobals // concurrency-safe DecMode, created once at package init
-var pebbleDecMode = func() cbor.DecMode {
-	opts := cbor.DecOptions{DupMapKey: cbor.DupMapKeyEnforcedAPF}
-
-	dm, err := opts.DecMode()
-	if err != nil {
-		panic("pebble: failed to create CBOR decoding mode: " + err.Error())
-	}
-
-	return dm
-}()
+// Reuses the canonical decoder from codec/ to avoid duplication.
+var pebbleDecMode = codec.CBORDecMode()
 
 // isCBOR detects CBOR-encoded data by checking for CBOR major type 5 (map).
 // CBOR maps start with byte 0xa0–0xbf (major type 5, 0–23 additional info).
