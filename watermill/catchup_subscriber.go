@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"sync"
+	"time"
 
 	"github.com/ThreeDotsLabs/watermill/message"
 
@@ -191,6 +192,12 @@ func (s *CatchUpSubscriber) replayPhase(ctx context.Context, sub *catchUpSubscri
 
 		select {
 		case sub.output <- msg:
+			// Save checkpoint after forwarding each replay event.
+			// Best-effort: log on error, don't block the stream.
+			if saveErr := s.saveCheckpoint(ctx, sub.topic, evt.ID()); saveErr != nil {
+				s.logger.Warn("catch-up: save checkpoint after replay event",
+					"topic", sub.topic, "event_id", evt.ID().String(), "error", saveErr)
+			}
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-s.closeCh:
@@ -232,6 +239,15 @@ func (s *CatchUpSubscriber) livePhase(ctx context.Context, sub *catchUpSubscript
 
 			select {
 			case sub.output <- msg:
+				// Save checkpoint for live events too.
+				if eventID != "" {
+					if evtID, parseErr := id.ParseEventID(eventID); parseErr == nil {
+						if saveErr := s.saveCheckpoint(ctx, sub.topic, evtID); saveErr != nil {
+							s.logger.Warn("catch-up: save checkpoint after live event",
+								"topic", sub.topic, "event_id", eventID, "error", saveErr)
+						}
+					}
+				}
 			case <-ctx.Done():
 				return ctx.Err()
 			case <-s.closeCh:
@@ -239,6 +255,15 @@ func (s *CatchUpSubscriber) livePhase(ctx context.Context, sub *catchUpSubscript
 			}
 		}
 	}
+}
+
+// saveCheckpoint persists the last-processed event ID for the given topic.
+// Best-effort: errors are logged by callers, not returned to the stream.
+func (s *CatchUpSubscriber) saveCheckpoint(ctx context.Context, topic string, eventID id.EventID) error {
+	return s.checkpoint.Save(ctx, topic, event.Checkpoint{
+		EventID:     eventID,
+		ProcessedAt: time.Now(),
+	})
 }
 
 // Close shuts down all active subscriptions and the underlying live subscriber.
