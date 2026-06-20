@@ -6,13 +6,15 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/kv/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/stack/v2"
+	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v2"
 )
 
 // New returns a fully-wired in-memory [stack.Bundle].
 //
 // Every capability is set: event store + bus, command store, query store,
-// snapshot store, checkpoint store, and read-model backend. All backed by
-// thread-safe in-memory implementations from the [memory] and [kv] packages.
+// snapshot store, checkpoint store, and read-model backend. The stores use
+// thread-safe in-memory implementations from [memory]. The event bus uses
+// [watermill.EventBus] (GoChannel-backed) per ADR-0028.
 //
 // The returned Bundle owns all resources; [stack.Bundle.Close] releases them.
 // Nothing is persistent — data is lost when the process exits.
@@ -27,7 +29,7 @@ import (
 func New() (*stack.Bundle, error) {
 	b, err := stack.New(
 		stack.WithEventStore(memory.NewMemoryStore()),
-		stack.WithBus(memory.NewMemoryBus()),
+		stack.WithBus(cqrswatermill.NewEventBus()),
 		stack.WithCommandStore(memory.NewMemoryCommandStore()),
 		stack.WithQueryStore(memory.NewMemoryQueryStore()),
 		stack.WithSnapshotStore(memory.NewMemorySnapshotStore()),

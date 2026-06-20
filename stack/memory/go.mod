@@ -9,6 +9,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/kv/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-20260620042302-bd4b2f85a28c
+	github.com/larsartmann/go-cqrs-lite/watermill/v2 v2.6.0
 )
 
 require (
@@ -28,7 +29,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/watermill/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-error-family v0.4.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
@@ -70,3 +70,5 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../../snapshot
 	github.com/larsartmann/go-cqrs-lite/stack/v2 => ..
 )
+
+replace github.com/larsartmann/go-cqrs-lite/watermill/v2 => ../../watermill
