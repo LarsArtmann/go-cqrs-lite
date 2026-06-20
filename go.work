@@ -23,8 +23,6 @@ use (
 	./projection
 	./prometheus
 	./query
-	./readmodel
-	./readmodel/cache
 	./schema
 	./signing
 	./snapshot

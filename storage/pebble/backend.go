@@ -70,7 +70,7 @@ func (b *Backend) SnapshotStore() *SnapshotStore { return b.snapshot }
 func (b *Backend) CheckpointStore() *CheckpointStore { return b.checkpt }
 
 // ReadModels returns the shared key-value store for read models.
-// Each readmodel.Store should use WithKeyPrefix to avoid key collisions
+// Each kv.TypedStore should use WithKeyPrefix to avoid key collisions
 // between different read model types sharing this store.
 // The returned kv.Store does NOT own the *pebble.DB — Backend.Close() handles cleanup.
 func (b *Backend) ReadModels() kv.Store { return b.readMods }

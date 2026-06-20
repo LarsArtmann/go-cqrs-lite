@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/kv/v2"
-	"github.com/larsartmann/go-cqrs-lite/readmodel/v2"
 	"github.com/larsartmann/go-cqrs-lite/stack/v2"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v2"
 )
@@ -31,9 +30,9 @@ func BenchmarkBundle_ReadModelGet(b *testing.B) {
 
 	defer func() { _ = bundle.Close() }()
 
-	store := readmodel.New[benchView, benchKey](
+	store := kv.NewTypedStore[benchView, benchKey](
 		bundle.ReadModels,
-		readmodel.WithKeyPrefix[benchView, benchKey]("bench:"),
+		kv.WithTypedKeyPrefix[benchView, benchKey]("bench:"),
 	)
 
 	ctx := context.Background()
@@ -57,9 +56,9 @@ func BenchmarkDirect_ReadModelGet(b *testing.B) {
 	backend := kv.NewMemStore()
 	defer func() { _ = backend.Close() }()
 
-	store := readmodel.New[benchView, benchKey](
+	store := kv.NewTypedStore[benchView, benchKey](
 		backend,
-		readmodel.WithKeyPrefix[benchView, benchKey]("bench:"),
+		kv.WithTypedKeyPrefix[benchView, benchKey]("bench:"),
 	)
 
 	ctx := context.Background()

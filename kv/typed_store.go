@@ -17,7 +17,7 @@ import (
 // TypedStore is safe for concurrent use when the underlying [Store] is.
 // [MemStore] and [pebble.KVAdapter] both are.
 //
-// This type was moved verbatim from readmodel.Store (ADR-0032).
+// This type was moved verbatim from kv.TypedStore (ADR-0032).
 type TypedStore[T any, K fmt.Stringer] struct {
 	backend Store
 	codec   codec.Codec

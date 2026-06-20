@@ -45,9 +45,7 @@ func main() {
 		"pebble",
 		"turso",
 		"prometheus",
-		// Read models + composition (Bundle layer)
-		"readmodel",
-		"readmodel/cache",
+		// Composition (Bundle layer)
 		"stack",
 		"stack/memory",
 		"stack/sqlite",
