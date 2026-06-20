@@ -16,14 +16,14 @@ packages — `id/idtest` and `query/querytest` — mirroring the established
 `event/eventtest` pattern. **Zero harmful duplication remains.** Build, vet, tests
 (all 37 modules), api-stability, and lint (on touched files) are green.
 
-| Metric | Before | After | Δ |
-| --- | --- | --- | --- |
-| Clone groups | 73 | 64 | **−9** |
-| Total clones | 186 | 140 | **−46** |
-| Complexity score | 2.51 | 2.15 | **−14%** |
-| Parse-helper groups | 9 | 0 | **gone** |
-| `mustNewQuery` groups | 1 | 0 | **gone** |
-| API exports | 1598 | 1605 | +7 (idtest×6, querytest×1) |
+| Metric                | Before | After | Δ                          |
+| --------------------- | ------ | ----- | -------------------------- |
+| Clone groups          | 73     | 64    | **−9**                     |
+| Total clones          | 186    | 140   | **−46**                    |
+| Complexity score      | 2.51   | 2.15  | **−14%**                   |
+| Parse-helper groups   | 9      | 0     | **gone**                   |
+| `mustNewQuery` groups | 1      | 0     | **gone**                   |
+| API exports           | 1598   | 1605  | +7 (idtest×6, querytest×1) |
 
 ---
 
@@ -74,7 +74,7 @@ This mirrors the established `event/eventtest` shared-test pattern.
   patterns (same-file self-matches, `if err != nil` blocks, struct literals) so
   future runs report only net-new duplication.
 - **Duplicate-code ADR** (`docs/adr/`) — formalising the accept/extract policy so
-  the "zero *harmful* duplication, not zero report lines" principle is durable.
+  the "zero _harmful_ duplication, not zero report lines" principle is durable.
 - **`mustNewCmd` consolidation** — duplicated between `command/test_helpers_test.go`
   and `testutil/command.go`. Layering-constrained (command → ✗ → testutil → command).
   See open question (g).
@@ -104,39 +104,39 @@ No revert was needed; I left the foreign changes untouched per project policy.
    consider promoting it (though 2 copies of a 5-line private fn is fine).
 4. **`nix fmt` runs emit collateral** — running the formatter touched 17 files with
    pre-existing formatting debt unrelated to the task. A pre-commit `nix fmt` check
-  would keep this from accumulating.
+   would keep this from accumulating.
 
 ---
 
 ## (f) TOP 25 — WHAT TO GET DONE NEXT (impact ↓)
 
-| # | Task | Impact | Effort |
-| --- | --- | --- | --- |
-| 1 | Resolve `mustNewCmd` duplication (see question g) | high | low |
-| 2 | Add `.art-dupl.json` exclusion config for accepted idioms | high | low |
-| 3 | Write duplicate-code ADR (`docs/adr/`) | med | low |
-| 4 | Mention `idtest`/`querytest` in `SKILL.md` consumer guide | med | low |
-| 5 | Raise art-dupl threshold guidance in CONTRIBUTING | med | low |
-| 6 | Add `idtest` to the `testutil` README "see also" | low | low |
-| 7 | Consolidate `signing/internal/testutil` to use `idtest` fully | low | low |
-| 8 | Audit `example/*` for shared test helpers (currently self-contained) | low | med |
-| 9 | Group 48 `startAggregateSpan` (pebble/otel.go vs sql/otel.go) — investigate | low | med |
-| 10 | Promote shared `must[T]` if a 3rd consumer appears | low | low |
-| 11 | Wire `nix fmt` into a pre-commit hook | med | med |
-| 12 | Add `//nolint` audit pass for positioning after fmt | low | med |
-| 13 | Coverage check on `idtest`/`querytest` (currently ~100%) | low | low |
-| 14 | Document the Layer-0 test-helper pattern in AGENTS.md conventions | med | low |
-| 15 | Push the 4 ahead commits to origin (after review) | med | low |
-| 16 | Re-baseline `benchmark-baseline.txt` if allocs changed | low | med |
-| 17 | Add a `make dedup` / `nix run .#dedup` wrapper for art-dupl | low | low |
-| 18 | Review `catalog/internal/cattest` for idtest reuse | low | low |
-| 19 | Check `decider` tests for parse-helper usage (none found) | low | low |
-| 20 | Consider `eventtest.MustParseAggregateID` re-export for convenience | low | low |
-| 21 | Add CI gate running `art-dupl -t 30` with fail-on-new-groups | med | med |
-| 22 | Sweep for remaining per-module `parseXxxID` in examples | low | low |
-| 23 | Document `didPanic` test helper idiom (inner-closure pattern) | low | low |
-| 24 | Align `querytest` naming with any future `commandtest` | low | low |
-| 25 | Update FEATURES.md with the two new test-helper packages | low | low |
+| #   | Task                                                                        | Impact | Effort |
+| --- | --------------------------------------------------------------------------- | ------ | ------ |
+| 1   | Resolve `mustNewCmd` duplication (see question g)                           | high   | low    |
+| 2   | Add `.art-dupl.json` exclusion config for accepted idioms                   | high   | low    |
+| 3   | Write duplicate-code ADR (`docs/adr/`)                                      | med    | low    |
+| 4   | Mention `idtest`/`querytest` in `SKILL.md` consumer guide                   | med    | low    |
+| 5   | Raise art-dupl threshold guidance in CONTRIBUTING                           | med    | low    |
+| 6   | Add `idtest` to the `testutil` README "see also"                            | low    | low    |
+| 7   | Consolidate `signing/internal/testutil` to use `idtest` fully               | low    | low    |
+| 8   | Audit `example/*` for shared test helpers (currently self-contained)        | low    | med    |
+| 9   | Group 48 `startAggregateSpan` (pebble/otel.go vs sql/otel.go) — investigate | low    | med    |
+| 10  | Promote shared `must[T]` if a 3rd consumer appears                          | low    | low    |
+| 11  | Wire `nix fmt` into a pre-commit hook                                       | med    | med    |
+| 12  | Add `//nolint` audit pass for positioning after fmt                         | low    | med    |
+| 13  | Coverage check on `idtest`/`querytest` (currently ~100%)                    | low    | low    |
+| 14  | Document the Layer-0 test-helper pattern in AGENTS.md conventions           | med    | low    |
+| 15  | Push the 4 ahead commits to origin (after review)                           | med    | low    |
+| 16  | Re-baseline `benchmark-baseline.txt` if allocs changed                      | low    | med    |
+| 17  | Add a `make dedup` / `nix run .#dedup` wrapper for art-dupl                 | low    | low    |
+| 18  | Review `catalog/internal/cattest` for idtest reuse                          | low    | low    |
+| 19  | Check `decider` tests for parse-helper usage (none found)                   | low    | low    |
+| 20  | Consider `eventtest.MustParseAggregateID` re-export for convenience         | low    | low    |
+| 21  | Add CI gate running `art-dupl -t 30` with fail-on-new-groups                | med    | med    |
+| 22  | Sweep for remaining per-module `parseXxxID` in examples                     | low    | low    |
+| 23  | Document `didPanic` test helper idiom (inner-closure pattern)               | low    | low    |
+| 24  | Align `querytest` naming with any future `commandtest`                      | low    | low    |
+| 25  | Update FEATURES.md with the two new test-helper packages                    | low    | low    |
 
 ---
 
@@ -148,7 +148,7 @@ It's currently duplicated: `command/test_helpers_test.go` (local, unexported) an
 `testutil/command.go` (exported `MustNewCmd`). The natural fix mirrors what I just
 did — a `command/commandtest` subpackage. But:
 
-- `testutil` *already* exports `MustNewCmd` and several modules import `testutil`
+- `testutil` _already_ exports `MustNewCmd` and several modules import `testutil`
   for it.
 - `command` itself can't import `testutil` (cycle: testutil → command).
 - Moving it to `command/commandtest` would deprecate the `testutil` copy and force

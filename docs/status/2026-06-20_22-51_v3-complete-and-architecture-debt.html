@@ -817,7 +817,10 @@
           </div>
           <div class="hero-badge">v3 COMPLETION · SNAPSHOT</div>
           <h1>v3 Breaking Changes Complete — Now It Is Architecture Debt</h1>
-          <p class="hero-subtitle">All five deferred v3 breaking changes shipped in one session; the library is green at 36/36 modules. What remains is polish, not paralysis.</p>
+          <p class="hero-subtitle">
+            All five deferred v3 breaking changes shipped in one session; the library is green at
+            36/36 modules. What remains is polish, not paralysis.
+          </p>
         </div>
 
         <!-- Inline TOC (alternative to sidebar; pick one) -->
@@ -868,17 +871,21 @@
           <h4>What this report is</h4>
           <p>
             A point-in-time snapshot of <code>go-cqrs-lite</code> at master <code>6c556bc6</code>,
-            taken immediately after completing all five remaining v3 breaking changes.
-            Every claim is verified against source: build + vet + test passed on all 36 modules
-            (<code>go.work</code> use-set), API surface regenerated to 1609 exports.
-            The report grades the library across six categories (a&ndash;g) and ends with the
-            single question I could not answer from the code alone.
+            taken immediately after completing all five remaining v3 breaking changes. Every claim
+            is verified against source: build + vet + test passed on all 36 modules (<code
+              >go.work</code
+            >
+            use-set), API surface regenerated to 1609 exports. The report grades the library across
+            six categories (a&ndash;g) and ends with the single question I could not answer from the
+            code alone.
           </p>
         </div>
 
         <div class="callout callout-solution">
           <strong>Headline</strong>
-          v3 is feature-complete. 5 breaking changes shipped (reactive deletion, Fold&rarr;Apply, io.Closer removal, metadata alias break, Event concrete type) with zero call-site churn for the Event change. What remains is debt, not danger.
+          v3 is feature-complete. 5 breaking changes shipped (reactive deletion, Fold&rarr;Apply,
+          io.Closer removal, metadata alias break, Event concrete type) with zero call-site churn
+          for the Event change. What remains is debt, not danger.
         </div>
 
         <!-- a) FULLY DONE -->
@@ -890,63 +897,98 @@
             <div class="check">+</div>
             <div class="text">
               <strong>v3 #1 — Break command/query Metadata alias (ADR-0031)</strong>
-              <span>Each module owns its Metadata struct embedding <code>event.Tracing</code>; <code>storage/sql.MarshalMetadata</code> now accepts <code>any</code>, severing the SQL layer's coupling. Commit <code>318abb6e</code>.</span>
+              <span
+                >Each module owns its Metadata struct embedding <code>event.Tracing</code>;
+                <code>storage/sql.MarshalMetadata</code> now accepts <code>any</code>, severing the
+                SQL layer's coupling. Commit <code>318abb6e</code>.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>v3 #2 — Delete dead reactive-streams code</strong>
-              <span>Removed <code>event/reactive*.go</code> (343 LOC) + dropped the <code>samber/ro</code> production dependency. Zero consumers since projection deletion. Commit <code>1a851c6a</code>.</span>
+              <span
+                >Removed <code>event/reactive*.go</code> (343 LOC) + dropped the
+                <code>samber/ro</code> production dependency. Zero consumers since projection
+                deletion. Commit <code>1a851c6a</code>.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>v3 #3 — Remove io.Closer from 9 core interfaces (ADR-0010)</strong>
-              <span>Concrete impls keep <code>Close()</code>; callers type-assert to stdlib <code>io.Closer</code>. <code>stack.Bundle.registerCloser</code> now accepts <code>any</code> and asserts internally. Commit <code>8fee4d0f</code>.</span>
+              <span
+                >Concrete impls keep <code>Close()</code>; callers type-assert to stdlib
+                <code>io.Closer</code>. <code>stack.Bundle.registerCloser</code> now accepts
+                <code>any</code> and asserts internally. Commit <code>8fee4d0f</code>.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>v3 #4 — Rename Decider.Fold → Apply</strong>
-              <span>"Fold" lied — it is the domain event applier, not a generic reduction. Mechanical rename across decider + 5 example/integration packages; errors renamed too. Commit <code>ca29a723</code>.</span>
+              <span
+                >"Fold" lied — it is the domain event applier, not a generic reduction. Mechanical
+                rename across decider + 5 example/integration packages; errors renamed too. Commit
+                <code>ca29a723</code>.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>v3 #5 — Make event.Event a concrete type</strong>
-              <span><code>type Event = *ImmutableEvent</code>. As a type alias, all ~650 call sites resolved automatically — zero signature changes. Deleted all 7 type-assertion sites + 3 obsolete fallback test fakes. Commit <code>5decab64</code>.</span>
+              <span
+                ><code>type Event = *ImmutableEvent</code>. As a type alias, all ~650 call sites
+                resolved automatically — zero signature changes. Deleted all 7 type-assertion sites
+                + 3 obsolete fallback test fakes. Commit <code>5decab64</code>.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Pre-existing dedup WIP committed</strong>
-              <span>Found uncommitted <code>id/idtest</code> + <code>query/querytest</code> MustParse* extraction at session start. Committed as clean bases (<code>447b3ce9</code>, <code>3b59c128</code>) rather than entangling it with v3 work.</span>
+              <span
+                >Found uncommitted <code>id/idtest</code> + <code>query/querytest</code> MustParse*
+                extraction at session start. Committed as clean bases (<code>447b3ce9</code>,
+                <code>3b59c128</code>) rather than entangling it with v3 work.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Documentation fully synchronized</strong>
-              <span>AGENTS.md (principles #5, #14), TODO_LIST.md (5&rarr;2 remaining), ROADMAP.md (9/11 done), V3_MIGRATION.md (steps 5&ndash;8 added), ADR-0010 &amp; ADR-0031 marked Implemented, API surface regenerated. Commit <code>6c556bc6</code>.</span>
+              <span
+                >AGENTS.md (principles #5, #14), TODO_LIST.md (5&rarr;2 remaining), ROADMAP.md (9/11
+                done), V3_MIGRATION.md (steps 5&ndash;8 added), ADR-0010 &amp; ADR-0031 marked
+                Implemented, API surface regenerated. Commit <code>6c556bc6</code>.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Prior session wins still holding</strong>
-              <span>EventBus ordering fix (<code>BlockPublishUntilSubscriberAck</code>), tombstone-in-watermill fix, CBOR fuzz invariant fix, deployer-first example, projection dissolution (ADR-0030) — all still green.</span>
+              <span
+                >EventBus ordering fix (<code>BlockPublishUntilSubscriberAck</code>),
+                tombstone-in-watermill fix, CBOR fuzz invariant fix, deployer-first example,
+                projection dissolution (ADR-0030) — all still green.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Quality gates green</strong>
-              <span>BuildFlow pre-commit hook (golangci-lint, gitleaks, gofumpt, oxlint, d2-fmt, file-size-check) passed on every one of the 8 commits this session.</span>
+              <span
+                >BuildFlow pre-commit hook (golangci-lint, gitleaks, gofumpt, oxlint, d2-fmt,
+                file-size-check) passed on every one of the 8 commits this session.</span
+              >
             </div>
           </div>
         </div>
@@ -957,39 +999,37 @@
         <div class="card card-warning">
           <h4>v3 release — 9 of 11 changes done, 2 minor remain</h4>
           <p>
-            The two remaining v3 items are genuinely minor (no API breakage beyond
-            what's already prepared): (1) move HTTP code (SSE, healthcheck,
+            The two remaining v3 items are genuinely minor (no API breakage beyond what's already
+            prepared): (1) move HTTP code (SSE, healthcheck,
             <code>metrics_http</code>) out of <code>middleware/</code> into a
             <code>transport/</code> module (ADR-0025), and (2) deep-copy the
-            <code>*eventOptions</code> pointer on <code>Clone</code> so events are
-            truly immutable. Neither blocks release; both are tracked in TODO_LIST.
+            <code>*eventOptions</code> pointer on <code>Clone</code> so events are truly immutable.
+            Neither blocks release; both are tracked in TODO_LIST.
           </p>
         </div>
 
         <div class="card card-warning">
           <h4>Per-module test coverage is uneven</h4>
           <p>
-            Core modules are excellent (<code>event</code> 91.6%, <code>command</code>
-            90.1%, <code>query</code> 85.5%, <code>decider</code> 98.3%, <code>id</code>
-            97.6%). But the shared test-helper packages are low because they are
-            consumed by their parent's tests: <code>eventtest</code> shows 16.2%
-            in isolation, and <code>stack/postgres</code> shows 0% locally because its
-            tests skip without <code>POSTGRES_TEST_DSN</code> (5 sites gate on this
-            env var). Not broken — but the number is misleading without context.
+            Core modules are excellent (<code>event</code> 91.6%, <code>command</code> 90.1%,
+            <code>query</code> 85.5%, <code>decider</code> 98.3%, <code>id</code> 97.6%). But the
+            shared test-helper packages are low because they are consumed by their parent's tests:
+            <code>eventtest</code> shows 16.2% in isolation, and <code>stack/postgres</code> shows
+            0% locally because its tests skip without <code>POSTGRES_TEST_DSN</code> (5 sites gate
+            on this env var). Not broken — but the number is misleading without context.
           </p>
         </div>
 
         <div class="card card-warning">
           <h4>Dedup refactor only half-done</h4>
           <p>
-            The <code>id/idtest</code> MustParse* extraction (committed this session)
-            covers <code>event/</code>, <code>command/</code>, <code>query/</code>,
-            <code>storage/</code>, <code>signing/</code>, <code>integration/</code>,
-            <code>watermill/</code>, <code>schema/</code>, <code>listing/</code>,
-            <code>snapshot/</code>. But the original <code>docs/planning/dedup-plan.md</code>
-            identifies 73 clone groups; only the top-priority ID-parse family was extracted.
-            The remaining ~72 groups are all classified <code>idiom/low</code> and are not
-            harmful, but the plan is incomplete.
+            The <code>id/idtest</code> MustParse* extraction (committed this session) covers
+            <code>event/</code>, <code>command/</code>, <code>query/</code>, <code>storage/</code>,
+            <code>signing/</code>, <code>integration/</code>, <code>watermill/</code>,
+            <code>schema/</code>, <code>listing/</code>, <code>snapshot/</code>. But the original
+            <code>docs/planning/dedup-plan.md</code> identifies 73 clone groups; only the
+            top-priority ID-parse family was extracted. The remaining ~72 groups are all classified
+            <code>idiom/low</code> and are not harmful, but the plan is incomplete.
           </p>
         </div>
 
@@ -1000,28 +1040,28 @@
           <h4>Transport adapters (ADR-0025) — accepted, not built</h4>
           <p>
             <code>transport/grpc/</code>, <code>transport/nats/</code>,
-            <code>transport/redis/</code>. The ADR is accepted and the strategy
-            (separate modules with protobuf dispatch) is documented, but no code exists.
-            These are ROADMAP items with no deadline.
+            <code>transport/redis/</code>. The ADR is accepted and the strategy (separate modules
+            with protobuf dispatch) is documented, but no code exists. These are ROADMAP items with
+            no deadline.
           </p>
         </div>
 
         <div class="card">
           <h4>Experimental build-tag features — pending upstream Go stabilization</h4>
           <p>
-            <code>codec/jsonv2_experiment.go</code> (behind <code>goexperiment.jsonv2</code>)
-            and <code>event/arena_experiment.go</code> (behind <code>goexperiment.arenas</code>)
-            exist but cannot ship until Go stabilizes the underlying APIs. ADR-0026 documents
-            the experiment boundary. Blocked on the Go project, not on us.
+            <code>codec/jsonv2_experiment.go</code> (behind <code>goexperiment.jsonv2</code>) and
+            <code>event/arena_experiment.go</code> (behind <code>goexperiment.arenas</code>) exist
+            but cannot ship until Go stabilizes the underlying APIs. ADR-0026 documents the
+            experiment boundary. Blocked on the Go project, not on us.
           </p>
         </div>
 
         <div class="card">
           <h4>Distributed projection runners — explicitly deferred</h4>
           <p>
-            User decision (commit <code>2bbdebe0</code>): single-machine multi-threaded
-            is sufficient for now. Distributed runners are a ROADMAP item with no deadline.
-            ADR-0030 records this. The <code>distributed_runner.go</code> and
+            User decision (commit <code>2bbdebe0</code>): single-machine multi-threaded is
+            sufficient for now. Distributed runners are a ROADMAP item with no deadline. ADR-0030
+            records this. The <code>distributed_runner.go</code> and
             <code>leader_election.go</code> were deleted with the rest of projection/.
           </p>
         </div>
@@ -1030,8 +1070,8 @@
           <h4>v4 catalog splits — deferred</h4>
           <p>
             <code>catalog.Message</code> (17 fields) and <code>catalog.Service</code>
-            (16 fields) need splitting into Message + MessageMeta. Internal types only,
-            low priority, deferred to v4.
+            (16 fields) need splitting into Message + MessageMeta. Internal types only, low
+            priority, deferred to v4.
           </p>
         </div>
 
@@ -1043,29 +1083,28 @@
           <h3>Nothing is currently fucked up</h3>
           <div class="where">whole workspace, as of 6c556bc6</div>
           <p>
-            Strong claim, so here is the evidence. <code>go build</code>,
-            <code>go vet</code>, and <code>go test</code> exit 0 across all 36 modules.
-            There are <strong>zero</strong> <code>FIXME</code>, <code>TODO:</code>,
-            <code>HACK</code>, or <code>XXX:</code> markers in production code
-            (verified by grep). The API surface golden test passes. golangci-lint passes.
-            gitleaks passes. No panics in the test output.
+            Strong claim, so here is the evidence. <code>go build</code>, <code>go vet</code>, and
+            <code>go test</code> exit 0 across all 36 modules. There are <strong>zero</strong>
+            <code>FIXME</code>, <code>TODO:</code>, <code>HACK</code>, or <code>XXX:</code> markers
+            in production code (verified by grep). The API surface golden test passes. golangci-lint
+            passes. gitleaks passes. No panics in the test output.
           </p>
           <p>
             The closest thing to "fucked up" in the recent past was the
-            <strong>EventBus delivery ordering race</strong> discovered and fixed in
-            the prior session (commit <code>97e2fd58</code>) — GoChannel published
-            unordered under default config. That was the most impactful correctness
-            bug in the library's history and it is now fixed with a regression-proof
-            <code>BlockPublishUntilSubscriberAck: true</code> config and an ordered-delivery
-            test in the deployer-first example.
+            <strong>EventBus delivery ordering race</strong> discovered and fixed in the prior
+            session (commit <code>97e2fd58</code>) — GoChannel published unordered under default
+            config. That was the most impactful correctness bug in the library's history and it is
+            now fixed with a regression-proof
+            <code>BlockPublishUntilSubscriberAck: true</code> config and an ordered-delivery test in
+            the deployer-first example.
           </p>
           <div class="callout callout-warning">
             <strong>One caveat worth naming</strong>
             The <code>example/deployer-first/domain.go</code> file shows a stale
-            <strong>LSP typecheck warning</strong> about <code>DecideFunc</code> being
-            undefined (lines 77, 99, 121). This is a <strong>gopls cache artifact</strong>,
-            not a real error: <code>go build ./example/deployer-first/...</code> exits 0,
-            and the type alias exists at <code>domain.go:13</code>. Restarting the LSP clears it.
+            <strong>LSP typecheck warning</strong> about <code>DecideFunc</code> being undefined
+            (lines 77, 99, 121). This is a <strong>gopls cache artifact</strong>, not a real error:
+            <code>go build ./example/deployer-first/...</code> exits 0, and the type alias exists at
+            <code>domain.go:13</code>. Restarting the LSP clears it.
           </div>
         </div>
 
@@ -1077,13 +1116,13 @@
           <h3>119 workspace replace directives — replace tangle</h3>
           <div class="where">*/go.mod files across the monorepo</div>
           <p>
-            36 modules each carry <code>replace ... => ../sibling</code> directives to point
-            at local paths during development. This is standard Go workspace hygiene, but 119
-            lines of replace directives is a maintenance tax: every new module means editing
-            N go.mod files. A <code>go.work</code> file already handles this for local dev; the
-            per-module replaces exist so each module is independently importable with
-            <code>GOWORK=off</code>. Consider whether that independence is worth the tangle,
-            or whether a thin release tool could sync versions automatically.
+            36 modules each carry <code>replace ... => ../sibling</code> directives to point at
+            local paths during development. This is standard Go workspace hygiene, but 119 lines of
+            replace directives is a maintenance tax: every new module means editing N go.mod files.
+            A <code>go.work</code> file already handles this for local dev; the per-module replaces
+            exist so each module is independently importable with <code>GOWORK=off</code>. Consider
+            whether that independence is worth the tangle, or whether a thin release tool could sync
+            versions automatically.
           </p>
         </div>
 
@@ -1093,23 +1132,28 @@
           <div class="where">AGENTS.md — the "Test" row</div>
           <p>
             The documented test command lists top-level <code>./memory/...</code>,
-            <code>./pebble/...</code>, <code>./readmodel/...</code> paths that no longer
-            exist (they moved to <code>./storage/memory/...</code>, <code>./storage/pebble/...</code>,
-            and readmodel was deleted). A copy-paste of that command fails. The correct
-            paths come from <code>go.work</code>'s use-set. This cost me ~10 min this session
-            and will cost every new contributor.
+            <code>./pebble/...</code>, <code>./readmodel/...</code> paths that no longer exist (they
+            moved to <code>./storage/memory/...</code>, <code>./storage/pebble/...</code>, and
+            readmodel was deleted). A copy-paste of that command fails. The correct paths come from
+            <code>go.work</code>'s use-set. This cost me ~10 min this session and will cost every
+            new contributor.
           </p>
         </div>
 
         <div class="issue issue-important">
           <span class="severity severity-important">High</span>
           <h3>8 production files exceed the 250-line guideline</h3>
-          <div class="where">catalog/internal/cattest/builders.go (398), stack/sqlite/preset.go (369), watermill/event_bus.go (343), stack/postgres/pg_listener.go (343), storage/turso/indexing/auto.go (329), cmd/api-stability/main.go (324), storage/pebble/snapshot.go (310), watermill/protocol.go (303)</div>
+          <div class="where">
+            catalog/internal/cattest/builders.go (398), stack/sqlite/preset.go (369),
+            watermill/event_bus.go (343), stack/postgres/pg_listener.go (343),
+            storage/turso/indexing/auto.go (329), cmd/api-stability/main.go (324),
+            storage/pebble/snapshot.go (310), watermill/protocol.go (303)
+          </div>
           <p>
-            AGENTS.md says max 250 lines/file. The file-size-check BuildFlow gate is set
-            higher (these pass), so the gate and the doc disagree. Either raise the documented
-            guideline or split the worst offenders. <code>builders.go</code> (398) is test
-            scaffolding and a good split candidate.
+            AGENTS.md says max 250 lines/file. The file-size-check BuildFlow gate is set higher
+            (these pass), so the gate and the doc disagree. Either raise the documented guideline or
+            split the worst offenders. <code>builders.go</code> (398) is test scaffolding and a good
+            split candidate.
           </p>
         </div>
 
@@ -1119,9 +1163,9 @@
           <div class="where">docs/planning/*, docs/status/* (point-in-time reports)</div>
           <p>
             20+ historical reports reference <code>event.NewEventBus</code>,
-            <code>projection.Runner</code>, <code>readmodel.Store</code>, etc. These are
-            snapshots and should NOT be rewritten — but a reader landing on them via search
-            may be confused. A one-line "superseded" banner at the top of each would help.
+            <code>projection.Runner</code>, <code>readmodel.Store</code>, etc. These are snapshots
+            and should NOT be rewritten — but a reader landing on them via search may be confused. A
+            one-line "superseded" banner at the top of each would help.
           </p>
         </div>
 
@@ -1130,9 +1174,9 @@
           <h3>No automated coverage gate in CI</h3>
           <div class="where">.github/workflows/ci.yml</div>
           <p>
-            CI runs build/vet/test/lint/race/coverage but does not fail on coverage regression.
-            Core modules sit at 85&ndash;98%, but nothing prevents a new file shipping at 0%.
-            A per-module coverage floor (e.g. 80% for <code>event</code>, <code>command</code>,
+            CI runs build/vet/test/lint/race/coverage but does not fail on coverage regression. Core
+            modules sit at 85&ndash;98%, but nothing prevents a new file shipping at 0%. A
+            per-module coverage floor (e.g. 80% for <code>event</code>, <code>command</code>,
             <code>decider</code>) would lock in the quality.
           </p>
         </div>
@@ -1142,9 +1186,9 @@
           <h3>SSE/healthcheck/metrics_http live in middleware/ — wrong home</h3>
           <div class="where">middleware/ (HTTP code in a domain-middleware module)</div>
           <p>
-            Already tracked as the remaining v3 item, but worth naming here: HTTP handlers do
-            not belong in <code>middleware/</code>. They should move to a <code>transport/</code>
-            (or <code>transport/http/</code>) module alongside the future gRPC/NATS/Redis adapters.
+            Already tracked as the remaining v3 item, but worth naming here: HTTP handlers do not
+            belong in <code>middleware/</code>. They should move to a <code>transport/</code> (or
+            <code>transport/http/</code>) module alongside the future gRPC/NATS/Redis adapters.
           </p>
         </div>
 
@@ -1163,31 +1207,191 @@
             </tr>
           </thead>
           <tbody>
-            <tr><td>1</td><td>Fix AGENTS.md test command to match real module paths</td><td>High</td><td>10 min</td><td><span class="badge badge-critical">P0</span></td></tr>
-            <tr><td>2</td><td>v3: deep-copy <code>*eventOptions</code> on Clone (true immutability)</td><td>High</td><td>30 min</td><td><span class="badge badge-critical">P0</span></td></tr>
-            <tr><td>3</td><td>v3: move SSE/healthcheck/metrics_http → transport/ module</td><td>High</td><td>2 h</td><td><span class="badge badge-critical">P0</span></td></tr>
-            <tr><td>4</td><td>Split <code>catalog/internal/cattest/builders.go</code> (398 lines)</td><td>Med</td><td>20 min</td><td><span class="badge badge-high">P1</span></td></tr>
-            <tr><td>5</td><td>Reconcile file-size guideline (250 docs vs gate threshold)</td><td>Med</td><td>15 min</td><td><span class="badge badge-high">P1</span></td></tr>
-            <tr><td>6</td><td>Add per-module coverage floor to CI (80% for core)</td><td>High</td><td>1 h</td><td><span class="badge badge-high">P1</span></td></tr>
-            <tr><td>7</td><td>Run full <code>art-dupl</code> dedup pass on remaining ~72 clone groups</td><td>Med</td><td>3 h</td><td><span class="badge badge-high">P1</span></td></tr>
-            <tr><td>8</td><td>Add "superseded" banners to historical planning/status docs</td><td>Low</td><td>30 min</td><td><span class="badge badge-medium">P2</span></td></tr>
-            <tr><td>9</td><td>Document the deployer-first pattern in SKILL.md as the canonical projection recipe</td><td>High</td><td>1 h</td><td><span class="badge badge-high">P1</span></td></tr>
-            <tr><td>10</td><td>Add a CI job that runs <code>POSTGRES_TEST_DSN</code> tests (5 skipped sites)</td><td>Med</td><td>1 h</td><td><span class="badge badge-medium">P2</span></td></tr>
-            <tr><td>11</td><td>Write a <code>CONTRIBUTING.md</code> covering module layout + replace-directive convention</td><td>Med</td><td>1 h</td><td><span class="badge badge-medium">P2</span></td></tr>
-            <tr><td>12</td><td>Investigate a release tool to auto-sync the 119 replace directives</td><td>Med</td><td>3 h</td><td><span class="badge badge-medium">P2</span></td></tr>
-            <tr><td>13</td><td>Add <code>go.work.sum</code> / version-drift CI check hardening</td><td>Low</td><td>30 min</td><td><span class="badge badge-low">P3</span></td></tr>
-            <tr><td>14</td><td>Build <code>transport/grpc/</code> adapter (ADR-0025)</td><td>High</td><td>2 days</td><td><span class="badge badge-medium">P2</span></td></tr>
-            <tr><td>15</td><td>Build <code>transport/nats/</code> adapter (ADR-0025)</td><td>High</td><td>2 days</td><td><span class="badge badge-medium">P2</span></td></tr>
-            <tr><td>16</td><td>Add secondary indexes / ranged scans for large kv read-models</td><td>Med</td><td>1 day</td><td><span class="badge badge-medium">P2</span></td></tr>
-            <tr><td>17</td><td>Surface Pebble Checkpoint (backup) from stack presets</td><td>Med</td><td>2 h</td><td><span class="badge badge-medium">P2</span></td></tr>
-            <tr><td>18</td><td>Surface graceful shutdown from stack presets</td><td>Med</td><td>2 h</td><td><span class="badge badge-medium">P2</span></td></tr>
-            <tr><td>19</td><td>v4: split catalog.Message (17 fields) → Message + MessageMeta</td><td>Low</td><td>1 day</td><td><span class="badge badge-low">P3</span></td></tr>
-            <tr><td>20</td><td>v4: split catalog.Service (16 fields) → Service + ServiceMeta</td><td>Low</td><td>1 day</td><td><span class="badge badge-low">P3</span></td></tr>
-            <tr><td>21</td><td>Benchmark: re-measure hot paths now that Event type assertions are gone</td><td>Med</td><td>2 h</td><td><span class="badge badge-medium">P2</span></td></tr>
-            <tr><td>22</td><td>Add a property-based test for <code>command.Metadata</code> / <code>query.Metadata</code> isolation</td><td>Med</td><td>1 h</td><td><span class="badge badge-medium">P2</span></td></tr>
-            <tr><td>23</td><td>Document the <code>io.Closer</code> type-assertion pattern in SKILL.md</td><td>Low</td><td>20 min</td><td><span class="badge badge-low">P3</span></td></tr>
-            <tr><td>24</td><td>Add a "first consumer" example showing the full deployer-first stack end-to-end</td><td>High</td><td>3 h</td><td><span class="badge badge-high">P1</span></td></tr>
-            <tr><td>25</td><td>Tag v3.0.0 once the 2 remaining v3 items (#2, #3 above) land</td><td>High</td><td>30 min</td><td><span class="badge badge-critical">P0</span></td></tr>
+            <tr>
+              <td>1</td>
+              <td>Fix AGENTS.md test command to match real module paths</td>
+              <td>High</td>
+              <td>10 min</td>
+              <td><span class="badge badge-critical">P0</span></td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>v3: deep-copy <code>*eventOptions</code> on Clone (true immutability)</td>
+              <td>High</td>
+              <td>30 min</td>
+              <td><span class="badge badge-critical">P0</span></td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>v3: move SSE/healthcheck/metrics_http → transport/ module</td>
+              <td>High</td>
+              <td>2 h</td>
+              <td><span class="badge badge-critical">P0</span></td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>Split <code>catalog/internal/cattest/builders.go</code> (398 lines)</td>
+              <td>Med</td>
+              <td>20 min</td>
+              <td><span class="badge badge-high">P1</span></td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>Reconcile file-size guideline (250 docs vs gate threshold)</td>
+              <td>Med</td>
+              <td>15 min</td>
+              <td><span class="badge badge-high">P1</span></td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>Add per-module coverage floor to CI (80% for core)</td>
+              <td>High</td>
+              <td>1 h</td>
+              <td><span class="badge badge-high">P1</span></td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td>Run full <code>art-dupl</code> dedup pass on remaining ~72 clone groups</td>
+              <td>Med</td>
+              <td>3 h</td>
+              <td><span class="badge badge-high">P1</span></td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td>Add "superseded" banners to historical planning/status docs</td>
+              <td>Low</td>
+              <td>30 min</td>
+              <td><span class="badge badge-medium">P2</span></td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td>
+                Document the deployer-first pattern in SKILL.md as the canonical projection recipe
+              </td>
+              <td>High</td>
+              <td>1 h</td>
+              <td><span class="badge badge-high">P1</span></td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td>Add a CI job that runs <code>POSTGRES_TEST_DSN</code> tests (5 skipped sites)</td>
+              <td>Med</td>
+              <td>1 h</td>
+              <td><span class="badge badge-medium">P2</span></td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td>
+                Write a <code>CONTRIBUTING.md</code> covering module layout + replace-directive
+                convention
+              </td>
+              <td>Med</td>
+              <td>1 h</td>
+              <td><span class="badge badge-medium">P2</span></td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td>Investigate a release tool to auto-sync the 119 replace directives</td>
+              <td>Med</td>
+              <td>3 h</td>
+              <td><span class="badge badge-medium">P2</span></td>
+            </tr>
+            <tr>
+              <td>13</td>
+              <td>Add <code>go.work.sum</code> / version-drift CI check hardening</td>
+              <td>Low</td>
+              <td>30 min</td>
+              <td><span class="badge badge-low">P3</span></td>
+            </tr>
+            <tr>
+              <td>14</td>
+              <td>Build <code>transport/grpc/</code> adapter (ADR-0025)</td>
+              <td>High</td>
+              <td>2 days</td>
+              <td><span class="badge badge-medium">P2</span></td>
+            </tr>
+            <tr>
+              <td>15</td>
+              <td>Build <code>transport/nats/</code> adapter (ADR-0025)</td>
+              <td>High</td>
+              <td>2 days</td>
+              <td><span class="badge badge-medium">P2</span></td>
+            </tr>
+            <tr>
+              <td>16</td>
+              <td>Add secondary indexes / ranged scans for large kv read-models</td>
+              <td>Med</td>
+              <td>1 day</td>
+              <td><span class="badge badge-medium">P2</span></td>
+            </tr>
+            <tr>
+              <td>17</td>
+              <td>Surface Pebble Checkpoint (backup) from stack presets</td>
+              <td>Med</td>
+              <td>2 h</td>
+              <td><span class="badge badge-medium">P2</span></td>
+            </tr>
+            <tr>
+              <td>18</td>
+              <td>Surface graceful shutdown from stack presets</td>
+              <td>Med</td>
+              <td>2 h</td>
+              <td><span class="badge badge-medium">P2</span></td>
+            </tr>
+            <tr>
+              <td>19</td>
+              <td>v4: split catalog.Message (17 fields) → Message + MessageMeta</td>
+              <td>Low</td>
+              <td>1 day</td>
+              <td><span class="badge badge-low">P3</span></td>
+            </tr>
+            <tr>
+              <td>20</td>
+              <td>v4: split catalog.Service (16 fields) → Service + ServiceMeta</td>
+              <td>Low</td>
+              <td>1 day</td>
+              <td><span class="badge badge-low">P3</span></td>
+            </tr>
+            <tr>
+              <td>21</td>
+              <td>Benchmark: re-measure hot paths now that Event type assertions are gone</td>
+              <td>Med</td>
+              <td>2 h</td>
+              <td><span class="badge badge-medium">P2</span></td>
+            </tr>
+            <tr>
+              <td>22</td>
+              <td>
+                Add a property-based test for <code>command.Metadata</code> /
+                <code>query.Metadata</code> isolation
+              </td>
+              <td>Med</td>
+              <td>1 h</td>
+              <td><span class="badge badge-medium">P2</span></td>
+            </tr>
+            <tr>
+              <td>23</td>
+              <td>Document the <code>io.Closer</code> type-assertion pattern in SKILL.md</td>
+              <td>Low</td>
+              <td>20 min</td>
+              <td><span class="badge badge-low">P3</span></td>
+            </tr>
+            <tr>
+              <td>24</td>
+              <td>
+                Add a "first consumer" example showing the full deployer-first stack end-to-end
+              </td>
+              <td>High</td>
+              <td>3 h</td>
+              <td><span class="badge badge-high">P1</span></td>
+            </tr>
+            <tr>
+              <td>25</td>
+              <td>Tag v3.0.0 once the 2 remaining v3 items (#2, #3 above) land</td>
+              <td>High</td>
+              <td>30 min</td>
+              <td><span class="badge badge-critical">P0</span></td>
+            </tr>
           </tbody>
         </table>
 
@@ -1196,12 +1400,14 @@
 
         <div class="callout callout-warning">
           <strong>The question</strong>
-          Is <strong>independent module importability</strong> (each module works with <code>GOWORK=off go build</code>) worth the cost of maintaining 119 hand-synced <code>replace</code> directives across 36 <code>go.mod</code> files?
+          Is <strong>independent module importability</strong> (each module works with
+          <code>GOWORK=off go build</code>) worth the cost of maintaining 119 hand-synced
+          <code>replace</code> directives across 36 <code>go.mod</code> files?
         </div>
 
         <p>
-          I can verify the current state, I can count the directives, I can run the build both
-          ways &mdash; but I cannot decide the tradeoff for you. Here is the tension:
+          I can verify the current state, I can count the directives, I can run the build both ways
+          &mdash; but I cannot decide the tradeoff for you. Here is the tension:
         </p>
 
         <div class="compare-header">
@@ -1210,28 +1416,29 @@
         </div>
         <div class="compare-row">
           <div>
-            Each module has its own <code>go.mod</code> + replaces pointing at siblings.
-            A consumer can <code>go get github.com/.../event/v2</code> and it resolves to a
-            published version. Every module is independently versionable and importable.
-            <strong>Cost:</strong> 119 replace lines, manual sync, easy to forget one
-            (this session found 4 broken modules missing watermill/storage/memory replaces).
+            Each module has its own <code>go.mod</code> + replaces pointing at siblings. A consumer
+            can <code>go get github.com/.../event/v2</code> and it resolves to a published version.
+            Every module is independently versionable and importable. <strong>Cost:</strong> 119
+            replace lines, manual sync, easy to forget one (this session found 4 broken modules
+            missing watermill/storage/memory replaces).
           </div>
           <div>
-            Collapse to fewer, larger modules (e.g. one <code>go.mod</code> per layer).
-            Fewer replaces, less drift, simpler releases.
-            <strong>Cost:</strong> consumers import more than they need, versioning is coarser,
-            and the "minimal dependencies" principle (AGENTS.md #3) weakens.
+            Collapse to fewer, larger modules (e.g. one <code>go.mod</code> per layer). Fewer
+            replaces, less drift, simpler releases. <strong>Cost:</strong> consumers import more
+            than they need, versioning is coarser, and the "minimal dependencies" principle
+            (AGENTS.md #3) weakens.
           </div>
         </div>
 
         <p>
           This is a genuine product-direction call about who the library is for: minimal-footprint
-          importers (favor independence) vs. operational simplicity (favor consolidation).
-          The codebase is healthy either way; I just need your steer before recommending a path.
+          importers (favor independence) vs. operational simplicity (favor consolidation). The
+          codebase is healthy either way; I just need your steer before recommending a path.
         </p>
 
         <footer class="footer">
-          Generated 2026-06-20 22:51 &middot; Verified against master 6c556bc6 &middot; 36/36 modules green &middot; build+vet+test exit 0
+          Generated 2026-06-20 22:51 &middot; Verified against master 6c556bc6 &middot; 36/36
+          modules green &middot; build+vet+test exit 0
         </footer>
       </main>
     </div>

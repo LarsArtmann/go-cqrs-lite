@@ -464,8 +464,8 @@ cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 | `dispatcher` | `dispatcher/v2` | Generic `Dispatcher[H, M]` with `LifecycleMixin`. Base for command/query dispatchers.                                                                                                                                            |
 | `codec`      | `codec/v2`      | Payload encoding: `JSONCodec{}`, `CBORCodec{}` (deterministic), `RawCodec{}`.                                                                                                                                                    |
 | `event`      | `event/v2`      | `Event`, `Store` (=`EventSink`+`EventSource`), `Bus`, `Journal`, `SeekableJournal`, `NewEvent`, `NewEvents`, `DecodePayload[T]`, 5-family errors, tombstone (`TombstoneMark`), causality (`Causation`), `Tracing`, `Checkpoint`. |
-| `command`    | `command/v2`    | `Dispatcher`, `Handler`, `RegisterTyped`, `BasicCommand`, `PersistedCommand`, `CommandSink`/`Source`, `CommandBus` (pub/sub).                                                                             |
-| `query`      | `query/v2`      | `Dispatcher`, `TypedHandler[Q,R]`, `RegisterTyped`, `PaginatedResult[T]`, `PersistedQuery`, `QuerySink`/`Source`.                                                                                           |
+| `command`    | `command/v2`    | `Dispatcher`, `Handler`, `RegisterTyped`, `BasicCommand`, `PersistedCommand`, `CommandSink`/`Source`, `CommandBus` (pub/sub).                                                                                                    |
+| `query`      | `query/v2`      | `Dispatcher`, `TypedHandler[Q,R]`, `RegisterTyped`, `PaginatedResult[T]`, `PersistedQuery`, `QuerySink`/`Source`.                                                                                                                |
 | `decider`    | `decider/v2`    | `Decider[State]{Initial, Fold}`, `Repository[State]` (`Execute`, `Load`, `LoadAtVersion`), snapshot integration.                                                                                                                 |
 
 ### Read models (Layer 4–5)
@@ -490,15 +490,15 @@ cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 
 ### Cross-cutting (Layer 4–5)
 
-| Module       | Import          | One-liner                                                                                                                                                            |
-| ------------ | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `signing`    | `signing/v2`    | `NewHMAC`, `NewEd25519`, `multisig`, `SignMiddleware`/`VerifyMiddleware`. Tamper-proof streams.                                                                      |
-| `encryption` | `encryption/v2` | `NewXChaCha20Poly1305`, `NewAES256GCM`, `Codec` wrapper, `EncryptMiddleware`/`DecryptMiddleware`, `StaticKeyResolver`.                                               |
-| `middleware` | `middleware/v2` | `Logging`, `Retry`, `Recovery`, `Validation`, `Metrics`, `CircuitBreaker`, `EventTracing`, `CommandMetrics`, etc. For command + event + query. |
-| `transport/http` | `transport/http/v2` | `NewSSEBroker`, `SSEHandler`. Bridges `event.Bus` to Server-Sent Events HTTP clients. |
-| `otel`       | `otel/v2`       | `Tracer`, `Meter`, `Spans`, `Attributes`. Re-exports — import this, not go.opentelemetry.io.                                                                         |
-| `catalog`    | `catalog/v2`    | `Registry`, `SchemaFromType[T]()`, exporters: `asyncapi`, `d2`, `eventcatalog`, `openapi`.                                                                           |
-| `watermill`  | `watermill/v2`  | `EventBus` (GoChannel-backed, replaces `memory.MemoryBus`), `CatchUpSubscriber`, `EventPublisher`, `MessageToEvent`. ADR-0028.                                       |
+| Module           | Import              | One-liner                                                                                                                                      |
+| ---------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `signing`        | `signing/v2`        | `NewHMAC`, `NewEd25519`, `multisig`, `SignMiddleware`/`VerifyMiddleware`. Tamper-proof streams.                                                |
+| `encryption`     | `encryption/v2`     | `NewXChaCha20Poly1305`, `NewAES256GCM`, `Codec` wrapper, `EncryptMiddleware`/`DecryptMiddleware`, `StaticKeyResolver`.                         |
+| `middleware`     | `middleware/v2`     | `Logging`, `Retry`, `Recovery`, `Validation`, `Metrics`, `CircuitBreaker`, `EventTracing`, `CommandMetrics`, etc. For command + event + query. |
+| `transport/http` | `transport/http/v2` | `NewSSEBroker`, `SSEHandler`. Bridges `event.Bus` to Server-Sent Events HTTP clients.                                                          |
+| `otel`           | `otel/v2`           | `Tracer`, `Meter`, `Spans`, `Attributes`. Re-exports — import this, not go.opentelemetry.io.                                                   |
+| `catalog`        | `catalog/v2`        | `Registry`, `SchemaFromType[T]()`, exporters: `asyncapi`, `d2`, `eventcatalog`, `openapi`.                                                     |
+| `watermill`      | `watermill/v2`      | `EventBus` (GoChannel-backed, replaces `memory.MemoryBus`), `CatchUpSubscriber`, `EventPublisher`, `MessageToEvent`. ADR-0028.                 |
 
 ### Tooling (Layer 6)
 

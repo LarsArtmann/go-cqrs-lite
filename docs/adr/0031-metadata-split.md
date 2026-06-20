@@ -1,10 +1,10 @@
 # ADR-0031: Kill Metadata Aliases — Embed `Tracing`, Add Typed Fields
 
-| Field   | Value        |
-| ------- | ------------ |
-| Date    | 2026-06-20   |
+| Field   | Value            |
+| ------- | ---------------- |
+| Date    | 2026-06-20       |
 | Status  | Implemented (v3) |
-| Decider | Lars Artmann |
+| Decider | Lars Artmann     |
 
 ## Context
 
