@@ -21,17 +21,21 @@
 - [ ] **jsonv2 codec experiment** — `codec/jsonv2_experiment.go` exists behind `goexperiment.jsonv2` build tag (ADR-0026). Pending Go stdlib stabilization.
 - [ ] **Arena allocation experiment** — `event/arena_experiment.go` exists behind `goexperiment.arenas` build tag (ADR-0026). Pending Go arena API stabilization.
 
-### v3 Breaking Changes (in progress)
+### v3 Breaking Changes (remaining)
 
-- [v3] **Delete ghost bus code** — `memory/bus.go` (250 LOC), `memory/command_bus.go` (150 LOC), `storage/pg_bus.go` (265 LOC), `event/reactive*.go` (258 LOC). Replacement: `watermill.EventBus`. Deprecated in v2, all presets migrated.
-- [v3] **Move memory/ stores → storage/memory/** — Stores belong under storage/. Bus deletion must happen first.
-- [v3] **Version → uint64** — 156 files use `event.Version`. Negative versions were never valid.
-- [v3] **Break command/query Metadata = event.Metadata alias** — `storage/sql.MarshalMetadata` takes `event.Metadata`. Cascades through SQL stores.
+- [v3] **Delete ghost bus code** — `event/reactive*.go` (343 LOC). Replacement: `watermill.EventBus` + `bus.SubscribeAll`. Zero production consumers since projection/ deletion.
+- [v3] **Break command/query Metadata = event.Metadata alias** — `storage/sql.MarshalMetadata` takes `event.Metadata`. Cascades through SQL stores. (ADR-0031)
 - [v3] **Remove io.Closer from core interfaces** — ADR-0010 accepted. Affects `event.Store`, `snapshot.SnapshotStore`, `command.Store`.
-- [v3] **Delete readmodel/ module** — Merged into kv/ (ADR-0032). `kv.TypedStore[T,K]` + `kv.Cache[T,K]` are the replacements.
 - [v3] **Move HTTP code out of middleware** — SSE, healthcheck, metrics_http → transport/ module.
 - [v3] **Make event Core truly immutable** — Currently opts pointer is shallow-copied on Clone.
-- [v3] **Fix query.Handler returns any** — Generic `TypedHandler[T]` returning `(T, error)`.
+
+### Completed v3 Breaking Changes
+
+- [x] ~~Move memory/ stores → storage/memory/~~ — DONE
+- [x] ~~Version → uint64~~ — DONE
+- [x] ~~Delete readmodel/ module~~ — DONE (merged into kv/, ADR-0032)
+- [x] ~~Delete projection/ module~~ — DONE (replaced by bus.SubscribeAll + stack.Materialize + CatchUpSubscriber, ADR-0030)
+- [x] ~~Fix query.Handler returns any~~ — TypedHandler shipped
 
 ---
 
@@ -52,7 +56,7 @@
 - [x] **Postgres LISTEN/NOTIFY event bus** — `storage.PostgresBus` with PgxListener.
 - [x] **WASM compilation** — 7/7 core modules compile to WASM.
 - [x] **Bundle composition layer** — `Bundle` with ISP-honest fields + 4 presets (memory, sqlite, pebble, postgres).
-- [x] **Typed read-model store + cache** — `readmodel.Store[T,K]` + `readmodel.CachedStore[T,K]`.
+- [x] **Typed read-model store + cache** — Merged into `kv.TypedStore[T,K]` + `kv.Cache[T,K]` (ADR-0032). readmodel/ deleted.
 - [x] **Typed stores** — `TypedSnapshot[State]`, `TypedCommandStore[P]`, `TypedQueryStore[P]`.
 - [x] **Schema registry validator** — `Validator` with `RegisterType[T]()`.
 - [x] **Prometheus metrics exporter** — `prometheus/` module with OTel bridge.
@@ -63,4 +67,4 @@
 
 ---
 
-_4 open items (experimental/blocked) + 9 v3 breaking changes. See [ROADMAP.md](ROADMAP.md) for long-term vision._
+_5 v3 breaking changes remaining + completed items. See [ROADMAP.md](ROADMAP.md) for long-term vision._

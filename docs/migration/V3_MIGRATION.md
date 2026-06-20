@@ -95,8 +95,8 @@ ctx = event.WithCorrelationID(ctx, corrID)
 | `memory/bus.go`           | 250 | **Already deleted** in v2.8                                                                                                   |
 | `memory/command_bus.go`   | 150 | **Already deleted** in v2.8                                                                                                   |
 | `storage/pg_bus.go`       | 265 | **NOT ghost** — live code (ADR-0027, PostgresBus). Replaced by `watermill.EventBus` with Postgres backend only at v3 boundary |
-| `event/reactive.go`       | 188 | **NOT ghost** — consumed by `projection/runner_live.go`. Removed when projection/ dissolves                                   |
-| `event/reactive_dedup.go` | 70  | **NOT ghost** — consumed by `projection/runner_live.go`. Removed when projection/ dissolves                                   |
+| `event/reactive.go`       | 239 | Zero production consumers since projection/ deletion. Candidate for v3 removal.                                              |
+| `event/reactive_dedup.go` | 104 | Zero production consumers since projection/ deletion. Candidate for v3 removal.                                              |
 
 ### Module moves (ADR-0029)
 
