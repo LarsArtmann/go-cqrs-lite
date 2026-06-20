@@ -313,6 +313,7 @@ command/method Dispatch
 command/method ID
 command/method IsZero
 command/method Load
+command/method Merge
 command/method Metadata
 command/method Metadata
 command/method Payload
@@ -336,6 +337,7 @@ command/type AggregateType
 command/type Error
 command/type Family
 command/type Handler
+command/type MetadataKey
 command/type Middleware
 command/type Option
 command/type PersistOption
@@ -1132,6 +1134,7 @@ query/method HasPrev
 query/method ID
 query/method IsZero
 query/method LoadQueries
+query/method Merge
 query/method Metadata
 query/method Metadata
 query/method Offset
@@ -1158,6 +1161,7 @@ query/type AuditLevel
 query/type Error
 query/type Family
 query/type Handler
+query/type MetadataKey
 query/type Middleware
 query/type Option
 query/type QueryPersistOption

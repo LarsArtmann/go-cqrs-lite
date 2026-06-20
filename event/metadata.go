@@ -78,8 +78,10 @@ func (m Metadata) Merge(other Metadata) Metadata {
 	}
 
 	if len(other.Custom) > 0 {
-		EnsureCustom(&result)
-		maps.Copy(result.Custom, other.Custom)
+		merged := make(map[MetadataKey]string, len(result.Custom)+len(other.Custom))
+		maps.Copy(merged, result.Custom)
+		maps.Copy(merged, other.Custom)
+		result.Custom = merged
 	}
 
 	return result

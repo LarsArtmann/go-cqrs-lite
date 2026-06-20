@@ -31,6 +31,11 @@ type Query interface {
 	Type() Type
 }
 
+// MetadataKey represents a custom metadata key for queries.
+// It is query-local so consumers adding custom metadata need not import
+// event/ for a domain-neutral string type (ADR-0031).
+type MetadataKey string
+
 // Metadata contains tracing and contextual information for queries.
 // It embeds event.Tracing for the cross-cutting tracing identifiers and adds
 // a Custom map for arbitrary key-value metadata.
@@ -42,7 +47,7 @@ type Query interface {
 type Metadata struct {
 	event.Tracing
 
-	Custom map[event.MetadataKey]string `json:"custom,omitempty"`
+	Custom map[MetadataKey]string `json:"custom,omitempty"`
 }
 
 // NewMetadata creates a Metadata with zero-value fields.
@@ -61,11 +66,28 @@ func (m Metadata) Clone() Metadata {
 	return cp
 }
 
+// Merge returns a new Metadata with non-zero tracing fields and all Custom
+// entries from other overlaid onto m. Useful for middleware that enriches
+// query metadata (e.g. correlation ID from context).
+func (m Metadata) Merge(other Metadata) Metadata {
+	result := m
+	result.Tracing = m.Tracing.Merge(other.Tracing)
+
+	if len(other.Custom) > 0 {
+		merged := make(map[MetadataKey]string, len(result.Custom)+len(other.Custom))
+		maps.Copy(merged, result.Custom)
+		maps.Copy(merged, other.Custom)
+		result.Custom = merged
+	}
+
+	return result
+}
+
 // EnsureCustom lazily initializes the Custom map if nil.
 // Call before writing to m.Custom.
 func EnsureCustom(m *Metadata) {
 	if m.Custom == nil {
-		m.Custom = make(map[event.MetadataKey]string)
+		m.Custom = make(map[MetadataKey]string)
 	}
 }
 

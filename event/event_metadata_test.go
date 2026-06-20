@@ -191,6 +191,31 @@ func TestWithMetadata_NilExisting(t *testing.T) {
 	}
 }
 
+func TestMetadataMerge_DoesNotMutateBase(t *testing.T) {
+	t.Parallel()
+
+	base := event.Metadata{
+		Custom: map[event.MetadataKey]string{"tenant": "acme"},
+	}
+	overlay := event.Metadata{
+		Custom: map[event.MetadataKey]string{"region": "us-east-1"},
+	}
+
+	merged := base.Merge(overlay)
+
+	if merged.Custom["tenant"] != "acme" {
+		t.Errorf("base Custom lost: tenant = %q", merged.Custom["tenant"])
+	}
+
+	if merged.Custom["region"] != "us-east-1" {
+		t.Errorf("overlay Custom not copied: region = %q", merged.Custom["region"])
+	}
+
+	if _, ok := base.Custom["region"]; ok {
+		t.Error("Merge mutated the base Custom map — must return a new map")
+	}
+}
+
 func TestMetadataKeyConstants(t *testing.T) {
 	t.Parallel()
 

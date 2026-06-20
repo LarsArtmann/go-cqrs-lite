@@ -146,3 +146,40 @@ func TestCommand_MetadataIsolation(t *testing.T) {
 		t.Error("mutating Metadata() return value should not affect internal state")
 	}
 }
+
+func TestCommand_MetadataMerge(t *testing.T) {
+	t.Parallel()
+
+	base := command.NewMetadata()
+	base.CorrelationID = id.NewCorrelationID()
+	command.EnsureCustom(&base)
+	base.Custom["tenant"] = "acme"
+
+	overlay := command.NewMetadata()
+	overlay.UserID = id.NewUserID()
+	command.EnsureCustom(&overlay)
+	overlay.Custom["region"] = "us-east-1"
+
+	merged := base.Merge(overlay)
+
+	if merged.CorrelationID != base.CorrelationID {
+		t.Errorf("CorrelationID not preserved: got %v, want %v",
+			merged.CorrelationID, base.CorrelationID)
+	}
+
+	if merged.UserID != overlay.UserID {
+		t.Errorf("UserID not overlaid: got %v, want %v", merged.UserID, overlay.UserID)
+	}
+
+	if merged.Custom["tenant"] != "acme" {
+		t.Errorf("base Custom lost: tenant = %q", merged.Custom["tenant"])
+	}
+
+	if merged.Custom["region"] != "us-east-1" {
+		t.Errorf("overlay Custom not copied: region = %q", merged.Custom["region"])
+	}
+
+	if _, ok := base.Custom["region"]; ok {
+		t.Error("merge mutated the base Custom map")
+	}
+}
