@@ -118,16 +118,14 @@ func realCreateSyncDb(
 ) (syncDbConnection, error) {
 	syncDb, err := tursoclient.NewTursoSyncDb(ctx, cfg)
 	if err != nil {
-		return syncDbConnection{}, fmt.Errorf(
-			"turso: NewTursoSyncDb: %w", err,
-		)
+		return syncDbConnection{}, event.WrapInfrastructure(err,
+			"turso.create_sync_db", "NewTursoSyncDb")
 	}
 
 	database, err := syncDb.Connect(ctx)
 	if err != nil {
-		return syncDbConnection{}, fmt.Errorf(
-			"turso: sync db connect: %w", err,
-		)
+		return syncDbConnection{}, event.WrapInfrastructure(err,
+			"turso.connect_sync_db", "sync db connect")
 	}
 
 	return syncDbConnection{syncDb: syncDb, db: database, engine: syncDb}, nil

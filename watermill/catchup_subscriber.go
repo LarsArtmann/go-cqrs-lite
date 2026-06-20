@@ -78,15 +78,18 @@ func NewCatchUpSubscriber(
 	logger *slog.Logger,
 ) (*CatchUpSubscriber, error) {
 	if journal == nil {
-		return nil, fmt.Errorf("watermill: journal must not be nil")
+		return nil, event.NewRejection("watermill.create_catchup_subscriber",
+			"journal must not be nil")
 	}
 
 	if live == nil {
-		return nil, fmt.Errorf("watermill: live subscriber must not be nil")
+		return nil, event.NewRejection("watermill.create_catchup_subscriber",
+			"live subscriber must not be nil")
 	}
 
 	if checkpoint == nil {
-		return nil, fmt.Errorf("watermill: checkpoint store must not be nil")
+		return nil, event.NewRejection("watermill.create_catchup_subscriber",
+			"checkpoint store must not be nil")
 	}
 
 	if logger == nil {
@@ -110,7 +113,8 @@ func (s *CatchUpSubscriber) Subscribe(ctx context.Context, topic string) (<-chan
 	defer s.mu.Unlock()
 
 	if s.closed {
-		return nil, fmt.Errorf("watermill: catch-up subscriber is closed")
+		return nil, event.NewInfrastructure("watermill.catchup_subscriber_closed",
+			"catch-up subscriber is closed")
 	}
 
 	output := make(chan *message.Message, 256)
