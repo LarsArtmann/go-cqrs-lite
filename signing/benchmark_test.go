@@ -4,22 +4,13 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2/idtest"
 )
-
-func parseAggID(s string) id.AggregateID {
-	v, err := id.ParseAggregateID(s)
-	if err != nil {
-		panic(err)
-	}
-
-	return v
-}
 
 func BenchmarkCanonicalPayload(b *testing.B) {
 	b.ReportAllocs()
 
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 	evt, _ := event.NewEvent("benchmark.created", aggID, "Benchmark", 1, []byte(`{"key":"value"}`))
 
 	b.ResetTimer()
@@ -34,7 +25,7 @@ func BenchmarkHMAC_Sign(b *testing.B) {
 
 	key := []byte("benchmark-key-thirty-two-bytes!!")
 	signer, _ := NewHMAC(key)
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 	evt, _ := event.NewEvent("benchmark.created", aggID, "Benchmark", 1, []byte(`{"key":"value"}`))
 
 	b.ResetTimer()
@@ -49,7 +40,7 @@ func BenchmarkHMAC_Verify(b *testing.B) {
 
 	key := []byte("benchmark-key-thirty-two-bytes!!")
 	signer, _ := NewHMAC(key)
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 	evt, _ := event.NewEvent("benchmark.created", aggID, "Benchmark", 1, []byte(`{"key":"value"}`))
 	sig, _ := signer.Sign(evt)
 
@@ -65,7 +56,7 @@ func BenchmarkEd25519_Sign(b *testing.B) {
 
 	_, privKey, _ := GenerateEd25519KeyPair()
 	signer, _ := NewEd25519(privKey)
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 	evt, _ := event.NewEvent("benchmark.created", aggID, "Benchmark", 1, []byte(`{"key":"value"}`))
 
 	b.ResetTimer()
@@ -81,7 +72,7 @@ func BenchmarkEd25519_Verify(b *testing.B) {
 	pubKey, privKey, _ := GenerateEd25519KeyPair()
 	signer, _ := NewEd25519(privKey)
 	verifier, _ := NewEd25519Verifier(pubKey)
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 	evt, _ := event.NewEvent("benchmark.created", aggID, "Benchmark", 1, []byte(`{"key":"value"}`))
 	sig, _ := signer.Sign(evt)
 

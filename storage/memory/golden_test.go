@@ -9,19 +9,10 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2/idtest"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v2"
 )
-
-func parseEventID(s string) id.EventID {
-	v, err := id.ParseEventID(s)
-	if err != nil {
-		panic(err)
-	}
-
-	return v
-}
 
 var update = flag.Bool("update", false, "update golden files")
 
@@ -29,7 +20,7 @@ func TestGolden_EventStoreRoundTrip(t *testing.T) {
 	store := memory.NewMemoryStore()
 	t.Cleanup(func() { _ = store.Close() })
 
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 	ref := event.NewAggregateRef("Order", aggID)
 
 	types := []struct {
@@ -48,7 +39,7 @@ func TestGolden_EventStoreRoundTrip(t *testing.T) {
 	baseTime := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 
 	for i, tc := range types {
-		evtID := parseEventID("01HK1540X0841Y0A6BSX1VKR9" + string(rune('A'+i)))
+		evtID := idtest.MustParseEventID("01HK1540X0841Y0A6BSX1VKR9" + string(rune('A'+i)))
 
 		evt, err := event.NewEvent(
 			event.Type(tc.typ), aggID, "Order", event.Version(tc.version),
@@ -109,7 +100,7 @@ func TestGolden_SnapshotStoreRoundTrip(t *testing.T) {
 	store := memory.NewMemorySnapshotStore()
 	t.Cleanup(func() { _ = store.Close() })
 
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 	ref := event.NewAggregateRef("User", aggID)
 
 	state, err := json.Marshal(map[string]string{"name": "Bob", "role": "admin"})

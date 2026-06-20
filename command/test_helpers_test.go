@@ -20,15 +20,6 @@ func mustNewCmd(
 	return cmd
 }
 
-func parseAggID(s string) id.AggregateID {
-	v, err := id.ParseAggregateID(s)
-	if err != nil {
-		panic(err)
-	}
-
-	return v
-}
-
 func noopCommandHandler() command.Handler {
 	return func(_ context.Context, _ command.Command) error {
 		return nil

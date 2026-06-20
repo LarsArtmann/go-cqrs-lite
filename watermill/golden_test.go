@@ -12,54 +12,9 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2/idtest"
 	wm "github.com/larsartmann/go-cqrs-lite/watermill/v2"
 )
-
-func parseAggID(s string) id.AggregateID {
-	v, err := id.ParseAggregateID(s)
-	if err != nil {
-		panic(err)
-	}
-
-	return v
-}
-
-func parseCausationID(s string) id.CausationID {
-	v, err := id.ParseCausationID(s)
-	if err != nil {
-		panic(err)
-	}
-
-	return v
-}
-
-func parseCorrID(s string) id.CorrelationID {
-	v, err := id.ParseCorrelationID(s)
-	if err != nil {
-		panic(err)
-	}
-
-	return v
-}
-
-func parseEventID(s string) id.EventID {
-	v, err := id.ParseEventID(s)
-	if err != nil {
-		panic(err)
-	}
-
-	return v
-}
-
-func parseUserID(s string) id.UserID {
-	v, err := id.ParseUserID(s)
-	if err != nil {
-		panic(err)
-	}
-
-	return v
-}
 
 var update = flag.Bool("update", false, "update golden files")
 
@@ -78,11 +33,11 @@ func TestGolden_MessageMetadata(t *testing.T) {
 		t.Fatalf("subscribe: %v", err)
 	}
 
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
-	evtID := parseEventID("01HK1540X0841Y0A6BSX1VKR96")
-	corrID := parseCorrID("01HK1540X0841Y0A6BSX1VKR97")
-	causID := parseCausationID("01HK1540X0841Y0A6BSX1VKR98")
-	userID := parseUserID("01HK1540X0841Y0A6BSX1VKR99")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	evtID := idtest.MustParseEventID("01HK1540X0841Y0A6BSX1VKR96")
+	corrID := idtest.MustParseCorrelationID("01HK1540X0841Y0A6BSX1VKR97")
+	causID := idtest.MustParseCausationID("01HK1540X0841Y0A6BSX1VKR98")
+	userID := idtest.MustParseUserID("01HK1540X0841Y0A6BSX1VKR99")
 
 	evt, err := event.NewEvent(
 		"order.created", aggID, "Order", 1,

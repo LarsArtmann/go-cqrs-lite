@@ -6,20 +6,11 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2/idtest"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2/internal/testutil"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2/multisig"
 )
-
-func parseAggID(s string) id.AggregateID {
-	v, err := id.ParseAggregateID(s)
-	if err != nil {
-		panic(err)
-	}
-
-	return v
-}
 
 func TestExtractMultiSignature(t *testing.T) {
 	t.Parallel()
@@ -91,7 +82,7 @@ func TestVerifyAll_FailingVerifier(t *testing.T) {
 func TestExtractMultiSignature_InvalidJSON(t *testing.T) {
 	t.Parallel()
 
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 	evt, err := event.NewEvent(
 		"test.invalid", aggID, "Test", 1, []byte(`{}`),
 		event.WithMetadata(event.Metadata{
@@ -162,7 +153,7 @@ func TestMultiSignerEndToEnd(t *testing.T) {
 		t.Fatalf("create server multi-signer: %v", err)
 	}
 
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 	deviceEvent, evtErr := event.NewEvent(
 		"user.created",
 		aggID,

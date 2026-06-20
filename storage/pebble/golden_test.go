@@ -11,27 +11,9 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2/idtest"
 	pb "github.com/larsartmann/go-cqrs-lite/storage/pebble/v2"
 )
-
-func parseAggID(s string) id.AggregateID {
-	v, err := id.ParseAggregateID(s)
-	if err != nil {
-		panic(err)
-	}
-
-	return v
-}
-
-func parseEventID(s string) id.EventID {
-	v, err := id.ParseEventID(s)
-	if err != nil {
-		panic(err)
-	}
-
-	return v
-}
 
 var update = flag.Bool("update", false, "update golden files")
 
@@ -46,7 +28,7 @@ func TestGolden_EventStoreRoundTrip(t *testing.T) {
 	store := pb.NewStore(db, nil)
 	t.Cleanup(func() { _ = db.Close() })
 
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 	ref := event.NewAggregateRef("Order", aggID)
 
 	types := []struct {
@@ -63,7 +45,7 @@ func TestGolden_EventStoreRoundTrip(t *testing.T) {
 	evts := make([]event.Event, len(types))
 
 	for i, tc := range types {
-		evtID := parseEventID("01HK1540X0841Y0A6BSX1VKR9" + string(rune('A'+i)))
+		evtID := idtest.MustParseEventID("01HK1540X0841Y0A6BSX1VKR9" + string(rune('A'+i)))
 
 		evt, err := event.NewEvent(
 			tc.typ, aggID, "Order", event.Version(tc.version),

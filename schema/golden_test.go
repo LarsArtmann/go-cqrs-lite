@@ -9,37 +9,10 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2/idtest"
 	"github.com/larsartmann/go-cqrs-lite/schema/v2"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v2"
 )
-
-func parseAggID(s string) id.AggregateID {
-	v, err := id.ParseAggregateID(s)
-	if err != nil {
-		panic(err)
-	}
-
-	return v
-}
-
-func parseCorrID(s string) id.CorrelationID {
-	v, err := id.ParseCorrelationID(s)
-	if err != nil {
-		panic(err)
-	}
-
-	return v
-}
-
-func parseEventID(s string) id.EventID {
-	v, err := id.ParseEventID(s)
-	if err != nil {
-		panic(err)
-	}
-
-	return v
-}
 
 var update = flag.Bool("update", false, "update golden files")
 
@@ -60,7 +33,7 @@ func TestGolden_UpcasterOutput(t *testing.T) {
 				event.WithEventID(evt.ID()),
 				event.WithOccurredAt(evt.OccurredAt()),
 				event.WithSchemaVersion(2),
-				event.WithCorrelationID(parseCorrID("01HK1540X0841Y0A6BSX1VKR97")),
+				event.WithCorrelationID(idtest.MustParseCorrelationID("01HK1540X0841Y0A6BSX1VKR97")),
 			)
 		},
 	)
@@ -68,8 +41,8 @@ func TestGolden_UpcasterOutput(t *testing.T) {
 	store := memory.NewMemoryStore()
 	t.Cleanup(func() { _ = store.Close() })
 
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
-	evtID := parseEventID("01HK1540X0841Y0A6BSX1VKR96")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	evtID := idtest.MustParseEventID("01HK1540X0841Y0A6BSX1VKR96")
 	ref := event.NewAggregateRef("User", aggID)
 
 	evt, err := event.NewEvent(

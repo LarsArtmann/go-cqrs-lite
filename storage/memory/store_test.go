@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2/idtest"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v2"
 )
 
@@ -16,7 +17,7 @@ func TestMemoryStore_SaveAndLoad(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 	evt1 := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 	evt2 := eventtest.QuickEvent("UserUpdated", aggID, "User", 1, nil)
 
@@ -54,7 +55,7 @@ func TestMemoryStore_VersionConflict(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 	evt := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 
 	err := store.Save(
@@ -78,7 +79,7 @@ func TestMemoryStore_AggregateNotFound(t *testing.T) {
 		ctx,
 		event.NewAggregateRef(
 			event.AggregateType("User"),
-			parseAggID("01HK154KER4E8AJ20Q4JD5TJ1E"),
+			idtest.MustParseAggregateID("01HK154KER4E8AJ20Q4JD5TJ1E"),
 		),
 	)
 	if err == nil {

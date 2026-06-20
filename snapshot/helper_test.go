@@ -6,6 +6,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2/idtest"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 )
 
@@ -78,7 +79,7 @@ func TestSaveSnapshot_Success(t *testing.T) {
 	t.Parallel()
 
 	store := &mockSink{}
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
 	err := snapshot.SaveSnapshot(
 		context.Background(),

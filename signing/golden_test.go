@@ -9,36 +9,9 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2/idtest"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2"
 )
-
-func parseAggID(s string) id.AggregateID {
-	v, err := id.ParseAggregateID(s)
-	if err != nil {
-		panic(err)
-	}
-
-	return v
-}
-
-func parseCorrID(s string) id.CorrelationID {
-	v, err := id.ParseCorrelationID(s)
-	if err != nil {
-		panic(err)
-	}
-
-	return v
-}
-
-func parseEventID(s string) id.EventID {
-	v, err := id.ParseEventID(s)
-	if err != nil {
-		panic(err)
-	}
-
-	return v
-}
 
 var updateGolden = flag.Bool("update", false, "update golden files")
 
@@ -92,8 +65,8 @@ func TestGolden_SignatureJSONEncoding(t *testing.T) {
 func fixedSignEvent(t *testing.T) event.Event {
 	t.Helper()
 
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
-	evtID := parseEventID("01HK1540X0841Y0A6BSX1VKR96")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
+	evtID := idtest.MustParseEventID("01HK1540X0841Y0A6BSX1VKR96")
 
 	evt, err := event.NewEvent(
 		"order.created", aggID, "Order", 1,
@@ -101,7 +74,7 @@ func fixedSignEvent(t *testing.T) event.Event {
 		event.WithEventID(evtID),
 		event.WithOccurredAt(time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC)),
 		event.WithSchemaVersion(2),
-		event.WithCorrelationID(parseCorrID("01HK1540X0841Y0A6BSX1VKR97")),
+		event.WithCorrelationID(idtest.MustParseCorrelationID("01HK1540X0841Y0A6BSX1VKR97")),
 	)
 	if err != nil {
 		t.Fatalf("create event: %v", err)

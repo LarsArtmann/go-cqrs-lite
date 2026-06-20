@@ -9,7 +9,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2/idtest"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 )
 
@@ -22,19 +22,10 @@ func mustEveryN(n int) snapshot.SnapshotStrategy {
 	return s
 }
 
-func parseAggID(s string) id.AggregateID {
-	v, err := id.ParseAggregateID(s)
-	if err != nil {
-		panic(err)
-	}
-
-	return v
-}
-
 var update = flag.Bool("update", false, "update golden files")
 
 func TestGolden_SnapshotStructure(t *testing.T) {
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
 	state, err := json.Marshal(map[string]string{
 		"name":  "Alice",

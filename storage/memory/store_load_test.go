@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2/idtest"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v2"
 )
 
@@ -18,7 +19,7 @@ func TestMemoryStore_LoadFromVersion(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := parseAggID("01HK154ME034FVHK95R554AKSE")
+	aggID := idtest.MustParseAggregateID("01HK154ME034FVHK95R554AKSE")
 	evt1 := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 	evt2 := eventtest.QuickEvent("UserUpdated", aggID, "User", 1, nil)
 	evt3 := eventtest.QuickEvent("UserDeleted", aggID, "User", 2, nil)
@@ -48,7 +49,7 @@ func TestMemoryStore_LoadFromVersion_NotFound(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := parseAggID("01HK154KER4E8AJ20Q4JD5TJ1E")
+	aggID := idtest.MustParseAggregateID("01HK154KER4E8AJ20Q4JD5TJ1E")
 
 	_, err := store.LoadFromVersion(
 		ctx,
@@ -66,7 +67,7 @@ func TestMemoryStore_LoadFromVersion_AtEnd(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := parseAggID("01HK154PCGXJ80RFXRASTMSSK0")
+	aggID := idtest.MustParseAggregateID("01HK154PCGXJ80RFXRASTMSSK0")
 	evt := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 	_ = store.Save(
 		ctx,
@@ -93,7 +94,7 @@ func TestMemoryStore_LoadToVersion(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 	evt1 := eventtest.QuickEvent("Created", aggID, "User", 1, nil)
 	evt2 := eventtest.QuickEvent("Updated", aggID, "User", 1, nil)
 	evt3 := eventtest.QuickEvent("Deleted", aggID, "User", 2, nil)
@@ -119,7 +120,7 @@ func TestMemoryStore_LoadToVersion_ExceedsStreamLength(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 	evt := eventtest.QuickEvent("Created", aggID, "User", 1, nil)
 
 	_ = store.AppendBatch(
@@ -143,7 +144,7 @@ func TestMemoryStore_LoadToVersion_NotFound(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
 	_, err := store.LoadToVersion(ctx, event.NewAggregateRef(event.AggregateType("User"), aggID), 5)
 	if !errors.Is(err, event.ErrAggregateNotFound) {
@@ -157,7 +158,7 @@ func TestMemoryStore_LoadToTimestamp(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
 	now, aggID := eventtest.MakeLoadToTimestampFixtures(
 		t,
@@ -184,7 +185,7 @@ func TestMemoryStore_LoadToTimestamp_NotFound(t *testing.T) {
 
 	_, err := store.LoadToTimestamp(
 		context.Background(),
-		event.NewAggregateRef("User", parseAggID("01HK1540X0841Y0A6BSX1VKR95")),
+		event.NewAggregateRef("User", idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")),
 		time.Now(),
 	)
 	if !errors.Is(err, event.ErrAggregateNotFound) {
@@ -230,7 +231,7 @@ func TestMemoryStore_LoadBackwards(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 	evt1 := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 	evt2 := eventtest.QuickEvent("UserUpdated", aggID, "User", 2, nil)
 	evt3 := eventtest.QuickEvent("UserDeleted", aggID, "User", 3, nil)
@@ -268,7 +269,7 @@ func TestMemoryStore_LoadBackwards_NotFound(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
 	backwardsLoader := event.BackwardsSource(store)
 	_, err := backwardsLoader.LoadBackwards(

@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2/idtest"
 )
 
 func parseCommandID(s string) id.CommandID {
@@ -20,7 +21,7 @@ func parseCommandID(s string) id.CommandID {
 }
 
 func validRef() command.AggregateRef {
-	return command.NewAggregateRef("User", parseAggID("01HK1540X0841Y0A6BSX1VKR95"))
+	return command.NewAggregateRef("User", idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
 }
 
 func TestNewPersistedCommand_Success(t *testing.T) {
@@ -163,7 +164,7 @@ func TestNewPersistedCommand_EmptyType(t *testing.T) {
 func TestNewPersistedCommand_EmptyAggregateType(t *testing.T) {
 	t.Parallel()
 
-	ref := command.NewAggregateRef("", parseAggID("01HK1540X0841Y0A6BSX1VKR95"))
+	ref := command.NewAggregateRef("", idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
 
 	_, err := command.NewPersistedCommand("CreateUser", ref, nil)
 	if err == nil {
@@ -261,7 +262,7 @@ func TestPersistedCommand_String(t *testing.T) {
 func TestAggregateRef_String(t *testing.T) {
 	t.Parallel()
 
-	ref := command.NewAggregateRef("User", parseAggID("01HK1540X0841Y0A6BSX1VKR95"))
+	ref := command.NewAggregateRef("User", idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"))
 	s := ref.String()
 
 	if s == "" {

@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2/idtest"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v2"
 )
 
@@ -19,7 +20,7 @@ func TestMemoryStore_Closed(t *testing.T) {
 
 	_ = store.Close()
 
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 	evt := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 
 	err := store.Save(
@@ -44,7 +45,7 @@ func TestMemoryStore_ClosedLoad(t *testing.T) {
 		ctx,
 		event.NewAggregateRef(
 			event.AggregateType("User"),
-			parseAggID("01HK1540X0841Y0A6BSX1VKR95"),
+			idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
 		),
 	)
 	if err == nil {
@@ -59,7 +60,7 @@ func TestMemoryStore_ClosedLoadFromVersion(t *testing.T) {
 	ctx := context.Background()
 	_ = store.Close()
 
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
 	_, err := store.LoadFromVersion(
 		ctx,

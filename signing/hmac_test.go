@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2/idtest"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2/internal/testutil"
 )
@@ -185,7 +186,7 @@ func TestEmptyPayloadEvent(t *testing.T) {
 	key := []byte("my-secret-key-thirty-two-bytes!!")
 	signer, _ := signing.NewHMAC(key)
 
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 	evt, err := event.NewEvent("test.empty", aggID, "Test", 1, nil)
 	if err != nil {
 		t.Fatalf("create event: %v", err)

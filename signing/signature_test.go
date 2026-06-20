@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2/idtest"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2/internal/testutil"
 )
@@ -145,7 +146,7 @@ func TestCanonicalPayload_Deterministic(t *testing.T) {
 	t.Parallel()
 
 	// Create two identical events
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 	opts := []event.Option{
 		event.WithSchemaVersion(2),
 	}
@@ -305,7 +306,7 @@ func TestSignature_UnmarshalJSON_BadBase64(t *testing.T) {
 func TestCanonicalPayload_EdgeCases(t *testing.T) {
 	t.Parallel()
 
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
 	t.Run("nil payload", func(t *testing.T) {
 		t.Parallel()
