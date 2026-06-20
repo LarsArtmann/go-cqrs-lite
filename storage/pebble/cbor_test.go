@@ -227,7 +227,10 @@ func TestEventStore_Persistence_CBOR(t *testing.T) {
 	dir := t.TempDir()
 
 	db, err := pebble.Open(
-rr != nil {
+		dir,
+		&pebble.Options{},
+	)
+	if err != nil {
 		t.Fatalf("open pebble: %v", err)
 	}
 

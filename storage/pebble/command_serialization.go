@@ -16,12 +16,18 @@ type serializableCommand struct {
 	ID            id.CommandID     `json:"id"`
 	Type          string           `json:"type"`
 	AggregateID   id.AggregateID   `json:"aggregate_id"`
-	APaymand.Metadata `json:"metadata"`
+	AggregateType string           `json:"aggregate_type"`
+	ReceivedAt    int64            `json:"received_at"`
+	Payload       []byte           `json:"payload"`
+	Metadata      command.Metadata `json:"metadata"`
 }
 
-func (s *CommandSto.ID(),
+func (s *CommandStore) serializeCommand(cmd *command.PersistedCommand) ([]byte, error) {
+	serialized := serializableCommand{
+		ID:            cmd.ID(),
 		Type:          string(cmd.Type()),
-		AggregateIDe()),
+		AggregateID:   cmd.AggregateID(),
+		AggregateType: string(cmd.AggregateType()),
 		ReceivedAt:    cmd.ReceivedAt().UnixNano(),
 		Payload:       cmd.Payload(),
 		Metadata:      cmd.Metadata(),

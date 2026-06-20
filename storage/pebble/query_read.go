@@ -99,7 +99,8 @@ func (s *QueryStore) scanQueries(
 ) ([]*query.PersistedQuery, error) {
 	iter, err := s.db.NewIter(
 		&pebble.IterOptions{
-			e(s.prefix + "\xff"),
+			LowerBound: []byte(s.prefix),
+			UpperBound: []byte(s.prefix + "\xff"),
 		},
 	)
 	if err != nil {

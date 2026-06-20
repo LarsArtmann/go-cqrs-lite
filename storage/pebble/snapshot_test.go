@@ -19,7 +19,11 @@ func newSnapshotStore(t *testing.T) *SnapshotStore {
 
 	dir := t.TempDir()
 	db, err := pebble.Open(dir, &pebble.Options{})
-c() { _ = db.Close() })
+	if err != nil {
+		t.Fatalf("open pebble: %v", err)
+	}
+
+	t.Cleanup(func() { _ = db.Close() })
 
 	return NewSnapshotStore(db, slog.Default())
 }
@@ -293,9 +297,13 @@ func TestSnapshotStore_SharedDB_WithEventStore(t *testing.T) {
 	dir := t.TempDir()
 	db, err := pebble.Open(dir, &pebble.Options{})
 	if err != nil {
-		t.Fatalf("open pe() { _ = db.Close() })
+		t.Fatalf("open pebble: %v", err)
+	}
 
-	eventStorenapStore := NewSnapshotStore(db, slog.Default())
+	t.Cleanup(func() { _ = db.Close() })
+
+	eventStore := NewStore(db, slog.Default())
+	snapStore := NewSnapshotStore(db, slog.Default())
 
 	ctx := context.Background()
 	aggID := id.NewAggregateID()

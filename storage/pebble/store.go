@@ -46,7 +46,11 @@ func NewStore(database *pebble.DB, logger *slog.Logger, opts ...StoreOption) *Ev
 	}
 
 	s := &EventStore{
-yncWrites: true,
+		storeBase: storeBase{
+			db:         database,
+			logger:     logger,
+			prefix:     "cqrs_event:",
+			syncWrites: true,
 		},
 		journalPrefix: "cqrs_journal:",
 	}

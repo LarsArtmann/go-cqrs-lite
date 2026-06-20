@@ -17,7 +17,8 @@ func newCheckpointStore(t *testing.T) *CheckpointStore {
 
 	dir := t.TempDir()
 	db, err := pebble.Open(dir, &pebble.Options{})
-ebble: %v", err)
+	if err != nil {
+		t.Fatalf("open pebble: %v", err)
 	}
 
 	t.Cleanup(func() { _ = db.Close() })
@@ -203,7 +204,10 @@ func TestCheckpointStore_SharedDB_WithEventStore(t *testing.T) {
 	dir := t.TempDir()
 	db, err := pebble.Open(dir, &pebble.Options{})
 	if err != nil {
-		t.Fatalf("open pe() { _ = db.Close() })
+		t.Fatalf("open pebble: %v", err)
+	}
+
+	t.Cleanup(func() { _ = db.Close() })
 
 	eventStore := NewStore(db, slog.Default())
 	cpStore := NewCheckpointStore(db, slog.Default())

@@ -16,7 +16,8 @@ func newPebbleTestStore(t *testing.T) *EventStore {
 
 	dir := t.TempDir()
 	db, err := pebble.Open(dir, &pebble.Options{})
-t.Fatalf("open pebble: %v", err)
+	if err != nil {
+		t.Fatalf("open pebble: %v", err)
 	}
 
 	t.Cleanup(func() { _ = db.Close() })
@@ -48,7 +49,7 @@ func TestEventStore_Close(t *testing.T) {
 	dir := t.TempDir()
 	db, err := pebble.Open(dir, &pebble.Options{})
 	if err != nil {
-		te: %v", err)
+		t.Fatalf("open pebble: %v", err)
 	}
 
 	store := NewStore(db, slog.Default())
@@ -68,7 +69,10 @@ func TestEventStore_Persistence(t *testing.T) {
 
 	db, err := pebble.Open(dir, &pebble.Options{})
 	if err != nil {
-		t.Fatalf("open pebbleore := NewStore(db, slog.Default())
+		t.Fatalf("open pebble: %v", err)
+	}
+
+	store := NewStore(db, slog.Default())
 	aggID := id.NewAggregateID()
 
 	evt := issueStoreConfig().NewTestEvent(t, aggID, 1)
@@ -232,7 +236,7 @@ func TestEventStore_WithAsyncWrites(t *testing.T) {
 		t.Fatalf("open pebble: %v", err)
 	}
 
-	t.C db.Close() })
+	t.Cleanup(func() { _ = db.Close() })
 
 	store := NewStore(db, slog.Default(), WithAsyncWrites())
 
@@ -266,7 +270,9 @@ func TestEventStore_DefaultSyncWrites(t *testing.T) {
 		t.Fatalf("open pebble: %v", err)
 	}
 
-	t.Cleanup(func() { _ = re := NewStore(db, slog.Default())
+	t.Cleanup(func() { _ = db.Close() })
+
+	store := NewStore(db, slog.Default())
 
 	if !store.syncWrites {
 		t.Fatal("syncWrites should be true by default")

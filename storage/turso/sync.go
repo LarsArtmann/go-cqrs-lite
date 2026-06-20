@@ -158,7 +158,16 @@ func OpenSyncWithConfig(
 	}
 
 	cfg := tursoclient.TursoSyncDbConfig{
-, err := createSyncDb(ctx, cfg)
+		Path:      string(dbPath),
+		RemoteUrl: string(remoteURL),
+		AuthToken: string(authToken),
+	}
+
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
+	conn, err := createSyncDb(ctx, cfg)
 	if err != nil {
 		return nil, event.WrapInfrastructure(err, "storage.open_turso_sync",
 			"open turso sync db for "+string(remoteURL))
@@ -208,9 +217,10 @@ func (t *SyncDB) Close() error {
 }
 
 // Stats returns sync statistics (WAL size, bytes sent/received).
-func rsoSyncDbStats, error) {
+func (t *SyncDB) Stats(ctx context.Context) (tursoclient.TursoSyncDbStats, error) {
 	stats, err := t.engine.Stats(ctx)
-	if err != nirage.turso_stats",
+	if err != nil {
+		return stats, event.WrapInfrastructure(err, "storage.turso_stats",
 			"turso stats")
 	}
 

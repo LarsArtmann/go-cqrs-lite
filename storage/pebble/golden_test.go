@@ -39,7 +39,8 @@ func TestGolden_EventStoreRoundTrip(t *testing.T) {
 	dir := t.TempDir()
 
 	db, err := pebble.Open(dir, &pebble.Options{})
-%v", err)
+	if err != nil {
+		t.Fatalf("open db: %v", err)
 	}
 
 	store := pb.NewStore(db, nil)

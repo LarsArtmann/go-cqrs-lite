@@ -107,18 +107,26 @@ func (a *EventStore) newPebbleIterator(
 ) (*pebbleEventIterator, error) {
 	iter, err := a.db.NewIter(
 		&pebble.IterOptions{
-urn nil, event.WrapInfrastructure(err, "pebble.stream_create_iterator",
+			LowerBound: lowerBound,
+			UpperBound: upperBound,
+		},
+	)
+	if err != nil {
+		return nil, event.WrapInfrastructure(err, "pebble.stream_create_iterator",
 			"create streaming iterator")
 	}
 
 	return &pebbleEventIterator{
 		iter:      iter,
 		store:     a,
-		skipUn		limit:     limit,
+		skipUntil: skipID,
+		skipping:  skipID != "",
+		limit:     limit,
 	}, nil
 }
 
-// LoadStrefunc (a *EventStore) LoadStream(
+// LoadStream is the streaming equivalent of Load.
+func (a *EventStore) LoadStream(
 	ctx context.Context,
 	ref event.AggregateRef,
 ) (event.EventIterator, error) {

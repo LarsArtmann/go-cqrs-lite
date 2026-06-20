@@ -56,7 +56,12 @@ func NewKVStore(database *pebble.DB, opts ...KVOption) kv.Store {
 	}
 
 	adapter := &KVAdapter{
-e opts {
+		database:   database,
+		syncWrites: false,
+		owned:      true,
+	}
+
+	for _, opt := range opts {
 		opt(adapter)
 	}
 
@@ -136,16 +141,23 @@ func (adapter *KVAdapter) NewIterator(prefix []byte) (kv.Iterator, error) {
 
 	opts := &pebble.IterOptions{}
 	if len(prefix) > 0 {
-		opts.LowerBound = pre	iter, err := adapter.database.NewIter(opts)ew iterator: %w", err)
+		opts.LowerBound = prefix
+		opts.UpperBound = prefixUpperBound(prefix)
+	}
+
+	iter, err := adapter.database.NewIter(opts)
+	if err != nil {
+		return nil, fmt.Errorf("pebble: new iterator: %w", err)
 	}
 
 	return &pebbleIterator{iter: iter}, nil
 }
 
-// ── Writer ───────────────────────────────────
+// ── Writer ───────────────────────────────────────────────────
 
 // Set implements [kv.Writer.Set].
-func (adapter *KVAdapter) Set(key,ed()
+func (adapter *KVAdapter) Set(key, value []byte) error {
+	err := adapter.checkClosed()
 	if err != nil {
 		return err
 	}
@@ -186,10 +198,11 @@ func (adapter *KVAdapter) Batch() (kv.Batch, error) {
 	}, nil
 }
 
-// ── Closer ─────────────�──────────────────────
+// ── Closer ───────────────────────────────────────────────────
 
 // Close releases the database if the adapter owns it.
-// With [WithBorrowed) Close() error {
+// With [WithBorrowedDB], Close is a no-op.
+func (adapter *KVAdapter) Close() error {
 	if !adapter.closed.CompareAndSwap(false, true) {
 		return nil
 	}

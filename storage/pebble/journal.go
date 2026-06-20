@@ -122,7 +122,13 @@ func (a *EventStore) scanJournalWithSkip(
 	limit int,
 ) ([]event.Event, bool, error) {
 	iter, err := a.db.NewIter(
-		&pebble.IterOptions{}Infrastructure(err, "pebble.scan_journal",
+		&pebble.IterOptions{
+			LowerBound: lowerBound,
+			UpperBound: upperBound,
+		},
+	)
+	if err != nil {
+		return nil, false, event.WrapInfrastructure(err, "pebble.scan_journal",
 			"create iterator")
 	}
 

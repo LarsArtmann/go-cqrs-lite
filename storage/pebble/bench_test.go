@@ -22,7 +22,8 @@ func seedPebbleBenchEvents(
 
 	dir := b.TempDir()
 	db, err := pebble.Open(dir, &pebble.Options{})
-le: %v", err)
+	if err != nil {
+		b.Fatalf("open pebble: %v", err)
 	}
 
 	b.Cleanup(func() { _ = db.Close() })

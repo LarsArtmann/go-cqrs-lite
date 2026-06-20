@@ -12,9 +12,14 @@ import (
 
 // serializableQuery is the CBOR (and legacy JSON) storage format for queries.
 type serializableQuery struct {
-	ID             id.RequestID `json:"id"`
-	Type           string       `json:"type"`
-	ReceivedAt     int64        `json:"receivederyStore) serializeQuery(q *query.PersistedQuery) ([]byte, error) {
+	ID         id.RequestID   `json:"id"`
+	Type       string         `json:"type"`
+	ReceivedAt int64          `json:"received_at"`
+	Payload    []byte         `json:"payload"`
+	Metadata   query.Metadata `json:"metadata"`
+}
+
+func (s *QueryStore) serializeQuery(q *query.PersistedQuery) ([]byte, error) {
 	serialized := serializableQuery{
 		ID:         q.ID(),
 		Type:       string(q.Type()),

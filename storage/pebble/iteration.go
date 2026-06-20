@@ -22,7 +22,13 @@ func (a *EventStore) iterateEvents(
 	shouldStop eventPredicate,
 ) ([]event.Event, error) {
 	iter, err := a.db.NewIter(
-		&pebble.IterOptions{}ructure(err, "pebble.create_iterator",
+		&pebble.IterOptions{
+			LowerBound: lowerBound,
+			UpperBound: upperBound,
+		},
+	)
+	if err != nil {
+		return nil, event.WrapInfrastructure(err, "pebble.create_iterator",
 			"failed to create iterator")
 	}
 

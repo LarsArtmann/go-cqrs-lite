@@ -21,7 +21,10 @@ func NewAutoIndexer(db *sql.DB) *indexing.AutoIndexer {
 // CQRS workloads on Turso/LibSQL databases.
 func ApplyTursoOptimizations(ctx context.Context, db *sql.DB) error {
 	return indexing.ApplyOptimizations(ctx, db)
- safe to call multiple times.
+}
+
+// ApplyCQRSIndexes creates the recommended CQRS-optimized indexes.
+// Idempotent — safe to call multiple times.
 func ApplyCQRSIndexes(ctx context.Context, db *sql.DB) error {
 	auto := indexing.NewAutoIndexer(db)
 	auto.Enable()
@@ -29,8 +32,9 @@ func ApplyCQRSIndexes(ctx context.Context, db *sql.DB) error {
 	return auto.ApplyCQRSIndexes(ctx)
 }
 
-// InitSchemaWithIndexes creates all table single call. Use this for new databases.
-fu, db *sql.DB) error {
+// InitSchemaWithIndexes creates all tables AND applies CQRS-optimized
+// indexes in a single call. Use this for new databases.
+func InitSchemaWithIndexes(ctx context.Context, db *sql.DB) error {
 	if err := InitSchema(ctx, db); err != nil {
 		return err
 	}

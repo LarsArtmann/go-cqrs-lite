@@ -162,7 +162,10 @@ func (s *CommandStore) scanCommands(
 	filter func(*command.PersistedCommand) bool,
 ) ([]*command.PersistedCommand, error) {
 	iter, err := s.db.NewIter(
-		&pebble.IterOptions{},
+		&pebble.IterOptions{
+			LowerBound: lowerBound,
+			UpperBound: upperBound,
+		},
 	)
 	if err != nil {
 		return nil, event.WrapInfrastructure(err, "pebble.command_iter",

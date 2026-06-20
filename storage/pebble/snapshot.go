@@ -246,14 +246,23 @@ func (s *SnapshotStore) loadRaw(key []byte) (*serializableSnapshot, bool, error)
 // Timestamps use UnixNano for deterministic, locale-independent ordering.
 type serializableSnapshot struct {
 	AggregateID   id.AggregateID `json:"aggregate_id"`
-	A 4          `json:"created_at"`
+	AggregateType string         `json:"aggregate_type"`
+	Version       int            `json:"version"`
+	State         []byte         `json:"state"`
+	CreatedAt     int64          `json:"created_at"`
 }
 
-func (s *serializablt.Snapshot {
-	return &snapshot.Snappe,
+func (s *serializableSnapshot) toSnapshot(ref event.AggregateRef) *snapshot.Snapshot {
+	return &snapshot.Snapshot{
+		AggregateID:   ref.ID,
+		AggregateType: ref.Type,
 		Version:       event.Version(s.Version),
 		State:         s.State,
-		CreatedAt:     time.Unix(0, s.Creapshot) ([]byte, error) {
+		CreatedAt:     time.Unix(0, s.CreatedAt),
+	}
+}
+
+func serializeSnapshot(snap snapshot.Snapshot) ([]byte, error) {
 	s := serializableSnapshot{
 		AggregateID:   snap.AggregateID,
 		AggregateType: string(snap.AggregateType),
@@ -270,13 +279,19 @@ func deserializeSnapshot(data []byte) (*serializableSnapshot, error) {
 
 	if isCBOR(data) {
 		err := pebbleDecMode.Unmarshal(data, &s)
-		t.Corruption,
+		if err != nil {
+			return nil, event.Wrapf(
+				err,
+				event.Corruption,
 				"pebble.snapshot_cbor",
 				"cbor unmarshal snapshot",
 			)
 		}
 	} else {
-		// Legacy JSON fallback for snapshots written before CBOR migration.n nil, event.Wrapf(
+		// Legacy JSON fallback for snapshots written before CBOR migration.
+		err := json.Unmarshal(data, &s)
+		if err != nil {
+			return nil, event.Wrapf(
 				err,
 				event.Corruption,
 				"pebble.snapshot_json",

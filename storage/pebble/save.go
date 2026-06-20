@@ -34,7 +34,12 @@ func (a *EventStore) countEvents(ref event.AggregateRef) (int, error) {
 
 	iter, err := a.db.NewIter(
 		&pebble.IterOptions{
-cture(err, "pebble.create_iterator",
+			LowerBound: prefix,
+			UpperBound: upperBound,
+		},
+	)
+	if err != nil {
+		return 0, event.WrapInfrastructure(err, "pebble.create_iterator",
 			"failed to create count iterator")
 	}
 
