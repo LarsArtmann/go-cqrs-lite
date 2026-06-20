@@ -15,6 +15,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
+	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v2"
 )
 
 const truncateLength = 40
@@ -40,7 +41,7 @@ func busLevelEncryption(ctx context.Context) {
 		log.Fatal(err)
 	}
 
-	bus := memory.NewMemoryBus()
+	bus := cqrswatermill.NewEventBus()
 
 	if err := bus.UsePublish(
 		encryption.EncryptMiddleware(encrypter, encryption.WithMiddlewareKeyID("key-v1")),

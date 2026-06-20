@@ -19,6 +19,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/middleware/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 	"github.com/larsartmann/go-cqrs-lite/signing/v2"
+	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v2"
 )
 
 func main() {
@@ -54,12 +55,12 @@ func main() {
 
 func setupInfrastructure() (
 	*memory.MemoryStore,
-	*memory.MemoryBus,
+	event.Bus,
 	*ReadModelStore,
 	*decider.Repository[UserState],
 ) {
 	store := memory.NewMemoryStore()
-	bus := memory.NewMemoryBus()
+	bus := cqrswatermill.NewEventBus()
 	readModel := NewReadModelStore()
 
 	userDecider := decider.Decider[UserState]{
