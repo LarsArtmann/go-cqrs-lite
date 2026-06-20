@@ -7,24 +7,20 @@ import (
 	"slices"
 	"sync"
 
+	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
-	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
+	gochannel "github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
-// EventBus is a full event.Bus implementation backed by Watermill message
-// infrastructure. It replaces memory.MemoryBus for single-process deployments
-// and serves as the canonical event bus for new code (ADR-0028).
+// EventBus is a full event.Bus implementation backed by a Watermill GoChannel.
+// It replaces memory.MemoryBus for single-process deployments and serves as
+// the canonical event bus for new code (ADR-0028).
 //
-// By default, EventBus uses an internal in-process pub/sub (no external
-// broker). For multi-process deployments, inject a message.Publisher and
-// message.Subscriber backed by Kafka, NATS, or any Watermill-compatible
-// backend via WithBackend.
-//
-// Unlike MemoryBus, EventBus exposes Watermill's correlation ID middleware
-// and supports the full event.Bus interface (Publish, Subscribe, Use,
-// UsePublish, Close).
+// GoChannel provides persistent in-process pub/sub with proper message routing,
+// Ack/Nack lifecycle, and buffer management. For multi-process deployments,
+// inject a Kafka/NATS publisher+subscriber via WithBackend.
 type EventBus struct {
 	closed bool
 	mu     sync.Mutex
@@ -77,8 +73,8 @@ func WithBackend(pub message.Publisher, sub message.Subscriber, closer io.Closer
 }
 
 // NewEventBus creates a Watermill-backed event.Bus. Without WithBackend,
-// uses an internal in-process pub/sub suitable for single-process
-// deployments and testing.
+// uses a GoChannel for persistent in-process pub/sub suitable for
+// single-process deployments and testing.
 func NewEventBus(opts ...EventBusOption) *EventBus {
 	b := &EventBus{
 		logger:       slog.Default(),
@@ -91,10 +87,15 @@ func NewEventBus(opts ...EventBusOption) *EventBus {
 	}
 
 	if b.publisher == nil || b.subscriber == nil {
-		backend := newInProcessPubSub()
-		b.publisher = backend
-		b.subscriber = backend
-		b.backend = backend
+		gc := gochannel.NewGoChannel(
+			gochannel.Config{
+				Persistent: true,
+			},
+			watermill.NopLogger{},
+		)
+		b.publisher = gc
+		b.subscriber = gc
+		b.backend = gc
 	}
 
 	b.rebuildPublisherChain()
@@ -314,88 +315,4 @@ func (b *EventBus) ensureSubscriptionLocked() {
 			}
 		}
 	}()
-}
-
-// inProcessPubSub is a minimal in-process message.Publisher + message.Subscriber.
-// It replaces Watermill's GoChannel for single-process use without adding the
-// gochannel module dependency.
-type inProcessPubSub struct {
-	mu          sync.RWMutex
-	subscribers map[string][]chan *message.Message
-	closed      bool
-}
-
-func newInProcessPubSub() *inProcessPubSub {
-	return &inProcessPubSub{subscribers: make(map[string][]chan *message.Message)}
-}
-
-func (p *inProcessPubSub) Publish(topic string, messages ...*message.Message) error {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
-
-	if p.closed {
-		return event.ErrBusClosed
-	}
-
-	subs := p.subscribers[topic]
-
-	for _, msg := range messages {
-		for _, ch := range subs {
-			select {
-			case ch <- msg:
-			default:
-			}
-		}
-	}
-
-	return nil
-}
-
-func (p *inProcessPubSub) Subscribe(ctx context.Context, topic string) (<-chan *message.Message, error) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
-	if p.closed {
-		return nil, event.ErrBusClosed
-	}
-
-	ch := make(chan *message.Message, 128)
-	p.subscribers[topic] = append(p.subscribers[topic], ch)
-
-	return ch, nil
-}
-
-func (p *inProcessPubSub) Close() error {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
-	if p.closed {
-		return nil
-	}
-
-	p.closed = true
-
-	for _, subs := range p.subscribers {
-		for _, ch := range subs {
-			close(ch)
-		}
-	}
-
-	p.subscribers = make(map[string][]chan *message.Message)
-
-	return nil
-}
-
-// CorrelationID returns the Watermill correlation ID middleware for convenience.
-// Apply via bus.Use(...) if you want correlation ID propagation.
-func CorrelationID() event.Middleware {
-	correlationMiddleware := middleware.CorrelationID
-
-	return func(next event.Handler) event.Handler {
-		return func(ctx context.Context, evt event.Event) error {
-			_ = correlationMiddleware // available for consumers who want it
-
-			return next(ctx, evt)
-		}
-	}
 }
