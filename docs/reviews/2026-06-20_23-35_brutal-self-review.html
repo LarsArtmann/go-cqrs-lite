@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Brutal Self-Review — SSE Move & Wire Format Rewrite</title>
+    <style>
+      :root {
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+        --radius: 0px;
+        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        line-height: 1.65;
+        font-size: 15px;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem;
+      }
+      h1 { font-size: 2rem; font-weight: 900; letter-spacing: -0.02em; margin-bottom: 0.3rem; }
+      h2 { font-size: 1.4rem; font-weight: 800; margin-top: 2.5rem; margin-bottom: 0.8rem; border-bottom: 2px solid var(--border-strong); padding-bottom: 0.4rem; }
+      h3 { font-size: 1.1rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+      p { margin-bottom: 0.8rem; }
+      code { font-family: var(--font-mono); font-size: 0.88em; background: var(--surface-sunken); padding: 0.1em 0.35em; }
+      pre { background: var(--surface-sunken); padding: 1rem; overflow-x: auto; margin-bottom: 1rem; border: 1px solid var(--border); }
+      pre code { background: none; padding: 0; }
+      .meta { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 2rem; }
+      .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+      .stat-card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1rem 1.2rem; text-align: center; }
+      .stat-card .num { font-size: 2rem; font-weight: 900; }
+      .stat-card .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
+      .stat-card.problem .num { color: var(--problem); }
+      .stat-card.solution .num { color: var(--solution); }
+      .stat-card.warning .num { color: var(--warning); }
+      .card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1.3rem; margin-bottom: 1rem; border-left: 4px solid var(--border-strong); }
+      .card-problem { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised)); }
+      .card-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised)); }
+      .card-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised)); }
+      .card h3 { margin-top: 0; }
+      table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; font-size: 0.88rem; }
+      th, td { text-align: left; padding: 0.5rem 0.7rem; border-bottom: 1px solid var(--border); }
+      th { font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.06em; color: var(--text-muted); }
+      .badge { display: inline-block; padding: 0.15em 0.5em; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em; }
+      .badge-p0 { background: var(--problem); color: var(--surface); }
+      .badge-p1 { background: var(--warning); color: var(--surface); }
+      .badge-p2 { background: var(--solution); color: var(--surface); }
+      .badge-done { background: var(--solution); color: var(--surface); }
+      ol { margin-bottom: 1rem; padding-left: 1.5rem; }
+      li { margin-bottom: 0.4rem; }
+      .footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); color: var(--text-faint); font-size: 0.8rem; }
+    </style>
+  </head>
+  <body>
+    <h1>Brutal Self-Review: SSE Move &amp; Wire Format Rewrite</h1>
+    <p class="meta">
+      Date: 2026-06-20 &middot; Commits: <code>8a4fdd47</code>→<code>86bace08</code> &middot;
+      Module: <code>transport/http/</code> &middot; Scope: SSE relocation + spec compliance fix + doc cleanup
+    </p>
+
+    <div class="stat-grid">
+      <div class="stat-card problem"><div class="num">2</div><div class="label">Real Bugs Found</div></div>
+      <div class="stat-card warning"><div class="num">5</div><div class="label">Doc Gaps</div></div>
+      <div class="stat-card solution"><div class="num">11</div><div class="label">New Tests</div></div>
+      <div class="stat-card"><div class="num">0</div><div class="label">Ghost Systems</div></div>
+      <div class="stat-card"><div class="num">0</div><div class="label">Split Brains</div></div>
+    </div>
+
+    <h2>1. What Did You Forget?</h2>
+
+    <div class="card card-problem">
+      <h3>SSE multi-line payload bug (spec violation)</h3>
+      <p>
+        The original SSE handler used <code>fmt.Fprintf(w, "data: %s\n\n", payload)</code> which
+        <strong>corrupts the SSE stream</strong> when payloads contain newlines. JSON pretty-printed
+        payloads or multi-line event data would silently break the browser's event parsing.
+        This was the most serious bug — a real correctness issue, not just a missing feature.
+      </p>
+      <p><strong>Status:</strong> <span class="badge badge-done">FIXED</span> — Rewrote with <code>WriteSSEEvent</code> + <code>SSEEvent</code> struct, spec-correct multi-line handling.</p>
+    </div>
+
+    <div class="card card-problem">
+      <h3>SSE missing heartbeat</h3>
+      <p>
+        Without heartbeat, SSE connections are killed by ALB/Nginx/Cloudflare after ~30-60s idle.
+        The handler loop blocked on <code>&lt;-ch</code> with no keepalive — production connections
+        would silently die.
+      </p>
+      <p><strong>Status:</strong> <span class="badge badge-done">FIXED</span> — Added 15s heartbeat ticker writing <code>: heartbeat\n\n</code> comment frames.</p>
+    </div>
+
+    <div class="card card-warning">
+      <h3>AGENTS.md test command missing <code>./otel/...</code></h3>
+      <p>
+        The documented test command was missing <code>./otel/...</code>, meaning the otel module
+        tests were never run by the documented command. Also had a stale <code>memory/</code>
+        directory reference (was merged into <code>storage/memory/</code>).
+      </p>
+      <p><strong>Status:</strong> <span class="badge badge-done">FIXED</span></p>
+    </div>
+
+    <div class="card card-warning">
+      <h3>CHANGELOG.md not updated</h3>
+      <p>
+        The SSE move and healthcheck/metrics_http/pprof deletion were not reflected in the
+        CHANGELOG. Historical entries (v2.7.0) still reference <code>middleware/sse.go</code> etc.
+      </p>
+      <p><strong>Status:</strong> <span class="badge badge-done">FIXED</span> — Added entry to Unreleased section. Historical entries preserved (they document the state at that release).</p>
+    </div>
+
+    <div class="card card-warning">
+      <h3>Two status reports listed "Move HTTP → transport" as remaining work</h3>
+      <p>
+        <code>docs/status/2026-06-20_22-48_v3-breaking-changes-complete.md</code> and the HTML
+        dashboard both listed this as a P0 remaining task, even though it was already done.
+      </p>
+      <p><strong>Status:</strong> <span class="badge badge-done">FIXED</span> — Updated .md report. HTML dashboard left as historical snapshot.</p>
+    </div>
+
+    <h2>2. What Is Something Stupid?</h2>
+
+    <div class="card card-problem">
+      <h3>fmt.Fprintf for SSE wire format</h3>
+      <p>
+        Using <code>fmt.Fprintf</code> on every SSE event is stupid because:
+        (a) it uses reflection (slow on hot paths),
+        (b) it can't handle multi-line data correctly,
+        (c) the wire format is untestable when inlined in the handler.
+      </p>
+      <p><strong>Status:</strong> <span class="badge badge-done">FIXED</span> — Replaced with <code>bytes.Buffer</code> construction in <code>WriteSSEEvent</code>.</p>
+    </div>
+
+    <div class="card card-warning">
+      <h3>SSEBroker is a non-generic reimplementation of fanOut[T]</h3>
+      <p>
+        cqrs-htmx has a battle-tested <code>fanOut[T]</code> generic pattern (keyed by channel
+        pointer for O(1) unsubscribe, shared by SSE + WebSocket). Our SSEBroker is a non-generic
+        copy of that pattern. Adopting the generic would fix the client ID race (two tabs with
+        same <code>?client=</code> param silently overwrite each other) and enable future
+        WebSocket support.
+      </p>
+      <p><strong>Status:</strong> Not yet done — deferred. Requires careful API design. Worth doing when a second transport (WebSocket) is needed.</p>
+    </div>
+
+    <h2>3. What Could You Have Done Better?</h2>
+
+    <div class="card">
+      <h3>Should have checked cqrs-htmx's SSE implementation BEFORE writing the move</h3>
+      <p>
+        The user explicitly asked to "compare this with existing implementations in cqrs-htmx."
+        I did the comparison <em>after</em> committing the initial move, which meant I shipped
+        a spec-violating bug first, then had to fix it. If I'd done the comparison <em>before</em>
+        moving the code, I'd have caught the multi-line issue upfront and shipped the correct
+        version in one commit.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>Should have added multi-line payload test before committing</h3>
+      <p>
+        The original test (<code>TestSSEHandler</code>) only checked <code>body != ""</code>. A
+        simple assertion that the body contains <code>data:</code> in spec order would have caught
+        the multi-line bug immediately.
+      </p>
+    </div>
+
+    <h2>4. What Could You Still Improve?</h2>
+
+    <table>
+      <thead><tr><th>#</th><th>Improvement</th><th>Effort</th><th>Impact</th><th>Priority</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Adopt <code>fanOut[T]</code> generic pattern (fixes client ID race, enables WebSocket)</td><td>30 min</td><td>High</td><td><span class="badge badge-p1">P1</span></td></tr>
+        <tr><td>2</td><td>Add <code>Last-Event-ID</code> reconnection support (read header, replay missed events)</td><td>45 min</td><td>High</td><td><span class="badge badge-p1">P1</span></td></tr>
+        <tr><td>3</td><td>Add <code>SSEStream</code> type (connection lifecycle: headers, flusher, heartbeat, disconnect callbacks)</td><td>30 min</td><td>Medium</td><td><span class="badge badge-p2">P2</span></td></tr>
+        <tr><td>4</td><td>Add CQRS dispatch hooks (<code>BroadcastOnSuccess</code>/<code>BroadcastOnError</code>)</td><td>20 min</td><td>Medium</td><td><span class="badge badge-p2">P2</span></td></tr>
+        <tr><td>5</td><td>Add buffer overflow drop test (verify <code>default:</code> drops silently, not blocks)</td><td>10 min</td><td>Low</td><td><span class="badge badge-p2">P2</span></td></tr>
+      </tbody>
+    </table>
+
+    <h2>5. Did We Lie?</h2>
+    <div class="card card-solution">
+      <p><strong>No.</strong> Every claim was verified with actual builds:
+      37/37 modules build + vet + test green. The SSE tests pass with <code>-race</code>.
+      API surface verified at 1593 exports. The "DecideFunc undefined" LSP warning was confirmed
+      as a stale cache artifact — <code>go build ./...</code> in the deployer-first module exits 0.</p>
+    </div>
+
+    <h2>6. How Can We Be Less Stupid?</h2>
+    <div class="card card-solution">
+      <ol>
+        <li><strong>Always cross-reference consumer implementations.</strong> cqrs-htmx is a real consumer of this library. Its SSE implementation revealed bugs we'd have caught earlier.</li>
+        <li><strong>Test the wire format.</strong> Don't inline serialization in handlers — extract it, test it independently.</li>
+        <li><strong>Run <code>-race</code> on all new concurrent code.</strong> The initial StatusOK test had a data race that <code>-race</code> caught immediately.</li>
+        <li><strong>Check doc commands actually work.</strong> The missing <code>./otel/...</code> in the test command means otel tests were silently skipped for weeks.</li>
+      </ol>
+    </div>
+
+    <h2>7. Ghost Systems?</h2>
+    <div class="card card-solution">
+      <p><strong>None found.</strong> All SSE code is real and tested. The deleted healthcheck/metrics_http/pprof had zero consumers — they were dead code, not ghost systems. No integration gaps.</p>
+    </div>
+
+    <h2>8. Scope Creep?</h2>
+    <div class="card card-solution">
+      <p><strong>No.</strong> Stayed focused on SSE correctness + documentation cleanup. Did not start the <code>fanOut[T]</code> refactor or <code>Last-Event-ID</code> implementation — those are logged as future work.</p>
+    </div>
+
+    <h2>9. Did We Remove Something Useful?</h2>
+    <div class="card card-solution">
+      <p><strong>No.</strong> Healthcheck (143 LOC), metrics_http (127 LOC), and pprof (57 LOC) all had:
+      (a) zero CQRS dependencies,
+      (b) zero consumers in any module/example/integration test,
+      (c) better alternatives already in the codebase (<code>prometheus/</code> for metrics, stdlib <code>_ "net/http/pprof"</code> for profiling).
+      Consumers write 10-line health checks themselves — as cqrs-htmx proves.</p>
+    </div>
+
+    <h2>10. Split Brains?</h2>
+    <div class="card card-solution">
+      <p><strong>None created.</strong> The SSE code lives in exactly one place (<code>transport/http/</code>). The old <code>middleware/</code> has zero HTTP code remaining. No duplicated logic.</p>
+    </div>
+
+    <h2>11. How Are We Doing on Tests?</h2>
+    <div class="card card-solution">
+      <p>Went from 3 tests to <strong>14 tests</strong> (+11). Coverage now includes:</p>
+      <ul>
+        <li>Wire format correctness (simple, multi-line, optional fields, retry)</li>
+        <li>Heartbeat format</li>
+        <li>SSEEventID validation (rejects \n, \r)</li>
+        <li>Multi-client fan-out (2+ clients receive same event)</li>
+        <li>Nil bus error path</li>
+        <li>Close() behavior (channel closed, client count → 0)</li>
+        <li>Handler wire format assertions (event:, data:, id: present)</li>
+        <li>Status code written immediately</li>
+        <li>Concurrent client stress test (10 clients, race detector)</li>
+      </ul>
+      <p><strong>Still missing:</strong> buffer overflow drop test, subscribe error path, disconnect-before-event test.</p>
+    </div>
+
+    <h2>Architectural Reflection</h2>
+
+    <div class="card">
+      <h3>Type Model Improvements Made</h3>
+      <p>The SSE type model was improved from inline <code>fmt.Fprintf</code> to:</p>
+      <pre><code>type SSEEventID string  // Branded, validates no \n/\r
+type SSEEvent struct {
+    Type  string
+    ID    SSEEventID
+    Data  string     // Multi-line handled per spec
+    Retry int        // Reconnection hint in ms
+}
+func WriteSSEEvent(w io.Writer, evt SSEEvent) error
+func WriteSSEHeartbeat(w io.Writer) error</code></pre>
+      <p>This separates the <em>data model</em> (SSEEvent) from the <em>serialization</em> (WriteSSEEvent)
+      from the <em>transport</em> (SSEHandler). Each is independently testable. The pattern mirrors
+      cqrs-htmx's <code>SSEEvent</code> + <code>WriteSSEEvent</code> design.</p>
+    </div>
+
+    <div class="card">
+      <h3>Library Awareness: cqrs-htmx fanOut[T]</h3>
+      <p>
+        The <code>fanOut[T]</code> generic in cqrs-htmx (<code>fanout.go</code>) is a
+        transport-agnostic subscriber hub: <code>map[uintptr]chan T</code> keyed by channel pointer.
+        It's shared by SSE and WebSocket broadcasters. Adopting it in go-cqrs-lite would eliminate
+        the <code>SSEClientID</code> string-keyed map race and make <code>transport/ws/</code>
+        trivial to add. This is the single highest-value architectural improvement for the
+        transport layer.
+      </p>
+    </div>
+
+    <div class="footer">
+      Generated by brutal-self-review skill &middot; go-cqrs-lite &middot; 2026-06-20
+    </div>
+  </body>
+</html>
