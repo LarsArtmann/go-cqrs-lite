@@ -2,6 +2,7 @@ package stack
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -101,7 +102,14 @@ func (m *Materialize[V, K]) handleEvent(ctx context.Context, evt event.Event) er
 
 	// Check for tombstone/rebirth marks.
 	if md.Tombstone != nil {
-		existing, _ := m.Store.Get(ctx, key)
+		existing, getErr := m.Store.Get(ctx, key)
+		if getErr != nil && !errors.Is(getErr, kv.ErrNotFound) {
+			return fmt.Errorf("materialize: load existing for tombstone: %w", getErr)
+		}
+
+		if errors.Is(getErr, kv.ErrNotFound) {
+			existing = nil
+		}
 
 		switch md.Tombstone.Status {
 		case event.TombstoneTombstoned:
@@ -130,6 +138,10 @@ func (m *Materialize[V, K]) handleEvent(ctx context.Context, evt event.Event) er
 	// Regular event: try OnUpdate first, fall back to OnCreate.
 	existing, err := m.Store.Get(ctx, key)
 	if err != nil {
+		if !errors.Is(err, kv.ErrNotFound) {
+			return fmt.Errorf("materialize: load existing: %w", err)
+		}
+
 		// Not found → create.
 		if m.OnCreate != nil {
 			val, createErr := m.OnCreate(ctx, evt)

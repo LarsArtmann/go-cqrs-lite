@@ -14,12 +14,12 @@ been prepared additively in v2 — the v2 types you should migrate to already ex
 
 | #   | Breaking Change                                     | ADR                                                     | Severity | Files Affected                                                               |
 | --- | --------------------------------------------------- | ------------------------------------------------------- | -------- | ---------------------------------------------------------------------------- |
-| 1   | Delete ghost bus implementations                    | [0028](../adr/0028-watermill-as-delivery-layer.md)      | High     | memory/bus.go, memory/command_bus.go, storage/pg_bus.go, event/reactive\*.go |
-| 2   | Move memory/ stores → storage/memory/               | [0029](../adr/0029-storage-consolidation.md)            | High     | 73 importing files                                                           |
+| 1   | Delete ghost bus implementations                    | [0028](../adr/0028-watermill-as-delivery-layer.md)      | High     | memory/bus.go (deleted), memory/command_bus.go (deleted), event/reactive\*.go          |
+| 2   | Move memory/ stores → storage/memory/               | [0029](../adr/0029-storage-consolidation.md)            | **Done**     | Already shipped in v2.8                                                      |
 | 3   | Break command/query Metadata = event.Metadata alias | [0031](../adr/0031-metadata-split.md)                   | Medium   | storage/sql/marshal.go + cascade                                             |
-| 4   | Version → uint64                                    | —                                                       | High     | 164 files                                                                    |
-| 5   | Remove io.Closer from core interfaces               | [0010](../adr/0010-remove-io-closer-from-interfaces.md) | Medium   | event.Store, snapshot.Store, command.Store                                   |
-| 6   | Delete readmodel/ module (merged into kv/)          | [0032](../adr/0032-merge-readmodel-into-kv.md)          | Low      | readmodel/go.mod, readmodel/cache/go.mod                                     |
+| 4   | Version → uint64                                    | —                                                       | **Done**     | Already shipped in v2.8                                                      |
+| 5   | Remove io.Closer from core interfaces               | [0010](../adr/0010-remove-io-closer-from-interfaces.md) | **Rejected** | Removes type safety (verschlimmbessern). ADR-0010 stays Proposed             |
+| 6   | Delete readmodel/ module (merged into kv/)          | [0032](../adr/0032-merge-readmodel-into-kv.md)          | **Done**     | Already shipped in v2.8                                                      |
 | 7   | query.Handler signature: any → generic              | —                                                       | Medium   | query/dispatcher.go                                                          |
 | 8   | encoding/json/v2 migration                          | [0026](../adr/0026-experimental-features.md)            | Low      | All golden tests                                                             |
 
@@ -30,15 +30,18 @@ been prepared additively in v2 — the v2 types you should migrate to already ex
 ### Step 1: Replace memory.MemoryBus with watermill.EventBus
 
 ```go
-// BEFORE (v2, deprecated)
-bus := memory.NewMemoryBus()
-
 // AFTER (v2 now, v3 only option)
-bus := watermill.NewEventBus()
+import cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v2"
+
+bus := cqrswatermill.NewEventBus()
 ```
 
 The EventBus API is identical (Publish, Subscribe, SubscribeAll, Use, UsePublish, Close).
 For multi-process, use `watermill.WithBackend(pub, sub, closer)` to inject Kafka/NATS.
+
+Note: `memory.NewMemoryBus()` was already deleted in v2. Use `watermill.NewEventBus()` for
+in-process delivery. `storage.PostgresBus` remains as the opt-in distributed bus via
+`stack/postgres.WithDistributedBus(listener)` — it is NOT ghost code.
 
 ### Step 2: Replace readmodel.Store with kv.TypedStore
 
@@ -87,13 +90,13 @@ ctx = event.WithCorrelationID(ctx, corrID)
 
 ### Ghost bus code (ADR-0028)
 
-| File                      | LOC | Replacement                                      |
-| ------------------------- | --- | ------------------------------------------------ |
-| `memory/bus.go`           | 250 | `watermill.EventBus`                             |
-| `memory/command_bus.go`   | 150 | Watermill command router                         |
-| `storage/pg_bus.go`       | 265 | `watermill.EventBus` with Postgres backend       |
-| `event/reactive.go`       | 188 | `watermill.EventBus` (samber/ro streams removed) |
-| `event/reactive_dedup.go` | 70  | `watermill.EventBus` built-in dedup              |
+| File                      | LOC  | Status                                              |
+| ------------------------- | ---- | --------------------------------------------------- |
+| `memory/bus.go`           | 250  | **Already deleted** in v2.8                         |
+| `memory/command_bus.go`   | 150  | **Already deleted** in v2.8                         |
+| `storage/pg_bus.go`       | 265  | **NOT ghost** — live code (ADR-0027, PostgresBus). Replaced by `watermill.EventBus` with Postgres backend only at v3 boundary |
+| `event/reactive.go`       | 188  | **NOT ghost** — consumed by `projection/runner_live.go`. Removed when projection/ dissolves |
+| `event/reactive_dedup.go` | 70   | **NOT ghost** — consumed by `projection/runner_live.go`. Removed when projection/ dissolves |
 
 ### Module moves (ADR-0029)
 

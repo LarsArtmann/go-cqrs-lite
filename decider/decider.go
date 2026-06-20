@@ -156,7 +156,7 @@ func (r *Repository[State]) Execute(
 		}
 	}
 
-	newVersion := currentVersion.Add(len(newEvents))
+	newVersion := currentVersion.Add(uint(len(newEvents)))
 
 	r.saveSnapshotAfterEvents(ctx, ref, newVersion, state, newEvents)
 

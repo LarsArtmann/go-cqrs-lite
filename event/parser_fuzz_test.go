@@ -132,7 +132,7 @@ func FuzzVersion_Arithmetic(f *testing.F) {
 		}
 
 		// Add
-		got := v.Add(n)
+		got := v.Add(uint(n))
 		if got.Int() != base+n {
 			t.Errorf("Add: got %d, want %d", got.Int(), base+n)
 		}

@@ -2,6 +2,7 @@ package stack_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -103,5 +104,49 @@ func TestMaterialize_TombstonePolicy(t *testing.T) {
 	all := stack.FilterTombstoned(results, stack.IncludeTombstoned)
 	if len(all) != 2 {
 		t.Fatalf("expected 2 total records, got %d", len(all))
+	}
+}
+
+type failingStore struct{ kv.Store }
+
+var errFailingStore = errors.New("simulated database failure")
+
+func (f *failingStore) Get(key []byte) ([]byte, error) { return nil, errFailingStore }
+func (f *failingStore) Has(key []byte) (bool, error)   { return false, errFailingStore }
+func (f *failingStore) NewIterator(prefix []byte) (kv.Iterator, error) {
+	return nil, errFailingStore
+}
+
+func TestMaterialize_StoreGetErrorPropagates(t *testing.T) {
+	t.Parallel()
+
+	memStore := kv.NewMemStore()
+	defer memStore.Close()
+
+	ts := kv.NewTypedStore[userView, stringKey](&failingStore{Store: memStore})
+
+	mat := stack.Materialize[userView, stringKey]{
+		Store:        ts,
+		KeyFromEvent: func(evt event.Event) (stringKey, error) { return stringKey(evt.AggregateID().String()), nil },
+		OnCreate: func(_ context.Context, _ event.Event) (*userView, error) {
+			t.Fatal("OnCreate should NOT be called when store returns a real error")
+
+			return nil, nil
+		},
+	}
+
+	aggID := id.NewAggregateID()
+	evt, _ := event.NewEvent(event.Type("user.created"), aggID, "User", event.Version(1), nil)
+
+	msg := buildTestMessage(evt, "user.created")
+	handler := mat.HandlerFunc()
+
+	err := handler(msg)
+	if err == nil {
+		t.Fatal("expected error from store failure, got nil")
+	}
+
+	if !errors.Is(err, errFailingStore) {
+		t.Fatalf("expected error to wrap errFailingStore, got: %v", err)
 	}
 }

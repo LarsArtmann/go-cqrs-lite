@@ -125,7 +125,12 @@ func (b *PostgresBus) refetchByVersion(ctx context.Context, np notifyPayload) (e
 	var lastErr error
 
 	for range b.opts.refetchAttempts {
-		events, loadErr := b.store.LoadFromVersion(ctx, ref, np.Version-1)
+		loadVersion := np.Version
+		if loadVersion > 0 {
+			loadVersion--
+		}
+
+		events, loadErr := b.store.LoadFromVersion(ctx, ref, loadVersion)
 		if loadErr == nil {
 			for _, evt := range events {
 				if evt.Version() == np.Version {

@@ -35,7 +35,7 @@ func NewEvents(
 	events := make([]Event, len(eventTypes))
 
 	for i := range eventTypes {
-		evtVersion := version.Add(i + 1)
+		evtVersion := version.Add(uint(i + 1))
 
 		evt, err := New(
 			eventTypes[i],
