@@ -48,6 +48,18 @@ type PgxListener struct {
 	closed    atomic.Bool
 }
 
+// Concurrency invariant for conn, cancelFn, and channel:
+//
+// These fields are touched by exactly two goroutines — the background
+// receiveLoop and the caller's Close. receiveLoop reads/writes conn inside
+// receiveOnce and reconnect; Close reads/writes conn when releasing it. The two
+// CANNOT overlap because Close waits on <-l.done (closed by receiveLoop's
+// deferred doneClose) before touching conn. Per the Go memory model, the
+// close(done) → <-done edge establishes happens-before, so Close always observes
+// receiveLoop's final conn write and never races it. This is channel-based
+// synchronization by design — a mutex here would needlessly serialize the
+// notification hot path. See TestPgxListener_ConnAccessRaceFree.
+
 // Compile-time check that PgxListener satisfies the bus's listener contract.
 var _ storage.NotificationListener = (*PgxListener)(nil)
 

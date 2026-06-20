@@ -14,22 +14,35 @@ import (
 
 // Metadata keys for event field mapping.
 const (
-	metaEventID       = "event_id"
-	metaEventType     = "event_type"
-	metaAggregateID   = "aggregate_id"
-	metaAggregateType = "aggregate_type"
-	metaVersion       = "version"
-	metaSchemaVersion = "schema_version"
-	metaOccurredAt    = "occurred_at"
-	metaCorrelationID = "correlation_id"
-	metaCausationID   = "causation_id"
-	metaUserID        = "user_id"
-	metaRequestID     = "request_id"
-	metaSource        = "source"
-	metaIPAddress     = "ip_address"
-	metaUserAgent     = "user_agent"
-	metaCustomPrefix  = "custom."
+	metaEventID         = "event_id"
+	metaEventType       = "event_type"
+	metaAggregateID     = "aggregate_id"
+	metaAggregateType   = "aggregate_type"
+	metaVersion         = "version"
+	metaSchemaVersion   = "schema_version"
+	metaOccurredAt      = "occurred_at"
+	metaCorrelationID   = "correlation_id"
+	metaCausationID     = "causation_id"
+	metaUserID          = "user_id"
+	metaRequestID       = "request_id"
+	metaSource          = "source"
+	metaIPAddress       = "ip_address"
+	metaUserAgent       = "user_agent"
+	metaTombstoneStatus = "tombstone_status"
+	metaTombstoneReason = "tombstone_reason"
+	metaCustomPrefix    = "custom."
 )
+
+// EventToMessage maps a go-cqrs-lite event to a Watermill message.
+// All event fields are preserved in message metadata; payload is stored as message payload.
+//
+// It is the inverse of [MessageToEvent]. Exported so callers that drive
+// Materialize (or any Watermill handler) from a known event stream — e.g.
+// replaying an ordered journal synchronously — can build messages without
+// duplicating the field-mapping protocol.
+func EventToMessage(evt event.Event) *message.Message {
+	return eventToMessage(evt)
+}
 
 // eventToMessage maps a go-cqrs-lite event to a Watermill message.
 // All event fields are preserved in message metadata; payload is stored as message payload.
@@ -66,6 +79,12 @@ func eventToMessage(evt event.Event) *message.Message {
 	}
 	if m.UserAgent != "" {
 		md.Set(metaUserAgent, string(m.UserAgent))
+	}
+	if m.Tombstone != nil {
+		md.Set(metaTombstoneStatus, strconv.Itoa(int(m.Tombstone.Status)))
+		if m.Tombstone.Reason != "" {
+			md.Set(metaTombstoneReason, m.Tombstone.Reason)
+		}
 	}
 	for k, v := range m.Custom {
 		md.Set(metaCustomPrefix+string(k), v)
@@ -224,6 +243,18 @@ func buildMetadata(md message.Metadata) (event.Metadata, error) {
 	}
 	if v := md.Get(metaUserAgent); v != "" {
 		m.UserAgent = event.UserAgent(v)
+	}
+
+	if statusStr := md.Get(metaTombstoneStatus); statusStr != "" {
+		if statusInt, err := strconv.Atoi(statusStr); err == nil {
+			mark := event.TombstoneMark{
+				Status: event.TombstoneStatus(statusInt),
+				Reason: md.Get(metaTombstoneReason),
+			}
+			m.Tombstone = &mark
+		} else {
+			errs = append(errs, fmt.Errorf("parse %s: %w", metaTombstoneStatus, err))
+		}
 	}
 
 	for k, v := range md {

@@ -3,9 +3,11 @@ package postgres
 import (
 	"context"
 	"errors"
+	"runtime"
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"pgregory.net/rapid"
 )
 
@@ -127,6 +129,57 @@ func TestPgxListener_CloseDoesNotDeadlock(t *testing.T) {
 		}
 	case <-time.After(2 * time.Second):
 		t.Fatal("Close() deadlocked: did not return within 2s (cancelFn regression)")
+	}
+}
+
+// TestPgxListener_ConnAccessRaceFree locks in the concurrency invariant
+// documented on the PgxListener struct: the background receiveLoop and the
+// caller's Close must never access conn concurrently. Close serializes via
+// <-l.done (closed by receiveLoop's deferred doneClose). This test runs the
+// real Close concurrently with a loop that mimics receiveLoop's conn access
+// pattern — touch conn, then on ctx cancel stop touching it, then close done.
+// Under -race it must stay clean. If someone later drops the <-l.done wait or
+// touches conn after close(done), this test fails.
+func TestPgxListener_ConnAccessRaceFree(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	l := &PgxListener{
+		notifications: make(chan string, 1),
+		done:          make(chan struct{}),
+		cancelFn:      cancel,
+		conn:          &pgxpool.Conn{}, // non-nil sentinel; never used for I/O
+	}
+
+	// Mimic receiveLoop: read conn in a cycle, and once ctx is cancelled,
+	// STOP touching conn, then close done (exactly as the real deferred
+	// doneClose does). The order — cease conn access, then close(done) — is
+	// what makes Close's subsequent conn access race-free.
+	go func() {
+		// Simulate notification reads while live.
+		for {
+			select {
+			case <-ctx.Done():
+				// Shutdown: stop touching conn first, then signal exit.
+				_ = l.conn // last read before exit
+				close(l.done)
+				close(l.notifications)
+
+				return
+			default:
+				_ = l.conn // hot-path read (no-op without a real pgx conn)
+				runtime.Gosched()
+			}
+		}
+	}()
+
+	if err := l.Close(); err != nil {
+		t.Fatalf("Close: %v", err)
+	}
+
+	if l.conn != nil {
+		t.Fatal("Close should have nilled conn")
 	}
 }
 

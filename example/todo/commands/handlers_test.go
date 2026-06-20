@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/commands"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
@@ -20,7 +21,7 @@ type commandHandlers struct {
 func setupCommandHandlers(t *testing.T) commandHandlers {
 	t.Helper()
 	store := cqrsMemory.NewMemoryStore()
-	bus := cqrsMemory.NewMemoryBus()
+	bus := eventtest.NewFakeBus()
 
 	return commandHandlers{
 		create: commands.NewCreateTodoHandler(store, bus),

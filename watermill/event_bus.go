@@ -94,7 +94,8 @@ func NewEventBus(opts ...EventBusOption) *EventBus {
 	if b.publisher == nil || b.subscriber == nil {
 		gc := gochannel.NewGoChannel(
 			gochannel.Config{
-				Persistent: true,
+				Persistent:                     true,
+				BlockPublishUntilSubscriberAck: true,
 			},
 			watermill.NopLogger{},
 		)

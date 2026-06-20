@@ -95,4 +95,5 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/stack/v2 => ../../stack
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 => ../../storage/memory
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v2 => ../../storage/pebble
+	github.com/larsartmann/go-cqrs-lite/watermill/v2 => ../../watermill
 )

@@ -14,6 +14,43 @@ import (
 	wm "github.com/larsartmann/go-cqrs-lite/watermill/v2"
 )
 
+func TestMessageToEvent_TombstoneRoundtrip(t *testing.T) {
+	t.Parallel()
+
+	evt, err := event.NewEvent(
+		"user.deleted",
+		id.NewAggregateID(),
+		"User",
+		event.Version(1),
+		[]byte(`{}`),
+	)
+	if err != nil {
+		t.Fatalf("create event: %v", err)
+	}
+
+	marked, err := event.MarkTombstone(evt)
+	if err != nil {
+		t.Fatalf("mark tombstone: %v", err)
+	}
+
+	// EventToMessage → MessageToEvent must preserve the tombstone mark.
+	msg := wm.EventToMessage(marked)
+
+	roundtripped, err := wm.MessageToEvent("user.deleted", msg)
+	if err != nil {
+		t.Fatalf("MessageToEvent: %v", err)
+	}
+
+	md := roundtripped.Metadata()
+	if md.Tombstone == nil {
+		t.Fatal("tombstone mark lost in round-trip")
+	}
+
+	if !md.Tombstone.Status.IsTombstoned() {
+		t.Fatalf("tombstone status = %v, want TombstoneTombstoned", md.Tombstone.Status)
+	}
+}
+
 func TestPublisherAdapter_PublishFails(t *testing.T) {
 	t.Parallel()
 
