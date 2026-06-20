@@ -6,10 +6,10 @@ code is identical regardless of the choice.
 
 ## The split
 
-| Role     | Responsibility                                          | Code            |
-| -------- | ------------------------------------------------------- | --------------- |
-| Deployer | Pick infrastructure (memory / SQLite / Pebble)          | `main.go`       |
-| Consumer | Define the domain + how events build a read model       | `domain.go`, `view.go` |
+| Role     | Responsibility                                    | Code                   |
+| -------- | ------------------------------------------------- | ---------------------- |
+| Deployer | Pick infrastructure (memory / SQLite / Pebble)    | `main.go`              |
+| Consumer | Define the domain + how events build a read model | `domain.go`, `view.go` |
 
 Swapping memory for SQLite is a one-line change in `main.go`.
 

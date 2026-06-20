@@ -712,9 +712,15 @@
       .progress-seg {
         height: 100%;
       }
-      .progress-seg-done { background: var(--solution); }
-      .progress-seg-partial { background: var(--warning); }
-      .progress-seg-open { background: var(--surface-sunken); }
+      .progress-seg-done {
+        background: var(--solution);
+      }
+      .progress-seg-partial {
+        background: var(--warning);
+      }
+      .progress-seg-open {
+        background: var(--surface-sunken);
+      }
       .progress-legend {
         display: flex;
         gap: 1.5rem;
@@ -728,9 +734,15 @@
         content: "■ ";
         margin-right: 0.3rem;
       }
-      .progress-legend .leg-done::before { color: var(--solution); }
-      .progress-legend .leg-partial::before { color: var(--warning); }
-      .progress-legend .leg-open::before { color: var(--surface-sunken); }
+      .progress-legend .leg-done::before {
+        color: var(--solution);
+      }
+      .progress-legend .leg-partial::before {
+        color: var(--warning);
+      }
+      .progress-legend .leg-open::before {
+        color: var(--surface-sunken);
+      }
       .finding {
         background: var(--surface-raised);
         border: 1px solid var(--border);
@@ -738,7 +750,9 @@
         padding: 1rem 1.2rem;
         margin: 1rem 0;
       }
-      .finding strong { color: var(--accent); }
+      .finding strong {
+        color: var(--accent);
+      }
     </style>
   </head>
   <body>
@@ -2093,12 +2107,16 @@
           <div class="migration-step">
             <div class="migration-num">✓</div>
             <div class="migration-content">
-              <h4>Migration 1: Commit to Watermill as delivery layer — <span class="status-badge status-done">DONE</span></h4>
+              <h4>
+                Migration 1: Commit to Watermill as delivery layer —
+                <span class="status-badge status-done">DONE</span>
+              </h4>
               <p>
                 <code>watermill/</code> is bidirectional (<code>EventBus</code> = Publisher +
                 Subscriber over GoChannel). The default EventBus config uses
-                <code>Persistent: false</code> + <code>BlockPublishUntilSubscriberAck: true</code>
-                for ordered delivery. <code>EventPublisher</code> (cqrs→Watermill) and
+                <code>Persistent: false</code> +
+                <code>BlockPublishUntilSubscriberAck: true</code> for ordered delivery.
+                <code>EventPublisher</code> (cqrs→Watermill) and
                 <code>CatchUpSubscriber</code> (Watermill→cqrs with replay→live handoff) are both
                 live. The old <code>MemoryBus</code> was deleted (replaced by
                 <code>eventtest.NewFakeBus()</code> for tests). ADR-0027 documents the decision.
@@ -2122,7 +2140,10 @@
           <div class="migration-step">
             <div class="migration-num">✓</div>
             <div class="migration-content">
-              <h4>readmodel/ → kv/ merge (half of Migration 2) — <span class="status-badge status-done">DONE</span></h4>
+              <h4>
+                readmodel/ → kv/ merge (half of Migration 2) —
+                <span class="status-badge status-done">DONE</span>
+              </h4>
               <p>
                 <code>readmodel/</code> module (482 LOC, 14 files, 2 Go modules) deleted entirely.
                 <code>readmodel.Store[T,K]</code> was character-for-character identical to
@@ -2139,11 +2160,13 @@
           <div class="migration-step">
             <div class="migration-num">✓</div>
             <div class="migration-content">
-              <h4>Migration 3: Consolidate storage backends — <span class="status-badge status-done">DONE</span></h4>
+              <h4>
+                Migration 3: Consolidate storage backends —
+                <span class="status-badge status-done">DONE</span>
+              </h4>
               <p>
-                <code>pebble/</code> → <code>storage/pebble/</code>.
-                <code>turso/</code> → <code>storage/turso/</code>.
-                <code>memory/</code> → <code>storage/memory/</code>.
+                <code>pebble/</code> → <code>storage/pebble/</code>. <code>turso/</code> →
+                <code>storage/turso/</code>. <code>memory/</code> → <code>storage/memory/</code>.
                 All three moved under <code>storage/</code> using subpath modules. The
                 <code>storage/sql/</code> dialect helpers (<code>RunInTx</code>,
                 <code>IsDuplicateKeyError</code>, <code>ScanSlice</code>) are shared by all SQL
@@ -2159,15 +2182,19 @@
           <div class="migration-step">
             <div class="migration-num">✓</div>
             <div class="migration-content">
-              <h4>Migration 5: Multi-DB SQLite preset + query audit middleware — <span class="status-badge status-done">DONE</span></h4>
+              <h4>
+                Migration 5: Multi-DB SQLite preset + query audit middleware —
+                <span class="status-badge status-done">DONE</span>
+              </h4>
               <p>
                 <code>WithEventDB</code> and <code>WithQueryDB</code> are now wired (were dead
                 options that silently lied — the option existed but did nothing). Added
                 <code>openSecondaryStores()</code> helper that opens a secondary SQLite backend,
                 creates stores, and returns <code>stack.Option</code> values. A
-                <code>multiCloser</code> type handles cleanup. <code>query.AuditMiddleware</code>
-                exists (<code>query.AuditFull</code> / <code>AuditMetadata</code> /
-                <code>AuditOff</code>), wired via <code>stack.QueryAuditMiddleware()</code>.
+                <code>multiCloser</code> type handles cleanup.
+                <code>query.AuditMiddleware</code> exists (<code>query.AuditFull</code> /
+                <code>AuditMetadata</code> / <code>AuditOff</code>), wired via
+                <code>stack.QueryAuditMiddleware()</code>.
               </p>
               <p>
                 <strong>Not done:</strong> <code>WithAutoIndexing()</code> (the smart index advisor
@@ -2176,8 +2203,8 @@
                 preset.
               </p>
               <div class="migration-meta">
-                <span>WithEventDB/WithQueryDB wired</span
-                ><span>query.AuditMiddleware shipped</span><span>AutoIndexing deferred</span>
+                <span>WithEventDB/WithQueryDB wired</span><span>query.AuditMiddleware shipped</span
+                ><span>AutoIndexing deferred</span>
               </div>
             </div>
           </div>
@@ -2187,11 +2214,11 @@
             <div class="migration-content">
               <h4>stack.Materialize[V,K] — <span class="status-badge status-done">DONE</span></h4>
               <p>
-                Tombstone-aware materialized view builder over <code>kv.TypedStore</code>.
-                OnCreate / OnUpdate / OnTombstone / OnRebirth callbacks.
-                <code>HandlerFunc()</code> returns a Watermill-compatible handler.
-                <code>List()</code> with <code>IncludeTombstoned</code> /
-                <code>ExcludeTombstoned</code> / <code>OnlyTombstoned</code> policies.
+                Tombstone-aware materialized view builder over <code>kv.TypedStore</code>. OnCreate
+                / OnUpdate / OnTombstone / OnRebirth callbacks. <code>HandlerFunc()</code> returns a
+                Watermill-compatible handler. <code>List()</code> with
+                <code>IncludeTombstoned</code> / <code>ExcludeTombstoned</code> /
+                <code>OnlyTombstoned</code> policies.
                 <code>stack.NewMaterialize[V,K]()</code> accessor constructs from Bundle.
               </p>
               <p>
@@ -2210,7 +2237,10 @@
           <div class="migration-step">
             <div class="migration-num">✓</div>
             <div class="migration-content">
-              <h4>CatchUpSubscriber (replay → live handoff) — <span class="status-badge status-done">DONE</span></h4>
+              <h4>
+                CatchUpSubscriber (replay → live handoff) —
+                <span class="status-badge status-done">DONE</span>
+              </h4>
               <p>
                 <code>~300 LOC</code> Watermill <code>message.Subscriber</code> implementation.
                 Phase 1: replay from <code>SeekableJournal</code> (ordered, with
@@ -2221,16 +2251,17 @@
               <div class="callout callout-problem">
                 <strong>Watermill Router CANNOT be used for ordered projections.</strong>
                 The Router processes messages in <strong>parallel</strong> — one goroutine per
-                message (<code>router.go:30</code>: <em>"HandlerFunc's are executed parallel when
-                multiple messages were received"</em>). For ordered projections, consume the
-                CatchUpSubscriber's output channel from a <strong>single goroutine</strong> (FIFO).
-                This is documented in <code>example/deployer-first/README.md</code> and
-                <code>AGENTS.md</code>. The original review's diagram showing
+                message (<code>router.go:30</code>:
+                <em>"HandlerFunc's are executed parallel when multiple messages were received"</em
+                >). For ordered projections, consume the CatchUpSubscriber's output channel from a
+                <strong>single goroutine</strong> (FIFO). This is documented in
+                <code>example/deployer-first/README.md</code> and <code>AGENTS.md</code>. The
+                original review's diagram showing
                 <code>projection.Runner → Watermill Router</code> was wrong on this point.
               </div>
               <div class="migration-meta">
-                <span>watermill/catchup_subscriber.go</span
-                ><span>~300 LOC</span><span>Replay + live + dedup + checkpoint</span>
+                <span>watermill/catchup_subscriber.go</span><span>~300 LOC</span
+                ><span>Replay + live + dedup + checkpoint</span>
               </div>
             </div>
           </div>
@@ -2238,7 +2269,9 @@
           <div class="migration-step">
             <div class="migration-num">✓</div>
             <div class="migration-content">
-              <h4>Version.Add(uint) type safety — <span class="status-badge status-done">DONE</span></h4>
+              <h4>
+                Version.Add(uint) type safety — <span class="status-badge status-done">DONE</span>
+              </h4>
               <p>
                 <code>event.Version</code> changed from <code>int</code> to <code>uint64</code>.
                 <code>Add(n uint)</code> makes negative input a compile-time error — no runtime
@@ -2258,32 +2291,47 @@
           <div class="migration-step">
             <div class="migration-num">⚠</div>
             <div class="migration-content">
-              <h4>Dissolve projection/ (other half of Migration 2) — <span class="status-badge status-partial">20% DONE</span></h4>
+              <h4>
+                Dissolve projection/ (other half of Migration 2) —
+                <span class="status-badge status-partial">20% DONE</span>
+              </h4>
               <p>
                 The replacement components are built and proven:
                 <code>stack.Materialize</code> + <code>CatchUpSubscriber</code> +
                 <code>example/deployer-first</code>. But the old code is still present:
               </p>
               <ul>
-                <li><code>projection/</code> — 34 .go files, 1343 LOC production — fully present</li>
-                <li><code>example/user/handlers.go</code> — uses <code>projection.NewRunner</code></li>
-                <li><code>example/todo/cmd/api/setup.go</code> — uses <code>projection.NewRunner</code></li>
-                <li><code>cmd/cqrs-gen/generate.go</code> — emits <code>projection.On[...]</code> code</li>
-                <li><code>stack.ProjectionRunner()</code> + <code>var _ = projection.Runner{}</code> — still in stack/</li>
+                <li>
+                  <code>projection/</code> — 34 .go files, 1343 LOC production — fully present
+                </li>
+                <li>
+                  <code>example/user/handlers.go</code> — uses <code>projection.NewRunner</code>
+                </li>
+                <li>
+                  <code>example/todo/cmd/api/setup.go</code> — uses
+                  <code>projection.NewRunner</code>
+                </li>
+                <li>
+                  <code>cmd/cqrs-gen/generate.go</code> — emits <code>projection.On[...]</code> code
+                </li>
+                <li>
+                  <code>stack.ProjectionRunner()</code> + <code>var _ = projection.Runner{}</code> —
+                  still in stack/
+                </li>
               </ul>
               <div class="callout callout-warning">
                 <strong>Blocking decision: DistributedRunner.</strong> The review's diagram showed
-                <code>projection.DistributedRunner → Watermill Router + leader election plugin</code>.
-                But Watermill has no built-in leader election. DistributedRunner provides:
-                leader election (pluggable <code>LeaderElection</code> interface),
-                health checks (<code>HealthCheck</code>, <code>DetailedHealthCheck</code>,
-                <code>RegisteredProjections</code>),
-                dead-letter handler (<code>WithDeadLetterHandler</code>),
-                parallelism (<code>WithParallelism</code>),
+                <code>projection.DistributedRunner → Watermill Router + leader election plugin</code
+                >. But Watermill has no built-in leader election. DistributedRunner provides: leader
+                election (pluggable <code>LeaderElection</code> interface), health checks
+                (<code>HealthCheck</code>, <code>DetailedHealthCheck</code>,
+                <code>RegisteredProjections</code>), dead-letter handler
+                (<code>WithDeadLetterHandler</code>), parallelism (<code>WithParallelism</code>),
                 and dedup (<code>WithDedupCapacity</code>).
                 <strong>None of these have composable equivalents.</strong>
                 Deleting projection/ without a successor removes a working, tested distributed
-                projection system. ADR-0030 status: <code>Accepted</code> (not <code>Implemented</code>).
+                projection system. ADR-0030 status: <code>Accepted</code> (not
+                <code>Implemented</code>).
               </div>
               <div class="migration-meta">
                 <span>Replacement proven</span><span>Old code not deleted</span
@@ -2295,7 +2343,10 @@
           <div class="migration-step">
             <div class="migration-num">⚠</div>
             <div class="migration-content">
-              <h4>Migration 6: Evolve Decider[State, Cmd] — <span class="status-badge status-partial">30% DONE</span></h4>
+              <h4>
+                Migration 6: Evolve Decider[State, Cmd] —
+                <span class="status-badge status-partial">30% DONE</span>
+              </h4>
               <p>
                 <code>decider.TypedDecider[State, Cmd]</code> exists with <code>Decide</code> field
                 (not passed per-call). <code>decider.TypedRepository[State, Cmd]</code> wraps
@@ -2307,12 +2358,13 @@
                 <code>Fold</code> (not renamed to <code>Apply</code>). <code>Decide</code> is NOT a
                 field on the legacy Decider — it's passed per-call as <code>DecideFunc</code>. The
                 two-type-param Decider (<code>Decider[State, Cmd]</code>) exists as
-                <code>TypedDecider</code>, not as a replacement. The rename
-                (<code>Fold → Apply</code>) was not done to avoid breaking all consumers.
+                <code>TypedDecider</code>, not as a replacement. The rename (<code
+                  >Fold → Apply</code
+                >) was not done to avoid breaking all consumers.
               </p>
               <div class="migration-meta">
-                <span>TypedDecider[State, Cmd] exists</span
-                ><span>Decider[State] unchanged</span><span>Fold not renamed to Apply</span>
+                <span>TypedDecider[State, Cmd] exists</span><span>Decider[State] unchanged</span
+                ><span>Fold not renamed to Apply</span>
               </div>
             </div>
           </div>
@@ -2320,7 +2372,10 @@
           <div class="migration-step">
             <div class="migration-num">⚠</div>
             <div class="migration-content">
-              <h4>Theme B2: Promote typed metadata fields — <span class="status-badge status-partial">40% DONE</span></h4>
+              <h4>
+                Theme B2: Promote typed metadata fields —
+                <span class="status-badge status-partial">40% DONE</span>
+              </h4>
               <p>
                 <code>TombstoneMark</code> struct exists (typed: <code>Status</code> +
                 <code>Reason</code>). <code>Causation</code> struct exists (typed).
@@ -2332,14 +2387,14 @@
               </p>
               <p>
                 <strong>Not done:</strong>
-                <code>SecurityEnvelope</code> does NOT exist as a typed field.
-                The 12 first-class domain concepts the review identified are still partially in
+                <code>SecurityEnvelope</code> does NOT exist as a typed field. The 12 first-class
+                domain concepts the review identified are still partially in
                 <code>Custom map[MetadataKey]string</code>. Command-specific fields
                 (<code>RetryCount</code>, <code>IdempotencyKey</code>) not added.
               </p>
               <div class="migration-meta">
-                <span>TombstoneMark + Causation typed</span
-                ><span>SecurityEnvelope not built</span><span>Custom map still used</span>
+                <span>TombstoneMark + Causation typed</span><span>SecurityEnvelope not built</span
+                ><span>Custom map still used</span>
               </div>
             </div>
           </div>
@@ -2350,20 +2405,23 @@
           <div class="migration-step">
             <div class="migration-num">○</div>
             <div class="migration-content">
-              <h4>Migration 4: Kill Metadata aliases — <span class="status-badge status-blocked">0% — BLOCKED ON DECISION</span></h4>
+              <h4>
+                Migration 4: Kill Metadata aliases —
+                <span class="status-badge status-blocked">0% — BLOCKED ON DECISION</span>
+              </h4>
               <p>
                 <code>command.Metadata = event.Metadata</code> (command/metadata.go:11) and
                 <code>query.Metadata = event.Metadata</code> (query/query.go:36) aliases intact.
-                Only 4 consumer files reference these types (all in storage/ serialization). But
-                the alias means commands inherit <code>CausationID</code> (meaningless for queries)
-                and queries inherit tombstone metadata (event-specific). Breaking change. ADR-0031
+                Only 4 consumer files reference these types (all in storage/ serialization). But the
+                alias means commands inherit <code>CausationID</code> (meaningless for queries) and
+                queries inherit tombstone metadata (event-specific). Breaking change. ADR-0031
                 status: <code>Accepted</code> (not <code>Implemented</code>).
               </p>
               <p>
                 The review proposed three options (A: embed shared Tracing, B: extract to
-                <code>domain/</code> module, C: split event.Metadata). <strong>No decision was made
-                on which option to pursue.</strong> Option A (simplest) is recommended but not
-                started.
+                <code>domain/</code> module, C: split event.Metadata).
+                <strong>No decision was made on which option to pursue.</strong> Option A (simplest)
+                is recommended but not started.
               </p>
               <div class="migration-meta">
                 <span>2 alias lines unchanged</span><span>4 consumer files affected</span
@@ -2375,15 +2433,18 @@
           <div class="migration-step">
             <div class="migration-num">○</div>
             <div class="migration-content">
-              <h4>Migration 7: Make Event concrete struct — <span class="status-badge status-blocked">0% — DEFERRED</span></h4>
+              <h4>
+                Migration 7: Make Event concrete struct —
+                <span class="status-badge status-blocked">0% — DEFERRED</span>
+              </h4>
               <p>
                 <code>event.Event</code> is still an interface (<code>event/event.go:60</code>).
                 Four "generic" helpers still type-assert to <code>*ImmutableEvent</code> internally
                 (<code>payloadForDecode</code>, <code>encodingForCopy</code>,
                 <code>PayloadReadOnly</code>, <code>CloneEvent</code>). The review correctly
-                identified this as a v3 breaking change. It's the highest-effort item in the
-                roadmap (every consumer, every test, every type assertion) and was intentionally
-                deferred to avoid compounding breakage with the other v3 changes.
+                identified this as a v3 breaking change. It's the highest-effort item in the roadmap
+                (every consumer, every test, every type assertion) and was intentionally deferred to
+                avoid compounding breakage with the other v3 changes.
               </p>
               <p>
                 <code>eventOptions</code> pointer leak (Theme A2) is also still present — every
@@ -2399,7 +2460,10 @@
           <div class="migration-step">
             <div class="migration-num">○</div>
             <div class="migration-content">
-              <h4>Theme C1: Extend cqrs-gen for command/query symmetry — <span class="status-badge status-blocked">0%</span></h4>
+              <h4>
+                Theme C1: Extend cqrs-gen for command/query symmetry —
+                <span class="status-badge status-blocked">0%</span>
+              </h4>
               <p>
                 <code>cmd/cqrs-gen</code> still emits <code>projection.On[...]</code> code (not
                 <code>stack.NewMaterialize</code>). The ~600 LOC copy-pasted between
