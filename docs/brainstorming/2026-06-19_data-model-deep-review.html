@@ -1347,7 +1347,10 @@
           </p>
           <p>
             The fix: a fluent materialization API that lives in <code>stack/</code> and wires event
-            → decode → apply → kv.TypedStore automatically:
+            → decode → apply → kv.TypedStore automatically. It models the full lifecycle — including
+            tombstones. <strong>There is no <code>OnDelete</code> that hard-removes a row</strong>:
+            the event store has no <code>Delete</code> (ADR-0006), and the materialize layer follows
+            the same invariant. Deletions are soft, via tombstone markers.
           </p>
           <pre><code><span class="tok-comment">// stack/materialize.go — the projection people actually want</span>
 
@@ -1359,17 +1362,33 @@
         <span class="tok-generic">existing</span>.<span class="tok-generic">Name</span> = <span class="tok-generic">evt</span>.<span class="tok-generic">NewName</span>
         <span class="tok-keyword">return</span> <span class="tok-generic">existing</span>, <span class="tok-type">nil</span>
     }).
-    <span class="tok-func">OnDelete</span>(<span class="tok-string">"user.deleted"</span>, <span class="tok-keyword">func</span>(<span class="tok-generic">ctx</span>, <span class="tok-generic">evt</span> <span class="tok-generic">UserDeleted</span>) (<span class="tok-generic">UserID</span>, <span class="tok-type">error</span>) {
-        <span class="tok-keyword">return</span> <span class="tok-generic">evt</span>.<span class="tok-generic">AggregateID</span>, <span class="tok-type">nil</span>  <span class="tok-comment">// signals Delete</span>
+    <span class="tok-func">OnTombstone</span>(<span class="tok-string">"user.deleted"</span>, <span class="tok-keyword">func</span>(<span class="tok-generic">ctx</span>, <span class="tok-generic">evt</span> <span class="tok-generic">UserDeleted</span>, <span class="tok-generic">existing</span> *<span class="tok-generic">UserView</span>) (*<span class="tok-generic">UserView</span>, <span class="tok-type">error</span>) {
+        <span class="tok-generic">existing</span>.<span class="tok-generic">Status</span> = <span class="tok-generic">event.TombstoneSet</span>      <span class="tok-comment">// mark deleted, DON'T remove the row</span>
+        <span class="tok-keyword">return</span> <span class="tok-generic">existing</span>, <span class="tok-type">nil</span>
+    }).
+    <span class="tok-func">OnRebirth</span>(<span class="tok-string">"user.restored"</span>, <span class="tok-keyword">func</span>(<span class="tok-generic">ctx</span>, <span class="tok-generic">evt</span> <span class="tok-generic">UserRestored</span>, <span class="tok-generic">existing</span> *<span class="tok-generic">UserView</span>) (*<span class="tok-generic">UserView</span>, <span class="tok-type">error</span>) {
+        <span class="tok-generic">existing</span>.<span class="tok-generic">Status</span> = <span class="tok-generic">event.TombstoneRebirth</span>   <span class="tok-comment">// un-delete</span>
+        <span class="tok-keyword">return</span> <span class="tok-generic">existing</span>, <span class="tok-type">nil</span>
     })
 
 <span class="tok-comment">// mat.Register(router) — wires as Watermill handler</span>
-<span class="tok-comment">// mat.View(ctx, id) — typed read from kv.TypedStore</span></code></pre>
+<span class="tok-comment">// mat.View(ctx, id) — typed read from kv.TypedStore</span>
+<span class="tok-comment">// mat.List(ctx, kv.IncludeTombstoned) — show all, with Status field</span>
+<span class="tok-comment">// mat.List(ctx, kv.ExcludeTombstoned) — hide deleted (the default)</span>
+<span class="tok-comment">// mat.List(ctx, kv.OnlyTombstoned)   — show only deleted</span></code></pre>
+          <div class="callout callout-warning">
+            <strong>No OnDelete. Ever.</strong>
+            The event store has no Delete (ADR-0006) — hard-removing a materialized row would
+            violate the same invariant the store enforces. Deletions are always soft via
+            <code>OnTombstone</code>; the row stays, its <code>Status</code> flips to
+            <code>TombstoneSet</code>. <code>OnRebirth</code> reverses it. This is the materialize
+            layer mirroring the tombstone model the write side already enforces.
+          </div>
           <div class="callout callout-solution">
             <strong
-              >No manual codec. No manual key construction. No manual store wiring. Type-safe. The
-              "projection" is the data in kv.TypedStore. The "runner" is the Watermill Router.
-              Everything just clicks.</strong
+              >No manual codec. No manual key construction. No manual store wiring. Type-safe.
+              Tombstone-aware. The "projection" is the data in kv.TypedStore. The "runner" is the
+              Watermill Router. Everything just clicks.</strong
             >
           </div>
 
@@ -1614,9 +1633,13 @@
               </p>
             </div>
             <div class="card card-problem">
-              <h4>Don't ignore ctx</h4>
+              <h4>Don't hard-delete materialized rows</h4>
               <p style="margin: 0">
-                Every I/O op honors context. kv.Store ignoring ctx is a v3 fix.
+                The store has no Delete (ADR-0006). The materialize layer follows the same
+                invariant:
+                <code>OnTombstone</code> marks, it never destroys. Hard-removing a read-model row
+                would lose data the event log still holds. Use <code>OnTombstone</code> /
+                <code>OnRebirth</code>, query with <code>ExcludeTombstoned</code>.
               </p>
             </div>
           </div>
