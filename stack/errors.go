@@ -16,8 +16,8 @@ var (
 		"stack: bundle has no event.Store (use WithEventStore or a preset)",
 	)
 
-	// ErrMissingPublisher is returned by [Bundle.Repository] when the Bundle
-	// has no event.Publisher. A repository needs one to publish saved events.
+	// ErrMissingPublisher is deprecated: stack.Repository no longer requires
+	// a publisher. It is retained for consumers that reference it.
 	ErrMissingPublisher = errors.New("stack: bundle has no event.Publisher")
 
 	// ErrMissingReadModels is returned by [Bundle.ReadModel] when the Bundle

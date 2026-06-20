@@ -46,7 +46,9 @@ type Repository[State any] struct {
 
 // NewRepository creates a decider-backed repository.
 //
-// Returns an error if store, publisher, or decider.Fold is nil.
+// Returns an error if store or decider.Fold is nil. The publisher may be nil
+// for pure event-sourcing mode (events are persisted but not published);
+// set one via the publisher parameter or WithPublisher to enable pub/sub.
 func NewRepository[State any](
 	store event.Store,
 	publisher event.Publisher,
@@ -55,10 +57,6 @@ func NewRepository[State any](
 ) (*Repository[State], error) {
 	if store == nil {
 		return nil, ErrNilStore
-	}
-
-	if publisher == nil {
-		return nil, ErrNilPublisher
 	}
 
 	if decider.Fold == nil {
@@ -148,12 +146,14 @@ func (r *Repository[State]) Execute(
 		return opError(ref, "%w: %w", ErrSaveFailed, err)
 	}
 
-	err = r.publisher.Publish(ctx, newEvents...)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
-		wrapErr := event.WrapInfrastructure(err, "event.publish_failed", "publish events")
+	if r.publisher != nil {
+		err = r.publisher.Publish(ctx, newEvents...)
+		if err != nil {
+			cqrsotel.RecordError(span, err)
+			wrapErr := event.WrapInfrastructure(err, "event.publish_failed", "publish events")
 
-		return opError(ref, "%w", wrapErr)
+			return opError(ref, "%w", wrapErr)
+		}
 	}
 
 	newVersion := currentVersion.Add(len(newEvents))

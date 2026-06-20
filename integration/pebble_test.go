@@ -13,9 +13,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
-	cqrspebble "github.com/larsartmann/go-cqrs-lite/pebble/v2"
 	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
+	cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v2"
 )
 
 // counterState is a tiny aggregate state for the pebble integration tests.

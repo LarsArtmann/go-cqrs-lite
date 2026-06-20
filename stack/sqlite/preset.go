@@ -17,6 +17,9 @@ type Option func(*config)
 type config struct {
 	wal         bool
 	autoMigrate bool
+	eventDSN    string // override DSN for event store
+	queryDSN    string // override DSN for query/command audit store
+	viewDSN     string // override DSN for read-model KV store
 }
 
 func defaultConfig() config {
@@ -35,6 +38,27 @@ func WithoutWAL() Option {
 // tables.
 func WithoutAutoMigrate() Option {
 	return func(c *config) { c.autoMigrate = false }
+}
+
+// WithEventDB sets a separate DSN for the event store. When set, events,
+// snapshots, and checkpoints are persisted to this database instead of the
+// primary DSN. The deployer chooses this when isolating write-heavy event
+// streams from query traffic.
+func WithEventDB(dsn string) Option {
+	return func(c *config) { c.eventDSN = dsn }
+}
+
+// WithQueryDB sets a separate DSN for the command and query audit stores.
+// When set, persisted commands and queries go to this database.
+func WithQueryDB(dsn string) Option {
+	return func(c *config) { c.queryDSN = dsn }
+}
+
+// WithViewDB sets a separate DSN for the read-model KV store. When set,
+// materialized views are persisted to this database, isolating read-model
+// scans from the event store.
+func WithViewDB(dsn string) Option {
+	return func(c *config) { c.viewDSN = dsn }
 }
 
 // New opens a SQLite database at dsn, configures it, and returns a
@@ -61,7 +85,7 @@ func New(dsn string, opts ...Option) (*stack.Bundle, error) {
 }
 
 func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
-	db, backend, err := openBackend(dsn, cfg) //nolint:varnamelen
+	db, backend, err := openBackend(dsn, cfg) 
 	if err != nil {
 		return nil, err
 	}
@@ -71,16 +95,50 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	// Bus is in-memory (SQLite has no pub/sub).
 	stackOpts = append(stackOpts, stack.WithBus(memory.NewMemoryBus()))
 
-	// Read models persist in the same database via a SQL-backed kv.Store.
-	kvStore, err := backend.KVStore()
-	if err != nil {
-		_ = backend.Close()
-		_ = db.Close()
+	// Read models: use separate view DB if configured, else primary.
+	var viewDB *sql.DB
 
-		return nil, fmt.Errorf("sqlite: kv store: %w", err)
+	if cfg.viewDSN != "" {
+		viewDB, err = openSecondaryDB(cfg.viewDSN, cfg)
+		if err != nil {
+			_ = backend.Close()
+			_ = db.Close()
+
+			return nil, fmt.Errorf("sqlite: open view db: %w", err)
+		}
+
+		viewBackend, err := storage.NewSQLiteBackend(viewDB)
+		if err != nil {
+			_ = backend.Close()
+			_ = db.Close()
+			_ = viewDB.Close()
+
+			return nil, fmt.Errorf("sqlite: create view backend: %w", err)
+		}
+
+		kvStore, err := viewBackend.KVStore()
+		if err != nil {
+			_ = viewBackend.Close()
+			_ = backend.Close()
+			_ = db.Close()
+
+			return nil, fmt.Errorf("sqlite: kv store (view db): %w", err)
+		}
+
+		stackOpts = append(stackOpts, stack.WithReadModels(kvStore))
+		stackOpts = append(stackOpts, stack.WithCloser(viewBackend))
+		stackOpts = append(stackOpts, stack.WithCloser(&funcCloser{fn: viewDB.Close}))
+	} else {
+		kvStore, err := backend.KVStore()
+		if err != nil {
+			_ = backend.Close()
+			_ = db.Close()
+
+			return nil, fmt.Errorf("sqlite: kv store: %w", err)
+		}
+
+		stackOpts = append(stackOpts, stack.WithReadModels(kvStore))
 	}
-
-	stackOpts = append(stackOpts, stack.WithReadModels(kvStore))
 
 	// Register lifecycle: backend closes stores, dbCloser closes the DB.
 	// Order matters — stores must close before the DB.
@@ -93,12 +151,49 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	b, err := stack.New(stackOpts...)
 	if err != nil {
 		_ = backend.Close()
+
+
+
 		_ = db.Close()
+		if viewDB != nil {
+			_ = viewDB.Close()
+		}
 
 		return nil, fmt.Errorf("sqlite: wire bundle: %w", err)
 	}
 
 	return b, nil
+}
+
+// openSecondaryDB opens and configures a secondary SQLite database (for events,
+// queries, or views when multi-DB mode is enabled via WithEventDB etc.).
+func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
+	db, err := sql.Open("sqlite", dsn)
+	if err != nil {
+		return nil, fmt.Errorf("sqlite: open %q: %w", dsn, err)
+	}
+
+	ctx := context.Background()
+
+	if cfg.wal {
+		err = storage.SQLiteEnableWAL(ctx, db)
+		if err != nil {
+			_ = db.Close()
+
+			return nil, fmt.Errorf("sqlite: enable WAL on %q: %w", dsn, err)
+		}
+	}
+
+	if cfg.autoMigrate {
+		err = storage.SQLiteInitSchema(ctx, db)
+		if err != nil {
+			_ = db.Close()
+
+			return nil, fmt.Errorf("sqlite: init schema on %q: %w", dsn, err)
+		}
+	}
+
+	return db, nil
 }
 
 // buildOptions assembles the stack.Option slice for an SQLBackend's stores.
@@ -135,8 +230,7 @@ func buildOptions(backend *storage.SQLBackend) []stack.Option {
 // openBackend opens the database, applies pragmas and schema, and returns
 // both the *sql.DB (for lifecycle) and the SQLBackend (for store access).
 func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
-	db, err := sql.Open("sqlite", dsn) //nolint:varnamelen
-	if err != nil {
+	db, err := sql.Open("sqlite", dsn
 		return nil, nil, fmt.Errorf("sqlite: open %q: %w", dsn, err)
 	}
 

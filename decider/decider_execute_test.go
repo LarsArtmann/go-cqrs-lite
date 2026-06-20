@@ -23,9 +23,10 @@ func TestNewRepository_NilChecks(t *testing.T) {
 		t.Fatalf("expected ErrNilStore, got %v", err)
 	}
 
+	// Nil publisher is allowed (pure event-sourcing mode).
 	_, err = decider.NewRepository(eventtest.NewFakeStore(), nil, d)
-	if !errors.Is(err, decider.ErrNilPublisher) {
-		t.Fatalf("expected ErrNilPublisher, got %v", err)
+	if err != nil {
+		t.Fatalf("expected success with nil publisher (pure-ES mode), got %v", err)
 	}
 
 	_, err = decider.NewRepository(eventtest.NewFakeStore(), eventtest.NewFakeBus(),

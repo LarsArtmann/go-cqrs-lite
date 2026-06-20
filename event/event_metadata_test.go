@@ -177,7 +177,7 @@ func TestWithMetadata_MergesInsteadOfReplace(t *testing.T) {
 		1,
 		nil,
 		event.WithCorrelationID(correlationID),
-		event.WithMetadata(event.Metadata{UserID: userID}),
+		event.WithMetadata(event.Metadata{Tracing: event.Tracing{UserID: userID}}),
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)

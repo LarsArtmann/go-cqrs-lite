@@ -7,8 +7,8 @@ import (
 	"github.com/cockroachdb/pebble"
 
 	"github.com/larsartmann/go-cqrs-lite/memory/v2"
-	cqrspebble "github.com/larsartmann/go-cqrs-lite/pebble/v2"
 	"github.com/larsartmann/go-cqrs-lite/stack/v2"
+	cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v2"
 )
 
 // Option configures the Pebble preset.

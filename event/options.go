@@ -114,6 +114,17 @@ func WithSchemaVersion(v SchemaVersion) Option {
 	return func(e *ImmutableEvent) { e.schemaVersion = v }
 }
 
+// WithCausation sets the typed Causation field on an event's metadata,
+// recording which command produced this event (ADR-0031).
+func WithCausation(commandType string, commandID id.CommandID) Option {
+	return func(e *ImmutableEvent) {
+		e.metadata.Causation = &Causation{
+			CommandType: commandType,
+			CommandID:   commandID,
+		}
+	}
+}
+
 // WithEncoding sets the encoding of the event payload.
 // Defaults to [codec.EncodingJSON]. Use when reconstructing events from storage
 // or when creating events with a non-JSON codec.

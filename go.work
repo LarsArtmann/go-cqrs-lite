@@ -21,7 +21,6 @@ use (
 	./memory
 	./middleware
 	./otel
-	./pebble
 	./projection
 	./prometheus
 	./query
@@ -37,7 +36,8 @@ use (
 	./stack/postgres
 	./stack/sqlite
 	./storage
+	./storage/pebble
+	./storage/turso
 	./testutil
-	./turso
 	./watermill
 )

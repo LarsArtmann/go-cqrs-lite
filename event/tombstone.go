@@ -50,6 +50,18 @@ const MetadataKeyTombstone MetadataKey = "tombstone"
 // MetadataKeyRebirth marks an event as undoing a tombstone.
 const MetadataKeyRebirth MetadataKey = "rebirth"
 
+// TombstoneMark is the typed representation of a tombstone or rebirth mark
+// on an individual event (ADR-0031). It replaces the stringly-typed
+// Custom[MetadataKeyTombstone] = "true" pattern while keeping the Custom
+// map entries for v2 backward compatibility.
+type TombstoneMark struct {
+	// Status is TombstoneTombstoned for a tombstone event, or
+	// TombstoneActive for a rebirth event.
+	Status TombstoneStatus
+	// Reason is an optional human-readable note for audit trails.
+	Reason string
+}
+
 // DetectTombstone inspects an event stream and returns the tombstone status.
 // Returns Undetermined if the stream is empty or no tombstone/rebirth metadata is found.
 //
@@ -62,17 +74,21 @@ func DetectTombstone(events []Event) TombstoneStatus {
 	last := events[len(events)-1]
 
 	md := last.Metadata()
-	if md.Custom == nil {
-		return TombstoneUndetermined
+
+	// Typed field takes precedence (ADR-0031).
+	if md.Tombstone != nil {
+		return md.Tombstone.Status
 	}
 
-	// Rebirth takes precedence (newest event wins)
-	if md.Custom[MetadataKeyRebirth] == "true" {
-		return TombstoneActive
-	}
+	// Fall back to string-based Custom map for backward compatibility.
+	if md.Custom != nil {
+		if md.Custom[MetadataKeyRebirth] == "true" {
+			return TombstoneActive
+		}
 
-	if md.Custom[MetadataKeyTombstone] == "true" {
-		return TombstoneTombstoned
+		if md.Custom[MetadataKeyTombstone] == "true" {
+			return TombstoneTombstoned
+		}
 	}
 
 	return TombstoneUndetermined
@@ -81,16 +97,16 @@ func DetectTombstone(events []Event) TombstoneStatus {
 // MarkTombstone copies an event and sets the tombstone metadata key.
 // Returns a new event; the original is unmodified.
 func MarkTombstone(evt Event) (*ImmutableEvent, error) {
-	return copyWithMetadata(evt, MetadataKeyTombstone, "mark tombstone")
+	return copyWithTombstoneMark(evt, TombstoneMark{Status: TombstoneTombstoned}, MetadataKeyTombstone, "mark tombstone")
 }
 
 // MarkRebirth copies an event and sets the rebirth metadata key.
 // Returns a new event; the original is unmodified.
 func MarkRebirth(evt Event) (*ImmutableEvent, error) {
-	return copyWithMetadata(evt, MetadataKeyRebirth, "mark rebirth")
+	return copyWithTombstoneMark(evt, TombstoneMark{Status: TombstoneActive}, MetadataKeyRebirth, "mark rebirth")
 }
 
-func copyWithMetadata(evt Event, key MetadataKey, label string) (*ImmutableEvent, error) {
+func copyWithTombstoneMark(evt Event, mark TombstoneMark, key MetadataKey, label string) (*ImmutableEvent, error) {
 	if evt == nil {
 		return nil, NewRejection("event.nil_event", label+": event is required")
 	}
@@ -105,6 +121,7 @@ func copyWithMetadata(evt Event, key MetadataKey, label string) (*ImmutableEvent
 	}
 
 	md.Custom[key] = "true"
+	md.Tombstone = &mark
 
 	deadline, hasDeadline := evt.Deadline()
 

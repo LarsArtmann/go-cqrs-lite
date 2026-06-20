@@ -8,7 +8,9 @@ var ErrNilStore = event.NewInfrastructure(
 	"event store is required",
 )
 
-// ErrNilPublisher is returned by NewRepository when the event publisher is nil.
+// ErrNilPublisher is deprecated: NewRepository no longer requires a publisher.
+// It is retained for consumers that reference it. A nil publisher enables
+// pure event-sourcing mode (persist without publish).
 var ErrNilPublisher = event.NewInfrastructure(
 	"decider.nil_publisher",
 	"event publisher is required",

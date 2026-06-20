@@ -112,8 +112,8 @@ func TestCommandCausalityEnricher_WithCausality(t *testing.T) {
 		t.Fatal("expected non-nil options when causality is set")
 	}
 
-	if len(opts) != 2 {
-		t.Fatalf("expected 2 options (type + id), got %d", len(opts))
+	if len(opts) != 3 {
+		t.Fatalf("expected 3 options (causation + type + id), got %d", len(opts))
 	}
 
 	// Apply options to a real event and inspect the resulting metadata.
@@ -166,6 +166,22 @@ func TestCommandCausalityEnricher_EndToEnd(t *testing.T) {
 
 	meta := evt.Metadata()
 
+	// Typed Causation field (ADR-0031).
+	if meta.Causation == nil {
+		t.Fatal("expected typed Causation to be set")
+	}
+
+	if meta.Causation.CommandType != "create_user" {
+		t.Errorf("Causation.CommandType = %q, want %q",
+			meta.Causation.CommandType, "create_user")
+	}
+
+	if meta.Causation.CommandID != cmdID {
+		t.Errorf("Causation.CommandID = %v, want %v",
+			meta.Causation.CommandID, cmdID)
+	}
+
+	// Backward-compatible Custom entries.
 	if meta.Custom[MetadataKeyCommandType] != "create_user" {
 		t.Errorf("command.type = %q, want %q",
 			meta.Custom[MetadataKeyCommandType], "create_user")

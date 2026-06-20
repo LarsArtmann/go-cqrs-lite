@@ -92,13 +92,15 @@ func TestGolden_MessageMetadata(t *testing.T) {
 		event.WithOccurredAt(time.Date(2026, 3, 10, 12, 0, 0, 0, time.UTC)),
 		event.WithSchemaVersion(2),
 		event.WithMetadata(event.Metadata{
-			CorrelationID: corrID,
-			CausationID:   causID,
-			UserID:        userID,
-			Source:        "test-service",
-			IPAddress:     "10.0.0.1",
-			UserAgent:     "test-agent/1.0",
-			Custom:        map[event.MetadataKey]string{"custom.trace": "abc123"},
+			Tracing: event.Tracing{
+				CorrelationID: corrID,
+				CausationID:   causID,
+				UserID:        userID,
+			},
+			Source:    "test-service",
+			IPAddress: "10.0.0.1",
+			UserAgent: "test-agent/1.0",
+			Custom:    map[event.MetadataKey]string{"custom.trace": "abc123"},
 		}),
 	)
 	if err != nil {

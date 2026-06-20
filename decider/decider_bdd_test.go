@@ -283,10 +283,10 @@ var _ = Describe("Decider Repository", func() {
 		})
 
 		Context("when I create a repository without a publisher", func() {
-			It("should reject my setup and explain that an event publisher is required", func() {
-				_, err := decider.NewRepository(store, nil, bddCounterDecider())
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("event publisher is required"))
+			It("should succeed and operate in pure event-sourcing mode", func() {
+				repo, err := decider.NewRepository(store, nil, bddCounterDecider())
+				Expect(err).NotTo(HaveOccurred())
+				Expect(repo).NotTo(BeNil())
 			})
 		})
 

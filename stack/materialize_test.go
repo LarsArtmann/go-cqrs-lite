@@ -1,0 +1,104 @@
+package stack_test
+
+import (
+	"context"
+	"testing"
+
+	"github.com/ThreeDotsLabs/watermill/message"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/kv/v2"
+	"github.com/larsartmann/go-cqrs-lite/stack/v2"
+)
+
+func buildTestMessage(evt event.Event, eventType string) *message.Message {
+	msg := message.NewMessage(evt.ID().String(), evt.Payload())
+	msg.Metadata.Set("event_type", eventType)
+	msg.Metadata.Set("aggregate_id", evt.AggregateID().String())
+	msg.Metadata.Set("aggregate_type", string(evt.AggregateType()))
+
+	return msg
+}
+
+type stringKey string
+
+func (s stringKey) String() string { return string(s) }
+
+type userView struct {
+	Name    string
+	Email   string
+	Deleted bool
+}
+
+func (u *userView) IsTombstoned() bool { return u.Deleted }
+
+func TestMaterialize_OnCreate(t *testing.T) {
+	t.Parallel()
+
+	memStore := kv.NewMemStore()
+	defer memStore.Close()
+
+	ts := kv.NewTypedStore[userView, stringKey](memStore)
+
+	mat := stack.Materialize[userView, stringKey]{
+		Store:        ts,
+		KeyFromEvent: func(evt event.Event) (stringKey, error) { return stringKey(evt.AggregateID().String()), nil },
+		OnCreate: func(_ context.Context, evt event.Event) (*userView, error) {
+			return &userView{Name: "from-event", Email: "test@example.com"}, nil
+		},
+	}
+
+	aggID := id.NewAggregateID()
+	evt, _ := event.NewEvent(event.Type("user.created"), aggID, "User", event.Version(1), nil)
+
+	// Simulate the handler processing an event.
+	msg := buildTestMessage(evt, "user.created")
+	handler := mat.HandlerFunc()
+	if err := handler(msg); err != nil {
+		t.Fatalf("HandlerFunc: %v", err)
+	}
+
+	view, err := mat.View(context.Background(), stringKey(aggID.String()))
+	if err != nil {
+		t.Fatalf("View: %v", err)
+	}
+
+	if view.Name != "from-event" {
+		t.Fatalf("expected Name 'from-event', got %s", view.Name)
+	}
+}
+
+func TestMaterialize_TombstonePolicy(t *testing.T) {
+	t.Parallel()
+
+	memStore := kv.NewMemStore()
+	defer memStore.Close()
+
+	ts := kv.NewTypedStore[userView, stringKey](memStore)
+
+	ctx := context.Background()
+	_ = ts.Set(ctx, stringKey("active"), &userView{Name: "Alice", Deleted: false})
+	_ = ts.Set(ctx, stringKey("deleted"), &userView{Name: "Bob", Deleted: true})
+
+	// Test ExcludeTombstoned (default).
+	results, err := ts.Scan(ctx, nil)
+	if err != nil {
+		t.Fatalf("Scan: %v", err)
+	}
+
+	excluded := stack.FilterTombstoned(results, stack.ExcludeTombstoned)
+	if len(excluded) != 1 {
+		t.Fatalf("expected 1 active record, got %d", len(excluded))
+	}
+
+	onlyTombstoned := stack.FilterTombstoned(results, stack.OnlyTombstoned)
+	if len(onlyTombstoned) != 1 {
+		t.Fatalf("expected 1 tombstoned record, got %d", len(onlyTombstoned))
+	}
+
+	all := stack.FilterTombstoned(results, stack.IncludeTombstoned)
+	if len(all) != 2 {
+		t.Fatalf("expected 2 total records, got %d", len(all))
+	}
+}

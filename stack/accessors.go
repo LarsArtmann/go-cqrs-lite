@@ -11,7 +11,8 @@ import (
 )
 
 // Repository constructs a typed [decider.Repository] over the Bundle's event
-// store and publisher.
+// store. The publisher is optional — when the Bundle has no publisher, the
+// repository operates in pure event-sourcing mode (persist without publish).
 //
 // It is a top-level generic function, not a method on [Bundle], because Go
 // does not permit generic methods on non-generic types. Call it as:
@@ -19,8 +20,7 @@ import (
 //	repo, err := stack.Repository[State](bundle, decider)
 //
 // The Bundle must have been configured with [WithEventStore] (or a preset that
-// sets one) and [WithPublisher] or [WithBus]. Returns [ErrMissingEventStore]
-// or [ErrMissingPublisher] otherwise.
+// sets one). Returns [ErrMissingEventStore] otherwise.
 //
 // opts are forwarded to [decider.NewRepository]; use them to enable
 // snapshots (decider.WithSnapshotStore) or disable load coalescing.
@@ -32,10 +32,6 @@ func Repository[State any](
 	store, ok := b.eventStore()
 	if !ok {
 		return nil, ErrMissingEventStore
-	}
-
-	if b.Publisher == nil {
-		return nil, ErrMissingPublisher
 	}
 
 	return decider.NewRepository[State](store, b.Publisher, d, opts...)

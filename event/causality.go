@@ -6,6 +6,15 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
+// Causation is the typed representation of command causation on an event
+// (ADR-0031). It records which command produced this event, replacing the
+// stringly-typed Custom[MetadataKeyCommandType]/Custom[MetadataKeyCommandID]
+// pattern while keeping those entries for v2 backward compatibility.
+type Causation struct {
+	CommandType string
+	CommandID   id.CommandID
+}
+
 type ctxKeyCausality struct{}
 
 type causalityCtx struct {
@@ -59,6 +68,7 @@ func CommandCausalityEnricher(ctx context.Context) []Option {
 	}
 
 	return []Option{
+		WithCausation(cmdType, cmdID),
 		WithCustom(MetadataKeyCommandType, cmdType),
 		WithCustom(MetadataKeyCommandID, cmdID.String()),
 	}
