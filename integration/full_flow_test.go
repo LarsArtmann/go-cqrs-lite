@@ -11,7 +11,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v2"
-	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v2"
 )
@@ -109,42 +108,16 @@ func TestFullFlow(t *testing.T) {
 		t.Fatalf("register query: %v", err)
 	}
 
-	// --- Set up projection with live subscription ---
-	checkpoints := memory.NewMemoryCheckpointStore()
-	projRunner, err := projection.NewRunner(nil, bus, checkpoints)
-	if err != nil {
-		t.Fatalf("new runner: %v", err)
-	}
-
+	// --- Set up live event subscription ---
 	var projectedNames []string
 
-	if err := projRunner.Register(event.NewProjection(
-		"user-names",
-		func(_ context.Context, evt event.Event) error {
-			if evt.Type() == "UserCreated" {
-				projectedNames = append(projectedNames, string(evt.Payload()))
-			}
-
-			return nil
-		},
-		[]event.Type{"UserCreated"},
-	)); err != nil {
-		t.Fatalf("register projection: %v", err)
-	}
-
-	// Start projection runner in background
-	projCtx, projCancel := context.WithCancel(ctx)
-	defer projCancel()
-
-	go func() {
-		if runErr := projRunner.Run(projCtx); runErr != nil {
-			t.Logf("projection runner: %v", runErr)
+	_ = bus.SubscribeAll(func(_ context.Context, evt event.Event) error {
+		if evt.Type() == "UserCreated" {
+			projectedNames = append(projectedNames, string(evt.Payload()))
 		}
-	}()
 
-	// Small delay to let subscription set up — the runner subscribes in Run(),
-	// which starts in a goroutine above. For in-process buses this is near-instant.
-	time.Sleep(10 * time.Millisecond)
+		return nil
+	})
 
 	// --- Execute command ---
 	aggID := id.NewAggregateID()

@@ -7,7 +7,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/decider/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v2"
-	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 	"github.com/larsartmann/go-cqrs-lite/storage/v2"
 )
@@ -25,26 +24,6 @@ func TestClassify_DeciderSentinels(t *testing.T) {
 
 	if event.Classify(decider.ErrNilBus) != event.Infrastructure {
 		t.Error("decider.ErrNilBus should be Infrastructure")
-	}
-}
-
-func TestClassify_ProjectionSentinels(t *testing.T) {
-	t.Parallel()
-
-	if event.Classify(projection.ErrNilHandler) != event.Rejection {
-		t.Error("projection.ErrNilHandler should be Rejection")
-	}
-
-	if event.Classify(projection.ErrNilBus) != event.Infrastructure {
-		t.Error("projection.ErrNilBus should be Infrastructure")
-	}
-
-	if event.Classify(projection.ErrNilCheckpoint) != event.Infrastructure {
-		t.Error("projection.ErrNilCheckpoint should be Infrastructure")
-	}
-
-	if event.Classify(projection.ErrNoProjections) != event.Rejection {
-		t.Error("projection.ErrNoProjections should be Rejection")
 	}
 }
 

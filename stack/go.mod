@@ -10,7 +10,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/kv/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 v2.6.0
@@ -62,7 +61,6 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/id/v2 => ../id
 	github.com/larsartmann/go-cqrs-lite/kv/v2 => ../kv
 	github.com/larsartmann/go-cqrs-lite/otel/v2 => ../otel
-	github.com/larsartmann/go-cqrs-lite/projection/v2 => ../projection
 	github.com/larsartmann/go-cqrs-lite/query/v2 => ../query
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../snapshot
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 => ../storage/memory

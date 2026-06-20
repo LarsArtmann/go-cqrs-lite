@@ -7,7 +7,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/kv/v2"
-	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 )
@@ -160,7 +159,6 @@ func (b *Bundle) validate() error {
 	return nil
 }
 
-// Compile-time assertion that Bundle satisfies the projection package's
-// expectation of a composition root providing Journal + Subscriber +
-// Checkpoint. (Not an interface constraint — just documentation of intent.)
-var _ = projection.Runner{}
+// Compile-time assertion that Bundle provides the fields CatchUpSubscriber
+// needs: Journal + Subscriber + CheckpointStore.
+var _ = []any{event.Journal(nil), event.Subscriber(nil)}

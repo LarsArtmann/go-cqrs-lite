@@ -65,6 +65,33 @@ func writeQueryHandler(b *strings.Builder, e Entry) {
 	b.WriteString("}\n\n")
 }
 
+func writeEventHandler(b *strings.Builder, e Entry) {
+	fmt.Fprintf(
+		b,
+		"// Register%sHandler registers a typed event handler for %s events.\n",
+		e.StructName,
+		e.CommandType,
+	)
+	fmt.Fprintf(
+		b,
+		"func Register%sHandler(bus event.Subscriber, c codec.Codec, handler func(context.Context, %s) error) error {\n",
+		e.StructName,
+		e.StructName,
+	)
+	fmt.Fprintf(
+		b,
+		"\treturn bus.Subscribe(event.Type(%q), func(ctx context.Context, evt event.Event) error {\n",
+		e.CommandType,
+	)
+	fmt.Fprintf(b, "\t\tp, err := event.DecodePayload[%s](evt, c)\n", e.StructName)
+	b.WriteString("\t\tif err != nil {\n")
+	b.WriteString("\t\t\treturn err\n")
+	b.WriteString("\t\t}\n")
+	b.WriteString("\t\treturn handler(ctx, p)\n")
+	b.WriteString("\t})\n")
+	b.WriteString("}\n\n")
+}
+
 func generate(pkg, genType string, entries []Entry) string {
 	spec := genSpecs[genType]
 

@@ -9,7 +9,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/decider/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/kv/v2"
-	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v2"
 )
@@ -71,37 +70,6 @@ func ReadModel[T any, K fmt.Stringer](
 	allOpts := append([]kv.TypedOption[T, K]{kv.WithTypedCodec[T, K](c)}, opts...)
 
 	return kv.NewTypedStore[T, K](b.ReadModels, allOpts...), nil
-}
-
-// ProjectionRunner constructs a [projection.Runner] over the Bundle's journal,
-// subscriber, and checkpoint store. It is a method (not a generic function)
-// because it has no type parameters.
-//
-// All three prerequisites are required: the journal replays history, the
-// subscriber handles live events, and the checkpoint store tracks how far the
-// runner has caught up. Returns the relevant ErrMissing* error if any is
-// absent.
-func (b *Bundle) ProjectionRunner(
-	opts ...projection.RunnerOption,
-) (*projection.Runner, error) {
-	if b.Journal == nil {
-		return nil, ErrMissingJournal
-	}
-
-	if b.Subscriber == nil {
-		return nil, ErrMissingSubscriber
-	}
-
-	if b.CheckpointStore == nil {
-		return nil, ErrMissingCheckpoint
-	}
-
-	runner, err := projection.NewRunner(b.Journal, b.Subscriber, b.CheckpointStore, opts...)
-	if err != nil {
-		return nil, fmt.Errorf("stack: create projection runner: %w", err)
-	}
-
-	return runner, nil
 }
 
 // eventStore recovers the composite event.Store from the Bundle's segregated

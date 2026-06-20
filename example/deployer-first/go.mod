@@ -26,7 +26,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/command/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-error-family v0.4.0 // indirect
@@ -65,7 +64,6 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/kv/v2 => ../../kv
 	github.com/larsartmann/go-cqrs-lite/middleware/v2 => ../../middleware
 	github.com/larsartmann/go-cqrs-lite/otel/v2 => ../../otel
-	github.com/larsartmann/go-cqrs-lite/projection/v2 => ../../projection
 	github.com/larsartmann/go-cqrs-lite/query/v2 => ../../query
 	github.com/larsartmann/go-cqrs-lite/signing/v2 => ../../signing
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../../snapshot

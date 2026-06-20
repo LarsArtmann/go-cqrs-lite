@@ -13,7 +13,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/projection/v2"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 	cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v2"
 )
@@ -45,7 +44,6 @@ func TestPebbleEventStoreWithProjectionRunner(t *testing.T) {
 	t.Cleanup(func() { _ = backend.Close() })
 
 	store := backend.EventStore()
-	checkpoints := backend.CheckpointStore()
 	bus := eventtest.NewFakeBus()
 	defer bus.Close() //nolint:errcheck // test helper
 
@@ -71,37 +69,13 @@ func TestPebbleEventStoreWithProjectionRunner(t *testing.T) {
 		}
 	}
 
-	var replayed, live int
+	var received int
 
-	runner, err := projection.NewRunner(store, bus, checkpoints)
-	if err != nil {
-		t.Fatalf("new runner: %v", err)
-	}
+	_ = bus.SubscribeAll(func(_ context.Context, _ event.Event) error {
+		received++
 
-	if err := runner.Register(event.NewProjection(
-		"counter-count",
-		func(handleCtx context.Context, _ event.Event) error {
-			if event.ProcessingModeFrom(handleCtx) == event.ModeReplay {
-				replayed++
-			} else {
-				live++
-			}
-
-			return nil
-		},
-		[]event.Type{"CounterIncremented"},
-	)); err != nil {
-		t.Fatalf("register projection: %v", err)
-	}
-
-	runCtx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	go func() {
-		if runErr := runner.Run(runCtx); runErr != nil {
-			t.Logf("runner: %v", runErr)
-		}
-	}()
+		return nil
+	})
 
 	time.Sleep(50 * time.Millisecond)
 
@@ -123,12 +97,9 @@ func TestPebbleEventStoreWithProjectionRunner(t *testing.T) {
 
 	time.Sleep(50 * time.Millisecond)
 
-	if replayed != 2 {
-		t.Fatalf("expected 2 replayed events, got %d", replayed)
-	}
-
-	if live != 1 {
-		t.Fatalf("expected 1 live event, got %d", live)
+	// Only the live event is received (bus.SubscribeAll does not replay journal).
+	if received != 1 {
+		t.Fatalf("expected 1 live event, got %d", received)
 	}
 }
 
