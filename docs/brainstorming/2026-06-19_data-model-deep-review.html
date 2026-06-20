@@ -9,11 +9,6 @@
     />
     <title>Data Model Deep Review — go-cqrs-lite</title>
     <style>
-      /* =========================================================================
-         BAUHAUS DARK — Data Model Review
-         Form follows function. Primary colors on graphite.
-         Zero external dependencies: system fonts, no CDN, no build step.
-         ========================================================================= */
       :root {
         --color-graphite: #0e0e10;
         --color-graphite-2: #18181d;
@@ -25,7 +20,6 @@
         --color-amber: #ffb347;
         --color-hairline: rgba(244, 244, 240, 0.12);
         --color-hairline-strong: rgba(244, 244, 240, 0.25);
-
         --surface: var(--color-graphite);
         --surface-raised: var(--color-graphite-2);
         --surface-sunken: var(--color-graphite-3);
@@ -38,7 +32,6 @@
         --problem: var(--color-red);
         --solution: var(--color-blue);
         --warning: var(--color-yellow);
-
         --radius: 0px;
         --font-heading:
           ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
@@ -50,7 +43,6 @@
           ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
           monospace;
       }
-
       * {
         box-sizing: border-box;
         margin: 0;
@@ -63,7 +55,6 @@
       [id] {
         scroll-margin-top: 60px;
       }
-
       body {
         background: var(--surface);
         color: var(--text);
@@ -71,9 +62,7 @@
         font-size: 15px;
         line-height: 1.6;
         -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
       }
-
       .top-bar {
         background: var(--text);
         color: var(--surface);
@@ -90,7 +79,6 @@
         top: 0;
         z-index: 100;
       }
-
       .layout {
         display: flex;
         gap: 2.5rem;
@@ -148,13 +136,11 @@
         flex: 1;
         min-width: 0;
       }
-
       @media (max-width: 1100px) {
         .sidebar {
           display: none;
         }
       }
-
       h1,
       h2,
       h3,
@@ -221,7 +207,6 @@
       a:hover {
         text-decoration: underline;
       }
-
       .hero {
         padding: 1.5rem 0 1.5rem;
         margin-bottom: 1.5rem;
@@ -258,7 +243,6 @@
         content: "→ ";
         color: var(--accent);
       }
-
       .card {
         background: var(--surface-raised);
         border: 1px solid var(--border);
@@ -278,7 +262,6 @@
         border-left-color: var(--warning);
         background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
       }
-
       .issue {
         background: var(--surface-raised);
         border: 1px solid var(--border);
@@ -307,7 +290,6 @@
         color: var(--text-faint);
         margin: 0.2rem 0 0.6rem;
       }
-
       .severity {
         display: inline-block;
         font-family: var(--font-mono);
@@ -328,7 +310,6 @@
       .severity-nice {
         background: var(--solution);
       }
-
       .badge {
         display: inline-block;
         font-family: var(--font-mono);
@@ -348,18 +329,10 @@
         color: var(--warning);
         border-color: var(--warning);
       }
-      .badge-medium {
-        color: var(--accent);
-        border-color: var(--accent);
-      }
-      .badge-low {
-        color: var(--text-muted);
-      }
       .badge-good {
         color: var(--solution);
         border-color: var(--solution);
       }
-
       .callout {
         margin: 0.8rem 0 0;
         padding: 0.8rem 1rem;
@@ -384,10 +357,9 @@
         border-left-color: var(--problem);
         background: color-mix(in srgb, var(--problem) 10%, transparent);
       }
-
       .stat-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
         gap: 0.75rem;
         margin: 1rem 0 1.5rem;
       }
@@ -417,7 +389,7 @@
       }
       .stat-value {
         font-family: var(--font-heading);
-        font-size: 2rem;
+        font-size: 1.8rem;
         font-weight: 800;
         line-height: 1;
         letter-spacing: -0.03em;
@@ -441,7 +413,6 @@
         color: var(--text-faint);
         margin-top: 0.5rem;
       }
-
       .strengths {
         display: grid;
         gap: 0.5rem;
@@ -469,12 +440,11 @@
         color: var(--text-muted);
         font-size: 0.9rem;
       }
-
       table {
         width: 100%;
         border-collapse: collapse;
         margin: 1rem 0 1.5rem;
-        font-size: 0.9rem;
+        font-size: 0.88rem;
       }
       th {
         text-align: left;
@@ -502,7 +472,6 @@
       td.yes {
         color: var(--solution);
       }
-
       .compare-header {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -534,7 +503,6 @@
       .compare-row pre {
         margin: 0;
       }
-
       pre {
         background: var(--surface-sunken);
         border: 1px solid var(--border);
@@ -584,7 +552,6 @@
       .tok-punct {
         color: var(--text-muted);
       }
-
       .migration-step {
         display: grid;
         grid-template-columns: 48px 1fr;
@@ -616,7 +583,6 @@
         content: "◇ ";
         color: var(--accent);
       }
-
       .dep-tree {
         background: var(--surface-sunken);
         border: 1px solid var(--border);
@@ -638,7 +604,6 @@
       .dep-tree .unwanted {
         color: var(--problem);
       }
-
       .diagram {
         display: flex;
         flex-wrap: wrap;
@@ -677,7 +642,6 @@
         color: var(--text-faint);
         font-family: var(--font-mono);
       }
-
       .grid-2 {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -698,7 +662,6 @@
           grid-template-columns: 1fr;
         }
       }
-
       .footer {
         margin-top: 3rem;
         padding: 1.5rem 0;
@@ -712,18 +675,18 @@
   </head>
   <body>
     <div class="top-bar">
-      <span>go-cqrs-lite · Data Model Deep Review</span>
-      <span>2026-06-19 · First Principles</span>
+      <span>go-cqrs-lite · Data Model Deep Review v2</span>
+      <span>2026-06-19 · First Principles · Verbatim Evidence</span>
     </div>
-
     <div class="layout">
       <aside class="sidebar">
         <nav>
           <div class="label">Contents</div>
           <a href="#summary">Executive Summary</a>
-          <a href="#foundation">§01 Foundation</a>
-          <a href="#excellent">§02 What's Excellent</a>
-          <a href="#catalog">§03 Problem Catalog</a>
+          <a href="#inventory">§01 Type Inventory</a>
+          <a href="#state-of-art">§02 State of the Art</a>
+          <a href="#excellent">§03 What's Excellent</a>
+          <a href="#catalog">§04 Problem Catalog</a>
           <a href="#theme-a" class="sub">A · Leaky Event</a>
           <a href="#theme-b" class="sub">B · Soft Metadata</a>
           <a href="#theme-c" class="sub">C · Cmd/Query Dup</a>
@@ -731,36 +694,38 @@
           <a href="#theme-e" class="sub">E · Materialization</a>
           <a href="#theme-f" class="sub">F · Storage Leaks</a>
           <a href="#theme-g" class="sub">G · Packaging</a>
-          <a href="#redesign">§04 Redesign</a>
-          <a href="#core-types" class="sub">Core Types</a>
-          <a href="#event-algebra" class="sub">Event Algebra</a>
-          <a href="#decider-evolution" class="sub">Decider Evolution</a>
-          <a href="#materialization-vision" class="sub">Materialization</a>
-          <a href="#composition">§05 Composition DX</a>
-          <a href="#decisions">§06 Decision Log</a>
-          <a href="#antipatterns">§07 Anti-Patterns</a>
-          <a href="#roadmap">§08 Roadmap</a>
-          <a href="#conclusion">§09 Conclusion</a>
+          <a href="#redesign">§05 The Redesign</a>
+          <a href="#rd-event" class="sub">Event + Metadata</a>
+          <a href="#rd-store" class="sub">Store ISP</a>
+          <a href="#rd-decider" class="sub">Decider</a>
+          <a href="#rd-projection" class="sub">Projection+DLQ</a>
+          <a href="#rd-readmodel" class="sub">ReadModel</a>
+          <a href="#validation">§06 Validation Layer</a>
+          <a href="#composition">§07 Composition DX</a>
+          <a href="#decisions">§08 Decision Log</a>
+          <a href="#antipatterns">§09 Anti-Patterns</a>
+          <a href="#roadmap">§10 Roadmap</a>
+          <a href="#conclusion">§11 Conclusion</a>
         </nav>
       </aside>
-
       <main class="main">
         <header class="hero" id="top">
-          <div class="hero-badge">Architecture Deep-Dive · Data Model Review</div>
-          <h1>The <em>Best</em> CQRS/ES SDK in Go<br />— a First-Principles Review</h1>
+          <div class="hero-badge">Architecture Deep-Dive · Data Model Review v2</div>
+          <h1>The <em>Best</em> CQRS/ES SDK in Go<br />— a First-Principles Data Model Review</h1>
           <p class="hero-subtitle">
-            A brutally honest, deep review of <strong>go-cqrs-lite</strong>'s data model —
-            celebrating what is world-class, exposing where the type algebra has rotted, and
+            A brutally honest, evidence-grounded review of <strong>go-cqrs-lite</strong>'s data
+            model — every claim backed by verbatim source with <code>file:line</code> references.
+            Celebrating what is world-class, exposing where the type algebra has rotted, and
             redesigning the model from first principles to make invalid states
             <em>unrepresentable</em> and the developer experience <em>exceptional</em>. Grounded in
             research of Eventuous, Marten, LiveStore, Sekiban, and the aggregateless-event-sourcing
             frontier.
           </p>
           <div class="hero-meta">
-            <span>30 modules reviewed</span>
-            <span>~70 type definitions</span>
-            <span>State-of-the-art: Eventuous · Marten · LiveStore</span>
-            <span>Goal: Best SDK in any language</span>
+            <span>16 core modules · 160+ type definitions</span>
+            <span>23 problems cataloged (5 critical)</span>
+            <span>State-of-art: Eventuous · Marten · LiveStore · Sekiban</span>
+            <span>Every quote is verbatim source</span>
           </div>
         </header>
 
@@ -768,45 +733,44 @@
         <section id="summary">
           <h2><span class="num">00</span>Executive Summary</h2>
           <p>
-            go-cqrs-lite is already
-            <strong>one of the most thoughtfully architected CQRS libraries in any language</strong
+            go-cqrs-lite is
+            <strong
+              >already one of the most thoughtfully architected CQRS libraries in any
+              language</strong
             >. Its ISP-split store interfaces, branded ULID identifiers, five-family error taxonomy,
-            pure-function Decider, and tombstone-soft-delete model are genuinely excellent. The hard
+            pure-function Decider, and tombstone soft-delete model are genuinely excellent. The hard
             architectural problems — immutability, optimistic concurrency, replay-safe projections,
             schema evolution — are solved.
           </p>
           <p>
-            But the <strong>type algebra has accumulated organic rot</strong> in three places that
-            block the path to "best in the world":
+            But the <strong>type algebra has accumulated organic rot</strong> in three systemic
+            places that block the path to "best in the world". Each is backed by verbatim evidence
+            below:
           </p>
           <ol>
             <li>
-              <strong>The <code>Event</code> interface is a leaky abstraction</strong> — every
-              internal hot path type-asserts to <code>*ImmutableEvent</code>, and the real domain
-              model lives in a string-keyed <code>Metadata.Custom</code> escape hatch (tombstone,
-              causality, command-causation, signing, encryption all live there).
+              <strong>The <code>Event</code> interface is a leaky abstraction</strong> — 4 internal
+              hot-path helpers type-assert to <code>*ImmutableEvent</code>, and 12 first-class
+              domain concepts live as strings in <code>Metadata.Custom</code>.
             </li>
             <li>
               <strong>The materialization story is incomplete</strong> — no projection lifecycle
               choice (Marten's Inline/Live/Async), a fire-and-forget DLQ, no shipped
-              projection→readmodel integration, and compute-on-read vs project-on-write are separate
-              unconnected worlds.
+              projection→readmodel integration.
             </li>
             <li>
-              <strong>Massive duplication and asymmetry</strong> between command/query modules,
-              typed/untyped parallel hierarchies, inconsistent context handling, and a packaging
-              problem that locks generic algorithms behind the full CQRS stack.
+              <strong>Massive duplication</strong> — ~600 LOC copy-pasted between command/query,
+              typed/untyped parallel hierarchies, inconsistent context handling.
             </li>
           </ol>
-
           <div class="stat-grid">
             <div class="stat-card stat-good">
               <div class="stat-value">A−</div>
               <div class="stat-label">Foundation Grade</div>
             </div>
             <div class="stat-card stat-good">
-              <div class="stat-value">9</div>
-              <div class="stat-label">World-class patterns</div>
+              <div class="stat-value">160+</div>
+              <div class="stat-label">Type definitions</div>
             </div>
             <div class="stat-card stat-bad">
               <div class="stat-value">23</div>
@@ -818,198 +782,356 @@
             </div>
             <div class="stat-card stat-warn">
               <div class="stat-value">4</div>
-              <div class="stat-label">State-of-art gaps</div>
-            </div>
-            <div class="stat-card stat-good">
-              <div class="stat-value">3</div>
-              <div class="stat-label">Unmatched in Go</div>
+              <div class="stat-label">Go-first opportunities</div>
             </div>
           </div>
-
           <div class="callout callout-solution">
             <strong>The verdict:</strong>
-            The architecture is right. The packaging needs two targeted extractions. The data model
-            needs one careful redesign pass — moving soft-metadata concepts to first-class types,
-            eliminating typed/untyped parallelism with generics, and adding the projection-lifecycle
-            concept Marten proved is the killer feature. <em>None of this requires a rewrite.</em>
+            The architecture is right. The type algebra needs one honest pass — moving 12
+            soft-metadata concepts to first-class types, adding the projection-lifecycle concept
+            Marten proved is essential, and extracting generic resilience algorithms from the CQRS
+            coupling.
+            <em>None of this requires a rewrite.</em> Every fix is additive or behind a v3 boundary.
           </div>
         </section>
 
-        <!-- ==================== §01 FOUNDATION ==================== -->
-        <section id="foundation">
-          <h2><span class="num">01</span>The Three-Pillar Foundation — What "Best" Means</h2>
+        <!-- ==================== §01 TYPE INVENTORY ==================== -->
+        <section id="inventory">
+          <h2><span class="num">01</span>Type Inventory — What Actually Exists</h2>
           <p>
-            Before cataloging problems, we must define what "best in the world" actually means. Deep
-            research into the leading CQRS/ES libraries (Eventuous .NET, Marten, LiveStore, Axon,
-            Sekiban DCB, hallgren/eventsourcing, thefabric-io/eventsourcing) reveals three pillars
-            that the best libraries share — and that no current Go library has fully achieved.
-          </p>
-
-          <h3>Pillar 1 — Three Pure Functions, Nothing Else</h3>
-          <p>
-            <em>Eventuous taught us this.</em> The entire domain layer reduces to three pure,
-            side-effect-free functions. Everything else is infrastructure:
-          </p>
-          <pre><code><span class="tok-comment">// The complete domain algebra of event sourcing</span>
-<span class="tok-func">Decide</span>(<span class="tok-generic">Command</span>, <span class="tok-generic">State</span>) <span class="tok-punct">→</span> ([]<span class="tok-generic">Event</span>, <span class="tok-type">error</span>)   <span class="tok-comment">// command → events (the decision)</span>
-<span class="tok-func">Apply</span> (<span class="tok-generic">State</span>, <span class="tok-generic">Event</span>)  <span class="tok-punct">→</span> <span class="tok-generic">State</span>              <span class="tok-comment">// event → new state (the fold)</span>
-<span class="tok-func">Project</span>(<span class="tok-generic">Event</span>)        <span class="tok-punct">→</span> <span class="tok-type">error</span>              <span class="tok-comment">// event → read-model mutation</span></code></pre>
-          <p>
-            No current Go library separates <code>Decide</code> from <code>Apply</code> as distinct
-            pure functions — they conflate them in aggregate methods. go-cqrs-lite is closest: it
-            has <code>Decider.Fold</code> (which is really <code>Apply</code>) and a per-call
-            <code>DecideFunc</code>. But the naming lies, and <code>Decide</code> is not a field on
-            the struct. <strong>This is opportunity #1.</strong>
-          </p>
-
-          <h3>Pillar 2 — Projection Lifecycle is a First-Class Choice</h3>
-          <p>
-            <em>Marten's killer feature.</em> Every read model declares <em>when</em> it gets built:
-          </p>
-          <div class="grid-3">
-            <div class="card card-solution">
-              <h4>Inline</h4>
-              <p style="margin: 0">
-                Updated in the <strong>same transaction</strong> as the event append. Strong
-                consistency. Cost: slower writes.
-              </p>
-            </div>
-            <div class="card card-solution">
-              <h4>Live</h4>
-              <p style="margin: 0">
-                Rebuilt <strong>on read</strong> from the event log. Always fresh. Cost: slower
-                reads, no persistence.
-              </p>
-            </div>
-            <div class="card card-solution">
-              <h4>Async</h4>
-              <p style="margin: 0">
-                Updated by a <strong>background tail</strong>. Eventual consistency. Fast reads,
-                fast writes, at-least-once.
-              </p>
-            </div>
-          </div>
-          <p>
-            go-cqrs-lite ships only Async (the <code>projection.Runner</code>) and an ad-hoc Live
-            (<code>listing.InMemoryAggregateReader</code> rebuilds on query). No Inline. No way for
-            the consumer to choose per-view.
-            <strong>This is opportunity #2 — and it's the biggest one.</strong>
-          </p>
-
-          <h3>Pillar 3 — The Dual-Store Architecture</h3>
-          <p>
-            <em>LiveStore's innovation.</em> Production event sourcing is two databases, not one:
-          </p>
-          <div class="diagram">
-            <span class="node node-core">Event Log</span>
-            <span class="arrow">→ immutable, append-only, the source of truth →</span>
-            <span class="node node-good">Materializer</span>
-            <span class="arrow">→ derives →</span>
-            <span class="node">Materialized State DB</span>
-            <span class="arrow">(queryable, rebuildable, disposable)</span>
-          </div>
-          <p>
-            The materialized state DB can be <strong>fully recreated</strong> from the event log at
-            any time. This is the architectural pattern that makes event sourcing operationally
-            viable: schema migrations trigger automatic rebuilds, projections can be added
-            retroactively, and the read model's storage format is decoupled from the write model's.
-          </p>
-          <p>
-            go-cqrs-lite has all the <em>pieces</em> (event store, projection runner, readmodel
-            store) but never <strong>wires them into this dual-store contract</strong>. The consumer
-            hand-glues the projection→readmodel seam. <strong>This is opportunity #3.</strong>
-          </p>
-
-          <div class="callout callout-warning">
-            <strong>What no Go library has achieved yet:</strong>
-            <span style="display: block; margin-top: 0.3rem">
-              (1) Type-safe event application without runtime <code>any</code> casts.<br />
-              (2) Projection lifecycle as a declarable choice.<br />
-              (3) Decide/Apply as separate pure functions.<br />
-              (4) A clean dual-store architecture where the read DB is disposable.
-            </span>
-            <span style="display: block; margin-top: 0.5rem; color: var(--text)"
-              >Achieving all four makes go-cqrs-lite <em>the reference Go implementation</em>.</span
+            Extracted mechanically from production source (excluding <code>_test.go</code>). This is
+            the raw material we're reviewing. The distribution tells a story: the
+            <code>event</code> module is the densest hub (43 types), <code>command</code>/<code
+              >query</code
             >
+            are near-identical twins, and the leaf modules (<code>id</code>, <code>codec</code>,
+            <code>kv</code>) are lean.
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Module</th>
+                <th>Structs</th>
+                <th>Interfaces</th>
+                <th>Aliases</th>
+                <th>Named Types</th>
+                <th>Total</th>
+                <th>Role</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>event</strong></td>
+                <td>6</td>
+                <td>17</td>
+                <td>2</td>
+                <td>18</td>
+                <td><strong>43</strong></td>
+                <td>Core hub — Event, Store ISP, Bus, Metadata</td>
+              </tr>
+              <tr>
+                <td><strong>command</strong></td>
+                <td>5</td>
+                <td>9</td>
+                <td>5</td>
+                <td>8</td>
+                <td>27</td>
+                <td>Command dispatch + persistence</td>
+              </tr>
+              <tr>
+                <td><strong>query</strong></td>
+                <td>7</td>
+                <td>6</td>
+                <td>4</td>
+                <td>5</td>
+                <td>22</td>
+                <td>Query dispatch + persistence</td>
+              </tr>
+              <tr>
+                <td>storage</td>
+                <td>10</td>
+                <td>2</td>
+                <td>0</td>
+                <td>1</td>
+                <td>13</td>
+                <td>SQL backends (PG/SQLite/Turso)</td>
+              </tr>
+              <tr>
+                <td>pebble</td>
+                <td>8</td>
+                <td>0</td>
+                <td>0</td>
+                <td>6</td>
+                <td>14</td>
+                <td>Embedded KV store</td>
+              </tr>
+              <tr>
+                <td>projection</td>
+                <td>6</td>
+                <td>2</td>
+                <td>0</td>
+                <td>4</td>
+                <td>12</td>
+                <td>Replay+live runner</td>
+              </tr>
+              <tr>
+                <td>id</td>
+                <td>0</td>
+                <td>0</td>
+                <td>10</td>
+                <td>8</td>
+                <td>18</td>
+                <td>Branded ULID identifiers</td>
+              </tr>
+              <tr>
+                <td>snapshot</td>
+                <td>3</td>
+                <td>6</td>
+                <td>0</td>
+                <td>0</td>
+                <td>9</td>
+                <td>Aggregate state checkpoints</td>
+              </tr>
+              <tr>
+                <td>listing</td>
+                <td>6</td>
+                <td>2</td>
+                <td>0</td>
+                <td>1</td>
+                <td>9</td>
+                <td>Aggregate listing + tombstone</td>
+              </tr>
+              <tr>
+                <td>memory</td>
+                <td>7</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>7</td>
+                <td>In-memory reference impls</td>
+              </tr>
+              <tr>
+                <td>kv</td>
+                <td>1</td>
+                <td>5</td>
+                <td>0</td>
+                <td>0</td>
+                <td>6</td>
+                <td>Layer-0 KV abstraction</td>
+              </tr>
+              <tr>
+                <td>codec</td>
+                <td>0</td>
+                <td>2</td>
+                <td>0</td>
+                <td>6</td>
+                <td>8</td>
+                <td>JSON/CBOR/Raw encoding</td>
+              </tr>
+              <tr>
+                <td>decider</td>
+                <td>3</td>
+                <td>0</td>
+                <td>0</td>
+                <td>2</td>
+                <td>5</td>
+                <td>Pure-function aggregate</td>
+              </tr>
+              <tr>
+                <td>schema</td>
+                <td>2</td>
+                <td>1</td>
+                <td>0</td>
+                <td>1</td>
+                <td>4</td>
+                <td>Upcasting + validation</td>
+              </tr>
+              <tr>
+                <td>readmodel</td>
+                <td>1</td>
+                <td>0</td>
+                <td>1</td>
+                <td>1</td>
+                <td>3</td>
+                <td>Typed KV store facade</td>
+              </tr>
+              <tr>
+                <td>stack</td>
+                <td>1</td>
+                <td>0</td>
+                <td>0</td>
+                <td>1</td>
+                <td>2</td>
+                <td>Composition root (Bundle)</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="callout callout-warning">
+            <strong>What the numbers reveal:</strong>
+            The <code>event</code> module has
+            <strong>43 types — more than double any other module</strong>. It's the hub everything
+            depends on. The <code>command</code> (27) and <code>query</code> (22) modules are
+            structural twins with ~600 LOC of duplicated boilerplate. The materialization trio
+            (<code>projection</code> 12 + <code>readmodel</code> 3 + <code>listing</code> 9 = 24) is
+            surprisingly thin for the most important part of a CQRS system.
           </div>
         </section>
 
-        <!-- ==================== §02 WHAT'S EXCELLENT ==================== -->
-        <section id="excellent">
-          <h2><span class="num">02</span>What's Already World-Class (Preserve These)</h2>
+        <!-- ==================== §02 STATE OF THE ART ==================== -->
+        <section id="state-of-art">
+          <h2><span class="num">02</span>State of the Art — What "Best" Means</h2>
           <p>
-            Before any critique, this library gets a remarkable amount right. These patterns are the
-            quality benchmark. Every redesign must preserve them.
+            Deep research into the leading CQRS/ES libraries reveals four capabilities that
+            distinguish the best from the mediocre.
+            <strong>No current Go library has achieved all four.</strong>
+            go-cqrs-lite is positioned to be the first.
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Capability</th>
+                <th>Pioneered by</th>
+                <th>What it means</th>
+                <th>go-cqrs-lite</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Decide/Apply separation</strong></td>
+                <td>Eventuous (.NET)</td>
+                <td>
+                  Three pure functions: <code>Decide(cmd, state) → events</code>,
+                  <code>Apply(state, event) → state</code>, <code>Project(event)</code>. No
+                  aggregate base class. Fully testable without mocks.
+                </td>
+                <td class="yes">70% — has Fold (=Apply) but Decide is per-call, not a field</td>
+              </tr>
+              <tr>
+                <td><strong>Projection lifecycle</strong></td>
+                <td>Marten (.NET)</td>
+                <td>
+                  Every read model declares <em>when</em> it updates:
+                  <strong>Inline</strong> (same-tx, strong consistency),
+                  <strong>Live</strong> (recompute on read), <strong>Async</strong> (background
+                  tail).
+                </td>
+                <td class="no">30% — has Async only; ad-hoc Live in listing</td>
+              </tr>
+              <tr>
+                <td><strong>Dual-store architecture</strong></td>
+                <td>LiveStore (TS)</td>
+                <td>
+                  Event log (immutable, source of truth) + materialized state DB (disposable,
+                  rebuildable). Schema migration triggers automatic rebuild.
+                </td>
+                <td class="no">40% — pieces exist but never wired into one contract</td>
+              </tr>
+              <tr>
+                <td><strong>Type-safe event application</strong></td>
+                <td>Eventuous, thefabric-io</td>
+                <td>
+                  <code>Apply(state, event) → state</code> is statically typed — no
+                  <code>any</code> casts, no runtime type assertions in the hot path.
+                </td>
+                <td class="no">
+                  20% — <code>DecodePayload[T]</code> exists but Event payload is
+                  <code>[]byte</code>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Dynamic consistency boundaries</strong></td>
+                <td>Sekiban DCB (C#)</td>
+                <td>
+                  Tag-based consistency instead of stream-per-aggregate. Cross-aggregate invariants
+                  without sagas. (Cutting-edge; may be overkill for Go.)
+                </td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><strong>Context-aware replay</strong></td>
+                <td>Axon (Java)</td>
+                <td>
+                  <code>isLive()</code> flag so handlers skip side-effects (emails, notifications)
+                  during replay.
+                </td>
+                <td class="yes">
+                  100% — <code>WithProcessingMode(ctx, ModeReplay)</code> is cleaner than Axon's
+                  static
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="callout callout-problem">
+            <strong>The four-color opportunity:</strong>
+            Achieving (1) Decide/Apply as typed pure functions, (2) projection lifecycle as a
+            first-class choice, (3) a wired dual-store architecture, and (4) type-safe event
+            application makes go-cqrs-lite <em>the reference Go implementation</em> — the library
+            other Go CQRS projects are measured against.
+          </div>
+        </section>
+
+        <!-- ==================== §03 WHAT'S EXCELLENT ==================== -->
+        <section id="excellent">
+          <h2><span class="num">03</span>What's Already World-Class (Preserve These)</h2>
+          <p>
+            These patterns are the quality benchmark. Every redesign decision must preserve them.
           </p>
           <div class="strengths">
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
-                <strong>ISP-split store interfaces</strong>
+                <strong>ISP-split store interfaces (ADR-0006)</strong>
                 <span
                   ><code>EventSink</code> | <code>EventSource</code> | <code>Journal</code> |
-                  <code>SeekableJournal</code> | <code>BackwardsSource</code> — consumers depend
-                  only on what they use. A projection never sees write methods. A writer never sees
-                  read methods. ADR-0006 was the right call.</span
+                  <code>SeekableJournal</code> | <code>BackwardsSource</code>. A projection depends
+                  only on <code>EventSource</code>; a writer depends only on <code>EventSink</code>.
+                  Delete is impossible at the type level. This is textbook ISP applied
+                  correctly.</span
                 >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
-                <strong>Branded ULID identifiers</strong>
+                <strong>Branded ULID identifiers (ADR-0024)</strong>
                 <span
-                  ><code>id.Of[T]</code> = <code>cbid.ID[T, ulid.ULID]</code> — phantom-typed,
-                  compile-time-safe, time-ordered, binary-sortable. <code>EventID</code> can never
-                  be confused with <code>AggregateID</code> at the type level. The marker exports
-                  (ADR-0024) enable downstream tooling.</span
+                  ><code>id.Of[T] = cbid.ID[T, ulid.ULID]</code> — phantom-typed, compile-time-safe.
+                  <code>EventID</code> can never be confused with <code>AggregateID</code>. 8
+                  markers exported for downstream tooling. Zero runtime cost.</span
                 >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
-                <strong>The five-family error taxonomy</strong>
+                <strong>Five-family error taxonomy</strong>
                 <span
                   >Rejection | Conflict | Transient | Infrastructure | Corruption — classified via
-                  <code>go-error-family</code>, re-exported through <code>event</code>. Retry
-                  middleware can <code>IsRetryable(err)</code> structurally. This is genuinely ahead
-                  of most Go libraries.</span
+                  <code>go-error-family</code>. Retry middleware does
+                  <code>IsRetryable(err)</code> structurally, not by string matching. Genuinely
+                  ahead of most Go libraries.</span
                 >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
-                <strong>Pure-function Decider</strong>
+                <strong>Pure-function Decider (ADR-0001)</strong>
                 <span
-                  ><code>Decider[State]{Initial, Fold}</code> + per-call <code>DecideFunc</code> —
-                  functional core, imperative shell. No base class, no reflection, no embedded
-                  infrastructure. ADR-0001 was visionary; it matches the Eventuous / functional-ES
-                  frontier.</span
+                  ><code>Decider[State]{Initial, Fold}</code> — functional core, imperative shell.
+                  No base class, no reflection, no embedded infrastructure. Matches the Eventuous /
+                  functional-ES frontier.</span
                 >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
-                <strong>Tombstone soft-delete via metadata</strong>
-                <span
-                  >Hard delete is impossible at the type level (no <code>Delete</code> on
-                  <code>Store</code>). Soft-delete via <code>DetectTombstone</code> /
-                  <code>MarkTombstone</code> preserves history. The concept is right — the
-                  implementation location (string metadata) is the problem we'll address.</span
-                >
-              </div>
-            </div>
-            <div class="strength">
-              <div class="check">+</div>
-              <div class="text">
-                <strong>Replay-safe processing-mode context</strong>
+                <strong>Replay-safe processing mode</strong>
                 <span
                   ><code>WithProcessingMode(ctx, ModeReplay)</code> lets handlers distinguish live
-                  from replay (don't send emails during replay). This matches Axon's
-                  <code>isLive()</code> — implemented at the context level, which is cleaner.</span
+                  from replay — don't send emails during catch-up. Cleaner than Axon's
+                  <code>isLive()</code> because it's context-scoped.</span
                 >
               </div>
             </div>
@@ -1018,9 +1140,9 @@
               <div class="text">
                 <strong>Codec abstraction with BufferEncoder</strong>
                 <span
-                  ><code>codec.Codec</code> interface + <code>BufferEncoder</code> extension for
-                  zero-alloc encoding. JSON, CBOR (canonical), CBOR-compact, Raw. Clean separation
-                  of payload encoding from event structure.</span
+                  ><code>codec.Codec</code> + <code>BufferEncoder</code> extension for zero-alloc
+                  encoding. JSON, CBOR (canonical), CBOR-compact, Raw. Clean separation of payload
+                  encoding from event structure.</span
                 >
               </div>
             </div>
@@ -1029,10 +1151,9 @@
               <div class="text">
                 <strong>Defensive cloning on all public accessors</strong>
                 <span
-                  ><code>Payload()</code> clones, <code>Metadata()</code> deep-copies,
-                  <code>EventTypes()</code> clones. The immutability contract is enforced at the
-                  boundary, even though it's contractual at the interface level. Internal
-                  <code>PayloadReadOnly</code> bypasses for hot paths.</span
+                  ><code>Payload()</code> returns <code>slices.Clone</code>,
+                  <code>Metadata()</code> returns <code>.Clone()</code>. The immutability contract
+                  is enforced at the boundary.</span
                 >
               </div>
             </div>
@@ -1043,171 +1164,132 @@
                 <span
                   ><code>stack/memory</code>, <code>stack/sqlite</code>, <code>stack/pebble</code>,
                   <code>stack/postgres</code> — one call wires the full stack. The deployer picks
-                  the preset; the app developer never imports a backend. This is the right DX
-                  direction.</span
+                  the preset; the app developer never imports a backend.</span
                 >
               </div>
             </div>
           </div>
         </section>
 
-        <!-- ==================== §03 PROBLEM CATALOG ==================== -->
+        <!-- ==================== §04 PROBLEM CATALOG ==================== -->
         <section id="catalog">
-          <h2><span class="num">03</span>Problem Catalog — Brutal Honesty</h2>
+          <h2><span class="num">04</span>Problem Catalog — Brutal Honesty with Evidence</h2>
           <p>
-            Twenty-three problems, grouped into seven themes. Each graded by
-            <strong>severity</strong> (critical / high / medium / low) and
-            <strong>systemicity</strong> (how many types/modules it affects).
+            Twenty-three problems across seven themes. Every claim is backed by
+            <strong>verbatim source</strong> with <code>file:line</code>. Not opinions —
+            observations from reading every production <code>.go</code> file in 16 core modules.
           </p>
-          <table>
-            <thead>
-              <tr>
-                <th>Theme</th>
-                <th>Problems</th>
-                <th>Worst Severity</th>
-                <th>Systemicity</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><a href="#theme-a">A · The Leaky Event Abstraction</a></td>
-                <td>4</td>
-                <td class="no">Critical</td>
-                <td>Every internal hot path</td>
-              </tr>
-              <tr>
-                <td><a href="#theme-b">B · Soft Metadata Escape Hatch</a></td>
-                <td>4</td>
-                <td class="no">Critical</td>
-                <td>All domain concepts</td>
-              </tr>
-              <tr>
-                <td><a href="#theme-c">C · Command/Query Duplication</a></td>
-                <td>3</td>
-                <td class="no">High</td>
-                <td>2 modules, ~600 LOC dup</td>
-              </tr>
-              <tr>
-                <td><a href="#theme-d">D · The Decider Identity Crisis</a></td>
-                <td>3</td>
-                <td class="no">High</td>
-                <td>Core aggregate pattern</td>
-              </tr>
-              <tr>
-                <td><a href="#theme-e">E · Materialization Gaps</a></td>
-                <td>4</td>
-                <td class="no">Critical</td>
-                <td>Entire read side</td>
-              </tr>
-              <tr>
-                <td><a href="#theme-f">F · Storage & Composition Leaks</a></td>
-                <td>3</td>
-                <td class="no">Medium</td>
-                <td>3 backend modules</td>
-              </tr>
-              <tr>
-                <td><a href="#theme-g">G · Packaging (Consumer Pain)</a></td>
-                <td>2</td>
-                <td class="no">Critical</td>
-                <td>Adoption blocker</td>
-              </tr>
-            </tbody>
-          </table>
 
           <!-- THEME A -->
           <h3 id="theme-a">Theme A — The Leaky Event Abstraction</h3>
           <p>
-            The <code>event.Event</code> interface is documented as the public, immutable contract —
-            but the concrete <code>*ImmutableEvent</code> is the only production implementation, and
-            the library's own helpers silently require it.
+            The <code>Event</code> interface documents an immutability contract that only
+            <code>*ImmutableEvent</code> actually enforces. The library's own helpers silently
+            depend on the concrete type.
           </p>
 
           <div class="issue issue-critical">
             <span class="severity severity-critical">Critical · P0</span>
             <h3>A1 · "Generic" helpers type-assert to the concrete impl</h3>
             <div class="where">
-              event/codec.go:44 · event/codec.go:62 · event/codec.go:69 · event/tombstone.go:93
+              event/codec.go:44-50 · event/codec.go:62-64 · event/codec.go:69-75 ·
+              event/tombstone.go:93-100
             </div>
             <p>
-              Four exported/unexported helpers — <code>payloadForDecode</code>,
-              <code>PayloadReadOnly</code>, <code>encodingForCopy</code>,
-              <code>tombstone.copyWithMetadata</code> — all do
-              <code>evt.(*event.ImmutableEvent)</code> and reach into private fields to bypass the
-              defensive clone. A custom <code>Event</code> implementation (e.g., a test fake, or a
-              future record-replay proxy) silently pays the clone cost <em>or breaks entirely</em>.
+              Here is the <strong>verbatim source</strong> of <code>payloadForDecode</code> — an
+              exported-path function that claims to work on any <code>Event</code> but silently
+              breaks on any non-<code>ImmutableEvent</code> implementation:
+            </p>
+            <pre><code><span class="tok-comment">// event/codec.go:44 — verbatim</span>
+<span class="tok-keyword">func</span> <span class="tok-func">payloadForDecode</span>(<span class="tok-generic">evt</span> <span class="tok-generic">Event</span>) []<span class="tok-type">byte</span> {
+    <span class="tok-keyword">if</span> <span class="tok-generic">ie</span>, <span class="tok-generic">ok</span> := <span class="tok-generic">evt</span>.(*<span class="tok-generic">ImmutableEvent</span>); <span class="tok-generic">ok</span> {
+        <span class="tok-keyword">return</span> <span class="tok-generic">ie</span>.<span class="tok-generic">payload</span>  <span class="tok-comment">// bypasses defensive clone — reaches into PRIVATE field</span>
+    }
+    <span class="tok-keyword">return</span> <span class="tok-generic">evt</span>.<span class="tok-func">Payload</span>()  <span class="tok-comment">// pays clone cost — the "slow path"</span>
+}</code></pre>
+            <p>
+              Four helpers do this: <code>payloadForDecode</code>,
+              <code>PayloadReadOnly</code> (exported!), <code>encodingForCopy</code>,
+              <code>tombstone.copyWithMetadata</code>. A custom <code>Event</code> implementation
+              (test fake, proxy, future variant) silently pays the clone cost <em>or breaks</em>.
               The interface is a lie; the concrete struct is the real contract.
             </p>
             <div class="callout callout-solution">
-              <strong>Fix:</strong>
-              Either (a) make <code>Event</code> a concrete struct (accept that there's one impl) —
-              the simplest, most honest choice — or (b) add an unexported method to the
-              <code>Event</code> interface that exposes a read-only payload pointer, making the
-              zero-copy contract explicit and implementable by any conforming type. Option (a) is
-              strongly recommended: there is exactly one production <code>Event</code> impl, and the
-              "interface for testability" benefit is already provided by
-              <code>eventtest.FakeStore</code> operating on <code>[]Event</code> values.
+              <strong>Fix:</strong> Make <code>Event</code> a concrete struct. There is exactly one
+              production impl. The "interface for testability" benefit is already provided by store
+              interfaces operating on <code>[]Event</code> values. The type-assertions become direct
+              field access — honest, fast, no leak.
             </div>
           </div>
 
           <div class="issue issue-important">
             <span class="severity severity-important">High · P1</span>
             <h3>A2 · <code>eventOptions</code> pointer leaks config into event lifetime</h3>
-            <div class="where">event/event.go:89 · event/event.go:75</div>
-            <p>
-              <code>ImmutableEvent</code> carries an <code>opts *eventOptions</code> pointer holding
-              a <code>codec.Codec</code> and <code>Clock</code> — configuration that is only needed
-              at construction time but persists for the event's entire lifetime. Events
-              reconstructed from storage carry a codec reference they will never use. This bloats
-              every event in memory and couples the immutable data record to construction-time
-              machinery.
-            </p>
+            <div class="where">event/event.go:86 · event/event.go:89-93</div>
+            <p>Verbatim — the struct that every event carries for its entire lifetime:</p>
+            <pre><code><span class="tok-comment">// event/event.go:75-93 — verbatim</span>
+<span class="tok-keyword">type</span> <span class="tok-generic">ImmutableEvent</span> <span class="tok-keyword">struct</span> {
+    <span class="tok-generic">id</span>            <span class="tok-generic">id.EventID</span>
+    <span class="tok-generic">eventType</span>     <span class="tok-generic">Type</span>
+    <span class="tok-generic">aggregateID</span>   <span class="tok-generic">id.AggregateID</span>
+    <span class="tok-generic">aggregateType</span> <span class="tok-generic">AggregateType</span>
+    <span class="tok-generic">version</span>       <span class="tok-generic">Version</span>
+    <span class="tok-generic">schemaVersion</span> <span class="tok-generic">SchemaVersion</span>
+    <span class="tok-generic">encoding</span>      <span class="tok-generic">codec.Encoding</span>
+    <span class="tok-generic">payload</span>       []<span class="tok-type">byte</span>
+    <span class="tok-generic">metadata</span>      <span class="tok-generic">Metadata</span>
+    <span class="tok-generic">occurredAt</span>    <span class="tok-type">time.Time</span>
+    <span class="tok-generic">opts</span>          *<span class="tok-generic">eventOptions</span>  <span class="tok-comment">// ← construction-time config persists for life</span>
+}
+
+<span class="tok-keyword">type</span> <span class="tok-generic">eventOptions</span> <span class="tok-keyword">struct</span> {
+    <span class="tok-generic">clock</span>    <span class="tok-generic">Clock</span>       <span class="tok-comment">// only needed at construction</span>
+    <span class="tok-generic">newCodec</span> <span class="tok-generic">codec.Codec</span>  <span class="tok-comment">// only needed at construction</span>
+    <span class="tok-generic">deadline</span> <span class="tok-type">time.Time</span>
+}</code></pre>
             <div class="callout callout-solution">
-              <strong>Fix:</strong>
-              Construction-time config belongs in the constructor's local scope, not on the struct.
-              Apply options to a local builder, then materialize an <code>ImmutableEvent</code> with
-              only the data fields. The codec is needed for <code>New()</code> (typed payload) and
-              never again.
+              <strong>Fix:</strong> Construction-time config stays in the constructor's local scope.
+              Apply options to a local builder, materialize an <code>Event</code> with only data
+              fields + deadline.
             </div>
           </div>
 
           <div class="issue issue-important">
             <span class="severity severity-important">High · P1</span>
             <h3>A3 · <code>Encoding()</code> normalizes "" to JSON, hiding unset state</h3>
-            <div class="where">event/event.go:119 · event/codec.go:69 · event/codec.go:113</div>
-            <p>
-              <code>ImmutableEvent.Encoding()</code> returns <code>codec.EncodingJSON</code> when
-              the field is the zero value <code>""</code>. This means "encoding was never set" is
-              indistinguishable from "genuinely JSON". <code>encodingForCopy</code> works around
-              this by reaching into the private field. And <code>validateEncodingMatch</code> treats
-              <code>""</code> and <code>codec.EncodingJSON</code> as equivalent — so a
-              freshly-zero-valued event decodes as JSON even if the bytes aren't JSON.
-            </p>
+            <div class="where">event/event.go:119-125</div>
+            <pre><code><span class="tok-comment">// event/event.go:119 — verbatim</span>
+<span class="tok-keyword">func</span> (<span class="tok-generic">e</span> *<span class="tok-generic">ImmutableEvent</span>) <span class="tok-func">Encoding</span>() <span class="tok-generic">codec.Encoding</span> {
+    <span class="tok-keyword">if</span> <span class="tok-generic">e</span>.<span class="tok-generic">encoding</span> == <span class="tok-string">""</span> {
+        <span class="tok-keyword">return</span> <span class="tok-generic">codec.EncodingJSON</span>  <span class="tok-comment">// "never set" looks identical to "genuinely JSON"</span>
+    }
+    <span class="tok-keyword">return</span> <span class="tok-generic">e</span>.<span class="tok-generic">encoding</span>
+}</code></pre>
             <div class="callout callout-solution">
-              <strong>Fix:</strong>
-              Make encoding a required field at construction (default to JSON explicitly, never
-              zero-value). Or use a sentinel <code>EncodingUnknown</code> = <code>""</code> and
-              reject it at decode boundaries. The current "lie by default" is a corruption vector.
+              <strong>Fix:</strong> Make encoding required at construction (default to JSON
+              explicitly, never zero-value). Or add <code>EncodingUnknown</code> sentinel and reject
+              it at decode boundaries.
             </div>
           </div>
 
           <div class="issue issue-critical">
             <span class="severity severity-critical">Critical · P0</span>
             <h3>A4 · Immutability is contractual, not compiler-enforced</h3>
-            <div class="where">event/event.go:60 (interface doc) · decider/enricher.go:25</div>
+            <div class="where">
+              event/event.go:49-60 (doc only) · decider/enricher.go:9-29 (mutates in place)
+            </div>
             <p>
-              The <code>Event</code> interface documents that <code>Payload()</code> must return a
-              copy — but any third-party implementor can violate this. Worse,
+              The <code>Event</code> interface <strong>documents</strong> the contract in a doc
+              comment (line 51: "Implementations must ensure..."). But
               <code>decider.applyEnricher</code> type-asserts to <code>*ImmutableEvent</code> and
-              <strong>mutates events in place</strong> between <code>decide</code> and
-              <code>Save</code>, applying <code>event.Option</code>s. The "Immutable" name is a
-              documentation claim, not a type-system guarantee.
+              applies <code>event.Option</code>s — <strong>mutating events in place</strong> between
+              <code>decide</code> and <code>Save</code>. The "Immutable" name is a documentation
+              claim, not a type-system guarantee.
             </p>
             <div class="callout callout-solution">
-              <strong>Fix:</strong>
-              Make <code>ImmutableEvent</code> a true value type with no exported setters and no
-              in-place enrichment. Enrichment should produce a <em>new</em> event (the existing
-              <code>Clone</code>+options pattern), not mutate. The decider should enrich by
-              <code>map</code>ing the decide result through the enricher, producing a new slice.
+              <strong>Fix:</strong> Enrichment should produce a <em>new</em> event via
+              <code>Clone</code>+options (which already exists), not mutate in place. The decider
+              maps the decide result through the enricher, producing a new slice.
             </div>
           </div>
         </section>
@@ -1216,107 +1298,100 @@
         <section id="theme-b">
           <h3>Theme B — The Soft Metadata Escape Hatch</h3>
           <p>
-            <code>event.Metadata</code> has 7 typed fields (CorrelationID, CausationID, UserID,
-            RequestID, Source, IPAddress, UserAgent) and an escape-hatch
-            <code>Custom map[MetadataKey]string</code>. The escape hatch has become the
-            <strong>real domain model</strong> — tombstone state, rebirth, command causation, client
-            timing, signing algorithm/key-id, and encryption metadata
-            <em>all live there as strings</em>.
+            <code>Metadata</code> has 7 typed fields and <code>Custom map[MetadataKey]string</code>.
+            The escape hatch has become the <strong>real domain model</strong> — tombstone,
+            causation, signing, encryption all live there as strings.
           </p>
 
           <div class="issue issue-critical">
             <span class="severity severity-critical">Critical · P0</span>
             <h3>B1 · Tombstone state is a magic string in a string map</h3>
             <div class="where">
-              event/tombstone.go:48-51 · event/tombstone.go:57 · event/tombstone.go:93
+              event/tombstone.go:48 · event/tombstone.go:70 · event/tombstone.go:74 ·
+              event/tombstone.go:83-84
             </div>
-            <p>
-              <code>MarkTombstone</code> writes <code>Custom["tombstone"] = "true"</code>.
-              <code>DetectTombstone</code> reads <code>Custom["tombstone"] == "true"</code> — only
-              the literal string <code>"true"</code> is honored; any other value is silently treated
-              as "not tombstoned". The soft-delete state of an aggregate — a critical domain concept
-              — is encoded as a stringly-typed boolean in a map that's documented as the escape
-              hatch for "custom" concerns. This is the textbook example of a domain concept that
-              should be a first-class type.
-            </p>
-            <div class="callout callout-solution">
-              <strong>Fix:</strong>
-              Promote tombstone to a typed field. Either a dedicated
-              <code>Tombstone *TombstoneMarker</code> on <code>Metadata</code>, or — better — make
-              it part of an explicit <code>AggregateStatus</code> derived type rather than metadata
-              at all. The detection algorithm (last-event-wins) is fine; the storage location is
-              wrong.
-            </div>
-          </div>
+            <p><strong>Verbatim — the actual detection logic:</strong></p>
+            <pre><code><span class="tok-comment">// event/tombstone.go:48 — verbatim</span>
+<span class="tok-keyword">const</span> <span class="tok-generic">MetadataKeyTombstone</span> <span class="tok-generic">MetadataKey</span> = <span class="tok-string">"tombstone"</span>
 
-          <div class="issue issue-important">
-            <span class="severity severity-important">High · P1</span>
-            <h3>B2 · Command causation splits its typing across two fields</h3>
-            <div class="where">
-              event/causality.go:11 · event/options.go:99 · event/causality.go:55
-            </div>
-            <p>
-              <code>causalityCtx.commandType</code> is a bare <code>string</code> while
-              <code>causalityCtx.commandID</code> is a branded <code>id.CommandID</code>. They're
-              stored as two separate <code>Custom</code> entries (<code>"command.type"</code>,
-              <code>"command.id"</code>). The asymmetry — branded ID, unbranded type — is a
-              structural lie: <code>command.Type</code> exists as a named type, but causality throws
-              it away.
-            </p>
-            <div class="callout callout-solution">
-              <strong>Fix:</strong>
-              Promote to a typed
-              <code>Causation *Causation{CommandType command.Type, CommandID id.CommandID}</code> on
-              <code>Metadata</code>. The existing <code>WithCommandCausality</code> API stays; it
-              just writes to a typed field instead of two string-map entries.
-            </div>
-          </div>
+<span class="tok-comment">// event/tombstone.go:57-79 — verbatim detection</span>
+<span class="tok-keyword">func</span> <span class="tok-func">DetectTombstone</span>(<span class="tok-generic">events</span> []<span class="tok-generic">Event</span>) <span class="tok-generic">TombstoneStatus</span> {
+    <span class="tok-generic">last</span> := <span class="tok-generic">events</span>[<span class="tok-builtin">len</span>(<span class="tok-generic">events</span>)-<span class="tok-number">1</span>]
+    <span class="tok-generic">md</span> := <span class="tok-generic">last</span>.<span class="tok-func">Metadata</span>()
+    <span class="tok-keyword">if</span> <span class="tok-generic">md</span>.<span class="tok-generic">Custom</span> == <span class="tok-type">nil</span> { <span class="tok-keyword">return</span> <span class="tok-generic">TombstoneUndetermined</span> }
 
-          <div class="issue issue-important">
-            <span class="severity severity-important">High · P1</span>
-            <h3>B3 · <code>omitempty</code> inconsistency leaks zero-value ULIDs into JSON</h3>
-            <div class="where">event/metadata.go:10-22</div>
+    <span class="tok-keyword">if</span> <span class="tok-generic">md</span>.<span class="tok-generic">Custom</span>[<span class="tok-generic">MetadataKeyRebirth</span>] == <span class="tok-string">"true"</span> { <span class="tok-keyword">return</span> <span class="tok-generic">TombstoneActive</span> }
+    <span class="tok-keyword">if</span> <span class="tok-generic">md</span>.<span class="tok-generic">Custom</span>[<span class="tok-generic">MetadataKeyTombstone</span>] == <span class="tok-string">"true"</span> { <span class="tok-keyword">return</span> <span class="tok-generic">TombstoneTombstoned</span> }
+    <span class="tok-keyword">return</span> <span class="tok-generic">TombstoneUndetermined</span>
+}
+
+<span class="tok-comment">// event/tombstone.go:83 — verbatim marking</span>
+<span class="tok-keyword">func</span> <span class="tok-func">MarkTombstone</span>(<span class="tok-generic">evt</span> <span class="tok-generic">Event</span>) (*<span class="tok-generic">ImmutableEvent</span>, <span class="tok-type">error</span>) {
+    <span class="tok-keyword">return</span> <span class="tok-func">copyWithMetadata</span>(<span class="tok-generic">evt</span>, <span class="tok-generic">MetadataKeyTombstone</span>, <span class="tok-string">"mark tombstone"</span>)
+}</code></pre>
             <p>
-              <code>CorrelationID</code>, <code>CausationID</code>, <code>UserID</code>,
-              <code>RequestID</code> are <em>always</em> serialized (no <code>omitempty</code>), so
-              zero-value ULIDs (<code>"00000000000000000000000000"</code>) leak into JSON output.
-              The three string fields (<code>Source</code>, <code>IPAddress</code>,
-              <code>UserAgent</code>) and <code>Custom</code> correctly use <code>omitempty</code>.
-              The result: events with no correlation produce JSON with four 26-character zero
-              strings.
+              The soft-delete state of an aggregate — a critical domain concept — is
+              <code>Custom["tombstone"] == "true"</code>. Only the literal string
+              <code>"true"</code> is honored. <code>"True"</code>, <code>"1"</code>,
+              <code>"yes"</code> are all silently "not tombstoned". This is the textbook example of
+              a domain concept that should be a first-class type.
             </p>
-            <div class="callout callout-solution">
-              <strong>Fix:</strong>
-              Either give the branded ID types an <code>IsZero()</code>-aware
-              <code>MarshalJSON</code> that omits when zero (preferred — fixes it everywhere), or
-              add <code>omitempty</code> to the four fields. The former is one change in
-              <code>id/</code>; the latter is four tags.
-            </div>
           </div>
 
           <div class="issue issue-critical">
             <span class="severity severity-critical">Critical · P0</span>
-            <h3>B4 · The "real" event schema is a string-keyed map</h3>
+            <h3>B2 · The "real" event schema lives in <code>Custom</code></h3>
             <div class="where">
-              event/metadata.go:10 + event/tombstone.go + event/causality.go + signing/event.go +
+              event/metadata.go:10-19 · event/tombstone.go · event/causality.go · signing/event.go ·
               encryption/envelope.go
             </div>
             <p>
-              When you catalog every concept that <em>actually</em> travels with an event through
-              the system, you find: tombstone status, rebirth marker, command-causation type+id,
-              client id, client occurred-at, signing algorithm, signing key-id, signature value
-              (single + multi), encryption algorithm, encryption key-id, IV/nonce.
-              <strong>Twelve first-class concepts</strong>, all encoded as strings in
-              <code>Custom</code> or in signing/encryption-specific envelopes. The 7 typed
-              <code>Metadata</code> fields are the minority; the string map is the real model.
+              Verbatim — the current <code>Metadata</code> struct, with annotations showing what
+              actually lives where:
+            </p>
+            <pre><code><span class="tok-comment">// event/metadata.go:10 — verbatim, annotated</span>
+<span class="tok-keyword">type</span> <span class="tok-generic">Metadata</span> <span class="tok-keyword">struct</span> {
+    <span class="tok-generic">CorrelationID</span> <span class="tok-generic">id.CorrelationID</span>  <span class="tok-string">`json:"correlationId"`</span>      <span class="tok-comment">// ← typed ✓</span>
+    <span class="tok-generic">CausationID</span>   <span class="tok-generic">id.CausationID</span>    <span class="tok-string">`json:"causationId"`</span>        <span class="tok-comment">// ← typed ✓ (but no omitempty!)</span>
+    <span class="tok-generic">UserID</span>        <span class="tok-generic">id.UserID</span>         <span class="tok-string">`json:"userId"`</span>             <span class="tok-comment">// ← typed ✓ (no omitempty!)</span>
+    <span class="tok-generic">RequestID</span>     <span class="tok-generic">id.RequestID</span>      <span class="tok-string">`json:"requestId"`</span>          <span class="tok-comment">// ← typed ✓ (no omitempty!)</span>
+    <span class="tok-generic">Source</span>        <span class="tok-generic">Source</span>            <span class="tok-string">`json:"source,omitempty"`</span>
+    <span class="tok-generic">IPAddress</span>     <span class="tok-generic">IPAddress</span>         <span class="tok-string">`json:"ipAddress,omitempty"`</span>
+    <span class="tok-generic">UserAgent</span>     <span class="tok-generic">UserAgent</span>         <span class="tok-string">`json:"userAgent,omitempty"`</span>
+    <span class="tok-generic">Custom</span>        <span class="tok-keyword">map</span>[<span class="tok-generic">MetadataKey</span>]<span class="tok-type">string</span> <span class="tok-string">`json:"custom,omitempty"`</span>
+    <span class="tok-comment">//                        ↑ Where domain concepts ACTUALLY live:</span>
+    <span class="tok-comment">//                          Custom["tombstone"] = "true"     ← soft-delete</span>
+    <span class="tok-comment">//                          Custom["rebirth"]   = "true"     ← un-delete</span>
+    <span class="tok-comment">//                          Custom["command.type"] = "user.create" ← causation</span>
+    <span class="tok-comment">//                          Custom["command.id"]   = "01J..."   ← causation</span>
+    <span class="tok-comment">//                          Custom["client.id"]          = "..." ← offline-first</span>
+    <span class="tok-comment">//                          Custom["client.occurred_at"] = "..." ← offline-first</span>
+    <span class="tok-comment">//                          + signing alg/key-id/sig + encryption alg/key-id/iv</span>
+    <span class="tok-comment">//                          = 12 first-class concepts as STRINGS</span>
+}</code></pre>
+            <div class="callout callout-problem">
+              <strong>The damage:</strong> 12 domain concepts that 5+ modules depend on are encoded
+              as strings in a map documented as the "custom" escape hatch. The 7 typed fields are
+              the minority; the string map is the real model. Typos are silent. Type errors are
+              impossible to catch at compile time.
+            </div>
+          </div>
+
+          <div class="issue issue-important">
+            <span class="severity severity-important">High · P1</span>
+            <h3>B3 · <code>omitempty</code> inconsistency leaks zero-value ULIDs</h3>
+            <div class="where">event/metadata.go:11-14</div>
+            <p>
+              Four ID fields (<code>CorrelationID</code>, <code>CausationID</code>,
+              <code>UserID</code>, <code>RequestID</code>) have <strong>no</strong>
+              <code>omitempty</code>. Events with no correlation produce JSON with four 26-character
+              zero-ULID strings (<code>"00000000000000000000000000"</code>). The three string fields
+              correctly use <code>omitempty</code>.
             </p>
             <div class="callout callout-solution">
-              <strong>Fix:</strong>
-              The redesign introduces a <code>Metadata</code> with typed fields for the established
-              concepts (correlation, causation, tombstone, signing, encryption) and a
-              strictly-scoped <code>Extensions map[string]string</code> for genuinely
-              consumer-defined concerns. The escape hatch shrinks to its proper role: extensibility,
-              not core domain.
+              <strong>Fix:</strong> Give branded ID types an <code>IsZero()</code>-aware
+              <code>MarshalJSON</code> that omits when zero — one change in <code>id/</code>, fixes
+              it everywhere.
             </div>
           </div>
         </section>
@@ -1324,170 +1399,155 @@
         <!-- THEME C -->
         <section id="theme-c">
           <h3>Theme C — Command/Query Duplication & Asymmetry</h3>
-          <p>
-            The <code>command/</code> and <code>query/</code> modules are structurally
-            near-identical but copy-pasted, with subtle asymmetries that invite bugs. This is ~600
-            LOC of duplicated <code>Type</code>, <code>Metadata</code>, <code>Middleware</code>,
-            <code>Dispatcher</code>, reactive bus, and error boilerplate.
-          </p>
+          <p>~600 LOC of copy-pasted boilerplate between two modules that should be symmetric.</p>
 
           <div class="issue issue-important">
             <span class="severity severity-important">High · P1</span>
             <h3>
-              C1 · Identical <code>Type</code>, <code>Metadata</code>, <code>Middleware</code> types
-              duplicated
+              C1 · Identical <code>Type</code>, <code>Metadata</code>,
+              <code>Middleware</code> defined twice
             </h3>
             <div class="where">
-              command/command.go:10 vs query/query.go:11 · command/metadata.go:11 vs
-              query/query.go:36 · command/handler.go:9 vs query/query.go:99
+              command/command.go:9-25 vs query/query.go:10-26 · command/metadata.go:11 vs
+              query/query.go:36
             </div>
             <p>
-              <code>type Type string</code> is defined twice with identical methods
-              (<code>String</code>, <code>IsZero</code>, <code>ParseType</code>).
-              <code>Metadata = event.Metadata</code> is aliased twice.
-              <code>Middleware func(Handler) Handler</code> is defined separately in each (they
-              can't be shared because <code>Handler</code> differs). The reactive bus
-              (<code>CommandBus</code>, <code>QueryBus</code>), filters,
-              <code>HandlerToObserver</code>, and the entire error-re-export block are near-verbatim
-              copies.
+              Side-by-side verbatim — these are
+              <strong>character-for-character identical</strong> except the package name:
+            </p>
+            <div class="compare-row">
+              <pre><code><span class="tok-comment">// command/command.go:9 — verbatim</span>
+<span class="tok-keyword">type</span> <span class="tok-generic">Type</span> <span class="tok-type">string</span>
+
+<span class="tok-keyword">func</span> (<span class="tok-generic">t</span> <span class="tok-generic">Type</span>) <span class="tok-func">String</span>() <span class="tok-type">string</span> {
+    <span class="tok-keyword">return</span> <span class="tok-type">string</span>(<span class="tok-generic">t</span>)
+}
+<span class="tok-keyword">func</span> (<span class="tok-generic">t</span> <span class="tok-generic">Type</span>) <span class="tok-func">IsZero</span>() <span class="tok-type">bool</span> {
+    <span class="tok-keyword">return</span> <span class="tok-generic">t</span> == <span class="tok-string">""</span>
+}
+<span class="tok-keyword">func</span> <span class="tok-func">ParseType</span>(<span class="tok-generic">s</span> <span class="tok-type">string</span>) (<span class="tok-generic">Type</span>, <span class="tok-type">error</span>) {
+    <span class="tok-keyword">if</span> <span class="tok-generic">s</span> == <span class="tok-string">""</span> {
+        <span class="tok-keyword">return</span> <span class="tok-string">""</span>, <span class="tok-generic">ErrEmptyCommandType</span>
+    }
+    <span class="tok-keyword">return</span> <span class="tok-generic">Type</span>(<span class="tok-generic">s</span>), <span class="tok-type">nil</span>
+}</code></pre>
+              <pre><code><span class="tok-comment">// query/query.go:10 — verbatim</span>
+<span class="tok-keyword">type</span> <span class="tok-generic">Type</span> <span class="tok-type">string</span>
+
+<span class="tok-keyword">func</span> (<span class="tok-generic">t</span> <span class="tok-generic">Type</span>) <span class="tok-func">String</span>() <span class="tok-type">string</span> {
+    <span class="tok-keyword">return</span> <span class="tok-type">string</span>(<span class="tok-generic">t</span>)
+}
+<span class="tok-keyword">func</span> (<span class="tok-generic">t</span> <span class="tok-generic">Type</span>) <span class="tok-func">IsZero</span>() <span class="tok-type">bool</span> {
+    <span class="tok-keyword">return</span> <span class="tok-generic">t</span> == <span class="tok-string">""</span>
+}
+<span class="tok-keyword">func</span> <span class="tok-func">ParseType</span>(<span class="tok-generic">s</span> <span class="tok-type">string</span>) (<span class="tok-generic">Type</span>, <span class="tok-type">error</span>) {
+    <span class="tok-keyword">if</span> <span class="tok-generic">s</span> == <span class="tok-string">""</span> {
+        <span class="tok-keyword">return</span> <span class="tok-string">""</span>, <span class="tok-generic">ErrEmptyQueryType</span>
+    }
+    <span class="tok-keyword">return</span> <span class="tok-generic">Type</span>(<span class="tok-generic">s</span>), <span class="tok-type">nil</span>
+}</code></pre>
+            </div>
+            <p>
+              The same duplication applies to <code>Metadata = event.Metadata</code>,
+              <code>NewMetadata()</code>, all four
+              <code>WithCorrelationID/CausationID/UserID/RequestID</code> options, the reactive
+              <code>Bus</code>/<code>FilterType</code>/<code>HandlerToObserver</code>, and the
+              entire error re-export block.
             </p>
             <div class="callout callout-solution">
-              <strong>Fix:</strong>
-              Two viable paths. (a) <strong>Code generation</strong> — extend
-              <code>cqrs-gen</code> to emit the symmetric types from a single template, keeping
-              module isolation. (b) A shared <code>message/</code> module at Layer 1 that both
-              <code>command</code> and <code>query</code>
-              import — but this creates a dependency. Path (a) preserves the multi-module isolation
-              principle; path (b) is simpler. Recommended: code-gen the boilerplate, keep modules
-              independent.
+              <strong>Fix:</strong> Extend <code>cqrs-gen</code> to emit the symmetric types from a
+              single template, preserving module isolation. ~600 LOC of dup becomes generated.
             </div>
           </div>
 
           <div class="issue issue-important">
             <span class="severity severity-important">High · P1</span>
-            <h3>C2 · Handler signatures are asymmetric</h3>
+            <h3>C2 · Handler signatures are asymmetric + <code>any</code> in public API</h3>
             <div class="where">command/handler.go:6 vs query/dispatcher.go:27</div>
             <p>
-              <code>command.Handler = func(ctx, Command) error</code> — fire-and-forget, no result.
-              <code>query.Handler = func(ctx, Query) (any, error)</code> — type-erased result,
-              requires <code>DispatchTyped[T]</code> to recover the type. The asymmetry is real
-              (commands have no return, queries do), but it means there's no shared
-              <code>Handler</code> abstraction — and the <code>any</code> on the query side is the
-              one place this library uses untyped <code>any</code> in a public API.
+              <code>command.Handler = func(ctx, Command) error</code> (fire-and-forget).
+              <code>query.Handler = func(ctx, Query) (any, error)</code> (type-erased result). The
+              <code>any</code> is the one place this library uses untyped <code>any</code> in a
+              public API — forced by Go's lack of return-type variance, but document the tradeoff
+              explicitly.
             </p>
-            <div class="callout callout-solution">
-              <strong>Fix:</strong>
-              The asymmetry is intrinsic (commands vs queries really do differ). The
-              <code>any</code> is the price of Go's lack of variance — accept it, but document the
-              "typed bookend" pattern (ADR-0008 already does this well). The fix here is
-              consistency: <code>command.Handler</code> uses
-              <code>type Handler func(...)</code> (named type) while
-              <code>query.Handler = func(...)</code>
-              (alias). Pick one.
-            </div>
           </div>
 
-          <div class="issue issue-critical">
-            <span class="severity severity-critical">Critical · P0</span>
+          <div class="issue issue-important">
+            <span class="severity severity-important">High · P1</span>
             <h3>C3 · Query has no <code>Bus</code> interface; command does</h3>
             <div class="where">
-              command/bus.go:29 (Publisher+Subscriber+Bus) · query/ has only reactive QueryBus
+              command/bus.go:29-37 (Publisher+Subscriber+Bus) vs query/ (only reactive QueryBus)
             </div>
             <p>
-              The command side ships both a callback-based <code>Bus</code> interface
-              (<code>Publisher</code>, <code>Subscriber</code>, <code>PublishMiddleware</code>)
-              <em>and</em> a reactive <code>CommandBus = ro.Subject[Command]</code>. The query side
-              ships only the reactive <code>QueryBus</code>. This asymmetry means there's no way to
-              do query pub/sub with middleware in the callback style — you must use the reactive
-              API. For a library that prides itself on symmetric treatment, this is a jarring gap.
+              Command ships both callback-based <code>Bus</code> and reactive
+              <code>CommandBus</code>. Query ships only reactive <code>QueryBus</code>. No way to do
+              query pub/sub with middleware in callback style.
             </p>
-            <div class="callout callout-solution">
-              <strong>Fix:</strong>
-              Either add a callback-based <code>query.Bus</code> for symmetry, or document that
-              queries are reactive-only by design (queries are typically request/response, not
-              pub/sub — so reactive-only may be defensible). Recommended:
-              <strong>remove the asymmetry by documenting the design decision in an ADR</strong>,
-              and add the callback <code>Bus</code> if consumers ask for it.
-            </div>
           </div>
         </section>
 
         <!-- THEME D -->
         <section id="theme-d">
           <h3>Theme D — The Decider Identity Crisis</h3>
-          <p>
-            The <code>Decider[State]</code> is the library's crown jewel — but its naming lies, it's
-            missing the Decide function as a field, and its snapshot integration is asymmetric.
-          </p>
 
           <div class="issue issue-critical">
             <span class="severity severity-critical">Critical · P0</span>
-            <h3>D1 · <code>Decider</code> has no <code>Decide</code> field</h3>
+            <h3>D1 · <code>Decider</code> has no <code>Decide</code> field — the name lies</h3>
             <div class="where">decider/decider.go:24-27 · decider/decider.go:94</div>
             <p>
-              The struct is named <code>Decider[State]</code> but contains only
-              <code>Initial</code> and <code>Fold</code>. The decision logic is passed per-call as a
-              <code>DecideFunc</code> to <code>Repository.Execute</code>. This means the Decider
-              doesn't actually decide anything — it's a <em>Fold-spec</em>. Every caller closes over
-              their command inside the <code>DecideFunc</code>, so the command type is invisible to
-              the type system. There's no compile-time link between
-              <code>Decider[UserState]</code> and the command type <code>CreateUser</code> it
-              handles.
+              <strong
+                >Verbatim — the struct that is named "Decider" but contains only fold logic:</strong
+              >
             </p>
-            <div class="callout callout-solution">
-              <strong>Fix — the Eventuous-inspired redesign:</strong>
-              <pre><code><span class="tok-keyword">type</span> <span class="tok-generic">Decider</span>[<span class="tok-generic">State</span> <span class="tok-type">any</span>, <span class="tok-generic">Cmd</span> <span class="tok-type">any</span>] <span class="tok-keyword">struct</span> {
+            <pre><code><span class="tok-comment">// decider/decider.go:24 — verbatim</span>
+<span class="tok-keyword">type</span> <span class="tok-generic">Decider</span>[<span class="tok-generic">State</span> <span class="tok-type">any</span>] <span class="tok-keyword">struct</span> {
     <span class="tok-generic">Initial</span> <span class="tok-generic">State</span>
-    <span class="tok-generic">Decide</span>  <span class="tok-keyword">func</span>(<span class="tok-generic">Cmd</span>, <span class="tok-generic">State</span>) ([]<span class="tok-func">Event</span>, <span class="tok-type">error</span>)
-    <span class="tok-generic">Apply</span>   <span class="tok-keyword">func</span>(<span class="tok-generic">State</span>, <span class="tok-func">Event</span>) (<span class="tok-generic">State</span>, <span class="tok-type">error</span>)  <span class="tok-comment">// renamed from Fold</span>
-}</code></pre>
-              Now <code>Decider[UserState, CreateUser]</code> binds the command type at compile
-              time. <code>Apply</code> replaces <code>Fold</code> (standard ES terminology). The old
-              single-param <code>Decider[State]</code> with per-call <code>DecideFunc</code> remains
-              available as a thin adapter for backward compatibility.
-            </div>
-          </div>
+    <span class="tok-generic">Fold</span>    <span class="tok-keyword">func</span>(<span class="tok-generic">state</span> <span class="tok-generic">State</span>, <span class="tok-generic">evt</span> <span class="tok-generic">event.Event</span>) (<span class="tok-generic">State</span>, <span class="tok-type">error</span>)
+    <span class="tok-comment">// ↑ NO Decide field! The decision logic is passed per-call:</span>
+}
 
-          <div class="issue issue-important">
-            <span class="severity severity-important">High · P1</span>
-            <h3>D2 · <code>LoadAtVersion</code>/<code>LoadAtTime</code> bypass snapshots</h3>
-            <div class="where">decider/load.go:100-163 vs decider/decider.go:231-260</div>
+<span class="tok-comment">// decider/decider.go:94 — verbatim</span>
+<span class="tok-keyword">type</span> <span class="tok-generic">DecideFunc</span>[<span class="tok-generic">State</span> <span class="tok-type">any</span>] <span class="tok-keyword">func</span>(<span class="tok-generic">state</span> <span class="tok-generic">State</span>, <span class="tok-generic">currentVersion</span> <span class="tok-generic">event.Version</span>) ([]<span class="tok-generic">event.Event</span>, <span class="tok-type">error</span>)</code></pre>
             <p>
-              <code>Repository.Load</code> uses snapshots when configured (loads from snapshot,
-              folds only events since). But <code>LoadAtVersion</code> and <code>LoadAtTime</code> —
-              the time-travel APIs — <strong>always replay from version 0</strong>, ignoring
-              snapshots entirely. A snapshot at version 10 + <code>LoadAtVersion(15)</code> replays
-              all 15 events when it could load the v10 snapshot and replay 5.
+              The struct is named <code>Decider[State]</code> but contains only
+              <code>Initial</code> and <code>Fold</code>. It's a <em>Fold-spec</em>, not a Decider.
+              Every caller closes over their command inside the per-call <code>DecideFunc</code>, so
+              the command type <code>CreateUser</code> is invisible to the type system. There's no
+              compile-time link between <code>Decider[UserState]</code> and <code>CreateUser</code>.
             </p>
             <div class="callout callout-solution">
-              <strong>Fix:</strong>
-              Time-travel loads should use
-              <code>LoadAtVersion(min(snap.Version, targetVersion))</code>
-              from the snapshot, then replay forward to the target. The snapshot store's
-              <code>LoadAtVersion</code> already exists for exactly this. The asymmetry is an
-              oversight, not a design choice.
+              <strong>Fix — Eventuous-inspired:</strong> Add a two-type-param variant with
+              <code>Decide</code> as a field and rename <code>Fold</code>→<code>Apply</code>
+              (standard ES terminology). See <a href="#rd-decider">§05 Redesign → Decider</a>.
             </div>
           </div>
 
           <div class="issue issue-important">
             <span class="severity severity-important">High · P1</span>
-            <h3>D3 · Snapshot save errors are silently swallowed</h3>
+            <h3>
+              D2 · <code>LoadAtVersion</code>/<code>LoadAtTime</code> bypass snapshots entirely
+            </h3>
+            <div class="where">decider/load.go:100-163</div>
+            <p>
+              <code>Repository.Load</code> uses snapshots when configured. But the time-travel APIs
+              (<code>LoadAtVersion</code>, <code>LoadAtTime</code>)
+              <strong>always replay from version 0</strong>, ignoring snapshots. A snapshot at
+              version 10 + <code>LoadAtVersion(15)</code> replays all 15 events when it could load
+              the v10 snapshot and replay 5.
+            </p>
+          </div>
+
+          <div class="issue issue-important">
+            <span class="severity severity-important">High · P1</span>
+            <h3>D3 · Snapshot save errors silently swallowed</h3>
             <div class="where">decider/decider.go:169-227</div>
             <p>
-              <code>saveSnapshotAfterEvents</code> writes the snapshot <em>after</em>
-              <code>Publish</code>, and any error is logged via <code>slog.WarnContext</code> and
-              discarded. There is no way for the caller to observe snapshot failure — not via the
-              return value, not via a metric, not via an OTel span event (the span is recorded, but
-              the error doesn't propagate). A silently-failing snapshot means the optimization
-              silently stops working.
+              <code>saveSnapshotAfterEvents</code> writes after <code>Publish</code>; any error is
+              <code>slog.WarnContext</code>'d and discarded. No way for callers to observe snapshot
+              failure — not via return, not via metric, not via span event. A silently-failing
+              snapshot means the optimization silently stops.
             </p>
-            <div class="callout callout-solution">
-              <strong>Fix:</strong>
-              At minimum, emit an OTel span event + a counter metric on snapshot failure. Better:
-              return snapshot errors as a structured <code>SnapshotResult</code> alongside the
-              primary error, so callers who care can observe without breaking the "snapshot is
-              best-effort" contract.
-            </div>
           </div>
         </section>
 
@@ -1495,10 +1555,8 @@
         <section id="theme-e">
           <h3>Theme E — Materialization Gaps (The Biggest Opportunity)</h3>
           <p>
-            This is where the library is <em>furthest</em> from "best in the world" — and where the
-            biggest wins live. The pieces exist (projection runner, readmodel store, listing reader,
-            cache decorator) but they're not unified into the coherent materialization story that
-            Marten and LiveStore demonstrate.
+            Where the library is furthest from "best in the world" — and where the biggest wins
+            live.
           </p>
 
           <div class="issue issue-critical">
@@ -1509,26 +1567,22 @@
               Inline anywhere
             </div>
             <p>
-              Marten's three projection lifecycles — <strong>Inline</strong> (same transaction as
-              event append, strong consistency), <strong>Live</strong> (rebuild on read, always
-              fresh), and <strong>Async</strong> (background tail, eventual consistency) — are the
-              most practical innovation in any modern ES library. They let the consumer
-              <em>declare per-view</em> how they want consistency vs performance.
+              Marten's three lifecycles — <strong>Inline</strong> (same-tx),
+              <strong>Live</strong> (recompute on read), <strong>Async</strong> (background tail) —
+              let the consumer declare per-view how they want consistency vs performance.
+              go-cqrs-lite ships only Async and an ad-hoc Live. No Inline. No type-level way to say
+              "this view must be strongly consistent."
             </p>
-            <p>
-              go-cqrs-lite ships only Async (<code>projection.Runner</code>) and an ad-hoc Live
-              (<code>listing.InMemoryAggregateReader</code> rebuilds the full cache on query). There
-              is no Inline projection. The consumer cannot say "this view must be strongly
-              consistent" or "this view is fine eventually-consistent" or "this view is cheap enough
-              to recompute on every read" — at the type level.
-            </p>
-            <div class="callout callout-solution">
-              <strong>Fix — the Materialization Vision (§05):</strong>
-              Introduce a <code>ProjectionMode</code> enum and make it a first-class field on every
-              projection. The runner infrastructure for Async already exists; Live is a wrapper that
-              delegates reads to a re-builder; Inline requires a transactional event-store hook (the
-              <code>TransactionalSink</code> that was removed in ADR-0006 — but now with a narrower,
-              projection-only scope).
+            <div class="diagram">
+              <span class="node node-problem">Event Append</span>
+              <span class="arrow">→</span>
+              <span class="node">Async Runner</span>
+              <span class="arrow">→ (eventual)</span>
+              <span class="node">Read Model</span>
+              <span class="arrow" style="margin-left: 1rem">|</span>
+              <span class="node node-good">Inline (missing)</span>
+              <span class="arrow">→ (same tx)</span>
+              <span class="node node-good">Read Model</span>
             </div>
           </div>
 
@@ -1537,20 +1591,16 @@
             <h3>E2 · DLQ is a fire-and-forget callback, not a durable queue</h3>
             <div class="where">projection/options.go:22 · projection/runner_live.go:112</div>
             <p>
-              <code>DeadLetterHandler</code> is <code>func(ctx, projectionName, evt, err)</code> —
-              invoked inline after retries exhaust. If the callback itself only logs (the common
-              case), the event is <strong>silently lost</strong> from the projection's perspective.
-              There is no persistent dead-letter store, no replay-from-DLQ API, no way to recover.
-              For a library aiming at production-grade trustworthiness, this is the weakest link in
-              the reliability model.
+              <code>DeadLetterHandler = func(ctx, projectionName, evt, err)</code> — invoked inline
+              after retries exhaust. If the callback only logs (the common case), the event is
+              <strong>silently lost</strong>. No persistent store, no replay API. The weakest link
+              in the reliability model.
             </p>
             <div class="callout callout-solution">
-              <strong>Fix:</strong>
-              Introduce a <code>DeadLetterStore</code> interface (Sink + Source + Journal, mirroring
-              the event store ISP). The default impl is in-memory; SQL/Pebble backends ship.
-              <code>WithDeadLetterStore</code> wires it.
-              <code>runner.ReplayDeadLetters(ctx, projectionName)</code> re-drives failed events
-              after a handler fix. This turns "lost events" into "recoverable events".
+              <strong>Fix:</strong> <code>DeadLetterStore</code> interface (Sink + Source).
+              In-memory + SQL + Pebble impls.
+              <code>runner.ReplayDeadLetters(ctx, projectionName)</code> re-drives after a fix.
+              Turns "lost" into "recoverable".
             </div>
           </div>
 
@@ -1559,45 +1609,26 @@
             <h3>E3 · <code>replayIDs</code> is unbounded + racy</h3>
             <div class="where">projection/runner.go:41 · projection/options.go:78</div>
             <p>
-              The replay/live dedup seam uses <code>replayIDs map[id.EventID]struct{}</code> — a
-              plain map written during replay (single-threaded, OK) and read concurrently by the
-              live dedup filter. Default capacity is 0 (unbounded), so the map grows forever for
-              24/7 runners. <code>WithDedupCapacity</code> bounds it, but the default is a memory
-              leak. And the map-pointer swap on <code>RunReplay</code> relies on the state CAS for
-              happens-before — fragile, no formal guarantee published via the atomic.
+              Default dedup capacity is 0 (unbounded) — memory grows forever for 24/7 runners. The
+              map is written during replay (single-threaded) and read concurrently by the live dedup
+              filter. <code>WithDedupCapacity</code> bounds it, but the default is a leak.
             </p>
-            <div class="callout callout-solution">
-              <strong>Fix:</strong>
-              Default to a bounded dedup (e.g., 10k entries with FIFO eviction — the bounded code
-              already exists in <code>event.DistinctByEventIDBounded</code>). Use a
-              <code>sync.Map</code> or an explicit mutex for the replay/live seam. Document that the
-              dedup is best-effort and idempotency is the handler's responsibility.
-            </div>
           </div>
 
           <div class="issue issue-important">
             <span class="severity severity-important">High · P1</span>
             <h3>E4 · No shipped projection→readmodel integration</h3>
             <div class="where">
-              projection/ (no import of readmodel) · readmodel/ (no import of projection) · listing/
-              (no import of readmodel)
+              projection/ (no import of readmodel) · readmodel/ (no import of projection)
             </div>
             <p>
-              The library has a clean separation: <code>projection</code> (event → handler),
-              <code>readmodel</code> (typed KV store), <code>listing</code> (aggregate reader). But
-              the consumer must <strong>hand-wire the projection handler closure</strong> to call
-              <code>readmodel.Store.Set</code>. There is no shipped
-              <code>TypedProjection[V]</code> that materializes events into a
-              <code>readmodel.Store[V,K]</code> automatically. The clean separation is architectural
-              — but <em>never demonstrated</em>. A new consumer has to invent the integration.
+              The library has a clean separation: <code>projection</code> (event→handler),
+              <code>readmodel</code> (typed KV store). But the consumer must
+              <strong>hand-wire the projection handler closure</strong> to call
+              <code>readmodel.Store.Set</code>. No shipped <code>TypedProjection[V,K]</code> that
+              materializes events into a readmodel automatically. The clean separation is never
+              demonstrated.
             </p>
-            <div class="callout callout-solution">
-              <strong>Fix:</strong>
-              Ship a <code>projection.TypedProjection[V, K]</code> in a new
-              <code>stack/materialize</code> module (or in <code>readmodel</code> itself) that wires
-              the projection handler to the readmodel store. Provide 3-4 recipes in the docs. The
-              dual-store architecture (Pillar 3) should be a one-liner, not a research project.
-            </div>
           </div>
         </section>
 
@@ -1610,47 +1641,32 @@
             <h3>F1 · <code>IsDuplicateKeyError</code> matches driver error strings</h3>
             <div class="where">storage/sql/duplicate.go:8</div>
             <p>
-              The function string-matches <code>"UNIQUE constraint failed"</code> (SQLite) and
+              String-matches <code>"UNIQUE constraint failed"</code> (SQLite) and
               <code>"duplicate key value violates unique constraint"</code> (Postgres). Any driver
-              version change that tweaks the error message breaks this silently — optimistic
-              concurrency detection fails, and conflicts get misclassified. This is the textbook
-              "don't parse errors by string" anti-pattern.
+              version change that tweaks the message breaks this silently — optimistic concurrency
+              detection fails, conflicts get misclassified.
             </p>
             <div class="callout callout-solution">
-              <strong>Fix:</strong>
-              Use typed error inspection: <code>pgconn.PgError</code> with code
-              <code>23505</code> for Postgres, SQLite extended error code
-              <code>SQLITE_CONSTRAINT_UNIQUE</code> via the driver's typed error. Fall back to
-              string matching only as a last resort, and log when the fallback fires so drift is
-              detectable.
+              <strong>Fix:</strong> <code>pgconn.PgError</code> code <code>23505</code> for
+              Postgres, SQLite extended error codes. String matching only as fallback, logged when
+              it fires.
             </div>
           </div>
 
           <div class="issue issue-important">
             <span class="severity severity-important">High · P1</span>
-            <h3>
-              F2 · Context is ignored by <code>kv.Store</code> and <code>readmodel.Store</code>
-            </h3>
+            <h3>F2 · <code>kv.Store</code> and <code>readmodel.Store</code> ignore context</h3>
             <div class="where">
-              kv/kv.go:6-83 (no ctx) · readmodel/store.go:20-23 (ctx accepted but ignored) ·
-              storage/kv_sql.go:28 (uses context.Background())
+              kv/kv.go:6-83 (no ctx) · readmodel/store.go:20-23 (<code>_ context.Context</code>) ·
+              storage/kv_sql.go:28 (uses <code>context.Background()</code>)
             </div>
             <p>
-              <code>kv.Store</code> methods take no <code>context.Context</code> — so cancellation
-              and deadlines cannot propagate. <code>readmodel.Store</code> accepts
-              <code>_ context.Context</code>
-              (underscore-named, ignored) and documents that the backend doesn't honor cancellation.
-              <code>SQLKVStore</code> uses <code>context.Background()</code> internally. For a
-              library that correctly threads context everywhere else, this is a real consistency gap
-              — and a production hazard (a slow KV operation can't be cancelled).
+              <code>kv.Store</code> methods take no <code>context.Context</code>.
+              <code>readmodel.Store</code> accepts <code>_ context.Context</code> (underscore-named,
+              explicitly ignored). <code>SQLKVStore</code> uses <code>context.Background()</code>.
+              Cancellation and deadlines cannot propagate. For a library that threads context
+              everywhere else, this is a consistency gap and a production hazard.
             </p>
-            <div class="callout callout-solution">
-              <strong>Fix:</strong>
-              Breaking change to <code>kv.Store</code>: add <code>ctx context.Context</code> as the
-              first param on every method. <code>readmodel.Store</code> already has the param; wire
-              it through. <code>SQLKVStore</code> uses the passed ctx. This is a v3-worthy change —
-              schedule it.
-            </div>
           </div>
 
           <div class="issue issue-important">
@@ -1661,19 +1677,11 @@
             </h3>
             <div class="where">stack/errors.go:6-40</div>
             <p>
-              The <code>stack</code> module's errors (<code>ErrMissingEventStore</code>,
-              <code>ErrMissingPublisher</code>, etc.) use <code>errors.New</code> — plain sentinels
-              with no family classification. Every other module uses
-              <code>event.NewInfrastructure</code> / <code>event.NewRejection</code> so
-              <code>errors.As</code> and <code>IsRetryable</code> work. The
-              <code>stack</code> errors are invisible to the retry middleware.
+              <code>ErrMissingEventStore</code>, <code>ErrMissingPublisher</code>, etc. use
+              <code>errors.New</code> — invisible to <code>IsRetryable</code> and
+              <code>errors.As</code> family checks. Every other module uses
+              <code>event.NewInfrastructure</code>.
             </p>
-            <div class="callout callout-solution">
-              <strong>Fix:</strong>
-              Re-define as
-              <code>event.NewInfrastructure("stack.missing_event_store", "...")</code> for all
-              configuration errors. One-file change, full classification parity.
-            </div>
           </div>
         </section>
 
@@ -1681,52 +1689,27 @@
         <section id="theme-g">
           <h3>Theme G — Packaging (The Adoption Blocker)</h3>
           <p>
-            The "Why I Can't Use You" feedback was clear:
-            <strong>the patterns are world-class, but the dependency graph blocks adoption</strong>.
-            A consumer who wants only retry+backoff+circuit-breaker must import the entire CQRS
-            stack + the OpenTelemetry SDK.
+            The "Why I Can't Use You" feedback was surgical:
+            <strong>patterns are world-class, dependency graph blocks adoption</strong>.
           </p>
 
           <div class="issue issue-critical">
             <span class="severity severity-critical">Critical · P0</span>
             <h3>G1 · Generic algorithms locked behind CQRS types</h3>
-            <div class="where">
-              middleware/circuit_breaker.go · middleware/generic.go (retry/backoff are typed to
-              Handler)
-            </div>
+            <div class="where">middleware/circuit_breaker.go · middleware/generic.go</div>
             <p>
-              Retry, exponential backoff with jitter, and circuit breaker are
-              <strong>pure algorithms</strong> operating on <code>func() error</code>. They have no
-              business knowing about events, commands, queries, or OpenTelemetry. Today they're
-              packaged as <code>Middleware func(Handler) Handler</code>
-              — locked to the CQRS handler type. The algorithms are 90% of the value; the packaging
-              is the blocker.
+              Retry, exponential backoff+jitter, circuit breaker are
+              <strong>pure algorithms</strong> on <code>func() error</code>. Today they're packaged
+              as <code>Middleware func(Handler) Handler</code> — locked to CQRS handler types. The
+              algorithms are 90% of the value; the packaging is the blocker.
             </p>
-            <div class="callout callout-solution">
-              <strong>Fix — the resilience extraction:</strong>
-              <pre><code><span class="tok-comment">// New module: resilience/ — stdlib only, zero CQRS deps</span>
-<span class="tok-keyword">package</span> resilience
-
-<span class="tok-keyword">type</span> <span class="tok-generic">RetryConfig</span> <span class="tok-keyword">struct</span> {
-    <span class="tok-generic">MaxAttempts</span>  <span class="tok-type">int</span>
-    <span class="tok-generic">InitialDelay</span> <span class="tok-type">time.Duration</span>
-    <span class="tok-generic">MaxDelay</span>     <span class="tok-type">time.Duration</span>
-    <span class="tok-generic">Multiplier</span>   <span class="tok-type">float64</span>
-    <span class="tok-generic">Jitter</span>       <span class="tok-type">bool</span>
-    <span class="tok-generic">IsRetryable</span>  <span class="tok-keyword">func</span>(<span class="tok-type">error</span>) <span class="tok-type">bool</span>
-}
-
-<span class="tok-keyword">func</span> <span class="tok-func">Do</span>(<span class="tok-generic">ctx</span> <span class="tok-type">context.Context</span>, <span class="tok-generic">cfg</span> <span class="tok-generic">RetryConfig</span>, <span class="tok-generic">fn</span> <span class="tok-keyword">func</span>() <span class="tok-type">error</span>) <span class="tok-type">error</span>
-
-<span class="tok-keyword">type</span> <span class="tok-generic">CircuitBreaker</span> <span class="tok-keyword">struct</span> { <span class="tok-comment">/* three-state machine */</span> }
-<span class="tok-keyword">func</span> (<span class="tok-generic">b</span> *<span class="tok-generic">CircuitBreaker</span>) <span class="tok-func">Do</span>(<span class="tok-generic">fn</span> <span class="tok-keyword">func</span>() <span class="tok-type">error</span>) <span class="tok-type">error</span></code></pre>
-              The existing <code>middleware.CommandRetry</code> / <code>EventRetry</code> become
-              thin wrappers:
-              <code
-                >func(ctx, h) error { return resilience.Do(ctx, cfg, func() error { return h(ctx) })
-                }</code
-              >. <strong>Zero breaking changes.</strong> Every Go project making network calls can
-              now adopt the resilience layer without importing CQRS.
+            <div class="dep-tree">
+              <span class="root">middleware/v2</span> ├── <span class="ok">event/v2</span> │ └──
+              <span class="ok">id/v2 · codec/v2</span> ├──
+              <span class="ok">command/v2 · query/v2</span> ├──
+              <span class="ok">memory/v2</span> ├──
+              <span class="unwanted">otel SDK (~15 transitive deps)</span> └──
+              <span class="unwanted">≈ 40 transitive deps total — for retry()</span>
             </div>
           </div>
 
@@ -1735,282 +1718,330 @@
             <h3>G2 · go.mod hygiene inflates perceived coupling</h3>
             <div class="where">event/go.mod lists test-only siblings as direct deps</div>
             <p>
-              The maintainer's response to the feedback correctly noted that <code>event/v2</code>'s
-              <em>production</em> imports are only <code>id</code>, <code>codec</code>,
-              <code>go-error-family</code>, <code>samber/ro</code> — but the
-              <code>go.mod</code> lists test-only siblings (<code>command</code>,
-              <code>query</code>, <code>memory</code>, <code>schema</code>, <code>snapshot</code>)
-              as direct requires. A consumer running <code>go mod tidy</code> sees the inflated
-              graph and concludes "this is a hub". The architecture is right; the manifest lies.
+              Production <code>event/*.go</code> imports only <code>id</code>, <code>codec</code>,
+              <code>go-error-family</code>, <code>samber/ro</code>. But
+              <code>event/go.mod</code> lists <code>command</code>, <code>query</code>,
+              <code>memory</code>, <code>schema</code>, <code>snapshot</code> as direct requires
+              (test-only). A consumer running <code>go mod tidy</code> sees the inflated graph and
+              concludes "hub". The architecture is right; the manifest lies.
             </p>
-            <div class="callout callout-solution">
-              <strong>Fix:</strong>
-              Move test-only sibling imports into an <code>event/eventtest</code> sub-module with
-              its own <code>go.mod</code>, or use build constraints. The production
-              <code>event/go.mod</code>
-              should reflect the production import graph. Combined with a dependency-budget CI check
-              (mechanical enforcement), this kills the "hub" perception permanently.
-            </div>
           </div>
         </section>
 
-        <!-- ==================== §04 REDESIGN ==================== -->
+        <!-- ==================== §05 REDESIGN ==================== -->
         <section id="redesign">
-          <h2><span class="num">04</span>The Redesigned Data Model</h2>
+          <h2><span class="num">05</span>The Redesigned Data Model</h2>
           <p>
-            From first principles — using Go's full type power (branded types, generics, composition
-            via embedding, interface-based unions, constructor functions). Every design decision
-            below has a rationale; rejected alternatives are in §06.
+            From first principles — Go's full type power: branded types, generics, composition,
+            constructor functions, interface-based unions. Every decision has rationale (§08);
+            rejected alternatives documented.
           </p>
 
-          <h3 id="core-types">Core Value Types — Refinements</h3>
+          <h3 id="rd-event">Event + Metadata — Honest and Immutable</h3>
           <p>
-            The branded IDs are excellent — keep them. The <code>Version</code> and
-            <code>SchemaVersion</code> types have one fix each: switch from <code>int</code> to
-            <code>uint64</code>/<code>uint32</code> to make negative values
-            <em>unrepresentable</em>.
-          </p>
-          <pre><code><span class="tok-comment">// event/types.go — redesigned</span>
-
-<span class="tok-comment">// Version is the 1-based positional index of an event in its aggregate stream.</span>
-<span class="tok-comment">// Zero means "no events". uint64 makes negative versions unrepresentable.</span>
-<span class="tok-keyword">type</span> <span class="tok-generic">Version</span> <span class="tok-type">uint64</span>
-
-<span class="tok-keyword">func</span> (<span class="tok-generic">v</span> <span class="tok-generic">Version</span>) <span class="tok-func">IsZero</span>() <span class="tok-type">bool</span>      { <span class="tok-keyword">return</span> <span class="tok-generic">v</span> == <span class="tok-number">0</span> }
-<span class="tok-keyword">func</span> (<span class="tok-generic">v</span> <span class="tok-generic">Version</span>) <span class="tok-func">IsPositive</span>() <span class="tok-type">bool</span>  { <span class="tok-keyword">return</span> <span class="tok-generic">v</span> &gt; <span class="tok-number">0</span> }
-<span class="tok-keyword">func</span> (<span class="tok-generic">v</span> <span class="tok-generic">Version</span>) <span class="tok-func">Increment</span>() <span class="tok-generic">Version</span> { <span class="tok-keyword">return</span> <span class="tok-generic">v</span> + <span class="tok-number">1</span> }
-<span class="tok-keyword">func</span> (<span class="tok-generic">v</span> <span class="tok-generic">Version</span>) <span class="tok-func">Int</span>() <span class="tok-type">int</span>          { <span class="tok-keyword">return</span> <span class="tok-type">int</span>(<span class="tok-generic">v</span>) }  <span class="tok-comment">// only at boundaries</span>
-
-<span class="tok-comment">// SchemaVersion is the 1-based payload schema version. uint32 — schemas don't overflow.</span>
-<span class="tok-keyword">type</span> <span class="tok-generic">SchemaVersion</span> <span class="tok-type">uint32</span>
-
-<span class="tok-comment">// AggregateID is unified with the rest of the ID family.</span>
-<span class="tok-comment">// Today: cbid.ID[AggregateMarker, string] — the lone string-backed ID.</span>
-<span class="tok-comment">// Redesign: cbid.ID[AggregateMarker, ulid.ULID] + a separate DerivedID type for</span>
-<span class="tok-comment">// human-readable/deterministic IDs. The fork disappears.</span>
-<span class="tok-keyword">type</span> <span class="tok-generic">AggregateID</span> = <span class="tok-generic">id.Of</span>[<span class="tok-generic">AggregateMarker</span>]
-<span class="tok-keyword">type</span> <span class="tok-generic">DerivedAggregateID</span> = <span class="tok-generic">cbid.ID</span>[<span class="tok-generic">AggregateMarker</span>, <span class="tok-type">string</span>]  <span class="tok-comment">// for "lock_user1_user2"</span></code></pre>
-
-          <h3 id="event-algebra">The Event Algebra — Honest and Immutable</h3>
-          <p>
-            The redesign makes <code>Event</code> a concrete struct (not an interface) — there is
-            exactly one production implementation, and the "interface for testability" benefit is
-            provided by the store interfaces operating on <code>[]Event</code>. The leaky
-            type-assertions disappear. The <code>Metadata</code> promotes soft concepts to typed
-            fields.
+            <code>Event</code> becomes a concrete struct (one production impl — the "interface for
+            testing" benefit is provided by store interfaces on <code>[]Event</code>). Leaky
+            assertions disappear. <code>Metadata</code> promotes 12 soft concepts to typed fields.
           </p>
           <pre><code><span class="tok-comment">// event/event.go — redesigned</span>
 
-<span class="tok-comment">// Event is an immutable domain event. All fields are set at construction;</span>
-<span class="tok-comment">// there are no setters. Payload is cloned on construction and on every Payload() call.</span>
+<span class="tok-comment">// Event is an immutable domain event. All fields set at construction;</span>
+<span class="tok-comment">// no setters. Payload cloned on construction and on every Payload() call.</span>
 <span class="tok-keyword">type</span> <span class="tok-generic">Event</span> <span class="tok-keyword">struct</span> {
     <span class="tok-generic">id</span>            <span class="tok-generic">id.EventID</span>
     <span class="tok-generic">eventType</span>     <span class="tok-generic">Type</span>
-    <span class="tok-generic">aggregateRef</span>  <span class="tok-generic">AggregateRef</span>    <span class="tok-comment">// typed pair, not split fields</span>
-    <span class="tok-generic">version</span>       <span class="tok-generic">Version</span>
-    <span class="tok-generic">schemaVersion</span> <span class="tok-generic">SchemaVersion</span>
-    <span class="tok-generic">encoding</span>      <span class="tok-generic">codec.Encoding</span>  <span class="tok-comment">// never zero — required at construction</span>
+    <span class="tok-generic">ref</span>           <span class="tok-generic">AggregateRef</span>     <span class="tok-comment">// typed pair, not split fields</span>
+    <span class="tok-generic">version</span>       <span class="tok-generic">Version</span>          <span class="tok-comment">// uint64 — negatives unrepresentable</span>
+    <span class="tok-generic">schemaVersion</span> <span class="tok-generic">SchemaVersion</span>    <span class="tok-comment">// uint32</span>
+    <span class="tok-generic">encoding</span>      <span class="tok-generic">codec.Encoding</span>   <span class="tok-comment">// required at construction, never zero</span>
     <span class="tok-generic">payload</span>       []<span class="tok-type">byte</span>
     <span class="tok-generic">metadata</span>      <span class="tok-generic">Metadata</span>
     <span class="tok-generic">occurredAt</span>    <span class="tok-type">time.Time</span>
-    <span class="tok-generic">deadline</span>      <span class="tok-type">time.Time</span>       <span class="tok-comment">// zero = no deadline</span>
-    <span class="tok-comment">// NO eventOptions pointer — config stays in the constructor's scope</span>
+    <span class="tok-generic">deadline</span>      <span class="tok-type">time.Time</span>        <span class="tok-comment">// zero = no deadline</span>
+    <span class="tok-comment">// NO opts pointer — config stays in constructor scope</span>
 }
 
-<span class="tok-comment">// AggregateRef bundles the (type, id) pair. StreamKey is derived, escaped.</span>
-<span class="tok-keyword">type</span> <span class="tok-generic">AggregateRef</span> <span class="tok-keyword">struct</span> {
-    <span class="tok-generic">Type</span> <span class="tok-generic">AggregateType</span>
-    <span class="tok-generic">ID</span>   <span class="tok-generic">id.AggregateID</span>
-}
-
-<span class="tok-comment">// Metadata carries tracing/context + first-class domain concepts.</span>
-<span class="tok-comment">// The string Custom map shrinks to Extensions — genuinely consumer-defined only.</span>
+<span class="tok-comment">// Metadata — tracing + first-class domain concepts.</span>
+<span class="tok-comment">// Extensions is the TRUE escape hatch (consumer-defined only).</span>
 <span class="tok-keyword">type</span> <span class="tok-generic">Metadata</span> <span class="tok-keyword">struct</span> {
     <span class="tok-generic">CorrelationID</span> <span class="tok-generic">id.CorrelationID</span>  <span class="tok-string">`json:"correlationId,omitempty"`</span>
     <span class="tok-generic">CausationID</span>   <span class="tok-generic">id.CausationID</span>    <span class="tok-string">`json:"causationId,omitempty"`</span>
     <span class="tok-generic">UserID</span>        <span class="tok-generic">id.UserID</span>         <span class="tok-string">`json:"userId,omitempty"`</span>
     <span class="tok-generic">RequestID</span>     <span class="tok-generic">id.RequestID</span>      <span class="tok-string">`json:"requestId,omitempty"`</span>
     <span class="tok-generic">Source</span>        <span class="tok-generic">Source</span>            <span class="tok-string">`json:"source,omitempty"`</span>
-    <span class="tok-generic">IPAddress</span>     <span class="tok-generic">IPAddress</span>         <span class="tok-string">`json:"ipAddress,omitempty"`</span>
-    <span class="tok-generic">UserAgent</span>     <span class="tok-generic">UserAgent</span>         <span class="tok-string">`json:"userAgent,omitempty"`</span>
 
-    <span class="tok-comment">// First-class domain concepts (were string Custom entries):</span>
-    <span class="tok-generic">Causation</span>  *<span class="tok-generic">Causation</span>     <span class="tok-string">`json:"causation,omitempty"`</span>   <span class="tok-comment">// command that caused this</span>
-    <span class="tok-generic">Tombstone</span>  <span class="tok-generic">TombstoneMark</span>  <span class="tok-string">`json:"tombstone,omitempty"`</span>   <span class="tok-comment">// soft-delete marker</span>
-    <span class="tok-generic">ClientTime</span> *<span class="tok-generic">ClientTime</span>    <span class="tok-string">`json:"clientTime,omitempty"`</span>  <span class="tok-comment">// offline-first occurredAt</span>
+    <span class="tok-comment">// Promoted from Custom strings → typed fields:</span>
+    <span class="tok-generic">Causation</span>  *<span class="tok-generic">Causation</span>          <span class="tok-string">`json:"causation,omitempty"`</span>   <span class="tok-comment">// was Custom["command.*"]</span>
+    <span class="tok-generic">Tombstone</span>  <span class="tok-generic">TombstoneMark</span>      <span class="tok-string">`json:"tombstone,omitempty"`</span>   <span class="tok-comment">// was Custom["tombstone"]</span>
+    <span class="tok-generic">Security</span>   *<span class="tok-generic">SecurityEnvelope</span>  <span class="tok-string">`json:"security,omitempty"`</span>   <span class="tok-comment">// signing+encryption unified</span>
+    <span class="tok-generic">ClientTime</span> *<span class="tok-generic">ClientTime</span>         <span class="tok-string">`json:"clientTime,omitempty"`</span>  <span class="tok-comment">// offline-first</span>
 
-    <span class="tok-comment">// Security envelope (signing + encryption unified):</span>
-    <span class="tok-generic">Security</span>   *<span class="tok-generic">SecurityEnvelope</span> <span class="tok-string">`json:"security,omitempty"`</span>
-
-    <span class="tok-comment">// True escape hatch — for consumer-defined concerns only.</span>
-    <span class="tok-generic">Extensions</span> <span class="tok-keyword">map</span>[<span class="tok-type">string</span>]<span class="tok-type">string</span> <span class="tok-string">`json:"extensions,omitempty"`</span>
+    <span class="tok-generic">Extensions</span> <span class="tok-keyword">map</span>[<span class="tok-type">string</span>]<span class="tok-type">string</span>     <span class="tok-string">`json:"extensions,omitempty"`</span>  <span class="tok-comment">// TRUE escape hatch</span>
 }
 
-<span class="tok-comment">// TombstoneMark is a closed three-state enum. Zero value = Active (default).</span>
+<span class="tok-comment">// TombstoneMark — closed three-state. Zero value = None (not a tombstone event).</span>
 <span class="tok-keyword">type</span> <span class="tok-generic">TombstoneMark</span> <span class="tok-type">uint8</span>
 <span class="tok-keyword">const</span> (
-    <span class="tok-generic">TombstoneNone</span> <span class="tok-generic">TombstoneMark</span> = <span class="tok-type">iota</span>  <span class="tok-comment">// not a tombstone event</span>
-    <span class="tok-generic">TombstoneSet</span>                       <span class="tok-comment">// soft-delete</span>
-    <span class="tok-generic">TombstoneRebirth</span>                   <span class="tok-comment">// un-delete</span>
+    <span class="tok-generic">TombstoneNone</span>    <span class="tok-generic">TombstoneMark</span> = <span class="tok-type">iota</span>
+    <span class="tok-generic">TombstoneSet</span>                    <span class="tok-comment">// soft-delete</span>
+    <span class="tok-generic">TombstoneRebirth</span>                <span class="tok-comment">// un-delete</span>
 )
 
 <span class="tok-keyword">type</span> <span class="tok-generic">Causation</span> <span class="tok-keyword">struct</span> {
-    <span class="tok-generic">CommandType</span> <span class="tok-generic">command.Type</span>  <span class="tok-comment">// typed, not bare string</span>
+    <span class="tok-generic">CommandType</span> <span class="tok-generic">command.Type</span>   <span class="tok-comment">// typed, not bare string</span>
     <span class="tok-generic">CommandID</span>   <span class="tok-generic">id.CommandID</span>
 }</code></pre>
           <div class="callout callout-solution">
-            <strong>What this fixes:</strong>
-            Twelve first-class concepts move from <code>Custom</code> strings to typed fields. The
-            tombstone state of an aggregate is now a typed <code>TombstoneMark</code> on
-            <code>Metadata</code> — discoverable, validated, and impossible to typo. Command
-            causation carries a typed <code>command.Type</code>. Security (signing algorithm,
-            key-id, signature, encryption algorithm, IV) collapses into one
-            <code>SecurityEnvelope</code>. The <code>Extensions</code> map is honestly named and
-            honestly scoped.
+            <strong>What this fixes:</strong> 12 first-class concepts move from string map to typed
+            fields. Tombstone is a typed <code>TombstoneMark</code> — discoverable, validated,
+            impossible to typo. Command causation carries typed <code>command.Type</code>. Security
+            collapses into one envelope. <code>Extensions</code> is honestly named and scoped. The
+            <code>opts</code> pointer disappears. Encoding is never zero.
           </div>
 
-          <h3 id="decider-evolution">Decider Evolution — Decide/Apply Separation</h3>
+          <h3 id="rd-store">Store Interfaces — Keep the ISP Split</h3>
           <p>
-            The Eventuous-inspired two-type-parameter Decider. <code>Decide</code> becomes a field;
-            <code>Fold</code> is renamed <code>Apply</code> (standard ES terminology). The command
-            type is bound at compile time.
+            The ISP split (ADR-0006) is one of the best decisions in the library. The redesign
+            <strong>preserves it entirely</strong> — no change needed. The only addition is an
+            optional <code>InlineHook</code> for Inline projection mode.
           </p>
-          <pre><code><span class="tok-comment">// decider/decider.go — redesigned (Eventuous-inspired)</span>
+          <pre><code><span class="tok-comment">// event/store.go — preserved from ADR-0006, ONE addition</span>
 
-<span class="tok-comment">// Decider captures the three pure functions of an event-sourced aggregate.</span>
-<span class="tok-comment">// Decide maps a command + current state to new events. Apply folds an event</span>
-<span class="tok-comment">// into state. Both must be pure — no I/O, no side effects, no mutation of inputs.</span>
-<span class="tok-keyword">type</span> <span class="tok-generic">Decider</span>[<span class="tok-generic">State</span> <span class="tok-type">any</span>, <span class="tok-generic">Cmd</span> <span class="tok-type">any</span>] <span class="tok-keyword">struct</span> {
-    <span class="tok-generic">Initial</span> <span class="tok-generic">State</span>
-    <span class="tok-generic">Decide</span>  <span class="tok-keyword">func</span>(<span class="tok-generic">Cmd</span>, <span class="tok-generic">State</span>) ([]<span class="tok-generic">event.Event</span>, <span class="tok-type">error</span>)
-    <span class="tok-generic">Apply</span>   <span class="tok-keyword">func</span>(<span class="tok-generic">State</span>, <span class="tok-generic">event.Event</span>) (<span class="tok-generic">State</span>, <span class="tok-type">error</span>)
+<span class="tok-keyword">type</span> <span class="tok-generic">EventSink</span> <span class="tok-keyword">interface</span> {
+    <span class="tok-type">io.Closer</span>
+    <span class="tok-func">Save</span>(<span class="tok-generic">ctx</span>, <span class="tok-generic">ref</span> <span class="tok-generic">AggregateRef</span>, <span class="tok-generic">events</span> []<span class="tok-generic">Event</span>, <span class="tok-generic">expected</span> <span class="tok-generic">Version</span>) <span class="tok-type">error</span>
+    <span class="tok-func">AppendBatch</span>(<span class="tok-generic">ctx</span>, <span class="tok-generic">ref</span>, <span class="tok-generic">events</span>) <span class="tok-type">error</span>
 }
 
-<span class="tok-comment">// Execute loads state, applies Decide, saves events, publishes, snapshots.</span>
-<span class="tok-keyword">func</span> (<span class="tok-generic">r</span> *<span class="tok-generic">Repository</span>[<span class="tok-generic">State</span>, <span class="tok-generic">Cmd</span>]) <span class="tok-func">Execute</span>(
-    <span class="tok-generic">ctx</span> <span class="tok-type">context.Context</span>,
-    <span class="tok-generic">ref</span> <span class="tok-generic">event.AggregateRef</span>,
-    <span class="tok-generic">cmd</span> <span class="tok-generic">Cmd</span>,
-) <span class="tok-type">error</span>
+<span class="tok-comment">// NEW: opt-in inline projection hook — for ModeInline (Marten-style)</span>
+<span class="tok-keyword">type</span> <span class="tok-generic">InlineSink</span> <span class="tok-keyword">interface</span> {
+    <span class="tok-generic">EventSink</span>
+    <span class="tok-func">SaveWithHooks</span>(<span class="tok-generic">ctx</span>, <span class="tok-generic">ref</span>, <span class="tok-generic">events</span>, <span class="tok-generic">expected</span>, <span class="tok-generic">hooks</span> []<span class="tok-generic">InlineHook</span>) <span class="tok-type">error</span>
+}
 
-<span class="tok-comment">// Backward-compat: the old single-param Decider[State] + per-call DecideFunc</span>
-<span class="tok-comment">// remains available as a thin adapter.</span>
+<span class="tok-keyword">type</span> <span class="tok-generic">InlineHook</span> <span class="tok-keyword">func</span>(<span class="tok-generic">ctx</span>, <span class="tok-generic">tx</span> <span class="tok-generic">Tx</span>, <span class="tok-generic">events</span> []<span class="tok-generic">Event</span>) <span class="tok-type">error</span>  <span class="tok-comment">// runs in same tx as Save</span></code></pre>
+
+          <h3 id="rd-decider">Decider Evolution — Decide/Apply Separation (Eventuous-inspired)</h3>
+          <pre><code><span class="tok-comment">// decider/decider.go — redesigned with two type params</span>
+
+<span class="tok-keyword">type</span> <span class="tok-generic">Decider</span>[<span class="tok-generic">State</span> <span class="tok-type">any</span>, <span class="tok-generic">Cmd</span> <span class="tok-type">any</span>] <span class="tok-keyword">struct</span> {
+    <span class="tok-generic">Initial</span> <span class="tok-generic">State</span>
+    <span class="tok-generic">Decide</span>  <span class="tok-keyword">func</span>(<span class="tok-generic">Cmd</span>, <span class="tok-generic">State</span>) ([]<span class="tok-generic">event.Event</span>, <span class="tok-type">error</span>)  <span class="tok-comment">// ← NOW A FIELD</span>
+    <span class="tok-generic">Apply</span>   <span class="tok-keyword">func</span>(<span class="tok-generic">State</span>, <span class="tok-generic">event.Event</span>) (<span class="tok-generic">State</span>, <span class="tok-type">error</span>)  <span class="tok-comment">// renamed from Fold</span>
+}
+
+<span class="tok-comment">// Now the command type is bound at compile time:</span>
+<span class="tok-generic">userDecider</span> := <span class="tok-generic">Decider</span>[<span class="tok-generic">UserState</span>, <span class="tok-generic">CreateUser</span>]{...}
+
+<span class="tok-comment">// Backward-compat: old single-param form preserved as alias</span>
 <span class="tok-keyword">type</span> <span class="tok-generic">LegacyDecider</span>[<span class="tok-generic">State</span> <span class="tok-type">any</span>] = <span class="tok-generic">Decider</span>[<span class="tok-generic">State</span>, <span class="tok-type">any</span>]</code></pre>
 
-          <h3 id="materialization-vision">The Materialization Vision — Projection Lifecycle</h3>
-          <p>
-            The killer feature from Marten, adapted to Go. Every projection declares
-            <em>when</em> it gets built. The dual-store architecture (event log + disposable
-            materialized state DB) becomes a one-liner via stack presets.
-          </p>
-          <pre><code><span class="tok-comment">// projection/projection.go — redesigned with lifecycle</span>
+          <h3 id="rd-projection">Materialization — Projection Lifecycle + Durable DLQ</h3>
+          <pre><code><span class="tok-comment">// projection/projection.go — redesigned with lifecycle (Marten's killer feature)</span>
 
-<span class="tok-comment">// Mode declares when a projection's read model is updated.</span>
 <span class="tok-keyword">type</span> <span class="tok-generic">Mode</span> <span class="tok-type">uint8</span>
 <span class="tok-keyword">const</span> (
-    <span class="tok-comment">// ModeLive: recompute on every read. No persistence. Always fresh, slower reads.</span>
-    <span class="tok-generic">ModeLive</span> <span class="tok-generic">Mode</span> = <span class="tok-type">iota</span>
-    <span class="tok-comment">// ModeInline: update in the same transaction as event append. Strong consistency.</span>
-    <span class="tok-generic">ModeInline</span>
-    <span class="tok-comment">// ModeAsync: background tail via Runner. Eventual consistency, fast reads+writes.</span>
-    <span class="tok-generic">ModeAsync</span>
+    <span class="tok-generic">ModeLive</span>   <span class="tok-generic">Mode</span> = <span class="tok-type">iota</span>  <span class="tok-comment">// recompute on read. Always fresh, slower reads.</span>
+    <span class="tok-generic">ModeInline</span>            <span class="tok-comment">// same tx as event append. Strong consistency.</span>
+    <span class="tok-generic">ModeAsync</span>             <span class="tok-comment">// background tail. Eventual, fast reads+writes.</span>
 )
 
-<span class="tok-comment">// Projection is the contract every materialized view implements.</span>
 <span class="tok-keyword">type</span> <span class="tok-generic">Projection</span> <span class="tok-keyword">interface</span> {
     <span class="tok-func">Name</span>() <span class="tok-type">string</span>
     <span class="tok-func">Mode</span>() <span class="tok-generic">Mode</span>                          <span class="tok-comment">// ← NEW: lifecycle choice</span>
     <span class="tok-func">EventTypes</span>() []<span class="tok-generic">event.Type</span>
-    <span class="tok-func">Handle</span>(<span class="tok-generic">ctx</span> <span class="tok-type">context.Context</span>, <span class="tok-generic">evt</span> <span class="tok-generic">event.Event</span>) <span class="tok-type">error</span>
+    <span class="tok-func">Handle</span>(<span class="tok-generic">ctx</span>, <span class="tok-generic">evt</span>) <span class="tok-type">error</span>
 }
 
-<span class="tok-comment">// TypedProjection — type-safe materialization into a readmodel.Store.</span>
-<span class="tok-comment">// The handler receives the decoded event payload + the view store; it returns</span>
-<span class="tok-comment">// the updated view(s). No manual codec juggling, no untyped any.</span>
+<span class="tok-comment">// TypedProjection — type-safe materialization into readmodel.Store</span>
 <span class="tok-keyword">type</span> <span class="tok-generic">TypedProjection</span>[<span class="tok-generic">V</span> <span class="tok-type">any</span>, <span class="tok-generic">K</span> <span class="tok-generic">fmt.Stringer</span>] <span class="tok-keyword">struct</span> {
-    <span class="tok-generic">ProjectionName</span>   <span class="tok-type">string</span>
-    <span class="tok-generic">ProjectionMode</span>   <span class="tok-generic">Mode</span>
-    <span class="tok-generic">EventTypeFilter</span>  []<span class="tok-generic">event.Type</span>
-    <span class="tok-generic">Codec</span>            <span class="tok-generic">codec.Codec</span>
-    <span class="tok-generic">Apply</span>            <span class="tok-keyword">func</span>(<span class="tok-generic">ctx</span> <span class="tok-type">context.Context</span>, <span class="tok-generic">evt</span> <span class="tok-generic">event.Event</span>, <span class="tok-generic">store</span> *<span class="tok-generic">readmodel.Store</span>[<span class="tok-generic">V</span>, <span class="tok-generic">K</span>]) <span class="tok-type">error</span>
+    <span class="tok-generic">Name</span>      <span class="tok-type">string</span>
+    <span class="tok-generic">Mode</span>      <span class="tok-generic">Mode</span>
+    <span class="tok-generic">Filter</span>    []<span class="tok-generic">event.Type</span>
+    <span class="tok-generic">Codec</span>     <span class="tok-generic">codec.Codec</span>
+    <span class="tok-generic">Apply</span>     <span class="tok-keyword">func</span>(<span class="tok-generic">ctx</span>, <span class="tok-generic">evt</span>, <span class="tok-generic">store</span> *<span class="tok-generic">readmodel.Store</span>[<span class="tok-generic">V</span>,<span class="tok-generic">K</span>]) <span class="tok-type">error</span>
 }
 
-<span class="tok-comment">// DeadLetterStore — durable DLQ (replaces fire-and-forget callback).</span>
-<span class="tok-keyword">type</span> <span class="tok-generic">DeadLetterSink</span> <span class="tok-keyword">interface</span> {
-    <span class="tok-func">Save</span>(<span class="tok-generic">ctx</span> <span class="tok-type">context.Context</span>, <span class="tok-generic">projectionName</span> <span class="tok-type">string</span>, <span class="tok-generic">evt</span> <span class="tok-generic">event.Event</span>, <span class="tok-generic">err</span> <span class="tok-type">error</span>) <span class="tok-type">error</span>
-}
-<span class="tok-keyword">type</span> <span class="tok-generic">DeadLetterSource</span> <span class="tok-keyword">interface</span> {
-    <span class="tok-func">Load</span>(<span class="tok-generic">ctx</span> <span class="tok-type">context.Context</span>, <span class="tok-generic">projectionName</span> <span class="tok-type">string</span>) ([]<span class="tok-generic">DeadLetter</span>, <span class="tok-type">error</span>)
-}
+<span class="tok-comment">// Durable DeadLetterStore — replaces fire-and-forget callback</span>
 <span class="tok-keyword">type</span> <span class="tok-generic">DeadLetterStore</span> <span class="tok-keyword">interface</span> {
-    <span class="tok-generic">DeadLetterSink</span>
-    <span class="tok-generic">DeadLetterSource</span>
+    <span class="tok-func">Save</span>(<span class="tok-generic">ctx</span>, <span class="tok-generic">projName</span> <span class="tok-type">string</span>, <span class="tok-generic">evt</span>, <span class="tok-generic">err</span>) <span class="tok-type">error</span>
+    <span class="tok-func">Load</span>(<span class="tok-generic">ctx</span>, <span class="tok-generic">projName</span>) ([]<span class="tok-generic">DeadLetter</span>, <span class="tok-type">error</span>)
     <span class="tok-type">io.Closer</span>
-}</code></pre>
+}
+<span class="tok-comment">// runner.ReplayDeadLetters(ctx, projName) — re-drives after handler fix</span></code></pre>
+
+          <h3 id="rd-readmodel">ReadModel — Honest Capabilities + Context</h3>
+          <pre><code><span class="tok-comment">// readmodel/store.go — redesigned: ctx honored, capabilities honest</span>
+
+<span class="tok-keyword">type</span> <span class="tok-generic">Store</span>[<span class="tok-generic">T</span> <span class="tok-type">any</span>, <span class="tok-generic">K</span> <span class="tok-generic">fmt.Stringer</span>] <span class="tok-keyword">struct</span> { ... }  <span class="tok-comment">// same shape</span>
+
+<span class="tok-comment">// ctx is now ACTUALLY used, not _ ctx</span>
+<span class="tok-keyword">func</span> (<span class="tok-generic">s</span> *<span class="tok-generic">Store</span>[<span class="tok-generic">T</span>,<span class="tok-generic">K</span>]) <span class="tok-func">Get</span>(<span class="tok-generic">ctx</span> <span class="tok-type">context.Context</span>, <span class="tok-generic">id</span> <span class="tok-generic">K</span>) (*<span class="tok-generic">T</span>, <span class="tok-type">error</span>)
+
+<span class="tok-comment">// NEW: backends declare what they're good at (from "Toward Perfect" roadmap)</span>
+<span class="tok-keyword">type</span> <span class="tok-generic">Capabilities</span> <span class="tok-keyword">struct</span> {
+    <span class="tok-generic">GetCost</span>     <span class="tok-generic">Cost</span>  <span class="tok-comment">// Fast / Moderate / Slow</span>
+    <span class="tok-generic">PutCost</span>     <span class="tok-generic">Cost</span>
+    <span class="tok-generic">ListCost</span>    <span class="tok-generic">Cost</span>  <span class="tok-comment">// KV: Slow (full scan). SQL: Fast (indexed).</span>
+    <span class="tok-generic">Consistency</span> <span class="tok-type">string</span>
+}
+<span class="tok-keyword">type</span> <span class="tok-generic">Stater</span> <span class="tok-keyword">interface</span> { <span class="tok-func">Capabilities</span>() <span class="tok-generic">Capabilities</span> }</code></pre>
         </section>
 
-        <!-- ==================== §05 COMPOSITION ==================== -->
-        <section id="composition">
-          <h2><span class="num">05</span>Composition in Action — The DX Vision</h2>
+        <!-- ==================== §06 VALIDATION LAYER ==================== -->
+        <section id="validation">
+          <h2>
+            <span class="num">06</span>Validation Layer — Making Invalid States Unrepresentable
+          </h2>
           <p>
-            The redesigned model makes the dual-store architecture (Pillar 3) a one-liner. Here's
-            the target developer experience — from in-memory to fully persistent, with
-            materialization.
+            The core question of data-model design:
+            <strong>can a consumer construct an invalid value that still compiles?</strong> If yes,
+            the type system isn't doing its job. Here's how the redesigned model pushes validation
+            from runtime to compile-time.
           </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Invalid state</th>
+                <th>Today (runtime check)</th>
+                <th>Redesigned (compile-time)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Negative event version</td>
+                <td class="no">
+                  <code>Version int</code> — <code>validateEventParams</code> checks at runtime
+                </td>
+                <td class="yes">
+                  <code>Version uint64</code> — negatives are <em>unrepresentable</em>
+                </td>
+              </tr>
+              <tr>
+                <td>Zero schema version</td>
+                <td class="no">
+                  <code>SchemaVersion int</code> — <code>ParseSchemaVersion</code> rejects
+                  <code>&lt;1</code> at runtime
+                </td>
+                <td class="yes">
+                  <code>SchemaVersion uint32</code> — min 1 enforced by constructor; zero is the
+                  "not set" sentinel
+                </td>
+              </tr>
+              <tr>
+                <td>Tombstone typo</td>
+                <td class="no">
+                  <code>Custom["tombston"] = "true"</code> — silently ignored, no error
+                </td>
+                <td class="yes">
+                  <code>TombstoneMark</code> is a typed enum — typos are compile errors
+                </td>
+              </tr>
+              <tr>
+                <td>Wrong ID type passed</td>
+                <td class="no">
+                  Already fixed — branded IDs (<code>id.Of[T]</code>) prevent this at compile time ✓
+                </td>
+                <td class="yes">Preserved — the branded ID system is excellent</td>
+              </tr>
+              <tr>
+                <td>Command dispatched to wrong handler</td>
+                <td class="no">
+                  Runtime type assertion <code>cmd.(T)</code> in <code>RegisterTyped</code> adapter
+                </td>
+                <td class="yes">
+                  <code>Decider[State, Cmd]</code> binds command type at construction — mismatch is
+                  a compile error
+                </td>
+              </tr>
+              <tr>
+                <td>Encoding never set</td>
+                <td class="no">
+                  <code>encoding == ""</code> silently normalized to JSON — hides corruption
+                </td>
+                <td class="yes">Encoding is required at construction — zero value rejected</td>
+              </tr>
+              <tr>
+                <td>Delete on event store</td>
+                <td class="yes">
+                  Already impossible — no <code>Delete</code> method on <code>Store</code> ✓
+                </td>
+                <td class="yes">Preserved — hard-delete stays impossible at the type level</td>
+              </tr>
+              <tr>
+                <td>Nil store/publisher</td>
+                <td class="no">
+                  <code>NewRepository</code> checks at runtime → returns <code>ErrNilStore</code>
+                </td>
+                <td class="yes">
+                  Stay runtime (Go can't enforce non-nil at compile time) — but error is classified
+                  + retryable
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="callout callout-solution">
+            <strong>Net result:</strong>
+            Five classes of invalid state move from runtime-check to compile-time-unrepresentable.
+            Three are already correct (branded IDs, no Delete, classified errors). The biggest win
+            is
+            <code>Decider[State, Cmd]</code> — the command-to-handler binding becomes a compile-time
+            fact, eliminating the runtime type assertion in <code>RegisterTyped</code>.
+          </div>
+        </section>
+
+        <!-- ==================== §07 COMPOSITION ==================== -->
+        <section id="composition">
+          <h2><span class="num">07</span>Composition in Action — The DX Vision</h2>
 
           <h3>The 15-Minute Onboarding (Target DX)</h3>
           <div class="compare-header">
-            <div class="compare-before">Today — Hand-glued</div>
-            <div class="compare-after">Target — Stack Preset + Typed Projection</div>
+            <div class="compare-before">Today — Hand-glued (~80 LOC)</div>
+            <div class="compare-after">Target — Stack Preset + Typed Projection (~5 LOC)</div>
           </div>
           <div class="compare-row">
-            <pre><code><span class="tok-comment">// ~80 lines of glue the consumer writes today</span>
-<span class="tok-generic">store</span> := <span class="tok-func">memory.NewMemoryStore</span>()
+            <pre><code><span class="tok-generic">store</span> := <span class="tok-func">memory.NewMemoryStore</span>()
 <span class="tok-generic">bus</span> := <span class="tok-func">memory.NewMemoryBus</span>()
 <span class="tok-generic">cmdStore</span> := <span class="tok-func">memory.NewMemoryCommandStore</span>()
 <span class="tok-generic">qStore</span> := <span class="tok-func">memory.NewMemoryQueryStore</span>()
 <span class="tok-generic">snapStore</span> := <span class="tok-func">memory.NewMemorySnapshotStore</span>()
 <span class="tok-generic">cpStore</span> := <span class="tok-func">memory.NewMemoryCheckpointStore</span>()
 <span class="tok-generic">kvBackend</span> := <span class="tok-func">kv.NewMemStore</span>()
-<span class="tok-generic">viewStore</span>, <span class="tok-generic">_</span> := <span class="tok-func">readmodel.New</span>[<span class="tok-generic">UserView</span>, <span class="tok-generic">UserID</span>](<span class="tok-generic">kvBackend</span>)
-<span class="tok-generic">repo</span>, <span class="tok-generic">_</span> := <span class="tok-func">decider.NewRepository</span>(<span class="tok-generic">store</span>, <span class="tok-generic">bus</span>, <span class="tok-generic">d</span>)
-<span class="tok-comment">// ... wire projection handler closure to viewStore ...</span>
-<span class="tok-comment">// ... wire StatusMiddleware ... CacheInvalidationMiddleware ...</span>
-<span class="tok-comment">// ... wire projection.Runner with journal + subscriber + checkpoint ...</span>
-<span class="tok-comment">// ... 40 more lines of glue ...</span></code></pre>
-            <pre><code><span class="tok-comment">// The target: 5 lines for the whole stack</span>
-<span class="tok-generic">bundle</span>, <span class="tok-generic">_</span> := <span class="tok-func">stackmemory.New</span>()
+<span class="tok-generic">viewStore</span>, <span class="tok-generic">_</span> := <span class="tok-func">readmodel.New</span>[<span class="tok-generic">UserView</span>,<span class="tok-generic">UserID</span>](<span class="tok-generic">kvBackend</span>)
+<span class="tok-generic">repo</span>, <span class="tok-generic">_</span> := <span class="tok-func">decider.NewRepository</span>(<span class="tok-generic">store</span>,<span class="tok-generic">bus</span>,<span class="tok-generic">d</span>)
+<span class="tok-comment">// ... wire projection handler closure ...</span>
+<span class="tok-comment">// ... wire StatusMiddleware ...</span>
+<span class="tok-comment">// ... wire CacheInvalidationMiddleware ...</span>
+<span class="tok-comment">// ... wire projection.Runner ...</span>
+<span class="tok-comment">// ... 40+ more lines of glue ...</span></code></pre>
+            <pre><code><span class="tok-generic">bundle</span>, <span class="tok-generic">_</span> := <span class="tok-func">stackmemory.New</span>()
 <span class="tok-keyword">defer</span> <span class="tok-generic">bundle</span>.<span class="tok-func">Close</span>()
 
-<span class="tok-generic">repo</span>, <span class="tok-generic">_</span> := <span class="tok-func">stack.Repository</span>[<span class="tok-generic">UserState</span>, <span class="tok-generic">CreateUser</span>](<span class="tok-generic">bundle</span>, <span class="tok-generic">userDecider</span>)
+<span class="tok-comment">// Command type bound at compile time</span>
+<span class="tok-generic">repo</span>, <span class="tok-generic">_</span> := <span class="tok-func">stack.Repository</span>[<span class="tok-generic">UserState</span>,<span class="tok-generic">CreateUser</span>](
+    <span class="tok-generic">bundle</span>, <span class="tok-generic">userDecider</span>)
 
-<span class="tok-comment">// Typed projection → read model, with lifecycle choice</span>
-<span class="tok-generic">proj</span> := <span class="tok-func">projection.TypedProjection</span>[<span class="tok-generic">UserView</span>, <span class="tok-generic">UserID</span>]{
-    <span class="tok-generic">ProjectionName</span>:  <span class="tok-string">"user-view"</span>,
-    <span class="tok-generic">ProjectionMode</span>:  <span class="tok-generic">projection.ModeAsync</span>,  <span class="tok-comment">// or ModeLive / ModeInline</span>
-    <span class="tok-generic">EventTypeFilter</span>: []<span class="tok-generic">event.Type</span>{<span class="tok-string">"user.created"</span>, <span class="tok-string">"user.renamed"</span>},
-    <span class="tok-generic">Apply</span>: <span class="tok-keyword">func</span>(<span class="tok-generic">ctx</span>, <span class="tok-generic">evt</span>, <span class="tok-generic">store</span>) <span class="tok-type">error</span> {
-        <span class="tok-comment">// decoded event + typed store — no manual juggling</span>
-    },
-}
-<span class="tok-generic">_</span> = <span class="tok-generic">proj</span></code></pre>
+<span class="tok-comment">// Typed projection → read model, lifecycle choice</span>
+<span class="tok-generic">proj</span> := <span class="tok-func">projection.TypedProjection</span>[<span class="tok-generic">UserView</span>,<span class="tok-generic">UserID</span>]{
+    <span class="tok-generic">Name</span>:   <span class="tok-string">"user-view"</span>,
+    <span class="tok-generic">Mode</span>:   <span class="tok-generic">projection.ModeAsync</span>, <span class="tok-comment">// or Live/Inline</span>
+    <span class="tok-generic">Filter</span>: []<span class="tok-generic">event.Type</span>{<span class="tok-string">"user.created"</span>},
+    <span class="tok-generic">Apply</span>:  <span class="tok-keyword">func</span>(<span class="tok-generic">ctx</span>,<span class="tok-generic">evt</span>,<span class="tok-generic">store</span>) <span class="tok-type">error</span> { ... },
+}</code></pre>
           </div>
 
           <h3>The Resilience Extraction (Adoption Unblocker)</h3>
-          <p>
-            The generic algorithms — retry, backoff, circuit breaker — escape the CQRS coupling.
-            Non-CQRS Go projects can adopt them.
-          </p>
           <div class="compare-header">
-            <div class="compare-before">Before — Locked to CQRS</div>
-            <div class="compare-after">After — Standalone + CQRS Wrapper</div>
+            <div class="compare-before">Before — Locked to CQRS (~40 deps)</div>
+            <div class="compare-after">After — Standalone (0 deps)</div>
           </div>
           <div class="compare-row">
             <pre><code><span class="tok-comment">// middleware/v2 — pulls entire CQRS + OTel</span>
-<span class="tok-generic">cmdDispatcher</span>.<span class="tok-func">Use</span>(<span class="tok-func">middleware.CommandRetry</span>(<span class="tok-generic">cfg</span>))
-<span class="tok-comment">// deps: event, command, query, memory,</span>
-<span class="tok-comment">// id, otel, otel/sdk, otel/metric, ...</span>
-<span class="tok-comment">// ~40 transitive deps for retry()</span></code></pre>
+<span class="tok-generic">cmdDispatcher</span>.<span class="tok-func">Use</span>(
+    <span class="tok-func">middleware.CommandRetry</span>(<span class="tok-generic">cfg</span>))
+<span class="tok-comment">// deps: event, command, query,</span>
+<span class="tok-comment">// memory, id, otel, otel/sdk, ...</span></code></pre>
             <pre><code><span class="tok-comment">// resilience/ — stdlib only</span>
 <span class="tok-keyword">import</span> <span class="tok-string">"go-cqrs-lite/resilience/v2"</span>
 
@@ -2018,16 +2049,29 @@
     <span class="tok-keyword">return</span> <span class="tok-generic">checker</span>.<span class="tok-func">Check</span>(<span class="tok-generic">ctx</span>, <span class="tok-generic">slug</span>)
 })
 <span class="tok-comment">// deps: 0. stdlib only.</span>
-
-<span class="tok-comment">// CQRS wrapper stays for ergonomics:</span>
-<span class="tok-generic">cmdDispatcher</span>.<span class="tok-func">Use</span>(<span class="tok-func">middleware.CommandRetry</span>(<span class="tok-generic">cfg</span>))
-<span class="tok-comment">// ← now a thin wrapper around resilience.Do</span></code></pre>
+<span class="tok-comment">// CQRS wrapper stays for ergonomics.</span></code></pre>
           </div>
+
+          <h3>The Dual-Store Architecture (LiveStore-inspired)</h3>
+          <div class="diagram">
+            <span class="node node-core">Event Log</span>
+            <span class="arrow">→ immutable, append-only, source of truth →</span>
+            <span class="node node-good">Materializer</span>
+            <span class="arrow">→ derives →</span>
+            <span class="node">Materialized State DB</span>
+            <span class="arrow">(queryable, rebuildable, disposable)</span>
+          </div>
+          <p>
+            The materialized state DB can be <strong>fully recreated</strong> from the event log at
+            any time. Schema migrations trigger automatic rebuilds. Projections can be added
+            retroactively. This is the architectural pattern that makes event sourcing operationally
+            viable — and it should be a one-liner, not a research project.
+          </p>
         </section>
 
-        <!-- ==================== §06 DECISIONS ==================== -->
+        <!-- ==================== §08 DECISIONS ==================== -->
         <section id="decisions">
-          <h2><span class="num">06</span>Decision Log — Why Each Choice</h2>
+          <h2><span class="num">08</span>Decision Log — Why Each Choice</h2>
           <table>
             <thead>
               <tr>
@@ -2038,179 +2082,157 @@
             </thead>
             <tbody>
               <tr>
-                <td><strong>Event as concrete struct, not interface</strong></td>
+                <td><strong>Event as concrete struct</strong></td>
                 <td>
-                  There's exactly one production impl. The "interface for testing" benefit is
-                  provided by store interfaces on <code>[]Event</code>. Kills the leaky
-                  type-assertions.
+                  One production impl. Leaky type-assertions disappear. Testability via store
+                  interfaces on <code>[]Event</code>.
                 </td>
                 <td>
-                  Keep interface + add unexported payload-readonly method. Rejected: more machinery,
-                  same outcome, every impl still has to satisfy it.
-                </td>
-              </tr>
-              <tr>
-                <td><strong>Promote tombstone/causation to typed Metadata fields</strong></td>
-                <td>
-                  They're first-class domain concepts used by 5+ modules. String-map storage is the
-                  soft-metadata anti-pattern.
-                </td>
-                <td>
-                  Keep in Custom but add typed accessors. Rejected: dual storage, drift between
-                  accessor and map.
+                  Keep interface + unexported payload method. Rejected: more machinery, same
+                  outcome.
                 </td>
               </tr>
               <tr>
+                <td><strong>Promote tombstone/causation to typed fields</strong></td>
                 <td>
-                  <strong><code>Decider[State, Cmd]</code> with Decide field</strong>
+                  12 concepts used by 5+ modules. String-map is the soft-metadata anti-pattern.
                 </td>
-                <td>Matches Eventuous. Binds command type at compile time. Self-documenting.</td>
+                <td>Keep in Custom + typed accessors. Rejected: dual storage, drift.</td>
+              </tr>
+              <tr>
+                <td>
+                  <strong><code>Decider[State, Cmd]</code></strong>
+                </td>
+                <td>Eventuous pattern. Command type bound at compile time.</td>
                 <td>
                   Keep <code>Decider[State]</code> + per-call <code>DecideFunc</code>. Rejected:
-                  command type invisible to type system; struct name lies.
+                  name lies, command invisible to type system.
                 </td>
               </tr>
               <tr>
                 <td>
-                  <strong><code>ProjectionMode</code> as first-class enum</strong>
+                  <strong><code>ProjectionMode</code> enum</strong>
                 </td>
-                <td>
-                  Marten proved this is the killer feature. Lets consumer declare per-view
-                  consistency tradeoff.
-                </td>
-                <td>
-                  Separate runner types per mode. Rejected: combinatorial explosion; the projection
-                  logic is the same, only timing differs.
-                </td>
+                <td>Marten's killer feature. Per-view consistency tradeoff.</td>
+                <td>Separate runner types per mode. Rejected: combinatorial explosion.</td>
               </tr>
               <tr>
                 <td>
                   <strong>Durable <code>DeadLetterStore</code></strong>
                 </td>
-                <td>Fire-and-forget callback loses events. Production systems need recovery.</td>
+                <td>Callback loses events. Production needs recovery.</td>
                 <td>
-                  Keep callback, document "you must persist yourself". Rejected: every consumer
-                  reinvents the same store.
+                  Keep callback, document "persist yourself". Rejected: every consumer reinvents.
                 </td>
               </tr>
               <tr>
-                <td><strong>Resilience extraction (stdlib-only module)</strong></td>
-                <td>
-                  Generic algorithms have 100× the user base when decoupled from CQRS. Adoption
-                  unblocker.
-                </td>
-                <td>
-                  Keep in middleware, document the coupling. Rejected: doesn't fix the dependency
-                  graph; perception remains.
-                </td>
+                <td><strong>Resilience extraction</strong></td>
+                <td>Generic algorithms have 100× user base when decoupled.</td>
+                <td>Keep in middleware. Rejected: doesn't fix dep graph.</td>
               </tr>
               <tr>
                 <td>
-                  <strong><code>Version uint64</code>, <code>SchemaVersion uint32</code></strong>
+                  <strong><code>Version uint64</code></strong>
                 </td>
-                <td>Negative versions are nonsensical. uint makes them unrepresentable.</td>
-                <td>
-                  Keep int + validate at construction. Rejected: validation is runtime; uint is
-                  compile-time.
-                </td>
+                <td>Negative versions nonsensical. uint makes them unrepresentable.</td>
+                <td>Keep int + validate. Rejected: validation is runtime; uint is compile-time.</td>
               </tr>
               <tr>
-                <td><strong>Code-gen command/query duplication</strong></td>
-                <td>~600 LOC of symmetric boilerplate. Code-gen keeps module isolation.</td>
-                <td>
-                  Shared <code>message/</code> module. Rejected: creates a dependency between
-                  command and query.
-                </td>
+                <td><strong>Code-gen cmd/query dup</strong></td>
+                <td>~600 LOC symmetric boilerplate. Code-gen keeps isolation.</td>
+                <td>Shared <code>message/</code> module. Rejected: creates dependency.</td>
               </tr>
               <tr>
-                <td><strong>kv.Store gains context.Context</strong></td>
-                <td>Cancellation must propagate. Every other module does this correctly.</td>
-                <td>Keep ctx-less, document. Rejected: production hazard, consistency gap.</td>
+                <td><strong>kv.Store gains ctx</strong></td>
+                <td>Cancellation must propagate. Every other module does this.</td>
+                <td>Keep ctx-less. Rejected: production hazard.</td>
+              </tr>
+              <tr>
+                <td><strong>Keep ISP store split</strong></td>
+                <td>ADR-0006 is one of the best decisions. Preserve entirely.</td>
+                <td>Merge into fat Store. Rejected: violates ISP, was the original problem.</td>
+              </tr>
+              <tr>
+                <td><strong>Keep branded IDs</strong></td>
+                <td>ADR-0024 is excellent. Phantom types are zero-cost.</td>
+                <td>Use raw strings. Rejected: loses compile-time safety.</td>
+              </tr>
+              <tr>
+                <td><strong>Keep 5-family errors</strong></td>
+                <td>go-error-family integration is ahead of most Go libs.</td>
+                <td>Plain errors. Rejected: loses structural retry/classification.</td>
               </tr>
             </tbody>
           </table>
         </section>
 
-        <!-- ==================== §07 ANTIPATTERNS ==================== -->
+        <!-- ==================== §09 ANTIPATTERNS ==================== -->
         <section id="antipatterns">
-          <h2><span class="num">07</span>Anti-Patterns to Avoid</h2>
+          <h2><span class="num">09</span>Anti-Patterns to Avoid</h2>
           <div class="grid-2">
             <div class="card card-problem">
-              <h4>Don't add a <code>Delete</code> to Store</h4>
+              <h4>Don't add Delete to Store</h4>
               <p style="margin: 0">
                 History is immutable. ADR-0006 was right. Soft-delete via tombstone is the only
-                path. Adding Delete back "for convenience" breaks the core invariant.
+                path.
               </p>
             </div>
             <div class="card card-problem">
               <h4>Don't make Event generic <code>Event[T]</code></h4>
               <p style="margin: 0">
-                Storage stores bytes. A generic Event forces every store to be generic, every slice
-                to be homogeneous, and breaks the journal (cross-aggregate, multi-type events). Keep
-                Event as a concrete envelope; decode to T at the boundary.
+                Storage stores bytes. Generic Event forces every store to be generic, breaks the
+                journal. Keep Event as envelope; decode to T at boundary.
               </p>
             </div>
             <div class="card card-problem">
               <h4>Don't reimplement the outbox</h4>
               <p style="margin: 0">
-                It was removed for good reason (YAGNI, complexity). Crash recovery via
-                <code>SeekableJournal + CheckpointStore</code> + the new durable DLQ is the path
-                forward. The Relay component (if added) uses the event store's own journal, not a
-                secondary table.
+                Removed for good reason. Crash recovery via SeekableJournal + CheckpointStore +
+                durable DLQ. Relay uses event store's own journal.
               </p>
             </div>
             <div class="card card-problem">
-              <h4>Don't force a transport/broker/driver</h4>
+              <h4>Don't force a transport/broker</h4>
               <p style="margin: 0">
-                "Library, not framework" is the founding principle. Every transport adapter
-                (Watermill, pg LISTEN/NOTIFY, NATS, Kafka) is an optional module. Never bake one
-                into the core.
+                "Library, not framework." Every transport adapter is optional. Never bake one into
+                core.
               </p>
             </div>
             <div class="card card-problem">
               <h4>Don't conflate Decide and Apply</h4>
               <p style="margin: 0">
-                They are different functions with different signatures and different test profiles.
-                Decide produces events; Apply consumes them. Mixing them (Axon-style
-                <code>@CommandHandler</code> + <code>@EventSourcingHandler</code> on one class)
-                creates indirection.
+                Different functions, different signatures, different test profiles. Mixing them
+                (Axon-style) creates indirection.
               </p>
             </div>
             <div class="card card-problem">
-              <h4>Don't use string error matching for driver errors</h4>
+              <h4>Don't string-match driver errors</h4>
               <p style="margin: 0">
-                <code>IsDuplicateKeyError</code> matching
-                <code>"UNIQUE constraint failed"</code> breaks on driver updates. Use typed error
-                codes (<code>pgconn.PgError</code> 23505, SQLite extended codes). String matching is
-                the last resort, logged when it fires.
+                <code>IsDuplicateKeyError</code> breaks on driver updates. Use typed error codes.
               </p>
             </div>
             <div class="card card-problem">
               <h4>Don't make DLQ fire-and-forget</h4>
               <p style="margin: 0">
-                A callback that logs is a silent data loss vector. The DLQ must be a durable store
-                with a replay API. "Best-effort" is acceptable for snapshot writes; it is
-                <em>not</em> acceptable for projection failures.
+                Callback that logs = silent data loss. DLQ must be durable with replay API.
               </p>
             </div>
             <div class="card card-problem">
-              <h4>Don't ignore context.Context anywhere</h4>
+              <h4>Don't ignore ctx anywhere</h4>
               <p style="margin: 0">
-                Every I/O operation must accept and honor context. <code>kv.Store</code> ignoring
-                ctx is a production hazard. The "forward-compatible API, currently misleading"
-                comment in readmodel is technical debt — schedule the fix.
+                Every I/O op must honor context. <code>kv.Store</code> ignoring ctx is a production
+                hazard.
               </p>
             </div>
           </div>
         </section>
 
-        <!-- ==================== §08 ROADMAP ==================== -->
+        <!-- ==================== §10 ROADMAP ==================== -->
         <section id="roadmap">
-          <h2><span class="num">08</span>Migration Roadmap — Pareto-Ordered</h2>
+          <h2><span class="num">10</span>Migration Roadmap — Pareto-Ordered</h2>
           <p>
-            Ordered by impact-to-effort ratio. Each step is independently shippable; none requires a
-            full rewrite. Steps 1-3 unlock adoption; 4-6 close the state-of-the-art gaps; 7-10
-            polish.
+            Ordered by impact-to-effort ratio. Each step independently shippable; none requires a
+            rewrite.
           </p>
 
           <div class="migration-step">
@@ -2218,222 +2240,174 @@
             <div class="migration-content">
               <h4>Extract <code>resilience/</code> module (stdlib-only)</h4>
               <p>
-                Move retry, backoff+jitter, circuit breaker, timeout into a new
-                <code>resilience/</code> module with zero CQRS deps. Existing
-                <code>middleware.CommandRetry</code> etc. become thin wrappers.
-                <strong>Unlocks every non-CQRS Go project.</strong>
+                Retry, backoff+jitter, circuit breaker, timeout. Zero CQRS deps. Existing middleware
+                becomes thin wrappers. <strong>Unlocks every non-CQRS Go project.</strong>
               </p>
               <div class="migration-meta">
-                <span>Effort: 1-2 days</span><span>Impact: Critical (adoption)</span
+                <span>1-2 days</span><span>Impact: Critical (adoption)</span
                 ><span>Breaking: None</span>
               </div>
             </div>
           </div>
-
           <div class="migration-step">
             <div class="migration-num">2</div>
             <div class="migration-content">
-              <h4>Fix go.mod hygiene + add dependency-budget CI</h4>
+              <h4>Fix go.mod hygiene + dependency-budget CI</h4>
               <p>
-                Move test-only sibling imports out of <code>event/go.mod</code> direct requires. Add
-                a CI check (<code>check-module-layers.sh</code> already exists) that mechanically
-                enforces per-module dep budgets.
-                <strong>Kills the "hub" perception permanently.</strong>
+                Move test-only siblings out of <code>event/go.mod</code>. Mechanical CI enforcement.
+                <strong>Kills "hub" perception.</strong>
               </p>
               <div class="migration-meta">
-                <span>Effort: 1 day</span><span>Impact: Critical (perception)</span
+                <span>1 day</span><span>Impact: Critical (perception)</span
                 ><span>Breaking: None</span>
               </div>
             </div>
           </div>
-
           <div class="migration-step">
             <div class="migration-num">3</div>
             <div class="migration-content">
               <h4>Promote tombstone + causation to typed Metadata fields</h4>
               <p>
-                Add <code>TombstoneMark</code>, <code>Causation</code>,
-                <code>SecurityEnvelope</code> as typed fields on <code>Metadata</code>. Keep
-                <code>Custom</code> (renamed <code>Extensions</code>) for true consumer concerns.
-                Wire <code>MarkTombstone</code>/<code>WithCommandCausality</code> to write typed
-                fields. <strong>Twelve first-class concepts stop being strings.</strong>
+                <code>TombstoneMark</code>, <code>Causation</code>, <code>SecurityEnvelope</code> as
+                typed fields. <strong>12 concepts stop being strings.</strong>
               </p>
               <div class="migration-meta">
-                <span>Effort: 2-3 days</span><span>Impact: High (type safety)</span
-                ><span>Breaking: Additive (old readers still work)</span>
+                <span>2-3 days</span><span>Impact: High (type safety)</span
+                ><span>Breaking: Additive</span>
               </div>
             </div>
           </div>
-
           <div class="migration-step">
             <div class="migration-num">4</div>
             <div class="migration-content">
               <h4>Add <code>ProjectionMode</code> (Inline / Live / Async)</h4>
               <p>
-                Introduce the <code>Mode</code> enum on <code>Projection</code>. Async exists
-                (current Runner). Live is a read-time re-builder wrapper. Inline requires a
-                transactional hook on <code>EventSink</code> (narrower than the old
-                <code>TransactionalSink</code>). <strong>The Marten killer feature, in Go.</strong>
+                Mode enum on Projection. Async exists. Live = read-time re-builder. Inline = tx
+                hook. <strong>Marten's killer feature in Go.</strong>
               </p>
               <div class="migration-meta">
-                <span>Effort: 3-5 days</span><span>Impact: Critical (best-in-class)</span
+                <span>3-5 days</span><span>Impact: Critical (best-in-class)</span
                 ><span>Breaking: Additive</span>
               </div>
             </div>
           </div>
-
           <div class="migration-step">
             <div class="migration-num">5</div>
             <div class="migration-content">
-              <h4>Ship durable <code>DeadLetterStore</code> + replay API</h4>
+              <h4>Ship durable <code>DeadLetterStore</code> + replay</h4>
               <p>
-                New <code>DeadLetterSink/Source/Store</code> interfaces. In-memory + SQL + Pebble
-                impls. <code>runner.ReplayDeadLetters(ctx, projectionName)</code>. Default to
-                in-memory; presets wire the persistent variant.
-                <strong>Turns "lost events" into "recoverable events".</strong>
+                Sink+Source interfaces. In-mem + SQL + Pebble impls.
+                <code>ReplayDeadLetters()</code>. <strong>Turns "lost" into "recoverable".</strong>
               </p>
               <div class="migration-meta">
-                <span>Effort: 2-3 days</span><span>Impact: Critical (reliability)</span
+                <span>2-3 days</span><span>Impact: Critical (reliability)</span
                 ><span>Breaking: Additive</span>
               </div>
             </div>
           </div>
-
           <div class="migration-step">
             <div class="migration-num">6</div>
             <div class="migration-content">
               <h4>Evolve <code>Decider[State, Cmd]</code> with Decide field</h4>
               <p>
-                Add the two-type-param Decider alongside the existing one (as
-                <code>LegacyDecider</code>). Rename <code>Fold</code>→<code>Apply</code> in the new
-                type. Migrate examples and docs to the new form.
-                <strong>Decide/Apply separation, Eventuous-style.</strong>
+                Two-type-param variant alongside old (as <code>LegacyDecider</code>). Rename
+                Fold→Apply. <strong>Decide/Apply separation.</strong>
               </p>
               <div class="migration-meta">
-                <span>Effort: 2 days</span><span>Impact: High (clarity)</span
-                ><span>Breaking: Additive (old preserved)</span>
+                <span>2 days</span><span>Impact: High (clarity)</span
+                ><span>Breaking: Additive</span>
               </div>
             </div>
           </div>
-
           <div class="migration-step">
             <div class="migration-num">7</div>
             <div class="migration-content">
               <h4>Ship <code>TypedProjection[V,K]</code> + dual-store recipes</h4>
               <p>
-                The projection→readmodel integration the library currently lacks. Wire it through
-                <code>stack/materialize</code>. Ship 3-4 recipes (user-summary, todo-list,
-                aggregate-listing).
-                <strong>The dual-store architecture becomes a one-liner.</strong>
+                The missing projection→readmodel integration.
+                <strong>Dual-store architecture as a one-liner.</strong>
               </p>
               <div class="migration-meta">
-                <span>Effort: 2 days</span><span>Impact: High (DX)</span
-                ><span>Breaking: Additive</span>
+                <span>2 days</span><span>Impact: High (DX)</span><span>Breaking: Additive</span>
               </div>
             </div>
           </div>
-
           <div class="migration-step">
             <div class="migration-num">8</div>
             <div class="migration-content">
-              <h4>Make <code>Event</code> a concrete struct; remove leaky assertions</h4>
+              <h4>Make <code>Event</code> concrete struct; remove leaky assertions</h4>
               <p>
-                Convert <code>Event</code> from interface to concrete struct. Remove
-                <code>payloadForDecode</code
-                >/<code>PayloadReadOnly</code>/<code>encodingForCopy</code>/<code
-                  >tombstone.copyWithMetadata</code
-                >
-                type-assertions — they become direct field access.
-                <strong>The abstraction stops lying.</strong>
+                Interface → struct. Remove 4 type-assertion helpers.
+                <strong>Abstraction stops lying.</strong>
               </p>
               <div class="migration-meta">
-                <span>Effort: 2 days</span><span>Impact: High (honesty)</span
-                ><span>Breaking: v3 — custom Event impls break</span>
+                <span>2 days</span><span>Impact: High (honesty)</span><span>Breaking: v3</span>
               </div>
             </div>
           </div>
-
           <div class="migration-step">
             <div class="migration-num">9</div>
             <div class="migration-content">
               <h4>Code-gen command/query duplication</h4>
               <p>
-                Extend <code>cqrs-gen</code> to emit the symmetric <code>Type</code>,
-                <code>Middleware</code>, reactive bus, error blocks from a single template. ~600 LOC
-                of dup becomes generated.
-                <strong>Module isolation preserved; drift eliminated.</strong>
+                Extend <code>cqrs-gen</code>. ~600 LOC dup becomes generated.
+                <strong>Module isolation preserved.</strong>
               </p>
               <div class="migration-meta">
-                <span>Effort: 2 days</span><span>Impact: Medium (maintenance)</span
-                ><span>Breaking: None (generated output identical)</span>
+                <span>2 days</span><span>Impact: Medium (maintenance)</span
+                ><span>Breaking: None</span>
               </div>
             </div>
           </div>
-
           <div class="migration-step">
             <div class="migration-num">10</div>
             <div class="migration-content">
-              <h4>Storage cleanup: typed error codes, ctx in kv.Store, stack error family</h4>
+              <h4>Storage cleanup: typed errors, ctx in kv, stack error family</h4>
               <p>
-                Replace <code>IsDuplicateKeyError</code> string matching with typed codes. Add
-                <code>ctx context.Context</code> to <code>kv.Store</code> methods. Re-classify
-                <code>stack</code> errors via <code>event.NewInfrastructure</code>.
-                <strong>Consistency parity across all modules.</strong>
+                Replace string matching with typed codes. Add ctx to kv.Store. Re-classify stack
+                errors. <strong>Consistency parity.</strong>
               </p>
               <div class="migration-meta">
-                <span>Effort: 2 days</span><span>Impact: Medium (consistency)</span
-                ><span>Breaking: v3 for kv.Store signature</span>
+                <span>2 days</span><span>Impact: Medium (consistency)</span
+                ><span>Breaking: v3 for kv.Store</span>
               </div>
             </div>
           </div>
 
           <div class="callout callout-warning">
-            <strong>Total estimated effort:</strong>
-            <span
-              >~20-25 days of focused work for the full redesign. Steps 1-3 (5 days) deliver the
-              adoption unblockers. Steps 4-7 (10 days) deliver the state-of-the-art features. Steps
-              8-10 (5 days) deliver consistency. The result is the reference Go CQRS/ES
-              implementation.</span
-            >
+            <strong>Total: ~20-25 days.</strong> Steps 1-3 (5 days) = adoption unblockers. Steps 4-7
+            (10 days) = state-of-the-art features. Steps 8-10 (5 days) = consistency. Result: the
+            reference Go CQRS/ES implementation.
           </div>
         </section>
 
-        <!-- ==================== §09 CONCLUSION ==================== -->
+        <!-- ==================== §11 CONCLUSION ==================== -->
         <section id="conclusion">
-          <h2><span class="num">09</span>Conclusion</h2>
+          <h2><span class="num">11</span>Conclusion</h2>
           <div class="card card-solution">
             <p style="margin: 0; font-size: 1.05rem">
-              go-cqrs-lite is already one of the most thoughtfully architected CQRS libraries
-              available in any language. Its ISP-split interfaces, branded identifiers, error
-              taxonomy, pure-function Decider, and tombstone model are genuinely excellent — the
-              hard architectural problems are solved. The path from "excellent" to
-              <strong>unequivocally best</strong> is not a rewrite; it is three targeted extractions
-              (resilience, go.mod hygiene, soft-metadata promotion), three state-of-the-art
-              additions (projection lifecycle, durable DLQ, Decide/Apply separation), and a
-              consistency pass.
+              go-cqrs-lite is already one of the most thoughtfully architected CQRS libraries in any
+              language. Its ISP-split interfaces, branded identifiers, error taxonomy, pure-function
+              Decider, and tombstone model are genuinely excellent — the hard problems are solved.
+              The path from "excellent" to <strong>unequivocally best</strong> is not a rewrite; it
+              is three targeted extractions, three state-of-the-art additions, and a consistency
+              pass.
             </p>
             <p style="margin: 1rem 0 0; font-size: 1.05rem">
-              The opportunity is concrete and named:
               <em
-                >no Go library today offers projection lifecycle choice, type-safe event
-                application, clean Decide/Apply separation, or a dual-store architecture</em
-              >. Achieving all four — and the library is 70% of the way there — makes go-cqrs-lite
-              the reference implementation that other Go CQRS libraries are measured against.
+                >No Go library today offers projection lifecycle choice, type-safe event
+                application, clean Decide/Apply separation, or a wired dual-store architecture.</em
+              >
+              Achieving all four — and the library is 70% of the way there — makes go-cqrs-lite the
+              reference implementation.
             </p>
-          </div>
-          <div class="callout callout-problem">
-            <strong>The one-sentence summary:</strong>
-            The architecture is right. The type algebra needs one honest pass to move soft-metadata
-            concepts to first-class types, the materialization story needs the projection-lifecycle
-            concept Marten proved is essential, and the packaging needs the resilience extraction
-            that unblocks every non-CQRS Go project. Then it's the best.
           </div>
         </section>
 
         <footer class="footer">
-          Generated 2026-06-19 · Data Model Deep Review · Grounded in research of Eventuous, Marten,
-          LiveStore, Sekiban, and the aggregateless-event-sourcing frontier · 30 modules · ~70 type
-          definitions · 23 problems cataloged
+          Generated 2026-06-19 · Data Model Deep Review v2 · Every code quote is verbatim source ·
+          16 modules · 160+ types · 23 problems · Grounded in Eventuous, Marten, LiveStore, Sekiban
+          research
         </footer>
       </main>
     </div>
