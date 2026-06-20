@@ -46,7 +46,7 @@ func TestEveryNEvents_Success(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		v, _ := event.ParseVersion(tt.version)
+		v, _ := event.ParseVersion(uint64(tt.version))
 		got := strategy.ShouldSnapshot("User", v)
 		if got != tt.expected {
 			t.Errorf("ShouldSnapshot(User, %d) = %v, want %v", tt.version, got, tt.expected)

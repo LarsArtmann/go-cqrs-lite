@@ -17,16 +17,6 @@ var _ = Describe("Version", func() {
 			})
 		})
 
-		Context("when I parse a negative version", func() {
-			It(
-				"should reject it because negative versions are meaningless in event sourcing",
-				func() {
-					_, err := event.ParseVersion(-1)
-					Expect(err).To(HaveOccurred())
-				},
-			)
-		})
-
 		Context("when I parse zero", func() {
 			It(
 				"should accept it as 'no events yet', letting me distinguish new aggregates",

@@ -53,28 +53,18 @@ func FuzzParseIPAddress(f *testing.F) {
 }
 
 func FuzzParseVersion(f *testing.F) {
-	f.Add(0)
-	f.Add(1)
-	f.Add(-1)
-	f.Add(1000000)
+	f.Add(uint64(0))
+	f.Add(uint64(1))
+	f.Add(uint64(1000000))
 
-	f.Fuzz(func(t *testing.T, v int) {
+	f.Fuzz(func(t *testing.T, v uint64) {
 		ver, err := event.ParseVersion(v)
-
-		if v < 0 {
-			if err == nil {
-				t.Error("expected error for negative version")
-			}
-
-			return
-		}
-
 		if err != nil {
 			t.Errorf("unexpected error for %d: %v", v, err)
 		}
 
-		if ver.Int() != v {
-			t.Errorf("roundtrip mismatch: got %d, want %d", ver.Int(), v)
+		if ver.UInt64() != v {
+			t.Errorf("roundtrip mismatch: got %d, want %d", ver.UInt64(), v)
 		}
 	})
 }

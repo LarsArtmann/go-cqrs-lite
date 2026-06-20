@@ -90,24 +90,19 @@ func (ua UserAgent) String() string { return string(ua) }
 func (ua UserAgent) IsZero() bool { return ua == "" }
 
 // Version represents an event/aggregate version number.
-// Using a phantom type ensures type safety and prevents mixing with other ints.
-type Version int
+// Using a phantom type ensures type safety and prevents mixing with other integers.
+type Version uint64
 
-// ParseVersion validates and creates a Version from an int.
-// Returns an error if the version is negative.
-func ParseVersion(v int) (Version, error) {
-	if v < 0 {
-		return 0, NewRejection(
-			"event.negative_version",
-			fmt.Sprintf("version cannot be negative: %d", v),
-		)
-	}
-
+// ParseVersion validates and creates a Version from a uint64.
+func ParseVersion(v uint64) (Version, error) {
 	return Version(v), nil
 }
 
 // Int returns the underlying int value.
 func (v Version) Int() int { return int(v) }
+
+// UInt64 returns the underlying uint64 value.
+func (v Version) UInt64() uint64 { return uint64(v) }
 
 // IsZero returns true if the version is zero.
 func (v Version) IsZero() bool { return v == 0 }
@@ -126,7 +121,7 @@ func (v Version) Decrement() Version {
 }
 
 // String returns the version as a decimal string.
-func (v Version) String() string { return strconv.Itoa(int(v)) }
+func (v Version) String() string { return strconv.FormatUint(uint64(v), 10) }
 
 // IsPositive returns true if the version is greater than zero.
 func (v Version) IsPositive() bool { return v > 0 }
@@ -135,14 +130,13 @@ func (v Version) IsPositive() bool { return v > 0 }
 func (v Version) Add(n int) Version { return v + Version(n) }
 
 // Sub returns a new Version decremented by n.
-// Panics if the result would be negative.
+// Panics if the result would underflow.
 func (v Version) Sub(n int) Version {
-	result := v - Version(n)
-	if result < 0 {
-		panic(fmt.Sprintf("version subtraction underflow: %d - %d < 0", v, n))
+	if Version(n) > v {
+		panic(fmt.Sprintf("version subtraction underflow: %d - %d", v, n))
 	}
 
-	return result
+	return v - Version(n)
 }
 
 // Mod returns v modulo n.

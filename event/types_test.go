@@ -228,15 +228,6 @@ func TestVersion(t *testing.T) {
 		}
 	})
 
-	t.Run("ParseVersion negative errors", func(t *testing.T) {
-		t.Parallel()
-
-		_, err := event.ParseVersion(-1)
-		if err == nil {
-			t.Error("expected error for negative version")
-		}
-	})
-
 	t.Run("IsZero", func(t *testing.T) {
 		t.Parallel()
 

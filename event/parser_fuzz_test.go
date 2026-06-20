@@ -121,7 +121,7 @@ func FuzzVersion_Arithmetic(f *testing.F) {
 			return
 		}
 
-		v, err := event.ParseVersion(base)
+		v, err := event.ParseVersion(uint64(base))
 		if err != nil {
 			t.Fatalf("ParseVersion: %v", err)
 		}
@@ -206,7 +206,7 @@ func FuzzCheckVersionConflict(f *testing.F) {
 			return
 		}
 
-		v, err := event.ParseVersion(expected)
+		v, err := event.ParseVersion(uint64(expected))
 		if err != nil {
 			return
 		}
