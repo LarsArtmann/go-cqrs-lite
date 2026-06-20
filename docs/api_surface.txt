@@ -1638,6 +1638,7 @@ testutil/func NoopCommandHandler
 testutil/func ParseAggID
 testutil/func Timestamp
 testutil/func Version
+watermill/const DefaultEventBusTopic
 watermill/func CorrelationIDMiddleware
 watermill/func DefaultRetryConfig
 watermill/func EventToMessage
