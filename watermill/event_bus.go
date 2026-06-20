@@ -53,6 +53,9 @@ var (
 // requires a message.Subscriber for the live-delivery phase.
 func (b *EventBus) MessageSubscriber() message.Subscriber { return b.subscriber }
 
+// DefaultEventBusTopic is the default Watermill topic used by EventBus.
+const DefaultEventBusTopic = "cqrs.events"
+
 // EventBusOption configures an EventBus.
 type EventBusOption func(*EventBus)
 
@@ -61,7 +64,7 @@ func WithEventBusLogger(logger *slog.Logger) EventBusOption {
 	return func(b *EventBus) { b.logger = logger }
 }
 
-// WithEventBusTopic sets the Watermill topic (default: "cqrs.events").
+// WithEventBusTopic sets the Watermill topic (default: DefaultEventBusTopic).
 func WithEventBusTopic(topic string) EventBusOption {
 	return func(b *EventBus) { b.topic = topic }
 }
@@ -83,7 +86,7 @@ func WithBackend(pub message.Publisher, sub message.Subscriber, closer io.Closer
 func NewEventBus(opts ...EventBusOption) *EventBus {
 	b := &EventBus{
 		logger:       slog.Default(),
-		topic:        "cqrs.events",
+		topic:        DefaultEventBusTopic,
 		typeHandlers: make(map[event.Type][]event.Handler),
 	}
 
@@ -94,7 +97,16 @@ func NewEventBus(opts ...EventBusOption) *EventBus {
 	if b.publisher == nil || b.subscriber == nil {
 		gc := gochannel.NewGoChannel(
 			gochannel.Config{
-				Persistent:                     true,
+				// Persistent is intentionally false: CatchUpSubscriber handles
+				// historical replay from the journal (ordered). Persistent mode
+				// delivers buffered messages via separate goroutines per message
+				// (unordered) and registers the subscriber only after replay
+				// completes, creating a delivery gap.
+				//
+				// BlockPublishUntilSubscriberAck ensures ordered live delivery:
+				// Publish blocks until the subscriber acks, so consecutive
+				// publishes cannot race on the output channel.
+				Persistent:                     false,
 				BlockPublishUntilSubscriberAck: true,
 			},
 			watermill.NopLogger{},

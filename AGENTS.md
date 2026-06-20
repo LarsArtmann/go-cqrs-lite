@@ -347,6 +347,18 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   // Phase 1: replay historical events with ProcessingMode=ModeReplay
 //   // Phase 2: live handoff with EventID-based deduplication
 //   // Checkpoint saved after every forwarded event
+//
+//   // The synchronous replay path is ALWAYS ordered. The LIVE phase uses
+//   // BlockPublishUntilSubscriberAck=true for ordered delivery.
+
+// ⚠️ ORDERING — Watermill Router processes messages in parallel (one goroutine
+//   per message, message/router.go:30). Do NOT route ordered projections
+//   through the Router. Instead, consume the CatchUpSubscriber's output channel
+//   from a single goroutine (FIFO guarantees ordering). The EventBus default
+//   GoChannel uses BlockPublishUntilSubscriberAck=true + Persistent=false:
+//   the former ensures ordered live delivery, the latter avoids GoChannel's
+//   unordered Persistent-mode replay (CatchUpSubscriber handles replay from
+//   the journal instead). See example/deployer-first for the correct pattern.
 
 // stack.Materialize[V,K] — tombstone-aware projection builder (ADR-0030)
 //   mat := stack.Materialize[UserView, UserID]{
