@@ -56,7 +56,7 @@
             "schema"
             "snapshot"
             "codec"
-            "memory"
+            "storage/memory"
             "catalog"
             "middleware"
             "integration"

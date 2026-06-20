@@ -64,7 +64,7 @@ func (s *MemoryCheckpointStore) Save(
 
 // Close marks the store as closed.
 func (s *MemoryCheckpointStore) Close() error {
-	return s.Lifecycle.Close() //nolint:wrapcheck // transparent delegation, caller wraps
+	return s.Lifecycle.Close()
 }
 
 var (

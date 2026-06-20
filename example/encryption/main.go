@@ -14,7 +14,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/encryption/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/memory/v2"
+	"github.com/larsartmann/go-cqrs-lite/storage/memory/v2"
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v2"
 )
 

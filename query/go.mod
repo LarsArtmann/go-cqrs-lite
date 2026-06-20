@@ -6,7 +6,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/event/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.5.0
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 v2.5.0
 	github.com/larsartmann/go-error-family v0.4.0
 	github.com/onsi/ginkgo/v2 v2.31.0
 	github.com/onsi/gomega v1.42.0
@@ -44,6 +44,6 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 => ../dispatcher
 	github.com/larsartmann/go-cqrs-lite/event/v2 => ../event
 	github.com/larsartmann/go-cqrs-lite/id/v2 => ../id
-	github.com/larsartmann/go-cqrs-lite/memory/v2 => ../memory
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 => ../storage/memory
 	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../snapshot
 )

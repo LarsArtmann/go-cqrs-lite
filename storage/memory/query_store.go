@@ -30,7 +30,7 @@ var (
 )
 
 func NewMemoryQueryStore() *MemoryQueryStore {
-	return &MemoryQueryStore{ //nolint:exhaustruct // embedded Lifecycle has unexported fields from different package
+	return &MemoryQueryStore{
 		idIndex: make(map[id.RequestID]int),
 	}
 }
@@ -132,5 +132,5 @@ func (s *MemoryQueryStore) ReadQueriesFrom(
 
 // Close marks the store as closed. Subsequent operations return ErrStoreClosed.
 func (s *MemoryQueryStore) Close() error {
-	return s.Lifecycle.Close() //nolint:wrapcheck // transparent delegation, caller wraps
+	return s.Lifecycle.Close()
 }

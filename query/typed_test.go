@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
-	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
+	"github.com/larsartmann/go-cqrs-lite/storage/memory/v2"
 )
 
 type listUsersPayload struct {

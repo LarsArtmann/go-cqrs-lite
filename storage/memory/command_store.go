@@ -34,7 +34,6 @@ var (
 
 // NewMemoryCommandStore creates a new in-memory command store.
 func NewMemoryCommandStore() *MemoryCommandStore {
-	//nolint:exhaustruct // embedded Lifecycle has unexported fields from different package
 	return &MemoryCommandStore{
 		streamIndex:    make(map[string][]int),
 		commandIDIndex: make(map[id.CommandID]int),
@@ -150,7 +149,7 @@ func (s *MemoryCommandStore) LoadToTimestamp(
 
 // Close marks the store as closed. Subsequent operations return ErrStoreClosed.
 func (s *MemoryCommandStore) Close() error {
-	return s.Lifecycle.Close() //nolint:wrapcheck // transparent delegation, caller wraps
+	return s.Lifecycle.Close()
 }
 
 // ReadAll returns all commands across all aggregates, ordered by insertion

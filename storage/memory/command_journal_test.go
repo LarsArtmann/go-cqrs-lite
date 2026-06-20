@@ -8,7 +8,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/memory/v2"
+	"github.com/larsartmann/go-cqrs-lite/storage/memory/v2"
 )
 
 func TestMemoryCommandStore_Journal(t *testing.T) {

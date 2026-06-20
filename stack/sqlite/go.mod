@@ -28,7 +28,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/decider/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v2 v2.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.6.0 // indirect
@@ -72,7 +72,7 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/event/v2 => ../../event
 	github.com/larsartmann/go-cqrs-lite/id/v2 => ../../id
 	github.com/larsartmann/go-cqrs-lite/kv/v2 => ../../kv
-	github.com/larsartmann/go-cqrs-lite/memory/v2 => ../../memory
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 => ../../storage/memory
 	github.com/larsartmann/go-cqrs-lite/otel/v2 => ../../otel
 	github.com/larsartmann/go-cqrs-lite/projection/v2 => ../../projection
 	github.com/larsartmann/go-cqrs-lite/query/v2 => ../../query

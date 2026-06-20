@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/kv/v2"
-	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/readmodel/v2"
 	"github.com/larsartmann/go-cqrs-lite/stack/v2"
+	"github.com/larsartmann/go-cqrs-lite/storage/memory/v2"
 )
 
 type benchKey string

@@ -18,7 +18,6 @@ use (
 	./integration
 	./kv
 	./listing
-	./memory
 	./middleware
 	./otel
 	./projection
@@ -36,6 +35,7 @@ use (
 	./stack/postgres
 	./stack/sqlite
 	./storage
+	./storage/memory
 	./storage/pebble
 	./storage/turso
 	./testutil

@@ -31,7 +31,6 @@ var (
 
 // NewMemoryStore creates a new in-memory event store.
 func NewMemoryStore() *MemoryStore {
-	//nolint:exhaustruct // embedded Lifecycle has unexported fields from different package
 	return &MemoryStore{
 		streamIndex:  make(map[string][]int),
 		eventIDIndex: make(map[id.EventID]int),
@@ -93,7 +92,7 @@ func (s *MemoryStore) AppendBatch(
 
 // Close marks the store as closed. Subsequent operations return ErrStoreClosed.
 func (s *MemoryStore) Close() error {
-	return s.Lifecycle.Close() //nolint:wrapcheck // transparent delegation, caller wraps
+	return s.Lifecycle.Close()
 }
 
 func (s *MemoryStore) appendToGlobalLog(streamKey string, events []event.Event) {

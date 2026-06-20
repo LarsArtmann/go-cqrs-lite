@@ -146,5 +146,5 @@ func (s *MemorySnapshotStore) Delete(
 }
 
 func (s *MemorySnapshotStore) Close() error {
-	return s.Lifecycle.Close() //nolint:wrapcheck // transparent delegation, caller wraps
+	return s.Lifecycle.Close()
 }

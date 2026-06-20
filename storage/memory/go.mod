@@ -1,4 +1,4 @@
-module github.com/larsartmann/go-cqrs-lite/memory/v2
+module github.com/larsartmann/go-cqrs-lite/storage/memory/v2
 
 go 1.26.3
 
@@ -38,12 +38,11 @@ require (
 )
 
 replace (
-	github.com/larsartmann/go-cqrs-lite/codec/v2 => ../codec
-	github.com/larsartmann/go-cqrs-lite/command/v2 => ../command
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 => ../dispatcher
-	github.com/larsartmann/go-cqrs-lite/event/v2 => ../event
-	github.com/larsartmann/go-cqrs-lite/id/v2 => ../id
-	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../snapshot
+	github.com/larsartmann/go-cqrs-lite/codec/v2 => ../../codec
+	github.com/larsartmann/go-cqrs-lite/command/v2 => ../../command
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 => ../../dispatcher
+	github.com/larsartmann/go-cqrs-lite/event/v2 => ../../event
+	github.com/larsartmann/go-cqrs-lite/id/v2 => ../../id
+	github.com/larsartmann/go-cqrs-lite/query/v2 => ../../query
+	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../../snapshot
 )
-
-replace github.com/larsartmann/go-cqrs-lite/query/v2 => ../query

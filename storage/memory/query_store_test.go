@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/query/v2"
+	"github.com/larsartmann/go-cqrs-lite/storage/memory/v2"
 )
 
 func TestMemoryQueryStore(t *testing.T) {
