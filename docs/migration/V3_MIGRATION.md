@@ -97,10 +97,10 @@ ctx = event.WithCorrelationID(ctx, corrID)
 
 ### Module moves (ADR-0029)
 
-| From         | To                | Reason                                               |
-| ------------ | ----------------- | ---------------------------------------------------- |
-| `storage/memory/`    | `storage/memory/` | Stores belong under storage/; bus code deleted first |
-| `readmodel/` | (deleted)         | Merged into `kv/` (ADR-0032)                         |
+| From              | To                | Reason                                               |
+| ----------------- | ----------------- | ---------------------------------------------------- |
+| `storage/memory/` | `storage/memory/` | Stores belong under storage/; bus code deleted first |
+| `readmodel/`      | (deleted)         | Merged into `kv/` (ADR-0032)                         |
 
 ### Type changes
 

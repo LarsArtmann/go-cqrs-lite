@@ -85,6 +85,5 @@ The design solves:
 
 ## Forward references
 
-- 
-  §4 (M20) for the original kill-switch rationale.
+- §4 (M20) for the original kill-switch rationale.
 - `ROADMAP.md` "Post-Bundle direction" lists this as the top multi-process theme.

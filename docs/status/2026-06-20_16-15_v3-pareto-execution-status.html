@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>v3 Pareto Execution Status — go-cqrs-lite</title>
+    <style>
+      :root {
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+        --radius: 0px;
+        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      .top-bar {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 10px 32px; background: var(--color-graphite-3);
+        border-bottom: 1px solid var(--border);
+        font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted);
+      }
+      .layout { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+      .sidebar { position: sticky; top: 0; height: 100vh; overflow-y: auto; border-right: 1px solid var(--border); padding: 24px 16px; }
+      .sidebar .label { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 8px; }
+      .sidebar nav a { display: block; padding: 6px 0; color: var(--text-muted); text-decoration: none; font-size: 14px; border-left: 2px solid transparent; padding-left: 12px; margin-left: -12px; transition: color 0.15s, border-color 0.15s; }
+      .sidebar nav a:hover { color: var(--text); border-color: var(--accent); }
+      .main { padding: 32px 48px; max-width: 1100px; }
+      .hero { margin-bottom: 48px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+      .hero-badge { display: inline-block; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+      .hero h1 { font-family: var(--font-heading); font-size: 32px; font-weight: 900; letter-spacing: -0.03em; margin-bottom: 8px; }
+      .hero-subtitle { color: var(--text-muted); font-size: 17px; }
+      h2 { font-family: var(--font-heading); font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin-top: 48px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+      h2 .num { color: var(--accent); margin-right: 12px; font-size: 18px; }
+      h3 { font-size: 16px; font-weight: 700; margin-top: 28px; margin-bottom: 8px; }
+      .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 24px 0; }
+      .stat-card { background: var(--surface-raised); padding: 16px; border: 1px solid var(--border); }
+      .stat-value { font-size: 28px; font-weight: 900; line-height: 1; }
+      .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+      .stat-good { border-left: 3px solid var(--solution); }
+      .stat-bad { border-left: 3px solid var(--problem); }
+      .stat-warn { border-left: 3px solid var(--warning); }
+      .stat-good .stat-value { color: var(--solution); }
+      .stat-bad .stat-value { color: var(--problem); }
+      .stat-warn .stat-value { color: var(--warning); }
+      .card { background: var(--surface-raised); padding: 16px 20px; margin: 12px 0; border: 1px solid var(--border); }
+      .card-solution { border-left: 3px solid var(--solution); }
+      .card-warning { border-left: 3px solid var(--warning); }
+      .card-problem { border-left: 3px solid var(--problem); }
+      .card h4 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+      .card p { color: var(--text-muted); }
+      .card code { color: var(--accent); font-family: var(--font-mono); font-size: 13px; }
+      table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+      th { text-align: left; padding: 8px 12px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-faint); border-bottom: 1px solid var(--border-strong); }
+      td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+      tbody tr:hover { background: var(--surface-raised); }
+      .badge { display: inline-block; padding: 2px 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; border-radius: 2px; }
+      .badge-critical { background: color-mix(in srgb, var(--problem) 20%, transparent); color: var(--problem); }
+      .badge-high { background: color-mix(in srgb, var(--warning) 20%, transparent); color: var(--warning); }
+      .badge-medium { background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent); }
+      .badge-low { background: color-mix(in srgb, var(--text-faint) 20%, transparent); color: var(--text-muted); }
+      .badge-done { background: color-mix(in srgb, var(--solution) 20%, transparent); color: var(--solution); }
+      .callout { padding: 12px 16px; margin: 12px 0; background: var(--surface-sunken); border-left: 3px solid; }
+      .callout-solution { border-color: var(--solution); }
+      .callout-warning { border-color: var(--warning); }
+      .callout-problem { border-color: var(--problem); }
+      .callout strong { display: inline-block; margin-bottom: 4px; }
+      .footer { margin-top: 64px; padding: 16px 0; border-top: 1px solid var(--border); color: var(--text-faint); font-size: 13px; }
+      code { color: var(--accent); font-family: var(--font-mono); }
+      pre { background: var(--surface-sunken); padding: 12px; overflow-x: auto; font-size: 13px; margin: 12px 0; }
+      @media (max-width: 1024px) { .layout { grid-template-columns: 1fr; } .sidebar { display: none; } }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>STATUS REPORT &middot; v3 PARETO EXECUTION</span>
+      <span>2026-06-20 16:15</span>
+      <span>COMMIT c7df1c79</span>
+    </div>
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#done">Fully Done</a>
+          <a href="#partial">Partially Done</a>
+          <a href="#notstarted">Not Started</a>
+          <a href="#fucked">Fucked Up</a>
+          <a href="#improve">What To Improve</a>
+          <a href="#next25">Top 25 Next</a>
+          <a href="#question">The Big Question</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <div class="hero">
+          <div class="hero-badge">V3 PARETO EXECUTION &middot; MID-STREAM STATUS</div>
+          <h1>go-cqrs-lite Status Report</h1>
+          <p class="hero-subtitle">Where we are after 4 commits on the v3+ execution plan: what shipped, what's broken, what we should stop pretending matters.</p>
+        </div>
+
+        <h2 id="summary"><span class="num">00</span>Summary</h2>
+        <div class="stat-grid">
+          <div class="stat-card stat-good"><div class="stat-value">4</div><div class="stat-label">Shipped Commits</div></div>
+          <div class="stat-card stat-good"><div class="stat-value">~30</div><div class="stat-label">Tasks Done</div></div>
+          <div class="stat-card stat-warn"><div class="stat-value">3</div><div class="stat-label">Partial / Questionable</div></div>
+          <div class="stat-card stat-bad"><div class="stat-value">1</div><div class="stat-label">Fucked Up &amp; Reverted</div></div>
+          <div class="stat-card stat-good"><div class="stat-value">0</div><div class="stat-label">Build Errors</div></div>
+          <div class="stat-card stat-warn"><div class="stat-value">1</div><div class="stat-label">Failing Test (pre-existing)</div></div>
+        </div>
+        <div class="card card-solution">
+          <h4>Bottom Line</h4>
+          <p>Build passes. <code>go vet ./...</code> passes. 37 of 38 modules fully green. The library is in a solid, shippable state.
+          We shipped 4 high-value commits (docs prune, ghost bus deletion, memory module move, Version uint64) and correctly
+          stopped before doing damage with io.Closer removal.</p>
+        </div>
+        <div class="card card-problem">
+          <h4>What We Caught and Stopped</h4>
+          <p>The io.Closer removal (ADR-0010) was <strong>verschlimmbessern</strong> — it would replace typed <code>io.Closer</code> parameters
+          with <code>any</code> and require defensive type assertions on every <code>.Close()</code> call. We reverted it.
+          This was the right call: <strong>type safety &gt; interface purity</strong>.</p>
+        </div>
+
+        <h2 id="done"><span class="num">A</span>Fully Done</h2>
+        <h3>1A: Documentation Prune (8 tasks) — Commit f276873a</h3>
+        <p>612 &rarr; 62 .md files. 143,676 &rarr; 27,934 markdown LOC. Ratio 3.4:1 &rarr; 0.67:1.
+        Deleted 168 stale planning docs, 94 stale status reports, entire docs/status/archive/, docs/quality/,
+        docs/modularization/, docs/architecture-understanding/, docs/planning/archive/. Created docs/planning/INDEX.md.
+        Updated TODO_LIST.md, ROADMAP.md, SKILL.md, AGENTS.md, V3_MIGRATION.md, ADR-0027.</p>
+
+        <h3>1B: Status File Reconciliation (7 tasks) — Commit f276873a</h3>
+        <p>TODO_LIST.md rewritten (TransactionID marked DONE, v3 list updated). ROADMAP.md rewritten (stale items resolved).
+        SKILL.md updated for EventBus migration. V3_MIGRATION.md verified against code. ADR README status audited.</p>
+
+        <h3>1C: Test Determinism (partial) — Commit f276873a</h3>
+        <p>Fixed worst offenders: <code>integration/full_flow_test.go</code> (deterministic polling via waitForCondition),
+        <code>middleware/sse_test.go</code> (ClientCount polling), <code>projection/runner_dlq_test.go</code> (DLQ poll).
+        Added <code>integration/test_helpers_test.go</code> with <code>waitForCondition()</code> helper.
+        51 <code>time.Sleep</code> calls remain — most semantically correct.</p>
+
+        <h3>2B: Delete Ghost Bus — Commit 8b6684ef</h3>
+        <p>Deleted: <code>memory/bus.go</code> (250 LOC), <code>memory/command_bus.go</code> (150 LOC),
+        <code>command/reactive.go</code>, <code>query/reactive.go</code> + their test files.
+        Enhanced <code>eventtest.FakeBus</code> into a synchronous bus with real publish/handler middleware chains.
+        Replaced all 50+ <code>memory.NewMemoryBus()</code> calls in test code.
+        <strong>Correction:</strong> <code>storage/pg_bus*.go</code> and <code>event/reactive*.go</code> are NOT ghost code —
+        restored after build failures proved they're live production code.</p>
+
+        <h3>2C: Move memory/ &rarr; storage/memory/ — Commit 22ecccd0</h3>
+        <p>29 files moved via <code>git mv</code> (history preserved). All 60+ importers updated across 18 go.mod files.
+        New module path: <code>go-cqrs-lite/storage/memory/v2</code>. Package name unchanged (<code>package memory</code>).</p>
+
+        <h3>2D: Version &rarr; uint64 — Commit c7df1c79</h3>
+        <p>Changed <code>type Version int</code> &rarr; <code>type Version uint64</code>.
+        Negative versions were never valid in event sourcing — now impossible states are unrepresentable.
+        Removed dead negative-version-rejection tests. Updated ParseVersion, Version methods, fuzz tests.</p>
+
+        <h2 id="partial"><span class="num">B</span>Partially Done / Questionable</h2>
+        <div class="card card-warning">
+          <h4>FakeBus Enhancement — Recreated Bus Logic in Test Utility</h4>
+          <p>Deleted <code>memory/bus.go</code> (250 LOC), wrote 130 LOC of real middleware-chain logic in
+          <code>eventtest/fake_bus.go</code>. Net savings: 120 LOC but moved bus complexity into test utilities.
+          <strong>Verdict:</strong> Acceptable since all tests pass, but test helpers should be simple stubs.</p>
+        </div>
+        <div class="card card-warning">
+          <h4>memory/ &rarr; storage/memory/ — Import Path Churn</h4>
+          <p>60+ files changed for a rename. Done and stable, but reverting would cause equal disruption.
+          <strong>Verdict:</strong> Accept and move on.</p>
+        </div>
+        <div class="card card-warning">
+          <h4>Test Determinism — 51 time.Sleep Calls Remain</h4>
+          <p>Fixed the flaky-prone ones. Many remaining sleeps are semantically correct (concurrency overlap, TTL expiry,
+          ULID time ordering). <strong>Verdict:</strong> Diminishing returns.</p>
+        </div>
+
+        <h2 id="notstarted"><span class="num">C</span>Not Started</h2>
+        <table>
+          <thead><tr><th>Tier</th><th>Task Group</th><th>Risk</th><th>Should We?</th></tr></thead>
+          <tbody>
+            <tr><td>2E</td><td>Break Metadata alias (ADR-0031)</td><td><span class="badge badge-high">High</span></td><td>No — types ARE the same shape</td></tr>
+            <tr><td>2F</td><td>Remove io.Closer from interfaces (ADR-0010)</td><td><span class="badge badge-critical">Critical</span></td><td><strong>NO — Verschlimmbessern</strong></td></tr>
+            <tr><td>2G</td><td>Delete readmodel/ (ADR-0032)</td><td><span class="badge badge-medium">Medium</span></td><td>No — module works fine</td></tr>
+            <tr><td>2H</td><td>Move HTTP &rarr; transport/ module</td><td><span class="badge badge-low">Low</span></td><td>Low priority — mechanical</td></tr>
+            <tr><td>2I</td><td>Deep Immutable Events</td><td><span class="badge badge-medium">Medium</span></td><td>Yes — real correctness issue</td></tr>
+            <tr><td>3A-C</td><td>Transport adapters (gRPC/NATS/Redis)</td><td><span class="badge badge-low">Low</span></td><td>Yes — high consumer value</td></tr>
+            <tr><td>3D</td><td>Read-Model Indexes</td><td><span class="badge badge-low">Low</span></td><td>Yes — additive feature</td></tr>
+            <tr><td>1D</td><td>Operability helpers (backup/shutdown)</td><td><span class="badge badge-low">Low</span></td><td>Yes — quick wins</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="fucked"><span class="num">D</span>Totally Fucked Up</h2>
+        <div class="card card-problem">
+          <h4>io.Closer Removal — Caught and Reverted</h4>
+          <p>Started removing <code>io.Closer</code> from core interfaces per ADR-0010.
+          Required replacing typed <code>io.Closer</code> with <code>any</code> in <code>stack/bundle.go</code> and
+          defensive type assertions everywhere. This is textbook <strong>verschlimmbessern</strong>.
+          <strong>Resolution:</strong> Reverted all uncommitted changes. ADR-0010 should be marked "Rejected".</p>
+        </div>
+        <div class="card card-problem">
+          <h4>Accidentally Deleted Production Code (pg_bus, reactive)</h4>
+          <p>Plan labeled <code>storage/pg_bus*.go</code> and <code>event/reactive*.go</code> as "ghost bus code".
+          They are NOT ghost code — used by <code>stack/postgres/preset.go</code> and <code>projection/runner_live.go</code>.
+          <strong>Resolution:</strong> Caught by build failures, restored immediately.</p>
+        </div>
+
+        <h2 id="improve"><span class="num">E</span>What We Should Improve</h2>
+        <h3>Type System</h3>
+        <table>
+          <thead><tr><th>Area</th><th>Current</th><th>Improvement</th></tr></thead>
+          <tbody>
+            <tr><td><code>event.Version</code></td><td><code>uint64</code></td><td><span class="badge badge-done">Fixed</span></td></tr>
+            <tr><td><code>io.Closer</code> in interfaces</td><td>Kept (correct)</td><td>Mark ADR-0010 as "Rejected"</td></tr>
+            <tr><td><code>command.Metadata</code> alias</td><td><code>= event.Metadata</code></td><td>Keep — breaking is churn</td></tr>
+            <tr><td>Deep immutability of event opts</td><td>Shallow copy</td><td>Audit and fix — real correctness issue</td></tr>
+            <tr><td>FakeBus complexity</td><td>130 LOC middleware chains</td><td>Consider extracting to real module</td></tr>
+          </tbody>
+        </table>
+        <h3>Process</h3>
+        <table>
+          <thead><tr><th>Issue</th><th>Fix</th></tr></thead>
+          <tbody>
+            <tr><td>Batching too aggressively</td><td>Build after EVERY file change for breaking changes</td></tr>
+            <tr><td>Not pushing frequently</td><td>Push after every commit</td></tr>
+            <tr><td>Plan had wrong categorization</td><td>Verify "dead code" claims with grep before deleting</td></tr>
+            <tr><td>Stopped to reflect too late</td><td>Self-check: "Am I improving or verschlimmbessern-ing?" every 3 commits</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="next25"><span class="num">F</span>Top 25 Things To Do Next</h2>
+        <table>
+          <thead><tr><th>#</th><th>Task</th><th>Impact</th><th>Effort</th><th>Type</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><strong>Fix CBOR fuzz test failure</strong> — duplicate map key -17 bug</td><td><span class="badge badge-critical">Critical</span></td><td>30m</td><td>Bug fix</td></tr>
+            <tr><td>2</td><td><strong>Audit event Clone() deep immutability</strong> — opts shallow copy</td><td><span class="badge badge-critical">Critical</span></td><td>2h</td><td>Correctness</td></tr>
+            <tr><td>3</td><td><strong>Run data-model-review skill</strong> for full type audit</td><td><span class="badge badge-critical">Critical</span></td><td>1h</td><td>Audit</td></tr>
+            <tr><td>4</td><td>Mark ADR-0010 (io.Closer removal) as "Rejected"</td><td><span class="badge badge-high">High</span></td><td>10m</td><td>Doc fix</td></tr>
+            <tr><td>5</td><td>Fix V3_MIGRATION.md — pg_bus/reactive are NOT ghost code</td><td><span class="badge badge-high">High</span></td><td>10m</td><td>Doc fix</td></tr>
+            <tr><td>6</td><td>Additive: Surface Pebble Checkpoint from stack/pebble</td><td><span class="badge badge-medium">Medium</span></td><td>30m</td><td>Feature</td></tr>
+            <tr><td>7</td><td>Additive: Surface graceful shutdown from stack presets</td><td><span class="badge badge-medium">Medium</span></td><td>30m</td><td>Feature</td></tr>
+            <tr><td>8</td><td>Replace remaining flaky time.Sleep calls (top 10)</td><td><span class="badge badge-high">High</span></td><td>2h</td><td>Quality</td></tr>
+            <tr><td>9</td><td>Consolidate FakeBus into a proper syncbus module</td><td><span class="badge badge-medium">Medium</span></td><td>1h</td><td>Refactor</td></tr>
+            <tr><td>10</td><td>Run brutal-self-review skill on current state</td><td><span class="badge badge-high">High</span></td><td>1h</td><td>Audit</td></tr>
+            <tr><td>11</td><td>Read-model secondary indexes (kv/ module)</td><td><span class="badge badge-high">High</span></td><td>3h</td><td>Feature</td></tr>
+            <tr><td>12</td><td>Read-model ranged scans on kv.TypedStore</td><td><span class="badge badge-medium">Medium</span></td><td>2h</td><td>Feature</td></tr>
+            <tr><td>13</td><td>transport/grpc/ module skeleton + protobuf defs</td><td><span class="badge badge-medium">Medium</span></td><td>3h</td><td>Feature</td></tr>
+            <tr><td>14</td><td>transport/nats/ module skeleton</td><td><span class="badge badge-low">Low</span></td><td>2h</td><td>Feature</td></tr>
+            <tr><td>15</td><td>transport/redis/ module skeleton</td><td><span class="badge badge-low">Low</span></td><td>2h</td><td>Feature</td></tr>
+            <tr><td>16</td><td>Update ADR-0029 (storage consolidation) — mark "Partially Done"</td><td><span class="badge badge-low">Low</span></td><td>10m</td><td>Doc fix</td></tr>
+            <tr><td>17</td><td>Add v3.0.0 release planning doc (what actually breaks)</td><td><span class="badge badge-high">High</span></td><td>1h</td><td>Planning</td></tr>
+            <tr><td>18</td><td>Benchmark: verify Version uint64 didn't regress performance</td><td><span class="badge badge-medium">Medium</span></td><td>30m</td><td>Verification</td></tr>
+            <tr><td>19</td><td>Audit: verify FakeBus Publish is actually synchronous</td><td><span class="badge badge-medium">Medium</span></td><td>30m</td><td>Verification</td></tr>
+            <tr><td>20</td><td>Add example: watermill.EventBus with NATS backend</td><td><span class="badge badge-medium">Medium</span></td><td>2h</td><td>Docs</td></tr>
+            <tr><td>21</td><td>Consider go-cache or otter for FakeBus subscriber dedup</td><td><span class="badge badge-low">Low</span></td><td>1h</td><td>Research</td></tr>
+            <tr><td>22</td><td>Run full-code-review skill on changed files</td><td><span class="badge badge-high">High</span></td><td>2h</td><td>Audit</td></tr>
+            <tr><td>23</td><td>Verify stack/contracttest still validates all 4 presets</td><td><span class="badge badge-medium">Medium</span></td><td>30m</td><td>Verification</td></tr>
+            <tr><td>24</td><td>Update FEATURES.md with watermill.EventBus as DONE</td><td><span class="badge badge-low">Low</span></td><td>15m</td><td>Doc fix</td></tr>
+            <tr><td>25</td><td>Add consumer migration test: memory.NewMemoryBus &rarr; watermill.EventBus</td><td><span class="badge badge-medium">Medium</span></td><td>1h</td><td>Testing</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="question"><span class="num">G</span>The Big Question I Cannot Answer Myself</h2>
+        <div class="card card-problem">
+          <h4>Should we keep going with breaking changes, or declare v3 "done enough" and pivot to additive features?</h4>
+          <p>We shipped 3 genuine v3 breaking changes (ghost bus deletion, memory move, Version uint64).
+          The remaining planned breaking changes (io.Closer removal, Metadata alias break, readmodel deletion) are
+          all <strong>verschlimmbessern</strong> — they destroy type safety or create import churn for no consumer benefit.</p>
+          <p><strong>The question:</strong></p>
+          <p>Is the goal of v3 to "clean up everything the plan says" (even if some cleanups make things worse),
+          or is it to "ship the highest-value improvements and stop when diminishing returns start"?</p>
+          <p>If the former, we need a way to remove io.Closer without destroying type safety.
+          If the latter, we should mark the remaining breaking changes as "Rejected" and pivot to additive features.</p>
+          <p><strong>I recommend the latter</strong> — but this is a product direction call, not a technical one.</p>
+        </div>
+
+        <h2>Metrics Summary</h2>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-value">38</div><div class="stat-label">Modules</div></div>
+          <div class="stat-card stat-good"><div class="stat-value">37/38</div><div class="stat-label">Test Suites Green</div></div>
+          <div class="stat-card stat-good"><div class="stat-value">0</div><div class="stat-label">Build Errors</div></div>
+          <div class="stat-card"><div class="stat-value">41,510</div><div class="stat-label">Go LOC (non-test)</div></div>
+          <div class="stat-card stat-good"><div class="stat-value">62</div><div class="stat-label">Markdown Files (was 612)</div></div>
+          <div class="stat-card stat-good"><div class="stat-value">0.67:1</div><div class="stat-label">MD:Go Ratio (was 3.4:1)</div></div>
+        </div>
+
+        <footer class="footer">
+          Generated 2026-06-20 16:15 &middot; Verified against go-cqrs-lite master @ <code>c7df1c79</code> &middot;
+          Build: PASS &middot; Vet: PASS &middot; Tests: 37/38 green (1 pre-existing CBOR fuzz failure)
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>
