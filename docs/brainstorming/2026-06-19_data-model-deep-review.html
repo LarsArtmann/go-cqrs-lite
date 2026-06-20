@@ -666,6 +666,79 @@
         color: var(--text-faint);
         text-align: center;
       }
+      /* Appendix: status tracking */
+      .status-badge {
+        display: inline-block;
+        padding: 0.15rem 0.5rem;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        border: 1px solid var(--border-strong);
+        vertical-align: middle;
+      }
+      .status-done {
+        color: var(--solution);
+        border-color: var(--solution);
+        background: rgba(110, 181, 255, 0.1);
+      }
+      .status-partial {
+        color: var(--warning);
+        border-color: var(--warning);
+        background: rgba(244, 211, 94, 0.1);
+      }
+      .status-blocked {
+        color: var(--problem);
+        border-color: var(--problem);
+        background: rgba(255, 107, 107, 0.1);
+      }
+      .status-skipped {
+        color: var(--text-faint);
+        border-color: var(--border);
+        background: var(--surface-sunken);
+      }
+      .appendix-intro {
+        font-size: 1rem;
+        color: var(--text-muted);
+        margin-bottom: 1.5rem;
+      }
+      .progress-track {
+        display: flex;
+        gap: 0;
+        height: 8px;
+        border: 1px solid var(--border-strong);
+        margin: 1.5rem 0;
+        overflow: hidden;
+      }
+      .progress-seg {
+        height: 100%;
+      }
+      .progress-seg-done { background: var(--solution); }
+      .progress-seg-partial { background: var(--warning); }
+      .progress-seg-open { background: var(--surface-sunken); }
+      .progress-legend {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        color: var(--text-faint);
+        margin-top: 0.4rem;
+      }
+      .progress-legend span::before {
+        content: "■ ";
+        margin-right: 0.3rem;
+      }
+      .progress-legend .leg-done::before { color: var(--solution); }
+      .progress-legend .leg-partial::before { color: var(--warning); }
+      .progress-legend .leg-open::before { color: var(--surface-sunken); }
+      .finding {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+      }
+      .finding strong { color: var(--accent); }
     </style>
   </head>
   <body>
@@ -702,6 +775,7 @@
           <a href="#antipatterns">§10 Anti-Patterns</a>
           <a href="#roadmap">§11 Roadmap</a>
           <a href="#conclusion">§12 Conclusion</a>
+          <a href="#appendix">Appendix · Execution Status</a>
         </nav>
       </aside>
       <main class="main">
@@ -1994,9 +2068,482 @@
           </div>
         </section>
 
+        <section id="appendix">
+          <h2><span class="num">A</span>Appendix — Execution Status (2026-06-20)</h2>
+          <p class="appendix-intro">
+            What actually happened after this review was published. Every claim verified against the
+            codebase at commit <code>330ea183</code>. Percentages are of roadmap items, not LOC.
+          </p>
+
+          <!-- Progress bar: 7 items done, 3 partial, 3 not started = 13 total scored items -->
+          <div class="progress-track">
+            <div class="progress-seg progress-seg-done" style="width: 53.8%"></div>
+            <div class="progress-seg progress-seg-partial" style="width: 23.1%"></div>
+            <div class="progress-seg progress-seg-open" style="width: 23.1%"></div>
+          </div>
+          <div class="progress-legend">
+            <span class="leg-done">Done (7)</span>
+            <span class="leg-partial">Partial (3)</span>
+            <span class="leg-open">Not started (3)</span>
+          </div>
+
+          <!-- ════════ FULLY DONE ════════ -->
+          <h3>What Got Done <span class="status-badge status-done">7 items</span></h3>
+
+          <div class="migration-step">
+            <div class="migration-num">✓</div>
+            <div class="migration-content">
+              <h4>Migration 1: Commit to Watermill as delivery layer — <span class="status-badge status-done">DONE</span></h4>
+              <p>
+                <code>watermill/</code> is bidirectional (<code>EventBus</code> = Publisher +
+                Subscriber over GoChannel). The default EventBus config uses
+                <code>Persistent: false</code> + <code>BlockPublishUntilSubscriberAck: true</code>
+                for ordered delivery. <code>EventPublisher</code> (cqrs→Watermill) and
+                <code>CatchUpSubscriber</code> (Watermill→cqrs with replay→live handoff) are both
+                live. The old <code>MemoryBus</code> was deleted (replaced by
+                <code>eventtest.NewFakeBus()</code> for tests). ADR-0027 documents the decision.
+              </p>
+              <p>
+                <strong>Critical bug found &amp; fixed during execution:</strong> GoChannel's
+                <code>sendMessage</code> spawns a goroutine per <code>Publish</code> and returns
+                immediately. Without <code>BlockPublishUntilSubscriberAck</code>, consecutive
+                publishes race on the output channel — events arrive in non-deterministic order.
+                This affected <em>every</em> consumer of EventBus, including
+                <code>projection.Runner</code>'s live phase. The bug was latent because existing
+                examples publish one event per command with <code>time.Sleep</code> between them.
+              </p>
+              <div class="migration-meta">
+                <span>EventBus + EventPublisher + CatchUpSubscriber</span
+                ><span>Impact: Critical</span><span>Commit: 97e2fd58, 98b7a2f2</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">✓</div>
+            <div class="migration-content">
+              <h4>readmodel/ → kv/ merge (half of Migration 2) — <span class="status-badge status-done">DONE</span></h4>
+              <p>
+                <code>readmodel/</code> module (482 LOC, 14 files, 2 Go modules) deleted entirely.
+                <code>readmodel.Store[T,K]</code> was character-for-character identical to
+                <code>kv.TypedStore[T,K]</code> except for the error prefix string. Eliminated 6 of
+                22 production clone groups (27% of all duplication). ADR-0032 → Implemented.
+              </p>
+              <div class="migration-meta">
+                <span>482 LOC deleted</span><span>6 clone groups eliminated</span
+                ><span>ADR-0032 Implemented</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">✓</div>
+            <div class="migration-content">
+              <h4>Migration 3: Consolidate storage backends — <span class="status-badge status-done">DONE</span></h4>
+              <p>
+                <code>pebble/</code> → <code>storage/pebble/</code>.
+                <code>turso/</code> → <code>storage/turso/</code>.
+                <code>memory/</code> → <code>storage/memory/</code>.
+                All three moved under <code>storage/</code> using subpath modules. The
+                <code>storage/sql/</code> dialect helpers (<code>RunInTx</code>,
+                <code>IsDuplicateKeyError</code>, <code>ScanSlice</code>) are shared by all SQL
+                backends. ADR-0029 → Implemented.
+              </p>
+              <div class="migration-meta">
+                <span>3 modules relocated</span><span>ADR-0029 Implemented</span
+                ><span>Commit: 22ecccd0</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">✓</div>
+            <div class="migration-content">
+              <h4>Migration 5: Multi-DB SQLite preset + query audit middleware — <span class="status-badge status-done">DONE</span></h4>
+              <p>
+                <code>WithEventDB</code> and <code>WithQueryDB</code> are now wired (were dead
+                options that silently lied — the option existed but did nothing). Added
+                <code>openSecondaryStores()</code> helper that opens a secondary SQLite backend,
+                creates stores, and returns <code>stack.Option</code> values. A
+                <code>multiCloser</code> type handles cleanup. <code>query.AuditMiddleware</code>
+                exists (<code>query.AuditFull</code> / <code>AuditMetadata</code> /
+                <code>AuditOff</code>), wired via <code>stack.QueryAuditMiddleware()</code>.
+              </p>
+              <p>
+                <strong>Not done:</strong> <code>WithAutoIndexing()</code> (the smart index advisor
+                from <code>turso/</code> → <code>storage/sql/indexing/</code>) was NOT moved. The
+                advisor code exists in <code>turso/</code> but is not accessible from the SQLite
+                preset.
+              </p>
+              <div class="migration-meta">
+                <span>WithEventDB/WithQueryDB wired</span
+                ><span>query.AuditMiddleware shipped</span><span>AutoIndexing deferred</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">✓</div>
+            <div class="migration-content">
+              <h4>stack.Materialize[V,K] — <span class="status-badge status-done">DONE</span></h4>
+              <p>
+                Tombstone-aware materialized view builder over <code>kv.TypedStore</code>.
+                OnCreate / OnUpdate / OnTombstone / OnRebirth callbacks.
+                <code>HandlerFunc()</code> returns a Watermill-compatible handler.
+                <code>List()</code> with <code>IncludeTombstoned</code> /
+                <code>ExcludeTombstoned</code> / <code>OnlyTombstoned</code> policies.
+                <code>stack.NewMaterialize[V,K]()</code> accessor constructs from Bundle.
+              </p>
+              <p>
+                <strong>Bug found &amp; fixed:</strong> Any <code>Store.Get</code> error was
+                silently classified as "not found" → <code>OnCreate</code>, causing silent data
+                corruption on real DB errors. Fixed with <code>errors.Is(err, kv.ErrNotFound)</code>
+                + propagate other errors.
+              </p>
+              <div class="migration-meta">
+                <span>stack/materialize.go</span><span>Proven by example/deployer-first</span
+                ><span>Commit: f9ecce33</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">✓</div>
+            <div class="migration-content">
+              <h4>CatchUpSubscriber (replay → live handoff) — <span class="status-badge status-done">DONE</span></h4>
+              <p>
+                <code>~300 LOC</code> Watermill <code>message.Subscriber</code> implementation.
+                Phase 1: replay from <code>SeekableJournal</code> (ordered, with
+                <code>ProcessingMode=ModeReplay</code>). Phase 2: live handoff with EventID-based
+                deduplication. Checkpoint persisted after every forwarded event.
+                <code>stack.Bundle.CatchUpSubscriber()</code> accessor constructs from Bundle.
+              </p>
+              <div class="callout callout-problem">
+                <strong>Watermill Router CANNOT be used for ordered projections.</strong>
+                The Router processes messages in <strong>parallel</strong> — one goroutine per
+                message (<code>router.go:30</code>: <em>"HandlerFunc's are executed parallel when
+                multiple messages were received"</em>). For ordered projections, consume the
+                CatchUpSubscriber's output channel from a <strong>single goroutine</strong> (FIFO).
+                This is documented in <code>example/deployer-first/README.md</code> and
+                <code>AGENTS.md</code>. The original review's diagram showing
+                <code>projection.Runner → Watermill Router</code> was wrong on this point.
+              </div>
+              <div class="migration-meta">
+                <span>watermill/catchup_subscriber.go</span
+                ><span>~300 LOC</span><span>Replay + live + dedup + checkpoint</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">✓</div>
+            <div class="migration-content">
+              <h4>Version.Add(uint) type safety — <span class="status-badge status-done">DONE</span></h4>
+              <p>
+                <code>event.Version</code> changed from <code>int</code> to <code>uint64</code>.
+                <code>Add(n uint)</code> makes negative input a compile-time error — no runtime
+                panic needed. All callers updated (<code>event/batch.go</code>,
+                <code>decider/decider.go</code>, <code>decider/load.go</code>).
+              </p>
+              <div class="migration-meta">
+                <span>event.Version: int → uint64</span><span>Add(n uint)</span
+                ><span>Commit: c7df1c79, 72538df7</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ════════ PARTIALLY DONE ════════ -->
+          <h3>Partially Done <span class="status-badge status-partial">3 items</span></h3>
+
+          <div class="migration-step">
+            <div class="migration-num">⚠</div>
+            <div class="migration-content">
+              <h4>Dissolve projection/ (other half of Migration 2) — <span class="status-badge status-partial">20% DONE</span></h4>
+              <p>
+                The replacement components are built and proven:
+                <code>stack.Materialize</code> + <code>CatchUpSubscriber</code> +
+                <code>example/deployer-first</code>. But the old code is still present:
+              </p>
+              <ul>
+                <li><code>projection/</code> — 34 .go files, 1343 LOC production — fully present</li>
+                <li><code>example/user/handlers.go</code> — uses <code>projection.NewRunner</code></li>
+                <li><code>example/todo/cmd/api/setup.go</code> — uses <code>projection.NewRunner</code></li>
+                <li><code>cmd/cqrs-gen/generate.go</code> — emits <code>projection.On[...]</code> code</li>
+                <li><code>stack.ProjectionRunner()</code> + <code>var _ = projection.Runner{}</code> — still in stack/</li>
+              </ul>
+              <div class="callout callout-warning">
+                <strong>Blocking decision: DistributedRunner.</strong> The review's diagram showed
+                <code>projection.DistributedRunner → Watermill Router + leader election plugin</code>.
+                But Watermill has no built-in leader election. DistributedRunner provides:
+                leader election (pluggable <code>LeaderElection</code> interface),
+                health checks (<code>HealthCheck</code>, <code>DetailedHealthCheck</code>,
+                <code>RegisteredProjections</code>),
+                dead-letter handler (<code>WithDeadLetterHandler</code>),
+                parallelism (<code>WithParallelism</code>),
+                and dedup (<code>WithDedupCapacity</code>).
+                <strong>None of these have composable equivalents.</strong>
+                Deleting projection/ without a successor removes a working, tested distributed
+                projection system. ADR-0030 status: <code>Accepted</code> (not <code>Implemented</code>).
+              </div>
+              <div class="migration-meta">
+                <span>Replacement proven</span><span>Old code not deleted</span
+                ><span>DistributedRunner decision blocking</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">⚠</div>
+            <div class="migration-content">
+              <h4>Migration 6: Evolve Decider[State, Cmd] — <span class="status-badge status-partial">30% DONE</span></h4>
+              <p>
+                <code>decider.TypedDecider[State, Cmd]</code> exists with <code>Decide</code> field
+                (not passed per-call). <code>decider.TypedRepository[State, Cmd]</code> wraps
+                <code>Repository</code> and adds <code>ExecuteCommand(ctx, aggID, cmd)</code>.
+                <code>stack.TypedRepository[State, Cmd]()</code> accessor exists.
+              </p>
+              <p>
+                <strong>Not done:</strong> The legacy <code>Decider[State]</code> still has
+                <code>Fold</code> (not renamed to <code>Apply</code>). <code>Decide</code> is NOT a
+                field on the legacy Decider — it's passed per-call as <code>DecideFunc</code>. The
+                two-type-param Decider (<code>Decider[State, Cmd]</code>) exists as
+                <code>TypedDecider</code>, not as a replacement. The rename
+                (<code>Fold → Apply</code>) was not done to avoid breaking all consumers.
+              </p>
+              <div class="migration-meta">
+                <span>TypedDecider[State, Cmd] exists</span
+                ><span>Decider[State] unchanged</span><span>Fold not renamed to Apply</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">⚠</div>
+            <div class="migration-content">
+              <h4>Theme B2: Promote typed metadata fields — <span class="status-badge status-partial">40% DONE</span></h4>
+              <p>
+                <code>TombstoneMark</code> struct exists (typed: <code>Status</code> +
+                <code>Reason</code>). <code>Causation</code> struct exists (typed).
+                <code>Tracing</code> fields (CorrelationID, CausationID, UserID, RequestID) are
+                first-class on <code>event.Metadata</code>. Tombstone round-trips correctly through
+                Watermill protocol (was broken — fixed with <code>tombstone_status</code> +
+                <code>tombstone_reason</code> metadata keys) and through JSON (SQL + Pebble paths
+                use <code>json.Marshal</code> with struct tags — clean).
+              </p>
+              <p>
+                <strong>Not done:</strong>
+                <code>SecurityEnvelope</code> does NOT exist as a typed field.
+                The 12 first-class domain concepts the review identified are still partially in
+                <code>Custom map[MetadataKey]string</code>. Command-specific fields
+                (<code>RetryCount</code>, <code>IdempotencyKey</code>) not added.
+              </p>
+              <div class="migration-meta">
+                <span>TombstoneMark + Causation typed</span
+                ><span>SecurityEnvelope not built</span><span>Custom map still used</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ════════ NOT STARTED ════════ -->
+          <h3>Not Started <span class="status-badge status-blocked">3 items</span></h3>
+
+          <div class="migration-step">
+            <div class="migration-num">○</div>
+            <div class="migration-content">
+              <h4>Migration 4: Kill Metadata aliases — <span class="status-badge status-blocked">0% — BLOCKED ON DECISION</span></h4>
+              <p>
+                <code>command.Metadata = event.Metadata</code> (command/metadata.go:11) and
+                <code>query.Metadata = event.Metadata</code> (query/query.go:36) aliases intact.
+                Only 4 consumer files reference these types (all in storage/ serialization). But
+                the alias means commands inherit <code>CausationID</code> (meaningless for queries)
+                and queries inherit tombstone metadata (event-specific). Breaking change. ADR-0031
+                status: <code>Accepted</code> (not <code>Implemented</code>).
+              </p>
+              <p>
+                The review proposed three options (A: embed shared Tracing, B: extract to
+                <code>domain/</code> module, C: split event.Metadata). <strong>No decision was made
+                on which option to pursue.</strong> Option A (simplest) is recommended but not
+                started.
+              </p>
+              <div class="migration-meta">
+                <span>2 alias lines unchanged</span><span>4 consumer files affected</span
+                ><span>ADR-0031 Accepted</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">○</div>
+            <div class="migration-content">
+              <h4>Migration 7: Make Event concrete struct — <span class="status-badge status-blocked">0% — DEFERRED</span></h4>
+              <p>
+                <code>event.Event</code> is still an interface (<code>event/event.go:60</code>).
+                Four "generic" helpers still type-assert to <code>*ImmutableEvent</code> internally
+                (<code>payloadForDecode</code>, <code>encodingForCopy</code>,
+                <code>PayloadReadOnly</code>, <code>CloneEvent</code>). The review correctly
+                identified this as a v3 breaking change. It's the highest-effort item in the
+                roadmap (every consumer, every test, every type assertion) and was intentionally
+                deferred to avoid compounding breakage with the other v3 changes.
+              </p>
+              <p>
+                <code>eventOptions</code> pointer leak (Theme A2) is also still present — every
+                event carries <code>opts *eventOptions</code> for its lifetime.
+              </p>
+              <div class="migration-meta">
+                <span>Event still interface</span><span>4 type-assertions remain</span
+                ><span>Highest-effort migration item</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">○</div>
+            <div class="migration-content">
+              <h4>Theme C1: Extend cqrs-gen for command/query symmetry — <span class="status-badge status-blocked">0%</span></h4>
+              <p>
+                <code>cmd/cqrs-gen</code> still emits <code>projection.On[...]</code> code (not
+                <code>stack.NewMaterialize</code>). The ~600 LOC copy-pasted between
+                <code>command/</code> and <code>query/</code> remains. The codegen has not been
+                extended to emit symmetric types from a template. Blocked on the projection
+                dissolution decision (cqrs-gen should emit Materialize, not projection.On).
+              </p>
+              <div class="migration-meta">
+                <span>cqrs-gen unchanged</span><span>~600 LOC duplication remains</span
+                ><span>Blocked on projection decision</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ════════ WHAT WE FUCKED UP ════════ -->
+          <h3>What We Fucked Up <span class="status-badge status-blocked">4 items</span></h3>
+
+          <div class="finding">
+            <strong>F1 · EventBus ordering race — undetected for weeks.</strong>
+            GoChannel's <code>sendMessage</code> spawns a goroutine per Publish. Without
+            <code>BlockPublishUntilSubscriberAck</code>, consecutive publishes race. This bug
+            affected EVERY consumer of EventBus, including projection.Runner's live phase. It was
+            latent because existing tests publish one event per command with sleep. Fixed in
+            <code>97e2fd58</code> — <code>Persistent: false</code> +
+            <code>BlockPublishUntilSubscriberAck: true</code>.
+          </div>
+
+          <div class="finding">
+            <strong>F2 · Tombstone mark lost in Watermill protocol — undetected.</strong>
+            <code>eventToMessage</code> never serialized the <code>Tombstone</code> field into
+            Watermill flat metadata. Soft-delete events lost their status through the transport.
+            Fixed in <code>97e2fd58</code> — added <code>tombstone_status</code> +
+            <code>tombstone_reason</code> metadata keys. SQL + Pebble paths were clean (they use
+            <code>json.Marshal</code> on <code>event.Metadata</code> which has the struct tag).
+          </div>
+
+          <div class="finding">
+            <strong>F3 · Materialize error-misclassification — silent data corruption.</strong>
+            Any <code>Store.Get</code> error was silently classified as "not found" →
+            <code>OnCreate</code>. A real DB error (connection lost, corrupt data) would trigger
+            <code>OnCreate</code> on an existing record, overwriting it. Fixed in
+            <code>72538df7</code> — <code>errors.Is(err, kv.ErrNotFound)</code> + propagate.
+          </div>
+
+          <div class="finding">
+            <strong>F4 · The "deployer-first test proves it works" lie.</strong>
+            The synthetic <code>TestDeployerFirstArchitecture</code> in <code>stack/</code> tested
+            ONE event on the happy path. It passed while the EventBus was silently reordering
+            multi-event sequences. Only building <code>example/deployer-first</code> with a real
+            3-event aggregate (create → complete → delete) exposed the bug. Lesson: synthetic tests
+            that don't exercise the full pipeline are not validation.
+          </div>
+
+          <!-- ════════ SUMMARY TABLE ════════ -->
+          <h3>Scorecard</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Roadmap Item</th>
+                <th>Status</th>
+                <th>Theme(s)</th>
+                <th>Blocker</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>M1 · Commit to Watermill</td>
+                <td class="yes">DONE</td>
+                <td>G</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>M2a · Merge readmodel → kv</td>
+                <td class="yes">DONE</td>
+                <td>F2</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>M2b · Dissolve projection/</td>
+                <td class="no">20% — BLOCKED</td>
+                <td>E</td>
+                <td>DistributedRunner decision</td>
+              </tr>
+              <tr>
+                <td>M3 · Consolidate storage</td>
+                <td class="yes">DONE</td>
+                <td>F1</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>M4 · Kill Metadata aliases</td>
+                <td class="no">0% — NOT STARTED</td>
+                <td>B1</td>
+                <td>Decision on Option A/B/C</td>
+              </tr>
+              <tr>
+                <td>M5 · Multi-DB SQLite + audit</td>
+                <td class="yes">DONE</td>
+                <td>F4</td>
+                <td>AutoIndexing deferred</td>
+              </tr>
+              <tr>
+                <td>M6 · Evolve Decider[State,Cmd]</td>
+                <td class="no">30% — PARTIAL</td>
+                <td>D</td>
+                <td>Fold→Apply rename deferred</td>
+              </tr>
+              <tr>
+                <td>M7 · Make Event concrete struct</td>
+                <td class="no">0% — DEFERRED</td>
+                <td>A</td>
+                <td>Highest-effort, compound breakage</td>
+              </tr>
+              <tr>
+                <td>B2 · Typed metadata fields</td>
+                <td class="no">40% — PARTIAL</td>
+                <td>B2</td>
+                <td>SecurityEnvelope not built</td>
+              </tr>
+              <tr>
+                <td>C1 · cqrs-gen symmetry</td>
+                <td class="no">0% — BLOCKED</td>
+                <td>C1</td>
+                <td>Blocked on M2b</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="callout callout-solution">
+            <strong>Bottom line:</strong> The big structural wins shipped — Watermill as delivery
+            layer, readmodel merge, storage consolidation, Materialize + CatchUpSubscriber. The
+            EventBus ordering fix was the single most impactful correctness improvement. What
+            remains is two deferred breaking changes (Event→struct, Metadata aliases), one blocked
+            decision (DistributedRunner), and one codegen update (cqrs-gen). The deployer-first
+            vision is <strong>proven, not theoretical</strong> — <code>example/deployer-first</code>
+            runs the full pipeline end-to-end with ordered event processing.
+          </div>
+        </section>
+
         <footer class="footer">
           Generated 2026-06-19 · Architecture Review v3 · Deployer-First Vision · 39 modules · 160+
-          types · 7 themes · Grounded in Eventuous, Marten, LiveStore, Watermill research
+          types · 7 themes · Grounded in Eventuous, Marten, LiveStore, Watermill research<br />
+          Appendix updated 2026-06-20 · Execution status verified at commit 330ea183 · 7 done, 3
+          partial, 3 not started
         </footer>
       </main>
     </div>
