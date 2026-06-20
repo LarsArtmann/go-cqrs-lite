@@ -48,9 +48,9 @@ func TestEventPublisher_RoundTrip(t *testing.T) {
 			t.Fatal("received nil message")
 		}
 
-		decoded, err := messageToEvent("test.roundtrip", msg)
+		decoded, err := MessageToEvent("test.roundtrip", msg)
 		if err != nil {
-			t.Fatalf("messageToEvent: %v", err)
+			t.Fatalf("MessageToEvent: %v", err)
 		}
 
 		if decoded.Type() != originalEvt.Type() {

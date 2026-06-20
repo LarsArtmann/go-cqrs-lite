@@ -31,7 +31,7 @@ type EventPublisher struct {
 // the given Watermill topic via the given [message.Publisher].
 //
 // Each event is converted to a Watermill message using the same protocol as
-// [PublisherAdapter] (reversible via [messageToEvent]).
+// [PublisherAdapter] (reversible via [MessageToEvent]).
 func NewEventPublisher(publisher message.Publisher, topic string) *EventPublisher {
 	return &EventPublisher{publisher: publisher, topic: topic}
 }

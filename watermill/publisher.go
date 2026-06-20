@@ -24,7 +24,7 @@ func (a *PublisherAdapter) Publish(topic string, messages ...*message.Message) e
 	ctx := context.Background()
 
 	for _, msg := range messages {
-		evt, err := messageToEvent(topic, msg)
+		evt, err := MessageToEvent(topic, msg)
 		if err != nil {
 			return event.WrapCorruption(
 				err,

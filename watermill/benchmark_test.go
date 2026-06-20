@@ -49,7 +49,7 @@ func BenchmarkMessageToEvent(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, err := messageToEvent("Bench", msg)
+		_, err := MessageToEvent("Bench", msg)
 		if err != nil {
 			b.Fatal(err)
 		}

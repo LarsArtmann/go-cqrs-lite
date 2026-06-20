@@ -74,9 +74,11 @@ func eventToMessage(evt event.Event) *message.Message {
 	return msg
 }
 
-// messageToEvent reconstructs a go-cqrs-lite event from a Watermill message.
+// MessageToEvent reconstructs a go-cqrs-lite event from a Watermill message.
 // The topic is used as the event type; all other fields come from metadata.
-func messageToEvent(topic string, msg *message.Message) (event.Event, error) {
+// Exported so other packages (e.g. stack.Materialize) can reuse the same
+// protocol instead of duplicating decode logic.
+func MessageToEvent(topic string, msg *message.Message) (event.Event, error) {
 	md := msg.Metadata
 
 	eventType := event.Type(topic)

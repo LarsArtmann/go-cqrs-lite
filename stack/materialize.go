@@ -10,6 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 	"github.com/larsartmann/go-cqrs-lite/kv/v2"
+	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v2"
 )
 
 // TombstonePolicy controls which records appear in [Materialize.List] results.
@@ -68,13 +69,17 @@ type Materialize[V any, K fmt.Stringer] struct {
 	OnRebirth func(ctx context.Context, evt event.Event, existing *V) (*V, error)
 }
 
-// HandlerFunc returns a [message.HandlerFunc] that decodes Watermill messages
+// HandlerFunc returns a [message.NoPublishHandlerFunc] that decodes Watermill messages
 // back to cqrs events and dispatches them to the appropriate On* handler.
+// Uses [watermill.MessageToEvent] for decoding — the single source of truth
+// for the Watermill ↔ cqrs protocol.
 func (m *Materialize[V, K]) HandlerFunc() message.NoPublishHandlerFunc {
 	return func(msg *message.Message) error {
 		ctx := msg.Context()
 
-		evt, err := decodeMessageToEvent(msg)
+		// Decode using the canonical watermill protocol.
+		topic := msg.Metadata.Get("event_type")
+		evt, err := cqrswatermill.MessageToEvent(topic, msg)
 		if err != nil {
 			return fmt.Errorf("materialize: decode message: %w", err)
 		}
@@ -206,35 +211,4 @@ func isMaterializedTombstoned[V any](v *V) bool {
 	}
 
 	return false
-}
-
-// decodeMessageToEvent converts a Watermill message back to a cqrs event.
-// This uses the same protocol as the watermill adapter.
-func decodeMessageToEvent(msg *message.Message) (event.Event, error) {
-	topic := msg.Metadata.Get("event_type")
-	if topic == "" {
-		return nil, errors.New("missing event_type metadata")
-	}
-
-	aggregateIDStr := msg.Metadata.Get("aggregate_id")
-
-	aggID, err := id.ParseAggregateID(aggregateIDStr)
-	if err != nil {
-		return nil, fmt.Errorf("parse aggregate_id: %w", err)
-	}
-
-	aggregateType := event.AggregateType(msg.Metadata.Get("aggregate_type"))
-
-	evt, err := event.NewEvent(
-		event.Type(topic),
-		aggID,
-		aggregateType,
-		event.Version(1),
-		msg.Payload,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return evt, nil
 }

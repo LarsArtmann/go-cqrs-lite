@@ -11,10 +11,10 @@ require (
 	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/projection/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/query/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/readmodel/v2 v2.0.0-20260620021809-ccb97a3c2b59
+	github.com/larsartmann/go-cqrs-lite/readmodel/v2 v2.0.0-20260620040254-bdb6efd89733
 	github.com/larsartmann/go-cqrs-lite/stack/memory/v2 v2.0.0-20260619055429-dbf63b8ae359
-	github.com/larsartmann/go-cqrs-lite/stack/pebble/v2 v2.0.0-20260620021809-ccb97a3c2b59
-	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-20260620021809-ccb97a3c2b59
+	github.com/larsartmann/go-cqrs-lite/stack/pebble/v2 v2.0.0-20260620040254-bdb6efd89733
+	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-20260620040254-bdb6efd89733
 )
 
 require (
