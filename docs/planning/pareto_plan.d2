@@ -1,0 +1,94 @@
+direction: right
+
+# ════════ TIER 1: SHIP v3.0.0 (1% → 51% value) ════════
+tier1: TIER 1 — SHIP v3.0.0 {
+  style.fill: "#fff3e0"
+  style.stroke: "#ffb347"
+  style.stroke-width: 2
+  shape: rectangle
+
+  cbor_nan: "CBOR NaN\nFuzz Fix" {
+    style.fill: "#ffebee"
+    style.stroke: "#ff6b6b"
+  }
+  event_opts: "Deep-copy\neventOptions" {
+    style.fill: "#fffde7"
+    style.stroke: "#f4d35e"
+  }
+  docs: "Doc Updates\n(ADR/FEATURES/\nROADMAP/V3_MIG)" {
+    style.fill: "#e3f2fd"
+    style.stroke: "#6eb5ff"
+  }
+  tag: "TAG v3.0.0" {
+    style.fill: "#ffb347"
+    style.stroke: "#ff6b6b"
+    style.font-color: "#0e0e10"
+    style.bold: true
+  }
+
+  cbor_nan -> event_opts -> docs -> tag
+}
+
+# ════════ TIER 2: HARDEN (4% → 64% value) ════════
+tier2: TIER 2 — HARDEN {
+  style.fill: "#e3f2fd"
+  style.stroke: "#6eb5ff"
+  style.stroke-width: 2
+  shape: rectangle
+
+  pg_race: "PgxListener\nRace Guard"
+  metadata_tests: "Metadata\nRound-trip\nProperty Tests"
+  sse_tests: "SSE Gap\nTests (3)"
+  smoke: "Consumer\nTrust\nSmoke Test"
+  profile: "Hot Path\nProfile\n(-race)"
+}
+
+# ════════ TIER 3: POLISH (20% → 80% value) ════════
+tier3: TIER 3 — POLISH + OPERABILITY {
+  style.fill: "#fffde7"
+  style.stroke: "#f4d35e"
+  style.stroke-width: 2
+  shape: rectangle
+
+  storage_cov: "storage/\nCoverage →85%"
+  bdd_stack: "stack/\nBDD Suites"
+  presets: "Preset\nOperability\n(Backup+Shutdown)"
+  cqrs_gen: "cqrs-gen\nMaterialize"
+  deployer_docs: "Deployer-first\nOnboarding Docs"
+  sse_arch: "SSE Architecture\n(fanOut[T] +\nLast-Event-ID)"
+  metadata_audit: "Metadata.Custom\nStringly-typed\nAudit"
+}
+
+# ════════ TIER 4: CONSUMER FEEDBACK (80% → 90% value) ════════
+tier4: TIER 4 — CONSUMER FEEDBACK {
+  style.fill: "#fff8e1"
+  style.stroke: "#ffb347"
+  style.stroke-dash: 4
+  shape: rectangle
+
+  resilience: "resilience/\nModule"
+  otel_shim: "OTel Shim\nPattern"
+  gomod_clean: "event/go.mod\nCleanup"
+  dep_ci: "Dependency\nBudget CI"
+}
+
+# ════════ Critical Path ════════
+tier1 -> tier2 -> tier3 -> tier4
+
+# ════════ BLOCKED (no action) ════════
+blocked: TIER 5 — BLOCKED / LONG-TERM {
+  style.opacity: 0.4
+  style.fill: "#fafafa"
+  style.stroke: "#bdbdbd"
+  style.stroke-dash: 3
+  shape: rectangle
+
+  transports: "gRPC/NATS/Redis\n(WAIT for consumer)"
+  experiments: "jsonv2/Arena\n(BLOCKED on Go stdlib)"
+  raw_ideas: "8 Raw Ideas\n(no design yet)"
+}
+
+tier4 -> blocked: "no dep" {
+  style.stroke-dash: 5
+  style.opacity: 0.3
+}
