@@ -7,9 +7,9 @@ import (
 	"io"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/stack/v2"
 	"github.com/larsartmann/go-cqrs-lite/storage/v2"
+	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v2"
 )
 
 // Option configures the Postgres preset.
@@ -41,8 +41,8 @@ func WithoutAutoMigrate() Option {
 // are forwarded to [storage.NewPostgresBus] when the distributed bus is active.
 // They are ignored when no listener is set.
 //
-// Without this option, the preset uses memory.NewMemoryBus — fine for
-// single-process deployments but invisible to other processes sharing the DB.
+// Without this option, the preset uses watermill.EventBus (GoChannel) — fine
+// for single-process deployments but invisible to other processes sharing the DB.
 func WithDistributedBus(
 	listener storage.NotificationListener,
 	busOpts ...storage.PostgresBusOption,
@@ -61,8 +61,8 @@ func WithDistributedBus(
 // opened with the pure-Go pgx driver (no CGo required).
 //
 // Events, commands, queries, snapshots, checkpoints, AND read models are all
-// persisted to the database. By default the event bus is in-memory
-// (memory.NewMemoryBus) for single-process use; pass [WithDistributedBus]
+// persisted to the database. By default the event bus is watermill.EventBus
+// (GoChannel, in-process) for single-process use; pass [WithDistributedBus]
 // to wire storage.PostgresBus (LISTEN/NOTIFY) for multi-process pub/sub.
 //
 // On any setup failure the database is closed before the error is returned —
@@ -147,15 +147,15 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 // buildBus returns the event bus to wire into the Bundle. When cfg.listener
 // is set, the bus is a storage.PostgresBus backed by Postgres LISTEN/NOTIFY
 // and the listener is returned so the caller can register it for Close-time
-// cleanup. Otherwise the bus is an in-memory implementation for single-process
-// use.
+// cleanup. Otherwise the bus is watermill.EventBus (GoChannel) for
+// single-process use.
 func buildBus(
 	dbHandle *sql.DB,
 	store event.EventSource,
 	cfg config,
 ) (event.Bus, io.Closer, error) {
 	if cfg.listener == nil {
-		return memory.NewMemoryBus(), nil, nil
+		return cqrswatermill.NewEventBus(), nil, nil
 	}
 
 	pgBus, err := storage.NewPostgresBus(dbHandle, store, cfg.listener, cfg.busOpts...)

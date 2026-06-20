@@ -6,9 +6,9 @@ import (
 
 	"github.com/cockroachdb/pebble"
 
-	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/stack/v2"
 	cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v2"
+	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v2"
 )
 
 // Option configures the Pebble preset.
@@ -46,7 +46,7 @@ func WithLogger(logger *slog.Logger) Option {
 // Events, commands, queries, snapshots, and checkpoints are persisted to disk
 // with CBOR envelopes. Read models use the same *pebble.DB via a shared
 // kv.Store (KVAdapter) — use readmodel.WithKeyPrefix to namespace each read
-// model type. The event bus uses memory.NewMemoryBus (PebbleDB has no pub/sub).
+// model type. The event bus uses watermill.EventBus (GoChannel, in-process).
 //
 // The returned Bundle owns the *pebble.DB; Close releases it along with all stores.
 // On any setup failure the database is closed before the error is returned.
@@ -69,7 +69,7 @@ func New(dir string, opts ...Option) (*stack.Bundle, error) {
 		stack.WithSnapshotStore(backend.SnapshotStore()),
 		stack.WithCheckpointStore(backend.CheckpointStore()),
 		stack.WithReadModels(backend.ReadModels()),
-		stack.WithBus(memory.NewMemoryBus()),
+		stack.WithBus(cqrswatermill.NewEventBus()),
 		stack.WithCloser(backend),
 	)
 	if err != nil {

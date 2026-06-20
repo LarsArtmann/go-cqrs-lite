@@ -7,7 +7,7 @@
 //	b, err := pebble.New("/var/lib/myapp/pebble")
 //	defer b.Close()
 //
-// The event bus uses an in-memory implementation (memory.NewMemoryBus) since
+// The event bus uses watermill.EventBus (GoChannel, in-process) since
 // PebbleDB is a storage engine, not a message broker.
 //
 // All data is persistent on disk. The returned Bundle owns the *pebble.DB;

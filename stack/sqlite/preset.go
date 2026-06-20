@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/larsartmann/go-cqrs-lite/memory/v2"
 	"github.com/larsartmann/go-cqrs-lite/stack/v2"
 	"github.com/larsartmann/go-cqrs-lite/storage/v2"
+	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v2"
 )
 
 // Option configures the SQLite preset.
@@ -69,8 +69,8 @@ func WithViewDB(dsn string) Option {
 // with the pure-Go modernc.org/sqlite driver (no CGo required).
 //
 // Events, commands, queries, snapshots, checkpoints, AND read models are all
-// persisted to the database. The event bus uses an in-memory implementation
-// (memory.NewMemoryBus) since SQLite has no pub/sub semantics.
+// persisted to the database. The event bus uses watermill.EventBus (GoChannel-
+// backed, in-process) since SQLite has no pub/sub semantics.
 //
 // On any setup failure the database is closed before the error is returned —
 // no resource leaks. The returned Bundle owns the *sql.DB; Close releases it.
@@ -85,15 +85,15 @@ func New(dsn string, opts ...Option) (*stack.Bundle, error) {
 }
 
 func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
-	db, backend, err := openBackend(dsn, cfg) 
+	db, backend, err := openBackend(dsn, cfg)
 	if err != nil {
 		return nil, err
 	}
 
 	stackOpts := buildOptions(backend)
 
-	// Bus is in-memory (SQLite has no pub/sub).
-	stackOpts = append(stackOpts, stack.WithBus(memory.NewMemoryBus()))
+	// Bus is in-process GoChannel (SQLite has no pub/sub).
+	stackOpts = append(stackOpts, stack.WithBus(cqrswatermill.NewEventBus()))
 
 	// Read models: use separate view DB if configured, else primary.
 	var viewDB *sql.DB
@@ -151,8 +151,6 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	b, err := stack.New(stackOpts...)
 	if err != nil {
 		_ = backend.Close()
-
-
 
 		_ = db.Close()
 		if viewDB != nil {
@@ -230,7 +228,8 @@ func buildOptions(backend *storage.SQLBackend) []stack.Option {
 // openBackend opens the database, applies pragmas and schema, and returns
 // both the *sql.DB (for lifecycle) and the SQLBackend (for store access).
 func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
-	db, err := sql.Open("sqlite", dsn
+	db, err := sql.Open("sqlite", dsn)
+	if err != nil {
 		return nil, nil, fmt.Errorf("sqlite: open %q: %w", dsn, err)
 	}
 

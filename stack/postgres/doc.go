@@ -2,7 +2,7 @@
 //
 // It wires events, commands, queries, snapshots, and checkpoints to a single
 // PostgreSQL database via the storage.SQLBackend facade. By default the event
-// bus is in-memory (memory.NewMemoryBus) for single-process use. For
+// bus is watermill.EventBus (GoChannel) for single-process use. For
 // multi-process pub/sub, pass [WithDistributedBus] with a [PgxListener] to
 // wire storage.PostgresBus (Postgres LISTEN/NOTIFY). Read models persist to
 // the database via storage.SQLKVStore.
