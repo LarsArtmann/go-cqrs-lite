@@ -6,21 +6,13 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2/idtest"
 )
-
-func parseEventID(s string) id.EventID {
-	v, err := id.ParseEventID(s)
-	if err != nil {
-		panic(err)
-	}
-
-	return v
-}
 
 func TestWithEventID(t *testing.T) {
 	t.Parallel()
 
-	overrideID := parseEventID("01HK154EJG2GP2SR75DK1Q1TBH")
+	overrideID := idtest.MustParseEventID("01HK154EJG2GP2SR75DK1Q1TBH")
 
 	evt, err := event.NewEvent(
 		"TestEvent",
@@ -118,11 +110,11 @@ func TestClone_DeepCopy(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		parseAggID("01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95"),
 		"User",
 		1,
 		[]byte("original"),
-		event.WithCorrelationID(parseCorrID("01HK154EJG2GP2SR75DK1Q1TBH")),
+		event.WithCorrelationID(idtest.MustParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH")),
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -188,7 +180,7 @@ func TestClone_IndependentMetadata(t *testing.T) {
 		"User",
 		1,
 		[]byte("{}"),
-		event.WithCorrelationID(parseCorrID("01HK154EJG2GP2SR75DK1Q1TBH")),
+		event.WithCorrelationID(idtest.MustParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH")),
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)

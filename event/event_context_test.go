@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2/idtest"
 )
 
 func TestEventContext_DeadlineMethod(t *testing.T) {
@@ -16,7 +17,7 @@ func TestEventContext_DeadlineMethod(t *testing.T) {
 
 		evt, err := event.NewEvent(
 			"TestEvent",
-			parseAggID("01HK154DK8FZYV2ANMQ6B0N1JY"),
+			idtest.MustParseAggregateID("01HK154DK8FZYV2ANMQ6B0N1JY"),
 			"TestAggregate",
 			1,
 			nil,
@@ -40,7 +41,7 @@ func TestEventContext_DeadlineMethod(t *testing.T) {
 		deadline := time.Now().Add(1 * time.Hour)
 		evt, err := event.NewEvent(
 			"TestEvent",
-			parseAggID("01HK154DK8FZYV2ANMQ6B0N1JY"),
+			idtest.MustParseAggregateID("01HK154DK8FZYV2ANMQ6B0N1JY"),
 			"TestAggregate",
 			1,
 			nil,
@@ -72,7 +73,7 @@ func TestEventContext_FromContext(t *testing.T) {
 
 		evt, err := event.NewEvent(
 			"TestEvent",
-			parseAggID("01HK154DK8FZYV2ANMQ6B0N1JY"),
+			idtest.MustParseAggregateID("01HK154DK8FZYV2ANMQ6B0N1JY"),
 			"TestAggregate",
 			1,
 			nil,
@@ -101,7 +102,7 @@ func TestEventContext_FromContext(t *testing.T) {
 
 		evt, err := event.NewEvent(
 			"TestEvent",
-			parseAggID("01HK154DK8FZYV2ANMQ6B0N1JY"),
+			idtest.MustParseAggregateID("01HK154DK8FZYV2ANMQ6B0N1JY"),
 			"TestAggregate",
 			1,
 			nil,
@@ -127,7 +128,7 @@ func TestEventContext_Clone(t *testing.T) {
 		deadline := time.Now().Add(1 * time.Hour)
 		evt, err := event.NewEvent(
 			"TestEvent",
-			parseAggID("01HK154DK8FZYV2ANMQ6B0N1JY"),
+			idtest.MustParseAggregateID("01HK154DK8FZYV2ANMQ6B0N1JY"),
 			"TestAggregate",
 			1,
 			nil,

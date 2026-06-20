@@ -8,6 +8,7 @@ import (
 	codecpkg "github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v2/idtest"
 )
 
 func TestJSONCodec_Encode(t *testing.T) {
@@ -122,7 +123,7 @@ func TestDecodePayload(t *testing.T) {
 	t.Parallel()
 
 	codec := codecpkg.JSONCodec{}
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
 	type userPayload struct {
 		Name  string `json:"name"`
@@ -158,7 +159,7 @@ func TestDecodePayload_EmptyPayload(t *testing.T) {
 	t.Parallel()
 
 	codec := codecpkg.JSONCodec{}
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, err := event.NewEvent("UserDeleted", aggID, "User", 1, nil)
 	if err != nil {
@@ -177,7 +178,7 @@ func TestDecodePayload_InvalidJSON(t *testing.T) {
 	t.Parallel()
 
 	codec := codecpkg.JSONCodec{}
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, err := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{broken`))
 	if err != nil {
@@ -199,7 +200,7 @@ func (failingCodec) Decode(_ []byte, _ any) error { return errors.New("decode fa
 func TestDecodePayload_CodecError(t *testing.T) {
 	t.Parallel()
 
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, err := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{}`))
 	if err != nil {
@@ -216,7 +217,7 @@ func TestDecodePayloads(t *testing.T) {
 	t.Parallel()
 
 	codec := codecpkg.JSONCodec{}
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
 	type userPayload struct {
 		Name string `json:"name"`
@@ -255,7 +256,7 @@ func TestDecodePayloads(t *testing.T) {
 func TestDecodePayloads_ErrorStopsAtFirst(t *testing.T) {
 	t.Parallel()
 
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
 	goodEvt, _ := event.NewEvent("Good", aggID, "User", 1, []byte(`{}`))
 	badEvt, _ := event.NewEvent("Bad", aggID, "User", 2, []byte(`{broken`))
@@ -272,7 +273,7 @@ func TestDecodePayloads_ErrorStopsAtFirst(t *testing.T) {
 func TestDecodePayload_EncodingMismatch(t *testing.T) {
 	t.Parallel()
 
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, err := event.NewEvent(
 		"UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`),
@@ -291,7 +292,7 @@ func TestDecodePayload_EncodingMismatch(t *testing.T) {
 func TestDecodePayload_CBORCodec(t *testing.T) {
 	t.Parallel()
 
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
 	payload := struct{ Name string }{Name: "Alice"}
 
@@ -320,7 +321,7 @@ func TestDecodePayload_CBORCodec(t *testing.T) {
 func TestDecodePayload_EncodingMatch(t *testing.T) {
 	t.Parallel()
 
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, err := event.NewEvent(
 		"UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`),
@@ -343,7 +344,7 @@ func TestDecodePayload_EncodingMatch(t *testing.T) {
 func TestEvent_Encoding_DefaultIsJSON(t *testing.T) {
 	t.Parallel()
 
-	aggID := parseAggID("01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.MustParseAggregateID("01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, err := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{}`))
 	if err != nil {
