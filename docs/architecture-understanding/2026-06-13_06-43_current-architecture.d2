@@ -1,0 +1,78 @@
+direction: down
+title: go-cqrs-lite Current Architecture (v2.3.0)
+
+layer0: {
+  label: Layer 0 — Leaf Modules (zero internal deps)
+  id_module
+  dispatcher_module
+  codec_module
+}
+
+layer1: {
+  label: Layer 1 — Core CQRS
+  event: {shape: hexagon}
+  command
+  query
+}
+
+layer2: {
+  label: Layer 2 — Event Extensions
+  schema
+  snapshot
+}
+
+layer3: {
+  label: Layer 3 — Aggregate Pattern
+  decider
+}
+
+layer4: {
+  label: Layer 4 — Cross-Cutting
+  memory
+  signing
+  encryption
+  otel
+}
+
+layer5: {
+  label: Layer 5 — Infrastructure
+  middleware
+  storage: {shape: cylinder}
+  projection
+  listing
+  watermill
+  pebble: {shape: cylinder}
+  turso: {shape: cylinder}
+}
+
+layer6: {
+  label: Layer 6 — Consumers
+  integration
+  catalog
+  examples
+  cqrs_gen
+  api_stability
+}
+
+event -> id_module: "branded IDs"
+event -> codec_module: "payload encoding"
+event -> dispatcher_module: "middleware chain"
+command -> id_module: "branded IDs"
+command -> dispatcher_module: "generic dispatcher"
+query -> dispatcher_module: "generic dispatcher"
+schema -> event: "upcasts events"
+snapshot -> event: "snapshot store"
+decider -> event: "load/save events"
+decider -> snapshot: "snapshot optimization"
+memory -> event: "in-memory impl"
+signing -> event: "sign/verify events"
+encryption -> event: "encrypt/decrypt payloads"
+middleware -> event: "middleware factories"
+storage -> event: "SQL store impl"
+projection -> event: "replay + live"
+listing -> event: "aggregate listing"
+watermill -> event: "message adapter"
+pebble -> event: "KV store impl"
+turso -> storage: "Turso connector"
+integration -> event: "E2E tests"
+catalog -> event: "catalog generation"

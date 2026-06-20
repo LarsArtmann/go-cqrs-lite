@@ -1,0 +1,163 @@
+direction: down
+
+title: {
+  label: go-cqrs-lite — Current Architecture (v2.0.0-pre)
+  shape: text
+  near: top-center
+  style.font-size: 28
+}
+
+# Layer 0 — Leaf modules
+layer0: {
+  label: "Layer 0 — Leaf Modules (zero internal deps)"
+  shape: rectangle
+  style.fill: "#f0fdf4"
+  style.stroke: "#86efac"
+
+  id: {label: "id/\nBranded IDs"; shape: rectangle}
+  dispatcher: {label: "dispatcher/\nGeneric Dispatcher[H,M]"; shape: rectangle}
+  codec: {label: "codec/\nJSON + Raw"; shape: rectangle}
+}
+
+# Layer 1 — Core CQRS
+layer1: {
+  label: "Layer 1 — Core CQRS"
+  shape: rectangle
+  style.fill: "#eff6ff"
+  style.stroke: "#93c5fd"
+
+  event: {label: "event/\nStore, Bus, ImmutableEvent\nJournal, Tombstone\nReactive (ro)"; shape: rectangle}
+  command: {label: "command/\nDispatcher, Handler\nCommandStore"; shape: rectangle}
+  query: {label: "query/\nDispatcher, Handler\nPagination"; shape: rectangle}
+}
+
+# Layer 2 — Schema & Snapshot
+layer2: {
+  label: "Layer 2 — Schema & Snapshot"
+  shape: rectangle
+  style.fill: "#fefce8"
+  style.stroke: "#fde047"
+
+  schema: {label: "schema/\nUpcaster, VersionedStore"; shape: rectangle}
+  snapshot: {label: "snapshot/\nSnapshot, Strategy"; shape: rectangle}
+}
+
+# Layer 3 — Aggregate Pattern
+layer3: {
+  label: "Layer 3 — Aggregate Pattern"
+  shape: rectangle
+  style.fill: "#fdf2f8"
+  style.stroke: "#f9a8d4"
+
+  decider: {label: "decider/\nDecider[State], Repository\nExecute, Load"; shape: rectangle}
+}
+
+# Layer 4 — In-Memory & Utilities
+layer4: {
+  label: "Layer 4 — In-Memory & Utilities"
+  shape: rectangle
+  style.fill: "#f5f3ff"
+  style.stroke: "#c4b5fd"
+
+  memory: {label: "memory/\nMemoryStore, Bus\nSnapshotStore, Checkpoint"; shape: rectangle}
+  signing: {label: "signing/\nHMAC, Ed25519\nMultisig"; shape: rectangle}
+  otel: {label: "otel/\nTracer, Meter\nSpans, Attributes"; shape: rectangle}
+}
+
+# Layer 5 — Infrastructure
+layer5: {
+  label: "Layer 5 — Infrastructure Adapters"
+  shape: rectangle
+  style.fill: "#fff7ed"
+  style.stroke: "#fdba74"
+
+  middleware: {label: "middleware/\nLogging, Retry, Recovery\nValidation, Metrics\nCircuit Breaker, OTel"; shape: rectangle}
+  storage: {label: "storage/\nSQLEventStore\nSQLSnapshotStore\nSQLCheckpointStore"; shape: rectangle}
+  projection: {label: "projection/\nRunner (replay+live)\nHandlerRegistry"; shape: rectangle}
+  listing: {label: "listing/\nAggregate listing\nTombstone filtering"; shape: rectangle}
+  watermill: {label: "watermill/\nProtocol adapter"; shape: rectangle}
+  pebble: {label: "pebble/\nPebbleDB store"; shape: rectangle}
+  turso: {label: "turso/\nTurso connector"; shape: rectangle}
+}
+
+# Layer 6 — Integration & Tools
+layer6: {
+  label: "Layer 6 — Integration & Tools"
+  shape: rectangle
+  style.fill: "#f9fafb"
+  style.stroke: "#d1d5db"
+
+  catalog: {label: "catalog/\nRegistry, Schema\nAsyncAPI, D2, OpenAPI\nEventCatalog"; shape: rectangle}
+  integration: {label: "integration/\nCross-module tests"; shape: rectangle}
+  cqrs_gen: {label: "cmd/cqrs-gen/\nCode generator"; shape: rectangle}
+}
+
+# Layer 0 → Layer 1 dependencies
+layer0.id -> layer1.event: {label: "branded IDs"}
+layer0.codec -> layer1.event: {label: "payload encoding"}
+layer0.dispatcher -> layer1.command: {label: ""}
+layer0.dispatcher -> layer1.query: {label: ""}
+layer0.id -> layer1.command: {label: ""}
+
+# Layer 1 → Layer 2
+layer1.event -> layer2.schema: {label: "event types"}
+layer1.event -> layer2.snapshot: {label: "event types"}
+layer0.id -> layer2.schema: {label: ""}
+layer0.id -> layer2.snapshot: {label: ""}
+layer0.codec -> layer2.snapshot: {label: ""}
+
+# Layer 1+2 → Layer 3
+layer1.event -> layer3.decider: {label: ""}
+layer0.id -> layer3.decider: {label: ""}
+layer0.codec -> layer3.decider: {label: ""}
+layer2.snapshot -> layer3.decider: {label: ""}
+layer4.otel -> layer3.decider: {label: ""}
+
+# Layer violations (dashed)
+layer4.memory -> layer3.decider: {label: "⚠️ layer violation"; style.stroke-dash: 5; style.stroke: "#ef4444"}
+
+# Layer 1-2 → Layer 4
+layer1.event -> layer4.memory: {label: ""}
+layer0.id -> layer4.memory: {label: ""}
+layer0.dispatcher -> layer4.memory: {label: ""}
+layer2.snapshot -> layer4.memory: {label: ""}
+layer1.event -> layer4.signing: {label: ""}
+layer0.id -> layer4.signing: {label: ""}
+
+# Layer 1-4 → Layer 5
+layer1.event -> layer5.middleware: {label: ""}
+layer1.command -> layer5.middleware: {label: ""}
+layer1.query -> layer5.middleware: {label: ""}
+layer4.otel -> layer5.middleware: {label: ""}
+layer0.id -> layer5.middleware: {label: ""}
+
+layer1.event -> layer5.storage: {label: ""}
+layer2.snapshot -> layer5.storage: {label: ""}
+layer0.id -> layer5.storage: {label: ""}
+layer0.codec -> layer5.storage: {label: ""}
+layer4.otel -> layer5.storage: {label: ""}
+layer5.listing -> layer5.storage: {label: "⚠️ horizontal coupling"; style.stroke-dash: 5; style.stroke: "#f59e0b"}
+
+layer1.event -> layer5.projection: {label: ""}
+layer4.memory -> layer5.projection: {label: ""}
+layer4.otel -> layer5.projection: {label: ""}
+layer0.id -> layer5.projection: {label: ""}
+layer0.codec -> layer5.projection: {label: ""}
+
+layer1.event -> layer5.listing: {label: ""}
+layer4.memory -> layer5.listing: {label: ""}
+layer0.id -> layer5.listing: {label: ""}
+
+layer1.event -> layer5.watermill: {label: ""}
+layer4.memory -> layer5.watermill: {label: ""}
+layer0.id -> layer5.watermill: {label: ""}
+
+layer1.event -> layer5.pebble: {label: ""}
+layer0.id -> layer5.pebble: {label: ""}
+layer0.codec -> layer5.pebble: {label: ""}
+
+layer5.storage -> layer5.turso: {label: ""}
+layer1.event -> layer5.turso: {label: ""}
+
+# Layer 6
+layer0.id -> layer6.catalog: {label: ""}

@@ -1,0 +1,1555 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TigerBeetle as Event Store — A Thought Experiment</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        --bg: #0a0e17;
+        --bg-raised: #111827;
+        --bg-card: #151d2e;
+        --bg-code: #0d1321;
+        --fg: #e2e8f0;
+        --fg-dim: #94a3b8;
+        --fg-muted: #64748b;
+        --accent: #06d6a0;
+        --accent-dim: rgba(6, 214, 160, 0.12);
+        --accent-glow: rgba(6, 214, 160, 0.25);
+        --blue: #3b82f6;
+        --blue-dim: rgba(59, 130, 246, 0.12);
+        --amber: #f59e0b;
+        --amber-dim: rgba(245, 158, 11, 0.12);
+        --rose: #f43f5e;
+        --rose-dim: rgba(244, 63, 94, 0.12);
+        --violet: #a78bfa;
+        --violet-dim: rgba(167, 139, 250, 0.12);
+        --orange: #fb923c;
+        --orange-dim: rgba(251, 146, 60, 0.12);
+        --border: #1e293b;
+        --border-light: #334155;
+        --radius: 12px;
+        --radius-sm: 8px;
+        --mono: "IBM Plex Mono", monospace;
+        --sans: "Outfit", system-ui, sans-serif;
+      }
+      html {
+        scroll-behavior: smooth;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border-light) var(--bg);
+      }
+      body {
+        background: var(--bg);
+        color: var(--fg);
+        font-family: var(--sans);
+        line-height: 1.7;
+        font-size: 16px;
+        -webkit-font-smoothing: antialiased;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background:
+          radial-gradient(ellipse 80% 60% at 20% 10%, rgba(6, 214, 160, 0.04), transparent),
+          radial-gradient(ellipse 60% 50% at 80% 80%, rgba(251, 146, 60, 0.04), transparent);
+        pointer-events: none;
+        z-index: 0;
+      }
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(var(--border) 1px, transparent 1px),
+          linear-gradient(90deg, var(--border) 1px, transparent 1px);
+        background-size: 80px 80px;
+        opacity: 0.15;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .wrapper {
+        position: relative;
+        z-index: 1;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+      }
+
+      /* --- NAV --- */
+      nav {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(10, 14, 23, 0.85);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--border);
+        padding: 0.75rem 0;
+      }
+      nav .wrapper {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+      }
+      nav .brand {
+        font-family: var(--mono);
+        font-weight: 700;
+        font-size: 0.8rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--orange);
+        white-space: nowrap;
+      }
+      nav .links {
+        display: flex;
+        gap: 0.25rem;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      nav .links::-webkit-scrollbar {
+        display: none;
+      }
+      nav a {
+        color: var(--fg-dim);
+        text-decoration: none;
+        font-size: 0.75rem;
+        font-weight: 500;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        padding: 0.4rem 0.75rem;
+        border-radius: 6px;
+        transition: all 0.2s;
+        white-space: nowrap;
+        font-family: var(--mono);
+      }
+      nav a:hover,
+      nav a.active {
+        color: var(--orange);
+        background: var(--orange-dim);
+      }
+
+      /* --- HERO --- */
+      .hero {
+        padding: 6rem 0 4rem;
+        text-align: center;
+        position: relative;
+      }
+      .hero h1 {
+        font-family: var(--sans);
+        font-size: clamp(2.5rem, 6vw, 4.5rem);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+        background: linear-gradient(135deg, var(--fg) 0%, var(--orange) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1rem;
+      }
+      .hero .meta {
+        font-family: var(--mono);
+        font-size: 0.8rem;
+        color: var(--fg-muted);
+        letter-spacing: 0.05em;
+      }
+      .hero .meta span {
+        color: var(--orange);
+      }
+      .hero p.subtitle {
+        max-width: 700px;
+        margin: 1.5rem auto 0;
+        color: var(--fg-dim);
+        font-size: 1.05rem;
+        line-height: 1.8;
+      }
+      .hero .emoji-callout {
+        font-size: 3rem;
+        margin-top: 1.5rem;
+        letter-spacing: 0.5rem;
+      }
+
+      /* --- SECTIONS --- */
+      .part {
+        padding: 4rem 0 2rem;
+      }
+      .part-header {
+        margin-bottom: 3rem;
+        position: relative;
+      }
+      .part-number {
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--orange);
+        display: inline-block;
+        padding: 0.35rem 0.75rem;
+        background: var(--orange-dim);
+        border: 1px solid rgba(251, 146, 60, 0.2);
+        border-radius: 4px;
+        margin-bottom: 0.75rem;
+      }
+      .part-header h2 {
+        font-family: var(--sans);
+        font-size: clamp(1.8rem, 3vw, 2.5rem);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: var(--fg);
+      }
+      .part-header p {
+        margin-top: 0.75rem;
+        color: var(--fg-dim);
+        font-size: 0.95rem;
+        max-width: 800px;
+        line-height: 1.7;
+      }
+
+      /* --- CARDS --- */
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(520px, 1fr));
+        gap: 1.5rem;
+      }
+      @media (max-width: 600px) {
+        .cards {
+          grid-template-columns: 1fr;
+        }
+      }
+      .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        transition:
+          border-color 0.3s,
+          box-shadow 0.3s;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: cardIn 0.5s ease forwards;
+      }
+      .card:hover {
+        border-color: var(--orange);
+        box-shadow:
+          0 0 30px rgba(251, 146, 60, 0.15),
+          inset 0 1px 0 rgba(251, 146, 60, 0.1);
+      }
+      @keyframes cardIn {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .card-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      .card-num {
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--orange);
+        width: 2rem;
+        height: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--orange-dim);
+        border: 1px solid rgba(251, 146, 60, 0.2);
+        border-radius: 6px;
+        flex-shrink: 0;
+      }
+      .card-header h3 {
+        font-family: var(--sans);
+        font-size: 1.15rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        color: var(--fg);
+      }
+      .card-header .badge {
+        font-family: var(--mono);
+        font-size: 0.6rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        margin-left: auto;
+        flex-shrink: 0;
+      }
+      .badge-mapping {
+        background: var(--accent-dim);
+        color: var(--accent);
+        border: 1px solid rgba(6, 214, 160, 0.2);
+      }
+      .badge-code {
+        background: var(--blue-dim);
+        color: var(--blue);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+      }
+      .badge-pro {
+        background: var(--accent-dim);
+        color: var(--accent);
+        border: 1px solid rgba(6, 214, 160, 0.2);
+      }
+      .badge-con {
+        background: var(--rose-dim);
+        color: var(--rose);
+        border: 1px solid rgba(244, 63, 94, 0.2);
+      }
+      .badge-opt-a {
+        background: var(--blue-dim);
+        color: var(--blue);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+      }
+      .badge-opt-b {
+        background: var(--rose-dim);
+        color: var(--rose);
+        border: 1px solid rgba(244, 63, 94, 0.2);
+      }
+      .badge-opt-c {
+        background: var(--accent-dim);
+        color: var(--accent);
+        border: 1px solid rgba(6, 214, 160, 0.2);
+      }
+      .badge-free {
+        background: var(--accent-dim);
+        color: var(--accent);
+        border: 1px solid rgba(6, 214, 160, 0.2);
+      }
+      .badge-lost {
+        background: var(--rose-dim);
+        color: var(--rose);
+        border: 1px solid rgba(244, 63, 94, 0.2);
+      }
+      .badge-verdict {
+        background: var(--violet-dim);
+        color: var(--violet);
+        border: 1px solid rgba(167, 139, 250, 0.2);
+      }
+
+      .card-body {
+        padding: 1.25rem 1.5rem;
+      }
+      .card pre {
+        background: var(--bg-code);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0.75rem 1rem;
+        overflow-x: auto;
+        font-family: var(--mono);
+        font-size: 0.78rem;
+        line-height: 1.6;
+        color: var(--fg-dim);
+        margin-bottom: 1rem;
+      }
+
+      /* --- TABLES --- */
+      .card table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 0.82rem;
+      }
+      .card table thead th {
+        font-family: var(--mono);
+        font-size: 0.6rem;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--fg-muted);
+        background: var(--bg-raised);
+        border-bottom: 2px solid var(--border-light);
+        padding: 0.55rem 0.85rem;
+        text-align: left;
+        white-space: nowrap;
+      }
+      .card table thead th:first-child {
+        border-radius: var(--radius-sm) 0 0 0;
+      }
+      .card table thead th:last-child {
+        border-radius: 0 var(--radius-sm) 0 0;
+      }
+      .card table tbody td {
+        color: var(--fg-dim);
+        border-bottom: 1px solid var(--border);
+        padding: 0.5rem 0.85rem;
+        transition: background 0.15s;
+      }
+      .card table tbody tr:hover td {
+        background: rgba(251, 146, 60, 0.04);
+      }
+      .card table tbody tr:last-child td {
+        border-bottom: none;
+      }
+      .card table tbody td:first-child {
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--orange);
+        white-space: nowrap;
+        min-width: 140px;
+      }
+
+      .card .key-prop {
+        margin-top: 1rem;
+        padding: 0.75rem 1rem;
+        background: var(--orange-dim);
+        border-left: 3px solid var(--orange);
+        border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        font-size: 0.85rem;
+        color: var(--fg-dim);
+        line-height: 1.6;
+      }
+      .card .key-prop strong {
+        color: var(--fg);
+      }
+
+      .card .key-prop.green {
+        background: var(--accent-dim);
+        border-left-color: var(--accent);
+      }
+      .card .key-prop.red {
+        background: var(--rose-dim);
+        border-left-color: var(--rose);
+      }
+      .card .key-prop.violet {
+        background: var(--violet-dim);
+        border-left-color: var(--violet);
+      }
+
+      .card .variants {
+        margin-top: 1rem;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .card .variants li {
+        font-size: 0.83rem;
+        color: var(--fg-dim);
+        padding-left: 1rem;
+        position: relative;
+      }
+      .card .variants li::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0.55rem;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--orange);
+      }
+
+      /* --- DIAGRAM --- */
+      .diagram-box {
+        background: var(--bg-code);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 2rem;
+        margin: 2rem 0;
+        position: relative;
+        overflow: hidden;
+      }
+      .diagram-box::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--orange), var(--accent), var(--blue));
+      }
+      .diagram-box pre {
+        font-family: var(--mono);
+        font-size: 0.82rem;
+        line-height: 1.8;
+        color: var(--fg-dim);
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .diagram-label {
+        font-family: var(--mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--orange);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .diagram-label::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+      }
+
+      /* --- SPLIT --- */
+      .split {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin: 2rem 0;
+      }
+      @media (max-width: 800px) {
+        .split {
+          grid-template-columns: 1fr;
+        }
+      }
+      .split-col {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+      }
+      .split-col h4 {
+        font-family: var(--mono);
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--orange);
+        margin-bottom: 0.75rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+      .split-col ul {
+        list-style: none;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+      }
+      .split-col li {
+        font-size: 0.85rem;
+        color: var(--fg-dim);
+        padding-left: 1rem;
+        position: relative;
+        line-height: 1.6;
+      }
+      .split-col li::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0.55rem;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+      }
+      .split-col.pro li::before {
+        background: var(--accent);
+      }
+      .split-col.con li::before {
+        background: var(--rose);
+      }
+
+      /* --- VERDICT CARDS --- */
+      .verdict-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0;
+      }
+      .verdict-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        position: relative;
+        overflow: hidden;
+      }
+      .verdict-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+      }
+      .verdict-card.va::before {
+        background: var(--blue);
+      }
+      .verdict-card.vb::before {
+        background: var(--rose);
+      }
+      .verdict-card.vc::before {
+        background: var(--accent);
+      }
+      .verdict-card .label {
+        font-family: var(--mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+      }
+      .verdict-card.va .label {
+        background: var(--blue-dim);
+        color: var(--blue);
+      }
+      .verdict-card.vb .label {
+        background: var(--rose-dim);
+        color: var(--rose);
+      }
+      .verdict-card.vc .label {
+        background: var(--accent-dim);
+        color: var(--accent);
+      }
+      .verdict-card h4 {
+        font-family: var(--sans);
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: var(--fg);
+      }
+      .verdict-card p {
+        font-size: 0.85rem;
+        color: var(--fg-dim);
+        line-height: 1.7;
+      }
+      .verdict-card .verdict-tag {
+        margin-top: 1rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: var(--radius-sm);
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        text-align: center;
+      }
+      .verdict-card.va .verdict-tag {
+        background: var(--blue-dim);
+        color: var(--blue);
+      }
+      .verdict-card.vb .verdict-tag {
+        background: var(--rose-dim);
+        color: var(--rose);
+      }
+      .verdict-card.vc .verdict-tag {
+        background: var(--accent-dim);
+        color: var(--accent);
+      }
+
+      /* --- FOOTER --- */
+      footer {
+        border-top: 1px solid var(--border);
+        padding: 2rem 0;
+        margin-top: 4rem;
+        text-align: center;
+      }
+      footer p {
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        color: var(--fg-muted);
+        letter-spacing: 0.05em;
+      }
+
+      /* --- ANIMATIONS --- */
+      @media (prefers-reduced-motion: no-preference) {
+        .card:nth-child(1) {
+          animation-delay: 0s;
+        }
+        .card:nth-child(2) {
+          animation-delay: 0.05s;
+        }
+        .card:nth-child(3) {
+          animation-delay: 0.1s;
+        }
+        .card:nth-child(4) {
+          animation-delay: 0.15s;
+        }
+        .card:nth-child(5) {
+          animation-delay: 0.2s;
+        }
+        .card:nth-child(6) {
+          animation-delay: 0.25s;
+        }
+        .card:nth-child(7) {
+          animation-delay: 0.3s;
+        }
+        .card:nth-child(8) {
+          animation-delay: 0.35s;
+        }
+      }
+
+      /* --- FULL WIDTH CARD --- */
+      .card-full {
+        grid-column: 1/-1;
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <div class="wrapper">
+        <div class="brand">TB × CQRS</div>
+        <div class="links">
+          <a href="#why">Why</a>
+          <a href="#mapping">Mapping</a>
+          <a href="#problem">The Problem</a>
+          <a href="#options">Options</a>
+          <a href="#code">Code</a>
+          <a href="#features">Features</a>
+          <a href="#verdict">Verdict</a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="wrapper">
+      <section class="hero">
+        <h1>TigerBeetle<br />as Event Store</h1>
+        <p class="meta">
+          Date: <span>2026-05-29</span> &middot; Scope: Thought experiment — implementing
+          go-cqrs-lite persistence on TigerBeetle
+        </p>
+        <p class="subtitle">
+          TigerBeetle is a financial accounting engine — Accounts, Transfers, Balances. It knows
+          nothing about events, aggregates, or CQRS. But its data model is secretly an append-only
+          ledger with idempotent writes, timestamp ordering, and two-phase commits. Which is...
+          exactly what an event store is.
+        </p>
+        <div class="emoji-callout">🏦 × 📦 = 🤔</div>
+      </section>
+
+      <!-- ============================================================ -->
+      <section class="part" id="why">
+        <div class="part-header">
+          <div class="part-number">Part 1</div>
+          <h2>Why This Is Delightfully Absurd (and Kinda Works)</h2>
+          <p>
+            TigerBeetle's core primitives map surprisingly well to event sourcing concepts. The
+            trick is seeing a Transfer not as a money movement, but as an immutable fact recorded in
+            time.
+          </p>
+        </div>
+
+        <div class="diagram-box">
+          <div class="diagram-label">The Isomorphism</div>
+          <pre>
+  Event Sourcing                  TigerBeetle
+  ──────────────                  ───────────
+  Aggregate Stream        ←→      Account (with History flag)
+  Domain Event            ←→      Transfer (immutable, timestamped)
+  Event Payload           ←→      UserData128 + UserData64 + UserData32 + Code + Ledger
+  Optimistic Concurrency  ←→      Built-in idempotency + Linked flag chains
+  Event Store (append)    ←→      CreateTransfers (idempotent by ID)
+  Event Store (load)      ←→      GetAccountTransfers (timestamp-ordered)
+  Event Store (reverse)   ←→      GetAccountTransfers with Reversed flag
+  Global Journal          ←→      QueryTransfers (cross-account)
+  Position-based replay   ←→      QueryTransfers with TimestampMin
+</pre
+          >
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <section class="part" id="mapping">
+        <div class="part-header">
+          <div class="part-number">Part 2</div>
+          <h2>The Core Mapping</h2>
+        </div>
+
+        <div class="cards">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-num">01</div>
+              <h3>Aggregate Stream → Account</h3>
+              <span class="badge badge-mapping">Mapping</span>
+            </div>
+            <div class="card-body">
+              <pre>
+tb.Account{
+    ID:      aggregateRefToAccountID(ref),
+    Ledger:  aggregateTypeToLedger(ref.Type),
+    Code:    1,   // "event stream" account type
+    Flags:   AccountFlags{History: true}.ToUint16(),
+}</pre
+              >
+              <table>
+                <tr>
+                  <th>go-cqrs-lite</th>
+                  <th>TigerBeetle</th>
+                  <th>Notes</th>
+                </tr>
+                <tr>
+                  <td>AggregateRef{Type, ID}</td>
+                  <td>Account.ID (Uint128)</td>
+                  <td>Hash aggregate type + ID into 128-bit account ID</td>
+                </tr>
+                <tr>
+                  <td>Aggregate type</td>
+                  <td>Account.Ledger (uint32)</td>
+                  <td>Enum: 1=User, 2=Order, 3=Payment...</td>
+                </tr>
+                <tr>
+                  <td>Event stream</td>
+                  <td>AccountFlags.History</td>
+                  <td>Keeps all transfers, not just running balances</td>
+                </tr>
+              </table>
+              <div class="key-prop">
+                <strong>Key insight:</strong> The <code>History</code> flag is TigerBeetle's "event
+                stream mode." Without it, TB only keeps balances. With it, every Transfer is
+                retained — exactly what an event store needs.
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-num">02</div>
+              <h3>Event → Transfer</h3>
+              <span class="badge badge-mapping">Mapping</span>
+            </div>
+            <div class="card-body">
+              <pre>
+tb.Transfer{
+    ID:              eventIDToUint128(evt.ID()),
+    DebitAccountID:  accountID,        // aggregate account
+    CreditAccountID: systemAccountID,  // system sink
+    Amount:          Uint128{},        // zero — no money moved
+    UserData128:     sha256(payload),  // payload hash
+    UserData64:      version &lt;&lt; 32 | typeCode,
+    UserData32:      uint32(len(payload)),
+    Ledger:          aggregateTypeToLedger(ref.Type),
+    Code:            eventTypeToCode(evt.Type()),
+    Timestamp:       uint64(evt.OccurredAt().UnixNano()),
+}</pre
+              >
+              <table>
+                <tr>
+                  <th>Event Field</th>
+                  <th>Transfer Field</th>
+                  <th>Encoding</th>
+                </tr>
+                <tr>
+                  <td>Event ID</td>
+                  <td>ID (Uint128)</td>
+                  <td>ULID → 128-bit</td>
+                </tr>
+                <tr>
+                  <td>Aggregate ref</td>
+                  <td>DebitAccountID</td>
+                  <td>Aggregate → account ID</td>
+                </tr>
+                <tr>
+                  <td>Event type</td>
+                  <td>Code (uint16)</td>
+                  <td>Registry mapping: string ↔ uint16</td>
+                </tr>
+                <tr>
+                  <td>Aggregate type</td>
+                  <td>Ledger (uint32)</td>
+                  <td>Registry mapping: string ↔ uint32</td>
+                </tr>
+                <tr>
+                  <td>Version</td>
+                  <td>UserData64 upper 32 bits</td>
+                  <td>Packed with type code</td>
+                </tr>
+                <tr>
+                  <td>OccurredAt</td>
+                  <td>Timestamp (uint64)</td>
+                  <td>Unix nanoseconds</td>
+                </tr>
+                <tr>
+                  <td>Payload hash</td>
+                  <td>UserData128</td>
+                  <td>SHA-256 of JSON payload</td>
+                </tr>
+                <tr>
+                  <td>Payload size</td>
+                  <td>UserData32</td>
+                  <td>Length in bytes</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-num">03</div>
+              <h3>Load Operations</h3>
+              <span class="badge badge-mapping">Mapping</span>
+            </div>
+            <div class="card-body">
+              <table>
+                <tr>
+                  <th>go-cqrs-lite Method</th>
+                  <th>TigerBeetle API</th>
+                  <th>How</th>
+                </tr>
+                <tr>
+                  <td>Load</td>
+                  <td>GetAccountTransfers</td>
+                  <td>All transfers for account, timestamp-ordered</td>
+                </tr>
+                <tr>
+                  <td>LoadFromVersion</td>
+                  <td>GetAccountTransfers + TimestampMin</td>
+                  <td>Skip events before version's timestamp</td>
+                </tr>
+                <tr>
+                  <td>LoadToVersion</td>
+                  <td>GetAccountTransfers + TimestampMax</td>
+                  <td>Approximate (timestamp ≠ exact version)</td>
+                </tr>
+                <tr>
+                  <td>LoadToTimestamp</td>
+                  <td>GetAccountTransfers + TimestampMax</td>
+                  <td>Native TB timestamp filter</td>
+                </tr>
+                <tr>
+                  <td>LoadBackwards</td>
+                  <td>GetAccountTransfers + Reversed flag</td>
+                  <td>TB has native reverse ordering!</td>
+                </tr>
+                <tr>
+                  <td>ReadAll (Journal)</td>
+                  <td>QueryTransfers (no filter)</td>
+                  <td>Global cross-account transfer query</td>
+                </tr>
+                <tr>
+                  <td>ReadFrom (Seekable)</td>
+                  <td>QueryTransfers + TimestampMin</td>
+                  <td>Timestamp-based pagination</td>
+                </tr>
+              </table>
+              <div class="key-prop">
+                <strong>Note:</strong> TigerBeetle returns max 8190 results per call. Large
+                aggregates or journal replay requires pagination via <code>TimestampMin</code> from
+                the last result's timestamp.
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-num">04</div>
+              <h3>Concurrency Control</h3>
+              <span class="badge badge-mapping">Mapping</span>
+            </div>
+            <div class="card-body">
+              <pre>
+// Linked chain: all-or-nothing transfer batch
+//
+// Transfer 1 (Linked=true)  → event 1
+// Transfer 2 (Linked=true)  → event 2
+// Transfer 3 (Linked=false) → event 3 (commit point)
+//
+// If any transfer in the chain fails,
+// ALL preceding linked transfers are rolled back.
+
+for i, t := range transfers {
+    if i < len(transfers)-1 {
+        t.Flags |= TransferFlags{Linked: true}.ToUint16()
+    }
+}</pre
+              >
+              <table>
+                <tr>
+                  <th>CQRS Pattern</th>
+                  <th>TigerBeetle Mechanism</th>
+                </tr>
+                <tr>
+                  <td>Optimistic concurrency</td>
+                  <td>Idempotent transfer by ID — duplicate ID = rejected</td>
+                </tr>
+                <tr>
+                  <td>Atomic multi-event append</td>
+                  <td>Linked flag chains — all succeed or all roll back</td>
+                </tr>
+                <tr>
+                  <td>Exactly-once processing</td>
+                  <td>Idempotency key = transfer ID (event ID)</td>
+                </tr>
+                <tr>
+                  <td>Saga orchestration</td>
+                  <td>Pending + Post/Void two-phase transfers</td>
+                </tr>
+              </table>
+              <div class="key-prop">
+                <strong>Key insight:</strong> TigerBeetle's two-phase commit (<code>Pending</code> →
+                <code>Post</code>/<code>Void</code>) is literally saga orchestration. A pending
+                transfer reserves capacity; posting confirms it; voiding cancels it. This maps 1:1
+                to long-running distributed sagas.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <section class="part" id="problem">
+        <div class="part-header">
+          <div class="part-number">Part 3</div>
+          <h2>The Big Problem: Payload Size</h2>
+          <p>
+            TigerBeetle's Transfer gives you <strong>28 bytes</strong> of user data. An event
+            payload is typically 100+ bytes of JSON. This is the central challenge.
+          </p>
+        </div>
+
+        <div class="diagram-box">
+          <div class="diagram-label">Available User Data in a Transfer (128 bytes total)</div>
+          <pre>
+┌─────────────────────────────────────────────────────────────────────┐
+│  Field           Size     Used For                                  │
+├─────────────────────────────────────────────────────────────────────┤
+│  UserData128     16 B     SHA-256 payload hash (truncated to 128b)  │
+│  UserData64       8 B     Version (upper 32b) + TypeCode (lower 32b)│
+│  UserData32       4 B     Payload size (bytes)                      │
+│  Code             2 B     Event type ID                             │
+│  Ledger           4 B     Aggregate type ID                         │
+│  Timeout          4 B     — unused                                  │
+│  ─────────────────────                                             │
+│  Total usable   34 B     But the payload can be 500+ bytes          │
+└─────────────────────────────────────────────────────────────────────┘
+
+  The ratio is brutal: 34 bytes of metadata for 500+ bytes of payload.
+  We need a sidecar.
+</pre
+          >
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <section class="part" id="options">
+        <div class="part-header">
+          <div class="part-number">Part 4</div>
+          <h2>Three Options: Practical → Unhinged → Brilliant</h2>
+        </div>
+
+        <div class="cards">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-num">A</div>
+              <h3>Hash Index + External Blob Store</h3>
+              <span class="badge badge-opt-a">Practical</span>
+            </div>
+            <div class="card-body">
+              <pre>
+Write path:
+  Event → JSON marshal → SHA-256 hash
+       → Transfer{UserData128: hash, ...}
+       → BlobStore.Put(hash, payload)
+
+Read path:
+  GetAccountTransfers → [Transfer, ...]
+  → bulk Get hashes from BlobStore
+  → reconstruct Events</pre
+              >
+              <p
+                style="
+                  font-size: 0.85rem;
+                  color: var(--fg-dim);
+                  line-height: 1.7;
+                  margin-bottom: 1rem;
+                "
+              >
+                TigerBeetle becomes the
+                <strong>ordered index + concurrency control + tombstone marker</strong>. The blob
+                store (S3, Pebble, Postgres, anything) holds the actual JSON payloads. Load path:
+                query TB for transfer list → bulk-fetch payloads by hash.
+              </p>
+              <div class="key-prop">
+                <strong>Legit architecture.</strong> TB handles what it's best at (ordering,
+                concurrency, idempotency). Blob store handles what it's best at (large values). This
+                is a real two-store architecture that makes sense in production.
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-num">B</div>
+              <h3>Multi-Transfer Chunking</h3>
+              <span class="badge badge-opt-b">Unhinged</span>
+            </div>
+            <div class="card-body">
+              <pre>
+Split payload across N transfers via Linked chains:
+
+  Transfer 0: [header]  — metadata + chunk count
+  Transfer 1: [chunk 0] — UserData128 + UserData64 = 24 bytes
+  Transfer 2: [chunk 1] — 24 more bytes
+  Transfer 3: [chunk 2] — 24 more bytes
+  ...
+
+  A 240-byte event  = 1 header + 10 chunks = 11 transfers
+  A 500-byte event  = ~22 transfers</pre
+              >
+              <p
+                style="
+                  font-size: 0.85rem;
+                  color: var(--fg-dim);
+                  line-height: 1.7;
+                  margin-bottom: 1rem;
+                "
+              >
+                Reconstruct by querying all transfers, grouping by header ID, sorting by chunk
+                index, concatenating <code>UserData</code> fields.
+              </p>
+              <ul class="variants">
+                <li><strong>Pro:</strong> Pure TigerBeetle — no sidecar store needed</li>
+                <li><strong>Con:</strong> 22× write amplification on a 500-byte event</li>
+                <li><strong>Con:</strong> Burns through TB's transfer space at insane rates</li>
+                <li><strong>Con:</strong> Reconstruction complexity on every load</li>
+              </ul>
+              <div class="key-prop red">
+                <strong>Verdict:</strong> A war crime. But technically correct — the worst kind of
+                correct.
+              </div>
+            </div>
+          </div>
+
+          <div class="card card-full">
+            <div class="card-header">
+              <div class="card-num">C</div>
+              <h3>Financial Events Only — The Right Answer</h3>
+              <span class="badge badge-opt-c">Brilliant</span>
+            </div>
+            <div class="card-body">
+              <div class="diagram-box" style="margin: 0 0 1rem">
+                <pre>
+┌─────────────────────────┐      ┌──────────────────────────┐
+│  go-cqrs-lite            │      │  TigerBeetle              │
+│  Event Store (PG/Pebble) │      │  Financial Ledger         │
+│                          │      │                           │
+│  UserCreated             │      │  Account: user-123        │
+│  EmailChanged            │      │  Transfer: +$50 credit    │
+│  OrderPlaced ────────────┼─────→│  Transfer: -$12 debit     │
+│  AddressUpdated          │      │  Transfer: +$99 credit    │
+│  PaymentTaken ───────────┼─────→│  Balance: $137            │
+│                          │      │                           │
+│  All domain events       │      │  Only financial events    │
+│  Full replay             │      │  Double-entry integrity   │
+│  Projections             │      │  Audit trail              │
+└─────────────────────────┘      └──────────────────────────┘
+        ↕                                ↕
+  Projections rebuild            Financial reports
+  from event store               query TB directly
+</pre
+                >
+              </div>
+              <p
+                style="
+                  font-size: 0.85rem;
+                  color: var(--fg-dim);
+                  line-height: 1.7;
+                  margin-bottom: 1rem;
+                "
+              >
+                Don't shoehorn generic events into TB. Use TB for what it is:
+                <strong>a financial event store</strong>. Only store events that are financial
+                transactions. Bridge via middleware that writes to both stores.
+              </p>
+              <ul class="variants">
+                <li>
+                  <strong>OrderPlaced</strong> → writes domain event to event store AND transfer to
+                  TB
+                </li>
+                <li>
+                  <strong>PaymentTaken</strong> → writes domain event to event store AND transfer to
+                  TB
+                </li>
+                <li>
+                  <strong>EmailChanged</strong> → writes domain event to event store ONLY (no
+                  financial fact)
+                </li>
+              </ul>
+              <div class="key-prop green">
+                <strong>The production answer.</strong> Use TB as the financial ledger it was
+                designed to be. Keep go-cqrs-lite's event store for domain events. Each tool does
+                what it's best at.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <section class="part" id="code">
+        <div class="part-header">
+          <div class="part-number">Part 5</div>
+          <h2>Implementation Sketch (Option A)</h2>
+          <p>
+            Pseudocode for the hash-index + blob-store approach. Maps directly to go-cqrs-lite's
+            <code>EventSink</code> and <code>EventSource</code> interfaces.
+          </p>
+        </div>
+
+        <div class="cards">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-num">01</div>
+              <h3>Save — Append Events with Concurrency</h3>
+              <span class="badge badge-code">Write</span>
+            </div>
+            <div class="card-body">
+              <pre>
+func (s *TBEventStore) Save(
+    ctx context.Context,
+    ref event.AggregateRef,
+    events []event.Event,
+    expectedVersion event.Version,
+) error {
+    accountID := aggregateRefToAccountID(ref)
+
+    // Ensure aggregate "account" exists (idempotent)
+    s.client.CreateAccounts([]tb.Account{{
+        ID:     accountID,
+        Ledger: aggregateTypeToLedger(ref.Type),
+        Code:   1,
+        Flags:  tb.AccountFlags{History: true}.ToUint16(),
+    }})
+
+    transfers := make([]tb.Transfer, 0, len(events))
+    for i, evt := range events {
+        payload, _ := json.Marshal(evt.Payload())
+        hash := sha256.Sum256(payload)
+
+        s.blobs.Put(hash[:], payload) // sidecar write
+
+        t := tb.Transfer{
+            ID:              eventIDToUint128(evt.ID()),
+            DebitAccountID:  accountID,
+            CreditAccountID: s.systemAccount,
+            Amount:          tb.Uint128{},       // zero
+            UserData128:     tb.Uint128(hash),
+            UserData64:      uint64(evt.Version())&lt;&lt;32 |
+                             uint64(eventTypeToCode(evt.Type())),
+            UserData32:      uint32(len(payload)),
+            Ledger:          aggregateTypeToLedger(ref.Type),
+            Code:            eventTypeToCode(evt.Type()),
+            Timestamp:       uint64(evt.OccurredAt().UnixNano()),
+        }
+        // Linked chain: atomic all-or-nothing
+        if i &lt; len(events)-1 {
+            t.Flags |= tb.TransferFlags{Linked: true}.ToUint16()
+        }
+        transfers = append(transfers, t)
+    }
+
+    results, err := s.client.CreateTransfers(transfers)
+    return checkResults(results, err)
+}</pre
+              >
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-num">02</div>
+              <h3>Load — Reconstruct Events from Transfers</h3>
+              <span class="badge badge-code">Read</span>
+            </div>
+            <div class="card-body">
+              <pre>
+func (s *TBEventStore) Load(
+    ctx context.Context,
+    ref event.AggregateRef,
+) ([]event.Event, error) {
+    accountID := aggregateRefToAccountID(ref)
+
+    transfers, err := s.client.GetAccountTransfers(
+        tb.AccountFilter{
+            AccountID: accountID,
+            Limit:     8190, // TB max per call
+            Flags: tb.AccountFilterFlags{
+                Debits:  true,
+                Credits: true,
+            }.ToUint32(),
+        },
+    )
+    if err != nil { return nil, err }
+
+    // Paginate for large aggregates
+    for len(transfers) == 8190 {
+        last := transfers[len(transfers)-1]
+        page, err := s.client.GetAccountTransfers(
+            tb.AccountFilter{
+                AccountID:    accountID,
+                TimestampMin: last.Timestamp + 1,
+                Limit:        8190,
+                Flags:        /* same */,
+            },
+        )
+        if err != nil { return nil, err }
+        transfers = append(transfers, page...)
+    }
+
+    // Bulk-fetch payloads from blob store
+    hashes := extractHashes(transfers)
+    payloads := s.blobs.BatchGet(hashes)
+
+    return reconstructEvents(transfers, payloads), nil
+}</pre
+              >
+            </div>
+          </div>
+
+          <div class="card card-full">
+            <div class="card-header">
+              <div class="card-num">03</div>
+              <h3>Reconstruct — Transfer + Blob → Event</h3>
+              <span class="badge badge-code">Glue</span>
+            </div>
+            <div class="card-body">
+              <pre>
+func reconstructEvent(t tb.Transfer, payload []byte) event.Event {
+    version := event.Version(t.UserData64 >> 32)
+    typeCode := uint16(t.UserData64 & 0xFFFFFFFF)
+    eventType := codeToEventType(typeCode)
+    aggType := ledgerToAggregateType(t.Ledger)
+    aggregateID := uint128ToID(t.DebitAccountID)
+
+    evt, _ := event.NewEvent(
+        eventType,
+        aggregateID,
+        aggType,
+        version,
+        json.RawMessage(payload),
+        event.WithEventID(uint128ToEventID(t.ID)),
+        event.WithOccurredAt(time.Unix(0, int64(t.Timestamp))),
+    )
+    return evt
+}</pre
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <section class="part" id="features">
+        <div class="part-header">
+          <div class="part-number">Part 6</div>
+          <h2>What TigerBeetle Gives Us For Free vs. What We Lose</h2>
+        </div>
+
+        <div class="split">
+          <div class="split-col pro">
+            <h4>Free Features</h4>
+            <ul>
+              <li>Append-only guarantee — transfers are immutable, no update/delete</li>
+              <li>Idempotent writes — same transfer ID always returns same result</li>
+              <li>Atomic multi-event append via Linked flag chains</li>
+              <li>Temporal ordering — Timestamp on every transfer, nanosecond precision</li>
+              <li>Native reverse iteration — AccountFilterFlags.Reversed for LoadBackwards</li>
+              <li>Global journal — QueryTransfers across all accounts</li>
+              <li>Two-phase commit — Pending + Post/Void for saga orchestration</li>
+              <li>
+                Crash safety — arguably the most crash-safe DB in existence (formally verified via
+                Io_uring + mission testing)
+              </li>
+              <li>Zero-config clustering — built-in replication</li>
+              <li>Performance — millions of transfers per second on a single node</li>
+            </ul>
+          </div>
+          <div class="split-col con">
+            <h4>What We Lose</h4>
+            <ul>
+              <li>Single-store simplicity — need sidecar blob store for payloads</li>
+              <li>
+                LoadToVersion precision — TB timestamps aren't version numbers, only approximate
+                pagination
+              </li>
+              <li>Rich queries — no WHERE event_type = 'X', must filter client-side</li>
+              <li>8190 transfer limit per query — must paginate for large aggregates</li>
+              <li>
+                Event schema evolution — no built-in upcasting, must handle in application layer
+              </li>
+              <li>Snapshot support — TB has no concept of snapshots, need separate store</li>
+              <li>Metadata flexibility — only 28 bytes of user data per transfer</li>
+              <li>The respect of your peers — "You did WHAT on TigerBeetle?"</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="cards">
+          <div class="card card-full">
+            <div class="card-header">
+              <div class="card-num">∞</div>
+              <h3>Interface Compliance Matrix</h3>
+              <span class="badge badge-mapping">Fit Analysis</span>
+            </div>
+            <div class="card-body">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Interface</th>
+                    <th>Method</th>
+                    <th>Feasible?</th>
+                    <th>Mechanism</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>EventSink</td>
+                    <td>Save</td>
+                    <td style="color: var(--accent)">Yes</td>
+                    <td>CreateTransfers with Linked chain</td>
+                  </tr>
+                  <tr>
+                    <td>EventSink</td>
+                    <td>AppendBatch</td>
+                    <td style="color: var(--accent)">Yes</td>
+                    <td>CreateTransfers without version check</td>
+                  </tr>
+                  <tr>
+                    <td>EventSource</td>
+                    <td>Load</td>
+                    <td style="color: var(--accent)">Yes</td>
+                    <td>GetAccountTransfers</td>
+                  </tr>
+                  <tr>
+                    <td>EventSource</td>
+                    <td>LoadFromVersion</td>
+                    <td style="color: var(--amber)">Approx</td>
+                    <td>GetAccountTransfers + TimestampMin (not exact version)</td>
+                  </tr>
+                  <tr>
+                    <td>EventSource</td>
+                    <td>LoadToVersion</td>
+                    <td style="color: var(--amber)">Approx</td>
+                    <td>GetAccountTransfers + TimestampMax (not exact version)</td>
+                  </tr>
+                  <tr>
+                    <td>EventSource</td>
+                    <td>LoadToTimestamp</td>
+                    <td style="color: var(--accent)">Yes</td>
+                    <td>GetAccountTransfers + TimestampMax</td>
+                  </tr>
+                  <tr>
+                    <td>Journal</td>
+                    <td>ReadAll</td>
+                    <td style="color: var(--accent)">Yes</td>
+                    <td>QueryTransfers (no filter)</td>
+                  </tr>
+                  <tr>
+                    <td>SeekableJournal</td>
+                    <td>ReadFrom</td>
+                    <td style="color: var(--accent)">Yes</td>
+                    <td>QueryTransfers + TimestampMin</td>
+                  </tr>
+                  <tr>
+                    <td>BackwardsSource</td>
+                    <td>LoadBackwards</td>
+                    <td style="color: var(--accent)">Yes</td>
+                    <td>GetAccountTransfers + Reversed flag</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="key-prop">
+                <strong>Score: 7/9 perfect, 2/9 approximate.</strong> The version-based queries
+                suffer because TB uses timestamps, not integer version counters. A client-side
+                version filter on loaded transfers closes the gap at the cost of over-fetching.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <section class="part" id="verdict">
+        <div class="part-header">
+          <div class="part-number">Part 7</div>
+          <h2>The Verdict</h2>
+        </div>
+
+        <div class="verdict-grid">
+          <div class="verdict-card va">
+            <div class="label">Option A</div>
+            <h4>Hash Index + Blob Store</h4>
+            <p>
+              Genuinely interesting for domains where financial correctness and event sourcing
+              overlap — payments, accounting, trading. TigerBeetle becomes the source of truth for
+              ordering and concurrency; the blob store holds payloads. You get TB's legendary safety
+              guarantees for your event stream metadata.
+            </p>
+            <div class="verdict-tag">Legit architecture for fintech event sourcing</div>
+          </div>
+
+          <div class="verdict-card vb">
+            <div class="label">Option B</div>
+            <h4>Multi-Transfer Chunking</h4>
+            <p>
+              Pure TigerBeetle, no sidecar. But 22× write amplification on a typical JSON event,
+              complex reconstruction logic, and you'd burn through TB's transfer space at terrifying
+              rates. Technically correct — the worst kind of correct.
+            </p>
+            <div class="verdict-tag">A war crime and I won't apologize for it</div>
+          </div>
+
+          <div class="verdict-card vc">
+            <div class="label">Option C</div>
+            <h4>Financial Events Only</h4>
+            <p>
+              The production-ready answer. Use TigerBeetle as the financial ledger it was designed
+              to be. Keep go-cqrs-lite's event store (Postgres, Pebble, SQLite) for domain events.
+              Bridge them via middleware that writes financial events to both stores. Each tool does
+              what it's best at.
+            </p>
+            <div class="verdict-tag">The correct answer — use each tool for its purpose</div>
+          </div>
+        </div>
+
+        <div class="diagram-box">
+          <div class="diagram-label">The Sacred Rule of Abstraction</div>
+          <pre>
+  If you have to squint at a database and say "well, technically..."
+  to justify using it for something it wasn't designed for...
+
+  ...that's exactly when the thought experiment becomes valuable.
+
+  TigerBeetle isn't an event store.
+  But understanding WHY it almost works teaches you everything
+  about what an event store actually needs:
+
+    1. Append-only immutability         ← TB has this
+    2. Ordered reads within a stream     ← TB has this
+    3. Idempotent writes                 ← TB has this
+    4. Atomic multi-append               ← TB has this
+    5. Arbitrary payload size            ← TB does NOT have this
+    6. Schema evolution (upcasting)      ← TB does NOT have this
+    7. Exact version addressing          ← TB does NOT have this
+
+  The gap between "almost" and "actually" is where the design lives.
+</pre
+          >
+        </div>
+      </section>
+
+      <footer>
+        <p>
+          go-cqrs-lite &middot; Research &middot; TigerBeetle Thought Experiment &middot; 2026-05-29
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>

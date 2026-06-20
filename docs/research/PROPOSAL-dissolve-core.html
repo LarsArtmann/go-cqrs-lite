@@ -1,0 +1,1186 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      Proposal: Dissolve core/ — go-cqrs-lite Module Restructuring — ✅ COMPLETED (Session 154,
+      2026-05-29)
+    </title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --black: #0a0a0a;
+        --white: #fafafa;
+        --gray-100: #f5f5f5;
+        --gray-200: #e5e5e5;
+        --gray-300: #d4d4d4;
+        --gray-400: #a3a3a3;
+        --gray-500: #737373;
+        --gray-600: #525252;
+        --gray-700: #404040;
+        --gray-800: #262626;
+        --gray-900: #171717;
+        --accent: #d00000;
+        --accent-light: #fff1f1;
+        --green: #0a6e3a;
+        --green-light: #ecfdf5;
+        --blue: #1d4ed8;
+        --blue-light: #eff6ff;
+        --mono: "JetBrains Mono", monospace;
+        --serif: "Instrument Serif", Georgia, serif;
+        --sans: "DM Sans", system-ui, sans-serif;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html {
+        font-size: 16px;
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: var(--sans);
+        background: var(--white);
+        color: var(--black);
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* ─── Layout ─── */
+      .page {
+        max-width: 820px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+
+      /* ─── Hero ─── */
+      .hero {
+        padding: 120px 0 80px;
+        border-bottom: 1px solid var(--gray-200);
+        position: relative;
+      }
+
+      .hero::before {
+        content: "PROPOSAL";
+        position: absolute;
+        top: 60px;
+        left: 0;
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.2em;
+        color: var(--gray-400);
+      }
+
+      .hero h1 {
+        font-family: var(--serif);
+        font-size: clamp(2.8rem, 6vw, 4.2rem);
+        font-weight: 400;
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+        color: var(--black);
+      }
+
+      .hero h1 em {
+        font-style: italic;
+        color: var(--accent);
+      }
+
+      .hero .subtitle {
+        margin-top: 24px;
+        font-size: 1.1rem;
+        color: var(--gray-500);
+        max-width: 560px;
+        line-height: 1.7;
+      }
+
+      .meta {
+        display: flex;
+        gap: 32px;
+        margin-top: 40px;
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--gray-400);
+        letter-spacing: 0.05em;
+      }
+
+      /* ─── Nav ─── */
+      .toc {
+        padding: 48px 0;
+        border-bottom: 1px solid var(--gray-200);
+      }
+
+      .toc h2 {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--gray-400);
+        margin-bottom: 20px;
+      }
+
+      .toc ol {
+        list-style: none;
+        counter-reset: toc;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 32px;
+      }
+
+      .toc li {
+        counter-increment: toc;
+        font-size: 0.9rem;
+      }
+
+      .toc li::before {
+        content: counter(toc, decimal-leading-zero);
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--gray-400);
+        margin-right: 12px;
+      }
+
+      .toc a {
+        color: var(--black);
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+        transition: border-color 0.2s;
+      }
+
+      .toc a:hover {
+        border-bottom-color: var(--black);
+      }
+
+      /* ─── Sections ─── */
+      .section {
+        padding: 64px 0;
+        border-bottom: 1px solid var(--gray-200);
+      }
+
+      .section:last-of-type {
+        border-bottom: none;
+      }
+
+      .section-label {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--gray-400);
+        margin-bottom: 8px;
+      }
+
+      .section h2 {
+        font-family: var(--serif);
+        font-size: 2rem;
+        font-weight: 400;
+        letter-spacing: -0.01em;
+        margin-bottom: 32px;
+      }
+
+      .section h3 {
+        font-family: var(--sans);
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-top: 40px;
+        margin-bottom: 12px;
+      }
+
+      .section p {
+        color: var(--gray-700);
+        max-width: 680px;
+      }
+
+      .section p + p {
+        margin-top: 16px;
+      }
+
+      /* ─── Diagram: Before / After ─── */
+      .comparison {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-top: 32px;
+      }
+
+      @media (max-width: 640px) {
+        .comparison {
+          grid-template-columns: 1fr;
+        }
+        .toc ol {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .diagram {
+        background: var(--gray-100);
+        border: 1px solid var(--gray-200);
+        border-radius: 8px;
+        padding: 24px;
+        font-family: var(--mono);
+        font-size: 12.5px;
+        line-height: 1.8;
+        overflow-x: auto;
+      }
+
+      .diagram .label {
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--gray-400);
+        margin-bottom: 16px;
+        display: block;
+      }
+
+      .diagram .dir {
+        color: var(--gray-500);
+      }
+
+      .diagram .pkg {
+        color: var(--black);
+      }
+
+      .diagram .remove {
+        color: var(--accent);
+        text-decoration: line-through;
+        opacity: 0.5;
+      }
+
+      .diagram .new {
+        color: var(--green);
+        font-weight: 600;
+      }
+
+      .diagram .move {
+        color: var(--blue);
+      }
+
+      /* ─── Tables ─── */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 24px;
+        font-size: 0.88rem;
+      }
+
+      thead th {
+        text-align: left;
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--gray-500);
+        padding: 8px 12px;
+        border-bottom: 2px solid var(--black);
+        font-weight: 500;
+      }
+
+      tbody td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--gray-200);
+        vertical-align: top;
+      }
+
+      tbody tr:hover {
+        background: var(--gray-100);
+      }
+
+      code {
+        font-family: var(--mono);
+        font-size: 0.85em;
+        background: var(--gray-100);
+        padding: 2px 6px;
+        border-radius: 3px;
+      }
+
+      td code {
+        background: none;
+        padding: 0;
+        font-size: 0.82rem;
+      }
+
+      .tag {
+        display: inline-block;
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.05em;
+        padding: 2px 8px;
+        border-radius: 3px;
+        font-weight: 500;
+      }
+
+      .tag--move {
+        background: var(--blue-light);
+        color: var(--blue);
+      }
+      .tag--new {
+        background: var(--green-light);
+        color: var(--green);
+      }
+      .tag--same {
+        background: var(--gray-100);
+        color: var(--gray-600);
+      }
+      .tag--rm {
+        background: var(--accent-light);
+        color: var(--accent);
+      }
+
+      /* ─── Callout ─── */
+      .callout {
+        background: var(--gray-100);
+        border-left: 3px solid var(--black);
+        padding: 20px 24px;
+        margin: 32px 0;
+        font-size: 0.92rem;
+      }
+
+      .callout p {
+        color: var(--gray-700);
+      }
+
+      .callout.accent {
+        border-left-color: var(--accent);
+        background: var(--accent-light);
+      }
+
+      .callout strong {
+        color: var(--black);
+      }
+
+      /* ─── Module cards ─── */
+      .module-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: 32px;
+      }
+
+      @media (max-width: 640px) {
+        .module-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .module-card {
+        border: 1px solid var(--gray-200);
+        border-radius: 6px;
+        padding: 20px;
+        transition: border-color 0.2s;
+      }
+
+      .module-card:hover {
+        border-color: var(--gray-400);
+      }
+
+      .module-card h4 {
+        font-family: var(--mono);
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+
+      .module-card .lines {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--gray-400);
+        margin-bottom: 8px;
+      }
+
+      .module-card p {
+        font-size: 0.82rem;
+        color: var(--gray-600);
+        line-height: 1.5;
+      }
+
+      .module-card .exports {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--gray-500);
+        line-height: 1.6;
+        margin-top: 8px;
+      }
+
+      /* ─── Dependency graph ─── */
+      .dep-graph {
+        background: var(--gray-900);
+        color: var(--gray-200);
+        border-radius: 8px;
+        padding: 32px;
+        margin-top: 32px;
+        font-family: var(--mono);
+        font-size: 12.5px;
+        line-height: 2;
+        overflow-x: auto;
+      }
+
+      .dep-graph .label {
+        color: var(--gray-500);
+        font-size: 10px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        display: block;
+        margin-bottom: 16px;
+      }
+
+      .dep-graph .arrow {
+        color: var(--gray-500);
+      }
+      .dep-graph .node {
+        color: var(--white);
+        font-weight: 500;
+      }
+      .dep-graph .comment {
+        color: var(--gray-600);
+      }
+
+      /* ─── Rules list ─── */
+      .rules {
+        list-style: none;
+        margin-top: 16px;
+      }
+
+      .rules li {
+        padding: 12px 0;
+        border-bottom: 1px solid var(--gray-100);
+        display: flex;
+        gap: 12px;
+        align-items: baseline;
+      }
+
+      .rules li:last-child {
+        border-bottom: none;
+      }
+
+      .rules .num {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--gray-400);
+        min-width: 24px;
+        flex-shrink: 0;
+      }
+
+      .rules .text {
+        font-size: 0.92rem;
+        color: var(--gray-700);
+      }
+
+      /* ─── Steps ─── */
+      .steps {
+        counter-reset: step;
+        list-style: none;
+        margin-top: 24px;
+      }
+
+      .steps li {
+        counter-increment: step;
+        padding: 16px 0 16px 48px;
+        border-bottom: 1px solid var(--gray-200);
+        position: relative;
+      }
+
+      .steps li:last-child {
+        border-bottom: none;
+      }
+
+      .steps li::before {
+        content: counter(step);
+        position: absolute;
+        left: 0;
+        top: 16px;
+        font-family: var(--mono);
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--gray-400);
+        width: 32px;
+        height: 32px;
+        border: 1px solid var(--gray-300);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .steps .title {
+        font-weight: 600;
+        color: var(--black);
+      }
+
+      .steps .desc {
+        font-size: 0.88rem;
+        color: var(--gray-600);
+        margin-top: 4px;
+      }
+
+      /* ─── Footer ─── */
+      .footer {
+        padding: 64px 0;
+        text-align: center;
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--gray-400);
+        letter-spacing: 0.05em;
+      }
+
+      /* ─── Print ─── */
+      @media print {
+        .hero {
+          padding: 48px 0 40px;
+        }
+        .section {
+          padding: 32px 0;
+          page-break-inside: avoid;
+        }
+        .toc {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ════════ HERO ════════ -->
+    <header class="hero page">
+      <h1>Dissolve <em>core/</em></h1>
+      <p class="subtitle">
+        A proposal to flatten the <code>core/</code> module group into peer-level modules, extract
+        <code>schema/</code> as a first-class concern, and give every package an honest name.
+      </p>
+      <div class="meta">
+        <span>go-cqrs-lite</span>
+        <span>2026-05-29</span>
+        <span>status: proposal</span>
+      </div>
+    </header>
+
+    <!-- ════════ TOC ════════ -->
+    <nav class="toc page">
+      <h2>Contents</h2>
+      <ol>
+        <li><a href="#problem">The Problem</a></li>
+        <li><a href="#principles">Principles</a></li>
+        <li><a href="#before-after">Before &amp; After</a></li>
+        <li><a href="#module-map">New Module Map</a></li>
+        <li><a href="#detail">Detailed Moves</a></li>
+        <li><a href="#schema">schema/ — The New Module</a></li>
+        <li><a href="#dep-graph">Dependency Graph</a></li>
+        <li><a href="#migration">Migration Plan</a></li>
+        <li><a href="#open-questions">Open Questions</a></li>
+      </ol>
+    </nav>
+
+    <!-- ════════ 1. PROBLEM ════════ -->
+    <section class="section page" id="problem">
+      <div class="section-label">01</div>
+      <h2>The Problem</h2>
+
+      <p>
+        <code>core/event/</code> contains 28 files, ~2,500 lines, and 8 distinct concerns — from the
+        <code>Event</code> type itself to snapshot strategies, outbox publishers, and projection
+        checkpoints. It's the only package in the repo that violates the "one concept, one package"
+        rule.
+      </p>
+      <p>
+        The <code>core/</code> prefix is the only nested module group in a repo of 17+ flat
+        top-level modules. It forces <code>command/</code> and <code>query/</code> — which share
+        zero dependencies — to share a <code>go.mod</code> with 15+ dependencies they don't need.
+      </p>
+      <p>
+        <strong>The word "core" is meaningless.</strong> Every module thinks it's core. It's the
+        <code>util</code> of package naming — a drawer for things you haven't properly named yet.
+      </p>
+
+      <div class="callout accent">
+        <p>
+          <strong>The real cost:</strong> Every import pays a <code>core/</code> path tax forever. A
+          consumer writing <code>"go-cqrs-lite/core/event"</code> is carrying a prefix that
+          communicates nothing and couples unrelated packages.
+        </p>
+      </div>
+    </section>
+
+    <!-- ════════ 2. PRINCIPLES ════════ -->
+    <section class="section page" id="principles">
+      <div class="section-label">02</div>
+      <h2>Principles</h2>
+
+      <ol class="rules">
+        <li>
+          <span class="num">01</span>
+          <span class="text"
+            ><strong>Honest names.</strong> Every module named after what it <em>is</em>, not where
+            it sits in a hierarchy.</span
+          >
+        </li>
+        <li>
+          <span class="num">02</span>
+          <span class="text"
+            ><strong>Peer-level modules.</strong> The repo already uses flat top-level modules.
+            <code>core/</code> is the outlier.</span
+          >
+        </li>
+        <li>
+          <span class="num">03</span>
+          <span class="text"
+            ><strong>Minimal <code>go.mod</code>.</strong> A module's dependencies should be only
+            what it needs. <code>command/</code> should not transitively depend on
+            <code>codec</code>.</span
+          >
+        </li>
+        <li>
+          <span class="num">04</span>
+          <span class="text"
+            ><strong>Interface–implementation separation.</strong> Core modules define interfaces.
+            Implementations live in their own modules (<code>memory/</code>, <code>storage/</code>,
+            <code>pebble/</code>).</span
+          >
+        </li>
+        <li>
+          <span class="num">05</span>
+          <span class="text"
+            ><strong>Additive first, breaking last.</strong> Migration phases add new paths, update
+            call sites, then remove old aliases.</span
+          >
+        </li>
+      </ol>
+    </section>
+
+    <!-- ════════ 3. BEFORE & AFTER ════════ -->
+    <section class="section page" id="before-after">
+      <div class="section-label">03</div>
+      <h2>Before &amp; After</h2>
+
+      <div class="comparison">
+        <div class="diagram">
+          <span class="label">Before</span>
+          <span class="dir">core/</span><br />
+          &nbsp;&nbsp;<span class="pkg">event/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+            class="comment"
+            >← 28 files, 2500 lines</span
+          ><br />
+          &nbsp;&nbsp;<span class="pkg">command/</span> &nbsp;&nbsp;<span class="comment"
+            >← shares go.mod with event</span
+          ><br />
+          &nbsp;&nbsp;<span class="pkg">query/</span> &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"
+            >← zero deps on event/command</span
+          ><br />
+          &nbsp;&nbsp;<span class="pkg">decider/</span> &nbsp;&nbsp;&nbsp;<span class="comment"
+            >← depends on event</span
+          ><br />
+          &nbsp;&nbsp;<span class="dir">pkg/</span><br />
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="pkg">id/</span>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← nested under pkg/</span
+          ><br />
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="pkg">dispatcher/</span>
+          <span class="comment">← nested under pkg/</span><br />
+          <span class="dir">memory/</span><br />
+          <span class="dir">storage/</span><br />
+          <span class="dir">projection/</span><br />
+          <span class="dir">catalog/</span><br />
+          <span class="comment">… 13 more top-level modules</span>
+        </div>
+
+        <div class="diagram">
+          <span class="label">After</span>
+          <span class="new">event/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"
+            >← ~750 lines</span
+          ><br />
+          <span class="new">store/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"
+            >← extracted from event</span
+          ><br />
+          <span class="new">bus/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+            class="comment"
+            >← extracted from event</span
+          ><br />
+          <span class="new">schema/</span> &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"
+            >← upcasting + SchemaVersion</span
+          ><br />
+          <span class="move">command/</span> &nbsp;&nbsp;&nbsp;<span class="comment"
+            >← own go.mod</span
+          ><br />
+          <span class="move">query/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"
+            >← own go.mod</span
+          ><br />
+          <span class="move">decider/</span> &nbsp;&nbsp;&nbsp;<span class="comment"
+            >← own go.mod</span
+          ><br />
+          <span class="move">id/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+            class="comment"
+            >← promoted, no more pkg/</span
+          ><br />
+          <span class="move">dispatcher/</span> &nbsp;<span class="comment"
+            >← promoted, no more pkg/</span
+          ><br />
+          <span class="remove">core/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+            class="comment"
+            >← deleted</span
+          ><br />
+          <br />
+          <span class="dir">memory/</span><br />
+          <span class="dir">storage/</span><br />
+          <span class="dir">projection/</span><br />
+          <span class="dir">catalog/</span><br />
+          <span class="comment">… 13 more top-level modules</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════ 4. MODULE MAP ════════ -->
+    <section class="section page" id="module-map">
+      <div class="section-label">04</div>
+      <h2>New Module Map</h2>
+
+      <div class="module-grid">
+        <div class="module-card">
+          <h4>event/</h4>
+          <div class="lines">~750 lines · own go.mod</div>
+          <p>
+            Event types, construction, metadata, options, errors, tombstones, codec helpers,
+            enrichment.
+          </p>
+          <div class="exports">
+            Event · ImmutableEvent · New · Option · Metadata · Version · Type · TombstoneStatus ·
+            DecodePayload
+          </div>
+        </div>
+
+        <div class="module-card">
+          <h4>store/</h4>
+          <div class="lines">~400 lines · own go.mod</div>
+          <p>Storage interfaces — read/write split, journaling, snapshots, streaming.</p>
+          <div class="exports">
+            EventSink · EventSource · Store · Journal · SeekableJournal · BackwardsSource ·
+            TransactionalSink · StreamLoader · SnapshotStore
+          </div>
+        </div>
+
+        <div class="module-card">
+          <h4>bus/</h4>
+          <div class="lines">~60 lines · own go.mod</div>
+          <p>Publish/subscribe interfaces and middleware chain.</p>
+          <div class="exports">
+            Publisher · Subscriber · Bus · Handler · Middleware · PublishMiddleware
+          </div>
+        </div>
+
+        <div class="module-card">
+          <h4>schema/</h4>
+          <div class="lines">~180 lines · own go.mod</div>
+          <p>Schema evolution — upcasting, versioned reads, schema version type.</p>
+          <div class="exports">
+            Upcaster · NewUpcaster · Registry · VersionedSource · SchemaVersion
+          </div>
+        </div>
+
+        <div class="module-card">
+          <h4>command/</h4>
+          <div class="lines">~260 lines · own go.mod</div>
+          <p>Command types, dispatcher, handler, typed dispatch.</p>
+          <div class="exports">Command · Dispatcher · Handler · DispatchTyped · Middleware</div>
+        </div>
+
+        <div class="module-card">
+          <h4>query/</h4>
+          <div class="lines">~310 lines · own go.mod</div>
+          <p>Query types, dispatcher, pagination, typed dispatch.</p>
+          <div class="exports">
+            Query · Dispatcher · Pagination · PaginatedResult · DispatchTyped
+          </div>
+        </div>
+
+        <div class="module-card">
+          <h4>decider/</h4>
+          <div class="lines">~530 lines · own go.mod</div>
+          <p>Pure-function aggregate pattern — decide, fold, execute, load.</p>
+          <div class="exports">Decider[S] · Repository · Execute · Load · Option</div>
+        </div>
+
+        <div class="module-card">
+          <h4>id/</h4>
+          <div class="lines">~230 lines · own go.mod</div>
+          <p>Branded identity types — Of[T], constructors, specializations.</p>
+          <div class="exports">
+            Of[T] · New · AggregateID · EventID · CorrelationID · CausationID
+          </div>
+        </div>
+
+        <div class="module-card">
+          <h4>dispatcher/</h4>
+          <div class="lines">~270 lines · own go.mod</div>
+          <p>Generic Dispatcher[H, M] with lifecycle, catalog, middleware.</p>
+          <div class="exports">Dispatcher[H, M] · LifecycleMixin · Catalog</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════ 5. DETAILED MOVES ════════ -->
+    <section class="section page" id="detail">
+      <div class="section-label">05</div>
+      <h2>Detailed Moves</h2>
+
+      <h3>From <code>core/event/</code> → new packages</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Files</th>
+            <th>Destination</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>store.go</code></td>
+            <td><code>store/</code></td>
+            <td><span class="tag tag--move">move</span></td>
+          </tr>
+          <tr>
+            <td>
+              <code>stream.go</code>, <code>aggregate_ref.go</code>, <code>slice.go</code>,
+              <code>batch.go</code>
+            </td>
+            <td><code>store/</code></td>
+            <td><span class="tag tag--move">move</span></td>
+          </tr>
+          <tr>
+            <td>
+              <code>snapshot.go</code>, <code>snapshot_helper.go</code>,
+              <code>snapshot_strategy.go</code>
+            </td>
+            <td><code>store/</code></td>
+            <td><span class="tag tag--move">move</span></td>
+          </tr>
+          <tr>
+            <td><code>bus.go</code></td>
+            <td><code>bus/</code></td>
+            <td><span class="tag tag--move">move</span></td>
+          </tr>
+          <tr>
+            <td>
+              <code>upcaster.go</code>, <code>upcaster_registry.go</code>,
+              <code>versioned_store.go</code>
+            </td>
+            <td><code>schema/</code></td>
+            <td><span class="tag tag--move">move</span></td>
+          </tr>
+          <tr>
+            <td><code>SchemaVersion</code> from <code>types.go</code></td>
+            <td><code>schema/</code></td>
+            <td><span class="tag tag--move">extract</span></td>
+          </tr>
+          <tr>
+            <td>
+              <code>outbox.go</code>, <code>outbox_publisher.go</code>,
+              <code>publish_helper.go</code>
+            </td>
+            <td><code>outbox/</code> <em>(new module)</em></td>
+            <td><span class="tag tag--new">new module</span></td>
+          </tr>
+          <tr>
+            <td><code>projection.go</code>, <code>checkpoint.go</code>, <code>replay.go</code></td>
+            <td><code>projection/</code> <em>(existing)</em></td>
+            <td><span class="tag tag--move">move</span></td>
+          </tr>
+          <tr>
+            <td>remaining ~12 files</td>
+            <td><code>event/</code></td>
+            <td><span class="tag tag--same">stay</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>From <code>core/</code> → promoted</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Current</th>
+            <th>New</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>core/command/</code></td>
+            <td><code>command/</code></td>
+            <td><span class="tag tag--move">promote</span></td>
+          </tr>
+          <tr>
+            <td><code>core/query/</code></td>
+            <td><code>query/</code></td>
+            <td><span class="tag tag--move">promote</span></td>
+          </tr>
+          <tr>
+            <td><code>core/decider/</code></td>
+            <td><code>decider/</code></td>
+            <td><span class="tag tag--move">promote</span></td>
+          </tr>
+          <tr>
+            <td><code>core/pkg/id/</code></td>
+            <td><code>id/</code></td>
+            <td><span class="tag tag--move">promote</span></td>
+          </tr>
+          <tr>
+            <td><code>core/pkg/dispatcher/</code></td>
+            <td><code>dispatcher/</code></td>
+            <td><span class="tag tag--move">promote</span></td>
+          </tr>
+          <tr>
+            <td><code>core/</code></td>
+            <td><em>deleted</em></td>
+            <td><span class="tag tag--rm">remove</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ════════ 6. SCHEMA ════════ -->
+    <section class="section page" id="schema">
+      <div class="section-label">06</div>
+      <h2>schema/ — The New Module</h2>
+
+      <p>
+        Upcasting is currently buried in <code>core/event/</code> — but it's neither an event
+        concern nor a store concern. It's a <strong>schema evolution</strong> concern. Naming the
+        module <code>upcaster/</code> would describe the mechanism. <code>schema/</code> describes
+        the <em>domain</em>.
+      </p>
+
+      <div class="callout">
+        <p>
+          <strong>Future growth.</strong> A <code>schema/</code> module naturally accommodates
+          compatibility checks, version registration, auto-documentation hooks (via
+          <code>catalog/</code>), and migration policies — none of which fit under "upcaster."
+        </p>
+      </div>
+
+      <h3>Contents</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>File</th>
+            <th>Exports</th>
+            <th>Origin</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>upcaster.go</code></td>
+            <td><code>Upcaster</code>, <code>NewUpcaster</code></td>
+            <td>from <code>event/upcaster.go</code></td>
+          </tr>
+          <tr>
+            <td><code>registry.go</code></td>
+            <td><code>Registry</code></td>
+            <td>from <code>event/upcaster_registry.go</code></td>
+          </tr>
+          <tr>
+            <td><code>versioned_source.go</code></td>
+            <td><code>VersionedSource</code>, <code>NewVersionedSource</code></td>
+            <td>from <code>event/versioned_store.go</code></td>
+          </tr>
+          <tr>
+            <td><code>version.go</code></td>
+            <td><code>SchemaVersion</code>, <code>ParseSchemaVersion</code></td>
+            <td>extracted from <code>event/types.go</code></td>
+          </tr>
+          <tr>
+            <td><code>errors.go</code></td>
+            <td><code>ErrMissingUpcaster</code>, <code>ErrIncompatibleSchema</code></td>
+            <td><span class="tag tag--new">new</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ════════ 7. DEPENDENCY GRAPH ════════ -->
+    <section class="section page" id="dep-graph">
+      <div class="section-label">07</div>
+      <h2>Dependency Graph</h2>
+
+      <p>
+        After the split, the dependency graph is a clean DAG — no cycles, no false coupling. Each
+        module depends only on what it actually needs.
+      </p>
+
+      <div class="dep-graph">
+        <span class="label">Layer 0 — Leaves (no internal deps)</span>
+        <span class="node">id/</span> <span class="comment">·</span>
+        <span class="node">dispatcher/</span> <span class="comment">·</span>
+        <span class="node">codec/</span> <span class="comment">·</span>
+        <span class="node">event/</span> <br /><br />
+        <span class="label">Layer 1 — Infrastructure interfaces</span>
+        <span class="node">store/</span> <span class="arrow">→</span>
+        <span class="node">event/</span>
+        <br />
+        <span class="node">bus/</span> <span class="arrow">→</span> <span class="node">event/</span>
+        <br />
+        <span class="node">schema/</span> <span class="arrow">→</span>
+        <span class="node">store/</span><span class="comment">, </span
+        ><span class="node">event/</span> <br /><br />
+        <span class="label">Layer 2 — Domain primitives</span>
+        <span class="node">command/</span> <span class="arrow">→</span> <span class="node">id/</span
+        ><span class="comment">, </span><span class="node">dispatcher/</span>
+        <br />
+        <span class="node">query/</span> <span class="arrow">→</span>
+        <span class="node">dispatcher/</span> <br /><br />
+        <span class="label">Layer 3 — Aggregate pattern</span>
+        <span class="node">decider/</span> <span class="arrow">→</span>
+        <span class="node">event/</span><span class="comment">, </span
+        ><span class="node">store/</span><span class="comment">, </span
+        ><span class="node">schema/</span> <br /><br />
+        <span class="label">Layer 4 — Implementations (outside core)</span>
+        <span class="node">memory/</span> <span class="arrow">→</span>
+        <span class="node">event/</span><span class="comment">, </span
+        ><span class="node">store/</span><span class="comment">, </span
+        ><span class="node">bus/</span>
+        <br />
+        <span class="node">storage/</span> <span class="arrow">→</span>
+        <span class="node">store/</span><span class="comment">, </span
+        ><span class="node">schema/</span>
+        <br />
+        <span class="node">projection/</span> <span class="arrow">→</span>
+        <span class="node">event/</span><span class="comment">, </span
+        ><span class="node">store/</span>
+        <br />
+        <span class="node">outbox/</span> <span class="arrow">→</span> <span class="node">bus/</span
+        ><span class="comment">, </span><span class="node">store/</span>
+        <br />
+        <span class="comment">…</span>
+      </div>
+
+      <div class="callout">
+        <p>
+          <strong>Key difference:</strong> <code>command/</code> and <code>query/</code> no longer
+          share a <code>go.mod</code> with <code>event/</code>. Their only dependencies are
+          <code>id/</code> and <code>dispatcher/</code> — exactly what they need.
+        </p>
+      </div>
+    </section>
+
+    <!-- ════════ 8. MIGRATION ════════ -->
+    <section class="section page" id="migration">
+      <div class="section-label">08</div>
+      <h2>Migration Plan</h2>
+
+      <p>Each phase is independently shippable. No phase requires the next to be useful.</p>
+
+      <ol class="steps">
+        <li>
+          <div class="title">Create new top-level directories</div>
+          <div class="desc">
+            Create <code>event/</code>, <code>store/</code>, <code>bus/</code>,
+            <code>schema/</code>, <code>command/</code>, <code>query/</code>, <code>decider/</code>,
+            <code>id/</code>, <code>dispatcher/</code> with their own <code>go.mod</code> files.
+          </div>
+        </li>
+        <li>
+          <div class="title">Copy files (don't move yet)</div>
+          <div class="desc">
+            Copy source files into their new homes. Add re-export aliases in
+            <code>core/event/</code>, <code>core/command/</code>, etc. so existing consumers keep
+            compiling. All tests pass at every step.
+          </div>
+        </li>
+        <li>
+          <div class="title">Update internal consumers</div>
+          <div class="desc">
+            Update all imports across <code>memory/</code>, <code>storage/</code>,
+            <code>projection/</code>, <code>middleware/</code>, <code>signing/</code>,
+            <code>catalog/</code>, <code>testhelpers/</code>, etc. to use new import paths.
+          </div>
+        </li>
+        <li>
+          <div class="title">Extract outbox + projection interfaces</div>
+          <div class="desc">
+            Move <code>outbox*.go</code> to <code>outbox/</code>. Move <code>projection.go</code>,
+            <code>checkpoint.go</code>, <code>replay.go</code> to <code>projection/</code>.
+          </div>
+        </li>
+        <li>
+          <div class="title">Remove re-export aliases</div>
+          <div class="desc">
+            Delete compatibility aliases in <code>core/</code>. Every consumer now points to flat
+            modules.
+          </div>
+        </li>
+        <li>
+          <div class="title">Delete <code>core/</code></div>
+          <div class="desc">
+            Remove the <code>core/</code> directory entirely. Update <code>go.work</code>. Full test
+            suite passes with <code>nix run .#test</code>.
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <!-- ════════ 9. OPEN QUESTIONS ════════ -->
+    <section class="section page" id="open-questions">
+      <div class="section-label">09</div>
+      <h2>Open Questions</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Question</th>
+            <th>Options</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>
+              Should <code>bus/</code> (58 lines) merge into <code>store/</code> or stand alone?
+            </td>
+            <td>Separate (clean role) · Merged (less modules)</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>
+              Should <code>event.Version</code> stay in <code>event/</code> or move to
+              <code>store/</code>?
+            </td>
+            <td>Stay (stream position is event concern) · Move (used by store interfaces)</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Should <code>outbox/</code> be its own module or live in <code>storage/</code>?</td>
+            <td>Own module (clean boundary) · In storage (co-located with SQLOutbox)</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>How many replace directives are acceptable in <code>go.work</code>?</td>
+            <td>Current: 17 · After: ~22 · Acceptable until v1.0.0 tag</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>
+              Should projection interfaces move to <code>projection/</code> or stay in
+              <code>event/</code>?
+            </td>
+            <td>Move (define where used) · Stay (event-oriented types)</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>Re-export convenience package at <code>go-cqrs-lite</code> root?</td>
+            <td>Yes (one import) · No (explicit imports preferred)</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ════════ FOOTER ════════ -->
+    <footer class="footer">go-cqrs-lite · module restructuring proposal · 2026-05-29</footer>
+  </body>
+</html>

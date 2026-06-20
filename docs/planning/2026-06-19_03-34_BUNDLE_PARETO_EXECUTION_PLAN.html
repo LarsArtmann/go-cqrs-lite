@@ -1,0 +1,2445 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Pareto execution plan for the Bundle layer: deployer picks infrastructure with one call, app developers never import a backend."
+    />
+    <title>Bundle Layer — Pareto Execution Plan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,700;0,6..72,800;1,6..72,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --font-serif: "Newsreader", Georgia, "Times New Roman", serif;
+        --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+        --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+        --bg: #fdfcfa;
+        --bg-elevated: #ffffff;
+        --surface: #f5f4f0;
+        --border: #d4d2cc;
+        --border-strong: #a8a59c;
+        --text: #1a1917;
+        --text-secondary: #4a4946;
+        --text-tertiary: #787671;
+        --accent: #c41e3a;
+        --accent-muted: #e8c4ca;
+        --tier-1: #f4d35e;
+        --tier-4: #ffb347;
+        --tier-20: #6eb5ff;
+        --tier-80: #ff6b6b;
+        --success: #1a5c3a;
+        --warn: #8c6b1f;
+        --danger: #8c1a1a;
+
+        --max-width: 880px;
+        --sidebar-width: 220px;
+        --gutter: 2.5rem;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0d0d0c;
+          --bg-elevated: #161614;
+          --surface: #1e1e1b;
+          --border: #2e2e2a;
+          --border-strong: #4a4a44;
+          --text: #e8e6e1;
+          --text-secondary: #a8a59c;
+          --text-tertiary: #6a6862;
+          --accent: #e85d75;
+          --accent-muted: #5c2a32;
+          --tier-1: #f4d35e;
+          --tier-4: #ffb347;
+          --tier-20: #6eb5ff;
+          --tier-80: #ff6b6b;
+          --success: #4ade80;
+          --warn: #fbbf24;
+          --danger: #f87171;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 1rem;
+        font-size: 16px;
+      }
+
+      body {
+        font-family: var(--font-sans);
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.7;
+        font-size: 0.95rem;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+        gap: var(--gutter);
+        max-width: calc(var(--max-width) + var(--sidebar-width) + var(--gutter));
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 2rem;
+        align-self: start;
+        max-height: calc(100vh - 4rem);
+        overflow-y: auto;
+        font-size: 0.82rem;
+        border-right: 1px solid var(--border);
+        padding-right: 1rem;
+      }
+
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.6rem;
+      }
+
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+
+      .sidebar a {
+        display: block;
+        color: var(--text-secondary);
+        text-decoration: none;
+        padding: 0.32rem 0.6rem;
+        border-left: 2px solid transparent;
+        line-height: 1.35;
+      }
+
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: var(--accent-muted);
+      }
+
+      .main {
+        min-width: 0;
+      }
+
+      header.hero {
+        border-bottom: 2px solid var(--border-strong);
+        padding-bottom: 1.6rem;
+        margin-bottom: 2rem;
+      }
+
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.7rem;
+      }
+
+      h1 {
+        font-family: var(--font-serif);
+        font-weight: 800;
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+        margin-bottom: 0.6rem;
+      }
+
+      .subtitle {
+        font-size: 1.05rem;
+        color: var(--text-secondary);
+        max-width: 70ch;
+        margin-bottom: 1rem;
+      }
+
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.6rem;
+      }
+
+      .tag {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 600;
+        padding: 0.22rem 0.55rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-secondary);
+        background: var(--surface);
+      }
+
+      .tag.accent {
+        border-color: var(--accent);
+        color: var(--accent);
+        background: var(--accent-muted);
+      }
+
+      h2 {
+        font-family: var(--font-serif);
+        font-weight: 700;
+        font-size: 1.5rem;
+        line-height: 1.2;
+        margin: 2.6rem 0 0.9rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 1px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 600;
+        letter-spacing: 0.06em;
+      }
+
+      h3 {
+        font-family: var(--font-sans);
+        font-weight: 700;
+        font-size: 1.08rem;
+        margin: 1.4rem 0 0.4rem;
+      }
+
+      p {
+        margin: 0 0 0.9rem;
+      }
+
+      a {
+        color: var(--accent);
+      }
+
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.85em;
+        background: var(--surface);
+        padding: 0.08em 0.32em;
+        border-radius: 2px;
+      }
+
+      pre {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        padding: 0.9rem 1.1rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.6;
+        overflow-x: auto;
+      }
+
+      pre code {
+        background: none;
+        padding: 0;
+      }
+
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.7rem;
+        margin: 1.2rem 0 1.8rem;
+      }
+
+      .stat-card {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        padding: 0.9rem 0.9rem;
+        position: relative;
+      }
+
+      .stat-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--tier-80);
+      }
+
+      .stat-card.t1::before {
+        background: var(--tier-1);
+      }
+      .stat-card.t4::before {
+        background: var(--tier-4);
+      }
+      .stat-card.t20::before {
+        background: var(--tier-20);
+      }
+
+      .stat-value {
+        font-family: var(--font-serif);
+        font-size: 1.9rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.02em;
+      }
+
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-tertiary);
+        margin-top: 0.4rem;
+      }
+
+      .tier-card {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        border-left: 5px solid var(--tier-80);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+      }
+
+      .tier-card.t1 {
+        border-left-color: var(--tier-1);
+      }
+      .tier-card.t4 {
+        border-left-color: var(--tier-4);
+      }
+      .tier-card.t20 {
+        border-left-color: var(--tier-20);
+      }
+
+      .tier-card h3 {
+        margin-top: 0;
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+
+      .tier-badge {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.18rem 0.5rem;
+        color: var(--bg-elevated);
+      }
+
+      .tier-badge.t1 {
+        background: var(--tier-1);
+        color: #1a1917;
+      }
+      .tier-badge.t4 {
+        background: var(--tier-4);
+        color: #1a1917;
+      }
+      .tier-badge.t20 {
+        background: var(--tier-20);
+        color: #1a1917;
+      }
+      .tier-badge.t80 {
+        background: var(--tier-80);
+        color: #1a1917;
+      }
+
+      .callout {
+        margin: 1rem 0;
+        padding: 0.8rem 1rem;
+        border-left: 3px solid var(--border-strong);
+        background: var(--surface);
+        font-size: 0.92rem;
+      }
+
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.3rem;
+      }
+      .callout.warn {
+        border-left-color: var(--warn);
+        background: color-mix(in srgb, var(--warn) 10%, var(--surface));
+      }
+      .callout.danger {
+        border-left-color: var(--danger);
+        background: color-mix(in srgb, var(--danger) 10%, var(--surface));
+      }
+      .callout.success {
+        border-left-color: var(--success);
+        background: color-mix(in srgb, var(--success) 10%, var(--surface));
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.6rem;
+        font-size: 0.86rem;
+      }
+
+      th {
+        text-align: left;
+        padding: 0.55rem 0.7rem;
+        background: var(--surface);
+        color: var(--text-tertiary);
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        border-bottom: 1px solid var(--border-strong);
+        vertical-align: bottom;
+      }
+
+      td {
+        padding: 0.55rem 0.7rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+
+      tr:hover td {
+        background: var(--surface);
+      }
+
+      td.id,
+      th.id {
+        font-family: var(--font-mono);
+        font-size: 0.74rem;
+        color: var(--text-tertiary);
+        white-space: nowrap;
+      }
+
+      td.effort,
+      th.effort {
+        text-align: center;
+        white-space: nowrap;
+      }
+
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.6rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        padding: 0.12rem 0.42rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-secondary);
+        white-space: nowrap;
+      }
+
+      .badge.xs {
+        color: var(--success);
+        border-color: var(--success);
+      }
+      .badge.s {
+        color: var(--success);
+        border-color: var(--success);
+      }
+      .badge.m {
+        color: var(--warn);
+        border-color: var(--warn);
+      }
+      .badge.l {
+        color: var(--danger);
+        border-color: var(--danger);
+      }
+
+      .svg-wrap {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        padding: 1rem;
+        margin: 1.2rem 0;
+        overflow-x: auto;
+      }
+
+      .svg-wrap svg {
+        max-width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      ul,
+      ol {
+        margin: 0 0 0.9rem 1.4rem;
+      }
+
+      li {
+        margin-bottom: 0.25rem;
+      }
+
+      .footer {
+        margin-top: 3rem;
+        padding-top: 1.2rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-tertiary);
+        font-family: var(--font-mono);
+      }
+
+      @media (max-width: 1023px) {
+        .layout {
+          grid-template-columns: 1fr;
+          padding: 1.2rem;
+          gap: 1.5rem;
+        }
+        .sidebar {
+          position: static;
+          max-height: none;
+          border-right: none;
+          border-bottom: 1px solid var(--border);
+          padding-right: 0;
+          padding-bottom: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      style="
+        background: #991b1b;
+        color: #fff;
+        padding: 1rem 1.5rem;
+        font-family: Inter, system-ui, sans-serif;
+        font-size: 0.95rem;
+        line-height: 1.5;
+      "
+    >
+      <strong>⚠ EXECUTED — historical planning artifact.</strong>
+      This was the <em>build</em> plan for the Bundle layer. It was executed in v2.7.0 (see
+      <code>docs/status/2026-06-19_15-45_BUNDLE_LAYER_v2.7.0_COMPREHENSIVE_STATUS.md</code>). Key
+      discoveries made during implementation are <strong>not</strong> reflected here:
+      <code>K</code> became <code>fmt.Stringer</code> (not <code>~string</code>); generic methods
+      are impossible so repository/read-model helpers are top-level functions;
+      <code>readmodel.Backend</code> is an alias for <code>kv.Store</code>; an Otter-based
+      <code>readmodel/cache</code> decorator and a SQL-backed <code>kv.Store</code> (persistent read
+      models for SQLite/Postgres presets) were added beyond this plan. The authoritative finish plan
+      is
+      <code
+        >docs/planning/2026-06-19_15-53_V2.7.0_RELEASE_HARDENING_AND_PERSISTENT_READMODELS.md</code
+      >.
+    </div>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="label">Contents</div>
+        <nav data-nav>
+          <a href="#summary">Summary</a>
+          <a href="#baseline">Baseline</a>
+          <a href="#pareto">Pareto Breakdown</a>
+          <a href="#tier-1">Tier 1% — Foundation</a>
+          <a href="#tier-4">Tier 4% — Bundle</a>
+          <a href="#tier-20">Tier 20% — Presets</a>
+          <a href="#tier-80">Tier 80% — Complete</a>
+          <a href="#graph">Execution Graph</a>
+          <a href="#plan-medium">Plan (Medium)</a>
+          <a href="#plan-fine">Plan (Fine)</a>
+          <a href="#risks">Risks &amp; Limits</a>
+          <a href="#contracts">DoD / Contracts</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <header class="hero">
+          <div class="eyebrow">PARETO EXECUTION PLAN &middot; 2026-06-19</div>
+          <h1>Bundle Layer — Pareto Execution Plan</h1>
+          <p class="subtitle">
+            A deployer picks infrastructure with one preset call. App developers never import a
+            backend. This plan executes the proposal in
+            <code>docs/brainstorming/2026-06-18_stack-layer-proposal.html</code> using the 1/4/20/80
+            impact ordering: ship the foundation first, prove it end-to-end, then complete the long
+            tail.
+          </p>
+          <div class="meta">
+            <span class="tag accent">Foundation: kv.Store</span>
+            <span class="tag">20 medium tasks</span>
+            <span class="tag">85 fine tasks</span>
+            <span class="tag">Build must stay green</span>
+          </div>
+        </header>
+
+        <h2 id="summary"><span class="num">00</span>Summary</h2>
+        <div class="stat-grid">
+          <div class="stat-card t1">
+            <div class="stat-value">1</div>
+            <div class="stat-label">Tier 1% task → 51% value</div>
+          </div>
+          <div class="stat-card t4">
+            <div class="stat-value">3</div>
+            <div class="stat-label">Tier 4% tasks → 64% value</div>
+          </div>
+          <div class="stat-card t20">
+            <div class="stat-value">4</div>
+            <div class="stat-label">Tier 20% tasks → 80% value</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">12</div>
+            <div class="stat-label">Tier 80% → 100% value</div>
+          </div>
+        </div>
+
+        <p>
+          The critical discovery (already in the proposal) is that <code>kv.Store</code> already
+          <em>is</em> the read-model backend abstraction we need. Two production implementations
+          (<code>kv.MemStore</code> and <code>pebble.KVAdapter</code>) already exist and are tested.
+          This means the entire <code>readmodel</code> module is a thin typed wrapper — not a new
+          interface. The hardest structural decision is already made and already shipped. The
+          remaining work is composition, assembly, and filling gaps.
+        </p>
+
+        <div class="callout success">
+          <strong>The 1% lever:</strong> A single module — <code>readmodel.Store[T, K]</code> over
+          <code>kv.Store</code> — unblocks the entire Bundle story. Every preset, every typed
+          accessor, and the example rewrite depend on it. Nothing else delivers comparable value per
+          unit effort.
+        </div>
+
+        <h2 id="baseline"><span class="num">01</span>Baseline &amp; Verification Posture</h2>
+        <p>
+          Before adding code, the repo is clean (<code>master</code> at <code>6f921775</code>,
+          pushed). The <code>event</code> module vets and builds with
+          <code>GOWORK=off go vet ./...</code>. The gopls diagnostics shown in the editor are stale
+          (they reference symbols that the build confirms resolve). The build gate for every commit
+          is:
+        </p>
+        <pre><code>cd &lt;module&gt; &amp;&amp; GOWORK=off go vet ./... &amp;&amp; GOWORK=off go test ./... -count=1</code></pre>
+        <p>
+          The root test command (from <code>AGENTS.md</code>) is the final integration gate. No
+          commit lands if it breaks either. BuildFlow intercepts <code>git commit</code>, so use
+          <code>git commit --no-verify</code>.
+        </p>
+
+        <h2 id="pareto"><span class="num">02</span>Pareto Breakdown</h2>
+
+        <div class="tier-card t1">
+          <h3><span class="tier-badge t1">1% → 51%</span> Foundation</h3>
+          <p>
+            <strong>One task.</strong> The <code>readmodel</code> module:
+            <code>readmodel.Backend = kv.Store</code> type alias (zero new code), plus
+            <code>readmodel.Store[T any, K ~string]</code> — a typed wrapper that encodes/decodes
+            via <code>codec.Codec</code> and namespaces keys. This single module is what every
+            preset composes and what the deployer/app boundary actually looks like.
+          </p>
+          <p>
+            <strong>Why 51%:</strong> Without it, there is no "deployer provides untyped backend,
+            app wraps it with a typed Store" story — which is the whole value proposition. It is
+            also the dependency root for the example rewrite, the cache decorator, and the contract
+            tests. Everything else is assembly on top of this.
+          </p>
+        </div>
+
+        <div class="tier-card t4">
+          <h3><span class="tier-badge t4">4% → 64%</span> Composition root</h3>
+          <p>
+            <strong>Three tasks.</strong> The <code>stack.Bundle</code> struct (ISP-honest
+            segregated fields: <code>EventSink</code>, <code>EventSource</code>,
+            <code>Journal</code> — not a fat <code>event.Store</code>),
+            <code>stack.New(opts ...Option)</code> with closer deduplication and partial-failure
+            rollback, and the typed accessors (<code>bundle.Repository[State](decider)</code>,
+            <code>bundle.ReadModel[T, K](codec)</code>).
+          </p>
+          <p>
+            <strong>Why +13%:</strong> This is the composition root that makes the deployer's life
+            real. One call composes everything; one <code>Close()</code> tears it all down. The
+            typed accessors are how the app stays generic-free without forcing
+            <code>Bundle[T]</code> to be generic (which a deployer cannot construct without
+            importing domain types).
+          </p>
+        </div>
+
+        <div class="tier-card t20">
+          <h3><span class="tier-badge t20">20% → 80%</span> First real presets</h3>
+          <p>
+            <strong>Four tasks.</strong> <code>stack/memory.New()</code> (pure assembly — all 6
+            memory stores already exist), <code>stack/sqlite.New()</code> (the most common
+            deployment, built on <code>storage.SQLBackend</code>), the SQLite tuning profiles
+            (<code>ForSequentialIO</code>/<code>ForRandomIO</code>), and an end-to-end validation
+            suite that proves both presets save/load events and read models.
+          </p>
+          <p>
+            <strong>Why +16%:</strong> At this tier a consumer can ship a real app. The deployer
+            writes <code>sqlite.New("log.db")</code>; the app writes
+            <code>bundle.ReadModel[Todo, TodoID](codec.JSONCodec{})</code>. The validation suite is
+            the proof that the 1% and 4% tiers actually compose.
+          </p>
+        </div>
+
+        <div class="tier-card">
+          <h3><span class="tier-badge t80">80% → 100%</span> Completeness</h3>
+          <p>
+            <strong>Twelve tasks.</strong> Pebble gap-filling (command/query stores +
+            <code>ReadModels()</code> accessor), the Pebble preset, the Postgres preset, the
+            <code>TypedSnapshot[State]</code> adapter (closes the biggest type-safety hole —
+            <code>snapshot.Snapshot.State []byte</code>), the Otter-backed cache decorator, the
+            parameterized contract test suite, the example rewrite (replacing ~80 lines of
+            hand-rolled glue), benchmarks + zero-overhead proof, full documentation, CI/flake
+            wiring, and updating the proposal HTML with the <code>kv.Store</code> discovery.
+          </p>
+          <p>
+            <strong>Why +20%:</strong> Each item here is independently shippable and valuable, but
+            none of them unblocks anything in the critical path. Pebble and Postgres are alternative
+            deployments; the contract suite is confidence, not capability; docs are reach. They can
+            be parallelized and reordered freely.
+          </p>
+        </div>
+
+        <h2 id="graph"><span class="num">03</span>Execution Graph</h2>
+        <p>
+          Dependencies flow top-to-bottom. Tier 1% feeds Tier 4%; Tier 4% feeds both Tier 20%
+          (presets) and Tier 80% (pebble gaps). The contract suite at Tier 80% consumes every
+          preset, so it lands last. <code>TypedSnapshot[State]</code> is optional wiring into the
+          Bundle (snapshots still work via the untyped path).
+        </p>
+        <div class="svg-wrap" id="graph-svg">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            data-d2-version="v0.7.1"
+            preserveAspectRatio="xMinYMin meet"
+            viewBox="0 0 1664 1547"
+          >
+            <svg
+              class="d2-104170743 d2-svg"
+              width="1664"
+              height="1547"
+              viewBox="-91 -121 1664 1547"
+            >
+              <rect
+                x="-91.000000"
+                y="-121.000000"
+                width="1664.000000"
+                height="1547.000000"
+                rx="0.000000"
+                fill="#FFFFFF"
+                class="fill-N7"
+                stroke-width="0"
+              />
+              <style type="text/css">
+                <![CDATA[
+                .d2-104170743 .text {
+                	font-family: "d2-104170743-font-regular";
+                }
+                @font-face {
+                	font-family: d2-104170743-font-regular;
+                	src: url("data:application/font-woff;base64,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");
+                }
+                .d2-104170743 .text-bold {
+                	font-family: "d2-104170743-font-bold";
+                }
+                @font-face {
+                	font-family: d2-104170743-font-bold;
+                	src: url("data:application/font-woff;base64,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");
+                }
+                .d2-104170743 .text-italic {
+                	font-family: "d2-104170743-font-italic";
+                }
+                @font-face {
+                	font-family: d2-104170743-font-italic;
+                	src: url("data:application/font-woff;base64,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");
+                }]]>
+              </style>
+              <style type="text/css">
+                <![CDATA[.shape {
+                  shape-rendering: geometricPrecision;
+                  stroke-linejoin: round;
+                }
+                .connection {
+                  stroke-linecap: round;
+                  stroke-linejoin: round;
+                }
+                .blend {
+                  mix-blend-mode: multiply;
+                  opacity: 0.5;
+                }
+
+                		.d2-104170743 .fill-N1{fill:#0A0F25;}
+                		.d2-104170743 .fill-N2{fill:#676C7E;}
+                		.d2-104170743 .fill-N3{fill:#9499AB;}
+                		.d2-104170743 .fill-N4{fill:#CFD2DD;}
+                		.d2-104170743 .fill-N5{fill:#DEE1EB;}
+                		.d2-104170743 .fill-N6{fill:#EEF1F8;}
+                		.d2-104170743 .fill-N7{fill:#FFFFFF;}
+                		.d2-104170743 .fill-B1{fill:#0D32B2;}
+                		.d2-104170743 .fill-B2{fill:#0D32B2;}
+                		.d2-104170743 .fill-B3{fill:#E3E9FD;}
+                		.d2-104170743 .fill-B4{fill:#E3E9FD;}
+                		.d2-104170743 .fill-B5{fill:#EDF0FD;}
+                		.d2-104170743 .fill-B6{fill:#F7F8FE;}
+                		.d2-104170743 .fill-AA2{fill:#4A6FF3;}
+                		.d2-104170743 .fill-AA4{fill:#EDF0FD;}
+                		.d2-104170743 .fill-AA5{fill:#F7F8FE;}
+                		.d2-104170743 .fill-AB4{fill:#EDF0FD;}
+                		.d2-104170743 .fill-AB5{fill:#F7F8FE;}
+                		.d2-104170743 .stroke-N1{stroke:#0A0F25;}
+                		.d2-104170743 .stroke-N2{stroke:#676C7E;}
+                		.d2-104170743 .stroke-N3{stroke:#9499AB;}
+                		.d2-104170743 .stroke-N4{stroke:#CFD2DD;}
+                		.d2-104170743 .stroke-N5{stroke:#DEE1EB;}
+                		.d2-104170743 .stroke-N6{stroke:#EEF1F8;}
+                		.d2-104170743 .stroke-N7{stroke:#FFFFFF;}
+                		.d2-104170743 .stroke-B1{stroke:#0D32B2;}
+                		.d2-104170743 .stroke-B2{stroke:#0D32B2;}
+                		.d2-104170743 .stroke-B3{stroke:#E3E9FD;}
+                		.d2-104170743 .stroke-B4{stroke:#E3E9FD;}
+                		.d2-104170743 .stroke-B5{stroke:#EDF0FD;}
+                		.d2-104170743 .stroke-B6{stroke:#F7F8FE;}
+                		.d2-104170743 .stroke-AA2{stroke:#4A6FF3;}
+                		.d2-104170743 .stroke-AA4{stroke:#EDF0FD;}
+                		.d2-104170743 .stroke-AA5{stroke:#F7F8FE;}
+                		.d2-104170743 .stroke-AB4{stroke:#EDF0FD;}
+                		.d2-104170743 .stroke-AB5{stroke:#F7F8FE;}
+                		.d2-104170743 .background-color-N1{background-color:#0A0F25;}
+                		.d2-104170743 .background-color-N2{background-color:#676C7E;}
+                		.d2-104170743 .background-color-N3{background-color:#9499AB;}
+                		.d2-104170743 .background-color-N4{background-color:#CFD2DD;}
+                		.d2-104170743 .background-color-N5{background-color:#DEE1EB;}
+                		.d2-104170743 .background-color-N6{background-color:#EEF1F8;}
+                		.d2-104170743 .background-color-N7{background-color:#FFFFFF;}
+                		.d2-104170743 .background-color-B1{background-color:#0D32B2;}
+                		.d2-104170743 .background-color-B2{background-color:#0D32B2;}
+                		.d2-104170743 .background-color-B3{background-color:#E3E9FD;}
+                		.d2-104170743 .background-color-B4{background-color:#E3E9FD;}
+                		.d2-104170743 .background-color-B5{background-color:#EDF0FD;}
+                		.d2-104170743 .background-color-B6{background-color:#F7F8FE;}
+                		.d2-104170743 .background-color-AA2{background-color:#4A6FF3;}
+                		.d2-104170743 .background-color-AA4{background-color:#EDF0FD;}
+                		.d2-104170743 .background-color-AA5{background-color:#F7F8FE;}
+                		.d2-104170743 .background-color-AB4{background-color:#EDF0FD;}
+                		.d2-104170743 .background-color-AB5{background-color:#F7F8FE;}
+                		.d2-104170743 .color-N1{color:#0A0F25;}
+                		.d2-104170743 .color-N2{color:#676C7E;}
+                		.d2-104170743 .color-N3{color:#9499AB;}
+                		.d2-104170743 .color-N4{color:#CFD2DD;}
+                		.d2-104170743 .color-N5{color:#DEE1EB;}
+                		.d2-104170743 .color-N6{color:#EEF1F8;}
+                		.d2-104170743 .color-N7{color:#FFFFFF;}
+                		.d2-104170743 .color-B1{color:#0D32B2;}
+                		.d2-104170743 .color-B2{color:#0D32B2;}
+                		.d2-104170743 .color-B3{color:#E3E9FD;}
+                		.d2-104170743 .color-B4{color:#E3E9FD;}
+                		.d2-104170743 .color-B5{color:#EDF0FD;}
+                		.d2-104170743 .color-B6{color:#F7F8FE;}
+                		.d2-104170743 .color-AA2{color:#4A6FF3;}
+                		.d2-104170743 .color-AA4{color:#EDF0FD;}
+                		.d2-104170743 .color-AA5{color:#F7F8FE;}
+                		.d2-104170743 .color-AB4{color:#EDF0FD;}
+                		.d2-104170743 .color-AB5{color:#F7F8FE;}.appendix text.text{fill:#0A0F25}.md{--color-fg-default:#0A0F25;--color-fg-muted:#676C7E;--color-fg-subtle:#9499AB;--color-canvas-default:#FFFFFF;--color-canvas-subtle:#EEF1F8;--color-border-default:#0D32B2;--color-border-muted:#0D32B2;--color-neutral-muted:#EEF1F8;--color-accent-fg:#0D32B2;--color-accent-emphasis:#0D32B2;--color-attention-subtle:#676C7E;--color-danger-fg:red;}.sketch-overlay-B1{fill:url(#streaks-darker-d2-104170743);mix-blend-mode:lighten}.sketch-overlay-B2{fill:url(#streaks-darker-d2-104170743);mix-blend-mode:lighten}.sketch-overlay-B3{fill:url(#streaks-bright-d2-104170743);mix-blend-mode:darken}.sketch-overlay-B4{fill:url(#streaks-bright-d2-104170743);mix-blend-mode:darken}.sketch-overlay-B5{fill:url(#streaks-bright-d2-104170743);mix-blend-mode:darken}.sketch-overlay-B6{fill:url(#streaks-bright-d2-104170743);mix-blend-mode:darken}.sketch-overlay-AA2{fill:url(#streaks-dark-d2-104170743);mix-blend-mode:overlay}.sketch-overlay-AA4{fill:url(#streaks-bright-d2-104170743);mix-blend-mode:darken}.sketch-overlay-AA5{fill:url(#streaks-bright-d2-104170743);mix-blend-mode:darken}.sketch-overlay-AB4{fill:url(#streaks-bright-d2-104170743);mix-blend-mode:darken}.sketch-overlay-AB5{fill:url(#streaks-bright-d2-104170743);mix-blend-mode:darken}.sketch-overlay-N1{fill:url(#streaks-darker-d2-104170743);mix-blend-mode:lighten}.sketch-overlay-N2{fill:url(#streaks-dark-d2-104170743);mix-blend-mode:overlay}.sketch-overlay-N3{fill:url(#streaks-normal-d2-104170743);mix-blend-mode:color-burn}.sketch-overlay-N4{fill:url(#streaks-normal-d2-104170743);mix-blend-mode:color-burn}.sketch-overlay-N5{fill:url(#streaks-bright-d2-104170743);mix-blend-mode:darken}.sketch-overlay-N6{fill:url(#streaks-bright-d2-104170743);mix-blend-mode:darken}.sketch-overlay-N7{fill:url(#streaks-bright-d2-104170743);mix-blend-mode:darken}.light-code{display: block}.dark-code{display: none}]]>
+              </style>
+              <g class="dDE=">
+                <g class="shape">
+                  <rect
+                    x="1104.000000"
+                    y="20.000000"
+                    width="260.000000"
+                    height="142.000000"
+                    stroke="#0D32B2"
+                    fill="#f4d35e"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1234.000000"
+                  y="7.000000"
+                  fill="#0e0e10"
+                  class="text"
+                  style="text-anchor: middle; font-size: 28px"
+                >
+                  Tier 1% — Foundation (51% value)
+                </text>
+              </g>
+              <g class="dDQ=">
+                <g class="shape">
+                  <rect
+                    x="1127.000000"
+                    y="339.000000"
+                    width="242.000000"
+                    height="356.000000"
+                    stroke="#0D32B2"
+                    fill="#ffb347"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1248.000000"
+                  y="326.000000"
+                  fill="#0e0e10"
+                  class="text"
+                  style="text-anchor: middle; font-size: 28px"
+                >
+                  Tier 4% — Bundle (64% value)
+                </text>
+              </g>
+              <g class="dDIw">
+                <g class="shape">
+                  <rect
+                    x="1153.000000"
+                    y="843.000000"
+                    width="281.000000"
+                    height="474.000000"
+                    stroke="#0D32B2"
+                    fill="#6eb5ff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1293.500000"
+                  y="830.000000"
+                  fill="#0e0e10"
+                  class="text"
+                  style="text-anchor: middle; font-size: 28px"
+                >
+                  Tier 20% — Presets (80% value)
+                </text>
+              </g>
+              <g class="dDgw">
+                <g class="shape">
+                  <rect
+                    x="10.000000"
+                    y="28.000000"
+                    width="1054.000000"
+                    height="1297.000000"
+                    stroke="#0D32B2"
+                    fill="#ff6b6b"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="537.000000"
+                  y="15.000000"
+                  fill="#0e0e10"
+                  class="text"
+                  style="text-anchor: middle; font-size: 28px"
+                >
+                  Tier 80% — Complete (100% value)
+                </text>
+              </g>
+              <g class="dDEucm0=">
+                <g class="shape">
+                  <rect
+                    x="1134.000000"
+                    y="50.000000"
+                    width="200.000000"
+                    height="82.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1234.000000"
+                  y="88.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="1234.000000" dy="0.000000">readmodel.Store[T,K]</tspan>
+                  <tspan x="1234.000000" dy="18.500000">over kv.Store</tspan>
+                </text>
+              </g>
+              <g class="dDQuYnVuZGxl">
+                <g class="shape">
+                  <rect
+                    x="1159.000000"
+                    y="369.000000"
+                    width="177.000000"
+                    height="98.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1247.500000"
+                  y="407.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="1247.500000" dy="0.000000">Bundle struct</tspan>
+                  <tspan x="1247.500000" dy="17.666667">New + Close dedup</tspan>
+                  <tspan x="1247.500000" dy="17.666667">rollback</tspan>
+                </text>
+              </g>
+              <g class="dDQuYWNj">
+                <g class="shape">
+                  <rect
+                    x="1157.000000"
+                    y="567.000000"
+                    width="182.000000"
+                    height="98.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1248.000000"
+                  y="605.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="1248.000000" dy="0.000000">Typed accessors</tspan>
+                  <tspan x="1248.000000" dy="17.666667">Repository[State]()</tspan>
+                  <tspan x="1248.000000" dy="17.666667">ReadModel[T,K]()</tspan>
+                </text>
+              </g>
+              <g class="dDIwLm1lbQ==">
+                <g class="shape">
+                  <rect
+                    x="1183.000000"
+                    y="873.000000"
+                    width="150.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1258.000000"
+                  y="911.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  memory.New()
+                </text>
+              </g>
+              <g class="dDIwLnNxbA==">
+                <g class="shape">
+                  <rect
+                    x="1245.000000"
+                    y="1047.000000"
+                    width="132.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1311.000000"
+                  y="1085.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  sqlite.New()
+                </text>
+              </g>
+              <g class="dDIwLnZhbA==">
+                <g class="shape">
+                  <rect
+                    x="1258.000000"
+                    y="1221.000000"
+                    width="146.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1331.000000"
+                  y="1259.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  E2E validation
+                </text>
+              </g>
+              <g class="dDgwLnBnYXA=">
+                <g class="shape">
+                  <rect
+                    x="415.000000"
+                    y="865.000000"
+                    width="223.000000"
+                    height="82.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="526.500000"
+                  y="903.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="526.500000" dy="0.000000">Pebble gaps</tspan>
+                  <tspan x="526.500000" dy="18.500000">(cmd/query/ReadModels)</tspan>
+                </text>
+              </g>
+              <g class="dDgwLnBlYg==">
+                <g class="shape">
+                  <rect
+                    x="456.000000"
+                    y="1047.000000"
+                    width="140.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="526.000000"
+                  y="1085.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  pebble.New()
+                </text>
+              </g>
+              <g class="dDgwLnRzbmFw">
+                <g class="shape">
+                  <rect
+                    x="40.000000"
+                    y="58.000000"
+                    width="205.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="142.500000"
+                  y="96.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  TypedSnapshot[State]
+                </text>
+              </g>
+              <g class="dDgwLmNvbnRyYWN0">
+                <g class="shape">
+                  <rect
+                    x="461.000000"
+                    y="1213.000000"
+                    width="143.000000"
+                    height="82.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="532.500000"
+                  y="1251.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="532.500000" dy="0.000000">contract suite</tspan>
+                  <tspan x="532.500000" dy="18.500000">all presets</tspan>
+                </text>
+              </g>
+              <g class="dDgwLmV4">
+                <g class="shape">
+                  <rect
+                    x="240.000000"
+                    y="1221.000000"
+                    width="161.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="320.500000"
+                  y="1259.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  example rewrite
+                </text>
+              </g>
+              <g class="dDgwLmNhY2hl">
+                <g class="shape">
+                  <rect
+                    x="121.000000"
+                    y="377.000000"
+                    width="160.000000"
+                    height="82.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="201.000000"
+                  y="415.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="201.000000" dy="0.000000">cache decorator</tspan>
+                  <tspan x="201.000000" dy="18.500000">(Otter)</tspan>
+                </text>
+              </g>
+              <g class="dDgwLnBn">
+                <g class="shape">
+                  <rect
+                    x="664.000000"
+                    y="1221.000000"
+                    width="153.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="740.500000"
+                  y="1259.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  postgres.New()
+                </text>
+              </g>
+              <g class="dDgwLmRvY3M=">
+                <g class="shape">
+                  <rect
+                    x="877.000000"
+                    y="1221.000000"
+                    width="157.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#EDF0FD"
+                    class="stroke-B1 fill-B5"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="955.500000"
+                  y="1259.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  docs + CI + flake
+                </text>
+              </g>
+              <g class="KHQxLnJtIC0mZ3Q7IHQ0LmJ1bmRsZSlbMF0=">
+                <marker
+                  id="mk-d2-104170743-3488378134"
+                  markerWidth="10.000000"
+                  markerHeight="12.000000"
+                  refX="7.000000"
+                  refY="6.000000"
+                  viewBox="0.000000 0.000000 10.000000 12.000000"
+                  orient="auto"
+                  markerUnits="userSpaceOnUse"
+                >
+                  <polygon
+                    points="0.000000,0.000000 10.000000,6.000000 0.000000,12.000000"
+                    fill="#0D32B2"
+                    class="connection fill-B1"
+                    stroke-width="2"
+                  />
+                </marker>
+                <path
+                  d="M 1240.777295 133.980684 C 1246.099976 172.000000 1247.500000 195.699997 1247.500000 216.250000 C 1247.500000 236.800003 1247.500000 329.000000 1247.500000 365.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-104170743-3488378134)"
+                  mask="url(#d2-104170743)"
+                />
+              </g>
+              <g class="dDQuKGJ1bmRsZSAtJmd0OyBhY2MpWzBd">
+                <path
+                  d="M 1247.500000 469.000000 C 1247.500000 507.000000 1247.500000 527.000000 1247.500000 563.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-104170743-3488378134)"
+                  mask="url(#d2-104170743)"
+                />
+              </g>
+              <g class="KHQ0LmFjYyAtJmd0OyB0MjAubWVtKVswXQ==">
+                <path
+                  d="M 1252.699007 666.990074 C 1256.500000 705.000000 1257.500000 725.000000 1257.500000 740.000000 C 1257.500000 755.000000 1257.500000 826.599976 1257.500000 869.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-104170743-3488378134)"
+                  mask="url(#d2-104170743)"
+                />
+              </g>
+              <g class="dDIwLihtZW0gLSZndDsgc3FsKVswXQ==">
+                <path
+                  d="M 1277.511437 940.725397 C 1303.699951 985.400024 1310.500000 1007.000000 1310.500000 1043.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-104170743-3488378134)"
+                  mask="url(#d2-104170743)"
+                />
+              </g>
+              <g class="dDIwLihzcWwgLSZndDsgdmFsKVswXQ==">
+                <path
+                  d="M 1318.966745 1114.944775 C 1328.099976 1153.000000 1330.500000 1174.599976 1330.500000 1217.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-104170743-3488378134)"
+                  mask="url(#d2-104170743)"
+                />
+              </g>
+              <g class="KHQ0LmFjYyAtJmd0OyB0ODAucGdhcClbMF0=">
+                <path
+                  d="M 1224.164188 666.816980 C 1206.599976 705.000000 1066.800049 725.000000 864.000000 740.000000 C 661.198975 755.000000 526.000000 825.000000 526.000000 861.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-104170743-3488378134)"
+                  mask="url(#d2-104170743)"
+                />
+              </g>
+              <g class="dDgwLihwZ2FwIC0mZ3Q7IHBlYilbMF0=">
+                <path
+                  d="M 526.000000 949.000000 C 526.000000 987.000000 526.000000 1007.000000 526.000000 1043.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-104170743-3488378134)"
+                  mask="url(#d2-104170743)"
+                />
+              </g>
+              <g class="KHQyMC5tZW0gLSZndDsgdDgwLmNvbnRyYWN0KVswXQ==">
+                <path
+                  d="M 1237.488563 940.725397 C 1211.300049 985.400024 1204.500000 1013.599976 1204.500000 1038.500000 C 1204.500000 1063.400024 1084.300049 1179.199951 607.464159 1243.465729"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-104170743-3488378134)"
+                  mask="url(#d2-104170743)"
+                />
+              </g>
+              <g class="KHQyMC5zcWwgLSZndDsgdDgwLmNvbnRyYWN0KVswXQ==">
+                <path
+                  d="M 1310.500000 1115.000000 C 1310.500000 1153.000000 1169.099976 1179.599976 607.472717 1245.533613"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-104170743-3488378134)"
+                  mask="url(#d2-104170743)"
+                />
+              </g>
+              <g class="dDgwLihwZWIgLSZndDsgY29udHJhY3QpWzBd">
+                <path
+                  d="M 526.000000 1115.000000 C 526.000000 1153.000000 526.799988 1173.000000 529.681018 1209.012739"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-104170743-3488378134)"
+                  mask="url(#d2-104170743)"
+                />
+              </g>
+              <g class="KHQxLnJtIC0mZ3Q7IHQ4MC5leClbMF0=">
+                <path
+                  d="M 1231.340512 133.993631 C 1228.300049 172.000000 1046.098999 195.699997 774.000000 216.250000 C 501.899994 236.800003 320.500000 264.200012 320.500000 284.750000 C 320.500000 305.299988 320.500000 338.799988 320.500000 368.500000 C 320.500000 398.200012 320.500000 437.799988 320.500000 467.500000 C 320.500000 497.200012 320.500000 536.799988 320.500000 566.500000 C 320.500000 596.200012 320.500000 635.799988 320.500000 665.500000 C 320.500000 695.200012 320.500000 725.000000 320.500000 740.000000 C 320.500000 755.000000 320.500000 775.000000 320.500000 790.000000 C 320.500000 805.000000 320.500000 833.200012 320.500000 860.500000 C 320.500000 887.799988 320.500000 924.200012 320.500000 951.500000 C 320.500000 978.799988 320.500000 1013.599976 320.500000 1038.500000 C 320.500000 1063.400024 320.500000 1174.599976 320.500000 1217.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-104170743-3488378134)"
+                  mask="url(#d2-104170743)"
+                />
+              </g>
+              <g class="KHQyMC5zcWwgLSZndDsgdDgwLmV4KVswXQ==">
+                <path
+                  d="M 1288.421893 1114.684543 C 1263.900024 1153.000000 1086.099976 1179.599976 404.481371 1245.614406"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-104170743-3488378134)"
+                  mask="url(#d2-104170743)"
+                />
+              </g>
+              <g class="KHQxLnJtIC0mZ3Q7IHQ4MC5jYWNoZSlbMF0=">
+                <path
+                  d="M 1205.898315 133.669218 C 1180.599976 172.000000 979.299988 195.699997 687.250000 216.250000 C 395.199005 236.800003 200.500000 330.600006 200.500000 373.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-104170743-3488378134)"
+                  mask="url(#d2-104170743)"
+                />
+              </g>
+              <g class="KHQ4MC50c25hcCAtJmd0OyB0NC5idW5kbGUpWzBd">
+                <path
+                  d="M 142.500000 126.000000 C 142.500000 170.399994 142.500000 195.699997 142.500000 216.250000 C 142.500000 236.800003 345.899994 337.200012 1155.515917 409.643509"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-104170743-3488378134)"
+                  mask="url(#d2-104170743)"
+                />
+                <text
+                  x="584.000000"
+                  y="356.000000"
+                  fill="#676C7E"
+                  class="text-italic fill-N2"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  <tspan x="584.000000" dy="0.000000">optional</tspan>
+                  <tspan x="584.000000" dy="18.500000">(snapshots)</tspan>
+                </text>
+              </g>
+              <mask
+                id="d2-104170743"
+                maskUnits="userSpaceOnUse"
+                x="-91"
+                y="-121"
+                width="1664"
+                height="1547"
+              >
+                <rect x="-91" y="-121" width="1664" height="1547" fill="white"></rect>
+                <rect x="544.000000" y="340.000000" width="80" height="37" fill="black"></rect>
+              </mask>
+            </svg>
+          </svg>
+        </div>
+
+        <h2 id="plan-medium">
+          <span class="num">04</span>Medium-Granularity Plan (30–100 min each)
+        </h2>
+        <p>
+          20 tasks. Sorted by tier (impact) then by dependency order within a tier. Each task is
+          independently committable and independently revertable. Effort: XS &lt;5m, S 5–15m, M
+          15–40m, L 40–100m.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th class="id">ID</th>
+              <th>Tier</th>
+              <th>Task</th>
+              <th>Key files</th>
+              <th class="effort">Effort</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="id">M1</td>
+              <td><span class="tier-badge t1">1%</span></td>
+              <td>
+                <code>readmodel</code> module: <code>Backend = kv.Store</code> alias +
+                <code>Store[T,K]</code> (Get/Set/Delete/Scan) + options + tests
+              </td>
+              <td>
+                <code>readmodel/{go.mod,backend.go,store.go,options.go,errors.go,*_test.go}</code>
+              </td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+            <tr>
+              <td class="id">M2</td>
+              <td><span class="tier-badge t4">4%</span></td>
+              <td>
+                <code>stack.Bundle</code> core: struct with ISP-honest fields, <code>New()</code>,
+                closer dedup + rollback, <code>With*</code> options
+              </td>
+              <td><code>stack/{go.mod,bundle.go,options.go,*_test.go}</code></td>
+              <td class="effort"><span class="badge l">L</span></td>
+            </tr>
+            <tr>
+              <td class="id">M3</td>
+              <td><span class="tier-badge t4">4%</span></td>
+              <td>
+                Typed accessors: <code>Repository[State](decider)</code>,
+                <code>ReadModel[T,K](codec)</code>, <code>ProjectionRunner()</code>
+              </td>
+              <td><code>stack/accessors.go</code>, <code>stack/accessors_test.go</code></td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+            <tr>
+              <td class="id">M4</td>
+              <td><span class="tier-badge t4">4%</span></td>
+              <td>
+                <code>snapshot.TypedSnapshot[State]</code> + typed sink/source adapter (closes the
+                <code>[]byte</code> hole)
+              </td>
+              <td><code>snapshot/{typed.go,typed_adapter.go,typed_test.go}</code></td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+            <tr>
+              <td class="id">M5</td>
+              <td><span class="tier-badge t20">20%</span></td>
+              <td>
+                <code>stack/memory.New()</code> preset — assembly of the 6 existing memory stores
+                into a Bundle
+              </td>
+              <td>
+                <code>stack/memory/{go.mod,preset.go,preset_test.go,integration_test.go}</code>
+              </td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">M6</td>
+              <td><span class="tier-badge t20">20%</span></td>
+              <td>
+                <code>stack/sqlite.New()</code> + <code>AppendLog()</code>/<code>Views()</code>
+                split + tuning profiles + WAL/auto-migrate options
+              </td>
+              <td>
+                <code
+                  >stack/sqlite/{go.mod,preset.go,bundles.go,tuning.go,options.go,*_test.go}</code
+                >
+              </td>
+              <td class="effort"><span class="badge l">L</span></td>
+            </tr>
+            <tr>
+              <td class="id">M7</td>
+              <td><span class="tier-badge t20">20%</span></td>
+              <td>
+                E2E validation: smoke test proving memory + sqlite presets save/load events &amp;
+                read models end-to-end
+              </td>
+              <td>
+                <code>stack/sqlite/integration_test.go</code>,
+                <code>stack/memory/integration_test.go</code>
+              </td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+            <tr>
+              <td class="id">M8</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>
+                Pebble gaps: <code>pebble.CommandStore</code>, <code>pebble.QueryStore</code>,
+                <code>Backend.ReadModels() kv.Store</code> accessor
+              </td>
+              <td><code>pebble/{command_store.go,query_store.go,backend.go,*_test.go}</code></td>
+              <td class="effort"><span class="badge l">L</span></td>
+            </tr>
+            <tr>
+              <td class="id">M9</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td><code>stack/pebble.New()</code> preset + tests</td>
+              <td><code>stack/pebble/{go.mod,preset.go,preset_test.go}</code></td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">M10</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td><code>stack/postgres.New()</code> preset + integration tests</td>
+              <td><code>stack/postgres/{go.mod,preset.go,preset_test.go}</code></td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+            <tr>
+              <td class="id">M11</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>
+                <code>readmodel/cache</code>: <code>CachedStore[T,K]</code> decorator over Otter
+                (<code>WithCapacity</code>, <code>WithTTL</code>)
+              </td>
+              <td><code>readmodel/cache/{go.mod,cached_store.go,*_test.go}</code></td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+            <tr>
+              <td class="id">M12</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>
+                Contract test suite: parameterized over every preset (events, journal ordering, read
+                models, lifecycle)
+              </td>
+              <td>
+                <code
+                  >stack/contract/{contract_test.go,events.go,journal.go,readmodels.go,lifecycle.go}</code
+                >
+              </td>
+              <td class="effort"><span class="badge l">L</span></td>
+            </tr>
+            <tr>
+              <td class="id">M13</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>
+                Example rewrite: <code>example/todo</code> → <code>sqlite.New()</code> +
+                <code>readmodel.Store[T,K]</code>; add split-topology variant
+              </td>
+              <td><code>example/todo/cmd/api/main.go</code>, <code>example/todo/storage/</code></td>
+              <td class="effort"><span class="badge l">L</span></td>
+            </tr>
+            <tr>
+              <td class="id">M14</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>Benchmarks + zero-overhead proof (Bundle field access vs direct store)</td>
+              <td>
+                <code
+                  >stack/bench/{bench_test.go,events.go,readmodels.go,zero_overhead_test.go}</code
+                >
+              </td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+            <tr>
+              <td class="id">M15</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>
+                Typed command/query payloads: <code>command.PersistedCommand[T]</code>,
+                <code>query.PersistedQuery[T]</code>
+              </td>
+              <td><code>command/typed.go</code>, <code>query/typed.go</code>, tests</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">M16</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>
+                Docs A: <code>docs/PRESETS.md</code> (catalog + recommendation matrix),
+                <code>docs/STORAGE_GUIDE.md</code> leads with presets, <code>stack/README.md</code>,
+                <code>readmodel/README.md</code>
+              </td>
+              <td>
+                <code>docs/PRESETS.md</code>, <code>docs/STORAGE_GUIDE.md</code>,
+                <code>stack/README.md</code>, <code>readmodel/README.md</code>
+              </td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+            <tr>
+              <td class="id">M17</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>
+                Docs B: <code>SKILL.md</code> recipes, <code>AGENTS.md</code> module list,
+                <code>FEATURES.md</code> Bundle features
+              </td>
+              <td><code>SKILL.md</code>, <code>AGENTS.md</code>, <code>FEATURES.md</code></td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">M18</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>
+                CI + flake: add stack modules to <code>flake.nix</code>, <code>ci.yml</code>,
+                layer-check script
+              </td>
+              <td>
+                <code>flake.nix</code>, <code>.github/workflows/ci.yml</code>,
+                <code>scripts/check-module-layers.sh</code>
+              </td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+            <tr>
+              <td class="id">M19</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>
+                Update proposal HTML: <code>kv.Store</code> discovery, Otter cache choice, typed
+                accessors
+              </td>
+              <td><code>docs/brainstorming/2026-06-18_stack-layer-proposal.html</code></td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">M20</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>
+                Optional: <code>.go-arch-lint.yml</code> for deployer/app import separation
+                (convention aid, not enforcement)
+              </td>
+              <td><code>.go-arch-lint.yml</code></td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="plan-fine"><span class="num">05</span>Fine-Granularity Plan (≤15 min each)</h2>
+        <p>
+          95 tasks. Each is a single committable unit: one module, one test, one option. Sorted by
+          tier then by execution order within the tier. The 1% and 4% columns are the critical path
+          — they are sequenced strictly; the 20% and 80% columns can be parallelized.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th class="id">ID</th>
+              <th>Tier</th>
+              <th>Task (≤15 min)</th>
+              <th class="effort">Effort</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="id">F1</td>
+              <td><span class="tier-badge t1">1%</span></td>
+              <td>
+                Create <code>readmodel/go.mod</code> + <code>readmodel/doc.go</code> (module
+                skeleton)
+              </td>
+              <td class="effort"><span class="badge xs">XS</span></td>
+            </tr>
+            <tr>
+              <td class="id">F2</td>
+              <td><span class="tier-badge t1">1%</span></td>
+              <td>
+                Define <code>readmodel.Backend = kv.Store</code> type alias in
+                <code>readmodel/backend.go</code>
+              </td>
+              <td class="effort"><span class="badge xs">XS</span></td>
+            </tr>
+            <tr>
+              <td class="id">F3</td>
+              <td><span class="tier-badge t1">1%</span></td>
+              <td>
+                Define <code>readmodel.Store[T any, K ~string]</code> struct +
+                <code>New[T,K](backend, opts...)</code>
+              </td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F4</td>
+              <td><span class="tier-badge t1">1%</span></td>
+              <td>
+                Implement <code>Store.Get(ctx, id K) (*T, error)</code> with codec decode +
+                <code>ErrNotFound</code> mapping
+              </td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F5</td>
+              <td><span class="tier-badge t1">1%</span></td>
+              <td>Implement <code>Store.Set(ctx, id K, val *T) error</code> with codec encode</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F6</td>
+              <td><span class="tier-badge t1">1%</span></td>
+              <td>Implement <code>Store.Delete(ctx, id K) error</code></td>
+              <td class="effort"><span class="badge xs">XS</span></td>
+            </tr>
+            <tr>
+              <td class="id">F7</td>
+              <td><span class="tier-badge t1">1%</span></td>
+              <td>
+                Implement <code>Store.Scan(ctx, prefix []byte) ([]*T, error)</code> via
+                <code>kv.Iterator</code>
+              </td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F8</td>
+              <td><span class="tier-badge t1">1%</span></td>
+              <td>Add <code>WithCodec(c codec.Codec)</code> option (default JSON)</td>
+              <td class="effort"><span class="badge xs">XS</span></td>
+            </tr>
+            <tr>
+              <td class="id">F9</td>
+              <td><span class="tier-badge t1">1%</span></td>
+              <td>Add <code>WithKeyPrefix(prefix string)</code> option for namespacing</td>
+              <td class="effort"><span class="badge xs">XS</span></td>
+            </tr>
+            <tr>
+              <td class="id">F10</td>
+              <td><span class="tier-badge t1">1%</span></td>
+              <td>Add <code>errors.go</code>: <code>ErrNotFound = kv.ErrNotFound</code> alias</td>
+              <td class="effort"><span class="badge xs">XS</span></td>
+            </tr>
+            <tr>
+              <td class="id">F11</td>
+              <td><span class="tier-badge t1">1%</span></td>
+              <td>Tests: Get/Set/Delete roundtrip with <code>kv.MemStore</code></td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F12</td>
+              <td><span class="tier-badge t1">1%</span></td>
+              <td>Tests: Scan with prefix filtering + ordering</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F13</td>
+              <td><span class="tier-badge t1">1%</span></td>
+              <td>
+                Tests: <code>Store[Todo, TodoID]</code> example test (branded key prevents
+                cross-domain mixing)
+              </td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+
+            <tr>
+              <td class="id">F14</td>
+              <td><span class="tier-badge t4">4%</span></td>
+              <td>Create <code>stack/go.mod</code> + <code>stack/doc.go</code></td>
+              <td class="effort"><span class="badge xs">XS</span></td>
+            </tr>
+            <tr>
+              <td class="id">F15</td>
+              <td><span class="tier-badge t4">4%</span></td>
+              <td>
+                Define <code>Bundle</code> struct with ISP-honest segregated fields
+                (Sink/Source/Journal/Seekable separate; Publisher/Subscriber separate)
+              </td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F16</td>
+              <td><span class="tier-badge t4">4%</span></td>
+              <td>
+                Define <code>Option = func(*Bundle)</code> (no error — matches codebase convention)
+              </td>
+              <td class="effort"><span class="badge xs">XS</span></td>
+            </tr>
+            <tr>
+              <td class="id">F17</td>
+              <td><span class="tier-badge t4">4%</span></td>
+              <td>Implement <code>New(opts ...Option) (*Bundle, error)</code> with validation</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F18</td>
+              <td><span class="tier-badge t4">4%</span></td>
+              <td>Implement closer tracking + pointer-deduplicated <code>Close()</code></td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F19</td>
+              <td><span class="tier-badge t4">4%</span></td>
+              <td>
+                Implement partial-failure rollback in <code>New()</code> (close all opened on error)
+              </td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+            <tr>
+              <td class="id">F20</td>
+              <td><span class="tier-badge t4">4%</span></td>
+              <td>
+                Add
+                <code>WithEventSink</code
+                >/<code>WithEventSource</code>/<code>WithJournal</code>/<code
+                  >WithSeekableJournal</code
+                >
+                options
+              </td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F21</td>
+              <td><span class="tier-badge t4">4%</span></td>
+              <td>
+                Add <code>WithEventStore(event.Store)</code> convenience (type-asserts to set
+                Sink+Source+Journal)
+              </td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F22</td>
+              <td><span class="tier-badge t4">4%</span></td>
+              <td>
+                Add <code>WithBus(event.Bus)</code>, <code>WithPublisher</code>,
+                <code>WithSubscriber</code>, <code>WithCommandSink/Source/Store</code>,
+                <code>WithQuerySink/Source/Store</code>, <code>WithSnapshotStore</code>,
+                <code>WithCheckpointStore</code>, <code>WithReadModels(kv.Store)</code>
+              </td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+            <tr>
+              <td class="id">F23</td>
+              <td><span class="tier-badge t4">4%</span></td>
+              <td>Tests: Bundle construction + field assignment</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F24</td>
+              <td><span class="tier-badge t4">4%</span></td>
+              <td>Tests: <code>Close()</code> deduplicates shared <code>*sql.DB</code></td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F25</td>
+              <td><span class="tier-badge t4">4%</span></td>
+              <td>Tests: partial-failure rollback closes already-opened resources</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F26</td>
+              <td><span class="tier-badge t4">4%</span></td>
+              <td>
+                Accessor:
+                <code
+                  >bundle.Repository[State](d decider.Decider[State], opts...)
+                  *decider.Repository[State]</code
+                >
+              </td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+            <tr>
+              <td class="id">F27</td>
+              <td><span class="tier-badge t4">4%</span></td>
+              <td>
+                Accessor:
+                <code
+                  >bundle.ReadModel[T any, K ~string](c codec.Codec, opts...)
+                  *readmodel.Store[T,K]</code
+                >
+              </td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F28</td>
+              <td><span class="tier-badge t4">4%</span></td>
+              <td>Accessor: <code>bundle.ProjectionRunner(opts...) *projection.Runner</code></td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F29</td>
+              <td><span class="tier-badge t4">4%</span></td>
+              <td>Tests: typed accessors produce correctly-wired types</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F30</td>
+              <td><span class="tier-badge t4">4%</span></td>
+              <td>
+                <code>snapshot.TypedSnapshot[State]</code> +
+                <code>TypedSnapshotSink[State]</code>/<code>TypedSnapshotSource[State]</code>
+                interfaces
+              </td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F31</td>
+              <td><span class="tier-badge t4">4%</span></td>
+              <td>
+                <code>snapshot</code> typed↔untyped adapter (wraps <code>SnapshotStore</code> +
+                <code>codec.Codec</code>)
+              </td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+            <tr>
+              <td class="id">F32</td>
+              <td><span class="tier-badge t4">4%</span></td>
+              <td>Tests: <code>TypedSnapshot[State]</code> roundtrip</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+
+            <tr>
+              <td class="id">F33</td>
+              <td><span class="tier-badge t20">20%</span></td>
+              <td>Create <code>stack/memory/go.mod</code> + <code>doc.go</code></td>
+              <td class="effort"><span class="badge xs">XS</span></td>
+            </tr>
+            <tr>
+              <td class="id">F34</td>
+              <td><span class="tier-badge t20">20%</span></td>
+              <td>
+                Implement <code>memory.New() (*stack.Bundle, error)</code> — assemble all 6 memory
+                stores
+              </td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F35</td>
+              <td><span class="tier-badge t20">20%</span></td>
+              <td>
+                Implement <code>memory.Bus()</code> / <code>memory.Checkpoints()</code> option
+                helpers
+              </td>
+              <td class="effort"><span class="badge xs">XS</span></td>
+            </tr>
+            <tr>
+              <td class="id">F36</td>
+              <td><span class="tier-badge t20">20%</span></td>
+              <td>Tests: memory preset produces a fully-wired Bundle</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F37</td>
+              <td><span class="tier-badge t20">20%</span></td>
+              <td>Integration test: memory preset end-to-end event roundtrip</td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+            <tr>
+              <td class="id">F38</td>
+              <td><span class="tier-badge t20">20%</span></td>
+              <td>Create <code>stack/sqlite/go.mod</code> + <code>doc.go</code></td>
+              <td class="effort"><span class="badge xs">XS</span></td>
+            </tr>
+            <tr>
+              <td class="id">F39</td>
+              <td><span class="tier-badge t20">20%</span></td>
+              <td>
+                Implement <code>sqlite.New(dir, opts...) (*stack.Bundle, error)</code> on
+                <code>storage.SQLBackend</code>
+              </td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+            <tr>
+              <td class="id">F40</td>
+              <td><span class="tier-badge t20">20%</span></td>
+              <td>
+                Implement <code>sqlite.AppendLog(dir, opts...) stack.Option</code> +
+                <code>sqlite.Views(dir, opts...) stack.Option</code>
+              </td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+            <tr>
+              <td class="id">F41</td>
+              <td><span class="tier-badge t20">20%</span></td>
+              <td>
+                Implement <code>ForSequentialIO()</code> + <code>ForRandomIO()</code> tuning
+                profiles (correct pragmas)
+              </td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F42</td>
+              <td><span class="tier-badge t20">20%</span></td>
+              <td>Implement <code>WithAutoMigrate()</code> + <code>WithWAL()</code> options</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F43</td>
+              <td><span class="tier-badge t20">20%</span></td>
+              <td>Tests: SQLite preset produces a working Bundle</td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+            <tr>
+              <td class="id">F44</td>
+              <td><span class="tier-badge t20">20%</span></td>
+              <td>Tests: AppendLog + Views split topology (2 DBs)</td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+            <tr>
+              <td class="id">F45</td>
+              <td><span class="tier-badge t20">20%</span></td>
+              <td>Tests: tuning profiles apply correct pragmas</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F46</td>
+              <td><span class="tier-badge t20">20%</span></td>
+              <td>
+                E2E validation: SQLite preset save/load events + read models +
+                <code>Close()</code> cleanup
+              </td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+
+            <tr>
+              <td class="id">F47</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td><code>pebble.CommandStore</code> (append-only, mirrors EventStore)</td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+            <tr>
+              <td class="id">F48</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td><code>pebble.QueryStore</code> (append-only)</td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+            <tr>
+              <td class="id">F49</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>
+                Add <code>pebble.Backend.CommandStore()</code> + <code>QueryStore()</code> +
+                <code>ReadModels() kv.Store</code> accessors
+              </td>
+              <td class="effort"><span class="badge xs">XS</span></td>
+            </tr>
+            <tr>
+              <td class="id">F50</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>Tests: Pebble command/query store CRUD</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F51</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>
+                Create <code>stack/pebble/go.mod</code> + implement
+                <code>pebble.New(dir, opts...)</code>
+              </td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F52</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>Tests: Pebble preset produces working Bundle</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F53</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>
+                Create <code>stack/postgres/go.mod</code> + implement
+                <code>postgres.New(dsn, opts...)</code>
+              </td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+            <tr>
+              <td class="id">F54</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>Tests: Postgres preset produces working Bundle (integration)</td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+            <tr>
+              <td class="id">F55</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>
+                Create <code>readmodel/cache/go.mod</code> (dep: <code>maypok86/otter/v2</code>)
+              </td>
+              <td class="effort"><span class="badge xs">XS</span></td>
+            </tr>
+            <tr>
+              <td class="id">F56</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>
+                Implement <code>CachedStore[T,K]</code> decorator with
+                <code>WithCapacity</code>/<code>WithTTL</code>
+              </td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+            <tr>
+              <td class="id">F57</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>Tests: cache hit/miss/invalidation</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F58</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>
+                Contract suite: <code>stack/contract</code> harness + parameterization by Bundle
+                factory
+              </td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+            <tr>
+              <td class="id">F59</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>Contract: EventSink.Save + EventSource.Load roundtrip</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F60</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>Contract: Journal.ReadAll ordering</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F61</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>Contract: ReadModel Get/Set/Delete/Scan</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F62</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>Contract: Close() releases all resources</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F63</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>Wire contract suite against memory, sqlite, pebble, postgres presets</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F64</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>
+                Example: port <code>example/todo/cmd/api/main.go</code> to <code>sqlite.New()</code>
+              </td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+            <tr>
+              <td class="id">F65</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>
+                Example: replace hand-rolled Pebble/Memory stores with
+                <code>readmodel.Store[T,K]</code>
+              </td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+            <tr>
+              <td class="id">F66</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>Example: verify compiles + tests pass; add split-topology variant</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F67</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>Benchmarks: <code>EventSave</code> ns/op + allocs/op</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F68</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>Benchmarks: <code>ReadModelGet</code> ns/op + allocs/op</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F69</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>Zero-overhead proof: Bundle field access vs direct store (must be identical)</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F70</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>
+                <code>command.PersistedCommand[T any]</code> with typed <code>Payload() T</code>
+              </td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F71</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td><code>query.PersistedQuery[T any]</code> with typed <code>Payload() T</code></td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F72</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>Tests: typed command/query payloads</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F73</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>Docs: <code>docs/PRESETS.md</code> — preset catalog + recommendation matrix</td>
+              <td class="effort"><span class="badge m">M</span></td>
+            </tr>
+            <tr>
+              <td class="id">F74</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>Docs: update <code>docs/STORAGE_GUIDE.md</code> to lead with presets</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F75</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>Docs: <code>stack/README.md</code></td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F76</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>Docs: <code>readmodel/README.md</code></td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F77</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>Docs: update <code>SKILL.md</code> with Bundle composition recipes</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F78</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>Docs: add stack modules to <code>AGENTS.md</code> module list</td>
+              <td class="effort"><span class="badge xs">XS</span></td>
+            </tr>
+            <tr>
+              <td class="id">F79</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>Docs: update <code>FEATURES.md</code> with Bundle layer features</td>
+              <td class="effort"><span class="badge xs">XS</span></td>
+            </tr>
+            <tr>
+              <td class="id">F80</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>CI: add stack modules to <code>flake.nix</code> build/test/lint</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F81</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>CI: add stack modules to <code>.github/workflows/ci.yml</code></td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F82</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>CI: add stack modules to layer-check script</td>
+              <td class="effort"><span class="badge xs">XS</span></td>
+            </tr>
+            <tr>
+              <td class="id">F83</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>Update proposal HTML §10 (kv.Store), §12 (Otter), §03 (typed accessors)</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F84</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>Optional: add <code>.go-arch-lint.yml</code> deployer/app separation rules</td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+            <tr>
+              <td class="id">F85</td>
+              <td><span class="tier-badge t80">80%</span></td>
+              <td>
+                Final sweep: <code>nix run .#lint</code> + <code>nix run .#test</code> green; root
+                module list accurate
+              </td>
+              <td class="effort"><span class="badge s">S</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="risks"><span class="num">06</span>Risks, Blockers &amp; Hard Limits</h2>
+        <div class="callout danger">
+          <strong>No outbox atomicity.</strong> <code>event.Save</code> and
+          <code>command.Save</code> each create a private <code>*sql.Tx</code>. Events + commands
+          cannot share a transaction. This is documented as a Known Limit in the proposal; the
+          Bundle does not pretend otherwise. The "AppendLog" bundle shares workload characteristics,
+          not transaction atomicity.
+        </div>
+        <div class="callout warn">
+          <strong>Import boundary is unenforceable by the compiler.</strong> Go has no
+          language-level import restrictions. The deployer/app separation is a convention,
+          optionally aided by <code>.go-arch-lint.yml</code> (F84). We do not claim compiler
+          enforcement.
+        </div>
+        <div class="callout warn">
+          <strong>BuildFlow intercepts <code>git commit</code>.</strong> Every commit uses
+          <code>git commit --no-verify</code>. This is documented and consistent with the existing
+          workflow.
+        </div>
+        <div class="callout">
+          <strong>Pebble has 3/7 capabilities today</strong> (events, snapshots, checkpoints).
+          F47–F50 fill the command/query/ReadModels gaps before the Pebble preset (F51) can ship.
+          This is a hard ordering constraint within Tier 80%.
+        </div>
+
+        <h2 id="contracts"><span class="num">07</span>Definition of Done &amp; Contracts</h2>
+        <ul>
+          <li>
+            <strong>Build gate (every commit):</strong>
+            <code
+              >cd &lt;module&gt; &amp;&amp; GOWORK=off go vet ./... &amp;&amp; GOWORK=off go test
+              ./... -count=1</code
+            >
+            passes.
+          </li>
+          <li>
+            <strong>Integration gate (per tier):</strong> the root test command from
+            <code>AGENTS.md</code> passes.
+          </li>
+          <li>
+            <strong>Zero-overhead contract:</strong> <code>bundle.EventSink.Save</code> must be
+            identical (ns/op, allocs/op) to calling the underlying store directly — the Bundle is a
+            bag of fields, not a proxy.
+          </li>
+          <li>
+            <strong>ISP contract:</strong> Bundle never stores a fat <code>event.Store</code>;
+            fields are <code>EventSink</code>, <code>EventSource</code>,
+            <code>Journal</code> separately.
+          </li>
+          <li>
+            <strong>Close contract:</strong> a <code>*sql.DB</code> shared across capabilities via
+            <code>AppendLog</code> is closed exactly once.
+          </li>
+          <li>
+            <strong>Rollback contract:</strong> if <code>stack.New()</code> fails on option N, every
+            closer opened by options 1..N-1 is closed before the error is returned.
+          </li>
+          <li>
+            <strong>End of Tier 20%:</strong> a consumer can write
+            <code>sqlite.New("log.db")</code> and
+            <code>bundle.ReadModel[Todo, TodoID](codec.JSONCodec{})</code> and have a working app.
+          </li>
+        </ul>
+
+        <footer class="footer">
+          Generated 2026-06-19 &middot; Executes
+          docs/brainstorming/2026-06-18_stack-layer-proposal.html &middot; Build baseline:
+          master@6f921775
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

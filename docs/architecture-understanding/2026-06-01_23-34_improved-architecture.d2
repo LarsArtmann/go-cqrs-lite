@@ -1,0 +1,287 @@
+direction: down
+layout: elk
+
+title: {
+  label: go-cqrs-lite — Target Architecture (Improved)
+  shape: text
+  near: top-center
+  style.font-size: 24
+}
+
+# Layer 0: Leaf Modules (unchanged)
+layer0: {
+  label: Layer 0 — Leaf Modules
+  style.fill: "#ecfdf5"
+  style.stroke: "#059669"
+
+  id: {
+    label: id
+    shape: rectangle
+    style.fill: "#f0fdf4"
+    style.stroke: "#059669"
+  }
+  dispatcher: {
+    label: dispatcher
+    shape: rectangle
+    style.fill: "#f0fdf4"
+    style.stroke: "#059669"
+  }
+  codec: {
+    label: codec
+    shape: rectangle
+    style.fill: "#f0fdf4"
+    style.stroke: "#059669"
+  }
+}
+
+# Layer 1: Core Domain (no re-exports)
+layer1: {
+  label: Layer 1 — Core Domain (clean boundaries)
+  style.fill: "#eff6ff"
+  style.stroke: "#3b82f6"
+
+  event: {
+    label: event
+    shape: rectangle
+    style.fill: "#dbeafe"
+    style.stroke: "#3b82f6"
+    EventSink: {label: "EventSink"}
+    EventSource: {label: "EventSource"}
+    Journal: {label: "Journal"}
+    SeekableJournal: {label: "SeekableJournal"}
+    Bus: {label: "Bus"}
+    Handler: {label: "Handler"}
+  }
+
+  command: {
+    label: command (no re-exports)
+    shape: rectangle
+    style.fill: "#dbeafe"
+    style.stroke: "#3b82f6"
+    CommandSink: {label: "CommandSink"}
+    CommandSource: {label: "CommandSource"}
+  }
+
+  query: {
+    label: query
+    shape: rectangle
+    style.fill: "#dbeafe"
+    style.stroke: "#3b82f6"
+    QueryDispatcher: {label: "QueryDispatcher"}
+  }
+}
+
+# Layer 2 (unchanged)
+layer2: {
+  label: Layer 2 — Schema & Snapshot
+  style.fill: "#fef3c7"
+  style.stroke: "#d97706"
+
+  schema: {
+    label: schema (unexported embed)
+    shape: rectangle
+    style.fill: "#fef9c3"
+    style.stroke: "#d97706"
+    VersionedStore: {label: "VersionedStore\nunexported inner Store"}
+  }
+
+  snapshot: {
+    label: snapshot
+    shape: rectangle
+    style.fill: "#fef9c3"
+    style.stroke: "#d97706"
+  }
+}
+
+# Layer 3 (unchanged)
+layer3: {
+  label: Layer 3 — Decider
+  style.fill: "#f0f9ff"
+  style.stroke: "#0ea5e9"
+
+  decider: {
+    label: decider (classified errors)
+    shape: rectangle
+    style.fill: "#e0f2fe"
+    style.stroke: "#0ea5e9"
+    Decider: {label: "Decider[State]"}
+    Repository: {label: "Repository[State]"}
+  }
+}
+
+# Layer 4: Improved test infra
+layer4: {
+  label: Layer 4 — Test & Dev Infra
+  style.fill: "#faf5ff"
+  style.stroke: "#8b5cf6"
+
+  memory: {
+    label: memory (single test impl)
+    shape: rectangle
+    style.fill: "#f3e8ff"
+    style.stroke: "#8b5cf6"
+    MemoryStore: {label: "MemoryStore\nreplaces FakeStore"}
+  }
+
+  signing: {
+    label: signing (unified pattern)
+    shape: rectangle
+    style.fill: "#f3e8ff"
+    style.stroke: "#8b5cf6"
+    VerifyFunc: {label: "VerifyFunc\n(generic pattern)"}
+    single_sig: {label: "single-sig config"}
+    multi_sig: {label: "multi-sig config"}
+    VerifyFunc -> single_sig: "configures"
+    VerifyFunc -> multi_sig: "configures"
+  }
+
+  otel: {
+    label: otel
+    shape: rectangle
+    style.fill: "#f3e8ff"
+    style.stroke: "#8b5cf6"
+  }
+}
+
+# Layer 5: Fixed middleware + unified errors
+layer5: {
+  label: Layer 5 — Storage & Cross-cutting (fixed)
+  style.fill: "#fff7ed"
+  style.stroke: "#f97316"
+
+  middleware: {
+    label: middleware (generic × 1)
+    shape: rectangle
+    style.fill: "#dcfce7"
+    style.stroke: "#059669"
+    Retry: {label: "Retry[H]"}
+    Logging: {label: "Logging[H]"}
+    Recovery: {label: "Recovery[H]"}
+    Tracing: {label: "Tracing[H]"}
+    Metrics: {label: "Metrics[H]"}
+    CircuitBreaker: {label: "CircuitBreaker[H]"}
+    Validation: {label: "Validation[H]"}
+  }
+
+  storage: {
+    label: storage (unified errors)
+    shape: rectangle
+    style.fill: "#ffedd5"
+    style.stroke: "#f97316"
+    SQLEventStore: {label: "SQLEventStore\nuses event.ErrVersionConflict"}
+    SharedErrors: {label: "shared: event.Err*"}
+  }
+
+  projection: {
+    label: projection
+    shape: rectangle
+    style.fill: "#ffedd5"
+    style.stroke: "#f97316"
+  }
+
+  pebble: {
+    label: pebble (unified errors)
+    shape: rectangle
+    style.fill: "#ffedd5"
+    style.stroke: "#f97316"
+  }
+
+  listing: {
+    label: listing
+    shape: rectangle
+    style.fill: "#ffedd5"
+    style.stroke: "#f97316"
+  }
+
+  watermill: {
+    label: watermill
+    shape: rectangle
+    style.fill: "#ffedd5"
+    style.stroke: "#f97316"
+  }
+
+  turso: {
+    label: turso
+    shape: rectangle
+    style.fill: "#ffedd5"
+    style.stroke: "#f97316"
+  }
+}
+
+# Layer 6 (unchanged)
+layer6: {
+  label: Layer 6 — Integration & Tooling
+  style.fill: "#fef2f2"
+  style.stroke: "#ef4444"
+
+  integration: {
+    label: integration
+    shape: rectangle
+    style.fill: "#fee2e2"
+    style.stroke: "#ef4444"
+  }
+
+  catalog: {
+    label: catalog (composable writers)
+    shape: rectangle
+    style.fill: "#fee2e2"
+    style.stroke: "#ef4444"
+    Registry: {label: "Registry"}
+    AsyncAPI: {label: "AsyncAPI"}
+    D2Exporter: {label: "D2"}
+    EventCatalog: {label: "EventCatalog\n(entity writers)"}
+    OpenAPI: {label: "OpenAPI"}
+  }
+}
+
+# Clean dependencies (no re-exports)
+layer1.event -> layer0.id: "branded IDs"
+layer1.event -> layer0.codec: "payload encode/decode"
+layer1.event -> layer0.dispatcher: "LifecycleMixin"
+layer1.command -> layer0.dispatcher: "Dispatcher[H,M]"
+layer1.command -> layer0.id: "branded IDs"
+layer1.command -> layer0.codec: "payload codec"
+layer1.query -> layer0.dispatcher: "Dispatcher[H,M]"
+
+layer2.schema -> layer1.event: "upcasters"
+layer2.snapshot -> layer1.event
+
+layer3.decider -> layer1.event: "classified errors ✓"
+layer3.decider -> layer0.id
+layer3.decider -> layer4.memory
+layer3.decider -> layer4.otel
+layer3.decider -> layer2.snapshot
+
+layer4.memory -> layer1.event
+layer4.signing -> layer1.event
+layer4.signing -> layer0.id
+
+layer5.middleware -> layer1.event: "generic adapters only"
+layer5.middleware -> layer4.otel
+layer5.storage -> layer1.event: "unified errors ✓"
+layer5.storage -> layer5.listing
+layer5.storage -> layer4.otel
+layer5.projection -> layer1.event
+layer5.projection -> layer4.memory
+layer5.projection -> layer4.otel
+layer5.pebble -> layer1.event: "unified errors ✓"
+layer5.watermill -> layer1.event
+layer5.turso -> layer1.event
+layer5.turso -> layer5.storage
+
+layer6.integration -> layer1.command
+layer6.integration -> layer3.decider
+layer6.integration -> layer4.memory
+layer6.integration -> layer5.middleware
+layer6.integration -> layer5.projection
+layer6.integration -> layer4.signing
+layer6.integration -> layer5.storage
+
+# Changes callout
+changes: {
+  shape: rectangle
+  label: "Key Changes\n1. Middleware: 3× → generic[H] (green)\n2. command: no event re-exports\n3. Errors: unified sentinels\n4. signing: VerifyFunc pattern\n5. FakeStore → MemoryStore\n6. schema: unexported inner Store"
+  style.fill: "#dcfce7"
+  style.stroke: "#059669"
+  style.font-size: 14
+}

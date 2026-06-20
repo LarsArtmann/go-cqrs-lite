@@ -1,0 +1,2004 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Architecture + data model review of go-cqrs-lite v3 — the path to the best CQRS/ES SDK in Go."
+    />
+    <title>Architecture Review v3 — go-cqrs-lite</title>
+    <style>
+      :root {
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+        --radius: 0px;
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+        max-width: 1600px;
+        margin: 0 auto;
+      }
+      .sidebar {
+        width: 230px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 60px;
+        align-self: flex-start;
+        height: calc(100vh - 80px);
+        overflow-y: auto;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.4rem 0.7rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .sidebar a.sub {
+        padding-left: 1.4rem;
+        font-size: 0.78rem;
+        color: var(--text-faint);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+      @media (max-width: 1100px) {
+        .sidebar {
+          display: none;
+        }
+      }
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4vw, 2.8rem);
+        line-height: 1.08;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 3rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 1.5rem 0 0.5rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 1rem 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+      ul,
+      ol {
+        margin: 0 0 1rem;
+        padding-left: 1.4rem;
+      }
+      li {
+        margin-bottom: 0.3rem;
+      }
+      strong {
+        color: var(--text);
+        font-weight: 700;
+      }
+      em {
+        color: var(--accent);
+        font-style: italic;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .hero {
+        padding: 1.5rem 0;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 78ch;
+        margin: 0;
+      }
+      .hero-meta {
+        display: flex;
+        gap: 1.2rem;
+        margin-top: 1.2rem;
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        color: var(--text-faint);
+        flex-wrap: wrap;
+      }
+      .hero-meta span::before {
+        content: "→ ";
+        color: var(--accent);
+      }
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+      .quote-block {
+        background: var(--surface-sunken);
+        border-left: 4px solid var(--accent);
+        padding: 1.2rem 1.5rem;
+        margin: 1.5rem 0;
+        font-size: 1rem;
+        line-height: 1.7;
+        color: var(--text);
+      }
+      .quote-block .attr {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        color: var(--text-faint);
+        margin-top: 0.8rem;
+      }
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+        color: var(--accent);
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+      .callout-problem {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 10%, transparent);
+      }
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before {
+        background: var(--warning);
+      }
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 1.8rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value {
+        color: var(--problem);
+      }
+      .stat-good .stat-value {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value {
+        color: var(--warning);
+      }
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.88rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+      td.no {
+        color: var(--problem);
+      }
+      td.yes {
+        color: var(--solution);
+      }
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+        font-size: 0.85em;
+        border: 1px solid var(--border);
+      }
+      .tok-keyword {
+        color: var(--accent);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: var(--solution);
+      }
+      .tok-comment {
+        color: var(--text-faint);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #74a9ff;
+      }
+      .tok-number {
+        color: var(--accent);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #4dd9ff;
+      }
+      .tok-punct {
+        color: var(--text-muted);
+      }
+      .migration-step {
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: var(--accent);
+        line-height: 1;
+        text-align: right;
+      }
+      .migration-content h4 {
+        margin-top: 0;
+      }
+      .migration-meta {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        color: var(--text-faint);
+        margin-top: 0.4rem;
+        display: flex;
+        gap: 0.8rem;
+        flex-wrap: wrap;
+      }
+      .migration-meta span::before {
+        content: "◇ ";
+        color: var(--accent);
+      }
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.35rem 0.7rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--surface-sunken);
+        border: 1px solid var(--border-strong);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+        border-color: var(--accent);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+        border-color: var(--problem);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+        border-color: var(--solution);
+      }
+      .node-dead {
+        background: var(--surface-sunken);
+        color: var(--text-faint);
+        border-color: var(--border);
+        text-decoration: line-through;
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      @media (max-width: 760px) {
+        .grid-2,
+        .grid-3,
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+      }
+      .footer {
+        margin-top: 3rem;
+        padding: 1.5rem 0;
+        border-top: 2px solid var(--border-strong);
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        color: var(--text-faint);
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>go-cqrs-lite · Architecture Review v3</span>
+      <span>2026-06-19 · Deployer-First Vision · Verbatim Evidence</span>
+    </div>
+    <div class="layout">
+      <aside class="sidebar">
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Executive Summary</a>
+          <a href="#north-star">§01 The North Star</a>
+          <a href="#inventory">§02 Module Inventory</a>
+          <a href="#state-of-art">§03 State of the Art</a>
+          <a href="#excellent">§04 What's Excellent</a>
+          <a href="#catalog">§05 Problem Catalog</a>
+          <a href="#theme-a" class="sub">A · Leaky Event</a>
+          <a href="#theme-b" class="sub">B · Metadata + Home</a>
+          <a href="#theme-c" class="sub">C · Cmd/Query Dup</a>
+          <a href="#theme-d" class="sub">D · Decider Crisis</a>
+          <a href="#theme-e" class="sub">E · Projection = Bus</a>
+          <a href="#theme-f" class="sub">F · Storage Sprawl</a>
+          <a href="#theme-g" class="sub">G · Packaging</a>
+          <a href="#redesign">§06 The Redesign</a>
+          <a href="#rd-tree" class="sub">Module Tree</a>
+          <a href="#rd-delivery" class="sub">Delivery + CatchUp</a>
+          <a href="#rd-materialize" class="sub">Materialize</a>
+          <a href="#rd-metadata" class="sub">Metadata Split</a>
+          <a href="#rd-libraries" class="sub">Library Choices</a>
+          <a href="#deployer-api">§07 Deployer vs Consumer</a>
+          <a href="#validation">§08 Validation Layer</a>
+          <a href="#decisions">§09 Decision Log</a>
+          <a href="#antipatterns">§10 Anti-Patterns</a>
+          <a href="#roadmap">§11 Roadmap</a>
+          <a href="#conclusion">§12 Conclusion</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <header class="hero" id="top">
+          <div class="hero-badge">Architecture Review v3 · Deployer-First</div>
+          <h1>The <em>Best</em> CQRS/ES SDK in Go<br />— Architecture + Data Model Review</h1>
+          <p class="hero-subtitle">
+            A brutally honest review of <strong>go-cqrs-lite</strong>'s architecture and data model,
+            evolved through deep conversation. Every claim backed by verbatim source. The guiding
+            principle: <strong>consumers never decide on infrastructure; deployers do.</strong>
+            Grounded in research of Eventuous, Marten, LiveStore, Sekiban.
+          </p>
+          <div class="hero-meta">
+            <span>39 modules · 160+ types</span>
+            <span>7 problem themes · 3 critical</span>
+            <span>5 modules to dissolve</span>
+            <span>Watermill = delivery layer</span>
+          </div>
+        </header>
+
+        <section id="summary">
+          <h2><span class="num">00</span>Executive Summary</h2>
+          <p>
+            go-cqrs-lite has excellent foundations — ISP-split stores, branded IDs, error taxonomy,
+            pure-function Decider. But the architecture has <strong>organic sprawl</strong>: 5
+            modules that should dissolve, a "projection" module that is actually a message bus, a
+            read-model module that should merge into KV, storage backends scattered at root level,
+            and Metadata types trapped in the wrong home.
+          </p>
+          <p>
+            The path to "best in the world" is not a rewrite — it is
+            <strong>five dissolutions, one consolidation, and a delivery-layer commitment</strong>:
+          </p>
+          <div class="stat-grid">
+            <div class="stat-card stat-good">
+              <div class="stat-value">A−</div>
+              <div class="stat-label">Foundation Grade</div>
+            </div>
+            <div class="stat-card stat-bad">
+              <div class="stat-value">5</div>
+              <div class="stat-label">Modules to dissolve</div>
+            </div>
+            <div class="stat-card stat-bad">
+              <div class="stat-value">3</div>
+              <div class="stat-label">Critical problems</div>
+            </div>
+            <div class="stat-card stat-good">
+              <div class="stat-value">1</div>
+              <div class="stat-label">Delivery layer (Watermill)</div>
+            </div>
+            <div class="stat-card stat-warn">
+              <div class="stat-value">4</div>
+              <div class="stat-label">Go-first opportunities</div>
+            </div>
+          </div>
+          <div class="callout callout-solution">
+            <strong>The verdict:</strong>
+            The domain model is right. The packaging needs consolidation. Dissolve projection/,
+            readmodel/, memory-bus, PostgresBus, and the reactive EventBus. Commit to Watermill as
+            the single delivery layer. Merge readmodel into kv/. Move all storage backends under
+            storage/ as subpath modules. Extract shared Metadata into its own type family.
+            <em>The library gets smaller while getting more capable.</em>
+          </div>
+        </section>
+
+        <section id="north-star">
+          <h2><span class="num">01</span>The North Star — Deployer Decides, Consumer Doesn't</h2>
+          <div class="quote-block">
+            "My goal is for consumers of this lib to
+            <strong>NOT decide on the implementation of infrastructure</strong> — DB, message buses,
+            etc. They should have a simple API that allows the person deploying the app to decide
+            where they want to keep their data and what they want to store. We should have
+            recommendations though — some metadata or projections (materialized views) may be better
+            placed in a SQL/KV/columnar/Graph DB — but we should also be able to run fully with just
+            a SQLite + Memory setup, maybe even multiple SQLite DBs, e.g. 1 for Command + Event
+            Sourcing, 1 for Query (logs), and 1 for materialized views."
+            <div class="attr">— Lars Artmann, project owner</div>
+          </div>
+          <p>
+            This is the architectural north star. Every module decision must serve it. Here's what
+            it means concretely:
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Consumer API (app developer writes)</th>
+                <th>Deployer API (ops engineer configures)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="yes"><code>stack.Repository[State, Cmd](bundle, decider)</code></td>
+                <td>
+                  Picks preset: <code>sqlite.New()</code>, <code>pebble.New()</code>,
+                  <code>postgres.New()</code>
+                </td>
+              </tr>
+              <tr>
+                <td class="yes"><code>stack.View[TodoView, TodoID](bundle)</code></td>
+                <td>Chooses: same DB as events? Separate DB? KV backend?</td>
+              </tr>
+              <tr>
+                <td class="yes"><code>repo.Execute(ctx, aggID, cmd)</code></td>
+                <td>
+                  Never sees the store, bus, or codec. Gets a <code>*Bundle</code> with capabilities
+                  wired.
+                </td>
+              </tr>
+              <tr>
+                <td class="yes"><code>query.DispatchTyped[R](ctx, dispatcher, q)</code></td>
+                <td>
+                  Chooses: persist all queries? Metadata-only? Off?
+                  <code>sqlite.WithQueryDB("audit.db")</code>
+                </td>
+              </tr>
+              <tr>
+                <td class="yes">Defines materialization: <code>On[UserCreated](...)</code></td>
+                <td>Chooses where views live: SQL table? Pebble KV? In-memory?</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="callout callout-warning">
+            <strong>The minimum viable deployment:</strong>
+            SQLite + Memory. One process, zero external services. Three SQLite files if the deployer
+            wants separation: <code>events.db</code> (event store + commands + snapshots),
+            <code>queries.db</code> (query audit log), <code>views.db</code> (materialized read
+            models). The consumer code is identical regardless of which configuration the deployer
+            chose.
+          </div>
+        </section>
+
+        <section id="inventory">
+          <h2><span class="num">02</span>Module Inventory — 39 Modules, Too Many at Root</h2>
+          <p>The library already uses <strong>subpath modules</strong> — proven pattern:</p>
+          <div class="dep-tree">
+            <span class="root">stack/pebble/go.mod</span> → module
+            github.com/larsartmann/go-cqrs-lite/<span class="ok">stack/pebble/v2</span>
+            <span class="root">stack/sqlite/go.mod</span> → module
+            github.com/larsartmann/go-cqrs-lite/<span class="ok">stack/sqlite/v2</span>
+            <span class="root">stack/postgres/go.mod</span> → module
+            github.com/larsartmann/go-cqrs-lite/<span class="ok">stack/postgres/v2</span>
+          </div>
+          <p>
+            This means <code>pebble/</code> can move to <code>storage/pebble/</code> with zero risk
+            — the import path just becomes <code>storage/pebble/v2</code>, independently versioned,
+            independently importable. The pattern is already battle-tested in this repo.
+          </p>
+          <p>
+            <strong>The problem:</strong> storage backends are scattered across root level instead
+            of grouped:
+          </p>
+          <div class="dep-tree">
+            <span class="root">go-cqrs-lite/</span> ├── <span class="ok">storage/</span> ← SQL
+            backends live here (correct) ├── <span class="unwanted">pebble/</span> ← should be
+            storage/pebble/ ├── <span class="unwanted">turso/</span> ← should be storage/turso/ ├──
+            <span class="unwanted">memory/</span> ← store impls should be storage/memory/, bus impls
+            should DIE ├── <span class="unwanted">readmodel/</span> ← should merge into kv/ ├──
+            <span class="unwanted">readmodel/cache/</span> ← should merge into kv/ ├──
+            <span class="unwanted">projection/</span> ← should dissolve (it's a message bus, see
+            §05E) └── <span class="ok">stack/</span> ← composition root (correct, uses subpath
+            modules)
+          </div>
+        </section>
+
+        <section id="state-of-art">
+          <h2><span class="num">03</span>State of the Art — Four Capabilities Nobody in Go Has</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Capability</th>
+                <th>Pioneered by</th>
+                <th>go-cqrs-lite today</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Decide/Apply separation</strong></td>
+                <td>Eventuous (.NET)</td>
+                <td class="yes">70% — Fold exists, Decide is per-call not a field</td>
+              </tr>
+              <tr>
+                <td><strong>Projection lifecycle</strong></td>
+                <td>Marten (.NET)</td>
+                <td class="no">30% — Async only, no Inline/Live choice</td>
+              </tr>
+              <tr>
+                <td><strong>Dual-store architecture</strong></td>
+                <td>LiveStore (TS)</td>
+                <td class="no">40% — pieces exist, never wired</td>
+              </tr>
+              <tr>
+                <td><strong>Type-safe event application</strong></td>
+                <td>Eventuous</td>
+                <td class="no">20% — payload is []byte</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="callout callout-problem">
+            <strong>The opportunity:</strong> Achieving all four makes go-cqrs-lite the reference Go
+            implementation.
+          </div>
+        </section>
+
+        <section id="excellent">
+          <h2><span class="num">04</span>What's Already World-Class (Preserve These)</h2>
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>ISP-split store interfaces (ADR-0006)</strong
+                ><span
+                  >EventSink | EventSource | Journal | SeekableJournal | BackwardsSource. Delete is
+                  impossible at type level.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Branded ULID identifiers (ADR-0024)</strong
+                ><span
+                  >id.Of[T] = phantom-typed, compile-time-safe, zero-cost. 8 markers exported.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Five-family error taxonomy</strong
+                ><span
+                  >Rejection | Conflict | Transient | Infrastructure | Corruption. IsRetryable works
+                  structurally.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Pure-function Decider (ADR-0001)</strong
+                ><span
+                  >Decider[State]{Initial, Fold}. No base class, no reflection. Functional core,
+                  imperative shell.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Replay-safe processing mode</strong
+                ><span>WithProcessingMode(ctx, ModeReplay). Cleaner than Axon's isLive().</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Codec abstraction with BufferEncoder</strong
+                ><span>JSON, CBOR canonical, CBOR compact, Raw. Zero-alloc hot path.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Stack presets as composition root</strong
+                ><span
+                  >One call wires the full stack. Deployer picks preset; consumer never imports a
+                  backend.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Subpath module pattern</strong
+                ><span
+                  >stack/pebble, stack/sqlite, stack/postgres — independently versioned subpath
+                  modules. Proven pattern for storage/ consolidation.</span
+                >
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="catalog">
+          <h2><span class="num">05</span>Problem Catalog — Brutal Honesty with Evidence</h2>
+          <p>Seven themes. Every claim backed by verbatim source with <code>file:line</code>.</p>
+
+          <h3 id="theme-a">Theme A — The Leaky Event Abstraction</h3>
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Critical</span>
+            <h3>A1 · "Generic" helpers type-assert to the concrete impl</h3>
+            <div class="where">
+              event/codec.go:44-50 · event/codec.go:62-64 · event/codec.go:69-75 ·
+              event/tombstone.go:93-100
+            </div>
+            <pre><code><span class="tok-comment">// event/codec.go:44 — verbatim</span>
+<span class="tok-keyword">func</span> <span class="tok-func">payloadForDecode</span>(<span class="tok-generic">evt</span> <span class="tok-generic">Event</span>) []<span class="tok-type">byte</span> {
+    <span class="tok-keyword">if</span> <span class="tok-generic">ie</span>, <span class="tok-generic">ok</span> := <span class="tok-generic">evt</span>.(*<span class="tok-generic">ImmutableEvent</span>); <span class="tok-generic">ok</span> {
+        <span class="tok-keyword">return</span> <span class="tok-generic">ie</span>.<span class="tok-generic">payload</span>  <span class="tok-comment">// bypasses clone — reaches into PRIVATE field</span>
+    }
+    <span class="tok-keyword">return</span> <span class="tok-generic">evt</span>.<span class="tok-func">Payload</span>()
+}</code></pre>
+            <p>
+              Four helpers do this. The interface is a lie; <code>*ImmutableEvent</code> is the real
+              contract. <strong>Fix:</strong> Make <code>Event</code> a concrete struct. One
+              production impl. Type-assertions become direct field access.
+            </p>
+          </div>
+          <div class="issue issue-important">
+            <span class="severity severity-important">High</span>
+            <h3>
+              A2 · <code>eventOptions</code> pointer leaks construction config into event lifetime
+            </h3>
+            <div class="where">event/event.go:86 · event/event.go:89-93</div>
+            <p>
+              Every event carries <code>opts *eventOptions</code> (codec + clock + deadline) for its
+              entire lifetime — config only needed at construction. <strong>Fix:</strong> Keep
+              config in constructor scope; materialize Event with data fields only.
+            </p>
+          </div>
+
+          <h3 id="theme-b">Theme B — Metadata Lives in the Wrong Home</h3>
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Critical</span>
+            <h3>
+              B1 · <code>command.Metadata</code> and <code>query.Metadata</code> are aliases of
+              <code>event.Metadata</code>
+            </h3>
+            <div class="where">command/metadata.go:11 · query/query.go:36</div>
+            <pre><code><span class="tok-comment">// command/metadata.go:11 — verbatim</span>
+<span class="tok-keyword">type</span> <span class="tok-generic">Metadata</span> = <span class="tok-generic">event.Metadata</span>  <span class="tok-comment">// ALIAS — command inherits event's shape</span>
+
+<span class="tok-comment">// query/query.go:36 — verbatim</span>
+<span class="tok-keyword">type</span> <span class="tok-generic">Metadata</span> = <span class="tok-generic">event.Metadata</span>  <span class="tok-comment">// ALIAS — query inherits event's shape</span></code></pre>
+            <p>
+              The problem: <code>event.Metadata</code> has <code>CausationID</code> (meaningless for
+              queries), tombstone soft-metadata in <code>Custom</code> (event-specific), and no
+              command-specific fields (RetryCount, IdempotencyKey). The aliasing forces every
+              message type into the event's shape.
+            </p>
+            <div class="callout callout-solution">
+              <strong>Fix — three options, ranked by simplicity:</strong><br /><br />
+              <strong>A) Kill aliases, embed shared base (simplest):</strong> Extract a
+              <code>Tracing</code> struct (CorrelationID, CausationID, UserID, RequestID) into
+              <code>event/</code>. Each module defines its own <code>Metadata</code> that embeds
+              <code>Tracing</code> + adds type-specific fields. No new module.<br /><br />
+              <strong>B) Extract to <code>domain/</code> module:</strong> A new module holds
+              Tracing, AggregateRef, Type, Version. event/, command/, query/ import it. Clean but
+              adds a module everyone depends on.<br /><br />
+              <strong>C) Keep aliases but split event.Metadata:</strong> Shared shape stays aliased;
+              event-specific concerns (tombstone, security) move to a separate
+              <code>EventMetadata</code> on the Event struct.
+            </div>
+          </div>
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Critical</span>
+            <h3>B2 · The "real" event schema lives in <code>Custom</code> strings</h3>
+            <div class="where">
+              event/metadata.go:10-19 · event/tombstone.go:48 · event/causality.go
+            </div>
+            <p>
+              12 first-class domain concepts (tombstone, rebirth, command-causation, client-timing,
+              signing, encryption) all live as strings in
+              <code>Custom map[MetadataKey]string</code>. The 7 typed fields are the minority; the
+              string map is the real model. <strong>Fix:</strong> Promote to typed fields —
+              <code>TombstoneMark</code>, <code>Causation</code>, <code>SecurityEnvelope</code>.
+              Keep <code>Extensions</code> for consumer-defined concerns only.
+            </p>
+          </div>
+
+          <h3 id="theme-c">Theme C — Command/Query Duplication & Asymmetry</h3>
+          <div class="issue issue-important">
+            <span class="severity severity-important">High</span>
+            <h3>C1 · ~600 LOC copy-pasted between command/ and query/</h3>
+            <div class="where">
+              command/command.go:9-25 vs query/query.go:10-26 — character-for-character identical
+              <code>Type</code>, <code>Metadata</code>, <code>Middleware</code>, reactive bus, error
+              re-exports
+            </div>
+            <p>
+              <strong>Fix:</strong> Extend <code>cqrs-gen</code> to emit symmetric types from a
+              template. Module isolation preserved; drift eliminated.
+            </p>
+          </div>
+          <div class="issue issue-important">
+            <span class="severity severity-important">High</span>
+            <h3>C2 · Query has no <code>Bus</code>; command has both callback Bus and reactive</h3>
+            <div class="where">command/bus.go:29-37 vs query/ (reactive only)</div>
+            <p>
+              <strong>Fix:</strong> Both dissolve into Watermill. Command and query delivery both
+              use Watermill's Router.
+            </p>
+          </div>
+
+          <h3 id="theme-d">Theme D — The Decider Identity Crisis</h3>
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Critical</span>
+            <h3>D1 · <code>Decider</code> has no <code>Decide</code> field — the name lies</h3>
+            <div class="where">decider/decider.go:24-27 · decider/decider.go:94</div>
+            <pre><code><span class="tok-comment">// decider/decider.go:24 — verbatim</span>
+<span class="tok-keyword">type</span> <span class="tok-generic">Decider</span>[<span class="tok-generic">State</span> <span class="tok-type">any</span>] <span class="tok-keyword">struct</span> {
+    <span class="tok-generic">Initial</span> <span class="tok-generic">State</span>
+    <span class="tok-generic">Fold</span>    <span class="tok-keyword">func</span>(<span class="tok-generic">state</span> <span class="tok-generic">State</span>, <span class="tok-generic">evt</span> <span class="tok-generic">event.Event</span>) (<span class="tok-generic">State</span>, <span class="tok-type">error</span>)
+    <span class="tok-comment">// ↑ NO Decide field — decision logic passed per-call as DecideFunc</span>
+}</code></pre>
+            <p>
+              <strong>Fix:</strong> <code>Decider[State, Cmd]</code> with <code>Decide</code> field
+              + renamed <code>Apply</code>. See <a href="#redesign">§06 Redesign</a>.
+            </p>
+          </div>
+
+          <h3 id="theme-e">Theme E — "Projection" is a Message Bus, Not a Projection</h3>
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Critical · The Biggest Naming Lie</span>
+            <h3>E1 · <code>projection.Runner</code> subscribes to events — it IS a message bus</h3>
+            <div class="where">projection/runner.go:36 · projection/runner.go:54</div>
+            <pre><code><span class="tok-comment">// projection/runner.go:36 — verbatim</span>
+<span class="tok-generic">subscriber</span>  <span class="tok-generic">event.Subscriber</span>  <span class="tok-comment">// ← requires a BUS interface!</span>
+
+<span class="tok-comment">// projection/runner.go:54 — verbatim</span>
+<span class="tok-keyword">func</span> <span class="tok-func">NewRunner</span>(
+    <span class="tok-generic">journal</span> <span class="tok-generic">event.Journal</span>,
+    <span class="tok-generic">subscriber</span> <span class="tok-generic">event.Subscriber</span>,  <span class="tok-comment">// ← the BUS</span>
+    <span class="tok-generic">checkpoint</span> <span class="tok-generic">event.CheckpointStore</span>,
+    ...
+) (*<span class="tok-generic">Runner</span>, <span class="tok-type">error</span>)</code></pre>
+            <p>
+              The user's reaction:
+              <em
+                >"event → do something... that's not a projection, that sounds like a message bus!
+                WTF?"</em
+              >
+            </p>
+            <p>
+              <strong>They're 100% right.</strong> A projection is a <em>materialized view</em> —
+              the data structure that results from applying events.
+              <code>projection.Runner</code> is <strong>delivery infrastructure</strong>: it
+              subscribes to events, dispatches to handlers, manages checkpoints, retries, DLQ.
+              That's what a message bus does. The "projection" is the read model — which is the
+              <code>kv.TypedStore</code> the handler writes to.
+            </p>
+            <p>The whole module dissolves into:</p>
+            <div class="diagram">
+              <span class="node node-dead">projection.Runner</span>
+              <span class="arrow">→ becomes →</span>
+              <span class="node node-good">Watermill Router</span>
+              <span class="arrow">+ retry middleware + poison queue</span>
+            </div>
+            <div class="diagram">
+              <span class="node node-dead">projection.Builder + On[T]</span>
+              <span class="arrow">→ becomes →</span>
+              <span class="node node-good">stack.Materialize[V,K]</span>
+              <span class="arrow">+ router.AddHandler</span>
+            </div>
+            <div class="diagram">
+              <span class="node node-dead">projection.DistributedRunner</span>
+              <span class="arrow">→ becomes →</span>
+              <span class="node node-good">Watermill Router</span>
+              <span class="arrow">+ leader election plugin</span>
+            </div>
+            <div class="callout callout-warning">
+              <strong>Correction (after deep research):</strong> Watermill does NOT have built-in
+              replay/catch-up. It has no checkpoint store, no journal replay, no "catch up then
+              switch to live." What it DOES have: retry middleware, poison queue (DLQ),
+              deduplicator, same handler for in-process + broker. The replay problem is ours to
+              solve — but it's not hard. See <a href="#rd-delivery">§06 → CatchUpSubscriber</a> for
+              the ~300 LOC design based on Watermill's own FanOut pattern.
+            </div>
+            <div class="callout callout-problem">
+              <strong>What dies:</strong> <code>projection.Runner</code>'s internal
+              live-subscription loop, its hand-rolled dedup, its fire-and-forget DLQ, its middleware
+              chain, its DistributedRunner. ~1200 LOC replaced by Watermill middleware. What STAYS
+              as new code: a ~300 LOC <code>CatchUpSubscriber</code> (Watermill
+              <code>message.Subscriber</code> impl) that does replay→live handoff. Net:
+              <strong>~900 LOC deleted</strong>, and the DLQ becomes durable (Watermill's
+              <code>PoisonQueue</code> middleware).
+            </div>
+          </div>
+
+          <h3 id="theme-f">Theme F — Storage Sprawl</h3>
+          <div class="issue issue-important">
+            <span class="severity severity-important">High</span>
+            <h3>F1 · Storage backends scattered at root level</h3>
+            <div class="where">pebble/ · turso/ · memory/ · storage/ — all at root</div>
+            <p>
+              <strong>Fix:</strong> Consolidate under <code>storage/</code> using subpath modules
+              (proven pattern from <code>stack/</code>):
+            </p>
+            <div class="dep-tree">
+              <span class="root">storage/</span> ├── <span class="ok">sql/</span> ← SQL dialect,
+              DBHandle, RunInTx (stays) │ └── <span class="ok">indexing/</span> ← smart index
+              advisor (MOVED from turso/indexing/) ├── <span class="ok">memory/</span> ← in-memory
+              store impls (MOVED from memory/) ├── <span class="ok">sqlite/</span> ← SQLite backend
+              (existed in storage/, now independent) ├── <span class="ok">postgres/</span> ←
+              PostgreSQL backend ├── <span class="ok">pebble/</span> ← Pebble backend (MOVED from
+              pebble/) └── <span class="ok">turso/</span> ← Turso backend (MOVED from turso/)
+            </div>
+          </div>
+          <div class="issue issue-important">
+            <span class="severity severity-important">High</span>
+            <h3>
+              F2 · <code>readmodel/</code> is a 120-line typed facade over <code>kv.Store</code> —
+              merge it
+            </h3>
+            <div class="where">
+              readmodel/store.go:24 · readmodel/backend.go:16 (<code>Backend = kv.Store</code>)
+            </div>
+            <p>
+              <code>readmodel.Store[T,K]</code> is codec + key-prefix over <code>kv.Store</code>.
+              That's a typed KV facade. It belongs in <code>kv/</code> as
+              <code>kv.TypedStore[T,K]</code>. Same for <code>readmodel/cache/</code> →
+              <code>kv.Cache[T,K]</code>. <strong>One fewer module, better discoverability.</strong>
+            </p>
+          </div>
+          <div class="issue issue-important">
+            <span class="severity severity-important">High</span>
+            <h3>F3 · Smart index advisor buried in <code>turso/</code> — it's a storage concern</h3>
+            <div class="where">turso/indexing/advisor.go · turso/indexing/auto.go</div>
+            <p>
+              The indexing advisor (<code>EXPLAIN QUERY PLAN</code> → index recommendations) works
+              on any SQLite DB. It's not Turso-specific. <strong>Fix:</strong> Move to
+              <code>storage/sql/indexing/</code> — available to all SQL backends.
+            </p>
+          </div>
+          <div class="issue issue-important">
+            <span class="severity severity-important">High</span>
+            <h3>F4 · No query audit middleware — query persistence is manual</h3>
+            <div class="where">
+              query/doc.go:27-35 (documents manual SaveQuery) · no AuditMiddleware exists
+            </div>
+            <p>
+              The user asks: "how would a consumer save ALL queries persistently?" Today: manually
+              call <code>store.SaveQuery(ctx, q)</code> in every handler. No middleware automates
+              this. <strong>Fix:</strong> Add
+              <code>query.AuditMiddleware(store, AuditLevel)</code> — Off / Metadata / Full — wired
+              on the dispatcher.
+            </p>
+          </div>
+
+          <h3 id="theme-g">Theme G — Packaging (Five Things Called "Bus")</h3>
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Critical</span>
+            <h3>G1 · Five parallel delivery models — dissolve four</h3>
+            <div class="where">
+              event.Bus · event.EventBus (reactive) · memory.MemoryBus · storage.PostgresBus ·
+              command.Bus
+            </div>
+            <div class="diagram">
+              <span class="node node-dead">event.Bus</span>
+              <span class="node node-dead">EventBus (ro.Subject)</span>
+              <span class="node node-dead">MemoryBus</span>
+              <span class="node node-dead">PostgresBus</span>
+              <span class="node node-dead">command.Bus</span>
+              <span class="arrow">→ ALL replaced by →</span>
+              <span class="node node-good">Watermill Router</span>
+            </div>
+            <p>
+              <strong>Fix:</strong> <code>event.Publisher</code> stays (1 method, decider needs it).
+              Everything else → Watermill. In-process delivery via Watermill's
+              <code>gochannel</code> pubsub. Broker delivery via Watermill's Kafka/NATS/SQL plugins.
+              The <code>watermill/</code> adapter becomes bidirectional.
+            </p>
+          </div>
+        </section>
+
+        <section id="redesign">
+          <h2><span class="num">06</span>The Redesigned Architecture</h2>
+
+          <h3 id="rd-tree">Target Module Tree</h3>
+          <div class="dep-tree">
+            <span class="root">go-cqrs-lite/</span>
+            <span class="tok-comment">── Layer 0: Leaf modules (no internal deps) ──</span>
+            ├── <span class="ok">id/</span> ← branded ULIDs (unchanged) ├──
+            <span class="ok">codec/</span> ← JSON/CBOR/Raw (unchanged) ├──
+            <span class="ok">kv/</span> ← KV Store + TypedStore[T,K] + Cache[T,K] │ (absorbs
+            readmodel/ and readmodel/cache/) │
+            <span class="tok-comment">── Layer 1: Core domain types ──</span>
+            ├── <span class="ok">event/</span> ← Event, Store ISP, Publisher (1 METHOD ONLY) │ │ NO
+            Bus, NO Subscriber, NO Middleware, NO reactive │ └── <span class="ok">Tracing</span> ←
+            shared metadata base (CorrelationID, etc.) ├── <span class="ok">command/</span> ←
+            Command, Dispatcher, Store (own Metadata, embeds Tracing) ├──
+            <span class="ok">query/</span> ← Query, Dispatcher, Store, AuditMiddleware │
+            <span class="tok-comment">── Layer 2-3: Extensions + Aggregate logic ──</span>
+            ├── <span class="ok">schema/</span> ← upcasting, validation ├──
+            <span class="ok">snapshot/</span> ← Snapshot types + strategy ├──
+            <span class="ok">decider/</span> ← Decider[State, Cmd] + Repository │
+            <span class="tok-comment">── Layer 4: Infrastructure ──</span>
+            ├── <span class="ok">otel/</span> ← OTel helpers (unchanged) ├──
+            <span class="ok">signing/</span> ← event signing (unchanged) ├──
+            <span class="ok">encryption/</span> ← event encryption (unchanged) ├──
+            <span class="ok">storage/</span> ← ALL storage backends (subpath modules) │ ├──
+            <span class="ok">sql/</span> ← Dialect, DBHandle, RunInTx, query engine │ │ └──
+            <span class="ok">indexing/</span> ← smart index advisor (from turso/) │ ├──
+            <span class="ok">memory/</span> ← in-memory store impls (from memory/) │ ├──
+            <span class="ok">sqlite/</span> ← SQLite backend │ ├──
+            <span class="ok">postgres/</span> ← PostgreSQL backend │ ├──
+            <span class="ok">pebble/</span> ← Pebble backend (moved from pebble/) │ └──
+            <span class="ok">turso/</span> ← Turso backend (moved from turso/) │
+            <span class="tok-comment">── Layer 5: Delivery + Cross-cutting ──</span>
+            ├── <span class="ok">watermill/</span> ← THE delivery layer (bidirectional adapter) │
+            Replaces: event.Bus, projection.Runner, memory.MemoryBus ├──
+            <span class="ok">middleware/</span> ← CQRS-specific (tracing, validation, metrics) │
+            retry/circuit-breaker DELETED → use Watermill's ├── <span class="ok">listing/</span> ←
+            aggregate listing (query-side) │
+            <span class="tok-comment">── Layer 6: Composition + Tools ──</span>
+            ├── <span class="ok">stack/</span> ← Bundle + presets + Materialize helper │ ├──
+            <span class="ok">memory/</span> ← all-in-memory preset │ ├──
+            <span class="ok">sqlite/</span> ← SQLite preset (supports multi-DB split) │ ├──
+            <span class="ok">pebble/</span> ← Pebble preset │ └──
+            <span class="ok">postgres/</span> ← PostgreSQL preset ├──
+            <span class="ok">catalog/</span> ← AsyncAPI/OpenAPI/D2 docs ├──
+            <span class="ok">cmd/</span> ← code generators └──
+            <span class="ok">integration/</span> ← cross-module tests
+
+            <span class="tok-comment">── DISSOLVED ──</span>
+            ├── <span class="unwanted">projection/</span> ← DISSOLVED → Watermill Router +
+            kv.TypedStore ├── <span class="unwanted">readmodel/</span> ← MERGED into kv/ ├──
+            <span class="unwanted">readmodel/cache/</span>← MERGED into kv/ ├──
+            <span class="unwanted">memory/</span> ← SPLIT: stores→storage/memory/, buses→DEAD ├──
+            <span class="unwanted">pebble/</span> ← MOVED to storage/pebble/ └──
+            <span class="unwanted">turso/</span> ← MOVED to storage/turso/
+          </div>
+
+          <h3 id="rd-delivery">Delivery = Watermill + CatchUpSubscriber (~300 LOC)</h3>
+          <p>
+            Deep research into Watermill's actual capabilities revealed a critical correction to
+            v3's first draft. Watermill <strong>does not</strong> have built-in replay/catch-up. The
+            honest split between "what Watermill gives us" and "what we must build" is:
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Capability</th>
+                <th>Watermill HAS it?</th>
+                <th>Our solution</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Live delivery (in-process)</td>
+                <td class="yes">✅ gochannel pubsub</td>
+                <td>Use directly</td>
+              </tr>
+              <tr>
+                <td>Live delivery (broker)</td>
+                <td class="yes">✅ Kafka/NATS/SQL plugins</td>
+                <td>Use directly</td>
+              </tr>
+              <tr>
+                <td>Retry with backoff</td>
+                <td class="yes">✅ middleware.Retry</td>
+                <td>Use directly</td>
+              </tr>
+              <tr>
+                <td>Dead-letter / poison queue</td>
+                <td class="yes">✅ middleware.PoisonQueue</td>
+                <td>Use directly (replaces fire-and-forget callback)</td>
+              </tr>
+              <tr>
+                <td>Dedup</td>
+                <td class="yes">✅ middleware.Deduplicator</td>
+                <td>Use directly</td>
+              </tr>
+              <tr>
+                <td>Same handler for in-proc + broker</td>
+                <td class="yes">✅ HandlerFunc is pubsub-agnostic</td>
+                <td>Use directly</td>
+              </tr>
+              <tr>
+                <td><strong>Replay from journal</strong></td>
+                <td class="no">❌ No checkpoint, no journal, no seek</td>
+                <td><strong>CatchUpSubscriber (~300 LOC)</strong></td>
+              </tr>
+              <tr>
+                <td><strong>Catch-up → live handoff</strong></td>
+                <td class="no">❌ No phase-transition concept</td>
+                <td><strong>CatchUpSubscriber</strong></td>
+              </tr>
+              <tr>
+                <td>Leader election</td>
+                <td class="no">❌ No plugin shipped</td>
+                <td>Keep existing LeaderElection interface</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="callout callout-solution">
+            <strong>Watermill characteristics analysis — which matter for CQRS/ES?</strong
+            ><br /><br />
+            Watermill pub/sub implementations can declare: ConsumerGroups, ExactlyOnceDelivery,
+            GuaranteedOrder, Persistent. Only <strong>one</strong> matters for correctness:<br /><br />
+            <strong>GuaranteedOrder</strong> — ⚠️ <em>Within-aggregate</em> ordering matters (events
+            must fold in version order). Cross-aggregate doesn't. Kafka per-partition handles
+            this.<br />
+            <strong>ExactlyOnce</strong> — ❌ Projections must be idempotent by design.
+            At-least-once is the correct contract. Exactly-once is expensive and unnecessary.<br />
+            <strong>Persistent</strong> — ❌ The event store IS the persistent source of truth. The
+            bus is a notification. Lose the bus? Replay from the store. Bus persistence = wasted
+            writes.<br />
+            <strong>ConsumerGroups</strong> — ⚠️ For Kafka/NATS scaling. Single-writer
+            (LeaderElection) covers most cases.
+          </div>
+          <h4>The CatchUpSubscriber Design</h4>
+          <p>
+            This is a known pattern — EventStoreDB calls it
+            <strong>"Catch-Up Subscription"</strong>. The implementation follows Watermill's own
+            <code>FanOut</code> architecture: a custom <code>message.Subscriber</code> that wraps an
+            internal GoChannel, first pumping historical events from the journal, then seamlessly
+            switching to live.
+          </p>
+          <div class="dep-tree">
+            <span class="root">CatchUpSubscriber</span> (implements message.Subscriber) │ ├──
+            <span class="ok">Subscribe(ctx, topic)</span> → returns ONE channel │ ├──
+            <span class="ok">Phase 1: REPLAY</span> │ ├── Load checkpoint from event.CheckpointStore
+            │ ├── SeekableJournal.ReadFrom(checkpoint.EventID, limit) │ ├── Set ProcessingMode =
+            ModeReplay in message metadata │ └── Pump events into internal GoChannel │ ├──
+            <span class="ok">Phase 2: LIVE (seamless handoff)</span>
+            │ ├── Record journal "head" (latest EventID) at replay start │ ├── Replay up to head,
+            then start live bus subscription │ ├── Dedup overlap via middleware.Deduplicator │ └──
+            Pump live events into same GoChannel │ └── Handler sees ONE channel — no phase awareness
+            needed
+
+            <span class="ok">Checkpoint middleware</span>: └── After each message.Ack() → save
+            EventID to CheckpointStore
+          </div>
+          <pre><code><span class="tok-comment">// watermill/catchup_subscriber.go — ~300 LOC, based on FanOut pattern</span>
+
+<span class="tok-keyword">type</span> <span class="tok-generic">CatchUpSubscriber</span> <span class="tok-keyword">struct</span> {
+    <span class="tok-generic">journal</span>    <span class="tok-generic">event.SeekableJournal</span>
+    <span class="tok-generic">live</span>       <span class="tok-generic">message.Subscriber</span>      <span class="tok-comment">// gochannel or Kafka/NATS</span>
+    <span class="tok-generic">checkpoint</span> <span class="tok-generic">event.CheckpointStore</span>
+    <span class="tok-generic">codec</span>      <span class="tok-generic">codec.Codec</span>
+}
+
+<span class="tok-comment">// Subscribe returns one channel: replay first, then live, seamlessly.</span>
+<span class="tok-comment">// Implements message.Subscriber — Watermill Router accepts it directly.</span>
+<span class="tok-keyword">func</span> (<span class="tok-generic">s</span> *<span class="tok-generic">CatchUpSubscriber</span>) <span class="tok-func">Subscribe</span>(<span class="tok-generic">ctx</span>, <span class="tok-generic">topic</span>) (&lt;-<span class="tok-keyword">chan</span> *<span class="tok-generic">message.Message</span>, <span class="tok-type">error</span>)
+<span class="tok-keyword">func</span> (<span class="tok-generic">s</span> *<span class="tok-generic">CatchUpSubscriber</span>) <span class="tok-func">Close</span>() <span class="tok-type">error</span>
+
+<span class="tok-comment">// Usage — identical to any Watermill subscriber:</span>
+<span class="tok-generic">sub</span> := <span class="tok-func">watermill.NewCatchUpSubscriber</span>(<span class="tok-generic">journal</span>, <span class="tok-generic">goChan</span>, <span class="tok-generic">cpStore</span>, <span class="tok-generic">codec.JSONCodec{}</span>)
+<span class="tok-generic">router</span>, <span class="tok-generic">_</span> := <span class="tok-generic">message</span>.<span class="tok-func">NewRouter</span>(<span class="tok-generic">message.RouterConfig</span>{}, <span class="tok-generic">logger</span>)
+<span class="tok-generic">router</span>.<span class="tok-func">AddMiddleware</span>(<span class="tok-generic">middleware.Retry</span>{...}.<span class="tok-func">Middleware</span>())
+<span class="tok-generic">router</span>.<span class="tok-func">AddMiddleware</span>(<span class="tok-generic">middleware.PoisonQueue</span>(<span class="tok-generic">pub</span>, <span class="tok-string">"dead_letters"</span>))
+<span class="tok-generic">router</span>.<span class="tok-func">AddHandler</span>(<span class="tok-string">"user-view"</span>, <span class="tok-string">"events"</span>, <span class="tok-generic">sub</span>, <span class="tok-string">"views"</span>, <span class="tok-generic">pub</span>, <span class="tok-generic">mat</span>.<span class="tok-func">HandlerFunc</span>())
+<span class="tok-generic">router</span>.<span class="tok-func">Run</span>(<span class="tok-generic">ctx</span>)  <span class="tok-comment">// blocks — handles replay, live, retry, DLQ, dedup, checkpoint</span></code></pre>
+          <div class="callout callout-solution">
+            <strong>What dies:</strong> <code>event.Bus</code>, <code>event.Subscriber</code>,
+            <code>event.Middleware</code>, <code>event.PublishMiddleware</code>,
+            <code>event.EventBus</code> (reactive), <code>memory.MemoryBus</code>,
+            <code>memory.MemoryCommandBus</code>, <code>storage.PostgresBus</code>,
+            <code>projection.Runner</code>'s internal machinery,
+            <code>projection.DistributedRunner</code>, <code>projection.Builder</code>,
+            <code>middleware/retry</code>, <code>middleware/circuit_breaker</code>. ~1200 LOC of
+            parallel delivery machinery replaced by Watermill's battle-tested middleware + ~300 LOC
+            CatchUpSubscriber.
+          </div>
+          <p>
+            <strong>event.Publisher</strong> stays (1 method, decider needs it). The decider's
+            <code>Execute</code> currently hard-requires a non-nil Publisher (<code
+              >decider.go:60</code
+            >
+            returns <code>ErrNilPublisher</code>). A pure-ES consumer (no projections, no bus) is
+            forced to provide a no-op. <strong>Fix:</strong> Make Publisher optional via
+            <code>WithPublisher(nil)</code> — skip publish step when nil.
+          </p>
+
+          <h3 id="rd-materialize">Materialization = kv.TypedStore + Watermill Handler</h3>
+          <p>
+            The user's pain:
+            <code
+              >projection.On[UserCreated](builder, "user.created", codec, func(ctx, evt) error {
+              return viewStore.Set(...) })</code
+            >
+            — "this sucks ass."
+          </p>
+          <p>
+            The fix: a fluent materialization API that lives in <code>stack/</code> and wires event
+            → decode → apply → kv.TypedStore automatically. It models the full lifecycle — including
+            tombstones. <strong>There is no <code>OnDelete</code> that hard-removes a row</strong>:
+            the event store has no <code>Delete</code> (ADR-0006), and the materialize layer follows
+            the same invariant. Deletions are soft, via tombstone markers.
+          </p>
+          <pre><code><span class="tok-comment">// stack/materialize.go — the projection people actually want</span>
+
+<span class="tok-generic">mat</span>, <span class="tok-generic">_</span> := <span class="tok-func">stack.Materialize</span>[<span class="tok-generic">UserView</span>, <span class="tok-generic">UserID</span>](<span class="tok-generic">bundle</span>).
+    <span class="tok-func">OnCreate</span>(<span class="tok-string">"user.created"</span>, <span class="tok-keyword">func</span>(<span class="tok-generic">ctx</span>, <span class="tok-generic">evt</span> <span class="tok-generic">UserCreated</span>) (<span class="tok-generic">UserID</span>, *<span class="tok-generic">UserView</span>, <span class="tok-type">error</span>) {
+        <span class="tok-keyword">return</span> <span class="tok-generic">evt</span>.<span class="tok-generic">AggregateID</span>, &<span class="tok-generic">UserView</span>{<span class="tok-generic">Name</span>: <span class="tok-generic">evt</span>.<span class="tok-generic">Name</span>}, <span class="tok-type">nil</span>
+    }).
+    <span class="tok-func">OnUpdate</span>(<span class="tok-string">"user.renamed"</span>, <span class="tok-keyword">func</span>(<span class="tok-generic">ctx</span>, <span class="tok-generic">evt</span> <span class="tok-generic">UserRenamed</span>, <span class="tok-generic">existing</span> *<span class="tok-generic">UserView</span>) (*<span class="tok-generic">UserView</span>, <span class="tok-type">error</span>) {
+        <span class="tok-generic">existing</span>.<span class="tok-generic">Name</span> = <span class="tok-generic">evt</span>.<span class="tok-generic">NewName</span>
+        <span class="tok-keyword">return</span> <span class="tok-generic">existing</span>, <span class="tok-type">nil</span>
+    }).
+    <span class="tok-func">OnTombstone</span>(<span class="tok-string">"user.deleted"</span>, <span class="tok-keyword">func</span>(<span class="tok-generic">ctx</span>, <span class="tok-generic">evt</span> <span class="tok-generic">UserDeleted</span>, <span class="tok-generic">existing</span> *<span class="tok-generic">UserView</span>) (*<span class="tok-generic">UserView</span>, <span class="tok-type">error</span>) {
+        <span class="tok-generic">existing</span>.<span class="tok-generic">Status</span> = <span class="tok-generic">event.TombstoneSet</span>      <span class="tok-comment">// mark deleted, DON'T remove the row</span>
+        <span class="tok-keyword">return</span> <span class="tok-generic">existing</span>, <span class="tok-type">nil</span>
+    }).
+    <span class="tok-func">OnRebirth</span>(<span class="tok-string">"user.restored"</span>, <span class="tok-keyword">func</span>(<span class="tok-generic">ctx</span>, <span class="tok-generic">evt</span> <span class="tok-generic">UserRestored</span>, <span class="tok-generic">existing</span> *<span class="tok-generic">UserView</span>) (*<span class="tok-generic">UserView</span>, <span class="tok-type">error</span>) {
+        <span class="tok-generic">existing</span>.<span class="tok-generic">Status</span> = <span class="tok-generic">event.TombstoneRebirth</span>   <span class="tok-comment">// un-delete</span>
+        <span class="tok-keyword">return</span> <span class="tok-generic">existing</span>, <span class="tok-type">nil</span>
+    })
+
+<span class="tok-comment">// mat.Register(router) — wires as Watermill handler</span>
+<span class="tok-comment">// mat.View(ctx, id) — typed read from kv.TypedStore</span>
+<span class="tok-comment">// mat.List(ctx, kv.IncludeTombstoned) — show all, with Status field</span>
+<span class="tok-comment">// mat.List(ctx, kv.ExcludeTombstoned) — hide deleted (the default)</span>
+<span class="tok-comment">// mat.List(ctx, kv.OnlyTombstoned)   — show only deleted</span>
+
+<span class="tok-comment">// Escape hatch for non-CRUD projections (counters, feeds, cross-aggregate):</span>
+<span class="tok-generic">mat</span>.<span class="tok-func">OnEvent</span>[<span class="tok-generic">LoginRecorded</span>](<span class="tok-string">"user.login"</span>, <span class="tok-keyword">func</span>(<span class="tok-generic">ctx</span>, <span class="tok-generic">evt</span> <span class="tok-generic">LoginRecorded</span>, <span class="tok-generic">store</span> *<span class="tok-generic">kv.TypedStore</span>[<span class="tok-generic">UserView</span>,<span class="tok-generic">UserID</span>]) <span class="tok-type">error</span> {
+    <span class="tok-comment">// arbitrary logic — increment counter, append to feed, update multiple keys</span>
+    <span class="tok-keyword">return</span> <span class="tok-type">nil</span>
+})</code></pre>
+          <div class="callout callout-warning">
+            <strong>No OnDelete. Ever.</strong>
+            The event store has no Delete (ADR-0006) — hard-removing a materialized row would
+            violate the same invariant the store enforces. Deletions are always soft via
+            <code>OnTombstone</code>; the row stays, its <code>Status</code> flips to
+            <code>TombstoneSet</code>. <code>OnRebirth</code> reverses it. This is the materialize
+            layer mirroring the tombstone model the write side already enforces.
+          </div>
+          <div class="callout callout-solution">
+            <strong
+              >No manual codec. No manual key construction. No manual store wiring. Type-safe.
+              Tombstone-aware. The "projection" is the data in kv.TypedStore. The "runner" is the
+              Watermill Router. Everything just clicks.</strong
+            >
+          </div>
+
+          <h3 id="rd-metadata">Metadata Split — Kill the Aliases</h3>
+          <p>
+            Recommended: Option A (simplest). Extract <code>Tracing</code> struct, each module
+            defines own <code>Metadata</code>:
+          </p>
+          <pre><code><span class="tok-comment">// event/tracing.go — shared base (stays in event/ since events are primary carrier)</span>
+<span class="tok-keyword">type</span> <span class="tok-generic">Tracing</span> <span class="tok-keyword">struct</span> {
+    <span class="tok-generic">CorrelationID</span> <span class="tok-generic">id.CorrelationID</span> <span class="tok-string">`json:"correlationId,omitempty"`</span>
+    <span class="tok-generic">CausationID</span>   <span class="tok-generic">id.CausationID</span>   <span class="tok-string">`json:"causationId,omitempty"`</span>
+    <span class="tok-generic">UserID</span>        <span class="tok-generic">id.UserID</span>        <span class="tok-string">`json:"userId,omitempty"`</span>
+    <span class="tok-generic">RequestID</span>     <span class="tok-generic">id.RequestID</span>     <span class="tok-string">`json:"requestId,omitempty"`</span>
+}
+
+<span class="tok-comment">// event/metadata.go — event-specific (NO MORE ALIAS TARGET)</span>
+<span class="tok-keyword">type</span> <span class="tok-generic">Metadata</span> <span class="tok-keyword">struct</span> {
+    <span class="tok-generic">Tracing</span>                          <span class="tok-comment">// embedded</span>
+    <span class="tok-generic">Source</span>     <span class="tok-generic">Source</span>            <span class="tok-string">`json:"source,omitempty"`</span>
+    <span class="tok-generic">Tombstone</span>  <span class="tok-generic">TombstoneMark</span>      <span class="tok-string">`json:"tombstone,omitempty"`</span>
+    <span class="tok-generic">Security</span>   *<span class="tok-generic">SecurityEnvelope</span>  <span class="tok-string">`json:"security,omitempty"`</span>
+    <span class="tok-generic">Extensions</span> <span class="tok-keyword">map</span>[<span class="tok-type">string</span>]<span class="tok-type">string</span> <span class="tok-string">`json:"extensions,omitempty"`</span>
+}
+
+<span class="tok-comment">// command/metadata.go — command-specific (OWN TYPE, not alias!)</span>
+<span class="tok-keyword">type</span> <span class="tok-generic">Metadata</span> <span class="tok-keyword">struct</span> {
+    <span class="tok-generic">event.Tracing</span>                   <span class="tok-comment">// embedded — shared tracing</span>
+    <span class="tok-generic">RetryCount</span>     <span class="tok-type">int</span>           <span class="tok-comment">// command-specific!</span>
+    <span class="tok-generic">IdempotencyKey</span> <span class="tok-type">string</span>      <span class="tok-comment">// command-specific!</span>
+}
+
+<span class="tok-comment">// query/metadata.go — query-specific (OWN TYPE, not alias!)</span>
+<span class="tok-keyword">type</span> <span class="tok-generic">Metadata</span> <span class="tok-keyword">struct</span> {
+    <span class="tok-generic">event.Tracing</span>                   <span class="tok-comment">// embedded — no CausationID for queries!</span>
+}</code></pre>
+          <h3 id="rd-libraries">Library Choices — What to Adopt, What to Reject</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Library</th>
+                <th>Decision</th>
+                <th>Rationale</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Watermill</strong> (ThreeDotsLabs)</td>
+                <td class="yes">✅ ADOPT — delivery layer</td>
+                <td>
+                  Replaces 5 parallel bus impls. Router + gochannel + middleware suite (Retry,
+                  PoisonQueue, Deduplicator). Same handler for in-process + broker. We build
+                  CatchUpSubscriber on top (~300 LOC).
+                </td>
+              </tr>
+              <tr>
+                <td><strong>samber/ro</strong></td>
+                <td class="yes">✅ KEEP</td>
+                <td>
+                  5 production files use it (event/command/query reactive + projection live).
+                  Reactive streams are a separate programming model from the bus — not redundant.
+                </td>
+              </tr>
+              <tr>
+                <td><strong>go-ozzo/ozzo-validation</strong></td>
+                <td class="no">❌ REJECT</td>
+                <td>
+                  <strong>Last release: October 2020.</strong> Unmaintained for 5+ years. Only 99
+                  commits. 3.7× slower than go-playground (99 allocs vs 14). The
+                  samber/ozzo-validation fork exists but is a signal of abandonment. The
+                  programmatic API is elegant but the project is dead.
+                </td>
+              </tr>
+              <tr>
+                <td><strong>go-playground/validator</strong></td>
+                <td class="no">❌ REJECT</td>
+                <td>
+                  Banned by how-to-golang policy. Struct-tag based — can't validate third-party
+                  types. Also: domain validation is <em>consumer code</em>, not library code. Our
+                  <code>schema.Validator</code> just checks "does it decode?" — that's sufficient
+                  for the core.
+                </td>
+              </tr>
+              <tr>
+                <td><strong>sivchari/govalid</strong></td>
+                <td class="no">❌ NOT NEEDED</td>
+                <td>
+                  Compile-time zero-alloc validation. Impressive, but our validator doesn't do
+                  field-level rule validation — it just decodes. govalid's value (struct-tag rules
+                  generated at build time) isn't what this validator does.
+                </td>
+              </tr>
+              <tr>
+                <td><strong>encoding/json/v2</strong></td>
+                <td class="yes">✅ MIGRATE (v3)</td>
+                <td>
+                  Currently on v1 everywhere (82 files). v2 exists behind build tag only. Go 1.26
+                  supports v2 natively. Should be in the execution plan — one global find-replace of
+                  the import path.
+                </td>
+              </tr>
+              <tr>
+                <td><strong>sqlc</strong></td>
+                <td class="yes">✅ PHASE 1 ONLY</td>
+                <td>
+                  Extract DDL to <code>.sql</code> files + <code>//go:embed</code>. Kills the dual
+                  source of truth between Go string DDL and golden fixtures. Phase 2: convert static
+                  queries (snapshot, checkpoint, version-check). Dynamic WHERE loads + batch inserts
+                  stay hand-written. Repo already has analysis doc.
+                </td>
+              </tr>
+              <tr>
+                <td><strong>maypok86/otter/v2</strong></td>
+                <td class="yes">✅ ALREADY USED</td>
+                <td>
+                  readmodel/cache uses otter v2.3.0. Compliant with how-to-golang policy. No change
+                  needed — merges into kv.Cache[T,K].
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="deployer-api">
+          <h2><span class="num">07</span>Deployer vs Consumer — The DX Vision</h2>
+          <h3>Multi-DB SQLite (The Minimum Viable Production Setup)</h3>
+          <div class="compare-header">
+            <div class="compare-before">Consumer code (IDENTICAL regardless of deployment)</div>
+            <div class="compare-after">Deployer code (picks infrastructure)</div>
+          </div>
+          <div class="compare-row">
+            <pre><code><span class="tok-comment">// App developer writes this. NEVER changes.</span>
+<span class="tok-generic">repo</span>, <span class="tok-generic">_</span> := <span class="tok-func">stack.Repository</span>[<span class="tok-generic">UserState</span>,<span class="tok-generic">CreateUser</span>](
+    <span class="tok-generic">bundle</span>, <span class="tok-generic">userDecider</span>)
+
+<span class="tok-generic">view</span> := <span class="tok-func">stack.View</span>[<span class="tok-generic">UserView</span>,<span class="tok-generic">UserID</span>](<span class="tok-generic">bundle</span>)
+
+<span class="tok-generic">mat</span> := <span class="tok-func">stack.Materialize</span>[<span class="tok-generic">UserView</span>,<span class="tok-generic">UserID</span>](<span class="tok-generic">bundle</span>).
+    <span class="tok-func">OnCreate</span>(<span class="tok-string">"user.created"</span>, <span class="tok-keyword">func</span>(...) { ... })</code></pre>
+            <pre><code><span class="tok-comment">// Deployer picks: 3 separate SQLite DBs</span>
+<span class="tok-generic">bundle</span>, <span class="tok-generic">_</span> := <span class="tok-func">sqlite.New</span>(
+    <span class="tok-func">sqlite.WithEventDB</span>(<span class="tok-string">"data/events.db"</span>),
+    <span class="tok-func">sqlite.WithQueryDB</span>(<span class="tok-string">"data/queries.db"</span>),
+    <span class="tok-func">sqlite.WithViewDB</span>(<span class="tok-string">"data/views.db"</span>),
+    <span class="tok-func">sqlite.WithAutoIndexing</span>(),
+    <span class="tok-func">sqlite.WithQueryAudit</span>(<span class="tok-generic">query.AuditFull</span>),
+)
+
+<span class="tok-comment">// OR: single SQLite (simplest)</span>
+<span class="tok-generic">bundle</span>, <span class="tok-generic">_</span> := <span class="tok-func">sqlite.New</span>(<span class="tok-string">"data/app.db"</span>)
+
+<span class="tok-comment">// OR: all in-memory (tests)</span>
+<span class="tok-generic">bundle</span>, <span class="tok-generic">_</span> := <span class="tok-func">stackmemory.New</span>()</code></pre>
+          </div>
+          <div class="callout callout-warning">
+            <strong>Consumer code is identical</strong> whether the deployer chose 3 SQLite files, a
+            single Pebble DB, a PostgreSQL cluster, or pure in-memory. This is the north star
+            achieved.
+          </div>
+        </section>
+
+        <section id="validation">
+          <h2>
+            <span class="num">08</span>Validation Layer — Making Invalid States Unrepresentable
+          </h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Invalid state</th>
+                <th>Today (runtime)</th>
+                <th>Redesigned (compile-time)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Negative version</td>
+                <td class="no">Version int + validateEventParams</td>
+                <td class="yes">Version uint64 — negatives unrepresentable</td>
+              </tr>
+              <tr>
+                <td>Tombstone typo</td>
+                <td class="no">Custom["tombston"] silently ignored</td>
+                <td class="yes">TombstoneMark typed enum</td>
+              </tr>
+              <tr>
+                <td>Wrong command to handler</td>
+                <td class="no">Runtime cmd.(T) assertion</td>
+                <td class="yes">Decider[State, Cmd] binds at compile time</td>
+              </tr>
+              <tr>
+                <td>Delete on store</td>
+                <td class="yes">Already impossible ✓</td>
+                <td class="yes">Preserved</td>
+              </tr>
+              <tr>
+                <td>Encoding never set</td>
+                <td class="no">Silently normalized to JSON</td>
+                <td class="yes">Required at construction</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="decisions">
+          <h2><span class="num">09</span>Decision Log</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Decision</th>
+                <th>Rationale</th>
+                <th>Rejected</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Watermill = THE delivery layer</strong></td>
+                <td>
+                  Replaces 5 parallel bus impls. Battle-tested Router. Built-in retry, poison queue,
+                  leader election. In-process + broker.
+                </td>
+                <td>Build own bus/ module. Rejected: reinvents what Watermill solved.</td>
+              </tr>
+              <tr>
+                <td><strong>Dissolve projection/</strong></td>
+                <td>
+                  It's a message bus (requires event.Subscriber), not a projection. The projection
+                  IS the read model data.
+                </td>
+                <td>Rename to processor/. Rejected: still duplicates Watermill.</td>
+              </tr>
+              <tr>
+                <td><strong>Merge readmodel into kv/</strong></td>
+                <td>
+                  120-line typed facade over kv.Store. Better discoverability. One fewer module.
+                </td>
+                <td>Keep separate. Rejected: too thin to justify.</td>
+              </tr>
+              <tr>
+                <td><strong>Move pebble/turso under storage/</strong></td>
+                <td>
+                  All backends grouped. Subpath modules already proven (stack/). Independently
+                  versioned.
+                </td>
+                <td>Keep at root. Rejected: visual sprawl, no grouping signal.</td>
+              </tr>
+              <tr>
+                <td><strong>Move indexing advisor to storage/sql/</strong></td>
+                <td>Works on any SQLite DB, not Turso-specific. Storage concern.</td>
+                <td>Keep in turso/. Rejected: wrong layer.</td>
+              </tr>
+              <tr>
+                <td><strong>Kill Metadata aliases</strong></td>
+                <td>
+                  command.Metadata = event.Metadata forces event shape on queries. Each type needs
+                  own fields.
+                </td>
+                <td>Extract domain/ module. Rejected: simpler to embed Tracing.</td>
+              </tr>
+              <tr>
+                <td><strong>Decider[State, Cmd]</strong></td>
+                <td>Eventuous pattern. Command type bound at compile time.</td>
+                <td>Keep Decider[State]. Rejected: name lies.</td>
+              </tr>
+              <tr>
+                <td><strong>Keep event.Publisher (1 method)</strong></td>
+                <td>Decider needs it. Too small to extract. Not a bus — just an emit seam.</td>
+                <td>Move to bus layer. Rejected: forces decider dep on delivery.</td>
+              </tr>
+              <tr>
+                <td><strong>Multi-DB SQLite presets</strong></td>
+                <td>
+                  North star: deployer picks. 3 DBs (events, queries, views) from one preset call.
+                </td>
+                <td>Single-DB only. Rejected: limits deployment flexibility.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="antipatterns">
+          <h2><span class="num">10</span>Anti-Patterns to Avoid</h2>
+          <div class="grid-2">
+            <div class="card card-problem">
+              <h4>Don't build a second bus</h4>
+              <p style="margin: 0">
+                Watermill is the delivery layer. Any new in-process pub/sub duplicates it. If you
+                need delivery, use Watermill's Router.
+              </p>
+            </div>
+            <div class="card card-problem">
+              <h4>Don't call delivery "projection"</h4>
+              <p style="margin: 0">
+                A projection is materialized data. The machinery that updates it is delivery. Naming
+                matters.
+              </p>
+            </div>
+            <div class="card card-problem">
+              <h4>Don't alias Metadata across message types</h4>
+              <p style="margin: 0">
+                Commands need RetryCount. Queries don't need CausationID. Each type owns its
+                Metadata.
+              </p>
+            </div>
+            <div class="card card-problem">
+              <h4>Don't scatter storage backends at root</h4>
+              <p style="margin: 0">
+                All backends under storage/. Subpath modules give grouping + independent versioning.
+              </p>
+            </div>
+            <div class="card card-problem">
+              <h4>Don't force a backend on the consumer</h4>
+              <p style="margin: 0">
+                Consumer code is identical regardless of SQLite/Pebble/Postgres. The Bundle hides
+                the choice.
+              </p>
+            </div>
+            <div class="card card-problem">
+              <h4>Don't conflate Decide and Apply</h4>
+              <p style="margin: 0">
+                Different functions, different signatures. Mixing them creates indirection.
+              </p>
+            </div>
+            <div class="card card-problem">
+              <h4>Don't make DLQ fire-and-forget</h4>
+              <p style="margin: 0">
+                Watermill's poison queue is durable. Use it. Callbacks that log = silent data loss.
+              </p>
+            </div>
+            <div class="card card-problem">
+              <h4>Don't hard-delete materialized rows</h4>
+              <p style="margin: 0">
+                The store has no Delete (ADR-0006). The materialize layer follows the same
+                invariant:
+                <code>OnTombstone</code> marks, it never destroys. Hard-removing a read-model row
+                would lose data the event log still holds. Use <code>OnTombstone</code> /
+                <code>OnRebirth</code>, query with <code>ExcludeTombstoned</code>.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="roadmap">
+          <h2><span class="num">11</span>Migration Roadmap — Pareto-Ordered</h2>
+          <div class="migration-step">
+            <div class="migration-num">1</div>
+            <div class="migration-content">
+              <h4>Commit to Watermill as delivery layer</h4>
+              <p>
+                Make <code>watermill/</code> bidirectional. Wire <code>stack/</code> presets to use
+                Watermill gochannel for in-process delivery.
+                <strong>Kills 5 parallel bus implementations.</strong>
+              </p>
+              <div class="migration-meta">
+                <span>3-5 days</span><span>Impact: Critical</span
+                ><span>Breaking: v3 for Bus users</span>
+              </div>
+            </div>
+          </div>
+          <div class="migration-step">
+            <div class="migration-num">2</div>
+            <div class="migration-content">
+              <h4>Dissolve projection/ + merge readmodel into kv/</h4>
+              <p>
+                Move <code>readmodel.Store[T,K]</code> → <code>kv.TypedStore[T,K]</code>. Move
+                <code>readmodel/cache/</code> → <code>kv.Cache[T,K]</code>. Delete
+                <code>projection/</code>. Ship <code>stack.Materialize[V,K]</code>.
+              </p>
+              <div class="migration-meta">
+                <span>3-4 days</span><span>Impact: Critical</span><span>Breaking: v3</span>
+              </div>
+            </div>
+          </div>
+          <div class="migration-step">
+            <div class="migration-num">3</div>
+            <div class="migration-content">
+              <h4>Consolidate storage backends under storage/</h4>
+              <p>
+                Move <code>pebble/</code> → <code>storage/pebble/</code>. Move <code>turso/</code> →
+                <code>storage/turso/</code>. Split <code>memory/</code> stores →
+                <code>storage/memory/</code>. Move indexing advisor →
+                <code>storage/sql/indexing/</code>.
+              </p>
+              <div class="migration-meta">
+                <span>2-3 days</span><span>Impact: High</span
+                ><span>Breaking: import paths (v3)</span>
+              </div>
+            </div>
+          </div>
+          <div class="migration-step">
+            <div class="migration-num">4</div>
+            <div class="migration-content">
+              <h4>Kill Metadata aliases + promote soft concepts to typed fields</h4>
+              <p>
+                Extract <code>Tracing</code>. Each module gets own <code>Metadata</code>. Promote
+                <code>TombstoneMark</code>, <code>Causation</code>, <code>SecurityEnvelope</code>.
+              </p>
+              <div class="migration-meta">
+                <span>2-3 days</span><span>Impact: High</span><span>Breaking: Additive</span>
+              </div>
+            </div>
+          </div>
+          <div class="migration-step">
+            <div class="migration-num">5</div>
+            <div class="migration-content">
+              <h4>Multi-DB SQLite preset + query audit middleware</h4>
+              <p>
+                <code>sqlite.WithEventDB/WithQueryDB/WithViewDB</code>.
+                <code>sqlite.WithAutoIndexing()</code>.
+                <code>query.AuditMiddleware(store, AuditFull)</code>.
+              </p>
+              <div class="migration-meta">
+                <span>2-3 days</span><span>Impact: High (DX)</span><span>Breaking: None</span>
+              </div>
+            </div>
+          </div>
+          <div class="migration-step">
+            <div class="migration-num">6</div>
+            <div class="migration-content">
+              <h4>Evolve Decider[State, Cmd]</h4>
+              <p>
+                Two-type-param Decider with Decide field + Apply (renamed from Fold). Legacy alias
+                preserved.
+              </p>
+              <div class="migration-meta">
+                <span>2 days</span><span>Impact: High</span><span>Breaking: Additive</span>
+              </div>
+            </div>
+          </div>
+          <div class="migration-step">
+            <div class="migration-num">7</div>
+            <div class="migration-content">
+              <h4>Make Event concrete struct + go.mod hygiene</h4>
+              <p>
+                Interface → struct. Remove type-assertions. Clean test-only deps from go.mod.
+                Dependency-budget CI.
+              </p>
+              <div class="migration-meta">
+                <span>2-3 days</span><span>Impact: High</span><span>Breaking: v3</span>
+              </div>
+            </div>
+          </div>
+          <div class="callout callout-warning">
+            <strong>Total: ~18-25 days.</strong> Steps 1-3 (8-12 days) = the big restructure. Steps
+            4-7 (8-11 days) = type safety + DX. Result: the reference Go CQRS/ES implementation —
+            smaller, more capable, deployer-first.
+          </div>
+        </section>
+
+        <section id="conclusion">
+          <h2><span class="num">12</span>Conclusion</h2>
+          <div class="card card-solution">
+            <p style="margin: 0; font-size: 1.05rem">
+              go-cqrs-lite has the right domain model and the right foundations. The path to "best
+              in the world" is <strong>consolidation, not addition</strong>: dissolve 5 modules that
+              duplicate what Watermill already does, merge the read-model facade into KV, group all
+              storage backends under one tree, and kill the Metadata aliasing that forces
+              event-shaped metadata onto commands and queries.
+            </p>
+            <p style="margin: 1rem 0 0; font-size: 1.05rem">
+              The north star — <em>consumers never decide on infrastructure, deployers do</em> — is
+              achievable with multi-DB presets and the Bundle capability bag. The consumer writes
+              <code>repo.Execute()</code> and <code>stack.Materialize[V,K]()</code>. The deployer
+              picks SQLite, Pebble, or Postgres — even split across multiple databases. Same code,
+              different deployment.
+            </p>
+          </div>
+        </section>
+
+        <footer class="footer">
+          Generated 2026-06-19 · Architecture Review v3 · Deployer-First Vision · 39 modules · 160+
+          types · 7 themes · Grounded in Eventuous, Marten, LiveStore, Watermill research
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>

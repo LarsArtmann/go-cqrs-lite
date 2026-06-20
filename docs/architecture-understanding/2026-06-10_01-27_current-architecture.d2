@@ -1,0 +1,131 @@
+direction: down
+layout: elk
+
+title: {
+  label: go-cqrs-lite — Production Module Dependencies (v2.2.0)
+  shape: text
+  near: top-center
+  style: {font-size: 24; bold: true}
+}
+
+note: {
+  label: "NOTE: Production code is a clean DAG.\nTest-only go.mod deps (event↔command, event↔memory, etc.)\nare NOT shown — they exist only in _test.go and eventtest/."
+  shape: text
+  near: top-right
+  style: {font-size: 12; italic: true; fill: "#f0f9ff"}
+}
+
+legend: {
+  shape: rectangle
+  style: {fill: "#f8fafc"}
+  near: top-right
+
+  leaf: {shape: rectangle; style: {fill: "#d1fae5"; stroke: "#059669"}}
+  core: {shape: rectangle; style: {fill: "#dbeafe"; stroke: "#2563eb"}}
+  infra: {shape: rectangle; style: {fill: "#fef3c7"; stroke: "#d97706"}}
+
+  leaf: {label: "Layer 0: Leaf (no internal deps)"}
+  core: {label: "Layer 1: Core CQRS"}
+  infra: {label: "Layer 2: Infrastructure"}
+}
+
+layer0: {
+  label: "Layer 0 — Leaf Modules"
+  style: {fill: "#ecfdf5"; stroke: "#059669"}
+
+  codec: {style: {fill: "#d1fae5"}}
+  id: {style: {fill: "#d1fae5"}}
+  dispatcher: {style: {fill: "#d1fae5"}}
+  catalog: {style: {fill: "#d1fae5"}}
+  otel: {style: {fill: "#d1fae5"}}
+}
+
+layer1: {
+  label: "Layer 1 — Core CQRS"
+  style: {fill: "#eff6ff"; stroke: "#2563eb"}
+
+  event: {style: {fill: "#dbeafe"}}
+  command: {style: {fill: "#dbeafe"}}
+  query: {style: {fill: "#dbeafe"}}
+  schema: {style: {fill: "#dbeafe"}}
+  snapshot: {style: {fill: "#dbeafe"}}
+  memory: {style: {fill: "#dbeafe"}}
+  listing: {style: {fill: "#dbeafe"}}
+  decider: {style: {fill: "#dbeafe"}}
+}
+
+layer2: {
+  label: "Layer 2 — Infrastructure"
+  style: {fill: "#fffbeb"; stroke: "#d97706"}
+
+  middleware: {style: {fill: "#fef3c7"}}
+  signing: {style: {fill: "#fef3c7"}}
+  projection: {style: {fill: "#fef3c7"}}
+  storage: {style: {fill: "#fef3c7"}}
+  watermill: {style: {fill: "#fef3c7"}}
+  pebble: {style: {fill: "#fef3c7"}}
+  turso: {style: {fill: "#fef3c7"}}
+}
+
+layer3: {
+  label: "Layer 3 — Integration"
+  style: {fill: "#f5f3ff"; stroke: "#7c3aed"}
+
+  integration: {style: {fill: "#f3e8ff"}}
+}
+
+# Layer 0 → Layer 1
+layer0.codec -> layer1.event
+layer0.codec -> layer1.snapshot
+layer0.id -> layer1.event
+layer0.id -> layer1.command
+layer0.dispatcher -> layer1.command
+layer0.dispatcher -> layer1.query
+
+# Layer 1 → Layer 1 (production only — clean DAG)
+layer1.event -> layer1.query: {label: "CatalogDisp"}
+layer1.event -> layer1.schema
+layer1.event -> layer1.snapshot
+layer1.command -> layer1.snapshot
+layer1.memory -> layer1.command
+layer1.memory -> layer1.event
+layer1.memory -> layer1.snapshot
+layer1.listing -> layer1.event
+layer1.listing -> layer1.memory
+
+# Layer 1 → Layer 2
+layer1.event -> layer2.middleware
+layer1.command -> layer2.middleware
+layer1.query -> layer2.middleware
+layer1.event -> layer2.signing
+layer1.id -> layer2.signing
+layer1.event -> layer2.projection
+layer1.event -> layer2.storage
+layer1.command -> layer2.storage
+layer1.snapshot -> layer2.storage
+layer1.listing -> layer2.storage
+layer1.event -> layer2.watermill
+layer1.memory -> layer2.watermill
+layer1.event -> layer2.pebble
+layer1.snapshot -> layer2.turso
+layer2.storage -> layer2.turso
+
+# OTel connections
+layer0.otel -> layer1.decider
+layer0.otel -> layer2.middleware
+layer0.otel -> layer2.projection
+layer0.otel -> layer2.storage
+
+# Integration
+layer1.event -> layer3.integration
+layer1.command -> layer3.integration
+layer1.schema -> layer3.integration
+layer1.snapshot -> layer3.integration
+layer1.listing -> layer3.integration
+layer2.middleware -> layer3.integration
+layer2.signing -> layer3.integration
+layer2.projection -> layer3.integration
+layer2.storage -> layer3.integration
+layer2.watermill -> layer3.integration
+layer2.pebble -> layer3.integration
+layer2.turso -> layer3.integration

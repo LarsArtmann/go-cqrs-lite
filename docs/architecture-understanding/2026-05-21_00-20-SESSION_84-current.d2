@@ -1,0 +1,125 @@
+direction: down
+
+title: {
+  label: go-cqrs-lite Current Architecture (Session 84)
+  near: top-center
+  shape: text
+  style.font-size: 24
+}
+
+core: {
+  style.fill: "#E8F5E9"
+
+  event: {
+    Event: {shape: hexagon}
+    Publisher: {shape: hexagon}
+    Subscriber: {shape: hexagon}
+    Bus: {shape: hexagon}
+    Store: {shape: hexagon}
+    OutboxPublisher: {shape: diamond}
+  }
+
+  decider: {
+    style.fill: "#C8E6C9"
+    "Decider State": {shape: hexagon}
+    "Repository State": {shape: diamond}
+  }
+
+  aggregate: {
+    style.fill: "#FFF3E0"
+    Root: {shape: hexagon}
+    Repository: {shape: diamond}
+  }
+
+  command: {
+    Dispatcher: {shape: diamond}
+  }
+
+  query: {
+    Dispatcher: {shape: diamond}
+  }
+
+  ids: {
+    label: pkg/id
+    "Branded IDs": {shape: hexagon}
+  }
+
+  generic: {
+    label: pkg/dispatcher
+    "Generic Dispatcher": {shape: diamond}
+    Lifecycle: {shape: diamond}
+  }
+}
+
+memory: {
+  style.fill: "#E3F2FD"
+  MemoryStore: {shape: cylinder}
+  MemoryBus: {shape: cylinder}
+}
+
+catalog: {
+  style.fill: "#F3E5F5"
+  Registry: {shape: diamond}
+  asyncapi: {shape: page}
+  d2_export: {label: d2; shape: page}
+  eventcatalog: {shape: page}
+}
+
+middleware: {
+  style.fill: "#FFF8E1"
+  Logging: {shape: rectangle}
+  Metrics: {shape: rectangle}
+  Recovery: {shape: rectangle}
+  Retry: {shape: rectangle}
+  Validation: {shape: rectangle}
+  "Tracing OTEL": {shape: rectangle; style.fill: "#FFCDD2"}
+}
+
+projection: {
+  style.fill: "#E0F7FA"
+  Runner: {shape: diamond}
+  HandlerRegistry: {shape: diamond}
+}
+
+storage: {
+  style.fill: "#FCE4EC"
+  SQLEventStore: {shape: cylinder}
+  PebbleEventStore: {shape: cylinder}
+  Dialect: {shape: hexagon}
+}
+
+sync: {
+  style.fill: "#F1F8E9"
+  VectorClock: {shape: hexagon}
+  LWWResolver: {shape: diamond}
+}
+
+app: {
+  label: Application Layer
+  style.fill: "#ECEFF1"
+  HTTP: {shape: rectangle}
+}
+
+app -> core.command: dispatches commands
+app -> core.query: dispatches queries
+app -> core.decider: load and execute
+core.decider -> core.event: save and publish
+core.command -> core.generic: uses
+core.query -> core.generic: uses
+core.event -> core.ids: uses
+
+core.aggregate -> core.event: "70pct duplicate of decider" {
+  style.stroke: "#FF5722"
+  style.stroke-dash: 5
+}
+
+memory -> core.event: implements
+memory -> core.generic: Lifecycle
+
+middleware -> core.command: wraps
+middleware -> core.event: wraps
+middleware -> core.query: wraps
+
+projection -> core.event: Subscriber
+catalog -> core.event: registerClassification
+storage -> core.event: implements
