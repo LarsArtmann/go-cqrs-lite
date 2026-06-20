@@ -38,7 +38,7 @@
 ## Recently Completed
 
 - [x] **watermill.EventBus adapter** — Full `event.Bus` implementation using Watermill GoChannel. All 4 stack presets migrated from `memory.MemoryBus`.
-- [x] **TransactionID branded type** — Cross-aggregate consistency tracking phantom type.
+- [ ] **TransactionID branded type** — Cross-aggregate consistency tracking phantom type (deleted in v2.8 — was ghost code with zero consumers; needs proper wiring before re-adding).
 - [x] **Version drift CI check** — `scripts/check-version-drift.sh` detects sibling module version mismatches.
 - [x] **CI file-size gate fix** — Subshell bug fixed, gate now actually works.
 - [x] **File-size compliance** — All production files under 350 lines (7 files split).
