@@ -13,54 +13,54 @@
 
 The decisions and quick wins that unlock everything else. Most are non-breaking.
 
-| # | Task | Effort | Why 51% |
-|---|------|--------|---------|
-| 1 | Write 5 ADRs (Watermill, storage consolidation, projection dissolution, Metadata split, readmodel merge) | 45 min | Decisions that clarify direction, unblock all subsequent work |
-| 2 | Fix `omitempty` on Metadata ID fields + `maps.Copy` lint + stack error classification | 20 min | 3 trivial fixes, outsized JSON/correctness impact |
-| 3 | Make Publisher optional in Decider (nil = skip publish) | 15 min | Unlocks pure-ES mode (no bus needed) |
-| 4 | Clean event/go.mod — move test-only siblings to indirect | 30 min | Kills "hub" perception permanently |
+| #   | Task                                                                                                     | Effort | Why 51%                                                       |
+| --- | -------------------------------------------------------------------------------------------------------- | ------ | ------------------------------------------------------------- |
+| 1   | Write 5 ADRs (Watermill, storage consolidation, projection dissolution, Metadata split, readmodel merge) | 45 min | Decisions that clarify direction, unblock all subsequent work |
+| 2   | Fix `omitempty` on Metadata ID fields + `maps.Copy` lint + stack error classification                    | 20 min | 3 trivial fixes, outsized JSON/correctness impact             |
+| 3   | Make Publisher optional in Decider (nil = skip publish)                                                  | 15 min | Unlocks pure-ES mode (no bus needed)                          |
+| 4   | Clean event/go.mod — move test-only siblings to indirect                                                 | 30 min | Kills "hub" perception permanently                            |
 
 ### 4% Effort → 64% Value (Type Model + Structural Additions)
 
 Additive changes that improve type safety without breaking existing consumers.
 
-| # | Task | Effort | Reuse from |
-|---|------|--------|------------|
-| 5 | Extract `Tracing` struct from `event.Metadata` | 45 min | Existing fields, just extracted |
-| 6 | Add `TombstoneMark` typed field to Metadata | 30 min | `event.TombstoneStatus` already exists as iota enum |
-| 7 | Add `Causation` typed struct to Metadata | 30 min | `event.causalityCtx` fields already exist |
-| 8 | Evolve `Decider[State, Cmd]` (alongside existing) | 60 min | Existing `Decider[State]` + `DecideFunc` |
-| 9 | Merge `readmodel.Store[T,K]` → `kv.TypedStore[T,K]` | 60 min | `readmodel/store.go` (159 LOC) moves verbatim |
-| 10 | Merge `readmodel/cache` → `kv.Cache[T,K]` | 45 min | `readmodel/cache/cached_store.go` (173 LOC) moves |
+| #   | Task                                                | Effort | Reuse from                                          |
+| --- | --------------------------------------------------- | ------ | --------------------------------------------------- |
+| 5   | Extract `Tracing` struct from `event.Metadata`      | 45 min | Existing fields, just extracted                     |
+| 6   | Add `TombstoneMark` typed field to Metadata         | 30 min | `event.TombstoneStatus` already exists as iota enum |
+| 7   | Add `Causation` typed struct to Metadata            | 30 min | `event.causalityCtx` fields already exist           |
+| 8   | Evolve `Decider[State, Cmd]` (alongside existing)   | 60 min | Existing `Decider[State]` + `DecideFunc`            |
+| 9   | Merge `readmodel.Store[T,K]` → `kv.TypedStore[T,K]` | 60 min | `readmodel/store.go` (159 LOC) moves verbatim       |
+| 10  | Merge `readmodel/cache` → `kv.Cache[T,K]`           | 45 min | `readmodel/cache/cached_store.go` (173 LOC) moves   |
 
 ### 20% Effort → 80% Value (New Infrastructure + Moves)
 
 The big structural changes — new delivery layer, materialization API, storage consolidation.
 
-| # | Task | Effort | Reuse from |
-|---|------|--------|------------|
-| 11 | Build `CatchUpSubscriber` (Watermill `message.Subscriber` impl) | 90 min | `projection/runner.go` replay loop (356 LOC), checkpoint logic |
-| 12 | Build `stack.Materialize[V,K]` API (OnCreate/OnUpdate/OnTombstone/OnRebirth/OnEvent) | 90 min | `projection/builder.go` On[T] (100 LOC), `projection/handler.go` (97 LOC) |
-| 13 | Build Watermill bidirectional adapter (cqrs ↔ message) | 90 min | Existing `watermill/protocol.go`, `watermill/publisher.go`, `watermill/subscriber.go` |
-| 14 | Add `query.AuditMiddleware` (Off/Metadata/Full) | 45 min | Mirror `command.Store` pattern |
-| 15 | Build multi-DB SQLite preset (WithEventDB/WithQueryDB/WithViewDB) | 90 min | Existing `stack/sqlite/preset.go` (171 LOC) |
-| 16 | Move `pebble/` → `storage/pebble/` (subpath module) | 60 min | `git mv` + import path update across workspace |
-| 17 | Move `turso/` → `storage/turso/` (subpath module) | 45 min | Same pattern as pebble |
-| 18 | Move indexing advisor → `storage/sql/indexing/` | 30 min | `turso/indexing/` (advisor.go, auto.go) |
-| 19 | Split `memory/` stores → `storage/memory/`, kill bus impls | 60 min | `memory/store.go` etc. move; `memory/bus.go` (390 LOC) dies |
+| #   | Task                                                                                 | Effort | Reuse from                                                                            |
+| --- | ------------------------------------------------------------------------------------ | ------ | ------------------------------------------------------------------------------------- |
+| 11  | Build `CatchUpSubscriber` (Watermill `message.Subscriber` impl)                      | 90 min | `projection/runner.go` replay loop (356 LOC), checkpoint logic                        |
+| 12  | Build `stack.Materialize[V,K]` API (OnCreate/OnUpdate/OnTombstone/OnRebirth/OnEvent) | 90 min | `projection/builder.go` On[T] (100 LOC), `projection/handler.go` (97 LOC)             |
+| 13  | Build Watermill bidirectional adapter (cqrs ↔ message)                               | 90 min | Existing `watermill/protocol.go`, `watermill/publisher.go`, `watermill/subscriber.go` |
+| 14  | Add `query.AuditMiddleware` (Off/Metadata/Full)                                      | 45 min | Mirror `command.Store` pattern                                                        |
+| 15  | Build multi-DB SQLite preset (WithEventDB/WithQueryDB/WithViewDB)                    | 90 min | Existing `stack/sqlite/preset.go` (171 LOC)                                           |
+| 16  | Move `pebble/` → `storage/pebble/` (subpath module)                                  | 60 min | `git mv` + import path update across workspace                                        |
+| 17  | Move `turso/` → `storage/turso/` (subpath module)                                    | 45 min | Same pattern as pebble                                                                |
+| 18  | Move indexing advisor → `storage/sql/indexing/`                                      | 30 min | `turso/indexing/` (advisor.go, auto.go)                                               |
+| 19  | Split `memory/` stores → `storage/memory/`, kill bus impls                           | 60 min | `memory/store.go` etc. move; `memory/bus.go` (390 LOC) dies                           |
 
 ### Remaining 80% Effort → Last 20% Value (Hardening + Migrations)
 
 Polish, type-level enforcement, library migrations.
 
-| # | Task | Effort |
-|---|------|--------|
-| 20 | `encoding/json/v2` migration (82 files) | 60 min |
-| 21 | Fix `IsDuplicateKeyError` to use typed error codes | 45 min |
-| 22 | Add dependency-budget CI check | 30 min |
-| 23 | sqlc Phase 1: Extract DDL to `.sql` + `//go:embed` | 90 min |
-| 24 | `Version` → `uint64`, `SchemaVersion` → `uint32` | 60 min |
-| 25 | Delete ghost code (MemoryBus, PostgresBus, reactive EventBus) — **v3 boundary** | 45 min |
+| #   | Task                                                                            | Effort |
+| --- | ------------------------------------------------------------------------------- | ------ |
+| 20  | `encoding/json/v2` migration (82 files)                                         | 60 min |
+| 21  | Fix `IsDuplicateKeyError` to use typed error codes                              | 45 min |
+| 22  | Add dependency-budget CI check                                                  | 30 min |
+| 23  | sqlc Phase 1: Extract DDL to `.sql` + `//go:embed`                              | 90 min |
+| 24  | `Version` → `uint64`, `SchemaVersion` → `uint32`                                | 60 min |
+| 25  | Delete ghost code (MemoryBus, PostgresBus, reactive EventBus) — **v3 boundary** | 45 min |
 
 ---
 
@@ -68,33 +68,33 @@ Polish, type-level enforcement, library migrations.
 
 > Each task is 15–100 min. Sorted by **customer value first**, then impact, then effort.
 
-| Priority | ID | Task | Phase | Impact | Effort | Breaking? | Depends on |
-|----------|----|------|-------|--------|--------|-----------|------------|
-| 🔴 P0 | T01 | Write 5 ADRs | 1% | Critical | 45 min | No | — |
-| 🔴 P0 | T02 | Fix omitempty + lint + stack errors | 1% | High | 20 min | No | — |
-| 🔴 P0 | T03 | Make Publisher optional in Decider | 1% | High | 15 min | No | — |
-| 🔴 P0 | T04 | Clean event/go.mod hygiene | 1% | High | 30 min | No | — |
-| 🟠 P1 | T05 | Extract Tracing struct from Metadata | 4% | High | 45 min | No | — |
-| 🟠 P1 | T06 | Add TombstoneMark typed field | 4% | High | 30 min | No | T05 |
-| 🟠 P1 | T07 | Add Causation typed struct | 4% | Medium | 30 min | No | T05 |
-| 🟠 P1 | T08 | Evolve Decider[State, Cmd] | 4% | High | 60 min | No (additive) | — |
-| 🟠 P1 | T09 | Merge readmodel → kv.TypedStore | 4% | High | 60 min | v3 import path | — |
-| 🟠 P1 | T10 | Merge readmodel/cache → kv.Cache | 4% | Medium | 45 min | v3 import path | T09 |
-| 🟡 P2 | T11 | Build CatchUpSubscriber | 20% | Critical | 90 min | No (new code) | T04 |
-| 🟡 P2 | T12 | Build stack.Materialize[V,K] | 20% | Critical | 90 min | No (new code) | T09, T11 |
-| 🟡 P2 | T13 | Watermill bidirectional adapter | 20% | High | 90 min | No (new code) | — |
-| 🟡 P2 | T14 | query.AuditMiddleware | 20% | Medium | 45 min | No | — |
-| 🟡 P2 | T15 | Multi-DB SQLite preset | 20% | High | 90 min | No (additive) | T09 |
-| 🟡 P2 | T16 | Move pebble/ → storage/pebble/ | 20% | Medium | 60 min | v3 import path | — |
-| 🟡 P2 | T17 | Move turso/ → storage/turso/ | 20% | Medium | 45 min | v3 import path | — |
-| 🟡 P2 | T18 | Move indexing advisor → storage/sql/indexing/ | 20% | Low | 30 min | v3 import path | T17 |
-| 🟡 P2 | T19 | Split memory/ → storage/memory/ + kill buses | 20% | Medium | 60 min | v3 import path | T11, T13 |
-| 🟢 P3 | T20 | encoding/json/v2 migration | Rest | Medium | 60 min | No (compatible) | — |
-| 🟢 P3 | T21 | Fix IsDuplicateKeyError typed codes | Rest | Medium | 45 min | No | — |
-| 🟢 P3 | T22 | Dependency-budget CI | Rest | Low | 30 min | No | T04 |
-| 🟢 P3 | T23 | sqlc Phase 1: DDL extraction | Rest | Medium | 90 min | No | — |
-| 🟢 P3 | T24 | Version → uint64, SchemaVersion → uint32 | Rest | Medium | 60 min | v3 (type change) | — |
-| 🟢 P3 | T25 | Delete ghost code (buses, reactive) | Rest | Low | 45 min | v3 (deletion) | T11, T13, T19 |
+| Priority | ID  | Task                                          | Phase | Impact   | Effort | Breaking?        | Depends on    |
+| -------- | --- | --------------------------------------------- | ----- | -------- | ------ | ---------------- | ------------- |
+| 🔴 P0    | T01 | Write 5 ADRs                                  | 1%    | Critical | 45 min | No               | —             |
+| 🔴 P0    | T02 | Fix omitempty + lint + stack errors           | 1%    | High     | 20 min | No               | —             |
+| 🔴 P0    | T03 | Make Publisher optional in Decider            | 1%    | High     | 15 min | No               | —             |
+| 🔴 P0    | T04 | Clean event/go.mod hygiene                    | 1%    | High     | 30 min | No               | —             |
+| 🟠 P1    | T05 | Extract Tracing struct from Metadata          | 4%    | High     | 45 min | No               | —             |
+| 🟠 P1    | T06 | Add TombstoneMark typed field                 | 4%    | High     | 30 min | No               | T05           |
+| 🟠 P1    | T07 | Add Causation typed struct                    | 4%    | Medium   | 30 min | No               | T05           |
+| 🟠 P1    | T08 | Evolve Decider[State, Cmd]                    | 4%    | High     | 60 min | No (additive)    | —             |
+| 🟠 P1    | T09 | Merge readmodel → kv.TypedStore               | 4%    | High     | 60 min | v3 import path   | —             |
+| 🟠 P1    | T10 | Merge readmodel/cache → kv.Cache              | 4%    | Medium   | 45 min | v3 import path   | T09           |
+| 🟡 P2    | T11 | Build CatchUpSubscriber                       | 20%   | Critical | 90 min | No (new code)    | T04           |
+| 🟡 P2    | T12 | Build stack.Materialize[V,K]                  | 20%   | Critical | 90 min | No (new code)    | T09, T11      |
+| 🟡 P2    | T13 | Watermill bidirectional adapter               | 20%   | High     | 90 min | No (new code)    | —             |
+| 🟡 P2    | T14 | query.AuditMiddleware                         | 20%   | Medium   | 45 min | No               | —             |
+| 🟡 P2    | T15 | Multi-DB SQLite preset                        | 20%   | High     | 90 min | No (additive)    | T09           |
+| 🟡 P2    | T16 | Move pebble/ → storage/pebble/                | 20%   | Medium   | 60 min | v3 import path   | —             |
+| 🟡 P2    | T17 | Move turso/ → storage/turso/                  | 20%   | Medium   | 45 min | v3 import path   | —             |
+| 🟡 P2    | T18 | Move indexing advisor → storage/sql/indexing/ | 20%   | Low      | 30 min | v3 import path   | T17           |
+| 🟡 P2    | T19 | Split memory/ → storage/memory/ + kill buses  | 20%   | Medium   | 60 min | v3 import path   | T11, T13      |
+| 🟢 P3    | T20 | encoding/json/v2 migration                    | Rest  | Medium   | 60 min | No (compatible)  | —             |
+| 🟢 P3    | T21 | Fix IsDuplicateKeyError typed codes           | Rest  | Medium   | 45 min | No               | —             |
+| 🟢 P3    | T22 | Dependency-budget CI                          | Rest  | Low      | 30 min | No               | T04           |
+| 🟢 P3    | T23 | sqlc Phase 1: DDL extraction                  | Rest  | Medium   | 90 min | No               | —             |
+| 🟢 P3    | T24 | Version → uint64, SchemaVersion → uint32      | Rest  | Medium   | 60 min | v3 (type change) | —             |
+| 🟢 P3    | T25 | Delete ghost code (buses, reactive)           | Rest  | Low      | 45 min | v3 (deletion)    | T11, T13, T19 |
 
 ---
 
@@ -104,247 +104,247 @@ Polish, type-level enforcement, library migrations.
 
 ### T01: Write 5 ADRs (5 sub-tasks)
 
-| ID | Sub-task | Time |
-|----|----------|------|
-| T01.1 | ADR-0028: Watermill as delivery layer (replaces 5 bus impls) | 10 min |
-| T01.2 | ADR-0029: Storage consolidation under storage/ (subpath modules) | 10 min |
+| ID    | Sub-task                                                            | Time   |
+| ----- | ------------------------------------------------------------------- | ------ |
+| T01.1 | ADR-0028: Watermill as delivery layer (replaces 5 bus impls)        | 10 min |
+| T01.2 | ADR-0029: Storage consolidation under storage/ (subpath modules)    | 10 min |
 | T01.3 | ADR-0030: Dissolve projection/ into CatchUpSubscriber + Materialize | 10 min |
-| T01.4 | ADR-0031: Metadata split — kill aliases, embed Tracing | 5 min |
-| T01.5 | ADR-0032: Merge readmodel into kv/ | 5 min |
+| T01.4 | ADR-0031: Metadata split — kill aliases, embed Tracing              | 5 min  |
+| T01.5 | ADR-0032: Merge readmodel into kv/                                  | 5 min  |
 
 ### T02: Quick Fixes (4 sub-tasks)
 
-| ID | Sub-task | Time |
-|----|----------|------|
-| T02.1 | Add `omitempty` to CorrelationID/CausationID/UserID/RequestID in event/metadata.go | 5 min |
-| T02.2 | Fix `mapsloop` lint: replace `for k,v := range { result.Custom[k] = v }` with `maps.Copy` in event/metadata.go:82 | 2 min |
-| T02.3 | Re-classify stack/errors.go: `errors.New` → `event.NewInfrastructure` for all 7 sentinels | 10 min |
-| T02.4 | Run `nix run .#build` + `nix run .#test` to verify | 5 min |
+| ID    | Sub-task                                                                                                          | Time   |
+| ----- | ----------------------------------------------------------------------------------------------------------------- | ------ |
+| T02.1 | Add `omitempty` to CorrelationID/CausationID/UserID/RequestID in event/metadata.go                                | 5 min  |
+| T02.2 | Fix `mapsloop` lint: replace `for k,v := range { result.Custom[k] = v }` with `maps.Copy` in event/metadata.go:82 | 2 min  |
+| T02.3 | Re-classify stack/errors.go: `errors.New` → `event.NewInfrastructure` for all 7 sentinels                         | 10 min |
+| T02.4 | Run `nix run .#build` + `nix run .#test` to verify                                                                | 5 min  |
 
 ### T03: Publisher Optional (3 sub-tasks)
 
-| ID | Sub-task | Time |
-|----|----------|------|
+| ID    | Sub-task                                                                               | Time  |
+| ----- | -------------------------------------------------------------------------------------- | ----- |
 | T03.1 | Change `NewRepository`: remove `publisher == nil` guard; add `WithPublisher(p)` option | 5 min |
-| T03.2 | In `Execute`: wrap `r.publisher.Publish(...)` in `if r.publisher != nil` | 5 min |
-| T03.3 | Update `stack/accessors.go`: make Publisher optional in `Repository[State]` | 5 min |
+| T03.2 | In `Execute`: wrap `r.publisher.Publish(...)` in `if r.publisher != nil`               | 5 min |
+| T03.3 | Update `stack/accessors.go`: make Publisher optional in `Repository[State]`            | 5 min |
 
 ### T04: go.mod Hygiene (4 sub-tasks)
 
-| ID | Sub-task | Time |
-|----|----------|------|
-| T04.1 | Read event/go.mod — identify which siblings are test-only | 5 min |
+| ID    | Sub-task                                                                                    | Time   |
+| ----- | ------------------------------------------------------------------------------------------- | ------ |
+| T04.1 | Read event/go.mod — identify which siblings are test-only                                   | 5 min  |
 | T04.2 | Move test-only siblings from `require` to `// test-only` block or separate eventtest/go.mod | 15 min |
-| T04.3 | Run `cd event && GOWORK=off go mod tidy && go build ./... && go test ./...` | 5 min |
-| T04.4 | Run full workspace build + test to verify | 5 min |
+| T04.3 | Run `cd event && GOWORK=off go mod tidy && go build ./... && go test ./...`                 | 5 min  |
+| T04.4 | Run full workspace build + test to verify                                                   | 5 min  |
 
 ### T05: Extract Tracing Struct (4 sub-tasks)
 
-| ID | Sub-task | Time |
-|----|----------|------|
+| ID    | Sub-task                                                                           | Time   |
+| ----- | ---------------------------------------------------------------------------------- | ------ |
 | T05.1 | Create `event/tracing.go` with `Tracing` struct (4 fields extracted from Metadata) | 10 min |
 | T05.2 | Update `event.Metadata` to embed `Tracing` instead of having the 4 fields directly | 10 min |
-| T05.3 | Update `event/metadata.go` Merge/Clone to work with embedded Tracing | 15 min |
-| T05.4 | Build + test event module | 10 min |
+| T05.3 | Update `event/metadata.go` Merge/Clone to work with embedded Tracing               | 15 min |
+| T05.4 | Build + test event module                                                          | 10 min |
 
 ### T06: Add TombstoneMark Field (3 sub-tasks)
 
-| ID | Sub-task | Time |
-|----|----------|------|
-| T06.1 | Add `TombstoneMark` field to `event.Metadata` (reuse existing `TombstoneStatus` type) | 10 min |
+| ID    | Sub-task                                                                                            | Time   |
+| ----- | --------------------------------------------------------------------------------------------------- | ------ |
+| T06.1 | Add `TombstoneMark` field to `event.Metadata` (reuse existing `TombstoneStatus` type)               | 10 min |
 | T06.2 | Update `MarkTombstone`/`MarkRebirth` to set the typed field (in addition to Custom for back-compat) | 10 min |
-| T06.3 | Build + test | 5 min |
+| T06.3 | Build + test                                                                                        | 5 min  |
 
 ### T07: Add Causation Struct (3 sub-tasks)
 
-| ID | Sub-task | Time |
-|----|----------|------|
-| T07.1 | Create `event.Causation` struct with CommandType + CommandID fields | 10 min |
+| ID    | Sub-task                                                                    | Time   |
+| ----- | --------------------------------------------------------------------------- | ------ |
+| T07.1 | Create `event.Causation` struct with CommandType + CommandID fields         | 10 min |
 | T07.2 | Add `Causation *Causation` field to Metadata; update `WithCommandCausality` | 10 min |
-| T07.3 | Build + test | 5 min |
+| T07.3 | Build + test                                                                | 5 min  |
 
 ### T08: Evolve Decider[State, Cmd] (5 sub-tasks)
 
-| ID | Sub-task | Time |
-|----|----------|------|
+| ID    | Sub-task                                                                         | Time   |
+| ----- | -------------------------------------------------------------------------------- | ------ |
 | T08.1 | Add `Decider[State, Cmd]` struct with Decide + Apply fields (alongside existing) | 10 min |
-| T08.2 | Add `Repository[State, Cmd]` + `Execute(ctx, ref, cmd)` method | 15 min |
-| T08.3 | Add `LegacyDecider[State] = Decider[State, any]` type alias for back-compat | 5 min |
-| T08.4 | Write example_test.go showing the new two-param form | 10 min |
-| T08.5 | Build + test decider module | 10 min |
+| T08.2 | Add `Repository[State, Cmd]` + `Execute(ctx, ref, cmd)` method                   | 15 min |
+| T08.3 | Add `LegacyDecider[State] = Decider[State, any]` type alias for back-compat      | 5 min  |
+| T08.4 | Write example_test.go showing the new two-param form                             | 10 min |
+| T08.5 | Build + test decider module                                                      | 10 min |
 
 ### T09: Merge readmodel → kv.TypedStore (5 sub-tasks)
 
-| ID | Sub-task | Time |
-|----|----------|------|
+| ID    | Sub-task                                                                                 | Time   |
+| ----- | ---------------------------------------------------------------------------------------- | ------ |
 | T09.1 | Copy `readmodel/store.go` → `kv/typed_store.go`; rename `Store[T,K]` → `TypedStore[T,K]` | 10 min |
-| T09.2 | Copy `readmodel/options.go` → `kv/typed_options.go`; update package + type names | 10 min |
-| T09.3 | Copy `readmodel/backend.go` → inline `Backend = Store` alias in kv/typed_store.go | 5 min |
-| T09.4 | Update all workspace imports of `readmodel.Store` → `kv.TypedStore` | 15 min |
-| T09.5 | Build + test kv module + all consumers | 15 min |
+| T09.2 | Copy `readmodel/options.go` → `kv/typed_options.go`; update package + type names         | 10 min |
+| T09.3 | Copy `readmodel/backend.go` → inline `Backend = Store` alias in kv/typed_store.go        | 5 min  |
+| T09.4 | Update all workspace imports of `readmodel.Store` → `kv.TypedStore`                      | 15 min |
+| T09.5 | Build + test kv module + all consumers                                                   | 15 min |
 
 ### T10: Merge readmodel/cache → kv.Cache (4 sub-tasks)
 
-| ID | Sub-task | Time |
-|----|----------|------|
+| ID    | Sub-task                                                                       | Time   |
+| ----- | ------------------------------------------------------------------------------ | ------ |
 | T10.1 | Copy `readmodel/cache/cached_store.go` → `kv/cache.go`; rename to `Cache[T,K]` | 10 min |
-| T10.2 | Copy `readmodel/cache/options.go` → `kv/cache_options.go` | 10 min |
-| T10.3 | Update all workspace imports of `readmodel/cache` → `kv` | 10 min |
-| T10.4 | Build + test | 10 min |
+| T10.2 | Copy `readmodel/cache/options.go` → `kv/cache_options.go`                      | 10 min |
+| T10.3 | Update all workspace imports of `readmodel/cache` → `kv`                       | 10 min |
+| T10.4 | Build + test                                                                   | 10 min |
 
 ### T11: Build CatchUpSubscriber (7 sub-tasks)
 
-| ID | Sub-task | Time |
-|----|----------|------|
-| T11.1 | Create `watermill/catchup_subscriber.go` — struct + Subscribe/Close interface | 15 min |
+| ID    | Sub-task                                                                                   | Time   |
+| ----- | ------------------------------------------------------------------------------------------ | ------ |
+| T11.1 | Create `watermill/catchup_subscriber.go` — struct + Subscribe/Close interface              | 15 min |
 | T11.2 | Implement Phase 1 (replay): load checkpoint → SeekableJournal.ReadFrom → pump to GoChannel | 15 min |
-| T11.3 | Implement Phase 2 (live handoff): start live sub → dedup overlap → pump to GoChannel | 15 min |
-| T11.4 | Add checkpoint middleware: after Ack → save EventID to CheckpointStore | 10 min |
-| T11.5 | Set ProcessingMode = ModeReplay in message metadata during Phase 1 | 5 min |
-| T11.6 | Write catchup_subscriber_test.go with in-memory journal + fake live sub | 15 min |
-| T11.7 | Build + test watermill module | 10 min |
+| T11.3 | Implement Phase 2 (live handoff): start live sub → dedup overlap → pump to GoChannel       | 15 min |
+| T11.4 | Add checkpoint middleware: after Ack → save EventID to CheckpointStore                     | 10 min |
+| T11.5 | Set ProcessingMode = ModeReplay in message metadata during Phase 1                         | 5 min  |
+| T11.6 | Write catchup_subscriber_test.go with in-memory journal + fake live sub                    | 15 min |
+| T11.7 | Build + test watermill module                                                              | 10 min |
 
 ### T12: Build stack.Materialize[V,K] (7 sub-tasks)
 
-| ID | Sub-task | Time |
-|----|----------|------|
+| ID    | Sub-task                                                                                                              | Time   |
+| ----- | --------------------------------------------------------------------------------------------------------------------- | ------ |
 | T12.1 | Create `stack/materialize.go` — `Materialize[V,K]` struct + `OnCreate`/`OnUpdate`/`OnTombstone`/`OnRebirth`/`OnEvent` | 15 min |
-| T12.2 | Implement `HandlerFunc()` — returns Watermill `message.HandlerFunc` that decodes + dispatches | 15 min |
-| T12.3 | Implement `View(ctx, id)` — typed read via `kv.TypedStore` | 10 min |
-| T12.4 | Implement `List(ctx, policy)` — tombstone-aware listing | 10 min |
-| T12.5 | Implement `Register(router)` — wires as Watermill handler on CatchUpSubscriber | 10 min |
-| T12.6 | Write materialize_test.go with in-memory stack | 15 min |
-| T12.7 | Build + test stack module | 10 min |
+| T12.2 | Implement `HandlerFunc()` — returns Watermill `message.HandlerFunc` that decodes + dispatches                         | 15 min |
+| T12.3 | Implement `View(ctx, id)` — typed read via `kv.TypedStore`                                                            | 10 min |
+| T12.4 | Implement `List(ctx, policy)` — tombstone-aware listing                                                               | 10 min |
+| T12.5 | Implement `Register(router)` — wires as Watermill handler on CatchUpSubscriber                                        | 10 min |
+| T12.6 | Write materialize_test.go with in-memory stack                                                                        | 15 min |
+| T12.7 | Build + test stack module                                                                                             | 10 min |
 
 ### T13: Watermill Bidirectional Adapter (6 sub-tasks)
 
-| ID | Sub-task | Time |
-|----|----------|------|
-| T13.1 | Read existing `watermill/publisher.go` + `watermill/protocol.go` — assess what exists | 10 min |
+| ID    | Sub-task                                                                                             | Time   |
+| ----- | ---------------------------------------------------------------------------------------------------- | ------ |
+| T13.1 | Read existing `watermill/publisher.go` + `watermill/protocol.go` — assess what exists                | 10 min |
 | T13.2 | Add `NewPublisher(message.Publisher, topic, codec) event.Publisher` — cqrs event → Watermill message | 15 min |
-| T13.3 | Verify existing `watermill/subscriber.go` works as-is for Watermill → cqrs direction | 10 min |
-| T13.4 | Write bidirectional_test.go — round-trip event through Watermill | 15 min |
-| T13.5 | Update watermill/doc.go with bidirectional usage examples | 10 min |
-| T13.6 | Build + test | 10 min |
+| T13.3 | Verify existing `watermill/subscriber.go` works as-is for Watermill → cqrs direction                 | 10 min |
+| T13.4 | Write bidirectional_test.go — round-trip event through Watermill                                     | 15 min |
+| T13.5 | Update watermill/doc.go with bidirectional usage examples                                            | 10 min |
+| T13.6 | Build + test                                                                                         | 10 min |
 
 ### T14: query.AuditMiddleware (4 sub-tasks)
 
-| ID | Sub-task | Time |
-|----|----------|------|
+| ID    | Sub-task                                                                               | Time   |
+| ----- | -------------------------------------------------------------------------------------- | ------ |
 | T14.1 | Create `query/audit.go` — `AuditMiddleware(store, level)` returning `query.Middleware` | 10 min |
-| T14.2 | Define `AuditLevel` enum: Off / Metadata / Full | 5 min |
-| T14.3 | Write audit_test.go | 10 min |
-| T14.4 | Build + test | 5 min |
+| T14.2 | Define `AuditLevel` enum: Off / Metadata / Full                                        | 5 min  |
+| T14.3 | Write audit_test.go                                                                    | 10 min |
+| T14.4 | Build + test                                                                           | 5 min  |
 
 ### T15: Multi-DB SQLite Preset (6 sub-tasks)
 
-| ID | Sub-task | Time |
-|----|----------|------|
+| ID    | Sub-task                                                                     | Time   |
+| ----- | ---------------------------------------------------------------------------- | ------ |
 | T15.1 | Read existing `stack/sqlite/preset.go` — understand current single-DB wiring | 10 min |
-| T15.2 | Add `WithEventDB(dsn)`, `WithQueryDB(dsn)`, `WithViewDB(dsn)` options | 10 min |
+| T15.2 | Add `WithEventDB(dsn)`, `WithQueryDB(dsn)`, `WithViewDB(dsn)` options        | 10 min |
 | T15.3 | Update `openBackend` to open multiple `*sql.DB` connections when options set | 15 min |
-| T15.4 | Wire read-model KV backend to view DB when configured | 10 min |
-| T15.5 | Write multi_db_test.go verifying separate DBs | 15 min |
-| T15.6 | Build + test stack/sqlite module | 10 min |
+| T15.4 | Wire read-model KV backend to view DB when configured                        | 10 min |
+| T15.5 | Write multi_db_test.go verifying separate DBs                                | 15 min |
+| T15.6 | Build + test stack/sqlite module                                             | 10 min |
 
 ### T16: Move pebble/ → storage/pebble/ (5 sub-tasks)
 
-| ID | Sub-task | Time |
-|----|----------|------|
-| T16.1 | `git mv pebble storage/pebble` + update `storage/pebble/go.mod` module path | 10 min |
+| ID    | Sub-task                                                                     | Time   |
+| ----- | ---------------------------------------------------------------------------- | ------ |
+| T16.1 | `git mv pebble storage/pebble` + update `storage/pebble/go.mod` module path  | 10 min |
 | T16.2 | Find all workspace imports of `pebble/v2` → replace with `storage/pebble/v2` | 15 min |
-| T16.3 | Update go.work to replace `./pebble` with `./storage/pebble` | 5 min |
-| T16.4 | Run `cd storage/pebble && GOWORK=off go build ./...` | 10 min |
-| T16.5 | Full workspace build + test | 15 min |
+| T16.3 | Update go.work to replace `./pebble` with `./storage/pebble`                 | 5 min  |
+| T16.4 | Run `cd storage/pebble && GOWORK=off go build ./...`                         | 10 min |
+| T16.5 | Full workspace build + test                                                  | 15 min |
 
 ### T17: Move turso/ → storage/turso/ (5 sub-tasks)
 
-| ID | Sub-task | Time |
-|----|----------|------|
+| ID    | Sub-task                                                    | Time   |
+| ----- | ----------------------------------------------------------- | ------ |
 | T17.1 | `git mv turso storage/turso` + update module path in go.mod | 10 min |
-| T17.2 | Find all workspace imports → replace import paths | 10 min |
-| T17.3 | Update go.work | 5 min |
-| T17.4 | Build storage/turso module standalone | 10 min |
-| T17.5 | Full workspace build + test | 10 min |
+| T17.2 | Find all workspace imports → replace import paths           | 10 min |
+| T17.3 | Update go.work                                              | 5 min  |
+| T17.4 | Build storage/turso module standalone                       | 10 min |
+| T17.5 | Full workspace build + test                                 | 10 min |
 
 ### T18: Move indexing advisor (4 sub-tasks)
 
-| ID | Sub-task | Time |
-|----|----------|------|
-| T18.1 | `git mv storage/turso/indexing storage/sql/indexing` | 5 min |
-| T18.2 | Update package name + imports within indexing/ | 10 min |
-| T18.3 | Update all references in storage/ and stack/ | 10 min |
-| T18.4 | Build + test | 5 min |
+| ID    | Sub-task                                             | Time   |
+| ----- | ---------------------------------------------------- | ------ |
+| T18.1 | `git mv storage/turso/indexing storage/sql/indexing` | 5 min  |
+| T18.2 | Update package name + imports within indexing/       | 10 min |
+| T18.3 | Update all references in storage/ and stack/         | 10 min |
+| T18.4 | Build + test                                         | 5 min  |
 
 ### T19: Split memory/ → storage/memory/ + kill buses (6 sub-tasks)
 
-| ID | Sub-task | Time |
-|----|----------|------|
+| ID    | Sub-task                                                                                                                                                             | Time   |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
 | T19.1 | `git mv memory/store.go memory/store_load.go memory/snapshot.go memory/checkpoint.go memory/command_store.go memory/query_store.go memory/stream.go storage/memory/` | 10 min |
-| T19.2 | Create `storage/memory/go.mod` | 10 min |
-| T19.3 | Update all workspace imports of memory store types | 15 min |
-| T19.4 | Keep `memory/` with only bus.go + command_bus.go for back-compat (mark deprecated) | 10 min |
-| T19.5 | Build + test storage/memory module | 10 min |
-| T19.6 | Full workspace build + test | 10 min |
+| T19.2 | Create `storage/memory/go.mod`                                                                                                                                       | 10 min |
+| T19.3 | Update all workspace imports of memory store types                                                                                                                   | 15 min |
+| T19.4 | Keep `memory/` with only bus.go + command_bus.go for back-compat (mark deprecated)                                                                                   | 10 min |
+| T19.5 | Build + test storage/memory module                                                                                                                                   | 10 min |
+| T19.6 | Full workspace build + test                                                                                                                                          | 10 min |
 
 ### T20: encoding/json/v2 (5 sub-tasks)
 
-| ID | Sub-task | Time |
-|----|----------|------|
-| T20.1 | Check Go version supports json/v2 (1.26.3 — yes) | 2 min |
-| T20.2 | Replace `encoding/json` → `encoding/json/v2` in codec/json.go | 5 min |
-| T20.3 | Replace in all other production files that import json (82 files) | 15 min |
+| ID    | Sub-task                                                           | Time   |
+| ----- | ------------------------------------------------------------------ | ------ |
+| T20.1 | Check Go version supports json/v2 (1.26.3 — yes)                   | 2 min  |
+| T20.2 | Replace `encoding/json` → `encoding/json/v2` in codec/json.go      | 5 min  |
+| T20.3 | Replace in all other production files that import json (82 files)  | 15 min |
 | T20.4 | Run golden tests — verify output matches (v2 should be compatible) | 10 min |
-| T20.5 | Full build + test | 10 min |
+| T20.5 | Full build + test                                                  | 10 min |
 
 ### T21: Fix IsDuplicateKeyError (4 sub-tasks)
 
-| ID | Sub-task | Time |
-|----|----------|------|
-| T21.1 | Read `storage/sql/duplicate.go` — current string matching | 5 min |
+| ID    | Sub-task                                                                            | Time   |
+| ----- | ----------------------------------------------------------------------------------- | ------ |
+| T21.1 | Read `storage/sql/duplicate.go` — current string matching                           | 5 min  |
 | T21.2 | Add typed error code matching: `pgconn.PgError` 23505 for PG, SQLite extended codes | 15 min |
-| T21.3 | Keep string matching as fallback, log when fallback fires | 10 min |
-| T21.4 | Build + test storage module | 10 min |
+| T21.3 | Keep string matching as fallback, log when fallback fires                           | 10 min |
+| T21.4 | Build + test storage module                                                         | 10 min |
 
 ### T22: Dependency-budget CI (3 sub-tasks)
 
-| ID | Sub-task | Time |
-|----|----------|------|
-| T22.1 | Read existing `scripts/check-module-layers.sh` — assess what exists | 5 min |
+| ID    | Sub-task                                                                        | Time   |
+| ----- | ------------------------------------------------------------------------------- | ------ |
+| T22.1 | Read existing `scripts/check-module-layers.sh` — assess what exists             | 5 min  |
 | T22.2 | Add per-module dep count check (max external + max internal siblings per layer) | 15 min |
-| T22.3 | Wire into `.github/workflows/ci.yml` | 10 min |
+| T22.3 | Wire into `.github/workflows/ci.yml`                                            | 10 min |
 
 ### T23: sqlc Phase 1: DDL Extraction (7 sub-tasks)
 
-| ID | Sub-task | Time |
-|----|----------|------|
-| T23.1 | Read existing `docs/brainstorming/2026-06-19_sqlc-analysis.html` for the analysis | 10 min |
+| ID    | Sub-task                                                                                           | Time   |
+| ----- | -------------------------------------------------------------------------------------------------- | ------ |
+| T23.1 | Read existing `docs/brainstorming/2026-06-19_sqlc-analysis.html` for the analysis                  | 10 min |
 | T23.2 | Extract Postgres DDL strings from `storage/sql/dialect.go` → `storage/sql/migrations/postgres.sql` | 15 min |
-| T23.3 | Extract SQLite DDL strings → `storage/sql/migrations/sqlite.sql` | 15 min |
-| T23.4 | Add `//go:embed` for the .sql files; update Dialect to return embedded strings | 10 min |
-| T23.5 | Delete the Go string DDL from dialect.go | 10 min |
-| T23.6 | Verify golden tests still pass (output should be identical) | 10 min |
-| T23.7 | Full build + test | 10 min |
+| T23.3 | Extract SQLite DDL strings → `storage/sql/migrations/sqlite.sql`                                   | 15 min |
+| T23.4 | Add `//go:embed` for the .sql files; update Dialect to return embedded strings                     | 10 min |
+| T23.5 | Delete the Go string DDL from dialect.go                                                           | 10 min |
+| T23.6 | Verify golden tests still pass (output should be identical)                                        | 10 min |
+| T23.7 | Full build + test                                                                                  | 10 min |
 
 ### T24: Version → uint64 (5 sub-tasks)
 
-| ID | Sub-task | Time |
-|----|----------|------|
-| T24.1 | Change `Version` from `int` to `uint64` in event/types.go | 10 min |
-| T24.2 | Change `SchemaVersion` from `int` to `uint32` | 5 min |
+| ID    | Sub-task                                                                | Time   |
+| ----- | ----------------------------------------------------------------------- | ------ |
+| T24.1 | Change `Version` from `int` to `uint64` in event/types.go               | 10 min |
+| T24.2 | Change `SchemaVersion` from `int` to `uint32`                           | 5 min  |
 | T24.3 | Fix all `Add(n int)` → `Add(n uint64)` etc. — update arithmetic methods | 15 min |
-| T24.4 | Fix all callers that pass negative values or use `int` conversion | 15 min |
-| T24.5 | Build + test (will catch all type mismatches) | 15 min |
+| T24.4 | Fix all callers that pass negative values or use `int` conversion       | 15 min |
+| T24.5 | Build + test (will catch all type mismatches)                           | 15 min |
 
 ### T25: Delete Ghost Code (5 sub-tasks)
 
-| ID | Sub-task | Time |
-|----|----------|------|
-| T25.1 | Delete `memory/bus.go` + `memory/command_bus.go` (replaced by Watermill gochannel) | 5 min |
-| T25.2 | Delete `storage/pg_bus.go` (ghost system — never wired, replaced by Watermill) | 5 min |
+| ID    | Sub-task                                                                                         | Time   |
+| ----- | ------------------------------------------------------------------------------------------------ | ------ |
+| T25.1 | Delete `memory/bus.go` + `memory/command_bus.go` (replaced by Watermill gochannel)               | 5 min  |
+| T25.2 | Delete `storage/pg_bus.go` (ghost system — never wired, replaced by Watermill)                   | 5 min  |
 | T25.3 | Delete `event.Bus`, `event.Subscriber`, `event.Middleware`, `event.PublishMiddleware` interfaces | 10 min |
-| T25.4 | Delete `event/reactive.go` + `event/reactive_dedup.go` (or move to a `reactive/` toy module) | 10 min |
-| T25.5 | Full workspace build + test — fix any remaining references | 15 min |
+| T25.4 | Delete `event/reactive.go` + `event/reactive_dedup.go` (or move to a `reactive/` toy module)     | 10 min |
+| T25.5 | Full workspace build + test — fix any remaining references                                       | 15 min |
 
 ---
 
@@ -412,37 +412,37 @@ graph TD
 
 Tasks that can run simultaneously (no dependencies):
 
-| Parallel Group | Tasks | Why parallel |
-|----------------|-------|-------------|
-| A | T01, T02, T03, T04 | All independent quick wins |
-| B | T05, T08, T09, T13, T14, T20, T21 | Different modules, no cross-deps |
-| C | T16, T17 | Both storage moves, independent modules |
-| D | T06, T07 | Both depend only on T05 |
+| Parallel Group | Tasks                             | Why parallel                            |
+| -------------- | --------------------------------- | --------------------------------------- |
+| A              | T01, T02, T03, T04                | All independent quick wins              |
+| B              | T05, T08, T09, T13, T14, T20, T21 | Different modules, no cross-deps        |
+| C              | T16, T17                          | Both storage moves, independent modules |
+| D              | T06, T07                          | Both depend only on T05                 |
 
 ---
 
 ## Risk Assessment
 
-| Risk | Mitigation |
-|------|------------|
-| Module moves break external consumers | Document as v3. Workspace builds atomically via go.work. |
-| CatchUpSubscriber has race conditions | Port battle-tested replay logic from projection/runner.go. Add property tests. |
-| Metadata changes break signing/encryption | Keep `Custom` map alongside new typed fields during transition. |
-| Watermill version incompatibility | Pin version in go.mod. Test against current ThreeDotsLabs/watermill v1.5.2. |
-| encoding/json/v2 behavior differences | Run ALL golden tests after migration. v2 is designed as drop-in. |
+| Risk                                      | Mitigation                                                                     |
+| ----------------------------------------- | ------------------------------------------------------------------------------ |
+| Module moves break external consumers     | Document as v3. Workspace builds atomically via go.work.                       |
+| CatchUpSubscriber has race conditions     | Port battle-tested replay logic from projection/runner.go. Add property tests. |
+| Metadata changes break signing/encryption | Keep `Custom` map alongside new typed fields during transition.                |
+| Watermill version incompatibility         | Pin version in go.mod. Test against current ThreeDotsLabs/watermill v1.5.2.    |
+| encoding/json/v2 behavior differences     | Run ALL golden tests after migration. v2 is designed as drop-in.               |
 
 ---
 
 ## Reuse Inventory (Don't Build From Scratch)
 
-| New component | Reuse from | LOC saved |
-|---------------|-----------|-----------|
-| CatchUpSubscriber | projection/runner.go (replay loop), projection/runner_live.go (live+dedup) | ~500 |
-| Materialize API | projection/builder.go (On[T]), projection/handler.go (dispatch) | ~200 |
-| kv.TypedStore | readmodel/store.go (moves verbatim) | 159 |
-| kv.Cache | readmodel/cache/cached_store.go (moves verbatim) | 173 |
-| TombstoneMark field | event.TombstoneStatus (already exists as iota) | 22 |
-| Causation struct | event.causalityCtx (fields already exist) | ~15 |
-| Watermill adapter | watermill/protocol.go + publisher.go + subscriber.go (existing) | ~300 |
+| New component       | Reuse from                                                                 | LOC saved |
+| ------------------- | -------------------------------------------------------------------------- | --------- |
+| CatchUpSubscriber   | projection/runner.go (replay loop), projection/runner_live.go (live+dedup) | ~500      |
+| Materialize API     | projection/builder.go (On[T]), projection/handler.go (dispatch)            | ~200      |
+| kv.TypedStore       | readmodel/store.go (moves verbatim)                                        | 159       |
+| kv.Cache            | readmodel/cache/cached_store.go (moves verbatim)                           | 173       |
+| TombstoneMark field | event.TombstoneStatus (already exists as iota)                             | 22        |
+| Causation struct    | event.causalityCtx (fields already exist)                                  | ~15       |
+| Watermill adapter   | watermill/protocol.go + publisher.go + subscriber.go (existing)            | ~300      |
 
 **Total reused LOC: ~1,370** — nearly half the new code comes from existing battle-tested sources.
