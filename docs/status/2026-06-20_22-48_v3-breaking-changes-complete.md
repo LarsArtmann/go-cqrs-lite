@@ -84,7 +84,7 @@ across 37 modules resolved automatically — **zero signature changes**. Deleted
 
 1. ~~**Move HTTP code → transport/** (SSE, healthcheck, metrics_http). ADR-0025.~~
    **DONE** — SSE moved to `transport/http/` with rewritten wire format. Healthcheck/
-   metrics\_http/pprof deleted (generic utilities, zero consumers).
+   metrics_http/pprof deleted (generic utilities, zero consumers).
 2. **Deep-copy event opts on Clone** — currently the `*eventOptions` pointer is
    shallow-copied. Separate from the concrete-type change.
 
