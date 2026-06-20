@@ -236,7 +236,7 @@ jobs:
 
       - name: Run gosec on core modules
         run: |
-          nix-shell -p gosec --run "gosec -fmt sarif -out gosec.sarif -no-fail ./event/... ./command/... ./query/... ./decider/... ./storage/... ./middleware/... ./projection/... ./signing/... ./listing/..."
+          nix-shell -p gosec --run "gosec -fmt sarif -out gosec.sarif ./event/... ./command/... ./query/... ./decider/... ./storage/... ./middleware/... ./projection/... ./signing/... ./listing/..."
 
       - name: Upload SARIF to GitHub
         uses: github/codeql-action/upload-sarif@v3
@@ -287,6 +287,23 @@ jobs:
 
       - name: Build for linux/arm64
         run: docker build --platform linux/arm64 -t user:arm64 ./example/user
+
+  wasm-compile:
+    name: WASM Compilation Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@v17
+
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Verify core modules compile to WASM
+        run: |
+          for mod in id codec dispatcher event command query decider; do
+            echo "==> WASM build: $mod"
+            (cd "$mod" && GOOS=js GOARCH=wasm GOWORK=off go build ./...)
+          done
 
   postgres-integration:
     name: PostgreSQL Integration Tests

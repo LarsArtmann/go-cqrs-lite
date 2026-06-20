@@ -42,9 +42,7 @@
 
           goTags = [
             "goexperiment.arenas"
-            "goexperiment.goroutineleakprofile"
-            "goexperiment.runtimesecret"
-            "goexperiment.simd"
+            "goexperiment.jsonv2"
           ];
           tagFlags = builtins.concatStringsSep " " (map (t: "-tags=${t}") goTags);
 
@@ -200,15 +198,14 @@
             '';
 
             vulncheck = mkApp "vulncheck" [ goPkg ] ''
-              ${goPkg}/bin/go vet -vettool=which govulncheck 2>/dev/null || true
               for mod in ${builtins.concatStringsSep " " testModules}; do
                 echo "==> Vulnerability scan: $mod"
-                (cd "$mod" && GOWORK=off ${goPkg}/bin/go list -json ./... | ${pkgs.govulncheck}/bin/govulncheck -mode=source 2>/dev/null || true)
+                (cd "$mod" && GOWORK=off ${goPkg}/bin/go list -json ./... | ${pkgs.govulncheck}/bin/govulncheck -mode=source)
               done
             '';
 
             secrets-scan = mkApp "secrets-scan" [ pkgs.gitleaks ] ''
-              ${pkgs.gitleaks}/bin/gitleaks detect --source . --no-banner --no-git 2>/dev/null || true
+              ${pkgs.gitleaks}/bin/gitleaks detect --source . --no-banner --no-git
               echo "==> Secret scan complete"
             '';
           };

@@ -127,7 +127,7 @@ watermill/     — Watermill protocol adapter
 | [0024](0024-exported-id-markers.md)               | Exported ID Marker Types                        | 2026-06-18 | Accepted                 |
 | [0025](0025-transport-adapter-strategy.md)        | Transport Adapter Strategy                      | 2026-06-19 | Accepted                 |
 | [0026](0026-experimental-features.md)             | Experimental Features Policy                    | 2026-06-19 | Accepted                 |
-| [0027](0027-defer-postgres-listen-notify-bus.md)  | Defer Postgres LISTEN/NOTIFY Bus                | 2026-06-19 | Deferred → v2.8.0        |
+| [0027](0027-postgres-listen-notify-bus.md)         | Postgres LISTEN/NOTIFY Bus                      | 2026-06-19 | Implemented              |
 | [0028](0028-watermill-as-delivery-layer.md)       | Watermill as the Delivery Layer                 | 2026-06-20 | Accepted                 |
 | [0029](0029-storage-consolidation.md)             | Consolidate Storage Backends                    | 2026-06-20 | Accepted                 |
 | [0030](0030-dissolve-projection.md)               | Dissolve projection/ into CatchUp + Materialize | 2026-06-20 | Accepted                 |
