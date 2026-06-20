@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
@@ -270,11 +271,9 @@ func TestFullCommandLifecycle(t *testing.T) {
 		t.Fatal("todoID is empty or wrong type")
 	}
 
-	resp, err = doGet(ctx, srv.URL+"/api/v1/todos/"+todoID)
-	if err != nil {
-		t.Fatalf("Get: %v", err)
-	}
-	assertStatus(t, resp, http.StatusOK, "Get")
+	// GoChannel delivers events asynchronously; retry until the projection
+	// has processed the create event and the read model reflects it.
+	resp = waitForStatus(t, ctx, srv.URL+"/api/v1/todos/"+todoID, http.StatusOK, "Get")
 	closeBody(t, resp)
 
 	updateBody := `{"title":"Updated Todo","description":"updated"}`
@@ -319,4 +318,37 @@ func TestUpdateTodo_InvalidID(t *testing.T) {
 	defer closeBody(t, resp)
 
 	assertStatus(t, resp, http.StatusOK, "")
+}
+
+func waitForStatus(
+	t *testing.T,
+	ctx context.Context,
+	url string,
+	wantStatus int,
+	label string,
+) *http.Response {
+	t.Helper()
+
+	deadline := ctx
+	if _, ok := ctx.Deadline(); !ok {
+		var cancel context.CancelFunc
+		deadline, cancel = context.WithTimeout(ctx, 2*time.Second)
+		defer cancel()
+	}
+
+	for {
+		resp, err := doGet(deadline, url)
+		if err == nil {
+			if resp.StatusCode == wantStatus {
+				return resp
+			}
+			closeBody(t, resp)
+		}
+
+		select {
+		case <-deadline.Done():
+			t.Fatalf("%s: timed out waiting for status %d at %s", label, wantStatus, url)
+		case <-time.After(5 * time.Millisecond):
+		}
+	}
 }
