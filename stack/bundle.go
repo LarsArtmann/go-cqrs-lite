@@ -127,16 +127,23 @@ func (b *Bundle) Close() error {
 	return errors.Join(errs...)
 }
 
-// registerCloser adds c to the list of resources [Bundle.Close] will release.
-// Called by options that hand the Bundle an [io.Closer] (stores, buses,
-// backends). Safe to call with the same closer multiple times — Close
+// registerCloser adds c to the list of resources [Bundle.Close] will release,
+// if c implements [io.Closer]. Called by options that hand the Bundle a store,
+// bus, or backend. Core interfaces no longer embed io.Closer (ADR-0010), so the
+// type assertion is intentional: only resources that actually own a Close land
+// in the list. Safe to call with the same closer multiple times — Close
 // deduplicates by pointer.
-func (b *Bundle) registerCloser(c io.Closer) {
+func (b *Bundle) registerCloser(c any) {
 	if c == nil {
 		return
 	}
 
-	b.closers = append(b.closers, c)
+	cl, ok := c.(io.Closer)
+	if !ok {
+		return
+	}
+
+	b.closers = append(b.closers, cl)
 }
 
 // validate checks that the Bundle is usable: at least one capability field

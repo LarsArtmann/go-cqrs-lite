@@ -2,7 +2,11 @@
 
 ## Status
 
-Proposed
+Implemented (v3). Core interfaces no longer embed `io.Closer`; concrete
+implementations retain their `Close()` method and callers type-assert to
+`io.Closer` (stdlib) when they need cleanup. No new `Lifecycle` type was
+introduced — `io.Closer` already fills that role and avoids per-module
+duplication.
 
 ## Context
 

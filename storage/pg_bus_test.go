@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -495,7 +496,13 @@ func (v *versionOnlySource) LoadToTimestamp(
 	return v.inner.LoadToTimestamp(ctx, ref, maxTime)
 }
 
-func (v *versionOnlySource) Close() error { return v.inner.Close() }
+func (v *versionOnlySource) Close() error {
+	if c, ok := v.inner.(io.Closer); ok {
+		return c.Close()
+	}
+
+	return nil
+}
 
 // Compile-time: versionOnlySource satisfies EventSource but NOT EventByIDLoader.
 var _ event.EventSource = (*versionOnlySource)(nil)

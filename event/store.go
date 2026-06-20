@@ -2,7 +2,6 @@ package event
 
 import (
 	"context"
-	"io"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
@@ -19,8 +18,6 @@ type SaveFunc func(
 // EventSink is the write side of event persistence.
 // Appends events, never reads, never deletes.
 type EventSink interface {
-	io.Closer
-
 	// Save appends events with optimistic concurrency check.
 	Save(
 		ctx context.Context,
@@ -41,8 +38,6 @@ type EventSink interface {
 // EventSource is the read side of event persistence.
 // Loads events, never writes.
 type EventSource interface {
-	io.Closer
-
 	// Load retrieves all events for an aggregate.
 	Load(
 		ctx context.Context,

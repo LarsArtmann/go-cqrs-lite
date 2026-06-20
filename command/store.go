@@ -3,7 +3,6 @@ package command
 import (
 	"context"
 	"fmt"
-	"io"
 	"slices"
 	"time"
 
@@ -104,16 +103,12 @@ func NewPersistedCommand(
 }
 
 type CommandSink interface {
-	io.Closer
-
 	Save(ctx context.Context, ref AggregateRef, cmd *PersistedCommand) error
 
 	AppendBatch(ctx context.Context, ref AggregateRef, cmds []*PersistedCommand) error
 }
 
 type CommandSource interface {
-	io.Closer
-
 	Load(ctx context.Context, ref AggregateRef) ([]*PersistedCommand, error)
 
 	LoadFromTimestamp(

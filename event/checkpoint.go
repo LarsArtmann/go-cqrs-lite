@@ -2,7 +2,6 @@ package event
 
 import (
 	"context"
-	"io"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
@@ -26,8 +25,6 @@ func (c Checkpoint) String() string {
 
 // CheckpointSink is the write side of checkpoint persistence.
 type CheckpointSink interface {
-	io.Closer
-
 	// Save persists the checkpoint for a projection.
 	// ProcessedAt should record when the event was successfully handled.
 	Save(ctx context.Context, projectionName string, cp Checkpoint) error
@@ -35,8 +32,6 @@ type CheckpointSink interface {
 
 // CheckpointSource is the read side of checkpoint persistence.
 type CheckpointSource interface {
-	io.Closer
-
 	// Load returns the last checkpoint for a projection.
 	// Returns a zero-value Checkpoint if no checkpoint exists.
 	Load(ctx context.Context, projectionName string) (Checkpoint, error)

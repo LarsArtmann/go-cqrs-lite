@@ -2,7 +2,6 @@ package snapshot
 
 import (
 	"context"
-	"io"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
@@ -18,16 +17,12 @@ type Snapshot struct {
 }
 
 type SnapshotSink interface {
-	io.Closer
-
 	Save(ctx context.Context, snapshot Snapshot) error
 
 	Delete(ctx context.Context, ref event.AggregateRef) error
 }
 
 type SnapshotSource interface {
-	io.Closer
-
 	Load(
 		ctx context.Context,
 		ref event.AggregateRef,

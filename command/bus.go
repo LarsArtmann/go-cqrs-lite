@@ -2,7 +2,6 @@ package command
 
 import (
 	"context"
-	"io"
 )
 
 // Publisher publishes commands to subscribers.
@@ -27,7 +26,6 @@ type Subscriber interface {
 //   - Command audit logging (subscribe to all commands)
 //   - Saga coordination (commands triggered by events)
 type Bus interface {
-	io.Closer
 	Publisher
 	Subscriber
 	Use(middleware ...Middleware) error

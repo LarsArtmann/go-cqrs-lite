@@ -2,6 +2,7 @@ package encryption
 
 import (
 	"context"
+	"io"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
@@ -209,8 +210,14 @@ func (s *encryptedStore) LoadBackwards(
 	return s.decryptEvents(events)
 }
 
-// Close closes the underlying store.
-func (s *encryptedStore) Close() error { return s.inner.Close() }
+// Close closes the underlying store if it implements io.Closer.
+func (s *encryptedStore) Close() error {
+	if c, ok := s.inner.(io.Closer); ok {
+		return c.Close()
+	}
+
+	return nil
+}
 
 func (s *encryptedStore) encryptEvents(events []event.Event) ([]event.Event, error) {
 	result := make([]event.Event, 0, len(events))

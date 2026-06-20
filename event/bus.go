@@ -2,7 +2,6 @@ package event
 
 import (
 	"context"
-	"io"
 )
 
 // Handler processes events.
@@ -30,7 +29,8 @@ type Subscriber interface {
 }
 
 // Bus defines the interface for event publishing and subscription.
-// All implementations must support lifecycle management via io.Closer.
+// Implementations that own resources should implement io.Closer; callers
+// type-assert when they need cleanup: `if c, ok := bus.(io.Closer); ok { c.Close() }`.
 //
 // Bus composes Publisher and Subscriber so consumers can accept the smallest
 // interface they need:
@@ -38,7 +38,6 @@ type Subscriber interface {
 //	func ProcessEvents(sub event.Subscriber) { ... }  // only subscribes
 //	func EmitEvents(pub event.Publisher) { ... }     // only publishes
 type Bus interface {
-	io.Closer
 	Publisher
 	Subscriber
 

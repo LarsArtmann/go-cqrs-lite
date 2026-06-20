@@ -3,6 +3,7 @@ package schema
 import (
 	"context"
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
@@ -88,10 +89,12 @@ func (s *VersionedStore) loadAndUpcast(
 }
 
 func (s *VersionedStore) Close() error {
-	err := s.inner.Close()
-	if err != nil {
-		return event.WrapInfrastructure(err, "schema.versioned_close",
-			"close versioned store")
+	if c, ok := s.inner.(io.Closer); ok {
+		err := c.Close()
+		if err != nil {
+			return event.WrapInfrastructure(err, "schema.versioned_close",
+				"close versioned store")
+		}
 	}
 
 	return nil
