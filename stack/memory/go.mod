@@ -8,7 +8,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/kv/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/memory/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-20260620041722-7c4869be1ff6
+	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-20260620042302-bd4b2f85a28c
 )
 
 require (

@@ -5,7 +5,7 @@ go 1.26.3
 require (
 	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/kv/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/readmodel/v2 v2.0.0-20260620041722-7c4869be1ff6
+	github.com/larsartmann/go-cqrs-lite/readmodel/v2 v2.0.0-20260620042302-bd4b2f85a28c
 	github.com/maypok86/otter/v2 v2.3.0
 )
 
