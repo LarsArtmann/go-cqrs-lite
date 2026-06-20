@@ -1,0 +1,127 @@
+direction: down
+
+go-cqrs-lite v3+ Pareto Plan: {
+  shape: cloud
+  style.fill: "#0e0e10"
+  style.font-color: "#f4f4f0"
+}
+
+# ── TIER 1: Quick Wins (Master) ──────────────────────────
+
+T1_Docs: "Tier 1A: Doc Prune\n143K LOC → 30K\n8 tasks" {
+  shape: package
+  style.fill: "#1a3a1a"
+  style.stroke: "#4ade80"
+  style.font-color: "#e8f5e9"
+}
+
+T1_Recon: "Tier 1B: Reconcile\nTODO+ROADMAP+FEATURES\n7 tasks" {
+  shape: package
+  style.fill: "#1a3a1a"
+  style.stroke: "#4ade80"
+  style.font-color: "#e8f5e9"
+}
+
+T1_Tests: "Tier 1C: Test Determinism\n50 sleeps → 0\n6 tasks" {
+  shape: package
+  style.fill: "#1a3a1a"
+  style.stroke: "#4ade80"
+  style.font-color: "#e8f5e9"
+}
+
+T1_Ops: "Tier 1D: Operability\nBackup+Shutdown helpers\n3 tasks" {
+  shape: package
+  style.fill: "#1a3a1a"
+  style.stroke: "#4ade80"
+  style.font-color: "#e8f5e9"
+}
+
+# ── TIER 2: v3 Breaking ──────────────────────────────────
+
+T2_Bus: "Tier 2B: Delete Ghost Bus\n923 LOC dead code\n10 tasks" {
+  shape: package
+  style.fill: "#3a3a1a"
+  style.stroke: "#fbbf24"
+  style.font-color: "#fefce8"
+}
+
+T2_Move: "Tier 2C: memory/ → storage/memory/\n4 importers\n6 tasks" {
+  shape: package
+  style.fill: "#3a3a1a"
+  style.stroke: "#fbbf24"
+  style.font-color: "#fefce8"
+}
+
+T2_Version: "Tier 2D: Version → uint64\n156 files\n11 tasks" {
+  shape: package
+  style.fill: "#3a3a1a"
+  style.stroke: "#fbbf24"
+  style.font-color: "#fefce8"
+}
+
+T2_Meta: "Tier 2E-G: Metadata+\nioCloser+readmodel\n16 tasks" {
+  shape: package
+  style.fill: "#3a3a1a"
+  style.stroke: "#fbbf24"
+  style.font-color: "#fefce8"
+}
+
+T2_HTTP: "Tier 2H: HTTP → transport/\n5 tasks" {
+  shape: package
+  style.fill: "#3a3a1a"
+  style.stroke: "#fbbf24"
+  style.font-color: "#fefce8"
+}
+
+# ── TIER 3: Additive Features ────────────────────────────
+
+T3_Transport: "Tier 3A-C: Transports\ngRPC+NATS+Redis\n10 tasks" {
+  shape: package
+  style.fill: "#1a2a3a"
+  style.stroke: "#60a5fa"
+  style.font-color: "#eff6ff"
+}
+
+T3_Index: "Tier 3D: Read-Model Indexes\n4 tasks" {
+  shape: package
+  style.fill: "#1a2a3a"
+  style.stroke: "#60a5fa"
+  style.font-color: "#eff6ff"
+}
+
+# ── TIER 4: Long Tail ────────────────────────────────────
+
+T4_Blocked: "Tier 4A: Blocked\njsonv2+Arena+SIMD\n3 tasks (0 effort)" {
+  shape: package
+  style.fill: "#3a1a1a"
+  style.stroke: "#f87171"
+  style.font-color: "#fef2f2"
+}
+
+T4_v4: "Tier 4B-C: v4 + Raw Ideas\n10 design tasks" {
+  shape: package
+  style.fill: "#3a1a1a"
+  style.stroke: "#f87171"
+  style.font-color: "#fef2f2"
+}
+
+# ── Dependencies ─────────────────────────────────────────
+
+go-cqrs-lite v3+ Pareto Plan -> T1_Docs
+go-cqrs-lite v3+ Pareto Plan -> T1_Recon
+go-cqrs-lite v3+ Pareto Plan -> T1_Tests
+go-cqrs-lite v3+ Pareto Plan -> T1_Ops
+
+T1_Docs -> T2_Bus: "clean docs\nbefore v3"
+T1_Recon -> T2_Bus: "accurate TODO\nbefore v3"
+
+T2_Bus -> T2_Move: "bus gone\nfirst"
+T2_Move -> T2_Version
+T2_Version -> T2_Meta
+T2_Meta -> T2_HTTP
+
+T2_HTTP -> T3_Transport: "transport/\nexists"
+T3_Transport -> T3_Index
+
+T3_Index -> T4_v4
+T4_Blocked -> T4_v4: "parallel\ntrack"

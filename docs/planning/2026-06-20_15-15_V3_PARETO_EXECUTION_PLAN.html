@@ -1,0 +1,2706 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Report Title</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS DARK — Dashboard template
+         Design language: form follows function. Primary colors on graphite.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Dark) --- */
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+
+        /* --- Semantic layer (shared vocabulary with editorial template) --- */
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 15%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 20%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px; /* Bauhaus default: sharp corners */
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      /* Sticky-header offset for anchor jumps */
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 80px;
+        margin-bottom: 1rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 24px;
+        left: 72px;
+        width: 48px;
+        height: 48px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        left: 140px;
+        width: 0;
+        height: 0;
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 48px solid var(--warning);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges (used inside issue cards) --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges (used in tables) --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+
+      /* --- Callouts (used inside issues or standalone) --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+
+      /* --- Stat cards / scorecards (aliased vocabulary) --- */
+      .stat-grid,
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card,
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before,
+      .score-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad,
+      .score-bad {
+        /* default top bar already set */
+      }
+      .stat-bad::before,
+      .score-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before,
+      .score-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before,
+      .score-warn::before {
+        background: var(--warning);
+      }
+      .stat-value,
+      .score {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value,
+      .score-bad .score {
+        color: var(--problem);
+      }
+      .stat-good .stat-value,
+      .score-good .score {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value,
+      .score-warn .score {
+        color: var(--warning);
+      }
+      .stat-label,
+      .score-card .label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+
+      /* --- Strengths list --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      /* --- Tables --- */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      .tok-keyword {
+        color: var(--accent);
+      } /* func, type, struct, if, return */
+      .tok-type {
+        color: var(--warning);
+      } /* int, string, bool, error */
+      .tok-string {
+        color: var(--solution);
+      } /* "quoted strings" */
+      .tok-comment {
+        color: var(--text-faint);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #74a9ff;
+      } /* function names */
+      .tok-number {
+        color: var(--accent);
+      } /* 42, 3.14 */
+      .tok-generic {
+        color: var(--problem);
+      } /* T, ID in generics */
+      .tok-builtin {
+        color: #4dd9ff;
+      } /* make, len, append */
+      .tok-punct {
+        color: var(--text-muted);
+      } /* { } ( ) ; = : */
+      .tok-attr {
+        color: var(--accent);
+      } /* Nix attribute names */
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.35rem 0.7rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--surface-sunken);
+        border: 1px solid var(--border-strong);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+        border-color: var(--accent);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+        border-color: var(--problem);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+        border-color: var(--solution);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids (responsive) --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC (alternative to sidebar) --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .stat-grid,
+        .scorecard {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>PARETO EXECUTION PLAN</span>
+      <span>2026-06-20</span>
+      <span>v3+ Boundary — All TODOs</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#findings">Findings</a>
+          <a href="#tier1">Tier 1: Quick Wins</a>
+          <a href="#tier2">Tier 2: v3 Breaking</a>
+          <a href="#tier3">Tier 3: Features</a>
+          <a href="#tier4">Tier 4: Long Tail</a>
+          <a href="#graph">Execution Graph</a>
+          <a href="#sequence">Execution Order</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="hero">
+          <div class="hero-shapes">
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="hero-badge">PARETO PLAN &middot; 102 TASKS</div>
+          <h1>go-cqrs-lite v3+ Execution Plan</h1>
+          <p class="hero-subtitle">
+            Every open TODO, broken into &le;12-minute tasks, sorted by impact / effort / customer
+            value across 4 Pareto tiers.
+          </p>
+        </div>
+
+        <h2 id="summary"><span class="num">00</span>Summary</h2>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-value">102</div>
+            <div class="stat-label">Total Tasks</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">24</div>
+            <div class="stat-label">Tier 1: Quick Wins</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">49</div>
+            <div class="stat-label">Tier 2: v3 Breaking</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">14</div>
+            <div class="stat-label">Tier 3: Features</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">15</div>
+            <div class="stat-label">Tier 4: Long Tail</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">~18h</div>
+            <div class="stat-label">Est. Total Effort</div>
+          </div>
+        </div>
+
+        <div class="card card-problem">
+          <h4>The Core Problem</h4>
+          <p>
+            143,676 lines of Markdown for 42,070 lines of Go (3.4:1 ratio). 923 LOC of dead
+            ghost-bus code. 50 <code>time.Sleep</code> calls in tests. 76 planning docs — most
+            stale. The library works, but the noise drowns the signal for every consumer and
+            contributor.
+          </p>
+        </div>
+
+        <div class="card card-solution">
+          <h4>Pareto Strategy</h4>
+          <p>
+            <strong>1% effort &rarr; 51% value:</strong> Delete docs, fix test flakiness, reconcile
+            status files. These are non-breaking, shipable on <code>master</code> today.<br />
+            <strong>4% effort &rarr; 64% value:</strong> v3 branch — delete ghost code, move
+            modules, tighten types.<br />
+            <strong>20% effort &rarr; 80% value:</strong> Transport adapters (gRPC/NATS/Redis),
+            read-model indexes.
+          </p>
+        </div>
+
+        <h2 id="findings"><span class="num">01</span>Findings &mdash; What's Broken or Missing</h2>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Critical</span>
+          <h3>Documentation bloat: 3.4:1 Markdown-to-Go ratio</h3>
+          <div class="where">612 .md files / 76 planning docs / 143K LOC</div>
+          <p>
+            Stale planning docs from May/June confuse every new reader. Consumers cannot find the
+            signal. This is the #1 trust killer — worse than any code issue.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            Prune to &lt;1.5:1 ratio. Archive or delete 50+ stale docs. Create INDEX.md for active
+            plans.
+          </div>
+        </div>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Critical</span>
+          <h3>923 LOC of dead ghost-bus code</h3>
+          <div class="where">
+            memory/bus.go (250), memory/command_bus.go (150), storage/pg_bus.go (265),
+            event/reactive*.go (258)
+          </div>
+          <p>
+            Deprecated in v2 but still present. Every consumer sees two bus implementations and must
+            figure out which to use. Watermill EventBus is the replacement and is already wired into
+            all 4 stack presets.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            v3: delete all ghost bus files + their tests. watermill.EventBus is the only bus.
+          </div>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Important</span>
+          <h3>50 time.Sleep calls in tests (flaky test risk)</h3>
+          <div class="where">27 test files across memory/, integration/, example/, storage/</div>
+          <p>
+            Sleep-based synchronization is inherently flaky. Round 3 already hit this: migrating to
+            async GoChannel broke TestFullCommandLifecycle. Fixed with waitForStatus() — but 49 more
+            sleeps remain.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Important</span>
+          <h3>event.Version is int, not uint64 (156 files)</h3>
+          <div class="where">event/event.go type definition + 155 consumers</div>
+          <p>
+            Negative versions were never valid. The int type allows impossible states. This is the
+            most invasive v3 change but the highest type-safety payoff.
+          </p>
+        </div>
+
+        <h2 id="tier1"><span class="num">02</span>Tier 1: Quick Wins (Master, Non-Breaking)</h2>
+        <p>
+          <strong>1% effort &rarr; 51% value.</strong> Ship on <code>master</code> today. No
+          breaking changes. All tasks &le;12 minutes. Sorted by impact within each sub-group.
+        </p>
+
+        <h3>1A: Documentation Prune</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>T001</td>
+              <td>Audit docs/planning/ (76 files) &mdash; categorize keep/archive/delete</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>10m</td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>T002</td>
+              <td>Delete stale May planning docs (30+ files)</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>10m</td>
+              <td>T001</td>
+            </tr>
+            <tr>
+              <td>T003</td>
+              <td>Delete stale June planning docs superseded by later ones</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>10m</td>
+              <td>T001</td>
+            </tr>
+            <tr>
+              <td>T004</td>
+              <td>Audit docs/sessions/, docs/status/, docs/reviews/ for staleness</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>10m</td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>T005</td>
+              <td>Delete docs/site/ scaffold remnants</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>5m</td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>T006</td>
+              <td>Create docs/planning/INDEX.md with active plans only</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>10m</td>
+              <td>T002</td>
+            </tr>
+            <tr>
+              <td>T007</td>
+              <td>Fix broken doc cross-references (orphaned links)</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>10m</td>
+              <td>T002</td>
+            </tr>
+            <tr>
+              <td>T008</td>
+              <td>Audit remaining 612 .md for duplicates/obsolete content</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>10m</td>
+              <td>&mdash;</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>1B: Status File Reconciliation</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>T009</td>
+              <td>Update TODO_LIST.md &mdash; mark TransactionID DONE, fix v3 list</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>10m</td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>T010</td>
+              <td>Update ROADMAP.md &mdash; last-updated + mark stale items done/cancelled</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>10m</td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>T011</td>
+              <td>Update FEATURES.md status indicators against code</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>10m</td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>T012</td>
+              <td>Reconcile AGENTS.md module list (38 modules) + layer graph</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>10m</td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>T013</td>
+              <td>Update SKILL.md module decision matrix</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>10m</td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>T014</td>
+              <td>Verify V3_MIGRATION.md accuracy against code</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>10m</td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>T015</td>
+              <td>Audit docs/adr/README.md &mdash; 30 ADRs status accuracy</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>10m</td>
+              <td>&mdash;</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>1C: Test Determinism (eliminate flakiness)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>T016</td>
+              <td>Catalog all 50 time.Sleep calls with purpose (race/wait/retry)</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>10m</td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>T017</td>
+              <td>Replace sleeps in memory/ tests with sync primitives</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>12m</td>
+              <td>T016</td>
+            </tr>
+            <tr>
+              <td>T018</td>
+              <td>Replace sleeps in integration/ tests</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>12m</td>
+              <td>T016</td>
+            </tr>
+            <tr>
+              <td>T019</td>
+              <td>Replace sleeps in example/ tests</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>12m</td>
+              <td>T016</td>
+            </tr>
+            <tr>
+              <td>T020</td>
+              <td>Replace sleeps in storage/ tests</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>12m</td>
+              <td>T016</td>
+            </tr>
+            <tr>
+              <td>T021</td>
+              <td>Replace sleeps in remaining module tests</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>12m</td>
+              <td>T016</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>1D: Additive Operability</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>T022</td>
+              <td>Surface Pebble Checkpoint in stack/pebble preset</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>10m</td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>T023</td>
+              <td>Add Backup/Restore helpers to stack Bundle</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>12m</td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>T024</td>
+              <td>Surface graceful shutdown from stack presets</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>10m</td>
+              <td>&mdash;</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="tier2"><span class="num">03</span>Tier 2: v3 Breaking Changes</h2>
+        <p>
+          <strong>4% effort &rarr; 64% value.</strong> Requires <code>v3</code> branch and major
+          version bump. All tasks &le;12 minutes. Ordered by dependency chain.
+        </p>
+
+        <div class="callout callout-warning">
+          <strong>Execution order matters</strong>
+          Ghost bus deletion must precede memory/ move. memory/ move must precede
+          Version&rarr;uint64 compilation fixes. Follow the dependency chain in the tables below.
+        </div>
+
+        <h3>2A: v3 Branch Foundation</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>T025</td>
+              <td>Create v3 branch + bump go.mod major versions</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>10m</td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>T026</td>
+              <td>Draft v3 release notes (breaking changes summary)</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>10m</td>
+              <td>T025</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>2B: Delete Ghost Bus (923 LOC)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>T027</td>
+              <td>Update example/ code &mdash; remove MemoryBus refs</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>10m</td>
+              <td>T025</td>
+            </tr>
+            <tr>
+              <td>T028</td>
+              <td>Update integration/ tests &mdash; remove MemoryBus refs</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>10m</td>
+              <td>T025</td>
+            </tr>
+            <tr>
+              <td>T029</td>
+              <td>Delete memory/bus.go (250 LOC)</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>10m</td>
+              <td>T027</td>
+            </tr>
+            <tr>
+              <td>T030</td>
+              <td>Delete memory/command_bus.go (150 LOC)</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>10m</td>
+              <td>T027</td>
+            </tr>
+            <tr>
+              <td>T031</td>
+              <td>Delete storage/pg_bus*.go (3 files, 627 LOC)</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>10m</td>
+              <td>T028</td>
+            </tr>
+            <tr>
+              <td>T032</td>
+              <td>Delete event/reactive.go (188 LOC)</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>10m</td>
+              <td>T028</td>
+            </tr>
+            <tr>
+              <td>T033</td>
+              <td>Delete event/reactive_dedup.go (70 LOC)</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>10m</td>
+              <td>T028</td>
+            </tr>
+            <tr>
+              <td>T034</td>
+              <td>Delete ghost bus tests (memory/bus_*.go etc.)</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>10m</td>
+              <td>T029</td>
+            </tr>
+            <tr>
+              <td>T035</td>
+              <td>Update memory/doc.go + event/doc.go</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>10m</td>
+              <td>T034</td>
+            </tr>
+            <tr>
+              <td>T036</td>
+              <td>Run full test suite, fix breakages</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>12m</td>
+              <td>T035</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>2C: Move memory/ &rarr; storage/memory/ (4 non-test importers)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>T037</td>
+              <td>Create storage/memory/ module skeleton (go.mod, doc.go)</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>10m</td>
+              <td>T036</td>
+            </tr>
+            <tr>
+              <td>T038</td>
+              <td>Move memory store files (store, snapshot, checkpoint, cmd, query)</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>12m</td>
+              <td>T037</td>
+            </tr>
+            <tr>
+              <td>T039</td>
+              <td>Update 4 non-test importers (stack presets, etc.)</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>10m</td>
+              <td>T038</td>
+            </tr>
+            <tr>
+              <td>T040</td>
+              <td>Update all test importers (find/replace paths)</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>12m</td>
+              <td>T038</td>
+            </tr>
+            <tr>
+              <td>T041</td>
+              <td>Delete old memory/ module</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>10m</td>
+              <td>T039</td>
+            </tr>
+            <tr>
+              <td>T042</td>
+              <td>Update go.work + AGENTS.md + SKILL.md</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>10m</td>
+              <td>T041</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>2D: Version &rarr; uint64 (156 files)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>T043</td>
+              <td>Change event.Version type: int &rarr; uint64</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>10m</td>
+              <td>T042</td>
+            </tr>
+            <tr>
+              <td>T044</td>
+              <td>Fix compilation in event/ module</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>10m</td>
+              <td>T043</td>
+            </tr>
+            <tr>
+              <td>T045</td>
+              <td>Fix compilation in command/ + query/ modules</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>10m</td>
+              <td>T043</td>
+            </tr>
+            <tr>
+              <td>T046</td>
+              <td>Fix compilation in decider/ + snapshot/ modules</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>10m</td>
+              <td>T043</td>
+            </tr>
+            <tr>
+              <td>T047</td>
+              <td>Fix compilation in storage/ module</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>12m</td>
+              <td>T043</td>
+            </tr>
+            <tr>
+              <td>T048</td>
+              <td>Fix compilation in storage/memory/ module</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>10m</td>
+              <td>T043</td>
+            </tr>
+            <tr>
+              <td>T049</td>
+              <td>Fix compilation in projection/ + middleware/</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>12m</td>
+              <td>T043</td>
+            </tr>
+            <tr>
+              <td>T050</td>
+              <td>Fix compilation in remaining modules (batch 1: pebble, turso, etc.)</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>12m</td>
+              <td>T043</td>
+            </tr>
+            <tr>
+              <td>T051</td>
+              <td>Fix compilation in remaining modules (batch 2: catalog, etc.)</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>12m</td>
+              <td>T043</td>
+            </tr>
+            <tr>
+              <td>T052</td>
+              <td>Fix compilation in examples + integration</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>12m</td>
+              <td>T043</td>
+            </tr>
+            <tr>
+              <td>T053</td>
+              <td>Run full test suite, fix all type assertion failures</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>12m</td>
+              <td>T052</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>2E: Break Metadata Alias (ADR-0031)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>T054</td>
+              <td>Define command.Metadata as own struct (not alias)</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>10m</td>
+              <td>T053</td>
+            </tr>
+            <tr>
+              <td>T055</td>
+              <td>Define query.Metadata as own struct (not alias)</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>10m</td>
+              <td>T053</td>
+            </tr>
+            <tr>
+              <td>T056</td>
+              <td>Update storage/sql/marshal.go for both types</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>12m</td>
+              <td>T054</td>
+            </tr>
+            <tr>
+              <td>T057</td>
+              <td>Update all command + query store implementations</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>12m</td>
+              <td>T056</td>
+            </tr>
+            <tr>
+              <td>T058</td>
+              <td>Run tests, fix breakages</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>10m</td>
+              <td>T057</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>2F: Remove io.Closer from Core Interfaces (ADR-0010)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>T059</td>
+              <td>Remove io.Closer from event.Store interface</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>10m</td>
+              <td>T058</td>
+            </tr>
+            <tr>
+              <td>T060</td>
+              <td>Remove io.Closer from snapshot.SnapshotStore</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>10m</td>
+              <td>T058</td>
+            </tr>
+            <tr>
+              <td>T061</td>
+              <td>Remove io.Closer from command.Store</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>10m</td>
+              <td>T058</td>
+            </tr>
+            <tr>
+              <td>T062</td>
+              <td>Add explicit Close() methods to all concrete impls</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>12m</td>
+              <td>T059</td>
+            </tr>
+            <tr>
+              <td>T063</td>
+              <td>Update callers relying on io.Closer + run tests</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>12m</td>
+              <td>T062</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>2G: Delete readmodel/ &rarr; merged into kv/ (ADR-0032)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>T064</td>
+              <td>Verify kv.TypedStore + kv.Cache cover readmodel API</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>10m</td>
+              <td>T058</td>
+            </tr>
+            <tr>
+              <td>T065</td>
+              <td>Update 5 readmodel/v2 importers</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>10m</td>
+              <td>T064</td>
+            </tr>
+            <tr>
+              <td>T066</td>
+              <td>Delete readmodel/ and readmodel/cache/ modules</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>10m</td>
+              <td>T065</td>
+            </tr>
+            <tr>
+              <td>T067</td>
+              <td>Update go.work + AGENTS.md + SKILL.md</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>10m</td>
+              <td>T066</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>2H: Move HTTP &rarr; transport/ Module</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>T068</td>
+              <td>Create transport/ module skeleton</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>10m</td>
+              <td>T063</td>
+            </tr>
+            <tr>
+              <td>T069</td>
+              <td>Move middleware/sse.go &rarr; transport/sse/</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>10m</td>
+              <td>T068</td>
+            </tr>
+            <tr>
+              <td>T070</td>
+              <td>Move middleware/health.go &rarr; transport/health/</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>10m</td>
+              <td>T068</td>
+            </tr>
+            <tr>
+              <td>T071</td>
+              <td>Move middleware/metrics_http.go &rarr; transport/metrics/</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>10m</td>
+              <td>T068</td>
+            </tr>
+            <tr>
+              <td>T072</td>
+              <td>Update all importers + run tests</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>12m</td>
+              <td>T071</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>2I: Deep Immutable Events</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>T073</td>
+              <td>Audit Clone() shallow copy paths for options</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>10m</td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>T074</td>
+              <td>Implement deep copy for event options on Clone</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>12m</td>
+              <td>T073</td>
+            </tr>
+            <tr>
+              <td>T075</td>
+              <td>Add deep immutability tests (mutate after clone)</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>12m</td>
+              <td>T074</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="tier3"><span class="num">04</span>Tier 3: Additive Features</h2>
+        <p>
+          <strong>20% effort &rarr; 80% value.</strong> New capabilities, no breaking changes. Ship
+          on <code>master</code> or <code>v3</code> independently. All tasks &le;12 minutes.
+        </p>
+
+        <h3>3A-C: Transport Adapters (ADR-0025)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>T076</td>
+              <td>Create transport/grpc/ module + protobuf definitions</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>12m</td>
+              <td>T072</td>
+            </tr>
+            <tr>
+              <td>T077</td>
+              <td>Implement gRPC command dispatcher adapter</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>12m</td>
+              <td>T076</td>
+            </tr>
+            <tr>
+              <td>T078</td>
+              <td>Implement gRPC event publisher/subscriber adapter</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>12m</td>
+              <td>T076</td>
+            </tr>
+            <tr>
+              <td>T079</td>
+              <td>gRPC transport integration tests</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>12m</td>
+              <td>T077</td>
+            </tr>
+            <tr>
+              <td>T080</td>
+              <td>Create transport/nats/ module skeleton</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>10m</td>
+              <td>T072</td>
+            </tr>
+            <tr>
+              <td>T081</td>
+              <td>Implement NATS JetStream publisher/subscriber</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>12m</td>
+              <td>T080</td>
+            </tr>
+            <tr>
+              <td>T082</td>
+              <td>NATS transport integration tests</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>12m</td>
+              <td>T081</td>
+            </tr>
+            <tr>
+              <td>T083</td>
+              <td>Create transport/redis/ module skeleton</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>10m</td>
+              <td>T072</td>
+            </tr>
+            <tr>
+              <td>T084</td>
+              <td>Implement Redis Streams publisher/subscriber</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>12m</td>
+              <td>T083</td>
+            </tr>
+            <tr>
+              <td>T085</td>
+              <td>Redis transport integration tests</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>12m</td>
+              <td>T084</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>3D: Read-Model Indexes &amp; Ranged Scans</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>T086</td>
+              <td>Add SecondaryIndex type to kv/ module</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>12m</td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>T087</td>
+              <td>Implement ranged scan on kv.TypedStore</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>12m</td>
+              <td>T086</td>
+            </tr>
+            <tr>
+              <td>T088</td>
+              <td>Add index management API (CreateIndex, DropIndex)</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>12m</td>
+              <td>T086</td>
+            </tr>
+            <tr>
+              <td>T089</td>
+              <td>Integration tests for indexed queries + ranged scans</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>12m</td>
+              <td>T087</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="tier4"><span class="num">05</span>Tier 4: Long Tail</h2>
+        <p>Blocked by external dependencies, deferred to v4, or raw ideas needing design first.</p>
+
+        <h3>4A: Blocked by Go Stdlib (monitor only)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>T090</td>
+              <td>jsonv2 codec &mdash; wait for Go stdlib stabilization</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>0m</td>
+              <td>Go team</td>
+            </tr>
+            <tr>
+              <td>T091</td>
+              <td>Arena allocation &mdash; wait for Go arena API stabilization</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>0m</td>
+              <td>Go team</td>
+            </tr>
+            <tr>
+              <td>T092</td>
+              <td>SIMD serialization &mdash; wait for Go SIMD support</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>0m</td>
+              <td>Go team</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>4B: v4 Breaking (catalog splits)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>T093</td>
+              <td>Design catalog.Message + MessageMeta split (17 fields)</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>12m</td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>T094</td>
+              <td>Design catalog.Service + ServiceMeta split (16 fields)</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>12m</td>
+              <td>&mdash;</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>4C: Raw Ideas (design scoping only)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>T095</td>
+              <td>Design event stream compaction / log truncation strategy</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>12m</td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>T096</td>
+              <td>Design multi-tenant event store (schema-per-tenant)</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>12m</td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>T097</td>
+              <td>Design event archival to S3 / GCS / Azure Blob</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>12m</td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>T098</td>
+              <td>Scope CQRS-lite dashboard (web UI for aggregates/events)</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>12m</td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>T099</td>
+              <td>Design migration generator for schema evolution</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>12m</td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>T100</td>
+              <td>Design state-machine property-based testing framework</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>12m</td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>T101</td>
+              <td>Scope chaos engineering integration</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>12m</td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>T102</td>
+              <td>Design performance regression dashboard</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>12m</td>
+              <td>&mdash;</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="graph"><span class="num">06</span>Execution Graph</h2>
+        <div class="card">
+          <div style="width: 100%; overflow-x: auto">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              xmlns:xlink="http://www.w3.org/1999/xlink"
+              data-d2-version="v0.7.1"
+              preserveAspectRatio="xMinYMin meet"
+              viewBox="0 0 1266 2311"
+            >
+              <svg
+                class="d2-3393397275 d2-svg"
+                width="1266"
+                height="2311"
+                viewBox="-101 -101 1266 2311"
+              >
+                <rect
+                  x="-101.000000"
+                  y="-101.000000"
+                  width="1266.000000"
+                  height="2311.000000"
+                  rx="0.000000"
+                  fill="#FFFFFF"
+                  class="fill-N7"
+                  stroke-width="0"
+                />
+                <style type="text/css">
+                  <![CDATA[
+                  .d2-3393397275 .text-bold {
+                  	font-family: "d2-3393397275-font-bold";
+                  }
+                  @font-face {
+                  	font-family: d2-3393397275-font-bold;
+                  	src: url("data:application/font-woff;base64,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");
+                  }
+                  .d2-3393397275 .text-italic {
+                  	font-family: "d2-3393397275-font-italic";
+                  }
+                  @font-face {
+                  	font-family: d2-3393397275-font-italic;
+                  	src: url("data:application/font-woff;base64,d09GRgABAAAAABXoAAoAAAAAITgAARhRAAAAAAAAAAAAAAAAAAAAAAAAAABPUy8yAAAA9AAAAGAAAABgW1SVeGNtYXAAAAFUAAAAugAAAPwGRyhrZ2x5ZgAAAhAAAA6YAAAUxEItbd1oZWFkAAAQqAAAADYAAAA2G7Ur2mhoZWEAABDgAAAAJAAAACQLeAjoaG10eAAAEQQAAADtAAABEHqRBrxsb2NhAAAR9AAAAIoAAACKtyqyRm1heHAAABKAAAAAIAAAACAAXAD2bmFtZQAAEqAAAAMmAAAIMgntVzNwb3N0AAAVyAAAACAAAAAg/8YAMgADAeEBkAAFAAACigJY//EASwKKAlgARAFeADIBIwAAAgsFAwMEAwkCBCAAAHcAAAADAAAAAAAAAABBREJPAAEAIP//Au7/BgAAA9gBESAAAZMAAAAAAeYClAAAACAAA3icbM1JMgMBHMXhr3UQBKENMXeMiYh5jKkslY2ysHcM13APS2tcRJUbuMFfpcvS2/6qvodEKkFFyQ9qqlJluaaWth0dt+49eq6/RCDX+Cu7btx58NQt8S2TGTYSEZ/xEe/x9vVa2P8vce7ClY7Lwtqz78ChI8dOnDrTI1XSq0+/sgGDhlS6D0ZVjRmXmTBpyrSaGbPmzFuwaEmubtmKVWvWbWho2tSypW3bNb8AAAD//wEAAP//7AQfxwAAeJx8WHlwG9d5f+8tiCUhECSwOAgIB4EFdgFwAZC7ABYgiIsgQRIEeIqHJV6iLNmUaImWTUmO5JMdV1ZrFfao6dTjxm6cdpLxpPbIyUyTuE5tpTFjV56247ROHLtT26ETqRnbHNZxMuaiswsQBNXjn8XOYt93/L7v9/veW1AHnACgk+gKwEADaAIaoAOAI+wYxvE8acA4miZxnKcJAnc+AtcfeUqWOfhL97O/Y2yyvoe/NfifC8+jK9vL8KHZBx8UDl08enTq5k3BC//1JgAAoNKbAMCfoiJoAGoACJyjKYom5XIIOYKkSfzDzmsKmUImM3HCP8LbD+ZHNb9agvetrASPR6J3CKOouL1y/ToAGCABQK2oCNTAJN5zBMfqdVq5HMf10i+JcWw4FKTI3Rty7YX55baME3LZvgtDnXNzB3tzh06cnjtZGLgXFXN9TA9TL1OmIwOzDDzTx/vY7Ru9eTYuxg1BtLSFfOhpYAOgzkFRoWACcazegFMU6VAhnVav59gwb5DLoWPwznD7wfvzkdGWMBGmOue7nY5czJ1pJZ2zysy5ocKVs32819NKx28/1xWbDbXuZ20+ERspp7CEDVGTEUlzbHgng6889vjEM6cmJycuZO44EkbFP7zv7HeOpg589fDsUjlO0UYzKoJ9Us1wO87hJG7HyTV4vFH40PuZ6hMOUipUTP+0+/Pumvcbat7HKm/7Pmv8tAsV0x91C/+2g0EMPQ0cEgb/BwQ8yXOYXA6ZM/e3H3p4NDZq5AnenVjsdZL5pDNKuC42vhV1zimfODd05Wy2CkTnXLil+bsp4SOrq5rH0k4eHGYnOIwk7Bi5NhSB7khhbSgpvJNAReEm1G2vwIiwXl4DtlARYOU15NrQmtgwVXtTqAiU5f84yOEEieE4uTaUxuDA9Od/OvrAYz5UFF6GPV8Ky3Dx0V/srINPoiKoq8QhLjgDtY2ouH11B7+XUREYpf8JA8dLkYbDPIljJCb2No6Ra7NRvSx7bXZtMN9gUsqGX2XieplcVZ9DReFrFy/Cxe0VeJo53vak8A048ySzxAiXK7aPoWKlGwgDFw5L1qtWh77qlclVit7BtcKVNpm8SZFFRWHmsY67ODizvQKfe5w7zgrPSL3VVdpCc+hp0Axaa6un12lViGYTSOyvchWh7eSqf3I1mzsa9E/emwlNJRy5IfE6oPyzC4PF1d6e8+ODT6z2ZroWV6OHV2OLq50LZ6r965Nqpq3tXxIjdin4vZnTuYcPLAXT80eP5/uPomJucuSODuEL2DcyHOVA1Q6NiqAR6HftiOXaY+k7M3efHL9nfPk033Nk7vbB/gVUzI4fOqkWPoR64QacGMuGA2VOKEtbUEBPAy8ABgdF81KjhoIUTYtEDoerXSyX67R6g6GsIB9nVtxRywTfNepz5b2x0EwstmDjjFm/K2TpcOYDwdgxZWdnWxvbE3Gyer9pgGfH2KDbb/XY2vdTAb3P3Md3HgoCCGYBQCFUBLiYDcnbcRL769VXGuGbjT9cRYVMZvulcpzDpS2p3vpKhaRqiyGJvCIkVllvPyGX5YYGG1K9kYO60fyY+RHl0jFdwAhXhMd8jmxh5gR8Ujhx+T7R3hgAKC3hCDiMI/T6SgfBx2PD++vqMZkxZPruAeFbqChcCd0VDp0KwmWJLgABurQFv4CbQCtWw7DLdo7nMJIn5XJa5HqV+i+l8kxujqPjahmROJysl5HTGmrYyehYszMTsnUoD01k75vh3Pa4YOp3BVL+wM8oh3dglk3Gy/5spS34KVoHOnH6iFUicZLgcJyTyrOnSyWNv0HH1Zg2eblA65HzgE9yH3JmQtZ2j2OU9Gs5pdseR+uvLFjaDk6KrlPegVkuEfe6PqYcAAJXaQtehZvAvCe73S6oqPk7w7czhcMhpkvvIyhL+2Q42tka1jtMBeWx2Z57JgIOY7tB17OS6c6a1KzWVcUO0TW57GL3/4PXqcGaqUKxgt6Q61b06Nb5V7Yjt8KHpFx+CDeBCbhq/UmsscurkwnjpDEiZvjR5JJvcKadT1uVdcKPGlozXkvUYLWM/nkJYRoPGZpTHj/cuzLG+EdYM6dKjriMak5ng659LY3mDtsEgKANAPg4ehsYpJ5OoloW4dIQaZtI7ks3Nw3FTV7NfsV+td1Tr15UHpmA34zWjebGG/fxuIJtG08I0yJmsOSEm3AT2IC/lqU8L5eTe7tPLsf2oPd8xyTpNPe6EzmVkToQiI+0Dcx0UAk1RiSPEfdEyVFHm77DTKY5a+AXlCVkcORTd1LM5ETm3ttYsR+x+WPQ3ub9J8rhyU63x2JlLtoAgO+g9Yqu7/YhLol7KCimidkuF9qbZZ4xJhGqT+S7ZLJ+c7+/F63fjJOBdMTmFN6AjLalcdDrF75ZKok2we/RVUSBFABADtL9AIBSqfQHJRr8VnreXX7euxvDb9B6dWYR4syicdx2ubCAfjf92urQ7IoJrQsWCN8Ufvmb0+cBBExpC/werQONiGIoWJYNnbbSAnel5ecL90OoxuQ4VOiVSbURndh+Am/ANBDFZLKqX3QDbop6Kfosp26oACDfg0AtGIeTuIwapzo76gLTrnhYJksU4jJZn66f6RWxyer723rhxoCzg3czXDqitmpr8dm928UfboKW2hhuhV/06Bnz70Ff8nAr+Lua9i7cBE3AUsuTsriUt1hl8r89PMfk5tjheWZwzusb5cKseFHeeaj3ngl/+ZrqXunp7sus9HRnpX3t5yUOfgo3y5zHayJWIVJSM5zYo1+KS0k55prwS9RnqS4CaWx/Vatf19FLKZuvQnzbnc9AWBEw6lcu+04+nKTRks86XhSWW7iylynQbrci17S/VqsvPVMrNNefOUsFqlK9XYBwr1CX63IBboLmmroYcGqnHvtklrzPqNvfbHLmbXG4McvEG3rqkzHhOoClL0tb8H64Cehb5/CtY1icwuUh/FzHrLHdkKK8cU/EH2UGGH/O7Cc4O9URbk0E28eUQTdlc/tJE20zJTxtaZfT6taafDYrpXF0Mb4elxhzV2kLTqPlqtaHeVGxOEmlarT+e6mgDEb79uWd6f3nlfdHMbNDZdqnbg4ok74mUyPUROsefTQh3NBorFZFHY83ibYjpS34CdwQdcKwO7MrjCMqcv98lQ39lj6mNy8OSPcBZTevthEwLLxNGMU2hdOCKUdyZQ7GAID/ATf+5+x+pC/vlMllMrWT+JOCsA03hI/JQdI54IRGwVRemwUAvQ43gP2Wtbt3GImVz104tkTmmyGEsqb9zQ8NqhGCMpWp+cH+9+ZV0lNL0xm4IXzg6HE4ehzQWnNnggqy3+nsJ4XPASy9DQD8lzIOJEFzhoornsMNZOWMh+PMzw8NeetVuKyptWlifP3IMFOvVsiaHcQcRB8t62md1qNb/q/PTuv9ej1juAcAWHqtFIAfwg1gAgCXekYaCnsQUSG5olVl1GhcaaNmPE+JOxu1S/PHeeEDY6z/n3E82hBnSfix8Im9QJJ5B1RvfxYoMGUOeUtb8C10CahFtAy7J7v/ZWO8zva5vAMLITbr9AzMd9CZoIXxS1dl5Ejitr+80Nd5JHHw2fPZeM/dF3syU713X+zpngJQjB0+hB6QzjK8uAMM8xzG4abGP1q4WzHBx+59RJmC77NKx/ZrKTHnzwGAP0KXxHUkn8AqokFXBQW344r6hctzAS7UmnbQzFT72LR37MI41Cr9o+cXb/MzXXZbO+W5rSc0t7DS3y3a/G1pC/4EXQLuW7hH8lXlw+kdhdeVyfeD9FErZ8h19EwdOKocPkSznCVjocdnR6YGc6FYfEmZ9rkdwcEo193piVu9YbOBS450x2d0MnU/G7+tQ8RXJMl19ABQiGcCO8nbeSjmTro4XjwjyeU4HOwnhV83wLkDI+PKcaH0D5Rcg8u0bu2LQfiUsJJI/J0lbTcHW8q9DUQNRw+Ip5jdPKoJEHacxHcGlfzl9JyF1acj3n4mGbQxrfYR2Nb466Daa+yfz5xUJn0ee9Bb4BJdzWoT9HW/XK+cGM+fikt9wZW24E10CTQBBgBeW+tFrjXs+QIgDo1dp+djLNVFcqxx2AmXwiNtvpG7UqFebdDRxU4lVfYD9r4Jfv6N3olAzs2nHYF9hg8ih5OLz53t7mj1dGbOH6Cc00OJ42IfgCUAUB16QJr/CcTbeTuuQvg5S+7UqPCGCl5WHDmTMZx7/dsj3ezsyz++CwCAAXtpC/4cXQI20AaiOx0dDvOhqsaWK2xFYrDETlI6rR4rZ0jR0gh83z8VaeuhzdbgFOsZ8Gd5rdvcddji6op4mWzC6ky5PRma7R5QOgciHbmQWmaO0XzB25pmU5M2WaMn4ugc98GjLTk2EIyF2JjwfUvE7eI8OvNghK/s+ZtLW/D1HYyJsg6Hg5UxTOywPbyzBdyJXoUeD7ItIySMsa4uZ3OwVxtsTbCTyUb7uD07wc/F+GERdfjtMr5KEWvB1m4X4R1zkdNDyaUUv5g8/I2z3dL+CxhKW2AdvodokAEpeDeQg0zl7P8+VEAjwAAQhYxUvtv4/s7+MF0agVPoXbG/DRWIDXLpI4jhKy12/s6c7/hyg1b1Yuq5sdWf/GDW+Kjw71/zH1ugRC6+XRoBNypr6bBGAp0vUw76jp9o0DSxookXTY9C+18Ejs1TROrrY6tvfF9c+7elBfh19GMxJhxysB9ejQiFZ7FjXz5Vjqsd3AHfQF5Ra/gQGeJCnI7Tkbr3/+aFrhdevOP16LVr0dfF97SlT1EC1YEGAOpo3h6y0zzUwQh9TUjBv79GQ3mz99Xkq17hi7rqnhBchxs731ZshwuLcEMaOBD0oUFwFV0VfRJSocpUOEdYSYPWQqJBg95ob9EbWwGU9rpvwQ0xd3x3ly/NzA4DqTYqtM1mu+JU4ZQq8zNFQ1SOd7Qh5/Z72UkApTpdBMuiH0ONn6zeSJv1LS6lWW9iLHojA/4bAAD//wEAAP//lqJnoQABAAAAARhRmBT1N18PPPUAAQPoAAAAANhdoMwAAAAA3WYvN/69/t0IHQPJAAIAAwACAAAAAAAAAAEAAAPY/u8AAAhA/r39vAgdA+gAwv/RAAAAAAAAAAAAAABEeJwczr8rxGEAx/H353MjckUdtzzpcfctpyiLyy0GblF+JJudlMli9xf4P0wW42FRynSLMjz+AJLhTrru0df+ftfLFyzyBBrnZ3eJbtL2HlFDol6J3qHtcyIjoleIeiH6nugzoi/puEl0i6hfJjXm2Cfs6osDz1N4jqBbGq5R6J2G6rQ8gzxB4IPAZ77SG4EfliuB4CmCKxSu5UH564ig6zzSFh1XWVePDT+yrZvcVy8/KLGkRF0pD5TyUIlpJVBiTYlTJRaUqPJNTaUxsqlG7usw3ymx6n1m/x3QLS1l9wcAAP//AQAA//+hxUKNAAAAAAAALgAuAFIAigC8AN4A9gEMAUIBXAFqAYYBlgHEAeoCHAJAAmgCqAK8AuQDAgM6A3IDoAPYBBIEOgSCBKwEuATEBN4FAAVCBWwFmgXUBg4GLAZoBpYGwgbgBxoHRgd2B6gHwAfqCCYITgiCCMQI3gk0CXgJhAmSCbAJzgneCfIKCgoYCi4KTApiAAAAAQAAAEQAjAAMAGYABwABAAAAAAAAAAAAAAAAAAQAA3icnJTbThtXFIY/B9tterqoUERu0L5MpWRMoxAl4cqUoIyKcOpxepCqSoM9PojxzMgzmJIn6HXfom+Rqz5Gn6LqdbV/L4MdRUEgBPx79jr8a61/bWCT/9igVr8L/N2cG66x3fzZ8B2+aB4Z3mC/+ZnhOg8b/xhuMGi8NdzkQaNr+BPe1f80/ClP6r8ZvstW/dDw5zyubxr+csPxr+GveMK7Ba7BM/4wXGOLwvAdNvnV8Ab3sJi1OvfYMdzga7YNN9kGekyoSJmQMcIxZMKIM2YklEQkzJgwJGGAI6RNSqWvGbGQY/TBrzERFTNiRRxT4UiJSIkpGVvEt/LKea2MQ51mdtemYkzMiTxOiclw5IzIyUg4VZyKioIXtGhR0hffgoqSgJIJKQE5M0a06HDIET3GTChxHCqSZxaRM6TinFj5nVn4zvRJyCiN1RkZA/F04pfIO+QIR4dCtquRj9YiPMTxo7w9t1y23xLo160wW8+7ZBMzVz9TdSXVzbkmONatz9vmB+GKF7hb9WedyfU9Guh/pcgnnGn+A00qE5MM57ZoE0lBkbuPY1/nkEgd+YmQHq/o8Iaezm26dGlzTI+Ql/Lt0MXxHR2OOZBHKLy4O5RijvkFx/eEsvGxE+vPYmIJv1OYuktxnKmOKYV67pkHqjVRhTefsN+hfE0dpXz62iNv6TS/THsWMzJVFGI4VS+X2iitfwNTxFS1+Nle3fttmNvuLbf4glw77NW64OQnt2B03VSD9zRzrp+AmAE5J7LokzOlRcWFeL8m5owUx4G690pbUtG+9PF5LqSShKkYhGSKM6PQ39h0Exn3/prunb0lA/l7pqeXVd0mi1Ovrmb0Rt1b3kXW5WRlAi2bar6ipr64Zqb9RDu1yj+Sb6nXLecRoeIudvtDr8AOz9llj7Gy9HUzv7zzr4S32FMHTklkNZSmfQ2PCdgl4Cm77PKcp+/1csnGGR+3xmc1f5sD9umwd201C9sO+7xci/bxzH+J7Y7qcTy6PD279TQf3EC132jfrt7NribnpzG3aFfbcUzM1HNxW6s1ufsE/wMAAP//AQAA//9yoVFAAAAAAwAA//UAAP/OADIAAAAAAAAAAAAAAAAAAAAAAAAAAA==");
+                  }]]>
+                </style>
+                <style type="text/css">
+                  <![CDATA[.shape {
+                    shape-rendering: geometricPrecision;
+                    stroke-linejoin: round;
+                  }
+                  .connection {
+                    stroke-linecap: round;
+                    stroke-linejoin: round;
+                  }
+                  .blend {
+                    mix-blend-mode: multiply;
+                    opacity: 0.5;
+                  }
+
+                  		.d2-3393397275 .fill-N1{fill:#0A0F25;}
+                  		.d2-3393397275 .fill-N2{fill:#676C7E;}
+                  		.d2-3393397275 .fill-N3{fill:#9499AB;}
+                  		.d2-3393397275 .fill-N4{fill:#CFD2DD;}
+                  		.d2-3393397275 .fill-N5{fill:#DEE1EB;}
+                  		.d2-3393397275 .fill-N6{fill:#EEF1F8;}
+                  		.d2-3393397275 .fill-N7{fill:#FFFFFF;}
+                  		.d2-3393397275 .fill-B1{fill:#0D32B2;}
+                  		.d2-3393397275 .fill-B2{fill:#0D32B2;}
+                  		.d2-3393397275 .fill-B3{fill:#E3E9FD;}
+                  		.d2-3393397275 .fill-B4{fill:#E3E9FD;}
+                  		.d2-3393397275 .fill-B5{fill:#EDF0FD;}
+                  		.d2-3393397275 .fill-B6{fill:#F7F8FE;}
+                  		.d2-3393397275 .fill-AA2{fill:#4A6FF3;}
+                  		.d2-3393397275 .fill-AA4{fill:#EDF0FD;}
+                  		.d2-3393397275 .fill-AA5{fill:#F7F8FE;}
+                  		.d2-3393397275 .fill-AB4{fill:#EDF0FD;}
+                  		.d2-3393397275 .fill-AB5{fill:#F7F8FE;}
+                  		.d2-3393397275 .stroke-N1{stroke:#0A0F25;}
+                  		.d2-3393397275 .stroke-N2{stroke:#676C7E;}
+                  		.d2-3393397275 .stroke-N3{stroke:#9499AB;}
+                  		.d2-3393397275 .stroke-N4{stroke:#CFD2DD;}
+                  		.d2-3393397275 .stroke-N5{stroke:#DEE1EB;}
+                  		.d2-3393397275 .stroke-N6{stroke:#EEF1F8;}
+                  		.d2-3393397275 .stroke-N7{stroke:#FFFFFF;}
+                  		.d2-3393397275 .stroke-B1{stroke:#0D32B2;}
+                  		.d2-3393397275 .stroke-B2{stroke:#0D32B2;}
+                  		.d2-3393397275 .stroke-B3{stroke:#E3E9FD;}
+                  		.d2-3393397275 .stroke-B4{stroke:#E3E9FD;}
+                  		.d2-3393397275 .stroke-B5{stroke:#EDF0FD;}
+                  		.d2-3393397275 .stroke-B6{stroke:#F7F8FE;}
+                  		.d2-3393397275 .stroke-AA2{stroke:#4A6FF3;}
+                  		.d2-3393397275 .stroke-AA4{stroke:#EDF0FD;}
+                  		.d2-3393397275 .stroke-AA5{stroke:#F7F8FE;}
+                  		.d2-3393397275 .stroke-AB4{stroke:#EDF0FD;}
+                  		.d2-3393397275 .stroke-AB5{stroke:#F7F8FE;}
+                  		.d2-3393397275 .background-color-N1{background-color:#0A0F25;}
+                  		.d2-3393397275 .background-color-N2{background-color:#676C7E;}
+                  		.d2-3393397275 .background-color-N3{background-color:#9499AB;}
+                  		.d2-3393397275 .background-color-N4{background-color:#CFD2DD;}
+                  		.d2-3393397275 .background-color-N5{background-color:#DEE1EB;}
+                  		.d2-3393397275 .background-color-N6{background-color:#EEF1F8;}
+                  		.d2-3393397275 .background-color-N7{background-color:#FFFFFF;}
+                  		.d2-3393397275 .background-color-B1{background-color:#0D32B2;}
+                  		.d2-3393397275 .background-color-B2{background-color:#0D32B2;}
+                  		.d2-3393397275 .background-color-B3{background-color:#E3E9FD;}
+                  		.d2-3393397275 .background-color-B4{background-color:#E3E9FD;}
+                  		.d2-3393397275 .background-color-B5{background-color:#EDF0FD;}
+                  		.d2-3393397275 .background-color-B6{background-color:#F7F8FE;}
+                  		.d2-3393397275 .background-color-AA2{background-color:#4A6FF3;}
+                  		.d2-3393397275 .background-color-AA4{background-color:#EDF0FD;}
+                  		.d2-3393397275 .background-color-AA5{background-color:#F7F8FE;}
+                  		.d2-3393397275 .background-color-AB4{background-color:#EDF0FD;}
+                  		.d2-3393397275 .background-color-AB5{background-color:#F7F8FE;}
+                  		.d2-3393397275 .color-N1{color:#0A0F25;}
+                  		.d2-3393397275 .color-N2{color:#676C7E;}
+                  		.d2-3393397275 .color-N3{color:#9499AB;}
+                  		.d2-3393397275 .color-N4{color:#CFD2DD;}
+                  		.d2-3393397275 .color-N5{color:#DEE1EB;}
+                  		.d2-3393397275 .color-N6{color:#EEF1F8;}
+                  		.d2-3393397275 .color-N7{color:#FFFFFF;}
+                  		.d2-3393397275 .color-B1{color:#0D32B2;}
+                  		.d2-3393397275 .color-B2{color:#0D32B2;}
+                  		.d2-3393397275 .color-B3{color:#E3E9FD;}
+                  		.d2-3393397275 .color-B4{color:#E3E9FD;}
+                  		.d2-3393397275 .color-B5{color:#EDF0FD;}
+                  		.d2-3393397275 .color-B6{color:#F7F8FE;}
+                  		.d2-3393397275 .color-AA2{color:#4A6FF3;}
+                  		.d2-3393397275 .color-AA4{color:#EDF0FD;}
+                  		.d2-3393397275 .color-AA5{color:#F7F8FE;}
+                  		.d2-3393397275 .color-AB4{color:#EDF0FD;}
+                  		.d2-3393397275 .color-AB5{color:#F7F8FE;}.appendix text.text{fill:#0A0F25}.md{--color-fg-default:#0A0F25;--color-fg-muted:#676C7E;--color-fg-subtle:#9499AB;--color-canvas-default:#FFFFFF;--color-canvas-subtle:#EEF1F8;--color-border-default:#0D32B2;--color-border-muted:#0D32B2;--color-neutral-muted:#EEF1F8;--color-accent-fg:#0D32B2;--color-accent-emphasis:#0D32B2;--color-attention-subtle:#676C7E;--color-danger-fg:red;}.sketch-overlay-B1{fill:url(#streaks-darker-d2-3393397275);mix-blend-mode:lighten}.sketch-overlay-B2{fill:url(#streaks-darker-d2-3393397275);mix-blend-mode:lighten}.sketch-overlay-B3{fill:url(#streaks-bright-d2-3393397275);mix-blend-mode:darken}.sketch-overlay-B4{fill:url(#streaks-bright-d2-3393397275);mix-blend-mode:darken}.sketch-overlay-B5{fill:url(#streaks-bright-d2-3393397275);mix-blend-mode:darken}.sketch-overlay-B6{fill:url(#streaks-bright-d2-3393397275);mix-blend-mode:darken}.sketch-overlay-AA2{fill:url(#streaks-dark-d2-3393397275);mix-blend-mode:overlay}.sketch-overlay-AA4{fill:url(#streaks-bright-d2-3393397275);mix-blend-mode:darken}.sketch-overlay-AA5{fill:url(#streaks-bright-d2-3393397275);mix-blend-mode:darken}.sketch-overlay-AB4{fill:url(#streaks-bright-d2-3393397275);mix-blend-mode:darken}.sketch-overlay-AB5{fill:url(#streaks-bright-d2-3393397275);mix-blend-mode:darken}.sketch-overlay-N1{fill:url(#streaks-darker-d2-3393397275);mix-blend-mode:lighten}.sketch-overlay-N2{fill:url(#streaks-dark-d2-3393397275);mix-blend-mode:overlay}.sketch-overlay-N3{fill:url(#streaks-normal-d2-3393397275);mix-blend-mode:color-burn}.sketch-overlay-N4{fill:url(#streaks-normal-d2-3393397275);mix-blend-mode:color-burn}.sketch-overlay-N5{fill:url(#streaks-bright-d2-3393397275);mix-blend-mode:darken}.sketch-overlay-N6{fill:url(#streaks-bright-d2-3393397275);mix-blend-mode:darken}.sketch-overlay-N7{fill:url(#streaks-bright-d2-3393397275);mix-blend-mode:darken}.light-code{display: block}.dark-code{display: none}]]>
+                </style>
+                <g class="Z28tY3Fycy1saXRlIHYzKyBQYXJldG8gUGxhbg==">
+                  <g class="shape">
+                    <path
+                      d="M 408 29 C 408 30 406 31 404 31 C 379 32 359 43 359 57 C 359 72 381 84 409 84 H 599 C 629 84 654 71 654 56 C 654 41 631 29 603 28 C 601 28 599 27 599 26 C 593 11 563 0 529 0 C 506 0 486 5 473 12 C 472 13 469 13 468 13 C 463 12 458 12 452 12 C 428 12 410 19 408 29 Z"
+                      stroke="#0D32B2"
+                      fill="#0e0e10"
+                      class="stroke-B1"
+                      style="stroke-width: 2"
+                    />
+                  </g>
+                  <text
+                    x="505.802500"
+                    y="63.516000"
+                    fill="#f4f4f0"
+                    class="text-bold"
+                    style="text-anchor: middle; font-size: 16px"
+                  >
+                    go-cqrs-lite v3+ Pareto Plan
+                  </text>
+                </g>
+                <g class="VDFfRG9jcw==">
+                  <g class="shape">
+                    <path
+                      d="M 0 184 L 87 184 L 87 207 L 174 207 L 174 297 L 0 297 Z"
+                      stroke="#4ade80"
+                      fill="#1a3a1a"
+                      style="stroke-width: 2"
+                    />
+                  </g>
+                  <text
+                    x="87.000000"
+                    y="241.300000"
+                    fill="#e8f5e9"
+                    class="text-bold"
+                    style="text-anchor: middle; font-size: 16px"
+                  >
+                    <tspan x="87.000000" dy="0.000000">Tier 1A: Doc Prune</tspan>
+                    <tspan x="87.000000" dy="17.666667">143K LOC → 30K</tspan>
+                    <tspan x="87.000000" dy="17.666667">8 tasks</tspan>
+                  </text>
+                </g>
+                <g class="VDFfUmVjb24=">
+                  <g class="shape">
+                    <path
+                      d="M 234 184 L 358 184 L 358 207 L 482 207 L 482 297 L 234 297 Z"
+                      stroke="#4ade80"
+                      fill="#1a3a1a"
+                      style="stroke-width: 2"
+                    />
+                  </g>
+                  <text
+                    x="358.000000"
+                    y="241.300000"
+                    fill="#e8f5e9"
+                    class="text-bold"
+                    style="text-anchor: middle; font-size: 16px"
+                  >
+                    <tspan x="358.000000" dy="0.000000">Tier 1B: Reconcile</tspan>
+                    <tspan x="358.000000" dy="17.666667">TODO+ROADMAP+FEATURES</tspan>
+                    <tspan x="358.000000" dy="17.666667">7 tasks</tspan>
+                  </text>
+                </g>
+                <g class="VDFfVGVzdHM=">
+                  <g class="shape">
+                    <path
+                      d="M 542 184 L 656 184 L 656 207 L 769 207 L 769 297 L 542 297 Z"
+                      stroke="#4ade80"
+                      fill="#1a3a1a"
+                      style="stroke-width: 2"
+                    />
+                  </g>
+                  <text
+                    x="655.500000"
+                    y="241.300000"
+                    fill="#e8f5e9"
+                    class="text-bold"
+                    style="text-anchor: middle; font-size: 16px"
+                  >
+                    <tspan x="655.500000" dy="0.000000">Tier 1C: Test Determinism</tspan>
+                    <tspan x="655.500000" dy="17.666667">50 sleeps → 0</tspan>
+                    <tspan x="655.500000" dy="17.666667">6 tasks</tspan>
+                  </text>
+                </g>
+                <g class="VDFfT3Bz">
+                  <g class="shape">
+                    <path
+                      d="M 829 184 L 947 184 L 947 207 L 1064 207 L 1064 297 L 829 297 Z"
+                      stroke="#4ade80"
+                      fill="#1a3a1a"
+                      style="stroke-width: 2"
+                    />
+                  </g>
+                  <text
+                    x="946.500000"
+                    y="241.300000"
+                    fill="#e8f5e9"
+                    class="text-bold"
+                    style="text-anchor: middle; font-size: 16px"
+                  >
+                    <tspan x="946.500000" dy="0.000000">Tier 1D: Operability</tspan>
+                    <tspan x="946.500000" dy="17.666667">Backup+Shutdown helpers</tspan>
+                    <tspan x="946.500000" dy="17.666667">3 tasks</tspan>
+                  </text>
+                </g>
+                <g class="VDJfQnVz">
+                  <g class="shape">
+                    <path
+                      d="M 112 434 L 223 434 L 223 457 L 334 457 L 334 547 L 112 547 Z"
+                      stroke="#fbbf24"
+                      fill="#3a3a1a"
+                      style="stroke-width: 2"
+                    />
+                  </g>
+                  <text
+                    x="223.000000"
+                    y="491.300000"
+                    fill="#fefce8"
+                    class="text-bold"
+                    style="text-anchor: middle; font-size: 16px"
+                  >
+                    <tspan x="223.000000" dy="0.000000">Tier 2B: Delete Ghost Bus</tspan>
+                    <tspan x="223.000000" dy="17.666667">923 LOC dead code</tspan>
+                    <tspan x="223.000000" dy="17.666667">10 tasks</tspan>
+                  </text>
+                </g>
+                <g class="VDJfTW92ZQ==">
+                  <g class="shape">
+                    <path
+                      d="M 69 684 L 219 684 L 219 707 L 377 707 L 377 797 L 69 797 Z"
+                      stroke="#fbbf24"
+                      fill="#3a3a1a"
+                      style="stroke-width: 2"
+                    />
+                  </g>
+                  <text
+                    x="223.000000"
+                    y="741.300000"
+                    fill="#fefce8"
+                    class="text-bold"
+                    style="text-anchor: middle; font-size: 16px"
+                  >
+                    <tspan x="223.000000" dy="0.000000">Tier 2C: memory/ → storage/memory/</tspan>
+                    <tspan x="223.000000" dy="17.666667">4 importers</tspan>
+                    <tspan x="223.000000" dy="17.666667">6 tasks</tspan>
+                  </text>
+                </g>
+                <g class="VDJfVmVyc2lvbg==">
+                  <g class="shape">
+                    <path
+                      d="M 113 897 L 223 897 L 223 920 L 333 920 L 333 1010 L 113 1010 Z"
+                      stroke="#fbbf24"
+                      fill="#3a3a1a"
+                      style="stroke-width: 2"
+                    />
+                  </g>
+                  <text
+                    x="223.000000"
+                    y="954.300000"
+                    fill="#fefce8"
+                    class="text-bold"
+                    style="text-anchor: middle; font-size: 16px"
+                  >
+                    <tspan x="223.000000" dy="0.000000">Tier 2D: Version → uint64</tspan>
+                    <tspan x="223.000000" dy="17.666667">156 files</tspan>
+                    <tspan x="223.000000" dy="17.666667">11 tasks</tspan>
+                  </text>
+                </g>
+                <g class="VDJfTWV0YQ==">
+                  <g class="shape">
+                    <path
+                      d="M 126 1110 L 223 1110 L 223 1133 L 319 1133 L 319 1223 L 126 1223 Z"
+                      stroke="#fbbf24"
+                      fill="#3a3a1a"
+                      style="stroke-width: 2"
+                    />
+                  </g>
+                  <text
+                    x="222.500000"
+                    y="1167.300000"
+                    fill="#fefce8"
+                    class="text-bold"
+                    style="text-anchor: middle; font-size: 16px"
+                  >
+                    <tspan x="222.500000" dy="0.000000">Tier 2E-G: Metadata+</tspan>
+                    <tspan x="222.500000" dy="17.666667">ioCloser+readmodel</tspan>
+                    <tspan x="222.500000" dy="17.666667">16 tasks</tspan>
+                  </text>
+                </g>
+                <g class="VDJfSFRUUA==">
+                  <g class="shape">
+                    <path
+                      d="M 107 1323 L 223 1323 L 223 1342 L 339 1342 L 339 1416 L 107 1416 Z"
+                      stroke="#fbbf24"
+                      fill="#3a3a1a"
+                      style="stroke-width: 2"
+                    />
+                  </g>
+                  <text
+                    x="223.000000"
+                    y="1376.300000"
+                    fill="#fefce8"
+                    class="text-bold"
+                    style="text-anchor: middle; font-size: 16px"
+                  >
+                    <tspan x="223.000000" dy="0.000000">Tier 2H: HTTP → transport/</tspan>
+                    <tspan x="223.000000" dy="18.500000">5 tasks</tspan>
+                  </text>
+                </g>
+                <g class="VDNfVHJhbnNwb3J0">
+                  <g class="shape">
+                    <path
+                      d="M 126 1553 L 223 1553 L 223 1576 L 320 1576 L 320 1666 L 126 1666 Z"
+                      stroke="#60a5fa"
+                      fill="#1a2a3a"
+                      style="stroke-width: 2"
+                    />
+                  </g>
+                  <text
+                    x="223.000000"
+                    y="1610.300000"
+                    fill="#eff6ff"
+                    class="text-bold"
+                    style="text-anchor: middle; font-size: 16px"
+                  >
+                    <tspan x="223.000000" dy="0.000000">Tier 3A-C: Transports</tspan>
+                    <tspan x="223.000000" dy="17.666667">gRPC+NATS+Redis</tspan>
+                    <tspan x="223.000000" dy="17.666667">10 tasks</tspan>
+                  </text>
+                </g>
+                <g class="VDNfSW5kZXg=">
+                  <g class="shape">
+                    <path
+                      d="M 100 1776 L 223 1776 L 223 1795 L 346 1795 L 346 1869 L 100 1869 Z"
+                      stroke="#60a5fa"
+                      fill="#1a2a3a"
+                      style="stroke-width: 2"
+                    />
+                  </g>
+                  <text
+                    x="223.000000"
+                    y="1829.300000"
+                    fill="#eff6ff"
+                    class="text-bold"
+                    style="text-anchor: middle; font-size: 16px"
+                  >
+                    <tspan x="223.000000" dy="0.000000">Tier 3D: Read-Model Indexes</tspan>
+                    <tspan x="223.000000" dy="18.500000">4 tasks</tspan>
+                  </text>
+                </g>
+                <g class="VDRfQmxvY2tlZA==">
+                  <g class="shape">
+                    <path
+                      d="M 406 1766 L 500 1766 L 500 1789 L 593 1789 L 593 1879 L 406 1879 Z"
+                      stroke="#f87171"
+                      fill="#3a1a1a"
+                      style="stroke-width: 2"
+                    />
+                  </g>
+                  <text
+                    x="499.500000"
+                    y="1823.300000"
+                    fill="#fef2f2"
+                    class="text-bold"
+                    style="text-anchor: middle; font-size: 16px"
+                  >
+                    <tspan x="499.500000" dy="0.000000">Tier 4A: Blocked</tspan>
+                    <tspan x="499.500000" dy="17.666667">jsonv2+Arena+SIMD</tspan>
+                    <tspan x="499.500000" dy="17.666667">3 tasks (0 effort)</tspan>
+                  </text>
+                </g>
+                <g class="VDRfdjQ=">
+                  <g class="shape">
+                    <path
+                      d="M 250 2016 L 361 2016 L 361 2035 L 471 2035 L 471 2109 L 250 2109 Z"
+                      stroke="#f87171"
+                      fill="#3a1a1a"
+                      style="stroke-width: 2"
+                    />
+                  </g>
+                  <text
+                    x="360.500000"
+                    y="2069.300000"
+                    fill="#fef2f2"
+                    class="text-bold"
+                    style="text-anchor: middle; font-size: 16px"
+                  >
+                    <tspan x="360.500000" dy="0.000000">Tier 4B-C: v4 + Raw Ideas</tspan>
+                    <tspan x="360.500000" dy="18.500000">10 design tasks</tspan>
+                  </text>
+                </g>
+                <g class="KGdvLWNxcnMtbGl0ZSB2MysgUGFyZXRvIFBsYW4gLSZndDsgVDFfRG9jcylbMF0=">
+                  <marker
+                    id="mk-d2-3393397275-3488378134"
+                    markerWidth="10.000000"
+                    markerHeight="12.000000"
+                    refX="7.000000"
+                    refY="6.000000"
+                    viewBox="0.000000 0.000000 10.000000 12.000000"
+                    orient="auto"
+                    markerUnits="userSpaceOnUse"
+                  >
+                    <polygon
+                      points="0.000000,0.000000 10.000000,6.000000 0.000000,12.000000"
+                      fill="#0D32B2"
+                      class="connection fill-B1"
+                      stroke-width="2"
+                    />
+                  </marker>
+                  <path
+                    d="M 365.047298 72.432384 C 143.000000 121.599998 87.000000 144.000000 87.000000 180.000000"
+                    stroke="#0D32B2"
+                    fill="none"
+                    class="connection stroke-B1"
+                    style="stroke-width: 2"
+                    marker-end="url(#mk-d2-3393397275-3488378134)"
+                    mask="url(#d2-3393397275)"
+                  />
+                </g>
+                <g class="KGdvLWNxcnMtbGl0ZSB2MysgUGFyZXRvIFBsYW4gLSZndDsgVDFfUmVjb24pWzBd">
+                  <path
+                    d="M 437.298128 85.050539 C 374.200012 124.000000 358.000000 144.000000 358.000000 180.000000"
+                    stroke="#0D32B2"
+                    fill="none"
+                    class="connection stroke-B1"
+                    style="stroke-width: 2"
+                    marker-end="url(#mk-d2-3393397275-3488378134)"
+                    mask="url(#d2-3393397275)"
+                  />
+                </g>
+                <g class="KGdvLWNxcnMtbGl0ZSB2MysgUGFyZXRvIFBsYW4gLSZndDsgVDFfVGVzdHMpWzBd">
+                  <path
+                    d="M 576.698954 85.055251 C 639.400024 124.000000 655.599976 144.000000 655.960000 180.000200"
+                    stroke="#0D32B2"
+                    fill="none"
+                    class="connection stroke-B1"
+                    style="stroke-width: 2"
+                    marker-end="url(#mk-d2-3393397275-3488378134)"
+                    mask="url(#d2-3393397275)"
+                  />
+                </g>
+                <g class="KGdvLWNxcnMtbGl0ZSB2MysgUGFyZXRvIFBsYW4gLSZndDsgVDFfT3BzKVswXQ==">
+                  <path
+                    d="M 646.957717 71.409075 C 886.200012 121.400002 946.599976 144.000000 946.960000 180.000200"
+                    stroke="#0D32B2"
+                    fill="none"
+                    class="connection stroke-B1"
+                    style="stroke-width: 2"
+                    marker-end="url(#mk-d2-3393397275-3488378134)"
+                    mask="url(#d2-3393397275)"
+                  />
+                </g>
+                <g class="KFQxX0RvY3MgLSZndDsgVDJfQnVzKVswXQ==">
+                  <path
+                    d="M 87.000000 299.000000 C 87.000000 351.799988 101.400002 379.200012 156.102013 431.242888"
+                    stroke="#0D32B2"
+                    fill="none"
+                    class="connection stroke-B1"
+                    style="stroke-width: 2"
+                    marker-end="url(#mk-d2-3393397275-3488378134)"
+                    mask="url(#d2-3393397275)"
+                  />
+                  <text
+                    x="100.000000"
+                    y="374.000000"
+                    fill="#676C7E"
+                    class="text-italic fill-N2"
+                    style="text-anchor: middle; font-size: 16px"
+                  >
+                    <tspan x="100.000000" dy="0.000000">clean docs</tspan>
+                    <tspan x="100.000000" dy="18.500000">before v3</tspan>
+                  </text>
+                </g>
+                <g class="KFQxX1JlY29uIC0mZ3Q7IFQyX0J1cylbMF0=">
+                  <path
+                    d="M 358.000000 299.000000 C 358.000000 351.799988 338.600006 383.799988 263.909716 454.255268"
+                    stroke="#0D32B2"
+                    fill="none"
+                    class="connection stroke-B1"
+                    style="stroke-width: 2"
+                    marker-end="url(#mk-d2-3393397275-3488378134)"
+                    mask="url(#d2-3393397275)"
+                  />
+                  <text
+                    x="333.500000"
+                    y="386.000000"
+                    fill="#676C7E"
+                    class="text-italic fill-N2"
+                    style="text-anchor: middle; font-size: 16px"
+                  >
+                    <tspan x="333.500000" dy="0.000000">accurate TODO</tspan>
+                    <tspan x="333.500000" dy="18.500000">before v3</tspan>
+                  </text>
+                </g>
+                <g class="KFQyX0J1cyAtJmd0OyBUMl9Nb3ZlKVswXQ==">
+                  <path
+                    d="M 222.014598 548.999947 C 222.399994 601.799988 222.600006 633.799988 222.978143 703.000060"
+                    stroke="#0D32B2"
+                    fill="none"
+                    class="connection stroke-B1"
+                    style="stroke-width: 2"
+                    marker-end="url(#mk-d2-3393397275-3488378134)"
+                    mask="url(#d2-3393397275)"
+                  />
+                  <text
+                    x="223.000000"
+                    y="624.000000"
+                    fill="#676C7E"
+                    class="text-italic fill-N2"
+                    style="text-anchor: middle; font-size: 16px"
+                  >
+                    <tspan x="223.000000" dy="0.000000">bus gone</tspan>
+                    <tspan x="223.000000" dy="18.500000">first</tspan>
+                  </text>
+                </g>
+                <g class="KFQyX01vdmUgLSZndDsgVDJfVmVyc2lvbilbMF0=">
+                  <path
+                    d="M 222.019999 798.999900 C 222.399994 837.000000 222.600006 857.000000 222.960003 893.000200"
+                    stroke="#0D32B2"
+                    fill="none"
+                    class="connection stroke-B1"
+                    style="stroke-width: 2"
+                    marker-end="url(#mk-d2-3393397275-3488378134)"
+                    mask="url(#d2-3393397275)"
+                  />
+                </g>
+                <g class="KFQyX1ZlcnNpb24gLSZndDsgVDJfTWV0YSlbMF0=">
+                  <path
+                    d="M 222.019999 1011.999900 C 222.399994 1050.000000 222.600006 1070.000000 222.960003 1106.000200"
+                    stroke="#0D32B2"
+                    fill="none"
+                    class="connection stroke-B1"
+                    style="stroke-width: 2"
+                    marker-end="url(#mk-d2-3393397275-3488378134)"
+                    mask="url(#d2-3393397275)"
+                  />
+                </g>
+                <g class="KFQyX01ldGEgLSZndDsgVDJfSFRUUClbMF0=">
+                  <path
+                    d="M 222.019999 1224.999900 C 222.399994 1263.000000 222.600006 1283.000000 222.960003 1319.000200"
+                    stroke="#0D32B2"
+                    fill="none"
+                    class="connection stroke-B1"
+                    style="stroke-width: 2"
+                    marker-end="url(#mk-d2-3393397275-3488378134)"
+                    mask="url(#d2-3393397275)"
+                  />
+                </g>
+                <g class="KFQyX0hUVFAgLSZndDsgVDNfVHJhbnNwb3J0KVswXQ==">
+                  <path
+                    d="M 222.014598 1417.999947 C 222.399994 1470.800049 222.600006 1498.199951 222.970804 1549.000107"
+                    stroke="#0D32B2"
+                    fill="none"
+                    class="connection stroke-B1"
+                    style="stroke-width: 2"
+                    marker-end="url(#mk-d2-3393397275-3488378134)"
+                    mask="url(#d2-3393397275)"
+                  />
+                  <text
+                    x="222.500000"
+                    y="1482.000000"
+                    fill="#676C7E"
+                    class="text-italic fill-N2"
+                    style="text-anchor: middle; font-size: 16px"
+                  >
+                    <tspan x="222.500000" dy="0.000000">transport/</tspan>
+                    <tspan x="222.500000" dy="18.500000">exists</tspan>
+                  </text>
+                </g>
+                <g class="KFQzX1RyYW5zcG9ydCAtJmd0OyBUM19JbmRleClbMF0=">
+                  <path
+                    d="M 222.019999 1667.999900 C 222.399994 1706.000000 222.600006 1728.000000 222.966668 1772.000139"
+                    stroke="#0D32B2"
+                    fill="none"
+                    class="connection stroke-B1"
+                    style="stroke-width: 2"
+                    marker-end="url(#mk-d2-3393397275-3488378134)"
+                    mask="url(#d2-3393397275)"
+                  />
+                </g>
+                <g class="KFQzX0luZGV4IC0mZ3Q7IFQ0X3Y0KVswXQ==">
+                  <path
+                    d="M 222.012738 1870.999959 C 222.399994 1931.800049 238.600006 1961.199951 299.953645 2013.407757"
+                    stroke="#0D32B2"
+                    fill="none"
+                    class="connection stroke-B1"
+                    style="stroke-width: 2"
+                    marker-end="url(#mk-d2-3393397275-3488378134)"
+                    mask="url(#d2-3393397275)"
+                  />
+                </g>
+                <g class="KFQ0X0Jsb2NrZWQgLSZndDsgVDRfdjQpWzBd">
+                  <path
+                    d="M 499.000000 1881.000000 C 499.000000 1933.800049 478.399994 1965.000000 399.048487 2032.410265"
+                    stroke="#0D32B2"
+                    fill="none"
+                    class="connection stroke-B1"
+                    style="stroke-width: 2"
+                    marker-end="url(#mk-d2-3393397275-3488378134)"
+                    mask="url(#d2-3393397275)"
+                  />
+                  <text
+                    x="472.000000"
+                    y="1968.000000"
+                    fill="#676C7E"
+                    class="text-italic fill-N2"
+                    style="text-anchor: middle; font-size: 16px"
+                  >
+                    <tspan x="472.000000" dy="0.000000">parallel</tspan>
+                    <tspan x="472.000000" dy="18.500000">track</tspan>
+                  </text>
+                </g>
+                <mask
+                  id="d2-3393397275"
+                  maskUnits="userSpaceOnUse"
+                  x="-101"
+                  y="-101"
+                  width="1266"
+                  height="2311"
+                >
+                  <rect x="-101" y="-101" width="1266" height="2311" fill="white"></rect>
+                  <rect x="63.000000" y="358.000000" width="74" height="37" fill="black"></rect>
+                  <rect x="282.000000" y="370.000000" width="103" height="37" fill="black"></rect>
+                  <rect x="191.000000" y="608.000000" width="64" height="37" fill="black"></rect>
+                  <rect x="186.000000" y="1466.000000" width="73" height="37" fill="black"></rect>
+                  <rect x="444.000000" y="1952.000000" width="56" height="37" fill="black"></rect>
+                </mask>
+              </svg>
+            </svg>
+          </div>
+        </div>
+
+        <h2 id="sequence"><span class="num">07</span>Recommended Execution Order</h2>
+        <div class="migration-step">
+          <div class="migration-num">1</div>
+          <div class="migration-content">
+            <h4>Tier 1 on master (now)</h4>
+            <p>
+              Docs prune + status reconciliation + test determinism. ~4 hours. Non-breaking.
+              Transforms consumer first-impression instantly.
+            </p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">2</div>
+          <div class="migration-content">
+            <h4>Create v3 branch</h4>
+            <p>
+              Branch off master. All Tier 2 work happens here. Master stays at v2.x for consumers.
+            </p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">3</div>
+          <div class="migration-content">
+            <h4>Delete ghost bus (T027&ndash;T036)</h4>
+            <p>Must be first v3 change. Removes 923 LOC of dead code. Unblocks memory/ move.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">4</div>
+          <div class="migration-content">
+            <h4>Move memory/ &rarr; storage/memory/ (T037&ndash;T042)</h4>
+            <p>Only 4 non-test importers. Quick module move once bus code is gone.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">5</div>
+          <div class="migration-content">
+            <h4>Version &rarr; uint64 (T043&ndash;T053)</h4>
+            <p>Most invasive change (156 files). Batch by module. Compile-check each batch.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">6</div>
+          <div class="migration-content">
+            <h4>Metadata split + io.Closer + readmodel (T054&ndash;T067)</h4>
+            <p>Three independent breaking changes. Can be parallelized across sub-agents.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">7</div>
+          <div class="migration-content">
+            <h4>HTTP &rarr; transport/ (T068&ndash;T072)</h4>
+            <p>Extracts SSE/health/metrics into transport module. Sets up Tier 3 adapters.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">8</div>
+          <div class="migration-content">
+            <h4>Tier 3 features (T076&ndash;T089)</h4>
+            <p>gRPC/NATS/Redis transports + read-model indexes. Additive, ship independently.</p>
+          </div>
+        </div>
+
+        <footer class="footer">
+          Generated 2026-06-20 &middot; 102 tasks across 4 Pareto tiers &middot; Verified against
+          go-cqrs-lite master @ <code>d9b94c8c</code>
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>
