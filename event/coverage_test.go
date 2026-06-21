@@ -78,8 +78,9 @@ func TestVersion_Decrement(t *testing.T) {
 
 	v := event.Version(5)
 
-	if v.Decrement() != 4 {
-		t.Errorf("Decrement: got %d, want 4", v.Decrement())
+	dec, _ := v.Decrement()
+	if dec != 4 {
+		t.Errorf("Decrement: got %d, want 4", dec)
 	}
 
 	if v != 5 {
@@ -92,8 +93,9 @@ func TestSchemaVersion_Decrement(t *testing.T) {
 
 	sv := event.SchemaVersion(3)
 
-	if sv.Decrement() != 2 {
-		t.Errorf("Decrement: got %d, want 2", sv.Decrement())
+	decSV, _ := sv.Decrement()
+	if decSV != 2 {
+		t.Errorf("Decrement: got %d, want 2", decSV)
 	}
 }
 

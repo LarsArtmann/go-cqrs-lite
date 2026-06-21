@@ -3,6 +3,7 @@ package event
 import (
 	"cmp"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/netip"
 	"strconv"
@@ -110,14 +111,17 @@ func (v Version) IsZero() bool { return v == 0 }
 // Increment returns a new Version incremented by 1.
 func (v Version) Increment() Version { return v + 1 }
 
+// ErrVersionUnderflow is returned when a Version operation would result in a negative value.
+var ErrVersionUnderflow = errors.New("event: version underflow")
+
 // Decrement returns a new Version decremented by 1.
-// Panics if v is 0.
-func (v Version) Decrement() Version {
+// Returns ErrVersionUnderflow if v is 0.
+func (v Version) Decrement() (Version, error) {
 	if v == 0 {
-		panic("event: Version.Decrement() on zero version")
+		return 0, ErrVersionUnderflow
 	}
 
-	return v - 1
+	return v - 1, nil
 }
 
 // String returns the version as a decimal string.
@@ -131,13 +135,13 @@ func (v Version) IsPositive() bool { return v > 0 }
 func (v Version) Add(n uint) Version { return v + Version(n) }
 
 // Sub returns a new Version decremented by n.
-// Panics if the result would underflow.
-func (v Version) Sub(n int) Version {
+// Returns ErrVersionUnderflow if the result would be negative.
+func (v Version) Sub(n int) (Version, error) {
 	if Version(n) > v {
-		panic(fmt.Sprintf("version subtraction underflow: %d - %d", v, n))
+		return 0, fmt.Errorf("%w: %d - %d", ErrVersionUnderflow, v, n)
 	}
 
-	return v - Version(n)
+	return v - Version(n), nil
 }
 
 // Mod returns v modulo n.
@@ -180,14 +184,17 @@ func ParseSchemaVersion(v int) (SchemaVersion, error) {
 	return SchemaVersion(v), nil
 }
 
+// ErrSchemaVersionUnderflow is returned when a SchemaVersion operation would result in a non-positive value.
+var ErrSchemaVersionUnderflow = errors.New("event: schema version underflow")
+
 // Decrement returns the previous schema version.
-// Panics if sv is 0 or 1 (minimum schema version is 1).
-func (sv SchemaVersion) Decrement() SchemaVersion {
+// Returns ErrSchemaVersionUnderflow if sv is 0 or 1 (minimum schema version is 1).
+func (sv SchemaVersion) Decrement() (SchemaVersion, error) {
 	if sv <= 1 {
-		panic("event: SchemaVersion.Decrement() on minimum version")
+		return 0, ErrSchemaVersionUnderflow
 	}
 
-	return sv - 1
+	return sv - 1, nil
 }
 
 // Int returns the underlying int value.
@@ -206,25 +213,25 @@ func (sv SchemaVersion) IsPositive() bool { return sv > 0 }
 func (sv SchemaVersion) Increment() SchemaVersion { return sv + 1 }
 
 // Add returns a new SchemaVersion incremented by n.
-// Panics if the result would be non-positive.
-func (sv SchemaVersion) Add(n int) SchemaVersion {
+// Returns ErrSchemaVersionUnderflow if the result would be non-positive.
+func (sv SchemaVersion) Add(n int) (SchemaVersion, error) {
 	result := sv + SchemaVersion(n)
 	if result < 1 {
-		panic(fmt.Sprintf("schema version addition underflow: %d + %d < 1", sv, n))
+		return 0, fmt.Errorf("%w: %d + %d < 1", ErrSchemaVersionUnderflow, sv, n)
 	}
 
-	return result
+	return result, nil
 }
 
 // Sub returns a new SchemaVersion decremented by n.
-// Panics if the result would be non-positive.
-func (sv SchemaVersion) Sub(n int) SchemaVersion {
+// Returns ErrSchemaVersionUnderflow if the result would be non-positive.
+func (sv SchemaVersion) Sub(n int) (SchemaVersion, error) {
 	result := sv - SchemaVersion(n)
 	if result < 1 {
-		panic(fmt.Sprintf("schema version subtraction underflow: %d - %d < 1", sv, n))
+		return 0, fmt.Errorf("%w: %d - %d < 1", ErrSchemaVersionUnderflow, sv, n)
 	}
 
-	return result
+	return result, nil
 }
 
 // Cmp compares two SchemaVersions. Returns -1, 0, or +1.

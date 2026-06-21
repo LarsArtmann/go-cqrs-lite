@@ -43,12 +43,14 @@ var _ = Describe("Version", func() {
 		Context("when I decrement a version", func() {
 			It("should return the previous version", func() {
 				v := event.Version(3)
-				Expect(v.Decrement().Int()).To(Equal(2))
+				dec, err := v.Decrement()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dec.Int()).To(Equal(2))
 			})
 
 			It("should not mutate the original", func() {
 				v := event.Version(3)
-				_ = v.Decrement()
+				_, _ = v.Decrement()
 				Expect(v.Int()).To(Equal(3))
 			})
 		})
@@ -69,7 +71,9 @@ var _ = Describe("Version", func() {
 			})
 
 			It("should subtract correctly so I can compute how many events to replay", func() {
-				Expect(event.Version(5).Sub(2).Int()).To(Equal(3))
+				sub, err := event.Version(5).Sub(2)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(sub.Int()).To(Equal(3))
 			})
 
 			It(
@@ -170,12 +174,14 @@ var _ = Describe("SchemaVersion", func() {
 		Context("when I decrement a schema version", func() {
 			It("should return the previous version for rollback handling", func() {
 				sv := event.SchemaVersion(3)
-				Expect(sv.Decrement().Int()).To(Equal(2))
+				dec, err := sv.Decrement()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(dec.Int()).To(Equal(2))
 			})
 
 			It("should not mutate the original value", func() {
 				sv := event.SchemaVersion(3)
-				_ = sv.Decrement()
+				_, _ = sv.Decrement()
 				Expect(sv.Int()).To(Equal(3))
 			})
 		})

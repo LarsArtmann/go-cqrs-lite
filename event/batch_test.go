@@ -2,6 +2,7 @@ package event_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
@@ -93,8 +94,9 @@ func TestVersion_AddSubCmp(t *testing.T) {
 		t.Errorf("Add(3) = %d, want 8", v.Add(3))
 	}
 
-	if v.Sub(2) != 3 {
-		t.Errorf("Sub(2) = %d, want 3", v.Sub(2))
+	sub, _ := v.Sub(2)
+	if sub != 3 {
+		t.Errorf("Sub(2) = %d, want 3", sub)
 	}
 
 	if v.Cmp(3) != 1 {
@@ -153,37 +155,33 @@ func TestSchemaVersion_AddSub(t *testing.T) {
 
 	sv := event.SchemaVersion(3)
 
-	if sv.Add(2) != 5 {
-		t.Errorf("Add(2) = %d, want 5", sv.Add(2))
+	added, _ := sv.Add(2)
+	if added != 5 {
+		t.Errorf("Add(2) = %d, want 5", added)
 	}
 
-	if sv.Sub(1) != 2 {
-		t.Errorf("Sub(1) = %d, want 2", sv.Sub(1))
+	subbed, _ := sv.Sub(1)
+	if subbed != 2 {
+		t.Errorf("Sub(1) = %d, want 2", subbed)
 	}
 }
 
-func TestSchemaVersion_Add_PanicsOnUnderflow(t *testing.T) {
+func TestSchemaVersion_Add_ReturnsErrorOnUnderflow(t *testing.T) {
 	t.Parallel()
 
-	defer func() {
-		if r := recover(); r == nil {
-			t.Error("expected panic for Add that would produce non-positive result")
-		}
-	}()
-
-	event.SchemaVersion(1).Add(-2)
+	_, err := event.SchemaVersion(1).Add(-2)
+	if !errors.Is(err, event.ErrSchemaVersionUnderflow) {
+		t.Fatalf("expected ErrSchemaVersionUnderflow, got: %v", err)
+	}
 }
 
-func TestSchemaVersion_Sub_PanicsOnUnderflow(t *testing.T) {
+func TestSchemaVersion_Sub_ReturnsErrorOnUnderflow(t *testing.T) {
 	t.Parallel()
 
-	defer func() {
-		if r := recover(); r == nil {
-			t.Error("expected panic for Sub that would produce non-positive result")
-		}
-	}()
-
-	event.SchemaVersion(1).Sub(1)
+	_, err := event.SchemaVersion(1).Sub(1)
+	if !errors.Is(err, event.ErrSchemaVersionUnderflow) {
+		t.Fatalf("expected ErrSchemaVersionUnderflow, got: %v", err)
+	}
 }
 
 func TestVersion_JSON(t *testing.T) {

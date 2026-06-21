@@ -181,8 +181,9 @@ func FuzzSchemaVersion_Arithmetic(f *testing.F) {
 
 		// Add within bounds
 		if n >= 0 {
-			if got := sv.Add(n); got.Int() != base+n {
-				t.Errorf("Add: got %d, want %d", got.Int(), base+n)
+			got, err := sv.Add(n)
+			if err != nil || got.Int() != base+n {
+				t.Errorf("Add: got %d (err=%v), want %d", got.Int(), err, base+n)
 			}
 		}
 
