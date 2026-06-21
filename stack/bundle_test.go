@@ -6,6 +6,7 @@ import (
 	"io"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
@@ -152,6 +153,56 @@ func TestBundle_Close_Idempotent(t *testing.T) {
 	if err := b.Close(); err != nil {
 		t.Fatalf("second Close: %v", err)
 	}
+}
+
+func TestBundle_GracefulClose_CompletesQuickly(t *testing.T) {
+	t.Parallel()
+
+	b, err := stack.New(stack.WithReadModels(kv.NewMemStore()))
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := b.GracefulClose(ctx); err != nil {
+		t.Fatalf("GracefulClose: %v", err)
+	}
+}
+
+func TestBundle_GracefulClose_TimesOut(t *testing.T) {
+	t.Parallel()
+
+	block := make(chan struct{})
+	b, err := stack.New(
+		stack.WithReadModels(kv.NewMemStore()),
+		stack.WithCloser(&channelCloser{block: block}),
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
+	defer cancel()
+
+	if err := b.GracefulClose(ctx); err == nil {
+		t.Fatal("GracefulClose should timeout with blocking closer")
+	}
+
+	close(block) // unblock the goroutine
+}
+
+// channelCloser blocks on Close until the channel is closed.
+// Deterministic — no time.Sleep.
+type channelCloser struct {
+	block chan struct{}
+}
+
+func (c *channelCloser) Close() error {
+	<-c.block
+
+	return nil
 }
 
 // ── Accessor tests ──
