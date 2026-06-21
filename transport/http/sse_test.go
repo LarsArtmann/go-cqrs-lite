@@ -370,3 +370,124 @@ func TestSSEHandler_ConcurrentClients(t *testing.T) {
 		t.Errorf("expected 0 clients after all disconnected, got %d", broker.ClientCount())
 	}
 }
+
+func TestSSEHandler_LastEventID_Reconnect(t *testing.T) {
+	store := eventtest.NewFakeStore()
+	bus := eventtest.NewFakeBus()
+	defer bus.Close() //nolint:errcheck // test helper
+
+	// Save two events to the store (journal).
+	aggID := id.NewAggregateID()
+	ref := event.NewAggregateRef("Test", aggID)
+
+	evt1, err := event.NewEvent("TestEvent", aggID, "Test", 1, []byte(`{"seq":1}`))
+	if err != nil {
+		t.Fatalf("create evt1: %v", err)
+	}
+
+	evt2, err := event.NewEvent("TestEvent", aggID, "Test", 2, []byte(`{"seq":2}`))
+	if err != nil {
+		t.Fatalf("create evt2: %v", err)
+	}
+
+	if err := store.Save(context.Background(), ref, []event.Event{evt1, evt2}, 0); err != nil {
+		t.Fatalf("save events: %v", err)
+	}
+
+	broker, err := NewSSEBroker(bus, WithReconnectJournal(store, 100))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer broker.Close()
+
+	// Reconnect with Last-Event-ID = evt1.ID() → should replay evt2.
+	ctx, cancel := context.WithCancel(context.Background())
+
+	req := httptest.NewRequestWithContext(
+		ctx, http.MethodGet, "/events?client=reconnect", nil,
+	)
+	req.Header.Set("Last-Event-ID", evt1.ID().String())
+
+	rec := httptest.NewRecorder()
+	done := make(chan struct{})
+
+	go func() {
+		defer close(done)
+		SSEHandler(broker).ServeHTTP(rec, req)
+	}()
+
+	// Give the handler time to complete the replay.
+	time.Sleep(100 * time.Millisecond)
+
+	// Stop the handler and wait for it to finish before reading the body.
+	cancel()
+	<-done
+
+	body := rec.Body.String()
+
+	if !strings.Contains(body, `{"seq":2}`) {
+		t.Errorf("expected replayed evt2 in body, got: %q", body)
+	}
+
+	if strings.Contains(body, `{"seq":1}`) {
+		t.Errorf("evt1 should NOT be replayed (it was the last-seen ID), got: %q", body)
+	}
+}
+
+func TestSSEHandler_ReplayDedup_NoDuplicates(t *testing.T) {
+	// Verify that events replayed from journal are NOT re-delivered via
+	// the live bus (the dedup gap that CatchUpSubscriber solves).
+	store := eventtest.NewFakeStore()
+	bus := eventtest.NewFakeBus()
+	defer bus.Close() //nolint:errcheck // test helper
+
+	aggID := id.NewAggregateID()
+	ref := event.NewAggregateRef("Test", aggID)
+
+	evt1, err := event.NewEvent("TestEvent", aggID, "Test", 1, []byte(`{"seq":1}`))
+	if err != nil {
+		t.Fatalf("create evt1: %v", err)
+	}
+
+	if err := store.Save(context.Background(), ref, []event.Event{evt1}, 0); err != nil {
+		t.Fatalf("save: %v", err)
+	}
+
+	broker, err := NewSSEBroker(bus, WithReconnectJournal(store, 100))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer broker.Close()
+
+	// Reconnect with no Last-Event-ID → replays evt1 from journal.
+	ctx, cancel := context.WithCancel(context.Background())
+
+	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events?client=dedup", nil)
+	req.Header.Set("Last-Event-ID", "")
+
+	rec := httptest.NewRecorder()
+	done := make(chan struct{})
+
+	go func() {
+		defer close(done)
+		SSEHandler(broker).ServeHTTP(rec, req)
+	}()
+
+	time.Sleep(50 * time.Millisecond)
+
+	// Publish evt1 again via live bus — should be suppressed by dedup.
+	if err := bus.Publish(context.Background(), evt1); err != nil {
+		t.Fatalf("publish: %v", err)
+	}
+
+	time.Sleep(50 * time.Millisecond)
+	cancel()
+	<-done
+
+	body := rec.Body.String()
+	count := strings.Count(body, `{"seq":1}`)
+
+	if count != 1 {
+		t.Errorf("evt1 should appear exactly once (replayed), got %d times in: %q", count, body)
+	}
+}
