@@ -20,6 +20,8 @@
 - [ ] **NATS/Redis Stream adapter** — ADR-0025 accepted. Separate `transport/nats/` and `transport/redis/` modules.
 - [ ] **jsonv2 codec experiment** — `codec/jsonv2_experiment.go` exists behind `goexperiment.jsonv2` build tag (ADR-0026). Pending Go stdlib stabilization.
 - [ ] **Arena allocation experiment** — `event/arena_experiment.go` exists behind `goexperiment.arenas` build tag (ADR-0026). Pending Go arena API stabilization.
+- [ ] **Hot-State cache (decider)** — Optional `RepositoryOption[State]` that caches folded aggregate state keyed by `(aggID, version)` to eliminate snapshot+delta replay on sustained-hot aggregates. Safe under single-master because optimistic concurrency (`expectedVersion` in `Save`) already gates writes. Write-through: update or invalidate on every successful `Execute`. Lives above singleflight (concurrent-burst coalescing) and above `loadFromSnapshot`/`loadFromStore` (sequential-burst coalescing). Cold start pays the replay cost once; not a correctness concern. Profile before building — snapshot + page-cache-resident events already make sequential loads cheap; this only pays off for aggregates commanded 100+ times/sec.
+- [ ] **Read-pressure snapshot strategy** — `EveryNEvents` snapshots based on writes, but reads are the expensive path in ES (writes are already sequential append). Add a `ReadPressureStrategy` that snapshots based on load frequency since last snapshot (with a minimum-delta guard to avoid snapshotting unchanged aggregates). Smaller payoff than the State cache because the cache subsumes most of its benefit; consider after the State cache lands.
 
 ### v3 Breaking Changes (remaining)
 
