@@ -357,6 +357,19 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 // Pure event-sourcing mode (no publisher needed)
 //   repo, _ := decider.NewRepository(store, nil, decider)
 //   // Events are persisted but NOT published — for pure ES without a bus
+
+// Pebble backup + graceful shutdown (production operations)
+//   b, _ := pebble.New("/var/lib/myapp/pebble")
+//   defer b.GracefulClose(ctx) // Bundle.GracefulClose bounds Close with a timeout
+//   _ = b.Checkpoint("/backups/2026-06-21") // point-in-time physical snapshot
+//   m := b.Metrics()                         // LSM health (block cache hit rate, etc.)
+
+// SSE with Last-Event-ID reconnection (resilient event delivery)
+//   broker, _ := http.NewSSEBroker(bus,
+//       http.WithReconnectJournal(journalStore, 1000)) // replay cap
+//   // Clients sending "Last-Event-ID" header get missed events replayed
+//   // from the journal before live streaming begins. Dedup prevents
+//   // duplicate delivery (same strategy as CatchUpSubscriber).
 ```
 
 ## Testing

@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Pebble backup and observability accessors** (`stack/pebble/`) — `pebble.Bundle` wraps `*stack.Bundle` with `Checkpoint(dir)` for point-in-time backups, `Metrics()` for LSM-tree health, `Flush()` for write durability, and `NewSnapshot()` for consistent reads.
+- **Bundle.GracefulClose** (`stack/`) — Context-bounded `Close()` for production shutdown. Runs `Close()` in a goroutine; returns `ctx.Err()` if the deadline fires. Lets in-flight handlers drain without hanging forever.
+- **SSE Last-Event-ID reconnection** (`transport/http/`) — `WithReconnectJournal(journal, limit)` option on `NewSSEBroker` enables standard SSE reconnection. When a client sends `Last-Event-ID`, the broker replays missed events from the journal before starting live delivery. Uses the same dedup strategy as `watermill.CatchUpSubscriber` (replayIDs set) to prevent duplicate delivery.
 - **Streaming event reads** — `StreamingSource`/`StreamingJournal` now implemented on all three stores: `SQLEventStore` (cursor-based via `*sql.Rows`), Pebble `EventStore` (iterator-based with limit + skip), `MemoryStore` (SliceIterator-wrapped). Consumers can type-assert to streaming interfaces uniformly across backends.
 - **DistributedRunner** (`projection/`) — Wraps a projection Runner with `LeaderElection` gating. Waits for leadership, runs replay+live, periodically checks `IsLeader` (default 5s), stops gracefully on loss, resigns on exit. `WithLeadershipCheckInterval` option for tuning detection latency.
 - **cqrs-gen event handler generation** (`cmd/cqrs-gen/`) — `-type=event` generates typed projection handler registration functions via `projection.On[T]()`. Supports both `//cqrs:event` comment markers and `cqrs:"event:Type"` struct tags.
