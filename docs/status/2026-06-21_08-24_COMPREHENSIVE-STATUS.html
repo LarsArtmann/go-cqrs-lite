@@ -60,9 +60,18 @@
           ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
           monospace;
       }
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      html { scroll-behavior: smooth; }
-      section[id], [id] { scroll-margin-top: 60px; }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
       body {
         background: var(--surface);
         color: var(--text);
@@ -102,8 +111,16 @@
         overflow-y: auto;
         display: none;
       }
-      @media (min-width: 1100px) { .sidebar { display: block; } }
-      .sidebar nav { display: flex; flex-direction: column; gap: 0; }
+      @media (min-width: 1100px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
       .sidebar .label {
         font-family: var(--font-mono);
         font-size: 0.68rem;
@@ -125,19 +142,30 @@
         line-height: 1.4;
         font-weight: 500;
       }
-      .sidebar a:hover, .sidebar a.active {
+      .sidebar a:hover,
+      .sidebar a.active {
         color: var(--accent);
         border-left-color: var(--accent);
         background: color-mix(in srgb, var(--accent) 8%, transparent);
       }
-      .main { flex: 1; min-width: 0; }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
 
-      h1, h2, h3, h4 {
+      h1,
+      h2,
+      h3,
+      h4 {
         font-family: var(--font-heading);
         font-weight: 800;
         letter-spacing: -0.02em;
       }
-      h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.1; margin: 0 0 0.6rem; }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
       h2 {
         font-size: 1.4rem;
         margin: 2.5rem 0 1rem;
@@ -154,10 +182,21 @@
         font-weight: 700;
         letter-spacing: 0.06em;
       }
-      h3 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; }
-      p { margin-bottom: 0.8rem; color: var(--text-muted); }
-      p strong, li strong { color: var(--text); }
-      a { color: var(--accent); }
+      h3 {
+        font-size: 1.1rem;
+        margin: 1.5rem 0 0.5rem;
+      }
+      p {
+        margin-bottom: 0.8rem;
+        color: var(--text-muted);
+      }
+      p strong,
+      li strong {
+        color: var(--text);
+      }
+      a {
+        color: var(--accent);
+      }
       code {
         font-family: var(--font-mono);
         background: var(--surface-sunken);
@@ -175,9 +214,20 @@
         margin: 1rem 0;
         border-left: 3px solid var(--accent);
       }
-      pre code { background: none; padding: 0; color: var(--text); }
-      ul, ol { padding-left: 1.4rem; margin-bottom: 1rem; color: var(--text-muted); }
-      li { margin-bottom: 0.3rem; }
+      pre code {
+        background: none;
+        padding: 0;
+        color: var(--text);
+      }
+      ul,
+      ol {
+        padding-left: 1.4rem;
+        margin-bottom: 1rem;
+        color: var(--text-muted);
+      }
+      li {
+        margin-bottom: 0.3rem;
+      }
 
       /* Hero */
       .hero {
@@ -218,9 +268,18 @@
         padding: 0.25rem 0.6rem;
         border: 1px solid var(--border);
       }
-      .tag.amber { color: var(--accent); border-color: var(--accent); }
-      .tag.red { color: var(--problem); border-color: var(--problem); }
-      .tag.blue { color: var(--solution); border-color: var(--solution); }
+      .tag.amber {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .tag.red {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .tag.blue {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
 
       /* Stat grid */
       .stat-grid {
@@ -234,9 +293,15 @@
         padding: 1.2rem;
         border-left: 3px solid var(--border-strong);
       }
-      .stat-card.stat-good { border-left-color: var(--solution); }
-      .stat-card.stat-warn { border-left-color: var(--warning); }
-      .stat-card.stat-bad { border-left-color: var(--problem); }
+      .stat-card.stat-good {
+        border-left-color: var(--solution);
+      }
+      .stat-card.stat-warn {
+        border-left-color: var(--warning);
+      }
+      .stat-card.stat-bad {
+        border-left-color: var(--problem);
+      }
       .stat-value {
         font-family: var(--font-mono);
         font-size: 2rem;
@@ -244,9 +309,15 @@
         line-height: 1;
         margin-bottom: 0.4rem;
       }
-      .stat-good .stat-value { color: var(--solution); }
-      .stat-warn .stat-value { color: var(--warning); }
-      .stat-bad .stat-value { color: var(--problem); }
+      .stat-good .stat-value {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value {
+        color: var(--warning);
+      }
+      .stat-bad .stat-value {
+        color: var(--problem);
+      }
       .stat-label {
         font-family: var(--font-mono);
         font-size: 0.7rem;
@@ -262,10 +333,18 @@
         margin-bottom: 1rem;
         border-left: 3px solid var(--border-strong);
       }
-      .card-problem { border-left-color: var(--problem); }
-      .card-solution { border-left-color: var(--solution); }
-      .card-warning  { border-left-color: var(--warning); }
-      .card h3 { margin-top: 0; }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+      .card h3 {
+        margin-top: 0;
+      }
       .card .where {
         font-family: var(--font-mono);
         font-size: 0.78rem;
@@ -280,10 +359,22 @@
         background: var(--surface-sunken);
         border-left: 3px solid var(--border-strong);
       }
-      .callout-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, var(--surface-sunken)); }
-      .callout-warning  { border-left-color: var(--warning);  background: color-mix(in srgb, var(--warning) 10%, var(--surface-sunken)); }
-      .callout-problem  { border-left-color: var(--problem);  background: color-mix(in srgb, var(--problem) 10%, var(--surface-sunken)); }
-      .callout strong { display: inline-block; margin-bottom: 0.3rem; }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-sunken));
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, var(--surface-sunken));
+      }
+      .callout-problem {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 10%, var(--surface-sunken));
+      }
+      .callout strong {
+        display: inline-block;
+        margin-bottom: 0.3rem;
+      }
 
       /* Tables */
       table {
@@ -292,7 +383,8 @@
         margin: 1rem 0;
         font-size: 0.9rem;
       }
-      th, td {
+      th,
+      td {
         text-align: left;
         padding: 0.7rem 0.9rem;
         border-bottom: 1px solid var(--border);
@@ -307,8 +399,12 @@
         font-weight: 700;
         background: var(--surface-sunken);
       }
-      tbody tr:hover { background: color-mix(in srgb, var(--accent) 4%, transparent); }
-      td code { font-size: 0.82em; }
+      tbody tr:hover {
+        background: color-mix(in srgb, var(--accent) 4%, transparent);
+      }
+      td code {
+        font-size: 0.82em;
+      }
 
       /* Badges */
       .badge {
@@ -321,14 +417,37 @@
         text-transform: uppercase;
         border: 1px solid var(--border-strong);
       }
-      .badge-critical { color: var(--problem); border-color: var(--problem); background: color-mix(in srgb, var(--problem) 12%, transparent); }
-      .badge-high     { color: var(--warning); border-color: var(--warning); background: color-mix(in srgb, var(--warning) 12%, transparent); }
-      .badge-medium   { color: var(--accent);  border-color: var(--accent);  background: color-mix(in srgb, var(--accent) 12%, transparent); }
-      .badge-low      { color: var(--text-muted); border-color: var(--border-strong); }
-      .badge-fixed    { color: var(--solution); border-color: var(--solution); background: color-mix(in srgb, var(--solution) 12%, transparent); }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 12%, transparent);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 12%, transparent);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 12%, transparent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+        border-color: var(--border-strong);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 12%, transparent);
+      }
 
       /* Strengths */
-      .strengths { display: grid; gap: 0.6rem; margin: 1rem 0; }
+      .strengths {
+        display: grid;
+        gap: 0.6rem;
+        margin: 1rem 0;
+      }
       .strength {
         display: grid;
         grid-template-columns: 28px 1fr;
@@ -344,8 +463,13 @@
         font-size: 1.2rem;
         line-height: 1.4;
       }
-      .strength strong { display: block; }
-      .strength span { color: var(--text-muted); font-size: 0.9rem; }
+      .strength strong {
+        display: block;
+      }
+      .strength span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
 
       /* Question */
       .question-block {
@@ -399,7 +523,10 @@
           <div class="hero-badge">Ground-Truth Verified · nix run .#build / .#test / .#lint</div>
           <h1>v3-ready, all green, zero consumers</h1>
           <p class="hero-subtitle">
-            The library is technically healthy: build clean, 51/51 test packages pass, 0 production panics, 0 TODOs. But the strategic picture is unchanged from the 07:13 report — a library with no external consumers, accumulating features and status docs at a pace that dwarfs validation.
+            The library is technically healthy: build clean, 51/51 test packages pass, 0 production
+            panics, 0 TODOs. But the strategic picture is unchanged from the 07:13 report — a
+            library with no external consumers, accumulating features and status docs at a pace that
+            dwarfs validation.
           </p>
           <div class="hero-meta">
             <span class="tag amber">v3-ready · 11/11 breaking changes done</span>
@@ -449,91 +576,248 @@
           <h3>Core Module Coverage</h3>
           <table>
             <thead>
-              <tr><th>Module</th><th>Coverage</th><th>Verdict</th></tr>
+              <tr>
+                <th>Module</th>
+                <th>Coverage</th>
+                <th>Verdict</th>
+              </tr>
             </thead>
             <tbody>
-              <tr><td><code>decider</code></td><td>98.3%</td><td><span class="badge badge-fixed">Excellent</span></td></tr>
-              <tr><td><code>id</code></td><td>97.6%</td><td><span class="badge badge-fixed">Excellent</span></td></tr>
-              <tr><td><code>signing/multisig</code></td><td>94.7%</td><td><span class="badge badge-fixed">Excellent</span></td></tr>
-              <tr><td><code>signing</code></td><td>94.5%</td><td><span class="badge badge-fixed">Excellent</span></td></tr>
-              <tr><td><code>storage/memory</code></td><td>94.1%</td><td><span class="badge badge-fixed">Excellent</span></td></tr>
-              <tr><td><code>id/idtest</code></td><td>94.1%</td><td><span class="badge badge-fixed">Excellent</span></td></tr>
-              <tr><td><code>catalog/asyncapi</code></td><td>93.9%</td><td><span class="badge badge-fixed">Excellent</span></td></tr>
-              <tr><td><code>catalog/eventcatalog</code></td><td>92.8%</td><td><span class="badge badge-fixed">Excellent</span></td></tr>
-              <tr><td><code>catalog/d2</code></td><td>94.4%</td><td><span class="badge badge-fixed">Excellent</span></td></tr>
-              <tr><td><code>catalog/openapi</code></td><td>100.0%</td><td><span class="badge badge-fixed">Excellent</span></td></tr>
-              <tr><td><code>event</code></td><td>91.6%</td><td><span class="badge badge-fixed">Excellent</span></td></tr>
-              <tr><td><code>middleware</code></td><td>91.4%</td><td><span class="badge badge-fixed">Excellent</span></td></tr>
-              <tr><td><code>command</code></td><td>90.5%</td><td><span class="badge badge-fixed">Excellent</span></td></tr>
-              <tr><td><code>catalog/docserver</code></td><td>90.1%</td><td><span class="badge badge-fixed">Excellent</span></td></tr>
-              <tr><td><code>query</code></td><td>86.1%</td><td><span class="badge badge-medium">Good</span></td></tr>
-              <tr><td><code>encryption</code></td><td>86.5%</td><td><span class="badge badge-medium">Good</span></td></tr>
-              <tr><td><code>catalog/schema</code></td><td>86.0%</td><td><span class="badge badge-medium">Good</span></td></tr>
-              <tr><td><code>catalog</code></td><td>84.5%</td><td><span class="badge badge-medium">Good</span></td></tr>
-              <tr><td><code>storage/pebble</code></td><td>82.5%</td><td><span class="badge badge-medium">Good</span></td></tr>
-              <tr><td><code>kv</code></td><td>80.7%</td><td><span class="badge badge-medium">Good</span></td></tr>
-              <tr><td><code>watermill</code></td><td>79.8%</td><td><span class="badge badge-medium">Fair</span></td></tr>
-              <tr><td><code>storage</code></td><td>79.3%</td><td><span class="badge badge-medium">Fair</span></td></tr>
-              <tr><td><code>storage/sql</code></td><td>61.0%</td><td><span class="badge badge-high">Thin</span></td></tr>
-              <tr><td><code>stack</code></td><td>45.9%</td><td><span class="badge badge-high">Light</span></td></tr>
-              <tr><td><code>stack/postgres</code></td><td>21.2%</td><td><span class="badge badge-critical">Skipped locally</span></td></tr>
+              <tr>
+                <td><code>decider</code></td>
+                <td>98.3%</td>
+                <td><span class="badge badge-fixed">Excellent</span></td>
+              </tr>
+              <tr>
+                <td><code>id</code></td>
+                <td>97.6%</td>
+                <td><span class="badge badge-fixed">Excellent</span></td>
+              </tr>
+              <tr>
+                <td><code>signing/multisig</code></td>
+                <td>94.7%</td>
+                <td><span class="badge badge-fixed">Excellent</span></td>
+              </tr>
+              <tr>
+                <td><code>signing</code></td>
+                <td>94.5%</td>
+                <td><span class="badge badge-fixed">Excellent</span></td>
+              </tr>
+              <tr>
+                <td><code>storage/memory</code></td>
+                <td>94.1%</td>
+                <td><span class="badge badge-fixed">Excellent</span></td>
+              </tr>
+              <tr>
+                <td><code>id/idtest</code></td>
+                <td>94.1%</td>
+                <td><span class="badge badge-fixed">Excellent</span></td>
+              </tr>
+              <tr>
+                <td><code>catalog/asyncapi</code></td>
+                <td>93.9%</td>
+                <td><span class="badge badge-fixed">Excellent</span></td>
+              </tr>
+              <tr>
+                <td><code>catalog/eventcatalog</code></td>
+                <td>92.8%</td>
+                <td><span class="badge badge-fixed">Excellent</span></td>
+              </tr>
+              <tr>
+                <td><code>catalog/d2</code></td>
+                <td>94.4%</td>
+                <td><span class="badge badge-fixed">Excellent</span></td>
+              </tr>
+              <tr>
+                <td><code>catalog/openapi</code></td>
+                <td>100.0%</td>
+                <td><span class="badge badge-fixed">Excellent</span></td>
+              </tr>
+              <tr>
+                <td><code>event</code></td>
+                <td>91.6%</td>
+                <td><span class="badge badge-fixed">Excellent</span></td>
+              </tr>
+              <tr>
+                <td><code>middleware</code></td>
+                <td>91.4%</td>
+                <td><span class="badge badge-fixed">Excellent</span></td>
+              </tr>
+              <tr>
+                <td><code>command</code></td>
+                <td>90.5%</td>
+                <td><span class="badge badge-fixed">Excellent</span></td>
+              </tr>
+              <tr>
+                <td><code>catalog/docserver</code></td>
+                <td>90.1%</td>
+                <td><span class="badge badge-fixed">Excellent</span></td>
+              </tr>
+              <tr>
+                <td><code>query</code></td>
+                <td>86.1%</td>
+                <td><span class="badge badge-medium">Good</span></td>
+              </tr>
+              <tr>
+                <td><code>encryption</code></td>
+                <td>86.5%</td>
+                <td><span class="badge badge-medium">Good</span></td>
+              </tr>
+              <tr>
+                <td><code>catalog/schema</code></td>
+                <td>86.0%</td>
+                <td><span class="badge badge-medium">Good</span></td>
+              </tr>
+              <tr>
+                <td><code>catalog</code></td>
+                <td>84.5%</td>
+                <td><span class="badge badge-medium">Good</span></td>
+              </tr>
+              <tr>
+                <td><code>storage/pebble</code></td>
+                <td>82.5%</td>
+                <td><span class="badge badge-medium">Good</span></td>
+              </tr>
+              <tr>
+                <td><code>kv</code></td>
+                <td>80.7%</td>
+                <td><span class="badge badge-medium">Good</span></td>
+              </tr>
+              <tr>
+                <td><code>watermill</code></td>
+                <td>79.8%</td>
+                <td><span class="badge badge-medium">Fair</span></td>
+              </tr>
+              <tr>
+                <td><code>storage</code></td>
+                <td>79.3%</td>
+                <td><span class="badge badge-medium">Fair</span></td>
+              </tr>
+              <tr>
+                <td><code>storage/sql</code></td>
+                <td>61.0%</td>
+                <td><span class="badge badge-high">Thin</span></td>
+              </tr>
+              <tr>
+                <td><code>stack</code></td>
+                <td>45.9%</td>
+                <td><span class="badge badge-high">Light</span></td>
+              </tr>
+              <tr>
+                <td><code>stack/postgres</code></td>
+                <td>21.2%</td>
+                <td><span class="badge badge-critical">Skipped locally</span></td>
+              </tr>
             </tbody>
           </table>
-          <p><strong>stack/postgres</strong> skips without <code>POSTGRES_TEST_DSN</code>. CI sets it, local does not. The 21.2% reflects only the non-SQL paths exercised locally.</p>
+          <p>
+            <strong>stack/postgres</strong> skips without <code>POSTGRES_TEST_DSN</code>. CI sets
+            it, local does not. The 21.2% reflects only the non-SQL paths exercised locally.
+          </p>
         </section>
 
         <section id="done">
           <h2><span class="num">01</span>a) Fully Done</h2>
-          <p>Verified by <code>nix run .#build</code> (exit 0), <code>nix run .#test</code> (51/51 ok), <code>go vet</code> (clean), and shell scripts.</p>
+          <p>
+            Verified by <code>nix run .#build</code> (exit 0), <code>nix run .#test</code> (51/51
+            ok), <code>go vet</code> (clean), and shell scripts.
+          </p>
 
           <div class="card card-solution">
             <h3>Build, vet, tests all green</h3>
             <div class="where">nix run .#build · nix run .#test</div>
-            <p>Build exits 0 with experimental tags (<code>goexperiment.arenas goexperiment.jsonv2</code>). All 51 test packages pass including all 4 examples (todo, user, encryption, deployer-first). Zero race failures on previously-modified modules.</p>
+            <p>
+              Build exits 0 with experimental tags (<code
+                >goexperiment.arenas goexperiment.jsonv2</code
+              >). All 51 test packages pass including all 4 examples (todo, user, encryption,
+              deployer-first). Zero race failures on previously-modified modules.
+            </p>
           </div>
 
           <div class="card card-solution">
             <h3>All 11 v3 breaking changes complete</h3>
             <div class="where">ROADMAP.md · TODO_LIST.md</div>
-            <p>Ghost bus code removed (923 LOC), memory → storage/memory, Version → uint64, Metadata alias broken (ADR-0031), io.Closer off interfaces, readmodel → kv (ADR-0032), projection dissolved (ADR-0030), SSE → transport/http, TypedHandler shipped, Fold → Apply, Event concrete type. Ready to tag v3.0.0.</p>
+            <p>
+              Ghost bus code removed (923 LOC), memory → storage/memory, Version → uint64, Metadata
+              alias broken (ADR-0031), io.Closer off interfaces, readmodel → kv (ADR-0032),
+              projection dissolved (ADR-0030), SSE → transport/http, TypedHandler shipped, Fold →
+              Apply, Event concrete type. Ready to tag v3.0.0.
+            </p>
           </div>
 
           <div class="card card-solution">
             <h3>Zero-panic production migration complete</h3>
             <div class="where">26 panics → error returns · 5 phases</div>
-            <p>Every production <code>panic()</code> converted to typed error returns. Only 6 <code>panic()</code> calls remain in the entire tree — all acceptable: 4 CBOR EncMode/DecMode init failures (impossible with hardcoded valid options), 1 in <code>eventtest/handlers.go</code> (test helper), 1 in a doc comment.</p>
+            <p>
+              Every production <code>panic()</code> converted to typed error returns. Only 6
+              <code>panic()</code> calls remain in the entire tree — all acceptable: 4 CBOR
+              EncMode/DecMode init failures (impossible with hardcoded valid options), 1 in
+              <code>eventtest/handlers.go</code> (test helper), 1 in a doc comment.
+            </p>
           </div>
 
           <div class="card card-solution">
             <h3>Zero TODO/FIXME markers in production</h3>
             <div class="where">grep across 415 production .go files</div>
-            <p>Clean slate — no half-finished production code paths. TODOs exist only in <code>TODO_LIST.md</code> where they belong.</p>
+            <p>
+              Clean slate — no half-finished production code paths. TODOs exist only in
+              <code>TODO_LIST.md</code> where they belong.
+            </p>
           </div>
 
           <div class="card card-solution">
             <h3>File-size gate compliant (350 lines)</h3>
             <div class="where">find + wc -l across production</div>
-            <p>Only one file exceeds 350 lines: <code>catalog/internal/cattest/builders.go</code> at 402 lines — an <strong>internal test helper</strong>, exempt from the production gate. Largest production file: <code>watermill/event_bus.go</code> at 343 lines, just under.</p>
+            <p>
+              Only one file exceeds 350 lines: <code>catalog/internal/cattest/builders.go</code> at
+              402 lines — an <strong>internal test helper</strong>, exempt from the production gate.
+              Largest production file: <code>watermill/event_bus.go</code> at 343 lines, just under.
+            </p>
           </div>
 
           <div class="card card-solution">
             <h3>Recent feature additions (last 14 days)</h3>
             <ul>
-              <li><strong>Pebble backup accessors</strong> — <code>Checkpoint(dir)</code>, <code>Metrics()</code>, <code>Flush()</code>, <code>NewSnapshot()</code> on <code>pebble.Bundle</code></li>
-              <li><strong>Bundle.GracefulClose</strong> — context-bounded shutdown, lets in-flight handlers drain</li>
-              <li><strong>SSE Last-Event-ID reconnection</strong> — <code>WithReconnectJournal(journal, limit)</code>, dedup strategy shared with <code>CatchUpSubscriber</code></li>
-              <li><strong>Streaming event reads</strong> — <code>StreamingSource</code>/<code>StreamingJournal</code> on SQL, Pebble, Memory</li>
+              <li>
+                <strong>Pebble backup accessors</strong> — <code>Checkpoint(dir)</code>,
+                <code>Metrics()</code>, <code>Flush()</code>, <code>NewSnapshot()</code> on
+                <code>pebble.Bundle</code>
+              </li>
+              <li>
+                <strong>Bundle.GracefulClose</strong> — context-bounded shutdown, lets in-flight
+                handlers drain
+              </li>
+              <li>
+                <strong>SSE Last-Event-ID reconnection</strong> —
+                <code>WithReconnectJournal(journal, limit)</code>, dedup strategy shared with
+                <code>CatchUpSubscriber</code>
+              </li>
+              <li>
+                <strong>Streaming event reads</strong> — <code>StreamingSource</code>/<code
+                  >StreamingJournal</code
+                >
+                on SQL, Pebble, Memory
+              </li>
               <li><strong>DistributedRunner</strong> — LeaderElection-gated projection runner</li>
               <li><strong>cqrs-gen event handler generation</strong> — <code>-type=event</code></li>
-              <li><strong>Postgres LISTEN/NOTIFY bus</strong> — <code>PostgresBus</code> + <code>PgxListener</code> with auto-reconnect</li>
-              <li><strong>Real-Postgres integration tests</strong> — 3 tests covering LISTEN/NOTIFY round-trip</li>
+              <li>
+                <strong>Postgres LISTEN/NOTIFY bus</strong> — <code>PostgresBus</code> +
+                <code>PgxListener</code> with auto-reconnect
+              </li>
+              <li>
+                <strong>Real-Postgres integration tests</strong> — 3 tests covering LISTEN/NOTIFY
+                round-trip
+              </li>
             </ul>
           </div>
 
           <div class="card card-solution">
             <h3>Examples all pass</h3>
             <div class="where">example/{todo,user,encryption,deployer-first}</div>
-            <p>Four example modules, all green. <code>example/deployer-first</code> demonstrates the canonical CatchUpSubscriber + Materialize pipeline ordered-delivery pattern.</p>
+            <p>
+              Four example modules, all green. <code>example/deployer-first</code> demonstrates the
+              canonical CatchUpSubscriber + Materialize pipeline ordered-delivery pattern.
+            </p>
           </div>
 
           <h3>Core capabilities shipped and tested</h3>
@@ -542,37 +826,51 @@
               <div class="check">+</div>
               <div class="text">
                 <strong>38 modules, every one compiles &amp; passes</strong>
-                <span>Layer 0–6 architecture, no broken modules, every go.mod has only the deps it needs.</span>
+                <span
+                  >Layer 0–6 architecture, no broken modules, every go.mod has only the deps it
+                  needs.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>5-family error taxonomy enforced</strong>
-                <span>Rejection / Conflict / Transient / Infrastructure / Corruption. Every <code>fmt.Errorf</code> classified.</span>
+                <span
+                  >Rejection / Conflict / Transient / Infrastructure / Corruption. Every
+                  <code>fmt.Errorf</code> classified.</span
+                >
               </div>
             </div>
-            <div class="strongth">
-            </div>
+            <div class="strongth"></div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>Hot-path discipline</strong>
-                <span>Zero-copy <code>PayloadReadOnly</code>, pre-computed middleware chains, cached SQL templates, singleflight load coalescing.</span>
+                <span
+                  >Zero-copy <code>PayloadReadOnly</code>, pre-computed middleware chains, cached
+                  SQL templates, singleflight load coalescing.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>3 storage backends × full stack</strong>
-                <span>Pebble (single-DB), SQLite (multi-DB split), Postgres (pgx + LISTEN/NOTIFY). Each wires a complete Bundle preset.</span>
+                <span
+                  >Pebble (single-DB), SQLite (multi-DB split), Postgres (pgx + LISTEN/NOTIFY). Each
+                  wires a complete Bundle preset.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>Security primitives shipped</strong>
-                <span>Event signing (HMAC, Ed25519, multisig) + payload encryption (XChaCha20-Poly1305, AES-256-GCM) + HKDF for multi-tenant.</span>
+                <span
+                  >Event signing (HMAC, Ed25519, multisig) + payload encryption (XChaCha20-Poly1305,
+                  AES-256-GCM) + HKDF for multi-tenant.</span
+                >
               </div>
             </div>
           </div>
@@ -585,85 +883,247 @@
             <h3>FEATURES.md is stale (3 known inaccuracies)</h3>
             <div class="where">FEATURES.md</div>
             <ul>
-              <li><strong>Lists <code>projection</code> as Production module</strong> — directory deleted in ADR-0030, replaced by <code>bus.SubscribeAll + stack.Materialize + CatchUpSubscriber</code></li>
-              <li><strong>Lists <code>memory</code> at import path <code>…/memory/v2</code></strong> — moved to <code>storage/memory/v2</code> in ADR-0029</li>
-              <li><strong>"Not Yet Implemented" table lists "Streaming event reads"</strong> — CHANGELOG says DONE (<code>StreamingSource</code>/<code>StreamingJournal</code> on all 3 backends)</li>
-              <li><strong>Module Maturity Matrix missing all 6 <code>stack/*</code> presets</strong> (memory, sqlite, pebble, postgres, bench) + missing storage/memory path correction</li>
+              <li>
+                <strong>Lists <code>projection</code> as Production module</strong> — directory
+                deleted in ADR-0030, replaced by
+                <code>bus.SubscribeAll + stack.Materialize + CatchUpSubscriber</code>
+              </li>
+              <li>
+                <strong>Lists <code>memory</code> at import path <code>…/memory/v2</code></strong> —
+                moved to <code>storage/memory/v2</code> in ADR-0029
+              </li>
+              <li>
+                <strong>"Not Yet Implemented" table lists "Streaming event reads"</strong> —
+                CHANGELOG says DONE (<code>StreamingSource</code>/<code>StreamingJournal</code> on
+                all 3 backends)
+              </li>
+              <li>
+                <strong>Module Maturity Matrix missing all 6 <code>stack/*</code> presets</strong>
+                (memory, sqlite, pebble, postgres, bench) + missing storage/memory path correction
+              </li>
             </ul>
           </div>
 
           <div class="card card-warning">
             <h3>62 lint issues across 12 modules</h3>
             <div class="where">nix run .#lint</div>
-            <p>All style, not correctness. CI does not gate on these (per ADR: lint reports, doesn't abort). Breakdown:</p>
+            <p>
+              All style, not correctness. CI does not gate on these (per ADR: lint reports, doesn't
+              abort). Breakdown:
+            </p>
             <table>
-              <thead><tr><th>Linter</th><th>Count</th><th>Where (worst offenders)</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>Linter</th>
+                  <th>Count</th>
+                  <th>Where (worst offenders)</th>
+                </tr>
+              </thead>
               <tbody>
-                <tr><td>wrapcheck</td><td>12</td><td>transport/http, stack/pebble, codec</td></tr>
-                <tr><td>errcheck</td><td>9</td><td>stack/sqlite (unchecked <code>bundle.Close()</code> in tests)</td></tr>
-                <tr><td>varnamelen</td><td>8</td><td>stack/sqlite, watermill (<code>db</code>, <code>mu</code>, <code>gc</code>, <code>cp</code>)</td></tr>
-                <tr><td>exhaustruct</td><td>6</td><td>transport/http SSEEvent.Retry, stack/sqlite config</td></tr>
-                <tr><td>noinlineerr</td><td>5</td><td>stack/sqlite preset</td></tr>
-                <tr><td>gochecknoglobals</td><td>4</td><td>codec, catalog</td></tr>
-                <tr><td>staticcheck</td><td>3</td><td>misc</td></tr>
-                <tr><td>ineffassign</td><td>3</td><td>misc</td></tr>
-                <tr><td>err113</td><td>3</td><td>misc</td></tr>
-                <tr><td>nestif</td><td>2</td><td>stack/sqlite</td></tr>
-                <tr><td>gosec G115</td><td>2</td><td>watermill integer conversion</td></tr>
+                <tr>
+                  <td>wrapcheck</td>
+                  <td>12</td>
+                  <td>transport/http, stack/pebble, codec</td>
+                </tr>
+                <tr>
+                  <td>errcheck</td>
+                  <td>9</td>
+                  <td>stack/sqlite (unchecked <code>bundle.Close()</code> in tests)</td>
+                </tr>
+                <tr>
+                  <td>varnamelen</td>
+                  <td>8</td>
+                  <td>
+                    stack/sqlite, watermill (<code>db</code>, <code>mu</code>, <code>gc</code>,
+                    <code>cp</code>)
+                  </td>
+                </tr>
+                <tr>
+                  <td>exhaustruct</td>
+                  <td>6</td>
+                  <td>transport/http SSEEvent.Retry, stack/sqlite config</td>
+                </tr>
+                <tr>
+                  <td>noinlineerr</td>
+                  <td>5</td>
+                  <td>stack/sqlite preset</td>
+                </tr>
+                <tr>
+                  <td>gochecknoglobals</td>
+                  <td>4</td>
+                  <td>codec, catalog</td>
+                </tr>
+                <tr>
+                  <td>staticcheck</td>
+                  <td>3</td>
+                  <td>misc</td>
+                </tr>
+                <tr>
+                  <td>ineffassign</td>
+                  <td>3</td>
+                  <td>misc</td>
+                </tr>
+                <tr>
+                  <td>err113</td>
+                  <td>3</td>
+                  <td>misc</td>
+                </tr>
+                <tr>
+                  <td>nestif</td>
+                  <td>2</td>
+                  <td>stack/sqlite</td>
+                </tr>
+                <tr>
+                  <td>gosec G115</td>
+                  <td>2</td>
+                  <td>watermill integer conversion</td>
+                </tr>
               </tbody>
             </table>
-            <p><strong>17 of 62 issues are in <code>stack/</code></strong> (sqlite preset is the worst single file). The stack layer was built fast and never got the polish pass the core modules got.</p>
+            <p>
+              <strong>17 of 62 issues are in <code>stack/</code></strong> (sqlite preset is the
+              worst single file). The stack layer was built fast and never got the polish pass the
+              core modules got.
+            </p>
           </div>
 
           <div class="card card-warning">
             <h3>stack module coverage is light</h3>
             <div class="where">go test -cover ./stack/... ./storage/...</div>
             <ul>
-              <li><code>stack</code> at <strong>45.9%</strong> — Bundle presets emphasise the shared contract suite + happy paths, constructor error branches are thin</li>
-              <li><code>stack/postgres</code> at <strong>21.2%</strong> — most tests skip locally without <code>POSTGRES_TEST_DSN</code>; CI runs them in the <code>postgres-integration</code> job</li>
-              <li><code>storage/sql</code> at <strong>61.0%</strong> — shared SQL infra, edge paths uncovered</li>
+              <li>
+                <code>stack</code> at <strong>45.9%</strong> — Bundle presets emphasise the shared
+                contract suite + happy paths, constructor error branches are thin
+              </li>
+              <li>
+                <code>stack/postgres</code> at <strong>21.2%</strong> — most tests skip locally
+                without <code>POSTGRES_TEST_DSN</code>; CI runs them in the
+                <code>postgres-integration</code> job
+              </li>
+              <li>
+                <code>storage/sql</code> at <strong>61.0%</strong> — shared SQL infra, edge paths
+                uncovered
+              </li>
             </ul>
           </div>
 
           <div class="card card-warning">
             <h3>v3 not yet tagged</h3>
             <div class="where">git log · ROADMAP.md</div>
-            <p>All 11 breaking changes complete and additive (v2 types still exist for migration), but <code>v3.0.0</code> tag does not exist. Library is in a "v2 with v3 teed up" state — fine for development, blocks consumers from picking a major.</p>
+            <p>
+              All 11 breaking changes complete and additive (v2 types still exist for migration),
+              but <code>v3.0.0</code> tag does not exist. Library is in a "v2 with v3 teed up" state
+              — fine for development, blocks consumers from picking a major.
+            </p>
           </div>
 
           <div class="card card-warning">
             <h3>Transport adapters only 1 of 4 shipped</h3>
             <div class="where">ADR-0025 · ROADMAP.md</div>
-            <p><code>transport/http/</code> (SSE) is done. <code>transport/grpc/</code>, <code>transport/nats/</code>, <code>transport/redis/</code> are accepted ADRs with zero code. No consumer signal yet.</p>
+            <p>
+              <code>transport/http/</code> (SSE) is done. <code>transport/grpc/</code>,
+              <code>transport/nats/</code>, <code>transport/redis/</code> are accepted ADRs with
+              zero code. No consumer signal yet.
+            </p>
           </div>
 
           <div class="card card-warning">
             <h3>Read-model secondary indexes missing</h3>
             <div class="where">ROADMAP.md "Read-Model Enhancements"</div>
-            <p><code>kv.Store.Scan(prefix)</code> does in-memory filtering. <code>Materialize.List</code> (<code>stack/materialize.go:179</code>) does a full table scan bypassing the cache. Works at small scale, breaks at 1M+ records.</p>
+            <p>
+              <code>kv.Store.Scan(prefix)</code> does in-memory filtering.
+              <code>Materialize.List</code> (<code>stack/materialize.go:179</code>) does a full
+              table scan bypassing the cache. Works at small scale, breaks at 1M+ records.
+            </p>
           </div>
         </section>
 
         <section id="not-started">
           <h2><span class="num">03</span>c) Not Started</h2>
           <table>
-            <thead><tr><th>Item</th><th>Origin</th><th>Status</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Origin</th>
+                <th>Status</th>
+              </tr>
+            </thead>
             <tbody>
-              <tr><td><code>transport/grpc/</code></td><td>ADR-0025</td><td><span class="badge badge-low">No code</span></td></tr>
-              <tr><td><code>transport/nats/</code></td><td>ADR-0025</td><td><span class="badge badge-low">No code</span></td></tr>
-              <tr><td><code>transport/redis/</code></td><td>ADR-0025</td><td><span class="badge badge-low">No code</span></td></tr>
-              <tr><td>Hot-State cache (decider.Repository)</td><td>TODO_LIST.md (added today)</td><td><span class="badge badge-low">Just documented</span></td></tr>
-              <tr><td>Read-pressure snapshot strategy</td><td>TODO_LIST.md (added today)</td><td><span class="badge badge-low">Just documented</span></td></tr>
-              <tr><td>Secondary indexes / ranged scans</td><td>ROADMAP.md</td><td><span class="badge badge-low">No code</span></td></tr>
-              <tr><td>Event stream compaction / log truncation</td><td>ROADMAP.md raw ideas</td><td><span class="badge badge-low">No design</span></td></tr>
-              <tr><td>Multi-tenant event store</td><td>ROADMAP.md raw ideas</td><td><span class="badge badge-low">No design</span></td></tr>
-              <tr><td>Distributed projection runner</td><td>ROADMAP.md</td><td><span class="badge badge-low">Single-machine is sufficient for now</span></td></tr>
-              <tr><td>Event archival to S3/GCS/Azure</td><td>ROADMAP.md raw ideas</td><td><span class="badge badge-low">No design</span></td></tr>
-              <tr><td>CQRS dashboard (web UI)</td><td>ROADMAP.md raw ideas</td><td><span class="badge badge-low">No design</span></td></tr>
-              <tr><td>Schema migration generator</td><td>ROADMAP.md raw ideas</td><td><span class="badge badge-low">No design</span></td></tr>
-              <tr><td>Performance regression dashboard</td><td>ROADMAP.md raw ideas</td><td><span class="badge badge-low">No design</span></td></tr>
-              <tr><td>jsonv2 codec (real)</td><td>ADR-0026</td><td><span class="badge badge-low">Blocked on Go stdlib</span></td></tr>
-              <tr><td>Arena allocation (real)</td><td>ADR-0026</td><td><span class="badge badge-low">Blocked on Go stdlib</span></td></tr>
+              <tr>
+                <td><code>transport/grpc/</code></td>
+                <td>ADR-0025</td>
+                <td><span class="badge badge-low">No code</span></td>
+              </tr>
+              <tr>
+                <td><code>transport/nats/</code></td>
+                <td>ADR-0025</td>
+                <td><span class="badge badge-low">No code</span></td>
+              </tr>
+              <tr>
+                <td><code>transport/redis/</code></td>
+                <td>ADR-0025</td>
+                <td><span class="badge badge-low">No code</span></td>
+              </tr>
+              <tr>
+                <td>Hot-State cache (decider.Repository)</td>
+                <td>TODO_LIST.md (added today)</td>
+                <td><span class="badge badge-low">Just documented</span></td>
+              </tr>
+              <tr>
+                <td>Read-pressure snapshot strategy</td>
+                <td>TODO_LIST.md (added today)</td>
+                <td><span class="badge badge-low">Just documented</span></td>
+              </tr>
+              <tr>
+                <td>Secondary indexes / ranged scans</td>
+                <td>ROADMAP.md</td>
+                <td><span class="badge badge-low">No code</span></td>
+              </tr>
+              <tr>
+                <td>Event stream compaction / log truncation</td>
+                <td>ROADMAP.md raw ideas</td>
+                <td><span class="badge badge-low">No design</span></td>
+              </tr>
+              <tr>
+                <td>Multi-tenant event store</td>
+                <td>ROADMAP.md raw ideas</td>
+                <td><span class="badge badge-low">No design</span></td>
+              </tr>
+              <tr>
+                <td>Distributed projection runner</td>
+                <td>ROADMAP.md</td>
+                <td><span class="badge badge-low">Single-machine is sufficient for now</span></td>
+              </tr>
+              <tr>
+                <td>Event archival to S3/GCS/Azure</td>
+                <td>ROADMAP.md raw ideas</td>
+                <td><span class="badge badge-low">No design</span></td>
+              </tr>
+              <tr>
+                <td>CQRS dashboard (web UI)</td>
+                <td>ROADMAP.md raw ideas</td>
+                <td><span class="badge badge-low">No design</span></td>
+              </tr>
+              <tr>
+                <td>Schema migration generator</td>
+                <td>ROADMAP.md raw ideas</td>
+                <td><span class="badge badge-low">No design</span></td>
+              </tr>
+              <tr>
+                <td>Performance regression dashboard</td>
+                <td>ROADMAP.md raw ideas</td>
+                <td><span class="badge badge-low">No design</span></td>
+              </tr>
+              <tr>
+                <td>jsonv2 codec (real)</td>
+                <td>ADR-0026</td>
+                <td><span class="badge badge-low">Blocked on Go stdlib</span></td>
+              </tr>
+              <tr>
+                <td>Arena allocation (real)</td>
+                <td>ADR-0026</td>
+                <td><span class="badge badge-low">Blocked on Go stdlib</span></td>
+              </tr>
             </tbody>
           </table>
         </section>
@@ -674,21 +1134,49 @@
           <div class="card card-problem">
             <h3>5.5× doc-to-code ratio — process overhead dwarfs output</h3>
             <div class="where">find docs -name "*.md" -o -name "*.html" | wc -l</div>
-            <p><strong>221,186 lines of documentation for 40,173 lines of production Go.</strong> 635 doc files total. <strong>363 of them are status reports</strong> — most from weeks ago and now useless history. Each status report averages 600 lines. We are generating documentation about documentation about code at a rate that exceeds the code itself.</p>
-            <p>This isn't a documentation problem — it's a feedback loop problem. The docs exist because there's no consumer to validate against, so the team substitutes "wrote a status report" for "shipped a feature a user tried."</p>
+            <p>
+              <strong>221,186 lines of documentation for 40,173 lines of production Go.</strong> 635
+              doc files total. <strong>363 of them are status reports</strong> — most from weeks ago
+              and now useless history. Each status report averages 600 lines. We are generating
+              documentation about documentation about code at a rate that exceeds the code itself.
+            </p>
+            <p>
+              This isn't a documentation problem — it's a feedback loop problem. The docs exist
+              because there's no consumer to validate against, so the team substitutes "wrote a
+              status report" for "shipped a feature a user tried."
+            </p>
           </div>
 
           <div class="card card-problem">
             <h3>Zero external consumers — entire product is unvalidated</h3>
             <div class="where">git log · GitHub</div>
-            <p>2,439 commits since 2026-03-15. <strong>861 commits in the last 21 days (41/day). 664 in the last 14 days (47/day).</strong> Not a single known external import. The entire value proposition — "Would a consumer trust this enough to import it?" — is unanswered. Every architectural decision has been made in a vacuum.</p>
-            <p>The library may be excellent. It may also be fundamentally misshaped by assumptions no one has tested. We don't know, and at 47 commits/day we're not creating the conditions to find out.</p>
+            <p>
+              2,439 commits since 2026-03-15.
+              <strong
+                >861 commits in the last 21 days (41/day). 664 in the last 14 days (47/day).</strong
+              >
+              Not a single known external import. The entire value proposition — "Would a consumer
+              trust this enough to import it?" — is unanswered. Every architectural decision has
+              been made in a vacuum.
+            </p>
+            <p>
+              The library may be excellent. It may also be fundamentally misshaped by assumptions no
+              one has tested. We don't know, and at 47 commits/day we're not creating the conditions
+              to find out.
+            </p>
           </div>
 
           <div class="card card-problem">
             <h3>Status report pollution</h3>
             <div class="where">docs/status/</div>
-            <p><strong>9 status reports in the last 24 hours alone</strong> (this is the 10th). The <code>docs/status/</code> directory is the single largest contributor to the doc bloat. Reports from 2 weeks ago are dead history — they reference modules that no longer exist (<code>projection/</code>, <code>readmodel/</code>) and breaking changes that are done. The 07:13 report this morning was right: "The code doesn't need more features. It needs a consumer." Then we wrote two more reports.</p>
+            <p>
+              <strong>9 status reports in the last 24 hours alone</strong> (this is the 10th). The
+              <code>docs/status/</code> directory is the single largest contributor to the doc
+              bloat. Reports from 2 weeks ago are dead history — they reference modules that no
+              longer exist (<code>projection/</code>, <code>readmodel/</code>) and breaking changes
+              that are done. The 07:13 report this morning was right: "The code doesn't need more
+              features. It needs a consumer." Then we wrote two more reports.
+            </p>
           </div>
         </section>
 
@@ -697,42 +1185,77 @@
 
           <div class="callout callout-problem">
             <strong>Stop generating status reports and start generating consumers.</strong>
-            The single highest-leverage improvement is to find one real project that imports this library. Every other improvement is downstream of that.
+            The single highest-leverage improvement is to find one real project that imports this
+            library. Every other improvement is downstream of that.
           </div>
 
           <div class="card">
             <h3>1. Find a consumer, or declare the project scope-closed</h3>
-            <p>Either (a) build a small real app that imports the library end-to-end, or (b) explicitly declare the library feature-complete and stop adding capabilities. The current trajectory — adding Hot-State cache TODOs, transport adapters, secondary indexes — without consumers is making the API surface <em>harder</em> to adopt, not easier. <strong>1,605 exports is a lot to evaluate.</strong></p>
+            <p>
+              Either (a) build a small real app that imports the library end-to-end, or (b)
+              explicitly declare the library feature-complete and stop adding capabilities. The
+              current trajectory — adding Hot-State cache TODOs, transport adapters, secondary
+              indexes — without consumers is making the API surface <em>harder</em> to adopt, not
+              easier. <strong>1,605 exports is a lot to evaluate.</strong>
+            </p>
           </div>
 
           <div class="card">
             <h3>2. Archive old status reports</h3>
-            <p>Move <code>docs/status/*.md</code> older than 7 days into <code>docs/status/archive/</code>. Keep only the latest HTML dashboard + the latest markdown. Reduces 363 files to ~10 active. The <code>archive/</code> directory already exists — use it.</p>
+            <p>
+              Move <code>docs/status/*.md</code> older than 7 days into
+              <code>docs/status/archive/</code>. Keep only the latest HTML dashboard + the latest
+              markdown. Reduces 363 files to ~10 active. The <code>archive/</code> directory already
+              exists — use it.
+            </p>
           </div>
 
           <div class="card">
             <h3>3. Fix FEATURES.md in one pass</h3>
-            <p>Three known inaccuracies (projection deleted, memory moved, streaming reads done) plus missing stack modules. One focused edit. Run the <code>docs-freshness-check</code> skill.</p>
+            <p>
+              Three known inaccuracies (projection deleted, memory moved, streaming reads done) plus
+              missing stack modules. One focused edit. Run the
+              <code>docs-freshness-check</code> skill.
+            </p>
           </div>
 
           <div class="card">
             <h3>4. Polish the stack layer</h3>
-            <p>17 of 62 lint issues and the worst coverage live in <code>stack/</code>. The stack presets are the <em>consumer-facing entry point</em> — they should be the most polished, not the least. Fix <code>stack/sqlite/preset.go</code> (11 issues alone) and add constructor-error tests.</p>
+            <p>
+              17 of 62 lint issues and the worst coverage live in <code>stack/</code>. The stack
+              presets are the <em>consumer-facing entry point</em> — they should be the most
+              polished, not the least. Fix <code>stack/sqlite/preset.go</code> (11 issues alone) and
+              add constructor-error tests.
+            </p>
           </div>
 
           <div class="card">
             <h3>5. Tag v3.0.0</h3>
-            <p>All breaking changes are additive. Tagging costs nothing and gives consumers a stable major to pin against. Until v3 is tagged, the entire v2-with-v3-teed-up state is a tax on every consumer evaluation.</p>
+            <p>
+              All breaking changes are additive. Tagging costs nothing and gives consumers a stable
+              major to pin against. Until v3 is tagged, the entire v2-with-v3-teed-up state is a tax
+              on every consumer evaluation.
+            </p>
           </div>
 
           <div class="card">
             <h3>6. Add real consumer-facing examples beyond toy apps</h3>
-            <p>The 4 examples are demos, not reference applications. A consumer evaluating this library has no model for: HTTP API with auth, production deployment, observability stack, schema migration in production. The <code>example/user/</code> Dockerfile is the closest, but it's still single-aggregate.</p>
+            <p>
+              The 4 examples are demos, not reference applications. A consumer evaluating this
+              library has no model for: HTTP API with auth, production deployment, observability
+              stack, schema migration in production. The <code>example/user/</code> Dockerfile is
+              the closest, but it's still single-aggregate.
+            </p>
           </div>
 
           <div class="card">
             <h3>7. Reduce API surface where possible</h3>
-            <p>1,605 exports is a lot. The <code>docs/brainstorming/2026-06-21_07-21_API-SURFACE-REDUCTION-IDEAS.md</code> brainstorm exists — act on the high-impact items. Specifically: collapse duplicate convenience constructors, hide internal helpers behind <code>internal/</code>.</p>
+            <p>
+              1,605 exports is a lot. The
+              <code>docs/brainstorming/2026-06-21_07-21_API-SURFACE-REDUCTION-IDEAS.md</code>
+              brainstorm exists — act on the high-impact items. Specifically: collapse duplicate
+              convenience constructors, hide internal helpers behind <code>internal/</code>.
+            </p>
           </div>
         </section>
 
@@ -750,31 +1273,215 @@
               </tr>
             </thead>
             <tbody>
-              <tr><td>1</td><td><strong>Build one real app that imports the library end-to-end</strong> (HTTP API + Postgres + observability)</td><td><span class="badge badge-critical">Critical</span></td><td>Large</td><td>Validation</td></tr>
-              <tr><td>2</td><td>Tag <code>v3.0.0</code></td><td><span class="badge badge-critical">Critical</span></td><td>Trivial</td><td>Release</td></tr>
-              <tr><td>3</td><td>Archive <code>docs/status/*.md</code> older than 7 days → <code>docs/status/archive/</code></td><td><span class="badge badge-high">High</span></td><td>Trivial</td><td>Hygiene</td></tr>
-              <tr><td>4</td><td>Fix FEATURES.md (3 stale entries + missing stack modules)</td><td><span class="badge badge-high">High</span></td><td>Small</td><td>Docs</td></tr>
-              <tr><td>5</td><td>Polish <code>stack/sqlite/preset.go</code> — 11 lint issues, worst single file</td><td><span class="badge badge-high">High</span></td><td>Small</td><td>Quality</td></tr>
-              <tr><td>6</td><td>Add constructor-error tests to <code>stack/</code> presets (coverage 45.9% → &gt;70%)</td><td><span class="badge badge-high">High</span></td><td>Medium</td><td>Testing</td></tr>
-              <tr><td>7</td><td>Publish README that answers "why this over other Go CQRS libs"</td><td><span class="badge badge-high">High</span></td><td>Small</td><td>Adoption</td></tr>
-              <tr><td>8</td><td>Fix 62 lint issues (mostly mechanical: wrapcheck, errcheck, varnamelen)</td><td><span class="badge badge-medium">Medium</span></td><td>Medium</td><td>Quality</td></tr>
-              <tr><td>9</td><td>Move remaining wrapcheck-violating error returns behind typed wrappers</td><td><span class="badge badge-medium">Medium</span></td><td>Medium</td><td>Quality</td></tr>
-              <tr><td>10</td><td>Act on API-surface-reduction brainstorm (high-impact items first)</td><td><span class="badge badge-medium">Medium</span></td><td>Medium</td><td>Adoption</td></tr>
-              <tr><td>11</td><td>Write a "first 15 minutes" quickstart that runs without setup</td><td><span class="badge badge-high">High</span></td><td>Small</td><td>Adoption</td></tr>
-              <tr><td>12</td><td>Add <code>go test -race ./...</code> to CI on the full suite (currently only modified modules)</td><td><span class="badge badge-medium">Medium</span></td><td>Small</td><td>CI</td></tr>
-              <tr><td>13</td><td>Document the deployer-first pattern in README (currently buried in <code>example/deployer-first/README.md</code>)</td><td><span class="badge badge-medium">Medium</span></td><td>Small</td><td>Docs</td></tr>
-              <tr><td>14</td><td>Decide: is <code>POSTGRES_TEST_DSN</code> a docs problem or a tooling problem? Document it prominently in CONTRIBUTING.</td><td><span class="badge badge-low">Low</span></td><td>Trivial</td><td>Docs</td></tr>
-              <tr><td>15</td><td>Hot-State cache prototype (only if a real hot-aggregate workload emerges — TODO_LIST.md)</td><td><span class="badge badge-low">Low</span></td><td>Medium</td><td>Feature</td></tr>
-              <tr><td>16</td><td>Read-pressure snapshot strategy (only after #15 — TODO_LIST.md)</td><td><span class="badge badge-low">Low</span></td><td>Medium</td><td>Feature</td></tr>
-              <tr><td>17</td><td>Secondary indexes / ranged scans on <code>kv.Store</code> (only if a workload needs them)</td><td><span class="badge badge-low">Low</span></td><td>Large</td><td>Feature</td></tr>
-              <tr><td>18</td><td>gRPC transport adapter (ADR-0025) — only if a consumer asks</td><td><span class="badge badge-low">Low</span></td><td>Large</td><td>Feature</td></tr>
-              <tr><td>19</td><td>NATS transport adapter (ADR-0025) — only if a consumer asks</td><td><span class="badge badge-low">Low</span></td><td>Large</td><td>Feature</td></tr>
-              <tr><td>20</td><td>Redis transport adapter (ADR-0025) — only if a consumer asks</td><td><span class="badge badge-low">Low</span></td><td>Large</td><td>Feature</td></tr>
-              <tr><td>21</td><td>Property-based integration testing with state machine verification (ROADMAP)</td><td><span class="badge badge-low">Low</span></td><td>Medium</td><td>Testing</td></tr>
-              <tr><td>22</td><td>Performance regression dashboard (ROADMAP) — only if perf claims become load-bearing</td><td><span class="badge badge-low">Low</span></td><td>Medium</td><td>Tooling</td></tr>
-              <tr><td>23</td><td>Schema migration generator (ROADMAP) — only if upcaster adoption grows</td><td><span class="badge badge-low">Low</span></td><td>Medium</td><td>Feature</td></tr>
-              <tr><td>24</td><td>Documentation site (Docusaurus/MkDocs) — only after consumer signal</td><td><span class="badge badge-low">Low</span></td><td>Medium</td><td>Docs</td></tr>
-              <tr><td>25</td><td>Decide and document: is multi-master permanently out of scope? (Recent conversation confirmed yes — write it into an ADR so the question stops recurring)</td><td><span class="badge badge-medium">Medium</span></td><td>Small</td><td>Architecture</td></tr>
+              <tr>
+                <td>1</td>
+                <td>
+                  <strong>Build one real app that imports the library end-to-end</strong> (HTTP API
+                  + Postgres + observability)
+                </td>
+                <td><span class="badge badge-critical">Critical</span></td>
+                <td>Large</td>
+                <td>Validation</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>Tag <code>v3.0.0</code></td>
+                <td><span class="badge badge-critical">Critical</span></td>
+                <td>Trivial</td>
+                <td>Release</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>
+                  Archive <code>docs/status/*.md</code> older than 7 days →
+                  <code>docs/status/archive/</code>
+                </td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>Trivial</td>
+                <td>Hygiene</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>Fix FEATURES.md (3 stale entries + missing stack modules)</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>Small</td>
+                <td>Docs</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>
+                  Polish <code>stack/sqlite/preset.go</code> — 11 lint issues, worst single file
+                </td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>Small</td>
+                <td>Quality</td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>
+                  Add constructor-error tests to <code>stack/</code> presets (coverage 45.9% →
+                  &gt;70%)
+                </td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>Medium</td>
+                <td>Testing</td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td>Publish README that answers "why this over other Go CQRS libs"</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>Small</td>
+                <td>Adoption</td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td>Fix 62 lint issues (mostly mechanical: wrapcheck, errcheck, varnamelen)</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>Medium</td>
+                <td>Quality</td>
+              </tr>
+              <tr>
+                <td>9</td>
+                <td>Move remaining wrapcheck-violating error returns behind typed wrappers</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>Medium</td>
+                <td>Quality</td>
+              </tr>
+              <tr>
+                <td>10</td>
+                <td>Act on API-surface-reduction brainstorm (high-impact items first)</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>Medium</td>
+                <td>Adoption</td>
+              </tr>
+              <tr>
+                <td>11</td>
+                <td>Write a "first 15 minutes" quickstart that runs without setup</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>Small</td>
+                <td>Adoption</td>
+              </tr>
+              <tr>
+                <td>12</td>
+                <td>
+                  Add <code>go test -race ./...</code> to CI on the full suite (currently only
+                  modified modules)
+                </td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>Small</td>
+                <td>CI</td>
+              </tr>
+              <tr>
+                <td>13</td>
+                <td>
+                  Document the deployer-first pattern in README (currently buried in
+                  <code>example/deployer-first/README.md</code>)
+                </td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>Small</td>
+                <td>Docs</td>
+              </tr>
+              <tr>
+                <td>14</td>
+                <td>
+                  Decide: is <code>POSTGRES_TEST_DSN</code> a docs problem or a tooling problem?
+                  Document it prominently in CONTRIBUTING.
+                </td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>Trivial</td>
+                <td>Docs</td>
+              </tr>
+              <tr>
+                <td>15</td>
+                <td>
+                  Hot-State cache prototype (only if a real hot-aggregate workload emerges —
+                  TODO_LIST.md)
+                </td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>Medium</td>
+                <td>Feature</td>
+              </tr>
+              <tr>
+                <td>16</td>
+                <td>Read-pressure snapshot strategy (only after #15 — TODO_LIST.md)</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>Medium</td>
+                <td>Feature</td>
+              </tr>
+              <tr>
+                <td>17</td>
+                <td>
+                  Secondary indexes / ranged scans on <code>kv.Store</code> (only if a workload
+                  needs them)
+                </td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>Large</td>
+                <td>Feature</td>
+              </tr>
+              <tr>
+                <td>18</td>
+                <td>gRPC transport adapter (ADR-0025) — only if a consumer asks</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>Large</td>
+                <td>Feature</td>
+              </tr>
+              <tr>
+                <td>19</td>
+                <td>NATS transport adapter (ADR-0025) — only if a consumer asks</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>Large</td>
+                <td>Feature</td>
+              </tr>
+              <tr>
+                <td>20</td>
+                <td>Redis transport adapter (ADR-0025) — only if a consumer asks</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>Large</td>
+                <td>Feature</td>
+              </tr>
+              <tr>
+                <td>21</td>
+                <td>
+                  Property-based integration testing with state machine verification (ROADMAP)
+                </td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>Medium</td>
+                <td>Testing</td>
+              </tr>
+              <tr>
+                <td>22</td>
+                <td>
+                  Performance regression dashboard (ROADMAP) — only if perf claims become
+                  load-bearing
+                </td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>Medium</td>
+                <td>Tooling</td>
+              </tr>
+              <tr>
+                <td>23</td>
+                <td>Schema migration generator (ROADMAP) — only if upcaster adoption grows</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>Medium</td>
+                <td>Feature</td>
+              </tr>
+              <tr>
+                <td>24</td>
+                <td>Documentation site (Docusaurus/MkDocs) — only after consumer signal</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>Medium</td>
+                <td>Docs</td>
+              </tr>
+              <tr>
+                <td>25</td>
+                <td>
+                  Decide and document: is multi-master permanently out of scope? (Recent
+                  conversation confirmed yes — write it into an ADR so the question stops recurring)
+                </td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>Small</td>
+                <td>Architecture</td>
+              </tr>
             </tbody>
           </table>
         </section>
@@ -782,25 +1489,48 @@
         <section id="question">
           <h2><span class="num">07</span>g) Top #1 Question I Cannot Answer</h2>
           <div class="question-block">
-            <h3>Is there a real consumer waiting for this library, or is this a portfolio/research project?</h3>
-            <p style="color: var(--text); font-size: 1.05rem; margin-bottom: 1rem;">
-              I cannot figure this out from the codebase, the commit history, or the docs. The signals point in both directions:
+            <h3>
+              Is there a real consumer waiting for this library, or is this a portfolio/research
+              project?
+            </h3>
+            <p style="color: var(--text); font-size: 1.05rem; margin-bottom: 1rem">
+              I cannot figure this out from the codebase, the commit history, or the docs. The
+              signals point in both directions:
             </p>
-            <ul style="color: var(--text);">
-              <li><strong>Signals "real product":</strong> Production-grade engineering (error taxonomy, OTel integration, 3 storage backends, security primitives, migration paths, ADR-driven design, 33 ADRs). This is not how you build a portfolio piece.</li>
-              <li><strong>Signals "no consumer":</strong> 47 commits/day for 14 days, 5.5× doc-to-code ratio, 363 status reports, no known external import, no issues/PRs from outside, no release tag, FEATURES.md is stale (a real product team would have caught the <code>projection/</code> deletion).</li>
+            <ul style="color: var(--text)">
+              <li>
+                <strong>Signals "real product":</strong> Production-grade engineering (error
+                taxonomy, OTel integration, 3 storage backends, security primitives, migration
+                paths, ADR-driven design, 33 ADRs). This is not how you build a portfolio piece.
+              </li>
+              <li>
+                <strong>Signals "no consumer":</strong> 47 commits/day for 14 days, 5.5× doc-to-code
+                ratio, 363 status reports, no known external import, no issues/PRs from outside, no
+                release tag, FEATURES.md is stale (a real product team would have caught the
+                <code>projection/</code> deletion).
+              </li>
             </ul>
-            <p style="color: var(--text);">
-              Every prioritization decision hinges on this. If a consumer is waiting, then the v3 tag and adoption work are urgent. If this is a research/portfolio project, then the velocity is fine and we should stop writing status reports and start writing blog posts. <strong>I cannot tell which, and at 47 commits/day we're not creating the conditions to find out.</strong>
+            <p style="color: var(--text)">
+              Every prioritization decision hinges on this. If a consumer is waiting, then the v3
+              tag and adoption work are urgent. If this is a research/portfolio project, then the
+              velocity is fine and we should stop writing status reports and start writing blog
+              posts.
+              <strong
+                >I cannot tell which, and at 47 commits/day we're not creating the conditions to
+                find out.</strong
+              >
             </p>
-            <p style="color: var(--text); margin-top: 1rem;">
-              The 07:13 report this morning asked the same question. We added a Hot-State cache TODO entry instead of answering it. I am asking it again because nothing else on the Top 25 list makes sense without the answer.
+            <p style="color: var(--text); margin-top: 1rem">
+              The 07:13 report this morning asked the same question. We added a Hot-State cache TODO
+              entry instead of answering it. I am asking it again because nothing else on the Top 25
+              list makes sense without the answer.
             </p>
           </div>
         </section>
 
         <footer class="footer">
-          Generated 2026-06-21 08:24 CEST &middot; Verified against master @ 4a67ff62 · build clean · 51/51 tests pass · 62 lint issues (style only)
+          Generated 2026-06-21 08:24 CEST &middot; Verified against master @ 4a67ff62 · build clean
+          · 51/51 tests pass · 62 lint issues (style only)
         </footer>
       </main>
     </div>
