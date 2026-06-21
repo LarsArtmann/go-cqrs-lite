@@ -16,11 +16,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v2"
 )
 
-func mustEveryN(n int) snapshot.SnapshotStrategy {
+func everyN(n int) snapshot.SnapshotStrategy {
 	s, err := snapshot.EveryNEvents(n)
-	if err != nil {
-		panic(err)
-	}
+	ExpectWithOffset(1, err).ToNot(HaveOccurred())
 
 	return s
 }
@@ -92,7 +90,7 @@ func newSnapshotRepo(
 		store, bus, bddCounterDecider(),
 		decider.WithSnapshotStore[bddCounter](snapStore),
 		decider.WithCodec[bddCounter](codec.JSONCodec{}),
-		decider.WithSnapshotStrategy[bddCounter](mustEveryN(n)),
+		decider.WithSnapshotStrategy[bddCounter](everyN(n)),
 	)
 }
 

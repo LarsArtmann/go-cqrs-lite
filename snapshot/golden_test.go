@@ -13,10 +13,12 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
 )
 
-func mustEveryN(n int) snapshot.SnapshotStrategy {
+func everyN(tb testing.TB, n int) snapshot.SnapshotStrategy {
+	tb.Helper()
+
 	s, err := snapshot.EveryNEvents(n)
 	if err != nil {
-		panic(err)
+		tb.Fatalf("snapshot every-n %d: %v", n, err)
 	}
 
 	return s
@@ -70,7 +72,7 @@ func TestGolden_SnapshotStructure(t *testing.T) {
 }
 
 func TestGolden_EveryNEventsStrategy(t *testing.T) {
-	strategy := mustEveryN(3)
+	strategy := everyN(t, 3)
 
 	type entry struct {
 		Version int  `json:"version"`

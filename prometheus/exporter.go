@@ -106,15 +106,4 @@ func Setup(opts ...Option) (*Provider, error) {
 	}, nil
 }
 
-// MustSetup is like Setup but panics on error. Use in main() where
-// initialization failure should crash the process.
-func MustSetup(opts ...Option) *Provider {
-	p, err := Setup(opts...)
-	if err != nil {
-		panic(err)
-	}
-
-	return p
-}
-
 var errNotGatherer = errors.New("registry does not implement prometheus.Gatherer")

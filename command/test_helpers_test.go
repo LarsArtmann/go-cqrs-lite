@@ -2,19 +2,23 @@ package command_test
 
 import (
 	"context"
+	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
-func mustNewCmd(
+func newCmd(
+	tb testing.TB,
 	commandType command.Type,
 	aggregateID id.AggregateID,
 	opts ...command.Option,
 ) *command.BasicCommand {
+	tb.Helper()
+
 	cmd, err := command.New(commandType, aggregateID, opts...)
 	if err != nil {
-		panic(err)
+		tb.Fatalf("new command %q: %v", commandType, err)
 	}
 
 	return cmd

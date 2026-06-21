@@ -31,7 +31,7 @@ func BenchmarkMustNew(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_ = mustNewCmd("bench.cmd", aggID)
+		_ = newCmd(b, "bench.cmd", aggID)
 	}
 }
 

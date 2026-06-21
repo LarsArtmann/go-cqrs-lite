@@ -1,8 +1,11 @@
 package codec_test
 
 import (
+	"math"
 	"testing"
 	"unicode/utf8"
+
+	"github.com/fxamacker/cbor/v2"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 )
@@ -313,6 +316,17 @@ func FuzzCBORCodec_CanonicalFidelity(f *testing.F) {
 			t.Skip()
 		}
 
+		// NaN map keys have no stable canonical form: every NaN bit pattern
+		// normalizes to the same canonical half-float (f97e00), collapsing
+		// distinct keys into byte-identical duplicates. The decoder's duplicate-
+		// key guard cannot catch them (NaN != NaN), so they would otherwise slip
+		// past the re-decode skip below and surface as spurious fixed-point
+		// failures with randomized ordering. Typed CQRS structs can never
+		// produce NaN keys, so skipping is the principled response.
+		if hasNaNMapKey(decoded) {
+			t.Skip()
+		}
+
 		canonical, err := c.Encode(decoded)
 		if err != nil {
 			t.Fatalf("Encode(%v): %v", decoded, err)
@@ -337,4 +351,46 @@ func FuzzCBORCodec_CanonicalFidelity(f *testing.F) {
 				canonical, recanonical)
 		}
 	})
+}
+
+// hasNaNMapKey reports whether v contains any map whose key is a NaN float,
+// at any nesting depth (including inside [cbor.Tag] content). Such values
+// have no stable canonical encoding: all NaN bit patterns collapse to the
+// identical canonical half-float (f97e00), producing duplicate keys whose
+// emitted order follows Go's randomized map iteration.
+func hasNaNMapKey(v any) bool {
+	switch x := v.(type) {
+	case []any:
+		for _, e := range x {
+			if hasNaNMapKey(e) {
+				return true
+			}
+		}
+	case map[string]any:
+		for _, e := range x {
+			if hasNaNMapKey(e) {
+				return true
+			}
+		}
+	case map[any]any:
+		for k, e := range x {
+			if isNaNValue(k) || hasNaNMapKey(e) {
+				return true
+			}
+		}
+	case cbor.Tag:
+		return hasNaNMapKey(x.Content)
+	}
+	return false
+}
+
+// isNaNValue reports whether v is a NaN float (float32 or float64).
+func isNaNValue(v any) bool {
+	switch f := v.(type) {
+	case float64:
+		return math.IsNaN(f)
+	case float32:
+		return math.IsNaN(float64(f))
+	}
+	return false
 }

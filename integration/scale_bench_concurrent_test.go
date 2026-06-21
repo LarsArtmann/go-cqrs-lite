@@ -42,7 +42,7 @@ func BenchmarkScale_Concurrent_10KCommands_8Goroutines(b *testing.B) {
 				aggID := id.NewAggregateID()
 
 				for range opsPerWorker {
-					cmd := testutil.MustNewCmd("bench.cmd", aggID)
+					cmd := testutil.NewCmd(b, "bench.cmd", aggID)
 					_ = dispatcher.Dispatch(ctx, cmd)
 				}
 			}()

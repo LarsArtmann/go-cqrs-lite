@@ -2,36 +2,28 @@ package testutil
 
 import (
 	"context"
+	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
-// MustNewCmd creates a BasicCommand and panics on error.
-func MustNewCmd(
+func NewCmd(
+	tb testing.TB,
 	commandType command.Type,
 	aggregateID id.AggregateID,
 	opts ...command.Option,
 ) *command.BasicCommand {
+	tb.Helper()
+
 	cmd, err := command.New(commandType, aggregateID, opts...)
 	if err != nil {
-		panic(err)
+		tb.Fatalf("testutil: new command %q: %v", commandType, err)
 	}
 
 	return cmd
 }
 
-// ParseAggID parses an AggregateID and panics on error.
-func ParseAggID(s string) id.AggregateID {
-	v, err := id.ParseAggregateID(s)
-	if err != nil {
-		panic(err)
-	}
-
-	return v
-}
-
-// NoopCommandHandler returns a handler that does nothing.
 func NoopCommandHandler() command.Handler {
 	return func(_ context.Context, _ command.Command) error {
 		return nil

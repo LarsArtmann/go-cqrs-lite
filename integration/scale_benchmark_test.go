@@ -146,7 +146,7 @@ func BenchmarkScale_CommandDispatch(b *testing.B) {
 
 	for b.Loop() {
 		for i := range 100 {
-			cmd := testutil.MustNewCmd(command.Type(fmt.Sprintf("cmd.%d", i)), aggID)
+			cmd := testutil.NewCmd(b, command.Type(fmt.Sprintf("cmd.%d", i)), aggID)
 			err := dispatcher.Dispatch(ctx, cmd)
 			if err != nil {
 				b.Fatalf("dispatch: %v", err)
