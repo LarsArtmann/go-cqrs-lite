@@ -224,6 +224,7 @@ codec/const EncodingCBOR
 codec/const EncodingJSON
 codec/const EncodingRaw
 codec/func CBORDecMode
+codec/func CBOREncMode
 codec/func Diagnose
 codec/func NewCBORDecoder
 codec/func NewCBOREncoder
@@ -794,9 +795,11 @@ event/var ErrMismatchedEventCount
 event/var ErrNilAggregateID
 event/var ErrNilBus
 event/var ErrNilPayload
+event/var ErrSchemaVersionUnderflow
 event/var ErrStoreClosed
 event/var ErrVersionConflict
 event/var ErrVersionNotPositive
+event/var ErrVersionUnderflow
 id/func AggregateIDFrom
 id/func CompareIDs
 id/func DeriveAggregateID

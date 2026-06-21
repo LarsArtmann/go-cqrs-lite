@@ -29,7 +29,10 @@ func NewDeleteTodoCommand(todoID id.AggregateID) (*DeleteTodoCommand, error) {
 
 type DeleteTodoHandler struct{ CommandHandler }
 
-func NewDeleteTodoHandler(events event.Store, eventBus event.Publisher) (*DeleteTodoHandler, error) {
+func NewDeleteTodoHandler(
+	events event.Store,
+	eventBus event.Publisher,
+) (*DeleteTodoHandler, error) {
 	ch, err := NewHandler(events, eventBus)
 	if err != nil {
 		return nil, err

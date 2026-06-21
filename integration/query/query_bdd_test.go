@@ -37,7 +37,9 @@ var _ = Describe("Query Dispatcher", func() {
 	Describe("As a developer building read-side queries", func() {
 		Context("when I register a handler and dispatch the matching query", func() {
 			It("should return the typed result", func() {
-				registerHandler(dispatcher, "query.user.name", "Alice")
+				Expect(
+					registerHandler(dispatcher, "query.user.name", "Alice"),
+				).ToNot(HaveOccurred())
 
 				result, err := dispatcher.Dispatch(ctx, &getUserName{})
 				Expect(err).ToNot(HaveOccurred())
@@ -47,7 +49,7 @@ var _ = Describe("Query Dispatcher", func() {
 
 		Context("when I use DispatchTyped with the correct result type", func() {
 			It("should return the strongly typed result", func() {
-				registerHandler(dispatcher, "query.active.count", 42)
+				Expect(registerHandler(dispatcher, "query.active.count", 42)).ToNot(HaveOccurred())
 
 				result, err := query.DispatchTyped[int](ctx, dispatcher, &getActiveCount{})
 				Expect(err).ToNot(HaveOccurred())
@@ -57,7 +59,7 @@ var _ = Describe("Query Dispatcher", func() {
 
 		Context("when I use DispatchTyped with the wrong result type", func() {
 			It("should return a type mismatch error", func() {
-				registerHandler(dispatcher, "query.active.count", 42)
+				Expect(registerHandler(dispatcher, "query.active.count", 42)).ToNot(HaveOccurred())
 
 				_, err := query.DispatchTyped[string](ctx, dispatcher, &getActiveCount{})
 				Expect(err).To(HaveOccurred())
@@ -98,7 +100,9 @@ var _ = Describe("Query Dispatcher", func() {
 					queryMiddleware(&callOrder, "log"),
 				)
 
-				registerCallOrderHandler(dispatcher, "query.user.name", &callOrder, "Bob")
+				Expect(
+					registerCallOrderHandler(dispatcher, "query.user.name", &callOrder, "Bob"),
+				).ToNot(HaveOccurred())
 
 				result, err := dispatcher.Dispatch(ctx, &getUserName{})
 				Expect(err).ToNot(HaveOccurred())

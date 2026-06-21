@@ -43,7 +43,10 @@ func NewUpdateTodoCommand(
 
 type UpdateTodoHandler struct{ CommandHandler }
 
-func NewUpdateTodoHandler(events event.Store, eventBus event.Publisher) (*UpdateTodoHandler, error) {
+func NewUpdateTodoHandler(
+	events event.Store,
+	eventBus event.Publisher,
+) (*UpdateTodoHandler, error) {
 	ch, err := NewHandler(events, eventBus)
 	if err != nil {
 		return nil, err

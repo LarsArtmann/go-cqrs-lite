@@ -10,10 +10,12 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2/idtest"
 )
 
-func parseCommandID(s string) id.CommandID {
+func parseCommandID(tb testing.TB, s string) id.CommandID {
+	tb.Helper()
+
 	v, err := id.ParseCommandID(s)
 	if err != nil {
-		panic(err)
+		tb.Fatalf("parseCommandID %q: %v", s, err)
 	}
 
 	return v
@@ -215,7 +217,7 @@ func TestNewPersistedCommand_WithCommandID(t *testing.T) {
 	t.Parallel()
 
 	ref := validRef(t)
-	cmdID := parseCommandID("01HK1540X0841Y0A6BSX1VKR95")
+	cmdID := parseCommandID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	cmd, err := command.NewPersistedCommand("CreateUser", ref, nil, command.WithCommandID(cmdID))
 	if err != nil {
@@ -246,7 +248,7 @@ func TestPersistedCommand_String(t *testing.T) {
 	t.Parallel()
 
 	ref := validRef(t)
-	cmdID := parseCommandID("01HK1540X0841Y0A6BSX1VKR95")
+	cmdID := parseCommandID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	cmd, err := command.NewPersistedCommand("CreateUser", ref, nil, command.WithCommandID(cmdID))
 	if err != nil {

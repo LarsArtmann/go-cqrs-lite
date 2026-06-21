@@ -40,7 +40,10 @@ func NewChangeStatusCommand(
 
 type ChangeStatusHandler struct{ CommandHandler }
 
-func NewChangeStatusHandler(events event.Store, eventBus event.Publisher) (*ChangeStatusHandler, error) {
+func NewChangeStatusHandler(
+	events event.Store,
+	eventBus event.Publisher,
+) (*ChangeStatusHandler, error) {
 	ch, err := NewHandler(events, eventBus)
 	if err != nil {
 		return nil, err

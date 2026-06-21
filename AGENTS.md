@@ -174,12 +174,12 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //
 // Pebble single-DB manual wiring (advanced)
 //   db, _ := pebble.Open(dir, &pebble.Options{})
-//   eventStore := pebble.NewStore(db, logger)
-//   snapStore  := pebble.NewSnapshotStore(db, logger)
-//   cpStore    := pebble.NewCheckpointStore(db, logger)
+//   eventStore, _ := pebble.NewStore(db, logger)
+//   snapStore, _  := pebble.NewSnapshotStore(db, logger)
+//   cpStore, _    := pebble.NewCheckpointStore(db, logger)
 
 // Pebble as kv.Store (generic KV interface, ADR-0023)
-//   kvStore := pebble.NewKVStore(db, pebble.WithSyncWrites())
+//   kvStore, _ := pebble.NewKVStore(db, pebble.WithSyncWrites())
 //   defer kvStore.Close()
 //   kvStore.Set([]byte("k"), []byte("v"))    // → nil
 //   val, _ := kvStore.Get([]byte("k"))        // → "v"

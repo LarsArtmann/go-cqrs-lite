@@ -13,7 +13,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
-func makeBenchEvents(n int, ref event.AggregateRef) []event.Event {
+func makeBenchEvents(b *testing.B, n int, ref event.AggregateRef) []event.Event {
 	events := make([]event.Event, n)
 
 	for i := range n {
@@ -25,7 +25,7 @@ func makeBenchEvents(n int, ref event.AggregateRef) []event.Event {
 			nil,
 		)
 		if err != nil {
-			panic(fmt.Sprintf("makeBenchEvents: %v", err))
+			b.Fatalf("makeBenchEvents: %v", err)
 		}
 
 		events[i] = evt
@@ -61,7 +61,7 @@ func BenchmarkPebbleStore_Save100(b *testing.B) {
 
 	for i := range b.N {
 		ref := event.NewAggregateRef("Bench", id.NewAggregateID())
-		events := makeBenchEvents(100, ref)
+		events := makeBenchEvents(b, 100, ref)
 
 		err := store.Save(ctx, ref, events, event.Version(i*100))
 		if err != nil {
@@ -77,7 +77,7 @@ func BenchmarkPebbleStore_SaveLoad100(b *testing.B) {
 	ctx := context.Background()
 	ref := event.NewAggregateRef("BenchLoad", id.NewAggregateID())
 
-	events := makeBenchEvents(100, ref)
+	events := makeBenchEvents(b, 100, ref)
 
 	err := store.Save(ctx, ref, events, event.Version(0))
 	if err != nil {

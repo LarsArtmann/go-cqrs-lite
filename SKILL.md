@@ -591,7 +591,7 @@ import (
 )
 
 db, _ := pebble.Open(dir, &pebble.Options{})               // raw cockroachdb/pebble
-kvStore := cqrspebble.NewKVStore(db, cqrspebble.WithSyncWrites())
+kvStore, _ := cqrspebble.NewKVStore(db, cqrspebble.WithSyncWrites())
 defer kvStore.Close()
 kvStore.Set([]byte("k"), []byte("v"))
 val, _ := kvStore.Get([]byte("k"))
@@ -797,7 +797,7 @@ projection.On[UserCreated](b, "user.created", codec.JSONCodec{}, handler)
 kvStore := pebble.NewKVAdapter(db, pebble.WithKVSyncWrites())
 
 // Correct
-kvStore := cqrspebble.NewKVStore(db, cqrspebble.WithSyncWrites())
+kvStore, _ := cqrspebble.NewKVStore(db, cqrspebble.WithSyncWrites())
 ```
 
 ### "My SQL backend needs a dialect parameter"

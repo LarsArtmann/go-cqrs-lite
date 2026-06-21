@@ -223,7 +223,10 @@ func CreateItemSchema() *catalog.Schema {
 
 func StringSchema(props ...string) (*catalog.Schema, error) {
 	if len(props)%2 != 0 {
-		return nil, fmt.Errorf("cattest.StringSchema: props must be key-value pairs, got %d", len(props))
+		return nil, fmt.Errorf(
+			"cattest.StringSchema: props must be key-value pairs, got %d",
+			len(props),
+		)
 	}
 
 	//nolint:mnd // key-value pairs = half the input length

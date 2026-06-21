@@ -50,7 +50,10 @@ func NewCreateTodoCommand(
 
 type CreateTodoHandler struct{ CommandHandler }
 
-func NewCreateTodoHandler(events event.Store, eventBus event.Publisher) (*CreateTodoHandler, error) {
+func NewCreateTodoHandler(
+	events event.Store,
+	eventBus event.Publisher,
+) (*CreateTodoHandler, error) {
 	ch, err := NewHandler(events, eventBus)
 	if err != nil {
 		return nil, err

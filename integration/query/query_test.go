@@ -9,26 +9,20 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v2/querytest"
 )
 
-func registerHandler[T any](d *query.Dispatcher, queryType string, result T) {
-	err := d.Register(query.Type(queryType), func(_ context.Context, _ query.Query) (any, error) {
+func registerHandler[T any](d *query.Dispatcher, queryType string, result T) error {
+	return d.Register(query.Type(queryType), func(_ context.Context, _ query.Query) (any, error) {
 		return result, nil
 	})
-	if err != nil {
-		panic("registerHandler: " + err.Error())
-	}
 }
 
 func registerCallOrderHandler[T any](
 	d *query.Dispatcher, queryType string, callOrder *[]string, result T,
-) {
-	err := d.Register(query.Type(queryType), func(_ context.Context, _ query.Query) (any, error) {
+) error {
+	return d.Register(query.Type(queryType), func(_ context.Context, _ query.Query) (any, error) {
 		*callOrder = append(*callOrder, "handler")
 
 		return result, nil
 	})
-	if err != nil {
-		panic("registerCallOrderHandler: " + err.Error())
-	}
 }
 
 func TestNewQuery(t *testing.T) {
@@ -67,7 +61,9 @@ func TestDispatcher_Dispatch(t *testing.T) {
 
 	dispatcher := query.NewDispatcher()
 
-	registerHandler(dispatcher, "GetUser", "user-123")
+	if err := registerHandler(dispatcher, "GetUser", "user-123"); err != nil {
+		t.Fatal(err)
+	}
 
 	q := querytest.New(t, "GetUser")
 
@@ -99,7 +95,9 @@ func TestDispatchTyped(t *testing.T) {
 
 	dispatcher := query.NewDispatcher()
 
-	registerHandler(dispatcher, "GetUserName", "John Doe")
+	if err := registerHandler(dispatcher, "GetUserName", "John Doe"); err != nil {
+		t.Fatal(err)
+	}
 
 	q := querytest.New(t, "GetUserName")
 
@@ -118,7 +116,9 @@ func TestDispatchTyped_WrongType(t *testing.T) {
 
 	dispatcher := query.NewDispatcher()
 
-	registerHandler(dispatcher, "GetCount", 42)
+	if err := registerHandler(dispatcher, "GetCount", 42); err != nil {
+		t.Fatal(err)
+	}
 
 	q := querytest.New(t, "GetCount")
 
@@ -140,7 +140,9 @@ func TestDispatcher_Middleware(t *testing.T) {
 		queryMiddleware(&callOrder, "middleware2"),
 	)
 
-	registerCallOrderHandler(dispatcher, "TestQuery", &callOrder, "result")
+	if err := registerCallOrderHandler(dispatcher, "TestQuery", &callOrder, "result"); err != nil {
+		t.Fatal(err)
+	}
 
 	q := querytest.New(t, "TestQuery")
 	_, _ = dispatcher.Dispatch(context.Background(), q)
