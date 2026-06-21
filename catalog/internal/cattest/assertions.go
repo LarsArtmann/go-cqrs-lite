@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func MustReadFile(tb testing.TB, path string) string {
+func ReadFile(tb testing.TB, path string) string {
 	tb.Helper()
 
 	data, err := os.ReadFile(path)
@@ -63,7 +63,7 @@ func RequireErr(tb testing.TB, err error, msg string) {
 func ReadFileAndAssert(tb testing.TB, path, desc string, substrs ...string) string {
 	tb.Helper()
 
-	content := MustReadFile(tb, path)
+	content := ReadFile(tb, path)
 	AssertContentContains(tb, content, desc, substrs...)
 
 	return content

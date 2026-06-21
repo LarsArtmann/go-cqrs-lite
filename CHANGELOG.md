@@ -22,6 +22,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- **Zero-panic API migration** — All production `panic()` calls converted to error returns. Breaking signature changes:
+  - `pebble.NewStore/NewSnapshotStore/NewCheckpointStore/NewKVStore/NewQueryStore/NewCommandStore` now return `(T, error)` — returns `ErrNilDatabase` (classified as `Rejection`) if db is nil.
+  - `pebble.NewBackend` now returns `(*Backend, error)`.
+  - `multisig.VerifierMap` now returns `(map, error)` — returns `ErrNilSigner` (`Rejection`) if any signer is nil.
+  - `Version.Decrement()` and `Version.Sub(n)` now return `(Version, error)` — returns `ErrVersionUnderflow` (`Rejection`) on underflow.
+  - `SchemaVersion.Decrement()`, `.Add(n)`, `.Sub(n)` now return `(SchemaVersion, error)` — returns `ErrSchemaVersionUnderflow` (`Rejection`) on underflow.
+  - `codec.CBOREncMode()` and `codec.CBORDecMode()` return bare `cbor.EncMode`/`cbor.DecMode` via `sync.OnceValue` (no error — creation cannot fail with hardcoded valid options).
+  - `cattest.StringSchema` now returns `(*Schema, error)` instead of panicking on odd-length props.
 - **SSE moved to transport/http/** (`transport/http/`) — SSE broker moved from `middleware/` to new `transport/http/` module (ADR-0025). SSE wire format rewritten with proper `SSEEvent` struct, spec-correct multi-line `data:` handling, `SSEEventID` branded type, and 15s heartbeat to prevent proxy timeouts. Healthcheck, metrics_http, and pprof handlers deleted (generic utilities, zero CQRS deps, zero consumers).
 - **Ghost streaming interfaces removed** — Consolidated the old `StreamLoader`/`EventStream` types (bool-based `Next()` + `Err()`) into the shipped `EventIterator` interface (standard Go `io.EOF` pattern). Dead code that never compiled against the real interface is gone.
 - **WASM compilation** — All 7 core modules (id, codec, dispatcher, event, command, query, decider) now compile to `GOOS=js GOARCH=wasm`. Moved `NewCQRSViews()` behind `//go:build !js` to exclude the OTel SDK's `os/user` dependency.

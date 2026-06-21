@@ -117,7 +117,7 @@ var ErrVersionUnderflow = NewRejection("event.version_underflow", "event: versio
 // Returns ErrVersionUnderflow if v is 0.
 func (v Version) Decrement() (Version, error) {
 	if v == 0 {
-		return 0, ErrVersionUnderflow
+		return 0, fmt.Errorf("%w: Decrement() on %d", ErrVersionUnderflow, v)
 	}
 
 	return v - 1, nil
@@ -193,7 +193,7 @@ var ErrSchemaVersionUnderflow = NewRejection(
 // Returns ErrSchemaVersionUnderflow if sv is 0 or 1 (minimum schema version is 1).
 func (sv SchemaVersion) Decrement() (SchemaVersion, error) {
 	if sv <= 1 {
-		return 0, ErrSchemaVersionUnderflow
+		return 0, fmt.Errorf("%w: Decrement() on %d", ErrSchemaVersionUnderflow, sv)
 	}
 
 	return sv - 1, nil

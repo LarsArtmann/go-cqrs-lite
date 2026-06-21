@@ -845,7 +845,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | Interface-first        | All core types are interfaces — provide your own implementations                 |
 | Library, not framework | Import what you need, compose your own stack                                     |
 | Context-aware          | All handlers accept `context.Context`                                            |
-| Errors as values       | No panics in production code, explicit error returns, sentinel errors + wrapping |
+| Errors as values       | Zero panics in production code, explicit error returns, classified sentinels via error-family taxonomy |
 | Defensive copies       | All public accessors return copies — callers cannot mutate internals             |
 | Tombstone over delete  | Soft-delete via metadata — no `Delete` on Store                                  |
 
