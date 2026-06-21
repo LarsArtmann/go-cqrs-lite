@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/ed25519"
 	"fmt"
-	"log"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
@@ -22,7 +21,7 @@ func ExampleNewMultiSigner() {
 		signerverifier,
 	)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	aggID := id.NewAggregateID()
@@ -30,7 +29,7 @@ func ExampleNewMultiSigner() {
 
 	signed, err := deviceMulti.Sign(evt)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	fmt.Println("actor:", deviceMulti.Actor())

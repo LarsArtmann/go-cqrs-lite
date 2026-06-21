@@ -169,16 +169,9 @@ func applyTombstonePolicy(refs []AggregateStatus, policy TombstonePolicy) []Aggr
 	filtered := make([]AggregateStatus, 0, len(refs))
 
 	for _, r := range refs {
-		switch policy {
-		case TombstoneExclude:
-			if !r.Status.IsTombstoned() {
-				filtered = append(filtered, r)
-			}
-		case TombstoneOnly:
-			if r.Status.IsTombstoned() {
-				filtered = append(filtered, r)
-			}
-		case TombstoneInclude:
+		if policy == TombstoneExclude && !r.Status.IsTombstoned() {
+			filtered = append(filtered, r)
+		} else if policy == TombstoneOnly && r.Status.IsTombstoned() {
 			filtered = append(filtered, r)
 		}
 	}

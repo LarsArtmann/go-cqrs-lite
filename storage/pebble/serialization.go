@@ -14,23 +14,13 @@ import (
 // (RFC 7049 sorted map keys). Delegates to codec.CBOREncMode so all modules
 // share one deterministic encoding mode.
 func marshalCBOR(v any) ([]byte, error) {
-	mode, err := codec.CBOREncMode()
-	if err != nil {
-		return nil, fmt.Errorf("pebble: CBOR encoding mode: %w", err)
-	}
-
-	return mode.Marshal(v)
+	return codec.CBOREncMode().Marshal(v)
 }
 
 // unmarshalCBOR deserializes CBOR data using the canonical decoding mode
 // with duplicate map key enforcement. Delegates to codec.CBORDecMode.
 func unmarshalCBOR(data []byte, v any) error {
-	mode, err := codec.CBORDecMode()
-	if err != nil {
-		return fmt.Errorf("pebble: CBOR decoding mode: %w", err)
-	}
-
-	return mode.Unmarshal(data, v)
+	return codec.CBORDecMode().Unmarshal(data, v)
 }
 
 // isCBOR detects CBOR-encoded data by checking for CBOR major type 5 (map).

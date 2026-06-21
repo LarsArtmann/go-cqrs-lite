@@ -32,72 +32,50 @@ type CBORCompactCodec struct{}
 
 var _ Codec = CBORCompactCodec{}
 
-var (
-	compactEncModeOnce sync.Once
-	compactEncModeVal  cbor.EncMode
-	compactEncModeErr  error
-)
+// compactEncMode and compactDecMode use sync.OnceValue for the same reason
+// as canonicalEncMode/canonicalDecMode in cbor.go — the options are hardcoded
+// valid constants, so mode creation cannot fail.
+var compactEncMode = sync.OnceValue(func() cbor.EncMode {
+	mode, err := cbor.CoreDetEncOptions().EncMode()
+	if err != nil {
+		panic(fmt.Sprintf("codec: compact CBOR EncMode creation failed: %v", err))
+	}
 
-func compactEncMode() (cbor.EncMode, error) {
-	compactEncModeOnce.Do(func() {
-		opts := cbor.CoreDetEncOptions()
-		compactEncModeVal, compactEncModeErr = opts.EncMode()
-	})
+	return mode
+})
 
-	return compactEncModeVal, compactEncModeErr
-}
+var compactDecMode = sync.OnceValue(func() cbor.DecMode {
+	opts := cbor.DecOptions{ //nolint:exhaustruct // only strict-mode fields needed
+		DupMapKey:         cbor.DupMapKeyEnforcedAPF,
+		ExtraReturnErrors: cbor.ExtraDecErrorUnknownField,
+	}
 
-var (
-	compactDecModeOnce sync.Once
-	compactDecModeVal  cbor.DecMode
-	compactDecModeErr  error
-)
+	mode, err := opts.DecMode()
+	if err != nil {
+		panic(fmt.Sprintf("codec: compact CBOR DecMode creation failed: %v", err))
+	}
 
-func compactDecMode() (cbor.DecMode, error) {
-	compactDecModeOnce.Do(func() {
-		opts := cbor.DecOptions{ //nolint:exhaustruct // only strict-mode fields needed
-			DupMapKey:         cbor.DupMapKeyEnforcedAPF,
-			ExtraReturnErrors: cbor.ExtraDecErrorUnknownField,
-		}
-		compactDecModeVal, compactDecModeErr = opts.DecMode()
-	})
-
-	return compactDecModeVal, compactDecModeErr
-}
+	return mode
+})
 
 func (CBORCompactCodec) Encoding() Encoding { return EncodingCBOR }
 
 // Encode marshals a value to compact CBOR bytes with deterministic ordering.
 func (CBORCompactCodec) Encode(v any) ([]byte, error) {
-	mode, err := compactEncMode()
-	if err != nil {
-		return nil, fmt.Errorf("codec: CBOR compact encoding mode: %w", err)
-	}
-
 	//nolint:wrapcheck // thin wrapper over cbor EncMode.Marshal
-	return mode.Marshal(v)
+	return compactEncMode().Marshal(v)
 }
 
 // Decode unmarshals compact CBOR bytes into a value.
 // Returns an error if the data contains unknown fields (schema drift detection).
 func (CBORCompactCodec) Decode(data []byte, v any) error {
-	mode, err := compactDecMode()
-	if err != nil {
-		return fmt.Errorf("codec: CBOR compact decoding mode: %w", err)
-	}
-
 	//nolint:wrapcheck // thin wrapper over cbor DecMode.Unmarshal
-	return mode.Unmarshal(data, v)
+	return compactDecMode().Unmarshal(data, v)
 }
 
 // EncodeToBuffer writes compact CBOR encoding of v directly into buf,
 // avoiding the allocation that Encode returns. Implements BufferEncoder.
 func (CBORCompactCodec) EncodeToBuffer(v any, buf *bytes.Buffer) error {
-	mode, err := compactEncMode()
-	if err != nil {
-		return fmt.Errorf("codec: CBOR compact encoding mode: %w", err)
-	}
-
 	//nolint:wrapcheck // thin wrapper over cbor Encoder.Encode
-	return mode.NewEncoder(buf).Encode(v)
+	return compactEncMode().NewEncoder(buf).Encode(v)
 }

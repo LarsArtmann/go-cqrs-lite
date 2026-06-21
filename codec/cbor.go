@@ -20,72 +20,55 @@ type CBORCodec struct{}
 
 var _ Codec = CBORCodec{}
 
-var (
-	encModeOnce sync.Once
-	encModeVal  cbor.EncMode
-	encModeErr  error
-)
+// canonicalEncMode is computed once via sync.OnceValue. The options are
+// hardcoded valid constants from fxamacker/cbor, so EncMode() cannot fail
+// in practice — mirroring the library's own `var defaultEncMode, _ = ...`.
+// If this ever panics, it means a dependency upgrade broke option semantics.
+var canonicalEncMode = sync.OnceValue(func() cbor.EncMode {
+	mode, err := cbor.CanonicalEncOptions().EncMode()
+	if err != nil {
+		panic(fmt.Sprintf("codec: canonical CBOR EncMode creation failed: %v", err))
+	}
 
-func canonicalEncMode() (cbor.EncMode, error) {
-	encModeOnce.Do(func() {
-		encModeVal, encModeErr = cbor.CanonicalEncOptions().EncMode()
-	})
+	return mode
+})
 
-	return encModeVal, encModeErr
-}
+// canonicalDecMode is computed once via sync.OnceValue. DupMapKeyEnforcedAPF
+// is a valid constant, so DecMode() cannot fail.
+var canonicalDecMode = sync.OnceValue(func() cbor.DecMode {
+	//nolint:exhaustruct // only DupMapKey is intentional; all other fields use library defaults
+	opts := cbor.DecOptions{DupMapKey: cbor.DupMapKeyEnforcedAPF}
+
+	mode, err := opts.DecMode()
+	if err != nil {
+		panic(fmt.Sprintf("codec: canonical CBOR DecMode creation failed: %v", err))
+	}
+
+	return mode
+})
 
 // CBOREncMode returns the canonical CBOR encoding mode (RFC 7049 sorted map keys).
 // Used by storage/pebble and other modules that need deterministic CBOR encoding
 // identical to what CBORCodec produces.
-func CBOREncMode() (cbor.EncMode, error) {
-	return canonicalEncMode()
-}
-
-var (
-	decModeOnce sync.Once
-	decModeVal  cbor.DecMode
-	decModeErr  error
-)
-
-func canonicalDecMode() (cbor.DecMode, error) {
-	decModeOnce.Do(func() {
-		//nolint:exhaustruct // only DupMapKey is intentional; all other fields use library defaults
-		opts := cbor.DecOptions{DupMapKey: cbor.DupMapKeyEnforcedAPF}
-		decModeVal, decModeErr = opts.DecMode()
-	})
-
-	return decModeVal, decModeErr
-}
+func CBOREncMode() cbor.EncMode { return canonicalEncMode() }
 
 // CBORDecMode returns the CBOR decoding mode with duplicate map key enforcement.
 // External packages (e.g. storage/pebble) should use this instead of creating
 // their own identical DecMode.
-func CBORDecMode() (cbor.DecMode, error) {
-	return canonicalDecMode()
-}
+func CBORDecMode() cbor.DecMode { return canonicalDecMode() }
 
 func (CBORCodec) Encoding() Encoding { return EncodingCBOR }
 
 // Encode marshals a value to canonical CBOR bytes with deterministic map ordering.
 func (CBORCodec) Encode(v any) ([]byte, error) {
-	mode, err := canonicalEncMode()
-	if err != nil {
-		return nil, fmt.Errorf("codec: CBOR canonical encoding mode: %w", err)
-	}
-
 	//nolint:wrapcheck // thin wrapper over cbor EncMode.Marshal
-	return mode.Marshal(v)
+	return canonicalEncMode().Marshal(v)
 }
 
 // Decode unmarshals CBOR bytes into a value.
 func (CBORCodec) Decode(data []byte, v any) error {
-	mode, err := canonicalDecMode()
-	if err != nil {
-		return fmt.Errorf("codec: CBOR decoding mode: %w", err)
-	}
-
 	//nolint:wrapcheck // thin wrapper over cbor DecMode.Unmarshal
-	return mode.Unmarshal(data, v)
+	return canonicalDecMode().Unmarshal(data, v)
 }
 
 // Diagnose converts CBOR bytes to extended diagnostic notation (EDN) — a
@@ -103,11 +86,6 @@ func Diagnose(data []byte) (string, error) {
 // EncodeToBuffer writes canonical CBOR encoding of v directly into buf,
 // avoiding the allocation that Encode returns. Implements BufferEncoder.
 func (CBORCodec) EncodeToBuffer(v any, buf *bytes.Buffer) error {
-	mode, err := canonicalEncMode()
-	if err != nil {
-		return fmt.Errorf("codec: CBOR canonical encoding mode: %w", err)
-	}
-
 	//nolint:wrapcheck // thin wrapper over cbor Encoder.Encode
-	return mode.NewEncoder(buf).Encode(v)
+	return canonicalEncMode().NewEncoder(buf).Encode(v)
 }

@@ -1,13 +1,14 @@
 package pebble
 
 import (
-	"errors"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 )
 
 // ErrNilDatabase is returned when a store constructor is called with a nil *pebble.DB.
-var ErrNilDatabase = errors.New("pebble: constructor called with nil database")
+var ErrNilDatabase = event.NewRejection(
+	"pebble.nil_database",
+	"pebble: constructor called with nil database",
+)
 
 var (
 	// ErrAggregateTypeMismatch is returned when an event's aggregate type doesn't match.

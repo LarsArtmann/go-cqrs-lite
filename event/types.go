@@ -3,7 +3,6 @@ package event
 import (
 	"cmp"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/netip"
 	"strconv"
@@ -112,7 +111,7 @@ func (v Version) IsZero() bool { return v == 0 }
 func (v Version) Increment() Version { return v + 1 }
 
 // ErrVersionUnderflow is returned when a Version operation would result in a negative value.
-var ErrVersionUnderflow = errors.New("event: version underflow")
+var ErrVersionUnderflow = NewRejection("event.version_underflow", "event: version underflow")
 
 // Decrement returns a new Version decremented by 1.
 // Returns ErrVersionUnderflow if v is 0.
@@ -185,7 +184,10 @@ func ParseSchemaVersion(v int) (SchemaVersion, error) {
 }
 
 // ErrSchemaVersionUnderflow is returned when a SchemaVersion operation would result in a non-positive value.
-var ErrSchemaVersionUnderflow = errors.New("event: schema version underflow")
+var ErrSchemaVersionUnderflow = NewRejection(
+	"event.schema_version_underflow",
+	"event: schema version underflow",
+)
 
 // Decrement returns the previous schema version.
 // Returns ErrSchemaVersionUnderflow if sv is 0 or 1 (minimum schema version is 1).
