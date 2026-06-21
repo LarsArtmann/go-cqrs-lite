@@ -130,7 +130,7 @@ func (v Version) String() string { return strconv.FormatUint(uint64(v), 10) }
 func (v Version) IsPositive() bool { return v > 0 }
 
 // Add returns a new Version incremented by n.
-// Panics if n is negative (use Sub for decrements).
+// n is a uint, so underflow is impossible at the type level (use Sub for decrements).
 func (v Version) Add(n uint) Version { return v + Version(n) }
 
 // Sub returns a new Version decremented by n.

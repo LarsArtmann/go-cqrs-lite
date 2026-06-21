@@ -94,7 +94,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 
 	// Override: event store from separate DB if configured.
 	if cfg.eventDSN != "" {
-		eventOpts, eventCloser, eErr := openSecondaryStores(cfg.eventDSN, cfg, backend)
+		eventOpts, eventCloser, eErr := openSecondaryStores(cfg.eventDSN, cfg)
 		if eErr != nil {
 			_ = backend.Close()
 			_ = db.Close()
@@ -108,7 +108,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 
 	// Override: command/query stores from separate DB if configured.
 	if cfg.queryDSN != "" {
-		queryOpts, queryCloser, qErr := openSecondaryStores(cfg.queryDSN, cfg, backend)
+		queryOpts, queryCloser, qErr := openSecondaryStores(cfg.queryDSN, cfg)
 		if qErr != nil {
 			_ = backend.Close()
 			_ = db.Close()
@@ -298,7 +298,6 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 func openSecondaryStores(
 	dsn string,
 	cfg config,
-	primaryBackend *storage.SQLBackend,
 ) ([]stack.Option, io.Closer, error) {
 	secDB, err := openSecondaryDB(dsn, cfg)
 	if err != nil {
@@ -336,34 +335,3 @@ func openSecondaryStores(
 
 	return opts, closer, nil
 }
-
-// multiCloser closes multiple io.Closers in order.
-type multiCloser struct {
-	closers []io.Closer
-}
-
-func (m *multiCloser) Close() error {
-	var firstErr error
-
-	for _, c := range m.closers {
-		err := c.Close()
-		if err != nil && firstErr == nil {
-			firstErr = err
-		}
-	}
-
-	return firstErr
-}
-
-var _ io.Closer = (*multiCloser)(nil)
-
-// funcCloser adapts a func() error into an io.Closer. It is a pointer-receiving
-// struct (not a function type) so it is comparable and can be used as a map
-// key for Bundle.Close deduplication.
-type funcCloser struct {
-	fn func() error
-}
-
-func (c *funcCloser) Close() error { return c.fn() }
-
-var _ io.Closer = (*funcCloser)(nil)

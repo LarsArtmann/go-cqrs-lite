@@ -74,7 +74,7 @@ func setupBundle(dataDir string) (*stack.Bundle, error) {
 		return nil, event.Newf(event.Infrastructure, "todo.setup.bundle", "create bundle: %v", err)
 	}
 
-	return bundle, nil
+	return bundle.Bundle, nil
 }
 
 func setupProjection(

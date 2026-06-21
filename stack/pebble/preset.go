@@ -38,7 +38,42 @@ func WithLogger(logger *slog.Logger) Option {
 	return func(c *config) { c.logger = logger }
 }
 
-// New opens a PebbleDB database at dir and returns a fully-wired [stack.Bundle].
+// Bundle wraps [stack.Bundle] with Pebble-specific backup and observability
+// capabilities. It embeds *stack.Bundle, so all Bundle fields and methods are
+// available directly.
+type Bundle struct {
+	*stack.Bundle
+
+	backend *cqrspebble.Backend
+}
+
+// Checkpoint creates a point-in-time physical snapshot of the PebbleDB
+// database at dir. The target directory must not already exist.
+// Use this for backups before migrations or for disaster recovery.
+func (b *Bundle) Checkpoint(dir string) error {
+	return b.backend.Checkpoint(dir)
+}
+
+// NewSnapshot returns a consistent read view of the database at the current
+// moment. Useful for reading events while writes are in-flight without
+// blocking writers. The caller must call Close on the returned snapshot.
+func (b *Bundle) NewSnapshot() *pebble.Snapshot {
+	return b.backend.NewSnapshot()
+}
+
+// Flush writes all buffered writes to stable storage. Call this before a
+// Checkpoint to ensure the backup includes all recent writes.
+func (b *Bundle) Flush() error {
+	return b.backend.Flush()
+}
+
+// Metrics returns PebbleDB LSM-tree metrics for health checks and dashboards.
+// Use BlockCacheHitRate() to monitor cache effectiveness.
+func (b *Bundle) Metrics() cqrspebble.PebbleMetrics {
+	return b.backend.Metrics()
+}
+
+// New opens a PebbleDB database at dir and returns a fully-wired [Bundle].
 //
 // dir is the filesystem path for the PebbleDB database. The directory is
 // created if it does not exist.
@@ -48,9 +83,10 @@ func WithLogger(logger *slog.Logger) Option {
 // kv.Store (KVAdapter) — use kv.WithTypedKeyPrefix to namespace each read
 // model type. The event bus uses watermill.EventBus (GoChannel, in-process).
 //
-// The returned Bundle owns the *pebble.DB; Close releases it along with all stores.
+// The returned Bundle owns the *pebble.DB; Close releases it along with all
+// stores. Use Checkpoint(dir) for point-in-time backups.
 // On any setup failure the database is closed before the error is returned.
-func New(dir string, opts ...Option) (*stack.Bundle, error) {
+func New(dir string, opts ...Option) (*Bundle, error) {
 	cfg := defaultConfig()
 
 	for _, opt := range opts {
@@ -76,5 +112,5 @@ func New(dir string, opts ...Option) (*stack.Bundle, error) {
 		return nil, fmt.Errorf("pebble preset: wire bundle: %w", err)
 	}
 
-	return b, nil
+	return &Bundle{Bundle: b, backend: backend}, nil
 }

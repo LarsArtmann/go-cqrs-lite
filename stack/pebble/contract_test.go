@@ -11,6 +11,11 @@ import (
 
 func TestContract(t *testing.T) {
 	contracttest.RunSuite(t, func(t *testing.T) (*stack.Bundle, error) {
-		return pebble.New(filepath.Join(t.TempDir(), "contract"))
+		b, err := pebble.New(filepath.Join(t.TempDir(), "contract"))
+		if err != nil {
+			return nil, err
+		}
+
+		return b.Bundle, nil
 	})
 }

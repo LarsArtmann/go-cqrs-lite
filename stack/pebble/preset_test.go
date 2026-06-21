@@ -120,7 +120,7 @@ func TestNew_E2E_ReadModelRoundtrip(t *testing.T) {
 	defer func() { _ = b.Close() }()
 
 	store, err := stack.ReadModel[todoView, todoKey](
-		b, codec.JSONCodec{},
+		b.Bundle, codec.JSONCodec{},
 		kv.WithTypedKeyPrefix[todoView, todoKey]("todos:"),
 	)
 	if err != nil {
@@ -211,4 +211,37 @@ func TestNew_CloseIsIdempotent(t *testing.T) {
 	if err := b.Close(); err != nil {
 		t.Fatalf("second Close: %v", err)
 	}
+}
+
+func TestBundle_Checkpoint(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	b, err := pebble.New(filepath.Join(dir, "source"))
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	defer func() { _ = b.Close() }()
+
+	backupDir := filepath.Join(dir, "backup")
+
+	if err := b.Checkpoint(backupDir); err != nil {
+		t.Fatalf("Checkpoint: %v", err)
+	}
+}
+
+func TestBundle_Metrics(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	b, err := pebble.New(filepath.Join(dir, "metrics"))
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	defer func() { _ = b.Close() }()
+
+	m := b.Metrics()
+	_ = m.BlockCacheHitRate()
 }

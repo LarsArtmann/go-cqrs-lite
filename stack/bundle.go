@@ -1,6 +1,7 @@
 package stack
 
 import (
+	"context"
 	"errors"
 	"io"
 
@@ -125,6 +126,28 @@ func (b *Bundle) Close() error {
 	b.closers = nil
 
 	return errors.Join(errs...)
+}
+
+// GracefulClose closes the Bundle like [Bundle.Close], but bounded by ctx.
+// It runs Close in a goroutine; if ctx is cancelled before Close completes,
+// the context error is returned. Resources may still be closing in the
+// background — the caller should exit the process if the timeout fires.
+//
+// Use this instead of Close when in-flight handlers (event subscribers,
+// projection runners) may need time to drain. The closers list is ordered:
+// the event bus is registered before stores, so it closes first, allowing
+// BlockPublishUntilSubscriberAck to ensure ordered delivery completes.
+func (b *Bundle) GracefulClose(ctx context.Context) error {
+	done := make(chan error, 1)
+
+	go func() { done <- b.Close() }()
+
+	select {
+	case err := <-done:
+		return err
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
 // registerCloser adds c to the list of resources [Bundle.Close] will release,
