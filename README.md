@@ -11,9 +11,6 @@ A lightweight CQRS + Event Sourcing **library** for Go. Import only what you nee
 
 ```bash
 go get github.com/larsartmann/go-cqrs-lite/event/v2
-go get github.com/larsartmann/go-cqrs-lite/command/v2
-go get github.com/larsartmann/go-cqrs-lite/decider/v2
-go get github.com/larsartmann/go-cqrs-lite/memory/v2
 ```
 
 ```go
@@ -28,21 +25,30 @@ import (
     "github.com/larsartmann/go-cqrs-lite/decider/v2"
     "github.com/larsartmann/go-cqrs-lite/event/v2"
     "github.com/larsartmann/go-cqrs-lite/id/v2"
-    "github.com/larsartmann/go-cqrs-lite/memory/v2"
+    "github.com/larsartmann/go-cqrs-lite/storage/memory/v2"
+    cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v2"
 )
 
 type UserState struct{ Name string }
-type CreateUser struct{ Name string }
 type UserCreated struct{ Name string }
+
+// CreateUser implements command.Command (Type + AggregateID required).
+type CreateUser struct {
+    aggID id.AggregateID
+    Name  string
+}
+
+func (c *CreateUser) Type() command.Type          { return "user.create" }
+func (c *CreateUser) AggregateID() id.AggregateID { return c.aggID }
 
 func main() {
     ctx := context.Background()
     store := memory.NewMemoryStore()
-    bus := memory.NewMemoryBus()
+    bus := cqrswatermill.NewEventBus()
 
     d := decider.Decider[UserState]{
         Initial: UserState{},
-        Fold: func(s UserState, e event.Event) (UserState, error) {
+        Apply: func(s UserState, e event.Event) (UserState, error) {
             p, _ := event.DecodePayload[UserCreated](e, codec.JSONCodec{})
             s.Name = p.Name
             return s, nil
@@ -60,14 +66,33 @@ func main() {
             })
         })
 
-    _ = cmds.Dispatch(ctx, &CreateUser{Name: "Alice"})
+    _ = cmds.Dispatch(ctx, &CreateUser{aggID: aggID, Name: "Alice"})
 
     state, _, _ := repo.Load(ctx, aggID, "User")
     fmt.Printf("User: %s\n", state.Name) // User: Alice
 }
 ```
 
-See [`example/todo/`](example/todo/) for a full application with HTTP API, projections, and queries.
+### Deployer-First Pattern (recommended for production)
+
+For a fully-wired stack with persistent storage, event bus, read models, and
+projections — use a **stack preset**. One import, one function call:
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v2"
+
+// Events, commands, queries, snapshots, checkpoints, read models — all persisted.
+// Event bus wired (watermill GoChannel for in-process pub/sub).
+bundle, err := sqlite.New("app.db")
+// Use bundle.EventStore, bundle.Bus, bundle.ReadModels, bundle.CommandDispatcher...
+defer bundle.Close()
+```
+
+Four presets available: `stack/memory` (tests), `stack/sqlite` (embedded),
+`stack/pebble` (high-throughput embedded KV), `stack/postgres` (distributed).
+
+See [`example/deployer-first/`](example/deployer-first/) for a complete
+end-to-end example with projection catch-up and ordered delivery.
 
 ## Modules
 
@@ -87,27 +112,28 @@ Every module has its own README with detailed usage, types, and examples.
 
 ### Persistence
 
-| Module       | Purpose                                                               | README                       |
-| ------------ | --------------------------------------------------------------------- | ---------------------------- |
-| **memory**   | In-memory store/bus/snapshot/checkpoint/command-bus — for tests & dev | [README](memory/README.md)   |
-| **storage**  | SQL event/snapshot/checkpoint/command stores (PostgreSQL, SQLite)     | [README](storage/README.md)  |
-| **pebble**   | Embedded KV: event/snapshot/checkpoint stores (PebbleDB + CBOR)       | [README](pebble/README.md)   |
-| **kv**       | Layer-0 KV store abstraction: Store, MemStore, Iterator, Batch        | [README](kv/README.md)       |
-| **turso**    | Turso/LibSQL connector with offline-first sync + indexing advisor     | [README](turso/README.md)    |
-| **snapshot** | Snapshot types, strategies, store interfaces                          | [README](snapshot/README.md) |
-| **schema**   | Schema evolution via upcasters and VersionedStore                     | [README](schema/README.md)   |
+| Module             | Purpose                                                               |
+| ------------------ | --------------------------------------------------------------------- |
+| **storage/memory** | In-memory store/snapshot/checkpoint — for tests & dev                 |
+| **storage**        | SQL event/snapshot/checkpoint/command stores (PostgreSQL, SQLite)     |
+| **storage/pebble** | Embedded KV: event/snapshot/checkpoint stores (PebbleDB + CBOR)       |
+| **storage/turso**  | Turso/LibSQL connector with offline-first sync + indexing advisor     |
+| **kv**             | Layer-0 KV store abstraction: Store, MemStore, TypedStore, Cache      |
+| **snapshot**       | Snapshot types, strategies, store interfaces                          |
+| **schema**         | Schema evolution via upcasters and VersionedStore                     |
 
 ### Infrastructure
 
-| Module         | Purpose                                                                  | README                         |
-| -------------- | ------------------------------------------------------------------------ | ------------------------------ |
-| **middleware** | Logging, retry, validation, recovery, circuit breaker, OTel, SSE, health | [README](middleware/README.md) |
-| **projection** | Runner with replay + live subscription, handler registry                 | [README](projection/README.md) |
-| **signing**    | Event signing: HMAC-SHA256, Ed25519, multi-sig                           | [README](signing/README.md)    |
-| **encryption** | Payload encryption: XChaCha20-Poly1305, AES-256-GCM, key rotation        | [README](encryption/README.md) |
-| **listing**    | Aggregate listing read model with tombstone-aware status                 | [README](listing/README.md)    |
-| **otel**       | Shared OpenTelemetry helpers (tracer, meter, spans)                      | [README](otel/README.md)       |
-| **watermill**  | Adapter for the Watermill message router ecosystem                       | [README](watermill/README.md)  |
+| Module             | Purpose                                                                  |
+| ------------------ | ------------------------------------------------------------------------ |
+| **middleware**     | Logging, retry, validation, recovery, circuit breaker, OTel tracing      |
+| **transport/http** | SSE event delivery (Server-Sent Events over HTTP)                        |
+| **signing**        | Event signing: HMAC-SHA256, Ed25519, multi-sig                           |
+| **encryption**     | Payload encryption: XChaCha20-Poly1305, AES-256-GCM, key rotation        |
+| **listing**        | Aggregate listing read model with tombstone-aware status                 |
+| **otel**           | Shared OpenTelemetry helpers (tracer, meter, spans)                      |
+| **watermill**      | EventBus adapter, CatchUpSubscriber, EventPublisher                      |
+| **prometheus**     | OTel→Prometheus metrics bridge with /metrics handler                     |
 
 ### Tooling & Docs
 
@@ -119,18 +145,29 @@ Every module has its own README with detailed usage, types, and examples.
 | **cmd/api-stability** | API surface checker: compare exports against golden file              | [README](cmd/api-stability/README.md) |
 | **integration**       | Cross-module integration tests                                        | [README](integration/README.md)       |
 
+### Stack Presets
+
+| Module             | Purpose                                                |
+| ------------------ | ------------------------------------------------------ |
+| **stack**          | Bundle composition + Materialize projection builder    |
+| **stack/memory**   | All-in-memory preset (tests & dev)                     |
+| **stack/sqlite**   | Embedded SQLite preset (single-file persistence)       |
+| **stack/pebble**   | Embedded PebbleDB preset (high-throughput KV)          |
+| **stack/postgres** | PostgreSQL preset (distributed, LISTEN/NOTIFY bus)    |
+
 ### Examples
 
-| Module                 | Purpose                                             | README                                 |
-| ---------------------- | --------------------------------------------------- | -------------------------------------- |
-| **example/todo**       | Full app: HTTP API, decider, projections, queries   | [README](example/todo/README.md)       |
-| **example/user**       | Advanced patterns: signing, middleware, catalog     | [README](example/user/README.md)       |
-| **example/encryption** | Event encryption patterns: bus, store, key rotation | [README](example/encryption/README.md) |
+| Module                   | Purpose                                                  |
+| ------------------------ | -------------------------------------------------------- |
+| **example/todo**         | Full app: HTTP API, decider, projections, queries        |
+| **example/user**         | Advanced patterns: signing, middleware, catalog          |
+| **example/encryption**   | Event encryption patterns: bus, store, key rotation      |
+| **example/deployer-first** | Deployer-first stack with catch-up projections         |
 
 ## Design Principles
 
 1. **Library, not framework** — Import what you need. No opinionated transport, broker, or driver.
-2. **Interface-first** — All core types are interfaces (`Store = EventSink + EventSource`).
+2. **Concrete types where it matters** — `event.Event = *ImmutableEvent` (no interface indirection on hot paths).
 3. **Composition over inheritance** — Per Go best practices.
 4. **Strong types** — Branded IDs, no `any` in public API (except DB interop).
 5. **Errors as values** — No panics in production paths; 5-family error taxonomy.
@@ -153,9 +190,9 @@ Every module has its own README with detailed usage, types, and examples.
 
 ## Status
 
-**v2.6.0** — 30 modules, 84–100% test coverage, 0 lint issues. Active development.
+**v3-ready** — 38 modules, 84–100% test coverage on core modules. All 11 v3 breaking changes complete. Ready to tag v3.0.0.
 
-See [FEATURES.md](FEATURES.md) for the full feature inventory and [docs/](docs/) for architecture decisions (ADRs), benchmarks, and storage guides.
+See [FEATURES.md](FEATURES.md) for the full feature inventory, [ROADMAP.md](ROADMAP.md) for direction, and [docs/](docs/) for architecture decisions (ADRs), benchmarks, and storage guides.
 
 ## License
 

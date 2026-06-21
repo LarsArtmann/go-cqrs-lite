@@ -1287,12 +1287,18 @@ stack/func WithSubscriber
 stack/memory/func New
 stack/method CatchUpSubscriber
 stack/method Close
+stack/method GracefulClose
 stack/method HandlerFunc
 stack/method List
 stack/method View
 stack/pebble/func New
 stack/pebble/func WithLogger
 stack/pebble/func WithPebbleOptions
+stack/pebble/method Checkpoint
+stack/pebble/method Flush
+stack/pebble/method Metrics
+stack/pebble/method NewSnapshot
+stack/pebble/struct Bundle
 stack/pebble/type Option
 stack/postgres/func New
 stack/postgres/func NewPgxListener
@@ -1544,6 +1550,7 @@ transport/http/const DefaultSSEHeartbeat
 transport/http/func NewSSEBroker
 transport/http/func ParseSSEEventID
 transport/http/func SSEHandler
+transport/http/func WithReconnectJournal
 transport/http/func WriteSSEEvent
 transport/http/func WriteSSEHeartbeat
 transport/http/method AddClient
@@ -1556,6 +1563,7 @@ transport/http/method String
 transport/http/method String
 transport/http/struct SSEBroker
 transport/http/struct SSEEvent
+transport/http/type SSEBrokerOption
 transport/http/type SSEClientID
 transport/http/type SSEEventID
 watermill/const DefaultEventBusTopic

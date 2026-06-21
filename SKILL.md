@@ -27,10 +27,10 @@ Query   → Dispatcher → Handler → Read Model
 | Axis              | Question                                    | Modules                                                            |
 | ----------------- | ------------------------------------------- | ------------------------------------------------------------------ |
 | **Write model**   | How do I decide + persist changes?          | `event`, `command`, `decider`, `id`                                |
-| **Read model**    | How do I build queryable state from events? | `projection`, `listing`, `query`                                   |
-| **Storage**       | Where do events/snapshots/checkpoints live? | `memory`, `storage`, `pebble`, `turso`, `kv`, `stack`              |
-| **Read models**   | How do I store/query typed projections?     | `readmodel`, `readmodel/cache`                                     |
-| **Cross-cutting** | Security, evolution, observability, docs    | `signing`, `encryption`, `schema`, `middleware`, `otel`, `catalog` |
+| **Read model**    | How do I build queryable state from events? | `stack.Materialize`, `kv`, `listing`, `query`                      |
+| **Storage**       | Where do events/snapshots/checkpoints live? | `storage/memory`, `storage`, `storage/pebble`, `storage/turso`, `kv`, `stack` |
+| **Read models**   | How do I store/query typed projections?     | `kv.TypedStore`, `kv.Cache`                                        |
+| **Cross-cutting** | Security, evolution, observability, docs    | `signing`, `encryption`, `schema`, `middleware`, `otel`, `catalog`, `transport/http` |
 
 You do NOT need all of them. Start with the minimal recipe (§2), then bolt on capabilities.
 
@@ -45,12 +45,12 @@ You do NOT need all of them. Start with the minimal recipe (§2), then bolt on c
 | Run an event-sourced aggregate                      | `decider`                                                        | §2.1       |
 | Generate unique, type-safe IDs                      | `id`                                                             | §2.1       |
 | Encode payloads as JSON/CBOR                        | `codec`                                                          | §2.1       |
-| Build a read model from events                      | `projection`                                                     | §2.3       |
+| Build a read model from events                      | `stack.Materialize` + `kv.TypedStore`                            | §2.3       |
 | Dispatch type-safe queries                          | `query`                                                          | §2.3       |
 | List all aggregates + their status                  | `listing`                                                        | §6.4       |
 | Persist to PostgreSQL / SQLite                      | `storage`                                                        | §2.2       |
-| Persist to embedded PebbleDB                        | `pebble`                                                         | §2.2       |
-| Offline-first sync via LibSQL                       | `turso`                                                          | §6.6       |
+| Persist to embedded PebbleDB                        | `storage/pebble`                                                 | §2.2       |
+| Offline-first sync via LibSQL                       | `storage/turso`                                                  | §6.6       |
 | Generic key-value abstraction                       | `kv`                                                             | §6.7       |
 | Snapshot aggregates for speed                       | `snapshot`                                                       | §2.4       |
 | Evolve event schemas over time                      | `schema`                                                         | §2.5       |
@@ -504,7 +504,10 @@ cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 
 | Module              | Import        | One-liner                                                                                  |
 | ------------------- | ------------- | ------------------------------------------------------------------------------------------ |
-| `testutil`          | `testutil/v2` | `NewCmd(tb, ...)`, `NoopCommandHandler`. Shared test helpers (zero panics).                |
+| `testutil`          | `testutil/v2` | `MustNewCmd(tb, ...)`, `NoopCommandHandler`. Shared test helpers (zero panics).            |
+| `id/idtest`         | `id/v2/idtest`| `ParseAggregateID(tb, s)`, `ParseEventID(tb, s)`. Branded-ID test helpers — `tb.Fatalf` on error, no panics. |
+| `query/querytest`   | `query/v2/querytest` | `New(tb, queryType)`. Construct valid test queries — `tb.Fatalf` on error.          |
+| `event/eventtest`   | `event/v2/eventtest` | `FakeStore`, `FakeBus`, `AssertGolden`. Event test doubles and golden test helpers. |
 | `cmd/cqrs-gen`      | (go install)  | Code generator: typed handler registration from `//cqrs:command` / `//cqrs:query` markers. |
 | `cmd/api-stability` | (go install)  | API surface checker: compares exports against `docs/api_surface.txt` golden file.          |
 

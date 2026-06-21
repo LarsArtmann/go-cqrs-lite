@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-06-20
+**Updated:** 2026-06-21
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in [ROADMAP.md](ROADMAP.md).
 
 ## Legend
@@ -23,7 +23,11 @@
 
 ### v3 Breaking Changes (remaining)
 
-- [v3] **Make event Core truly immutable** — Currently opts pointer is shallow-copied on Clone.
+_All v3 breaking changes are complete._ The event Core immutability item was
+investigated and verified safe: `eventOptions` holds only immutable types
+(`Clock` func, `codec.Codec` interface, `time.Time` value), so the shallow
+struct copy in `Clone()` is semantically a deep copy. Regression test
+`TestClone_IndependentOpts` (`event/event_type_clone_test.go:229`) locks this in.
 
 ### Completed v3 Breaking Changes
 
@@ -44,7 +48,7 @@
 ## Recently Completed
 
 - [x] **watermill.EventBus adapter** — Full `event.Bus` implementation using Watermill GoChannel. All 4 stack presets migrated from `memory.MemoryBus`.
-- [ ] **TransactionID branded type** — Cross-aggregate consistency tracking phantom type (deleted in v2.8 — was ghost code with zero consumers; needs proper wiring before re-adding).
+- [x] **TransactionID branded type** — Deleted in v2.8 (ghost code, zero consumers). Re-adding requires a real consumer need + proper wiring through `event.Metadata` + `WithTransactionID()` Option. Tracked in ROADMAP as long-term.
 - [x] **Version drift CI check** — `scripts/check-version-drift.sh` detects sibling module version mismatches.
 - [x] **CI file-size gate fix** — Subshell bug fixed, gate now actually works.
 - [x] **File-size compliance** — All production files under 350 lines (7 files split).
@@ -69,4 +73,4 @@
 
 ---
 
-_2 v3 breaking changes remaining + completed items. See [ROADMAP.md](ROADMAP.md) for long-term vision._
+_All v3 breaking changes complete. Open items are transport adapters (ADR-0025, waiting for consumer signal) and Go-stdlib-blocked experiments (jsonv2, arenas). See [ROADMAP.md](ROADMAP.md) for long-term vision._
