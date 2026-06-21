@@ -2,6 +2,7 @@ package pebble
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"testing"
 	"time"
@@ -23,7 +24,12 @@ func newCheckpointStore(t *testing.T) *CheckpointStore {
 
 	t.Cleanup(func() { _ = db.Close() })
 
-	return NewCheckpointStore(db, slog.Default())
+	store, err := NewCheckpointStore(db, slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return store
 }
 
 func TestCheckpointStore_SaveAndLoad(t *testing.T) {
@@ -164,19 +170,10 @@ func TestCheckpointStore_Load_EmptyName(t *testing.T) {
 func TestCheckpointStore_NewStore_NilDB(t *testing.T) {
 	t.Parallel()
 
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Fatal("expected panic when calling NewCheckpointStore with nil db")
-		}
-
-		msg, ok := r.(string)
-		if !ok || msg != "pebble: NewCheckpointStore called with nil db" {
-			t.Fatalf("unexpected panic message: %v", r)
-		}
-	}()
-
-	NewCheckpointStore(nil, slog.Default())
+	_, err := NewCheckpointStore(nil, slog.Default())
+	if !errors.Is(err, ErrNilDatabase) {
+		t.Fatalf("expected ErrNilDatabase, got: %v", err)
+	}
 }
 
 func TestCheckpointStore_Close_NoOp(t *testing.T) {
@@ -209,8 +206,14 @@ func TestCheckpointStore_SharedDB_WithEventStore(t *testing.T) {
 
 	t.Cleanup(func() { _ = db.Close() })
 
-	eventStore := NewStore(db, slog.Default())
-	cpStore := NewCheckpointStore(db, slog.Default())
+	eventStore, err := NewStore(db, slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
+	cpStore, err := NewCheckpointStore(db, slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	ctx := context.Background()
 	aggID := id.NewAggregateID()

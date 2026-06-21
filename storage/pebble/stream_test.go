@@ -25,7 +25,12 @@ func newStreamTestStore(t *testing.T) *cqrspebble.EventStore {
 
 	t.Cleanup(func() { _ = database.Close() })
 
-	return cqrspebble.NewStore(database, slog.Default())
+	store, err := cqrspebble.NewStore(database, slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return store
 }
 
 func seedPebbleStreamEvents(

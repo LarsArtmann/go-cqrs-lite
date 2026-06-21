@@ -2,6 +2,7 @@ package pebble
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"testing"
 
@@ -22,7 +23,12 @@ func newPebbleTestStore(t *testing.T) *EventStore {
 
 	t.Cleanup(func() { _ = db.Close() })
 
-	return NewStore(db, slog.Default())
+	store, err := NewStore(db, slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return store
 }
 
 func TestEventStore_SaveAndLoad(t *testing.T) {
@@ -52,7 +58,10 @@ func TestEventStore_Close(t *testing.T) {
 		t.Fatalf("open pebble: %v", err)
 	}
 
-	store := NewStore(db, slog.Default())
+	store, err := NewStore(db, slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// Close is a no-op (Backend owns the DB lifecycle).
 	if err := store.Close(); err != nil {
@@ -72,7 +81,10 @@ func TestEventStore_Persistence(t *testing.T) {
 		t.Fatalf("open pebble: %v", err)
 	}
 
-	store := NewStore(db, slog.Default())
+	store, err := NewStore(db, slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
 	aggID := id.NewAggregateID()
 
 	evt := issueStoreConfig().NewTestEvent(t, aggID, 1)
@@ -98,7 +110,10 @@ func TestEventStore_Persistence(t *testing.T) {
 
 	t.Cleanup(func() { _ = db2.Close() })
 
-	store2 := NewStore(db2, slog.Default())
+	store2, err := NewStore(db2, slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
 	loaded, err := store2.Load(context.Background(), event.NewAggregateRef("Issue", aggID))
 	if err != nil {
 		t.Fatalf("Load after reopen: %v", err)
@@ -167,19 +182,12 @@ func TestEventStore_Save_Mismatches(t *testing.T) {
 }
 
 func TestEventStore_NewStore_NilDB(t *testing.T) {
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Fatal("expected panic when calling NewStore with nil db")
-		}
+	t.Parallel()
 
-		msg, ok := r.(string)
-		if !ok || msg != "pebble: NewStore called with nil db" {
-			t.Fatalf("unexpected panic message: %v", r)
-		}
-	}()
-
-	NewStore(nil, slog.Default())
+	_, err := NewStore(nil, slog.Default())
+	if !errors.Is(err, ErrNilDatabase) {
+		t.Fatalf("expected ErrNilDatabase, got: %v", err)
+	}
 }
 
 func TestEventStore_Save_EmptyEvents(t *testing.T) {
@@ -238,7 +246,10 @@ func TestEventStore_WithAsyncWrites(t *testing.T) {
 
 	t.Cleanup(func() { _ = db.Close() })
 
-	store := NewStore(db, slog.Default(), WithAsyncWrites())
+	store, err := NewStore(db, slog.Default(), WithAsyncWrites())
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if store.syncWrites {
 		t.Fatal("syncWrites should be false with WithAsyncWrites")
@@ -272,7 +283,10 @@ func TestEventStore_DefaultSyncWrites(t *testing.T) {
 
 	t.Cleanup(func() { _ = db.Close() })
 
-	store := NewStore(db, slog.Default())
+	store, err := NewStore(db, slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if !store.syncWrites {
 		t.Fatal("syncWrites should be true by default")

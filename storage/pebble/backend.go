@@ -32,26 +32,57 @@ func Open(dir string, opts *pebble.Options, logger *slog.Logger) (*Backend, erro
 		return nil, fmt.Errorf("pebble: open backend: %w", err)
 	}
 
-	return newBackend(database, logger), nil
+	return newBackend(database, logger)
 }
 
 // NewBackend wraps an existing *pebble.DB into a Backend.
 // The Backend does NOT own the DB — the caller is responsible for closing it.
 // Use Open() instead if you want the Backend to own the DB lifecycle.
-func NewBackend(database *pebble.DB, logger *slog.Logger) *Backend {
+// Returns ErrNilDatabase if database is nil.
+func NewBackend(database *pebble.DB, logger *slog.Logger) (*Backend, error) {
 	return newBackend(database, logger)
 }
 
-func newBackend(database *pebble.DB, logger *slog.Logger) *Backend {
+func newBackend(database *pebble.DB, logger *slog.Logger) (*Backend, error) {
+	events, err := NewStore(database, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	commands, err := NewCommandStore(database, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	queries, err := NewQueryStore(database, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	snapshot, err := NewSnapshotStore(database, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	checkpt, err := NewCheckpointStore(database, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	readMods, err := NewKVStore(database, WithBorrowedDB(), WithKVSyncWrites())
+	if err != nil {
+		return nil, err
+	}
+
 	return &Backend{
 		database: database,
-		events:   NewStore(database, logger),
-		commands: NewCommandStore(database, logger),
-		queries:  NewQueryStore(database, logger),
-		snapshot: NewSnapshotStore(database, logger),
-		checkpt:  NewCheckpointStore(database, logger),
-		readMods: NewKVStore(database, WithBorrowedDB(), WithKVSyncWrites()),
-	}
+		events:   events,
+		commands: commands,
+		queries:  queries,
+		snapshot: snapshot,
+		checkpt:  checkpt,
+		readMods: readMods,
+	}, nil
 }
 
 // EventStore returns the event store (Save, Load, Journal, SeekableJournal).

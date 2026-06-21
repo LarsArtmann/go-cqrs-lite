@@ -136,7 +136,10 @@ func TestBackend_NewBackend_WrapsExistingDB(t *testing.T) {
 
 	t.Cleanup(func() { _ = database.Close() })
 
-	backend := cqrspebble.NewBackend(database, slog.Default())
+	backend, err := cqrspebble.NewBackend(database, slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if backend.EventStore() == nil || backend.SnapshotStore() == nil ||
 		backend.CheckpointStore() == nil {

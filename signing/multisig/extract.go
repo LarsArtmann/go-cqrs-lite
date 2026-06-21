@@ -80,19 +80,19 @@ func ExtractMultiSignature(evt event.Event) (MultiSignature, error) {
 // for signing and need the same actor-to-verifier mapping for VerifyAll
 // or RequireMultiSigMiddleware.
 //
-// Panics if any signer is nil.
-func VerifierMap(signers ...*MultiSigner) map[Actor]signing.Verifier {
+// Returns ErrNilSigner if any signer is nil.
+func VerifierMap(signers ...*MultiSigner) (map[Actor]signing.Verifier, error) {
 	verifiers := make(map[Actor]signing.Verifier, len(signers))
 
 	for _, s := range signers {
 		if s == nil {
-			panic("signing: VerifierMap called with nil *MultiSigner")
+			return nil, ErrNilSigner
 		}
 
 		verifiers[s.Actor()] = s.verifier
 	}
 
-	return verifiers
+	return verifiers, nil
 }
 
 // HasMultiSignature reports whether the event carries a multi-signature collection.

@@ -25,7 +25,12 @@ func openTestKVStore(t *testing.T, opts ...KVOption) kv.Store {
 
 	t.Cleanup(func() { _ = database.Close() })
 
-	return NewKVStore(database, opts...)
+	store, err := NewKVStore(database, opts...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return store
 }
 
 // ── CRUD tests ───────────────────────────────────────────────
@@ -391,7 +396,10 @@ func TestKVAdapter_CloseOwnedDB(t *testing.T) {
 		t.Fatalf("pebble.Open: %v", err)
 	}
 
-	store := NewKVStore(database)
+	store, err := NewKVStore(database)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	err = store.Set([]byte("k"), []byte("v"))
 	if err != nil {
@@ -420,7 +428,10 @@ func TestKVAdapter_CloseBorrowedDB(t *testing.T) {
 	}
 	defer func() { _ = database.Close() }()
 
-	store := NewKVStore(database, WithBorrowedDB())
+	store, err := NewKVStore(database, WithBorrowedDB())
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	err = store.Set([]byte("k"), []byte("v"))
 	if err != nil {

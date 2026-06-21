@@ -25,7 +25,11 @@ func TestGolden_EventStoreRoundTrip(t *testing.T) {
 		t.Fatalf("open db: %v", err)
 	}
 
-	store := pb.NewStore(db, nil)
+	store, err := pb.NewStore(db, nil)
+	if err != nil {
+		t.Fatalf("new store: %v", err)
+	}
+
 	t.Cleanup(func() { _ = db.Close() })
 
 	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")

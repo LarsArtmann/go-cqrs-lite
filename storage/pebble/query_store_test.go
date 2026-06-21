@@ -26,7 +26,12 @@ func newQueryStore(t *testing.T) *cqrspebble.QueryStore {
 
 	t.Cleanup(func() { _ = database.Close() })
 
-	return cqrspebble.NewQueryStore(database, slog.Default())
+	store, err := cqrspebble.NewQueryStore(database, slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return store
 }
 
 func mustCreateQuery(t *testing.T, queryType string) *query.PersistedQuery {

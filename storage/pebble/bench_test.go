@@ -28,7 +28,10 @@ func seedPebbleBenchEvents(
 
 	b.Cleanup(func() { _ = db.Close() })
 
-	store := NewStore(db, slog.Default())
+	store, err := NewStore(db, slog.Default())
+	if err != nil {
+		b.Fatal(err)
+	}
 	aggID := id.NewAggregateID()
 	ctx := context.Background()
 	baseTime := time.Now()
@@ -151,7 +154,12 @@ func newPebbleBenchStore(b *testing.B) *EventStore {
 
 	b.Cleanup(func() { _ = database.Close() })
 
-	return NewStore(database, slog.Default())
+	store, err := NewStore(database, slog.Default())
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	return store
 }
 
 func BenchmarkEventStore_Save_SingleEvent(b *testing.B) {

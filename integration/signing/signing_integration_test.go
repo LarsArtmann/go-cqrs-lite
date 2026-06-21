@@ -53,7 +53,11 @@ func TestSigningFullFlow(t *testing.T) {
 	_ = bus.UsePublish(multisig.MultiSignMiddleware(deviceMulti))
 	_ = bus.UsePublish(multisig.MultiSignMiddleware(serverMulti))
 
-	verifiers := multisig.VerifierMap(deviceMulti, serverMulti)
+	verifiers, err := multisig.VerifierMap(deviceMulti, serverMulti)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	_ = bus.Use(multisig.RequireMultiSigMiddleware(verifiers))
 
 	var received []event.Event
@@ -135,7 +139,11 @@ func TestSigningTamperDetection(t *testing.T) {
 		serverHMAC,
 	)
 
-	verifiers := multisig.VerifierMap(deviceMulti, serverMulti)
+	verifiers, err := multisig.VerifierMap(deviceMulti, serverMulti)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	_ = bus.Use(multisig.RequireMultiSigMiddleware(verifiers))
 
 	var received []event.Event

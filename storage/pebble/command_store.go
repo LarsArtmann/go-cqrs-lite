@@ -54,14 +54,14 @@ func WithCommandPrefix(p string) CommandStoreOption {
 }
 
 // NewCommandStore creates a new CommandStore using an existing Pebble DB.
-// Panics if db is nil.
+// Returns ErrNilDatabase if db is nil.
 func NewCommandStore(
 	database *pebble.DB,
 	logger *slog.Logger,
 	opts ...CommandStoreOption,
-) *CommandStore {
+) (*CommandStore, error) {
 	if database == nil {
-		panic("pebble: NewCommandStore called with nil db")
+		return nil, ErrNilDatabase
 	}
 
 	s := &CommandStore{
@@ -78,7 +78,7 @@ func NewCommandStore(
 		opt(s)
 	}
 
-	return s
+	return s, nil
 }
 
 // Close is a no-op; the underlying *pebble.DB is owned by the caller (or Backend).

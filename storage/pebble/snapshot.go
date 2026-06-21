@@ -46,14 +46,14 @@ func WithSnapshotPrefix(p string) SnapshotOption {
 }
 
 // NewSnapshotStore creates a new SnapshotStore using an existing Pebble DB.
-// Panics if db is nil.
+// Returns ErrNilDatabase if db is nil.
 func NewSnapshotStore(
 	database *pebble.DB,
 	logger *slog.Logger,
 	opts ...SnapshotOption,
-) *SnapshotStore {
+) (*SnapshotStore, error) {
 	if database == nil {
-		panic("pebble: NewSnapshotStore called with nil db")
+		return nil, ErrNilDatabase
 	}
 
 	s := &SnapshotStore{
@@ -69,7 +69,7 @@ func NewSnapshotStore(
 		opt(s)
 	}
 
-	return s
+	return s, nil
 }
 
 // Save stores the snapshot, overwriting any existing snapshot for the same

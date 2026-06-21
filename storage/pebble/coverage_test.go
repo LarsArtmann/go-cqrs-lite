@@ -25,7 +25,10 @@ func TestEventStore_OptionAsyncWrites(t *testing.T) {
 
 	t.Cleanup(func() { _ = database.Close() })
 
-	store := cqrspebble.NewStore(database, slog.Default(), cqrspebble.WithAsyncWrites())
+	store, err := cqrspebble.NewStore(database, slog.Default(), cqrspebble.WithAsyncWrites())
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("TestOpts", aggID)
@@ -55,7 +58,7 @@ func TestCheckpointStore_Options(t *testing.T) {
 
 	t.Cleanup(func() { _ = database.Close() })
 
-	cpStore := cqrspebble.NewCheckpointStore(database, slog.Default(),
+	cpStore, err := cqrspebble.NewCheckpointStore(database, slog.Default(),
 		cqrspebble.WithCheckpointAsyncWrites(),
 		cqrspebble.WithCheckpointPrefix("custom_cp:"))
 
@@ -86,7 +89,7 @@ func TestSnapshotStore_Options(t *testing.T) {
 
 	t.Cleanup(func() { _ = database.Close() })
 
-	snapStore := cqrspebble.NewSnapshotStore(database, slog.Default(),
+	snapStore, err := cqrspebble.NewSnapshotStore(database, slog.Default(),
 		cqrspebble.WithSnapshotAsyncWrites(),
 		cqrspebble.WithSnapshotPrefix("custom_snap:"))
 
@@ -129,7 +132,10 @@ func TestEventStore_SaveEmpty(t *testing.T) {
 
 	t.Cleanup(func() { _ = database.Close() })
 
-	store := cqrspebble.NewStore(database, slog.Default())
+	store, err := cqrspebble.NewStore(database, slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
 	ref := event.NewAggregateRef("Empty", id.NewAggregateID())
 
 	err = store.Save(context.Background(), ref, nil, event.Version(0))
@@ -149,7 +155,10 @@ func TestEventStore_LoadNonExistent(t *testing.T) {
 
 	t.Cleanup(func() { _ = database.Close() })
 
-	store := cqrspebble.NewStore(database, slog.Default())
+	store, err := cqrspebble.NewStore(database, slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
 	ref := event.NewAggregateRef("NoExist", id.NewAggregateID())
 
 	events, err := store.Load(context.Background(), ref)
@@ -179,7 +188,10 @@ func TestEventStore_AppendBatchMultiple(t *testing.T) {
 
 	t.Cleanup(func() { _ = database.Close() })
 
-	store := cqrspebble.NewStore(database, slog.Default())
+	store, err := cqrspebble.NewStore(database, slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
 	ctx := context.Background()
 
 	aggID := id.NewAggregateID()
@@ -215,7 +227,10 @@ func TestCheckpointStore_EmptyName(t *testing.T) {
 
 	t.Cleanup(func() { _ = database.Close() })
 
-	cpStore := cqrspebble.NewCheckpointStore(database, slog.Default())
+	cpStore, err := cqrspebble.NewCheckpointStore(database, slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	err = cpStore.Save(context.Background(), "", event.Checkpoint{})
 	if err == nil {
@@ -234,7 +249,10 @@ func TestEventStore_LoadFromVersion(t *testing.T) {
 
 	t.Cleanup(func() { _ = database.Close() })
 
-	store := cqrspebble.NewStore(database, slog.Default())
+	store, err := cqrspebble.NewStore(database, slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
 	ctx := context.Background()
 	baseTime := time.Now()
 
@@ -269,7 +287,10 @@ func TestEventStore_LoadToTimestamp(t *testing.T) {
 
 	t.Cleanup(func() { _ = database.Close() })
 
-	store := cqrspebble.NewStore(database, slog.Default())
+	store, err := cqrspebble.NewStore(database, slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
 	ctx := context.Background()
 	baseTime := time.Now()
 
@@ -304,7 +325,10 @@ func TestSnapshotStore_LoadNonExistent(t *testing.T) {
 
 	t.Cleanup(func() { _ = database.Close() })
 
-	snapStore := cqrspebble.NewSnapshotStore(database, slog.Default())
+	snapStore, err := cqrspebble.NewSnapshotStore(database, slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
 	ref := event.NewAggregateRef("NoSnap", id.NewAggregateID())
 
 	_, err = snapStore.Load(context.Background(), ref)

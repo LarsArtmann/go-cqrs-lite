@@ -26,7 +26,12 @@ func newCommandStore(t *testing.T) *cqrspebble.CommandStore {
 
 	t.Cleanup(func() { _ = database.Close() })
 
-	return cqrspebble.NewCommandStore(database, slog.Default())
+	store, err := cqrspebble.NewCommandStore(database, slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return store
 }
 
 func mustCreateCommand(

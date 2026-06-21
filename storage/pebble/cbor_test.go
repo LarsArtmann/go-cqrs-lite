@@ -237,7 +237,10 @@ func TestEventStore_Persistence_CBOR(t *testing.T) {
 	aggID := id.NewAggregateID()
 	ctx := context.Background()
 
-	store := NewStore(db, nil)
+	store, err := NewStore(db, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	evt, err := event.NewEvent("ItemCreated", aggID, "Item", event.Version(1),
 		[]byte(`{"sku":"W-001"}`), event.WithCorrelationID(id.NewCorrelationID()))
@@ -263,7 +266,10 @@ func TestEventStore_Persistence_CBOR(t *testing.T) {
 
 	t.Cleanup(func() { _ = db2.Close() })
 
-	store2 := NewStore(db2, nil)
+	store2, err := NewStore(db2, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	loaded, err := store2.Load(ctx, ref)
 	if err != nil {

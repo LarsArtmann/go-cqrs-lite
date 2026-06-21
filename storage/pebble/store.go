@@ -39,10 +39,10 @@ func WithAsyncWrites() StoreOption {
 }
 
 // NewStore creates a new store using an existing Pebble DB.
-// Panics if db is nil.
-func NewStore(database *pebble.DB, logger *slog.Logger, opts ...StoreOption) *EventStore {
+// Returns ErrNilDatabase if db is nil.
+func NewStore(database *pebble.DB, logger *slog.Logger, opts ...StoreOption) (*EventStore, error) {
 	if database == nil {
-		panic("pebble: NewStore called with nil db")
+		return nil, ErrNilDatabase
 	}
 
 	s := &EventStore{
@@ -59,7 +59,7 @@ func NewStore(database *pebble.DB, logger *slog.Logger, opts ...StoreOption) *Ev
 		opt(s)
 	}
 
-	return s
+	return s, nil
 }
 
 // eventKey generates a storage key for an event.

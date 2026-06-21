@@ -46,14 +46,14 @@ func WithQueryPrefix(p string) QueryStoreOption {
 }
 
 // NewQueryStore creates a new QueryStore using an existing Pebble DB.
-// Panics if db is nil.
+// Returns ErrNilDatabase if db is nil.
 func NewQueryStore(
 	database *pebble.DB,
 	logger *slog.Logger,
 	opts ...QueryStoreOption,
-) *QueryStore {
+) (*QueryStore, error) {
 	if database == nil {
-		panic("pebble: NewQueryStore called with nil db")
+		return nil, ErrNilDatabase
 	}
 
 	s := &QueryStore{
@@ -69,7 +69,7 @@ func NewQueryStore(
 		opt(s)
 	}
 
-	return s
+	return s, nil
 }
 
 // Close is a no-op; the underlying *pebble.DB is owned by the caller (or Backend).

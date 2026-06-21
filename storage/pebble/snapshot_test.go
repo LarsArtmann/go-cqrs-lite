@@ -25,7 +25,12 @@ func newSnapshotStore(t *testing.T) *SnapshotStore {
 
 	t.Cleanup(func() { _ = db.Close() })
 
-	return NewSnapshotStore(db, slog.Default())
+	store, err := NewSnapshotStore(db, slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return store
 }
 
 func testSnapshot(
@@ -302,8 +307,14 @@ func TestSnapshotStore_SharedDB_WithEventStore(t *testing.T) {
 
 	t.Cleanup(func() { _ = db.Close() })
 
-	eventStore := NewStore(db, slog.Default())
-	snapStore := NewSnapshotStore(db, slog.Default())
+	eventStore, err := NewStore(db, slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
+	snapStore, err := NewSnapshotStore(db, slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
@@ -351,19 +362,10 @@ func TestSnapshotStore_SharedDB_WithEventStore(t *testing.T) {
 func TestSnapshotStore_NewStore_NilDB(t *testing.T) {
 	t.Parallel()
 
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Fatal("expected panic when calling NewSnapshotStore with nil db")
-		}
-
-		msg, ok := r.(string)
-		if !ok || msg != "pebble: NewSnapshotStore called with nil db" {
-			t.Fatalf("unexpected panic message: %v", r)
-		}
-	}()
-
-	NewSnapshotStore(nil, slog.Default())
+	_, err := NewSnapshotStore(nil, slog.Default())
+	if !errors.Is(err, ErrNilDatabase) {
+		t.Fatalf("expected ErrNilDatabase, got: %v", err)
+	}
 }
 
 func TestSnapshotStore_Close_NoOp(t *testing.T) {

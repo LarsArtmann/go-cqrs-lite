@@ -20,7 +20,10 @@ func FuzzDeserializeEvent(f *testing.F) {
 
 	f.Cleanup(func() { _ = database.Close() })
 
-	store := NewStore(database, slog.Default())
+	store, err := NewStore(database, slog.Default())
+	if err != nil {
+		f.Fatal(err)
+	}
 
 	aggID := id.NewAggregateID()
 	evt, err := event.NewEvent("FuzzEvent", aggID, "Fuzz", event.Version(1),

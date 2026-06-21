@@ -45,14 +45,14 @@ func WithCheckpointPrefix(p string) CheckpointOption {
 }
 
 // NewCheckpointStore creates a new CheckpointStore using an existing Pebble DB.
-// Panics if db is nil.
+// Returns ErrNilDatabase if db is nil.
 func NewCheckpointStore(
 	database *pebble.DB,
 	logger *slog.Logger,
 	opts ...CheckpointOption,
-) *CheckpointStore {
+) (*CheckpointStore, error) {
 	if database == nil {
-		panic("pebble: NewCheckpointStore called with nil db")
+		return nil, ErrNilDatabase
 	}
 
 	s := &CheckpointStore{
@@ -68,7 +68,7 @@ func NewCheckpointStore(
 		opt(s)
 	}
 
-	return s
+	return s, nil
 }
 
 // Save persists the checkpoint for a projection. Overwrites any prior value.

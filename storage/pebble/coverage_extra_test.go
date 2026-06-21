@@ -27,7 +27,10 @@ func TestEventStore_CorruptEventTriggersCorruptionError(t *testing.T) {
 	t.Cleanup(func() { _ = database.Close() })
 
 	logger := slog.New(slog.NewTextHandler(&testWriter{t: t}, nil))
-	store := cqrspebble.NewStore(database, logger)
+	store, err := cqrspebble.NewStore(database, logger)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("Test", aggID)
@@ -84,7 +87,10 @@ func TestCheckpointStore_CorruptData(t *testing.T) {
 
 	t.Cleanup(func() { _ = database.Close() })
 
-	cpStore := cqrspebble.NewCheckpointStore(database, slog.Default())
+	cpStore, err := cqrspebble.NewCheckpointStore(database, slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// Write corrupt checkpoint data
 	projName := "test-projection"
@@ -118,7 +124,10 @@ func TestSnapshotStore_CorruptData(t *testing.T) {
 
 	t.Cleanup(func() { _ = database.Close() })
 
-	snapStore := cqrspebble.NewSnapshotStore(database, slog.Default())
+	snapStore, err := cqrspebble.NewSnapshotStore(database, slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	aggID := id.NewAggregateID()
 
@@ -153,7 +162,10 @@ func TestSnapshotStore_Delete(t *testing.T) {
 
 	t.Cleanup(func() { _ = database.Close() })
 
-	snapStore := cqrspebble.NewSnapshotStore(database, slog.Default())
+	snapStore, err := cqrspebble.NewSnapshotStore(database, slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("Test", aggID)
@@ -214,7 +226,10 @@ func TestBackupRetention_CheckpointAndFlush(t *testing.T) {
 
 	t.Cleanup(func() { _ = database.Close() })
 
-	backend := cqrspebble.NewBackend(database, slog.Default())
+	backend, err := cqrspebble.NewBackend(database, slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	backupDir := t.TempDir()
 

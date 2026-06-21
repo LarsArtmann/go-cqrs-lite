@@ -32,7 +32,10 @@ func FuzzSnapshotStore_Roundtrip(f *testing.F) {
 
 		defer func() { _ = database.Close() }()
 
-		snapStore := cqrspebble.NewSnapshotStore(database, slog.Default())
+		snapStore, err := cqrspebble.NewSnapshotStore(database, slog.Default())
+		if err != nil {
+			t.Fatal(err)
+		}
 
 		aggID := id.NewAggregateID()
 		aggType := event.AggregateType("FuzzSnap")
@@ -77,7 +80,10 @@ func FuzzCheckpointStore_Roundtrip(f *testing.F) {
 
 		defer func() { _ = database.Close() }()
 
-		cpStore := cqrspebble.NewCheckpointStore(database, slog.Default())
+		cpStore, err := cqrspebble.NewCheckpointStore(database, slog.Default())
+		if err != nil {
+			t.Fatal(err)
+		}
 		ctx := context.Background()
 
 		projectionName := "fuzz-projection"

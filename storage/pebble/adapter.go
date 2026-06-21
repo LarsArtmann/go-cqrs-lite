@@ -50,9 +50,10 @@ func WithBorrowedDB() KVOption {
 //
 // By default the adapter owns the database. Use [WithBorrowedDB] to share
 // the database across multiple consumers.
-func NewKVStore(database *pebble.DB, opts ...KVOption) kv.Store {
+// Returns ErrNilDatabase if db is nil.
+func NewKVStore(database *pebble.DB, opts ...KVOption) (kv.Store, error) {
 	if database == nil {
-		panic("pebble: NewKVStore called with nil db")
+		return nil, ErrNilDatabase
 	}
 
 	adapter := &KVAdapter{
@@ -65,7 +66,7 @@ func NewKVStore(database *pebble.DB, opts ...KVOption) kv.Store {
 		opt(adapter)
 	}
 
-	return adapter
+	return adapter, nil
 }
 
 // compile-time interface check.

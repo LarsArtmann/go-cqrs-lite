@@ -43,7 +43,7 @@ func openBenchStore(b *testing.B) (*EventStore, func()) {
 		b.Fatalf("pebble.Open: %v", err)
 	}
 
-	store := NewStore(
+	store, err := NewStore(
 		database,
 		slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError})),
 	)

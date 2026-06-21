@@ -72,9 +72,11 @@ func ExampleVerifyAll() {
 	step1, _ := deviceMulti.Sign(evt)
 	step2, _ := serverMulti.Sign(step1)
 
+	verifiers, _ := multisig.VerifierMap(deviceMulti, serverMulti)
+
 	if err := multisig.VerifyAll(
 		step2,
-		multisig.VerifierMap(deviceMulti, serverMulti),
+		verifiers,
 	); err != nil {
 		fmt.Println("verification failed:", err)
 	} else {
@@ -100,7 +102,7 @@ func ExampleVerifierMap() {
 		signer,
 	)
 
-	verifiers := multisig.VerifierMap(deviceMulti, serverMulti)
+	verifiers, _ := multisig.VerifierMap(deviceMulti, serverMulti)
 	fmt.Println("device actor:", verifiers[multisig.Actor("device")] != nil)
 	fmt.Println("server actor:", verifiers[multisig.Actor("server")] != nil)
 	fmt.Println("total:", len(verifiers))
