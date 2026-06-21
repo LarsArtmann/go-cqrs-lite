@@ -9,30 +9,30 @@
 
 ## Current State
 
-| Module | Exports | % | Verdict |
-|--------|---------|---|---------|
-| event | 315 | 20% | Core — mostly justified (87 eventtest + 228 prod) |
-| catalog | 222 | 14% | 🔴 Most bloated — doc generator with 18 string-newtypes |
-| storage | 198 | 12% | 🟡 75 exports in storage/sql subpkg are internal-only |
-| command | 99 | 6% | Reasonable |
-| query | 97 | 6% | Reasonable |
-| stack | 85 | 5% | Reasonable (presets + Bundle + Materialize) |
-| encryption | 85 | 5% | 🟡 4 parallel interfaces for encrypt+decrypt |
-| middleware | 74 | 5% | Reasonable |
-| otel | 69 | 4% | 🟡 High for a shim, but justified |
-| kv | 52 | 3% | Reasonable |
-| id | 46 | 3% | Excellent — phantom-typed IDs are the correct pattern |
-| watermill | 37 | 2% | Reasonable |
-| codec | 36 | 2% | Reasonable |
-| signing | 34 | 2% | Reasonable |
-| listing | 29 | 2% | Reasonable |
-| decider | 27 | 2% | Lean — no bloat |
-| schema | 24 | 1.5% | Reasonable |
-| snapshot | 22 | 1% | Reasonable |
-| transport/http | 20 | 1% | Reasonable |
-| dispatcher | 18 | 1% | Reasonable |
-| testutil | 8 | 0.5% | Minimal |
-| prometheus | 8 | 0.5% | Minimal |
+| Module         | Exports | %    | Verdict                                                 |
+| -------------- | ------- | ---- | ------------------------------------------------------- |
+| event          | 315     | 20%  | Core — mostly justified (87 eventtest + 228 prod)       |
+| catalog        | 222     | 14%  | 🔴 Most bloated — doc generator with 18 string-newtypes |
+| storage        | 198     | 12%  | 🟡 75 exports in storage/sql subpkg are internal-only   |
+| command        | 99      | 6%   | Reasonable                                              |
+| query          | 97      | 6%   | Reasonable                                              |
+| stack          | 85      | 5%   | Reasonable (presets + Bundle + Materialize)             |
+| encryption     | 85      | 5%   | 🟡 4 parallel interfaces for encrypt+decrypt            |
+| middleware     | 74      | 5%   | Reasonable                                              |
+| otel           | 69      | 4%   | 🟡 High for a shim, but justified                       |
+| kv             | 52      | 3%   | Reasonable                                              |
+| id             | 46      | 3%   | Excellent — phantom-typed IDs are the correct pattern   |
+| watermill      | 37      | 2%   | Reasonable                                              |
+| codec          | 36      | 2%   | Reasonable                                              |
+| signing        | 34      | 2%   | Reasonable                                              |
+| listing        | 29      | 2%   | Reasonable                                              |
+| decider        | 27      | 2%   | Lean — no bloat                                         |
+| schema         | 24      | 1.5% | Reasonable                                              |
+| snapshot       | 22      | 1%   | Reasonable                                              |
+| transport/http | 20      | 1%   | Reasonable                                              |
+| dispatcher     | 18      | 1%   | Reasonable                                              |
+| testutil       | 8       | 0.5% | Minimal                                                 |
+| prometheus     | 8       | 0.5% | Minimal                                                 |
 
 **Total:** 1,605 exports. By kind: 457 func, 438 method, 133 type, 108 struct, 92 var, 90 const, 60 interface.
 
@@ -135,6 +135,7 @@ Each function is `func X(value) Option { return func(b *builder) { b.field = val
 Convert to fluent builder methods on the struct. The builder is already mutable internally — the option functions are just setters.
 
 **Before (3 exports per builder field):**
+
 ```go
 type Name string       // 1 export
 type Option func(*T)   // 1 export
@@ -142,6 +143,7 @@ func WithName(n Name) Option { ... } // 1 export
 ```
 
 **After (0 exports per builder field):**
+
 ```go
 func (b *Builder) WithName(name string) *Builder { b.name = name; return b }
 ```
@@ -157,6 +159,7 @@ func (b *Builder) WithName(name string) *Builder { b.name = name; return b }
 `storage/sql` has 75 exports. Only consumer is `storage/` itself (uses 36 symbols). The remaining ~39 are public only because of the multi-module split.
 
 Specifically:
+
 - **Column constants:** `EventColumns`, `CommandColumns`, `QueryColumns` — SQL implementation details
 - **Table name constants:** `TableEvents`, `TableCommands`, `TableQueries`, `TableSnapshots`, `TableCheckpoints`
 - **Schema embeds:** `PostgresSchemaEmbed`, `SQLiteSchemaEmbed` — internal DDL
@@ -240,6 +243,7 @@ This is inherent to functional options in Go — each module needs its own optio
 ### What
 
 The `catalog` module is a documentation generator: it reads Go types and produces AsyncAPI, OpenAPI, EventCatalog, and D2 diagrams. It has:
+
 - 26 exported structs (Builder, Catalog, Channel, Domain, Flow, Message, Service, etc.)
 - 40 exported types (mostly string aliases)
 - 47 exported functions (mostly option funcs)
@@ -272,20 +276,20 @@ The catalog is NOT a CQRS primitive. It's a developer tool that happens to work 
 
 These types have the same name in multiple modules:
 
-| Name | Modules | Count |
-|------|---------|-------|
-| Option | event, command, query, catalog, signing, encryption, stack, snapshot, schema, kv | 10 |
-| Middleware | event, command, query, middleware | 4 |
-| Handler | event, command, query, dispatcher | 4 |
-| Type | event, command, query | 3 |
-| MetadataKey | event, command, query | 3 |
-| Family | event, encryption, otel | 3 |
-| Error | event, command, query | 3 |
-| Dispatcher | event, command, query | 3 |
-| Version | event, catalog | 2 |
-| UserID | catalog, (example) | 2 |
-| AggregateType | event, catalog | 2 |
-| AggregateRef | event, catalog | 2 |
+| Name          | Modules                                                                          | Count |
+| ------------- | -------------------------------------------------------------------------------- | ----- |
+| Option        | event, command, query, catalog, signing, encryption, stack, snapshot, schema, kv | 10    |
+| Middleware    | event, command, query, middleware                                                | 4     |
+| Handler       | event, command, query, dispatcher                                                | 4     |
+| Type          | event, command, query                                                            | 3     |
+| MetadataKey   | event, command, query                                                            | 3     |
+| Family        | event, encryption, otel                                                          | 3     |
+| Error         | event, command, query                                                            | 3     |
+| Dispatcher    | event, command, query                                                            | 3     |
+| Version       | event, catalog                                                                   | 2     |
+| UserID        | catalog, (example)                                                               | 2     |
+| AggregateType | event, catalog                                                                   | 2     |
+| AggregateRef  | event, catalog                                                                   | 2     |
 
 ### Why It's Bad
 
@@ -303,54 +307,54 @@ The only real problem is `Version` (event vs catalog) and `AggregateType` (event
 
 ## Summary: Impact Ranking
 
-| # | Problem | Exports Removed | Effort | Breaking | Priority |
-|---|---------|----------------|--------|----------|----------|
-| 1 | catalog string-newtypes | 18 | 1h | Yes | High |
-| 2 | catalog option verbosity | ~30 | 2h | Yes | High |
-| 3 | storage/sql internals | ~50 | 2h | No | **Highest** |
-| 4 | encryption interface proliferation | 1 | 30min | Yes | Medium |
-| 5 | Option type proliferation | 0 | — | — | Not actionable |
-| 6 | catalog module scope | 222 | 5min (move) | No | High |
-| 7 | Duplicate type names | 0 | — | — | Not actionable |
+| #   | Problem                            | Exports Removed | Effort      | Breaking | Priority       |
+| --- | ---------------------------------- | --------------- | ----------- | -------- | -------------- |
+| 1   | catalog string-newtypes            | 18              | 1h          | Yes      | High           |
+| 2   | catalog option verbosity           | ~30             | 2h          | Yes      | High           |
+| 3   | storage/sql internals              | ~50             | 2h          | No       | **Highest**    |
+| 4   | encryption interface proliferation | 1               | 30min       | Yes      | Medium         |
+| 5   | Option type proliferation          | 0               | —           | —        | Not actionable |
+| 6   | catalog module scope               | 222             | 5min (move) | No       | High           |
+| 7   | Duplicate type names               | 0               | —           | —        | Not actionable |
 
 ### Non-Breaking Quick Wins (can do NOW)
 
-| Action | Exports | Effort | Breaking |
-|--------|---------|--------|----------|
-| Collapse `storage/sql` → `storage` | ~50 | 2h | No |
-| Move `catalog` → `contrib/catalog` | 222 (from core) | 5min | No |
-| **Total non-breaking reduction** | **~272** | ~2h | No |
+| Action                             | Exports         | Effort | Breaking |
+| ---------------------------------- | --------------- | ------ | -------- |
+| Collapse `storage/sql` → `storage` | ~50             | 2h     | No       |
+| Move `catalog` → `contrib/catalog` | 222 (from core) | 5min   | No       |
+| **Total non-breaking reduction**   | **~272**        | ~2h    | No       |
 
 ### Breaking Changes (for v3)
 
-| Action | Exports | Effort | Breaking |
-|--------|---------|--------|----------|
-| Replace catalog string-newtypes with `string` | 18 | 1h | Yes |
-| Convert catalog option funcs to builder methods | ~30 | 2h | Yes |
-| Delete `encryption.Algorithmer` | 1 | 30min | Yes |
-| **Total breaking reduction** | **~49** | ~3.5h | Yes |
+| Action                                          | Exports | Effort | Breaking |
+| ----------------------------------------------- | ------- | ------ | -------- |
+| Replace catalog string-newtypes with `string`   | 18      | 1h     | Yes      |
+| Convert catalog option funcs to builder methods | ~30     | 2h     | Yes      |
+| Delete `encryption.Algorithmer`                 | 1       | 30min  | Yes      |
+| **Total breaking reduction**                    | **~49** | ~3.5h  | Yes      |
 
 ### Theoretical Maximum (all changes)
 
-| Scenario | Exports | Reduction |
-|----------|---------|-----------|
-| Non-breaking only | 1,605 → 1,333 | -17% |
-| Breaking + non-breaking | 1,605 → 1,284 | -20% |
-| + Delete catalog entirely | 1,605 → 1,062 | -34% |
+| Scenario                  | Exports       | Reduction |
+| ------------------------- | ------------- | --------- |
+| Non-breaking only         | 1,605 → 1,333 | -17%      |
+| Breaking + non-breaking   | 1,605 → 1,284 | -20%      |
+| + Delete catalog entirely | 1,605 → 1,062 | -34%      |
 
 ---
 
 ## What's Already Well-Designed (Don't Touch)
 
-| Module | Why It's Good |
-|--------|---------------|
-| `id` (46) | Phantom-typed IDs via `id.Of[T]` are the correct pattern |
-| `event` errors (15) | Well-classified sentinels with 5-family taxonomy |
+| Module              | Why It's Good                                                         |
+| ------------------- | --------------------------------------------------------------------- |
+| `id` (46)           | Phantom-typed IDs via `id.Of[T]` are the correct pattern              |
+| `event` errors (15) | Well-classified sentinels with 5-family taxonomy                      |
 | `event` consts (16) | `MetadataKeyTombstone`, `ModeLive`, `ModeReplay` are genuinely needed |
-| `decider` (27) | Lean — `Decider[State]`, `Repository[State]`, `Execute`, `Load` |
-| `codec` (36) | Clean codec interface with JSON/CBOR/Raw implementations |
-| `snapshot` (22) | Minimal types + strategy pattern |
-| `dispatcher` (18) | Generic `Dispatcher[H, M]` — no bloat |
+| `decider` (27)      | Lean — `Decider[State]`, `Repository[State]`, `Execute`, `Load`       |
+| `codec` (36)        | Clean codec interface with JSON/CBOR/Raw implementations              |
+| `snapshot` (22)     | Minimal types + strategy pattern                                      |
+| `dispatcher` (18)   | Generic `Dispatcher[H, M]` — no bloat                                 |
 
 ---
 
