@@ -381,6 +381,7 @@ func hasNaNMapKey(v any) bool {
 	case cbor.Tag:
 		return hasNaNMapKey(x.Content)
 	}
+
 	return false
 }
 
@@ -392,5 +393,6 @@ func isNaNValue(v any) bool {
 	case float32:
 		return math.IsNaN(float64(f))
 	}
+
 	return false
 }

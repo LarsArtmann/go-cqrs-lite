@@ -1,0 +1,756 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Status Update — 2026-06-21 — Tier 1 Complete, 4 Modules Broken</title>
+    <style>
+      :root {
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+        --radius: 0px;
+        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      section[id], [id] { scroll-margin-top: 60px; }
+      body { background: var(--surface); color: var(--text); font-family: var(--font-body); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+      .top-bar { background: var(--text); color: var(--surface); padding: 0.6rem 2rem; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+      .layout { display: flex; gap: 2.5rem; padding: 2rem; }
+      .sidebar { width: 220px; flex-shrink: 0; position: sticky; top: 1rem; align-self: flex-start; height: calc(100vh - 2rem); overflow-y: auto; display: none; }
+      .sidebar nav { display: flex; flex-direction: column; gap: 0; }
+      .sidebar .label { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent); margin-bottom: 0.75rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border-strong); }
+      .sidebar a { font-size: 0.85rem; color: var(--text-muted); text-decoration: none; padding: 0.45rem 0.75rem; border-left: 2px solid transparent; transition: all 0.15s ease; line-height: 1.4; font-weight: 500; }
+      .sidebar a:hover, .sidebar a.active { color: var(--accent); border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+      .main { flex: 1; min-width: 0; }
+      h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -0.02em; }
+      h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.1; margin: 0 0 0.6rem; }
+      h2 { font-size: 1.4rem; margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border-strong); display: flex; align-items: baseline; gap: 0.6rem; }
+      h2 .num { font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent); font-weight: 700; letter-spacing: 0.06em; }
+      h3 { font-size: 1.1rem; margin: 0 0 0.4rem; font-weight: 700; }
+      h4 { font-size: 0.98rem; margin: 0 0 0.3rem; font-weight: 700; }
+      p { margin: 0 0 1rem; }
+      .hero { padding: 1.5rem 0 1.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border-strong); }
+      .hero-badge { display: inline-block; font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--surface); background: var(--accent); padding: 0.3rem 0.7rem; margin-bottom: 0.9rem; }
+      .hero-subtitle { font-size: 1.05rem; color: var(--text-muted); max-width: 70ch; margin: 0; }
+      .hero-shapes { position: relative; height: 80px; margin-bottom: 1rem; }
+      .hero-shapes .circle { position: absolute; top: 0; left: 0; width: 56px; height: 56px; background: var(--problem); border-radius: 50%; }
+      .hero-shapes .square { position: absolute; top: 24px; left: 72px; width: 48px; height: 48px; background: var(--solution); }
+      .hero-shapes .tri { position: absolute; top: 8px; left: 140px; width: 0; height: 0; border-left: 28px solid transparent; border-right: 28px solid transparent; border-bottom: 48px solid var(--warning); }
+      .card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1.3rem; margin-bottom: 1rem; border-left: 4px solid var(--border-strong); }
+      .card-problem { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised)); }
+      .card-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised)); }
+      .card-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised)); }
+      .issue { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1.3rem; margin-bottom: 1rem; border-left: 4px solid var(--border-strong); }
+      .issue-critical { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised)); }
+      .issue-important { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised)); }
+      .issue-nice { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised)); }
+      .issue h3 { margin-bottom: 0.3rem; }
+      .issue .where { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-faint); margin: 0.2rem 0 0.6rem; }
+      .issue p:last-child { margin-bottom: 0; }
+      .severity { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.2rem 0.55rem; margin-bottom: 0.6rem; color: var(--surface); }
+      .severity-critical { background: var(--problem); }
+      .severity-important { background: var(--warning); }
+      .severity-nice { background: var(--solution); }
+      .badge { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.18rem 0.5rem; border: 1px solid var(--border-strong); color: var(--text-muted); }
+      .badge-critical { color: var(--problem); border-color: var(--problem); }
+      .badge-high { color: var(--warning); border-color: var(--warning); }
+      .badge-medium { color: var(--accent); border-color: var(--accent); }
+      .badge-low { color: var(--text-muted); }
+      .badge-fixed { color: var(--solution); border-color: var(--solution); }
+      .callout { margin: 0.8rem 0 0; padding: 0.7rem 0.9rem; border-left: 3px solid var(--border-strong); background: color-mix(in srgb, var(--text) 5%, transparent); font-size: 0.9rem; }
+      .callout strong { display: inline-block; margin-right: 0.4rem; }
+      .callout-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 10%, transparent); }
+      .callout-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 10%, transparent); }
+      .callout-problem { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 10%, transparent); }
+      .stat-grid, .scorecard { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin: 1rem 0 1.5rem; }
+      .stat-card, .score-card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1rem; position: relative; }
+      .stat-card::before, .score-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--border-strong); }
+      .stat-bad::before, .score-bad::before { background: var(--problem); }
+      .stat-good::before, .score-good::before { background: var(--solution); }
+      .stat-warn::before, .score-warn::before { background: var(--warning); }
+      .stat-value, .score { font-family: var(--font-heading); font-size: 2rem; font-weight: 800; line-height: 1; letter-spacing: -0.03em; color: var(--text); }
+      .stat-bad .stat-value, .score-bad .score { color: var(--problem); }
+      .stat-good .stat-value, .score-good .score { color: var(--solution); }
+      .stat-warn .stat-value, .score-warn .score { color: var(--warning); }
+      .stat-label, .score-card .label { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-faint); margin-top: 0.5rem; }
+      .strengths { display: grid; gap: 0.5rem; margin: 1rem 0 1.5rem; }
+      .strength { display: grid; grid-template-columns: auto 1fr; gap: 0.8rem; padding: 0.7rem 0; border-bottom: 1px solid var(--border); }
+      .strength .check { font-family: var(--font-mono); font-weight: 700; color: var(--solution); font-size: 1.1rem; line-height: 1.4; }
+      .strength .text strong { display: block; margin-bottom: 0.15rem; }
+      .strength .text span { color: var(--text-muted); font-size: 0.9rem; }
+      table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.9rem; }
+      th { text-align: left; padding: 0.6rem 0.9rem; background: var(--surface-raised); color: var(--text-faint); font-family: var(--font-mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border-bottom: 1px solid var(--border-strong); }
+      td { padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); }
+      tr:hover td { background: var(--surface-raised); }
+      pre { background: var(--surface-sunken); border: 1px solid var(--border); padding: 1rem 1.2rem; margin: 1rem 0; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.65; overflow-x: auto; }
+      code { font-family: var(--font-mono); }
+      .tok-keyword { color: var(--accent); }
+      .tok-type { color: var(--warning); }
+      .tok-string { color: var(--solution); }
+      .tok-comment { color: var(--text-faint); font-style: italic; }
+      .tok-func { color: #74a9ff; }
+      .tok-number { color: var(--accent); }
+      .tok-builtin { color: #4dd9ff; }
+      .tok-punct { color: var(--text-muted); }
+      .toc { background: var(--surface-raised); border: 1px solid var(--border); border-left: 3px solid var(--accent); padding: 1rem 1.3rem; margin: 1rem 0 1.5rem; }
+      .toc h3 { margin-bottom: 0.5rem; }
+      .toc ul { list-style: none; padding: 0; }
+      .toc li { margin: 0.25rem 0; }
+      .toc a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; }
+      .toc a:hover { color: var(--accent); }
+      .footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.8rem; color: var(--text-faint); font-family: var(--font-mono); }
+      .question-box { background: color-mix(in srgb, var(--accent) 12%, var(--surface-raised)); border: 2px solid var(--accent); padding: 1.5rem 1.8rem; margin: 1.5rem 0; }
+      .question-box h3 { color: var(--accent); }
+      @media (min-width: 1024px) { .sidebar { display: block; } }
+      @media (max-width: 768px) { .layout { flex-direction: column; padding: 1rem; } .top-bar { padding: 0.6rem 1rem; flex-wrap: wrap; gap: 0.3rem; } .stat-grid, .scorecard { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>STATUS REPORT</span>
+      <span>2026-06-21 03:04</span>
+      <span>go-cqrs-lite · v3-ready</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#fully-done">Fully Done</a>
+          <a href="#partially">Partially Done</a>
+          <a href="#not-started">Not Started</a>
+          <a href="#broken">Totally Fucked Up</a>
+          <a href="#improve">What to Improve</a>
+          <a href="#top25">Top 25 Next</a>
+          <a href="#question">The Big Question</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="hero">
+          <div class="hero-shapes">
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="hero-badge">Full Status Update</div>
+          <h1>Tier 1 Complete — 4 Modules Broken</h1>
+          <p class="hero-subtitle">
+            All 7 Tier 1 tasks (Ship v3.0.0) are done and verified. But 4 modules
+            (command, decider, snapshot, prometheus) have committed broken test
+            code from a prior session's test-helper rename sprint that was never
+            verified. 24 of 28 tested modules pass clean.
+          </p>
+        </div>
+
+        <nav class="toc">
+          <h3>Contents</h3>
+          <ul>
+            <li><a href="#summary">a) Summary — Headline Numbers</a></li>
+            <li><a href="#fully-done">b) Fully Done</a></li>
+            <li><a href="#partially">c) Partially Done</a></li>
+            <li><a href="#not-started">d) Not Started</a></li>
+            <li><a href="#broken">e) Totally Fucked Up</a></li>
+            <li><a href="#improve">f) What We Should Improve</a></li>
+            <li><a href="#top25">g) Top 25 Things to Do Next</a></li>
+            <li><a href="#question">h) The #1 Question I Can't Answer</a></li>
+          </ul>
+        </nav>
+
+        <!-- ===== SUMMARY ===== -->
+        <h2 id="summary"><span class="num">00</span>Summary — Headline Numbers</h2>
+        <div class="stat-grid">
+          <div class="stat-card stat-good">
+            <div class="stat-value">24/28</div>
+            <div class="stat-label">Modules Passing</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">4</div>
+            <div class="stat-label">Build Broken</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">7/7</div>
+            <div class="stat-label">Tier 1 Tasks Done</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">11</div>
+            <div class="stat-label">v3 Breaking Changes</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">38</div>
+            <div class="stat-label">Total Modules</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">4</div>
+            <div class="stat-label">Broken Test Suites</div>
+          </div>
+        </div>
+
+        <p>
+          <strong>The good:</strong> Tier 1 (Ship v3.0.0) is fully complete — CBOR NaN
+          fuzz fix is rock-solid (60s / 15.3M executions / 0 failures), eventOptions
+          Clone verified correct with regression test, all v3 docs updated.
+        </p>
+        <p>
+          <strong>The bad:</strong> A prior session's "Code Deduplication &amp; Test
+          Cleanup Sprint" (2026-06-10) renamed <code>mustEveryN</code> →
+          <code>everyN</code> in test helpers but <strong>never updated the callers</strong>.
+          The sprint doc claims "all 37 packages pass" — this was never verified by
+          actually building the test packages. Result: <code>decider</code>,
+          <code>snapshot</code>, <code>command</code>, and <code>prometheus</code>
+          test suites are all broken at the compile level.
+        </p>
+
+        <!-- ===== FULLY DONE ===== -->
+        <h2 id="fully-done"><span class="num">01</span> Fully Done</h2>
+
+        <div class="card card-solution">
+          <h4>CBOR NaN Canonical Encoder Fuzz Fix</h4>
+          <p>
+            <code>codec/codec_fuzz_test.go</code> — Root cause: NaN map keys collapse
+            to identical canonical bytes (<code>f97e00</code>), creating duplicate keys
+            with non-deterministic ordering. Added <code>hasNaNMapKey()</code> detection
+            that recurses through <code>cbor.Tag</code> content. Fuzz-verified:
+            <strong>60 seconds, 15.3M executions, 0 failures</strong>.
+          </p>
+        </div>
+
+        <div class="card card-solution">
+          <h4>eventOptions Clone — Verified Correct + Regression Test</h4>
+          <p>
+            <code>event/event_type_clone_test.go</code> — Investigated the
+            <code>*eventOptions</code> shallow copy on <code>Clone()</code>. Found that
+            all fields (<code>Clock</code> = <code>func() time.Time</code>,
+            <code>newCodec</code> = stateless interface, <code>deadline</code> = value
+            type) are immutable. Shallow struct copy <code>cloned := *e.opts</code> is
+            correct. Added <code>TestClone_IndependentOpts</code> to lock the guarantee.
+          </p>
+        </div>
+
+        <div class="card card-solution">
+          <h4>FEATURES.md — ADR-0031 Metadata Split Reflected</h4>
+          <p>
+            Updated option count 19→20 (<code>WithCausation</code> added). Added rows for
+            <code>MetadataKey</code> typed custom key, <code>Metadata.Merge()</code>,
+            <code>Tracing</code> embedded struct. Fixed command Metadata (no longer
+            aliases <code>event.Metadata</code> — now own struct embedding
+            <code>event.Tracing</code>).
+          </p>
+        </div>
+
+        <div class="card card-solution">
+          <h4>ROADMAP.md — v3-Ready Status</h4>
+          <p>
+            Updated "Current State (v2.x)" → "(v3-ready)". Footer corrected: projection
+            dissolution is done, not in progress. All 11 v3 breaking changes marked
+            complete (jsonv2 deferred).
+          </p>
+        </div>
+
+        <div class="card card-solution">
+          <h4>V3_MIGRATION.md — 6 Broken Examples Fixed</h4>
+          <p>
+            Fixed: <code>WithCustom</code> takes <code>MetadataKey</code> not
+            <code>string</code>; <code>event.WithCorrelationID(ctx,...)</code> →
+            <code>cqrsotel.WithCorrelationID(ctx,...)</code>; query handler BEFORE
+            example used wrong type; ghost <code>reactive.go</code> entries updated;
+            <code>storage/memory/</code> → <code>stack/memory/</code> path corrected;
+            status "Planning" → "Complete".
+          </p>
+        </div>
+
+        <div class="card card-solution">
+          <h4>All 11 v3 Breaking Changes Complete</h4>
+          <p>
+            Ghost bus deletion, memory/ → stack/memory/, Metadata alias break,
+            Version → uint64, io.Closer removal, readmodel → kv merge, projection
+            dissolution, TypedHandler, Fold → Apply, Event concrete type, SSE →
+            transport/http/. Only jsonv2 deferred (blocked on Go stdlib).
+          </p>
+        </div>
+
+        <div class="card card-solution">
+          <h4>24/28 Tested Modules Pass Clean</h4>
+          <p>
+            event (91.6% cov), codec (83.0%), query (86.1%), id (97.6%), dispatcher
+            (98.0%), schema (93.5%), kv (80.7%), middleware (91.4%), storage (79.3%),
+            storage/pebble (82.8%), watermill (79.8%), otel (90.7%), signing (94.5%),
+            encryption (86.5%), listing (94.9%), transport/http (86.5%), catalog,
+            integration, stack/sqlite, stack/pebble, stack/memory, stack/bench,
+            testutil, projection — all green.
+          </p>
+        </div>
+
+        <!-- ===== PARTIALLY DONE ===== -->
+        <h2 id="partially"><span class="num">02</span> Partially Done</h2>
+
+        <div class="card card-warning">
+          <h4>Pareto Execution Plan — Tier 1 done, Tiers 2–5 not started</h4>
+          <p>
+            Comprehensive plan written and committed (commit
+            <code>9363cf23</code>): 103 tasks across 5 tiers, D2 execution graph, HTML
+            dashboard. Tier 1 (Ship v3, 7 tasks) is now complete. Tiers 2–5 remain:
+            hardening (race tests, property tests, SSE gap tests), polish, consumer
+            trust, and blocked items.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>v3.0.0 Release — code complete, not tagged</h4>
+          <p>
+            All 11 breaking changes are shipped in the codebase. The v3.0.0 git tag
+            has not been created. User explicitly deferred tagging until further
+            notice. Docs (ROADMAP, FEATURES, V3_MIGRATION) all reflect v3-ready state.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>Test Coverage — core modules strong, bundle layer thin</h4>
+          <p>
+            Core modules: 80–98% coverage (event 91.6%, id 97.6%, dispatcher 98.0%,
+            signing 94.5%, listing 94.9%). Bundle/preset layer weaker: stack/pebble
+            53.3%, stack/sqlite 69.9%, stack/memory 75.0%. 4 modules have unknown
+            coverage because their test suites don't compile.
+          </p>
+        </div>
+
+        <!-- ===== NOT STARTED ===== -->
+        <h2 id="not-started"><span class="num">03</span> Not Started</h2>
+
+        <div class="card">
+          <h4>Transport Adapters (ADR-0025)</h4>
+          <p>
+            <code>transport/http/</code> (SSE) is done. Not started:
+            <code>transport/grpc/</code> (protobuf command dispatch + event pub/sub),
+            <code>transport/nats/</code> (JetStream), <code>transport/redis/</code>
+            (Redis Streams). All have accepted ADRs but zero code.
+          </p>
+        </div>
+
+        <div class="card">
+          <h4>Tier 2: Hardening (Pareto Plan)</h4>
+          <p>
+            PgxListener race test, Rapid property tests (Version.Sub, Metadata
+            round-trips × 3 modules), SSE gap tests (buffer overflow, subscribe error,
+            disconnect), Consumer trust smoke test, Hot path profiling. ~17 tasks,
+            estimated ~3 hours.
+          </p>
+        </div>
+
+        <div class="card">
+          <h4>jsonv2 + Arena Experiments</h4>
+          <p>
+            Both have experiment files behind <code>goexperiment.*</code> build tags.
+            Blocked on Go stdlib stabilization. No action possible until Go ships
+            stable APIs.
+          </p>
+        </div>
+
+        <div class="card">
+          <h4>Read-Model Secondary Indexes</h4>
+          <p>
+            Today <code>kv.TypedStore</code> Scan filters in memory. Large read-model
+            sets need secondary indexes / ranged scans. No design yet.
+          </p>
+        </div>
+
+        <div class="card">
+          <h4>Tiers 3–5 of Pareto Plan</h4>
+          <p>
+            Tier 3 (Polish): catalog examples, godoc review, API stability golden.
+            Tier 4 (Consumer): resilience/ module, OTel shim, ID-backing docs.
+            Tier 5 (Blocked): jsonv2, arena, distributed projection. All not started.
+          </p>
+        </div>
+
+        <!-- ===== TOTALLY FUCKED UP ===== -->
+        <h2 id="broken"><span class="num">04</span> Totally Fucked Up!</h2>
+
+        <p style="color: var(--problem); font-weight: 700;">
+          4 modules have committed broken test code. These are NOT from this session —
+          they come from the 2026-06-10 "Code Deduplication &amp; Test Cleanup Sprint"
+          which renamed test helpers but never updated callers, then claimed
+          "FULLY DONE" without building the test packages.
+        </p>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Build Broken</span>
+          <h3>decider — mustEveryN renamed but 5 callers not updated</h3>
+          <div class="where">decider/decider_coverage_test.go:117 · decider_snapshot_test.go:21,151,180,208</div>
+          <p>
+            The dedup sprint renamed <code>mustEveryN</code> → <code>everyN</code> in
+            <code>decider_bdd_test.go:19</code> but left 5 call sites in
+            <code>decider_coverage_test.go</code> and <code>decider_snapshot_test.go</code>
+            still referencing the old name. The test package doesn't compile.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            Replace <code>mustEveryN(n)</code> → <code>everyN(n)</code> in all 5 sites.
+            Note: decider's <code>everyN</code> takes <code>(n int)</code>, NOT
+            <code>(tb testing.TB, n int)</code> — the signatures differ between modules.
+          </div>
+        </div>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Build Broken</span>
+          <h3>snapshot — same mustEveryN rename, 6 callers not updated</h3>
+          <div class="where">snapshot/helper_test.go:38,48,59,70 · strategy_test.go:67,73</div>
+          <p>
+            Same root cause as decider. <code>everyN</code> is defined in
+            <code>snapshot/golden_test.go:16</code> with signature
+            <code>(tb testing.TB, n int)</code>, but 6 callers still use
+            <code>mustEveryN</code>.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            Replace <code>mustEveryN(t, n)</code> → <code>everyN(t, n)</code> in all 6
+            sites. Note: snapshot's <code>everyN</code> DOES take
+            <code>(tb testing.TB, n int)</code> — different from decider's signature.
+          </div>
+        </div>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Build Broken</span>
+          <h3>command — Ginkgo closure references undefined <code>t</code></h3>
+          <div class="where">command/command_bdd_test.go:292</div>
+          <p>
+            A typed-handler BDD scenario was added inside a Ginkgo
+            <code>It(...)</code> closure but copy-pasted a <code>newCmd(t, ...)</code>
+            call from a stdlib <code>func TestX(t *testing.T)</code> context. Ginkgo
+            closures receive no <code>*testing.T</code>, so <code>t</code> is undefined.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            Build the command inline or use a helper that takes no
+            <code>tb</code> parameter (e.g. <code>testutil.MustNewCmd</code>).
+          </div>
+        </div>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Build Broken</span>
+          <h3>prometheus — MustSetup phantom API tested but never implemented</h3>
+          <div class="where">prometheus/exporter_test.go:119</div>
+          <p>
+            <code>TestMustSetup_Succeeds</code> calls <code>cqrsprom.MustSetup()</code>
+            which <strong>does not exist</strong>. Only <code>Setup()</code> exists
+            (at <code>exporter.go:73</code>). Worse: <code>MustSetup</code> is
+            documented in FEATURES.md, CHANGELOG.md, AGENTS.md, and
+            <code>api_surface.txt</code> — all referencing a function that was never
+            written.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            Either implement <code>MustSetup()</code> as a panic-on-error wrapper around
+            <code>Setup()</code>, or delete the test and remove all doc references.
+            The docs-vs-code divergence suggests it was planned, documented, tested,
+            but never implemented.
+          </div>
+        </div>
+
+        <!-- ===== WHAT TO IMPROVE ===== -->
+        <h2 id="improve"><span class="num">05</span> What We Should Improve</h2>
+
+        <div class="card card-problem">
+          <h4>CI is not catching broken test packages</h4>
+          <p>
+            The 2026-06-10 dedup sprint shipped broken test code that CI apparently
+            didn't catch. Either CI isn't running <code>go test ./...</code> with
+            <code>GOWORK=off</code> per-module, or the failures were silently ignored.
+            The sprint doc claims "all 37 packages pass" — this is provably false.
+            <strong>CI must fail on any test compilation error.</strong>
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>Docs-vs-code divergence is systemic</h4>
+          <p>
+            <code>MustSetup</code> appears in 4 doc files but doesn't exist in code.
+            V3_MIGRATION had 6 broken code examples. ROADMAP said "projection
+            dissolution in progress" when it's done. FEATURES said "alias of
+            event.Metadata" when the alias was broken. The pattern: docs get written
+            ahead of implementation, then the implementation changes and docs rot.
+          </p>
+          <div class="callout callout-warning">
+            <strong>Process fix</strong>
+            Run <code>cmd/api-stability</code> golden checks against actual code.
+            The tool exists for exactly this — it just isn't enforced.
+          </div>
+        </div>
+
+        <div class="card card-warning">
+          <h4>4 modules have zero coverage visibility</h4>
+          <p>
+            command, decider, snapshot, prometheus — their test suites don't compile,
+            so coverage is unknown. These are core modules (decider is 98.3% in the last
+            status report, but that was before the test-helper rename broke it).
+          </p>
+        </div>
+
+        <div class="card">
+          <h4>Stack preset coverage is thin</h4>
+          <p>
+            stack/pebble 53.3%, stack/sqlite 69.9%, stack/memory 75.0%. These are the
+            consumer-facing "easy button" presets. Constructor error branches are
+            under-tested. The shared contract suite covers happy paths but not failure
+            modes.
+          </p>
+        </div>
+
+        <!-- ===== TOP 25 ===== -->
+        <h2 id="top25"><span class="num">06</span> Top 25 Things to Do Next</h2>
+        <p>Sorted by impact × urgency. Each task is scoped to ≤ 1 hour.</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Impact</th>
+              <th>Task</th>
+              <th>Effort</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>Fix decider <code>mustEveryN</code> → <code>everyN</code> (5 sites)</td>
+              <td><span class="badge badge-low">5 min</span></td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>Fix snapshot <code>mustEveryN</code> → <code>everyN</code> (6 sites)</td>
+              <td><span class="badge badge-low">5 min</span></td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>Fix command Ginkgo <code>undefined: t</code> at command_bdd_test.go:292</td>
+              <td><span class="badge badge-low">10 min</span></td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>Fix prometheus <code>MustSetup</code> — implement or delete test + docs</td>
+              <td><span class="badge badge-medium">15 min</span></td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>Run full <code>go test ./...</code> sweep to verify ALL 38 modules</td>
+              <td><span class="badge badge-low">5 min</span></td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>Remove phantom <code>MustSetup</code> from FEATURES.md, CHANGELOG.md, AGENTS.md, api_surface.txt</td>
+              <td><span class="badge badge-low">10 min</span></td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>Verify CI actually runs per-module <code>GOWORK=off go test</code> — audit ci.yml</td>
+              <td><span class="badge badge-medium">20 min</span></td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>Update docs/status/2026-06-10 dedup sprint — mark as PARTIALLY DONE with broken renames</td>
+              <td><span class="badge badge-low">10 min</span></td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>PgxListener race test — verify stack/postgres channel-based sync under <code>-race</code></td>
+              <td><span class="badge badge-medium">30 min</span></td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>Rapid property test: Version.Sub underflow panic invariant</td>
+              <td><span class="badge badge-low">15 min</span></td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>Rapid property test: Metadata Merge round-trip (event module)</td>
+              <td><span class="badge badge-low">15 min</span></td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>Rapid property test: Metadata Merge round-trip (command module)</td>
+              <td><span class="badge badge-low">15 min</span></td>
+            </tr>
+            <tr>
+              <td>13</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>Rapid property test: Metadata Merge round-trip (query module)</td>
+              <td><span class="badge badge-low">15 min</span></td>
+            </tr>
+            <tr>
+              <td>14</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>SSE gap test: buffer overflow on slow subscriber</td>
+              <td><span class="badge badge-medium">20 min</span></td>
+            </tr>
+            <tr>
+              <td>15</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>SSE gap test: subscribe error propagation</td>
+              <td><span class="badge badge-medium">20 min</span></td>
+            </tr>
+            <tr>
+              <td>16</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>SSE gap test: client disconnect cleanup</td>
+              <td><span class="badge badge-medium">20 min</span></td>
+            </tr>
+            <tr>
+              <td>17</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>Consumer trust smoke test — end-to-end import + compile from fresh module</td>
+              <td><span class="badge badge-medium">30 min</span></td>
+            </tr>
+            <tr>
+              <td>18</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>Stack preset error-branch tests (pebble/sqlite/memory constructors)</td>
+              <td><span class="badge badge-medium">45 min</span></td>
+            </tr>
+            <tr>
+              <td>19</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Run <code>cmd/api-stability</code> and diff against golden — catch doc drift</td>
+              <td><span class="badge badge-low">15 min</span></td>
+            </tr>
+            <tr>
+              <td>20</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Update api_surface.txt golden if MustSetup is implemented or removed</td>
+              <td><span class="badge badge-low">5 min</span></td>
+            </tr>
+            <tr>
+              <td>21</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Hot path profiling — benchmark Clone + Payload() allocs</td>
+              <td><span class="badge badge-medium">30 min</span></td>
+            </tr>
+            <tr>
+              <td>22</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Catalog examples refresh — verify all code snippets compile</td>
+              <td><span class="badge badge-medium">30 min</span></td>
+            </tr>
+            <tr>
+              <td>23</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Godoc review — ensure all exported types have examples</td>
+              <td><span class="badge badge-medium">45 min</span></td>
+            </tr>
+            <tr>
+              <td>24</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Dependency-budget CI audit — run <code>nix run .#check-layers</code></td>
+              <td><span class="badge badge-low">10 min</span></td>
+            </tr>
+            <tr>
+              <td>25</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Tag v3.0.0 (after all tests pass and user approves)</td>
+              <td><span class="badge badge-low">5 min</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- ===== THE QUESTION ===== -->
+        <h2 id="question"><span class="num">07</span> The #1 Question I Can't Answer</h2>
+
+        <div class="question-box">
+          <h3>Should I fix the 4 broken test modules NOW, or are they intentionally broken from in-progress work?</h3>
+          <p>
+            The 4 broken modules (<code>command</code>, <code>decider</code>,
+            <code>snapshot</code>, <code>prometheus</code>) have <strong>committed</strong>
+            broken test code — no unstaged changes, no work-in-progress markers.
+            The root cause is a 2026-06-10 test-helper rename that was marked "FULLY DONE"
+            but never verified. The fixes are trivial (5–15 min each).
+          </p>
+          <p>
+            <strong>But I need to know:</strong> Are these failures from work you're
+            actively doing in another session? Should I fix them as part of Tier 2
+            hardening, or are they blocked on a larger refactor you have in progress?
+            The <code>mustEveryN</code> → <code>everyN</code> rename suggests a test
+            helper consolidation that may have a different intended end state than
+            just "rename the callers."
+          </p>
+          <div class="callout callout-warning">
+            <strong>If you say "fix them"</strong>
+            I'll fix all 4 in under 30 minutes: rename callers in decider/snapshot,
+            fix the Ginkgo <code>t</code> reference in command, and implement
+            <code>MustSetup</code> in prometheus (or delete the test + clean docs).
+          </div>
+        </div>
+
+        <footer class="footer">
+          Generated 2026-06-21 03:04 &middot; All test results verified via per-module <code>GOWORK=off go test -count=1 ./...</code> &middot; Coverage via <code>-cover</code> flag
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) { return document.getElementById(id); })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) { observer.observe(s); });
+      })();
+    </script>
+  </body>
+</html>
