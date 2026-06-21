@@ -1,0 +1,141 @@
+direction: down
+
+# Phase containers
+Phase_1_Non_Breaking: {
+  shape: package
+  label: "Phase 1: Non-Breaking Quick Wins\n8 panics · ~80min"
+  style.fill: "#1a3a2a"
+
+  Codec_Modes: {
+    label: "Codec CBOR Modes\n4 panics → sync.Once"
+    style.fill: "#2a4a3a"
+  }
+  Pebble_Serialization: {
+    label: "Pebble Serialization\n1 panic → sync.Once"
+    style.fill: "#2a4a3a"
+  }
+  Listing_Unreachable: {
+    label: "Listing Unreachable\n1 panic → remove case"
+    style.fill: "#2a4a3a"
+  }
+  Cattest_StringSchema: {
+    label: "Cattest StringSchema\n1 panic → error"
+    style.fill: "#2a4a3a"
+  }
+  Example_Todo_Handler: {
+    label: "Example/todo Handler\n1 panic → error"
+    style.fill: "#2a4a3a"
+  }
+
+  Codec_Modes -> Pebble_Serialization: "pattern"
+}
+
+Phase_2_Pebble_Constructors: {
+  shape: package
+  label: "Phase 2: Pebble + Signing Constructors\n7 panics · ~115min · ALL callers are tests"
+  style.fill: "#3a2a1a"
+
+  Pebble_6_Constructors: {
+    label: "6 Pebble Constructors\nNewStore/Snapshot/Checkpoint\nKV/Query/Command\n→ (*Store, error)"
+    style.fill: "#4a3a2a"
+  }
+  Backend_Facade: {
+    label: "PebbleBackend Facade\nnewBackend + NewBackend\n→ error propagation"
+    style.fill: "#4a3a2a"
+  }
+  Pebble_Test_Callers: {
+    label: "Update 19 Pebble\nTest Call Sites"
+    style.fill: "#4a3a2a"
+  }
+  VerifierMap: {
+    label: "Multisig VerifierMap\n1 panic → error\n+ 4 test callers"
+    style.fill: "#4a3a2a"
+  }
+
+  Pebble_6_Constructors -> Backend_Facade
+  Pebble_6_Constructors -> Pebble_Test_Callers
+}
+
+Phase_3_Event_Arithmetic: {
+  shape: package
+  label: "Phase 3: Event Arithmetic Invariants\n5 panics · ~60min · ALL callers are tests"
+  style.fill: "#1a1a3a"
+
+  Version_Methods: {
+    label: "Version.Decrement + Sub\n2 panics → error"
+    style.fill: "#2a2a4a"
+  }
+  SchemaVersion_Methods: {
+    label: "SchemaVersion.Decrement\n+ Add + Sub\n3 panics → error"
+    style.fill: "#2a2a4a"
+  }
+  Event_Test_Callers: {
+    label: "Update 18 Event\nTest Call Sites"
+    style.fill: "#2a2a4a"
+  }
+
+  Version_Methods -> Event_Test_Callers
+  SchemaVersion_Methods -> Event_Test_Callers
+}
+
+Phase_4_Test_Cleanup: {
+  shape: package
+  label: "Phase 4: Test Setup Cleanup\n6 panics · ~40min"
+  style.fill: "#3a1a1a"
+
+  Test_Setup: {
+    label: "4 Files:\ncommand/store_test.go\npebble/benchmark_test.go\nintegration/query/query_test.go\nsigning/multisig/example_test.go\npanic(err) → tb.Fatalf"
+    style.fill: "#4a2a2a"
+  }
+}
+
+Phase_5_Verification: {
+  shape: package
+  label: "Phase 5: Docs + Verification\n0 panics · ~60min"
+  style.fill: "#1a2a3a"
+
+  API_Golden: {
+    label: "API Surface Golden\nRegeneration"
+    style.fill: "#2a3a4a"
+  }
+  Docs_Update: {
+    label: "AGENTS.md + SKILL.md\n+ FEATURES.md"
+    style.fill: "#2a3a4a"
+  }
+  Quality_Gates: {
+    label: "Build + Vet + Test\n+ Lint + Fmt"
+    style.fill: "#2a3a4a"
+  }
+
+  API_Golden -> Docs_Update -> Quality_Gates
+}
+
+# Inter-phase dependencies
+Phase_1_Non_Breaking -> Phase_2_Pebble_Constructors: "Phase 2 depends on\nCodec lazy init"
+Phase_2_Pebble_Constructors -> Phase_3_Event_Arithmetic
+Phase_3_Event_Arithmetic -> Phase_4_Test_Cleanup
+Phase_4_Test_Cleanup -> Phase_5_Verification
+
+# Legend
+Legend: {
+  shape: package
+  label: "Pareto Tiers"
+  style.fill: "#18181d"
+
+  Tier_1: {
+    label: "1% → 51%: Phase 1\n8 panics, non-breaking"
+    style.fill: "#1a3a2a"
+  }
+  Tier_2: {
+    label: "4% → 64%: + Phase 2\n15 panics, test-only callers"
+    style.fill: "#3a2a1a"
+  }
+  Tier_3: {
+    label: "20% → 80%: + Phase 3\n20 panics, core type safety"
+    style.fill: "#1a1a3a"
+  }
+  Tier_4: {
+    label: "100%: + Phase 4-5\n26 panics eliminated"
+    style.fill: "#3a1a1a"
+  }
+}
