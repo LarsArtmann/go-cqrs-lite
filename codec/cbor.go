@@ -2,6 +2,8 @@ package codec
 
 import (
 	"bytes"
+	"fmt"
+	"sync"
 
 	"github.com/fxamacker/cbor/v2"
 )
@@ -18,52 +20,72 @@ type CBORCodec struct{}
 
 var _ Codec = CBORCodec{}
 
-// cborEncMode provides canonical (deterministic) CBOR encoding with sorted map keys.
-//
-//nolint:gochecknoglobals // concurrency-safe EncMode, created once at package init
-var cborEncMode = func() cbor.EncMode {
-	em, err := cbor.CanonicalEncOptions().EncMode()
-	if err != nil {
-		panic("codec: failed to create CBOR canonical encoding mode: " + err.Error())
-	}
+var (
+	encModeOnce sync.Once
+	encModeVal  cbor.EncMode
+	encModeErr  error
+)
 
-	return em
-}()
+func canonicalEncMode() (cbor.EncMode, error) {
+	encModeOnce.Do(func() {
+		encModeVal, encModeErr = cbor.CanonicalEncOptions().EncMode()
+	})
 
-// cborDecMode provides the default CBOR decoding mode with duplicate map key
-// enforcement. Decode uses a configured DecMode for explicit control over
-// decoding behavior, mirroring the encode-side EncMode pattern.
-//
-//nolint:gochecknoglobals // concurrency-safe DecMode, created once at package init
-var cborDecMode = func() cbor.DecMode {
-	//nolint:exhaustruct // only DupMapKey is intentional; all other fields use library defaults
-	opts := cbor.DecOptions{DupMapKey: cbor.DupMapKeyEnforcedAPF}
+	return encModeVal, encModeErr
+}
 
-	dm, err := opts.DecMode()
-	if err != nil {
-		panic("codec: failed to create CBOR decoding mode: " + err.Error())
-	}
+// CBOREncMode returns the canonical CBOR encoding mode (RFC 7049 sorted map keys).
+// Used by storage/pebble and other modules that need deterministic CBOR encoding
+// identical to what CBORCodec produces.
+func CBOREncMode() (cbor.EncMode, error) {
+	return canonicalEncMode()
+}
 
-	return dm
-}()
+var (
+	decModeOnce sync.Once
+	decModeVal  cbor.DecMode
+	decModeErr  error
+)
 
-// CBORDecMode returns the package-level [cbor.DecMode] with duplicate map key
-// enforcement enabled. External packages (e.g. storage/pebble) should use this
-// instead of creating their own identical DecMode.
-func CBORDecMode() cbor.DecMode { return cborDecMode }
+func canonicalDecMode() (cbor.DecMode, error) {
+	decModeOnce.Do(func() {
+		//nolint:exhaustruct // only DupMapKey is intentional; all other fields use library defaults
+		opts := cbor.DecOptions{DupMapKey: cbor.DupMapKeyEnforcedAPF}
+		decModeVal, decModeErr = opts.DecMode()
+	})
+
+	return decModeVal, decModeErr
+}
+
+// CBORDecMode returns the CBOR decoding mode with duplicate map key enforcement.
+// External packages (e.g. storage/pebble) should use this instead of creating
+// their own identical DecMode.
+func CBORDecMode() (cbor.DecMode, error) {
+	return canonicalDecMode()
+}
 
 func (CBORCodec) Encoding() Encoding { return EncodingCBOR }
 
 // Encode marshals a value to canonical CBOR bytes with deterministic map ordering.
 func (CBORCodec) Encode(v any) ([]byte, error) {
+	mode, err := canonicalEncMode()
+	if err != nil {
+		return nil, fmt.Errorf("codec: CBOR canonical encoding mode: %w", err)
+	}
+
 	//nolint:wrapcheck // thin wrapper over cbor EncMode.Marshal
-	return cborEncMode.Marshal(v)
+	return mode.Marshal(v)
 }
 
 // Decode unmarshals CBOR bytes into a value.
 func (CBORCodec) Decode(data []byte, v any) error {
+	mode, err := canonicalDecMode()
+	if err != nil {
+		return fmt.Errorf("codec: CBOR decoding mode: %w", err)
+	}
+
 	//nolint:wrapcheck // thin wrapper over cbor DecMode.Unmarshal
-	return cborDecMode.Unmarshal(data, v)
+	return mode.Unmarshal(data, v)
 }
 
 // Diagnose converts CBOR bytes to extended diagnostic notation (EDN) — a
@@ -81,6 +103,11 @@ func Diagnose(data []byte) (string, error) {
 // EncodeToBuffer writes canonical CBOR encoding of v directly into buf,
 // avoiding the allocation that Encode returns. Implements BufferEncoder.
 func (CBORCodec) EncodeToBuffer(v any, buf *bytes.Buffer) error {
+	mode, err := canonicalEncMode()
+	if err != nil {
+		return fmt.Errorf("codec: CBOR canonical encoding mode: %w", err)
+	}
+
 	//nolint:wrapcheck // thin wrapper over cbor Encoder.Encode
-	return cborEncMode.NewEncoder(buf).Encode(v)
+	return mode.NewEncoder(buf).Encode(v)
 }

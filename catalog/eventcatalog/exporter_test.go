@@ -84,6 +84,11 @@ func requireExportPermissionError(t *testing.T, cat *catalog.Catalog, tmpDir, re
 func TestExporter_Export_ServiceWithCommand(t *testing.T) {
 	t.Parallel()
 
+	cmdSchema, err := cattest.StringSchema("orderId", "timestamp")
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
 	reg.AddService(catalog.Service{
 		ID: "order-svc", Name: "Order Service", Version: "1.0.0", Summary: "Manages orders",
@@ -94,7 +99,7 @@ func TestExporter_Export_ServiceWithCommand(t *testing.T) {
 		Name:    "CreateOrder",
 		Version: "1.0.0",
 		Summary: "Create a new order",
-		Schema:  cattest.StringSchema("orderId", "timestamp"),
+		Schema:  cmdSchema,
 	})
 
 	tmpDir := exportCatalog(t, reg)

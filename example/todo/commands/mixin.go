@@ -17,15 +17,15 @@ type CommandHandler struct {
 	repo *decider.Repository[todoaggregate.TodoState]
 }
 
-func NewHandler(events event.Store, eventBus event.Publisher) CommandHandler {
+func NewHandler(events event.Store, eventBus event.Publisher) (CommandHandler, error) {
 	repo, err := decider.NewRepository(
 		events, eventBus, todoaggregate.NewTodoDecider(),
 	)
 	if err != nil {
-		panic(fmt.Sprintf("failed to create repository: %v", err))
+		return CommandHandler{}, fmt.Errorf("todo: failed to create repository: %w", err)
 	}
 
-	return CommandHandler{repo: repo}
+	return CommandHandler{repo: repo}, nil
 }
 
 func (m *CommandHandler) execute(

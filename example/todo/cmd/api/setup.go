@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -54,7 +55,10 @@ func setupApp(ctx context.Context, logger *slog.Logger, dataDir string) (*app, e
 		return nil, err
 	}
 
-	cmdDisp, queryDisp := setupDispatchers(bundle, readModel)
+	cmdDisp, queryDisp, err := setupDispatchers(bundle, readModel)
+	if err != nil {
+		return nil, err
+	}
 
 	return &app{
 		bundle:    bundle,
@@ -89,7 +93,7 @@ func setupProjection(
 func setupDispatchers(
 	bundle *stack.Bundle,
 	readModel domain.TodoReadModel,
-) (*command.Dispatcher, *query.Dispatcher) {
+) (*command.Dispatcher, *query.Dispatcher, error) {
 	cmdDisp := command.NewDispatcher()
 	queryDisp := query.NewDispatcher()
 
@@ -99,18 +103,34 @@ func setupDispatchers(
 		_ = cmdDisp.Register(cmdType, handler)
 	}
 
-	registerCommand(aggregate.CommandCreate,
-		commands.NewCreateTodoHandler(eventStore, bundle.Publisher).Handle)
-	registerCommand(aggregate.CommandUpdate,
-		commands.NewUpdateTodoHandler(eventStore, bundle.Publisher).Handle)
-	registerCommand(aggregate.CommandDelete,
-		commands.NewDeleteTodoHandler(eventStore, bundle.Publisher).Handle)
-	registerCommand(aggregate.CommandChangeStatus,
-		commands.NewChangeStatusHandler(eventStore, bundle.Publisher).Handle)
+	createH, err := commands.NewCreateTodoHandler(eventStore, bundle.Publisher)
+	if err != nil {
+		return nil, nil, fmt.Errorf("todo: create handler: %w", err)
+	}
+
+	updateH, err := commands.NewUpdateTodoHandler(eventStore, bundle.Publisher)
+	if err != nil {
+		return nil, nil, fmt.Errorf("todo: update handler: %w", err)
+	}
+
+	deleteH, err := commands.NewDeleteTodoHandler(eventStore, bundle.Publisher)
+	if err != nil {
+		return nil, nil, fmt.Errorf("todo: delete handler: %w", err)
+	}
+
+	statusH, err := commands.NewChangeStatusHandler(eventStore, bundle.Publisher)
+	if err != nil {
+		return nil, nil, fmt.Errorf("todo: status handler: %w", err)
+	}
+
+	registerCommand(aggregate.CommandCreate, createH.Handle)
+	registerCommand(aggregate.CommandUpdate, updateH.Handle)
+	registerCommand(aggregate.CommandDelete, deleteH.Handle)
+	registerCommand(aggregate.CommandChangeStatus, statusH.Handle)
 
 	registerQueryHandlers(queryDisp, readModel)
 
-	return cmdDisp, queryDisp
+	return cmdDisp, queryDisp, nil
 }
 
 func setupHTTP(logger *slog.Logger, app *app) *http.Server {

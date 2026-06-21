@@ -29,8 +29,13 @@ func NewDeleteTodoCommand(todoID id.AggregateID) (*DeleteTodoCommand, error) {
 
 type DeleteTodoHandler struct{ CommandHandler }
 
-func NewDeleteTodoHandler(events event.Store, eventBus event.Publisher) *DeleteTodoHandler {
-	return &DeleteTodoHandler{CommandHandler: NewHandler(events, eventBus)}
+func NewDeleteTodoHandler(events event.Store, eventBus event.Publisher) (*DeleteTodoHandler, error) {
+	ch, err := NewHandler(events, eventBus)
+	if err != nil {
+		return nil, err
+	}
+
+	return &DeleteTodoHandler{CommandHandler: ch}, nil
 }
 
 func (h *DeleteTodoHandler) Handle(ctx context.Context, cmd command.Command) error {

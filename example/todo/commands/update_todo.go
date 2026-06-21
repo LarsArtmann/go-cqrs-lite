@@ -43,8 +43,13 @@ func NewUpdateTodoCommand(
 
 type UpdateTodoHandler struct{ CommandHandler }
 
-func NewUpdateTodoHandler(events event.Store, eventBus event.Publisher) *UpdateTodoHandler {
-	return &UpdateTodoHandler{CommandHandler: NewHandler(events, eventBus)}
+func NewUpdateTodoHandler(events event.Store, eventBus event.Publisher) (*UpdateTodoHandler, error) {
+	ch, err := NewHandler(events, eventBus)
+	if err != nil {
+		return nil, err
+	}
+
+	return &UpdateTodoHandler{CommandHandler: ch}, nil
 }
 
 func (h *UpdateTodoHandler) Handle(ctx context.Context, cmd command.Command) error {

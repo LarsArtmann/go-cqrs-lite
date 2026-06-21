@@ -8,6 +8,11 @@ import (
 )
 
 func TestExporter_Export(t *testing.T) {
+	eventSchema, err := cattest.StringSchema("id", "name")
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	reg := catalog.NewRegistry("Test API", "1.0.0")
 	reg.AddService(catalog.Service{
 		ID:      "test-svc",
@@ -44,7 +49,7 @@ func TestExporter_Export(t *testing.T) {
 				Name:      "ItemCreated",
 				Version:   "1.0.0",
 				Summary:   "An item was created",
-				Schema:    cattest.StringSchema("id", "name"),
+				Schema:    eventSchema,
 				Kind:      catalog.EventMessage,
 				Direction: catalog.Sends,
 			},

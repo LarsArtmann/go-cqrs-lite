@@ -28,7 +28,7 @@ func (s *QueryStore) serializeQuery(q *query.PersistedQuery) ([]byte, error) {
 		Metadata:   q.Metadata(),
 	}
 
-	data, err := pebbleEncMode.Marshal(serialized)
+	data, err := marshalCBOR(serialized)
 	if err != nil {
 		return nil, fmt.Errorf("pebble: marshal query: %w", err)
 	}
@@ -42,7 +42,7 @@ func (s *QueryStore) deserializeQuery(data []byte) (*query.PersistedQuery, error
 	var err error
 
 	if isCBOR(data) {
-		err = pebbleDecMode.Unmarshal(data, &serialized)
+		err = unmarshalCBOR(data, &serialized)
 	} else {
 		err = json.Unmarshal(
 			data,

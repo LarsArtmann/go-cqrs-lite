@@ -179,7 +179,7 @@ func applyTombstonePolicy(refs []AggregateStatus, policy TombstonePolicy) []Aggr
 				filtered = append(filtered, r)
 			}
 		case TombstoneInclude:
-			panic("unreachable")
+			filtered = append(filtered, r)
 		}
 	}
 

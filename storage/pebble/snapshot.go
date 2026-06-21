@@ -271,14 +271,14 @@ func serializeSnapshot(snap snapshot.Snapshot) ([]byte, error) {
 		CreatedAt:     snap.CreatedAt.UnixNano(),
 	}
 
-	return pebbleEncMode.Marshal(s)
+	return marshalCBOR(s)
 }
 
 func deserializeSnapshot(data []byte) (*serializableSnapshot, error) {
 	var s serializableSnapshot
 
 	if isCBOR(data) {
-		err := pebbleDecMode.Unmarshal(data, &s)
+		err := unmarshalCBOR(data, &s)
 		if err != nil {
 			return nil, event.Wrapf(
 				err,

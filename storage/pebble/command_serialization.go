@@ -33,7 +33,7 @@ func (s *CommandStore) serializeCommand(cmd *command.PersistedCommand) ([]byte, 
 		Metadata:      cmd.Metadata(),
 	}
 
-	data, err := pebbleEncMode.Marshal(serialized)
+	data, err := marshalCBOR(serialized)
 	if err != nil {
 		return nil, fmt.Errorf("pebble: marshal command: %w", err)
 	}
@@ -47,7 +47,7 @@ func (s *CommandStore) deserializeCommand(data []byte) (*command.PersistedComman
 	var err error
 
 	if isCBOR(data) {
-		err = pebbleDecMode.Unmarshal(data, &serialized)
+		err = unmarshalCBOR(data, &serialized)
 	} else {
 		err = json.Unmarshal(
 			data,

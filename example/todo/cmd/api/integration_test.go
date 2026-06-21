@@ -53,27 +53,50 @@ func setupTestMux(t *testing.T) *http.ServeMux {
 	cmdDisp := command.NewDispatcher()
 	queryDisp := query.NewDispatcher()
 
+	createH, err := commands.NewCreateTodoHandler(eventStore, bundle.Publisher)
+	if err != nil {
+		t.Fatalf("NewCreateTodoHandler: %v", err)
+	}
+
 	if err := cmdDisp.Register(
 		aggregate.CommandCreate,
-		commands.NewCreateTodoHandler(eventStore, bundle.Publisher).Handle,
+		createH.Handle,
 	); err != nil {
 		t.Fatalf("Register CommandCreate: %v", err)
 	}
+
+	updateH, err := commands.NewUpdateTodoHandler(eventStore, bundle.Publisher)
+	if err != nil {
+		t.Fatalf("NewUpdateTodoHandler: %v", err)
+	}
+
 	if err := cmdDisp.Register(
 		aggregate.CommandUpdate,
-		commands.NewUpdateTodoHandler(eventStore, bundle.Publisher).Handle,
+		updateH.Handle,
 	); err != nil {
 		t.Fatalf("Register CommandUpdate: %v", err)
 	}
+
+	deleteH, err := commands.NewDeleteTodoHandler(eventStore, bundle.Publisher)
+	if err != nil {
+		t.Fatalf("NewDeleteTodoHandler: %v", err)
+	}
+
 	if err := cmdDisp.Register(
 		aggregate.CommandDelete,
-		commands.NewDeleteTodoHandler(eventStore, bundle.Publisher).Handle,
+		deleteH.Handle,
 	); err != nil {
 		t.Fatalf("Register CommandDelete: %v", err)
 	}
+
+	statusH, err := commands.NewChangeStatusHandler(eventStore, bundle.Publisher)
+	if err != nil {
+		t.Fatalf("NewChangeStatusHandler: %v", err)
+	}
+
 	if err := cmdDisp.Register(
 		aggregate.CommandChangeStatus,
-		commands.NewChangeStatusHandler(eventStore, bundle.Publisher).Handle,
+		statusH.Handle,
 	); err != nil {
 		t.Fatalf("Register CommandChangeStatus: %v", err)
 	}

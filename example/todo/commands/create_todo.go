@@ -50,8 +50,13 @@ func NewCreateTodoCommand(
 
 type CreateTodoHandler struct{ CommandHandler }
 
-func NewCreateTodoHandler(events event.Store, eventBus event.Publisher) *CreateTodoHandler {
-	return &CreateTodoHandler{CommandHandler: NewHandler(events, eventBus)}
+func NewCreateTodoHandler(events event.Store, eventBus event.Publisher) (*CreateTodoHandler, error) {
+	ch, err := NewHandler(events, eventBus)
+	if err != nil {
+		return nil, err
+	}
+
+	return &CreateTodoHandler{CommandHandler: ch}, nil
 }
 
 func (h *CreateTodoHandler) Handle(ctx context.Context, cmd command.Command) error {

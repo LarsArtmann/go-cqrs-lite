@@ -3,7 +3,6 @@ package codec
 import (
 	"testing"
 
-	"github.com/fxamacker/cbor/v2"
 	"github.com/onsi/gomega"
 )
 
@@ -110,9 +109,3 @@ func TestDiagnoseInvalidCBOR(t *testing.T) {
 	_, err := Diagnose([]byte{0xff, 0xff})
 	g.Expect(err).To(gomega.HaveOccurred())
 }
-
-// Ensure compact modes are valid cbor modes at compile time.
-var (
-	_ cbor.EncMode = compactEncMode
-	_ cbor.DecMode = compactDecMode
-)

@@ -5,29 +5,33 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/fxamacker/cbor/v2"
-
 	"github.com/larsartmann/go-cqrs-lite/codec/v2"
 	"github.com/larsartmann/go-cqrs-lite/event/v2"
 	"github.com/larsartmann/go-cqrs-lite/id/v2"
 )
 
-// pebbleEncMode provides canonical CBOR encoding for event envelopes.
-// Sorted map keys + shortest floats = deterministic output = signing-safe.
-//
-//nolint:gochecknoglobals // concurrency-safe EncMode, created once at package init
-var pebbleEncMode = func() cbor.EncMode {
-	em, err := cbor.CanonicalEncOptions().EncMode()
+// marshalCBOR serializes a value using the canonical CBOR encoding mode
+// (RFC 7049 sorted map keys). Delegates to codec.CBOREncMode so all modules
+// share one deterministic encoding mode.
+func marshalCBOR(v any) ([]byte, error) {
+	mode, err := codec.CBOREncMode()
 	if err != nil {
-		panic("pebble: failed to create CBOR canonical encoding mode: " + err.Error())
+		return nil, fmt.Errorf("pebble: CBOR encoding mode: %w", err)
 	}
 
-	return em
-}()
+	return mode.Marshal(v)
+}
 
-// pebbleDecMode provides CBOR decoding with duplicate map key enforcement.
-// Reuses the canonical decoder from codec/ to avoid duplication.
-var pebbleDecMode = codec.CBORDecMode()
+// unmarshalCBOR deserializes CBOR data using the canonical decoding mode
+// with duplicate map key enforcement. Delegates to codec.CBORDecMode.
+func unmarshalCBOR(data []byte, v any) error {
+	mode, err := codec.CBORDecMode()
+	if err != nil {
+		return fmt.Errorf("pebble: CBOR decoding mode: %w", err)
+	}
+
+	return mode.Unmarshal(data, v)
+}
 
 // isCBOR detects CBOR-encoded data by checking for CBOR major type 5 (map).
 // CBOR maps start with byte 0xa0–0xbf (major type 5, 0–23 additional info).
@@ -42,7 +46,7 @@ func isCBOR(data []byte) bool {
 }
 
 // serializeEvent converts a CQRS event to CBOR.
-// Uses pebbleEncMode.Marshal directly: fxamacker/cbor already pools encode
+// Uses marshalCBOR directly: fxamacker/cbor already pools encode
 // buffers internally, so this is the lowest-allocation path for producing an
 // owned []byte that Pebble can store.
 func (a *EventStore) serializeEvent(evt event.Event) ([]byte, error) {
@@ -59,7 +63,7 @@ func (a *EventStore) serializeEvent(evt event.Event) ([]byte, error) {
 		Encoding:      string(evt.Encoding()),
 	}
 
-	data, err := pebbleEncMode.Marshal(s)
+	data, err := marshalCBOR(s)
 	if err != nil {
 		return nil, fmt.Errorf("pebble: marshal event: %w", err)
 	}
@@ -76,7 +80,7 @@ func (a *EventStore) deserializeEvent(data []byte) (event.Event, error) {
 	var err error
 
 	if isCBOR(data) {
-		err = pebbleDecMode.Unmarshal(data, &s)
+		err = unmarshalCBOR(data, &s)
 	} else {
 		err = json.Unmarshal(
 			data,

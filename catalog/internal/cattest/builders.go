@@ -2,6 +2,7 @@ package cattest
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
@@ -220,9 +221,9 @@ func CreateItemSchema() *catalog.Schema {
 	}
 }
 
-func StringSchema(props ...string) *catalog.Schema {
+func StringSchema(props ...string) (*catalog.Schema, error) {
 	if len(props)%2 != 0 {
-		panic("StringSchema: props must be key-value pairs")
+		return nil, fmt.Errorf("cattest.StringSchema: props must be key-value pairs, got %d", len(props))
 	}
 
 	//nolint:mnd // key-value pairs = half the input length
@@ -231,7 +232,7 @@ func StringSchema(props ...string) *catalog.Schema {
 		m[props[i]] = catalog.Property{Type: catalog.TypeString}
 	}
 
-	return &catalog.Schema{Type: catalog.TypeObject, Properties: m}
+	return &catalog.Schema{Type: catalog.TypeObject, Properties: m}, nil
 }
 
 func addServiceWithMessage(

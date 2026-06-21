@@ -23,12 +23,27 @@ func setupCommandHandlers(t *testing.T) commandHandlers {
 	store := cqrsMemory.NewMemoryStore()
 	bus := eventtest.NewFakeBus()
 
-	return commandHandlers{
-		create: commands.NewCreateTodoHandler(store, bus),
-		update: commands.NewUpdateTodoHandler(store, bus),
-		delete: commands.NewDeleteTodoHandler(store, bus),
-		status: commands.NewChangeStatusHandler(store, bus),
+	create, err := commands.NewCreateTodoHandler(store, bus)
+	if err != nil {
+		t.Fatalf("NewCreateTodoHandler: %v", err)
 	}
+
+	update, err := commands.NewUpdateTodoHandler(store, bus)
+	if err != nil {
+		t.Fatalf("NewUpdateTodoHandler: %v", err)
+	}
+
+	delete, err := commands.NewDeleteTodoHandler(store, bus)
+	if err != nil {
+		t.Fatalf("NewDeleteTodoHandler: %v", err)
+	}
+
+	status, err := commands.NewChangeStatusHandler(store, bus)
+	if err != nil {
+		t.Fatalf("NewChangeStatusHandler: %v", err)
+	}
+
+	return commandHandlers{create: create, update: update, delete: delete, status: status}
 }
 
 func TestCreateTodoHandler_Handle(t *testing.T) {

@@ -180,14 +180,14 @@ func serializeCheckpoint(checkpoint event.Checkpoint) ([]byte, error) {
 		ProcessedAt: checkpoint.ProcessedAt.UnixNano(),
 	}
 
-	return pebbleEncMode.Marshal(s)
+	return marshalCBOR(s)
 }
 
 func deserializeCheckpoint(data []byte) (event.Checkpoint, error) {
 	var s serializableCheckpoint
 
 	if isCBOR(data) {
-		err := pebbleDecMode.Unmarshal(data, &s)
+		err := unmarshalCBOR(data, &s)
 		if err != nil {
 			return event.Checkpoint{}, event.Wrapf(
 				err,
