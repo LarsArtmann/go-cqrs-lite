@@ -24,12 +24,12 @@ Query   → Dispatcher → Handler → Read Model
 
 **Three orthogonal axes you compose independently:**
 
-| Axis              | Question                                    | Modules                                                            |
-| ----------------- | ------------------------------------------- | ------------------------------------------------------------------ |
-| **Write model**   | How do I decide + persist changes?          | `event`, `command`, `decider`, `id`                                |
-| **Read model**    | How do I build queryable state from events? | `stack.Materialize`, `kv`, `listing`, `query`                      |
-| **Storage**       | Where do events/snapshots/checkpoints live? | `storage/memory`, `storage`, `storage/pebble`, `storage/turso`, `kv`, `stack` |
-| **Read models**   | How do I store/query typed projections?     | `kv.TypedStore`, `kv.Cache`                                        |
+| Axis              | Question                                    | Modules                                                                              |
+| ----------------- | ------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **Write model**   | How do I decide + persist changes?          | `event`, `command`, `decider`, `id`                                                  |
+| **Read model**    | How do I build queryable state from events? | `stack.Materialize`, `kv`, `listing`, `query`                                        |
+| **Storage**       | Where do events/snapshots/checkpoints live? | `storage/memory`, `storage`, `storage/pebble`, `storage/turso`, `kv`, `stack`        |
+| **Read models**   | How do I store/query typed projections?     | `kv.TypedStore`, `kv.Cache`                                                          |
 | **Cross-cutting** | Security, evolution, observability, docs    | `signing`, `encryption`, `schema`, `middleware`, `otel`, `catalog`, `transport/http` |
 
 You do NOT need all of them. Start with the minimal recipe (§2), then bolt on capabilities.
@@ -502,14 +502,14 @@ cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 
 ### Tooling (Layer 6)
 
-| Module              | Import        | One-liner                                                                                  |
-| ------------------- | ------------- | ------------------------------------------------------------------------------------------ |
-| `testutil`          | `testutil/v2` | `MustNewCmd(tb, ...)`, `NoopCommandHandler`. Shared test helpers (zero panics).            |
-| `id/idtest`         | `id/v2/idtest`| `ParseAggregateID(tb, s)`, `ParseEventID(tb, s)`. Branded-ID test helpers — `tb.Fatalf` on error, no panics. |
-| `query/querytest`   | `query/v2/querytest` | `New(tb, queryType)`. Construct valid test queries — `tb.Fatalf` on error.          |
-| `event/eventtest`   | `event/v2/eventtest` | `FakeStore`, `FakeBus`, `AssertGolden`. Event test doubles and golden test helpers. |
-| `cmd/cqrs-gen`      | (go install)  | Code generator: typed handler registration from `//cqrs:command` / `//cqrs:query` markers. |
-| `cmd/api-stability` | (go install)  | API surface checker: compares exports against `docs/api_surface.txt` golden file.          |
+| Module              | Import               | One-liner                                                                                                    |
+| ------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `testutil`          | `testutil/v2`        | `MustNewCmd(tb, ...)`, `NoopCommandHandler`. Shared test helpers (zero panics).                              |
+| `id/idtest`         | `id/v2/idtest`       | `ParseAggregateID(tb, s)`, `ParseEventID(tb, s)`. Branded-ID test helpers — `tb.Fatalf` on error, no panics. |
+| `query/querytest`   | `query/v2/querytest` | `New(tb, queryType)`. Construct valid test queries — `tb.Fatalf` on error.                                   |
+| `event/eventtest`   | `event/v2/eventtest` | `FakeStore`, `FakeBus`, `AssertGolden`. Event test doubles and golden test helpers.                          |
+| `cmd/cqrs-gen`      | (go install)         | Code generator: typed handler registration from `//cqrs:command` / `//cqrs:query` markers.                   |
+| `cmd/api-stability` | (go install)         | API surface checker: compares exports against `docs/api_surface.txt` golden file.                            |
 
 ---
 

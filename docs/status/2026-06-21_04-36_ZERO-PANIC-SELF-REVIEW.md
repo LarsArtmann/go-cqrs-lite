@@ -8,6 +8,7 @@
 ## What Was Done
 
 Over 4 commits, 26 production `panic()` calls were converted to error returns:
+
 - 8 non-breaking fixes (codec `sync.Once`, listing, cattest, example/todo)
 - 7 breaking constructor API changes (6 pebble constructors + multisig VerifierMap)
 - 5 event arithmetic invariants (Version/SchemaVersion Decrement/Add/Sub)
@@ -22,12 +23,12 @@ Over 4 commits, 26 production `panic()` calls were converted to error returns:
 All 4 new sentinel errors use plain `errors.New()`, which classifies as `Transient` (retryable).
 Every other sentinel in the project uses the `go-error-family` taxonomy.
 
-| Sentinel | File | Current | Should Be | Sibling Pattern |
-|---|---|---|---|---|
-| `ErrNilDatabase` | `storage/pebble/errors.go:10` | `errors.New` | `NewRejection` | `ErrAggregateTypeMismatch` uses `NewConflict` |
-| `ErrNilSigner` | `signing/multisig/errors.go:10` | `errors.New` | `NewRejection` | `ErrNoVerifier` uses `NewRejection` |
-| `ErrVersionUnderflow` | `event/types.go:115` | `errors.New` | `NewRejection` | `ErrVersionConflict` uses `NewConflict` |
-| `ErrSchemaVersionUnderflow` | `event/types.go:188` | `errors.New` | `NewRejection` | `ParseSchemaVersion` uses `NewRejection` |
+| Sentinel                    | File                            | Current      | Should Be      | Sibling Pattern                               |
+| --------------------------- | ------------------------------- | ------------ | -------------- | --------------------------------------------- |
+| `ErrNilDatabase`            | `storage/pebble/errors.go:10`   | `errors.New` | `NewRejection` | `ErrAggregateTypeMismatch` uses `NewConflict` |
+| `ErrNilSigner`              | `signing/multisig/errors.go:10` | `errors.New` | `NewRejection` | `ErrNoVerifier` uses `NewRejection`           |
+| `ErrVersionUnderflow`       | `event/types.go:115`            | `errors.New` | `NewRejection` | `ErrVersionConflict` uses `NewConflict`       |
+| `ErrSchemaVersionUnderflow` | `event/types.go:188`            | `errors.New` | `NewRejection` | `ParseSchemaVersion` uses `NewRejection`      |
 
 **Impact**: Consumers using `errorfamily.Classify(err)` will mis-classify these as retryable infrastructure
 failures and retry an operation that can never succeed (e.g., retrying `NewStore(nil, ...)`).
@@ -42,6 +43,7 @@ there's no `*testing.T`. This was a correct idiom that shouldn't have been chang
 ### 3. No CHANGELOG or migration entry for breaking API changes (CRITICAL)
 
 Breaking signature changes were shipped without documenting them:
+
 - `NewStore/NewSnapshotStore/NewCheckpointStore/NewKVStore/NewQueryStore/NewCommandStore`
   now return `(T, error)` instead of `T`
 - `NewBackend` now returns `(*Backend, error)`

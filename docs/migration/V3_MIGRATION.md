@@ -14,7 +14,7 @@ are complete and shipped.
 | #   | Breaking Change                                       | ADR                                                     | Severity | Status                                                                        |
 | --- | ----------------------------------------------------- | ------------------------------------------------------- | -------- | ----------------------------------------------------------------------------- |
 | 1   | Delete ghost bus implementations                      | [0028](../adr/0028-watermill-as-delivery-layer.md)      | High     | **Done** — memory buses + event/reactive\*.go deleted                         |
-| 2   | Move memory/ stores → stack/memory/                  | [0029](../adr/0029-storage-consolidation.md)            | Done     | Shipped in v2.8                                                               |
+| 2   | Move memory/ stores → stack/memory/                   | [0029](../adr/0029-storage-consolidation.md)            | Done     | Shipped in v2.8                                                               |
 | 3   | Break command/query Metadata = event.Metadata alias   | [0031](../adr/0031-metadata-split.md)                   | Medium   | **Done** — each module owns its Metadata embedding event.Tracing              |
 | 4   | Version → uint64                                      | —                                                       | Done     | Shipped in v2.8                                                               |
 | 5   | Remove io.Closer from core interfaces                 | [0010](../adr/0010-remove-io-closer-from-interfaces.md) | Medium   | **Done** — callers type-assert to io.Closer                                   |
@@ -170,15 +170,15 @@ the `prometheus/` module (OTel→Prometheus bridge). For pprof, use
 | `memory/bus.go`           | 250 | **Already deleted** in v2.8                                                                                                   |
 | `memory/command_bus.go`   | 150 | **Already deleted** in v2.8                                                                                                   |
 | `storage/pg_bus.go`       | 265 | **NOT ghost** — live code (ADR-0027, PostgresBus). Replaced by `watermill.EventBus` with Postgres backend only at v3 boundary |
-| `event/reactive.go`       | 239 | **Already deleted** — removed with projection/ dissolution (ADR-0030)                                                                                          |
-| `event/reactive_dedup.go` | 104 | **Already deleted** — removed with projection/ dissolution (ADR-0030)                                                                                          |
+| `event/reactive.go`       | 239 | **Already deleted** — removed with projection/ dissolution (ADR-0030)                                                         |
+| `event/reactive_dedup.go` | 104 | **Already deleted** — removed with projection/ dissolution (ADR-0030)                                                         |
 
 ### Module moves (ADR-0029)
 
-| From              | To                | Reason                                               |
-| ----------------- | ----------------- | ---------------------------------------------------- |
-| `storage/memory/`  | `stack/memory/`    | Stores moved to stack/ presets package; bus code deleted first                |
-| `readmodel/`      | (deleted)         | Merged into `kv/` (ADR-0032)                         |
+| From              | To              | Reason                                                         |
+| ----------------- | --------------- | -------------------------------------------------------------- |
+| `storage/memory/` | `stack/memory/` | Stores moved to stack/ presets package; bus code deleted first |
+| `readmodel/`      | (deleted)       | Merged into `kv/` (ADR-0032)                                   |
 
 ### Type changes
 

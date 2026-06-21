@@ -22,6 +22,6 @@ timestamp. They are preserved for historical context and audit trail.
 ## How to use these docs
 
 1. Read the **newest** planning doc first — it reflects the most recent thinking.
-2. Use older docs only to understand *why* a decision was made, not *what* the
+2. Use older docs only to understand _why_ a decision was made, not _what_ the
    current state is.
 3. If a doc claims something is broken, run the tests to verify before acting.

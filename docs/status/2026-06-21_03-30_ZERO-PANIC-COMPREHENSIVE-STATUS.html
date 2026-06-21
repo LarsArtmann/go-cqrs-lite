@@ -29,70 +29,370 @@
         --solution: var(--color-blue);
         --warning: var(--color-yellow);
         --radius: 0px;
-        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
       }
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      html { scroll-behavior: smooth; }
-      section[id], [id] { scroll-margin-top: 60px; }
-      body { background: var(--surface); color: var(--text); font-family: var(--font-body); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
-      .top-bar { background: var(--text); color: var(--surface); padding: 0.6rem 2rem; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
-      .layout { display: flex; gap: 2.5rem; padding: 2rem; }
-      .sidebar { width: 220px; flex-shrink: 0; position: sticky; top: 1rem; align-self: flex-start; height: calc(100vh - 2rem); overflow-y: auto; display: none; }
-      .sidebar nav { display: flex; flex-direction: column; gap: 0; }
-      .sidebar .label { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent); margin-bottom: 0.75rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border-strong); }
-      .sidebar a { font-size: 0.85rem; color: var(--text-muted); text-decoration: none; padding: 0.45rem 0.75rem; border-left: 2px solid transparent; transition: all 0.15s ease; font-weight: 500; }
-      .sidebar a:hover, .sidebar a.active { color: var(--accent); border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
-      .main { flex: 1; min-width: 0; }
-      h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -0.02em; }
-      h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.1; margin: 0 0 0.6rem; }
-      h2 { font-size: 1.4rem; margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border-strong); display: flex; align-items: baseline; gap: 0.6rem; }
-      h2 .num { font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent); font-weight: 700; }
-      h3 { font-size: 1.1rem; margin: 0 0 0.4rem; font-weight: 700; }
-      h4 { font-size: 0.98rem; margin: 0 0 0.3rem; font-weight: 700; }
-      p { margin: 0 0 1rem; }
-      .hero { padding: 1.5rem 0 1.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border-strong); }
-      .hero-badge { display: inline-block; font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--surface); background: var(--accent); padding: 0.3rem 0.7rem; margin-bottom: 0.9rem; }
-      .hero-subtitle { font-size: 1.05rem; color: var(--text-muted); max-width: 70ch; margin: 0; }
-      .card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1.3rem; margin-bottom: 1rem; border-left: 4px solid var(--border-strong); }
-      .card-problem { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised)); }
-      .card-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised)); }
-      .card-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised)); }
-      .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin: 1rem 0 1.5rem; }
-      .stat-card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1rem; position: relative; }
-      .stat-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--border-strong); }
-      .stat-bad::before { background: var(--problem); }
-      .stat-good::before { background: var(--solution); }
-      .stat-warn::before { background: var(--warning); }
-      .stat-value { font-family: var(--font-heading); font-size: 2rem; font-weight: 800; line-height: 1; letter-spacing: -0.03em; color: var(--text); }
-      .stat-good .stat-value { color: var(--solution); }
-      .stat-warn .stat-value { color: var(--warning); }
-      .stat-bad .stat-value { color: var(--problem); }
-      .stat-label { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-faint); margin-top: 0.5rem; }
-      .badge { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.18rem 0.5rem; border: 1px solid var(--border-strong); color: var(--text-muted); }
-      .badge-critical { color: var(--problem); border-color: var(--problem); }
-      .badge-high { color: var(--warning); border-color: var(--warning); }
-      .badge-medium { color: var(--accent); border-color: var(--accent); }
-      .badge-fixed { color: var(--solution); border-color: var(--solution); }
-      .badge-low { color: var(--text-muted); }
-      table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.9rem; }
-      th { text-align: left; padding: 0.6rem 0.9rem; background: var(--surface-raised); color: var(--text-faint); font-family: var(--font-mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border-bottom: 1px solid var(--border-strong); }
-      td { padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); }
-      tr:hover td { background: var(--surface-raised); }
-      .callout { margin: 0.8rem 0 0; padding: 0.7rem 0.9rem; border-left: 3px solid var(--border-strong); background: color-mix(in srgb, var(--text) 5%, transparent); font-size: 0.9rem; }
-      .callout strong { display: inline-block; margin-right: 0.4rem; }
-      .callout-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 10%, transparent); }
-      .callout-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 10%, transparent); }
-      .footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.8rem; color: var(--text-faint); font-family: var(--font-mono); }
-      pre { background: var(--surface-sunken); border: 1px solid var(--border); padding: 1rem 1.2rem; margin: 1rem 0; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.65; overflow-x: auto; }
-      .strengths { display: grid; gap: 0.5rem; margin: 1rem 0 1.5rem; }
-      .strength { display: grid; grid-template-columns: auto 1fr; gap: 0.8rem; padding: 0.7rem 0; border-bottom: 1px solid var(--border); }
-      .strength .check { font-family: var(--font-mono); font-weight: 700; color: var(--solution); font-size: 1.1rem; }
-      .strength .text strong { display: block; margin-bottom: 0.15rem; }
-      .strength .text span { color: var(--text-muted); font-size: 0.9rem; }
-      @media (min-width: 1024px) { .sidebar { display: block; } }
-      @media (max-width: 768px) { .layout { flex-direction: column; padding: 1rem; } .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before {
+        background: var(--warning);
+      }
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-good .stat-value {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value {
+        color: var(--warning);
+      }
+      .stat-bad .stat-value {
+        color: var(--problem);
+      }
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
     </style>
   </head>
   <body>
@@ -121,7 +421,8 @@
           <h1>go-cqrs-lite — Comprehensive Status</h1>
           <p class="hero-subtitle">
             38-module CQRS/ES library for Go. All <code>Must</code>-style panic helpers eliminated —
-            every test helper now uses <code>tb.Fatalf</code> or returns errors. Zero panics in test code.
+            every test helper now uses <code>tb.Fatalf</code> or returns errors. Zero panics in test
+            code.
           </p>
         </div>
 
@@ -156,9 +457,10 @@
         <div class="card card-solution">
           <h4>Headline Achievement: Zero Panic Test Helpers</h4>
           <p>
-            Eliminated ALL <code>Must</code>-named functions that called <code>panic()</code> across the entire codebase.
-            Replaced with <code>tb.Fatalf</code> pattern (test code) or <code>(value, error)</code> returns (production code).
-            Ginkgo tests use raw constructors + gomega <code>Expect</code>. 50+ files modified across 30+ modules.
+            Eliminated ALL <code>Must</code>-named functions that called <code>panic()</code> across
+            the entire codebase. Replaced with <code>tb.Fatalf</code> pattern (test code) or
+            <code>(value, error)</code> returns (production code). Ginkgo tests use raw constructors
+            + gomega <code>Expect</code>. 50+ files modified across 30+ modules.
           </p>
         </div>
 
@@ -168,70 +470,99 @@
             <div class="check">+</div>
             <div class="text">
               <strong>Zero panic test helpers (all modules)</strong>
-              <span>idtest.Parse*(tb,s), querytest.New(tb,t), testutil.NewCmd(tb,...), everyN(tb,n), newCmd(tb,...) — all use tb.Fatalf</span>
+              <span
+                >idtest.Parse*(tb,s), querytest.New(tb,t), testutil.NewCmd(tb,...), everyN(tb,n),
+                newCmd(tb,...) — all use tb.Fatalf</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Prometheus.MustSetup deleted</strong>
-              <span>Setup() already exists with (Provider, error) return. Removed panic variant entirely.</span>
+              <span
+                >Setup() already exists with (Provider, error) return. Removed panic variant
+                entirely.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>catalog/docserver mustStaticFS eliminated</strong>
-              <span>Converted to package-level var with safe fallback. No panic on corrupt embed.</span>
+              <span
+                >Converted to package-level var with safe fallback. No panic on corrupt embed.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Example apps: mustMarshal → marshalPayload</strong>
-              <span>deployer-first and user examples return errors from DecideFuncs instead of panicking</span>
+              <span
+                >deployer-first and user examples return errors from DecideFuncs instead of
+                panicking</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>eventtest.AssertPanics removed</strong>
-              <span>Dead code after all panic-asserting tests were converted to error-expectation tests</span>
+              <span
+                >Dead code after all panic-asserting tests were converted to error-expectation
+                tests</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>cmd/cqrs-gen mustAbs → absOr</strong>
-              <span>Misleading name — function never panicked, just returned fallback. Renamed for honesty.</span>
+              <span
+                >Misleading name — function never panicked, just returned fallback. Renamed for
+                honesty.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>API stability verified</strong>
-              <span>1594 exports verified against golden. Removed: MustSetup, testutil.ParseAggID. Added: testutil.NewCmd.</span>
+              <span
+                >1594 exports verified against golden. Removed: MustSetup, testutil.ParseAggID.
+                Added: testutil.NewCmd.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>All docs updated</strong>
-              <span>AGENTS.md, FEATURES.md, SKILL.md, testutil/README.md — all references to Must* helpers updated</span>
+              <span
+                >AGENTS.md, FEATURES.md, SKILL.md, testutil/README.md — all references to Must*
+                helpers updated</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Core library fully functional</strong>
-              <span>Event Sourcing, CQRS, branded IDs, projections, signing, encryption, OTel, Pebble, SQL, Watermill — all working</span>
+              <span
+                >Event Sourcing, CQRS, branded IDs, projections, signing, encryption, OTel, Pebble,
+                SQL, Watermill — all working</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>v3 breaking changes complete</strong>
-              <span>Event=concrete type, Decider.Fold→Apply, Metadata localized per module, SSE moved to transport/http</span>
+              <span
+                >Event=concrete type, Decider.Fold→Apply, Metadata localized per module, SSE moved
+                to transport/http</span
+              >
             </div>
           </div>
         </div>
@@ -249,7 +580,10 @@
             <tr>
               <td>Lint cleanliness</td>
               <td><span class="badge badge-high">~50 issues</span></td>
-              <td>Pre-existing exhaustruct, varnamelen, gosec G115 across 10+ modules. None in modified files.</td>
+              <td>
+                Pre-existing exhaustruct, varnamelen, gosec G115 across 10+ modules. None in
+                modified files.
+              </td>
             </tr>
             <tr>
               <td>stack/postgres coverage</td>
@@ -264,7 +598,10 @@
             <tr>
               <td>Remaining production panics</td>
               <td><span class="badge badge-low">~20 sites</span></td>
-              <td>Package init (CBOR modes), nil-param guards, arithmetic invariants. NOT Must helpers — standard Go.</td>
+              <td>
+                Package init (CBOR modes), nil-param guards, arithmetic invariants. NOT Must helpers
+                — standard Go.
+              </td>
             </tr>
             <tr>
               <td>cattest.MustReadFile naming</td>
@@ -277,41 +614,57 @@
         <h2 id="notstarted"><span class="num">C</span>Not Started</h2>
         <div class="card card-warning">
           <h4>gRPC transport adapter</h4>
-          <p>ADR-0025 accepted. No code exists yet. Separate <code>transport/grpc/</code> module with protobuf dispatch.</p>
+          <p>
+            ADR-0025 accepted. No code exists yet. Separate <code>transport/grpc/</code> module with
+            protobuf dispatch.
+          </p>
         </div>
         <div class="card card-warning">
           <h4>NATS/Redis Stream adapter</h4>
-          <p>ADR-0025 accepted. No code exists. <code>transport/nats/</code> and <code>transport/redis/</code> modules.</p>
+          <p>
+            ADR-0025 accepted. No code exists. <code>transport/nats/</code> and
+            <code>transport/redis/</code> modules.
+          </p>
         </div>
         <div class="card card-warning">
           <h4>jsonv2 + Arena experiment stabilization</h4>
-          <p>Build tags exist (<code>goexperiment.jsonv2</code>, <code>goexperiment.arenas</code>). Pending Go stdlib stabilization.</p>
+          <p>
+            Build tags exist (<code>goexperiment.jsonv2</code>, <code>goexperiment.arenas</code>).
+            Pending Go stdlib stabilization.
+          </p>
         </div>
         <div class="card card-warning">
           <h4>v3: Core immutability deepening</h4>
-          <p>Currently opts pointer is shallow-copied on Clone. True deep immutability deferred to v3.</p>
+          <p>
+            Currently opts pointer is shallow-copied on Clone. True deep immutability deferred to
+            v3.
+          </p>
         </div>
 
         <h2 id="fuckedup"><span class="num">D</span>Issues & Technical Debt</h2>
         <div class="card card-problem">
           <h4>20+ production panic() calls remain (non-Must)</h4>
           <p>
-            These are NOT Must helpers — they're nil-parameter guards (<code>pebble.NewStore(nil)</code>),
-            package init failures (CBOR encoding mode creation), and arithmetic invariant violations
-            (<code>Version.Decrement()</code> on zero). All are standard Go patterns. The user's "zero panics"
-            directive targeted Must-style test helpers specifically. These may or may not need conversion
-            depending on the strictness of the requirement.
+            These are NOT Must helpers — they're nil-parameter guards
+            (<code>pebble.NewStore(nil)</code>), package init failures (CBOR encoding mode
+            creation), and arithmetic invariant violations (<code>Version.Decrement()</code> on
+            zero). All are standard Go patterns. The user's "zero panics" directive targeted
+            Must-style test helpers specifically. These may or may not need conversion depending on
+            the strictness of the requirement.
           </p>
           <div class="callout callout-warning">
             <strong>Decision needed</strong>
-            Should nil-param guards and init panics also be converted to error returns? This would change
-            public APIs (e.g., <code>pebble.NewStore(db)</code> → <code>pebble.NewStore(db) (store, error)</code>).
+            Should nil-param guards and init panics also be converted to error returns? This would
+            change public APIs (e.g., <code>pebble.NewStore(db)</code> →
+            <code>pebble.NewStore(db) (store, error)</code>).
           </div>
         </div>
         <div class="card card-warning">
           <h4>50 lint issues (all pre-existing)</h4>
-          <p>exhaustruct on command.Metadata/query.Metadata, varnamelen in watermill, gosec G115 in middleware.
-          None introduced by recent work. Low severity.</p>
+          <p>
+            exhaustruct on command.Metadata/query.Metadata, varnamelen in watermill, gosec G115 in
+            middleware. None introduced by recent work. Low severity.
+          </p>
         </div>
 
         <h2 id="improve"><span class="num">E</span>What We Should Improve</h2>
@@ -321,7 +674,9 @@
         </div>
         <div class="card card-solution">
           <h4>2. Consider error returns for pebble nil-param guards</h4>
-          <p>7 pebble constructors panic on nil db. Could return errors instead. Breaking change.</p>
+          <p>
+            7 pebble constructors panic on nil db. Could return errors instead. Breaking change.
+          </p>
         </div>
         <div class="card card-solution">
           <h4>3. Address 50 pre-existing lint issues</h4>
@@ -343,59 +698,203 @@
             </tr>
           </thead>
           <tbody>
-            <tr><td>1</td><td><span class="badge badge-critical">Critical</span></td><td>Rename cattest.MustReadFile → ReadFile (last Must-named function)</td><td>Naming honesty</td></tr>
-            <tr><td>2</td><td><span class="badge badge-critical">Critical</span></td><td>Fix example/todo/commands/mixin.go panic (last example panic)</td><td>Zero-panic examples</td></tr>
-            <tr><td>3</td><td><span class="badge badge-high">High</span></td><td>Decide on pebble nil-param guards: convert to errors or keep as panics</td><td>API design decision</td></tr>
-            <tr><td>4</td><td><span class="badge badge-high">High</span></td><td>Address stack/postgres 0% coverage (needs POSTGRES_TEST_DSN in CI)</td><td>Test coverage</td></tr>
-            <tr><td>5</td><td><span class="badge badge-high">High</span></td><td>Fix 50 pre-existing lint issues (exhaustruct, varnamelen, gosec)</td><td>Code quality</td></tr>
-            <tr><td>6</td><td><span class="badge badge-high">High</span></td><td>Deepen event Core immutability (v3: opts deep-copy on Clone)</td><td>Correctness</td></tr>
-            <tr><td>7</td><td><span class="badge badge-medium">Medium</span></td><td>Build gRPC transport adapter (ADR-0025)</td><td>New capability</td></tr>
-            <tr><td>8</td><td><span class="badge badge-medium">Medium</span></td><td>Build NATS stream adapter (ADR-0025)</td><td>New capability</td></tr>
-            <tr><td>9</td><td><span class="badge badge-medium">Medium</span></td><td>Build Redis Stream adapter (ADR-0025)</td><td>New capability</td></tr>
-            <tr><td>10</td><td><span class="badge badge-medium">Medium</span></td><td>Add bundle layer constructor error tests (0-87% → 90%+)</td><td>Test coverage</td></tr>
-            <tr><td>11</td><td><span class="badge badge-medium">Medium</span></td><td>Stabilize jsonv2 codec experiment (pending Go stdlib)</td><td>Performance</td></tr>
-            <tr><td>12</td><td><span class="badge badge-medium">Medium</span></td><td>Stabilize arena allocation experiment (pending Go API)</td><td>Performance</td></tr>
-            <tr><td>13</td><td><span class="badge badge-medium">Medium</span></td><td>Re-add TransactionID branded type with proper wiring</td><td>Cross-agg consistency</td></tr>
-            <tr><td>14</td><td><span class="badge badge-low">Low</span></td><td>Consolidate duplicate everyN helpers (3 copies in snapshot, decider, integration)</td><td>DRY</td></tr>
-            <tr><td>15</td><td><span class="badge badge-low">Low</span></td><td>Add more example apps (banking, inventory, SaaS multi-tenant)</td><td>DX</td></tr>
-            <tr><td>16</td><td><span class="badge badge-low">Low</span></td><td>Formalize the test helper naming convention (Parse*/New* with tb param)</td><td>Consistency</td></tr>
-            <tr><td>17</td><td><span class="badge badge-low">Low</span></td><td>Add godoc examples for all public test helper packages</td><td>DX</td></tr>
-            <tr><td>18</td><td><span class="badge badge-low">Low</span></td><td> fuzz corpus expansion (encryption, codec, event serialization)</td><td>Robustness</td></tr>
-            <tr><td>19</td><td><span class="badge badge-low">Low</span></td><td>Benchmark regression CI (track alloc/op across versions)</td><td>Performance</td></tr>
-            <tr><td>20</td><td><span class="badge badge-low">Low</span></td><td>Version drift detection in CI (scripts/check-version-drift.sh exists, needs enforcement)</td><td>Release hygiene</td></tr>
-            <tr><td>21</td><td><span class="badge badge-low">Low</span></td><td>Decider documentation: when to use pure ES vs projection+command</td><td>DX</td></tr>
-            <tr><td>22</td><td><span class="badge badge-low">Low</span></td><td>Watermill CatchUpSubscriber integration test with real journal replay</td><td>Integration confidence</td></tr>
-            <tr><td>23</td><td><span class="badge badge-low">Low</span></td><td>Pebble backup/restore documentation and tooling</td><td>Operations</td></tr>
-            <tr><td>24</td><td><span class="badge badge-low">Low</span></td><td>OpenTelemetry baggage propagation integration test</td><td>Distributed tracing</td></tr>
-            <tr><td>25</td><td><span class="badge badge-low">Low</span></td><td>Consumer guide: migration from v1 → v2 → v3</td><td>Adoption</td></tr>
+            <tr>
+              <td>1</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>Rename cattest.MustReadFile → ReadFile (last Must-named function)</td>
+              <td>Naming honesty</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>Fix example/todo/commands/mixin.go panic (last example panic)</td>
+              <td>Zero-panic examples</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>Decide on pebble nil-param guards: convert to errors or keep as panics</td>
+              <td>API design decision</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>Address stack/postgres 0% coverage (needs POSTGRES_TEST_DSN in CI)</td>
+              <td>Test coverage</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>Fix 50 pre-existing lint issues (exhaustruct, varnamelen, gosec)</td>
+              <td>Code quality</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>Deepen event Core immutability (v3: opts deep-copy on Clone)</td>
+              <td>Correctness</td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>Build gRPC transport adapter (ADR-0025)</td>
+              <td>New capability</td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>Build NATS stream adapter (ADR-0025)</td>
+              <td>New capability</td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>Build Redis Stream adapter (ADR-0025)</td>
+              <td>New capability</td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>Add bundle layer constructor error tests (0-87% → 90%+)</td>
+              <td>Test coverage</td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>Stabilize jsonv2 codec experiment (pending Go stdlib)</td>
+              <td>Performance</td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>Stabilize arena allocation experiment (pending Go API)</td>
+              <td>Performance</td>
+            </tr>
+            <tr>
+              <td>13</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>Re-add TransactionID branded type with proper wiring</td>
+              <td>Cross-agg consistency</td>
+            </tr>
+            <tr>
+              <td>14</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>
+                Consolidate duplicate everyN helpers (3 copies in snapshot, decider, integration)
+              </td>
+              <td>DRY</td>
+            </tr>
+            <tr>
+              <td>15</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Add more example apps (banking, inventory, SaaS multi-tenant)</td>
+              <td>DX</td>
+            </tr>
+            <tr>
+              <td>16</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Formalize the test helper naming convention (Parse*/New* with tb param)</td>
+              <td>Consistency</td>
+            </tr>
+            <tr>
+              <td>17</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Add godoc examples for all public test helper packages</td>
+              <td>DX</td>
+            </tr>
+            <tr>
+              <td>18</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>fuzz corpus expansion (encryption, codec, event serialization)</td>
+              <td>Robustness</td>
+            </tr>
+            <tr>
+              <td>19</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Benchmark regression CI (track alloc/op across versions)</td>
+              <td>Performance</td>
+            </tr>
+            <tr>
+              <td>20</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>
+                Version drift detection in CI (scripts/check-version-drift.sh exists, needs
+                enforcement)
+              </td>
+              <td>Release hygiene</td>
+            </tr>
+            <tr>
+              <td>21</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Decider documentation: when to use pure ES vs projection+command</td>
+              <td>DX</td>
+            </tr>
+            <tr>
+              <td>22</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Watermill CatchUpSubscriber integration test with real journal replay</td>
+              <td>Integration confidence</td>
+            </tr>
+            <tr>
+              <td>23</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Pebble backup/restore documentation and tooling</td>
+              <td>Operations</td>
+            </tr>
+            <tr>
+              <td>24</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>OpenTelemetry baggage propagation integration test</td>
+              <td>Distributed tracing</td>
+            </tr>
+            <tr>
+              <td>25</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Consumer guide: migration from v1 → v2 → v3</td>
+              <td>Adoption</td>
+            </tr>
           </tbody>
         </table>
 
         <h2 id="question"><span class="num">G</span>Top Question</h2>
         <div class="card card-problem">
-          <h4>Should production nil-parameter guards and package-init panics also be eliminated?</h4>
+          <h4>
+            Should production nil-parameter guards and package-init panics also be eliminated?
+          </h4>
           <p>
-            The codebase has ~20 remaining <code>panic()</code> calls in production code. They fall into three categories:
+            The codebase has ~20 remaining <code>panic()</code> calls in production code. They fall
+            into three categories:
           </p>
-          <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
-            <li><strong>Nil-param guards</strong> (7 pebble constructors) — <code>panic("pebble: NewStore called with nil db")</code></li>
-            <li><strong>Package init</strong> (4 codec/pebble CBOR mode creations) — <code>panic("codec: failed to create CBOR mode")</code></li>
-            <li><strong>Arithmetic invariants</strong> (5 event/types.go) — <code>panic("Version.Decrement() on zero version")</code></li>
+          <ul style="margin-left: 1.5rem; margin-bottom: 1rem">
+            <li>
+              <strong>Nil-param guards</strong> (7 pebble constructors) —
+              <code>panic("pebble: NewStore called with nil db")</code>
+            </li>
+            <li>
+              <strong>Package init</strong> (4 codec/pebble CBOR mode creations) —
+              <code>panic("codec: failed to create CBOR mode")</code>
+            </li>
+            <li>
+              <strong>Arithmetic invariants</strong> (5 event/types.go) —
+              <code>panic("Version.Decrement() on zero version")</code>
+            </li>
           </ul>
           <p>
-            Converting nil-param guards to <code>(value, error)</code> returns is a breaking API change.
-            Package init panics are standard Go (like <code>regexp.MustCompile</code> in vars).
-            Arithmetic panics are "make impossible states unrepresentable" design.
+            Converting nil-param guards to <code>(value, error)</code> returns is a breaking API
+            change. Package init panics are standard Go (like <code>regexp.MustCompile</code> in
+            vars). Arithmetic panics are "make impossible states unrepresentable" design.
           </p>
           <div class="callout callout-warning">
             <strong>The question</strong>
-            Do you want these converted too, or was the directive specifically about <code>Must</code>-named test helpers?
-            Converting nil-param guards means changing every <code>pebble.New*(db)</code> signature.
+            Do you want these converted too, or was the directive specifically about
+            <code>Must</code>-named test helpers? Converting nil-param guards means changing every
+            <code>pebble.New*(db)</code> signature.
           </div>
         </div>
 
         <footer class="footer">
-          Generated 2026-06-21 03:30 CEST &middot; All claims verified against source code &middot; master @ 9fd6f8cc
+          Generated 2026-06-21 03:30 CEST &middot; All claims verified against source code &middot;
+          master @ 9fd6f8cc
         </footer>
       </main>
     </div>
@@ -405,19 +904,33 @@
         var nav = document.querySelector("[data-nav]");
         if (!nav) return;
         var links = nav.querySelectorAll('a[href^="#"]');
-        var ids = Array.from(links).map(function (l) { return l.getAttribute("href").slice(1); });
-        var sections = ids.map(function (id) { return document.getElementById(id); }).filter(Boolean);
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
         if (!sections.length) return;
-        var observer = new IntersectionObserver(function (entries) {
-          entries.forEach(function (entry) {
-            if (entry.isIntersecting) {
-              links.forEach(function (link) {
-                link.classList.toggle("active", link.getAttribute("href") === "#" + entry.target.id);
-              });
-            }
-          });
-        }, { rootMargin: "-80px 0px -60% 0px", threshold: 0 });
-        sections.forEach(function (s) { observer.observe(s); });
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
       })();
     </script>
   </body>

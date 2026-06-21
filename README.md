@@ -112,28 +112,28 @@ Every module has its own README with detailed usage, types, and examples.
 
 ### Persistence
 
-| Module             | Purpose                                                               |
-| ------------------ | --------------------------------------------------------------------- |
-| **storage/memory** | In-memory store/snapshot/checkpoint — for tests & dev                 |
-| **storage**        | SQL event/snapshot/checkpoint/command stores (PostgreSQL, SQLite)     |
-| **storage/pebble** | Embedded KV: event/snapshot/checkpoint stores (PebbleDB + CBOR)       |
-| **storage/turso**  | Turso/LibSQL connector with offline-first sync + indexing advisor     |
-| **kv**             | Layer-0 KV store abstraction: Store, MemStore, TypedStore, Cache      |
-| **snapshot**       | Snapshot types, strategies, store interfaces                          |
-| **schema**         | Schema evolution via upcasters and VersionedStore                     |
+| Module             | Purpose                                                           |
+| ------------------ | ----------------------------------------------------------------- |
+| **storage/memory** | In-memory store/snapshot/checkpoint — for tests & dev             |
+| **storage**        | SQL event/snapshot/checkpoint/command stores (PostgreSQL, SQLite) |
+| **storage/pebble** | Embedded KV: event/snapshot/checkpoint stores (PebbleDB + CBOR)   |
+| **storage/turso**  | Turso/LibSQL connector with offline-first sync + indexing advisor |
+| **kv**             | Layer-0 KV store abstraction: Store, MemStore, TypedStore, Cache  |
+| **snapshot**       | Snapshot types, strategies, store interfaces                      |
+| **schema**         | Schema evolution via upcasters and VersionedStore                 |
 
 ### Infrastructure
 
-| Module             | Purpose                                                                  |
-| ------------------ | ------------------------------------------------------------------------ |
-| **middleware**     | Logging, retry, validation, recovery, circuit breaker, OTel tracing      |
-| **transport/http** | SSE event delivery (Server-Sent Events over HTTP)                        |
-| **signing**        | Event signing: HMAC-SHA256, Ed25519, multi-sig                           |
-| **encryption**     | Payload encryption: XChaCha20-Poly1305, AES-256-GCM, key rotation        |
-| **listing**        | Aggregate listing read model with tombstone-aware status                 |
-| **otel**           | Shared OpenTelemetry helpers (tracer, meter, spans)                      |
-| **watermill**      | EventBus adapter, CatchUpSubscriber, EventPublisher                      |
-| **prometheus**     | OTel→Prometheus metrics bridge with /metrics handler                     |
+| Module             | Purpose                                                             |
+| ------------------ | ------------------------------------------------------------------- |
+| **middleware**     | Logging, retry, validation, recovery, circuit breaker, OTel tracing |
+| **transport/http** | SSE event delivery (Server-Sent Events over HTTP)                   |
+| **signing**        | Event signing: HMAC-SHA256, Ed25519, multi-sig                      |
+| **encryption**     | Payload encryption: XChaCha20-Poly1305, AES-256-GCM, key rotation   |
+| **listing**        | Aggregate listing read model with tombstone-aware status            |
+| **otel**           | Shared OpenTelemetry helpers (tracer, meter, spans)                 |
+| **watermill**      | EventBus adapter, CatchUpSubscriber, EventPublisher                 |
+| **prometheus**     | OTel→Prometheus metrics bridge with /metrics handler                |
 
 ### Tooling & Docs
 
@@ -147,22 +147,22 @@ Every module has its own README with detailed usage, types, and examples.
 
 ### Stack Presets
 
-| Module             | Purpose                                                |
-| ------------------ | ------------------------------------------------------ |
-| **stack**          | Bundle composition + Materialize projection builder    |
-| **stack/memory**   | All-in-memory preset (tests & dev)                     |
-| **stack/sqlite**   | Embedded SQLite preset (single-file persistence)       |
-| **stack/pebble**   | Embedded PebbleDB preset (high-throughput KV)          |
-| **stack/postgres** | PostgreSQL preset (distributed, LISTEN/NOTIFY bus)    |
+| Module             | Purpose                                             |
+| ------------------ | --------------------------------------------------- |
+| **stack**          | Bundle composition + Materialize projection builder |
+| **stack/memory**   | All-in-memory preset (tests & dev)                  |
+| **stack/sqlite**   | Embedded SQLite preset (single-file persistence)    |
+| **stack/pebble**   | Embedded PebbleDB preset (high-throughput KV)       |
+| **stack/postgres** | PostgreSQL preset (distributed, LISTEN/NOTIFY bus)  |
 
 ### Examples
 
-| Module                   | Purpose                                                  |
-| ------------------------ | -------------------------------------------------------- |
-| **example/todo**         | Full app: HTTP API, decider, projections, queries        |
-| **example/user**         | Advanced patterns: signing, middleware, catalog          |
-| **example/encryption**   | Event encryption patterns: bus, store, key rotation      |
-| **example/deployer-first** | Deployer-first stack with catch-up projections         |
+| Module                     | Purpose                                             |
+| -------------------------- | --------------------------------------------------- |
+| **example/todo**           | Full app: HTTP API, decider, projections, queries   |
+| **example/user**           | Advanced patterns: signing, middleware, catalog     |
+| **example/encryption**     | Event encryption patterns: bus, store, key rotation |
+| **example/deployer-first** | Deployer-first stack with catch-up projections      |
 
 ## Design Principles
 
