@@ -77,7 +77,7 @@ func run(genType, outputFile, pkg string, paths []string) int {
 	}
 
 	if pkg == "" {
-		pkg = filepath.Base(mustAbs(paths[0]))
+		pkg = filepath.Base(absOr(paths[0]))
 	}
 
 	code := generate(pkg, genType, entries)
@@ -91,7 +91,7 @@ func run(genType, outputFile, pkg string, paths []string) int {
 	return 0
 }
 
-func mustAbs(p string) string {
+func absOr(p string) string {
 	abs, err := filepath.Abs(p)
 	if err != nil {
 		return p

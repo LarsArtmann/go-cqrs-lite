@@ -53,25 +53,3 @@ func TestEveryNEvents_Success(t *testing.T) {
 		}
 	}
 }
-
-func TestMustEveryNEvents_PanicsOnZero(t *testing.T) {
-	t.Parallel()
-
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Fatal("expected panic for MustEveryNEvents(0)")
-		}
-	}()
-
-	mustEveryN(0)
-}
-
-func TestMustEveryNEvents_Success(t *testing.T) {
-	t.Parallel()
-
-	s := mustEveryN(3)
-	if s == nil {
-		t.Fatal("MustEveryNEvents(3) returned nil")
-	}
-}

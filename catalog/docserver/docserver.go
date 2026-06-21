@@ -116,19 +116,20 @@ func (ds *DocsServer) CatalogJSON() http.HandlerFunc {
 // (Scalar JS, AsyncAPI React JS/CSS) from the binary.
 // The FS is rooted at the "static" subdirectory, so files are accessible
 // as "asyncapi-react.js", "scalar.js", etc. (no "static/" prefix needed).
-func (ds *DocsServer) StaticFS() http.FileSystem {
-	return mustStaticFS()
-}
-
-// mustStaticFS wraps fs.Sub in a Must-style helper.
-// Panics only if the embedded filesystem is corrupt (programming error).
-func mustStaticFS() http.FileSystem {
+// staticFilesystem caches the sub-filesystem for embedded static assets.
+// Computed once at init; falls back to root embed if the "static" subdir
+// is missing (which only happens if the //go:embed directive is wrong).
+var staticFilesystem = func() http.FileSystem { //nolint:gochecknoglobals // cached once at init
 	sub, err := fs.Sub(staticAssets, "static")
 	if err != nil {
-		panic("docserver: static assets sub: " + err.Error())
+		return http.FS(staticAssets)
 	}
 
 	return http.FS(sub)
+}()
+
+func (ds *DocsServer) StaticFS() http.FileSystem {
+	return staticFilesystem
 }
 
 // RegisterRoutes registers all documentation routes on the given mux.

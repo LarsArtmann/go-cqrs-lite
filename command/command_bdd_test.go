@@ -288,8 +288,10 @@ var _ = Describe("Command Dispatcher", func() {
 				)
 				Expect(err).ToNot(HaveOccurred())
 
+				basicCmd, err := command.New("CreateUser", aggID)
+				Expect(err).ToNot(HaveOccurred())
 				cmd := &createUserCmd{
-					BasicCommand: *newCmd(t, "CreateUser", aggID),
+					BasicCommand: *basicCmd,
 					Name:         "Alice",
 				}
 

@@ -114,7 +114,7 @@ func TestExecute_SnapshotCodecEncodeError(t *testing.T) {
 		store, bus, counterDecider(),
 		decider.WithSnapshotStore[counterState](snapshotStore),
 		decider.WithCodec[counterState](codec),
-		decider.WithSnapshotStrategy[counterState](mustEveryN(1)),
+		decider.WithSnapshotStrategy[counterState](everyN(1)),
 	)
 	if err != nil {
 		t.Fatalf("NewRepository: %v", err)

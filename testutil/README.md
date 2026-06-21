@@ -2,7 +2,7 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/testutil/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/testutil/v2)
 
-Cross-module test utilities: panic-on-error command constructors and no-op handlers for use in test suites across the go-cqrs-lite ecosystem.
+Cross-module test utilities: test-friendly command constructors (tb.Fatalf on error, zero panics) and no-op handlers for use in test suites across the go-cqrs-lite ecosystem.
 
 ```bash
 go get github.com/larsartmann/go-cqrs-lite/testutil/v2
@@ -12,13 +12,14 @@ go get github.com/larsartmann/go-cqrs-lite/testutil/v2
 
 ```go
 import (
+    "testing"
+
     "github.com/larsartmann/go-cqrs-lite/command/v2"
     "github.com/larsartmann/go-cqrs-lite/testutil/v2"
 )
 
-// Build a command without handling the error (panics on invalid input)
-aggID := testutil.ParseAggID("01HXYZ...")
-cmd := testutil.MustNewCmd("user.create", aggID)
+// Build a command in tests (calls t.Fatalf on invalid input — no panics)
+cmd := testutil.NewCmd(t, "user.create", aggID)
 
 // Use in test setup
 dispatcher := command.NewDispatcher()
@@ -29,8 +30,7 @@ dispatcher.Register("ping", testutil.NoopCommandHandler())
 
 | Function                              | Purpose                                               |
 | ------------------------------------- | ----------------------------------------------------- |
-| `MustNewCmd(cmdType, aggID, opts...)` | Wraps `command.New`, panics on error                  |
-| `ParseAggID(s)`                       | Wraps `id.ParseAggregateID`, panics on error          |
+| `NewCmd(tb, cmdType, aggID, opts...)` | Wraps `command.New`, calls `tb.Fatalf` on error       |
 | `NoopCommandHandler()`                | Returns a `command.Handler` that always returns `nil` |
 
 ## Dependencies
@@ -38,7 +38,7 @@ dispatcher.Register("ping", testutil.NoopCommandHandler())
 | Dependency                         | Purpose                          |
 | ---------------------------------- | -------------------------------- |
 | [command/v2](../command/README.md) | Command types and `BasicCommand` |
-| [id/v2](../id/README.md)           | `AggregateID` parsing            |
+| [id/v2](../id/README.md)           | `AggregateID` type               |
 
 ## Related Modules
 

@@ -679,7 +679,6 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 || OTel→Prom bridge | `Setup()` — creates MeterProvider + HTTP handler backed by Prometheus registry | ✅ |
 || Custom registry | `WithRegistry(r)` — use a custom Prometheus registry | ✅ |
 || Handler options | `WithHandlerOptions(opts)` — configure promhttp.HandlerOpts | ✅ |
-|| MustSetup | `MustSetup()` — panics on error, for main() init | ✅ |
 
 ---
 

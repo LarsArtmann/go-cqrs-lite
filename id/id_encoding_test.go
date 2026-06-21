@@ -12,7 +12,7 @@ func TestJSON(t *testing.T) {
 	t.Run("marshal", func(t *testing.T) {
 		t.Parallel()
 
-		id := mustParse[AggregateID](testULID)
+		id := parseID[AggregateID](t, testULID)
 
 		data, err := json.Marshal(id)
 		if err != nil {
@@ -57,7 +57,7 @@ func TestJSON(t *testing.T) {
 	t.Run("unmarshal null", func(t *testing.T) {
 		t.Parallel()
 
-		id := mustParse[AggregateID](testULID)
+		id := parseID[AggregateID](t, testULID)
 
 		err := json.Unmarshal([]byte("null"), &id)
 		if err != nil {
@@ -107,7 +107,7 @@ func TestEncoding(t *testing.T) {
 			name:      "binary",
 			testValue: testULID,
 			marshal: func(id string) ([]byte, error) {
-				return mustParse[EventMarker](id).MarshalBinary()
+				return parseID[EventMarker](t, id).MarshalBinary()
 			},
 			unmarshal: func(id *EventID, data []byte) error {
 				return id.UnmarshalBinary(data)
@@ -119,7 +119,7 @@ func TestEncoding(t *testing.T) {
 			name:      "text",
 			testValue: testULID,
 			marshal: func(id string) ([]byte, error) {
-				return mustParse[EventMarker](id).MarshalText()
+				return parseID[EventMarker](t, id).MarshalText()
 			},
 			unmarshal: func(id *EventID, data []byte) error {
 				return id.UnmarshalText(data)
@@ -157,7 +157,7 @@ func TestEncoding(t *testing.T) {
 
 				var data []byte
 				if tc.name == "binary" {
-					data, _ = mustParse[EventMarker](tc.testValue).MarshalBinary()
+					data, _ = parseID[EventMarker](t, tc.testValue).MarshalBinary()
 				} else {
 					data = []byte(tc.testValue)
 				}
@@ -203,7 +203,7 @@ func TestSQLValue(t *testing.T) {
 	t.Run("value", func(t *testing.T) {
 		t.Parallel()
 
-		id := mustParse[AggregateID](testULID)
+		id := parseID[AggregateID](t, testULID)
 
 		val, err := id.Value()
 		if err != nil {
@@ -301,7 +301,7 @@ func TestUnmarshalJSON_InvalidULID(t *testing.T) {
 func TestScan_Nil(t *testing.T) {
 	t.Parallel()
 
-	id := mustParse[AggregateID](testULID)
+	id := parseID[AggregateID](t, testULID)
 
 	err := id.Scan(nil)
 	if err != nil {
@@ -342,7 +342,7 @@ func TestMarshalBinary_Zero(t *testing.T) {
 func TestUnmarshalBinary_EmptyData(t *testing.T) {
 	t.Parallel()
 
-	id := mustParse[AggregateID](testULID)
+	id := parseID[AggregateID](t, testULID)
 
 	err := id.UnmarshalBinary([]byte{})
 	if err != nil {
@@ -394,7 +394,7 @@ func TestUnmarshalText_InvalidData(t *testing.T) {
 func TestUnmarshalText_EmptyData(t *testing.T) {
 	t.Parallel()
 
-	id := mustParse[AggregateID](testULID)
+	id := parseID[AggregateID](t, testULID)
 
 	err := id.UnmarshalText([]byte{})
 	if err != nil {

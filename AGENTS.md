@@ -65,13 +65,13 @@ go-cqrs-lite/
 │   ├── pebble/          # Embedded KV store (PebbleDB): EventStore, SnapshotStore, CheckpointStore, KVAdapter (kv.Store). CBOR envelope, shared DB
 │   └── turso/           # Turso database connector (embedded LibSQL sync), indexing advisor
 ├── otel/                # Shared OpenTelemetry helpers: Tracer, Meter, Spans, Attributes
-├── prometheus/         # OTel→Prometheus metrics bridge: Setup() MeterProvider + /metrics HTTP handler, WithRegistry(), MustSetup()
+├── prometheus/         # OTel→Prometheus metrics bridge: Setup() MeterProvider + /metrics HTTP handler, WithRegistry()
 ├── listing/             # AggregateListing, AggregateStatus, tombstone detection, StatusMiddleware, InMemoryAggregateReader
 ├── watermill/           # Watermill adapter: PublisherAdapter, SubscriberAdapter, EventPublisher (cqrs→Watermill), CatchUpSubscriber (replay+live+checkpoint), MessageToEvent
 ├── transport/http/       # SSE event delivery: SSEBroker, SSEHandler (bridges event.Bus to HTTP clients, ADR-0025)
 ├── codec/               # Payload encoding: JSON, CBOR (deterministic), Raw passthrough
 ├── kv/                  # Layer-0 KV store abstraction: Store, MemStore, Iterator, Batch. PLUS TypedStore[T,K] and Cache[T,K] (merged from readmodel, ADR-0032)
-├── testutil/            # Shared test helpers: MustNewCmd (cross-module test utilities)
+├── testutil/            # Shared test helpers: NewCmd(tb, ...) (cross-module test utilities)
 ├── cmd/cqrs-gen/        # Code generator: typed handler registration from Go structs
 ├── cmd/api-stability/   # API surface checker: compares exported symbols against golden file
 ├── integration/         # Cross-module tests (command, event, query, signing, encryption)

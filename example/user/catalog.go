@@ -94,8 +94,13 @@ func generateEventCatalog(outputDir string) error {
 
 	asyncDoc := asyncapi.NewExporter("User Service", "1.0.0").Export(cat)
 
+	asyncData, mErr := marshalPayload(asyncDoc)
+	if mErr != nil {
+		return event.Newf(event.Infrastructure, "user.catalog.3", "marshal asyncapi: %v", mErr)
+	}
+
 	asyncPath := filepath.Join(outputDir, "asyncapi.json")
-	if err := os.WriteFile(asyncPath, mustMarshal(asyncDoc), outputFilePerm); err != nil {
+	if err := os.WriteFile(asyncPath, asyncData, outputFilePerm); err != nil {
 		return event.Newf(
 			event.Infrastructure,
 			"user.catalog.3",

@@ -30,10 +30,12 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v2"
 )
 
-func mustEveryN(n int) snapshot.SnapshotStrategy {
+func everyN(b *testing.B, n int) snapshot.SnapshotStrategy {
+	b.Helper()
+
 	s, err := snapshot.EveryNEvents(n)
 	if err != nil {
-		panic(err)
+		b.Fatalf("snapshot every-n %d: %v", n, err)
 	}
 
 	return s
@@ -54,7 +56,7 @@ func benchNewOrderRepo(
 	repo, err := decider.NewRepository(
 		store, bus, d,
 		decider.WithSnapshotStore[OrderState](memSnap),
-		decider.WithSnapshotStrategy[OrderState](mustEveryN(snapEvery)),
+		decider.WithSnapshotStrategy[OrderState](everyN(b, snapEvery)),
 		decider.WithCodec[OrderState](codec.JSONCodec{}),
 	)
 	if err != nil {

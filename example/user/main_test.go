@@ -169,9 +169,14 @@ func TestFoldUser(t *testing.T) {
 		t.Errorf("expected name A, got %s", state.Name)
 	}
 
+	payload, mErr := marshalPayload(UserNameChangedPayload{Name: "B"})
+	if mErr != nil {
+		t.Fatalf("marshal: %v", mErr)
+	}
+
 	changedEvt, err := event.NewEvent(
 		eventUserNameChanged, aggID, aggregateType, event.Version(2),
-		mustMarshal(UserNameChangedPayload{Name: "B"}),
+		payload,
 	)
 	if err != nil {
 		t.Fatalf("create event: %v", err)
@@ -213,9 +218,14 @@ func TestReadModel_Projection(t *testing.T) {
 		t.Errorf("expected email x@y.com, got %s", readModelResult.Email)
 	}
 
+	payload, mErr := marshalPayload(UserNameChangedPayload{Name: "Y"})
+	if mErr != nil {
+		t.Fatalf("marshal: %v", mErr)
+	}
+
 	changedEvt, err := event.NewEvent(
 		eventUserNameChanged, aggID, aggregateType, event.Version(2),
-		mustMarshal(UserNameChangedPayload{Name: "Y"}),
+		payload,
 	)
 	if err != nil {
 		t.Fatalf("create event: %v", err)
@@ -408,9 +418,14 @@ func newUserCreatedEvent(
 	email, name string,
 ) event.Event {
 	t.Helper()
+	payload, mErr := marshalPayload(UserCreatedPayload{Email: email, Name: name})
+	if mErr != nil {
+		t.Fatalf("marshal: %v", mErr)
+	}
+
 	evt, err := event.NewEvent(
 		eventUserCreated, aggID, aggregateType, event.Version(1),
-		mustMarshal(UserCreatedPayload{Email: email, Name: name}),
+		payload,
 	)
 	if err != nil {
 		t.Fatalf("create event: %v", err)

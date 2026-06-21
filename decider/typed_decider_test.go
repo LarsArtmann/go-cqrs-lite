@@ -2,6 +2,7 @@ package decider_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/decider/v2"
@@ -15,20 +16,17 @@ type incrementCmd struct {
 }
 
 func decideIncrement(state counterState, cmd incrementCmd) ([]event.Event, error) {
+	eventType := event.Type("CounterIncremented")
 	if state.Value == 0 {
-		return []event.Event{mustNewCounterEvent("CounterCreated", id.NewAggregateID(), 1)}, nil
+		eventType = "CounterCreated"
 	}
 
-	return []event.Event{mustNewCounterEvent("CounterIncremented", id.NewAggregateID(), 1)}, nil
-}
-
-func mustNewCounterEvent(eventType string, aggID id.AggregateID, version int) event.Event {
-	evt, err := event.NewEvent(event.Type(eventType), aggID, "Counter", event.Version(version), nil)
+	evt, err := event.NewEvent(eventType, id.NewAggregateID(), "Counter", 1, nil)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("decideIncrement: %w", err)
 	}
 
-	return evt
+	return []event.Event{evt}, nil
 }
 
 func TestTypedDecider_ExecuteCommand(t *testing.T) {

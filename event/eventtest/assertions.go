@@ -121,18 +121,6 @@ func AssertContains(t *testing.T, s, substr, msg string) {
 	}
 }
 
-func AssertPanics(t *testing.T, fn func()) {
-	t.Helper()
-
-	defer func() {
-		if r := recover(); r == nil {
-			t.Error("expected panic")
-		}
-	}()
-
-	fn()
-}
-
 func AssertNotContains(t *testing.T, s, substr, msg string) {
 	t.Helper()
 

@@ -20,9 +20,16 @@ func decideCreateUser(
 				"email is required")
 		}
 
+		payload, mErr := marshalPayload(
+			UserCreatedPayload{Email: string(email), Name: string(name)},
+		)
+		if mErr != nil {
+			return nil, event.Newf(event.Infrastructure, "user.decide.payload", "%v", mErr)
+		}
+
 		evt, err := event.NewEvent(
 			eventUserCreated, aggID, aggregateType, version.Increment(),
-			mustMarshal(UserCreatedPayload{Email: string(email), Name: string(name)}),
+			payload,
 		)
 		if err != nil {
 			return nil, event.Newf(
@@ -57,9 +64,14 @@ func decideChangeName(
 				"name is required")
 		}
 
+		payload, mErr := marshalPayload(UserNameChangedPayload{Name: string(name)})
+		if mErr != nil {
+			return nil, event.Newf(event.Infrastructure, "user.decide.payload", "%v", mErr)
+		}
+
 		evt, err := event.NewEvent(
 			eventUserNameChanged, aggID, aggregateType, version.Increment(),
-			mustMarshal(UserNameChangedPayload{Name: string(name)}),
+			payload,
 		)
 		if err != nil {
 			return nil, event.Newf(
@@ -89,9 +101,14 @@ func decideDeleteUser(
 				"user is already deleted")
 		}
 
+		payload, mErr := marshalPayload(UserDeletedPayload{Reason: string(reason)})
+		if mErr != nil {
+			return nil, event.Newf(event.Infrastructure, "user.decide.payload", "%v", mErr)
+		}
+
 		evt, err := event.NewEvent(
 			eventUserDeleted, aggID, aggregateType, version.Increment(),
-			mustMarshal(UserDeletedPayload{Reason: string(reason)}),
+			payload,
 		)
 		if err != nil {
 			return nil, event.Newf(
@@ -131,9 +148,14 @@ func decideRebirthUser(
 				"email is required for rebirth")
 		}
 
+		payload, mErr := marshalPayload(UserRebornPayload{Email: string(email), Name: string(name)})
+		if mErr != nil {
+			return nil, event.Newf(event.Infrastructure, "user.decide.payload", "%v", mErr)
+		}
+
 		evt, err := event.NewEvent(
 			eventUserReborn, aggID, aggregateType, version.Increment(),
-			mustMarshal(UserRebornPayload{Email: string(email), Name: string(name)}),
+			payload,
 		)
 		if err != nil {
 			return nil, event.Newf(

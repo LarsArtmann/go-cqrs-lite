@@ -9,19 +9,23 @@ import (
 
 const testULID = "01HK1549P84T9XF8R94E960633"
 
-func mustParse[T any](s string) Of[T] {
+func parseID[T any](tb testing.TB, s string) Of[T] {
+	tb.Helper()
+
 	v, err := Parse[T](s)
 	if err != nil {
-		panic(err)
+		tb.Fatalf("parse ID %q: %v", s, err)
 	}
 
 	return v
 }
 
-func parseAggID(s string) AggregateID {
+func parseAggID(tb testing.TB, s string) AggregateID {
+	tb.Helper()
+
 	v, err := ParseAggregateID(s)
 	if err != nil {
-		panic(err)
+		tb.Fatalf("parse aggID %q: %v", s, err)
 	}
 
 	return v
@@ -107,23 +111,20 @@ func TestMustParse(t *testing.T) {
 		t.Run(tc.input, func(t *testing.T) {
 			t.Parallel()
 
-			id := mustParse[AggregateID](tc.input)
+			id := parseID[AggregateID](t, tc.input)
 			if id.String() != tc.expected {
 				t.Errorf("MustParse() = %q, want %q", id.String(), tc.expected)
 			}
 		})
 	}
 
-	t.Run("empty string panics", func(t *testing.T) {
+	t.Run("empty string returns error", func(t *testing.T) {
 		t.Parallel()
 
-		defer func() {
-			if r := recover(); r == nil {
-				t.Error("MustParse() should panic on empty string")
-			}
-		}()
-
-		_ = mustParse[AggregateID]("")
+		_, err := Parse[AggregateID]("")
+		if err == nil {
+			t.Error("Parse() should return error on empty string")
+		}
 	})
 }
 
@@ -142,7 +143,7 @@ func TestIsZero(t *testing.T) {
 	t.Run("non-zero ID", func(t *testing.T) {
 		t.Parallel()
 
-		id := mustParse[AggregateID](testULID)
+		id := parseID[AggregateID](t, testULID)
 		if id.IsZero() {
 			t.Error("parsed ID should not be zero")
 		}
@@ -155,9 +156,9 @@ func TestEqual(t *testing.T) {
 	t.Run("equal IDs", func(t *testing.T) {
 		t.Parallel()
 
-		a := mustParse[AggregateID](testULID)
+		a := parseID[AggregateID](t, testULID)
 
-		b := mustParse[AggregateID](testULID)
+		b := parseID[AggregateID](t, testULID)
 		if !a.Equal(b) {
 			t.Error("equal IDs should be equal")
 		}
@@ -166,9 +167,9 @@ func TestEqual(t *testing.T) {
 	t.Run("different IDs", func(t *testing.T) {
 		t.Parallel()
 
-		a := mustParse[AggregateID]("01HK153X00WRE0FHNC52TH9Y1A")
+		a := parseID[AggregateID](t, "01HK153X00WRE0FHNC52TH9Y1A")
 
-		b := mustParse[AggregateID]("01HK153YYGPZ1D26JE8FR0H6AS")
+		b := parseID[AggregateID](t, "01HK153YYGPZ1D26JE8FR0H6AS")
 		if a.Equal(b) {
 			t.Error("different IDs should not be equal")
 		}
@@ -220,8 +221,8 @@ func TestCompare(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			a := mustParse[AggregateID](tc.aStr)
-			b := mustParse[AggregateID](tc.bStr)
+			a := parseID[AggregateID](t, tc.aStr)
+			b := parseID[AggregateID](t, tc.bStr)
 
 			got := CompareIDs(a, b)
 
@@ -238,9 +239,9 @@ func TestOr(t *testing.T) {
 	t.Run("non-zero returns self", func(t *testing.T) {
 		t.Parallel()
 
-		id := parseAggID(testULID)
+		id := parseAggID(t, testULID)
 
-		fallback := parseAggID("01HK1542VGZX7VW38CS2WSRXBX")
+		fallback := parseAggID(t, "01HK1542VGZX7VW38CS2WSRXBX")
 		if result := id.Or(fallback); !result.Equal(id) {
 			t.Error("non-zero ID should return self")
 		}
@@ -251,7 +252,7 @@ func TestOr(t *testing.T) {
 
 		var id AggregateID
 
-		fallback := parseAggID("01HK1542VGZX7VW38CS2WSRXBX")
+		fallback := parseAggID(t, "01HK1542VGZX7VW38CS2WSRXBX")
 		if result := id.Or(fallback); !result.Equal(fallback) {
 			t.Error("zero ID should return fallback")
 		}
@@ -261,7 +262,7 @@ func TestOr(t *testing.T) {
 func TestReset(t *testing.T) {
 	t.Parallel()
 
-	id := mustParse[AggregateID](testULID)
+	id := parseID[AggregateID](t, testULID)
 	if id.IsZero() {
 		t.Error("ID should not be zero before reset")
 	}
@@ -276,7 +277,7 @@ func TestReset(t *testing.T) {
 func TestGoString(t *testing.T) {
 	t.Parallel()
 
-	id := mustParse[AggregateID](testULID)
+	id := parseID[AggregateID](t, testULID)
 
 	gs := id.GoString()
 	if gs == "" {
@@ -287,7 +288,7 @@ func TestGoString(t *testing.T) {
 func TestFormat(t *testing.T) {
 	t.Parallel()
 
-	id := mustParse[AggregateID](testULID)
+	id := parseID[AggregateID](t, testULID)
 
 	tests := []struct {
 		format string

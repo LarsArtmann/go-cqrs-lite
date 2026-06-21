@@ -515,7 +515,6 @@ event/eventtest/func AssertLenFatal
 event/eventtest/func AssertMetricRecord
 event/eventtest/func AssertNoError
 event/eventtest/func AssertNotContains
-event/eventtest/func AssertPanics
 event/eventtest/func CallbackEventHandler
 event/eventtest/func EventMiddleware
 event/eventtest/func FailingEventHandler
@@ -1068,7 +1067,6 @@ otel/type SpanKind
 otel/type SpanStartOption
 otel/type Tracer
 otel/var CQRSHistogramBoundaries
-prometheus/func MustSetup
 prometheus/func Setup
 prometheus/func WithHandlerOptions
 prometheus/func WithRegistry
@@ -1534,10 +1532,9 @@ storage/var ErrNilNotificationListener
 testutil/func AggregateType
 testutil/func EventType
 testutil/func MetadataMap
-testutil/func MustNewCmd
+testutil/func NewCmd
 testutil/func NonEmptyString
 testutil/func NoopCommandHandler
-testutil/func ParseAggID
 testutil/func Timestamp
 testutil/func Version
 transport/http/const DefaultSSEHeartbeat

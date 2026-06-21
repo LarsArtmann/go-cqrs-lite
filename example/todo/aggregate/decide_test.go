@@ -11,6 +11,7 @@ import (
 func TestDecideCreate_Success(t *testing.T) {
 	t.Parallel()
 	events := mustDecide(
+		t,
 		aggregate.DecideCreate(
 			testAggID(),
 			domain.Title("Title"),
@@ -48,6 +49,7 @@ func TestDecideCreate_AlreadyExists(t *testing.T) {
 	t.Parallel()
 	aggID := testAggID()
 	created := mustDecide(
+		t,
 		aggregate.DecideCreate(
 			aggID,
 			domain.Title("First"),
@@ -98,6 +100,7 @@ func TestDecideUpdate_EmptyTitle(t *testing.T) {
 	t.Parallel()
 	aggID := testAggID()
 	created := mustDecide(
+		t,
 		aggregate.DecideCreate(
 			aggID,
 			domain.Title("Title"),
@@ -203,6 +206,7 @@ func TestDecideChangeStatus_Invalid(t *testing.T) {
 	t.Parallel()
 	aggID := testAggID()
 	created := mustDecide(
+		t,
 		aggregate.DecideCreate(
 			aggID,
 			domain.Title("Title"),

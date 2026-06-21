@@ -504,7 +504,7 @@ cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 
 | Module              | Import        | One-liner                                                                                  |
 | ------------------- | ------------- | ------------------------------------------------------------------------------------------ |
-| `testutil`          | `testutil/v2` | `MustNewCmd`, `ParseAggID`, `NoopCommandHandler`. Shared test helpers.                     |
+| `testutil`          | `testutil/v2` | `NewCmd(tb, ...)`, `NoopCommandHandler`. Shared test helpers (zero panics).                |
 | `cmd/cqrs-gen`      | (go install)  | Code generator: typed handler registration from `//cqrs:command` / `//cqrs:query` markers. |
 | `cmd/api-stability` | (go install)  | API surface checker: compares exports against `docs/api_surface.txt` golden file.          |
 
@@ -640,7 +640,7 @@ eventtest.AssertGolden(t, "testdata/event.golden", got, update)
 // Shared test utilities
 import "github.com/larsartmann/go-cqrs-lite/testutil/v2"
 
-cmd := testutil.MustNewCmd("user.create", aggID)
+cmd := testutil.NewCmd(t, "user.create", aggID) // t = *testing.T
 ```
 
 ---

@@ -45,6 +45,7 @@ func TestTodoState_IsNew(t *testing.T) {
 
 	aggID := testAggID()
 	events := mustDecide(
+		t,
 		aggregate.DecideCreate(
 			aggID,
 			domain.Title("Title"),

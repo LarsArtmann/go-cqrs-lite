@@ -18,7 +18,7 @@ func TestExecute_WithSnapshot(t *testing.T) {
 
 	repo := newCounterSnapshotRepo(
 		t, store, bus, snapshotStore, codec,
-		decider.WithSnapshotStrategy[counterState](mustEveryN(2)),
+		decider.WithSnapshotStrategy[counterState](everyN(2)),
 	)
 
 	aggID := id.NewAggregateID()
@@ -148,7 +148,7 @@ func TestExecute_SaveSnapshotError(t *testing.T) {
 
 	repo := newCounterSnapshotRepo(
 		t, store, bus, snapshotStore, codec,
-		decider.WithSnapshotStrategy[counterState](mustEveryN(1)),
+		decider.WithSnapshotStrategy[counterState](everyN(1)),
 	)
 
 	aggID := id.NewAggregateID()
@@ -177,7 +177,7 @@ func TestExecute_SaveSnapshotFoldError(t *testing.T) {
 		store, bus, d,
 		decider.WithSnapshotStore[counterState](snapshotStore),
 		decider.WithCodec[counterState](codec),
-		decider.WithSnapshotStrategy[counterState](mustEveryN(1)),
+		decider.WithSnapshotStrategy[counterState](everyN(1)),
 	)
 	if err != nil {
 		t.Fatalf("NewRepository: %v", err)
@@ -205,7 +205,7 @@ func TestEveryNEvents_PanicsOnNegative(t *testing.T) {
 		}
 	}()
 
-	mustEveryN(-1)
+	everyN(-1)
 }
 
 func TestLoad_SnapshotWithEventsAfter(t *testing.T) {

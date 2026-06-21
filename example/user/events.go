@@ -1,6 +1,9 @@
 package main
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type UserCreatedPayload struct {
 	Email string `description:"The user's email address" json:"email"`
@@ -20,13 +23,13 @@ type UserRebornPayload struct {
 	Name  string `description:"New display name"  json:"name"`
 }
 
-func mustMarshal(v any) []byte {
+func marshalPayload(v any) ([]byte, error) {
 	b, err := json.Marshal(v)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("marshal payload: %w", err)
 	}
 
-	return b
+	return b, nil
 }
 
 type CreateUserPayload struct {

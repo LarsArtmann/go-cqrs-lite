@@ -385,7 +385,7 @@ type CreateUserCmd struct{}`
 func TestMustAbs(t *testing.T) {
 	t.Parallel()
 
-	result := mustAbs(".")
+	result := absOr(".")
 	if !filepath.IsAbs(result) {
 		t.Errorf("expected absolute path, got %s", result)
 	}

@@ -35,7 +35,7 @@ func TestShouldSnapshot_AllNil(t *testing.T) {
 func TestShouldSnapshot_NilSnapshotStore(t *testing.T) {
 	t.Parallel()
 
-	strategy := mustEveryN(3)
+	strategy := everyN(t, 3)
 
 	if snapshot.ShouldSnapshot(strategy, nil, &codec.JSONCodec{}, "User", event.Version(3)) {
 		t.Error("expected false when snapshot store is nil")
@@ -45,7 +45,7 @@ func TestShouldSnapshot_NilSnapshotStore(t *testing.T) {
 func TestShouldSnapshot_NilCodec(t *testing.T) {
 	t.Parallel()
 
-	strategy := mustEveryN(3)
+	strategy := everyN(t, 3)
 	store := &mockSink{}
 
 	if snapshot.ShouldSnapshot(strategy, store, nil, "User", event.Version(3)) {
@@ -56,7 +56,7 @@ func TestShouldSnapshot_NilCodec(t *testing.T) {
 func TestShouldSnapshot_True(t *testing.T) {
 	t.Parallel()
 
-	strategy := mustEveryN(3)
+	strategy := everyN(t, 3)
 	store := &mockSink{}
 
 	if !snapshot.ShouldSnapshot(strategy, store, &codec.JSONCodec{}, "User", event.Version(6)) {
@@ -67,7 +67,7 @@ func TestShouldSnapshot_True(t *testing.T) {
 func TestShouldSnapshot_VersionNotMultiple(t *testing.T) {
 	t.Parallel()
 
-	strategy := mustEveryN(3)
+	strategy := everyN(t, 3)
 	store := &mockSink{}
 
 	if snapshot.ShouldSnapshot(strategy, store, &codec.JSONCodec{}, "User", event.Version(4)) {

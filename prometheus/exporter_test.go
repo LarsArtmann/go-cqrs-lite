@@ -113,14 +113,17 @@ func TestHandler_ServesMetrics(t *testing.T) {
 	}
 }
 
-func TestMustSetup_Succeeds(t *testing.T) {
+func TestSetup_Succeeds(t *testing.T) {
 	t.Parallel()
 
-	p := cqrsprom.MustSetup()
+	p, err := cqrsprom.Setup()
+	if err != nil {
+		t.Fatalf("Setup: %v", err)
+	}
 	defer func() { _ = p.Shutdown(context.Background()) }()
 
 	if p.AsMeterProvider() == nil {
-		t.Fatal("expected non-nil MeterProvider from MustSetup")
+		t.Fatal("expected non-nil MeterProvider from Setup")
 	}
 }
 

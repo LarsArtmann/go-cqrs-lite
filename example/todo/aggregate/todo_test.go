@@ -19,6 +19,7 @@ func TestApply_Created(t *testing.T) {
 	aggID := testAggID()
 	now := time.Now().UTC()
 	events := mustDecide(
+		t,
 		aggregate.DecideCreate(
 			aggID,
 			domain.Title("Title"),
@@ -126,10 +127,16 @@ func TestApply_Deleted(t *testing.T) {
 	}
 }
 
-func mustDecide(f decider.DecideFunc[aggregate.TodoState], opts ...decideOption) []event.Event {
+func mustDecide(
+	t *testing.T,
+	f decider.DecideFunc[aggregate.TodoState],
+	opts ...decideOption,
+) []event.Event {
+	t.Helper()
+
 	events, err := invoke(f, opts...)
 	if err != nil {
-		panic(err)
+		t.Fatalf("mustDecide: %v", err)
 	}
 
 	return events
@@ -184,6 +191,7 @@ func createThenDecide(
 ) []event.Event {
 	t.Helper()
 	created := mustDecide(
+		t,
 		aggregate.DecideCreate(
 			aggID,
 			domain.Title("Title"),
@@ -224,6 +232,7 @@ func foldAllFrom(
 func createDeleteState(t *testing.T, aggID id.AggregateID) aggregate.TodoState {
 	t.Helper()
 	created := mustDecide(
+		t,
 		aggregate.DecideCreate(
 			aggID,
 			domain.Title("Title"),

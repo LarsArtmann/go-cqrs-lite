@@ -13,6 +13,7 @@ func TestFullLifecycle(t *testing.T) {
 	aggID := testAggID()
 
 	created := mustDecide(
+		t,
 		aggregate.DecideCreate(
 			aggID,
 			domain.Title("Buy milk"),
