@@ -13,7 +13,11 @@ import (
 func TestNewCommand(t *testing.T) {
 	t.Parallel()
 
-	cmd := testutil.NewCmd(t, "CreateUser", idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"))
+	cmd := testutil.NewCmd(
+		t,
+		"CreateUser",
+		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+	)
 
 	if cmd.Type() != "CreateUser" {
 		t.Errorf("expected type CreateUser, got %s", cmd.Type())
@@ -52,7 +56,11 @@ func TestDispatcher_Dispatch(t *testing.T) {
 
 	_ = dispatcher.Register("CreateUser", handler)
 
-	cmd := testutil.NewCmd(t, "CreateUser", idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"))
+	cmd := testutil.NewCmd(
+		t,
+		"CreateUser",
+		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+	)
 
 	err := dispatcher.Dispatch(ctx, cmd)
 	if err != nil {
@@ -70,7 +78,11 @@ func TestDispatcher_Dispatch_HandlerNotFound(t *testing.T) {
 	dispatcher := command.NewDispatcher()
 	ctx := context.Background()
 
-	cmd := testutil.NewCmd(t, "UnknownCommand", idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"))
+	cmd := testutil.NewCmd(
+		t,
+		"UnknownCommand",
+		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+	)
 
 	err := dispatcher.Dispatch(ctx, cmd)
 	if err == nil {
@@ -93,7 +105,11 @@ func TestDispatcher_Middleware(t *testing.T) {
 
 	_ = dispatcher.Register("TestCommand", appendCommandHandler(&callOrder))
 
-	cmd := testutil.NewCmd(t, "TestCommand", idtest.ParseAggregateID(t, "01HK154ANGZHV2ZW0X3SKSNEN2"))
+	cmd := testutil.NewCmd(
+		t,
+		"TestCommand",
+		idtest.ParseAggregateID(t, "01HK154ANGZHV2ZW0X3SKSNEN2"),
+	)
 	_ = dispatcher.Dispatch(ctx, cmd)
 
 	eventtest.AssertCallOrder(t, callOrder, []string{"middleware1", "middleware2", "handler"})
@@ -110,7 +126,11 @@ func TestDispatcher_Closed(t *testing.T) {
 		t.Error("expected dispatcher closed error on Register")
 	}
 
-	cmd := testutil.NewCmd(t, "TestCommand", idtest.ParseAggregateID(t, "01HK154ANGZHV2ZW0X3SKSNEN2"))
+	cmd := testutil.NewCmd(
+		t,
+		"TestCommand",
+		idtest.ParseAggregateID(t, "01HK154ANGZHV2ZW0X3SKSNEN2"),
+	)
 
 	err = dispatcher.Dispatch(context.Background(), cmd)
 	if err == nil {

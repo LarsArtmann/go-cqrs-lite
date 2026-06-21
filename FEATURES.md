@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-06-19 (v2.7.0: Bundle layer — readmodel, stack presets, cache, benchmarks) · **Module count:** 38 modules · **Go version:** 1.26.3
+**Last audited:** 2026-06-21 (v3: ADR-0031 typed metadata split — MetadataKey, Merge, Tracing, separate command/query Metadata structs) · **Module count:** 38 modules · **Go version:** 1.26.3
 
 ## Status Legend
 
@@ -33,7 +33,7 @@
 | Lifecycle                | `Dispatcher.Close()` — rejects all ops after close                                               | ✅     |
 | Validation               | `New()` rejects empty type and zero aggregateID                                                  | ✅     |
 | TypedHandler[T]          | `RegisterTyped[T](d, type, handler)` — type-safe handler receiving `T` not `Command`             | ✅     |
-| Command metadata         | `Metadata` struct (alias of `event.Metadata`) with CorrelationID, CausationID, UserID, RequestID | ✅     |
+| Command metadata         | Own `Metadata` struct (embeds `Tracing`, no longer aliases `event.Metadata` — ADR-0031) with CorrelationID, CausationID, UserID, RequestID, Custom | ✅     |
 | Metadata options         | `WithCorrelationID`, `WithCausationID`, `WithUserID`, `WithRequestID`                            | ✅     |
 | Persisted command        | `PersistedCommand` struct with ID, Type, AggregateRef, ReceivedAt, Payload, Metadata             | ✅     |
 | Command store interfaces | `CommandSink`, `CommandSource`, `Store` (Sink+Source) — persisted command log                    | ✅     |
@@ -79,8 +79,11 @@
 | Event creation        | `NewEvent()` with auto-generated `EventID` (ULID) and `time.Now()` timestamp                                                                                                                                                                                                                                               | ✅     |
 | Auto-marshal creation | `New()` — creates event from `any` payload (auto-json for structs/maps)                                                                                                                                                                                                                                                    | ✅     |
 | Batch creation        | `NewEvents()` — batch event creation with auto-incrementing versions                                                                                                                                                                                                                                                       | ✅     |
-| 19 functional options | `WithEventID`, `WithOccurredAt`, `WithMetadata`, `WithCorrelationID`, `WithCausationID`, `WithUserID`, `WithRequestID`, `WithSource`, `WithIPAddress`, `WithUserAgent`, `WithCustom`, `WithSchemaVersion`, `WithEncoding`, `WithCodec`, `WithClock`, `WithClientID`, `WithClientOccurredAt`, `WithDeadline`, `FromContext` | ✅     |
-| Metadata              | `Metadata` struct: `CorrelationID`, `CausationID`, `UserID`, `RequestID`, `Source`, `IPAddress`, `UserAgent`, `Custom`                                                                                                                                                                                                     | ✅     |
+| 20 functional options | `WithEventID`, `WithOccurredAt`, `WithMetadata`, `WithCorrelationID`, `WithCausationID`, `WithUserID`, `WithRequestID`, `WithSource`, `WithIPAddress`, `WithUserAgent`, `WithCustom`, `WithSchemaVersion`, `WithCausation`, `WithEncoding`, `WithCodec`, `WithClock`, `WithClientID`, `WithClientOccurredAt`, `WithDeadline`, `FromContext` | ✅     |
+| Metadata              | `Metadata` struct: embeds `Tracing` (CorrelationID, CausationID, UserID, RequestID), `Source`, `IPAddress`, `UserAgent`, `Tombstone` (*TombstoneMark), `Causation` (*Causation), `Custom` (map[MetadataKey]string) — ADR-0031 typed split | ✅     |
+| MetadataKey            | Typed custom metadata key (`MetadataKey` string type) with constants: `ClientID`, `ClientOccurredAt`, `CommandType`, `CommandID` — replaces raw string keys | ✅     |
+| Metadata.Merge         | `Metadata.Merge(other)` overlays non-zero fields from other onto a copy — used by `WithMetadata` and cross-module metadata composition | ✅     |
+| Tracing struct         | Embedded `Tracing{CorrelationID, CausationID, UserID, RequestID}` — shared by event, command, and query Metadata (ADR-0031) | ✅     |
 | Context enricher      | `ContextEnricher` extracts options from `context.Context`; `CompositeEnricher` chains multiple                                                                                                                                                                                                                             | ✅     |
 | Defensive copies      | `Payload()` and `Metadata()` return copies — callers can't mutate internals                                                                                                                                                                                                                                                | ✅     |
 | Event.Clone()         | Deep copy of `ImmutableEvent`                                                                                                                                                                                                                                                                                              | ✅     |

@@ -1,13 +1,13 @@
 # Roadmap — go-cqrs-lite
 
 > Where we are, where we're going, and what's next.
-> **Last updated:** 2026-06-20
+> **Last updated:** 2026-06-21
 
 ---
 
-## Current State (v2.x)
+## Current State (v3-ready)
 
-The library is at v2.x with 38 modules across a multi-module Go workspace. All core CQRS/ES primitives are shipped: Event Sourcing with branded IDs, CQRS command/query dispatch, tombstone soft-delete, event signing/encryption, OTel observability, Pebble/SQL/Turso storage backends, and a Bundle composition layer with 4 presets.
+The library is v3-ready with 38 modules across a multi-module Go workspace. All 11 v3 breaking changes are complete (see table below). All core CQRS/ES primitives are shipped: Event Sourcing with branded IDs, CQRS command/query dispatch, tombstone soft-delete, event signing/encryption, OTel observability, Pebble/SQL/Turso storage backends, and a Bundle composition layer with 4 presets.
 
 ## Short Term (Next 90 Days)
 
@@ -90,4 +90,4 @@ All breaking changes have been prepared additively in v2 — the v2 types consum
 
 ---
 
-_Last updated: 2026-06-20 — projection/ dissolution in progress (ADR-0030). Distributed projection is a ROADMAP item with no deadline._
+_Last updated: 2026-06-21 — all v3 breaking changes complete. Metadata split (ADR-0031) and projection dissolution (ADR-0030) done. Ready to tag v3.0.0._

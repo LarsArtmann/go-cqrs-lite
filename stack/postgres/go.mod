@@ -6,7 +6,7 @@ require (
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/larsartmann/go-cqrs-lite/event/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/id/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-20260620232831-9fd6f8cc794b
+	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-20260621000348-37bc5ec2490e
 	github.com/larsartmann/go-cqrs-lite/storage/v2 v2.6.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v2 v2.6.0
 	pgregory.net/rapid v1.3.0

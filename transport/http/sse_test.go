@@ -251,7 +251,13 @@ func TestSSEHandler_WireFormat(t *testing.T) {
 		t.Fatal("SSE handler did not register as client within timeout")
 	}
 
-	evt, err := event.NewEvent("UserCreated", id.NewAggregateID(), "User", 1, []byte(`{"name":"Alice"}`))
+	evt, err := event.NewEvent(
+		"UserCreated",
+		id.NewAggregateID(),
+		"User",
+		1,
+		[]byte(`{"name":"Alice"}`),
+	)
 	if err != nil {
 		t.Fatalf("create event: %v", err)
 	}

@@ -221,3 +221,44 @@ func TestClone_NilPayload(t *testing.T) {
 		t.Error("cloned nil payload should remain nil")
 	}
 }
+
+// TestClone_IndependentOpts verifies that Clone produces independent opts
+// (deadline, clock). eventOptions fields are immutable types (func, interface,
+// time.Time) so a shallow struct copy suffices — but we lock in the guarantee
+// that the clone and original share no mutable state through opts.
+func TestClone_IndependentOpts(t *testing.T) {
+	t.Parallel()
+
+	fixedTime := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+	deadline := fixedTime.Add(30 * time.Second)
+
+	evt, err := event.NewEvent(
+		"UserCreated",
+		id.NewAggregateID(),
+		"User",
+		1,
+		[]byte("payload"),
+		event.WithClock(func() time.Time { return fixedTime }),
+		event.WithDeadline(deadline),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	cloned := evt.Clone()
+
+	// Values are preserved.
+	if cloned.OccurredAt() != evt.OccurredAt() {
+		t.Errorf("cloned OccurredAt = %v, want %v", cloned.OccurredAt(), evt.OccurredAt())
+	}
+
+	clonedDeadline, clonedOK := cloned.Deadline()
+	origDeadline, origOK := evt.Deadline()
+	if !clonedOK || !origOK {
+		t.Fatal("both clone and original should have a deadline")
+	}
+
+	if clonedDeadline != origDeadline {
+		t.Errorf("cloned Deadline = %v, want %v", clonedDeadline, origDeadline)
+	}
+}

@@ -1,21 +1,20 @@
 # v3 Migration Guide
 
-> **Status:** Planning — v3 has not been released. This document tracks all
-> planned breaking changes so consumers can prepare.
-> **Last updated:** 2026-06-20
+> **Status:** Complete — all 11 breaking changes shipped. Ready to tag v3.0.0.
+> **Last updated:** 2026-06-21
 
 ---
 
 ## Summary
 
 v3 is the next major version of go-cqrs-lite. It removes ghost code, tightens
-type safety, and consolidates the module structure. Every breaking change has
-been prepared additively in v2 — the v2 types you should migrate to already exist.
+type safety, and consolidates the module structure. All 11 breaking changes
+are complete and shipped.
 
 | #   | Breaking Change                                       | ADR                                                     | Severity | Status                                                                        |
 | --- | ----------------------------------------------------- | ------------------------------------------------------- | -------- | ----------------------------------------------------------------------------- |
 | 1   | Delete ghost bus implementations                      | [0028](../adr/0028-watermill-as-delivery-layer.md)      | High     | **Done** — memory buses + event/reactive\*.go deleted                         |
-| 2   | Move memory/ stores → storage/memory/                 | [0029](../adr/0029-storage-consolidation.md)            | Done     | Shipped in v2.8                                                               |
+| 2   | Move memory/ stores → stack/memory/                  | [0029](../adr/0029-storage-consolidation.md)            | Done     | Shipped in v2.8                                                               |
 | 3   | Break command/query Metadata = event.Metadata alias   | [0031](../adr/0031-metadata-split.md)                   | Medium   | **Done** — each module owns its Metadata embedding event.Tracing              |
 | 4   | Version → uint64                                      | —                                                       | Done     | Shipped in v2.8                                                               |
 | 5   | Remove io.Closer from core interfaces                 | [0010](../adr/0010-remove-io-closer-from-interfaces.md) | Medium   | **Done** — callers type-assert to io.Closer                                   |
@@ -61,12 +60,12 @@ cache := kv.NewCache[T, K](backend)
 ### Step 3: Use TypedHandler instead of any-returning Handler
 
 ```go
-// BEFORE (v2, deprecated)
-query.RegisterTyped(d, "user.get", func(ctx context.Context, q *query.Query) (any, error) {
+// BEFORE (v2 — Handler returns any, caller must type-assert)
+d.Register("user.get", func(ctx context.Context, q query.Query) (any, error) {
     return result, nil
 })
 
-// AFTER (v2 now, v3 only option)
+// AFTER (v2 now, v3 preferred)
 query.RegisterTyped[*GetUserQuery, *GetUserResult](d, "user.get",
     func(ctx context.Context, q *GetUserQuery) (*GetUserResult, error) {
         return result, nil
@@ -78,13 +77,13 @@ query.RegisterTyped[*GetUserQuery, *GetUserResult](d, "user.get",
 ```go
 // BEFORE (v2 — stringly-typed via Custom metadata)
 evt, _ := event.NewEvent("user.created", id, "User", 1, payload,
-    event.WithCustom("correlation_id", corrID))
+    event.WithCustom(event.MetadataKey("correlation_id"), corrID))
 
-// AFTER (v2 now, v3 preferred)
+// AFTER (v2 now, v3 preferred — typed options)
 evt, _ := event.NewEvent("user.created", id, "User", 1, payload,
     event.WithCorrelationID(corrID))
-// or via context:
-ctx = event.WithCorrelationID(ctx, corrID)
+// or via context enricher (sets CorrelationID on all events built from ctx):
+ctx = cqrsotel.WithCorrelationID(ctx, corrID)
 ```
 
 ### Step 5: Decider.Fold → Apply
@@ -171,14 +170,14 @@ the `prometheus/` module (OTel→Prometheus bridge). For pprof, use
 | `memory/bus.go`           | 250 | **Already deleted** in v2.8                                                                                                   |
 | `memory/command_bus.go`   | 150 | **Already deleted** in v2.8                                                                                                   |
 | `storage/pg_bus.go`       | 265 | **NOT ghost** — live code (ADR-0027, PostgresBus). Replaced by `watermill.EventBus` with Postgres backend only at v3 boundary |
-| `event/reactive.go`       | 239 | Zero production consumers since projection/ deletion. Candidate for v3 removal.                                               |
-| `event/reactive_dedup.go` | 104 | Zero production consumers since projection/ deletion. Candidate for v3 removal.                                               |
+| `event/reactive.go`       | 239 | **Already deleted** — removed with projection/ dissolution (ADR-0030)                                                                                          |
+| `event/reactive_dedup.go` | 104 | **Already deleted** — removed with projection/ dissolution (ADR-0030)                                                                                          |
 
 ### Module moves (ADR-0029)
 
 | From              | To                | Reason                                               |
 | ----------------- | ----------------- | ---------------------------------------------------- |
-| `storage/memory/` | `storage/memory/` | Stores belong under storage/; bus code deleted first |
+| `storage/memory/`  | `stack/memory/`    | Stores moved to stack/ presets package; bus code deleted first                |
 | `readmodel/`      | (deleted)         | Merged into `kv/` (ADR-0032)                         |
 
 ### Type changes
