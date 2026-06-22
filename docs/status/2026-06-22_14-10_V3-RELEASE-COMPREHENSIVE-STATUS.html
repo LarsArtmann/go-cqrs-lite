@@ -1,0 +1,1043 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>v3.0.0 Release — Comprehensive Status Report (2026-06-22)</title>
+    <style>
+      :root {
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-card: var(--surface-raised);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --rose: var(--problem);
+        --emerald: var(--solution);
+        --teal: var(--solution);
+        --amber-light: color-mix(in srgb, var(--warning) 20%, transparent);
+
+        --radius: 0px;
+        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      section[id], [id] { scroll-margin-top: 60px; }
+      body { background: var(--surface); color: var(--text); font-family: var(--font-body); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+
+      .top-bar { background: var(--text); color: var(--surface); padding: 0.6rem 2rem; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+
+      .layout { display: flex; gap: 2.5rem; padding: 2rem; }
+      .sidebar { width: 220px; flex-shrink: 0; position: sticky; top: 1rem; align-self: flex-start; height: calc(100vh - 2rem); overflow-y: auto; display: none; }
+      .sidebar nav { display: flex; flex-direction: column; gap: 0; }
+      .sidebar .label { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent); margin-bottom: 0.75rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border-strong); }
+      .sidebar a { font-size: 0.85rem; color: var(--text-muted); text-decoration: none; padding: 0.45rem 0.75rem; border-left: 2px solid transparent; transition: all 0.15s ease; line-height: 1.4; font-weight: 500; }
+      .sidebar a:hover, .sidebar a.active { color: var(--accent); border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+      .main { flex: 1; min-width: 0; }
+
+      h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -0.02em; }
+      h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.1; margin: 0 0 0.6rem; }
+      h2 { font-size: 1.4rem; margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border-strong); display: flex; align-items: baseline; gap: 0.6rem; }
+      h2 .num { font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent); font-weight: 700; letter-spacing: 0.06em; }
+      h3 { font-size: 1.1rem; margin: 0 0 0.4rem; font-weight: 700; }
+      h4 { font-size: 0.98rem; margin: 0 0 0.3rem; font-weight: 700; }
+      p { margin: 0 0 1rem; }
+
+      .hero { padding: 1.5rem 0 1.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border-strong); }
+      .hero-badge { display: inline-block; font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--surface); background: var(--accent); padding: 0.3rem 0.7rem; margin-bottom: 0.9rem; }
+      .hero-subtitle { font-size: 1.05rem; color: var(--text-muted); max-width: 70ch; margin: 0; }
+
+      .card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1.3rem; margin-bottom: 1rem; border-left: 4px solid var(--border-strong); }
+      .card-problem { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised)); }
+      .card-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised)); }
+      .card-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised)); }
+
+      .issue { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1.3rem; margin-bottom: 1rem; border-left: 4px solid var(--border-strong); }
+      .issue-critical { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised)); }
+      .issue-important { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised)); }
+      .issue-nice { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised)); }
+      .issue h3 { margin-bottom: 0.3rem; }
+      .issue .where { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-faint); margin: 0.2rem 0 0.6rem; }
+      .issue p:last-child { margin-bottom: 0; }
+
+      .severity { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.2rem 0.55rem; margin-bottom: 0.6rem; color: var(--surface); }
+      .severity-critical { background: var(--problem); }
+      .severity-important { background: var(--warning); }
+      .severity-nice { background: var(--solution); }
+
+      .badge { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.18rem 0.5rem; border: 1px solid var(--border-strong); color: var(--text-muted); }
+      .badge-critical { color: var(--problem); border-color: var(--problem); }
+      .badge-high { color: var(--warning); border-color: var(--warning); }
+      .badge-medium { color: var(--accent); border-color: var(--accent); }
+      .badge-low { color: var(--text-muted); }
+      .badge-fixed { color: var(--solution); border-color: var(--solution); }
+
+      .callout { margin: 0.8rem 0 0; padding: 0.7rem 0.9rem; border-left: 3px solid var(--border-strong); background: color-mix(in srgb, var(--text) 5%, transparent); font-size: 0.9rem; }
+      .callout strong { display: inline-block; margin-right: 0.4rem; }
+      .callout-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 10%, transparent); }
+      .callout-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 10%, transparent); }
+
+      .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin: 1rem 0 1.5rem; }
+      .stat-card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1rem; position: relative; }
+      .stat-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--border-strong); }
+      .stat-bad::before { background: var(--problem); }
+      .stat-good::before { background: var(--solution); }
+      .stat-warn::before { background: var(--warning); }
+      .stat-value { font-family: var(--font-heading); font-size: 2rem; font-weight: 800; line-height: 1; letter-spacing: -0.03em; color: var(--text); }
+      .stat-bad .stat-value { color: var(--problem); }
+      .stat-good .stat-value { color: var(--solution); }
+      .stat-warn .stat-value { color: var(--warning); }
+      .stat-label { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-faint); margin-top: 0.5rem; }
+
+      .strengths { display: grid; gap: 0.5rem; margin: 1rem 0 1.5rem; }
+      .strength { display: grid; grid-template-columns: auto 1fr; gap: 0.8rem; padding: 0.7rem 0; border-bottom: 1px solid var(--border); }
+      .strength .check { font-family: var(--font-mono); font-weight: 700; color: var(--solution); font-size: 1.1rem; line-height: 1.4; }
+      .strength .text strong { display: block; margin-bottom: 0.15rem; }
+      .strength .text span { color: var(--text-muted); font-size: 0.9rem; }
+
+      table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.9rem; }
+      th { text-align: left; padding: 0.6rem 0.9rem; background: var(--surface-raised); color: var(--text-faint); font-family: var(--font-mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border-bottom: 1px solid var(--border-strong); }
+      td { padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); }
+      tr:hover td { background: var(--surface-raised); }
+
+      pre { background: var(--surface-sunken); border: 1px solid var(--border); padding: 1rem 1.2rem; margin: 1rem 0; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.65; overflow-x: auto; }
+      code { font-family: var(--font-mono); }
+
+      .footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.8rem; color: var(--text-faint); font-family: var(--font-mono); }
+
+      @media (min-width: 1024px) { .sidebar { display: block; } }
+      @media (max-width: 768px) {
+        .layout { flex-direction: column; padding: 1rem; }
+        .top-bar { padding: 0.6rem 1rem; flex-wrap: wrap; gap: 0.3rem; }
+        .stat-grid { grid-template-columns: repeat(2, 1fr); }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>Comprehensive Status Report</span>
+      <span>2026-06-22 14:10 CEST</span>
+      <span>go-cqrs-lite / v3.0.0</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#done">Fully Done</a>
+          <a href="#partial">Partially Done</a>
+          <a href="#not-started">Not Started</a>
+          <a href="#fucked-up">Totally Fucked Up</a>
+          <a href="#improve">What to Improve</a>
+          <a href="#next25">Top 25 Next</a>
+          <a href="#question">The Big Question</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="hero">
+          <div class="hero-badge">STATUS REPORT</div>
+          <h1>v3.0.0 Release — Comprehensive Status</h1>
+          <p class="hero-subtitle">
+            Full audit of the 38-module CQRS/ES library: build, test, lint, go.mod hygiene,
+            documentation freshness, and what to do next. Every claim verified against source code.
+          </p>
+        </div>
+
+        <!-- ========== SUMMARY ========== -->
+        <h2 id="summary"><span class="num">00</span>Summary</h2>
+
+        <div class="stat-grid">
+          <div class="stat-card stat-good">
+            <div class="stat-value">38</div>
+            <div class="stat-label">Modules</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">35/35</div>
+            <div class="stat-label">Tests Pass</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Build Errors</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">2</div>
+            <div class="stat-label">Lint Failures</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">25</div>
+            <div class="stat-label">go.mod Drift</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">6</div>
+            <div class="stat-label">Stale Artifacts</div>
+          </div>
+        </div>
+
+        <div class="card card-solution">
+          <h4>The headline</h4>
+          <p>
+            <strong>v3.0.0 is tagged and healthy.</strong> All 38 modules build and vet clean.
+            All 35 testable modules pass — zero failures. Core CQRS/ES coverage is 80–98%.
+            Zero TODO/FIXME in production code. Zero panics in production paths. The v3 breaking
+            changes (11 total) are all shipped. Consumer-facing docs (README, FEATURES, ROADMAP,
+            CHANGELOG, AGENTS) were updated this session to reflect the released reality.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>The catch</h4>
+          <p>
+            The v3 module-path migration (<code>/v2</code> → <code>/v3</code>) was committed without
+            running <code>go mod tidy</code> across all modules. <strong>25 of 38 modules have
+            go.mod drift</strong> — stale indirect deps (<code>samber/lo</code>, <code>samber/ro</code>
+            from the deleted ghost bus) linger in 9 go.mod files. This causes <strong>2 modules
+            (command, query) to fail lint</strong> because golangci-lint can't load the module.
+            Additionally, <strong>6 internal artifacts</strong> still reference the pre-release
+            state ("Ready to tag"), deleted modules (readmodel, projection), or stale module paths.
+          </p>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>Value</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Go version</td><td>1.26.3</td><td><span class="badge badge-fixed">OK</span></td></tr>
+            <tr><td>Modules in workspace</td><td>38</td><td><span class="badge badge-fixed">OK</span></td></tr>
+            <tr><td>Build (workspace)</td><td>0 errors</td><td><span class="badge badge-fixed">Clean</span></td></tr>
+            <tr><td>Vet (workspace)</td><td>0 errors</td><td><span class="badge badge-fixed">Clean</span></td></tr>
+            <tr><td>Tests (per-module)</td><td>35 pass, 0 fail, 3 no-test</td><td><span class="badge badge-fixed">Clean</span></td></tr>
+            <tr><td>Lint (per-module)</td><td>22 pass, 2 fail, 14 skipped</td><td><span class="badge badge-high">Drift</span></td></tr>
+            <tr><td>go.mod tidy drift</td><td>25 / 38 modules</td><td><span class="badge badge-high">Needs tidy</span></td></tr>
+            <tr><td>API surface (golden)</td><td>1,605 exports</td><td><span class="badge badge-fixed">Verified</span></td></tr>
+            <tr><td>Production LOC</td><td>~40,200</td><td>—</td></tr>
+            <tr><td>Test LOC</td><td>~70,000</td><td>—</td></tr>
+            <tr><td>TODO/FIXME in prod code</td><td>0</td><td><span class="badge badge-fixed">Clean</span></td></tr>
+            <tr><td>Files &gt;350 lines (prod)</td><td>1 (catalog test helper, 402 lines)</td><td><span class="badge badge-low">Minor</span></td></tr>
+            <tr><td>Files &gt;350 lines (gate)</td><td>0 (test helpers exempt)</td><td><span class="badge badge-fixed">Clean</span></td></tr>
+          </tbody>
+        </table>
+
+        <h3>Core Module Coverage</h3>
+        <table>
+          <thead>
+            <tr><th>Module</th><th>Coverage</th><th>Bar</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>decider</td><td>98.3%</td><td><span class="badge badge-fixed">Excellent</span></td></tr>
+            <tr><td>id</td><td>97.6%</td><td><span class="badge badge-fixed">Excellent</span></td></tr>
+            <tr><td>dispatcher</td><td>98.0%</td><td><span class="badge badge-fixed">Excellent</span></td></tr>
+            <tr><td>event</td><td>91.6%</td><td><span class="badge badge-fixed">Strong</span></td></tr>
+            <tr><td>command</td><td>90.5%</td><td><span class="badge badge-fixed">Strong</span></td></tr>
+            <tr><td>query</td><td>86.1%</td><td><span class="badge badge-fixed">Good</span></td></tr>
+            <tr><td>codec</td><td>80.9%</td><td><span class="badge badge-medium">Adequate</span></td></tr>
+          </tbody>
+        </table>
+
+        <!-- ========== FULLY DONE ========== -->
+        <h2 id="done"><span class="num">01</span>Fully Done</h2>
+
+        <div class="strengths">
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>v3.0.0 major release — all 11 breaking changes shipped</strong>
+              <span>Ghost bus deleted, memory→storage/memory, Version→uint64, Metadata split (ADR-0031), io.Closer removed from interfaces, readmodel→kv merge, projection dissolved, SSE→transport/http, query.Handler→generic TypedHandler, Decider.Fold→Apply, event.Event→concrete type. All additive — consumers had the new shapes in v2.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>38-module multi-module workspace</strong>
+              <span>Every module has its own go.mod with minimal deps. 7-layer dependency graph (id/codec/kv at leaf → examples/cmd at top). No circular dependencies. Dependency budgets enforced.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Complete CQRS/ES primitive set</strong>
+              <span>Event sourcing (Store = EventSink + EventSource ISP split, Journal, SeekableJournal, BackwardsSource), command dispatch (typed handlers, pub/sub bus, audit journal), query dispatch (typed, paginated, audit journal), decider (pure-function aggregate with singleflight load coalescing), branded IDs (ULID-backed, type-safe).</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>4 storage backends fully shipped</strong>
+              <span>In-memory (tests/dev), SQL (PostgreSQL + SQLite with eager/lazy store facades), Pebble (embedded KV with CBOR envelope, single-DB Backend), Turso (LibSQL with offline-first sync + indexing advisor). All implement Store + SnapshotStore + CheckpointStore.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Event signing (HMAC-SHA256, Ed25519, multisig)</strong>
+              <span>Sign/verify middleware, MultiSignature with quorum, VerifierMap. Zero-copy payload hashing for performance.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Event encryption (XChaCha20-Poly1305, AES-256-GCM)</strong>
+              <span>Encrypt/decrypt middleware, composable Codec wrapper, HKDF key derivation for multi-tenant, key rotation support, algorithm/key-ID extraction.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Bundle composition layer (4 presets)</strong>
+              <span>stack/memory, stack/sqlite, stack/pebble, stack/postgres. Each wires event store + bus + command/query/snapshot/checkpoint stores + read-model KV in one call. ISP-honest Bundle fields. Shared contract test suite (20 assertions).</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>OTel observability + Prometheus bridge</strong>
+              <span>Tracing + metrics middleware for all 3 message types. otel/ re-export module (no direct go.opentelemetry.io imports in domain modules). Prometheus exporter with /metrics handler. OTel correlation via baggage. Custom histogram boundaries.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Schema evolution (upcasters, VersionedStore, Validator)</strong>
+              <span>Upcaster registry for on-load migration, VersionedStore wrapper, Validator with RegisterType[T]() for strict/lenient payload validation. ADR-0017.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Auto-documentation (AsyncAPI 3.0, OpenAPI, D2, EventCatalog)</strong>
+              <span>catalog/ module auto-generates API documentation from Go types via reflection. JSON Schema engine, YAML serialization. 4 exporters + docserver.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Tombstone soft-delete (no Delete on Store)</strong>
+              <span>DetectTombstone, MarkTombstone, StatusMiddleware, AggregateListing with tombstone-aware status. Aligns with event-sourcing immutability.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Watermill integration (EventBus, CatchUpSubscriber, EventPublisher)</strong>
+              <span>Full event.Bus implementation via GoChannel. CatchUpSubscriber for replay+live+checkpoint with dedup. EventPublisher for cqrs→Watermill topic bridging. PostgresBus with LISTEN/NOTIFY.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Zero-panic production code</strong>
+              <span>All production panic() calls converted to error returns. 5-phase elimination sprint completed. Test helpers use tb.Fatalf instead of panic. Breaking signature changes on pebble/signing constructors.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>5-family error taxonomy (Rejection / Conflict / Transient / Infrastructure / Corruption)</strong>
+              <span>go-error-family integration, sentinel errors, %w wrapping, classified constructors (NewRejection, NewConflict). Every fmt.Errorf classified.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Consumer-facing documentation updated</strong>
+              <span>README, FEATURES, ROADMAP, TODO_LIST, CHANGELOG, AGENTS all updated this session to reflect v3.0.0 released reality (was "v3-ready / Ready to tag"). 32 stale import paths fixed in FEATURES.md.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>CBOR codec (deterministic + compact)</strong>
+              <span>Two modes: CBORCodec (structured) and CBORCompactCodec (positional array, ~35% smaller). Diagnose() for human-readable CBOR debugging. BufferEncoder for zero-allocation encoding.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>SSE transport with Last-Event-ID reconnection</strong>
+              <span>transport/http/ module with SSEBroker, WithReconnectJournal for replay, dedup strategy matching CatchUpSubscriber. Heartbeat to prevent proxy timeouts.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>kv.TypedStore + kv.Cache (merged from readmodel)</strong>
+              <span>Layer-0 KV store abstraction with typed store, Otter-backed TinyLFU cache, MemStore, Pebble KVAdapter. ADR-0032.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== PARTIALLY DONE ========== -->
+        <h2 id="partial"><span class="num">02</span>Partially Done</h2>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Drift</span>
+          <h3>go.mod hygiene — 25 / 38 modules need <code>go mod tidy</code></h3>
+          <div class="where">command, query, decider, encryption, signing, snapshot, storage, storage/memory, storage/pebble, storage/turso, listing, middleware, integration, stack, stack/*, testutil, watermill, example/*</div>
+          <p>
+            The v3 module-path migration committed <code>/v2 → /v3</code> in all go.mod files but
+            didn't run <code>go mod tidy</code>. Result: stale indirect deps (<code>samber/lo</code>,
+            <code>samber/ro</code>, <code>golang.org/x/exp</code>) linger in 9 go.mod files —
+            leftovers from the deleted ghost bus code. The remaining 16 modules just have go.sum
+            hash version drift. This is cosmetic but it <strong>breaks lint on 2 modules</strong>.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            Run <code>go mod tidy</code> in every module directory (or <code>go work sync</code> from root).
+            One-command fix, ~2 minutes.
+          </div>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Stale config</span>
+          <h3>api-stability checker config references deleted modules</h3>
+          <div class="where">cmd/api-stability/main.go:36,44,47,48</div>
+          <p>
+            The module list still contains <code>"memory"</code> (now <code>storage/memory</code>),
+            <code>"projection"</code> (deleted in ADR-0030), <code>"pebble"</code> (now
+            <code>storage/pebble</code>), and <code>"turso"</code> (now <code>storage/turso</code>).
+            The checker passes (1,605 exports verified) because stale entries silently resolve to
+            nothing, but the config is lying about what modules exist.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            Update the module list in main.go to the correct v3 paths. Regenerate the golden file.
+          </div>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Stale docs</span>
+          <h3>Internal docs still reference pre-release / deleted modules</h3>
+          <div class="where">docs/migration/V3_MIGRATION.md:3, docs/PRESETS.md:122, docs/turso-indexing-guidance.md:23,91</div>
+          <p>
+            V3_MIGRATION.md says "Ready to tag v3.0.0" — it's already tagged. PRESETS.md imports
+            <code>readmodel/cache/v3</code> — that module was deleted (merged into kv/). The turso
+            guide uses <code>turso/v3</code> instead of <code>storage/turso/v3</code>. These are
+            internal docs (not consumer-facing) but they'd mislead a contributor.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Coverage gap</span>
+          <h3>Stack preset coverage varies — stack/postgres 0% locally</h3>
+          <div class="where">stack/postgres/</div>
+          <p>
+            stack/postgres tests skip without <code>POSTGRES_TEST_DSN</code>, showing 0% locally.
+            The CI <code>postgres-integration</code> job sets both <code>DATABASE_URL</code> and
+            <code>POSTGRES_TEST_DSN</code>, so it runs in CI. The shared contract suite covers the
+            happy path. Constructor error branches are lighter across all presets.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">No tests</span>
+          <h3>3 modules have zero test files</h3>
+          <div class="where">. (root), example/encryption, stack</div>
+          <p>
+            The root module is just <code>doc.go</code> (no logic — fine). <code>example/encryption</code>
+            is an example app (lower bar). <code>stack</code> has <code>Materialize</code> + helpers
+            but no direct tests — it's tested transitively through the presets. Adding direct tests
+            for <code>stack.Materialize</code> tombstone-aware paths would close the gap.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Experimental</span>
+          <h3>Go experimental build tags — not standard</h3>
+          <div class="where">event/arena_experiment.go, codec/jsonv2_experiment.go</div>
+          <p>
+            Builds use <code>-tags "goexperiment.arenas goexperiment.jsonv2"</code>. These require
+            <code>GOEXPERIMENT</code> support in the toolchain. CI and <code>nix run .#build</code>
+            apply them automatically, but a consumer who builds manually without these tags gets
+            a different (slower) code path. Documented in AGENTS.md but worth flagging.
+          </p>
+        </div>
+
+        <!-- ========== NOT STARTED ========== -->
+        <h2 id="not-started"><span class="num">03</span>Not Started</h2>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>ADR / Ref</th>
+              <th>Blocker</th>
+              <th>Priority</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>gRPC transport adapter</td>
+              <td>ADR-0025</td>
+              <td>Waiting for consumer signal</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+            </tr>
+            <tr>
+              <td>NATS JetStream adapter</td>
+              <td>ADR-0025</td>
+              <td>Waiting for consumer signal</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+            </tr>
+            <tr>
+              <td>Redis Streams adapter</td>
+              <td>ADR-0025</td>
+              <td>Waiting for consumer signal</td>
+              <td><span class="badge badge-low">Low</span></td>
+            </tr>
+            <tr>
+              <td>jsonv2 codec stabilization</td>
+              <td>ADR-0026</td>
+              <td>Go stdlib (blocked)</td>
+              <td><span class="badge badge-low">Low</span></td>
+            </tr>
+            <tr>
+              <td>Arena allocation stabilization</td>
+              <td>ADR-0026</td>
+              <td>Go stdlib (blocked)</td>
+              <td><span class="badge badge-low">Low</span></td>
+            </tr>
+            <tr>
+              <td>Hot-State cache (decider Repository)</td>
+              <td>TODO_LIST</td>
+              <td>Profile first (snapshot+cache may suffice)</td>
+              <td><span class="badge badge-low">Low</span></td>
+            </tr>
+            <tr>
+              <td>Read-pressure snapshot strategy</td>
+              <td>TODO_LIST</td>
+              <td>After Hot-State cache</td>
+              <td><span class="badge badge-low">Low</span></td>
+            </tr>
+            <tr>
+              <td>Secondary indexes / ranged scans (read models)</td>
+              <td>ROADMAP</td>
+              <td>Scan filters in memory today</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+            </tr>
+            <tr>
+              <td>Surface Pebble Checkpoint from presets</td>
+              <td>ROADMAP</td>
+              <td>Design needed</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+            </tr>
+            <tr>
+              <td>Event stream compaction / log truncation</td>
+              <td>ROADMAP</td>
+              <td>Raw idea — no design</td>
+              <td><span class="badge badge-low">Low</span></td>
+            </tr>
+            <tr>
+              <td>Multi-tenant event store</td>
+              <td>ROADMAP</td>
+              <td>Raw idea — no design</td>
+              <td><span class="badge badge-low">Low</span></td>
+            </tr>
+            <tr>
+              <td>Event archival to S3/GCS</td>
+              <td>ROADMAP</td>
+              <td>Raw idea — no design</td>
+              <td><span class="badge badge-low">Low</span></td>
+            </tr>
+            <tr>
+              <td>CQRS dashboard (web UI)</td>
+              <td>ROADMAP</td>
+              <td>Raw idea — no design</td>
+              <td><span class="badge badge-low">Low</span></td>
+            </tr>
+            <tr>
+              <td>Automatic migration generator</td>
+              <td>ROADMAP</td>
+              <td>Raw idea — no design</td>
+              <td><span class="badge badge-low">Low</span></td>
+            </tr>
+            <tr>
+              <td>Property-based integration testing (state machines)</td>
+              <td>ROADMAP</td>
+              <td>Raw idea — no design</td>
+              <td><span class="badge badge-low">Low</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- ========== TOTALLY FUCKED UP ========== -->
+        <h2 id="fucked-up"><span class="num">04</span>Totally Fucked Up</h2>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Wrong</span>
+          <h3>CHANGELOG export count is wrong by 247</h3>
+          <div class="where">CHANGELOG.md:64 — "API surface — 1806 → 1852 exports"</div>
+          <p>
+            The [3.0.0] Changed section claims "1806 → 1852 exports" but the actual golden file
+            (<code>docs/api_surface.txt</code>) has <strong>1,605 exports</strong>. That's a
+            <strong>247-export discrepancy</strong>. The v3 breaking changes deleted projection,
+            readmodel, ghost bus code, and renamed several APIs — which would <em>reduce</em> the
+            count. The CHANGELOG number appears to be from the pre-v3-migration v2.7.0 timeframe
+            and was never updated. The release shipped with a wrong API surface claim.
+          </p>
+          <div class="callout callout-warning">
+            <strong>Watch out</strong>
+            The discrepancy could also mean the api-stability checker's stale module list is silently
+            skipping real modules. The checker references <code>"projection"</code> (deleted) and
+            un-prefixed <code>"memory"</code>/<code>"pebble"</code>/<code>"turso"</code> (moved to
+            <code>storage/*</code>). If those stale entries cause the checker to skip legitimate
+            modules, the 1,605 count itself may be wrong. Needs investigation.
+          </div>
+        </div>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Broken</span>
+          <h3>Lint fails on command + query modules</h3>
+          <div class="where">command/go.mod, query/go.mod</div>
+          <p>
+            <code>golangci-lint run ./...</code> fails on <code>command</code> and <code>query</code>
+            with: <em>"context loading failed: no go files to analyze: running go mod tidy may solve
+            the problem"</em>. This is a direct consequence of the go.mod drift — stale indirect deps
+            prevent the linter from loading the module graph. The code itself is clean (0 issues when
+            tidy succeeds), but CI lint gate would fail on these modules.
+          </p>
+        </div>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Lie</span>
+          <h3>V3 Migration Guide says "Ready to tag" — it's already tagged</h3>
+          <div class="where">docs/migration/V3_MIGRATION.md:3</div>
+          <p>
+            <em>"Status: Complete — all 11 breaking changes shipped. Ready to tag v3.0.0."</em>
+            v3.0.0 was tagged in commit <code>4099aeb6</code>. The migration guide — the primary
+            document a v2 consumer reads — has stale pre-release language.
+          </p>
+        </div>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Dead ref</span>
+          <h3>PRESETS.md imports a deleted module</h3>
+          <div class="where">docs/PRESETS.md:122 — <code>readmodel/cache/v3</code></div>
+          <p>
+            <code>readmodel/</code> was deleted in ADR-0032 (merged into <code>kv/</code>). The
+            presets guide still tells consumers to import <code>readmodel/cache/v3</code> which
+            no longer exists. A consumer following this guide would get a compilation error.
+          </p>
+        </div>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Dead ref</span>
+          <h3>turso-indexing-guidance.md uses wrong module path</h3>
+          <div class="where">docs/turso-indexing-guidance.md:23,91 — <code>turso/v3</code></div>
+          <p>
+            Uses <code>turso/v3</code> and <code>turso/v3/indexing</code> instead of the correct
+            <code>storage/turso/v3</code> and <code>storage/turso/v3/indexing</code>. The module was
+            moved to <code>storage/turso/</code> but this guide was never updated.
+          </p>
+        </div>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Dead code</span>
+          <h3>api-stability checker config has phantom modules</h3>
+          <div class="where">cmd/api-stability/main.go:36,44,47,48</div>
+          <p>
+            The hardcoded module list references <code>"projection"</code> (deleted ADR-0030),
+            <code>"memory"</code> (now <code>storage/memory</code>), <code>"pebble"</code>
+            (now <code>storage/pebble</code>), <code>"turso"</code> (now <code>storage/turso</code>).
+            These resolve to non-existent directories. The checker silently skips them, meaning
+            it's not actually validating the full API surface it claims to.
+          </p>
+        </div>
+
+        <!-- ========== WHAT TO IMPROVE ========== -->
+        <h2 id="improve"><span class="num">05</span>What We Should Improve</h2>
+
+        <div class="card card-warning">
+          <h4>1. go mod tidy sweep — highest bang-for-buck</h4>
+          <p>
+            25 modules have drift, 2 fail lint because of it. A single <code>go mod tidy</code>
+            sweep across all modules fixes both issues simultaneously. This should be the first
+            commit after this report.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>2. api-stability checker: config + golden file regeneration</h4>
+          <p>
+            Fix the 4 stale module names, add the correct v3 paths (including storage/memory,
+            storage/pebble, storage/turso), regenerate the golden file. Then investigate whether
+            the 1,605 count is real or inflated/deflated by the stale config. This is the gate
+            that protects the public API — it needs to be trustworthy.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>3. Internal docs sweep — eliminate all pre-release language</h4>
+          <p>
+            V3_MIGRATION.md, PRESETS.md, turso-indexing-guidance.md all need updates. A grep for
+            "Ready to tag", "v3-ready", deleted module names, and stale paths across <code>docs/</code>
+            (excluding status/archive/planning) would catch everything in one pass.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>4. Add direct tests for stack.Materialize</h4>
+          <p>
+            The <code>stack</code> module has zero test files. <code>Materialize[V,K]</code> is the
+            tombstone-aware projection builder — a critical path. It's tested transitively through
+            presets, but direct tests for the tombstone handler path would close the coverage gap
+            and document the expected behavior.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>5. CHANGELOG accuracy audit</h4>
+          <p>
+            The "1806 → 1852 exports" claim is wrong. After fixing the api-stability checker and
+            regenerating the golden file, update the CHANGELOG with the real before/after numbers.
+            A release note with a wrong API surface count undermines trust.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>6. Split catalog test helper (402 lines → ≤350)</h4>
+          <p>
+            <code>catalog/internal/cattest/builders.go</code> is 402 lines — the only file over the
+            350-line gate. It's a test helper (the CI gate may exempt it), but splitting it would
+            make the codebase fully compliant. Low effort, high consistency.
+          </p>
+        </div>
+
+        <div class="card">
+          <h4>7. Document the GOEXPERIMENT requirement more visibly</h4>
+          <p>
+            The experimental build tags (<code>goexperiment.arenas</code>, <code>goexperiment.jsonv2</code>)
+            are documented in AGENTS.md but not in README. A consumer who clones the repo and runs
+            <code>go build</code> without the tags gets silently different (slower) code. A note in
+            the Getting Started or Contributing section would help.
+          </p>
+        </div>
+
+        <div class="card">
+          <h4>8. Consider a single-command tidy/format/test CI guard</h4>
+          <p>
+            The project has <code>nix run .#test</code> and <code>nix run .#lint</code>, but go.mod
+            drift slipped through. Adding a <code>go mod tidy -diff</code> check to CI (or to
+            <code>nix run .#lint</code>) would prevent this class of issue from recurring.
+          </p>
+        </div>
+
+        <!-- ========== TOP 25 NEXT ========== -->
+        <h2 id="next25"><span class="num">06</span>Top 25 Things to Get Done Next</h2>
+
+        <p>Ranked by impact × urgency × effort (inverse). Higher = do first.</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+              <th>Why</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td><strong>Run <code>go mod tidy</code> across all 38 modules</strong></td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td><span class="badge badge-fixed">5 min</span></td>
+              <td>Fixes lint failures on command+query, removes stale samber deps, unblocks CI</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><strong>Fix api-stability checker config (4 stale module names)</strong></td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td><span class="badge badge-fixed">10 min</span></td>
+              <td>The API surface gate is broken — references deleted/moved modules</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><strong>Regenerate api-stability golden file with correct config</strong></td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td><span class="badge badge-fixed">5 min</span></td>
+              <td>Get the real export count — is it 1,605 or different?</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td><strong>Fix CHANGELOG export count (1852 → actual)</strong></td>
+              <td><span class="badge badge-high">High</span></td>
+              <td><span class="badge badge-fixed">5 min</span></td>
+              <td>Release notes have a wrong number — trust erosion</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td><strong>Fix V3_MIGRATION.md "Ready to tag" → "v3.0.0 tagged"</strong></td>
+              <td><span class="badge badge-high">High</span></td>
+              <td><span class="badge badge-fixed">2 min</span></td>
+              <td>Primary migration doc has stale pre-release language</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td><strong>Fix PRESETS.md readmodel/cache/v3 → kv/v3</strong></td>
+              <td><span class="badge badge-high">High</span></td>
+              <td><span class="badge badge-fixed">5 min</span></td>
+              <td>Tells consumers to import a deleted module</td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td><strong>Fix turso-indexing-guidance.md stale paths</strong></td>
+              <td><span class="badge badge-high">High</span></td>
+              <td><span class="badge badge-fixed">5 min</span></td>
+              <td>Wrong module path in a guide consumers follow</td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td><strong>Sweep all docs/ for stale module references (grep pass)</strong></td>
+              <td><span class="badge badge-high">High</span></td>
+              <td><span class="badge badge-fixed">15 min</span></td>
+              <td>Catch any remaining readmodel/projection/memory/pebble/turso refs</td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td><strong>Add go mod tidy -diff check to CI lint job</strong></td>
+              <td><span class="badge badge-high">High</span></td>
+              <td><span class="badge badge-medium">30 min</span></td>
+              <td>Prevent this class of drift from recurring</td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td><strong>Add direct tests for stack.Materialize tombstone paths</strong></td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td><span class="badge badge-medium">1 hour</span></td>
+              <td>stack/ has 0 test files; Materialize is a critical projection builder</td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td><strong>Split catalog/internal/cattest/builders.go (402 → ≤350)</strong></td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge badge-fixed">15 min</span></td>
+              <td>Only file over the 350-line gate (test helper exemption may apply)</td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td><strong>Document GOEXPERIMENT build tags in README Contributing</strong></td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td><span class="badge badge-fixed">10 min</span></td>
+              <td>Consumers who build manually get silently slower code</td>
+            </tr>
+            <tr>
+              <td>13</td>
+              <td><strong>Add codec coverage above 85% (currently 80.9%)</strong></td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge badge-medium">1 hour</span></td>
+              <td>Lowest coverage among core modules</td>
+            </tr>
+            <tr>
+              <td>14</td>
+              <td><strong>Surface Pebble Checkpoint + GracefulClose from stack presets</strong></td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td><span class="badge badge-medium">2 hours</span></td>
+              <td>ROADMAP item — backup/shutdown accessors exist but not wired to presets</td>
+            </tr>
+            <tr>
+              <td>15</td>
+              <td><strong>Secondary indexes / ranged scans for kv.Store</strong></td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td><span class="badge badge-high">4 hours</span></td>
+              <td>Scan filters in memory today; large read-model sets need indexed reads</td>
+            </tr>
+            <tr>
+              <td>16</td>
+              <td><strong>Add integration test for PostgresBus round-trip in stack/postgres</strong></td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td><span class="badge badge-medium">2 hours</span></td>
+              <td>CI covers it but local devs can't verify without DSN</td>
+            </tr>
+            <tr>
+              <td>17</td>
+              <td><strong>gRPC transport adapter (transport/grpc/)</strong></td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td><span class="badge badge-high">1-2 days</span></td>
+              <td>ADR-0025 accepted; highest-demand transport adapter</td>
+            </tr>
+            <tr>
+              <td>18</td>
+              <td><strong>NATS JetStream adapter (transport/nats/)</strong></td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td><span class="badge badge-high">1-2 days</span></td>
+              <td>ADR-0025 accepted; natural fit for event pub/sub</td>
+            </tr>
+            <tr>
+              <td>19</td>
+              <td><strong>Property-based testing with rapid for event/version arithmetic</strong></td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge badge-medium">3 hours</span></td>
+              <td>Version underflow paths are critical; rapid already a dep</td>
+            </tr>
+            <tr>
+              <td>20</td>
+              <td><strong>Add example/encryption tests (currently 0 test files)</strong></td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge badge-medium">1 hour</span></td>
+              <td>Example app with zero tests — at minimum smoke test</td>
+            </tr>
+            <tr>
+              <td>21</td>
+              <td><strong>Hot-State cache for decider.Repository[State]</strong></td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge badge-high">4 hours</span></td>
+              <td>Profile first; snapshot+singleflight may already make sequential loads cheap</td>
+            </tr>
+            <tr>
+              <td>22</td>
+              <td><strong>Read-pressure snapshot strategy</strong></td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge badge-high">4 hours</span></td>
+              <td>After Hot-State cache; subsumed by it mostly</td>
+            </tr>
+            <tr>
+              <td>23</td>
+              <td><strong>Event stream compaction design (ADR)</strong></td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge badge-medium">3 hours</span></td>
+              <td>Raw idea; long-running aggregates accumulate unbounded event history</td>
+            </tr>
+            <tr>
+              <td>24</td>
+              <td><strong>Redis Streams adapter (transport/redis/)</strong></td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge badge-high">1 day</span></td>
+              <td>ADR-0025 accepted; lower demand than gRPC/NATS</td>
+            </tr>
+            <tr>
+              <td>25</td>
+              <td><strong>CQRS dashboard web UI (aggregate/event/projection inspector)</strong></td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge badge-critical">1 week+</span></td>
+              <td>Raw idea; high effort, high developer-experience value</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- ========== THE BIG QUESTION ========== -->
+        <h2 id="question"><span class="num">07</span>The #1 Question I Cannot Figure Out</h2>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Unresolved</span>
+          <h3>Did the v3 migration accidentally remove 247 legitimate exports, or is the CHANGELOG number just stale?</h3>
+          <div class="where">CHANGELOG.md:64 vs docs/api_surface.txt</div>
+          <p>
+            The CHANGELOG [3.0.0] section claims <strong>"API surface — 1806 → 1852 exports"</strong>.
+            The actual golden file has <strong>1,605 exports</strong>. That's a 247-export gap.
+          </p>
+          <p>
+            Two hypotheses:
+          </p>
+          <ol style="margin-left: 1.5rem; margin-bottom: 1rem;">
+            <li>
+              <strong>The CHANGELOG number is stale.</strong> It was written during the v2.7.0 → v3
+              timeframe and references the pre-migration export count. After the v3 breaking changes
+              (deleting projection, readmodel, ghost bus, renaming APIs), the count dropped to 1,605.
+              The CHANGELOG was never updated. <em>This is the most likely explanation.</em>
+            </li>
+            <li>
+              <strong>The api-stability checker is undercounting.</strong> Its config references
+              <code>"projection"</code> (deleted), <code>"memory"</code> (moved), <code>"pebble"</code>
+              (moved), <code>"turso"</code> (moved). If those stale entries cause the checker to skip
+              real modules that <em>do</em> exist (e.g., <code>storage/memory</code>,
+              <code>storage/pebble</code>, <code>storage/turso</code>), then the 1,605 count is
+              <em>too low</em> and the real surface is higher.
+            </li>
+          </ol>
+          <p>
+            <strong>I cannot resolve this without comparing the pre-v3 export list to the post-v3
+            list.</strong> The pre-v3 golden file no longer exists (it was overwritten). The only
+            way to answer this is:
+          </p>
+          <div class="callout callout-solution">
+            <strong>How to resolve</strong>
+            <ol style="margin-left: 1.2rem;">
+              <li>Fix the api-stability checker config (stale module names → correct v3 paths).</li>
+              <li>Regenerate the golden file with the correct config.</li>
+              <li>If the count changes significantly, the old 1,605 was wrong (hypothesis 2).</li>
+              <li>If the count stays ~1,605, the CHANGELOG 1,852 was stale (hypothesis 1).</li>
+              <li>Update the CHANGELOG with the verified number.</li>
+            </ol>
+          </div>
+          <p style="margin-top: 1rem;">
+            <strong>Why this matters:</strong> The api-stability checker is the CI gate that
+            protects the public API surface. If it's silently skipping modules because of stale
+            config, breaking API changes could ship undetected. This is the single most important
+            thing to verify before any further release activity.
+          </p>
+        </div>
+
+        <footer class="footer">
+          Generated 2026-06-22 14:10 CEST &middot; All claims verified against source code (go test, go vet, go build, golangci-lint, go mod tidy -diff, api-stability -verify)
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>
