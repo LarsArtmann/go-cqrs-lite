@@ -89,7 +89,7 @@ func opError(
 
 	cause := errs[0]
 	if len(errs) > 1 {
-		cause = event.Compose(errs...)
+		cause = errors.Join(errs...)
 	}
 
 	return event.Wrapf(cause, event.Classify(cause), "decider.op_error", fmtMsg, args...)

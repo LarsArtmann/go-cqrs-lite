@@ -1,6 +1,7 @@
 package watermill
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -264,7 +265,7 @@ func buildMetadata(md message.Metadata) (event.Metadata, error) {
 		}
 	}
 
-	return m, event.Compose(errs...)
+	return m, errors.Join(errs...)
 }
 
 func parseIDField[T any](
