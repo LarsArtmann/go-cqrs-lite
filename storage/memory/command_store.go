@@ -252,7 +252,7 @@ func (s *MemoryCommandStore) loadFiltered(
 
 	indices, exists := s.streamIndex[key]
 	if !exists {
-		return nil, command.WrapRejection(command.ErrCommandNotFound,
+		return nil, event.WrapRejection(command.ErrCommandNotFound,
 			"memory.command_not_found",
 			fmt.Sprintf("memory %s aggregate %s not found", op, ref))
 	}

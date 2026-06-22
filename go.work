@@ -11,6 +11,7 @@ use (
 	./dispatcher
 	./encryption
 	./event
+	./event/eventtest
 	./example/deployer-first
 	./example/encryption
 	./example/todo

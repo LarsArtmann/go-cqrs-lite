@@ -10,6 +10,7 @@ import (
 	"github.com/cockroachdb/pebble"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 )
@@ -99,7 +100,7 @@ func (s *CommandStore) Save(
 	jKey := s.commandJournalKey(cmd.ID())
 
 	if s.commandExists(jKey) {
-		return command.WrapConflict(command.ErrDuplicateCommand, "pebble.duplicate_command",
+		return event.WrapConflict(command.ErrDuplicateCommand, "pebble.duplicate_command",
 			fmt.Sprintf("command %s already exists", cmd.ID()))
 	}
 
@@ -107,7 +108,7 @@ func (s *CommandStore) Save(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return command.WrapCorruption(err, "pebble.serialize_command",
+		return event.WrapCorruption(err, "pebble.serialize_command",
 			fmt.Sprintf("serialize command %s", cmd.ID()))
 	}
 
@@ -125,7 +126,7 @@ func (s *CommandStore) Save(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return command.WrapInfrastructure(err, "pebble.command_commit",
+		return event.WrapInfrastructure(err, "pebble.command_commit",
 			fmt.Sprintf("commit command %s", cmd.ID()))
 	}
 
@@ -155,7 +156,7 @@ func (s *CommandStore) AppendBatch(
 
 	for _, cmd := range cmds {
 		if _, dup := seen[cmd.ID()]; dup {
-			return command.WrapConflict(command.ErrDuplicateCommand, "pebble.batch_internal_dup",
+			return event.WrapConflict(command.ErrDuplicateCommand, "pebble.batch_internal_dup",
 				fmt.Sprintf("command %s appears multiple times in batch", cmd.ID()))
 		}
 
@@ -164,7 +165,7 @@ func (s *CommandStore) AppendBatch(
 		jKey := s.commandJournalKey(cmd.ID())
 
 		if s.commandExists(jKey) {
-			return command.WrapConflict(command.ErrDuplicateCommand, "pebble.batch_existing_dup",
+			return event.WrapConflict(command.ErrDuplicateCommand, "pebble.batch_existing_dup",
 				fmt.Sprintf("command %s already exists", cmd.ID()))
 		}
 
@@ -172,7 +173,7 @@ func (s *CommandStore) AppendBatch(
 		if err != nil {
 			cqrsotel.RecordError(span, err)
 
-			return command.WrapCorruption(err, "pebble.serialize_command_batch",
+			return event.WrapCorruption(err, "pebble.serialize_command_batch",
 				fmt.Sprintf("serialize command %s", cmd.ID()))
 		}
 
@@ -188,7 +189,7 @@ func (s *CommandStore) AppendBatch(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return command.WrapInfrastructure(err, "pebble.command_batch_commit",
+		return event.WrapInfrastructure(err, "pebble.command_batch_commit",
 			fmt.Sprintf("commit batch of %d commands", len(cmds)))
 	}
 
@@ -216,13 +217,13 @@ func (s *CommandStore) writeCommandToBatch(
 
 	err := batch.Set(aKey, data, nil)
 	if err != nil {
-		return command.WrapInfrastructure(err, "pebble.command_aggregate_key",
+		return event.WrapInfrastructure(err, "pebble.command_aggregate_key",
 			"add command to aggregate index")
 	}
 
 	err = batch.Set(journalKey, data, nil)
 	if err != nil {
-		return command.WrapInfrastructure(err, "pebble.command_journal_key",
+		return event.WrapInfrastructure(err, "pebble.command_journal_key",
 			"add command to journal index")
 	}
 

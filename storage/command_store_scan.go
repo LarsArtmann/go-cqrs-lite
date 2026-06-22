@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
 )
@@ -34,21 +35,21 @@ func (s *SQLCommandStore) scanCommand(rows *sql.Rows) (*command.PersistedCommand
 		timeDest,
 	)
 	if err != nil {
-		return nil, command.WrapInfrastructure(err, "storage.scan_command",
+		return nil, event.WrapInfrastructure(err, "storage.scan_command",
 			fmt.Sprintf("scan command row for %s/%s command %s (id %s)",
 				aggIDStr, aggType, commandType, commandIDStr))
 	}
 
 	receivedAt, err := s.Dialect.ParseTime(timeDest)
 	if err != nil {
-		return nil, command.WrapCorruption(err, "storage.parse_received_at",
+		return nil, event.WrapCorruption(err, "storage.parse_received_at",
 			fmt.Sprintf("parse received_at for %s/%s command %s (id %s)",
 				aggIDStr, aggType, commandType, commandIDStr))
 	}
 
 	parsedCommandID, err := id.ParseCommandID(commandIDStr)
 	if err != nil {
-		return nil, command.WrapCorruption(
+		return nil, event.WrapCorruption(
 			err,
 			"storage.parse_command_id",
 			fmt.Sprintf(
@@ -62,13 +63,13 @@ func (s *SQLCommandStore) scanCommand(rows *sql.Rows) (*command.PersistedCommand
 
 	parsedAggID, err := id.ParseAggregateID(aggIDStr)
 	if err != nil {
-		return nil, command.WrapCorruption(err, "storage.parse_aggregate_id",
+		return nil, event.WrapCorruption(err, "storage.parse_aggregate_id",
 			fmt.Sprintf("parse aggregate ID %q for %s command %s", aggIDStr, aggType, commandType))
 	}
 
 	parsedAggType, err := command.ParseAggregateType(aggType)
 	if err != nil {
-		return nil, command.WrapCorruption(err, "storage.parse_aggregate_type",
+		return nil, event.WrapCorruption(err, "storage.parse_aggregate_type",
 			fmt.Sprintf("parse aggregate type %q for command %s", aggType, commandType))
 	}
 
@@ -82,7 +83,7 @@ func (s *SQLCommandStore) scanCommand(rows *sql.Rows) (*command.PersistedCommand
 	if len(metadataJSON) > 0 {
 		var meta command.Metadata
 		if jsonErr := json.Unmarshal(metadataJSON, &meta); jsonErr != nil {
-			return nil, command.WrapCorruption(jsonErr, "storage.parse_command_metadata",
+			return nil, event.WrapCorruption(jsonErr, "storage.parse_command_metadata",
 				fmt.Sprintf("unmarshal metadata for %s command (id %s)", commandType, commandIDStr))
 		}
 		opts = append(opts, command.WithCommandMetadata(meta))
@@ -95,7 +96,7 @@ func (s *SQLCommandStore) scanCommand(rows *sql.Rows) (*command.PersistedCommand
 		opts...,
 	)
 	if err != nil {
-		return nil, command.WrapCorruption(err, "storage.reconstruct_command",
+		return nil, event.WrapCorruption(err, "storage.reconstruct_command",
 			fmt.Sprintf("reconstruct command %s for %s", commandType, aggType))
 	}
 

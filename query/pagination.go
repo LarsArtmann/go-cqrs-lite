@@ -3,7 +3,7 @@ package query
 import (
 	"strconv"
 
-	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 const (
@@ -79,21 +79,21 @@ func (r PaginatedResult[T]) HasPrev() bool {
 // Validate checks pagination values are within bounds.
 func (p Pagination) Validate() error {
 	if p.Page < 1 {
-		return errorfamily.NewRejection(
+		return event.NewRejection(
 			"query.invalid_page",
 			"page must be >= 1, got "+strconv.FormatUint(uint64(p.Page), 10),
 		)
 	}
 
 	if p.PageSize < 1 {
-		return errorfamily.NewRejection(
+		return event.NewRejection(
 			"query.invalid_page_size",
 			"page size must be >= 1, got "+strconv.FormatUint(uint64(p.PageSize), 10),
 		)
 	}
 
 	if p.PageSize > maxPageSize {
-		return errorfamily.NewRejection(
+		return event.NewRejection(
 			"query.invalid_page_size",
 			"page size must be <= "+strconv.Itoa(
 				maxPageSize,

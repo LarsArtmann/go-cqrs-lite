@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
@@ -79,7 +80,7 @@ func (t *TypedCommandStore[P]) Save(
 
 	err = t.store.Save(ctx, ref, persisted)
 	if err != nil {
-		return WrapInfrastructure(err, "command.typed_store.save", "save typed command")
+		return event.WrapInfrastructure(err, "command.typed_store.save", "save typed command")
 	}
 
 	return nil
@@ -124,7 +125,7 @@ func (t *TypedCommandStore[P]) AppendBatch(
 
 	err := t.store.AppendBatch(ctx, ref, persisted)
 	if err != nil {
-		return WrapInfrastructure(err, "command.typed_store.append_batch", "append typed commands")
+		return event.WrapInfrastructure(err, "command.typed_store.append_batch", "append typed commands")
 	}
 
 	return nil
@@ -137,7 +138,7 @@ func (t *TypedCommandStore[P]) Load(
 ) ([]TypedPersistedCommand[P], error) {
 	cmds, err := t.store.Load(ctx, ref)
 	if err != nil {
-		return nil, WrapInfrastructure(err, "command.typed_store.load", "load typed commands")
+		return nil, event.WrapInfrastructure(err, "command.typed_store.load", "load typed commands")
 	}
 
 	result := make([]TypedPersistedCommand[P], 0, len(cmds))

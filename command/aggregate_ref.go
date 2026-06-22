@@ -17,7 +17,7 @@ type AggregateRef = event.AggregateRef
 func ParseAggregateType(s string) (AggregateType, error) {
 	t, err := event.ParseAggregateType(s)
 	if err != nil {
-		return "", WrapRejection(err, "command.parse_aggregate_type", "parse aggregate type")
+		return "", event.WrapRejection(err, "command.parse_aggregate_type", "parse aggregate type")
 	}
 
 	return t, nil

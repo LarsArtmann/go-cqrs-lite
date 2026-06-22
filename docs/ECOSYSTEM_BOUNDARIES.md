@@ -149,48 +149,34 @@ requires manual `.String()` → `NewUserID()` conversion with **zero compile-tim
 `ulid.ULID` backing + exported `id.UserMarker` brand). This is a **breaking change**
 to usermgmt's v3 API, so it must be coordinated.
 
-### 🔴 P0 — `ActorID` defined three incompatible ways
+### 🟢 P0 — `ActorID` canonicalized (RESOLVED)
 
-| Location                        | Shape                                              |
-| ------------------------------- | -------------------------------------------------- |
-| `cqrs-htmx/context.go:141`      | bare `string` (no branding)                        |
-| `cqrs-htmx/usermgmt/id.go:74`   | `struct{kind ActorKind; raw string}` (not branded) |
-| `go-localsync/pkg/id/ids.go:46` | `brandid.ID[ActorBrand, string]` (branded)         |
+| Location                     | Shape                                              | Status                                                                                                                 |
+| ---------------------------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `cqrs-htmx/context.go:141`   | bare `string` (no branding)                        | ✅ Intentional — transport boundary, no type needed                                                                    |
+| `cqrs-htmx/usermgmt/id.go`   | `struct{kind ActorKind; raw string}` (not branded) | ✅ Canonical domain actor type (user/bot discrimination)                                                               |
+| `go-localsync/pkg/id/ids.go` | `brandid.ID[ActorLoginBrand, string]`              | ✅ Renamed from `ActorID` to `ActorLogin` — represents external provider actor (GitHub username), not the same concept |
 
-Three types, same name, no relationship. `usermgmt.ActorID` is the richest (kind-
-discriminated: user/bot/system) and should be the canonical one. The others should
-either adopt it or use distinct names.
+The three types are now clearly distinct concepts, not a duplication:
 
-### 🟡 P1 — Error handling: inconsistent gateway + contradictory status mapping
+- Root cqrs-htmx: `string` for context propagation (transport concern)
+- usermgmt: `ActorID` struct for domain-level actor kind discrimination
+- go-localsync: `ActorLogin` branded string for external provider usernames
 
-**Three access patterns to `go-error-family` exist simultaneously:**
+### 🟢 P1 — Error handling: standardized (RESOLVED)
 
-| Pattern                            | Used by                                                                       |
-| ---------------------------------- | ----------------------------------------------------------------------------- |
-| Via `go-cqrs-lite/event` re-export | cqrs-htmx (errors.go, structured_error.go)                                    |
-| Direct `errorfamily` import        | go-localsync, cqrs-htmx/catalog, go-cqrs-lite (command, query, id, kv, codec) |
-| Both in the same repo              | cqrs-htmx (root via event, catalog direct)                                    |
+**Canonical convention (established):**
 
-**Contradictory HTTP status mappings:**
+- `event/errors.go` is the single re-export hub for `go-error-family` in go-cqrs-lite
+- `command/` and `query/` no longer re-export error family functions (E05 — triplication eliminated)
+- Modules that depend on `event/v3` use `event.NewRejection()` etc.
+- Modules that don't depend on `event` (codec, catalog, cmd) import `errorfamily` directly
+- External consumers (cqrs-htmx, go-localsync) use `event.` re-export or `errorfamily` directly — consistent within each repo
 
-| Family           | `go-error-family` (upstream) | `cqrs-htmx` (errors.go) |
-| ---------------- | ---------------------------- | ----------------------- |
-| `Corruption`     | 500                          | **422**                 |
-| `Infrastructure` | 503                          | **500**                 |
+**HTTP status mapping reconciled** (E04): cqrs-htmx now matches go-error-family upstream:
 
-These disagree. The upstream mapping is authoritative; cqrs-htmx overrides it without
-documenting why.
-
-**Duplicate re-export blocks:** `event/errors.go`, `command/errors.go`, and
-`query/errors.go` each copy the identical 6-function re-export block (`Classify`,
-`NewRejection`, `NewConflict`, `NewTransient`, `NewCorruption`, `NewInfrastructure`).
-This is triplication.
-
-**Fix direction:** Consumers should import `go-error-family` **directly** (like
-go-localsync does). The `event` package re-export was a convenience that became a
-convention that became a trap. Remove the re-exports from `command/` and `query/`
-first (they have no domain-specific error semantics). Keep `event/` re-exports only
-if they add domain sentinels (they do — `ErrVersionConflict` etc.).
+- Corruption → 500, Infrastructure → 503 (was 422/500 — contradiction resolved)
+- See ADR-0017 in cqrs-htmx
 
 ### 🟡 P1 — `catalog` HTTP handlers in cqrs-htmx: correct placement, thin wrapper
 
@@ -277,17 +263,13 @@ Based on existing analysis docs, these have been explicitly evaluated and reject
 5. **Reconcile the HTTP status mapping.** `cqrs-htmx/errors.go:71-86` must either match
    `go-error-family` upstream or document a deliberate override with an ADR.
 
-### Phase 4: Internal cleanup (low impact, repo-local)
+### Phase 4: Internal cleanup (low impact, repo-local) — PARTIALLY COMPLETE
 
-6. **go-cqrs-lite:** Merge the 5 catalog sub-modules back into one (per existing
-   proposal). Break the 4 module dependency cycles documented in
-   `docs/modularization/MODULE_BOUNDARY_ANALYSIS.md`.
+6. **go-cqrs-lite:** ✅ Catalog sub-modules already merged into one. ✅ eventtest extracted as separate module (breaks partial cycle). ⏳ Remaining cycle: event → storage/memory → command → event (via test dependencies). Breaking requires moving event test files to a separate integration test module.
 
-7. **cqrs-htmx:** Decompose `usermgmt` god-package (71 files) into 8 sub-packages per
-   `docs/modularization/2026-06-21_EXECUTION_PLAN.html`.
+7. **cqrs-htmx:** ⏳ Decompose `usermgmt` god-package (71 files) into 8 sub-packages per `docs/modularization/2026-06-21_EXECUTION_PLAN.html`. (E10 — deferred)
 
-8. **go-localsync:** Remove the bypassed `query.Dispatcher` from the production path
-   (keep for tests only, or remove entirely).
+8. **go-localsync:** ✅ The bypassed `query.Dispatcher` is an intentional performance optimization for hot read paths (documented in `stack_adapters.go`). The dispatcher is still wired for tests. No change needed.
 
 ---
 

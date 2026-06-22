@@ -29,6 +29,8 @@ github.com/larsartmann/go-branded-id v0.3.1 h1:n53Vz3MCUy3S8YfW/v+zxL/qT96iiXZOT
 github.com/larsartmann/go-branded-id v0.3.1/go.mod h1:fiv3t1PyNCITnE/8KtymGCUz7tQRuQxF+8oqNdFmA/Y=
 github.com/larsartmann/go-cqrs-lite/kv/v2 v2.6.0 h1:eY2eXcErnZkG3EZLjP6Wb0ZLcm4nlWUGMJqwrbwcNgc=
 github.com/larsartmann/go-cqrs-lite/kv/v2 v2.6.0/go.mod h1:w9dtPaQFBODUS8WA7NTli2BHD6VLlatseQnRxSWwfM4=
+github.com/larsartmann/go-cqrs-lite/kv/v3 v3.0.0 h1:BGkQnnz5+NEaXHoPBGqZXMh+eHUSxRloTdEvrUSfGbs=
+github.com/larsartmann/go-cqrs-lite/kv/v3 v3.0.0/go.mod h1:dpM1YlM9XxFIr8OiBk6gMu3NvVXDLCUSS5ss4pB89zI=
 github.com/larsartmann/go-cqrs-lite/memory/v2 v2.5.0 h1:7b+O+Ri7x8gBKfwU73YyMaJN2j1HK2DGv55RqmSgC0Y=
 github.com/larsartmann/go-cqrs-lite/memory/v2 v2.5.0/go.mod h1:O3kEsTxsCiC0vpL0aNaIAl3nhP9HP440YBopR9JiYTg=
 github.com/larsartmann/go-cqrs-lite/schema/v2 v2.5.0 h1:Ky6Z11Oy2ddgi2cQzvLH7u2y7y1CU2pkq/V1whw75J4=
@@ -39,6 +41,8 @@ github.com/mattn/go-isatty v0.0.22 h1:j8l17JJ9i6VGPUFUYoTUKPSgKe/83EYU2zBC7YNKMw
 github.com/mattn/go-isatty v0.0.22/go.mod h1:ZXfXG4SQHsB/w3ZeOYbR0PrPwLy+n6xiMrJlRFqopa4=
 github.com/mattn/go-sqlite3 v1.14.42 h1:MigqEP4ZmHw3aIdIT7T+9TLa90Z6smwcthx+Azv4Cgo=
 github.com/mattn/go-sqlite3 v1.14.42/go.mod h1:pjEuOr8IwzLJP2MfGeTb0A35jauH+C2kbHKBr7yXKVQ=
+github.com/maypok86/otter/v2 v2.3.0 h1:8H8AVVFUSzJwIegKwv1uF5aGitTY+AIrtktg7OcLs8w=
+github.com/maypok86/otter/v2 v2.3.0/go.mod h1:XgIdlpmL6jYz882/CAx1E4C1ukfgDKSaw4mWq59+7l8=
 github.com/ncruces/go-strftime v1.0.0 h1:HMFp8mLCTPp341M/ZnA4qaf7ZlsbTc+miZjCLOFAw7w=
 github.com/ncruces/go-strftime v1.0.0/go.mod h1:Fwc5htZGVVkseilnfgOVb9mKy6w1naJmn9CehxcKcls=
 github.com/oklog/ulid/v2 v2.1.1 h1:suPZ4ARWLOJLegGFiZZ1dFAkqzhMjL3J1TzI+5wHz8s=
@@ -92,6 +96,7 @@ golang.org/x/text v0.38.0 h1:sXmwo9DwP3OK9EZ7PqAdaooSGozfl/3a6/xJcbzPRhE=
 golang.org/x/text v0.38.0/go.mod h1:YXZt3QhHUKYT53r2lLKFIVi6Ao1jdzrTR/KQ09qyxF4=
 golang.org/x/tools v0.46.0 h1:7jTurBkPZu4moS/Uy4OQT1M+QBlsj3wejyZwsT8Z7rk=
 golang.org/x/tools v0.46.0/go.mod h1:FrD85F8l+NWL+9XWBSyVSHO6Ne4jutsfIFba7AWQ5Ys=
+gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 modernc.org/libc v1.73.0 h1:Y/KmTxbIN5T3x+NFjYOzV/+Ha7wKClfIecmTCTuYlqQ=

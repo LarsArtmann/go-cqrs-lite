@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
@@ -33,7 +34,7 @@ func (s *SQLQueryStore) SaveQuery(
 		err := s.insertQuery(ctx, tx, q)
 		if err != nil {
 			cqrsotel.RecordError(span, err)
-			return query.WrapInfrastructure(err, "storage.insert_query",
+			return event.WrapInfrastructure(err, "storage.insert_query",
 				fmt.Sprintf("insert query %s", q.Type()))
 		}
 		return nil
@@ -58,7 +59,7 @@ func (s *SQLQueryStore) insertQuery(
 
 	metadata, err := sqlpkg.MarshalMetadata(q.Metadata())
 	if err != nil {
-		return query.WrapCorruption(err, "storage.marshal_query_metadata",
+		return event.WrapCorruption(err, "storage.marshal_query_metadata",
 			"marshal metadata for query "+string(q.Type()))
 	}
 
@@ -73,13 +74,13 @@ func (s *SQLQueryStore) insertQuery(
 	)
 	if err != nil {
 		if sqlpkg.IsDuplicateKeyError(err) {
-			return query.WrapConflict(
+			return event.WrapConflict(
 				query.ErrDuplicateQuery,
 				"storage.duplicate_query",
 				fmt.Sprintf("query with ID %s already exists", q.ID()),
 			)
 		}
-		return query.WrapInfrastructure(err, "storage.insert_query",
+		return event.WrapInfrastructure(err, "storage.insert_query",
 			"insert query "+string(q.Type()))
 	}
 

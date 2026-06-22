@@ -5,8 +5,6 @@ import (
 	"errors"
 	"io"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/dispatcher/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
@@ -63,7 +61,7 @@ func (d *Dispatcher) Register(queryType Type, handler Handler) error {
 		},
 	)
 	if err != nil {
-		return errorfamily.WrapInfrastructure(
+		return event.WrapInfrastructure(
 			err,
 			"query.register_handler_failed",
 			"registering handler for query type "+string(queryType),
@@ -102,16 +100,16 @@ func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
 	wrapped, err := d.inner.Dispatch(string(query.Type()))
 	if err != nil {
 		if errors.Is(err, dispatcher.ErrHandlerNotFound) {
-			return nil, errorfamily.WrapRejection(
+			return nil, event.WrapRejection(
 				ErrHandlerNotFound,
 				"query.handler_not_found",
 				"no handler registered for query: "+string(query.Type()),
 			)
 		}
 
-		return nil, errorfamily.Wrap(
+		return nil, event.Wrap(
 			err,
-			errorfamily.Classify(err),
+			event.Classify(err),
 			"query.handler_failed",
 			"query type "+string(query.Type()),
 		)
@@ -123,7 +121,7 @@ func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
 func (d *Dispatcher) ensureOpen(code, msg string) error {
 	closedErr := d.inner.CheckClosed(ErrDispatcherClosed)
 	if closedErr != nil {
-		return errorfamily.WrapInfrastructure(closedErr, code, msg)
+		return event.WrapInfrastructure(closedErr, code, msg)
 	}
 
 	return nil
@@ -140,7 +138,7 @@ func DispatchTyped[T any](ctx context.Context, d *Dispatcher, query Query) (T, e
 
 	typed, ok := result.(T)
 	if !ok {
-		return zero, errorfamily.NewCorruption(
+		return zero, event.NewCorruption(
 			"query.type_mismatch",
 			"unexpected result type for query "+string(query.Type()),
 		)

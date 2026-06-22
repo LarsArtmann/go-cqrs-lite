@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
@@ -37,7 +38,7 @@ func (s *SQLQueryStore) LoadQueries(
 	rows, err := s.DB.QueryContext(ctx, sqlText, s.Dialect.FormatTime(after))
 	if err != nil {
 		cqrsotel.RecordError(span, err)
-		return nil, query.WrapInfrastructure(err, "storage.query_queries",
+		return nil, event.WrapInfrastructure(err, "storage.query_queries",
 			"query queries after timestamp")
 	}
 	defer func() { _ = rows.Close() }()
@@ -72,7 +73,7 @@ func (s *SQLQueryStore) ReadAllQueries(ctx context.Context) ([]*query.PersistedQ
 	rows, err := s.DB.QueryContext(ctx, sqlText)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
-		return nil, query.WrapInfrastructure(err, "storage.query_all_queries", "query all queries")
+		return nil, event.WrapInfrastructure(err, "storage.query_all_queries", "query all queries")
 	}
 	defer func() { _ = rows.Close() }()
 
@@ -93,7 +94,7 @@ func (s *SQLQueryStore) ReadQueriesFrom(
 	limit int,
 ) ([]*query.PersistedQuery, error) {
 	if err := s.checkClosed(); err != nil {
-		return nil, query.Wrapf(err, query.Infrastructure, "storage.query_read_from",
+		return nil, event.Wrapf(err, event.Infrastructure, "storage.query_read_from",
 			"read from query store (limit=%d, after=%s)", limit, afterRequestID)
 	}
 
@@ -110,7 +111,7 @@ func (s *SQLQueryStore) ReadQueriesFrom(
 		queries, err := s.loadQueriesFromStart(ctx, limit)
 		if err != nil {
 			cqrsotel.RecordError(span, err)
-			return queries, query.WrapInfrastructure(err, "storage.read_queries_from_start",
+			return queries, event.WrapInfrastructure(err, "storage.read_queries_from_start",
 				fmt.Sprintf("read queries from start (limit=%d)", limit))
 		}
 		span.SetAttributes(cqrsotel.AttrInt("query.count", len(queries)))
@@ -137,7 +138,7 @@ func (s *SQLQueryStore) ReadQueriesFrom(
 	rows, err := s.DB.QueryContext(ctx, sqlText, args...)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
-		return nil, query.WrapInfrastructure(err, "storage.query_from_position",
+		return nil, event.WrapInfrastructure(err, "storage.query_from_position",
 			fmt.Sprintf("query queries from position (limit=%d)", limit))
 	}
 	defer func() { _ = rows.Close() }()
@@ -145,7 +146,7 @@ func (s *SQLQueryStore) ReadQueriesFrom(
 	queries, scanErr := s.scanQueries(rows)
 	if scanErr != nil {
 		cqrsotel.RecordError(span, scanErr)
-		return queries, query.WrapInfrastructure(scanErr, "storage.scan_from_position",
+		return queries, event.WrapInfrastructure(scanErr, "storage.scan_from_position",
 			fmt.Sprintf("scan queries from position (limit=%d)", limit))
 	}
 	span.SetAttributes(cqrsotel.AttrInt("query.count", len(queries)))
@@ -167,7 +168,7 @@ func (s *SQLQueryStore) loadQueriesFromStart(
 
 	rows, err := s.DB.QueryContext(ctx, sqlText, limit)
 	if err != nil {
-		return nil, query.WrapInfrastructure(err, "storage.query_from_start",
+		return nil, event.WrapInfrastructure(err, "storage.query_from_start",
 			fmt.Sprintf("query queries from start (limit=%d)", limit))
 	}
 	defer func() { _ = rows.Close() }()

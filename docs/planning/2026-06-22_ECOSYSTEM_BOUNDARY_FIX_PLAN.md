@@ -22,36 +22,54 @@ Each **epic** (parent task) is scored on four axes (1–5):
 
 ## Epic Priority Ranking
 
-| Rank | ID  | Epic                                           | I   | Impact | CV  | Score   | Effort (chunks) |
-| ---- | --- | ---------------------------------------------- | --- | ------ | --- | ------- | --------------- |
-| 1    | E01 | Make `go-cqrs-lite` public                     | 5   | 5      | 5   | **125** | 4 (+1 decision) |
-| 2    | E02 | Align `usermgmt.UserID` with `id.UserID`       | 5   | 5      | 5   | **125** | 11              |
-| 3    | E03 | Canonicalize `ActorID` (3 incompatible types)  | 5   | 4      | 4   | **80**  | 8               |
-| 4    | E04 | Reconcile HTTP status mapping (contradiction)  | 4   | 5      | 5   | **100** | 5               |
-| 5    | E05 | Remove triplicated error re-exports            | 4   | 4      | 4   | **64**  | 7               |
-| 6    | E06 | Standardize error import convention            | 3   | 4      | 4   | **48**  | 4               |
-| 7    | E07 | Break go-cqrs-lite module dependency cycles    | 4   | 4      | 3   | **48**  | 8               |
-| 8    | E08 | Merge go-cqrs-lite catalog sub-modules         | 3   | 3      | 3   | **27**  | 9               |
-| 9    | E09 | go-localsync: remove bypassed query.Dispatcher | 2   | 2      | 3   | **12**  | 3               |
-| 10   | E10 | Decompose usermgmt god-package (71→8 sub-pkgs) | 2   | 3      | 2   | **12**  | 15              |
-| 11   | E11 | Sync documentation across all repos            | 2   | 3      | 2   | **12**  | 6               |
+| Rank  | ID      | Epic                                                   | I    | Impact | CV   | Score         | Effort (chunks) |
+| ----- | ------- | ------------------------------------------------------ | ---- | ------ | ---- | ------------- | --------------- |
+| ~~1~~ | ~~E01~~ | ~~Make `go-cqrs-lite` public~~ — **CANCELLED by user** | ~~~~ | ~~~~   | ~~~~ | ~~CANCELLED~~ | —               |
+| 2     | E02     | Align `usermgmt.UserID` with `id.UserID`               | 5    | 5      | 5    | **125**       | 11              |
+| 3     | E03     | Canonicalize `ActorID` (3 incompatible types)          | 5    | 4      | 4    | **80**        | 8               |
+| 4     | E04     | Reconcile HTTP status mapping (contradiction)          | 4    | 5      | 5    | **100**       | 5               |
+| 5     | E05     | Remove triplicated error re-exports                    | 4    | 4      | 4    | **64**        | 7               |
+| 6     | E06     | Standardize error import convention                    | 3    | 4      | 4    | **48**        | 4               |
+| 7     | E07     | Break go-cqrs-lite module dependency cycles            | 4    | 4      | 3    | **48**        | 8               |
+| 8     | E08     | Merge go-cqrs-lite catalog sub-modules                 | 3    | 3      | 3    | **27**        | 9               |
+| 9     | E09     | go-localsync: remove bypassed query.Dispatcher         | 2    | 2      | 3    | **12**        | 3               |
+| 10    | E10     | Decompose usermgmt god-package (71→8 sub-pkgs)         | 2    | 3      | 2    | **12**        | 15              |
+| 11    | E11     | Sync documentation across all repos                    | 2    | 3      | 2    | **12**        | 6               |
 
-**Execution order** (score desc, effort asc tiebreak):
-`E01 → E04 → E02 → E03 → E05 → E06 → E07 → E08 → E09 → E11 → E10`
+**Execution order** (E01 cancelled, score desc, effort asc tiebreak):
+`E04 → E02 → E03 → E05 → E06 → E07 → E08 → E09 → E11 → E10`
+
+> **E01 CANCELLED** — User decided to keep `go-cqrs-lite` private. Workarounds exist for private git repos with nix (e.g., git credentials, SSH aliasing, `nix-prefetch-git` with auth). See [Private Repo Nix Workaround](#cancelled-e01-private-repo-nix-workaround) below.
 
 ---
 
-## E01 — Make `go-cqrs-lite` Public
+## ~~E01~~ — CANCELLED: Make `go-cqrs-lite` Public
 
-**Why:** Private repo blocks `nix flake check` and forces committed `vendor/` in go-localsync. All siblings (`go-branded-id`, `go-error-family`) are already public. It's a released v3.0.0 library.
+> **STATUS: CANCELLED by user on 2026-06-22.**
+>
+> User rationale: _"go-cqrs-lite we keep it private for now, there are workarounds to make build work with private git repos and nix."_
+>
+> The original tasks are preserved below for historical reference only. **Do NOT execute these.**
 
-| Task ID | Task                                                                         | Effort           |
-| ------- | ---------------------------------------------------------------------------- | ---------------- |
-| E01.1   | Audit git history for secrets/credentials/tokens                             | ≤12m             |
-| E01.2   | Verify LICENSE, SECURITY.md, CONTRIBUTING.md are correct                     | ≤12m             |
-| E01.3   | Audit all module READMEs — badges/links point to v3, no internal-only jargon | ≤12m             |
-| E01.4   | Verify no hardcoded internal paths or private sibling refs in docs           | ≤12m             |
-| E01.5   | **[USER DECISION]** Flip GitHub repo setting: Private → Public               | 0m (user action) |
+### Cancelled: Private Repo Nix Workaround
+
+Instead of going public, use one of these private-repo nix strategies:
+
+1. **SSH + `GIT_SSH_COMMAND`** — Set up SSH keys, use `git+ssh://` URLs in flake inputs.
+2. **`nix-prefetch-git` with `--fetcher ssh`** — Pre-fetch private repos.
+3. **Netrc file** — `~/.netrc` with GitHub token, referenced via `NIX_NETRC`.
+4. **GitHub App token** — Use a GitHub App with `contents:read` scope, inject token via nix.
+5. **`builtins.fetchGit` with `ssh`** — Impure but works for private dev: `builtins.fetchGit { url = "git@github.com:LarsArtmann/go-cqrs-lite.git"; ref = "main"; }`.
+
+**Original (cancelled) tasks:**
+
+| Task ID | Task                                                                             | Effort        |
+| ------- | -------------------------------------------------------------------------------- | ------------- |
+| E01.1   | ~~Audit git history for secrets/credentials/tokens~~                             | ~~≤12m~~      |
+| E01.2   | ~~Verify LICENSE, SECURITY.md, CONTRIBUTING.md are correct~~                     | ~~≤12m~~      |
+| E01.3   | ~~Audit all module READMEs — badges/links point to v3, no internal-only jargon~~ | ~~≤12m~~      |
+| E01.4   | ~~Verify no hardcoded internal paths or private sibling refs in docs~~           | ~~≤12m~~      |
+| E01.5   | ~~**[USER DECISION]** Flip GitHub repo setting: Private → Public~~               | ~~CANCELLED~~ |
 
 ---
 
@@ -223,17 +241,17 @@ Each **epic** (parent task) is scored on four axes (1–5):
 
 ## Summary Statistics
 
-| Metric                  | Value               |
-| ----------------------- | ------------------- |
-| Total epics             | 11                  |
-| Total tasks (≤12m each) | **85**              |
-| Estimated total effort  | ~17 hours           |
-| P0 (type safety) tasks  | 19                  |
-| P1 (error handling)     | 16                  |
-| P2 (consolidation)      | 17                  |
-| P3 (cleanup/docs)       | 24                  |
-| Breaking changes        | 2 (UserID, ActorID) |
-| ADRs required           | 3                   |
+| Metric                  | Value                                  |
+| ----------------------- | -------------------------------------- |
+| Total epics             | 11 (10 active, 1 cancelled)            |
+| Total tasks (≤12m each) | **80** (85 original − 5 cancelled E01) |
+| Estimated total effort  | ~17 hours                              |
+| P0 (type safety) tasks  | 19                                     |
+| P1 (error handling)     | 16                                     |
+| P2 (consolidation)      | 17                                     |
+| P3 (cleanup/docs)       | 24                                     |
+| Breaking changes        | 2 (UserID, ActorID)                    |
+| ADRs required           | 3                                      |
 
 ---
 
@@ -243,5 +261,5 @@ Each **epic** (parent task) is scored on four axes (1–5):
 2. **Run tests after every code-changing task** — no exceptions.
 3. **Write ADR before any breaking change** — document the why, not just the what.
 4. **Update CHANGELOG.md** for every epic completion.
-5. **Never skip E01.5** — the user must flip the repo to public. Everything downstream benefits.
+5. **~~E01 cancelled~~** — repo stays private; use nix private-repo workarounds documented in the E01 section above.
 6. **E10 is deferrable** — it's internal hygiene with no consumer-facing impact. Ship P0–P2 first.
