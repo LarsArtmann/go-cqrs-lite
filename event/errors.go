@@ -1,6 +1,8 @@
 package event
 
 import (
+	"errors"
+
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -98,7 +100,7 @@ func Newf(family Family, code, format string, args ...any) *Error {
 }
 
 // Compose joins multiple errors into one, preserving all in the Unwrap chain.
-func Compose(errs ...error) error { return errorfamily.Compose(errs...) }
+func Compose(errs ...error) error { return errors.Join(errs...) }
 
 // ExitCode returns a process exit code derived from the error family.
 func ExitCode(err error) int { return errorfamily.ExitCode(err) }

@@ -1,6 +1,10 @@
 package query
 
-import errorfamily "github.com/larsartmann/go-error-family"
+import (
+	"errors"
+
+	errorfamily "github.com/larsartmann/go-error-family"
+)
 
 type (
 	Family = errorfamily.Family
@@ -68,7 +72,7 @@ func Newf(family Family, code, format string, args ...any) *Error {
 //
 //nolint:wrapcheck // re-export wrapper
 func Compose(errs ...error) error {
-	return errorfamily.Compose(errs...)
+	return errors.Join(errs...)
 }
 
 func ExitCode(err error) int { return errorfamily.ExitCode(err) }
