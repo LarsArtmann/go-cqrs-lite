@@ -16,29 +16,29 @@ This session's work: FEATURES.md freshness audit, README positioning rewrite, CH
 
 ### v3 Release (THIS SESSION)
 
-| Item | Detail | Commit |
-| --- | --- | --- |
+| Item                  | Detail                                                                                                                                     | Commit     |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
 | `/v2`→`/v3` migration | 706 files: all `.go` imports, 37 `go.mod` module paths + version pins + replace directives, `go.sum` entries, 49 `.md` documentation paths | `4099aeb6` |
-| v3.0.0 tags | 33 annotated tags created (all versioned modules) | git tag |
-| ComponentTracer fix | Hardcoded `/v2` in `otel/spans.go:49` format string → `/v3` (caught by test, not by sed) | `4099aeb6` |
-| API surface regen | `docs/api_surface.txt` regenerated (1605 exports, unchanged from v2) | `4099aeb6` |
+| v3.0.0 tags           | 33 annotated tags created (all versioned modules)                                                                                          | git tag    |
+| ComponentTracer fix   | Hardcoded `/v2` in `otel/spans.go:49` format string → `/v3` (caught by test, not by sed)                                                   | `4099aeb6` |
+| API surface regen     | `docs/api_surface.txt` regenerated (1605 exports, unchanged from v2)                                                                       | `4099aeb6` |
 
 ### Documentation Polish (THIS SESSION)
 
-| Item | Detail |
-| --- | --- |
+| Item                  | Detail                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | FEATURES.md freshness | Deleted ghost `projection/` section (25 rows), `readmodel/cache` rows, reactive bus entries (`NewEventBus`, `NewCommandBus`, `DistinctByEventID`, `HandlerToObserver`, `ro.Observer`); fixed `memory/`→`storage/memory/` path; fixed `io.Closer` claims on 3 interfaces; fixed "all types are interfaces" lie; marked streaming reads as done; added `transport/http`, `prometheus`, `deployer-first` to Module Maturity Matrix; updated lint count from "0 across 29 modules" to honest "~60 across 38" |
-| README positioning | New "Why this library?" section + comparison table expanded to 10 capabilities vs go-cqrs/Watermill/cqrs-go; migration guide link in Status section; badge URL fixed `/v2`→`/v3` |
-| CHANGELOG v3.0.0 | New `[3.0.0]` section with 11-row breaking-change table + migration guide link; cleaned stale Unreleased entries (DistributedRunner, cqrs-gen event mode — both deleted with projection/) |
-| V3_MIGRATION.md | AFTER sections updated to `/v3`; BEFORE sections preserved for migration context |
+| README positioning    | New "Why this library?" section + comparison table expanded to 10 capabilities vs go-cqrs/Watermill/cqrs-go; migration guide link in Status section; badge URL fixed `/v2`→`/v3`                                                                                                                                                                                                                                                                                                                         |
+| CHANGELOG v3.0.0      | New `[3.0.0]` section with 11-row breaking-change table + migration guide link; cleaned stale Unreleased entries (DistributedRunner, cqrs-gen event mode — both deleted with projection/)                                                                                                                                                                                                                                                                                                                |
+| V3_MIGRATION.md       | AFTER sections updated to `/v3`; BEFORE sections preserved for migration context                                                                                                                                                                                                                                                                                                                                                                                                                         |
 
 ### Stack Polish (THIS SESSION)
 
-| Item | Detail |
-| --- | --- |
+| Item                          | Detail                                                                                                                                                                                                                                                                                                                             |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `stack/sqlite/preset.go` lint | 11→0 issues: extracted `buildViewOptions`/`buildPrimaryViewOptions`/`buildSecondaryViewOptions` into `views.go` (resolved nestif complexity); renamed `db`→`sqlDB` (varnamelen); converted inline error checks to plain assignments (noinlineerr); fixed exhaustruct on `defaultConfig`; split file to stay under 350-line CI gate |
-| `multi_db_test.go` errcheck | 2 `defer bundle.Close()` → `defer func() { _ = bundle.Close() }()` |
-| Coverage | `stack/sqlite` 45.9%→71.5% (constructor paths now exercised) |
+| `multi_db_test.go` errcheck   | 2 `defer bundle.Close()` → `defer func() { _ = bundle.Close() }()`                                                                                                                                                                                                                                                                 |
+| Coverage                      | `stack/sqlite` 45.9%→71.5% (constructor paths now exercised)                                                                                                                                                                                                                                                                       |
 
 ### Pre-existing (prior sessions, verified green)
 
@@ -57,11 +57,11 @@ This session's work: FEATURES.md freshness audit, README positioning rewrite, CH
 
 ### stack layer coverage (still light after this session's work)
 
-| Module | Coverage | Issue |
-| --- | --- | --- |
-| `stack` | 45.9% | Constructor error branches thin — presets emphasise happy paths + shared contract suite |
-| `stack/postgres` | 21.2% | Skips locally without `POSTGRES_TEST_DSN`; CI runs them in `postgres-integration` job |
-| `storage/sql` | 61.0% | Shared SQL infra, edge paths uncovered |
+| Module           | Coverage | Issue                                                                                   |
+| ---------------- | -------- | --------------------------------------------------------------------------------------- |
+| `stack`          | 45.9%    | Constructor error branches thin — presets emphasise happy paths + shared contract suite |
+| `stack/postgres` | 21.2%    | Skips locally without `POSTGRES_TEST_DSN`; CI runs them in `postgres-integration` job   |
+| `storage/sql`    | 61.0%    | Shared SQL infra, edge paths uncovered                                                  |
 
 ### ~60 lint issues across 12 modules
 
@@ -79,17 +79,17 @@ All style, not correctness. CI reports but doesn't gate (per ADR). Breakdown: wr
 
 ## c) Not Started
 
-| Item | Status | Blocked on |
-| --- | --- | --- |
-| Push v3.0.0 tags to remote | Not pushed | Manual `git push --tags` (user decision on timing) |
-| API surface reduction | Brainstorm exists (`docs/brainstorming/`), unactioned | Deferred to v4 (per user instruction this session) |
-| Hot-State cache (decider) | TODO_LIST entry, no code | Needs a real hot-aggregate workload to justify |
-| Read-pressure snapshot strategy | TODO_LIST entry, no code | Depends on Hot-State cache landing first |
-| Secondary indexes on `kv.Store` | ROADMAP entry | `Materialize.List` does full table scan; works at small scale |
-| gRPC/NATS/Redis transport adapters | ADR-0025 accepted | Consumer signal |
-| Documentation site (Docusaurus/MkDocs) | ROADMAP raw idea | Consumer signal |
-| PostgreSQL testcontainers | ROADMAP entry | Docker CI setup |
-| Per-module `go mod tidy` with `GOWORK=off` | Stale go.sum entries remain | Tags must be pushed first, then tidy resolves |
+| Item                                       | Status                                                | Blocked on                                                    |
+| ------------------------------------------ | ----------------------------------------------------- | ------------------------------------------------------------- |
+| Push v3.0.0 tags to remote                 | Not pushed                                            | Manual `git push --tags` (user decision on timing)            |
+| API surface reduction                      | Brainstorm exists (`docs/brainstorming/`), unactioned | Deferred to v4 (per user instruction this session)            |
+| Hot-State cache (decider)                  | TODO_LIST entry, no code                              | Needs a real hot-aggregate workload to justify                |
+| Read-pressure snapshot strategy            | TODO_LIST entry, no code                              | Depends on Hot-State cache landing first                      |
+| Secondary indexes on `kv.Store`            | ROADMAP entry                                         | `Materialize.List` does full table scan; works at small scale |
+| gRPC/NATS/Redis transport adapters         | ADR-0025 accepted                                     | Consumer signal                                               |
+| Documentation site (Docusaurus/MkDocs)     | ROADMAP raw idea                                      | Consumer signal                                               |
+| PostgreSQL testcontainers                  | ROADMAP entry                                         | Docker CI setup                                               |
+| Per-module `go mod tidy` with `GOWORK=off` | Stale go.sum entries remain                           | Tags must be pushed first, then tidy resolves                 |
 
 ---
 
@@ -135,33 +135,33 @@ The deployer-first stack (`example/deployer-first/`) is the canonical production
 
 ## f) Top 25 Things To Do Next
 
-| # | Task | Impact | Effort | Category |
-| --- | --- | --- | --- | --- |
-| 1 | **Push v3.0.0 tags to remote** (`git push --tags`) | Critical | Trivial | Release |
-| 2 | **Per-module `go mod tidy`** to clean stale go.sum v2 entries | High | Small | Hygiene |
-| 3 | **Archive `docs/status/*.md`** older than 7 days → `archive/` | High | Trivial | Hygiene |
-| 4 | **Fix `doc-files-age-check` hook** to actually check `docs/status/` | High | Small | Tooling |
-| 5 | **Fix remaining ~49 lint issues** (transport/http, codec, watermill) | Medium | Medium | Quality |
-| 6 | **Add constructor-error tests to `stack/`** (45.9%→>70%) | High | Medium | Testing |
-| 7 | **Add constructor-error tests to `stack/postgres`** (21.2%→>50%) | High | Medium | Testing |
-| 8 | **Document deployer-first pattern in README** | Medium | Small | Docs |
-| 9 | **Write "first 15 minutes" quickstart** that runs without setup | High | Small | Adoption |
-| 10 | **Clean stale `samber/ro` indirect deps** from go.mod files (9 modules) | Low | Trivial | Hygiene |
-| 11 | **Add `cmd/api-stability` tests** — tool guards breaking changes but is untested (0% coverage) | Medium | Small | Testing |
-| 12 | **Add turso `OpenSync` error-path tests** (39%→50%) | Medium | Small | Testing |
-| 13 | **Add `storage/sql` `LoadWithSpan` error branch tests** (61%→70%) | Medium | Small | Testing |
-| 14 | **Golden tests for `signing`** (HMAC/Ed25519 signature format stability) | Medium | Small | Testing |
-| 15 | **Golden tests for `storage`** (DDL schemas, metadata roundtrip) | Medium | Small | Testing |
-| 16 | **Document `POSTGRES_TEST_DSN`** prominently in CONTRIBUTING | Low | Trivial | Docs |
-| 17 | **Write a short blog post / Reddit post** announcing v3.0.0 | High | Small | Adoption |
-| 18 | **Link benchmarks from README** with a one-line perf claim | Medium | Trivial | Adoption |
-| 19 | **Decide and ADR: is multi-master permanently out of scope?** | Medium | Small | Architecture |
-| 20 | **Hot-State cache prototype** (only if a real hot-aggregate workload emerges) | Low | Medium | Feature |
-| 21 | **Read-pressure snapshot strategy** (only after Hot-State cache) | Low | Medium | Feature |
-| 22 | **Secondary indexes on `kv.Store`** (only if a workload needs them) | Low | Large | Feature |
-| 23 | **gRPC transport adapter** (ADR-0025, only if consumer asks) | Low | Large | Feature |
-| 24 | **NATS/Redis transport adapters** (ADR-0025, only if consumer asks) | Low | Large | Feature |
-| 25 | **Property-based integration testing** with state machine verification | Low | Medium | Testing |
+| #   | Task                                                                                           | Impact   | Effort  | Category     |
+| --- | ---------------------------------------------------------------------------------------------- | -------- | ------- | ------------ |
+| 1   | **Push v3.0.0 tags to remote** (`git push --tags`)                                             | Critical | Trivial | Release      |
+| 2   | **Per-module `go mod tidy`** to clean stale go.sum v2 entries                                  | High     | Small   | Hygiene      |
+| 3   | **Archive `docs/status/*.md`** older than 7 days → `archive/`                                  | High     | Trivial | Hygiene      |
+| 4   | **Fix `doc-files-age-check` hook** to actually check `docs/status/`                            | High     | Small   | Tooling      |
+| 5   | **Fix remaining ~49 lint issues** (transport/http, codec, watermill)                           | Medium   | Medium  | Quality      |
+| 6   | **Add constructor-error tests to `stack/`** (45.9%→>70%)                                       | High     | Medium  | Testing      |
+| 7   | **Add constructor-error tests to `stack/postgres`** (21.2%→>50%)                               | High     | Medium  | Testing      |
+| 8   | **Document deployer-first pattern in README**                                                  | Medium   | Small   | Docs         |
+| 9   | **Write "first 15 minutes" quickstart** that runs without setup                                | High     | Small   | Adoption     |
+| 10  | **Clean stale `samber/ro` indirect deps** from go.mod files (9 modules)                        | Low      | Trivial | Hygiene      |
+| 11  | **Add `cmd/api-stability` tests** — tool guards breaking changes but is untested (0% coverage) | Medium   | Small   | Testing      |
+| 12  | **Add turso `OpenSync` error-path tests** (39%→50%)                                            | Medium   | Small   | Testing      |
+| 13  | **Add `storage/sql` `LoadWithSpan` error branch tests** (61%→70%)                              | Medium   | Small   | Testing      |
+| 14  | **Golden tests for `signing`** (HMAC/Ed25519 signature format stability)                       | Medium   | Small   | Testing      |
+| 15  | **Golden tests for `storage`** (DDL schemas, metadata roundtrip)                               | Medium   | Small   | Testing      |
+| 16  | **Document `POSTGRES_TEST_DSN`** prominently in CONTRIBUTING                                   | Low      | Trivial | Docs         |
+| 17  | **Write a short blog post / Reddit post** announcing v3.0.0                                    | High     | Small   | Adoption     |
+| 18  | **Link benchmarks from README** with a one-line perf claim                                     | Medium   | Trivial | Adoption     |
+| 19  | **Decide and ADR: is multi-master permanently out of scope?**                                  | Medium   | Small   | Architecture |
+| 20  | **Hot-State cache prototype** (only if a real hot-aggregate workload emerges)                  | Low      | Medium  | Feature      |
+| 21  | **Read-pressure snapshot strategy** (only after Hot-State cache)                               | Low      | Medium  | Feature      |
+| 22  | **Secondary indexes on `kv.Store`** (only if a workload needs them)                            | Low      | Large   | Feature      |
+| 23  | **gRPC transport adapter** (ADR-0025, only if consumer asks)                                   | Low      | Large   | Feature      |
+| 24  | **NATS/Redis transport adapters** (ADR-0025, only if consumer asks)                            | Low      | Large   | Feature      |
+| 25  | **Property-based integration testing** with state machine verification                         | Low      | Medium  | Testing      |
 
 ---
 
@@ -172,6 +172,7 @@ The deployer-first stack (`example/deployer-first/`) is the canonical production
 The v3 migration deleted `/v2` paths from all 706 files. The `v2.6.0` tags still exist in git, but the code at those tags uses APIs that no longer exist in the current codebase (e.g., `projection/`, `readmodel/`, `Decider.Fold`, `event.Event` as interface). There is no v2→v3 compatibility shim layer.
 
 **What I can't determine:**
+
 - Whether any existing consumer is pinned to `/v2` and would break if v2 is abandoned
 - Whether a v2.7.0 backport release (with bug fixes but not the breaking changes) is needed
 - Whether the v2.6.0 tags should be documented as the "final v2" or just left to rot
