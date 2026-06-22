@@ -167,13 +167,13 @@ The three types are now clearly distinct concepts, not a duplication:
 
 **Canonical convention (established):**
 
-- `event/errors.go` is the single re-export hub for `go-error-family` in go-cqrs-lite
+- `event/errors.go` is the single re-export hub for `go-error-family` in go-cqrs-lite (v0.5.0 — `Compose` removed, use stdlib `errors.Join`)
 - `command/` and `query/` no longer re-export error family functions (E05 — triplication eliminated)
 - Modules that depend on `event/v3` use `event.NewRejection()` etc.
 - Modules that don't depend on `event` (codec, catalog, cmd) import `errorfamily` directly
 - External consumers (cqrs-htmx, go-localsync) use `event.` re-export or `errorfamily` directly — consistent within each repo
 
-**HTTP status mapping reconciled** (E04): cqrs-htmx now matches go-error-family upstream:
+**HTTP status mapping reconciled** (E04): cqrs-htmx now delegates to upstream `Family.HTTPStatus()` (go-error-family v0.5.0) — the hand-rolled `familyStatus()` switch is deleted:
 
 - Corruption → 500, Infrastructure → 503 (was 422/500 — contradiction resolved)
 - See ADR-0017 in cqrs-htmx

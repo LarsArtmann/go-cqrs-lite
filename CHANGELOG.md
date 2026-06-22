@@ -6,7 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-_No unreleased changes._
+### Changed
+
+- **go-error-family upgraded from v0.4.0 to v0.5.0** across all 12 direct-dep modules. `event.Compose` removed (was a trivial `errors.Join` wrapper) — consumers now use stdlib `errors.Join` directly. Upstream v0.5.0 adds `Family.HTTPStatus()`, `Family.RetryPolicy()`, `Error.JSON()`, copy-on-write errors (data-race fix), severity-ordered multi-error classification, lock-free sentinel lookup, and an injectable `Registry`. API surface golden file (`docs/api_surface.txt`) regenerated.
 
 ## [3.0.0] - 2026-06-22
 
