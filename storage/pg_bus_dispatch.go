@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"slices"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
 )
 
 // Publish dispatches events to local handlers and sends a NOTIFY so other

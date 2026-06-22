@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v2"
-	"github.com/larsartmann/go-cqrs-lite/decider/v2"
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/kv/v2"
-	"github.com/larsartmann/go-cqrs-lite/query/v2"
-	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v2"
+	"github.com/larsartmann/go-cqrs-lite/codec/v3"
+	"github.com/larsartmann/go-cqrs-lite/decider/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/kv/v3"
+	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v3"
 )
 
 // Repository constructs a typed [decider.Repository] over the Bundle's event

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/codec/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 // TypedPersistedCommand is a persisted command with a typed payload P, closing

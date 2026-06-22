@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/encryption/v2"
+	"github.com/larsartmann/go-cqrs-lite/encryption/v3"
 )
 
 func TestCiphertext_ZeroValue(t *testing.T) {

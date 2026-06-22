@@ -1,11 +1,11 @@
 # watermill — Watermill Protocol Adapter
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/watermill/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/watermill/v2)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/watermill/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/watermill/v3)
 
 Protocol adapters between go-cqrs-lite event interfaces and the [Watermill](https://watermill.io/) message bus library.
 
 ```bash
-go get github.com/larsartmann/go-cqrs-lite/watermill/v2
+go get github.com/larsartmann/go-cqrs-lite/watermill/v3
 ```
 
 ## Adapters
@@ -19,8 +19,8 @@ go get github.com/larsartmann/go-cqrs-lite/watermill/v2
 
 ```go
 import (
-    "github.com/larsartmann/go-cqrs-lite/memory/v2"
-    "github.com/larsartmann/go-cqrs-lite/watermill/v2"
+    "github.com/larsartmann/go-cqrs-lite/memory/v3"
+    "github.com/larsartmann/go-cqrs-lite/watermill/v3"
 )
 
 bus := memory.NewMemoryBus()

@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"slices"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // Signature is an opaque, serializable event signature.

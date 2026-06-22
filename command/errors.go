@@ -70,7 +70,7 @@ func Newf(family Family, code, format string, args ...any) *Error {
 
 // Compose joins multiple errors into one, preserving all in the Unwrap chain.
 //
-//nolint:wrapcheck // re-export wrapper
+
 func Compose(errs ...error) error {
 	return errors.Join(errs...)
 }

@@ -11,7 +11,7 @@
 // For multi-party signing (multiple actors signing the same event), see the
 // [multisig] sub-package:
 //
-//	import "github.com/larsartmann/go-cqrs-lite/signing/v2/multisig"
+//	import "github.com/larsartmann/go-cqrs-lite/signing/v3/multisig"
 //
 // Example (single-signature):
 //

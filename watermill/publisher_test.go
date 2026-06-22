@@ -5,9 +5,9 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill/message"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	wm "github.com/larsartmann/go-cqrs-lite/watermill/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	wm "github.com/larsartmann/go-cqrs-lite/watermill/v3"
 )
 
 func TestPublisherAdapter_Publish(t *testing.T) {

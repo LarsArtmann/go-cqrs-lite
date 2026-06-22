@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
-	"github.com/larsartmann/go-cqrs-lite/kv/v2"
+	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 )
 
 // readModelAdapter bridges kv.TypedStore[Todo, TodoID] to domain.TodoReadModel.

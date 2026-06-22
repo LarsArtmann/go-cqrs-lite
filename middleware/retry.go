@@ -8,9 +8,9 @@ import (
 	"math/rand/v2"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v2"
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/query/v2"
+	"github.com/larsartmann/go-cqrs-lite/command/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/query/v3"
 )
 
 // NewRetry returns a generic middleware that retries on retryable errors.

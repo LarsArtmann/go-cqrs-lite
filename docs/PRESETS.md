@@ -7,7 +7,7 @@
 ## Quick Start
 
 ```go
-import cqrspebble "github.com/larsartmann/go-cqrs-lite/stack/pebble/v2"
+import cqrspebble "github.com/larsartmann/go-cqrs-lite/stack/pebble/v3"
 
 b, err := cqrspebble.New("/var/lib/myapp/pebble")
 defer b.Close()
@@ -34,7 +34,7 @@ store, snapshot store, checkpoint store, and read-model backend.
 ### Memory (development, testing)
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/stack/memory/v2"
+import "github.com/larsartmann/go-cqrs-lite/stack/memory/v3"
 
 b, _ := memory.New()
 defer b.Close()
@@ -43,7 +43,7 @@ defer b.Close()
 ### SQLite (single-node persistence)
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v2"
+import "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v3"
 
 b, _ := sqlite.New("app.db")          // or ":memory:"
 defer b.Close()
@@ -54,7 +54,7 @@ Options: `WithoutWAL()`, `WithoutAutoMigrate()`.
 ### Pebble (embedded high-throughput)
 
 ```go
-import cqrspebble "github.com/larsartmann/go-cqrs-lite/stack/pebble/v2"
+import cqrspebble "github.com/larsartmann/go-cqrs-lite/stack/pebble/v3"
 
 b, _ := cqrspebble.New("/var/lib/myapp/pebble")
 defer b.Close()
@@ -67,7 +67,7 @@ Read models are **persisted to the same PebbleDB** via a shared KV adapter.
 ### Postgres (managed database)
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/stack/postgres/v2"
+import "github.com/larsartmann/go-cqrs-lite/stack/postgres/v3"
 
 b, _ := postgres.New("postgres://user:pass@localhost:5432/myapp?sslmode=disable")
 defer b.Close()
@@ -119,7 +119,7 @@ got, _ := store.Get(ctx, id)
 ### With Cache
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/readmodel/cache/v2"
+import "github.com/larsartmann/go-cqrs-lite/readmodel/cache/v3"
 
 cached, _ := cache.New(store,
     cache.WithCapacity[TodoView, TodoID](10_000),

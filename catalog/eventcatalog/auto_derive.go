@@ -1,6 +1,6 @@
 package eventcatalog
 
-import "github.com/larsartmann/go-cqrs-lite/catalog/v2"
+import "github.com/larsartmann/go-cqrs-lite/catalog/v3"
 
 // autoDeriveProducersConsumers returns a copy of the catalog with
 // producer/consumer relationships auto-derived from service sends/receives.

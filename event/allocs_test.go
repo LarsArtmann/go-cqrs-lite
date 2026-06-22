@@ -3,7 +3,7 @@ package event
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 // TestAllocations_HotPaths asserts deterministic allocation counts for critical paths.

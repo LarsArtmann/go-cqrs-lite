@@ -7,7 +7,7 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 )
 
 // LoadParams holds the parameters for a parameterized load query.

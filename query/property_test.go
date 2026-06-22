@@ -6,7 +6,7 @@ import (
 
 	"pgregory.net/rapid"
 
-	"github.com/larsartmann/go-cqrs-lite/query/v2"
+	"github.com/larsartmann/go-cqrs-lite/query/v3"
 )
 
 func TestQueryCreation_ValidType(t *testing.T) {

@@ -11,7 +11,7 @@ import (
 	promClient "github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel"
 
-	cqrsprom "github.com/larsartmann/go-cqrs-lite/prometheus/v2"
+	cqrsprom "github.com/larsartmann/go-cqrs-lite/prometheus/v3"
 )
 
 func TestSetup_CreatesProviderAndHandler(t *testing.T) {

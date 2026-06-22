@@ -6,9 +6,9 @@ import (
 
 	"github.com/cockroachdb/pebble"
 
-	"github.com/larsartmann/go-cqrs-lite/stack/v2"
-	cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v2"
-	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v2"
+	"github.com/larsartmann/go-cqrs-lite/stack/v3"
+	cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v3"
+	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v3"
 )
 
 // Option configures the Pebble preset.

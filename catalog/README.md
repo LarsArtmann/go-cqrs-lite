@@ -1,11 +1,11 @@
 # catalog — API Documentation Generation from Go Types
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/catalog/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/catalog/v2)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/catalog/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/catalog/v3)
 
 Automatically generate [AsyncAPI 3.0](https://www.asyncapi.com/) specs, [EventCatalog](https://www.eventcatalog.dev/) documentation, [OpenAPI/Swagger](https://swagger.io/specification/) specs, and [D2](https://d2lang.com/) architecture diagrams from your Go CQRS types.
 
 ```bash
-go get github.com/larsartmann/go-cqrs-lite/catalog/v2
+go get github.com/larsartmann/go-cqrs-lite/catalog/v3
 ```
 
 ## Packages

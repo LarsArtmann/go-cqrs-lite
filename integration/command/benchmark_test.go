@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/testutil/v2"
+	"github.com/larsartmann/go-cqrs-lite/command/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/testutil/v3"
 )
 
 func benchmarkDispatch(b *testing.B, dispatcher *command.Dispatcher) {

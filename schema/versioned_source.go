@@ -6,7 +6,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 var _ event.EventSource = (*VersionedStore)(nil)

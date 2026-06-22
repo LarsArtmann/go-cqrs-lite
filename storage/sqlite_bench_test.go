@@ -8,9 +8,9 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
 )
 
 func BenchmarkSQLiteEventStore_Save(b *testing.B) {

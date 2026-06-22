@@ -1,7 +1,7 @@
 package domain
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 type TodoMarker struct {

@@ -3,7 +3,7 @@ package eventcatalog
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
 )
 
 func TestAutoDerive_MultipleProducers(t *testing.T) {

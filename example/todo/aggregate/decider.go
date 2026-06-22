@@ -3,11 +3,11 @@ package aggregate
 import (
 	"time"
 
-	codecpkg "github.com/larsartmann/go-cqrs-lite/codec/v2"
-	"github.com/larsartmann/go-cqrs-lite/decider/v2"
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	codecpkg "github.com/larsartmann/go-cqrs-lite/codec/v3"
+	"github.com/larsartmann/go-cqrs-lite/decider/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 type TodoState struct {

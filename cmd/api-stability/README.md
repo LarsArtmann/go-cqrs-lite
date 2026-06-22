@@ -1,13 +1,13 @@
 # api-stability — API Surface Checker
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/cmd/api-stability/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/cmd/api-stability/v2)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/cmd/api-stability/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/cmd/api-stability/v3)
 
 CLI tool that walks core library packages, collects their exported symbols (types, funcs, methods, vars, consts) via Go AST parsing, and compares them against a golden file to detect breaking or unexpected API surface changes.
 
 ## Install
 
 ```bash
-go install github.com/larsartmann/go-cqrs-lite/cmd/api-stability/v2@latest
+go install github.com/larsartmann/go-cqrs-lite/cmd/api-stability/v3@latest
 ```
 
 ## Usage

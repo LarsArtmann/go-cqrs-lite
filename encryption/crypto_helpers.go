@@ -1,7 +1,7 @@
 package encryption
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // encryptEvent encrypts a single event's payload. Returns the event unchanged

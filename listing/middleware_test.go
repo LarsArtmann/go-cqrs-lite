@@ -4,11 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/listing/v2"
-	"github.com/larsartmann/go-cqrs-lite/storage/memory/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/listing/v3"
+	"github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
 )
 
 func collectPublished(t *testing.T, bus *eventtest.FakeBus, eventType event.Type) *[]event.Event {

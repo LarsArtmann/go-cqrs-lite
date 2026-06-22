@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/schema/v2"
-	"github.com/larsartmann/go-cqrs-lite/storage/memory/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/schema/v3"
+	"github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
 )
 
 func benchEvent(tb testing.TB, aggID id.AggregateID, v event.Version) event.Event {

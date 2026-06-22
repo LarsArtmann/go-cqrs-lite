@@ -1,6 +1,6 @@
 # Skill: go-cqrs-lite — AI Consumer Guide
 
-> **Activate when** a project imports any `github.com/larsartmann/go-cqrs-lite/*/v2` module, or when the user asks how to build CQRS / Event Sourcing systems in Go with this library.
+> **Activate when** a project imports any `github.com/larsartmann/go-cqrs-lite/*/v3` module, or when the user asks how to build CQRS / Event Sourcing systems in Go with this library.
 >
 > This is the **single source of truth for AI consumers**. It replaces the need to discover and read 28 module READMEs. AGENTS.md (in the library repo) is for contributors; this file is for users.
 
@@ -77,7 +77,7 @@ You do NOT need all of them. Start with the minimal recipe (§2), then bolt on c
 > The deployer picks a preset; the app developer never imports a backend.
 
 ```go
-import cqrspebble "github.com/larsartmann/go-cqrs-lite/stack/pebble/v2"
+import cqrspebble "github.com/larsartmann/go-cqrs-lite/stack/pebble/v3"
 
 // One call wires: event store + bus, command store, query store,
 // snapshot store, checkpoint store, read-model backend.
@@ -123,12 +123,12 @@ import (
     "context"
     "fmt"
 
-    "github.com/larsartmann/go-cqrs-lite/codec/v2"
-    "github.com/larsartmann/go-cqrs-lite/command/v2"
-    "github.com/larsartmann/go-cqrs-lite/decider/v2"
-    "github.com/larsartmann/go-cqrs-lite/event/v2"
-    "github.com/larsartmann/go-cqrs-lite/id/v2"
-    "github.com/larsartmann/go-cqrs-lite/storage/memory/v2"
+    "github.com/larsartmann/go-cqrs-lite/codec/v3"
+    "github.com/larsartmann/go-cqrs-lite/command/v3"
+    "github.com/larsartmann/go-cqrs-lite/decider/v3"
+    "github.com/larsartmann/go-cqrs-lite/event/v3"
+    "github.com/larsartmann/go-cqrs-lite/id/v3"
+    "github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
 )
 
 type UserState struct{ Name string }
@@ -174,7 +174,7 @@ Replace `memory` with a real backend. Two choices:
 **SQL (PostgreSQL / SQLite):**
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/storage/v2"
+import "github.com/larsartmann/go-cqrs-lite/storage/v3"
 
 // db is a *sql.DB (Postgres or SQLite)
 backend, _ := storage.NewSQLiteBackend(db)   // or NewSQLBackend(db) for Postgres (dialect auto-detected from driver)
@@ -190,7 +190,7 @@ cpStore, _  := backend.CheckpointStore()     // *SQLCheckpointStore (lazy)
 **Embedded PebbleDB (single binary, one DB for the full stack):**
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/pebble/v2"
+import "github.com/larsartmann/go-cqrs-lite/pebble/v3"
 
 backend, _ := pebble.Open(dir, &pebble.Options{}, logger)
 defer backend.Close() // closes DB AND all stores
@@ -208,8 +208,8 @@ Projections rebuild queryable state from the event stream. The runner does **rep
 
 ```go
 import (
-    "github.com/larsartmann/go-cqrs-lite/projection/v2"
-    "github.com/larsartmann/go-cqrs-lite/query/v2"
+    "github.com/larsartmann/go-cqrs-lite/projection/v3"
+    "github.com/larsartmann/go-cqrs-lite/query/v3"
 )
 
 // Define a projection implementing event.Projection
@@ -250,7 +250,7 @@ result, err := query.DispatchTyped[*GetTodoResult](ctx, qDisp, &GetTodoQuery{ID:
 Avoid replaying long event streams. Snapshots cache aggregate state at a version.
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/snapshot/v2"
+import "github.com/larsartmann/go-cqrs-lite/snapshot/v3"
 
 strategy, _ := snapshot.EveryNEvents(100)                                 // returns (SnapshotStrategy, error)
 repo, _ := decider.NewRepository[UserState](store, bus, d,
@@ -265,7 +265,7 @@ repo, _ := decider.NewRepository[UserState](store, bus, d,
 Migrate old event payloads on read without rewriting history.
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/schema/v2"
+import "github.com/larsartmann/go-cqrs-lite/schema/v3"
 
 // Upcast UserCreated v1 → v2 (adds a default field)
 upcaster := schema.NewUpcaster("UserCreated", 1, func(evt event.Event) (*event.ImmutableEvent, error) {
@@ -284,7 +284,7 @@ versioned := schema.NewVersionedStore(eventStore, upcaster)
 Cryptographic signatures detect tampering in transit and at rest.
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/signing/v2"
+import "github.com/larsartmann/go-cqrs-lite/signing/v3"
 
 signer, _ := signing.NewHMAC(secret)
 bus.UsePublish(signing.SignMiddleware(signer))   // sign on publish
@@ -298,7 +298,7 @@ bus.Use(signing.VerifyMiddleware(signer))        // verify on receive
 Confidential event payloads encrypted at rest.
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/encryption/v2"
+import "github.com/larsartmann/go-cqrs-lite/encryption/v3"
 
 enc, _ := encryption.NewXChaCha20Poly1305(key)   // or NewAES256GCM(key)
 bus.UsePublish(encryption.EncryptMiddleware(enc, encryption.WithMiddlewareKeyID("key-v1")))
@@ -318,8 +318,8 @@ resolver := encryption.NewStaticKeyResolver(map[encryption.KeyID]encryption.Decr
 
 ```go
 import (
-    "github.com/larsartmann/go-cqrs-lite/middleware/v2"
-    "github.com/larsartmann/go-cqrs-lite/otel/v2"
+    "github.com/larsartmann/go-cqrs-lite/middleware/v3"
+    "github.com/larsartmann/go-cqrs-lite/otel/v3"
 )
 
 tracer := otel.GetTracerProvider().Tracer("my-app")
@@ -343,11 +343,11 @@ Generate AsyncAPI 3.0, EventCatalog, OpenAPI, and D2 diagrams from your Go types
 
 ```go
 import (
-    "github.com/larsartmann/go-cqrs-lite/catalog/v2"
-    "github.com/larsartmann/go-cqrs-lite/catalog/v2/asyncapi"
-    "github.com/larsartmann/go-cqrs-lite/catalog/v2/d2"
-    "github.com/larsartmann/go-cqrs-lite/catalog/v2/eventcatalog"
-    "github.com/larsartmann/go-cqrs-lite/catalog/v2/openapi"
+    "github.com/larsartmann/go-cqrs-lite/catalog/v3"
+    "github.com/larsartmann/go-cqrs-lite/catalog/v3/asyncapi"
+    "github.com/larsartmann/go-cqrs-lite/catalog/v3/d2"
+    "github.com/larsartmann/go-cqrs-lite/catalog/v3/eventcatalog"
+    "github.com/larsartmann/go-cqrs-lite/catalog/v3/openapi"
 )
 
 reg := catalog.NewRegistry("My API", "1.0.0")
@@ -401,7 +401,7 @@ payload := evt.Payload().(UserCreated) // DON'T
 
 ### 3.4 OTel via otel/ — never go.opentelemetry.io directly
 
-Modules must import `github.com/larsartmann/go-cqrs-lite/otel/v2`, not `go.opentelemetry.io/otel`. The otel module re-exports the needed types and keeps the SDK indirect in go.mod.
+Modules must import `github.com/larsartmann/go-cqrs-lite/otel/v3`, not `go.opentelemetry.io/otel`. The otel module re-exports the needed types and keeps the SDK indirect in go.mod.
 
 ### 3.5 Strong types — no `any` in public APIs
 
@@ -549,8 +549,8 @@ queries, _ := qStore.LoadQueries(ctx, after) // QuerySource
 
 ```go
 import (
-    "github.com/larsartmann/go-cqrs-lite/listing/v2"
-    "github.com/larsartmann/go-cqrs-lite/storage/v2"
+    "github.com/larsartmann/go-cqrs-lite/listing/v3"
+    "github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
 
 // In-memory reader (consumes a Journal to track aggregate statuses)
@@ -577,7 +577,7 @@ messages, _ := subscriber.Subscribe(ctx, "user.created")
 ### 6.5 Turso Offline-First
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/turso/v2"
+import "github.com/larsartmann/go-cqrs-lite/turso/v3"
 
 // Offline-first: local embedded LibSQL with background sync to Turso cloud
 db, _ := turso.OpenSync(ctx, "file:local.db", "libsql://my-db.turso.io", authToken)
@@ -590,7 +590,7 @@ backend, _ := turso.NewBackend(db)
 ```go
 import (
     "github.com/cockroachdb/pebble"
-    cqrspebble "github.com/larsartmann/go-cqrs-lite/pebble/v2"
+    cqrspebble "github.com/larsartmann/go-cqrs-lite/pebble/v3"
 )
 
 db, _ := pebble.Open(dir, &pebble.Options{})               // raw cockroachdb/pebble
@@ -603,7 +603,7 @@ val, _ := kvStore.Get([]byte("k"))
 ### 6.7 Code Generation (cqrs-gen)
 
 ```bash
-go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v2@latest
+go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v3@latest
 ```
 
 Add markers to your types:
@@ -636,12 +636,12 @@ snapStore := memory.NewMemorySnapshotStore()
 cpStore := memory.NewMemoryCheckpointStore()
 
 // Event test helpers (for golden tests, assertions)
-import "github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
+import "github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
 
 eventtest.AssertGolden(t, "testdata/event.golden", got, update)
 
 // Shared test utilities
-import "github.com/larsartmann/go-cqrs-lite/testutil/v2"
+import "github.com/larsartmann/go-cqrs-lite/testutil/v3"
 
 cmd := testutil.NewCmd(t, "user.create", aggID) // t = *testing.T
 ```

@@ -7,8 +7,8 @@ CQRS-optimized defaults in one call.
 ## Quick Start
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/turso/v2"
-import "github.com/larsartmann/go-cqrs-lite/turso/v2/indexing"
+import "github.com/larsartmann/go-cqrs-lite/turso/v3"
+import "github.com/larsartmann/go-cqrs-lite/turso/v3/indexing"
 
 // One-shot: schema + indexes + performance PRAGMAs
 db, _ := turso.OpenInMemory()

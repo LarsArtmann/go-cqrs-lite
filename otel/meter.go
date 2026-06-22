@@ -8,7 +8,7 @@ import (
 // NewMeter creates a meter scoped to a specific go-cqrs-lite component.
 // The component name is appended to the base instrumentation name:
 //
-//	NewMeter("middleware") → "github.com/larsartmann/go-cqrs-lite/middleware/v2"
+//	NewMeter("middleware") → "github.com/larsartmann/go-cqrs-lite/middleware/v3"
 //
 // Uses the global MeterProvider, which returns a no-op meter when
 // no provider is configured.

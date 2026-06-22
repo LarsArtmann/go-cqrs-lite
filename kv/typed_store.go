@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v2"
+	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 )
 
 // TypedStore is a typed read-model store over an untyped [Store].

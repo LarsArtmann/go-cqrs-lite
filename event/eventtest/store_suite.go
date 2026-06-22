@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 // StoreTestConfig configures a store test suite with event type/payload details.

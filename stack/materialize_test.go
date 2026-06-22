@@ -7,10 +7,10 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill/message"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/kv/v2"
-	"github.com/larsartmann/go-cqrs-lite/stack/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/kv/v3"
+	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 )
 
 func buildTestMessage(evt event.Event, eventType string) *message.Message {

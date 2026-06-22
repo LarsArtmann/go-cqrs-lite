@@ -3,12 +3,12 @@ package event_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v2"
-	"github.com/larsartmann/go-cqrs-lite/decider/v2"
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/middleware/v2"
-	"github.com/larsartmann/go-cqrs-lite/query/v2"
-	"github.com/larsartmann/go-cqrs-lite/storage/v2"
+	"github.com/larsartmann/go-cqrs-lite/command/v3"
+	"github.com/larsartmann/go-cqrs-lite/decider/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/middleware/v3"
+	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
 
 func TestClassify_DeciderSentinels(t *testing.T) {

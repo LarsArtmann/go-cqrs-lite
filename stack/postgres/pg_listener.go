@@ -11,7 +11,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/larsartmann/go-cqrs-lite/storage/v2"
+	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
 
 // PgxListener is a storage.NotificationListener backed by a dedicated

@@ -5,10 +5,10 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/listing/v2"
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/listing/v3"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
 )
 
 func openSQLiteListingDB(t *testing.T) (*sql.DB, *AggregateProjection) {

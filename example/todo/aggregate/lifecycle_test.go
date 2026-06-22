@@ -3,7 +3,7 @@ package aggregate_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/aggregate"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
 )

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/query/v2"
+	"github.com/larsartmann/go-cqrs-lite/query/v3"
 )
 
 type fakeQuerySink struct {

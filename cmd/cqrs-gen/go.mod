@@ -1,4 +1,4 @@
-module github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v2
+module github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v3
 
 go 1.26.3
 

@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/kv/v2"
-	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v2"
-	"github.com/larsartmann/go-cqrs-lite/stack/v2"
+	"github.com/larsartmann/go-cqrs-lite/kv/v3"
+	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v3"
+	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 )
 
 func TestMultiDB_SeparateViewDB(t *testing.T) {
@@ -20,7 +20,7 @@ func TestMultiDB_SeparateViewDB(t *testing.T) {
 	if err != nil {
 		t.Fatalf("sqlite.New with ViewDB: %v", err)
 	}
-	defer bundle.Close()
+	defer func() { _ = bundle.Close() }()
 
 	// Verify the read model store works.
 	type userView struct {
@@ -59,7 +59,7 @@ func TestMultiDB_AllSeparate(t *testing.T) {
 	if err != nil {
 		t.Fatalf("sqlite.New with all separate DBs: %v", err)
 	}
-	defer bundle.Close()
+	defer func() { _ = bundle.Close() }()
 
 	// Verify the bundle has all capabilities wired.
 	if bundle.ReadModels == nil {

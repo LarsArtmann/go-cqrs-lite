@@ -3,7 +3,7 @@ package command_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v2"
+	"github.com/larsartmann/go-cqrs-lite/command/v3"
 )
 
 func TestType_IsZero(t *testing.T) {

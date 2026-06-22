@@ -1,6 +1,6 @@
 package event
 
-import "github.com/larsartmann/go-cqrs-lite/id/v2"
+import "github.com/larsartmann/go-cqrs-lite/id/v3"
 
 // Tracing holds the cross-cutting tracing identifiers shared by event,
 // command, and query metadata. Each module embeds Tracing rather than

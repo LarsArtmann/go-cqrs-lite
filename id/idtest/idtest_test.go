@@ -3,7 +3,7 @@ package idtest_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/id/v2/idtest"
+	"github.com/larsartmann/go-cqrs-lite/id/v3/idtest"
 )
 
 const validULID = "01HK1540X0841Y0A6BSX1VKR95"

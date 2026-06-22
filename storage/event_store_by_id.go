@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
 )
 
 // EventByIDLoader is an opt-in interface for stores that can load a single

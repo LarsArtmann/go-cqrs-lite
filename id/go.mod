@@ -1,4 +1,4 @@
-module github.com/larsartmann/go-cqrs-lite/id/v2
+module github.com/larsartmann/go-cqrs-lite/id/v3
 
 go 1.26.3
 

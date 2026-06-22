@@ -3,7 +3,7 @@ package encryption
 import (
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v2"
+	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 )
 
 const EncryptionEncoding codec.Encoding = "encrypted"

@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/encryption/v2"
+	"github.com/larsartmann/go-cqrs-lite/encryption/v3"
 )
 
 func TestXChaCha20_RoundTrip(t *testing.T) {

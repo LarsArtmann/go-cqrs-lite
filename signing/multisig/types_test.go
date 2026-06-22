@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/signing/v2"
-	"github.com/larsartmann/go-cqrs-lite/signing/v2/internal/testutil"
-	"github.com/larsartmann/go-cqrs-lite/signing/v2/multisig"
+	"github.com/larsartmann/go-cqrs-lite/signing/v3"
+	"github.com/larsartmann/go-cqrs-lite/signing/v3/internal/testutil"
+	"github.com/larsartmann/go-cqrs-lite/signing/v3/multisig"
 )
 
 // newDeviceMultiSignerTB accepts testing.TB so fuzzers (which pass *testing.F)

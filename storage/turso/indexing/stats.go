@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // IndexUsageStats reports per-index statistics from the query planner.

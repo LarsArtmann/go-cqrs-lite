@@ -1,11 +1,11 @@
 # query — CQRS Query Dispatch
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/query/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/query/v2)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/query/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/query/v3)
 
 Typed query dispatch with pagination and middleware chains.
 
 ```bash
-go get github.com/larsartmann/go-cqrs-lite/query/v2
+go get github.com/larsartmann/go-cqrs-lite/query/v3
 ```
 
 ## Quick Start

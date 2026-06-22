@@ -32,8 +32,8 @@ are complete and shipped.
 ### Step 1: Replace memory.MemoryBus with watermill.EventBus
 
 ```go
-// AFTER (v2 now, v3 only option)
-import cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v2"
+// AFTER (v3)
+import cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v3"
 
 bus := cqrswatermill.NewEventBus()
 ```
@@ -52,7 +52,7 @@ in-process delivery. `storage.PostgresBus` remains as the opt-in distributed bus
 store := readmodel.NewStore[T, K](backend)
 cache := readmodel.NewCachedStore[T, K](backend)
 
-// AFTER (v2 now, v3 only option)
+// AFTER (v3)
 store := kv.NewTypedStore[T, K](backend)
 cache := kv.NewCache[T, K](backend)
 ```
@@ -65,7 +65,7 @@ d.Register("user.get", func(ctx context.Context, q query.Query) (any, error) {
     return result, nil
 })
 
-// AFTER (v2 now, v3 preferred)
+// AFTER (v3)
 query.RegisterTyped[*GetUserQuery, *GetUserResult](d, "user.get",
     func(ctx context.Context, q *GetUserQuery) (*GetUserResult, error) {
         return result, nil
@@ -79,7 +79,7 @@ query.RegisterTyped[*GetUserQuery, *GetUserResult](d, "user.get",
 evt, _ := event.NewEvent("user.created", id, "User", 1, payload,
     event.WithCustom(event.MetadataKey("correlation_id"), corrID))
 
-// AFTER (v2 now, v3 preferred — typed options)
+// AFTER (v3 — typed options)
 evt, _ := event.NewEvent("user.created", id, "User", 1, payload,
     event.WithCorrelationID(corrID))
 // or via context enricher (sets CorrelationID on all events built from ctx):
@@ -145,7 +145,7 @@ broker, _ := middleware.NewSSEBroker(bus)
 handler := middleware.SSEHandler(broker)
 
 // AFTER (v3)
-import "github.com/larsartmann/go-cqrs-lite/transport/http/v2"
+import "github.com/larsartmann/go-cqrs-lite/transport/http/v3"
 broker, _ := http.NewSSEBroker(bus)
 handler := http.SSEHandler(broker)
 ```

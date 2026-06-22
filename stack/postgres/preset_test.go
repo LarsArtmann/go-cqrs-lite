@@ -5,9 +5,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/stack/postgres/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/stack/postgres/v3"
 )
 
 // postgresDSN returns the test Postgres DSN from the environment, or skips.

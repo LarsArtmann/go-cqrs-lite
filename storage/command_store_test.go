@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2/idtest"
-	"github.com/larsartmann/go-cqrs-lite/storage/v2"
+	"github.com/larsartmann/go-cqrs-lite/command/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3/idtest"
+	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
 
 func newTestCommandStore(t *testing.T) *storage.SQLCommandStore {

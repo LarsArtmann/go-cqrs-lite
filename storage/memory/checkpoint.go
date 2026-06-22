@@ -4,8 +4,8 @@ import (
 	"context"
 	"sync"
 
-	"github.com/larsartmann/go-cqrs-lite/dispatcher/v2"
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/dispatcher/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // MemoryCheckpointStore is an in-memory CheckpointStore for testing.

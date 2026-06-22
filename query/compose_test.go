@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/query/v2"
+	"github.com/larsartmann/go-cqrs-lite/query/v3"
 )
 
 func TestCompose_AllNil(t *testing.T) {

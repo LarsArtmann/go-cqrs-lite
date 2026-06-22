@@ -1,4 +1,4 @@
-module github.com/larsartmann/go-cqrs-lite/codec/v2
+module github.com/larsartmann/go-cqrs-lite/codec/v3
 
 go 1.26.3
 

@@ -9,8 +9,8 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill/message"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 // CheckpointStore is the interface for persisting the last-processed event ID.

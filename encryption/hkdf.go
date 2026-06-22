@@ -6,7 +6,7 @@ import (
 
 	"golang.org/x/crypto/hkdf"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // MaxHKDFKeyLen is the maximum output length for HKDF-SHA256

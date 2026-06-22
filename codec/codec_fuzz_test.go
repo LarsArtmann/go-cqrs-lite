@@ -7,7 +7,7 @@ import (
 
 	"github.com/fxamacker/cbor/v2"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v2"
+	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 )
 
 func FuzzJSONCodec_Roundtrip(f *testing.F) {

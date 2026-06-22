@@ -6,14 +6,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+_No unreleased changes._
+
+## [3.0.0] - 2026-06-22
+
+**Major release.** All 11 breaking changes are additive — v2 types consumers should migrate to already exist. See the **[v3 Migration Guide](docs/migration/V3_MIGRATION.md)** for step-by-step instructions.
+
+### Breaking Changes
+
+| #   | Change                                                                                                      | ADR                                                       |
+| --- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| 1   | Delete ghost bus code (`event/reactive*.go`, `samber/ro` dep)                                               | [0028](docs/adr/0028-watermill-as-delivery-layer.md)      |
+| 2   | Move `memory/` → `storage/memory/`                                                                          | [0029](docs/adr/0029-storage-consolidation.md)            |
+| 3   | `event.Version`: `int` → `uint64`                                                                           | —                                                         |
+| 4   | Break `command/query.Metadata = event.Metadata` alias (ADR-0031)                                            | [0031](docs/adr/0031-metadata-split.md)                   |
+| 5   | Remove `io.Closer` from 9 core interfaces                                                                   | [0010](docs/adr/0010-remove-io-closer-from-interfaces.md) |
+| 6   | Delete `readmodel/` (merged into `kv/` as `kv.TypedStore` + `kv.Cache`)                                     | [0032](docs/adr/0032-merge-readmodel-into-kv.md)          |
+| 7   | Delete `projection/` (replaced by `bus.SubscribeAll` + `stack.Materialize` + `watermill.CatchUpSubscriber`) | [0030](docs/adr/0030-dissolve-projection.md)              |
+| 8   | Move SSE → `transport/http/`; delete healthcheck/metrics_http/pprof                                         | [0025](docs/adr/0025-transport-adapter-strategy.md)       |
+| 9   | `query.Handler`: `any` → generic `TypedHandler[Q, R]`                                                       | [0008](docs/adr/0008-typed-handler-signature.md)          |
+| 10  | Rename `Decider.Fold` → `Apply`                                                                             | —                                                         |
+| 11  | Make `event.Event` a concrete type (`= *ImmutableEvent`)                                                    | —                                                         |
+
 ### Added
 
 - **Pebble backup and observability accessors** (`stack/pebble/`) — `pebble.Bundle` wraps `*stack.Bundle` with `Checkpoint(dir)` for point-in-time backups, `Metrics()` for LSM-tree health, `Flush()` for write durability, and `NewSnapshot()` for consistent reads.
 - **Bundle.GracefulClose** (`stack/`) — Context-bounded `Close()` for production shutdown. Runs `Close()` in a goroutine; returns `ctx.Err()` if the deadline fires. Lets in-flight handlers drain without hanging forever.
 - **SSE Last-Event-ID reconnection** (`transport/http/`) — `WithReconnectJournal(journal, limit)` option on `NewSSEBroker` enables standard SSE reconnection. When a client sends `Last-Event-ID`, the broker replays missed events from the journal before starting live delivery. Uses the same dedup strategy as `watermill.CatchUpSubscriber` (replayIDs set) to prevent duplicate delivery.
 - **Streaming event reads** — `StreamingSource`/`StreamingJournal` now implemented on all three stores: `SQLEventStore` (cursor-based via `*sql.Rows`), Pebble `EventStore` (iterator-based with limit + skip), `MemoryStore` (SliceIterator-wrapped). Consumers can type-assert to streaming interfaces uniformly across backends.
-- **DistributedRunner** (`projection/`) — Wraps a projection Runner with `LeaderElection` gating. Waits for leadership, runs replay+live, periodically checks `IsLeader` (default 5s), stops gracefully on loss, resigns on exit. `WithLeadershipCheckInterval` option for tuning detection latency.
-- **cqrs-gen event handler generation** (`cmd/cqrs-gen/`) — `-type=event` generates typed projection handler registration functions via `projection.On[T]()`. Supports both `//cqrs:event` comment markers and `cqrs:"event:Type"` struct tags.
+- **DistributedRunner** — _Deleted with `projection/` (ADR-0030). The `watermill.CatchUpSubscriber` + `stack.Materialize` pattern replaces it with simpler semantics._
+- **cqrs-gen event handler generation** — _Removed: `-type=event` generated `projection.On[T]()` calls, but `projection/` was deleted (ADR-0030). cqrs-gen now supports `command` and `query` only._
 - **Postgres LISTEN/NOTIFY event bus** (`storage/`) — `PostgresBus` implements `event.Bus` using `SELECT pg_notify()` with lightweight JSON reference payloads (under 8KB). `NotificationListener` interface abstracts driver-specific LISTEN; the bus calls `Listen(channel)` itself so consumers don't need to pre-arm. Listener re-fetches full events from store with retry for visibility-gap handling. Uses `LoadByEventID` (indexed O(1) lookup) when the store implements `EventByIDLoader`. **Wired into `stack/postgres` preset** via `WithDistributedBus(listener)` option.
 - **PgxListener** (`stack/postgres/`) — `PgxListener` implements `storage.NotificationListener` using `pgxpool`. Dedicated single-connection pool for LISTEN; channel-name allow-list defends against SQL injection. `NewPgxListener(pool)` wraps an existing pool; `NewPgxListenerFromDSN(ctx, dsn)` creates an owned single-conn pool.
 - **PostgresBus otel spans** — `pg_bus.publish` (SpanKindInternal) and `pg_bus.handle_notification` (SpanKindConsumer) spans for distributed tracing of NOTIFY round-trips.

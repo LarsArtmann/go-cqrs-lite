@@ -11,7 +11,7 @@ import (
 
 	"go.opentelemetry.io/otel/attribute"
 
-	"github.com/larsartmann/go-cqrs-lite/otel/v2"
+	"github.com/larsartmann/go-cqrs-lite/otel/v3"
 )
 
 var update = flag.Bool("update", false, "update golden files")

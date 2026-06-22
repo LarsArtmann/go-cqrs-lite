@@ -7,9 +7,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/dispatcher/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/query/v2"
+	"github.com/larsartmann/go-cqrs-lite/dispatcher/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/query/v3"
 )
 
 // MemoryQueryStore is an in-memory implementation of query.QueryStore.

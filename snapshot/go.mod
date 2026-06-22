@@ -1,11 +1,11 @@
-module github.com/larsartmann/go-cqrs-lite/snapshot/v2
+module github.com/larsartmann/go-cqrs-lite/snapshot/v3
 
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/event/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/id/v2 v2.6.0
+	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.0.0
+	github.com/larsartmann/go-cqrs-lite/event/v3 v3.0.0
+	github.com/larsartmann/go-cqrs-lite/id/v3 v3.0.0
 )
 
 require (
@@ -23,7 +23,7 @@ require (
 )
 
 replace (
-	github.com/larsartmann/go-cqrs-lite/codec/v2 => ../codec
-	github.com/larsartmann/go-cqrs-lite/event/v2 => ../event
-	github.com/larsartmann/go-cqrs-lite/id/v2 => ../id
+	github.com/larsartmann/go-cqrs-lite/codec/v3 => ../codec
+	github.com/larsartmann/go-cqrs-lite/event/v3 => ../event
+	github.com/larsartmann/go-cqrs-lite/id/v3 => ../id
 )

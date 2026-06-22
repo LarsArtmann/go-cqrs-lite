@@ -3,7 +3,7 @@ package encryption
 import (
 	"encoding/base64"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 const MetadataKey event.MetadataKey = "event.encrypted"

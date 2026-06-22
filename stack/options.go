@@ -3,11 +3,11 @@ package stack
 import (
 	"io"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v2"
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/kv/v2"
-	"github.com/larsartmann/go-cqrs-lite/query/v2"
-	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
+	"github.com/larsartmann/go-cqrs-lite/command/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/kv/v3"
+	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	"github.com/larsartmann/go-cqrs-lite/snapshot/v3"
 )
 
 // Option configures a [Bundle]. It is a field setter with no error return,

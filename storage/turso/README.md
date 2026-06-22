@@ -1,11 +1,11 @@
 # turso — Turso Database Connectors
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/turso/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/turso/v2)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/turso/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/turso/v3)
 
 CQRS storage adapters for [Turso](https://turso.tech/) databases (embedded LibSQL/SQLite with optional remote sync).
 
 ```bash
-go get github.com/larsartmann/go-cqrs-lite/turso/v2
+go get github.com/larsartmann/go-cqrs-lite/turso/v3
 ```
 
 ## Constructors
@@ -132,7 +132,7 @@ The `turso/indexing` sub-package provides **auto-smart index management** for Tu
 ### Quick Start — Apply CQRS Indexes
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/turso/v2"
+import "github.com/larsartmann/go-cqrs-lite/turso/v3"
 
 // One-shot: schema + all recommended CQRS indexes
 db, _ := turso.OpenInMemory()
@@ -159,7 +159,7 @@ turso.ApplyCQRSIndexes(ctx, db)
 Analyze any query for missing indexes:
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/turso/v2/indexing"
+import "github.com/larsartmann/go-cqrs-lite/turso/v3/indexing"
 
 advisor := indexing.NewAdvisor(db)
 recs, _ := advisor.AnalyzeQuery(ctx,
@@ -228,7 +228,7 @@ fmt.Println(idx.DDL())      // CREATE INDEX IF NOT EXISTS ...
 fmt.Println(idx.DropDDL())  // DROP INDEX IF EXISTS ...
 ```
 
-[SyncOption]: https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/turso/v2#SyncOption
+[SyncOption]: https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/turso/v3#SyncOption
 
 ## Related Modules
 

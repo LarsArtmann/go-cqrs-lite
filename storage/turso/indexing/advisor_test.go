@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/storage/turso/v2"
-	"github.com/larsartmann/go-cqrs-lite/storage/turso/v2/indexing"
+	"github.com/larsartmann/go-cqrs-lite/storage/turso/v3"
+	"github.com/larsartmann/go-cqrs-lite/storage/turso/v3/indexing"
 )
 
 func setupTestDB(t *testing.T) *sql.DB {

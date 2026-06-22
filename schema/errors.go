@@ -1,6 +1,6 @@
 package schema
 
-import "github.com/larsartmann/go-cqrs-lite/event/v2"
+import "github.com/larsartmann/go-cqrs-lite/event/v3"
 
 var (
 	// ErrNilStore is returned when a nil event.Store is passed to NewVersionedStore.

@@ -5,7 +5,7 @@ import (
 
 	"pgregory.net/rapid"
 
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 // TestParseRoundTrip checks that parsing a stringified ID returns the same ID.

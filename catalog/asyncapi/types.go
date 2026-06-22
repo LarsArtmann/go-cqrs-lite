@@ -1,7 +1,7 @@
 package asyncapi
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
 )
 
 type URI string

@@ -11,7 +11,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
 	"github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
 
-	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v2"
+	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v3"
 )
 
 // TestRouterIntegration_CorrelationIDAndRetry exercises both

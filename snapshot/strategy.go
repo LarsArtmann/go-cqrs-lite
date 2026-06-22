@@ -1,6 +1,6 @@
 package snapshot
 
-import "github.com/larsartmann/go-cqrs-lite/event/v2"
+import "github.com/larsartmann/go-cqrs-lite/event/v3"
 
 type SnapshotStrategy interface {
 	ShouldSnapshot(aggregateType event.AggregateType, version event.Version) bool

@@ -9,7 +9,7 @@ import (
 
 	tursoclient "turso.tech/database/tursogo"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // syncEngine abstracts the Turso sync operations for testability.

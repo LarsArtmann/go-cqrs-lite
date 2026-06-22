@@ -9,9 +9,9 @@ import (
 
 	"github.com/cockroachdb/pebble"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
+	"github.com/larsartmann/go-cqrs-lite/command/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 )
 
 // CommandStore implements command.Store, command.CommandJournal, and

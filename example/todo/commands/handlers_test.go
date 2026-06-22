@@ -4,11 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/commands"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	cqrsMemory "github.com/larsartmann/go-cqrs-lite/storage/memory/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	cqrsMemory "github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
 )
 
 type commandHandlers struct {

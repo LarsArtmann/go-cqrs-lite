@@ -3,8 +3,8 @@ package middleware
 import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 )
 
 // MetadataKeyOTelCorrelationID is the custom metadata key under which

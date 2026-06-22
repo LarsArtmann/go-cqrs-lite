@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/kv/v2"
+	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 )
 
 type testID string

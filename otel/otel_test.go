@@ -48,7 +48,7 @@ func TestNewMeter_UsesGlobalProvider(t *testing.T) {
 	g.Expect(reader.Collect(context.Background(), &rm)).To(Succeed())
 	g.Expect(rm.ScopeMetrics).To(HaveLen(1))
 	g.Expect(rm.ScopeMetrics[0].Scope.Name).
-		To(Equal("github.com/larsartmann/go-cqrs-lite/coverage-test/v2"))
+		To(Equal("github.com/larsartmann/go-cqrs-lite/coverage-test/v3"))
 }
 
 func TestNewMeter_NopProvider(t *testing.T) {
@@ -72,7 +72,7 @@ func TestNewTracer_ReturnsTracerWithCorrectName(t *testing.T) {
 	spans := recorder.Ended()
 	g.Expect(spans).To(HaveLen(1))
 	g.Expect(spans[0].InstrumentationScope().Name).
-		To(Equal("github.com/larsartmann/go-cqrs-lite/test-component/v2"))
+		To(Equal("github.com/larsartmann/go-cqrs-lite/test-component/v3"))
 }
 
 func TestNewMeter_ReturnsMeterWithCorrectName(t *testing.T) {
@@ -91,7 +91,7 @@ func TestNewMeter_ReturnsMeterWithCorrectName(t *testing.T) {
 	g.Expect(reader.Collect(context.Background(), &resourceMetrics)).To(Succeed())
 	g.Expect(resourceMetrics.ScopeMetrics).To(HaveLen(1))
 	g.Expect(resourceMetrics.ScopeMetrics[0].Scope.Name).
-		To(Equal("github.com/larsartmann/go-cqrs-lite/metrics-test/v2"))
+		To(Equal("github.com/larsartmann/go-cqrs-lite/metrics-test/v3"))
 }
 
 func TestStartSpan_CreatesSpanWithCorrectKind(t *testing.T) {
@@ -236,9 +236,9 @@ func TestComponentTracer_ReturnsExpectedFormat(t *testing.T) {
 	t.Parallel()
 	g := NewWithT(t)
 
-	g.Expect(ComponentTracer("storage")).To(Equal("github.com/larsartmann/go-cqrs-lite/storage/v2"))
+	g.Expect(ComponentTracer("storage")).To(Equal("github.com/larsartmann/go-cqrs-lite/storage/v3"))
 	g.Expect(ComponentTracer("middleware")).
-		To(Equal("github.com/larsartmann/go-cqrs-lite/middleware/v2"))
+		To(Equal("github.com/larsartmann/go-cqrs-lite/middleware/v3"))
 }
 
 func TestNameConstant(t *testing.T) {

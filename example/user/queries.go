@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/query/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/query/v3"
 )
 
 type GetUserQuery struct {

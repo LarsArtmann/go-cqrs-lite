@@ -5,7 +5,7 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill/message"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // EventPublisher wraps a Watermill [message.Publisher] as a go-cqrs-lite

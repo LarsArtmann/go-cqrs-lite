@@ -6,10 +6,10 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/middleware/v2"
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/middleware/v3"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 )
 
 func ExampleNewRecovery() {

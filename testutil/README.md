@@ -1,11 +1,11 @@
 # testutil — Shared Test Helpers
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/testutil/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/testutil/v2)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/testutil/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/testutil/v3)
 
 Cross-module test utilities: test-friendly command constructors (tb.Fatalf on error, zero panics) and no-op handlers for use in test suites across the go-cqrs-lite ecosystem.
 
 ```bash
-go get github.com/larsartmann/go-cqrs-lite/testutil/v2
+go get github.com/larsartmann/go-cqrs-lite/testutil/v3
 ```
 
 ## Quick Start
@@ -14,8 +14,8 @@ go get github.com/larsartmann/go-cqrs-lite/testutil/v2
 import (
     "testing"
 
-    "github.com/larsartmann/go-cqrs-lite/command/v2"
-    "github.com/larsartmann/go-cqrs-lite/testutil/v2"
+    "github.com/larsartmann/go-cqrs-lite/command/v3"
+    "github.com/larsartmann/go-cqrs-lite/testutil/v3"
 )
 
 // Build a command in tests (calls t.Fatalf on invalid input — no panics)

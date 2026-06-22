@@ -1,11 +1,11 @@
 # command — CQRS Command Dispatch
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/command/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/command/v2)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/command/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/command/v3)
 
 Typed command dispatch with middleware chains and lifecycle management.
 
 ```bash
-go get github.com/larsartmann/go-cqrs-lite/command/v2
+go get github.com/larsartmann/go-cqrs-lite/command/v3
 ```
 
 ## Quick Start

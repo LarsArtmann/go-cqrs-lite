@@ -7,10 +7,10 @@ import (
 
 	"github.com/cockroachdb/pebble"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/query/v2"
-	cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v2"
+	"github.com/larsartmann/go-cqrs-lite/command/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v3"
 )
 
 func TestBackend_AllStores(t *testing.T) {

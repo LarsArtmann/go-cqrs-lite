@@ -10,17 +10,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v2"
-	"github.com/larsartmann/go-cqrs-lite/command/v2"
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/codec/v3"
+	"github.com/larsartmann/go-cqrs-lite/command/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/aggregate"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/commands"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/projections"
-	"github.com/larsartmann/go-cqrs-lite/kv/v2"
-	"github.com/larsartmann/go-cqrs-lite/query/v2"
-	cqrsmemory "github.com/larsartmann/go-cqrs-lite/stack/memory/v2"
-	"github.com/larsartmann/go-cqrs-lite/stack/v2"
+	"github.com/larsartmann/go-cqrs-lite/kv/v3"
+	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	cqrsmemory "github.com/larsartmann/go-cqrs-lite/stack/memory/v3"
+	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 )
 
 func setupTestMux(t *testing.T) *http.ServeMux {

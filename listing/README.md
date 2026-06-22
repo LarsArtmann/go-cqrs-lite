@@ -1,11 +1,11 @@
 # listing — Aggregate Listing Read Model
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/listing/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/listing/v2)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/listing/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/listing/v3)
 
 CQRS read model for aggregate listing and tombstone (soft-delete) management.
 
 ```bash
-go get github.com/larsartmann/go-cqrs-lite/listing/v2
+go get github.com/larsartmann/go-cqrs-lite/listing/v3
 ```
 
 ## Overview

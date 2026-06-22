@@ -5,11 +5,11 @@ import (
 	"errors"
 	"io"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v2"
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/kv/v2"
-	"github.com/larsartmann/go-cqrs-lite/query/v2"
-	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
+	"github.com/larsartmann/go-cqrs-lite/command/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/kv/v3"
+	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	"github.com/larsartmann/go-cqrs-lite/snapshot/v3"
 )
 
 // Bundle is a bag of peer capability fields assembled by a deployer.

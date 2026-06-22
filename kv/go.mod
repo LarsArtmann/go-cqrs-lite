@@ -1,9 +1,9 @@
-module github.com/larsartmann/go-cqrs-lite/kv/v2
+module github.com/larsartmann/go-cqrs-lite/kv/v3
 
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.6.0
+	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.0.0
 	github.com/larsartmann/go-error-family v0.4.0
 	github.com/maypok86/otter/v2 v2.3.0
 )
@@ -18,4 +18,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/larsartmann/go-cqrs-lite/codec/v2 => ../codec
+replace github.com/larsartmann/go-cqrs-lite/codec/v3 => ../codec

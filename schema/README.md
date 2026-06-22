@@ -1,11 +1,11 @@
 # schema — Schema Evolution via Upcasting
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/schema/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/schema/v2)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/schema/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/schema/v3)
 
 Transform old event payloads to the current schema on load, without modifying stored data.
 
 ```bash
-go get github.com/larsartmann/go-cqrs-lite/schema/v2
+go get github.com/larsartmann/go-cqrs-lite/schema/v3
 ```
 
 ## Quick Start

@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2/idtest"
-	"github.com/larsartmann/go-cqrs-lite/signing/v2"
-	"github.com/larsartmann/go-cqrs-lite/signing/v2/internal/testutil"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3/idtest"
+	"github.com/larsartmann/go-cqrs-lite/signing/v3"
+	"github.com/larsartmann/go-cqrs-lite/signing/v3/internal/testutil"
 )
 
 func TestHMACSigner_New(t *testing.T) {

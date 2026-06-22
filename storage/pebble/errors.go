@@ -1,7 +1,7 @@
 package pebble
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // ErrNilDatabase is returned when a store constructor is called with a nil *pebble.DB.

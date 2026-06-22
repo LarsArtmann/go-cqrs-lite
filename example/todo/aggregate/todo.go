@@ -3,8 +3,8 @@ package aggregate
 import (
 	"time"
 
-	cqrsCommand "github.com/larsartmann/go-cqrs-lite/command/v2"
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	cqrsCommand "github.com/larsartmann/go-cqrs-lite/command/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
 )
 

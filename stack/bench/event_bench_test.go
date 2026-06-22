@@ -3,10 +3,10 @@ package bench
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/stack/v2"
-	"github.com/larsartmann/go-cqrs-lite/storage/memory/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/stack/v3"
+	"github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
 )
 
 // BenchmarkBundle_EventSave saves events through Bundle.EventSink.

@@ -1,15 +1,15 @@
-module github.com/larsartmann/go-cqrs-lite/storage/turso/v2
+module github.com/larsartmann/go-cqrs-lite/storage/turso/v3
 
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/command/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/event/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/id/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/query/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/storage/v2 v2.6.0
+	github.com/larsartmann/go-cqrs-lite/command/v3 v3.0.0
+	github.com/larsartmann/go-cqrs-lite/event/v3 v3.0.0
+	github.com/larsartmann/go-cqrs-lite/id/v3 v3.0.0
+	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.0.0
+	github.com/larsartmann/go-cqrs-lite/query/v3 v3.0.0
+	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.0.0
+	github.com/larsartmann/go-cqrs-lite/storage/v3 v3.0.0
 	go.opentelemetry.io/otel v1.44.0
 	go.opentelemetry.io/otel/trace v1.44.0
 	turso.tech/database/tursogo v0.6.1
@@ -23,10 +23,10 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/kv/v2 v2.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/listing/v2 v2.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/listing/v3 v3.0.0 // indirect
 	github.com/larsartmann/go-error-family v0.4.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/samber/lo v1.53.0 // indirect
@@ -43,14 +43,14 @@ require (
 )
 
 replace (
-	github.com/larsartmann/go-cqrs-lite/codec/v2 => ../../codec
-	github.com/larsartmann/go-cqrs-lite/command/v2 => ../../command
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 => ../../dispatcher
-	github.com/larsartmann/go-cqrs-lite/event/v2 => ../../event
-	github.com/larsartmann/go-cqrs-lite/id/v2 => ../../id
-	github.com/larsartmann/go-cqrs-lite/listing/v2 => ../../listing
-	github.com/larsartmann/go-cqrs-lite/otel/v2 => ../../otel
-	github.com/larsartmann/go-cqrs-lite/query/v2 => ../../query
-	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../../snapshot
-	github.com/larsartmann/go-cqrs-lite/storage/v2 => ../../storage
+	github.com/larsartmann/go-cqrs-lite/codec/v3 => ../../codec
+	github.com/larsartmann/go-cqrs-lite/command/v3 => ../../command
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 => ../../dispatcher
+	github.com/larsartmann/go-cqrs-lite/event/v3 => ../../event
+	github.com/larsartmann/go-cqrs-lite/id/v3 => ../../id
+	github.com/larsartmann/go-cqrs-lite/listing/v3 => ../../listing
+	github.com/larsartmann/go-cqrs-lite/otel/v3 => ../../otel
+	github.com/larsartmann/go-cqrs-lite/query/v3 => ../../query
+	github.com/larsartmann/go-cqrs-lite/snapshot/v3 => ../../snapshot
+	github.com/larsartmann/go-cqrs-lite/storage/v3 => ../../storage
 )

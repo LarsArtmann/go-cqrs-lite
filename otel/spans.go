@@ -44,9 +44,9 @@ func EndWithError(span trace.Span, err error) {
 }
 
 // ComponentTracer returns a tracer name for a go-cqrs-lite component.
-// Example: ComponentTracer("storage") → "github.com/larsartmann/go-cqrs-lite/storage/v2".
+// Example: ComponentTracer("storage") → "github.com/larsartmann/go-cqrs-lite/storage/v3".
 func ComponentTracer(component string) string {
-	return fmt.Sprintf("%s/%s/v2", Name, component)
+	return fmt.Sprintf("%s/%s/v3", Name, component)
 }
 
 // AddSpanEvent records a structured event on the span with optional attributes.

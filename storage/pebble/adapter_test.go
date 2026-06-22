@@ -8,7 +8,7 @@ import (
 
 	"github.com/cockroachdb/pebble"
 
-	"github.com/larsartmann/go-cqrs-lite/kv/v2"
+	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 )
 
 func openTestKVStore(t *testing.T, opts ...KVOption) kv.Store {

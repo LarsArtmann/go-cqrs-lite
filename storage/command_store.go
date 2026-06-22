@@ -3,8 +3,8 @@ package storage
 import (
 	"database/sql"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v2"
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
+	"github.com/larsartmann/go-cqrs-lite/command/v3"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
 )
 
 // SQLCommandStore persists commands in a SQL database.

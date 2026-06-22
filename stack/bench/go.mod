@@ -1,13 +1,13 @@
-module github.com/larsartmann/go-cqrs-lite/stack/bench/v2
+module github.com/larsartmann/go-cqrs-lite/stack/bench/v3
 
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/event/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/id/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/kv/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/stack/v2 v2.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 v2.6.0
+	github.com/larsartmann/go-cqrs-lite/event/v3 v3.0.0
+	github.com/larsartmann/go-cqrs-lite/id/v3 v3.0.0
+	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.0.0
+	github.com/larsartmann/go-cqrs-lite/stack/v3 v3.0.0
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.0.0
 )
 
 require (
@@ -20,14 +20,14 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v2 v2.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/decider/v2 v2.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v2 v2.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/query/v2 v2.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/watermill/v2 v2.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v3 v3.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/decider/v3 v3.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/query/v3 v3.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/watermill/v3 v3.0.0 // indirect
 	github.com/larsartmann/go-error-family v0.4.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
@@ -50,17 +50,17 @@ require (
 )
 
 replace (
-	github.com/larsartmann/go-cqrs-lite/codec/v2 => ../../codec
-	github.com/larsartmann/go-cqrs-lite/command/v2 => ../../command
-	github.com/larsartmann/go-cqrs-lite/decider/v2 => ../../decider
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 => ../../dispatcher
-	github.com/larsartmann/go-cqrs-lite/event/v2 => ../../event
-	github.com/larsartmann/go-cqrs-lite/id/v2 => ../../id
-	github.com/larsartmann/go-cqrs-lite/kv/v2 => ../../kv
-	github.com/larsartmann/go-cqrs-lite/otel/v2 => ../../otel
-	github.com/larsartmann/go-cqrs-lite/query/v2 => ../../query
-	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../../snapshot
-	github.com/larsartmann/go-cqrs-lite/stack/v2 => ..
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 => ../../storage/memory
-	github.com/larsartmann/go-cqrs-lite/watermill/v2 => ../../watermill
+	github.com/larsartmann/go-cqrs-lite/codec/v3 => ../../codec
+	github.com/larsartmann/go-cqrs-lite/command/v3 => ../../command
+	github.com/larsartmann/go-cqrs-lite/decider/v3 => ../../decider
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 => ../../dispatcher
+	github.com/larsartmann/go-cqrs-lite/event/v3 => ../../event
+	github.com/larsartmann/go-cqrs-lite/id/v3 => ../../id
+	github.com/larsartmann/go-cqrs-lite/kv/v3 => ../../kv
+	github.com/larsartmann/go-cqrs-lite/otel/v3 => ../../otel
+	github.com/larsartmann/go-cqrs-lite/query/v3 => ../../query
+	github.com/larsartmann/go-cqrs-lite/snapshot/v3 => ../../snapshot
+	github.com/larsartmann/go-cqrs-lite/stack/v3 => ..
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 => ../../storage/memory
+	github.com/larsartmann/go-cqrs-lite/watermill/v3 => ../../watermill
 )

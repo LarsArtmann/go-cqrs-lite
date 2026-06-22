@@ -24,7 +24,7 @@ code transitively. Splitting into separate modules lets consumers import exactly
 
 ```
 catalog/
-├── go.mod                    ← module github.com/larsartmann/go-cqrs-lite/catalog/v2
+├── go.mod                    ← module github.com/larsartmann/go-cqrs-lite/catalog/v3
 ├── registry.go               ← core: Registry
 ├── build.go                  ← core: Builder
 ├── types.go                  ← core: Catalog, Service, Message, etc.
@@ -58,16 +58,16 @@ catalog/
 **1.1** Create `catalog/asyncapi/go.mod`:
 
 ```
-module github.com/larsartmann/go-cqrs-lite/catalog/v2/asyncapi
+module github.com/larsartmann/go-cqrs-lite/catalog/v3/asyncapi
 
 go 1.26.3
 
 require (
-    github.com/larsartmann/go-cqrs-lite/catalog/v2 v2.3.0
+    github.com/larsartmann/go-cqrs-lite/catalog/v3 v2.3.0
     github.com/go-faster/yaml v0.x.x
 )
 
-replace github.com/larsartmann/go-cqrs-lite/catalog/v2 => ../
+replace github.com/larsartmann/go-cqrs-lite/catalog/v3 => ../
 ```
 
 **1.2** Add `./catalog/asyncapi` to `go.work` in the root.

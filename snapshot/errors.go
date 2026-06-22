@@ -1,6 +1,6 @@
 package snapshot
 
-import "github.com/larsartmann/go-cqrs-lite/event/v2"
+import "github.com/larsartmann/go-cqrs-lite/event/v3"
 
 var (
 	ErrSnapshotNotFound    = event.NewRejection("snapshot.not_found", "snapshot not found")

@@ -1,4 +1,4 @@
-module github.com/larsartmann/go-cqrs-lite/dispatcher/v2
+module github.com/larsartmann/go-cqrs-lite/dispatcher/v3
 
 go 1.26.3
 

@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-06-21 (v3: ADR-0031 typed metadata split — MetadataKey, Merge, Tracing, separate command/query Metadata structs) · **Module count:** 38 modules · **Go version:** 1.26.3
+**Last audited:** 2026-06-22 (v3 readiness: deleted projection/readmodel/reactive entries, fixed io.Closer removal, corrected module paths, updated streaming reads status) · **Module count:** 38 modules · **Go version:** 1.26.3
 
 ## Status Legend
 
@@ -39,11 +39,9 @@
 | Command store interfaces | `CommandSink`, `CommandSource`, `Store` (Sink+Source) — persisted command log                                                                      | ✅     |
 | CommandJournal           | `ReadAll(ctx)` — global command log ordered by ReceivedAt; audit trail of every command                                                            | ✅     |
 | SeekableCommandJournal   | `ReadFrom(ctx, afterCommandID, limit)` — position-based command replay with ULID checkpoints                                                       | ✅     |
-| Command Bus              | `Bus` (with `io.Closer`): `Publish`, `Subscribe`, `SubscribeAll`, `Use` — command pub/sub                                                          | ✅     |
+| Command Bus              | `Bus`: `Publish`, `Subscribe`, `SubscribeAll`, `Use` — command pub/sub (concrete impls keep `Close()`)                                             | ✅     |
 | Publisher / Subscriber   | ISP split: `Publisher.Publish(ctx, cmds...)`, `Subscriber.Subscribe(type, handler)`                                                                | ✅     |
 | PublishMiddleware        | `PublishMiddleware` wraps the publish path for cross-cutting concerns (signing, tracing)                                                           | ✅     |
-| Reactive CommandBus      | `NewCommandBus`, `NewReplayCommandBus`, `NewBehaviorCommandBus`, `FilterCommandType(s)`                                                            | 🧪     |
-| HandlerToObserver        | `HandlerToObserver(handler)` converts a `Handler` into an `ro.Observer[Command]`                                                                   | 🧪     |
 
 ### Query Dispatcher ✅ FULLY_FUNCTIONAL
 
@@ -62,8 +60,6 @@
 | Query store interfaces | `QuerySink`, `QuerySource`, `QueryStore` (Sink+Source) — persisted query log       | ✅     |
 | QueryJournal           | `ReadAllQueries(ctx)` — global query log for audit ("who queried what and when?")  | ✅     |
 | SeekableQueryJournal   | `ReadQueriesFrom(ctx, afterRequestID, limit)` — position-based query replay        | ✅     |
-| Reactive QueryBus      | `NewQueryBus`, `NewReplayQueryBus`, `NewBehaviorQueryBus`, `FilterQueryType(s)`    | 🧪     |
-| HandlerToObserver      | `HandlerToObserver(handler)` converts a `Handler` into an `ro.Observer[Query]`     | 🧪     |
 
 **Defaults:** Page 1, PageSize 20, max 100.
 **Sentinel errors:** `ErrHandlerNotFound`, `ErrDispatcherClosed`, `ErrEmptyQueryType`, `ErrTypeAssertion`
@@ -89,10 +85,10 @@
 | Event.Clone()         | Deep copy of `ImmutableEvent`                                                                                                                                                                                                                                                                                                               | ✅     |
 | Typed values          | `Source`, `IPAddress`, `UserAgent`, `Version`, `SchemaVersion` — all parsed and validated                                                                                                                                                                                                                                                   | ✅     |
 | Version arithmetic    | `Version.Add`, `Sub`, `Mod`, `Cmp`, `IsPositive` — phantom type math                                                                                                                                                                                                                                                                        | ✅     |
-| Event Bus interface   | `Bus` (with `io.Closer`): `Publish`, `Subscribe`, `SubscribeAll`, `Use`, `UsePublish`                                                                                                                                                                                                                                                       | ✅     |
+| Event Bus interface   | `Bus`: `Publish`, `Subscribe`, `SubscribeAll`, `Use`, `UsePublish` (concrete impls keep `Close()` — ADR-0010)                                                                                                                                                                                                                               | ✅     |
 | PublishMiddleware     | `Bus.UsePublish(mw)` — middleware for publish path                                                                                                                                                                                                                                                                                          | ✅     |
 | PublisherFunc adapter | `PublisherFunc` — function adapter for `Publisher`                                                                                                                                                                                                                                                                                          | ✅     |
-| Event Store interface | `Store = EventSink + EventSource` (with `io.Closer`): `Save` (optimistic concurrency), `AppendBatch`, `Load`, `LoadFromVersion`, `LoadToVersion`, `LoadToTimestamp`                                                                                                                                                                         | ✅     |
+| Event Store interface | `Store = EventSink + EventSource`: `Save` (optimistic concurrency), `AppendBatch`, `Load`, `LoadFromVersion`, `LoadToVersion`, `LoadToTimestamp` (concrete impls keep `Close()` — ADR-0010)                                                                                                                                                 | ✅     |
 | ISP split             | `EventSink` (write) + `EventSource` (read) — fine-grained dependency injection                                                                                                                                                                                                                                                              | ✅     |
 | Journal               | `ReadAll()` returns all events ordered by `occurred_at ASC` — for projection replay                                                                                                                                                                                                                                                         | ✅     |
 | SeekableJournal       | `ReadFrom(ctx, afterEventID, limit)` — efficient projection catch-up                                                                                                                                                                                                                                                                        | ✅     |
@@ -104,9 +100,7 @@
 | DecodePayload[T]      | `DecodePayload[T](evt, codec)` — type-safe payload deserialization                                                                                                                                                                                                                                                                          | ✅     |
 | DecodePayloads[T]     | `DecodePayloads[T](events, codec)` — batch payload deserialization                                                                                                                                                                                                                                                                          | ✅     |
 | PayloadReadOnly       | Zero-copy read access for internal paths (signing, pebble, storage, middleware)                                                                                                                                                                                                                                                             | ✅     |
-| Stream loading        | `StreamLoader` interface + `EventStream` cursor + `StoreStreamAdapter`                                                                                                                                                                                                                                                                      | ✅     |
-| Reactive streams      | `EventBus = ro.Subject[Event]`, `NewEventBus`, `NewReplayEventBus`, `NewBehaviorEventBus`, `FilterEventType`, `FilterEventTypes`, `ReplayFilter`, `HandlerToObserver`                                                                                                                                                                       | ✅     |
-| Stream deduplication  | `DistinctByEventID()`, `DistinctByEventIDWith(seen)`, `DistinctByAggregateID()`, `SubscriberToObservable` — wired into projection Runner replay→live boundary                                                                                                                                                                               | ✅     |
+| Stream loading        | `StreamingSource`/`StreamingJournal` — cursor-based event reads without materializing full slices (SQL, Pebble, Memory backends)                                                                                                                                                                                                            | ✅     |
 | Slice helpers         | `SliceFromVersion`, `SliceToVersion`, `FilterByTimestamp` — in-memory event slicing                                                                                                                                                                                                                                                         | ✅     |
 | Command causality     | `WithCommandCausality(ctx, type, id)` + `CommandCausalityEnricher` — auto-tag events with the command that caused them                                                                                                                                                                                                                      | ✅     |
 | Checkpoint            | `Checkpoint` struct + `CheckpointSink/Source/Store` interfaces for projection positioning                                                                                                                                                                                                                                                   | ✅     |
@@ -342,7 +336,7 @@ Deleted — generic utility with no CQRS dependencies and zero consumers.
 
 ### SSE Broker ✅ (moved to transport/http/)
 
-> `import "github.com/larsartmann/go-cqrs-lite/transport/http/v2"`
+> `import "github.com/larsartmann/go-cqrs-lite/transport/http/v3"`
 
 | Feature     | Detail                                                                             | Status |
 | ----------- | ---------------------------------------------------------------------------------- | ------ |
@@ -584,36 +578,6 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ---
 
-## Projection Runner ✅ FULLY_FUNCTIONAL
-
-> `import "github.com/larsartmann/go-cqrs-lite/projection"`
-
-| Feature                   | Detail                                                                                        | Status |
-| ------------------------- | --------------------------------------------------------------------------------------------- | ------ |
-| Runner                    | `NewRunner(journal, subscriber, checkpoint, opts...)` — replay → live                         | ✅     |
-| Replay/live split         | `RunReplay(ctx)` (synchronous catch-up) + `RunLive(ctx)` (background tail); `Run` calls both  | ✅     |
-| Builder + On[T]()         | `NewBuilder(name)` + `On[T](builder, eventType, handler)` — type-safe                         | ✅     |
-| HandlerRegistry           | Thread-safe `On(eventType, handler)`, `OnAll(handler)`, `Lookup`                              | ✅     |
-| Checkpoint per projection | `CurrentCheckpoint(ctx, name)` — read last-processed event ID                                 | ✅     |
-| Reset/rebuild             | `Runner.Reset(ctx, name)` — zero-out checkpoint → full replay on next Run                     | ✅     |
-| Event type filtering      | Runner filters events by `Projection.EventTypes()`                                            | ✅     |
-| SeekableJournal detection | Auto-detects `SeekableJournal` for position-based replay                                      | ✅     |
-| Live-only mode            | Pass `nil` journal to skip replay entirely                                                    | ✅     |
-| Retry with backoff        | `WithRetry(count, delay)` — exponential backoff, only if `IsRetryable`                        | ✅     |
-| Dead letter queue         | `WithDeadLetterHandler(func)` — callback after retries exhausted                              | ✅     |
-| Parallel processing       | `WithParallelism(n)` — semaphore-bounded goroutine pool                                       | ✅     |
-| Replay→live dedup         | `DistinctByEventIDWith(seen)` seeded dedup; `WithDedupCapacity(n)` bounded ring for 24/7      | ✅     |
-| Bounded dedup             | `DistinctByEventIDBounded(cap)` with FIFO eviction — bounded memory for long-running streams  | ✅     |
-| Leader election           | `LeaderElection` interface + `AlwaysLeader` default (ADR-0018)                                | ✅     |
-| Replay context marking    | `event.WithReplay(ctx, true)` during replay; handlers can distinguish                         | ✅     |
-| Close lifecycle           | `Runner.Close()` — cancel internal context, graceful shutdown                                 | ✅     |
-| Duplicate name guard      | `Register()` rejects projections with same `Name()`                                           | ✅     |
-| Health check              | `Runner.HealthCheck(ctx)`, `Runner.DetailedHealthCheck(ctx)` — projection-level health status | ✅     |
-
-**Sentinel errors:** `ErrNilHandler`, `ErrNilSubscriber`, `ErrNilCheckpoint`, `ErrNoProjections`, `ErrDuplicateProjection`, `ErrAlreadyRunning`, `ErrReplayRequired`
-
----
-
 ## Stream Read Model ✅ FULLY_FUNCTIONAL
 
 > `import "github.com/larsartmann/go-cqrs-lite/listing"`
@@ -686,7 +650,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ### eventtest 🧪
 
-> `import "github.com/larsartmann/go-cqrs-lite/event/v2/eventtest"`
+> `import "github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"`
 
 | Feature           | Detail                                                                                                                                                              | Status |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -744,10 +708,12 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ## Examples 💡 DEMO
 
-| Example         | Detail                                                                                        |
-| --------------- | --------------------------------------------------------------------------------------------- |
-| `example/todo/` | Full CQRS app: HTTP API, decider, projections, queries, Pebble + memory storage, saga pattern |
-| `example/user/` | Event sourcing lifecycle: create, replay, mutate, signing, SSE, catalog, Docker packaging     |
+| Example                   | Detail                                                                                        |
+| ------------------------- | --------------------------------------------------------------------------------------------- |
+| `example/todo/`           | Full CQRS app: HTTP API, decider, projections, queries, Pebble + memory storage, saga pattern |
+| `example/user/`           | Event sourcing lifecycle: create, replay, mutate, signing, SSE, catalog, Docker packaging     |
+| `example/encryption/`     | Signing + encryption middleware end-to-end                                                    |
+| `example/deployer-first/` | Deployer-first stack: CatchUpSubscriber + Materialize + Watermill EventBus                    |
 
 **Not reference applications.** These demonstrate library usage patterns.
 
@@ -763,7 +729,7 @@ Found during code reviews. See `docs/planning/` for details.
 | ~~Query store interfaces (PersistedQuery, QueryStore, QueryJournal) untested~~ — **RESOLVED** (`0c0cd5b3`) | ~~MEDIUM~~ | query, memory       |
 | ~~Query module lacks store-specific sentinel errors~~ — **RESOLVED** (`query/errors.go`)                   | ~~LOW~~    | query               |
 | command re-exports event types (module boundary violation)                                                 | HIGH       | command             |
-| Reactive extensions not wired into dispatchers                                                             | LOW        | event/command/query |
+| ~~Reactive extensions not wired into dispatchers~~ — **DELETED** with `projection/` module (ADR-0030)      | ~~LOW~~    | event/command/query |
 | Pre-existing golden test drift (codec, middleware)                                                         | LOW        | codec, middleware   |
 
 ---
@@ -772,66 +738,65 @@ Found during code reviews. See `docs/planning/` for details.
 
 Features mentioned in project docs/planning but with **no production code yet**:
 
-| Feature                   | Description                                        |
-| ------------------------- | -------------------------------------------------- |
-| Schema registry           | JSON Schema middleware for event validation        |
-| PostgreSQL testcontainers | testcontainers-based real PG testing               |
-| Documentation site        | Docusaurus/MkDocs/Hugo site                        |
-| Streaming event reads     | `EventIterator` — without materializing full slice |
+| Feature                   | Description                                    |
+| ------------------------- | ---------------------------------------------- |
+| PostgreSQL testcontainers | testcontainers-based real PG testing           |
+| Documentation site        | Docusaurus/MkDocs/Hugo site                    |
+| Transport adapters        | gRPC, NATS, Redis (ADR-0025 accepted, no code) |
 
 ---
 
 ## Module Maturity Matrix
 
-| Module                 | Import Path                 | Maturity        |
-| ---------------------- | --------------------------- | --------------- |
-| `event`                | `…/event/v2`                | ✅ Production   |
-| `event/eventtest`      | `…/event/v2/eventtest`      | 🧪 Test helper  |
-| `command`              | `…/command/v2`              | ✅ Production   |
-| `query`                | `…/query/v2`                | ✅ Production   |
-| `decider`              | `…/decider/v2`              | ✅ Production   |
-| `id`                   | `…/id/v2`                   | ✅ Production   |
-| `dispatcher`           | `…/dispatcher/v2`           | ✅ Production   |
-| `schema`               | `…/schema/v2`               | ✅ Production   |
-| `snapshot`             | `…/snapshot/v2`             | ✅ Production   |
-| `codec`                | `…/codec/v2`                | ✅ Production   |
-| `kv`                   | `…/kv/v2`                   | ✅ Production   |
-| `memory`               | `…/memory/v2`               | 🧪 Test utility |
-| `catalog`              | `…/catalog/v2`              | ✅ Production   |
-| `catalog/asyncapi`     | `…/catalog/v2/asyncapi`     | ✅ Production   |
-| `catalog/d2`           | `…/catalog/v2/d2`           | ✅ Production   |
-| `catalog/openapi`      | `…/catalog/v2/openapi`      | ✅ Production   |
-| `catalog/eventcatalog` | `…/catalog/v2/eventcatalog` | ✅ Production   |
-| `catalog/docserver`    | `…/catalog/v2/docserver`    | ✅ Production   |
-| `catalog/schema`       | `…/catalog/v2/schema`       | ✅ Production   |
-| `middleware`           | `…/middleware/v2`           | ✅ Production   |
-| `integration`          | `…/integration/v2`          | ✅ Test suite   |
-| `projection`           | `…/projection/v2`           | ✅ Production   |
-| `signing`              | `…/signing/v2`              | ✅ Production   |
-| `signing/multisig`     | `…/signing/v2/multisig`     | ✅ Production   |
-| `encryption`           | `…/encryption/v2`           | ✅ Production   |
-| `storage`              | `…/storage/v2`              | ✅ Production   |
-| `storage/sql`          | `…/storage/v2/sql`          | 🧪 Shared infra |
-| `watermill`            | `…/watermill/v2`            | ✅ Production   |
-| `listing`              | `…/listing/v2`              | ✅ Production   |
-| `otel`                 | `…/otel/v2`                 | ✅ Production   |
-| `pebble`               | `…/pebble/v2`               | ✅ Production   |
-| `turso`                | `…/turso/v2`                | ✅ Production   |
-| `turso/indexing`       | `…/turso/v2/indexing`       | ✅ Production   |
-| `testutil`             | `…/testutil/v2`             | 🧪 Test utility |
-| `cmd/cqrs-gen`         | `…/cmd/cqrs-gen/v2`         | 🔧 Tool         |
-| `cmd/api-stability`    | `…/cmd/api-stability/v2`    | 🔧 Tool         |
-| `example/user`         | `…/example/user`            | 💡 Demo         |
-| `example/todo`         | `…/example/todo`            | 💡 Demo         |
-| `example/encryption`   | `…/example/encryption`      | 💡 Demo         |
-| `readmodel`            | `…/readmodel/v2`            | ✅ Production   |
-| `readmodel/cache`      | `…/readmodel/cache/v2`      | ✅ Production   |
-| `stack`                | `…/stack/v2`                | ✅ Production   |
-| `stack/memory`         | `…/stack/memory/v2`         | ✅ Production   |
-| `stack/sqlite`         | `…/stack/sqlite/v2`         | ✅ Production   |
-| `stack/pebble`         | `…/stack/pebble/v2`         | ✅ Production   |
-| `stack/postgres`       | `…/stack/postgres/v2`       | ✅ Production   |
-| `stack/bench`          | `…/stack/bench/v2`          | 🧪 Benchmarks   |
+| Module                   | Import Path                   | Maturity        |
+| ------------------------ | ----------------------------- | --------------- |
+| `event`                  | `…/event/v2`                  | ✅ Production   |
+| `event/eventtest`        | `…/event/v2/eventtest`        | 🧪 Test helper  |
+| `command`                | `…/command/v2`                | ✅ Production   |
+| `query`                  | `…/query/v2`                  | ✅ Production   |
+| `decider`                | `…/decider/v2`                | ✅ Production   |
+| `id`                     | `…/id/v2`                     | ✅ Production   |
+| `dispatcher`             | `…/dispatcher/v2`             | ✅ Production   |
+| `schema`                 | `…/schema/v2`                 | ✅ Production   |
+| `snapshot`               | `…/snapshot/v2`               | ✅ Production   |
+| `codec`                  | `…/codec/v2`                  | ✅ Production   |
+| `kv`                     | `…/kv/v2`                     | ✅ Production   |
+| `storage/memory`         | `…/storage/memory/v2`         | 🧪 Test utility |
+| `catalog`                | `…/catalog/v2`                | ✅ Production   |
+| `catalog/asyncapi`       | `…/catalog/v2/asyncapi`       | ✅ Production   |
+| `catalog/d2`             | `…/catalog/v2/d2`             | ✅ Production   |
+| `catalog/openapi`        | `…/catalog/v2/openapi`        | ✅ Production   |
+| `catalog/eventcatalog`   | `…/catalog/v2/eventcatalog`   | ✅ Production   |
+| `catalog/docserver`      | `…/catalog/v2/docserver`      | ✅ Production   |
+| `catalog/schema`         | `…/catalog/v2/schema`         | ✅ Production   |
+| `middleware`             | `…/middleware/v2`             | ✅ Production   |
+| `integration`            | `…/integration/v2`            | ✅ Test suite   |
+| `signing`                | `…/signing/v2`                | ✅ Production   |
+| `signing/multisig`       | `…/signing/v2/multisig`       | ✅ Production   |
+| `encryption`             | `…/encryption/v2`             | ✅ Production   |
+| `storage`                | `…/storage/v2`                | ✅ Production   |
+| `storage/sql`            | `…/storage/v2/sql`            | 🧪 Shared infra |
+| `watermill`              | `…/watermill/v2`              | ✅ Production   |
+| `listing`                | `…/listing/v2`                | ✅ Production   |
+| `otel`                   | `…/otel/v2`                   | ✅ Production   |
+| `storage/pebble`         | `…/storage/pebble/v2`         | ✅ Production   |
+| `storage/turso`          | `…/storage/turso/v2`          | ✅ Production   |
+| `storage/turso/indexing` | `…/storage/turso/v2/indexing` | ✅ Production   |
+| `transport/http`         | `…/transport/http/v2`         | ✅ Production   |
+| `prometheus`             | `…/prometheus/v2`             | ✅ Production   |
+| `testutil`               | `…/testutil/v2`               | 🧪 Test utility |
+| `cmd/cqrs-gen`           | `…/cmd/cqrs-gen/v2`           | 🔧 Tool         |
+| `cmd/api-stability`      | `…/cmd/api-stability/v2`      | 🔧 Tool         |
+| `example/user`           | `…/example/user`              | 💡 Demo         |
+| `example/todo`           | `…/example/todo`              | 💡 Demo         |
+| `example/encryption`     | `…/example/encryption`        | 💡 Demo         |
+| `example/deployer-first` | `…/example/deployer-first`    | 💡 Demo         |
+| `stack`                  | `…/stack/v2`                  | ✅ Production   |
+| `stack/memory`           | `…/stack/memory/v2`           | ✅ Production   |
+| `stack/sqlite`           | `…/stack/sqlite/v2`           | ✅ Production   |
+| `stack/pebble`           | `…/stack/pebble/v2`           | ✅ Production   |
+| `stack/postgres`         | `…/stack/postgres/v2`         | ✅ Production   |
+| `stack/bench`            | `…/stack/bench/v2`            | 🧪 Benchmarks   |
 
 ---
 
@@ -839,10 +804,10 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 | Guarantee              | Detail                                                                                                 |
 | ---------------------- | ------------------------------------------------------------------------------------------------------ |
-| Near-zero lint issues  | 0 lint issues across all 29 modules (v2.3.0 audit)                                                     |
+| Near-zero lint issues  | ~60 style-level lint issues across 38 modules (no correctness issues; CI reports, doesn't gate)        |
 | Race-free              | `go test -race` passes across all modules                                                              |
 | Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                                         |
-| Interface-first        | All core types are interfaces — provide your own implementations                                       |
+| Strong types           | `event.Event` is a concrete type alias (`= *ImmutableEvent`); core store/bus are interfaces for DI     |
 | Library, not framework | Import what you need, compose your own stack                                                           |
 | Context-aware          | All handlers accept `context.Context`                                                                  |
 | Errors as values       | Zero panics in production code, explicit error returns, classified sentinels via error-family taxonomy |

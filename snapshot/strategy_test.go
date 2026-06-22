@@ -3,8 +3,8 @@ package snapshot_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/snapshot/v3"
 )
 
 func TestEveryNEvents_ReturnsErrorForZero(t *testing.T) {

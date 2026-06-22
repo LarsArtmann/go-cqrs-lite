@@ -3,7 +3,7 @@ package event
 import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 // Causation is the typed representation of command causation on an event

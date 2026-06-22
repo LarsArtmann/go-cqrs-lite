@@ -3,8 +3,8 @@ package storage
 import (
 	"database/sql"
 
-	"github.com/larsartmann/go-cqrs-lite/query/v2"
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
+	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
 )
 
 // SQLQueryStore persists queries in a SQL database for audit purposes.

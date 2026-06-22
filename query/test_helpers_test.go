@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/larsartmann/go-cqrs-lite/query/v2"
+	"github.com/larsartmann/go-cqrs-lite/query/v3"
 )
 
 func failingQueryHandler(msg string) query.Handler {

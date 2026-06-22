@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/query/v2"
-	"github.com/larsartmann/go-cqrs-lite/storage/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
 
 func newTestQueryStore(t *testing.T) *storage.SQLQueryStore {

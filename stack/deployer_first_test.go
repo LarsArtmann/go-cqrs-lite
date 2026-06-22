@@ -4,12 +4,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/kv/v2"
-	"github.com/larsartmann/go-cqrs-lite/stack/v2"
-	"github.com/larsartmann/go-cqrs-lite/storage/memory/v2"
-	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/kv/v3"
+	"github.com/larsartmann/go-cqrs-lite/stack/v3"
+	"github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
+	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v3"
 )
 
 // TestDeployerFirstArchitecture validates the full deployer-first flow:

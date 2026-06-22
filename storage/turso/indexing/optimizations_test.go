@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/storage/turso/v2/indexing"
+	"github.com/larsartmann/go-cqrs-lite/storage/turso/v3/indexing"
 )
 
 func TestDefaultOptimizations(t *testing.T) {

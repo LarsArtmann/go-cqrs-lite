@@ -1,7 +1,7 @@
 # go-cqrs-lite
 
 [![CI](https://github.com/LarsArtmann/go-cqrs-lite/actions/workflows/ci.yml/badge.svg)](https://github.com/LarsArtmann/go-cqrs-lite/actions/workflows/ci.yml)
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/event/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v2)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/event/v3.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v3)
 
 A lightweight CQRS + Event Sourcing **library** for Go. Import only what you need — each module has its own `go.mod` with minimal dependencies. Not a framework: no opinionated transport, broker, or SQL driver.
 
@@ -10,7 +10,7 @@ A lightweight CQRS + Event Sourcing **library** for Go. Import only what you nee
 ## Quick Start
 
 ```bash
-go get github.com/larsartmann/go-cqrs-lite/event/v2
+go get github.com/larsartmann/go-cqrs-lite/event/v3
 ```
 
 ```go
@@ -20,13 +20,13 @@ import (
     "context"
     "fmt"
 
-    "github.com/larsartmann/go-cqrs-lite/codec/v2"
-    "github.com/larsartmann/go-cqrs-lite/command/v2"
-    "github.com/larsartmann/go-cqrs-lite/decider/v2"
-    "github.com/larsartmann/go-cqrs-lite/event/v2"
-    "github.com/larsartmann/go-cqrs-lite/id/v2"
-    "github.com/larsartmann/go-cqrs-lite/storage/memory/v2"
-    cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v2"
+    "github.com/larsartmann/go-cqrs-lite/codec/v3"
+    "github.com/larsartmann/go-cqrs-lite/command/v3"
+    "github.com/larsartmann/go-cqrs-lite/decider/v3"
+    "github.com/larsartmann/go-cqrs-lite/event/v3"
+    "github.com/larsartmann/go-cqrs-lite/id/v3"
+    "github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
+    cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v3"
 )
 
 type UserState struct{ Name string }
@@ -79,7 +79,7 @@ For a fully-wired stack with persistent storage, event bus, read models, and
 projections — use a **stack preset**. One import, one function call:
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v2"
+import "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v3"
 
 // Events, commands, queries, snapshots, checkpoints, read models — all persisted.
 // Event bus wired (watermill GoChannel for in-process pub/sub).
@@ -174,23 +174,38 @@ Every module has its own README with detailed usage, types, and examples.
 6. **Multi-module isolation** — Each module has its own `go.mod` with only needed deps.
 7. **Tombstone over delete** — Soft-delete via metadata; no `Delete` on Store.
 
+## Why this library?
+
+Most Go CQRS libraries are **frameworks** — they own your transport, your broker, your SQL driver, your project structure. go-cqrs-lite is a **library**: 38 independent modules with their own `go.mod` files. You import only what you need and compose your own stack. Nothing is hidden behind magic.
+
+**What makes it different:**
+
+- **Event Sourcing first-class** — Immutable events, branded IDs, optimistic concurrency, tombstone soft-delete, time-travel queries, schema evolution via upcasters. Not an afterthought bolted onto a CRUD library.
+- **Library, not framework** — No transport, broker, or SQL driver is forced on you. Use Watermill, standard `net/http`, gRPC, NATS — your choice. The `stack/` presets wire sensible defaults if you want zero-config.
+- **Multi-module isolation** — Each module has its own `go.mod` with minimal deps. Import `event` alone (3 deps) or the full `stack/sqlite` preset. Your dependency tree stays clean.
+- **Production primitives** — Event signing (HMAC, Ed25519, multisig), payload encryption (XChaCha20-Poly1305, AES-256-GCM), OTel tracing+metrics, Prometheus bridge. Not stubs.
+- **Honest error taxonomy** — 5-family classification (Rejection / Conflict / Transient / Infrastructure / Corruption) with sentinel errors and `%w` wrapping. No panics in production paths.
+
 ## Comparison
 
-| Feature              | go-cqrs-lite | go-cqrs | cqrs-go |
-| -------------------- | :----------: | :-----: | :-----: |
-| Minimal deps         |      ✅      |   ❌    |   ❌    |
-| Event Sourcing       |      ✅      |   ✅    |   ✅    |
-| Strong IDs           |      ✅      |   ❌    |   ❌    |
-| Middleware           |      ✅      |   ❌    |   ❌    |
-| Event Signing        |      ✅      |   ❌    |   ❌    |
-| Event Encryption     |      ✅      |   ❌    |   ❌    |
-| Schema Evolution     |      ✅      |   ❌    |   ❌    |
-| Auto-docs (AsyncAPI) |      ✅      |   ❌    |   ❌    |
-| Stream Loading       |      ✅      |   ❌    |   ❌    |
+| Capability                          | go-cqrs-lite | go-cqrs | Watermill  | cqrs-go |
+| ----------------------------------- | :----------: | :-----: | :--------: | :-----: |
+| **Library (not framework)**         |      ✅      |   ❌    |  Partial   |   ❌    |
+| **Event Sourcing**                  |      ✅      |   ✅    | Via plugin |   ✅    |
+| **Per-module go.mod**               |      ✅      |   ❌    |     ❌     |   ❌    |
+| **Branded IDs**                     |      ✅      |   ❌    |     ❌     |   ❌    |
+| **Event signing**                   |      ✅      |   ❌    |     ❌     |   ❌    |
+| **Event encryption**                |      ✅      |   ❌    |     ❌     |   ❌    |
+| **Schema evolution**                |      ✅      |   ❌    |     ❌     |   ❌    |
+| **Auto-docs (AsyncAPI/OpenAPI/D2)** |      ✅      |   ❌    |     ❌     |   ❌    |
+| **Tombstone soft-delete**           |      ✅      |   ❌    |     ❌     |   ❌    |
+| **Bundle presets**                  |      ✅      |   ❌    |     ❌     |   ❌    |
 
 ## Status
 
 **v3-ready** — 38 modules, 84–100% test coverage on core modules. All 11 v3 breaking changes complete. Ready to tag v3.0.0.
+
+**Migrating from v2?** Read the **[v3 Migration Guide](docs/migration/V3_MIGRATION.md)** — all changes are additive, v2 types consumers should migrate to already exist.
 
 See [FEATURES.md](FEATURES.md) for the full feature inventory, [ROADMAP.md](ROADMAP.md) for direction, and [docs/](docs/) for architecture decisions (ADRs), benchmarks, and storage guides.
 

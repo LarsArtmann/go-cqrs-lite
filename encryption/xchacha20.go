@@ -7,7 +7,7 @@ import (
 
 	"golang.org/x/crypto/chacha20poly1305"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 const xchacha20NonceSize = 24

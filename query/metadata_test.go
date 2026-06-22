@@ -3,8 +3,8 @@ package query_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/query/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/query/v3"
 )
 
 func TestQuery_MetadataMerge(t *testing.T) {

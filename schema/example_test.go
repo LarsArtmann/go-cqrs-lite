@@ -3,8 +3,8 @@ package schema_test
 import (
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/schema/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/schema/v3"
 )
 
 func ExampleNewUpcaster() {

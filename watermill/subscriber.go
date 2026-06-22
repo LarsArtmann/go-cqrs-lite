@@ -7,7 +7,7 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill/message"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // SubscriberAdapter wraps a go-cqrs-lite event.Bus as a Watermill subscriber.

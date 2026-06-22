@@ -3,8 +3,8 @@ package catalog_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
-	"github.com/larsartmann/go-cqrs-lite/catalog/v2/internal/cattest"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v3/internal/cattest"
 )
 
 func newBenchRegistry() *catalog.Registry {

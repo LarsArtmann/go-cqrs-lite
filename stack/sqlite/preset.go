@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/larsartmann/go-cqrs-lite/stack/v2"
-	"github.com/larsartmann/go-cqrs-lite/storage/v2"
-	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v2"
+	"github.com/larsartmann/go-cqrs-lite/stack/v3"
+	"github.com/larsartmann/go-cqrs-lite/storage/v3"
+	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v3"
 )
 
 // Option configures the SQLite preset.
@@ -23,7 +23,7 @@ type config struct {
 }
 
 func defaultConfig() config {
-	return config{wal: true, autoMigrate: true}
+	return config{wal: true, autoMigrate: true, eventDSN: "", queryDSN: "", viewDSN: ""}
 }
 
 // WithoutWAL disables WAL mode. By default New enables WAL plus a busy
@@ -85,7 +85,7 @@ func New(dsn string, opts ...Option) (*stack.Bundle, error) {
 }
 
 func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
-	db, backend, err := openBackend(dsn, cfg)
+	sqlDB, backend, err := openBackend(dsn, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 		eventOpts, eventCloser, eErr := openSecondaryStores(cfg.eventDSN, cfg)
 		if eErr != nil {
 			_ = backend.Close()
-			_ = db.Close()
+			_ = sqlDB.Close()
 
 			return nil, fmt.Errorf("sqlite: open event db: %w", eErr)
 		}
@@ -111,7 +111,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 		queryOpts, queryCloser, qErr := openSecondaryStores(cfg.queryDSN, cfg)
 		if qErr != nil {
 			_ = backend.Close()
-			_ = db.Close()
+			_ = sqlDB.Close()
 
 			return nil, fmt.Errorf("sqlite: open query db: %w", qErr)
 		}
@@ -123,67 +123,26 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	// Bus is in-process GoChannel (SQLite has no pub/sub).
 	stackOpts = append(stackOpts, stack.WithBus(cqrswatermill.NewEventBus()))
 
-	// Read models: use separate view DB if configured, else primary.
-	var viewDB *sql.DB
-
-	if cfg.viewDSN != "" {
-		viewDB, err = openSecondaryDB(cfg.viewDSN, cfg)
-		if err != nil {
-			_ = backend.Close()
-			_ = db.Close()
-
-			return nil, fmt.Errorf("sqlite: open view db: %w", err)
-		}
-
-		viewBackend, err := storage.NewSQLiteBackend(viewDB)
-		if err != nil {
-			_ = backend.Close()
-			_ = db.Close()
-			_ = viewDB.Close()
-
-			return nil, fmt.Errorf("sqlite: create view backend: %w", err)
-		}
-
-		kvStore, err := viewBackend.KVStore()
-		if err != nil {
-			_ = viewBackend.Close()
-			_ = backend.Close()
-			_ = db.Close()
-
-			return nil, fmt.Errorf("sqlite: kv store (view db): %w", err)
-		}
-
-		stackOpts = append(stackOpts, stack.WithReadModels(kvStore))
-		stackOpts = append(stackOpts, stack.WithCloser(viewBackend))
-		stackOpts = append(stackOpts, stack.WithCloser(&funcCloser{fn: viewDB.Close}))
-	} else {
-		kvStore, err := backend.KVStore()
-		if err != nil {
-			_ = backend.Close()
-			_ = db.Close()
-
-			return nil, fmt.Errorf("sqlite: kv store: %w", err)
-		}
-
-		stackOpts = append(stackOpts, stack.WithReadModels(kvStore))
+	viewOpts, err := buildViewOptions(cfg, backend, sqlDB)
+	if err != nil {
+		return nil, err
 	}
+
+	stackOpts = append(stackOpts, viewOpts...)
 
 	// Register lifecycle: backend closes stores, dbCloser closes the DB.
 	// Order matters — stores must close before the DB.
 	stackOpts = append(
 		stackOpts,
 		stack.WithCloser(backend),
-		stack.WithCloser(&funcCloser{fn: db.Close}),
+		stack.WithCloser(&funcCloser{fn: sqlDB.Close}),
 	)
 
 	b, err := stack.New(stackOpts...)
 	if err != nil {
 		_ = backend.Close()
 
-		_ = db.Close()
-		if viewDB != nil {
-			_ = viewDB.Close()
-		}
+		_ = sqlDB.Close()
 
 		return nil, fmt.Errorf("sqlite: wire bundle: %w", err)
 	}
@@ -194,7 +153,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 // openSecondaryDB opens and configures a secondary SQLite database (for events,
 // queries, or views when multi-DB mode is enabled via WithEventDB etc.).
 func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
-	db, err := sql.Open("sqlite", dsn)
+	sqlDB, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("sqlite: open %q: %w", dsn, err)
 	}
@@ -202,24 +161,24 @@ func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
 	ctx := context.Background()
 
 	if cfg.wal {
-		err = storage.SQLiteEnableWAL(ctx, db)
+		err = storage.SQLiteEnableWAL(ctx, sqlDB)
 		if err != nil {
-			_ = db.Close()
+			_ = sqlDB.Close()
 
 			return nil, fmt.Errorf("sqlite: enable WAL on %q: %w", dsn, err)
 		}
 	}
 
 	if cfg.autoMigrate {
-		err = storage.SQLiteInitSchema(ctx, db)
+		err = storage.SQLiteInitSchema(ctx, sqlDB)
 		if err != nil {
-			_ = db.Close()
+			_ = sqlDB.Close()
 
 			return nil, fmt.Errorf("sqlite: init schema on %q: %w", dsn, err)
 		}
 	}
 
-	return db, nil
+	return sqlDB, nil
 }
 
 // buildOptions assembles the stack.Option slice for an SQLBackend's stores.
@@ -256,7 +215,7 @@ func buildOptions(backend *storage.SQLBackend) []stack.Option {
 // openBackend opens the database, applies pragmas and schema, and returns
 // both the *sql.DB (for lifecycle) and the SQLBackend (for store access).
 func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
-	db, err := sql.Open("sqlite", dsn)
+	sqlDB, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, nil, fmt.Errorf("sqlite: open %q: %w", dsn, err)
 	}
@@ -264,31 +223,31 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 	ctx := context.Background()
 
 	if cfg.wal {
-		err = storage.SQLiteEnableWAL(ctx, db)
+		err = storage.SQLiteEnableWAL(ctx, sqlDB)
 		if err != nil {
-			_ = db.Close()
+			_ = sqlDB.Close()
 
 			return nil, nil, fmt.Errorf("sqlite: enable WAL: %w", err)
 		}
 	}
 
 	if cfg.autoMigrate {
-		err = storage.SQLiteInitSchema(ctx, db)
+		err = storage.SQLiteInitSchema(ctx, sqlDB)
 		if err != nil {
-			_ = db.Close()
+			_ = sqlDB.Close()
 
 			return nil, nil, fmt.Errorf("sqlite: init schema: %w", err)
 		}
 	}
 
-	backend, err := storage.NewSQLiteBackend(db)
+	backend, err := storage.NewSQLiteBackend(sqlDB)
 	if err != nil {
-		_ = db.Close()
+		_ = sqlDB.Close()
 
 		return nil, nil, fmt.Errorf("sqlite: create backend: %w", err)
 	}
 
-	return db, backend, nil
+	return sqlDB, backend, nil
 }
 
 // openSecondaryStores opens a secondary SQLite database, creates a backend
@@ -315,19 +274,23 @@ func openSecondaryStores(
 		stack.WithEventStore(secBackend.EventStore()),
 	}
 
-	if cmdStore, err := secBackend.CommandStore(); err == nil {
+	cmdStore, cmdErr := secBackend.CommandStore()
+	if cmdErr == nil {
 		opts = append(opts, stack.WithCommandStore(cmdStore))
 	}
 
-	if qStore, err := secBackend.QueryStore(); err == nil {
+	qStore, qErr := secBackend.QueryStore()
+	if qErr == nil {
 		opts = append(opts, stack.WithQueryStore(qStore))
 	}
 
-	if snapStore, err := secBackend.SnapshotStore(); err == nil {
+	snapStore, snapErr := secBackend.SnapshotStore()
+	if snapErr == nil {
 		opts = append(opts, stack.WithSnapshotStore(snapStore))
 	}
 
-	if cpStore, err := secBackend.CheckpointStore(); err == nil {
+	cpStore, cpErr := secBackend.CheckpointStore()
+	if cpErr == nil {
 		opts = append(opts, stack.WithCheckpointStore(cpStore))
 	}
 

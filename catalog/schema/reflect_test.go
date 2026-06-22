@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog/v2/schema"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v3/schema"
 )
 
 func TestFromReflect_AllPrimitiveKinds(t *testing.T) {

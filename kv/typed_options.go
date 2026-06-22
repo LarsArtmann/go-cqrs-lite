@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v2"
+	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 )
 
 // errNilTypedValue is returned by [TypedStore.Set] when val is nil.

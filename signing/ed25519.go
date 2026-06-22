@@ -4,7 +4,7 @@ import (
 	"crypto/ed25519"
 	"slices"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // ed25519Signer signs events with Ed25519 private keys.

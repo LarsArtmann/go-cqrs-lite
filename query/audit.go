@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 // AuditLevel controls how much detail the audit middleware records.

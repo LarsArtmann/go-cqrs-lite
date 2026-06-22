@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
 )
 
 func parseSQLiteTimestamp(s string) (time.Time, error) {

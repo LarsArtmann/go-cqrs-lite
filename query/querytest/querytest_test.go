@@ -3,8 +3,8 @@ package querytest_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/query/v2"
-	"github.com/larsartmann/go-cqrs-lite/query/v2/querytest"
+	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	"github.com/larsartmann/go-cqrs-lite/query/v3/querytest"
 )
 
 func TestNew_HappyPath(t *testing.T) {

@@ -1,11 +1,11 @@
-module github.com/larsartmann/go-cqrs-lite/listing/v2
+module github.com/larsartmann/go-cqrs-lite/listing/v3
 
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/event/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/id/v2 v2.6.0
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 v2.5.0
+	github.com/larsartmann/go-cqrs-lite/event/v3 v3.0.0
+	github.com/larsartmann/go-cqrs-lite/id/v3 v3.0.0
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.0.0
 	github.com/onsi/ginkgo/v2 v2.31.0
 	github.com/onsi/gomega v1.42.0
 )
@@ -18,11 +18,11 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/pprof v0.0.0-20260604005048-7023385849c0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec/v2 v2.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v2 v2.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/query/v2 v2.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v2 v2.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v3 v3.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/query/v3 v3.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.0.0 // indirect
 	github.com/larsartmann/go-error-family v0.4.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
@@ -36,12 +36,12 @@ require (
 )
 
 replace (
-	github.com/larsartmann/go-cqrs-lite/codec/v2 => ../codec
-	github.com/larsartmann/go-cqrs-lite/command/v2 => ../command
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v2 => ../dispatcher
-	github.com/larsartmann/go-cqrs-lite/event/v2 => ../event
-	github.com/larsartmann/go-cqrs-lite/id/v2 => ../id
-	github.com/larsartmann/go-cqrs-lite/query/v2 => ../query
-	github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../snapshot
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v2 => ../storage/memory
+	github.com/larsartmann/go-cqrs-lite/codec/v3 => ../codec
+	github.com/larsartmann/go-cqrs-lite/command/v3 => ../command
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 => ../dispatcher
+	github.com/larsartmann/go-cqrs-lite/event/v3 => ../event
+	github.com/larsartmann/go-cqrs-lite/id/v3 => ../id
+	github.com/larsartmann/go-cqrs-lite/query/v3 => ../query
+	github.com/larsartmann/go-cqrs-lite/snapshot/v3 => ../snapshot
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 => ../storage/memory
 )

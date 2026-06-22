@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/storage/turso/v2/indexing"
+	"github.com/larsartmann/go-cqrs-lite/storage/turso/v3/indexing"
 )
 
 func TestCheckpointScheduler_StartStop(t *testing.T) {

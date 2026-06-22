@@ -12,6 +12,6 @@
 //	store, _ := stack.ReadModel[Todo, TodoID](b, codec.JSONCodec{})
 //
 // Nothing in this preset is persistent: all data is lost when the process
-// exits. For persistence, use [github.com/larsartmann/go-cqrs-lite/stack/sqlite/v2]
-// or [github.com/larsartmann/go-cqrs-lite/stack/pebble/v2].
+// exits. For persistence, use [github.com/larsartmann/go-cqrs-lite/stack/sqlite/v3]
+// or [github.com/larsartmann/go-cqrs-lite/stack/pebble/v3].
 package memory

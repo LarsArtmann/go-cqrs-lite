@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"slices"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/codec/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 // New creates a new event with a typed payload.

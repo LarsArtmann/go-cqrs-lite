@@ -6,7 +6,7 @@ import (
 
 	"github.com/cockroachdb/pebble"
 
-	"github.com/larsartmann/go-cqrs-lite/kv/v2"
+	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 )
 
 // ── Contract: GetSet ─────────────────────────────────────────

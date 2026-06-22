@@ -3,7 +3,7 @@ package codec_test
 import (
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v2"
+	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 )
 
 func ExampleJSONCodec() {

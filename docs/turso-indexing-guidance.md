@@ -20,7 +20,7 @@ Turso uses embedded LibSQL with optional cloud sync. Indexing behavior:
   indexes before production. The advisor inspects `EXPLAIN QUERY PLAN` output.
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/turso/v2/indexing"
+import "github.com/larsartmann/go-cqrs-lite/turso/v3/indexing"
 
 auto := indexing.NewAutoIndexer(db,
     indexing.WithIndexingHooks(
@@ -88,7 +88,7 @@ import (
     "net/http"
 
     "github.com/larsartmann/go-cqrs-lite/middleware"
-    "github.com/larsartmann/go-cqrs-lite/turso/v2"
+    "github.com/larsartmann/go-cqrs-lite/turso/v3"
 )
 
 func tursoHealthChecker(db *sql.DB) middleware.HealthChecker {

@@ -6,9 +6,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/listing/v2"
-	"github.com/larsartmann/go-cqrs-lite/storage/memory/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/listing/v3"
+	"github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
 )
 
 // ---------------------------------------------------------------------------

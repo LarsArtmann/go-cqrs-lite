@@ -3,7 +3,7 @@ package indexing_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/storage/turso/v2/indexing"
+	"github.com/larsartmann/go-cqrs-lite/storage/turso/v3/indexing"
 )
 
 func TestIndex_DDL(t *testing.T) {

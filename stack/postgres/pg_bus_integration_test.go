@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/stack/postgres/v2"
-	"github.com/larsartmann/go-cqrs-lite/storage/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/stack/postgres/v3"
+	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
 
 // These integration tests verify storage.PostgresBus + PgxListener against

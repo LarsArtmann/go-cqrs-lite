@@ -3,7 +3,7 @@ package id_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 // TestExportedMarkers_DownstreamUsable verifies the phantom marker types are

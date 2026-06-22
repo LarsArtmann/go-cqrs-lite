@@ -109,9 +109,9 @@ package pebble
 import (
     "context"
     "github.com/cockroachdb/pebble"
-    "github.com/larsartmann/go-cqrs-lite/event/v2"
-    "github.com/larsartmann/go-cqrs-lite/id/v2"
-    "github.com/larsartmann/go-cqrs-lite/snapshot/v2"
+    "github.com/larsartmann/go-cqrs-lite/event/v3"
+    "github.com/larsartmann/go-cqrs-lite/id/v3"
+    "github.com/larsartmann/go-cqrs-lite/snapshot/v3"
 )
 
 type SnapshotStore struct {
@@ -140,8 +140,8 @@ func (s *SnapshotStore) LoadAtVersion(ctx context.Context, ref event.AggregateRe
 
 ```bash
 cd pebble
-GOWORK=off go get github.com/larsartmann/go-cqrs-lite/snapshot/v2@v2.3.0
-echo 'replace github.com/larsartmann/go-cqrs-lite/snapshot/v2 => ../snapshot' >> go.mod
+GOWORK=off go get github.com/larsartmann/go-cqrs-lite/snapshot/v3@v2.3.0
+echo 'replace github.com/larsartmann/go-cqrs-lite/snapshot/v3 => ../snapshot' >> go.mod
 GOWORK=off go mod tidy
 ```
 
@@ -193,9 +193,9 @@ package storage
 
 import (
     "context"
-    "github.com/larsartmann/go-cqrs-lite/command/v2"
-    "github.com/larsartmann/go-cqrs-lite/id/v2"
-    cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
+    "github.com/larsartmann/go-cqrs-lite/command/v3"
+    "github.com/larsartmann/go-cqrs-lite/id/v3"
+    cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 )
 
 // ReadAll returns all commands across all aggregates, ordered by received_at.

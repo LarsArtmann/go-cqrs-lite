@@ -6,10 +6,10 @@ import (
 
 	"github.com/cockroachdb/pebble"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
-	"github.com/larsartmann/go-cqrs-lite/query/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
+	"github.com/larsartmann/go-cqrs-lite/query/v3"
 )
 
 // LoadQueries retrieves all queries where ReceivedAt > after.

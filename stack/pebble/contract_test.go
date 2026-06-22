@@ -4,9 +4,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/stack/pebble/v2"
-	"github.com/larsartmann/go-cqrs-lite/stack/v2"
-	"github.com/larsartmann/go-cqrs-lite/stack/v2/contracttest"
+	"github.com/larsartmann/go-cqrs-lite/stack/pebble/v3"
+	"github.com/larsartmann/go-cqrs-lite/stack/v3"
+	"github.com/larsartmann/go-cqrs-lite/stack/v3/contracttest"
 )
 
 func TestContract(t *testing.T) {

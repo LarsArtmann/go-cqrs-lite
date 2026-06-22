@@ -3,7 +3,7 @@ package event
 import (
 	"strconv"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v2"
+	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 )
 
 // DecodePayload decodes an event's payload bytes into a typed value using

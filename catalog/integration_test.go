@@ -3,7 +3,7 @@ package catalog_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog/v2"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
 )
 
 func TestWalkMessages_VisitsAllMessages(t *testing.T) {

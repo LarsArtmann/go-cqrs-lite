@@ -6,11 +6,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/signing/v2"
-	"github.com/larsartmann/go-cqrs-lite/signing/v2/internal/testutil"
-	"github.com/larsartmann/go-cqrs-lite/signing/v2/multisig"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/signing/v3"
+	"github.com/larsartmann/go-cqrs-lite/signing/v3/internal/testutil"
+	"github.com/larsartmann/go-cqrs-lite/signing/v3/multisig"
 )
 
 // FuzzMultiSig_AttachExtractRoundtrip signs an event, extracts the multi-sig

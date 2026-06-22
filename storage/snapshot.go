@@ -6,10 +6,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
-	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
+	"github.com/larsartmann/go-cqrs-lite/snapshot/v3"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
 )
 
 // SQLSnapshotStore implements snapshot.SnapshotStore backed by a SQL database.

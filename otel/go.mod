@@ -1,4 +1,4 @@
-module github.com/larsartmann/go-cqrs-lite/otel/v2
+module github.com/larsartmann/go-cqrs-lite/otel/v3
 
 go 1.26.3
 

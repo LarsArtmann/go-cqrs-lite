@@ -4,8 +4,8 @@ import (
 	"crypto/rand"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v2"
-	"github.com/larsartmann/go-cqrs-lite/encryption/v2"
+	"github.com/larsartmann/go-cqrs-lite/codec/v3"
+	"github.com/larsartmann/go-cqrs-lite/encryption/v3"
 )
 
 func BenchmarkAES256GCM_Encrypt(b *testing.B) {

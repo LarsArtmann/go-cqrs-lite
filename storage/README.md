@@ -1,13 +1,13 @@
 # storage — SQL Event Store Backends
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/storage/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/storage/v2)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/storage/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/storage/v3)
 
 Persistent event store implementations for PostgreSQL, SQLite, and SQLite-compatible backends. Implements the `event.Store`, `snapshot.SnapshotStore`, and `event.CheckpointStore` interfaces.
 
 > **Pebble and Turso are now separate modules.** See `github.com/larsartmann/go-cqrs-lite/pebble` and `github.com/larsartmann/go-cqrs-lite/turso` for those backends.
 
 ```bash
-go get github.com/larsartmann/go-cqrs-lite/storage/v2
+go get github.com/larsartmann/go-cqrs-lite/storage/v3
 ```
 
 ## Quick Start: SQLite
@@ -167,7 +167,7 @@ The subpackage also defines all SQL-level sentinel errors: `ErrNilDB`, `ErrAggre
 Turso is a separate module. See `github.com/larsartmann/go-cqrs-lite/turso`.
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/turso/v2"
+import "github.com/larsartmann/go-cqrs-lite/turso/v3"
 
 db, _ := turso.OpenInMemory()
 turso.InitSchema(ctx, db)

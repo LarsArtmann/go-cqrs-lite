@@ -3,7 +3,7 @@ package turso
 import (
 	"database/sql"
 
-	"github.com/larsartmann/go-cqrs-lite/storage/v2"
+	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
 
 // Backend is a facade that exposes every SQL-backed CQRS store sharing a

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/snapshot/v3"
 )
 
 // fakeStore is a minimal in-memory SnapshotStore for tests.

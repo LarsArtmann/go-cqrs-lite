@@ -3,7 +3,7 @@ package event
 import (
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 // AggregateRef uniquely identifies an aggregate instance by its type and ID.

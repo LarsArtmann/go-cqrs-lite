@@ -10,10 +10,10 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2/idtest"
-	"github.com/larsartmann/go-cqrs-lite/snapshot/v2"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3/idtest"
+	"github.com/larsartmann/go-cqrs-lite/snapshot/v3"
 )
 
 func newTestSnapshotStore(t *testing.T) (*SQLSnapshotStore, sqlmock.Sqlmock) {

@@ -4,7 +4,7 @@
 // sync, edge deployment, or Turso's serverless data platform.
 //
 // Turso uses the same SQL dialect as SQLite, so this package delegates store
-// construction to [github.com/larsartmann/go-cqrs-lite/storage/v2] with the
+// construction to [github.com/larsartmann/go-cqrs-lite/storage/v3] with the
 // SQLite dialect. The value-add here is:
 //
 //   - Phantom-typed inputs ([DbPath], [RemoteURL], [AuthToken]) for compile-time safety.
@@ -84,7 +84,7 @@
 //
 // # Indexing Sub-Package
 //
-// See [github.com/larsartmann/go-cqrs-lite/storage/turso/v2/indexing] for the
+// See [github.com/larsartmann/go-cqrs-lite/storage/turso/v3/indexing] for the
 // auto-smart index advisor, auto-indexer, usage statistics, and WAL
 // checkpoint scheduler.
 package turso

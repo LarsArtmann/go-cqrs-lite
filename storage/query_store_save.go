@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	"fmt"
 
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v2"
-	"github.com/larsartmann/go-cqrs-lite/query/v2"
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
+	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
 )
 
 // SaveQuery persists a single query for audit purposes.

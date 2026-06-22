@@ -4,12 +4,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v2"
-	"github.com/larsartmann/go-cqrs-lite/event/v2"
-	"github.com/larsartmann/go-cqrs-lite/id/v2"
-	"github.com/larsartmann/go-cqrs-lite/kv/v2"
-	stackmemory "github.com/larsartmann/go-cqrs-lite/stack/memory/v2"
-	"github.com/larsartmann/go-cqrs-lite/stack/v2"
+	"github.com/larsartmann/go-cqrs-lite/codec/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/kv/v3"
+	stackmemory "github.com/larsartmann/go-cqrs-lite/stack/memory/v3"
+	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 )
 
 // todoKey is a branded string key for read-model tests.

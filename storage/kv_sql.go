@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/larsartmann/go-cqrs-lite/kv/v2"
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v2/sql"
+	"github.com/larsartmann/go-cqrs-lite/kv/v3"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
 )
 
 // kvTableName is the single table backing every SQLKVStore instance.

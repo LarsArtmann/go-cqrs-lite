@@ -1,11 +1,11 @@
 # kv — Backend-Agnostic Key-Value Store Interface
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/kv/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/kv/v2)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/kv/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/kv/v3)
 
 Minimal interface for embedded key-value stores with ordered iteration and atomic batch writes. No existing Go KV meta-API (gokv, valkeyrie) provides all three operations an event store needs: iteration, batch, and byte-slice keys.
 
 ```bash
-go get github.com/larsartmann/go-cqrs-lite/kv/v2
+go get github.com/larsartmann/go-cqrs-lite/kv/v3
 ```
 
 ## Interfaces
