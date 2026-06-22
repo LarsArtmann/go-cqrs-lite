@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.0.0
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.0.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.0.0
-	github.com/larsartmann/go-error-family v0.4.0
+	github.com/larsartmann/go-error-family v0.5.0
 	github.com/onsi/ginkgo/v2 v2.31.0
 	github.com/onsi/gomega v1.42.0
 	pgregory.net/rapid v1.3.0

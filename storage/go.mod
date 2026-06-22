@@ -13,7 +13,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.0.0
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.0.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.0.0
-	github.com/larsartmann/go-error-family v0.4.0
+	github.com/larsartmann/go-error-family v0.5.0
 	modernc.org/sqlite v1.52.0
 )
 

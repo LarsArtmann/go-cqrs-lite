@@ -4,7 +4,7 @@ go 1.26.3
 
 require (
 	github.com/fxamacker/cbor/v2 v2.9.2
-	github.com/larsartmann/go-error-family v0.4.0
+	github.com/larsartmann/go-error-family v0.5.0
 	github.com/onsi/gomega v1.42.0
 )
 
