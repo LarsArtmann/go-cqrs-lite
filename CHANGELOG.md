@@ -10,7 +10,7 @@ _No unreleased changes._
 
 ## [3.0.0] - 2026-06-22
 
-**Major release.** All 11 breaking changes are additive — v2 types consumers should migrate to already exist. See the **[v3 Migration Guide](docs/migration/V3_MIGRATION.md)** for step-by-step instructions.
+**Major release — tagged.** All 38 modules migrated to `/v3` import paths. The 11 breaking changes are additive in nature (the new shapes existed in v2). See the **[v3 Migration Guide](docs/migration/V3_MIGRATION.md)** for step-by-step instructions.
 
 ### Breaking Changes
 
@@ -47,6 +47,7 @@ _No unreleased changes._
 
 ### Changed
 
+- **Module paths** — All 38 modules migrated from `…/v2` to `…/v3` import paths (e.g. `github.com/larsartmann/go-cqrs-lite/event/v3`). Consumers update `go get` targets and import statements. The `example/*` modules remain unversioned.
 - **Zero-panic API migration** — All production `panic()` calls converted to error returns. Breaking signature changes:
   - `pebble.NewStore/NewSnapshotStore/NewCheckpointStore/NewKVStore/NewQueryStore/NewCommandStore` now return `(T, error)` — returns `ErrNilDatabase` (classified as `Rejection`) if db is nil.
   - `pebble.NewBackend` now returns `(*Backend, error)`.

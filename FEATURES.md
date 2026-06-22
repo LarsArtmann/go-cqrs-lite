@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-06-22 (v3 readiness: deleted projection/readmodel/reactive entries, fixed io.Closer removal, corrected module paths, updated streaming reads status) · **Module count:** 38 modules · **Go version:** 1.26.3
+**Last audited:** 2026-06-22 (v3 released: all import paths migrated to `/v3`, moved-module paths corrected — `storage/memory`, `storage/pebble`, `storage/turso`; deleted projection/readmodel/reactive entries; fixed io.Closer removal; updated streaming reads status) · **Module count:** 38 modules · **Go version:** 1.26.3
 
 ## Status Legend
 
@@ -23,7 +23,7 @@
 
 ### Command Dispatcher ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/command"`
+> `import "github.com/larsartmann/go-cqrs-lite/command/v3"`
 
 | Feature                  | Detail                                                                                                                                             | Status |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -45,7 +45,7 @@
 
 ### Query Dispatcher ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/query"`
+> `import "github.com/larsartmann/go-cqrs-lite/query/v3"`
 
 | Feature                | Detail                                                                             | Status |
 | ---------------------- | ---------------------------------------------------------------------------------- | ------ |
@@ -68,7 +68,7 @@
 
 ### Event System ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/event"`
+> `import "github.com/larsartmann/go-cqrs-lite/event/v3"`
 
 | Feature               | Detail                                                                                                                                                                                                                                                                                                                                      | Status |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -111,7 +111,7 @@
 
 ### Decider (Pure-Function Aggregate) ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/decider"`
+> `import "github.com/larsartmann/go-cqrs-lite/decider/v3"`
 
 | Feature              | Detail                                                                                       | Status |
 | -------------------- | -------------------------------------------------------------------------------------------- | ------ |
@@ -129,7 +129,7 @@
 
 ### Branded IDs ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/id"`
+> `import "github.com/larsartmann/go-cqrs-lite/id/v3"`
 
 | Feature                | Detail                                                                                                                                                        | Status |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -145,7 +145,7 @@
 
 ### Generic Dispatcher ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/dispatcher"`
+> `import "github.com/larsartmann/go-cqrs-lite/dispatcher/v3"`
 
 | Feature             | Detail                                                         | Status |
 | ------------------- | -------------------------------------------------------------- | ------ |
@@ -158,7 +158,7 @@
 
 ## Schema Evolution ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/schema"`
+> `import "github.com/larsartmann/go-cqrs-lite/schema/v3"`
 
 | Feature              | Detail                                                                               | Status |
 | -------------------- | ------------------------------------------------------------------------------------ | ------ |
@@ -174,7 +174,7 @@
 
 ## Snapshot ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/snapshot"`
+> `import "github.com/larsartmann/go-cqrs-lite/snapshot/v3"`
 
 | Feature          | Detail                                                          | Status |
 | ---------------- | --------------------------------------------------------------- | ------ |
@@ -187,7 +187,7 @@
 
 ## Payload Codec ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/codec"`
+> `import "github.com/larsartmann/go-cqrs-lite/codec/v3"`
 
 | Feature            | Detail                                                                      | Status |
 | ------------------ | --------------------------------------------------------------------------- | ------ |
@@ -204,7 +204,7 @@
 
 ## In-Memory Implementations 🧪 TESTING_ONLY
 
-> `import "github.com/larsartmann/go-cqrs-lite/memory"`
+> `import "github.com/larsartmann/go-cqrs-lite/storage/memory/v3"`
 
 | Component             | Detail                                                                                                   | Status |
 | --------------------- | -------------------------------------------------------------------------------------------------------- | ------ |
@@ -222,7 +222,7 @@
 
 ## Middleware Suite ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/middleware"`
+> `import "github.com/larsartmann/go-cqrs-lite/middleware/v3"`
 
 All **9 concerns** are provided for all 3 message types (command, event, query) — **27 domain-specific middleware factories** + generic `Middleware[M]` for custom message types.
 
@@ -352,7 +352,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ## Event Signing ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/signing"`
+> `import "github.com/larsartmann/go-cqrs-lite/signing/v3"`
 
 ### Single-Signature Mode
 
@@ -388,7 +388,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ## Event Encryption ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/encryption"`
+> `import "github.com/larsartmann/go-cqrs-lite/encryption/v3"`
 
 | Feature            | Detail                                                                              | Status |
 | ------------------ | ----------------------------------------------------------------------------------- | ------ |
@@ -413,7 +413,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ### Catalog System ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/catalog"`
+> `import "github.com/larsartmann/go-cqrs-lite/catalog/v3"`
 
 | Feature             | Detail                                                                                                                                                         | Status |
 | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -432,7 +432,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Service config      | `ServiceBadges`, `ServiceRepository`, `ServiceWritesTo`, `ServiceReadsFrom`, `ServiceEntities`, `ServiceSpecifications`, `ServiceAttachments`, `ServiceOwners` | ✅     |
 | ID parsing          | `ParseServiceID`, `ParseDomainID`, `ParseMessageID`, `ParseChannelID`                                                                                          | ✅     |
 
-> `import "github.com/larsartmann/go-cqrs-lite/catalog/asyncapi"`
+> `import "github.com/larsartmann/go-cqrs-lite/catalog/v3/asyncapi"`
 
 | Feature             | Detail                                                                                                      | Status |
 | ------------------- | ----------------------------------------------------------------------------------------------------------- | ------ |
@@ -442,7 +442,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Server config       | `WithServer(name, host, protocol)` option (defaults: kafka, localhost:9092)                                 | ✅     |
 | Channel mapping     | Commands → `receive`, Events with `Sends` → `send`, Events with `Receives` → `receive`, Queries → `receive` | ✅     |
 
-> `import "github.com/larsartmann/go-cqrs-lite/catalog/eventcatalog"`
+> `import "github.com/larsartmann/go-cqrs-lite/catalog/v3/eventcatalog"`
 
 | Feature        | Detail                                                                        | Status |
 | -------------- | ----------------------------------------------------------------------------- | ------ |
@@ -452,7 +452,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Config files   | `eventcatalog.config.js`, `package.json` with `@eventcatalog/core` dependency | ✅     |
 | LLM summary    | `llms.txt` — plain-text catalog summary for LLM consumption                   | ✅     |
 
-> `import "github.com/larsartmann/go-cqrs-lite/catalog/d2"`
+> `import "github.com/larsartmann/go-cqrs-lite/catalog/v3/d2"`
 
 | Feature             | Detail                                                      | Status |
 | ------------------- | ----------------------------------------------------------- | ------ |
@@ -462,7 +462,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Domain grouping     | Domain labels with dashed "contains" links to services      | ✅     |
 | Schema tooltips     | Field names and types shown on hover                        | ✅     |
 
-> `import "github.com/larsartmann/go-cqrs-lite/catalog/openapi"`
+> `import "github.com/larsartmann/go-cqrs-lite/catalog/v3/openapi"`
 
 | Feature             | Detail                                                            | Status |
 | ------------------- | ----------------------------------------------------------------- | ------ |
@@ -472,7 +472,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Base path support   | `WithBasePath(path)` option for API path prefix                   | ✅     |
 | Description option  | `WithDescription(desc)` for document metadata                     | ✅     |
 
-> `import "github.com/larsartmann/go-cqrs-lite/catalog/docserver"`
+> `import "github.com/larsartmann/go-cqrs-lite/catalog/v3/docserver"`
 
 | Feature            | Detail                                                                | Status |
 | ------------------ | --------------------------------------------------------------------- | ------ |
@@ -489,7 +489,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ### SQL Stores (PostgreSQL / SQLite)
 
-> `import "github.com/larsartmann/go-cqrs-lite/storage"`
+> `import "github.com/larsartmann/go-cqrs-lite/storage/v3"`
 
 | Feature                   | Detail                                                                                                                                       | Status |
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -519,7 +519,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ### Pebble Key-Value Store
 
-> `import "github.com/larsartmann/go-cqrs-lite/pebble"`
+> `import "github.com/larsartmann/go-cqrs-lite/storage/pebble/v3"`
 
 | Feature                | Detail                                                                                 | Status |
 | ---------------------- | -------------------------------------------------------------------------------------- | ------ |
@@ -540,7 +540,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ### Turso Database Connector
 
-> `import "github.com/larsartmann/go-cqrs-lite/turso"`
+> `import "github.com/larsartmann/go-cqrs-lite/storage/turso/v3"`
 
 | Feature                 | Detail                                                                                                                                                         | Status |
 | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -558,7 +558,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ### Turso Indexing (sub-package) ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/turso/indexing"`
+> `import "github.com/larsartmann/go-cqrs-lite/storage/turso/v3/indexing"`
 
 | Feature                  | Detail                                                                                          | Status |
 | ------------------------ | ----------------------------------------------------------------------------------------------- | ------ |
@@ -580,7 +580,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ## Stream Read Model ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/listing"`
+> `import "github.com/larsartmann/go-cqrs-lite/listing/v3"`
 
 | Feature                     | Detail                                                                                               | Status |
 | --------------------------- | ---------------------------------------------------------------------------------------------------- | ------ |
@@ -599,7 +599,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ## OpenTelemetry Helpers ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/otel"`
+> `import "github.com/larsartmann/go-cqrs-lite/otel/v3"`
 
 | Feature            | Detail                                                                                                                                                                                       | Status |
 | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -620,7 +620,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ## Watermill Adapter ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/watermill"`
+> `import "github.com/larsartmann/go-cqrs-lite/watermill/v3"`
 
 | Feature             | Detail                                                                                                   | Status |
 | ------------------- | -------------------------------------------------------------------------------------------------------- | ------ |
@@ -636,7 +636,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ## Prometheus Metrics Exporter ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/prometheus"`
+> `import "github.com/larsartmann/go-cqrs-lite/prometheus/v3"`
 
 || Feature | Detail | Status |
 || ------------------- | ------------------------------------------------------------------------------------------------- | ------ |
@@ -669,7 +669,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ### cqrs-gen Code Generator 🔧
 
-> `go run github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen`
+> `go run github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v3`
 
 | Feature             | Detail                                                                       | Status |
 | ------------------- | ---------------------------------------------------------------------------- | ------ |
@@ -680,11 +680,11 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ### API Stability Checker 🔧
 
-> `go run github.com/larsartmann/go-cqrs-lite/cmd/api-stability`
+> `go run github.com/larsartmann/go-cqrs-lite/cmd/api-stability/v3`
 
 | Feature                | Detail                                                      | Status |
 | ---------------------- | ----------------------------------------------------------- | ------ |
-| Module scanning        | Parses all exported symbols from 17 library modules         | ✅     |
+| Module scanning        | Parses all exported symbols from consumer-facing modules     | ✅     |
 | Golden file comparison | Compares current API surface against `docs/api_surface.txt` | ✅     |
 | Update mode            | `-update` flag regenerates golden file                      | ✅     |
 | Diff reporting         | Reports REMOVED/NEW exports — CI gate for breaking changes  | ✅     |
@@ -693,7 +693,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ## Integration Tests ✅
 
-> `import "github.com/larsartmann/go-cqrs-lite/integration"`
+> `import "github.com/larsartmann/go-cqrs-lite/integration/v3"`
 
 | Feature              | Detail                                                                         | Status |
 | -------------------- | ------------------------------------------------------------------------------ | ------ |

@@ -203,9 +203,9 @@ Most Go CQRS libraries are **frameworks** — they own your transport, your brok
 
 ## Status
 
-**v3-ready** — 38 modules, 84–100% test coverage on core modules. All 11 v3 breaking changes complete. Ready to tag v3.0.0.
+**v3.0.0 released** — 38 modules on `/v3` import paths, 84–100% test coverage on core modules. All 11 v3 breaking changes shipped.
 
-**Migrating from v2?** Read the **[v3 Migration Guide](docs/migration/V3_MIGRATION.md)** — all changes are additive, v2 types consumers should migrate to already exist.
+**Migrating from v2?** Read the **[v3 Migration Guide](docs/migration/V3_MIGRATION.md)** — all changes are additive, and import paths move from `…/v2` to `…/v3`.
 
 See [FEATURES.md](FEATURES.md) for the full feature inventory, [ROADMAP.md](ROADMAP.md) for direction, and [docs/](docs/) for architecture decisions (ADRs), benchmarks, and storage guides.
 

@@ -377,7 +377,7 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 - Table-driven tests preferred; BDD via Ginkgo v2 + Gomega for event/decider/query
 - `t.Parallel()` for independent tests; core packages >80% coverage (most >90%)
 - Per-module isolation: `cd event && GOWORK=off go test ./... -count=1`
-- Golden tests use shared `eventtest.AssertGolden(t, path, got, *update)` from `event/v2/eventtest`
+- Golden tests use shared `eventtest.AssertGolden(t, path, got, *update)` from `event/v3/eventtest`
 - Modules without event dependency (otel, codec) keep their own local golden helper
 
 ### Lint Conventions

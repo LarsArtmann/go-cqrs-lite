@@ -1,33 +1,19 @@
 # Roadmap — go-cqrs-lite
 
 > Where we are, where we're going, and what's next.
-> **Last updated:** 2026-06-21
+> **Last updated:** 2026-06-22
 
 ---
 
-## Current State (v3-ready)
+## Current State (v3.0.0 released)
 
-The library is v3-ready with 38 modules across a multi-module Go workspace. All 11 v3 breaking changes are complete (see table below). All core CQRS/ES primitives are shipped: Event Sourcing with branded IDs, CQRS command/query dispatch, tombstone soft-delete, event signing/encryption, OTel observability, Pebble/SQL/Turso storage backends, and a Bundle composition layer with 4 presets.
+**v3.0.0 is tagged** (2026-06-22) — all 38 modules are on `/v3` import paths. The 11 v3 breaking changes shipped (see [CHANGELOG.md](CHANGELOG.md) and the [v3 Migration Guide](docs/migration/V3_MIGRATION.md)). All core CQRS/ES primitives are shipped: Event Sourcing with branded IDs, CQRS command/query dispatch, tombstone soft-delete, event signing/encryption, OTel observability, Pebble/SQL/Turso storage backends, and a Bundle composition layer with 4 presets.
 
 ## Short Term (Next 90 Days)
 
-### v3 Major Release
+### v3.0.0 — Shipped
 
-All breaking changes have been prepared additively in v2 — the v2 types consumers should migrate to already exist. See [`docs/migration/V3_MIGRATION.md`](docs/migration/V3_MIGRATION.md) for the full guide.
-
-| #   | Breaking Change                                     | ADR                                                       | Status               |
-| --- | --------------------------------------------------- | --------------------------------------------------------- | -------------------- |
-| 1   | Delete ghost bus code (923 LOC)                     | [0028](docs/adr/0028-watermill-as-delivery-layer.md)      | Done                 |
-| 2   | Move memory/ → storage/memory/                      | [0029](docs/adr/0029-storage-consolidation.md)            | Done                 |
-| 3   | Version → uint64                                    | —                                                         | Done                 |
-| 4   | Break Metadata alias                                | [0031](docs/adr/0031-metadata-split.md)                   | Done                 |
-| 5   | Remove io.Closer from interfaces                    | [0010](docs/adr/0010-remove-io-closer-from-interfaces.md) | Done                 |
-| 6   | Delete readmodel/ (merged into kv/)                 | [0032](docs/adr/0032-merge-readmodel-into-kv.md)          | Done                 |
-| 7   | Delete projection/ (composable stack replaces it)   | [0030](docs/adr/0030-dissolve-projection.md)              | Done                 |
-| 8   | Move SSE → transport/http/ + delete dead HTTP utils | [0025](docs/adr/0025-transport-adapter-strategy.md)       | Done                 |
-| 9   | query.Handler: any → generic                        | [0008](docs/adr/0008-typed-handler-signature.md)          | TypedHandler shipped |
-| 10  | Rename Decider.Fold → Apply                         | —                                                         | Done                 |
-| 11  | Make event.Event a concrete type                    | —                                                         | Done                 |
+All 11 breaking changes landed and v3.0.0 is tagged. The new shapes were added in v2, so migration is additive. See [`docs/migration/V3_MIGRATION.md`](docs/migration/V3_MIGRATION.md) for the full guide and [CHANGELOG.md](CHANGELOG.md) for the release notes.
 
 ### Transport Adapters (ADR-0025)
 
@@ -90,4 +76,4 @@ All breaking changes have been prepared additively in v2 — the v2 types consum
 
 ---
 
-_Last updated: 2026-06-21 — all v3 breaking changes complete. Metadata split (ADR-0031) and projection dissolution (ADR-0030) done. Ready to tag v3.0.0._
+_Last updated: 2026-06-22 — v3.0.0 tagged. All 11 breaking changes shipped (Metadata split ADR-0031, projection dissolution ADR-0030)._
