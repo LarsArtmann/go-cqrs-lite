@@ -684,7 +684,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 | Feature                | Detail                                                      | Status |
 | ---------------------- | ----------------------------------------------------------- | ------ |
-| Module scanning        | Parses all exported symbols from consumer-facing modules     | ✅     |
+| Module scanning        | Parses all exported symbols from consumer-facing modules    | ✅     |
 | Golden file comparison | Compares current API surface against `docs/api_surface.txt` | ✅     |
 | Update mode            | `-update` flag regenerates golden file                      | ✅     |
 | Diff reporting         | Reports REMOVED/NEW exports — CI gate for breaking changes  | ✅     |
