@@ -55,10 +55,10 @@ switch logic.
 
 Two hand-rolled switch statements replaced with upstream APIs:
 
-| Helper | Lines removed | Replaced with | Verified identical output |
-|---|---|---|---|
-| `familyStatus()` | 16 | `Family.HTTPStatus()` | ✅ Same codes (400/409/503/500/503) |
-| `familyType()` | 15 | `Family.String()` + RFC 7807 fallback | ✅ Same lowercase names |
+| Helper           | Lines removed | Replaced with                         | Verified identical output           |
+| ---------------- | ------------- | ------------------------------------- | ----------------------------------- |
+| `familyStatus()` | 16            | `Family.HTTPStatus()`                 | ✅ Same codes (400/409/503/500/503) |
+| `familyType()`   | 15            | `Family.String()` + RFC 7807 fallback | ✅ Same lowercase names             |
 
 Also bumped go-error-family to v0.5.0 and removed stale `examples/basic/basic` binary.
 
@@ -230,10 +230,12 @@ No action needed — it's transparent to consumers.
 **Should go-cqrs-lite tag a new release (v3.0.1 or v3.1.0) after this upgrade?**
 
 Arguments for v3.1.0:
+
 - `event.Compose` was removed (breaking change for external consumers)
 - API surface golden file changed (47 lines removed)
 
 Arguments for v3.0.1:
+
 - `Compose` was a trivial wrapper around `errors.Join` — anyone using it can mechanically replace it
 - No semantic behavior changed
 - The v0.5.0 bump is additive (new APIs available, no removed APIs we used)
@@ -246,14 +248,14 @@ patch releases are expected for individual module changes or if all modules vers
 
 ## Commit Log
 
-| Repo | Commit | Description |
-|---|---|---|
-| go-cqrs-lite | `59a6808e` | Remove event.Compose re-export, use stdlib errors.Join directly |
-| go-cqrs-lite | `1cdb1326` | Bump go-error-family v0.4.0 → v0.5.0 across all workspace modules |
-| go-cqrs-lite | `53ef0efd` | Document go-error-family v0.5.0 upgrade in CHANGELOG and boundary docs |
-| cqrs-htmx | `7b95f22` | Upgrade go-error-family to v0.5.0, eliminate hand-rolled family helpers |
-| go-localsync | `a586e11` | Bump go-error-family v0.4.0 → v0.5.0 |
-| go-localsync | `d6c90ef` | Re-sync vendored dependencies after go-error-family v0.5.0 bump |
+| Repo         | Commit     | Description                                                             |
+| ------------ | ---------- | ----------------------------------------------------------------------- |
+| go-cqrs-lite | `59a6808e` | Remove event.Compose re-export, use stdlib errors.Join directly         |
+| go-cqrs-lite | `1cdb1326` | Bump go-error-family v0.4.0 → v0.5.0 across all workspace modules       |
+| go-cqrs-lite | `53ef0efd` | Document go-error-family v0.5.0 upgrade in CHANGELOG and boundary docs  |
+| cqrs-htmx    | `7b95f22`  | Upgrade go-error-family to v0.5.0, eliminate hand-rolled family helpers |
+| go-localsync | `a586e11`  | Bump go-error-family v0.4.0 → v0.5.0                                    |
+| go-localsync | `d6c90ef`  | Re-sync vendored dependencies after go-error-family v0.5.0 bump         |
 
 **Total: 7 commits, all pushed.**
 
@@ -261,10 +263,10 @@ patch releases are expected for individual module changes or if all modules vers
 
 ## Test Verification Summary
 
-| Repo | Modules | Build | Tests | Lint (BuildFlow) |
-|---|---|---|---|---|
-| go-cqrs-lite | 39 | ✅ | ✅ All pass | ✅ golangci-lint clean |
-| cqrs-htmx | 7 | ✅ | ✅ All pass | ✅ golangci-lint clean |
-| go-localsync | 8 | ✅ | ✅ All pass | ✅ golangci-lint clean |
+| Repo         | Modules | Build | Tests       | Lint (BuildFlow)       |
+| ------------ | ------- | ----- | ----------- | ---------------------- |
+| go-cqrs-lite | 39      | ✅    | ✅ All pass | ✅ golangci-lint clean |
+| cqrs-htmx    | 7       | ✅    | ✅ All pass | ✅ golangci-lint clean |
+| go-localsync | 8       | ✅    | ✅ All pass | ✅ golangci-lint clean |
 
 ---

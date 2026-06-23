@@ -22,6 +22,7 @@ mapping, triplicated error re-exports, and ambiguous ActorID — are **resolved*
 ## a) FULLY DONE (6 epics)
 
 ### E04 — Reconcile HTTP Status Mapping ✅
+
 **Score: 100 | Breaking change: YES**
 
 - `cqrs-htmx/errors.go` `familyStatus()` now matches `go-error-family` upstream
@@ -36,6 +37,7 @@ mapping, triplicated error re-exports, and ambiguous ActorID — are **resolved*
 **Files changed:** `errors.go`, `structured_error.go`, `recovery.go`, `doc.go`, `coverage_render_dispatch_test.go`, `coverage_errors_test.go`, `docs/adr/0017-reconcile-http-status-mapping.md`
 
 ### E02 — Unify usermgmt.UserID with id.UserID ✅
+
 **Score: 125 | Breaking change: YES**
 
 - `usermgmt.UserID` is now `type UserID = id.UserID` (ULID-backed, ADR-0018)
@@ -51,6 +53,7 @@ mapping, triplicated error re-exports, and ambiguous ActorID — are **resolved*
 **Files changed:** `usermgmt/id.go`, `usermgmt/authz_roles.go`, `usermgmt/es_readmodel.go`, `usermgmt/http.go`, `usermgmt/import_export.go`, `usermgmt/middleware.go`, `usermgmt/service_register.go`, `usermgmt/totp.go`, `usermgmt/webauthn_adapter.go`, `usermgmt/webauthn_service.go`, `usermgmt/sql_session_store.go`, `integration_test/bridge_test.go`, `integration_test/integration_test.go`, `integration_test/signing_encryption_test.go`, + 25 test files, `docs/adr/0018-unify-userid.md`
 
 ### E03 — Canonicalize ActorID ✅
+
 **Score: 80 | Breaking change: YES (go-localsync)**
 
 - Renamed go-localsync `ActorID` → `ActorLogin` (29 files)
@@ -67,6 +70,7 @@ mapping, triplicated error re-exports, and ambiguous ActorID — are **resolved*
 **Files changed:** `pkg/id/ids.go`, + 28 files across pkg/api, pkg/cqrs, pkg/data/model, pkg/provider, pkg/sync
 
 ### E05 — Remove Triplicated Error Re-exports ✅
+
 **Score: 64 | Breaking change: NO (internal)**
 
 - Deleted ~260 LOC of carbon-copy re-exports from `command/errors.go` and `query/errors.go`
@@ -79,6 +83,7 @@ mapping, triplicated error re-exports, and ambiguous ActorID — are **resolved*
 **Files changed:** `command/errors.go`, `command/errors_test.go`, `command/aggregate_ref.go`, `command/typed_store.go`, `command/dispatcher.go`, `command/command.go`, `command/store.go`, `query/errors.go`, `query/errors_test.go`, `query/typed.go`, `query/dispatcher.go`, `query/pagination.go`, `storage/command_store_*.go`, `storage/query_store_*.go`, `storage/memory/query_store.go`, `storage/pebble/command_store.go`, `storage/pebble/query_store.go`
 
 ### E06 — Standardize Error Import Convention ✅
+
 **Score: 48 | Breaking change: NO (internal)**
 
 - Convention established and enforced:
@@ -93,6 +98,7 @@ mapping, triplicated error re-exports, and ambiguous ActorID — are **resolved*
 **Files changed:** Same as E05 (the two are intertwined)
 
 ### E11 — Sync Documentation Across Repos ✅
+
 **Score: 12 | Breaking change: NO**
 
 - `go-cqrs-lite/docs/ECOSYSTEM_BOUNDARIES.md` — all violations updated with RESOLVED status
@@ -111,12 +117,14 @@ mapping, triplicated error re-exports, and ambiguous ActorID — are **resolved*
 ### E07 — Break go-cqrs-lite Module Cycles 🔄 50%
 
 **What's done:**
+
 - `eventtest/` extracted as separate Go module (new `go.mod`)
 - Added to `go.work` workspace
 - Breaks partial cycle: eventtest (which imports snapshot + memory) is no longer in event's dependency graph
 - All tests pass
 
 **What remains:**
+
 - event → storage/memory → command → event transitive cycle still exists (via test dependencies)
 - event's test files import `storage/memory` for integration tests
 - Breaking requires moving event BDD/integration test files to a separate test module
@@ -127,12 +135,14 @@ mapping, triplicated error re-exports, and ambiguous ActorID — are **resolved*
 ### E09 — go-localsync: Remove Bypassed query.Dispatcher 🔄 90%
 
 **What's done:**
+
 - Investigated thoroughly: the bypass in `stack_adapters.go` is **intentional and correct**
 - It's a documented performance optimization for hot read paths (GET /items, GET /stats)
 - The query.Dispatcher is still wired for test verification
 - Documentation updated in ECOSYSTEM_BOUNDARIES.md
 
 **What "remains":**
+
 - Nothing actionable — the design is correct as-is. The original plan assumed the bypass was a problem; investigation revealed it's a deliberate architectural choice with a 20-line comment explaining why.
 
 ---
@@ -157,6 +167,7 @@ not mechanical file moves. This is a multi-day architectural refactoring.
 
 Nothing went wrong beyond normal compile-fix cycles during refactoring. All
 breaking changes were:
+
 1. Identified before making them
 2. Documented in ADRs before implementing
 3. Tested after every change
@@ -200,33 +211,33 @@ to use valid ULIDs — would have been a massive churn for zero behavioral benef
 
 ## f) Top 25 Things to Get Done Next
 
-| # | What | Impact | Effort | Repo |
-|---|------|--------|--------|------|
-| 1 | **Release go-error-family v0.5.0** with `HTTPStatus()` method, then switch cqrs-htmx to use `Family.HTTPStatus()` directly instead of local `familyStatus()` | High | Small | go-error-family |
-| 2 | **Commit all work** across the three repos (this session's changes are uncommitted) | Critical | Small | All 3 |
-| 3 | **Extract event integration tests** to separate module, breaking the last module cycle | Medium | Medium | go-cqrs-lite |
-| 4 | **Redesign usermgmt Service** for composition-based decomposition (start with TOTP — 6 methods, minimal deps) | High | Large | cqrs-htmx |
-| 5 | **Add `go-cqrs-lite` to cqrs-htmx go.work** for local development (currently uses published v3.0.0) | Medium | Small | cqrs-htmx |
-| 6 | **Set up nix private repo workaround** for go-cqrs-lite (netrc, SSH, or builtins.fetchGit) since E01 was cancelled | High | Medium | go-localsync |
-| 7 | **Remove `examples/basic/basic` binary** and add to `.gitignore` | Low | Trivial | cqrs-htmx |
-| 8 | **Clean up go-localsync vendor/** — commit or revert the VERSIONING.md change | Low | Trivial | go-localsync |
-| 9 | **Add integration test** that verifies cqrs-htmx `cqrshtmx.UserID` and `usermgmt.UserID` are the same type at compile time | Medium | Small | cqrs-htmx |
-| 10 | **Document the UserID→Casbin bridge pattern** — `NewUserID(s).Get().String()` is the canonical way to get a Casbin subject from a UserID | Medium | Small | cqrs-htmx |
-| 11 | **Tag go-cqrs-lite v3.0.1** with the error re-export cleanup (E05/E06) — it's a non-breaking improvement | Medium | Small | go-cqrs-lite |
-| 12 | **Tag go-localsync v0.3.0** with the ActorLogin rename — it's a breaking change | Medium | Small | go-localsync |
-| 13 | **Tag cqrs-htmx v3.1.0** with HTTP status mapping fix + UserID unification — breaking changes warrant minor bump | Medium | Small | cqrs-htmx |
-| 14 | **Add `branching-flow errorfamily .` linter** to go-cqrs-lite modules (bans stdlib error constructors, already used in cqrs-htmx) | Medium | Small | go-cqrs-lite |
-| 15 | **Audit `go-cqrs-lite/id/`** for remaining direct `errorfamily` imports — should they use `event.` too? | Low | Small | go-cqrs-lite |
-| 16 | **Write a migration guide** for consumers affected by the UserID breaking change (what to grep for, how to fix) | Medium | Small | cqrs-htmx |
-| 17 | **Add property-based test** for `NewUserID` determinism: same input string always produces same ULID | Low | Small | cqrs-htmx |
-| 18 | **Remove the `family` parameter** from `familyTitle()` in structured_error.go (now unused) | Low | Trivial | cqrs-htmx |
-| 19 | **Investivate if usermgmt can be extracted** from cqrs-htmx into its own repo (the modularization proposals exist but were scored 3.2/10) | Low | Large | cqrs-htmx |
-| 20 | **Add architecture lint** that enforces "event/ is the only module allowed to import errorfamily directly" | Medium | Medium | go-cqrs-lite |
-| 21 | **Run `gosec` security scan** across all three repos after the changes | Low | Small | All 3 |
-| 22 | **Update go-localsync gap analysis doc** — the projection replay and query.Dispatcher bypass are now documented as intentional | Low | Small | go-localsync |
-| 23 | **Consolidate the 3 ADRs** (0017, 0018, 0019) into a single "Ecosystem Boundary Fix" blog post or architecture doc | Low | Small | cqrs-htmx |
-| 24 | **Add `CONTRIBUTING.md`** section on "When to use event. vs errorfamily." for new contributors | Low | Small | go-cqrs-lite |
-| 25 | **Set up CI pipeline** that runs all three repos' tests on every push (buildflow integration) | Medium | Medium | All 3 |
+| #   | What                                                                                                                                                         | Impact   | Effort  | Repo            |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ------- | --------------- |
+| 1   | **Release go-error-family v0.5.0** with `HTTPStatus()` method, then switch cqrs-htmx to use `Family.HTTPStatus()` directly instead of local `familyStatus()` | High     | Small   | go-error-family |
+| 2   | **Commit all work** across the three repos (this session's changes are uncommitted)                                                                          | Critical | Small   | All 3           |
+| 3   | **Extract event integration tests** to separate module, breaking the last module cycle                                                                       | Medium   | Medium  | go-cqrs-lite    |
+| 4   | **Redesign usermgmt Service** for composition-based decomposition (start with TOTP — 6 methods, minimal deps)                                                | High     | Large   | cqrs-htmx       |
+| 5   | **Add `go-cqrs-lite` to cqrs-htmx go.work** for local development (currently uses published v3.0.0)                                                          | Medium   | Small   | cqrs-htmx       |
+| 6   | **Set up nix private repo workaround** for go-cqrs-lite (netrc, SSH, or builtins.fetchGit) since E01 was cancelled                                           | High     | Medium  | go-localsync    |
+| 7   | **Remove `examples/basic/basic` binary** and add to `.gitignore`                                                                                             | Low      | Trivial | cqrs-htmx       |
+| 8   | **Clean up go-localsync vendor/** — commit or revert the VERSIONING.md change                                                                                | Low      | Trivial | go-localsync    |
+| 9   | **Add integration test** that verifies cqrs-htmx `cqrshtmx.UserID` and `usermgmt.UserID` are the same type at compile time                                   | Medium   | Small   | cqrs-htmx       |
+| 10  | **Document the UserID→Casbin bridge pattern** — `NewUserID(s).Get().String()` is the canonical way to get a Casbin subject from a UserID                     | Medium   | Small   | cqrs-htmx       |
+| 11  | **Tag go-cqrs-lite v3.0.1** with the error re-export cleanup (E05/E06) — it's a non-breaking improvement                                                     | Medium   | Small   | go-cqrs-lite    |
+| 12  | **Tag go-localsync v0.3.0** with the ActorLogin rename — it's a breaking change                                                                              | Medium   | Small   | go-localsync    |
+| 13  | **Tag cqrs-htmx v3.1.0** with HTTP status mapping fix + UserID unification — breaking changes warrant minor bump                                             | Medium   | Small   | cqrs-htmx       |
+| 14  | **Add `branching-flow errorfamily .` linter** to go-cqrs-lite modules (bans stdlib error constructors, already used in cqrs-htmx)                            | Medium   | Small   | go-cqrs-lite    |
+| 15  | **Audit `go-cqrs-lite/id/`** for remaining direct `errorfamily` imports — should they use `event.` too?                                                      | Low      | Small   | go-cqrs-lite    |
+| 16  | **Write a migration guide** for consumers affected by the UserID breaking change (what to grep for, how to fix)                                              | Medium   | Small   | cqrs-htmx       |
+| 17  | **Add property-based test** for `NewUserID` determinism: same input string always produces same ULID                                                         | Low      | Small   | cqrs-htmx       |
+| 18  | **Remove the `family` parameter** from `familyTitle()` in structured_error.go (now unused)                                                                   | Low      | Trivial | cqrs-htmx       |
+| 19  | **Investivate if usermgmt can be extracted** from cqrs-htmx into its own repo (the modularization proposals exist but were scored 3.2/10)                    | Low      | Large   | cqrs-htmx       |
+| 20  | **Add architecture lint** that enforces "event/ is the only module allowed to import errorfamily directly"                                                   | Medium   | Medium  | go-cqrs-lite    |
+| 21  | **Run `gosec` security scan** across all three repos after the changes                                                                                       | Low      | Small   | All 3           |
+| 22  | **Update go-localsync gap analysis doc** — the projection replay and query.Dispatcher bypass are now documented as intentional                               | Low      | Small   | go-localsync    |
+| 23  | **Consolidate the 3 ADRs** (0017, 0018, 0019) into a single "Ecosystem Boundary Fix" blog post or architecture doc                                           | Low      | Small   | cqrs-htmx       |
+| 24  | **Add `CONTRIBUTING.md`** section on "When to use event. vs errorfamily." for new contributors                                                               | Low      | Small   | go-cqrs-lite    |
+| 25  | **Set up CI pipeline** that runs all three repos' tests on every push (buildflow integration)                                                                | Medium   | Medium  | All 3           |
 
 ---
 
@@ -239,11 +250,13 @@ strings to valid ULIDs via SHA-256. This preserves backward compatibility with
 200+ test call sites that pass short identifiers like `"u1"`, `"ghost"`, `"alice"`.
 
 **The argument for hashing (current):**
+
 - Zero test churn (200+ call sites work unchanged)
 - Deterministic: same input always produces same output
 - Tests that compare `NewUserID("u1") == NewUserID("u1")` still pass
 
 **The argument for rejecting:**
+
 - `NewUserID("alice")` silently produces a ULID that has no relationship to "alice"
 - If someone passes a real username thinking it'll be stored as-is, they get a
   ULID hash instead — a silent data transformation
@@ -273,11 +286,11 @@ go-localsync:     8 packages — ALL PASS
 
 ## Diff Statistics
 
-| Repo | Files changed | Insertions | Deletions |
-|------|--------------|------------|-----------|
-| go-cqrs-lite | 35 | +267 | -659 |
-| cqrs-htmx | 45 | +191 | -130 |
-| go-localsync | 29 | +105 | -42 |
-| **Total** | **109** | **+563** | **-831** |
+| Repo         | Files changed | Insertions | Deletions |
+| ------------ | ------------- | ---------- | --------- |
+| go-cqrs-lite | 35            | +267       | -659      |
+| cqrs-htmx    | 45            | +191       | -130      |
+| go-localsync | 29            | +105       | -42       |
+| **Total**    | **109**       | **+563**   | **-831**  |
 
 Net **-268 lines** — less code, more correctness.

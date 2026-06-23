@@ -169,11 +169,16 @@ linters:
     funlen:
       lines: 200
       statements: 100
+    ginkgolinter:
+      forbid-focus-container: true
+      forbid-spec-pollution: true
     gocognit:
       min-complexity: 35
     gocritic:
       disabled-checks:
         - ifElseChain
+    makezero:
+      always: true
     revive:
       rules:
         - disabled: true
@@ -182,6 +187,10 @@ linters:
           name: package-comments
         - disabled: false
           name: unused-parameter
+    testifylint:
+      disable:
+        - go-require
+      enable-all: true
     varnamelen:
       check-receiver: false
       check-return: false
@@ -422,6 +431,7 @@ linters:
       - \.gen\.go$
       - _templ\.go$
       - event/
+      - event/eventtest/
       - vendor/
 formatters:
   enable:
@@ -443,6 +453,7 @@ formatters:
     paths:
       - _templ\.go$
       - event/
+      - event/eventtest/
 issues:
   max-issues-per-linter: 50
   max-same-issues: 10
