@@ -5,7 +5,7 @@
 // backend that a deployment wires together. The deployer assembles a Bundle
 // (directly via [New] and the With* options, or via a preset such as
 // stack/sqlite); the application consumes it through typed accessors
-// ([Bundle.Repository], [Bundle.ReadModel], [Bundle.ProjectionRunner]) that
+// ([Repository], [ReadModel], [Bundle.CatchUpSubscriber]) that
 // never reference an infrastructure type.
 //
 // # Why "Bundle", not "Stack" or "Container"

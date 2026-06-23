@@ -207,7 +207,7 @@ func WithCheckpointStore(s event.CheckpointStore) Option {
 //
 // The deployer chooses the backend (kv.MemStore, pebble.KVAdapter, or a
 // future SQL adapter); the application accesses it via the typed
-// [Bundle.ReadModel] accessor.
+// [ReadModel] accessor.
 func WithReadModels(backend kv.Store) Option {
 	return func(b *Bundle) {
 		b.ReadModels = backend

@@ -47,6 +47,15 @@ func main() {
 	defer cancel()
 
 	// ── DEPLOYER: choose infrastructure ──────────────────────────────────
+	//
+	// This uses stack.New() with individual With* options to show the MANUAL
+	// assembly path — the pattern you'd use to mix engines per-concern, e.g.
+	// Pebble for events + SQL for materialized views + Redis for checkpoints.
+	// For a homogeneous stack (one engine for everything), use a preset instead:
+	//
+	//   bundle, err := memory.New()           // or sqlite.New("app.db")
+	//                                           // or pebble.New("data")
+	//                                           // or postgres.New(dsn)
 	bundle, err := stack.New(
 		stack.WithEventStore(memory.NewMemoryStore()),
 		stack.WithBus(cqrswatermill.NewEventBus()),

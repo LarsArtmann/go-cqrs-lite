@@ -171,7 +171,7 @@ func (b *Bundle) registerCloser(c any) {
 
 // validate checks that the Bundle is usable: at least one capability field
 // must be set. Individual accessors perform stricter checks (e.g.
-// [Bundle.Repository] requires an event.Store).
+// [Repository] requires an event.Store).
 func (b *Bundle) validate() error {
 	if b.EventSink == nil &&
 		b.EventSource == nil &&

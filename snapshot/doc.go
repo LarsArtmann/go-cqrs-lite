@@ -5,7 +5,7 @@
 //
 // # Quick Start
 //
-//	store, _ := memory.NewSnapshotStore()
+//	store, _ := memory.NewMemorySnapshotStore()
 //	snap := snapshot.Snapshot{
 //	    AggregateID:   aggID,
 //	    AggregateType: "User",

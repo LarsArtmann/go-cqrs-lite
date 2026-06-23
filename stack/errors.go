@@ -20,21 +20,21 @@ var (
 	// a publisher. It is retained for consumers that reference it.
 	ErrMissingPublisher = errors.New("stack: bundle has no event.Publisher")
 
-	// ErrMissingReadModels is returned by [Bundle.ReadModel] when the Bundle
+	// ErrMissingReadModels is returned by [ReadModel] when the Bundle
 	// has no read-model backend.
 	ErrMissingReadModels = errors.New(
 		"stack: bundle has no read-model backend (use WithReadModels)",
 	)
 
-	// ErrMissingJournal is returned by [Bundle.ProjectionRunner] when the
+	// ErrMissingJournal is returned by [Bundle.CatchUpSubscriber] when the
 	// Bundle has no event.Journal for projection replay.
 	ErrMissingJournal = errors.New("stack: bundle has no event.Journal")
 
-	// ErrMissingSubscriber is returned by [Bundle.ProjectionRunner] when the
+	// ErrMissingSubscriber is returned by [Bundle.CatchUpSubscriber] when the
 	// Bundle has no event.Subscriber for live event handling.
 	ErrMissingSubscriber = errors.New("stack: bundle has no event.Subscriber")
 
-	// ErrMissingCheckpoint is returned by [Bundle.ProjectionRunner] when the
+	// ErrMissingCheckpoint is returned by [Bundle.CatchUpSubscriber] when the
 	// Bundle has no checkpoint store for tracking projection position.
 	ErrMissingCheckpoint = errors.New("stack: bundle has no checkpoint store")
 
