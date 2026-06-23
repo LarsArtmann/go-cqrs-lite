@@ -15,6 +15,8 @@
 ## Guides
 
 - **[Architecture Patterns](ARCHITECTURE_PATTERNS.md)** — CQRS, Event Sourcing, and Decider patterns explained
+- **[Bundle Presets](PRESETS.md)** — Deployer-facing preset catalog (memory, SQLite, Pebble, Postgres, Turso)
+- **[Infrastructure Recommendations](INFRASTRUCTURE_RECOMMENDATIONS.md)** — Which storage engine fits which CQRS concern, and why
 - **[Storage Guide](STORAGE_GUIDE.md)** — SQL event store, snapshots, checkpoint stores, backend facade
 - **[Signing Architecture](signing-architecture.md)** — Event signing with HMAC-SHA256 and Ed25519
 - **[Error Taxonomy](error-taxonomy.md)** — 5-family error classification system (Rejection / Conflict / Transient / Infrastructure / Corruption)

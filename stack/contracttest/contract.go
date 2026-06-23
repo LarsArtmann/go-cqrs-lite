@@ -1,7 +1,7 @@
 // Package contracttest provides a reusable contract test suite for
 // [stack.Bundle] presets.
 //
-// Every preset (memory, sqlite, pebble, postgres) must satisfy the same
+// Every preset (memory, sqlite, turso, pebble, postgres) must satisfy the same
 // behavioral contract: Bundle fields populated, event roundtrip, read-model
 // roundtrip, and idempotent Close. RunSuite verifies all of these against a
 // caller-provided factory so a new preset gets the full test suite for free.

@@ -2,7 +2,8 @@
 
 > **Consumers should NOT decide on infrastructure.** Presets assemble the full
 > CQRS stack from one call. The deployer picks a preset; the app developer
-> never imports a backend.
+> never imports a backend. For **why** each engine fits each concern, see
+> [Infrastructure Recommendations](INFRASTRUCTURE_RECOMMENDATIONS.md).
 
 ## Quick Start
 
@@ -24,7 +25,8 @@ store, _ := stack.ReadModel[TodoView, TodoID](b, codec.JSONCodec{},
 | Memory   | `stack/memory`   | In-memory        | No         | Memory | Memory KV        |
 | SQLite   | `stack/sqlite`   | SQLite (modernc) | Yes        | Memory | SQL KV (cqrs_kv) |
 | Pebble   | `stack/pebble`   | PebbleDB (LSM)   | Yes        | Memory | Pebble KV        |
-| Postgres | `stack/postgres` | PostgreSQL (pgx) | Yes        | Memory | SQL KV (cqrs_kv) |
+| Postgres | `stack/postgres` | PostgreSQL (pgx) | Yes        | Memory / LISTEN-NOTIFY | SQL KV (cqrs_kv) |
+| Turso    | `stack/turso`    | LibSQL           | Yes        | Memory | SQL KV (cqrs_kv) |
 
 All presets wire every capability: event store + bus, command store, query
 store, snapshot store, checkpoint store, and read-model backend.
@@ -51,6 +53,30 @@ defer b.Close()
 
 Options: `WithoutWAL()`, `WithoutAutoMigrate()`.
 
+#### Multi-DB split (SQLite flagship)
+
+Split concerns across separate database files to eliminate reader/writer
+contention in production:
+
+```go
+b, _ := sqlite.New("primary.db",
+    sqlite.WithEventDB("events.db"),   // events + snapshots + checkpoints
+    sqlite.WithQueryDB("queries.db"),  // command + query audit logs
+    sqlite.WithViewDB("views.db"),     // materialized views (KV)
+)
+defer b.Close()
+```
+
+| Database    | Contains                       | Rationale                                    |
+| ----------- | ------------------------------ | -------------------------------------------- |
+| **Event DB**  | events, snapshots, checkpoints | Event-sourcing write model, isolated from reads |
+| **Query DB**  | commands, queries             | Operational audit log, isolated from write model |
+| **View DB**   | materialized views (`cqrs_kv`) | Read scans don't contend with event appends    |
+
+Default (single database) is fine for development and low-traffic apps. See
+[Infrastructure Recommendations](INFRASTRUCTURE_RECOMMENDATIONS.md) for the
+full rationale.
+
 ### Pebble (embedded high-throughput)
 
 ```go
@@ -75,7 +101,29 @@ defer b.Close()
 
 Option: `WithoutAutoMigrate()`.
 
+Distributed bus (cross-process pub/sub): `WithDistributedBus(listener)` wires
+Postgres LISTEN/NOTIFY instead of the in-process GoChannel bus.
+
 Tests require `POSTGRES_TEST_DSN` env var; they skip when unset.
+
+### Turso (edge / offline-first)
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/stack/turso/v3"
+
+// Local-only (like SQLite)
+b, _ := turso.New("app.db")
+
+// With remote sync (offline-first)
+b, _ := turso.NewSync(ctx, "app.db", remoteURL, authToken)
+defer b.Close()
+
+// Sync control (Push / Pull / Checkpoint)
+b.Sync().Push(ctx)
+```
+
+Options: `WithoutAutoMigrate()`, `WithEventDB`, `WithQueryDB`, `WithViewDB`
+(local mode only — multi-DB split is not supported with sync).
 
 ## Bundle Fields
 

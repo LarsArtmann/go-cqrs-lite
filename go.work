@@ -33,6 +33,7 @@ use (
 	./stack/pebble
 	./stack/postgres
 	./stack/sqlite
+	./stack/turso
 	./storage
 	./storage/memory
 	./storage/pebble

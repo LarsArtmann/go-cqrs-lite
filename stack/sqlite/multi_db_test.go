@@ -2,8 +2,13 @@ package sqlite_test
 
 import (
 	"context"
+	"database/sql"
+	"path/filepath"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/command/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
@@ -47,28 +52,110 @@ func TestMultiDB_SeparateViewDB(t *testing.T) {
 	}
 }
 
-func TestMultiDB_AllSeparate(t *testing.T) {
+// TestMultiDB_Routing proves the multi-DB split routes each concern to the
+// correct database. It writes an event, a command, and a read-model entry
+// through a Bundle wired with WithEventDB + WithQueryDB + WithViewDB, then
+// closes the Bundle, reopens each database file independently, and counts
+// rows per table. This is the only way to catch a routing bug where stores
+// silently land in the wrong database.
+func TestMultiDB_Routing(t *testing.T) {
 	t.Parallel()
 
+	// Real files (not :memory:) so each database survives Close and can be
+	// reopened for row inspection.
+	dir := t.TempDir()
+	primaryPath := filepath.Join(dir, "primary.db")
+	eventPath := filepath.Join(dir, "events.db")
+	queryPath := filepath.Join(dir, "queries.db")
+	viewPath := filepath.Join(dir, "views.db")
+
 	bundle, err := sqlite.New(
-		":memory:",
-		sqlite.WithEventDB(":memory:"),
-		sqlite.WithQueryDB(":memory:"),
-		sqlite.WithViewDB(":memory:"),
+		primaryPath,
+		sqlite.WithEventDB(eventPath),
+		sqlite.WithQueryDB(queryPath),
+		sqlite.WithViewDB(viewPath),
 	)
 	if err != nil {
-		t.Fatalf("sqlite.New with all separate DBs: %v", err)
-	}
-	defer func() { _ = bundle.Close() }()
-
-	// Verify the bundle has all capabilities wired.
-	if bundle.ReadModels == nil {
-		t.Fatal("expected ReadModels to be set")
+		t.Fatalf("sqlite.New multi-db: %v", err)
 	}
 
-	if bundle.EventSink == nil {
-		t.Fatal("expected EventSink to be set")
+	ctx := context.Background()
+	aggID := id.NewAggregateID()
+
+	// Event → must land in the event DB.
+	ref := event.NewAggregateRef("Test", aggID)
+	evts, err := event.NewEvents(
+		aggID, "Test", 0,
+		[]event.Type{"test.created"},
+		[]any{map[string]any{"name": "alpha"}},
+	)
+	if err != nil {
+		t.Fatalf("NewEvents: %v", err)
 	}
+
+	if err := bundle.EventSink.Save(ctx, ref, evts, 0); err != nil {
+		t.Fatalf("Save event: %v", err)
+	}
+
+	// Command → must land in the query DB.
+	cmdRef := command.NewAggregateRef("Test", aggID)
+	cmd, err := command.NewPersistedCommand("test.create", cmdRef, []byte(`{}`))
+	if err != nil {
+		t.Fatalf("NewPersistedCommand: %v", err)
+	}
+
+	if err := bundle.CommandSink.Save(ctx, cmdRef, cmd); err != nil {
+		t.Fatalf("Save command: %v", err)
+	}
+
+	// Read model → must land in the view DB.
+	viewStore := kv.NewTypedStore[routingView, testKey](bundle.ReadModels)
+
+	if err := viewStore.Set(ctx, testKey("v1"), &routingView{Name: "hello"}); err != nil {
+		t.Fatalf("Set view: %v", err)
+	}
+
+	if err := bundle.Close(); err != nil {
+		t.Fatalf("Close: %v", err)
+	}
+
+	// Verify routing: each concern is in its assigned DB and absent from the
+	// others. Before the fix, openSecondaryStores placed all five stores in
+	// whichever DB called it last, so events and commands both ended up in
+	// the query DB while the event DB sat unused.
+	assertRowCount(t, eventPath, "events", 1)
+	assertRowCount(t, eventPath, "commands", 0)
+	assertRowCount(t, queryPath, "commands", 1)
+	assertRowCount(t, queryPath, "events", 0)
+	assertRowCount(t, viewPath, "cqrs_kv", 1)
+	assertRowCount(t, primaryPath, "events", 0)
+	assertRowCount(t, primaryPath, "commands", 0)
+}
+
+// assertRowCount reopens dbPath read-only and asserts the row count in table.
+func assertRowCount(t *testing.T, dbPath, table string, want int) {
+	t.Helper()
+
+	db, err := sql.Open("sqlite", dbPath)
+	if err != nil {
+		t.Fatalf("open %s: %v", filepath.Base(dbPath), err)
+	}
+	defer func() { _ = db.Close() }()
+
+	var got int
+
+	err = db.QueryRowContext(context.Background(), "SELECT COUNT(*) FROM "+table).Scan(&got)
+	if err != nil {
+		t.Fatalf("count %s.%s: %v", filepath.Base(dbPath), table, err)
+	}
+
+	if got != want {
+		t.Errorf("%s: table %q has %d rows, want %d", filepath.Base(dbPath), table, got, want)
+	}
+}
+
+type routingView struct {
+	Name string `json:"name"`
 }
 
 type testKey string

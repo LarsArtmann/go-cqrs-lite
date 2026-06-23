@@ -92,9 +92,10 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 
 	stackOpts := buildOptions(backend)
 
-	// Override: event store from separate DB if configured.
+	// Override: event-sourcing stores (events, snapshots, checkpoints) from a
+	// separate database if configured.
 	if cfg.eventDSN != "" {
-		eventOpts, eventCloser, eErr := openSecondaryStores(cfg.eventDSN, cfg)
+		eventOpts, eventCloser, eErr := openEventStores(cfg.eventDSN, cfg)
 		if eErr != nil {
 			_ = backend.Close()
 			_ = sqlDB.Close()
@@ -106,9 +107,10 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 		stackOpts = append(stackOpts, stack.WithCloser(eventCloser))
 	}
 
-	// Override: command/query stores from separate DB if configured.
+	// Override: command and query audit stores from a separate database if
+	// configured.
 	if cfg.queryDSN != "" {
-		queryOpts, queryCloser, qErr := openSecondaryStores(cfg.queryDSN, cfg)
+		queryOpts, queryCloser, qErr := openQueryStores(cfg.queryDSN, cfg)
 		if qErr != nil {
 			_ = backend.Close()
 			_ = sqlDB.Close()
@@ -250,14 +252,13 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 	return sqlDB, backend, nil
 }
 
-// openSecondaryStores opens a secondary SQLite database, creates a backend
-// from it, and returns stack.Option values for event, command, query,
-// snapshot, and checkpoint stores. The returned closer handles cleanup of
-// both the backend and the *sql.DB.
-func openSecondaryStores(
+// openSecondaryBackend opens and configures a secondary SQLite database,
+// creates its backend, and returns both along with a closer that releases
+// the backend and the *sql.DB. Shared by the event-DB and query-DB paths.
+func openSecondaryBackend(
 	dsn string,
 	cfg config,
-) ([]stack.Option, io.Closer, error) {
+) (*storage.SQLBackend, io.Closer, error) {
 	secDB, err := openSecondaryDB(dsn, cfg)
 	if err != nil {
 		return nil, nil, err
@@ -270,31 +271,60 @@ func openSecondaryStores(
 		return nil, nil, fmt.Errorf("sqlite: create backend for %q: %w", dsn, err)
 	}
 
+	closer := &multiCloser{closers: []io.Closer{secBackend, &funcCloser{fn: secDB.Close}}}
+
+	return secBackend, closer, nil
+}
+
+// openEventStores opens a secondary database for the event-sourcing write
+// model: the event store, snapshots, and checkpoints. These three stores
+// together serve event sourcing, so they share one database. Commands and
+// queries are NOT placed here — see [openQueryStores].
+func openEventStores(
+	dsn string,
+	cfg config,
+) ([]stack.Option, io.Closer, error) {
+	secBackend, closer, err := openSecondaryBackend(dsn, cfg)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	opts := []stack.Option{
 		stack.WithEventStore(secBackend.EventStore()),
 	}
 
-	cmdStore, cmdErr := secBackend.CommandStore()
-	if cmdErr == nil {
-		opts = append(opts, stack.WithCommandStore(cmdStore))
-	}
-
-	qStore, qErr := secBackend.QueryStore()
-	if qErr == nil {
-		opts = append(opts, stack.WithQueryStore(qStore))
-	}
-
-	snapStore, snapErr := secBackend.SnapshotStore()
-	if snapErr == nil {
+	if snapStore, snapErr := secBackend.SnapshotStore(); snapErr == nil {
 		opts = append(opts, stack.WithSnapshotStore(snapStore))
 	}
 
-	cpStore, cpErr := secBackend.CheckpointStore()
-	if cpErr == nil {
+	if cpStore, cpErr := secBackend.CheckpointStore(); cpErr == nil {
 		opts = append(opts, stack.WithCheckpointStore(cpStore))
 	}
 
-	closer := &multiCloser{closers: []io.Closer{secBackend, &funcCloser{fn: secDB.Close}}}
+	return opts, closer, nil
+}
+
+// openQueryStores opens a secondary database for the command and query audit
+// stores — the operational log of what was dispatched. Events, snapshots, and
+// checkpoints are NOT placed here — see [openEventStores].
+func openQueryStores(
+	dsn string,
+	cfg config,
+) ([]stack.Option, io.Closer, error) {
+	secBackend, closer, err := openSecondaryBackend(dsn, cfg)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var opts []stack.Option
+
+	if cmdStore, cmdErr := secBackend.CommandStore(); cmdErr == nil {
+		opts = append(opts, stack.WithCommandStore(cmdStore))
+	}
+
+	if qStore, qErr := secBackend.QueryStore(); qErr == nil {
+		opts = append(opts, stack.WithQueryStore(qStore))
+	}
 
 	return opts, closer, nil
 }

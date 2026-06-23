@@ -125,7 +125,11 @@ func (t *TypedCommandStore[P]) AppendBatch(
 
 	err := t.store.AppendBatch(ctx, ref, persisted)
 	if err != nil {
-		return event.WrapInfrastructure(err, "command.typed_store.append_batch", "append typed commands")
+		return event.WrapInfrastructure(
+			err,
+			"command.typed_store.append_batch",
+			"append typed commands",
+		)
 	}
 
 	return nil

@@ -1,4 +1,4 @@
-package sqlite
+package turso
 
 import (
 	"database/sql"
@@ -9,26 +9,29 @@ import (
 )
 
 // buildViewOptions creates read-model options from either a separate view DB
-// (when cfg.viewDSN is set) or the primary backend's KV store.
+// (when cfg.viewPath is set) or the primary backend's KV store.
 func buildViewOptions(
 	cfg config,
 	backend *storage.SQLBackend,
 	sqlDB *sql.DB,
 ) ([]stack.Option, error) {
-	if cfg.viewDSN == "" {
+	if cfg.viewPath == "" {
 		return buildPrimaryViewOptions(backend, sqlDB)
 	}
 
 	return buildSecondaryViewOptions(cfg, backend, sqlDB)
 }
 
-func buildPrimaryViewOptions(backend *storage.SQLBackend, sqlDB *sql.DB) ([]stack.Option, error) {
+func buildPrimaryViewOptions(
+	backend *storage.SQLBackend,
+	sqlDB *sql.DB,
+) ([]stack.Option, error) {
 	kvStore, err := backend.KVStore()
 	if err != nil {
 		_ = backend.Close()
 		_ = sqlDB.Close()
 
-		return nil, fmt.Errorf("sqlite: kv store: %w", err)
+		return nil, fmt.Errorf("turso: kv store: %w", err)
 	}
 
 	return []stack.Option{stack.WithReadModels(kvStore)}, nil
@@ -39,12 +42,12 @@ func buildSecondaryViewOptions(
 	backend *storage.SQLBackend,
 	sqlDB *sql.DB,
 ) ([]stack.Option, error) {
-	viewDB, err := openSecondaryDB(cfg.viewDSN, cfg)
+	viewDB, err := openSecondaryDB(cfg.viewPath, cfg)
 	if err != nil {
 		_ = backend.Close()
 		_ = sqlDB.Close()
 
-		return nil, fmt.Errorf("sqlite: open view db: %w", err)
+		return nil, fmt.Errorf("turso: open view db: %w", err)
 	}
 
 	viewBackend, err := storage.NewSQLiteBackend(viewDB)
@@ -53,7 +56,7 @@ func buildSecondaryViewOptions(
 		_ = sqlDB.Close()
 		_ = viewDB.Close()
 
-		return nil, fmt.Errorf("sqlite: create view backend: %w", err)
+		return nil, fmt.Errorf("turso: create view backend: %w", err)
 	}
 
 	kvStore, err := viewBackend.KVStore()
@@ -62,7 +65,7 @@ func buildSecondaryViewOptions(
 		_ = backend.Close()
 		_ = sqlDB.Close()
 
-		return nil, fmt.Errorf("sqlite: kv store (view db): %w", err)
+		return nil, fmt.Errorf("turso: kv store (view db): %w", err)
 	}
 
 	return []stack.Option{
