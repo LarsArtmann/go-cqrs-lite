@@ -15,7 +15,7 @@ defer b.Close()
 
 // Typed read model
 store, _ := stack.ReadModel[TodoView, TodoID](b, codec.JSONCodec{},
-    readmodel.WithKeyPrefix[TodoView, TodoID]("todos:"))
+    kv.WithTypedKeyPrefix[TodoView, TodoID]("todos:"))
 ```
 
 ## Available Presets
@@ -143,7 +143,7 @@ type Bundle struct {
     QuerySource query.QuerySource
     SnapshotStore   snapshot.SnapshotStore
     CheckpointStore event.CheckpointStore
-    ReadModels      readmodel.Backend // kv.Store
+    ReadModels      kv.Store // read-model KV store
 }
 ```
 
@@ -158,7 +158,7 @@ This means a read model survives a process restart for every persistent preset.
 
 ```go
 store, _ := stack.ReadModel[TodoView, TodoID](b, codec.JSONCodec{},
-    readmodel.WithKeyPrefix[TodoView, TodoID]("todos:"))
+    kv.WithTypedKeyPrefix[TodoView, TodoID]("todos:"))
 
 store.Set(ctx, id, &TodoView{Title: "buy milk"})
 got, _ := store.Get(ctx, id)
@@ -167,11 +167,11 @@ got, _ := store.Get(ctx, id)
 ### With Cache
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/readmodel/cache/v3"
+import "github.com/larsartmann/go-cqrs-lite/kv/v3"
 
-cached, _ := cache.New(store,
-    cache.WithCapacity[TodoView, TodoID](10_000),
-    cache.WithTTL[TodoView, TodoID](5*time.Minute),
+cached, _ := kv.NewCache(store,
+    kv.WithCacheCapacity[TodoView, TodoID](10_000),
+    kv.WithCacheTTL[TodoView, TodoID](5*time.Minute),
 )
 defer cached.Close()
 ```
