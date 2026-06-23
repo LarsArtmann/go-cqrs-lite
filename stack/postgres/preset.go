@@ -17,18 +17,47 @@ type Option func(*config)
 
 type config struct {
 	autoMigrate bool
+	eventDSN    string                       // override DSN for event store
+	queryDSN    string                       // override DSN for query/command audit store
+	viewDSN     string                       // override DSN for read-model KV store
 	listener    storage.NotificationListener // nil → in-memory bus
 	busOpts     []storage.PostgresBusOption  // forwarded when listener != nil
 }
 
 func defaultConfig() config {
-	return config{autoMigrate: true} //nolint:exhaustruct // options fill fields
+	return config{ //nolint:exhaustruct // options fill fields
+		autoMigrate: true,
+		eventDSN:    "",
+		queryDSN:    "",
+		viewDSN:     "",
+	}
 }
 
 // WithoutAutoMigrate skips schema creation. Use this when you manage schemas
 // yourself (e.g. via a migration tool). By default New creates all required tables.
 func WithoutAutoMigrate() Option {
 	return func(c *config) { c.autoMigrate = false }
+}
+
+// WithEventDB sets a separate DSN for the event store. When set, events,
+// snapshots, and checkpoints are persisted to this database instead of the
+// primary DSN. The deployer chooses this when isolating write-heavy event
+// streams from query traffic.
+func WithEventDB(dsn string) Option {
+	return func(c *config) { c.eventDSN = dsn }
+}
+
+// WithQueryDB sets a separate DSN for the command and query audit stores.
+// When set, persisted commands and queries go to this database.
+func WithQueryDB(dsn string) Option {
+	return func(c *config) { c.queryDSN = dsn }
+}
+
+// WithViewDB sets a separate DSN for the read-model KV store. When set,
+// materialized views are persisted to this database, isolating read-model
+// scans from the event store.
+func WithViewDB(dsn string) Option {
+	return func(c *config) { c.viewDSN = dsn }
 }
 
 // WithDistributedBus enables cross-process event propagation via Postgres
@@ -78,30 +107,42 @@ func New(dsn string, opts ...Option) (*stack.Bundle, error) {
 }
 
 func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
-	db, err := sql.Open("pgx", dsn) //nolint:varnamelen
+	db, backend, err := openBackend(dsn, cfg)
 	if err != nil {
-		return nil, fmt.Errorf("postgres preset: open %q: %w", dsn, err)
-	}
-
-	ctx := context.Background()
-
-	if cfg.autoMigrate {
-		err = storage.PostgresInitSchema(ctx, db)
-		if err != nil {
-			_ = db.Close()
-
-			return nil, fmt.Errorf("postgres preset: init schema: %w", err)
-		}
-	}
-
-	backend, err := storage.NewSQLBackend(db)
-	if err != nil {
-		_ = db.Close()
-
-		return nil, fmt.Errorf("postgres preset: create backend: %w", err)
+		return nil, err
 	}
 
 	stackOpts := buildOptions(backend)
+
+	// Override: event-sourcing stores (events, snapshots, checkpoints) from a
+	// separate database if configured.
+	if cfg.eventDSN != "" {
+		eventOpts, eventCloser, eErr := openEventStores(cfg.eventDSN, cfg)
+		if eErr != nil {
+			_ = backend.Close()
+			_ = db.Close()
+
+			return nil, fmt.Errorf("postgres preset: open event db: %w", eErr)
+		}
+
+		stackOpts = append(stackOpts, eventOpts...)
+		stackOpts = append(stackOpts, stack.WithCloser(eventCloser))
+	}
+
+	// Override: command and query audit stores from a separate database if
+	// configured.
+	if cfg.queryDSN != "" {
+		queryOpts, queryCloser, qErr := openQueryStores(cfg.queryDSN, cfg)
+		if qErr != nil {
+			_ = backend.Close()
+			_ = db.Close()
+
+			return nil, fmt.Errorf("postgres preset: open query db: %w", qErr)
+		}
+
+		stackOpts = append(stackOpts, queryOpts...)
+		stackOpts = append(stackOpts, stack.WithCloser(queryCloser))
+	}
 
 	bus, busCleanup, err := buildBus(db, backend.EventStore(), cfg)
 	if err != nil {
@@ -117,16 +158,13 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 		stackOpts = append(stackOpts, stack.WithCloser(busCleanup))
 	}
 
-	// Read models persist in the same database via a SQL-backed kv.Store.
-	kvStore, err := backend.KVStore()
+	viewOpts, err := buildViewOptions(cfg, backend, db)
 	if err != nil {
-		_ = backend.Close()
-		_ = db.Close()
-
-		return nil, fmt.Errorf("postgres preset: kv store: %w", err)
+		return nil, err
 	}
 
-	stackOpts = append(stackOpts, stack.WithReadModels(kvStore))
+	stackOpts = append(stackOpts, viewOpts...)
+
 	stackOpts = append(
 		stackOpts,
 		stack.WithCloser(backend),
@@ -142,6 +180,35 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	}
 
 	return b, nil
+}
+
+// openBackend opens the database, applies schema, and returns both the *sql.DB
+// (for lifecycle) and the SQLBackend (for store access).
+func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
+	db, err := sql.Open("pgx", dsn) //nolint:varnamelen
+	if err != nil {
+		return nil, nil, fmt.Errorf("postgres preset: open %q: %w", dsn, err)
+	}
+
+	ctx := context.Background()
+
+	if cfg.autoMigrate {
+		err = storage.PostgresInitSchema(ctx, db)
+		if err != nil {
+			_ = db.Close()
+
+			return nil, nil, fmt.Errorf("postgres preset: init schema: %w", err)
+		}
+	}
+
+	backend, err := storage.NewSQLBackend(db)
+	if err != nil {
+		_ = db.Close()
+
+		return nil, nil, fmt.Errorf("postgres preset: create backend: %w", err)
+	}
+
+	return db, backend, nil
 }
 
 // buildBus returns the event bus to wire into the Bundle. When cfg.listener
@@ -193,11 +260,3 @@ func buildOptions(backend *storage.SQLBackend) []stack.Option {
 
 	return opts
 }
-
-type funcCloser struct {
-	fn func() error
-}
-
-func (c *funcCloser) Close() error { return c.fn() }
-
-var _ io.Closer = (*funcCloser)(nil)

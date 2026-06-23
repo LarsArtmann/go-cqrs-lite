@@ -18,6 +18,18 @@
 //	b, err := postgres.New(dsn, postgres.WithDistributedBus(listener))
 //	defer b.Close()
 //
+// Multi-DB split (separate databases for events, audit, and views):
+//
+//	b, err := postgres.New(primaryDSN,
+//	    postgres.WithEventDB("postgres://host/events_db"),
+//	    postgres.WithQueryDB("postgres://host/queries_db"),
+//	    postgres.WithViewDB("postgres://host/views_db"),
+//	)
+//	defer b.Close()
+//	// Events+snapshots+checkpoints → events_db
+//	// Commands+queries → queries_db
+//	// Read models → views_db
+//
 // All data is persistent. The returned Bundle owns the *sql.DB; Close releases it.
 // When WithDistributedBus is used, Close also drains the listener's dedicated
 // LISTEN connection.
