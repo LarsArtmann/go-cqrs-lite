@@ -168,7 +168,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	stackOpts = append(
 		stackOpts,
 		stack.WithCloser(backend),
-		stack.WithCloser(&funcCloser{fn: sqlDB.Close}),
+		stack.WithCloser(stack.NewFuncCloser(sqlDB.Close)),
 	)
 
 	b, err := stack.New(stackOpts...)

@@ -2,13 +2,11 @@ package turso
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 	cqrsturso "github.com/larsartmann/go-cqrs-lite/storage/turso/v3"
-	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v3"
 )
 
@@ -19,6 +17,7 @@ type config struct {
 	autoMigrate bool
 	optimize    bool
 	foreignKeys bool
+	wal         bool
 	eventPath   string // override path for event store
 	queryPath   string // override path for query/command audit store
 	viewPath    string // override path for read-model KV store
@@ -26,7 +25,15 @@ type config struct {
 }
 
 func defaultConfig() config {
-	return config{autoMigrate: true, optimize: false, foreignKeys: false}
+	return config{autoMigrate: true, optimize: false, foreignKeys: false, wal: true}
+}
+
+// WithoutWAL disables WAL mode. By default New enables WAL plus a busy
+// timeout of 5 seconds to eliminate "database is locked" errors under
+// concurrency. WAL is safe for single-writer workloads and improves read
+// concurrency significantly.
+func WithoutWAL() Option {
+	return func(c *config) { c.wal = false }
 }
 
 // WithoutAutoMigrate skips schema creation. Use this when you manage schemas
@@ -209,7 +216,7 @@ func newLocalBundle(dbPath string, cfg config) (*Bundle, error) {
 	stackOpts = append(
 		stackOpts,
 		stack.WithCloser(backend),
-		stack.WithCloser(&funcCloser{fn: sqlDB.Close}),
+		stack.WithCloser(stack.NewFuncCloser(sqlDB.Close)),
 	)
 
 	b, err := stack.New(stackOpts...)
@@ -287,91 +294,4 @@ func newSyncBundle(
 	}
 
 	return &Bundle{Bundle: b, syncDB: syncDB}, nil
-}
-
-// openLocalBackend opens the database, configures the pool, applies the schema,
-// and returns both the *sql.DB (for lifecycle) and the Backend (for stores).
-func openLocalBackend(
-	dbPath string,
-	cfg config,
-) (*sql.DB, *storage.SQLBackend, error) {
-	sqlDB, err := cqrsturso.Open(cqrsturso.DbPath(dbPath))
-	if err != nil {
-		return nil, nil, fmt.Errorf("turso: open %q: %w", dbPath, err)
-	}
-
-	cqrsturso.ConfigurePool(sqlDB)
-
-	if err := applySchemaAndPragmas(sqlDB, cfg); err != nil {
-		_ = sqlDB.Close()
-
-		return nil, nil, err
-	}
-
-	backend, err := cqrsturso.NewBackend(sqlDB)
-	if err != nil {
-		_ = sqlDB.Close()
-
-		return nil, nil, fmt.Errorf("turso: create backend: %w", err)
-	}
-
-	return sqlDB, backend, nil
-}
-
-// applySchemaAndPragmas runs schema initialization (with optional
-// optimizations), then applies foreign keys if enabled. Shared by all
-// database-opening paths (local, secondary, sync).
-func applySchemaAndPragmas(sqlDB *sql.DB, cfg config) error {
-	ctx := context.Background()
-
-	if cfg.autoMigrate {
-		var err error
-		if cfg.optimize {
-			err = cqrsturso.InitSchemaWithIndexesAndOptimizations(ctx, sqlDB)
-		} else {
-			err = cqrsturso.InitSchema(ctx, sqlDB)
-		}
-
-		if err != nil {
-			return fmt.Errorf("turso: init schema: %w", err)
-		}
-	}
-
-	if cfg.foreignKeys {
-		err := storage.SQLiteEnableForeignKeys(ctx, sqlDB)
-		if err != nil {
-			return fmt.Errorf("turso: enable foreign keys: %w", err)
-		}
-	}
-
-	return nil
-}
-
-// buildOptions assembles the stack.Option slice for a Backend's stores.
-func buildOptions(backend *storage.SQLBackend) []stack.Option {
-	opts := []stack.Option{
-		stack.WithEventStore(backend.EventStore()),
-	}
-
-	cmdStore, err := backend.CommandStore()
-	if err == nil {
-		opts = append(opts, stack.WithCommandStore(cmdStore))
-	}
-
-	queryStore, err := backend.QueryStore()
-	if err == nil {
-		opts = append(opts, stack.WithQueryStore(queryStore))
-	}
-
-	snapStore, err := backend.SnapshotStore()
-	if err == nil {
-		opts = append(opts, stack.WithSnapshotStore(snapStore))
-	}
-
-	cpStore, err := backend.CheckpointStore()
-	if err == nil {
-		opts = append(opts, stack.WithCheckpointStore(cpStore))
-	}
-
-	return opts
 }

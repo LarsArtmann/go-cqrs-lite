@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"io"
 
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
@@ -16,6 +15,7 @@ type Option func(*config)
 
 type config struct {
 	wal         bool
+	optimize    bool
 	foreignKeys bool
 	autoMigrate bool
 	eventDSN    string // override DSN for event store
@@ -26,6 +26,7 @@ type config struct {
 func defaultConfig() config {
 	return config{
 		wal:         true,
+		optimize:    false,
 		foreignKeys: false,
 		autoMigrate: true,
 		eventDSN:    "",
@@ -39,6 +40,14 @@ func defaultConfig() config {
 // concurrency.
 func WithoutWAL() Option {
 	return func(c *config) { c.wal = false }
+}
+
+// WithOptimizations applies performance PRAGMAs tuned for CQRS workloads:
+// cache_size (64 MB), temp_store=MEMORY, and mmap_size (256 MB). These
+// improve throughput without durability trade-offs. Recommended for
+// production. Has no effect if [WithoutAutoMigrate] is also set.
+func WithOptimizations() Option {
+	return func(c *config) { c.optimize = true }
 }
 
 // WithForeignKeys enables SQLite foreign-key enforcement on all databases
@@ -154,7 +163,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	stackOpts = append(
 		stackOpts,
 		stack.WithCloser(backend),
-		stack.WithCloser(&funcCloser{fn: sqlDB.Close}),
+		stack.WithCloser(stack.NewFuncCloser(sqlDB.Close)),
 	)
 
 	b, err := stack.New(stackOpts...)
@@ -167,46 +176,6 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	}
 
 	return b, nil
-}
-
-// openSecondaryDB opens and configures a secondary SQLite database (for events,
-// queries, or views when multi-DB mode is enabled via WithEventDB etc.).
-func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
-	sqlDB, err := sql.Open("sqlite", dsn)
-	if err != nil {
-		return nil, fmt.Errorf("sqlite: open %q: %w", dsn, err)
-	}
-
-	ctx := context.Background()
-
-	if cfg.wal {
-		err = storage.SQLiteEnableWAL(ctx, sqlDB)
-		if err != nil {
-			_ = sqlDB.Close()
-
-			return nil, fmt.Errorf("sqlite: enable WAL on %q: %w", dsn, err)
-		}
-	}
-
-	if cfg.foreignKeys {
-		err = storage.SQLiteEnableForeignKeys(ctx, sqlDB)
-		if err != nil {
-			_ = sqlDB.Close()
-
-			return nil, fmt.Errorf("sqlite: enable foreign keys on %q: %w", dsn, err)
-		}
-	}
-
-	if cfg.autoMigrate {
-		err = storage.SQLiteInitSchema(ctx, sqlDB)
-		if err != nil {
-			_ = sqlDB.Close()
-
-			return nil, fmt.Errorf("sqlite: init schema on %q: %w", dsn, err)
-		}
-	}
-
-	return sqlDB, nil
 }
 
 // buildOptions assembles the stack.Option slice for an SQLBackend's stores.
@@ -277,6 +246,15 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 		}
 	}
 
+	if cfg.optimize {
+		err = storage.SQLiteApplyOptimizations(ctx, sqlDB)
+		if err != nil {
+			_ = sqlDB.Close()
+
+			return nil, nil, fmt.Errorf("sqlite: apply optimizations: %w", err)
+		}
+	}
+
 	backend, err := storage.NewSQLiteBackend(sqlDB)
 	if err != nil {
 		_ = sqlDB.Close()
@@ -285,85 +263,4 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 	}
 
 	return sqlDB, backend, nil
-}
-
-// openSecondaryBackend opens and configures a secondary SQLite database,
-// creates its backend, and returns both along with a closer that releases
-// the backend and the *sql.DB. Shared by the event-DB and query-DB paths.
-func openSecondaryBackend(
-	dsn string,
-	cfg config,
-) (*storage.SQLBackend, io.Closer, error) {
-	secDB, err := openSecondaryDB(dsn, cfg)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	secBackend, err := storage.NewSQLiteBackend(secDB)
-	if err != nil {
-		_ = secDB.Close()
-
-		return nil, nil, fmt.Errorf("sqlite: create backend for %q: %w", dsn, err)
-	}
-
-	closer := &multiCloser{closers: []io.Closer{secBackend, &funcCloser{fn: secDB.Close}}}
-
-	return secBackend, closer, nil
-}
-
-// openEventStores opens a secondary database for the event-sourcing write
-// model: the event store, snapshots, and checkpoints. These three stores
-// together serve event sourcing, so they share one database. Commands and
-// queries are NOT placed here — see [openQueryStores].
-func openEventStores(
-	dsn string,
-	cfg config,
-) ([]stack.Option, io.Closer, error) {
-	secBackend, closer, err := openSecondaryBackend(dsn, cfg)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	opts := []stack.Option{
-		stack.WithEventStore(secBackend.EventStore()),
-	}
-
-	snapStore, snapErr := secBackend.SnapshotStore()
-	if snapErr == nil {
-		opts = append(opts, stack.WithSnapshotStore(snapStore))
-	}
-
-	cpStore, cpErr := secBackend.CheckpointStore()
-	if cpErr == nil {
-		opts = append(opts, stack.WithCheckpointStore(cpStore))
-	}
-
-	return opts, closer, nil
-}
-
-// openQueryStores opens a secondary database for the command and query audit
-// stores — the operational log of what was dispatched. Events, snapshots, and
-// checkpoints are NOT placed here — see [openEventStores].
-func openQueryStores(
-	dsn string,
-	cfg config,
-) ([]stack.Option, io.Closer, error) {
-	secBackend, closer, err := openSecondaryBackend(dsn, cfg)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var opts []stack.Option
-
-	cmdStore, cmdErr := secBackend.CommandStore()
-	if cmdErr == nil {
-		opts = append(opts, stack.WithCommandStore(cmdStore))
-	}
-
-	qStore, qErr := secBackend.QueryStore()
-	if qErr == nil {
-		opts = append(opts, stack.WithQueryStore(qStore))
-	}
-
-	return opts, closer, nil
 }

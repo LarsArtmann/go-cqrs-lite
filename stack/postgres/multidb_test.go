@@ -134,13 +134,13 @@ func createTestDB(t *testing.T, adminDSN, dbDSN string) {
 	dbName := dbNameFromDSN(t, dbDSN)
 
 	// Connect to the maintenance database to create the test database.
-	db, err := sql.Open("pgx", adminDSN)
+	sqlDB, err := sql.Open("pgx", adminDSN)
 	if err != nil {
 		t.Fatalf("open admin connection: %v", err)
 	}
-	defer func() { _ = db.Close() }()
+	defer func() { _ = sqlDB.Close() }()
 
-	_, err = db.ExecContext(context.Background(),
+	_, err = sqlDB.ExecContext(context.Background(),
 		fmt.Sprintf(`CREATE DATABASE "%s"`, dbName))
 	if err != nil && !strings.Contains(err.Error(), "already exists") {
 		t.Fatalf("create database %s: %v", dbName, err)
@@ -152,28 +152,28 @@ func dropTestDB(t *testing.T, adminDSN, dbDSN string) {
 
 	dbName := dbNameFromDSN(t, dbDSN)
 
-	db, err := sql.Open("pgx", adminDSN)
+	dropDB, err := sql.Open("pgx", adminDSN)
 	if err != nil {
 		return
 	}
-	defer func() { _ = db.Close() }()
+	defer func() { _ = dropDB.Close() }()
 
-	_, _ = db.ExecContext(context.Background(),
+	_, _ = dropDB.ExecContext(context.Background(),
 		fmt.Sprintf(`DROP DATABASE IF EXISTS "%s"`, dbName))
 }
 
 func countPostgresRows(t *testing.T, dsn, table string) int {
 	t.Helper()
 
-	db, err := sql.Open("pgx", dsn)
+	countDB, err := sql.Open("pgx", dsn)
 	if err != nil {
 		t.Fatalf("open %s: %v", dsn, err)
 	}
-	defer func() { _ = db.Close() }()
+	defer func() { _ = countDB.Close() }()
 
 	var got int
 
-	err = db.QueryRowContext(context.Background(),
+	err = countDB.QueryRowContext(context.Background(),
 		"SELECT COUNT(*) FROM "+table).Scan(&got)
 	if err != nil {
 		t.Fatalf("count %s.%s: %v", dbNameFromDSN(t, dsn), table, err)

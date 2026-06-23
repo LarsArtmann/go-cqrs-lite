@@ -1,4 +1,4 @@
-package postgres
+package sqlite
 
 import (
 	"context"
@@ -10,31 +10,58 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
 
-// openSecondaryDB opens and configures a secondary Postgres database (for
-// events, queries, or views when multi-DB mode is enabled).
+// openSecondaryDB opens and configures a secondary SQLite database (for events,
+// queries, or views when multi-DB mode is enabled via WithEventDB etc.).
 func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
-	sqlDB, err := sql.Open("pgx", dsn)
+	sqlDB, err := sql.Open("sqlite", dsn)
 	if err != nil {
-		return nil, fmt.Errorf("postgres preset: open %q: %w", dsn, err)
+		return nil, fmt.Errorf("sqlite: open %q: %w", dsn, err)
 	}
 
-	if cfg.autoMigrate {
-		ctx := context.Background()
+	ctx := context.Background()
 
-		err = storage.PostgresInitSchema(ctx, sqlDB)
+	if cfg.wal {
+		err = storage.SQLiteEnableWAL(ctx, sqlDB)
 		if err != nil {
 			_ = sqlDB.Close()
 
-			return nil, fmt.Errorf("postgres preset: init schema on %q: %w", dsn, err)
+			return nil, fmt.Errorf("sqlite: enable WAL on %q: %w", dsn, err)
+		}
+	}
+
+	if cfg.foreignKeys {
+		err = storage.SQLiteEnableForeignKeys(ctx, sqlDB)
+		if err != nil {
+			_ = sqlDB.Close()
+
+			return nil, fmt.Errorf("sqlite: enable foreign keys on %q: %w", dsn, err)
+		}
+	}
+
+	if cfg.autoMigrate {
+		err = storage.SQLiteInitSchema(ctx, sqlDB)
+		if err != nil {
+			_ = sqlDB.Close()
+
+			return nil, fmt.Errorf("sqlite: init schema on %q: %w", dsn, err)
+		}
+	}
+
+	if cfg.optimize {
+		err = storage.SQLiteApplyOptimizations(ctx, sqlDB)
+		if err != nil {
+			_ = sqlDB.Close()
+
+			return nil, fmt.Errorf("sqlite: apply optimizations on %q: %w", dsn, err)
 		}
 	}
 
 	return sqlDB, nil
 }
 
-// openSecondaryBackend opens a secondary Postgres database, creates its
-// backend, and returns both along with a closer. Shared by the event-DB and
-// query-DB paths.
+// openSecondaryBackend opens and configures a secondary SQLite database,
+// creates its backend, and returns both along with a closer that releases
+// the backend and the *sql.DB. Shared by the event-DB and query-DB paths.
 func openSecondaryBackend(
 	dsn string,
 	cfg config,
@@ -44,11 +71,11 @@ func openSecondaryBackend(
 		return nil, nil, err
 	}
 
-	secBackend, err := storage.NewSQLBackend(secDB)
+	secBackend, err := storage.NewSQLiteBackend(secDB)
 	if err != nil {
 		_ = secDB.Close()
 
-		return nil, nil, fmt.Errorf("postgres preset: create backend for %q: %w", dsn, err)
+		return nil, nil, fmt.Errorf("sqlite: create backend for %q: %w", dsn, err)
 	}
 
 	closer := stack.NewMultiCloser(secBackend, stack.NewFuncCloser(secDB.Close))
@@ -57,7 +84,9 @@ func openSecondaryBackend(
 }
 
 // openEventStores opens a secondary database for the event-sourcing write
-// model: the event store, snapshots, and checkpoints.
+// model: the event store, snapshots, and checkpoints. These three stores
+// together serve event sourcing, so they share one database. Commands and
+// queries are NOT placed here — see [openQueryStores].
 func openEventStores(
 	dsn string,
 	cfg config,
@@ -85,7 +114,8 @@ func openEventStores(
 }
 
 // openQueryStores opens a secondary database for the command and query audit
-// stores.
+// stores — the operational log of what was dispatched. Events, snapshots, and
+// checkpoints are NOT placed here — see [openEventStores].
 func openQueryStores(
 	dsn string,
 	cfg config,

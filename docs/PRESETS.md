@@ -51,7 +51,11 @@ b, _ := sqlite.New("app.db")          // or ":memory:"
 defer b.Close()
 ```
 
-Options: `WithoutWAL()`, `WithoutAutoMigrate()`.
+Options: `WithoutWAL()`, `WithoutAutoMigrate()`, `WithForeignKeys()`,
+`WithEventDB`, `WithQueryDB`, `WithViewDB`.
+
+WAL mode is on by default with `synchronous=NORMAL` (3-10x faster than FULL,
+safe for WAL) and `busy_timeout=5000` (eliminates "database is locked" errors).
 
 #### Multi-DB split (SQL presets: SQLite, Turso, Postgres)
 
@@ -133,8 +137,16 @@ defer b.Close()
 b.Sync().Push(ctx)
 ```
 
-Options: `WithoutAutoMigrate()`, `WithEventDB`, `WithQueryDB`, `WithViewDB`
-(local mode only — multi-DB split is not supported with sync).
+Options: `WithoutAutoMigrate()`, `WithoutWAL()`, `WithOptimizations()`,
+`WithForeignKeys()`, `WithEventDB`, `WithQueryDB`, `WithViewDB`,
+`WithSyncOptions()` (local mode only — multi-DB split is not supported with
+sync).
+
+| Option | Description |
+|--------|-------------|
+| `WithOptimizations()` | Applies CQRS-optimized indexes and performance PRAGMAs (WAL, synchronous=NORMAL, cache_size, temp_store) after schema creation. Recommended for production. |
+| `WithForeignKeys()` | Enables foreign-key enforcement on all databases. Off by default (existing data may have orphaned references). |
+| `WithoutWAL()` | Disables WAL mode (default: on with synchronous=NORMAL + busy_timeout=5000). |
 
 ## Bundle Fields
 

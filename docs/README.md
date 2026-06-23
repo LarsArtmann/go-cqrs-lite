@@ -38,7 +38,7 @@ The authoritative module index with README links lives in the **[project README]
 
 ## Architecture Decision Records (ADR)
 
-25 ADRs documenting key architectural decisions. Full text in [`adr/`](adr/); the [ADR index](adr/README.md) contains summaries.
+34 ADRs documenting key architectural decisions. Full text in [`adr/`](adr/); the [ADR index](adr/README.md) contains summaries.
 
 | ADR                                                   | Title                                        | Status                   |
 | ----------------------------------------------------- | -------------------------------------------- | ------------------------ |
@@ -65,6 +65,15 @@ The authoritative module index with README links lives in the **[project README]
 | [0021](adr/0021-store-close-semantics.md)             | Store Close() Semantics — Shared DB Pattern  | Accepted                 |
 | [0022](adr/0022-kv-store-abstraction.md)              | KV Store Abstraction Module                  | Accepted                 |
 | [0023](adr/0023-pebble-kv-adapter.md)                 | Pebble KV Store Adapter                      | Accepted                 |
+| [0024](adr/0024-exported-id-markers.md)               | Exported ID Marker Types                     | Accepted                 |
+| [0025](adr/0025-transport-adapter-strategy.md)        | Transport Adapter Strategy                   | Accepted                 |
+| [0026](adr/0026-experimental-features.md)             | Experimental Features Behind Build Tags      | Accepted                 |
+| [0027](adr/0027-postgres-listen-notify-bus.md)        | Postgres LISTEN/NOTIFY Event Bus             | Accepted                 |
+| [0028](adr/0028-watermill-as-delivery-layer.md)       | Watermill as the Delivery Layer              | Accepted                 |
+| [0029](adr/0029-storage-consolidation.md)             | Consolidate Storage Backends Under `storage/`| Accepted                 |
+| [0030](adr/0030-dissolve-projection.md)               | Dissolve `projection/` into CatchUp + Materialize | Accepted            |
+| [0031](adr/0031-metadata-split.md)                    | Typed Metadata Fields — Embed Tracing        | Accepted                 |
+| [0032](adr/0032-merge-readmodel-into-kv.md)           | Merge `readmodel/` into `kv/`                | Accepted                 |
 | [0033](adr/0033-multi-db-split.md)                    | Multi-Database Split for Concern Isolation   | Accepted                 |
 | [0034](adr/0034-session-store-boundary.md)            | Session Store Boundary                       | Accepted                 |
 

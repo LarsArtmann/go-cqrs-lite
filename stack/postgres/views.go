@@ -68,6 +68,6 @@ func buildSecondaryViewOptions(
 	return []stack.Option{
 		stack.WithReadModels(kvStore),
 		stack.WithCloser(viewBackend),
-		stack.WithCloser(&funcCloser{fn: viewDB.Close}),
+		stack.WithCloser(stack.NewFuncCloser(viewDB.Close)),
 	}, nil
 }

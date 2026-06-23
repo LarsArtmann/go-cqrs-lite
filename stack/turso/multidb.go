@@ -29,7 +29,7 @@ func openSecondaryBackend(
 		return nil, nil, fmt.Errorf("turso: create backend for %q: %w", dbPath, err)
 	}
 
-	closer := &multiCloser{closers: []io.Closer{secBackend, &funcCloser{fn: secDB.Close}}}
+	closer := stack.NewMultiCloser(secBackend, stack.NewFuncCloser(secDB.Close))
 
 	return secBackend, closer, nil
 }
