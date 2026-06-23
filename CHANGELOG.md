@@ -15,6 +15,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **ADR-0033** — Multi-database split design rationale.
 - **ADR-0034** — Session store boundary (sessions are application-layer, not CQRS infrastructure).
 - **Schema migration caveat** documented in `storage/doc.go` — raw constructors do NOT auto-migrate; use a stack preset or call `SQLiteInitSchema`/`PostgresInitSchema` manually.
+- **`synchronous=NORMAL` in `SQLiteEnableWAL`** — WAL mode now sets `synchronous=NORMAL` instead of the default FULL, giving 3-10x better write throughput without durability loss (safe with WAL). Affects both SQLite and Turso presets.
+- **SQLite `WithOptimizations()`** — applies `cache_size`, `temp_store=MEMORY`, and `mmap_size` PRAGMAs for production throughput. Parity with the existing Turso option.
+- **Turso `WithoutWAL()`** — WAL mode is now the default for the Turso preset (was previously off). Disable with `WithoutWAL()`.
+- **Turso WAL default** — the Turso preset now enables WAL by default, matching SQLite preset behavior. `applySchemaAndPragmas` calls `SQLiteEnableWAL` on all code paths.
+- **`Bundle.Debug()`** — prints which capability fields are set (✓) or nil (✗) for wiring diagnostics.
+- **`stack.MultiCloser` / `stack.FuncCloser`** — shared lifecycle helpers extracted from the 3 duplicated preset closers.go files.
+- **Multi-DB example** (`example/deployer-first-multidb/`) — runnable end-to-end demo of the three-database split (events, queries, views) using the SQLite preset.
+- **`nix run .#check-file-size`** — local mirror of the CI file-size gate (350-line limit) so developers catch violations before pushing.
+- **`storage.SQLiteApplyOptimizations()`** — public function setting production PRAGMAs (cache_size, temp_store, mmap_size), usable outside the preset.
 
 ### Fixed
 
