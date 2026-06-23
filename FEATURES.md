@@ -793,10 +793,11 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `example/deployer-first` | `…/example/deployer-first`    | 💡 Demo         |
 | `stack`                  | `…/stack/v2`                  | ✅ Production   |
 | `stack/memory`           | `…/stack/memory/v2`           | ✅ Production   |
-| `stack/sqlite`           | `…/stack/sqlite/v2`           | ✅ Production   |
-| `stack/pebble`           | `…/stack/pebble/v2`           | ✅ Production   |
-| `stack/postgres`         | `…/stack/postgres/v2`         | ✅ Production   |
-| `stack/bench`            | `…/stack/bench/v2`            | 🧪 Benchmarks   |
+| `stack/sqlite`           | `…/stack/sqlite/v3`           | ✅ Production   |
+| `stack/pebble`           | `…/stack/pebble/v3`           | ✅ Production   |
+| `stack/postgres`         | `…/stack/postgres/v3`         | ✅ Production   |
+| `stack/turso`            | `…/stack/turso/v3`            | ✅ Production   |
+| `stack/bench`            | `…/stack/bench/v3`            | 🧪 Benchmarks   |
 
 ---
 

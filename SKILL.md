@@ -101,6 +101,21 @@ Available presets:
 | SQLite   | `stack/sqlite`   | SQLite (modernc) | SQL KV (persistent) |
 | Pebble   | `stack/pebble`   | PebbleDB (LSM)   | Pebble KV           |
 | Postgres | `stack/postgres` | PostgreSQL (pgx) | SQL KV (persistent) |
+| Turso    | `stack/turso`    | LibSQL (turso)   | SQL KV (persistent) |
+
+Multi-DB split (SQLite, Turso, Postgres only) — isolates event writes from
+read-model scans by routing each concern to a separate database:
+
+```go
+b, _ := sqlite.New("primary.db",
+    sqlite.WithEventDB("events.db"),   // events + snapshots + checkpoints
+    sqlite.WithQueryDB("queries.db"),  // command + query audit
+    sqlite.WithViewDB("views.db"),     // read models (cqrs_kv)
+)
+```
+
+See [`docs/MIGRATION_TO_STACK.md`](docs/MIGRATION_TO_STACK.md) for how to
+replace hand-wired infrastructure with presets.
 
 Read-model cache decorator:
 
@@ -110,7 +125,7 @@ cached, _ := cache.New(store,
     cache.WithTTL[TodoView, TodoID](5*time.Minute))
 ```
 
-See [`docs/PRESETS.md`](docs/PRESETS.md) for full documentation.
+See [`docs/PRESETS.md`](docs/PRESETS.md) and [`docs/INFRASTRUCTURE_RECOMMENDATIONS.md`](docs/INFRASTRUCTURE_RECOMMENDATIONS.md) for full documentation.
 
 ### 2.1 Minimal Event Sourcing (event + command + decider + id + memory)
 

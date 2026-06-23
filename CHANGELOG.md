@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Postgres multi-DB split** — `WithEventDB`/`WithQueryDB`/`WithViewDB` options for the Postgres preset, mirroring SQLite and Turso. Routes events+snapshots+checkpoints, commands+queries, and read models to separate databases on the same Postgres server. (ADR-0033)
+- **Multi-DB contract test** — `contracttest.RunMultiDBSuite` verifies routing correctness for any preset supporting multi-DB. Wired into sqlite and turso test suites; postgres test requires `POSTGRES_TEST_DSN` + `CREATE DATABASE` permission.
+- **Migration guide** (`docs/MIGRATION_TO_STACK.md`) — Step-by-step guide showing how to replace 200–400 lines of hand-wired infrastructure with 5–10 lines of stack preset. Covers event store, projection runner (CatchUpSubscriber+Materialize), build-tag switching, and multi-DB split.
+- **Turso sync contract test** — `TestNewSync_Contract` runs the full contract suite against a NewSync bundle (skips without `TURSO_SYNC_URL`).
+- **ADR-0033** — Multi-database split design rationale.
+- **ADR-0034** — Session store boundary (sessions are application-layer, not CQRS infrastructure).
+- **Schema migration caveat** documented in `storage/doc.go` — raw constructors do NOT auto-migrate; use a stack preset or call `SQLiteInitSchema`/`PostgresInitSchema` manually.
+
+### Fixed
+
+- **11 phantom doc references** — `Bundle.Repository` → `Repository`, `Bundle.ReadModel` → `ReadModel`, `Bundle.ProjectionRunner` → `Bundle.CatchUpSubscriber` across stack/doc.go, stack/errors.go, stack/bundle.go, stack/options.go. `memory.NewSnapshotStore` → `memory.NewMemorySnapshotStore` in snapshot/doc.go.
+- **FEATURES.md stale v2 import paths** — stack modules updated to v3.
+
 ### Changed
 
 - **go-error-family upgraded from v0.4.0 to v0.5.0** across all 12 direct-dep modules. `event.Compose` removed (was a trivial `errors.Join` wrapper) — consumers now use stdlib `errors.Join` directly. Upstream v0.5.0 adds `Family.HTTPStatus()`, `Family.RetryPolicy()`, `Error.JSON()`, copy-on-write errors (data-race fix), severity-ordered multi-error classification, lock-free sentinel lookup, and an injectable `Registry`. API surface golden file (`docs/api_surface.txt`) regenerated.

@@ -353,6 +353,12 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //       sqlite.WithQueryDB("queries.db"),  // command+query audit
 //       sqlite.WithViewDB("views.db"),     // read-model KV store
 //   )
+//
+// Multi-DB Postgres preset (same API, separate databases on same server)
+//   bundle, _ := postgres.New(primaryDSN,
+//       postgres.WithEventDB("postgres://host/events_db"),
+//       postgres.WithQueryDB("postgres://host/queries_db"),
+//       postgres.WithViewDB("postgres://host/views_db"))
 
 // Pure event-sourcing mode (no publisher needed)
 //   repo, _ := decider.NewRepository(store, nil, decider)
