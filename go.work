@@ -13,6 +13,7 @@ use (
 	./event
 	./event/eventtest
 	./example/deployer-first
+	./example/deployer-first-multidb
 	./example/encryption
 	./example/todo
 	./example/user

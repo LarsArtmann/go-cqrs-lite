@@ -189,6 +189,26 @@
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-module-layers.sh"
             '';
 
+            check-file-size = mkApp "check-file-size" [ pkgs.findutils ] ''
+              failed=false
+              while IFS= read -r f; do
+                lines=$(wc -l < "$f")
+                if [ "$lines" -gt 350 ]; then
+                  echo "ERROR: $f has $lines lines (max 350)"
+                  failed=true
+                fi
+              done < <(find . -name "*.go" -not -name "*_test.go" \
+                -not -path "*/example/*" \
+                -not -path "*/testdata/*" \
+                -not -path "*/internal/cattest/*" \
+                -not -path "*/.git/*")
+              if [ "$failed" = true ]; then
+                echo "One or more production files exceed 350 lines"
+                exit 1
+              fi
+              echo "All production files within 350-line limit"
+            '';
+
             clean = mkApp "clean" [ goPkg pkgs.trash-cli ] ''
               ${pkgs.trash-cli}/bin/trash-put coverage.out 2>/dev/null || true
               ${goPkg}/bin/go clean -testcache
