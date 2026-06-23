@@ -22,6 +22,11 @@
 //
 //	b, err := sqlite.New("log.db", sqlite.WithoutWAL())
 //
+// Apply CQRS-optimized PRAGMAs (cache_size, temp_store, mmap_size) for
+// production throughput:
+//
+//	b, err := sqlite.New("log.db", sqlite.WithOptimizations())
+//
 // # Multi-Database Topology
 //
 // Split concerns across separate database files to eliminate reader/writer

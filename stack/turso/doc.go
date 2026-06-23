@@ -35,6 +35,11 @@
 //	    turso.WithForeignKeys(),
 //	)
 //
+// WAL mode is enabled by default (with synchronous=NORMAL and busy_timeout).
+// Disable only if you have a specific reason:
+//
+//	b, err := turso.New("app.db", turso.WithoutWAL())
+//
 // # Multi-Database Topology
 //
 // Split concerns across separate database files (local mode only — sync mode

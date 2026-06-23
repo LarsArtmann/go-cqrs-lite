@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -203,6 +204,28 @@ func (c *channelCloser) Close() error {
 	<-c.block
 
 	return nil
+}
+
+func TestBundle_Debug_ShowsCapabilities(t *testing.T) {
+	t.Parallel()
+
+	b, err := stack.New(
+		stack.WithReadModels(kv.NewMemStore()),
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	defer func() { _ = b.Close() }()
+
+	output := b.Debug()
+
+	if !strings.Contains(output, "ReadModels") {
+		t.Errorf("Debug() output missing ReadModels:\n%s", output)
+	}
+
+	if !strings.Contains(output, "EventSink") {
+		t.Errorf("Debug() output missing EventSink:\n%s", output)
+	}
 }
 
 // ── Accessor tests ──
