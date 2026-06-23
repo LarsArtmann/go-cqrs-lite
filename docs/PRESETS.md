@@ -53,7 +53,7 @@ defer b.Close()
 
 Options: `WithoutWAL()`, `WithoutAutoMigrate()`.
 
-#### Multi-DB split (SQLite flagship)
+#### Multi-DB split (SQL presets: SQLite, Turso, Postgres)
 
 Split concerns across separate database files to eliminate reader/writer
 contention in production:
@@ -99,12 +99,23 @@ b, _ := postgres.New("postgres://user:pass@localhost:5432/myapp?sslmode=disable"
 defer b.Close()
 ```
 
-Option: `WithoutAutoMigrate()`.
+Options: `WithoutAutoMigrate()`, `WithEventDB`, `WithQueryDB`, `WithViewDB`.
+
+Multi-DB split uses separate databases on the same Postgres server:
+
+```go
+b, _ := postgres.New(primaryDSN,
+    postgres.WithEventDB("postgres://host/events_db"),
+    postgres.WithQueryDB("postgres://host/queries_db"),
+    postgres.WithViewDB("postgres://host/views_db"),
+)
+```
 
 Distributed bus (cross-process pub/sub): `WithDistributedBus(listener)` wires
 Postgres LISTEN/NOTIFY instead of the in-process GoChannel bus.
 
 Tests require `POSTGRES_TEST_DSN` env var; they skip when unset.
+Multi-DB contract test also requires CREATE DATABASE permission.
 
 ### Turso (edge / offline-first)
 

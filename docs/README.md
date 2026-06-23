@@ -14,6 +14,7 @@
 
 ## Guides
 
+- **[Migration Guide](MIGRATION_TO_STACK.md)** — How to replace hand-wired infrastructure with stack presets (200+ lines → 5 lines)
 - **[Architecture Patterns](ARCHITECTURE_PATTERNS.md)** — CQRS, Event Sourcing, and Decider patterns explained
 - **[Bundle Presets](PRESETS.md)** — Deployer-facing preset catalog (memory, SQLite, Pebble, Postgres, Turso)
 - **[Infrastructure Recommendations](INFRASTRUCTURE_RECOMMENDATIONS.md)** — Which storage engine fits which CQRS concern, and why
@@ -37,7 +38,7 @@ The authoritative module index with README links lives in the **[project README]
 
 ## Architecture Decision Records (ADR)
 
-23 ADRs documenting key architectural decisions. Full text in [`adr/`](adr/); the [ADR index](adr/README.md) contains summaries.
+25 ADRs documenting key architectural decisions. Full text in [`adr/`](adr/); the [ADR index](adr/README.md) contains summaries.
 
 | ADR                                                   | Title                                        | Status                   |
 | ----------------------------------------------------- | -------------------------------------------- | ------------------------ |
@@ -64,6 +65,8 @@ The authoritative module index with README links lives in the **[project README]
 | [0021](adr/0021-store-close-semantics.md)             | Store Close() Semantics — Shared DB Pattern  | Accepted                 |
 | [0022](adr/0022-kv-store-abstraction.md)              | KV Store Abstraction Module                  | Accepted                 |
 | [0023](adr/0023-pebble-kv-adapter.md)                 | Pebble KV Store Adapter                      | Accepted                 |
+| [0033](adr/0033-multi-db-split.md)                    | Multi-Database Split for Concern Isolation   | Accepted                 |
+| [0034](adr/0034-session-store-boundary.md)            | Session Store Boundary                       | Accepted                 |
 
 ## API Reference
 
