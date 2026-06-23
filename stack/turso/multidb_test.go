@@ -118,3 +118,216 @@ func assertTursoRowCount(t *testing.T, dbPath, table string, want int) {
 type routingView struct {
 	Name string `json:"name"`
 }
+
+// TestMultiDB_SeparateViewDB verifies that a separate view DB is used for
+// read models when WithViewDB is set, matching the SQLite preset test.
+func TestMultiDB_SeparateViewDB(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	bundle, err := turso.New(
+		filepath.Join(dir, "primary.db"),
+		turso.WithViewDB(filepath.Join(dir, "views.db")),
+	)
+	if err != nil {
+		t.Fatalf("turso.New with ViewDB: %v", err)
+	}
+
+	defer func() { _ = bundle.Close() }()
+
+	store := kv.NewTypedStore[routingView, todoKey](bundle.ReadModels)
+
+	ctx := context.Background()
+
+	if err := store.Set(ctx, todoKey("v1"), &routingView{Name: "Alice"}); err != nil {
+		t.Fatalf("Set: %v", err)
+	}
+
+	val, err := store.Get(ctx, todoKey("v1"))
+	if err != nil {
+		t.Fatalf("Get: %v", err)
+	}
+
+	if val.Name != "Alice" {
+		t.Fatalf("expected Alice, got %s", val.Name)
+	}
+}
+
+// TestNew_WithForeignKeys verifies that the WithForeignKeys option works
+// without errors and the database is usable.
+func TestNew_WithForeignKeys(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	b, err := turso.New(
+		filepath.Join(dir, "fk.db"),
+		turso.WithForeignKeys(),
+	)
+	if err != nil {
+		t.Fatalf("New with foreign keys: %v", err)
+	}
+
+	defer func() { _ = b.Close() }()
+
+	ctx := context.Background()
+	aggID := id.NewAggregateID()
+	ref := event.NewAggregateRef("FK", aggID)
+
+	evts, err := event.NewEvents(
+		aggID, "FK", 0,
+		[]event.Type{"fk.created"},
+		[]any{map[string]any{"ok": true}},
+	)
+	if err != nil {
+		t.Fatalf("NewEvents: %v", err)
+	}
+
+	if err := b.EventSink.Save(ctx, ref, evts, 0); err != nil {
+		t.Fatalf("Save with FK: %v", err)
+	}
+}
+
+// TestNew_WithOptimizations verifies that the WithOptimizations option
+// applies CQRS indexes and PRAGMA optimizations without errors.
+func TestNew_WithOptimizations(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	b, err := turso.New(
+		filepath.Join(dir, "opt.db"),
+		turso.WithOptimizations(),
+	)
+	if err != nil {
+		t.Fatalf("New with optimizations: %v", err)
+	}
+
+	defer func() { _ = b.Close() }()
+
+	// Verify the database is fully functional with optimizations applied.
+	ctx := context.Background()
+	aggID := id.NewAggregateID()
+	ref := event.NewAggregateRef("Opt", aggID)
+
+	evts, err := event.NewEvents(
+		aggID, "Opt", 0,
+		[]event.Type{"opt.created"},
+		[]any{map[string]any{"optimized": true}},
+	)
+	if err != nil {
+		t.Fatalf("NewEvents: %v", err)
+	}
+
+	if err := b.EventSink.Save(ctx, ref, evts, 0); err != nil {
+		t.Fatalf("Save with optimizations: %v", err)
+	}
+
+	loaded, err := b.EventSource.Load(ctx, ref)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+
+	if len(loaded) != 1 {
+		t.Fatalf("expected 1 event, got %d", len(loaded))
+	}
+}
+
+// TestMultiDB_PersistenceAcrossReopen verifies that data written through a
+// multi-DB split survives closing and reopening the bundle.
+func TestMultiDB_PersistenceAcrossReopen(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	primaryPath := filepath.Join(dir, "primary.db")
+	eventPath := filepath.Join(dir, "events.db")
+	viewPath := filepath.Join(dir, "views.db")
+
+	writer, err := turso.New(
+		primaryPath,
+		turso.WithEventDB(eventPath),
+		turso.WithViewDB(viewPath),
+	)
+	if err != nil {
+		t.Fatalf("New writer: %v", err)
+	}
+
+	ctx := context.Background()
+	aggID := id.NewAggregateID()
+	ref := event.NewAggregateRef("Todo", aggID)
+
+	evts, err := event.NewEvents(
+		aggID, "Todo", 0,
+		[]event.Type{"todo.created"},
+		[]any{map[string]any{"title": "multi-db persistence"}},
+	)
+	if err != nil {
+		t.Fatalf("NewEvents: %v", err)
+	}
+
+	if err := writer.EventSink.Save(ctx, ref, evts, 0); err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+
+	if err := writer.Close(); err != nil {
+		t.Fatalf("Close writer: %v", err)
+	}
+
+	reader, err := turso.New(
+		primaryPath,
+		turso.WithEventDB(eventPath),
+		turso.WithViewDB(viewPath),
+	)
+	if err != nil {
+		t.Fatalf("New reader: %v", err)
+	}
+
+	defer func() { _ = reader.Close() }()
+
+	loaded, err := reader.EventSource.Load(ctx, ref)
+	if err != nil {
+		t.Fatalf("Load after reopen: %v", err)
+	}
+
+	if len(loaded) != 1 || loaded[0].Type() != "todo.created" {
+		t.Fatalf("expected 1 event 'todo.created', got %+v", loaded)
+	}
+}
+
+// TestNewSync_RejectsMultiDBOptions verifies that NewSync returns an explicit
+// error when multi-DB options are passed. Multi-DB split is incompatible with
+// sync because all stores must share one syncing database for consistent
+// Push/Pull replication.
+func TestNewSync_RejectsMultiDBOptions(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	dir := t.TempDir()
+
+	tests := []struct {
+		name string
+		opt  turso.Option
+	}{
+		{"WithEventDB", turso.WithEventDB(filepath.Join(dir, "events.db"))},
+		{"WithQueryDB", turso.WithQueryDB(filepath.Join(dir, "queries.db"))},
+		{"WithViewDB", turso.WithViewDB(filepath.Join(dir, "views.db"))},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			_, err := turso.NewSync(
+				ctx,
+				filepath.Join(dir, tt.name+".db"),
+				"libsql://fake.turso.io",
+				"fake-token",
+				tt.opt,
+			)
+			if err == nil {
+				t.Fatalf("NewSync with %s should return error", tt.name)
+			}
+		})
+	}
+}

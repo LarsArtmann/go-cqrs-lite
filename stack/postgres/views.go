@@ -13,20 +13,20 @@ import (
 func buildViewOptions(
 	cfg config,
 	backend *storage.SQLBackend,
-	db *sql.DB,
+	sqlDB *sql.DB,
 ) ([]stack.Option, error) {
 	if cfg.viewDSN == "" {
-		return buildPrimaryViewOptions(backend, db)
+		return buildPrimaryViewOptions(backend, sqlDB)
 	}
 
-	return buildSecondaryViewOptions(cfg, backend, db)
+	return buildSecondaryViewOptions(cfg, backend, sqlDB)
 }
 
-func buildPrimaryViewOptions(backend *storage.SQLBackend, db *sql.DB) ([]stack.Option, error) {
+func buildPrimaryViewOptions(backend *storage.SQLBackend, sqlDB *sql.DB) ([]stack.Option, error) {
 	kvStore, err := backend.KVStore()
 	if err != nil {
 		_ = backend.Close()
-		_ = db.Close()
+		_ = sqlDB.Close()
 
 		return nil, fmt.Errorf("postgres preset: kv store: %w", err)
 	}
@@ -37,12 +37,12 @@ func buildPrimaryViewOptions(backend *storage.SQLBackend, db *sql.DB) ([]stack.O
 func buildSecondaryViewOptions(
 	cfg config,
 	backend *storage.SQLBackend,
-	db *sql.DB,
+	sqlDB *sql.DB,
 ) ([]stack.Option, error) {
 	viewDB, err := openSecondaryDB(cfg.viewDSN, cfg)
 	if err != nil {
 		_ = backend.Close()
-		_ = db.Close()
+		_ = sqlDB.Close()
 
 		return nil, fmt.Errorf("postgres preset: open view db: %w", err)
 	}
@@ -50,7 +50,7 @@ func buildSecondaryViewOptions(
 	viewBackend, err := storage.NewSQLBackend(viewDB)
 	if err != nil {
 		_ = backend.Close()
-		_ = db.Close()
+		_ = sqlDB.Close()
 		_ = viewDB.Close()
 
 		return nil, fmt.Errorf("postgres preset: create view backend: %w", err)
@@ -60,9 +60,9 @@ func buildSecondaryViewOptions(
 	if err != nil {
 		_ = viewBackend.Close()
 		_ = backend.Close()
-		_ = db.Close()
+		_ = sqlDB.Close()
 
-		return nil, fmt.Errorf("postgres preset: kv store (view db): %w", err)
+		return nil, fmt.Errorf("postgres preset: kv store (view sqlDB): %w", err)
 	}
 
 	return []stack.Option{

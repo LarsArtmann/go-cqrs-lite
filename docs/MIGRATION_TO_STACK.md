@@ -194,7 +194,7 @@ The consumer code doesn't change — the Bundle fields point to the right stores
 - **Custom SQL queries for dashboards** — Use `bundle.ReadModels` for materialized views, but ad-hoc analytics queries belong in your application code.
 - **External service integrations** — The Bundle handles CQRS data stores only. External APIs, email, webhooks stay in your application layer.
 
-See [ADR-0034](../docs/adr/ADR-0034-session-store-boundary.md) for the session store boundary decision.
+See [ADR-0034](adr/0034-session-store-boundary.md) for the session store boundary decision.
 
 ---
 

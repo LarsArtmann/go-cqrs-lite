@@ -16,6 +16,7 @@ type Option func(*config)
 
 type config struct {
 	wal         bool
+	foreignKeys bool
 	autoMigrate bool
 	eventDSN    string // override DSN for event store
 	queryDSN    string // override DSN for query/command audit store
@@ -23,7 +24,14 @@ type config struct {
 }
 
 func defaultConfig() config {
-	return config{wal: true, autoMigrate: true, eventDSN: "", queryDSN: "", viewDSN: ""}
+	return config{
+		wal:         true,
+		foreignKeys: false,
+		autoMigrate: true,
+		eventDSN:    "",
+		queryDSN:    "",
+		viewDSN:     "",
+	}
 }
 
 // WithoutWAL disables WAL mode. By default New enables WAL plus a busy
@@ -31,6 +39,15 @@ func defaultConfig() config {
 // concurrency.
 func WithoutWAL() Option {
 	return func(c *config) { c.wal = false }
+}
+
+// WithForeignKeys enables SQLite foreign-key enforcement on all databases
+// (primary and secondary when multi-DB is used). Off by default because
+// existing databases may contain orphaned references that would cause errors
+// once enforcement is active. Enable for new databases where referential
+// integrity is required.
+func WithForeignKeys() Option {
+	return func(c *config) { c.foreignKeys = true }
 }
 
 // WithoutAutoMigrate skips schema creation. Use this when you manage schemas
@@ -171,6 +188,15 @@ func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
 		}
 	}
 
+	if cfg.foreignKeys {
+		err = storage.SQLiteEnableForeignKeys(ctx, sqlDB)
+		if err != nil {
+			_ = sqlDB.Close()
+
+			return nil, fmt.Errorf("sqlite: enable foreign keys on %q: %w", dsn, err)
+		}
+	}
+
 	if cfg.autoMigrate {
 		err = storage.SQLiteInitSchema(ctx, sqlDB)
 		if err != nil {
@@ -230,6 +256,15 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 			_ = sqlDB.Close()
 
 			return nil, nil, fmt.Errorf("sqlite: enable WAL: %w", err)
+		}
+	}
+
+	if cfg.foreignKeys {
+		err = storage.SQLiteEnableForeignKeys(ctx, sqlDB)
+		if err != nil {
+			_ = sqlDB.Close()
+
+			return nil, nil, fmt.Errorf("sqlite: enable foreign keys: %w", err)
 		}
 	}
 
@@ -293,11 +328,13 @@ func openEventStores(
 		stack.WithEventStore(secBackend.EventStore()),
 	}
 
-	if snapStore, snapErr := secBackend.SnapshotStore(); snapErr == nil {
+	snapStore, snapErr := secBackend.SnapshotStore()
+	if snapErr == nil {
 		opts = append(opts, stack.WithSnapshotStore(snapStore))
 	}
 
-	if cpStore, cpErr := secBackend.CheckpointStore(); cpErr == nil {
+	cpStore, cpErr := secBackend.CheckpointStore()
+	if cpErr == nil {
 		opts = append(opts, stack.WithCheckpointStore(cpStore))
 	}
 
@@ -318,11 +355,13 @@ func openQueryStores(
 
 	var opts []stack.Option
 
-	if cmdStore, cmdErr := secBackend.CommandStore(); cmdErr == nil {
+	cmdStore, cmdErr := secBackend.CommandStore()
+	if cmdErr == nil {
 		opts = append(opts, stack.WithCommandStore(cmdStore))
 	}
 
-	if qStore, qErr := secBackend.QueryStore(); qErr == nil {
+	qStore, qErr := secBackend.QueryStore()
+	if qErr == nil {
 		opts = append(opts, stack.WithQueryStore(qStore))
 	}
 

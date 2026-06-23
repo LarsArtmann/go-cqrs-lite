@@ -22,14 +22,28 @@
 //	_ = sync.Push(ctx)               // send local writes to remote
 //	changed, _ := sync.Pull(ctx)     // receive remote changes
 //
-// # Multi-Database Topology
+// # Production Hardening
 //
-// For split topologies (separate databases for the append log and the view
-// store), use [WithEventDB], [WithQueryDB], and [WithViewDB]:
+// Enable CQRS-optimized indexes and performance PRAGMAs:
+//
+//	b, err := turso.New("app.db", turso.WithOptimizations())
+//
+// Enable foreign-key enforcement for new databases:
 //
 //	b, err := turso.New("app.db",
-//	    turso.WithEventDB("events.db"),
-//	    turso.WithViewDB("views.db"),
+//	    turso.WithOptimizations(),
+//	    turso.WithForeignKeys(),
+//	)
+//
+// # Multi-Database Topology
+//
+// Split concerns across separate database files (local mode only — sync mode
+// requires all stores in one syncing database):
+//
+//	b, err := turso.New("app.db",
+//	    turso.WithEventDB("events.db"),   // events + snapshots + checkpoints
+//	    turso.WithQueryDB("queries.db"),  // command + query audit logs
+//	    turso.WithViewDB("views.db"),     // materialized views (KV)
 //	)
 //
 // New runs schema migration by default. Disable with [WithoutAutoMigrate].

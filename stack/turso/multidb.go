@@ -1,7 +1,6 @@
 package turso
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"io"
@@ -97,15 +96,10 @@ func openSecondaryDB(dbPath string, cfg config) (*sql.DB, error) {
 
 	cqrsturso.ConfigurePool(sqlDB)
 
-	if cfg.autoMigrate {
-		ctx := context.Background()
+	if err := applySchemaAndPragmas(sqlDB, cfg); err != nil {
+		_ = sqlDB.Close()
 
-		err := cqrsturso.InitSchema(ctx, sqlDB)
-		if err != nil {
-			_ = sqlDB.Close()
-
-			return nil, fmt.Errorf("turso: init schema on %q: %w", dbPath, err)
-		}
+		return nil, err
 	}
 
 	return sqlDB, nil

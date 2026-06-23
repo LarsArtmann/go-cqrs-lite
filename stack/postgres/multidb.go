@@ -13,7 +13,7 @@ import (
 // openSecondaryDB opens and configures a secondary Postgres database (for
 // events, queries, or views when multi-DB mode is enabled).
 func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
-	db, err := sql.Open("pgx", dsn)
+	sqlDB, err := sql.Open("pgx", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("postgres preset: open %q: %w", dsn, err)
 	}
@@ -21,15 +21,15 @@ func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
 	if cfg.autoMigrate {
 		ctx := context.Background()
 
-		err = storage.PostgresInitSchema(ctx, db)
+		err = storage.PostgresInitSchema(ctx, sqlDB)
 		if err != nil {
-			_ = db.Close()
+			_ = sqlDB.Close()
 
 			return nil, fmt.Errorf("postgres preset: init schema on %q: %w", dsn, err)
 		}
 	}
 
-	return db, nil
+	return sqlDB, nil
 }
 
 // openSecondaryBackend opens a secondary Postgres database, creates its
@@ -71,11 +71,13 @@ func openEventStores(
 		stack.WithEventStore(secBackend.EventStore()),
 	}
 
-	if snapStore, snapErr := secBackend.SnapshotStore(); snapErr == nil {
+	snapStore, snapErr := secBackend.SnapshotStore()
+	if snapErr == nil {
 		opts = append(opts, stack.WithSnapshotStore(snapStore))
 	}
 
-	if cpStore, cpErr := secBackend.CheckpointStore(); cpErr == nil {
+	cpStore, cpErr := secBackend.CheckpointStore()
+	if cpErr == nil {
 		opts = append(opts, stack.WithCheckpointStore(cpStore))
 	}
 
@@ -95,11 +97,13 @@ func openQueryStores(
 
 	var opts []stack.Option
 
-	if cmdStore, cmdErr := secBackend.CommandStore(); cmdErr == nil {
+	cmdStore, cmdErr := secBackend.CommandStore()
+	if cmdErr == nil {
 		opts = append(opts, stack.WithCommandStore(cmdStore))
 	}
 
-	if qStore, qErr := secBackend.QueryStore(); qErr == nil {
+	qStore, qErr := secBackend.QueryStore()
+	if qErr == nil {
 		opts = append(opts, stack.WithQueryStore(qStore))
 	}
 

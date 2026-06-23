@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -136,15 +137,15 @@ func TestMultiDB_Routing(t *testing.T) {
 func assertRowCount(t *testing.T, dbPath, table string, want int) {
 	t.Helper()
 
-	db, err := sql.Open("sqlite", dbPath)
+	sqlDB, err := sql.Open("sqlite", dbPath)
 	if err != nil {
 		t.Fatalf("open %s: %v", filepath.Base(dbPath), err)
 	}
-	defer func() { _ = db.Close() }()
+	defer func() { _ = sqlDB.Close() }()
 
 	var got int
 
-	err = db.QueryRowContext(context.Background(), "SELECT COUNT(*) FROM "+table).Scan(&got)
+	err = sqlDB.QueryRowContext(context.Background(), "SELECT COUNT(*) FROM "+table).Scan(&got)
 	if err != nil {
 		t.Fatalf("count %s.%s: %v", filepath.Base(dbPath), table, err)
 	}
@@ -163,3 +164,132 @@ type testKey string
 func (t testKey) String() string { return string(t) }
 
 var _ stack.Bundle = stack.Bundle{}
+
+// TestMultiDB_PersistenceAcrossReopen verifies that data written through a
+// multi-DB split survives closing and reopening the bundle — proving each
+// database file is a real persistent store, not an in-memory alias.
+func TestMultiDB_PersistenceAcrossReopen(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	primaryPath := filepath.Join(dir, "primary.db")
+	eventPath := filepath.Join(dir, "events.db")
+	viewPath := filepath.Join(dir, "views.db")
+
+	// Write phase: create bundle with split, write event + read model.
+	writer, err := sqlite.New(
+		primaryPath,
+		sqlite.WithEventDB(eventPath),
+		sqlite.WithViewDB(viewPath),
+	)
+	if err != nil {
+		t.Fatalf("New writer: %v", err)
+	}
+
+	ctx := context.Background()
+	aggID := id.NewAggregateID()
+	ref := event.NewAggregateRef("Todo", aggID)
+
+	evts, err := event.NewEvents(
+		aggID, "Todo", 0,
+		[]event.Type{"todo.created"},
+		[]any{map[string]any{"title": "multi-db persistence"}},
+	)
+	if err != nil {
+		t.Fatalf("NewEvents: %v", err)
+	}
+
+	if err := writer.EventSink.Save(ctx, ref, evts, 0); err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+
+	wStore, err := stack.ReadModel[routingView, testKey](
+		writer, codec.JSONCodec{},
+		kv.WithTypedKeyPrefix[routingView, testKey]("todos:"),
+	)
+	if err != nil {
+		t.Fatalf("ReadModel writer: %v", err)
+	}
+
+	if err := wStore.Set(ctx, "1", &routingView{Name: "persisted"}); err != nil {
+		t.Fatalf("Set: %v", err)
+	}
+
+	if err := writer.Close(); err != nil {
+		t.Fatalf("Close writer: %v", err)
+	}
+
+	// Read phase: reopen with same paths, verify data survived.
+	reader, err := sqlite.New(
+		primaryPath,
+		sqlite.WithEventDB(eventPath),
+		sqlite.WithViewDB(viewPath),
+	)
+	if err != nil {
+		t.Fatalf("New reader: %v", err)
+	}
+
+	defer func() { _ = reader.Close() }()
+
+	loaded, err := reader.EventSource.Load(ctx, ref)
+	if err != nil {
+		t.Fatalf("Load after reopen: %v", err)
+	}
+
+	if len(loaded) != 1 || loaded[0].Type() != "todo.created" {
+		t.Fatalf("expected 1 event 'todo.created', got %+v", loaded)
+	}
+
+	rStore, err := stack.ReadModel[routingView, testKey](
+		reader, codec.JSONCodec{},
+		kv.WithTypedKeyPrefix[routingView, testKey]("todos:"),
+	)
+	if err != nil {
+		t.Fatalf("ReadModel reader: %v", err)
+	}
+
+	got, err := rStore.Get(ctx, "1")
+	if err != nil {
+		t.Fatalf("Get after reopen: %v", err)
+	}
+
+	if got.Name != "persisted" {
+		t.Fatalf("read model did not persist: %+v", got)
+	}
+}
+
+// TestNew_WithForeignKeys verifies that the WithForeignKeys option enables
+// PRAGMA foreign_keys=ON without errors.
+func TestNew_WithForeignKeys(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	b, err := sqlite.New(
+		filepath.Join(dir, "fk.db"),
+		sqlite.WithForeignKeys(),
+	)
+	if err != nil {
+		t.Fatalf("New with foreign keys: %v", err)
+	}
+
+	defer func() { _ = b.Close() }()
+
+	// Verify the database accepts writes (schema is valid with FK on).
+	ctx := context.Background()
+	aggID := id.NewAggregateID()
+	ref := event.NewAggregateRef("FK", aggID)
+
+	evts, err := event.NewEvents(
+		aggID, "FK", 0,
+		[]event.Type{"fk.created"},
+		[]any{map[string]any{"ok": true}},
+	)
+	if err != nil {
+		t.Fatalf("NewEvents: %v", err)
+	}
+
+	if err := b.EventSink.Save(ctx, ref, evts, 0); err != nil {
+		t.Fatalf("Save with FK: %v", err)
+	}
+}

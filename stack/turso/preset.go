@@ -3,6 +3,7 @@ package turso
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
@@ -16,6 +17,8 @@ type Option func(*config)
 
 type config struct {
 	autoMigrate bool
+	optimize    bool
+	foreignKeys bool
 	eventPath   string // override path for event store
 	queryPath   string // override path for query/command audit store
 	viewPath    string // override path for read-model KV store
@@ -23,7 +26,7 @@ type config struct {
 }
 
 func defaultConfig() config {
-	return config{autoMigrate: true}
+	return config{autoMigrate: true, optimize: false, foreignKeys: false}
 }
 
 // WithoutAutoMigrate skips schema creation. Use this when you manage schemas
@@ -31,6 +34,25 @@ func defaultConfig() config {
 // tables.
 func WithoutAutoMigrate() Option {
 	return func(c *config) { c.autoMigrate = false }
+}
+
+// WithOptimizations applies CQRS-optimized indexes and performance PRAGMAs
+// after schema creation. This calls
+// [turso.InitSchemaWithIndexesAndOptimizations] instead of plain
+// [turso.InitSchema], adding recommended indexes on event/store tables and
+// setting PRAGMAs tuned for CQRS workloads. Recommended for production.
+//
+// Has no effect if [WithoutAutoMigrate] is also set.
+func WithOptimizations() Option {
+	return func(c *config) { c.optimize = true }
+}
+
+// WithForeignKeys enables foreign-key enforcement on all databases (primary
+// and secondary when multi-DB is used). Off by default because existing
+// databases may contain orphaned references. Enable for new databases where
+// referential integrity is required.
+func WithForeignKeys() Option {
+	return func(c *config) { c.foreignKeys = true }
 }
 
 // WithEventDB sets a separate database path for the event store. When set,
@@ -105,9 +127,13 @@ func New(dbPath string, opts ...Option) (*Bundle, error) {
 // Turso server URL (e.g. "libsql://my-db.turso.io"). authToken is the Turso
 // auth token.
 //
-// Multi-database options ([WithEventDB], [WithQueryDB], [WithViewDB]) are not
-// supported in sync mode — the entire CQRS stack shares one syncing database.
-// Use [WithSyncOptions] for advanced sync configuration.
+// Multi-database options ([WithEventDB], [WithQueryDB], [WithViewDB]) are
+// incompatible with sync mode — the entire CQRS stack must share one syncing
+// database so that Push/Pull replicates all data consistently. Passing any
+// of them returns an error.
+//
+// Use [WithSyncOptions] for advanced sync configuration (client name, long-poll
+// timeout, busy timeout, namespace, bootstrap behavior).
 func NewSync(
 	ctx context.Context,
 	dbPath, remoteURL, authToken string,
@@ -117,6 +143,14 @@ func NewSync(
 
 	for _, opt := range opts {
 		opt(&cfg)
+	}
+
+	if cfg.eventPath != "" || cfg.queryPath != "" || cfg.viewPath != "" {
+		return nil, errors.New(
+			"turso: multi-DB options (WithEventDB, WithQueryDB, WithViewDB) " +
+				"are incompatible with NewSync — all stores must share one " +
+				"syncing database",
+		)
 	}
 
 	return newSyncBundle(ctx, dbPath, remoteURL, authToken, cfg)
@@ -210,15 +244,10 @@ func newSyncBundle(
 
 	cqrsturso.ConfigurePool(sqlDB)
 
-	ctxBg := context.Background()
+	if err := applySchemaAndPragmas(sqlDB, cfg); err != nil {
+		_ = syncDB.Close()
 
-	if cfg.autoMigrate {
-		err := cqrsturso.InitSchema(ctxBg, sqlDB)
-		if err != nil {
-			_ = syncDB.Close()
-
-			return nil, fmt.Errorf("turso: init schema: %w", err)
-		}
+		return nil, err
 	}
 
 	backend, err := cqrsturso.NewBackend(sqlDB)
@@ -231,12 +260,15 @@ func newSyncBundle(
 	stackOpts := buildOptions(backend)
 	stackOpts = append(stackOpts, stack.WithBus(cqrswatermill.NewEventBus()))
 
-	viewOpts, err := buildPrimaryViewOptions(backend, sqlDB)
+	kvStore, err := backend.KVStore()
 	if err != nil {
-		return nil, err
+		_ = backend.Close()
+		_ = syncDB.Close()
+
+		return nil, fmt.Errorf("turso: kv store: %w", err)
 	}
 
-	stackOpts = append(stackOpts, viewOpts...)
+	stackOpts = append(stackOpts, stack.WithReadModels(kvStore))
 
 	// Register lifecycle: backend closes stores, syncDB closes the DB +
 	// disconnects sync. Order matters — stores must close before the DB.
@@ -270,15 +302,10 @@ func openLocalBackend(
 
 	cqrsturso.ConfigurePool(sqlDB)
 
-	if cfg.autoMigrate {
-		ctx := context.Background()
+	if err := applySchemaAndPragmas(sqlDB, cfg); err != nil {
+		_ = sqlDB.Close()
 
-		err := cqrsturso.InitSchema(ctx, sqlDB)
-		if err != nil {
-			_ = sqlDB.Close()
-
-			return nil, nil, fmt.Errorf("turso: init schema: %w", err)
-		}
+		return nil, nil, err
 	}
 
 	backend, err := cqrsturso.NewBackend(sqlDB)
@@ -289,6 +316,35 @@ func openLocalBackend(
 	}
 
 	return sqlDB, backend, nil
+}
+
+// applySchemaAndPragmas runs schema initialization (with optional
+// optimizations), then applies foreign keys if enabled. Shared by all
+// database-opening paths (local, secondary, sync).
+func applySchemaAndPragmas(sqlDB *sql.DB, cfg config) error {
+	ctx := context.Background()
+
+	if cfg.autoMigrate {
+		var err error
+		if cfg.optimize {
+			err = cqrsturso.InitSchemaWithIndexesAndOptimizations(ctx, sqlDB)
+		} else {
+			err = cqrsturso.InitSchema(ctx, sqlDB)
+		}
+
+		if err != nil {
+			return fmt.Errorf("turso: init schema: %w", err)
+		}
+	}
+
+	if cfg.foreignKeys {
+		err := storage.SQLiteEnableForeignKeys(ctx, sqlDB)
+		if err != nil {
+			return fmt.Errorf("turso: enable foreign keys: %w", err)
+		}
+	}
+
+	return nil
 }
 
 // buildOptions assembles the stack.Option slice for a Backend's stores.

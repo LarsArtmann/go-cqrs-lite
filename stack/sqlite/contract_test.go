@@ -48,15 +48,15 @@ func TestMultiDBContract(t *testing.T) {
 func countSQLiteRows(t *testing.T, dsn, table string) int {
 	t.Helper()
 
-	db, err := sql.Open("sqlite", dsn)
+	sqlDB, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		t.Fatalf("open %s: %v", filepath.Base(dsn), err)
 	}
-	defer func() { _ = db.Close() }()
+	defer func() { _ = sqlDB.Close() }()
 
 	var got int
 
-	err = db.QueryRowContext(context.Background(),
+	err = sqlDB.QueryRowContext(context.Background(),
 		"SELECT COUNT(*) FROM "+table).Scan(&got)
 	if err != nil {
 		t.Fatalf("count %s.%s: %v", filepath.Base(dsn), table, err)
