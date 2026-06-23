@@ -63,9 +63,9 @@ You do NOT need all of them. Start with the minimal recipe (§2), then bolt on c
 | Generate typed handler boilerplate                  | `cmd/cqrs-gen`                                                   | §6.8       |
 | Publish events to Watermill router                  | `watermill`                                                      | §6.5       |
 | In-memory implementations for tests/dev             | `memory`                                                         | §2.1       |
-| One-call infrastructure wiring (Bundle presets)     | `stack/memory`, `stack/sqlite`, `stack/pebble`, `stack/postgres` | §2.0       |
-| Typed read-model store over KV backend              | `readmodel`                                                      | §2.0       |
-| Cache decorator for read models                     | `readmodel/cache`                                                | §2.0       |
+| One-call infrastructure wiring (Bundle presets)     | `stack/memory`, `stack/sqlite`, `stack/pebble`, `stack/postgres`, `stack/turso` | §2.0 |
+| Typed read-model store over KV backend              | `kv.TypedStore`                                                  | §2.0       |
+| Cache decorator for read models                     | `kv.Cache`                                                       | §2.0       |
 
 ---
 
@@ -84,13 +84,43 @@ import cqrspebble "github.com/larsartmann/go-cqrs-lite/stack/pebble/v3"
 b, err := cqrspebble.New("/var/lib/myapp/pebble")
 defer b.Close()
 
+// Diagnostics: verify wiring (prints ✓/✗ for each capability)
+fmt.Println(b.Debug())
+
 // Typed read model over the Bundle's shared KV backend
-store, _ := stack.ReadModel[TodoView, TodoID](b, codec.JSONCodec{},
-    readmodel.WithKeyPrefix[TodoView, TodoID]("todos:"))
+store := kv.NewTypedStore[TodoView, TodoID](b.ReadModels)
 
 // Command handlers use b.EventSink (asserts to event.Store)
 // Queries use the read model store
 // Projections use b.Journal + b.Subscriber + b.CheckpointStore
+```
+
+#### Production options (SQLite / Turso)
+
+```go
+// SQLite with production optimizations (WAL + synchronous=NORMAL are default)
+b, _ := sqlite.New("app.db",
+    sqlite.WithOptimizations(),  // cache_size, temp_store, mmap_size PRAGMAs
+    sqlite.WithForeignKeys(),    // referential integrity (opt-in)
+)
+
+// Turso with remote sync + optimizations
+b, _ := turso.NewSync(ctx, "local.db", "libsql://my-db.turso.io", "token",
+    turso.WithOptimizations(),
+    turso.WithSyncOptions(turso.WithClientName("edge-node-1")),
+)
+
+// Disable WAL if running on a network filesystem
+b, _ := sqlite.New("app.db", sqlite.WithoutWAL())
+b, _ := turso.New("app.db", turso.WithoutWAL())
+```
+
+#### Postgres distributed bus (cross-process pub/sub)
+
+```go
+listener, _ := postgres.NewPgxListenerFromDSN(ctx, dsn)
+b, _ := postgres.New(dsn, postgres.WithDistributedBus(listener))
+// Events now propagate via LISTEN/NOTIFY to other processes sharing the DB
 ```
 
 Available presets:
@@ -120,9 +150,9 @@ replace hand-wired infrastructure with presets.
 Read-model cache decorator:
 
 ```go
-cached, _ := cache.New(store,
-    cache.WithCapacity[TodoView, TodoID](10_000),
-    cache.WithTTL[TodoView, TodoID](5*time.Minute))
+cached, _ := kv.NewCache(store,
+    kv.WithCacheCapacity[TodoView, TodoID](10_000),
+    kv.WithCacheTTL[TodoView, TodoID](5*time.Minute))
 ```
 
 See [`docs/PRESETS.md`](docs/PRESETS.md) and [`docs/INFRASTRUCTURE_RECOMMENDATIONS.md`](docs/INFRASTRUCTURE_RECOMMENDATIONS.md) for full documentation.
