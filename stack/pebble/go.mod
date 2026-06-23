@@ -42,7 +42,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.0.0 // indirect
-	github.com/larsartmann/go-error-family v0.5.0 // indirect
+	github.com/larsartmann/go-error-family v0.5.1 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
