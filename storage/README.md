@@ -1,6 +1,6 @@
 # storage — SQL Event Store Backends
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/storage/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/storage/v3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/storage/v3.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/storage/v3)
 
 Persistent event store implementations for PostgreSQL, SQLite, and SQLite-compatible backends. Implements the `event.Store`, `snapshot.SnapshotStore`, and `event.CheckpointStore` interfaces.
 

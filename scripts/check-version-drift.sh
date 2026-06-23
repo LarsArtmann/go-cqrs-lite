@@ -14,8 +14,8 @@ set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
 drift=$(
-    grep -rh "go-cqrs-lite/.*/v2 v" */go.mod 2>/dev/null \
-        | grep -oE 'go-cqrs-lite/[^ ]+/v2 v[0-9]+\.[0-9]+\.[0-9]+' \
+    grep -rhE 'go-cqrs-lite/.*/v[0-9]+ v[0-9]' */go.mod 2>/dev/null \
+        | grep -oE 'go-cqrs-lite/[^ ]+/v[0-9]+ v[0-9]+\.[0-9]+\.[0-9]+' \
         | sort -u \
         | awk '
             {

@@ -1,6 +1,6 @@
 # query — CQRS Query Dispatch
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/query/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/query/v3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/query/v3.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/query/v3)
 
 Typed query dispatch with pagination and middleware chains.
 

@@ -1,6 +1,6 @@
 # snapshot — Snapshot Persistence
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/snapshot/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/snapshot/v3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/snapshot/v3.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/snapshot/v3)
 
 Capture aggregate state at a version to avoid full event replay on each load.
 

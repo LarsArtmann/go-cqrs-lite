@@ -1,6 +1,6 @@
 # command — CQRS Command Dispatch
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/command/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/command/v3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/command/v3.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/command/v3)
 
 Typed command dispatch with middleware chains and lifecycle management.
 

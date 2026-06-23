@@ -1,6 +1,6 @@
 # event — Event Sourcing Core
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/event/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/event/v3.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v3)
 
 Immutable events, store/bus interfaces, event sourcing primitives, and the 5-family error taxonomy for CQRS + Event Sourcing. Zero infrastructure dependencies (no HTTP, no database, no message broker).
 

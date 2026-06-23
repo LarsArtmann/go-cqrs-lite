@@ -1,6 +1,6 @@
 # id — Branded IDs
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/id/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/id/v3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/id/v3.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/id/v3)
 
 Type-safe branded identifiers backed by ULID. Prevents mixing different ID types at compile time.
 

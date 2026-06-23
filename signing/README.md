@@ -1,6 +1,6 @@
 # signing — Event Signing and Verification
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/signing/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/signing/v3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/signing/v3.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/signing/v3)
 
 Cryptographic event signing for tamper-proof event streams. Supports both shared-secret (HMAC-SHA256) and public-key (Ed25519) signing strategies.
 

@@ -1,6 +1,6 @@
 # turso — Turso Database Connectors
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/turso/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/turso/v3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/storage/turso/v3.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/storage/turso/v3)
 
 CQRS storage adapters for [Turso](https://turso.tech/) databases (embedded LibSQL/SQLite with optional remote sync).
 
@@ -228,7 +228,7 @@ fmt.Println(idx.DDL())      // CREATE INDEX IF NOT EXISTS ...
 fmt.Println(idx.DropDDL())  // DROP INDEX IF EXISTS ...
 ```
 
-[SyncOption]: https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/turso/v3#SyncOption
+[SyncOption]: https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/storage/turso/v3#SyncOption
 
 ## Related Modules
 

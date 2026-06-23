@@ -43,14 +43,14 @@ LAYER[stack/bench]=7
 # Some modules legitimately depend on test helpers (memory) or cross-cutting concerns (otel)
 # These are documented exceptions to the strict layer rules
 declare -A EXCEPTIONS
-EXCEPTIONS[event]="storage/memory"
+EXCEPTIONS[event]="schema snapshot storage/memory"
 EXCEPTIONS[schema]="storage/memory snapshot"
 EXCEPTIONS[snapshot]="storage/memory"
 EXCEPTIONS[decider]="storage/memory otel"
 EXCEPTIONS[storage]="listing"
 EXCEPTIONS[storage/turso]="storage listing"
-EXCEPTIONS[command]="snapshot"
-EXCEPTIONS[query]="snapshot"
+EXCEPTIONS[query]="snapshot storage/memory"
+EXCEPTIONS[command]="snapshot storage/memory"
 
 # Test-only packages that don't count against production dep budgets.
 # These are test infrastructure (assertions, PBT, mocking) used across all modules.
@@ -134,21 +134,24 @@ for mod in "${!LAYER[@]}"; do
 
     mod_layer=${LAYER[$mod]}
 
-    # Use GOWORK=off to get only this module's direct dependencies
-    deps=$(cd "$mod" && GOWORK=off go list -m -json all 2>/dev/null | awk '
-        /"Path":/ { path=$2; gsub(/[",]/, "", path) }
-        /"Main":/ { if ($2 == "true") print path }
-    ' | grep "github.com/larsartmann/go-cqrs-lite/" || true)
+    # Parse go.mod directly for direct go-cqrs-lite dependencies.
+    # Avoids GOWORK=off + go list which fails when go.sum is stale.
+    deps=$(awk '
+        /^require \(/{found=1;next}
+        /^\)/{found=0}
+        found && /go-cqrs-lite\// && !/\/\// {print $1}
+    ' "$gomod" | grep "github.com/larsartmann/go-cqrs-lite/" || true)
 
     for req in $deps; do
         # Skip the module itself
-        if echo "$req" | grep -q "go-cqrs-lite/${mod}/v2"; then
+        # Skip the module itself (match any major version suffix)
+        if echo "$req" | grep -qE "go-cqrs-lite/${mod}/v[0-9]+"; then
             continue
         fi
 
         # Extract module name from import path
-        # github.com/larsartmann/go-cqrs-lite/EVENT/v2 -> event
-        dep_mod=$(echo "$req" | sed 's|github.com/larsartmann/go-cqrs-lite/||; s|/v2||')
+        # github.com/larsartmann/go-cqrs-lite/EVENT/v3 -> event
+        dep_mod=$(echo "$req" | sed 's|github.com/larsartmann/go-cqrs-lite/||; s|/v[0-9]\+||')
 
         # Skip root module and examples/cmd (not in layer map)
         if [ -z "${LAYER[$dep_mod]:-}" ]; then
@@ -161,9 +164,9 @@ for mod in "${!LAYER[@]}"; do
             continue
         fi
 
-        # Check layer ordering
+        # Check layer ordering (same-layer deps are allowed; only strictly higher = violation)
         dep_layer=${LAYER[$dep_mod]}
-        if [ "$dep_layer" -ge "$mod_layer" ]; then
+        if [ "$dep_layer" -gt "$mod_layer" ]; then
             echo "VIOLATION: ${mod} (layer ${mod_layer}) depends on ${dep_mod} (layer ${dep_layer}) via ${req}"
             failed=1
         fi

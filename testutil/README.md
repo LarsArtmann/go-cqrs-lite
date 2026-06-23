@@ -1,6 +1,6 @@
 # testutil — Shared Test Helpers
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/testutil/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/testutil/v3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/testutil/v3.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/testutil/v3)
 
 Cross-module test utilities: test-friendly command constructors (tb.Fatalf on error, zero panics) and no-op handlers for use in test suites across the go-cqrs-lite ecosystem.
 

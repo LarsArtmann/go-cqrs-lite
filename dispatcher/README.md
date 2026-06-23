@@ -1,6 +1,6 @@
 # dispatcher — Generic Dispatcher Infrastructure
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/dispatcher/v2.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/dispatcher/v3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/dispatcher/v3.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/dispatcher/v3)
 
 Shared generic dispatcher with lifecycle management. Used internally by `command` and `query`.
 
