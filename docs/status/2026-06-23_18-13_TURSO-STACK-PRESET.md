@@ -27,19 +27,20 @@ commit.
 
 ### `stack/turso` — Complete Turso Preset (NEW MODULE)
 
-| File | Lines | Purpose |
-|---|---|---|
-| `preset.go` | 298 | `New()` (local), `NewSync()` (remote sync), options, Bundle wrapping |
-| `views.go` | 75 | Read-model KV store wiring (primary + secondary DB) |
-| `closers.go` | 34 | `multiCloser`, `funcCloser` (lifecycle helpers) |
-| `drivers.go` | 6 | Blank import of `turso.tech/database/tursogo` |
-| `doc.go` | 35 | Package docs with quick-start examples |
-| `contract_test.go` | 17 | Shared contract suite (5 subtests) |
-| `preset_test.go` | 201 | E2E: event/read-model roundtrips, persistence across restarts |
-| `go.mod` | 29 | Module definition with replace directives |
-| `go.sum` | 153 | Dependency lock file |
+| File               | Lines | Purpose                                                              |
+| ------------------ | ----- | -------------------------------------------------------------------- |
+| `preset.go`        | 298   | `New()` (local), `NewSync()` (remote sync), options, Bundle wrapping |
+| `views.go`         | 75    | Read-model KV store wiring (primary + secondary DB)                  |
+| `closers.go`       | 34    | `multiCloser`, `funcCloser` (lifecycle helpers)                      |
+| `drivers.go`       | 6     | Blank import of `turso.tech/database/tursogo`                        |
+| `doc.go`           | 35    | Package docs with quick-start examples                               |
+| `contract_test.go` | 17    | Shared contract suite (5 subtests)                                   |
+| `preset_test.go`   | 201   | E2E: event/read-model roundtrips, persistence across restarts        |
+| `go.mod`           | 29    | Module definition with replace directives                            |
+| `go.sum`           | 153   | Dependency lock file                                                 |
 
 **Features delivered:**
+
 - `turso.New(dbPath, opts...)` — local embedded LibSQL (mirrors `sqlite.New`)
 - `turso.NewSync(ctx, dbPath, remoteURL, authToken, opts...)` — remote sync mode
 - `Bundle.Sync()` accessor — returns `*turso.SyncDB` for Push/Pull/Checkpoint/Stats/HealthCheck (nil in local mode)
@@ -50,6 +51,7 @@ commit.
 - 10 tests passing (`-race` clean): 5 contract + 5 E2E
 
 **Quality verification:**
+
 - `go build ./...` — ✅ clean
 - `go vet ./...` — ✅ clean
 - `go test ./... -count=1 -race` — ✅ 10/10 pass
@@ -92,12 +94,14 @@ complement the Turso work:
 ## B) PARTIALLY DONE 🟡
 
 ### Turso Multi-DB + Sync Interaction
+
 Multi-DB split (`WithEventDB`/`WithQueryDB`/`WithViewDB`) works in local mode
 but is **intentionally not supported** in sync mode (`NewSync`). The entire
 CQRS stack shares one syncing database in sync mode. This is documented but
 could be revisited if users need multi-DB + sync.
 
 ### Turso Indexing Advisor Integration
+
 The `storage/turso/indexing/` sub-package (auto-smart index management, usage
 statistics, WAL checkpoint scheduler) exists but is **not wired into the stack
 preset**. The preset calls `InitSchema` (basic DDL) but not
@@ -105,13 +109,16 @@ preset**. The preset calls `InitSchema` (basic DDL) but not
 indexing advisor is an advanced feature) but could be offered as an option.
 
 ### Test Coverage for Sync Mode
+
 `NewSync` is implemented and compiles, but there are **no tests for it** in
 `stack/turso` — sync tests require a live Turso server (like Postgres tests
 require `POSTGRES_TEST_DSN`). The local `New` path is fully tested.
 
 ### Docs Freshness
+
 The AGENTS.md structure tree and module list are updated, but the following
 docs still need review:
+
 - `SKILL.md` (consumer guide) — may need Turso preset in the decision matrix
 - `docs/STORAGE_GUIDE.md` — may need Turso stack section
 - `FEATURES.md` — needs Turso stack preset listed
@@ -187,6 +194,7 @@ resolved by restarting gopls.
 ## F) Top 25 Things to Do Next 🎯
 
 ### Immediate (this week)
+
 1. **Commit this work** ← happening now
 2. **Add `./stack/turso/...` to `flake.nix` test runner** — verify CI will test it
 3. **Add `./stack/turso/...` to `ci.yml`** — ensure GitHub Actions runs the tests
@@ -194,6 +202,7 @@ resolved by restarting gopls.
 5. **Update `SKILL.md`** — add Turso to the consumer guide decision matrix
 
 ### Short-term (next sprint)
+
 6. **Add sync mode tests** with injectable fake sync engine
 7. **Wire `WithIndexingAdvisor` option** into `stack/turso` preset
 8. **Create `example/turso`** — offline-first demo app with sync
@@ -203,6 +212,7 @@ resolved by restarting gopls.
 12. **Update `FEATURES.md`** — add Turso stack preset to feature inventory
 
 ### Medium-term (next quarter)
+
 13. **Extract shared multi-DB helpers** — reduce duplication between sqlite/turso
 14. **Add Postgres multi-DB support** — `WithEventDB`/`WithQueryDB`/`WithViewDB` for PG
 15. **Add Pebble multi-DB support** — separate column families for isolation
@@ -214,6 +224,7 @@ resolved by restarting gopls.
 20. **Consider `stack/turso` snapshot strategy** — `EveryNEvents` with SQL snapshots
 
 ### Quality / Tech Debt
+
 21. **Fix the 9 pre-existing lint errors** in catalog, transport/http, kv, stack
 22. **Fix the 6 `makezero` findings** in `storage/turso/` test/indexing files
 23. **Add `stack/turso` to coverage gate** in CI (currently core modules >80%)
@@ -229,6 +240,7 @@ resolved by restarting gopls.
 of plain `InitSchema` by default?**
 
 The `storage/turso/` package has two schema initialization paths:
+
 - `InitSchema(ctx, db)` — creates tables only (basic DDL)
 - `InitSchemaWithIndexesAndOptimizations(ctx, db)` — creates tables + CQRS-
   optimized indexes + performance PRAGMAs
@@ -247,24 +259,24 @@ Turso.
 
 ## Build & Test Status
 
-| Check | Status |
-|---|---|
-| `go build ./...` (stack/turso) | ✅ Pass |
-| `go vet ./...` (stack/turso) | ✅ Pass |
-| `go test ./... -race` (stack/turso) | ✅ 10/10 Pass |
-| `nix run .#build` (full workspace) | ✅ Pass |
-| `nix run .#lint` (stack/turso) | ✅ 0 errors |
-| `nix run .#lint` (full workspace) | ⚠️ 9 pre-existing errors in other modules |
-| `nix fmt` | ✅ Applied |
+| Check                               | Status                                    |
+| ----------------------------------- | ----------------------------------------- |
+| `go build ./...` (stack/turso)      | ✅ Pass                                   |
+| `go vet ./...` (stack/turso)        | ✅ Pass                                   |
+| `go test ./... -race` (stack/turso) | ✅ 10/10 Pass                             |
+| `nix run .#build` (full workspace)  | ✅ Pass                                   |
+| `nix run .#lint` (stack/turso)      | ✅ 0 errors                               |
+| `nix run .#lint` (full workspace)   | ⚠️ 9 pre-existing errors in other modules |
+| `nix fmt`                           | ✅ Applied                                |
 
 ## Numbers
 
-| Metric | Value |
-|---|---|
-| Total Go modules | 40 (was 39) |
-| Total Go files | 837 |
-| Total test files | 416 |
-| New files this session | 9 (`stack/turso/`) |
-| New lines of code | 848 |
-| Tests added | 10 (5 contract + 5 E2E) |
-| Lint errors in new code | 0 |
+| Metric                  | Value                   |
+| ----------------------- | ----------------------- |
+| Total Go modules        | 40 (was 39)             |
+| Total Go files          | 837                     |
+| Total test files        | 416                     |
+| New files this session  | 9 (`stack/turso/`)      |
+| New lines of code       | 848                     |
+| Tests added             | 10 (5 contract + 5 E2E) |
+| Lint errors in new code | 0                       |

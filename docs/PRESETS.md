@@ -20,13 +20,13 @@ store, _ := stack.ReadModel[TodoView, TodoID](b, codec.JSONCodec{},
 
 ## Available Presets
 
-| Preset   | Module           | Backend          | Persistent | Bus    | Read Models      |
-| -------- | ---------------- | ---------------- | ---------- | ------ | ---------------- |
-| Memory   | `stack/memory`   | In-memory        | No         | Memory | Memory KV        |
-| SQLite   | `stack/sqlite`   | SQLite (modernc) | Yes        | Memory | SQL KV (cqrs_kv) |
-| Pebble   | `stack/pebble`   | PebbleDB (LSM)   | Yes        | Memory | Pebble KV        |
+| Preset   | Module           | Backend          | Persistent | Bus                    | Read Models      |
+| -------- | ---------------- | ---------------- | ---------- | ---------------------- | ---------------- |
+| Memory   | `stack/memory`   | In-memory        | No         | Memory                 | Memory KV        |
+| SQLite   | `stack/sqlite`   | SQLite (modernc) | Yes        | Memory                 | SQL KV (cqrs_kv) |
+| Pebble   | `stack/pebble`   | PebbleDB (LSM)   | Yes        | Memory                 | Pebble KV        |
 | Postgres | `stack/postgres` | PostgreSQL (pgx) | Yes        | Memory / LISTEN-NOTIFY | SQL KV (cqrs_kv) |
-| Turso    | `stack/turso`    | LibSQL           | Yes        | Memory | SQL KV (cqrs_kv) |
+| Turso    | `stack/turso`    | LibSQL           | Yes        | Memory                 | SQL KV (cqrs_kv) |
 
 All presets wire every capability: event store + bus, command store, query
 store, snapshot store, checkpoint store, and read-model backend.
@@ -67,11 +67,11 @@ b, _ := sqlite.New("primary.db",
 defer b.Close()
 ```
 
-| Database    | Contains                       | Rationale                                    |
-| ----------- | ------------------------------ | -------------------------------------------- |
-| **Event DB**  | events, snapshots, checkpoints | Event-sourcing write model, isolated from reads |
-| **Query DB**  | commands, queries             | Operational audit log, isolated from write model |
-| **View DB**   | materialized views (`cqrs_kv`) | Read scans don't contend with event appends    |
+| Database     | Contains                       | Rationale                                        |
+| ------------ | ------------------------------ | ------------------------------------------------ |
+| **Event DB** | events, snapshots, checkpoints | Event-sourcing write model, isolated from reads  |
+| **Query DB** | commands, queries              | Operational audit log, isolated from write model |
+| **View DB**  | materialized views (`cqrs_kv`) | Read scans don't contend with event appends      |
 
 Default (single database) is fine for development and low-traffic apps. See
 [Infrastructure Recommendations](INFRASTRUCTURE_RECOMMENDATIONS.md) for the

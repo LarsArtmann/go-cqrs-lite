@@ -10,13 +10,13 @@ patterns. Matching the engine to the pattern is the single highest-leverage
 infrastructure decision. The library encodes these recommendations as
 **presets** so the deployer picks one line and gets a well-matched stack.
 
-| Concern           | Write pattern     | Read pattern            | Best engine        | Why                          |
-| ----------------- | ----------------- | ----------------------- | ------------------ | ---------------------------- |
-| **Event store**   | Append-only       | Range scan by aggregate | LSM-tree or B+Tree | Immutable, ordered, unbounded |
-| **Snapshots**     | Point write       | Point read by key       | KV / B+Tree        | Get/Put by aggregate ID       |
-| **Checkpoints**   | Point write       | Point read by key       | KV / B+Tree        | Get/Put by projection name    |
-| **Command/query audit** | Append-only | Sequential / cursor scan | B+Tree (SQL)      | Ordered logs, time-range query |
-| **Read models** (projections) | Bulk upsert | Point lookup + filtered list | KV / SQL / columnar | Depends on query shape |
+| Concern                       | Write pattern | Read pattern                 | Best engine         | Why                            |
+| ----------------------------- | ------------- | ---------------------------- | ------------------- | ------------------------------ |
+| **Event store**               | Append-only   | Range scan by aggregate      | LSM-tree or B+Tree  | Immutable, ordered, unbounded  |
+| **Snapshots**                 | Point write   | Point read by key            | KV / B+Tree         | Get/Put by aggregate ID        |
+| **Checkpoints**               | Point write   | Point read by key            | KV / B+Tree         | Get/Put by projection name     |
+| **Command/query audit**       | Append-only   | Sequential / cursor scan     | B+Tree (SQL)        | Ordered logs, time-range query |
+| **Read models** (projections) | Bulk upsert   | Point lookup + filtered list | KV / SQL / columnar | Depends on query shape         |
 
 ## The five concerns, deep-dive
 
@@ -69,13 +69,13 @@ and filtered/sorted list queries.
 
 **Engine choice depends on the query shape:**
 
-| Query shape                    | Best engine             | Preset option          |
-| ------------------------------ | ----------------------- | ---------------------- |
-| Point lookup by ID             | KV (`cqrs_kv` table)    | default / `WithViewDB` |
-| Filtered list + pagination     | SQL (custom tables)     | SQL preset             |
-| Full-text search               | SQLite FTS / Postgres   | external               |
-| Aggregations / analytics       | Columnar (external)     | external               |
-| Relationship traversal         | Graph (external)        | external               |
+| Query shape                | Best engine           | Preset option          |
+| -------------------------- | --------------------- | ---------------------- |
+| Point lookup by ID         | KV (`cqrs_kv` table)  | default / `WithViewDB` |
+| Filtered list + pagination | SQL (custom tables)   | SQL preset             |
+| Full-text search           | SQLite FTS / Postgres | external               |
+| Aggregations / analytics   | Columnar (external)   | external               |
+| Relationship traversal     | Graph (external)      | external               |
 
 The library's `kv.TypedStore` and `stack.Materialize` handle the common case
 (point lookup + tombstone-aware list). For richer query needs, the deployer
@@ -109,12 +109,12 @@ bundle, err := sqlite.New("primary.db",
 )
 ```
 
-| Database     | Contains                            | Rationale                                          |
-| ------------ | ----------------------------------- | -------------------------------------------------- |
-| **Event DB** | events, snapshots, checkpoints      | The event-sourcing write model — isolated from read traffic |
-| **Query DB** | commands, queries                   | Operational audit log — ad-hoc query load isolated from the write model |
-| **View DB**  | materialized views (`cqrs_kv`)      | Read-model scans don't contend with event appends  |
-| **Primary**  | (unused when all three are set)     | Opened for schema; stores are overridden           |
+| Database     | Contains                        | Rationale                                                               |
+| ------------ | ------------------------------- | ----------------------------------------------------------------------- |
+| **Event DB** | events, snapshots, checkpoints  | The event-sourcing write model — isolated from read traffic             |
+| **Query DB** | commands, queries               | Operational audit log — ad-hoc query load isolated from the write model |
+| **View DB**  | materialized views (`cqrs_kv`)  | Read-model scans don't contend with event appends                       |
+| **Primary**  | (unused when all three are set) | Opened for schema; stores are overridden                                |
 
 **When to split:** production deployments with concurrent readers and writers.
 A single database is fine for development and low-traffic apps. The split
@@ -125,14 +125,14 @@ single-database mode is simpler and sufficient.
 
 ## Deployer vs. consumer responsibility
 
-| Who        | Decides                                                       | How                                   |
-| ---------- | ------------------------------------------------------------- | ------------------------------------- |
-| **Deployer** | Which engine (memory/SQLite/Pebble/Postgres/Turso)         | Picks a preset constructor            |
-| **Deployer** | Whether to split databases (multi-DB)                        | `WithEventDB` / `WithQueryDB` / `WithViewDB` |
-| **Deployer** | Distributed bus (Postgres LISTEN/NOTIFY)                     | `WithDistributedBus`                  |
-| **Consumer** | Domain logic: deciders, event types, command/query handlers  | Imports `event`, `command`, `decider` |
-| **Consumer** | Projection logic: how events materialize into views          | `stack.Materialize` + `OnCreate` etc. |
-| **Consumer** | Never imports a backend driver                                | No `storage/`, `pebble/`, `turso/` imports |
+| Who          | Decides                                                     | How                                          |
+| ------------ | ----------------------------------------------------------- | -------------------------------------------- |
+| **Deployer** | Which engine (memory/SQLite/Pebble/Postgres/Turso)          | Picks a preset constructor                   |
+| **Deployer** | Whether to split databases (multi-DB)                       | `WithEventDB` / `WithQueryDB` / `WithViewDB` |
+| **Deployer** | Distributed bus (Postgres LISTEN/NOTIFY)                    | `WithDistributedBus`                         |
+| **Consumer** | Domain logic: deciders, event types, command/query handlers | Imports `event`, `command`, `decider`        |
+| **Consumer** | Projection logic: how events materialize into views         | `stack.Materialize` + `OnCreate` etc.        |
+| **Consumer** | Never imports a backend driver                              | No `storage/`, `pebble/`, `turso/` imports   |
 
 The consumer's code is identical regardless of which backend the deployer
 chose. This is the core design goal: **infrastructure is a deployer concern,

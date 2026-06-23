@@ -64,13 +64,13 @@ combos.
 
 ## Preset Coverage Matrix
 
-| Preset | One-line API | Multi-DB split | Distributed bus | Wrapped Bundle extras |
-|---|---|---|---|---|
-| `memory` | `memory.New()` | — | — | — |
-| `sqlite` | `sqlite.New("app.db")` | `WithEventDB` / `WithQueryDB` / `WithViewDB` | — | — |
-| `turso` | `turso.New("app.db")` | Local only (sync mode: no) | — | `Sync()` → Push/Pull/Checkpoint |
-| `pebble` | `pebble.New("data")` | ❌ | — | `Checkpoint()`, `Metrics()`, `Flush()` |
-| `postgres` | `postgres.New(dsn)` | ❌ | `WithDistributedBus` (LISTEN/NOTIFY) | — |
+| Preset     | One-line API           | Multi-DB split                               | Distributed bus                      | Wrapped Bundle extras                  |
+| ---------- | ---------------------- | -------------------------------------------- | ------------------------------------ | -------------------------------------- |
+| `memory`   | `memory.New()`         | —                                            | —                                    | —                                      |
+| `sqlite`   | `sqlite.New("app.db")` | `WithEventDB` / `WithQueryDB` / `WithViewDB` | —                                    | —                                      |
+| `turso`    | `turso.New("app.db")`  | Local only (sync mode: no)                   | —                                    | `Sync()` → Push/Pull/Checkpoint        |
+| `pebble`   | `pebble.New("data")`   | ❌                                           | —                                    | `Checkpoint()`, `Metrics()`, `Flush()` |
+| `postgres` | `postgres.New(dsn)`    | ❌                                           | `WithDistributedBus` (LISTEN/NOTIFY) | —                                      |
 
 ### Multi-DB split detail
 
@@ -85,11 +85,11 @@ bundle, err := sqlite.New("primary.db",
 )
 ```
 
-| Database | Contains | Rationale |
-|---|---|---|
+| Database     | Contains                       | Rationale                                              |
+| ------------ | ------------------------------ | ------------------------------------------------------ |
 | **Event DB** | events, snapshots, checkpoints | Event-sourcing write model, isolated from read traffic |
-| **Query DB** | commands, queries | Operational audit log, isolated from write model |
-| **View DB** | materialized views (`cqrs_kv`) | Read-model scans don't contend with event appends |
+| **Query DB** | commands, queries              | Operational audit log, isolated from write model       |
+| **View DB**  | materialized views (`cqrs_kv`) | Read-model scans don't contend with event appends      |
 
 Postgres and Pebble do **not** support this split.
 
@@ -99,34 +99,34 @@ Postgres and Pebble do **not** support this split.
 
 ### Event Store implementations
 
-| Engine | Implementation | Used by presets |
-|---|---|---|
-| In-memory | `storage.MemoryStore` | memory |
-| SQLite (modernc, pure Go) | `storage.SQLEventStore` | sqlite |
-| Turso/LibSQL | `storage.SQLEventStore` (shared) | turso |
-| Postgres (pgx) | `storage.SQLEventStore` (shared) | postgres |
-| Pebble (LSM-tree) | `pebble.EventStore` | pebble |
-| Redis | — | — |
-| DynamoDB | — | — |
-| MongoDB | — | — |
+| Engine                    | Implementation                   | Used by presets |
+| ------------------------- | -------------------------------- | --------------- |
+| In-memory                 | `storage.MemoryStore`            | memory          |
+| SQLite (modernc, pure Go) | `storage.SQLEventStore`          | sqlite          |
+| Turso/LibSQL              | `storage.SQLEventStore` (shared) | turso           |
+| Postgres (pgx)            | `storage.SQLEventStore` (shared) | postgres        |
+| Pebble (LSM-tree)         | `pebble.EventStore`              | pebble          |
+| Redis                     | —                                | —               |
+| DynamoDB                  | —                                | —               |
+| MongoDB                   | —                                | —               |
 
 ### KV / Read-Model Backends
 
-| Backend | Implementation | Used by presets |
-|---|---|---|
-| In-memory | `kv.MemStore` | memory |
+| Backend               | Implementation       | Used by presets         |
+| --------------------- | -------------------- | ----------------------- |
+| In-memory             | `kv.MemStore`        | memory                  |
 | SQL (`cqrs_kv` table) | `storage.SQLKVStore` | sqlite, turso, postgres |
-| Pebble | `pebble.KVAdapter` | pebble |
-| Redis | — | — |
-| Columnar (ClickHouse) | — | — |
-| Graph (Neo4j) | — | — |
-| Document (MongoDB) | — | — |
+| Pebble                | `pebble.KVAdapter`   | pebble                  |
+| Redis                 | —                    | —                       |
+| Columnar (ClickHouse) | —                    | —                       |
+| Graph (Neo4j)         | —                    | —                       |
+| Document (MongoDB)    | —                    | —                       |
 
 ### Wrappers (composable layers over any store)
 
-| Wrapper | Purpose |
-|---|---|
-| `schema.VersionedStore` | Schema evolution via upcasters on load |
+| Wrapper                     | Purpose                                |
+| --------------------------- | -------------------------------------- |
+| `schema.VersionedStore`     | Schema evolution via upcasters on load |
 | `encryption.encryptedStore` | Transparent payload encryption at rest |
 
 ---
@@ -136,43 +136,43 @@ Postgres and Pebble do **not** support this split.
 These are the functions app developers call. None of them reference a storage
 engine — they all operate on the abstract `Bundle`.
 
-| Function | Purpose |
-|---|---|
-| `stack.Repository[State](bundle, decider)` | Typed aggregate repository |
-| `stack.TypedRepository[State, Cmd](bundle, decider)` | Compile-time command-type-bound repo |
-| `stack.ReadModel[T, K](bundle, codec)` | Typed KV store for views |
-| `stack.NewMaterialize[V, K](bundle, codec, keyFunc)` | Tombstone-aware projection builder |
-| `bundle.CatchUpSubscriber()` | Replay + live + checkpoint subscriber |
-| `stack.QueryAuditMiddleware(bundle, level)` | Query audit logging middleware |
+| Function                                             | Purpose                               |
+| ---------------------------------------------------- | ------------------------------------- |
+| `stack.Repository[State](bundle, decider)`           | Typed aggregate repository            |
+| `stack.TypedRepository[State, Cmd](bundle, decider)` | Compile-time command-type-bound repo  |
+| `stack.ReadModel[T, K](bundle, codec)`               | Typed KV store for views              |
+| `stack.NewMaterialize[V, K](bundle, codec, keyFunc)` | Tombstone-aware projection builder    |
+| `bundle.CatchUpSubscriber()`                         | Replay + live + checkpoint subscriber |
+| `stack.QueryAuditMiddleware(bundle, level)`          | Query audit logging middleware        |
 
 ---
 
 ## Goal Checklist
 
-| Goal dimension | What we have | What's missing | Grade |
-|---|---|---|---|
-| **Consumers don't import storage** | Presets + `stack.New(With*)`; consumer code is engine-agnostic | `example/deployer-first` uses manual wiring (comment added, not refactored to preset) | B+ |
-| **Simple deployer API** | 5 presets, all one-line constructors | Postgres + Pebble missing multi-DB split | B |
-| **Recommendations per concern** | `INFRASTRUCTURE_RECOMMENDATIONS.md` maps 5 concerns to engines | No recommendation for bus choice (only Postgres has distributed) | A- |
-| **SQLite + Memory only** | Both fully working standalone | — | A |
-| **Multiple SQLite DBs** | `WithEventDB`/`WithQueryDB`/`WithViewDB` | Same split unavailable on Postgres and Pebble | B+ |
-| **Heterogeneous engine mixing** | `stack.New(WithEventStore(pebble), WithReadModels(sql))` works | No preset/builder for common combos; no example demonstrating it | B- |
-| **Specialized read-model engines** | `kv.Store` interface is extensible; `WithReadModels(myStore)` accepts anything | Zero implementations for columnar/graph/document; no docs on wiring external engines | D |
-| **Distributed bus** | Postgres LISTEN/NOTIFY via `WithDistributedBus` | No Kafka, NATS, Redis Pub/Sub adapters | C+ |
+| Goal dimension                     | What we have                                                                   | What's missing                                                                        | Grade |
+| ---------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- | ----- |
+| **Consumers don't import storage** | Presets + `stack.New(With*)`; consumer code is engine-agnostic                 | `example/deployer-first` uses manual wiring (comment added, not refactored to preset) | B+    |
+| **Simple deployer API**            | 5 presets, all one-line constructors                                           | Postgres + Pebble missing multi-DB split                                              | B     |
+| **Recommendations per concern**    | `INFRASTRUCTURE_RECOMMENDATIONS.md` maps 5 concerns to engines                 | No recommendation for bus choice (only Postgres has distributed)                      | A-    |
+| **SQLite + Memory only**           | Both fully working standalone                                                  | —                                                                                     | A     |
+| **Multiple SQLite DBs**            | `WithEventDB`/`WithQueryDB`/`WithViewDB`                                       | Same split unavailable on Postgres and Pebble                                         | B+    |
+| **Heterogeneous engine mixing**    | `stack.New(WithEventStore(pebble), WithReadModels(sql))` works                 | No preset/builder for common combos; no example demonstrating it                      | B-    |
+| **Specialized read-model engines** | `kv.Store` interface is extensible; `WithReadModels(myStore)` accepts anything | Zero implementations for columnar/graph/document; no docs on wiring external engines  | D     |
+| **Distributed bus**                | Postgres LISTEN/NOTIFY via `WithDistributedBus`                                | No Kafka, NATS, Redis Pub/Sub adapters                                                | C+    |
 
 ---
 
 ## Honest Gaps
 
-| # | Gap | Impact | Effort |
-|---|---|---|---|
-| 1 | **Postgres has no multi-DB split** | Production users can't isolate concerns on the most common production DB | Medium — pattern exists in sqlite, port it |
-| 2 | **Pebble has no multi-DB split** | Can't isolate Pebble stores by column family | Low-Medium |
-| 3 | **No distributed bus except Postgres** | Kafka/NATS users must hand-wire via Watermill router | High per-adapter |
-| 4 | **No external KV/read-model adapters** | Columnar/graph/document are "bring your own" with zero guidance | High |
-| 5 | **No heterogeneous example** | The killer feature (mix engines per-concern) has zero demonstration | Low — just an example |
-| 6 | **deployer-first example uses manual wiring** | Flagship example doesn't showcase the preset one-liner path | Low |
-| 7 | **Turso multi-DB + sync incompatible** | `WithEventDB` etc. silently ignored in sync mode | Low — documented but could error explicitly |
+| #   | Gap                                           | Impact                                                                   | Effort                                      |
+| --- | --------------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------- |
+| 1   | **Postgres has no multi-DB split**            | Production users can't isolate concerns on the most common production DB | Medium — pattern exists in sqlite, port it  |
+| 2   | **Pebble has no multi-DB split**              | Can't isolate Pebble stores by column family                             | Low-Medium                                  |
+| 3   | **No distributed bus except Postgres**        | Kafka/NATS users must hand-wire via Watermill router                     | High per-adapter                            |
+| 4   | **No external KV/read-model adapters**        | Columnar/graph/document are "bring your own" with zero guidance          | High                                        |
+| 5   | **No heterogeneous example**                  | The killer feature (mix engines per-concern) has zero demonstration      | Low — just an example                       |
+| 6   | **deployer-first example uses manual wiring** | Flagship example doesn't showcase the preset one-liner path              | Low                                         |
+| 7   | **Turso multi-DB + sync incompatible**        | `WithEventDB` etc. silently ignored in sync mode                         | Low — documented but could error explicitly |
 
 ---
 
