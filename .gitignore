@@ -65,6 +65,9 @@ example/*/listing
 example/*/stream
 example/*/user
 example/*/api
+example/*/encryption
+example/*/deployer-first
+example/*/deployer-first-multidb
 example/todo/cmd/api/api
 
 # CLI tool binaries

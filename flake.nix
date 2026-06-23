@@ -77,6 +77,7 @@
             "stack/sqlite"
             "stack/pebble"
             "stack/postgres"
+            "stack/turso"
             "stack/bench"
             "cmd/cqrs-gen"
           ];
@@ -87,6 +88,7 @@
             "./example/user/..."
             "./example/encryption/..."
             "./example/deployer-first/..."
+            "./example/deployer-first-multidb/..."
           ];
 
           allPaths = "${modulePaths} ${examplePaths}";
