@@ -13,7 +13,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.0.0
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.0.0
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.0.0
-	github.com/larsartmann/go-error-family v0.5.0
+	github.com/larsartmann/go-error-family v0.5.1
 	github.com/onsi/ginkgo/v2 v2.31.0
 	github.com/onsi/gomega v1.42.0
 	golang.org/x/crypto v0.53.0

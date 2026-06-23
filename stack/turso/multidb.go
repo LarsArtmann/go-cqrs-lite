@@ -99,6 +99,7 @@ func openSecondaryDB(dbPath string, cfg config) (*sql.DB, error) {
 
 	if cfg.autoMigrate {
 		ctx := context.Background()
+
 		err := cqrsturso.InitSchema(ctx, sqlDB)
 		if err != nil {
 			_ = sqlDB.Close()

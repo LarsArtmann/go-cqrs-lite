@@ -272,6 +272,7 @@ func openLocalBackend(
 
 	if cfg.autoMigrate {
 		ctx := context.Background()
+
 		err := cqrsturso.InitSchema(ctx, sqlDB)
 		if err != nil {
 			_ = sqlDB.Close()
