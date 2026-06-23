@@ -15,8 +15,8 @@ When all three share one database, write-heavy event appends compete with
 read-model scans for I/O. Under load, event appends can block behind long
 view queries, causing write latency spikes.
 
-The goal explicitly requires: *"ideally multiple SQLite DBs (1 for
-Command+ES, 1 for Query, 1 for views)."*
+The goal explicitly requires: _"ideally multiple SQLite DBs (1 for
+Command+ES, 1 for Query, 1 for views)."_
 
 ## Decision
 
@@ -27,11 +27,11 @@ connection to a different database file (SQLite/Turso) or database name
 
 **Routing:**
 
-| Option | Stores routed | Rationale |
-|--------|--------------|-----------|
+| Option        | Stores routed                  | Rationale                                                 |
+| ------------- | ------------------------------ | --------------------------------------------------------- |
 | `WithEventDB` | events, snapshots, checkpoints | The event-sourcing write model — append-heavy, sequential |
-| `WithQueryDB` | commands, queries | Operational audit log — low-frequency, independent of ES |
-| `WithViewDB` | read models (`cqrs_kv`) | Read-model scans — random-access, scan-heavy |
+| `WithQueryDB` | commands, queries              | Operational audit log — low-frequency, independent of ES  |
+| `WithViewDB`  | read models (`cqrs_kv`)        | Read-model scans — random-access, scan-heavy              |
 
 When an option is not set, those stores remain in the primary database.
 

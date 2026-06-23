@@ -21,27 +21,27 @@ tests, and lint with zero preset-specific issues.
 
 ### Bug Fixes
 
-| Bug | Impact | Fix |
-|---|---|---|
-| Turso `NewSync` silently ignored multi-DB options | Deployer thinks split is active; data all goes to one DB | Explicit error: "multi-DB options are incompatible with NewSync" |
-| Turso `newSyncBundle` resource leak on error path | `*sql.DB` + sync engine leaked if KV store creation failed | Added `_ = syncDB.Close()` on all error paths |
+| Bug                                               | Impact                                                     | Fix                                                              |
+| ------------------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------- |
+| Turso `NewSync` silently ignored multi-DB options | Deployer thinks split is active; data all goes to one DB   | Explicit error: "multi-DB options are incompatible with NewSync" |
+| Turso `newSyncBundle` resource leak on error path | `*sql.DB` + sync engine leaked if KV store creation failed | Added `_ = syncDB.Close()` on all error paths                    |
 
 ### New Production Options
 
-| Option | Preset | What it does |
-|---|---|---|
-| `WithForeignKeys()` | SQLite, Turso | Enables `PRAGMA foreign_keys=ON` on all databases (primary + secondary) |
-| `WithOptimizations()` | Turso | Applies CQRS-optimized indexes + performance PRAGMAs via `InitSchemaWithIndexesAndOptimizations` |
+| Option                | Preset        | What it does                                                                                     |
+| --------------------- | ------------- | ------------------------------------------------------------------------------------------------ |
+| `WithForeignKeys()`   | SQLite, Turso | Enables `PRAGMA foreign_keys=ON` on all databases (primary + secondary)                          |
+| `WithOptimizations()` | Turso         | Applies CQRS-optimized indexes + performance PRAGMAs via `InitSchemaWithIndexesAndOptimizations` |
 
 ### New Tests (7 added, 22 total across SQLite + Turso)
 
-| Test | Preset | What it verifies |
-|---|---|---|
-| `TestNewSync_RejectsMultiDBOptions` (3 subtests) | Turso | NewSync rejects WithEventDB/WithQueryDB/WithViewDB |
-| `TestMultiDB_SeparateViewDB` | Turso | Separate view DB works for read models |
-| `TestNew_WithForeignKeys` | SQLite, Turso | FK option enables without errors, schema is valid |
-| `TestNew_WithOptimizations` | Turso | Optimization indexes + PRAGMAs apply cleanly |
-| `TestMultiDB_PersistenceAcrossReopen` | SQLite, Turso | Data survives close → reopen with multi-DB split |
+| Test                                             | Preset        | What it verifies                                   |
+| ------------------------------------------------ | ------------- | -------------------------------------------------- |
+| `TestNewSync_RejectsMultiDBOptions` (3 subtests) | Turso         | NewSync rejects WithEventDB/WithQueryDB/WithViewDB |
+| `TestMultiDB_SeparateViewDB`                     | Turso         | Separate view DB works for read models             |
+| `TestNew_WithForeignKeys`                        | SQLite, Turso | FK option enables without errors, schema is valid  |
+| `TestNew_WithOptimizations`                      | Turso         | Optimization indexes + PRAGMAs apply cleanly       |
+| `TestMultiDB_PersistenceAcrossReopen`            | SQLite, Turso | Data survives close → reopen with multi-DB split   |
 
 ### Code Quality Improvements
 
@@ -64,23 +64,27 @@ tests, and lint with zero preset-specific issues.
 ## B) PARTIALLY DONE 🟡
 
 ### Turso WAL Mode
+
 The Turso preset does NOT set WAL mode by default (unlike SQLite which has
 `wal: true` in config). WAL is only reachable via `WithOptimizations()` which
 calls `indexing.ApplyOptimizations` (which sets `journal_mode=WAL` among other
 PRAGMAs). This is inconsistent — SQLite defaults to WAL, Turso doesn't.
 
 ### SQLite `WithOptimizations`
+
 Turso has `WithOptimizations()` but SQLite doesn't, despite the indexing
 advisor's SQL being portable to plain SQLite (confirmed: no LibSQL-specific
 syntax). The feature parity gap is documented but not yet implemented.
 
 ### `synchronous=NORMAL` Still Missing from WAL Mode
+
 `SQLiteEnableWAL` sets `journal_mode=WAL` + `busy_timeout=5000` but NOT
 `synchronous=NORMAL`. This is a well-known production best practice — `FULL`
 (the SQLite default) does an `fsync` on every transaction. The optimizations
 package sets `synchronous=NORMAL`, but the base WAL helper doesn't.
 
 ### Postgres Lint Fixes
+
 The Postgres preset had lint fixes applied (varnamelen, noinlineerr) but
 4 lint warnings remain in test files (`multidb_test.go` varnamelen +
 1 unused nolint directive in `preset.go`).
@@ -142,6 +146,7 @@ modules.
 ## F) Top 25 Things to Do Next 🎯
 
 ### Immediate — Correctness (small effort, high impact)
+
 1. Add `synchronous=NORMAL` to `SQLiteEnableWAL` in `storage/sqlite_helpers.go`
 2. Add WAL default to Turso preset (match SQLite's `wal: true` config)
 3. Add error-path tests (bad DSN → verify no resource leak)
@@ -149,6 +154,7 @@ modules.
 5. Fix 4 remaining Postgres lint warnings in test files
 
 ### Short-term — Feature Parity (medium effort, high impact)
+
 6. Add `WithOptimizations()` to SQLite preset (indexing advisor is portable)
 7. Extract `multiCloser`/`funcCloser` to `stack` package (shared across presets)
 8. Extract shared SQL multi-DB open helpers to `stack/sqlpreset` or similar
@@ -156,6 +162,7 @@ modules.
 10. Write `example/sqlite-todo` showing preset one-liner usage
 
 ### Medium-term — Architecture (medium effort, medium impact)
+
 11. Typed `MultiDBConfig` struct option (replaces 3 separate string options)
 12. Add `stack/bench` entries for SQLite and Turso presets
 13. Add Turso sync mode tests with injectable fake sync engine
@@ -163,6 +170,7 @@ modules.
 15. CI integration: verify `./stack/turso/...` in `flake.nix` and `ci.yml`
 
 ### Quality / Tech Debt
+
 16. Fix 33 pre-existing lint findings across other modules
 17. Add API stability golden file for `stack/turso`
 18. Update `SKILL.md` with Turso preset in the decision matrix
@@ -170,6 +178,7 @@ modules.
 20. Add `WithForeignKeys()` to Postgres preset (parity with SQLite/Turso)
 
 ### Future Polish
+
 21. Turso `WithSyncAuto` option (automatic background Push/Pull loop)
 22. Heterogeneous mixing example (Pebble events + SQLite views)
 23. SQLite `ATTACH DATABASE` multi-DB alternative (single connection, multiple files)
@@ -197,27 +206,27 @@ is almost never the right choice.
 
 ## Build & Test Status
 
-| Check | Status |
-|---|---|
-| `nix run .#build` (full workspace) | ✅ Pass |
-| `stack/sqlite` — test + race | ✅ 14/14 Pass |
-| `stack/turso` — test + race | ✅ 15/15 Pass |
-| `stack/postgres` — test + race | ✅ Pass |
-| `stack/sqlite` — lint | ✅ 0 issues |
-| `stack/turso` — lint | ✅ 0 issues |
-| `stack/postgres` — lint | ⚠️ 4 pre-existing test issues |
-| Full workspace — lint | ⚠️ 33 pre-existing issues in other modules |
+| Check                              | Status                                     |
+| ---------------------------------- | ------------------------------------------ |
+| `nix run .#build` (full workspace) | ✅ Pass                                    |
+| `stack/sqlite` — test + race       | ✅ 14/14 Pass                              |
+| `stack/turso` — test + race        | ✅ 15/15 Pass                              |
+| `stack/postgres` — test + race     | ✅ Pass                                    |
+| `stack/sqlite` — lint              | ✅ 0 issues                                |
+| `stack/turso` — lint               | ✅ 0 issues                                |
+| `stack/postgres` — lint            | ⚠️ 4 pre-existing test issues              |
+| Full workspace — lint              | ⚠️ 33 pre-existing issues in other modules |
 
 ## Numbers
 
-| Metric | Value |
-|---|---|
-| Total Go modules | 40 |
-| Total Go files | 844 |
-| Total test files | 418 |
-| Tests in stack/sqlite | 14 |
-| Tests in stack/turso | 15 |
-| New tests this session | 7 |
-| New production options | 4 (SQLite FK, Turso FK, Turso Opt, Turso SyncOptions passthrough) |
-| Bugs fixed | 2 (multi-DB rejection, resource leak) |
-| Lint issues in touched code | 0 |
+| Metric                      | Value                                                             |
+| --------------------------- | ----------------------------------------------------------------- |
+| Total Go modules            | 40                                                                |
+| Total Go files              | 844                                                               |
+| Total test files            | 418                                                               |
+| Tests in stack/sqlite       | 14                                                                |
+| Tests in stack/turso        | 15                                                                |
+| New tests this session      | 7                                                                 |
+| New production options      | 4 (SQLite FK, Turso FK, Turso Opt, Turso SyncOptions passthrough) |
+| Bugs fixed                  | 2 (multi-DB rejection, resource leak)                             |
+| Lint issues in touched code | 0                                                                 |

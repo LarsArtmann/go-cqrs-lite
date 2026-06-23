@@ -142,11 +142,11 @@ Options: `WithoutAutoMigrate()`, `WithoutWAL()`, `WithOptimizations()`,
 `WithSyncOptions()` (local mode only — multi-DB split is not supported with
 sync).
 
-| Option | Description |
-|--------|-------------|
+| Option                | Description                                                                                                                                                 |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `WithOptimizations()` | Applies CQRS-optimized indexes and performance PRAGMAs (WAL, synchronous=NORMAL, cache_size, temp_store) after schema creation. Recommended for production. |
-| `WithForeignKeys()` | Enables foreign-key enforcement on all databases. Off by default (existing data may have orphaned references). |
-| `WithoutWAL()` | Disables WAL mode (default: on with synchronous=NORMAL + busy_timeout=5000). |
+| `WithForeignKeys()`   | Enables foreign-key enforcement on all databases. Off by default (existing data may have orphaned references).                                              |
+| `WithoutWAL()`        | Disables WAL mode (default: on with synchronous=NORMAL + busy_timeout=5000).                                                                                |
 
 ## Bundle Fields
 

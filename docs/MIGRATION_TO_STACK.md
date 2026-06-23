@@ -6,15 +6,15 @@
 
 ## Why Migrate?
 
-| Concern | Hand-wired | Stack preset |
-|---------|-----------|--------------|
-| Schema migration | Manual `CREATE TABLE` + migration discovery | Automatic (auto-migrate on first run) |
-| Bus wiring | Manual event.Bus + subscriber registration | One line: `sqlite.New("app.db")` |
-| Projection replay | Custom journal reader + dedup logic (150–260 lines) | `bundle.CatchUpSubscriber()` (0 lines) |
-| View updates | Custom handler with tombstone checks | `stack.Materialize` struct with callbacks |
-| Dialect mapping | `if sqlite ... if postgres ...` branches | Preset swap — zero conditionals |
-| Storage switching | Build tags (`-tags turso`) — silent prod bugs | Runtime choice — one function call |
-| Connection lifecycle | Manual `defer db.Close()` everywhere | `bundle.Close()` handles everything |
+| Concern              | Hand-wired                                          | Stack preset                              |
+| -------------------- | --------------------------------------------------- | ----------------------------------------- |
+| Schema migration     | Manual `CREATE TABLE` + migration discovery         | Automatic (auto-migrate on first run)     |
+| Bus wiring           | Manual event.Bus + subscriber registration          | One line: `sqlite.New("app.db")`          |
+| Projection replay    | Custom journal reader + dedup logic (150–260 lines) | `bundle.CatchUpSubscriber()` (0 lines)    |
+| View updates         | Custom handler with tombstone checks                | `stack.Materialize` struct with callbacks |
+| Dialect mapping      | `if sqlite ... if postgres ...` branches            | Preset swap — zero conditionals           |
+| Storage switching    | Build tags (`-tags turso`) — silent prod bugs       | Runtime choice — one function call        |
+| Connection lifecycle | Manual `defer db.Close()` everywhere                | `bundle.Close()` handles everything       |
 
 ---
 
@@ -97,6 +97,7 @@ for msg := range msgs {
 ```
 
 **Lines removed: ~200.** CatchUpSubscriber handles:
+
 - Phase 1: journal replay with `ProcessingMode=ModeReplay`
 - Phase 2: live handoff with EventID-based deduplication
 - Checkpoint persistence after every forwarded event
@@ -177,14 +178,14 @@ The consumer code doesn't change — the Bundle fields point to the right stores
 
 ## Decision Checklist
 
-| Question | If yes → |
-|----------|----------|
-| Single process, dev/test? | `memory.New()` |
-| Single process, persistent? | `sqlite.New("app.db")` |
-| High-throughput embedded? | `pebble.New("data/")` |
-| Multi-process, shared DB? | `postgres.New(dsn, postgres.WithDistributedBus(listener))` |
-| Edge/remote sync? | `turso.NewSync(ctx, path, remoteURL, token)` |
-| Need I/O isolation? | Add `WithEventDB` + `WithQueryDB` + `WithViewDB` |
+| Question                    | If yes →                                                   |
+| --------------------------- | ---------------------------------------------------------- |
+| Single process, dev/test?   | `memory.New()`                                             |
+| Single process, persistent? | `sqlite.New("app.db")`                                     |
+| High-throughput embedded?   | `pebble.New("data/")`                                      |
+| Multi-process, shared DB?   | `postgres.New(dsn, postgres.WithDistributedBus(listener))` |
+| Edge/remote sync?           | `turso.NewSync(ctx, path, remoteURL, token)`               |
+| Need I/O isolation?         | Add `WithEventDB` + `WithQueryDB` + `WithViewDB`           |
 
 ---
 
