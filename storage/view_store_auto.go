@@ -6,6 +6,11 @@ import (
 	"time"
 )
 
+const (
+	sqlTypeText   = "TEXT"
+	keyColumnName = "key"
+)
+
 // AutoMapper generates a [ViewMapper] from struct tags on V. Fields tagged
 // with `view:"column_name"` become SQL columns; the SQL type is inferred from
 // the Go type. Fields without the tag are skipped (not stored as columns).
@@ -160,7 +165,7 @@ func goTypeToSQL(
 
 	switch rt.Kind() {
 	case reflect.String:
-		return "TEXT", false
+		return sqlTypeText, false
 	case reflect.Int, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint32, reflect.Uint64:
 		return "INTEGER", false
 	case reflect.Float32, reflect.Float64:
@@ -169,9 +174,9 @@ func goTypeToSQL(
 		return "INTEGER", true
 	default:
 		if rt == reflect.TypeFor[time.Time]() {
-			return "TEXT", false
+			return sqlTypeText, false
 		}
 
-		return "TEXT", false
+		return sqlTypeText, false
 	}
 }

@@ -232,6 +232,7 @@ linters:
         - uc
         - fn
         - tx
+        - mw
         - ts
   exclusions:
     generated: lax
@@ -338,6 +339,7 @@ linters:
           - nlreturn
           - noinlineerr
           - wsl_v5
+          - contextcheck
       - path: encryption/(aesgcm|xchacha20|envelope)\.go$
         linters:
           - noinlineerr
@@ -345,6 +347,48 @@ linters:
           - dupword
           - forcetypeassert
           - wsl_v5
+      # codec: CBOR sync.OnceValue lazy-init vars are the standard Go pattern
+      - path: codec/cbor.*\.go$
+        linters:
+          - gochecknoglobals
+      # kv: test-contract code is inherently complex
+      - path: kv/viewstoretest/
+        linters:
+          - gocognit
+          - errcheck
+      # stack: Materialize proxies Store calls transparently
+      - path: stack/materialize\.go$
+        linters:
+          - wrapcheck
+          - nestif
+      # stack: contract-test infrastructure
+      - path: stack/contracttest/
+        linters:
+          - errcheck
+          - goconst
+          - varnamelen
+          - err113
+      # stack: accessors bridge to watermill (one-off assertion errors)
+      - path: stack/accessors\.go$
+        linters:
+          - err113
+          - exhaustruct
+          - wrapcheck
+      # stack presets: config construction with optional fields
+      - path: stack/(turso|pebble)/preset\.go$
+        linters:
+          - exhaustruct
+          - err113
+          - contextcheck
+          - wrapcheck
+      # transport/http: SSEEvent.Retry is optional; io.Writer.Write wrapping is standard
+      - path: transport/http/sse
+        linters:
+          - exhaustruct
+          - wrapcheck
+      - path: transport/http/sse_event\.go$
+        linters:
+          - err113
       - path: turso/indexing/
         linters:
           - exhaustruct

@@ -39,7 +39,7 @@ func (s *SQLViewStore[V, K]) BatchSet(ctx context.Context, items []kv.ViewItem[V
 }
 
 func (s *SQLViewStore[V, K]) batchChunk(ctx context.Context, items []kv.ViewItem[V, K]) error {
-	cols := append([]string{"key"}, columnNames(s.mapper.Columns)...)
+	cols := append([]string{keyColumnName}, columnNames(s.mapper.Columns)...)
 	rowCount := len(items)
 	paramsPerRow := len(cols)
 

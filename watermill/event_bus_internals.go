@@ -8,7 +8,7 @@ import (
 )
 
 func (b *EventBus) rebuildPublisherChain() {
-	var inner event.Publisher = event.PublisherFunc(func(ctx context.Context, events ...event.Event) error {
+	var inner event.Publisher = event.PublisherFunc(func(_ context.Context, events ...event.Event) error {
 		for _, evt := range events {
 			msg := eventToMessage(evt)
 			if err := b.publisher.Publish(b.topic, msg); err != nil {

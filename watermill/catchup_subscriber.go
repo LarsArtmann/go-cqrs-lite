@@ -158,15 +158,15 @@ func (s *CatchUpSubscriber) runCatchUp(ctx context.Context, sub *catchUpSubscrip
 }
 
 func (s *CatchUpSubscriber) replayPhase(ctx context.Context, sub *catchUpSubscription) error {
-	cp, err := s.checkpoint.Load(ctx, sub.topic)
+	checkpoint, err := s.checkpoint.Load(ctx, sub.topic)
 	if err != nil {
 		return fmt.Errorf("load checkpoint for %s: %w", sub.topic, err)
 	}
 
 	var after id.EventID
 
-	if !cp.IsZero() {
-		after = cp.EventID
+	if !checkpoint.IsZero() {
+		after = checkpoint.EventID
 	}
 
 	events, err := s.journal.ReadFrom(ctx, after, 0)

@@ -30,12 +30,17 @@ func NewMemoryBus() *MemoryBus {
 	}
 }
 
+var (
+	errNilBusHandler      = errors.New("command: nil handler")
+	errNilBusSubscribeAll = errors.New("command: subscribe-all: nil handler")
+)
+
 // Subscribe registers a handler for a specific command type.
 // Multiple handlers may be registered for the same type; all are called
 // synchronously on Publish. Returns an error if handler is nil.
 func (b *MemoryBus) Subscribe(cmdType Type, handler Handler) error {
 	if handler == nil {
-		return fmt.Errorf("command: subscribe %s: nil handler", cmdType)
+		return fmt.Errorf("command: subscribe %s: %w", cmdType, errNilBusHandler)
 	}
 
 	b.mu.Lock()
@@ -50,7 +55,7 @@ func (b *MemoryBus) Subscribe(cmdType Type, handler Handler) error {
 // command, regardless of type. Useful for audit logging.
 func (b *MemoryBus) SubscribeAll(handler Handler) error {
 	if handler == nil {
-		return errors.New("command: subscribe-all: nil handler")
+		return errNilBusSubscribeAll
 	}
 
 	b.mu.Lock()

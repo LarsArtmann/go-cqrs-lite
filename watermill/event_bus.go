@@ -70,7 +70,7 @@ func NewEventBus(opts ...EventBusOption) *EventBus {
 	}
 
 	if b.publisher == nil || b.subscriber == nil {
-		gc := gochannel.NewGoChannel(
+		goChan := gochannel.NewGoChannel(
 			gochannel.Config{
 				// Persistent is intentionally false: CatchUpSubscriber handles
 				// historical replay from the journal (ordered). Persistent mode
@@ -86,9 +86,9 @@ func NewEventBus(opts ...EventBusOption) *EventBus {
 			},
 			watermill.NopLogger{},
 		)
-		b.publisher = gc
-		b.subscriber = gc
-		b.backend = gc
+		b.publisher = goChan
+		b.subscriber = goChan
+		b.backend = goChan
 	}
 
 	b.rebuildPublisherChain()

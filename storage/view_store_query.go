@@ -25,7 +25,7 @@ func (s *SQLViewStore[V, K]) Query(ctx context.Context, q kv.ViewQuery) ([]*V, e
 
 	orderCol := q.OrderBy
 	if orderCol == "" {
-		orderCol = "key"
+		orderCol = keyColumnName
 	}
 
 	dir := "ASC"
@@ -72,7 +72,7 @@ func (s *SQLViewStore[V, K]) QueryByTombstone(
 		return s.Scan(ctx, nil)
 	}
 
-	q := kv.ViewQuery{OrderBy: "key"}
+	q := kv.ViewQuery{OrderBy: keyColumnName}
 
 	col := s.mapper.TombstoneColumn
 
