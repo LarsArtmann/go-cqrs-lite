@@ -25,9 +25,9 @@ Consumers import what they need and compose their own stack. Not a framework —
 | Item      | Value                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Language  | Go 1.26.3                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| Modules   | `event`, `command`, `query`, `decider`, `id`, `id/idtest`, `query/querytest`, `dispatcher`, `schema`, `snapshot`, `catalog`, `middleware`, `integration`, `storage`, `storage/memory`, `storage/pebble`, `storage/turso`, `signing`, `encryption`, `otel`, `prometheus`, `watermill`, `transport/http`, `codec`, `kv`, `listing`, `testutil`, `cqrs-gen`, `api-stability`, `stack`, `stack/memory`, `stack/sqlite`, `stack/turso`, `stack/pebble`, `stack/postgres`, `stack/bench`, `example/user`, `example/todo`, `example/encryption`, `example/deployer-first`, `example/deployer-first-multidb`                                                                                                              |
+| Modules   | `event`, `command`, `query`, `decider`, `id`, `id/idtest`, `query/querytest`, `dispatcher`, `schema`, `snapshot`, `catalog`, `middleware`, `integration`, `storage`, `storage/memory`, `storage/pebble`, `storage/turso`, `signing`, `encryption`, `otel`, `prometheus`, `watermill`, `transport/http`, `transport/grpc`, `codec`, `kv`, `kv/viewstoretest`, `listing`, `testutil`, `cqrs-gen`, `api-stability`, `doc-check`, `stack`, `stack/memory`, `stack/sqlite`, `stack/turso`, `stack/pebble`, `stack/postgres`, `stack/bench`, `example/user`, `example/todo`, `example/encryption`, `example/deployer-first`, `example/deployer-first-multidb`                                                                                                              |
 | Build     | `nix run .#build`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| Test      | `nix run .#test` or `go test ./event/... ./command/... ./query/... ./decider/... ./id/... ./dispatcher/... ./schema/... ./snapshot/... ./storage/memory/... ./catalog/... ./middleware/... ./integration/... ./signing/... ./encryption/... ./storage/... ./storage/pebble/... ./storage/turso/... ./watermill/... ./transport/http/... ./codec/... ./kv/... ./listing/... ./testutil/... ./cmd/cqrs-gen/... ./prometheus/... ./otel/... ./stack/... ./stack/memory/... ./stack/sqlite/... ./stack/turso/... ./stack/pebble/... ./stack/postgres/... ./stack/bench/... ./example/user/... ./example/todo/... ./example/encryption/... ./example/deployer-first/... ./example/deployer-first-multidb/... -count=1` |
+| Test      | `nix run .#test` or `go test ./event/... ./command/... ./query/... ./decider/... ./id/... ./dispatcher/... ./schema/... ./snapshot/... ./storage/memory/... ./catalog/... ./middleware/... ./integration/... ./signing/... ./encryption/... ./storage/... ./storage/pebble/... ./storage/turso/... ./watermill/... ./transport/http/... ./transport/grpc/... ./codec/... ./kv/... ./listing/... ./testutil/... ./cmd/cqrs-gen/... ./cmd/doc-check/... ./prometheus/... ./otel/... ./stack/... ./stack/memory/... ./stack/sqlite/... ./stack/turso/... ./stack/pebble/... ./stack/postgres/... ./stack/bench/... ./example/user/... ./example/todo/... ./example/encryption/... ./example/deployer-first/... ./example/deployer-first-multidb/... -count=1` |
 | Lint      | `nix run .#lint`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | Format    | `nix fmt`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | Dev shell | `nix develop`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
@@ -69,6 +69,7 @@ go-cqrs-lite/
 ├── listing/             # AggregateListing, AggregateStatus, tombstone detection, StatusMiddleware, InMemoryAggregateReader
 ├── watermill/           # Watermill adapter: PublisherAdapter, SubscriberAdapter, EventPublisher (cqrs→Watermill), CatchUpSubscriber (replay+live+checkpoint), MessageToEvent
 ├── transport/http/       # SSE event delivery: SSEBroker, SSEHandler (bridges event.Bus to HTTP clients, ADR-0025)
+├── transport/grpc/       # gRPC transport: RegisterCommandService, RegisterQueryService, CommandClient, QueryClient (ADR-0025)
 ├── codec/               # Payload encoding: JSON, CBOR (deterministic), Raw passthrough
 ├── kv/                  # Layer-0 KV store abstraction: Store, MemStore, Iterator, Batch. PLUS TypedStore[T,K], Cache[T,K], ViewStore[V,K] interface, ViewQuery, ViewQuerier, TombstoneQuerier
 ├── testutil/            # Shared test helpers: NewCmd(tb, ...) (cross-module test utilities)
@@ -327,6 +328,32 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   mat := stack.Materialize[TodoView, id.AggregateID]{Store: store, ...}
 //   // Query with SQL power: WHERE, ORDER BY, LIMIT/OFFSET
 //   results, _ := store.Query(ctx, kv.ViewQuery{Where: "completed = ?", Args: []any{0}})
+//
+//   // Advanced capabilities (optional interfaces — checked at runtime):
+//   // Count:        store.Count(ctx, kv.ViewQuery{Where: "completed = ?", Args: []any{0}})
+//   // BatchSet:     store.BatchSet(ctx, items) // chunked upsert (SQLite 999-param aware)
+//   // DeleteAll:    store.DeleteAll(ctx)       // DELETE FROM table (projection reset)
+//   // QueryFiltered: store.QueryFiltered(ctx, kv.ViewFilter{Conditions: []kv.Condition{
+//   //                   {Column: "completed", Op: kv.OpEq, Value: false}}}, kv.ViewQuery{})
+//   // AutoMapper:   storage.AutoMapperWithTombstone[TodoView]("todos", "tombstoned") // from struct tags
+//   // Indexes:      ViewMapper.Indexes = []storage.IndexSpec{{Name: "idx_title", Columns: []string{"title"}}}
+//
+//   // From a Bundle preset (one-call path):
+//   //   store, _ := sqlite.SQLViewModel[TodoView, TodoID](bundle, mapper)
+
+// gRPC transport (remote command/query dispatch, ADR-0025)
+//   srv := grpc.NewServer()
+//   cqrsgrpc.RegisterCommandService(srv, cmdDispatcher)
+//   cqrsgrpc.RegisterQueryService(srv, qDispatcher)
+//   // Client:
+//   conn, _ := grpc.NewClient("host:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+//   cmdClient := cqrsgrpc.NewCommandClient(conn)
+//   err := cmdClient.Dispatch(ctx, cmd) // transparent remote dispatch
+
+// In-memory command bus (typed pub/sub, first command.Bus impl)
+//   bus := command.NewMemoryBus()
+//   bus.Subscribe("user.create", handlerFunc)
+//   bus.Publish(ctx, cmd1, cmd2)
 
 // Watermill CatchUpSubscriber (replay from journal + live handoff, ADR-0030)
 //   catchUp, _ := watermill.NewCatchUpSubscriber(journal, liveSub, cpStore, logger)
@@ -427,8 +454,8 @@ Layer 1: event/ (→id, codec, ro), command/ (→id, dispatcher, ro), query/ (�
 Layer 2: schema/ (→event), snapshot/ (→event)
 Layer 3: decider/ (→event, snapshot)
 Layer 4: storage/memory/, signing/, encryption/, otel/
-Layer 5: middleware/, storage/, listing/, watermill/, transport/http/, storage/pebble/, storage/turso/, prometheus/
-Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability
+Layer 5: middleware/, storage/, listing/, watermill/, transport/http/, transport/grpc/, storage/pebble/, storage/turso/, prometheus/
+Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability, cmd/doc-check
 ```
 
 > **Saga pattern**: No dedicated saga module. Multi-step orchestration emerges from bus.SubscribeAll + command dispatch. See `example/todo/` for a real architecture.

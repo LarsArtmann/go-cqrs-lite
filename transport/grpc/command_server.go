@@ -2,7 +2,6 @@ package grpc
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"google.golang.org/grpc"
@@ -75,6 +74,3 @@ func errorResult(err error) *cqrsproto.CommandResult {
 		Error:   err.Error(),
 	}
 }
-
-// Compile-time assertion that errorResult return doesn't trigger nilerr.
-var _ = errors.New

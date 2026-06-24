@@ -85,6 +85,8 @@ jobs:
           - stack/bench
           - cmd/cqrs-gen
           - cmd/api-stability
+          - transport/grpc
+          - cmd/doc-check
     steps:
       - uses: actions/checkout@v4
 

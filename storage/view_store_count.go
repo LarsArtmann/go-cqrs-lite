@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"fmt"
-	"reflect"
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
@@ -95,19 +94,40 @@ func buildWhereClause(f kv.ViewFilter, placeholder func(int) string) (string, []
 }
 
 func toAnySlice(v any) []any {
-	if s, ok := v.([]any); ok {
+	switch s := v.(type) {
+	case []any:
 		return s
-	}
-
-	rv := reflect.ValueOf(v)
-	if rv.Kind() != reflect.Slice {
+	case []string:
+		out := make([]any, len(s))
+		for i := range s {
+			out[i] = s[i]
+		}
+		return out
+	case []int:
+		out := make([]any, len(s))
+		for i := range s {
+			out[i] = s[i]
+		}
+		return out
+	case []int64:
+		out := make([]any, len(s))
+		for i := range s {
+			out[i] = s[i]
+		}
+		return out
+	case []uint64:
+		out := make([]any, len(s))
+		for i := range s {
+			out[i] = s[i]
+		}
+		return out
+	case []float64:
+		out := make([]any, len(s))
+		for i := range s {
+			out[i] = s[i]
+		}
+		return out
+	default:
 		return []any{v}
 	}
-
-	out := make([]any, rv.Len())
-	for i := range out {
-		out[i] = rv.Index(i).Interface()
-	}
-
-	return out
 }

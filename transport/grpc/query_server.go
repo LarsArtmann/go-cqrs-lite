@@ -3,7 +3,6 @@ package grpc
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"google.golang.org/grpc"
@@ -62,6 +61,3 @@ func queryErrorResult(err error) *cqrsproto.QueryResult {
 		Error: err.Error(),
 	}
 }
-
-// Compile-time assertion.
-var _ = errors.New

@@ -742,7 +742,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | ------------------------- | ---------------------------------------------- |
 | PostgreSQL testcontainers | testcontainers-based real PG testing           |
 | Documentation site        | Docusaurus/MkDocs/Hugo site                    |
-| Transport adapters        | gRPC, NATS, Redis (ADR-0025 accepted, no code) |
+| Transport adapters        | gRPC ✅, NATS/Redis (ADR-0025 accepted, no code) |
 
 ---
 

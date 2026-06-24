@@ -18,7 +18,6 @@
 package main
 
 import (
-	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -55,7 +54,11 @@ func main() {
 	for _, file := range files {
 		refs, imports, err := scanMarkdown(file)
 		if err != nil {
-			log.Fatalf("error reading %s: %v", file, err) //nolint:gosec // G706: CLI tool, no untrusted input
+			log.Fatalf(
+				"error reading %s: %v",
+				file,
+				err,
+			)
 		}
 
 		allRefs = append(allRefs, refs...)
@@ -88,8 +91,6 @@ func main() {
 		"✓ All %d references valid across %d package(s).",
 		len(allRefs), len(exportIndex),
 	)
-
-	_ = fmt.Sprintf // keep fmt import for potential future formatting
 }
 
 var (

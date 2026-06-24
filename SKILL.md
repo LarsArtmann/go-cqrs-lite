@@ -60,8 +60,11 @@ You do NOT need all of them. Start with the minimal recipe (§2), then bolt on c
 | Add OpenTelemetry tracing/metrics                   | `otel` + `middleware`                                            | §2.8       |
 | Auto-generate AsyncAPI/OpenAPI/EventCatalog/D2 docs | `catalog`                                                        | §2.9       |
 | Soft-delete aggregates without data loss            | `event` (tombstone metadata)                                     | §6.1       |
-| Generate typed handler boilerplate                  | `cmd/cqrs-gen`                                                   | §6.8       |
-| Publish events to Watermill router                  | `watermill`                                                      | §6.5       |
+| Generate typed handler boilerplate                  | `cmd/cqrs-gen`                                                   | §6.7       |
+| Publish events to Watermill router                  | `watermill`                                                      | §6.4       |
+| Dispatch commands/queries over gRPC                 | `transport/grpc`                                                 | §6.8       |
+| Verify doc code references compile                  | `cmd/doc-check`                                                  | §6.8       |
+| In-memory command bus (typed pub/sub)               | `command` (`NewMemoryBus`)                                       | §2.1       |
 | In-memory implementations for tests/dev             | `memory`                                                         | §2.1       |
 | One-call infrastructure wiring (Bundle presets)     | `stack/memory`, `stack/sqlite`, `stack/pebble`, `stack/postgres`, `stack/turso` | §2.0 |
 | Typed read-model store over KV backend              | `kv.TypedStore`                                                  | §2.0       |
@@ -729,7 +732,9 @@ cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 | `query/querytest`   | `query/v2/querytest` | `New(tb, queryType)`. Construct valid test queries — `tb.Fatalf` on error.                                   |
 | `event/eventtest`   | `event/v2/eventtest` | `FakeStore`, `FakeBus`, `AssertGolden`. Event test doubles and golden test helpers.                          |
 | `cmd/cqrs-gen`      | (go install)         | Code generator: typed handler registration from `//cqrs:command` / `//cqrs:query` markers.                   |
+| `cmd/doc-check`     | (go run)             | Doc verifier: scans Markdown for Go code references, checks symbols exist.                                    |
 | `cmd/api-stability` | (go install)         | API surface checker: compares exports against `docs/api_surface.txt` golden file.                            |
+| `transport/grpc`    | `transport/grpc/v3`  | `RegisterCommandService`, `RegisterQueryService`, `NewCommandClient`, `NewQueryClient`. gRPC transport.      |
 
 ---
 
@@ -843,6 +848,48 @@ cqrs-gen -type . -output handlers_gen.go -pkg myapp
 ```
 
 Generates typed `Register*` boilerplate.
+
+### 6.8 gRPC Transport (remote command/query dispatch)
+
+Expose local dispatchers over gRPC, or dispatch to a remote CQRS server.
+
+```go
+import (
+    "google.golang.org/grpc"
+    cqrsgrpc "github.com/larsartmann/go-cqrs-lite/transport/grpc/v3"
+)
+
+// --- Server side: expose your dispatchers over gRPC ---
+
+srv := grpc.NewServer()
+cqrsgrpc.RegisterCommandService(srv, cmdDispatcher) // cmdDispatcher: *command.Dispatcher
+cqrsgrpc.RegisterQueryService(srv, qDispatcher)     // qDispatcher: *query.Dispatcher
+
+lis, _ := net.Listen("tcp", ":50051")
+go srv.Serve(lis)
+
+// --- Client side: dispatch to a remote server ---
+
+conn, _ := grpc.NewClient(
+    "localhost:50051",
+    grpc.WithTransportCredentials(insecure.NewCredentials()), // or TLS
+)
+defer conn.Close()
+
+// Command dispatch — transparent remote call
+cmdClient := cqrsgrpc.NewCommandClient(conn)
+err := cmdClient.Dispatch(ctx, myCommand) // same interface as local dispatcher
+
+// Query dispatch — JSON result unmarshaled into your struct
+qClient := cqrsgrpc.NewQueryClient(conn)
+var result GetUserResult
+err := qClient.Ask(ctx, "user.get", &result) // queryType + out pointer
+```
+
+Command payloads are carried in metadata (`metadata.Custom["payload"]`); handlers
+extract them via `cmd.Metadata().Custom["payload"]`. Query results are JSON-encoded
+on the wire. The `CommandClient` implements the same `Dispatch` interface as a local
+dispatcher — swap them freely.
 
 ---
 

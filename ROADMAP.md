@@ -18,7 +18,7 @@ All 11 breaking changes landed and v3.0.0 is tagged. The new shapes were added i
 ### Transport Adapters (ADR-0025)
 
 - [x] `transport/http/` — SSE event delivery (moved from middleware/). Healthcheck/metrics_http/pprof deleted (generic, zero CQRS deps, zero consumers).
-- [ ] `transport/grpc/` — protobuf command dispatch + event pub/sub
+- [x] `transport/grpc/` — protobuf command + query dispatch (commit `81d29455`)
 - [ ] `transport/nats/` — JetStream publisher/subscriber
 - [ ] `transport/redis/` — Redis Streams publisher/subscriber
 
