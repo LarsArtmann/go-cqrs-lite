@@ -26,7 +26,7 @@ Surfaced by the code-quality, architecture, data-model, naming, and modularizati
 - [ ] **Exclude generated code from file-size gate** [LOW] — `flake.nix` `check-file-size` flags `transport/grpc/proto/cqrs.pb.go` (530 lines, generated). Exclude `*.pb.go` / `Code generated` files.
 - [ ] **Migrate deprecated `query.Handler` usage** [LOW] — `middleware/generic.go:85` references the library's own deprecated type. Move to `TypedHandler[Q,R]`.
 - [ ] **Remove `context.Context` from a struct** [LOW] — `watermill/event_bus.go:40` stores a ctx; pass it per-call instead.
-- [ ] **Document `AggregateID` string backing** [LOW] — `id.AggregateID` is string-backed while the other 7 IDs are ULID-backed. Either document as intentional (natural keys) + add a validating constructor, or unify on ULID at the next major.
+- [x] ~~**Document `AggregateID` string backing**~~ — **ALREADY DOCUMENTED** (`id/aggregate_id.go:19-26`). The string backing is intentional: AggregateID supports both ULID-generated IDs and domain-specific natural keys (e.g. `"lock_user1_user2"`). No change needed.
 
 ### Experimental / long-term
 
