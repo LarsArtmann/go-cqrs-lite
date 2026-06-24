@@ -134,7 +134,7 @@ func NewOTelMetrics[M any](
 
 // CommandOTelMetrics returns a command middleware that records duration using an OTel histogram.
 func CommandOTelMetrics(histogram cqrsotel.Float64Histogram) command.Middleware {
-	return AsCommand(NewOTelMetrics[command.Command](
+	return AsCommand(NewOTelMetrics(
 		cqrsotel.KindCommand, cqrsotel.AttrCommandType,
 		func(cmd command.Command) string { return string(cmd.Type()) },
 		histogram,
@@ -143,7 +143,7 @@ func CommandOTelMetrics(histogram cqrsotel.Float64Histogram) command.Middleware 
 
 // EventOTelMetrics returns an event middleware that records duration using an OTel histogram.
 func EventOTelMetrics(histogram cqrsotel.Float64Histogram) event.Middleware {
-	return AsEvent(NewOTelMetrics[event.Event](
+	return AsEvent(NewOTelMetrics(
 		cqrsotel.KindEvent, cqrsotel.AttrEventType,
 		func(evt event.Event) string { return string(evt.Type()) },
 		histogram,
@@ -152,7 +152,7 @@ func EventOTelMetrics(histogram cqrsotel.Float64Histogram) event.Middleware {
 
 // QueryOTelMetrics returns a query middleware that records duration using an OTel histogram.
 func QueryOTelMetrics(histogram cqrsotel.Float64Histogram) query.Middleware {
-	return AsQuery(NewOTelMetrics[query.Query](
+	return AsQuery(NewOTelMetrics(
 		cqrsotel.KindQuery, cqrsotel.AttrQueryType,
 		func(q query.Query) string { return string(q.Type()) },
 		histogram,
@@ -165,7 +165,7 @@ func CommandOTelMetricsWithCounter(
 	histogram cqrsotel.Float64Histogram,
 	counter cqrsotel.Int64Counter,
 ) command.Middleware {
-	return AsCommand(NewOTelMetricsWithCounter[command.Command](
+	return AsCommand(NewOTelMetricsWithCounter(
 		cqrsotel.KindCommand, cqrsotel.AttrCommandType,
 		func(cmd command.Command) string { return string(cmd.Type()) },
 		histogram, counter,
@@ -178,7 +178,7 @@ func EventOTelMetricsWithCounter(
 	histogram cqrsotel.Float64Histogram,
 	counter cqrsotel.Int64Counter,
 ) event.Middleware {
-	return AsEvent(NewOTelMetricsWithCounter[event.Event](
+	return AsEvent(NewOTelMetricsWithCounter(
 		cqrsotel.KindEvent, cqrsotel.AttrEventType,
 		func(evt event.Event) string { return string(evt.Type()) },
 		histogram, counter,
@@ -191,7 +191,7 @@ func QueryOTelMetricsWithCounter(
 	histogram cqrsotel.Float64Histogram,
 	counter cqrsotel.Int64Counter,
 ) query.Middleware {
-	return AsQuery(NewOTelMetricsWithCounter[query.Query](
+	return AsQuery(NewOTelMetricsWithCounter(
 		cqrsotel.KindQuery, cqrsotel.AttrQueryType,
 		func(q query.Query) string { return string(q.Type()) },
 		histogram, counter,

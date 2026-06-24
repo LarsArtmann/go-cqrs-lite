@@ -53,7 +53,7 @@ func NewTraceLogging[M any](
 // CommandTraceLogging returns a command middleware that injects trace_id and
 // span_id from the OTel context into structured log entries.
 func CommandTraceLogging(logger *slog.Logger) command.Middleware {
-	return AsCommand(NewTraceLogging[command.Command](
+	return AsCommand(NewTraceLogging(
 		logger, TraceLogMessages{
 			Dispatching: "command dispatching",
 			Failed:      "command failed",
@@ -66,7 +66,7 @@ func CommandTraceLogging(logger *slog.Logger) command.Middleware {
 // EventTraceLogging returns an event middleware that injects trace_id and
 // span_id from the OTel context into structured log entries.
 func EventTraceLogging(logger *slog.Logger) event.Middleware {
-	return AsEvent(NewTraceLogging[event.Event](
+	return AsEvent(NewTraceLogging(
 		logger, TraceLogMessages{
 			Dispatching: "event handling",
 			Failed:      "event handler failed",
@@ -79,7 +79,7 @@ func EventTraceLogging(logger *slog.Logger) event.Middleware {
 // QueryTraceLogging returns a query middleware that injects trace_id and
 // span_id from the OTel context into structured log entries.
 func QueryTraceLogging(logger *slog.Logger) query.Middleware {
-	return AsQuery(NewTraceLogging[query.Query](logger, TraceLogMessages{
+	return AsQuery(NewTraceLogging(logger, TraceLogMessages{
 		Dispatching: "query dispatching",
 		Failed:      "query failed",
 		Succeeded:   "query succeeded",
