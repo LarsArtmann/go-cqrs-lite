@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
+	"github.com/larsartmann/go-cqrs-lite/stack/v3/sqlopt"
 	cqrsturso "github.com/larsartmann/go-cqrs-lite/storage/turso/v3"
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v3"
 )
@@ -169,13 +170,13 @@ func newLocalBundle(dbPath string, cfg config) (*Bundle, error) {
 		return nil, err
 	}
 
-	stackOpts := buildOptions(backend)
+	stackOpts := sqlopt.AllOptions(backend)
 	stackOpts = append(stackOpts, stack.WithDatabase(sqlDB))
 
 	// Override: event-sourcing stores (events, snapshots, checkpoints) from a
 	// separate database if configured.
 	if cfg.eventPath != "" {
-		eventOpts, eventCloser, eErr := openEventStores(cfg.eventPath, cfg)
+		evtBackend, evtCloser, eErr := openSecondaryBackend(cfg.eventPath, cfg)
 		if eErr != nil {
 			_ = backend.Close()
 			_ = sqlDB.Close()
@@ -183,14 +184,14 @@ func newLocalBundle(dbPath string, cfg config) (*Bundle, error) {
 			return nil, fmt.Errorf("turso: open event db: %w", eErr)
 		}
 
-		stackOpts = append(stackOpts, eventOpts...)
-		stackOpts = append(stackOpts, stack.WithCloser(eventCloser))
+		stackOpts = append(stackOpts, sqlopt.EventStoreOptions(evtBackend)...)
+		stackOpts = append(stackOpts, stack.WithCloser(evtCloser))
 	}
 
 	// Override: command and query audit stores from a separate database if
 	// configured.
 	if cfg.queryPath != "" {
-		queryOpts, queryCloser, qErr := openQueryStores(cfg.queryPath, cfg)
+		qBackend, qCloser, qErr := openSecondaryBackend(cfg.queryPath, cfg)
 		if qErr != nil {
 			_ = backend.Close()
 			_ = sqlDB.Close()
@@ -198,8 +199,8 @@ func newLocalBundle(dbPath string, cfg config) (*Bundle, error) {
 			return nil, fmt.Errorf("turso: open query db: %w", qErr)
 		}
 
-		stackOpts = append(stackOpts, queryOpts...)
-		stackOpts = append(stackOpts, stack.WithCloser(queryCloser))
+		stackOpts = append(stackOpts, sqlopt.QueryStoreOptions(qBackend)...)
+		stackOpts = append(stackOpts, stack.WithCloser(qCloser))
 	}
 
 	// Bus is in-process GoChannel (LibSQL has no pub/sub).
@@ -265,7 +266,7 @@ func newSyncBundle(
 		return nil, fmt.Errorf("turso: create backend: %w", err)
 	}
 
-	stackOpts := buildOptions(backend)
+	stackOpts := sqlopt.AllOptions(backend)
 	stackOpts = append(stackOpts, stack.WithDatabase(sqlDB))
 	stackOpts = append(stackOpts, stack.WithBus(cqrswatermill.NewEventBus()))
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
+	"github.com/larsartmann/go-cqrs-lite/stack/v3/sqlopt"
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v3"
 )
@@ -112,12 +113,12 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 		return nil, err
 	}
 
-	stackOpts := buildOptions(backend)
+	stackOpts := sqlopt.AllOptions(backend)
 
 	// Override: event-sourcing stores (events, snapshots, checkpoints) from a
 	// separate database if configured.
 	if cfg.eventDSN != "" {
-		eventOpts, eventCloser, eErr := openEventStores(cfg.eventDSN, cfg)
+		evtBackend, evtCloser, eErr := openSecondaryBackend(cfg.eventDSN, cfg)
 		if eErr != nil {
 			_ = backend.Close()
 			_ = sqlDB.Close()
@@ -125,14 +126,14 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 			return nil, fmt.Errorf("postgres preset: open event db: %w", eErr)
 		}
 
-		stackOpts = append(stackOpts, eventOpts...)
-		stackOpts = append(stackOpts, stack.WithCloser(eventCloser))
+		stackOpts = append(stackOpts, sqlopt.EventStoreOptions(evtBackend)...)
+		stackOpts = append(stackOpts, stack.WithCloser(evtCloser))
 	}
 
 	// Override: command and query audit stores from a separate database if
 	// configured.
 	if cfg.queryDSN != "" {
-		queryOpts, queryCloser, qErr := openQueryStores(cfg.queryDSN, cfg)
+		qBackend, qCloser, qErr := openSecondaryBackend(cfg.queryDSN, cfg)
 		if qErr != nil {
 			_ = backend.Close()
 			_ = sqlDB.Close()
@@ -140,8 +141,8 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 			return nil, fmt.Errorf("postgres preset: open query db: %w", qErr)
 		}
 
-		stackOpts = append(stackOpts, queryOpts...)
-		stackOpts = append(stackOpts, stack.WithCloser(queryCloser))
+		stackOpts = append(stackOpts, sqlopt.QueryStoreOptions(qBackend)...)
+		stackOpts = append(stackOpts, stack.WithCloser(qCloser))
 	}
 
 	bus, busCleanup, err := buildBus(sqlDB, backend.EventStore(), cfg)
@@ -232,32 +233,4 @@ func buildBus(
 	}
 
 	return pgBus, pgBus, nil
-}
-
-func buildOptions(backend *storage.SQLBackend) []stack.Option {
-	opts := []stack.Option{
-		stack.WithEventStore(backend.EventStore()),
-	}
-
-	cmdStore, err := backend.CommandStore()
-	if err == nil {
-		opts = append(opts, stack.WithCommandStore(cmdStore))
-	}
-
-	queryStore, err := backend.QueryStore()
-	if err == nil {
-		opts = append(opts, stack.WithQueryStore(queryStore))
-	}
-
-	snapStore, err := backend.SnapshotStore()
-	if err == nil {
-		opts = append(opts, stack.WithSnapshotStore(snapStore))
-	}
-
-	cpStore, err := backend.CheckpointStore()
-	if err == nil {
-		opts = append(opts, stack.WithCheckpointStore(cpStore))
-	}
-
-	return opts
 }

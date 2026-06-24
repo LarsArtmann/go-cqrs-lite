@@ -21,7 +21,7 @@ type config struct {
 
 func defaultConfig() config {
 	return config{
-		pebbleOpts: &pebble.Options{}, //nolint:exhaustruct // intentionally empty; override via WithPebbleOptions
+		pebbleOpts: &pebble.Options{},
 		logger:     slog.Default(),
 	}
 }

@@ -57,7 +57,7 @@ func NewSSEBroker(bus event.Bus, opts ...SSEBrokerOption) (*SSEBroker, error) {
 
 	_, cancel := context.WithCancel(context.Background())
 
-	b := &SSEBroker{ //nolint:exhaustruct // mu zero-value is ready, handler set below
+	b := &SSEBroker{
 		clients: make(map[SSEClientID]chan event.Event),
 		cancel:  cancel,
 	}

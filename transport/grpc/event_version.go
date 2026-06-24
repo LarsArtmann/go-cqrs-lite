@@ -11,5 +11,7 @@ func safeInt64FromVersion(v event.Version) int64 {
 // safeVersionFromInt64 converts int64 to event.Version (uint64) without
 // triggering gosec G115. Extracted as a helper per AGENTS.md convention.
 func safeVersionFromInt64(v int64) event.Version {
-	return event.Version(v) //nolint:gosec // G115: event versions are always small positive integers
+	return event.Version(
+		v,
+	) //nolint:gosec // G115: event versions are always small positive integers
 }

@@ -58,7 +58,21 @@ func (b *miniBus) UsePublish(...event.PublishMiddleware) error {
 
 const settleDelay = 100 * time.Millisecond
 
-func TestEventPubSub_RoundTrip(t *testing.T) {
+// eventTestEnv bundles the shared gRPC server, client, and subscriber state
+// used by the event pub/sub tests.
+type eventTestEnv struct {
+	bus      *miniBus
+	client   *cqrsgrpc.EventClient
+	ctx      context.Context
+	cancel   context.CancelFunc
+	guard    sync.Mutex
+	received []string
+	wg       sync.WaitGroup
+}
+
+// newEventTestEnv starts a gRPC server with an event service, connects a
+// client, and returns the wired environment. Cleanup is registered via t.
+func newEventTestEnv(t *testing.T) *eventTestEnv {
 	t.Parallel()
 
 	bus := &miniBus{}
@@ -84,30 +98,41 @@ func TestEventPubSub_RoundTrip(t *testing.T) {
 
 	t.Cleanup(func() { _ = conn.Close() })
 
-	client := cqrsgrpc.NewEventClient(conn)
-
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	t.Cleanup(cancel)
 
-	var guard sync.Mutex
+	return &eventTestEnv{
+		bus:    bus,
+		client: cqrsgrpc.NewEventClient(conn),
+		ctx:    ctx,
+		cancel: cancel,
+	}
+}
 
-	var received []string
-
-	var wg sync.WaitGroup
-
-	wg.Add(1)
-
-	go func() {
-		defer wg.Done()
-
-		_ = client.Subscribe(ctx, func(_ context.Context, evt event.Event) error {
-			guard.Lock()
-			received = append(received, string(evt.Type()))
-			guard.Unlock()
+// subscribe starts a background goroutine that collects event types into
+// env.received. filters are optional event-type filters forwarded to Subscribe.
+func (env *eventTestEnv) subscribe(filters ...string) {
+	env.wg.Go(func() {
+		_ = env.client.Subscribe(env.ctx, func(_ context.Context, evt event.Event) error {
+			env.guard.Lock()
+			env.received = append(env.received, string(evt.Type()))
+			env.guard.Unlock()
 
 			return nil
-		})
-	}()
+		}, filters...)
+	})
+}
+
+// stop cancels the context and waits for the subscriber goroutine to exit.
+func (env *eventTestEnv) stop() {
+	env.cancel()
+	env.wg.Wait()
+}
+
+func TestEventPubSub_RoundTrip(t *testing.T) {
+	env := newEventTestEnv(t)
+
+	env.subscribe()
 
 	// Wait for subscription to register, then publish.
 	time.Sleep(settleDelay)
@@ -129,78 +154,32 @@ func TestEventPubSub_RoundTrip(t *testing.T) {
 		[]byte(`{"name":"Bob"}`),
 	)
 
-	err = bus.Publish(ctx, evt1, evt2)
+	err := env.bus.Publish(env.ctx, evt1, evt2)
 	if err != nil {
 		t.Fatalf("Publish: %v", err)
 	}
 
 	time.Sleep(settleDelay)
-	cancel()
-	wg.Wait()
+	env.stop()
 
-	guard.Lock()
-	defer guard.Unlock()
+	env.guard.Lock()
+	defer env.guard.Unlock()
 
-	if len(received) != 2 {
-		t.Fatalf("received %d events, want 2", len(received))
+	if len(env.received) != 2 {
+		t.Fatalf("received %d events, want 2", len(env.received))
 	}
 
-	if received[0] != "user.created" || received[1] != "user.updated" {
-		t.Fatalf("event order: got %v, want [user.created, user.updated]", received)
+	if env.received[0] != "user.created" || env.received[1] != "user.updated" {
+		t.Fatalf("event order: got %v, want [user.created, user.updated]", env.received)
 	}
 }
 
 func TestEventPubSub_FilterByType(t *testing.T) {
-	t.Parallel()
+	env := newEventTestEnv(t)
 
-	bus := &miniBus{}
+	env.subscribe("user.created")
 
-	lis := listen(t)
-	srv := grpc.NewServer()
-
-	_, err := cqrsgrpc.RegisterEventService(srv, bus)
-	if err != nil {
-		t.Fatalf("RegisterEventService: %v", err)
-	}
-
-	go func() { _ = srv.Serve(lis) }()
-	t.Cleanup(srv.Stop)
-
-	conn, err := grpc.NewClient(
-		lis.Addr().String(),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
-	if err != nil {
-		t.Fatalf("NewClient: %v", err)
-	}
-
-	t.Cleanup(func() { _ = conn.Close() })
-
-	client := cqrsgrpc.NewEventClient(conn)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	var guard sync.Mutex
-
-	var received []string
-
-	var wg sync.WaitGroup
-
-	wg.Add(1)
-
-	go func() {
-		defer wg.Done()
-
-		_ = client.Subscribe(ctx, func(_ context.Context, evt event.Event) error {
-			guard.Lock()
-			received = append(received, string(evt.Type()))
-			guard.Unlock()
-
-			return nil
-		}, "user.created")
-	}()
-
+	// Wait for subscription to register, then publish.
 	time.Sleep(settleDelay)
 
 	aggID := id.NewAggregateID()
@@ -208,20 +187,19 @@ func TestEventPubSub_FilterByType(t *testing.T) {
 	evt1, _ := event.NewEvent("user.created", aggID, "User", event.Version(1), nil)
 	evt2, _ := event.NewEvent("user.deleted", aggID, "User", event.Version(2), nil)
 
-	_ = bus.Publish(ctx, evt1, evt2)
+	_ = env.bus.Publish(env.ctx, evt1, evt2)
 
 	time.Sleep(settleDelay)
-	cancel()
-	wg.Wait()
+	env.stop()
 
-	guard.Lock()
-	defer guard.Unlock()
+	env.guard.Lock()
+	defer env.guard.Unlock()
 
-	if len(received) != 1 {
-		t.Fatalf("received %d events, want 1 (filtered)", len(received))
+	if len(env.received) != 1 {
+		t.Fatalf("received %d events, want 1 (filtered)", len(env.received))
 	}
 
-	if received[0] != "user.created" {
-		t.Fatalf("event type: got %s, want user.created", received[0])
+	if env.received[0] != "user.created" {
+		t.Fatalf("event type: got %s, want user.created", env.received[0])
 	}
 }

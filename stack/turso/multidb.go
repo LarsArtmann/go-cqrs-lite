@@ -34,59 +34,6 @@ func openSecondaryBackend(
 	return secBackend, closer, nil
 }
 
-// openEventStores opens a secondary database for the event-sourcing write
-// model: the event store, snapshots, and checkpoints. These three stores
-// together serve event sourcing, so they share one database. Commands and
-// queries are NOT placed here — see [openQueryStores].
-func openEventStores(
-	dbPath string,
-	cfg config,
-) ([]stack.Option, io.Closer, error) {
-	secBackend, closer, err := openSecondaryBackend(dbPath, cfg)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	opts := []stack.Option{
-		stack.WithEventStore(secBackend.EventStore()),
-	}
-
-	if snapStore, snapErr := secBackend.SnapshotStore(); snapErr == nil {
-		opts = append(opts, stack.WithSnapshotStore(snapStore))
-	}
-
-	if cpStore, cpErr := secBackend.CheckpointStore(); cpErr == nil {
-		opts = append(opts, stack.WithCheckpointStore(cpStore))
-	}
-
-	return opts, closer, nil
-}
-
-// openQueryStores opens a secondary database for the command and query audit
-// stores — the operational log of what was dispatched. Events, snapshots, and
-// checkpoints are NOT placed here — see [openEventStores].
-func openQueryStores(
-	dbPath string,
-	cfg config,
-) ([]stack.Option, io.Closer, error) {
-	secBackend, closer, err := openSecondaryBackend(dbPath, cfg)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var opts []stack.Option
-
-	if cmdStore, cmdErr := secBackend.CommandStore(); cmdErr == nil {
-		opts = append(opts, stack.WithCommandStore(cmdStore))
-	}
-
-	if qStore, qErr := secBackend.QueryStore(); qErr == nil {
-		opts = append(opts, stack.WithQueryStore(qStore))
-	}
-
-	return opts, closer, nil
-}
-
 // openSecondaryDB opens and configures a secondary Turso database.
 func openSecondaryDB(dbPath string, cfg config) (*sql.DB, error) {
 	sqlDB, err := cqrsturso.Open(cqrsturso.DbPath(dbPath))

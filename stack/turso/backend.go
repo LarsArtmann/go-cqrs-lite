@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 	cqrsturso "github.com/larsartmann/go-cqrs-lite/storage/turso/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
@@ -73,33 +72,4 @@ func applySchemaAndPragmas(sqlDB *sql.DB, cfg config) error {
 	}
 
 	return nil
-}
-
-// buildOptions assembles the stack.Option slice for a Backend's stores.
-func buildOptions(backend *storage.SQLBackend) []stack.Option {
-	opts := []stack.Option{
-		stack.WithEventStore(backend.EventStore()),
-	}
-
-	cmdStore, err := backend.CommandStore()
-	if err == nil {
-		opts = append(opts, stack.WithCommandStore(cmdStore))
-	}
-
-	queryStore, err := backend.QueryStore()
-	if err == nil {
-		opts = append(opts, stack.WithQueryStore(queryStore))
-	}
-
-	snapStore, err := backend.SnapshotStore()
-	if err == nil {
-		opts = append(opts, stack.WithSnapshotStore(snapStore))
-	}
-
-	cpStore, err := backend.CheckpointStore()
-	if err == nil {
-		opts = append(opts, stack.WithCheckpointStore(cpStore))
-	}
-
-	return opts
 }

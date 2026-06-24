@@ -1,8 +1,6 @@
 package command
 
 import (
-	"maps"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
@@ -21,50 +19,33 @@ type MetadataKey string
 // no event-causation link. Each module owns its own Metadata so a change to
 // the event's shape cannot silently reshape commands. See ADR-0031.
 type Metadata struct {
-	event.Tracing
-
-	Custom map[MetadataKey]string `json:"custom,omitempty"`
+	event.CustomData[MetadataKey]
 }
 
 // NewMetadata creates a Metadata with zero-value fields.
 // The Custom map is lazily initialized on first write via EnsureCustom.
 func NewMetadata() Metadata {
-	return Metadata{}
+	var m Metadata
+
+	return m
 }
 
 // Clone returns a deep copy of the metadata.
 func (m Metadata) Clone() Metadata {
-	cp := m
-	if m.Custom != nil {
-		cp.Custom = maps.Clone(m.Custom)
-	}
-
-	return cp
+	return Metadata{CustomData: m.CustomData.Clone()}
 }
 
 // Merge returns a new Metadata with non-zero tracing fields and all Custom
 // entries from other overlaid onto m. Useful for middleware that enriches
 // command metadata (e.g. correlation ID from context).
 func (m Metadata) Merge(other Metadata) Metadata {
-	result := m
-	result.Tracing = m.Tracing.Merge(other.Tracing)
-
-	if len(other.Custom) > 0 {
-		merged := make(map[MetadataKey]string, len(result.Custom)+len(other.Custom))
-		maps.Copy(merged, result.Custom)
-		maps.Copy(merged, other.Custom)
-		result.Custom = merged
-	}
-
-	return result
+	return Metadata{CustomData: m.CustomData.Merge(other.CustomData)}
 }
 
 // EnsureCustom lazily initializes the Custom map if nil.
 // Call before writing to m.Custom.
 func EnsureCustom(m *Metadata) {
-	if m.Custom == nil {
-		m.Custom = make(map[MetadataKey]string)
-	}
+	m.EnsureCustom()
 }
 
 // Option configures command creation.
