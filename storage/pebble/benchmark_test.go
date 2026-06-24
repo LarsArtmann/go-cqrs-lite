@@ -47,6 +47,9 @@ func openBenchStore(b *testing.B) (*EventStore, func()) {
 		database,
 		slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError})),
 	)
+	if err != nil {
+		b.Fatalf("NewStore: %v", err)
+	}
 
 	return store, func() { _ = database.Close() }
 }

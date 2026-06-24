@@ -61,6 +61,9 @@ func TestCheckpointStore_Options(t *testing.T) {
 	cpStore, err := cqrspebble.NewCheckpointStore(database, slog.Default(),
 		cqrspebble.WithCheckpointAsyncWrites(),
 		cqrspebble.WithCheckpointPrefix("custom_cp:"))
+	if err != nil {
+		t.Fatalf("NewCheckpointStore: %v", err)
+	}
 
 	ctx := context.Background()
 
@@ -92,6 +95,9 @@ func TestSnapshotStore_Options(t *testing.T) {
 	snapStore, err := cqrspebble.NewSnapshotStore(database, slog.Default(),
 		cqrspebble.WithSnapshotAsyncWrites(),
 		cqrspebble.WithSnapshotPrefix("custom_snap:"))
+	if err != nil {
+		t.Fatalf("NewSnapshotStore: %v", err)
+	}
 
 	ctx := context.Background()
 
