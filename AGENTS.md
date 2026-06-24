@@ -59,7 +59,7 @@ go-cqrs-lite/
 ├── middleware/           # Logging, Retry, Recovery, Validation, Metrics, OTel Tracing+Metrics (command+event+query)
 ├── signing/             # Event signing/verification: HMAC-SHA256, Ed25519, multisig, middleware
 ├── encryption/          # Event payload encryption: XChaCha20-Poly1305, AES-256-GCM, codec wrapper, middleware
-├── storage/             # SQLEventStore, SQLSnapshotStore, SQLCheckpointStore, SQLCommandStore, SQLQueryStore (PG/SQLite/Turso), SQL schema DDL (embedded)
+├── storage/             # SQLEventStore, SQLSnapshotStore, SQLCheckpointStore, SQLCommandStore, SQLQueryStore (PG/SQLite/Turso), SQLKVStore, SQLViewStore (column-mapped views), SQL schema DDL (embedded)
 │   ├── sql/             # Dialect, DBHandle, OwnedDBHandle, QueryEngine, RunInTx, IsDuplicateKeyError (typed codes + string fallback), ScanSlice, CommitTx, MarshalMetadata
 │   ├── migrations/      # Embedded .sql DDL files (postgres.sql, sqlite.sql) via //go:embed
 │   ├── pebble/          # Embedded KV store (PebbleDB): EventStore, SnapshotStore, CheckpointStore, KVAdapter (kv.Store). CBOR envelope, shared DB
@@ -70,7 +70,7 @@ go-cqrs-lite/
 ├── watermill/           # Watermill adapter: PublisherAdapter, SubscriberAdapter, EventPublisher (cqrs→Watermill), CatchUpSubscriber (replay+live+checkpoint), MessageToEvent
 ├── transport/http/       # SSE event delivery: SSEBroker, SSEHandler (bridges event.Bus to HTTP clients, ADR-0025)
 ├── codec/               # Payload encoding: JSON, CBOR (deterministic), Raw passthrough
-├── kv/                  # Layer-0 KV store abstraction: Store, MemStore, Iterator, Batch. PLUS TypedStore[T,K] and Cache[T,K] (merged from readmodel, ADR-0032)
+├── kv/                  # Layer-0 KV store abstraction: Store, MemStore, Iterator, Batch. PLUS TypedStore[T,K], Cache[T,K], ViewStore[V,K] interface, ViewQuery, ViewQuerier, TombstoneQuerier
 ├── testutil/            # Shared test helpers: NewCmd(tb, ...) (cross-module test utilities)
 ├── cmd/cqrs-gen/        # Code generator: typed handler registration from Go structs
 ├── cmd/api-stability/   # API surface checker: compares exported symbols against golden file
@@ -312,6 +312,21 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 // kv.TypedStore and kv.Cache (ADR-0032 — moved from readmodel)
 //   store := kv.NewTypedStore[UserView, UserID](kvBackend)
 //   cache, _ := kv.NewCache[UserView, UserID](store, kv.WithCacheCapacity(500))
+
+// SQL-backed views with queryable columns (storage.SQLViewStore)
+//   mapper := storage.ViewMapper[TodoView]{
+//       Table: "todos_view",
+//       Columns: []storage.ViewColumn[TodoView]{
+//           {Name: "title", Type: "TEXT", Extract: func(v *TodoView) any { return v.Title }},
+//           {Name: "completed", Type: "INTEGER", Extract: func(v *TodoView) any { return v.Completed }},
+//       },
+//       ScanRow: func(scan func(dest ...any) error) (*TodoView, error) { ... },
+//       TombstoneColumn: "tombstoned", // optional: server-side tombstone filtering
+//   }
+//   store, _ := storage.NewSQLiteViewStore[TodoView, id.AggregateID](db, mapper)
+//   mat := stack.Materialize[TodoView, id.AggregateID]{Store: store, ...}
+//   // Query with SQL power: WHERE, ORDER BY, LIMIT/OFFSET
+//   results, _ := store.Query(ctx, kv.ViewQuery{Where: "completed = ?", Args: []any{0}})
 
 // Watermill CatchUpSubscriber (replay from journal + live handoff, ADR-0030)
 //   catchUp, _ := watermill.NewCatchUpSubscriber(journal, liveSub, cpStore, logger)

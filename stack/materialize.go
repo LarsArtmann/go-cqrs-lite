@@ -25,26 +25,38 @@ const (
 )
 
 // Materialize turns a stream of events into a materialized view stored in a
-// [kv.TypedStore]. It is the deployer's read-model builder: given event
+// [kv.ViewStore]. It is the deployer's read-model builder: given event
 // handlers (OnCreate, OnUpdate, OnTombstone, OnRebirth), it maintains a typed
 // projection that consumers query via [Materialize.View] and [Materialize.List].
+//
+// The Store field accepts any [kv.ViewStore] implementation:
+//
+//   - [kv.TypedStore] — KV-backed (memory, Pebble, or SQLKVStore blob table).
+//   - storage.SQLViewStore — SQL-backed with real, queryable columns.
 //
 // The Materialize API is tombstone-aware (ADR-0006, ADR-0030). There are no
 // hard deletes — a tombstoned record stays in the store and is filtered by the
 // query policy.
 //
-// Usage:
+// Usage (KV-backed):
 //
 //	mat := stack.Materialize[UserView, UserID]{
 //		Store:       kvStore,
-//		AggregateID: func(evt event.Event) (UserID, error) { ... },
+//		KeyFromEvent: func(evt event.Event) (UserID, error) { ... },
 //		OnCreate:    func(ctx, evt) (*UserView, error) { ... },
 //		OnUpdate:    func(ctx, evt, existing *UserView) (*UserView, error) { ... },
 //	}
 //	router.AddHandler("users", topic, catchUpSub, "users_view", pub, mat.HandlerFunc())
+//
+// Usage (SQL-backed, real columns):
+//
+//	store, _ := storage.NewSQLiteViewStore[UserView, UserID](db, mapper)
+//	mat := stack.Materialize[UserView, UserID]{Store: store, ...}
 type Materialize[V any, K fmt.Stringer] struct {
-	// Store is the typed key-value store that holds the materialized view.
-	Store *kv.TypedStore[V, K]
+	// Store is the typed view store that holds the materialized view.
+	// Use [kv.TypedStore] for KV backends or storage.SQLViewStore for
+	// SQL-backed views with queryable columns.
+	Store kv.ViewStore[V, K]
 
 	// KeyFromEvent extracts the read-model key from an event.
 	// Required: every event type this projection handles must produce a valid key.
@@ -175,7 +187,27 @@ func (m *Materialize[V, K]) View(ctx context.Context, key K) (*V, error) {
 
 // List returns all records matching the given tombstone policy.
 // Records are returned in lexicographic key order.
+//
+// When the backing store implements [kv.TombstoneQuerier] (e.g. SQL-backed
+// stores with a configured tombstone column), the filter is pushed to SQL —
+// only matching records are loaded. Otherwise, all records are loaded and
+// filtered in Go.
 func (m *Materialize[V, K]) List(ctx context.Context, policy TombstonePolicy) ([]*V, error) {
+	if tq, ok := m.Store.(kv.TombstoneQuerier[V]); ok {
+		results, err := tq.QueryByTombstone(
+			ctx,
+			policy == ExcludeTombstoned,
+			policy == OnlyTombstoned,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		// Safety net: stores without a tombstone column return all records.
+		// FilterTombstoned is a no-op when the store already filtered.
+		return FilterTombstoned(results, policy), nil
+	}
+
 	all, err := m.Store.Scan(ctx, nil)
 	if err != nil {
 		return nil, err

@@ -290,6 +290,64 @@ query.RegisterTyped(qDisp, "todo.get",
 result, err := query.DispatchTyped[*GetTodoResult](ctx, qDisp, &GetTodoQuery{ID: id})
 ```
 
+#### SQL-backed views (queryable columns, server-side filtering)
+
+By default, `Materialize` stores views as opaque JSON blobs via `kv.TypedStore`.
+For SQL backends (SQLite, Postgres), use `storage.SQLViewStore` to give each
+view type its own table with **real, queryable SQL columns** — enabling WHERE,
+ORDER BY, and LIMIT/OFFSET at the database level.
+
+```go
+import (
+    "github.com/larsartmann/go-cqrs-lite/storage/v3"
+    "github.com/larsartmann/go-cqrs-lite/stack/v3"
+)
+
+// 1. Define how your view maps to SQL columns.
+mapper := storage.ViewMapper[TodoView]{
+    Table: "todos_view",
+    Columns: []storage.ViewColumn[TodoView]{
+        {Name: "title", Type: "TEXT", Extract: func(v *TodoView) any { return v.Title }},
+        {Name: "completed", Type: "INTEGER", Extract: func(v *TodoView) any { return v.Completed }},
+        {Name: "tombstoned", Type: "INTEGER", Extract: func(v *TodoView) any { return v.Tombstoned }},
+    },
+    ScanRow: func(scan func(dest ...any) error) (*TodoView, error) {
+        var v TodoView
+        var completed, tombstoned int
+        if err := scan(&v.Title, &completed, &tombstoned); err != nil {
+            return nil, err
+        }
+        v.Completed = completed != 0
+        v.Tombstoned = tombstoned != 0
+        return &v, nil
+    },
+    TombstoneColumn: "tombstoned", // enables server-side tombstone filtering in List
+}
+
+// 2. Create the SQL-backed view store (auto-creates the table).
+store, _ := storage.NewSQLiteViewStore[TodoView, id.AggregateID](db, mapper)
+
+// 3. Use it with Materialize — same API as KV-backed.
+mat := stack.Materialize[TodoView, id.AggregateID]{
+    Store:        store,               // ← kv.ViewStore interface, SQL-backed
+    KeyFromEvent: todoKey,
+}
+configureMaterialize(&mat)  // OnCreate, OnUpdate, OnTombstone — identical
+
+// 4. Query with SQL power (the killer feature):
+//    WHERE, ORDER BY, LIMIT/OFFSET — pushed to the database.
+results, _ := store.Query(ctx, kv.ViewQuery{
+    Where:   "completed = ?",
+    Args:    []any{0},
+    OrderBy: "title",
+    Limit:   20,
+})
+
+// 5. List automatically uses server-side tombstone filtering when
+//    TombstoneColumn is configured (no full-table load).
+active, _ := mat.List(ctx, stack.ExcludeTombstoned)
+```
+
 ### 2.4 Snapshots for Performance (snapshot)
 
 Avoid replaying long event streams. Snapshots cache aggregate state at a version.
@@ -515,18 +573,19 @@ cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 
 ### Read models (Layer 4–5)
 
-| Module       | Import          | One-liner                                                                                                              |
-| ------------ | --------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `projection` | `projection/v2` | `Runner` (replay + live tail), `Builder` with `On[T]()`, `HandlerRegistry`, checkpoint-managed.                        |
-| `listing`    | `listing/v2`    | `AggregateListing`, `AggregateStatus` (Active/Tombstoned/Undetermined), `StatusMiddleware`, `InMemoryAggregateReader`. |
-| `query`      | `query/v2`      | (see Core) — query the read model.                                                                                     |
+| Module    | Import     | One-liner                                                                                                              |
+| --------- | ---------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `kv`      | `kv/v3`    | `ViewStore[V,K]` interface, `TypedStore[V,K]`, `Cache[V,K]`, `MemStore`. Foundation for all read models.               |
+| `stack`   | `stack/v3` | `Materialize[V,K]` (deployer-first projection builder), `Bundle`, presets. Accepts any `kv.ViewStore`.                 |
+| `listing` | `listing/v3` | `AggregateListing`, `AggregateStatus` (Active/Tombstoned/Undetermined), `StatusMiddleware`, `InMemoryAggregateReader`. |
+| `query`   | `query/v3` | (see Core) — query the read model.                                                                                     |
 
 ### Storage (Layer 5)
 
 | Module     | Import        | One-liner                                                                                                                                                                                                               |
 | ---------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `memory`   | `memory/v2`   | `MemoryStore`, `MemorySnapshotStore`, `MemoryCheckpointStore`, `MemoryCommandStore`, `MemoryQueryStore`. Tests & dev. (`MemoryBus`/`MemoryCommandBus` deprecated — use `watermill.EventBus`)                            |
-| `storage`  | `storage/v2`  | `SQLEventStore`, `SQLSnapshotStore`, `SQLCheckpointStore`, `SQLCommandStore`, `SQLQueryStore`. PG/SQLite. `NewSQLiteBackend`/`NewSQLBackend` facade. `sql/` sub-package: `RunInTx`, `IsDuplicateKeyError`, `ScanSlice`. |
+| `storage`  | `storage/v3`  | `SQLEventStore`, `SQLSnapshotStore`, `SQLCheckpointStore`, `SQLCommandStore`, `SQLQueryStore`, `SQLKVStore`, **`SQLViewStore`** (column-mapped views). PG/SQLite. `NewSQLiteBackend`/`NewSQLBackend` facade. `sql/` sub-package: `RunInTx`, `IsDuplicateKeyError`, `ScanSlice`. |
 | `pebble`   | `pebble/v2`   | `EventStore`, `SnapshotStore`, `CheckpointStore`, `NewKVStore`. CBOR envelope. Shared DB via disjoint key prefixes. `Open()` facade.                                                                                    |
 | `turso`    | `turso/v2`    | Turso/LibSQL connector, embedded sync, `indexing/` sub-package for index management. Delegates to `storage`.                                                                                                            |
 | `kv`       | `kv/v2`       | `Store` (Reader+Writer+Closer), `MemStore`, `Iterator`, `Batch`, `TypedStore[T,K]`, `Cache[T,K]` (Otter LRU).                                                                                                           |
