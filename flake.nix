@@ -200,6 +200,8 @@
                   failed=true
                 fi
               done < <(find . -name "*.go" -not -name "*_test.go" \
+                -not -name "*.pb.go" \
+                -not -name "*.gen.go" \
                 -not -path "*/example/*" \
                 -not -path "*/testdata/*" \
                 -not -path "*/internal/cattest/*" \
