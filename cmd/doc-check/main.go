@@ -159,6 +159,7 @@ func isStdlibOrBuiltin(alias string) bool {
 		"filepath": true, "regexp": true, "slog": true, "rand": true,
 		// external packages that share aliases with cqrs-lite packages
 		"otel": true, // go.opentelemetry.io/otel vs our otel/
+		"grpc": true, // google.golang.org/grpc vs our transport/grpc/
 		// cqrs sub-packages imported with custom aliases in docs
 		"pebble":       true, // storage/pebble — docs use cqrspebble or pebble alias
 		"projection":   true, // referenced in SKILL.md but module was never created
