@@ -757,7 +757,7 @@ Found during code reviews. See `docs/planning/` for details.
 | ~~Query module lacks store-specific sentinel errors~~ — **RESOLVED** (`query/errors.go`)                   | ~~LOW~~    | query               |
 | ~~command re-exports event types (module boundary violation)~~ — **DOCUMENTED AS INTENTIONAL** (`command/aggregate_ref.go:8-10`). Commands share the same aggregate identity as events; re-exporting `AggregateType`/`AggregateRef` is convenience, not layering violation. | ~~HIGH~~ | command             |
 | ~~Reactive extensions not wired into dispatchers~~ — **DELETED** with `projection/` module (ADR-0030)      | ~~LOW~~    | event/command/query |
-| Pre-existing golden test drift (codec, middleware)                                                         | LOW        | codec, middleware   |
+| ~~Pre-existing golden test drift (codec, middleware)~~ — **RESOLVED** (`8f2d2090`). Golden tests pass; the "drift" was caused by an invalid eventtest version in stack/go.mod blocking test execution, not actual content drift. | ~~LOW~~    | codec, middleware   |
 
 ---
 
