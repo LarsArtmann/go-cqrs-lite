@@ -22,6 +22,7 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -54,8 +55,7 @@ func main() {
 	for _, file := range files {
 		refs, imports, err := scanMarkdown(file)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "error reading %s: %v\n", file, err)
-			os.Exit(1)
+			log.Fatalf("error reading %s: %v", file, err) //nolint:gosec // G706: CLI tool, no untrusted input
 		}
 
 		allRefs = append(allRefs, refs...)
@@ -74,18 +74,22 @@ func main() {
 		}
 
 		if !exportIndex[r.pkg][r.symbol] {
-			fmt.Printf("  ✗ %s:%d: %s.%s not found\n", r.file, r.line, r.pkg, r.symbol)
+			log.Printf("  ✗ %s:%d: %s.%s not found", r.file, r.line, r.pkg, r.symbol)
 
 			broken++
 		}
 	}
 
 	if broken > 0 {
-		fmt.Printf("\n%d broken reference(s) found.\n", broken)
-		os.Exit(1)
+		log.Fatalf("%d broken reference(s) found.", broken)
 	}
 
-	fmt.Printf("✓ All %d references valid across %d package(s).\n", len(allRefs), len(exportIndex))
+	log.Printf( //nolint:gosec,lll // G706: CLI tool, no untrusted input
+		"✓ All %d references valid across %d package(s).",
+		len(allRefs), len(exportIndex),
+	)
+
+	_ = fmt.Sprintf // keep fmt import for potential future formatting
 }
 
 var (
@@ -95,7 +99,7 @@ var (
 )
 
 func scanMarkdown(path string) ([]ref, []string, error) {
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(filepath.Clean(path))
 	if err != nil {
 		return nil, nil, err //nolint:wrapcheck // tool exit
 	}
@@ -202,9 +206,9 @@ func buildExportIndex(imports []string, repoRoot string) map[string]map[string]b
 		// The last path segment is the package name (alias in docs).
 		pkgName := filepath.Base(dir)
 
-		exports, err := parsePackageExports(fullDir)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "warning: cannot parse %s: %v\n", dir, err)
+		exports := parsePackageExports(fullDir)
+		if len(exports) == 0 {
+			log.Printf("warning: no exports found in %s", dir) //nolint:gosec,lll // G706: CLI tool
 
 			continue
 		}
@@ -223,10 +227,12 @@ func buildExportIndex(imports []string, repoRoot string) map[string]map[string]b
 
 // parsePackageExports parses all non-test .go files in dir and returns
 // a set of exported symbol names (types, functions, vars, consts).
-func parsePackageExports(dir string) (map[string]bool, error) {
+func parsePackageExports(dir string) map[string]bool {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
-		return nil, err //nolint:wrapcheck // tool exit
+		log.Printf("warning: cannot read %s: %v", dir, err) //nolint:gosec,lll // G706: CLI tool
+
+		return nil
 	}
 
 	exports := make(map[string]bool)
@@ -238,45 +244,53 @@ func parsePackageExports(dir string) (map[string]bool, error) {
 			continue
 		}
 
-		name := entry.Name()
-
-		if !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
+		if !shouldParseFile(entry.Name()) {
 			continue
 		}
 
-		path := filepath.Join(dir, name)
+		collectExports(fset, filepath.Join(dir, entry.Name()), exports)
+	}
 
-		file, err := parser.ParseFile(fset, path, nil, 0)
-		if err != nil {
-			continue // skip unparseable files
+	return exports
+}
+
+func shouldParseFile(name string) bool {
+	return strings.HasSuffix(name, ".go") && !strings.HasSuffix(name, "_test.go")
+}
+
+func collectExports(fset *token.FileSet, path string, exports map[string]bool) {
+	file, err := parser.ParseFile(fset, path, nil, 0)
+	if err != nil {
+		return // skip unparseable files
+	}
+
+	for _, decl := range file.Decls {
+		switch d := decl.(type) {
+		case *ast.FuncDecl:
+			if d.Name.IsExported() {
+				exports[d.Name.Name] = true
+			}
+
+		case *ast.GenDecl:
+			for _, spec := range d.Specs {
+				collectGenDeclExports(spec, exports)
+			}
 		}
+	}
+}
 
-		for _, decl := range file.Decls {
-			switch d := decl.(type) {
-			case *ast.FuncDecl:
-				if d.Name.IsExported() {
-					exports[d.Name.Name] = true
-				}
-
-			case *ast.GenDecl:
-				for _, spec := range d.Specs {
-					if vs, ok := spec.(*ast.ValueSpec); ok {
-						for _, name := range vs.Names {
-							if name.IsExported() {
-								exports[name.Name] = true
-							}
-						}
-					}
-
-					if ts, ok := spec.(*ast.TypeSpec); ok {
-						if ts.Name.IsExported() {
-							exports[ts.Name.Name] = true
-						}
-					}
-				}
+func collectGenDeclExports(spec ast.Spec, exports map[string]bool) {
+	if vs, ok := spec.(*ast.ValueSpec); ok {
+		for _, name := range vs.Names {
+			if name.IsExported() {
+				exports[name.Name] = true
 			}
 		}
 	}
 
-	return exports, nil
+	if ts, ok := spec.(*ast.TypeSpec); ok {
+		if ts.Name.IsExported() {
+			exports[ts.Name.Name] = true
+		}
+	}
 }

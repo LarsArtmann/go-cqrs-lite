@@ -3,13 +3,19 @@ package grpc
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"google.golang.org/grpc"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	cqrsproto "github.com/larsartmann/go-cqrs-lite/transport/grpc/v3/proto"
+)
+
+var (
+	errDispatchFailed  = errors.New("grpc: server returned failure")
+	errQueryFailed     = errors.New("grpc: query failed")
+	errUnmarshalResult = errors.New("grpc: unmarshal result")
 )
 
 // CommandClient dispatches commands to a remote gRPC server.
@@ -28,7 +34,7 @@ func NewCommandClient(conn *grpc.ClientConn) *CommandClient {
 // Dispatch sends cmd to the remote gRPC server for processing.
 // Returns an error if the server returned a failure or the RPC failed.
 func (c *CommandClient) Dispatch(ctx context.Context, cmd command.Command) error {
-	envelope := &cqrsproto.CommandEnvelope{
+	envelope := &cqrsproto.CommandEnvelope{ //nolint:exhaustruct // proto
 		Type:        string(cmd.Type()),
 		AggregateId: cmd.AggregateID().String(),
 	}
@@ -50,7 +56,7 @@ func (c *CommandClient) Dispatch(ctx context.Context, cmd command.Command) error
 	}
 
 	if !result.GetSuccess() {
-		return fmt.Errorf("grpc: dispatch %s: %s", cmd.Type(), result.GetError())
+		return fmt.Errorf("%w: %s: %s", errDispatchFailed, cmd.Type(), result.GetError())
 	}
 
 	return nil
@@ -69,24 +75,25 @@ func NewQueryClient(conn *grpc.ClientConn) *QueryClient {
 // Ask sends a query to the remote gRPC server and unmarshals the JSON result
 // into out. out must be a pointer.
 func (c *QueryClient) Ask(ctx context.Context, queryType string, out any) error {
-	result, err := c.client.Ask(ctx, &cqrsproto.QueryEnvelope{Type: queryType})
+	result, err := c.client.Ask(
+		ctx,
+		&cqrsproto.QueryEnvelope{Type: queryType}, //nolint:exhaustruct // proto
+	)
 	if err != nil {
 		return fmt.Errorf("grpc: ask %s: %w", queryType, err)
 	}
 
 	if result.GetError() != "" {
-		return fmt.Errorf("grpc: ask %s: %s", queryType, result.GetError())
+		return fmt.Errorf("%w: %s: %s", errQueryFailed, queryType, result.GetError())
 	}
 
-	if err := json.Unmarshal(result.GetPayload(), out); err != nil {
-		return fmt.Errorf("grpc: unmarshal result: %w", err)
+	err = json.Unmarshal(result.GetPayload(), out)
+	if err != nil {
+		return fmt.Errorf("%w: %w", errUnmarshalResult, err)
 	}
 
 	return nil
 }
 
-// Compile-time assertions.
-var (
-	_ CommandDispatcher = (*CommandClient)(nil)
-	_                   = id.AggregateID{}
-)
+// Compile-time assertion.
+var _ CommandDispatcher = (*CommandClient)(nil)

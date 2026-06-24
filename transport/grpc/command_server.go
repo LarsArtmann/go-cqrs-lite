@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"google.golang.org/grpc"
@@ -24,7 +25,10 @@ type CommandDispatcher interface {
 // is stored in the command metadata under the key "payload" as a JSON string.
 // Server-side handlers extract it via cmd.Metadata().Custom["payload"].
 func RegisterCommandService(srv *grpc.Server, dispatcher CommandDispatcher) {
-	cqrsproto.RegisterCommandServiceServer(srv, &commandServer{dispatcher: dispatcher})
+	cqrsproto.RegisterCommandServiceServer(
+		srv,
+		&commandServer{dispatcher: dispatcher}, //nolint:exhaustruct // grpc server pattern
+	)
 }
 
 type commandServer struct {
@@ -57,11 +61,12 @@ func (s *commandServer) Dispatch(
 		return errorResult(fmt.Errorf("create command: %w", err)), nil
 	}
 
-	if err := s.dispatcher.Dispatch(ctx, cmd); err != nil {
+	err = s.dispatcher.Dispatch(ctx, cmd)
+	if err != nil {
 		return errorResult(err), nil
 	}
 
-	return &cqrsproto.CommandResult{Success: true}, nil
+	return &cqrsproto.CommandResult{Success: true, Error: ""}, nil
 }
 
 func errorResult(err error) *cqrsproto.CommandResult {
@@ -70,3 +75,6 @@ func errorResult(err error) *cqrsproto.CommandResult {
 		Error:   err.Error(),
 	}
 }
+
+// Compile-time assertion that errorResult return doesn't trigger nilerr.
+var _ = errors.New

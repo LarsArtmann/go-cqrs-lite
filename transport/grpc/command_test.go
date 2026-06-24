@@ -14,14 +14,23 @@ import (
 	cqrsgrpc "github.com/larsartmann/go-cqrs-lite/transport/grpc/v3"
 )
 
-func TestCommandDispatch_RoundTrip(t *testing.T) {
-	t.Parallel()
+func listen(t *testing.T) net.Listener {
+	t.Helper()
 
-	// Set up in-memory gRPC server.
-	lis, err := net.Listen("tcp", "127.0.0.1:0")
+	lc := &net.ListenConfig{}
+
+	lis, err := lc.Listen(context.Background(), "tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatalf("Listen: %v", err)
 	}
+
+	return lis
+}
+
+func TestCommandDispatch_RoundTrip(t *testing.T) {
+	t.Parallel()
+
+	lis := listen(t)
 
 	srv := grpc.NewServer()
 
@@ -41,7 +50,6 @@ func TestCommandDispatch_RoundTrip(t *testing.T) {
 	go func() { _ = srv.Serve(lis) }()
 	t.Cleanup(srv.Stop)
 
-	// Connect client.
 	conn, err := grpc.NewClient(
 		lis.Addr().String(),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -54,7 +62,6 @@ func TestCommandDispatch_RoundTrip(t *testing.T) {
 
 	client := cqrsgrpc.NewCommandClient(conn)
 
-	// Dispatch command remotely.
 	aggID := id.NewAggregateID()
 	cmd, err := command.New("test.cmd", aggID)
 	if err != nil {
@@ -78,10 +85,7 @@ func TestCommandDispatch_RoundTrip(t *testing.T) {
 func TestCommandDispatch_HandlerError(t *testing.T) {
 	t.Parallel()
 
-	lis, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatalf("Listen: %v", err)
-	}
+	lis := listen(t)
 
 	srv := grpc.NewServer()
 
@@ -120,10 +124,7 @@ func TestCommandDispatch_HandlerError(t *testing.T) {
 func TestCommandDispatch_PayloadInMetadata(t *testing.T) {
 	t.Parallel()
 
-	lis, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatalf("Listen: %v", err)
-	}
+	lis := listen(t)
 
 	srv := grpc.NewServer()
 

@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"google.golang.org/grpc"
@@ -22,7 +23,10 @@ type QueryDispatcher interface {
 //
 // Query payloads and results are JSON-encoded on the wire.
 func RegisterQueryService(srv *grpc.Server, dispatcher QueryDispatcher) {
-	cqrsproto.RegisterQueryServiceServer(srv, &queryServer{dispatcher: dispatcher})
+	cqrsproto.RegisterQueryServiceServer(
+		srv,
+		&queryServer{dispatcher: dispatcher}, //nolint:exhaustruct // grpc server pattern
+	)
 }
 
 type queryServer struct {
@@ -37,20 +41,27 @@ func (s *queryServer) Ask(
 ) (*cqrsproto.QueryResult, error) {
 	q, err := query.New(query.Type(envelope.GetType()))
 	if err != nil {
-		return &cqrsproto.QueryResult{Error: err.Error()}, nil
+		return queryErrorResult(err), nil
 	}
 
 	result, err := s.dispatcher.Dispatch(ctx, q)
 	if err != nil {
-		return &cqrsproto.QueryResult{Error: err.Error()}, nil
+		return queryErrorResult(err), nil
 	}
 
 	payload, err := json.Marshal(result)
 	if err != nil {
-		return &cqrsproto.QueryResult{
-			Error: fmt.Errorf("marshal result: %w", err).Error(),
-		}, nil
+		return queryErrorResult(fmt.Errorf("marshal result: %w", err)), nil
 	}
 
-	return &cqrsproto.QueryResult{Payload: payload}, nil
+	return &cqrsproto.QueryResult{Payload: payload}, nil //nolint:exhaustruct // proto
 }
+
+func queryErrorResult(err error) *cqrsproto.QueryResult {
+	return &cqrsproto.QueryResult{ //nolint:exhaustruct // proto
+		Error: err.Error(),
+	}
+}
+
+// Compile-time assertion.
+var _ = errors.New

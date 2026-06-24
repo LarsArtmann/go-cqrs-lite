@@ -163,6 +163,8 @@ linters:
                         - github.com/prometheus/client_model
                         - github.com/maypok86/otter
                         - github.com/jackc/pgx
+                        - google.golang.org/grpc
+                        - google.golang.org/protobuf
         exhaustruct:
             exclude:
                 - os/exec.Cmd
