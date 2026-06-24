@@ -116,6 +116,34 @@ for mod in "${!DEP_BUDGET[@]}"; do
             test_deps=$((test_deps + 1))
         fi
     done
+
+    # Also detect deps that are only imported from _test.go files.
+    # These are test-only in practice even if not in TEST_PACKAGES (e.g.,
+    # internal CQRS modules used solely in tests). For each direct require,
+    # check if any non-test .go file imports it; if not, it's test-only.
+    direct_paths=$(awk '
+        /^require \(/{found=1;next}
+        /^\)/{found=0}
+        found && !/\/\// && !/indirect/ && /^[[:space:]]+[^[:space:]]/{print $1}
+    ' "$gomod")
+
+    for dep_path in $direct_paths; do
+        # Skip packages already caught by TEST_PACKAGES
+        skip=0
+        for pkg in $TEST_PACKAGES; do
+            case "$dep_path" in
+                *"$pkg"*) skip=1; break ;;
+            esac
+        done
+        [ "$skip" -eq 1 ] && continue
+
+        # If no non-test .go file imports this dep, it's test-only
+        if ! grep -rl "\"${dep_path}" "${mod}/" --include='*.go' 2>/dev/null \
+            | grep -vq '_test\.go$'; then
+            test_deps=$((test_deps + 1))
+        fi
+    done
+
     prod_deps=$((direct - test_deps))
 
     if [ "$prod_deps" -gt "$budget" ]; then
