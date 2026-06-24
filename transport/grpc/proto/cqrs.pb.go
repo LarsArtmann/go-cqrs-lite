@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v7.34.1
-// source: cqrs.proto
+// source: proto/cqrs.proto
 
 package cqrsproto
 
@@ -37,7 +37,7 @@ type CommandEnvelope struct {
 
 func (x *CommandEnvelope) Reset() {
 	*x = CommandEnvelope{}
-	mi := &file_cqrs_proto_msgTypes[0]
+	mi := &file_proto_cqrs_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -49,7 +49,7 @@ func (x *CommandEnvelope) String() string {
 func (*CommandEnvelope) ProtoMessage() {}
 
 func (x *CommandEnvelope) ProtoReflect() protoreflect.Message {
-	mi := &file_cqrs_proto_msgTypes[0]
+	mi := &file_proto_cqrs_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -62,7 +62,7 @@ func (x *CommandEnvelope) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommandEnvelope.ProtoReflect.Descriptor instead.
 func (*CommandEnvelope) Descriptor() ([]byte, []int) {
-	return file_cqrs_proto_rawDescGZIP(), []int{0}
+	return file_proto_cqrs_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *CommandEnvelope) GetType() string {
@@ -111,7 +111,7 @@ type CommandResult struct {
 
 func (x *CommandResult) Reset() {
 	*x = CommandResult{}
-	mi := &file_cqrs_proto_msgTypes[1]
+	mi := &file_proto_cqrs_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -123,7 +123,7 @@ func (x *CommandResult) String() string {
 func (*CommandResult) ProtoMessage() {}
 
 func (x *CommandResult) ProtoReflect() protoreflect.Message {
-	mi := &file_cqrs_proto_msgTypes[1]
+	mi := &file_proto_cqrs_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -136,7 +136,7 @@ func (x *CommandResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommandResult.ProtoReflect.Descriptor instead.
 func (*CommandResult) Descriptor() ([]byte, []int) {
-	return file_cqrs_proto_rawDescGZIP(), []int{1}
+	return file_proto_cqrs_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *CommandResult) GetSuccess() bool {
@@ -165,7 +165,7 @@ type QueryEnvelope struct {
 
 func (x *QueryEnvelope) Reset() {
 	*x = QueryEnvelope{}
-	mi := &file_cqrs_proto_msgTypes[2]
+	mi := &file_proto_cqrs_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -177,7 +177,7 @@ func (x *QueryEnvelope) String() string {
 func (*QueryEnvelope) ProtoMessage() {}
 
 func (x *QueryEnvelope) ProtoReflect() protoreflect.Message {
-	mi := &file_cqrs_proto_msgTypes[2]
+	mi := &file_proto_cqrs_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -190,7 +190,7 @@ func (x *QueryEnvelope) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueryEnvelope.ProtoReflect.Descriptor instead.
 func (*QueryEnvelope) Descriptor() ([]byte, []int) {
-	return file_cqrs_proto_rawDescGZIP(), []int{2}
+	return file_proto_cqrs_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *QueryEnvelope) GetType() string {
@@ -225,7 +225,7 @@ type QueryResult struct {
 
 func (x *QueryResult) Reset() {
 	*x = QueryResult{}
-	mi := &file_cqrs_proto_msgTypes[3]
+	mi := &file_proto_cqrs_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -237,7 +237,7 @@ func (x *QueryResult) String() string {
 func (*QueryResult) ProtoMessage() {}
 
 func (x *QueryResult) ProtoReflect() protoreflect.Message {
-	mi := &file_cqrs_proto_msgTypes[3]
+	mi := &file_proto_cqrs_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -250,7 +250,7 @@ func (x *QueryResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueryResult.ProtoReflect.Descriptor instead.
 func (*QueryResult) Descriptor() ([]byte, []int) {
-	return file_cqrs_proto_rawDescGZIP(), []int{3}
+	return file_proto_cqrs_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *QueryResult) GetPayload() []byte {
@@ -267,12 +267,157 @@ func (x *QueryResult) GetError() string {
 	return ""
 }
 
-var File_cqrs_proto protoreflect.FileDescriptor
+// EventEnvelope wraps a CQRS event for streaming over gRPC.
+type EventEnvelope struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Id                 string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`                                                                                       // event ID (ULID)
+	Type               string                 `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`                                                                                   // event type (e.g. "user.created")
+	AggregateId        string                 `protobuf:"bytes,3,opt,name=aggregate_id,json=aggregateId,proto3" json:"aggregate_id,omitempty"`                                                  // aggregate ID (ULID)
+	AggregateType      string                 `protobuf:"bytes,4,opt,name=aggregate_type,json=aggregateType,proto3" json:"aggregate_type,omitempty"`                                            // aggregate type (e.g. "User")
+	Version            int64                  `protobuf:"varint,5,opt,name=version,proto3" json:"version,omitempty"`                                                                            // aggregate version after this event
+	Payload            []byte                 `protobuf:"bytes,6,opt,name=payload,proto3" json:"payload,omitempty"`                                                                             // raw event payload bytes
+	OccurredAtUnixNano int64                  `protobuf:"varint,7,opt,name=occurred_at_unix_nano,json=occurredAtUnixNano,proto3" json:"occurred_at_unix_nano,omitempty"`                        // event timestamp (Unix nanoseconds)
+	Metadata           map[string]string      `protobuf:"bytes,8,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // event metadata
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
 
-const file_cqrs_proto_rawDesc = "" +
+func (x *EventEnvelope) Reset() {
+	*x = EventEnvelope{}
+	mi := &file_proto_cqrs_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EventEnvelope) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EventEnvelope) ProtoMessage() {}
+
+func (x *EventEnvelope) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_cqrs_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EventEnvelope.ProtoReflect.Descriptor instead.
+func (*EventEnvelope) Descriptor() ([]byte, []int) {
+	return file_proto_cqrs_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *EventEnvelope) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *EventEnvelope) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *EventEnvelope) GetAggregateId() string {
+	if x != nil {
+		return x.AggregateId
+	}
+	return ""
+}
+
+func (x *EventEnvelope) GetAggregateType() string {
+	if x != nil {
+		return x.AggregateType
+	}
+	return ""
+}
+
+func (x *EventEnvelope) GetVersion() int64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *EventEnvelope) GetPayload() []byte {
+	if x != nil {
+		return x.Payload
+	}
+	return nil
+}
+
+func (x *EventEnvelope) GetOccurredAtUnixNano() int64 {
+	if x != nil {
+		return x.OccurredAtUnixNano
+	}
+	return 0
+}
+
+func (x *EventEnvelope) GetMetadata() map[string]string {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+// SubscriptionRequest filters the event stream. Empty event_types = all events.
+type SubscriptionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	EventTypes    []string               `protobuf:"bytes,1,rep,name=event_types,json=eventTypes,proto3" json:"event_types,omitempty"` // filter by event type (empty = subscribe to all)
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SubscriptionRequest) Reset() {
+	*x = SubscriptionRequest{}
+	mi := &file_proto_cqrs_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SubscriptionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SubscriptionRequest) ProtoMessage() {}
+
+func (x *SubscriptionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_cqrs_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SubscriptionRequest.ProtoReflect.Descriptor instead.
+func (*SubscriptionRequest) Descriptor() ([]byte, []int) {
+	return file_proto_cqrs_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *SubscriptionRequest) GetEventTypes() []string {
+	if x != nil {
+		return x.EventTypes
+	}
+	return nil
+}
+
+var File_proto_cqrs_proto protoreflect.FileDescriptor
+
+const file_proto_cqrs_proto_rawDesc = "" +
 	"\n" +
-	"\n" +
-	"cqrs.proto\x12\acqrs.v1\"\x8a\x02\n" +
+	"\x10proto/cqrs.proto\x12\acqrs.v1\"\x8a\x02\n" +
 	"\x0fCommandEnvelope\x12\x12\n" +
 	"\x04type\x18\x01 \x01(\tR\x04type\x12!\n" +
 	"\faggregate_id\x18\x02 \x01(\tR\vaggregateId\x12%\n" +
@@ -294,69 +439,92 @@ const file_cqrs_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"=\n" +
 	"\vQueryResult\x12\x18\n" +
 	"\apayload\x18\x01 \x01(\fR\apayload\x12\x14\n" +
-	"\x05error\x18\x02 \x01(\tR\x05error2N\n" +
+	"\x05error\x18\x02 \x01(\tR\x05error\"\xe3\x02\n" +
+	"\rEventEnvelope\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04type\x18\x02 \x01(\tR\x04type\x12!\n" +
+	"\faggregate_id\x18\x03 \x01(\tR\vaggregateId\x12%\n" +
+	"\x0eaggregate_type\x18\x04 \x01(\tR\raggregateType\x12\x18\n" +
+	"\aversion\x18\x05 \x01(\x03R\aversion\x12\x18\n" +
+	"\apayload\x18\x06 \x01(\fR\apayload\x121\n" +
+	"\x15occurred_at_unix_nano\x18\a \x01(\x03R\x12occurredAtUnixNano\x12@\n" +
+	"\bmetadata\x18\b \x03(\v2$.cqrs.v1.EventEnvelope.MetadataEntryR\bmetadata\x1a;\n" +
+	"\rMetadataEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"6\n" +
+	"\x13SubscriptionRequest\x12\x1f\n" +
+	"\vevent_types\x18\x01 \x03(\tR\n" +
+	"eventTypes2N\n" +
 	"\x0eCommandService\x12<\n" +
 	"\bDispatch\x12\x18.cqrs.v1.CommandEnvelope\x1a\x16.cqrs.v1.CommandResult2C\n" +
 	"\fQueryService\x123\n" +
-	"\x03Ask\x12\x16.cqrs.v1.QueryEnvelope\x1a\x14.cqrs.v1.QueryResultBGZEgithub.com/larsartmann/go-cqrs-lite/transport/grpc/v3/proto;cqrsprotob\x06proto3"
+	"\x03Ask\x12\x16.cqrs.v1.QueryEnvelope\x1a\x14.cqrs.v1.QueryResult2S\n" +
+	"\fEventService\x12C\n" +
+	"\tSubscribe\x12\x1c.cqrs.v1.SubscriptionRequest\x1a\x16.cqrs.v1.EventEnvelope0\x01BGZEgithub.com/larsartmann/go-cqrs-lite/transport/grpc/v3/proto;cqrsprotob\x06proto3"
 
 var (
-	file_cqrs_proto_rawDescOnce sync.Once
-	file_cqrs_proto_rawDescData []byte
+	file_proto_cqrs_proto_rawDescOnce sync.Once
+	file_proto_cqrs_proto_rawDescData []byte
 )
 
-func file_cqrs_proto_rawDescGZIP() []byte {
-	file_cqrs_proto_rawDescOnce.Do(func() {
-		file_cqrs_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_cqrs_proto_rawDesc), len(file_cqrs_proto_rawDesc)))
+func file_proto_cqrs_proto_rawDescGZIP() []byte {
+	file_proto_cqrs_proto_rawDescOnce.Do(func() {
+		file_proto_cqrs_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_cqrs_proto_rawDesc), len(file_proto_cqrs_proto_rawDesc)))
 	})
-	return file_cqrs_proto_rawDescData
+	return file_proto_cqrs_proto_rawDescData
 }
 
 var (
-	file_cqrs_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
-	file_cqrs_proto_goTypes  = []any{
-		(*CommandEnvelope)(nil), // 0: cqrs.v1.CommandEnvelope
-		(*CommandResult)(nil),   // 1: cqrs.v1.CommandResult
-		(*QueryEnvelope)(nil),   // 2: cqrs.v1.QueryEnvelope
-		(*QueryResult)(nil),     // 3: cqrs.v1.QueryResult
-		nil,                     // 4: cqrs.v1.CommandEnvelope.MetadataEntry
-		nil,                     // 5: cqrs.v1.QueryEnvelope.MetadataEntry
+	file_proto_cqrs_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+	file_proto_cqrs_proto_goTypes  = []any{
+		(*CommandEnvelope)(nil),     // 0: cqrs.v1.CommandEnvelope
+		(*CommandResult)(nil),       // 1: cqrs.v1.CommandResult
+		(*QueryEnvelope)(nil),       // 2: cqrs.v1.QueryEnvelope
+		(*QueryResult)(nil),         // 3: cqrs.v1.QueryResult
+		(*EventEnvelope)(nil),       // 4: cqrs.v1.EventEnvelope
+		(*SubscriptionRequest)(nil), // 5: cqrs.v1.SubscriptionRequest
+		nil,                         // 6: cqrs.v1.CommandEnvelope.MetadataEntry
+		nil,                         // 7: cqrs.v1.QueryEnvelope.MetadataEntry
+		nil,                         // 8: cqrs.v1.EventEnvelope.MetadataEntry
 	}
 )
-var file_cqrs_proto_depIdxs = []int32{
-	4, // 0: cqrs.v1.CommandEnvelope.metadata:type_name -> cqrs.v1.CommandEnvelope.MetadataEntry
-	5, // 1: cqrs.v1.QueryEnvelope.metadata:type_name -> cqrs.v1.QueryEnvelope.MetadataEntry
-	0, // 2: cqrs.v1.CommandService.Dispatch:input_type -> cqrs.v1.CommandEnvelope
-	2, // 3: cqrs.v1.QueryService.Ask:input_type -> cqrs.v1.QueryEnvelope
-	1, // 4: cqrs.v1.CommandService.Dispatch:output_type -> cqrs.v1.CommandResult
-	3, // 5: cqrs.v1.QueryService.Ask:output_type -> cqrs.v1.QueryResult
-	4, // [4:6] is the sub-list for method output_type
-	2, // [2:4] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+var file_proto_cqrs_proto_depIdxs = []int32{
+	6, // 0: cqrs.v1.CommandEnvelope.metadata:type_name -> cqrs.v1.CommandEnvelope.MetadataEntry
+	7, // 1: cqrs.v1.QueryEnvelope.metadata:type_name -> cqrs.v1.QueryEnvelope.MetadataEntry
+	8, // 2: cqrs.v1.EventEnvelope.metadata:type_name -> cqrs.v1.EventEnvelope.MetadataEntry
+	0, // 3: cqrs.v1.CommandService.Dispatch:input_type -> cqrs.v1.CommandEnvelope
+	2, // 4: cqrs.v1.QueryService.Ask:input_type -> cqrs.v1.QueryEnvelope
+	5, // 5: cqrs.v1.EventService.Subscribe:input_type -> cqrs.v1.SubscriptionRequest
+	1, // 6: cqrs.v1.CommandService.Dispatch:output_type -> cqrs.v1.CommandResult
+	3, // 7: cqrs.v1.QueryService.Ask:output_type -> cqrs.v1.QueryResult
+	4, // 8: cqrs.v1.EventService.Subscribe:output_type -> cqrs.v1.EventEnvelope
+	6, // [6:9] is the sub-list for method output_type
+	3, // [3:6] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
-func init() { file_cqrs_proto_init() }
-func file_cqrs_proto_init() {
-	if File_cqrs_proto != nil {
+func init() { file_proto_cqrs_proto_init() }
+func file_proto_cqrs_proto_init() {
+	if File_proto_cqrs_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_cqrs_proto_rawDesc), len(file_cqrs_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_cqrs_proto_rawDesc), len(file_proto_cqrs_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   9,
 			NumExtensions: 0,
-			NumServices:   2,
+			NumServices:   3,
 		},
-		GoTypes:           file_cqrs_proto_goTypes,
-		DependencyIndexes: file_cqrs_proto_depIdxs,
-		MessageInfos:      file_cqrs_proto_msgTypes,
+		GoTypes:           file_proto_cqrs_proto_goTypes,
+		DependencyIndexes: file_proto_cqrs_proto_depIdxs,
+		MessageInfos:      file_proto_cqrs_proto_msgTypes,
 	}.Build()
-	File_cqrs_proto = out.File
-	file_cqrs_proto_goTypes = nil
-	file_cqrs_proto_depIdxs = nil
+	File_proto_cqrs_proto = out.File
+	file_proto_cqrs_proto_goTypes = nil
+	file_proto_cqrs_proto_depIdxs = nil
 }

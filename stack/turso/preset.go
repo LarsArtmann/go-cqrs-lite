@@ -170,6 +170,7 @@ func newLocalBundle(dbPath string, cfg config) (*Bundle, error) {
 	}
 
 	stackOpts := buildOptions(backend)
+	stackOpts = append(stackOpts, stack.WithDatabase(sqlDB))
 
 	// Override: event-sourcing stores (events, snapshots, checkpoints) from a
 	// separate database if configured.
@@ -265,6 +266,7 @@ func newSyncBundle(
 	}
 
 	stackOpts := buildOptions(backend)
+	stackOpts = append(stackOpts, stack.WithDatabase(sqlDB))
 	stackOpts = append(stackOpts, stack.WithBus(cqrswatermill.NewEventBus()))
 
 	kvStore, err := backend.KVStore()

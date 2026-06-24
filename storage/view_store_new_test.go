@@ -36,8 +36,7 @@ func TestSQLViewStore_Count(t *testing.T) {
 
 	// Count with filter.
 	count, err = store.Count(ctx, kv.ViewQuery{
-		Where: "age >= ?",
-		Args:  []any{20},
+		Conditions: []kv.Condition{{Column: "age", Op: kv.OpGte, Value: 20}},
 	})
 	if err != nil {
 		t.Fatalf("Count filtered: %v", err)
@@ -48,7 +47,7 @@ func TestSQLViewStore_Count(t *testing.T) {
 
 	// Count tombstoned.
 	count, err = store.Count(ctx, kv.ViewQuery{
-		Where: "tombstoned != 0",
+		Conditions: []kv.Condition{{Column: "tombstoned", Op: kv.OpNeq, Value: 0}},
 	})
 	if err != nil {
 		t.Fatalf("Count tombstoned: %v", err)
@@ -58,7 +57,7 @@ func TestSQLViewStore_Count(t *testing.T) {
 	}
 }
 
-func TestSQLViewStore_QueryFiltered(t *testing.T) {
+func TestSQLViewStore_QueryConditions(t *testing.T) {
 	t.Parallel()
 
 	store := newTestViewStore(t)
@@ -84,57 +83,48 @@ func TestSQLViewStore_QueryFiltered(t *testing.T) {
 	}
 
 	// Structured filter: age = 25 AND active.
-	results, err := store.QueryFiltered(
-		ctx,
-		kv.ViewFilter{
-			Conditions: []kv.Condition{
-				{Column: "age", Op: kv.OpEq, Value: 25},
-				{Column: "tombstoned", Op: kv.OpEq, Value: false},
-			},
+	results, err := store.Query(ctx, kv.ViewQuery{
+		Conditions: []kv.Condition{
+			{Column: "age", Op: kv.OpEq, Value: 25},
+			{Column: "tombstoned", Op: kv.OpEq, Value: false},
 		},
-		kv.ViewQuery{OrderBy: "name"},
-	)
+		OrderBy: "name",
+	})
 	if err != nil {
-		t.Fatalf("QueryFiltered: %v", err)
+		t.Fatalf("Query: %v", err)
 	}
 	if len(results) != 1 || results[0].Name != "Diana" {
-		t.Fatalf("QueryFiltered: got %d results, first=%s; want 1, Diana",
+		t.Fatalf("Query: got %d results, first=%s; want 1, Diana",
 			len(results), safeName(results))
 	}
 
 	// IN operator.
-	results, err = store.QueryFiltered(
-		ctx,
-		kv.ViewFilter{
-			Conditions: []kv.Condition{
-				{Column: "name", Op: kv.OpIn, Value: []string{"Alice", "Charlie"}},
-			},
+	results, err = store.Query(ctx, kv.ViewQuery{
+		Conditions: []kv.Condition{
+			{Column: "name", Op: kv.OpIn, Values: []any{"Alice", "Charlie"}},
 		},
-		kv.ViewQuery{OrderBy: "name"},
-	)
+		OrderBy: "name",
+	})
 	if err != nil {
-		t.Fatalf("QueryFiltered IN: %v", err)
+		t.Fatalf("Query IN: %v", err)
 	}
 	if len(results) != 2 {
-		t.Fatalf("QueryFiltered IN: got %d, want 2", len(results))
+		t.Fatalf("Query IN: got %d, want 2", len(results))
 	}
 
 	// Range filter.
-	results, err = store.QueryFiltered(
-		ctx,
-		kv.ViewFilter{
-			Conditions: []kv.Condition{
-				{Column: "age", Op: kv.OpGte, Value: 25},
-				{Column: "age", Op: kv.OpLte, Value: 30},
-			},
+	results, err = store.Query(ctx, kv.ViewQuery{
+		Conditions: []kv.Condition{
+			{Column: "age", Op: kv.OpGte, Value: 25},
+			{Column: "age", Op: kv.OpLte, Value: 30},
 		},
-		kv.ViewQuery{OrderBy: "age"},
-	)
+		OrderBy: "age",
+	})
 	if err != nil {
-		t.Fatalf("QueryFiltered range: %v", err)
+		t.Fatalf("Query range: %v", err)
 	}
 	if len(results) != 3 {
-		t.Fatalf("QueryFiltered range 25-30: got %d, want 3", len(results))
+		t.Fatalf("Query range 25-30: got %d, want 3", len(results))
 	}
 }
 
@@ -264,9 +254,8 @@ func TestSQLViewStore_Indexes(t *testing.T) {
 
 	// Query using indexed column should work.
 	results, err := store.Query(ctx, kv.ViewQuery{
-		Where:   "age >= ?",
-		Args:    []any{5},
-		OrderBy: "age",
+		Conditions: []kv.Condition{{Column: "age", Op: kv.OpGte, Value: 5}},
+		OrderBy:    "age",
 	})
 	if err != nil {
 		t.Fatalf("Query indexed: %v", err)

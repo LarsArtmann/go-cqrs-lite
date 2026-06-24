@@ -405,18 +405,20 @@ Advanced capabilities (all optional, checked at runtime):
 
 ```go
 // Count without loading records (SELECT COUNT(*))
-n, _ := store.Count(ctx, kv.ViewQuery{Where: "completed = ?", Args: []any{0}})
+n, _ := store.Count(ctx, kv.ViewQuery{
+    Conditions: []kv.Condition{{Column: "completed", Op: kv.OpEq, Value: false}},
+})
 
 // Batch upsert for projection replay throughput (chunks to respect SQLite 999-param limit)
 _ = store.BatchSet(ctx, items)
 
 // Structured (injection-safe) filtering — no raw SQL
-results, _ := store.QueryFiltered(ctx,
-    kv.ViewFilter{Conditions: []kv.Condition{
+results, _ := store.Query(ctx, kv.ViewQuery{
+    Conditions: []kv.Condition{
         {Column: "completed", Op: kv.OpEq, Value: false},
         {Column: "title", Op: kv.OpLike, Value: "%urgent%"},
-    }},
-    kv.ViewQuery{OrderBy: "title", Limit: 10})
+    },
+    OrderBy: "title", Limit: 10})
 
 // Projection reset (DELETE FROM table)
 _ = store.DeleteAll(ctx)

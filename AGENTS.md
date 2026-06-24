@@ -327,14 +327,16 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   store, _ := storage.NewSQLiteViewStore[TodoView, id.AggregateID](db, mapper)
 //   mat := stack.Materialize[TodoView, id.AggregateID]{Store: store, ...}
 //   // Query with SQL power: WHERE, ORDER BY, LIMIT/OFFSET
-//   results, _ := store.Query(ctx, kv.ViewQuery{Where: "completed = ?", Args: []any{0}})
+//   results, _ := store.Query(ctx, kv.ViewQuery{
+//       Conditions: []kv.Condition{{Column: "completed", Op: kv.OpEq, Value: false}},
+//   })
 //
 //   // Advanced capabilities (optional interfaces — checked at runtime):
-//   // Count:        store.Count(ctx, kv.ViewQuery{Where: "completed = ?", Args: []any{0}})
+//   // Count:        store.Count(ctx, kv.ViewQuery{Conditions: []kv.Condition{{Column: "completed", Op: kv.OpEq, Value: false}}})
 //   // BatchSet:     store.BatchSet(ctx, items) // chunked upsert (SQLite 999-param aware)
 //   // DeleteAll:    store.DeleteAll(ctx)       // DELETE FROM table (projection reset)
-//   // QueryFiltered: store.QueryFiltered(ctx, kv.ViewFilter{Conditions: []kv.Condition{
-//   //                   {Column: "completed", Op: kv.OpEq, Value: false}}}, kv.ViewQuery{})
+//   // Query:        store.Query(ctx, kv.ViewQuery{Conditions: []kv.Condition{
+//   //                   {Column: "completed", Op: kv.OpEq, Value: false}}, OrderBy: "title", Limit: 10})
 //   // AutoMapper:   storage.AutoMapperWithTombstone[TodoView]("todos", "tombstoned") // from struct tags
 //   // Indexes:      ViewMapper.Indexes = []storage.IndexSpec{{Name: "idx_title", Columns: []string{"title"}}}
 //

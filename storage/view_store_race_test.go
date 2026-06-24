@@ -68,10 +68,9 @@ func TestSQLViewStore_ConcurrentSetQuery(t *testing.T) {
 
 			for op := range opsPerGoroutine {
 				_, err := store.Query(ctx, kv.ViewQuery{
-					Where:   "age >= ?",
-					Args:    []any{0},
-					OrderBy: "key",
-					Limit:   10,
+					Conditions: []kv.Condition{{Column: "age", Op: kv.OpGte, Value: 0}},
+					OrderBy:    "key",
+					Limit:      10,
 				})
 				if err != nil {
 					t.Errorf("Concurrent Query g=%d op=%d: %v", g, op, err)

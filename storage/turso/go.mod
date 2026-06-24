@@ -5,6 +5,7 @@ go 1.26.3
 require (
 	github.com/larsartmann/go-cqrs-lite/command/v3 v3.0.0
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.0.0
+	github.com/larsartmann/go-cqrs-lite/event/v3/eventtest v0.0.0
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.0.0
 	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.0.0
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.0.0
@@ -52,6 +53,7 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/command/v3 => ../../command
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 => ../../dispatcher
 	github.com/larsartmann/go-cqrs-lite/event/v3 => ../../event
+	github.com/larsartmann/go-cqrs-lite/event/v3/eventtest => ../../event/eventtest
 	github.com/larsartmann/go-cqrs-lite/id/v3 => ../../id
 	github.com/larsartmann/go-cqrs-lite/kv/v3 => ../../kv
 	github.com/larsartmann/go-cqrs-lite/listing/v3 => ../../listing

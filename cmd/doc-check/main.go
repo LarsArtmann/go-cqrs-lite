@@ -54,7 +54,7 @@ func main() {
 	for _, file := range files {
 		refs, imports, err := scanMarkdown(file)
 		if err != nil {
-			log.Fatalf(
+			log.Fatalf( //nolint:gosec // G706: CLI tool, file arg is intentional
 				"error reading %s: %v",
 				file,
 				err,

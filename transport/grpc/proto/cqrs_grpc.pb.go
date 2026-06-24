@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v7.34.1
-// source: cqrs.proto
+// source: proto/cqrs.proto
 
 package cqrsproto
 
@@ -122,7 +122,7 @@ var CommandService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "cqrs.proto",
+	Metadata: "proto/cqrs.proto",
 }
 
 const (
@@ -228,5 +228,114 @@ var QueryService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "cqrs.proto",
+	Metadata: "proto/cqrs.proto",
+}
+
+const (
+	EventService_Subscribe_FullMethodName = "/cqrs.v1.EventService/Subscribe"
+)
+
+// EventServiceClient is the client API for EventService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// EventService streams events to subscribers. Server-streaming RPC.
+type EventServiceClient interface {
+	Subscribe(ctx context.Context, in *SubscriptionRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[EventEnvelope], error)
+}
+
+type eventServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewEventServiceClient(cc grpc.ClientConnInterface) EventServiceClient {
+	return &eventServiceClient{cc}
+}
+
+func (c *eventServiceClient) Subscribe(ctx context.Context, in *SubscriptionRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[EventEnvelope], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &EventService_ServiceDesc.Streams[0], EventService_Subscribe_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[SubscriptionRequest, EventEnvelope]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type EventService_SubscribeClient = grpc.ServerStreamingClient[EventEnvelope]
+
+// EventServiceServer is the server API for EventService service.
+// All implementations must embed UnimplementedEventServiceServer
+// for forward compatibility.
+//
+// EventService streams events to subscribers. Server-streaming RPC.
+type EventServiceServer interface {
+	Subscribe(*SubscriptionRequest, grpc.ServerStreamingServer[EventEnvelope]) error
+	mustEmbedUnimplementedEventServiceServer()
+}
+
+// UnimplementedEventServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedEventServiceServer struct{}
+
+func (UnimplementedEventServiceServer) Subscribe(*SubscriptionRequest, grpc.ServerStreamingServer[EventEnvelope]) error {
+	return status.Error(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedEventServiceServer) mustEmbedUnimplementedEventServiceServer() {}
+func (UnimplementedEventServiceServer) testEmbeddedByValue()                      {}
+
+// UnsafeEventServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to EventServiceServer will
+// result in compilation errors.
+type UnsafeEventServiceServer interface {
+	mustEmbedUnimplementedEventServiceServer()
+}
+
+func RegisterEventServiceServer(s grpc.ServiceRegistrar, srv EventServiceServer) {
+	// If the following call panics, it indicates UnimplementedEventServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&EventService_ServiceDesc, srv)
+}
+
+func _EventService_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SubscriptionRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(EventServiceServer).Subscribe(m, &grpc.GenericServerStream[SubscriptionRequest, EventEnvelope]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type EventService_SubscribeServer = grpc.ServerStreamingServer[EventEnvelope]
+
+// EventService_ServiceDesc is the grpc.ServiceDesc for EventService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var EventService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "cqrs.v1.EventService",
+	HandlerType: (*EventServiceServer)(nil),
+	Methods:     []grpc.MethodDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "Subscribe",
+			Handler:       _EventService_Subscribe_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "proto/cqrs.proto",
 }

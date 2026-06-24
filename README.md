@@ -88,8 +88,9 @@ bundle, err := sqlite.New("app.db")
 defer bundle.Close()
 ```
 
-Four presets available: `stack/memory` (tests), `stack/sqlite` (embedded),
-`stack/pebble` (high-throughput embedded KV), `stack/postgres` (distributed).
+Five presets available: `stack/memory` (tests), `stack/sqlite` (embedded),
+`stack/pebble` (high-throughput embedded KV), `stack/postgres` (distributed),
+`stack/turso` (embedded LibSQL with optional remote sync).
 
 See [`example/deployer-first/`](example/deployer-first/) for a complete
 end-to-end example with projection catch-up and ordered delivery.
@@ -143,6 +144,7 @@ Every module has its own README with detailed usage, types, and examples.
 | **testutil**          | Shared test helpers: `MustNewCmd`, `ParseAggID`, `NoopCommandHandler` | [README](testutil/README.md)          |
 | **cmd/cqrs-gen**      | Code generator: typed handler registration from `//cqrs:` markers     | [README](cmd/cqrs-gen/README.md)      |
 | **cmd/api-stability** | API surface checker: compare exports against golden file              | [README](cmd/api-stability/README.md) |
+| **cmd/doc-check**     | Doc cross-reference verifier: validates Go symbols in markdown docs    |                                       |
 | **integration**       | Cross-module integration tests                                        | [README](integration/README.md)       |
 
 ### Stack Presets
@@ -154,6 +156,7 @@ Every module has its own README with detailed usage, types, and examples.
 | **stack/sqlite**   | Embedded SQLite preset (single-file persistence)    |
 | **stack/pebble**   | Embedded PebbleDB preset (high-throughput KV)       |
 | **stack/postgres** | PostgreSQL preset (distributed, LISTEN/NOTIFY bus)  |
+| **stack/turso**    | Turso/LibSQL preset (offline-first with sync)       |
 
 ### Examples
 
@@ -163,6 +166,7 @@ Every module has its own README with detailed usage, types, and examples.
 | **example/user**           | Advanced patterns: signing, middleware, catalog     |
 | **example/encryption**     | Event encryption patterns: bus, store, key rotation |
 | **example/deployer-first** | Deployer-first stack with catch-up projections      |
+| **example/deployer-first-multidb** | Multi-database isolation (separate DBs)                              |
 
 ## Design Principles
 
@@ -176,12 +180,13 @@ Every module has its own README with detailed usage, types, and examples.
 
 ## Why this library?
 
-Most Go CQRS libraries are **frameworks** — they own your transport, your broker, your SQL driver, your project structure. go-cqrs-lite is a **library**: 38 independent modules with their own `go.mod` files. You import only what you need and compose your own stack. Nothing is hidden behind magic.
+Most Go CQRS libraries are **frameworks** — they own your transport, your broker, your SQL driver, your project structure. go-cqrs-lite is a **library**: 42+ independent modules with their own `go.mod` files. You import only what you need and compose your own stack. Nothing is hidden behind magic.
 
 **What makes it different:**
 
 - **Event Sourcing first-class** — Immutable events, branded IDs, optimistic concurrency, tombstone soft-delete, time-travel queries, schema evolution via upcasters. Not an afterthought bolted onto a CRUD library.
 - **Library, not framework** — No transport, broker, or SQL driver is forced on you. Use Watermill, standard `net/http`, gRPC, NATS — your choice. The `stack/` presets wire sensible defaults if you want zero-config.
+- **SQL-backed read models** — `SQLViewStore` gives each projection its own table with real, queryable columns. Server-side WHERE, ORDER BY, pagination, indexes, and COUNT — impossible with opaque KV-blob read models.
 - **Multi-module isolation** — Each module has its own `go.mod` with minimal deps. Import `event` alone (3 deps) or the full `stack/sqlite` preset. Your dependency tree stays clean.
 - **Production primitives** — Event signing (HMAC, Ed25519, multisig), payload encryption (XChaCha20-Poly1305, AES-256-GCM), OTel tracing+metrics, Prometheus bridge. Not stubs.
 - **Honest error taxonomy** — 5-family classification (Rejection / Conflict / Transient / Infrastructure / Corruption) with sentinel errors and `%w` wrapping. No panics in production paths.
@@ -198,12 +203,13 @@ Most Go CQRS libraries are **frameworks** — they own your transport, your brok
 | **Event encryption**                |      ✅      |   ❌    |     ❌     |   ❌    |
 | **Schema evolution**                |      ✅      |   ❌    |     ❌     |   ❌    |
 | **Auto-docs (AsyncAPI/OpenAPI/D2)** |      ✅      |   ❌    |     ❌     |   ❌    |
+| **SQL-backed read models**          |      ✅      |   ❌    |     ❌     |   ❌    |
 | **Tombstone soft-delete**           |      ✅      |   ❌    |     ❌     |   ❌    |
 | **Bundle presets**                  |      ✅      |   ❌    |     ❌     |   ❌    |
 
 ## Status
 
-**v3.0.0 released** — 38 modules on `/v3` import paths, 84–100% test coverage on core modules. All 11 v3 breaking changes shipped.
+**v3.0.0 released** — 42+ modules on `/v3` import paths, 84–100% test coverage on core modules. SQL-backed read models, gRPC transport, SSE delivery, event signing/encryption, and 5 stack presets shipped.
 
 **Migrating from v2?** Read the **[v3 Migration Guide](docs/migration/V3_MIGRATION.md)** — all changes are additive, and import paths move from `…/v2` to `…/v3`.
 

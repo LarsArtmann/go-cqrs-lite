@@ -166,9 +166,8 @@ func TestIntegration_SQLViewStoreWithMaterialize(t *testing.T) {
 
 	// Query via SQLViewStore directly (proves real columns work).
 	queried, err := store.Query(ctx, kv.ViewQuery{
-		Where:   "name LIKE ?",
-		Args:    []any{"Alice%"},
-		OrderBy: "name",
+		Conditions: []kv.Condition{{Column: "name", Op: kv.OpLike, Value: "Alice%"}},
+		OrderBy:    "name",
 	})
 	if err != nil {
 		t.Fatalf("Query: %v", err)

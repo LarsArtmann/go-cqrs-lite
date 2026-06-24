@@ -57,7 +57,7 @@ func TestSQLViewStore_AutoMapper(t *testing.T) {
 
 	// Query by auto-mapped column.
 	results, err := store.Query(ctx, kv.ViewQuery{
-		Where: "age = ?", Args: []any{30},
+		Conditions: []kv.Condition{{Column: "age", Op: kv.OpEq, Value: 30}},
 	})
 	if err != nil {
 		t.Fatalf("Query: %v", err)

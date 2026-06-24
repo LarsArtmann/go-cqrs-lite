@@ -42,3 +42,25 @@ service CommandService {
 service QueryService {
   rpc Ask(QueryEnvelope) returns (QueryResult);
 }
+
+// EventEnvelope wraps a CQRS event for streaming over gRPC.
+message EventEnvelope {
+  string id = 1;             // event ID (ULID)
+  string type = 2;           // event type (e.g. "user.created")
+  string aggregate_id = 3;   // aggregate ID (ULID)
+  string aggregate_type = 4; // aggregate type (e.g. "User")
+  int64 version = 5;         // aggregate version after this event
+  bytes payload = 6;         // raw event payload bytes
+  int64 occurred_at_unix_nano = 7; // event timestamp (Unix nanoseconds)
+  map<string, string> metadata = 8; // event metadata
+}
+
+// SubscriptionRequest filters the event stream. Empty event_types = all events.
+message SubscriptionRequest {
+  repeated string event_types = 1; // filter by event type (empty = subscribe to all)
+}
+
+// EventService streams events to subscribers. Server-streaming RPC.
+service EventService {
+  rpc Subscribe(SubscriptionRequest) returns (stream EventEnvelope);
+}

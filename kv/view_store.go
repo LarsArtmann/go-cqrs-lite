@@ -24,20 +24,18 @@ type ViewStore[V any, K fmt.Stringer] interface {
 
 // ViewQuery describes a filtered, ordered, paginated query against a view store.
 //
-// Where is a raw SQL WHERE-clause fragment (without the "WHERE" keyword) using
-// dialect-appropriate placeholders (? for SQLite, $N for Postgres). Args are
-// bound positionally. The caller is responsible for SQL-injection safety: only
-// pass column names and operators in Where, never user input.
+// Conditions are AND-joined into a parameterised WHERE clause — injection-safe
+// by construction. Column names go in [Condition.Column] (trusted), user input
+// goes only in [Condition.Value] / [Condition.Values].
 //
 // OrderBy is a column name (default: "key"). Desc reverses the order.
 // Limit and Offset control pagination; zero Limit means no limit.
 type ViewQuery struct {
-	Where   string
-	Args    []any
-	OrderBy string
-	Desc    bool
-	Limit   int
-	Offset  int
+	Conditions []Condition
+	OrderBy    string
+	Desc       bool
+	Limit      int
+	Offset     int
 }
 
 // ViewQuerier is an optional capability implemented by view stores that support
@@ -47,7 +45,9 @@ type ViewQuery struct {
 // backend) do NOT implement this interface. Consumers should check at runtime:
 //
 //	if q, ok := store.(kv.ViewQuerier[MyView]); ok {
-//	    results, _ := q.Query(ctx, kv.ViewQuery{Where: "active = ?", Args: []any{true}})
+//	    results, _ := q.Query(ctx, kv.ViewQuery{
+//	        Conditions: []kv.Condition{{Column: "active", Op: kv.OpEq, Value: true}},
+//	    })
 //	}
 type ViewQuerier[V any] interface {
 	Query(ctx context.Context, q ViewQuery) ([]*V, error)
@@ -70,9 +70,9 @@ type TombstoneQuerier[V any] interface {
 // than calling Scan/Query and checking len() — SQL-backed stores translate it
 // to SELECT COUNT(*).
 //
-// When q.Where is empty, all records are counted. When the store also
+// When q.Conditions is empty, all records are counted. When the store also
 // implements [TombstoneQuerier], the caller can combine a tombstone filter
-// into the Where clause for a tombstone-aware count.
+// into the Conditions for a tombstone-aware count.
 type ViewCounter[V any] interface {
 	Count(ctx context.Context, q ViewQuery) (int64, error)
 }
@@ -104,31 +104,24 @@ type ViewItem[V any, K fmt.Stringer] struct {
 	Value *V
 }
 
-// ViewFilter is a structured alternative to raw SQL in [ViewQuery.Where].
-// It builds a parameterised WHERE clause safely, without SQL injection risk.
+// Condition is a single WHERE-clause predicate. Conditions are AND-joined.
 //
-// Conditions are AND-joined. Each condition specifies a column name, an
-// operator (=, !=, <, <=, >, >=, LIKE, IN), and a value. For IN, pass a
-// slice as the Value.
+// For scalar operators (=, !=, <, <=, >, >=, LIKE) set Value. For [OpIn] set
+// Values instead.
 //
 // Example:
 //
-//	filter := kv.ViewFilter{
-//	    Conditions: []kv.Condition{
-//	        {Column: "age", Op: kv.OpGte, Value: 18},
-//	        {Column: "status", Op: kv.OpEq, Value: "active"},
-//	    },
+//	[]kv.Condition{
+//	    {Column: "age", Op: kv.OpGte, Value: 18},
+//	    {Column: "status", Op: kv.OpIn, Values: []any{"active", "pending"}},
 //	}
-//	results, _ := store.QueryFiltered(ctx, filter, kv.ViewQuery{OrderBy: "name"})
-type ViewFilter struct {
-	Conditions []Condition
-}
-
-// Condition is a single WHERE-clause predicate.
 type Condition struct {
 	Column string
 	Op     Operator
 	Value  any
+
+	// Values holds the set for [OpIn]. Ignored for all other operators.
+	Values []any
 }
 
 // Operator is a comparison operator for [Condition].
@@ -144,13 +137,6 @@ const (
 	OpLike Operator = "LIKE"
 	OpIn   Operator = "IN"
 )
-
-// FilteredQuerier is an optional capability for stores that support structured
-// (non-raw-SQL) filtering. This is the injection-safe alternative to embedding
-// a WHERE string in [ViewQuery].
-type FilteredQuerier[V any] interface {
-	QueryFiltered(ctx context.Context, f ViewFilter, q ViewQuery) ([]*V, error)
-}
 
 // Compile-time assertion: *TypedStore satisfies ViewStore.
 var _ ViewStore[any, dummyStringer] = (*TypedStore[any, dummyStringer])(nil)

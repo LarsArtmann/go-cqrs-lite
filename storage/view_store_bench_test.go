@@ -89,10 +89,9 @@ func BenchmarkSQLViewStore_Query(b *testing.B) {
 
 	for i := range b.N {
 		_, err := store.Query(ctx, kv.ViewQuery{
-			Where:   "age = ?",
-			Args:    []any{i % 100},
-			OrderBy: "name",
-			Limit:   10,
+			Conditions: []kv.Condition{{Column: "age", Op: kv.OpEq, Value: i % 100}},
+			OrderBy:    "name",
+			Limit:      10,
 		})
 		if err != nil {
 			b.Fatalf("Query: %v", err)

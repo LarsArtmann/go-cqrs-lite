@@ -39,9 +39,8 @@ func TestSQLViewStore_Query_WhereOrderBy(t *testing.T) {
 	}
 
 	results, err := store.Query(ctx, kv.ViewQuery{
-		Where:   "age = ?",
-		Args:    []any{25},
-		OrderBy: "name",
+		Conditions: []kv.Condition{{Column: "age", Op: kv.OpEq, Value: 25}},
+		OrderBy:    "name",
 	})
 	if err != nil {
 		t.Fatalf("Query: %v", err)

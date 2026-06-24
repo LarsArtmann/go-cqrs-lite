@@ -15,13 +15,12 @@ func (s *SQLViewStore[V, K]) Query(ctx context.Context, q kv.ViewQuery) ([]*V, e
 
 	fmt.Fprintf(&b, "SELECT %s FROM %s", s.selectCols, s.mapper.Table)
 
-	args := make([]any, 0, len(q.Args))
-	paramIdx := 1
+	whereClause, whereArgs := buildWhereClause(q.Conditions, s.Dialect.Placeholder)
+	args := whereArgs
+	paramIdx := 1 + len(args)
 
-	if q.Where != "" {
-		fmt.Fprintf(&b, " WHERE %s", q.Where)
-		args = append(args, q.Args...)
-		paramIdx += len(q.Args)
+	if whereClause != "" {
+		fmt.Fprintf(&b, " WHERE %s", whereClause)
 	}
 
 	orderCol := q.OrderBy
@@ -78,9 +77,9 @@ func (s *SQLViewStore[V, K]) QueryByTombstone(
 	col := s.mapper.TombstoneColumn
 
 	if onlyTombstoned {
-		q.Where = col + " != 0"
+		q.Conditions = []kv.Condition{{Column: col, Op: kv.OpNeq, Value: 0}}
 	} else if excludeTombstoned {
-		q.Where = col + " = 0"
+		q.Conditions = []kv.Condition{{Column: col, Op: kv.OpEq, Value: 0}}
 	}
 
 	return s.Query(ctx, q)
@@ -94,7 +93,6 @@ var (
 	_ kv.ViewCounter[any]                   = (*SQLViewStore[any, dummyViewKey])(nil)
 	_ kv.ViewResetter[any]                  = (*SQLViewStore[any, dummyViewKey])(nil)
 	_ kv.ViewBatchSetter[any, dummyViewKey] = (*SQLViewStore[any, dummyViewKey])(nil)
-	_ kv.FilteredQuerier[any]               = (*SQLViewStore[any, dummyViewKey])(nil)
 )
 
 type dummyViewKey string
