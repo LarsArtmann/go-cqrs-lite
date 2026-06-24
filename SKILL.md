@@ -157,6 +157,36 @@ cached, _ := kv.NewCache(store,
 
 See [`docs/PRESETS.md`](docs/PRESETS.md) and [`docs/INFRASTRUCTURE_RECOMMENDATIONS.md`](docs/INFRASTRUCTURE_RECOMMENDATIONS.md) for full documentation.
 
+#### Bundle.Debug() — verify your wiring
+
+After constructing a Bundle (from a preset or manual assembly), call `Debug()`
+to see which capabilities are set. This is the fastest way to catch missing
+wiring — each field shows ✓ (set) or ✗ (nil):
+
+```go
+b, _ := sqlite.New("app.db")
+fmt.Println(b.Debug())
+// Output:
+// Bundle capabilities:
+//   EventSink:           ✓
+//   EventSource:         ✓
+//   Journal:             ✓
+//   SeekableJournal:     ✓
+//   Publisher:           ✓
+//   Subscriber:          ✓
+//   CommandSink:         ✓
+//   CommandSource:       ✓
+//   QuerySink:           ✓
+//   QuerySource:         ✓
+//   SnapshotStore:       ✓
+//   CheckpointStore:     ✓
+//   ReadModels:          ✓
+```
+
+A ✗ on `Journal` or `SeekableJournal` means `CatchUpSubscriber` will fail.
+A ✗ on `ReadModels` means `stack.ReadModel` and `stack.NewMaterialize` will fail.
+Use this in tests to verify your preset configuration before deployment.
+
 ### 2.1 Minimal Event Sourcing (event + command + decider + id + memory)
 
 The foundation. Every app starts here.
@@ -347,6 +377,92 @@ results, _ := store.Query(ctx, kv.ViewQuery{
 //    TombstoneColumn is configured (no full-table load).
 active, _ := mat.List(ctx, stack.ExcludeTombstoned)
 ```
+
+Shortcut: auto-generate the mapper from struct tags:
+
+```go
+type TodoView struct {
+    Title      string `view:"title"`
+    Completed  bool   `view:"completed"`
+    Tombstoned bool   `view:"tombstoned"`
+}
+mapper := storage.AutoMapperWithTombstone[TodoView]("todos_view", "tombstoned")
+// Equivalent to the manual ViewMapper above — zero boilerplate.
+```
+
+From a Bundle preset (the one-call path):
+
+```go
+b, _ := sqlite.New("app.db")
+store, _ := sqlite.SQLViewModel[TodoView, TodoID](b, mapper) // ← uses bundle's DB
+mat := stack.Materialize[TodoView, TodoID]{Store: store, ...}
+```
+
+Advanced capabilities (all optional, checked at runtime):
+
+```go
+// Count without loading records (SELECT COUNT(*))
+n, _ := store.Count(ctx, kv.ViewQuery{Where: "completed = ?", Args: []any{0}})
+
+// Batch upsert for projection replay throughput (chunks to respect SQLite 999-param limit)
+_ = store.BatchSet(ctx, items)
+
+// Structured (injection-safe) filtering — no raw SQL
+results, _ := store.QueryFiltered(ctx,
+    kv.ViewFilter{Conditions: []kv.Condition{
+        {Column: "completed", Op: kv.OpEq, Value: false},
+        {Column: "title", Op: kv.OpLike, Value: "%urgent%"},
+    }},
+    kv.ViewQuery{OrderBy: "title", Limit: 10})
+
+// Projection reset (DELETE FROM table)
+_ = store.DeleteAll(ctx)
+
+// Secondary indexes for fast lookups (set on mapper)
+mapper.Indexes = []storage.IndexSpec{
+    {Name: "idx_title", Columns: []string{"title"}},
+}
+```
+
+#### Canonical projection pattern: CatchUpSubscriber + Materialize
+
+For ordered, durable projections, use `CatchUpSubscriber` — NOT the Watermill
+Router directly. The Router processes messages in parallel (one goroutine per
+message), which breaks ordering for projections that need FIFO guarantees.
+
+The canonical pattern (see `example/deployer-first`):
+
+```go
+b, _ := sqlite.New("app.db")
+defer b.Close()
+
+// 1. Create the CatchUpSubscriber from the Bundle.
+catchUp, _ := b.CatchUpSubscriber()
+defer catchUp.Close()
+
+// 2. Create a SQL-backed or KV-backed Materialize.
+store, _ := sqlite.SQLViewModel[TodoView, TodoID](b, mapper)
+mat := stack.Materialize[TodoView, TodoID]{Store: store, ...}
+
+// 3. Subscribe to a topic — CatchUpSubscriber replays from the journal
+//    (Phase 1, ModeReplay), then hands off to live (Phase 2).
+msgs, _ := catchUp.Subscribe(ctx, "todo.created")
+
+// 4. Consume from a SINGLE goroutine — FIFO ordering guaranteed.
+go func() {
+    for msg := range msgs {
+        _ = mat.HandlerFunc()(msg)
+        msg.Ack()
+    }
+}()
+```
+
+**Why not the Router?** The Router spawns one goroutine per message
+(`message/router.go:30`). For ordered projections, consume the
+CatchUpSubscriber's output channel from a single goroutine instead. The
+EventBus default uses `BlockPublishUntilSubscriberAck=true` for ordered live
+delivery and `Persistent=false` to avoid GoChannel's unordered persistent
+replay (the CatchUpSubscriber handles replay from the journal instead).
 
 ### 2.4 Snapshots for Performance (snapshot)
 
@@ -913,7 +1029,7 @@ kvStore, _ := cqrspebble.NewKVStore(db, cqrspebble.WithSyncWrites())
 
 ```go
 // Wrong
-backend, _ := storage.NewSQLBackend(db, storage.DialectPostgres)
+backend, _ := storage.NewSQLBackend(db, sql.PostgresDialect{})
 
 // Correct — dialect auto-detected
 backend, _ := storage.NewSQLBackend(db)

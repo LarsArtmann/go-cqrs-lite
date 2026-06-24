@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package cqrs.v1;
+
+option go_package = "github.com/larsartmann/go-cqrs-lite/transport/grpc/v3/proto;cqrsproto";
+
+// CommandEnvelope wraps a CQRS command for wire transmission.
+// The payload is JSON-encoded (matching the watermill protocol).
+message CommandEnvelope {
+  string type = 1;           // command type (e.g. "user.create")
+  string aggregate_id = 2;   // aggregate ID (ULID)
+  string aggregate_type = 3; // aggregate type (e.g. "User")
+  bytes payload = 4;         // JSON-encoded command payload
+  map<string, string> metadata = 5; // command metadata
+}
+
+// CommandResult is the response from a command dispatch.
+message CommandResult {
+  bool success = 1;
+  string error = 2;
+}
+
+// QueryEnvelope wraps a CQRS query for wire transmission.
+message QueryEnvelope {
+  string type = 1;           // query type (e.g. "user.get")
+  bytes payload = 2;         // JSON-encoded query payload
+  map<string, string> metadata = 3; // query metadata
+}
+
+// QueryResult is the response from a query dispatch.
+message QueryResult {
+  bytes payload = 1;         // JSON-encoded result
+  string error = 2;
+}
+
+// CommandService dispatches commands to the local handler.
+service CommandService {
+  rpc Dispatch(CommandEnvelope) returns (CommandResult);
+}
+
+// QueryService dispatches queries to the local handler.
+service QueryService {
+  rpc Ask(QueryEnvelope) returns (QueryResult);
+}

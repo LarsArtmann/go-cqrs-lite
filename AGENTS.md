@@ -152,7 +152,7 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   var qSeekable query.SeekableQueryJournal = qStore     // ReadQueriesFrom(afterReqID, limit)
 
 // Command bus (pub/sub) — typed subscription dispatch
-//   bus := memory.NewMemoryCommandBus()
+//   bus := command.NewMemoryBus()
 //   bus.Subscribe("user.create", handlerFunc)  // typed subscription
 //   bus.SubscribeAll(auditHandler)             // catch-all (audit log)
 //   bus.Use(middleware.CommandTracing(tracer)) // middleware chain

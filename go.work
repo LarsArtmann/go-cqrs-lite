@@ -5,6 +5,7 @@ use (
 	./catalog
 	./cmd/api-stability
 	./cmd/cqrs-gen
+	./cmd/doc-check
 	./codec
 	./command
 	./decider

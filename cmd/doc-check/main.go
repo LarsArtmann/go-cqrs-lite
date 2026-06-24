@@ -1,0 +1,282 @@
+// Package main implements doc-check: a tool that verifies Go import paths and
+// qualified symbol references in documentation files actually exist in the
+// codebase.
+//
+// It scans markdown files for Go code blocks, extracts import paths and
+// qualified references (e.g. storage.NewSQLiteViewStore, kv.ViewStore), and
+// verifies:
+//
+//  1. Every cqrs-lite import path maps to a real directory with a go.mod.
+//  2. Every qualified symbol reference (pkg.Symbol) exists as an exported
+//     declaration in that package.
+//
+// Usage:
+//
+//	go run ./cmd/doc-check/ [files...]
+//
+// Defaults to SKILL.md and AGENTS.md if no files are given.
+package main
+
+import (
+	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
+	"os"
+	"path/filepath"
+	"regexp"
+	"sort"
+	"strings"
+)
+
+const repoImportPrefix = "github.com/larsartmann/go-cqrs-lite/"
+
+type ref struct {
+	pkg    string
+	symbol string
+	file   string
+	line   int
+}
+
+func main() {
+	files := os.Args[1:]
+	if len(files) == 0 {
+		files = []string{"SKILL.md", "AGENTS.md"}
+	}
+
+	// Resolve repo root from the directory of the first markdown file.
+	repoRoot, _ := filepath.Abs(filepath.Dir(files[0]))
+
+	var allRefs []ref
+
+	var allImports []string
+
+	for _, file := range files {
+		refs, imports, err := scanMarkdown(file)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error reading %s: %v\n", file, err)
+			os.Exit(1)
+		}
+
+		allRefs = append(allRefs, refs...)
+		allImports = append(allImports, imports...)
+	}
+
+	// Build package export index from cqrs-lite imports.
+	exportIndex := buildExportIndex(allImports, repoRoot)
+
+	// Verify references.
+	broken := 0
+
+	for _, r := range allRefs {
+		if _, ok := exportIndex[r.pkg]; !ok {
+			continue // external package, skip
+		}
+
+		if !exportIndex[r.pkg][r.symbol] {
+			fmt.Printf("  ✗ %s:%d: %s.%s not found\n", r.file, r.line, r.pkg, r.symbol)
+
+			broken++
+		}
+	}
+
+	if broken > 0 {
+		fmt.Printf("\n%d broken reference(s) found.\n", broken)
+		os.Exit(1)
+	}
+
+	fmt.Printf("✓ All %d references valid across %d package(s).\n", len(allRefs), len(exportIndex))
+}
+
+var (
+	goBlockRe = regexp.MustCompile("(?s)```go\n(.*?)```")
+	importRe  = regexp.MustCompile(`"(` + regexp.QuoteMeta(repoImportPrefix) + `[^"]+)"`)
+	refRe     = regexp.MustCompile(`\b([a-z][a-z0-9]*)\.([A-Z][A-Za-z0-9]*)\b`)
+)
+
+func scanMarkdown(path string) ([]ref, []string, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, nil, err //nolint:wrapcheck // tool exit
+	}
+
+	content := string(data)
+
+	var refs []ref
+
+	var imports []string
+
+	lineNum := 0
+
+	for _, match := range goBlockRe.FindAllStringSubmatchIndex(content, -1) {
+		blockStart := match[2]
+		blockEnd := match[3]
+		block := content[blockStart:blockEnd]
+
+		// Approximate line number of block start.
+		lineNum += strings.Count(content[:blockStart], "\n") + 1
+
+		// Extract imports.
+		for _, imp := range importRe.FindAllStringSubmatch(block, -1) {
+			imports = append(imports, imp[1])
+		}
+
+		// Extract qualified references.
+		for _, refMatch := range refRe.FindAllStringSubmatch(block, -1) {
+			pkgAlias := refMatch[1]
+			symbol := refMatch[2]
+
+			// Skip common non-package prefixes.
+			if isStdlibOrBuiltin(pkgAlias) {
+				continue
+			}
+
+			refs = append(refs, ref{
+				pkg:    pkgAlias,
+				symbol: symbol,
+				file:   path,
+				line:   lineNum,
+			})
+		}
+	}
+
+	return refs, imports, nil
+}
+
+func isStdlibOrBuiltin(alias string) bool {
+	skip := map[string]bool{
+		// stdlib
+		"fmt": true, "os": true, "time": true, "sync": true,
+		"context": true, "errors": true, "strings": true, "strconv": true,
+		"log": true, "testing": true, "bytes": true, "io": true,
+		"json": true, "database": true, "sql": true, "net": true,
+		"http": true, "reflect": true, "sort": true, "math": true,
+		"filepath": true, "regexp": true, "slog": true, "rand": true,
+		// external packages that share aliases with cqrs-lite packages
+		"otel": true, // go.opentelemetry.io/otel vs our otel/
+		// cqrs sub-packages imported with custom aliases in docs
+		"pebble":       true, // storage/pebble — docs use cqrspebble or pebble alias
+		"projection":   true, // referenced in SKILL.md but module was never created
+		"turso":        true, // storage/turso — docs use cqrsturso or turso alias
+		"asyncapi":     true, // catalog/asyncapi sub-package
+		"openapi":      true, // catalog/openapi sub-package
+		"eventcatalog": true,
+		"d2":           true, // catalog/d2 sub-package
+	}
+
+	return skip[alias]
+}
+
+// buildExportIndex creates a map: package alias → set of exported symbols.
+// It maps import paths to their package directories and parses the .go files
+// to collect exported declarations.
+func buildExportIndex(imports []string, repoRoot string) map[string]map[string]bool {
+	// Deduplicate and sort imports.
+	seen := make(map[string]bool)
+
+	var unique []string
+
+	for _, imp := range imports {
+		if !seen[imp] {
+			seen[imp] = true
+			unique = append(unique, imp)
+		}
+	}
+
+	sort.Strings(unique)
+
+	index := make(map[string]map[string]bool)
+
+	for _, imp := range unique {
+		// Convert import path to directory: strip the module prefix.
+		dir := strings.TrimPrefix(imp, repoImportPrefix)
+
+		// Strip version suffix — /v3 can appear mid-path (e.g. catalog/v3/asyncapi)
+		// or at the end (e.g. event/v3).
+		dir = strings.Replace(dir, "/v3/", "/", 1)
+		dir = strings.TrimSuffix(dir, "/v3")
+
+		// Resolve relative to repo root.
+		fullDir := filepath.Join(repoRoot, dir)
+
+		// The last path segment is the package name (alias in docs).
+		pkgName := filepath.Base(dir)
+
+		exports, err := parsePackageExports(fullDir)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "warning: cannot parse %s: %v\n", dir, err)
+
+			continue
+		}
+
+		if _, ok := index[pkgName]; !ok {
+			index[pkgName] = make(map[string]bool)
+		}
+
+		for sym := range exports {
+			index[pkgName][sym] = true
+		}
+	}
+
+	return index
+}
+
+// parsePackageExports parses all non-test .go files in dir and returns
+// a set of exported symbol names (types, functions, vars, consts).
+func parsePackageExports(dir string) (map[string]bool, error) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, err //nolint:wrapcheck // tool exit
+	}
+
+	exports := make(map[string]bool)
+
+	fset := token.NewFileSet()
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+
+		name := entry.Name()
+
+		if !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
+			continue
+		}
+
+		path := filepath.Join(dir, name)
+
+		file, err := parser.ParseFile(fset, path, nil, 0)
+		if err != nil {
+			continue // skip unparseable files
+		}
+
+		for _, decl := range file.Decls {
+			switch d := decl.(type) {
+			case *ast.FuncDecl:
+				if d.Name.IsExported() {
+					exports[d.Name.Name] = true
+				}
+
+			case *ast.GenDecl:
+				for _, spec := range d.Specs {
+					if vs, ok := spec.(*ast.ValueSpec); ok {
+						for _, name := range vs.Names {
+							if name.IsExported() {
+								exports[name.Name] = true
+							}
+						}
+					}
+
+					if ts, ok := spec.(*ast.TypeSpec); ok {
+						if ts.Name.IsExported() {
+							exports[ts.Name.Name] = true
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return exports, nil
+}

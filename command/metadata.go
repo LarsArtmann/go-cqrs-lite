@@ -89,3 +89,13 @@ func WithUserID(v id.UserID) Option {
 func WithRequestID(v id.RequestID) Option {
 	return func(c *BasicCommand) { c.metadata.RequestID = v }
 }
+
+// WithCustomMetadata sets a custom metadata key-value pair on the command.
+// Multiple calls accumulate. Used by transport adapters to carry wire-level
+// metadata (e.g. gRPC payload, correlation context).
+func WithCustomMetadata(key, value string) Option {
+	return func(c *BasicCommand) {
+		EnsureCustom(&c.metadata)
+		c.metadata.Custom[MetadataKey(key)] = value
+	}
+}

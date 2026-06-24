@@ -167,6 +167,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 
 	stackOpts = append(
 		stackOpts,
+		stack.WithDatabase(sqlDB),
 		stack.WithCloser(backend),
 		stack.WithCloser(stack.NewFuncCloser(sqlDB.Close)),
 	)

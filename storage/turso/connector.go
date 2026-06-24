@@ -3,6 +3,7 @@ package turso
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -129,6 +130,18 @@ func NewQueryStore(db *sql.DB) (*storage.SQLQueryStore, error) {
 	return storage.NewSQLiteQueryStore(
 		db,
 	)
+}
+
+// NewViewStore creates a view store backed by a Turso database with real,
+// queryable columns. Delegates to NewSQLiteViewStore — Turso uses the same
+// SQL dialect as SQLite. The *sql.DB is borrowed, not owned — the caller is
+// responsible for closing it.
+func NewViewStore[V any, K fmt.Stringer](
+	db *sql.DB,
+	mapper storage.ViewMapper[V],
+	opts ...storage.ViewStoreOption,
+) (*storage.SQLViewStore[V, K], error) {
+	return storage.NewSQLiteViewStore[V, K](db, mapper, opts...)
 }
 
 // ConfigurePool sets connection-pool defaults recommended for embedded

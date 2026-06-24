@@ -227,3 +227,13 @@ func WithCloser(c io.Closer) Option {
 		b.registerCloser(c)
 	}
 }
+
+// WithDatabase stores the underlying database handle (e.g. *sql.DB) for
+// SQL-backed bundles. The handle is type-erased to `any` so the core stack
+// package does not import database/sql. Preset-specific SQLViewModel
+// constructors type-assert it back to *sql.DB.
+//
+// Presets call this automatically; consumers typically do not.
+func WithDatabase(db any) Option {
+	return func(b *Bundle) { b.db = db }
+}

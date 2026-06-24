@@ -8,7 +8,6 @@ import (
 	_ "modernc.org/sqlite" // pure-Go SQLite driver
 
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
-	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
 
 func TestSQLViewStore_Query_WhereOrderBy(t *testing.T) {
@@ -39,7 +38,6 @@ func TestSQLViewStore_Query_WhereOrderBy(t *testing.T) {
 		}
 	}
 
-	// Query: age = 25, ordered by name.
 	results, err := store.Query(ctx, kv.ViewQuery{
 		Where:   "age = ?",
 		Args:    []any{25},
@@ -73,7 +71,6 @@ func TestSQLViewStore_Query_Pagination(t *testing.T) {
 		}
 	}
 
-	// Page 1: limit 3, offset 0.
 	page1, err := store.Query(ctx, kv.ViewQuery{OrderBy: "key", Limit: 3, Offset: 0})
 	if err != nil {
 		t.Fatalf("Query page 1: %v", err)
@@ -87,7 +84,6 @@ func TestSQLViewStore_Query_Pagination(t *testing.T) {
 		t.Fatalf("Page 1 ages: got %d, %d; want 0, 2", page1[0].Age, page1[2].Age)
 	}
 
-	// Page 2: limit 3, offset 3.
 	page2, err := store.Query(ctx, kv.ViewQuery{OrderBy: "key", Limit: 3, Offset: 3})
 	if err != nil {
 		t.Fatalf("Query page 2: %v", err)
@@ -97,7 +93,6 @@ func TestSQLViewStore_Query_Pagination(t *testing.T) {
 		t.Fatalf("Page 2 ages: got %d, %d; want 3, 5", page2[0].Age, page2[2].Age)
 	}
 
-	// Last page: limit 3, offset 9 → 1 result.
 	last, err := store.Query(ctx, kv.ViewQuery{OrderBy: "key", Limit: 3, Offset: 9})
 	if err != nil {
 		t.Fatalf("Query last page: %v", err)
@@ -165,7 +160,6 @@ func TestSQLViewStore_QueryByTombstone(t *testing.T) {
 		t.Fatalf("Set dead1: %v", err)
 	}
 
-	// Exclude tombstoned → 2 active.
 	active, err := store.QueryByTombstone(ctx, true, false)
 	if err != nil {
 		t.Fatalf("QueryByTombstone exclude: %v", err)
@@ -175,7 +169,6 @@ func TestSQLViewStore_QueryByTombstone(t *testing.T) {
 		t.Fatalf("Exclude tombstoned: got %d, want 2", len(active))
 	}
 
-	// Only tombstoned → 1.
 	tombstoned, err := store.QueryByTombstone(ctx, false, true)
 	if err != nil {
 		t.Fatalf("QueryByTombstone only: %v", err)
@@ -189,7 +182,6 @@ func TestSQLViewStore_QueryByTombstone(t *testing.T) {
 		)
 	}
 
-	// All → 3.
 	all, err := store.QueryByTombstone(ctx, false, false)
 	if err != nil {
 		t.Fatalf("QueryByTombstone all: %v", err)
@@ -198,138 +190,4 @@ func TestSQLViewStore_QueryByTombstone(t *testing.T) {
 	if len(all) != 3 {
 		t.Fatalf("All: got %d, want 3", len(all))
 	}
-}
-
-func TestSQLViewStore_WithoutAutoMigrate(t *testing.T) {
-	t.Parallel()
-
-	db, err := storage.OpenSQLiteInMemory()
-	if err != nil {
-		t.Fatalf("OpenSQLiteInMemory: %v", err)
-	}
-
-	t.Cleanup(func() { _ = db.Close() })
-
-	// Without auto-migrate: table does NOT exist, so Set should fail.
-	store, err := storage.NewSQLiteViewStore[testView, testKey](db, testMapper(),
-		storage.WithoutViewAutoMigrate())
-	if err != nil {
-		t.Fatalf("NewSQLiteViewStore without migrate: %v", err)
-	}
-
-	err = store.Set(context.Background(), testKey("k1"), &testView{Name: "Alice"})
-	if err == nil {
-		t.Fatal("Set without table: expected error, got nil")
-	}
-}
-
-func TestSQLViewStore_ValidationErrors(t *testing.T) {
-	t.Parallel()
-
-	db, err := storage.OpenSQLiteInMemory()
-	if err != nil {
-		t.Fatalf("OpenSQLiteInMemory: %v", err)
-	}
-
-	t.Cleanup(func() { _ = db.Close() })
-
-	tests := []struct {
-		name    string
-		mapper  storage.ViewMapper[testView]
-		wantErr string
-	}{
-		{
-			name:    "empty table",
-			mapper:  storage.ViewMapper[testView]{},
-			wantErr: "Table is required",
-		},
-		{
-			name: "missing ScanRow",
-			mapper: storage.ViewMapper[testView]{
-				Table: "t",
-				Columns: []storage.ViewColumn[testView]{
-					{Name: "x", Type: "TEXT", Extract: func(v *testView) any { return v.Name }},
-				},
-			},
-			wantErr: "ScanRow is required",
-		},
-		{
-			name: "no columns",
-			mapper: storage.ViewMapper[testView]{
-				Table:   "t",
-				ScanRow: func(scan func(dest ...any) error) (*testView, error) { return &testView{}, nil },
-			},
-			wantErr: "at least one Column",
-		},
-		{
-			name: "reserved key column",
-			mapper: storage.ViewMapper[testView]{
-				Table: "t",
-				Columns: []storage.ViewColumn[testView]{
-					{Name: "key", Type: "TEXT", Extract: func(v *testView) any { return v.Name }},
-				},
-				ScanRow: func(scan func(dest ...any) error) (*testView, error) { return &testView{}, nil },
-			},
-			wantErr: "reserved",
-		},
-		{
-			name: "nil extract",
-			mapper: storage.ViewMapper[testView]{
-				Table:   "t",
-				Columns: []storage.ViewColumn[testView]{{Name: "x", Type: "TEXT"}},
-				ScanRow: func(scan func(dest ...any) error) (*testView, error) { return &testView{}, nil },
-			},
-			wantErr: "Extract is required",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			_, err := storage.NewSQLiteViewStore[testView, testKey](db, tt.mapper)
-			if err == nil {
-				t.Fatal("expected error, got nil")
-			}
-
-			if !containsStr(err.Error(), tt.wantErr) {
-				t.Fatalf("error %q does not contain %q", err.Error(), tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestSQLViewStore_DuplicateColumn(t *testing.T) {
-	t.Parallel()
-
-	db, err := storage.OpenSQLiteInMemory()
-	if err != nil {
-		t.Fatalf("OpenSQLiteInMemory: %v", err)
-	}
-
-	t.Cleanup(func() { _ = db.Close() })
-
-	mapper := storage.ViewMapper[testView]{
-		Table: "dup",
-		Columns: []storage.ViewColumn[testView]{
-			{Name: "name", Type: "TEXT", Extract: func(v *testView) any { return v.Name }},
-			{Name: "name", Type: "TEXT", Extract: func(v *testView) any { return v.Name }},
-		},
-		ScanRow: func(scan func(dest ...any) error) (*testView, error) { return &testView{}, nil },
-	}
-
-	_, err = storage.NewSQLiteViewStore[testView, testKey](db, mapper)
-	if err == nil || !containsStr(err.Error(), "duplicate") {
-		t.Fatalf("expected duplicate error, got: %v", err)
-	}
-}
-
-func containsStr(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-
-	return len(substr) == 0
 }

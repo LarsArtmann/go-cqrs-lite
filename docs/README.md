@@ -76,6 +76,7 @@ The authoritative module index with README links lives in the **[project README]
 | [0032](adr/0032-merge-readmodel-into-kv.md)           | Merge `readmodel/` into `kv/`                     | Accepted                 |
 | [0033](adr/0033-multi-db-split.md)                    | Multi-Database Split for Concern Isolation        | Accepted                 |
 | [0034](adr/0034-session-store-boundary.md)            | Session Store Boundary                            | Accepted                 |
+| [0035](adr/0035-branded-dsn-types.md)                 | Branded DSN Types (Considered and Rejected)       | Rejected                 |
 
 ## API Reference
 

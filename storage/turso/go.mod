@@ -53,6 +53,7 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 => ../../dispatcher
 	github.com/larsartmann/go-cqrs-lite/event/v3 => ../../event
 	github.com/larsartmann/go-cqrs-lite/id/v3 => ../../id
+	github.com/larsartmann/go-cqrs-lite/kv/v3 => ../../kv
 	github.com/larsartmann/go-cqrs-lite/listing/v3 => ../../listing
 	github.com/larsartmann/go-cqrs-lite/otel/v3 => ../../otel
 	github.com/larsartmann/go-cqrs-lite/query/v3 => ../../query

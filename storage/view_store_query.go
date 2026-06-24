@@ -88,9 +88,13 @@ func (s *SQLViewStore[V, K]) QueryByTombstone(
 
 // Compile-time interface assertions.
 var (
-	_ kv.ViewStore[any, dummyViewKey] = (*SQLViewStore[any, dummyViewKey])(nil)
-	_ kv.ViewQuerier[any]             = (*SQLViewStore[any, dummyViewKey])(nil)
-	_ kv.TombstoneQuerier[any]        = (*SQLViewStore[any, dummyViewKey])(nil)
+	_ kv.ViewStore[any, dummyViewKey]       = (*SQLViewStore[any, dummyViewKey])(nil)
+	_ kv.ViewQuerier[any]                   = (*SQLViewStore[any, dummyViewKey])(nil)
+	_ kv.TombstoneQuerier[any]              = (*SQLViewStore[any, dummyViewKey])(nil)
+	_ kv.ViewCounter[any]                   = (*SQLViewStore[any, dummyViewKey])(nil)
+	_ kv.ViewResetter[any]                  = (*SQLViewStore[any, dummyViewKey])(nil)
+	_ kv.ViewBatchSetter[any, dummyViewKey] = (*SQLViewStore[any, dummyViewKey])(nil)
+	_ kv.FilteredQuerier[any]               = (*SQLViewStore[any, dummyViewKey])(nil)
 )
 
 type dummyViewKey string

@@ -35,6 +35,9 @@ jobs:
       - name: Lint
         run: nix run .#lint
 
+      - name: Doc cross-reference check
+        run: cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../AGENTS.md
+
       - name: Generate coverage
         run: nix run .#coverage
 
@@ -344,3 +347,25 @@ jobs:
           # -tags=integration enables the LISTEN/NOTIFY round-trip tests that
           # validate the full preset against a real Postgres instance.
           cd ../stack/postgres && GOWORK=off go test -tags=integration -v -count=1 ./...
+
+  turso-sync:
+    name: Turso Sync Tests
+    runs-on: ubuntu-latest
+    # Runs unconditionally; tests self-skip when TURSO_SYNC_URL is not set.
+    # Set these secrets in repo settings to enable real sync validation:
+    #   TURSO_SYNC_URL   — e.g. libsql://my-db.turso.io
+    #   TURSO_SYNC_TOKEN — Turso auth token
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@v17
+
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Run Turso sync contract tests
+        env:
+          TURSO_SYNC_URL: ${{ secrets.TURSO_SYNC_URL }}
+          TURSO_SYNC_TOKEN: ${{ secrets.TURSO_SYNC_TOKEN }}
+        run: |
+          cd stack/turso && GOWORK=off go test -v -count=1 -run TestNewSync ./...

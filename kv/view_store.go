@@ -65,6 +65,93 @@ type TombstoneQuerier[V any] interface {
 	QueryByTombstone(ctx context.Context, excludeTombstoned, onlyTombstoned bool) ([]*V, error)
 }
 
+// ViewCounter is an optional capability implemented by view stores that can
+// count records matching a query without loading them. This is far cheaper
+// than calling Scan/Query and checking len() — SQL-backed stores translate it
+// to SELECT COUNT(*).
+//
+// When q.Where is empty, all records are counted. When the store also
+// implements [TombstoneQuerier], the caller can combine a tombstone filter
+// into the Where clause for a tombstone-aware count.
+type ViewCounter[V any] interface {
+	Count(ctx context.Context, q ViewQuery) (int64, error)
+}
+
+// ViewResetter is an optional capability implemented by view stores that can
+// remove all records in a single operation. This is used for projection
+// resets — wiping a read model before rebuilding it from the event journal.
+//
+// SQL-backed stores translate this to DELETE FROM table. KV-backed stores
+// iterate and delete each key.
+type ViewResetter[V any] interface {
+	DeleteAll(ctx context.Context) error
+}
+
+// ViewBatchSetter is an optional capability implemented by view stores that
+// support atomic batch upserts. This is critical for projection replay
+// throughput — replaying thousands of events one Set at a time is O(n) round
+// trips; BatchSet reduces that to O(n / batchSize).
+//
+// The batch size limit depends on the backend (SQLite has a 999-parameter
+// limit per statement). The implementation chunks automatically.
+type ViewBatchSetter[V any, K fmt.Stringer] interface {
+	BatchSet(ctx context.Context, items []ViewItem[V, K]) error
+}
+
+// ViewItem pairs a key and value for batch operations.
+type ViewItem[V any, K fmt.Stringer] struct {
+	Key   K
+	Value *V
+}
+
+// ViewFilter is a structured alternative to raw SQL in [ViewQuery.Where].
+// It builds a parameterised WHERE clause safely, without SQL injection risk.
+//
+// Conditions are AND-joined. Each condition specifies a column name, an
+// operator (=, !=, <, <=, >, >=, LIKE, IN), and a value. For IN, pass a
+// slice as the Value.
+//
+// Example:
+//
+//	filter := kv.ViewFilter{
+//	    Conditions: []kv.Condition{
+//	        {Column: "age", Op: kv.OpGte, Value: 18},
+//	        {Column: "status", Op: kv.OpEq, Value: "active"},
+//	    },
+//	}
+//	results, _ := store.QueryFiltered(ctx, filter, kv.ViewQuery{OrderBy: "name"})
+type ViewFilter struct {
+	Conditions []Condition
+}
+
+// Condition is a single WHERE-clause predicate.
+type Condition struct {
+	Column string
+	Op     Operator
+	Value  any
+}
+
+// Operator is a comparison operator for [Condition].
+type Operator string
+
+const (
+	OpEq   Operator = "="
+	OpNeq  Operator = "!="
+	OpLt   Operator = "<"
+	OpLte  Operator = "<="
+	OpGt   Operator = ">"
+	OpGte  Operator = ">="
+	OpLike Operator = "LIKE"
+	OpIn   Operator = "IN"
+)
+
+// FilteredQuerier is an optional capability for stores that support structured
+// (non-raw-SQL) filtering. This is the injection-safe alternative to embedding
+// a WHERE string in [ViewQuery].
+type FilteredQuerier[V any] interface {
+	QueryFiltered(ctx context.Context, f ViewFilter, q ViewQuery) ([]*V, error)
+}
+
 // Compile-time assertion: *TypedStore satisfies ViewStore.
 var _ ViewStore[any, dummyStringer] = (*TypedStore[any, dummyStringer])(nil)
 

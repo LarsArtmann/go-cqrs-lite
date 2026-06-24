@@ -64,6 +64,13 @@ type Bundle struct {
 	// ProjectionJournal and ProjectionSubscriber are usually the same as
 	// Journal and Subscriber above, but are kept explicit so a deployment
 	// can route projections through a different subscriber if needed.
+
+	// db holds the underlying database handle (e.g. *sql.DB) when backed by
+	// an SQL preset. nil for non-SQL bundles. Accessed via preset-specific
+	// SQLViewModel generic constructors to create [storage.SQLViewStore]
+	// instances from the same connection.
+	db any
+
 	closers []io.Closer
 }
 
@@ -149,6 +156,11 @@ func (b *Bundle) GracefulClose(ctx context.Context) error {
 		return ctx.Err()
 	}
 }
+
+// Database returns the underlying database handle (e.g. *sql.DB) when the
+// Bundle is backed by an SQL preset. Returns nil for non-SQL bundles.
+// Used by preset-specific SQLViewModel generic constructors.
+func (b *Bundle) Database() any { return b.db }
 
 // registerCloser adds c to the list of resources [Bundle.Close] will release,
 // if c implements [io.Closer]. Called by options that hand the Bundle a store,

@@ -68,7 +68,7 @@ defines its own wire format.
 
 ## Status
 
-- **gRPC**: Not yet implemented. Planned as `transport/grpc/` module.
+- **gRPC**: **Implemented.** `transport/grpc/` module with CommandService and QueryService. Proto at `transport/grpc/proto/cqrs.proto`. Server adapters wrap `command.Dispatcher` and `query.Dispatcher`. Client adapters provide remote dispatch.
 - **NATS**: Not yet implemented. Planned as `transport/nats/` module.
 - **Redis**: Not yet implemented. Planned as `transport/redis/` module.
 - **HTTP**: **Implemented.** SSE event delivery moved from `middleware/` to `transport/http/`. Generic HTTP utilities (healthcheck, metrics, pprof) were deleted — they had no CQRS dependencies and zero consumers.

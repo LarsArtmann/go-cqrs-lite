@@ -148,6 +148,70 @@ func (s *TypedStore[T, K]) Scan(_ context.Context, prefix []byte) ([]*T, error) 
 // iterators over raw keys) when the typed API is insufficient.
 func (s *TypedStore[T, K]) Backend() Store { return s.backend }
 
+// DeleteAll removes all values in this store's namespace (key prefix). This
+// implements [ViewResetter] and is used for projection resets — wiping a read
+// model before rebuilding it from the event journal.
+//
+// The operation iterates all keys and deletes them via a [Batch] when the
+// backend supports it (atomic), otherwise one-by-one.
+func (s *TypedStore[T, K]) DeleteAll(_ context.Context) error {
+	iter, err := s.backend.NewIterator(s.prefix)
+	if err != nil {
+		return fmt.Errorf("kv: delete-all iterator: %w", err)
+	}
+
+	keys := make([][]byte, 0)
+
+	for iter.Next() {
+		keys = append(keys, append([]byte{}, iter.Key()...))
+	}
+
+	if err = iter.Error(); err != nil {
+		_ = iter.Close()
+
+		return fmt.Errorf("kv: delete-all iteration: %w", err)
+	}
+
+	if err = iter.Close(); err != nil {
+		return fmt.Errorf("kv: delete-all close iterator: %w", err)
+	}
+
+	if len(keys) == 0 {
+		return nil
+	}
+
+	batch, batchErr := s.backend.Batch()
+	if batchErr != nil {
+		return s.deleteAllOneByOne(keys)
+	}
+
+	defer func() { _ = batch.Close() }()
+
+	for _, k := range keys {
+		err = batch.Delete(k)
+		if err != nil {
+			return fmt.Errorf("kv: delete-all batch: %w", err)
+		}
+	}
+
+	if err = batch.Commit(); err != nil {
+		return fmt.Errorf("kv: delete-all commit: %w", err)
+	}
+
+	return nil
+}
+
+func (s *TypedStore[T, K]) deleteAllOneByOne(keys [][]byte) error {
+	for _, k := range keys {
+		err := s.backend.Delete(k)
+		if err != nil {
+			return fmt.Errorf("kv: delete-all key %q: %w", k, err)
+		}
+	}
+
+	return nil
+}
+
 func (s *TypedStore[T, K]) key(id K) []byte {
 	k := s.keyFunc(id)
 

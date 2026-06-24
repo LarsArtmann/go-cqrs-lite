@@ -57,6 +57,26 @@ type ViewMapper[V any] struct {
 	//
 	// The column must also appear in Columns with its Extract function.
 	TombstoneColumn string
+
+	// Indexes optionally declares secondary indexes to create on the table.
+	// Each index is created via CREATE INDEX IF NOT EXISTS during auto-migration.
+	// Use indexes to accelerate frequently-filtered columns.
+	//
+	// Example:
+	//   Indexes: []storage.IndexSpec{
+	//       {Name: "idx_email", Columns: []string{"email"}},
+	//       {Name: "idx_age_status", Columns: []string{"age", "status"}},
+	//   }
+	Indexes []IndexSpec
+}
+
+// IndexSpec declares a secondary index on a view table.
+type IndexSpec struct {
+	// Name is the SQL index name (must be unique within the database).
+	Name string
+	// Columns are the indexed column names. Composite indexes list
+	// multiple columns in order.
+	Columns []string
 }
 
 // SQLViewStore is a [kv.ViewStore] backed by a dedicated SQL table with real
@@ -140,6 +160,10 @@ func newViewStore[V any, K fmt.Stringer](
 		if err := s.createTable(context.Background()); err != nil {
 			return nil, fmt.Errorf("storage: view store migrate: %w", err)
 		}
+
+		if err := s.createIndexes(context.Background()); err != nil {
+			return nil, fmt.Errorf("storage: view store indexes: %w", err)
+		}
 	}
 
 	return s, nil
@@ -207,6 +231,18 @@ func (s *SQLViewStore[V, K]) createTable(ctx context.Context) error {
 	_, err := s.DB.ExecContext(ctx, b.String())
 	if err != nil {
 		return fmt.Errorf("create table %s: %w", s.mapper.Table, err)
+	}
+
+	return nil
+}
+
+func (s *SQLViewStore[V, K]) createIndexes(ctx context.Context) error {
+	for _, idx := range s.mapper.Indexes {
+		stmt := fmt.Sprintf("CREATE INDEX IF NOT EXISTS %s ON %s (%s)",
+			idx.Name, s.mapper.Table, strings.Join(idx.Columns, ", "))
+		if _, err := s.DB.ExecContext(ctx, stmt); err != nil {
+			return fmt.Errorf("create index %s: %w", idx.Name, err)
+		}
 	}
 
 	return nil

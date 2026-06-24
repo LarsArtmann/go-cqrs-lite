@@ -162,6 +162,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	// Order matters — stores must close before the DB.
 	stackOpts = append(
 		stackOpts,
+		stack.WithDatabase(sqlDB),
 		stack.WithCloser(backend),
 		stack.WithCloser(stack.NewFuncCloser(sqlDB.Close)),
 	)
