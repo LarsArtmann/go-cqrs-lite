@@ -755,7 +755,7 @@ Found during code reviews. See `docs/planning/` for details.
 | ~~CommandJournal/SeekableCommandJournal in MemoryCommandStore untested~~ — **RESOLVED** (`0c0cd5b3`)       | ~~MEDIUM~~ | memory              |
 | ~~Query store interfaces (PersistedQuery, QueryStore, QueryJournal) untested~~ — **RESOLVED** (`0c0cd5b3`) | ~~MEDIUM~~ | query, memory       |
 | ~~Query module lacks store-specific sentinel errors~~ — **RESOLVED** (`query/errors.go`)                   | ~~LOW~~    | query               |
-| command re-exports event types (module boundary violation)                                                 | HIGH       | command             |
+| ~~command re-exports event types (module boundary violation)~~ — **DOCUMENTED AS INTENTIONAL** (`command/aggregate_ref.go:8-10`). Commands share the same aggregate identity as events; re-exporting `AggregateType`/`AggregateRef` is convenience, not layering violation. | ~~HIGH~~ | command             |
 | ~~Reactive extensions not wired into dispatchers~~ — **DELETED** with `projection/` module (ADR-0030)      | ~~LOW~~    | event/command/query |
 | Pre-existing golden test drift (codec, middleware)                                                         | LOW        | codec, middleware   |
 
