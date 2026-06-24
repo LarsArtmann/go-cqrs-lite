@@ -151,7 +151,9 @@ func AutoMapperWithTombstone[V any](table, tombstoneCol string) ViewMapper[V] {
 	return mapper
 }
 
-func goTypeToSQL(rt reflect.Type) (sqlType string, isBool bool) {
+func goTypeToSQL(
+	rt reflect.Type,
+) (sqlType string, isBool bool) {
 	if rt.Kind() == reflect.Pointer {
 		rt = rt.Elem()
 	}

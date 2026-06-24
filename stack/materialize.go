@@ -142,6 +142,9 @@ func (m *Materialize[V, K]) handleEvent(ctx context.Context, evt event.Event) er
 
 				return m.Store.Set(ctx, key, updated)
 			}
+		case event.TombstoneUndetermined:
+			// Can't determine status — skip projection. A subsequent event
+			// with a definitive status will resolve the aggregate state.
 		}
 
 		return nil
