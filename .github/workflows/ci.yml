@@ -129,6 +129,19 @@ jobs:
             exit 1
           fi
 
+  api-stability:
+    name: API Stability Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@v17
+
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Verify API surface matches golden file
+        run: cd cmd/api-stability && GOWORK=off go run main.go
+
   replace-directives:
     name: Replace Directives Check
     runs-on: ubuntu-latest

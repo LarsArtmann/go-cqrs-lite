@@ -213,6 +213,60 @@
               echo "All production files within 350-line limit"
             '';
 
+            test-grpc = mkApp "test-grpc" goModules ''
+              echo "==> Testing transport/grpc (GOWORK=off)"
+              (cd transport/grpc && GOWORK=off ${goPkg}/bin/go test ./... -count=1 "$@")
+            '';
+
+            check-wasm = mkApp "check-wasm" goModules ''
+              wasmMods="id codec dispatcher event command query decider"
+              failed=0
+              for mod in $wasmMods; do
+                echo "==> WASM build: $mod"
+                (cd "$mod" && GOWORK=off GOOS=js GOARCH=wasm ${goPkg}/bin/go build ./...) || failed=1
+              done
+              exit "$failed"
+            '';
+
+            check-api-stability = mkApp "check-api-stability" goModules ''
+              echo "==> API surface check"
+              (cd cmd/api-stability && GOWORK=off ${goPkg}/bin/go run main.go)
+            '';
+
+            ci = mkApp "ci" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils ] ''
+              echo "=== Build ==="
+              ${goPkg}/bin/go build ${tagFlags} ${allPaths} || exit 1
+              echo "=== Vet ==="
+              ${goPkg}/bin/go vet ${tagFlags} ${modulePaths} || exit 1
+              echo "=== Test ==="
+              ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1 || exit 1
+              echo "=== Race ==="
+              ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -race -count=1 || exit 1
+              echo "=== Check Layers ==="
+              ${pkgs.bash}/bin/bash "$PWD/scripts/check-module-layers.sh" || exit 1
+              echo "=== Check File Size ==="
+              failed=false
+              while IFS= read -r f; do
+                lines=$(wc -l < "$f")
+                if [ "$lines" -gt 350 ]; then
+                  echo "ERROR: $f has $lines lines (max 350)"
+                  failed=true
+                fi
+              done < <(find . -name "*.go" -not -name "*_test.go" \
+                -not -name "*.pb.go" \
+                -not -name "*.gen.go" \
+                -not -path "*/example/*" \
+                -not -path "*/testdata/*" \
+                -not -path "*/internal/cattest/*" \
+                -not -path "*/.git/*")
+              if [ "$failed" = true ]; then exit 1; fi
+              echo "=== API Stability ==="
+              (cd cmd/api-stability && GOWORK=off ${goPkg}/bin/go run main.go) || exit 1
+              echo "=== transport/grpc (GOWORK=off) ==="
+              (cd transport/grpc && GOWORK=off ${goPkg}/bin/go test ./... -count=1) || exit 1
+              echo "✅ All CI checks passed"
+            '';
+
             clean = mkApp "clean" [ goPkg pkgs.trash-cli ] ''
               ${pkgs.trash-cli}/bin/trash-put coverage.out 2>/dev/null || true
               ${goPkg}/bin/go clean -testcache
