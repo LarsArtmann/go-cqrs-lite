@@ -3,6 +3,7 @@ package stack
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
@@ -153,7 +154,7 @@ func (b *Bundle) GracefulClose(ctx context.Context) error {
 	case err := <-done:
 		return err
 	case <-ctx.Done():
-		return ctx.Err()
+		return fmt.Errorf("graceful close: %w", ctx.Err())
 	}
 }
 

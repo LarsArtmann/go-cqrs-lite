@@ -255,11 +255,16 @@ linters:
           - revive
           - unparam
           - fatcontext
+          - errcheck
+          - nilnil
+          - varnamelen
+          - ginkgolinter
       - path: internal/cattest/
         linters:
           - thelper
           - exhaustruct
           - gosec
+          - err113
       - path: upcaster\.go$
         linters:
           - unparam

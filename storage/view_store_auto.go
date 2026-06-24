@@ -156,14 +156,12 @@ func AutoMapperWithTombstone[V any](table, tombstoneCol string) ViewMapper[V] {
 	return mapper
 }
 
-func goTypeToSQL(
-	rt reflect.Type,
-) (sqlType string, isBool bool) {
+func goTypeToSQL(rt reflect.Type) (string, bool) {
 	if rt.Kind() == reflect.Pointer {
 		rt = rt.Elem()
 	}
 
-	switch rt.Kind() {
+	switch rt.Kind() { //nolint:exhaustive // default catches all for JSON
 	case reflect.String:
 		return sqlTypeText, false
 	case reflect.Int, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint32, reflect.Uint64:

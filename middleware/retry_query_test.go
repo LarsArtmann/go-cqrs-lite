@@ -54,7 +54,10 @@ func TestQueryRetry_AllAttemptsFail(t *testing.T) {
 	}
 }
 
-func errorQueryHandler(errMsg string, callCount *int) query.Handler {
+func errorQueryHandler(
+	errMsg string,
+	callCount *int,
+) query.Handler { //nolint:staticcheck // SA1019: testing deprecated Handler backward compat
 	return func(_ context.Context, _ query.Query) (any, error) {
 		*callCount++
 
@@ -62,7 +65,11 @@ func errorQueryHandler(errMsg string, callCount *int) query.Handler {
 	}
 }
 
-func setupQueryRetryHandler(t *testing.T, config RetryConfig, errMsg string) (query.Handler, *int) {
+func setupQueryRetryHandler(
+	t *testing.T,
+	config RetryConfig,
+	errMsg string,
+) (query.Handler, *int) { //nolint:staticcheck // SA1019: testing deprecated Handler backward compat
 	t.Helper()
 	mw := QueryRetry(config)
 	callCount := 0
