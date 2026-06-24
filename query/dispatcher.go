@@ -24,7 +24,7 @@ import (
 // compile-time type safety in their handler and caller code.
 //
 // Deprecated: Use TypedHandler[Q, R] with RegisterTyped/DispatchTyped for compile-time
-// type safety. The any-returning Handler will be replaced by a generic signature in v3.
+// type safety. The any-returning Handler will be replaced by a generic signature in v4.
 type Handler = func(context.Context, Query) (any, error)
 
 // Dispatcher routes queries to their handlers.
