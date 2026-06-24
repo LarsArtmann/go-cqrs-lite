@@ -835,7 +835,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 | Guarantee              | Detail                                                                                                                                                                              |
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Lint posture           | ~200 findings across 24/37 modules — mostly stylistic (makezero/noinlineerr/exhaustruct); ~7 real defects. See `docs/reviews/*_code-quality-scan.html`. Tunable via `.golangci.yml` |
+| Lint posture           | ~68 findings across 15/37 modules after config tuning (noinlineerr disabled, makezero set to `always:false`). Mostly wrapcheck/err113/exhaustruct — style issues, not bugs. 22/37 modules pass lint clean. |
 | Race-free              | `go test -race` passes across all modules                                                                                                                                           |
 | Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                                                                                                                      |
 | Strong types           | `event.Event` is a concrete type alias (`= *ImmutableEvent`); core store/bus are interfaces for DI                                                                                  |
