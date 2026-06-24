@@ -64,6 +64,22 @@ func writeIDListField[S ~string](md *frontmatterWriter, key string, ids []S) {
 	addObjectIDsListField(md, key, ids)
 }
 
+func writeBaseFrontmatter(
+	md *frontmatterWriter,
+	id, name, version, summary string,
+	owners []string,
+) {
+	md.addField("id", id)
+	md.addField("name", name)
+	md.addField("version", version)
+
+	if summary != "" {
+		md.addQuotedField("summary", summary)
+	}
+
+	md.addListField("owners", owners)
+}
+
 func writeBadges(md *frontmatterWriter, badges []catalog.Badge) {
 	if len(badges) == 0 {
 		return

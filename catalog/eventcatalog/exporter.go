@@ -197,15 +197,8 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 	}
 
 	md := newFrontmatterWriter()
-	md.addField("id", string(svc.ID))
-	md.addField("name", string(svc.Name))
-	md.addField("version", string(svc.Version))
-
-	if svc.Summary != "" {
-		md.addQuotedField("summary", string(svc.Summary))
-	}
-
-	md.addListField("owners", svc.Owners)
+	writeBaseFrontmatter(md, string(svc.ID), string(svc.Name), string(svc.Version),
+		string(svc.Summary), svc.Owners)
 
 	sends, receives, commands, queries := collectMessageIDs(svc)
 
@@ -269,15 +262,8 @@ func (e *Exporter) writeDomain(domain catalog.Domain) error {
 	}
 
 	md := newFrontmatterWriter()
-	md.addField("id", string(domain.ID))
-	md.addField("name", string(domain.Name))
-	md.addField("version", string(domain.Version))
-
-	if domain.Summary != "" {
-		md.addQuotedField("summary", string(domain.Summary))
-	}
-
-	md.addListField("owners", domain.Owners)
+	writeBaseFrontmatter(md, string(domain.ID), string(domain.Name), string(domain.Version),
+		string(domain.Summary), domain.Owners)
 
 	addObjectIDsListField(md, "services", domain.Services)
 	writeMessagePointers(md, "sends", domain.Sends)

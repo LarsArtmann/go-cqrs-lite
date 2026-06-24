@@ -6,37 +6,26 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 func TestEncryptedStore_SaveAndLoad(t *testing.T) {
 	t.Parallel()
 
-	key := aes256Key()
-	ed, err := NewAES256GCM(key)
-	if err != nil {
-		t.Fatalf("NewAES256GCM: %v", err)
-	}
+	env := newEncTestEnv(t)
 
-	inner := eventtest.NewFakeStore()
-	store, _ := NewEncryptedStore(inner, ed)
-
-	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("User", aggID)
-
-	evt, err := event.NewEvent("UserCreated", aggID, "User", 1,
+	evt, err := event.NewEvent("UserCreated", env.aggID, "User", 1,
 		[]byte(`{"name":"Alice","email":"alice@example.com"}`))
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}
 
 	ctx := context.Background()
-	if err := store.Save(ctx, ref, []event.Event{evt}, 0); err != nil {
+	if err := env.store.Save(ctx, env.ref, []event.Event{evt}, 0); err != nil {
 		t.Fatalf("Save: %v", err)
 	}
 
-	loaded, err := store.Load(ctx, ref)
+	loaded, err := env.store.Load(ctx, env.ref)
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
@@ -53,24 +42,14 @@ func TestEncryptedStore_SaveAndLoad(t *testing.T) {
 func TestEncryptedStore_WithKeyID(t *testing.T) {
 	t.Parallel()
 
-	key := aes256Key()
-	ed, _ := NewAES256GCM(key)
+	env := newEncTestEnv(t, WithMiddlewareKeyID("key-v1"))
 
-	inner := eventtest.NewFakeStore()
-	store, err := NewEncryptedStore(inner, ed, WithMiddlewareKeyID("key-v1"))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("User", aggID)
-
-	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{"secret":true}`))
+	evt, _ := event.NewEvent("UserCreated", env.aggID, "User", 1, []byte(`{"secret":true}`))
 
 	ctx := context.Background()
-	_ = store.Save(ctx, ref, []event.Event{evt}, 0)
+	_ = env.store.Save(ctx, env.ref, []event.Event{evt}, 0)
 
-	raw, err := inner.Load(ctx, ref)
+	raw, err := env.inner.Load(ctx, env.ref)
 	if err != nil {
 		t.Fatalf("raw load: %v", err)
 	}
@@ -88,22 +67,15 @@ func TestEncryptedStore_WithKeyID(t *testing.T) {
 func TestEncryptedStore_LoadFromVersion(t *testing.T) {
 	t.Parallel()
 
-	key := aes256Key()
-	ed, _ := NewAES256GCM(key)
+	env := newEncTestEnv(t)
 
-	inner := eventtest.NewFakeStore()
-	store, _ := NewEncryptedStore(inner, ed)
-
-	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("User", aggID)
-
-	evt1, _ := event.NewEvent("Created", aggID, "User", 1, []byte(`{"a":1}`))
-	evt2, _ := event.NewEvent("Updated", aggID, "User", 2, []byte(`{"a":2}`))
+	evt1, _ := event.NewEvent("Created", env.aggID, "User", 1, []byte(`{"a":1}`))
+	evt2, _ := event.NewEvent("Updated", env.aggID, "User", 2, []byte(`{"a":2}`))
 
 	ctx := context.Background()
-	_ = store.Save(ctx, ref, []event.Event{evt1, evt2}, 0)
+	_ = env.store.Save(ctx, env.ref, []event.Event{evt1, evt2}, 0)
 
-	loaded, err := store.LoadFromVersion(ctx, ref, 1)
+	loaded, err := env.store.LoadFromVersion(ctx, env.ref, 1)
 	if err != nil {
 		t.Fatalf("LoadFromVersion: %v", err)
 	}
@@ -120,22 +92,15 @@ func TestEncryptedStore_LoadFromVersion(t *testing.T) {
 func TestEncryptedStore_LoadToVersion(t *testing.T) {
 	t.Parallel()
 
-	key := aes256Key()
-	ed, _ := NewAES256GCM(key)
+	env := newEncTestEnv(t)
 
-	inner := eventtest.NewFakeStore()
-	store, _ := NewEncryptedStore(inner, ed)
-
-	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("User", aggID)
-
-	evt1, _ := event.NewEvent("Created", aggID, "User", 1, []byte(`{"x":1}`))
-	evt2, _ := event.NewEvent("Updated", aggID, "User", 2, []byte(`{"x":2}`))
+	evt1, _ := event.NewEvent("Created", env.aggID, "User", 1, []byte(`{"x":1}`))
+	evt2, _ := event.NewEvent("Updated", env.aggID, "User", 2, []byte(`{"x":2}`))
 
 	ctx := context.Background()
-	_ = store.Save(ctx, ref, []event.Event{evt1, evt2}, 0)
+	_ = env.store.Save(ctx, env.ref, []event.Event{evt1, evt2}, 0)
 
-	loaded, err := store.LoadToVersion(ctx, ref, 1)
+	loaded, err := env.store.LoadToVersion(ctx, env.ref, 1)
 	if err != nil {
 		t.Fatalf("LoadToVersion: %v", err)
 	}
@@ -148,21 +113,14 @@ func TestEncryptedStore_LoadToVersion(t *testing.T) {
 func TestEncryptedStore_LoadToTimestamp(t *testing.T) {
 	t.Parallel()
 
-	key := aes256Key()
-	ed, _ := NewAES256GCM(key)
+	env := newEncTestEnv(t)
 
-	inner := eventtest.NewFakeStore()
-	store, _ := NewEncryptedStore(inner, ed)
-
-	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("User", aggID)
-
-	evt, _ := event.NewEvent("Created", aggID, "User", 1, []byte(`{}`))
+	evt, _ := event.NewEvent("Created", env.aggID, "User", 1, []byte(`{}`))
 
 	ctx := context.Background()
-	_ = store.Save(ctx, ref, []event.Event{evt}, 0)
+	_ = env.store.Save(ctx, env.ref, []event.Event{evt}, 0)
 
-	loaded, err := store.LoadToTimestamp(ctx, ref, time.Now().Add(time.Hour))
+	loaded, err := env.store.LoadToTimestamp(ctx, env.ref, time.Now().Add(time.Hour))
 	if err != nil {
 		t.Fatalf("LoadToTimestamp: %v", err)
 	}
@@ -175,23 +133,16 @@ func TestEncryptedStore_LoadToTimestamp(t *testing.T) {
 func TestEncryptedStore_AppendBatch(t *testing.T) {
 	t.Parallel()
 
-	key := aes256Key()
-	ed, _ := NewAES256GCM(key)
+	env := newEncTestEnv(t)
 
-	inner := eventtest.NewFakeStore()
-	store, _ := NewEncryptedStore(inner, ed)
-
-	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("User", aggID)
-
-	evt, _ := event.NewEvent("Created", aggID, "User", 1, []byte(`{"batch":true}`))
+	evt, _ := event.NewEvent("Created", env.aggID, "User", 1, []byte(`{"batch":true}`))
 
 	ctx := context.Background()
-	if err := store.AppendBatch(ctx, ref, []event.Event{evt}); err != nil {
+	if err := env.store.AppendBatch(ctx, env.ref, []event.Event{evt}); err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
 
-	loaded, err := store.Load(ctx, ref)
+	loaded, err := env.store.Load(ctx, env.ref)
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
@@ -208,21 +159,14 @@ func TestEncryptedStore_AppendBatch(t *testing.T) {
 func TestEncryptedStore_EmptyPayload(t *testing.T) {
 	t.Parallel()
 
-	key := aes256Key()
-	ed, _ := NewAES256GCM(key)
+	env := newEncTestEnv(t)
 
-	inner := eventtest.NewFakeStore()
-	store, _ := NewEncryptedStore(inner, ed)
-
-	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("User", aggID)
-
-	evt, _ := event.NewEvent("Tombstoned", aggID, "User", 1, []byte{})
+	evt, _ := event.NewEvent("Tombstoned", env.aggID, "User", 1, []byte{})
 
 	ctx := context.Background()
-	_ = store.Save(ctx, ref, []event.Event{evt}, 0)
+	_ = env.store.Save(ctx, env.ref, []event.Event{evt}, 0)
 
-	loaded, _ := store.Load(ctx, ref)
+	loaded, _ := env.store.Load(ctx, env.ref)
 	if len(loaded) != 1 {
 		t.Fatalf("expected 1 event, got %d", len(loaded))
 	}
@@ -235,22 +179,15 @@ func TestEncryptedStore_EmptyPayload(t *testing.T) {
 func TestEncryptedStore_ReadAll(t *testing.T) {
 	t.Parallel()
 
-	key := aes256Key()
-	ed, _ := NewAES256GCM(key)
+	env := newEncTestEnv(t)
 
-	inner := eventtest.NewFakeStore()
-	store, _ := NewEncryptedStore(inner, ed)
-
-	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("User", aggID)
-
-	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1,
+	evt, _ := event.NewEvent("UserCreated", env.aggID, "User", 1,
 		[]byte(`{"name":"Alice"}`))
 
 	ctx := context.Background()
-	_ = store.Save(ctx, ref, []event.Event{evt}, 0)
+	_ = env.store.Save(ctx, env.ref, []event.Event{evt}, 0)
 
-	all, err := store.ReadAll(ctx)
+	all, err := env.store.ReadAll(ctx)
 	if err != nil {
 		t.Fatalf("ReadAll: %v", err)
 	}
@@ -267,22 +204,15 @@ func TestEncryptedStore_ReadAll(t *testing.T) {
 func TestEncryptedStore_ReadFrom(t *testing.T) {
 	t.Parallel()
 
-	key := aes256Key()
-	ed, _ := NewAES256GCM(key)
+	env := newEncTestEnv(t)
 
-	inner := eventtest.NewFakeStore()
-	store, _ := NewEncryptedStore(inner, ed)
-
-	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("User", aggID)
-
-	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1,
+	evt, _ := event.NewEvent("UserCreated", env.aggID, "User", 1,
 		[]byte(`{"name":"Bob"}`))
 
 	ctx := context.Background()
-	_ = store.Save(ctx, ref, []event.Event{evt}, 0)
+	_ = env.store.Save(ctx, env.ref, []event.Event{evt}, 0)
 
-	fromResult, err := store.ReadFrom(ctx, id.NewEventID(), 10)
+	fromResult, err := env.store.ReadFrom(ctx, id.NewEventID(), 10)
 	if err != nil {
 		t.Fatalf("ReadFrom: %v", err)
 	}
@@ -299,16 +229,9 @@ func TestEncryptedStore_ReadFrom(t *testing.T) {
 func TestEncryptedStore_LoadBackwards_NotSupported(t *testing.T) {
 	t.Parallel()
 
-	key := aes256Key()
-	ed, _ := NewAES256GCM(key)
+	env := newEncTestEnv(t)
 
-	inner := eventtest.NewFakeStore()
-	store, _ := NewEncryptedStore(inner, ed)
-
-	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("User", aggID)
-
-	_, err := store.LoadBackwards(context.Background(), ref)
+	_, err := env.store.LoadBackwards(context.Background(), env.ref)
 	if err == nil {
 		t.Fatal("expected error for LoadBackwards on non-BackwardsSource store")
 	}

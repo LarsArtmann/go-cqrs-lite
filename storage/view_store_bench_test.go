@@ -1,27 +1,14 @@
 package storage_test
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
-	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
 
 func BenchmarkSQLViewStore_Set(b *testing.B) {
-	db, err := storage.OpenSQLiteInMemory()
-	if err != nil {
-		b.Fatalf("OpenSQLiteInMemory: %v", err)
-	}
-	b.Cleanup(func() { _ = db.Close() })
-
-	store, err := storage.NewSQLiteViewStore[testView, testKey](db, testMapper())
-	if err != nil {
-		b.Fatalf("NewSQLiteViewStore: %v", err)
-	}
-
-	ctx := context.Background()
+	store, ctx := newBenchViewStore(b)
 
 	b.ResetTimer()
 
@@ -34,18 +21,7 @@ func BenchmarkSQLViewStore_Set(b *testing.B) {
 }
 
 func BenchmarkSQLViewStore_Get(b *testing.B) {
-	db, err := storage.OpenSQLiteInMemory()
-	if err != nil {
-		b.Fatalf("OpenSQLiteInMemory: %v", err)
-	}
-	b.Cleanup(func() { _ = db.Close() })
-
-	store, err := storage.NewSQLiteViewStore[testView, testKey](db, testMapper())
-	if err != nil {
-		b.Fatalf("NewSQLiteViewStore: %v", err)
-	}
-
-	ctx := context.Background()
+	store, ctx := newBenchViewStore(b)
 
 	for i := range 1000 {
 		key := testKey(fmt.Sprintf("key-%06d", i))
@@ -65,18 +41,7 @@ func BenchmarkSQLViewStore_Get(b *testing.B) {
 }
 
 func BenchmarkSQLViewStore_Query(b *testing.B) {
-	db, err := storage.OpenSQLiteInMemory()
-	if err != nil {
-		b.Fatalf("OpenSQLiteInMemory: %v", err)
-	}
-	b.Cleanup(func() { _ = db.Close() })
-
-	store, err := storage.NewSQLiteViewStore[testView, testKey](db, testMapper())
-	if err != nil {
-		b.Fatalf("NewSQLiteViewStore: %v", err)
-	}
-
-	ctx := context.Background()
+	store, ctx := newBenchViewStore(b)
 
 	for i := range 1000 {
 		key := testKey(fmt.Sprintf("key-%06d", i))
@@ -100,18 +65,7 @@ func BenchmarkSQLViewStore_Query(b *testing.B) {
 }
 
 func BenchmarkSQLViewStore_Scan(b *testing.B) {
-	db, err := storage.OpenSQLiteInMemory()
-	if err != nil {
-		b.Fatalf("OpenSQLiteInMemory: %v", err)
-	}
-	b.Cleanup(func() { _ = db.Close() })
-
-	store, err := storage.NewSQLiteViewStore[testView, testKey](db, testMapper())
-	if err != nil {
-		b.Fatalf("NewSQLiteViewStore: %v", err)
-	}
-
-	ctx := context.Background()
+	store, ctx := newBenchViewStore(b)
 
 	for i := range 500 {
 		key := testKey(fmt.Sprintf("key-%06d", i))
@@ -130,18 +84,7 @@ func BenchmarkSQLViewStore_Scan(b *testing.B) {
 }
 
 func BenchmarkSQLViewStore_BatchSet(b *testing.B) {
-	db, err := storage.OpenSQLiteInMemory()
-	if err != nil {
-		b.Fatalf("OpenSQLiteInMemory: %v", err)
-	}
-	b.Cleanup(func() { _ = db.Close() })
-
-	store, err := storage.NewSQLiteViewStore[testView, testKey](db, testMapper())
-	if err != nil {
-		b.Fatalf("NewSQLiteViewStore: %v", err)
-	}
-
-	ctx := context.Background()
+	store, ctx := newBenchViewStore(b)
 
 	items := make([]kv.ViewItem[testView, testKey], 100)
 	for i := range items {

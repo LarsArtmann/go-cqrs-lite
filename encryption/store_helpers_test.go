@@ -1,0 +1,41 @@
+package encryption
+
+import (
+	"testing"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+)
+
+type encTestEnv struct {
+	store *encryptedStore
+	inner *eventtest.FakeStore
+	aggID id.AggregateID
+	ref   event.AggregateRef
+}
+
+func newEncTestEnv(t *testing.T, opts ...MiddlewareOption) encTestEnv {
+	t.Helper()
+
+	ed, err := NewAES256GCM(aes256Key())
+	if err != nil {
+		t.Fatalf("NewAES256GCM: %v", err)
+	}
+
+	inner := eventtest.NewFakeStore()
+
+	store, err := NewEncryptedStore(inner, ed, opts...)
+	if err != nil {
+		t.Fatalf("NewEncryptedStore: %v", err)
+	}
+
+	aggID := id.NewAggregateID()
+
+	return encTestEnv{
+		store: store,
+		inner: inner,
+		aggID: aggID,
+		ref:   event.NewAggregateRef("User", aggID),
+	}
+}
