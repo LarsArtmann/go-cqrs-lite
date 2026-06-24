@@ -258,33 +258,3 @@ func replayEvents(
 
 	return replayed
 }
-
-// drainReplayDups reads buffered events from ch and discards any whose ID
-// appears in replayIDs. This clears the gap between replay completion and
-// live loop entry where the bus may have delivered events that were already
-// replayed from the journal.
-func drainReplayDups(ch chan event.Event, replayIDs map[string]struct{}) {
-	for {
-		select {
-		case evt := <-ch:
-			if evt == nil {
-				return
-			}
-			// Keep events NOT in the replay set — they are genuinely new.
-			// We can't put them back on the channel, so we just leave them
-			// for the live loop. The live loop also checks replayIDs.
-			// Events in replayIDs are silently dropped here.
-			if _, dup := replayIDs[evt.ID().String()]; !dup {
-				// Not a dup — put it back by re-sending. Since the channel has
-				// buffer space (we just drained it), this won't block.
-				select {
-				case ch <- evt:
-				default:
-					// Buffer full again — new events arrived. Leave for live loop.
-				}
-			}
-		default:
-			return // channel drained
-		}
-	}
-}

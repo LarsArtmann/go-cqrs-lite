@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Architecture Review — go-cqrs-lite (2026-06-24)</title>
+    <style>
+      :root {
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: #a8a8b0;
+        --text-faint: #6b6b75;
+        --border: #26262c;
+        --border-strong: #34343c;
+        --radius: 0px;
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+        --font-heading: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        --font-mono: "SF Mono", Menlo, Consolas, monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        line-height: 1.55;
+        font-size: 15px;
+      }
+      a {
+        color: var(--solution);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 230px 1fr;
+        max-width: 1180px;
+        margin: 0 auto;
+        gap: 32px;
+        padding: 24px;
+      }
+      .sidebar {
+        position: sticky;
+        top: 24px;
+        align-self: start;
+        max-height: calc(100vh - 48px);
+        overflow: auto;
+      }
+      .sidebar .label {
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        margin: 0 0 10px;
+      }
+      .sidebar nav a {
+        display: block;
+        padding: 5px 12px;
+        color: var(--text-muted);
+        border-left: 2px solid transparent;
+        font-size: 13.5px;
+      }
+      .sidebar nav a:hover {
+        color: var(--text);
+        text-decoration: none;
+        border-left-color: var(--accent);
+      }
+      .main {
+        min-width: 0;
+      }
+      h1 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        font-size: 33px;
+        margin: 0 0 6px;
+        line-height: 1.12;
+      }
+      h2 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        font-size: 22px;
+        margin: 42px 0 16px;
+        letter-spacing: -0.01em;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 10px;
+      }
+      h2 .num {
+        display: inline-block;
+        background: var(--accent);
+        color: #1a1a1a;
+        font-size: 13px;
+        font-weight: 900;
+        padding: 2px 8px;
+        margin-right: 10px;
+        vertical-align: middle;
+      }
+      h3 {
+        font-size: 17px;
+        margin: 0 0 6px;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 15px;
+        margin: 0 0 6px;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 12px;
+      }
+      .hero {
+        margin-bottom: 8px;
+      }
+      .hero-badge {
+        display: inline-block;
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--accent);
+        font-weight: 800;
+        margin-bottom: 10px;
+      }
+      .hero-subtitle {
+        color: var(--text-muted);
+        font-size: 16px;
+        margin: 0 0 4px;
+        max-width: 62ch;
+      }
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 14px;
+        margin: 18px 0 6px;
+      }
+      .stat-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 16px;
+      }
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 34px;
+        font-weight: 900;
+        line-height: 1;
+      }
+      .stat-label {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 6px;
+      }
+      .stat-good .stat-value {
+        color: var(--solution);
+      }
+      .stat-bad .stat-value {
+        color: var(--problem);
+      }
+      .stat-warn .stat-value {
+        color: var(--warning);
+      }
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--border-strong);
+        padding: 16px 18px;
+        margin: 0 0 14px;
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--border-strong);
+        padding: 15px 18px;
+        margin: 0 0 14px;
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .severity {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 3px 8px;
+        margin-bottom: 8px;
+      }
+      .severity-critical {
+        background: var(--problem);
+        color: #1a1a1a;
+      }
+      .severity-important {
+        background: var(--warning);
+        color: #1a1a1a;
+      }
+      .severity-nice {
+        background: var(--solution);
+        color: #1a1a1a;
+      }
+      .where {
+        font-family: var(--font-mono);
+        font-size: 12.5px;
+        color: var(--text-faint);
+        margin: 0 0 8px;
+        word-break: break-word;
+      }
+      .callout {
+        padding: 10px 14px;
+        margin-top: 10px;
+        font-size: 13.5px;
+        border: 1px solid var(--border);
+      }
+      .callout-solution {
+        border-left: 3px solid var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, transparent);
+      }
+      .callout-warning {
+        border-left: 3px solid var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, transparent);
+      }
+      .strengths {
+        display: grid;
+        gap: 10px;
+        margin: 6px 0;
+      }
+      .strength {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--solution);
+        padding: 12px 14px;
+      }
+      .strength .check {
+        color: var(--solution);
+        font-weight: 900;
+        font-size: 18px;
+        line-height: 1.2;
+      }
+      .strength .text span {
+        display: block;
+        color: var(--text-muted);
+        font-size: 13.5px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        margin: 6px 0 18px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      th {
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        font-weight: 700;
+      }
+      tbody tr:hover {
+        background: var(--surface-sunken);
+      }
+      .badge {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 7px;
+        border: 1px solid var(--border-strong);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+      .migration-step {
+        display: grid;
+        grid-template-columns: 42px 1fr;
+        gap: 14px;
+        margin: 0 0 14px;
+      }
+      .migration-num {
+        background: var(--accent);
+        color: #1a1a1a;
+        font-weight: 900;
+        font-size: 17px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 42px;
+      }
+      .migration-content {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 12px 16px;
+      }
+      .diagram-frame {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 14px;
+        margin: 10px 0 18px;
+        overflow: auto;
+      }
+      .diagram-frame img {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+      .footer {
+        margin-top: 40px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+        color: var(--text-faint);
+        font-size: 12px;
+      }
+      @media (max-width: 1024px) {
+        .layout {
+          grid-template-columns: 1fr;
+          padding: 16px;
+        }
+        .sidebar {
+          position: static;
+          max-height: none;
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#scores">Scores</a>
+          <a href="#current">Current Diagram</a>
+          <a href="#coupling">Coupling</a>
+          <a href="#composability">Composability</a>
+          <a href="#soa">Service Orientation</a>
+          <a href="#recommendations">Recommendations</a>
+          <a href="#ideal">Ideal Diagram</a>
+          <a href="#strengths">Strengths</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <div class="hero">
+          <div class="hero-badge">Architecture Review &middot; 2026-06-24</div>
+          <h1>Modularity, Coupling &amp; Composability</h1>
+          <p class="hero-subtitle">
+            A 43-module CQRS/ES Go library with a clean layered DAG, strong interface segregation,
+            and a library-not-framework ethos. Two structural smells keep it from excellent: a
+            test-dependency leak from core modules and one orphaned transport module.
+          </p>
+        </div>
+
+        <h2 id="summary"><span class="num">00</span>Summary</h2>
+        <div class="stat-grid">
+          <div class="stat-card stat-good">
+            <div class="stat-value">43</div>
+            <div class="stat-label">Modules (go.mod)</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">6</div>
+            <div class="stat-label">Clean layers (DAG)</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">8.4</div>
+            <div class="stat-label">Modularity /10</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">2</div>
+            <div class="stat-label">Structural smells</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">4</div>
+            <div class="stat-label">Core→test-impl leaks</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">1</div>
+            <div class="stat-label">Orphan module</div>
+          </div>
+        </div>
+        <p>
+          The architecture is genuinely strong: interface-segregated stores (Sink/Source),
+          concrete-type hot paths, composition over inheritance throughout, and a disciplined
+          multi-module workspace with per-module <code>go.mod</code>. The DAG is acyclic at the
+          <em>compiled-import</em> level. The issues found are coupling hygiene, not design flaws.
+        </p>
+
+        <h2 id="scores"><span class="num">01</span>Dimension Scores</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Dimension</th>
+              <th>Score</th>
+              <th>Verdict</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Modularity (module boundaries)</td>
+              <td>9 / 10</td>
+              <td><span class="badge badge-fixed">Excellent</span></td>
+            </tr>
+            <tr>
+              <td>Coupling (downward-only deps)</td>
+              <td>7 / 10</td>
+              <td><span class="badge badge-high">Good, leak to fix</span></td>
+            </tr>
+            <tr>
+              <td>Composability (pipe-like composition)</td>
+              <td>9 / 10</td>
+              <td><span class="badge badge-fixed">Excellent</span></td>
+            </tr>
+            <tr>
+              <td>Service orientation (mechanism ≠ policy)</td>
+              <td>9 / 10</td>
+              <td><span class="badge badge-fixed">Excellent</span></td>
+            </tr>
+            <tr>
+              <td>Scalability (independent versioning/build)</td>
+              <td>8 / 10</td>
+              <td><span class="badge badge-fixed">Strong</span></td>
+            </tr>
+            <tr>
+              <td>Internal hygiene (orphan/dead config)</td>
+              <td>6 / 10</td>
+              <td><span class="badge badge-medium">Needs cleanup</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="current"><span class="num">02</span>Current Architecture</h2>
+        <p>
+          Solid arrows are production imports; red dashed arrows are
+          <strong>test-only imports that appear as direct <code>require</code></strong> in core
+          module go.mod files (the leak). The red node is the orphaned <code>transport/grpc</code>.
+        </p>
+        <div class="diagram-frame">
+          <img src="2026-06-24_15_35-current-state.svg" alt="Current architecture diagram" />
+        </div>
+
+        <h2 id="coupling"><span class="num">03</span>Coupling Hotspots</h2>
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Coupling smell</span>
+          <h3>Test-dependency leak: core → storage/memory</h3>
+          <div class="where">event/go.mod, command/go.mod, decider/go.mod, watermill/go.mod</div>
+          <p>
+            Four modules declare <code>storage/memory</code> as a
+            <strong>direct production require</strong>, but import it only from
+            <code>_test.go</code>. Because <code>storage/memory</code> itself depends on
+            <code>command</code>/<code>event</code>, the <em>require</em> graph contains a cycle
+            (<code>event → storage/memory → command → event</code>) that resolves only because the
+            real import graph is acyclic. The leaf <code>event</code> module (advertised as 3-dep
+            minimal) drags a Layer-4 test implementation into its module graph.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong> Replace the test usage of <code>storage/memory</code> with
+            in-package fakes, or route through the existing <code>event/eventtest</code> doubles.
+            The modules already provide <code>FakeStore</code>/<code>FakeBus</code>. After the
+            switch, <code>go mod tidy</code> drops the require and the cycle disappears.
+          </div>
+        </div>
+        <div class="issue issue-important">
+          <span class="severity severity-important">Workspace hygiene</span>
+          <h3>transport/grpc is workspace-isolated by a genproto conflict</h3>
+          <div class="where">transport/grpc (absent from go.work and flake testModules)</div>
+          <p>
+            The gRPC adapter builds cleanly in isolation (<code>GOWORK=off</code>) but is
+            deliberately kept out of <code>go.work</code>: adding it merges a transitive
+            <code>google.golang.org/genproto</code> (monolithic) requirement against
+            <code>genproto/googleapis/rpc</code> (split, required by grpc v1.81.1), producing an
+            <em>ambiguous import</em> on <code>googleapis/rpc/status</code>. So root
+            <code>go test ./...</code>/lint never exercise it — a real coverage gap, but the
+            exclusion has a cause, not an oversight.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong> Align the workspace on the split
+            <code>genproto/googleapis/{rpc,status}</code> modules (drop the monolithic
+            <code>genproto</code> via <code>go mod tidy</code> + a coordinated bump), then add
+            <code>transport/grpc</code> to <code>go.work</code> + <code>flake.nix</code>
+            <code>testModules</code>. Until then, test it with
+            <code>cd transport/grpc && GOWORK=off go test ./...</code>.
+          </div>
+        </div>
+
+        <h2 id="composability"><span class="num">04</span>Composability (what's working)</h2>
+        <div class="card card-solution">
+          <h4>Interface Segregation Principle, applied well</h4>
+          <p>
+            Every store is split into role interfaces: <code>Store = EventSink + EventSource</code>,
+            plus <code>Journal</code>, <code>SeekableJournal</code>, <code>BackwardsSource</code>,
+            <code>StreamingSource</code>. Consumers depend on the narrowest interface they need —
+            the hallmark of Unix-pipe composability.
+          </p>
+        </div>
+        <div class="card card-solution">
+          <h4>Concrete types on hot paths, interfaces at seams</h4>
+          <p>
+            <code>event.Event = *ImmutableEvent</code> (a concrete alias) removes type-assertion
+            overhead internally, while the store/bus <em>behaviors</em> stay interfaces. This is the
+            correct tradeoff: interfaces for DI, concrete types for the value that flows everywhere.
+          </p>
+        </div>
+        <div class="card card-solution">
+          <h4>Mechanism vs. policy is clean</h4>
+          <p>
+            Core modules define <em>what</em> (interfaces, taxonomy, branded IDs); adapters define
+            <em>how</em> (SQL, Pebble, Turso, Watermill, gRPC, SSE). No core module knows about a
+            specific database or transport.
+          </p>
+        </div>
+        <div class="card card-solution">
+          <h4>Bundle presets compose without forcing</h4>
+          <p>
+            <code>stack/{memory,sqlite,pebble,postgres,turso}</code> wire sensible defaults, but
+            consumers can still import <code>event</code> alone with 3 deps. Composition is offered,
+            never mandated.
+          </p>
+        </div>
+
+        <h2 id="soa"><span class="num">05</span>Service Orientation</h2>
+        <p>
+          The library follows the "do one thing well" Unix principle at the module level. Each
+          module is independently versionable, independently buildable (<code
+            >GOWORK=off go build ./...</code
+          >), and independently importable. The only friction to full service-orientation is the
+          require-graph cycle above; once removed, every module is a clean, isolated unit a consumer
+          can pin and compose.
+        </p>
+
+        <h2 id="recommendations"><span class="num">06</span>Action Roadmap</h2>
+        <div class="migration-step">
+          <div class="migration-num">1</div>
+          <div class="migration-content">
+            <h4>Kill the test-dep leak (highest leverage)</h4>
+            <p>
+              Swap <code>storage/memory</code> imports in
+              <code>event</code>/<code>command</code>/<code>decider</code>/<code>watermill</code>
+              tests for <code>eventtest</code> fakes or in-package stubs.
+              <code>go mod tidy</code> each. Verify the require-graph is cycle-free with
+              <code>go mod graph</code>.
+            </p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">2</div>
+          <div class="migration-content">
+            <h4>Resolve the genproto conflict, then wire transport/grpc</h4>
+            <p>
+              Align the workspace on split <code>genproto/googleapis/{rpc,status}</code> (drop the
+              monolithic <code>genproto</code>). Only then add <code>transport/grpc</code> to
+              <code>go.work</code> + <code>flake.nix</code> so root CI covers it. Until then it's
+              tested via <code>GOWORK=off</code>.
+            </p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">3</div>
+          <div class="migration-content">
+            <h4>Extract the multidb helper</h4>
+            <p>
+              Pull <code>openEventStores</code>/<code>openQueryStores</code> into
+              <code>stack/</code> to remove the sqlite/postgres clone (see deduplicate-code report).
+            </p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">4</div>
+          <div class="migration-content">
+            <h4>Fix the file-size gate for generated code</h4>
+            <p>
+              Exclude <code>*.pb.go</code> so the 350-line gate stops false-flagging generated
+              protobuf.
+            </p>
+          </div>
+        </div>
+
+        <h2 id="ideal"><span class="num">07</span>Target (Ideal) Architecture</h2>
+        <p>
+          After the roadmap: core modules carry zero infra deps, test doubles point down only,
+          <code>transport/grpc</code> is a first-class workspace member, and the
+          <code>stack</code> module owns the shared multidb wiring.
+        </p>
+        <div class="diagram-frame">
+          <img src="2026-06-24_15_35-ideal-state.svg" alt="Ideal architecture diagram" />
+        </div>
+
+        <h2 id="strengths">Strengths to Preserve</h2>
+        <div class="strengths">
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Per-module go.mod with dependency budgets</strong
+              ><span
+                ><code>check-layers</code> enforces layering; test-only deps excluded from
+                counts.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>ISP-split interfaces everywhere</strong
+              ><span>Sink/Source/Journal/Seekable — consumers take only what they use.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Library, not framework</strong
+              ><span>No transport/broker/driver forced; presets are opt-in.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Acyclic compiled import graph</strong
+              ><span>The DAG holds; only the require graph has a cosmetic cycle.</span>
+            </div>
+          </div>
+        </div>
+
+        <footer class="footer">
+          Generated 2026-06-24 &middot; Diagrams:
+          <a href="2026-06-24_15_35-current-state.svg">current</a> /
+          <a href="2026-06-24_15_35-ideal-state.svg">ideal</a> &middot; Edges derived from
+          <code>go.mod</code> require/replace directives and <code>grep</code> of import statements.
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>

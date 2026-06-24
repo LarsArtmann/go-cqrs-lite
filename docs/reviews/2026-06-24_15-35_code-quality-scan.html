@@ -1,0 +1,957 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Code Quality Scan — go-cqrs-lite (2026-06-24)</title>
+    <style>
+      :root {
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: #a8a8b0;
+        --text-faint: #6b6b75;
+        --border: #26262c;
+        --border-strong: #34343c;
+        --radius: 0px;
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+        --font-heading: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        --font-mono: "SF Mono", Menlo, Consolas, monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        line-height: 1.55;
+        font-size: 15px;
+      }
+      a {
+        color: var(--solution);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 230px 1fr;
+        max-width: 1180px;
+        margin: 0 auto;
+        gap: 32px;
+        padding: 24px;
+      }
+      .sidebar {
+        position: sticky;
+        top: 24px;
+        align-self: start;
+        max-height: calc(100vh - 48px);
+        overflow: auto;
+      }
+      .sidebar .label {
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        margin: 0 0 10px;
+      }
+      .sidebar nav a {
+        display: block;
+        padding: 5px 12px;
+        color: var(--text-muted);
+        border-left: 2px solid transparent;
+        font-size: 13.5px;
+      }
+      .sidebar nav a:hover {
+        color: var(--text);
+        text-decoration: none;
+        border-left-color: var(--accent);
+      }
+      .main {
+        min-width: 0;
+      }
+      h1 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        font-size: 33px;
+        margin: 0 0 6px;
+        line-height: 1.12;
+      }
+      h2 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        font-size: 22px;
+        margin: 42px 0 16px;
+        letter-spacing: -0.01em;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 10px;
+      }
+      h2 .num {
+        display: inline-block;
+        background: var(--accent);
+        color: #1a1a1a;
+        font-size: 13px;
+        font-weight: 900;
+        padding: 2px 8px;
+        margin-right: 10px;
+        border-radius: 2px;
+        vertical-align: middle;
+      }
+      h3 {
+        font-size: 17px;
+        margin: 0 0 6px;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 15px;
+        margin: 0 0 6px;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 12px;
+      }
+      .hero {
+        margin-bottom: 8px;
+      }
+      .hero-badge {
+        display: inline-block;
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--accent);
+        font-weight: 800;
+        margin-bottom: 10px;
+      }
+      .hero-subtitle {
+        color: var(--text-muted);
+        font-size: 16px;
+        margin: 0 0 4px;
+        max-width: 62ch;
+      }
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 14px;
+        margin: 18px 0 6px;
+      }
+      .stat-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 16px;
+      }
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 34px;
+        font-weight: 900;
+        line-height: 1;
+      }
+      .stat-label {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 6px;
+        letter-spacing: 0.02em;
+      }
+      .stat-good .stat-value {
+        color: var(--solution);
+      }
+      .stat-bad .stat-value {
+        color: var(--problem);
+      }
+      .stat-warn .stat-value {
+        color: var(--warning);
+      }
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--border-strong);
+        padding: 16px 18px;
+        margin: 0 0 14px;
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--border-strong);
+        padding: 15px 18px;
+        margin: 0 0 14px;
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .severity {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 3px 8px;
+        margin-bottom: 8px;
+      }
+      .severity-critical {
+        background: var(--problem);
+        color: #1a1a1a;
+      }
+      .severity-important {
+        background: var(--warning);
+        color: #1a1a1a;
+      }
+      .severity-nice {
+        background: var(--solution);
+        color: #1a1a1a;
+      }
+      .where {
+        font-family: var(--font-mono);
+        font-size: 12.5px;
+        color: var(--text-faint);
+        margin: 0 0 8px;
+        word-break: break-word;
+      }
+      .callout {
+        padding: 10px 14px;
+        margin-top: 10px;
+        font-size: 13.5px;
+        border: 1px solid var(--border);
+      }
+      .callout-solution {
+        border-left: 3px solid var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, transparent);
+      }
+      .callout-warning {
+        border-left: 3px solid var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, transparent);
+      }
+      .strengths {
+        display: grid;
+        gap: 10px;
+        margin: 6px 0;
+      }
+      .strength {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--solution);
+        padding: 12px 14px;
+      }
+      .strength .check {
+        color: var(--solution);
+        font-weight: 900;
+        font-size: 18px;
+        line-height: 1.2;
+      }
+      .strength .text span {
+        display: block;
+        color: var(--text-muted);
+        font-size: 13.5px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        margin: 6px 0 18px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      th {
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        font-weight: 700;
+      }
+      tbody tr:hover {
+        background: var(--surface-sunken);
+      }
+      .badge {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 7px;
+        border: 1px solid var(--border-strong);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+      .tok-comment {
+        color: #5c6370;
+        font-style: italic;
+      }
+      .tok-keyword {
+        color: #c678dd;
+      }
+      .tok-string {
+        color: #98c379;
+      }
+      .tok-func {
+        color: #61afef;
+      }
+      .tok-type {
+        color: #e5c07b;
+      }
+      .tok-builtin {
+        color: #56b6c2;
+      }
+      .tok-punct {
+        color: #abb2bf;
+      }
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 14px;
+        overflow: auto;
+        font-family: var(--font-mono);
+        font-size: 12.5px;
+        line-height: 1.5;
+        margin: 8px 0;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 14px;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        line-height: 1.7;
+        overflow: auto;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .migration-step {
+        display: grid;
+        grid-template-columns: 42px 1fr;
+        gap: 14px;
+        margin: 0 0 14px;
+      }
+      .migration-num {
+        background: var(--accent);
+        color: #1a1a1a;
+        font-weight: 900;
+        font-size: 17px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 42px;
+      }
+      .migration-content {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 12px 16px;
+      }
+      .footer {
+        margin-top: 40px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+        color: var(--text-faint);
+        font-size: 12px;
+      }
+      @media (max-width: 1024px) {
+        .layout {
+          grid-template-columns: 1fr;
+          padding: 16px;
+        }
+        .sidebar {
+          position: static;
+          max-height: none;
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#gate">Quality Gates</a>
+          <a href="#real">Real Defects</a>
+          <a href="#noise">Stylistic Noise</a>
+          <a href="#arch">Architecture Signals</a>
+          <a href="#dup">Duplication</a>
+          <a href="#table">Issue Table</a>
+          <a href="#plan">Remediation Plan</a>
+          <a href="#strengths">Strengths</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <div class="hero">
+          <div class="hero-badge">Code Quality Scan &middot; 2026-06-24</div>
+          <h1>Build, Lint &amp; Duplication Audit</h1>
+          <p class="hero-subtitle">
+            42-module CQRS/ES library. Build, vet and the full test suite are green; lint is red on
+            24/37 modules — almost entirely stylistic linters, with ~7 genuine defects.
+          </p>
+        </div>
+
+        <h2 id="summary"><span class="num">00</span>Summary</h2>
+        <div class="stat-grid">
+          <div class="stat-card stat-good">
+            <div class="stat-value">✓</div>
+            <div class="stat-label">Build (workspace + orphans)</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">✓</div>
+            <div class="stat-label">go vet</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">✓</div>
+            <div class="stat-label">Test suite (all modules)</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">24/37</div>
+            <div class="stat-label">Modules failing lint</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">200</div>
+            <div class="stat-label">Lint findings</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">7</div>
+            <div class="stat-label">Real defects</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">2</div>
+            <div class="stat-label">Clone groups (1 real)</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">1</div>
+            <div class="stat-label">File &gt; 350 lines (generated)</div>
+          </div>
+        </div>
+        <p>
+          The headline: <strong>the code is in strong shape</strong>. The red lint dashboard is
+          almost entirely a <em>configuration</em> problem (over-aggressive linter set), not a
+          code-quality problem. Disentangling the signal from the noise is the main takeaway of this
+          scan.
+        </p>
+
+        <h2 id="gate"><span class="num">01</span>Quality Gates</h2>
+        <div class="card card-solution">
+          <h4>Build &amp; tests: clean</h4>
+          <p>
+            <code>go build</code> passes on the full workspace <em>and</em> all four non-workspace
+            modules (<code>transport/grpc</code>, <code>cmd/doc-check</code>,
+            <code>cmd/api-stability</code>, <code>event/eventtest</code>) with the
+            <code>goexperiment.arenas goexperiment.jsonv2</code> tags. <code>go vet</code> is clean.
+            The entire test suite (all standard modules) passes with exit 0.
+          </p>
+        </div>
+        <div class="card card-problem">
+          <h4>Lint: red on 24/37 modules — but mostly noise</h4>
+          <p>
+            Running the project's own <code>golangci-lint</code> config (<code
+              >issues-exit-code: 1</code
+            >, no <code>new-from-rev</code> baseline) yields
+            <strong>200 findings across 24 modules</strong>. The distribution below shows the vast
+            majority come from three opinionated stylistic linters.
+          </p>
+        </div>
+
+        <h2 id="real"><span class="num">02</span>The Real Defects (7)</h2>
+        <p>After filtering out style, these are the findings worth acting on.</p>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Security</span>
+          <h3>Integer-overflow conversions flagged by gosec G115</h3>
+          <div class="where">middleware/tracing.go:76 &middot; watermill/protocol.go:151</div>
+          <p>
+            Two <code>uint64→int</code> / <code>int→uint64</code> conversions can overflow on 32-bit
+            targets. Per the project's own lint conventions, these should be isolated in a
+            single-line helper function with a scoped <code>//nolint:gosec</code>.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong> Extract a <code>safeIntFromUint</code> helper and gate with
+            <code>//nolint:gosec // bounded by schema</code>.
+          </div>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Correctness</span>
+          <h3>Non-exhaustive switches — silent fallthrough</h3>
+          <div class="where">stack/materialize.go:126 &middot; storage/view_store_auto.go:159</div>
+          <p>
+            <code>materialize.go</code> switches on <code>event.TombstoneStatus</code> without a
+            <code>TombstoneUndetermined</code> case; <code>view_store_auto.go</code> switches on
+            <code>reflect.Kind</code> missing many cases. Both mean a new enum value or unhandled
+            type is silently ignored rather than caught at compile time.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong> Add explicit cases or a guarded <code>default</code> that returns
+            an error. The <code>exhaustive</code> linter is correctly flagging real gaps here.
+          </div>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Dead code</span>
+          <h3>Unused function in SSE broker</h3>
+          <div class="where">transport/http/sse.go:266 &middot; func drainReplayDups</div>
+          <p>
+            <code>drainReplayDups</code> is declared but never called — leftover from an earlier
+            dedup strategy. The <code>unused</code> linter caught it; <code>go vet</code> does not.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">API hygiene</span>
+          <h3>Deprecated API still in use</h3>
+          <div class="where">middleware/generic.go:85 &middot; staticcheck SA1019</div>
+          <p>
+            References <code>query.Handler</code>, which is deprecated in favour of
+            <code>TypedHandler[Q, R]</code>. Internal code should not depend on its own deprecated
+            surface.
+          </p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Design smell</span>
+          <h3>context.Context stored in a struct</h3>
+          <div class="where">watermill/event_bus.go:40 &middot; containedctx</div>
+          <p>
+            A struct embeds a <code>context.Context</code>. Contexts should flow through method
+            parameters, not be stored, to preserve cancellation/lifetime semantics.
+          </p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Complexity</span>
+          <h3>High cognitive complexity &amp; nested blocks</h3>
+          <div class="where">
+            kv/viewstoretest/contract.go:49 (gocognit 37) &middot; stack/materialize.go:116 (nestif)
+          </div>
+          <p>
+            Two functions exceed complexity thresholds. Test-contract code and the tombstone branch
+            in <code>Materialize</code> are candidates for extraction.
+          </p>
+        </div>
+
+        <h2 id="noise"><span class="num">03</span>Stylistic Noise (the real reason lint is red)</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Linter</th>
+              <th>Hits</th>
+              <th>Verdict</th>
+              <th>Recommendation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>makezero</code></td>
+              <td>115</td>
+              <td><span class="badge badge-medium">Opinionated</span></td>
+              <td>
+                Flags <code>make([]T, 0)</code> wanting explicit capacity. Mostly test slices.
+                <strong>Disable globally or exclude <code>_test.go</code></strong
+                >.
+              </td>
+            </tr>
+            <tr>
+              <td><code>noinlineerr</code></td>
+              <td>14</td>
+              <td><span class="badge badge-medium">Anti-idiomatic</span></td>
+              <td>
+                Rejects <code>if err := x; err != nil</code> — the canonical Go pattern.
+                <strong>Remove this linter</strong>; it fights the language.
+              </td>
+            </tr>
+            <tr>
+              <td><code>wrapcheck</code></td>
+              <td>13</td>
+              <td><span class="badge badge-low">Mixed</span></td>
+              <td>
+                Wrap errors from interface/external methods. Some legitimate, some noise. Keep but
+                scope.
+              </td>
+            </tr>
+            <tr>
+              <td><code>exhaustruct</code></td>
+              <td>7</td>
+              <td><span class="badge badge-medium">False-positive prone</span></td>
+              <td>
+                Fires on structs with intentional optional fields (<code>Metadata</code>,
+                <code>SSEEvent.Retry</code>).
+                <strong>Add <code>exclusions</code> for those types or disable</strong>.
+              </td>
+            </tr>
+            <tr>
+              <td><code>varnamelen</code></td>
+              <td>7</td>
+              <td><span class="badge badge-low">Noise</span></td>
+              <td>
+                Complains about <code>mw</code>, <code>cp</code>, <code>mt</code> — acceptable short
+                names in context. Disable or raise min length.
+              </td>
+            </tr>
+            <tr>
+              <td><code>err113</code></td>
+              <td>6</td>
+              <td><span class="badge badge-low">Mixed</span></td>
+              <td>
+                Wants sentinel errors. A few are legit; some <code>errors.New</code> at call sites
+                are fine. Keep, review individually.
+              </td>
+            </tr>
+            <tr>
+              <td><code>gochecknoglobals</code></td>
+              <td>4</td>
+              <td><span class="badge badge-low">False positive</span></td>
+              <td>
+                Flags CBOR <code>EncMode</code>/<code>DecMode</code> package vars — a legitimate
+                cached-init pattern. Exclude.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout callout-warning">
+          <strong>Bottom line</strong> Disabling just <code>makezero</code> +
+          <code>noinlineerr</code> + <code>exhaustruct</code> (or scoping them out of tests) would
+          clear ~135 of 200 findings and likely turn most modules green — leaving the genuine issues
+          visible.
+        </div>
+
+        <h2 id="arch"><span class="num">04</span>Architecture Signals Surfaced by the Scan</h2>
+        <div class="card card-problem">
+          <h4>Test-dependency leak: 4 core modules depend on storage/memory</h4>
+          <p>
+            <code>event</code>, <code>command</code>, <code>decider</code> and
+            <code>watermill</code> declare <code>storage/memory</code> as a
+            <strong>direct production require</strong>, yet it is imported only from
+            <code>_test.go</code> files. This creates a circular <em>require</em> graph (e.g.
+            <code>event</code> → storage/memory → <code>command</code> → <code>event</code>) that
+            resolves only because the real import graph is acyclic. It also means the leaf
+            <code>event</code> module drags a Layer-4 test implementation into its module graph.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix direction</strong> Hand-rolled in-package fakes, or consolidate the test
+            doubles already in <code>event/eventtest</code>. See the architecture-review &amp;
+            go-modularize reports.
+          </div>
+        </div>
+        <div class="card card-problem">
+          <h4>transport/grpc excluded from go.work by a genproto conflict</h4>
+          <p>
+            <code>transport/grpc</code> compiles cleanly in isolation (<code>GOWORK=off</code>) but
+            is kept out of <code>go.work</code>: adding it triggers an ambiguous-import error
+            between the monolithic <code>google.golang.org/genproto</code> and the split
+            <code>genproto/googleapis/rpc</code> (grpc v1.81.1). Root
+            <code>go test ./...</code>/lint never cover it. Fix = align the workspace on the split
+            genproto modules, then wire it in.
+          </p>
+        </div>
+        <div class="card card-warning">
+          <h4>File-size gate would fail on generated protobuf</h4>
+          <p>
+            <code>transport/grpc/proto/cqrs.pb.go</code> (530 lines,
+            <code>// Code generated … DO NOT EDIT</code>) trips the 350-line gate. The gate has no
+            generated-code exclusion. Either the gate is not actually run in CI, or it is silently
+            red.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong> Exclude <code>*.pb.go</code> / <code>Code generated</code> files in
+            <code>check-file-size</code>.
+          </div>
+        </div>
+        <div class="card card-warning">
+          <h4>Dead goexperiment tags linger in lint config</h4>
+          <p>
+            AGENTS.md states <code>goroutineleakprofile</code>, <code>runtimesecret</code>,
+            <code>simd</code> were removed (they gate zero files), yet all three remain in
+            <code>.golangci.yml → run.build-tags</code>. Dead config that misleads.
+          </p>
+        </div>
+        <div class="card card-warning">
+          <h4>storage/turso carries 4 unused dependencies</h4>
+          <p>
+            LSP/gopls reports <code>samber/lo</code>, <code>samber/ro</code>,
+            <code>golang.org/x/exp</code>, <code>golang.org/x/text</code> as unused in
+            <code>storage/turso/go.mod</code>, and <code>kv/v3</code> mis-marked indirect. A
+            <code>go mod tidy</code> is overdue here.
+          </p>
+        </div>
+
+        <h2 id="dup"><span class="num">05</span>Duplication (art-dupl, threshold 15)</h2>
+        <p>
+          Only <strong>2 clone groups</strong> across the whole repo (excluding
+          generated/proto/testdata) — an excellent result for 892 files.
+        </p>
+        <div class="dep-tree">
+          <span class="root">clone 1</span> (REAL, drift-prone) ├── stack/sqlite/multidb.go:81-140
+          <span class="ok">openEventStores / openQueryStores</span> └──
+          stack/postgres/multidb.go:54-110
+          <span class="unwanted">identical except backend ctor</span>
+
+          <span class="root">clone 2</span> (test-only, acceptable) └──
+          transport/grpc/event_test.go:62-98 ≈ :154-190
+        </div>
+        <div class="callout callout-solution">
+          <strong>Fix</strong> Extract a shared
+          <code>stack.OpenSecondaryStores(opener BackendOpener)</code> helper in the
+          <code>stack</code> module, parameterised by the backend constructor. See the
+          deduplicate-code report.
+        </div>
+
+        <h2 id="table"><span class="num">06</span>Consolidated Issue Table</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Severity</th>
+              <th>File</th>
+              <th>Issue</th>
+              <th>Suggested Fix</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>middleware/tracing.go:76</td>
+              <td>gosec G115 uint64→int overflow</td>
+              <td>Extract bounded helper + nolint</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>watermill/protocol.go:151</td>
+              <td>gosec G115 int→uint64 overflow</td>
+              <td>Extract bounded helper + nolint</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>stack/materialize.go:126</td>
+              <td>exhaustive: missing TombstoneUndetermined</td>
+              <td>Add explicit case / error default</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>storage/view_store_auto.go:159</td>
+              <td>exhaustive: missing reflect.Kind cases</td>
+              <td>Add cases / error default</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>transport/http/sse.go:266</td>
+              <td>unused func drainReplayDups</td>
+              <td>Delete</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>middleware/generic.go:85</td>
+              <td>SA1019 deprecated query.Handler</td>
+              <td>Migrate to TypedHandler</td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>watermill/event_bus.go:40</td>
+              <td>containedctx: ctx in struct</td>
+              <td>Pass ctx via params</td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>stack/materialize.go:116</td>
+              <td>nestif complexity 8</td>
+              <td>Extract tombstone branch</td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>kv/viewstoretest/contract.go:49</td>
+              <td>gocognit 37 (&gt;35)</td>
+              <td>Split RunSuite</td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>.golangci.yml</td>
+              <td>makezero/noinlineerr/exhaustruct noise</td>
+              <td>Disable or scope to non-test</td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>flake.nix check-file-size</td>
+              <td>Flags generated *.pb.go</td>
+              <td>Exclude generated files</td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>.golangci.yml build-tags</td>
+              <td>3 dead goexperiment tags</td>
+              <td>Remove them</td>
+            </tr>
+            <tr>
+              <td>13</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>storage/turso/go.mod</td>
+              <td>4 unused deps (lo, ro, x/exp, x/text)</td>
+              <td>go mod tidy</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="plan"><span class="num">07</span>Remediation Plan (Pareto order)</h2>
+        <div class="migration-step">
+          <div class="migration-num">1</div>
+          <div class="migration-content">
+            <h4>Tune the linter config (1% effort → 51% impact)</h4>
+            <p>
+              Disable <code>noinlineerr</code>, disable <code>makezero</code> for
+              <code>_test.go</code>, add <code>exhaustruct</code> exclusions for
+              <code>event.Metadata</code>/<code>command.Metadata</code>/<code>http.SSEEvent</code>,
+              remove the 3 dead build tags. Re-run lint — most modules go green immediately and the
+              real defects become visible.
+            </p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">2</div>
+          <div class="migration-content">
+            <h4>Fix the 6 real code defects</h4>
+            <p>
+              Two gosec helpers, two exhaustive switches, delete <code>drainReplayDups</code>,
+              migrate the deprecated <code>query.Handler</code> call site.
+            </p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">3</div>
+          <div class="migration-content">
+            <h4>Fix the file-size gate &amp; tidy turso</h4>
+            <p>
+              Exclude generated code from <code>check-file-size</code>; run
+              <code>go mod tidy</code> in <code>storage/turso</code>.
+            </p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">4</div>
+          <div class="migration-content">
+            <h4>Extract the multidb duplication</h4>
+            <p>
+              Pull <code>openEventStores</code>/<code>openQueryStores</code> into a shared
+              <code>stack</code> helper.
+            </p>
+          </div>
+        </div>
+
+        <h2 id="strengths">Strengths</h2>
+        <div class="strengths">
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Build, vet, tests all green</strong
+              ><span>Solid foundation; the red lint is configuration, not code rot.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Near-zero harmful duplication</strong
+              ><span>2 clone groups in 892 files — disciplined authorship.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Every production file ≤ 350 lines</strong
+              ><span
+                >Except one generated protobuf file — the size discipline holds for hand-written
+                code.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Strong type discipline</strong
+              ><span
+                >Branded IDs, 5-family error taxonomy, ISP-split interfaces — the few real findings
+                are minor.</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <footer class="footer">
+          Generated 2026-06-24 &middot; Build/vet/test run with
+          <code>goexperiment.arenas goexperiment.jsonv2</code> tags &middot; Lint via project
+          <code>.golangci.yml</code> v2.12.2 &middot; Duplication via
+          <code>art-dupl --semantic -t 15</code>
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>

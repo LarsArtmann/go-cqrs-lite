@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-06-22 (v3 released: all import paths migrated to `/v3`, moved-module paths corrected — `storage/memory`, `storage/pebble`, `storage/turso`; deleted projection/readmodel/reactive entries; fixed io.Closer removal; updated streaming reads status) · **Module count:** 38 modules · **Go version:** 1.26.3
+**Last audited:** 2026-06-24 (multi-skill review pass; module count & structure reconciled against `go.work`) · **Module count:** 43 `go.mod` files (42 in `go.work` + `transport/grpc` pending workspace wiring) · **Go version:** 1.26.3
 
 ## Status Legend
 
@@ -343,6 +343,22 @@ Deleted — generic utility with no CQRS dependencies and zero consumers.
 | SSEBroker   | Server-Sent Events broker with `AddClient`, `RemoveClient`, `ClientCount`, `Close` | ✅     |
 | SSEHandler  | `net/http` handler for SSE connections with client ID extraction                   | ✅     |
 | Thread-safe | Concurrent client management with proper channel lifecycle                         | ✅     |
+
+### gRPC Transport ✅ FULLY_FUNCTIONAL
+
+> `import "github.com/larsartmann/go-cqrs-lite/transport/grpc/v3"`
+
+Remote gRPC transport for command & query dispatch (ADR-0025). Bridges gRPC clients to local dispatchers.
+
+| Feature           | Detail                                                                  | Status |
+| ----------------- | ----------------------------------------------------------------------- | ------ |
+| CommandService    | `RegisterCommandService(srv, dispatcher)` — serves commands over gRPC   | ✅     |
+| QueryService      | `RegisterQueryService(srv, dispatcher)` — serves queries over gRPC      | ✅     |
+| CommandClient     | `NewCommandClient(conn)` — remote `command.Dispatcher` over a gRPC conn | ✅     |
+| QueryClient       | `NewQueryClient(conn)` — remote `query.Dispatcher` over a gRPC conn     | ✅     |
+| Protobuf contract | Generated `.proto` types in `transport/grpc/proto`                      | ✅     |
+
+> ⚠️ Builds cleanly but is **not yet wired into `go.work`** (orphan module) — add it to the workspace `use` block before relying on root `go test ./...`.
 
 ### Profiling ❌ REMOVED
 
@@ -689,6 +705,16 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Update mode            | `-update` flag regenerates golden file                      | ✅     |
 | Diff reporting         | Reports REMOVED/NEW exports — CI gate for breaking changes  | ✅     |
 
+### doc-check 🔧
+
+> `go run github.com/larsartmann/go-cqrs-lite/cmd/doc-check/v3`
+
+| Feature             | Detail                                                                  | Status |
+| ------------------- | ----------------------------------------------------------------------- | ------ |
+| Markdown scanning   | Scans `.md` files for Go code blocks                                    | ✅     |
+| Symbol verification | Verifies Go import paths & qualified symbol refs actually exist in code | ✅     |
+| Ghost detection     | Flags references to renamed/deleted symbols (docs-freshness gate)       | ✅     |
+
 ---
 
 ## Integration Tests ✅
@@ -708,12 +734,13 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ## Examples 💡 DEMO
 
-| Example                   | Detail                                                                                        |
-| ------------------------- | --------------------------------------------------------------------------------------------- |
-| `example/todo/`           | Full CQRS app: HTTP API, decider, projections, queries, Pebble + memory storage, saga pattern |
-| `example/user/`           | Event sourcing lifecycle: create, replay, mutate, signing, SSE, catalog, Docker packaging     |
-| `example/encryption/`     | Signing + encryption middleware end-to-end                                                    |
-| `example/deployer-first/` | Deployer-first stack: CatchUpSubscriber + Materialize + Watermill EventBus                    |
+| Example                           | Detail                                                                                        |
+| --------------------------------- | --------------------------------------------------------------------------------------------- |
+| `example/todo/`                   | Full CQRS app: HTTP API, decider, projections, queries, Pebble + memory storage, saga pattern |
+| `example/user/`                   | Event sourcing lifecycle: create, replay, mutate, signing, SSE, catalog, Docker packaging     |
+| `example/encryption/`             | Signing + encryption middleware end-to-end                                                    |
+| `example/deployer-first/`         | Deployer-first stack: CatchUpSubscriber + Materialize + Watermill EventBus                    |
+| `example/deployer-first-multidb/` | Multi-database isolation: separate DBs for events, queries, and views                         |
 
 **Not reference applications.** These demonstrate library usage patterns.
 
@@ -738,82 +765,85 @@ Found during code reviews. See `docs/planning/` for details.
 
 Features mentioned in project docs/planning but with **no production code yet**:
 
-| Feature                   | Description                                    |
-| ------------------------- | ---------------------------------------------- |
-| PostgreSQL testcontainers | testcontainers-based real PG testing           |
-| Documentation site        | Docusaurus/MkDocs/Hugo site                    |
+| Feature                   | Description                                      |
+| ------------------------- | ------------------------------------------------ |
+| PostgreSQL testcontainers | testcontainers-based real PG testing             |
+| Documentation site        | Docusaurus/MkDocs/Hugo site                      |
 | Transport adapters        | gRPC ✅, NATS/Redis (ADR-0025 accepted, no code) |
 
 ---
 
 ## Module Maturity Matrix
 
-| Module                   | Import Path                   | Maturity        |
-| ------------------------ | ----------------------------- | --------------- |
-| `event`                  | `…/event/v2`                  | ✅ Production   |
-| `event/eventtest`        | `…/event/v2/eventtest`        | 🧪 Test helper  |
-| `command`                | `…/command/v2`                | ✅ Production   |
-| `query`                  | `…/query/v2`                  | ✅ Production   |
-| `decider`                | `…/decider/v2`                | ✅ Production   |
-| `id`                     | `…/id/v2`                     | ✅ Production   |
-| `dispatcher`             | `…/dispatcher/v2`             | ✅ Production   |
-| `schema`                 | `…/schema/v2`                 | ✅ Production   |
-| `snapshot`               | `…/snapshot/v2`               | ✅ Production   |
-| `codec`                  | `…/codec/v2`                  | ✅ Production   |
-| `kv`                     | `…/kv/v2`                     | ✅ Production   |
-| `storage/memory`         | `…/storage/memory/v2`         | 🧪 Test utility |
-| `catalog`                | `…/catalog/v2`                | ✅ Production   |
-| `catalog/asyncapi`       | `…/catalog/v2/asyncapi`       | ✅ Production   |
-| `catalog/d2`             | `…/catalog/v2/d2`             | ✅ Production   |
-| `catalog/openapi`        | `…/catalog/v2/openapi`        | ✅ Production   |
-| `catalog/eventcatalog`   | `…/catalog/v2/eventcatalog`   | ✅ Production   |
-| `catalog/docserver`      | `…/catalog/v2/docserver`      | ✅ Production   |
-| `catalog/schema`         | `…/catalog/v2/schema`         | ✅ Production   |
-| `middleware`             | `…/middleware/v2`             | ✅ Production   |
-| `integration`            | `…/integration/v2`            | ✅ Test suite   |
-| `signing`                | `…/signing/v2`                | ✅ Production   |
-| `signing/multisig`       | `…/signing/v2/multisig`       | ✅ Production   |
-| `encryption`             | `…/encryption/v2`             | ✅ Production   |
-| `storage`                | `…/storage/v2`                | ✅ Production   |
-| `storage/sql`            | `…/storage/v2/sql`            | 🧪 Shared infra |
-| `watermill`              | `…/watermill/v2`              | ✅ Production   |
-| `listing`                | `…/listing/v2`                | ✅ Production   |
-| `otel`                   | `…/otel/v2`                   | ✅ Production   |
-| `storage/pebble`         | `…/storage/pebble/v2`         | ✅ Production   |
-| `storage/turso`          | `…/storage/turso/v2`          | ✅ Production   |
-| `storage/turso/indexing` | `…/storage/turso/v2/indexing` | ✅ Production   |
-| `transport/http`         | `…/transport/http/v2`         | ✅ Production   |
-| `prometheus`             | `…/prometheus/v2`             | ✅ Production   |
-| `testutil`               | `…/testutil/v2`               | 🧪 Test utility |
-| `cmd/cqrs-gen`           | `…/cmd/cqrs-gen/v2`           | 🔧 Tool         |
-| `cmd/api-stability`      | `…/cmd/api-stability/v2`      | 🔧 Tool         |
-| `example/user`           | `…/example/user`              | 💡 Demo         |
-| `example/todo`           | `…/example/todo`              | 💡 Demo         |
-| `example/encryption`     | `…/example/encryption`        | 💡 Demo         |
-| `example/deployer-first` | `…/example/deployer-first`    | 💡 Demo         |
-| `stack`                  | `…/stack/v2`                  | ✅ Production   |
-| `stack/memory`           | `…/stack/memory/v2`           | ✅ Production   |
-| `stack/sqlite`           | `…/stack/sqlite/v3`           | ✅ Production   |
-| `stack/pebble`           | `…/stack/pebble/v3`           | ✅ Production   |
-| `stack/postgres`         | `…/stack/postgres/v3`         | ✅ Production   |
-| `stack/turso`            | `…/stack/turso/v3`            | ✅ Production   |
-| `stack/bench`            | `…/stack/bench/v3`            | 🧪 Benchmarks   |
+| Module                           | Import Path                        | Maturity        |
+| -------------------------------- | ---------------------------------- | --------------- |
+| `event`                          | `…/event/v3`                       | ✅ Production   |
+| `event/eventtest`                | `…/event/v3/eventtest`             | 🧪 Test helper  |
+| `command`                        | `…/command/v3`                     | ✅ Production   |
+| `query`                          | `…/query/v3`                       | ✅ Production   |
+| `decider`                        | `…/decider/v3`                     | ✅ Production   |
+| `id`                             | `…/id/v3`                          | ✅ Production   |
+| `dispatcher`                     | `…/dispatcher/v3`                  | ✅ Production   |
+| `schema`                         | `…/schema/v3`                      | ✅ Production   |
+| `snapshot`                       | `…/snapshot/v3`                    | ✅ Production   |
+| `codec`                          | `…/codec/v3`                       | ✅ Production   |
+| `kv`                             | `…/kv/v3`                          | ✅ Production   |
+| `storage/memory`                 | `…/storage/memory/v3`              | 🧪 Test utility |
+| `catalog`                        | `…/catalog/v3`                     | ✅ Production   |
+| `catalog/asyncapi`               | `…/catalog/v3/asyncapi`            | ✅ Production   |
+| `catalog/d2`                     | `…/catalog/v3/d2`                  | ✅ Production   |
+| `catalog/openapi`                | `…/catalog/v3/openapi`             | ✅ Production   |
+| `catalog/eventcatalog`           | `…/catalog/v3/eventcatalog`        | ✅ Production   |
+| `catalog/docserver`              | `…/catalog/v3/docserver`           | ✅ Production   |
+| `catalog/schema`                 | `…/catalog/v3/schema`              | ✅ Production   |
+| `middleware`                     | `…/middleware/v3`                  | ✅ Production   |
+| `integration`                    | `…/integration/v3`                 | ✅ Test suite   |
+| `signing`                        | `…/signing/v3`                     | ✅ Production   |
+| `signing/multisig`               | `…/signing/v3/multisig`            | ✅ Production   |
+| `encryption`                     | `…/encryption/v3`                  | ✅ Production   |
+| `storage`                        | `…/storage/v3`                     | ✅ Production   |
+| `storage/sql`                    | `…/storage/v3/sql`                 | 🧪 Shared infra |
+| `watermill`                      | `…/watermill/v3`                   | ✅ Production   |
+| `listing`                        | `…/listing/v3`                     | ✅ Production   |
+| `otel`                           | `…/otel/v3`                        | ✅ Production   |
+| `storage/pebble`                 | `…/storage/pebble/v3`              | ✅ Production   |
+| `storage/turso`                  | `…/storage/turso/v3`               | ✅ Production   |
+| `storage/turso/indexing`         | `…/storage/turso/v3/indexing`      | ✅ Production   |
+| `transport/http`                 | `…/transport/http/v3`              | ✅ Production   |
+| `transport/grpc`                 | `…/transport/grpc/v3`              | ✅ Production   |
+| `prometheus`                     | `…/prometheus/v3`                  | ✅ Production   |
+| `testutil`                       | `…/testutil/v3`                    | 🧪 Test utility |
+| `cmd/cqrs-gen`                   | `…/cmd/cqrs-gen/v3`                | 🔧 Tool         |
+| `cmd/api-stability`              | `…/cmd/api-stability/v3`           | 🔧 Tool         |
+| `cmd/doc-check`                  | `…/cmd/doc-check/v3`               | 🔧 Tool         |
+| `example/user`                   | `…/example/user`                   | 💡 Demo         |
+| `example/todo`                   | `…/example/todo`                   | 💡 Demo         |
+| `example/encryption`             | `…/example/encryption`             | 💡 Demo         |
+| `example/deployer-first`         | `…/example/deployer-first`         | 💡 Demo         |
+| `example/deployer-first-multidb` | `…/example/deployer-first-multidb` | 💡 Demo         |
+| `stack`                          | `…/stack/v3`                       | ✅ Production   |
+| `stack/memory`                   | `…/stack/memory/v3`                | ✅ Production   |
+| `stack/sqlite`                   | `…/stack/sqlite/v3`                | ✅ Production   |
+| `stack/pebble`                   | `…/stack/pebble/v3`                | ✅ Production   |
+| `stack/postgres`                 | `…/stack/postgres/v3`              | ✅ Production   |
+| `stack/turso`                    | `…/stack/turso/v3`                 | ✅ Production   |
+| `stack/bench`                    | `…/stack/bench/v3`                 | 🧪 Benchmarks   |
 
 ---
 
 ## Architecture Guarantees
 
-| Guarantee              | Detail                                                                                                 |
-| ---------------------- | ------------------------------------------------------------------------------------------------------ |
-| Near-zero lint issues  | ~60 style-level lint issues across 38 modules (no correctness issues; CI reports, doesn't gate)        |
-| Race-free              | `go test -race` passes across all modules                                                              |
-| Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                                         |
-| Strong types           | `event.Event` is a concrete type alias (`= *ImmutableEvent`); core store/bus are interfaces for DI     |
-| Library, not framework | Import what you need, compose your own stack                                                           |
-| Context-aware          | All handlers accept `context.Context`                                                                  |
-| Errors as values       | Zero panics in production code, explicit error returns, classified sentinels via error-family taxonomy |
-| Defensive copies       | All public accessors return copies — callers cannot mutate internals                                   |
-| Tombstone over delete  | Soft-delete via metadata — no `Delete` on Store                                                        |
+| Guarantee              | Detail                                                                                                                                                                              |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lint posture           | ~200 findings across 24/37 modules — mostly stylistic (makezero/noinlineerr/exhaustruct); ~7 real defects. See `docs/reviews/*_code-quality-scan.html`. Tunable via `.golangci.yml` |
+| Race-free              | `go test -race` passes across all modules                                                                                                                                           |
+| Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                                                                                                                      |
+| Strong types           | `event.Event` is a concrete type alias (`= *ImmutableEvent`); core store/bus are interfaces for DI                                                                                  |
+| Library, not framework | Import what you need, compose your own stack                                                                                                                                        |
+| Context-aware          | All handlers accept `context.Context`                                                                                                                                               |
+| Errors as values       | Zero panics in production code, explicit error returns, classified sentinels via error-family taxonomy                                                                              |
+| Defensive copies       | All public accessors return copies — callers cannot mutate internals                                                                                                                |
+| Tombstone over delete  | Soft-delete via metadata — no `Delete` on Store                                                                                                                                     |
 
 ---
 

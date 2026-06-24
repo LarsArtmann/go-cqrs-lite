@@ -1,0 +1,126 @@
+direction: down
+layout: elk
+
+# go-cqrs-lite — CURRENT architecture (as observed 2026-06-24)
+# Solid edges = production imports. Dashed edges = test-only imports
+# that nonetheless appear as DIRECT require in go.mod (test-dep leak).
+
+layer_0_leaf: Layer 0 — Leaf modules (no internal deps) {
+  style.fill: "#1d2b14"
+  id: "id (ULID branded IDs)"
+  dispatcher: "dispatcher (Dispatcher[H,M])"
+  codec: "codec (JSON/CBOR/Raw)"
+  kv: "kv (Store, TypedStore, Cache)"
+}
+
+layer_1_core: Layer 1 — Core domain {
+  style.fill: "#14233a"
+  event: "event (Store/Bus/Journal, ImmutableEvent, taxonomy)"
+  command: "command (Dispatcher, Bus, Store, PersistedCommand)"
+  query: "query (Dispatcher, Pagination, PersistedQuery)"
+}
+
+layer_2: Layer 2 — Evolution & snapshots {
+  style.fill: "#2a1a14"
+  schema: "schema (Upcaster, VersionedStore, Validator)"
+  snapshot: "snapshot (Snapshot, Strategy)"
+}
+
+layer_3: Layer 3 — Aggregate {
+  style.fill: "#2a2314"
+  decider: "decider (Decider[State], Repository, singleflight)"
+}
+
+layer_4: Layer 4 — Adapters & infra {
+  style.fill: "#24142a"
+  storage_memory: "storage/memory (test impls)"
+  signing: "signing (HMAC, Ed25519, multisig)"
+  encryption: "encryption (XChaCha20, AES-GCM)"
+  otel: "otel (re-exports)"
+}
+
+layer_5: Layer 5 — Integration adapters {
+  style.fill: "#142a26"
+  storage: "storage (SQL stores, Backend facade)"
+  storage_pebble: "storage/pebble (KV)"
+  storage_turso: "storage/turso (LibSQL)"
+  middleware: "middleware (27 factories)"
+  listing: "listing"
+  watermill: "watermill (CatchUp, EventBus)"
+  transport_http: "transport/http (SSE)"
+  prometheus: "prometheus"
+}
+
+layer_6: Layer 6 — Composition & examples {
+  style.fill: "#2a1420"
+  stack: "stack (Bundle, Materialize)"
+  presets: "stack/{memory,sqlite,pebble,postgres,turso}"
+  catalog: "catalog (AsyncAPI/OpenAPI/D2)"
+  integration: "integration"
+  examples: "examples + cmd/*"
+}
+
+# --- Production edges (downward DAG) ---
+id -> event
+codec -> event
+id -> command
+dispatcher -> command
+codec -> command
+id -> query
+dispatcher -> query
+
+event -> schema
+event -> snapshot
+event -> decider
+snapshot -> decider
+codec -> decider
+
+event -> storage
+event -> storage_pebble
+event -> storage_turso
+event -> middleware
+event -> signing
+event -> encryption
+event -> watermill
+event -> transport_http
+event -> listing
+otel -> storage
+otel -> middleware
+otel -> decider
+
+storage -> stack
+watermill -> stack
+kv -> stack
+storage -> presets
+watermill -> presets
+
+stack -> examples
+decider -> examples
+catalog -> examples
+
+# --- PROBLEM EDGES (test-dep leak: direct require, test-only import) ---
+event -> storage_memory: {
+  style.stroke-dash: 4
+  style.stroke: "#ff6b6b"
+  label: "test-only leak"
+}
+command -> storage_memory: {
+  style.stroke-dash: 4
+  style.stroke: "#ff6b6b"
+}
+decider -> storage_memory: {
+  style.stroke-dash: 4
+  style.stroke: "#ff6b6b"
+}
+watermill -> storage_memory: {
+  style.stroke-dash: 4
+  style.stroke: "#ff6b6b"
+}
+
+# --- ORPHAN module (not in go.work) ---
+orphan: "transport/grpc (gRPC dispatch)\nNOT in go.work — orphaned" {
+  style.fill: "#3a1414"
+  style.stroke: "#ff6b6b"
+}
+command -> orphan
+query -> orphan

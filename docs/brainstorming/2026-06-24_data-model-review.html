@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Data Model Review — go-cqrs-lite (2026-06-24)</title>
+    <style>
+      :root {
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: #a8a8b0;
+        --text-faint: #6b6b75;
+        --border: #26262c;
+        --border-strong: #34343c;
+        --radius: 0px;
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+        --font-heading: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        --font-mono: "SF Mono", Menlo, Consolas, monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        line-height: 1.55;
+        font-size: 15px;
+      }
+      a {
+        color: var(--solution);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 230px 1fr;
+        max-width: 1180px;
+        margin: 0 auto;
+        gap: 32px;
+        padding: 24px;
+      }
+      .sidebar {
+        position: sticky;
+        top: 24px;
+        align-self: start;
+        max-height: calc(100vh - 48px);
+        overflow: auto;
+      }
+      .sidebar .label {
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        margin: 0 0 10px;
+      }
+      .sidebar nav a {
+        display: block;
+        padding: 5px 12px;
+        color: var(--text-muted);
+        border-left: 2px solid transparent;
+        font-size: 13.5px;
+      }
+      .sidebar nav a:hover {
+        color: var(--text);
+        text-decoration: none;
+        border-left-color: var(--accent);
+      }
+      .main {
+        min-width: 0;
+      }
+      h1 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        font-size: 33px;
+        margin: 0 0 6px;
+        line-height: 1.12;
+      }
+      h2 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        font-size: 22px;
+        margin: 42px 0 16px;
+        letter-spacing: -0.01em;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 10px;
+      }
+      h2 .num {
+        display: inline-block;
+        background: var(--accent);
+        color: #1a1a1a;
+        font-size: 13px;
+        font-weight: 900;
+        padding: 2px 8px;
+        margin-right: 10px;
+        vertical-align: middle;
+      }
+      h3 {
+        font-size: 17px;
+        margin: 0 0 6px;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 15px;
+        margin: 0 0 6px;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 12px;
+      }
+      .hero {
+        margin-bottom: 8px;
+      }
+      .hero-badge {
+        display: inline-block;
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--accent);
+        font-weight: 800;
+        margin-bottom: 10px;
+      }
+      .hero-subtitle {
+        color: var(--text-muted);
+        font-size: 16px;
+        margin: 0 0 4px;
+        max-width: 62ch;
+      }
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 14px;
+        margin: 18px 0 6px;
+      }
+      .stat-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 16px;
+      }
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 34px;
+        font-weight: 900;
+        line-height: 1;
+      }
+      .stat-label {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 6px;
+      }
+      .stat-good .stat-value {
+        color: var(--solution);
+      }
+      .stat-bad .stat-value {
+        color: var(--problem);
+      }
+      .stat-warn .stat-value {
+        color: var(--warning);
+      }
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--border-strong);
+        padding: 16px 18px;
+        margin: 0 0 14px;
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--border-strong);
+        padding: 15px 18px;
+        margin: 0 0 14px;
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .severity {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 3px 8px;
+        margin-bottom: 8px;
+      }
+      .severity-critical {
+        background: var(--problem);
+        color: #1a1a1a;
+      }
+      .severity-important {
+        background: var(--warning);
+        color: #1a1a1a;
+      }
+      .severity-nice {
+        background: var(--solution);
+        color: #1a1a1a;
+      }
+      .where {
+        font-family: var(--font-mono);
+        font-size: 12.5px;
+        color: var(--text-faint);
+        margin: 0 0 8px;
+        word-break: break-word;
+      }
+      .callout {
+        padding: 10px 14px;
+        margin-top: 10px;
+        font-size: 13.5px;
+        border: 1px solid var(--border);
+      }
+      .callout-solution {
+        border-left: 3px solid var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, transparent);
+      }
+      .callout-warning {
+        border-left: 3px solid var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, transparent);
+      }
+      .strengths {
+        display: grid;
+        gap: 10px;
+        margin: 6px 0;
+      }
+      .strength {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--solution);
+        padding: 12px 14px;
+      }
+      .strength .check {
+        color: var(--solution);
+        font-weight: 900;
+        font-size: 18px;
+        line-height: 1.2;
+      }
+      .strength .text span {
+        display: block;
+        color: var(--text-muted);
+        font-size: 13.5px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        margin: 6px 0 18px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      th {
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        font-weight: 700;
+      }
+      tbody tr:hover {
+        background: var(--surface-sunken);
+      }
+      .badge {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 7px;
+        border: 1px solid var(--border-strong);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+      .tok-comment {
+        color: #5c6370;
+        font-style: italic;
+      }
+      .tok-keyword {
+        color: #c678dd;
+      }
+      .tok-string {
+        color: #98c379;
+      }
+      .tok-func {
+        color: #61afef;
+      }
+      .tok-type {
+        color: #e5c07b;
+      }
+      .tok-builtin {
+        color: #56b6c2;
+      }
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 14px;
+        overflow: auto;
+        font-family: var(--font-mono);
+        font-size: 12.5px;
+        line-height: 1.5;
+        margin: 8px 0;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      .footer {
+        margin-top: 40px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+        color: var(--text-faint);
+        font-size: 12px;
+      }
+      @media (max-width: 1024px) {
+        .layout {
+          grid-template-columns: 1fr;
+          padding: 16px;
+        }
+        .sidebar {
+          position: static;
+          max-height: none;
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Current State</a>
+          <a href="#catalog">Problem Catalog</a>
+          <a href="#aggregate-id">AggregateID split</a>
+          <a href="#optionality">Optionality</a>
+          <a href="#snapshot">Snapshot []byte</a>
+          <a href="#vision">Vision</a>
+          <a href="#strengths">Strengths</a>
+          <a href="#roadmap">Roadmap</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <div class="hero">
+          <div class="hero-badge">Data Model Review &middot; 2026-06-24</div>
+          <h1>Type-Safety from First Principles</h1>
+          <p class="hero-subtitle">
+            The domain model is the strongest part of this library: phantom-typed Version, distinct
+            SchemaVersion, fully-encapsulated ImmutableEvent, and a typed 5-family error taxonomy.
+            Three minor refinements would push it from excellent to impeccable.
+          </p>
+        </div>
+
+        <h2 id="summary"><span class="num">00</span>Current State</h2>
+        <div class="stat-grid">
+          <div class="stat-card stat-good">
+            <div class="stat-value">9.0</div>
+            <div class="stat-label">Type-safety /10</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">8</div>
+            <div class="stat-label">Branded ID types</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">5</div>
+            <div class="stat-label">Error families (typed)</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">3</div>
+            <div class="stat-label">Refinements proposed</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">1</div>
+            <div class="stat-label">ID backing inconsistency</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Raw <code>any</code> in domain</div>
+          </div>
+        </div>
+        <p>
+          Verdict: <strong>production-grade type discipline</strong>. The model already implements
+          the hardest patterns correctly — branded types, phantom generics, encapsulated mutation,
+          typed enums. The findings below are polish, not rework.
+        </p>
+
+        <h2 id="catalog"><span class="num">01</span>Problem Catalog</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Problem</th>
+              <th>Severity</th>
+              <th>Systemicity</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>ID backing inconsistency (AggregateID = string, others = ULID)</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>1 type, every API</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>Pointer-as-optionality (<code>*TombstoneMark</code>, <code>*Causation</code>)</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>2 fields</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><code>Snapshot.State</code> is untyped <code>[]byte</code></td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>1 type (typed alt exists)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="aggregate-id"><span class="num">02</span>AggregateID backing inconsistency</h2>
+        <div class="issue issue-important">
+          <span class="severity severity-important">Primitive obsession / inconsistency</span>
+          <h3>AggregateID is string-backed; every other ID is ULID-backed</h3>
+          <div class="where">id/aggregate_id.go:27 vs id/event_id.go:8 (and 6 others)</div>
+          <pre><code><span class="tok-keyword">type</span> AggregateID = cbid.ID[AggregateMarker, <span class="tok-type">string</span>]   <span class="tok-comment">// string-backed</span>
+<span class="tok-keyword">type</span> EventID      = id.Of[EventMarker]                 <span class="tok-comment">// ULID-backed ([]byte, sortable)</span></code></pre>
+          <p>
+            Seven of the eight branded IDs wrap a <code>ulid.ULID</code> (sortable, time-ordered,
+            validated). <code>AggregateID</code> alone wraps a raw <code>string</code>, so it can
+            hold any string with no format guarantee — the one place the "branded ID prevents
+            garbage" promise breaks. This also means aggregate IDs are not uniformly time-sortable,
+            which can surprise store implementations that optimise for ULID ordering.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Options</strong> (a) Make <code>AggregateID = Of[AggregateMarker]</code> for
+            ULID consistency (breaking — changes the public value type); (b) document the split as
+            intentional (user-supplied natural keys) and add a constructor that validates
+            length/charset. Recommended: (b) now, (a) at the next major if consumers agree.
+          </div>
+        </div>
+
+        <h2 id="optionality"><span class="num">03</span>Pointer-as-optionality</h2>
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Design polish</span>
+          <h3>Nil pointers encode "absent" for Tombstone &amp; Causation</h3>
+          <div class="where">event/metadata.go:12-15</div>
+          <pre><code>Tombstone <span class="tok-type">*</span>TombstoneMark  <span class="tok-comment">// nil == "no tombstone"</span>
+Causation  <span class="tok-type">*</span>Causation      <span class="tok-comment">// nil == "no causation"</span></code></pre>
+          <p>
+            Nil-means-absent is idiomatic Go, but it pushes a "present/absent" distinction to
+            runtime (nil-checks) instead of the type system. The fields are well-named and the
+            surrounding code handles nil correctly, so this is a nit — but a sealed-interface option
+            type (<code>type Presence interface { presence() }</code> with
+            <code>None</code>/<code>Some</code>) would make absence unrepresentable-by-accident. Low
+            priority given the clean current handling.
+          </p>
+        </div>
+
+        <h2 id="snapshot"><span class="num">04</span>Snapshot leaks serialization detail</h2>
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Leaky abstraction</span>
+          <h3>Snapshot.State is []byte in the domain type</h3>
+          <div class="where">snapshot/store.go:16</div>
+          <pre><code><span class="tok-keyword">type</span> Snapshot <span class="tok-keyword">struct</span> {
+    ...
+    State <span class="tok-type">[]byte</span>      <span class="tok-comment">// already-serialised bytes</span>
+}</code></pre>
+          <p>
+            The base <code>Snapshot</code> carries pre-serialised bytes, leaking the codec into the
+            domain type. The library already ships the correct alternative —
+            <code>TypedSnapshot[State any]</code> (<code>snapshot/typed.go:24</code>) with a generic
+            <code>State</code>. Recommendation: present <code>TypedSnapshot</code> as the primary
+            type in docs and treat <code>Snapshot</code> as the storage-layer envelope.
+          </p>
+        </div>
+
+        <h2 id="vision"><span class="num">05</span>The Vision (what perfection looks like)</h2>
+        <div class="card card-solution">
+          <h4>Impossible states stay unrepresentable</h4>
+          <p>
+            Every identifier is a branded type that cannot be confused with another. Every count is
+            a phantom <code>Version</code>/<code>SchemaVersion</code> that cannot be added to a
+            plain <code>int</code>. Every error carries a typed <code>Family</code> the compiler can
+            switch on exhaustively. Every mutable surface is hidden behind a clone-returning
+            accessor. The three refinements above close the last gaps.
+          </p>
+        </div>
+
+        <h2 id="strengths">Strengths to Preserve</h2>
+        <div class="strengths">
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Phantom <code>Version</code> with full arithmetic + JSON</strong
+              ><span
+                >Compile-time separation from <code>int</code>; <code>Decrement</code> returns
+                <code>ErrVersionUnderflow</code> rather than underflowing.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong
+                ><code>SchemaVersion</code> is a distinct type from <code>Version</code></strong
+              ><span
+                >Two semantically-different counts can't be mixed — a common bug class
+                eliminated.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong><code>ImmutableEvent</code> is fully encapsulated</strong
+              ><span
+                >All fields unexported; <code>Payload()</code>/<code>Metadata()</code> return
+                defensive clones. Mutating shared internals is impossible.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Typed 5-family error taxonomy</strong
+              ><span
+                ><code>Family</code> is an <code>int</code> enum switchable exhaustively;
+                <code>Error</code> is a struct with code/family/context; 16 typed sentinels. Real
+                errors-as-values, not string matching.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Per-module Metadata types (ADR-0031)</strong
+              ><span
+                ><code>event</code>/<code>command</code>/<code>query</code> each own a
+                <code>Metadata</code> embedding shared <code>Tracing</code> — a change to event's
+                shape can't silently reshape commands.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong
+                ><code>TombstoneStatus</code> is <code>int</code>+<code>iota</code> with
+                <code>IsKnown()</code></strong
+              ><span>The tri-state (Active/Tombstoned/Undetermined) is explicit, not a bool.</span>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="roadmap"><span class="num">06</span>Refinement Roadmap</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Action</th>
+              <th>Effort</th>
+              <th>Impact</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>
+                Document AggregateID's string backing as intentional + add a validating constructor
+              </td>
+              <td>S</td>
+              <td><span class="badge badge-high">High</span></td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>
+                Promote <code>TypedSnapshot[State]</code> as the documented primary snapshot type
+              </td>
+              <td>S</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>
+                (Optional, v4) Unify AggregateID onto ULID, or introduce a sealed Presence type
+              </td>
+              <td>L</td>
+              <td><span class="badge badge-low">Low</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <footer class="footer">
+          Generated 2026-06-24 &middot; All type signatures verified against source
+          (<code>event/</code>, <code>id/</code>, <code>snapshot/</code>, <code>command/</code>,
+          <code>query/</code>, <code>go-error-family@v0.5.1</code>).
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>

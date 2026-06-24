@@ -38,37 +38,37 @@ You do NOT need all of them. Start with the minimal recipe (§2), then bolt on c
 
 ## 1. Module Decision Matrix — "I want to…"
 
-| If you want to…                                     | Use                                                              | See recipe |
-| --------------------------------------------------- | ---------------------------------------------------------------- | ---------- |
-| Create/store/load events                            | `event`                                                          | §2.1       |
-| Dispatch type-safe commands                         | `command`                                                        | §2.1       |
-| Run an event-sourced aggregate                      | `decider`                                                        | §2.1       |
-| Generate unique, type-safe IDs                      | `id`                                                             | §2.1       |
-| Encode payloads as JSON/CBOR                        | `codec`                                                          | §2.1       |
-| Build a read model from events                      | `stack.Materialize` + `kv.TypedStore`                            | §2.3       |
-| Dispatch type-safe queries                          | `query`                                                          | §2.3       |
-| List all aggregates + their status                  | `listing`                                                        | §6.4       |
-| Persist to PostgreSQL / SQLite                      | `storage`                                                        | §2.2       |
-| Persist to embedded PebbleDB                        | `storage/pebble`                                                 | §2.2       |
-| Offline-first sync via LibSQL                       | `storage/turso`                                                  | §6.6       |
-| Generic key-value abstraction                       | `kv`                                                             | §6.7       |
-| Snapshot aggregates for speed                       | `snapshot`                                                       | §2.4       |
-| Evolve event schemas over time                      | `schema`                                                         | §2.5       |
-| Make event streams tamper-proof                     | `signing`                                                        | §2.6       |
-| Encrypt confidential payloads                       | `encryption`                                                     | §2.7       |
-| Add logging/retry/recovery/circuit-breaker          | `middleware`                                                     | §2.8       |
-| Add OpenTelemetry tracing/metrics                   | `otel` + `middleware`                                            | §2.8       |
-| Auto-generate AsyncAPI/OpenAPI/EventCatalog/D2 docs | `catalog`                                                        | §2.9       |
-| Soft-delete aggregates without data loss            | `event` (tombstone metadata)                                     | §6.1       |
-| Generate typed handler boilerplate                  | `cmd/cqrs-gen`                                                   | §6.7       |
-| Publish events to Watermill router                  | `watermill`                                                      | §6.4       |
-| Dispatch commands/queries over gRPC                 | `transport/grpc`                                                 | §6.8       |
-| Verify doc code references compile                  | `cmd/doc-check`                                                  | §6.8       |
-| In-memory command bus (typed pub/sub)               | `command` (`NewMemoryBus`)                                       | §2.1       |
-| In-memory implementations for tests/dev             | `memory`                                                         | §2.1       |
-| One-call infrastructure wiring (Bundle presets)     | `stack/memory`, `stack/sqlite`, `stack/pebble`, `stack/postgres`, `stack/turso` | §2.0 |
-| Typed read-model store over KV backend              | `kv.TypedStore`                                                  | §2.0       |
-| Cache decorator for read models                     | `kv.Cache`                                                       | §2.0       |
+| If you want to…                                     | Use                                                                             | See recipe |
+| --------------------------------------------------- | ------------------------------------------------------------------------------- | ---------- |
+| Create/store/load events                            | `event`                                                                         | §2.1       |
+| Dispatch type-safe commands                         | `command`                                                                       | §2.1       |
+| Run an event-sourced aggregate                      | `decider`                                                                       | §2.1       |
+| Generate unique, type-safe IDs                      | `id`                                                                            | §2.1       |
+| Encode payloads as JSON/CBOR                        | `codec`                                                                         | §2.1       |
+| Build a read model from events                      | `stack.Materialize` + `kv.TypedStore`                                           | §2.3       |
+| Dispatch type-safe queries                          | `query`                                                                         | §2.3       |
+| List all aggregates + their status                  | `listing`                                                                       | §6.4       |
+| Persist to PostgreSQL / SQLite                      | `storage`                                                                       | §2.2       |
+| Persist to embedded PebbleDB                        | `storage/pebble`                                                                | §2.2       |
+| Offline-first sync via LibSQL                       | `storage/turso`                                                                 | §6.6       |
+| Generic key-value abstraction                       | `kv`                                                                            | §6.7       |
+| Snapshot aggregates for speed                       | `snapshot`                                                                      | §2.4       |
+| Evolve event schemas over time                      | `schema`                                                                        | §2.5       |
+| Make event streams tamper-proof                     | `signing`                                                                       | §2.6       |
+| Encrypt confidential payloads                       | `encryption`                                                                    | §2.7       |
+| Add logging/retry/recovery/circuit-breaker          | `middleware`                                                                    | §2.8       |
+| Add OpenTelemetry tracing/metrics                   | `otel` + `middleware`                                                           | §2.8       |
+| Auto-generate AsyncAPI/OpenAPI/EventCatalog/D2 docs | `catalog`                                                                       | §2.9       |
+| Soft-delete aggregates without data loss            | `event` (tombstone metadata)                                                    | §6.1       |
+| Generate typed handler boilerplate                  | `cmd/cqrs-gen`                                                                  | §6.7       |
+| Publish events to Watermill router                  | `watermill`                                                                     | §6.4       |
+| Dispatch commands/queries over gRPC                 | `transport/grpc`                                                                | §6.8       |
+| Verify doc code references compile                  | `cmd/doc-check`                                                                 | §6.8       |
+| In-memory command bus (typed pub/sub)               | `command` (`NewMemoryBus`)                                                      | §2.1       |
+| In-memory implementations for tests/dev             | `memory`                                                                        | §2.1       |
+| One-call infrastructure wiring (Bundle presets)     | `stack/memory`, `stack/sqlite`, `stack/pebble`, `stack/postgres`, `stack/turso` | §2.0       |
+| Typed read-model store over KV backend              | `kv.TypedStore`                                                                 | §2.0       |
+| Cache decorator for read models                     | `kv.Cache`                                                                      | §2.0       |
 
 ---
 
@@ -694,24 +694,24 @@ cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 
 ### Read models (Layer 4–5)
 
-| Module    | Import     | One-liner                                                                                                              |
-| --------- | ---------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `kv`      | `kv/v3`    | `ViewStore[V,K]` interface, `TypedStore[V,K]`, `Cache[V,K]`, `MemStore`. Foundation for all read models.               |
-| `stack`   | `stack/v3` | `Materialize[V,K]` (deployer-first projection builder), `Bundle`, presets. Accepts any `kv.ViewStore`.                 |
+| Module    | Import       | One-liner                                                                                                              |
+| --------- | ------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| `kv`      | `kv/v3`      | `ViewStore[V,K]` interface, `TypedStore[V,K]`, `Cache[V,K]`, `MemStore`. Foundation for all read models.               |
+| `stack`   | `stack/v3`   | `Materialize[V,K]` (deployer-first projection builder), `Bundle`, presets. Accepts any `kv.ViewStore`.                 |
 | `listing` | `listing/v3` | `AggregateListing`, `AggregateStatus` (Active/Tombstoned/Undetermined), `StatusMiddleware`, `InMemoryAggregateReader`. |
-| `query`   | `query/v3` | (see Core) — query the read model.                                                                                     |
+| `query`   | `query/v3`   | (see Core) — query the read model.                                                                                     |
 
 ### Storage (Layer 5)
 
-| Module     | Import        | One-liner                                                                                                                                                                                                               |
-| ---------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `memory`   | `memory/v2`   | `MemoryStore`, `MemorySnapshotStore`, `MemoryCheckpointStore`, `MemoryCommandStore`, `MemoryQueryStore`. Tests & dev. (`MemoryBus`/`MemoryCommandBus` deprecated — use `watermill.EventBus`)                            |
+| Module     | Import        | One-liner                                                                                                                                                                                                                                                                       |
+| ---------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `memory`   | `memory/v2`   | `MemoryStore`, `MemorySnapshotStore`, `MemoryCheckpointStore`, `MemoryCommandStore`, `MemoryQueryStore`. Tests & dev. (`MemoryBus`/`MemoryCommandBus` deprecated — use `watermill.EventBus`)                                                                                    |
 | `storage`  | `storage/v3`  | `SQLEventStore`, `SQLSnapshotStore`, `SQLCheckpointStore`, `SQLCommandStore`, `SQLQueryStore`, `SQLKVStore`, **`SQLViewStore`** (column-mapped views). PG/SQLite. `NewSQLiteBackend`/`NewSQLBackend` facade. `sql/` sub-package: `RunInTx`, `IsDuplicateKeyError`, `ScanSlice`. |
-| `pebble`   | `pebble/v2`   | `EventStore`, `SnapshotStore`, `CheckpointStore`, `NewKVStore`. CBOR envelope. Shared DB via disjoint key prefixes. `Open()` facade.                                                                                    |
-| `turso`    | `turso/v2`    | Turso/LibSQL connector, embedded sync, `indexing/` sub-package for index management. Delegates to `storage`.                                                                                                            |
-| `kv`       | `kv/v2`       | `Store` (Reader+Writer+Closer), `MemStore`, `Iterator`, `Batch`, `TypedStore[T,K]`, `Cache[T,K]` (Otter LRU).                                                                                                           |
-| `snapshot` | `snapshot/v2` | `Snapshot`, `SnapshotSink`/`Source`/`Store`, `SnapshotStrategy`, `EveryNEvents(n)`.                                                                                                                                     |
-| `schema`   | `schema/v2`   | `Upcaster`, `VersionedStore`, `upcasterRegistry`. Schema evolution on read.                                                                                                                                             |
+| `pebble`   | `pebble/v2`   | `EventStore`, `SnapshotStore`, `CheckpointStore`, `NewKVStore`. CBOR envelope. Shared DB via disjoint key prefixes. `Open()` facade.                                                                                                                                            |
+| `turso`    | `turso/v2`    | Turso/LibSQL connector, embedded sync, `indexing/` sub-package for index management. Delegates to `storage`.                                                                                                                                                                    |
+| `kv`       | `kv/v2`       | `Store` (Reader+Writer+Closer), `MemStore`, `Iterator`, `Batch`, `TypedStore[T,K]`, `Cache[T,K]` (Otter LRU).                                                                                                                                                                   |
+| `snapshot` | `snapshot/v2` | `Snapshot`, `SnapshotSink`/`Source`/`Store`, `SnapshotStrategy`, `EveryNEvents(n)`.                                                                                                                                                                                             |
+| `schema`   | `schema/v2`   | `Upcaster`, `VersionedStore`, `upcasterRegistry`. Schema evolution on read.                                                                                                                                                                                                     |
 
 ### Cross-cutting (Layer 4–5)
 
@@ -734,7 +734,7 @@ cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 | `query/querytest`   | `query/v2/querytest` | `New(tb, queryType)`. Construct valid test queries — `tb.Fatalf` on error.                                   |
 | `event/eventtest`   | `event/v2/eventtest` | `FakeStore`, `FakeBus`, `AssertGolden`. Event test doubles and golden test helpers.                          |
 | `cmd/cqrs-gen`      | (go install)         | Code generator: typed handler registration from `//cqrs:command` / `//cqrs:query` markers.                   |
-| `cmd/doc-check`     | (go run)             | Doc verifier: scans Markdown for Go code references, checks symbols exist.                                    |
+| `cmd/doc-check`     | (go run)             | Doc verifier: scans Markdown for Go code references, checks symbols exist.                                   |
 | `cmd/api-stability` | (go install)         | API surface checker: compares exports against `docs/api_surface.txt` golden file.                            |
 | `transport/grpc`    | `transport/grpc/v3`  | `RegisterCommandService`, `RegisterQueryService`, `NewCommandClient`, `NewQueryClient`. gRPC transport.      |
 

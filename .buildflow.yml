@@ -28,6 +28,9 @@ exclude:
   - "**/testdata/golden/**"
   - "**/docserver/static/**"
   - "**/eventcatalog-output/**"
+  # transport/grpc is isolated from go.work (genproto conflict via cockroachdb/errors).
+  # BuildFlow's golangci-lint can't typecheck it in-workspace. Tracked in TODO_LIST.md.
+  - "transport/grpc"
 
 # Auto-fix settings
 auto_fix: false

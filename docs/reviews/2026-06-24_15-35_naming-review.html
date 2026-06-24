@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Naming Review — go-cqrs-lite (2026-06-24)</title>
+    <style>
+      :root {
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: #a8a8b0;
+        --text-faint: #6b6b75;
+        --border: #26262c;
+        --border-strong: #34343c;
+        --radius: 0px;
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+        --font-heading: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        --font-mono: "SF Mono", Menlo, Consolas, monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        line-height: 1.55;
+        font-size: 15px;
+      }
+      a {
+        color: var(--solution);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 230px 1fr;
+        max-width: 1180px;
+        margin: 0 auto;
+        gap: 32px;
+        padding: 24px;
+      }
+      .sidebar {
+        position: sticky;
+        top: 24px;
+        align-self: start;
+        max-height: calc(100vh - 48px);
+        overflow: auto;
+      }
+      .sidebar .label {
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        margin: 0 0 10px;
+      }
+      .sidebar nav a {
+        display: block;
+        padding: 5px 12px;
+        color: var(--text-muted);
+        border-left: 2px solid transparent;
+        font-size: 13.5px;
+      }
+      .sidebar nav a:hover {
+        color: var(--text);
+        text-decoration: none;
+        border-left-color: var(--accent);
+      }
+      .main {
+        min-width: 0;
+      }
+      h1 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        font-size: 33px;
+        margin: 0 0 6px;
+        line-height: 1.12;
+      }
+      h2 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        font-size: 22px;
+        margin: 42px 0 16px;
+        letter-spacing: -0.01em;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 10px;
+      }
+      h2 .num {
+        display: inline-block;
+        background: var(--accent);
+        color: #1a1a1a;
+        font-size: 13px;
+        font-weight: 900;
+        padding: 2px 8px;
+        margin-right: 10px;
+        vertical-align: middle;
+      }
+      h3 {
+        font-size: 17px;
+        margin: 0 0 6px;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 15px;
+        margin: 0 0 6px;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 12px;
+      }
+      .hero {
+        margin-bottom: 8px;
+      }
+      .hero-badge {
+        display: inline-block;
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--accent);
+        font-weight: 800;
+        margin-bottom: 10px;
+      }
+      .hero-subtitle {
+        color: var(--text-muted);
+        font-size: 16px;
+        margin: 0 0 4px;
+        max-width: 62ch;
+      }
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 14px;
+        margin: 18px 0 6px;
+      }
+      .stat-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 16px;
+      }
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 34px;
+        font-weight: 900;
+        line-height: 1;
+      }
+      .stat-label {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 6px;
+      }
+      .stat-good .stat-value {
+        color: var(--solution);
+      }
+      .stat-bad .stat-value {
+        color: var(--problem);
+      }
+      .stat-warn .stat-value {
+        color: var(--warning);
+      }
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--border-strong);
+        padding: 16px 18px;
+        margin: 0 0 14px;
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--border-strong);
+        padding: 15px 18px;
+        margin: 0 0 14px;
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .severity {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 3px 8px;
+        margin-bottom: 8px;
+      }
+      .severity-critical {
+        background: var(--problem);
+        color: #1a1a1a;
+      }
+      .severity-important {
+        background: var(--warning);
+        color: #1a1a1a;
+      }
+      .severity-nice {
+        background: var(--solution);
+        color: #1a1a1a;
+      }
+      .where {
+        font-family: var(--font-mono);
+        font-size: 12.5px;
+        color: var(--text-faint);
+        margin: 0 0 8px;
+        word-break: break-word;
+      }
+      .callout {
+        padding: 10px 14px;
+        margin-top: 10px;
+        font-size: 13.5px;
+        border: 1px solid var(--border);
+      }
+      .callout-solution {
+        border-left: 3px solid var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, transparent);
+      }
+      .callout-warning {
+        border-left: 3px solid var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, transparent);
+      }
+      .strengths {
+        display: grid;
+        gap: 10px;
+        margin: 6px 0;
+      }
+      .strength {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--solution);
+        padding: 12px 14px;
+      }
+      .strength .check {
+        color: var(--solution);
+        font-weight: 900;
+        font-size: 18px;
+        line-height: 1.2;
+      }
+      .strength .text span {
+        display: block;
+        color: var(--text-muted);
+        font-size: 13.5px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        margin: 6px 0 18px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      th {
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        font-weight: 700;
+      }
+      tbody tr:hover {
+        background: var(--surface-sunken);
+      }
+      .badge {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 7px;
+        border: 1px solid var(--border-strong);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+      .footer {
+        margin-top: 40px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+        color: var(--text-faint);
+        font-size: 12px;
+      }
+      @media (max-width: 1024px) {
+        .layout {
+          grid-template-columns: 1fr;
+          padding: 16px;
+        }
+        .sidebar {
+          position: static;
+          max-height: none;
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#glossary">Glossary</a>
+          <a href="#findings">Findings</a>
+          <a href="#strengths">Strengths</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <div class="hero">
+          <div class="hero-badge">Naming Review &middot; 2026-06-24</div>
+          <h1>Identifier Quality Audit</h1>
+          <p class="hero-subtitle">
+            Scanned all non-test, non-example Go for naming smells. Result: the codebase is
+            exceptionally well-named — zero Manager/Handler-as-trashcan/Helper/Util/Impl types,
+            consistent verb vocabulary, and honest method names. Only three cosmetic nits.
+          </p>
+        </div>
+
+        <h2 id="summary"><span class="num">00</span>Summary</h2>
+        <div class="stat-grid">
+          <div class="stat-card stat-good">
+            <div class="stat-value">9.3</div>
+            <div class="stat-label">Naming /10</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Manager/Util/Impl types</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Honesty violations</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">3</div>
+            <div class="stat-label">Cosmetic nits</div>
+          </div>
+        </div>
+        <p>
+          Automated detection (ripgrep for <code>Data|Info|Record|Item|Object|Thing</code> types,
+          <code>Manager|Handler|Processor|Helper|Util</code> classes,
+          <code>Impl|Concrete|Default|Abstract|Base</code> suffixes) returned almost nothing
+          actionable. "Handler" appears only where it is the correct CQRS domain term.
+        </p>
+
+        <h2 id="glossary"><span class="num">01</span>Naming Glossary — no split-brains found</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Concept</th>
+              <th>Canonical name(s)</th>
+              <th>Verdict</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Command/event/query dispatch</td>
+              <td><code>Dispatcher</code>, <code>Dispatch</code></td>
+              <td><span class="badge badge-fixed">Consistent</span></td>
+            </tr>
+            <tr>
+              <td>Handler</td>
+              <td><code>Handler[M]</code>, <code>TypedHandler[Q,R]</code></td>
+              <td><span class="badge badge-fixed">Domain-accurate</span></td>
+            </tr>
+            <tr>
+              <td>Construction</td>
+              <td><code>New*</code> everywhere</td>
+              <td><span class="badge badge-fixed">Consistent</span></td>
+            </tr>
+            <tr>
+              <td>Options</td>
+              <td><code>With*</code> functional options</td>
+              <td><span class="badge badge-fixed">Consistent</span></td>
+            </tr>
+            <tr>
+              <td>Registration</td>
+              <td><code>Register*</code>, <code>RegisterTyped</code></td>
+              <td><span class="badge badge-fixed">Consistent</span></td>
+            </tr>
+            <tr>
+              <td>Read interfaces</td>
+              <td><code>Source</code>/<code>Journal</code>/<code>SeekableJournal</code></td>
+              <td><span class="badge badge-fixed">ISP-honest</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="findings"><span class="num">02</span>Findings (3 cosmetic nits)</h2>
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Clarity</span>
+          <h3><code>DocumentInfo</code> carries a vague suffix</h3>
+          <div class="where">catalog/types.go:67</div>
+          <p>
+            "Info" adds no meaning. <code>Document</code> (or <code>CatalogDocument</code> if
+            disambiguation is needed) is sharper. No rename performed — external API; recommend at
+            next minor.
+          </p>
+        </div>
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Clarity</span>
+          <h3><code>ViewItem[V,K]</code> uses the generic "Item"</h3>
+          <div class="where">kv/view_store.go:102</div>
+          <p>
+            An envelope holding a key+value is better named <code>ViewEntry[V,K]</code>. Low impact;
+            external type.
+          </p>
+        </div>
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Implementation leakage</span>
+          <h3><code>storeBase</code> uses the discouraged "Base" name</h3>
+          <div class="where">storage/pebble/base.go:14 (unexported)</div>
+          <p>
+            "Base" encodes an embedding/inheritance hierarchy. It is unexported and used purely for
+            composition, so the smell is contained — but <code>pebbleShared</code> or
+            <code>commonStore</code> would read better. Optional.
+          </p>
+        </div>
+
+        <h2 id="strengths">Strengths to Preserve</h2>
+        <div class="strengths">
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Zero trash-can types</strong
+              ><span
+                >No Manager/Processor/Helper/Util/Utility — responsibilities are named for what they
+                do.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>No Impl/Concrete/Default leakage</strong
+              ><span
+                >Implementations are named for their mechanism (<code>MemoryStore</code>,
+                <code>SQLEventStore</code>), not "<code>StoreImpl</code>".</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Command-query separation in verbs</strong
+              ><span
+                ><code>Load</code>/<code>Save</code> (commands) vs <code>HasNext</code>/<code
+                  >IsZero</code
+                >
+                (queries) — methods read as yes/no or actions correctly.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Branded IDs prevent synonym drift</strong
+              ><span
+                >One name per concept (<code>AggregateID</code>, <code>EventID</code>) — no
+                User/Customer/AccountHolder split-brain.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Consistent constructor vocabulary</strong
+              ><span
+                ><code>New*</code> for construct, <code>With*</code> for options,
+                <code>Register*</code> for wiring — uniform across all 43 modules.</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <footer class="footer">
+          Generated 2026-06-24 &middot; Detection via ripgrep over non-test, non-example
+          <code>*.go</code> for the standard naming-smell patterns.
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>

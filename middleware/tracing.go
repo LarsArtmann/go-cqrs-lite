@@ -73,7 +73,10 @@ func EventTracing(tracer cqrsotel.Tracer) event.Middleware {
 
 				return append(
 					attrs,
-					cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, int(evt.Version())),
+					cqrsotel.AttrInt64(
+						cqrsotel.AttrAggregateVersion,
+						int64(evt.Version()),
+					),
 				)
 			},
 		),

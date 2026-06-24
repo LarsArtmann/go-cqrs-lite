@@ -1,0 +1,102 @@
+direction: down
+layout: elk
+
+# go-cqrs-lite — IDEAL target architecture
+# Differences from current: (1) no test-dep leak — core modules never require
+# storage/memory; (2) transport/grpc wired into go.work; (3) shared multidb
+# helper in stack/ removes the sqlite/postgres clone; (4) a test-doubles
+# module (or in-package fakes) hosts concrete stores for tests.
+
+layer_0_leaf: Layer 0 — Leaf modules (no internal deps) {
+  style.fill: "#1d2b14"
+  id: "id"
+  dispatcher: "dispatcher"
+  codec: "codec"
+  kv: "kv"
+}
+
+layer_1_core: Layer 1 — Core domain (ZERO infra deps) {
+  style.fill: "#14233a"
+  event: "event"
+  command: "command"
+  query: "query"
+}
+
+layer_2: Layer 2 — Evolution & snapshots {
+  style.fill: "#2a1a14"
+  schema: "schema"
+  snapshot: "snapshot"
+}
+
+layer_3: Layer 3 — Aggregate {
+  style.fill: "#2a2314"
+  decider: "decider"
+}
+
+layer_4: Layer 4 — Adapters, infra & TEST DOUBLES {
+  style.fill: "#24142a"
+  storage_memory: "storage/memory\n(test impls — depends UP only)"
+  signing: "signing"
+  encryption: "encryption"
+  otel: "otel"
+}
+
+layer_5: Layer 5 — Integration adapters {
+  style.fill: "#142a26"
+  storage: "storage (SQL + Backend)"
+  storage_pebble: "storage/pebble"
+  storage_turso: "storage/turso"
+  middleware: "middleware"
+  listing: "listing"
+  watermill: "watermill"
+  transport_http: "transport/http (SSE)"
+  transport_grpc: "transport/grpc (gRPC)\nWIRED into go.work"
+  prometheus: "prometheus"
+}
+
+layer_6: Layer 6 — Composition & examples {
+  style.fill: "#2a1420"
+  stack: "stack (Bundle, Materialize,\nshared multidb helper)"
+  presets: "stack/{memory,sqlite,pebble,\npostgres,turso} — no clone"
+  catalog: "catalog"
+  integration: "integration"
+  examples: "examples + cmd/*"
+}
+
+# --- Clean production DAG (downward only) ---
+id -> event
+codec -> event
+id -> command
+dispatcher -> command
+id -> query
+dispatcher -> query
+event -> schema
+event -> snapshot
+event -> decider
+snapshot -> decider
+codec -> decider
+event -> storage
+event -> storage_pebble
+event -> storage_turso
+event -> middleware
+event -> signing
+event -> encryption
+event -> watermill
+event -> transport_http
+command -> transport_grpc
+query -> transport_grpc
+event -> listing
+otel -> storage
+otel -> middleware
+otel -> decider
+storage -> stack
+watermill -> stack
+kv -> stack
+storage -> presets
+watermill -> presets
+stack -> examples
+decider -> examples
+catalog -> examples
+
+# --- test doubles depend DOWN on core, core never depends on them ---
+storage_memory -> event: {label: "test-only (in eventtest)"; style.stroke: "#6eb5ff"}

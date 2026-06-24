@@ -144,7 +144,7 @@ Every module has its own README with detailed usage, types, and examples.
 | **testutil**          | Shared test helpers: `MustNewCmd`, `ParseAggID`, `NoopCommandHandler` | [README](testutil/README.md)          |
 | **cmd/cqrs-gen**      | Code generator: typed handler registration from `//cqrs:` markers     | [README](cmd/cqrs-gen/README.md)      |
 | **cmd/api-stability** | API surface checker: compare exports against golden file              | [README](cmd/api-stability/README.md) |
-| **cmd/doc-check**     | Doc cross-reference verifier: validates Go symbols in markdown docs    |                                       |
+| **cmd/doc-check**     | Doc cross-reference verifier: validates Go symbols in markdown docs   |                                       |
 | **integration**       | Cross-module integration tests                                        | [README](integration/README.md)       |
 
 ### Stack Presets
@@ -160,13 +160,13 @@ Every module has its own README with detailed usage, types, and examples.
 
 ### Examples
 
-| Module                     | Purpose                                             |
-| -------------------------- | --------------------------------------------------- |
-| **example/todo**           | Full app: HTTP API, decider, projections, queries   |
-| **example/user**           | Advanced patterns: signing, middleware, catalog     |
-| **example/encryption**     | Event encryption patterns: bus, store, key rotation |
-| **example/deployer-first** | Deployer-first stack with catch-up projections      |
-| **example/deployer-first-multidb** | Multi-database isolation (separate DBs)                              |
+| Module                             | Purpose                                             |
+| ---------------------------------- | --------------------------------------------------- |
+| **example/todo**                   | Full app: HTTP API, decider, projections, queries   |
+| **example/user**                   | Advanced patterns: signing, middleware, catalog     |
+| **example/encryption**             | Event encryption patterns: bus, store, key rotation |
+| **example/deployer-first**         | Deployer-first stack with catch-up projections      |
+| **example/deployer-first-multidb** | Multi-database isolation (separate DBs)             |
 
 ## Design Principles
 
