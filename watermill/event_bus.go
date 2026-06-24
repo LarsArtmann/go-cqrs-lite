@@ -37,7 +37,7 @@ type EventBus struct {
 	allHandlers       []event.Handler
 	typeHandlers      map[event.Type][]event.Handler
 
-	subCtx     context.Context
+	subCtx     context.Context //nolint:containedctx // lifecycle context for the background subscriber goroutine; created from context.Background(), cancelled on Close
 	subCancel  context.CancelFunc
 	subStarted bool
 }
