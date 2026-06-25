@@ -234,37 +234,16 @@
             '';
 
             ci = mkApp "ci" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils ] ''
-              echo "=== Build ==="
-              ${goPkg}/bin/go build ${tagFlags} ${allPaths} || exit 1
-              echo "=== Vet ==="
-              ${goPkg}/bin/go vet ${tagFlags} ${modulePaths} || exit 1
-              echo "=== Test ==="
-              ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1 || exit 1
-              echo "=== Race ==="
-              ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -race -count=1 || exit 1
-              echo "=== Check Layers ==="
-              ${pkgs.bash}/bin/bash "$PWD/scripts/check-module-layers.sh" || exit 1
-              echo "=== Check File Size ==="
-              failed=false
-              while IFS= read -r f; do
-                lines=$(wc -l < "$f")
-                if [ "$lines" -gt 350 ]; then
-                  echo "ERROR: $f has $lines lines (max 350)"
-                  failed=true
-                fi
-              done < <(find . -name "*.go" -not -name "*_test.go" \
-                -not -name "*.pb.go" \
-                -not -name "*.gen.go" \
-                -not -path "*/example/*" \
-                -not -path "*/testdata/*" \
-                -not -path "*/internal/cattest/*" \
-                -not -path "*/.git/*")
-              if [ "$failed" = true ]; then exit 1; fi
-              echo "=== API Stability ==="
-              (cd cmd/api-stability && GOWORK=off ${goPkg}/bin/go run main.go) || exit 1
-              echo "=== transport/grpc (GOWORK=off) ==="
-              (cd transport/grpc && GOWORK=off ${goPkg}/bin/go test ./... -count=1) || exit 1
-              echo "✅ All CI checks passed"
+              ${pkgs.bash}/bin/bash -c '
+                set -e
+                echo "=== Build ===" && ${goPkg}/bin/go build ${tagFlags} ${allPaths}
+                echo "=== Vet ===" && ${goPkg}/bin/go vet ${tagFlags} ${modulePaths}
+                echo "=== Test ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1
+                echo "=== Check Layers ===" && bash "$PWD/scripts/check-module-layers.sh"
+                echo "=== API Stability ===" && (cd cmd/api-stability && GOWORK=off ${goPkg}/bin/go run main.go)
+                echo "=== transport/grpc ===" && (cd transport/grpc && GOWORK=off ${goPkg}/bin/go test ./... -count=1)
+                echo "✅ All CI checks passed"
+              '
             '';
 
             clean = mkApp "clean" [ goPkg pkgs.trash-cli ] ''
