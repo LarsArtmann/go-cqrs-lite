@@ -145,7 +145,7 @@ func TestParseSSEEventID(t *testing.T) {
 
 func TestSSEBroker_MultiClient(t *testing.T) {
 	bus := eventtest.NewFakeBus()
-	defer bus.Close() //nolint:errcheck // test helper
+	defer bus.Close()
 
 	broker, err := NewSSEBroker(bus)
 	if err != nil {
@@ -191,7 +191,7 @@ func TestSSEBroker_NilBus(t *testing.T) {
 
 func TestSSEBroker_Close(t *testing.T) {
 	bus := eventtest.NewFakeBus()
-	defer bus.Close() //nolint:errcheck // test helper
+	defer bus.Close()
 
 	broker, err := NewSSEBroker(bus)
 	if err != nil {
@@ -223,7 +223,7 @@ func TestSSEBroker_Close(t *testing.T) {
 
 func TestSSEHandler_WireFormat(t *testing.T) {
 	bus := eventtest.NewFakeBus()
-	defer bus.Close() //nolint:errcheck // test helper
+	defer bus.Close()
 
 	broker, err := NewSSEBroker(bus)
 	if err != nil {
@@ -293,7 +293,7 @@ func TestSSEHandler_WireFormat(t *testing.T) {
 
 func TestSSEHandler_StatusOK(t *testing.T) {
 	bus := eventtest.NewFakeBus()
-	defer bus.Close() //nolint:errcheck // test helper
+	defer bus.Close()
 
 	broker, err := NewSSEBroker(bus)
 	if err != nil {
@@ -322,7 +322,7 @@ func TestSSEHandler_StatusOK(t *testing.T) {
 
 func TestSSEHandler_ConcurrentClients(t *testing.T) {
 	bus := eventtest.NewFakeBus()
-	defer bus.Close() //nolint:errcheck // test helper
+	defer bus.Close()
 
 	broker, err := NewSSEBroker(bus)
 	if err != nil {
@@ -374,7 +374,7 @@ func TestSSEHandler_ConcurrentClients(t *testing.T) {
 func TestSSEHandler_LastEventID_Reconnect(t *testing.T) {
 	store := eventtest.NewFakeStore()
 	bus := eventtest.NewFakeBus()
-	defer bus.Close() //nolint:errcheck // test helper
+	defer bus.Close()
 
 	// Save two events to the store (journal).
 	aggID := id.NewAggregateID()
@@ -439,7 +439,7 @@ func TestSSEHandler_ReplayDedup_NoDuplicates(t *testing.T) {
 	// the live bus (the dedup gap that CatchUpSubscriber solves).
 	store := eventtest.NewFakeStore()
 	bus := eventtest.NewFakeBus()
-	defer bus.Close() //nolint:errcheck // test helper
+	defer bus.Close()
 
 	aggID := id.NewAggregateID()
 	ref := event.NewAggregateRef("Test", aggID)

@@ -17,7 +17,7 @@ func TestMemoryStore_LoadStream(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
-	defer store.Close() //nolint:errcheck // test helper
+	defer store.Close()
 
 	aggID := id.NewAggregateID()
 	clock := func() time.Time { return time.Date(2026, 1, 15, 10, 0, 0, 0, time.UTC) }
@@ -45,7 +45,7 @@ func TestMemoryStore_LoadStream(t *testing.T) {
 		t.Fatalf("load stream: %v", err)
 	}
 
-	defer stream.Close() //nolint:errcheck // test helper
+	defer stream.Close()
 
 	var got []event.Type
 
@@ -78,7 +78,7 @@ func TestMemoryStore_LoadStream_NotFound(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
-	defer store.Close() //nolint:errcheck // test helper
+	defer store.Close()
 
 	_, err := store.LoadStream(
 		context.Background(),

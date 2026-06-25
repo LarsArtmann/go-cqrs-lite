@@ -32,7 +32,7 @@ func TestSigningFullFlow(t *testing.T) {
 
 	ctx := context.Background()
 	bus := eventtest.NewFakeBus()
-	defer bus.Close() //nolint:errcheck // test helper
+	defer bus.Close()
 
 	deviceKey := []byte("device-secret-key-thirty-two-by!")
 	deviceHMAC, _ := signing.NewHMAC(deviceKey)
@@ -121,7 +121,7 @@ func TestSigningTamperDetection(t *testing.T) {
 
 	ctx := context.Background()
 	bus := eventtest.NewFakeBus()
-	defer bus.Close() //nolint:errcheck // test helper
+	defer bus.Close()
 
 	deviceKey := []byte("tamper-device-key-thirty-two-by!")
 	deviceHMAC, _ := signing.NewHMAC(deviceKey)

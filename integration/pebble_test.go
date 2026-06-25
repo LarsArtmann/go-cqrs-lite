@@ -45,7 +45,7 @@ func TestPebbleEventStoreWithProjectionRunner(t *testing.T) {
 
 	store := backend.EventStore()
 	bus := eventtest.NewFakeBus()
-	defer bus.Close() //nolint:errcheck // test helper
+	defer bus.Close()
 
 	// Seed two events before the runner starts so replay is exercised.
 	aggID := id.NewAggregateID()
@@ -118,7 +118,7 @@ func TestPebbleSnapshotStoreWithDeciderRepository(t *testing.T) {
 	store := backend.EventStore()
 	snapStore := backend.SnapshotStore()
 	bus := eventtest.NewFakeBus()
-	defer bus.Close() //nolint:errcheck // test helper
+	defer bus.Close()
 
 	d := decider.Decider[counterState]{
 		Initial: counterState{},

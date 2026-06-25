@@ -28,10 +28,10 @@ func TestFullFlow(t *testing.T) {
 
 	ctx := context.Background()
 	store := memory.NewMemoryStore()
-	defer store.Close() //nolint:errcheck // test helper
+	defer store.Close()
 
 	bus := eventtest.NewFakeBus()
-	defer bus.Close() //nolint:errcheck // test helper
+	defer bus.Close()
 
 	// --- Build command dispatcher with middleware ---
 	cmdDispatcher := command.NewDispatcher()
@@ -183,7 +183,7 @@ func TestFullFlow(t *testing.T) {
 		t.Fatalf("load stream: %v", err)
 	}
 
-	defer stream.Close() //nolint:errcheck // test helper
+	defer stream.Close()
 
 	streamCount := 0
 

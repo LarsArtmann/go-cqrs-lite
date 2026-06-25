@@ -86,9 +86,9 @@ func TestSnapshot_EventSerialization(t *testing.T) {
 
 	ctx := context.Background()
 	store := memory.NewMemoryStore()
-	defer store.Close() //nolint:errcheck // test helper
+	defer store.Close()
 	bus := eventtest.NewFakeBus()
-	defer bus.Close() //nolint:errcheck // test helper
+	defer bus.Close()
 
 	d := snapDecider()
 	repo, err := decider.NewRepository(store, bus, d)

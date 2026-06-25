@@ -81,7 +81,7 @@ func TestOTel_EventBus_EmitsSpans(t *testing.T) {
 	tracer := tracerProvider.Tracer(cqrsotel.ComponentTracer("test"))
 
 	bus := eventtest.NewFakeBus()
-	defer bus.Close() //nolint:errcheck // test helper
+	defer bus.Close()
 
 	_ = bus.Use(middleware.EventTracing(tracer))
 

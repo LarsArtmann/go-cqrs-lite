@@ -75,7 +75,7 @@ func TestInitSchema(t *testing.T) {
 	if err != nil {
 		t.Fatalf("OpenTemp: %v", err)
 	}
-	defer database.Close() //nolint:errcheck // test helper
+	defer database.Close()
 
 	if err := turso.InitSchema(context.Background(), database); err != nil {
 		t.Fatalf("InitSchema: %v", err)
@@ -89,7 +89,7 @@ func TestNewEventStore(t *testing.T) {
 	if err != nil {
 		t.Fatalf("OpenTemp: %v", err)
 	}
-	defer database.Close() //nolint:errcheck // test helper
+	defer database.Close()
 
 	store, err := turso.NewEventStore(database)
 	if err != nil {
@@ -108,7 +108,7 @@ func TestNewSnapshotStore(t *testing.T) {
 	if err != nil {
 		t.Fatalf("OpenTemp: %v", err)
 	}
-	defer database.Close() //nolint:errcheck // test helper
+	defer database.Close()
 
 	store, err := turso.NewSnapshotStore(database)
 	if err != nil {
@@ -127,7 +127,7 @@ func TestNewCheckpointStore(t *testing.T) {
 	if err != nil {
 		t.Fatalf("OpenTemp: %v", err)
 	}
-	defer database.Close() //nolint:errcheck // test helper
+	defer database.Close()
 
 	store, err := turso.NewCheckpointStore(database)
 	if err != nil {

@@ -107,7 +107,7 @@ func TestVersionedStore_UpcastIntegration(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
-	defer store.Close() //nolint:errcheck // test helper
+	defer store.Close()
 
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
@@ -143,7 +143,7 @@ func TestVersionedStore_LoadFromVersion_Upcast(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
-	defer store.Close() //nolint:errcheck // test helper
+	defer store.Close()
 
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
@@ -192,7 +192,7 @@ func TestVersionedStore_LoadToVersion_Upcast(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
-	defer store.Close() //nolint:errcheck // test helper
+	defer store.Close()
 
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
@@ -254,7 +254,7 @@ func TestVersionedStore_LoadToTimestamp_Upcast(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
-	defer store.Close() //nolint:errcheck // test helper
+	defer store.Close()
 
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
@@ -312,7 +312,7 @@ func TestVersionedStore_LoadToVersion_UpcastError(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
-	defer store.Close() //nolint:errcheck // test helper
+	defer store.Close()
 
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
@@ -347,7 +347,7 @@ func TestVersionedStore_LoadToTimestamp_UpcastError(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
-	defer store.Close() //nolint:errcheck // test helper
+	defer store.Close()
 
 	ctx := context.Background()
 	aggID := id.NewAggregateID()

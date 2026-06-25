@@ -72,7 +72,7 @@ func noopCmdHandler() command.Handler {
 }
 
 func benchNoopQueryHandler(_ context.Context, _ query.Query) (any, error) {
-	return nil, nil //nolint:nilnil
+	return nil, nil
 }
 
 func noopEventHandler() event.Handler {

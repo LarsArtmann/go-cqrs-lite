@@ -18,7 +18,7 @@ func TestSignAndEncryptFullFlow(t *testing.T) {
 
 	ctx := context.Background()
 	bus := eventtest.NewFakeBus()
-	defer bus.Close() //nolint:errcheck // test helper
+	defer bus.Close()
 
 	signingKey := []byte("signing-secret-key-thirty-two-by!")
 	hmacSigner, _ := signing.NewHMAC(signingKey)
@@ -146,7 +146,7 @@ func TestEncryptMiddleware_DetectsAlgorithm_Integration(t *testing.T) {
 
 	ctx := context.Background()
 	bus := eventtest.NewFakeBus()
-	defer bus.Close() //nolint:errcheck // test helper
+	defer bus.Close()
 
 	key := make([]byte, 32)
 	for i := range key {
