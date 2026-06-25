@@ -89,4 +89,4 @@ struct copy in `Clone()` is semantically a deep copy. Regression test
 
 ---
 
-_v3.0.0 is tagged (2026-06-22). Open items are transport adapters (ADR-0025, waiting for consumer signal) and Go-stdlib-blocked experiments (jsonv2, arenas). See [ROADMAP.md](ROADMAP.md) for long-term vision._
+_v3.1.0 is tagged (2026-06-25). Open items are transport adapters (ADR-0025, waiting for consumer signal), performance features (hot-state cache, read-pressure snapshots), and Go-stdlib-blocked experiments (jsonv2, arenas). See [ROADMAP.md](ROADMAP.md) for long-term vision._

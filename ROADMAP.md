@@ -5,13 +5,19 @@
 
 ---
 
-## Current State (v3.0.0 released)
+## Current State (v3.1.0 released)
 
-**v3.0.0 is tagged** (2026-06-22) — all 43 modules are on `/v3` import paths. The 11 v3 breaking changes shipped (see [CHANGELOG.md](CHANGELOG.md) and the [v3 Migration Guide](docs/migration/V3_MIGRATION.md)). All core CQRS/ES primitives are shipped: Event Sourcing with branded IDs, CQRS command/query dispatch, tombstone soft-delete, event signing/encryption, OTel observability, Pebble/SQL/Turso storage backends, and a Bundle composition layer with 4 presets.
+**v3.1.0 is tagged** (2026-06-25). See [CHANGELOG.md](CHANGELOG.md) for the full release notes.
+
+**v3.1.0 is tagged** (2026-06-25) — all 43 modules are on `/v3` import paths. v3.1.0 adds SQL-backed view stores with queryable columns, multi-database split for all SQL presets, shared metadata utilities, and 12 design documents for future features. v3.0.0 shipped all 11 breaking changes (see [CHANGELOG.md](CHANGELOG.md) and the [v3 Migration Guide](docs/migration/V3_MIGRATION.md)). All core CQRS/ES primitives are shipped.
 
 ## Short Term (Next 90 Days)
 
-### v3.0.0 — Shipped
+### v3.1.0 — Shipped (2026-06-25)
+
+SQL-backed view stores, multi-database split, shared metadata utilities, 12 design documents. See [CHANGELOG.md](CHANGELOG.md).
+
+### v3.0.0 — Shipped (2026-06-22)
 
 All 11 breaking changes landed and v3.0.0 is tagged. The new shapes were added in v2, so migration is additive. See [`docs/migration/V3_MIGRATION.md`](docs/migration/V3_MIGRATION.md) for the full guide and [CHANGELOG.md](CHANGELOG.md) for the release notes.
 
@@ -76,4 +82,4 @@ All 11 breaking changes landed and v3.0.0 is tagged. The new shapes were added i
 
 ---
 
-_Last updated: 2026-06-22 — v3.0.0 tagged. All 11 breaking changes shipped (Metadata split ADR-0031, projection dissolution ADR-0030)._
+_Last updated: 2026-06-25 — v3.1.0 tagged. SQL-backed view stores, multi-DB split, design docs for all roadmap features._

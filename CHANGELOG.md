@@ -6,9 +6,74 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-06-25
+
+**Feature release — 79 commits since v3.0.0, +69 API exports (1558 → 1627), zero breaking changes.**
+
 ### Added
 
+#### SQL-Backed View Stores & Queryable Read Models
+
+- **`storage.SQLViewStore`** — SQL-backed `kv.ViewStore` with column-mapped views. Supports `Query` (WHERE + ORDER BY + LIMIT/OFFSET), `Count`, `BatchSet` (chunked upsert, SQLite 999-param aware), `DeleteAll`, and `Scan`. Tombstone column support for server-side filtering.
+- **`storage.ViewMapper[V]`** — declarative column mapping: table name, columns with extractors, `ScanRow`, optional `TombstoneColumn` and `Indexes`.
+- **`storage.AutoMapper` / `AutoMapperWithTombstone`** — generates a `ViewMapper` from struct tags (field name → column name).
+- **`storage.NewSQLiteViewStore` / `NewSQLViewStore` / `NewViewStoreWithDialect`** — constructors with auto-migration.
+- **`kv.ViewStore` interface** — `ViewQuerier`, `ViewCounter`, `ViewBatchSetter`, `ViewResetter`, `TombstoneQuerier` optional interfaces checked at runtime.
+- **`kv.ViewQuery` / `Condition` / `Operator`** — typed query DSL (`OpEq`, `OpNeq`, `OpGt`, `OpGte`, `OpLt`, `OpLte`, `OpIn`, `OpLike`).
+- **Preset integration** — `sqlite.SQLViewModel[V,K]` and `postgres.SQLViewModel[V,K]` one-call constructors.
+- **`storage.WithoutViewAutoMigrate`** / **`storage.SQLiteApplyOptimizations`** — production options.
+- **`sqlite.WithForeignKeys()` / `sqlite.WithOptimizations()`** — referential integrity + cache/temp/mmap PRAGMAs.
+
+#### Multi-Database Split
+
 - **Postgres multi-DB split** — `WithEventDB`/`WithQueryDB`/`WithViewDB` options for the Postgres preset, mirroring SQLite and Turso. Routes events+snapshots+checkpoints, commands+queries, and read models to separate databases on the same Postgres server. (ADR-0033)
+- **`stack/sqlopt` package** — shared option-assembly logic for SQL-backed presets. Keeps the base `stack` package free of a storage dependency.
+- **`stack.WithDatabase` / `Bundle.Database()`** — expose the underlying DB handle for preset-specific constructors.
+- **Multi-DB contract test** — `contracttest.RunMultiDBSuite` verifies routing correctness.
+- **Multi-DB example** (`example/deployer-first-multidb/`) — runnable end-to-end demo.
+- **ADR-0033** — Multi-database split design rationale.
+- **ADR-0034** — Session store boundary.
+
+#### Shared Metadata & Lifecycle Helpers
+
+- **`event.CustomData[K]`** — shared generic base for `command.Metadata` and `query.Metadata` (ADR-0031). Carries tracing + custom map with shared `Clone`/`Merge`/`EnsureCustom`.
+- **`event.MergeCustomMaps`** — generic zero-allocation merge for custom metadata maps.
+- **`stack.MultiCloser` / `stack.FuncCloser`** — shared lifecycle helpers.
+- **`Bundle.Debug()`** — prints which capability fields are set for wiring diagnostics.
+
+#### CI & Tooling
+
+- **API stability CI check** — `cmd/api-stability` golden file (1627 exports) verified on every push/PR.
+- **Convenience flake apps** — `nix run .#test-grpc`, `.#check-wasm`, `.#check-api-stability`, `.#ci` (aggregate).
+- **`nix run .#check-file-size`** — local mirror of the CI file-size gate.
+- **Property-based tombstone tests** — 6 `rapid`-based tests (100 iterations each) covering empty stream, last-event-wins, no-mutation, transitions, unmarked, nil.
+- **Zero lint findings** — golangci-lint config tuned to 0 findings across all 33 modules (down from 200).
+- **12 design documents** (`docs/design/`) — NATS, Redis, secondary indexes, hot-state cache, read-pressure snapshots, compaction, archival, dashboard, distributed runner, blocked items, makezero eval, remaining ideas.
+
+#### Storage & Production Tuning
+
+- **`synchronous=NORMAL` in `SQLiteEnableWAL`** — 3-10x better write throughput without durability loss.
+- **Turso WAL default** — Turso preset now enables WAL by default; disable with `WithoutWAL()`.
+- **Turso sync contract test** — `TestNewSync_Contract` (skips without `TURSO_SYNC_URL`).
+- **Schema migration caveat** documented in `storage/doc.go`.
+- **Migration guide** (`docs/MIGRATION_TO_STACK.md`) — replacing hand-wired infrastructure with presets.
+
+### Fixed
+
+- **11 phantom doc references** — corrected stale type names across stack/doc.go, stack/errors.go, bundle.go, options.go, snapshot/doc.go.
+- **FEATURES.md stale v2 import paths** — stack modules updated to v3.
+- **ROADMAP.md module count** — corrected 38 → 43.
+- **ADR-0026 stale WASM claims** — decider/ now compiles to WASM (fixed via `//go:build !js`); removed reference to deleted `wasm/main.go`.
+- **9 dead `noinlineerr` references** — removed from `.golangci.yml` exclusion lists.
+- **11 stale `//nolint:errcheck` directives** — removed from test files (errcheck excluded for `_test.go`).
+- **`stack/go.mod` invalid `eventtest v3.0.0`** — fixed to `v0.0.0` (no major-version suffix).
+- **storage/pebble test unchecked errors** — added error checks on constructor calls.
+
+### Changed
+
+- **go-error-family upgraded v0.4.0 → v0.5.1** — across all 12 direct-dep modules. `event.Compose` removed (use stdlib `errors.Join`). Upstream adds `Family.HTTPStatus()`, `Family.RetryPolicy()`, `Error.JSON()`, copy-on-write errors, severity-ordered multi-error classification, lock-free sentinel lookup, injectable `Registry`.
+- **API surface** — 1558 → 1627 exports. Golden file regenerated.
+- **Coverage documented** — real per-module numbers in AGENTS.md (decider 98.3%, event 91.4%, command 89.4%, workspace total 78.7%). — `WithEventDB`/`WithQueryDB`/`WithViewDB` options for the Postgres preset, mirroring SQLite and Turso. Routes events+snapshots+checkpoints, commands+queries, and read models to separate databases on the same Postgres server. (ADR-0033)
 - **Multi-DB contract test** — `contracttest.RunMultiDBSuite` verifies routing correctness for any preset supporting multi-DB. Wired into sqlite and turso test suites; postgres test requires `POSTGRES_TEST_DSN` + `CREATE DATABASE` permission.
 - **Migration guide** (`docs/MIGRATION_TO_STACK.md`) — Step-by-step guide showing how to replace 200–400 lines of hand-wired infrastructure with 5–10 lines of stack preset. Covers event store, projection runner (CatchUpSubscriber+Materialize), build-tag switching, and multi-DB split.
 - **Turso sync contract test** — `TestNewSync_Contract` runs the full contract suite against a NewSync bundle (skips without `TURSO_SYNC_URL`).
@@ -18,22 +83,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`synchronous=NORMAL` in `SQLiteEnableWAL`** — WAL mode now sets `synchronous=NORMAL` instead of the default FULL, giving 3-10x better write throughput without durability loss (safe with WAL). Affects both SQLite and Turso presets.
 - **SQLite `WithOptimizations()`** — applies `cache_size`, `temp_store=MEMORY`, and `mmap_size` PRAGMAs for production throughput. Parity with the existing Turso option.
 - **Turso `WithoutWAL()`** — WAL mode is now the default for the Turso preset (was previously off). Disable with `WithoutWAL()`.
-- **Turso WAL default** — the Turso preset now enables WAL by default, matching SQLite preset behavior. `applySchemaAndPragmas` calls `SQLiteEnableWAL` on all code paths.
-- **`Bundle.Debug()`** — prints which capability fields are set (✓) or nil (✗) for wiring diagnostics.
-- **`stack.MultiCloser` / `stack.FuncCloser`** — shared lifecycle helpers extracted from the 3 duplicated preset closers.go files.
-- **Multi-DB example** (`example/deployer-first-multidb/`) — runnable end-to-end demo of the three-database split (events, queries, views) using the SQLite preset.
-- **`nix run .#check-file-size`** — local mirror of the CI file-size gate (350-line limit) so developers catch violations before pushing.
-- **`storage.SQLiteApplyOptimizations()`** — public function setting production PRAGMAs (cache_size, temp_store, mmap_size), usable outside the preset.
-
-### Fixed
-
-- **11 phantom doc references** — `Bundle.Repository` → `Repository`, `Bundle.ReadModel` → `ReadModel`, `Bundle.ProjectionRunner` → `Bundle.CatchUpSubscriber` across stack/doc.go, stack/errors.go, stack/bundle.go, stack/options.go. `memory.NewSnapshotStore` → `memory.NewMemorySnapshotStore` in snapshot/doc.go.
-- **FEATURES.md stale v2 import paths** — stack modules updated to v3.
-
-### Changed
-
-- **go-error-family upgraded from v0.4.0 to v0.5.0** across all 12 direct-dep modules. `event.Compose` removed (was a trivial `errors.Join` wrapper) — consumers now use stdlib `errors.Join` directly. Upstream v0.5.0 adds `Family.HTTPStatus()`, `Family.RetryPolicy()`, `Error.JSON()`, copy-on-write errors (data-race fix), severity-ordered multi-error classification, lock-free sentinel lookup, and an injectable `Registry`. API surface golden file (`docs/api_surface.txt`) regenerated.
-
 ## [3.0.0] - 2026-06-22
 
 **Major release — tagged.** All 38 modules migrated to `/v3` import paths. The 11 breaking changes are additive in nature (the new shapes existed in v2). See the **[v3 Migration Guide](docs/migration/V3_MIGRATION.md)** for step-by-step instructions.
