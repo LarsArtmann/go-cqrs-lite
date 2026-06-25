@@ -48,10 +48,7 @@ The following modules compile to WASM (`GOOS=js GOARCH=wasm`):
 - `command/` — command types
 - `query/` — query types
 
-**Known limitation**: `decider/` does NOT compile to WASM because OTel SDK
-(transitive dependency) imports `os/user`, which is not available in js/wasm.
-This will be resolved when OTel SDK adds WASM support or when the decider
-module makes OTel fully optional.
+**WASM compatibility**: All 7 core modules compile to WASM. `decider/` was previously blocked by OTel SDK's `os/user` import, but this was resolved by moving `NewCQRSViews()` behind `//go:build !js` in `otel/views.go`.
 
 ## Consequences
 
@@ -64,5 +61,5 @@ module makes OTel fully optional.
 ## References
 
 - `docs/EXPERIMENTAL_BUILD_TAGS.md` — build tag documentation
-- `wasm/main.go` — WASM verification binary
+- CI `wasm-compile` job verifies all 7 core modules (see `.github/workflows/ci.yml`)
 - [Go experiments](https://tip.golang.org/doc/go1.26#experiments)

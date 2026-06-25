@@ -249,7 +249,7 @@ linters:
           - gosec
           - goconst
           - wsl_v5
-          - noinlineerr
+
           - intrange
           - modernize
           - revive
@@ -280,7 +280,7 @@ linters:
           - forbidigo
           - exhaustruct
           - wrapcheck
-          - noinlineerr
+
       - path: testhelpers/fake.*\.go$
         linters:
           - exhaustruct
@@ -342,12 +342,11 @@ linters:
           - varnamelen
           - wrapcheck
           - nlreturn
-          - noinlineerr
+
           - wsl_v5
           - contextcheck
       - path: encryption/(aesgcm|xchacha20|envelope)\.go$
         linters:
-          - noinlineerr
           - nlreturn
           - dupword
           - forcetypeassert
@@ -402,7 +401,7 @@ linters:
           - errcheck
           - errorlint
           - nlreturn
-          - noinlineerr
+
           - wsl_v5
           - modernize
           - perfsprint
@@ -412,7 +411,7 @@ linters:
           - varnamelen
       - path: turso/indexing\.go$
         linters:
-          - noinlineerr
+          - wsl_v5
       - path: turso/.*_test\.go$
         linters:
           - rowserrcheck
@@ -423,7 +422,7 @@ linters:
       - path: saga/
         linters:
           - nlreturn
-          - noinlineerr
+
           - exhaustruct
           - err113
           - mnd
@@ -440,7 +439,7 @@ linters:
           - gocognit
           - mnd
           - nlreturn
-          - noinlineerr
+
           - varnamelen
           - wrapcheck
           - wsl_v5
@@ -450,7 +449,7 @@ linters:
       - path: watermill/
         linters:
           - wsl_v5
-          - noinlineerr
+
           - wrapcheck
           - err113
           - nestif

@@ -7,7 +7,7 @@
 
 ## Current State (v3.0.0 released)
 
-**v3.0.0 is tagged** (2026-06-22) — all 38 modules are on `/v3` import paths. The 11 v3 breaking changes shipped (see [CHANGELOG.md](CHANGELOG.md) and the [v3 Migration Guide](docs/migration/V3_MIGRATION.md)). All core CQRS/ES primitives are shipped: Event Sourcing with branded IDs, CQRS command/query dispatch, tombstone soft-delete, event signing/encryption, OTel observability, Pebble/SQL/Turso storage backends, and a Bundle composition layer with 4 presets.
+**v3.0.0 is tagged** (2026-06-22) — all 43 modules are on `/v3` import paths. The 11 v3 breaking changes shipped (see [CHANGELOG.md](CHANGELOG.md) and the [v3 Migration Guide](docs/migration/V3_MIGRATION.md)). All core CQRS/ES primitives are shipped: Event Sourcing with branded IDs, CQRS command/query dispatch, tombstone soft-delete, event signing/encryption, OTel observability, Pebble/SQL/Turso storage backends, and a Bundle composition layer with 4 presets.
 
 ## Short Term (Next 90 Days)
 
