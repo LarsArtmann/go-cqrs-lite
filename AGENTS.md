@@ -25,9 +25,9 @@ Consumers import what they need and compose their own stack. Not a framework —
 | Item      | Value                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Language  | Go 1.26.3                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| Modules   | `event`, `command`, `query`, `decider`, `id`, `id/idtest`, `query/querytest`, `dispatcher`, `schema`, `snapshot`, `catalog`, `middleware`, `integration`, `storage`, `storage/memory`, `storage/pebble`, `storage/turso`, `signing`, `encryption`, `otel`, `prometheus`, `watermill`, `transport/http`, `transport/grpc`, `codec`, `kv`, `kv/viewstoretest`, `listing`, `testutil`, `cqrs-gen`, `api-stability`, `doc-check`, `stack`, `stack/memory`, `stack/sqlite`, `stack/turso`, `stack/pebble`, `stack/postgres`, `stack/bench`, `example/user`, `example/todo`, `example/encryption`, `example/deployer-first`, `example/deployer-first-multidb`                                                                                                    |
+| Modules   | `event`, `command`, `query`, `decider`, `id`, `id/idtest`, `query/querytest`, `dispatcher`, `schema`, `snapshot`, `catalog`, `middleware`, `integration`, `storage`, `storage/memory`, `storage/pebble`, `storage/turso`, `signing`, `encryption`, `otel`, `prometheus`, `watermill`, `transport/http`, `transport/grpc`, `codec`, `kv`, `kv/viewstoretest`, `listing`, `graph`, `testutil`, `cqrs-gen`, `api-stability`, `doc-check`, `stack`, `stack/memory`, `stack/sqlite`, `stack/turso`, `stack/pebble`, `stack/postgres`, `stack/bench`, `example/user`, `example/todo`, `example/encryption`, `example/deployer-first`, `example/deployer-first-multidb`                                                                                                    |
 | Build     | `nix run .#build`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| Test      | `nix run .#test` or `go test ./event/... ./command/... ./query/... ./decider/... ./id/... ./dispatcher/... ./schema/... ./snapshot/... ./storage/memory/... ./catalog/... ./middleware/... ./integration/... ./signing/... ./encryption/... ./storage/... ./storage/pebble/... ./storage/turso/... ./watermill/... ./transport/http/... ./transport/grpc/... ./codec/... ./kv/... ./listing/... ./testutil/... ./cmd/cqrs-gen/... ./cmd/doc-check/... ./prometheus/... ./otel/... ./stack/... ./stack/memory/... ./stack/sqlite/... ./stack/turso/... ./stack/pebble/... ./stack/postgres/... ./stack/bench/... ./example/user/... ./example/todo/... ./example/encryption/... ./example/deployer-first/... ./example/deployer-first-multidb/... -count=1` |
+| Test      | `nix run .#test` or `go test ./event/... ./command/... ./query/... ./decider/... ./id/... ./dispatcher/... ./schema/... ./snapshot/... ./storage/memory/... ./catalog/... ./middleware/... ./integration/... ./signing/... ./encryption/... ./storage/... ./storage/pebble/... ./storage/turso/... ./watermill/... ./transport/http/... ./transport/grpc/... ./codec/... ./kv/... ./listing/... ./testutil/... ./cmd/cqrs-gen/... ./cmd/doc-check/... ./prometheus/... ./otel/... ./stack/... ./stack/memory/... ./stack/sqlite/... ./stack/turso/... ./stack/pebble/... ./stack/postgres/... ./stack/bench/... ./example/user/... ./example/todo/... ./example/encryption/... ./example/deployer-first/... ./example/deployer-first-multidb/... ./graph/... -count=1` |
 | Lint      | `nix run .#lint`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | Format    | `nix fmt`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | Dev shell | `nix develop`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
@@ -35,7 +35,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Monorepo Structure
 
-Multi-module Go workspace (`go.work`) with 43 `go.mod` files — 42 wired into `go.work` + `transport/grpc` (builds clean but not yet added to the workspace). Breakdown: 26 library + 7 stack presets + 5 examples + 3 cmd + 1 integration + 1 root anchor. Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`:
+Multi-module Go workspace (`go.work`) with 44 `go.mod` files — 43 wired into `go.work` + `transport/grpc` (builds clean but not yet added to the workspace). Breakdown: 27 library + 7 stack presets + 5 examples + 3 cmd + 1 integration + 1 root anchor. Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`:
 
 ```
 go-cqrs-lite/
@@ -71,6 +71,7 @@ go-cqrs-lite/
 ├── transport/http/       # SSE event delivery: SSEBroker, SSEHandler (bridges event.Bus to HTTP clients, ADR-0025)
 ├── transport/grpc/       # gRPC transport: RegisterCommandService, RegisterQueryService, CommandClient, QueryClient (ADR-0025)
 ├── codec/               # Payload encoding: JSON, CBOR (deterministic), Raw passthrough
+├── graph/               # Graph projection tier: NodeRef, EdgeRef, GraphSink, GraphDriver, GraphProjection, MemoryDriver (ADR-0033)
 ├── kv/                  # Layer-0 KV store abstraction: Store, MemStore, Iterator, Batch. PLUS TypedStore[T,K], Cache[T,K], ViewStore[V,K] interface, ViewQuery, ViewQuerier, TombstoneQuerier
 ├── testutil/            # Shared test helpers: NewCmd(tb, ...) (cross-module test utilities)
 ├── cmd/cqrs-gen/        # Code generator: typed handler registration from Go structs
@@ -396,6 +397,37 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //       OrderBy: "created_at", Desc: true, Limit: 50,
 //   }, func(scan func(...any) error) error { var r Row; return scan(&r.ID, &r.Content) })
 
+// Graph projections — nodes + edges for traversal-heavy read models (graph.GraphProjection)
+//   // The third projection tier. Where Materialize writes ONE document per key
+//   // and RelationalProjection writes across SQL tables, GraphProjection merges
+//   // events into nodes and edges — the right shape for variable-depth traversal,
+//   // adjacency, path-finding, causation DAGs, reply chains, role memberships,
+//   // reaction networks. Use when N-hop queries (recursive CTEs in SQL) dominate.
+//   //
+//   // Writes ARE portable across backends (openCypher MERGE semantics shared by
+//   // Neo4j, Memgraph, Apache Age, RedisGraph). Reads are NOT abstracted — run
+//   // native Cypher/Gremlin via the driver. This asymmetry is documented.
+//   driver := graph.NewMemoryDriver() // or graph/neo4j.NewDriver(...) in sibling module
+//   proj, _ := graph.NewGraphProjection("discord-graph", driver,
+//       func(ctx context.Context, evt event.Event, sink graph.GraphSink) error {
+//           var p MessageCreated
+//           _ = json.Unmarshal(evt.Payload(), &p)
+//           msgRef := graph.NodeRef{Label: "Message", KeyProp: "id", KeyValue: p.ID}
+//           sink.MergeNode(msgRef, map[string]any{"created_at": p.CreatedAt})
+//           // Auto-creates endpoint nodes — handlers need not pre-merge.
+//           sink.MergeEdge(graph.EdgeRef{Type: "AUTHORED_BY", From: msgRef,
+//               To: graph.NodeRef{Label: "User", KeyProp: "id", KeyValue: p.AuthorID}}, nil)
+//           // The recursive edge — relational tier needs WITH RECURSIVE CTE.
+//           if p.ReplyToMessageID != "" {
+//               sink.MergeEdge(graph.EdgeRef{Type: "REPLY_TO", From: msgRef,
+//                   To: graph.NodeRef{Label: "Message", KeyProp: "id", KeyValue: p.ReplyToMessageID}},
+//                   map[string]any{"at": p.CreatedAt})
+//           }
+//           return nil // atomic: all merges commit or all roll back
+//       }, []event.Type{"MESSAGE_CREATED"})
+//   // proj implements event.Projection → register with any projection runner.
+//   // Reads: driver.Snapshot() (memory) or native Cypher (Neo4j driver).
+
 // gRPC transport (remote command/query dispatch, ADR-0025)
 //   srv := grpc.NewServer()
 //   cqrsgrpc.RegisterCommandService(srv, cmdDispatcher)
@@ -506,7 +538,7 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 ```
 Layer 0: id/, dispatcher/, codec/, kv/         (leaf modules, no internal deps)
 Layer 1: event/ (→id, codec, ro), command/ (→id, dispatcher, ro), query/ (→dispatcher, ro)
-Layer 2: schema/ (→event), snapshot/ (→event)
+Layer 2: schema/ (→event), snapshot/ (→event), graph/ (→event)
 Layer 3: decider/ (→event, snapshot)
 Layer 4: storage/memory/, signing/, encryption/, otel/
 Layer 5: middleware/, storage/, listing/, watermill/, transport/http/, transport/grpc/, storage/pebble/, storage/turso/, prometheus/

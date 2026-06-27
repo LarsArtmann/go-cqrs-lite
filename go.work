@@ -18,6 +18,7 @@ use (
 	./example/encryption
 	./example/todo
 	./example/user
+	./graph
 	./id
 	./integration
 	./kv
