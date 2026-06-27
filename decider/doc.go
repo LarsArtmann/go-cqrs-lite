@@ -1,8 +1,9 @@
 // Package decider implements the pure-function aggregate pattern for event sourcing.
 //
-// A Decider[State] replaces mutable aggregate roots with two pure functions:
-//   - DecideFunc: takes current state + command, returns events
-//   - Apply: takes state + event, returns new state
+// A Decider[State] replaces a mutable aggregate root with a pure fold: the
+// Apply function takes the current state and an event, returning the new state.
+// The decision logic (command → events) is supplied separately as a
+// [DecideFunc] to Repository.Execute — it is NOT a field on Decider[State].
 //
 // The Repository[State] handles the full lifecycle: load → apply → decide → save → publish.
 //

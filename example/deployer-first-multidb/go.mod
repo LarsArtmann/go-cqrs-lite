@@ -3,13 +3,13 @@ module github.com/larsartmann/go-cqrs-lite/example/deployer-first-multidb
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.0.0
-	github.com/larsartmann/go-cqrs-lite/decider/v3 v3.0.0
-	github.com/larsartmann/go-cqrs-lite/event/v3 v3.0.0
-	github.com/larsartmann/go-cqrs-lite/id/v3 v3.0.0
-	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v3 v3.0.0
-	github.com/larsartmann/go-cqrs-lite/stack/v3 v3.0.0
-	github.com/larsartmann/go-cqrs-lite/watermill/v3 v3.0.0
+	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.1.0
+	github.com/larsartmann/go-cqrs-lite/decider/v3 v3.1.0
+	github.com/larsartmann/go-cqrs-lite/event/v3 v3.1.0
+	github.com/larsartmann/go-cqrs-lite/id/v3 v3.1.0
+	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v3 v3.1.0
+	github.com/larsartmann/go-cqrs-lite/stack/v3 v3.1.0
+	github.com/larsartmann/go-cqrs-lite/watermill/v3 v3.1.0
 )
 
 require (
@@ -23,14 +23,14 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v3 v3.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/listing/v3 v3.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/query/v3 v3.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/v3 v3.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v3 v3.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/listing/v3 v3.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/query/v3 v3.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-error-family v0.5.1 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
@@ -53,7 +53,7 @@ require (
 	golang.org/x/sync v0.21.0 // indirect
 	golang.org/x/sys v0.46.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	modernc.org/libc v1.73.4 // indirect
+	modernc.org/libc v1.73.5 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 	modernc.org/sqlite v1.53.0 // indirect

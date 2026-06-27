@@ -2,12 +2,18 @@
 // It implements the full CQRS persistence stack: event store with journal,
 // snapshot store, and checkpoint store.
 //
-// A single *pebble.DB can back all three stores via disjoint key prefixes:
+// A single *pebble.DB backs all stores via disjoint key prefixes. The Backend
+// facade owns the database and exposes every store; it is the recommended path:
 //
-//	db, _ := pebble.Open("data", &pebble.Options{})
-//	eventStore  := pebble.NewStore(db, slog.Default())
-//	snapStore   := pebble.NewSnapshotStore(db, slog.Default())
-//	cpStore     := pebble.NewCheckpointStore(db, slog.Default())
+//	backend, err := pebble.Open("data", pebble.DefaultOptions(), nil)
+//	defer backend.Close()
+//
+//	eventStore := backend.EventStore()
+//	snapStore  := backend.SnapshotStore()
+//	cpStore    := backend.CheckpointStore()
+//
+// For manual wiring from an existing *pebble.DB, use NewStore,
+// NewSnapshotStore, and NewCheckpointStore (each returns (store, error)).
 //
 // # Event Store
 //

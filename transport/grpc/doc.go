@@ -16,7 +16,8 @@
 //
 //	Create a remote dispatcher backed by a gRPC connection:
 //
-//	conn, _ := grpc.Dial(addr, grpc.WithInsecure())
+//	conn, _ := grpc.NewClient(addr,
+//	    grpc.WithTransportCredentials(insecure.NewCredentials()))
 //	cmdClient := cqrsgrpc.NewCommandClient(conn)
 //	err := cmdClient.Dispatch(ctx, command)
 package grpc

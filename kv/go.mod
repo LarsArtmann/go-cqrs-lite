@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/kv/v3
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.0.0
+	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.1.0
 	github.com/larsartmann/go-error-family v0.5.1
 	github.com/maypok86/otter/v2 v2.3.0
 )
