@@ -719,7 +719,7 @@ func TestRelationalProjection_DeleteWhereAndQueryOneMissing(t *testing.T) {
 
 		_, qerr := sink.QueryOne(ctx, "messages", "content", Row{"id": "drop"})
 		if !errors.Is(qerr, errSinkNoRows) {
-			return fmt.Errorf("expected errSinkNoRows after delete, got %v", qerr)
+			return fmt.Errorf("expected errSinkNoRows after delete, got %w", qerr)
 		}
 
 		return nil
