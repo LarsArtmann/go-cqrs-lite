@@ -799,18 +799,60 @@
           the &ldquo;toward-perfect&rdquo; brainstorm.
         </p>
 
-        <div class="dep-tree">
-          <span class="root">verified missing</span> &mdash;
-          <span class="unwanted">0 matches</span> in *.go <span class="miss">outbox</span> &rarr; 0
-          hits (chose relay over outbox; dual-write gap open)
-          <span class="miss">dead-letter / DLQ</span> &rarr; 0 hits (no poison-message capture)
-          <span class="miss">saga / process mgr</span> &rarr; 1 hit (only a comment: "emerges from
-          SubscribeAll") <span class="miss">scheduler / deadline</span> &rarr; 0 hits (no durable
-          timers) <span class="miss">projection host/daemon</span> &rarr; deleted in ADR-0030; you
-          compose it yourself <span class="miss">cmd idempotency</span> &rarr; event-level dedup
-          only; no command-id dedup <span class="miss">cqrsctl control plane</span> &rarr; cqrs-gen
-          is codegen only
-        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Capability</th>
+              <th>Source matches</th>
+              <th>Verdict</th>
+              <th>Reason</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>outbox</td>
+              <td>0</td>
+              <td><span class="badge badge-critical">Missing</span></td>
+              <td>Chose relay over outbox; dual-write gap open</td>
+            </tr>
+            <tr>
+              <td>dead-letter / DLQ</td>
+              <td>0</td>
+              <td><span class="badge badge-critical">Missing</span></td>
+              <td>No poison-message capture</td>
+            </tr>
+            <tr>
+              <td>saga / process mgr</td>
+              <td>1</td>
+              <td><span class="badge badge-medium">Comment only</span></td>
+              <td>Single comment: &ldquo;emerges from SubscribeAll&rdquo;</td>
+            </tr>
+            <tr>
+              <td>scheduler / deadline</td>
+              <td>0</td>
+              <td><span class="badge badge-critical">Missing</span></td>
+              <td>No durable timers</td>
+            </tr>
+            <tr>
+              <td>projection host/daemon</td>
+              <td>&mdash;</td>
+              <td><span class="badge badge-medium">Deleted</span></td>
+              <td>Removed in ADR-0030; consumer composes it</td>
+            </tr>
+            <tr>
+              <td>cmd idempotency</td>
+              <td>&mdash;</td>
+              <td><span class="badge badge-medium">Partial</span></td>
+              <td>Event-level dedup only; no command-id dedup</td>
+            </tr>
+            <tr>
+              <td>cqrsctl control plane</td>
+              <td>&mdash;</td>
+              <td><span class="badge badge-low">Out of scope</span></td>
+              <td>cqrs-gen is codegen only</td>
+            </tr>
+          </tbody>
+        </table>
 
         <div class="card card-solution">
           <h4>Caveat: some of this is <em>by design</em>, not forgotten</h4>
