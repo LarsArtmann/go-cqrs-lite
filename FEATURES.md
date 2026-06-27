@@ -750,14 +750,14 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 Found during code reviews. See `docs/planning/` for details.
 
-| Issue                                                                                                      | Severity   | Module              |
-| ---------------------------------------------------------------------------------------------------------- | ---------- | ------------------- |
-| ~~CommandJournal/SeekableCommandJournal in MemoryCommandStore untested~~ — **RESOLVED** (`0c0cd5b3`)       | ~~MEDIUM~~ | memory              |
-| ~~Query store interfaces (PersistedQuery, QueryStore, QueryJournal) untested~~ — **RESOLVED** (`0c0cd5b3`) | ~~MEDIUM~~ | query, memory       |
-| ~~Query module lacks store-specific sentinel errors~~ — **RESOLVED** (`query/errors.go`)                   | ~~LOW~~    | query               |
-| ~~command re-exports event types (module boundary violation)~~ — **DOCUMENTED AS INTENTIONAL** (`command/aggregate_ref.go:8-10`). Commands share the same aggregate identity as events; re-exporting `AggregateType`/`AggregateRef` is convenience, not layering violation. | ~~HIGH~~ | command             |
-| ~~Reactive extensions not wired into dispatchers~~ — **DELETED** with `projection/` module (ADR-0030)      | ~~LOW~~    | event/command/query |
-| ~~Pre-existing golden test drift (codec, middleware)~~ — **RESOLVED** (`8f2d2090`). Golden tests pass; the "drift" was caused by an invalid eventtest version in stack/go.mod blocking test execution, not actual content drift. | ~~LOW~~    | codec, middleware   |
+| Issue                                                                                                                                                                                                                                                                       | Severity   | Module              |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------------------- |
+| ~~CommandJournal/SeekableCommandJournal in MemoryCommandStore untested~~ — **RESOLVED** (`0c0cd5b3`)                                                                                                                                                                        | ~~MEDIUM~~ | memory              |
+| ~~Query store interfaces (PersistedQuery, QueryStore, QueryJournal) untested~~ — **RESOLVED** (`0c0cd5b3`)                                                                                                                                                                  | ~~MEDIUM~~ | query, memory       |
+| ~~Query module lacks store-specific sentinel errors~~ — **RESOLVED** (`query/errors.go`)                                                                                                                                                                                    | ~~LOW~~    | query               |
+| ~~command re-exports event types (module boundary violation)~~ — **DOCUMENTED AS INTENTIONAL** (`command/aggregate_ref.go:8-10`). Commands share the same aggregate identity as events; re-exporting `AggregateType`/`AggregateRef` is convenience, not layering violation. | ~~HIGH~~   | command             |
+| ~~Reactive extensions not wired into dispatchers~~ — **DELETED** with `projection/` module (ADR-0030)                                                                                                                                                                       | ~~LOW~~    | event/command/query |
+| ~~Pre-existing golden test drift (codec, middleware)~~ — **RESOLVED** (`8f2d2090`). Golden tests pass; the "drift" was caused by an invalid eventtest version in stack/go.mod blocking test execution, not actual content drift.                                            | ~~LOW~~    | codec, middleware   |
 
 ---
 
@@ -833,17 +833,17 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 ## Architecture Guarantees
 
-| Guarantee              | Detail                                                                                                                                                                              |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Guarantee              | Detail                                                                                                                                                                                                     |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Lint posture           | ~68 findings across 15/37 modules after config tuning (noinlineerr disabled, makezero set to `always:false`). Mostly wrapcheck/err113/exhaustruct — style issues, not bugs. 22/37 modules pass lint clean. |
-| Race-free              | `go test -race` passes across all modules                                                                                                                                           |
-| Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                                                                                                                      |
-| Strong types           | `event.Event` is a concrete type alias (`= *ImmutableEvent`); core store/bus are interfaces for DI                                                                                  |
-| Library, not framework | Import what you need, compose your own stack                                                                                                                                        |
-| Context-aware          | All handlers accept `context.Context`                                                                                                                                               |
-| Errors as values       | Zero panics in production code, explicit error returns, classified sentinels via error-family taxonomy                                                                              |
-| Defensive copies       | All public accessors return copies — callers cannot mutate internals                                                                                                                |
-| Tombstone over delete  | Soft-delete via metadata — no `Delete` on Store                                                                                                                                     |
+| Race-free              | `go test -race` passes across all modules                                                                                                                                                                  |
+| Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                                                                                                                                             |
+| Strong types           | `event.Event` is a concrete type alias (`= *ImmutableEvent`); core store/bus are interfaces for DI                                                                                                         |
+| Library, not framework | Import what you need, compose your own stack                                                                                                                                                               |
+| Context-aware          | All handlers accept `context.Context`                                                                                                                                                                      |
+| Errors as values       | Zero panics in production code, explicit error returns, classified sentinels via error-family taxonomy                                                                                                     |
+| Defensive copies       | All public accessors return copies — callers cannot mutate internals                                                                                                                                       |
+| Tombstone over delete  | Soft-delete via metadata — no `Delete` on Store                                                                                                                                                            |
 
 ---
 

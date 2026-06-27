@@ -54,6 +54,7 @@ Execute(ctx, aggID, decider, cmd)
 ### Profile Before Building
 
 Snapshot + page-cache-resident events already make sequential loads cheap (~microseconds for <1000 events). This cache only pays off for:
+
 - Aggregates with very long event streams (10K+ events)
 - Aggregates commanded at high frequency (100+ ops/sec)
 - Scenarios where snapshot frequency is low (EveryNEvents with large N)

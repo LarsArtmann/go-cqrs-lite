@@ -10,6 +10,7 @@ Developers and operators need visibility into aggregates, events, projections, a
 ## Vision
 
 A self-contained web UI that:
+
 1. Lists all aggregate types and their instances
 2. Shows the event stream for any aggregate (with payload inspection)
 3. Displays projection state (read models) with filtering

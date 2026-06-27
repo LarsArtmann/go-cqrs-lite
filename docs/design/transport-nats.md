@@ -23,6 +23,7 @@ transport/nats/
 ### Interfaces
 
 **Publisher** implements `event.Publisher`:
+
 ```go
 type Publisher struct {
     js     nats.JetStream
@@ -35,6 +36,7 @@ func (p *Publisher) Publish(ctx context.Context, events ...event.Event) error
 ```
 
 **Subscriber** implements `event.Subscriber`:
+
 ```go
 type Subscriber struct {
     js     nats.JetStream

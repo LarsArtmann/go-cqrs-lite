@@ -23,6 +23,7 @@ transport/redis/
 ### Interfaces
 
 **Publisher** implements `event.Publisher`:
+
 ```go
 type Publisher struct {
     client    *redis.Client
@@ -35,6 +36,7 @@ func (p *Publisher) Publish(ctx context.Context, events ...event.Event) error
 ```
 
 **Subscriber** implements `event.Subscriber`:
+
 ```go
 type Subscriber struct {
     client    *redis.Client

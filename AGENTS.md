@@ -343,6 +343,59 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   // From a Bundle preset (one-call path):
 //   //   store, _ := sqlite.SQLViewModel[TodoView, TodoID](bundle, mapper)
 
+// Relational projections — multi-table, SQL-dialect-independent (storage.RelationalProjection)
+//   // NOTE: This tier is SQL-ONLY (SQLite/Postgres/MySQL), portable at deployment
+//   // via the dialect — NOT portable to KV or Graph. Row/column/table/set-predicate
+//   // semantics are relational by design. For KV/document backends use
+//   // stack.Materialize + kv.ViewStore[V,K] (one document per key). A graph tier
+//   // would need a distinct sink (MergeNode/MergeEdge) — see RelationalSink docs.
+//   // SQLViewStore/Materialize write ONE record to ONE table per event. When an
+//   // event must update several related tables atomically (message + guild +
+//   // channel + user + attachments[], a member_roles junction, an append-only
+//   // message_edits history table), use RelationalProjection instead.
+//   schema := storage.RelationalSchema{Tables: []storage.RelationalTable{
+//       {Name: "messages", PrimaryKey: []string{"id"}, Columns: []storage.RelationalColumn{
+//           {Name: "id", Type: "TEXT"}, {Name: "channel_id", Type: "TEXT"},
+//           {Name: "content", Type: "TEXT"}, {Name: "created_at", Type: "TEXT"},
+//       }},
+//       {Name: "attachments", PrimaryKey: []string{"id"}, Columns: []storage.RelationalColumn{
+//           {Name: "id", Type: "TEXT"}, {Name: "message_id", Type: "TEXT"}, {Name: "filename", Type: "TEXT"},
+//       }},
+//       // Junction table: composite primary key
+//       {Name: "member_roles", PrimaryKey: []string{"guild_id", "user_id", "role_id"}, Columns: ...},
+//       // Append-only history: autoincrement PK declared in Type, no PrimaryKey
+//       {Name: "message_edits", Columns: []storage.RelationalColumn{
+//           {Name: "id", Type: "INTEGER PRIMARY KEY AUTOINCREMENT", Nullable: true},
+//           {Name: "message_id", Type: "TEXT"}, {Name: "before_content", Type: "TEXT"},
+//       }},
+//   }}
+//
+//   // Handler is dialect-agnostic — never touches *sql.DB. Backend chosen at
+//   // deployment via the dialect passed to NewRelationalProjection.
+//   proj, _ := storage.NewRelationalProjection("discord-messages", schema, db, sqlpkg.SQLiteDialect{},
+//       func(ctx context.Context, evt event.Event, sink storage.ProjectionSink) error {
+//           var p MessageCreated
+//           _ = json.Unmarshal(evt.Payload(), &p)
+//           sink.Ensure(ctx, "channels", storage.Row{"id": p.ChannelID, "name": "", "created_at": p.CreatedAt})
+//           sink.Upsert(ctx, "messages", storage.Row{  // conflict on PK "id"
+//               "id": p.ID, "channel_id": p.ChannelID, "content": p.Content, "created_at": p.CreatedAt,
+//           })
+//           for _, a := range p.Attachments {
+//               sink.Ensure(ctx, "attachments", storage.Row{"id": a.ID, "message_id": p.ID, "filename": a.Name})
+//           }
+//           return nil  // all writes commit atomically; error → full rollback
+//       }, []event.Type{"MESSAGE_CREATED"})
+//   // proj implements event.Projection → register with any projection runner.
+//
+//   // Read side: dialect-agnostic queries (replaces hand-written SQL).
+//   reader, _ := storage.NewRelationalStore(schema, db, sqlpkg.SQLiteDialect{})
+//   counts, _ := reader.CountMany(ctx, []string{"messages", "channels", "users"}) // stats endpoint
+//   _ = reader.Query(ctx, "messages", []string{"id", "content"}, storage.RelationalQuery{
+//       Conditions: []kv.Condition{{Column: "channel_id", Op: kv.OpEq, Value: chID},
+//                                   {Column: "created_at", Op: kv.OpLt, Value: cursor}},
+//       OrderBy: "created_at", Desc: true, Limit: 50,
+//   }, func(scan func(...any) error) error { var r Row; return scan(&r.ID, &r.Content) })
+
 // gRPC transport (remote command/query dispatch, ADR-0025)
 //   srv := grpc.NewServer()
 //   cqrsgrpc.RegisterCommandService(srv, cmdDispatcher)
