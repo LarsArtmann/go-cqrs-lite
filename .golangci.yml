@@ -1,7 +1,7 @@
 version: "2"
 run:
   timeout: 5m
-  go: 1.26.3
+  go: 1.26.4
   build-tags:
     - goexperiment.arenas
     - goexperiment.goroutineleakprofile
@@ -249,7 +249,6 @@ linters:
           - gosec
           - goconst
           - wsl_v5
-
           - intrange
           - modernize
           - revive
@@ -280,7 +279,6 @@ linters:
           - forbidigo
           - exhaustruct
           - wrapcheck
-
       - path: testhelpers/fake.*\.go$
         linters:
           - exhaustruct
@@ -342,7 +340,6 @@ linters:
           - varnamelen
           - wrapcheck
           - nlreturn
-
           - wsl_v5
           - contextcheck
       - path: encryption/(aesgcm|xchacha20|envelope)\.go$
@@ -351,41 +348,34 @@ linters:
           - dupword
           - forcetypeassert
           - wsl_v5
-      # codec: CBOR sync.OnceValue lazy-init vars are the standard Go pattern
       - path: codec/cbor.*\.go$
         linters:
           - gochecknoglobals
-      # kv: test-contract code is inherently complex
       - path: kv/viewstoretest/
         linters:
           - gocognit
           - errcheck
-      # stack: Materialize proxies Store calls transparently
       - path: stack/materialize\.go$
         linters:
           - wrapcheck
           - nestif
-      # stack: contract-test infrastructure
       - path: stack/contracttest/
         linters:
           - errcheck
           - goconst
           - varnamelen
           - err113
-      # stack: accessors bridge to watermill (one-off assertion errors)
       - path: stack/accessors\.go$
         linters:
           - err113
           - exhaustruct
           - wrapcheck
-      # stack presets: config construction with optional fields
       - path: stack/(turso|pebble)/preset\.go$
         linters:
           - exhaustruct
           - err113
           - contextcheck
           - wrapcheck
-      # transport/http: SSEEvent.Retry is optional; io.Writer.Write wrapping is standard
       - path: transport/http/sse
         linters:
           - exhaustruct
@@ -401,7 +391,6 @@ linters:
           - errcheck
           - errorlint
           - nlreturn
-
           - wsl_v5
           - modernize
           - perfsprint
@@ -422,7 +411,6 @@ linters:
       - path: saga/
         linters:
           - nlreturn
-
           - exhaustruct
           - err113
           - mnd
@@ -439,7 +427,6 @@ linters:
           - gocognit
           - mnd
           - nlreturn
-
           - varnamelen
           - wrapcheck
           - wsl_v5
@@ -449,7 +436,6 @@ linters:
       - path: watermill/
         linters:
           - wsl_v5
-
           - wrapcheck
           - err113
           - nestif

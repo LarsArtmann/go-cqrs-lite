@@ -1,0 +1,1322 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>From SDK to Event-Sourcing Framework/OS — Gap Analysis</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS DARK — Dashboard template
+         Zero external dependencies: system fonts, no CDN, no build step.
+         ========================================================================= */
+
+      :root {
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 15%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 20%, transparent);
+
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+      ul,
+      ol {
+        margin: 0 0 1rem 1.4rem;
+      }
+      li {
+        margin: 0.25rem 0;
+      }
+
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 72ch;
+        margin: 0;
+      }
+
+      .hero-shapes {
+        position: relative;
+        height: 80px;
+        margin-bottom: 1rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 24px;
+        left: 72px;
+        width: 48px;
+        height: 48px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        left: 140px;
+        width: 0;
+        height: 0;
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 48px solid var(--warning);
+      }
+
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+
+      .stat-grid,
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card,
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before,
+      .score-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad::before,
+      .score-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before,
+      .score-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before,
+      .score-warn::before {
+        background: var(--warning);
+      }
+      .stat-value,
+      .score {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value,
+      .score-bad .score {
+        color: var(--problem);
+      }
+      .stat-good .stat-value,
+      .score-good .score {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value,
+      .score-warn .score {
+        color: var(--warning);
+      }
+      .stat-label,
+      .score-card .label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      .tok-keyword {
+        color: var(--accent);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: var(--solution);
+      }
+      .tok-comment {
+        color: var(--text-faint);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #74a9ff;
+      }
+      .tok-number {
+        color: var(--accent);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #4dd9ff;
+      }
+      .tok-punct {
+        color: var(--text-muted);
+      }
+
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+      .dep-tree .miss {
+        color: var(--warning);
+      }
+
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.35rem 0.7rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--surface-sunken);
+        border: 1px solid var(--border-strong);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+        border-color: var(--accent);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+        border-color: var(--problem);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+        border-color: var(--solution);
+      }
+      .node-miss {
+        background: var(--warning);
+        color: var(--surface);
+        border-color: var(--warning);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      .migration-step {
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+      }
+      .migration-step.bucket-a {
+        border-left-color: var(--solution);
+      }
+      .migration-step.bucket-b {
+        border-left-color: var(--warning);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 800;
+        font-size: 1.5rem;
+        line-height: 1;
+      }
+      .migration-step.bucket-a .migration-num {
+        color: var(--solution);
+      }
+      .migration-step.bucket-b .migration-num {
+        color: var(--warning);
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0.3rem;
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+      .tag-row {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+      }
+
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+        .stat-grid,
+        .scorecard {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>Architecture Review &middot; Framework/OS Gap Analysis</span>
+      <span>2026-06-28</span>
+      <span>v3.1.0 &middot; 43 modules</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#thesis">The Thesis</a>
+          <a href="#evidence">Evidence</a>
+          <a href="#strengths">What's Already Superb</a>
+          <a href="#bucket-a">Bucket A: Library Gaps</a>
+          <a href="#bucket-b">Bucket B: Runtime/OS Gaps</a>
+          <a href="#matrix">Capability Matrix</a>
+          <a href="#plan">Pareto Roadmap</a>
+          <a href="#verdict">Strategic Verdict</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="hero">
+          <div class="hero-shapes">
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="hero-badge">Gap Analysis &middot; Exploration Mode</div>
+          <h1>What's missing to be a superb Event-Sourcing Framework/OS?</h1>
+          <p class="hero-subtitle">
+            Not a list of forgotten features. A deliberate framing of two very different buckets of
+            gaps &mdash; one on-mission for a <em>library</em>, one that requires becoming a
+            different <em>product</em> entirely. Verified against the v3.1.0 source.
+          </p>
+        </div>
+
+        <!-- ============ THESIS ============ -->
+        <h2 id="thesis"><span class="num">00</span>The Thesis</h2>
+        <p>
+          The single most important fact about this question:
+          <strong
+            >this project is explicitly, repeatedly, deliberately a <em>library/SDK</em>, not a
+            framework</strong
+          >
+          (AGENTS.md principle&nbsp;#1, the repo's own warning table, the litmus test &ldquo;Would
+          ANY Go app potentially use this?&rdquo;). Almost everything perceived as
+          &ldquo;missing&rdquo; is not an oversight &mdash; it is the <em>consequence</em> of that
+          choice. Frameworks and operating systems own a <strong>runtime</strong> and a
+          <strong>control plane</strong>; libraries provide <strong>importable primitives</strong>.
+        </p>
+
+        <div class="card card-warning">
+          <h4>Two buckets, two destinies</h4>
+          <p>
+            Split the gaps cleanly. <strong>Bucket&nbsp;A</strong> = composable building blocks a
+            complete library could still ship (embed-in-process, no opinionated server). These are
+            on-mission and high-leverage. <strong>Bucket&nbsp;B</strong> = a runtime process + a
+            control plane &mdash; the things that make something an &ldquo;OS.&rdquo; Shipping these
+            means crossing the line the project refuses to cross, which is exactly why they're
+            absent.
+          </p>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card stat-good">
+            <div class="stat-value">A</div>
+            <div class="stat-label">Library-tier gaps (on-mission)</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">6</div>
+            <div class="stat-label">Bucket A candidates</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">B</div>
+            <div class="stat-label">Runtime/OS gaps (new product)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">5</div>
+            <div class="stat-label">Bucket B candidates</div>
+          </div>
+        </div>
+
+        <!-- ============ EVIDENCE ============ -->
+        <h2 id="evidence"><span class="num">01</span>Evidence &mdash; verified absences</h2>
+        <p>
+          These are not assumptions. Each was checked against the v3.1.0 source (grep across
+          <code>*.go</code>) and cross-referenced with the project's own roadmap, design docs, and
+          the &ldquo;toward-perfect&rdquo; brainstorm.
+        </p>
+
+        <div class="dep-tree">
+          <span class="root">verified missing</span> &mdash;
+          <span class="unwanted">0 matches</span> in *.go <span class="miss">outbox</span> &rarr; 0
+          hits (chose relay over outbox; dual-write gap open)
+          <span class="miss">dead-letter / DLQ</span> &rarr; 0 hits (no poison-message capture)
+          <span class="miss">saga / process mgr</span> &rarr; 1 hit (only a comment: "emerges from
+          SubscribeAll") <span class="miss">scheduler / deadline</span> &rarr; 0 hits (no durable
+          timers) <span class="miss">projection host/daemon</span> &rarr; deleted in ADR-0030; you
+          compose it yourself <span class="miss">cmd idempotency</span> &rarr; event-level dedup
+          only; no command-id dedup <span class="miss">cqrsctl control plane</span> &rarr; cqrs-gen
+          is codegen only
+        </div>
+
+        <div class="card card-solution">
+          <h4>Caveat: some of this is <em>by design</em>, not forgotten</h4>
+          <p>
+            The distributed-projection-runner design doc closes with &ldquo;single-machine is
+            sufficient for now.&rdquo; The outbox-explained.html argues the crash-recovery relay
+            <em>replaces</em> the outbox without a secondary table. So before &ldquo;building&rdquo;
+            any of these, the first job is deciding whether each is a real consumer need or a
+            philosophical line worth holding.
+          </p>
+        </div>
+
+        <!-- ============ STRENGTHS ============ -->
+        <h2 id="strengths"><span class="num">&diams;</span>What's already genuinely superb</h2>
+        <p>
+          A credible answer must first acknowledge what's done well, because much of the
+          &ldquo;framework&rdquo; surface is <em>already here</em> and best-in-class for Go.
+        </p>
+        <div class="strengths">
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Primitive surface is best-in-class</strong>
+              <span
+                >Immutable events (concrete alias, zero-copy reads), branded IDs, ISP-split
+                store/bus interfaces, SeekableJournal, BackwardsSource, tombstone soft-delete,
+                causality/correlation, time-travel loads, streaming sources.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Real multi-backend storage</strong>
+              <span
+                >Postgres / SQLite / Turso / Pebble + KV + SQLViewStore + RelationalProjection + a
+                new graph/ tier. Not just an interface &mdash; working implementations with
+                optimistic concurrency.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Auto-documentation is rare and excellent</strong>
+              <span
+                >catalog &rarr; AsyncAPI / OpenAPI / D2 / EventCatalog / docs-server from the same
+                registry. Most ES libraries have nothing like this.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Security primitives baked in</strong>
+              <span
+                >Signing (HMAC/Ed25519/multisig), encryption (XChaCha20/AES-GCM/HKDF), schema
+                upcasting + validator, error taxonomy, defensive clones everywhere.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Observability + transport + tooling</strong>
+              <span
+                >OTel re-exports, Prometheus bridge, Watermill adapter, SSE (Last-Event-ID
+                reconnect), gRPC, cqrs-gen / api-stability / doc-check tooling.</span
+              >
+            </div>
+          </div>
+        </div>
+        <div class="callout callout-solution">
+          <strong>Verdict so far.</strong>
+          As a library of ES primitives, this is arguably the most thoughtfully architected in the
+          Go ecosystem. The hard parts are solved. What's missing is not more primitives &mdash;
+          it's the tier above them.
+        </div>
+
+        <!-- ============ BUCKET A ============ -->
+        <h2 id="bucket-a">
+          <span class="num">02</span>Bucket A &mdash; Library-tier gaps (on-mission)
+        </h2>
+        <p>
+          These could ship as composable modules and the project would <em>still</em> be a library.
+          Each removes a chunk of hand-rolled glue a consumer currently writes themselves. Ordered
+          by leverage.
+        </p>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Highest leverage</span>
+          <h3>
+            A1. Managed Projection Host (<code>runtime/</code> or revive <code>projection/</code>)
+          </h3>
+          <div class="where">
+            ADR-0030 deleted the projection module; <code>watermill/catchup_subscriber.go</code> +
+            <code>stack/materialize.go</code> are the raw pieces
+          </div>
+          <p>
+            Today every consumer hand-assembles
+            <em>CatchUpSubscriber + Projection + checkpoint + lifecycle</em>. There is no
+            batteries-included host that does: per-projection goroutines, crash
+            <strong>auto-restart with exponential backoff</strong>, health/liveness exposure,
+            ordered vs parallel routing policy, and <strong>graceful drain on shutdown</strong>.
+            This is the single component that turns a library into an ES runtime &mdash; Marten's
+            &ldquo;async daemon&rdquo; and Axon's tracking-event-processor are exactly this. It is
+            still embeddable in your own process, so it stays a library.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Why it's the #1 gap.</strong>
+            It is the last &ldquo;loop&rdquo; every consumer rewrites, and it's where production
+            failure modes (restart storms, lost checkpoints, ordering bugs) live.
+          </div>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Strong</span>
+          <h3>A2. Transactional Outbox (<code>outbox/</code>)</h3>
+          <div class="where">
+            0 <code>outbox</code> references in *.go; <code>docs/outbox-explained.html</code> argues
+            the relay replaces it
+          </div>
+          <p>
+            The <strong>dual-write problem is real</strong>: <code>Repository.Execute</code> saves
+            to the store and publishes to the bus as two separate operations. A crash between them
+            means an event is persisted but never published until a relay notices it. The
+            CatchUpSubscriber is a <em>subscriber-side</em> relay; an outbox is the
+            <em>publisher-side</em> atomic guarantee (write the outbox row in the same TX as the
+            aggregate, a relay drains it). The project chose relay-over-outbox to avoid a secondary
+            table &mdash; a defensible call, but it is the textbook &ldquo;reliability&rdquo; gap a
+            superb framework closes.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Strong</span>
+          <h3>A3. Command Idempotency (<code>idempotency/</code> or a middleware)</h3>
+          <div class="where">
+            grep <code>idempoten|dedup</code>: dedup exists at the event tier (CatchUp, SSE) and
+            projection sinks; nothing on the command path
+          </div>
+          <p>
+            Delivery is at-least-once. With no command-id / idempotency-key dedup, a retried command
+            produces duplicate events and duplicate side effects. A small idempotency-key store + a
+            command middleware (check-seen, store-result-on-success) is a classic framework
+            primitive that's small to build and large in value.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Strong</span>
+          <h3>A4. Dead-Letter / Poison-Message sink</h3>
+          <div class="where">0 <code>DeadLetter|DLQ|poison</code> matches in *.go</div>
+          <p>
+            A projection that repeatedly fails on one event will either block the stream or skip it
+            forever. A DLQ wrapper (capture failing event + error to a store, advance checkpoint,
+            expose for replay) is essential operability. Pair it with the Projection Host (A1).
+          </p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Nice multiplier</span>
+          <h3>A5. Scenario-testing DSL (<code>testing/</code>)</h3>
+          <div class="where">
+            &ldquo;toward-perfect&rdquo; flagged AggregateTester/ProjectionTester/BusTester as thin;
+            <code>eventtest</code> exists but no fluent harness
+          </div>
+          <p>
+            A first-class
+            <code>decider.Given(evts...).When(cmd).Then(expected, state)</code> harness and a
+            projection-replay assertion kit. The decider has property tests, but no consumer gets a
+            one-liner BDD scenario harness. This is the &ldquo;DX multiplier&rdquo; that makes
+            adoption stick.
+          </p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Nice multiplier</span>
+          <h3>A6. Scheduled commands / durable deadlines (<code>scheduling/</code>)</h3>
+          <div class="where">
+            no scheduler; common ES need (&ldquo;cancel order after 30 min unpaid&rdquo;)
+          </div>
+          <p>
+            A durable timer store (events written at a future time, a dispatcher polls them) is a
+            primitive, not a runtime. It unlocks time-based business logic that today every consumer
+            bolts on with cron + an external queue.
+          </p>
+        </div>
+
+        <!-- ============ BUCKET B ============ -->
+        <h2 id="bucket-b">
+          <span class="num">03</span>Bucket B &mdash; Runtime/OS gaps (a different product)
+        </h2>
+        <p>
+          These exist only as a <strong>running process with a control plane</strong>. Shipping them
+          violates principle&nbsp;#1. The honest move is a <em>sibling</em> product (as EventStoreDB
+          relates to a client SDK), not bolting a server onto this repo.
+        </p>
+
+        <div class="grid-2">
+          <div class="card card-problem">
+            <h4>B1. Control-plane CLI (<code>cqrsctl</code>)</h4>
+            <p>
+              Rebuild a projection, list aggregates, inspect checkpoints, replay/reset, view lag.
+              <code>cqrs-gen</code> is codegen only &mdash; there is no operational CLI.
+            </p>
+          </div>
+          <div class="card card-problem">
+            <h4>B2. Admin / ops dashboard</h4>
+            <p>
+              Only a <em>docs</em> server exists (<code>catalog/docserver</code>). No live ops UI:
+              event browser, aggregate inspector, projection-lag graphs, replay trigger. A design
+              doc exists; no code.
+            </p>
+          </div>
+          <div class="card card-problem">
+            <h4>B3. Replication / clustering / consumer groups</h4>
+            <p>
+              Single-node only. <code>DistributedRunner</code> gives leader-election active/passive
+              failover &mdash; not partitioned reads, competing consumers, or a sharded event store.
+              This is the &ldquo;OS&rdquo; scale tier.
+            </p>
+          </div>
+          <div class="card card-problem">
+            <h4>B4. Log compaction / archival lifecycle</h4>
+            <p>
+              Streams grow forever. Compaction, truncation, and S3/GCS archival are raw ideas with
+              design docs and no code. An OS manages its own log lifecycle.
+            </p>
+          </div>
+        </div>
+        <div class="card card-problem" style="margin-top: 0.25rem">
+          <h4>B5. Cross-service schema-registry <em>service</em></h4>
+          <p>
+            <code>schema.Validator</code> enforces at publish + load time in-process. A superb
+            <em>OS</em> runs a contract registry with BACKWARD/FORWARD/FULL compatibility checks and
+            version negotiation across services (Confluent-style). That is a server, not a library.
+          </p>
+        </div>
+
+        <div class="callout callout-warning">
+          <strong>The line you must not blur.</strong>
+          Mixing B-tier features into this repo is how a clean library becomes a half-framework
+          nobody trusts. Keep the library pure; build the runtime as a separate, optional product
+          that <em>consumes</em> these primitives.
+        </div>
+
+        <!-- ============ MATRIX ============ -->
+        <h2 id="matrix"><span class="num">04</span>Capability matrix vs mature ES frameworks</h2>
+        <p>
+          How the current SDK compares to EventStoreDB, Axon, and Marten on the dimensions that
+          define a &ldquo;framework/OS.&rdquo;
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Capability</th>
+              <th>This SDK</th>
+              <th>Bucket</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Event store + sourcing</td>
+              <td><span class="badge badge-fixed">Excellent</span></td>
+              <td>&mdash;</td>
+              <td>Multi-backend, OCC, time-travel, snapshots</td>
+            </tr>
+            <tr>
+              <td>Schema evolution</td>
+              <td><span class="badge badge-fixed">Strong</span></td>
+              <td>&mdash;</td>
+              <td>Upcasters + validator (no registry service)</td>
+            </tr>
+            <tr>
+              <td>Projections (write the model)</td>
+              <td><span class="badge badge-fixed">Strong</span></td>
+              <td>&mdash;</td>
+              <td>Materialize, ViewStore, Relational, graph</td>
+            </tr>
+            <tr>
+              <td>Managed projection runner</td>
+              <td><span class="badge badge-critical">Missing</span></td>
+              <td><span class="badge badge-high">A1</span></td>
+              <td>Hand-rolled loop; no restart/backoff host</td>
+            </tr>
+            <tr>
+              <td>Transactional outbox</td>
+              <td><span class="badge badge-critical">Missing</span></td>
+              <td><span class="badge badge-high">A2</span></td>
+              <td>Chose relay; dual-write gap open</td>
+            </tr>
+            <tr>
+              <td>Command idempotency</td>
+              <td><span class="badge badge-critical">Missing</span></td>
+              <td><span class="badge badge-high">A3</span></td>
+              <td>Event-level dedup only</td>
+            </tr>
+            <tr>
+              <td>Dead-letter queue</td>
+              <td><span class="badge badge-critical">Missing</span></td>
+              <td><span class="badge badge-high">A4</span></td>
+              <td>No poison-message handling</td>
+            </tr>
+            <tr>
+              <td>Saga / process manager</td>
+              <td><span class="badge badge-medium">Emergent</span></td>
+              <td><span class="badge badge-medium">A/B</span></td>
+              <td>&ldquo;Emerge from SubscribeAll&rdquo;; no engine</td>
+            </tr>
+            <tr>
+              <td>Scheduled commands / deadlines</td>
+              <td><span class="badge badge-critical">Missing</span></td>
+              <td><span class="badge badge-medium">A6</span></td>
+              <td>No durable scheduler</td>
+            </tr>
+            <tr>
+              <td>Control-plane CLI</td>
+              <td><span class="badge badge-critical">Missing</span></td>
+              <td><span class="badge badge-medium">B1</span></td>
+              <td>codegen only</td>
+            </tr>
+            <tr>
+              <td>Ops dashboard</td>
+              <td><span class="badge badge-critical">Missing</span></td>
+              <td><span class="badge badge-medium">B2</span></td>
+              <td>docs-server only</td>
+            </tr>
+            <tr>
+              <td>Replication / consumer groups</td>
+              <td><span class="badge badge-medium">Partial</span></td>
+              <td><span class="badge badge-medium">B3</span></td>
+              <td>Leader-election only; single-node scale</td>
+            </tr>
+            <tr>
+              <td>Log compaction / archival</td>
+              <td><span class="badge badge-critical">Missing</span></td>
+              <td><span class="badge badge-medium">B4</span></td>
+              <td>raw idea; streams grow forever</td>
+            </tr>
+            <tr>
+              <td>Cross-service schema registry</td>
+              <td><span class="badge badge-medium">In-process</span></td>
+              <td><span class="badge badge-medium">B5</span></td>
+              <td>validator yes; no service</td>
+            </tr>
+            <tr>
+              <td>Auto-documentation</td>
+              <td><span class="badge badge-fixed">Excellent</span></td>
+              <td>&mdash;</td>
+              <td>AsyncAPI/OpenAPI/D2/EventCatalog &mdash; rare</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- ============ PLAN ============ -->
+        <h2 id="plan">
+          <span class="num">05</span>Pareto roadmap (20% effort &rarr; 80% of &ldquo;superb&rdquo;)
+        </h2>
+        <p>
+          Ordered for compounding impact. The first three deliver most of the perceived
+          &ldquo;framework&rdquo; feel while staying a library.
+        </p>
+
+        <div class="migration-step bucket-a">
+          <div class="migration-num">1</div>
+          <div class="migration-content">
+            <h4>Ship the Projection Host (A1)</h4>
+            <p>
+              Wrap CatchUpSubscriber + Materialize + checkpoint into a managed host: restart,
+              backoff, health, graceful drain, DLQ hook.
+              <strong>This alone closes the biggest gap and is still embeddable.</strong>
+            </p>
+            <p class="tag-row">
+              impact: huge &middot; effort: medium &middot; stays a library: yes
+            </p>
+          </div>
+        </div>
+        <div class="migration-step bucket-a">
+          <div class="migration-num">2</div>
+          <div class="migration-content">
+            <h4>Add the DLQ + Idempotency pair (A3 + A4)</h4>
+            <p>
+              Small primitives, disproportionate reliability win. Both are middleware/sinks that
+              compose into the host from step&nbsp;1.
+            </p>
+            <p class="tag-row">
+              impact: high &middot; effort: low&ndash;medium &middot; stays a library: yes
+            </p>
+          </div>
+        </div>
+        <div class="migration-step bucket-a">
+          <div class="migration-num">3</div>
+          <div class="migration-content">
+            <h4>Optional Outbox sink (A2)</h4>
+            <p>
+              Offer it as an opt-in EventSink for the shared-DB case; keep the relay as the default.
+              Let consumers pick atomicity vs. no-secondary-table.
+            </p>
+            <p class="tag-row">
+              impact: high (for those who need it) &middot; effort: medium &middot; stays a library:
+              yes
+            </p>
+          </div>
+        </div>
+        <div class="migration-step bucket-a">
+          <div class="migration-num">4</div>
+          <div class="migration-content">
+            <h4>Scenario-testing DSL (A5)</h4>
+            <p>Fluent Given/When/Then for deciders, projections, buses. The adoption multiplier.</p>
+            <p class="tag-row">
+              impact: medium&ndash;high (DX) &middot; effort: low &middot; stays a library: yes
+            </p>
+          </div>
+        </div>
+        <div class="migration-step bucket-b">
+          <div class="migration-num">5</div>
+          <div class="migration-content">
+            <h4>Draw the product line, then maybe build a sibling runtime (B1&ndash;B2)</h4>
+            <p>
+              Do <em>not</em> add a server/dashboard to this repo. If &ldquo;OS&rdquo; is the goal,
+              start a separate <code>go-cqrs-runtime</code> (or similar) that embeds this library
+              and adds cqrsctl + dashboard + replication. Keeps the library trustworthy and the
+              runtime optional.
+            </p>
+            <p class="tag-row">
+              impact: transforms the product &middot; effort: large &middot; stays a library:
+              <strong>no &mdash; new product</strong>
+            </p>
+          </div>
+        </div>
+
+        <!-- ============ VERDICT ============ -->
+        <h2 id="verdict"><span class="num">06</span>Strategic verdict</h2>
+        <div class="card card-solution">
+          <h4>As a library, it's already superb &mdash; finish Bucket A.</h4>
+          <p>
+            The missing piece is not &ldquo;more ES primitives.&rdquo; It is the
+            <strong>managed projection host</strong> plus the
+            <strong>reliability trio</strong> (DLQ, idempotency, optional outbox). Build those four
+            and consumers can assemble a complete, production-grade ES system using
+            <em>only</em> library modules, with zero hand-rolled infra loops. That is the legitimate
+            ceiling for a project that insists on being a library.
+          </p>
+        </div>
+        <div class="card card-warning">
+          <h4>&ldquo;OS&rdquo; is a different company.</h4>
+          <p>
+            The control plane, dashboard, replication, and log-lifecycle services are what make
+            EventStoreDB a <em>product</em>. They cannot be a module here without breaking the
+            library's core promise. Pursue them only as a deliberate, separate bet &mdash; and only
+            if a concrete consumer need outgrows single-machine. Until then, &ldquo;single-machine
+            is sufficient&rdquo; is the correct, honest position the project already holds.
+          </p>
+        </div>
+
+        <div class="diagram">
+          <span class="node node-good">Superb library</span>
+          <span class="arrow">+ A1&ndash;A4</span>
+          <span class="node node-core">Complete library</span>
+          <span class="arrow">+ B1&ndash;B5 (new product)</span>
+          <span class="node node-miss">ES &ldquo;OS&rdquo;</span>
+        </div>
+
+        <footer class="footer">
+          Generated 2026-06-28 &middot; Gap analysis verified against v3.1.0 source (grep across
+          *.go) + ROADMAP.md + docs/design + &ldquo;toward-perfect&rdquo; brainstorm.
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

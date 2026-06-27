@@ -14,11 +14,11 @@ go get github.com/larsartmann/go-cqrs-lite/graph/v3
 
 ## When to use which tier
 
-| Read pattern | Tier |
-| --- | --- |
-| Get/Lookup by ID, list all | `kv.ViewStore[V,K]` + `stack.Materialize` |
-| Filtered/ordered/paginated lists, counts, stats | `storage.RelationalProjection` + `Row` sink |
-| **N-hop traversal, recursive relationships, graph queries** | **`graph.GraphProjection`** |
+| Read pattern                                                | Tier                                        |
+| ----------------------------------------------------------- | ------------------------------------------- |
+| Get/Lookup by ID, list all                                  | `kv.ViewStore[V,K]` + `stack.Materialize`   |
+| Filtered/ordered/paginated lists, counts, stats             | `storage.RelationalProjection` + `Row` sink |
+| **N-hop traversal, recursive relationships, graph queries** | **`graph.GraphProjection`**                 |
 
 ## Scope: writes portable, reads native
 
@@ -81,11 +81,11 @@ the graph on Begin and swaps it back only on commit.
 
 ## Backends
 
-| Driver | Module | Use case |
-| --- | --- | --- |
-| `MemoryDriver` | `graph/v3` (this module) | Tests, single-process local-first apps. Zero deps. |
-| Neo4j / openCypher | consumer-pulled sibling module (`graph/neo4j/`) | Production graph queries. Brings its own driver dep. |
-| Memgraph, Apache Age, RedisGraph | future | All speak openCypher MERGE — same sink interface. |
+| Driver                           | Module                                          | Use case                                             |
+| -------------------------------- | ----------------------------------------------- | ---------------------------------------------------- |
+| `MemoryDriver`                   | `graph/v3` (this module)                        | Tests, single-process local-first apps. Zero deps.   |
+| Neo4j / openCypher               | consumer-pulled sibling module (`graph/neo4j/`) | Production graph queries. Brings its own driver dep. |
+| Memgraph, Apache Age, RedisGraph | future                                          | All speak openCypher MERGE — same sink interface.    |
 
 The Neo4j driver is deliberately **not** in this module — same convention as
 `storage/pebble` and `storage/turso` being separate from `storage/`. Consumers
