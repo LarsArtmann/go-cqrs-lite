@@ -1,7 +1,9 @@
 package otel_test
 
 import (
+	"bytes"
 	"context"
+	"strings"
 	"testing"
 
 	"go.opentelemetry.io/otel"
@@ -175,4 +177,30 @@ func TestSetup_CQRSHistogramViews(t *testing.T) {
 	}
 
 	_ = sdktrace.NewTracerProvider() // verify SDK import compiles
+}
+
+func TestSetup_WithStdoutExporter(t *testing.T) {
+	t.Parallel()
+
+	var buf bytes.Buffer
+
+	provider, err := cqrsotel.Setup(
+		cqrsotel.WithService("test-stdout", "1.0.0", ""),
+		cqrsotel.WithStdoutExporter(&buf),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	tracer := provider.AsTracerProvider().Tracer("test")
+	_, span := tracer.Start(context.Background(), "stdout-span")
+	span.End()
+
+	provider.AsTracerProvider().ForceFlush(context.Background())
+	provider.Shutdown(context.Background())
+
+	output := buf.String()
+	if !strings.Contains(output, "stdout-span") {
+		t.Errorf("expected stdout output to contain span name, got:\n%s", output)
+	}
 }

@@ -5,8 +5,10 @@ package otel
 import (
 	"context"
 	"fmt"
+	"io"
 
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -23,6 +25,7 @@ type setupConfig struct {
 	spanExporter   sdktrace.SpanExporter
 	metricReader   metric.Reader
 	propagator     propagation.TextMapPropagator
+	stdoutWriter   io.Writer // non-nil → construct a pretty-printing stdout span exporter
 }
 
 // WithService identifies the service in telemetry via resource attributes.
@@ -55,6 +58,16 @@ func WithMetricReader(r metric.Reader) SetupOption {
 func WithPropagator(p propagation.TextMapPropagator) SetupOption {
 	return func(c *setupConfig) {
 		c.propagator = p
+	}
+}
+
+// WithStdoutExporter prints spans to the given writer with pretty-printing.
+// Ideal for local development and debugging — pass os.Stdout to see traces
+// in your terminal. The exporter is created internally; for a custom stdout
+// configuration use WithSpanExporter with a manually constructed exporter.
+func WithStdoutExporter(w io.Writer) SetupOption {
+	return func(c *setupConfig) {
+		c.stdoutWriter = w
 	}
 }
 
@@ -128,6 +141,17 @@ func Setup(opts ...SetupOption) (*Provider, error) {
 		return nil, err
 	}
 
+	spanExporter := cfg.spanExporter
+	if spanExporter == nil && cfg.stdoutWriter != nil {
+		spanExporter, err = stdouttrace.New(
+			stdouttrace.WithWriter(cfg.stdoutWriter),
+			stdouttrace.WithPrettyPrint(),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("stdout exporter: %w", err)
+		}
+	}
+
 	propagator := cfg.propagator
 	if propagator == nil {
 		propagator = NewTextMapPropagator()
@@ -139,8 +163,8 @@ func Setup(opts ...SetupOption) (*Provider, error) {
 		sdktrace.WithResource(res),
 	}
 
-	if cfg.spanExporter != nil {
-		tpOpts = append(tpOpts, sdktrace.WithBatcher(cfg.spanExporter))
+	if spanExporter != nil {
+		tpOpts = append(tpOpts, sdktrace.WithBatcher(spanExporter))
 	}
 
 	tp := sdktrace.NewTracerProvider(tpOpts...)
