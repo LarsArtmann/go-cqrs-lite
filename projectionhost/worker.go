@@ -1,0 +1,241 @@
+package projectionhost
+
+import (
+	"context"
+	"errors"
+	"sync"
+	"sync/atomic"
+	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/projection/v3"
+)
+
+// worker is a single projection's event-processing goroutine.
+type worker struct {
+	name       string
+	projection projection.Projection
+	journal    event.SeekableJournal
+	cpStore    event.CheckpointStore
+	opts       hostOptions
+
+	stateMu sync.RWMutex
+	state   WorkerState
+
+	processed atomic.Int64
+	errors    atomic.Int64
+	restarts  atomic.Int64
+
+	stop chan struct{}
+	done chan struct{}
+}
+
+func (w *worker) snapshot() WorkerState {
+	w.stateMu.RLock()
+	defer w.stateMu.RUnlock()
+
+	s := w.state
+	s.Processed = w.processed.Load()
+	s.Errors = w.errors.Load()
+	s.Restarts = int(w.restarts.Load())
+
+	return s
+}
+
+func (w *worker) setStatus(s WorkerStatus) {
+	w.stateMu.Lock()
+	w.state.Status = s
+	w.stateMu.Unlock()
+}
+
+func (w *worker) setCheckpoint(cp string) {
+	w.stateMu.Lock()
+	w.state.Checkpoint = cp
+	w.stateMu.Unlock()
+}
+
+func (w *worker) setLastError(err string) {
+	w.stateMu.Lock()
+	w.state.LastError = err
+	w.stateMu.Unlock()
+}
+
+func (w *worker) run(ctx context.Context, wg *sync.WaitGroup) {
+	defer wg.Done()
+	defer close(w.done)
+	defer w.setStatus(WorkerStopped)
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-w.stop:
+			return
+		default:
+		}
+
+		w.setStatus(WorkerRunning)
+
+		err := w.process(ctx)
+		if err == nil {
+			return
+		}
+
+		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+			return
+		}
+
+		w.errors.Add(1)
+		w.setLastError(err.Error())
+
+		restartCount := int(w.restarts.Add(1))
+		if w.opts.maxRestarts >= 0 && restartCount > w.opts.maxRestarts {
+			w.setStatus(WorkerFailed)
+
+			return
+		}
+
+		backoff := w.opts.backoffInitial * time.Duration(1<<uint(restartCount-1))
+		if backoff > w.opts.backoffMax {
+			backoff = w.opts.backoffMax
+		}
+
+		w.setStatus(WorkerBackoff)
+
+		select {
+		case <-time.After(backoff):
+		case <-ctx.Done():
+			return
+		case <-w.stop:
+			return
+		}
+	}
+}
+
+func (w *worker) process(ctx context.Context) error {
+	cp, err := w.cpStore.Load(ctx, w.name)
+	if err != nil {
+		return err
+	}
+
+	var afterID id.EventID
+	if !cp.IsZero() {
+		afterID = cp.EventID
+	}
+
+	w.setCheckpoint(afterID.String())
+
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-w.stop:
+			return nil
+		default:
+		}
+
+		events, err := w.journal.ReadFrom(ctx, afterID, w.opts.batchSize)
+		if err != nil {
+			return err
+		}
+
+		if len(events) == 0 {
+			return nil
+		}
+
+		for _, evt := range events {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-w.stop:
+				return nil
+			default:
+			}
+
+			if !w.shouldHandle(evt) {
+				afterID = evt.ID()
+
+				continue
+			}
+
+			if err := w.applyWithRetry(ctx, evt); err != nil {
+				if w.opts.dlq != nil {
+					dlqErr := w.sendToDLQ(ctx, evt, err)
+					if dlqErr != nil {
+						return dlqErr
+					}
+				} else {
+					return err
+				}
+			}
+
+			afterID = evt.ID()
+
+			w.processed.Add(1)
+		}
+
+		if err := w.cpStore.Save(ctx, w.name, event.Checkpoint{
+			EventID:     afterID,
+			ProcessedAt: time.Now(),
+		}); err != nil {
+			return err
+		}
+
+		w.setCheckpoint(afterID.String())
+
+		if len(events) < w.opts.batchSize {
+			return nil
+		}
+	}
+}
+
+func (w *worker) shouldHandle(evt event.Event) bool {
+	types := w.projection.EventTypes()
+	if types == nil {
+		return true
+	}
+
+	evtType := evt.Type()
+	for _, t := range types {
+		if t == evtType {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (w *worker) applyWithRetry(ctx context.Context, evt event.Event) error {
+	var lastErr error
+
+	for range w.opts.dlqThreshold {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+
+		err := w.projection.Handle(ctx, evt)
+		if err == nil {
+			return nil
+		}
+
+		lastErr = err
+
+		w.errors.Add(1)
+	}
+
+	return lastErr
+}
+
+func (w *worker) sendToDLQ(ctx context.Context, evt event.Event, handlerErr error) error {
+	return w.opts.dlq.Store(ctx, DeadLetterEntry{
+		ProjectionName: w.name,
+		EventID:        evt.ID().String(),
+		EventType:      string(evt.Type()),
+		AggregateID:    evt.AggregateID().String(),
+		Error:          handlerErr.Error(),
+		FailedAt:       time.Now(),
+	})
+}
