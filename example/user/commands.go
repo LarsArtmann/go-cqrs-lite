@@ -6,6 +6,7 @@ import (
 )
 
 type CreateUserCmd struct {
+	commandID   id.CommandID
 	aggregateID id.AggregateID
 	email       Email
 	name        DisplayName
@@ -13,24 +14,30 @@ type CreateUserCmd struct {
 
 func (c *CreateUserCmd) Type() command.Type          { return cmdCreateUser }
 func (c *CreateUserCmd) AggregateID() id.AggregateID { return c.aggregateID }
+func (c *CreateUserCmd) ID() id.CommandID            { return c.commandID }
 
 type ChangeUserNameCmd struct {
+	commandID   id.CommandID
 	aggregateID id.AggregateID
 	name        DisplayName
 }
 
 func (c *ChangeUserNameCmd) Type() command.Type          { return cmdChangeUserName }
 func (c *ChangeUserNameCmd) AggregateID() id.AggregateID { return c.aggregateID }
+func (c *ChangeUserNameCmd) ID() id.CommandID            { return c.commandID }
 
 type DeleteUserCmd struct {
+	commandID   id.CommandID
 	aggregateID id.AggregateID
 	reason      Reason
 }
 
 func (c *DeleteUserCmd) Type() command.Type          { return cmdDeleteUser }
 func (c *DeleteUserCmd) AggregateID() id.AggregateID { return c.aggregateID }
+func (c *DeleteUserCmd) ID() id.CommandID            { return c.commandID }
 
 type RebirthUserCmd struct {
+	commandID   id.CommandID
 	aggregateID id.AggregateID
 	email       Email
 	name        DisplayName
@@ -38,3 +45,4 @@ type RebirthUserCmd struct {
 
 func (c *RebirthUserCmd) Type() command.Type          { return cmdRebirthUser }
 func (c *RebirthUserCmd) AggregateID() id.AggregateID { return c.aggregateID }
+func (c *RebirthUserCmd) ID() id.CommandID            { return c.commandID }

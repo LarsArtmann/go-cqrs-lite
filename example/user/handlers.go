@@ -105,6 +105,7 @@ func trackPublishedEvents(bus event.Bus, published *[]event.Event) {
 
 func newUserCmd(aggID id.AggregateID, email, name string) *CreateUserCmd {
 	return &CreateUserCmd{
+		commandID:   id.NewCommandID(),
 		aggregateID: aggID,
 		email:       Email(email),
 		name:        DisplayName(name),

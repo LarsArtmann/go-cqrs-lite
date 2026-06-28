@@ -17,11 +17,13 @@ import (
 )
 
 type bddCommand struct {
+	commandID   id.CommandID
 	aggregateID id.AggregateID
 }
 
 func (c *bddCommand) Type() command.Type          { return "bdd.cmd" }
 func (c *bddCommand) AggregateID() id.AggregateID { return c.aggregateID }
+func (c *bddCommand) ID() id.CommandID            { return c.commandID }
 
 var _ = Describe("Recovery Middleware", func() {
 	var ctx context.Context

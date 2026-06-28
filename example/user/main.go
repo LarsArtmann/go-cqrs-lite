@@ -148,6 +148,7 @@ func runDemoSteps(
 	fmt.Println("--- Step 2: Change Name ---")
 
 	err = cmdDisp.Dispatch(ctx, &ChangeUserNameCmd{
+		commandID:   id.NewCommandID(),
 		aggregateID: userID,
 		name:        "Alice Johnson",
 	})
@@ -178,6 +179,7 @@ func runTombstoneRebirthDemo(
 	fmt.Println("--- Step 4: Tombstone + Rebirth ---")
 
 	err := cmdDisp.Dispatch(ctx, &DeleteUserCmd{
+		commandID:   id.NewCommandID(),
 		aggregateID: userID,
 		reason:      "GDPR request",
 	})
@@ -195,6 +197,7 @@ func runTombstoneRebirthDemo(
 	fmt.Printf("→ State after delete: Deleted=%v, Reason=%q\n", state.Deleted, state.DeleteReason)
 
 	err = cmdDisp.Dispatch(ctx, &RebirthUserCmd{
+		commandID:   id.NewCommandID(),
 		aggregateID: userID,
 		email:       "alice.v2@example.com",
 		name:        "Alice Reborn",

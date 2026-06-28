@@ -28,18 +28,17 @@ type metadataProvider interface {
 // empty (commands carry routing identity, not serialized domain data —
 // consumers encode payloads via custom metadata, same as transport/grpc).
 //
-// A fresh command ID is generated per call for Watermill message dedup and
-// traceability. The command.Command interface intentionally has no ID() —
-// commands are intent, not entities. The transport layer mints an ephemeral
-// ID for message routing only. This means retrying the same logical command
-// produces different message UUIDs; consumers needing idempotency must use
-// a custom metadata key (e.g. WithCustomMetadata("idempotency_key", ...)).
+// The command's [command.Command.ID] is used as the Watermill message UUID
+// for dedup and traceability. The ID is minted at [command.New] time and
+// stable for the lifetime of the command object — retrying with the same
+// command instance preserves the ID. For cross-retry idempotency, use
+// [command.WithCommandID] with a deterministic key.
 //
 // It is the inverse of [MessageToCommand]. Exported so callers that publish
 // commands directly to a Watermill topic can build messages without
 // duplicating the field-mapping protocol.
 func CommandToMessage(cmd command.Command) *message.Message {
-	cmdID := id.NewCommandID()
+	cmdID := cmd.ID()
 	msg := message.NewMessage(cmdID.String(), nil)
 
 	md := msg.Metadata
@@ -119,6 +118,12 @@ func writeCustomEntries[K ~string](md message.Metadata, custom map[K]string) {
 
 func parseCommandOptions(md message.Metadata) []command.Option {
 	var opts []command.Option
+
+	if cmdIDStr := md.Get(metaCommandID); cmdIDStr != "" {
+		if cmdID, err := id.ParseCommandID(cmdIDStr); err == nil {
+			opts = append(opts, command.WithCommandID(cmdID))
+		}
+	}
 
 	parseIDOption(
 		md, metaCorrelationID, id.ParseCorrelationID,

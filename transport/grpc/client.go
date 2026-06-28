@@ -13,9 +13,10 @@ import (
 )
 
 var (
-	errDispatchFailed  = errors.New("grpc: server returned failure")
-	errQueryFailed     = errors.New("grpc: query failed")
-	errUnmarshalResult = errors.New("grpc: unmarshal result")
+	errDispatchFailed   = errors.New("grpc: server returned failure")
+	errQueryFailed      = errors.New("grpc: query failed")
+	errUnmarshalResult  = errors.New("grpc: unmarshal result")
+	errMissingCommandID = errors.New("grpc: command has no ID")
 )
 
 // CommandClient dispatches commands to a remote gRPC server.
@@ -39,14 +40,18 @@ func (c *CommandClient) Dispatch(ctx context.Context, cmd command.Command) error
 		AggregateId: cmd.AggregateID().String(),
 	}
 
+	if cmd.ID().IsZero() {
+		return fmt.Errorf("grpc: dispatch %s: %w", cmd.Type(), errMissingCommandID)
+	}
+
+	envelope.Metadata = make(map[string]string)
+	envelope.Metadata["command_id"] = cmd.ID().String()
+
 	// Carry metadata if the command is a *BasicCommand.
 	if bc, ok := cmd.(*command.BasicCommand); ok {
 		md := bc.Metadata()
-		if len(md.Custom) > 0 {
-			envelope.Metadata = make(map[string]string, len(md.Custom))
-			for k, v := range md.Custom {
-				envelope.Metadata[string(k)] = v
-			}
+		for k, v := range md.Custom {
+			envelope.Metadata[string(k)] = v
 		}
 	}
 

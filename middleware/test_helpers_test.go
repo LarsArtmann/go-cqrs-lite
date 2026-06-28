@@ -12,11 +12,13 @@ import (
 )
 
 type testCommand struct {
+	commandID   id.CommandID
 	aggregateID id.AggregateID
 }
 
 func (c *testCommand) Type() command.Type          { return "test.cmd" }
 func (c *testCommand) AggregateID() id.AggregateID { return c.aggregateID }
+func (c *testCommand) ID() id.CommandID            { return c.commandID }
 
 type testQuery struct{}
 

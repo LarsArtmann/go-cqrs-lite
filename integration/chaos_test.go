@@ -18,6 +18,7 @@ import (
 )
 
 type chaosCmd struct {
+	commandID   id.CommandID
 	aggregateID id.AggregateID
 	fail        bool
 	panicMsg    string
@@ -25,6 +26,7 @@ type chaosCmd struct {
 
 func (c *chaosCmd) Type() command.Type          { return "chaos.command" }
 func (c *chaosCmd) AggregateID() id.AggregateID { return c.aggregateID }
+func (c *chaosCmd) ID() id.CommandID            { return c.commandID }
 
 func TestChaos_CommandHandler_Error(t *testing.T) {
 	t.Parallel()

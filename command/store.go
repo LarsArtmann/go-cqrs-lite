@@ -19,7 +19,10 @@ type PersistedCommand struct {
 	metadata     Metadata
 }
 
-var _ fmt.Stringer = (*PersistedCommand)(nil)
+var (
+	_ fmt.Stringer = (*PersistedCommand)(nil)
+	_ Command      = (*PersistedCommand)(nil)
+)
 
 func (c *PersistedCommand) ID() id.CommandID             { return c.id }
 func (c *PersistedCommand) Type() Type                   { return c.cmdType }

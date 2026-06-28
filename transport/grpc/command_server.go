@@ -47,7 +47,17 @@ func (s *commandServer) Dispatch(
 
 	var opts []command.Option
 
+	if cmdIDStr := envelope.GetMetadata()["command_id"]; cmdIDStr != "" {
+		if cmdID, err := id.ParseCommandID(cmdIDStr); err == nil {
+			opts = append(opts, command.WithCommandID(cmdID))
+		}
+	}
+
 	for k, v := range envelope.GetMetadata() {
+		if k == "command_id" {
+			continue
+		}
+
 		opts = append(opts, command.WithCustomMetadata(k, v))
 	}
 

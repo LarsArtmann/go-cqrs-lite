@@ -24,13 +24,21 @@ func ParseType(s string) (Type, error) {
 }
 
 // Command represents a domain command.
+//
+// Every command carries an [id.CommandID], minted at construction time via
+// [New]. The ID is stable for the lifetime of the command object — retrying
+// the same logical command with a new [New] call produces a new ID, so
+// consumers needing idempotency across retries should pass [WithCommandID]
+// with a deterministic key.
 type Command interface {
 	Type() Type
 	AggregateID() id.AggregateID
+	ID() id.CommandID
 }
 
 // BasicCommand provides a default implementation.
 type BasicCommand struct {
+	commandID   id.CommandID
 	commandType Type
 	aggregateID id.AggregateID
 	metadata    Metadata
@@ -43,6 +51,9 @@ func (c *BasicCommand) Type() Type { return c.commandType }
 
 // AggregateID returns the aggregate ID.
 func (c *BasicCommand) AggregateID() id.AggregateID { return c.aggregateID }
+
+// ID returns the command ID, minted at construction time.
+func (c *BasicCommand) ID() id.CommandID { return c.commandID }
 
 // Metadata returns the command metadata.
 func (c *BasicCommand) Metadata() Metadata { return c.metadata.Clone() }
@@ -66,6 +77,7 @@ func New(commandType Type, aggregateID id.AggregateID, opts ...Option) (*BasicCo
 	}
 
 	cmd := &BasicCommand{
+		commandID:   id.NewCommandID(),
 		commandType: commandType,
 		aggregateID: aggregateID,
 		metadata:    NewMetadata(),

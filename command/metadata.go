@@ -51,6 +51,12 @@ func EnsureCustom(m *Metadata) {
 // Option configures command creation.
 type Option func(*BasicCommand)
 
+// WithCommandID overrides the auto-minted command ID. Use this for idempotency:
+// pass the same ID when retrying a logical command so the receiver can dedup.
+func WithCommandID(v id.CommandID) Option {
+	return func(c *BasicCommand) { c.commandID = v }
+}
+
 // WithCorrelationID sets the correlation ID for distributed tracing.
 func WithCorrelationID(v id.CorrelationID) Option {
 	return func(c *BasicCommand) { c.metadata.CorrelationID = v }
