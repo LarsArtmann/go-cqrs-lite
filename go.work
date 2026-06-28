@@ -9,6 +9,7 @@ use (
 	./codec
 	./command
 	./decider
+	./deriver
 	./dispatcher
 	./encryption
 	./event

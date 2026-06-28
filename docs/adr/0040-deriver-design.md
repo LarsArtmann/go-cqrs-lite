@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed — 2026-06-28 (design only, not yet implemented)
+Accepted — 2026-06-28 (implemented: `deriver/` module)
 
 ## Context
 
