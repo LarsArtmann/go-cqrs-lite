@@ -11,7 +11,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v3/eventtest v0.0.0
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/middleware/v3 v3.3.0
-	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.0.0-20260628050039-ef852795e9a6
+	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.0.0-20260628084503-969573ec93d6
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/signing/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.3.0
