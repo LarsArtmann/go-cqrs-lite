@@ -76,7 +76,7 @@ func (s *SQLCommandStore) scanCommand(rows *sql.Rows) (*command.PersistedCommand
 	ref := command.NewAggregateRef(parsedAggType, parsedAggID)
 
 	opts := []command.PersistOption{
-		command.WithCommandID(parsedCommandID),
+		command.WithPersistedCommandID(parsedCommandID),
 		command.WithReceivedAt(receivedAt),
 	}
 

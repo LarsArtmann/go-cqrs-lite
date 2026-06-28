@@ -3,12 +3,20 @@ package middleware
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
+
+const (
+	dialectPostgres = "postgres"
+)
+
+var errUnexpectedTimeTypeDL = errors.New("unexpected time type")
 
 // SQLDeadLetterStore is a persistent dead-letter handler backed by a SQL
 // database. It stores [DeadLetterEntry] values in a `dead_letters` table,
@@ -48,10 +56,9 @@ func NewSQLDeadLetterStore(db *sql.DB, dialect string) (*SQLDeadLetterStore, err
 }
 
 func (s *SQLDeadLetterStore) migrate() error {
-	ddl := s.schemaSQL()
+	ctx := context.Background()
 
-	_, err := s.db.Exec(ddl)
-	if err != nil {
+	if _, err := s.db.ExecContext(ctx, s.schemaSQL()); err != nil {
 		return fmt.Errorf("create table %s: %w", tableDeadLetters, err)
 	}
 
@@ -59,7 +66,7 @@ func (s *SQLDeadLetterStore) migrate() error {
 }
 
 func (s *SQLDeadLetterStore) schemaSQL() string {
-	if s.dialect == "postgres" {
+	if s.dialect == dialectPostgres {
 		return `CREATE TABLE IF NOT EXISTS ` + tableDeadLetters + ` (
     id          SERIAL PRIMARY KEY,
     kind        VARCHAR(50) NOT NULL,
@@ -89,15 +96,24 @@ CREATE INDEX IF NOT EXISTS idx_dead_letters_type ON ` + tableDeadLetters + `(typ
 }
 
 func (s *SQLDeadLetterStore) placeholder(idx int) string {
-	if s.dialect == "postgres" {
+	if s.dialect == dialectPostgres {
 		return "$" + strconv.Itoa(idx)
 	}
 
 	return "?"
 }
 
+func (s *SQLDeadLetterStore) placeholders(n int) string {
+	parts := make([]string, n)
+	for i := range n {
+		parts[i] = s.placeholder(i + 1)
+	}
+
+	return strings.Join(parts, ", ")
+}
+
 func (s *SQLDeadLetterStore) formatTime(t time.Time) any {
-	if s.dialect == "postgres" {
+	if s.dialect == dialectPostgres {
 		return t
 	}
 
@@ -123,23 +139,9 @@ func (s *SQLDeadLetterStore) Handle(ctx context.Context, entry DeadLetterEntry) 
 		failedAt = time.Now()
 	}
 
-	p1 := s.placeholder(1)
-	p2 := s.placeholder(2)
-	p3 := s.placeholder(3)
-	p4 := s.placeholder(4)
-	p5 := s.placeholder(5)
-	p6 := s.placeholder(6)
-
-	query := fmt.Sprintf(
-		"INSERT INTO %s (kind, type, aggregate_id, error_text, attempts, failed_at) VALUES (%s, %s, %s, %s, %s, %s)",
-		tableDeadLetters,
-		p1,
-		p2,
-		p3,
-		p4,
-		p5,
-		p6,
-	)
+	query := "INSERT INTO " + tableDeadLetters + //nolint:gosec // G202: constant concat
+		" (kind, type, aggregate_id, error_text, attempts, failed_at) VALUES (" +
+		s.placeholders(6) + ")" //nolint:mnd // 6 columns
 
 	_, _ = s.db.ExecContext(ctx, query,
 		entry.Kind, entry.Type, aggID, errText, entry.Attempts, s.formatTime(failedAt))
@@ -147,10 +149,8 @@ func (s *SQLDeadLetterStore) Handle(ctx context.Context, entry DeadLetterEntry) 
 
 // Entries returns all dead-lettered messages, ordered by insertion time.
 func (s *SQLDeadLetterStore) Entries(ctx context.Context) ([]DeadLetterEntry, error) {
-	query := fmt.Sprintf(
-		"SELECT kind, type, aggregate_id, error_text, attempts, failed_at FROM %s ORDER BY id",
-		tableDeadLetters,
-	)
+	query := "SELECT kind, type, aggregate_id, error_text, attempts, failed_at FROM " +
+		tableDeadLetters + " ORDER BY id"
 
 	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil {
@@ -175,7 +175,7 @@ func (s *SQLDeadLetterStore) Entries(ctx context.Context) ([]DeadLetterEntry, er
 			return nil, fmt.Errorf("sql dead letter store: scan: %w", err)
 		}
 
-		entry := DeadLetterEntry{
+		entry := DeadLetterEntry{ //nolint:exhaustruct // AggregateID/Error/FailedAt set below
 			Kind:     kind,
 			Type:     typ,
 			Attempts: attempts,
@@ -186,14 +186,18 @@ func (s *SQLDeadLetterStore) Entries(ctx context.Context) ([]DeadLetterEntry, er
 		}
 
 		if errText.Valid && errText.String != "" {
-			entry.Error = strError(errText.String)
+			entry.Error = deadLetterError(errText.String)
 		}
 
 		entry.FailedAt, _ = s.parseTime(failedAtRaw)
 		entries = append(entries, entry)
 	}
 
-	return entries, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("sql dead letter store: rows: %w", err)
+	}
+
+	return entries, nil
 }
 
 // Count returns the number of dead-lettered messages.
@@ -214,8 +218,7 @@ func (s *SQLDeadLetterStore) Count(ctx context.Context) (int, error) {
 func (s *SQLDeadLetterStore) Clear(ctx context.Context) error {
 	query := "DELETE FROM " + tableDeadLetters
 
-	_, err := s.db.ExecContext(ctx, query)
-	if err != nil {
+	if _, err := s.db.ExecContext(ctx, query); err != nil {
 		return fmt.Errorf("sql dead letter store: clear: %w", err)
 	}
 
@@ -223,27 +226,36 @@ func (s *SQLDeadLetterStore) Clear(ctx context.Context) error {
 }
 
 func (s *SQLDeadLetterStore) parseTime(src any) (time.Time, error) {
-	if s.dialect == "postgres" {
+	if s.dialect == dialectPostgres {
 		if t, ok := src.(time.Time); ok {
 			return t, nil
 		}
 
-		return time.Time{}, fmt.Errorf("expected time.Time, got %T", src)
+		return time.Time{}, fmt.Errorf(
+			"%w: expected time.Time, got %T",
+			errUnexpectedTimeTypeDL,
+			src,
+		)
 	}
 
 	str, ok := src.(string)
 	if !ok {
-		return time.Time{}, fmt.Errorf("expected string, got %T", src)
+		return time.Time{}, fmt.Errorf("%w: expected string, got %T", errUnexpectedTimeTypeDL, src)
 	}
 
-	return time.Parse(time.RFC3339Nano, str)
+	t, err := time.Parse(time.RFC3339Nano, str)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("parse sqlite time: %w", err)
+	}
+
+	return t, nil
 }
 
-type strErrorType string
+type storeError string
 
-func (e strErrorType) Error() string { return string(e) }
+func (e storeError) Error() string { return string(e) }
 
-func strError(s string) error { return strErrorType(s) }
+func deadLetterError(s string) error { return storeError(s) }
 
 func idParseSafe(s string) id.AggregateID {
 	aid, err := id.ParseAggregateID(s)

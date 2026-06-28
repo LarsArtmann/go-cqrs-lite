@@ -70,7 +70,7 @@ func (t *TypedCommandStore[P]) Save(
 	}
 
 	if cmd.ID != (id.CommandID{}) {
-		opts = append(opts, WithCommandID(cmd.ID))
+		opts = append(opts, WithPersistedCommandID(cmd.ID))
 	}
 
 	persisted, err := NewPersistedCommand(cmd.Type, ref, data, opts...)
@@ -112,7 +112,7 @@ func (t *TypedCommandStore[P]) AppendBatch(
 		}
 
 		if cmd.ID != (id.CommandID{}) {
-			opts = append(opts, WithCommandID(cmd.ID))
+			opts = append(opts, WithPersistedCommandID(cmd.ID))
 		}
 
 		p, err := NewPersistedCommand(cmd.Type, ref, data, opts...)

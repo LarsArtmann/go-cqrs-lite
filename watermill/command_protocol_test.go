@@ -179,7 +179,7 @@ func TestCommandToMessage_GeneratesCommandID(t *testing.T) {
 	}
 }
 
-func TestCommandToMessage_UniqueIDs(t *testing.T) {
+func TestCommandToMessage_StableID(t *testing.T) {
 	t.Parallel()
 
 	aggID := id.NewAggregateID()
@@ -188,8 +188,16 @@ func TestCommandToMessage_UniqueIDs(t *testing.T) {
 	msg1 := wm.CommandToMessage(cmd)
 	msg2 := wm.CommandToMessage(cmd)
 
-	if msg1.UUID == msg2.UUID {
-		t.Fatal("two calls should generate different command IDs")
+	// Same command instance → same message UUID (stable ID for dedup).
+	if msg1.UUID != msg2.UUID {
+		t.Fatalf("same command should produce stable UUID: %q != %q", msg1.UUID, msg2.UUID)
+	}
+
+	// Different command instances → different UUIDs (auto-minted in New).
+	cmd2, _ := command.New("user.create", aggID)
+	msg3 := wm.CommandToMessage(cmd2)
+	if msg1.UUID == msg3.UUID {
+		t.Fatal("different command instances should have different command IDs")
 	}
 }
 

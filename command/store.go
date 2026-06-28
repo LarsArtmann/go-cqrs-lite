@@ -50,7 +50,7 @@ func WithReceivedAt(t time.Time) PersistOption {
 	return func(c *PersistedCommand) { c.receivedAt = t }
 }
 
-func WithCommandID(cmdID id.CommandID) PersistOption {
+func WithPersistedCommandID(cmdID id.CommandID) PersistOption {
 	return func(c *PersistedCommand) { c.id = cmdID }
 }
 

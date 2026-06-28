@@ -69,7 +69,7 @@ func (s *CommandStore) deserializeCommand(data []byte) (*command.PersistedComman
 		command.Type(serialized.Type),
 		ref,
 		serialized.Payload,
-		command.WithCommandID(serialized.ID),
+		command.WithPersistedCommandID(serialized.ID),
 		command.WithReceivedAt(time.Unix(0, serialized.ReceivedAt)),
 		command.WithCommandMetadata(serialized.Metadata),
 	)

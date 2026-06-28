@@ -213,13 +213,18 @@ func TestNewPersistedCommand_WithReceivedAt(t *testing.T) {
 	}
 }
 
-func TestNewPersistedCommand_WithCommandID(t *testing.T) {
+func TestNewPersistedCommand_WithPersistedCommandID(t *testing.T) {
 	t.Parallel()
 
 	ref := validRef(t)
 	cmdID := parseCommandID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
-	cmd, err := command.NewPersistedCommand("CreateUser", ref, nil, command.WithCommandID(cmdID))
+	cmd, err := command.NewPersistedCommand(
+		"CreateUser",
+		ref,
+		nil,
+		command.WithPersistedCommandID(cmdID),
+	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -250,7 +255,12 @@ func TestPersistedCommand_String(t *testing.T) {
 	ref := validRef(t)
 	cmdID := parseCommandID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
-	cmd, err := command.NewPersistedCommand("CreateUser", ref, nil, command.WithCommandID(cmdID))
+	cmd, err := command.NewPersistedCommand(
+		"CreateUser",
+		ref,
+		nil,
+		command.WithPersistedCommandID(cmdID),
+	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

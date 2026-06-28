@@ -183,3 +183,43 @@ func TestCommand_MetadataMerge(t *testing.T) {
 		t.Error("merge mutated the base Custom map")
 	}
 }
+
+func TestCommand_AutoMintsID(t *testing.T) {
+	t.Parallel()
+
+	cmd, err := command.New("CreateUser", id.NewAggregateID())
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	if cmd.ID().IsZero() {
+		t.Fatal("expected auto-minted CommandID, got zero")
+	}
+}
+
+func TestCommand_WithCommandID(t *testing.T) {
+	t.Parallel()
+
+	customID := id.NewCommandID()
+	cmd, err := command.New("CreateUser", id.NewAggregateID(), command.WithCommandID(customID))
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	if cmd.ID() != customID {
+		t.Errorf("ID() = %v, want %v", cmd.ID(), customID)
+	}
+}
+
+func TestCommand_TwoInstancesHaveDifferentIDs(t *testing.T) {
+	t.Parallel()
+
+	aggID := id.NewAggregateID()
+
+	cmd1, _ := command.New("CreateUser", aggID)
+	cmd2, _ := command.New("CreateUser", aggID)
+
+	if cmd1.ID() == cmd2.ID() {
+		t.Fatal("two command instances should have different auto-minted IDs")
+	}
+}
