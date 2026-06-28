@@ -16,6 +16,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.0.0
 	github.com/larsartmann/go-cqrs-lite/storage/v3 v3.1.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v3 v3.1.0
+	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.1.0
 )
 
 require (
@@ -67,4 +68,5 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 => ../storage/memory
 	github.com/larsartmann/go-cqrs-lite/storage/v3 => ../storage
 	github.com/larsartmann/go-cqrs-lite/watermill/v3 => ../watermill
+	github.com/larsartmann/go-cqrs-lite/projection/v3 => ../projection
 )
