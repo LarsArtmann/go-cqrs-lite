@@ -152,6 +152,29 @@
             format = config.treefmt.build.check inputs.self;
           };
 
+          # No-op default package so `nix build .` (BuildFlow's full mode) succeeds.
+          # This is a Go library with no single binary; real artifacts live in apps.*
+          # and are invoked via `nix run .#<app>`. Pattern mirrors cqrs-htmx/flake.nix.
+          packages.default = pkgs.stdenvNoCC.mkDerivation {
+            pname = "go-cqrs-lite";
+            version = "3.3.0";
+
+            dontUnpack = true;
+            dontConfigure = true;
+            dontBuild = true;
+
+            installPhase = ''
+              mkdir -p $out
+            '';
+
+            meta = with lib; {
+              description = "Lightweight CQRS/Event-Sourcing library for Go";
+              homepage = "https://github.com/larsartmann/go-cqrs-lite";
+              license = licenses.mit;
+              platforms = platforms.unix;
+            };
+          };
+
           apps = {
             test = mkApp "test" goModules ''
               ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1 "$@"
