@@ -64,10 +64,10 @@ proj, _ := graph.NewGraphProjection("social-graph", driver,
     []event.Type{"MESSAGE_CREATED"},
 )
 
-// proj implements event.Projection → register with any projection runner.
+// proj implements projection.Projection → register with any projection runner.
 _ = proj.Handle(ctx, evt)
 
-// Reads (in-memory): driver.Snapshot() returns the graph for traversal.
+// Reads (MemoryDriver): use Query, Traverse, Neighbors, ShortestPath.
 // Reads (Neo4j): run native Cypher via the driver module.
 ```
 
@@ -78,6 +78,65 @@ All sink writes commit atomically when the handler returns nil and roll back
 when it returns an error. A real graph database's transaction (Neo4j, Memgraph)
 provides the same guarantee as the in-memory `MemoryDriver`, which snapshots
 the graph on Begin and swaps it back only on commit.
+
+## Schema validation (opt-in)
+
+A `graph.Schema` declares node types, edge types, and their properties. When
+attached to a projection (`WithSchema`) or driver (`WithDriverSchema`), the
+sink rejects writes with unknown labels, unknown properties, or edge endpoint
+mismatches before they hit the graph — catching the most common projection
+bug: a typo that silently creates a phantom node.
+
+Nil schema = open-world (backward-compatible default). Set a schema =
+closed-world at the projection boundary.
+
+```go
+schema := &graph.Schema{
+    Nodes: []graph.NodeType{
+        {Label: "User", KeyProp: "id", Properties: []graph.PropertyType{
+            {Name: "name"},
+        }},
+        {Label: "Message", KeyProp: "id", Properties: []graph.PropertyType{
+            {Name: "content"},
+        }},
+    },
+    Edges: []graph.EdgeType{
+        {Type: "AUTHORED_BY", FromLabel: "Message", ToLabel: "User"},
+    },
+}
+
+proj, _ := graph.NewGraphProjection("social", driver, handler, types,
+    graph.WithSchema(schema))
+// → sink.MergeNode with Label: "Bogus" now returns an error
+```
+
+See [ADR-0039](../docs/adr/0039-graph-schema.md) for the full design.
+
+## Read API (MemoryDriver)
+
+The `MemoryDriver` implements `ReadableDriver` — a typed Go-native read
+surface for tests and single-process apps. Deliberately NOT a query language:
+predicates are Go functions, type-checked by the compiler.
+
+```go
+// Query: filter by label + predicate function
+nodes := driver.Query(graph.Pattern{
+    Label: "User",
+    Where: func(props map[string]any) bool { return props["active"] == true },
+})
+
+// Traverse: BFS following edge type, up to maxDepth hops
+ancestors := driver.Traverse(msgRef, "REPLY_TO", -1) // unlimited depth
+
+// Neighbors: 1-hop adjacency (both directions)
+nodes, edges := driver.Neighbors(centerNode)
+
+// ShortestPath: BFS shortest path with parent tracking
+path, err := driver.ShortestPath(userA, userB) // returns []NodeRef
+```
+
+External graph databases (Neo4j, Memgraph) do NOT implement `ReadableDriver`.
+Their reads stay native (Cypher/Gremlin), per [ADR-0038](../docs/adr/0038-graph-projection-tier.md).
 
 ## Backends
 
