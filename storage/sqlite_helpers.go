@@ -3,15 +3,10 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
 )
-
-func parseSQLiteTimestamp(s string) (time.Time, error) {
-	return sqlpkg.ParseSQLiteTimestamp(s)
-}
 
 func OpenSQLite(dbPath string) (*sql.DB, error) {
 	db, err := sql.Open("sqlite", dbPath+"?_loc=auto&_time_format=sqlite")

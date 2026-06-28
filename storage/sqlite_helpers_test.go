@@ -99,28 +99,6 @@ func TestConfigureTursoPool(t *testing.T) {
 	}
 }
 
-func TestParseSQLiteTimestamp_InvalidFormat(t *testing.T) {
-	t.Parallel()
-
-	_, err := parseSQLiteTimestamp("not-a-date")
-	if err == nil {
-		t.Fatal("expected error for invalid timestamp")
-	}
-}
-
-func TestParseSQLiteTimestamp_Empty(t *testing.T) {
-	t.Parallel()
-
-	result, err := parseSQLiteTimestamp("")
-	if err != nil {
-		t.Fatalf("empty string should not error: %v", err)
-	}
-
-	if !result.IsZero() {
-		t.Errorf("expected zero time for empty string, got %v", result)
-	}
-}
-
 func TestSQLiteEnableWAL_ClosedDB(t *testing.T) {
 	t.Parallel()
 
