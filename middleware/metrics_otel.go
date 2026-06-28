@@ -19,6 +19,18 @@ type OTelMetricsRecorder struct {
 // NewOTelMetricsRecorder creates a new OTelMetricsRecorder from the given meter.
 // The histogram instrument name is "cqrs.operation.duration".
 // The counter instrument name is "cqrs.operation.count".
+// Histogram returns the underlying OTel histogram instrument.
+// Used by the OTel bundle to wire typed metrics middleware.
+func (r *OTelMetricsRecorder) Histogram() cqrsotel.Float64Histogram {
+	return r.histogram
+}
+
+// Counter returns the underlying OTel counter instrument.
+// Used by the OTel bundle to wire typed metrics middleware.
+func (r *OTelMetricsRecorder) Counter() cqrsotel.Int64Counter {
+	return r.counter
+}
+
 func NewOTelMetricsRecorder(meter cqrsotel.Meter) (*OTelMetricsRecorder, error) {
 	h, err := meter.Float64Histogram(
 		"cqrs.operation.duration",
