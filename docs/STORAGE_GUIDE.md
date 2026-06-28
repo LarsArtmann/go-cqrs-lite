@@ -1,96 +1,165 @@
 # Storage Backend Guide
 
-go-cqrs-lite supports multiple storage backends for event persistence.
+go-cqrs-lite separates **consumer code** (engine-agnostic) from **deployer choice**
+(where data lives). Two paths exist: **presets** (one engine for everything) and
+**manual assembly** (mix engines per concern).
 
-## Backends
+For the full deployer-first architecture, see
+[`docs/research/2026-06-23_DEPLOYER_FIRST_ARCHITECTURE_AUDIT.md`](research/2026-06-23_DEPLOYER_FIRST_ARCHITECTURE_AUDIT.md).
 
-### PostgreSQL
+---
 
-Production-ready. Full transactional support.
+## Path 1: Presets (recommended)
+
+One line picks the engine; all six concerns (events, commands, queries, snapshots,
+checkpoints, read models) use it. Consumer code is identical regardless of preset.
 
 ```go
-db, _ := sql.Open("pgx", "postgres://...")
-storage.PostgresInitSchema(ctx, db)
+import (
+    "github.com/larsartmann/go-cqrs-lite/stack/memory"
+    // or: stack/sqlite, stack/pebble, stack/postgres, stack/turso
+)
 
-store, _ := storage.NewSQLEventStore(db)
-snapshots, _ := storage.NewSQLSnapshotStore(db)
-checkpoints, _ := storage.NewSQLCheckpointStore(db)
-sagas, _ := storage.NewSQLSagaStore(db)
+bundle, err := memory.New()           // in-memory (tests, dev)
+// bundle, err := sqlite.New("app.db") // embedded SQL (single-process prod)
+// bundle, err := pebble.New("data")   // embedded KV (high-throughput)
+// bundle, err := postgres.New(dsn)    // distributed (multi-process prod)
 ```
 
-### SQLite
+### Multi-DB split (SQLite/Postgres only)
 
-Local-first, embedded. Supports WAL mode for concurrent reads.
+Isolate concerns across separate database files:
+
+```go
+bundle, err := sqlite.New("primary.db",
+    sqlite.WithEventDB("events.db"),   // events + snapshots + checkpoints
+    sqlite.WithQueryDB("queries.db"),  // command + query audit logs
+    sqlite.WithViewDB("views.db"),     // materialized views (cqrs_kv)
+)
+```
+
+Postgres supports the same split against separate databases on the same server.
+
+---
+
+## Path 2: Manual assembly (heterogeneous)
+
+Mix engines per concern via `stack.New` with `With*` options:
+
+```go
+import (
+    "github.com/larsartmann/go-cqrs-lite/stack"
+    "github.com/larsartmann/go-cqrs-lite/storage/pebble"
+    "github.com/larsartmann/go-cqrs-lite/storage"
+)
+
+pebbleBackend, _ := pebble.Open("data", pebble.DefaultOptions(), logger)
+sqlDB, _ := storage.OpenSQLite("views.db")
+sqlKV, _ := storage.NewSQLiteKVStore(sqlDB)
+
+bundle, err := stack.New(
+    stack.WithEventStore(pebbleBackend.EventStore()),
+    stack.WithSnapshotStore(pebbleBackend.SnapshotStore()),
+    stack.WithReadModels(sqlKV), // SQL for queryable views, Pebble for events
+)
+```
+
+---
+
+## Backend facades
+
+When you need individual stores (not a full `Bundle`), use a backend facade.
+All stores share one connection; `Close()` closes all stores (not the `*sql.DB`).
+
+### SQLite / Postgres
 
 ```go
 db, _ := storage.OpenSQLite("events.db")
 storage.SQLiteInitSchema(ctx, db)
-storage.SQLiteEnableWAL(ctx, db)
 
-store, _ := storage.NewSQLiteEventStore(db)
+backend, _ := storage.NewSQLiteBackend(db) // or NewSQLBackend for Postgres
+defer backend.Close()
+
+eventStore  := backend.EventStore()              // *SQLEventStore
+cmdStore, _ := backend.CommandStore()            // *SQLCommandStore (lazy)
+qStore, _   := backend.QueryStore()              // *SQLQueryStore (lazy)
+snapStore,_ := backend.SnapshotStore()           // *SQLSnapshotStore (lazy)
+cpStore, _  := backend.CheckpointStore()         // *SQLCheckpointStore (lazy)
+kvStore, _  := backend.KVStore()                 // kv.Store (cqrs_kv table)
 ```
 
-### Pebble (Embedded KV)
-
-High-performance embedded store for single-process deployments. No SQL dependency.
+### Pebble (single-DB full stack)
 
 ```go
-store, _ := storage.OpenPebbleEventStore("data/events",
-    storage.WithPebbleLogger(slog.Default()),
-)
+import "github.com/larsartmann/go-cqrs-lite/storage/pebble"
+
+backend, _ := pebble.Open(dir, pebble.DefaultOptions(), logger)
+defer backend.Close() // closes DB AND all stores
+
+eventStore  := backend.EventStore()
+snapStore   := backend.SnapshotStore()
+cpStore     := backend.CheckpointStore()
+kvStore     := backend.ReadModels()
 ```
+
+All three share one Pebble DB via disjoint key prefixes.
 
 ### Turso (libSQL)
 
-Remote SQLite-compatible database.
-
 ```go
-db, _ := storage.OpenTurso("libsql://...", authToken)
+import "github.com/larsartmann/go-cqrs-lite/storage/turso"
+
+db, _ := turso.Open("libsql://...") // or turso.OpenInMemory() for tests
+backend, _ := turso.NewBackend(db)
 ```
 
-## Event Store Operations
+---
 
-| Method                                               | Description                                 |
-| ---------------------------------------------------- | ------------------------------------------- |
-| `Save(ctx, aggType, aggID, events, expectedVersion)` | Append events with optimistic concurrency   |
-| `AppendBatch(ctx, aggType, aggID, events)`           | Append without concurrency check            |
-| `Load(ctx, aggType, aggID)`                          | Load all events for an aggregate            |
-| `LoadFromVersion(ctx, aggType, aggID, version)`      | Load events starting from version           |
-| `LoadToVersion(ctx, aggType, aggID, maxVersion)`     | Load events up to version (time-travel)     |
-| `LoadToTimestamp(ctx, aggType, aggID, maxTime)`      | Load events up to timestamp (time-travel)   |
-| `ReadAll(ctx)`                                       | Load all events across aggregates (Journal) |
-| `ReadFrom(ctx, afterEventID, limit)`                 | Cursor-based global load (SeekableJournal)  |
+## Event Store operations
 
-## Snapshot Store
+| Method                                               | Interface               | Description                               |
+| ---------------------------------------------------- | ----------------------- | ----------------------------------------- |
+| `Save(ctx, aggType, aggID, events, expectedVersion)` | `event.EventSink`       | Append events with optimistic concurrency |
+| `AppendBatch(ctx, aggType, aggID, events)`           | `event.EventSink`       | Append without concurrency check          |
+| `Load(ctx, aggType, aggID)`                          | `event.EventSource`     | Load all events for an aggregate          |
+| `LoadFromVersion(ctx, aggType, aggID, version)`      | `event.EventSource`     | Load events starting from version         |
+| `LoadToVersion(ctx, aggType, aggID, maxVersion)`     | `event.EventSource`     | Load events up to version (time-travel)   |
+| `LoadToTimestamp(ctx, aggType, aggID, maxTime)`      | `event.EventSource`     | Load events up to timestamp (time-travel) |
+| `ReadAll(ctx)`                                       | `event.Journal`         | Load all events across aggregates         |
+| `ReadFrom(ctx, afterEventID, limit)`                 | `event.SeekableJournal` | Cursor-based global load                  |
 
-Optimize aggregate loading by storing periodic state snapshots.
-
-```go
-snapshotStore, _ := storage.NewSQLSnapshotStore(db)
-```
-
-Snapshots store raw `[]byte` — serialization is the caller's responsibility.
-
-## Checkpoint Store
-
-Track projection progress for replay.
-
-```go
-checkpointStore, _ := storage.NewSQLCheckpointStore(db)
-```
+---
 
 ## Schema DDL
 
-```go
-// PostgreSQL
-storage.Schema()          // events table
-storage.SnapshotSchema()  // snapshots table
-storage.CheckpointSchema()// checkpoints table
-storage.SagaSchema()      // sagas table
+Schema initialization is handled by `SQLiteInitSchema` / `PostgresInitSchema`,
+which create all tables (`events`, `snapshots`, `checkpoints`, `commands`,
+`queries`, `cqrs_kv`) if they don't exist. For raw DDL access:
 
-// SQLite
-storage.SQLiteSchema()
-storage.SQLiteSnapshotSchema()
-storage.SQLiteCheckpointSchema()
-storage.SQLiteSagaSchema()
+```go
+// Individual table schemas (from the Dialect)
+sqlpkg.PostgresDialect{}.EventSchema()     // events table DDL
+sqlpkg.PostgresDialect{}.SnapshotSchema()  // snapshots table DDL
+sqlpkg.PostgresDialect{}.CheckpointSchema()// checkpoints table DDL
+sqlpkg.SQLiteDialect{}.EventSchema()       // SQLite equivalent
 ```
+
+Embedded DDL files live in `storage/migrations/` (`postgres.sql`, `sqlite.sql`).
+
+---
+
+## SQLite pragmas
+
+```go
+_ = storage.SQLiteEnableWAL(ctx, db)          // WAL mode + busy_timeout=5000
+_ = storage.SQLiteEnableForeignKeys(ctx, db)  // PRAGMA foreign_keys=ON
+```
+
+---
+
+## See also
+
+- [Deployer-first architecture audit](research/2026-06-23_DEPLOYER_FIRST_ARCHITECTURE_AUDIT.md)
+- [Storage environment mapping](research/storage-environment-mapping.md)
+- [Storage first-principles analysis](research/storage-first-principles-analysis.md)
+- [Database architecture taxonomy](research/database-architecture-taxonomy.md)
