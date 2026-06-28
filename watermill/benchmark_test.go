@@ -6,6 +6,7 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill/message"
 
+	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -94,6 +95,49 @@ func BenchmarkBuildMetadata(b *testing.B) {
 
 	for b.Loop() {
 		_, err := buildMetadata(md)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func benchCommand(tb testing.TB) *command.BasicCommand {
+	tb.Helper()
+
+	cmd, err := command.New(
+		"BenchCommand", id.NewAggregateID(),
+		command.WithCorrelationID(id.NewCorrelationID()),
+		command.WithUserID(id.NewUserID()),
+		command.WithCustomMetadata("tenant", "acme"),
+	)
+	if err != nil {
+		tb.Fatal(err)
+	}
+
+	return cmd
+}
+
+func BenchmarkCommandToMessage(b *testing.B) {
+	b.ReportAllocs()
+
+	cmd := benchCommand(b)
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		_ = CommandToMessage(cmd)
+	}
+}
+
+func BenchmarkMessageToCommand(b *testing.B) {
+	b.ReportAllocs()
+
+	msg := CommandToMessage(benchCommand(b))
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		_, err := MessageToCommand("BenchCommand", msg)
 		if err != nil {
 			b.Fatal(err)
 		}

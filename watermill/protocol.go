@@ -60,18 +60,8 @@ func eventToMessage(evt event.Event) *message.Message {
 	md.Set(metaOccurredAt, evt.OccurredAt().Format(time.RFC3339Nano))
 
 	m := evt.Metadata()
-	if !m.CorrelationID.IsZero() {
-		md.Set(metaCorrelationID, m.CorrelationID.String())
-	}
-	if !m.CausationID.IsZero() {
-		md.Set(metaCausationID, m.CausationID.String())
-	}
-	if !m.UserID.IsZero() {
-		md.Set(metaUserID, m.UserID.String())
-	}
-	if !m.RequestID.IsZero() {
-		md.Set(metaRequestID, m.RequestID.String())
-	}
+	writeTracing(md, m.Tracing)
+
 	if m.Source != "" {
 		md.Set(metaSource, string(m.Source))
 	}
@@ -87,9 +77,7 @@ func eventToMessage(evt event.Event) *message.Message {
 			md.Set(metaTombstoneReason, m.Tombstone.Reason)
 		}
 	}
-	for k, v := range m.Custom {
-		md.Set(metaCustomPrefix+string(k), v)
-	}
+	writeCustomEntries(md, m.Custom)
 
 	return msg
 }

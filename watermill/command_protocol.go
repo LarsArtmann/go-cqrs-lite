@@ -49,8 +49,8 @@ func CommandToMessage(cmd command.Command) *message.Message {
 
 	if mp, ok := cmd.(metadataProvider); ok {
 		m := mp.Metadata()
-		writeTracingMetadata(md, m)
-		writeCustomMetadata(md, m)
+		writeTracing(md, m.Tracing)
+		writeCustomEntries(md, m.Custom)
 	}
 
 	return msg
@@ -91,23 +91,28 @@ func MessageToCommand(topic string, msg *message.Message) (*command.BasicCommand
 	return cmd, nil
 }
 
-func writeTracingMetadata(md message.Metadata, m command.Metadata) {
-	if !m.CorrelationID.IsZero() {
-		md.Set(metaCorrelationID, m.CorrelationID.String())
+// writeTracing writes the 4 shared tracing identifiers from event.Tracing
+// into message metadata. Both event.Metadata and command.Metadata embed
+// event.Tracing, so this is reused by both protocols.
+func writeTracing(md message.Metadata, t event.Tracing) {
+	if !t.CorrelationID.IsZero() {
+		md.Set(metaCorrelationID, t.CorrelationID.String())
 	}
-	if !m.CausationID.IsZero() {
-		md.Set(metaCausationID, m.CausationID.String())
+	if !t.CausationID.IsZero() {
+		md.Set(metaCausationID, t.CausationID.String())
 	}
-	if !m.UserID.IsZero() {
-		md.Set(metaUserID, m.UserID.String())
+	if !t.UserID.IsZero() {
+		md.Set(metaUserID, t.UserID.String())
 	}
-	if !m.RequestID.IsZero() {
-		md.Set(metaRequestID, m.RequestID.String())
+	if !t.RequestID.IsZero() {
+		md.Set(metaRequestID, t.RequestID.String())
 	}
 }
 
-func writeCustomMetadata(md message.Metadata, m command.Metadata) {
-	for k, v := range m.Custom {
+// writeCustomEntries writes custom metadata entries with the custom. prefix.
+// Works for any map whose key type is ~string.
+func writeCustomEntries[K ~string](md message.Metadata, custom map[K]string) {
+	for k, v := range custom {
 		md.Set(metaCustomPrefix+string(k), v)
 	}
 }
