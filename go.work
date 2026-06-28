@@ -43,6 +43,7 @@ use (
 	./storage/pebble
 	./storage/turso
 	./testutil
+	./transport/grpc
 	./transport/http
 	./watermill
 )
