@@ -57,6 +57,7 @@ You do NOT need all of them. Start with the minimal recipe (§2), then bolt on c
 | Make event streams tamper-proof                     | `signing`                                                                       | §2.6       |
 | Encrypt confidential payloads                       | `encryption`                                                                    | §2.7       |
 | Add logging/retry/recovery/circuit-breaker          | `middleware`                                                                    | §2.8       |
+| Deduplicate commands on retry (idempotency)          | `idempotency`                                                                   | §2.8       |
 | Add OpenTelemetry tracing/metrics                   | `otel` + `middleware`                                                           | §2.8       |
 | Auto-generate AsyncAPI/OpenAPI/EventCatalog/D2 docs | `catalog`                                                                       | §2.9       |
 | Soft-delete aggregates without data loss            | `event` (tombstone metadata)                                                    | §6.1       |
@@ -560,6 +561,21 @@ cmdDispatcher.Use(middleware.CommandRetry(3, time.Second))
 ```
 
 > **Rule:** Import OTel via `otel/` re-exports, NOT `go.opentelemetry.io` directly.
+
+#### Command Idempotency (dedup on retry)
+
+```go
+import (
+    "github.com/larsartmann/go-cqrs-lite/idempotency/v3"
+)
+
+store := idempotency.NewMemoryStore(5 * time.Minute)
+defer store.Close()
+
+// Rejects duplicate commands within the TTL. Default key: cmd.ID().
+// Pass a custom KeyExtractor for client-supplied idempotency keys.
+cmdDispatcher.Use(idempotency.CommandIdempotency(store, 10*time.Minute, nil))
+```
 
 ### 2.9 Auto-Documentation (catalog)
 
