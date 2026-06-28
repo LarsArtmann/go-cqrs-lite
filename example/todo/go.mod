@@ -7,8 +7,10 @@ require (
 	github.com/larsartmann/go-cqrs-lite/command/v3 v3.1.0
 	github.com/larsartmann/go-cqrs-lite/decider/v3 v3.1.0
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.1.0
+	github.com/larsartmann/go-cqrs-lite/event/v3/eventtest v0.0.0
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.1.0
 	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.1.0
+	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.1.0
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/memory/v3 v3.0.0
 	github.com/larsartmann/go-cqrs-lite/stack/pebble/v3 v3.1.0
@@ -93,3 +95,7 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v3 => ../../storage/pebble
 	github.com/larsartmann/go-cqrs-lite/watermill/v3 => ../../watermill
 )
+
+replace github.com/larsartmann/go-cqrs-lite/projection/v3 => ../../projection
+
+replace github.com/larsartmann/go-cqrs-lite/event/v3/eventtest => ../../event/eventtest

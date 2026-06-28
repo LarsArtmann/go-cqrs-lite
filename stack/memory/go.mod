@@ -26,6 +26,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/decider/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-error-family v0.5.1 // indirect
@@ -65,3 +66,7 @@ replace (
 )
 
 replace github.com/larsartmann/go-cqrs-lite/watermill/v3 => ../../watermill
+
+replace github.com/larsartmann/go-cqrs-lite/projection/v3 => ../../projection
+
+replace github.com/larsartmann/go-cqrs-lite/event/v3/eventtest => ../../event/eventtest

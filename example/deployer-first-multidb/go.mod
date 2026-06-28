@@ -28,6 +28,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v3 v3.1.0 // indirect
@@ -77,3 +78,5 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/storage/v3 => ../../storage
 	github.com/larsartmann/go-cqrs-lite/watermill/v3 => ../../watermill
 )
+
+replace github.com/larsartmann/go-cqrs-lite/projection/v3 => ../../projection

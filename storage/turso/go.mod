@@ -29,6 +29,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v3 v3.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.0.0 // indirect
 	github.com/larsartmann/go-error-family v0.5.1 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
@@ -58,3 +59,5 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v3 => ../../snapshot
 	github.com/larsartmann/go-cqrs-lite/storage/v3 => ../../storage
 )
+
+replace github.com/larsartmann/go-cqrs-lite/projection/v3 => ../../projection
