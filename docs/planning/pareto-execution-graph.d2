@@ -1,0 +1,97 @@
+direction: down
+
+# Tier styling
+classes: {
+  tier1: {
+    style.fill: "#ffb347"
+    style.font-color: "#1a1a1a"
+    style.bold: true
+  }
+  tier2: {
+    style.fill: "#6eb5ff"
+    style.font-color: "#0e0e10"
+  }
+  tier3: {
+    style.fill: "#f4d35e"
+    style.font-color: "#1a1a1a"
+  }
+  tier4: {
+    style.fill: "#3a3a42"
+    style.font-color: "#f4f4f0"
+    style.stroke: "#6eb5ff"
+  }
+  tier5: {
+    style.fill: "#2a2a30"
+    style.font-color: "#a0a0a8"
+    style.stroke-dash: 4
+  }
+}
+
+T1: "TIER 1 — UNBLOCK EVERYTHING\n1% effort → 51% value" {
+  style.fill: "#ffb347"
+  style.font-color: "#1a1a1a"
+  style.bold: true
+  shape: package
+
+  BuildFlow: "T1  Fix BuildFlow nix-build\n(BLOCKS every commit)" ; BuildFlow.class: [tier1]
+  Tag: "T2  Tag go-cqrs-lite v3.3.0\n(unblocks all downstream)" ; Tag.class: [tier1]
+}
+
+T2: "TIER 2 — FINISH THE AUDIT\n4% effort → 64% value" {
+  style.fill: "#6eb5ff"
+  style.font-color: "#0e0e10"
+  shape: package
+
+  Delegate: "T3  Delegate cqrs-htmx idempotency\n→ upstream aliases" ; Delegate.class: [tier2]
+  SSE: "T4  Unify SSE primitives\n(promote branded types upstream)" ; SSE.class: [tier2]
+  Docs: "T5  Reconcile docs\n(FEATURES 45 → 49 + DLQ status)" ; Docs.class: [tier2]
+}
+
+T3: "TIER 3 — #1 FRAMEWORK GAP\n20% effort → 80% value" {
+  style.fill: "#f4d35e"
+  style.font-color: "#1a1a1a"
+  shape: package
+
+  A1: "T6  Managed Projection Host (A1)\n+ projection-tier DLQ hook\n(the loop every consumer rewrites)" ; A1.class: [tier3]
+}
+
+T4: "TIER 4 — PRODUCTION HARDENING + DX\nremaining" {
+  style.fill: "#3a3a42"
+  style.font-color: "#f4f4f0"
+  shape: package
+
+  Backends: "T7  Redis/SQL Idempotency\nbackends" ; Backends.class: [tier4]
+  A2: "T8  Transactional Outbox (A2)\nopt-in EventSink" ; A2.class: [tier4]
+  A5: "T9  Scenario-testing DSL (A5)\nGiven/When/Then" ; A5.class: [tier4]
+  A6: "T10 Scheduled commands (A6)\ndurable deadlines" ; A6.class: [tier4]
+}
+
+T5: "TIER 5 — cqrs-htmx INTERNAL (out of audit scope)" {
+  style.fill: "#2a2a30"
+  style.font-color: "#a0a0a8"
+  shape: package
+  style.stroke-dash: 4
+
+  Phase2: "T11 Offline-first Phase 2\n(SharedWorker / SW + Background Sync)" ; Phase2.class: [tier5]
+}
+
+# Dependency edges
+T1.BuildFlow -> T1.Tag: "commits work again"
+T1.Tag -> T2.Delegate: "v3.3.0 published"
+T1.Tag -> T2.SSE: "v3.3.0 published"
+T2.Delegate -> T3.A1: "single source of truth"
+T2.SSE -> T3.A1: "no duplication"
+T2.Docs -> T3.A1: "honest baseline"
+T3.A1 -> T4.A2: "host wires outbox sink"
+T3.A1 -> T4.Backends: "host may need prod dedup"
+T3.A1 -> T4.A5: "host is testable via DSL"
+T4.A5 -> T4.A6: "scheduler composes into DSL"
+
+# Cross-cutting note
+Note: "Reliability trio status:\nDLQ (dispatch) = DONE\nIdempotency = DONE (module)\nOutbox = NOT STARTED (A2)" {
+  shape: rectangle
+  style.fill: "#f4f4f0"
+  style.font-color: "#1a1a1a"
+  style.border-radius: 0
+}
+T4.A2 -> Note: "closes the trio"

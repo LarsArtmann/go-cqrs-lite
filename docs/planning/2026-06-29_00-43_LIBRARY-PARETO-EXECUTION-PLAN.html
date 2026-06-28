@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pareto Execution Plan — go-cqrs-lite × cqrs-htmx</title>
+    <style>
+      :root {
+        --color-graphite: #0e0e10; --color-graphite-2: #18181d; --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0; --color-red: #ff6b6b; --color-blue: #6eb5ff; --color-yellow: #f4d35e;
+        --color-amber: #ffb347; --color-hairline: rgba(244,244,240,0.12); --color-hairline-strong: rgba(244,244,240,0.25);
+        --surface: var(--color-graphite); --surface-raised: var(--color-graphite-2); --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone); --text-muted: rgba(244,244,240,0.72); --text-faint: rgba(244,244,240,0.45);
+        --border: var(--color-hairline); --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber); --problem: var(--color-red); --solution: var(--color-blue); --warning: var(--color-yellow);
+        --radius: 0px;
+        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      section[id], [id] { scroll-margin-top: 60px; }
+      body { background: var(--surface); color: var(--text); font-family: var(--font-body); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+      :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      .top-bar { background: var(--text); color: var(--surface); padding: 0.6rem 2rem; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+      .layout { display: flex; gap: 2.5rem; padding: 2rem; }
+      .sidebar { width: 220px; flex-shrink: 0; position: sticky; top: 1rem; align-self: flex-start; height: calc(100vh - 2rem); overflow-y: auto; display: none; }
+      .sidebar nav { display: flex; flex-direction: column; }
+      .sidebar .label { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent); margin-bottom: 0.75rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border-strong); }
+      .sidebar a { font-size: 0.85rem; color: var(--text-muted); text-decoration: none; padding: 0.45rem 0.75rem; border-left: 2px solid transparent; transition: all 0.15s ease; font-weight: 500; }
+      .sidebar a:hover, .sidebar a.active { color: var(--accent); border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+      .main { flex: 1; min-width: 0; }
+      h1,h2,h3,h4 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -0.02em; }
+      h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.1; margin: 0 0 0.6rem; }
+      h2 { font-size: 1.4rem; margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border-strong); display: flex; align-items: baseline; gap: 0.6rem; }
+      h2 .num { font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent); font-weight: 700; letter-spacing: 0.06em; }
+      h3 { font-size: 1.1rem; margin: 0 0 0.4rem; font-weight: 700; }
+      h4 { font-size: 0.98rem; margin: 0 0 0.3rem; font-weight: 700; }
+      p { margin: 0 0 1rem; }
+      .hero { padding: 1.5rem 0 1.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border-strong); }
+      .hero-badge { display: inline-block; font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--surface); background: var(--accent); padding: 0.3rem 0.7rem; margin-bottom: 0.9rem; }
+      .hero-subtitle { font-size: 1.05rem; color: var(--text-muted); max-width: 75ch; margin: 0; }
+      .card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1.3rem; margin-bottom: 1rem; border-left: 4px solid var(--border-strong); }
+      .card-problem { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised)); }
+      .card-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised)); }
+      .card-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised)); }
+      .stat-grid, .scorecard { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin: 1rem 0 1.5rem; }
+      .stat-card, .score-card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1rem; position: relative; }
+      .stat-card::before, .score-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--border-strong); }
+      .stat-bad::before { background: var(--problem); }
+      .stat-good::before { background: var(--solution); }
+      .stat-warn::before { background: var(--warning); }
+      .stat-value, .score { font-family: var(--font-heading); font-size: 2rem; font-weight: 800; line-height: 1; letter-spacing: -0.03em; }
+      .stat-bad .stat-value { color: var(--problem); }
+      .stat-good .stat-value { color: var(--solution); }
+      .stat-warn .stat-value { color: var(--warning); }
+      .stat-label, .score-card .label { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-faint); margin-top: 0.5rem; }
+      .badge { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.18rem 0.5rem; border: 1px solid var(--border-strong); color: var(--text-muted); white-space: nowrap; }
+      .badge-critical { color: var(--problem); border-color: var(--problem); }
+      .badge-high { color: var(--warning); border-color: var(--warning); }
+      .badge-medium { color: var(--accent); border-color: var(--accent); }
+      .badge-low { color: var(--text-muted); }
+      .badge-fixed { color: var(--solution); border-color: var(--solution); }
+      .tier-badge { display: inline-block; font-family: var(--font-mono); font-size: 0.6rem; font-weight: 700; padding: 0.15rem 0.45rem; margin-right: 0.4rem; color: var(--surface); }
+      .tb1 { background: var(--color-amber); }
+      .tb2 { background: var(--color-blue); }
+      .tb3 { background: var(--color-yellow); color: #1a1a1a; }
+      .tb4 { background: #3a3a42; color: var(--text); border: 1px solid var(--border-strong); }
+      .tb5 { background: #2a2a30; color: var(--text-muted); border: 1px solid var(--border-strong); }
+      .table-wrap { overflow-x: auto; }
+      table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.88rem; }
+      th { text-align: left; padding: 0.6rem 0.9rem; background: var(--surface-raised); color: var(--text-faint); font-family: var(--font-mono); font-size: 0.64rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border-bottom: 1px solid var(--border-strong); }
+      td { padding: 0.55rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+      tr:hover td { background: var(--surface-raised); }
+      td code, p code, li code { font-family: var(--font-mono); font-size: 0.85em; background: var(--surface-sunken); padding: 0.1rem 0.35rem; }
+      .callout { margin: 0.8rem 0 0; padding: 0.7rem 0.9rem; border-left: 3px solid var(--border-strong); background: color-mix(in srgb, var(--text) 5%, transparent); font-size: 0.9rem; }
+      .callout strong { display: inline-block; margin-right: 0.4rem; }
+      .callout-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 10%, transparent); }
+      .callout-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 10%, transparent); }
+      .graph-wrap { background: var(--surface-raised); border: 1px solid var(--border); padding: 1rem; margin: 1rem 0 1.5rem; overflow-x: auto; }
+      .graph-wrap svg { max-width: 100%; height: auto; display: block; }
+      .toc { background: var(--surface-raised); border: 1px solid var(--border); border-left: 3px solid var(--accent); padding: 1rem 1.3rem; margin: 1rem 0 1.5rem; }
+      .toc h3 { margin-bottom: 0.5rem; }
+      .toc ul { list-style: none; }
+      .toc li { margin: 0.25rem 0; }
+      .toc a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; }
+      .toc a:hover { color: var(--accent); }
+      .footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.8rem; color: var(--text-faint); font-family: var(--font-mono); }
+      @media (min-width: 1024px) { .sidebar { display: block; } }
+      @media (max-width: 768px) { .layout { flex-direction: column; padding: 1rem; } .stat-grid { grid-template-columns: repeat(2,1fr); } }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>PARETO EXECUTION PLAN</span>
+      <span>2026-06-29</span>
+      <span>go-cqrs-lite × cqrs-htmx</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#findings">Key Findings</a>
+          <a href="#graph">Execution Graph</a>
+          <a href="#pareto">Pareto Tiers</a>
+          <a href="#master">Master TODO Table</a>
+          <a href="#tier1">Tier 1 — Unblock</a>
+          <a href="#tier2">Tier 2 — Finish Audit</a>
+          <a href="#tier3">Tier 3 — Projection Host</a>
+          <a href="#tier4">Tier 4 — Hardening</a>
+          <a href="#tier5">Tier 5 — cqrs-htmx</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="hero">
+          <div class="hero-badge">Pareto Planning · Exploration</div>
+          <h1>Comprehensive Execution Plan</h1>
+          <p class="hero-subtitle">All open work across <strong>go-cqrs-lite</strong> (the CQRS/ES library) and <strong>cqrs-htmx</strong> (the HTMX layer), sorted by impact / effort / customer-value, broken into subtasks of ≤&nbsp;12&nbsp;min each.</p>
+        </div>
+
+        <nav class="toc">
+          <h3>Contents</h3>
+          <ul>
+            <li><a href="#summary">Summary</a></li>
+            <li><a href="#findings">Key Findings (plan-altering discoveries)</a></li>
+            <li><a href="#graph">Execution Graph (D2)</a></li>
+            <li><a href="#pareto">Pareto Tier Breakdown</a></li>
+            <li><a href="#master">Master TODO Table (sorted by priority)</a></li>
+            <li><a href="#tier1">Tier 1 — Unblock Everything</a></li>
+            <li><a href="#tier2">Tier 2 — Finish the Cross-Repo Audit</a></li>
+            <li><a href="#tier3">Tier 3 — Managed Projection Host (#1 gap)</a></li>
+            <li><a href="#tier4">Tier 4 — Production Hardening + DX</a></li>
+            <li><a href="#tier5">Tier 5 — cqrs-htmx internal (out of audit scope)</a></li>
+          </ul>
+        </nav>
+
+        <h2 id="summary"><span class="num">00</span>Summary</h2>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-value">11</div><div class="stat-label">TODO Groups</div></div>
+          <div class="stat-card stat-warn"><div class="stat-value">98</div><div class="stat-label">Subtasks (≤12 min)</div></div>
+          <div class="stat-card stat-bad"><div class="stat-value">1</div><div class="stat-label">Hard Blocker</div></div>
+          <div class="stat-card stat-good"><div class="stat-value">2</div><div class="stat-label">Tiers = quick wins</div></div>
+        </div>
+        <div class="card card-problem">
+          <h4>One hard blocker governs everything</h4>
+          <p>The BuildFlow pre-commit hook fails on every <code>git commit</code> because <code>flake.nix</code> (flake-parts) exposes no <code>packages.default</code>. Until fixed, every task needs <code>--no-verify</code>. <strong>This is Tier 1, task #1.</strong></p>
+        </div>
+        <div class="card card-solution">
+          <h4>Two framework gaps are already closed</h4>
+          <p>The gap analysis (v3.1.0) flagged A3 (idempotency) and A4 (DLQ) as "missing." Both are now <span class="badge badge-fixed">Done</span>: the <code>idempotency/</code> module shipped this session, and <code>middleware/deadletter.go</code> + <code>deadletter_sql.go</code> + tests already exist. Only the <em>projection-tier</em> DLQ hook remains — folded into the Projection Host (A1).</p>
+        </div>
+
+        <h2 id="findings"><span class="num">01</span>Key Findings (plan-altering)</h2>
+        <div class="card card-problem">
+          <h4>BuildFlow blocker is a missing <code>packages.default</code></h4>
+          <p><code>.buildflow.yml</code> has no explicit nix step — BuildFlow's default <code>full</code> mode runs <code>nix build .</code>, which fails: <em>"flake does not provide attribute packages.x86_64-linux.default"</em>. Fix = add a <code>packages.default</code> (e.g. a cqrs-gen wrapper) via flake-parts <code>perSystem</code>, or a buildflow skip key.</p>
+        </div>
+        <div class="card card-warning">
+          <h4>Tagging is non-trivial (multi-module)</h4>
+          <p><code>idempotency/go.mod</code> requires <code>event/v3 v3.3.0</code> + <code>command/v3 v3.3.0</code> (+ transitive: id, codec, schema…). v3.3.0 tags for those don't exist yet. The "tag v3.3.0" step needs the <em>full</em> tag set, not one tag.</p>
+        </div>
+        <div class="card card-problem">
+          <h4>Doc drift: module count disagrees with itself</h4>
+          <p>Real count = <strong>49</strong> <code>go.mod</code> files. AGENTS.md says 49 (correct). FEATURES.md header still says 45 (stale, pre-idempotency). FEATURES.md also omits the dispatch-DLQ as a feature. A reconciliation pass is owed.</p>
+        </div>
+        <div class="card card-solution">
+          <h4>Reliability trio status</h4>
+          <p><span class="badge badge-fixed">DLQ (dispatch) = DONE</span> <span class="badge badge-fixed">Idempotency = DONE (module + middleware)</span> <span class="badge badge-critical">Outbox = NOT STARTED (A2)</span>. The trio is ⅔ complete; only the optional outbox sink remains.</p>
+        </div>
+        <div class="card card-warning">
+          <h4>SSE has a better implementation trapped downstream</h4>
+          <p><code>cqrs-htmx/sse_event.go</code> has branded <code>SSEEventID</code> + zero-alloc <code>WriteSSEEvent</code> — better than <code>go-cqrs-lite/transport/http/sse_event.go</code>. Promote upstream, then delegate. Blocked on v3.3.0 tag.</p>
+        </div>
+
+        <h2 id="graph"><span class="num">02</span>Execution Graph</h2>
+        <p>Dependency flow across the five tiers. Arrows = unblocks. Tiers are Pareto-ordered: do 1 → 2 → 3 → 4 → 5.</p>
+        <div class="graph-wrap" id="graph-svg">
+          <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" data-d2-version="v0.7.1" preserveAspectRatio="xMinYMin meet" viewBox="0 0 1424 2591"><svg class="d2-1535120816 d2-svg" width="1424" height="2591" viewBox="-89 -89 1424 2591"><rect x="-89.000000" y="-89.000000" width="1424.000000" height="2591.000000" rx="0.000000" fill="#FFFFFF" class=" fill-N7" stroke-width="0" /><style type="text/css"><![CDATA[
+.d2-1535120816 .text {
+	font-family: "d2-1535120816-font-regular";
+}
+@font-face {
+	font-family: d2-1535120816-font-regular;
+	src: url("data:application/font-woff;base64,d09GRgABAAAAABewAAoAAAAAI3QAAguFAAAAAAAAAAAAAAAAAAAAAAAAAABPUy8yAAAA9AAAAGAAAABgXd/Vo2NtYXAAAAFUAAAAzgAAATYrtygGZ2x5ZgAAAiQAABAmAAAWpFc5tyBoZWFkAAASTAAAADYAAAA2G4Ue32hoZWEAABKEAAAAJAAAACQKhAYRaG10eAAAEqgAAAEDAAABPJZFDh9sb2NhAAATrAAAAKAAAACg6fbv6G1heHAAABRMAAAAIAAAACAAZwD2bmFtZQAAFGwAAAMjAAAIFAbDVU1wb3N0AAAXkAAAAB0AAAAg/9EAMgADAgkBkAAFAAACigJYAAAASwKKAlgAAAFeADIBIwAAAgsFAwMEAwICBGAAAvcAAAADAAAAAAAAAABBREJPAEAAIP//Au7/BgAAA9gBESAAAZ8AAAAAAeYClAAAACAAA3ichM9JMgMBGAXgr5OYIoSIIWLoToRM5nkIYlZOYOkYruEwquy4iOIkraqpbP3rr/73HgJpAXIyQRMVoYyUUFVNQ8uqNesOHem49+g5LEYvccyfqffMRmK6Hjz9mvhbJFRSVpBXlJaRjT/i9/jtq/35miT/d4Er17ou3DjTcWnbjl179h0kvY6dOHUrlfzv02/AoCFZw3JGjMobM65gQtGkKdNmlMwqmzNvwaJQpKJqSc2yFXUNTS3t3rZNW87d8QMAAP//AQAA//+vDCD0AAB4nIx4e3Qb5Zn++30aW3YkX2RpLMnWfWyNZEmWrdFIliVLtnWxbEuWLdnxLXZuThzn1sQp0JCQ0B+B5Acsq9KwcCBQ2rKncBa2pJyTwOF06RJgzRJI22W5lCZlu+e4nALt4lWXcvFoz4xk2YHtnv1DZ+aMZr7vfZ/veZ7vmYEymATALD4LIqiEGqgDEoCRGWXNRpqmxF7G66WUIi+NZOJJ9Gsui1C/m/B4iPbeD3uPnjyJJk7gs6v7O0/Nz788e9NN3F8tf8C50BsfAAYRANbiLFSCDEAuZmizmabKy0VyRk7RlPg1/cv6OkMtUWP41bXZa5PBP4bQN+bmvAd8vgPcFM6uHlpaAgAQwRQAbsJZkEEDUHxtjKu+nlSUi0nhUE6JGJeHdZspSrZ2MnUpvMvX7vQPhg4NnNg+OpBM7locm53ZvIizhlhne6qGkAxFuje3oKOdLl/bai7U2+UDAATufA434nOgBSgzmc2s2+NhXPVKsdlMmcrLSUV9PePyeJXl5Sid/vZg4lQmsEXjaOhtCc4wrumgc0DfSu+Qjjywb+8D6XaDR2PquTGdPtprMbkdLgDAQi9unIUKHhOhE1JRTtGluh974JGH7xsbPHLkyJFBnH3i3MN/H7nr+PHbhdqmANA1nAWJsD6kkWRIijSSU+hm7t3PPkPtOBt7o+8PfaV73xSwX79XJtz5+ec4G7sW435V6teMz4HhL/XLt8tSLCMrL0dbNt+RGDozHpnRtKp7Xb072MMLVLf8rrf1C8WWGZ2noannxvTx75B1fxflPjLairVg11rdPLMYGSUzyqYyqH10lLuCs9zHSL56CLHca2u1w1M4y/OHv38qw5OhOE4IZ0FauM4gRiynRGJyKiNCstnXP5556TDOchdR/+fcXjR2+8/XcLiMs1BWnJucyiA9zq5e5GEqjnkLzvLrzcgYeX29kvF4vHK+QrfHS4lFlIim6utJ2dTcCalSSkhJ6fFdQxUiwn3ce9xNiMQ4y/3AFDWZoiY0u3oILdj32e7jnkSj99n22bn7S3M4cBbkhTmUjNnM8hisjbz54z5CJE5t/kMfQfDjzZ1x7XOjzOoh9PDp9j1u7gnAwjrtwueg5ivMFARAuzwCfUwCQVEifbKv72Q6cyIeP5Hxj7ftnZjY2zYhHX1wYeH+kZH7FxYeHO0PH03ffM89N6ePhqHES4mwRooNCqMo2bqknh84GLxj//4dmzPjm2dxtmksPj/HfYniPbE+rzCGOz+Nj+BzUAUtAM3X1VRmMtOteGPN4nUlJUo1ItH0zdq+/YFC9Z17Ysoxtt5UVVvj8oWPjfIFjx4LX5sMb5q4d1uhl9nspNRmLyO6yytLfRhwFqpBudEp5JRoYyuvh/f4hyM/mn3kpoPJdDp5EGepkUhiRsb9FpHch2gy1N3jLvCjJZ9Df8TnwCGgTnuFqlm32Uyv91NUC9+nUqnDfHeoNnqjzUVtZXri2nb9rL7Lys76/XOUQ9ff6g0bXQ0z5q4mz5yUtXc2O/xtJoum2lrV0tvmSjkcTR6t0W3XWxskllpHT7t7zAUINADoS5wFMd8VxRpJSvbbV9D7r+CBWGz1QqHW8XwOt+Is798CQ2SMrOBXHuG0vByFw/uCGWvUZo9Zh4N7pZ7jC+jb3C2pabN5OoVu404uHPcAEgghwlmoAmBEGzQh+uUvJxfqGuVEnUa2MPZznOUe6dzV2bmrE+0Q9KkEwJ/jLBi/8tyGEShRYQ8Qi35w1+ZopaKSkKgk04lpqUpKVNZtig6fmdtZWVNBiOsqtuMs9xC7l2X3udEu7iH3vsLZ6iF0l7nfbO43czcAghoAtIKzoAZg5CJGWZzKy4jkVHG/EYtrXvjJlskqZQ1RTUrHJ555Ycu2qsZaorpBuhVlUNfj9Xat1l7/OPcCd/68itHpGNV5Hs98HgBdxVl+Doa9bmzypZcnx2r1tYTMVDM6/jKH7n2uKdbcHGt6jjvIFbWQQ+fRCjRAE4DSxMvV6xZoIqYF0pAyii+O5u1VMNoXu0b++iGZzdIyoDWYdnZODkfEItNIPRWkjm53Sft7hsdk+g7KoPDVWw9Mc291alp6TfrTNQGntRkwpPM59AVeAnnRyWlKTMkYUlyYq+ARBTnyuyaymvoNInFvGhtTlq07/FtjgZQ/qu+mDCGpUevCSy9OaOk7DmduDEbnp4Z3mgx5jbLAsdZ8Dv0YrfB8/Mv7BS/quu49gZ59wbaouoV0au1ROhM2ddY3GYelgcXh9GLApPTIVc6xjsy8VuHVGnnMnPkcenethwJmwuA0y6yB5WVLE/15+qB/u7claCAyEbFIk1B3B/Q+HR0yx6S3H00dCeoaMs+vdvg01miY0yidmY7xnYCF+v8ZrYAK9Nd1wJuEsWRJIqMAFVL27A2G5rwzuxDmni0bj1H+Rq0+9RoiQj5mRNq1mBpeDB7fU6WuTG4hZR6FDpkHkikBJx0ACuE3C1mKYr2su4gTZSKFvXhbb2+0X9lSW9eoiczPox8Gy5ID45XikHQ2GeZmhNzjyBvQR2gF2qELkiUWseYNB2FQhqSKQchEF9aguOYi17oFy4veZzIX7vmvyUNmY53aJFfRrtF2RVPVE3MyZduwizZV1TW3z46NBQ4mWroCNlugyxMbZZyj1cbaBtXg+5GQ3ldPSCwafWsVoYjY2KEWcVmoltW7E1aZpFGh1Hm7HAknOh9i2UCAZUPcmS6zqYEg5C0k3SpgkwZAb+Ol4k6zxlF+xxX4KUunRVTSlexL29ua/c146cU5o3P7DHcZWSNBczP3KOTzEAWAZ/AFbIZ+ACiHgeMAkM/n38nT8BPh+mDh+jEozbmMl0rZQc5nB1pMpkdEV6Z/+NzUPdN4idMhuMRd/f3eW4vP5HPwDl7i9c9jL9hpkSBPtFrT1ZWEWCypqJf6WLx79axchlCQIApz4U/QiuCDMob3DH6VrutSXDqmI2KRIWHrCNWYh+yD/Wl7qyeStjs9EbQco5ztdqt7rfVB7tHiYQ1DtFLEsDjHRgwjYhE1VAJRGOw6DIta+A+0AjXQ+D9mihJ3UI1/PhSa9wd2h0K7A6FkMhQcGirqOLCYHl4MROYzo3v2jGbmQfAiBn2BVoo6Xq9OYKiZVpLyjV7EV2pM2WZ3+Ld2mMImfJNgRaEmY/B1/EyHxnL6cPrGoK5h7DFUfp0X8X7BoHfX5iljvcLwJVF4GZloo1+gOwjtYEvBNLqNuKL3SskwXn9qQmMRTEOrbV1NovJ1x1jjzixaKSb2QjdFxysArY5btcpaqaJGH1aj5YlWz6Y4QbiC3FKBR5p8Dt2GVvhUpLw+QwgR4isJohAgfuGepayGiK2tzcg0mnpbJlOOIY1F7TG02nRtjVTEYU1JaY1XbXTo1Sblpioja/WnDEq3XNWiUWpJSZXR20r3WoT5VfkciuKD/P4s8JhivV5GMKESnz8c6oonNkVvu83YUqWT1iqc0qk4qgqWnTkT5lYc7ZVEUCwRxhrM59AbaJnn3XWakBUt+v1kPGNrM/tNPC6mhHT7DHJzb0eCtA1Ncg0JSxsgXoPon9Dy1/PF8z8e2yJRSgiJctOWkSfRMvdRU5yi4k1IwTXwfQDgC2j5/5Yvvnd6NF5RLSYqaisHhxOVsgqiokbcN/T/5mKVNZVERe2mCFrmfmcKm0xhE1JvOGtAZVSkuTlKcV8CgmoA9DRaFvKFl96QAcTK9XxR/b3vTvZIVFWEpF7i3/zdRyb7qhqqiSqVtJf7YJ+8RaFoke/75E+H6+0kaVMeFnCU5p0CBo0bOeH1XgdHNZ6q1UprKxSVVk+N5NLYTolaQkgUm8aHL8qc0V+UEz24zO9oQr/j/lMfNxnjBlS1utKWcPDasOdz6GV8J0jWVt1dlOBGXX+27cCBbVsPHNjaEYl0dESj0qce/f7jj3//0ad6T95997Fjd999Uqg1BYAu4hOCd/JbMevxeHnjTt37TXtPQ+hUBL3FVihrV1+JFPjeBIBewnfyvTFsEBelTpdMgDd8hrRsuyMW6LJENE7LdHByd/iGREOH+rn2bd+5gfHGHAannZ0fCxw7ncJEHyBoyOfQP+A7v64hii29aKxPsfZl4KPEbkOLdqijc4CeTERSJj9jCWvtzVMdmf3d7s7hjq1SL+XRtXazZp8hZPAYnZ4mrZtyjCU7BxREVaa3I20HzOse/Ss+AZU8670Mv/vyyy5njSzicaDIPUsEIqQN1Qz3b0i2ZXx85bmGuFppV3Lupz3oAe6bvU/zuKjzOfSP+EQx3az3IJQuN5KUeN1+f5+YM1q0iQ7/yEDQ6NTaSRT6VKZs1XonPV07pB6jR+NIhXsHFHINYvp+Kq22TUSj210FX2zL59CrwtpbAJCp+KrFus2irye29YCIyvRxXUVfl7Pb7w7OdUa/EXIPNrbKO3SOASfWDdOZne4xFLfYZ3YkQ8F+7snI/99967k+WssoG5mbdjXbdu7o2uIW1t/O6xufEPQdxF4jaySrReLz5XQyxL2IHvLFLQriWy88Md7HxG8//WAh61jzObSE7wQ92MEn4CNUuiHmCMwhC+4o2vhuKSqaqeDynwdmvZRXR3na0kxmu8ai0LoMzIzMQHWydr81UtYRbUu1mpmU1DHsaulpryXUcVf7gHXbgNHvrCFq7V0255AD7dF2U87eDqfZRXGvhNqtbnOdOmZnowV8Lfkc+tkavvKC/wloykur6rluMxJqv8HvN/TpK+JdrT0TTLKhVeHV8TlJN2xJ73SPMaE5X/Qg+mmw3+KY2Z5c/TOtcSs17m/tNtsFYCNn5m89V/xm0ZPPwbOwCJLrlX2LmqLUKoqSUo1aitI2UnxOEu5F72EaugDQApTzR0BghfdQDWoAEYCXZUjr8nuhUOH6b/CnSFW4biSt+I3f+HxCFhpGlfjX/JoqCwFUKeCtfCsYiwWZTp+v8+ldV0+dujan2np1cfHqVkBgzg/D1eIztLBiPDqkonxSuJ8JxmJPF+9WzV07deoqINiU34ZG8Cv8/ErEoE1IEuD+9Kho95cPFrCnANC/CN6i5x2ZYgs/Riz8SEr4UV5KLGe81JR6eLxubIuSVd6uYlUj/LmaVZ1SG07VnbrsO9t58eLFi51nfZcvX0ZlZ4X8CFQ+J6rH54CGBADaBDQk0SIAiCGBXoUC/ibYg65gO4+/8GmMFTZT8p0LF3ouXNhzKXjpUvASP5YJfoauoDexGYZgH5TDENwnPE/nP8EpLIZKgDKalwftRSQK2V7lBtCFV22otqb1+cjzrdynRCm7wmNoee17WDqNlvn9MP8qHgAvvsDXIdvAA5Ver1Lp9XhAq1bpdCq1ln+X5XPx36LlYpZd8x7hs4ChvrlKVqmqalKlA+9WlAVFZYwda1f/fWCCxzufQ0l07/++jzwbTqfD/M/c1mam29qk++d27N+/Y24/kxoaSiaHhoR3ovxkPgdf4HN8H2LEoB+hvR3c30jx46sTRVyRDV1BC/z/ctZImtBTyBYMAsB/AwAA//8BAAD//5kq6+YAAAABAAAAAguFiXVqgV8PPPUAAwPoAAAAANhdoKEAAAAA3WYvNv46/tsIbwPIAAAAAwACAAAAAAAAAAEAAAPY/u8AAAiY/jr+OghvAAEAAAAAAAAAAAAAAAAAAABPeJwsjj1LM0EUhZ9zp3jhRQxaaJQQFjeo60disfiBWIhYKQhTKBnBVsTCXyE22tv7P6xjY2OhhbWlOk2M1ciGFA/3wnMOHLujSw8sw9khwbYp7ZxgNYI+CXZBabcE/SPYHkEfBHsl2A3B7iltfXS3CDbFktVp2DUn5sBNMm2ipveUNKC0Aq8ebVumo2/aatHUgFXL8PTZ5ye96QtPwrsdvOV4aw7zftg5xeuBhjx1yzjQC2P2TF2PjFe/IiuKHCnSUmRWkQlFZhRZG7lCkUV+2a3QBoXLKNTBq8O8zvivSO42yRWZq7BLFujjIT0N912Rc5y6lfsDAAD//wEAAP//U69DxgAAAAAsACwAUACGALYA1ADqAP4BMAFIAVQBbgF+AbAB0gICAiQCZgKOAtIC5AMIAyQDXgOMA6oD4gQWBEQEdgSqBMwFOAVaBWYFcgWMBagF2gX8BigGXAaQBrAG8AcWBzgHVAeOB7oH6ggQCCgIUgiQCLQI6AkoCUIJmAnYCe4J+goGChIKLApGClYKhgqYCqwKuArQCtwK8gsOCzQLRAtSAAEAAABPAIwADABmAAcAAQAAAAAAAAAAAAAAAAAEAAN4nJyU3U4bVxSFPwfbbVQ1FxWKyA06l22VjN0IogSuTAmKVYRTj9Mfqao0eMY/Yjwz8gxQqj5Ar/sWfYtc9Tn6EFWvq7O8DTaqFIEQsM6cvfdZZ6+1D7DJv2xQqz8E/mr+YLjGdnPP8AMeNZ8a3uC48bfh+kpMg7jxm+EmXzb6hj/iff0Pwx+zU//Z8EO26keGP+F5fdPwpxuOfww/Yof3C1yDl/xuuMYWheEHbPKT4Q0eYzVrdR7TNtzgM7YNN9kGBkypSJmSMcYxYsqYc+YklIQkzJkyIiHG0aVDSqWvGZGQY/y/XyNCKuZEqjihwpESkhJRMrGKvyor561OHGk1t70OFRMiTpVxRkSGI2dMTkbCmepUVBTs0aJFyVB8CypKAkqmpATkzBnToscRxwyYMKXEcaRKnllIzoiKSyKd7yzCd2ZIQkZprM7JiMXTiV+i7C7HOHoUil2tfLxW4SmO75TtueWK/YpAv26F2fq5SzYRF+pnqq6k2rmUghPt+nM7fCtcsYe7V3/WmXy4R7H+V6p8yrn0j6VUJiYZzm3RIZSDQvcEx4HWXUJ15Hu6DHhDj3cMtO7Qp0+HEwZ0ea3cHn0cX9PjhENldIUXe0dyzAk/4viGrmJ87cT6s1As4RcKc3cpjnPdY0ahnnvmge6a6IZ3V9jPUL7mjlI5Q82Rj3TSL9OcRYzNFYUYztTLpTdK619sjpjpLl7bm30/DRc2e8spviLXDHu3Ljh55RaMPqRqcMszl/oJiIjJOVXEkJwZLSquxPstEeekOA7VvTeakorOdY4/50ouSZiJQZdMdeYU+huZb0LjPlzzvbO3JFa+Z3p2fav7nOLUqxuN3ql7y73QupysKNAyVfMVNw3FNTPvJ5qpVf6hcku9bjnP6JNI9VQ3uP0OPCegzQ677DPROUPtXNgb0dY70eYV++rBGYmiRnJ1YhV2CXjBLru84sVazQ6HHNBj/w4cF1k9Dnh9a2ddp2UVZ3X+FJu2+DqeXa9e3luvz+/gyy80UTcvY1/a+G5fWLUb/58QMfNc3NbqndwTgv8AAAD//wEAAP//B1tMMAB4nGJgZgCD/+cYjBiwAAAAAAD//wEAAP//LwECAwAAAA==");
+}
+.d2-1535120816 .text-bold {
+	font-family: "d2-1535120816-font-bold";
+}
+@font-face {
+	font-family: d2-1535120816-font-bold;
+	src: url("data:application/font-woff;base64,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");
+}
+.d2-1535120816 .text-italic {
+	font-family: "d2-1535120816-font-italic";
+}
+@font-face {
+	font-family: d2-1535120816-font-italic;
+	src: url("data:application/font-woff;base64,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");
+}]]></style><style type="text/css"><![CDATA[.shape {
+  shape-rendering: geometricPrecision;
+  stroke-linejoin: round;
+}
+.connection {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.blend {
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+}
+
+		.d2-1535120816 .fill-N1{fill:#0A0F25;}
+		.d2-1535120816 .fill-N2{fill:#676C7E;}
+		.d2-1535120816 .fill-N3{fill:#9499AB;}
+		.d2-1535120816 .fill-N4{fill:#CFD2DD;}
+		.d2-1535120816 .fill-N5{fill:#DEE1EB;}
+		.d2-1535120816 .fill-N6{fill:#EEF1F8;}
+		.d2-1535120816 .fill-N7{fill:#FFFFFF;}
+		.d2-1535120816 .fill-B1{fill:#0D32B2;}
+		.d2-1535120816 .fill-B2{fill:#0D32B2;}
+		.d2-1535120816 .fill-B3{fill:#E3E9FD;}
+		.d2-1535120816 .fill-B4{fill:#E3E9FD;}
+		.d2-1535120816 .fill-B5{fill:#EDF0FD;}
+		.d2-1535120816 .fill-B6{fill:#F7F8FE;}
+		.d2-1535120816 .fill-AA2{fill:#4A6FF3;}
+		.d2-1535120816 .fill-AA4{fill:#EDF0FD;}
+		.d2-1535120816 .fill-AA5{fill:#F7F8FE;}
+		.d2-1535120816 .fill-AB4{fill:#EDF0FD;}
+		.d2-1535120816 .fill-AB5{fill:#F7F8FE;}
+		.d2-1535120816 .stroke-N1{stroke:#0A0F25;}
+		.d2-1535120816 .stroke-N2{stroke:#676C7E;}
+		.d2-1535120816 .stroke-N3{stroke:#9499AB;}
+		.d2-1535120816 .stroke-N4{stroke:#CFD2DD;}
+		.d2-1535120816 .stroke-N5{stroke:#DEE1EB;}
+		.d2-1535120816 .stroke-N6{stroke:#EEF1F8;}
+		.d2-1535120816 .stroke-N7{stroke:#FFFFFF;}
+		.d2-1535120816 .stroke-B1{stroke:#0D32B2;}
+		.d2-1535120816 .stroke-B2{stroke:#0D32B2;}
+		.d2-1535120816 .stroke-B3{stroke:#E3E9FD;}
+		.d2-1535120816 .stroke-B4{stroke:#E3E9FD;}
+		.d2-1535120816 .stroke-B5{stroke:#EDF0FD;}
+		.d2-1535120816 .stroke-B6{stroke:#F7F8FE;}
+		.d2-1535120816 .stroke-AA2{stroke:#4A6FF3;}
+		.d2-1535120816 .stroke-AA4{stroke:#EDF0FD;}
+		.d2-1535120816 .stroke-AA5{stroke:#F7F8FE;}
+		.d2-1535120816 .stroke-AB4{stroke:#EDF0FD;}
+		.d2-1535120816 .stroke-AB5{stroke:#F7F8FE;}
+		.d2-1535120816 .background-color-N1{background-color:#0A0F25;}
+		.d2-1535120816 .background-color-N2{background-color:#676C7E;}
+		.d2-1535120816 .background-color-N3{background-color:#9499AB;}
+		.d2-1535120816 .background-color-N4{background-color:#CFD2DD;}
+		.d2-1535120816 .background-color-N5{background-color:#DEE1EB;}
+		.d2-1535120816 .background-color-N6{background-color:#EEF1F8;}
+		.d2-1535120816 .background-color-N7{background-color:#FFFFFF;}
+		.d2-1535120816 .background-color-B1{background-color:#0D32B2;}
+		.d2-1535120816 .background-color-B2{background-color:#0D32B2;}
+		.d2-1535120816 .background-color-B3{background-color:#E3E9FD;}
+		.d2-1535120816 .background-color-B4{background-color:#E3E9FD;}
+		.d2-1535120816 .background-color-B5{background-color:#EDF0FD;}
+		.d2-1535120816 .background-color-B6{background-color:#F7F8FE;}
+		.d2-1535120816 .background-color-AA2{background-color:#4A6FF3;}
+		.d2-1535120816 .background-color-AA4{background-color:#EDF0FD;}
+		.d2-1535120816 .background-color-AA5{background-color:#F7F8FE;}
+		.d2-1535120816 .background-color-AB4{background-color:#EDF0FD;}
+		.d2-1535120816 .background-color-AB5{background-color:#F7F8FE;}
+		.d2-1535120816 .color-N1{color:#0A0F25;}
+		.d2-1535120816 .color-N2{color:#676C7E;}
+		.d2-1535120816 .color-N3{color:#9499AB;}
+		.d2-1535120816 .color-N4{color:#CFD2DD;}
+		.d2-1535120816 .color-N5{color:#DEE1EB;}
+		.d2-1535120816 .color-N6{color:#EEF1F8;}
+		.d2-1535120816 .color-N7{color:#FFFFFF;}
+		.d2-1535120816 .color-B1{color:#0D32B2;}
+		.d2-1535120816 .color-B2{color:#0D32B2;}
+		.d2-1535120816 .color-B3{color:#E3E9FD;}
+		.d2-1535120816 .color-B4{color:#E3E9FD;}
+		.d2-1535120816 .color-B5{color:#EDF0FD;}
+		.d2-1535120816 .color-B6{color:#F7F8FE;}
+		.d2-1535120816 .color-AA2{color:#4A6FF3;}
+		.d2-1535120816 .color-AA4{color:#EDF0FD;}
+		.d2-1535120816 .color-AA5{color:#F7F8FE;}
+		.d2-1535120816 .color-AB4{color:#EDF0FD;}
+		.d2-1535120816 .color-AB5{color:#F7F8FE;}.appendix text.text{fill:#0A0F25}.md{--color-fg-default:#0A0F25;--color-fg-muted:#676C7E;--color-fg-subtle:#9499AB;--color-canvas-default:#FFFFFF;--color-canvas-subtle:#EEF1F8;--color-border-default:#0D32B2;--color-border-muted:#0D32B2;--color-neutral-muted:#EEF1F8;--color-accent-fg:#0D32B2;--color-accent-emphasis:#0D32B2;--color-attention-subtle:#676C7E;--color-danger-fg:red;}.sketch-overlay-B1{fill:url(#streaks-darker-d2-1535120816);mix-blend-mode:lighten}.sketch-overlay-B2{fill:url(#streaks-darker-d2-1535120816);mix-blend-mode:lighten}.sketch-overlay-B3{fill:url(#streaks-bright-d2-1535120816);mix-blend-mode:darken}.sketch-overlay-B4{fill:url(#streaks-bright-d2-1535120816);mix-blend-mode:darken}.sketch-overlay-B5{fill:url(#streaks-bright-d2-1535120816);mix-blend-mode:darken}.sketch-overlay-B6{fill:url(#streaks-bright-d2-1535120816);mix-blend-mode:darken}.sketch-overlay-AA2{fill:url(#streaks-dark-d2-1535120816);mix-blend-mode:overlay}.sketch-overlay-AA4{fill:url(#streaks-bright-d2-1535120816);mix-blend-mode:darken}.sketch-overlay-AA5{fill:url(#streaks-bright-d2-1535120816);mix-blend-mode:darken}.sketch-overlay-AB4{fill:url(#streaks-bright-d2-1535120816);mix-blend-mode:darken}.sketch-overlay-AB5{fill:url(#streaks-bright-d2-1535120816);mix-blend-mode:darken}.sketch-overlay-N1{fill:url(#streaks-darker-d2-1535120816);mix-blend-mode:lighten}.sketch-overlay-N2{fill:url(#streaks-dark-d2-1535120816);mix-blend-mode:overlay}.sketch-overlay-N3{fill:url(#streaks-normal-d2-1535120816);mix-blend-mode:color-burn}.sketch-overlay-N4{fill:url(#streaks-normal-d2-1535120816);mix-blend-mode:color-burn}.sketch-overlay-N5{fill:url(#streaks-bright-d2-1535120816);mix-blend-mode:darken}.sketch-overlay-N6{fill:url(#streaks-bright-d2-1535120816);mix-blend-mode:darken}.sketch-overlay-N7{fill:url(#streaks-bright-d2-1535120816);mix-blend-mode:darken}.light-code{display: block}.dark-code{display: none}]]></style><g class="VDE="><g class="shape" ><path d="M 156 12 L 306 12 L 306 67 L 592 67 L 592 516 L 156 516 Z" stroke="#0D32B2" fill="#ffb347" class=" stroke-B1" style="stroke-width:2;" /></g><text x="374.000000" y="100.000000" fill="#1a1a1a" class="text-bold" style="text-anchor:middle;font-size:28px"><tspan x="374.000000" dy="0.000000">TIER 1 — UNBLOCK EVERYTHING</tspan><tspan x="374.000000" dy="32.000000">1% effort → 51% value</tspan></text></g><g class="VDI="><g class="shape" ><path d="M 12 707 L 162 707 L 162 759 L 1026 759 L 1026 968 L 12 968 Z" stroke="#0D32B2" fill="#6eb5ff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="519.000000" y="792.200000" fill="#0e0e10" class="text" style="text-anchor:middle;font-size:28px"><tspan x="519.000000" dy="0.000000">TIER 2 — FINISH THE AUDIT</tspan><tspan x="519.000000" dy="32.000000">4% effort → 64% value</tspan></text></g><g class="VDM="><g class="shape" ><path d="M 329 1159 L 479 1159 L 479 1214 L 722 1214 L 722 1436 L 329 1436 Z" stroke="#0D32B2" fill="#f4d35e" class=" stroke-B1" style="stroke-width:2;" /></g><text x="525.500000" y="1247.000000" fill="#1a1a1a" class="text" style="text-anchor:middle;font-size:28px"><tspan x="525.500000" dy="0.000000">TIER 3 — #1 FRAMEWORK GAP</tspan><tspan x="525.500000" dy="32.000000">20% effort → 80% value</tspan></text></g><g class="VDQ="><g class="shape" ><path d="M 89 1617 L 239 1617 L 239 1672 L 977 1672 L 977 2121 L 89 2121 Z" stroke="#0D32B2" fill="#3a3a42" class=" stroke-B1" style="stroke-width:2;" /></g><text x="533.000000" y="1705.000000" fill="#f4f4f0" class="text" style="text-anchor:middle;font-size:28px"><tspan x="533.000000" dy="0.000000">TIER 4 — PRODUCTION HARDENING + DX</tspan><tspan x="533.000000" dy="32.000000">remaining</tspan></text></g><g class="VDU="><g class="shape" ><path d="M 612 155 L 762 155 L 762 199 L 1234 199 L 1234 377 L 612 377 Z" stroke="#0D32B2" fill="#2a2a30" class=" stroke-B2" style="stroke-width:2;stroke-dasharray:8.000000,7.892511;" /></g><text x="923.000000" y="232.400000" fill="#a0a0a8" class="text" style="text-anchor:middle;font-size:28px">TIER 5 — cqrs-htmx INTERNAL (out of audit scope)</text></g><g class="Tm90ZQ=="><g class="shape" ><rect x="394.000000" y="2287.000000" width="262.000000" height="114.000000" stroke="#0D32B2" fill="#f4f4f0" class=" stroke-B1" style="stroke-width:2;" /></g><text x="525.000000" y="2325.500000" fill="#1a1a1a" class="text-bold" style="text-anchor:middle;font-size:16px"><tspan x="525.000000" dy="0.000000">Reliability trio status:</tspan><tspan x="525.000000" dy="17.250000">DLQ (dispatch) = DONE</tspan><tspan x="525.000000" dy="17.250000">Idempotency = DONE (module)</tspan><tspan x="525.000000" dy="17.250000">Outbox = NOT STARTED (A2)</tspan></text></g><g class="VDEuQnVpbGRGbG93 tier1"><g class="shape" ><rect x="258.000000" y="141.000000" width="231.000000" height="82.000000" stroke="#0D32B2" fill="#ffb347" class=" stroke-B1" style="stroke-width:2;" /></g><text x="373.500000" y="179.500000" fill="#1a1a1a" class="text-bold" style="text-anchor:middle;font-size:16px"><tspan x="373.500000" dy="0.000000">T1  Fix BuildFlow nix-build</tspan><tspan x="373.500000" dy="18.500000">(BLOCKS every commit)</tspan></text></g><g class="VDEuVGFn tier1"><g class="shape" ><rect x="257.000000" y="384.000000" width="234.000000" height="82.000000" stroke="#0D32B2" fill="#ffb347" class=" stroke-B1" style="stroke-width:2;" /></g><text x="374.000000" y="422.500000" fill="#1a1a1a" class="text-bold" style="text-anchor:middle;font-size:16px"><tspan x="374.000000" dy="0.000000">T2  Tag go-cqrs-lite v3.3.0</tspan><tspan x="374.000000" dy="18.500000">(unblocks all downstream)</tspan></text></g><g class="VDIuRGVsZWdhdGU= tier2"><g class="shape" ><rect x="62.000000" y="836.000000" width="305.000000" height="82.000000" stroke="#0D32B2" fill="#6eb5ff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="214.500000" y="874.500000" fill="#0e0e10" class="text-bold" style="text-anchor:middle;font-size:16px"><tspan x="214.500000" dy="0.000000">T3  Delegate cqrs-htmx idempotency</tspan><tspan x="214.500000" dy="18.500000">→ upstream aliases</tspan></text></g><g class="VDIuU1NF tier2"><g class="shape" ><rect x="387.000000" y="836.000000" width="294.000000" height="82.000000" stroke="#0D32B2" fill="#6eb5ff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="534.000000" y="874.500000" fill="#0e0e10" class="text-bold" style="text-anchor:middle;font-size:16px"><tspan x="534.000000" dy="0.000000">T4  Unify SSE primitives</tspan><tspan x="534.000000" dy="18.500000">(promote branded types upstream)</tspan></text></g><g class="VDIuRG9jcw== tier2"><g class="shape" ><rect x="701.000000" y="836.000000" width="275.000000" height="82.000000" stroke="#0D32B2" fill="#6eb5ff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="838.500000" y="874.500000" fill="#0e0e10" class="text-bold" style="text-anchor:middle;font-size:16px"><tspan x="838.500000" dy="0.000000">T5  Reconcile docs</tspan><tspan x="838.500000" dy="18.500000">(FEATURES 45 → 49 + DLQ status)</tspan></text></g><g class="VDMuQTE= tier3"><g class="shape" ><rect x="379.000000" y="1288.000000" width="293.000000" height="98.000000" stroke="#0D32B2" fill="#f4d35e" class=" stroke-B1" style="stroke-width:2;" /></g><text x="525.500000" y="1326.500000" fill="#1a1a1a" class="text-bold" style="text-anchor:middle;font-size:16px"><tspan x="525.500000" dy="0.000000">T6  Managed Projection Host (A1)</tspan><tspan x="525.500000" dy="17.666667">+ projection-tier DLQ hook</tspan><tspan x="525.500000" dy="17.666667">(the loop every consumer rewrites)</tspan></text></g><g class="VDQuQmFja2VuZHM= tier4"><g class="shape" ><rect x="139.000000" y="1746.000000" width="239.000000" height="82.000000" stroke="#6eb5ff" fill="#3a3a42" style="stroke-width:2;" /></g><text x="258.500000" y="1784.500000" fill="#f4f4f0" class="text-bold" style="text-anchor:middle;font-size:16px"><tspan x="258.500000" dy="0.000000">T7  Redis/SQL Idempotency</tspan><tspan x="258.500000" dy="18.500000">backends</tspan></text></g><g class="VDQuQTI= tier4"><g class="shape" ><rect x="398.000000" y="1746.000000" width="254.000000" height="82.000000" stroke="#6eb5ff" fill="#3a3a42" style="stroke-width:2;" /></g><text x="525.000000" y="1784.500000" fill="#f4f4f0" class="text-bold" style="text-anchor:middle;font-size:16px"><tspan x="525.000000" dy="0.000000">T8  Transactional Outbox (A2)</tspan><tspan x="525.000000" dy="18.500000">opt-in EventSink</tspan></text></g><g class="VDQuQTU= tier4"><g class="shape" ><rect x="672.000000" y="1746.000000" width="248.000000" height="82.000000" stroke="#6eb5ff" fill="#3a3a42" style="stroke-width:2;" /></g><text x="796.000000" y="1784.500000" fill="#f4f4f0" class="text-bold" style="text-anchor:middle;font-size:16px"><tspan x="796.000000" dy="0.000000">T9  Scenario-testing DSL (A5)</tspan><tspan x="796.000000" dy="18.500000">Given/When/Then</tspan></text></g><g class="VDQuQTY= tier4"><g class="shape" ><rect x="666.000000" y="1989.000000" width="261.000000" height="82.000000" stroke="#6eb5ff" fill="#3a3a42" style="stroke-width:2;" /></g><text x="796.500000" y="2027.500000" fill="#f4f4f0" class="text-bold" style="text-anchor:middle;font-size:16px"><tspan x="796.500000" dy="0.000000">T10 Scheduled commands (A6)</tspan><tspan x="796.500000" dy="18.500000">durable deadlines</tspan></text></g><g class="VDUuUGhhc2Uy tier5"><g class="shape" ><rect x="758.000000" y="245.000000" width="329.000000" height="82.000000" stroke="#0D32B2" fill="#2a2a30" class=" stroke-B2" style="stroke-width:2;stroke-dasharray:8.000000,7.892511;" /></g><text x="922.500000" y="283.500000" fill="#a0a0a8" class="text-bold" style="text-anchor:middle;font-size:16px"><tspan x="922.500000" dy="0.000000">T11 Offline-first Phase 2</tspan><tspan x="922.500000" dy="18.500000">(SharedWorker / SW + Background Sync)</tspan></text></g><g class="VDEuKEJ1aWxkRmxvdyAtJmd0OyBUYWcpWzBd"><marker id="mk-d2-1535120816-3488378134" markerWidth="10.000000" markerHeight="12.000000" refX="7.000000" refY="6.000000" viewBox="0.000000 0.000000 10.000000 12.000000" orient="auto" markerUnits="userSpaceOnUse"> <polygon points="0.000000,0.000000 10.000000,6.000000 0.000000,12.000000" fill="#0D32B2" class="connection fill-B1" stroke-width="2" /> </marker><path d="M 374.250000 225.000000 L 374.250000 380.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1535120816-3488378134)" mask="url(#d2-1535120816)" /><text x="374.500000" y="309.000000" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">commits work again</text></g><g class="KFQxLlRhZyAtJmd0OyBUMi5EZWxlZ2F0ZSlbMF0="><path d="M 315.250000 468.000000 L 315.250000 832.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1535120816-3488378134)" mask="url(#d2-1535120816)" /><text x="315.500000" y="657.000000" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">v3.3.0 published</text></g><g class="KFQxLlRhZyAtJmd0OyBUMi5TU0UpWzBd"><path d="M 433.250000 468.000000 L 433.250000 832.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1535120816-3488378134)" mask="url(#d2-1535120816)" /><text x="433.500000" y="657.000000" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">v3.3.0 published</text></g><g class="KFQyLkRlbGVnYXRlIC0mZ3Q7IFQzLkExKVswXQ=="><path d="M 310.750000 920.000000 L 310.750000 1104.000000 S 310.750000 1114.000000 320.750000 1114.000000 L 442.250000 1114.000000 S 452.250000 1114.000000 452.250000 1124.000000 L 452.250000 1284.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1535120816-3488378134)" mask="url(#d2-1535120816)" /><text x="371.000000" y="1120.000000" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">single source of truth</text></g><g class="KFQyLlNTRSAtJmd0OyBUMy5BMSlbMF0="><path d="M 525.500000 920.000000 L 525.500000 1284.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1535120816-3488378134)" mask="url(#d2-1535120816)" /><text x="526.000000" y="1109.000000" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">no duplication</text></g><g class="KFQyLkRvY3MgLSZndDsgVDMuQTEpWzBd"><path d="M 741.250000 920.000000 L 741.250000 1104.000000 S 741.250000 1114.000000 731.250000 1114.000000 L 608.750000 1114.000000 S 598.750000 1114.000000 598.750000 1124.000000 L 598.750000 1284.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1535120816-3488378134)" mask="url(#d2-1535120816)" /><text x="681.000000" y="1120.000000" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">honest baseline</text></g><g class="KFQzLkExIC0mZ3Q7IFQ0LkEyKVswXQ=="><path d="M 525.500000 1388.000000 L 525.500000 1742.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1535120816-3488378134)" mask="url(#d2-1535120816)" /><text x="525.500000" y="1572.000000" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">host wires outbox sink</text></g><g class="KFQzLkExIC0mZ3Q7IFQ0LkJhY2tlbmRzKVswXQ=="><path d="M 452.250000 1388.000000 L 452.250000 1471.000000 S 452.250000 1481.000000 442.250000 1481.000000 L 269.000000 1481.000000 S 259.000000 1481.000000 259.000000 1491.000000 L 259.000000 1742.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1535120816-3488378134)" mask="url(#d2-1535120816)" /><text x="270.500000" y="1487.000000" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">host may need prod dedup</text></g><g class="KFQzLkExIC0mZ3Q7IFQ0LkE1KVswXQ=="><path d="M 598.750000 1388.000000 L 598.750000 1471.000000 S 598.750000 1481.000000 608.750000 1481.000000 L 786.500000 1481.000000 S 796.500000 1481.000000 796.500000 1491.000000 L 796.500000 1742.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1535120816-3488378134)" mask="url(#d2-1535120816)" /><text x="782.500000" y="1487.000000" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">host is testable via DSL</text></g><g class="VDQuKEE1IC0mZ3Q7IEE2KVswXQ=="><path d="M 796.500000 1830.000000 L 796.500000 1985.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1535120816-3488378134)" mask="url(#d2-1535120816)" /><text x="797.000000" y="1914.000000" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">scheduler composes into DSL</text></g><g class="KFQ0LkEyIC0mZ3Q7IE5vdGUpWzBd"><path d="M 525.500000 1830.000000 L 525.500000 2283.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1535120816-3488378134)" mask="url(#d2-1535120816)" /><text x="526.000000" y="2063.000000" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">closes the trio</text></g><mask id="d2-1535120816" maskUnits="userSpaceOnUse" x="-89" y="-89" width="1424" height="2591">
+<rect x="-89" y="-89" width="1424" height="2591" fill="white"></rect>
+<rect x="306.000000" y="293.000000" width="137" height="21" fill="black"></rect>
+<rect x="260.000000" y="641.000000" width="111" height="21" fill="black"></rect>
+<rect x="378.000000" y="641.000000" width="111" height="21" fill="black"></rect>
+<rect x="300.000000" y="1104.000000" width="142" height="21" fill="black"></rect>
+<rect x="477.000000" y="1093.000000" width="98" height="21" fill="black"></rect>
+<rect x="627.000000" y="1104.000000" width="108" height="21" fill="black"></rect>
+<rect x="451.000000" y="1556.000000" width="149" height="21" fill="black"></rect>
+<rect x="181.000000" y="1471.000000" width="179" height="21" fill="black"></rect>
+<rect x="706.000000" y="1471.000000" width="153" height="21" fill="black"></rect>
+<rect x="700.000000" y="1898.000000" width="194" height="21" fill="black"></rect>
+<rect x="479.000000" y="2047.000000" width="94" height="21" fill="black"></rect>
+</mask></svg></svg>
+        </div>
+
+        <h2 id="pareto"><span class="num">03</span>Pareto Tier Breakdown</h2>
+        <p>What delivers the most value for the least effort, in compounding order.</p>
+        <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tier</th><th>Effort → Value</th><th>What's in it</th><th>Why now</th></tr></thead>
+          <tbody>
+            <tr><td><span class="tier-badge tb1">T1</span> Unblock</td><td><strong>1% → 51%</strong></td><td>Fix BuildFlow + Tag v3.3.0</td><td>Restores clean commits; publishes the new module so downstream can consume it. Nothing else ships cleanly without this.</td></tr>
+            <tr><td><span class="tier-badge tb2">T2</span> Finish Audit</td><td><strong>4% → 64%</strong></td><td>Delegate idempotency, unify SSE, reconcile docs</td><td>Closes the stated cross-repo goal: zero harmful duplication, single source of truth. Low effort, high DRY/maintenance payoff.</td></tr>
+            <tr><td><span class="tier-badge tb3">T3</span> #1 Gap</td><td><strong>20% → 80%</strong></td><td>Managed Projection Host (A1) + projection DLQ</td><td>"The last loop every consumer rewrites." Turns the library into a runtime. Highest leverage per the gap analysis.</td></tr>
+            <tr><td><span class="tier-badge tb4">T4</span> Hardening</td><td>remaining</td><td>Redis/SQL idempotency backends, Outbox (A2), Testing DSL (A5), Scheduler (A6)</td><td>Production readiness + adoption multipliers. Compose into the host from T3.</td></tr>
+            <tr><td><span class="tier-badge tb5">T5</span> cqrs-htmx</td><td>out of scope</td><td>Offline-first Phase 2 (SharedWorker)</td><td>cqrs-htmx-internal feature track; separate from the library audit.</td></tr>
+          </tbody>
+        </table>
+        </div>
+
+        <h2 id="master"><span class="num">04</span>Master TODO Table (sorted by priority)</h2>
+        <p>Impact / Effort / Customer-Value each rated Low / Med / High. Sorted: blockers first, then impact, then effort (asc).</p>
+        <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>TODO</th><th>Tier</th><th>Impact</th><th>Effort</th><th>Customer Value</th><th>Depends on</th><th>Subtasks</th></tr></thead>
+          <tbody>
+            <tr><td><strong>T1</strong></td><td>Fix BuildFlow nix-build pre-commit <span class="badge badge-critical">BLOCKER</span></td><td><span class="tier-badge tb1">1</span></td><td><span class="badge badge-critical">High</span></td><td><span class="badge badge-low">Low</span></td><td><span class="badge badge-medium">Med</span> (dev velocity)</td><td>—</td><td>5</td></tr>
+            <tr><td><strong>T2</strong></td><td>Tag go-cqrs-lite v3.3.0 (full multi-module tag set)</td><td><span class="tier-badge tb1">1</span></td><td><span class="badge badge-critical">High</span></td><td><span class="badge badge-low">Low</span></td><td><span class="badge badge-medium">Med</span></td><td>T1</td><td>7</td></tr>
+            <tr><td><strong>T3</strong></td><td>Delegate cqrs-htmx idempotency.go → upstream aliases</td><td><span class="tier-badge tb2">2</span></td><td><span class="badge badge-high">Med</span></td><td><span class="badge badge-low">Low</span></td><td><span class="badge badge-medium">Med</span></td><td>T2</td><td>7</td></tr>
+            <tr><td><strong>T4</strong></td><td>Unify SSE primitives (promote branded types upstream)</td><td><span class="tier-badge tb2">2</span></td><td><span class="badge badge-high">Med</span></td><td><span class="badge badge-medium">Med</span></td><td><span class="badge badge-medium">Med</span></td><td>T2</td><td>10</td></tr>
+            <tr><td><strong>T5</strong></td><td>Reconcile docs (module count 45→49, add DLQ feature)</td><td><span class="tier-badge tb2">2</span></td><td><span class="badge badge-low">Low</span></td><td><span class="badge badge-low">Low</span></td><td><span class="badge badge-low">Low</span></td><td>—</td><td>5</td></tr>
+            <tr><td><strong>T6</strong></td><td>Managed Projection Host (A1) + projection DLQ hook</td><td><span class="tier-badge tb3">3</span></td><td><span class="badge badge-critical">High</span></td><td><span class="badge badge-critical">High</span></td><td><span class="badge badge-critical">High</span></td><td>T2, T3, T4</td><td>26</td></tr>
+            <tr><td><strong>T7</strong></td><td>Redis/SQL IdempotencyStore backends</td><td><span class="tier-badge tb4">4</span></td><td><span class="badge badge-high">Med</span></td><td><span class="badge badge-medium">Med</span></td><td><span class="badge badge-high">Med</span> (prod)</td><td>T2</td><td>8</td></tr>
+            <tr><td><strong>T8</strong></td><td>Transactional Outbox (A2) — opt-in EventSink</td><td><span class="tier-badge tb4">4</span></td><td><span class="badge badge-critical">High</span></td><td><span class="badge badge-critical">High</span></td><td><span class="badge badge-high">Med</span> (those who need it)</td><td>T6</td><td>12</td></tr>
+            <tr><td><strong>T9</strong></td><td>Scenario-testing DSL (A5) — Given/When/Then</td><td><span class="tier-badge tb4">4</span></td><td><span class="badge badge-high">Med</span></td><td><span class="badge badge-medium">Med</span></td><td><span class="badge badge-high">Med</span> (adoption DX)</td><td>T6</td><td>9</td></tr>
+            <tr><td><strong>T10</strong></td><td>Scheduled commands / durable deadlines (A6)</td><td><span class="tier-badge tb4">4</span></td><td><span class="badge badge-medium">Med</span></td><td><span class="badge badge-medium">Med</span></td><td><span class="badge badge-low">Low</span> (niche)</td><td>—</td><td>7</td></tr>
+            <tr><td><strong>T11</strong></td><td>cqrs-htmx Offline-first Phase 2 (SharedWorker)</td><td><span class="tier-badge tb5">5</span></td><td><span class="badge badge-high">Med</span></td><td><span class="badge badge-critical">High</span></td><td><span class="badge badge-high">Med</span></td><td>—</td><td>2+</td></tr>
+          </tbody>
+        </table>
+        </div>
+
+        <h2 id="tier1"><span class="num">05</span>Tier 1 — Unblock Everything <span class="tier-badge tb1">1% → 51%</span></h2>
+
+        <h3>T1 · Fix BuildFlow nix-build pre-commit <span class="badge badge-critical">BLOCKER</span></h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Sub</th><th>Task</th><th>Min</th><th>Depends</th></tr></thead>
+          <tbody>
+            <tr><td>T1.1</td><td>Read <code>flake.nix</code> fully + <code>.buildflow.yml</code>; understand flake-parts <code>perSystem</code> packaging shape</td><td>8</td><td>—</td></tr>
+            <tr><td>T1.2</td><td>Decide approach: add <code>packages.default</code> vs buildflow skip key; check buildflow docs for a skip option</td><td>10</td><td>T1.1</td></tr>
+            <tr><td>T1.3</td><td>Implement fix (add <code>packages.default</code> meta/pkg OR buildflow skip config)</td><td>12</td><td>T1.2</td></tr>
+            <tr><td>T1.4</td><td>Test: make a trivial change, run <code>git commit</code> (no <code>--no-verify</code>), confirm hook passes</td><td>8</td><td>T1.3</td></tr>
+            <tr><td>T1.5</td><td>Commit + push the BuildFlow fix</td><td>5</td><td>T1.4</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>T2 · Tag go-cqrs-lite v3.3.0 (full tag set)</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Sub</th><th>Task</th><th>Min</th><th>Depends</th></tr></thead>
+          <tbody>
+            <tr><td>T2.1</td><td>Determine exact tag set: which modules does <code>idempotency</code> require at v3.3.0 (event, command + transitive id/codec/schema…)</td><td>10</td><td>—</td></tr>
+            <tr><td>T2.2</td><td>Verify full workspace build: <code>go build ./...</code></td><td>5</td><td>T2.1</td></tr>
+            <tr><td>T2.3</td><td>Verify each affected module builds in <code>GOWORK=off</code> CI-isolation mode</td><td>10</td><td>T2.2</td></tr>
+            <tr><td>T2.4</td><td>Run full test suite with <code>-race</code> in both workspace + isolation modes</td><td>12</td><td>T2.3</td></tr>
+            <tr><td>T2.5</td><td>Create version tags: <code>event/v3.3.0</code>, <code>command/v3.3.0</code>, <code>idempotency/v3.3.0</code> (+ transitive)</td><td>8</td><td>T2.4</td></tr>
+            <tr><td>T2.6</td><td>Push tags: <code>git push --tags</code></td><td>3</td><td>T2.5</td></tr>
+            <tr><td>T2.7</td><td>Verify tags resolve externally: <code>go list -m .../idempotency/v3@v3.3.0</code></td><td>5</td><td>T2.6</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="tier2"><span class="num">06</span>Tier 2 — Finish the Cross-Repo Audit <span class="tier-badge tb2">4% → 64%</span></h2>
+
+        <h3>T3 · Delegate cqrs-htmx idempotency → upstream aliases</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Sub</th><th>Task</th><th>Min</th><th>Depends</th></tr></thead>
+          <tbody>
+            <tr><td>T3.1</td><td>Read current <code>cqrs-htmx/idempotency.go</code> + <code>idempotency_test.go</code> fully</td><td>8</td><td>T2</td></tr>
+            <tr><td>T3.2</td><td>Add <code>require .../idempotency/v3 v3.3.0</code> to <code>cqrs-htmx/go.mod</code>; <code>go mod tidy</code></td><td>10</td><td>T3.1</td></tr>
+            <tr><td>T3.3</td><td>Rewrite <code>idempotency.go</code> as type aliases (Store, MemoryStore, ErrDuplicate, NewMemoryIdempotencyStore)</td><td>10</td><td>T3.2</td></tr>
+            <tr><td>T3.4</td><td>Fix <code>idempotency_test.go</code>: remove internal field access (lines 108-110, 137-139 <code>store.mu</code>/<code>entries</code>) → public API assertions</td><td>12</td><td>T3.3</td></tr>
+            <tr><td>T3.5</td><td>Run cqrs-htmx root test suite with <code>-race</code></td><td>10</td><td>T3.4</td></tr>
+            <tr><td>T3.6</td><td>Run all 4 cqrs-htmx modules to confirm no breakage</td><td>10</td><td>T3.5</td></tr>
+            <tr><td>T3.7</td><td>Commit + push delegation</td><td>5</td><td>T3.6</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>T4 · Unify SSE primitives</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Sub</th><th>Task</th><th>Min</th><th>Depends</th></tr></thead>
+          <tbody>
+            <tr><td>T4.1</td><td>Diff <code>cqrs-htmx/sse_event.go</code> vs <code>go-cqrs-lite/transport/http/sse_event.go</code> side-by-side</td><td>8</td><td>T2</td></tr>
+            <tr><td>T4.2</td><td>Read upstream <code>sse_event.go</code> + <code>sse.go</code> consumers + tests</td><td>10</td><td>T4.1</td></tr>
+            <tr><td>T4.3</td><td>Promote branded <code>SSEEventID</code> + zero-alloc <code>WriteSSEEvent</code> + <code>ParseSSEEventID</code> into upstream <code>transport/http/sse_event.go</code></td><td>12</td><td>T4.2</td></tr>
+            <tr><td>T4.4</td><td>Update/add upstream tests for branded types + zero-alloc</td><td>12</td><td>T4.3</td></tr>
+            <tr><td>T4.5</td><td>Run go-cqrs-lite <code>transport/http</code> tests + full build</td><td>10</td><td>T4.4</td></tr>
+            <tr><td>T4.6</td><td>Tag <code>transport/http</code> at needed version (or confirm existing scheme covers it)</td><td>8</td><td>T4.5</td></tr>
+            <tr><td>T4.7</td><td>Delegate <code>cqrs-htmx/sse_event.go</code> to upstream (alias/rewrite)</td><td>10</td><td>T4.6</td></tr>
+            <tr><td>T4.8</td><td>Fix cqrs-htmx tests referencing local SSE internals</td><td>10</td><td>T4.7</td></tr>
+            <tr><td>T4.9</td><td>Run both repos' SSE-related tests with <code>-race</code></td><td>10</td><td>T4.8</td></tr>
+            <tr><td>T4.10</td><td>Commit + push SSE unification to both repos</td><td>8</td><td>T4.9</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>T5 · Reconcile docs (module count + DLQ feature)</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Sub</th><th>Task</th><th>Min</th><th>Depends</th></tr></thead>
+          <tbody>
+            <tr><td>T5.1</td><td>Count actual <code>go.mod</code> files: confirm 49</td><td>5</td><td>—</td></tr>
+            <tr><td>T5.2</td><td>Reconcile FEATURES.md (45) vs AGENTS.md (49) → correct count</td><td>8</td><td>T5.1</td></tr>
+            <tr><td>T5.3</td><td>Update FEATURES.md header + add DLQ FULLY_FUNCTIONAL section</td><td>10</td><td>T5.2</td></tr>
+            <tr><td>T5.4</td><td>Update ROADMAP.md: mark A3 (idempotency) + dispatch-DLQ done</td><td>8</td><td>T5.3</td></tr>
+            <tr><td>T5.5</td><td>Commit + push doc reconciliation</td><td>5</td><td>T5.4</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="tier3"><span class="num">07</span>Tier 3 — Managed Projection Host <span class="tier-badge tb3">20% → 80%</span></h2>
+        <div class="card card-solution">
+          <h4>T6 · A1 — "the last loop every consumer rewrites"</h4>
+          <p>Wrap <code>CatchUpSubscriber</code> + <code>stack.Materialize</code> + checkpoint + lifecycle into a managed host: per-projection goroutines, crash auto-restart with exponential backoff, health/liveness, ordered vs parallel routing, graceful drain, and a <strong>projection-tier DLQ hook</strong> (poison event → capture, advance checkpoint, expose for replay). The dispatch DLQ primitive already exists; this is its projection-side counterpart.</p>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Sub</th><th>Task</th><th>Min</th><th>Depends</th></tr></thead>
+          <tbody>
+            <tr><td>T6.1</td><td>Read existing pieces: <code>projection/</code>, <code>stack/materialize.go</code>, <code>watermill/catchup_subscriber.go</code></td><td>12</td><td>T2,T3,T4</td></tr>
+            <tr><td>T6.2</td><td>Read checkpoint interfaces: <code>event.Checkpoint</code>/<code>CheckpointStore</code>, DistributedRunner</td><td>10</td><td>T6.1</td></tr>
+            <tr><td>T6.3</td><td>Read <code>middleware/deadletter.go</code> to design the projection-tier DLQ hook</td><td>12</td><td>T6.1</td></tr>
+            <tr><td>T6.4</td><td><strong>Design data model FIRST</strong>: HostConfig, ProjectionWorker, lifecycle states (make invalid states unrepresentable)</td><td>12</td><td>T6.1-3</td></tr>
+            <tr><td>T6.5</td><td>Design lifecycle: per-projection goroutines, crash auto-restart, exponential backoff, graceful drain</td><td>12</td><td>T6.4</td></tr>
+            <tr><td>T6.6</td><td>Design health/liveness + ordered vs parallel routing policy</td><td>10</td><td>T6.5</td></tr>
+            <tr><td>T6.7</td><td>Create module skeleton: <code>projectionhost/</code> (or revive <code>runtime/</code>) <code>go.mod</code> + <code>doc.go</code></td><td>8</td><td>T6.6</td></tr>
+            <tr><td>T6.8</td><td>Wire <code>go.work</code> + AGENTS.md structure tree</td><td>5</td><td>T6.7</td></tr>
+            <tr><td>T6.9</td><td>Implement checkpoint management (load/save per projection, persistence)</td><td>12</td><td>T6.8</td></tr>
+            <tr><td>T6.10</td><td>Implement subscription lifecycle (subscribe via CatchUpSubscriber, handle, ack/nack)</td><td>12</td><td>T6.9</td></tr>
+            <tr><td>T6.11</td><td>Implement crash auto-restart with exponential backoff</td><td>12</td><td>T6.10</td></tr>
+            <tr><td>T6.12</td><td>Implement projection-tier DLQ hook (capture poison event, advance checkpoint, expose for replay)</td><td>12</td><td>T6.10</td></tr>
+            <tr><td>T6.13</td><td>Implement graceful drain on shutdown (ctx cancel, drain in-flight, stop)</td><td>12</td><td>T6.10</td></tr>
+            <tr><td>T6.14</td><td>Implement ordered vs parallel routing policy</td><td>10</td><td>T6.10</td></tr>
+            <tr><td>T6.15</td><td>Implement health/liveness reporting (running/stopped/error + lag)</td><td>10</td><td>T6.13</td></tr>
+            <tr><td>T6.16</td><td>Tests: lifecycle happy path (start → process → stop)</td><td>12</td><td>T6.15</td></tr>
+            <tr><td>T6.17</td><td>Tests: crash auto-restart + backoff</td><td>12</td><td>T6.16</td></tr>
+            <tr><td>T6.18</td><td>Tests: checkpoint persistence across restart</td><td>12</td><td>T6.16</td></tr>
+            <tr><td>T6.19</td><td>Tests: poison message → DLQ, checkpoint advances</td><td>12</td><td>T6.16</td></tr>
+            <tr><td>T6.20</td><td>Tests: graceful drain completes in-flight, no event loss</td><td>12</td><td>T6.16</td></tr>
+            <tr><td>T6.21</td><td>Tests: concurrent projections + race detector</td><td>12</td><td>T6.16</td></tr>
+            <tr><td>T6.22</td><td>Write README: quick start, config, recipes</td><td>12</td><td>T6.21</td></tr>
+            <tr><td>T6.23</td><td>Update AGENTS.md + SKILL.md + FEATURES.md</td><td>10</td><td>T6.22</td></tr>
+            <tr><td>T6.24</td><td>Full workspace build + vet + test with <code>-race</code></td><td>10</td><td>T6.23</td></tr>
+            <tr><td>T6.25</td><td>Tag the projection-host module</td><td>5</td><td>T6.24</td></tr>
+            <tr><td>T6.26</td><td>Commit + push</td><td>5</td><td>T6.25</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="tier4"><span class="num">08</span>Tier 4 — Production Hardening + DX</h2>
+
+        <h3>T7 · Redis/SQL IdempotencyStore backends</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Sub</th><th>Task</th><th>Min</th><th>Depends</th></tr></thead>
+          <tbody>
+            <tr><td>T7.1</td><td>Design: confirm <code>Store</code> is backend-agnostic; design Redis atomic op (<code>SET NX EX</code> / Lua)</td><td>10</td><td>T2</td></tr>
+            <tr><td>T7.2</td><td>Design SQL schema + atomic query (<code>INSERT ... ON CONFLICT DO NOTHING</code>)</td><td>10</td><td>T7.1</td></tr>
+            <tr><td>T7.3</td><td>Implement <code>RedisStore</code> (atomic <code>CheckAndRecord</code>)</td><td>12</td><td>T7.1</td></tr>
+            <tr><td>T7.4</td><td>Tests for RedisStore (miniredis/testcontainers, atomicity, TTL)</td><td>12</td><td>T7.3</td></tr>
+            <tr><td>T7.5</td><td>Implement <code>SQLStore</code> (Postgres + SQLite, atomic tx)</td><td>12</td><td>T7.2</td></tr>
+            <tr><td>T7.6</td><td>Tests for SQLStore (testcontainers/in-memory SQLite, atomicity, TTL)</td><td>12</td><td>T7.5</td></tr>
+            <tr><td>T7.7</td><td>Backend selection docs + connection config options</td><td>10</td><td>T7.4,T7.6</td></tr>
+            <tr><td>T7.8</td><td>Full build + test + tag + commit</td><td>8</td><td>T7.7</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>T8 · Transactional Outbox (A2) — opt-in EventSink</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Sub</th><th>Task</th><th>Min</th><th>Depends</th></tr></thead>
+          <tbody>
+            <tr><td>T8.1</td><td>Read <code>docs/outbox-explained.html</code> + ADR-0016 for relay-vs-outbox tradeoff</td><td>12</td><td>T6</td></tr>
+            <tr><td>T8.2</td><td>Design data model: OutboxMessage, OutboxSink/Source/Store, OutboxRelay</td><td>12</td><td>T8.1</td></tr>
+            <tr><td>T8.3</td><td>Design transactional hook: write outbox row in same TX as aggregate (shared-DB)</td><td>12</td><td>T8.2</td></tr>
+            <tr><td>T8.4</td><td>Create module skeleton: <code>outbox/</code> go.mod + doc.go + go.work</td><td>8</td><td>T8.3</td></tr>
+            <tr><td>T8.5</td><td>Implement MemoryOutboxStore (dev/test)</td><td>10</td><td>T8.4</td></tr>
+            <tr><td>T8.6</td><td>Implement SQLOutboxStore (Postgres, same-tx write)</td><td>12</td><td>T8.5</td></tr>
+            <tr><td>T8.7</td><td>Implement OutboxRelay (poll: read unsent → publish → mark sent)</td><td>12</td><td>T8.6</td></tr>
+            <tr><td>T8.8</td><td>Implement crash recovery + at-least-once + idempotent publish</td><td>12</td><td>T8.7</td></tr>
+            <tr><td>T8.9</td><td>Tests: publish-through-outbox + relay drain</td><td>12</td><td>T8.8</td></tr>
+            <tr><td>T8.10</td><td>Tests: crash recovery, duplicate-safe, ordering</td><td>12</td><td>T8.9</td></tr>
+            <tr><td>T8.11</td><td>README + ADR update</td><td>10</td><td>T8.10</td></tr>
+            <tr><td>T8.12</td><td>Full build + test + tag + commit</td><td>8</td><td>T8.11</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>T9 · Scenario-testing DSL (A5) — Given/When/Then</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Sub</th><th>Task</th><th>Min</th><th>Depends</th></tr></thead>
+          <tbody>
+            <tr><td>T9.1</td><td>Design fluent API: <code>decider.Given(evts...).When(cmd).Then(expected, state)</code></td><td>12</td><td>T6</td></tr>
+            <tr><td>T9.2</td><td>Design projection replay assertion kit + bus tester</td><td>10</td><td>T9.1</td></tr>
+            <tr><td>T9.3</td><td>Create module skeleton: <code>testing/</code> go.mod + doc.go + go.work</td><td>8</td><td>T9.2</td></tr>
+            <tr><td>T9.4</td><td>Implement AggregateTester / DeciderTester (Given/When/Then)</td><td>12</td><td>T9.3</td></tr>
+            <tr><td>T9.5</td><td>Implement ProjectionTester (replay events, assert state)</td><td>12</td><td>T9.4</td></tr>
+            <tr><td>T9.6</td><td>Implement BusTester (publish/subscribe assertions)</td><td>10</td><td>T9.5</td></tr>
+            <tr><td>T9.7</td><td>Tests for the DSL itself</td><td>12</td><td>T9.6</td></tr>
+            <tr><td>T9.8</td><td>README + examples</td><td>10</td><td>T9.7</td></tr>
+            <tr><td>T9.9</td><td>Full build + test + tag + commit</td><td>8</td><td>T9.8</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>T10 · Scheduled commands / durable deadlines (A6)</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Sub</th><th>Task</th><th>Min</th><th>Depends</th></tr></thead>
+          <tbody>
+            <tr><td>T10.1</td><td>Design: timer store (events at future time) + dispatcher poll loop</td><td>12</td><td>—</td></tr>
+            <tr><td>T10.2</td><td>Create module skeleton: <code>scheduling/</code> go.mod + doc.go + go.work</td><td>8</td><td>T10.1</td></tr>
+            <tr><td>T10.3</td><td>Implement TimerStore (memory + SQL)</td><td>12</td><td>T10.2</td></tr>
+            <tr><td>T10.4</td><td>Implement scheduler dispatcher (poll due timers → dispatch commands)</td><td>12</td><td>T10.3</td></tr>
+            <tr><td>T10.5</td><td>Tests (scheduling, ordering, crash recovery)</td><td>12</td><td>T10.4</td></tr>
+            <tr><td>T10.6</td><td>README + docs</td><td>10</td><td>T10.5</td></tr>
+            <tr><td>T10.7</td><td>Full build + test + tag + commit</td><td>8</td><td>T10.6</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="tier5"><span class="num">09</span>Tier 5 — cqrs-htmx internal <span class="tier-badge tb5">out of audit scope</span></h2>
+        <div class="card card-warning">
+          <h4>T11 · Offline-first Phase 2 (SharedWorker / Service Worker + Background Sync)</h4>
+          <p>Separate feature track inside cqrs-htmx, not part of the library organisation audit. Q2 still open: <em>must writes survive closed tabs?</em> Listed for completeness.</p>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Sub</th><th>Task</th><th>Min</th><th>Depends</th></tr></thead>
+          <tbody>
+            <tr><td>T11.1</td><td>Resolve Q2: SharedWorker vs Service Worker + Background Sync — design decision</td><td>12</td><td>—</td></tr>
+            <tr><td>T11.2</td><td>Write ADR for Phase 2 approach</td><td>10</td><td>T11.1</td></tr>
+          </tbody>
+        </table></div>
+        <div class="callout callout-warning">
+          <strong>Scope note</strong> T11 decomposes into a large feature effort (T11.3+) best planned separately once the library audit (T1–T5) and the #1 framework gap (T6) are closed.
+        </div>
+
+        <h2><span class="num">10</span>Recommended Execution Order</h2>
+        <div class="card card-problem">
+          <h4>Do T1 → T2 first, immediately</h4>
+          <p>~50 min of work restores clean commits and publishes the module. This unlocks everything else and is the highest leverage move by a wide margin.</p>
+        </div>
+        <div class="card card-solution">
+          <h4>Then T3 → T4 → T5 to finish the audit (~2.5 h)</h4>
+          <p>Closes the original cross-repo goal: zero harmful duplication, single source of truth, honest docs.</p>
+        </div>
+        <div class="card">
+          <h4>Then T6 — the big one (~5 h, 26 subtasks)</h4>
+          <p>The Managed Projection Host is the single component that turns the library into an ES runtime. Design the data model first (T6.4) per the data-models-first principle.</p>
+        </div>
+
+        <footer class="footer">
+          Generated 2026-06-29 &middot; Pareto planning skill &middot; Sources: gap analysis (framework-os-gaps.html), TODO_LIST.md ×2, FEATURES.md, gap-analysis extraction, repo grep (DLQ/SSE/BuildFlow)
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) { return l.getAttribute("href").slice(1); });
+        var sections = ids.map(function (id) { return document.getElementById(id); }).filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              links.forEach(function (link) { link.classList.toggle("active", link.getAttribute("href") === "#" + entry.target.id); });
+            }
+          });
+        }, { rootMargin: "-80px 0px -60% 0px", threshold: 0 });
+        sections.forEach(function (s) { observer.observe(s); });
+      })();
+    </script>
+  </body>
+</html>
