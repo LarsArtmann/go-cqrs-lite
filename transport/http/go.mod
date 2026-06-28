@@ -17,7 +17,7 @@ require (
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/larsartmann/go-branded-id v0.3.1 // indirect
+	github.com/larsartmann/go-branded-id v0.3.1
 	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.3.0 // indirect
 	github.com/larsartmann/go-error-family v0.5.1 // indirect

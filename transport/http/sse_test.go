@@ -19,9 +19,9 @@ func TestWriteSSEEvent_Simple(t *testing.T) {
 	var buf bytes.Buffer
 
 	err := WriteSSEEvent(&buf, SSEEvent{
-		Type: "user.created",
-		ID:   "evt-123",
-		Data: `{"name":"Alice"}`,
+		Event: "user.created",
+		ID:    NewSSEEventID("evt-123"),
+		Data:  `{"name":"Alice"}`,
 	})
 	if err != nil {
 		t.Fatalf("WriteSSEEvent: %v", err)
@@ -39,9 +39,9 @@ func TestWriteSSEEvent_MultiLineData(t *testing.T) {
 	var buf bytes.Buffer
 
 	err := WriteSSEEvent(&buf, SSEEvent{
-		Type: "user.created",
-		ID:   "evt-456",
-		Data: "line1\nline2\nline3",
+		Event: "user.created",
+		ID:    NewSSEEventID("evt-456"),
+		Data:  "line1\nline2\nline3",
 	})
 	if err != nil {
 		t.Fatalf("WriteSSEEvent: %v", err)
@@ -123,7 +123,7 @@ func TestParseSSEEventID(t *testing.T) {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		if id != "evt-123" {
+		if id.Get() != "evt-123" {
 			t.Errorf("got %q, want evt-123", id)
 		}
 	})

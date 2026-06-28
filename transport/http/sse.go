@@ -212,9 +212,9 @@ func SSEHandler(broker *SSEBroker) http.Handler {
 				}
 
 				_ = WriteSSEEvent(w, SSEEvent{
-					Type: string(evt.Type()),
-					ID:   SSEEventID(evt.ID().String()),
-					Data: string(event.PayloadReadOnly(evt)),
+					Event: string(evt.Type()),
+					ID:    NewSSEEventID(evt.ID().String()),
+					Data:  string(event.PayloadReadOnly(evt)),
 				})
 
 				flusher.Flush()
@@ -279,9 +279,9 @@ func replayEvents(
 		replayed[evt.ID().String()] = struct{}{}
 
 		_ = WriteSSEEvent(w, SSEEvent{
-			Type: string(evt.Type()),
-			ID:   SSEEventID(evt.ID().String()),
-			Data: string(event.PayloadReadOnly(evt)),
+			Event: string(evt.Type()),
+			ID:    NewSSEEventID(evt.ID().String()),
+			Data:  string(event.PayloadReadOnly(evt)),
 		})
 	}
 
