@@ -1,5 +1,7 @@
 # Deep Dive: Aggregateless Event Sourcing
 
+> **Status:** RESOLVED — Aggregate identity retained; fold/decider ideas absorbed into ADR-0001 (decider/)
+
 **Author**: Based on the work of [Rico Fritzsche](https://ricofritzsche.me/)
 **Reference implementations**: [eventstore-typescript](https://github.com/ricofritzsche/eventstore-typescript), [fcis-event-sourcing-rust](https://github.com/ricofritzsche/fcis-event-sourcing-rust)
 

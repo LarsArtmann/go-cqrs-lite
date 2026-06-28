@@ -1,5 +1,7 @@
 # Storage Environment Mapping
 
+> **Status:** RESOLVED — Command Store, Pebble parity, Postgres multi-DB split all shipped (2026-06-28 update in doc)
+
 > **Date:** 2026-06-05 | **Scope:** All modules that persist or may persist data
 >
 > **Purpose:** Identify every storage touchpoint in go-cqrs-lite and map each to its

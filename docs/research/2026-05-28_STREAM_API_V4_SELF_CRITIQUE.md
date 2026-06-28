@@ -1,5 +1,7 @@
 # v4 Proposal Self-Critique
 
+> **Status:** IMPLEMENTED — StatusMiddleware shipped, io.Closer removed (ADR-0010), Sink/Source split (ADR-0006)
+
 > **Date:** 2026-05-28 | **For:** `docs/research/2026-05-28_STREAM_API_V4_PROPOSAL.md`
 
 ## Issues to address before implementation

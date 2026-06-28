@@ -1,5 +1,7 @@
 # State of the Art: CQRS & Event Sourcing Innovations (2024–2026)
 
+> **Status:** RESOLVED — Informational survey; recommendations shipped via ADRs 0001/0005/0017
+
 A research report on the most significant and innovative developments in CQRS and Event Sourced systems.
 
 ---

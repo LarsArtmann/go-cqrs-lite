@@ -1,5 +1,7 @@
 # ScheduledEvent / TimedEvent — Delayed and Deadline-Based Event Processing
 
+> **Status:** OPEN — No Scheduler module exists; deferred as consumer-supplied infrastructure
+
 > A `ScheduledEvent` is a command or event that should be processed at a future time, or after a delay. Essential for deadlines, timeouts, retries, and time-based business rules.
 
 ## Concept

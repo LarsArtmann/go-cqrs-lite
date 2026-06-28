@@ -1,5 +1,7 @@
 # Time Travel in Event Sourced Systems
 
+> **Status:** IMPLEMENTED — Version, timestamp, and position-based reads shipped in event/store.go
+
 > Comprehensive research on all known approaches to temporal queries in event-sourced systems, mapped to go-cqrs-lite's architecture.
 
 **Date:** 2026-05-01

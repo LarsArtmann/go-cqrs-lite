@@ -1,5 +1,7 @@
 # Time Travel in Event Sourcing: The Complete Industry Survey
 
+> **Status:** IMPLEMENTED — Version/timestamp/position-based reads all shipped
+
 > Exhaustive research on how every major event sourcing system implements time travel — and what go-cqrs-lite should adopt.
 
 **Date:** 2026-05-20

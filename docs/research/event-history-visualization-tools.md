@@ -1,5 +1,7 @@
 # Event History → Aggregate State Visualization Tools
 
+> **Status:** OPEN — Concluded no tool exists; visualizer remains an unaddressed opportunity
+
 > **The core question:** Is there a production-ready tool that shows how an aggregate's state evolves event-by-event with a timeline/slider — like Redux DevTools does for Redux, but for server-side event sourcing?
 
 **Short answer: No. This is a genuine gap in the ecosystem.**

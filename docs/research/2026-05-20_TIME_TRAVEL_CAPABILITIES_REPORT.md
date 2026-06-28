@@ -1,5 +1,7 @@
 # Time Travel Capabilities: Current State & Ideal Design
 
+> **Status:** IMPLEMENTED — LoadToVersion/LoadToTimestamp shipped in event/store.go; Journal/SeekableJournal (ADR-0006)
+
 > Comprehensive analysis of temporal query capabilities in go-cqrs-lite — what exists, what's missing, and what the library should provide to be world-class.
 
 **Date:** 2026-05-20

@@ -1,5 +1,7 @@
 # Honker, Turso, and Watermill SQLite: Research Summary
 
+> **Status:** RESOLVED — Watermill adopted (ADR-0028); Honker and Turso rejected
+
 > **Date:** 2026-05-27  
 > **Scope:** Evaluate SQLite-based pub/sub and task queue options for go-cqrs-lite consumers who want a zero-external-dependency storage path.  
 > **Research artifacts:** [russellromney/honker](https://github.com/russellromney/honker), [ThreeDotsLabs/watermill-sqlite](https://watermill.io/pubsubs/sqlite/), [tursodatabase/turso/COMPAT.md](https://raw.githubusercontent.com/tursodatabase/turso/refs/heads/main/COMPAT.md)
