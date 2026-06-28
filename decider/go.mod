@@ -28,6 +28,7 @@ require (
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v3 v3.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/event/v3/eventtest v0.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.3.0 // indirect
 	github.com/larsartmann/go-error-family v0.5.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
@@ -51,6 +52,7 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/command/v3 => ../command
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 => ../dispatcher
 	github.com/larsartmann/go-cqrs-lite/event/v3 => ../event
+	github.com/larsartmann/go-cqrs-lite/event/v3/eventtest => ../event/eventtest
 	github.com/larsartmann/go-cqrs-lite/id/v3 => ../id
 	github.com/larsartmann/go-cqrs-lite/otel/v3 => ../otel
 	github.com/larsartmann/go-cqrs-lite/query/v3 => ../query
