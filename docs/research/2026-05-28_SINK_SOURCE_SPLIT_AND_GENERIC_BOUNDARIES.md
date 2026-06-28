@@ -1,4 +1,5 @@
 # Sink/Source Split, Generic Boundaries, and Interface Design
+
 \n> **Status:** IMPLEMENTED — ISP split shipped (EventSink/EventSource)
 
 **Date:** 2026-05-28

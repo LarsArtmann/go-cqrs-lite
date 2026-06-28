@@ -754,8 +754,8 @@
           <div class="hero-badge">Full Status Snapshot</div>
           <h1>go-cqrs-lite — Comprehensive Status</h1>
           <p class="hero-subtitle">
-            Point-in-time audit of a 46-module, 936-file, 38-ADR CQRS/Event-Sourcing library SDK
-            for Go. Every claim below is verified against the live source tree at HEAD
+            Point-in-time audit of a 46-module, 936-file, 38-ADR CQRS/Event-Sourcing library SDK for
+            Go. Every claim below is verified against the live source tree at HEAD
             <code>f4728f0e</code>: build, lint, full test suite, coverage, and doc freshness were
             all executed this session.
           </p>
@@ -802,11 +802,11 @@
           <h4>Verdict: Production-ready for the modules consumers already use</h4>
           <p>
             Build is green, the entire 46-module test suite passes (<code>ok</code> on every
-            package, zero failures), and core CQRS/ES primitives carry high coverage (decider
-            98.3%, id 98.2%, dispatcher 98.0%, event 91.9%). v3.1.0 is tagged and v3.3.0 is
-            release-prep complete. The remaining work is hygiene (3 stale doc claims, 1 lint
-            regression, 1 stale branch), two stdlib-blocked experiments, and consumer-pulled
-            transport adapters. No correctness bugs were found.
+            package, zero failures), and core CQRS/ES primitives carry high coverage (decider 98.3%,
+            id 98.2%, dispatcher 98.0%, event 91.9%). v3.1.0 is tagged and v3.3.0 is release-prep
+            complete. The remaining work is hygiene (3 stale doc claims, 1 lint regression, 1 stale
+            branch), two stdlib-blocked experiments, and consumer-pulled transport adapters. No
+            correctness bugs were found.
           </p>
         </div>
 
@@ -844,9 +844,9 @@
               <strong>v3.3.0 release-prep complete</strong>
               <span
                 >Unified command identity (<code>Command.ID()</code>), persistent
-                <code>SQLDeadLetterStore</code>, validated SQL projections (Row column names
-                checked against schema), API-surface golden regenerated, internal module deps
-                bumped v3.1.0 → v3.3.0, CHANGELOG finalised. HEAD = <code>f4728f0e</code>.</span
+                <code>SQLDeadLetterStore</code>, validated SQL projections (Row column names checked
+                against schema), API-surface golden regenerated, internal module deps bumped v3.1.0
+                → v3.3.0, CHANGELOG finalised. HEAD = <code>f4728f0e</code>.</span
               >
             </div>
           </div>
@@ -867,10 +867,12 @@
             <div class="text">
               <strong>Three projection tiers, all functional</strong>
               <span
-                >Document/KV (<code>stack.Materialize</code>), Relational/SQL
-                (<code>storage.RelationalProjection</code> + <code>RelationalStore</code> with
-                cursor pagination), Graph/traversal (<code>graph.GraphProjection</code>). ADR-0037
-                + ADR-0038 document the extraction.</span
+                >Document/KV (<code>stack.Materialize</code>), Relational/SQL (<code
+                  >storage.RelationalProjection</code
+                >
+                + <code>RelationalStore</code> with cursor pagination), Graph/traversal
+                (<code>graph.GraphProjection</code>). ADR-0037 + ADR-0038 document the
+                extraction.</span
               >
             </div>
           </div>
@@ -880,9 +882,9 @@
               <strong>Transport layer complete</strong>
               <span
                 >SSE (<code>transport/http</code>) with Last-Event-ID reconnect, gRPC
-                (<code>transport/grpc</code>) with protobuf command+query dispatch — and gRPC IS
-                now wired into <code>go.work</code> (line 47), despite a stale FEATURES claim to
-                the contrary.</span
+                (<code>transport/grpc</code>) with protobuf command+query dispatch — and gRPC IS now
+                wired into <code>go.work</code> (line 47), despite a stale FEATURES claim to the
+                contrary.</span
               >
             </div>
           </div>
@@ -892,8 +894,8 @@
               <strong>Security primitives shipped &amp; integration-tested</strong>
               <span
                 >Event signing (HMAC-SHA256, Ed25519, multisig) and encryption (XChaCha20-Poly1305,
-                AES-256-GCM) with middleware. Integration tests in <code>integration/signing</code>
-                and <code>integration/encryption</code> pass.</span
+                AES-256-GCM) with middleware. Integration tests in
+                <code>integration/signing</code> and <code>integration/encryption</code> pass.</span
               >
             </div>
           </div>
@@ -924,9 +926,10 @@
             <div class="text">
               <strong>Dependency layer discipline enforced</strong>
               <span
-                >6-layer module graph, per-module dependency budgets, <code>check-module-layers.sh</code>
-                + CI isolation gate (<code>check-module-isolation.sh</code>) catch leaks. The
-                storage/memory test-dep is a documented exception, not a leak.</span
+                >6-layer module graph, per-module dependency budgets,
+                <code>check-module-layers.sh</code> + CI isolation gate
+                (<code>check-module-isolation.sh</code>) catch leaks. The storage/memory test-dep is
+                a documented exception, not a leak.</span
               >
             </div>
           </div>
@@ -943,11 +946,13 @@
           <p>
             The gRPC transport is wired into <code>go.work</code> and its tests pass under the
             workspace build, but it builds <strong>only with <code>GOWORK=off</code></strong> in
-            true isolation because <code>cockroachdb/pebble → cockroachdb/errors@v1.14.0</code>
-            pulls the monolithic <code>google.golang.org/genproto</code>, which conflicts with grpc
-            v1.81.1's split <code>genproto/googleapis/rpc</code>. <strong>Blocked until
-            cockroachdb/errors drops the monolithic genproto</strong> (issue #79). This means
-            the module is not yet isolation-clean — the one module in the repo that isn't.
+            true isolation because
+            <code>cockroachdb/pebble → cockroachdb/errors@v1.14.0</code> pulls the monolithic
+            <code>google.golang.org/genproto</code>, which conflicts with grpc v1.81.1's split
+            <code>genproto/googleapis/rpc</code>.
+            <strong>Blocked until cockroachdb/errors drops the monolithic genproto</strong> (issue
+            #79). This means the module is not yet isolation-clean — the one module in the repo that
+            isn't.
           </p>
         </div>
 
@@ -957,25 +962,27 @@
           <div class="where">ROADMAP.md:38-39 · stack/pebble/preset.go, stack/sqlite/preset.go</div>
           <p>
             Pebble <code>Checkpoint(dir)</code> IS surfaced on the pebble Bundle
-            (<code>stack/pebble/preset.go:53</code>) and tested. But <strong>graceful shutdown is
-            not surfaced</strong> from the stack presets — consumers must reach into the pebble
-            Bundle's <code>GracefulClose(ctx)</code> directly rather than through a uniform preset
-            API. ROADMAP lists both items as open; the checkpoint half is effectively done, the
-            shutdown half is not.
+            (<code>stack/pebble/preset.go:53</code>) and tested. But
+            <strong>graceful shutdown is not surfaced</strong> from the stack presets — consumers
+            must reach into the pebble Bundle's <code>GracefulClose(ctx)</code> directly rather than
+            through a uniform preset API. ROADMAP lists both items as open; the checkpoint half is
+            effectively done, the shutdown half is not.
           </p>
         </div>
 
         <div class="issue issue-important">
           <span class="severity severity-important">Partial</span>
           <h3>Two Go-stdlib-blocked experiments exist but can't stabilize</h3>
-          <div class="where">TODO_LIST.md:42-43 · event/arena_experiment.go, codec/jsonv2_experiment.go</div>
+          <div class="where">
+            TODO_LIST.md:42-43 · event/arena_experiment.go, codec/jsonv2_experiment.go
+          </div>
           <p>
             Arena allocation (<code>goexperiment.arenas</code>) and JSON-v2 encoding
             (<code>goexperiment.jsonv2</code>) are wired behind build tags and applied in CI
-            automatically. Both work today, but are <strong>blocked on Go stdlib
-            stabilization</strong> before they can become the default path. They are correctly
-            marked experimental — no consumer depends on them — but they represent unrealised
-            performance gains (zero-alloc encoding, pooled allocation).
+            automatically. Both work today, but are
+            <strong>blocked on Go stdlib stabilization</strong> before they can become the default
+            path. They are correctly marked experimental — no consumer depends on them — but they
+            represent unrealised performance gains (zero-alloc encoding, pooled allocation).
           </p>
         </div>
 
@@ -987,9 +994,9 @@
             The API-surface checker builds and runs (<code>cmd/api-stability/</code>), and a golden
             file was regenerated this release (<code>34260691</code>). But
             <code>nix run .#api-stability</code> returns "does not provide attribute" — it isn't
-            wired as a flake app. Consumers must <code>cd cmd/api-stability &amp;&amp; go run
-            .</code>. The check exists but is one step removed from the documented
-            <code>nix run .#&lt;task&gt;</code> convention.
+            wired as a flake app. Consumers must
+            <code>cd cmd/api-stability &amp;&amp; go run .</code>. The check exists but is one step
+            removed from the documented <code>nix run .#&lt;task&gt;</code> convention.
           </p>
         </div>
 
@@ -1002,8 +1009,8 @@
             <code>(aggID, version)</code> to eliminate snapshot+delta replay on sustained-hot
             aggregates. It is provably safe under single-master optimistic concurrency. But it is
             <strong>not built</strong>, and the doc itself warns to "profile before building" —
-            snapshot + page-cache-resident events may already make sequential loads cheap. This is
-            a real, designed, unbuilt performance feature.
+            snapshot + page-cache-resident events may already make sequential loads cheap. This is a
+            real, designed, unbuilt performance feature.
           </p>
         </div>
 
@@ -1027,11 +1034,12 @@
         <div class="card">
           <h4>NATS / Redis / Kafka transport adapters</h4>
           <p>
-            ADR-0025 originally called for these, but they were <strong>superseded by the Watermill
-            command bridge</strong> — brokers plug into <code>watermill.NewCommandBus</code> via
-            publisher/subscriber adapters rather than getting bespoke modules. ROADMAP marks these
-            as done-by-supersession. No standalone <code>transport/nats</code> module exists, which
-            is the intended end state unless a consumer asks otherwise.
+            ADR-0025 originally called for these, but they were
+            <strong>superseded by the Watermill command bridge</strong> — brokers plug into
+            <code>watermill.NewCommandBus</code> via publisher/subscriber adapters rather than
+            getting bespoke modules. ROADMAP marks these as done-by-supersession. No standalone
+            <code>transport/nats</code> module exists, which is the intended end state unless a
+            consumer asks otherwise.
           </p>
         </div>
 
@@ -1040,8 +1048,8 @@
           <p>
             <code>EveryNEvents</code> snapshots based on writes; a <code>ReadPressureStrategy</code>
             that snapshots based on load frequency is designed but unbuilt. Deferred because the
-            hot-state cache (also unbuilt) would subsume most of its benefit. Listed in TODO_LIST
-            as "consider after the State cache lands."
+            hot-state cache (also unbuilt) would subsume most of its benefit. Listed in TODO_LIST as
+            "consider after the State cache lands."
           </p>
         </div>
 
@@ -1067,8 +1075,8 @@
           <h4>Graph DB drivers beyond the in-memory reference</h4>
           <p>
             <code>graph.GraphProjection</code> ships with an in-memory traversal engine. A
-            Neo4j/Memgraph driver (<code>graph/neo4j/</code>) is listed as a consumer-pulled
-            sibling module — no code until a consumer asks.
+            Neo4j/Memgraph driver (<code>graph/neo4j/</code>) is listed as a consumer-pulled sibling
+            module — no code until a consumer asks.
           </p>
         </div>
 
@@ -1086,9 +1094,9 @@
           <div class="where">storage/view_store_auto.go:164 · contradicts 10:04 report</div>
           <p>
             The previous status report (<code>2026-06-28_10-04</code>) states under its executive
-            summary: <em>"Zero lint findings across all 46 modules (was 8 at session
-            start)."</em> Running <code>nix run .#lint</code> right now returns
-            <strong>1 finding</strong>:
+            summary:
+            <em>"Zero lint findings across all 46 modules (was 8 at session start)."</em> Running
+            <code>nix run .#lint</code> right now returns <strong>1 finding</strong>:
           </p>
           <pre><code>storage/view_store_auto.go:164:2: missing cases in switch of type reflect.Kind:
   reflect.Invalid, reflect.Int8, reflect.Int16, reflect.Uint8, reflect.Uint16,
@@ -1098,15 +1106,17 @@
             The <code>goTypeToSQL</code> switch intentionally handles only a subset of
             <code>reflect.Kind</code> (unknown kinds default to TEXT for JSON-serialised types).
             TODO_LIST line 32 claims a scoped <code>//nolint:exhaustive</code> with justification
-            was added in commit <code>cbfdd68e</code> — <strong>but that nolint directive is
-            absent from the current code.</strong> It was lost during the relational-schema
-            refactor. This is a silent doc-vs-code drift: the project believes its own stale claim.
+            was added in commit <code>cbfdd68e</code> —
+            <strong>but that nolint directive is absent from the current code.</strong> It was lost
+            during the relational-schema refactor. This is a silent doc-vs-code drift: the project
+            believes its own stale claim.
           </p>
           <div class="callout callout-solution">
             <strong>Fix (1 line)</strong>
-            Add <code>//nolint:exhaustive // unknown Kinds intentionally fall through to TEXT</code>
-            on the <code>switch rt.Kind()</code> line at view_store_auto.go:164. Re-run lint to
-            confirm zero. Then re-state the claim truthfully.
+            Add
+            <code>//nolint:exhaustive // unknown Kinds intentionally fall through to TEXT</code> on
+            the <code>switch rt.Kind()</code> line at view_store_auto.go:164. Re-run lint to confirm
+            zero. Then re-state the claim truthfully.
           </div>
         </div>
 
@@ -1116,8 +1126,10 @@
           <div class="where">FEATURES.md:361 · go.work:47</div>
           <p>
             FEATURES.md line 361 states:
-            <em>"⚠️ Builds cleanly but is not yet wired into go.work (orphan module) — add it to
-            the workspace use block before relying on root go test ./..."</em>
+            <em
+              >"⚠️ Builds cleanly but is not yet wired into go.work (orphan module) — add it to the
+              workspace use block before relying on root go test ./..."</em
+            >
           </p>
           <p>
             This is <strong>false</strong>. <code>grep -n grpc go.work</code> shows
@@ -1141,8 +1153,7 @@
             commit is <strong>2026-06-17</strong> ("branch merge-ready"), but master has moved
             <strong>422 commits past it</strong> and it has 0 unique commits not on master. It is
             not "merge-ready" — it is dead weight. A consumer or contributor seeing it would
-            reasonably wonder if it holds unmerged work. It doesn't; master supersedes it
-            entirely.
+            reasonably wonder if it holds unmerged work. It doesn't; master supersedes it entirely.
           </p>
           <div class="callout callout-warning">
             <strong>Action</strong>
@@ -1153,15 +1164,18 @@
 
         <div class="issue issue-important">
           <span class="severity severity-important">Doc rot</span>
-          <h3>TODO_LIST claims projection/ was "deleted" then "re-introduced" — confusing history</h3>
+          <h3>
+            TODO_LIST claims projection/ was "deleted" then "re-introduced" — confusing history
+          </h3>
           <div class="where">TODO_LIST.md:60</div>
           <p>
-            The v3 checklist item reads: <em>"Refactor projection/ module — RE-INTRODUCED
-            (ADR-0030)."</em> The prose then explains the old runner was replaced but the
-            <em>interface</em> was re-homed. This is technically accurate but reads as
-            contradictory to anyone scanning the checklist — a "completed breaking change" that was
-            un-deleted. The correction is buried in a sub-clause. It cost this audit real time to
-            confirm projection/ is alive and load-bearing.
+            The v3 checklist item reads:
+            <em>"Refactor projection/ module — RE-INTRODUCED (ADR-0030)."</em> The prose then
+            explains the old runner was replaced but the <em>interface</em> was re-homed. This is
+            technically accurate but reads as contradictory to anyone scanning the checklist — a
+            "completed breaking change" that was un-deleted. The correction is buried in a
+            sub-clause. It cost this audit real time to confirm projection/ is alive and
+            load-bearing.
           </p>
         </div>
 
@@ -1180,10 +1194,12 @@
         </div>
 
         <div class="card card-warning">
-          <h4>2. The "zero lint findings" claim should never be asserted without re-running lint</h4>
+          <h4>
+            2. The "zero lint findings" claim should never be asserted without re-running lint
+          </h4>
           <p>
-            The 10:04 report asserted zero findings as a headline victory, but a commit between
-            the report's write and HEAD reintroduced one. Status reports that make absolute claims
+            The 10:04 report asserted zero findings as a headline victory, but a commit between the
+            report's write and HEAD reintroduced one. Status reports that make absolute claims
             ("zero", "all", "none") should embed the exact command + commit hash that produced the
             claim, and the claim should be re-verified at report-write time, not carried forward
             from session memory.
@@ -1215,8 +1231,8 @@
           <p>
             Without <code>POSTGRES_TEST_DSN</code>, <code>stack/postgres</code> tests skip and show
             0% coverage. Consider a CI job that runs Postgres in a service container (the standard
-            GitHub Actions <code>postgres</code> service) so the Postgres happy-path is exercised
-            on every PR, not just when a maintainer remembers to set a DSN.
+            GitHub Actions <code>postgres</code> service) so the Postgres happy-path is exercised on
+            every PR, not just when a maintainer remembers to set a DSN.
           </p>
         </div>
 
@@ -1234,7 +1250,10 @@
 
         <!-- =========================================================== -->
         <h2 id="top25"><span class="num">F</span>Top 25 Things To Get Done Next</h2>
-        <p>Sorted by impact. Severity colour-coded: red = trust/correctness, amber = hygiene/gap, blue = feature/growth.</p>
+        <p>
+          Sorted by impact. Severity colour-coded: red = trust/correctness, amber = hygiene/gap,
+          blue = feature/growth.
+        </p>
 
         <div class="migration-step is-critical">
           <div class="migration-num">1</div>
@@ -1254,9 +1273,9 @@
           <div class="migration-content">
             <h4>Correct the stale FEATURES.md orphan claim for transport/grpc</h4>
             <p>
-              Delete/invert the "not yet wired into go.work" warning. State gRPC is wired (go.work:47)
-              and tested, noting the upstream isolation caveat. A lying FEATURES.md is worse than no
-              FEATURES.md.
+              Delete/invert the "not yet wired into go.work" warning. State gRPC is wired
+              (go.work:47) and tested, noting the upstream isolation caveat. A lying FEATURES.md is
+              worse than no FEATURES.md.
             </p>
             <div class="where">FEATURES.md:361 · ~5 min</div>
           </div>
@@ -1267,8 +1286,8 @@
           <div class="migration-content">
             <h4>Delete the abandoned consolidate-catalog branch (local + origin)</h4>
             <p>
-              Confirm owner approval, then remove. Master is 422 commits ahead with 0 unique
-              commits on the branch — it is pure dead weight that misleads contributors.
+              Confirm owner approval, then remove. Master is 422 commits ahead with 0 unique commits
+              on the branch — it is pure dead weight that misleads contributors.
             </p>
             <div class="where">branch: consolidate-catalog · ~3 min</div>
           </div>
@@ -1508,8 +1527,8 @@
           <div class="migration-content">
             <h4>Performance regression dashboard (historical benchmark tracking)</h4>
             <p>
-              <code>stack/bench</code> exists but results aren't tracked over time. A CI artifact
-              + historical plot would catch perf regressions the way the API-stability tool catches
+              <code>stack/bench</code> exists but results aren't tracked over time. A CI artifact +
+              historical plot would catch perf regressions the way the API-stability tool catches
               API regressions.
             </p>
             <div class="where">stack/bench/ + CI · ~2 days</div>
@@ -1550,7 +1569,9 @@
               release that stabilises each, then flip them to default paths for the zero-alloc /
               pooled-allocation wins they promise.
             </p>
-            <div class="where">event/arena_experiment.go, codec/jsonv2_experiment.go · Go-stdlib-blocked</div>
+            <div class="where">
+              event/arena_experiment.go, codec/jsonv2_experiment.go · Go-stdlib-blocked
+            </div>
           </div>
         </div>
 
@@ -1559,8 +1580,8 @@
 
         <div class="callout callout-problem">
           <strong>#1 Question:</strong>
-          Is <code>consolidate-catalog</code> intentionally preserved for a reason I can't see
-          from the source, or is it safe to delete?
+          Is <code>consolidate-catalog</code> intentionally preserved for a reason I can't see from
+          the source, or is it safe to delete?
         </div>
 
         <p>
@@ -1571,12 +1592,11 @@
           module on master is functional and tested.
         </p>
         <p>
-          <strong>What I cannot determine:</strong> whether there's an out-of-band reason (a
-          planned revert, a collaborator's in-progress work, a historical reference point) to keep
-          it. Deleting a branch is reversible (<code>git reflog</code> + force-recreate from
-          origin), but I won't touch it without confirmation because the AGENTS.md safety rule is
-          explicit: <em>"NEVER revert changes you didn't author."</em> This is your branch and your
-          call.
+          <strong>What I cannot determine:</strong> whether there's an out-of-band reason (a planned
+          revert, a collaborator's in-progress work, a historical reference point) to keep it.
+          Deleting a branch is reversible (<code>git reflog</code> + force-recreate from origin),
+          but I won't touch it without confirmation because the AGENTS.md safety rule is explicit:
+          <em>"NEVER revert changes you didn't author."</em> This is your branch and your call.
         </p>
         <p>
           <strong>If the answer is "delete it,"</strong> I will remove both
@@ -1587,9 +1607,10 @@
 
         <footer class="footer">
           Generated 2026-06-28 10:15 CEST · All claims verified against HEAD
-          <code>f4728f0e</code> via <code>nix run .#build</code> (pass), <code>nix run .#lint</code>
-          (1 finding), <code>nix run .#test</code> (all 46 modules <code>ok</code>), and
-          <code>go test -cover</code> on core modules. · Bauhaus Dark dashboard template.
+          <code>f4728f0e</code> via <code>nix run .#build</code> (pass),
+          <code>nix run .#lint</code> (1 finding), <code>nix run .#test</code> (all 46 modules
+          <code>ok</code>), and <code>go test -cover</code> on core modules. · Bauhaus Dark
+          dashboard template.
         </footer>
       </main>
     </div>

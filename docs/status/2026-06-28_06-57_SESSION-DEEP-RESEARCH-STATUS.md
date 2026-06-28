@@ -16,16 +16,16 @@ read-model tiers** (relational/document/graph) and **closing documentation gaps*
 
 ### At a Glance
 
-| Metric | Value |
-|--------|-------|
-| Modules | 46 `go.mod` files |
-| Go LOC (non-test) | ~48,156 |
-| Research/brainstorming docs | 53 files |
-| ADRs | 38 |
-| Stack presets | 5 (memory, sqlite, pebble, postgres, turso) |
-| Tests | All passing (0 failures) |
-| Open TODO items | 6 (4 blocked on upstream, 2 design proposals) |
-| Last release | v3.1.0 |
+| Metric                      | Value                                         |
+| --------------------------- | --------------------------------------------- |
+| Modules                     | 46 `go.mod` files                             |
+| Go LOC (non-test)           | ~48,156                                       |
+| Research/brainstorming docs | 53 files                                      |
+| ADRs                        | 38                                            |
+| Stack presets               | 5 (memory, sqlite, pebble, postgres, turso)   |
+| Tests                       | All passing (0 failures)                      |
+| Open TODO items             | 6 (4 blocked on upstream, 2 design proposals) |
+| Last release                | v3.1.0                                        |
 
 ---
 
@@ -74,14 +74,14 @@ read-model tiers** (relational/document/graph) and **closing documentation gaps*
 
 ### Research → Implementation Gaps
 
-| Feature | Status | What's Left |
-|---------|--------|-------------|
-| **Metadata pointer→value migration** | ~95% done | `*Metadata` → value `Metadata` committed. A few enricher→OTel bridge edge cases may remain. |
-| **Graph module** | Phase 1 (in-memory) | Neo4j/Memgraph driver is "consumer-pulled." No real-backend test exists yet. |
-| **API surface reduction** | Partially addressed | `catalog/` still has 29 string-newtypes (intentional — "good names"). `storage/sql/` still separate package (collapse deferred to major version). |
-| **Schema migration system** | Partial | `InitSchema` (CREATE IF NOT EXISTS) + `RelationalSchema.Migrate()`. No versioned migration framework (like goose/atlas). |
-| **Transport/gRPC** | Builds clean, not in go.work | Blocked on genproto ecosystem conflict (upstream). Works with `GOWORK=off`. |
-| **sqlc adoption** | Phase 1 recommended, not started | Schema extraction to .sql files is highest-value/lowest-regret step. |
+| Feature                              | Status                           | What's Left                                                                                                                                       |
+| ------------------------------------ | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Metadata pointer→value migration** | ~95% done                        | `*Metadata` → value `Metadata` committed. A few enricher→OTel bridge edge cases may remain.                                                       |
+| **Graph module**                     | Phase 1 (in-memory)              | Neo4j/Memgraph driver is "consumer-pulled." No real-backend test exists yet.                                                                      |
+| **API surface reduction**            | Partially addressed              | `catalog/` still has 29 string-newtypes (intentional — "good names"). `storage/sql/` still separate package (collapse deferred to major version). |
+| **Schema migration system**          | Partial                          | `InitSchema` (CREATE IF NOT EXISTS) + `RelationalSchema.Migrate()`. No versioned migration framework (like goose/atlas).                          |
+| **Transport/gRPC**                   | Builds clean, not in go.work     | Blocked on genproto ecosystem conflict (upstream). Works with `GOWORK=off`.                                                                       |
+| **sqlc adoption**                    | Phase 1 recommended, not started | Schema extraction to .sql files is highest-value/lowest-regret step.                                                                              |
 
 ### Research Documentation
 
@@ -93,17 +93,17 @@ read-model tiers** (relational/document/graph) and **closing documentation gaps*
 
 ## C. NOT STARTED (Red — Flagged in Research)
 
-| Feature | Source Doc | Impact |
-|---------|-----------|--------|
-| **Scheduler module** | `scheduled-event.md` | Deadlines, timeouts, cron-style triggers. Infrastructure concern — interface defined, zero implementations. |
-| **Deriver module** | `derived-event.md` | Stateless saga (events → commands). `Deriver` interface proposed, no code. |
-| **NATS/Redis transport adapters** | `nats-jetstream-implementation-plan.html` | ADR-0025 accepted. Zero implementation. |
-| **Hot-state cache (decider)** | TODO_LIST | Optional `RepositoryOption` for 100+ cmd/sec aggregates. |
-| **Read-pressure snapshot strategy** | TODO_LIST | Snapshot based on load frequency, not write count. |
-| **Bi-temporal model** | `time-travel-*.md` | `ValidAt` dimension for HR/finance/healthcare. Niche but critical for some domains. |
-| **Event redaction middleware** | `event-redaction-design-review.html` | Design reviewed, pattern accepted, no `redaction/` module. |
-| **Event history visualizer** | `event-history-visualization-tools.md` | Redux DevTools for server-side ES. Ecosystem gap. |
-| **Postgres Pebble multi-DB split** | Deployer audit | Pebble has no multi-DB split (column-family isolation). Low priority. |
+| Feature                             | Source Doc                                | Impact                                                                                                      |
+| ----------------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **Scheduler module**                | `scheduled-event.md`                      | Deadlines, timeouts, cron-style triggers. Infrastructure concern — interface defined, zero implementations. |
+| **Deriver module**                  | `derived-event.md`                        | Stateless saga (events → commands). `Deriver` interface proposed, no code.                                  |
+| **NATS/Redis transport adapters**   | `nats-jetstream-implementation-plan.html` | ADR-0025 accepted. Zero implementation.                                                                     |
+| **Hot-state cache (decider)**       | TODO_LIST                                 | Optional `RepositoryOption` for 100+ cmd/sec aggregates.                                                    |
+| **Read-pressure snapshot strategy** | TODO_LIST                                 | Snapshot based on load frequency, not write count.                                                          |
+| **Bi-temporal model**               | `time-travel-*.md`                        | `ValidAt` dimension for HR/finance/healthcare. Niche but critical for some domains.                         |
+| **Event redaction middleware**      | `event-redaction-design-review.html`      | Design reviewed, pattern accepted, no `redaction/` module.                                                  |
+| **Event history visualizer**        | `event-history-visualization-tools.md`    | Redux DevTools for server-side ES. Ecosystem gap.                                                           |
+| **Postgres Pebble multi-DB split**  | Deployer audit                            | Pebble has no multi-DB split (column-family isolation). Low priority.                                       |
 
 ---
 
@@ -227,16 +227,16 @@ implementation task**.
 
 7 commits in this session:
 
-| Commit | Description |
-|--------|-------------|
-| `6883def1` | Rewrite stale `STORAGE_GUIDE.md` to match current API |
+| Commit     | Description                                                      |
+| ---------- | ---------------------------------------------------------------- |
+| `6883def1` | Rewrite stale `STORAGE_GUIDE.md` to match current API            |
 | `850f717b` | Remove dead `parseSQLiteTimestamp` wrapper (split-brain cleanup) |
-| `f25acb9d` | Add `AggregateID` strict validation + document string-backing |
-| `588c45ae` | Stamp RESOLVED on stale research docs |
-| `dab49266` | Add dead-letter quarantine for retry exhaustion |
-| `a6160538` | Promote `TypedStore[State]` as recommended snapshot API |
-| `fe89745f` | Add heterogeneous engine example (Pebble + SQLite) |
+| `f25acb9d` | Add `AggregateID` strict validation + document string-backing    |
+| `588c45ae` | Stamp RESOLVED on stale research docs                            |
+| `dab49266` | Add dead-letter quarantine for retry exhaustion                  |
+| `a6160538` | Promote `TypedStore[State]` as recommended snapshot API          |
+| `fe89745f` | Add heterogeneous engine example (Pebble + SQLite)               |
 
 ---
 
-*Generated 2026-06-28 06:57 CEST.*
+_Generated 2026-06-28 06:57 CEST._

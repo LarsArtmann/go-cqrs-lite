@@ -9,6 +9,7 @@ Accepted — 2026-06-28 (implemented: `deriver/` module)
 The `Deriver` module is a long-planned but unbuilt feature (TODO C11 in multiple status reports). It handles event→event and event→command derivation — the stateless saga pattern where processing one event produces derived commands or events.
 
 Research into TypeDB's symbolic reasoning engine surfaced a design reference for the Deriver API. TypeDB uses declarative `when {...} then {...}` rules that generate new facts from existing data at query time. Key properties:
+
 - Rules are part of the schema (declarative, not imperative)
 - Results are deterministic and idempotent
 - Termination follows from "each derived instance produced at most once"
@@ -36,13 +37,13 @@ func (d Deriver) Filter(types ...event.Type) Deriver
 
 ### Why functional over declarative
 
-| Approach | TypeDB | go-cqrs-lite |
-| --- | --- | --- |
-| Declarative rule registry | Works — engine optimizes execution | Overkill — no execution engine to optimize |
-| Functional composition | N/A | Idiomatic Go — compiler type-checks, easy to test |
-| Determinism | Enforced by engine | Enforced by contract (pure functions) |
-| Termination | Engine guarantees | Developer responsibility (document, don't enforce) |
-| Chaining | Rule chaining (backward) | `Deriver.Then(other)` (forward, explicit) |
+| Approach                  | TypeDB                             | go-cqrs-lite                                       |
+| ------------------------- | ---------------------------------- | -------------------------------------------------- |
+| Declarative rule registry | Works — engine optimizes execution | Overkill — no execution engine to optimize         |
+| Functional composition    | N/A                                | Idiomatic Go — compiler type-checks, easy to test  |
+| Determinism               | Enforced by engine                 | Enforced by contract (pure functions)              |
+| Termination               | Engine guarantees                  | Developer responsibility (document, don't enforce) |
+| Chaining                  | Rule chaining (backward)           | `Deriver.Then(other)` (forward, explicit)          |
 
 ### What we steal from TypeDB
 

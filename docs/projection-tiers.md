@@ -4,10 +4,10 @@ Three tiers, one contract (`projection.Projection`). Pick by your read pattern.
 
 ## Quick Decision Table
 
-| Your dominant read pattern                          | Use                                               | Backend reach            | Schema strength |
-| --------------------------------------------------- | ------------------------------------------------- | ------------------------ | --------------- |
-| Get by ID, list all, prefix scan                    | `stack.Materialize` + `kv.ViewStore[V,K]`         | memory, pebble, SQL-blob | Implicit (Go type) |
-| Filtered/ordered/paginated lists, counts, stats     | `storage.RelationalProjection` + `ProjectionSink` | SQLite, PostgreSQL       | `RelationalSchema` (columns, types, nullable) |
+| Your dominant read pattern                          | Use                                               | Backend reach            | Schema strength                                      |
+| --------------------------------------------------- | ------------------------------------------------- | ------------------------ | ---------------------------------------------------- |
+| Get by ID, list all, prefix scan                    | `stack.Materialize` + `kv.ViewStore[V,K]`         | memory, pebble, SQL-blob | Implicit (Go type)                                   |
+| Filtered/ordered/paginated lists, counts, stats     | `storage.RelationalProjection` + `ProjectionSink` | SQLite, PostgreSQL       | `RelationalSchema` (columns, types, nullable)        |
 | N-hop traversal, recursive relationships, adjacency | `graph.GraphProjection` + `GraphSink`             | memory, Neo4j (future)   | `graph.Schema` (node/edge types, props) — **opt-in** |
 
 ## Why three tiers, not one
@@ -17,6 +17,7 @@ Each tier serves a fundamentally different **read pattern**. Choosing the wrong 
 ### Document/KV (`Materialize`)
 
 One document per key. The Go generic type IS the schema. Best for:
+
 - Point lookups by ID
 - List/scan all documents
 - Tombstone-aware soft-delete
@@ -26,6 +27,7 @@ One document per key. The Go generic type IS the schema. Best for:
 ### Relational/SQL (`RelationalProjection`)
 
 Multiple related tables per event. Atomic cross-table writes. Best for:
+
 - Filtered, ordered, paginated queries (WHERE, ORDER BY, LIMIT)
 - Junction tables (many-to-many)
 - Append-only history tables
@@ -36,6 +38,7 @@ Multiple related tables per event. Atomic cross-table writes. Best for:
 ### Graph/traversal (`GraphProjection`)
 
 Nodes and edges via MERGE semantics. Best for:
+
 - Variable-depth traversal (reply chains, social graphs, causation DAGs)
 - Path-finding (shortest path, connected components)
 - Adjacency queries (1-hop neighbors)
@@ -45,11 +48,11 @@ Nodes and edges via MERGE semantics. Best for:
 
 ## Schema: closed-world vs open-world
 
-| Tier | Default | With Schema |
-| --- | --- | --- |
-| Events | `schema.Validator` (closed-world) | — |
-| Relational | `RelationalSchema` + column-name validation (closed-world) | — |
-| Graph | Open-world (any label, any props — like Neo4j) | `graph.Schema` → closed-world (rejects unknown labels/props at sink) |
+| Tier       | Default                                                    | With Schema                                                          |
+| ---------- | ---------------------------------------------------------- | -------------------------------------------------------------------- |
+| Events     | `schema.Validator` (closed-world)                          | —                                                                    |
+| Relational | `RelationalSchema` + column-name validation (closed-world) | —                                                                    |
+| Graph      | Open-world (any label, any props — like Neo4j)             | `graph.Schema` → closed-world (rejects unknown labels/props at sink) |
 
 **Closed-world** means the sink rejects writes with unknown labels, properties, or endpoint types before they hit storage. This catches the most common projection bug: a typo in a label or property name that silently creates a phantom node no query will ever find.
 
@@ -60,6 +63,7 @@ Nodes and edges via MERGE semantics. Best for:
 **Adopted:** Boundary-typing at the sink. TypeDB's core insight is that graph-shaped read models don't require abandoning strong types. We validate node labels, edge types, property names, and edge endpoint constraints — the same pattern the relational tier uses for column-name validation. Full rationale in [ADR-0039](adr/0039-graph-schema.md).
 
 **Rejected (and why):**
+
 - **N-ary relations / typed roles** — breaks openCypher MERGE portability (the graph tier's central thesis). Use relational junction tables for multi-way relationships.
 - **Inheritance polymorphism** — querying a supertype matching all subtypes. YAGNI for read models.
 - **Full constraint grammar** (`@regex`, `@values`, cardinality ranges) — database-engine concerns, not sink-validation concerns. Keep the schema minimal: types, keys, properties, endpoint constraints.

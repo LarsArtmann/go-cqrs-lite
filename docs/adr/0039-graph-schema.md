@@ -8,12 +8,12 @@ Accepted — 2026-06-28
 
 The graph projection tier (ADR-0038) shipped with open-world semantics: any node label, any property name, any edge type was accepted at the sink. This is the weakest typing of the three projection tiers:
 
-| Tier | Schema |
-| --- | --- |
-| Events | `catalog/` (JSON Schema, AsyncAPI) + `schema.Validator` |
-| Relational | `RelationalSchema` + column-name validation |
-| Document/KV | Implicit via generics (`TypedStore[T,K]`) |
-| **Graph** | **None — strings and `any`** |
+| Tier        | Schema                                                  |
+| ----------- | ------------------------------------------------------- |
+| Events      | `catalog/` (JSON Schema, AsyncAPI) + `schema.Validator` |
+| Relational  | `RelationalSchema` + column-name validation             |
+| Document/KV | Implicit via generics (`TypedStore[T,K]`)               |
+| **Graph**   | **None — strings and `any`**                            |
 
 The most common graph-projection bug: a typo in a label or property name silently creates a phantom node that no query will ever find. The relational tier solved this exact problem with Row column-name validation.
 
@@ -39,13 +39,13 @@ TypeDB (typedb.com) is the existence proof that graph-shaped read models don't r
 
 ## What we rejected from TypeDB
 
-| Feature | Why rejected |
-| --- | --- |
-| N-ary relations / typed roles | Breaks openCypher MERGE portability (graph tier's thesis). Use relational junction tables. |
-| Inheritance polymorphism | YAGNI for read models. No query-time subtype matching. |
-| Full constraint grammar (`@regex`, `@values`, `@card`) | Database-engine concerns, not sink-validation concerns. |
-| Reasoning/inference engine | A projection IS materialized derived data — opposite philosophy. Deriver module (ADR-0040) handles derivation at the application layer. |
-| First-class/global shared attributes | Storage-engine optimization, not a projection concern. |
+| Feature                                                | Why rejected                                                                                                                            |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| N-ary relations / typed roles                          | Breaks openCypher MERGE portability (graph tier's thesis). Use relational junction tables.                                              |
+| Inheritance polymorphism                               | YAGNI for read models. No query-time subtype matching.                                                                                  |
+| Full constraint grammar (`@regex`, `@values`, `@card`) | Database-engine concerns, not sink-validation concerns.                                                                                 |
+| Reasoning/inference engine                             | A projection IS materialized derived data — opposite philosophy. Deriver module (ADR-0040) handles derivation at the application layer. |
+| First-class/global shared attributes                   | Storage-engine optimization, not a projection concern.                                                                                  |
 
 ## Consequences
 

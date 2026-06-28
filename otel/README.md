@@ -29,26 +29,26 @@ That's it. Every command, event, and query now carries distributed trace spans a
 
 ## What You Get
 
-| Span Name | Kind | Attributes |
-|-----------|------|------------|
-| `command.handle` | Server | `cqrs.command.type`, `cqrs.aggregate.id` |
-| `event.handle` | Consumer | `cqrs.event.type`, `cqrs.aggregate.id`, `cqrs.aggregate.type`, `cqrs.aggregate.version` |
-| `event.publish` | Producer | `cqrs.event.count`, `cqrs.event.type`, `cqrs.aggregate.id` |
-| `query.handle` | Server | `cqrs.query.type` |
-| `grpc.command.dispatch` | Server | `cqrs.command.type`, `cqrs.aggregate.id` |
-| `grpc.query.ask` | Server | `cqrs.query.type` |
-| `watermill.event.publish` | Producer | `cqrs.event.count`, `cqrs.event.type`, `cqrs.aggregate.id` |
-| `watermill.command.publish` | Producer | `cqrs.command.count`, `cqrs.command.type`, `cqrs.aggregate.id` |
-| `sse.fanout` | Consumer | `cqrs.event.type`, `cqrs.aggregate.id`, `cqrs.sse.client_count` |
-| `event.store.load` / `event.store.save` | Client | `cqrs.aggregate.type`, `cqrs.aggregate.id`, `cqrs.aggregate.version` |
-| `decider.load` / `decider.execute` | Internal | `cqrs.aggregate.type`, `cqrs.aggregate.id` |
+| Span Name                               | Kind     | Attributes                                                                              |
+| --------------------------------------- | -------- | --------------------------------------------------------------------------------------- |
+| `command.handle`                        | Server   | `cqrs.command.type`, `cqrs.aggregate.id`                                                |
+| `event.handle`                          | Consumer | `cqrs.event.type`, `cqrs.aggregate.id`, `cqrs.aggregate.type`, `cqrs.aggregate.version` |
+| `event.publish`                         | Producer | `cqrs.event.count`, `cqrs.event.type`, `cqrs.aggregate.id`                              |
+| `query.handle`                          | Server   | `cqrs.query.type`                                                                       |
+| `grpc.command.dispatch`                 | Server   | `cqrs.command.type`, `cqrs.aggregate.id`                                                |
+| `grpc.query.ask`                        | Server   | `cqrs.query.type`                                                                       |
+| `watermill.event.publish`               | Producer | `cqrs.event.count`, `cqrs.event.type`, `cqrs.aggregate.id`                              |
+| `watermill.command.publish`             | Producer | `cqrs.command.count`, `cqrs.command.type`, `cqrs.aggregate.id`                          |
+| `sse.fanout`                            | Consumer | `cqrs.event.type`, `cqrs.aggregate.id`, `cqrs.sse.client_count`                         |
+| `event.store.load` / `event.store.save` | Client   | `cqrs.aggregate.type`, `cqrs.aggregate.id`, `cqrs.aggregate.version`                    |
+| `decider.load` / `decider.execute`      | Internal | `cqrs.aggregate.type`, `cqrs.aggregate.id`                                              |
 
 ### Metrics
 
-| Instrument | Type | Attributes |
-|------------|------|------------|
+| Instrument                | Type      | Attributes                                                                                               |
+| ------------------------- | --------- | -------------------------------------------------------------------------------------------------------- |
 | `cqrs.operation.duration` | Histogram | `operation`, `cqrs.message.kind`, `cqrs.command.type`/`cqrs.event.type`/`cqrs.query.type`, `cqrs.status` |
-| `cqrs.operation.count` | Counter | Same as above |
+| `cqrs.operation.count`    | Counter   | Same as above                                                                                            |
 
 ## Provider Setup
 
@@ -74,10 +74,10 @@ otel.SetMeterProvider(provider.AsMeterProvider())
 
 CQRS has two complementary correlation mechanisms — use both:
 
-| Mechanism | Type | Purpose |
-|-----------|------|---------|
+| Mechanism                                   | Type                           | Purpose                               |
+| ------------------------------------------- | ------------------------------ | ------------------------------------- |
 | `event.WithCorrelationID(id.CorrelationID)` | Branded ULID in event metadata | In-service command→event traceability |
-| `cqrsotel.WithCorrelationID(ctx, string)` | OTel baggage | Cross-service distributed traces |
+| `cqrsotel.WithCorrelationID(ctx, string)`   | OTel baggage                   | Cross-service distributed traces      |
 
 Bridge them with `middleware.OTelCorrelationEnricher`:
 

@@ -51,12 +51,14 @@ func (s *queryServer) Ask(
 	q, err := query.New(query.Type(envelope.GetType()))
 	if err != nil {
 		cqrsotel.RecordError(span, err)
+
 		return queryErrorResult(err), nil
 	}
 
 	result, err := s.dispatcher.Dispatch(ctx, q)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
+
 		return queryErrorResult(err), nil
 	}
 

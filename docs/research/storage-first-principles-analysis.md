@@ -4,6 +4,7 @@
 >
 > **RESOLUTION STATUS (2026-06-28):** Most findings in this document have been
 > addressed. Key updates since this analysis was written:
+>
 > - **§3.1 Split Brain (`storage/` root vs `storage/sql/`):** RESOLVED. The
 >   root package now imports `storage/sql` for all SQL infrastructure. No
 >   duplicate dialect/helpers/reconstruction code remains.

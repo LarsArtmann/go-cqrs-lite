@@ -1,4 +1,5 @@
 # Database Architecture Taxonomy
+
 \n> **Status:** RESOLVED — reference document for storage design
 
 > **Date:** 2026-05-29 | **Scope:** All known database architectures from interface and storage perspectives

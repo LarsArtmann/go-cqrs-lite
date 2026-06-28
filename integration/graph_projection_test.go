@@ -20,8 +20,8 @@ type graphUserCreated struct {
 }
 
 type graphUserFollowed struct {
-	FolloweeID string `json:"followee_id"`
-	FollowedID string `json:"followed_id"`
+	FolloweeID string `json:"followeeId"`
+	FollowedID string `json:"followedId"`
 }
 
 func TestBundle_RunProjections_GraphProjection(t *testing.T) {
@@ -96,12 +96,19 @@ func TestBundle_RunProjections_GraphProjection(t *testing.T) {
 		{ID: "alice", Name: "Alice"},
 		{ID: "bob", Name: "Bob"},
 	} {
-		payload, _ := json.Marshal(u)
+		payload, err := json.Marshal(u)
+		if err != nil {
+			t.Fatalf("marshal user: %v", err)
+		}
+
 		evt, _ := cqrsevent.NewEvent("user.created", aggID, "Social", cqrsevent.Version(1), payload)
 		createEvents = append(createEvents, evt)
 	}
 
-	followPayload, _ := json.Marshal(graphUserFollowed{FolloweeID: "alice", FollowedID: "bob"})
+	followPayload, err := json.Marshal(graphUserFollowed{FolloweeID: "alice", FollowedID: "bob"})
+	if err != nil {
+		t.Fatalf("marshal follow: %v", err)
+	}
 	followEvt, _ := cqrsevent.NewEvent("user.followed", aggID, "Social", cqrsevent.Version(1), followPayload)
 	createEvents = append(createEvents, followEvt)
 

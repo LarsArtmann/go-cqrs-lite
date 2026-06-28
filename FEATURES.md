@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-06-28 (transport/grpc wired into workspace) · **Module count:** 45 `go.mod` files (44 in `go.work` + root anchor) · **Go version:** 1.26.3
+**Last audited:** 2026-06-28 (transport/grpc orphan warning corrected; verified wired into `go.work`) · **Module count:** 45 `go.mod` files (44 in `go.work` + root anchor) · **Go version:** 1.26.3
 
 ## Status Legend
 
@@ -358,7 +358,7 @@ Remote gRPC transport for command & query dispatch (ADR-0025). Bridges gRPC clie
 | QueryClient       | `NewQueryClient(conn)` — remote `query.Dispatcher` over a gRPC conn     | ✅     |
 | Protobuf contract | Generated `.proto` types in `transport/grpc/proto`                      | ✅     |
 
-> ⚠️ Builds cleanly but is **not yet wired into `go.work`** (orphan module) — add it to the workspace `use` block before relying on root `go test ./...`.
+> Note: `transport/grpc` is wired into `go.work` and covered by CI. It builds under the workspace; per-module `GOWORK=off` isolation is blocked until [cockroachdb/errors#79](https://github.com/cockroachdb/errors/issues/79) drops the monolithic `google.golang.org/genproto` (it conflicts with grpc-go's split `genproto/googleapis/rpc`).
 
 ### Profiling ❌ REMOVED
 

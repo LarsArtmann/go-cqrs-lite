@@ -12,7 +12,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/middleware/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.3.0
-	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.0.0-20260628084503-969573ec93d6
+	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.0.0-20260628200550-1240d115bcd9
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/signing/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.3.0
@@ -43,6 +43,7 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.44.0 // indirect
+	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.44.0 // indirect
 	go.opentelemetry.io/otel/metric v1.44.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.44.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.44.0 // indirect

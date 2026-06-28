@@ -7,6 +7,7 @@
 
 All event stores currently write with maximum durability (synchronous fsync).
 This is the safe default but creates unnecessary latency for:
+
 - Batch replay scenarios (projections catching up)
 - Non-critical audit logs (command/query stores)
 - Development and testing
@@ -55,8 +56,8 @@ store, _ := storage.NewSQLEventStore(db, storage.WithDurability(DurabilityBatche
 
 ### Tradeoffs
 
-| Profile | Crash Safety | Write Latency | Use Case |
-|---------|-------------|---------------|----------|
-| Sync | Zero data loss | Highest | Production event store |
-| BatchedSync | ≤ N writes lost | Medium | Projection replay, audit logs |
-| Async | All in-flight lost | Lowest | Dev/test, ephemeral data |
+| Profile     | Crash Safety       | Write Latency | Use Case                      |
+| ----------- | ------------------ | ------------- | ----------------------------- |
+| Sync        | Zero data loss     | Highest       | Production event store        |
+| BatchedSync | ≤ N writes lost    | Medium        | Projection replay, audit logs |
+| Async       | All in-flight lost | Lowest        | Dev/test, ephemeral data      |

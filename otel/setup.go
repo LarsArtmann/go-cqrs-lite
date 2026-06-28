@@ -4,6 +4,7 @@ package otel
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 
@@ -87,6 +88,11 @@ func (p *Provider) AsMeterProvider() *metric.MeterProvider {
 	return p.meterProvider
 }
 
+// errShutdown indicates one or more providers failed to shut down cleanly.
+var errShutdown = errors.New("shutdown")
+
+var errBuildResource = errors.New("build resource")
+
 // Shutdown flushes pending spans and metrics, then releases resources.
 // Always call this on application exit.
 func (p *Provider) Shutdown(ctx context.Context) error {
@@ -101,7 +107,7 @@ func (p *Provider) Shutdown(ctx context.Context) error {
 	}
 
 	if len(errs) > 0 {
-		return fmt.Errorf("shutdown: %v", errs)
+		return fmt.Errorf("%w: %v", errShutdown, errs)
 	}
 
 	return nil
@@ -167,7 +173,7 @@ func Setup(opts ...SetupOption) (*Provider, error) {
 		tpOpts = append(tpOpts, sdktrace.WithBatcher(spanExporter))
 	}
 
-	tp := sdktrace.NewTracerProvider(tpOpts...)
+	tracerProvider := sdktrace.NewTracerProvider(tpOpts...)
 
 	mpOpts := []metric.Option{
 		metric.WithResource(res),
@@ -180,17 +186,22 @@ func Setup(opts ...SetupOption) (*Provider, error) {
 
 	mp := metric.NewMeterProvider(mpOpts...)
 
-	otel.SetTracerProvider(tp)
+	otel.SetTracerProvider(tracerProvider)
 	otel.SetMeterProvider(mp)
 
-	return &Provider{tracerProvider: tp, meterProvider: mp}, nil
+	return &Provider{tracerProvider: tracerProvider, meterProvider: mp}, nil
 }
 
 func buildResource(cfg *setupConfig) (*resource.Resource, error) {
 	attrs := ServiceResourceAttributes(cfg.serviceName, cfg.serviceVersion, cfg.instanceID)
 
-	return resource.New(
+	res, err := resource.New(
 		context.Background(),
 		resource.WithAttributes(attrs...),
 	)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", errBuildResource, err)
+	}
+
+	return res, nil
 }

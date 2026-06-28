@@ -54,6 +54,7 @@ func (s *commandServer) Dispatch(
 	aggID, err := id.ParseAggregateID(envelope.GetAggregateId())
 	if err != nil {
 		cqrsotel.RecordError(span, err)
+
 		return errorResult(fmt.Errorf("parse aggregate ID: %w", err)), nil
 	}
 
@@ -85,6 +86,7 @@ func (s *commandServer) Dispatch(
 	err = s.dispatcher.Dispatch(ctx, cmd)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
+
 		return errorResult(err), nil
 	}
 

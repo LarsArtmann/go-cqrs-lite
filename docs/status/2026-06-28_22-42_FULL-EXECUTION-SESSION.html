@@ -29,146 +29,371 @@
         --solution: var(--color-blue);
         --warning: var(--color-yellow);
         --radius: 0px;
-        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
       }
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      html { scroll-behavior: smooth; }
-      section[id], [id] { scroll-margin-top: 60px; }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
       body {
-        background: var(--surface); color: var(--text);
-        font-family: var(--font-body); font-size: 15px; line-height: 1.6;
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
         -webkit-font-smoothing: antialiased;
       }
       .top-bar {
-        background: var(--surface-raised); border-bottom: 1px solid var(--border-strong);
-        padding: 0.5rem 1.5rem; display: flex; justify-content: space-between; align-items: center;
-        font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.1em;
-        text-transform: uppercase; color: var(--text-muted);
+        background: var(--surface-raised);
+        border-bottom: 1px solid var(--border-strong);
+        padding: 0.5rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-muted);
       }
-      .layout { display: flex; max-width: 1400px; margin: 0 auto; }
+      .layout {
+        display: flex;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
       .sidebar {
-        display: none; width: 220px; flex-shrink: 0;
-        padding: 2rem 1rem; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+        display: none;
+        width: 220px;
+        flex-shrink: 0;
+        padding: 2rem 1rem;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
       }
       .sidebar .label {
-        font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase;
-        letter-spacing: 0.15em; color: var(--text-faint); margin-bottom: 0.5rem;
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--text-faint);
+        margin-bottom: 0.5rem;
       }
       .sidebar a {
-        display: block; padding: 0.3rem 0; font-size: 0.88rem;
-        color: var(--text-muted); text-decoration: none; border-left: 2px solid transparent;
-        padding-left: 0.7rem; transition: all 0.15s;
+        display: block;
+        padding: 0.3rem 0;
+        font-size: 0.88rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        border-left: 2px solid transparent;
+        padding-left: 0.7rem;
+        transition: all 0.15s;
       }
-      .sidebar a:hover { color: var(--accent); border-color: var(--accent); }
-      .sidebar a.active { color: var(--accent); border-color: var(--accent); }
-      .main { flex: 1; padding: 2rem 2.5rem; max-width: 100%; overflow-x: hidden; }
-      .hero { margin-bottom: 2.5rem; position: relative; }
+      .sidebar a:hover {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .sidebar a.active {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        padding: 2rem 2.5rem;
+        max-width: 100%;
+        overflow-x: hidden;
+      }
+      .hero {
+        margin-bottom: 2.5rem;
+        position: relative;
+      }
       .hero-badge {
-        display: inline-block; font-family: var(--font-mono); font-size: 0.7rem;
-        font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em;
-        color: var(--accent); padding: 0.3rem 0.7rem;
-        border: 1px solid var(--accent); margin-bottom: 1rem;
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--accent);
+        padding: 0.3rem 0.7rem;
+        border: 1px solid var(--accent);
+        margin-bottom: 1rem;
       }
-      h1 { font-size: 2.2rem; font-weight: 900; line-height: 1.1; margin-bottom: 0.5rem; }
-      .hero-subtitle { color: var(--text-muted); font-size: 1.05rem; max-width: 600px; }
+      h1 {
+        font-size: 2.2rem;
+        font-weight: 900;
+        line-height: 1.1;
+        margin-bottom: 0.5rem;
+      }
+      .hero-subtitle {
+        color: var(--text-muted);
+        font-size: 1.05rem;
+        max-width: 600px;
+      }
       h2 {
-        font-size: 1.4rem; font-weight: 800; margin: 2.5rem 0 1rem;
-        padding-bottom: 0.5rem; border-bottom: 1px solid var(--border);
-        display: flex; align-items: center; gap: 0.6rem;
+        font-size: 1.4rem;
+        font-weight: 800;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
       }
       h2 .num {
-        font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent);
-        border: 1px solid var(--accent); padding: 0.15rem 0.4rem; font-weight: 700;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        color: var(--accent);
+        border: 1px solid var(--accent);
+        padding: 0.15rem 0.4rem;
+        font-weight: 700;
       }
-      h3 { font-size: 1.05rem; font-weight: 700; margin: 1.5rem 0 0.5rem; }
-      h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.3rem; }
-      p { margin-bottom: 0.7rem; }
-      a { color: var(--accent); }
+      h3 {
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin: 1.5rem 0 0.5rem;
+      }
+      h4 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 0.3rem;
+      }
+      p {
+        margin-bottom: 0.7rem;
+      }
+      a {
+        color: var(--accent);
+      }
       .stat-grid {
-        display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin: 1rem 0;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
       }
       .stat-card {
-        background: var(--surface-raised); border: 1px solid var(--border); padding: 1.2rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.2rem;
         text-align: center;
       }
-      .stat-card .stat-value { font-size: 2rem; font-weight: 900; line-height: 1; }
+      .stat-card .stat-value {
+        font-size: 2rem;
+        font-weight: 900;
+        line-height: 1;
+      }
       .stat-card .stat-label {
-        font-family: var(--font-mono); font-size: 0.66rem; text-transform: uppercase;
-        letter-spacing: 0.1em; color: var(--text-faint); margin-top: 0.4rem;
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.4rem;
       }
-      .stat-good .stat-value { color: var(--solution); }
-      .stat-bad .stat-value { color: var(--problem); }
-      .stat-warn .stat-value { color: var(--warning); }
+      .stat-good .stat-value {
+        color: var(--solution);
+      }
+      .stat-bad .stat-value {
+        color: var(--problem);
+      }
+      .stat-warn .stat-value {
+        color: var(--warning);
+      }
       .card {
-        background: var(--surface-raised); border: 1px solid var(--border);
-        padding: 1.2rem 1.4rem; margin-bottom: 1rem; border-left: 3px solid transparent;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 3px solid transparent;
       }
-      .card-solution { border-left-color: var(--solution); }
-      .card-problem { border-left-color: var(--problem); }
-      .card-warning { border-left-color: var(--warning); }
-      .card h4 { margin-bottom: 0.4rem; }
-      .card p { color: var(--text-muted); margin-bottom: 0; font-size: 0.92rem; }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+      .card h4 {
+        margin-bottom: 0.4rem;
+      }
+      .card p {
+        color: var(--text-muted);
+        margin-bottom: 0;
+        font-size: 0.92rem;
+      }
       .issue {
-        background: var(--surface-raised); border: 1px solid var(--border);
-        padding: 1.2rem 1.4rem; margin-bottom: 1rem; border-left: 3px solid;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 3px solid;
       }
-      .issue-critical { border-left-color: var(--problem); }
-      .issue-important { border-left-color: var(--warning); }
-      .issue-nice { border-left-color: var(--solution); }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
       .severity {
-        display: inline-block; font-family: var(--font-mono); font-size: 0.62rem;
-        font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
-        padding: 0.15rem 0.5rem; margin-bottom: 0.5rem; color: var(--surface);
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.15rem 0.5rem;
+        margin-bottom: 0.5rem;
+        color: var(--surface);
       }
-      .severity-critical { background: var(--problem); }
-      .severity-important { background: var(--warning); }
-      .severity-nice { background: var(--solution); }
-      .issue h3 { margin-bottom: 0.2rem; }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.2rem;
+      }
       .issue .where {
-        font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
         margin-bottom: 0.5rem;
       }
       .badge {
-        display: inline-block; font-family: var(--font-mono); font-size: 0.62rem;
-        font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
         padding: 0.15rem 0.45rem;
       }
-      .badge-critical { background: color-mix(in srgb, var(--problem) 20%, transparent); color: var(--problem); }
-      .badge-high { background: color-mix(in srgb, var(--warning) 20%, transparent); color: var(--warning); }
-      .badge-medium { background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent); }
-      .badge-low { background: color-mix(in srgb, var(--text-faint) 20%, transparent); color: var(--text-faint); }
-      .badge-fixed { background: color-mix(in srgb, var(--solution) 20%, transparent); color: var(--solution); }
+      .badge-critical {
+        background: color-mix(in srgb, var(--problem) 20%, transparent);
+        color: var(--problem);
+      }
+      .badge-high {
+        background: color-mix(in srgb, var(--warning) 20%, transparent);
+        color: var(--warning);
+      }
+      .badge-medium {
+        background: color-mix(in srgb, var(--accent) 20%, transparent);
+        color: var(--accent);
+      }
+      .badge-low {
+        background: color-mix(in srgb, var(--text-faint) 20%, transparent);
+        color: var(--text-faint);
+      }
+      .badge-fixed {
+        background: color-mix(in srgb, var(--solution) 20%, transparent);
+        color: var(--solution);
+      }
       .callout {
-        padding: 0.7rem 1rem; margin: 0.7rem 0; font-size: 0.9rem;
+        padding: 0.7rem 1rem;
+        margin: 0.7rem 0;
+        font-size: 0.9rem;
         border: 1px solid var(--border);
       }
-      .callout-solution { border-left: 3px solid var(--solution); }
-      .callout-warning { border-left: 3px solid var(--warning); }
-      .callout strong { display: block; margin-bottom: 0.2rem; }
-      table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.88rem; }
+      .callout-solution {
+        border-left: 3px solid var(--solution);
+      }
+      .callout-warning {
+        border-left: 3px solid var(--warning);
+      }
+      .callout strong {
+        display: block;
+        margin-bottom: 0.2rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.88rem;
+      }
       th {
-        text-align: left; padding: 0.55rem 0.8rem; background: var(--surface-raised);
-        color: var(--text-faint); font-family: var(--font-mono); font-size: 0.62rem;
-        font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+        text-align: left;
+        padding: 0.55rem 0.8rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
         border-bottom: 1px solid var(--border-strong);
       }
-      td { padding: 0.55rem 0.8rem; border-bottom: 1px solid var(--border); }
-      tr:hover td { background: var(--surface-raised); }
-      ul, ol { padding-left: 1.4rem; margin-bottom: 0.7rem; }
-      li { margin-bottom: 0.2rem; }
-      li strong { font-weight: 700; }
-      code { font-family: var(--font-mono); font-size: 0.85em; }
-      p code, li code { background: var(--surface-sunken); padding: 0.1rem 0.35rem; }
-      .footer {
-        margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border);
-        font-size: 0.8rem; color: var(--text-faint); font-family: var(--font-mono);
+      td {
+        padding: 0.55rem 0.8rem;
+        border-bottom: 1px solid var(--border);
       }
-      @media (min-width: 1024px) { .sidebar { display: block; } }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+      ul,
+      ol {
+        padding-left: 1.4rem;
+        margin-bottom: 0.7rem;
+      }
+      li {
+        margin-bottom: 0.2rem;
+      }
+      li strong {
+        font-weight: 700;
+      }
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.85em;
+      }
+      p code,
+      li code {
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
       @media (max-width: 768px) {
-        .layout { flex-direction: column; padding: 1rem; }
-        .stat-grid { grid-template-columns: repeat(2, 1fr); }
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
       }
     </style>
   </head>
@@ -199,32 +424,56 @@
           <div class="hero-badge">STATUS &middot; 2026-06-28</div>
           <h1>Full Execution Session Report</h1>
           <p class="hero-subtitle">
-            Comprehensive status after a full TODO-list execution session: 35 of 65 tasks
-            completed across CI fixes, graph tier hardening, a new Deriver module, test
-            coverage expansion, and documentation cleanup. Build, vet, check-layers, and
-            check-arch all green.
+            Comprehensive status after a full TODO-list execution session: 35 of 65 tasks completed
+            across CI fixes, graph tier hardening, a new Deriver module, test coverage expansion,
+            and documentation cleanup. Build, vet, check-layers, and check-arch all green.
           </p>
         </div>
 
         <h2 id="summary"><span class="num">00</span>At a Glance</h2>
         <div class="stat-grid">
-          <div class="stat-card"><div class="stat-value">48</div><div class="stat-label">Modules</div></div>
-          <div class="stat-card stat-good"><div class="stat-value">35</div><div class="stat-label">Tasks Done</div></div>
-          <div class="stat-card stat-warn"><div class="stat-value">12</div><div class="stat-label">Deferred</div></div>
-          <div class="stat-card stat-bad"><div class="stat-value">0</div><div class="stat-label">Broken</div></div>
+          <div class="stat-card">
+            <div class="stat-value">48</div>
+            <div class="stat-label">Modules</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">35</div>
+            <div class="stat-label">Tasks Done</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">12</div>
+            <div class="stat-label">Deferred</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Broken</div>
+          </div>
         </div>
         <div class="stat-grid">
-          <div class="stat-card stat-good"><div class="stat-value">40</div><div class="stat-label">ADRs</div></div>
-          <div class="stat-card"><div class="stat-value">33</div><div class="stat-label">Research Docs</div></div>
-          <div class="stat-card"><div class="stat-value">7</div><div class="stat-label">Examples</div></div>
-          <div class="stat-card"><div class="stat-value">20</div><div class="stat-label">Commits</div></div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">40</div>
+            <div class="stat-label">ADRs</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">33</div>
+            <div class="stat-label">Research Docs</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">7</div>
+            <div class="stat-label">Examples</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">20</div>
+            <div class="stat-label">Commits</div>
+          </div>
         </div>
 
         <div class="callout callout-solution">
           <strong>Build and Tests: ALL GREEN</strong>
           <code>go build ./...</code> passes. <code>go vet ./...</code> passes.
-          <code>nix run .#check-layers</code> passes. <code>nix run .#check-arch</code> passes.
-          All graph (50), deriver (8), storage, and integration test suites pass with <code>-race</code>.
+          <code>nix run .#check-layers</code> passes. <code>nix run .#check-arch</code> passes. All
+          graph (50), deriver (8), storage, and integration test suites pass with
+          <code>-race</code>.
         </div>
 
         <h2 id="done"><span class="num">a)</span>FULLY DONE</h2>
@@ -233,10 +482,10 @@
         <div class="card card-solution">
           <h4>DEP_BUDGET[transport/http] bumped from 2 to 3</h4>
           <p>
-            Commit d19c1ead. The OTel instrumentation added otel/v3 as a direct dependency,
-            raising transport/http production dep count above budget. The check-layers gate
-            was FAILING. Fixed by bumping the budget to 3. Also committed the gofumpt
-            formatting change in transport/http/sse.go left behind by a concurrent OTel session.
+            Commit d19c1ead. The OTel instrumentation added otel/v3 as a direct dependency, raising
+            transport/http production dep count above budget. The check-layers gate was FAILING.
+            Fixed by bumping the budget to 3. Also committed the gofumpt formatting change in
+            transport/http/sse.go left behind by a concurrent OTel session.
           </p>
         </div>
 
@@ -244,11 +493,10 @@
         <div class="card card-solution">
           <h4>Graph schema field deleted, ADR-0039 updated with rationale</h4>
           <p>
-            Commit 275c16e8. The Required bool field existed but was never enforced by
-            schemaSink - it promised validation that never ran. Removing it is consistent
-            with ADR-0039 minimal constraint grammar: MERGE partial-update semantics make
-            sink-level enforcement break correct usage. ADR-0039 now documents the removal
-            rationale under Consequences.
+            Commit 275c16e8. The Required bool field existed but was never enforced by schemaSink -
+            it promised validation that never ran. Removing it is consistent with ADR-0039 minimal
+            constraint grammar: MERGE partial-update semantics make sink-level enforcement break
+            correct usage. ADR-0039 now documents the removal rationale under Consequences.
           </p>
         </div>
 
@@ -256,10 +504,10 @@
         <div class="card card-solution">
           <h4>IndexSpec type + validation (4 tests)</h4>
           <p>
-            Commit 4b2e350a. Schema now has an Indexes field mirroring
-            storage.ViewMapper.Indexes. The MemoryDriver ignores indexes (in-memory lookups
-            are already O(1)), but a future Neo4j driver uses them to CREATE INDEX at startup.
-            Validate() checks that index labels and properties are declared in the schema.
+            Commit 4b2e350a. Schema now has an Indexes field mirroring storage.ViewMapper.Indexes.
+            The MemoryDriver ignores indexes (in-memory lookups are already O(1)), but a future
+            Neo4j driver uses them to CREATE INDEX at startup. Validate() checks that index labels
+            and properties are declared in the schema.
           </p>
         </div>
 
@@ -267,10 +515,9 @@
         <div class="card card-solution">
           <h4>4 contract tests via ReadableFactory in graphtest</h4>
           <p>
-            Commit 4b2e350a. graphtest.Config now has a ReadableFactory hook. When set, 4
-            contract tests run (Query, Traverse, Neighbors, ShortestPath). Split into
-            read_contract.go to stay under 350 lines. The MemoryDriver passes all 4 via
-            SeedReadGraph.
+            Commit 4b2e350a. graphtest.Config now has a ReadableFactory hook. When set, 4 contract
+            tests run (Query, Traverse, Neighbors, ShortestPath). Split into read_contract.go to
+            stay under 350 lines. The MemoryDriver passes all 4 via SeedReadGraph.
           </p>
         </div>
 
@@ -278,10 +525,10 @@
         <div class="card card-solution">
           <h4>4 rapid test suites - 400 iterations total</h4>
           <p>
-            Commit 70f3f11a. graph/rapid_test.go (265 LOC) - Traverse (no duplicates, start
-            node excluded), ShortestPath (valid connected path, bidirectional), Query (label
-            filter correctness, no cross-contamination), Neighbors (completeness). All pass
-            100 iterations each with -race.
+            Commit 70f3f11a. graph/rapid_test.go (265 LOC) - Traverse (no duplicates, start node
+            excluded), ShortestPath (valid connected path, bidirectional), Query (label filter
+            correctness, no cross-contamination), Neighbors (completeness). All pass 100 iterations
+            each with -race.
           </p>
         </div>
 
@@ -290,12 +537,12 @@
           <h4>Functional/composable Deriver API - 8 tests, 390 LOC</h4>
           <p>
             Commit ddc7c374. The deriver module transforms events into derived commands with
-            deterministic, composable semantics. Deriver type is a function.
-            Deriver.Then(next) is fan-out composition. Deriver.Filter(types) is event-type
-            gating. Deriver.AsHandler(dispatcher) wires into event.Bus via SubscribeAll.
-            Noop() is a terminal deriver. ADR-0040 updated from Proposed to Accepted -
-            implemented. Design rationale: functional API over declarative rule registry
-            because go-cqrs-lite is a library, not a database engine.
+            deterministic, composable semantics. Deriver type is a function. Deriver.Then(next) is
+            fan-out composition. Deriver.Filter(types) is event-type gating.
+            Deriver.AsHandler(dispatcher) wires into event.Bus via SubscribeAll. Noop() is a
+            terminal deriver. ADR-0040 updated from Proposed to Accepted - implemented. Design
+            rationale: functional API over declarative rule registry because go-cqrs-lite is a
+            library, not a database engine.
           </p>
         </div>
 
@@ -304,9 +551,9 @@
           <h4>First integration test: graph tier through Bundle.RunProjections</h4>
           <p>
             Commit d6d5fe7a. integration/graph_projection_test.go seeds user.created and
-            user.followed events, runs RunProjections with a GraphProjection, verifies the
-            graph is materialized via the ReadableDriver API. Adds graph, stack, projection,
-            and watermill deps to integration module.
+            user.followed events, runs RunProjections with a GraphProjection, verifies the graph is
+            materialized via the ReadableDriver API. Adds graph, stack, projection, and watermill
+            deps to integration module.
           </p>
         </div>
 
@@ -314,10 +561,9 @@
         <div class="card card-solution">
           <h4>2 tests showing the JOIN-replacement pattern</h4>
           <p>
-            Commit 17be571d. storage/relational_denorm_test.go demonstrates querying messages
-            by channel_id, author_id, guild_id, compound conditions, and ORDER BY + pagination
-            - all on denormalized FK columns, no JOINs. This is the pattern DiscordSync
-            should adopt.
+            Commit 17be571d. storage/relational_denorm_test.go demonstrates querying messages by
+            channel_id, author_id, guild_id, compound conditions, and ORDER BY + pagination - all on
+            denormalized FK columns, no JOINs. This is the pattern DiscordSync should adopt.
           </p>
         </div>
 
@@ -326,9 +572,8 @@
           <h4>Build-tagged PG test with SERIAL syntax adaptation</h4>
           <p>
             Commit fbcd0197. storage/relational_pg_test.go (build tag: postgres_integration)
-            exercises the relational projection and store against PostgreSQL. Adapts
-            INTEGER PRIMARY KEY AUTOINCREMENT to SERIAL PRIMARY KEY. Skips cleanly when
-            POSTGRES_TEST_DSN is unset.
+            exercises the relational projection and store against PostgreSQL. Adapts INTEGER PRIMARY
+            KEY AUTOINCREMENT to SERIAL PRIMARY KEY. Skips cleanly when POSTGRES_TEST_DSN is unset.
           </p>
         </div>
 
@@ -337,9 +582,18 @@
           <h4>10 research docs stamped, docs cross-linked, CONTRIBUTING updated</h4>
           <ul>
             <li>Commit 1b1b339a: 8 docs marked RESOLVED/IMPLEMENTED, 2 marked OPEN</li>
-            <li>Commit 275c16e8: AGENTS.md module count 45 to 48, ADR-0039 cross-linked from projection-tiers.md</li>
-            <li>Commit 066b09f1: CONTRIBUTING.md updated (30 to 48 modules, 250 to 350 line limit), session discipline section</li>
-            <li>Commit 066b09f1: Concurrent-session corruption investigation doc + durability profiles design</li>
+            <li>
+              Commit 275c16e8: AGENTS.md module count 45 to 48, ADR-0039 cross-linked from
+              projection-tiers.md
+            </li>
+            <li>
+              Commit 066b09f1: CONTRIBUTING.md updated (30 to 48 modules, 250 to 350 line limit),
+              session discipline section
+            </li>
+            <li>
+              Commit 066b09f1: Concurrent-session corruption investigation doc + durability profiles
+              design
+            </li>
           </ul>
         </div>
 
@@ -347,9 +601,9 @@
         <div class="card card-solution">
           <h4>Scope detection: skip lint for doc-only commits</h4>
           <p>
-            The pre-commit hook now checks whether staged files are all docs (.md, .html,
-            .d2, .svg, .txt, .yaml). If so, it prints skipping lint and exits 0 immediately.
-            Validated in production - subsequent doc-only commits skip the 23s golangci-lint pass.
+            The pre-commit hook now checks whether staged files are all docs (.md, .html, .d2, .svg,
+            .txt, .yaml). If so, it prints skipping lint and exits 0 immediately. Validated in
+            production - subsequent doc-only commits skip the 23s golangci-lint pass.
           </p>
         </div>
 
@@ -357,8 +611,8 @@
         <div class="card card-solution">
           <h4>Missing stdouttrace dep in otel module</h4>
           <p>
-            Commit 17be571d. The otel module setup.go imported stdouttrace but the dependency
-            was never added to go.mod. This was blocking workspace-level builds. Fixed by go get.
+            Commit 17be571d. The otel module setup.go imported stdouttrace but the dependency was
+            never added to go.mod. This was blocking workspace-level builds. Fixed by go get.
           </p>
         </div>
 
@@ -369,8 +623,8 @@
           <p>
             The capability (storage.RelationalProjection) exists and is tested. Denormalization
             examples (A8) show the pattern. But the actual migration of DiscordSync
-            internal/projection/ + internal/db/query.go has NOT been started.
-            Blocked: DiscordSync lives in a separate repo not accessible from this workspace.
+            internal/projection/ + internal/db/query.go has NOT been started. Blocked: DiscordSync
+            lives in a separate repo not accessible from this workspace.
           </p>
         </div>
 
@@ -378,18 +632,18 @@
           <h4>B2. PostgreSQL Relational Tier - Scaffolded but Untested Against Live PG</h4>
           <p>
             The test scaffold exists (A9) with correct dialect adaptation. But without a running
-            PostgreSQL instance (POSTGRES_TEST_DSN unset), the actual PG path is unproven.
-            The dialect abstraction should work, but edge cases (SERIAL vs AUTOINCREMENT, type
-            coercion) remain untested.
+            PostgreSQL instance (POSTGRES_TEST_DSN unset), the actual PG path is unproven. The
+            dialect abstraction should work, but edge cases (SERIAL vs AUTOINCREMENT, type coercion)
+            remain untested.
           </p>
         </div>
 
         <div class="card card-warning">
           <h4>B3. Graph Neo4j/Memgraph Driver</h4>
           <p>
-            GraphSink/GraphDriver abstraction is complete and validated by contract suite +
-            Schema. A concrete Neo4j/Cypher driver does NOT exist - deliberately deferred to
-            consumer-pull per ADR-0038. Schema.Indexes (A3) is ready for when it does.
+            GraphSink/GraphDriver abstraction is complete and validated by contract suite + Schema.
+            A concrete Neo4j/Cypher driver does NOT exist - deliberately deferred to consumer-pull
+            per ADR-0038. Schema.Indexes (A3) is ready for when it does.
           </p>
         </div>
 
@@ -406,8 +660,8 @@
         <div class="card card-warning">
           <h4>B5. Deriver - Idempotency Not Yet Wired</h4>
           <p>
-            The Deriver module ships with the core API and composition combinators. ADR-0040
-            calls for idempotency via command causation metadata, but the actual WithCommandID
+            The Deriver module ships with the core API and composition combinators. ADR-0040 calls
+            for idempotency via command causation metadata, but the actual WithCommandID
             deterministic-key derivation from source event IDs is not yet implemented. Derived
             commands currently get fresh random IDs.
           </p>
@@ -417,39 +671,111 @@
 
         <table>
           <thead>
-            <tr><th>#</th><th>Item</th><th>Effort</th><th>Why Deferred</th></tr>
+            <tr>
+              <th>#</th>
+              <th>Item</th>
+              <th>Effort</th>
+              <th>Why Deferred</th>
+            </tr>
           </thead>
           <tbody>
-            <tr><td>C1</td><td>God-package splits (storage 38 files, event 30 files)</td><td>4h+</td><td>Major refactor - needs dedicated session, high break risk</td></tr>
-            <tr><td>C2</td><td>Neo4j/Cypher GraphDriver (graph/neo4j/)</td><td>3-4h</td><td>Consumer-pulled; needs neo4j Go SDK</td></tr>
-            <tr><td>C3</td><td>FTS5 full-text search for RelationalStore</td><td>2h</td><td>SQLite-specific; needs dialect-specific design</td></tr>
-            <tr><td>C4</td><td>Outbox DLQ + reference-based outbox</td><td>2h</td><td>New module; ADR-accepted but consumer-pulled</td></tr>
-            <tr><td>C5</td><td>NATS/Redis Stream adapter</td><td>3h</td><td>ADR-0025 accepted; needs external broker</td></tr>
-            <tr><td>C6</td><td>projection.Runner standalone pipeline</td><td>2h</td><td>bundle.RunProjections covers common case</td></tr>
-            <tr><td>C7</td><td>Documentation site (Docusaurus/MkDocs)</td><td>4h+</td><td>48 modules need browsable docs</td></tr>
-            <tr><td>C8</td><td>Scheduler module (deadlines/timeouts/cron)</td><td>Large</td><td>Infrastructure concern; design only</td></tr>
-            <tr><td>C9</td><td>Bi-temporal model (ValidAt)</td><td>Large</td><td>Niche - finance/HR/healthcare</td></tr>
-            <tr><td>C10</td><td>Event redaction middleware</td><td>Medium</td><td>Design reviewed, no code</td></tr>
-            <tr><td>C11</td><td>Hot-state cache for decider</td><td>Large</td><td>Profile first - snapshot+page-cache may suffice</td></tr>
-            <tr><td>C12</td><td>Versioned schema migrations (goose/atlas-style)</td><td>2h</td><td>Pre-existing gap</td></tr>
-            <tr><td>C13</td><td>Durability profiles implementation</td><td>1.5h</td><td>Design doc written; implementation deferred</td></tr>
+            <tr>
+              <td>C1</td>
+              <td>God-package splits (storage 38 files, event 30 files)</td>
+              <td>4h+</td>
+              <td>Major refactor - needs dedicated session, high break risk</td>
+            </tr>
+            <tr>
+              <td>C2</td>
+              <td>Neo4j/Cypher GraphDriver (graph/neo4j/)</td>
+              <td>3-4h</td>
+              <td>Consumer-pulled; needs neo4j Go SDK</td>
+            </tr>
+            <tr>
+              <td>C3</td>
+              <td>FTS5 full-text search for RelationalStore</td>
+              <td>2h</td>
+              <td>SQLite-specific; needs dialect-specific design</td>
+            </tr>
+            <tr>
+              <td>C4</td>
+              <td>Outbox DLQ + reference-based outbox</td>
+              <td>2h</td>
+              <td>New module; ADR-accepted but consumer-pulled</td>
+            </tr>
+            <tr>
+              <td>C5</td>
+              <td>NATS/Redis Stream adapter</td>
+              <td>3h</td>
+              <td>ADR-0025 accepted; needs external broker</td>
+            </tr>
+            <tr>
+              <td>C6</td>
+              <td>projection.Runner standalone pipeline</td>
+              <td>2h</td>
+              <td>bundle.RunProjections covers common case</td>
+            </tr>
+            <tr>
+              <td>C7</td>
+              <td>Documentation site (Docusaurus/MkDocs)</td>
+              <td>4h+</td>
+              <td>48 modules need browsable docs</td>
+            </tr>
+            <tr>
+              <td>C8</td>
+              <td>Scheduler module (deadlines/timeouts/cron)</td>
+              <td>Large</td>
+              <td>Infrastructure concern; design only</td>
+            </tr>
+            <tr>
+              <td>C9</td>
+              <td>Bi-temporal model (ValidAt)</td>
+              <td>Large</td>
+              <td>Niche - finance/HR/healthcare</td>
+            </tr>
+            <tr>
+              <td>C10</td>
+              <td>Event redaction middleware</td>
+              <td>Medium</td>
+              <td>Design reviewed, no code</td>
+            </tr>
+            <tr>
+              <td>C11</td>
+              <td>Hot-state cache for decider</td>
+              <td>Large</td>
+              <td>Profile first - snapshot+page-cache may suffice</td>
+            </tr>
+            <tr>
+              <td>C12</td>
+              <td>Versioned schema migrations (goose/atlas-style)</td>
+              <td>2h</td>
+              <td>Pre-existing gap</td>
+            </tr>
+            <tr>
+              <td>C13</td>
+              <td>Durability profiles implementation</td>
+              <td>1.5h</td>
+              <td>Design doc written; implementation deferred</td>
+            </tr>
           </tbody>
         </table>
 
         <h2 id="fucked"><span class="num">d)</span>TOTALLY FUCKED UP</h2>
 
-        <p>Honest answer: <strong>nothing is critically broken.</strong> All tests pass, the build is
-        clean, and no data-loss paths exist. But there are real issues:</p>
+        <p>
+          Honest answer: <strong>nothing is critically broken.</strong> All tests pass, the build is
+          clean, and no data-loss paths exist. But there are real issues:
+        </p>
 
         <div class="issue issue-critical">
           <span class="severity severity-critical">Ongoing</span>
           <h3>D1. Concurrent Sessions Still Committing to master Without Coordination</h3>
           <div class="where">Working tree - 11 files modified by other sessions</div>
           <p>
-            During this session, at least 2 other concurrent sessions committed to master
-            (ec1e7e77, e32671e3). This caused 11 files to appear modified in my working tree
-            that I did not author. Previous sessions corrupted Go source files with patch
-            syntax. Root cause documented in docs/research/2026-06-28_CONCURRENT_SESSION_CORRUPTION.md.
+            During this session, at least 2 other concurrent sessions committed to master (ec1e7e77,
+            e32671e3). This caused 11 files to appear modified in my working tree that I did not
+            author. Previous sessions corrupted Go source files with patch syntax. Root cause
+            documented in docs/research/2026-06-28_CONCURRENT_SESSION_CORRUPTION.md.
           </p>
           <div class="callout callout-warning">
             <strong>Impact:</strong> Race conditions on the working tree. Every session must
@@ -462,9 +788,9 @@
           <h3>D2. transport/grpc Still Not in go.work</h3>
           <div class="where">go.work - missing ./transport/grpc entry</div>
           <p>
-            Blocked upstream: cockroachdb/errors#79. The monolithic genproto conflicts with
-            grpc-go split version. Tests run with GOWORK=off. This is documented in TODO_LIST.md
-            and has been blocked for weeks.
+            Blocked upstream: cockroachdb/errors#79. The monolithic genproto conflicts with grpc-go
+            split version. Tests run with GOWORK=off. This is documented in TODO_LIST.md and has
+            been blocked for weeks.
           </p>
         </div>
 
@@ -508,8 +834,8 @@
           <h4>5. Commit or discard the 11 uncommitted files</h4>
           <p>
             The concurrent-session changes in the working tree need resolution. Either the
-            concurrent sessions should commit them, or they should be reviewed and committed
-            or discarded.
+            concurrent sessions should commit them, or they should be reviewed and committed or
+            discarded.
           </p>
         </div>
 
@@ -517,54 +843,235 @@
 
         <h3>Tier 1: Critical (correctness, blocking, or highest leverage)</h3>
         <table>
-          <thead><tr><th>#</th><th>Task</th><th>Impact</th><th>Effort</th></tr></thead>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+            </tr>
+          </thead>
           <tbody>
-            <tr><td>1</td><td><strong>Wire Deriver idempotency</strong> - deterministic command IDs from source event causation chain</td><td><span class="badge badge-critical">Critical</span></td><td>30min</td></tr>
-            <tr><td>2</td><td><strong>Resolve 11 uncommitted files</strong> from concurrent sessions (review + commit/discard)</td><td><span class="badge badge-critical">Critical</span></td><td>20min</td></tr>
-            <tr><td>3</td><td><strong>Add deriver/ to check-module-layers.sh</strong> - LAYER + DEP_BUDGET entries</td><td><span class="badge badge-high">High</span></td><td>10min</td></tr>
-            <tr><td>4</td><td><strong>DiscordSync migration</strong> - RelationalProjection + RelationalStore (separate repo)</td><td><span class="badge badge-critical">Critical</span></td><td>2-3h</td></tr>
-            <tr><td>5</td><td><strong>PG integration tests in CI</strong> - GitHub Actions service container + POSTGRES_TEST_DSN</td><td><span class="badge badge-high">High</span></td><td>1h</td></tr>
+            <tr>
+              <td>1</td>
+              <td>
+                <strong>Wire Deriver idempotency</strong> - deterministic command IDs from source
+                event causation chain
+              </td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>30min</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>
+                <strong>Resolve 11 uncommitted files</strong> from concurrent sessions (review +
+                commit/discard)
+              </td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>20min</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>
+                <strong>Add deriver/ to check-module-layers.sh</strong> - LAYER + DEP_BUDGET entries
+              </td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>10min</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>
+                <strong>DiscordSync migration</strong> - RelationalProjection + RelationalStore
+                (separate repo)
+              </td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>2-3h</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>
+                <strong>PG integration tests in CI</strong> - GitHub Actions service container +
+                POSTGRES_TEST_DSN
+              </td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>1h</td>
+            </tr>
           </tbody>
         </table>
 
         <h3>Tier 2: High-value improvements</h3>
         <table>
-          <thead><tr><th>#</th><th>Task</th><th>Impact</th><th>Effort</th></tr></thead>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+            </tr>
+          </thead>
           <tbody>
-            <tr><td>6</td><td><strong>God-package split: storage/</strong> (38 files into relational/, view/, migrations/, sql/)</td><td><span class="badge badge-high">High</span></td><td>4h+</td></tr>
-            <tr><td>7</td><td><strong>God-package split: event/</strong> (30 files into immutable/, metadata/, options/)</td><td><span class="badge badge-high">High</span></td><td>3h+</td></tr>
-            <tr><td>8</td><td><strong>Neo4j/Cypher GraphDriver</strong> (graph/neo4j/) - first real graph backend</td><td><span class="badge badge-high">High</span></td><td>3-4h</td></tr>
-            <tr><td>9</td><td><strong>Deriver example</strong> (example/deriver-demo/) - show event to command derivation</td><td><span class="badge badge-medium">Medium</span></td><td>30min</td></tr>
-            <tr><td>10</td><td><strong>Versioned schema migrations</strong> (goose/atlas-style)</td><td><span class="badge badge-medium">Medium</span></td><td>2h</td></tr>
-            <tr><td>11</td><td><strong>FTS5 full-text search</strong> for RelationalStore (DiscordSync SearchMessages)</td><td><span class="badge badge-medium">Medium</span></td><td>2h</td></tr>
-            <tr><td>12</td><td><strong>Durability profiles</strong> implementation (Sync/BatchedSync/Async)</td><td><span class="badge badge-medium">Medium</span></td><td>1.5h</td></tr>
-            <tr><td>13</td><td><strong>Outbox DLQ</strong> + reference-based outbox</td><td><span class="badge badge-medium">Medium</span></td><td>2h</td></tr>
+            <tr>
+              <td>6</td>
+              <td>
+                <strong>God-package split: storage/</strong> (38 files into relational/, view/,
+                migrations/, sql/)
+              </td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>4h+</td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td>
+                <strong>God-package split: event/</strong> (30 files into immutable/, metadata/,
+                options/)
+              </td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>3h+</td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td>
+                <strong>Neo4j/Cypher GraphDriver</strong> (graph/neo4j/) - first real graph backend
+              </td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>3-4h</td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td>
+                <strong>Deriver example</strong> (example/deriver-demo/) - show event to command
+                derivation
+              </td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>30min</td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td><strong>Versioned schema migrations</strong> (goose/atlas-style)</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>2h</td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td>
+                <strong>FTS5 full-text search</strong> for RelationalStore (DiscordSync
+                SearchMessages)
+              </td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>2h</td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td><strong>Durability profiles</strong> implementation (Sync/BatchedSync/Async)</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>1.5h</td>
+            </tr>
+            <tr>
+              <td>13</td>
+              <td><strong>Outbox DLQ</strong> + reference-based outbox</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>2h</td>
+            </tr>
           </tbody>
         </table>
 
         <h3>Tier 3: Quality and completeness</h3>
         <table>
-          <thead><tr><th>#</th><th>Task</th><th>Impact</th><th>Effort</th></tr></thead>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+            </tr>
+          </thead>
           <tbody>
-            <tr><td>14</td><td><strong>NATS JetStream transport adapter</strong> (ADR-0025)</td><td><span class="badge badge-medium">Medium</span></td><td>3h</td></tr>
-            <tr><td>15</td><td><strong>projection.Runner</strong> standalone journal-replay pipeline</td><td><span class="badge badge-low">Low</span></td><td>2h</td></tr>
-            <tr><td>16</td><td><strong>Documentation site</strong> (Docusaurus/MkDocs) - 48 modules</td><td><span class="badge badge-low">Low</span></td><td>4h+</td></tr>
-            <tr><td>17</td><td><strong>Commit BuildFlow hook config</strong> to repo (or document install)</td><td><span class="badge badge-low">Low</span></td><td>15min</td></tr>
-            <tr><td>18</td><td><strong>Hot-state cache</strong> for decider (profile first)</td><td><span class="badge badge-low">Low</span></td><td>Large</td></tr>
-            <tr><td>19</td><td><strong>Read-pressure snapshot strategy</strong></td><td><span class="badge badge-low">Low</span></td><td>Medium</td></tr>
-            <tr><td>20</td><td><strong>Event redaction middleware</strong></td><td><span class="badge badge-low">Low</span></td><td>Medium</td></tr>
+            <tr>
+              <td>14</td>
+              <td><strong>NATS JetStream transport adapter</strong> (ADR-0025)</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>3h</td>
+            </tr>
+            <tr>
+              <td>15</td>
+              <td><strong>projection.Runner</strong> standalone journal-replay pipeline</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>2h</td>
+            </tr>
+            <tr>
+              <td>16</td>
+              <td><strong>Documentation site</strong> (Docusaurus/MkDocs) - 48 modules</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>4h+</td>
+            </tr>
+            <tr>
+              <td>17</td>
+              <td><strong>Commit BuildFlow hook config</strong> to repo (or document install)</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>15min</td>
+            </tr>
+            <tr>
+              <td>18</td>
+              <td><strong>Hot-state cache</strong> for decider (profile first)</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Large</td>
+            </tr>
+            <tr>
+              <td>19</td>
+              <td><strong>Read-pressure snapshot strategy</strong></td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Medium</td>
+            </tr>
+            <tr>
+              <td>20</td>
+              <td><strong>Event redaction middleware</strong></td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Medium</td>
+            </tr>
           </tbody>
         </table>
 
         <h3>Tier 4: Long-term / design-only</h3>
         <table>
-          <thead><tr><th>#</th><th>Task</th><th>Impact</th><th>Effort</th></tr></thead>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+            </tr>
+          </thead>
           <tbody>
-            <tr><td>21</td><td><strong>Bi-temporal model</strong> (ValidAt field)</td><td><span class="badge badge-low">Low</span></td><td>Large</td></tr>
-            <tr><td>22</td><td><strong>Scheduler module</strong> (deadlines/timeouts/cron)</td><td><span class="badge badge-low">Low</span></td><td>Large</td></tr>
-            <tr><td>23</td><td><strong>Pebble module gap audit</strong> + completion</td><td><span class="badge badge-low">Low</span></td><td>2h</td></tr>
-            <tr><td>24</td><td><strong>Graph read API on real driver backends</strong> (Neo4j Cypher)</td><td><span class="badge badge-low">Low</span></td><td>Large</td></tr>
-            <tr><td>25</td><td><strong>Event-history visualization tools</strong> (research doc OPEN)</td><td><span class="badge badge-low">Low</span></td><td>Large</td></tr>
+            <tr>
+              <td>21</td>
+              <td><strong>Bi-temporal model</strong> (ValidAt field)</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Large</td>
+            </tr>
+            <tr>
+              <td>22</td>
+              <td><strong>Scheduler module</strong> (deadlines/timeouts/cron)</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Large</td>
+            </tr>
+            <tr>
+              <td>23</td>
+              <td><strong>Pebble module gap audit</strong> + completion</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>2h</td>
+            </tr>
+            <tr>
+              <td>24</td>
+              <td><strong>Graph read API on real driver backends</strong> (Neo4j Cypher)</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Large</td>
+            </tr>
+            <tr>
+              <td>25</td>
+              <td><strong>Event-history visualization tools</strong> (research doc OPEN)</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Large</td>
+            </tr>
           </tbody>
         </table>
 
@@ -575,20 +1082,18 @@
           <h3>Should the god-package splits (storage/, event/) happen in v3.x or v4.0?</h3>
           <p>
             storage/ has 38 Go files and event/ has 30. Both are god-packages by any reasonable
-            definition. Splitting them into sub-packages (e.g., storage/relational/,
-            storage/view/, storage/migrations/) would improve navigability and reduce merge
-            conflicts.
+            definition. Splitting them into sub-packages (e.g., storage/relational/, storage/view/,
+            storage/migrations/) would improve navigability and reduce merge conflicts.
           </p>
           <p>
             <strong>The tension:</strong> Splitting changes import paths. Every consumer that
-            imports storage.SQLEventStore would need to update to storage/relational.EventStore
-            (or whatever the new path is). This is a <strong>breaking change</strong> for all
-            consumers.
+            imports storage.SQLEventStore would need to update to storage/relational.EventStore (or
+            whatever the new path is). This is a <strong>breaking change</strong> for all consumers.
           </p>
           <p>
             <strong>Option A: Split in v3.x with type aliases.</strong> Keep the old types as
-            aliases in the root package. Consumers do not break, but the aliases are confusing.
-            Go type alias system supports this, but it creates a parallel declaration surface.
+            aliases in the root package. Consumers do not break, but the aliases are confusing. Go
+            type alias system supports this, but it creates a parallel declaration surface.
           </p>
           <p>
             <strong>Option B: Split in v4.0.</strong> Clean break. No aliases, no confusion. But v4
@@ -608,7 +1113,8 @@
         </div>
 
         <footer class="footer">
-          Generated 2026-06-28 22:42 andmiddot; Head: a5c6d336 andmiddot; All claims verified against source code and test runs
+          Generated 2026-06-28 22:42 andmiddot; Head: a5c6d336 andmiddot; All claims verified
+          against source code and test runs
         </footer>
       </main>
     </div>
@@ -623,7 +1129,9 @@
           return l.getAttribute("href").slice(1);
         });
         var sections = ids
-          .map(function (id) { return document.getElementById(id); })
+          .map(function (id) {
+            return document.getElementById(id);
+          })
           .filter(Boolean);
         if (!sections.length) return;
         var observer = new IntersectionObserver(
@@ -641,7 +1149,9 @@
           },
           { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
         );
-        sections.forEach(function (s) { observer.observe(s); });
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
       })();
     </script>
   </body>

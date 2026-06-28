@@ -1,4 +1,5 @@
 # What Datomic Teaches Us
+
 \n> **Status:** RESOLVED — reference document, informed immutable event design
 
 > Analysis of Datomic's architecture and its implications for go-cqrs-lite

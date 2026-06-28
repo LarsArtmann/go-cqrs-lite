@@ -8,36 +8,36 @@
 
 ## TL;DR
 
-TypeDB is a strongly-typed, conceptual database built on type theory (the **PERA** model: Polymorphic Entity-Relation-Attribute). It looks like a graph but is *not* one — it has **n-ary relations with typed roles**, **inheritance**, a **schema that type-checks and enforces constraints**, and a **symbolic reasoning/inference engine**. It won the ACM PODS 2024 "Best Newcomer" award for its query language TypeQL. 3.x is a Rust rewrite (RocksDB storage, RAFT replication), MPL-2.0 licensed.
+TypeDB is a strongly-typed, conceptual database built on type theory (the **PERA** model: Polymorphic Entity-Relation-Attribute). It looks like a graph but is _not_ one — it has **n-ary relations with typed roles**, **inheritance**, a **schema that type-checks and enforces constraints**, and a **symbolic reasoning/inference engine**. It won the ACM PODS 2024 "Best Newcomer" award for its query language TypeQL. 3.x is a Rust rewrite (RocksDB storage, RAFT replication), MPL-2.0 licensed.
 
-The lessons for **go-cqrs-lite's projections** are real but uneven. The single highest-leverage insight: **the graph tier is the least-typed of the three projection tiers, and TypeDB shows exactly what strong projection typing looks like.** Several other TypeDB ideas are deliberately *inapplicable* to a library (vs a database), and saying *why* sharpens our own design. Three concrete decisions fall out for the maintainer.
+The lessons for **go-cqrs-lite's projections** are real but uneven. The single highest-leverage insight: **the graph tier is the least-typed of the three projection tiers, and TypeDB shows exactly what strong projection typing looks like.** Several other TypeDB ideas are deliberately _inapplicable_ to a library (vs a database), and saying _why_ sharpens our own design. Three concrete decisions fall out for the maintainer.
 
 ---
 
 ## 1. What TypeDB actually is
 
-| Concept | TypeDB | go-cqrs-lite equivalent today |
-| --- | --- | --- |
-| Data model | **PERA**: entity types, **relation types with roles**, attribute types | Graph tier = property graph (binary edges, untyped props) |
-| Schema | First-class, **closed-world**, queryable, type-checks at write + query time | Graph tier = none; relational = `RelationalColumn{Name,Type,Nullable}` |
-| Relations | **N-ary** (`employment: employer + employee + witness`); roles are typed | `EdgeRef{Type, From, To}` — strictly binary |
-| Inheritance | Single-inheritance subtyping; query "user" matches "admin" | None |
-| Attributes | First-class, global, shared, subtypable | Per-projection copies |
-| Querying | **TypeQL** — declarative pattern match, portable (runs anywhere TypeDB runs) | Graph reads = "native, not abstracted" |
-| Derived data | **Reasoning engine**: `when {...} then {...}` rules + recursive functions, evaluated at query time | `Deriver` module designed, **zero code** (TODO C11) |
-| Constraints | `@key`, `@card(1..n)`, `@values(...)`, `@regex(...)` | Relational: NOT NULL / PK only |
+| Concept      | TypeDB                                                                                             | go-cqrs-lite equivalent today                                          |
+| ------------ | -------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Data model   | **PERA**: entity types, **relation types with roles**, attribute types                             | Graph tier = property graph (binary edges, untyped props)              |
+| Schema       | First-class, **closed-world**, queryable, type-checks at write + query time                        | Graph tier = none; relational = `RelationalColumn{Name,Type,Nullable}` |
+| Relations    | **N-ary** (`employment: employer + employee + witness`); roles are typed                           | `EdgeRef{Type, From, To}` — strictly binary                            |
+| Inheritance  | Single-inheritance subtyping; query "user" matches "admin"                                         | None                                                                   |
+| Attributes   | First-class, global, shared, subtypable                                                            | Per-projection copies                                                  |
+| Querying     | **TypeQL** — declarative pattern match, portable (runs anywhere TypeDB runs)                       | Graph reads = "native, not abstracted"                                 |
+| Derived data | **Reasoning engine**: `when {...} then {...}` rules + recursive functions, evaluated at query time | `Deriver` module designed, **zero code** (TODO C11)                    |
+| Constraints  | `@key`, `@card(1..n)`, `@values(...)`, `@regex(...)`                                               | Relational: NOT NULL / PK only                                         |
 
 TypeDB achieves full read/write portability **because it owns the engine.** That is the crux for a library, addressed in §3.
 
 ---
 
-## 2. Why TypeDB is *not* just a graph DB (and why that matters here)
+## 2. Why TypeDB is _not_ just a graph DB (and why that matters here)
 
 ADR-0038 positions our graph tier as "writes portable (openCypher MERGE), reads native." TypeDB's core argument against property graphs is that binary edges + untyped labels + no schema lose three things: **expressive schema, abstraction/reuse, and data integrity by design.** Our graph tier currently exhibits all three losses:
 
 - `NodeRef{Label string, KeyProp string, KeyValue any}` — labels are strings, keys are `any`.
 - `GraphSink.MergeNode(ref, props map[string]any)` — properties are an untyped bag.
-- No schema declaration; typos in a label or prop name create silent phantom nodes/edges (the *exact* bug class that `Row` column-name validation just fixed for the relational tier — see status `2026-06-28_10-04` A3).
+- No schema declaration; typos in a label or prop name create silent phantom nodes/edges (the _exact_ bug class that `Row` column-name validation just fixed for the relational tier — see status `2026-06-28_10-04` A3).
 
 In other words: **the graph tier today has weaker typing than our relational tier had before this morning's fix.** TypeDB is the existence proof that graph-shaped read models don't require abandoning strong types.
 
@@ -53,13 +53,13 @@ Model `NodeType{Label, KeyProp, KeyType, Properties[]PropertyType}`, `EdgeType{T
 **A2. Replace `map[string]any` props with a typed option where Go generics allow.**
 `MergeNode[NodeOf[T]]` style is overreach, but a `graph.PropertySet` with a typed registry (prop name → value kind) plus a `Validate()` is straightforward and removes the worst of the `any` sprawl without breaking the openCypher MERGE portability (props still serialize to driver-native values).
 
-### ADAPT (TypeDB's idea, but reshaped to fit a *library*)
+### ADAPT (TypeDB's idea, but reshaped to fit a _library_)
 
 **D1. Reasoning → use as the design reference for the unbuilt `Deriver` module.**
 TypeDB's `when/then` rule engine is, conceptually, the same primitive as our planned `Deriver` (events → derived events/commands; TODO C11). The key TypeDB lessons to port: **rules are part of the schema**, **results are deterministic and idempotent**, and **chaining/recursion terminate because each derived instance is produced at most once.** We should NOT build an in-DB inference engine (a projection is already materialized derived data — the opposite philosophy), but the `Deriver` API should steal TypeDB's declarative `when/then` shape.
 
 **D2. Portable reads — but only for the `MemoryDriver` we own.**
-TypeDB's read portability comes from owning the engine. We can't impose a query language on Neo4j/Memgraph — ADR-0038's "reads native" is *correct* for cross-backend portability and must stand. **But the library *does* own the `MemoryDriver` engine**, and right now it exposes only `Snapshot()` (raw `*graphData`) — i.e., the in-memory graph has **no usable read API at all.** A typed pattern-match/traversal API for `MemoryDriver` only would (a) make the v3.x ship target actually queryable, (b) give handlers a portable read path in tests and single-process apps, (c) directly unblock the "graph tier has zero real consumers" problem (status `2026-06-28_02-45` E6). Asymmetry preserved, but the owned-engine half gets a real read surface.
+TypeDB's read portability comes from owning the engine. We can't impose a query language on Neo4j/Memgraph — ADR-0038's "reads native" is _correct_ for cross-backend portability and must stand. **But the library _does_ own the `MemoryDriver` engine**, and right now it exposes only `Snapshot()` (raw `*graphData`) — i.e., the in-memory graph has **no usable read API at all.** A typed pattern-match/traversal API for `MemoryDriver` only would (a) make the v3.x ship target actually queryable, (b) give handlers a portable read path in tests and single-process apps, (c) directly unblock the "graph tier has zero real consumers" problem (status `2026-06-28_02-45` E6). Asymmetry preserved, but the owned-engine half gets a real read surface.
 
 ### REJECT (and the reason matters)
 
@@ -79,14 +79,14 @@ TypeDB's read portability comes from owning the engine. We can't impose a query 
 
 The projection schema story is currently **split-brain**:
 
-| Tier | Schema strength |
-| --- | --- |
-| Events | Rich — `catalog/` (JSON Schema, AsyncAPI, OpenAPI), `schema/Validator` |
-| Relational | Medium — `RelationalSchema` + `RelationalColumn{Name,Type,Nullable}` + column validation |
-| Document/KV | Implicit — `TypedStore[T,K]` (the Go type *is* the schema) |
-| **Graph** | **None** — strings and `any` |
+| Tier        | Schema strength                                                                          |
+| ----------- | ---------------------------------------------------------------------------------------- |
+| Events      | Rich — `catalog/` (JSON Schema, AsyncAPI, OpenAPI), `schema/Validator`                   |
+| Relational  | Medium — `RelationalSchema` + `RelationalColumn{Name,Type,Nullable}` + column validation |
+| Document/KV | Implicit — `TypedStore[T,K]` (the Go type _is_ the schema)                               |
+| **Graph**   | **None** — strings and `any`                                                             |
 
-TypeDB's holistic "schema is a first-class, queryable, type-checking artifact" thesis suggests the graph tier is the outlier dragging the average down. A graph schema (A1) brings it to relational-tier parity; unifying *all* projection schemas into one metamodel would risk a god-object and is explicitly deferred.
+TypeDB's holistic "schema is a first-class, queryable, type-checking artifact" thesis suggests the graph tier is the outlier dragging the average down. A graph schema (A1) brings it to relational-tier parity; unifying _all_ projection schemas into one metamodel would risk a god-object and is explicitly deferred.
 
 ---
 
@@ -110,6 +110,6 @@ TypeDB's holistic "schema is a first-class, queryable, type-checking artifact" t
 
 ## 6. Decisions needed from maintainer
 
-1. **Graph schema (A1):** adopt now, or defer until a real graph consumer materializes? *(Recommend: adopt — it's the same pattern you just shipped for relational, and removes the worst type-safety hole in the newest tier.)*
-2. **MemoryDriver read API (D2):** ship as part of v3.x, or keep graph tier write-only until a Neo4j driver exists? *(Recommend: ship — otherwise the v3.x "graph tier is done" claim is hollow: nothing can read it.)*
+1. **Graph schema (A1):** adopt now, or defer until a real graph consumer materializes? _(Recommend: adopt — it's the same pattern you just shipped for relational, and removes the worst type-safety hole in the newest tier.)_
+2. **MemoryDriver read API (D2):** ship as part of v3.x, or keep graph tier write-only until a Neo4j driver exists? _(Recommend: ship — otherwise the v3.x "graph tier is done" claim is hollow: nothing can read it.)_
 3. **Deriver module (D1):** is now the time to start it, using TypeDB's rule model as the design north star?

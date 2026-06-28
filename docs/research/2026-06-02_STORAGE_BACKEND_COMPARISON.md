@@ -1,4 +1,5 @@
 # Storage Backend Comparison
+
 \n> **Status:** RESOLVED — informed multi-backend storage design
 
 **Date:** 2026-06-02

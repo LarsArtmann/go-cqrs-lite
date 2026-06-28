@@ -161,7 +161,7 @@ func goTypeToSQL(rt reflect.Type) (string, bool) {
 		rt = rt.Elem()
 	}
 
-	switch rt.Kind() {
+	switch rt.Kind() { //nolint:exhaustive // unknown Kinds intentionally fall through to TEXT
 	case reflect.String:
 		return sqlTypeText, false
 	case reflect.Int, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint32, reflect.Uint64:

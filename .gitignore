@@ -88,3 +88,9 @@ result-*
 example/encryption/encryption
 turso/indexing/:memory:
 turso/indexing/:memory:-wal
+
+# Rapid property-based test failure artifacts
+graph/testdata/rapid/
+
+# doc-check binary (cmd/doc-check/doc-check)
+/cmd/doc-check/doc-check

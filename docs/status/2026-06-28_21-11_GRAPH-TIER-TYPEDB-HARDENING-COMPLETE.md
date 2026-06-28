@@ -22,23 +22,23 @@ Plus: first real graph consumer (`example/graph-demo/`), two ADRs (0039 Graph Sc
 
 ## At a Glance
 
-| Metric | Value |
-|--------|-------|
-| Modules | 47 `go.mod` files (46 in go.work + root) |
-| Go version | 1.26.4 |
-| API surface exports | 1,707 |
-| ADRs | 39 (0039 + 0040 new this session) |
-| Research docs | 31 (1 new this session) |
-| Examples | 7 (graph-demo new this session) |
-| Stack presets | 5 (memory, sqlite, pebble, postgres, turso) |
-| Graph module LOC | 2,384 (1,402 new this session) |
-| Graph tests | 42 (37 new this session) |
-| Commits since v3.1.0 | ~75+ |
-| Build | ✅ PASS (workspace + all modules) |
-| Vet | ✅ PASS (zero issues) |
-| Tests (graph + demo) | ✅ 42 pass with `-race` |
+| Metric                   | Value                                            |
+| ------------------------ | ------------------------------------------------ |
+| Modules                  | 47 `go.mod` files (46 in go.work + root)         |
+| Go version               | 1.26.4                                           |
+| API surface exports      | 1,707                                            |
+| ADRs                     | 39 (0039 + 0040 new this session)                |
+| Research docs            | 31 (1 new this session)                          |
+| Examples                 | 7 (graph-demo new this session)                  |
+| Stack presets            | 5 (memory, sqlite, pebble, postgres, turso)      |
+| Graph module LOC         | 2,384 (1,402 new this session)                   |
+| Graph tests              | 42 (37 new this session)                         |
+| Commits since v3.1.0     | ~75+                                             |
+| Build                    | ✅ PASS (workspace + all modules)                |
+| Vet                      | ✅ PASS (zero issues)                            |
+| Tests (graph + demo)     | ✅ 42 pass with `-race`                          |
 | Architecture enforcement | ⚠️ 6/7 modules pass (transport/http budget over) |
-| Last release | v3.1.0 |
+| Last release             | v3.1.0                                           |
 
 ---
 
@@ -46,13 +46,14 @@ Plus: first real graph consumer (`example/graph-demo/`), two ADRs (0039 Graph Sc
 
 ### A1. Graph Schema Validation (ADR-0039) — COMMITTED `c9f5d9c8`
 
-| Metric | Value |
-|--------|-------|
-| Files | 4 new (`schema.go`, `schema_sink.go`, `schema_test.go` + errors) |
-| Tests | 16 schema unit tests + 3 graphtest contract tests |
+| Metric   | Value                                                                                     |
+| -------- | ----------------------------------------------------------------------------------------- |
+| Files    | 4 new (`schema.go`, `schema_sink.go`, `schema_test.go` + errors)                          |
+| Tests    | 16 schema unit tests + 3 graphtest contract tests                                         |
 | Coverage | All validation paths: unknown label, unknown prop, wrong key prop, edge endpoint mismatch |
 
 Components:
+
 - **`Schema`** — declares node types (label, key prop, properties), edge types (type, endpoint labels, properties)
 - **`Schema.Validate()`** — catches structural errors: empty names, duplicate labels, key prop in properties, unknown endpoint labels
 - **`schemaSink`** — wraps any `GraphSink` with validation before forwarding writes
@@ -63,12 +64,13 @@ Components:
 
 ### A2. MemoryDriver Read API — COMMITTED `c9f5d9c8`
 
-| Metric | Value |
-|--------|-------|
-| Files | 2 new (`read.go`, `memory_read.go`) |
-| Tests | 16 read API tests (`read_test.go`) |
+| Metric | Value                               |
+| ------ | ----------------------------------- |
+| Files  | 2 new (`read.go`, `memory_read.go`) |
+| Tests  | 16 read API tests (`read_test.go`)  |
 
 Components:
+
 - **`ReadableDriver`** interface — `Query`, `Traverse`, `Neighbors`, `ShortestPath`
 - **`Pattern`** — label filter + Go-native predicate function (`func(map[string]any) bool`)
 - **`NodeView`/`EdgeView`** — read-only snapshots with defensive prop copies
@@ -81,44 +83,44 @@ Components:
 
 ### A3. example/graph-demo — COMMITTED `dafe40d0`
 
-| Metric | Value |
-|--------|-------|
-| Files | 4 (`go.mod`, `main.go`, `main_test.go`, `README.md`) |
-| Tests | 5 (Query, Traverse, ShortestPath, Schema rejection, content filter) |
+| Metric | Value                                                               |
+| ------ | ------------------------------------------------------------------- |
+| Files  | 4 (`go.mod`, `main.go`, `main_test.go`, `README.md`)                |
+| Tests  | 5 (Query, Traverse, ShortestPath, Schema rejection, content filter) |
 
 First real consumer of the graph tier. Models a discussion forum: users author messages, messages reply to messages. Demonstrates Schema validation, GraphProjection with events, and all four read API operations. The "zero real consumers" problem (flagged in 5 prior status reports) is now resolved.
 
 ### A4. Documentation — COMMITTED `dafe40d0`
 
-| Item | Status |
-|------|--------|
-| `docs/projection-tiers.md` (rewritten with opinionated comparison) | ✅ |
-| ADR-0039 (Graph Schema — what we adopted/rejected from TypeDB) | ✅ |
-| ADR-0040 (Deriver module design — TypeDB rule model reference) | ✅ |
-| `docs/research/2026-06-28_TYPEDB_LESSONS_FOR_PROJECTIONS.md` | ✅ (committed by concurrent session) |
-| `docs/planning/2026-06-28_20-37_GRAPH-TIER-TYPEDB-HARDENING.md` (Pareto plan) | ✅ |
-| `graph/README.md` (Schema + Read API sections) | ✅ |
-| `AGENTS.md` (module list, Key Patterns, test command) | ✅ |
+| Item                                                                          | Status                               |
+| ----------------------------------------------------------------------------- | ------------------------------------ |
+| `docs/projection-tiers.md` (rewritten with opinionated comparison)            | ✅                                   |
+| ADR-0039 (Graph Schema — what we adopted/rejected from TypeDB)                | ✅                                   |
+| ADR-0040 (Deriver module design — TypeDB rule model reference)                | ✅                                   |
+| `docs/research/2026-06-28_TYPEDB_LESSONS_FOR_PROJECTIONS.md`                  | ✅ (committed by concurrent session) |
+| `docs/planning/2026-06-28_20-37_GRAPH-TIER-TYPEDB-HARDENING.md` (Pareto plan) | ✅                                   |
+| `graph/README.md` (Schema + Read API sections)                                | ✅                                   |
+| `AGENTS.md` (module list, Key Patterns, test command)                         | ✅                                   |
 
 ### A5. Concurrent Session Work (OTel DX) — COMMITTED by another session
 
 These shipped during my session via concurrent commits. Not my work, but part of the current repo state:
 
-| Item | Commit |
-|------|--------|
-| `otel.Setup()` one-call provider | `c1988cce` (I committed this — it was in the working tree) |
-| OTel middleware bundle | `ca3db581` |
-| OTel span instrumentation (transport/http, transport/grpc, watermill) | `001bf8ab` |
-| example/user OTel dogfooding | `697f77ee` |
-| OTel README rewrite | `882c27f3` |
-| retryTracer + span tree validation tests | `2eb8670b`, `abcad30e` |
+| Item                                                                  | Commit                                                     |
+| --------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `otel.Setup()` one-call provider                                      | `c1988cce` (I committed this — it was in the working tree) |
+| OTel middleware bundle                                                | `ca3db581`                                                 |
+| OTel span instrumentation (transport/http, transport/grpc, watermill) | `001bf8ab`                                                 |
+| example/user OTel dogfooding                                          | `697f77ee`                                                 |
+| OTel README rewrite                                                   | `882c27f3`                                                 |
+| retryTracer + span tree validation tests                              | `2eb8670b`, `abcad30e`                                     |
 
 ### A6. Pre-Session Cleanup — COMMITTED
 
-| Item | Commit |
-|------|--------|
+| Item                                                                                           | Commit        |
+| ---------------------------------------------------------------------------------------------- | ------------- |
 | Restored corrupted `middleware/generic.go` + `retry_query_test.go` (patch syntax in Go source) | (git restore) |
-| Synced go.sum files across workspace (transitive dep checksums) | `f15c1750` |
+| Synced go.sum files across workspace (transitive dep checksums)                                | `f15c1750`    |
 
 ---
 
@@ -154,24 +156,24 @@ The `PropertyType.Required` field exists in the schema but is NOT validated by `
 
 ## c) NOT STARTED ⬜
 
-| # | Item | Effort | Why deferred |
-|---|------|--------|--------------|
-| C1 | God-package splits (storage 38 files, event 30 files → sub-packages) | High | Major refactor; separate session |
-| C2 | Versioned schema migrations (goose/atlas-style) | Medium | Pre-existing gap |
-| C3 | NATS/Redis transport via Watermill broker plugins | Medium | ADR-0025 accepted; consumer demand drives |
-| C4 | Documentation site (Docusaurus/MkDocs) | High | 47 modules need browsable docs |
-| C5 | Outbox DLQ + reference-based outbox | Medium | Pre-existing gaps |
-| C6 | Durability profiles (Sync/BatchedSync/Async) | Low | Pre-existing gap |
-| C7 | `projection.Runner` (standalone journal replay pipeline) | High | `bundle.RunProjections` covers common case |
-| C8 | `RelationalStore` JOIN or denormalization examples | Medium | Denormalization documented; no example yet |
-| C9 | Neo4j/Memgraph GraphDriver | Medium | Consumer-pulled |
-| C10 | Scheduler module | Large | Deadlines, timeouts, cron — infrastructure concern |
-| C11 | Deriver module implementation | Medium | Design captured in ADR-0040; not yet built |
-| C12 | Hot-state cache for decider | Large | Only matters for 100+ cmd/sec/aggregate |
-| C13 | Bi-temporal model (`ValidAt`) | Large | Niche — finance/HR/healthcare |
-| C14 | Event redaction middleware | Medium | Design reviewed, no code |
-| C15 | Graph Schema FTS5 / full-text search | Medium | Separate concern; relational-tier gap |
-| C16 | Graph read API on real driver backends | Large | Cypher abstraction rejected (ADR-0038) |
+| #   | Item                                                                 | Effort | Why deferred                                       |
+| --- | -------------------------------------------------------------------- | ------ | -------------------------------------------------- |
+| C1  | God-package splits (storage 38 files, event 30 files → sub-packages) | High   | Major refactor; separate session                   |
+| C2  | Versioned schema migrations (goose/atlas-style)                      | Medium | Pre-existing gap                                   |
+| C3  | NATS/Redis transport via Watermill broker plugins                    | Medium | ADR-0025 accepted; consumer demand drives          |
+| C4  | Documentation site (Docusaurus/MkDocs)                               | High   | 47 modules need browsable docs                     |
+| C5  | Outbox DLQ + reference-based outbox                                  | Medium | Pre-existing gaps                                  |
+| C6  | Durability profiles (Sync/BatchedSync/Async)                         | Low    | Pre-existing gap                                   |
+| C7  | `projection.Runner` (standalone journal replay pipeline)             | High   | `bundle.RunProjections` covers common case         |
+| C8  | `RelationalStore` JOIN or denormalization examples                   | Medium | Denormalization documented; no example yet         |
+| C9  | Neo4j/Memgraph GraphDriver                                           | Medium | Consumer-pulled                                    |
+| C10 | Scheduler module                                                     | Large  | Deadlines, timeouts, cron — infrastructure concern |
+| C11 | Deriver module implementation                                        | Medium | Design captured in ADR-0040; not yet built         |
+| C12 | Hot-state cache for decider                                          | Large  | Only matters for 100+ cmd/sec/aggregate            |
+| C13 | Bi-temporal model (`ValidAt`)                                        | Large  | Niche — finance/HR/healthcare                      |
+| C14 | Event redaction middleware                                           | Medium | Design reviewed, no code                           |
+| C15 | Graph Schema FTS5 / full-text search                                 | Medium | Separate concern; relational-tier gap              |
+| C16 | Graph read API on real driver backends                               | Large  | Cypher abstraction rejected (ADR-0038)             |
 
 ---
 
@@ -189,6 +191,7 @@ The `check-layers` gate FAILS because `transport/http` has 3 production deps aga
 ### D2. Concurrent Sessions Committing to master Without Coordination
 
 During this session, at least 2 concurrent sessions committed to master (`abcad30e`, `89b7dbfa`, `ffd8fc57`, `2eb8670b`, `882c27f3`, `001bf8ab`, `697f77ee`, `ca3db581`). This caused:
+
 - My research doc (`d1f40dc3`) to be committed by another session before I committed it
 - Files appearing modified in my working tree that I didn't author (`transport/http/sse.go`)
 - Two Go source files corrupted with patch syntax (`middleware/generic.go`, `middleware/retry_query_test.go`) — likely from a tool failure in another session
@@ -241,43 +244,43 @@ I wrote `describeSchema()` in `schema.go` for error messages, but never called i
 
 ### Tier 1: Critical (CI-breaking or highest leverage)
 
-| # | Task | Impact | Effort | Why |
-|---|------|--------|--------|-----|
-| 1 | **Fix transport/http dep budget** (bump to 3 or make otel indirect) | Critical | 5min | check-layers gate is FAILING |
-| 2 | **Commit or discard transport/http/sse.go** formatting change | High | 1min | Uncommitted change in working tree |
-| 3 | **Enforce or remove `PropertyType.Required`** | Medium | 30min | Field exists but doesn't work — lying API |
-| 4 | **Update AGENTS.md module count** (44 → 47) and add graph-demo | Low | 5min | Stale docs |
-| 5 | **Cross-link ADR-0039 from projection-tiers.md** | Low | 5min | Discoverability |
+| #   | Task                                                                | Impact   | Effort | Why                                       |
+| --- | ------------------------------------------------------------------- | -------- | ------ | ----------------------------------------- |
+| 1   | **Fix transport/http dep budget** (bump to 3 or make otel indirect) | Critical | 5min   | check-layers gate is FAILING              |
+| 2   | **Commit or discard transport/http/sse.go** formatting change       | High     | 1min   | Uncommitted change in working tree        |
+| 3   | **Enforce or remove `PropertyType.Required`**                       | Medium   | 30min  | Field exists but doesn't work — lying API |
+| 4   | **Update AGENTS.md module count** (44 → 47) and add graph-demo      | Low      | 5min   | Stale docs                                |
+| 5   | **Cross-link ADR-0039 from projection-tiers.md**                    | Low      | 5min   | Discoverability                           |
 
 ### Tier 2: High-value improvements
 
-| # | Task | Impact | Effort | Why |
-|---|------|--------|--------|-----|
-| 6 | **Migrate DiscordSync's projection layer** to `RelationalProjection` | Critical | 2-3h | Original trigger for relational tier; validates against real consumer |
-| 7 | **Add PostgreSQL integration tests** for relational tier (testcontainers) | High | 1h | Tested on SQLite only; PG path unproven |
-| 8 | **Add `ReadableDriver` contract tests** to graphtest | Medium | 1h | No contract for read operations; future drivers unvalidated |
-| 9 | **God-package split: storage/** (38 files → sub-packages) | High | 4h+ | Largest god-package |
-| 10 | **God-package split: event/** (30 files → sub-packages) | High | 3h+ | Core module |
-| 11 | **Build Neo4j/Cypher GraphDriver** (`graph/neo4j/`) | High | 3-4h | First real graph backend; validates Schema + Sink abstraction |
-| 12 | **Implement Deriver module** (per ADR-0040) | Medium | 1-2 days | Design done; event→command derivation |
-| 13 | **Add versioned schema migrations** | Medium | 2h | Pre-existing gap (goose/atlas-style) |
-| 14 | **Complete Pebble module** (any remaining gaps) | Medium | 2h | Pre-existing gap |
+| #   | Task                                                                      | Impact   | Effort   | Why                                                                   |
+| --- | ------------------------------------------------------------------------- | -------- | -------- | --------------------------------------------------------------------- |
+| 6   | **Migrate DiscordSync's projection layer** to `RelationalProjection`      | Critical | 2-3h     | Original trigger for relational tier; validates against real consumer |
+| 7   | **Add PostgreSQL integration tests** for relational tier (testcontainers) | High     | 1h       | Tested on SQLite only; PG path unproven                               |
+| 8   | **Add `ReadableDriver` contract tests** to graphtest                      | Medium   | 1h       | No contract for read operations; future drivers unvalidated           |
+| 9   | **God-package split: storage/** (38 files → sub-packages)                 | High     | 4h+      | Largest god-package                                                   |
+| 10  | **God-package split: event/** (30 files → sub-packages)                   | High     | 3h+      | Core module                                                           |
+| 11  | **Build Neo4j/Cypher GraphDriver** (`graph/neo4j/`)                       | High     | 3-4h     | First real graph backend; validates Schema + Sink abstraction         |
+| 12  | **Implement Deriver module** (per ADR-0040)                               | Medium   | 1-2 days | Design done; event→command derivation                                 |
+| 13  | **Add versioned schema migrations**                                       | Medium   | 2h       | Pre-existing gap (goose/atlas-style)                                  |
+| 14  | **Complete Pebble module** (any remaining gaps)                           | Medium   | 2h       | Pre-existing gap                                                      |
 
 ### Tier 3: Quality and completeness
 
-| # | Task | Impact | Effort | Why |
-|---|------|--------|--------|-----|
-| 15 | **Add graph-demo Schema rejection demo** (show what bad labels do) | Low | 15min | Teaches the value proposition |
-| 16 | **Stamp RESOLVED on remaining unmarked research docs** | Low | 15min each | Prevents confusion |
-| 17 | **Add FTS5 full-text search** to RelationalStore | Medium | 2h | DiscordSync's SearchMessages |
-| 18 | **Add NATS JetStream transport adapter** | Medium | 3h | ADR-0025 accepted |
-| 19 | **Add Outbox DLQ + reference-based outbox** | Medium | 2h | Pre-existing gaps |
-| 20 | **Add Durability profiles** across backends | Low | 1.5h | Pre-existing gap |
-| 21 | **Documentation site** (Docusaurus/MkDocs) | Low | 4h+ | 47 modules need browsable docs |
-| 22 | **Commit the BuildFlow hook config** or document install | Low | 15min | Onboarding |
-| 23 | **Add `graph.Schema.Indexes`** for future driver backends | Low | 30min | Neo4j driver would need it |
-| 24 | **Property-based tests for graph read API** (rapid) | Medium | 1h | Traverse/ShortestPath edge cases |
-| 25 | **Integration test: RunProjections with graph tier** end-to-end | Medium | 1h | No graph-in-bundle test exists yet |
+| #   | Task                                                               | Impact | Effort     | Why                                |
+| --- | ------------------------------------------------------------------ | ------ | ---------- | ---------------------------------- |
+| 15  | **Add graph-demo Schema rejection demo** (show what bad labels do) | Low    | 15min      | Teaches the value proposition      |
+| 16  | **Stamp RESOLVED on remaining unmarked research docs**             | Low    | 15min each | Prevents confusion                 |
+| 17  | **Add FTS5 full-text search** to RelationalStore                   | Medium | 2h         | DiscordSync's SearchMessages       |
+| 18  | **Add NATS JetStream transport adapter**                           | Medium | 3h         | ADR-0025 accepted                  |
+| 19  | **Add Outbox DLQ + reference-based outbox**                        | Medium | 2h         | Pre-existing gaps                  |
+| 20  | **Add Durability profiles** across backends                        | Low    | 1.5h       | Pre-existing gap                   |
+| 21  | **Documentation site** (Docusaurus/MkDocs)                         | Low    | 4h+        | 47 modules need browsable docs     |
+| 22  | **Commit the BuildFlow hook config** or document install           | Low    | 15min      | Onboarding                         |
+| 23  | **Add `graph.Schema.Indexes`** for future driver backends          | Low    | 30min      | Neo4j driver would need it         |
+| 24  | **Property-based tests for graph read API** (rapid)                | Medium | 1h         | Traverse/ShortestPath edge cases   |
+| 25  | **Integration test: RunProjections with graph tier** end-to-end    | Medium | 1h         | No graph-in-bundle test exists yet |
 
 ---
 
@@ -285,7 +288,7 @@ I wrote `describeSchema()` in `schema.go` for error messages, but never called i
 
 **Should `PropertyType.Required` be enforced, or should the field be removed?**
 
-The `PropertyType` struct has a `Required bool` field. It's documented as "controls whether the sink rejects writes that omit this property." But `schemaSink.validateProps()` only checks that property *names* are declared — it does NOT check that required properties are *present*.
+The `PropertyType` struct has a `Required bool` field. It's documented as "controls whether the sink rejects writes that omit this property." But `schemaSink.validateProps()` only checks that property _names_ are declared — it does NOT check that required properties are _present_.
 
 This means the field is a **lie**: it suggests the schema enforces required-ness, but it doesn't. Two valid fixes:
 
@@ -295,6 +298,6 @@ This means the field is a **lie**: it suggests the schema enforces required-ness
 
 The core tension: MERGE semantics mean a handler may intentionally write a partial update (`MergeNode(ref, {"name": "new"})` to update just one property). Enforcing `Required` would break partial updates. But not enforcing it means the field is misleading.
 
-I cannot determine which is correct because it depends on whether partial node updates are a supported use case (they currently work — MergeNode preserves existing properties not in the props map). If partial updates are supported, `Required` cannot be enforced at the sink level (it would need to check the *merged* result, not the incoming props). If partial updates are NOT a documented use case, enforcement is straightforward.
+I cannot determine which is correct because it depends on whether partial node updates are a supported use case (they currently work — MergeNode preserves existing properties not in the props map). If partial updates are supported, `Required` cannot be enforced at the sink level (it would need to check the _merged_ result, not the incoming props). If partial updates are NOT a documented use case, enforcement is straightforward.
 
 **This needs a human decision: enforce and document the MERGE interaction, or remove the field as YAGNI.**

@@ -1,4 +1,5 @@
 # LiveStore Deep Dive — Lessons for go-cqrs-lite
+
 \n> **Status:** RESOLVED — informed the event sourcing design
 
 > **Source:** <https://docs.livestore.dev/llms.txt>
