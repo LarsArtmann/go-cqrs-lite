@@ -202,7 +202,12 @@ func (s *Schema) Validate() error {
 
 		nodeType := s.NodeType(idx.Label)
 		if nodeType == nil {
-			return fmt.Errorf("graph schema: index %q: %w: %q", idx.Name, errSchemaUnknownIndexLabel, idx.Label)
+			return fmt.Errorf(
+				"graph schema: index %q: %w: %q",
+				idx.Name,
+				errSchemaUnknownIndexLabel,
+				idx.Label,
+			)
 		}
 
 		for _, prop := range idx.Properties {

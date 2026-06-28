@@ -90,6 +90,10 @@ func TestCommandDispatch_ServerSpanCarriesAttrs(t *testing.T) {
 	}
 
 	if attrs[cqrsotel.AttrAggregateID] != aggID.String() {
-		t.Errorf("expected aggregate ID attr = %s, got %v", aggID.String(), attrs[cqrsotel.AttrAggregateID])
+		t.Errorf(
+			"expected aggregate ID attr = %s, got %v",
+			aggID.String(),
+			attrs[cqrsotel.AttrAggregateID],
+		)
 	}
 }

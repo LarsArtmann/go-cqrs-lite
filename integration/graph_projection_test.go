@@ -109,7 +109,13 @@ func TestBundle_RunProjections_GraphProjection(t *testing.T) {
 	if err != nil {
 		t.Fatalf("marshal follow: %v", err)
 	}
-	followEvt, _ := cqrsevent.NewEvent("user.followed", aggID, "Social", cqrsevent.Version(1), followPayload)
+	followEvt, _ := cqrsevent.NewEvent(
+		"user.followed",
+		aggID,
+		"Social",
+		cqrsevent.Version(1),
+		followPayload,
+	)
 	createEvents = append(createEvents, followEvt)
 
 	_ = store.Save(ctx, ref, createEvents, cqrsevent.Version(0))

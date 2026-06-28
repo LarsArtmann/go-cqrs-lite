@@ -21,7 +21,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
 )
 
-func setupSpanTreeTest(t *testing.T) (*tracetest.InMemoryExporter, *sdktrace.TracerProvider, *middleware.OTelBundle) {
+func setupSpanTreeTest(
+	t *testing.T,
+) (*tracetest.InMemoryExporter, *sdktrace.TracerProvider, *middleware.OTelBundle) {
 	t.Helper()
 
 	exporter := tracetest.NewInMemoryExporter()

@@ -35,14 +35,14 @@ concurrent callers with the same key produce exactly one winner.
 
 ## Key Types
 
-| Type                  | Purpose                                                       |
-| --------------------- | ------------------------------------------------------------- |
-| `Store`               | Interface: `Seen`, `Record`, `CheckAndRecord`                 |
-| `MemoryStore`         | In-memory `Store` with TTL expiration + background sweep      |
-| `ErrDuplicate`        | Conflict sentinel returned when a key is already recorded     |
-| `KeyExtractor`        | Function type: extracts the dedup key from a `command.Command`|
-| `CommandIDKey`        | Default `KeyExtractor`: returns `cmd.ID().String()`           |
-| `CommandIdempotency`  | `command.Middleware` that deduplicates via a `Store`          |
+| Type                 | Purpose                                                        |
+| -------------------- | -------------------------------------------------------------- |
+| `Store`              | Interface: `Seen`, `Record`, `CheckAndRecord`                  |
+| `MemoryStore`        | In-memory `Store` with TTL expiration + background sweep       |
+| `ErrDuplicate`       | Conflict sentinel returned when a key is already recorded      |
+| `KeyExtractor`       | Function type: extracts the dedup key from a `command.Command` |
+| `CommandIDKey`       | Default `KeyExtractor`: returns `cmd.ID().String()`            |
+| `CommandIdempotency` | `command.Middleware` that deduplicates via a `Store`           |
 
 ## Design
 

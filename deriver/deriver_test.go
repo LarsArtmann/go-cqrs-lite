@@ -143,11 +143,14 @@ func TestDeriver_AsHandler(t *testing.T) {
 
 	dispatcher := cqrscommand.NewDispatcher()
 
-	_ = dispatcher.Register("cmd.derived", cqrscommand.Handler(func(_ context.Context, _ cqrscommand.Command) error {
-		dispatched = append(dispatched, "cmd.derived")
+	_ = dispatcher.Register(
+		"cmd.derived",
+		cqrscommand.Handler(func(_ context.Context, _ cqrscommand.Command) error {
+			dispatched = append(dispatched, "cmd.derived")
 
-		return nil
-	}))
+			return nil
+		}),
+	)
 
 	d := Deriver(func(_ context.Context, _ cqrsevent.Event) ([]cqrscommand.Command, error) {
 		cmd, _ := cqrscommand.New("cmd.derived", id.NewAggregateID())

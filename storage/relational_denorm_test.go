@@ -29,9 +29,30 @@ func TestRelationalDenormalization_FKQueries(t *testing.T) {
 
 	// Seed: 3 messages across 2 channels, 2 authors, 1 guild.
 	msgs := []messageCreatedPayload{
-		{ID: "m1", ChannelID: "c1", GuildID: "g1", AuthorID: "alice", Content: "hello", CreatedAt: time.Now()},
-		{ID: "m2", ChannelID: "c1", GuildID: "g1", AuthorID: "bob", Content: "hi", CreatedAt: time.Now()},
-		{ID: "m3", ChannelID: "c2", GuildID: "g1", AuthorID: "alice", Content: "other chan", CreatedAt: time.Now()},
+		{
+			ID:        "m1",
+			ChannelID: "c1",
+			GuildID:   "g1",
+			AuthorID:  "alice",
+			Content:   "hello",
+			CreatedAt: time.Now(),
+		},
+		{
+			ID:        "m2",
+			ChannelID: "c1",
+			GuildID:   "g1",
+			AuthorID:  "bob",
+			Content:   "hi",
+			CreatedAt: time.Now(),
+		},
+		{
+			ID:        "m3",
+			ChannelID: "c2",
+			GuildID:   "g1",
+			AuthorID:  "alice",
+			Content:   "other chan",
+			CreatedAt: time.Now(),
+		},
 	}
 
 	for _, m := range msgs {

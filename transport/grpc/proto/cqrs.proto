@@ -7,10 +7,10 @@ option go_package = "github.com/larsartmann/go-cqrs-lite/transport/grpc/v3/proto
 // CommandEnvelope wraps a CQRS command for wire transmission.
 // The payload is JSON-encoded (matching the watermill protocol).
 message CommandEnvelope {
-  string type = 1;           // command type (e.g. "user.create")
-  string aggregate_id = 2;   // aggregate ID (ULID)
+  string type = 1; // command type (e.g. "user.create")
+  string aggregate_id = 2; // aggregate ID (ULID)
   string aggregate_type = 3; // aggregate type (e.g. "User")
-  bytes payload = 4;         // JSON-encoded command payload
+  bytes payload = 4; // JSON-encoded command payload
   map<string, string> metadata = 5; // command metadata
 }
 
@@ -22,14 +22,14 @@ message CommandResult {
 
 // QueryEnvelope wraps a CQRS query for wire transmission.
 message QueryEnvelope {
-  string type = 1;           // query type (e.g. "user.get")
-  bytes payload = 2;         // JSON-encoded query payload
+  string type = 1; // query type (e.g. "user.get")
+  bytes payload = 2; // JSON-encoded query payload
   map<string, string> metadata = 3; // query metadata
 }
 
 // QueryResult is the response from a query dispatch.
 message QueryResult {
-  bytes payload = 1;         // JSON-encoded result
+  bytes payload = 1; // JSON-encoded result
   string error = 2;
 }
 
@@ -45,12 +45,12 @@ service QueryService {
 
 // EventEnvelope wraps a CQRS event for streaming over gRPC.
 message EventEnvelope {
-  string id = 1;             // event ID (ULID)
-  string type = 2;           // event type (e.g. "user.created")
-  string aggregate_id = 3;   // aggregate ID (ULID)
+  string id = 1; // event ID (ULID)
+  string type = 2; // event type (e.g. "user.created")
+  string aggregate_id = 3; // aggregate ID (ULID)
   string aggregate_type = 4; // aggregate type (e.g. "User")
-  int64 version = 5;         // aggregate version after this event
-  bytes payload = 6;         // raw event payload bytes
+  int64 version = 5; // aggregate version after this event
+  bytes payload = 6; // raw event payload bytes
   int64 occurred_at_unix_nano = 7; // event timestamp (Unix nanoseconds)
   map<string, string> metadata = 8; // event metadata
 }

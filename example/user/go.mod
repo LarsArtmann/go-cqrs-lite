@@ -12,7 +12,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/middleware/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.3.0
-	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.0.0-20260628200550-1240d115bcd9
+	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.0.0-20260628220216-d879d8cc4a6a
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/signing/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.3.0

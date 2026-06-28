@@ -57,7 +57,7 @@ You do NOT need all of them. Start with the minimal recipe (§2), then bolt on c
 | Make event streams tamper-proof                     | `signing`                                                                       | §2.6       |
 | Encrypt confidential payloads                       | `encryption`                                                                    | §2.7       |
 | Add logging/retry/recovery/circuit-breaker          | `middleware`                                                                    | §2.8       |
-| Deduplicate commands on retry (idempotency)          | `idempotency`                                                                   | §2.8       |
+| Deduplicate commands on retry (idempotency)         | `idempotency`                                                                   | §2.8       |
 | Add OpenTelemetry tracing/metrics                   | `otel` + `middleware`                                                           | §2.8       |
 | Auto-generate AsyncAPI/OpenAPI/EventCatalog/D2 docs | `catalog`                                                                       | §2.9       |
 | Soft-delete aggregates without data loss            | `event` (tombstone metadata)                                                    | §6.1       |

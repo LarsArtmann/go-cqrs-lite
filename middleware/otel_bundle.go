@@ -80,7 +80,11 @@ func WithMetricsDisabled() BundleOption {
 //	    cqrsotel.NewTracer("orders"), nil,
 //	    middleware.WithMetricsDisabled(),
 //	)
-func NewOTelBundle(tracer cqrsotel.Tracer, meter cqrsotel.Meter, opts ...BundleOption) (*OTelBundle, error) {
+func NewOTelBundle(
+	tracer cqrsotel.Tracer,
+	meter cqrsotel.Meter,
+	opts ...BundleOption,
+) (*OTelBundle, error) {
 	cfg := &bundleConfig{
 		metricsEnabled: true,
 	}

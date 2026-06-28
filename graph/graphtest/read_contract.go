@@ -18,7 +18,10 @@ func SeedReadGraph(t *testing.T, driver graph.GraphDriver) {
 	t.Helper()
 
 	err := driver.RunInTx(func(sink graph.GraphSink) error {
-		if err := sink.MergeNode(nodeRef("User", "a"), map[string]any{"name": "alice"}); err != nil {
+		if err := sink.MergeNode(
+			nodeRef("User", "a"),
+			map[string]any{"name": "alice"},
+		); err != nil {
 			return err
 		}
 
@@ -26,7 +29,10 @@ func SeedReadGraph(t *testing.T, driver graph.GraphDriver) {
 			return err
 		}
 
-		if err := sink.MergeNode(nodeRef("User", "c"), map[string]any{"name": "carol"}); err != nil {
+		if err := sink.MergeNode(
+			nodeRef("User", "c"),
+			map[string]any{"name": "carol"},
+		); err != nil {
 			return err
 		}
 

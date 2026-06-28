@@ -19,51 +19,51 @@ convention:
 
 ### Examples
 
-| Span | Component | Action | Meaning |
-|------|-----------|--------|---------|
-| `command.handle` | command | handle | Processing a command through middleware |
-| `event.handle` | event | handle | Processing an event through middleware |
-| `event.publish` | event | publish | Publishing events to the bus |
-| `query.handle` | query | handle | Processing a query through middleware |
-| `decider.execute` | decider | execute | Full aggregate execute (load → decide → save) |
-| `decider.load` | decider | load | Loading aggregate state from events |
-| `event.store.load` | event.store | load | SQL store load |
-| `event.store.save` | event.store | save | SQL store save |
-| `grpc.command.dispatch` | grpc | dispatch | gRPC server handling a command |
-| `grpc.query.ask` | grpc | ask | gRPC server handling a query |
-| `watermill.event.publish` | watermill | publish | Publishing events to a Watermill topic |
-| `watermill.command.publish` | watermill | publish | Publishing commands to a Watermill topic |
-| `watermill.replay.from_journal` | watermill | replay | CatchUpSubscriber replaying events |
-| `sse.fanout` | sse | fanout | Broadcasting an event to SSE clients |
-| `sse.replay` | sse | replay | Last-Event-ID reconnection replay |
-| `retry.attempt.N` | retry | attempt | Nth retry attempt (child span) |
+| Span                            | Component   | Action   | Meaning                                       |
+| ------------------------------- | ----------- | -------- | --------------------------------------------- |
+| `command.handle`                | command     | handle   | Processing a command through middleware       |
+| `event.handle`                  | event       | handle   | Processing an event through middleware        |
+| `event.publish`                 | event       | publish  | Publishing events to the bus                  |
+| `query.handle`                  | query       | handle   | Processing a query through middleware         |
+| `decider.execute`               | decider     | execute  | Full aggregate execute (load → decide → save) |
+| `decider.load`                  | decider     | load     | Loading aggregate state from events           |
+| `event.store.load`              | event.store | load     | SQL store load                                |
+| `event.store.save`              | event.store | save     | SQL store save                                |
+| `grpc.command.dispatch`         | grpc        | dispatch | gRPC server handling a command                |
+| `grpc.query.ask`                | grpc        | ask      | gRPC server handling a query                  |
+| `watermill.event.publish`       | watermill   | publish  | Publishing events to a Watermill topic        |
+| `watermill.command.publish`     | watermill   | publish  | Publishing commands to a Watermill topic      |
+| `watermill.replay.from_journal` | watermill   | replay   | CatchUpSubscriber replaying events            |
+| `sse.fanout`                    | sse         | fanout   | Broadcasting an event to SSE clients          |
+| `sse.replay`                    | sse         | replay   | Last-Event-ID reconnection replay             |
+| `retry.attempt.N`               | retry       | attempt  | Nth retry attempt (child span)                |
 
 ## Span Kinds
 
-| Kind | When |
-|------|------|
-| **Server** | Inbound request handling (command.handle, grpc.*.dispatch) |
-| **Consumer** | Event consumption (event.handle, sse.fanout) |
-| **Producer** | Event/command publishing (event.publish, watermill.*.publish) |
-| **Client** | SQL store operations (event.store.*) |
-| **Internal** | Library-internal operations (decider.*, sse.replay, watermill.replay) |
+| Kind         | When                                                                   |
+| ------------ | ---------------------------------------------------------------------- |
+| **Server**   | Inbound request handling (command.handle, grpc.\*.dispatch)            |
+| **Consumer** | Event consumption (event.handle, sse.fanout)                           |
+| **Producer** | Event/command publishing (event.publish, watermill.\*.publish)         |
+| **Client**   | SQL store operations (event.store.\*)                                  |
+| **Internal** | Library-internal operations (decider.\*, sse.replay, watermill.replay) |
 
 ## Attributes
 
 All spans use the `cqrs.*` attribute namespace:
 
-| Attribute | Example | Used by |
-|-----------|---------|---------|
-| `cqrs.message.kind` | `command`, `event`, `query` | All middleware spans |
-| `cqrs.command.type` | `user.create` | Command spans |
-| `cqrs.event.type` | `user.created` | Event spans |
-| `cqrs.query.type` | `user.get` | Query spans |
-| `cqrs.aggregate.type` | `User` | Store/decider spans |
-| `cqrs.aggregate.id` | `01HK...` | Most spans |
-| `cqrs.aggregate.version` | `5` | Store spans |
-| `cqrs.event.count` | `3` | Batch publish/save spans |
-| `cqrs.status` | `success`, `error` | Metrics spans |
-| `cqrs.projection.name` | `users` | Replay spans |
+| Attribute                | Example                     | Used by                  |
+| ------------------------ | --------------------------- | ------------------------ |
+| `cqrs.message.kind`      | `command`, `event`, `query` | All middleware spans     |
+| `cqrs.command.type`      | `user.create`               | Command spans            |
+| `cqrs.event.type`        | `user.created`              | Event spans              |
+| `cqrs.query.type`        | `user.get`                  | Query spans              |
+| `cqrs.aggregate.type`    | `User`                      | Store/decider spans      |
+| `cqrs.aggregate.id`      | `01HK...`                   | Most spans               |
+| `cqrs.aggregate.version` | `5`                         | Store spans              |
+| `cqrs.event.count`       | `3`                         | Batch publish/save spans |
+| `cqrs.status`            | `success`, `error`          | Metrics spans            |
+| `cqrs.projection.name`   | `users`                     | Replay spans             |
 
 ## Rules
 

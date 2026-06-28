@@ -258,7 +258,11 @@ func TestRapid_NeighborsComplete(t *testing.T) {
 
 		for _, n := range neighborNodes {
 			if !expected[strKey(n.Ref)] && strKey(n.Ref) != strKey(center) {
-				t.Fatalf("Neighbors(%s) returned unexpected node: %s", center.KeyValue, n.Ref.KeyValue)
+				t.Fatalf(
+					"Neighbors(%s) returned unexpected node: %s",
+					center.KeyValue,
+					n.Ref.KeyValue,
+				)
 			}
 		}
 	})

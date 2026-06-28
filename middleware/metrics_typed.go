@@ -15,7 +15,12 @@ import (
 // key-value string pairs of MetricsRecorder. Prefer this interface for new
 // code: it makes malformed label pairs unrepresentable.
 type TypedMetricsRecorder interface {
-	ObserveTyped(ctx context.Context, operation string, duration time.Duration, attrs ...cqrsotel.KeyValue)
+	ObserveTyped(
+		ctx context.Context,
+		operation string,
+		duration time.Duration,
+		attrs ...cqrsotel.KeyValue,
+	)
 }
 
 // typeAttrFor maps a message kind to its canonical OTel attribute key.
@@ -35,7 +40,10 @@ func typeAttrFor(kind string) string {
 // NewTypedMetrics returns a generic middleware that records handler metrics
 // via a TypedMetricsRecorder. The operation name is the message kind and
 // attributes include message kind, message type, and status (success/error).
-func NewTypedMetrics[M any](adapter MessageAdapter[M], recorder TypedMetricsRecorder) Middleware[M] {
+func NewTypedMetrics[M any](
+	adapter MessageAdapter[M],
+	recorder TypedMetricsRecorder,
+) Middleware[M] {
 	return func(next Handler[M]) Handler[M] {
 		return func(ctx context.Context, msg M) error {
 			start := time.Now()
