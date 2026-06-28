@@ -1,0 +1,22 @@
+# go-arch-lint configuration for the command module (intra-module rules)
+#
+# Run via: scripts/check-arch.sh (from the command/ directory)
+# Enforces package-level dependency rules WITHIN the command module.
+# Cross-module rules are enforced by scripts/check-module-layers.sh.
+
+version: 3
+
+allow:
+  depOnAnyVendor: true
+
+excludeFiles:
+  - "^.*_test\\.go$"
+  - "^.*testdata/.*$"
+
+components:
+  core: { in: . }
+
+deps:
+  core:
+    anyProjectDeps: false
+    anyVendorDeps: true

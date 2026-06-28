@@ -1,0 +1,23 @@
+# go-arch-lint configuration for the kv module (intra-module rules)
+#
+# Run via: scripts/check-arch.sh (from the kv/ directory)
+# Enforces package-level dependency rules WITHIN the kv module.
+# Cross-module rules are enforced by scripts/check-module-layers.sh.
+
+version: 3
+
+allow:
+  depOnAnyVendor: true
+
+excludeFiles:
+  - "^.*_test\\.go$"
+  - "^.*testdata/.*$"
+  - "^viewstoretest/.*$" # test helpers
+
+components:
+  core: { in: . }
+
+deps:
+  core:
+    anyProjectDeps: false
+    anyVendorDeps: true

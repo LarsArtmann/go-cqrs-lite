@@ -1,0 +1,61 @@
+# go-arch-lint configuration for the catalog module (intra-module rules)
+#
+# Run via: scripts/check-arch.sh (from the catalog/ directory)
+# Enforces package-level dependency rules WITHIN the catalog module.
+# Cross-module rules are enforced by scripts/check-module-layers.sh.
+
+version: 3
+
+allow:
+  depOnAnyVendor: true
+
+excludeFiles:
+  - "^.*_test\\.go$"
+  - "^.*testdata/.*$"
+  - "^internal/cattest/.*$" # test helpers
+
+components:
+  core: { in: . }
+  schema: { in: schema }
+  internal: { in: internal/caseutil }
+  asyncapi: { in: asyncapi }
+  openapi: { in: openapi }
+  simple: { in: simple }
+  d2: { in: d2 }
+  eventcatalog: { in: eventcatalog }
+  docserver: { in: docserver }
+
+deps:
+  core:
+    mayDependOn:
+      - schema
+  schema:
+    anyProjectDeps: false
+    anyVendorDeps: true
+  internal:
+    anyProjectDeps: false
+    anyVendorDeps: true
+  asyncapi:
+    mayDependOn:
+      - schema
+      - internal
+  openapi:
+    mayDependOn:
+      - schema
+      - internal
+  simple:
+    mayDependOn:
+      - internal
+  d2:
+    anyProjectDeps: false
+    anyVendorDeps: true
+  eventcatalog:
+    anyProjectDeps: false
+    anyVendorDeps: true
+  docserver:
+    mayDependOn:
+      - asyncapi
+      - d2
+      - eventcatalog
+      - openapi
+      - schema
