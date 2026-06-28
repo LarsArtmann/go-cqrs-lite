@@ -5,7 +5,7 @@ go 1.26.3
 require (
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.1.0
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.1.0
-	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.0.0-20260628031207-f3b6d81aefe7
+	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.0.0-20260628050039-ef852795e9a6
 )
 
 require (
