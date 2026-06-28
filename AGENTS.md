@@ -95,7 +95,7 @@ go-cqrs-lite/
 10. **Multi-module isolation** — Each module has its own `go.mod` with only needed deps.
 11. **Tombstone over delete** — Soft-delete via metadata (TombstoneStatus: Active/Tombstoned/Undetermined). No Delete on Store.
 12. **Dependency budgets** — Per-module direct PRODUCTION dep limits enforced by `nix run .#check-layers`. Test-only packages (gomega, ginkgo, rapid) are excluded from the count. Adding production deps requires explicit budget review.
-13. **OTel through otel/** — Modules import `otel/` re-exports instead of `go.opentelemetry.io` directly. OTel SDK is indirect in decider, storage, middleware go.mod files. The `otel/` module re-exports `Int64Counter`, `AddOption`, `AddSpanEvent()`, `ServiceResourceAttributes()`, `CQRSHistogramBoundaries`, `NewCQRSViews()`, and `CounterAddWithAttributes()` for rate metrics, span events, service identification, histogram customization, and metric views.
+13. **OTel through otel/** — Modules import `otel/` re-exports instead of `go.opentelemetry.io` directly. OTel SDK is indirect in decider, storage, middleware go.mod files. The `otel/` module re-exports `Int64Counter`, `AddOption`, `AddSpanEvent()`, `ServiceResourceAttributes()`, `CQRSHistogramBoundaries`, `NewCQRSViews()`, `CounterAddWithAttributes()`, `Setup()`, `WithStdoutExporter()`, `TextMapPropagator()`, and `Version()` for provider setup, stdout exporters, W3C propagation, and instrumentation scope versioning. Span names follow the `{component}.{action}` convention — see `docs/SPAN_NAMING.md`.
 14. **Zero-copy internal reads** — `PayloadReadOnly(evt)` bypasses `Payload()` clone for read-only paths by accessing the `*ImmutableEvent` field directly (Event is now a concrete type alias, so no assertion is needed). Used by signing (SHA-256 hashing, CloneEvent), pebble (json.Marshal), storage/sql (ExecContext), transport/http/sse (string conversion). Internal-only `payloadForDecode()` and `encodingForCopy()` for same-package paths.
 15. **Defensive clone on all public accessors** — `Payload()` returns `slices.Clone`, `Metadata()` returns `.Clone()`, `EventTypes()` returns `slices.Clone`, `MultiSignature.Get()` returns a copy, `WithCommandMetadata` clones on intake. The `Event` interface documents this contract for third-party implementors.
 16. **Hot-path zero-allocation discipline** — Public API clones stay, but internal hot paths eliminate allocs via: lazy map init (`NewMetadata()` returns zero-value), pre-computed middleware chains (EventBus rebuilds on `Use()`/`UsePublish()` only), cached SQL templates (built once at construction), pre-sized result slices (`make([]T, 0, hint)`), lock-free fast paths (`CircuitBreaker` uses `atomic.Int32`), batch SQL inserts (multi-VALUES with SQLite 999-param chunking). **Lesson learned**: type assertions for fast paths are dead code if users create types via different constructors. Cache at the integration boundary instead.
@@ -211,6 +211,21 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   codec := encryption.NewCodec(codec.JSONCodec{}, enc)
 //   alg := encryption.ExtractAlgorithm(evt)  // "xchacha20-poly1305"
 //   keyID := encryption.ExtractKeyID(evt)    // "key-v1"
+
+// OTel one-call setup + bundle (preferred for new code)
+//   provider, _ := cqrsotel.Setup(
+//       cqrsotel.WithService("my-app", "1.0.0", "instance-1"),
+//       cqrsotel.WithStdoutExporter(os.Stdout), // dev; swap for OTLP in prod
+//   )
+//   defer provider.Shutdown(ctx)
+//   bundle, _ := middleware.NewOTelBundle(
+//       cqrsotel.NewTracer("my-app"), cqrsotel.NewMeter("my-app"),
+//   )
+//   cmdDisp.Use(bundle.Command()...)
+//   bus.Use(bundle.Event()...)
+//   bus.UsePublish(bundle.Publish()...)
+//   qryDisp.Use(bundle.Query()...)
+//   // Tracing-only: pass nil meter + middleware.WithMetricsDisabled()
 
 // OpenTelemetry tracing (opt-in, no-op when no provider configured)
 //   tracer := otel.GetTracerProvider().Tracer("my-app")
@@ -495,6 +510,11 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 // Watermill EventPublisher — cqrs events → Watermill topic (ADR-0028)
 //   pub := watermill.NewEventPublisher(wmPublisher, "events")
 //   repo, _ := decider.NewRepository(store, pub, decider)
+//
+//   // W3C trace context is injected into message metadata on publish.
+//   // Extract on consume to link producer → consumer spans:
+//   //   ctx := watermill.ExtractContext(msg.Context(), msg)
+//   // Or add as router middleware: router.AddMiddleware(watermill.TraceContextMiddleware())
 
 // Watermill CommandBus — command distribution over any broker (ADR-0025)
 //   bus := watermill.NewCommandBus()  // GoChannel (single-process)

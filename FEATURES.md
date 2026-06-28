@@ -263,6 +263,21 @@ Accepts any `MetricsRecorder` interface (`Observe`).
 | `CommandOTelMetrics(meter)`     | Pre-wired OTel metrics for commands                              |
 | `EventOTelMetrics(meter)`       | Pre-wired OTel metrics for events                                |
 | `QueryOTelMetrics(meter)`       | Pre-wired OTel metrics for queries                               |
+| `CommandTypedMetrics(rec)`      | Typed attributes via `attribute.KeyValue` (no string labels)     |
+| `EventTypedMetrics(rec)`        | Same for events                                                  |
+| `QueryTypedMetrics(rec)`        | Same for queries                                                 |
+
+### OTel Bundle ✅
+
+| Feature                  | Detail                                                                              |
+| ------------------------ | ----------------------------------------------------------------------------------- |
+| `NewOTelBundle(tr, met)` | One-call tracing + metrics for all message kinds                                    |
+| `.Command()`             | Spread into `cmdDisp.Use(...)`                                                      |
+| `.Event()`               | Spread into `bus.Use(...)`                                                          |
+| `.Query()`               | Spread into `qryDisp.Use(...)`                                                      |
+| `.Publish()`             | Spread into `bus.UsePublish(...)`                                                   |
+| `.CorrelationEnricher()` | Decider enricher bridging OTel baggage → event metadata                             |
+| `WithMetricsDisabled()`  | Tracing-only mode (nil meter allowed)                                               |
 
 ### HTTP Metrics ❌ REMOVED
 
@@ -296,6 +311,8 @@ Deleted — generic utility with no CQRS dependencies. Use `prometheus/` module 
 | `EventPublishTracing(tracer)` | `"event.publish"`, SpanKindProducer                                 | ✅  |
 
 OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`.
+
+Retry middleware emits `retry.attempt.N` child spans per attempt. See `docs/SPAN_NAMING.md` for the full span naming convention.
 
 ### Trace Logging ✅
 
