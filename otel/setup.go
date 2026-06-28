@@ -1,0 +1,172 @@
+//go:build !js
+
+package otel
+
+import (
+	"context"
+	"fmt"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+)
+
+// SetupOption configures the provider setup.
+type SetupOption func(*setupConfig)
+
+type setupConfig struct {
+	serviceName    string
+	serviceVersion string
+	instanceID     string
+	spanExporter   sdktrace.SpanExporter
+	metricReader   metric.Reader
+	propagator     propagation.TextMapPropagator
+}
+
+// WithService identifies the service in telemetry via resource attributes.
+// serviceName is required for meaningful traces; version and instanceID are optional.
+func WithService(name, version, instanceID string) SetupOption {
+	return func(c *setupConfig) {
+		c.serviceName = name
+		c.serviceVersion = version
+		c.instanceID = instanceID
+	}
+}
+
+// WithSpanExporter attaches a span exporter (OTLP, stdout, Jaeger, etc.).
+// Without one, spans are recorded but not exported — useful for in-memory testing.
+func WithSpanExporter(e sdktrace.SpanExporter) SetupOption {
+	return func(c *setupConfig) {
+		c.spanExporter = e
+	}
+}
+
+// WithMetricReader attaches a metric reader (OTLP, prometheus, stdout, etc.).
+// When omitted, no metric reader is configured.
+func WithMetricReader(r metric.Reader) SetupOption {
+	return func(c *setupConfig) {
+		c.metricReader = r
+	}
+}
+
+// WithPropagator overrides the default W3C (trace-context + baggage) propagator.
+func WithPropagator(p propagation.TextMapPropagator) SetupOption {
+	return func(c *setupConfig) {
+		c.propagator = p
+	}
+}
+
+// Provider wraps TracerProvider and MeterProvider with a unified Shutdown.
+type Provider struct {
+	tracerProvider *sdktrace.TracerProvider
+	meterProvider  *metric.MeterProvider
+}
+
+// AsTracerProvider returns the underlying OTel TracerProvider.
+func (p *Provider) AsTracerProvider() *sdktrace.TracerProvider {
+	return p.tracerProvider
+}
+
+// AsMeterProvider returns the underlying OTel MeterProvider.
+func (p *Provider) AsMeterProvider() *metric.MeterProvider {
+	return p.meterProvider
+}
+
+// Shutdown flushes pending spans and metrics, then releases resources.
+// Always call this on application exit.
+func (p *Provider) Shutdown(ctx context.Context) error {
+	var errs []error
+
+	if err := p.tracerProvider.Shutdown(ctx); err != nil {
+		errs = append(errs, fmt.Errorf("tracer shutdown: %w", err))
+	}
+
+	if err := p.meterProvider.Shutdown(ctx); err != nil {
+		errs = append(errs, fmt.Errorf("meter shutdown: %w", err))
+	}
+
+	if len(errs) > 0 {
+		return fmt.Errorf("shutdown: %v", errs)
+	}
+
+	return nil
+}
+
+// Setup creates and registers TracerProvider and MeterProvider in one call.
+// It configures the W3C propagator, CQRS-optimized histogram views, and a
+// resource identifying the service. The returned Provider owns both providers.
+//
+// Without a span exporter, spans are recorded but not exported — ideal for
+// in-memory testing or when an exporter will be attached later. Attach a
+// real exporter via WithSpanExporter for production.
+//
+// Typical usage:
+//
+//	provider, err := cqrsotel.Setup(
+//	    cqrsotel.WithService("orders", "1.0.0", "instance-1"),
+//	    cqrsotel.WithSpanExporter(otlpExporter),
+//	)
+//	if err != nil {
+//	    return err
+//	}
+//	defer provider.Shutdown(ctx)
+//
+// The global TracerProvider and MeterProvider are set automatically, so
+// cqrsotel.NewTracer("middleware") and cqrsotel.NewMeter("middleware")
+// resolve to these providers without additional wiring.
+func Setup(opts ...SetupOption) (*Provider, error) {
+	cfg := &setupConfig{} //nolint:exhaustruct // options applied below
+
+	for _, opt := range opts {
+		opt(cfg)
+	}
+
+	res, err := buildResource(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	propagator := cfg.propagator
+	if propagator == nil {
+		propagator = NewTextMapPropagator()
+	}
+
+	otel.SetTextMapPropagator(propagator)
+
+	tpOpts := []sdktrace.TracerProviderOption{
+		sdktrace.WithResource(res),
+	}
+
+	if cfg.spanExporter != nil {
+		tpOpts = append(tpOpts, sdktrace.WithBatcher(cfg.spanExporter))
+	}
+
+	tp := sdktrace.NewTracerProvider(tpOpts...)
+
+	mpOpts := []metric.Option{
+		metric.WithResource(res),
+		metric.WithView(NewCQRSViews()...),
+	}
+
+	if cfg.metricReader != nil {
+		mpOpts = append(mpOpts, metric.WithReader(cfg.metricReader))
+	}
+
+	mp := metric.NewMeterProvider(mpOpts...)
+
+	otel.SetTracerProvider(tp)
+	otel.SetMeterProvider(mp)
+
+	return &Provider{tracerProvider: tp, meterProvider: mp}, nil
+}
+
+func buildResource(cfg *setupConfig) (*resource.Resource, error) {
+	attrs := ServiceResourceAttributes(cfg.serviceName, cfg.serviceVersion, cfg.instanceID)
+
+	return resource.New(
+		context.Background(),
+		resource.WithAttributes(attrs...),
+	)
+}
