@@ -36,142 +36,503 @@
         --warning: var(--color-yellow);
 
         --radius: 0px;
-        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
       }
 
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      html { scroll-behavior: smooth; }
-      section[id], [id] { scroll-margin-top: 64px; }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 64px;
+      }
       body {
-        background: var(--surface); color: var(--text);
-        font-family: var(--font-body); font-size: 15px; line-height: 1.6;
-        -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
 
       .top-bar {
-        background: var(--text); color: var(--surface);
-        padding: 0.6rem 2rem; font-family: var(--font-mono); font-size: 0.72rem;
-        font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
-        display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
       }
-      .top-bar .dot { color: var(--color-amber); }
+      .top-bar .dot {
+        color: var(--color-amber);
+      }
 
-      .layout { display: grid; grid-template-columns: 240px 1fr; max-width: 1280px; margin: 0 auto; }
+      .layout {
+        display: grid;
+        grid-template-columns: 240px 1fr;
+        max-width: 1280px;
+        margin: 0 auto;
+      }
       .sidebar {
-        position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto;
-        padding: 1.5rem 1rem 1.5rem 2rem; border-right: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        align-self: start;
+        height: 100vh;
+        overflow-y: auto;
+        padding: 1.5rem 1rem 1.5rem 2rem;
+        border-right: 1px solid var(--border);
       }
-      .sidebar .label { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 0.6rem; }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        margin-bottom: 0.6rem;
+      }
       .sidebar nav a {
-        display: block; padding: 0.35rem 0.6rem; margin-left: -0.6rem;
-        color: var(--text-muted); text-decoration: none; font-size: 0.86rem;
-        border-left: 2px solid transparent; transition: color .15s, border-color .15s, background .15s;
+        display: block;
+        padding: 0.35rem 0.6rem;
+        margin-left: -0.6rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.86rem;
+        border-left: 2px solid transparent;
+        transition:
+          color 0.15s,
+          border-color 0.15s,
+          background 0.15s;
       }
-      .sidebar nav a:hover { color: var(--text); border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
-      .sidebar nav a.active { color: var(--accent); border-left-color: var(--accent); }
+      .sidebar nav a:hover {
+        color: var(--text);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .sidebar nav a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+      }
 
-      .main { padding: 2.5rem 2.5rem 5rem; min-width: 0; }
+      .main {
+        padding: 2.5rem 2.5rem 5rem;
+        min-width: 0;
+      }
 
-      .hero { padding: 1.5rem 0 2.5rem; border-bottom: 1px solid var(--border); margin-bottom: 2.5rem; position: relative; }
+      .hero {
+        padding: 1.5rem 0 2.5rem;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 2.5rem;
+        position: relative;
+      }
       .hero-badge {
-        display: inline-block; background: var(--accent); color: var(--surface);
-        padding: 0.3rem 0.7rem; font-family: var(--font-mono); font-size: 0.7rem;
-        font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 1rem;
+        display: inline-block;
+        background: var(--accent);
+        color: var(--surface);
+        padding: 0.3rem 0.7rem;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        margin-bottom: 1rem;
       }
-      .hero h1 { font-family: var(--font-heading); font-size: 2.4rem; font-weight: 900; line-height: 1.1; letter-spacing: -0.02em; max-width: 22ch; }
-      .hero-subtitle { color: var(--text-muted); margin-top: 0.8rem; max-width: 60ch; font-size: 1.02rem; }
-      .hero-meta { margin-top: 1.1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
-      .tag { font-family: var(--font-mono); font-size: 0.72rem; padding: 0.2rem 0.55rem; border: 1px solid var(--border-strong); color: var(--text-muted); }
-      .tag.amber { color: var(--accent); border-color: var(--accent); }
+      .hero h1 {
+        font-family: var(--font-heading);
+        font-size: 2.4rem;
+        font-weight: 900;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+        max-width: 22ch;
+      }
+      .hero-subtitle {
+        color: var(--text-muted);
+        margin-top: 0.8rem;
+        max-width: 60ch;
+        font-size: 1.02rem;
+      }
+      .hero-meta {
+        margin-top: 1.1rem;
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+      .tag {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .tag.amber {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
 
-      h2 { font-family: var(--font-heading); font-size: 1.5rem; font-weight: 800; letter-spacing: -0.01em; margin: 3rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; gap: 0.7rem; }
-      h2 .num { font-family: var(--font-mono); font-size: 0.95rem; color: var(--accent); font-weight: 700; }
-      h3 { font-family: var(--font-heading); font-size: 1.08rem; font-weight: 700; margin: 1.4rem 0 0.5rem; }
-      p { margin-bottom: 0.7rem; color: var(--text); }
-      p.muted { color: var(--text-muted); }
-      ul { margin: 0.4rem 0 1rem 1.3rem; }
-      li { margin-bottom: 0.35rem; }
-      li.muted { color: var(--text-muted); }
-      a { color: var(--solution); }
-      code, .mono { font-family: var(--font-mono); font-size: 0.86em; }
-      .where { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-faint); margin: 0.2rem 0 0.4rem; }
-      pre { background: var(--surface-sunken); padding: 0.9rem 1rem; overflow-x: auto; border-left: 2px solid var(--border-strong); font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.5; margin: 0.7rem 0 1.1rem; }
-      pre code { color: var(--text); }
+      h2 {
+        font-family: var(--font-heading);
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        margin: 3rem 0 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.95rem;
+        color: var(--accent);
+        font-weight: 700;
+      }
+      h3 {
+        font-family: var(--font-heading);
+        font-size: 1.08rem;
+        font-weight: 700;
+        margin: 1.4rem 0 0.5rem;
+      }
+      p {
+        margin-bottom: 0.7rem;
+        color: var(--text);
+      }
+      p.muted {
+        color: var(--text-muted);
+      }
+      ul {
+        margin: 0.4rem 0 1rem 1.3rem;
+      }
+      li {
+        margin-bottom: 0.35rem;
+      }
+      li.muted {
+        color: var(--text-muted);
+      }
+      a {
+        color: var(--solution);
+      }
+      code,
+      .mono {
+        font-family: var(--font-mono);
+        font-size: 0.86em;
+      }
+      .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.4rem;
+      }
+      pre {
+        background: var(--surface-sunken);
+        padding: 0.9rem 1rem;
+        overflow-x: auto;
+        border-left: 2px solid var(--border-strong);
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.5;
+        margin: 0.7rem 0 1.1rem;
+      }
+      pre code {
+        color: var(--text);
+      }
 
-      .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.8rem; margin: 1rem 0 2rem; }
-      .stat-card { background: var(--surface-raised); padding: 1.1rem 1.1rem; border-left: 3px solid var(--border-strong); }
-      .stat-card.stat-good { border-left-color: var(--solution); }
-      .stat-card.stat-warn { border-left-color: var(--warning); }
-      .stat-card.stat-bad { border-left-color: var(--problem); }
-      .stat-value { font-family: var(--font-heading); font-size: 2rem; font-weight: 900; line-height: 1; }
-      .stat-value.good { color: var(--solution); }
-      .stat-value.warn { color: var(--warning); }
-      .stat-value.bad { color: var(--problem); }
-      .stat-label { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-faint); margin-top: 0.45rem; }
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.8rem;
+        margin: 1rem 0 2rem;
+      }
+      .stat-card {
+        background: var(--surface-raised);
+        padding: 1.1rem 1.1rem;
+        border-left: 3px solid var(--border-strong);
+      }
+      .stat-card.stat-good {
+        border-left-color: var(--solution);
+      }
+      .stat-card.stat-warn {
+        border-left-color: var(--warning);
+      }
+      .stat-card.stat-bad {
+        border-left-color: var(--problem);
+      }
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 900;
+        line-height: 1;
+      }
+      .stat-value.good {
+        color: var(--solution);
+      }
+      .stat-value.warn {
+        color: var(--warning);
+      }
+      .stat-value.bad {
+        color: var(--problem);
+      }
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        margin-top: 0.45rem;
+      }
 
-      .card { background: var(--surface-raised); padding: 1.1rem 1.3rem; margin-bottom: 0.8rem; border-left: 3px solid var(--border-strong); }
-      .card-problem { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 7%, var(--surface-raised)); }
-      .card-solution { border-left-color: var(--solution); }
-      .card-warning { border-left-color: var(--warning); }
-      .card h4 { font-family: var(--font-heading); font-size: 1rem; font-weight: 700; margin-bottom: 0.3rem; }
-      .card p:last-child, .card ul:last-child { margin-bottom: 0; }
+      .card {
+        background: var(--surface-raised);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 0.8rem;
+        border-left: 3px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 7%, var(--surface-raised));
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+      .card h4 {
+        font-family: var(--font-heading);
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 0.3rem;
+      }
+      .card p:last-child,
+      .card ul:last-child {
+        margin-bottom: 0;
+      }
 
-      .issue { background: var(--surface-raised); padding: 1rem 1.2rem; margin-bottom: 0.8rem; border-left: 3px solid var(--border-strong); }
-      .issue-critical { border-left-color: var(--problem); }
-      .issue-important { border-left-color: var(--warning); }
-      .issue-nice { border-left-color: var(--solution); }
-      .severity { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.2rem 0.5rem; display: inline-block; margin-bottom: 0.5rem; }
-      .severity-critical { background: var(--problem); color: var(--surface); }
-      .severity-important { background: var(--warning); color: var(--surface); }
-      .severity-nice { background: var(--solution); color: var(--surface); }
-      .issue h3 { margin-top: 0; }
+      .issue {
+        background: var(--surface-raised);
+        padding: 1rem 1.2rem;
+        margin-bottom: 0.8rem;
+        border-left: 3px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .severity {
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.5rem;
+        display: inline-block;
+        margin-bottom: 0.5rem;
+      }
+      .severity-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--surface);
+      }
+      .severity-nice {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .issue h3 {
+        margin-top: 0;
+      }
 
-      .callout { background: color-mix(in srgb, var(--solution) 8%, transparent); border-left: 3px solid var(--solution); padding: 0.9rem 1.1rem; margin: 1rem 0; }
-      .callout-solution { background: color-mix(in srgb, var(--solution) 10%, transparent); border-left-color: var(--solution); }
-      .callout-warning { background: color-mix(in srgb, var(--warning) 12%, transparent); border-left-color: var(--warning); }
-      .callout-problem { background: color-mix(in srgb, var(--problem) 10%, transparent); border-left-color: var(--problem); }
+      .callout {
+        background: color-mix(in srgb, var(--solution) 8%, transparent);
+        border-left: 3px solid var(--solution);
+        padding: 0.9rem 1.1rem;
+        margin: 1rem 0;
+      }
+      .callout-solution {
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+        border-left-color: var(--solution);
+      }
+      .callout-warning {
+        background: color-mix(in srgb, var(--warning) 12%, transparent);
+        border-left-color: var(--warning);
+      }
+      .callout-problem {
+        background: color-mix(in srgb, var(--problem) 10%, transparent);
+        border-left-color: var(--problem);
+      }
 
-      .badge { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; padding: 0.15rem 0.45rem; letter-spacing: 0.04em; border: 1px solid var(--border-strong); white-space: nowrap; }
-      .badge-critical { color: var(--problem); border-color: var(--problem); background: color-mix(in srgb, var(--problem) 12%, transparent); }
-      .badge-high { color: var(--warning); border-color: var(--warning); }
-      .badge-medium { color: var(--accent); border-color: var(--accent); }
-      .badge-low { color: var(--text-muted); border-color: var(--border-strong); }
-      .badge-fixed { color: var(--solution); border-color: var(--solution); }
-      .badge-done { color: var(--solution); border-color: var(--solution); background: color-mix(in srgb, var(--solution) 12%, transparent); }
+      .badge {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        padding: 0.15rem 0.45rem;
+        letter-spacing: 0.04em;
+        border: 1px solid var(--border-strong);
+        white-space: nowrap;
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 12%, transparent);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+        border-color: var(--border-strong);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+      .badge-done {
+        color: var(--solution);
+        border-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 12%, transparent);
+      }
 
-      table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.88rem; }
-      th { text-align: left; font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-faint); padding: 0.6rem 0.7rem; border-bottom: 1px solid var(--border-strong); }
-      td { padding: 0.6rem 0.7rem; border-bottom: 1px solid var(--border); vertical-align: top; }
-      tbody tr:hover { background: color-mix(in srgb, var(--accent) 5%, transparent); }
-      td.rank { font-family: var(--font-mono); color: var(--accent); font-weight: 700; width: 2.4rem; }
-      .task { font-weight: 600; }
-      .task-sub { color: var(--text-muted); font-size: 0.82rem; }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.88rem;
+      }
+      th {
+        text-align: left;
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        padding: 0.6rem 0.7rem;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.7rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      tbody tr:hover {
+        background: color-mix(in srgb, var(--accent) 5%, transparent);
+      }
+      td.rank {
+        font-family: var(--font-mono);
+        color: var(--accent);
+        font-weight: 700;
+        width: 2.4rem;
+      }
+      .task {
+        font-weight: 600;
+      }
+      .task-sub {
+        color: var(--text-muted);
+        font-size: 0.82rem;
+      }
 
-      .strengths { margin: 0.5rem 0 1.5rem; }
-      .strength { display: flex; gap: 0.8rem; padding: 0.7rem 0; border-bottom: 1px solid var(--border); }
-      .strength .check { font-family: var(--font-mono); color: var(--solution); font-weight: 800; flex-shrink: 0; }
-      .strength .text strong { display: block; margin-bottom: 0.1rem; }
-      .strength .text span { color: var(--text-muted); font-size: 0.9rem; }
+      .strengths {
+        margin: 0.5rem 0 1.5rem;
+      }
+      .strength {
+        display: flex;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        color: var(--solution);
+        font-weight: 800;
+        flex-shrink: 0;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.1rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
 
-      .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-      @media (max-width: 760px) { .grid-2 { grid-template-columns: 1fr; } }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+      @media (max-width: 760px) {
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+      }
 
-      .footer { border-top: 1px solid var(--border); margin-top: 3rem; padding-top: 1.2rem; font-family: var(--font-mono); font-size: 0.76rem; color: var(--text-faint); }
+      .footer {
+        border-top: 1px solid var(--border);
+        margin-top: 3rem;
+        padding-top: 1.2rem;
+        font-family: var(--font-mono);
+        font-size: 0.76rem;
+        color: var(--text-faint);
+      }
 
       @media (max-width: 1023px) {
-        .layout { grid-template-columns: 1fr; }
-        .sidebar { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); padding: 1rem 1.5rem; }
-        .main { padding: 1.5rem; }
-        .hero h1 { font-size: 1.8rem; }
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        .sidebar {
+          position: static;
+          height: auto;
+          border-right: none;
+          border-bottom: 1px solid var(--border);
+          padding: 1rem 1.5rem;
+        }
+        .main {
+          padding: 1.5rem;
+        }
+        .hero h1 {
+          font-size: 1.8rem;
+        }
       }
     </style>
   </head>
   <body>
     <div class="top-bar">
       <span>go-cqrs-lite <span class="dot">/</span> status dashboard</span>
-      <span>2026-06-28 01:10 CEST <span class="dot">/</span> v3.1.0 <span class="dot">/</span> snapshot</span>
+      <span
+        >2026-06-28 01:10 CEST <span class="dot">/</span> v3.1.0
+        <span class="dot">/</span> snapshot</span
+      >
     </div>
 
     <div class="layout">
@@ -195,9 +556,9 @@
           <h1>Where the library stands, right now.</h1>
           <p class="hero-subtitle">
             A point-in-time audit of go-cqrs-lite — a CQRS/Event Sourcing SDK of
-            <strong>44 Go modules</strong>, 910 Go files, ~122k LOC. Triggered after a full
-            review of every <code>doc.go</code> in the repo. Everything below is grounded in
-            live build/vet output, FEATURES.md, TODO_LIST.md, ROADMAP.md, and git history.
+            <strong>44 Go modules</strong>, 910 Go files, ~122k LOC. Triggered after a full review
+            of every <code>doc.go</code> in the repo. Everything below is grounded in live build/vet
+            output, FEATURES.md, TODO_LIST.md, ROADMAP.md, and git history.
           </p>
           <div class="hero-meta">
             <span class="tag amber">Trigger: doc.go review</span>
@@ -211,18 +572,42 @@
           <h2><span class="num">00</span>Snapshot</h2>
           <p class="muted">Headline metrics, taken live from the working tree on 2026-06-28.</p>
           <div class="stat-grid">
-            <div class="stat-card stat-good"><div class="stat-value good">44</div><div class="stat-label">Go modules</div></div>
-            <div class="stat-card"><div class="stat-value">122k</div><div class="stat-label">Go LOC</div></div>
-            <div class="stat-card"><div class="stat-value">441</div><div class="stat-label">Test files</div></div>
-            <div class="stat-card stat-good"><div class="stat-value good">0</div><div class="stat-label">Lint findings</div></div>
-            <div class="stat-card stat-good"><div class="stat-value good">EXIT 0</div><div class="stat-label">Workspace build</div></div>
-            <div class="stat-card stat-bad"><div class="stat-value bad">1</div><div class="stat-label">Module fails isolation</div></div>
-            <div class="stat-card stat-warn"><div class="stat-value warn">78.7%</div><div class="stat-label">Coverage (workspace)</div></div>
-            <div class="stat-card"><div class="stat-value">19</div><div class="stat-label">doc.go files fixed this session</div></div>
+            <div class="stat-card stat-good">
+              <div class="stat-value good">44</div>
+              <div class="stat-label">Go modules</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">122k</div>
+              <div class="stat-label">Go LOC</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">441</div>
+              <div class="stat-label">Test files</div>
+            </div>
+            <div class="stat-card stat-good">
+              <div class="stat-value good">0</div>
+              <div class="stat-label">Lint findings</div>
+            </div>
+            <div class="stat-card stat-good">
+              <div class="stat-value good">EXIT 0</div>
+              <div class="stat-label">Workspace build</div>
+            </div>
+            <div class="stat-card stat-bad">
+              <div class="stat-value bad">1</div>
+              <div class="stat-label">Module fails isolation</div>
+            </div>
+            <div class="stat-card stat-warn">
+              <div class="stat-value warn">78.7%</div>
+              <div class="stat-label">Coverage (workspace)</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">19</div>
+              <div class="stat-label">doc.go files fixed this session</div>
+            </div>
           </div>
           <div class="callout callout-solution">
-            <strong>Headline:</strong> the library is in strong shape — every core CQRS/ES
-            primitive ships, the workspace builds and lints clean, and v3.1.0 is tagged.
+            <strong>Headline:</strong> the library is in strong shape — every core CQRS/ES primitive
+            ships, the workspace builds and lints clean, and v3.1.0 is tagged.
             <strong>But one module (signing) is silently broken under per-module isolation</strong>,
             and the recent doc.go review surfaced that documentation drift had gone unguarded.
           </div>
@@ -233,14 +618,90 @@
           <p>Shipped, tested, production-grade — no known issues.</p>
 
           <div class="strengths">
-            <div class="strength"><div class="check">+</div><div class="text"><strong>All 54 doc.go files reviewed &amp; fixed (this session)</strong><span>4 accuracy bugs corrected (decider, storage/pebble, transport/grpc, storage/sql) + 15 placeholder "Package X provides ..." stubs filled with real descriptions grounded in code. Build + vet + gofmt verified.</span></div></div>
-            <div class="strength"><div class="check">+</div><div class="text"><strong>All 11 v3 breaking changes landed</strong><span>Event immutability, Decider.Fold→Apply, event.Event concrete type, metadata split (ADR-0031), Tombstone model, projection→Materialize+CatchUpSubscriber, readmodel→kv (ADR-0032), and more. v3.0.0 + v3.1.0 tagged.</span></div></div>
-            <div class="strength"><div class="check">+</div><div class="text"><strong>Core CQRS/ES primitives complete</strong><span>event, command, query, decider, id, dispatcher, snapshot, schema, codec, kv, catalog — all FULLY_FUNCTIONAL per FEATURES.md, 84–98% coverage on core modules.</span></div></div>
-            <div class="strength"><div class="check">+</div><div class="text"><strong>Relational + Graph projection tiers (ADR-0033)</strong><span>storage.RelationalProjection (multi-table, dialect-agnostic) and graph.GraphProjection (nodes+edges for traversal) shipped in recent commits. The third projection tier alongside Materialize.</span></div></div>
-            <div class="strength"><div class="check">+</div><div class="text"><strong>Security: signing + encryption</strong><span>HMAC-SHA256, Ed25519, multisig (multi-party); XChaCha20-Poly1305 + AES-256-GCM, HKDF key derivation, composable codec wrapper.</span></div></div>
-            <div class="strength"><div class="check">+</div><div class="text"><strong>Bundle composition + 4 stack presets</strong><span>memory, sqlite, pebble, postgres — ISP-honest fields, pointer-deduplicated Close(), multi-DB split.</span></div></div>
-            <div class="strength"><div class="check">+</div><div class="text"><strong>Auto-documentation catalog</strong><span>AsyncAPI 3.0, OpenAPI 3.0.3, D2 diagrams, EventCatalog exporters — all with real doc.go descriptions now.</span></div></div>
-            <div class="strength"><div class="check">+</div><div class="text"><strong>0 lint findings, clean workspace build, 36 ADRs</strong><span>Observability (OTel + Prometheus), WASM (7/7 core modules), Watermill EventBus, SSE + gRPC transports, CatchUpSubscriber replay→live handoff.</span></div></div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>All 54 doc.go files reviewed &amp; fixed (this session)</strong
+                ><span
+                  >4 accuracy bugs corrected (decider, storage/pebble, transport/grpc, storage/sql)
+                  + 15 placeholder "Package X provides ..." stubs filled with real descriptions
+                  grounded in code. Build + vet + gofmt verified.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>All 11 v3 breaking changes landed</strong
+                ><span
+                  >Event immutability, Decider.Fold→Apply, event.Event concrete type, metadata split
+                  (ADR-0031), Tombstone model, projection→Materialize+CatchUpSubscriber,
+                  readmodel→kv (ADR-0032), and more. v3.0.0 + v3.1.0 tagged.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Core CQRS/ES primitives complete</strong
+                ><span
+                  >event, command, query, decider, id, dispatcher, snapshot, schema, codec, kv,
+                  catalog — all FULLY_FUNCTIONAL per FEATURES.md, 84–98% coverage on core
+                  modules.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Relational + Graph projection tiers (ADR-0033)</strong
+                ><span
+                  >storage.RelationalProjection (multi-table, dialect-agnostic) and
+                  graph.GraphProjection (nodes+edges for traversal) shipped in recent commits. The
+                  third projection tier alongside Materialize.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Security: signing + encryption</strong
+                ><span
+                  >HMAC-SHA256, Ed25519, multisig (multi-party); XChaCha20-Poly1305 + AES-256-GCM,
+                  HKDF key derivation, composable codec wrapper.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Bundle composition + 4 stack presets</strong
+                ><span
+                  >memory, sqlite, pebble, postgres — ISP-honest fields, pointer-deduplicated
+                  Close(), multi-DB split.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Auto-documentation catalog</strong
+                ><span
+                  >AsyncAPI 3.0, OpenAPI 3.0.3, D2 diagrams, EventCatalog exporters — all with real
+                  doc.go descriptions now.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>0 lint findings, clean workspace build, 36 ADRs</strong
+                ><span
+                  >Observability (OTel + Prometheus), WASM (7/7 core modules), Watermill EventBus,
+                  SSE + gRPC transports, CatchUpSubscriber replay→live handoff.</span
+                >
+              </div>
+            </div>
           </div>
         </section>
 
@@ -250,23 +711,46 @@
 
           <div class="card card-warning">
             <h4>transport/grpc — builds, but NOT in go.work</h4>
-            <p class="muted">The gRPC transport (ADR-0025) builds clean under <code>GOWORK=off</code> but cannot join <code>go.work</code> due to the genproto conflict (cockroachdb/errors vs grpc's split genproto). 43 of 44 modules are wired into go.work; this is the lone holdout. Its doc.go also used the deprecated <code>grpc.Dial</code> API — fixed this session.</p>
+            <p class="muted">
+              The gRPC transport (ADR-0025) builds clean under <code>GOWORK=off</code> but cannot
+              join <code>go.work</code> due to the genproto conflict (cockroachdb/errors vs grpc's
+              split genproto). 43 of 44 modules are wired into go.work; this is the lone holdout.
+              Its doc.go also used the deprecated <code>grpc.Dial</code> API — fixed this session.
+            </p>
           </div>
           <div class="card card-warning">
             <h4>Stack presets — happy-path coverage only</h4>
-            <p class="muted">Bundle layer coverage sits 0–87%. Presets emphasise the shared contract suite + happy paths, so constructor error branches are lighter. <strong>stack/postgres shows 0% locally</strong> because its tests skip without <code>POSTGRES_TEST_DSN</code> — it is not actually untested, but the number is misleading without CI.</p>
+            <p class="muted">
+              Bundle layer coverage sits 0–87%. Presets emphasise the shared contract suite + happy
+              paths, so constructor error branches are lighter.
+              <strong>stack/postgres shows 0% locally</strong> because its tests skip without
+              <code>POSTGRES_TEST_DSN</code> — it is not actually untested, but the number is
+              misleading without CI.
+            </p>
           </div>
           <div class="card card-warning">
             <h4>Newer / mid-tier modules — coverage below the core</h4>
-            <p class="muted">Core modules hit 84–98%, but kv (70.2%), codec (76.0%), snapshot (81.1%), query (83.9%) lag. The brand-new graph tier has no coverage number published yet. Workspace total: 78.7%.</p>
+            <p class="muted">
+              Core modules hit 84–98%, but kv (70.2%), codec (76.0%), snapshot (81.1%), query
+              (83.9%) lag. The brand-new graph tier has no coverage number published yet. Workspace
+              total: 78.7%.
+            </p>
           </div>
           <div class="card card-warning">
             <h4>Relational &amp; Graph projection tiers — shipped, unvalidated</h4>
-            <p class="muted">Both new tiers landed in the last few commits and have docs + examples, but there is no real consumer (the repo is a library — consumers live externally). API stability is unproven until an external project exercises them.</p>
+            <p class="muted">
+              Both new tiers landed in the last few commits and have docs + examples, but there is
+              no real consumer (the repo is a library — consumers live externally). API stability is
+              unproven until an external project exercises them.
+            </p>
           </div>
           <div class="card card-warning">
             <h4>jsonv2 + arena experiments — behind build tags, stdlib-blocked</h4>
-            <p class="muted"><code>codec/jsonv2_experiment.go</code> and <code>event/arena_experiment.go</code> exist behind <code>goexperiment.*</code> tags (ADR-0026). Pending Go stdlib stabilisation — not on any default build path.</p>
+            <p class="muted">
+              <code>codec/jsonv2_experiment.go</code> and
+              <code>event/arena_experiment.go</code> exist behind <code>goexperiment.*</code> tags
+              (ADR-0026). Pending Go stdlib stabilisation — not on any default build path.
+            </p>
           </div>
         </section>
 
@@ -274,16 +758,49 @@
           <h2><span class="num">c</span>Not Started</h2>
           <p>Accepted in ADRs or ROADMAP, but zero implementation code.</p>
           <div class="grid-2">
-            <div class="card"><h4>transport/nats</h4><p class="muted">JetStream pub/sub. ADR-0025 accepted.</p></div>
-            <div class="card"><h4>transport/redis</h4><p class="muted">Redis Streams pub/sub. ADR-0025 accepted.</p></div>
-            <div class="card"><h4>Hot-State cache (decider)</h4><p class="muted">Optional RepositoryOption keyed by (aggID, version). Profile-first item.</p></div>
-            <div class="card"><h4>Read-pressure snapshot strategy</h4><p class="muted">Snapshot on load frequency, not just write count.</p></div>
-            <div class="card"><h4>Secondary indexes / ranged scans</h4><p class="muted">Today Scan filters in memory; large read-model sets need indexed reads.</p></div>
-            <div class="card"><h4>Surface Pebble Checkpoint from presets</h4><p class="muted">Backup primitive exists in Backend but not surfaced through stack presets.</p></div>
-            <div class="card"><h4>Graceful shutdown from presets</h4><p class="muted">Bundle.GracefulClose exists but isn't surfaced as a preset ergonomics.</p></div>
-            <div class="card"><h4>CQRS-lite dashboard (web UI)</h4><p class="muted">Inspect aggregates/events/projections. Raw idea, no design.</p></div>
+            <div class="card">
+              <h4>transport/nats</h4>
+              <p class="muted">JetStream pub/sub. ADR-0025 accepted.</p>
+            </div>
+            <div class="card">
+              <h4>transport/redis</h4>
+              <p class="muted">Redis Streams pub/sub. ADR-0025 accepted.</p>
+            </div>
+            <div class="card">
+              <h4>Hot-State cache (decider)</h4>
+              <p class="muted">
+                Optional RepositoryOption keyed by (aggID, version). Profile-first item.
+              </p>
+            </div>
+            <div class="card">
+              <h4>Read-pressure snapshot strategy</h4>
+              <p class="muted">Snapshot on load frequency, not just write count.</p>
+            </div>
+            <div class="card">
+              <h4>Secondary indexes / ranged scans</h4>
+              <p class="muted">
+                Today Scan filters in memory; large read-model sets need indexed reads.
+              </p>
+            </div>
+            <div class="card">
+              <h4>Surface Pebble Checkpoint from presets</h4>
+              <p class="muted">
+                Backup primitive exists in Backend but not surfaced through stack presets.
+              </p>
+            </div>
+            <div class="card">
+              <h4>Graceful shutdown from presets</h4>
+              <p class="muted">
+                Bundle.GracefulClose exists but isn't surfaced as a preset ergonomics.
+              </p>
+            </div>
+            <div class="card">
+              <h4>CQRS-lite dashboard (web UI)</h4>
+              <p class="muted">Inspect aggregates/events/projections. Raw idea, no design.</p>
+            </div>
           </div>
-          <div class="card"><h4>Longer-shot raw ideas (no design)</h4>
+          <div class="card">
+            <h4>Longer-shot raw ideas (no design)</h4>
             <ul>
               <li>Event stream compaction / log truncation</li>
               <li>Multi-tenant event store (schema-per-tenant)</li>
@@ -303,38 +820,81 @@
             <span class="severity severity-critical">Critical · verified</span>
             <h3>signing module fails per-module build &amp; test (GOWORK=off)</h3>
             <div class="where">signing/internal/testutil/testutil.go:8 · signing/go.mod</div>
-            <p><code>signing/internal/testutil/testutil.go</code> imports <code>github.com/larsartmann/go-cqrs-lite/event/v3/eventtest</code> (line 8). But <code>signing/go.mod</code> only requires <code>event/v3</code> — <strong>eventtest is a separate module with its own go.mod</strong>, and it is missing from signing's dependency list.</p>
-            <p>Verified: <code>cd signing &amp;&amp; GOWORK=off go test ./...</code> → <code>FAIL ... [setup failed]</code>. The workspace hides this because go.work resolves everything transitively.</p>
-            <div class="callout callout-solution"><strong>Fix (trivial):</strong> <code>cd signing &amp;&amp; GOWORK=off go get github.com/larsartmann/go-cqrs-lite/event/v3/eventtest</code> then tidy. This violates the project's stated principle #10 (multi-module isolation) and the CI claim of "GOWORK=off per-module".</div>
+            <p>
+              <code>signing/internal/testutil/testutil.go</code> imports
+              <code>github.com/larsartmann/go-cqrs-lite/event/v3/eventtest</code> (line 8). But
+              <code>signing/go.mod</code> only requires <code>event/v3</code> —
+              <strong>eventtest is a separate module with its own go.mod</strong>, and it is missing
+              from signing's dependency list.
+            </p>
+            <p>
+              Verified: <code>cd signing &amp;&amp; GOWORK=off go test ./...</code> →
+              <code>FAIL ... [setup failed]</code>. The workspace hides this because go.work
+              resolves everything transitively.
+            </p>
+            <div class="callout callout-solution">
+              <strong>Fix (trivial):</strong>
+              <code
+                >cd signing &amp;&amp; GOWORK=off go get
+                github.com/larsartmann/go-cqrs-lite/event/v3/eventtest</code
+              >
+              then tidy. This violates the project's stated principle #10 (multi-module isolation)
+              and the CI claim of "GOWORK=off per-module".
+            </div>
           </div>
 
           <div class="issue issue-critical">
             <span class="severity severity-critical">Critical · docs drift</span>
             <h3>15 doc.go placeholders existed silently — no guard</h3>
-            <div class="where">catalog/*, example/todo/*, integration/simulation, signing/internal/testutil, transport/grpc/proto</div>
-            <p>15 packages shipped with <code>// Package X provides ...</code> stubs (the <code>goimports</code> default). This is the exact failure mode that triggered this review. There is no CI check to catch it, so it will recur.</p>
-            <div class="callout callout-warning"><strong>Watch out:</strong> fixed for now, but without a guard the next contributor's <code>goimports</code> will regenerate the stubs. Add a lint check (see Top&nbsp;25 #2).</div>
+            <div class="where">
+              catalog/*, example/todo/*, integration/simulation, signing/internal/testutil,
+              transport/grpc/proto
+            </div>
+            <p>
+              15 packages shipped with <code>// Package X provides ...</code> stubs (the
+              <code>goimports</code> default). This is the exact failure mode that triggered this
+              review. There is no CI check to catch it, so it will recur.
+            </p>
+            <div class="callout callout-warning">
+              <strong>Watch out:</strong> fixed for now, but without a guard the next contributor's
+              <code>goimports</code> will regenerate the stubs. Add a lint check (see Top&nbsp;25
+              #2).
+            </div>
           </div>
 
           <div class="issue issue-important">
             <span class="severity severity-important">Blocked upstream</span>
             <h3>transport/grpc cannot join go.work (genproto conflict)</h3>
             <div class="where">cockroachdb/errors#79 · grpc v1.81.1 split genproto</div>
-            <p><code>transport/grpc</code> builds only under <code>GOWORK=off</code>. <code>cockroachdb/pebble</code> → <code>cockroachdb/errors</code> pulls the monolithic <code>google.golang.org/genproto</code>, which conflicts with grpc v1.81.1's split <code>genproto/googleapis/rpc</code>. Tracked, documented, but it means the workspace is 1 module short of "everything wired".</p>
+            <p>
+              <code>transport/grpc</code> builds only under <code>GOWORK=off</code>.
+              <code>cockroachdb/pebble</code> → <code>cockroachdb/errors</code> pulls the monolithic
+              <code>google.golang.org/genproto</code>, which conflicts with grpc v1.81.1's split
+              <code>genproto/googleapis/rpc</code>. Tracked, documented, but it means the workspace
+              is 1 module short of "everything wired".
+            </p>
           </div>
 
           <div class="issue issue-important">
             <span class="severity severity-important">Docs drift</span>
             <h3>TODO_LIST.md "Updated" date is stale</h3>
             <div class="where">TODO_LIST.md:3</div>
-            <p>Says <strong>"Updated: 2026-06-22"</strong>, but ROADMAP.md and the v3.1.0 tag are 2026-06-25, and relational/graph tiers (post-06-25) aren't reflected. The doc-hygiene the doc.go review exposed applies to the tracking docs too.</p>
+            <p>
+              Says <strong>"Updated: 2026-06-22"</strong>, but ROADMAP.md and the v3.1.0 tag are
+              2026-06-25, and relational/graph tiers (post-06-25) aren't reflected. The doc-hygiene
+              the doc.go review exposed applies to the tracking docs too.
+            </p>
           </div>
 
           <div class="issue issue-important">
             <span class="severity severity-important">Hygiene</span>
             <h3>118 .md status reports accumulated in docs/status/</h3>
             <div class="where">docs/status/ (118 .md + 11 .html)</div>
-            <p>Point-in-time reports are write-once snapshots, but they've never been archived. The directory is noisy and makes the most recent signal hard to find. This very report is HTML per the status-report skill convention; most older ones are .md.</p>
+            <p>
+              Point-in-time reports are write-once snapshots, but they've never been archived. The
+              directory is noisy and makes the most recent signal hard to find. This very report is
+              HTML per the status-report skill convention; most older ones are .md.
+            </p>
           </div>
         </section>
 
@@ -342,27 +902,50 @@
           <h2><span class="num">e</span>What We Should Improve</h2>
           <div class="card card-problem">
             <h4>Make per-module isolation CI-enforced for ALL modules</h4>
-            <p class="muted">The signing bug proves "GOWORK=off per-module" is either not run for every module or its failure is not gating. Isolation is principle #10 — it should be a hard gate, not an aspiration. Audit the CI matrix.</p>
+            <p class="muted">
+              The signing bug proves "GOWORK=off per-module" is either not run for every module or
+              its failure is not gating. Isolation is principle #10 — it should be a hard gate, not
+              an aspiration. Audit the CI matrix.
+            </p>
           </div>
           <div class="card card-problem">
             <h4>Add a "no placeholder doc.go" lint guard</h4>
-            <p class="muted">A trivial grep for <code>// Package \w+ provides \.\.\.</code> failing CI would have caught all 15 stubs instantly. Documentation quality is part of the "would a consumer trust this?" gate.</p>
+            <p class="muted">
+              A trivial grep for <code>// Package \w+ provides \.\.\.</code> failing CI would have
+              caught all 15 stubs instantly. Documentation quality is part of the "would a consumer
+              trust this?" gate.
+            </p>
           </div>
           <div class="card card-warning">
             <h4>Treat doc accuracy as testable</h4>
-            <p class="muted">The doc.go review found 4 examples that wouldn't compile (pebble) or referenced renamed APIs (grpc.Dial). A <code>go test</code>-extracted "doc examples compile" check (àla testable examples) would harden every code block in doc comments.</p>
+            <p class="muted">
+              The doc.go review found 4 examples that wouldn't compile (pebble) or referenced
+              renamed APIs (grpc.Dial). A <code>go test</code>-extracted "doc examples compile"
+              check (àla testable examples) would harden every code block in doc comments.
+            </p>
           </div>
           <div class="card card-warning">
             <h4>Audit all modules for the same missing-subpackage-dep class of bug</h4>
-            <p class="muted">If signing is missing eventtest, other modules may be missing idtest/querytest/eventtest. Run <code>GOWORK=off go build ./...</code> for every module and capture which fail.</p>
+            <p class="muted">
+              If signing is missing eventtest, other modules may be missing
+              idtest/querytest/eventtest. Run <code>GOWORK=off go build ./...</code> for every
+              module and capture which fail.
+            </p>
           </div>
           <div class="card card-warning">
             <h4>Coverage honesty for stack/postgres</h4>
-            <p class="muted">0% local coverage misleads. Either run postgres tests in CI with a live DSN, or label the module's coverage as "skipped locally" in FEATURES.md so the number isn't read as "untested".</p>
+            <p class="muted">
+              0% local coverage misleads. Either run postgres tests in CI with a live DSN, or label
+              the module's coverage as "skipped locally" in FEATURES.md so the number isn't read as
+              "untested".
+            </p>
           </div>
           <div class="card">
             <h4>Reconcile &amp; date tracking docs on every release</h4>
-            <p class="muted">TODO_LIST, FEATURES, ROADMAP "Updated" dates drifted by 3+ days. Tie a doc-freshness check to the release process.</p>
+            <p class="muted">
+              TODO_LIST, FEATURES, ROADMAP "Updated" dates drifted by 3+ days. Tie a doc-freshness
+              check to the release process.
+            </p>
           </div>
         </section>
 
@@ -371,34 +954,244 @@
           <p class="muted">Sorted by impact × urgency. Badges encode priority.</p>
           <table>
             <thead>
-              <tr><th>#</th><th>Task</th><th>Priority</th></tr>
+              <tr>
+                <th>#</th>
+                <th>Task</th>
+                <th>Priority</th>
+              </tr>
             </thead>
             <tbody>
-              <tr><td class="rank">1</td><td><span class="task">Fix signing/go.mod: add event/v3/eventtest dep</span><div class="task-sub">Unblocks per-module build/test. One command: <code>go get .../eventtest</code> + tidy.</div></td><td><span class="badge badge-critical">Critical</span></td></tr>
-              <tr><td class="rank">2</td><td><span class="task">Add CI gate: fail on placeholder doc.go stubs</span><div class="task-sub">grep for <code>Package X provides ...</code>. Prevents the 15-stub regression.</div></td><td><span class="badge badge-critical">Critical</span></td></tr>
-              <tr><td class="rank">3</td><td><span class="task">Audit ALL modules for missing testutil subpackage deps</span><div class="task-sub">Same class as the signing bug. Run GOWORK=off build per module.</div></td><td><span class="badge badge-critical">Critical</span></td></tr>
-              <tr><td class="rank">4</td><td><span class="task">Verify CI actually runs GOWORK=off for every module &amp; gates on it</span><div class="task-sub">The signing bug shipped — why didn't CI catch it? Resolve the mystery.</div></td><td><span class="badge badge-critical">Critical</span></td></tr>
-              <tr><td class="rank">5</td><td><span class="task">Resolve/workaround transport/grpc go.work genproto conflict</span><div class="task-sub">Wire the 44th module into go.work. ADR-0025.</div></td><td><span class="badge badge-high">High</span></td></tr>
-              <tr><td class="rank">6</td><td><span class="task">Refresh FEATURES.md coverage numbers from a full CI run</span><div class="task-sub">Numbers are stale post relational/graph tiers.</div></td><td><span class="badge badge-high">High</span></td></tr>
-              <tr><td class="rank">7</td><td><span class="task">Reconcile TODO_LIST.md "Updated" date + add relational/graph items</span><div class="task-sub">Docs drift fix. Tie to release process.</div></td><td><span class="badge badge-high">High</span></td></tr>
-              <tr><td class="rank">8</td><td><span class="task">Add integration test exercising RelationalProjection end-to-end</span><div class="task-sub">New tier, no consumer validation yet.</div></td><td><span class="badge badge-high">High</span></td></tr>
-              <tr><td class="rank">9</td><td><span class="task">Add integration test exercising GraphProjection (traversal, reply chain)</span><div class="task-sub">ADR-0033 tier, unvalidated.</div></td><td><span class="badge badge-high">High</span></td></tr>
-              <tr><td class="rank">10</td><td><span class="task">Raise coverage on graph/ module (newest tier)</span><div class="task-sub">No published number; likely under-covered as brand-new.</div></td><td><span class="badge badge-high">High</span></td></tr>
-              <tr><td class="rank">11</td><td><span class="task">Label stack/postgres coverage honestly (CI DSN or "skipped" note)</span><div class="task-sub">0% local is misleading.</div></td><td><span class="badge badge-medium">Medium</span></td></tr>
-              <tr><td class="rank">12</td><td><span class="task">Add "doc examples compile" testable-examples check</span><div class="task-sub">Catches the pebble/grpc.Dial class of doc drift.</div></td><td><span class="badge badge-medium">Medium</span></td></tr>
-              <tr><td class="rank">13</td><td><span class="task">Archive old docs/status/ .md reports</span><div class="task-sub">118 files is noise; move pre-v3 snapshots to an archive/ subdir.</div></td><td><span class="badge badge-medium">Medium</span></td></tr>
-              <tr><td class="rank">14</td><td><span class="task">Surface Pebble Checkpoint (backup) from stack presets</span><div class="task-sub">ROADMAP operability item.</div></td><td><span class="badge badge-medium">Medium</span></td></tr>
-              <tr><td class="rank">15</td><td><span class="task">Surface graceful shutdown from stack presets</span><div class="task-sub">Bundle.GracefulClose → preset ergonomics.</div></td><td><span class="badge badge-medium">Medium</span></td></tr>
-              <tr><td class="rank">16</td><td><span class="task">Secondary indexes / ranged scans for read models</span><div class="task-sub">Today Scan filters in memory only.</div></td><td><span class="badge badge-medium">Medium</span></td></tr>
-              <tr><td class="rank">17</td><td><span class="task">Raise kv/ coverage (70.2% → core tier standard)</span><div class="task-sub">kv is Layer 0 leaf; should be &gt;85%.</div></td><td><span class="badge badge-medium">Medium</span></td></tr>
-              <tr><td class="rank">18</td><td><span class="task">Raise codec/ coverage (76.0%)</span><div class="task-sub">Encoding correctness is critical-path.</div></td><td><span class="badge badge-medium">Medium</span></td></tr>
-              <tr><td class="rank">19</td><td><span class="task">transport/nats adapter (JetStream)</span><div class="task-sub">ADR-0025 accepted, zero code. Waits on consumer signal.</div></td><td><span class="badge badge-low">Low</span></td></tr>
-              <tr><td class="rank">20</td><td><span class="task">transport/redis adapter (Streams)</span><div class="task-sub">ADR-0025 accepted, zero code.</div></td><td><span class="badge badge-low">Low</span></td></tr>
-              <tr><td class="rank">21</td><td><span class="task">Hot-State cache design spike (profile first)</span><div class="task-sub">Only pays off at 100+ cmds/sec/aggregate.</div></td><td><span class="badge badge-low">Low</span></td></tr>
-              <tr><td class="rank">22</td><td><span class="task">CQRS-lite dashboard (web UI) spike</span><div class="task-sub">Inspect aggregates/events/projections. Raw idea.</div></td><td><span class="badge badge-low">Low</span></td></tr>
-              <tr><td class="rank">23</td><td><span class="task">Event stream compaction / log truncation design</span><div class="task-sub">Long-term storage cost control.</div></td><td><span class="badge badge-low">Low</span></td></tr>
-              <tr><td class="rank">24</td><td><span class="task">Multi-tenant event store (schema-per-tenant) design</span><div class="task-sub">Raw idea, no design.</div></td><td><span class="badge badge-low">Low</span></td></tr>
-              <tr><td class="rank">25</td><td><span class="task">Property-based integration testing with state-machine verification</span><div class="task-sub">rapid generators exist in testutil; extend to cross-module invariants.</div></td><td><span class="badge badge-low">Low</span></td></tr>
+              <tr>
+                <td class="rank">1</td>
+                <td>
+                  <span class="task">Fix signing/go.mod: add event/v3/eventtest dep</span>
+                  <div class="task-sub">
+                    Unblocks per-module build/test. One command: <code>go get .../eventtest</code> +
+                    tidy.
+                  </div>
+                </td>
+                <td><span class="badge badge-critical">Critical</span></td>
+              </tr>
+              <tr>
+                <td class="rank">2</td>
+                <td>
+                  <span class="task">Add CI gate: fail on placeholder doc.go stubs</span>
+                  <div class="task-sub">
+                    grep for <code>Package X provides ...</code>. Prevents the 15-stub regression.
+                  </div>
+                </td>
+                <td><span class="badge badge-critical">Critical</span></td>
+              </tr>
+              <tr>
+                <td class="rank">3</td>
+                <td>
+                  <span class="task">Audit ALL modules for missing testutil subpackage deps</span>
+                  <div class="task-sub">
+                    Same class as the signing bug. Run GOWORK=off build per module.
+                  </div>
+                </td>
+                <td><span class="badge badge-critical">Critical</span></td>
+              </tr>
+              <tr>
+                <td class="rank">4</td>
+                <td>
+                  <span class="task"
+                    >Verify CI actually runs GOWORK=off for every module &amp; gates on it</span
+                  >
+                  <div class="task-sub">
+                    The signing bug shipped — why didn't CI catch it? Resolve the mystery.
+                  </div>
+                </td>
+                <td><span class="badge badge-critical">Critical</span></td>
+              </tr>
+              <tr>
+                <td class="rank">5</td>
+                <td>
+                  <span class="task"
+                    >Resolve/workaround transport/grpc go.work genproto conflict</span
+                  >
+                  <div class="task-sub">Wire the 44th module into go.work. ADR-0025.</div>
+                </td>
+                <td><span class="badge badge-high">High</span></td>
+              </tr>
+              <tr>
+                <td class="rank">6</td>
+                <td>
+                  <span class="task">Refresh FEATURES.md coverage numbers from a full CI run</span>
+                  <div class="task-sub">Numbers are stale post relational/graph tiers.</div>
+                </td>
+                <td><span class="badge badge-high">High</span></td>
+              </tr>
+              <tr>
+                <td class="rank">7</td>
+                <td>
+                  <span class="task"
+                    >Reconcile TODO_LIST.md "Updated" date + add relational/graph items</span
+                  >
+                  <div class="task-sub">Docs drift fix. Tie to release process.</div>
+                </td>
+                <td><span class="badge badge-high">High</span></td>
+              </tr>
+              <tr>
+                <td class="rank">8</td>
+                <td>
+                  <span class="task"
+                    >Add integration test exercising RelationalProjection end-to-end</span
+                  >
+                  <div class="task-sub">New tier, no consumer validation yet.</div>
+                </td>
+                <td><span class="badge badge-high">High</span></td>
+              </tr>
+              <tr>
+                <td class="rank">9</td>
+                <td>
+                  <span class="task"
+                    >Add integration test exercising GraphProjection (traversal, reply chain)</span
+                  >
+                  <div class="task-sub">ADR-0033 tier, unvalidated.</div>
+                </td>
+                <td><span class="badge badge-high">High</span></td>
+              </tr>
+              <tr>
+                <td class="rank">10</td>
+                <td>
+                  <span class="task">Raise coverage on graph/ module (newest tier)</span>
+                  <div class="task-sub">
+                    No published number; likely under-covered as brand-new.
+                  </div>
+                </td>
+                <td><span class="badge badge-high">High</span></td>
+              </tr>
+              <tr>
+                <td class="rank">11</td>
+                <td>
+                  <span class="task"
+                    >Label stack/postgres coverage honestly (CI DSN or "skipped" note)</span
+                  >
+                  <div class="task-sub">0% local is misleading.</div>
+                </td>
+                <td><span class="badge badge-medium">Medium</span></td>
+              </tr>
+              <tr>
+                <td class="rank">12</td>
+                <td>
+                  <span class="task">Add "doc examples compile" testable-examples check</span>
+                  <div class="task-sub">Catches the pebble/grpc.Dial class of doc drift.</div>
+                </td>
+                <td><span class="badge badge-medium">Medium</span></td>
+              </tr>
+              <tr>
+                <td class="rank">13</td>
+                <td>
+                  <span class="task">Archive old docs/status/ .md reports</span>
+                  <div class="task-sub">
+                    118 files is noise; move pre-v3 snapshots to an archive/ subdir.
+                  </div>
+                </td>
+                <td><span class="badge badge-medium">Medium</span></td>
+              </tr>
+              <tr>
+                <td class="rank">14</td>
+                <td>
+                  <span class="task">Surface Pebble Checkpoint (backup) from stack presets</span>
+                  <div class="task-sub">ROADMAP operability item.</div>
+                </td>
+                <td><span class="badge badge-medium">Medium</span></td>
+              </tr>
+              <tr>
+                <td class="rank">15</td>
+                <td>
+                  <span class="task">Surface graceful shutdown from stack presets</span>
+                  <div class="task-sub">Bundle.GracefulClose → preset ergonomics.</div>
+                </td>
+                <td><span class="badge badge-medium">Medium</span></td>
+              </tr>
+              <tr>
+                <td class="rank">16</td>
+                <td>
+                  <span class="task">Secondary indexes / ranged scans for read models</span>
+                  <div class="task-sub">Today Scan filters in memory only.</div>
+                </td>
+                <td><span class="badge badge-medium">Medium</span></td>
+              </tr>
+              <tr>
+                <td class="rank">17</td>
+                <td>
+                  <span class="task">Raise kv/ coverage (70.2% → core tier standard)</span>
+                  <div class="task-sub">kv is Layer 0 leaf; should be &gt;85%.</div>
+                </td>
+                <td><span class="badge badge-medium">Medium</span></td>
+              </tr>
+              <tr>
+                <td class="rank">18</td>
+                <td>
+                  <span class="task">Raise codec/ coverage (76.0%)</span>
+                  <div class="task-sub">Encoding correctness is critical-path.</div>
+                </td>
+                <td><span class="badge badge-medium">Medium</span></td>
+              </tr>
+              <tr>
+                <td class="rank">19</td>
+                <td>
+                  <span class="task">transport/nats adapter (JetStream)</span>
+                  <div class="task-sub">
+                    ADR-0025 accepted, zero code. Waits on consumer signal.
+                  </div>
+                </td>
+                <td><span class="badge badge-low">Low</span></td>
+              </tr>
+              <tr>
+                <td class="rank">20</td>
+                <td>
+                  <span class="task">transport/redis adapter (Streams)</span>
+                  <div class="task-sub">ADR-0025 accepted, zero code.</div>
+                </td>
+                <td><span class="badge badge-low">Low</span></td>
+              </tr>
+              <tr>
+                <td class="rank">21</td>
+                <td>
+                  <span class="task">Hot-State cache design spike (profile first)</span>
+                  <div class="task-sub">Only pays off at 100+ cmds/sec/aggregate.</div>
+                </td>
+                <td><span class="badge badge-low">Low</span></td>
+              </tr>
+              <tr>
+                <td class="rank">22</td>
+                <td>
+                  <span class="task">CQRS-lite dashboard (web UI) spike</span>
+                  <div class="task-sub">Inspect aggregates/events/projections. Raw idea.</div>
+                </td>
+                <td><span class="badge badge-low">Low</span></td>
+              </tr>
+              <tr>
+                <td class="rank">23</td>
+                <td>
+                  <span class="task">Event stream compaction / log truncation design</span>
+                  <div class="task-sub">Long-term storage cost control.</div>
+                </td>
+                <td><span class="badge badge-low">Low</span></td>
+              </tr>
+              <tr>
+                <td class="rank">24</td>
+                <td>
+                  <span class="task">Multi-tenant event store (schema-per-tenant) design</span>
+                  <div class="task-sub">Raw idea, no design.</div>
+                </td>
+                <td><span class="badge badge-low">Low</span></td>
+              </tr>
+              <tr>
+                <td class="rank">25</td>
+                <td>
+                  <span class="task"
+                    >Property-based integration testing with state-machine verification</span
+                  >
+                  <div class="task-sub">
+                    rapid generators exist in testutil; extend to cross-module invariants.
+                  </div>
+                </td>
+                <td><span class="badge badge-low">Low</span></td>
+              </tr>
             </tbody>
           </table>
         </section>
@@ -407,19 +1200,58 @@
           <h2><span class="num">g</span>The One Question I Cannot Answer Myself</h2>
           <div class="callout callout-problem">
             <strong>Top question (blocking trust in the module-isolation guarantee):</strong>
-            <p style="margin-top:0.5rem"><em>The signing module provably fails <code>GOWORK=off go build</code> and <code>go test</code> because of a missing <code>event/v3/eventtest</code> dependency — yet CI is reportedly green and described as "GOWORK=off per-module". How, exactly, did this slip through?</em></p>
+            <p style="margin-top: 0.5rem">
+              <em
+                >The signing module provably fails <code>GOWORK=off go build</code> and
+                <code>go test</code> because of a missing <code>event/v3/eventtest</code> dependency
+                — yet CI is reportedly green and described as "GOWORK=off per-module". How, exactly,
+                did this slip through?</em
+              >
+            </p>
           </div>
-          <p>There are only three possibilities, and I cannot determine which without reading the full CI matrix:</p>
+          <p>
+            There are only three possibilities, and I cannot determine which without reading the
+            full CI matrix:
+          </p>
           <ol>
-            <li><strong>CI does not actually run <code>GOWORK=off</code> for signing</strong> — maybe only a subset of modules get the per-module treatment, and signing fell outside it.</li>
-            <li><strong>CI runs it but the failure is not gating</strong> — e.g. <code>continue-on-error</code>, a swallowed exit code, or the per-module step is best-effort.</li>
-            <li><strong>The dependency was removed/changed very recently</strong> and no CI run has executed against this state since.</li>
+            <li>
+              <strong>CI does not actually run <code>GOWORK=off</code> for signing</strong> — maybe
+              only a subset of modules get the per-module treatment, and signing fell outside it.
+            </li>
+            <li>
+              <strong>CI runs it but the failure is not gating</strong> — e.g.
+              <code>continue-on-error</code>, a swallowed exit code, or the per-module step is
+              best-effort.
+            </li>
+            <li>
+              <strong>The dependency was removed/changed very recently</strong> and no CI run has
+              executed against this state since.
+            </li>
           </ol>
-          <p>Resolving this is more important than the one-line <code>go get</code> fix, because <strong>if isolation isn't enforced for signing, it likely isn't enforced for other modules either</strong> — and "every module builds in isolation" is a load-bearing promise of this library. Answering this decides whether item #4 in the Top 25 is "fix a CI gap" or "fix a CI lie".</p>
-          <div class="callout callout-warning"><strong>Why I can't self-resolve:</strong> I inspected <code>signing/go.mod</code> and reproduced the failure locally, but I have not read <code>.github/workflows/ci.yml</code>'s per-module loop to see whether signing is in its iteration list and whether its exit status gates the workflow. That file is the single source of truth, and reading it is the one external step needed.</div>
+          <p>
+            Resolving this is more important than the one-line <code>go get</code> fix, because
+            <strong
+              >if isolation isn't enforced for signing, it likely isn't enforced for other modules
+              either</strong
+            >
+            — and "every module builds in isolation" is a load-bearing promise of this library.
+            Answering this decides whether item #4 in the Top 25 is "fix a CI gap" or "fix a CI
+            lie".
+          </p>
+          <div class="callout callout-warning">
+            <strong>Why I can't self-resolve:</strong> I inspected <code>signing/go.mod</code> and
+            reproduced the failure locally, but I have not read
+            <code>.github/workflows/ci.yml</code>'s per-module loop to see whether signing is in its
+            iteration list and whether its exit status gates the workflow. That file is the single
+            source of truth, and reading it is the one external step needed.
+          </div>
         </section>
 
-        <footer class="footer">Generated 2026-06-28 01:10 CEST &middot; Snapshot against working tree (post doc.go review, pre-commit) &middot; Grounded in live build/vet output, FEATURES.md, TODO_LIST.md, ROADMAP.md</footer>
+        <footer class="footer">
+          Generated 2026-06-28 01:10 CEST &middot; Snapshot against working tree (post doc.go
+          review, pre-commit) &middot; Grounded in live build/vet output, FEATURES.md, TODO_LIST.md,
+          ROADMAP.md
+        </footer>
       </main>
     </div>
 
@@ -427,25 +1259,32 @@
       // Progressive enhancement: scrollspy highlights the active sidebar item.
       // Plain anchor nav still works with JS disabled.
       (function () {
-        var links = Array.prototype.slice.call(document.querySelectorAll('[data-nav] a'));
+        var links = Array.prototype.slice.call(document.querySelectorAll("[data-nav] a"));
         var map = {};
         links.forEach(function (a) {
-          var id = a.getAttribute('href').slice(1);
+          var id = a.getAttribute("href").slice(1);
           var sec = document.getElementById(id);
           if (sec) map[id] = a;
         });
-        if (!('IntersectionObserver' in window)) return;
-        var observer = new IntersectionObserver(function (entries) {
-          entries.forEach(function (e) {
-            var a = map[e.target.id];
-            if (!a) return;
-            if (e.isIntersecting) {
-              links.forEach(function (l) { l.classList.remove('active'); });
-              a.classList.add('active');
-            }
-          });
-        }, { rootMargin: '-30% 0px -60% 0px' });
-        Object.keys(map).forEach(function (id) { observer.observe(document.getElementById(id)); });
+        if (!("IntersectionObserver" in window)) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (e) {
+              var a = map[e.target.id];
+              if (!a) return;
+              if (e.isIntersecting) {
+                links.forEach(function (l) {
+                  l.classList.remove("active");
+                });
+                a.classList.add("active");
+              }
+            });
+          },
+          { rootMargin: "-30% 0px -60% 0px" },
+        );
+        Object.keys(map).forEach(function (id) {
+          observer.observe(document.getElementById(id));
+        });
       })();
     </script>
   </body>

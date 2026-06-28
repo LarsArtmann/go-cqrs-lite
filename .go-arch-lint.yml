@@ -44,31 +44,31 @@ excludeFiles:
   - "^.*example/.*$"
 
 components:
-  id:           { in: id/** }
-  dispatcher:   { in: dispatcher/** }
-  codec:        { in: codec/** }
-  kv:           { in: kv/** }
-  event:        { in: event/** }
-  command:      { in: command/** }
-  query:        { in: query/** }
-  schema:       { in: schema/** }
-  snapshot:     { in: snapshot/** }
-  graph:        { in: graph/** }
-  decider:      { in: decider/** }
-  signing:      { in: signing/** }
-  encryption:   { in: encryption/** }
-  otel:         { in: otel/** }
-  storage:      { in: storage/** }
-  middleware:   { in: middleware/** }
-  listing:      { in: listing/** }
-  watermill:    { in: watermill/** }
+  id: { in: id/** }
+  dispatcher: { in: dispatcher/** }
+  codec: { in: codec/** }
+  kv: { in: kv/** }
+  event: { in: event/** }
+  command: { in: command/** }
+  query: { in: query/** }
+  schema: { in: schema/** }
+  snapshot: { in: snapshot/** }
+  graph: { in: graph/** }
+  decider: { in: decider/** }
+  signing: { in: signing/** }
+  encryption: { in: encryption/** }
+  otel: { in: otel/** }
+  storage: { in: storage/** }
+  middleware: { in: middleware/** }
+  listing: { in: listing/** }
+  watermill: { in: watermill/** }
   transporthttp: { in: transport/http/** }
   transportgrpc: { in: transport/grpc/** }
-  prometheus:   { in: prometheus/** }
-  stack:        { in: stack/** }
-  catalog:      { in: catalog/** }
-  integration:  { in: integration/** }
-  cmd:          { in: cmd/** }
+  prometheus: { in: prometheus/** }
+  stack: { in: stack/** }
+  catalog: { in: catalog/** }
+  integration: { in: integration/** }
+  cmd: { in: cmd/** }
 
 # The deps section mirrors the layer model in scripts/check-module-layers.sh.
 # NOTE: go-arch-lint CANNOT enforce these cross-module rules in a Go workspace
@@ -76,29 +76,29 @@ components:
 # architecture for reference. Actual enforcement is via check-module-layers.sh.
 # Intra-module package rules are enforced by per-module .go-arch-lint.yml files.
 deps:
-  id:          { anyProjectDeps: false, anyVendorDeps: true }
-  dispatcher:  { anyProjectDeps: false, anyVendorDeps: true }
-  codec:       { anyProjectDeps: false, anyVendorDeps: true }
-  kv:          { anyProjectDeps: false, anyVendorDeps: true }
-  event:       { anyProjectDeps: false, anyVendorDeps: true }
-  command:     { anyProjectDeps: false, anyVendorDeps: true }
-  query:       { anyProjectDeps: false, anyVendorDeps: true }
-  schema:      { anyProjectDeps: false, anyVendorDeps: true }
-  snapshot:    { anyProjectDeps: false, anyVendorDeps: true }
-  graph:       { anyProjectDeps: false, anyVendorDeps: true }
-  decider:     { anyProjectDeps: false, anyVendorDeps: true }
-  signing:     { anyProjectDeps: false, anyVendorDeps: true }
-  encryption:  { anyProjectDeps: false, anyVendorDeps: true }
-  otel:        { anyProjectDeps: false, anyVendorDeps: true }
-  storagemem:  { anyProjectDeps: false, anyVendorDeps: true }
-  middleware:  { anyProjectDeps: false, anyVendorDeps: true }
-  storage:     { anyProjectDeps: false, anyVendorDeps: true }
-  listing:     { anyProjectDeps: false, anyVendorDeps: true }
-  watermill:   { anyProjectDeps: false, anyVendorDeps: true }
+  id: { anyProjectDeps: false, anyVendorDeps: true }
+  dispatcher: { anyProjectDeps: false, anyVendorDeps: true }
+  codec: { anyProjectDeps: false, anyVendorDeps: true }
+  kv: { anyProjectDeps: false, anyVendorDeps: true }
+  event: { anyProjectDeps: false, anyVendorDeps: true }
+  command: { anyProjectDeps: false, anyVendorDeps: true }
+  query: { anyProjectDeps: false, anyVendorDeps: true }
+  schema: { anyProjectDeps: false, anyVendorDeps: true }
+  snapshot: { anyProjectDeps: false, anyVendorDeps: true }
+  graph: { anyProjectDeps: false, anyVendorDeps: true }
+  decider: { anyProjectDeps: false, anyVendorDeps: true }
+  signing: { anyProjectDeps: false, anyVendorDeps: true }
+  encryption: { anyProjectDeps: false, anyVendorDeps: true }
+  otel: { anyProjectDeps: false, anyVendorDeps: true }
+  storagemem: { anyProjectDeps: false, anyVendorDeps: true }
+  middleware: { anyProjectDeps: false, anyVendorDeps: true }
+  storage: { anyProjectDeps: false, anyVendorDeps: true }
+  listing: { anyProjectDeps: false, anyVendorDeps: true }
+  watermill: { anyProjectDeps: false, anyVendorDeps: true }
   transporthttp: { anyProjectDeps: false, anyVendorDeps: true }
   transportgrpc: { anyProjectDeps: false, anyVendorDeps: true }
-  prometheus:  { anyProjectDeps: false, anyVendorDeps: true }
-  stack:       { anyProjectDeps: false, anyVendorDeps: true }
-  catalog:     { anyProjectDeps: true, anyVendorDeps: true }
+  prometheus: { anyProjectDeps: false, anyVendorDeps: true }
+  stack: { anyProjectDeps: false, anyVendorDeps: true }
+  catalog: { anyProjectDeps: true, anyVendorDeps: true }
   integration: { anyProjectDeps: true, anyVendorDeps: true }
-  cmd:         { anyProjectDeps: true, anyVendorDeps: true }
+  cmd: { anyProjectDeps: true, anyVendorDeps: true }

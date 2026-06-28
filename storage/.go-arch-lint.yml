@@ -12,13 +12,13 @@ allow:
 excludeFiles:
   - "^.*_test\\.go$"
   - "^.*testdata/.*$"
-  - "^memory/.*$"    # separate module (storage/memory)
-  - "^pebble/.*$"    # separate module (storage/pebble)
-  - "^turso/.*$"     # separate module (storage/turso)
+  - "^memory/.*$" # separate module (storage/memory)
+  - "^pebble/.*$" # separate module (storage/pebble)
+  - "^turso/.*$" # separate module (storage/turso)
 
 components:
   core: { in: . }
-  sql:  { in: sql }
+  sql: { in: sql }
 
 deps:
   core:
