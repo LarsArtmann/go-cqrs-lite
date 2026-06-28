@@ -1,0 +1,111 @@
+package cqrs_testing_test
+
+import (
+	"context"
+	"errors"
+	"testing"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	cqrs_testing "github.com/larsartmann/go-cqrs-lite/testing/v3"
+)
+
+// --- Test fixtures ---
+
+type (
+	counterState struct{ Count int }
+	incrementCmd struct{}
+	decrementCmd struct{}
+)
+
+var (
+	evtIncremented = event.Type("CounterIncremented")
+	evtDecremented = event.Type("CounterDecremented")
+	evtErrLimit    = errors.New("count cannot go below zero")
+)
+
+func foldCounter(s counterState, evt event.Event) (counterState, error) {
+	switch evt.Type() {
+	case evtIncremented:
+		s.Count++
+	case evtDecremented:
+		s.Count--
+	}
+
+	return s, nil
+}
+
+func decideIncrement(s counterState, _ incrementCmd) ([]event.Event, error) {
+	return []event.Event{mustEvent(evtIncremented)}, nil
+}
+
+func decideDecrement(s counterState, _ decrementCmd) ([]event.Event, error) {
+	if s.Count <= 0 {
+		return nil, evtErrLimit
+	}
+
+	return []event.Event{mustEvent(evtDecremented)}, nil
+}
+
+func mustEvent(t event.Type) event.Event {
+	aggID := id.NewAggregateID()
+	evt, err := event.New(t, aggID, "Counter", 1, map[string]any{"v": 1})
+	if err != nil {
+		panic(err)
+	}
+
+	return evt
+}
+
+// --- Decider tests ---
+
+func TestGiven_When_Then_EventTypes(t *testing.T) {
+	t.Parallel()
+	cqrs_testing.Given[incrementCmd, counterState](t, foldCounter, counterState{}).
+		When(incrementCmd{}, decideIncrement).
+		Then(evtIncremented)
+}
+
+func TestGiven_When_Then_FoldsPriorEvents(t *testing.T) {
+	t.Parallel()
+	cqrs_testing.Given[incrementCmd, counterState](
+		t, foldCounter, counterState{},
+		mustEvent(evtIncremented),
+		mustEvent(evtIncremented),
+	).
+		When(incrementCmd{}, decideIncrement).
+		Then(evtIncremented)
+}
+
+func TestGiven_When_ThenError(t *testing.T) {
+	t.Parallel()
+	cqrs_testing.Given[decrementCmd, counterState](t, foldCounter, counterState{}).
+		When(decrementCmd{}, decideDecrement).
+		ThenError(evtErrLimit)
+}
+
+func TestGiven_When_ThenState(t *testing.T) {
+	t.Parallel()
+	cqrs_testing.Given[incrementCmd, counterState](
+		t, foldCounter, counterState{},
+		mustEvent(evtIncremented),
+		mustEvent(evtIncremented),
+	).
+		When(incrementCmd{}, decideIncrement).
+		ThenState(foldCounter, counterState{}, counterState{Count: 3})
+}
+
+// --- Projection tests ---
+
+type testProj struct{}
+
+func (p *testProj) Name() string                                  { return "test" }
+func (p *testProj) Handle(_ context.Context, _ event.Event) error { return nil }
+func (p *testProj) EventTypes() []event.Type                      { return nil }
+
+func TestGivenProjection_ThenNoError(t *testing.T) {
+	t.Parallel()
+	proj := &testProj{}
+	cqrs_testing.GivenProjection(t, proj, mustEvent(evtIncremented)).
+		ThenNoError()
+}

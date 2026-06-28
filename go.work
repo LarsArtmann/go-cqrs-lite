@@ -47,6 +47,7 @@ use (
 	./storage/memory
 	./storage/pebble
 	./storage/turso
+	./testing
 	./testutil
 	./transport/grpc
 	./transport/http
