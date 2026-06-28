@@ -33,8 +33,10 @@ T1: "TIER 1 — UNBLOCK EVERYTHING\n1% effort → 51% value" {
   style.bold: true
   shape: package
 
-  BuildFlow: "T1  Fix BuildFlow nix-build\n(BLOCKS every commit)" ; BuildFlow.class: [tier1]
-  Tag: "T2  Tag go-cqrs-lite v3.3.0\n(unblocks all downstream)" ; Tag.class: [tier1]
+  BuildFlow: "T1  Fix BuildFlow nix-build\n(BLOCKS every commit)"
+  BuildFlow.class: [tier1]
+  Tag: "T2  Tag go-cqrs-lite v3.3.0\n(unblocks all downstream)"
+  Tag.class: [tier1]
 }
 
 T2: "TIER 2 — FINISH THE AUDIT\n4% effort → 64% value" {
@@ -42,9 +44,12 @@ T2: "TIER 2 — FINISH THE AUDIT\n4% effort → 64% value" {
   style.font-color: "#0e0e10"
   shape: package
 
-  Delegate: "T3  Delegate cqrs-htmx idempotency\n→ upstream aliases" ; Delegate.class: [tier2]
-  SSE: "T4  Unify SSE primitives\n(promote branded types upstream)" ; SSE.class: [tier2]
-  Docs: "T5  Reconcile docs\n(FEATURES 45 → 49 + DLQ status)" ; Docs.class: [tier2]
+  Delegate: "T3  Delegate cqrs-htmx idempotency\n→ upstream aliases"
+  Delegate.class: [tier2]
+  SSE: "T4  Unify SSE primitives\n(promote branded types upstream)"
+  SSE.class: [tier2]
+  Docs: "T5  Reconcile docs\n(FEATURES 45 → 49 + DLQ status)"
+  Docs.class: [tier2]
 }
 
 T3: "TIER 3 — #1 FRAMEWORK GAP\n20% effort → 80% value" {
@@ -52,7 +57,8 @@ T3: "TIER 3 — #1 FRAMEWORK GAP\n20% effort → 80% value" {
   style.font-color: "#1a1a1a"
   shape: package
 
-  A1: "T6  Managed Projection Host (A1)\n+ projection-tier DLQ hook\n(the loop every consumer rewrites)" ; A1.class: [tier3]
+  A1: "T6  Managed Projection Host (A1)\n+ projection-tier DLQ hook\n(the loop every consumer rewrites)"
+  A1.class: [tier3]
 }
 
 T4: "TIER 4 — PRODUCTION HARDENING + DX\nremaining" {
@@ -60,10 +66,14 @@ T4: "TIER 4 — PRODUCTION HARDENING + DX\nremaining" {
   style.font-color: "#f4f4f0"
   shape: package
 
-  Backends: "T7  Redis/SQL Idempotency\nbackends" ; Backends.class: [tier4]
-  A2: "T8  Transactional Outbox (A2)\nopt-in EventSink" ; A2.class: [tier4]
-  A5: "T9  Scenario-testing DSL (A5)\nGiven/When/Then" ; A5.class: [tier4]
-  A6: "T10 Scheduled commands (A6)\ndurable deadlines" ; A6.class: [tier4]
+  Backends: "T7  Redis/SQL Idempotency\nbackends"
+  Backends.class: [tier4]
+  A2: "T8  Transactional Outbox (A2)\nopt-in EventSink"
+  A2.class: [tier4]
+  A5: "T9  Scenario-testing DSL (A5)\nGiven/When/Then"
+  A5.class: [tier4]
+  A6: "T10 Scheduled commands (A6)\ndurable deadlines"
+  A6.class: [tier4]
 }
 
 T5: "TIER 5 — cqrs-htmx INTERNAL (out of audit scope)" {
@@ -72,7 +82,8 @@ T5: "TIER 5 — cqrs-htmx INTERNAL (out of audit scope)" {
   shape: package
   style.stroke-dash: 4
 
-  Phase2: "T11 Offline-first Phase 2\n(SharedWorker / SW + Background Sync)" ; Phase2.class: [tier5]
+  Phase2: "T11 Offline-first Phase 2\n(SharedWorker / SW + Background Sync)"
+  Phase2.class: [tier5]
 }
 
 # Dependency edges

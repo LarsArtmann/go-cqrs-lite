@@ -10,7 +10,7 @@ require (
 
 require (
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.0.0-20260628220216-d879d8cc4a6a // indirect
+	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.0.0-20260628225605-630e04ca84a8 // indirect
 	github.com/larsartmann/go-error-family v0.5.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 )
