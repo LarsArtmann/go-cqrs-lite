@@ -228,6 +228,16 @@ func WithCloser(c io.Closer) Option {
 	}
 }
 
+// WithDrainer registers a [Drainer] that [Bundle.GracefulClose] will call
+// BEFORE closing resources. Use this for event subscribers, projection runners,
+// and routers that need to finish in-flight work before connections close.
+// If d also implements [io.Closer], register it with [WithCloser] too.
+func WithDrainer(d Drainer) Option {
+	return func(b *Bundle) {
+		b.drainers = append(b.drainers, d)
+	}
+}
+
 // WithDatabase stores the underlying database handle (e.g. *sql.DB) for
 // SQL-backed bundles. The handle is type-erased to `any` so the core stack
 // package does not import database/sql. Preset-specific SQLViewModel

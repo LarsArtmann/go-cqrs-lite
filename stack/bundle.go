@@ -66,6 +66,8 @@ type Bundle struct {
 	// Journal and Subscriber above, but are kept explicit so a deployment
 	// can route projections through a different subscriber if needed.
 
+	drainers []Drainer
+
 	// db holds the underlying database handle (e.g. *sql.DB) when backed by
 	// an SQL preset. nil for non-SQL bundles. Accessed via preset-specific
 	// SQLViewModel generic constructors to create [storage.SQLViewStore]
@@ -136,16 +138,31 @@ func (b *Bundle) Close() error {
 	return errors.Join(errs...)
 }
 
-// GracefulClose closes the Bundle like [Bundle.Close], but bounded by ctx.
-// It runs Close in a goroutine; if ctx is cancelled before Close completes,
-// the context error is returned. Resources may still be closing in the
-// background — the caller should exit the process if the timeout fires.
+// GracefulClose drains in-flight work, then closes the Bundle, all bounded by
+// ctx. It runs two phases:
 //
-// Use this instead of Close when in-flight handlers (event subscribers,
-// projection runners) may need time to drain. The closers list is ordered:
-// the event bus is registered before stores, so it closes first, allowing
-// BlockPublishUntilSubscriberAck to ensure ordered delivery completes.
+//  1. Drain: calls Drain on every registered [Drainer] (event subscribers,
+//     projection runners, routers) so they stop accepting new work and finish
+//     what's in flight. If any Drain returns an error, GracefulClose returns
+//     it immediately without proceeding to Close.
+//
+//  2. Close: calls [Bundle.Close] to release all resources (stores, DB, bus).
+//
+// Both phases respect ctx: if the context is cancelled before a phase
+// completes, the context error is returned. Resources may still be closing in
+// the background — the caller should exit the process if the timeout fires.
+//
+// Use this instead of [Bundle.Close] when in-flight handlers may need time to
+// drain. The closers list is ordered: the event bus is registered before
+// stores, so it closes first, allowing BlockPublishUntilSubscriberAck to
+// ensure ordered delivery completes.
 func (b *Bundle) GracefulClose(ctx context.Context) error {
+	for _, d := range b.drainers {
+		if err := d.Drain(ctx); err != nil {
+			return fmt.Errorf("graceful drain: %w", err)
+		}
+	}
+
 	done := make(chan error, 1)
 
 	go func() { done <- b.Close() }()
@@ -162,6 +179,17 @@ func (b *Bundle) GracefulClose(ctx context.Context) error {
 // Bundle is backed by an SQL preset. Returns nil for non-SQL bundles.
 // Used by preset-specific SQLViewModel generic constructors.
 func (b *Bundle) Database() any { return b.db }
+
+// Drainer stops accepting new work and finishes in-flight work, bounded by
+// ctx. Implemented by event subscribers, projection runners, and routers that
+// need to drain before connections close. Resources that only need to release
+// a handle (stores, DB connections) implement [io.Closer] instead.
+//
+// Drain is called by [Bundle.GracefulClose] BEFORE [Bundle.Close], so
+// in-flight handlers complete before their underlying connections are dropped.
+type Drainer interface {
+	Drain(ctx context.Context) error
+}
 
 // registerCloser adds c to the list of resources [Bundle.Close] will release,
 // if c implements [io.Closer]. Called by options that hand the Bundle a store,
@@ -180,6 +208,24 @@ func (b *Bundle) registerCloser(c any) {
 	}
 
 	b.closers = append(b.closers, cl)
+}
+
+// registerDrainer adds d to the list of resources [Bundle.GracefulClose] will
+// drain before closing. Called by options that hand the Bundle a subscriber,
+// router, or projection runner. If d also implements [io.Closer], it should be
+// passed to registerCloser as well (or the option should call both). Only
+// resources that need to finish in-flight work should implement [Drainer].
+func (b *Bundle) registerDrainer(d any) {
+	if d == nil {
+		return
+	}
+
+	dr, ok := d.(Drainer)
+	if !ok {
+		return
+	}
+
+	b.drainers = append(b.drainers, dr)
 }
 
 // validate checks that the Bundle is usable: at least one capability field

@@ -194,6 +194,120 @@ func TestBundle_GracefulClose_TimesOut(t *testing.T) {
 	close(block) // unblock the goroutine
 }
 
+func TestBundle_GracefulClose_DrainsBeforeClose(t *testing.T) {
+	t.Parallel()
+
+	drainer := &trackingDrainer{}
+	b, err := stack.New(
+		stack.WithReadModels(kv.NewMemStore()),
+		stack.WithDrainer(drainer),
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := b.GracefulClose(ctx); err != nil {
+		t.Fatalf("GracefulClose: %v", err)
+	}
+
+	if !drainer.drained {
+		t.Fatal("Drain was not called before Close")
+	}
+}
+
+func TestBundle_GracefulClose_DrainErrorAbortsClose(t *testing.T) {
+	t.Parallel()
+
+	drainErr := errors.New("drain failed")
+	drainer := &trackingDrainer{err: drainErr}
+	closer := &trackingCloser{}
+	b, err := stack.New(
+		stack.WithReadModels(kv.NewMemStore()),
+		stack.WithDrainer(drainer),
+		stack.WithCloser(closer),
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err = b.GracefulClose(ctx)
+	if !errors.Is(err, drainErr) {
+		t.Fatalf("expected drain error, got: %v", err)
+	}
+
+	if closer.closed {
+		t.Fatal("Close should NOT be called when Drain fails")
+	}
+}
+
+func TestBundle_GracefulClose_DrainersCalledInOrder(t *testing.T) {
+	t.Parallel()
+
+	first := &orderedDrainer{name: "first"}
+	second := &orderedDrainer{name: "second"}
+	b, err := stack.New(
+		stack.WithReadModels(kv.NewMemStore()),
+		stack.WithDrainer(first),
+		stack.WithDrainer(second),
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := b.GracefulClose(ctx); err != nil {
+		t.Fatalf("GracefulClose: %v", err)
+	}
+
+	if first.seq >= second.seq {
+		t.Fatal("drainers should be called in registration order")
+	}
+}
+
+// trackingDrainer records that Drain was called.
+type trackingDrainer struct {
+	drained bool
+	err     error
+}
+
+func (d *trackingDrainer) Drain(_ context.Context) error {
+	d.drained = true
+
+	return d.err
+}
+
+// trackingCloser records that Close was called.
+type trackingCloser struct{ closed bool }
+
+func (c *trackingCloser) Close() error {
+	c.closed = true
+
+	return nil
+}
+
+// orderedDrainer records the order it was drained via a shared counter.
+type orderedDrainer struct {
+	name string
+	seq  int
+}
+
+var drainCounter int
+
+func (d *orderedDrainer) Drain(_ context.Context) error {
+	drainCounter++
+	d.seq = drainCounter
+
+	return nil
+}
+
 // channelCloser blocks on Close until the channel is closed.
 // Deterministic — no time.Sleep.
 type channelCloser struct {
