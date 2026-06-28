@@ -67,6 +67,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   correct dependency direction.
 
 #### Relational Store Query Contract
+
 - **`RelationalStore.Query` now accepts `kv.ViewQuery`** — removes the duplicate
   `storage.RelationalQuery` type. The relational read side now shares the same
   filtered/ordered/paginated query contract as `kv.ViewStore` implementations.
@@ -74,6 +75,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### DX Improvements
 
 #### Bundle.RunProjections — One-Call Projection Runner
+
 - **`bundle.RunProjections(ctx, projections...)`** — replays journal + subscribes to
   live + dispatches to all registered projections. Eliminates ~20 lines of
   CatchUpSubscriber + channel consumption + message decoding boilerplate.
@@ -86,6 +88,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Tests & Infrastructure
 
 #### Graph Contract Test Suite
+
 - **`graph/graphtest/contract.go`** — shared behavioral contract test for
   `GraphDriver` implementations (mirrors `kv/viewstoretest/contract.go`).
   7 tests: MergeNodeCreates, MergeNodeUpdates, MergeEdgeCreatesEndpoints,
@@ -93,21 +96,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   AtomicRollbackOnError. MemoryDriver passes all 7.
 
 #### Architecture Enforcement
+
 - **`scripts/check-arch.sh`** — two-layer arch enforcement (cross-module via
   go.mod parsing + intra-module via go-arch-lint). Wired as `nix run .#check-arch`.
 - **`storage/.go-arch-lint.yml`** — first per-module arch-lint config.
 - Stack dep budget bumped from 12 to 13 (added `projection/v3` dependency).
 
 #### ADRs
+
 - **ADR-0037**: Projection interface extraction from `event/`
 - **ADR-0038**: Graph projection tier design (writes portable, reads native)
 - **`docs/projection-tiers.md`**: Decision guide for choosing between tiers
 
 #### Quality
+
 - **`projection/` module: 100% test coverage** (5 tests)
 - **`graph/` module: 86.9% coverage** (9 tests + 7 contract tests)
 
 #### Workspace Integration
+
 - **`transport/grpc` is now wired into `go.work`** — resolves the long-standing
   `google.golang.org/genproto` ambiguous-import conflict via a workspace-level
   replace directive. The module builds and tests as a first-class workspace member.
@@ -115,6 +122,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   need for `--no-verify` on commits.
 
 #### RunProjections Test Coverage
+
 - **`stack/run_projections_test.go`** — end-to-end test covering journal replay,
   live event handoff, materialized-view updates, and clean shutdown via context
   cancellation.

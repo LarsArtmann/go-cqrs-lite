@@ -58,7 +58,7 @@ type ProjectionSink interface {
 	Ensure(ctx context.Context, table string, row Row) error
 
 	// Update sets columns on rows matching all of match's equal conditions.
-	Update(ctx context.Context, table string, set Row, match Row) error
+	Update(ctx context.Context, table string, set, match Row) error
 
 	// DeleteWhere removes rows matching all of match's equal conditions.
 	DeleteWhere(ctx context.Context, table string, match Row) error

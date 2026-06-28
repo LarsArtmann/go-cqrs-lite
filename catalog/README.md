@@ -10,15 +10,15 @@ go get github.com/larsartmann/go-cqrs-lite/catalog/v3
 
 ## Packages
 
-| Package                | Purpose                                         |
-| ---------------------- | ----------------------------------------------- |
-| `catalog`              | Registry, schema reflection, builder, typed IDs |
-| `catalog/asyncapi`     | AsyncAPI 3.0 YAML/JSON exporter                 |
-| `catalog/eventcatalog` | EventCatalog MDX file generator                 |
-| `catalog/openapi`      | OpenAPI 3.0 YAML/JSON exporter                  |
-| `catalog/d2`           | D2 diagram text exporter                        |
+| Package                | Purpose                                                          |
+| ---------------------- | ---------------------------------------------------------------- |
+| `catalog`              | Registry, schema reflection, builder, typed IDs                  |
+| `catalog/asyncapi`     | AsyncAPI 3.0 YAML/JSON exporter                                  |
+| `catalog/eventcatalog` | EventCatalog MDX file generator                                  |
+| `catalog/openapi`      | OpenAPI 3.0 YAML/JSON exporter                                   |
+| `catalog/d2`           | D2 diagram text exporter                                         |
 | `catalog/docserver`    | HTTP handlers for serving docs (OpenAPI/AsyncAPI UI, D2, health) |
-| `catalog/simple`       | Single-service builder facade (streamlined API) |
+| `catalog/simple`       | Single-service builder facade (streamlined API)                  |
 
 ## Quick Start
 
