@@ -21,7 +21,8 @@ type RetryConfig struct {
 	InitialDelay time.Duration
 	MaxDelay     time.Duration
 	Multiplier   float64
-	IsRetryable  func(error) bool // defaults to event.IsRetryable (classifies via error taxonomy)
+	IsRetryable  func(error) bool  // defaults to event.IsRetryable (classifies via error taxonomy)
+	OnDeadLetter DeadLetterHandler // optional; called when retries are exhausted
 }
 
 const (

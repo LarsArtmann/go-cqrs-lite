@@ -25,7 +25,16 @@ func NewRetry[M any](adapter MessageAdapter[M], config RetryConfig, opts ...Opti
 
 	return func(next Handler[M]) Handler[M] {
 		return func(ctx context.Context, msg M) error {
-			return retry(ctx, config, cfg.logger, adapter.ExtractType(msg), func() error {
+			entry := DeadLetterEntry{
+				Kind: adapter.Kind,
+				Type: adapter.ExtractType(msg),
+			}
+
+			if adapter.ExtractID != nil {
+				entry.AggregateID = adapter.ExtractID(msg)
+			}
+
+			return retry(ctx, config, cfg.logger, entry, func() error {
 				return next(ctx, msg)
 			})
 		}
@@ -54,7 +63,7 @@ func retry(
 	ctx context.Context,
 	config RetryConfig,
 	logger *slog.Logger,
-	opName string,
+	entry DeadLetterEntry,
 	fn func() error,
 ) error {
 	var err error
@@ -78,7 +87,7 @@ func retry(
 		if logger != nil {
 			logger.Warn(
 				"retry attempt",
-				"operation", opName,
+				"operation", entry.Type,
 				"attempt", attempt,
 				"maxAttempts", config.MaxAttempts,
 				"delay", delay,
@@ -94,14 +103,21 @@ func retry(
 			timer.Stop()
 
 			return event.WrapInfrastructure(ErrRetryCanceled, "middleware.retry_canceled",
-				opName+": retry canceled").WithCause(err)
+				entry.Type+": retry canceled").WithCause(err)
 		}
 
 		timer.Stop()
 	}
 
+	if config.OnDeadLetter != nil {
+		entry.Error = err
+		entry.Attempts = config.MaxAttempts
+		entry.FailedAt = time.Now()
+		config.OnDeadLetter(ctx, entry)
+	}
+
 	return event.WrapInfrastructure(ErrRetryExhausted, "middleware.retry_exhausted",
-		fmt.Sprintf("all %d attempts failed for %s", config.MaxAttempts, opName)).WithCause(err)
+		fmt.Sprintf("all %d attempts failed for %s", config.MaxAttempts, entry.Type)).WithCause(err)
 }
 
 func backoff(config RetryConfig, attempt int) time.Duration {

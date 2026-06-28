@@ -1,0 +1,95 @@
+package middleware
+
+import (
+	"context"
+	"sync"
+	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+)
+
+// DeadLetterEntry captures a message that exhausted all retry attempts.
+// It contains enough context to inspect, replay, or discard the failed
+// message without access to the original handler.
+type DeadLetterEntry struct {
+	// Kind is the message category: "command", "event", or "query".
+	Kind string
+
+	// Type is the message type name (e.g., "user.created", "todo.create").
+	Type string
+
+	// AggregateID is the aggregate the message targets. Zero for queries.
+	AggregateID id.AggregateID
+
+	// Error is the last error that caused retry exhaustion.
+	Error error
+
+	// Attempts is the total number of attempts made (including the first).
+	Attempts int
+
+	// FailedAt is when the message was moved to the dead-letter store.
+	FailedAt time.Time
+}
+
+// DeadLetterHandler is called when a message exhausts all retry attempts.
+// Use it to quarantine poison messages for inspection, logging, or replay.
+//
+// The handler must not panic — if it fails, the message is already lost
+// (retries exhausted). Keep the handler fast and side-effect-minimal.
+type DeadLetterHandler func(ctx context.Context, entry DeadLetterEntry)
+
+// MemoryDeadLetterStore is an in-memory dead-letter handler for testing
+// and single-process development. It is safe for concurrent use.
+//
+// Usage:
+//
+//	store := middleware.NewMemoryDeadLetterStore()
+//	config := middleware.RetryConfig{
+//	    MaxAttempts:  3,
+//	    OnDeadLetter: store.Handle,
+//	}
+//	// ... run commands/events through the retry middleware ...
+//	entries := store.Entries() // inspect dead-lettered messages
+type MemoryDeadLetterStore struct {
+	mu      sync.Mutex
+	entries []DeadLetterEntry
+}
+
+// NewMemoryDeadLetterStore creates an empty in-memory dead-letter store.
+func NewMemoryDeadLetterStore() *MemoryDeadLetterStore {
+	return &MemoryDeadLetterStore{
+		entries: make([]DeadLetterEntry, 0),
+	}
+}
+
+// Handle stores a dead-letter entry. Implements DeadLetterHandler.
+func (s *MemoryDeadLetterStore) Handle(_ context.Context, entry DeadLetterEntry) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.entries = append(s.entries, entry)
+}
+
+// Entries returns a copy of all dead-lettered messages.
+func (s *MemoryDeadLetterStore) Entries() []DeadLetterEntry {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	return append([]DeadLetterEntry(nil), s.entries...)
+}
+
+// Count returns the number of dead-lettered messages.
+func (s *MemoryDeadLetterStore) Count() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	return len(s.entries)
+}
+
+// Clear removes all dead-lettered messages.
+func (s *MemoryDeadLetterStore) Clear() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.entries = s.entries[:0]
+}
