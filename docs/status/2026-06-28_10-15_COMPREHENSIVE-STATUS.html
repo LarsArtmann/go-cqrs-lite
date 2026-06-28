@@ -1,0 +1,1634 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>go-cqrs-lite — Comprehensive Status · 2026-06-28</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS DARK — Dashboard template
+         Design language: form follows function. Primary colors on graphite.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Dark) --- */
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+
+        /* --- Semantic layer (shared vocabulary with editorial template) --- */
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 15%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 20%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px; /* Bauhaus default: sharp corners */
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      /* Sticky-header offset for anchor jumps */
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+      ul,
+      ol {
+        margin: 0 0 1rem 1.4rem;
+      }
+      li {
+        margin: 0.3rem 0;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 80px;
+        margin-bottom: 1rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 24px;
+        left: 72px;
+        width: 48px;
+        height: 48px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        left: 140px;
+        width: 0;
+        height: 0;
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 48px solid var(--warning);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+      .card h4 {
+        margin-bottom: 0.4rem;
+      }
+      .card p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges (used inside issue cards) --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges (used in tables) --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+
+      /* --- Callouts (used inside issues or standalone) --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+      .callout-problem {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 10%, transparent);
+      }
+
+      /* --- Stat cards / scorecards (aliased vocabulary) --- */
+      .stat-grid,
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card,
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before,
+      .score-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad,
+      .score-bad {
+        /* default top bar already set */
+      }
+      .stat-bad::before,
+      .score-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before,
+      .score-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before,
+      .score-warn::before {
+        background: var(--warning);
+      }
+      .stat-value,
+      .score {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value,
+      .score-bad .score {
+        color: var(--problem);
+      }
+      .stat-good .stat-value,
+      .score-good .score {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value,
+      .score-warn .score {
+        color: var(--warning);
+      }
+      .stat-label,
+      .score-card .label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+
+      /* --- Strengths list --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--accent);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: var(--solution);
+      }
+      .tok-comment {
+        color: var(--text-faint);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #74a9ff;
+      }
+      .tok-number {
+        color: var(--accent);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #4dd9ff;
+      }
+      .tok-punct {
+        color: var(--text-muted);
+      }
+      .tok-attr {
+        color: var(--accent);
+      }
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Numbered steps (top-25 list) --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        gap: 1rem;
+        margin: 0.8rem 0;
+        padding: 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+      }
+      .migration-step.is-critical {
+        border-left-color: var(--problem);
+      }
+      .migration-step.is-high {
+        border-left-color: var(--warning);
+      }
+      .migration-step.is-good {
+        border-left-color: var(--solution);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-step.is-critical .migration-num {
+        color: var(--problem);
+      }
+      .migration-step.is-high .migration-num {
+        color: var(--warning);
+      }
+      .migration-step.is-good .migration-num {
+        color: var(--solution);
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0.3rem;
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+      .migration-content .where {
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        color: var(--text-faint);
+        margin-top: 0.3rem;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .stat-grid,
+        .scorecard {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>Comprehensive Status Report</span>
+      <span>2026-06-28 10:15 CEST</span>
+      <span>HEAD f4728f0e · v3.3.0-prep</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#done">Fully Done</a>
+          <a href="#partial">Partially Done</a>
+          <a href="#notstarted">Not Started</a>
+          <a href="#broken">Totally Fucked Up</a>
+          <a href="#improve">What To Improve</a>
+          <a href="#top25">Top 25 Next</a>
+          <a href="#question">Top Question</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <!-- Hero -->
+        <div class="hero">
+          <div class="hero-shapes">
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="hero-badge">Full Status Snapshot</div>
+          <h1>go-cqrs-lite — Comprehensive Status</h1>
+          <p class="hero-subtitle">
+            Point-in-time audit of a 46-module, 936-file, 38-ADR CQRS/Event-Sourcing library SDK
+            for Go. Every claim below is verified against the live source tree at HEAD
+            <code>f4728f0e</code>: build, lint, full test suite, coverage, and doc freshness were
+            all executed this session.
+          </p>
+        </div>
+
+        <!-- Stats Dashboard -->
+        <h2 id="summary"><span class="num">00</span>Summary</h2>
+        <div class="stat-grid">
+          <div class="stat-card stat-good">
+            <div class="stat-value">46</div>
+            <div class="stat-label">Modules (go.mod)</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">936</div>
+            <div class="stat-label">Go Files</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Failing Tests</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">1</div>
+            <div class="stat-label">Lint Finding</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">38</div>
+            <div class="stat-label">ADRs</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">3</div>
+            <div class="stat-label">Stale Doc Claims</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">91.9%</div>
+            <div class="stat-label">event coverage</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">1</div>
+            <div class="stat-label">Stale Branch</div>
+          </div>
+        </div>
+
+        <div class="card card-solution">
+          <h4>Verdict: Production-ready for the modules consumers already use</h4>
+          <p>
+            Build is green, the entire 46-module test suite passes (<code>ok</code> on every
+            package, zero failures), and core CQRS/ES primitives carry high coverage (decider
+            98.3%, id 98.2%, dispatcher 98.0%, event 91.9%). v3.1.0 is tagged and v3.3.0 is
+            release-prep complete. The remaining work is hygiene (3 stale doc claims, 1 lint
+            regression, 1 stale branch), two stdlib-blocked experiments, and consumer-pulled
+            transport adapters. No correctness bugs were found.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>How this report differs from the last one (10:04 today)</h4>
+          <p>
+            The previous report (<code>2026-06-28_10-04_V3.3.0-RELEASE-PREP-COMPLETE.md</code>)
+            claimed <em>"Zero lint findings across all 46 modules."</em> That claim is now
+            <strong>false</strong> — one <code>exhaustive</code> finding exists in
+            <code>storage/view_store_auto.go:164</code>. It was introduced after that report was
+            written (by the relational-schema work in commits <code>e6c90898</code> /
+            <code>34179e17</code>). This is the single most important correction in this report.
+          </p>
+        </div>
+
+        <!-- =========================================================== -->
+        <h2 id="done"><span class="num">A</span>Fully Done</h2>
+        <p>Verified this session: compiles, tests pass, docs match code.</p>
+
+        <div class="strengths">
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Full test suite green — every module <code>ok</code></strong>
+              <span
+                >All 46 modules pass via <code>nix run .#test</code>. No FAIL, no skips requiring
+                external services (Postgres preset skips without DSN but that is by-design, not a
+                failure).</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>v3.3.0 release-prep complete</strong>
+              <span
+                >Unified command identity (<code>Command.ID()</code>), persistent
+                <code>SQLDeadLetterStore</code>, validated SQL projections (Row column names
+                checked against schema), API-surface golden regenerated, internal module deps
+                bumped v3.1.0 → v3.3.0, CHANGELOG finalised. HEAD = <code>f4728f0e</code>.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>All 11 v3 breaking changes shipped &amp; tagged</strong>
+              <span
+                >Memory stores → <code>storage/memory/</code>, Version → uint64, readmodel/ merged
+                into kv/ (ADR-0032), event.Event made concrete type alias, io.Closer removed from
+                core interfaces (ADR-0010), Metadata split per-module (ADR-0031). Migration guide
+                shipped. All deferred to "v4" items are tracked, not lost.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Three projection tiers, all functional</strong>
+              <span
+                >Document/KV (<code>stack.Materialize</code>), Relational/SQL
+                (<code>storage.RelationalProjection</code> + <code>RelationalStore</code> with
+                cursor pagination), Graph/traversal (<code>graph.GraphProjection</code>). ADR-0037
+                + ADR-0038 document the extraction.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Transport layer complete</strong>
+              <span
+                >SSE (<code>transport/http</code>) with Last-Event-ID reconnect, gRPC
+                (<code>transport/grpc</code>) with protobuf command+query dispatch — and gRPC IS
+                now wired into <code>go.work</code> (line 47), despite a stale FEATURES claim to
+                the contrary.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Security primitives shipped &amp; integration-tested</strong>
+              <span
+                >Event signing (HMAC-SHA256, Ed25519, multisig) and encryption (XChaCha20-Poly1305,
+                AES-256-GCM) with middleware. Integration tests in <code>integration/signing</code>
+                and <code>integration/encryption</code> pass.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Reliability story closed</strong>
+              <span
+                >Dead-letter quarantine for retry exhaustion, distributed checkpointing for
+                projections, projection replay→live dedup gap fixed, CatchUpSubscriber with
+                EventID-based dedup. All marked DONE in ROADMAP.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Multi-DB SQL presets operational</strong>
+              <span
+                >SQLite, Postgres, Turso, Pebble presets each support separate event/query/view
+                databases. <code>stack/sqlite</code>, <code>stack/postgres</code>,
+                <code>stack/turso</code>, <code>stack/pebble</code> all test green.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Dependency layer discipline enforced</strong>
+              <span
+                >6-layer module graph, per-module dependency budgets, <code>check-module-layers.sh</code>
+                + CI isolation gate (<code>check-module-isolation.sh</code>) catch leaks. The
+                storage/memory test-dep is a documented exception, not a leak.</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- =========================================================== -->
+        <h2 id="partial"><span class="num">B</span>Partially Done</h2>
+        <p>Compiles and ships value, but has a documented gap or an upstream blocker.</p>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Partial</span>
+          <h3>transport/grpc builds but has an upstream ecosystem conflict</h3>
+          <div class="where">TODO_LIST.md:29 · transport/grpc/</div>
+          <p>
+            The gRPC transport is wired into <code>go.work</code> and its tests pass under the
+            workspace build, but it builds <strong>only with <code>GOWORK=off</code></strong> in
+            true isolation because <code>cockroachdb/pebble → cockroachdb/errors@v1.14.0</code>
+            pulls the monolithic <code>google.golang.org/genproto</code>, which conflicts with grpc
+            v1.81.1's split <code>genproto/googleapis/rpc</code>. <strong>Blocked until
+            cockroachdb/errors drops the monolithic genproto</strong> (issue #79). This means
+            the module is not yet isolation-clean — the one module in the repo that isn't.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Partial</span>
+          <h3>Operability surfaces not fully wired into stack presets</h3>
+          <div class="where">ROADMAP.md:38-39 · stack/pebble/preset.go, stack/sqlite/preset.go</div>
+          <p>
+            Pebble <code>Checkpoint(dir)</code> IS surfaced on the pebble Bundle
+            (<code>stack/pebble/preset.go:53</code>) and tested. But <strong>graceful shutdown is
+            not surfaced</strong> from the stack presets — consumers must reach into the pebble
+            Bundle's <code>GracefulClose(ctx)</code> directly rather than through a uniform preset
+            API. ROADMAP lists both items as open; the checkpoint half is effectively done, the
+            shutdown half is not.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Partial</span>
+          <h3>Two Go-stdlib-blocked experiments exist but can't stabilize</h3>
+          <div class="where">TODO_LIST.md:42-43 · event/arena_experiment.go, codec/jsonv2_experiment.go</div>
+          <p>
+            Arena allocation (<code>goexperiment.arenas</code>) and JSON-v2 encoding
+            (<code>goexperiment.jsonv2</code>) are wired behind build tags and applied in CI
+            automatically. Both work today, but are <strong>blocked on Go stdlib
+            stabilization</strong> before they can become the default path. They are correctly
+            marked experimental — no consumer depends on them — but they represent unrealised
+            performance gains (zero-alloc encoding, pooled allocation).
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Partial</span>
+          <h3>api-stability tool exists but isn't exposed as a flake app</h3>
+          <div class="where">cmd/api-stability/ · flake.nix</div>
+          <p>
+            The API-surface checker builds and runs (<code>cmd/api-stability/</code>), and a golden
+            file was regenerated this release (<code>34260691</code>). But
+            <code>nix run .#api-stability</code> returns "does not provide attribute" — it isn't
+            wired as a flake app. Consumers must <code>cd cmd/api-stability &amp;&amp; go run
+            .</code>. The check exists but is one step removed from the documented
+            <code>nix run .#&lt;task&gt;</code> convention.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Partial</span>
+          <h3>Hot-state cache designed but unimplemented</h3>
+          <div class="where">TODO_LIST.md:44 · docs/design/hot-state-cache.md</div>
+          <p>
+            A full design doc exists for a decider hot-state cache keyed by
+            <code>(aggID, version)</code> to eliminate snapshot+delta replay on sustained-hot
+            aggregates. It is provably safe under single-master optimistic concurrency. But it is
+            <strong>not built</strong>, and the doc itself warns to "profile before building" —
+            snapshot + page-cache-resident events may already make sequential loads cheap. This is
+            a real, designed, unbuilt performance feature.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Partial</span>
+          <h3>Postgres preset tests skip locally without a DSN</h3>
+          <div class="where">stack/postgres/</div>
+          <p>
+            <code>stack/postgres</code> shows 0% coverage locally because its tests skip without
+            <code>POSTGRES_TEST_DSN</code>. This is by-design (not a failure), but it means the
+            Postgres path is the <strong>only preset without local coverage signal</strong>. CI
+            doesn't exercise it either unless a DSN is configured. Happy paths rely on the shared
+            contract suite; constructor error branches are lighter.
+          </p>
+        </div>
+
+        <!-- =========================================================== -->
+        <h2 id="notstarted"><span class="num">C</span>Not Started</h2>
+        <p>Designed or roadmapped, but zero implementation exists.</p>
+
+        <div class="card">
+          <h4>NATS / Redis / Kafka transport adapters</h4>
+          <p>
+            ADR-0025 originally called for these, but they were <strong>superseded by the Watermill
+            command bridge</strong> — brokers plug into <code>watermill.NewCommandBus</code> via
+            publisher/subscriber adapters rather than getting bespoke modules. ROADMAP marks these
+            as done-by-supersession. No standalone <code>transport/nats</code> module exists, which
+            is the intended end state unless a consumer asks otherwise.
+          </p>
+        </div>
+
+        <div class="card">
+          <h4>Read-pressure snapshot strategy</h4>
+          <p>
+            <code>EveryNEvents</code> snapshots based on writes; a <code>ReadPressureStrategy</code>
+            that snapshots based on load frequency is designed but unbuilt. Deferred because the
+            hot-state cache (also unbuilt) would subsume most of its benefit. Listed in TODO_LIST
+            as "consider after the State cache lands."
+          </p>
+        </div>
+
+        <div class="card">
+          <h4>Distributed projection runner (multi-node)</h4>
+          <p>
+            Single-machine distributed checkpointing exists, but true multi-node leader-election
+            coordination is a ROADMAP "raw idea" with no code and no deadline. The doc is explicit:
+            "single-machine is sufficient for now."
+          </p>
+        </div>
+
+        <div class="card">
+          <h4>Deriver module (stateless saga: events → commands)</h4>
+          <p>
+            A ROADMAP raw idea. The saga pattern currently <em>emerges</em> from
+            <code>bus.SubscribeAll</code> + command dispatch (see <code>example/todo/</code>), but
+            no dedicated <code>deriver/</code> module formalises it.
+          </p>
+        </div>
+
+        <div class="card">
+          <h4>Graph DB drivers beyond the in-memory reference</h4>
+          <p>
+            <code>graph.GraphProjection</code> ships with an in-memory traversal engine. A
+            Neo4j/Memgraph driver (<code>graph/neo4j/</code>) is listed as a consumer-pulled
+            sibling module — no code until a consumer asks.
+          </p>
+        </div>
+
+        <!-- =========================================================== -->
+        <h2 id="broken"><span class="num">D</span>Totally Fucked Up</h2>
+        <p>
+          Not "broken code" — the code works. These are <strong>trust violations</strong>: places
+          where the docs lie about the code, or where a regression slipped in unnoticed. A library
+          SDK lives or dies on whether consumers can trust its docs. These erode that trust.
+        </p>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Regression</span>
+          <h3>Lint is NOT zero — the last report's headline claim is false</h3>
+          <div class="where">storage/view_store_auto.go:164 · contradicts 10:04 report</div>
+          <p>
+            The previous status report (<code>2026-06-28_10-04</code>) states under its executive
+            summary: <em>"Zero lint findings across all 46 modules (was 8 at session
+            start)."</em> Running <code>nix run .#lint</code> right now returns
+            <strong>1 finding</strong>:
+          </p>
+          <pre><code>storage/view_store_auto.go:164:2: missing cases in switch of type reflect.Kind:
+  reflect.Invalid, reflect.Int8, reflect.Int16, reflect.Uint8, reflect.Uint16,
+  reflect.Uintptr, reflect.Complex64, ... (exhaustive)
+  switch rt.Kind() {</code></pre>
+          <p>
+            The <code>goTypeToSQL</code> switch intentionally handles only a subset of
+            <code>reflect.Kind</code> (unknown kinds default to TEXT for JSON-serialised types).
+            TODO_LIST line 32 claims a scoped <code>//nolint:exhaustive</code> with justification
+            was added in commit <code>cbfdd68e</code> — <strong>but that nolint directive is
+            absent from the current code.</strong> It was lost during the relational-schema
+            refactor. This is a silent doc-vs-code drift: the project believes its own stale claim.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix (1 line)</strong>
+            Add <code>//nolint:exhaustive // unknown Kinds intentionally fall through to TEXT</code>
+            on the <code>switch rt.Kind()</code> line at view_store_auto.go:164. Re-run lint to
+            confirm zero. Then re-state the claim truthfully.
+          </div>
+        </div>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Stale claim</span>
+          <h3>FEATURES.md claims transport/grpc is an orphan — it isn't</h3>
+          <div class="where">FEATURES.md:361 · go.work:47</div>
+          <p>
+            FEATURES.md line 361 states:
+            <em>"⚠️ Builds cleanly but is not yet wired into go.work (orphan module) — add it to
+            the workspace use block before relying on root go test ./..."</em>
+          </p>
+          <p>
+            This is <strong>false</strong>. <code>grep -n grpc go.work</code> shows
+            <code>./transport/grpc</code> at line 47, and <code>go test ./transport/grpc/...</code>
+            passes under the workspace. The module was wired in but the FEATURES note was never
+            updated. A consumer reading FEATURES would wrongly avoid the module.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            Delete or invert the orphan warning in FEATURES.md:361. State that gRPC is wired into
+            go.work and tested, with the isolation caveat (see Partial section above).
+          </div>
+        </div>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Stale branch</span>
+          <h3>consolidate-catalog branch is 422 commits behind, abandoned</h3>
+          <div class="where">branch: consolidate-catalog (local + origin)</div>
+          <p>
+            The <code>consolidate-catalog</code> branch exists locally and on origin. Its last
+            commit is <strong>2026-06-17</strong> ("branch merge-ready"), but master has moved
+            <strong>422 commits past it</strong> and it has 0 unique commits not on master. It is
+            not "merge-ready" — it is dead weight. A consumer or contributor seeing it would
+            reasonably wonder if it holds unmerged work. It doesn't; master supersedes it
+            entirely.
+          </p>
+          <div class="callout callout-warning">
+            <strong>Action</strong>
+            Confirm with the owner, then delete both <code>consolidate-catalog</code> (local) and
+            <code>origin/consolidate-catalog</code>. Do not merge — master is strictly ahead.
+          </div>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Doc rot</span>
+          <h3>TODO_LIST claims projection/ was "deleted" then "re-introduced" — confusing history</h3>
+          <div class="where">TODO_LIST.md:60</div>
+          <p>
+            The v3 checklist item reads: <em>"Refactor projection/ module — RE-INTRODUCED
+            (ADR-0030)."</em> The prose then explains the old runner was replaced but the
+            <em>interface</em> was re-homed. This is technically accurate but reads as
+            contradictory to anyone scanning the checklist — a "completed breaking change" that was
+            un-deleted. The correction is buried in a sub-clause. It cost this audit real time to
+            confirm projection/ is alive and load-bearing.
+          </p>
+        </div>
+
+        <!-- =========================================================== -->
+        <h2 id="improve"><span class="num">E</span>What We Should Improve</h2>
+
+        <div class="card card-warning">
+          <h4>1. Doc freshness is a manual process — and it's losing</h4>
+          <p>
+            Three of the "Totally Fucked Up" items are doc-vs-code drift discovered in a single
+            session. The project has a <code>docs-freshness-check</code> skill and a
+            <code>doc-check</code> tool, but nothing <em>enforces</em> it in CI on every commit. A
+            green build does not mean green docs. The single highest-leverage improvement is a CI
+            gate that fails when FEATURES.md / TODO_LIST.md / ROADMAP.md contradict the source.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>2. The "zero lint findings" claim should never be asserted without re-running lint</h4>
+          <p>
+            The 10:04 report asserted zero findings as a headline victory, but a commit between
+            the report's write and HEAD reintroduced one. Status reports that make absolute claims
+            ("zero", "all", "none") should embed the exact command + commit hash that produced the
+            claim, and the claim should be re-verified at report-write time, not carried forward
+            from session memory.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>3. The one isolation-unclean module (transport/grpc) has no workaround tracked</h4>
+          <p>
+            transport/grpc is blocked on an upstream cockroachdb/errors issue. That's legitimate.
+            But the project has a CI isolation gate that presumably either (a) exempts this module
+            silently or (b) would fail. Either way, the exception should be loud: a CI-annotated
+            allowlist entry with the upstream issue link, so the gate doesn't silently rot.
+          </p>
+        </div>
+
+        <div class="card card-solution">
+          <h4>4. api-stability should be a first-class flake app</h4>
+          <p>
+            <code>cmd/api-stability</code> builds, runs, and had its golden file regenerated this
+            release — but it isn't wired as <code>nix run .#api-stability</code>. Every other
+            quality gate (build, test, lint, check-layers) is a flake app. This one isn't, breaking
+            the convention and making the API-stability check easy to forget during releases.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>5. Postgres is the only preset with no local coverage signal</h4>
+          <p>
+            Without <code>POSTGRES_TEST_DSN</code>, <code>stack/postgres</code> tests skip and show
+            0% coverage. Consider a CI job that runs Postgres in a service container (the standard
+            GitHub Actions <code>postgres</code> service) so the Postgres happy-path is exercised
+            on every PR, not just when a maintainer remembers to set a DSN.
+          </p>
+        </div>
+
+        <div class="card card-solution">
+          <h4>6. The unbuilt performance features need a profile, not more design</h4>
+          <p>
+            Hot-state cache and read-pressure snapshots both have design docs and both are unbuilt.
+            The hot-state doc itself says "profile before building." The improvement: run a
+            benchmark on a realistic hot-aggregate workload (the <code>stack/bench</code> module
+            exists for exactly this). If snapshot + page cache is already fast enough, close the
+            items. If not, the data justifies the build. Either way, stop holding open design docs
+            that may already be moot.
+          </p>
+        </div>
+
+        <!-- =========================================================== -->
+        <h2 id="top25"><span class="num">F</span>Top 25 Things To Get Done Next</h2>
+        <p>Sorted by impact. Severity colour-coded: red = trust/correctness, amber = hygiene/gap, blue = feature/growth.</p>
+
+        <div class="migration-step is-critical">
+          <div class="migration-num">1</div>
+          <div class="migration-content">
+            <h4>Fix the lint regression — restore true zero findings</h4>
+            <p>
+              Add the missing <code>//nolint:exhaustive</code> to
+              <code>storage/view_store_auto.go:164</code>. Re-run <code>nix run .#lint</code>. This
+              is the only thing standing between the repo and its stated quality bar.
+            </p>
+            <div class="where">storage/view_store_auto.go:164 · ~2 min</div>
+          </div>
+        </div>
+
+        <div class="migration-step is-critical">
+          <div class="migration-num">2</div>
+          <div class="migration-content">
+            <h4>Correct the stale FEATURES.md orphan claim for transport/grpc</h4>
+            <p>
+              Delete/invert the "not yet wired into go.work" warning. State gRPC is wired (go.work:47)
+              and tested, noting the upstream isolation caveat. A lying FEATURES.md is worse than no
+              FEATURES.md.
+            </p>
+            <div class="where">FEATURES.md:361 · ~5 min</div>
+          </div>
+        </div>
+
+        <div class="migration-step is-critical">
+          <div class="migration-num">3</div>
+          <div class="migration-content">
+            <h4>Delete the abandoned consolidate-catalog branch (local + origin)</h4>
+            <p>
+              Confirm owner approval, then remove. Master is 422 commits ahead with 0 unique
+              commits on the branch — it is pure dead weight that misleads contributors.
+            </p>
+            <div class="where">branch: consolidate-catalog · ~3 min</div>
+          </div>
+        </div>
+
+        <div class="migration-step is-critical">
+          <div class="migration-num">4</div>
+          <div class="migration-content">
+            <h4>Add a CI doc-freshness gate</h4>
+            <p>
+              Wire the <code>doc-check</code> tool / <code>docs-freshness-check</code> skill into CI
+              so FEATURES/TODO/ROADMAP contradictions fail the build. This single gate would have
+              caught items #1–#3 before this report.
+            </p>
+            <div class="where">.github/workflows/ci.yml + cmd/doc-check · ~2 hrs</div>
+          </div>
+        </div>
+
+        <div class="migration-step is-high">
+          <div class="migration-num">5</div>
+          <div class="migration-content">
+            <h4>Wire api-stability as a flake app</h4>
+            <p>
+              Add <code>apps.x86_64-linux.api-stability</code> to flake.nix pointing at
+              <code>cmd/api-stability</code>. Restores the <code>nix run .#&lt;task&gt;</code>
+              convention uniformity and makes release-time API checks a one-liner.
+            </p>
+            <div class="where">flake.nix · ~30 min</div>
+          </div>
+        </div>
+
+        <div class="migration-step is-high">
+          <div class="migration-num">6</div>
+          <div class="migration-content">
+            <h4>Make the transport/grpc isolation exception loud in CI</h4>
+            <p>
+              Add an explicit, commented allowlist entry in <code>check-module-isolation.sh</code>
+              for transport/grpc with the cockroachdb/errors#79 link, so the gate doesn't silently
+              rot and the blocker is visible to anyone reading CI.
+            </p>
+            <div class="where">scripts/check-module-isolation.sh · ~20 min</div>
+          </div>
+        </div>
+
+        <div class="migration-step is-high">
+          <div class="migration-num">7</div>
+          <div class="migration-content">
+            <h4>Surface graceful shutdown uniformly across stack presets</h4>
+            <p>
+              Pebble has <code>GracefulClose(ctx)</code> on its Bundle but it isn't exposed through
+              a uniform preset API. Add a <code>GracefulClose</code> (or equivalent) to each preset
+              so consumers don't reach into backend-specific types for shutdown.
+            </p>
+            <div class="where">stack/{sqlite,postgres,turso,pebble}/preset.go · ~3 hrs</div>
+          </div>
+        </div>
+
+        <div class="migration-step is-high">
+          <div class="migration-num">8</div>
+          <div class="migration-content">
+            <h4>Add a Postgres service container to CI</h4>
+            <p>
+              So <code>stack/postgres</code> tests run with a real DSN on every PR instead of
+              skipping. Removes the only preset with a 0% local coverage signal.
+            </p>
+            <div class="where">.github/workflows/ci.yml · ~2 hrs</div>
+          </div>
+        </div>
+
+        <div class="migration-step is-high">
+          <div class="migration-num">9</div>
+          <div class="migration-content">
+            <h4>Profile the hot-aggregate path, then close or build the hot-state cache</h4>
+            <p>
+              Use <code>stack/bench</code> on a 100+ cmds/sec aggregate. If snapshot + page cache is
+              already fast, mark the hot-state cache DONE-as-unneeded in TODO_LIST. If not, the
+              benchmark justifies the build. Stop holding an open design doc.
+            </p>
+            <div class="where">stack/bench/ + docs/design/hot-state-cache.md · ~4 hrs</div>
+          </div>
+        </div>
+
+        <div class="migration-step is-high">
+          <div class="migration-num">10</div>
+          <div class="migration-content">
+            <h4>Clean up the contradictory projection/ history in TODO_LIST</h4>
+            <p>
+              Rewrite the "RE-INTRODUCED" item so a scanner sees projection/ is alive and
+              load-bearing without reading a buried sub-clause. Move the deletion/re-introduction
+              nuance to a footnote or the session milestones doc.
+            </p>
+            <div class="where">TODO_LIST.md:60 · ~15 min</div>
+          </div>
+        </div>
+
+        <div class="migration-step is-good">
+          <div class="migration-num">11</div>
+          <div class="migration-content">
+            <h4>Tag v3.3.0</h4>
+            <p>
+              Release-prep is complete (CHANGELOG finalised, API golden regenerated, deps bumped).
+              The remaining pre-tag work is items #1–#3 (lint + doc honesty). Once those land, cut
+              the tag.
+            </p>
+            <div class="where">git tag · after #1–#3</div>
+          </div>
+        </div>
+
+        <div class="migration-step is-good">
+          <div class="migration-num">12</div>
+          <div class="migration-content">
+            <h4>Add a Transport/broker recipe doc for NATS/Redis via Watermill</h4>
+            <p>
+              ROADMAP superseded bespoke transport modules in favour of the Watermill bridge, but
+              there's no concrete recipe showing "here's how you plug NATS in." A worked example
+              closes the gap without committing to a module.
+            </p>
+            <div class="where">watermill/doc.go or docs/ · ~3 hrs</div>
+          </div>
+        </div>
+
+        <div class="migration-step is-good">
+          <div class="migration-num">13</div>
+          <div class="migration-content">
+            <h4>Spike a Deriver module (events → commands, stateless saga)</h4>
+            <p>
+              The saga pattern currently emerges ad-hoc from bus.SubscribeAll. A thin
+              <code>deriver/</code> module that formalises "on event X, dispatch command Y" would
+              make the pattern reusable and testable. ROADMAP raw idea; small scope.
+            </p>
+            <div class="where">deriver/ (new) · ~1 day</div>
+          </div>
+        </div>
+
+        <div class="migration-step is-good">
+          <div class="migration-num">14</div>
+          <div class="migration-content">
+            <h4>Add a Neo4j driver sibling module for the graph tier</h4>
+            <p>
+              <code>graph.GraphProjection</code> ships an in-memory engine. A Neo4j/Memgraph driver
+              is the obvious consumer-pulled next step. Even a stub with a documented interface
+              signals where the seam is.
+            </p>
+            <div class="where">graph/neo4j/ (new) · consumer-pulled</div>
+          </div>
+        </div>
+
+        <div class="migration-step is-good">
+          <div class="migration-num">15</div>
+          <div class="migration-content">
+            <h4>Implement the read-pressure snapshot strategy (if #9 justifies it)</h4>
+            <p>
+              <code>ReadPressureStrategy</code> snapshots based on load frequency. Build only if the
+              hot-state cache (item #9) doesn't fully cover the read-heavy case.
+            </p>
+            <div class="where">snapshot/ · after #9</div>
+          </div>
+        </div>
+
+        <div class="migration-step is-good">
+          <div class="migration-num">16</div>
+          <div class="migration-content">
+            <h4>Event stream compaction / log truncation design</h4>
+            <p>
+              ROADMAP raw idea. Long-lived aggregates accumulate unbounded event streams. A
+              compaction strategy (beyond snapshots) deserves at least a design doc, even if
+              implementation is deferred.
+            </p>
+            <div class="where">docs/design/ · ~1 day design</div>
+          </div>
+        </div>
+
+        <div class="migration-step is-good">
+          <div class="migration-num">17</div>
+          <div class="migration-content">
+            <h4>Multi-tenant event store design (schema-per-tenant)</h4>
+            <p>
+              ROADMAP raw idea. Encryption already supports per-tenant key derivation (HKDF). A
+              schema-per-tenant store would complete the multi-tenancy story. Design first.
+            </p>
+            <div class="where">docs/design/ · ~1 day design</div>
+          </div>
+        </div>
+
+        <div class="migration-step is-good">
+          <div class="migration-num">18</div>
+          <div class="migration-content">
+            <h4>Event archival to object storage (S3/GCS/Azure Blob)</h4>
+            <p>
+              ROADMAP raw idea. Pairs naturally with compaction (#16) — cold events move to blob
+              storage, hot events stay local. Pebble Checkpoint is a primitive step toward this.
+            </p>
+            <div class="where">docs/design/ · after #16</div>
+          </div>
+        </div>
+
+        <div class="migration-step is-good">
+          <div class="migration-num">19</div>
+          <div class="migration-content">
+            <h4>CQRS-lite inspection dashboard (web UI)</h4>
+            <p>
+              ROADMAP raw idea. A read-only web UI for browsing aggregates, events, and projections.
+              The catalog module already generates OpenAPI/AsyncAPI/D2 — a UI is the natural
+              consumer-facing layer.
+            </p>
+            <div class="where">dashboard/ (new) · multi-day</div>
+          </div>
+        </div>
+
+        <div class="migration-step is-good">
+          <div class="migration-num">20</div>
+          <div class="migration-content">
+            <h4>Automatic migration generator for schema evolution</h4>
+            <p>
+              The <code>schema.Upcaster</code> handles in-code migration. A generator that emits
+              upcaster scaffolding from schema diffs would reduce boilerplate. ROADMAP raw idea.
+            </p>
+            <div class="where">cmd/cqrs-gen extension · ~2 days</div>
+          </div>
+        </div>
+
+        <div class="migration-step is-good">
+          <div class="migration-num">21</div>
+          <div class="migration-content">
+            <h4>Property-based integration testing with state machine verification</h4>
+            <p>
+              <code>pgregory.net/rapid</code> is already a test dep in event/encryption. Extending
+              property-based testing to the decider/store contract (any sequence of commands
+              produces a valid event stream) would harden the core invariant.
+            </p>
+            <div class="where">integration/ · ~2 days</div>
+          </div>
+        </div>
+
+        <div class="migration-step is-good">
+          <div class="migration-num">22</div>
+          <div class="migration-content">
+            <h4>Performance regression dashboard (historical benchmark tracking)</h4>
+            <p>
+              <code>stack/bench</code> exists but results aren't tracked over time. A CI artifact
+              + historical plot would catch perf regressions the way the API-stability tool catches
+              API regressions.
+            </p>
+            <div class="where">stack/bench/ + CI · ~2 days</div>
+          </div>
+        </div>
+
+        <div class="migration-step is-good">
+          <div class="migration-num">23</div>
+          <div class="migration-content">
+            <h4>Scheduler module (deadlines, timeouts, cron triggers)</h4>
+            <p>
+              ROADMAP raw idea. Event-sourced systems often need temporal triggers. A scheduler
+              module that emits scheduled commands would round out the command side.
+            </p>
+            <div class="where">scheduler/ (new) · multi-day, needs design</div>
+          </div>
+        </div>
+
+        <div class="migration-step is-good">
+          <div class="migration-num">24</div>
+          <div class="migration-content">
+            <h4>Track the cockroachdb/errors#79 upstream blocker actively</h4>
+            <p>
+              The transport/grpc isolation blocker depends on an external issue. Subscribe to the
+              issue and add a recurring check (monthly?) so the exemption is removed the moment the
+              upstream lands.
+            </p>
+            <div class="where">scripts/check-module-isolation.sh · ~ongoing</div>
+          </div>
+        </div>
+
+        <div class="migration-step is-good">
+          <div class="migration-num">25</div>
+          <div class="migration-content">
+            <h4>When Go stabilises: promote jsonv2 + arenas off experiment tags</h4>
+            <p>
+              Both are wired and working behind <code>goexperiment.*</code> tags. Track the Go
+              release that stabilises each, then flip them to default paths for the zero-alloc /
+              pooled-allocation wins they promise.
+            </p>
+            <div class="where">event/arena_experiment.go, codec/jsonv2_experiment.go · Go-stdlib-blocked</div>
+          </div>
+        </div>
+
+        <!-- =========================================================== -->
+        <h2 id="question"><span class="num">G</span>Top Question I Cannot Answer Myself</h2>
+
+        <div class="callout callout-problem">
+          <strong>#1 Question:</strong>
+          Is <code>consolidate-catalog</code> intentionally preserved for a reason I can't see
+          from the source, or is it safe to delete?
+        </div>
+
+        <p>
+          The branch is 422 commits behind master with zero unique commits of its own, and its own
+          last commit message self-describes it as "merge-ready" — yet it was never merged and
+          master has comprehensively moved past it. From inside the repo, it looks like pure dead
+          weight: no commit on master references it, no open PR depends on it, and the catalog
+          module on master is functional and tested.
+        </p>
+        <p>
+          <strong>What I cannot determine:</strong> whether there's an out-of-band reason (a
+          planned revert, a collaborator's in-progress work, a historical reference point) to keep
+          it. Deleting a branch is reversible (<code>git reflog</code> + force-recreate from
+          origin), but I won't touch it without confirmation because the AGENTS.md safety rule is
+          explicit: <em>"NEVER revert changes you didn't author."</em> This is your branch and your
+          call.
+        </p>
+        <p>
+          <strong>If the answer is "delete it,"</strong> I will remove both
+          <code>consolidate-catalog</code> (local) and <code>origin/consolidate-catalog</code> and
+          note it in the next report. <strong>If the answer is "keep it,"</strong> I'll add a
+          one-line note to TODO_LIST explaining why so the next audit doesn't flag it.
+        </p>
+
+        <footer class="footer">
+          Generated 2026-06-28 10:15 CEST · All claims verified against HEAD
+          <code>f4728f0e</code> via <code>nix run .#build</code> (pass), <code>nix run .#lint</code>
+          (1 finding), <code>nix run .#test</code> (all 46 modules <code>ok</code>), and
+          <code>go test -cover</code> on core modules. · Bauhaus Dark dashboard template.
+        </footer>
+      </main>
+    </div>
+
+    <!-- Progressive-enhancement scrollspy. Nav still works without JS via anchor links. -->
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>
