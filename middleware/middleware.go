@@ -11,6 +11,12 @@ import (
 )
 
 // MetricsRecorder records handler execution metrics.
+//
+// Deprecated: Use TypedMetricsRecorder with attribute.KeyValue pairs instead.
+// The string-label Observe accepts alternating key-value pairs that silently
+// drop malformed (odd-length) input. Prefer TypedMetricsRecorder and the
+// CommandTypedMetrics/EventTypedMetrics/QueryTypedMetrics constructors for
+// compile-time safety.
 type MetricsRecorder interface {
 	Observe(ctx context.Context, name string, duration time.Duration, labels ...string)
 }

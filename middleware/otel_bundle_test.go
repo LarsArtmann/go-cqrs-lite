@@ -165,3 +165,64 @@ func TestOTelBundle_ProducesSpans(t *testing.T) {
 		t.Errorf("expected span name 'command.handle', got %q", spans[0].Name)
 	}
 }
+
+func TestOTelBundle_WithMetricsDisabled(t *testing.T) {
+	t.Parallel()
+
+	tracer := sdktrace.NewTracerProvider().Tracer("test")
+
+	bundle, err := NewOTelBundle(tracer, nil, WithMetricsDisabled())
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if bundle.Recorder() != nil {
+		t.Error("expected nil recorder when metrics disabled")
+	}
+
+	if len(bundle.Command()) != 1 {
+		t.Errorf("expected 1 command middleware (tracing only), got %d", len(bundle.Command()))
+	}
+
+	if len(bundle.Event()) != 1 {
+		t.Errorf("expected 1 event middleware (tracing only), got %d", len(bundle.Event()))
+	}
+
+	if len(bundle.Query()) != 1 {
+		t.Errorf("expected 1 query middleware (tracing only), got %d", len(bundle.Query()))
+	}
+}
+
+func TestOTelBundle_NilMeterWithoutDisableReturnsError(t *testing.T) {
+	t.Parallel()
+
+	tracer := sdktrace.NewTracerProvider().Tracer("test")
+
+	_, err := NewOTelBundle(tracer, nil)
+	if err == nil {
+		t.Fatal("expected error when meter is nil and metrics not disabled")
+	}
+}
+
+func TestOTelBundle_CorrelationEnricher(t *testing.T) {
+	t.Parallel()
+
+	tracer := sdktrace.NewTracerProvider().Tracer("test")
+	meter := metric.NewMeterProvider().Meter("test")
+
+	bundle, err := NewOTelBundle(tracer, meter)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	enricher := bundle.CorrelationEnricher()
+	if enricher == nil {
+		t.Fatal("expected non-nil enricher")
+	}
+
+	// Without baggage correlation ID, returns nil options.
+	opts := enricher(context.Background())
+	if opts != nil {
+		t.Errorf("expected nil options without baggage, got %v", opts)
+	}
+}

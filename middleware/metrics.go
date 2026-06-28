@@ -25,6 +25,9 @@ func recordMetrics(
 }
 
 // NewMetrics returns a generic middleware that records handler execution metrics.
+//
+// Deprecated: Use NewTypedMetrics with a TypedMetricsRecorder instead. The
+// string-label recorder silently drops malformed label pairs.
 func NewMetrics[M any](adapter MessageAdapter[M], recorder MetricsRecorder) Middleware[M] {
 	return func(next Handler[M]) Handler[M] {
 		return func(ctx context.Context, msg M) error {
@@ -45,16 +48,22 @@ func NewMetrics[M any](adapter MessageAdapter[M], recorder MetricsRecorder) Midd
 }
 
 // CommandMetrics returns a middleware that records command handler metrics.
+//
+// Deprecated: Use CommandTypedMetrics with a TypedMetricsRecorder instead.
 func CommandMetrics(recorder MetricsRecorder) command.Middleware {
 	return AsCommand(NewMetrics(CommandAdapter, recorder))
 }
 
 // EventMetrics returns a middleware that records event handler metrics.
+//
+// Deprecated: Use EventTypedMetrics with a TypedMetricsRecorder instead.
 func EventMetrics(recorder MetricsRecorder) event.Middleware {
 	return AsEvent(NewMetrics(EventAdapter, recorder))
 }
 
 // QueryMetrics returns a middleware that records query handler metrics.
+//
+// Deprecated: Use QueryTypedMetrics with a TypedMetricsRecorder instead.
 func QueryMetrics(recorder MetricsRecorder) query.Middleware {
 	return AsQuery(NewMetrics(QueryAdapter, recorder))
 }
