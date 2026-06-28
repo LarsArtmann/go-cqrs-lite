@@ -53,6 +53,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   internal consumers in `event/` — it was a layering inversion. Moving it establishes
   correct dependency direction.
 
+### DX Improvements
+
+#### Bundle.RunProjections — One-Call Projection Runner
+- **`bundle.RunProjections(ctx, projections...)`** — replays journal + subscribes to
+  live + dispatches to all registered projections. Eliminates ~20 lines of
+  CatchUpSubscriber + channel consumption + message decoding boilerplate.
+- **`stack.Materialize` now implements `projection.Projection`** — added
+  `Name()`, `Handle()`, `EventTypes()` methods. Fixes the split brain where
+  Materialize returned Watermill's `NoPublishHandlerFunc` but bypassed the
+  library's own `Projection` contract. All three projection tiers now satisfy
+  the same interface.
+
+### Tests & Infrastructure
+
+#### Graph Contract Test Suite
+- **`graph/graphtest/contract.go`** — shared behavioral contract test for
+  `GraphDriver` implementations (mirrors `kv/viewstoretest/contract.go`).
+  7 tests: MergeNodeCreates, MergeNodeUpdates, MergeEdgeCreatesEndpoints,
+  MergeEdgeUpdatesProps, RemoveNodeDeletesIncidentEdges, RemoveEdgeLeavesEndpoints,
+  AtomicRollbackOnError. MemoryDriver passes all 7.
+
+#### Architecture Enforcement
+- **`scripts/check-arch.sh`** — two-layer arch enforcement (cross-module via
+  go.mod parsing + intra-module via go-arch-lint). Wired as `nix run .#check-arch`.
+- **`storage/.go-arch-lint.yml`** — first per-module arch-lint config.
+- Stack dep budget bumped from 12 to 13 (added `projection/v3` dependency).
+
+#### ADRs
+- **ADR-0037**: Projection interface extraction from `event/`
+- **ADR-0038**: Graph projection tier design (writes portable, reads native)
+- **`docs/projection-tiers.md`**: Decision guide for choosing between tiers
+
+#### Quality
+- **`projection/` module: 100% test coverage** (5 tests)
+- **`graph/` module: 86.9% coverage** (9 tests + 7 contract tests)
+
 ## [3.1.0] - 2026-06-25
 
 **Feature release — 79 commits since v3.0.0, +69 API exports (1558 → 1627), zero breaking changes.**
