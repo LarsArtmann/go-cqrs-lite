@@ -23,10 +23,8 @@
 //	    return err // store failure — do not process
 //	}
 //
-// This module owns only the store. Wiring it into a dispatch pipeline is the
-// consumer's choice: a command [middleware], a transport hook, or a manual
-// check at the handler boundary. See go-cqrs-lite/middleware for the command
-// dispatch middleware chain.
-//
-// [middleware]: https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/middleware/v3
+// This module owns the store and a command dispatch middleware. The store is
+// the primitive; [CommandIdempotency] wires it into a command.Dispatcher
+// middleware chain. For custom integrations (transport hooks, manual checks),
+// use the [Store] interface directly.
 package idempotency

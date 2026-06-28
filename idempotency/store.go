@@ -142,9 +142,7 @@ func (s *MemoryStore) sweep(interval time.Duration) {
 		case <-s.stop:
 			return
 		case <-ticker.C:
-			now := time.No
-			w()
-
+			now := time.Now()
 			s.mu.Lock()
 			for key, exp := range s.entries {
 				if now.After(exp) {
