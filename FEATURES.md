@@ -154,6 +154,20 @@
 | Middleware ordering | Reverse-order middleware application at registration time      | ✅     |
 | Duplicate guard     | `ErrHandlerAlreadyRegistered` — prevents double-registration   | ✅     |
 
+### Idempotency ✅ FULLY_FUNCTIONAL
+
+> `import "github.com/larsartmann/go-cqrs-lite/idempotency/v3"`
+
+| Feature         | Detail                                                                                     | Status |
+| --------------- | ------------------------------------------------------------------------------------------ | ------ |
+| Store interface | `Store`: `Seen`, `Record`, `CheckAndRecord` — dedup opaque keys (command idempotency keys) | ✅     |
+| MemoryStore     | `MemoryStore` — in-memory TTL store with background sweep + lazy deletion                  | ✅     |
+| Atomic dedup    | `CheckAndRecord` — single-lock check+record prevents the TOCTOU race (exactly one winner)  | ✅     |
+| TTL expiration  | Keys expire after a configurable duration; removed by sweeper and lazily on read           | ✅     |
+| ErrDuplicate    | Conflict sentinel returned when a key is already recorded (maps to HTTP 409)               | ✅     |
+
+**Sentinel errors:** `ErrDuplicate` (Conflict)
+
 ---
 
 ## Schema Evolution ✅ FULLY_FUNCTIONAL
@@ -269,15 +283,15 @@ Accepts any `MetricsRecorder` interface (`Observe`).
 
 ### OTel Bundle ✅
 
-| Feature                  | Detail                                                                              |
-| ------------------------ | ----------------------------------------------------------------------------------- |
-| `NewOTelBundle(tr, met)` | One-call tracing + metrics for all message kinds                                    |
-| `.Command()`             | Spread into `cmdDisp.Use(...)`                                                      |
-| `.Event()`               | Spread into `bus.Use(...)`                                                          |
-| `.Query()`               | Spread into `qryDisp.Use(...)`                                                      |
-| `.Publish()`             | Spread into `bus.UsePublish(...)`                                                   |
-| `.CorrelationEnricher()` | Decider enricher bridging OTel baggage → event metadata                             |
-| `WithMetricsDisabled()`  | Tracing-only mode (nil meter allowed)                                               |
+| Feature                  | Detail                                                  |
+| ------------------------ | ------------------------------------------------------- |
+| `NewOTelBundle(tr, met)` | One-call tracing + metrics for all message kinds        |
+| `.Command()`             | Spread into `cmdDisp.Use(...)`                          |
+| `.Event()`               | Spread into `bus.Use(...)`                              |
+| `.Query()`               | Spread into `qryDisp.Use(...)`                          |
+| `.Publish()`             | Spread into `bus.UsePublish(...)`                       |
+| `.CorrelationEnricher()` | Decider enricher bridging OTel baggage → event metadata |
+| `WithMetricsDisabled()`  | Tracing-only mode (nil meter allowed)                   |
 
 ### HTTP Metrics ❌ REMOVED
 

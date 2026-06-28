@@ -101,15 +101,16 @@ Every module has its own README with detailed usage, types, and examples.
 
 ### Core
 
-| Module         | Purpose                                                                         | README                         |
-| -------------- | ------------------------------------------------------------------------------- | ------------------------------ |
-| **event**      | Immutable events, store/bus interfaces, event sourcing, 5-family error taxonomy | [README](event/README.md)      |
-| **command**    | Typed command dispatch, middleware, audit journal, pub/sub bus                  | [README](command/README.md)    |
-| **query**      | Typed query dispatch, pagination, audit journal                                 | [README](query/README.md)      |
-| **decider**    | Pure-function aggregate pattern (load → fold → decide → save)                   | [README](decider/README.md)    |
-| **id**         | Branded IDs backed by ULID — impossible to mix up ID types                      | [README](id/README.md)         |
-| **dispatcher** | Generic `Dispatcher[H, M]` with lifecycle management                            | [README](dispatcher/README.md) |
-| **codec**      | Payload encoding: JSON, deterministic CBOR, Raw passthrough                     | [README](codec/README.md)      |
+| Module          | Purpose                                                                         | README                          |
+| --------------- | ------------------------------------------------------------------------------- | ------------------------------- |
+| **event**       | Immutable events, store/bus interfaces, event sourcing, 5-family error taxonomy | [README](event/README.md)       |
+| **command**     | Typed command dispatch, middleware, audit journal, pub/sub bus                  | [README](command/README.md)     |
+| **query**       | Typed query dispatch, pagination, audit journal                                 | [README](query/README.md)       |
+| **decider**     | Pure-function aggregate pattern (load → fold → decide → save)                   | [README](decider/README.md)     |
+| **id**          | Branded IDs backed by ULID — impossible to mix up ID types                      | [README](id/README.md)          |
+| **idempotency** | Command idempotency store — dedup at-least-once delivery retries                | [README](idempotency/README.md) |
+| **dispatcher**  | Generic `Dispatcher[H, M]` with lifecycle management                            | [README](dispatcher/README.md)  |
+| **codec**       | Payload encoding: JSON, deterministic CBOR, Raw passthrough                     | [README](codec/README.md)       |
 
 ### Persistence
 
