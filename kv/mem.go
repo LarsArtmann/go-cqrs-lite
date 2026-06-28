@@ -92,6 +92,26 @@ func (s *MemStore) Delete(key []byte) error {
 	return nil
 }
 
+// SetIfAbsent atomically sets the value only if the key does not currently
+// exist. Returns true if the set succeeded, false if the key already existed.
+func (s *MemStore) SetIfAbsent(key, value []byte) (bool, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if err := s.checkClosed(); err != nil {
+		return false, err
+	}
+
+	k := string(key)
+	if _, exists := s.data[k]; exists {
+		return false, nil
+	}
+
+	s.data[k] = slices.Clone(value)
+
+	return true, nil
+}
+
 func (s *MemStore) Batch() (Batch, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()

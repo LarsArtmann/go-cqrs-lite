@@ -80,3 +80,13 @@ type Batch interface {
 	// Calling Close after Commit is a no-op.
 	Close() error
 }
+
+// ConditionalWriter provides atomic compare-and-set semantics.
+// Backends that support conditional writes (e.g., Redis SET NX, SQL
+// INSERT ON CONFLICT DO NOTHING) should implement this interface.
+type ConditionalWriter interface {
+	// SetIfAbsent atomically sets the value only if the key does not
+	// currently exist. Returns true if the set succeeded (key was
+	// absent), false if the key already existed.
+	SetIfAbsent(key, value []byte) (bool, error)
+}
