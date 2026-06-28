@@ -15,6 +15,12 @@ func TestMemoryDriverContract(t *testing.T) {
 		SchemaFactory: func(t *testing.T) graph.GraphDriver {
 			return graph.NewMemoryDriver(graph.WithDriverSchema(contractSchema()))
 		},
+		ReadableFactory: func(t *testing.T) graph.ReadableDriver {
+			driver := graph.NewMemoryDriver()
+			graphtest.SeedReadGraph(t, driver)
+
+			return driver
+		},
 	})
 }
 

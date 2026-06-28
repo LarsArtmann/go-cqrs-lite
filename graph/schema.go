@@ -25,8 +25,19 @@ import (
 // Those are database-engine concerns, not sink-validation concerns. The goal
 // is catching structural typos, not enforcing business rules.
 type Schema struct {
-	Nodes []NodeType
-	Edges []EdgeType
+	Nodes   []NodeType
+	Edges   []EdgeType
+	Indexes []IndexSpec
+}
+
+// IndexSpec declares a property index for a node label. The MemoryDriver
+// ignores indexes (in-memory lookups are already O(1)), but a future Neo4j
+// or Memgraph driver uses them to CREATE INDEX at startup. Mirrors
+// [storage.IndexSpec] in the relational tier.
+type IndexSpec struct {
+	Name       string
+	Label      string
+	Properties []string
 }
 
 // NodeType declares one node label in a [Schema].
@@ -179,6 +190,32 @@ func (s *Schema) Validate() error {
 
 		if err := validateProperties(edgeType.Properties, "edge", edgeType.Type); err != nil {
 			return err
+		}
+	}
+
+	for i := range s.Indexes {
+		idx := s.Indexes[i]
+
+		if idx.Name == "" {
+			return fmt.Errorf("graph schema: index %d: %w", i, errSchemaEmptyIndexName)
+		}
+
+		nodeType := s.NodeType(idx.Label)
+		if nodeType == nil {
+			return fmt.Errorf("graph schema: index %q: %w: %q", idx.Name, errSchemaUnknownIndexLabel, idx.Label)
+		}
+
+		for _, prop := range idx.Properties {
+			if prop == nodeType.KeyProp {
+				continue
+			}
+
+			if !hasProperty(nodeType.Properties, prop) {
+				return fmt.Errorf(
+					"graph schema: index %q: %w: %q on %q",
+					idx.Name, errSchemaUnknownIndexProp, prop, idx.Label,
+				)
+			}
 		}
 	}
 

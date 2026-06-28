@@ -162,4 +162,21 @@ func main() {
 	}
 
 	fmt.Println()
+
+	// ── Schema rejection demo ──────────────────────────────────────────
+	// The Schema catches typos before they create phantom nodes. Try
+	// changing "User" to "Usr" in the handler above — the projection
+	// returns ErrUnknownNodeType instead of silently writing garbage.
+	// This is the value proposition of boundary-typed graph projections.
+	fmt.Println("=== Schema Catches Typos ===")
+
+	err = driver.RunInTx(func(sink cqrsgraph.GraphSink) error {
+		return sink.MergeNode(
+			cqrsgraph.NodeRef{Label: "Phantom", KeyProp: "id", KeyValue: "x"},
+			nil,
+		)
+	})
+	if err != nil {
+		fmt.Printf("  Rejected unknown label: %v\n", err)
+	}
 }

@@ -278,3 +278,46 @@ func TestSchemaSink_RejectsEdgeUnknownProp(t *testing.T) {
 		t.Fatalf("expected errSinkUnknownProp, got %v", err)
 	}
 }
+
+func TestSchema_ValidIndex(t *testing.T) {
+	t.Parallel()
+
+	s := testSchema()
+	s.Indexes = []IndexSpec{
+		{Name: "msg_content", Label: "Message", Properties: []string{"content"}},
+		{Name: "msg_by_id", Label: "Message", Properties: []string{"id"}}, // key prop allowed
+	}
+	if err := s.Validate(); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestSchema_RejectsEmptyIndexName(t *testing.T) {
+	t.Parallel()
+
+	s := testSchema()
+	s.Indexes = []IndexSpec{{Name: "", Label: "Message", Properties: []string{"content"}}}
+	if !errors.Is(s.Validate(), errSchemaEmptyIndexName) {
+		t.Fatalf("expected errSchemaEmptyIndexName, got %v", s.Validate())
+	}
+}
+
+func TestSchema_RejectsIndexUnknownLabel(t *testing.T) {
+	t.Parallel()
+
+	s := testSchema()
+	s.Indexes = []IndexSpec{{Name: "bad", Label: "Bogus", Properties: []string{"x"}}}
+	if !errors.Is(s.Validate(), errSchemaUnknownIndexLabel) {
+		t.Fatalf("expected errSchemaUnknownIndexLabel, got %v", s.Validate())
+	}
+}
+
+func TestSchema_RejectsIndexUnknownProp(t *testing.T) {
+	t.Parallel()
+
+	s := testSchema()
+	s.Indexes = []IndexSpec{{Name: "bad", Label: "Message", Properties: []string{"nonexistent"}}}
+	if !errors.Is(s.Validate(), errSchemaUnknownIndexProp) {
+		t.Fatalf("expected errSchemaUnknownIndexProp, got %v", s.Validate())
+	}
+}

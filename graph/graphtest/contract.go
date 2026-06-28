@@ -30,6 +30,11 @@ type Config struct {
 	// When set, schema validation contract tests run against it. When nil,
 	// schema tests are skipped (the driver does not support schema validation).
 	SchemaFactory func(t *testing.T) graph.GraphDriver
+
+	// ReadableFactory returns a fresh ReadableDriver pre-seeded with a known
+	// test graph (see seedReadGraph). When set, read API contract tests run
+	// against it. When nil, read tests are skipped.
+	ReadableFactory func(t *testing.T) graph.ReadableDriver
 }
 
 // RunSuite runs the mandatory GraphDriver contract tests (7 subtests).
@@ -91,6 +96,29 @@ func RunSuite(t *testing.T, cfg Config) {
 		t.Run("SchemaAcceptsValidWrite", func(t *testing.T) {
 			t.Parallel()
 			testSchemaAcceptsValidWrite(t, cfg.SchemaFactory(t))
+		})
+	}
+
+	// Read API contract tests — only run when ReadableFactory is set.
+	if cfg.ReadableFactory != nil {
+		t.Run("ReadQuery", func(t *testing.T) {
+			t.Parallel()
+			testReadQuery(t, cfg.ReadableFactory(t))
+		})
+
+		t.Run("ReadTraverse", func(t *testing.T) {
+			t.Parallel()
+			testReadTraverse(t, cfg.ReadableFactory(t))
+		})
+
+		t.Run("ReadNeighbors", func(t *testing.T) {
+			t.Parallel()
+			testReadNeighbors(t, cfg.ReadableFactory(t))
+		})
+
+		t.Run("ReadShortestPath", func(t *testing.T) {
+			t.Parallel()
+			testReadShortestPath(t, cfg.ReadableFactory(t))
 		})
 	}
 }

@@ -30,8 +30,11 @@ var (
 	errSchemaUnknownToLabel = errors.New(
 		"graph schema: edge to-label not declared as a node type",
 	)
-	errSchemaEmptyPropName = errors.New("graph schema: property name is required")
-	errSchemaDuplicateProp = errors.New("graph schema: duplicate property")
+	errSchemaEmptyPropName     = errors.New("graph schema: property name is required")
+	errSchemaDuplicateProp     = errors.New("graph schema: duplicate property")
+	errSchemaEmptyIndexName    = errors.New("graph schema: index name is required")
+	errSchemaUnknownIndexLabel = errors.New("graph schema: index label not declared as a node type")
+	errSchemaUnknownIndexProp  = errors.New("graph schema: index property not declared on node type")
 )
 
 // Schema enforcement errors — returned by the schema-validating sink wrapper.

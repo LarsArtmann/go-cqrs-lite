@@ -114,6 +114,22 @@ func TestSchema_RejectsInvalidLabel(t *testing.T) {
 	}
 }
 
+func TestSchema_RejectsUnknownProperty(t *testing.T) {
+	t.Parallel()
+
+	driver := cqrsgraph.NewMemoryDriver(cqrsgraph.WithDriverSchema(forumSchema()))
+
+	err := driver.RunInTx(func(sink cqrsgraph.GraphSink) error {
+		return sink.MergeNode(
+			cqrsgraph.NodeRef{Label: "User", KeyProp: "id", KeyValue: "x"},
+			map[string]any{"bogus_prop": "value"},
+		)
+	})
+	if err == nil {
+		t.Fatal("expected error for unknown property, got nil")
+	}
+}
+
 func TestQuery_FilterByContent(t *testing.T) {
 	t.Parallel()
 
