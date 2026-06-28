@@ -4,6 +4,19 @@
 // It serves both raw specification documents (OpenAPI JSON/YAML, AsyncAPI JSON/YAML)
 // and rendered HTML pages (Scalar for OpenAPI, AsyncAPI React for AsyncAPI).
 //
+// # Full Docs Server
+//
+// Use [NewDocsServer] for the complete documentation suite — OpenAPI/AsyncAPI
+// JSON+YAML+HTML UI, catalog JSON, and embedded static assets (Scalar, AsyncAPI React).
+//
+// # Standalone Handlers
+//
+// For lighter use cases, these package-level functions work without a DocsServer:
+//
+//   - [D2Handler] — D2 architecture diagram (text/plain)
+//   - [HealthCheckHandler] — liveness probe that verifies the catalog has services
+//   - [GenerateEventCatalog] — write EventCatalog MDX files at startup (not an HTTP handler)
+//
 // All handlers are stdlib net/http compatible — no framework dependency.
 // Use with any router: stdlib mux, Gin, Chi, Echo, etc.
 package docserver

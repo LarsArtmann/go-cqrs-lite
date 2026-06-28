@@ -299,11 +299,12 @@ linters:
           - nonamedreturns
           - varnamelen
           - wsl_v5
-      - path: catalog/(d2|asyncapi|openapi)/
+      - path: catalog/(d2|asyncapi|openapi|docserver)/
         linters:
           - exhaustruct
           - nlreturn
           - nolintlint
+          - wrapcheck
       - path: catalog/registry.go$
         linters:
           - exhaustruct

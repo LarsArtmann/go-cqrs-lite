@@ -17,6 +17,8 @@ go get github.com/larsartmann/go-cqrs-lite/catalog/v3
 | `catalog/eventcatalog` | EventCatalog MDX file generator                 |
 | `catalog/openapi`      | OpenAPI 3.0 YAML/JSON exporter                  |
 | `catalog/d2`           | D2 diagram text exporter                        |
+| `catalog/docserver`    | HTTP handlers for serving docs (OpenAPI/AsyncAPI UI, D2, health) |
+| `catalog/simple`       | Single-service builder facade (streamlined API) |
 
 ## Quick Start
 
@@ -172,6 +174,52 @@ text := d2.NewExporter().Export(catalog)
 ```
 
 ## Branded ID Types
+
+## docserver — HTTP Handlers
+
+Serve auto-generated API documentation from a `*catalog.Catalog` via stdlib `net/http`:
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/catalog/v3/docserver"
+
+// Full docs server (OpenAPI/AsyncAPI JSON+YAML+HTML UI, catalog JSON)
+ds := docserver.NewDocsServer(func() *catalog.Catalog {
+    return builder.Build()
+}, docserver.Config{
+    ServiceName: "Order Service",
+    Version:     "1.0.0",
+})
+
+mux := http.NewServeMux()
+ds.RegisterRoutes(mux) // registers /docs/openapi, /docs/asyncapi, etc.
+
+// Standalone handlers (no DocsServer needed)
+mux.HandleFunc("/diagram.d2", docserver.D2Handler(cat))
+mux.HandleFunc("/health", docserver.HealthCheckHandler(cat))
+```
+
+### EventCatalog File Generation
+
+```go
+// Write MDX files at startup for the EventCatalog CLI to serve.
+err := docserver.GenerateEventCatalog(cat, "./eventcatalog")
+```
+
+## simple — Single-Service Builder Facade
+
+Most services document a single application. The `simple` package reduces ceremony:
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/catalog/v3/simple"
+
+b := simple.New("User Service", "1.0.0")
+simple.Command[RegisterUserCmd](b, "register-user",
+    simple.WithOperation("POST", "/api/users"))
+simple.Event[UserRegisteredEvent](b, "user.registered", catalog.Sends)
+cat := b.Build()
+```
+
+Access the underlying `catalog.Builder` via `b.InnerBuilder()` for multi-service catalogs.
 
 The catalog module provides typed IDs for catalog entries:
 
