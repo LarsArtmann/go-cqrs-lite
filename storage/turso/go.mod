@@ -3,15 +3,15 @@ module github.com/larsartmann/go-cqrs-lite/storage/turso/v3
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/command/v3 v3.1.0
-	github.com/larsartmann/go-cqrs-lite/event/v3 v3.1.0
+	github.com/larsartmann/go-cqrs-lite/command/v3 v3.3.0
+	github.com/larsartmann/go-cqrs-lite/event/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/event/v3/eventtest v0.0.0
-	github.com/larsartmann/go-cqrs-lite/id/v3 v3.1.0
-	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.1.0
-	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.1.0
-	github.com/larsartmann/go-cqrs-lite/query/v3 v3.1.0
-	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.1.0
-	github.com/larsartmann/go-cqrs-lite/storage/v3 v3.1.0
+	github.com/larsartmann/go-cqrs-lite/id/v3 v3.3.0
+	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.3.0
+	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.3.0
+	github.com/larsartmann/go-cqrs-lite/query/v3 v3.3.0
+	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.3.0
+	github.com/larsartmann/go-cqrs-lite/storage/v3 v3.3.0
 	go.opentelemetry.io/otel v1.44.0
 	go.opentelemetry.io/otel/trace v1.44.0
 	turso.tech/database/tursogo v0.6.1
@@ -26,9 +26,9 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/listing/v3 v3.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/listing/v3 v3.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.0.0 // indirect
 	github.com/larsartmann/go-error-family v0.5.1 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
