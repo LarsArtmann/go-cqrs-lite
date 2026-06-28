@@ -2,7 +2,6 @@ package graph
 
 import (
 	"fmt"
-	"strings"
 )
 
 // Schema declares the set of node and edge types a graph projection owns.
@@ -260,18 +259,4 @@ func (s *Schema) validateEdgeRef(ref EdgeRef) error {
 	}
 
 	return nil
-}
-
-// describeSchema produces a human-readable summary for error messages and logs.
-func (s *Schema) describeSchema() string {
-	if s == nil {
-		return "(no schema)"
-	}
-
-	nodeLabels := make([]string, len(s.Nodes))
-	for i := range s.Nodes {
-		nodeLabels[i] = s.Nodes[i].Label
-	}
-
-	return fmt.Sprintf("nodes=[%s]", strings.Join(nodeLabels, ", "))
 }

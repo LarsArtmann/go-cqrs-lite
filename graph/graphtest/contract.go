@@ -231,6 +231,8 @@ func testAtomicRollbackOnError(t *testing.T, driver graph.GraphDriver) {
 }
 
 func testSchemaRejectsUnknownLabel(t *testing.T, driver graph.GraphDriver) {
+	t.Helper()
+
 	err := driver.RunInTx(func(sink graph.GraphSink) error {
 		return sink.MergeNode(
 			graph.NodeRef{Label: "Phantom", KeyProp: "id", KeyValue: "x"},
@@ -243,6 +245,8 @@ func testSchemaRejectsUnknownLabel(t *testing.T, driver graph.GraphDriver) {
 }
 
 func testSchemaRejectsUnknownProp(t *testing.T, driver graph.GraphDriver) {
+	t.Helper()
+
 	err := driver.RunInTx(func(sink graph.GraphSink) error {
 		return sink.MergeNode(
 			nodeRef("User", "u1"),
@@ -255,6 +259,8 @@ func testSchemaRejectsUnknownProp(t *testing.T, driver graph.GraphDriver) {
 }
 
 func testSchemaAcceptsValidWrite(t *testing.T, driver graph.GraphDriver) {
+	t.Helper()
+
 	err := driver.RunInTx(func(sink graph.GraphSink) error {
 		return sink.MergeNode(
 			nodeRef("User", "u1"),

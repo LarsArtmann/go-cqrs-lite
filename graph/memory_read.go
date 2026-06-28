@@ -192,7 +192,7 @@ func (d *MemoryDriver) ShortestPath(from, to NodeRef) ([]NodeRef, error) {
 		queue = queue[1:]
 
 		if current == toKey {
-			return reconstructPath(parent, current, data), nil
+			return reconstructPath(parent, current), nil
 		}
 
 		for ek := range data.edges {
@@ -225,7 +225,7 @@ func (d *MemoryDriver) ShortestPath(from, to NodeRef) ([]NodeRef, error) {
 	return nil, ErrPathNotFound
 }
 
-func reconstructPath(parent map[nodeKey]nodeKey, end nodeKey, data *graphData) []NodeRef {
+func reconstructPath(parent map[nodeKey]nodeKey, end nodeKey) []NodeRef {
 	var path []nodeKey
 
 	for k := end; ; k = parent[k] {
