@@ -8,6 +8,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 	cqrsproto "github.com/larsartmann/go-cqrs-lite/transport/grpc/v3/proto"
 )
 
@@ -40,8 +41,19 @@ func (s *commandServer) Dispatch(
 	ctx context.Context,
 	envelope *cqrsproto.CommandEnvelope,
 ) (*cqrsproto.CommandResult, error) {
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "grpc.command.dispatch",
+		cqrsotel.SpanKindServer,
+		cqrsotel.WithAttributes(
+			cqrsotel.AttrString(cqrsotel.AttrCommandType, envelope.GetType()),
+			cqrsotel.AttrString(cqrsotel.AttrAggregateID, envelope.GetAggregateId()),
+		),
+	)
+	defer span.End()
+
 	aggID, err := id.ParseAggregateID(envelope.GetAggregateId())
 	if err != nil {
+		cqrsotel.RecordError(span, err)
 		return errorResult(fmt.Errorf("parse aggregate ID: %w", err)), nil
 	}
 
@@ -72,6 +84,7 @@ func (s *commandServer) Dispatch(
 
 	err = s.dispatcher.Dispatch(ctx, cmd)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
 		return errorResult(err), nil
 	}
 

@@ -7,6 +7,7 @@ import (
 
 	"google.golang.org/grpc"
 
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
 	cqrsproto "github.com/larsartmann/go-cqrs-lite/transport/grpc/v3/proto"
 )
@@ -38,13 +39,24 @@ func (s *queryServer) Ask(
 	ctx context.Context,
 	envelope *cqrsproto.QueryEnvelope,
 ) (*cqrsproto.QueryResult, error) {
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "grpc.query.ask",
+		cqrsotel.SpanKindServer,
+		cqrsotel.WithAttributes(
+			cqrsotel.AttrString(cqrsotel.AttrQueryType, envelope.GetType()),
+		),
+	)
+	defer span.End()
+
 	q, err := query.New(query.Type(envelope.GetType()))
 	if err != nil {
+		cqrsotel.RecordError(span, err)
 		return queryErrorResult(err), nil
 	}
 
 	result, err := s.dispatcher.Dispatch(ctx, q)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
 		return queryErrorResult(err), nil
 	}
 

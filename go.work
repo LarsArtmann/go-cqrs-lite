@@ -17,6 +17,7 @@ use (
 	./example/deployer-first-heterogeneous
 	./example/deployer-first-multidb
 	./example/encryption
+	./example/graph-demo
 	./example/todo
 	./example/user
 	./graph

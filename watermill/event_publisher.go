@@ -6,6 +6,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 )
 
 // EventPublisher wraps a Watermill [message.Publisher] as a go-cqrs-lite
@@ -38,14 +39,38 @@ func NewEventPublisher(publisher message.Publisher, topic string) *EventPublishe
 
 // Publish converts cqrs events to Watermill messages and publishes them.
 // Implements [event.Publisher].
-func (p *EventPublisher) Publish(_ context.Context, events ...event.Event) error {
+func (p *EventPublisher) Publish(ctx context.Context, events ...event.Event) error {
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "watermill.event.publish",
+		cqrsotel.SpanKindProducer,
+		cqrsotel.WithAttributes(
+			cqrsotel.AttrInt(cqrsotel.AttrEventCount, len(events)),
+		),
+	)
+	defer span.End()
+
+	if len(events) > 0 {
+		attrs := cqrsotel.EventAttrs(
+			string(events[0].Type()),
+			events[0].AggregateID(),
+			string(events[0].AggregateType()),
+		)
+		span.SetAttributes(attrs...)
+	}
+
 	msgs := make([]*message.Message, 0, len(events))
 
 	for _, evt := range events {
 		msgs = append(msgs, eventToMessage(evt))
 	}
 
-	return p.publisher.Publish(p.topic, msgs...)
+	if err := p.publisher.Publish(p.topic, msgs...); err != nil {
+		cqrsotel.RecordError(span, err)
+
+		return err //nolint:wrapcheck // transparent proxy
+	}
+
+	return nil
 }
 
 var _ event.Publisher = (*EventPublisher)(nil)

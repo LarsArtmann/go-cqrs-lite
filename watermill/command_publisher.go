@@ -7,6 +7,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 )
 
 // CommandPublisher wraps a Watermill [message.Publisher] as a go-cqrs-lite
@@ -32,7 +33,21 @@ func NewCommandPublisher(publisher message.Publisher, topic string) *CommandPubl
 
 // Publish converts cqrs commands to Watermill messages and publishes them.
 // Implements [command.Publisher].
-func (p *CommandPublisher) Publish(_ context.Context, cmds ...command.Command) error {
+func (p *CommandPublisher) Publish(ctx context.Context, cmds ...command.Command) error {
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "watermill.command.publish",
+		cqrsotel.SpanKindProducer,
+		cqrsotel.WithAttributes(
+			cqrsotel.AttrInt("cqrs.command.count", len(cmds)),
+		),
+	)
+	defer span.End()
+
+	if len(cmds) > 0 {
+		attrs := cqrsotel.CommandAttrs(string(cmds[0].Type()), cmds[0].AggregateID())
+		span.SetAttributes(attrs...)
+	}
+
 	msgs := make([]*message.Message, 0, len(cmds))
 
 	for _, cmd := range cmds {
@@ -40,6 +55,8 @@ func (p *CommandPublisher) Publish(_ context.Context, cmds ...command.Command) e
 	}
 
 	if err := p.publisher.Publish(p.topic, msgs...); err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return event.WrapInfrastructure(
 			err, "watermill.publish_command_failed", "publish to topic "+p.topic,
 		)

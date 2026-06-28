@@ -8,6 +8,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 )
 
 // SSEClientID identifies a connected SSE client.
@@ -84,9 +85,20 @@ func NewSSEBroker(bus event.Bus, opts ...SSEBrokerOption) (*SSEBroker, error) {
 	return b, nil
 }
 
-func (b *SSEBroker) handleEvent(_ context.Context, evt event.Event) error {
+func (b *SSEBroker) handleEvent(ctx context.Context, evt event.Event) error {
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "sse.fanout",
+		cqrsotel.SpanKindConsumer,
+		cqrsotel.WithAttributes(
+			cqrsotel.EventAttrs(string(evt.Type()), evt.AggregateID(), string(evt.AggregateType()))...,
+		),
+	)
+	defer span.End()
+
 	b.mu.RLock()
 	defer b.mu.RUnlock()
+
+	span.SetAttributes(cqrsotel.AttrInt("cqrs.sse.client_count", len(b.clients)))
 
 	for _, ch := range b.clients {
 		select {
