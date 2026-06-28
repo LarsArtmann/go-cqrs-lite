@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-06-22
+**Updated:** 2026-06-28
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in [ROADMAP.md](ROADMAP.md).
 
 ## Legend
@@ -13,6 +13,13 @@
 ---
 
 ## Open Items
+
+### Module Isolation (2026-06-28)
+
+- [x] ~~**Fix signing/go.mod: add eventtest dep**~~ — DONE (`179f5ee3`). The signing module failed GOWORK=off build because eventtest was missing from go.mod.
+- [x] ~~**Fix projection/v3 deps across 11 modules**~~ — DONE (`f9cc123c`). A full isolation audit found 11 of 44 modules failing GOWORK=off build because the projection/v3 require+replace directives were missing. Root cause: TODO_LIST falsely claimed projection/ was 'deleted' — it was alive and load-bearing.
+- [x] ~~**Add CI isolation gate**~~ — DONE (`c45b47c8`). The per-module-test CI job had a hardcoded 34-module matrix, missing 10+ modules. Replaced with dynamic discovery + a check-module-isolation.sh gate.
+- [x] ~~**Add doc-stub CI gate**~~ — DONE (`c45b47c8`). Greps for placeholder `// Package X provides ...` in doc.go files.
 
 ### Architecture & Quality (2026-06-24 multi-skill review)
 
@@ -50,7 +57,7 @@ struct copy in `Clone()` is semantically a deep copy. Regression test
 - [x] ~~Move memory/ stores → storage/memory/~~ — DONE
 - [x] ~~Version → uint64~~ — DONE
 - [x] ~~Delete readmodel/ module~~ — DONE (merged into kv/, ADR-0032)
-- [x] ~~Delete projection/ module~~ — DONE (replaced by bus.SubscribeAll + stack.Materialize + CatchUpSubscriber, ADR-0030)
+- [x] ~~Refactor projection/ module~~ — **RE-INTRODUCED** (ADR-0030). The OLD projection/ runner was replaced by bus.SubscribeAll + stack.Materialize + CatchUpSubscriber. But the Projection *interface* was re-homed into projection/ as a shared contract — it is now implemented by storage.RelationalProjection, graph.GraphProjection, and stack.Materialize. It is alive and load-bearing for the relational + graph tiers (ADR-0033). The original "delete" claim was stale; corrected 2026-06-28.
 - [x] ~~Fix query.Handler returns any~~ — TypedHandler shipped
 - [x] ~~Delete ghost bus code~~ — DONE (`event/reactive*.go` removed; watermill.EventBus + bus.SubscribeAll is the replacement)
 - [x] ~~Remove io.Closer from core interfaces~~ — DONE (ADR-0010; callers type-assert to io.Closer)
