@@ -63,7 +63,7 @@ gofumpt -w .
 
 ## Project Structure
 
-Multi-module Go workspace with 30 modules:
+Multi-module Go workspace with 48 modules:
 
 ```
 event/         # Event system (Event, EventSink, EventSource, Bus)
@@ -132,7 +132,7 @@ go tool cover -html=coverage.out
 
 - Functional programming: immutability, pure functions
 - Early returns over nested conditionals
-- Max 250 lines/file, 30 lines/function
+- Max 350 lines/file (production), 30 lines/function
 - Descriptive names over comments
 
 ## Commit Messages
@@ -150,8 +150,21 @@ Examples:
 1. Run `nix run .#test` and `nix run .#lint` locally
 2. Ensure tests pass with `-race`
 3. Run `nix run .#check-layers` to verify module dependency rules
-4. Update docs if behavior changes
-5. Request review from maintainers
+4. Run `nix run .#check-arch` to verify architecture constraints
+5. Update docs if behavior changes
+6. Request review from maintainers
+
+## Session & Branch Discipline
+
+**Multiple concurrent sessions committing to `master` has caused issues**
+(file corruption, unexpected diffs). Recommended practices:
+
+1. Always `git status` before starting work
+2. If you see changes you didn't author, investigate before touching them
+3. Commit early and often to minimize conflicts
+4. Use feature branches for long-running work: `git switch -c my-feature`
+5. The BuildFlow pre-commit hook runs golangci-lint + gitleaks + gofumpt
+   (skips lint for doc-only commits: `.md`, `.html`, `.d2`, `.svg`)
 
 ## Security & Architecture Checks
 
