@@ -105,9 +105,7 @@ func TestWriteServiceFrontmatter_FullFields(t *testing.T) {
 	svc := catalog.Service{
 		ID:      "order-svc",
 		Name:    "Order Service",
-		Version: "1.0.0",
 		Summary: "Manages orders",
-		Owners:  []string{"order-team"},
 		Specifications: []catalog.Specification{
 			{Type: "openapi", Path: "/openapi.yaml", Name: "Public API"},
 			{Type: "asyncapi", Path: "/asyncapi.yaml"},
