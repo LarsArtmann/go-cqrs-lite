@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"slices"
 
 	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
 	cqrsprojection "github.com/larsartmann/go-cqrs-lite/projection/v3"
@@ -98,13 +99,7 @@ func shouldHandle(proj cqrsprojection.Projection, evt cqrsevent.Event) bool {
 		return true
 	}
 
-	for _, t := range types {
-		if t == evt.Type() {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(types, evt.Type())
 }
 
 // ErrMissingProjection is returned when RunProjections is called with no projections.
