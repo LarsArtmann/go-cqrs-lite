@@ -57,7 +57,7 @@ Nodes and edges via MERGE semantics. Best for:
 
 ## Graph Schema — what we adopted from TypeDB, what we rejected
 
-**Adopted:** Boundary-typing at the sink. TypeDB's core insight is that graph-shaped read models don't require abandoning strong types. We validate node labels, edge types, property names, and edge endpoint constraints — the same pattern the relational tier uses for column-name validation.
+**Adopted:** Boundary-typing at the sink. TypeDB's core insight is that graph-shaped read models don't require abandoning strong types. We validate node labels, edge types, property names, and edge endpoint constraints — the same pattern the relational tier uses for column-name validation. Full rationale in [ADR-0039](adr/0039-graph-schema.md).
 
 **Rejected (and why):**
 - **N-ary relations / typed roles** — breaks openCypher MERGE portability (the graph tier's central thesis). Use relational junction tables for multi-way relationships.

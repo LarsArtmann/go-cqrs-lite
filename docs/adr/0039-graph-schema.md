@@ -55,6 +55,16 @@ TypeDB (typedb.com) is the existence proof that graph-shaped read models don't r
 - Backward compatibility preserved: nil schema = open-world.
 - The schema is intentionally NOT a type system — it's a validation guard. Future extensions should resist cargo-culting TypeDB's full constraint grammar.
 
+### Property `Required` constraint — removed
+
+An initial `PropertyType.Required bool` field was removed post-design. MERGE
+semantics allow partial node updates (`MergeNode(ref, {"name": "new"})` to
+update one property while preserving others). Enforcing `Required` at the
+sink would break this valid use case — the sink only sees the incoming
+partial props, not the merged result. This conflicts with the "minimal
+constraint grammar" decision (point 4 above), so the field was removed as
+YAGNI rather than shipped as a lie.
+
 ## Alternatives Considered
 
 - **Make schema mandatory** — rejected: breaks backward compatibility, and open-world mode is useful for prototyping.

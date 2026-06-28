@@ -58,12 +58,8 @@ type EdgeType struct {
 }
 
 // PropertyType declares one property on a [NodeType] or [EdgeType].
-//
-// Required controls whether the sink rejects writes that omit this property.
-// When false, the property is optional.
 type PropertyType struct {
-	Name     string
-	Required bool
+	Name string
 }
 
 // NodeType returns the declaration for the named label, or nil if no such

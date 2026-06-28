@@ -35,7 +35,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Monorepo Structure
 
-Multi-module Go workspace (`go.work`) with 45 `go.mod` files — all 45 wired into `go.work`. Breakdown: 29 library + 7 stack presets + 5 examples + 3 cmd + 1 integration + 1 root anchor. Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`:
+Multi-module Go workspace (`go.work`) with 47 `go.mod` files — 46 wired into `go.work` + `transport/grpc` (builds clean but not yet added to the workspace). Breakdown: 29 library + 7 stack presets + 7 examples + 3 cmd + 1 integration. Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`:
 
 ```
 go-cqrs-lite/
