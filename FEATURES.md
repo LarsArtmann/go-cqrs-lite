@@ -638,18 +638,18 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 > `import "github.com/larsartmann/go-cqrs-lite/watermill/v3"`
 
-| Feature             | Detail                                                                                                   | Status |
-| ------------------- | -------------------------------------------------------------------------------------------------------- | ------ |
-| Event protocol      | Bidirectional `event.Event` ↔ Watermill `message.Message` via 15+ metadata keys                          | ✅     |
-| PublisherAdapter    | `NewPublisherAdapter(publisher)` — wraps `event.Publisher` as `message.Publisher`                        | ✅     |
-| SubscriberAdapter   | `NewSubscriberAdapter(bus)` — wraps `event.Bus` as `message.Subscriber`, feeds `<-chan *message.Message` | ✅     |
-| Full event fidelity | 15 metadata keys preserve ID, type, aggregate, version, schema version, all metadata fields              | ✅     |
-| **Command protocol**| Bidirectional `command.Command` ↔ Watermill `message.Message` (type, aggregate, tracing, custom metadata) | ✅     |
-| **CommandBus**      | `NewCommandBus()` — full `command.Bus` backed by Watermill GoChannel + `WithCommandBackend` for brokers   | ✅     |
-| **CommandPublisher**| `NewCommandPublisher(pub, topic)` — wraps `message.Publisher` as `command.Publisher`                     | ✅     |
-| Custom metadata     | `custom.*` prefix preserves all custom metadata entries                                                  | ✅     |
-| Correlation ID MW   | `CorrelationIDMiddleware()` — injects correlation ID into message metadata                               | ✅     |
-| Retry middleware    | `NewRetryMiddleware(config)` + `DefaultRetryConfig()` — retry with backoff for handler errors            | ✅     |
+| Feature              | Detail                                                                                                    | Status |
+| -------------------- | --------------------------------------------------------------------------------------------------------- | ------ |
+| Event protocol       | Bidirectional `event.Event` ↔ Watermill `message.Message` via 15+ metadata keys                           | ✅     |
+| PublisherAdapter     | `NewPublisherAdapter(publisher)` — wraps `event.Publisher` as `message.Publisher`                         | ✅     |
+| SubscriberAdapter    | `NewSubscriberAdapter(bus)` — wraps `event.Bus` as `message.Subscriber`, feeds `<-chan *message.Message`  | ✅     |
+| Full event fidelity  | 15 metadata keys preserve ID, type, aggregate, version, schema version, all metadata fields               | ✅     |
+| **Command protocol** | Bidirectional `command.Command` ↔ Watermill `message.Message` (type, aggregate, tracing, custom metadata) | ✅     |
+| **CommandBus**       | `NewCommandBus()` — full `command.Bus` backed by Watermill GoChannel + `WithCommandBackend` for brokers   | ✅     |
+| **CommandPublisher** | `NewCommandPublisher(pub, topic)` — wraps `message.Publisher` as `command.Publisher`                      | ✅     |
+| Custom metadata      | `custom.*` prefix preserves all custom metadata entries                                                   | ✅     |
+| Correlation ID MW    | `CorrelationIDMiddleware()` — injects correlation ID into message metadata                                | ✅     |
+| Retry middleware     | `NewRetryMiddleware(config)` + `DefaultRetryConfig()` — retry with backoff for handler errors             | ✅     |
 
 ---
 

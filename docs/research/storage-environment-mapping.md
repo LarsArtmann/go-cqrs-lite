@@ -5,6 +5,12 @@
 > **Purpose:** Identify every storage touchpoint in go-cqrs-lite and map each to its
 > **native backend per runtime environment**. "Native" means: already present, no extra
 > infrastructure to provision, idiomatic for that platform.
+>
+> **UPDATE (2026-06-28):** Several gaps identified in this document have been
+> closed. Command Store now has SQL + Pebble + Memory implementations.
+> Pebble now has full SnapshotStore + CheckpointStore parity.
+> PostgreSQL now supports multi-DB split (`WithEventDB`/`WithQueryDB`/`WithViewDB`).
+> The only remaining major gap is the read-model store on non-SQL/KV backends.
 
 ---
 

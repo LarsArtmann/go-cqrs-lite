@@ -57,7 +57,7 @@ struct copy in `Clone()` is semantically a deep copy. Regression test
 - [x] ~~Move memory/ stores → storage/memory/~~ — DONE
 - [x] ~~Version → uint64~~ — DONE
 - [x] ~~Delete readmodel/ module~~ — DONE (merged into kv/, ADR-0032)
-- [x] ~~Refactor projection/ module~~ — **RE-INTRODUCED** (ADR-0030). The OLD projection/ runner was replaced by bus.SubscribeAll + stack.Materialize + CatchUpSubscriber. But the Projection *interface* was re-homed into projection/ as a shared contract — it is now implemented by storage.RelationalProjection, graph.GraphProjection, and stack.Materialize. It is alive and load-bearing for the relational + graph tiers (ADR-0033). The original "delete" claim was stale; corrected 2026-06-28.
+- [x] ~~Refactor projection/ module~~ — **RE-INTRODUCED** (ADR-0030). The OLD projection/ runner was replaced by bus.SubscribeAll + stack.Materialize + CatchUpSubscriber. But the Projection _interface_ was re-homed into projection/ as a shared contract — it is now implemented by storage.RelationalProjection, graph.GraphProjection, and stack.Materialize. It is alive and load-bearing for the relational + graph tiers (ADR-0033). The original "delete" claim was stale; corrected 2026-06-28.
 - [x] ~~Fix query.Handler returns any~~ — TypedHandler shipped
 - [x] ~~Delete ghost bus code~~ — DONE (`event/reactive*.go` removed; watermill.EventBus + bus.SubscribeAll is the replacement)
 - [x] ~~Remove io.Closer from core interfaces~~ — DONE (ADR-0010; callers type-assert to io.Closer)

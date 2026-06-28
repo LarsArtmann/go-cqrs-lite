@@ -6,146 +6,718 @@
     <title>Pareto Execution Plan — go-cqrs-lite (2026-06-28)</title>
     <style>
       :root {
-        --surface: #0e0e10; --surface-raised: #18181d; --surface-sunken: #16161a;
-        --text: #f4f4f0; --text-muted: rgba(244,244,240,.72); --text-faint: rgba(244,244,240,.45);
-        --border: rgba(244,244,240,.12); --border-strong: rgba(244,244,240,.25);
-        --accent: #ffb347; --problem: #ff6b6b; --solution: #6eb5ff; --warning: #f4d35e;
+        --surface: #0e0e10;
+        --surface-raised: #18181d;
+        --surface-sunken: #16161a;
+        --text: #f4f4f0;
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: rgba(244, 244, 240, 0.12);
+        --border-strong: rgba(244, 244, 240, 0.25);
+        --accent: #ffb347;
+        --problem: #ff6b6b;
+        --solution: #6eb5ff;
+        --warning: #f4d35e;
         --radius: 0px;
-        --font-heading: ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-        --font-mono: ui-monospace,"Cascadia Code","Source Code Pro","JetBrains Mono",Menlo,Consolas,monospace;
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
       }
-      * { box-sizing:border-box; margin:0; padding:0; }
-      html { scroll-behavior:smooth; }
-      section[id],[id] { scroll-margin-top:60px; }
-      body { background:var(--surface); color:var(--text); font-family:var(--font-heading); font-size:15px; line-height:1.6; }
-      .top-bar { background:var(--text); color:var(--surface); padding:.6rem 2rem; font-family:var(--font-mono); font-size:.72rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; display:flex; justify-content:space-between; flex-wrap:wrap; gap:.5rem; }
-      .layout { display:grid; grid-template-columns:240px 1fr; max-width:1340px; margin:0 auto; }
-      .sidebar { position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto; padding:1.5rem 1rem 1.5rem 2rem; border-right:1px solid var(--border); }
-      .sidebar .label { font-family:var(--font-mono); font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; color:var(--text-faint); margin-bottom:.6rem; }
-      .sidebar nav a { display:block; padding:.32rem .6rem; margin-left:-.6rem; color:var(--text-muted); text-decoration:none; font-size:.84rem; border-left:2px solid transparent; }
-      .sidebar nav a:hover { color:var(--text); border-left-color:var(--accent); }
-      .main { padding:2.5rem 2.5rem 5rem; min-width:0; }
-      .hero { padding:1.5rem 0 2.5rem; border-bottom:1px solid var(--border); margin-bottom:2rem; }
-      .hero-badge { display:inline-block; background:var(--accent); color:var(--surface); padding:.3rem .7rem; font-family:var(--font-mono); font-size:.7rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase; margin-bottom:1rem; }
-      .hero h1 { font-size:2.3rem; font-weight:900; line-height:1.1; letter-spacing:-.02em; max-width:24ch; }
-      .hero-subtitle { color:var(--text-muted); margin-top:.8rem; max-width:64ch; }
-      h2 { font-size:1.45rem; font-weight:800; margin:2.5rem 0 1rem; padding-bottom:.5rem; border-bottom:1px solid var(--border); display:flex; gap:.7rem; align-items:baseline; }
-      h2 .num { font-family:var(--font-mono); font-size:.95rem; color:var(--accent); }
-      h3 { font-size:1.05rem; font-weight:700; margin:1.3rem 0 .5rem; }
-      p { margin-bottom:.6rem; } p.muted { color:var(--text-muted); }
-      code,.mono { font-family:var(--font-mono); font-size:.86em; }
-      .stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:.7rem; margin:1rem 0 1.8rem; }
-      .stat-card { background:var(--surface-raised); padding:1rem; border-left:3px solid var(--border-strong); }
-      .stat-card.g { border-left-color:var(--solution); } .stat-card.w { border-left-color:var(--warning); } .stat-card.b { border-left-color:var(--problem); }
-      .stat-value { font-size:1.8rem; font-weight:900; line-height:1; }
-      .stat-value.g { color:var(--solution); } .stat-value.w { color:var(--warning); } .stat-value.b { color:var(--problem); }
-      .stat-label { font-family:var(--font-mono); font-size:.66rem; letter-spacing:.1em; text-transform:uppercase; color:var(--text-faint); margin-top:.4rem; }
-      table { width:100%; border-collapse:collapse; margin:.8rem 0 1.3rem; font-size:.84rem; }
-      th { text-align:left; font-family:var(--font-mono); font-size:.66rem; letter-spacing:.1em; text-transform:uppercase; color:var(--text-faint); padding:.55rem .6rem; border-bottom:1px solid var(--border-strong); position:sticky; top:0; background:var(--surface); }
-      td { padding:.5rem .6rem; border-bottom:1px solid var(--border); vertical-align:top; }
-      tbody tr:hover { background:color-mix(in srgb,var(--accent) 5%,transparent); }
-      td.rank { font-family:var(--font-mono); color:var(--accent); font-weight:700; width:2rem; }
-      .badge { font-family:var(--font-mono); font-size:.64rem; font-weight:700; padding:.13rem .4rem; border:1px solid var(--border-strong); white-space:nowrap; }
-      .b-crit { color:var(--problem); border-color:var(--problem); background:color-mix(in srgb,var(--problem) 12%,transparent); }
-      .b-high { color:var(--warning); border-color:var(--warning); }
-      .b-med { color:var(--accent); border-color:var(--accent); }
-      .b-low { color:var(--text-muted); border-color:var(--border-strong); }
-      .b-done { color:var(--solution); border-color:var(--solution); background:color-mix(in srgb,var(--solution) 12%,transparent); }
-      .b-block { color:#999; border-color:#666; background:#222; }
-      .callout { padding:.8rem 1rem; margin:.8rem 0; border-left:3px solid; }
-      .c-prob { border-left-color:var(--problem); background:color-mix(in srgb,var(--problem) 9%,transparent); }
-      .c-sol { border-left-color:var(--solution); background:color-mix(in srgb,var(--solution) 9%,transparent); }
-      .c-warn { border-left-color:var(--warning); background:color-mix(in srgb,var(--warning) 11%,transparent); }
-      .tier { padding:1rem 1.2rem; margin:.8rem 0; border-left:4px solid; }
-      .tier-1 { border-left-color:var(--solution); background:color-mix(in srgb,var(--solution) 8%,transparent); }
-      .tier-2 { border-left-color:var(--warning); background:color-mix(in srgb,var(--warning) 8%,transparent); }
-      .tier-3 { border-left-color:var(--accent); background:color-mix(in srgb,var(--accent) 6%,transparent); }
-      .tier-blocked { border-left-color:#555; background:#16161a; }
-      .svg-wrap { background:var(--surface-sunken); padding:1rem; margin:1rem 0; overflow-x:auto; border:1px solid var(--border); }
-      .svg-wrap svg { max-width:100%; height:auto; }
-      .footer { border-top:1px solid var(--border); margin-top:3rem; padding-top:1.2rem; font-family:var(--font-mono); font-size:.76rem; color:var(--text-faint); }
-      @media (max-width:1023px) { .layout{grid-template-columns:1fr;} .sidebar{position:static;height:auto;border-right:none;border-bottom:1px solid var(--border);padding:1rem 1.5rem;} .main{padding:1.5rem;} .hero h1{font-size:1.7rem;} }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-heading);
+        font-size: 15px;
+        line-height: 1.6;
+      }
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 240px 1fr;
+        max-width: 1340px;
+        margin: 0 auto;
+      }
+      .sidebar {
+        position: sticky;
+        top: 0;
+        align-self: start;
+        height: 100vh;
+        overflow-y: auto;
+        padding: 1.5rem 1rem 1.5rem 2rem;
+        border-right: 1px solid var(--border);
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        margin-bottom: 0.6rem;
+      }
+      .sidebar nav a {
+        display: block;
+        padding: 0.32rem 0.6rem;
+        margin-left: -0.6rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.84rem;
+        border-left: 2px solid transparent;
+      }
+      .sidebar nav a:hover {
+        color: var(--text);
+        border-left-color: var(--accent);
+      }
+      .main {
+        padding: 2.5rem 2.5rem 5rem;
+        min-width: 0;
+      }
+      .hero {
+        padding: 1.5rem 0 2.5rem;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 2rem;
+      }
+      .hero-badge {
+        display: inline-block;
+        background: var(--accent);
+        color: var(--surface);
+        padding: 0.3rem 0.7rem;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        margin-bottom: 1rem;
+      }
+      .hero h1 {
+        font-size: 2.3rem;
+        font-weight: 900;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+        max-width: 24ch;
+      }
+      .hero-subtitle {
+        color: var(--text-muted);
+        margin-top: 0.8rem;
+        max-width: 64ch;
+      }
+      h2 {
+        font-size: 1.45rem;
+        font-weight: 800;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        gap: 0.7rem;
+        align-items: baseline;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.95rem;
+        color: var(--accent);
+      }
+      h3 {
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin: 1.3rem 0 0.5rem;
+      }
+      p {
+        margin-bottom: 0.6rem;
+      }
+      p.muted {
+        color: var(--text-muted);
+      }
+      code,
+      .mono {
+        font-family: var(--font-mono);
+        font-size: 0.86em;
+      }
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 0.7rem;
+        margin: 1rem 0 1.8rem;
+      }
+      .stat-card {
+        background: var(--surface-raised);
+        padding: 1rem;
+        border-left: 3px solid var(--border-strong);
+      }
+      .stat-card.g {
+        border-left-color: var(--solution);
+      }
+      .stat-card.w {
+        border-left-color: var(--warning);
+      }
+      .stat-card.b {
+        border-left-color: var(--problem);
+      }
+      .stat-value {
+        font-size: 1.8rem;
+        font-weight: 900;
+        line-height: 1;
+      }
+      .stat-value.g {
+        color: var(--solution);
+      }
+      .stat-value.w {
+        color: var(--warning);
+      }
+      .stat-value.b {
+        color: var(--problem);
+      }
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        margin-top: 0.4rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0.8rem 0 1.3rem;
+        font-size: 0.84rem;
+      }
+      th {
+        text-align: left;
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        padding: 0.55rem 0.6rem;
+        border-bottom: 1px solid var(--border-strong);
+        position: sticky;
+        top: 0;
+        background: var(--surface);
+      }
+      td {
+        padding: 0.5rem 0.6rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      tbody tr:hover {
+        background: color-mix(in srgb, var(--accent) 5%, transparent);
+      }
+      td.rank {
+        font-family: var(--font-mono);
+        color: var(--accent);
+        font-weight: 700;
+        width: 2rem;
+      }
+      .badge {
+        font-family: var(--font-mono);
+        font-size: 0.64rem;
+        font-weight: 700;
+        padding: 0.13rem 0.4rem;
+        border: 1px solid var(--border-strong);
+        white-space: nowrap;
+      }
+      .b-crit {
+        color: var(--problem);
+        border-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 12%, transparent);
+      }
+      .b-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .b-med {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .b-low {
+        color: var(--text-muted);
+        border-color: var(--border-strong);
+      }
+      .b-done {
+        color: var(--solution);
+        border-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 12%, transparent);
+      }
+      .b-block {
+        color: #999;
+        border-color: #666;
+        background: #222;
+      }
+      .callout {
+        padding: 0.8rem 1rem;
+        margin: 0.8rem 0;
+        border-left: 3px solid;
+      }
+      .c-prob {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 9%, transparent);
+      }
+      .c-sol {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 9%, transparent);
+      }
+      .c-warn {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 11%, transparent);
+      }
+      .tier {
+        padding: 1rem 1.2rem;
+        margin: 0.8rem 0;
+        border-left: 4px solid;
+      }
+      .tier-1 {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, transparent);
+      }
+      .tier-2 {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, transparent);
+      }
+      .tier-3 {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 6%, transparent);
+      }
+      .tier-blocked {
+        border-left-color: #555;
+        background: #16161a;
+      }
+      .svg-wrap {
+        background: var(--surface-sunken);
+        padding: 1rem;
+        margin: 1rem 0;
+        overflow-x: auto;
+        border: 1px solid var(--border);
+      }
+      .svg-wrap svg {
+        max-width: 100%;
+        height: auto;
+      }
+      .footer {
+        border-top: 1px solid var(--border);
+        margin-top: 3rem;
+        padding-top: 1.2rem;
+        font-family: var(--font-mono);
+        font-size: 0.76rem;
+        color: var(--text-faint);
+      }
+      @media (max-width: 1023px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        .sidebar {
+          position: static;
+          height: auto;
+          border-right: none;
+          border-bottom: 1px solid var(--border);
+          padding: 1rem 1.5rem;
+        }
+        .main {
+          padding: 1.5rem;
+        }
+        .hero h1 {
+          font-size: 1.7rem;
+        }
+      }
     </style>
   </head>
   <body>
-    <div class="top-bar"><span>go-cqrs-lite / pareto execution plan</span><span>2026-06-28 05:09 CEST / grounded in live audit</span></div>
+    <div class="top-bar">
+      <span>go-cqrs-lite / pareto execution plan</span
+      ><span>2026-06-28 05:09 CEST / grounded in live audit</span>
+    </div>
     <div class="layout">
-      <aside class="sidebar"><nav>
-        <div class="label">Contents</div>
-        <a href="#context">Context &amp; Discovery</a>
-        <a href="#pareto">Pareto Breakdown</a>
-        <a href="#graph">Execution Graph</a>
-        <a href="#comprehensive">Comprehensive Plan (medium)</a>
-        <a href="#detailed">Detailed Plan (≤12min)</a>
-        <a href="#blocked">Blocked / Deferred</a>
-        <a href="#scores">Scoring Key</a>
-      </nav></aside>
+      <aside class="sidebar">
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#context">Context &amp; Discovery</a>
+          <a href="#pareto">Pareto Breakdown</a>
+          <a href="#graph">Execution Graph</a>
+          <a href="#comprehensive">Comprehensive Plan (medium)</a>
+          <a href="#detailed">Detailed Plan (≤12min)</a>
+          <a href="#blocked">Blocked / Deferred</a>
+          <a href="#scores">Scoring Key</a>
+        </nav>
+      </aside>
       <main class="main">
         <header class="hero">
           <div class="hero-badge">Pareto Execution Plan</div>
           <h1>The 20% that delivers 80%.</h1>
-          <p class="hero-subtitle">Comprehensive execution plan for go-cqrs-lite, grounded in a live per-module isolation audit. The audit <strong>reshaped the plan</strong>: what looked like one broken module (signing) turned out to be <strong>11 of 44</strong> — all from one root cause. Below: the Pareto tiers, a medium-granularity plan, a fine breakdown (≤12 min/task), and an execution graph.</p>
+          <p class="hero-subtitle">
+            Comprehensive execution plan for go-cqrs-lite, grounded in a live per-module isolation
+            audit. The audit <strong>reshaped the plan</strong>: what looked like one broken module
+            (signing) turned out to be <strong>11 of 44</strong> — all from one root cause. Below:
+            the Pareto tiers, a medium-granularity plan, a fine breakdown (≤12 min/task), and an
+            execution graph.
+          </p>
         </header>
 
         <section id="context">
           <h2><span class="num">00</span>Context &amp; The Discovery</h2>
-          <div class="callout c-prob"><strong>Headline finding (verified live):</strong> A full <code>GOWORK=off go build ./...</code> audit of all 44 modules found <strong>11 fail per-module isolation</strong>. Root cause: the <code>projection/v3</code> module — which TODO_LIST.md claims was "deleted" but is alive, in go.work, and implemented by the brand-new relational + graph tiers — is missing <code>require</code> directives across its consumers. The workspace hides it; per-module builds expose it. This is the same class of bug as signing (fixed earlier today), at 10× scale.</div>
-          <div class="stat-grid">
-            <div class="stat-card b"><div class="stat-value b">11</div><div class="stat-label">Modules failing isolation</div></div>
-            <div class="stat-card"><div class="stat-value">1</div><div class="stat-label">Root cause (projection/v3 requires)</div></div>
-            <div class="stat-card g"><div class="stat-value g">21</div><div class="stat-label">Executable tasks</div></div>
-            <div class="stat-card w"><div class="stat-value w">5</div><div class="stat-label">Blocked / deferred</div></div>
-            <div class="stat-card"><div class="stat-value">≤12m</div><div class="stat-label">Max task size (user constraint)</div></div>
+          <div class="callout c-prob">
+            <strong>Headline finding (verified live):</strong> A full
+            <code>GOWORK=off go build ./...</code> audit of all 44 modules found
+            <strong>11 fail per-module isolation</strong>. Root cause: the
+            <code>projection/v3</code> module — which TODO_LIST.md claims was "deleted" but is
+            alive, in go.work, and implemented by the brand-new relational + graph tiers — is
+            missing <code>require</code> directives across its consumers. The workspace hides it;
+            per-module builds expose it. This is the same class of bug as signing (fixed earlier
+            today), at 10× scale.
           </div>
-          <p class="muted">Sources consolidated: the Top-25 status report (2026-06-28 01:10), TODO_LIST.md open items, ROADMAP.md open items, and live build output. Duplicates removed (NATS/Redis, jsonv2/arena appeared in multiple sources).</p>
+          <div class="stat-grid">
+            <div class="stat-card b">
+              <div class="stat-value b">11</div>
+              <div class="stat-label">Modules failing isolation</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">1</div>
+              <div class="stat-label">Root cause (projection/v3 requires)</div>
+            </div>
+            <div class="stat-card g">
+              <div class="stat-value g">21</div>
+              <div class="stat-label">Executable tasks</div>
+            </div>
+            <div class="stat-card w">
+              <div class="stat-value w">5</div>
+              <div class="stat-label">Blocked / deferred</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">≤12m</div>
+              <div class="stat-label">Max task size (user constraint)</div>
+            </div>
+          </div>
+          <p class="muted">
+            Sources consolidated: the Top-25 status report (2026-06-28 01:10), TODO_LIST.md open
+            items, ROADMAP.md open items, and live build output. Duplicates removed (NATS/Redis,
+            jsonv2/arena appeared in multiple sources).
+          </p>
         </section>
 
         <section id="pareto">
           <h2><span class="num">01</span>Pareto Breakdown</h2>
 
           <div class="tier tier-1">
-            <h3 style="margin-top:0">1% effort → 51% value &nbsp;<span class="badge b-done">P1–P3</span></h3>
-            <p><strong>Fix the isolation break, then make it impossible to recur.</strong> Three tasks: (1) add the missing <code>projection/v3</code> requires to 11 modules, (2) add a CI gate that runs <code>GOWORK=off</code> for every module and fails on any break, (3) add a CI gate that fails on placeholder <code>doc.go</code> stubs. Together these turn "the library builds in isolation" from a claim into a guarantee.</p>
+            <h3 style="margin-top: 0">
+              1% effort → 51% value &nbsp;<span class="badge b-done">P1–P3</span>
+            </h3>
+            <p>
+              <strong>Fix the isolation break, then make it impossible to recur.</strong> Three
+              tasks: (1) add the missing <code>projection/v3</code> requires to 11 modules, (2) add
+              a CI gate that runs <code>GOWORK=off</code> for every module and fails on any break,
+              (3) add a CI gate that fails on placeholder <code>doc.go</code> stubs. Together these
+              turn "the library builds in isolation" from a claim into a guarantee.
+            </p>
           </div>
           <div class="tier tier-2">
-            <h3 style="margin-top:0">4% effort → 64% value &nbsp;<span class="badge b-high">P4–P7</span></h3>
-            <p><strong>Fix the documentation lies and validate the new tiers.</strong> The TODO_LIST claims <code>projection/</code> was deleted — it wasn't; correct it. Add a doc-examples-compile check (catches the pebble/grpc.Dial drift class found in the doc.go review). Write integration tests for the two newest tiers (RelationalProjection, GraphProjection) that currently have no consumer validation.</p>
+            <h3 style="margin-top: 0">
+              4% effort → 64% value &nbsp;<span class="badge b-high">P4–P7</span>
+            </h3>
+            <p>
+              <strong>Fix the documentation lies and validate the new tiers.</strong> The TODO_LIST
+              claims <code>projection/</code> was deleted — it wasn't; correct it. Add a
+              doc-examples-compile check (catches the pebble/grpc.Dial drift class found in the
+              doc.go review). Write integration tests for the two newest tiers
+              (RelationalProjection, GraphProjection) that currently have no consumer validation.
+            </p>
           </div>
           <div class="tier tier-3">
-            <h3 style="margin-top:0">20% effort → 80% value &nbsp;<span class="badge b-med">P8–P15</span></h3>
-            <p><strong>Coverage, ergonomics, and hygiene.</strong> Raise coverage on the three lagging modules (graph, kv, codec). Honest labelling for stack/postgres (0% local is misleading). Spike the Drainer interface for real shutdown drain semantics. Surface Pebble backup + archive old reports. Fix the two known gopls infos.</p>
+            <h3 style="margin-top: 0">
+              20% effort → 80% value &nbsp;<span class="badge b-med">P8–P15</span>
+            </h3>
+            <p>
+              <strong>Coverage, ergonomics, and hygiene.</strong> Raise coverage on the three
+              lagging modules (graph, kv, codec). Honest labelling for stack/postgres (0% local is
+              misleading). Spike the Drainer interface for real shutdown drain semantics. Surface
+              Pebble backup + archive old reports. Fix the two known gopls infos.
+            </p>
           </div>
         </section>
 
         <section id="graph">
           <h2><span class="num">02</span>Execution Graph</h2>
-          <p class="muted">Tiers in green (1%), blue (4%), amber (20%), grey (blocked). Dependency edges show what unblocks what.</p>
+          <p class="muted">
+            Tiers in green (1%), blue (4%), amber (20%), grey (blocked). Dependency edges show what
+            unblocks what.
+          </p>
           <div class="svg-wrap">
-            <object type="image/svg+xml" data="2026-06-28_05-09-graph.svg" style="width:100%;min-height:300px;"><p>SVG graph: see <code>2026-06-28_05-09-graph.svg</code></p></object>
+            <object
+              type="image/svg+xml"
+              data="2026-06-28_05-09-graph.svg"
+              style="width: 100%; min-height: 300px"
+            >
+              <p>SVG graph: see <code>2026-06-28_05-09-graph.svg</code></p>
+            </object>
           </div>
         </section>
 
         <section id="comprehensive">
           <h2><span class="num">03</span>Comprehensive Plan (medium granularity)</h2>
-          <p class="muted">15 executable tasks + 5 blocked = 21 total. Sorted by impact / effort / customer-value. Columns: I=Impact (1-5), E=Effort (1-5, lower=easier), V=Customer-Value (1-5). Tier = Pareto band.</p>
+          <p class="muted">
+            15 executable tasks + 5 blocked = 21 total. Sorted by impact / effort / customer-value.
+            Columns: I=Impact (1-5), E=Effort (1-5, lower=easier), V=Customer-Value (1-5). Tier =
+            Pareto band.
+          </p>
           <table>
-            <thead><tr><th>#</th><th>Task</th><th>Tier</th><th>I</th><th>E</th><th>V</th><th>Status</th></tr></thead>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Task</th>
+                <th>Tier</th>
+                <th>I</th>
+                <th>E</th>
+                <th>V</th>
+                <th>Status</th>
+              </tr>
+            </thead>
             <tbody>
-              <tr><td class="rank">P1</td><td><strong>Fix projection/v3 requires across 11 broken modules</strong><br><span style="color:var(--text-muted);font-size:.8rem">Add <code>require</code> + <code>replace</code> for projection/v3 in graph, storage/turso, 5 stack presets, 4 examples; tidy each. Unblocks isolation for 11/44 modules.</span></td><td><span class="badge b-done">1%</span></td><td>5</td><td>2</td><td>5</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">P2</td><td><strong>CI gate: GOWORK=off per-module build for all 44 modules</strong><br><span style="color:var(--text-muted);font-size:.8rem">Script + CI step that builds every module in isolation; fails on any break. Prevents recurrence of the projection/signing class.</span></td><td><span class="badge b-done">1%</span></td><td>5</td><td>2</td><td>5</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">P3</td><td><strong>CI gate: fail on placeholder doc.go stubs</strong><br><span style="color:var(--text-muted);font-size:.8rem">grep for <code>// Package \w+ provides \.\.\.</code>; fail if any. Prevents the 15-stub regression.</span></td><td><span class="badge b-done">1%</span></td><td>4</td><td>1</td><td>4</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">P4</td><td><strong>Fix stale TODO_LIST.md (projection deletion lie + dates + new tiers)</strong><br><span style="color:var(--text-muted);font-size:.8rem">Correct "Delete projection/ — DONE" (it's alive + load-bearing); update date; add relational/graph items.</span></td><td><span class="badge b-high">4%</span></td><td>4</td><td>1</td><td>4</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">P5</td><td><strong>Doc-examples-compile check</strong><br><span style="color:var(--text-muted);font-size:.8rem">Extract code blocks from doc.go comments, verify they compile. Catches grpc.Dial/pebble drift.</span></td><td><span class="badge b-high">4%</span></td><td>4</td><td>3</td><td>4</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">P6</td><td><strong>Integration test: RelationalProjection end-to-end</strong><br><span style="color:var(--text-muted);font-size:.8rem">Exercise the multi-table projection tier with real events → assert atomic writes + rollback on error.</span></td><td><span class="badge b-high">4%</span></td><td>4</td><td>3</td><td>4</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">P7</td><td><strong>Integration test: GraphProjection (traversal, reply chain)</strong><br><span style="color:var(--text-muted);font-size:.8rem">Exercise node+edge merges, reply-chain edges, atomic commit.</span></td><td><span class="badge b-high">4%</span></td><td>4</td><td>3</td><td>4</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">P8</td><td><strong>Raise graph/ module coverage</strong><br><span style="color:var(--text-muted);font-size:.8rem">Newest tier; add tests for MemoryDriver, GraphProjection, NodeRef/EdgeRef.</span></td><td><span class="badge b-med">20%</span></td><td>3</td><td>3</td><td>3</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">P9</td><td><strong>Raise kv/ coverage (70.2% → &gt;85%)</strong><br><span style="color:var(--text-muted);font-size:.8rem">Layer-0 leaf; should be high. Cover Cache, TypedStore, edge cases.</span></td><td><span class="badge b-med">20%</span></td><td>3</td><td>3</td><td>3</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">P10</td><td><strong>Raise codec/ coverage (76.0%)</strong><br><span style="color:var(--text-muted);font-size:.8rem">Encoding is critical-path; cover CBOR compact, BufferEncoder, round-trips.</span></td><td><span class="badge b-med">20%</span></td><td>3</td><td>2</td><td>3</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">P11</td><td><strong>Label stack/postgres coverage honestly</strong><br><span style="color:var(--text-muted);font-size:.8rem">0% local misleads — note it skips without POSTGRES_TEST_DSN in FEATURES.md.</span></td><td><span class="badge b-med">20%</span></td><td>2</td><td>1</td><td>3</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">P12</td><td><strong>Drainer interface spike for Bundle.GracefulClose</strong><br><span style="color:var(--text-muted);font-size:.8rem">Add opt-in Drainer (drain phase → close phase). Real shutdown semantics, not DI container.</span></td><td><span class="badge b-med">20%</span></td><td>3</td><td>4</td><td>3</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">P13</td><td><strong>Surface Pebble Checkpoint (backup) from stack presets</strong><br><span style="color:var(--text-muted);font-size:.8rem">ROADMAP operability item; Backend.Checkpoint → preset ergonomics.</span></td><td><span class="badge b-med">20%</span></td><td>2</td><td>2</td><td>3</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">P14</td><td><strong>Archive old docs/status/ reports</strong><br><span style="color:var(--text-muted);font-size:.8rem">118 .md snapshots = noise; move pre-v3 to archive/ subdir.</span></td><td><span class="badge b-med">20%</span></td><td>2</td><td>1</td><td>2</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">P15</td><td><strong>Fix catalog/eventcatalog unusedwrite gopls infos</strong><br><span style="color:var(--text-muted);font-size:.8rem">writer_frontmatter_test.go:108,110 — dead writes to Version/Owners fields.</span></td><td><span class="badge b-med">20%</span></td><td>2</td><td>1</td><td>2</td><td><span class="badge b-crit">Todo</span></td></tr>
+              <tr>
+                <td class="rank">P1</td>
+                <td>
+                  <strong>Fix projection/v3 requires across 11 broken modules</strong><br /><span
+                    style="color: var(--text-muted); font-size: 0.8rem"
+                    >Add <code>require</code> + <code>replace</code> for projection/v3 in graph,
+                    storage/turso, 5 stack presets, 4 examples; tidy each. Unblocks isolation for
+                    11/44 modules.</span
+                  >
+                </td>
+                <td><span class="badge b-done">1%</span></td>
+                <td>5</td>
+                <td>2</td>
+                <td>5</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">P2</td>
+                <td>
+                  <strong>CI gate: GOWORK=off per-module build for all 44 modules</strong
+                  ><br /><span style="color: var(--text-muted); font-size: 0.8rem"
+                    >Script + CI step that builds every module in isolation; fails on any break.
+                    Prevents recurrence of the projection/signing class.</span
+                  >
+                </td>
+                <td><span class="badge b-done">1%</span></td>
+                <td>5</td>
+                <td>2</td>
+                <td>5</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">P3</td>
+                <td>
+                  <strong>CI gate: fail on placeholder doc.go stubs</strong><br /><span
+                    style="color: var(--text-muted); font-size: 0.8rem"
+                    >grep for <code>// Package \w+ provides \.\.\.</code>; fail if any. Prevents the
+                    15-stub regression.</span
+                  >
+                </td>
+                <td><span class="badge b-done">1%</span></td>
+                <td>4</td>
+                <td>1</td>
+                <td>4</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">P4</td>
+                <td>
+                  <strong
+                    >Fix stale TODO_LIST.md (projection deletion lie + dates + new tiers)</strong
+                  ><br /><span style="color: var(--text-muted); font-size: 0.8rem"
+                    >Correct "Delete projection/ — DONE" (it's alive + load-bearing); update date;
+                    add relational/graph items.</span
+                  >
+                </td>
+                <td><span class="badge b-high">4%</span></td>
+                <td>4</td>
+                <td>1</td>
+                <td>4</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">P5</td>
+                <td>
+                  <strong>Doc-examples-compile check</strong><br /><span
+                    style="color: var(--text-muted); font-size: 0.8rem"
+                    >Extract code blocks from doc.go comments, verify they compile. Catches
+                    grpc.Dial/pebble drift.</span
+                  >
+                </td>
+                <td><span class="badge b-high">4%</span></td>
+                <td>4</td>
+                <td>3</td>
+                <td>4</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">P6</td>
+                <td>
+                  <strong>Integration test: RelationalProjection end-to-end</strong><br /><span
+                    style="color: var(--text-muted); font-size: 0.8rem"
+                    >Exercise the multi-table projection tier with real events → assert atomic
+                    writes + rollback on error.</span
+                  >
+                </td>
+                <td><span class="badge b-high">4%</span></td>
+                <td>4</td>
+                <td>3</td>
+                <td>4</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">P7</td>
+                <td>
+                  <strong>Integration test: GraphProjection (traversal, reply chain)</strong
+                  ><br /><span style="color: var(--text-muted); font-size: 0.8rem"
+                    >Exercise node+edge merges, reply-chain edges, atomic commit.</span
+                  >
+                </td>
+                <td><span class="badge b-high">4%</span></td>
+                <td>4</td>
+                <td>3</td>
+                <td>4</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">P8</td>
+                <td>
+                  <strong>Raise graph/ module coverage</strong><br /><span
+                    style="color: var(--text-muted); font-size: 0.8rem"
+                    >Newest tier; add tests for MemoryDriver, GraphProjection,
+                    NodeRef/EdgeRef.</span
+                  >
+                </td>
+                <td><span class="badge b-med">20%</span></td>
+                <td>3</td>
+                <td>3</td>
+                <td>3</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">P9</td>
+                <td>
+                  <strong>Raise kv/ coverage (70.2% → &gt;85%)</strong><br /><span
+                    style="color: var(--text-muted); font-size: 0.8rem"
+                    >Layer-0 leaf; should be high. Cover Cache, TypedStore, edge cases.</span
+                  >
+                </td>
+                <td><span class="badge b-med">20%</span></td>
+                <td>3</td>
+                <td>3</td>
+                <td>3</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">P10</td>
+                <td>
+                  <strong>Raise codec/ coverage (76.0%)</strong><br /><span
+                    style="color: var(--text-muted); font-size: 0.8rem"
+                    >Encoding is critical-path; cover CBOR compact, BufferEncoder,
+                    round-trips.</span
+                  >
+                </td>
+                <td><span class="badge b-med">20%</span></td>
+                <td>3</td>
+                <td>2</td>
+                <td>3</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">P11</td>
+                <td>
+                  <strong>Label stack/postgres coverage honestly</strong><br /><span
+                    style="color: var(--text-muted); font-size: 0.8rem"
+                    >0% local misleads — note it skips without POSTGRES_TEST_DSN in
+                    FEATURES.md.</span
+                  >
+                </td>
+                <td><span class="badge b-med">20%</span></td>
+                <td>2</td>
+                <td>1</td>
+                <td>3</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">P12</td>
+                <td>
+                  <strong>Drainer interface spike for Bundle.GracefulClose</strong><br /><span
+                    style="color: var(--text-muted); font-size: 0.8rem"
+                    >Add opt-in Drainer (drain phase → close phase). Real shutdown semantics, not DI
+                    container.</span
+                  >
+                </td>
+                <td><span class="badge b-med">20%</span></td>
+                <td>3</td>
+                <td>4</td>
+                <td>3</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">P13</td>
+                <td>
+                  <strong>Surface Pebble Checkpoint (backup) from stack presets</strong><br /><span
+                    style="color: var(--text-muted); font-size: 0.8rem"
+                    >ROADMAP operability item; Backend.Checkpoint → preset ergonomics.</span
+                  >
+                </td>
+                <td><span class="badge b-med">20%</span></td>
+                <td>2</td>
+                <td>2</td>
+                <td>3</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">P14</td>
+                <td>
+                  <strong>Archive old docs/status/ reports</strong><br /><span
+                    style="color: var(--text-muted); font-size: 0.8rem"
+                    >118 .md snapshots = noise; move pre-v3 to archive/ subdir.</span
+                  >
+                </td>
+                <td><span class="badge b-med">20%</span></td>
+                <td>2</td>
+                <td>1</td>
+                <td>2</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">P15</td>
+                <td>
+                  <strong>Fix catalog/eventcatalog unusedwrite gopls infos</strong><br /><span
+                    style="color: var(--text-muted); font-size: 0.8rem"
+                    >writer_frontmatter_test.go:108,110 — dead writes to Version/Owners
+                    fields.</span
+                  >
+                </td>
+                <td><span class="badge b-med">20%</span></td>
+                <td>2</td>
+                <td>1</td>
+                <td>2</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
             </tbody>
           </table>
         </section>
@@ -153,59 +725,317 @@
         <section id="blocked">
           <h2><span class="num">04</span>Blocked / Deferred (not executable now)</h2>
           <table>
-            <thead><tr><th>#</th><th>Item</th><th>Blocker</th><th>Reason deferred</th></tr></thead>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Item</th>
+                <th>Blocker</th>
+                <th>Reason deferred</th>
+              </tr>
+            </thead>
             <tbody>
-              <tr><td class="rank">B1</td><td>transport/grpc in go.work (genproto conflict)</td><td><span class="badge b-block">Upstream</span></td><td>cockroachdb/errors#79; builds under GOWORK=off only</td></tr>
-              <tr><td class="rank">B2</td><td>jsonv2 + arena experiments (goexperiment tags)</td><td><span class="badge b-block">Go stdlib</span></td><td>Pending stdlib stabilisation; experiment files exist</td></tr>
-              <tr><td class="rank">B3</td><td>transport/nats + transport/redis adapters</td><td><span class="badge b-block">No signal</span></td><td>ADR-0025 accepted; zero consumer demand</td></tr>
-              <tr><td class="rank">B4</td><td>Hot-state cache + read-pressure snapshot strategy</td><td><span class="badge b-block">Profile-first</span></td><td>Only pays off at 100+ cmds/sec/aggregate</td></tr>
-              <tr><td class="rank">B5</td><td>Dashboard, compaction, multi-tenant, perf dashboard</td><td><span class="badge b-block">Raw ideas</span></td><td>No design, no consumer signal</td></tr>
+              <tr>
+                <td class="rank">B1</td>
+                <td>transport/grpc in go.work (genproto conflict)</td>
+                <td><span class="badge b-block">Upstream</span></td>
+                <td>cockroachdb/errors#79; builds under GOWORK=off only</td>
+              </tr>
+              <tr>
+                <td class="rank">B2</td>
+                <td>jsonv2 + arena experiments (goexperiment tags)</td>
+                <td><span class="badge b-block">Go stdlib</span></td>
+                <td>Pending stdlib stabilisation; experiment files exist</td>
+              </tr>
+              <tr>
+                <td class="rank">B3</td>
+                <td>transport/nats + transport/redis adapters</td>
+                <td><span class="badge b-block">No signal</span></td>
+                <td>ADR-0025 accepted; zero consumer demand</td>
+              </tr>
+              <tr>
+                <td class="rank">B4</td>
+                <td>Hot-state cache + read-pressure snapshot strategy</td>
+                <td><span class="badge b-block">Profile-first</span></td>
+                <td>Only pays off at 100+ cmds/sec/aggregate</td>
+              </tr>
+              <tr>
+                <td class="rank">B5</td>
+                <td>Dashboard, compaction, multi-tenant, perf dashboard</td>
+                <td><span class="badge b-block">Raw ideas</span></td>
+                <td>No design, no consumer signal</td>
+              </tr>
             </tbody>
           </table>
-          <div class="callout c-warn"><strong>Execution policy:</strong> B1–B5 are documented for completeness but <strong>will not be executed in this session</strong> — they are externally blocked or lack the consumer signal that "library, not framework" demands. Executing them anyway would be scope-creep against the project's own principles.</div>
+          <div class="callout c-warn">
+            <strong>Execution policy:</strong> B1–B5 are documented for completeness but
+            <strong>will not be executed in this session</strong> — they are externally blocked or
+            lack the consumer signal that "library, not framework" demands. Executing them anyway
+            would be scope-creep against the project's own principles.
+          </div>
         </section>
 
         <section id="detailed">
           <h2><span class="num">05</span>Detailed Breakdown (≤12 min each)</h2>
-          <p class="muted">Every executable task from the comprehensive plan, split into sub-tasks of ≤12 minutes. 42 sub-tasks total. Sorted by impact. Status updates live as execution proceeds.</p>
+          <p class="muted">
+            Every executable task from the comprehensive plan, split into sub-tasks of ≤12 minutes.
+            42 sub-tasks total. Sorted by impact. Status updates live as execution proceeds.
+          </p>
           <table>
-            <thead><tr><th>#</th><th>Sub-task</th><th>Parent</th><th>Est</th><th>Status</th></tr></thead>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Sub-task</th>
+                <th>Parent</th>
+                <th>Est</th>
+                <th>Status</th>
+              </tr>
+            </thead>
             <tbody>
-              <tr><td class="rank">1.1</td><td>Add projection/v3 require+replace to graph/go.mod; tidy</td><td>P1</td><td>6m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">1.2</td><td>Add projection/v3 require+replace to storage/turso/go.mod; tidy</td><td>P1</td><td>6m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">1.3</td><td>Add projection/v3 require+replace to stack/memory; tidy</td><td>P1</td><td>6m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">1.4</td><td>Add projection/v3 require+replace to stack/pebble; tidy</td><td>P1</td><td>6m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">1.5</td><td>Add projection/v3 require+replace to stack/postgres; tidy</td><td>P1</td><td>6m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">1.6</td><td>Add projection/v3 require+replace to stack/sqlite; tidy</td><td>P1</td><td>6m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">1.7</td><td>Add projection/v3 require+replace to stack/turso; tidy</td><td>P1</td><td>6m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">1.8</td><td>Add projection/v3 require+replace to example/todo; tidy</td><td>P1</td><td>6m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">1.9</td><td>Add projection/v3 require+replace to example/user; tidy</td><td>P1</td><td>6m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">1.10</td><td>Add projection/v3 require+replace to example/deployer-first; tidy</td><td>P1</td><td>6m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">1.11</td><td>Add projection/v3 require+replace to example/deployer-first-multidb; tidy</td><td>P1</td><td>6m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">1.12</td><td>tidy storage/ + stack/ (fix stale go.sum for projection)</td><td>P1</td><td>4m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">1.13</td><td>Re-run full isolation audit; verify 0/44 fail</td><td>P1</td><td>6m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">2.1</td><td>Write scripts/check-module-isolation.sh (GOWORK=off loop)</td><td>P2</td><td>10m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">2.2</td><td>Wire check-module-isolation.sh into flake.nix as an app</td><td>P2</td><td>8m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">2.3</td><td>Wire check-module-isolation.sh into CI (ci.yml)</td><td>P2</td><td>8m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">3.1</td><td>Write scripts/check-doc-stubs.sh (grep placeholder doc.go)</td><td>P3</td><td>8m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">3.2</td><td>Wire check-doc-stubs.sh into flake.nix + CI</td><td>P3</td><td>8m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">4.1</td><td>Correct projection/ "deleted" claim in TODO_LIST + AGENTS.md</td><td>P4</td><td>10m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">4.2</td><td>Update TODO_LIST date + add relational/graph line items</td><td>P4</td><td>10m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">5.1</td><td>Spike: go doc -all | extract code blocks → tmp test files</td><td>P5</td><td>12m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">5.2</td><td>If too complex, document as "manual review" guard instead</td><td>P5</td><td>6m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">6.1</td><td>Write RelationalProjection integration test (schema + handler + events)</td><td>P6</td><td>12m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">6.2</td><td>Assert atomic commit + rollback-on-error paths</td><td>P6</td><td>10m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">7.1</td><td>Write GraphProjection integration test (nodes + edges)</td><td>P7</td><td>12m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">7.2</td><td>Test reply-chain edge + atomic merge</td><td>P7</td><td>10m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">8.1</td><td>Add graph/ tests for MemoryDriver + GraphProjection</td><td>P8</td><td>12m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">9.1</td><td>Add kv/ Cache + TypedStore edge-case tests</td><td>P9</td><td>12m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">10.1</td><td>Add codec/ CBOR compact + BufferEncoder tests</td><td>P10</td><td>12m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">11.1</td><td>Add "skipped locally without POSTGRES_TEST_DSN" note to FEATURES.md</td><td>P11</td><td>6m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">12.1</td><td>Define Drainer interface + wire into GracefulClose (drain→close)</td><td>P12</td><td>12m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">12.2</td><td>Add Drainer unit test (drain order, timeout)</td><td>P12</td><td>12m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">13.1</td><td>Expose Backend.Checkpoint via a stack preset helper</td><td>P13</td><td>12m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">14.1</td><td>Move pre-v3 docs/status/*.md → docs/status/archive/</td><td>P14</td><td>8m</td><td><span class="badge b-crit">Todo</span></td></tr>
-              <tr><td class="rank">15.1</td><td>Fix 2 unusedwrite gopls infos in catalog test</td><td>P15</td><td>8m</td><td><span class="badge b-crit">Todo</span></td></tr>
+              <tr>
+                <td class="rank">1.1</td>
+                <td>Add projection/v3 require+replace to graph/go.mod; tidy</td>
+                <td>P1</td>
+                <td>6m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">1.2</td>
+                <td>Add projection/v3 require+replace to storage/turso/go.mod; tidy</td>
+                <td>P1</td>
+                <td>6m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">1.3</td>
+                <td>Add projection/v3 require+replace to stack/memory; tidy</td>
+                <td>P1</td>
+                <td>6m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">1.4</td>
+                <td>Add projection/v3 require+replace to stack/pebble; tidy</td>
+                <td>P1</td>
+                <td>6m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">1.5</td>
+                <td>Add projection/v3 require+replace to stack/postgres; tidy</td>
+                <td>P1</td>
+                <td>6m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">1.6</td>
+                <td>Add projection/v3 require+replace to stack/sqlite; tidy</td>
+                <td>P1</td>
+                <td>6m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">1.7</td>
+                <td>Add projection/v3 require+replace to stack/turso; tidy</td>
+                <td>P1</td>
+                <td>6m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">1.8</td>
+                <td>Add projection/v3 require+replace to example/todo; tidy</td>
+                <td>P1</td>
+                <td>6m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">1.9</td>
+                <td>Add projection/v3 require+replace to example/user; tidy</td>
+                <td>P1</td>
+                <td>6m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">1.10</td>
+                <td>Add projection/v3 require+replace to example/deployer-first; tidy</td>
+                <td>P1</td>
+                <td>6m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">1.11</td>
+                <td>Add projection/v3 require+replace to example/deployer-first-multidb; tidy</td>
+                <td>P1</td>
+                <td>6m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">1.12</td>
+                <td>tidy storage/ + stack/ (fix stale go.sum for projection)</td>
+                <td>P1</td>
+                <td>4m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">1.13</td>
+                <td>Re-run full isolation audit; verify 0/44 fail</td>
+                <td>P1</td>
+                <td>6m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">2.1</td>
+                <td>Write scripts/check-module-isolation.sh (GOWORK=off loop)</td>
+                <td>P2</td>
+                <td>10m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">2.2</td>
+                <td>Wire check-module-isolation.sh into flake.nix as an app</td>
+                <td>P2</td>
+                <td>8m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">2.3</td>
+                <td>Wire check-module-isolation.sh into CI (ci.yml)</td>
+                <td>P2</td>
+                <td>8m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">3.1</td>
+                <td>Write scripts/check-doc-stubs.sh (grep placeholder doc.go)</td>
+                <td>P3</td>
+                <td>8m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">3.2</td>
+                <td>Wire check-doc-stubs.sh into flake.nix + CI</td>
+                <td>P3</td>
+                <td>8m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">4.1</td>
+                <td>Correct projection/ "deleted" claim in TODO_LIST + AGENTS.md</td>
+                <td>P4</td>
+                <td>10m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">4.2</td>
+                <td>Update TODO_LIST date + add relational/graph line items</td>
+                <td>P4</td>
+                <td>10m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">5.1</td>
+                <td>Spike: go doc -all | extract code blocks → tmp test files</td>
+                <td>P5</td>
+                <td>12m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">5.2</td>
+                <td>If too complex, document as "manual review" guard instead</td>
+                <td>P5</td>
+                <td>6m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">6.1</td>
+                <td>Write RelationalProjection integration test (schema + handler + events)</td>
+                <td>P6</td>
+                <td>12m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">6.2</td>
+                <td>Assert atomic commit + rollback-on-error paths</td>
+                <td>P6</td>
+                <td>10m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">7.1</td>
+                <td>Write GraphProjection integration test (nodes + edges)</td>
+                <td>P7</td>
+                <td>12m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">7.2</td>
+                <td>Test reply-chain edge + atomic merge</td>
+                <td>P7</td>
+                <td>10m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">8.1</td>
+                <td>Add graph/ tests for MemoryDriver + GraphProjection</td>
+                <td>P8</td>
+                <td>12m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">9.1</td>
+                <td>Add kv/ Cache + TypedStore edge-case tests</td>
+                <td>P9</td>
+                <td>12m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">10.1</td>
+                <td>Add codec/ CBOR compact + BufferEncoder tests</td>
+                <td>P10</td>
+                <td>12m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">11.1</td>
+                <td>Add "skipped locally without POSTGRES_TEST_DSN" note to FEATURES.md</td>
+                <td>P11</td>
+                <td>6m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">12.1</td>
+                <td>Define Drainer interface + wire into GracefulClose (drain→close)</td>
+                <td>P12</td>
+                <td>12m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">12.2</td>
+                <td>Add Drainer unit test (drain order, timeout)</td>
+                <td>P12</td>
+                <td>12m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">13.1</td>
+                <td>Expose Backend.Checkpoint via a stack preset helper</td>
+                <td>P13</td>
+                <td>12m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">14.1</td>
+                <td>Move pre-v3 docs/status/*.md → docs/status/archive/</td>
+                <td>P14</td>
+                <td>8m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
+              <tr>
+                <td class="rank">15.1</td>
+                <td>Fix 2 unusedwrite gopls infos in catalog test</td>
+                <td>P15</td>
+                <td>8m</td>
+                <td><span class="badge b-crit">Todo</span></td>
+              </tr>
             </tbody>
           </table>
         </section>
@@ -213,17 +1043,46 @@
         <section id="scores">
           <h2><span class="num">06</span>Scoring Key</h2>
           <table>
-            <thead><tr><th>Dimension</th><th>Scale</th><th>Meaning</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Dimension</th>
+                <th>Scale</th>
+                <th>Meaning</th>
+              </tr>
+            </thead>
             <tbody>
-              <tr><td>Impact (I)</td><td>1–5</td><td>How much does this matter to the library's trustworthiness? 5=trust-blocking, 1=nice-to-have.</td></tr>
-              <tr><td>Effort (E)</td><td>1–5</td><td>Lower = easier. 1=&lt;30min, 2=30-60m, 3=1-2h, 4=2-4h, 5=&gt;4h.</td></tr>
-              <tr><td>Customer-Value (V)</td><td>1–5</td><td>Would a consumer notice / benefit? 5=every consumer, 1=internal only.</td></tr>
-              <tr><td>Tier</td><td>1%/4%/20%</td><td>Pareto band. 1%=delivers 51% of value, do first.</td></tr>
+              <tr>
+                <td>Impact (I)</td>
+                <td>1–5</td>
+                <td>
+                  How much does this matter to the library's trustworthiness? 5=trust-blocking,
+                  1=nice-to-have.
+                </td>
+              </tr>
+              <tr>
+                <td>Effort (E)</td>
+                <td>1–5</td>
+                <td>Lower = easier. 1=&lt;30min, 2=30-60m, 3=1-2h, 4=2-4h, 5=&gt;4h.</td>
+              </tr>
+              <tr>
+                <td>Customer-Value (V)</td>
+                <td>1–5</td>
+                <td>Would a consumer notice / benefit? 5=every consumer, 1=internal only.</td>
+              </tr>
+              <tr>
+                <td>Tier</td>
+                <td>1%/4%/20%</td>
+                <td>Pareto band. 1%=delivers 51% of value, do first.</td>
+              </tr>
             </tbody>
           </table>
         </section>
 
-        <footer class="footer">Generated 2026-06-28 05:09 CEST &middot; Grounded in live per-module isolation audit (44 modules) + Top-25 status report + TODO_LIST + ROADMAP &middot; Execution proceeds immediately after this plan</footer>
+        <footer class="footer">
+          Generated 2026-06-28 05:09 CEST &middot; Grounded in live per-module isolation audit (44
+          modules) + Top-25 status report + TODO_LIST + ROADMAP &middot; Execution proceeds
+          immediately after this plan
+        </footer>
       </main>
     </div>
   </body>

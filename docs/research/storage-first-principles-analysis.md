@@ -1,6 +1,21 @@
 # Storage Module: First-Principles Analysis
 
 > **Date:** 2026-05-29 | **Scope:** `storage/`, `storage/sql/`, `pebble/`, `turso/`, `core/event/` interfaces
+>
+> **RESOLUTION STATUS (2026-06-28):** Most findings in this document have been
+> addressed. Key updates since this analysis was written:
+> - **§3.1 Split Brain (`storage/` root vs `storage/sql/`):** RESOLVED. The
+>   root package now imports `storage/sql` for all SQL infrastructure. No
+>   duplicate dialect/helpers/reconstruction code remains.
+> - **§3.2 `AggregateProjection`/`SQLAggregateReader` not dialect-aware:** RESOLVED.
+> - **§3.3 No Schema Migration System:** PARTIALLY addressed via embedded DDL
+>   in `storage/migrations/` + `RelationalSchema.Migrate()`.
+> - **§3.4 Pebble Module Incomplete:** RESOLVED. Pebble now has
+>   `SnapshotStore`, `CheckpointStore`, `CommandStore`, `QueryStore`, and
+>   `ReadModels` (KV adapter) via `PebbleBackend`.
+> - **§3.5 STORAGE_GUIDE.md is Stale:** RESOLVED (rewritten 2026-06-28).
+> - **§3.8 No DLQ for Outbox:** Still open. The retry middleware returns
+>   `ErrRetryExhausted` and the message is lost — no dead-letter quarantine.
 
 ---
 

@@ -74,12 +74,12 @@ defines its own wire format.
 
 ### Scope split
 
-| Use case | Paradigm | Coverage |
-| -------- | -------- | -------- |
-| Event distribution over broker | pub/sub | `watermill/` EventBus + broker plugin |
-| Command distribution over broker | pub/sub | `watermill/` CommandBus + broker plugin |
-| Query dispatch across processes | request/reply (RPC) | `transport/grpc/` QueryService |
-| SSE event streaming | server-push | `transport/http/` SSEBroker |
+| Use case                         | Paradigm            | Coverage                                |
+| -------------------------------- | ------------------- | --------------------------------------- |
+| Event distribution over broker   | pub/sub             | `watermill/` EventBus + broker plugin   |
+| Command distribution over broker | pub/sub             | `watermill/` CommandBus + broker plugin |
+| Query dispatch across processes  | request/reply (RPC) | `transport/grpc/` QueryService          |
+| SSE event streaming              | server-push         | `transport/http/` SSEBroker             |
 
 The `CommandTransport`/`QueryTransport` interfaces from the original ADR are
 retained as consumer-side concepts. Commands use pub/sub semantics
