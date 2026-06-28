@@ -51,7 +51,9 @@ func (p *CommandPublisher) Publish(ctx context.Context, cmds ...command.Command)
 	msgs := make([]*message.Message, 0, len(cmds))
 
 	for _, cmd := range cmds {
-		msgs = append(msgs, CommandToMessage(cmd))
+		msg := CommandToMessage(cmd)
+		injectTraceContext(ctx, msg)
+		msgs = append(msgs, msg)
 	}
 
 	if err := p.publisher.Publish(p.topic, msgs...); err != nil {

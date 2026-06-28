@@ -61,7 +61,9 @@ func (p *EventPublisher) Publish(ctx context.Context, events ...event.Event) err
 	msgs := make([]*message.Message, 0, len(events))
 
 	for _, evt := range events {
-		msgs = append(msgs, eventToMessage(evt))
+		msg := eventToMessage(evt)
+		injectTraceContext(ctx, msg)
+		msgs = append(msgs, msg)
 	}
 
 	if err := p.publisher.Publish(p.topic, msgs...); err != nil {

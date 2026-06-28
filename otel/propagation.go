@@ -3,6 +3,7 @@ package otel
 import (
 	"context"
 
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/baggage"
 	"go.opentelemetry.io/otel/propagation"
 )
@@ -47,4 +48,12 @@ func NewTextMapPropagator() propagation.TextMapPropagator {
 		propagation.TraceContext{},
 		propagation.Baggage{},
 	)
+}
+
+// TextMapPropagator returns the globally configured propagator. This is a
+// re-export of otel.GetTextMapPropagator so downstream modules can inject and
+// extract W3C trace context without a direct go.opentelemetry.io/otel
+// dependency (design principle: OTel through otel/).
+func TextMapPropagator() propagation.TextMapPropagator {
+	return otel.GetTextMapPropagator()
 }
