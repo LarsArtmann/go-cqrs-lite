@@ -90,7 +90,11 @@ func (b *SSEBroker) handleEvent(ctx context.Context, evt event.Event) error {
 		ctx, tracer(), "sse.fanout",
 		cqrsotel.SpanKindConsumer,
 		cqrsotel.WithAttributes(
-			cqrsotel.EventAttrs(string(evt.Type()), evt.AggregateID(), string(evt.AggregateType()))...,
+			cqrsotel.EventAttrs(
+				string(evt.Type()),
+				evt.AggregateID(),
+				string(evt.AggregateType()),
+			)...,
 		),
 	)
 	defer span.End()
