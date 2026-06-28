@@ -10,6 +10,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
 )
 
@@ -34,8 +35,8 @@ func NewRetry[M any](adapter MessageAdapter[M], config RetryConfig, opts ...Opti
 				entry.AggregateID = adapter.ExtractID(msg)
 			}
 
-			return retry(ctx, config, cfg.logger, entry, func() error {
-				return next(ctx, msg)
+			return retry(ctx, config, cfg.logger, entry, func(attemptCtx context.Context) error {
+				return next(attemptCtx, msg)
 			})
 		}
 	}
@@ -64,15 +65,29 @@ func retry(
 	config RetryConfig,
 	logger *slog.Logger,
 	entry DeadLetterEntry,
-	fn func() error,
+	fn func(context.Context) error,
 ) error {
 	var err error
 
 	for attempt := 1; attempt <= config.MaxAttempts; attempt++ {
-		err = fn()
+		attemptCtx, attemptSpan := cqrsotel.StartSpan(
+			ctx, retryTracer(), fmt.Sprintf("retry.attempt.%d", attempt),
+			cqrsotel.SpanKindInternal,
+			cqrsotel.WithAttributes(
+				cqrsotel.AttrInt("cqrs.retry.attempt", attempt),
+				cqrsotel.AttrInt("cqrs.retry.max_attempts", config.MaxAttempts),
+			),
+		)
+
+		err = fn(attemptCtx)
 		if err == nil {
+			attemptSpan.End()
+
 			return nil
 		}
+
+		cqrsotel.RecordError(attemptSpan, err)
+		attemptSpan.End()
 
 		if !config.IsRetryable(err) {
 			return err
