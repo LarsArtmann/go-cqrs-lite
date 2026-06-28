@@ -89,4 +89,4 @@ All 11 breaking changes landed and v3.0.0 is tagged. The new shapes were added i
 
 ---
 
-_Last updated: 2026-06-28 — v3.3.0 in progress. Three projection tiers, Watermill command bridge, dead-letter quarantine._
+_Last updated: 2026-06-29 — v3.3.0 tagged. Idempotency module + dispatch middleware shipped. Dead-letter queue (dispatch-tier) shipped. SSE promoted to branded types. Transactional Outbox (A2) deferred — relay-over-outbox stands. Remaining gaps: Managed Projection Host (A1), Scenario-testing DSL (A5), Scheduled commands (A6)._

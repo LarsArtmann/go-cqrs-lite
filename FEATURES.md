@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-06-28 (transport/grpc orphan warning corrected; verified wired into `go.work`) · **Module count:** 45 `go.mod` files (44 in `go.work` + root anchor) · **Go version:** 1.26.3
+**Last audited:** 2026-06-29 (idempotency module added; DLQ feature documented; SSE promoted to branded types) · **Module count:** 49 `go.mod` files (48 in `go.work` + transport/grpc builds standalone) · **Go version:** 1.26.3
 
 ## Status Legend
 
@@ -158,15 +158,29 @@
 
 > `import "github.com/larsartmann/go-cqrs-lite/idempotency/v3"`
 
-| Feature         | Detail                                                                                     | Status |
-| --------------- | ------------------------------------------------------------------------------------------ | ------ |
-| Store interface | `Store`: `Seen`, `Record`, `CheckAndRecord` — dedup opaque keys (command idempotency keys) | ✅     |
-| MemoryStore     | `MemoryStore` — in-memory TTL store with background sweep + lazy deletion                  | ✅     |
-| Atomic dedup    | `CheckAndRecord` — single-lock check+record prevents the TOCTOU race (exactly one winner)  | ✅     |
-| TTL expiration  | Keys expire after a configurable duration; removed by sweeper and lazily on read           | ✅     |
-| ErrDuplicate    | Conflict sentinel returned when a key is already recorded (maps to HTTP 409)               | ✅     |
+| Feature           | Detail                                                                                     | Status |
+| ----------------- | ------------------------------------------------------------------------------------------ | ------ |
+| Store interface   | `Store`: `Seen`, `Record`, `CheckAndRecord` — dedup opaque keys (command idempotency keys) | ✅     |
+| MemoryStore       | `MemoryStore` — in-memory TTL store with background sweep + lazy deletion                  | ✅     |
+| Atomic dedup      | `CheckAndRecord` — single-lock check+record prevents the TOCTOU race (exactly one winner)  | ✅     |
+| TTL expiration    | Keys expire after a configurable duration; removed by sweeper and lazily on read           | ✅     |
+| ErrDuplicate      | Conflict sentinel returned when a key is already recorded (maps to HTTP 409)               | ✅     |
+| Dispatch middleware | `CommandIdempotency` — `command.Middleware` that deduplicates by `Command.ID()`            | ✅     |
+| KeyExtractor      | `KeyExtractor` func type + `CommandIDKey` default extractor                               | ✅     |
 
 **Sentinel errors:** `ErrDuplicate` (Conflict)
+
+### Dead-Letter Queue ✅ FULLY_FUNCTIONAL
+
+> `import "github.com/larsartmann/go-cqrs-lite/middleware/v3"`
+
+| Feature           | Detail                                                                                     | Status |
+| ----------------- | ------------------------------------------------------------------------------------------ | ------ |
+| DeadLetterStore   | `DeadLetterStore` interface — `Store`, `List`, `Replay`, `Purge`                           | ✅     |
+| MemoryDLQStore    | In-memory `DeadLetterStore` for dev/test                                                   | ✅     |
+| SQLDLQStore       | SQL-backed `DeadLetterStore` (Postgres, SQLite)                                            | ✅     |
+| DeadLetterWrapper | Wraps a projection/event handler — captures poison messages, advances checkpoint          | ✅     |
+| Error metadata    | Each dead-letter entry captures event, error, handler name, timestamp, retry count        | ✅     |
 
 ---
 
