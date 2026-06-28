@@ -825,3 +825,57 @@ func assertCount(t *testing.T, db *sql.DB, table string, want int64) {
 		t.Fatalf("count %s = %d, want %d", table, got, want)
 	}
 }
+
+func TestRelationalProjection_RejectsUnknownColumn(t *testing.T) {
+	t.Parallel()
+
+	db := openRelationalDB(t)
+	ctx := context.Background()
+
+	handler := func(_ context.Context, _ cqrsevent.Event, sink ProjectionSink) error {
+		return sink.Upsert(ctx, "guilds", Row{
+			"id":         "g1",
+			"name":       "test",
+			"created_at": "2026-01-01",
+			"updated_at": "2026-01-01",
+			"bogus_col":  "oops",
+		})
+	}
+
+	proj, err := NewRelationalProjection(
+		"vc", discordSchema(), db, sqlpkg.SQLiteDialect{}, handler, nil,
+	)
+	if err != nil {
+		t.Fatalf("new projection: %v", err)
+	}
+
+	err = proj.Handle(ctx, newEvent(t, "GUILD_CREATED", nil))
+	if !errors.Is(err, errSinkUnknownColumn) {
+		t.Fatalf("err = %v, want errSinkUnknownColumn", err)
+	}
+
+	assertCount(t, db, "guilds", 0)
+}
+
+func TestRelationalProjection_RejectsUnknownTable(t *testing.T) {
+	t.Parallel()
+
+	db := openRelationalDB(t)
+	ctx := context.Background()
+
+	handler := func(_ context.Context, _ cqrsevent.Event, sink ProjectionSink) error {
+		return sink.Upsert(ctx, "nonexistent_table", Row{"id": "x"})
+	}
+
+	proj, err := NewRelationalProjection(
+		"vc", discordSchema(), db, sqlpkg.SQLiteDialect{}, handler, nil,
+	)
+	if err != nil {
+		t.Fatalf("new projection: %v", err)
+	}
+
+	err = proj.Handle(ctx, newEvent(t, "X", nil))
+	if !errors.Is(err, errSinkUnknownTable) {
+		t.Fatalf("err = %v, want errSinkUnknownTable", err)
+	}
+}

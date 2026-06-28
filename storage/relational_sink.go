@@ -82,7 +82,7 @@ func newSQLSink(tx *sql.Tx, schema RelationalSchema, dialect sqlpkg.Dialect) *sq
 }
 
 func (s *sqlSink) Upsert(ctx context.Context, table string, row Row, conflictCols ...string) error {
-	cols, vals, err := s.rowColumns(row)
+	cols, vals, err := s.rowColumns(table, row)
 	if err != nil {
 		return err
 	}
@@ -114,7 +114,7 @@ func (s *sqlSink) Upsert(ctx context.Context, table string, row Row, conflictCol
 }
 
 func (s *sqlSink) Ensure(ctx context.Context, table string, row Row) error {
-	cols, vals, err := s.rowColumns(row)
+	cols, vals, err := s.rowColumns(table, row)
 	if err != nil {
 		return err
 	}
@@ -134,12 +134,12 @@ func (s *sqlSink) Ensure(ctx context.Context, table string, row Row) error {
 }
 
 func (s *sqlSink) Update(ctx context.Context, table string, set, match Row) error {
-	setCols, setVals, err := s.rowColumns(set)
+	setCols, setVals, err := s.rowColumns(table, set)
 	if err != nil {
 		return err
 	}
 
-	matchCols, matchVals, matchErr := s.rowColumns(match)
+	matchCols, matchVals, matchErr := s.rowColumns(table, match)
 	if matchErr != nil {
 		return matchErr
 	}
@@ -165,7 +165,7 @@ func (s *sqlSink) Update(ctx context.Context, table string, set, match Row) erro
 }
 
 func (s *sqlSink) DeleteWhere(ctx context.Context, table string, match Row) error {
-	matchCols, matchVals, err := s.rowColumns(match)
+	matchCols, matchVals, err := s.rowColumns(table, match)
 	if err != nil {
 		return err
 	}
@@ -182,7 +182,7 @@ func (s *sqlSink) DeleteWhere(ctx context.Context, table string, match Row) erro
 }
 
 func (s *sqlSink) QueryOne(ctx context.Context, table, column string, match Row) (any, error) {
-	matchCols, matchVals, err := s.rowColumns(match)
+	matchCols, matchVals, err := s.rowColumns(table, match)
 	if err != nil {
 		return nil, err
 	}
@@ -207,13 +207,34 @@ func (s *sqlSink) QueryOne(ctx context.Context, table, column string, match Row)
 
 // rowColumns turns a Row into sorted column names plus dialect-formatted
 // values. Columns are sorted for deterministic SQL (stable golden output).
-func (s *sqlSink) rowColumns(row Row) ([]string, []any, error) {
+// Each column name is validated against the table's declared schema —
+// unknown columns are rejected before they reach SQL.
+func (s *sqlSink) rowColumns(table string, row Row) ([]string, []any, error) {
 	if len(row) == 0 {
 		return nil, nil, errSinkEmptyRow
 	}
 
+	t := s.schema.Table(table)
+	if t == nil {
+		return nil, nil, fmt.Errorf("sink: table %q: %w", table, errSinkUnknownTable)
+	}
+
+	colSet := make(map[string]struct{}, len(t.Columns))
+	for i := range t.Columns {
+		colSet[t.Columns[i].Name] = struct{}{}
+	}
+
 	cols := make([]string, 0, len(row))
 	for name := range row {
+		if _, ok := colSet[name]; !ok {
+			return nil, nil, fmt.Errorf(
+				"sink: table %q: column %q: %w",
+				table,
+				name,
+				errSinkUnknownColumn,
+			)
+		}
+
 		cols = append(cols, name)
 	}
 

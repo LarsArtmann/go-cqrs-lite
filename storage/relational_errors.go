@@ -13,6 +13,8 @@ var (
 	errSchemaDuplicateColumn = errors.New("duplicate column name")
 	errSchemaUnknownPKColumn = errors.New("primary key column not declared in Columns")
 
-	errSinkEmptyRow = errors.New("sink: row has no columns")
-	errSinkNoRows   = errors.New("sink: QueryOne matched no rows")
+	errSinkEmptyRow      = errors.New("sink: row has no columns")
+	errSinkUnknownTable  = errors.New("sink: table not declared in schema")
+	errSinkUnknownColumn = errors.New("sink: column not declared in schema")
+	errSinkNoRows        = errors.New("sink: QueryOne matched no rows")
 )
