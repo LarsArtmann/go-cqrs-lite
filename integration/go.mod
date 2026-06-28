@@ -10,7 +10,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/encryption/v3 v3.0.0
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.1.0
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.1.0
-	github.com/larsartmann/go-cqrs-lite/listing/v3 v3.0.0
+	github.com/larsartmann/go-cqrs-lite/listing/v3 v3.1.0
 	github.com/larsartmann/go-cqrs-lite/middleware/v3 v3.0.0
 	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.1.0
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.1.0
@@ -51,7 +51,7 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-error-family v0.5.1 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
@@ -61,7 +61,7 @@ require (
 	github.com/prometheus/client_golang v1.23.2 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.69.0 // indirect
-	github.com/prometheus/procfs v0.20.1 // indirect
+	github.com/prometheus/procfs v0.21.0 // indirect
 	github.com/rogpeppe/go-internal v1.15.0 // indirect
 	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect

@@ -2,15 +2,13 @@
 
 These items are blocked by upstream dependencies and cannot be resolved within this repository.
 
-## 1. transport/grpc Workspace Integration
+## 1. transport/grpc Workspace Integration ✅ Resolved
 
-**Blocker:** `cockroachdb/pebble` → `cockroachdb/errors@v1.14.0` pulls the monolithic `google.golang.org/genproto`, which conflicts with `grpc v1.81.1`'s split `genproto/googleapis/rpc`.
+**Original blocker:** `cockroachdb/pebble` → `cockroachdb/errors@v1.14.0` pulled the monolithic `google.golang.org/genproto`, which conflicted with `grpc v1.81.1`'s split `genproto/googleapis/rpc`.
 
-**Impact:** `transport/grpc` cannot be added to `go.work`. It builds and tests successfully only with `GOWORK=off`.
+**Resolution:** A workspace-level `replace` directive in `go.work` pins the monolithic `google.golang.org/genproto` to `v0.0.0-20250603155806-513f23925822`, a version where the `googleapis/rpc` packages have been split out into their own module. This removes the ambiguous package overlap while keeping the packages still hosted in the monolithic module available to other workspace members.
 
-**Workaround:** CI tests transport/grpc in isolation via the per-module matrix (`cd transport/grpc && GOWORK=off go test ./... -race`).
-
-**Resolution:** Requires cockroachdb/errors to drop the monolithic genproto. Tracked at [cockroachdb/errors#79](https://github.com/cockroachdb/errors/issues/79).
+**Result:** `transport/grpc` is now a first-class member of `go.work`; `go build ./...` and `go test ./...` across the workspace include it.
 
 ## 2. JSON v2 Codec Stabilization
 

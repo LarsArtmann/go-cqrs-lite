@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-06-24 (multi-skill review pass; module count & structure reconciled against `go.work`) · **Module count:** 43 `go.mod` files (42 in `go.work` + `transport/grpc` pending workspace wiring) · **Go version:** 1.26.3
+**Last audited:** 2026-06-28 (transport/grpc wired into workspace) · **Module count:** 45 `go.mod` files (44 in `go.work` + root anchor) · **Go version:** 1.26.3
 
 ## Status Legend
 

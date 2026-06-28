@@ -63,6 +63,7 @@
             "middleware"
             "integration"
             "transport/http"
+            "transport/grpc"
             "prometheus"
             "signing"
             "storage"
