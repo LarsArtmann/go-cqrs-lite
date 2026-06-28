@@ -8,6 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+#### catalog/v3.2.0
+
+- **`catalog/simple` sub-package** — single-service Builder facade (`New`,
+  `Command[T]`, `Query[T]`, `Event[T]`, `Build`, `BuildValid`) with auto-kebab
+  service ID via `internal/caseutil.ToKebab`. Streamlines the common case of
+  documenting one service.
+- **`catalog/docserver` standalone handlers** — `D2Handler` (D2 architecture
+  diagram over HTTP), `HealthCheckHandler` (liveness probe verifying the
+  catalog has services), `GenerateEventCatalog` (writes EventCatalog MDX files
+  at startup). These complement the existing `DocsServer` for lighter use cases.
+
 #### New Module: `projection/`
 
 - **`projection.Projection`** interface and `projection.NewProjection` — extracted
