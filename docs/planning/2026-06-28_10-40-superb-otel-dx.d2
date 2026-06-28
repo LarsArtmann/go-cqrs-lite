@@ -1,0 +1,44 @@
+direction: down
+tier1: Tier 1 — Bundle & Setup (1% → 51%) {
+  shape: package
+  style.fill: "#f4d35e"
+  t1a: otel.Setup() provider helper
+  t1b: otel.Version() + ScopeName
+  t1c: middleware.OTel() bundle
+  t1d: Dogfood in example/user
+  t1a -> t1c
+  t1b -> t1c
+  t1c -> t1d
+}
+
+tier2: Tier 2 — Integration Spans & API Consolidation (4% → 64%) {
+  shape: package
+  style.fill: "#6eb5ff"
+  t2a: Instrument transport/http
+  t2b: Instrument transport/grpc
+  t2c: Instrument watermill bridges
+  t2d: Collapse metrics API
+  t2e: Span tree validation test
+}
+
+tier3: Tier 3 — Type Model, Docs, Polish (20% → 80%) {
+  shape: package
+  style.fill: "#ffb347"
+  t3a: Typed MetricsRecorder (kill string labels)
+  t3b: Cache decider tracer
+  t3c: Retry-as-child-spans
+  t3d: Span tree diagram + README
+}
+
+tier4: Tier 4 — Stretch {
+  shape: package
+  style.fill: "#18181d"
+  style.font-color: "#f4f4f0"
+  t4a: Setup variants (OTLP/stdout)
+  t4b: Golden trace tree
+  t4c: AGENTS.md + FEATURES.md sync
+}
+
+tier1 -> tier2: unlocks correct\ntrace trees
+tier2 -> tier3: clean API first
+tier3 -> tier4
