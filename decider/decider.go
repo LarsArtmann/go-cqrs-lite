@@ -137,6 +137,10 @@ func (r *Repository[State]) Execute(
 
 	span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrEventCount, len(newEvents)))
 
+	if len(newEvents) > 0 {
+		span.SetAttributes(cqrsotel.AttrString(cqrsotel.AttrEventType, string(newEvents[0].Type())))
+	}
+
 	r.applyEnricher(ctx, newEvents)
 
 	err = r.store.Save(ctx, ref, newEvents, currentVersion)

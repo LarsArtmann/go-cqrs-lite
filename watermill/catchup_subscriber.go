@@ -11,6 +11,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 )
 
 // CheckpointStore is the interface for persisting the last-processed event ID.
@@ -158,8 +159,17 @@ func (s *CatchUpSubscriber) runCatchUp(ctx context.Context, sub *catchUpSubscrip
 }
 
 func (s *CatchUpSubscriber) replayPhase(ctx context.Context, sub *catchUpSubscription) error {
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "watermill.replay.from_journal",
+		cqrsotel.SpanKindInternal,
+		cqrsotel.WithAttributes(cqrsotel.AttrString("cqrs.projection.name", sub.topic)),
+	)
+	defer span.End()
+
 	checkpoint, err := s.checkpoint.Load(ctx, sub.topic)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return fmt.Errorf("load checkpoint for %s: %w", sub.topic, err)
 	}
 
@@ -171,8 +181,12 @@ func (s *CatchUpSubscriber) replayPhase(ctx context.Context, sub *catchUpSubscri
 
 	events, err := s.journal.ReadFrom(ctx, after, 0)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return fmt.Errorf("replay read from journal: %w", err)
 	}
+
+	span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrEventCount, len(events)))
 
 	s.logger.Info(
 		"catch-up replay",

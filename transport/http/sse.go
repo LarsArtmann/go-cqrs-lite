@@ -243,8 +243,19 @@ func replayEvents(
 	ctx context.Context,
 	lastEventID string,
 ) map[string]struct{} {
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "sse.replay",
+		cqrsotel.SpanKindInternal,
+		cqrsotel.WithAttributes(
+			cqrsotel.AttrString("cqrs.sse.last_event_id", lastEventID),
+		),
+	)
+	defer span.End()
+
 	afterID, err := id.ParseEventID(lastEventID)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return nil // invalid ID: skip replay, start live
 	}
 
@@ -255,8 +266,12 @@ func replayEvents(
 
 	events, err := broker.journal.ReadFrom(ctx, afterID, limit)
 	if err != nil {
+		cqrsotel.RecordError(span, err)
+
 		return nil // journal error: skip replay, start live
 	}
+
+	span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrEventCount, len(events)))
 
 	replayed := make(map[string]struct{}, len(events))
 
