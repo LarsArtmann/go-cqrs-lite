@@ -52,41 +52,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module:
-          - event
-          - command
-          - query
-          - decider
-          - id
-          - dispatcher
-          - schema
-          - snapshot
-          - codec
-          - kv
-          - storage/memory
-          - storage/pebble
-          - storage/turso
-          - catalog
-          - middleware
-          - integration
-          - transport/http
-          - signing
-          - storage
-          - watermill
-          - encryption
-          - listing
-          - otel
-          - testutil
-          - stack
-          - stack/memory
-          - stack/sqlite
-          - stack/pebble
-          - stack/postgres
-          - stack/bench
-          - cmd/cqrs-gen
-          - cmd/api-stability
-          - transport/grpc
-          - cmd/doc-check
+        module: ${{ fromJSON(needs.discover-modules.outputs.modules) }}
+    needs: discover-modules
     steps:
       - uses: actions/checkout@v4
 
@@ -96,6 +63,41 @@ jobs:
 
       - name: Test module in isolation
         run: (cd ${{ matrix.module }} && GOWORK=off go test ./... -count=1 -race)
+
+  discover-modules:
+    name: Discover modules
+    runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.set-modules.outputs.modules }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Find all go.mod modules
+        id: set-modules
+        run: |
+          modules=$(find . -name go.mod -not -path './vendor/*' \
+            | sed 's|/go.mod||' | sed 's|^\./||' | sort \
+            | jq -R . | jq -s .)
+          echo "modules=$modules" >> "$GITHUB_OUTPUT"
+
+  module-isolation:
+    name: Module Isolation Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@v17
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
+      - name: Verify every module builds under GOWORK=off
+        run: nix run .#check-isolation
+
+  doc-stub-check:
+    name: Doc Stub Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@v17
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
+      - name: Fail on placeholder doc.go stubs
+        run: nix run .#check-doc-stubs
 
   coverage-gate:
     name: Minimum Coverage (80%)

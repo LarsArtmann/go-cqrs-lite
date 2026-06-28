@@ -192,6 +192,14 @@
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-module-layers.sh"
             '';
 
+            check-isolation = mkApp "check-isolation" [ goPkg pkgs.bash ] ''
+              ${pkgs.bash}/bin/bash "$PWD/scripts/check-module-isolation.sh"
+            '';
+
+            check-doc-stubs = mkApp "check-doc-stubs" [ pkgs.findutils pkgs.gnugrep ] ''
+              ${pkgs.bash}/bin/bash "$PWD/scripts/check-doc-stubs.sh"
+            '';
+
             check-arch = mkApp "check-arch" [ goPkg pkgs.bash ] ''
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-arch.sh"
             '';
