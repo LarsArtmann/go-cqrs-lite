@@ -78,7 +78,32 @@ type Materialize[V any, K fmt.Stringer] struct {
 	// OnRebirth handles a rebirth event (undo tombstone).
 	// The record is restored to active status.
 	OnRebirth func(ctx context.Context, evt event.Event, existing *V) (*V, error)
+
+	// ProjectionName optionally sets the name returned by [Name] for
+	// diagnostics and runner registration. Defaults to "materialize".
+	ProjectionName string
 }
+
+// Name implements [projection.Projection]. Returns ProjectionName or
+// "materialize" if unset.
+func (m *Materialize[V, K]) Name() string {
+	if m.ProjectionName != "" {
+		return m.ProjectionName
+	}
+
+	return "materialize"
+}
+
+// Handle implements [projection.Projection]. Delegates to handleEvent.
+// Materialize handles ALL event types (returns nil from EventTypes) — it
+// relies on KeyFromEvent + the On* callbacks to decide what to do.
+func (m *Materialize[V, K]) Handle(ctx context.Context, evt event.Event) error {
+	return m.handleEvent(ctx, evt)
+}
+
+// EventTypes implements [projection.Projection]. Returns nil — Materialize
+// handles all event types by design (the On* callbacks filter by key existence).
+func (m *Materialize[V, K]) EventTypes() []event.Type { return nil }
 
 // HandlerFunc returns a [message.NoPublishHandlerFunc] that decodes Watermill messages
 // back to cqrs events and dispatches them to the appropriate On* handler.
