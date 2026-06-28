@@ -60,6 +60,8 @@ github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.6.0 h1:29De3RRs8QW6EAWsFy/a
 github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.6.0/go.mod h1:/NT8gnfauvP/P5kLmxxLqu52d/3Lf6mWOGkgAvXse8I=
 github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.0.0 h1:ZIk8E0lmL2AguSucVrILJtSOAA6OPppN2y/Bk/oPRDA=
 github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.0.0/go.mod h1:2qLDdvc+AOXWVTuR5u8c48OtQ5T2qel8ZzHyPs/uMBA=
+github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.1.0 h1:AIPaSrNq61EDApcWYn2vUJLIBSoLvw1+2tTrrd+x/cI=
+github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.1.0/go.mod h1:DwJ9zG/ruPaWCCZV7jbLJNYl4K+ZepdHQ5erCZ7cJzw=
 github.com/larsartmann/go-cqrs-lite/memory/v2 v2.5.0 h1:7b+O+Ri7x8gBKfwU73YyMaJN2j1HK2DGv55RqmSgC0Y=
 github.com/larsartmann/go-cqrs-lite/memory/v2 v2.5.0/go.mod h1:O3kEsTxsCiC0vpL0aNaIAl3nhP9HP440YBopR9JiYTg=
 github.com/larsartmann/go-cqrs-lite/schema/v2 v2.5.0 h1:Ky6Z11Oy2ddgi2cQzvLH7u2y7y1CU2pkq/V1whw75J4=
@@ -96,6 +98,8 @@ github.com/prometheus/common v0.69.0 h1:OA85nJQS/T/MaYh/Q2CcgDKSGWqNIgrBDvDH85Cu
 github.com/prometheus/common v0.69.0/go.mod h1:ZzL3f6u94qUxh9p+tJTrF+FvBS1XXbbRAZCQkytAL0Y=
 github.com/prometheus/procfs v0.20.1 h1:XwbrGOIplXW/AU3YhIhLODXMJYyC1isLFfYCsTEycfc=
 github.com/prometheus/procfs v0.20.1/go.mod h1:o9EMBZGRyvDrSPH1RqdxhojkuXstoe4UlK79eF5TGGo=
+github.com/prometheus/procfs v0.21.0 h1:Qh/e6TlBjZf+XLLqNCqFGmCU6Kj/2Bu7kj3oAc0UnXc=
+github.com/prometheus/procfs v0.21.0/go.mod h1:aB55Cww9pdSJVHk0hUf0inxWyyjPogFIjmHKYgMKmtY=
 github.com/rogpeppe/go-internal v1.9.0/go.mod h1:WtVeX8xhTBvf0smdhujwtBcq4Qrzq/fJaraNFVN+nFs=
 github.com/rogpeppe/go-internal v1.15.0 h1:D0RCU5rMAp+SpgkiNdrjfJ+LX4J1M32V2NeCY7EJ6hc=
 github.com/rogpeppe/go-internal v1.15.0/go.mod h1:DrUVZyrJU+txYW5/1kwtXQSMFio52ZOxX7yM1VHvnxs=

@@ -35,7 +35,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Monorepo Structure
 
-Multi-module Go workspace (`go.work`) with 44 `go.mod` files — 43 wired into `go.work` + `transport/grpc` (builds clean but not yet added to the workspace). Breakdown: 27 library + 7 stack presets + 5 examples + 3 cmd + 1 integration + 1 root anchor. Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`:
+Multi-module Go workspace (`go.work`) with 45 `go.mod` files — 44 wired into `go.work` + `transport/grpc` (builds clean but not yet added to the workspace). Breakdown: 29 library + 7 stack presets + 5 examples + 3 cmd + 1 integration + 1 root anchor. Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`:
 
 ```
 go-cqrs-lite/
@@ -72,6 +72,7 @@ go-cqrs-lite/
 ├── transport/grpc/       # gRPC transport: RegisterCommandService, RegisterQueryService, CommandClient, QueryClient (ADR-0025)
 ├── codec/               # Payload encoding: JSON, CBOR (deterministic), Raw passthrough
 ├── graph/               # Graph projection tier: NodeRef, EdgeRef, GraphSink, GraphDriver, GraphProjection, MemoryDriver (ADR-0033)
+├── projection/          # Projection interface (consumer-side): Projection, NewProjection — extracted from event/
 ├── kv/                  # Layer-0 KV store abstraction: Store, MemStore, Iterator, Batch. PLUS TypedStore[T,K], Cache[T,K], ViewStore[V,K] interface, ViewQuery, ViewQuerier, TombstoneQuerier
 ├── testutil/            # Shared test helpers: NewCmd(tb, ...) (cross-module test utilities)
 ├── cmd/cqrs-gen/        # Code generator: typed handler registration from Go structs
@@ -538,7 +539,7 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 ```
 Layer 0: id/, dispatcher/, codec/, kv/         (leaf modules, no internal deps)
 Layer 1: event/ (→id, codec, ro), command/ (→id, dispatcher, ro), query/ (→dispatcher, ro)
-Layer 2: schema/ (→event), snapshot/ (→event), graph/ (→event)
+Layer 2: schema/ (→event), snapshot/ (→event), graph/ (→event), projection/ (→event)
 Layer 3: decider/ (→event, snapshot)
 Layer 4: storage/memory/, signing/, encryption/, otel/
 Layer 5: middleware/, storage/, listing/, watermill/, transport/http/, transport/grpc/, storage/pebble/, storage/turso/, prometheus/

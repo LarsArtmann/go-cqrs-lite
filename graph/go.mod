@@ -21,5 +21,6 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/command/v3 => ../command
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 => ../dispatcher
 	github.com/larsartmann/go-cqrs-lite/event/v3 => ../event
+ github.com/larsartmann/go-cqrs-lite/projection/v3 => ../projection
 	github.com/larsartmann/go-cqrs-lite/id/v3 => ../id
 )

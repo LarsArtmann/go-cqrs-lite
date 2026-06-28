@@ -8,6 +8,7 @@ import (
 	"slices"
 
 	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
+	cqrsprojection "github.com/larsartmann/go-cqrs-lite/projection/v3"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
 )
 
@@ -20,7 +21,7 @@ import (
 // [RelationalProjection] is constructed.
 type RelationalHandler func(ctx context.Context, evt cqrsevent.Event, sink ProjectionSink) error
 
-// RelationalProjection is an [cqrsevent.Projection] that materialises events
+// RelationalProjection is an [cqrsprojection.Projection] that materialises events
 // into a relational read model spanning multiple tables.
 //
 // It is the multi-table counterpart to [stack.Materialize]: where Materialize
@@ -105,10 +106,10 @@ func NewRelationalProjection(
 	return p, nil
 }
 
-// Name implements [cqrsevent.Projection].
+// Name implements [cqrsprojection.Projection].
 func (p *RelationalProjection) Name() string { return p.name }
 
-// EventTypes implements [cqrsevent.Projection].
+// EventTypes implements [cqrsprojection.Projection].
 func (p *RelationalProjection) EventTypes() []cqrsevent.Type { return slices.Clone(p.types) }
 
 // Handle runs the handler inside a single transaction, committing on success
@@ -148,3 +149,5 @@ var (
 	errRelationalNilDialect = fmt.Errorf("%w: dialect must not be nil", errRelational)
 	errRelationalNilHandler = fmt.Errorf("%w: handler must not be nil", errRelational)
 )
+
+var _ cqrsprojection.Projection = (*RelationalProjection)(nil)

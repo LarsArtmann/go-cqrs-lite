@@ -13,7 +13,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/stack/memory/v3 v3.0.0
 	github.com/larsartmann/go-cqrs-lite/stack/pebble/v3 v3.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/v3 v3.1.0
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.0.0
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.1.0
 )
 
 require (

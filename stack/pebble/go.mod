@@ -4,13 +4,13 @@ go 1.26.3
 
 require (
 	github.com/cockroachdb/pebble v1.1.5
-	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.0.0
-	github.com/larsartmann/go-cqrs-lite/event/v3 v3.0.0
-	github.com/larsartmann/go-cqrs-lite/id/v3 v3.0.0
-	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.0.0
-	github.com/larsartmann/go-cqrs-lite/stack/v3 v3.0.0
-	github.com/larsartmann/go-cqrs-lite/storage/pebble/v3 v3.0.0
-	github.com/larsartmann/go-cqrs-lite/watermill/v3 v3.0.0
+	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.1.0
+	github.com/larsartmann/go-cqrs-lite/event/v3 v3.1.0
+	github.com/larsartmann/go-cqrs-lite/id/v3 v3.1.0
+	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.1.0
+	github.com/larsartmann/go-cqrs-lite/stack/v3 v3.1.0
+	github.com/larsartmann/go-cqrs-lite/storage/pebble/v3 v3.1.0
+	github.com/larsartmann/go-cqrs-lite/watermill/v3 v3.1.0
 )
 
 require (
@@ -36,12 +36,12 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v3 v3.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/decider/v3 v3.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/query/v3 v3.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v3 v3.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/decider/v3 v3.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/query/v3 v3.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.1.0 // indirect
 	github.com/larsartmann/go-error-family v0.5.1 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
@@ -53,7 +53,7 @@ require (
 	github.com/prometheus/client_golang v1.23.2 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.69.0 // indirect
-	github.com/prometheus/procfs v0.20.1 // indirect
+	github.com/prometheus/procfs v0.21.0 // indirect
 	github.com/rogpeppe/go-internal v1.15.0 // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
 	github.com/stretchr/testify v1.11.1 // indirect

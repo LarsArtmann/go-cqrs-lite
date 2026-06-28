@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/aggregate"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
+	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 )
 
 type TodoProjection struct {
@@ -106,4 +107,4 @@ func payloadToTodo(evt event.Event) (*domain.Todo, error) {
 	}, nil
 }
 
-var _ event.Projection = (*TodoProjection)(nil)
+var _ projection.Projection = (*TodoProjection)(nil)

@@ -25,6 +25,7 @@ use (
 	./listing
 	./middleware
 	./otel
+	./projection
 	./prometheus
 	./query
 	./schema

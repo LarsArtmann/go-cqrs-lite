@@ -191,6 +191,10 @@
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-module-layers.sh"
             '';
 
+            check-arch = mkApp "check-arch" [ goPkg pkgs.bash ] ''
+              ${pkgs.bash}/bin/bash "$PWD/scripts/check-arch.sh"
+            '';
+
             check-file-size = mkApp "check-file-size" [ pkgs.findutils ] ''
               failed=false
               while IFS= read -r f; do

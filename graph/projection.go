@@ -6,6 +6,7 @@ import (
 	"slices"
 
 	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
+	cqrsprojection "github.com/larsartmann/go-cqrs-lite/projection/v3"
 )
 
 // Handler processes one event, merging nodes and edges through sink. The
@@ -14,7 +15,7 @@ import (
 // constructed.
 type Handler func(ctx context.Context, evt cqrsevent.Event, sink GraphSink) error
 
-// GraphProjection is an [cqrsevent.Projection] that materialises events into a
+// GraphProjection is an [cqrsprojection.Projection] that materialises events into a
 // graph read model — nodes and edges — via a [GraphDriver].
 //
 // It is the graph counterpart to [storage.RelationalProjection] (multi-table
@@ -61,10 +62,10 @@ func NewGraphProjection(
 	}, nil
 }
 
-// Name implements [cqrsevent.Projection].
+// Name implements [cqrsprojection.Projection].
 func (p *GraphProjection) Name() string { return p.name }
 
-// EventTypes implements [cqrsevent.Projection].
+// EventTypes implements [cqrsprojection.Projection].
 func (p *GraphProjection) EventTypes() []cqrsevent.Type { return slices.Clone(p.types) }
 
 // Handle runs the handler inside a driver transaction, committing on success
@@ -93,3 +94,5 @@ func (p *GraphProjection) Close() error {
 
 	return nil
 }
+
+var _ cqrsprojection.Projection = (*GraphProjection)(nil)

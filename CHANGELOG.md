@@ -6,6 +6,53 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+#### New Module: `projection/`
+
+- **`projection.Projection`** interface and `projection.NewProjection` — extracted
+  from `event/` to a dedicated module. The Projection interface is a consumer-side
+  abstraction; it belongs with consumers, not with the event producer module.
+  Implements proper dependency-direction: `projection → event` (consumer → producer),
+  never the reverse.
+
+#### New Module: `graph/`
+
+- **`graph.GraphProjection`** — third projection tier (nodes + edges) for
+  traversal-heavy read models. Merges events into graph structures via a
+  transactional `GraphSink`. Writes are portable across openCypher backends
+  (Neo4j, Memgraph, Apache Age). `MemoryDriver` provides a zero-dep reference
+  implementation.
+
+#### New Module: `storage.RelationalProjection`
+
+- **`storage.RelationalProjection`** — multi-table, dialect-portable SQL projection
+  with a transactional `ProjectionSink`. Atomic cross-table writes per event.
+- **`storage.RelationalStore`** — read-side companion (Count/CountMany/Query).
+
+#### Architecture Enforcement via go-arch-lint
+
+- **`scripts/check-arch.sh`** — two-layer architecture enforcement:
+  Layer 1 = cross-module rules via `check-module-layers.sh` (go.mod parsing);
+  Layer 2 = intra-module package rules via go-arch-lint (per-module configs).
+  Wired into flake.nix as `nix run .#check-arch`.
+- **`.go-arch-lint.yml`** (workspace-level) — documents the 7-layer module model.
+  Rewritten from stale config that referenced 6 deleted directories.
+- **`storage/.go-arch-lint.yml`** — first per-module config, enforces intra-module
+  package dependency rules.
+
+### Changed
+
+#### Breaking: `event.Projection` moved to `projection/`
+
+- `event.Projection` → `projection.Projection`
+- `event.NewProjection` → `projection.NewProjection`
+- **Migration:** change imports from `event/v3` to `projection/v3` for Projection
+  types. All other event types (`Event`, `Type`, `Store`, etc.) remain in `event/`.
+- **Rationale:** Projections are event CONSUMERS. The Projection interface had zero
+  internal consumers in `event/` — it was a layering inversion. Moving it establishes
+  correct dependency direction.
+
 ## [3.1.0] - 2026-06-25
 
 **Feature release — 79 commits since v3.0.0, +69 API exports (1558 → 1627), zero breaking changes.**

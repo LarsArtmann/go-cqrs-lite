@@ -13,7 +13,7 @@ require (
 	pgregory.net/rapid v1.3.0
 )
 
-require github.com/larsartmann/go-cqrs-lite/query/v3 v3.0.0 // indirect
+require github.com/larsartmann/go-cqrs-lite/query/v3 v3.1.0 // indirect
 
 require (
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
@@ -24,7 +24,7 @@ require (
 	github.com/google/pprof v0.0.0-20260604005048-7023385849c0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.1.0
-	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.1.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/samber/lo v1.53.0 // indirect
 	github.com/samber/ro v0.3.0 // indirect

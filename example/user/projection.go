@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 )
 
 type ReadModel struct {
@@ -104,4 +105,4 @@ func (s *ReadModelStore) Handle(_ context.Context, evt event.Event) error {
 	return nil
 }
 
-var _ event.Projection = (*ReadModelStore)(nil)
+var _ projection.Projection = (*ReadModelStore)(nil)
