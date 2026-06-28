@@ -16,6 +16,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v3"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
 	"github.com/larsartmann/go-cqrs-lite/signing/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
@@ -28,7 +29,9 @@ func main() {
 	fmt.Println("=== go-cqrs-lite: Full CQRS + Event Sourcing Demo ===")
 	fmt.Println()
 
-	_, bus, readModel, deciderRepo := setupInfrastructure()
+	otelBundle := setupOTel(ctx)
+
+	_, bus, readModel, deciderRepo := setupInfrastructure(otelBundle)
 
 	signer := setupSigning(bus)
 
@@ -39,7 +42,7 @@ func main() {
 	cleanup := registerProjection(bus, readModel)
 	defer cleanup()
 
-	cmdDisp, qryDisp := setupDispatchers(deciderRepo, readModel)
+	cmdDisp, qryDisp := setupDispatchers(deciderRepo, readModel, otelBundle)
 
 	userID := runDemoSteps(ctx, cmdDisp, qryDisp, &publishedEvents)
 	runTombstoneRebirthDemo(ctx, cmdDisp, deciderRepo, userID)
@@ -53,7 +56,7 @@ func main() {
 	fmt.Printf("  Signing: HMAC-SHA256 (signer=%T)\n", signer)
 }
 
-func setupInfrastructure() (
+func setupInfrastructure(otelBundle *middleware.OTelBundle) (
 	*memory.MemoryStore,
 	event.Bus,
 	*ReadModelStore,
@@ -62,6 +65,14 @@ func setupInfrastructure() (
 	store := memory.NewMemoryStore()
 	bus := cqrswatermill.NewEventBus()
 	readModel := NewReadModelStore()
+
+	if err := bus.Use(otelBundle.Event()...); err != nil {
+		log.Fatalf("install event tracing: %v", err)
+	}
+
+	if err := bus.UsePublish(otelBundle.Publish()...); err != nil {
+		log.Fatalf("install publish tracing: %v", err)
+	}
 
 	userDecider := decider.Decider[UserState]{
 		Initial: UserState{},
@@ -75,6 +86,7 @@ func setupInfrastructure() (
 
 	fmt.Println("[infra] Store: MemoryStore | Bus: MemoryBus | Decider Repository: ready")
 	fmt.Println("[infra] Read model: bus.SubscribeAll → ReadModelStore.Handle")
+	fmt.Println("[infra] OTel: tracing + metrics wired for all message kinds")
 	fmt.Println()
 
 	return store, bus, readModel, deciderRepo
@@ -83,22 +95,26 @@ func setupInfrastructure() (
 func setupDispatchers(
 	deciderRepo *decider.Repository[UserState],
 	readModel *ReadModelStore,
+	otelBundle *middleware.OTelBundle,
 ) (*command.Dispatcher, *query.Dispatcher) {
 	cmdDisp := command.NewDispatcher()
 
 	cmdDisp.Use(
 		middleware.CommandRecovery(),
 		middleware.CommandLogging(newLogger()),
-		middleware.CommandMetrics(&printMetricsRecorder{}),
+	)
+	cmdDisp.Use(otelBundle.Command()...)
+	cmdDisp.Use(
 		middleware.CommandRetry(middleware.DefaultRetryConfig()),
 	)
 
 	registerCommandHandlers(cmdDisp, deciderRepo)
 
 	qryDisp := query.NewDispatcher()
+	qryDisp.Use(otelBundle.Query()...)
 	registerQueryHandlers(qryDisp, readModel)
 
-	fmt.Println("[infra] Middleware: Recovery → Logging → Metrics → Retry")
+	fmt.Println("[infra] Middleware: Recovery → Logging → Tracing+Metrics → Retry")
 	fmt.Println()
 
 	return cmdDisp, qryDisp
@@ -251,4 +267,29 @@ func runEventCatalog() {
 	}
 
 	fmt.Printf("→ EventCatalog written to %s\n\n", outputDir)
+}
+
+func setupOTel(ctx context.Context) *middleware.OTelBundle {
+	provider, err := cqrsotel.Setup(
+		cqrsotel.WithService("user-demo", "1.0.0", "local"),
+	)
+	if err != nil {
+		log.Fatalf("setup otel: %v", err)
+	}
+
+	bundle, err := middleware.NewOTelBundle(
+		cqrsotel.NewTracer("user-demo"),
+		cqrsotel.NewMeter("user-demo"),
+	)
+	if err != nil {
+		log.Fatalf("create otel bundle: %v", err)
+	}
+
+	fmt.Println("[infra] OTel: TracerProvider + MeterProvider configured (no-op without exporter)")
+
+	_ = provider // In production: defer provider.Shutdown(ctx)
+
+	_ = ctx
+
+	return bundle
 }
