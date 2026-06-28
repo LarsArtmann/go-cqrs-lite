@@ -82,4 +82,27 @@
 // Commands carry identity (type, aggregate ID) and tracing metadata. Payload
 // data is encoded via custom metadata (same pattern as transport/grpc). Use
 // [CommandToMessage] and [MessageToCommand] for the wire protocol.
+//
+// # Broker Backends (NATS, Redis, Kafka)
+//
+// The bridge works with any Watermill-compatible broker plugin. Inject the
+// publisher+subscriber pair via WithCommandBackend (and/or WithBackend for
+// events). No additional transport modules are needed.
+//
+//	// NATS JetStream (requires watermill-nats plugin)
+//	js, _ := jetstream.New(natsURL, natsCtx, logger)
+//	bus := watermill.NewCommandBus(
+//	    watermill.WithCommandBackend(js, js, js),
+//	)
+//	busEB := watermill.NewEventBus(
+//	    watermill.WithBackend(js, js, js),
+//	)
+//
+//	// Redis Streams (requires watermill-redis-stream plugin)
+//	rc := redis.NewClient(&redis.Options{Addr: "localhost:6379"})
+//	pub, _ := redisStream.NewPublisher(redisStream.PublisherConfig{Client: rc}, logger)
+//	sub, _ := redisStream.NewSubscriber(redisStream.SubscriberConfig{Client: rc}, logger)
+//	bus := watermill.NewCommandBus(
+//	    watermill.WithCommandBackend(pub, sub, io.CloserFunc(func() error { return rc.Close() })),
+//	)
 package watermill
