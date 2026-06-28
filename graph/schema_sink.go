@@ -24,7 +24,7 @@ func (s *schemaSink) MergeNode(ref NodeRef, props map[string]any) error {
 		}
 	}
 
-	return s.inner.MergeNode(ref, props)
+	return s.inner.MergeNode(ref, props) //nolint:wrapcheck // pass-through proxy
 }
 
 func (s *schemaSink) MergeEdge(ref EdgeRef, props map[string]any) error {
@@ -38,15 +38,15 @@ func (s *schemaSink) MergeEdge(ref EdgeRef, props map[string]any) error {
 		}
 	}
 
-	return s.inner.MergeEdge(ref, props)
+	return s.inner.MergeEdge(ref, props) //nolint:wrapcheck // pass-through proxy
 }
 
 func (s *schemaSink) RemoveNode(ref NodeRef) error {
-	return s.inner.RemoveNode(ref)
+	return s.inner.RemoveNode(ref) //nolint:wrapcheck // pass-through proxy
 }
 
 func (s *schemaSink) RemoveEdge(ref EdgeRef) error {
-	return s.inner.RemoveEdge(ref)
+	return s.inner.RemoveEdge(ref) //nolint:wrapcheck // pass-through proxy
 }
 
 func (s *schemaSink) SetNodeProperty(ref NodeRef, prop string, value any) error {
@@ -56,17 +56,17 @@ func (s *schemaSink) SetNodeProperty(ref NodeRef, prop string, value any) error 
 		}
 
 		// Check that the property name is declared on this node type.
-		nt := s.schema.NodeType(ref.Label)
-		if nt == nil {
+		nodeType := s.schema.NodeType(ref.Label)
+		if nodeType == nil {
 			return errSinkUnknownNodeLabel
 		}
 
-		if !hasProperty(nt.Properties, prop) {
+		if !hasProperty(nodeType.Properties, prop) {
 			return errSinkUnknownProp
 		}
 	}
 
-	return s.inner.SetNodeProperty(ref, prop, value)
+	return s.inner.SetNodeProperty(ref, prop, value) //nolint:wrapcheck // pass-through proxy
 }
 
 // wrapWithSchema returns a sink that validates against schema before each

@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/sdk/metric"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
@@ -17,7 +19,7 @@ import (
 // the correct span tree: one parent command.handle span with child
 // retry.attempt.N spans for each attempt.
 func TestSpanTree_CommandWithRetry(t *testing.T) {
-	t.Parallel()
+	// NOT parallel — mutates global TracerProvider
 
 	exporter := tracetest.NewInMemoryExporter()
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
@@ -35,8 +37,8 @@ func TestSpanTree_CommandWithRetry(t *testing.T) {
 	cmdMws := bundle.Command()
 	retryMw := CommandRetry(RetryConfig{
 		MaxAttempts:  3,
-		InitialDelay: 1,
-		MaxDelay:     1,
+		InitialDelay: time.Millisecond,
+		MaxDelay:     time.Millisecond,
 		Multiplier:   2.0,
 		IsRetryable:  func(err error) bool { return true },
 	})
@@ -96,11 +98,15 @@ func TestSpanTree_CommandWithRetry(t *testing.T) {
 // middleware creates a server span and the retry middleware's attempt spans
 // are children of it (linked via parent span context).
 func TestSpanTree_RetryAttemptsAreChildren(t *testing.T) {
-	t.Parallel()
+	// NOT parallel — mutates global TracerProvider
 
 	exporter := tracetest.NewInMemoryExporter()
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
 	defer tp.Shutdown(context.Background())
+
+	origTP := otel.GetTracerProvider()
+	otel.SetTracerProvider(tp)
+	defer otel.SetTracerProvider(origTP)
 
 	mp := metric.NewMeterProvider()
 
@@ -114,8 +120,8 @@ func TestSpanTree_RetryAttemptsAreChildren(t *testing.T) {
 	cmdMws := bundle.Command()
 	retryMw := CommandRetry(RetryConfig{
 		MaxAttempts:  3,
-		InitialDelay: 1,
-		MaxDelay:     1,
+		InitialDelay: time.Millisecond,
+		MaxDelay:     time.Millisecond,
 		Multiplier:   2.0,
 		IsRetryable:  func(err error) bool { return true },
 	})

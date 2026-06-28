@@ -99,63 +99,73 @@ func (s *Schema) Validate() error {
 	seenNodes := make(map[string]struct{}, len(s.Nodes))
 
 	for i := range s.Nodes {
-		nt := s.Nodes[i]
+		nodeType := s.Nodes[i]
 
-		if nt.Label == "" {
+		if nodeType.Label == "" {
 			return fmt.Errorf("graph schema: node type %d: %w", i, errSchemaEmptyLabel)
 		}
 
-		if nt.KeyProp == "" {
-			return fmt.Errorf("graph schema: node type %q: %w", nt.Label, errSchemaEmptyKeyProp)
+		if nodeType.KeyProp == "" {
+			return fmt.Errorf("graph schema: node type %q: %w", nodeType.Label, errSchemaEmptyKeyProp)
 		}
 
-		if _, dup := seenNodes[nt.Label]; dup {
-			return fmt.Errorf("graph schema: %w: %q", errSchemaDuplicateNodeLabel, nt.Label)
+		if _, dup := seenNodes[nodeType.Label]; dup {
+			return fmt.Errorf("graph schema: %w: %q", errSchemaDuplicateNodeLabel, nodeType.Label)
 		}
 
-		seenNodes[nt.Label] = struct{}{}
+		seenNodes[nodeType.Label] = struct{}{}
 
-		if err := validateProperties(nt.Properties, "node", nt.Label); err != nil {
+		if err := validateProperties(nodeType.Properties, "node", nodeType.Label); err != nil {
 			return err
 		}
 
-		if hasProperty(nt.Properties, nt.KeyProp) {
-			return fmt.Errorf("graph schema: node type %q: %w", nt.Label, errSchemaKeyPropInProperties)
+		if hasProperty(nodeType.Properties, nodeType.KeyProp) {
+			return fmt.Errorf("graph schema: node type %q: %w", nodeType.Label, errSchemaKeyPropInProperties)
 		}
 	}
 
 	seenEdges := make(map[string]struct{}, len(s.Edges))
 
 	for i := range s.Edges {
-		et := s.Edges[i]
+		edgeType := s.Edges[i]
 
-		if et.Type == "" {
+		if edgeType.Type == "" {
 			return fmt.Errorf("graph schema: edge type %d: %w", i, errSchemaEmptyEdgeType)
 		}
 
-		if _, dup := seenEdges[et.Type]; dup {
-			return fmt.Errorf("graph schema: %w: %q", errSchemaDuplicateEdgeType, et.Type)
+		if _, dup := seenEdges[edgeType.Type]; dup {
+			return fmt.Errorf("graph schema: %w: %q", errSchemaDuplicateEdgeType, edgeType.Type)
 		}
 
-		seenEdges[et.Type] = struct{}{}
+		seenEdges[edgeType.Type] = struct{}{}
 
-		if et.FromLabel == "" {
-			return fmt.Errorf("graph schema: edge type %q: %w", et.Type, errSchemaEmptyFromLabel)
+		if edgeType.FromLabel == "" {
+			return fmt.Errorf("graph schema: edge type %q: %w", edgeType.Type, errSchemaEmptyFromLabel)
 		}
 
-		if et.ToLabel == "" {
-			return fmt.Errorf("graph schema: edge type %q: %w", et.Type, errSchemaEmptyToLabel)
+		if edgeType.ToLabel == "" {
+			return fmt.Errorf("graph schema: edge type %q: %w", edgeType.Type, errSchemaEmptyToLabel)
 		}
 
-		if _, ok := seenNodes[et.FromLabel]; !ok {
-			return fmt.Errorf("graph schema: edge type %q: %w: %q", et.Type, errSchemaUnknownFromLabel, et.FromLabel)
+		if _, ok := seenNodes[edgeType.FromLabel]; !ok {
+			return fmt.Errorf(
+				"graph schema: edge type %q: %w: %q",
+				edgeType.Type,
+				errSchemaUnknownFromLabel,
+				edgeType.FromLabel,
+			)
 		}
 
-		if _, ok := seenNodes[et.ToLabel]; !ok {
-			return fmt.Errorf("graph schema: edge type %q: %w: %q", et.Type, errSchemaUnknownToLabel, et.ToLabel)
+		if _, ok := seenNodes[edgeType.ToLabel]; !ok {
+			return fmt.Errorf(
+				"graph schema: edge type %q: %w: %q",
+				edgeType.Type,
+				errSchemaUnknownToLabel,
+				edgeType.ToLabel,
+			)
 		}
 
-		if err := validateProperties(et.Properties, "edge", et.Type); err != nil {
+		if err := validateProperties(edgeType.Properties, "edge", edgeType.Type); err != nil {
 			return err
 		}
 	}
@@ -195,15 +205,15 @@ func hasProperty(props []PropertyType, name string) bool {
 
 // validateNodeRef checks that ref conforms to the schema's declared node type.
 func (s *Schema) validateNodeRef(ref NodeRef) error {
-	nt := s.NodeType(ref.Label)
-	if nt == nil {
+	nodeType := s.NodeType(ref.Label)
+	if nodeType == nil {
 		return fmt.Errorf("%w: %q", errSinkUnknownNodeLabel, ref.Label)
 	}
 
-	if ref.KeyProp != nt.KeyProp {
+	if ref.KeyProp != nodeType.KeyProp {
 		return fmt.Errorf(
 			"%w: node %q: expected key prop %q, got %q",
-			errSinkWrongKeyProp, ref.Label, nt.KeyProp, ref.KeyProp,
+			errSinkWrongKeyProp, ref.Label, nodeType.KeyProp, ref.KeyProp,
 		)
 	}
 
@@ -239,22 +249,22 @@ func (s *Schema) validateProps(declared []PropertyType, owner string, props map[
 // validateEdgeRef checks that ref conforms to the schema's declared edge type,
 // including endpoint label constraints.
 func (s *Schema) validateEdgeRef(ref EdgeRef) error {
-	et := s.EdgeType(ref.Type)
-	if et == nil {
+	edgeType := s.EdgeType(ref.Type)
+	if edgeType == nil {
 		return fmt.Errorf("%w: %q", errSinkUnknownEdgeType, ref.Type)
 	}
 
-	if ref.From.Label != et.FromLabel {
+	if ref.From.Label != edgeType.FromLabel {
 		return fmt.Errorf(
 			"%w: edge %q: expected from-label %q, got %q",
-			errSinkEdgeEndpointMismatch, ref.Type, et.FromLabel, ref.From.Label,
+			errSinkEdgeEndpointMismatch, ref.Type, edgeType.FromLabel, ref.From.Label,
 		)
 	}
 
-	if ref.To.Label != et.ToLabel {
+	if ref.To.Label != edgeType.ToLabel {
 		return fmt.Errorf(
 			"%w: edge %q: expected to-label %q, got %q",
-			errSinkEdgeEndpointMismatch, ref.Type, et.ToLabel, ref.To.Label,
+			errSinkEdgeEndpointMismatch, ref.Type, edgeType.ToLabel, ref.To.Label,
 		)
 	}
 
