@@ -51,6 +51,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   Rewritten from stale config that referenced 6 deleted directories.
 - **`storage/.go-arch-lint.yml`** — first per-module config, enforces intra-module
   package dependency rules.
+- **Per-module configs for `event/`, `command/`, `middleware/`, `kv/`, `catalog/`** —
+  extends Layer-2 architecture enforcement to the largest unchecked modules.
 
 ### Changed
 
@@ -63,6 +65,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Rationale:** Projections are event CONSUMERS. The Projection interface had zero
   internal consumers in `event/` — it was a layering inversion. Moving it establishes
   correct dependency direction.
+
+#### Relational Store Query Contract
+- **`RelationalStore.Query` now accepts `kv.ViewQuery`** — removes the duplicate
+  `storage.RelationalQuery` type. The relational read side now shares the same
+  filtered/ordered/paginated query contract as `kv.ViewStore` implementations.
 
 ### DX Improvements
 
@@ -99,6 +106,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 #### Quality
 - **`projection/` module: 100% test coverage** (5 tests)
 - **`graph/` module: 86.9% coverage** (9 tests + 7 contract tests)
+
+#### Workspace Integration
+- **`transport/grpc` is now wired into `go.work`** — resolves the long-standing
+  `google.golang.org/genproto` ambiguous-import conflict via a workspace-level
+  replace directive. The module builds and tests as a first-class workspace member.
+- **BuildFlow pre-commit hook budget increased** from 60s to 300s — eliminates the
+  need for `--no-verify` on commits.
+
+#### RunProjections Test Coverage
+- **`stack/run_projections_test.go`** — end-to-end test covering journal replay,
+  live event handoff, materialized-view updates, and clean shutdown via context
+  cancellation.
 
 ## [3.1.0] - 2026-06-25
 
