@@ -1,4 +1,5 @@
 # Deployer-First Architecture Audit
+\n> **Status:** RESOLVED — deployer-first architecture shipped
 
 > **Date:** 2026-06-23
 > **Question:** How well does the library achieve the goal that consumers

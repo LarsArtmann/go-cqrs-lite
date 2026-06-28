@@ -1,4 +1,5 @@
 # Storage Backend Comparison
+\n> **Status:** RESOLVED — informed multi-backend storage design
 
 **Date:** 2026-06-02
 **Environment:** AMD RYZEN AI MAX+ 395, 96GB RAM, Go 1.26.3, linux/amd64

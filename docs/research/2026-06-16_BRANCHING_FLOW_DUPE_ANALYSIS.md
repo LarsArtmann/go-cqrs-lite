@@ -1,4 +1,5 @@
 # branching-flow dupe Analysis Report — 2026-06-16
+\n> **Status:** RESOLVED — analysis completed, duplicates addressed
 
 **Tool**: `branching-flow dupe . --format markdown`
 **Date**: 2026-06-16

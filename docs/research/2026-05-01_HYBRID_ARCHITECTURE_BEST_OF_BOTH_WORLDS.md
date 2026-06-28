@@ -1,4 +1,5 @@
 # Hybrid Architecture: Best of Both Worlds
+\n> **Status:** SUPERSEDED — informed actual implementation decisions
 
 **Bridging Traditional Aggregate-Based ES and Aggregateless ES in go-cqrs-lite**
 
