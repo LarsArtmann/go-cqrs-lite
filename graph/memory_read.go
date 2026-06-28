@@ -57,15 +57,15 @@ func (d *MemoryDriver) Traverse(from NodeRef, via string, maxDepth int) []NodeVi
 		var next []nodeKey
 
 		for _, current := range queue {
-			for ek := range data.edges {
-				if ek.typ != via {
+			for edgeKey := range data.edges {
+				if edgeKey.typ != via {
 					continue
 				}
 
 				var neighbor nodeKey
 
-				if ek.from == current {
-					neighbor = ek.to
+				if edgeKey.from == current {
+					neighbor = edgeKey.to
 				} else {
 					continue
 				}
@@ -110,17 +110,17 @@ func (d *MemoryDriver) Neighbors(of NodeRef) ([]NodeView, []EdgeView) {
 
 	var nodes []NodeView
 
-	for ek, e := range data.edges {
+	for edgeKey, e := range data.edges {
 		var (
 			neighbor  nodeKey
 			connected bool
 		)
 
-		if ek.from == centerKey {
-			neighbor = ek.to
+		if edgeKey.from == centerKey {
+			neighbor = edgeKey.to
 			connected = true
-		} else if ek.to == centerKey {
-			neighbor = ek.from
+		} else if edgeKey.to == centerKey {
+			neighbor = edgeKey.from
 			connected = true
 		}
 
@@ -144,10 +144,10 @@ func (d *MemoryDriver) Neighbors(of NodeRef) ([]NodeView, []EdgeView) {
 
 	var edges []EdgeView
 
-	for ek, e := range data.edges {
-		if ek.from == centerKey || ek.to == centerKey {
+	for edgeKey, e := range data.edges {
+		if edgeKey.from == centerKey || edgeKey.to == centerKey {
 			edges = append(edges, EdgeView{
-				Ref:   edgeKeyToRef(ek),
+				Ref:   edgeKeyToRef(edgeKey),
 				Props: copyProps(e.props),
 			})
 		}
@@ -159,7 +159,7 @@ func (d *MemoryDriver) Neighbors(of NodeRef) ([]NodeView, []EdgeView) {
 // ShortestPath finds the shortest path between two nodes via BFS.
 // Returns the path as an ordered slice of NodeRefs (including from and to).
 // Returns ErrPathNotFound if no path exists.
-func (d *MemoryDriver) ShortestPath(from, to NodeRef) ([]NodeRef, error) {
+func (d *MemoryDriver) ShortestPath(from, target NodeRef) ([]NodeRef, error) {
 	data := d.Snapshot()
 
 	fromKey, err := from.key()
@@ -167,12 +167,12 @@ func (d *MemoryDriver) ShortestPath(from, to NodeRef) ([]NodeRef, error) {
 		return nil, fmt.Errorf("shortest path from: %w", err)
 	}
 
-	toKey, err := to.key()
+	targetKey, err := target.key()
 	if err != nil {
 		return nil, fmt.Errorf("shortest path to: %w", err)
 	}
 
-	if fromKey == toKey {
+	if fromKey == targetKey {
 		return []NodeRef{from}, nil
 	}
 
@@ -180,7 +180,7 @@ func (d *MemoryDriver) ShortestPath(from, to NodeRef) ([]NodeRef, error) {
 		return nil, ErrPathNotFound
 	}
 
-	if _, exists := data.nodes[toKey]; !exists {
+	if _, exists := data.nodes[targetKey]; !exists {
 		return nil, ErrPathNotFound
 	}
 
@@ -191,21 +191,21 @@ func (d *MemoryDriver) ShortestPath(from, to NodeRef) ([]NodeRef, error) {
 		current := queue[0]
 		queue = queue[1:]
 
-		if current == toKey {
+		if current == targetKey {
 			return reconstructPath(parent, current), nil
 		}
 
-		for ek := range data.edges {
+		for edgeKey := range data.edges {
 			var (
 				neighbor  nodeKey
 				connected bool
 			)
 
-			if ek.from == current {
-				neighbor = ek.to
+			if edgeKey.from == current {
+				neighbor = edgeKey.to
 				connected = true
-			} else if ek.to == current {
-				neighbor = ek.from
+			} else if edgeKey.to == current {
+				neighbor = edgeKey.from
 				connected = true
 			}
 

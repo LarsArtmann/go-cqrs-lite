@@ -41,9 +41,14 @@ func forumSchema() *cqrsgraph.Schema {
 		},
 		Edges: []cqrsgraph.EdgeType{
 			{Type: "AUTHORED_BY", FromLabel: "Message", ToLabel: "User"},
-			{Type: "REPLY_TO", FromLabel: "Message", ToLabel: "Message", Properties: []cqrsgraph.PropertyType{
-				{Name: "at"},
-			}},
+			{
+				Type:      "REPLY_TO",
+				FromLabel: "Message",
+				ToLabel:   "Message",
+				Properties: []cqrsgraph.PropertyType{
+					{Name: "at"},
+				},
+			},
 		},
 	}
 }

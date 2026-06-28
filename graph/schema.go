@@ -106,7 +106,11 @@ func (s *Schema) Validate() error {
 		}
 
 		if nodeType.KeyProp == "" {
-			return fmt.Errorf("graph schema: node type %q: %w", nodeType.Label, errSchemaEmptyKeyProp)
+			return fmt.Errorf(
+				"graph schema: node type %q: %w",
+				nodeType.Label,
+				errSchemaEmptyKeyProp,
+			)
 		}
 
 		if _, dup := seenNodes[nodeType.Label]; dup {
@@ -120,7 +124,11 @@ func (s *Schema) Validate() error {
 		}
 
 		if hasProperty(nodeType.Properties, nodeType.KeyProp) {
-			return fmt.Errorf("graph schema: node type %q: %w", nodeType.Label, errSchemaKeyPropInProperties)
+			return fmt.Errorf(
+				"graph schema: node type %q: %w",
+				nodeType.Label,
+				errSchemaKeyPropInProperties,
+			)
 		}
 	}
 
@@ -140,11 +148,19 @@ func (s *Schema) Validate() error {
 		seenEdges[edgeType.Type] = struct{}{}
 
 		if edgeType.FromLabel == "" {
-			return fmt.Errorf("graph schema: edge type %q: %w", edgeType.Type, errSchemaEmptyFromLabel)
+			return fmt.Errorf(
+				"graph schema: edge type %q: %w",
+				edgeType.Type,
+				errSchemaEmptyFromLabel,
+			)
 		}
 
 		if edgeType.ToLabel == "" {
-			return fmt.Errorf("graph schema: edge type %q: %w", edgeType.Type, errSchemaEmptyToLabel)
+			return fmt.Errorf(
+				"graph schema: edge type %q: %w",
+				edgeType.Type,
+				errSchemaEmptyToLabel,
+			)
 		}
 
 		if _, ok := seenNodes[edgeType.FromLabel]; !ok {
@@ -180,11 +196,23 @@ func validateProperties(props []PropertyType, kind, owner string) error {
 		p := props[i]
 
 		if p.Name == "" {
-			return fmt.Errorf("graph schema: %s %q: property %d: %w", kind, owner, i, errSchemaEmptyPropName)
+			return fmt.Errorf(
+				"graph schema: %s %q: property %d: %w",
+				kind,
+				owner,
+				i,
+				errSchemaEmptyPropName,
+			)
 		}
 
 		if _, dup := seen[p.Name]; dup {
-			return fmt.Errorf("graph schema: %s %q: %w: %q", kind, owner, errSchemaDuplicateProp, p.Name)
+			return fmt.Errorf(
+				"graph schema: %s %q: %w: %q",
+				kind,
+				owner,
+				errSchemaDuplicateProp,
+				p.Name,
+			)
 		}
 
 		seen[p.Name] = struct{}{}

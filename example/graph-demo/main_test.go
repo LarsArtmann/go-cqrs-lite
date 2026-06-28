@@ -38,7 +38,13 @@ func seedGraph(t *testing.T) *cqrsgraph.MemoryDriver {
 	for _, msg := range events {
 		payload, _ := json.Marshal(msg)
 		aggID, _ := id.ParseAggregateID("forum")
-		evt, _ := cqrsevent.NewEvent("MESSAGE_POSTED", aggID, "Forum", cqrsevent.Version(1), payload)
+		evt, _ := cqrsevent.NewEvent(
+			"MESSAGE_POSTED",
+			aggID,
+			"Forum",
+			cqrsevent.Version(1),
+			payload,
+		)
 
 		if err := proj.Handle(ctx, evt); err != nil {
 			t.Fatalf("project event: %v", err)

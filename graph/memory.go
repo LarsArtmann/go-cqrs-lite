@@ -41,7 +41,10 @@ func WithDriverSchema(schema *Schema) MemoryDriverOption {
 // NewMemoryDriver constructs an empty in-memory graph.
 // Options allow attaching a [Schema] for write validation.
 func NewMemoryDriver(opts ...MemoryDriverOption) *MemoryDriver {
-	d := &MemoryDriver{mu: sync.Mutex{}, data: newGraphData()} //nolint:exhaustruct // schema applied via options below
+	d := &MemoryDriver{
+		mu:   sync.Mutex{},
+		data: newGraphData(),
+	}
 
 	for _, opt := range opts {
 		opt(d)

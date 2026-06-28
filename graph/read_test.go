@@ -184,9 +184,15 @@ func TestTraverse_HandlesCycles(t *testing.T) {
 		_ = sink.MergeNode(nodeRef("User", "a"), nil)
 		_ = sink.MergeNode(nodeRef("User", "b"), nil)
 
-		_ = sink.MergeEdge(EdgeRef{Type: "KNOWS", From: nodeRef("User", "a"), To: nodeRef("User", "b")}, nil)
+		_ = sink.MergeEdge(
+			EdgeRef{Type: "KNOWS", From: nodeRef("User", "a"), To: nodeRef("User", "b")},
+			nil,
+		)
 
-		return sink.MergeEdge(EdgeRef{Type: "KNOWS", From: nodeRef("User", "b"), To: nodeRef("User", "a")}, nil)
+		return sink.MergeEdge(
+			EdgeRef{Type: "KNOWS", From: nodeRef("User", "b"), To: nodeRef("User", "a")},
+			nil,
+		)
 	})
 
 	result := driver.Traverse(nodeRef("User", "a"), "KNOWS", -1)
