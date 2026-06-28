@@ -29,7 +29,8 @@ func main() {
 	fmt.Println("=== go-cqrs-lite: Full CQRS + Event Sourcing Demo ===")
 	fmt.Println()
 
-	otelBundle := setupOTel(ctx)
+	otelProvider, otelBundle := setupOTel(ctx)
+	defer otelProvider.Shutdown(ctx)
 
 	_, bus, readModel, deciderRepo := setupInfrastructure(otelBundle)
 
@@ -269,9 +270,10 @@ func runEventCatalog() {
 	fmt.Printf("→ EventCatalog written to %s\n\n", outputDir)
 }
 
-func setupOTel(ctx context.Context) *middleware.OTelBundle {
+func setupOTel(ctx context.Context) (*cqrsotel.Provider, *middleware.OTelBundle) {
 	provider, err := cqrsotel.Setup(
 		cqrsotel.WithService("user-demo", "1.0.0", "local"),
+		cqrsotel.WithStdoutExporter(os.Stdout),
 	)
 	if err != nil {
 		log.Fatalf("setup otel: %v", err)
@@ -285,11 +287,9 @@ func setupOTel(ctx context.Context) *middleware.OTelBundle {
 		log.Fatalf("create otel bundle: %v", err)
 	}
 
-	fmt.Println("[infra] OTel: TracerProvider + MeterProvider configured (no-op without exporter)")
-
-	_ = provider // In production: defer provider.Shutdown(ctx)
+	fmt.Println("[infra] OTel: TracerProvider + MeterProvider + stdout span exporter configured")
 
 	_ = ctx
 
-	return bundle
+	return provider, bundle
 }

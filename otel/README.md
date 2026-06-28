@@ -40,6 +40,8 @@ That's it. Every command, event, and query now carries distributed trace spans a
 | `watermill.event.publish`               | Producer | `cqrs.event.count`, `cqrs.event.type`, `cqrs.aggregate.id`                              |
 | `watermill.command.publish`             | Producer | `cqrs.command.count`, `cqrs.command.type`, `cqrs.aggregate.id`                          |
 | `sse.fanout`                            | Consumer | `cqrs.event.type`, `cqrs.aggregate.id`, `cqrs.sse.client_count`                         |
+| `sse.replay`                            | Internal | `cqrs.sse.last_event_id`, `cqrs.event.count`                                            |
+| `watermill.replay.from_journal`         | Internal | `cqrs.projection.name`, `cqrs.event.count`                                              |
 | `event.store.load` / `event.store.save` | Client   | `cqrs.aggregate.type`, `cqrs.aggregate.id`, `cqrs.aggregate.version`                    |
 | `decider.load` / `decider.execute`      | Internal | `cqrs.aggregate.type`, `cqrs.aggregate.id`                                              |
 
@@ -55,8 +57,11 @@ That's it. Every command, event, and query now carries distributed trace spans a
 `otel.Setup()` creates and registers both providers in one call with functional options:
 
 ```go
-// Minimal: no-op exporter, W3C propagator, CQRS histogram views
-provider, _ := cqrsotel.Setup(cqrsotel.WithService("svc", "1.0", ""))
+// Development: stdout exporter so you see traces in your terminal
+provider, _ := cqrsotel.Setup(
+    cqrsotel.WithService("svc", "1.0", ""),
+    cqrsotel.WithStdoutExporter(os.Stdout),
+)
 
 // Production: OTLP exporter
 provider, _ := cqrsotel.Setup(
@@ -65,9 +70,34 @@ provider, _ := cqrsotel.Setup(
     cqrsotel.WithMetricReader(otlpReader),
 )
 
-// Prometheus: use the prometheus module instead
-provider, _ := prometheus.Setup()
-otel.SetMeterProvider(provider.AsMeterProvider())
+// Tracing-only (no metrics): pass nil meter with WithMetricsDisabled
+bundle, _ := middleware.NewOTelBundle(
+    cqrsotel.NewTracer("svc"), nil,
+    middleware.WithMetricsDisabled(),
+)
+```
+
+### Combined: OTel Tracing + Prometheus Metrics
+
+Use `otel.Setup()` for tracing and `prometheus.Setup()` for the `/metrics` endpoint:
+
+```go
+// 1. OTel tracing (spans via OTLP or stdout)
+otelProvider, _ := cqrsotel.Setup(
+    cqrsotel.WithService("orders", "1.0.0", "i-1"),
+    cqrsotel.WithSpanExporter(otlpExporter),
+)
+defer otelProvider.Shutdown(ctx)
+
+// 2. Prometheus metrics bridge (serves /metrics)
+promProvider, _ := prometheus.Setup(prometheus.WithService("orders", "1.0.0"))
+defer promProvider.Shutdown(ctx)
+
+// 3. Bundle uses the Prometheus-backed meter for CQRS metrics
+bundle, _ := middleware.NewOTelBundle(
+    cqrsotel.NewTracer("orders"),
+    promProvider.AsMeterProvider().Meter("orders"),
+)
 ```
 
 ## Distributed Correlation
