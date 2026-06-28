@@ -6,6 +6,72 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [3.3.0] - 2026-06-28
+
+**Three projection tiers, unified command identity, production dead-letter storage.**
+
+### Added
+
+#### SQL-Backed Dead-Letter Store
+
+- **`middleware.SQLDeadLetterStore`** — persistent dead-letter handler backed by
+  SQLite or PostgreSQL. Auto-creates the `dead_letters` table, survives process
+  restarts. Implements `DeadLetterHandler` — drop-in replacement for
+  `MemoryDeadLetterStore` in `RetryConfig.OnDeadLetter`.
+
+#### Row Column-Name Validation
+
+- **`storage.ProjectionSink`** methods (Upsert/Ensure/Update/DeleteWhere/QueryOne)
+  now validate column and table names against `RelationalSchema` before SQL
+  execution. Catches typos at the application boundary. New sentinel errors:
+  `errSinkUnknownColumn`, `errSinkUnknownTable`.
+
+#### Denormalization Guidance
+
+- **`storage.RelationalStore`** documented decision: single-table queries only.
+  For multi-table reads, denormalize FK columns in the projection handler.
+  No JOIN API — intentional boundary (the projection tier's promise is "no raw SQL").
+
+### Changed
+
+#### Breaking: Command ID Unification
+
+- **`command.Command` interface** now requires `ID() id.CommandID`. Every command
+  gets a stable, auto-minted ID at construction time via `command.New()`.
+  Override with the new `command.WithCommandID` option for idempotency-key replay.
+- **`command.WithCommandID` (PersistOption)** renamed to
+  `command.WithPersistedCommandID` to avoid name collision.
+- **Migration:** any type implementing `command.Command` must add `ID()`.
+  Embed `command.BasicCommand` to inherit it automatically.
+
+#### Watermill Command Bridge
+
+- **`watermill.CommandToMessage`** now uses `cmd.ID()` instead of minting an
+  ephemeral ID per call. Same command instance → same message UUID (stable for
+  dedup). Different instances → different UUIDs (auto-minted in `New()`).
+- **`watermill.MessageToCommand`** now parses and preserves the command ID
+  round-trip (previously discarded).
+
+#### Transport/gRPC
+
+- **`transport/grpc`** now carries `command_id` in envelope metadata. Server
+  preserves the client's command ID through dispatch.
+
+#### Zero Lint Findings
+
+- All 46 modules now lint clean. Previous 8 issues resolved:
+  stack (contextcheck, errname, wrapcheck, unused), middleware (exhaustruct),
+  transport/grpc (gosec G115, containedctx, nolintlint).
+
+### Documentation
+
+- **All research docs stamped** with status markers (RESOLVED/IMPLEMENTED/SUPERSEDED).
+  Every doc in `docs/research/` now clearly indicates whether it's live or historical.
+- **ROADMAP.md updated** — module count (43→46), transport adapters (NATS/Redis
+  superseded by Watermill), three projection tiers marked done.
+- **Graph tier scope documented** — MemoryDriver is the v3.x ship target.
+- **`go.work` genproto replace** — explanatory comment added.
+
 ### Added
 
 #### catalog/v3.2.0
