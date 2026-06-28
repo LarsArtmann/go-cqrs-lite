@@ -59,4 +59,27 @@
 //	    MaxInterval:     5 * time.Second,
 //	    Multiplier:      1.5,
 //	})
+//
+// # Command Bridge
+//
+// The same adapter pattern bridges go-cqrs-lite command.Bus to Watermill,
+// enabling command distribution across processes via Kafka, NATS, Redis, etc.
+//
+//	// Full command.Bus backed by Watermill GoChannel (single-process)
+//	bus := watermill.NewCommandBus()
+//	defer bus.Close()
+//	bus.Subscribe("user.create", handlerFunc)
+//	bus.Publish(ctx, cmd)
+//
+//	// Multi-process: inject a broker backend
+//	bus := watermill.NewCommandBus(
+//	    watermill.WithCommandBackend(natsPublisher, natsSubscriber, closer),
+//	)
+//
+//	// Or wrap an existing message.Publisher as command.Publisher
+//	pub := watermill.NewCommandPublisher(wmPublisher, "commands")
+//
+// Commands carry identity (type, aggregate ID) and tracing metadata. Payload
+// data is encoded via custom metadata (same pattern as transport/grpc). Use
+// [CommandToMessage] and [MessageToCommand] for the wire protocol.
 package watermill

@@ -62,7 +62,8 @@ func (a *CommandSubscriberAdapter) Subscribe(
 
 	if err := a.subscriber.Subscribe(command.Type(topic), handler); err != nil {
 		return nil, event.WrapInfrastructure(
-			err, "watermill.subscribe_failed", "subscribe to "+topic)
+			err, "watermill.subscribe_failed", "subscribe to "+topic,
+		)
 	}
 
 	a.handlersMu.Lock()

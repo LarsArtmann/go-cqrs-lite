@@ -69,11 +69,24 @@ defines its own wire format.
 ## Status
 
 - **gRPC**: **Implemented.** `transport/grpc/` module with CommandService and QueryService. Proto at `transport/grpc/proto/cqrs.proto`. Server adapters wrap `command.Dispatcher` and `query.Dispatcher`. Client adapters provide remote dispatch.
-- **NATS**: Not yet implemented. Planned as `transport/nats/` module.
-- **Redis**: Not yet implemented. Planned as `transport/redis/` module.
 - **HTTP**: **Implemented.** SSE event delivery moved from `middleware/` to `transport/http/`. Generic HTTP utilities (healthcheck, metrics, pprof) were deleted — they had no CQRS dependencies and zero consumers.
+- **NATS / Redis**: **Superseded by the `watermill/` command bridge.** Instead of building `transport/nats/` and `transport/redis/` as separate modules (which would duplicate Watermill's broker abstraction), the `watermill/` module now bridges both `event.Bus` AND `command.Bus` to any Watermill-compatible broker backend (Kafka, NATS, Redis Streams, etc.) via `WithBackend` / `WithCommandBackend`. Consumers inject the broker plugin of their choice. This covers the event AND command pub/sub use cases. Design docs retained for reference but implementation is not planned.
+
+### Scope split
+
+| Use case | Paradigm | Coverage |
+| -------- | -------- | -------- |
+| Event distribution over broker | pub/sub | `watermill/` EventBus + broker plugin |
+| Command distribution over broker | pub/sub | `watermill/` CommandBus + broker plugin |
+| Query dispatch across processes | request/reply (RPC) | `transport/grpc/` QueryService |
+| SSE event streaming | server-push | `transport/http/` SSEBroker |
+
+The `CommandTransport`/`QueryTransport` interfaces from the original ADR are
+retained as consumer-side concepts. Commands use pub/sub semantics
+(Publish/Subscribe, fire-and-ack), not RPC — the "reply" is observed on the
+event stream via causation/correlation ID, not returned synchronously.
 
 ## References
 
-- `watermill/` — existing message broker adapter (Watermill protocol)
+- `watermill/` — message broker adapter for BOTH events and commands (Watermill protocol)
 - ADR-0003 (multi-module monorepo)

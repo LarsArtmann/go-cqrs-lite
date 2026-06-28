@@ -67,7 +67,7 @@ go-cqrs-lite/
 ├── otel/                # Shared OpenTelemetry helpers: Tracer, Meter, Spans, Attributes
 ├── prometheus/         # OTel→Prometheus metrics bridge: Setup() MeterProvider + /metrics HTTP handler, WithRegistry()
 ├── listing/             # AggregateListing, AggregateStatus, tombstone detection, StatusMiddleware, InMemoryAggregateReader
-├── watermill/           # Watermill adapter: PublisherAdapter, SubscriberAdapter, EventPublisher (cqrs→Watermill), CatchUpSubscriber (replay+live+checkpoint), MessageToEvent
+├── watermill/           # Watermill adapter: event AND command bridges — EventBus, CommandBus, PublisherAdapter, SubscriberAdapter, EventPublisher, CommandPublisher, CatchUpSubscriber (replay+live+checkpoint), MessageToEvent/MessageToCommand
 ├── transport/http/       # SSE event delivery: SSEBroker, SSEHandler (bridges event.Bus to HTTP clients, ADR-0025)
 ├── transport/grpc/       # gRPC transport: RegisterCommandService, RegisterQueryService, CommandClient, QueryClient (ADR-0025)
 ├── codec/               # Payload encoding: JSON, CBOR (deterministic), Raw passthrough
@@ -476,6 +476,19 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 // Watermill EventPublisher — cqrs events → Watermill topic (ADR-0028)
 //   pub := watermill.NewEventPublisher(wmPublisher, "events")
 //   repo, _ := decider.NewRepository(store, pub, decider)
+
+// Watermill CommandBus — command distribution over any broker (ADR-0025)
+//   bus := watermill.NewCommandBus()  // GoChannel (single-process)
+//   defer bus.Close()
+//   bus.Subscribe("user.create", handlerFunc)
+//   bus.Publish(ctx, cmd)
+//
+//   // Multi-process: inject a NATS/Redis/Kafka backend
+//   bus := watermill.NewCommandBus(
+//       watermill.WithCommandBackend(natsPub, natsSub, closer))
+//
+//   // Or wrap an existing message.Publisher as command.Publisher
+//   pub := watermill.NewCommandPublisher(wmPublisher, "commands")
 
 // Multi-DB SQLite preset (deployer chooses database isolation)
 //   bundle, _ := sqlite.New(":memory:",

@@ -1,7 +1,6 @@
 package watermill
 
 import (
-	"errors"
 	"strings"
 
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -78,16 +77,7 @@ func MessageToCommand(topic string, msg *message.Message) (*command.BasicCommand
 			"watermill.parse_aggregate_id_failed", "parse aggregate_id")
 	}
 
-	opts, err := parseCommandOptions(md)
-	if err != nil {
-		return nil, event.Wrapf(
-			err,
-			event.Rejection,
-			"watermill.parse_optional",
-			"topic %s: parse optional fields",
-			topic,
-		)
-	}
+	opts := parseCommandOptions(md)
 
 	cmd, err := command.New(cmdType, aggregateID, opts...)
 	if err != nil {
@@ -118,29 +108,24 @@ func writeCustomMetadata(md message.Metadata, m command.Metadata) {
 	}
 }
 
-func parseCommandOptions(md message.Metadata) ([]command.Option, error) {
+func parseCommandOptions(md message.Metadata) []command.Option {
 	var opts []command.Option
-	var errs []error
 
 	parseIDOption(
 		md, metaCorrelationID, id.ParseCorrelationID,
 		func(v id.CorrelationID) { opts = append(opts, command.WithCorrelationID(v)) },
-		&errs,
 	)
 	parseIDOption(
 		md, metaCausationID, id.ParseCausationID,
 		func(v id.CausationID) { opts = append(opts, command.WithCausationID(v)) },
-		&errs,
 	)
 	parseIDOption(
 		md, metaUserID, id.ParseUserID,
 		func(v id.UserID) { opts = append(opts, command.WithUserID(v)) },
-		&errs,
 	)
 	parseIDOption(
 		md, metaRequestID, id.ParseRequestID,
 		func(v id.RequestID) { opts = append(opts, command.WithRequestID(v)) },
-		&errs,
 	)
 
 	for k, v := range md {
@@ -149,7 +134,7 @@ func parseCommandOptions(md message.Metadata) ([]command.Option, error) {
 		}
 	}
 
-	return opts, errors.Join(errs...)
+	return opts
 }
 
 func parseIDOption[T any](
@@ -157,7 +142,6 @@ func parseIDOption[T any](
 	key string,
 	parse func(string) (T, error),
 	set func(T),
-	errs *[]error,
 ) {
 	v := md.Get(key)
 	if v == "" {
@@ -166,8 +150,6 @@ func parseIDOption[T any](
 
 	parsed, err := parse(v)
 	if err != nil {
-		*errs = append(*errs, event.WrapRejection(err, "watermill.parse_id_field_failed", key))
-
 		return
 	}
 
