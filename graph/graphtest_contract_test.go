@@ -12,5 +12,18 @@ func TestMemoryDriverContract(t *testing.T) {
 		Factory: func(t *testing.T) graph.GraphDriver {
 			return graph.NewMemoryDriver()
 		},
+		SchemaFactory: func(t *testing.T) graph.GraphDriver {
+			return graph.NewMemoryDriver(graph.WithDriverSchema(contractSchema()))
+		},
 	})
+}
+
+func contractSchema() *graph.Schema {
+	return &graph.Schema{
+		Nodes: []graph.NodeType{
+			{Label: "User", KeyProp: "id", Properties: []graph.PropertyType{
+				{Name: "name"},
+			}},
+		},
+	}
 }

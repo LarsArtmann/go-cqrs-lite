@@ -19,13 +19,35 @@ import (
 // single-process local-first applications that want graph-shaped reads without
 // deploying a graph database.
 type MemoryDriver struct {
-	mu   sync.Mutex
-	data *graphData
+	mu     sync.Mutex
+	data   *graphData
+	schema *Schema
+}
+
+// MemoryDriverOption configures a [MemoryDriver].
+type MemoryDriverOption func(*MemoryDriver)
+
+// WithDriverSchema attaches a [Schema] to the driver for standalone use (without
+// a [GraphProjection]). Every write through [MemoryDriver.RunInTx] is validated
+// against the schema before it touches the graph. For the common case of a
+// projection with schema validation, use [WithSchema] on [NewGraphProjection]
+// instead — it validates at the projection boundary regardless of driver.
+func WithDriverSchema(schema *Schema) MemoryDriverOption {
+	return func(d *MemoryDriver) {
+		d.schema = schema
+	}
 }
 
 // NewMemoryDriver constructs an empty in-memory graph.
-func NewMemoryDriver() *MemoryDriver {
-	return &MemoryDriver{mu: sync.Mutex{}, data: newGraphData()}
+// Options allow attaching a [Schema] for write validation.
+func NewMemoryDriver(opts ...MemoryDriverOption) *MemoryDriver {
+	d := &MemoryDriver{mu: sync.Mutex{}, data: newGraphData()}
+
+	for _, opt := range opts {
+		opt(d)
+	}
+
+	return d
 }
 
 // RunInTx executes fn against a transactional snapshot. All writes commit
@@ -35,7 +57,7 @@ func (d *MemoryDriver) RunInTx(fn func(GraphSink) error) error {
 	snapshot := d.data.clone()
 	d.mu.Unlock()
 
-	sink := &memorySink{data: snapshot}
+	sink := wrapWithSchema(&memorySink{data: snapshot}, d.schema)
 
 	if err := fn(sink); err != nil {
 		return err // snapshot discarded

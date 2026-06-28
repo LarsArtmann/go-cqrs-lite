@@ -31,16 +31,33 @@ type GraphProjection struct {
 	driver  GraphDriver
 	handler Handler
 	types   []cqrsevent.Type
+	schema  *Schema
+}
+
+// ProjectionOption configures a [GraphProjection].
+type ProjectionOption func(*GraphProjection)
+
+// WithSchema attaches a [Schema] to the projection. Every write issued by the
+// handler through the [GraphSink] is validated against the schema before it
+// reaches the driver. This catches structural typos (unknown labels, unknown
+// properties, edge endpoint mismatches) regardless of which [GraphDriver] is
+// used — the validation happens at the projection boundary, not inside the
+// driver.
+func WithSchema(schema *Schema) ProjectionOption {
+	return func(p *GraphProjection) {
+		p.schema = schema
+	}
 }
 
 // NewGraphProjection creates a projection that materialises events into driver.
 // handler is driver-agnostic; types filters which event types the projection
-// receives.
+// receives. Options allow attaching a [Schema] for write validation.
 func NewGraphProjection(
 	name string,
 	driver GraphDriver,
 	handler Handler,
 	types []cqrsevent.Type,
+	opts ...ProjectionOption,
 ) (*GraphProjection, error) {
 	if name == "" {
 		return nil, errNoName
@@ -54,12 +71,18 @@ func NewGraphProjection(
 		return nil, errNilHandler
 	}
 
-	return &GraphProjection{
+	p := &GraphProjection{
 		name:    name,
 		driver:  driver,
 		handler: handler,
 		types:   slices.Clone(types),
-	}, nil
+	}
+
+	for _, opt := range opts {
+		opt(p)
+	}
+
+	return p, nil
 }
 
 // Name implements [cqrsprojection.Projection].
@@ -69,10 +92,13 @@ func (p *GraphProjection) Name() string { return p.name }
 func (p *GraphProjection) EventTypes() []cqrsevent.Type { return slices.Clone(p.types) }
 
 // Handle runs the handler inside a driver transaction, committing on success
-// and rolling back on error.
+// and rolling back on error. If a schema is attached, the sink passed to the
+// handler validates every write against the schema before it reaches the driver.
 func (p *GraphProjection) Handle(ctx context.Context, evt cqrsevent.Event) error {
 	err := p.driver.RunInTx(func(sink GraphSink) error {
-		return p.handler(ctx, evt, sink)
+		validated := wrapWithSchema(sink, p.schema)
+
+		return p.handler(ctx, evt, validated)
 	})
 	if err != nil {
 		return fmt.Errorf("graph projection %q: %w", p.name, err)

@@ -25,6 +25,11 @@ type Config struct {
 	// Factory returns a fresh, empty GraphDriver for each subtest.
 	// Tests do NOT share state — each subtest calls Factory for a clean driver.
 	Factory func(t *testing.T) graph.GraphDriver
+
+	// SchemaFactory returns a fresh driver pre-configured with the test schema.
+	// When set, schema validation contract tests run against it. When nil,
+	// schema tests are skipped (the driver does not support schema validation).
+	SchemaFactory func(t *testing.T) graph.GraphDriver
 }
 
 // RunSuite runs the mandatory GraphDriver contract tests (7 subtests).
@@ -70,6 +75,24 @@ func RunSuite(t *testing.T, cfg Config) {
 		t.Parallel()
 		testAtomicRollbackOnError(t, cfg.Factory(t))
 	})
+
+	// Schema validation contract tests — only run when SchemaFactory is set.
+	if cfg.SchemaFactory != nil {
+		t.Run("SchemaRejectsUnknownLabel", func(t *testing.T) {
+			t.Parallel()
+			testSchemaRejectsUnknownLabel(t, cfg.SchemaFactory(t))
+		})
+
+		t.Run("SchemaRejectsUnknownProp", func(t *testing.T) {
+			t.Parallel()
+			testSchemaRejectsUnknownProp(t, cfg.SchemaFactory(t))
+		})
+
+		t.Run("SchemaAcceptsValidWrite", func(t *testing.T) {
+			t.Parallel()
+			testSchemaAcceptsValidWrite(t, cfg.SchemaFactory(t))
+		})
+	}
 }
 
 func nodeRef(label, key string) graph.NodeRef {
@@ -205,4 +228,40 @@ func testAtomicRollbackOnError(t *testing.T, driver graph.GraphDriver) {
 	_ = driver.RunInTx(func(sink graph.GraphSink) error {
 		return sink.MergeNode(nodeRef("User", "u1"), map[string]any{"name": "alice"})
 	})
+}
+
+func testSchemaRejectsUnknownLabel(t *testing.T, driver graph.GraphDriver) {
+	err := driver.RunInTx(func(sink graph.GraphSink) error {
+		return sink.MergeNode(
+			graph.NodeRef{Label: "Phantom", KeyProp: "id", KeyValue: "x"},
+			nil,
+		)
+	})
+	if err == nil {
+		t.Fatal("expected error for unknown label, got nil")
+	}
+}
+
+func testSchemaRejectsUnknownProp(t *testing.T, driver graph.GraphDriver) {
+	err := driver.RunInTx(func(sink graph.GraphSink) error {
+		return sink.MergeNode(
+			nodeRef("User", "u1"),
+			map[string]any{"bogus": "value"},
+		)
+	})
+	if err == nil {
+		t.Fatal("expected error for unknown property, got nil")
+	}
+}
+
+func testSchemaAcceptsValidWrite(t *testing.T, driver graph.GraphDriver) {
+	err := driver.RunInTx(func(sink graph.GraphSink) error {
+		return sink.MergeNode(
+			nodeRef("User", "u1"),
+			map[string]any{"name": "alice"},
+		)
+	})
+	if err != nil {
+		t.Fatalf("valid write rejected by schema: %v", err)
+	}
 }
