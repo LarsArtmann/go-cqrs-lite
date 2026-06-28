@@ -527,7 +527,7 @@ func TestRelationalStore_CursorPagination(t *testing.T) {
 
 	type row struct{ id, content string }
 
-	collect := func(q RelationalQuery) []row {
+	collect := func(q kv.ViewQuery) []row {
 		var rows []row
 
 		scan := func(scan func(dest ...any) error) error {
@@ -547,7 +547,7 @@ func TestRelationalStore_CursorPagination(t *testing.T) {
 	}
 
 	// Page 1: newest 2 messages.
-	page1 := collect(RelationalQuery{
+	page1 := collect(kv.ViewQuery{
 		OrderBy: "created_at", Desc: true, Limit: 2,
 	})
 
@@ -557,7 +557,7 @@ func TestRelationalStore_CursorPagination(t *testing.T) {
 
 	// Page 2: created_at < page1 cursor, next 2.
 	cursor := base.Add(4 * time.Minute)
-	page2 := collect(RelationalQuery{
+	page2 := collect(kv.ViewQuery{
 		Conditions: []kv.Condition{{Column: "created_at", Op: kv.OpLt, Value: cursor}},
 		OrderBy:    "created_at", Desc: true, Limit: 2,
 	})
@@ -800,7 +800,7 @@ func TestRelationalStore_DefaultOrderOnNoPKTable(t *testing.T) {
 	// Query with no OrderBy → falls back to rowid (no SQL error on either backend).
 	var after string
 
-	if err := store.Query(ctx, "message_edits", []string{"after_content"}, RelationalQuery{},
+	if err := store.Query(ctx, "message_edits", []string{"after_content"}, kv.ViewQuery{},
 		func(scan func(dest ...any) error) error { return scan(&after) }); err != nil {
 		t.Fatalf("query message_edits with default order: %v", err)
 	}

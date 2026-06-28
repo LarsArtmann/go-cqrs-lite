@@ -102,29 +102,19 @@ func (s *RelationalStore) CountMany(
 	return out, nil
 }
 
-// RelationalQuery describes a filtered, ordered, paginated read against a table.
-// Conditions, OrderBy, Limit, and Offset mirror [kv.ViewQuery] semantics.
-type RelationalQuery struct {
-	Conditions []kv.Condition
-	OrderBy    string
-	Desc       bool
-	Limit      int
-	Offset     int
-}
-
 // Query runs a filtered, ordered, paginated query against table and scans each
 // row with scanFn. scanFn receives a func(dest ...any) error (the same callback
 // shape [ViewMapper].ScanRow uses), so callers control how columns map to a
 // struct. The columns read are NOT inferred; pass them explicitly via columns.
 //
-// Conditions are AND-joined into a parameterised WHERE clause. OrderBy defaults
-// to the first primary-key column (or "rowid" when the table has none). Limit
-// caps the result set; Offset skips leading rows.
+// q uses [kv.ViewQuery] semantics: Conditions are AND-joined into a parameterised
+// WHERE clause. OrderBy defaults to the first primary-key column (or "rowid" when
+// the table has none). Limit caps the result set; Offset skips leading rows.
 func (s *RelationalStore) Query(
 	ctx context.Context,
 	table string,
 	columns []string,
-	q RelationalQuery,
+	q kv.ViewQuery,
 	scanFn func(scan func(dest ...any) error) error,
 ) error {
 	if err := s.requireTable(table); err != nil {
