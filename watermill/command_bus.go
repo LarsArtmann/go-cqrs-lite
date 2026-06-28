@@ -2,7 +2,6 @@ package watermill
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"log/slog"
 	"sync"
@@ -175,9 +174,4 @@ func (b *CommandBus) Close() error {
 	}
 
 	return nil
-}
-
-// String returns a debug representation.
-func (b *CommandBus) String() string {
-	return fmt.Sprintf("watermill.CommandBus(topic=%s, closed=%v)", b.topic, b.closed)
 }

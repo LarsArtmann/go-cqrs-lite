@@ -29,7 +29,11 @@ type metadataProvider interface {
 // consumers encode payloads via custom metadata, same as transport/grpc).
 //
 // A fresh command ID is generated per call for Watermill message dedup and
-// traceability. Commands do not carry pre-existing IDs on the Bus contract.
+// traceability. The command.Command interface intentionally has no ID() —
+// commands are intent, not entities. The transport layer mints an ephemeral
+// ID for message routing only. This means retrying the same logical command
+// produces different message UUIDs; consumers needing idempotency must use
+// a custom metadata key (e.g. WithCustomMetadata("idempotency_key", ...)).
 //
 // It is the inverse of [MessageToCommand]. Exported so callers that publish
 // commands directly to a Watermill topic can build messages without
