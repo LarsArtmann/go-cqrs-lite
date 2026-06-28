@@ -54,6 +54,10 @@ func NewOTelMetricsRecorder(meter cqrsotel.Meter) (*OTelMetricsRecorder, error) 
 
 // Observe records a metric observation with the given name, duration, and labels.
 // Labels are passed as alternating key-value string pairs.
+//
+// Deprecated: Use ObserveTyped with attribute.KeyValue pairs instead. The
+// string-label form silently drops malformed (odd-length) label pairs and
+// offers no compile-time type safety.
 func (r *OTelMetricsRecorder) Observe(
 	ctx context.Context,
 	name string,
@@ -77,6 +81,24 @@ func (r *OTelMetricsRecorder) Observe(
 	opts = append(opts, cqrsotel.MetricWithAttributes(attrs...))
 	r.histogram.Record(ctx, float64(duration.Milliseconds()), opts...)
 	r.counter.Add(ctx, 1, cqrsotel.CounterAddWithAttributes(attrs...))
+}
+
+// ObserveTyped records a metric observation with typed attributes, satisfying
+// TypedMetricsRecorder. It prepends the operation attribute and records both
+// the duration histogram and operation counter.
+func (r *OTelMetricsRecorder) ObserveTyped(
+	ctx context.Context,
+	operation string,
+	duration time.Duration,
+	attrs ...cqrsotel.KeyValue,
+) {
+	fullAttrs := make([]cqrsotel.KeyValue, 0, len(attrs)+1)
+	fullAttrs = append(fullAttrs, cqrsotel.AttrString("operation", operation))
+	fullAttrs = append(fullAttrs, attrs...)
+
+	r.histogram.Record(ctx, float64(duration.Milliseconds()),
+		cqrsotel.MetricWithAttributes(fullAttrs...))
+	r.counter.Add(ctx, 1, cqrsotel.CounterAddWithAttributes(fullAttrs...))
 }
 
 // NewOTelMetricsWithCounter returns a generic middleware that records duration
