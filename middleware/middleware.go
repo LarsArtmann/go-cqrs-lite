@@ -34,7 +34,7 @@ const (
 
 // DefaultRetryConfig returns sensible defaults for retry.
 func DefaultRetryConfig() RetryConfig {
-	return RetryConfig{
+	return RetryConfig{ //nolint:exhaustruct // OnDeadLetter is optional, defaults to nil
 		MaxAttempts:  defaultMaxRetryAttempts,
 		InitialDelay: defaultRetryInitDelay,
 		MaxDelay:     defaultRetryMaxDelay,

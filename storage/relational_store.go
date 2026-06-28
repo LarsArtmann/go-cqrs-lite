@@ -18,6 +18,20 @@ import (
 //
 // Like the projection, it is backend-portable: the same query code runs on
 // SQLite or PostgreSQL depending on the dialect chosen at construction.
+//
+// # Single-table queries: denormalize in the projection handler
+//
+// Query targets a single table. For read patterns that would normally require
+// a JOIN (e.g. "find all attachments for messages in channel X"), denormalize
+// the foreign-key column directly into the child table in the projection
+// handler: write channel_id onto the attachments row when processing a
+// MessageCreated event, then Query the attachments table with
+// WHERE channel_id = ?. This is intentional: the projection tier's promise is
+// "no raw SQL", and a JOIN API would require multi-table scan callbacks,
+// relationship declarations, and column-ambiguity resolution — all of which
+// push the relational model's complexity back onto the consumer.
+// Denormalization is the standard event-sourcing read-model pattern: the write
+// model stays normalised (events), the read model is shaped for its queries.
 type RelationalStore struct {
 	schema  RelationalSchema
 	db      *sql.DB

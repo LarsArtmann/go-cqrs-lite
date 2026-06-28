@@ -69,7 +69,7 @@ func (b *Bundle) RunProjections(
 					continue
 				}
 
-				if handleErr := proj.Handle(msg.Context(), evt); handleErr != nil {
+				if handleErr := proj.Handle(ctx, evt); handleErr != nil {
 					slog.Warn(
 						"projection handler error",
 						"projection", proj.Name(),
@@ -86,7 +86,7 @@ func (b *Bundle) RunProjections(
 			msg.Ack()
 
 		case <-ctx.Done():
-			return ctx.Err()
+			return fmt.Errorf("run projections: %w", ctx.Err())
 		}
 	}
 }
@@ -103,8 +103,8 @@ func shouldHandle(proj cqrsprojection.Projection, evt cqrsevent.Event) bool {
 }
 
 // ErrMissingProjection is returned when RunProjections is called with no projections.
-var ErrMissingProjection = errMissing("no projections provided")
+var ErrMissingProjection = missingError("no projections provided")
 
-type errMissing string
+type missingError string
 
-func (e errMissing) Error() string { return "stack: " + string(e) }
+func (e missingError) Error() string { return "stack: " + string(e) }

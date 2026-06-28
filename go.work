@@ -49,4 +49,11 @@ use (
 	./watermill
 )
 
+// The genproto replace resolves an ambiguous-import conflict between
+// cockroachdb/errors (transitive from pebble, pulls the monolithic
+// google.golang.org/genproto) and grpc-go (needs the split
+// google.golang.org/genproto/googleapis/rpc). Pinning to this version —
+// where the googleapis/rpc packages were already split out — eliminates
+// the package overlap. This can be removed once cockroachdb/errors drops
+// the monolithic genproto dependency (cockroachdb/errors#79).
 replace google.golang.org/genproto => google.golang.org/genproto v0.0.0-20250603155806-513f23925822

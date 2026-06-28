@@ -210,24 +210,6 @@ func (b *Bundle) registerCloser(c any) {
 	b.closers = append(b.closers, cl)
 }
 
-// registerDrainer adds d to the list of resources [Bundle.GracefulClose] will
-// drain before closing. Called by options that hand the Bundle a subscriber,
-// router, or projection runner. If d also implements [io.Closer], it should be
-// passed to registerCloser as well (or the option should call both). Only
-// resources that need to finish in-flight work should implement [Drainer].
-func (b *Bundle) registerDrainer(d any) {
-	if d == nil {
-		return
-	}
-
-	dr, ok := d.(Drainer)
-	if !ok {
-		return
-	}
-
-	b.drainers = append(b.drainers, dr)
-}
-
 // validate checks that the Bundle is usable: at least one capability field
 // must be set. Individual accessors perform stricter checks (e.g.
 // [Repository] requires an event.Store).

@@ -24,11 +24,14 @@
 //
 // # Backends
 //
-// The in-memory [MemoryDriver] is the reference implementation: zero
-// dependencies, suitable for tests and single-process local use. A Neo4j or
+// The in-memory [MemoryDriver] is the v3.x ship target and the reference
+// implementation: zero dependencies, suitable for tests, single-process local
+// use, and validating the GraphSink/GraphDriver abstractions. A Neo4j or
 // Memgraph driver lives in a consumer-pulled sibling module (e.g.
 // graph/neo4j/) — same convention as storage/pebble and storage/turso being
-// separate from storage/.
+// separate from storage/. Consumers needing a real graph backend implement
+// [GraphDriver] against their target database; the contract test suite in
+// graph/graphtest validates any driver implementation.
 package graph
 
 // NodeRef identifies a single node by its label and a key property.

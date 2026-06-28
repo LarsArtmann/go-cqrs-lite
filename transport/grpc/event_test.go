@@ -63,7 +63,7 @@ const settleDelay = 100 * time.Millisecond
 type eventTestEnv struct {
 	bus      *miniBus
 	client   *cqrsgrpc.EventClient
-	ctx      context.Context
+	ctx      context.Context //nolint:containedctx // test helper, scoped to test lifecycle
 	cancel   context.CancelFunc
 	guard    sync.Mutex
 	received []string
