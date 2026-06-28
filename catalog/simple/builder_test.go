@@ -266,7 +266,11 @@ func TestBuildValid_ValidCatalog(t *testing.T) {
 
 	cat, violations := b.BuildValid()
 	if len(violations) != 0 {
-		t.Fatalf("expected no violations for valid catalog, got %d: %v", len(violations), violations)
+		t.Fatalf(
+			"expected no violations for valid catalog, got %d: %v",
+			len(violations),
+			violations,
+		)
 	}
 
 	if cat == nil {

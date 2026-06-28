@@ -14,7 +14,11 @@ func TestNewProjection_NameAndEventTypes(t *testing.T) {
 	t.Parallel()
 
 	types := []cqrsevent.Type{"USER_CREATED", "USER_UPDATED"}
-	proj := NewProjection("users", func(context.Context, cqrsevent.Event) error { return nil }, types)
+	proj := NewProjection(
+		"users",
+		func(context.Context, cqrsevent.Event) error { return nil },
+		types,
+	)
 
 	if proj.Name() != "users" {
 		t.Fatalf("name = %q, want %q", proj.Name(), "users")
@@ -30,7 +34,11 @@ func TestNewProjection_EventTypesReturnsClone(t *testing.T) {
 	t.Parallel()
 
 	original := []cqrsevent.Type{"A", "B"}
-	proj := NewProjection("p", func(context.Context, cqrsevent.Event) error { return nil }, original)
+	proj := NewProjection(
+		"p",
+		func(context.Context, cqrsevent.Event) error { return nil },
+		original,
+	)
 
 	mutated := proj.EventTypes()
 	mutated[0] = "HACKED"
@@ -99,7 +107,13 @@ func testEvent(t *testing.T, eventType string) cqrsevent.Event {
 		t.Fatalf("parse agg id: %v", err)
 	}
 
-	evt, err := cqrsevent.NewEvent(cqrsevent.Type(eventType), aggID, "Test", cqrsevent.Version(1), []byte("{}"))
+	evt, err := cqrsevent.NewEvent(
+		cqrsevent.Type(eventType),
+		aggID,
+		"Test",
+		cqrsevent.Version(1),
+		[]byte("{}"),
+	)
 	if err != nil {
 		t.Fatalf("new event: %v", err)
 	}
