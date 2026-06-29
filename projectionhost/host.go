@@ -15,6 +15,11 @@ import (
 // Host manages the lifecycle of multiple projection workers. Each worker reads
 // events from a shared journal, applies them to a registered Projection, and
 // tracks its checkpoint independently.
+//
+// Workers are batch-drainers: they catch up from the last checkpoint and exit
+// when no more events remain. They auto-restart on crash with backoff. This
+// host is NOT a live stream consumer — for continuous tailing, pair it with
+// watermill.CatchUpSubscriber (see example/projectionhost).
 type Host struct {
 	journal event.SeekableJournal
 	cpStore event.CheckpointStore
@@ -92,9 +97,16 @@ func (h *Host) Register(p projection.Projection) error {
 	return nil
 }
 
-// Start begins processing for all registered projections. It blocks until
-// Stop is called or the context is cancelled. Each worker runs in its own
-// goroutine with independent crash-restart logic.
+// Start launches a goroutine per registered projection and returns immediately.
+// Each worker drains the journal from its last checkpoint until caught up
+// (ReadFrom returns zero events), then exits. Workers auto-restart on crash
+// with exponential backoff up to maxRestarts.
+//
+// For continuous live tailing, pair this host with watermill.CatchUpSubscriber
+// or poll periodically by re-calling Start on a fresh Host. This host is a
+// batch-drainer with crash-restart semantics, not a live stream consumer.
+//
+// Returns an error if already started.
 func (h *Host) Start(ctx context.Context) error {
 	h.mu.Lock()
 	if h.started {

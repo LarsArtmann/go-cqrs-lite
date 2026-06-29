@@ -29,6 +29,9 @@ type SSEEventID = brandid.ID[sseEventBrand, string]
 // use ParseSSEEventID for untrusted input (e.g., from request headers).
 func NewSSEEventID(s string) SSEEventID { return brandid.NewID[sseEventBrand](s) }
 
+// base10 is the numeric base for decimal integer formatting (strconv base).
+const base10 = 10
+
 // errSSEEventIDInvalid is returned by ParseSSEEventID for malformed values.
 var errSSEEventIDInvalid = event.NewRejection(
 	"http.sse.event_id_invalid",
@@ -111,7 +114,7 @@ func WriteSSEEvent(w io.Writer, evt SSEEvent) error {
 
 	if evt.Retry > 0 {
 		buf = append(buf, 'r', 'e', 't', 'r', 'y', ':', ' ')
-		buf = strconv.AppendInt(buf, int64(evt.Retry), 10)
+		buf = strconv.AppendInt(buf, int64(evt.Retry), base10)
 		buf = append(buf, '\n')
 	}
 

@@ -264,3 +264,42 @@ func TestScheduler_WithLoggerIsUsed(t *testing.T) {
 		t.Fatal("WithLogger: expected the injected logger to receive an error record, got none")
 	}
 }
+
+func TestScheduler_FailedTimerSurvivesForRetry(t *testing.T) {
+	t.Parallel()
+
+	store := scheduling.NewMemoryTimerStore[string]()
+	ctx := context.Background()
+
+	store.Schedule(ctx, scheduling.Timer[string]{
+		ID:      "permanently-failing",
+		FireAt:  time.Now().Add(-1 * time.Second),
+		Payload: "never-succeeds",
+	})
+
+	var attempts atomic.Int64
+	sched := scheduling.New[string](
+		store,
+		func(_ context.Context, _ scheduling.Timer[string]) error {
+			attempts.Add(1)
+
+			return errFail
+		},
+		scheduling.WithPollInterval(10*time.Millisecond),
+		scheduling.WithMaxRetries(2),
+		scheduling.WithRetryDelay(time.Millisecond),
+	)
+
+	runCtx, cancel := context.WithCancel(ctx)
+	go sched.Start(runCtx)
+
+	waitFor(t, 2*time.Second, func() bool { return attempts.Load() >= 3 })
+	cancel()
+
+	if attempts.Load() < 3 {
+		t.Fatalf(
+			"timer was deleted after failure; expected ≥3 attempts across polls, got %d",
+			attempts.Load(),
+		)
+	}
+}

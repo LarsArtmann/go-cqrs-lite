@@ -111,13 +111,21 @@ func (s *Scheduler[P]) tick(ctx context.Context) error {
 	for _, timer := range due {
 		if err := s.dispatchWithRetry(ctx, timer); err != nil {
 			s.logger.Error(
-				"timer dispatch failed after retries",
+				"timer dispatch failed after retries; timer remains due for next poll",
+				"timer_id", timer.ID,
+				"error", err,
+			)
+
+			continue
+		}
+
+		if err := s.store.MarkFired(ctx, timer.ID); err != nil {
+			s.logger.Error(
+				"failed to mark timer as fired; timer may re-fire on next poll",
 				"timer_id", timer.ID,
 				"error", err,
 			)
 		}
-
-		_ = s.store.MarkFired(ctx, timer.ID)
 	}
 
 	return nil

@@ -37,7 +37,7 @@ func Repository[State any](
 		return nil, ErrMissingEventStore
 	}
 
-	return decider.NewRepository[State](store, b.Publisher, d, opts...)
+	return decider.NewRepository(store, b.Publisher, d, opts...)
 }
 
 // ReadModel constructs a typed [kv.TypedStore] over the Bundle's read-model
@@ -69,7 +69,7 @@ func ReadModel[T any, K fmt.Stringer](
 
 	allOpts := append([]kv.TypedOption[T, K]{kv.WithTypedCodec[T, K](c)}, opts...)
 
-	return kv.NewTypedStore[T, K](b.ReadModels, allOpts...), nil
+	return kv.NewTypedStore(b.ReadModels, allOpts...), nil
 }
 
 // eventStore recovers the composite event.Store from the Bundle's segregated
@@ -108,7 +108,7 @@ func TypedRepository[State, Cmd any](
 		return nil, ErrMissingEventStore
 	}
 
-	return decider.NewTypedRepository[State, Cmd](store, b.Publisher, d, opts...)
+	return decider.NewTypedRepository(store, b.Publisher, d, opts...)
 }
 
 // NewMaterialize constructs a [Materialize] over the Bundle's read-model backend.
@@ -135,7 +135,7 @@ func NewMaterialize[V any, K fmt.Stringer](
 		c = codec.JSONCodec{}
 	}
 
-	store := kv.NewTypedStore[V, K](b.ReadModels, kv.WithTypedCodec[V, K](c))
+	store := kv.NewTypedStore(b.ReadModels, kv.WithTypedCodec[V, K](c))
 
 	return &Materialize[V, K]{
 		Store:        store,

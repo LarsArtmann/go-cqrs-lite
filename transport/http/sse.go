@@ -86,7 +86,7 @@ func NewSSEBroker(bus event.Bus, opts ...SSEBrokerOption) (*SSEBroker, error) {
 }
 
 func (b *SSEBroker) handleEvent(ctx context.Context, evt event.Event) error {
-	ctx, span := cqrsotel.StartSpan(
+	_, span := cqrsotel.StartSpan(
 		ctx, tracer(), "sse.fanout",
 		cqrsotel.SpanKindConsumer,
 		cqrsotel.WithAttributes(
