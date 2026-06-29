@@ -1,6 +1,6 @@
 //go:build postgres_integration
 
-package storage
+package relational
 
 import (
 	"context"

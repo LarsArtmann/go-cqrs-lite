@@ -1,4 +1,4 @@
-package storage
+package relational
 
 import "errors"
 
