@@ -65,6 +65,14 @@ func (w *worker) setLastError(err string) {
 	w.stateMu.Unlock()
 }
 
+// recordMetric calls fn with the metrics recorder if one is configured.
+// Nil-safe; no-op when WithMetrics was not used.
+func (w *worker) recordMetric(fn func(MetricsRecorder)) {
+	if w.opts.metrics != nil {
+		fn(w.opts.metrics)
+	}
+}
+
 func (w *worker) run(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
 	defer close(w.done)
@@ -112,6 +120,9 @@ func (w *worker) run(ctx context.Context, wg *sync.WaitGroup) {
 		backoff := time.Duration(rand.Int64N(int64(exp) + 1))
 
 		w.setStatus(WorkerBackoff)
+		w.recordMetric(func(m MetricsRecorder) {
+			m.WorkerRestarted(w.name)
+		})
 		w.logger.Warn("projection worker crashed, restarting after backoff",
 			"projection", w.name, "restart", restartCount, "backoff", backoff, "error", err)
 
@@ -178,6 +189,10 @@ func (w *worker) process(ctx context.Context) error {
 						return dlqErr
 					}
 
+					w.recordMetric(func(m MetricsRecorder) {
+						m.EventDeadLettered(w.name, string(evt.Type()))
+					})
+
 					w.logger.Warn("event sent to dead-letter queue after retries",
 						"projection", w.name,
 						"event_id", evt.ID().String(),
@@ -186,6 +201,10 @@ func (w *worker) process(ctx context.Context) error {
 				} else {
 					return err
 				}
+			} else {
+				w.recordMetric(func(m MetricsRecorder) {
+					m.EventProcessed(w.name, string(evt.Type()), 0)
+				})
 			}
 
 			afterID = evt.ID()

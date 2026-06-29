@@ -16,6 +16,7 @@ type hostOptions struct {
 	dlq            DeadLetterStore
 	dlqThreshold   int
 	logger         *slog.Logger
+	metrics        MetricsRecorder
 }
 
 func defaultOptions() hostOptions {
