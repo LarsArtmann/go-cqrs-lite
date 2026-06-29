@@ -3,9 +3,10 @@
 // It shows the stateless-saga pattern: when a "user.signed_up" event occurs, a
 // composed deriver produces two derived commands (send welcome email + sync to
 // CRM). Derivers compose via Then (fan-out — both see the same event) and
-// Filter (event-type matching), and stay deterministic so at-least-once
-// delivery is safe: re-processing the same event yields the same commands,
-// which the command-side idempotency layer deduplicates.
+// Filter (event-type matching). Idempotent re-stamps each command with a
+// deterministic ID derived from the source event, so re-processing the same
+// event yields the same command IDs — the command-side idempotency layer
+// (idempotency.CommandIdempotency) deduplicates at-least-once redeliveries.
 //
 // In a real app the composed deriver's AsHandler would be wired into the event
 // bus via bus.SubscribeAll. This demo calls the deriver directly to keep the
@@ -67,9 +68,11 @@ func main() {
 		},
 	)
 
-	// Compose: fan-out (both derivers see the same event), scoped to one type.
-	// Then runs both; Filter ignores events that aren't "user.signed_up".
-	composed := welcomeEmail.Then(syncToCRM).Filter("user.signed_up")
+	// Compose: fan-out (both derivers see the same event), scoped to one type,
+	// with deterministic command IDs for at-least-once delivery safety.
+	// Then runs both; Filter ignores non-matching events; Idempotent re-stamps
+	// each command's ID from the source event so re-processing is dedup-able.
+	composed := welcomeEmail.Then(syncToCRM).Filter("user.signed_up").Idempotent()
 
 	// Simulate the source event.
 	payloadBytes, _ := json.Marshal(userSignedUp{Email: "alice@example.com"})
@@ -82,8 +85,8 @@ func main() {
 		payloadBytes,
 	)
 
-	fmt.Printf("Source event: user.signed_up (aggregate %s)\n", aggID)
-	fmt.Println("Derived commands:")
+	fmt.Printf("Source event: user.signed_up (id %s, aggregate %s)\n", evt.ID(), aggID)
+	fmt.Println("Derived commands (first call):")
 
 	cmds, err := composed(ctx, evt)
 	if err != nil {
@@ -93,7 +96,21 @@ func main() {
 	}
 
 	for _, c := range cmds {
-		fmt.Printf("  → %s (aggregate %s)\n", c.Type(), c.AggregateID())
+		fmt.Printf("  → %s (id %s, aggregate %s)\n", c.Type(), c.ID(), c.AggregateID())
+	}
+
+	// Demonstrate Idempotent: re-processing the same event yields the SAME
+	// command IDs, so an idempotency store keyed on command ID deduplicates.
+	fmt.Println("\nDerived commands (second call — same event, same IDs):")
+
+	cmds2, _ := composed(ctx, evt)
+	for i, c := range cmds2 {
+		match := "MISMATCH"
+		if c.ID() == cmds[i].ID() {
+			match = "match"
+		}
+
+		fmt.Printf("  → %s (id %s) — %s\n", c.Type(), c.ID(), match)
 	}
 
 	// Demonstrate Filter: an unrelated event type produces no commands.

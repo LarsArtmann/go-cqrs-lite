@@ -19,6 +19,13 @@ type aes256gcm struct {
 
 var _ EncrypterDecrypter = (*aes256gcm)(nil)
 
+// NewAES256GCM creates an AES-256-GCM encrypter.
+//
+// AES-256-GCM uses 12-byte (96-bit) random nonces. Due to the birthday bound
+// on the nonce space, a single key must encrypt at most ~2³² (~4 billion)
+// messages before the probability of a nonce collision — which is catastrophic
+// for GCM — becomes non-negligible. For high-volume use cases, prefer
+// [NewXChaCha20Poly1305] (24-byte nonce, safe well beyond 2⁹⁶ messages).
 func NewAES256GCM(key []byte) (*aes256gcm, error) {
 	if len(key) != KeySize {
 		return nil, event.Wrapf(
