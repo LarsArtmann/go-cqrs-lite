@@ -43,10 +43,7 @@ func (j *memoryJournal) ReadFrom(
 		limit = len(j.events)
 	}
 	if after.IsZero() {
-		end := limit
-		if end > len(j.events) {
-			end = len(j.events)
-		}
+		end := min(limit, len(j.events))
 
 		return j.events[:end], nil
 	}
@@ -61,10 +58,7 @@ func (j *memoryJournal) ReadFrom(
 	if start < 0 {
 		return nil, nil
 	}
-	end := start + limit
-	if end > len(j.events) {
-		end = len(j.events)
-	}
+	end := min(start+limit, len(j.events))
 
 	return j.events[start:end], nil
 }
