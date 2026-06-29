@@ -58,11 +58,15 @@ type DeadLetterStore interface {
 	// List returns dead-letter entries for the given projection name.
 	// An empty projectionName returns entries across all projections.
 	List(ctx context.Context, projectionName string) ([]DeadLetterEntry, error)
+	// Delete removes a single dead-letter entry by projection name and event ID.
+	// Use it after a pure ReplayDeadLetters run to clear only the entries that
+	// replayed successfully, leaving still-failing entries in place. Prefer
+	// Delete over Purge when you want surgical cleanup.
+	Delete(ctx context.Context, projectionName, eventID string) error
 	// Purge removes ALL dead-letter entries for the given projection name.
 	// An empty projectionName purges every entry across all projections.
-	// Use Purge after a successful ReplayDeadLetters run to clear what was
-	// successfully retried (ReplayDeadLetters itself is pure — it does not
-	// mutate the store).
+	// Use Purge only when every entry for the projection has been resolved;
+	// for partial cleanup after replay, use Delete per successful entry.
 	Purge(ctx context.Context, projectionName string) error
 }
 
@@ -109,6 +113,27 @@ func (s *MemoryDeadLetterStore) List(
 	}
 
 	return result, nil
+}
+
+func (s *MemoryDeadLetterStore) Delete(_ context.Context, projectionName, eventID string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	filtered := s.entries[:0]
+	for _, e := range s.entries {
+		// Keep entries that do not match BOTH the projection and the event ID.
+		// This makes Delete safe to call with a non-empty projectionName to
+		// scope the delete, or with an empty one to delete by eventID globally.
+		if e.ProjectionName == projectionName && e.EventID == eventID {
+			continue
+		}
+
+		filtered = append(filtered, e)
+	}
+
+	s.entries = filtered
+
+	return nil
 }
 
 func (s *MemoryDeadLetterStore) Purge(_ context.Context, projectionName string) error {

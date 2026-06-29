@@ -406,6 +406,32 @@ func TestMemoryDeadLetterStore_List_FilterByProjection(t *testing.T) {
 	}
 }
 
+func TestMemoryDeadLetterStore_Delete_RemovesSingleEntry(t *testing.T) {
+	t.Parallel()
+	store := projectionhost.NewMemoryDeadLetterStore()
+	ctx := context.Background()
+
+	store.Store(ctx, projectionhost.DeadLetterEntry{ProjectionName: "orders", EventID: "e1"})
+	store.Store(ctx, projectionhost.DeadLetterEntry{ProjectionName: "orders", EventID: "e2"})
+	store.Store(ctx, projectionhost.DeadLetterEntry{ProjectionName: "orders", EventID: "e3"})
+
+	// Delete a single entry: the other two must survive.
+	if err := store.Delete(ctx, "orders", "e2"); err != nil {
+		t.Fatalf("Delete: %v", err)
+	}
+
+	remaining, _ := store.List(ctx, "orders")
+	if len(remaining) != 2 {
+		t.Fatalf("expected 2 entries after delete, got %d", len(remaining))
+	}
+
+	for _, e := range remaining {
+		if e.EventID == "e2" {
+			t.Fatal("deleted entry e2 still present")
+		}
+	}
+}
+
 // --- Helpers ---
 
 func TestHost_ReplayDeadLetters_PureNoMutation(t *testing.T) {
