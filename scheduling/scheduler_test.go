@@ -13,15 +13,18 @@ import (
 
 func TestMemoryTimerStore_ScheduleAndDue(t *testing.T) {
 	t.Parallel()
-	store := scheduling.NewMemoryTimerStore()
+	store := scheduling.NewMemoryTimerStore[string]()
 	ctx := context.Background()
 
 	now := time.Now()
 	store.Schedule(
 		ctx,
-		scheduling.Timer{ID: "a", FireAt: now.Add(-1 * time.Minute), Payload: "early"},
+		scheduling.Timer[string]{ID: "a", FireAt: now.Add(-1 * time.Minute), Payload: "early"},
 	)
-	store.Schedule(ctx, scheduling.Timer{ID: "b", FireAt: now.Add(1 * time.Hour), Payload: "late"})
+	store.Schedule(
+		ctx,
+		scheduling.Timer[string]{ID: "b", FireAt: now.Add(1 * time.Hour), Payload: "late"},
+	)
 
 	due, err := store.Due(ctx, now)
 	if err != nil {
@@ -37,11 +40,17 @@ func TestMemoryTimerStore_ScheduleAndDue(t *testing.T) {
 
 func TestMemoryTimerStore_ScheduleIsIdempotent(t *testing.T) {
 	t.Parallel()
-	store := scheduling.NewMemoryTimerStore()
+	store := scheduling.NewMemoryTimerStore[string]()
 	ctx := context.Background()
 
-	store.Schedule(ctx, scheduling.Timer{ID: "dup", FireAt: time.Now().Add(-1 * time.Minute)})
-	store.Schedule(ctx, scheduling.Timer{ID: "dup", FireAt: time.Now().Add(-1 * time.Minute)})
+	store.Schedule(
+		ctx,
+		scheduling.Timer[string]{ID: "dup", FireAt: time.Now().Add(-1 * time.Minute)},
+	)
+	store.Schedule(
+		ctx,
+		scheduling.Timer[string]{ID: "dup", FireAt: time.Now().Add(-1 * time.Minute)},
+	)
 
 	due, _ := store.Due(ctx, time.Now())
 	if len(due) != 1 {
@@ -51,10 +60,13 @@ func TestMemoryTimerStore_ScheduleIsIdempotent(t *testing.T) {
 
 func TestMemoryTimerStore_Cancel(t *testing.T) {
 	t.Parallel()
-	store := scheduling.NewMemoryTimerStore()
+	store := scheduling.NewMemoryTimerStore[string]()
 	ctx := context.Background()
 
-	store.Schedule(ctx, scheduling.Timer{ID: "cancel-me", FireAt: time.Now().Add(-1 * time.Minute)})
+	store.Schedule(
+		ctx,
+		scheduling.Timer[string]{ID: "cancel-me", FireAt: time.Now().Add(-1 * time.Minute)},
+	)
 	store.Cancel(ctx, "cancel-me")
 
 	due, _ := store.Due(ctx, time.Now())
@@ -65,10 +77,13 @@ func TestMemoryTimerStore_Cancel(t *testing.T) {
 
 func TestMemoryTimerStore_MarkFired(t *testing.T) {
 	t.Parallel()
-	store := scheduling.NewMemoryTimerStore()
+	store := scheduling.NewMemoryTimerStore[string]()
 	ctx := context.Background()
 
-	store.Schedule(ctx, scheduling.Timer{ID: "fire", FireAt: time.Now().Add(-1 * time.Minute)})
+	store.Schedule(
+		ctx,
+		scheduling.Timer[string]{ID: "fire", FireAt: time.Now().Add(-1 * time.Minute)},
+	)
 	store.MarkFired(ctx, "fire")
 
 	due, _ := store.Due(ctx, time.Now())
@@ -79,24 +94,28 @@ func TestMemoryTimerStore_MarkFired(t *testing.T) {
 
 func TestScheduler_DispatchesDueTimers(t *testing.T) {
 	t.Parallel()
-	store := scheduling.NewMemoryTimerStore()
+	store := scheduling.NewMemoryTimerStore[string]()
 	ctx := context.Background()
 
-	store.Schedule(ctx, scheduling.Timer{
+	store.Schedule(ctx, scheduling.Timer[string]{
 		ID:      "task-1",
 		FireAt:  time.Now().Add(-1 * time.Second),
 		Payload: "run-me",
 	})
 
 	var dispatched atomic.Int64
-	sched := scheduling.New(store, func(_ context.Context, timer scheduling.Timer) error {
-		if timer.ID != "task-1" {
-			t.Errorf("expected task-1, got %s", timer.ID)
-		}
-		dispatched.Add(1)
+	sched := scheduling.New[string](
+		store,
+		func(_ context.Context, timer scheduling.Timer[string]) error {
+			if timer.ID != "task-1" {
+				t.Errorf("expected task-1, got %s", timer.ID)
+			}
+			dispatched.Add(1)
 
-		return nil
-	}, scheduling.WithPollInterval(10*time.Millisecond))
+			return nil
+		},
+		scheduling.WithPollInterval(10*time.Millisecond),
+	)
 
 	runCtx, cancel := context.WithCancel(ctx)
 	go sched.Start(runCtx)
@@ -111,23 +130,28 @@ func TestScheduler_DispatchesDueTimers(t *testing.T) {
 
 func TestScheduler_RetriesFailedDispatch(t *testing.T) {
 	t.Parallel()
-	store := scheduling.NewMemoryTimerStore()
+	store := scheduling.NewMemoryTimerStore[string]()
 	ctx := context.Background()
 
-	store.Schedule(ctx, scheduling.Timer{
+	store.Schedule(ctx, scheduling.Timer[string]{
 		ID:      "retry-me",
 		FireAt:  time.Now().Add(-1 * time.Second),
 		Payload: "fail-then-succeed",
 	})
 
 	var attempts atomic.Int64
-	sched := scheduling.New(store, func(_ context.Context, _ scheduling.Timer) error {
-		if attempts.Add(1) < 2 {
-			return errFail
-		}
+	sched := scheduling.New[string](
+		store,
+		func(_ context.Context, _ scheduling.Timer[string]) error {
+			if attempts.Add(1) < 2 {
+				return errFail
+			}
 
-		return nil
-	}, scheduling.WithPollInterval(10*time.Millisecond), scheduling.WithMaxRetries(3))
+			return nil
+		},
+		scheduling.WithPollInterval(10*time.Millisecond),
+		scheduling.WithMaxRetries(3),
+	)
 
 	runCtx, cancel := context.WithCancel(ctx)
 	go sched.Start(runCtx)
@@ -155,10 +179,10 @@ func waitFor(t *testing.T, timeout time.Duration, cond func() bool) {
 
 func TestScheduler_WithLoggerIsUsed(t *testing.T) {
 	t.Parallel()
-	store := scheduling.NewMemoryTimerStore()
+	store := scheduling.NewMemoryTimerStore[string]()
 	ctx := context.Background()
 
-	store.Schedule(ctx, scheduling.Timer{
+	store.Schedule(ctx, scheduling.Timer[string]{
 		ID:      "always-fails",
 		FireAt:  time.Now().Add(-1 * time.Second),
 		Payload: "boom",
@@ -167,8 +191,8 @@ func TestScheduler_WithLoggerIsUsed(t *testing.T) {
 	capture := testutil.NewCapturingSlogHandler(slog.LevelError)
 	logger := slog.New(capture)
 
-	sched := scheduling.New(
-		store, func(_ context.Context, _ scheduling.Timer) error {
+	sched := scheduling.New[string](
+		store, func(_ context.Context, _ scheduling.Timer[string]) error {
 			return errFail
 		},
 		scheduling.WithPollInterval(10*time.Millisecond),

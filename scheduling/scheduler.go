@@ -8,9 +8,10 @@ import (
 )
 
 // Scheduler polls a TimerStore for due timers and dispatches them.
-type Scheduler struct {
-	store    TimerStore
-	dispatch DispatchFunc
+// The type parameter P is the timer payload, forwarded to DispatchFunc.
+type Scheduler[P any] struct {
+	store    TimerStore[P]
+	dispatch DispatchFunc[P]
 	opts     schedulerOptions
 	logger   *slog.Logger
 }
@@ -53,7 +54,7 @@ func WithLogger(l *slog.Logger) Option {
 }
 
 // New creates a Scheduler that polls store and dispatches via dispatch.
-func New(store TimerStore, dispatch DispatchFunc, opts ...Option) *Scheduler {
+func New[P any](store TimerStore[P], dispatch DispatchFunc[P], opts ...Option) *Scheduler[P] {
 	o := defaultOptions()
 	for _, opt := range opts {
 		opt(&o)
@@ -64,7 +65,7 @@ func New(store TimerStore, dispatch DispatchFunc, opts ...Option) *Scheduler {
 		logger = slog.Default()
 	}
 
-	return &Scheduler{
+	return &Scheduler[P]{
 		store:    store,
 		dispatch: dispatch,
 		opts:     o,
@@ -73,7 +74,7 @@ func New(store TimerStore, dispatch DispatchFunc, opts ...Option) *Scheduler {
 }
 
 // Start begins polling for due timers. Blocks until ctx is cancelled.
-func (s *Scheduler) Start(ctx context.Context) error {
+func (s *Scheduler[P]) Start(ctx context.Context) error {
 	ticker := time.NewTicker(s.opts.pollInterval)
 	defer ticker.Stop()
 
@@ -89,7 +90,7 @@ func (s *Scheduler) Start(ctx context.Context) error {
 	}
 }
 
-func (s *Scheduler) tick(ctx context.Context) error {
+func (s *Scheduler[P]) tick(ctx context.Context) error {
 	now := time.Now()
 
 	due, err := s.store.Due(ctx, now)
@@ -112,7 +113,7 @@ func (s *Scheduler) tick(ctx context.Context) error {
 	return nil
 }
 
-func (s *Scheduler) dispatchWithRetry(ctx context.Context, timer Timer) error {
+func (s *Scheduler[P]) dispatchWithRetry(ctx context.Context, timer Timer[P]) error {
 	var lastErr error
 
 	for range s.opts.maxRetries {

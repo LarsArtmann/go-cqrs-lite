@@ -10,7 +10,12 @@ import (
 type TimerID = string
 
 // Timer represents a scheduled command to fire at a future time.
-type Timer struct {
+//
+// The type parameter P is the payload type delivered to the dispatch callback —
+// typically a concrete command type (e.g. Timer[CancelOrderCmd]). Using a
+// generic instead of `any` gives callers compile-time payload safety and clean
+// JSON round-tripping, without forcing every consumer onto the same envelope.
+type Timer[P any] struct {
 	// ID is a unique identifier for this timer. If a timer with the same ID
 	// already exists, Schedule is a no-op (idempotent scheduling).
 	ID TimerID `json:"id"`
@@ -18,20 +23,19 @@ type Timer struct {
 	// FireAt is when the timer should trigger. Must be in the future.
 	FireAt time.Time `json:"fire_at"`
 
-	// Payload is an opaque payload delivered to the dispatch callback.
-	// Typically a serialized command or a command type + aggregate ID.
-	Payload any `json:"payload"`
+	// Payload is delivered to the dispatch callback when the timer fires.
+	Payload P `json:"payload"`
 }
 
 // TimerStore persists scheduled timers across restarts.
-type TimerStore interface {
+type TimerStore[P any] interface {
 	// Schedule records a timer. If a timer with the same ID already exists
 	// and has not fired yet, it is a no-op (idempotent).
-	Schedule(ctx context.Context, t Timer) error
+	Schedule(ctx context.Context, t Timer[P]) error
 
 	// Due returns timers whose FireAt is at or before the given time,
 	// ordered by FireAt ascending.
-	Due(ctx context.Context, now time.Time) ([]Timer, error)
+	Due(ctx context.Context, now time.Time) ([]Timer[P], error)
 
 	// MarkFired removes a timer after it has been dispatched.
 	MarkFired(ctx context.Context, id TimerID) error
@@ -42,20 +46,20 @@ type TimerStore interface {
 
 // DispatchFunc is called when a timer fires. It receives the timer's payload.
 // If it returns an error, the timer is re-scheduled for retry (up to MaxRetries).
-type DispatchFunc func(ctx context.Context, t Timer) error
+type DispatchFunc[P any] func(ctx context.Context, t Timer[P]) error
 
 // MemoryTimerStore is an in-memory TimerStore for development and testing.
-type MemoryTimerStore struct {
+type MemoryTimerStore[P any] struct {
 	mu     sync.Mutex
-	timers map[TimerID]Timer
+	timers map[TimerID]Timer[P]
 }
 
 // NewMemoryTimerStore creates an in-memory timer store.
-func NewMemoryTimerStore() *MemoryTimerStore {
-	return &MemoryTimerStore{timers: make(map[TimerID]Timer)}
+func NewMemoryTimerStore[P any]() *MemoryTimerStore[P] {
+	return &MemoryTimerStore[P]{timers: make(map[TimerID]Timer[P])} //nolint:exhaustruct
 }
 
-func (s *MemoryTimerStore) Schedule(_ context.Context, t Timer) error {
+func (s *MemoryTimerStore[P]) Schedule(_ context.Context, t Timer[P]) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -68,11 +72,11 @@ func (s *MemoryTimerStore) Schedule(_ context.Context, t Timer) error {
 	return nil
 }
 
-func (s *MemoryTimerStore) Due(_ context.Context, now time.Time) ([]Timer, error) {
+func (s *MemoryTimerStore[P]) Due(_ context.Context, now time.Time) ([]Timer[P], error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	var due []Timer
+	var due []Timer[P]
 
 	for _, t := range s.timers {
 		if !t.FireAt.After(now) {
@@ -83,7 +87,7 @@ func (s *MemoryTimerStore) Due(_ context.Context, now time.Time) ([]Timer, error
 	return due, nil
 }
 
-func (s *MemoryTimerStore) MarkFired(_ context.Context, id TimerID) error {
+func (s *MemoryTimerStore[P]) MarkFired(_ context.Context, id TimerID) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -92,7 +96,7 @@ func (s *MemoryTimerStore) MarkFired(_ context.Context, id TimerID) error {
 	return nil
 }
 
-func (s *MemoryTimerStore) Cancel(_ context.Context, id TimerID) error {
+func (s *MemoryTimerStore[P]) Cancel(_ context.Context, id TimerID) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
