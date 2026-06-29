@@ -1,4 +1,4 @@
-package cqrs_testing
+package scenario
 
 import (
 	"context"
@@ -30,7 +30,7 @@ type DeciderScenario[Cmd any, State any] struct {
 
 // Given creates a decider scenario with the given fold function and pre-existing events.
 // The fold function is the same as decider.Decider.Apply — it folds an event into state.
-func Given[Cmd any, State any](
+func Given[Cmd, State any](
 	t *testing.T,
 	apply func(State, event.Event) (State, error),
 	initial State,

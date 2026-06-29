@@ -1,4 +1,4 @@
-module github.com/larsartmann/go-cqrs-lite/testing/v3
+module github.com/larsartmann/go-cqrs-lite/scenario/v3
 
 go 1.26.3
 

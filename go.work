@@ -19,6 +19,7 @@ use (
 	./example/deployer-first-multidb
 	./example/encryption
 	./example/graph-demo
+	./example/projectionhost
 	./example/todo
 	./example/user
 	./graph
@@ -33,6 +34,7 @@ use (
 	./projectionhost
 	./prometheus
 	./query
+	./scenario
 	./scheduling
 	./schema
 	./signing
@@ -48,7 +50,6 @@ use (
 	./storage/memory
 	./storage/pebble
 	./storage/turso
-	./testing
 	./testutil
 	./transport/grpc
 	./transport/http

@@ -1,4 +1,4 @@
-package cqrs_testing_test
+package scenario_test
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
-	cqrs_testing "github.com/larsartmann/go-cqrs-lite/testing/v3"
+	"github.com/larsartmann/go-cqrs-lite/scenario/v3"
 )
 
 // --- Test fixtures ---
@@ -61,14 +61,14 @@ func mustEvent(t event.Type) event.Event {
 
 func TestGiven_When_Then_EventTypes(t *testing.T) {
 	t.Parallel()
-	cqrs_testing.Given[incrementCmd, counterState](t, foldCounter, counterState{}).
+	scenario.Given[incrementCmd, counterState](t, foldCounter, counterState{}).
 		When(incrementCmd{}, decideIncrement).
 		Then(evtIncremented)
 }
 
 func TestGiven_When_Then_FoldsPriorEvents(t *testing.T) {
 	t.Parallel()
-	cqrs_testing.Given[incrementCmd, counterState](
+	scenario.Given[incrementCmd, counterState](
 		t, foldCounter, counterState{},
 		mustEvent(evtIncremented),
 		mustEvent(evtIncremented),
@@ -79,14 +79,14 @@ func TestGiven_When_Then_FoldsPriorEvents(t *testing.T) {
 
 func TestGiven_When_ThenError(t *testing.T) {
 	t.Parallel()
-	cqrs_testing.Given[decrementCmd, counterState](t, foldCounter, counterState{}).
+	scenario.Given[decrementCmd, counterState](t, foldCounter, counterState{}).
 		When(decrementCmd{}, decideDecrement).
 		ThenError(evtErrLimit)
 }
 
 func TestGiven_When_ThenState(t *testing.T) {
 	t.Parallel()
-	cqrs_testing.Given[incrementCmd, counterState](
+	scenario.Given[incrementCmd, counterState](
 		t, foldCounter, counterState{},
 		mustEvent(evtIncremented),
 		mustEvent(evtIncremented),
@@ -106,6 +106,6 @@ func (p *testProj) EventTypes() []event.Type                      { return nil }
 func TestGivenProjection_ThenNoError(t *testing.T) {
 	t.Parallel()
 	proj := &testProj{}
-	cqrs_testing.GivenProjection(t, proj, mustEvent(evtIncremented)).
+	scenario.GivenProjection(t, proj, mustEvent(evtIncremented)).
 		ThenNoError()
 }
