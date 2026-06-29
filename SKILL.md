@@ -287,34 +287,40 @@ cpStore     := backend.CheckpointStore()
 
 ### 2.3 Read Models (projection + query)
 
-Projections rebuild queryable state from the event stream. The runner does **replay-first, then live-tail** with checkpoint management.
+Projections rebuild queryable state from the event stream. There are **two ways to run them** — pick based on your delivery model:
+
+**Option A — `projectionhost` (pull-based, crash-restart, no bus dependency).** Reads directly from an `event.SeekableJournal`. Best for batch replay and systems without a live event bus.
 
 ```go
 import (
     "github.com/larsartmann/go-cqrs-lite/projection/v3"
-    "github.com/larsartmann/go-cqrs-lite/query/v3"
+    "github.com/larsartmann/go-cqrs-lite/projectionhost/v3"
 )
 
-// Define a projection implementing event.Projection
+// Define a projection implementing projection.Projection
 type TodoProjection struct{ store ReadModel }
 func (p *TodoProjection) Name() string { return "todo-read-model" }
 func (p *TodoProjection) EventTypes() []event.Type {
-    return []event.Type{"todo.created", "todo.updated"} // filter the stream
+    return []event.Type{"todo.created", "todo.updated"} // nil = all types
 }
 func (p *TodoProjection) Handle(ctx context.Context, evt event.Event) error {
     // mutate your read model
     return nil
 }
 
-// Wire the runner: eventStore + eventBus + checkpointStore
-runner, _ := projection.NewRunner(eventStore, eventBus, checkpointStore)
-_ = runner.Register(&TodoProjection{store: readModel})
-
-// Read-your-writes: replay synchronously, then tail live in the background.
-if err := runner.RunReplay(ctx); err != nil { /* handle */ }  // blocks until caught up
-go func() { _ = runner.RunLive(ctx) }()                      // background tail
-// ← read model is guaranteed caught up here, no sleep needed
+// journal: any event.SeekableJournal (MemoryStore, SQLEventStore, pebble.EventStore, ...)
+host, _ := projectionhost.New(journal, checkpointStore,
+    projectionhost.WithBatchSize(100),
+    projectionhost.WithDeadLetterStore(projectionhost.NewMemoryDeadLetterStore(), 3),
+)
+_ = host.Register(&TodoProjection{store: readModel})
+go host.Start(ctx)   // one goroutine per projection; crash auto-restart + backoff
+defer host.Stop()    // graceful drain (30s timeout)
+// host drains the journal from each projection's checkpoint, then idles.
+// For live push delivery, pair with watermill/CatchUpSubscriber (Option B).
 ```
+
+**Option B — `CatchUpSubscriber` (push-based, live tail after replay).** Pairs with `stack.Materialize` for ordered, durable projections. See §2.3 "Canonical projection pattern" below and §6.9 for the full `projectionhost` lifecycle.
 
 Query the read model with type-safe dispatch:
 
@@ -704,13 +710,13 @@ cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 
 | Module       | Import          | One-liner                                                                                                                                                                                                                        |
 | ------------ | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id`         | `id/v2`         | Branded IDs: `id.Of[T]` = `cbid.ID[T, ulid.ULID]`. All 8 markers exported (`AggregateMarker`, `EventMarker`, `CommandMarker`, …) for `BrandNamer` integration. Custom via `id.Of[struct{}]`.                                     |
-| `dispatcher` | `dispatcher/v2` | Generic `Dispatcher[H, M]` with `LifecycleMixin`. Base for command/query dispatchers.                                                                                                                                            |
-| `codec`      | `codec/v2`      | Payload encoding: `JSONCodec{}`, `CBORCodec{}` (deterministic), `RawCodec{}`.                                                                                                                                                    |
-| `event`      | `event/v2`      | `Event`, `Store` (=`EventSink`+`EventSource`), `Bus`, `Journal`, `SeekableJournal`, `NewEvent`, `NewEvents`, `DecodePayload[T]`, 5-family errors, tombstone (`TombstoneMark`), causality (`Causation`), `Tracing`, `Checkpoint`. |
-| `command`    | `command/v2`    | `Dispatcher`, `Handler`, `RegisterTyped`, `BasicCommand`, `PersistedCommand`, `CommandSink`/`Source`, `CommandBus` (pub/sub).                                                                                                    |
-| `query`      | `query/v2`      | `Dispatcher`, `TypedHandler[Q,R]`, `RegisterTyped`, `PaginatedResult[T]`, `PersistedQuery`, `QuerySink`/`Source`.                                                                                                                |
-| `decider`    | `decider/v2`    | `Decider[State]{Initial, Fold}`, `Repository[State]` (`Execute`, `Load`, `LoadAtVersion`), snapshot integration.                                                                                                                 |
+| `id`         | `id/v3`         | Branded IDs: `id.Of[T]` = `cbid.ID[T, ulid.ULID]`. All 8 markers exported (`AggregateMarker`, `EventMarker`, `CommandMarker`, …) for `BrandNamer` integration. Custom via `id.Of[struct{}]`.                                     |
+| `dispatcher` | `dispatcher/v3` | Generic `Dispatcher[H, M]` with `LifecycleMixin`. Base for command/query dispatchers.                                                                                                                                            |
+| `codec`      | `codec/v3`      | Payload encoding: `JSONCodec{}`, `CBORCodec{}` (deterministic), `RawCodec{}`.                                                                                                                                                    |
+| `event`      | `event/v3`      | `Event`, `Store` (=`EventSink`+`EventSource`), `Bus`, `Journal`, `SeekableJournal`, `NewEvent`, `NewEvents`, `DecodePayload[T]`, 5-family errors, tombstone (`TombstoneMark`), causality (`Causation`), `Tracing`, `Checkpoint`. |
+| `command`    | `command/v3`    | `Dispatcher`, `Handler`, `RegisterTyped`, `BasicCommand`, `PersistedCommand`, `CommandSink`/`Source`, `CommandBus` (pub/sub).                                                                                                    |
+| `query`      | `query/v3`      | `Dispatcher`, `TypedHandler[Q,R]`, `RegisterTyped`, `PaginatedResult[T]`, `PersistedQuery`, `QuerySink`/`Source`.                                                                                                                |
+| `decider`    | `decider/v3`    | `Decider[State]{Initial, Fold}`, `Repository[State]` (`Execute`, `Load`, `LoadAtVersion`), snapshot integration.                                                                                                                 |
 
 ### Read models (Layer 4–5)
 
