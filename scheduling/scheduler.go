@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"math/rand/v2"
 	"time"
 )
 
@@ -19,6 +20,7 @@ type Scheduler[P any] struct {
 type schedulerOptions struct {
 	pollInterval time.Duration
 	maxRetries   int
+	retryDelay   time.Duration
 	logger       *slog.Logger
 }
 
@@ -29,6 +31,7 @@ func defaultOptions() schedulerOptions {
 	return schedulerOptions{
 		pollInterval: 1 * time.Second,
 		maxRetries:   3,
+		retryDelay:   100 * time.Millisecond,
 	}
 }
 
@@ -42,6 +45,13 @@ func WithPollInterval(d time.Duration) Option {
 // Default: 3.
 func WithMaxRetries(n int) Option {
 	return func(o *schedulerOptions) { o.maxRetries = n }
+}
+
+// WithRetryDelay sets the base delay between dispatch retry attempts.
+// The actual delay is randomized with full jitter (0 to retryDelay*2^attempt)
+// to avoid thundering-herd retries when many timers fire at once. Default: 100ms.
+func WithRetryDelay(d time.Duration) Option {
+	return func(o *schedulerOptions) { o.retryDelay = d }
 }
 
 // WithLogger sets a structured logger. Default: slog.Default().
@@ -116,7 +126,7 @@ func (s *Scheduler[P]) tick(ctx context.Context) error {
 func (s *Scheduler[P]) dispatchWithRetry(ctx context.Context, timer Timer[P]) error {
 	var lastErr error
 
-	for range s.opts.maxRetries {
+	for attempt := range s.opts.maxRetries {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -129,6 +139,19 @@ func (s *Scheduler[P]) dispatchWithRetry(ctx context.Context, timer Timer[P]) er
 		}
 
 		lastErr = err
+
+		// Don't sleep after the final attempt.
+		if attempt < s.opts.maxRetries-1 {
+			// Exponential backoff with full jitter between retries.
+			exp := s.opts.retryDelay * time.Duration(1<<uint(attempt))
+			delay := time.Duration(rand.Int64N(int64(exp) + 1))
+
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(delay):
+			}
+		}
 	}
 
 	return errors.Join(lastErr)
