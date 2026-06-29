@@ -115,8 +115,8 @@ These are tracked here for context but can ship in v3.x:
 
 ## Decision Log
 
-| Date | Decision | Rationale |
-|------|----------|-----------|
-| 2026-06-29 | Do NOT cut v4 yet | 27 consumers, aliases solve everything, no concrete break request |
-| 2026-06-29 | Ship storage/ split as v3.5.0 aliases | Zero consumer migration |
-| 2026-06-29 | Do NOT split event/ even in v4 | 27 importers, cohesion is real |
+| Date       | Decision                              | Rationale                                                         |
+| ---------- | ------------------------------------- | ----------------------------------------------------------------- |
+| 2026-06-29 | Do NOT cut v4 yet                     | 27 consumers, aliases solve everything, no concrete break request |
+| 2026-06-29 | Ship storage/ split as v3.5.0 aliases | Zero consumer migration                                           |
+| 2026-06-29 | Do NOT split event/ even in v4        | 27 importers, cohesion is real                                    |
