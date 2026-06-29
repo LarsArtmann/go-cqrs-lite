@@ -4,7 +4,9 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+## [3.4.0] - 2026-06-29
+
+**Managed projection host maturity, durable scheduling, scenario-testing DSL, go mod tidy sweep.**
 
 ### Added
 
