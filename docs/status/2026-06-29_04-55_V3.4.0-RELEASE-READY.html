@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>go-cqrs-lite — Comprehensive Status Report — 2026-06-29</title>
+    <style>
+      :root {
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+        --radius: 0px;
+        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      section[id], [id] { scroll-margin-top: 60px; }
+      body { background: var(--surface); color: var(--text); font-family: var(--font-body); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+      :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      .top-bar { background: var(--text); color: var(--surface); padding: 0.6rem 2rem; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+      .layout { display: flex; gap: 2.5rem; padding: 2rem; }
+      .sidebar { width: 220px; flex-shrink: 0; position: sticky; top: 1rem; align-self: flex-start; height: calc(100vh - 2rem); overflow-y: auto; display: none; }
+      .sidebar nav { display: flex; flex-direction: column; gap: 0; }
+      .sidebar .label { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent); margin-bottom: 0.75rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border-strong); }
+      .sidebar a { font-size: 0.85rem; color: var(--text-muted); text-decoration: none; padding: 0.45rem 0.75rem; border-left: 2px solid transparent; transition: all 0.15s ease; font-weight: 500; }
+      .sidebar a:hover, .sidebar a.active { color: var(--accent); border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+      .main { flex: 1; min-width: 0; }
+      h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -0.02em; }
+      h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.1; margin: 0 0 0.6rem; }
+      h2 { font-size: 1.4rem; margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border-strong); display: flex; align-items: baseline; gap: 0.6rem; }
+      h2 .num { font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent); font-weight: 700; letter-spacing: 0.06em; }
+      h3 { font-size: 1.1rem; margin: 0 0 0.4rem; font-weight: 700; }
+      h4 { font-size: 0.98rem; margin: 0 0 0.3rem; font-weight: 700; }
+      p { margin: 0 0 1rem; }
+      .hero { padding: 1.5rem 0 1.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border-strong); }
+      .hero-badge { display: inline-block; font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--surface); background: var(--accent); padding: 0.3rem 0.7rem; margin-bottom: 0.9rem; }
+      .hero-subtitle { font-size: 1.05rem; color: var(--text-muted); max-width: 70ch; margin: 0; }
+      .hero-shapes { position: relative; height: 80px; margin-bottom: 1rem; }
+      .hero-shapes .circle { position: absolute; top: 0; left: 0; width: 56px; height: 56px; background: var(--problem); border-radius: 50%; }
+      .hero-shapes .square { position: absolute; top: 24px; left: 72px; width: 48px; height: 48px; background: var(--solution); }
+      .hero-shapes .tri { position: absolute; top: 8px; left: 140px; width: 0; height: 0; border-left: 28px solid transparent; border-right: 28px solid transparent; border-bottom: 48px solid var(--warning); }
+      .card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1.3rem; margin-bottom: 1rem; border-left: 4px solid var(--border-strong); }
+      .card-problem { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised)); }
+      .card-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised)); }
+      .card-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised)); }
+      .issue { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1.3rem; margin-bottom: 1rem; border-left: 4px solid var(--border-strong); }
+      .issue-critical { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised)); }
+      .issue-important { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised)); }
+      .issue-nice { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised)); }
+      .issue h3 { margin-bottom: 0.3rem; }
+      .issue .where { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-faint); margin: 0.2rem 0 0.6rem; }
+      .issue p:last-child { margin-bottom: 0; }
+      .severity { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.2rem 0.55rem; margin-bottom: 0.6rem; color: var(--surface); }
+      .severity-critical { background: var(--problem); }
+      .severity-important { background: var(--warning); }
+      .severity-nice { background: var(--solution); }
+      .badge { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.18rem 0.5rem; border: 1px solid var(--border-strong); color: var(--text-muted); }
+      .badge-critical { color: var(--problem); border-color: var(--problem); }
+      .badge-high { color: var(--warning); border-color: var(--warning); }
+      .badge-medium { color: var(--accent); border-color: var(--accent); }
+      .badge-low { color: var(--text-muted); }
+      .badge-fixed { color: var(--solution); border-color: var(--solution); }
+      .callout { margin: 0.8rem 0 0; padding: 0.7rem 0.9rem; border-left: 3px solid var(--border-strong); background: color-mix(in srgb, var(--text) 5%, transparent); font-size: 0.9rem; }
+      .callout strong { display: inline-block; margin-right: 0.4rem; }
+      .callout-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 10%, transparent); }
+      .callout-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 10%, transparent); }
+      .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin: 1rem 0 1.5rem; }
+      .stat-card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1rem; position: relative; }
+      .stat-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--border-strong); }
+      .stat-bad::before { background: var(--problem); }
+      .stat-good::before { background: var(--solution); }
+      .stat-warn::before { background: var(--warning); }
+      .stat-value { font-family: var(--font-heading); font-size: 2rem; font-weight: 800; line-height: 1; letter-spacing: -0.03em; color: var(--text); }
+      .stat-bad .stat-value { color: var(--problem); }
+      .stat-good .stat-value { color: var(--solution); }
+      .stat-warn .stat-value { color: var(--warning); }
+      .stat-label { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-faint); margin-top: 0.5rem; }
+      .strengths { display: grid; gap: 0.5rem; margin: 1rem 0 1.5rem; }
+      .strength { display: grid; grid-template-columns: auto 1fr; gap: 0.8rem; padding: 0.7rem 0; border-bottom: 1px solid var(--border); }
+      .strength .check { font-family: var(--font-mono); font-weight: 700; color: var(--solution); font-size: 1.1rem; line-height: 1.4; }
+      .strength .text strong { display: block; margin-bottom: 0.15rem; }
+      .strength .text span { color: var(--text-muted); font-size: 0.9rem; }
+      .table-wrap { overflow-x: auto; }
+      table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.9rem; }
+      th { text-align: left; padding: 0.6rem 0.9rem; background: var(--surface-raised); color: var(--text-faint); font-family: var(--font-mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border-bottom: 1px solid var(--border-strong); }
+      td { padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); }
+      tr:hover td { background: var(--surface-raised); }
+      .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin: 1rem 0; }
+      .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1rem 0; }
+      .footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.8rem; color: var(--text-faint); font-family: var(--font-mono); }
+      @media (min-width: 1024px) { .sidebar { display: block; } }
+      @media (max-width: 768px) { .layout { flex-direction: column; padding: 1rem; } .top-bar { padding: 0.6rem 1rem; flex-wrap: wrap; gap: 0.3rem; } .grid-2, .grid-3 { grid-template-columns: 1fr; } .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>STATUS REPORT</span>
+      <span>2026-06-29 04:55 CEST</span>
+      <span>v3.4.0 TAGGED</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Executive Summary</a>
+          <a href="#done">Fully Done</a>
+          <a href="#partial">Partially Done</a>
+          <a href="#not-started">Not Started</a>
+          <a href="#fucked-up">Totally Fucked Up</a>
+          <a href="#improve">What to Improve</a>
+          <a href="#top25">Top 25 Next</a>
+          <a href="#question">#1 Question</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="hero">
+          <div class="hero-shapes">
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="hero-badge">Comprehensive Status</div>
+          <h1>go-cqrs-lite — v3.4.0 Release State</h1>
+          <p class="hero-subtitle">54 modules, 998 Go files, 479 test files. All checks green. Three brutal self-review sessions complete. v3.4.0 tagged across 28 modules. Two breaking changes shipped. This report covers the full honest state of the library.</p>
+        </div>
+
+        <!-- ============ SUMMARY ============ -->
+        <h2 id="summary"><span class="num">00</span>Executive Summary</h2>
+
+        <div class="stat-grid">
+          <div class="stat-card stat-good">
+            <div class="stat-value">54</div>
+            <div class="stat-label">Go Modules</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">998</div>
+            <div class="stat-label">Go Files</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">479</div>
+            <div class="stat-label">Test Files</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">28</div>
+            <div class="stat-label">v3.4.0 Tags</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Lint Issues</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Build Errors</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">6</div>
+            <div class="stat-label">Open TODOs</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">2</div>
+            <div class="stat-label">Breaking Changes</div>
+          </div>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card stat-good">
+            <div class="stat-value">47</div>
+            <div class="stat-label">TODO Items Done</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">42</div>
+            <div class="stat-label">ADRs Documented</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">27</div>
+            <div class="stat-label">Features Production</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">376</div>
+            <div class="stat-label">SKILL.md Refs Verified</div>
+          </div>
+        </div>
+
+        <div class="card card-solution">
+          <h4>Release Verdict: SHIP IT</h4>
+          <p>Build green. Vet green. Tests green (all 46 testable modules). Lint 0 issues. go mod tidy applied across 18 modules. SKILL.md consumer guide fully corrected and verified via doc-check (376 references across 34 packages). v3.4.0 tagged across all 28 changed modules. Ready to push.</p>
+        </div>
+
+        <!-- ============ FULLY DONE ============ -->
+        <h2 id="done"><span class="num">01</span>Fully Done</h2>
+
+        <div class="card card-solution">
+          <h4>v3.4.0 Release — Tagged &amp; Verified</h4>
+          <p>28 modules tagged at v3.4.0. Three commits since last session: SKILL.md v3 alignment, go mod tidy sweep, CHANGELOG release update. All tags verified at HEAD commit <code>3d3319fb</code>.</p>
+        </div>
+
+        <div class="card card-solution">
+          <h4>SKILL.md Consumer Guide — Comprehensive Repair</h4>
+          <p>187 insertions, 26 deletions. Fixed a <strong>fictional API</strong> (<code>projection.NewRunner</code> never existed — replaced with real <code>projectionhost.New()</code> + <code>CatchUpSubscriber</code>). Fixed <strong>~25 wrong v2 import paths</strong> (all 52 modules are v3). Fixed <code>pebble/v3</code>→<code>storage/pebble/v3</code>. Fixed <code>Fold:</code>→<code>Apply:</code> (wrong Decider struct field, 3 occurrences). Added 3 missing modules (graph, deriver, prometheus). Verified: doc-check confirms all 376 symbol references resolve.</p>
+        </div>
+
+        <div class="card card-solution">
+          <h4>Build / Vet / Test / Lint — All Green</h4>
+          <p><strong>Build:</strong> <code>go build ./...</code> — 0 errors. <strong>Vet:</strong> <code>go vet ./...</code> — 0 errors. <strong>Tests:</strong> All 46 testable modules pass (34 lib + 5 stack presets + 7 examples). <strong>Lint:</strong> <code>golangci-lint run ./...</code> — 0 issues. <strong>stack/bench</strong> passes in workspace mode (GOWORK=off fails only because it depends on unreleased versions — expected pre-tag).</p>
+        </div>
+
+        <div class="card card-solution">
+          <h4>go mod tidy Sweep — 18 Modules Cleaned</h4>
+          <p>Removed stale indirect deps accumulated from prior dependency reshuffles (davecgh/go-spew, tidwall/gjson, jackc/puddle, etc.). Promoted <code>id/v3</code> to direct in idempotency. Synced all go.sum hashes. Build re-verified clean after tidy.</p>
+        </div>
+
+        <div class="card card-solution">
+          <h4>Brutal Self-Review — 3 Sessions, 4 Bugs Found &amp; Fixed</h4>
+          <p>Session 1: DLQ replay data-loss bug (auto-purged ALL entries after one success). Session 2: <code>Timer[P]</code> made generic + jitter backoff added. Session 3: MetricsRecorder 3/5 methods unwired (fixed to 5/5), projectionhost hammering retry (zero delay, same bug as scheduling), full-jitter vs equal-jitter correction. Every commit BuildFlow 31/31 green.</p>
+        </div>
+
+        <div class="card card-solution">
+          <h4>Three Projection Tiers — Complete</h4>
+          <p><strong>Document/KV:</strong> <code>stack.Materialize</code> + <code>kv.ViewStore</code> — one record per event. <strong>Relational:</strong> <code>storage.RelationalProjection</code> — multi-table atomic writes, SQL-dialect-agnostic. <strong>Graph:</strong> <code>graph.GraphProjection</code> — nodes + edges for traversal-heavy reads, openCypher MERGE portability, Schema validation (ADR-0039).</p>
+        </div>
+
+        <div class="card card-solution">
+          <h4>Reliability Stack — Complete</h4>
+          <p><code>projectionhost</code> (crash-restart + checkpoint + DLQ + MetricsRecorder + WithLogger + pure ReplayDeadLetters). <code>scheduling</code> (durable Timer[P], jitter retry, idempotent schedule/cancel). <code>scenario</code> (Given/When/Then BDD DSL). <code>deriver</code> (event→command reactive derivation, ADR-0040). <code>idempotency</code> (KVStore via ConditionalWriter, command dedup).</p>
+        </div>
+
+        <!-- ============ PARTIALLY DONE ============ -->
+        <h2 id="partial"><span class="num">02</span>Partially Done</h2>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Partial</span>
+          <h3>Projectionhost Metrics — no Prometheus adapter</h3>
+          <div class="where">projectionhost/options.go — MetricsRecorder interface</div>
+          <p>The <code>MetricsRecorder</code> interface exists and is fully wired (5/5 methods). But there is no ready-made Prometheus adapter — consumers must implement the interface themselves. The <code>prometheus</code> module exists for OTel→Prom bridge, but a <code>projectionhost/prometheus</code> adapter mapping the 5 lifecycle methods to counters/histograms is not built. Interface is the hard part; the adapter is boilerplate.</p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Partial</span>
+          <h3>DeadLetterStore — only in-memory impl exists</h3>
+          <div class="where">projectionhost/dlq.go — MemoryDeadLetterStore only</div>
+          <p>Only <code>MemoryDeadLetterStore</code> exists for projectionhost. The dispatch-tier <code>middleware.SQLDeadLetterStore</code> was shipped in v3.3.0, but the projection-tier equivalent is missing. Consumers needing durable DLQ across restarts must implement <code>DeadLetterStore</code> themselves. Matches the middleware pattern — should be ported.</p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Partial</span>
+          <h3>Pebble checkpoint + projectionhost — no integration test</h3>
+          <div class="where">storage/pebble — composes transitively but unproven</div>
+          <p>Pebble's <code>CheckpointStore</code> implements <code>event.CheckpointStore</code>. Projectionhost accepts any <code>event.CheckpointStore</code>. The composition is transitively guaranteed by the interface contract, but only the SQL-backed checkpoint integration test exists. No dedicated test proves Pebble+projectionhost work together in a projection lifecycle.</p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Partial</span>
+          <h3>Lint posture — clean now but config has stale build tags</h3>
+          <div class="where">.golangci.yml — build-tags section</div>
+          <p>Lint runs 0 issues currently. But <code>.golangci.yml</code> still lists dead build tags (<code>goexperiment.goroutineleakprofile</code>, <code>goexperiment.runtimesecret</code>, <code>goexperiment.simd</code>) that gate zero files per AGENTS.md. These were removed from the actual build but never cleaned from the lint config. Cosmetic but worth fixing.</p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Partial</span>
+          <h3>ROADMAP.md — stale "current state" header</h3>
+          <div class="where">ROADMAP.md:6 — still says "v3.1.0 released, v3.3.0 in progress"</div>
+          <p>The ROADMAP header still reads "v3.1.0 released, v3.3.0 in progress" even though v3.3.0 is tagged and v3.4.0 is now tagged. The body has been updated but the header line at the top was missed. Also lists scheduling/deriver as "raw ideas" at the bottom even though both are now shipped modules.</p>
+        </div>
+
+        <!-- ============ NOT STARTED ============ -->
+        <h2 id="not-started"><span class="num">03</span>Not Started</h2>
+
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Why Deferred</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>SQL-backed <code>DeadLetterStore</code> for projectionhost</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>Matches middleware's SQLDeadLetterStore pattern. Only MemoryDeadLetterStore exists.</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>Prometheus adapter for <code>MetricsRecorder</code></td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>Interface done, adapter is boilerplate mapping to counters/histograms.</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><code>scripts/tag-release.sh</code> — multi-module tag automation</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>Manual tagging caused the testing→scenario rename tag issue in v3.3.0.</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>Pebble-backed <code>TimerStore</code> for scheduling</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>Only needed when a concrete consumer needs durable timers across restarts.</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td><code>stack/projectionhost</code> preset (host + checkpoint + DLQ bundle)</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Batteries-included composition. Nice-to-have, not blocking.</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>Delete stale remote <code>testing/v3.3.0</code> tag</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Needs <code>git push origin :refs/tags/testing/v3.3.0</code> — destructive, needs user approval.</td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td>eventtest nested-module <code>-e</code> workaround ADR</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>Every consumer's <code>go mod tidy</code> emits warnings about the nested go.mod.</td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td>Surface Pebble Checkpoint (backup) from stack presets</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>ROADMAP item. Production operations feature.</td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td>Surface graceful shutdown from stack presets</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>ROADMAP item. Bundle.GracefulClose exists but not exposed in presets.</td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td>Hot-State cache (decider) — <code>RepositoryOption[State]</code></td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Profile before building. Only pays off for 100+ cmds/sec aggregates.</td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td>Read-pressure snapshot strategy</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Smaller payoff than state cache. Consider after cache lands.</td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td>NATS/Redis Stream adapter</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Superseded by Watermill command bridge for most cases. ADR-0025 still open.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- ============ TOTALLY FUCKED UP ============ -->
+        <h2 id="fucked-up"><span class="num">04</span>Totally Fucked Up</h2>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Self-inflicted</span>
+          <h3>SKILL.md shipped with a fictional API for multiple sessions</h3>
+          <div class="where">SKILL.md §2.3 — projection.NewRunner / RunReplay / RunLive</div>
+          <p>The consumer-facing guide documented <code>projection.NewRunner()</code>, <code>runner.RunReplay()</code>, and <code>runner.RunLive()</code> — none of which ever existed in the codebase. The <code>projection/</code> package only exports <code>Projection</code> interface and <code>NewProjection</code>. Anyone who copied the recipe would get a compile error. This survived multiple review sessions because nobody verified the doc against the code. Fixed this session — doc-check now verifies all 376 references.</p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            Replaced with real <code>projectionhost.New()</code> (pull-based) and <code>CatchUpSubscriber</code> (push-based) recipes. Added <code>cmd/doc-check</code> to the release pipeline.
+          </div>
+        </div>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Self-inflicted</span>
+          <h3>MetricsRecorder shipped with 3/5 methods wired</h3>
+          <div class="where">projectionhost/worker.go — EventProcessed, EventErrored, CheckpointAdvanced</div>
+          <p>Declared a 5-method <code>MetricsRecorder</code> interface, wired only 3. <code>EventProcessed</code> passed <code>duration=0</code> (never measured the handler). <code>EventErrored</code> and <code>CheckpointAdvanced</code> were never called. Wrote a test that only checked <code>EventProcessed</code> count, committed it as a complete feature. The test asserted <code>processed.Load() == 3</code> — which passes whether duration is 0 or real.</p>
+          <div class="callout callout-warning">
+            <strong>Root cause</strong>
+            Wrote the test to match what was already wired, not to match the interface declared. "It compiles" is not "it works."
+          </div>
+        </div>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Self-inflicted</span>
+          <h3>Same hammering-retry bug fixed in one place, missed in the other</h3>
+          <div class="where">scheduling/scheduler.go + projectionhost/worker.go — applyWithRetry</div>
+          <p>The scheduling retry fix (adding inter-attempt delay) was committed and celebrated. The IDENTICAL bug in <code>projectionhost.applyWithRetry</code> — same file structure, same zero-delay loop, same hammering pattern — was two screens away in the same module. Actively editing <code>worker.go</code> and didn't notice the twin. Found in session 3 of brutal self-review.</p>
+          <div class="callout callout-warning">
+            <strong>Lesson</strong>
+            When you find a bug, grep for the pattern across the whole codebase before declaring victory.
+          </div>
+        </div>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Upstream-blocked</span>
+          <h3>transport/grpc GOWORK conflict — ecosystem-blocked</h3>
+          <div class="where">transport/grpc — genproto monolithic vs split conflict</div>
+          <p><code>transport/grpc</code> builds only with <code>GOWORK=off</code> because <code>cockroachdb/pebble</code> → <code>cockroachdb/errors</code> pulls the monolithic <code>google.golang.org/genproto</code>, which conflicts with grpc's split <code>genproto/googleapis/rpc</code>. The <code>go.work</code> replace directive papers over it for workspace builds. This is a known Go ecosystem issue (cockroachdb/errors#79). Not our bug, but it complicates the build story.</p>
+        </div>
+
+        <!-- ============ IMPROVE ============ -->
+        <h2 id="improve"><span class="num">05</span>What We Should Improve</h2>
+
+        <div class="card card-warning">
+          <h4>1. Doc verification must be automated, not manual</h4>
+          <p>The fictional <code>projection.NewRunner</code> survived because no tool checked doc claims against code. The <code>cmd/doc-check</code> tool exists but was not run on SKILL.md before this session. Run it in CI or pre-commit.</p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>2. Test every interface method, not just the happy path</h4>
+          <p>The metrics gap survived because the test only checked <code>EventProcessed</code>. Every interface method should have at least one assertion. An interface with unwired methods is a lie.</p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>3. When you find a bug, grep for the pattern</h4>
+          <p>The hammering-retry bug existed in two places. One was fixed, the other missed for an entire session. Cross-cutting bugs need cross-cutting searches.</p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>4. ROADMAP and FEATURES need header synchronization</h4>
+          <p>ROADMAP.md still says "v3.3.0 in progress" in its header. FEATURES.md lists scheduling/deriver as raw ideas at the bottom. The body content is updated but the headers lag. Doc freshness needs a checklist.</p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>5. go mod tidy should be routine, not a release blocker</h4>
+          <p>18 modules had stale indirect deps. This should be caught by CI, not discovered during release prep. Add <code>go mod tidy --check</code> to CI.</p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>6. Release tagging should be scripted</h4>
+          <p>Manual tagging of 28 modules is error-prone. The testing→scenario rename tag issue in v3.3.0 was caused by manual tagging. A <code>scripts/tag-release.sh</code> would automate this.</p>
+        </div>
+
+        <!-- ============ TOP 25 ============ -->
+        <h2 id="top25"><span class="num">06</span>Top 25 Things to Do Next</h2>
+
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td><strong>Push v3.4.0 tags + master to remote</strong></td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td><span class="badge badge-fixed">5 min</span></td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>SQL-backed <code>DeadLetterStore</code> for projectionhost (port from middleware pattern)</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td><span class="badge badge-medium">2-3h</span></td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><code>scripts/tag-release.sh</code> — automate multi-module tagging</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td><span class="badge badge-low">1h</span></td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>Prometheus adapter for <code>projectionhost.MetricsRecorder</code> (5 methods → counters)</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td><span class="badge badge-medium">2h</span></td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>Sync ROADMAP.md header (v3.4.0 tagged, remove stale "in progress")</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td><span class="badge badge-fixed">10 min</span></td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>Clean stale build tags from <code>.golangci.yml</code> (goroutineleakprofile, runtimesecret, simd)</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td><span class="badge badge-fixed">10 min</span></td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td>Pebble + projectionhost integration test (close the transitively-guaranteed gap)</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td><span class="badge badge-low">1h</span></td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td>Delete stale remote <code>testing/v3.3.0</code> tag (needs user approval)</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td><span class="badge badge-fixed">5 min</span></td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td>eventtest nested-module ADR (document the <code>-e</code> workaround)</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td><span class="badge badge-low">1h</span></td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td>Pebble-backed <code>TimerStore</code> for scheduling (durable deadlines)</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td><span class="badge badge-medium">2-3h</span></td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td><code>stack/projectionhost</code> preset (bundle host + checkpoint + DLQ)</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td><span class="badge badge-medium">2h</span></td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td>Surface Pebble <code>Checkpoint()</code> backup from stack presets</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td><span class="badge badge-low">1h</span></td>
+            </tr>
+            <tr>
+              <td>13</td>
+              <td>Surface <code>GracefulClose()</code> from stack presets</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td><span class="badge badge-low">1h</span></td>
+            </tr>
+            <tr>
+              <td>14</td>
+              <td>Add <code>go mod tidy --check</code> to CI (catch stale deps early)</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td><span class="badge badge-low">1h</span></td>
+            </tr>
+            <tr>
+              <td>15</td>
+              <td>Neo4j/Memgraph graph driver (<code>graph/neo4j/</code> sibling module)</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td><span class="badge badge-high">1 day</span></td>
+            </tr>
+            <tr>
+              <td>16</td>
+              <td>PostgreSQL testcontainers for real-PG CI testing</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td><span class="badge badge-medium">3h</span></td>
+            </tr>
+            <tr>
+              <td>17</td>
+              <td>Documentation site (Docusaurus/MkDocs/Hugo)</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td><span class="badge badge-high">1 day</span></td>
+            </tr>
+            <tr>
+              <td>18</td>
+              <td>Hot-State cache for decider (<code>RepositoryOption[State]</code>) — profile first</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge badge-high">1 day</span></td>
+            </tr>
+            <tr>
+              <td>19</td>
+              <td>Read-pressure snapshot strategy</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge badge-medium">3h</span></td>
+            </tr>
+            <tr>
+              <td>20</td>
+              <td>Event stream compaction / log truncation strategies</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge badge-high">1 day+</span></td>
+            </tr>
+            <tr>
+              <td>21</td>
+              <td>CQRS dashboard (web UI for inspecting aggregates/events/projections)</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge badge-high">1 day+</span></td>
+            </tr>
+            <tr>
+              <td>22</td>
+              <td>Multi-tenant event store (schema-per-tenant)</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge badge-high">1 day+</span></td>
+            </tr>
+            <tr>
+              <td>23</td>
+              <td>Automatic migration generator for schema evolution</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge badge-high">1 day+</span></td>
+            </tr>
+            <tr>
+              <td>24</td>
+              <td>jsonv2 codec experiment — pending Go stdlib stabilization</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge badge-low">Blocked</span></td>
+            </tr>
+            <tr>
+              <td>25</td>
+              <td>Arena allocation experiment — pending Go stdlib stabilization</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge badge-low">Blocked</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- ============ QUESTION ============ -->
+        <h2 id="question"><span class="num">07</span>#1 Question I Cannot Figure Out</h2>
+
+        <div class="card card-problem">
+          <h4>Should the projectionhost DLQ and the middleware DLQ be unified into a single dead-letter abstraction?</h4>
+          <p><strong>The tension:</strong> There are now two dead-letter stores in the library:</p>
+          <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+            <li><code>middleware.SQLDeadLetterStore</code> / <code>MemoryDeadLetterStore</code> — dispatch-tier, used by <code>RetryConfig.OnDeadLetter</code>, handler-based API</li>
+            <li><code>projectionhost.DeadLetterStore</code> / <code>MemoryDeadLetterStore</code> — projection-tier, used by the projection host, entry-based API with <code>ReplayDeadLetters</code></li>
+          </ul>
+          <p>ADR-0043 decided "keep them separate (option C)" because dispatch and projection lifecycles are genuinely different. But every time I look at this, I see two stores with 80% overlapping fields (<code>ProjectionName</code>/<code>HandlerName</code>, <code>EventType</code>, <code>Error</code>, <code>Event</code>, <code>Reason</code>) and a consumer who will eventually ask "why do I have two DLQ tables?"</p>
+          <p><strong>Why I can't resolve this:</strong> Unifying them risks conflating two genuinely different retry semantics (per-message dispatch retry vs. per-projection-position replay). Keeping them separate risks the "split brain" anti-pattern the brutal self-review flagged. This is a domain-modeling decision that depends on how consumers actually use both tiers in practice — and we don't have enough real consumers yet to know. It needs a deliberate architectural decision, not an autonomous one.</p>
+        </div>
+
+        <footer class="footer">
+          Generated 2026-06-29 04:55 CEST &middot; All claims verified against source code &middot; Build green, vet green, tests green, lint 0 issues &middot; v3.4.0 tagged
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>
