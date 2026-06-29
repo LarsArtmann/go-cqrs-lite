@@ -142,9 +142,12 @@ func (s *Scheduler[P]) dispatchWithRetry(ctx context.Context, timer Timer[P]) er
 
 		// Don't sleep after the final attempt.
 		if attempt < s.opts.maxRetries-1 {
-			// Exponential backoff with full jitter between retries.
+			// Equal jitter: guaranteed minimum of cap/2, plus random up to cap/2.
+			// Better than full jitter for per-message retries where a guaranteed
+			// minimum delay gives the downstream a real window to recover.
 			exp := s.opts.retryDelay * time.Duration(1<<uint(attempt))
-			delay := time.Duration(rand.Int64N(int64(exp) + 1))
+			half := int64(exp) / 2
+			delay := time.Duration(half + rand.Int64N(half+1))
 
 			select {
 			case <-ctx.Done():

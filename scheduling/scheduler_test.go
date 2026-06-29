@@ -177,6 +177,60 @@ func waitFor(t *testing.T, timeout time.Duration, cond func() bool) {
 	}
 }
 
+func TestScheduler_RetryDelayIsRespected(t *testing.T) {
+	t.Parallel()
+	store := scheduling.NewMemoryTimerStore[string]()
+	ctx := context.Background()
+
+	store.Schedule(ctx, scheduling.Timer[string]{
+		ID:      "delay-test",
+		FireAt:  time.Now().Add(-1 * time.Second),
+		Payload: "will-succeed-on-retry",
+	})
+
+	const retryDelay = 50 * time.Millisecond
+
+	var (
+		attempts atomic.Int64
+		firstAt  atomic.Int64 // unix-nano of first attempt
+		secondAt atomic.Int64 // unix-nano of second attempt
+	)
+
+	sched := scheduling.New[string](
+		store,
+		func(_ context.Context, _ scheduling.Timer[string]) error {
+			n := attempts.Add(1)
+			now := time.Now().UnixNano()
+			if n == 1 {
+				firstAt.Store(now)
+
+				return errFail
+			}
+			if n == 2 {
+				secondAt.Store(now)
+			}
+
+			return nil
+		},
+		scheduling.WithPollInterval(10*time.Millisecond),
+		scheduling.WithMaxRetries(3),
+		scheduling.WithRetryDelay(retryDelay),
+	)
+
+	runCtx, cancel := context.WithCancel(ctx)
+	go sched.Start(runCtx)
+
+	waitFor(t, 2*time.Second, func() bool { return attempts.Load() >= 2 })
+	cancel()
+
+	elapsed := time.Duration(secondAt.Load() - firstAt.Load())
+	// Equal jitter guarantees a minimum delay of cap/2 = 25ms for retryDelay=50ms.
+	minExpected := retryDelay / 2
+	if elapsed < minExpected {
+		t.Fatalf("retry delay not respected: elapsed %v < expected min %v", elapsed, minExpected)
+	}
+}
+
 func TestScheduler_WithLoggerIsUsed(t *testing.T) {
 	t.Parallel()
 	store := scheduling.NewMemoryTimerStore[string]()

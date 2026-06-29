@@ -240,15 +240,15 @@ func (w *worker) applyWithRetry(ctx context.Context, evt event.Event) error {
 
 		// Don't sleep after the final attempt — let the caller decide DLQ.
 		if attempt < w.opts.dlqThreshold-1 {
-			// Exponential backoff with full jitter between retries. Without
-			// this, a transient handler failure (DB blip) retries instantly
-			// and almost certainly fails again because nothing recovered in
-			// microseconds. Reuses the same backoff params as the restart path.
+			// Equal jitter: guaranteed minimum of cap/2, plus random up to cap/2.
+			// Gives the downstream a real recovery window between per-event
+			// retries. Reuses the same backoff params as the restart path.
 			exp := min(
 				w.opts.backoffInitial*time.Duration(1<<uint(attempt)),
 				w.opts.backoffMax,
 			)
-			delay := time.Duration(rand.Int64N(int64(exp) + 1))
+			half := int64(exp) / 2
+			delay := time.Duration(half + rand.Int64N(half+1))
 
 			select {
 			case <-ctx.Done():
