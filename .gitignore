@@ -94,3 +94,35 @@ graph/testdata/rapid/
 
 # doc-check binary (cmd/doc-check/doc-check)
 /cmd/doc-check/doc-check
+
+# >>> buildflow-managed (.gitignore) >>>
+# Auto-managed by buildflow. Edit outside these markers; this block is regenerated on `buildflow --fix`.
+
+## Secrets and environment
+*.pem
+*.key
+
+## Operating systems
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+## Reports and coverage
+reports/
+
+## Go
+go.work
+
+## Nix
+.envrc
+
+## Javascript and typescript
+dist/
+build/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+# <<< buildflow-managed (.gitignore) <<<

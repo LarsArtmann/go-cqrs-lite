@@ -3,6 +3,7 @@ package projectionhost
 import (
 	"context"
 	"errors"
+	"slices"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -96,10 +97,10 @@ func (w *worker) run(ctx context.Context, wg *sync.WaitGroup) {
 			return
 		}
 
-		backoff := w.opts.backoffInitial * time.Duration(1<<uint(restartCount-1))
-		if backoff > w.opts.backoffMax {
-			backoff = w.opts.backoffMax
-		}
+		backoff := min(
+			w.opts.backoffInitial*time.Duration(1<<uint(restartCount-1)),
+			w.opts.backoffMax,
+		)
 
 		w.setStatus(WorkerBackoff)
 
@@ -197,13 +198,8 @@ func (w *worker) shouldHandle(evt event.Event) bool {
 	}
 
 	evtType := evt.Type()
-	for _, t := range types {
-		if t == evtType {
-			return true
-		}
-	}
 
-	return false
+	return slices.Contains(types, evtType)
 }
 
 func (w *worker) applyWithRetry(ctx context.Context, evt event.Event) error {
