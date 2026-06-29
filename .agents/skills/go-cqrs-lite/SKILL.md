@@ -2,6 +2,8 @@
 name: go-cqrs-lite
 description: Build Go applications with go-cqrs-lite — the composable CQRS + Event Sourcing library (event-sourced aggregates, deciders, projections, read models, SQL/Pebble/Turso storage, snapshots, schema evolution, signing, encryption, scheduling, deriver sagas, graph projections, catalog docs). Use this skill whenever a project imports any github.com/larsartmann/go-cqrs-lite/*/v3 module, OR the user asks how to build CQRS/event-sourcing systems in Go, dispatch commands/queries, build read models or projections, use event stores or buses, or work with any go-cqrs-lite module (event, command, query, decider, id, codec, storage, stack, kv, listing, projection, projectionhost, schema, signing, encryption, middleware, otel, catalog, watermill, scheduling, deriver, graph, prometheus, scenario) — even when the user does NOT name the library explicitly (e.g. "set up event sourcing", "build a read model", "dispatch a command", "snapshot an aggregate", "replay events", "idempotent commands", "soft-delete aggregate", "project events to SQL").
 user-invocable: true
+metadata:
+  tags: cqrs, event-sourcing, go, decider, projection, read-model, event-store, domain-driven-design
 ---
 
 # go-cqrs-lite — AI Consumer Guide
@@ -14,11 +16,14 @@ This core file holds the mental model, the module decision matrix, the critical 
 
 | You need…                                                                                                                                                             | Read                                                    |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| Copy-paste composition recipes (event-sourcing setup, persistence, read models, snapshots, signing, encryption, observability, auto-docs)                             | [`references/recipes.md`](references/recipes.md) (§2)   |
+| Copy-paste composition recipes (event-sourcing setup, persistence, snapshots, signing, encryption, observability, auto-docs)                                          | [`references/recipes.md`](references/recipes.md) (§2)   |
+| Read models: projections, SQL-backed views, CatchUpSubscriber, projection-tier selection (KV vs Relational vs Graph)                                                  | [`references/readmodels.md`](references/readmodels.md)  |
 | The full per-module reference table (imports + one-liners for all 28 modules)                                                                                         | [`references/modules.md`](references/modules.md) (§5)   |
 | Advanced patterns (tombstone, persistence/audit, listing, watermill, turso, cqrs-gen, gRPC, projectionhost, scenario-testing, scheduling, deriver, graph, prometheus) | [`references/advanced.md`](references/advanced.md) (§6) |
 
 **Rule of thumb:** start with §1 (decision matrix) below to pick the right modules, then jump to the matching recipe in `references/recipes.md`.
+
+> **Versioning:** recipes and imports target **go-cqrs-lite v3.x** (the current major line). All import paths use the `/v3` suffix, e.g. `github.com/larsartmann/go-cqrs-lite/event/v3`. The skill is kept in sync with the library via `cmd/doc-check`, which verifies every Go import path and qualified symbol against the actual source — so if the code compiles and doc-check passes, the recipes are accurate.
 
 ---
 
@@ -53,45 +58,45 @@ You do NOT need all of them. Start with the minimal recipe (§2), then bolt on c
 
 ## 1. Module Decision Matrix — "I want to…"
 
-| If you want to…                                       | Use                                                                             | See recipe     |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------- | -------------- |
-| Create/store/load events                              | `event`                                                                         | recipes §2.1   |
-| Dispatch type-safe commands                           | `command`                                                                       | recipes §2.1   |
-| Run an event-sourced aggregate                        | `decider`                                                                       | recipes §2.1   |
-| Generate unique, type-safe IDs                        | `id`                                                                            | recipes §2.1   |
-| Encode payloads as JSON/CBOR                          | `codec`                                                                         | recipes §2.1   |
-| Build a read model from events                        | `stack.Materialize` + `kv.TypedStore`                                           | recipes §2.3   |
-| Dispatch type-safe queries                            | `query`                                                                         | recipes §2.3   |
-| List all aggregates + their status                    | `listing`                                                                       | advanced §6.3  |
-| Persist to PostgreSQL / SQLite                        | `storage`                                                                       | recipes §2.2   |
-| Persist to embedded PebbleDB                          | `storage/pebble`                                                                | recipes §2.2   |
-| Offline-first sync via LibSQL                         | `storage/turso`                                                                 | advanced §6.5  |
-| Generic key-value abstraction                         | `kv`                                                                            | advanced §6.6  |
-| Snapshot aggregates for speed                         | `snapshot`                                                                      | recipes §2.4   |
-| Evolve event schemas over time                        | `schema`                                                                        | recipes §2.5   |
-| Make event streams tamper-proof                       | `signing`                                                                       | recipes §2.6   |
-| Encrypt confidential payloads                         | `encryption`                                                                    | recipes §2.7   |
-| Add logging/retry/recovery/circuit-breaker            | `middleware`                                                                    | recipes §2.8   |
-| Deduplicate commands on retry (idempotency)           | `idempotency`                                                                   | recipes §2.8   |
-| Add OpenTelemetry tracing/metrics                     | `otel` + `middleware`                                                           | recipes §2.8   |
-| Auto-generate AsyncAPI/OpenAPI/EventCatalog/D2 docs   | `catalog`                                                                       | recipes §2.9   |
-| Soft-delete aggregates without data loss              | `event` (tombstone metadata)                                                    | advanced §6.1  |
-| Generate typed handler boilerplate                    | `cmd/cqrs-gen`                                                                  | advanced §6.7  |
-| Publish events to Watermill router                    | `watermill`                                                                     | advanced §6.4  |
-| Dispatch commands/queries over gRPC                   | `transport/grpc`                                                                | advanced §6.8  |
-| Verify doc code references compile                    | `cmd/doc-check`                                                                 | modules §5     |
-| In-memory command bus (typed pub/sub)                 | `command` (`NewMemoryBus`)                                                      | recipes §2.1   |
-| In-memory implementations for tests/dev               | `memory`                                                                        | recipes §2.1   |
-| One-call infrastructure wiring (Bundle presets)       | `stack/memory`, `stack/sqlite`, `stack/pebble`, `stack/postgres`, `stack/turso` | recipes §2.0   |
-| Typed read-model store over KV backend                | `kv.TypedStore`                                                                 | recipes §2.0   |
-| Cache decorator for read models                       | `kv.Cache`                                                                      | recipes §2.0   |
-| Run projections with crash-restart + checkpoint + DLQ | `projectionhost`                                                                | advanced §6.9  |
-| Test deciders/projections with Given/When/Then        | `scenario`                                                                      | advanced §6.10 |
-| Schedule delayed commands / durable deadlines         | `scheduling`                                                                    | advanced §6.11 |
-| Dead-letter failed dispatches (retry exhaustion)      | `middleware` (DLQ)                                                              | recipes §2.8   |
-| Derive commands reactively from events                | `deriver`                                                                       | advanced §6.12 |
-| Build graph/traversal read models (nodes + edges)     | `graph`                                                                         | advanced §6.13 |
-| Expose CQRS metrics via Prometheus `/metrics`         | `prometheus`                                                                    | advanced §6.14 |
+| If you want to…                                       | Use                                                                             | See recipe      |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------- | --------------- |
+| Create/store/load events                              | `event`                                                                         | recipes §2.1    |
+| Dispatch type-safe commands                           | `command`                                                                       | recipes §2.1    |
+| Run an event-sourced aggregate                        | `decider`                                                                       | recipes §2.1    |
+| Generate unique, type-safe IDs                        | `id`                                                                            | recipes §2.1    |
+| Encode payloads as JSON/CBOR                          | `codec`                                                                         | recipes §2.1    |
+| Build a read model from events                        | `stack.Materialize` + `kv.TypedStore`                                           | readmodels §2.3 |
+| Dispatch type-safe queries                            | `query`                                                                         | readmodels §2.3 |
+| List all aggregates + their status                    | `listing`                                                                       | advanced §6.3   |
+| Persist to PostgreSQL / SQLite                        | `storage`                                                                       | recipes §2.2    |
+| Persist to embedded PebbleDB                          | `storage/pebble`                                                                | recipes §2.2    |
+| Offline-first sync via LibSQL                         | `storage/turso`                                                                 | advanced §6.5   |
+| Generic key-value abstraction                         | `kv`                                                                            | advanced §6.6   |
+| Snapshot aggregates for speed                         | `snapshot`                                                                      | recipes §2.4    |
+| Evolve event schemas over time                        | `schema`                                                                        | recipes §2.5    |
+| Make event streams tamper-proof                       | `signing`                                                                       | recipes §2.6    |
+| Encrypt confidential payloads                         | `encryption`                                                                    | recipes §2.7    |
+| Add logging/retry/recovery/circuit-breaker            | `middleware`                                                                    | recipes §2.8    |
+| Deduplicate commands on retry (idempotency)           | `idempotency`                                                                   | recipes §2.8    |
+| Add OpenTelemetry tracing/metrics                     | `otel` + `middleware`                                                           | recipes §2.8    |
+| Auto-generate AsyncAPI/OpenAPI/EventCatalog/D2 docs   | `catalog`                                                                       | recipes §2.9    |
+| Soft-delete aggregates without data loss              | `event` (tombstone metadata)                                                    | advanced §6.1   |
+| Generate typed handler boilerplate                    | `cmd/cqrs-gen`                                                                  | advanced §6.7   |
+| Publish events to Watermill router                    | `watermill`                                                                     | advanced §6.4   |
+| Dispatch commands/queries over gRPC                   | `transport/grpc`                                                                | advanced §6.8   |
+| Verify doc code references compile                    | `cmd/doc-check`                                                                 | modules §5      |
+| In-memory command bus (typed pub/sub)                 | `command` (`NewMemoryBus`)                                                      | recipes §2.1    |
+| In-memory implementations for tests/dev               | `memory`                                                                        | recipes §2.1    |
+| One-call infrastructure wiring (Bundle presets)       | `stack/memory`, `stack/sqlite`, `stack/pebble`, `stack/postgres`, `stack/turso` | recipes §2.0    |
+| Typed read-model store over KV backend                | `kv.TypedStore`                                                                 | recipes §2.0    |
+| Cache decorator for read models                       | `kv.Cache`                                                                      | recipes §2.0    |
+| Run projections with crash-restart + checkpoint + DLQ | `projectionhost`                                                                | advanced §6.9   |
+| Test deciders/projections with Given/When/Then        | `scenario`                                                                      | advanced §6.10  |
+| Schedule delayed commands / durable deadlines         | `scheduling`                                                                    | advanced §6.11  |
+| Dead-letter failed dispatches (retry exhaustion)      | `middleware` (DLQ)                                                              | recipes §2.8    |
+| Derive commands reactively from events                | `deriver`                                                                       | advanced §6.12  |
+| Build graph/traversal read models (nodes + edges)     | `graph`                                                                         | advanced §6.13  |
+| Expose CQRS metrics via Prometheus `/metrics`         | `prometheus`                                                                    | advanced §6.14  |
 
 ---
 
@@ -237,17 +242,18 @@ Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability, cmd
 
 ## 10. Where to Find More
 
-| Need                    | Source                                                         |
-| ----------------------- | -------------------------------------------------------------- |
-| Per-module API details  | Each module's `README.md` and `doc.go` (renders on pkg.go.dev) |
-| Architectural decisions | `docs/adr/` (23 ADRs)                                          |
-| Storage deep-dive       | `docs/STORAGE_GUIDE.md`                                        |
-| Error system            | `docs/error-taxonomy.md`                                       |
-| Signing internals       | `docs/signing-architecture.md`                                 |
-| Domain glossary         | `docs/DOMAIN_LANGUAGE.md`                                      |
-| Migration guides        | `docs/MIGRATION.md`, `docs/MIGRATION_v1.md`                    |
-| Feature inventory       | `FEATURES.md`                                                  |
-| Contributor guide       | `AGENTS.md` (in repo)                                          |
+| Need                    | Source                                                                                                                                                                             |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Per-module API details  | Each module's `README.md` and `doc.go` (renders on pkg.go.dev)                                                                                                                     |
+| Architectural decisions | `docs/adr/` (23 ADRs)                                                                                                                                                              |
+| Storage deep-dive       | `docs/STORAGE_GUIDE.md`                                                                                                                                                            |
+| Error system            | `docs/error-taxonomy.md`                                                                                                                                                           |
+| Signing internals       | `docs/signing-architecture.md`                                                                                                                                                     |
+| Domain glossary         | `docs/DOMAIN_LANGUAGE.md`                                                                                                                                                          |
+| Migration guides        | `docs/MIGRATION.md`, `docs/MIGRATION_v1.md`                                                                                                                                        |
+| Feature inventory       | `FEATURES.md`                                                                                                                                                                      |
+| Contributor guide       | `AGENTS.md` (in repo)                                                                                                                                                              |
+| HTTP/HTMX integration   | [`cqrs-htmx`](https://github.com/LarsArtmann/cqrs-htmx) — wires this library's dispatch into `net/http` with HTMX/SSE/WebSocket. Has its own Crush skill for HTTP-layer questions. |
 
 ---
 
@@ -387,3 +393,15 @@ reg := catalog.NewRegistry()
 // Correct
 reg := catalog.NewRegistry("My API", "1.0.0")
 ```
+
+---
+
+## 13. About This Skill
+
+**Structure.** This core file (under 500 lines) holds the decision-making and lookup material that's needed on every trigger. Long copy-paste recipes, the read-models deep-dive, the full module table, and advanced patterns live in `references/` and load **on demand** — keeping the per-trigger context cost ~65% lower than a single monolith (measured: ~5.7k tokens core vs ~16.5k for the old single-file form).
+
+**Why §7 (Testing) and §9 (Examples) live in core, not a reference.** Both are short lookup tables, not decision-making, but they answer the two most common follow-up questions after a consumer picks a recipe ("how do I test this?" and "is there a working example?"). Moving them to a reference would add a round-trip for near-zero context savings (together <50 lines). They stay in core.
+
+**Visual style.** This skill is markdown-only (no themed HTML variant). An editorial-light or dashboard-dark rendered variant was considered and **deliberately skipped**: the skill is consumed by AI agents in plain text, where styling adds overhead without benefit. Consumers who want a styled overview can read the status reports in `docs/status/`.
+
+**Provenance.** Restructured 2026-06-29 from a 1377-line monolith into this progressive-disclosure layout. Full rationale and before/after metrics: `docs/status/2026-06-29_18-17_SKILL-RESTRUCTURE-STATUS.html`. Every Go import path and qualified symbol here is verified by `cmd/doc-check` in CI.

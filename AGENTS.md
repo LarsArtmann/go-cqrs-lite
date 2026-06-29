@@ -91,6 +91,22 @@ go-cqrs-lite/
 └── docs/                # Status reports, ADRs, architecture patterns, storage guide
 ```
 
+## AI Skill (Crush)
+
+The repo ships a [Crush](https://github.com/crush) skill at `.agents/skills/go-cqrs-lite/` — the **single source of truth for AI consumers** of this library. It replaces the need to read 28 module READMEs.
+
+- **`SKILL.md`** (root, a symlink to `.agents/skills/go-cqrs-lite/SKILL.md`) — keeps all existing doc links working.
+- **Core skill** (`<400 lines`): mental model, module decision matrix, conventions, anti-patterns, cheat sheet, FAQ. Loaded on every trigger.
+- **`references/`** — loaded on demand: `recipes.md` (composition), `readmodels.md` (projections/SQL views), `advanced.md` (14 advanced patterns), `modules.md` (per-module table).
+
+**Global availability:** the skill is symlinked into `~/.config/crush/skills/go-cqrs-lite` (reproducibly, via the `flake.nix` devShell `shellHook`) so it triggers from any consumer project, not just inside this repo.
+
+**Contributing:** edit the `.md` files under `.agents/skills/go-cqrs-lite/`, then run `cmd/doc-check` to verify every Go import path + qualified symbol is still valid:
+
+```bash
+cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md
+```
+
 ## Design Principles
 
 1. **Library, not framework** — Consumers import what they need. No opinionated transport, broker, or SQL driver.
@@ -413,7 +429,7 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //           }
 //           return nil  // all writes commit atomically; error → full rollback
 //       }, []event.Type{"MESSAGE_CREATED"})
-//   // proj implements event.Projection → register with any projection runner.
+//   // proj implements projection.Projection → register with any projection runner.
 //
 //   // Read side: dialect-agnostic queries (replaces hand-written SQL).
 //   reader, _ := storage.NewRelationalStore(schema, db, sqlpkg.SQLiteDialect{})

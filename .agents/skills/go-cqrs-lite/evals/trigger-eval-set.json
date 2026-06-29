@@ -1,0 +1,82 @@
+[
+  {
+    "query": "I'm setting up a new Go service for order processing and I want each order state change (created, paid, shipped, cancelled, refunded) persisted as an immutable event so I have a full audit trail and can rebuild state. How should I structure the aggregate — decider with fold + decide functions, an event store, and command dispatch? I'm using Postgres.",
+    "should_trigger": true
+  },
+  {
+    "query": "my event-sourced aggregate has like 80k events for some entities and load-on-every-command takes 300ms, can I snapshot it so loading is fast? using the decider repository pattern in Go",
+    "should_trigger": true
+  },
+  {
+    "query": "how do I build a paginated, filterable read model from my event stream in Go? I need a dashboard of current account balances with server-side filtering on tenant_id and currency, sqlite in dev and postgres in prod",
+    "should_trigger": true
+  },
+  {
+    "query": "I changed my UserRegistered event payload last quarter but old events in the store still have the old shape. Is there a way to transform old events on read without rewriting history? go project",
+    "should_trigger": true
+  },
+  {
+    "query": "set up event sourcing",
+    "should_trigger": true
+  },
+  {
+    "query": "We want tamper-proof event streams — cryptographically sign events so we can detect if anyone tampered with the store. Also need to encrypt sensitive payloads at rest. Go backend, CQRS architecture.",
+    "should_trigger": true
+  },
+  {
+    "query": "how do I soft-delete an aggregate but keep its history, and then potentially restore it later? event sourcing in Go, want a tombstone approach",
+    "should_trigger": true
+  },
+  {
+    "query": "I need to generate typed command/query handler boilerplate from my Go structs instead of writing the registration by hand every time",
+    "should_trigger": true
+  },
+  {
+    "query": "dispatch a command idempotently so retries on network failure don't double-execute it, Go CQRS service",
+    "should_trigger": true
+  },
+  {
+    "query": "we have a multi-process deployment and need our event bus to publish across instances via Postgres LISTEN/NOTIFY or NATS, how do I wire that in our Go event-sourced system",
+    "should_trigger": true
+  },
+  {
+    "query": "write me a fibonacci function in Go",
+    "should_trigger": false
+  },
+  {
+    "query": "I want to add JWT authentication middleware to my Gin router, can you show me how to verify tokens and put the user in context",
+    "should_trigger": false
+  },
+  {
+    "query": "help me write a SQL migration to add a nullable phone_number column to my users table in Postgres",
+    "should_trigger": false
+  },
+  {
+    "query": "my React component re-renders too often, how do I use useMemo and useCallback to prevent unnecessary renders when props don't change",
+    "should_trigger": false
+  },
+  {
+    "query": "set up Prometheus metrics for my Go HTTP server using prometheus/client_golang, track request latency and error rate",
+    "should_trigger": false
+  },
+  {
+    "query": "I'm using GORM in Go and want to do a soft delete with a deleted_at timestamp column, how does the gorm.DeletedAt field work",
+    "should_trigger": false
+  },
+  {
+    "query": "explain the difference between CRDT and event sourcing for collaborative editing, which should I use for a real-time doc editor",
+    "should_trigger": false
+  },
+  {
+    "query": "how do I configure nginx as a reverse proxy with TLS termination in front of my Go web app",
+    "should_trigger": false
+  },
+  {
+    "query": "I want to unit test my Go function that reads a config file, how do I mock the filesystem",
+    "should_trigger": false
+  },
+  {
+    "query": "add a Redis cache to my Go service using go-redis, with a TTL of 5 minutes on the cached user profile objects",
+    "should_trigger": false
+  }
+]

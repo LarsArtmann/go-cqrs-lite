@@ -145,6 +145,11 @@
 
             shellHook = ''
               echo "go-cqrs-lite dev shell — $(go version)"
+              # Make the Crush skill globally available so AI assistants trigger it
+              # from any consumer project, not just inside this repo. Idempotent & non-destructive.
+              if [ -d "''${HOME:-}/.config/crush/skills" ]; then
+                ln -sfn "${inputs.self}/.agents/skills/go-cqrs-lite" "$HOME/.config/crush/skills/go-cqrs-lite"
+              fi
             '';
           };
 

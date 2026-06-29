@@ -42,9 +42,17 @@ type ref struct {
 func main() {
 	files := os.Args[1:]
 	if len(files) == 0 {
-		files = []string{"SKILL.md", "AGENTS.md"}
+		// Auto-discover from the repo root so the tool works regardless of CWD
+		// (cmd/doc-check is its own module, so it's often run from inside cmd/doc-check/).
+		root := findRepoRoot()
+		files = []string{
+			filepath.Join(root, "SKILL.md"),
+			filepath.Join(root, "AGENTS.md"),
+		}
 		// Auto-discover skill reference files so split SKILL.md content stays checked.
-		if refFiles, err := filepath.Glob(".agents/skills/*/references/*.md"); err == nil {
+		if refFiles, err := filepath.Glob(
+			filepath.Join(root, ".agents/skills/*/references/*.md"),
+		); err == nil {
 			files = append(files, refFiles...)
 		}
 	}
@@ -96,6 +104,34 @@ func main() {
 		"✓ All %d references valid across %d package(s).",
 		len(allRefs), len(exportIndex),
 	)
+}
+
+// findRepoRoot walks up from the working directory to the nearest directory
+// containing a .git marker. Falls back to "." if none is found.
+func findRepoRoot() string {
+	dir, err := os.Getwd()
+	if err != nil {
+		return "."
+	}
+
+	for {
+		if info, err := os.Stat(filepath.Join(dir, ".git")); err == nil && info.IsDir() {
+			return dir
+		}
+		// .git can also be a file (worktrees); accept either.
+		if _, err := os.Stat(filepath.Join(dir, ".git")); err == nil {
+			return dir
+		}
+
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			break
+		}
+
+		dir = parent
+	}
+
+	return "."
 }
 
 var (

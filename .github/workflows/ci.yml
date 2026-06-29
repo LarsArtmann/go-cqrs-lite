@@ -36,7 +36,8 @@ jobs:
         run: nix run .#lint
 
       - name: Doc cross-reference check
-        run: cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md
+        run: cd cmd/doc-check && GOWORK=off go run .
+        # No explicit args needed: auto-discovers repo root + all .agents/skills/*/references/*.md
 
       - name: Generate coverage
         run: nix run .#coverage
@@ -386,3 +387,58 @@ jobs:
           TURSO_SYNC_TOKEN: ${{ secrets.TURSO_SYNC_TOKEN }}
         run: |
           cd stack/turso && GOWORK=off go test -v -count=1 -run TestNewSync ./...
+
+  skill-health:
+    name: Skill Health (frontmatter + line-count + TOC)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate Crush skill structure
+        run: |
+          set -e
+          failed=false
+          for skill_md in .agents/skills/*/SKILL.md; do
+            skill_dir=$(dirname "$skill_md")
+            skill_name=$(basename "$skill_dir")
+            echo "==> Checking skill: $skill_name"
+
+            # 1. YAML frontmatter present and well-formed (starts/ends with ---).
+            head -1 "$skill_md" | grep -qx -- '---' || {
+              echo "::error::$skill_md: missing YAML frontmatter opening ---"; failed=true; continue; }
+            awk 'NR>1 && /^---$/{found=1; exit} END{ if(!found){ print "::error::'"$skill_md"': missing YAML frontmatter closing ---" > "/dev/stderr"; exit 1 } }' "$skill_md" || { failed=true; continue; }
+
+            # 2. Required fields: name + description.
+            frontmatter=$(awk 'NR==1{next} /^---$/{exit} {print}' "$skill_md")
+            echo "$frontmatter" | grep -qE '^name:' || { echo "::error::$skill_md: missing 'name:' field"; failed=true; }
+            echo "$frontmatter" | grep -qE '^description:' || { echo "::error::$skill_md: missing 'description:' field"; failed=true; }
+            desc_len=$(echo "$frontmatter" | grep -E '^description:' | wc -c)
+            [ "$desc_len" -lt 40 ] && { echo "::error::$skill_md: description too short (${desc_len} chars) — must be a real trigger"; failed=true; }
+
+            # 3. Core SKILL.md should stay under 500 lines (skill-creator guideline).
+            lines=$(wc -l < "$skill_md")
+            if [ "$lines" -gt 500 ]; then
+              echo "::error::$skill_md: ${lines} lines exceeds 500-line core guideline (split into references/)"
+              failed=true
+            fi
+            echo "   core: ${lines} lines"
+          done
+
+          # 4. Reference files over 300 lines must include a table of contents.
+          for ref in .agents/skills/*/references/*.md; do
+            [ -f "$ref" ] || continue
+            lines=$(wc -l < "$ref")
+            if [ "$lines" -gt 300 ]; then
+              grep -qiE '\*\*Contents|## (Contents|Table of Contents)|^- \[' "$ref" || {
+                echo "::error::$ref: ${lines} lines but no table of contents (>300-line guideline)"
+                failed=true
+              }
+            fi
+            echo "   ref $(basename "$ref"): ${lines} lines"
+          done
+
+          if [ "$failed" = true ]; then
+            echo "::error::Skill health checks failed"
+            exit 1
+          fi
+          echo "✓ All skill health checks passed"

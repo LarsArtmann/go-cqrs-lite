@@ -1,0 +1,28 @@
+{
+  "skill_name": "go-cqrs-lite",
+  "version": "1.0",
+  "notes": "Behavioral evals for the go-cqrs-lite skill. Run with-skill vs baseline (no skill) using the skill-creator workflow. The `claude` CLI is required to actually execute these — currently blocked (no claude CLI in this environment). Prompts are designed to test whether the skill routes the consumer to the correct recipe/reference rather than guessing from training data.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "event-sourcing-setup",
+      "prompt": "I'm building an inventory service in Go where I need to track stock levels for SKUs across warehouses. Each stock change (received, shipped, adjusted, transferred) must be an immutable audit record so finance can replay history. I want to use event sourcing. My aggregate is a StockItem identified by SKU+warehouse. How do I wire up the decider, command dispatch, and event store? Show me the imports and the minimal wiring so I can persist events and rebuild state.",
+      "expected_output": "Points to the decider pattern: event-sourced aggregate using event/command/decider/id modules. Shows the fold function reconstructing state from events, the decide function returning events from commands, and a Repository (decider.Repository) wrapping an event store + bus. References recipes.md §2.1 (Minimal Event Sourcing) or §2.0 (Bundle Presets). Imports use github.com/larsartmann/go-cqrs-lite/{event,command,decider,id}/v3.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "read-model-projection",
+      "prompt": "ok so my event-sourced aggregate works but now I need a dashboard showing current stock-on-hand per warehouse, filterable and paginated. I don't want to replay the whole event stream on every page load. What's the go-cqrs-lite way to build a queryable read model from my events? I'm using SQLite in dev and Postgres in prod. Ideally I want server-side filtering on columns like warehouse_id and sku.",
+      "expected_output": "Routes to readmodels.md (the former recipes §2.3). Explains projections rebuild queryable state from the event stream. Shows either stack.Materialize + kv.TypedStore (KV tier) or storage.NewRelationalStore / SQL-backed views (relational tier with queryable columns + server-side filtering). Mentions CatchUpSubscriber for the canonical projection pattern, and the projection-tier selection (KV vs Relational vs Graph). Imports use projection/, query/, storage/, stack/.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "snapshot-schema-evolution",
+      "prompt": "Our User aggregate has accumulated ~50k events for some power users and loading them on every command is getting slow (200ms+). Also we changed our UserRegistered event payload last quarter and old events still have the old shape. How do I (a) add snapshots so loading is fast, and (b) handle the old event schema without rewriting history? Using go-cqrs-lite.",
+      "expected_output": "Addresses two recipes: snapshots (recipes §2.4) for performance — snapshot module wraps the event store, loads latest snapshot + events-after. And schema evolution (recipes §2.5) — upcasters/transformers that convert old event payloads to new shape on read. Mentions the snapshot/ and schema/ modules. Does NOT suggest rewriting/migrating historical events (schema evolution is read-time transformation).",
+      "files": []
+    }
+  ]
+}

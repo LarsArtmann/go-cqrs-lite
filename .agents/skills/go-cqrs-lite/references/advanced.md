@@ -1,5 +1,22 @@
 ## 6. Advanced Patterns
 
+> **Contents:**
+>
+> - [§6.1 Tombstone Soft-Delete & Rebirth](#61-tombstone-soft-delete--rebirth)
+> - [§6.2 Command & Query Persistence (audit trail)](#62-command--query-persistence-audit-trail)
+> - [§6.3 Aggregate Listing](#63-aggregate-listing-read-model-for-all-aggregates)
+> - [§6.4 Watermill Integration](#64-watermill-integration)
+> - [§6.5 Turso Offline-First](#65-turso-offline-first)
+> - [§6.6 Pebble as KV Store](#66-pebble-as-kv-store)
+> - [§6.7 Code Generation (cqrs-gen)](#67-code-generation-cqrs-gen)
+> - [§6.8 gRPC Transport](#68-grpc-transport-remote-commandquery-dispatch)
+> - [§6.9 Managed Projection Host](#69-managed-projection-host-crash-restart--checkpoint--dlq)
+> - [§6.10 Scenario-Testing DSL](#610-scenario-testing-dsl-givenwhenthen)
+> - [§6.11 Scheduled Commands / Durable Deadlines](#611-scheduled-commands--durable-deadlines)
+> - [§6.12 Reactive Command Derivation (deriver)](#612-reactive-command-derivation-deriver)
+> - [§6.13 Graph Projections](#613-graph-projections-graph)
+> - [§6.14 Prometheus Metrics Export](#614-prometheus-metrics-export-prometheus)
+
 ### 6.1 Tombstone Soft-Delete & Rebirth
 
 ```go
@@ -342,3 +359,16 @@ mux.Handle("/metrics", handler)
 // Custom registry (multi-tenant / shared)
 provider, handler, _ = prometheus.Setup(prometheus.WithRegistry(myRegistry))
 ```
+
+---
+
+## Common Mistakes (pitfalls when applying these patterns)
+
+These are the failure modes we see most often. Read them before reaching for an advanced pattern.
+
+- **Replaying the full journal on every restart.** If you use `bus.SubscribeAll` without a `CheckpointStore`, projections re-process the entire event history each boot. Pair it with a `SeekableJournal` + checkpoint so you resume from where you left off (see §6.9 Managed Projection Host).
+- **Snapshot without schema evolution.** A snapshot serializes state at a point in time. If your event payload shape changes, loading an old snapshot + replaying post-snapshot events can double-apply a transform or miss fields. Always run `schema.VersionedStore` **and** snapshot together — the upcaster runs on read, before the snapshot is applied.
+- **Signing after encryption.** If you sign the ciphertext, you can only detect tampering of the encrypted blob, not the original event. The correct order: sign the **plaintext** event, then encrypt. On read: decrypt first, then verify the signature. (recipes §2.6 + §2.7 document this ordering.)
+- **Using `deriver` for orchestration that needs compensation.** Derivers are deterministic event→command functions — great for fan-out (welcome email + CRM sync from `user.created`). They are NOT a replacement for a saga that must compensate on failure. If you need rollback semantics, model it as its own event-sourced aggregate.
+- **Forgetting that `graph` projections don't tombstone-mark.** The `listing/` tombstone-aware status model (advanced §6.3) works on the relational/KV tier. Graph projections need their own deletion handling in the projection handler — a soft-deleted aggregate won't auto-prune its edges.
+- **Treating `projectionhost` DeadLetterStore as permanent storage.** The in-memory DLQ is for crash-restart durability within a process. For multi-instance durability, back it with a SQL dead-letter store. Poison messages replay automatically on host restart unless explicitly acked.
