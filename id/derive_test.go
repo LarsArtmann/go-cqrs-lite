@@ -76,3 +76,71 @@ func TestAggregateIDFrom(t *testing.T) {
 		t.Errorf("got %q, want custom-domain-id-123", got.String())
 	}
 }
+
+func TestDeriveCommandID(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		a, b   id.CommandID
+		wantEq bool
+	}{
+		{
+			"deterministic",
+			id.DeriveCommandID("deriver", "evt-123", "0"),
+			id.DeriveCommandID("deriver", "evt-123", "0"),
+			true,
+		},
+		{
+			"different index",
+			id.DeriveCommandID("deriver", "evt-123", "0"),
+			id.DeriveCommandID("deriver", "evt-123", "1"),
+			false,
+		},
+		{
+			"different event",
+			id.DeriveCommandID("deriver", "evt-123", "0"),
+			id.DeriveCommandID("deriver", "evt-456", "0"),
+			false,
+		},
+		{
+			"different namespace",
+			id.DeriveCommandID("deriver", "evt-123"),
+			id.DeriveCommandID("saga", "evt-123"),
+			false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := tt.a == tt.b; got != tt.wantEq {
+				t.Errorf("a == b = %v, want %v", got, tt.wantEq)
+			}
+		})
+	}
+}
+
+func TestDeriveCommandID_IsValidULID(t *testing.T) {
+	t.Parallel()
+
+	got := id.DeriveCommandID("deriver", "evt-123", "0")
+
+	if got.IsZero() {
+		t.Fatal("derived command ID should not be zero")
+	}
+
+	// Derived CommandIDs are ULID-encoded (first 16 bytes of SHA-256 packed
+	// into a ulid.ULID), so the string form must be a parseable ULID.
+	parsed, err := id.ParseCommandID(got.String())
+	if err != nil {
+		t.Errorf(
+			"derived command ID %q should round-trip through ParseCommandID: %v",
+			got.String(),
+			err,
+		)
+	}
+
+	if parsed != got {
+		t.Errorf("round-trip mismatch: %v != %v", parsed, got)
+	}
+}

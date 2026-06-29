@@ -214,6 +214,125 @@ func TestDeriver_AsHandlerErrorPropagation(t *testing.T) {
 	}
 }
 
+func TestDeriver_Idempotent_DeterministicIDs(t *testing.T) {
+	t.Parallel()
+
+	aggID := id.NewAggregateID()
+
+	d := Deriver(func(_ context.Context, _ cqrsevent.Event) ([]cqrscommand.Command, error) {
+		cmd1, _ := cqrscommand.New("cmd.first", aggID)
+		cmd2, _ := cqrscommand.New("cmd.second", aggID)
+
+		return []cqrscommand.Command{cmd1, cmd2}, nil
+	}).Idempotent()
+
+	evt := testEvent(t, "source.event")
+
+	// Run twice — the same event must yield the same command IDs.
+	first, err := d(context.Background(), evt)
+	if err != nil {
+		t.Fatalf("first call: %v", err)
+	}
+
+	second, err := d(context.Background(), evt)
+	if err != nil {
+		t.Fatalf("second call: %v", err)
+	}
+
+	if len(first) != 2 || len(second) != 2 {
+		t.Fatalf("expected 2 commands each, got %d and %d", len(first), len(second))
+	}
+
+	for i := range first {
+		if first[i].ID() != second[i].ID() {
+			t.Errorf("command[%d]: first ID %v != second ID %v (not deterministic)",
+				i, first[i].ID(), second[i].ID())
+		}
+	}
+}
+
+func TestDeriver_Idempotent_DifferentEvents(t *testing.T) {
+	t.Parallel()
+
+	aggID := id.NewAggregateID()
+
+	d := Deriver(func(_ context.Context, _ cqrsevent.Event) ([]cqrscommand.Command, error) {
+		cmd, _ := cqrscommand.New("cmd.derived", aggID)
+
+		return []cqrscommand.Command{cmd}, nil
+	}).Idempotent()
+
+	cmds1, _ := d(context.Background(), testEvent(t, "source.one"))
+	cmds2, _ := d(context.Background(), testEvent(t, "source.two"))
+
+	if cmds1[0].ID() == cmds2[0].ID() {
+		t.Error("commands derived from different events should have different IDs")
+	}
+}
+
+func TestDeriver_Idempotent_SourceEventMetadata(t *testing.T) {
+	t.Parallel()
+
+	aggID := id.NewAggregateID()
+
+	d := Deriver(func(_ context.Context, _ cqrsevent.Event) ([]cqrscommand.Command, error) {
+		cmd, _ := cqrscommand.New("cmd.derived", aggID)
+
+		return []cqrscommand.Command{cmd}, nil
+	}).Idempotent()
+
+	evt := testEvent(t, "source.event")
+	cmds, err := d(context.Background(), evt)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	bc, ok := cmds[0].(*cqrscommand.BasicCommand)
+	if !ok {
+		t.Fatal("expected *BasicCommand")
+	}
+
+	md := bc.Metadata()
+	sourceID, ok := md.Custom[SourceEventIDKey]
+	if !ok {
+		t.Fatal("expected source_event_id in command metadata")
+	}
+
+	if sourceID != evt.ID().String() {
+		t.Errorf("source_event_id = %q, want %q", sourceID, evt.ID().String())
+	}
+}
+
+func TestDeriver_Idempotent_ErrorPropagation(t *testing.T) {
+	t.Parallel()
+
+	wantErr := errors.New("derive failed")
+
+	d := Deriver(func(_ context.Context, _ cqrsevent.Event) ([]cqrscommand.Command, error) {
+		return nil, wantErr
+	}).Idempotent()
+
+	_, err := d(context.Background(), testEvent(t, "test.event"))
+	if !errors.Is(err, wantErr) {
+		t.Fatalf("expected wantErr, got %v", err)
+	}
+}
+
+func TestDeriver_Idempotent_NoCommands(t *testing.T) {
+	t.Parallel()
+
+	d := Noop().Idempotent()
+
+	cmds, err := d(context.Background(), testEvent(t, "test.event"))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if cmds != nil {
+		t.Fatalf("expected nil commands, got %d", len(cmds))
+	}
+}
+
 func TestDeriver_ChainedComposition(t *testing.T) {
 	t.Parallel()
 

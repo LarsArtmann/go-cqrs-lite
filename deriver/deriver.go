@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 
 	cqrscommand "github.com/larsartmann/go-cqrs-lite/command/v3"
 	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
+	cqrsid "github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 // ErrNilDispatcher is returned when AsHandler is called with a nil dispatcher.
@@ -63,12 +65,19 @@ func (d Deriver) Filter(types ...cqrsevent.Type) Deriver {
 	}
 }
 
+// SourceEventIDKey is the custom metadata key stamped on derived commands
+// recording the ID of the source event. Use this to trace a command back to
+// the event that produced it.
+const SourceEventIDKey cqrscommand.MetadataKey = "deriver.source_event_id"
+
 // AsHandler converts a Deriver into an [cqrsevent.Handler] that dispatches
 // derived commands via the given command.Dispatcher. Each command is dispatched
 // sequentially; the first dispatch error stops processing and propagates.
 //
-// The source event's ID is stamped into the context as command causation
-// metadata, enabling downstream idempotency checks.
+// For at-least-once delivery safety, chain [Deriver.Idempotent] before
+// AsHandler so that re-processing the same event yields the same command IDs:
+//
+//	myDeriver.Idempotent().AsHandler(dispatcher)
 func (d Deriver) AsHandler(dispatcher *cqrscommand.Dispatcher) cqrsevent.Handler {
 	if dispatcher == nil {
 		return func(_ context.Context, _ cqrsevent.Event) error {
@@ -90,6 +99,42 @@ func (d Deriver) AsHandler(dispatcher *cqrscommand.Dispatcher) cqrsevent.Handler
 		}
 
 		return nil
+	}
+}
+
+// Idempotent returns a Deriver that re-stamps each derived command with a
+// deterministic [id.CommandID] derived from the source event's ID and the
+// command's position in the output slice. Same event re-processed → same
+// command IDs, so an idempotency store keyed on the command ID (see
+// idempotency.CommandIDKey) deduplicates at-least-once redeliveries.
+//
+// The source event's ID is also stamped as custom metadata
+// (SourceEventIDKey) on each command for traceability.
+//
+// Commands must be *command.BasicCommand (produced by command.New) for the
+// re-stamp to take effect. Non-BasicCommand implementations are passed through
+// unchanged — the ID and metadata remain as the Deriver author set them.
+//
+// This is a no-op if the Deriver returns no commands.
+func (d Deriver) Idempotent() Deriver {
+	return func(ctx context.Context, evt cqrsevent.Event) ([]cqrscommand.Command, error) {
+		cmds, err := d(ctx, evt)
+		if err != nil {
+			return nil, err
+		}
+
+		for i := range cmds {
+			bc, ok := cmds[i].(*cqrscommand.BasicCommand)
+			if !ok {
+				continue
+			}
+
+			derivedID := cqrsid.DeriveCommandID("deriver", evt.ID().String(), strconv.Itoa(i))
+			cqrscommand.WithCommandID(derivedID)(bc)
+			cqrscommand.WithCustomMetadata(string(SourceEventIDKey), evt.ID().String())(bc)
+		}
+
+		return cmds, nil
 	}
 }
 
