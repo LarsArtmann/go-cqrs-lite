@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -13,6 +14,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v3"
+	"github.com/larsartmann/go-cqrs-lite/testutil/v3"
 )
 
 // --- Test fixtures ---
@@ -526,8 +528,8 @@ func TestHost_WithLogger_RoutesLifecycleEvents(t *testing.T) {
 		failErr: errors.New("boom"),
 	}
 
-	handler := &capturingSlogHandler{level: logDebug}
-	logger := newSlogLogger(handler)
+	handler := testutil.NewCapturingSlogHandler(slog.LevelDebug)
+	logger := slog.New(handler)
 
 	host, _ := projectionhost.New(
 		journal, cpStore,
@@ -549,7 +551,7 @@ func TestHost_WithLogger_RoutesLifecycleEvents(t *testing.T) {
 	cancel()
 	host.Stop()
 
-	if handler.count() == 0 {
+	if handler.Count() == 0 {
 		t.Fatal("WithLogger: expected the injected logger to receive lifecycle records, got none")
 	}
 }

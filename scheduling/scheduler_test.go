@@ -3,12 +3,12 @@ package scheduling_test
 import (
 	"context"
 	"log/slog"
-	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v3"
+	"github.com/larsartmann/go-cqrs-lite/testutil/v3"
 )
 
 func TestMemoryTimerStore_ScheduleAndDue(t *testing.T) {
@@ -164,7 +164,7 @@ func TestScheduler_WithLoggerIsUsed(t *testing.T) {
 		Payload: "boom",
 	})
 
-	capture := &capturingHandler{level: slog.LevelError}
+	capture := testutil.NewCapturingSlogHandler(slog.LevelError)
 	logger := slog.New(capture)
 
 	sched := scheduling.New(
@@ -179,38 +179,10 @@ func TestScheduler_WithLoggerIsUsed(t *testing.T) {
 	runCtx, cancel := context.WithCancel(ctx)
 	go sched.Start(runCtx)
 
-	waitFor(t, 2*time.Second, func() bool { return capture.count() > 0 })
+	waitFor(t, 2*time.Second, func() bool { return capture.Count() > 0 })
 	cancel()
 
-	if capture.count() == 0 {
+	if capture.Count() == 0 {
 		t.Fatal("WithLogger: expected the injected logger to receive an error record, got none")
 	}
-}
-
-type capturingHandler struct {
-	mu    sync.Mutex
-	level slog.Leveler
-	Recs  []slog.Record
-}
-
-func (h *capturingHandler) Enabled(_ context.Context, lvl slog.Level) bool {
-	return lvl >= h.level.Level()
-}
-
-func (h *capturingHandler) Handle(_ context.Context, r slog.Record) error {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	h.Recs = append(h.Recs, r.Clone())
-
-	return nil
-}
-
-func (h *capturingHandler) WithAttrs(_ []slog.Attr) slog.Handler { return h }
-func (h *capturingHandler) WithGroup(_ string) slog.Handler      { return h }
-
-func (h *capturingHandler) count() int {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-
-	return len(h.Recs)
 }
