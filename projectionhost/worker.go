@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"math/rand/v2"
 	"slices"
 	"sync"
 	"sync/atomic"
@@ -101,10 +102,14 @@ func (w *worker) run(ctx context.Context, wg *sync.WaitGroup) {
 			return
 		}
 
-		backoff := min(
+		// Exponential backoff with full jitter: randomize between 0 and the
+		// exponential cap so concurrent crashing workers don't all restart at
+		// the same instant (thundering herd). math/rand/v2 is auto-seeded.
+		exp := min(
 			w.opts.backoffInitial*time.Duration(1<<uint(restartCount-1)),
 			w.opts.backoffMax,
 		)
+		backoff := time.Duration(rand.Int64N(int64(exp) + 1))
 
 		w.setStatus(WorkerBackoff)
 		w.logger.Warn("projection worker crashed, restarting after backoff",
