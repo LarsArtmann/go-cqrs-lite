@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"sync"
 	"sync/atomic"
 
 	"github.com/cockroachdb/pebble"
@@ -28,6 +29,7 @@ type KVAdapter struct {
 	syncWrites bool
 	owned      bool
 	closed     atomic.Bool
+	casMu      sync.Mutex // serializes SetIfAbsent check-then-set within this instance
 }
 
 // KVOption configures a [KVAdapter].
@@ -68,9 +70,6 @@ func NewKVStore(database *pebble.DB, opts ...KVOption) (kv.Store, error) {
 
 	return adapter, nil
 }
-
-// compile-time interface check.
-var _ kv.Store = (*KVAdapter)(nil)
 
 func (adapter *KVAdapter) writeOptions() *pebble.WriteOptions {
 	if adapter.syncWrites {
@@ -185,6 +184,45 @@ func (adapter *KVAdapter) Delete(key []byte) error {
 
 	return nil
 }
+
+// SetIfAbsent implements [kv.ConditionalWriter].
+//
+// Pebble has no native compare-and-set, so check-then-set is serialized by a
+// per-adapter mutex. This makes the operation atomic within a single KVAdapter
+// instance (matching [kv.MemStore.SetIfAbsent]'s process-local guarantee). It is
+// NOT safe against concurrent writers using a DIFFERENT KVAdapter on the same
+// underlying *pebble.DB — a single shared adapter (the default) must be used.
+func (adapter *KVAdapter) SetIfAbsent(key, value []byte) (bool, error) {
+	if err := adapter.checkClosed(); err != nil {
+		return false, err
+	}
+
+	adapter.casMu.Lock()
+	defer adapter.casMu.Unlock()
+
+	_, closer, err := adapter.database.Get(key)
+	if err != nil {
+		if !errors.Is(err, pebble.ErrNotFound) {
+			return false, fmt.Errorf("pebble: set-if-absent get %q: %w", key, err)
+		}
+	} else {
+		_ = closer.Close()
+
+		return false, nil // key already exists
+	}
+
+	if err := adapter.database.Set(key, value, adapter.writeOptions()); err != nil {
+		return false, fmt.Errorf("pebble: set-if-absent set %q: %w", key, err)
+	}
+
+	return true, nil
+}
+
+// compile-time interface checks.
+var (
+	_ kv.Store             = (*KVAdapter)(nil)
+	_ kv.ConditionalWriter = (*KVAdapter)(nil)
+)
 
 // Batch implements [kv.Writer.Batch].
 func (adapter *KVAdapter) Batch() (kv.Batch, error) {

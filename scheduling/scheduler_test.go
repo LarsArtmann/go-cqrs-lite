@@ -2,6 +2,8 @@ package scheduling_test
 
 import (
 	"context"
+	"log/slog"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -149,4 +151,66 @@ func waitFor(t *testing.T, timeout time.Duration, cond func() bool) {
 		}
 		time.Sleep(5 * time.Millisecond)
 	}
+}
+
+func TestScheduler_WithLoggerIsUsed(t *testing.T) {
+	t.Parallel()
+	store := scheduling.NewMemoryTimerStore()
+	ctx := context.Background()
+
+	store.Schedule(ctx, scheduling.Timer{
+		ID:      "always-fails",
+		FireAt:  time.Now().Add(-1 * time.Second),
+		Payload: "boom",
+	})
+
+	capture := &capturingHandler{level: slog.LevelError}
+	logger := slog.New(capture)
+
+	sched := scheduling.New(
+		store, func(_ context.Context, _ scheduling.Timer) error {
+			return errFail
+		},
+		scheduling.WithPollInterval(10*time.Millisecond),
+		scheduling.WithMaxRetries(1),
+		scheduling.WithLogger(logger),
+	)
+
+	runCtx, cancel := context.WithCancel(ctx)
+	go sched.Start(runCtx)
+
+	waitFor(t, 2*time.Second, func() bool { return capture.count() > 0 })
+	cancel()
+
+	if capture.count() == 0 {
+		t.Fatal("WithLogger: expected the injected logger to receive an error record, got none")
+	}
+}
+
+type capturingHandler struct {
+	mu    sync.Mutex
+	level slog.Leveler
+	Recs  []slog.Record
+}
+
+func (h *capturingHandler) Enabled(_ context.Context, lvl slog.Level) bool {
+	return lvl >= h.level.Level()
+}
+
+func (h *capturingHandler) Handle(_ context.Context, r slog.Record) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	h.Recs = append(h.Recs, r.Clone())
+
+	return nil
+}
+
+func (h *capturingHandler) WithAttrs(_ []slog.Attr) slog.Handler { return h }
+func (h *capturingHandler) WithGroup(_ string) slog.Handler      { return h }
+
+func (h *capturingHandler) count() int {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	return len(h.Recs)
 }

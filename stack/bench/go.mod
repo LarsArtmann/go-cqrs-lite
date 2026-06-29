@@ -5,7 +5,7 @@ go 1.26.3
 require (
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.3.0
-	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.3.0
+	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.3.1
 	github.com/larsartmann/go-cqrs-lite/stack/v3 v3.0.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.0.0
 )

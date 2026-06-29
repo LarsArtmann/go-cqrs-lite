@@ -18,6 +18,7 @@ type Scheduler struct {
 type schedulerOptions struct {
 	pollInterval time.Duration
 	maxRetries   int
+	logger       *slog.Logger
 }
 
 // Option configures a Scheduler.
@@ -44,7 +45,11 @@ func WithMaxRetries(n int) Option {
 
 // WithLogger sets a structured logger. Default: slog.Default().
 func WithLogger(l *slog.Logger) Option {
-	return func(_ *schedulerOptions) {}
+	return func(o *schedulerOptions) {
+		if l != nil {
+			o.logger = l
+		}
+	}
 }
 
 // New creates a Scheduler that polls store and dispatches via dispatch.
@@ -54,11 +59,16 @@ func New(store TimerStore, dispatch DispatchFunc, opts ...Option) *Scheduler {
 		opt(&o)
 	}
 
+	logger := o.logger
+	if logger == nil {
+		logger = slog.Default()
+	}
+
 	return &Scheduler{
 		store:    store,
 		dispatch: dispatch,
 		opts:     o,
-		logger:   slog.Default(),
+		logger:   logger,
 	}
 }
 

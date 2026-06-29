@@ -8,7 +8,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/command/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.3.0
-	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.3.0
+	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.3.1
 	github.com/larsartmann/go-cqrs-lite/listing/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.3.0

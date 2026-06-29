@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"sync"
+	"sync/atomic"
 	"testing"
 
 	"github.com/cockroachdb/pebble"
@@ -530,6 +532,102 @@ func TestKVAdapter_OperationsAfterClose(t *testing.T) {
 			t.Fatalf("Batch after close: got %v, want kv.ErrClosed", err)
 		}
 	})
+
+	t.Run("SetIfAbsent", func(t *testing.T) {
+		t.Parallel()
+		cw, ok := store.(kv.ConditionalWriter)
+		if !ok {
+			t.Fatalf("store does not implement kv.ConditionalWriter")
+		}
+		got, err := cw.SetIfAbsent([]byte("k"), []byte("v"))
+		if got || !errors.Is(err, kv.ErrClosed) {
+			t.Fatalf("SetIfAbsent after close: got (%v,%v), want (false, kv.ErrClosed)", got, err)
+		}
+	})
+}
+
+// ── SetIfAbsent (ConditionalWriter) tests ─────────────────────
+
+// TestKVAdapter_SetIfAbsent_ImplementsConditionalWriter ensures the adapter
+// satisfies kv.ConditionalWriter, unlocking idempotency.KVStore support.
+func TestKVAdapter_SetIfAbsent_ImplementsConditionalWriter(t *testing.T) {
+	t.Parallel()
+
+	store := openTestKVStore(t)
+	if _, ok := store.(kv.ConditionalWriter); !ok {
+		t.Fatalf("%T does not implement kv.ConditionalWriter", store)
+	}
+}
+
+func TestKVAdapter_SetIfAbsent_FirstWriterWins(t *testing.T) {
+	t.Parallel()
+
+	store := openTestKVStore(t)
+	cw := store.(kv.ConditionalWriter)
+
+	ok, err := cw.SetIfAbsent([]byte("lock"), []byte("owner-1"))
+	if err != nil {
+		t.Fatalf("first SetIfAbsent: %v", err)
+	}
+	if !ok {
+		t.Fatal("first SetIfAbsent: expected true (key absent), got false")
+	}
+
+	// Second call on the same key must report the key already exists.
+	ok, err = cw.SetIfAbsent([]byte("lock"), []byte("owner-2"))
+	if err != nil {
+		t.Fatalf("second SetIfAbsent: %v", err)
+	}
+	if ok {
+		t.Fatal("second SetIfAbsent: expected false (key exists), got true")
+	}
+
+	// The original value is preserved — SetIfAbsent must not overwrite.
+	val, err := store.Get([]byte("lock"))
+	if err != nil {
+		t.Fatalf("Get after SetIfAbsent: %v", err)
+	}
+	if string(val) != "owner-1" {
+		t.Fatalf("value mutated: got %q, want %q", val, "owner-1")
+	}
+}
+
+// TestKVAdapter_SetIfAbsent_ConcurrentExactlyOneWinner proves the per-adapter
+// mutex serializes the check-then-set so exactly one goroutine wins each key.
+func TestKVAdapter_SetIfAbsent_ConcurrentExactlyOneWinner(t *testing.T) {
+	t.Parallel()
+
+	cw := openTestKVStore(t).(kv.ConditionalWriter)
+
+	const goroutines = 200
+	var winners atomic.Int64
+
+	var wg sync.WaitGroup
+	wg.Add(goroutines)
+
+	start := make(chan struct{})
+
+	for range goroutines {
+		go func() {
+			defer wg.Done()
+			<-start
+			ok, err := cw.SetIfAbsent([]byte("contested"), []byte("won"))
+			if err != nil {
+				t.Errorf("SetIfAbsent: %v", err)
+				return
+			}
+			if ok {
+				winners.Add(1)
+			}
+		}()
+	}
+
+	close(start)
+	wg.Wait()
+
+	if got := winners.Load(); got != 1 {
+		t.Fatalf("expected exactly 1 winner, got %d", got)
+	}
 }
 
 // ── prefixUpperBound tests ────────────────────────────────────
