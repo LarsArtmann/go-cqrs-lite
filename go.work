@@ -33,6 +33,7 @@ use (
 	./projectionhost
 	./prometheus
 	./query
+	./scheduling
 	./schema
 	./signing
 	./snapshot

@@ -1,0 +1,152 @@
+package scheduling_test
+
+import (
+	"context"
+	"sync/atomic"
+	"testing"
+	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/scheduling/v3"
+)
+
+func TestMemoryTimerStore_ScheduleAndDue(t *testing.T) {
+	t.Parallel()
+	store := scheduling.NewMemoryTimerStore()
+	ctx := context.Background()
+
+	now := time.Now()
+	store.Schedule(
+		ctx,
+		scheduling.Timer{ID: "a", FireAt: now.Add(-1 * time.Minute), Payload: "early"},
+	)
+	store.Schedule(ctx, scheduling.Timer{ID: "b", FireAt: now.Add(1 * time.Hour), Payload: "late"})
+
+	due, err := store.Due(ctx, now)
+	if err != nil {
+		t.Fatalf("Due: %v", err)
+	}
+	if len(due) != 1 {
+		t.Fatalf("expected 1 due timer, got %d", len(due))
+	}
+	if due[0].ID != "a" {
+		t.Fatalf("expected 'a', got %q", due[0].ID)
+	}
+}
+
+func TestMemoryTimerStore_ScheduleIsIdempotent(t *testing.T) {
+	t.Parallel()
+	store := scheduling.NewMemoryTimerStore()
+	ctx := context.Background()
+
+	store.Schedule(ctx, scheduling.Timer{ID: "dup", FireAt: time.Now().Add(-1 * time.Minute)})
+	store.Schedule(ctx, scheduling.Timer{ID: "dup", FireAt: time.Now().Add(-1 * time.Minute)})
+
+	due, _ := store.Due(ctx, time.Now())
+	if len(due) != 1 {
+		t.Fatalf("expected 1 timer (idempotent), got %d", len(due))
+	}
+}
+
+func TestMemoryTimerStore_Cancel(t *testing.T) {
+	t.Parallel()
+	store := scheduling.NewMemoryTimerStore()
+	ctx := context.Background()
+
+	store.Schedule(ctx, scheduling.Timer{ID: "cancel-me", FireAt: time.Now().Add(-1 * time.Minute)})
+	store.Cancel(ctx, "cancel-me")
+
+	due, _ := store.Due(ctx, time.Now())
+	if len(due) != 0 {
+		t.Fatalf("expected 0 after cancel, got %d", len(due))
+	}
+}
+
+func TestMemoryTimerStore_MarkFired(t *testing.T) {
+	t.Parallel()
+	store := scheduling.NewMemoryTimerStore()
+	ctx := context.Background()
+
+	store.Schedule(ctx, scheduling.Timer{ID: "fire", FireAt: time.Now().Add(-1 * time.Minute)})
+	store.MarkFired(ctx, "fire")
+
+	due, _ := store.Due(ctx, time.Now())
+	if len(due) != 0 {
+		t.Fatalf("expected 0 after mark fired, got %d", len(due))
+	}
+}
+
+func TestScheduler_DispatchesDueTimers(t *testing.T) {
+	t.Parallel()
+	store := scheduling.NewMemoryTimerStore()
+	ctx := context.Background()
+
+	store.Schedule(ctx, scheduling.Timer{
+		ID:      "task-1",
+		FireAt:  time.Now().Add(-1 * time.Second),
+		Payload: "run-me",
+	})
+
+	var dispatched atomic.Int64
+	sched := scheduling.New(store, func(_ context.Context, timer scheduling.Timer) error {
+		if timer.ID != "task-1" {
+			t.Errorf("expected task-1, got %s", timer.ID)
+		}
+		dispatched.Add(1)
+
+		return nil
+	}, scheduling.WithPollInterval(10*time.Millisecond))
+
+	runCtx, cancel := context.WithCancel(ctx)
+	go sched.Start(runCtx)
+
+	waitFor(t, 2*time.Second, func() bool { return dispatched.Load() == 1 })
+	cancel()
+
+	if dispatched.Load() != 1 {
+		t.Fatalf("expected 1 dispatch, got %d", dispatched.Load())
+	}
+}
+
+func TestScheduler_RetriesFailedDispatch(t *testing.T) {
+	t.Parallel()
+	store := scheduling.NewMemoryTimerStore()
+	ctx := context.Background()
+
+	store.Schedule(ctx, scheduling.Timer{
+		ID:      "retry-me",
+		FireAt:  time.Now().Add(-1 * time.Second),
+		Payload: "fail-then-succeed",
+	})
+
+	var attempts atomic.Int64
+	sched := scheduling.New(store, func(_ context.Context, _ scheduling.Timer) error {
+		if attempts.Add(1) < 2 {
+			return errFail
+		}
+
+		return nil
+	}, scheduling.WithPollInterval(10*time.Millisecond), scheduling.WithMaxRetries(3))
+
+	runCtx, cancel := context.WithCancel(ctx)
+	go sched.Start(runCtx)
+
+	waitFor(t, 2*time.Second, func() bool { return attempts.Load() >= 2 })
+	cancel()
+}
+
+var errFail = errStr("fail")
+
+type errStr string
+
+func (e errStr) Error() string { return string(e) }
+
+func waitFor(t *testing.T, timeout time.Duration, cond func() bool) {
+	t.Helper()
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		if cond() {
+			return
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+}
