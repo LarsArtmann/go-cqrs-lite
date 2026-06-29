@@ -1,11 +1,9 @@
-package storage_test
+package view
 
 import (
 	"context"
 	"fmt"
 	"testing"
-
-	_ "modernc.org/sqlite" // pure-Go SQLite driver
 
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 )

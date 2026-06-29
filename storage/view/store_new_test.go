@@ -1,11 +1,10 @@
-package storage_test
+package view
 
 import (
 	"context"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
-	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
 
 func TestSQLViewStore_Count(t *testing.T) {
@@ -226,19 +225,19 @@ func TestSQLViewStore_BatchSet(t *testing.T) {
 func TestSQLViewStore_Indexes(t *testing.T) {
 	t.Parallel()
 
-	db, err := storage.OpenSQLiteInMemory()
+	db, err := openSQLiteInMemory()
 	if err != nil {
 		t.Fatalf("OpenSQLiteInMemory: %v", err)
 	}
 	t.Cleanup(func() { _ = db.Close() })
 
 	mapper := testMapper()
-	mapper.Indexes = []storage.IndexSpec{
+	mapper.Indexes = []IndexSpec{
 		{Name: "idx_email", Columns: []string{"email"}},
 		{Name: "idx_age", Columns: []string{"age"}},
 	}
 
-	store, err := storage.NewSQLiteViewStore[testView, testKey](db, mapper)
+	store, err := NewSQLiteViewStore[testView, testKey](db, mapper)
 	if err != nil {
 		t.Fatalf("NewSQLiteViewStore: %v", err)
 	}

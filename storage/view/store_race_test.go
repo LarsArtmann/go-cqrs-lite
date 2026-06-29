@@ -1,4 +1,4 @@
-package storage_test
+package view
 
 import (
 	"context"
@@ -7,20 +7,19 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
-	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
 
 func TestSQLViewStore_ConcurrentSetQuery(t *testing.T) {
 	t.Parallel()
 
-	db, err := storage.OpenSQLiteInMemory()
+	db, err := openSQLiteInMemory()
 	if err != nil {
 		t.Fatalf("OpenSQLiteInMemory: %v", err)
 	}
 	db.SetMaxOpenConns(1) // in-memory SQLite needs single connection
 	t.Cleanup(func() { _ = db.Close() })
 
-	store, err := storage.NewSQLiteViewStore[testView, testKey](db, testMapper())
+	store, err := NewSQLiteViewStore[testView, testKey](db, testMapper())
 	if err != nil {
 		t.Fatalf("NewSQLiteViewStore: %v", err)
 	}
@@ -97,14 +96,14 @@ func TestSQLViewStore_ConcurrentSetQuery(t *testing.T) {
 func TestSQLViewStore_ConcurrentBatchAndCount(t *testing.T) {
 	t.Parallel()
 
-	db, err := storage.OpenSQLiteInMemory()
+	db, err := openSQLiteInMemory()
 	if err != nil {
 		t.Fatalf("OpenSQLiteInMemory: %v", err)
 	}
 	db.SetMaxOpenConns(1)
 	t.Cleanup(func() { _ = db.Close() })
 
-	store, err := storage.NewSQLiteViewStore[testView, testKey](db, testMapper())
+	store, err := NewSQLiteViewStore[testView, testKey](db, testMapper())
 	if err != nil {
 		t.Fatalf("NewSQLiteViewStore: %v", err)
 	}

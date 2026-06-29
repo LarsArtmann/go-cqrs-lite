@@ -1,11 +1,10 @@
-package storage_test
+package view
 
 import (
 	"context"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
-	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
 
 type autoView struct {
@@ -21,14 +20,14 @@ func (v *autoView) IsTombstoned() bool { return v.Tombstoned }
 func TestSQLViewStore_AutoMapper(t *testing.T) {
 	t.Parallel()
 
-	db, err := storage.OpenSQLiteInMemory()
+	db, err := openSQLiteInMemory()
 	if err != nil {
 		t.Fatalf("OpenSQLiteInMemory: %v", err)
 	}
 	t.Cleanup(func() { _ = db.Close() })
 
-	mapper := storage.AutoMapperWithTombstone[autoView]("auto_views", "tombstoned")
-	store, err := storage.NewSQLiteViewStore[autoView, testKey](db, mapper)
+	mapper := AutoMapperWithTombstone[autoView]("auto_views", "tombstoned")
+	store, err := NewSQLiteViewStore[autoView, testKey](db, mapper)
 	if err != nil {
 		t.Fatalf("NewSQLiteViewStore: %v", err)
 	}

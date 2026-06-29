@@ -1,14 +1,11 @@
-package storage_test
+package view
 
 import (
 	"context"
 	"errors"
 	"testing"
 
-	_ "modernc.org/sqlite" // pure-Go SQLite driver
-
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
-	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
 
 type testKey string
@@ -24,10 +21,10 @@ type testView struct {
 
 func (v *testView) IsTombstoned() bool { return v.Tombstoned }
 
-func testMapper() storage.ViewMapper[testView] {
-	return storage.ViewMapper[testView]{
+func testMapper() ViewMapper[testView] {
+	return ViewMapper[testView]{
 		Table: "test_views",
-		Columns: []storage.ViewColumn[testView]{
+		Columns: []ViewColumn[testView]{
 			{Name: "name", Type: "TEXT", Extract: func(v *testView) any { return v.Name }},
 			{Name: "email", Type: "TEXT", Extract: func(v *testView) any { return v.Email }},
 			{Name: "age", Type: "INTEGER", Extract: func(v *testView) any { return v.Age }},
@@ -50,17 +47,17 @@ func testMapper() storage.ViewMapper[testView] {
 	}
 }
 
-func newTestViewStore(t *testing.T) *storage.SQLViewStore[testView, testKey] {
+func newTestViewStore(t *testing.T) *SQLViewStore[testView, testKey] {
 	t.Helper()
 
-	db, err := storage.OpenSQLiteInMemory()
+	db, err := openSQLiteInMemory()
 	if err != nil {
 		t.Fatalf("OpenSQLiteInMemory: %v", err)
 	}
 
 	t.Cleanup(func() { _ = db.Close() })
 
-	store, err := storage.NewSQLiteViewStore[testView, testKey](db, testMapper())
+	store, err := NewSQLiteViewStore[testView, testKey](db, testMapper())
 	if err != nil {
 		t.Fatalf("NewSQLiteViewStore: %v", err)
 	}

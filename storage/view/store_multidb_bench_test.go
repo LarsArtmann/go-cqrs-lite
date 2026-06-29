@@ -1,4 +1,4 @@
-package storage_test
+package view
 
 import (
 	"context"
@@ -7,10 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	_ "modernc.org/sqlite" // pure-Go SQLite driver
-
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
-	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
 
 // BenchmarkSQLViewStore_MultiDB_vs_SingleDB compares read-model Set/Get
@@ -20,14 +17,14 @@ func BenchmarkSQLViewStore_MultiDB_vs_SingleDB(b *testing.B) {
 	mapper := testMapper()
 
 	b.Run("SingleDB", func(b *testing.B) {
-		db, err := storage.OpenSQLiteInMemory()
+		db, err := openSQLiteInMemory()
 		if err != nil {
 			b.Fatal(err)
 		}
 		db.SetMaxOpenConns(1)
 		b.Cleanup(func() { _ = db.Close() })
 
-		store, err := storage.NewSQLiteViewStore[testView, testKey](db, mapper)
+		store, err := NewSQLiteViewStore[testView, testKey](db, mapper)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -51,7 +48,7 @@ func BenchmarkSQLViewStore_MultiDB_vs_SingleDB(b *testing.B) {
 		viewDB.SetMaxOpenConns(1)
 		b.Cleanup(func() { _ = viewDB.Close() })
 
-		store, err := storage.NewSQLiteViewStore[testView, testKey](viewDB, mapper)
+		store, err := NewSQLiteViewStore[testView, testKey](viewDB, mapper)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -85,14 +82,14 @@ func BenchmarkKV_vs_SQL_Comparison(b *testing.B) {
 	})
 
 	b.Run("SQL/Set", func(b *testing.B) {
-		db, err := storage.OpenSQLiteInMemory()
+		db, err := openSQLiteInMemory()
 		if err != nil {
 			b.Fatal(err)
 		}
 		db.SetMaxOpenConns(1)
 		b.Cleanup(func() { _ = db.Close() })
 
-		store, err := storage.NewSQLiteViewStore[testView, testKey](db, testMapper())
+		store, err := NewSQLiteViewStore[testView, testKey](db, testMapper())
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -122,14 +119,14 @@ func BenchmarkKV_vs_SQL_Comparison(b *testing.B) {
 	})
 
 	b.Run("SQL/Get", func(b *testing.B) {
-		db, err := storage.OpenSQLiteInMemory()
+		db, err := openSQLiteInMemory()
 		if err != nil {
 			b.Fatal(err)
 		}
 		db.SetMaxOpenConns(1)
 		b.Cleanup(func() { _ = db.Close() })
 
-		store, err := storage.NewSQLiteViewStore[testView, testKey](db, testMapper())
+		store, err := NewSQLiteViewStore[testView, testKey](db, testMapper())
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -159,14 +156,14 @@ func BenchmarkKV_vs_SQL_Comparison(b *testing.B) {
 	})
 
 	b.Run("SQL/Scan", func(b *testing.B) {
-		db, err := storage.OpenSQLiteInMemory()
+		db, err := openSQLiteInMemory()
 		if err != nil {
 			b.Fatal(err)
 		}
 		db.SetMaxOpenConns(1)
 		b.Cleanup(func() { _ = db.Close() })
 
-		store, err := storage.NewSQLiteViewStore[testView, testKey](db, testMapper())
+		store, err := NewSQLiteViewStore[testView, testKey](db, testMapper())
 		if err != nil {
 			b.Fatal(err)
 		}
