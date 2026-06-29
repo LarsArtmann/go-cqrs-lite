@@ -1,6 +1,7 @@
 package projectionhost
 
 import (
+	"log/slog"
 	"time"
 )
 
@@ -14,6 +15,7 @@ type hostOptions struct {
 	batchSize      int
 	dlq            DeadLetterStore
 	dlqThreshold   int
+	logger         *slog.Logger
 }
 
 func defaultOptions() hostOptions {
@@ -23,6 +25,7 @@ func defaultOptions() hostOptions {
 		backoffMax:     30 * time.Second,
 		batchSize:      100,
 		dlqThreshold:   3,
+		logger:         slog.Default(),
 	}
 }
 
@@ -53,6 +56,16 @@ func WithDeadLetterStore(store DeadLetterStore, threshold int) HostOption {
 		o.dlq = store
 		if threshold > 0 {
 			o.dlqThreshold = threshold
+		}
+	}
+}
+
+// WithLogger sets the structured logger for worker lifecycle events (crashes,
+// restarts, dead-letter captures). Default: slog.Default().
+func WithLogger(l *slog.Logger) HostOption {
+	return func(o *hostOptions) {
+		if l != nil {
+			o.logger = l
 		}
 	}
 }

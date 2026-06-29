@@ -1,4 +1,4 @@
-module github.com/larsartmann/go-cqrs-lite/projectionhost/v3
+module github.com/larsartmann/go-cqrs-lite/example/projectionhost
 
 go 1.26.3
 
@@ -6,6 +6,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.3.0
+	github.com/larsartmann/go-cqrs-lite/projectionhost/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.3.0
 )
 
@@ -23,9 +24,10 @@ require (
 )
 
 replace (
-	github.com/larsartmann/go-cqrs-lite/codec/v3 => ../codec
-	github.com/larsartmann/go-cqrs-lite/event/v3 => ../event
-	github.com/larsartmann/go-cqrs-lite/id/v3 => ../id
-	github.com/larsartmann/go-cqrs-lite/projection/v3 => ../projection
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 => ../storage/memory
+	github.com/larsartmann/go-cqrs-lite/codec/v3 => ../../codec
+	github.com/larsartmann/go-cqrs-lite/event/v3 => ../../event
+	github.com/larsartmann/go-cqrs-lite/id/v3 => ../../id
+	github.com/larsartmann/go-cqrs-lite/projection/v3 => ../../projection
+	github.com/larsartmann/go-cqrs-lite/projectionhost/v3 => ../../projectionhost
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 => ../../storage/memory
 )

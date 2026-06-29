@@ -412,6 +412,154 @@ func TestMemoryDeadLetterStore_List_FilterByProjection(t *testing.T) {
 
 // --- Helpers ---
 
+func TestHost_ReplayDeadLetters_PureNoMutation(t *testing.T) {
+	t.Parallel()
+	journal := &memoryJournal{}
+	cpStore := newMemoryCheckpointStore()
+	dlq := projectionhost.NewMemoryDeadLetterStore()
+
+	// A projection that now succeeds — simulating "we shipped a handler fix."
+	proj := &countingProjection{name: "tasks"}
+	host, _ := projectionhost.New(
+		journal, cpStore,
+		projectionhost.WithDeadLetterStore(dlq, 1),
+	)
+	_ = host.Register(proj)
+
+	badEvent := makeEvent("task.created")
+	_ = dlq.Store(context.Background(), projectionhost.DeadLetterEntry{
+		ProjectionName: "tasks",
+		EventID:        badEvent.ID().String(),
+		EventType:      "task.created",
+		Event:          badEvent,
+		Error:          "poison",
+	})
+
+	result, err := host.ReplayDeadLetters(context.Background(), "")
+	if err != nil {
+		t.Fatalf("ReplayDeadLetters: %v", err)
+	}
+	if len(result.Replayed) != 1 {
+		t.Fatalf("expected 1 replayed, got %d", len(result.Replayed))
+	}
+	if len(result.StillFailing) != 0 {
+		t.Fatalf("expected 0 still-failing, got %d", len(result.StillFailing))
+	}
+	if proj.count.Load() != 1 {
+		t.Fatalf(
+			"projection should have handled the replayed event, got count=%d",
+			proj.count.Load(),
+		)
+	}
+
+	// ReplayDeadLetters is PURE — the store must be unchanged until caller purges.
+	remaining, _ := dlq.List(context.Background(), "")
+	if len(remaining) != 1 {
+		t.Fatalf("pure replay must NOT mutate DLQ; got %d entries (want 1)", len(remaining))
+	}
+
+	// Caller-driven cleanup.
+	_ = dlq.Purge(context.Background(), "tasks")
+	remaining, _ = dlq.List(context.Background(), "")
+	if len(remaining) != 0 {
+		t.Fatalf("Purge should clear the projection's entries, got %d", len(remaining))
+	}
+}
+
+func TestHost_ReplayDeadLetters_PreservesStillFailingEntries(t *testing.T) {
+	t.Parallel()
+	journal := &memoryJournal{}
+	cpStore := newMemoryCheckpointStore()
+	dlq := projectionhost.NewMemoryDeadLetterStore()
+
+	// Projection that succeeds — both entries will replay OK, but this test
+	// verifies StillFailing is populated when the handler still errors.
+	proj := &countingProjection{name: "tasks", failOn: 1, failErr: errors.New("still broken")}
+	host, _ := projectionhost.New(
+		journal, cpStore,
+		projectionhost.WithDeadLetterStore(dlq, 1),
+	)
+	_ = host.Register(proj)
+
+	evt := makeEvent("task.created")
+	_ = dlq.Store(context.Background(), projectionhost.DeadLetterEntry{
+		ProjectionName: "tasks",
+		EventID:        evt.ID().String(),
+		Event:          evt,
+		Error:          "original",
+	})
+
+	result, err := host.ReplayDeadLetters(context.Background(), "")
+	if err != nil {
+		t.Fatalf("ReplayDeadLetters: %v", err)
+	}
+	if len(result.Replayed) != 0 {
+		t.Fatalf("expected 0 replayed (handler still broken), got %d", len(result.Replayed))
+	}
+	if len(result.StillFailing) != 1 {
+		t.Fatalf("expected 1 still-failing, got %d", len(result.StillFailing))
+	}
+	// The failing entry MUST remain in the store for a future replay attempt.
+	remaining, _ := dlq.List(context.Background(), "")
+	if len(remaining) != 1 {
+		t.Fatalf("still-failing entry must be preserved, got %d entries", len(remaining))
+	}
+}
+
+func TestHost_ReplayDeadLetters_NoDLQConfigured(t *testing.T) {
+	t.Parallel()
+	journal := &memoryJournal{}
+	cpStore := newMemoryCheckpointStore()
+	host, _ := projectionhost.New(journal, cpStore)
+
+	if _, err := host.ReplayDeadLetters(context.Background(), ""); err == nil {
+		t.Fatal("expected error when no DLQ configured, got nil")
+	}
+}
+
+func TestHost_WithLogger_RoutesLifecycleEvents(t *testing.T) {
+	t.Parallel()
+	journal := &memoryJournal{}
+	cpStore := newMemoryCheckpointStore()
+
+	badEvent := makeEvent("task.created")
+	journal.append(badEvent)
+
+	dlq := projectionhost.NewMemoryDeadLetterStore()
+	proj := &countingProjection{
+		name:    "tasks",
+		failOn:  1,
+		failErr: errors.New("boom"),
+	}
+
+	handler := &capturingSlogHandler{level: logDebug}
+	logger := newSlogLogger(handler)
+
+	host, _ := projectionhost.New(
+		journal, cpStore,
+		projectionhost.WithBatchSize(10),
+		projectionhost.WithDeadLetterStore(dlq, 1),
+		projectionhost.WithMaxRestarts(-1),
+		projectionhost.WithLogger(logger),
+	)
+	_ = host.Register(proj)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	go host.Start(ctx)
+
+	requireEventually(t, 2*time.Second, func() bool {
+		entries, _ := dlq.List(context.Background(), "")
+
+		return len(entries) == 1
+	})
+	cancel()
+	host.Stop()
+
+	if handler.count() == 0 {
+		t.Fatal("WithLogger: expected the injected logger to receive lifecycle records, got none")
+	}
+}
+
 func requireEventually(t *testing.T, timeout time.Duration, cond func() bool) {
 	t.Helper()
 	deadline := time.Now().Add(timeout)

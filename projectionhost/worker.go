@@ -3,6 +3,7 @@ package projectionhost
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"slices"
 	"sync"
 	"sync/atomic"
@@ -20,6 +21,7 @@ type worker struct {
 	journal    event.SeekableJournal
 	cpStore    event.CheckpointStore
 	opts       hostOptions
+	logger     *slog.Logger
 
 	stateMu sync.RWMutex
 	state   WorkerState
@@ -93,6 +95,8 @@ func (w *worker) run(ctx context.Context, wg *sync.WaitGroup) {
 		restartCount := int(w.restarts.Add(1))
 		if w.opts.maxRestarts >= 0 && restartCount > w.opts.maxRestarts {
 			w.setStatus(WorkerFailed)
+			w.logger.Error("projection worker exhausted restart budget",
+				"projection", w.name, "restarts", restartCount, "error", err)
 
 			return
 		}
@@ -103,6 +107,8 @@ func (w *worker) run(ctx context.Context, wg *sync.WaitGroup) {
 		)
 
 		w.setStatus(WorkerBackoff)
+		w.logger.Warn("projection worker crashed, restarting after backoff",
+			"projection", w.name, "restart", restartCount, "backoff", backoff, "error", err)
 
 		select {
 		case <-time.After(backoff):
@@ -166,6 +172,12 @@ func (w *worker) process(ctx context.Context) error {
 					if dlqErr != nil {
 						return dlqErr
 					}
+
+					w.logger.Warn("event sent to dead-letter queue after retries",
+						"projection", w.name,
+						"event_id", evt.ID().String(),
+						"event_type", string(evt.Type()),
+						"error", err)
 				} else {
 					return err
 				}
@@ -231,6 +243,7 @@ func (w *worker) sendToDLQ(ctx context.Context, evt event.Event, handlerErr erro
 		EventID:        evt.ID().String(),
 		EventType:      string(evt.Type()),
 		AggregateID:    evt.AggregateID().String(),
+		Event:          evt,
 		Error:          handlerErr.Error(),
 		FailedAt:       time.Now(),
 	})

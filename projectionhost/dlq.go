@@ -4,6 +4,8 @@ import (
 	"context"
 	"sync"
 	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // WorkerStatus represents the lifecycle state of a projection worker.
@@ -36,23 +38,31 @@ type WorkerState struct {
 }
 
 // DeadLetterEntry captures a poison message that exceeded the retry threshold.
+// Event holds the original event so it can be replayed once the underlying
+// handler bug is fixed; the string fields mirror the common diagnostics and
+// survive JSON serialization even when Event is nil.
 type DeadLetterEntry struct {
 	ProjectionName string
 	EventID        string
 	EventType      string
 	AggregateID    string
+	Event          event.Event // original poison event; needed for Replay
 	Error          string
 	FailedAt       time.Time
 }
 
-// DeadLetterStore stores poison messages for later replay or inspection.
+// DeadLetterStore stores poison messages for later inspection or replay.
 type DeadLetterStore interface {
 	// Store records a dead-letter entry.
 	Store(ctx context.Context, entry DeadLetterEntry) error
 	// List returns dead-letter entries for the given projection name.
 	// An empty projectionName returns entries across all projections.
 	List(ctx context.Context, projectionName string) ([]DeadLetterEntry, error)
-	// Purge removes dead-letter entries for the given projection name.
+	// Purge removes ALL dead-letter entries for the given projection name.
+	// An empty projectionName purges every entry across all projections.
+	// Use Purge after a successful ReplayDeadLetters run to clear what was
+	// successfully retried (ReplayDeadLetters itself is pure — it does not
+	// mutate the store).
 	Purge(ctx context.Context, projectionName string) error
 }
 
