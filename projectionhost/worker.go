@@ -182,7 +182,11 @@ func (w *worker) process(ctx context.Context) error {
 				continue
 			}
 
-			if err := w.applyWithRetry(ctx, evt); err != nil {
+			start := time.Now()
+			err := w.applyWithRetry(ctx, evt)
+			duration := time.Since(start)
+
+			if err != nil {
 				if w.opts.dlq != nil {
 					dlqErr := w.sendToDLQ(ctx, evt, err)
 					if dlqErr != nil {
@@ -203,7 +207,7 @@ func (w *worker) process(ctx context.Context) error {
 				}
 			} else {
 				w.recordMetric(func(m MetricsRecorder) {
-					m.EventProcessed(w.name, string(evt.Type()), 0)
+					m.EventProcessed(w.name, string(evt.Type()), duration)
 				})
 			}
 
@@ -220,6 +224,15 @@ func (w *worker) process(ctx context.Context) error {
 		}
 
 		w.setCheckpoint(afterID.String())
+
+		// Report checkpoint lag: how far behind real-time the projection is.
+		if len(events) > 0 {
+			last := events[len(events)-1]
+
+			w.recordMetric(func(m MetricsRecorder) {
+				m.CheckpointAdvanced(w.name, time.Since(last.OccurredAt()))
+			})
+		}
 
 		if len(events) < w.opts.batchSize {
 			return nil
@@ -256,6 +269,9 @@ func (w *worker) applyWithRetry(ctx context.Context, evt event.Event) error {
 		lastErr = err
 
 		w.errors.Add(1)
+		w.recordMetric(func(m MetricsRecorder) {
+			m.EventErrored(w.name, string(evt.Type()))
+		})
 
 		// Don't sleep after the final attempt — let the caller decide DLQ.
 		if attempt < w.opts.dlqThreshold-1 {
