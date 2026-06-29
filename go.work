@@ -17,6 +17,7 @@ use (
 	./example/deployer-first
 	./example/deployer-first-heterogeneous
 	./example/deployer-first-multidb
+	./example/deriver
 	./example/encryption
 	./example/graph-demo
 	./example/projectionhost
