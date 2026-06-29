@@ -3,12 +3,12 @@ module github.com/larsartmann/go-cqrs-lite/storage/memory/v3
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/command/v3 v3.3.0
+	github.com/larsartmann/go-cqrs-lite/command/v3 v3.4.0
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.3.0
-	github.com/larsartmann/go-cqrs-lite/event/v3 v3.3.0
+	github.com/larsartmann/go-cqrs-lite/event/v3 v3.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.3.0
-	github.com/larsartmann/go-cqrs-lite/query/v3 v3.3.0
-	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.3.0
+	github.com/larsartmann/go-cqrs-lite/query/v3 v3.4.0
+	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.4.0
 	github.com/onsi/ginkgo/v2 v2.31.0
 	github.com/onsi/gomega v1.42.0
 )
