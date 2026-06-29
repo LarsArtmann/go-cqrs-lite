@@ -41,6 +41,10 @@ decide).Then(types...)`, plus `ThenError`, `ThenState`, and projection
 
 #### Brutal Self-Review Pass (2026-06-29)
 
+- **`projectionhost.MetricsRecorder`** — zero-dependency metrics interface
+  with `WithMetrics()` option. Five lifecycle methods: EventProcessed,
+  EventErrored, EventDeadLettered, WorkerRestarted, CheckpointAdvanced.
+  Consumers wire Prometheus/OTel/Datadog; host stays backend-agnostic.
 - **`projectionhost.DeadLetterStore.Delete`** — entry-scoped removal
   (`Delete(ctx, name, eventID)`); callers can now surgically clear
   successfully-replayed entries instead of purging the whole projection.
