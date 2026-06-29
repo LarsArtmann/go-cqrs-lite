@@ -39,6 +39,24 @@ decide).Then(types...)`, plus `ThenError`, `ThenState`, and projection
   unlocking `idempotency.KVStore` support on the Pebble backend. Serialized via
   a per-adapter mutex (process-local guarantee, matching `kv.MemStore`).
 
+#### Brutal Self-Review Pass (2026-06-29)
+
+- **`projectionhost.DeadLetterStore.Delete`** — entry-scoped removal
+  (`Delete(ctx, name, eventID)`); callers can now surgically clear
+  successfully-replayed entries instead of purging the whole projection.
+- **`projectionhost` jitter backoff** — worker restart backoff now uses full
+  jitter (stdlib `math/rand/v2`) to prevent thundering-herd restarts. No new
+  dependency.
+- **`scheduling` retry backoff** — dispatch retries now use exponential
+  backoff with full jitter between attempts, with a new `WithRetryDelay`
+  option. Previously retried with zero delay.
+- **`testutil.CapturingSlogHandler`** — shared slog test handler, replacing
+  two near-identical copies (`capturingSlogHandler` in projectionhost and
+  `capturingHandler` in scheduling).
+- **`example/deriver`** — runnable demo of the stateless-saga derivation
+  pattern (the deriver module previously had zero consumers/examples).
+- **ADR-0042** (pure replay design) and **ADR-0043** (DLQ unification options).
+
 ### Changed
 
 - **`testing/v3` renamed to `scenario/v3`** — avoids collision with Go's stdlib
@@ -47,9 +65,18 @@ decide).Then(types...)`, plus `ThenError`, `ThenState`, and projection
   `scenario/v3`.
 - **`scheduling.WithLogger`** — previously a no-op (discarded the logger); now
   correctly wires the injected `*slog.Logger`.
+- **`scenario.DecideFunc` doc** — corrected the false "import cycle" claim;
+  the real reason for decoupling is dependency footprint, not a cycle.
+- **`projectionhost/example` lint** — cleared 21 shipped golangci-lint warnings
+  (sentinel error, named const, unused-param fix).
 
 ### Migration Notes
 
+- **`scheduling.Timer` is now generic (`Timer[P any]`)** — `Timer`, `TimerStore`,
+  `MemoryTimerStore`, `DispatchFunc`, and `Scheduler` all require a payload type
+  parameter. Migrate by adding it at the call site:
+  `scheduling.NewMemoryTimerStore()` → `scheduling.NewMemoryTimerStore[YourCmd]()`,
+  `scheduling.Timer{...}` → `scheduling.Timer[YourCmd]{...}`.
 - **`command.Command.ID()` (v3.1.0 → v3.3.0)** — the `command.Command`
   interface gained a mandatory `ID() id.CommandID` method for idempotency
   support. Consumers upgrading from v3.1.0 must add `ID()` to every command
