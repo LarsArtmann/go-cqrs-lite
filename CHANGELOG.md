@@ -6,6 +6,55 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+#### Managed Projection Host — `projectionhost/v3`
+
+- **`Host`** — managed lifecycle for projection workers: per-projection
+  goroutines, crash auto-restart with exponential backoff, checkpoint
+  persistence, and a poison-message dead-letter queue. The "last loop every
+  consumer rewrites", now a library module (framework gap A1).
+- **`ReplayDeadLetters`** — re-feeds dead-letter entries to the matching
+  projection after a handler fix; purges successful replays. `DeadLetterEntry`
+  now carries the original `event.Event` so replay is possible.
+- **`WithLogger(*slog.Logger)`** — inject a structured logger for worker
+  lifecycle events (crashes, restarts, DLQ captures). Default: `slog.Default()`.
+- **`MemoryDeadLetterStore`** — in-memory `DeadLetterStore` for dev/test.
+
+#### Scenario-Testing DSL — `scenario/v3`
+
+- Fluent BDD harness: `Given[Cmd,State](t, apply, initial, events...).When(cmd,
+decide).Then(types...)`, plus `ThenError`, `ThenState`, and projection
+  `GivenProjection/ThenNoError` (framework gap A5).
+
+#### Scheduling — `scheduling/v3`
+
+- Durable deadline timers: `TimerStore` (`Schedule`/`Due`/`MarkFired`/`Cancel`),
+  `MemoryTimerStore`, and `Scheduler` with configurable poll interval and retry.
+  Idempotent scheduling (framework gap A6) — "cancel order after 30 min unpaid".
+
+#### Pebble `kv.ConditionalWriter`
+
+- **`KVAdapter.SetIfAbsent`** — atomic compare-and-set on the Pebble KV adapter,
+  unlocking `idempotency.KVStore` support on the Pebble backend. Serialized via
+  a per-adapter mutex (process-local guarantee, matching `kv.MemStore`).
+
+### Changed
+
+- **`testing/v3` renamed to `scenario/v3`** — avoids collision with Go's stdlib
+  `testing` package in import paths. The package name is now `scenario`
+  (`scenario.Given[...]`). Consumers importing `testing/v3` must update to
+  `scenario/v3`.
+- **`scheduling.WithLogger`** — previously a no-op (discarded the logger); now
+  correctly wires the injected `*slog.Logger`.
+
+### Migration Notes
+
+- **`command.Command.ID()` (v3.1.0 → v3.3.0)** — the `command.Command`
+  interface gained a mandatory `ID() id.CommandID` method for idempotency
+  support. Consumers upgrading from v3.1.0 must add `ID()` to every command
+  type implementing `command.Command`.
+
 ## [3.3.0] - 2026-06-28
 
 **Three projection tiers, unified command identity, production dead-letter storage.**

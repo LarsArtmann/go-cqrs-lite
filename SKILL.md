@@ -38,38 +38,42 @@ You do NOT need all of them. Start with the minimal recipe (§2), then bolt on c
 
 ## 1. Module Decision Matrix — "I want to…"
 
-| If you want to…                                     | Use                                                                             | See recipe |
-| --------------------------------------------------- | ------------------------------------------------------------------------------- | ---------- |
-| Create/store/load events                            | `event`                                                                         | §2.1       |
-| Dispatch type-safe commands                         | `command`                                                                       | §2.1       |
-| Run an event-sourced aggregate                      | `decider`                                                                       | §2.1       |
-| Generate unique, type-safe IDs                      | `id`                                                                            | §2.1       |
-| Encode payloads as JSON/CBOR                        | `codec`                                                                         | §2.1       |
-| Build a read model from events                      | `stack.Materialize` + `kv.TypedStore`                                           | §2.3       |
-| Dispatch type-safe queries                          | `query`                                                                         | §2.3       |
-| List all aggregates + their status                  | `listing`                                                                       | §6.4       |
-| Persist to PostgreSQL / SQLite                      | `storage`                                                                       | §2.2       |
-| Persist to embedded PebbleDB                        | `storage/pebble`                                                                | §2.2       |
-| Offline-first sync via LibSQL                       | `storage/turso`                                                                 | §6.6       |
-| Generic key-value abstraction                       | `kv`                                                                            | §6.7       |
-| Snapshot aggregates for speed                       | `snapshot`                                                                      | §2.4       |
-| Evolve event schemas over time                      | `schema`                                                                        | §2.5       |
-| Make event streams tamper-proof                     | `signing`                                                                       | §2.6       |
-| Encrypt confidential payloads                       | `encryption`                                                                    | §2.7       |
-| Add logging/retry/recovery/circuit-breaker          | `middleware`                                                                    | §2.8       |
-| Deduplicate commands on retry (idempotency)         | `idempotency`                                                                   | §2.8       |
-| Add OpenTelemetry tracing/metrics                   | `otel` + `middleware`                                                           | §2.8       |
-| Auto-generate AsyncAPI/OpenAPI/EventCatalog/D2 docs | `catalog`                                                                       | §2.9       |
-| Soft-delete aggregates without data loss            | `event` (tombstone metadata)                                                    | §6.1       |
-| Generate typed handler boilerplate                  | `cmd/cqrs-gen`                                                                  | §6.7       |
-| Publish events to Watermill router                  | `watermill`                                                                     | §6.4       |
-| Dispatch commands/queries over gRPC                 | `transport/grpc`                                                                | §6.8       |
-| Verify doc code references compile                  | `cmd/doc-check`                                                                 | §6.8       |
-| In-memory command bus (typed pub/sub)               | `command` (`NewMemoryBus`)                                                      | §2.1       |
-| In-memory implementations for tests/dev             | `memory`                                                                        | §2.1       |
-| One-call infrastructure wiring (Bundle presets)     | `stack/memory`, `stack/sqlite`, `stack/pebble`, `stack/postgres`, `stack/turso` | §2.0       |
-| Typed read-model store over KV backend              | `kv.TypedStore`                                                                 | §2.0       |
-| Cache decorator for read models                     | `kv.Cache`                                                                      | §2.0       |
+| If you want to…                                       | Use                                                                             | See recipe |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------- | ---------- |
+| Create/store/load events                              | `event`                                                                         | §2.1       |
+| Dispatch type-safe commands                           | `command`                                                                       | §2.1       |
+| Run an event-sourced aggregate                        | `decider`                                                                       | §2.1       |
+| Generate unique, type-safe IDs                        | `id`                                                                            | §2.1       |
+| Encode payloads as JSON/CBOR                          | `codec`                                                                         | §2.1       |
+| Build a read model from events                        | `stack.Materialize` + `kv.TypedStore`                                           | §2.3       |
+| Dispatch type-safe queries                            | `query`                                                                         | §2.3       |
+| List all aggregates + their status                    | `listing`                                                                       | §6.4       |
+| Persist to PostgreSQL / SQLite                        | `storage`                                                                       | §2.2       |
+| Persist to embedded PebbleDB                          | `storage/pebble`                                                                | §2.2       |
+| Offline-first sync via LibSQL                         | `storage/turso`                                                                 | §6.6       |
+| Generic key-value abstraction                         | `kv`                                                                            | §6.7       |
+| Snapshot aggregates for speed                         | `snapshot`                                                                      | §2.4       |
+| Evolve event schemas over time                        | `schema`                                                                        | §2.5       |
+| Make event streams tamper-proof                       | `signing`                                                                       | §2.6       |
+| Encrypt confidential payloads                         | `encryption`                                                                    | §2.7       |
+| Add logging/retry/recovery/circuit-breaker            | `middleware`                                                                    | §2.8       |
+| Deduplicate commands on retry (idempotency)           | `idempotency`                                                                   | §2.8       |
+| Add OpenTelemetry tracing/metrics                     | `otel` + `middleware`                                                           | §2.8       |
+| Auto-generate AsyncAPI/OpenAPI/EventCatalog/D2 docs   | `catalog`                                                                       | §2.9       |
+| Soft-delete aggregates without data loss              | `event` (tombstone metadata)                                                    | §6.1       |
+| Generate typed handler boilerplate                    | `cmd/cqrs-gen`                                                                  | §6.7       |
+| Publish events to Watermill router                    | `watermill`                                                                     | §6.4       |
+| Dispatch commands/queries over gRPC                   | `transport/grpc`                                                                | §6.8       |
+| Verify doc code references compile                    | `cmd/doc-check`                                                                 | §6.8       |
+| In-memory command bus (typed pub/sub)                 | `command` (`NewMemoryBus`)                                                      | §2.1       |
+| In-memory implementations for tests/dev               | `memory`                                                                        | §2.1       |
+| One-call infrastructure wiring (Bundle presets)       | `stack/memory`, `stack/sqlite`, `stack/pebble`, `stack/postgres`, `stack/turso` | §2.0       |
+| Typed read-model store over KV backend                | `kv.TypedStore`                                                                 | §2.0       |
+| Cache decorator for read models                       | `kv.Cache`                                                                      | §2.0       |
+| Run projections with crash-restart + checkpoint + DLQ | `projectionhost`                                                                | §6.9       |
+| Test deciders/projections with Given/When/Then        | `scenario`                                                                      | §6.10      |
+| Schedule delayed commands / durable deadlines         | `scheduling`                                                                    | §6.11      |
+| Dead-letter failed dispatches (retry exhaustion)      | `middleware` (DLQ)                                                              | §2.8       |
 
 ---
 
@@ -741,6 +745,16 @@ cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 | `catalog`        | `catalog/v2`        | `Registry`, `SchemaFromType[T]()`, exporters: `asyncapi`, `d2`, `eventcatalog`, `openapi`.                                                     |
 | `watermill`      | `watermill/v2`      | `EventBus` (GoChannel-backed, replaces `memory.MemoryBus`), `CatchUpSubscriber`, `EventPublisher`, `MessageToEvent`. ADR-0028.                 |
 
+### Reliability & Testing (Layer 1–3)
+
+| Module           | Import              | One-liner                                                                                                                    |
+| ---------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `idempotency`    | `idempotency/v3`    | `Store`, `MemoryStore`, `KVStore` (any `kv.Store`+`ConditionalWriter`), `ErrDuplicate`, middleware + `KeyExtractor`. Dedup.  |
+| `scheduling`     | `scheduling/v3`     | `TimerStore`, `MemoryTimerStore`, `Scheduler` (poll + retry). Idempotent durable deadlines ("cancel order after 30 min").    |
+| `projection`     | `projection/v3`     | `Projection`, `NewProjection`. Consumer-side projection interface extracted from `event/`.                                   |
+| `projectionhost` | `projectionhost/v3` | `Host`, `WorkerState`, `DeadLetterStore`, `MemoryDeadLetterStore`. Managed lifecycle: crash-restart, checkpoint, poison DLQ. |
+| `scenario`       | `scenario/v3`       | Fluent BDD: `Given/When/Then`, `ThenError`, `ThenState`, `GivenProjection/ThenNoError`. Test deciders + projections.         |
+
 ### Tooling (Layer 6)
 
 | Module              | Import               | One-liner                                                                                                    |
@@ -908,6 +922,89 @@ Command payloads are carried in metadata (`metadata.Custom["payload"]`); handler
 extract them via `cmd.Metadata().Custom["payload"]`. Query results are JSON-encoded
 on the wire. The `CommandClient` implements the same `Dispatch` interface as a local
 dispatcher — swap them freely.
+
+### 6.9 Managed Projection Host (crash-restart + checkpoint + DLQ)
+
+The "last loop every consumer rewrites", now a library module. Composes any
+`event.SeekableJournal` + `event.CheckpointStore` + your `projection.Projection`s
+into a managed lifecycle with per-projection goroutines, exponential-backoff
+restarts, persisted checkpoints, and a poison-message dead-letter queue.
+
+```go
+import (
+    "github.com/larsartmann/go-cqrs-lite/projection/v3"
+    "github.com/larsartmann/go-cqrs-lite/projectionhost/v3"
+)
+
+// journal: any event.SeekableJournal (MemoryStore, SQLEventStore, pebble.EventStore, ...)
+// cpStore: event.CheckpointStore (memory.MemoryCheckpointStore, SQLCheckpointStore, ...)
+host, _ := projectionhost.New(journal, cpStore,
+    projectionhost.WithBatchSize(100),
+    projectionhost.WithDeadLetterStore(projectionhost.NewMemoryDeadLetterStore(), 3), // poison after 3 retries
+)
+_ = host.Register(&UserProjection{})   // Register returns error; Name() must be unique
+_ = host.Register(&OrderProjection{})
+
+go host.Start(ctx)    // one goroutine per projection; crash auto-restart + exponential backoff
+defer host.Stop()     // graceful drain (30s timeout)
+
+for _, s := range host.Status() {     // health snapshot per worker
+    fmt.Printf("%s: %s processed=%d errors=%d restarts=%d\n",
+        s.Name, s.Status, s.Processed, s.Errors, s.Restarts)
+}
+// Worker states: idle, running, backoff, draining, stopped, failed.
+// Reads directly from event.SeekableJournal — NO message-bus dependency.
+// For live (push) delivery alongside replay, pair with watermill/CatchUpSubscriber.
+```
+
+### 6.10 Scenario-Testing DSL (Given/When/Then)
+
+Fluent BDD for deciders and projections — no store or bus needed, just pure functions.
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/scenario/v3"
+
+// Decider: pure fold + pure decide
+scenario.Given[incrementCmd, counterState](t, foldCounter, counterState{},
+    mustEvent(evtIncremented)).            // pre-existing events folded into state
+    When(incrementCmd{}, decideIncrement).  // pure decide function
+    Then(evtIncremented)                    // asserts emitted event TYPES
+// Variants:
+//   .ThenError(target)                 // asserts decide returns an error wrapping target
+//   .ThenState(fold, initial, expected)// folds produced events, asserts final state
+
+// Projection: feed events, assert no error
+scenario.GivenProjection(t, &UserProjection{}, evt1, evt2).ThenNoError()
+scenario.GivenProjection(t, &BrokenProj{}, badEvt).ThenError() // expects >= 1 error
+```
+
+### 6.11 Scheduled Commands / Durable Deadlines
+
+Classic ES need — "cancel the order 30 minutes after creation if still unpaid" — as a
+library primitive. `TimerStore` persists timers across restarts; `Scheduler` polls and
+dispatches. Scheduling is idempotent (same `TimerID` is a no-op), so it is safe to
+re-schedule on command retry.
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/scheduling/v3"
+
+store := scheduling.NewMemoryTimerStore()
+sched := scheduling.New(store, func(ctx context.Context, t scheduling.Timer) error {
+    return cmdDispatcher.Dispatch(ctx, t.Payload.(CancelOrderCmd))
+},
+    scheduling.WithPollInterval(500*time.Millisecond),
+    scheduling.WithMaxRetries(5),
+)
+
+_ = store.Schedule(ctx, scheduling.Timer{
+    ID:      "order-123-timeout",
+    FireAt:  time.Now().Add(30 * time.Minute),
+    Payload: CancelOrderCmd{OrderID: "123"},
+})
+_ = store.Cancel(ctx, "order-123-timeout") // order paid → cancel the timeout
+
+go sched.Start(ctx) // polls Due(), dispatches via callback, MarkFired(); retries failures
+```
 
 ---
 

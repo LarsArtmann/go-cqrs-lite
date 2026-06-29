@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-06-29 (idempotency module added; DLQ feature documented; SSE promoted to branded types) · **Module count:** 49 `go.mod` files (48 in `go.work` + transport/grpc builds standalone) · **Go version:** 1.26.3
+**Last audited:** 2026-06-29 (projectionhost + scenario + scheduling modules added; testing→scenario rename; projectionhost example + DLQ replay + WithLogger; Pebble SetIfAbsent; eventtest workaround documented) · **Module count:** 53 `go.mod` files (all wired into `go.work`) · **Go version:** 1.26.3
 
 ## Status Legend
 
@@ -158,15 +158,15 @@
 
 > `import "github.com/larsartmann/go-cqrs-lite/idempotency/v3"`
 
-| Feature           | Detail                                                                                     | Status |
-| ----------------- | ------------------------------------------------------------------------------------------ | ------ |
-| Store interface   | `Store`: `Seen`, `Record`, `CheckAndRecord` — dedup opaque keys (command idempotency keys) | ✅     |
-| MemoryStore       | `MemoryStore` — in-memory TTL store with background sweep + lazy deletion                  | ✅     |
-| Atomic dedup      | `CheckAndRecord` — single-lock check+record prevents the TOCTOU race (exactly one winner)  | ✅     |
-| TTL expiration    | Keys expire after a configurable duration; removed by sweeper and lazily on read           | ✅     |
-| ErrDuplicate      | Conflict sentinel returned when a key is already recorded (maps to HTTP 409)               | ✅     |
+| Feature             | Detail                                                                                     | Status |
+| ------------------- | ------------------------------------------------------------------------------------------ | ------ |
+| Store interface     | `Store`: `Seen`, `Record`, `CheckAndRecord` — dedup opaque keys (command idempotency keys) | ✅     |
+| MemoryStore         | `MemoryStore` — in-memory TTL store with background sweep + lazy deletion                  | ✅     |
+| Atomic dedup        | `CheckAndRecord` — single-lock check+record prevents the TOCTOU race (exactly one winner)  | ✅     |
+| TTL expiration      | Keys expire after a configurable duration; removed by sweeper and lazily on read           | ✅     |
+| ErrDuplicate        | Conflict sentinel returned when a key is already recorded (maps to HTTP 409)               | ✅     |
 | Dispatch middleware | `CommandIdempotency` — `command.Middleware` that deduplicates by `Command.ID()`            | ✅     |
-| KeyExtractor      | `KeyExtractor` func type + `CommandIDKey` default extractor                               | ✅     |
+| KeyExtractor        | `KeyExtractor` func type + `CommandIDKey` default extractor                                | ✅     |
 
 **Sentinel errors:** `ErrDuplicate` (Conflict)
 
@@ -174,13 +174,59 @@
 
 > `import "github.com/larsartmann/go-cqrs-lite/middleware/v3"`
 
-| Feature           | Detail                                                                                     | Status |
-| ----------------- | ------------------------------------------------------------------------------------------ | ------ |
-| DeadLetterStore   | `DeadLetterStore` interface — `Store`, `List`, `Replay`, `Purge`                           | ✅     |
-| MemoryDLQStore    | In-memory `DeadLetterStore` for dev/test                                                   | ✅     |
-| SQLDLQStore       | SQL-backed `DeadLetterStore` (Postgres, SQLite)                                            | ✅     |
-| DeadLetterWrapper | Wraps a projection/event handler — captures poison messages, advances checkpoint          | ✅     |
-| Error metadata    | Each dead-letter entry captures event, error, handler name, timestamp, retry count        | ✅     |
+| Feature           | Detail                                                                             | Status |
+| ----------------- | ---------------------------------------------------------------------------------- | ------ |
+| DeadLetterStore   | `DeadLetterStore` interface — `Store`, `List`, `Replay`, `Purge`                   | ✅     |
+| MemoryDLQStore    | In-memory `DeadLetterStore` for dev/test                                           | ✅     |
+| SQLDLQStore       | SQL-backed `DeadLetterStore` (Postgres, SQLite)                                    | ✅     |
+| DeadLetterWrapper | Wraps a projection/event handler — captures poison messages, advances checkpoint   | ✅     |
+| Error metadata    | Each dead-letter entry captures event, error, handler name, timestamp, retry count | ✅     |
+
+---
+
+## Reliability Infrastructure ✅ FULLY_FUNCTIONAL
+
+The "reliability trio" (sans the deferred transactional outbox): idempotency +
+DLQ (above) + managed projection host + scheduled deadlines.
+
+### Managed Projection Host ✅ FULLY_FUNCTIONAL
+
+> `import "github.com/larsartmann/go-cqrs-lite/projectionhost/v3"`
+
+The "last loop every consumer rewrites", as a library module. Composes any
+`event.SeekableJournal` + `event.CheckpointStore` + `projection.Projection`s
+into a managed lifecycle.
+
+| Feature                   | Detail                                                                                      | Status |
+| ------------------------- | ------------------------------------------------------------------------------------------- | ------ |
+| Host                      | `Host` — manages projection workers, lifecycle, and health                                  | ✅     |
+| Per-projection goroutines | Each registered projection runs independently in its own goroutine                          | ✅     |
+| Crash auto-restart        | Workers restart on panic/error with exponential backoff (configurable initial/max)          | ✅     |
+| Checkpoint persistence    | Survives restarts — reads resume from the last committed checkpoint (no event loss)         | ✅     |
+| Dead-letter queue         | `DeadLetterStore` / `MemoryDeadLetterStore` — poison messages captured, checkpoint advances | ✅     |
+| Health / liveness         | `Status()` reports per-worker state + processed/errors/restarts counters                    | ✅     |
+| Graceful drain            | `Stop()` waits for in-flight events (30s timeout)                                           | ✅     |
+| RegisterAndWait           | Convenience: register + start + block until ctx cancelled                                   | ✅     |
+
+Worker states: `idle`, `running`, `backoff`, `draining`, `stopped`, `failed`.
+Reads directly from `event.SeekableJournal` — no message-bus dependency. For
+live (push) delivery alongside replay, pair with `watermill/CatchUpSubscriber`.
+
+### Scheduling (Durable Deadlines) ✅ FULLY_FUNCTIONAL
+
+> `import "github.com/larsartmann/go-cqrs-lite/scheduling/v3"`
+
+Classic ES need — "cancel the order 30 minutes after creation if still unpaid" —
+as a library primitive.
+
+| Feature             | Detail                                                                           | Status |
+| ------------------- | -------------------------------------------------------------------------------- | ------ |
+| TimerStore          | `TimerStore` interface — `Schedule`, `Due`, `MarkFired`, `Cancel`                | ✅     |
+| MemoryTimerStore    | In-memory `TimerStore` for development and testing                               | ✅     |
+| Scheduler           | Polls `Due()`, dispatches via callback, `MarkFired()`; retries failed dispatches | ✅     |
+| Idempotent schedule | Re-scheduling the same `TimerID` is a no-op (safe on command retry)              | ✅     |
+| Cancel              | Remove a timer before it fires (e.g. order paid → cancel timeout)                | ✅     |
+| Configurable        | `WithPollInterval`, `WithMaxRetries`, `WithLogger`                               | ✅     |
 
 ---
 
@@ -727,6 +773,20 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Store test suite  | `TestStoreSaveAndLoad`, `TestStoreConcurrencyConflict`, `TestStoreAppendBatch`, `TestStoreLoadFromVersion`, `TestStoreMetadataRoundtrip` — reusable suite functions | 🧪     |
 | Handler factories | `AppendEventsHandler`, `NoopEventHandler`, `FailingEventHandler`, `PanicEventHandler`, `CallbackEventHandler`                                                       | 🧪     |
 
+### Scenario Testing DSL ✅ FULLY_FUNCTIONAL
+
+> `import "github.com/larsartmann/go-cqrs-lite/scenario/v3"`
+
+Fluent BDD harness for deciders and projections — no store or bus needed, just pure functions.
+
+| Feature                 | Detail                                                                            | Status |
+| ----------------------- | --------------------------------------------------------------------------------- | ------ |
+| Decider Given/When/Then | `Given[Cmd,State](t, apply, initial, events...).When(cmd, decide).Then(types...)` | ✅     |
+| ThenError               | Asserts the decide function returns an error wrapping the target                  | ✅     |
+| ThenState               | Folds produced events and asserts the resulting state                             | ✅     |
+| Projection Given        | `GivenProjection(t, proj, events...)` feeds events to a projection                | ✅     |
+| ThenNoError / ThenError | Assert the projection handled all events without/with error                       | ✅     |
+
 ---
 
 ## Tools 🔧
@@ -876,6 +936,17 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `stack/postgres`                 | `…/stack/postgres/v3`              | ✅ Production   |
 | `stack/turso`                    | `…/stack/turso/v3`                 | ✅ Production   |
 | `stack/bench`                    | `…/stack/bench/v3`                 | 🧪 Benchmarks   |
+
+| `deriver` | `…/deriver/v3` | ✅ Production |
+| `graph` | `…/graph/v3` | ✅ Production |
+| `idempotency` | `…/idempotency/v3` | ✅ Production |
+| `projection` | `…/projection/v3` | ✅ Production |
+| `projectionhost` | `…/projectionhost/v3` | ✅ Production |
+| `scenario` | `…/scenario/v3` | ✅ Production |
+| `scheduling` | `…/scheduling/v3` | ✅ Production |
+| `example/graph-demo` | `…/example/graph-demo` | 💡 Demo |
+| `example/deployer-first-heterogeneous` | `…/example/deployer-first-heterogeneous` | 💡 Demo |
+| `example/projectionhost` | `…/example/projectionhost` | 💡 Demo |
 
 ---
 
