@@ -27,9 +27,8 @@ Query   → Dispatcher → Handler → Read Model
 | Axis              | Question                                    | Modules                                                                              |
 | ----------------- | ------------------------------------------- | ------------------------------------------------------------------------------------ |
 | **Write model**   | How do I decide + persist changes?          | `event`, `command`, `decider`, `id`                                                  |
-| **Read model**    | How do I build queryable state from events? | `stack.Materialize`, `kv`, `listing`, `query`                                        |
+| **Read model**    | How do I build queryable state from events? | `stack.Materialize`, `kv` (`TypedStore`, `Cache`), `listing`, `query`                |
 | **Storage**       | Where do events/snapshots/checkpoints live? | `storage/memory`, `storage`, `storage/pebble`, `storage/turso`, `kv`, `stack`        |
-| **Read models**   | How do I store/query typed projections?     | `kv.TypedStore`, `kv.Cache`                                                          |
 | **Cross-cutting** | Security, evolution, observability, docs    | `signing`, `encryption`, `schema`, `middleware`, `otel`, `catalog`, `transport/http` |
 
 You do NOT need all of them. Start with the minimal recipe (§2), then bolt on capabilities.
@@ -47,11 +46,11 @@ You do NOT need all of them. Start with the minimal recipe (§2), then bolt on c
 | Encode payloads as JSON/CBOR                          | `codec`                                                                         | §2.1       |
 | Build a read model from events                        | `stack.Materialize` + `kv.TypedStore`                                           | §2.3       |
 | Dispatch type-safe queries                            | `query`                                                                         | §2.3       |
-| List all aggregates + their status                    | `listing`                                                                       | §6.4       |
+| List all aggregates + their status                    | `listing`                                                                       | §6.3       |
 | Persist to PostgreSQL / SQLite                        | `storage`                                                                       | §2.2       |
 | Persist to embedded PebbleDB                          | `storage/pebble`                                                                | §2.2       |
-| Offline-first sync via LibSQL                         | `storage/turso`                                                                 | §6.6       |
-| Generic key-value abstraction                         | `kv`                                                                            | §6.7       |
+| Offline-first sync via LibSQL                         | `storage/turso`                                                                 | §6.5       |
+| Generic key-value abstraction                         | `kv`                                                                            | §6.6       |
 | Snapshot aggregates for speed                         | `snapshot`                                                                      | §2.4       |
 | Evolve event schemas over time                        | `schema`                                                                        | §2.5       |
 | Make event streams tamper-proof                       | `signing`                                                                       | §2.6       |
@@ -64,7 +63,7 @@ You do NOT need all of them. Start with the minimal recipe (§2), then bolt on c
 | Generate typed handler boilerplate                    | `cmd/cqrs-gen`                                                                  | §6.7       |
 | Publish events to Watermill router                    | `watermill`                                                                     | §6.4       |
 | Dispatch commands/queries over gRPC                   | `transport/grpc`                                                                | §6.8       |
-| Verify doc code references compile                    | `cmd/doc-check`                                                                 | §6.8       |
+| Verify doc code references compile                    | `cmd/doc-check`                                                                 | §5         |
 | In-memory command bus (typed pub/sub)                 | `command` (`NewMemoryBus`)                                                      | §2.1       |
 | In-memory implementations for tests/dev               | `memory`                                                                        | §2.1       |
 | One-call infrastructure wiring (Bundle presets)       | `stack/memory`, `stack/sqlite`, `stack/pebble`, `stack/postgres`, `stack/turso` | §2.0       |
@@ -74,6 +73,9 @@ You do NOT need all of them. Start with the minimal recipe (§2), then bolt on c
 | Test deciders/projections with Given/When/Then        | `scenario`                                                                      | §6.10      |
 | Schedule delayed commands / durable deadlines         | `scheduling`                                                                    | §6.11      |
 | Dead-letter failed dispatches (retry exhaustion)      | `middleware` (DLQ)                                                              | §2.8       |
+| Derive commands reactively from events                | `deriver`                                                                       | §6.12      |
+| Build graph/traversal read models (nodes + edges)     | `graph`                                                                         | §6.13      |
+| Expose CQRS metrics via Prometheus `/metrics`         | `prometheus`                                                                    | §6.14      |
 
 ---
 
@@ -212,6 +214,7 @@ import (
     "github.com/larsartmann/go-cqrs-lite/event/v3"
     "github.com/larsartmann/go-cqrs-lite/id/v3"
     "github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
+    cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v3"
 )
 
 type UserState struct{ Name string }
@@ -221,11 +224,11 @@ type UserCreated struct{ Name string }
 func main() {
     ctx := context.Background()
     store := memory.NewMemoryStore()
-    bus := watermill.NewEventBus()
+    bus := cqrswatermill.NewEventBus()
 
     d := decider.Decider[UserState]{
         Initial: UserState{},
-        Fold: func(s UserState, e event.Event) (UserState, error) {
+        Apply: func(s UserState, e event.Event) (UserState, error) {
             p, _ := event.DecodePayload[UserCreated](e, codec.JSONCodec{})
             s.Name = p.Name
             return s, nil
@@ -273,7 +276,7 @@ cpStore, _  := backend.CheckpointStore()     // *SQLCheckpointStore (lazy)
 **Embedded PebbleDB (single binary, one DB for the full stack):**
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/pebble/v3"
+import "github.com/larsartmann/go-cqrs-lite/storage/pebble/v3"
 
 backend, _ := pebble.Open(dir, &pebble.Options{}, logger)
 defer backend.Close() // closes DB AND all stores
@@ -480,6 +483,47 @@ EventBus default uses `BlockPublishUntilSubscriberAck=true` for ordered live
 delivery and `Persistent=false` to avoid GoChannel's unordered persistent
 replay (the CatchUpSubscriber handles replay from the journal instead).
 
+#### Choosing a projection tier: KV vs Relational vs Graph
+
+There are **three projection tiers** — pick by read-access pattern:
+
+| Tier            | Module                               | Writes ONE event to…       | Best for                                          |
+| --------------- | ------------------------------------ | -------------------------- | ------------------------------------------------- |
+| **Document/KV** | `stack.Materialize` + `kv.ViewStore` | one record in one table    | single-entity lookups, CRUD-style reads           |
+| **Relational**  | `storage.RelationalProjection`       | several related SQL tables | multi-table joins, WHERE/ORDER BY, set predicates |
+| **Graph**       | `graph.GraphProjection`              | nodes + edges              | variable-depth traversal, path-finding, adjacency |
+
+`SQLViewStore` (above) is the document tier with queryable columns — still one
+record per event. When a single event must update several related tables
+atomically (a message + its attachments[] + a member_roles junction), use
+`RelationalProjection` instead. For N-hop queries, use `GraphProjection` (see §6.13).
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/storage/v3"
+
+// Relational: one event → many tables, atomic, dialect-agnostic.
+schema := storage.RelationalSchema{Tables: []storage.RelationalTable{
+    {Name: "messages", PrimaryKey: []string{"id"}, Columns: []storage.RelationalColumn{
+        {Name: "id", Type: "TEXT"}, {Name: "channel_id", Type: "TEXT"}, {Name: "content", Type: "TEXT"},
+    }},
+    {Name: "attachments", PrimaryKey: []string{"id"}, Columns: []storage.RelationalColumn{
+        {Name: "id", Type: "TEXT"}, {Name: "message_id", Type: "TEXT"}, {Name: "filename", Type: "TEXT"},
+    }},
+}}
+proj, _ := storage.NewRelationalProjection("messages", schema, db, sqlpkg.SQLiteDialect{},
+    func(ctx context.Context, evt event.Event, sink storage.ProjectionSink) error {
+        var p MessageCreated
+        _ = json.Unmarshal(evt.Payload(), &p)
+        sink.Upsert(ctx, "messages", storage.Row{"id": p.ID, "channel_id": p.ChannelID, "content": p.Content})
+        for _, a := range p.Attachments {
+            sink.Ensure(ctx, "attachments", storage.Row{"id": a.ID, "message_id": p.ID, "filename": a.Name})
+        }
+        return nil // all writes commit atomically; error → full rollback
+    }, []event.Type{"MESSAGE_CREATED"})
+// proj implements projection.Projection → register with projectionhost or CatchUpSubscriber.
+// SQL-ONLY (SQLite/Postgres). For KV backends use stack.Materialize; for graph see §6.13.
+```
+
 ### 2.4 Snapshots for Performance (snapshot)
 
 Avoid replaying long event streams. Snapshots cache aggregate state at a version.
@@ -525,7 +569,7 @@ signer, _ := signing.NewHMAC(secret)
 bus.UsePublish(signing.SignMiddleware(signer))   // sign on publish
 bus.Use(signing.VerifyMiddleware(signer))        // verify on receive
 // Ed25519: signing.NewEd25519(privateKey, publicKey)
-// Multisig: signing/v2/multisig
+// Multisig: signing/v3/multisig
 ```
 
 ### 2.7 Encrypted Payloads (encryption)
@@ -540,7 +584,7 @@ bus.UsePublish(encryption.EncryptMiddleware(enc, encryption.WithMiddlewareKeyID(
 bus.Use(encryption.DecryptMiddleware(enc))
 
 // Composable codec wrapper (JSON envelope, encrypted payload)
-codec := encryption.NewCodec(codec.JSONCodec{}, enc)
+encryptedCodec := encryption.NewCodec(codec.JSONCodec{}, enc)
 
 // Key rotation via resolver (map of KeyID → Decrypter)
 resolver := encryption.NewStaticKeyResolver(map[encryption.KeyID]encryption.Decrypter{
@@ -695,7 +739,7 @@ cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 | Adding a `Delete()` method to Store        | Use tombstone metadata (`event.MarkTombstone`)               |
 | Taking `Store` param when you only read    | Take `EventSource` or `Journal`                              |
 | Type-asserting `evt.Payload()`             | Use `event.DecodePayload[T](evt, codec)`                     |
-| Importing `go.opentelemetry.io` directly   | Import `otel/v2` re-exports                                  |
+| Importing `go.opentelemetry.io` directly   | Import `otel/v3` re-exports                                  |
 | Manually setting event version in `Decide` | Let `event.NewEvents` auto-increment from the passed version |
 | Creating a saga/process-manager module     | Use projection + command dispatch (see `example/todo/`)      |
 | Editing dependency go.mod files by hand    | Use `go get` commands                                        |
@@ -716,7 +760,7 @@ cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 | `event`      | `event/v3`      | `Event`, `Store` (=`EventSink`+`EventSource`), `Bus`, `Journal`, `SeekableJournal`, `NewEvent`, `NewEvents`, `DecodePayload[T]`, 5-family errors, tombstone (`TombstoneMark`), causality (`Causation`), `Tracing`, `Checkpoint`. |
 | `command`    | `command/v3`    | `Dispatcher`, `Handler`, `RegisterTyped`, `BasicCommand`, `PersistedCommand`, `CommandSink`/`Source`, `CommandBus` (pub/sub).                                                                                                    |
 | `query`      | `query/v3`      | `Dispatcher`, `TypedHandler[Q,R]`, `RegisterTyped`, `PaginatedResult[T]`, `PersistedQuery`, `QuerySink`/`Source`.                                                                                                                |
-| `decider`    | `decider/v3`    | `Decider[State]{Initial, Fold}`, `Repository[State]` (`Execute`, `Load`, `LoadAtVersion`), snapshot integration.                                                                                                                 |
+| `decider`    | `decider/v3`    | `Decider[State]{Initial, Apply}`, `Repository[State]` (`Execute`, `Load`, `LoadAtVersion`), snapshot integration.                                                                                                                |
 
 ### Read models (Layer 4–5)
 
@@ -765,14 +809,22 @@ cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 
 | Module              | Import               | One-liner                                                                                                    |
 | ------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `testutil`          | `testutil/v2`        | `MustNewCmd(tb, ...)`, `NoopCommandHandler`. Shared test helpers (zero panics).                              |
-| `id/idtest`         | `id/v2/idtest`       | `ParseAggregateID(tb, s)`, `ParseEventID(tb, s)`. Branded-ID test helpers — `tb.Fatalf` on error, no panics. |
-| `query/querytest`   | `query/v2/querytest` | `New(tb, queryType)`. Construct valid test queries — `tb.Fatalf` on error.                                   |
-| `event/eventtest`   | `event/v2/eventtest` | `FakeStore`, `FakeBus`, `AssertGolden`. Event test doubles and golden test helpers.                          |
+| `testutil`          | `testutil/v3`        | `MustNewCmd(tb, ...)`, `NoopCommandHandler`. Shared test helpers (zero panics).                              |
+| `id/idtest`         | `id/v3/idtest`       | `ParseAggregateID(tb, s)`, `ParseEventID(tb, s)`. Branded-ID test helpers — `tb.Fatalf` on error, no panics. |
+| `query/querytest`   | `query/v3/querytest` | `New(tb, queryType)`. Construct valid test queries — `tb.Fatalf` on error.                                   |
+| `event/eventtest`   | `event/v3/eventtest` | `FakeStore`, `FakeBus`, `AssertGolden`. Event test doubles and golden test helpers.                          |
 | `cmd/cqrs-gen`      | (go install)         | Code generator: typed handler registration from `//cqrs:command` / `//cqrs:query` markers.                   |
 | `cmd/doc-check`     | (go run)             | Doc verifier: scans Markdown for Go code references, checks symbols exist.                                   |
 | `cmd/api-stability` | (go install)         | API surface checker: compares exports against `docs/api_surface.txt` golden file.                            |
 | `transport/grpc`    | `transport/grpc/v3`  | `RegisterCommandService`, `RegisterQueryService`, `NewCommandClient`, `NewQueryClient`. gRPC transport.      |
+
+### Reactive & Advanced Read Models (Layer 2–5)
+
+| Module       | Import          | One-liner                                                                                                                                                  |
+| ------------ | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `deriver`    | `deriver/v3`    | Event→command derivation. Pure functions, composable (`.Then` fan-out, `.Filter`), wires into `bus.SubscribeAll`. Saga alternative. ADR-0040.              |
+| `graph`      | `graph/v3`      | Third projection tier: nodes + edges for traversal-heavy read models. `GraphProjection`, `MemoryDriver`, `Schema` validation, native Cypher/Gremlin reads. |
+| `prometheus` | `prometheus/v3` | OTel→Prometheus bridge: `Setup()` → MeterProvider + `/metrics` handler. Exposes all CQRS instruments. `WithRegistry()` for custom registries.              |
 
 ---
 
@@ -840,7 +892,7 @@ messages, _ := subscriber.Subscribe(ctx, "user.created")
 ### 6.5 Turso Offline-First
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/turso/v3"
+import "github.com/larsartmann/go-cqrs-lite/storage/turso/v3"
 
 // Offline-first: local embedded LibSQL with background sync to Turso cloud
 db, _ := turso.OpenSync(ctx, "file:local.db", "libsql://my-db.turso.io", authToken)
@@ -853,7 +905,7 @@ backend, _ := turso.NewBackend(db)
 ```go
 import (
     "github.com/cockroachdb/pebble"
-    cqrspebble "github.com/larsartmann/go-cqrs-lite/pebble/v3"
+    cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v3"
 )
 
 db, _ := pebble.Open(dir, &pebble.Options{})               // raw cockroachdb/pebble
@@ -1012,6 +1064,115 @@ _ = store.Cancel(ctx, "order-123-timeout") // order paid → cancel the timeout
 go sched.Start(ctx) // polls Due(), dispatches via callback, MarkFired(); retries failures
 ```
 
+### 6.12 Reactive Command Derivation (deriver)
+
+Derive commands from events — the reactive link that replaces hand-rolled
+sagas. A `Deriver` is a pure function: event → zero or more commands. Derivers
+compose with `.Then()` (fan-out) and `.Filter()` (event-type matching), and
+wire into the event bus as a catch-all subscriber. Safe for at-least-once
+delivery: the same event always produces the same commands, so idempotency at
+the command handler deduplicates replays.
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/deriver/v3"
+
+// A deriver: user.created → send welcome email + sync to CRM
+sendWelcomeEmail := deriver.Deriver(
+    func(_ context.Context, evt event.Event) ([]command.Command, error) {
+        cmd, err := command.New("email.send_welcome", evt.AggregateID())
+        if err != nil {
+            return nil, err
+        }
+        return []command.Command{cmd}, nil
+    },
+)
+syncToCrm := deriver.Deriver(
+    func(_ context.Context, evt event.Event) ([]command.Command, error) {
+        cmd, err := command.New("crm.upsert_user", evt.AggregateID())
+        if err != nil {
+            return nil, err
+        }
+        return []command.Command{cmd}, nil
+    },
+)
+
+// Compose (fan-out) + filter (only user.created) + wire into the bus
+composed := sendWelcomeEmail.Then(syncToCrm).Filter("user.created")
+bus.SubscribeAll(composed.AsHandler(cmdDispatcher))
+// ADR-0040: functional/composable API over a declarative rule registry.
+```
+
+### 6.13 Graph Projections (graph)
+
+The third projection tier. Where `stack.Materialize` writes one document per
+key and `storage.RelationalProjection` writes across SQL tables, `graph`
+merges events into **nodes and edges** — the right shape for variable-depth
+traversal, path-finding, adjacency, and connected-component queries (reply
+chains, social graphs, causation DAGs, role memberships).
+
+Writes ARE portable across backends (openCypher MERGE semantics shared by
+Neo4j, Memgraph, Apache Age, RedisGraph). Reads run native Cypher/Gremlin via
+the driver (only `MemoryDriver` offers a Go-native read API).
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/graph/v3"
+
+driver := graph.NewMemoryDriver()
+proj, _ := graph.NewGraphProjection("discord-graph", driver,
+    func(ctx context.Context, evt event.Event, sink graph.GraphSink) error {
+        var p MessageCreated
+        _ = json.Unmarshal(evt.Payload(), &p)
+        msgRef := graph.NodeRef{Label: "Message", KeyProp: "id", KeyValue: p.ID}
+        sink.MergeNode(msgRef, map[string]any{"created_at": p.CreatedAt})
+        // Auto-creates endpoint nodes — handlers need not pre-merge.
+        sink.MergeEdge(graph.EdgeRef{Type: "AUTHORED_BY", From: msgRef,
+            To: graph.NodeRef{Label: "User", KeyProp: "id", KeyValue: p.AuthorID}}, nil)
+        // The recursive edge — relational tier needs WITH RECURSIVE CTE.
+        if p.ReplyToMessageID != "" {
+            sink.MergeEdge(graph.EdgeRef{Type: "REPLY_TO", From: msgRef,
+                To: graph.NodeRef{Label: "Message", KeyProp: "id", KeyValue: p.ReplyToMessageID}},
+                map[string]any{"at": p.CreatedAt})
+        }
+        return nil // atomic: all merges commit or all roll back
+    }, []event.Type{"MESSAGE_CREATED"})
+// proj implements projection.Projection → register with projectionhost or any runner.
+
+// Schema validation (opt-in, ADR-0039) — catch typos at the sink boundary:
+schema := &graph.Schema{
+    Nodes: []graph.NodeType{{Label: "User", KeyProp: "id", Properties: []graph.PropertyType{{Name: "name"}}}},
+    Edges: []graph.EdgeType{{Type: "AUTHORED_BY", FromLabel: "Message", ToLabel: "User"}},
+}
+proj, _ = graph.NewGraphProjection("graph", driver, handler, types, graph.WithSchema(schema))
+
+// Read API (MemoryDriver only — Go-native predicates, NOT a query language)
+ancestors := driver.Traverse(msgRef, "REPLY_TO", -1)   // BFS unlimited depth
+neighbors, edges := driver.Neighbors(centerRef)          // 1-hop adjacency
+path, _ := driver.ShortestPath(userA, userB)             // BFS shortest path
+```
+
+### 6.14 Prometheus Metrics Export (prometheus)
+
+OTel→Prometheus bridge: expose all CQRS metrics (command/event/query) at the
+standard `/metrics` endpoint. Wraps the OTel Prometheus exporter so any
+`middleware.NewOTelMetricsRecorder` instruments are automatically exposed.
+
+```go
+import (
+    "github.com/larsartmann/go-cqrs-lite/prometheus/v3"
+    "go.opentelemetry.io/otel"
+)
+
+provider, handler, _ := prometheus.Setup() // one call: MeterProvider + /metrics handler
+defer provider.Shutdown(context.Background())
+otel.SetMeterProvider(provider.AsMeterProvider())
+
+// Expose /metrics for Prometheus scraping
+mux.Handle("/metrics", handler)
+
+// Custom registry (multi-tenant / shared)
+provider, handler, _ = prometheus.Setup(prometheus.WithRegistry(myRegistry))
+```
+
 ---
 
 ## 7. Testing Patterns
@@ -1040,12 +1201,12 @@ cmd := testutil.NewCmd(t, "user.create", aggID) // t = *testing.T
 
 ```
 Layer 0: id/, dispatcher/, codec/, kv/         (leaf modules, no internal deps)
-Layer 1: event/ (→id, codec, ro), command/ (→id, dispatcher, ro), query/ (→dispatcher, ro)
-Layer 2: schema/ (→event), snapshot/ (→event)
-Layer 3: decider/ (→event, snapshot)
-Layer 4: memory/, signing/, encryption/, otel/
-Layer 5: middleware/, storage/, projection/, listing/, watermill/, pebble/, turso/
-Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability
+Layer 1: event/ (→id, codec), command/ (→id, dispatcher), query/ (→dispatcher), scheduling/ (→id)
+Layer 2: schema/ (→event), snapshot/ (→event), graph/ (→event), projection/ (→event), deriver/ (→event, command)
+Layer 3: decider/ (→event, snapshot), scenario/ (→event, id, projection), projectionhost/ (→event, id, projection)
+Layer 4: storage/memory/, signing/, encryption/, otel/
+Layer 5: middleware/, storage/, listing/, watermill/, transport/http/, transport/grpc/, storage/pebble/, storage/turso/, prometheus/
+Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability, cmd/doc-check
 ```
 
 **Saga pattern:** No dedicated module. Multi-step orchestration = projection + command dispatch. See `example/todo/`.
@@ -1100,7 +1261,7 @@ bus.Use(middleware...)
 bus.UsePublish(middleware...)
 
 // Decider
-d := decider.Decider[State]{Initial: initState, Fold: foldFunc}
+d := decider.Decider[State]{Initial: initState, Apply: applyFunc}
 repo, _ := decider.NewRepository[State](store, bus, d)
 repo.Execute(ctx, aggID, "User", decideFunc)      // load → fold → decide → save → publish
 state, ver, _ := repo.Load(ctx, aggID, "User")
