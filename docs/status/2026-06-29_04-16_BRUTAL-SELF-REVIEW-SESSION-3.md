@@ -11,15 +11,15 @@ Three sessions of brutal self-review progressively found deeper issues. Session 
 
 ### Stats at a glance
 
-| Metric                          | Before session 1 | After this session (3)                    |
-| ------------------------------- | ----------------- | ----------------------------------------- |
-| Total commits across 3 sessions | 0                 | **24** (all BuildFlow 31/31 green)        |
-| Correctness bugs found & fixed  | 1 (data loss)     | **4** (+hammering retry ×2, +unwired metrics) |
-| Architectural decisions resolved| 0                 | **2** (pure replay ADR-0042, DLQ option C ADR-0043) |
-| Type-safety violations fixed    | 1 (Timer.Payload any) | **1** (generic Timer[P])               |
-| Metrics interface methods wired | —                 | **5/5** (was 3/5 before this session)     |
-| Test coverage gaps closed       | —                 | **4** (retry-delay, 10K stress, SQL cp, metrics) |
-| Lint debt cleared               | 21 warnings       | **0** in changed modules                  |
+| Metric                           | Before session 1      | After this session (3)                              |
+| -------------------------------- | --------------------- | --------------------------------------------------- |
+| Total commits across 3 sessions  | 0                     | **24** (all BuildFlow 31/31 green)                  |
+| Correctness bugs found & fixed   | 1 (data loss)         | **4** (+hammering retry ×2, +unwired metrics)       |
+| Architectural decisions resolved | 0                     | **2** (pure replay ADR-0042, DLQ option C ADR-0043) |
+| Type-safety violations fixed     | 1 (Timer.Payload any) | **1** (generic Timer[P])                            |
+| Metrics interface methods wired  | —                     | **5/5** (was 3/5 before this session)               |
+| Test coverage gaps closed        | —                     | **4** (retry-delay, 10K stress, SQL cp, metrics)    |
+| Lint debt cleared                | 21 warnings           | **0** in changed modules                            |
 
 ---
 
@@ -73,16 +73,16 @@ Three sessions of brutal self-review progressively found deeper issues. Session 
 
 ## c) NOT STARTED 🚫
 
-| # | Task | Impact | Why deferred |
-|---|------|--------|-------------|
-| 1 | Prometheus adapter for `MetricsRecorder` | Med | Interface done; adapter is boilerplate |
-| 2 | SQL-backed `DeadLetterStore` for projectionhost | Med | Only MemoryDeadLetterStore exists; matches middleware's SQLDeadLetterStore pattern |
-| 3 | Pebble-backed `TimerStore` for scheduling | Low | Only needed when a concrete consumer needs durable timers across restarts |
-| 4 | `scripts/tag-release.sh` for multi-module tag automation | Med | Manual tagging caused the testing→scenario rename tag issue |
-| 5 | Delete stale remote `testing/v3.3.0` tag | Low | Needs `git push origin :refs/tags/testing/v3.3.0` — destructive, needs user approval |
-| 6 | eventtest nested-module `-e` workaround ADR | Med | Every consumer's `go mod tidy` emits warnings |
-| 7 | `any` audit at library boundaries across all modules | Low | Compliance sweep |
-| 8 | `stack/projectionhost` preset (host + checkpoint + DLQ bundle) | Low | Batteries-included composition |
+| #   | Task                                                           | Impact | Why deferred                                                                         |
+| --- | -------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------ |
+| 1   | Prometheus adapter for `MetricsRecorder`                       | Med    | Interface done; adapter is boilerplate                                               |
+| 2   | SQL-backed `DeadLetterStore` for projectionhost                | Med    | Only MemoryDeadLetterStore exists; matches middleware's SQLDeadLetterStore pattern   |
+| 3   | Pebble-backed `TimerStore` for scheduling                      | Low    | Only needed when a concrete consumer needs durable timers across restarts            |
+| 4   | `scripts/tag-release.sh` for multi-module tag automation       | Med    | Manual tagging caused the testing→scenario rename tag issue                          |
+| 5   | Delete stale remote `testing/v3.3.0` tag                       | Low    | Needs `git push origin :refs/tags/testing/v3.3.0` — destructive, needs user approval |
+| 6   | eventtest nested-module `-e` workaround ADR                    | Med    | Every consumer's `go mod tidy` emits warnings                                        |
+| 7   | `any` audit at library boundaries across all modules           | Low    | Compliance sweep                                                                     |
+| 8   | `stack/projectionhost` preset (host + checkpoint + DLQ bundle) | Low    | Batteries-included composition                                                       |
 
 ---
 
@@ -122,33 +122,33 @@ Build green, all tests `-race` green across all changed modules, BuildFlow 31/31
 
 Sorted by **impact ÷ effort** (highest first).
 
-| #   | Task                                                                              | Impact | Effort |
-| --- | --------------------------------------------------------------------------------- | ------ | ------ |
-| 1   | Prometheus adapter for `projectionhost.MetricsRecorder`                           | High   | Low    |
-| 2   | SQL-backed `DeadLetterStore` for projectionhost (mirror middleware.SQLDeadLetterStore) | High | Med |
-| 3   | Delete stale remote `testing/v3.3.0` tag (needs user OK)                          | Med    | Trivial |
-| 4   | `scripts/tag-release.sh` for multi-module tag automation                          | Med    | Med    |
-| 5   | eventtest nested-module ADR (decide: flatten or permanently document `-e`)        | Med    | Low    |
-| 6   | `stack/projectionhost` preset (host + checkpoint + DLQ one-liner)                 | Med    | Med    |
-| 7   | Pebble `TimerStore` for scheduling                                                | Low    | Med    |
-| 8   | `any` audit at library boundaries across all modules                              | Low    | Med    |
-| 9   | Prometheus metrics for scheduling (mirror projectionhost pattern)                 | Med    | Low    |
-| 10  | SKILL.md reliability recipe (host + idempotency + DLQ + scheduling trio)          | Med    | Low    |
-| 11  | Projectionhost DLQ depth metric on `Status()` (expose current DLQ size)           | Low    | Low    |
-| 12  | Integration test: projectionhost + Pebble CheckpointStore                         | Low    | Low    |
-| 13  | go.work integrity check in CI                                                     | Low    | Low    |
-| 14  | Benchmark SSE zero-alloc writer vs old fmt.Fprintf                                | Low    | Low    |
-| 15  | Pebble `SetIfAbsent` two-adapter test (document shared-adapter constraint)        | Low    | Low    |
-| 16  | Profile projectionhost at 100K events                                             | Low    | Med    |
-| 17  | Consider `scheduling` SQL TimerStore                                              | Low    | Med    |
-| 18  | Split projectionhost example into per-type files                                  | Low    | Low    |
-| 19  | go.sum lockfile strategy to reduce BuildFlow churn                                | Low    | Low    |
-| 20  | Evaluate `deriver` integration with `bus.SubscribeAll` in a real example          | Med    | Low    |
-| 21  | Consider a `cqrs-gen` template for projectionhost scaffolding                     | Low    | Med    |
-| 22  | Document `BuildFlow packages.default` pattern in AGENTS.md                        | Low    | Low    |
-| 23  | Audit all `//nolint` directives for staleness                                     | Low    | Low    |
-| 24  | Add `projectionhost.WithBackoff` docs for retry vs restart backoff distinction    | Low    | Low    |
-| 25  | Consider `projectionhost.WithHealthCheck` for k8s liveness/readiness             | Med    | Med    |
+| #   | Task                                                                                   | Impact | Effort  |
+| --- | -------------------------------------------------------------------------------------- | ------ | ------- |
+| 1   | Prometheus adapter for `projectionhost.MetricsRecorder`                                | High   | Low     |
+| 2   | SQL-backed `DeadLetterStore` for projectionhost (mirror middleware.SQLDeadLetterStore) | High   | Med     |
+| 3   | Delete stale remote `testing/v3.3.0` tag (needs user OK)                               | Med    | Trivial |
+| 4   | `scripts/tag-release.sh` for multi-module tag automation                               | Med    | Med     |
+| 5   | eventtest nested-module ADR (decide: flatten or permanently document `-e`)             | Med    | Low     |
+| 6   | `stack/projectionhost` preset (host + checkpoint + DLQ one-liner)                      | Med    | Med     |
+| 7   | Pebble `TimerStore` for scheduling                                                     | Low    | Med     |
+| 8   | `any` audit at library boundaries across all modules                                   | Low    | Med     |
+| 9   | Prometheus metrics for scheduling (mirror projectionhost pattern)                      | Med    | Low     |
+| 10  | SKILL.md reliability recipe (host + idempotency + DLQ + scheduling trio)               | Med    | Low     |
+| 11  | Projectionhost DLQ depth metric on `Status()` (expose current DLQ size)                | Low    | Low     |
+| 12  | Integration test: projectionhost + Pebble CheckpointStore                              | Low    | Low     |
+| 13  | go.work integrity check in CI                                                          | Low    | Low     |
+| 14  | Benchmark SSE zero-alloc writer vs old fmt.Fprintf                                     | Low    | Low     |
+| 15  | Pebble `SetIfAbsent` two-adapter test (document shared-adapter constraint)             | Low    | Low     |
+| 16  | Profile projectionhost at 100K events                                                  | Low    | Med     |
+| 17  | Consider `scheduling` SQL TimerStore                                                   | Low    | Med     |
+| 18  | Split projectionhost example into per-type files                                       | Low    | Low     |
+| 19  | go.sum lockfile strategy to reduce BuildFlow churn                                     | Low    | Low     |
+| 20  | Evaluate `deriver` integration with `bus.SubscribeAll` in a real example               | Med    | Low     |
+| 21  | Consider a `cqrs-gen` template for projectionhost scaffolding                          | Low    | Med     |
+| 22  | Document `BuildFlow packages.default` pattern in AGENTS.md                             | Low    | Low     |
+| 23  | Audit all `//nolint` directives for staleness                                          | Low    | Low     |
+| 24  | Add `projectionhost.WithBackoff` docs for retry vs restart backoff distinction         | Low    | Low     |
+| 25  | Consider `projectionhost.WithHealthCheck` for k8s liveness/readiness                   | Med    | Med     |
 
 ---
 
@@ -159,6 +159,7 @@ Sorted by **impact ÷ effort** (highest first).
 The interface is currently projectionhost-specific. But `scheduling.Scheduler` also needs metrics (dispatch latency, retry count, timer lag). And `middleware` already has its own `MetricsRecorder` (different signature — `Observe(ctx, name, duration, labels...)`). Three modules, three metrics interfaces.
 
 Options:
+
 - **(A)** Each module defines its own interface (current). Pro: no coupling. Con: three interfaces for the same concept.
 - **(B)** A shared `observability.MetricsRecorder` superset. Pro: one adapter to rule them all. Con: forces a one-size-fits-all signature; projectionhost needs per-event-type labels that middleware doesn't.
 - **(C)** Shared base interface + module-specific extensions via composition. Pro: DRY + flexible. Con: interface bloat.
