@@ -27,20 +27,23 @@ import (
 	memory "github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
 )
 
+// pollInterval is how often waitFor re-checks its condition.
+const pollInterval = 20 * time.Millisecond
+
+// errHandlerBug simulates a projection handler bug that is later corrected.
+// A real consumer would wrap its actual domain error.
+var errHandlerBug = errors.New("handler bug: cannot process cancellation yet")
+
 func main() {
 	ctx := context.Background()
 
-	// --- Infrastructure (a consumer would use a real store in production) ---
 	store := memory.NewMemoryStore()
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	cpStore := memory.NewMemoryCheckpointStore()
 	dlq := projectionhost.NewMemoryDeadLetterStore()
 
-	// --- A read-model projection that tracks a counter ---
 	counter := &counterProjection{name: "counter"}
-
-	// --- A projection with a transient bug (fails on "order.cancelled") ---
 	buggy := &buggyProjection{name: "orders", poisonType: "order.cancelled"}
 
 	host, err := projectionhost.New(
@@ -62,10 +65,11 @@ func main() {
 		}
 	}
 
-	// --- Seed events BEFORE starting the host (the host is a catch-up
-	// processor: it drains the journal then stops; for live push delivery use
-	// watermill/CatchUpSubscriber alongside the host) ---
+	// Seed events BEFORE starting the host. The host is a catch-up processor:
+	// it drains the journal then stops. For live push delivery, pair it with
+	// watermill/CatchUpSubscriber.
 	ref := event.NewAggregateRef("Order", id.NewAggregateID())
+
 	for _, typ := range []event.Type{"order.created", "order.created", "order.created"} {
 		evt, _ := event.New(typ, ref.ID, "Order", 1, []byte("payload"))
 		_ = store.AppendBatch(ctx, ref, []event.Event{evt})
@@ -74,13 +78,11 @@ func main() {
 	poison, _ := event.New("order.cancelled", ref.ID, "Order", 1, []byte("payload"))
 	_ = store.AppendBatch(ctx, ref, []event.Event{poison})
 
-	// --- Start the host (processes the pre-seeded journal, then idles) ---
 	runCtx, cancel := context.WithCancel(ctx)
 	if err := host.Start(runCtx); err != nil {
 		panic(err)
 	}
 
-	// --- Wait for the poison event to land in the DLQ ---
 	waitFor(2*time.Second, func() bool {
 		entries, _ := dlq.List(ctx, "")
 
@@ -105,13 +107,14 @@ func main() {
 		fmt.Printf("  %s: event=%s error=%q\n", e.ProjectionName, e.EventType, e.Error)
 	}
 
-	// --- "We shipped a fix": replay the DLQ with a corrected projection ---
-	buggy.fixed = true // simulate the handler fix
+	// "We shipped a fix": replay the DLQ with a corrected projection.
+	buggy.fixed = true
 
 	result, err := host.ReplayDeadLetters(ctx, "")
 	if err != nil {
 		panic(err)
 	}
+
 	// ReplayDeadLetters is pure — caller decides whether to purge the successes.
 	_ = dlq.Purge(ctx, "orders")
 
@@ -131,7 +134,7 @@ func (p *counterProjection) Name() string { return p.name }
 
 func (p *counterProjection) EventTypes() []event.Type { return nil } // all types
 
-func (p *counterProjection) Handle(_ context.Context, evt event.Event) error {
+func (p *counterProjection) Handle(_ context.Context, _ event.Event) error {
 	p.mu.Lock()
 	p.count++
 	p.mu.Unlock()
@@ -149,6 +152,7 @@ type buggyProjection struct {
 }
 
 func (p *buggyProjection) Name() string { return p.name }
+
 func (p *buggyProjection) EventTypes() []event.Type {
 	return []event.Type{"order.created", "order.cancelled"}
 }
@@ -159,7 +163,7 @@ func (p *buggyProjection) Handle(_ context.Context, evt event.Event) error {
 	p.mu.Unlock()
 
 	if !fixed && evt.Type() == p.poisonType {
-		return errors.New("handler bug: cannot process cancellation yet")
+		return errHandlerBug
 	}
 
 	return nil
@@ -167,11 +171,12 @@ func (p *buggyProjection) Handle(_ context.Context, evt event.Event) error {
 
 func waitFor(timeout time.Duration, cond func() bool) {
 	deadline := time.Now().Add(timeout)
+
 	for time.Now().Before(deadline) {
 		if cond() {
 			return
 		}
 
-		time.Sleep(20 * time.Millisecond)
+		time.Sleep(pollInterval)
 	}
 }
