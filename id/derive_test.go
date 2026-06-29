@@ -2,6 +2,7 @@ package id_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
@@ -142,5 +143,28 @@ func TestDeriveCommandID_IsValidULID(t *testing.T) {
 
 	if parsed != got {
 		t.Errorf("round-trip mismatch: %v != %v", parsed, got)
+	}
+}
+
+func TestDeriveCommandID_ZeroTimestamp(t *testing.T) {
+	t.Parallel()
+
+	derived := id.DeriveCommandID("deriver", "evt-123", "0")
+	fresh := id.NewCommandID()
+
+	// Derived IDs must have a zero timestamp (epoch sentinel).
+	if !id.IsDerivedCommandID(derived) {
+		t.Error("DeriveCommandID result should be detected as derived")
+	}
+
+	if id.IsDerivedCommandID(fresh) {
+		t.Error("NewCommandID result should NOT be detected as derived")
+	}
+
+	// id.ULID on a derived ID must return Unix epoch (1970-01-01), not garbage.
+	ts := id.ULID[id.CommandMarker](derived)
+	epoch := time.Unix(0, 0)
+	if !ts.Equal(epoch) {
+		t.Errorf("derived CommandID timestamp should be Unix epoch (1970), got %v", ts)
 	}
 }

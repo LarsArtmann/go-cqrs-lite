@@ -24,6 +24,13 @@ func ParseCommandID(s string) (CommandID, error) {
 	return Parse[CommandMarker](s)
 }
 
+// ULID layout: 6-byte timestamp (48-bit ms precision) + 10-byte randomness.
+// See https://github.com/ulid/spec
+const (
+	ulidTimestampLen = 6
+	ulidRandomLen    = 10
+)
+
 // DeriveCommandID creates a deterministic CommandID from a namespace and one or
 // more key strings using SHA-256. Same inputs always produce the same ID.
 //
@@ -32,11 +39,14 @@ func ParseCommandID(s string) (CommandID, error) {
 // idempotency store keyed on the command ID (see
 // idempotency.CommandIDKey) deduplicates at-least-once redeliveries.
 //
-// Unlike [DeriveAggregateID] (which yields a string-backed hex ID), the result
-// is a valid ULID-encoded CommandID — the first 16 bytes of the SHA-256 digest
-// are packed into a [ulid.ULID]. The timestamp portion is therefore NOT
-// wall-clock derived: the ID trades time-ordering for determinism. It is safe
-// wherever a CommandID is used as an opaque identifier or idempotency key.
+// The result is a valid ULID-encoded CommandID, but the timestamp portion is
+// zeroed (epoch 1970-01-01) as a sentinel: [ULID] on a derived ID returns the
+// zero time, signalling "not a wall-clock timestamp". The 80-bit randomness
+// portion carries 10 bytes of the SHA-256 digest — 2^80 entropy is far beyond
+// any realistic collision risk for idempotency keys.
+//
+// Use [IsDerivedCommandID] to check whether a CommandID was produced by
+// DeriveCommandID (timestamp is zero) vs [NewCommandID] (real timestamp).
 func DeriveCommandID(namespace string, keys ...string) CommandID {
 	h := sha256.New()
 	_, _ = h.Write([]byte(namespace))
@@ -47,7 +57,26 @@ func DeriveCommandID(namespace string, keys ...string) CommandID {
 	}
 
 	var u ulid.ULID
-	copy(u[:], h.Sum(nil)[:16])
+	copy(
+		u[ulidTimestampLen:],
+		h.Sum(nil)[:ulidRandomLen],
+	) // entropy into randomness; timestamp stays zero
 
 	return cbid.NewID[CommandMarker](u)
+}
+
+// IsDerivedCommandID reports whether the CommandID was produced by
+// [DeriveCommandID] (timestamp zeroed) rather than [NewCommandID] (real
+// wall-clock timestamp). Derived IDs are deterministic idempotency keys, not
+// time-ordered identifiers.
+func IsDerivedCommandID(id CommandID) bool {
+	u := id.Get()
+
+	for _, b := range u[:ulidTimestampLen] {
+		if b != 0 {
+			return false
+		}
+	}
+
+	return true
 }

@@ -195,8 +195,6 @@ func (s *CatchUpSubscriber) replayPhase(ctx context.Context, sub *catchUpSubscri
 		"after", after.String(),
 	)
 
-	replayCtx := event.WithProcessingMode(ctx, event.ModeReplay)
-
 	for _, evt := range events {
 		select {
 		case <-ctx.Done():
@@ -207,6 +205,9 @@ func (s *CatchUpSubscriber) replayPhase(ctx context.Context, sub *catchUpSubscri
 		}
 
 		msg := eventToMessage(evt)
+		// Mark ModeReplay in message metadata. Consumers reconstruct it into
+		// the handler context via ProcessingModeMiddleware (the metadata is
+		// the only channel that survives process boundaries in Watermill).
 		msg.Metadata.Set(metaProcessingMode, string(event.ModeReplay))
 
 		sub.replayIDs[evt.ID().String()] = struct{}{}
@@ -224,8 +225,6 @@ func (s *CatchUpSubscriber) replayPhase(ctx context.Context, sub *catchUpSubscri
 		case <-s.closeCh:
 			return nil
 		}
-
-		_ = replayCtx // context available for handlers via message if needed
 	}
 
 	return nil

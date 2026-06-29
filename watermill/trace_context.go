@@ -5,6 +5,7 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill/message"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 )
 
@@ -66,6 +67,28 @@ func TraceContextMiddleware() message.HandlerMiddleware {
 	return func(h message.HandlerFunc) message.HandlerFunc {
 		return func(msg *message.Message) ([]*message.Message, error) {
 			ctx := ExtractContext(msg.Context(), msg)
+			msg.SetContext(ctx)
+
+			return h(msg)
+		}
+	}
+}
+
+// ProcessingModeMiddleware is a Watermill router middleware that reconstructs
+// the event processing mode (replay vs live) from message metadata into the
+// handler context. Pair with CatchUpSubscriber so handlers can branch on
+// event.IsReplay(ctx) even across process boundaries:
+//
+//	router.AddMiddleware(watermill.ProcessingModeMiddleware())
+//
+// Messages without the processing_mode metadata key default to ModeLive.
+// This is the consumer-side counterpart to the metadata injection performed
+// by CatchUpSubscriber during the replay phase.
+func ProcessingModeMiddleware() message.HandlerMiddleware {
+	return func(h message.HandlerFunc) message.HandlerFunc {
+		return func(msg *message.Message) ([]*message.Message, error) {
+			mode := event.ProcessingMode(msg.Metadata.Get(metaProcessingMode))
+			ctx := event.WithProcessingMode(msg.Context(), mode)
 			msg.SetContext(ctx)
 
 			return h(msg)
