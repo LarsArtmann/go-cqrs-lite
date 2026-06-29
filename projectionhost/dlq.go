@@ -41,6 +41,12 @@ type WorkerState struct {
 // Event holds the original event so it can be replayed once the underlying
 // handler bug is fixed; the string fields mirror the common diagnostics and
 // survive JSON serialization even when Event is nil.
+//
+// This is the PROJECTION-side dead-letter: an event that poisoned a projection
+// handler, captured for later replay. For the DISPATCH-side dead-letter
+// (command/event/query that exhausted retries in the middleware pipeline),
+// see middleware.DeadLetterEntry. The two types are intentionally separate —
+// see ADR-0043 for the rationale.
 type DeadLetterEntry struct {
 	ProjectionName string
 	EventID        string

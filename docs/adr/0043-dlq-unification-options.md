@@ -2,24 +2,25 @@
 
 ## Status
 
-**Proposed — 2026-06-29. Awaiting decision.** This ADR presents options but
-does NOT pick one. The decision affects every middleware and projectionhost
-consumer and requires the user's call.
+**Accepted — 2026-06-29 (Option C: keep separate, document why).** The two
+types serve genuinely different lifecycles (dispatch-retry-exhaustion vs
+projection-poison). Forcing them together would add coupling without benefit.
+This ADR now documents the decision rather than just presenting options.
 
 ## Context
 
 Two `DeadLetterEntry` types coexist in the codebase:
 
-| Field            | `middleware.DeadLetterEntry`               | `projectionhost.DeadLetterEntry`         |
-| ---------------- | ------------------------------------------ | ---------------------------------------- |
-| Scope            | Dispatch-side (command/event/query retry)  | Projection-side (poison event capture)   |
-| Store shape      | `DeadLetterHandler` callback (func)        | `DeadLetterStore` interface (Store/List/Delete/Purge) |
-| `Kind`           | `"command"` / `"event"` / `"query"`        | absent (always events)                   |
-| `AggregateID`    | `id.AggregateID` (typed)                   | `string`                                 |
-| `Error`          | `error` (typed)                            | `string`                                 |
-| `Event`          | absent                                     | `event.Event` (carries the poison event) |
-| `Attempts`       | `int`                                      | absent                                   |
-| Replay           | absent                                     | `Host.ReplayDeadLetters` (pure)          |
+| Field         | `middleware.DeadLetterEntry`              | `projectionhost.DeadLetterEntry`                      |
+| ------------- | ----------------------------------------- | ----------------------------------------------------- |
+| Scope         | Dispatch-side (command/event/query retry) | Projection-side (poison event capture)                |
+| Store shape   | `DeadLetterHandler` callback (func)       | `DeadLetterStore` interface (Store/List/Delete/Purge) |
+| `Kind`        | `"command"` / `"event"` / `"query"`       | absent (always events)                                |
+| `AggregateID` | `id.AggregateID` (typed)                  | `string`                                              |
+| `Error`       | `error` (typed)                           | `string`                                              |
+| `Event`       | absent                                    | `event.Event` (carries the poison event)              |
+| `Attempts`    | `int`                                     | absent                                                |
+| Replay        | absent                                    | `Host.ReplayDeadLetters` (pure)                       |
 
 They serve **different lifecycles**:
 
@@ -89,22 +90,30 @@ middleware gains replay without merging types.
 
 ## Recommendation
 
-**Lean (A) — a dedicated `dlq/` module** — IF the team values the "reliability
-trio" as a single coherent story. The concept earns its own boundary.
+**Decision: Option C — keep separate, document why.**
 
-**Lean (C) — keep separate + rename** — IF the team accepts that
-dispatch-exhaustion and projection-poison are different problems sharing a
-name. This is the lowest-risk option and the most honest about the distinction.
+The two types serve genuinely different lifecycles:
 
-The deciding factor: **do consumers ever need ONE dead-letter store that
-holds both dispatch-failed commands AND projection-poisoned events?** If yes,
-unify (A). If no — and they are typically inspected by different operators —
-keep separate (C).
+- **middleware.DeadLetterEntry** captures a message that exhausted retries in the
+  _dispatch pipeline_. Its `Kind` field exists because the dead-lettered
+  message can be a command, event, or query. There is no Store interface — only
+  a `DeadLetterHandler` callback. Replay is not needed because dispatch-side
+  failures are typically permanent (bad payload, schema mismatch).
 
-## Decision needed
+- **projectionhost.DeadLetterEntry** captures an event that poisoned a
+  _projection handler_. It carries the original `event.Event` so it can be
+  replayed after a fix. Replay IS needed because projection bugs are fixable —
+  deploy a patch, re-run the handler, clear the entry.
 
-Which option (A / B / C / D)? This blocks the "reliability trio" integrity
-claim and affects module count + the module graph.
+Unifying them would force middleware to carry `event.Event` even when the
+dead-lettered message is a command or query, and would couple the dispatch
+pipeline to projection semantics. The field divergence (`Error error` vs
+`Error string`, `AggregateID id.AggregateID` vs `AggregateID string`) reflects
+these different storage and replay needs, not carelessness.
+
+**This is not a split brain. It is two different patterns that share a name.**
+The name "dead letter" is accurate for both — it's the postal term for
+undeliverable mail. The implementations diverge because the problems diverge.
 
 ## References
 

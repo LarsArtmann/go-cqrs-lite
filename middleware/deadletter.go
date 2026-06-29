@@ -11,6 +11,12 @@ import (
 // DeadLetterEntry captures a message that exhausted all retry attempts.
 // It contains enough context to inspect, replay, or discard the failed
 // message without access to the original handler.
+//
+// This is the DISPATCH-side dead-letter: a command/event/query that failed
+// in the middleware retry pipeline. For the PROJECTION-side dead-letter
+// (poison events captured during projection processing, with replay support),
+// see projectionhost.DeadLetterEntry. The two types are intentionally
+// separate — see ADR-0043 for the rationale.
 type DeadLetterEntry struct {
 	// Kind is the message category: "command", "event", or "query".
 	Kind string

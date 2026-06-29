@@ -39,12 +39,12 @@ func (h *Host) ReplayDeadLetters(ctx, projectionName) (ReplayResult, error)
 
 ### Why pure over mutating
 
-| Approach | Mutation-as-side-effect (rejected) | Pure replay (chosen) |
-| --- | --- | --- |
-| Bug surface | `Purge(name)` after one success drops ALL entries | None — store untouched |
-| Composability | Couples "did the handler work?" to "drop the entry" | Caller can log, alert, or partial-purge |
-| Testability | Needs multi-entry tests to expose the bug | Single-entry tests are honest |
-| CQS | Violates command-query separation (it's both) | Query only; cleanup is a separate command |
+| Approach      | Mutation-as-side-effect (rejected)                  | Pure replay (chosen)                      |
+| ------------- | --------------------------------------------------- | ----------------------------------------- |
+| Bug surface   | `Purge(name)` after one success drops ALL entries   | None — store untouched                    |
+| Composability | Couples "did the handler work?" to "drop the entry" | Caller can log, alert, or partial-purge   |
+| Testability   | Needs multi-entry tests to expose the bug           | Single-entry tests are honest             |
+| CQS           | Violates command-query separation (it's both)       | Query only; cleanup is a separate command |
 
 ### The general lesson
 
