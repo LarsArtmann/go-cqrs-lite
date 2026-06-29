@@ -12,8 +12,12 @@ import (
 )
 
 // DecideFunc is a pure function that takes the current state and a command,
-// and returns the events to emit. It mirrors [decider.Decider] but decoupled
-// from the decider package to avoid an import cycle.
+// and returns the events to emit. It is command-first (it receives the Cmd the
+// test is exercising), unlike [decider.DecideFunc] which is version-first
+// (it receives the aggregate version for optimistic concurrency). The two
+// intentionally stay separate so this module's dependency footprint stays
+// minimal — importing decider would transitively pull snapshot, otel, and
+// storage/memory into every scenario consumer.
 type DecideFunc[Cmd any, State any] func(state State, cmd Cmd) ([]event.Event, error)
 
 // --- Decider DSL ---
