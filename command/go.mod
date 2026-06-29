@@ -13,14 +13,8 @@ require (
 )
 
 require (
-	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.3.0 // indirect
 	github.com/larsartmann/go-error-family v0.5.1 // indirect
-	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
-	github.com/tidwall/gjson v1.19.0 // indirect
-	github.com/tidwall/match v1.2.0 // indirect
-	google.golang.org/protobuf v1.36.11 // indirect
 )
 
 require (

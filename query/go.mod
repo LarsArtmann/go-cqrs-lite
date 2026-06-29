@@ -13,15 +13,7 @@ require (
 	pgregory.net/rapid v1.3.0
 )
 
-require (
-	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/goccy/go-yaml v1.19.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v3 v3.3.0 // indirect
-	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
-	github.com/tidwall/gjson v1.19.0 // indirect
-	github.com/tidwall/match v1.2.0 // indirect
-	google.golang.org/protobuf v1.36.11 // indirect
-)
+require github.com/larsartmann/go-cqrs-lite/command/v3 v3.3.0 // indirect
 
 require (
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
