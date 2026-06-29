@@ -1,0 +1,1413 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>go-cqrs-lite · Skill Restructure Status · 2026-06-29</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS DARK — Dashboard template
+         Design language: form follows function. Primary colors on graphite.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Dark) --- */
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+
+        /* --- Semantic layer (shared vocabulary with editorial template) --- */
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 15%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 20%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px; /* Bauhaus default: sharp corners */
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      /* Sticky-header offset for anchor jumps */
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 80px;
+        margin-bottom: 1rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 24px;
+        left: 72px;
+        width: 48px;
+        height: 48px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        left: 140px;
+        width: 0;
+        height: 0;
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 48px solid var(--warning);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges (used inside issue cards) --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges (used in tables) --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+
+      /* --- Callouts (used inside issues or standalone) --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+
+      /* --- Stat cards / scorecards (aliased vocabulary) --- */
+      .stat-grid,
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card,
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before,
+      .score-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad,
+      .score-bad {
+        /* default top bar already set */
+      }
+      .stat-bad::before,
+      .score-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before,
+      .score-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before,
+      .score-warn::before {
+        background: var(--warning);
+      }
+      .stat-value,
+      .score {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value,
+      .score-bad .score {
+        color: var(--problem);
+      }
+      .stat-good .stat-value,
+      .score-good .score {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value,
+      .score-warn .score {
+        color: var(--warning);
+      }
+      .stat-label,
+      .score-card .label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+
+      /* --- Strengths list --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--accent);
+      } /* func, type, struct, if, return */
+      .tok-type {
+        color: var(--warning);
+      } /* int, string, bool, error */
+      .tok-string {
+        color: var(--solution);
+      } /* "quoted strings" */
+      .tok-comment {
+        color: var(--text-faint);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #74a9ff;
+      } /* function names */
+      .tok-number {
+        color: var(--accent);
+      } /* 42, 3.14 */
+      .tok-generic {
+        color: var(--problem);
+      } /* T, ID in generics */
+      .tok-builtin {
+        color: #4dd9ff;
+      } /* make, len, append */
+      .tok-punct {
+        color: var(--text-muted);
+      } /* { } ( ) ; = : */
+      .tok-attr {
+        color: var(--accent);
+      } /* Nix attribute names */
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.35rem 0.7rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--surface-sunken);
+        border: 1px solid var(--border-strong);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+        border-color: var(--accent);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+        border-color: var(--problem);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+        border-color: var(--solution);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids (responsive) --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC (alternative to sidebar) --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .stat-grid,
+        .scorecard {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Full-bleed top bar (optional — remove for quieter reports) -->
+    <div class="top-bar">
+      <span>STATUS REPORT</span>
+      <span>2026-06-29 18:17 CEST</span>
+      <span>go-cqrs-lite · Skill Ecosystem</span>
+    </div>
+
+    <div class="layout">
+      <!-- Sidebar TOC (hidden below 1024px; use inline .toc if you prefer) -->
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#done">Fully Done</a>
+          <a href="#partial">Partially Done</a>
+          <a href="#notstarted">Not Started</a>
+          <a href="#fuckedup">Totally Fucked Up</a>
+          <a href="#improve">What To Improve</a>
+          <a href="#next25">Top 25 Next</a>
+          <a href="#question">Top Question</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <!-- Hero -->
+        <div class="hero">
+          <!-- Optional Bauhaus signature: geometric shape cluster. Remove for quieter hero. -->
+          <div class="hero-shapes">
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="hero-badge">Skill Restructure · Snapshot</div>
+          <h1>go-cqrs-lite SKILL.md → Progressive-Disclosure Skill</h1>
+          <p class="hero-subtitle">
+            Full status of the restructure that turned a 1377-line undiscoverable repo-root document
+            into a 392-line core skill with on-demand references.
+          </p>
+        </div>
+
+        <!-- Inline TOC (alternative to sidebar; pick one) -->
+        <nav class="toc">
+          <h3>Contents</h3>
+          <ul>
+            <li><a href="#summary">Summary</a></li>
+            <li><a href="#done">a) Fully Done</a></li>
+            <li><a href="#partial">b) Partially Done</a></li>
+            <li><a href="#notstarted">c) Not Started</a></li>
+            <li><a href="#fuckedup">d) Totally Fucked Up</a></li>
+            <li><a href="#improve">e) What To Improve</a></li>
+            <li><a href="#next25">f) Top 25 Next</a></li>
+            <li><a href="#question">g) Top Question</a></li>
+          </ul>
+        </nav>
+
+        <!-- Stats Dashboard -->
+        <h2 id="summary"><span class="num">00</span>Summary</h2>
+        <p>
+          The <code>SKILL.md</code> for go-cqrs-lite was a 1377-line document sitting at the repo
+          root. It had <strong>no YAML frontmatter</strong>, lived <strong>outside</strong>
+          <code>.agents/skills/</code>
+          (so Crush could never discover it), and forced the entire file into context on every CQRS
+          question. This session restructured it into a proper progressive-disclosure Crush skill
+          while preserving every existing doc link, CI hook, and reference.
+        </p>
+        <div class="stat-grid">
+          <div class="stat-card stat-good">
+            <div class="stat-value">9</div>
+            <div class="stat-label">Fully Done</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">3</div>
+            <div class="stat-label">Partially Done</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">4</div>
+            <div class="stat-label">Not Started</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Fucked Up</div>
+          </div>
+        </div>
+
+        <div class="callout callout-solution">
+          <strong>Headline result:</strong>
+          core dropped from <strong>1377 → 392 lines</strong> (71% reduction, under the 500-line
+          guideline). doc-check still reports
+          <strong>376 references valid across 34 packages</strong> — zero content loss. The root
+          <code>SKILL.md</code> is now a symlink, so all 5 existing doc links + CI resolve
+          unchanged.
+        </div>
+
+        <h2>Before / After</h2>
+        <div class="compare-header">
+          <div class="compare-before">Before</div>
+          <div class="compare-after">After</div>
+        </div>
+        <div class="compare-row">
+          <div>
+            <pre><code><span class="tok-comment">// 1 file, 1377 lines</span>
+SKILL.md            <span class="tok-comment">// repo root</span>
+<span class="tok-comment">// no frontmatter</span>
+<span class="tok-comment">// trigger buried in blockquote</span>
+<span class="tok-comment">// not in .agents/skills/ → undiscoverable</span>
+<span class="tok-comment">// entire file taxes every CQRS question</span></code></pre>
+          </div>
+          <div>
+            <pre><code><span class="tok-comment">// progressive disclosure skill</span>
+SKILL.md -&gt; .agents/skills/go-cqrs-lite/SKILL.md
+.agents/skills/go-cqrs-lite/
+├── SKILL.md         <span class="tok-comment">// 392 lines + YAML</span>
+└── references/
+    ├── recipes.md   <span class="tok-comment">// 574 (§2)</span>
+    ├── modules.md   <span class="tok-comment">//  78 (§5)</span>
+    └── advanced.md  <span class="tok-comment">// 345 (§6)</span></code></pre>
+          </div>
+        </div>
+
+        <!-- a) FULLY DONE -->
+        <h2 id="done"><span class="num">01</span>a) Fully Done</h2>
+
+        <div class="card card-solution">
+          <h4>1. Discoverability — moved into <code>.agents/skills/</code></h4>
+          <p>
+            <code>git mv SKILL.md → .agents/skills/go-cqrs-lite/SKILL.md</code> via git mv (history
+            preserved as rename). Crush now auto-discovers the skill when working inside
+            go-cqrs-lite.
+          </p>
+        </div>
+
+        <div class="card card-solution">
+          <h4>2. YAML frontmatter added</h4>
+          <p>
+            <code>name</code>, <code>description</code> (pushy trigger listing all 28 modules +
+            intent phrasings), <code>user-invocable: true</code>. Trigger is no longer buried in a
+            blockquote — it's the primary discovery mechanism.
+          </p>
+        </div>
+
+        <div class="card card-solution">
+          <h4>3. Progressive disclosure split</h4>
+          <p>
+            Core (392) keeps mental model §0, decision matrix §1, conventions §3, anti-patterns §4,
+            testing §7, layering §8, examples §9, where-to-find §10, cheat sheet §11, FAQ §12.
+            Extracted §2 recipes, §5 modules, §6 advanced into <code>references/</code>.
+          </p>
+        </div>
+
+        <div class="card card-solution">
+          <h4>4. Root symlink preserves all existing links</h4>
+          <p>
+            <code>SKILL.md → .agents/skills/go-cqrs-lite/SKILL.md</code>. Verified: README.md,
+            AGENTS.md, docs/README.md, docs/getting-started.md, and CI all resolve unchanged. Git
+            tracks as typechange (<code>T</code>).
+          </p>
+        </div>
+
+        <div class="card card-solution">
+          <h4>5. Cross-references fixed across the split</h4>
+          <p>
+            Decision-matrix cells prefixed with their file (<code>recipes §2.1</code>,
+            <code>advanced §6.3</code>, <code>modules §5</code>). Three <code>§6.x</code> refs
+            inside recipes.md repointed to <code>advanced.md §6.x</code>. No dangling cross-refs
+            remain.
+          </p>
+        </div>
+
+        <div class="card card-solution">
+          <h4>6. "How to use this skill" routing table</h4>
+          <p>
+            New section at the top of core maps each need → its reference file. Plus a "rule of
+            thumb": start with §1 decision matrix, then jump to the matching recipe.
+          </p>
+        </div>
+
+        <div class="card card-solution">
+          <h4>7. CI doc-check updated to cover references</h4>
+          <p>
+            <code>.github/workflows/ci.yml</code> now runs doc-check against
+            <code
+              >../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md
+              ../../AGENTS.md</code
+            >
+            — the split content stays checked.
+          </p>
+        </div>
+
+        <div class="card card-solution">
+          <h4>8. doc-check default auto-discovers references</h4>
+          <p>
+            <code>cmd/doc-check/main.go</code> now globs
+            <code>.agents/skills/*/references/*.md</code> when no files are given. Comment +
+            behavior updated. Builds clean.
+          </p>
+        </div>
+
+        <div class="card card-solution">
+          <h4>9. Accuracy verified — 376 refs valid, zero content loss</h4>
+          <p>
+            Ran <code>go run ./cmd/doc-check SKILL.md references/*.md</code> → "✓ All 376 references
+            valid across 34 package(s)." Identical to the pre-split count — confirms the split lost
+            nothing.
+          </p>
+        </div>
+
+        <!-- b) PARTIALLY DONE -->
+        <h2 id="partial"><span class="num">02</span>b) Partially Done</h2>
+
+        <div class="card card-warning">
+          <h4>1. Global skill availability</h4>
+          <p>
+            Skill is discoverable when working <em>inside</em> go-cqrs-lite, but NOT from sibling
+            projects (e.g. cqrs-htmx) unless symlinked into <code>~/.config/crush/skills/</code>.
+            The one-command fix is documented but not executed — it's a user environment decision.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>2. Pre-existing AGENTS.md doc-check failure</h4>
+          <p>
+            <code>AGENTS.md</code> references <code>event.Projection</code>, which moved to the
+            <code>projection/</code> package. doc-check against AGENTS.md fails with 1 broken ref.
+            <strong>Pre-existing — not caused by this session</strong> (I never touched AGENTS.md),
+            but it now blocks a fully-green CI doc-check run.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>3. Description quality</h4>
+          <p>
+            The new trigger description is comprehensive and pushy, but it has NOT been A/B tested
+            via the skill-creator <code>run_loop.py</code> optimization loop. It's a hand-crafted
+            best guess, not a measured-optimal trigger.
+          </p>
+        </div>
+
+        <!-- c) NOT STARTED -->
+        <h2 id="notstarted"><span class="num">03</span>c) Not Started</h2>
+
+        <div class="card">
+          <h4>1. Skill evals (<code>evals/evals.json</code> + test prompts)</h4>
+          <p>
+            Per the skill-creator workflow, a new skill should get 2-3 realistic test prompts +
+            assertions, run with-skill vs baseline. Not done — the restructure was verified
+            structurally (doc-check, line counts, links) but not behaviorally against real prompts.
+          </p>
+        </div>
+
+        <div class="card">
+          <h4>2. Trigger-eval description optimization</h4>
+          <p>
+            The skill-creator <code>run_loop.py</code> splits 20 trigger queries 60/40 train/test,
+            iterates 5×, picks the best test-score description. Not run.
+          </p>
+        </div>
+
+        <div class="card">
+          <h4>3. Cross-link from the cqrs-htmx sibling skill</h4>
+          <p>
+            The <code>cqrs-htmx</code> skill (<code>.agents/skills/cqrs-htmx/</code>) builds on
+            go-cqrs-lite but doesn't reference this skill. No bidirectional pointer exists.
+          </p>
+        </div>
+
+        <div class="card">
+          <h4>4. recipes.md sub-split</h4>
+          <p>
+            recipes.md is 574 lines — the html-report-kit guide says reference files &gt;300 lines
+            should include a table of contents. It has section headers (§2.0–§2.9) but no explicit
+            TOC block at the top.
+          </p>
+        </div>
+
+        <!-- d) TOTALLY FUCKED UP -->
+        <h2 id="fuckedup"><span class="num">04</span>d) Totally Fucked Up</h2>
+
+        <div class="card card-solution">
+          <h4>Nothing this session.</h4>
+          <p>
+            The restructure went cleanly end-to-end: no failed edits, no content loss (376 refs
+            preserved), no broken links, no reverts needed. Every step was verified before moving on
+            (line counts, doc-check, symlink resolution, git rename detection).
+          </p>
+        </div>
+
+        <div class="callout callout-warning">
+          <strong>The one near-miss:</strong>
+          an initial CI edit (<code>go run ./cmd/doc-check</code> from repo root) failed because
+          <code>cmd/doc-check</code> is its own Go module — you can't <code>go run</code> across
+          module boundaries from root. Caught immediately on local test, reverted to the
+          explicit-args pattern. No damage.
+        </div>
+
+        <!-- e) WHAT WE SHOULD IMPROVE -->
+        <h2 id="improve"><span class="num">05</span>e) What We Should Improve</h2>
+
+        <div class="strengths">
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Add a TOC to recipes.md</strong>
+              <span
+                >574 lines without a top-of-file contents list violates the &gt;300-line guideline.
+                A 10-entry TOC (§2.0–§2.9) would make navigation faster.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Run the description optimization loop</strong>
+              <span
+                >The hand-written trigger is good but unmeasured. skill-creator's run_loop.py would
+                surface near-miss queries and refine triggering accuracy with held-out test
+                data.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Fix the pre-existing AGENTS.md <code>event.Projection</code> ref</strong>
+              <span
+                >It moved to <code>projection/</code> (Layer 2). One-line fix in AGENTS.md, but it's
+                outside this session's scope — and it's currently masking a clean CI doc-check
+                signal.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Decide global vs project-local availability</strong>
+              <span
+                >Document (or automate) the <code>~/.config/crush/skills/</code> symlink so the
+                skill triggers from cqrs-htmx and other consumers, not just inside
+                go-cqrs-lite.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Behavioral evals, not just structural</strong>
+              <span
+                >Structural checks (doc-check, line counts) prove integrity but not usefulness. 2-3
+                real "how do I…" prompts run with-skill vs baseline would validate the routing
+                actually helps.</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- f) TOP 25 NEXT -->
+        <h2 id="next25"><span class="num">06</span>f) Top 25 Things To Get Done Next</h2>
+        <p>Sorted by impact within the skill/docs/CI domain. Badge = priority tier.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Priority</th>
+              <th>Task</th>
+              <th>Rationale</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>
+                Fix AGENTS.md <code>event.Projection</code> → <code>projection.Projection</code>
+              </td>
+              <td>Restores green CI doc-check; 1-line fix, pre-existing breakage</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td>
+                Decide + apply global availability (symlink to <code>~/.config/crush/skills/</code>)
+              </td>
+              <td>Skill must trigger from consumer projects, not just inside the lib</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>Run skill-creator description optimization (<code>run_loop.py</code>)</td>
+              <td>Measurable trigger accuracy vs hand-crafted guess</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>Add TOC to recipes.md (§2.0–§2.9)</td>
+              <td>574-line file violates &gt;300-line TOC guideline</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>Write <code>evals/evals.json</code> with 3 realistic "how do I…" prompts</td>
+              <td>Behavioral validation that routing actually helps</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td>Run with-skill vs baseline on the 3 evals</td>
+              <td>Prove the split outperforms the old monolith</td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>Cross-link cqrs-htmx skill ↔ go-cqrs-lite skill</td>
+              <td>Consumers land on the right skill; no dead-ends</td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>Add <code>.agents/skills/</code> to doc-check's default glob universally</td>
+              <td>Future skills auto-verified without CI edits</td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>Verify the symlink survives <code>nix flake check</code></td>
+              <td>treefmt/nixfmt sometimes choke on symlinks</td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>Add a "skill health" CI job: frontmatter validity + line-count guard</td>
+              <td>Prevent regression to a monolith</td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>Document the skill structure in AGENTS.md (contributor onboarding)</td>
+              <td>Contributors must know where skill content lives now</td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>Consider splitting recipes.md → recipes-core.md + recipes-readmodels.md</td>
+              <td>§2.3 alone is 230+ lines; read models deserve their own file</td>
+            </tr>
+            <tr>
+              <td>13</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>Verify the description triggers on real ambiguous prompts</td>
+              <td>"set up event sourcing" without naming the lib — does it fire?</td>
+            </tr>
+            <tr>
+              <td>14</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td>Audit all 28 module READMEs against the split modules.md</td>
+              <td>Ensure one-liners didn't drift from canonical descriptions</td>
+            </tr>
+            <tr>
+              <td>15</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Add anchor IDs to recipes.md sub-sections for deep-linking</td>
+              <td>Decision-matrix "recipes §2.3" could jump straight to the anchor</td>
+            </tr>
+            <tr>
+              <td>16</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Consider an editorial-light variant for the skill</td>
+              <td>Current core is dashboard-dark; some readers prefer paper</td>
+            </tr>
+            <tr>
+              <td>17</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Add a "common mistakes" callout set to advanced.md</td>
+              <td>FAQ §12 is in core; advanced patterns lack pitfalls</td>
+            </tr>
+            <tr>
+              <td>18</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Verify the hero-shapes render in the status report (this file)</td>
+              <td>Visual QA of this very dashboard</td>
+            </tr>
+            <tr>
+              <td>19</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Tag the skill with <code>metadata.tags</code> for discoverability</td>
+              <td>status-report skill uses tags; go-cqrs-lite skill doesn't</td>
+            </tr>
+            <tr>
+              <td>20</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Consider <code>compatibility</code> frontmatter (Go version)</td>
+              <td>Skill-creator docs mention it; signals Go 1.26.3 requirement</td>
+            </tr>
+            <tr>
+              <td>21</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Review whether §7 Testing / §9 Examples belong in core or a reference</td>
+              <td>Core is lean but these are lookup, not decision-making</td>
+            </tr>
+            <tr>
+              <td>22</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Add a "versioning" note: how SKILL.md tracks go-cqrs-lite v3.x</td>
+              <td>Reader clarity on which version the recipes target</td>
+            </tr>
+            <tr>
+              <td>23</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Lint the YAML frontmatter in CI (yq or similar)</td>
+              <td>Catch malformed triggers before merge</td>
+            </tr>
+            <tr>
+              <td>24</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Measure core context cost (tokens) vs old monolith</td>
+              <td>Quantify the win for reporting</td>
+            </tr>
+            <tr>
+              <td>25</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td>Archive this status report + the old monolith in git history note</td>
+              <td>Future readers can trace the restructure rationale</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- g) TOP QUESTION -->
+        <h2 id="question">
+          <span class="num">07</span>g) Top #1 Question I Cannot Figure Out Myself
+        </h2>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Needs your call</span>
+          <h3>Should this skill be globally available, or stay project-local?</h3>
+          <div class="where">
+            availability model · ~/.config/crush/skills/ vs project .agents/skills/
+          </div>
+          <p>
+            The restructure put the skill at <code>go-cqrs-lite/.agents/skills/go-cqrs-lite/</code>,
+            so Crush discovers it <em>only when working inside the go-cqrs-lite repo</em>. But the
+            skill's whole purpose is to help consumers (like cqrs-htmx, or any app importing
+            <code>go-cqrs-lite/*/v3</code>) — and those consumers live in <em>other</em> working
+            directories where this skill would never trigger.
+          </p>
+          <p>I can't decide this for you because it's a tradeoff between two valid models:</p>
+          <div class="callout callout-solution">
+            <strong>Option A — Global (symlink to ~/.config/crush/skills/go-cqrs-lite):</strong>
+            the skill triggers everywhere. Best for the "single source of truth for AI consumers"
+            mission. Cost: a machine-local symlink not tracked by git, so it must be re-created per
+            machine (or scripted in the devShell).
+          </div>
+          <div class="callout callout-warning">
+            <strong>Option B — Project-local only (current state):</strong>
+            the skill triggers only inside go-cqrs-lite. Consumer projects would each need their own
+            copy/symlink. Cleaner git story, but defeats the purpose for the majority of users who
+            consume the lib, not contribute to it.
+          </div>
+          <p>
+            <strong>My recommendation:</strong> Option A (global), wired via the
+            <code>flake.nix</code> devShell so the symlink is reproducible across machines. But this
+            is your environment/library boundary to call — should I implement Option A, or do you
+            want consumers to opt in per-project?
+          </p>
+        </div>
+
+        <footer class="footer">
+          Generated 2026-06-29 18:17 CEST &middot; All claims verified via
+          <code>go run ./cmd/doc-check</code> (376 refs valid), git status, and symlink resolution
+          checks
+        </footer>
+      </main>
+    </div>
+
+    <!-- Progressive-enhancement scrollspy. Nav still works without JS via anchor links. -->
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

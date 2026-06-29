@@ -108,9 +108,6 @@ graph/testdata/rapid/
 .Trashes
 ehthumbs.db
 
-## Reports and coverage
-reports/
-
 ## Go
 go.work
 
@@ -118,9 +115,13 @@ go.work
 .envrc
 
 ## Javascript and typescript
-dist/
-build/
 *.tsbuildinfo
+.next/
+.nuxt/
+.docusaurus/
+.eslintcache
+.cache/
+.parcel-cache/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

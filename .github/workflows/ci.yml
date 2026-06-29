@@ -36,7 +36,7 @@ jobs:
         run: nix run .#lint
 
       - name: Doc cross-reference check
-        run: cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../AGENTS.md
+        run: cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md
 
       - name: Generate coverage
         run: nix run .#coverage

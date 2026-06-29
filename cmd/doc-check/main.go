@@ -14,7 +14,8 @@
 //
 //	go run ./cmd/doc-check/ [files...]
 //
-// Defaults to SKILL.md and AGENTS.md if no files are given.
+// Defaults to SKILL.md, AGENTS.md, and any .agents/skills/*/references/*.md
+// if no files are given.
 package main
 
 import (
@@ -42,6 +43,10 @@ func main() {
 	files := os.Args[1:]
 	if len(files) == 0 {
 		files = []string{"SKILL.md", "AGENTS.md"}
+		// Auto-discover skill reference files so split SKILL.md content stays checked.
+		if refFiles, err := filepath.Glob(".agents/skills/*/references/*.md"); err == nil {
+			files = append(files, refFiles...)
+		}
 	}
 
 	// Resolve repo root from the directory of the first markdown file.
