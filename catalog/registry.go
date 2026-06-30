@@ -13,31 +13,37 @@ var ErrDomainNotFound = errorfamily.NewRejection("catalog.domain_not_found", "do
 // domains, channels, data stores, flows, teams, and users before
 // producing an immutable Catalog.
 type Registry struct {
-	mu       sync.RWMutex
-	title    string
-	version  string
-	services map[ServiceID]*Service
-	domains  map[DomainID]*Domain
-	channels map[ChannelID]*Channel
-	stores   map[DataStoreID]*DataStore
-	flows    map[FlowID]*Flow
-	teams    map[TeamID]*Team
-	users    map[UserID]*User
+	mu           sync.RWMutex
+	title        string
+	version      string
+	services     map[ServiceID]*Service
+	domains      map[DomainID]*Domain
+	channels     map[ChannelID]*Channel
+	stores       map[DataStoreID]*DataStore
+	flows        map[FlowID]*Flow
+	teams        map[TeamID]*Team
+	users        map[UserID]*User
+	entities     map[EntityID]*Entity
+	dataProducts map[DataProductID]*DataProduct
+	agents       map[AgentID]*Agent
 }
 
 // NewRegistry creates a new catalog registry with the given title and version.
 func NewRegistry(title, version string) *Registry {
 	return &Registry{
-		mu:       sync.RWMutex{},
-		title:    title,
-		version:  version,
-		services: make(map[ServiceID]*Service),
-		domains:  make(map[DomainID]*Domain),
-		channels: make(map[ChannelID]*Channel),
-		stores:   make(map[DataStoreID]*DataStore),
-		flows:    make(map[FlowID]*Flow),
-		teams:    make(map[TeamID]*Team),
-		users:    make(map[UserID]*User),
+		mu:           sync.RWMutex{},
+		title:        title,
+		version:      version,
+		services:     make(map[ServiceID]*Service),
+		domains:      make(map[DomainID]*Domain),
+		channels:     make(map[ChannelID]*Channel),
+		stores:       make(map[DataStoreID]*DataStore),
+		flows:        make(map[FlowID]*Flow),
+		teams:        make(map[TeamID]*Team),
+		users:        make(map[UserID]*User),
+		entities:     make(map[EntityID]*Entity),
+		dataProducts: make(map[DataProductID]*DataProduct),
+		agents:       make(map[AgentID]*Agent),
 	}
 }
 

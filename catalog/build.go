@@ -103,6 +103,21 @@ func (b *Builder) AddUser(user User) {
 	b.registry.AddUser(user)
 }
 
+// AddEntity registers a domain entity in the catalog.
+func (b *Builder) AddEntity(entity Entity) {
+	b.registry.AddEntity(entity)
+}
+
+// AddDataProduct registers a data product in the catalog.
+func (b *Builder) AddDataProduct(dp DataProduct) {
+	b.registry.AddDataProduct(dp)
+}
+
+// AddAgent registers an AI agent in the catalog.
+func (b *Builder) AddAgent(agent Agent) {
+	b.registry.AddAgent(agent)
+}
+
 // Build returns the immutable Catalog with all registered entries.
 func (b *Builder) Build() *Catalog {
 	return b.registry.Build()

@@ -81,6 +81,25 @@ func writeFlowSteps(md *frontmatterWriter, steps []catalog.FlowStep) {
 			_, _ = fmt.Fprintf(md, "    externalSystem:\n      name: %q\n", s.External.Name)
 		}
 
+		if s.Agent != nil {
+			_, _ = fmt.Fprintf(md, "    agent:\n      id: %s\n", s.Agent.ID)
+			if s.Agent.Version != "" {
+				_, _ = fmt.Fprintf(md, "      version: %s\n", s.Agent.Version)
+			}
+		}
+
+		if s.DataStore != nil {
+			_, _ = fmt.Fprintf(md, "    dataStore:\n      id: %s\n", s.DataStore.ID)
+		}
+
+		if s.DataProduct != nil {
+			_, _ = fmt.Fprintf(md, "    dataProduct:\n      id: %s\n", s.DataProduct.ID)
+		}
+
+		if s.SubFlow != nil {
+			_, _ = fmt.Fprintf(md, "    subFlow:\n      id: %s\n", s.SubFlow.ID)
+		}
+
 		if s.Custom != nil {
 			_, _ = fmt.Fprintf(md, "    custom:\n      title: %q\n", s.Custom.Title)
 		}

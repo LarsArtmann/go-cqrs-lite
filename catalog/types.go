@@ -58,6 +58,24 @@ func (id UserID) String() string { return string(id) }
 
 func (id UserID) IsZero() bool { return id == "" }
 
+type EntityID string
+
+func (id EntityID) String() string { return string(id) }
+
+func (id EntityID) IsZero() bool { return id == "" }
+
+type DataProductID string
+
+func (id DataProductID) String() string { return string(id) }
+
+func (id DataProductID) IsZero() bool { return id == "" }
+
+type AgentID string
+
+func (id AgentID) String() string { return string(id) }
+
+func (id AgentID) IsZero() bool { return id == "" }
+
 type Direction string
 
 func (d Direction) String() string { return string(d) }
@@ -140,21 +158,25 @@ type Service struct {
 	Badges         []Badge         `json:"badges,omitempty"`
 	Specifications []Specification `json:"specifications,omitempty"`
 	Attachments    []Attachment    `json:"attachments,omitempty"`
+	ExternalSystem bool            `json:"externalSystem,omitempty"`
 }
 
 type Domain struct {
-	ID          DomainID     `json:"id"`
-	Name        Name         `json:"name"`
-	Version     Version      `json:"version"`
-	Summary     Summary      `json:"summary,omitempty"`
-	Owners      []string     `json:"owners,omitempty"`
-	Services    []ServiceID  `json:"services,omitempty"`
-	Sends       []Ref        `json:"sends,omitempty"`
-	Receives    []Ref        `json:"receives,omitempty"`
-	Entities    []string     `json:"entities,omitempty"`
-	Flows       []FlowID     `json:"flows,omitempty"`
-	Badges      []Badge      `json:"badges,omitempty"`
-	Attachments []Attachment `json:"attachments,omitempty"`
+	ID                 DomainID                 `json:"id"`
+	Name               Name                     `json:"name"`
+	Version            Version                  `json:"version"`
+	Summary            Summary                  `json:"summary,omitempty"`
+	Owners             []string                 `json:"owners,omitempty"`
+	Services           []ServiceID              `json:"services,omitempty"`
+	Sends              []Ref                    `json:"sends,omitempty"`
+	Receives           []Ref                    `json:"receives,omitempty"`
+	Entities           []string                 `json:"entities,omitempty"`
+	Flows              []FlowID                 `json:"flows,omitempty"`
+	Badges             []Badge                  `json:"badges,omitempty"`
+	Attachments        []Attachment             `json:"attachments,omitempty"`
+	UbiquitousLanguage []UbiquitousLanguageTerm `json:"ubiquitousLanguage,omitempty"`
+	SubDomains         []DomainID               `json:"subDomains,omitempty"`
+	DataProducts       []DataProductID          `json:"dataProducts,omitempty"`
 }
 
 type Channel struct {
@@ -173,15 +195,18 @@ type Channel struct {
 }
 
 type Catalog struct {
-	Title      Title       `json:"title"`
-	Version    Version     `json:"version"`
-	Services   []Service   `json:"services"`
-	Domains    []Domain    `json:"domains,omitempty"`
-	Channels   []Channel   `json:"channels,omitempty"`
-	DataStores []DataStore `json:"dataStores,omitempty"`
-	Flows      []Flow      `json:"flows,omitempty"`
-	Teams      []Team      `json:"teams,omitempty"`
-	Users      []User      `json:"users,omitempty"`
+	Title        Title         `json:"title"`
+	Version      Version       `json:"version"`
+	Services     []Service     `json:"services"`
+	Domains      []Domain      `json:"domains,omitempty"`
+	Channels     []Channel     `json:"channels,omitempty"`
+	DataStores   []DataStore   `json:"dataStores,omitempty"`
+	Flows        []Flow        `json:"flows,omitempty"`
+	Teams        []Team        `json:"teams,omitempty"`
+	Users        []User        `json:"users,omitempty"`
+	Entities     []Entity      `json:"entities,omitempty"`
+	DataProducts []DataProduct `json:"dataProducts,omitempty"`
+	Agents       []Agent       `json:"agents,omitempty"`
 }
 
 // Key returns the unique key for the message: msg.ID if set, otherwise msg.Name.

@@ -159,6 +159,75 @@ ec.Export(catalog)
 ```
 
 Writes MDX files with YAML frontmatter, auto-deriving producers/consumers from message directions.
+Generates `llms.txt` and `schemas.txt` for AI consumption.
+
+#### Full Resource Coverage
+
+The exporter supports all EventCatalog resource types:
+
+| Resource      | Exported To                    | Notes                                                                    |
+| ------------- | ------------------------------ | ------------------------------------------------------------------------ |
+| Services      | `services/<id>/index.mdx`      | With messages, specs, data stores, external flag                         |
+| Domains       | `domains/<id>/index.mdx`       | With ubiquitous language, sub-domains, data products                     |
+| Entities      | `entities/<id>/index.mdx`      | First-class domain entities with schemas                                 |
+| Data Products | `data-products/<id>/index.mdx` | Data mesh products with schemas                                          |
+| Agents        | `agents/<id>/index.mdx`        | AI agents with messages, data stores, flows                              |
+| Channels      | `channels/<id>/index.mdx`      | With protocols, parameters, routes                                       |
+| Data Stores   | `data/<id>/index.mdx`          | Databases, caches with classification                                    |
+| Flows         | `flows/<id>/index.mdx`         | All step types: service, message, agent, dataStore, dataProduct, subFlow |
+| Teams         | `teams/<id>.mdx`               | Ownership metadata                                                       |
+| Users         | `users/<id>.mdx`               | Individual owners                                                        |
+
+#### DDD Ubiquitous Language
+
+```go
+builder.AddDomain("orders", "Orders", "1.0.0", "Order management", "order-svc")
+builder.ConfigureDomain("orders",
+    catalog.DomainUbiquitousLanguage(
+        catalog.UbiquitousLanguageTerm{Name: "Order", Description: "A customer purchase request"},
+        catalog.UbiquitousLanguageTerm{Name: "Fulfillment", Description: "Completing an order"},
+    ),
+    catalog.DomainSubDomains("checkout", "shipping"),
+    catalog.DomainDataProducts("order-analytics"),
+)
+```
+
+#### External Services
+
+```go
+builder.AddService("stripe", "Stripe", "1.0.0", "")
+builder.ConfigureService("stripe", catalog.ServiceExternalSystem())
+```
+
+#### Entities, Data Products, Agents
+
+```go
+builder.AddEntity(catalog.Entity{ID: "order", Name: "Order", Version: "1.0.0",
+    Schema: catalog.SchemaFromType[Order]()})
+
+builder.AddDataProduct(catalog.DataProduct{ID: "metrics", Name: "Metrics", Version: "1.0.0",
+    Domain: "analytics", Schema: catalog.SchemaFromType[Metrics]()})
+
+builder.AddAgent(catalog.Agent{ID: "order-bot", Name: "Order Bot", Version: "1.0.0",
+    Summary: "AI agent for order processing"})
+```
+
+#### Flow Step Types
+
+Flows support all EventCatalog step types — service, message, channel, actor,
+external system, custom, **agent**, **data store**, **data product**, and **sub-flow**:
+
+```go
+builder.AddFlow(catalog.Flow{
+    ID: "checkout", Name: "Checkout Flow", Version: "1.0.0",
+    Steps: []catalog.FlowStep{
+        {ID: "1", Title: "Agent validates", Agent: &catalog.FlowStepRef{ID: "checkout-bot"}},
+        {ID: "2", Title: "Read inventory", DataStore: &catalog.FlowStepRef{ID: "inv-db"},
+            NextStep: &catalog.FlowEdge{ID: "3"}},
+        {ID: "3", Title: "Publish metrics", DataProduct: &catalog.FlowStepRef{ID: "sales-data"}},
+    },
+})
+```
 
 ### OpenAPI
 
@@ -224,14 +293,17 @@ Access the underlying `catalog.Builder` via `b.InnerBuilder()` for multi-service
 The catalog module provides typed IDs for catalog entries:
 
 ```go
-type ServiceID string   // catalog.ServiceID
-type DomainID string    // catalog.DomainID
-type MessageID string   // catalog.MessageID
-type ChannelID string   // catalog.ChannelID
-type DataStoreID string // catalog.DataStoreID
-type FlowID string      // catalog.FlowID
-type TeamID string      // catalog.TeamID
-type UserID string      // catalog.UserID
+type ServiceID string     // catalog.ServiceID
+type DomainID string      // catalog.DomainID
+type MessageID string     // catalog.MessageID
+type ChannelID string     // catalog.ChannelID
+type DataStoreID string   // catalog.DataStoreID
+type FlowID string        // catalog.FlowID
+type TeamID string        // catalog.TeamID
+type UserID string        // catalog.UserID
+type EntityID string      // catalog.EntityID
+type DataProductID string // catalog.DataProductID
+type AgentID string       // catalog.AgentID
 ```
 
 ## Dependencies

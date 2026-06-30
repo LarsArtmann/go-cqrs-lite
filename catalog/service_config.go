@@ -58,3 +58,10 @@ func ServiceOwners(owners ...string) ServiceOption {
 		s.Owners = owners
 	}
 }
+
+// ServiceExternalSystem marks a service as an external (third-party) system.
+func ServiceExternalSystem() ServiceOption {
+	return func(s *Service) {
+		s.ExternalSystem = true
+	}
+}

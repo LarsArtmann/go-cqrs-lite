@@ -39,6 +39,22 @@ func (e *Exporter) writeLLMsTxt(cat *catalog.Catalog) error {
 		writeLLMsTxtUser(&buf, user)
 	}
 
+	for _, domain := range cat.Domains {
+		writeLLMsTxtDomain(&buf, domain)
+	}
+
+	for _, entity := range cat.Entities {
+		writeLLMsTxtEntity(&buf, entity)
+	}
+
+	for _, dp := range cat.DataProducts {
+		writeLLMsTxtDataProduct(&buf, dp)
+	}
+
+	for _, agent := range cat.Agents {
+		writeLLMsTxtAgent(&buf, agent)
+	}
+
 	return os.WriteFile( //nolint:wrapcheck // os.WriteFile returns direct error
 		filepath.Join(e.outputDir, "llms.txt"),
 		[]byte(buf.String()),
@@ -151,6 +167,65 @@ func writeLLMsTxtUser(buf *strings.Builder, user catalog.User) {
 
 	if user.Role != "" {
 		fmt.Fprintf(buf, "Role: %s\n", user.Role)
+	}
+
+	buf.WriteString("\n")
+}
+
+func writeLLMsTxtDomain(buf *strings.Builder, domain catalog.Domain) {
+	fmt.Fprintf(buf, "## Domain: %s (%s)\n", domain.Name, domain.ID)
+
+	if domain.Summary != "" {
+		fmt.Fprintf(buf, "%s\n", domain.Summary)
+	}
+
+	if len(domain.Services) > 0 {
+		ids := make([]string, len(domain.Services))
+		for i, s := range domain.Services {
+			ids[i] = string(s)
+		}
+		fmt.Fprintf(buf, "Services: %s\n", strings.Join(ids, ", "))
+	}
+
+	if len(domain.UbiquitousLanguage) > 0 {
+		buf.WriteString("\nUbiquitous Language:\n")
+		for _, term := range domain.UbiquitousLanguage {
+			fmt.Fprintf(buf, "- %s: %s\n", term.Name, term.Description)
+		}
+	}
+
+	buf.WriteString("\n")
+}
+
+func writeLLMsTxtEntity(buf *strings.Builder, entity catalog.Entity) {
+	fmt.Fprintf(buf, "## Entity: %s (%s)\n", entity.Name, entity.ID)
+
+	if entity.Summary != "" {
+		fmt.Fprintf(buf, "%s\n", entity.Summary)
+	}
+
+	buf.WriteString("\n")
+}
+
+func writeLLMsTxtDataProduct(buf *strings.Builder, dp catalog.DataProduct) {
+	fmt.Fprintf(buf, "## Data Product: %s (%s)\n", dp.Name, dp.ID)
+
+	if dp.Summary != "" {
+		fmt.Fprintf(buf, "%s\n", dp.Summary)
+	}
+
+	buf.WriteString("\n")
+}
+
+func writeLLMsTxtAgent(buf *strings.Builder, agent catalog.Agent) {
+	fmt.Fprintf(buf, "## Agent: %s (%s)\n", agent.Name, agent.ID)
+
+	if agent.Summary != "" {
+		fmt.Fprintf(buf, "%s\n", agent.Summary)
+	}
+
+	if len(agent.Events) > 0 {
+		fmt.Fprintf(buf, "Events: %d\n", len(agent.Events))
 	}
 
 	buf.WriteString("\n")

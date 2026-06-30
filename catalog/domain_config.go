@@ -44,3 +44,24 @@ func DomainAttachments(attachments ...Attachment) DomainOption {
 		d.Attachments = attachments
 	}
 }
+
+// DomainUbiquitousLanguage sets the DDD ubiquitous language glossary for the domain.
+func DomainUbiquitousLanguage(terms ...UbiquitousLanguageTerm) DomainOption {
+	return func(d *Domain) {
+		d.UbiquitousLanguage = terms
+	}
+}
+
+// DomainSubDomains declares sub-domains owned by this domain.
+func DomainSubDomains(ids ...DomainID) DomainOption {
+	return func(d *Domain) {
+		d.SubDomains = ids
+	}
+}
+
+// DomainDataProducts associates data products with this domain.
+func DomainDataProducts(ids ...DataProductID) DomainOption {
+	return func(d *Domain) {
+		d.DataProducts = ids
+	}
+}

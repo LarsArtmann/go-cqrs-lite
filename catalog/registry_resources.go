@@ -48,3 +48,24 @@ func (r *Registry) AddUser(user User) {
 
 	r.users[user.ID] = copyPtr(copyUser, user)
 }
+
+func (r *Registry) AddEntity(entity Entity) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.entities[entity.ID] = copyPtr(copyEntity, entity)
+}
+
+func (r *Registry) AddDataProduct(dp DataProduct) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.dataProducts[dp.ID] = copyPtr(copyDataProduct, dp)
+}
+
+func (r *Registry) AddAgent(agent Agent) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.agents[agent.ID] = copyPtr(copyAgent, agent)
+}

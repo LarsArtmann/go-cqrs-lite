@@ -43,17 +43,21 @@ func copyFlowSteps(steps []FlowStep) []FlowStep {
 
 func copyFlowStep(s FlowStep) FlowStep {
 	return FlowStep{
-		ID:        s.ID,
-		Title:     s.Title,
-		Summary:   s.Summary,
-		Service:   copyFlowStepRef(s.Service),
-		Message:   copyFlowStepRef(s.Message),
-		Channel:   copyFlowStepRef(s.Channel),
-		Actor:     copyFlowActor(s.Actor),
-		External:  copyFlowActor(s.External),
-		Custom:    copyFlowCustom(s.Custom),
-		NextStep:  copyFlowEdge(s.NextStep),
-		NextSteps: copySlice(s.NextSteps),
+		ID:          s.ID,
+		Title:       s.Title,
+		Summary:     s.Summary,
+		Service:     copyFlowStepRef(s.Service),
+		Message:     copyFlowStepRef(s.Message),
+		Channel:     copyFlowStepRef(s.Channel),
+		Actor:       copyFlowActor(s.Actor),
+		External:    copyFlowActor(s.External),
+		Custom:      copyFlowCustom(s.Custom),
+		Agent:       copyFlowStepRef(s.Agent),
+		DataStore:   copyFlowStepRef(s.DataStore),
+		DataProduct: copyFlowStepRef(s.DataProduct),
+		SubFlow:     copyFlowStepRef(s.SubFlow),
+		NextStep:    copyFlowEdge(s.NextStep),
+		NextSteps:   copySlice(s.NextSteps),
 	}
 }
 
@@ -111,5 +115,46 @@ func copyUser(u *User) User {
 		Role:                  u.Role,
 		Email:                 u.Email,
 		SlackDirectMessageURL: u.SlackDirectMessageURL,
+	}
+}
+
+func copyEntity(e *Entity) Entity {
+	return Entity{
+		ID:      e.ID,
+		Name:    e.Name,
+		Version: e.Version,
+		Summary: e.Summary,
+		Schema:  e.Schema,
+		Owners:  copySlice(e.Owners),
+		Badges:  copyBadges(e.Badges),
+	}
+}
+
+func copyDataProduct(dp *DataProduct) DataProduct {
+	return DataProduct{
+		ID:      dp.ID,
+		Name:    dp.Name,
+		Version: dp.Version,
+		Summary: dp.Summary,
+		Domain:  dp.Domain,
+		Schema:  dp.Schema,
+		Owners:  copySlice(dp.Owners),
+		Badges:  copyBadges(dp.Badges),
+	}
+}
+
+func copyAgent(a *Agent) Agent {
+	return Agent{
+		ID:         a.ID,
+		Name:       a.Name,
+		Version:    a.Version,
+		Summary:    a.Summary,
+		Commands:   copyMessages(a.Commands),
+		Events:     copyMessages(a.Events),
+		Queries:    copyMessages(a.Queries),
+		DataStores: copySlice(a.DataStores),
+		Flows:      copySlice(a.Flows),
+		Owners:     copySlice(a.Owners),
+		Badges:     copyBadges(a.Badges),
 	}
 }

@@ -125,6 +125,45 @@ func (e *Exporter) Export(cat *catalog.Catalog) error {
 		}
 	}
 
+	for _, entity := range enriched.Entities {
+		err := e.writeEntity(entity)
+		if err != nil {
+			return errorfamily.Newf(
+				errorfamily.Infrastructure,
+				"catalog.exporter.14",
+				"write entity %s: %v",
+				entity.ID,
+				err,
+			)
+		}
+	}
+
+	for _, dp := range enriched.DataProducts {
+		err := e.writeDataProduct(dp)
+		if err != nil {
+			return errorfamily.Newf(
+				errorfamily.Infrastructure,
+				"catalog.exporter.15",
+				"write data product %s: %v",
+				dp.ID,
+				err,
+			)
+		}
+	}
+
+	for _, agent := range enriched.Agents {
+		err := e.writeAgent(agent)
+		if err != nil {
+			return errorfamily.Newf(
+				errorfamily.Infrastructure,
+				"catalog.exporter.16",
+				"write agent %s: %v",
+				agent.ID,
+				err,
+			)
+		}
+	}
+
 	err := e.writeConfig(cat)
 	if err != nil {
 		return errorfamily.Newf(
@@ -135,7 +174,16 @@ func (e *Exporter) Export(cat *catalog.Catalog) error {
 		)
 	}
 
-	return e.writeLLMsTxt(cat)
+	if err := e.writeLLMsTxt(cat); err != nil {
+		return errorfamily.Newf(
+			errorfamily.Infrastructure,
+			"catalog.exporter.17",
+			"write llms.txt: %v",
+			err,
+		)
+	}
+
+	return e.writeSchemasTxt(cat)
 }
 
 func (e *Exporter) writeServiceMessages(svc catalog.Service) error {
@@ -210,6 +258,11 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 	writeIDListField(md, "readsFrom", svc.ReadsFrom)
 	writeIDListField(md, "entities", svc.Entities)
 	writeIDListField(md, "flows", svc.Flows)
+
+	if svc.ExternalSystem {
+		md.addField("externalSystem", "true")
+	}
+
 	writeBadges(md, svc.Badges)
 	writeRepository(md, svc.Repository)
 	writeSpecifications(md, svc.Specifications)
@@ -270,6 +323,9 @@ func (e *Exporter) writeDomain(domain catalog.Domain) error {
 	writeMessagePointers(md, "receives", domain.Receives)
 	writeIDListField(md, "entities", domain.Entities)
 	writeIDListField(md, "flows", domain.Flows)
+	writeIDListField(md, "subDomains", domain.SubDomains)
+	writeIDListField(md, "dataProducts", domain.DataProducts)
+	writeUbiquitousLanguage(md, domain.UbiquitousLanguage)
 	writeBadges(md, domain.Badges)
 	writeAttachments(md, domain.Attachments)
 	md.finishWithGraph(string(domain.Name), string(domain.Summary))

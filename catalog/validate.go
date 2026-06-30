@@ -53,6 +53,18 @@ func (c *Catalog) Validate() []Violation {
 		violations = append(violations, validateChannel(ch)...)
 	}
 
+	for _, entity := range c.Entities {
+		violations = append(violations, validateEntity(entity)...)
+	}
+
+	for _, dp := range c.DataProducts {
+		violations = append(violations, validateDataProduct(dp)...)
+	}
+
+	for _, agent := range c.Agents {
+		violations = append(violations, validateAgent(agent)...)
+	}
+
 	return violations
 }
 
@@ -159,6 +171,45 @@ func validateChannel(ch Channel) []Violation {
 		}
 
 		seen[msgID] = true
+	}
+
+	return violations
+}
+
+func validateEntity(entity Entity) []Violation {
+	var violations []Violation
+
+	if entity.ID == "" {
+		violations = append(violations, Violation{
+			Path:    fmt.Sprintf("entities[%s].id", entity.Name),
+			Message: "entity ID must not be empty",
+		})
+	}
+
+	return violations
+}
+
+func validateDataProduct(dp DataProduct) []Violation {
+	var violations []Violation
+
+	if dp.ID == "" {
+		violations = append(violations, Violation{
+			Path:    fmt.Sprintf("dataProducts[%s].id", dp.Name),
+			Message: "data product ID must not be empty",
+		})
+	}
+
+	return violations
+}
+
+func validateAgent(agent Agent) []Violation {
+	var violations []Violation
+
+	if agent.ID == "" {
+		violations = append(violations, Violation{
+			Path:    fmt.Sprintf("agents[%s].id", agent.Name),
+			Message: "agent ID must not be empty",
+		})
 	}
 
 	return violations

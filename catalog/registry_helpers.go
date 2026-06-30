@@ -98,23 +98,27 @@ func copyService(s *Service) Service {
 		Badges:         copyBadges(s.Badges),
 		Specifications: copySlice(s.Specifications),
 		Attachments:    copySlice(s.Attachments),
+		ExternalSystem: s.ExternalSystem,
 	}
 }
 
 func copyDomain(d *Domain) Domain {
 	return Domain{
-		ID:          d.ID,
-		Name:        d.Name,
-		Version:     d.Version,
-		Summary:     d.Summary,
-		Owners:      copySlice(d.Owners),
-		Services:    copySlice(d.Services),
-		Sends:       copySlice(d.Sends),
-		Receives:    copySlice(d.Receives),
-		Entities:    copySlice(d.Entities),
-		Flows:       copySlice(d.Flows),
-		Badges:      copyBadges(d.Badges),
-		Attachments: copySlice(d.Attachments),
+		ID:                 d.ID,
+		Name:               d.Name,
+		Version:            d.Version,
+		Summary:            d.Summary,
+		Owners:             copySlice(d.Owners),
+		Services:           copySlice(d.Services),
+		Sends:              copySlice(d.Sends),
+		Receives:           copySlice(d.Receives),
+		Entities:           copySlice(d.Entities),
+		Flows:              copySlice(d.Flows),
+		Badges:             copyBadges(d.Badges),
+		Attachments:        copySlice(d.Attachments),
+		UbiquitousLanguage: copyUbiquitousLanguage(d.UbiquitousLanguage),
+		SubDomains:         copySlice(d.SubDomains),
+		DataProducts:       copySlice(d.DataProducts),
 	}
 }
 
@@ -148,6 +152,19 @@ func copyChannelParams(params map[string]ChannelParam) map[string]ChannelParam {
 			Default:     v.Default,
 			Description: v.Description,
 		}
+	}
+
+	return cp
+}
+
+func copyUbiquitousLanguage(terms []UbiquitousLanguageTerm) []UbiquitousLanguageTerm {
+	if terms == nil {
+		return nil
+	}
+
+	cp := make([]UbiquitousLanguageTerm, len(terms))
+	for i, t := range terms {
+		cp[i] = UbiquitousLanguageTerm{Name: t.Name, Description: t.Description}
 	}
 
 	return cp
