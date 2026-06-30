@@ -136,8 +136,8 @@ func copyDataProduct(dp *DataProduct) DataProduct {
 		Name:    dp.Name,
 		Version: dp.Version,
 		Summary: dp.Summary,
-		Domain:  dp.Domain,
-		Schema:  dp.Schema,
+		Inputs:  copySlice(dp.Inputs),
+		Outputs: copySlice(dp.Outputs),
 		Owners:  copySlice(dp.Owners),
 		Badges:  copyBadges(dp.Badges),
 	}
@@ -145,16 +145,42 @@ func copyDataProduct(dp *DataProduct) DataProduct {
 
 func copyAgent(a *Agent) Agent {
 	return Agent{
-		ID:         a.ID,
-		Name:       a.Name,
-		Version:    a.Version,
-		Summary:    a.Summary,
-		Commands:   copyMessages(a.Commands),
-		Events:     copyMessages(a.Events),
-		Queries:    copyMessages(a.Queries),
-		DataStores: copySlice(a.DataStores),
-		Flows:      copySlice(a.Flows),
-		Owners:     copySlice(a.Owners),
-		Badges:     copyBadges(a.Badges),
+		ID:        a.ID,
+		Name:      a.Name,
+		Version:   a.Version,
+		Summary:   a.Summary,
+		Sends:     copySlice(a.Sends),
+		Receives:  copySlice(a.Receives),
+		ReadsFrom: copySlice(a.ReadsFrom),
+		WritesTo:  copySlice(a.WritesTo),
+		Model:     copyAgentModel(a.Model),
+		Tools:     copyAgentTools(a.Tools),
+		Flows:     copySlice(a.Flows),
+		Owners:    copySlice(a.Owners),
+		Badges:    copyBadges(a.Badges),
 	}
+}
+
+func copyAgentModel(m *AgentModel) *AgentModel {
+	if m == nil {
+		return nil
+	}
+
+	return &AgentModel{Provider: m.Provider, Name: m.Name, Version: m.Version}
+}
+
+func copyAgentTools(tools []AgentTool) []AgentTool {
+	if tools == nil {
+		return nil
+	}
+
+	cp := make([]AgentTool, len(tools))
+	for i, t := range tools {
+		cp[i] = AgentTool{
+			Name: t.Name, Type: t.Type, URL: t.URL,
+			Description: t.Description, Icon: t.Icon,
+		}
+	}
+
+	return cp
 }

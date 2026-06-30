@@ -73,7 +73,7 @@ func buildMessageFrontmatter(messageID catalog.MessageID, msg catalog.Message) *
 	}
 
 	if msg.Deprecated {
-		md.addField("deprecated", "true")
+		_, _ = md.WriteString("deprecated: true\n")
 	}
 
 	md.addListField("owners", msg.Owners)

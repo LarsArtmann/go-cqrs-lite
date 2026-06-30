@@ -26,7 +26,7 @@ func TestExporter_Export_YAMLFrontmatter(t *testing.T) {
 	}
 }
 
-func TestExporter_Export_CommandsAndQueriesInServiceFrontmatter(t *testing.T) {
+func TestExporter_Export_CommandsAndQueriesMergedIntoReceives(t *testing.T) {
 	t.Parallel()
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
@@ -49,15 +49,32 @@ func TestExporter_Export_CommandsAndQueriesInServiceFrontmatter(t *testing.T) {
 
 	tmpDir := exportCatalog(t, reg)
 
+	content := readExported(t, tmpDir, "services", "order-svc", "index.mdx")
+
+	// EventCatalog services only have sends/receives — commands and queries
+	// are merged into receives (services receive commands and queries).
 	cattest.AssertContentContains(
 		t,
-		readExported(t, tmpDir, "services", "order-svc", "index.mdx"),
+		content,
 		"service file",
-		"commands:",
+		"receives:",
 		"- id: CreateOrder",
-		"queries:",
 		"- id: GetOrder",
 	)
+
+	if strings.Contains(content, "commands:") {
+		t.Errorf(
+			"service frontmatter should NOT have commands: field (not valid EventCatalog)\n%s",
+			content,
+		)
+	}
+
+	if strings.Contains(content, "queries:") {
+		t.Errorf(
+			"service frontmatter should NOT have queries: field (not valid EventCatalog)\n%s",
+			content,
+		)
+	}
 }
 
 func TestExporter_Export_LLMsTxt(t *testing.T) {

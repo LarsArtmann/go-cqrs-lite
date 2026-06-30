@@ -69,16 +69,9 @@ func (e *Exporter) writeDataProduct(dp catalog.DataProduct) error {
 	writeBaseFrontmatter(md, string(dp.ID), string(dp.Name), string(dp.Version),
 		string(dp.Summary), dp.Owners)
 
-	if dp.Domain != "" {
-		md.addField("domain", string(dp.Domain))
-	}
-
+	writeMessagePointers(md, "inputs", dp.Inputs)
+	writeMessagePointers(md, "outputs", dp.Outputs)
 	writeBadges(md, dp.Badges)
-
-	if dp.Schema != nil {
-		_, _ = md.WriteString("schemaPath: schemas/schema.json\n")
-	}
-
 	md.finishWithGraph(string(dp.Name), string(dp.Summary))
 
 	err = e.writeMDXFile(filepath.Join(dir, indexFile), md.String())
@@ -90,10 +83,6 @@ func (e *Exporter) writeDataProduct(dp catalog.DataProduct) error {
 			dp.ID,
 			err,
 		)
-	}
-
-	if dp.Schema != nil {
-		return e.writeSchema(dir, dp.Schema)
 	}
 
 	return nil
@@ -116,12 +105,12 @@ func (e *Exporter) writeAgent(agent catalog.Agent) error {
 	writeBaseFrontmatter(md, string(agent.ID), string(agent.Name), string(agent.Version),
 		string(agent.Summary), agent.Owners)
 
-	sends, receives, commands, queries := collectAgentMessageIDs(agent)
-	addObjectIDsListField(md, "sends", sends)
-	addObjectIDsListField(md, "receives", receives)
-	addObjectIDsListField(md, "commands", commands)
-	addObjectIDsListField(md, "queries", queries)
-	writeIDListField(md, "dataStores", agent.DataStores)
+	writeMessagePointers(md, "sends", agent.Sends)
+	writeMessagePointers(md, "receives", agent.Receives)
+	writeIDListField(md, "readsFrom", agent.ReadsFrom)
+	writeIDListField(md, "writesTo", agent.WritesTo)
+	writeAgentModel(md, agent.Model)
+	writeAgentTools(md, agent.Tools)
 	writeIDListField(md, "flows", agent.Flows)
 	writeBadges(md, agent.Badges)
 	md.finishWithGraph(string(agent.Name), string(agent.Summary))
@@ -129,32 +118,46 @@ func (e *Exporter) writeAgent(agent catalog.Agent) error {
 	return e.writeMDXFile(filepath.Join(dir, indexFile), md.String())
 }
 
-func collectAgentMessageIDs(
-	agent catalog.Agent,
-) (sends, receives, commands, queries []catalog.MessageID) {
-	sends = make([]catalog.MessageID, 0, len(agent.Events))
-	receives = make([]catalog.MessageID, 0, len(agent.Events))
-	commands = make([]catalog.MessageID, 0, len(agent.Commands))
-	queries = make([]catalog.MessageID, 0, len(agent.Queries))
+func writeAgentModel(md *frontmatterWriter, model *catalog.AgentModel) {
+	if model == nil {
+		return
+	}
 
-	for _, msg := range agent.Events {
-		messageID := catalog.Key(msg)
-		if msg.IsSend() {
-			sends = append(sends, messageID)
-		} else {
-			receives = append(receives, messageID)
+	_, _ = md.WriteString("model:\n")
+	_, _ = fmt.Fprintf(md, "  provider: %q\n", model.Provider)
+	_, _ = fmt.Fprintf(md, "  name: %q\n", model.Name)
+
+	if model.Version != "" {
+		_, _ = fmt.Fprintf(md, "  version: %q\n", model.Version)
+	}
+}
+
+func writeAgentTools(md *frontmatterWriter, tools []catalog.AgentTool) {
+	if len(tools) == 0 {
+		return
+	}
+
+	_, _ = md.WriteString("tools:\n")
+
+	for _, t := range tools {
+		_, _ = fmt.Fprintf(md, "  - name: %q\n", t.Name)
+
+		if t.Type != "" {
+			_, _ = fmt.Fprintf(md, "    type: %s\n", t.Type)
+		}
+
+		if t.URL != "" {
+			_, _ = fmt.Fprintf(md, "    url: %q\n", t.URL)
+		}
+
+		if t.Description != "" {
+			_, _ = fmt.Fprintf(md, "    description: %q\n", t.Description)
+		}
+
+		if t.Icon != "" {
+			_, _ = fmt.Fprintf(md, "    icon: %q\n", t.Icon)
 		}
 	}
-
-	for _, cmd := range agent.Commands {
-		commands = append(commands, catalog.Key(cmd))
-	}
-
-	for _, q := range agent.Queries {
-		queries = append(queries, catalog.Key(q))
-	}
-
-	return sends, receives, commands, queries
 }
 
 func writeUbiquitousLanguage(md *frontmatterWriter, terms []catalog.UbiquitousLanguageTerm) {

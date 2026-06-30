@@ -32,10 +32,6 @@ func (e *Exporter) writeSchemasTxt(cat *catalog.Catalog) error {
 		)
 	}
 
-	for _, dp := range cat.DataProducts {
-		writeSchemasTxtEntry(&buf, "Data Product", string(dp.Name), string(dp.Version), dp.Schema)
-	}
-
 	return os.WriteFile( //nolint:wrapcheck // direct passthrough
 		filepath.Join(e.outputDir, "schemas.txt"),
 		[]byte(buf.String()),

@@ -224,8 +224,20 @@ func writeLLMsTxtAgent(buf *strings.Builder, agent catalog.Agent) {
 		fmt.Fprintf(buf, "%s\n", agent.Summary)
 	}
 
-	if len(agent.Events) > 0 {
-		fmt.Fprintf(buf, "Events: %d\n", len(agent.Events))
+	if len(agent.Sends) > 0 {
+		fmt.Fprintf(buf, "Sends: %d messages\n", len(agent.Sends))
+	}
+
+	if len(agent.Receives) > 0 {
+		fmt.Fprintf(buf, "Receives: %d messages\n", len(agent.Receives))
+	}
+
+	if agent.Model != nil {
+		fmt.Fprintf(buf, "Model: %s/%s\n", agent.Model.Provider, agent.Model.Name)
+	}
+
+	if len(agent.Tools) > 0 {
+		fmt.Fprintf(buf, "Tools: %d\n", len(agent.Tools))
 	}
 
 	buf.WriteString("\n")

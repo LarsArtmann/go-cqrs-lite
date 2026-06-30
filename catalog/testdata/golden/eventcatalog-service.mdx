@@ -5,9 +5,8 @@ version: 1.0.0
 summary: "Manages orders"
 sends:
   - id: OrderCreated
-commands:
+receives:
   - id: CreateOrder
-queries:
   - id: GetOrder
 writesTo:
   - id: orders-db

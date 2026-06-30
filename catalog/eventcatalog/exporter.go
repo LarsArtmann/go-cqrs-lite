@@ -248,19 +248,17 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 	writeBaseFrontmatter(md, string(svc.ID), string(svc.Name), string(svc.Version),
 		string(svc.Summary), svc.Owners)
 
-	sends, receives, commands, queries := collectMessageIDs(svc)
+	sends, receives := collectMessageIDs(svc)
 
 	addObjectIDsListField(md, "sends", sends)
 	addObjectIDsListField(md, "receives", receives)
-	addObjectIDsListField(md, "commands", commands)
-	addObjectIDsListField(md, "queries", queries)
 	writeIDListField(md, "writesTo", svc.WritesTo)
 	writeIDListField(md, "readsFrom", svc.ReadsFrom)
 	writeIDListField(md, "entities", svc.Entities)
 	writeIDListField(md, "flows", svc.Flows)
 
 	if svc.ExternalSystem {
-		md.addField("externalSystem", "true")
+		_, _ = md.WriteString("externalSystem: true\n")
 	}
 
 	writeBadges(md, svc.Badges)
@@ -274,11 +272,9 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 
 func collectMessageIDs(
 	svc catalog.Service,
-) (sends, receives, commands, queries []catalog.MessageID) {
+) (sends, receives []catalog.MessageID) {
 	sends = make([]catalog.MessageID, 0, len(svc.Events))
-	receives = make([]catalog.MessageID, 0, len(svc.Events))
-	commands = make([]catalog.MessageID, 0, len(svc.Commands))
-	queries = make([]catalog.MessageID, 0, len(svc.Queries))
+	receives = make([]catalog.MessageID, 0, len(svc.Events)+len(svc.Commands)+len(svc.Queries))
 
 	for _, msg := range svc.Events {
 		messageID := catalog.Key(msg)
@@ -291,14 +287,14 @@ func collectMessageIDs(
 	}
 
 	for _, cmd := range svc.Commands {
-		commands = append(commands, catalog.Key(cmd))
+		receives = append(receives, catalog.Key(cmd))
 	}
 
 	for _, q := range svc.Queries {
-		queries = append(queries, catalog.Key(q))
+		receives = append(receives, catalog.Key(q))
 	}
 
-	return sends, receives, commands, queries
+	return sends, receives
 }
 
 func (e *Exporter) writeDomain(domain catalog.Domain) error {
@@ -323,8 +319,8 @@ func (e *Exporter) writeDomain(domain catalog.Domain) error {
 	writeMessagePointers(md, "receives", domain.Receives)
 	writeIDListField(md, "entities", domain.Entities)
 	writeIDListField(md, "flows", domain.Flows)
-	writeIDListField(md, "subDomains", domain.SubDomains)
-	writeIDListField(md, "dataProducts", domain.DataProducts)
+	writeIDListField(md, "domains", domain.SubDomains)
+	writeIDListField(md, "data-products", domain.DataProducts)
 	writeUbiquitousLanguage(md, domain.UbiquitousLanguage)
 	writeBadges(md, domain.Badges)
 	writeAttachments(md, domain.Attachments)

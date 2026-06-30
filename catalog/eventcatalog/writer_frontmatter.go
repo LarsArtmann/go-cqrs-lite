@@ -19,7 +19,30 @@ func newFrontmatterWriter() *frontmatterWriter {
 }
 
 func (f *frontmatterWriter) addField(key, value string) {
-	_, _ = fmt.Fprintf(f, "%s: %s\n", key, value)
+	_, _ = fmt.Fprintf(f, "%s: %s\n", key, yamlValue(value))
+}
+
+// yamlValue quotes a string value if it contains YAML-special characters.
+func yamlValue(v string) string {
+	if v == "" {
+		return "\"\""
+	}
+
+	switch v {
+	case "true", "false", "null", "yes", "no", "on", "off":
+		return fmt.Sprintf("%q", v)
+	}
+
+	for _, c := range v {
+		switch c {
+		case '#', ':', '{', '}', '[', ']', ',', '&', '*', '!', '|', '>', '\'', '"', '%', '@', '`':
+			return fmt.Sprintf("%q", v)
+		case '\n', '\t':
+			return fmt.Sprintf("%q", v)
+		}
+	}
+
+	return v
 }
 
 func (f *frontmatterWriter) addQuotedField(key, value string) {
@@ -34,7 +57,7 @@ func (f *frontmatterWriter) addListField(key string, values []string) {
 	_, _ = fmt.Fprintf(f, "%s:\n", key)
 
 	for _, v := range values {
-		_, _ = fmt.Fprintf(f, "  - %s\n", v)
+		_, _ = fmt.Fprintf(f, "  - %s\n", yamlValue(v))
 	}
 }
 
@@ -91,15 +114,19 @@ func writeBadges(md *frontmatterWriter, badges []catalog.Badge) {
 		_, _ = fmt.Fprintf(md, "  - content: %q\n", b.Content)
 
 		if b.BackgroundColor != "" {
-			_, _ = fmt.Fprintf(md, "    backgroundColor: %s\n", b.BackgroundColor)
+			_, _ = fmt.Fprintf(md, "    backgroundColor: %q\n", b.BackgroundColor)
 		}
 
 		if b.TextColor != "" {
-			_, _ = fmt.Fprintf(md, "    textColor: %s\n", b.TextColor)
+			_, _ = fmt.Fprintf(md, "    textColor: %q\n", b.TextColor)
 		}
 
 		if b.Icon != "" {
-			_, _ = fmt.Fprintf(md, "    icon: %s\n", b.Icon)
+			_, _ = fmt.Fprintf(md, "    icon: %q\n", b.Icon)
+		}
+
+		if b.URL != "" {
+			_, _ = fmt.Fprintf(md, "    url: %q\n", b.URL)
 		}
 	}
 }

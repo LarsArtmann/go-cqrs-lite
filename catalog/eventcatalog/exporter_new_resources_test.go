@@ -67,21 +67,18 @@ func TestExporter_DataProduct(t *testing.T) {
 	t.Parallel()
 
 	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddDataStore(catalog.DataStore{
-		ID: "analytics-db", Name: "Analytics DB", Version: "1.0.0", ContainerType: "database",
-	})
 	reg.AddDataProduct(catalog.DataProduct{
 		ID:      "order-analytics",
 		Name:    "Order Analytics",
 		Version: "1.0.0",
 		Summary: "Aggregated order metrics for BI",
-		Domain:  "orders",
 		Owners:  []string{"data-team"},
-		Schema: &catalog.Schema{
-			Type: catalog.TypeObject,
-			Properties: map[string]catalog.Property{
-				"totalOrders": {Type: catalog.TypeInteger},
-			},
+		Inputs: []catalog.Ref{
+			{ID: "OrderConfirmed", Version: "1.0.0"},
+			{ID: "PaymentProcessed"},
+		},
+		Outputs: []catalog.Ref{
+			{ID: "OrderMetricsCalculated", Version: "1.0.0"},
 		},
 	})
 
@@ -92,12 +89,11 @@ func TestExporter_DataProduct(t *testing.T) {
 		t, content, "data product mdx",
 		"id: order-analytics",
 		"name: Order Analytics",
-		"domain: orders",
-		"schemaPath: schemas/schema.json",
+		"inputs:",
+		"outputs:",
+		"id: OrderConfirmed",
+		"version: \"1.0.0\"",
 	)
-
-	assertFileExists(t, tmpDir, "data product schema should exist",
-		"data-products", "order-analytics", "schemas", "schema.json")
 }
 
 func TestExporter_Agent(t *testing.T) {
@@ -110,16 +106,23 @@ func TestExporter_Agent(t *testing.T) {
 		Version: "1.0.0",
 		Summary: "AI agent that handles order processing",
 		Owners:  []string{"ai-team"},
-		Events: []catalog.Message{
-			{
-				Kind: catalog.EventMessage, ID: "AgentDecision",
-				Name: "Agent Decision", Version: "1.0.0", Direction: catalog.Sends,
-			},
+		Sends: []catalog.Ref{
+			{ID: "FraudReviewCompleted", Version: "1.0.0"},
 		},
-		Commands: []catalog.Message{
+		Receives: []catalog.Ref{
+			{ID: "PaymentInitiated", Version: "1.0.0"},
+		},
+		ReadsFrom: []catalog.DataStoreID{"fraud-db"},
+		WritesTo:  []catalog.DataStoreID{"audit-db"},
+		Model: &catalog.AgentModel{
+			Provider: "OpenAI",
+			Name:     "gpt-4.1",
+			Version:  "2025-04-14",
+		},
+		Tools: []catalog.AgentTool{
 			{
-				Kind: catalog.CommandMessage, ID: "ProcessOrder",
-				Name: "Process Order", Version: "1.0.0",
+				Name: "Risk lookup", Type: "mcp", URL: "https://mcp.example.com/risk",
+				Description: "Retrieves risk signals",
 			},
 		},
 	})
@@ -132,8 +135,37 @@ func TestExporter_Agent(t *testing.T) {
 		"id: order-bot",
 		"name: Order Bot",
 		"sends:",
-		"commands:",
+		"receives:",
+		"readsFrom:",
+		"writesTo:",
+		"model:",
+		"provider: \"OpenAI\"",
+		"name: \"gpt-4.1\"",
+		"tools:",
+		"type: mcp",
 	)
+}
+
+func TestExporter_AgentMinimal(t *testing.T) {
+	t.Parallel()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddAgent(catalog.Agent{
+		ID:      "simple-bot",
+		Name:    "Simple Bot",
+		Version: "1.0.0",
+	})
+
+	tmpDir := exportCatalog(t, reg)
+	content := readExported(t, tmpDir, "agents", "simple-bot", "index.mdx")
+
+	if strings.Contains(content, "model:") {
+		t.Errorf("agent without model should not have model field")
+	}
+
+	if strings.Contains(content, "tools:") {
+		t.Errorf("agent without tools should not have tools field")
+	}
 }
 
 func TestExporter_DomainWithUbiquitousLanguage(t *testing.T) {
@@ -162,8 +194,7 @@ func TestExporter_DomainWithUbiquitousLanguage(t *testing.T) {
 		"ubiquitousLanguage:",
 		"name: \"Order\"",
 		"description: \"A customer request to purchase items\"",
-		"subDomains:",
-		"dataProducts:",
+		"data-products:",
 	)
 }
 

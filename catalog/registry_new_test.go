@@ -30,7 +30,9 @@ func TestRegistry_AddDataProduct(t *testing.T) {
 
 	reg := catalog.NewRegistry("Test", "1.0.0")
 	reg.AddDataProduct(catalog.DataProduct{
-		ID: "metrics", Name: "Metrics", Version: "1.0.0", Domain: "analytics",
+		ID: "metrics", Name: "Metrics", Version: "1.0.0",
+		Inputs:  []catalog.Ref{{ID: "OrderCreated"}},
+		Outputs: []catalog.Ref{{ID: "MetricsReady"}},
 	})
 
 	cat := reg.Build()
@@ -38,8 +40,8 @@ func TestRegistry_AddDataProduct(t *testing.T) {
 		t.Fatalf("expected 1 data product, got %d", len(cat.DataProducts))
 	}
 
-	if cat.DataProducts[0].Domain != "analytics" {
-		t.Errorf("data product domain = %s, want analytics", cat.DataProducts[0].Domain)
+	if len(cat.DataProducts[0].Inputs) != 1 {
+		t.Errorf("expected 1 input, got %d", len(cat.DataProducts[0].Inputs))
 	}
 }
 
@@ -49,7 +51,13 @@ func TestRegistry_AddAgent(t *testing.T) {
 	reg := catalog.NewRegistry("Test", "1.0.0")
 	reg.AddAgent(catalog.Agent{
 		ID: "bot", Name: "Bot", Version: "1.0.0",
-		DataStores: []catalog.DataStoreID{"store1"},
+		ReadsFrom: []catalog.DataStoreID{"store1"},
+		WritesTo:  []catalog.DataStoreID{"store2"},
+		Sends:     []catalog.Ref{{ID: "Decision"}},
+		Receives:  []catalog.Ref{{ID: "Request"}},
+		Model: &catalog.AgentModel{
+			Provider: "OpenAI", Name: "gpt-4", Version: "turbo",
+		},
 	})
 
 	cat := reg.Build()
@@ -57,8 +65,13 @@ func TestRegistry_AddAgent(t *testing.T) {
 		t.Fatalf("expected 1 agent, got %d", len(cat.Agents))
 	}
 
-	if len(cat.Agents[0].DataStores) != 1 {
-		t.Errorf("expected 1 data store on agent, got %d", len(cat.Agents[0].DataStores))
+	a := cat.Agents[0]
+	if len(a.ReadsFrom) != 1 {
+		t.Errorf("expected 1 readsFrom, got %d", len(a.ReadsFrom))
+	}
+
+	if a.Model == nil || a.Model.Provider != "OpenAI" {
+		t.Error("agent model not preserved")
 	}
 }
 

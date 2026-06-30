@@ -23,25 +23,43 @@ type DataProduct struct {
 	Name    Name          `json:"name"`
 	Version Version       `json:"version"`
 	Summary Summary       `json:"summary,omitempty"`
-	Domain  DomainID      `json:"domain,omitempty"`
-	Schema  *Schema       `json:"schema,omitempty"`
+	Inputs  []Ref         `json:"inputs,omitempty"`
+	Outputs []Ref         `json:"outputs,omitempty"`
 	Owners  []string      `json:"owners,omitempty"`
 	Badges  []Badge       `json:"badges,omitempty"`
 }
 
-// Agent represents an AI agent that can own messages, services, data stores, and flows.
+// Agent represents an AI agent that sends/receives messages and uses tools.
 type Agent struct {
-	ID         AgentID       `json:"id"`
-	Name       Name          `json:"name"`
-	Version    Version       `json:"version"`
-	Summary    Summary       `json:"summary,omitempty"`
-	Commands   []Message     `json:"commands,omitempty"`
-	Events     []Message     `json:"events,omitempty"`
-	Queries    []Message     `json:"queries,omitempty"`
-	DataStores []DataStoreID `json:"dataStores,omitempty"`
-	Flows      []FlowID      `json:"flows,omitempty"`
-	Owners     []string      `json:"owners,omitempty"`
-	Badges     []Badge       `json:"badges,omitempty"`
+	ID        AgentID       `json:"id"`
+	Name      Name          `json:"name"`
+	Version   Version       `json:"version"`
+	Summary   Summary       `json:"summary,omitempty"`
+	Sends     []Ref         `json:"sends,omitempty"`
+	Receives  []Ref         `json:"receives,omitempty"`
+	ReadsFrom []DataStoreID `json:"readsFrom,omitempty"`
+	WritesTo  []DataStoreID `json:"writesTo,omitempty"`
+	Model     *AgentModel   `json:"model,omitempty"`
+	Tools     []AgentTool   `json:"tools,omitempty"`
+	Flows     []FlowID      `json:"flows,omitempty"`
+	Owners    []string      `json:"owners,omitempty"`
+	Badges    []Badge       `json:"badges,omitempty"`
+}
+
+// AgentModel captures the LLM provider, model, and version an agent runs on.
+type AgentModel struct {
+	Provider Name    `json:"provider"`
+	Name     Name    `json:"name"`
+	Version  Version `json:"version,omitempty"`
+}
+
+// AgentTool documents an external tool (MCP server, API, etc.) an agent can call.
+type AgentTool struct {
+	Name        Name        `json:"name"`
+	Type        string      `json:"type,omitempty"`
+	URL         URL         `json:"url,omitempty"`
+	Description Description `json:"description,omitempty"`
+	Icon        Icon        `json:"icon,omitempty"`
 }
 
 // DataStore represents a data store (database, cache, object store, etc.).
