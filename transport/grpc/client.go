@@ -67,7 +67,8 @@ func (c *CommandClient) Dispatch(ctx context.Context, cmd command.Command) error
 	}
 
 	if !result.GetSuccess() {
-		return fmt.Errorf("%w: %s: %s", errDispatchFailed, cmd.Type(), result.GetError())
+		return reconstructError(errDispatchFailed,
+			result.GetError(), result.GetErrorCode(), result.GetErrorFamily())
 	}
 
 	return nil
@@ -95,7 +96,8 @@ func (c *QueryClient) Ask(ctx context.Context, queryType string, out any) error 
 	}
 
 	if result.GetError() != "" {
-		return fmt.Errorf("%w: %s: %s", errQueryFailed, queryType, result.GetError())
+		return reconstructError(errQueryFailed,
+			result.GetError(), result.GetErrorCode(), result.GetErrorFamily())
 	}
 
 	err = json.Unmarshal(result.GetPayload(), out)

@@ -71,7 +71,11 @@ func (s *queryServer) Ask(
 }
 
 func queryErrorResult(err error) *cqrsproto.QueryResult {
+	code, family := classifyError(err)
+
 	return &cqrsproto.QueryResult{ //nolint:exhaustruct // proto
-		Error: err.Error(),
+		Error:       err.Error(),
+		ErrorCode:   code,
+		ErrorFamily: family,
 	}
 }

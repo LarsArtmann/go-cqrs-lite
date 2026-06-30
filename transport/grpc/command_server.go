@@ -94,8 +94,12 @@ func (s *commandServer) Dispatch(
 }
 
 func errorResult(err error) *cqrsproto.CommandResult {
+	code, family := classifyError(err)
+
 	return &cqrsproto.CommandResult{
-		Success: false,
-		Error:   err.Error(),
+		Success:     false,
+		Error:       err.Error(),
+		ErrorCode:   code,
+		ErrorFamily: family,
 	}
 }

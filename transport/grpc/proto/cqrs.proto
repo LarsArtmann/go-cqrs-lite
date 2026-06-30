@@ -17,7 +17,9 @@ message CommandEnvelope {
 // CommandResult is the response from a command dispatch.
 message CommandResult {
   bool success = 1;
-  string error = 2;
+  string error = 2; // human-readable error message
+  string error_code = 3; // machine-readable code (e.g. "event.version_conflict"); empty on success
+  string error_family = 4; // taxonomy family: "rejection", "conflict", "transient", "corruption", "infrastructure"; empty on success
 }
 
 // QueryEnvelope wraps a CQRS query for wire transmission.
@@ -30,7 +32,9 @@ message QueryEnvelope {
 // QueryResult is the response from a query dispatch.
 message QueryResult {
   bytes payload = 1; // JSON-encoded result
-  string error = 2;
+  string error = 2; // human-readable error message
+  string error_code = 3; // machine-readable code; empty on success
+  string error_family = 4; // taxonomy family; empty on success
 }
 
 // CommandService dispatches commands to the local handler.
