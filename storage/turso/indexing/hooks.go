@@ -1,6 +1,9 @@
 package indexing
 
-import "context"
+import (
+	"context"
+	"log/slog"
+)
 
 // HookEvent describes what triggered the hook.
 type HookEvent string
@@ -99,7 +102,10 @@ func (h *hooks) fireBeforeCreate(ctx context.Context, idx Index, a *AutoIndexer)
 func (h *hooks) fireAfterCreate(ctx context.Context, idx Index, a *AutoIndexer) {
 	hctx := HookContext{Event: HookAfterCreate, Index: idx, AutoIndexer: a}
 	for _, hook := range h.afterCreate {
-		_ = hook(ctx, hctx)
+		if err := hook(ctx, hctx); err != nil {
+			slog.WarnContext(ctx, "turso indexing: after-create hook failed",
+				"index", idx.Name, "error", err)
+		}
 	}
 }
 
@@ -117,6 +123,9 @@ func (h *hooks) fireBeforeDrop(ctx context.Context, idx Index, a *AutoIndexer) e
 func (h *hooks) fireAfterDrop(ctx context.Context, idx Index, a *AutoIndexer) {
 	hctx := HookContext{Event: HookAfterDrop, Index: idx, AutoIndexer: a}
 	for _, hook := range h.afterDrop {
-		_ = hook(ctx, hctx)
+		if err := hook(ctx, hctx); err != nil {
+			slog.WarnContext(ctx, "turso indexing: after-drop hook failed",
+				"index", idx.Name, "error", err)
+		}
 	}
 }

@@ -316,7 +316,7 @@ func (a *AutoIndexer) createIndex(ctx context.Context, idx Index) error {
 
 	_, err := a.db.ExecContext(ctx, ddl)
 	if err != nil {
-		if strings.Contains(err.Error(), "already exists") {
+		if isIndexAlreadyExists(err) {
 			return nil
 		}
 
@@ -326,4 +326,20 @@ func (a *AutoIndexer) createIndex(ctx context.Context, idx Index) error {
 	a.hooksConfig.fireAfterCreate(ctx, idx, a)
 
 	return nil
+}
+
+// isIndexAlreadyExists reports whether err is the "index already exists"
+// message SQLite/libSQL returns when CREATE INDEX hits a duplicate name. It is
+// an idempotency guard so concurrent AutoIndexer runs don't fail when another
+// run created the same index first. The driver exposes no typed code for this
+// case, so the message contract is matched explicitly and lowercased to stay
+// robust against capitalization differences across driver versions.
+func isIndexAlreadyExists(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	msg := strings.ToLower(err.Error())
+
+	return strings.Contains(msg, "already exists")
 }
