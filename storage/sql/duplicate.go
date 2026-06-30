@@ -43,24 +43,24 @@ func IsDuplicateKeyError(err error) bool {
 // pgCodeError is an interface satisfied by pgconn.PgError and similar types
 // that expose a SQLSTATE code string.
 type pgCodeError interface {
+	error
 	Code() string
 }
 
 // hasDuplicateCode checks for PostgreSQL SQLSTATE 23505 via typed interface.
 func hasDuplicateCode(err error) bool {
-	// Try errors.As with the Code() interface.
-	var ce pgCodeError
-	if errors.As(err, &ce) {
+	// Try errors.AsType with the Code() interface (pgconn.PgError et al.).
+	if ce, ok := errors.AsType[pgCodeError](err); ok {
 		return ce.Code() == pgDuplicateCode
 	}
 
 	// Also check via reflection-free field access for common PG error types.
 	type codeGetter interface {
+		error
 		GetCode() string
 	}
 
-	var cg codeGetter
-	if errors.As(err, &cg) {
+	if cg, ok := errors.AsType[codeGetter](err); ok {
 		return cg.GetCode() == pgDuplicateCode
 	}
 
@@ -70,13 +70,13 @@ func hasDuplicateCode(err error) bool {
 // sqliteCodeError is an interface satisfied by modernc.org/sqlite Error
 // types that expose a numeric result code.
 type sqliteCodeError interface {
+	error
 	Code() int
 }
 
 // hasSQLiteUniqueCode checks for SQLite SQLITE_CONSTRAINT_UNIQUE (2067).
 func hasSQLiteUniqueCode(err error) bool {
-	var ce sqliteCodeError
-	if errors.As(err, &ce) {
+	if ce, ok := errors.AsType[sqliteCodeError](err); ok {
 		return ce.Code() == sqliteExtendedCode
 	}
 
