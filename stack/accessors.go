@@ -64,7 +64,7 @@ func ReadModel[T any, K fmt.Stringer](
 	}
 
 	if c == nil {
-		c = codec.JSONCodec{}
+		c = b.DefaultCodec()
 	}
 
 	allOpts := append([]kv.TypedOption[T, K]{kv.WithTypedCodec[T, K](c)}, opts...)
@@ -132,7 +132,7 @@ func NewMaterialize[V any, K fmt.Stringer](
 	}
 
 	if c == nil {
-		c = codec.JSONCodec{}
+		c = b.DefaultCodec()
 	}
 
 	store := kv.NewTypedStore(b.ReadModels, kv.WithTypedCodec[V, K](c))

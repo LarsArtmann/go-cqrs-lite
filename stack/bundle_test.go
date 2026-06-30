@@ -420,3 +420,68 @@ func TestReadModel_Accessor_NilCodecDefaultsToJSON(t *testing.T) {
 		t.Fatalf("Set with default JSON codec: %v", err)
 	}
 }
+
+func TestWithDefaultCodec(t *testing.T) {
+	t.Parallel()
+
+	b, err := stack.New(
+		stack.WithReadModels(kv.NewMemStore()),
+		stack.WithDefaultCodec(codec.CBORCodec{}),
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	if b.DefaultCodec().Encoding() != codec.EncodingCBOR {
+		t.Fatalf("DefaultCodec = %s, want %s", b.DefaultCodec().Encoding(), codec.EncodingCBOR)
+	}
+}
+
+func TestWithDefaultCodec_ReadModelUsesIt(t *testing.T) {
+	t.Parallel()
+
+	b, err := stack.New(
+		stack.WithReadModels(kv.NewMemStore()),
+		stack.WithDefaultCodec(codec.CBORCodec{}),
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	type record struct {
+		Value string `json:"value"`
+	}
+
+	// Pass nil codec — should fall back to bundle's DefaultCodec (CBOR)
+	store, err := stack.ReadModel[record, stateKey](b, nil)
+	if err != nil {
+		t.Fatalf("ReadModel: %v", err)
+	}
+
+	ctx := context.Background()
+	if err := store.Set(ctx, "1", &record{Value: "cbor-test"}); err != nil {
+		t.Fatalf("Set with CBOR default codec: %v", err)
+	}
+
+	got, err := store.Get(ctx, "1")
+	if err != nil {
+		t.Fatalf("Get: %v", err)
+	}
+
+	if got.Value != "cbor-test" {
+		t.Fatalf("Get = %q, want %q", got.Value, "cbor-test")
+	}
+}
+
+func TestDefaultCodec_DefaultIsJSON(t *testing.T) {
+	t.Parallel()
+
+	b, err := stack.New(stack.WithReadModels(kv.NewMemStore()))
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	if b.DefaultCodec().Encoding() != codec.EncodingJSON {
+		t.Fatalf("DefaultCodec = %s, want %s", b.DefaultCodec().Encoding(), codec.EncodingJSON)
+	}
+}

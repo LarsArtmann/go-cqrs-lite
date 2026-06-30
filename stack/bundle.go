@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
@@ -73,6 +74,11 @@ type Bundle struct {
 	// SQLViewModel generic constructors to create [storage.SQLViewStore]
 	// instances from the same connection.
 	db any
+
+	// defaultCodec is the fallback Codec for ReadModel/Materialize accessors
+	// when the caller passes nil. Set via WithDefaultCodec. Defaults to
+	// codec.JSONCodec when unset.
+	defaultCodec codec.Codec
 
 	closers []io.Closer
 }
@@ -179,6 +185,18 @@ func (b *Bundle) GracefulClose(ctx context.Context) error {
 // Bundle is backed by an SQL preset. Returns nil for non-SQL bundles.
 // Used by preset-specific SQLViewModel generic constructors.
 func (b *Bundle) Database() any { return b.db }
+
+// DefaultCodec returns the fallback Codec for [ReadModel] and [NewMaterialize]
+// when the caller passes nil. Returns [codec.JSONCodec] unless
+// [WithDefaultCodec] was used. Call this to inspect what a nil-codec accessor
+// will use.
+func (b *Bundle) DefaultCodec() codec.Codec {
+	if b.defaultCodec != nil {
+		return b.defaultCodec
+	}
+
+	return codec.JSONCodec{}
+}
 
 // Drainer stops accepting new work and finishes in-flight work, bounded by
 // ctx. Implemented by event subscribers, projection runners, and routers that

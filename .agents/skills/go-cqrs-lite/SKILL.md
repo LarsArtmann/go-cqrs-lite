@@ -301,9 +301,11 @@ eventID := id.NewEventID()
 type OrderID = id.Of[struct{}]
 orderID := id.New[OrderID]()
 
-// Codec
+// Codec — CBOR is recommended for production (smaller, faster, signing-safe)
 data, _ := codec.JSONCodec{}.Encode(payload)
-payload, _ := codec.JSONCodec{}.Decode(data)
+data, _ := codec.CBORCodec{}.Encode(payload)         // 19% smaller, 32% faster encode
+payload, _ := codec.CBORCodec{}.Decode(data)
+// Stack-level default: stack.WithDefaultCodec(codec.CBORCodec{}) at bundle creation
 ```
 
 ---

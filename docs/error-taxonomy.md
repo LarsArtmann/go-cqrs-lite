@@ -99,48 +99,48 @@ event.Classify(err) // => Conflict
 
 ### middleware
 
-| Context              | Family         | Code                          |
-| -------------------- | -------------- | ----------------------------- |
-| Validation failure   | Rejection      | `middleware.validation_failed` |
-| Retry exhausted      | Infrastructure | `middleware.retry_exhausted`   |
-| Panic recovery       | Corruption     | `middleware.panic_recovered`   |
-| Meter required       | Rejection      | `middleware.meter_required`    |
+| Context            | Family         | Code                           |
+| ------------------ | -------------- | ------------------------------ |
+| Validation failure | Rejection      | `middleware.validation_failed` |
+| Retry exhausted    | Infrastructure | `middleware.retry_exhausted`   |
+| Panic recovery     | Corruption     | `middleware.panic_recovered`   |
+| Meter required     | Rejection      | `middleware.meter_required`    |
 
 ### graph
 
 All graph sentinels (schema validation, sink enforcement, read API) are **Rejection**.
 
-| Error               | Family    | Code                              |
-| ------------------- | --------- | --------------------------------- |
-| `ErrPathNotFound`   | Rejection | `graph.read.path_not_found`       |
-| Schema violations   | Rejection | `graph.schema.*` (12 sentinels)   |
-| Sink violations     | Rejection | `graph.sink.*` (5 sentinels)      |
+| Error             | Family    | Code                            |
+| ----------------- | --------- | ------------------------------- |
+| `ErrPathNotFound` | Rejection | `graph.read.path_not_found`     |
+| Schema violations | Rejection | `graph.schema.*` (12 sentinels) |
+| Sink violations   | Rejection | `graph.sink.*` (5 sentinels)    |
 
 ### storage/relational
 
 All relational schema and sink sentinels are **Rejection**.
 
-| Error                 | Family    | Code                              |
-| --------------------- | --------- | --------------------------------- |
-| Schema violations     | Rejection | `relational.schema.*` (8 sentinels) |
-| Sink violations       | Rejection | `relational.sink.*` (4 sentinels)   |
+| Error             | Family    | Code                                |
+| ----------------- | --------- | ----------------------------------- |
+| Schema violations | Rejection | `relational.schema.*` (8 sentinels) |
+| Sink violations   | Rejection | `relational.sink.*` (4 sentinels)   |
 
 ### storage/view
 
 All view-store mapper validation sentinels are **Rejection**.
 
-| Error              | Family    | Code                            |
-| ------------------ | --------- | ------------------------------- |
-| Mapper violations  | Rejection | `storage.view.mapper.*` (7 sentinels) |
-| Nil view value     | Rejection | `storage.view.nil_value`        |
+| Error             | Family    | Code                                  |
+| ----------------- | --------- | ------------------------------------- |
+| Mapper violations | Rejection | `storage.view.mapper.*` (7 sentinels) |
+| Nil view value    | Rejection | `storage.view.nil_value`              |
 
 ### stack
 
 All bundle misconfiguration sentinels are **Rejection**.
 
-| Error                  | Family    | Code                       |
-| ---------------------- | --------- | -------------------------- |
-| `ErrEmpty`             | Rejection | `stack.bundle_empty`       |
+| Error                  | Family    | Code                        |
+| ---------------------- | --------- | --------------------------- |
+| `ErrEmpty`             | Rejection | `stack.bundle_empty`        |
 | `ErrMissingEventStore` | Rejection | `stack.missing_event_store` |
 | `ErrMissingReadModels` | Rejection | `stack.missing_read_models` |
 | `ErrMissingJournal`    | Rejection | `stack.missing_journal`     |
@@ -154,18 +154,18 @@ All bundle misconfiguration sentinels are **Rejection**.
 
 ### transport/grpc
 
-| Error                | Family         | Code                       |
-| -------------------- | -------------- | -------------------------- |
-| Dispatch failure     | Infrastructure | `grpc.dispatch_failed`     |
-| Query failure        | Infrastructure | `grpc.query_failed`        |
-| Unmarshal result     | Corruption     | `grpc.unmarshal_result`    |
-| Missing command ID   | Rejection      | `grpc.missing_command_id`  |
+| Error              | Family         | Code                      |
+| ------------------ | -------------- | ------------------------- |
+| Dispatch failure   | Infrastructure | `grpc.dispatch_failed`    |
+| Query failure      | Infrastructure | `grpc.query_failed`       |
+| Unmarshal result   | Corruption     | `grpc.unmarshal_result`   |
+| Missing command ID | Rejection      | `grpc.missing_command_id` |
 
 ### deriver
 
-| Error              | Family    | Code                      |
-| ------------------ | --------- | ------------------------- |
-| `ErrNilDispatcher` | Rejection | `deriver.nil_dispatcher`  |
+| Error              | Family    | Code                     |
+| ------------------ | --------- | ------------------------ |
+| `ErrNilDispatcher` | Rejection | `deriver.nil_dispatcher` |
 
 ## Default Classification
 

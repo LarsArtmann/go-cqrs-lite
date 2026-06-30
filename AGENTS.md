@@ -284,6 +284,28 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   // Human-readable CBOR for debugging
 //   diag, _ := codec.Diagnose(cborData)
 //   log.Printf("CBOR: %s", diag)
+//
+//   // toarray struct tag — positional CBOR arrays (30-40% payload reduction)
+//   type UserCreated struct {
+//       _     struct{} `cbor:",toarray"`
+//       Name  string
+//       Email string
+//   }
+//
+//   // Streaming CBOR encoder/decoder (large batches without materializing)
+//   enc := codec.NewCBOREncoder(w)
+//   _ = enc.Encode(event)
+//   dec := codec.NewCBORDecoder(r)
+//   _ = dec.Decode(&event)
+//
+//   // Zero-allocation encoding via BufferEncoder interface
+//   buf := &bytes.Buffer{}
+//   if be, ok := codec.(codec.BufferEncoder); ok { be.EncodeToBuffer(payload, buf) }
+
+// Stack-level CBOR default (one-call adoption for all read models)
+//   bundle, _ := sqlite.New(dsn, stack.WithDefaultCodec(codec.CBORCodec{}))
+//   store, _ := stack.ReadModel[Todo, TodoID](bundle, nil) // nil → uses CBOR
+//   mat, _ := stack.NewMaterialize[Todo, TodoID](bundle, nil, keyFunc)   // nil → uses CBOR
 
 // Pebble recommended defaults (bloom filter, concurrent compactions, logging)
 //   backend, _ := pebble.Open(dir, pebble.DefaultOptions(), logger)

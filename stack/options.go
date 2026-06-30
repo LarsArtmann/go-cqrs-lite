@@ -3,6 +3,7 @@ package stack
 import (
 	"io"
 
+	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
@@ -246,4 +247,22 @@ func WithDrainer(d Drainer) Option {
 // Presets call this automatically; consumers typically do not.
 func WithDatabase(db any) Option {
 	return func(b *Bundle) { b.db = db }
+}
+
+// WithDefaultCodec sets the fallback Codec for [ReadModel] and
+// [NewMaterialize] accessors when the caller passes nil. This lets a deployer
+// adopt CBOR across all read models in one call instead of passing
+// codec.CBORCodec{} to every accessor individually.
+//
+//	bundle, _ := sqlite.New(dsn, stack.WithDefaultCodec(codec.CBORCodec{}))
+//	store, _ := stack.ReadModel[Todo, TodoID](bundle, nil) // uses CBOR
+//
+// Event payload encoding is NOT affected — events are encoded at creation
+// time via event.New(event.WithCodec(c)).
+func WithDefaultCodec(c codec.Codec) Option {
+	return func(b *Bundle) {
+		if c != nil {
+			b.defaultCodec = c
+		}
+	}
 }
