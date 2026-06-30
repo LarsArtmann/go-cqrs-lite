@@ -64,7 +64,7 @@ func ParseAggregateID(s string) (AggregateID, error) {
 		var zero AggregateID
 
 		return zero, errorfamily.Wrapf(
-			errEmptyString,
+			ErrEmptyString,
 			errorfamily.Rejection,
 			"id.parse_aggregate_empty",
 			"cannot parse empty string as AggregateID",
@@ -86,7 +86,7 @@ func ParseAggregateIDStrict(s string) (AggregateID, error) {
 		var zero AggregateID
 
 		return zero, errorfamily.Wrapf(
-			errEmptyString,
+			ErrEmptyString,
 			errorfamily.Rejection,
 			"id.parse_aggregate_strict_empty",
 			"cannot parse empty string as AggregateID",

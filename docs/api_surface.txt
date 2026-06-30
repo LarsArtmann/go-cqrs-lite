@@ -836,6 +836,7 @@ id/type EventID
 id/type Of
 id/type RequestID
 id/type UserID
+id/var ErrEmptyString
 kv/const OpEq
 kv/const OpGt
 kv/const OpGte

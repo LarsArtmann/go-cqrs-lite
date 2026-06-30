@@ -51,7 +51,7 @@ func Parse[T any](s string) (Of[T], error) {
 		var zero Of[T]
 
 		return zero, errorfamily.Wrapf(
-			errEmptyString,
+			ErrEmptyString,
 			errorfamily.Rejection,
 			"id.parse_empty",
 			"cannot parse empty string as %T",
