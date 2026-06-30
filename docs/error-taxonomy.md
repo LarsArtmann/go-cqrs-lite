@@ -1,6 +1,6 @@
 # Error Taxonomy
 
-> The go-cqrs-lite library uses [go-error-family](https://github.com/LarsArtmann/go-error-family) v0.2.0 for structured, classified error handling.
+> The go-cqrs-lite library uses [go-error-family](https://github.com/LarsArtmann/go-error-family) v0.5.1 for structured, classified error handling.
 
 ## The 5 Error Families
 
@@ -19,7 +19,7 @@ Every error produced by the library belongs to exactly one family. This enables 
 ### Creating Classified Errors
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/core/event"
+import "github.com/larsartmann/go-cqrs-lite/event/v3"
 
 // Business rule violation — consumer's input is invalid
 err := event.NewRejection("order.create.negative_total", "total must be positive")
@@ -99,12 +99,81 @@ event.Classify(err) // => Conflict
 
 ### middleware
 
-| Context              | Family     | Behavior             |
-| -------------------- | ---------- | -------------------- |
-| Validation failure   | Rejection  | Propagated as-is     |
-| Retry exhausted      | Transient  | Wraps original error |
-| Panic recovery       | Corruption | Captures panic value |
-| Circuit breaker open | Transient  | Returns immediately  |
+| Context              | Family         | Code                          |
+| -------------------- | -------------- | ----------------------------- |
+| Validation failure   | Rejection      | `middleware.validation_failed` |
+| Retry exhausted      | Infrastructure | `middleware.retry_exhausted`   |
+| Panic recovery       | Corruption     | `middleware.panic_recovered`   |
+| Meter required       | Rejection      | `middleware.meter_required`    |
+
+### graph
+
+All graph sentinels (schema validation, sink enforcement, read API) are **Rejection**.
+
+| Error               | Family    | Code                              |
+| ------------------- | --------- | --------------------------------- |
+| `ErrPathNotFound`   | Rejection | `graph.read.path_not_found`       |
+| Schema violations   | Rejection | `graph.schema.*` (12 sentinels)   |
+| Sink violations     | Rejection | `graph.sink.*` (5 sentinels)      |
+
+### storage/relational
+
+All relational schema and sink sentinels are **Rejection**.
+
+| Error                 | Family    | Code                              |
+| --------------------- | --------- | --------------------------------- |
+| Schema violations     | Rejection | `relational.schema.*` (8 sentinels) |
+| Sink violations       | Rejection | `relational.sink.*` (4 sentinels)   |
+
+### storage/view
+
+All view-store mapper validation sentinels are **Rejection**.
+
+| Error              | Family    | Code                            |
+| ------------------ | --------- | ------------------------------- |
+| Mapper violations  | Rejection | `storage.view.mapper.*` (7 sentinels) |
+| Nil view value     | Rejection | `storage.view.nil_value`        |
+
+### stack
+
+All bundle misconfiguration sentinels are **Rejection**.
+
+| Error                  | Family    | Code                       |
+| ---------------------- | --------- | -------------------------- |
+| `ErrEmpty`             | Rejection | `stack.bundle_empty`       |
+| `ErrMissingEventStore` | Rejection | `stack.missing_event_store` |
+| `ErrMissingReadModels` | Rejection | `stack.missing_read_models` |
+| `ErrMissingJournal`    | Rejection | `stack.missing_journal`     |
+
+### projectionhost
+
+| Error                  | Family         | Code                              |
+| ---------------------- | -------------- | --------------------------------- |
+| Constructor violations | Rejection      | `projectionhost.*` (6 sentinels)  |
+| Shutdown timeout       | Infrastructure | `projectionhost.shutdown_timeout` |
+
+### transport/grpc
+
+| Error                | Family         | Code                       |
+| -------------------- | -------------- | -------------------------- |
+| Dispatch failure     | Infrastructure | `grpc.dispatch_failed`     |
+| Query failure        | Infrastructure | `grpc.query_failed`        |
+| Unmarshal result     | Corruption     | `grpc.unmarshal_result`    |
+| Missing command ID   | Rejection      | `grpc.missing_command_id`  |
+
+### deriver
+
+| Error              | Family    | Code                      |
+| ------------------ | --------- | ------------------------- |
+| `ErrNilDispatcher` | Rejection | `deriver.nil_dispatcher`  |
+
+## Default Classification
+
+Errors that are not constructed via the taxonomy constructors (plain `errors.New`,
+`fmt.Errorf` without `%w` into a family error) are classified as **Transient**
+by default. This is a fail-open design: unknown infrastructure errors get
+retried. However, it means **business-rule errors returned as plain errors will
+be retried** — always use `event.NewRejection` for non-retryable errors.
 
 ## Design Principles
 
