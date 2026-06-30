@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
@@ -62,7 +63,27 @@ func (s *SQLDeadLetterStore) migrate() error {
 		return fmt.Errorf("create table %s: %w", tableDeadLetters, err)
 	}
 
+	s.migrateColumns(ctx)
+
 	return nil
+}
+
+// migrateColumns adds error_code and error_family to tables created by older
+// versions that lacked those columns. Best-effort: ignores errors (column
+// already exists, or the database is too old for ALTER TABLE ADD COLUMN).
+func (s *SQLDeadLetterStore) migrateColumns(ctx context.Context) {
+	for _, col := range []string{"error_code", "error_family"} {
+		stmt := fmt.Sprintf(
+			"ALTER TABLE %s ADD COLUMN %s TEXT",
+			tableDeadLetters,
+			col,
+		)
+		if s.dialect == dialectPostgres {
+			stmt += " IF NOT EXISTS"
+		}
+
+		_, _ = s.db.ExecContext(ctx, stmt)
+	}
 }
 
 func (s *SQLDeadLetterStore) schemaSQL() string {
@@ -73,6 +94,8 @@ func (s *SQLDeadLetterStore) schemaSQL() string {
     type        VARCHAR(255) NOT NULL,
     aggregate_id TEXT,
     error_text  TEXT,
+    error_code  TEXT,
+    error_family TEXT,
     attempts    INTEGER NOT NULL DEFAULT 0,
     failed_at   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
@@ -87,6 +110,8 @@ CREATE INDEX IF NOT EXISTS idx_dead_letters_type ON ` + tableDeadLetters + `(typ
     type        TEXT NOT NULL,
     aggregate_id TEXT,
     error_text  TEXT,
+    error_code  TEXT,
+    error_family TEXT,
     attempts    INTEGER NOT NULL DEFAULT 0,
     failed_at   TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -129,9 +154,14 @@ func (s *SQLDeadLetterStore) Handle(ctx context.Context, entry DeadLetterEntry) 
 	}
 
 	errText := ""
+	code := entry.ErrorCode
+	family := entry.ErrorFamily
 
 	if entry.Error != nil {
 		errText = entry.Error.Error()
+		if code == "" {
+			code, family = classifyDeadLetterError(entry.Error)
+		}
 	}
 
 	failedAt := entry.FailedAt
@@ -140,16 +170,26 @@ func (s *SQLDeadLetterStore) Handle(ctx context.Context, entry DeadLetterEntry) 
 	}
 
 	query := "INSERT INTO " + tableDeadLetters + //nolint:gosec // G202: constant concat
-		" (kind, type, aggregate_id, error_text, attempts, failed_at) VALUES (" +
-		s.placeholders(6) + ")" //nolint:mnd // 6 columns
+		" (kind, type, aggregate_id, error_text, error_code, error_family, attempts, failed_at) VALUES (" +
+		s.placeholders(8) + ")" //nolint:mnd // 8 columns
 
-	_, _ = s.db.ExecContext(ctx, query,
-		entry.Kind, entry.Type, aggID, errText, entry.Attempts, s.formatTime(failedAt))
+	_, _ = s.db.ExecContext(
+		ctx,
+		query,
+		entry.Kind,
+		entry.Type,
+		aggID,
+		errText,
+		code,
+		family,
+		entry.Attempts,
+		s.formatTime(failedAt),
+	)
 }
 
 // Entries returns all dead-lettered messages, ordered by insertion time.
 func (s *SQLDeadLetterStore) Entries(ctx context.Context) ([]DeadLetterEntry, error) {
-	query := "SELECT kind, type, aggregate_id, error_text, attempts, failed_at FROM " +
+	query := "SELECT kind, type, aggregate_id, error_text, error_code, error_family, attempts, failed_at FROM " +
 		tableDeadLetters + " ORDER BY id"
 
 	rows, err := s.db.QueryContext(ctx, query)
@@ -167,11 +207,22 @@ func (s *SQLDeadLetterStore) Entries(ctx context.Context) ([]DeadLetterEntry, er
 			typ         string
 			aggID       sql.NullString
 			errText     sql.NullString
+			errCode     sql.NullString
+			errFamily   sql.NullString
 			attempts    int
 			failedAtRaw any
 		)
 
-		if err := rows.Scan(&kind, &typ, &aggID, &errText, &attempts, &failedAtRaw); err != nil {
+		if err := rows.Scan(
+			&kind,
+			&typ,
+			&aggID,
+			&errText,
+			&errCode,
+			&errFamily,
+			&attempts,
+			&failedAtRaw,
+		); err != nil {
 			return nil, fmt.Errorf("sql dead letter store: scan: %w", err)
 		}
 
@@ -187,6 +238,14 @@ func (s *SQLDeadLetterStore) Entries(ctx context.Context) ([]DeadLetterEntry, er
 
 		if errText.Valid && errText.String != "" {
 			entry.Error = deadLetterError(errText.String)
+		}
+
+		if errCode.Valid {
+			entry.ErrorCode = errCode.String
+		}
+
+		if errFamily.Valid {
+			entry.ErrorFamily = errFamily.String
 		}
 
 		entry.FailedAt, _ = s.parseTime(failedAtRaw)
@@ -256,6 +315,37 @@ type storeError string
 func (e storeError) Error() string { return string(e) }
 
 func deadLetterError(s string) error { return storeError(s) }
+
+// classifyDeadLetterError extracts the machine-readable code and lowercase
+// family name from err using the CQRS taxonomy. Used when storing dead-letter
+// entries so the classification survives the SQL round-trip.
+func classifyDeadLetterError(err error) (code, family string) {
+	family = familyToWire(event.Classify(err))
+
+	if ce, ok := errors.AsType[*event.Error](err); ok {
+		code = ce.Code()
+	}
+
+	return code, family
+}
+
+// familyToWire maps a taxonomy family to its lowercase wire name.
+func familyToWire(f event.Family) string {
+	switch f {
+	case event.Rejection:
+		return "rejection"
+	case event.Conflict:
+		return "conflict"
+	case event.Transient:
+		return "transient"
+	case event.Corruption:
+		return "corruption"
+	case event.Infrastructure:
+		return "infrastructure"
+	default:
+		return ""
+	}
+}
 
 func idParseSafe(s string) id.AggregateID {
 	aid, err := id.ParseAggregateID(s)

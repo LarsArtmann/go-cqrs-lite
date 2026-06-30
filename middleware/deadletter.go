@@ -30,6 +30,14 @@ type DeadLetterEntry struct {
 	// Error is the last error that caused retry exhaustion.
 	Error error
 
+	// ErrorCode is the machine-readable error code extracted from Error
+	// (e.g. "event.version_conflict"). Empty if Error was unclassified.
+	ErrorCode string
+
+	// ErrorFamily is the taxonomy family: "rejection", "conflict", etc.
+	// Empty if Error was unclassified.
+	ErrorFamily string
+
 	// Attempts is the total number of attempts made (including the first).
 	Attempts int
 
