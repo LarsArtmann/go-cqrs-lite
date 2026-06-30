@@ -232,7 +232,7 @@ func TestCreateTodo_EmptyTitle(t *testing.T) {
 	}
 	defer closeBody(t, resp)
 
-	assertStatus(t, resp, http.StatusInternalServerError, "")
+	assertStatus(t, resp, http.StatusBadRequest, "request rejected")
 }
 
 func TestListTodos_Empty(t *testing.T) {

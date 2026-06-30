@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
+	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/commands"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/domain"
 	"github.com/larsartmann/go-cqrs-lite/example/todo/queries"
@@ -34,7 +35,7 @@ func listTodos(qDisp *query.Dispatcher) http.HandlerFunc {
 
 		result, err := query.DispatchTyped[*queries.ListTodosResult](r.Context(), qDisp, q)
 		if err != nil {
-			writeError(w, http.StatusInternalServerError, err.Error())
+			writeDispatchError(w, err)
 
 			return
 		}
@@ -93,7 +94,7 @@ func getTodo(qDisp *query.Dispatcher) http.HandlerFunc {
 
 		result, err := query.DispatchTyped[*queries.GetTodoResult](r.Context(), qDisp, q)
 		if err != nil {
-			writeError(w, http.StatusNotFound, "todo not found")
+			writeDispatchError(w, err)
 
 			return
 		}
@@ -104,6 +105,23 @@ func getTodo(qDisp *query.Dispatcher) http.HandlerFunc {
 
 func writeError(w http.ResponseWriter, status int, msg string) {
 	writeJSON(w, status, map[string]string{"error": msg})
+}
+
+// writeDispatchError maps a dispatch error to the correct HTTP status code
+// using the CQRS error taxonomy, avoiding leaking internal error text.
+func writeDispatchError(w http.ResponseWriter, err error) {
+	switch cqrsevent.Classify(err) {
+	case cqrsevent.Rejection:
+		writeError(w, http.StatusBadRequest, "request rejected")
+	case cqrsevent.Conflict:
+		writeError(w, http.StatusConflict, "conflict")
+	case cqrsevent.Corruption:
+		writeError(w, http.StatusInternalServerError, "data integrity error")
+	case cqrsevent.Transient, cqrsevent.Infrastructure:
+		writeError(w, http.StatusServiceUnavailable, "temporarily unavailable")
+	default:
+		writeError(w, http.StatusInternalServerError, "internal error")
+	}
 }
 
 func writeErrorInvalidID(w http.ResponseWriter) {
@@ -118,7 +136,7 @@ func dispatchAndRespond(
 	successFn func(),
 ) {
 	if err := disp.Dispatch(r.Context(), cmd); err != nil {
-		writeError(w, http.StatusInternalServerError, err.Error())
+		writeDispatchError(w, err)
 
 		return
 	}
