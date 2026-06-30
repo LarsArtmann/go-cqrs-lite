@@ -50,6 +50,9 @@ func AutoMapper[V any](table string) ViewMapper[V] {
 // AutoMapperWithTombstone is like [AutoMapper] but also sets the
 // TombstoneColumn on the generated mapper. The tombstone column must be a
 // tagged boolean field. Pass an empty string to disable tombstone pushdown.
+//
+// Panics if V is not a struct or a pointer to a struct — this is a programmer
+// error detected at startup, not a runtime condition.
 func AutoMapperWithTombstone[V any](table, tombstoneCol string) ViewMapper[V] {
 	var zero V
 
