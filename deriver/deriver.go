@@ -2,7 +2,6 @@ package deriver
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strconv"
 
@@ -12,7 +11,10 @@ import (
 )
 
 // ErrNilDispatcher is returned when AsHandler is called with a nil dispatcher.
-var ErrNilDispatcher = errors.New("deriver: dispatcher must not be nil")
+var ErrNilDispatcher = cqrsevent.NewRejection(
+	"deriver.nil_dispatcher",
+	"deriver: dispatcher must not be nil",
+)
 
 // Deriver transforms an event into zero or more derived commands.
 //

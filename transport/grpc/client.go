@@ -3,20 +3,26 @@ package grpc
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"google.golang.org/grpc"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
+	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
 	cqrsproto "github.com/larsartmann/go-cqrs-lite/transport/grpc/v3/proto"
 )
 
 var (
-	errDispatchFailed   = errors.New("grpc: server returned failure")
-	errQueryFailed      = errors.New("grpc: query failed")
-	errUnmarshalResult  = errors.New("grpc: unmarshal result")
-	errMissingCommandID = errors.New("grpc: command has no ID")
+	errDispatchFailed = cqrsevent.NewInfrastructure(
+		"grpc.dispatch_failed",
+		"grpc: server returned failure",
+	)
+	errQueryFailed      = cqrsevent.NewInfrastructure("grpc.query_failed", "grpc: query failed")
+	errUnmarshalResult  = cqrsevent.NewCorruption("grpc.unmarshal_result", "grpc: unmarshal result")
+	errMissingCommandID = cqrsevent.NewRejection(
+		"grpc.missing_command_id",
+		"grpc: command has no ID",
+	)
 )
 
 // CommandClient dispatches commands to a remote gRPC server.

@@ -2,7 +2,6 @@ package projectionhost
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"maps"
 	"sync"
@@ -40,11 +39,17 @@ func New(
 	opts ...HostOption,
 ) (*Host, error) {
 	if journal == nil {
-		return nil, errors.New("projectionhost: journal must not be nil")
+		return nil, event.NewRejection(
+			"projectionhost.journal_required",
+			"projectionhost: journal must not be nil",
+		)
 	}
 
 	if cpStore == nil {
-		return nil, errors.New("projectionhost: checkpoint store must not be nil")
+		return nil, event.NewRejection(
+			"projectionhost.checkpoint_store_required",
+			"projectionhost: checkpoint store must not be nil",
+		)
 	}
 
 	o := defaultOptions()
@@ -67,12 +72,18 @@ func (h *Host) Register(p projection.Projection) error {
 	defer h.mu.Unlock()
 
 	if h.started {
-		return errors.New("projectionhost: cannot register after Start")
+		return event.NewRejection(
+			"projectionhost.register_after_start",
+			"projectionhost: cannot register after Start",
+		)
 	}
 
 	name := p.Name()
 	if name == "" {
-		return errors.New("projectionhost: projection name must not be empty")
+		return event.NewRejection(
+			"projectionhost.empty_projection_name",
+			"projectionhost: projection name must not be empty",
+		)
 	}
 
 	if _, exists := h.workers[name]; exists {
@@ -112,7 +123,10 @@ func (h *Host) Start(ctx context.Context) error {
 	if h.started {
 		h.mu.Unlock()
 
-		return errors.New("projectionhost: already started")
+		return event.NewRejection(
+			"projectionhost.already_started",
+			"projectionhost: already started",
+		)
 	}
 
 	h.started = true
@@ -162,7 +176,10 @@ func (h *Host) Stop() error {
 	case <-done:
 		return nil
 	case <-time.After(30 * time.Second):
-		return errors.New("projectionhost: graceful shutdown timed out after 30s")
+		return event.NewInfrastructure(
+			"projectionhost.shutdown_timeout",
+			"projectionhost: graceful shutdown timed out after 30s",
+		)
 	}
 }
 
@@ -227,7 +244,10 @@ func (h *Host) ReplayDeadLetters(ctx context.Context, projectionName string) (Re
 	h.mu.Unlock()
 
 	if dlq == nil {
-		return ReplayResult{}, errors.New("projectionhost: no dead-letter store configured")
+		return ReplayResult{}, event.NewRejection(
+			"projectionhost.no_dead_letter_store",
+			"projectionhost: no dead-letter store configured",
+		)
 	}
 
 	entries, err := dlq.List(ctx, projectionName)

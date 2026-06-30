@@ -3,11 +3,11 @@ module github.com/larsartmann/go-cqrs-lite/transport/grpc/v3
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/command/v3 v3.3.0
-	github.com/larsartmann/go-cqrs-lite/event/v3 v3.3.0
+	github.com/larsartmann/go-cqrs-lite/command/v3 v3.4.0
+	github.com/larsartmann/go-cqrs-lite/event/v3 v3.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.3.0
-	github.com/larsartmann/go-cqrs-lite/query/v3 v3.3.0
+	github.com/larsartmann/go-cqrs-lite/query/v3 v3.4.0
 	go.opentelemetry.io/otel v1.44.0
 	go.opentelemetry.io/otel/sdk v1.44.0
 	google.golang.org/grpc v1.81.1

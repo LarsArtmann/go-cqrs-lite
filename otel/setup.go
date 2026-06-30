@@ -107,7 +107,7 @@ func (p *Provider) Shutdown(ctx context.Context) error {
 	}
 
 	if len(errs) > 0 {
-		return fmt.Errorf("%w: %v", errShutdown, errs)
+		return errors.Join(append([]error{errShutdown}, errs...)...)
 	}
 
 	return nil
