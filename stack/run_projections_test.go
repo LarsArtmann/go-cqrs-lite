@@ -191,5 +191,5 @@ func waitForView(
 }
 
 func isContextCanceled(err error) bool {
-	return errors.Is(err, context.Canceled) || (err != nil && err.Error() == "context canceled")
+	return errors.Is(err, context.Canceled)
 }
