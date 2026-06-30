@@ -58,6 +58,33 @@ classes: {
       font-color: "#4a148c"
     }
   }
+  entity: {
+    style: {
+      fill: "#e0f7fa"
+      stroke: "#00838f"
+      stroke-width: 2
+      border-radius: 6
+      font-color: "#006064"
+    }
+  }
+  dataProduct: {
+    style: {
+      fill: "#fff8e1"
+      stroke: "#f57f17"
+      stroke-width: 2
+      border-radius: 6
+      font-color: "#e65100"
+    }
+  }
+  agent: {
+    style: {
+      fill: "#f3e5f5"
+      stroke: "#7b1fa2"
+      stroke-width: 2
+      border-radius: 6
+      font-color: "#4a148c"
+    }
+  }
 }
 
 order_svc: {
@@ -84,4 +111,6 @@ order_svc: {
   order_svc -> order_svc.createorder: "receives"
   order_svc.ordercreated -> order_svc: "publishes"
   order_svc -> order_svc.getorder: "handles"
+
 }
+

@@ -56,6 +56,24 @@ func (e *Exporter) writeClasses(buf *strings.Builder) {
 			"      border-radius: 6\n      font-color: \"#4a148c\"\n    }\n  }\n",
 	)
 
+	buf.WriteString(
+		"  entity: {\n    style: {\n" +
+			"      fill: \"#e0f7fa\"\n      stroke: \"#00838f\"\n      stroke-width: 2\n" +
+			"      border-radius: 6\n      font-color: \"#006064\"\n    }\n  }\n",
+	)
+
+	buf.WriteString(
+		"  dataProduct: {\n    style: {\n" +
+			"      fill: \"#fff8e1\"\n      stroke: \"#f57f17\"\n      stroke-width: 2\n" +
+			"      border-radius: 6\n      font-color: \"#e65100\"\n    }\n  }\n",
+	)
+
+	buf.WriteString(
+		"  agent: {\n    style: {\n" +
+			"      fill: \"#f3e5f5\"\n      stroke: \"#7b1fa2\"\n      stroke-width: 2\n" +
+			"      border-radius: 6\n      font-color: \"#4a148c\"\n    }\n  }\n",
+	)
+
 	buf.WriteString("}\n\n")
 }
 
@@ -158,4 +176,71 @@ func (e *Exporter) buildTooltip(msg catalog.Message) string {
 	}
 
 	return strings.Join(parts, "\n")
+}
+
+func (e *Exporter) writeEntities(buf *strings.Builder, cat *catalog.Catalog) {
+	for _, entity := range cat.Entities {
+		id := "entity_" + sanitizeID(string(entity.ID))
+
+		fmt.Fprintf(buf, "%s: {\n", id)
+		fmt.Fprintf(buf, "  class: entity\n")
+		fmt.Fprintf(buf, "  label: %q\n", entity.Name)
+		buf.WriteString("  shape: cylinder\n")
+		buf.WriteString("}\n\n")
+	}
+}
+
+func (e *Exporter) writeDataProducts(buf *strings.Builder, cat *catalog.Catalog) {
+	for _, dp := range cat.DataProducts {
+		id := "dp_" + sanitizeID(string(dp.ID))
+
+		fmt.Fprintf(buf, "%s: {\n", id)
+		fmt.Fprintf(buf, "  class: dataProduct\n")
+		fmt.Fprintf(buf, "  label: %q\n", dp.Name)
+		buf.WriteString("  shape: package\n")
+		buf.WriteString("}\n\n")
+
+		for _, input := range dp.Inputs {
+			inputID := sanitizeID(string(input.ID))
+			fmt.Fprintf(buf, "%s -> %s: \"feeds\"\n\n", inputID, id)
+		}
+
+		for _, output := range dp.Outputs {
+			outputID := sanitizeID(string(output.ID))
+			fmt.Fprintf(buf, "%s -> %s: \"produces\"\n\n", id, outputID)
+		}
+	}
+}
+
+func (e *Exporter) writeAgents(buf *strings.Builder, cat *catalog.Catalog) {
+	for _, agent := range cat.Agents {
+		id := "agent_" + sanitizeID(string(agent.ID))
+
+		fmt.Fprintf(buf, "%s: {\n", id)
+		fmt.Fprintf(buf, "  class: agent\n")
+
+		label := string(agent.Name)
+		if agent.Model != nil {
+			label += fmt.Sprintf(" (%s/%s)", agent.Model.Provider, agent.Model.Name)
+		}
+
+		fmt.Fprintf(buf, "  label: %q\n", label)
+
+		if agent.Summary != "" {
+			fmt.Fprintf(buf, "  tooltip: %q\n", agent.Summary)
+		}
+
+		buf.WriteString("  shape: step\n")
+		buf.WriteString("}\n\n")
+
+		for _, msg := range agent.Sends {
+			msgID := sanitizeID(string(msg.ID))
+			fmt.Fprintf(buf, "%s -> %s: \"sends\"\n\n", id, msgID)
+		}
+
+		for _, msg := range agent.Receives {
+			msgID := sanitizeID(string(msg.ID))
+			fmt.Fprintf(buf, "%s -> %s: \"receives\"\n\n", msgID, id)
+		}
+	}
 }

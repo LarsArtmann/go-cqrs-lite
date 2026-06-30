@@ -28,3 +28,42 @@ func WalkMessages(cat *Catalog, fn WalkMessageFn) {
 		}
 	}
 }
+
+// WalkEntityFn is called for each entity in the catalog.
+type WalkEntityFn func(entity Entity) bool
+
+// WalkEntities iterates all entities in the catalog.
+// Stops early if fn returns false.
+func WalkEntities(cat *Catalog, fn WalkEntityFn) {
+	for _, entity := range cat.Entities {
+		if !fn(entity) {
+			return
+		}
+	}
+}
+
+// WalkDataProductFn is called for each data product in the catalog.
+type WalkDataProductFn func(dp DataProduct) bool
+
+// WalkDataProducts iterates all data products in the catalog.
+// Stops early if fn returns false.
+func WalkDataProducts(cat *Catalog, fn WalkDataProductFn) {
+	for _, dp := range cat.DataProducts {
+		if !fn(dp) {
+			return
+		}
+	}
+}
+
+// WalkAgentFn is called for each agent in the catalog.
+type WalkAgentFn func(agent Agent) bool
+
+// WalkAgents iterates all agents in the catalog.
+// Stops early if fn returns false.
+func WalkAgents(cat *Catalog, fn WalkAgentFn) {
+	for _, agent := range cat.Agents {
+		if !fn(agent) {
+			return
+		}
+	}
+}

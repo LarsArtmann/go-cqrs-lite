@@ -27,6 +27,9 @@ func (e *Exporter) Export(cat *catalog.Catalog) string {
 	e.writeClasses(&buf)
 	e.writeServices(&buf, cat)
 	e.writeCrossServiceConnections(&buf, cat)
+	e.writeEntities(&buf, cat)
+	e.writeDataProducts(&buf, cat)
+	e.writeAgents(&buf, cat)
 
 	if len(cat.Domains) > 0 {
 		e.writeDomains(&buf, cat)
@@ -169,7 +172,7 @@ func (e *Exporter) writeCrossServiceConnections(b *strings.Builder, cat *catalog
 
 func (e *Exporter) writeDomains(buf *strings.Builder, cat *catalog.Catalog) {
 	for _, domain := range cat.Domains {
-		if len(domain.Services) == 0 {
+		if len(domain.Services) == 0 && len(domain.SubDomains) == 0 {
 			continue
 		}
 
@@ -189,6 +192,15 @@ func (e *Exporter) writeDomains(buf *strings.Builder, cat *catalog.Catalog) {
 
 			buf.WriteString(
 				"  style: {\n    stroke: \"#bdbdbd\"\n    stroke-dash: 3\n  }\n}\n\n",
+			)
+		}
+
+		for _, subDomainID := range domain.SubDomains {
+			subDisplayID := sanitizeID(string(subDomainID))
+
+			fmt.Fprintf(buf, "domain_%s -> domain_%s: \"sub-domain\" {\n", domainDisplayID, subDisplayID)
+			buf.WriteString(
+				"  style: {\n    stroke: \"#9e9e9e\"\n    stroke-dash: 5\n  }\n}\n\n",
 			)
 		}
 	}
