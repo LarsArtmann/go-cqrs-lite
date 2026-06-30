@@ -297,6 +297,13 @@ func (w *worker) applyWithRetry(ctx context.Context, evt event.Event) error {
 }
 
 func (w *worker) sendToDLQ(ctx context.Context, evt event.Event, handlerErr error) error {
+	code, family := "", ""
+	if ce, ok := errors.AsType[*event.Error](handlerErr); ok {
+		code = ce.Code()
+	}
+
+	family = familyToName(event.Classify(handlerErr))
+
 	return w.opts.dlq.Store(ctx, DeadLetterEntry{
 		ProjectionName: w.name,
 		EventID:        evt.ID().String(),
@@ -304,6 +311,26 @@ func (w *worker) sendToDLQ(ctx context.Context, evt event.Event, handlerErr erro
 		AggregateID:    evt.AggregateID().String(),
 		Event:          evt,
 		Error:          handlerErr.Error(),
+		ErrorCode:      code,
+		ErrorFamily:    family,
 		FailedAt:       time.Now(),
 	})
+}
+
+// familyToName maps a taxonomy family to its lowercase wire name.
+func familyToName(f event.Family) string {
+	switch f {
+	case event.Rejection:
+		return "rejection"
+	case event.Conflict:
+		return "conflict"
+	case event.Transient:
+		return "transient"
+	case event.Corruption:
+		return "corruption"
+	case event.Infrastructure:
+		return "infrastructure"
+	default:
+		return ""
+	}
 }

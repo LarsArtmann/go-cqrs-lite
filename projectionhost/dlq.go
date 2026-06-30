@@ -54,6 +54,8 @@ type DeadLetterEntry struct {
 	AggregateID    string
 	Event          event.Event // original poison event; needed for Replay
 	Error          string
+	ErrorCode      string // machine-readable code (e.g. "graph.sink.unknown_node_label"); empty if unclassified
+	ErrorFamily    string // taxonomy family: "rejection", "conflict", etc.; empty if unclassified
 	FailedAt       time.Time
 }
 
