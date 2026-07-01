@@ -100,8 +100,8 @@ func ExampleCBORCompactCodec() {
 	c := codec.CBORCompactCodec{}
 
 	type UserCreated struct {
-		Name  string `json:"name"`
-		Email string `json:"email"`
+		Name  string
+		Email string
 	}
 
 	data, _ := c.Encode(UserCreated{Name: "Alice", Email: "alice@example.com"})
@@ -161,8 +161,8 @@ func ExampleCBORCodec_toarray() {
 // reuse eliminates GC pressure.
 func ExampleBufferEncoder() {
 	type Metric struct {
-		Name  string  `json:"name"`
-		Value float64 `json:"value"`
+		Name  string
+		Value float64
 	}
 
 	c := codec.CBORCodec{}
@@ -192,8 +192,8 @@ func ExampleBufferEncoder() {
 // event batches without materializing the full byte slice in memory.
 func ExampleNewCBOREncoder() {
 	type Event struct {
-		Type string `json:"type"`
-		Data string `json:"data"`
+		Type string
+		Data string
 	}
 
 	var buf bytes.Buffer
@@ -226,8 +226,8 @@ func ExampleDiagnose() {
 	c := codec.CBORCodec{}
 
 	type User struct {
-		Name  string `json:"name"`
-		Email string `json:"email"`
+		Name  string
+		Email string
 	}
 
 	data, _ := c.Encode(User{Name: "Alice", Email: "alice@example.com"})
