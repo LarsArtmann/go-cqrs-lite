@@ -234,7 +234,7 @@ Based on existing analysis docs, these have been explicitly evaluated and reject
 | ---------------------------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------- |
 | Extract `usermgmt` into its own repo                 | **No** — module split already gives 80% of the benefit; scored 3.2/10 | `cqrs-htmx/docs/brainstorming/extract-usermgmt-pro-contra.html`      |
 | Split cqrs-htmx root into sub-modules                | **No** — 46 files form a cohesive unit; errors↔response↔csrf cycle    | `cqrs-htmx/docs/modularization/2026-07-01_PROPOSAL.html`             |
-| Merge go-cqrs-lite catalog sub-modules               | **✅ DONE** — consolidated into 1 go.mod with sub-packages             | `go-cqrs-lite/docs/modularization/PROPOSAL_catalog_consolidation.md` |
+| Merge go-cqrs-lite catalog sub-modules               | **✅ DONE** — consolidated into 1 go.mod with sub-packages            | `go-cqrs-lite/docs/modularization/PROPOSAL_catalog_consolidation.md` |
 | Move CRDT/conflict from go-localsync to go-cqrs-lite | **No** — sync-specific, not generic CQRS                              | (architectural reasoning)                                            |
 | Move catalog HTTP handlers to go-cqrs-lite           | **No** — HTTP is cqrs-htmx's domain                                   | (this document)                                                      |
 

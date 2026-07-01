@@ -6,7 +6,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.3.0
 	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.4.0
-	github.com/larsartmann/go-cqrs-lite/projectionhost/v3 v3.4.0
+	github.com/larsartmann/go-cqrs-lite/projectionhost/v3 v3.5.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.4.0
 )
 

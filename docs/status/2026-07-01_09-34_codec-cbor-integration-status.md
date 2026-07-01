@@ -16,40 +16,40 @@ We promoted CBOR from "only pebble uses it" to "recommended default for read mod
 
 ## a) FULLY DONE ✅
 
-| # | What | Commit | Evidence |
-|---|------|--------|----------|
-| 1 | **stack.DefaultCodec() returns CBORCodec** | `2bb6c0a3` | `stack/bundle.go:193` — read models default to CBOR |
-| 2 | **stack.WithDefaultCodec() option** | `2bb6c0a3` | `stack/options.go:262` — one-call override for deployers |
-| 3 | **schema.Validator auto-detects encoding** | `2bb6c0a3` | `schema/validator.go:85-103` — JSON and CBOR decoders pre-registered, `decoderFor()` picks per event |
-| 4 | **schema.WithDecoder() per-encoding override** | `2bb6c0a3` | `schema/validator.go:74-80` |
-| 5 | **Symmetric encoding validation** | `b531604c` | `event/codec.go:99-108` — JSON no longer bypasses codec check |
-| 6 | **Mixed JSON+CBOR stream test** | `d2cbda5e` | `integration/event/mixed_codec_test.go` — both encodings in one store, each decoded correctly, cross-decode rejected |
-| 7 | **Realistic benchmarks** | `2bb6c0a3` | `codec/benchmark_test.go` — JSON 277B vs CBOR 224B (-19%) vs CBOR+toarray 158B (-43%) |
-| 8 | **Example tests: toarray, BufferEncoder, streaming, Diagnose** | `2bb6c0a3` | `codec/example_test.go` — 6 new runnable examples |
-| 9 | **codec/README.md rewrite** | `2bb6c0a3` | Both codecs as first-class, CBOR recommended, decision table |
-| 10 | **codec/doc.go updated** | `2bb6c0a3` | 4 codecs listed, "Choosing a Codec" section |
-| 11 | **AGENTS.md patterns updated** | `2bb6c0a3` | toarray, streaming, BufferEncoder, WithDefaultCodec examples |
-| 12 | **SKILL.md cheat sheet recommends CBOR** | `2bb6c0a3` | DecodePayload examples use CBORCodec |
-| 13 | **v4-WISHLIST entry** | `2bb6c0a3` | `docs/v4-WISHLIST.md` — universal CBOR default tracked |
-| 14 | **kv/typed_options.go doc** | `5f50a3d7` | Documents stack.DefaultCodec override |
-| 15 | **Misleading json: tags removed from CBOR examples** | `825925db` | `codec/example_test.go` — CBOR examples no longer carry json: tags |
+| #   | What                                                           | Commit     | Evidence                                                                                                             |
+| --- | -------------------------------------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------- |
+| 1   | **stack.DefaultCodec() returns CBORCodec**                     | `2bb6c0a3` | `stack/bundle.go:193` — read models default to CBOR                                                                  |
+| 2   | **stack.WithDefaultCodec() option**                            | `2bb6c0a3` | `stack/options.go:262` — one-call override for deployers                                                             |
+| 3   | **schema.Validator auto-detects encoding**                     | `2bb6c0a3` | `schema/validator.go:85-103` — JSON and CBOR decoders pre-registered, `decoderFor()` picks per event                 |
+| 4   | **schema.WithDecoder() per-encoding override**                 | `2bb6c0a3` | `schema/validator.go:74-80`                                                                                          |
+| 5   | **Symmetric encoding validation**                              | `b531604c` | `event/codec.go:99-108` — JSON no longer bypasses codec check                                                        |
+| 6   | **Mixed JSON+CBOR stream test**                                | `d2cbda5e` | `integration/event/mixed_codec_test.go` — both encodings in one store, each decoded correctly, cross-decode rejected |
+| 7   | **Realistic benchmarks**                                       | `2bb6c0a3` | `codec/benchmark_test.go` — JSON 277B vs CBOR 224B (-19%) vs CBOR+toarray 158B (-43%)                                |
+| 8   | **Example tests: toarray, BufferEncoder, streaming, Diagnose** | `2bb6c0a3` | `codec/example_test.go` — 6 new runnable examples                                                                    |
+| 9   | **codec/README.md rewrite**                                    | `2bb6c0a3` | Both codecs as first-class, CBOR recommended, decision table                                                         |
+| 10  | **codec/doc.go updated**                                       | `2bb6c0a3` | 4 codecs listed, "Choosing a Codec" section                                                                          |
+| 11  | **AGENTS.md patterns updated**                                 | `2bb6c0a3` | toarray, streaming, BufferEncoder, WithDefaultCodec examples                                                         |
+| 12  | **SKILL.md cheat sheet recommends CBOR**                       | `2bb6c0a3` | DecodePayload examples use CBORCodec                                                                                 |
+| 13  | **v4-WISHLIST entry**                                          | `2bb6c0a3` | `docs/v4-WISHLIST.md` — universal CBOR default tracked                                                               |
+| 14  | **kv/typed_options.go doc**                                    | `5f50a3d7` | Documents stack.DefaultCodec override                                                                                |
+| 15  | **Misleading json: tags removed from CBOR examples**           | `825925db` | `codec/example_test.go` — CBOR examples no longer carry json: tags                                                   |
 
 ### Test Coverage (current)
 
-| Module | Coverage |
-|--------|----------|
-| codec/ | 89.4% |
-| event/ | 91.9% |
-| schema/ | 90.6% |
-| stack/ | 57.6% (accessors only; contract suite is separate) |
+| Module  | Coverage                                           |
+| ------- | -------------------------------------------------- |
+| codec/  | 89.4%                                              |
+| event/  | 91.9%                                              |
+| schema/ | 90.6%                                              |
+| stack/  | 57.6% (accessors only; contract suite is separate) |
 
 ### Benchmark Results (realistic order payload)
 
-| Codec | Size | Encode ns/op | Decode ns/op | Allocs (decode) |
-|-------|------|-------------|-------------|-----------------|
-| JSON | 277 bytes | 745 ns | 4695 ns | 16 |
-| CBOR canonical | 224 bytes (-19%) | 559 ns (-25%) | 1597 ns (-66%) | 9 |
-| CBOR compact+toarray | 158 bytes (-43%) | 488 ns (-34%) | 1305 ns (-72%) | 9 |
+| Codec                | Size             | Encode ns/op  | Decode ns/op   | Allocs (decode) |
+| -------------------- | ---------------- | ------------- | -------------- | --------------- |
+| JSON                 | 277 bytes        | 745 ns        | 4695 ns        | 16              |
+| CBOR canonical       | 224 bytes (-19%) | 559 ns (-25%) | 1597 ns (-66%) | 9               |
+| CBOR compact+toarray | 158 bytes (-43%) | 488 ns (-34%) | 1305 ns (-72%) | 9               |
 
 ---
 
@@ -60,6 +60,7 @@ We promoted CBOR from "only pebble uses it" to "recommended default for read mod
 **What's done:** `stack.DefaultCodec()` returns CBORCodec. ReadModel and NewMaterialize accessors use it when caller passes nil codec.
 
 **What's NOT done:** The four "blind" stores still default to JSONCodec:
+
 - `event/event_new.go:42` — `event.New()` defaults to JSONCodec
 - `kv/typed_store.go:37` — `kv.NewTypedStore` defaults to JSONCodec
 - `snapshot/typed.go:72` — snapshot typed store defaults to JSONCodec
@@ -84,16 +85,16 @@ We promoted CBOR from "only pebble uses it" to "recommended default for read mod
 
 ## c) NOT STARTED ❌
 
-| # | Item | Impact | Why |
-|---|------|--------|-----|
-| 1 | **CHANGELOG.md entry** for all 5 codec commits | HIGH | v3.4.0 has no mention of codec/CBOR work |
-| 2 | **Fix stale DecodePayload doc** | MED | `event/codec.go:14` says "when both are non-empty and differ" — no longer true |
-| 3 | **Fix stale DecodePayloads doc** | MED | `event/codec.go:66` says "validates once for the batch" — actually validates per-event |
-| 4 | **Fix remaining json: tags** in CBOR examples | LOW | `codec/example_test.go:45` (ExampleCBORCodec), `:249-250` (ExampleCBOREncMode) |
-| 5 | **event.New() encoding-aware default** | HIGH | Currently hardcodes JSONCodec; should use a package-level default variable or option |
-| 6 | **Blind store encoding tagging** | HIGH | kv/snapshot/command/query stores don't stamp encoding — fundamental gap |
-| 7 | **Transport layer codec awareness** | MED | gRPC (query_server.go:65, client.go:103) hardcodes json.Marshal — no codec injection |
-| 8 | **codec/v3 in schema go.sum** | LOW | Works via workspace, but standalone `GOWORK=off go test` may fail without go.work resolution |
+| #   | Item                                           | Impact | Why                                                                                          |
+| --- | ---------------------------------------------- | ------ | -------------------------------------------------------------------------------------------- |
+| 1   | **CHANGELOG.md entry** for all 5 codec commits | HIGH   | v3.4.0 has no mention of codec/CBOR work                                                     |
+| 2   | **Fix stale DecodePayload doc**                | MED    | `event/codec.go:14` says "when both are non-empty and differ" — no longer true               |
+| 3   | **Fix stale DecodePayloads doc**               | MED    | `event/codec.go:66` says "validates once for the batch" — actually validates per-event       |
+| 4   | **Fix remaining json: tags** in CBOR examples  | LOW    | `codec/example_test.go:45` (ExampleCBORCodec), `:249-250` (ExampleCBOREncMode)               |
+| 5   | **event.New() encoding-aware default**         | HIGH   | Currently hardcodes JSONCodec; should use a package-level default variable or option         |
+| 6   | **Blind store encoding tagging**               | HIGH   | kv/snapshot/command/query stores don't stamp encoding — fundamental gap                      |
+| 7   | **Transport layer codec awareness**            | MED    | gRPC (query_server.go:65, client.go:103) hardcodes json.Marshal — no codec injection         |
+| 8   | **codec/v3 in schema go.sum**                  | LOW    | Works via workspace, but standalone `GOWORK=off go test` may fail without go.work resolution |
 
 ---
 
@@ -106,6 +107,7 @@ We promoted CBOR from "only pebble uses it" to "recommended default for read mod
 ### The "CBOR is the default" claim is only half-true
 
 We say "CBOR is recommended" and changed `stack.DefaultCodec()`, but:
+
 - Events are still created as JSON by default (`event.New()` at line 42)
 - Read models created WITHOUT the stack (direct `kv.NewTypedStore()`) still get JSON
 - Snapshots, command stores, query stores all still default to JSON
@@ -150,48 +152,48 @@ Sorted by **impact / work ratio** (highest first):
 
 ### Quick Wins (under 15 min each)
 
-| # | Task | Impact | Work | Risk |
-|---|------|--------|------|------|
-| 1 | Fix stale `DecodePayload` doc comment | MED | 2min | none |
-| 2 | Fix stale `DecodePayloads` doc comment | MED | 2min | none |
-| 3 | Add CHANGELOG.md v3.5.0 entry | HIGH | 10min | none |
-| 4 | Remove last 3 `json:` tags from CBOR examples | LOW | 3min | none |
-| 5 | Commit uncommitted `ECOSYSTEM_BOUNDARIES.md` | LOW | 1min | none |
-| 6 | Reorder README Usage section: CBOR before JSON | LOW | 2min | none |
+| #   | Task                                           | Impact | Work  | Risk |
+| --- | ---------------------------------------------- | ------ | ----- | ---- |
+| 1   | Fix stale `DecodePayload` doc comment          | MED    | 2min  | none |
+| 2   | Fix stale `DecodePayloads` doc comment         | MED    | 2min  | none |
+| 3   | Add CHANGELOG.md v3.5.0 entry                  | HIGH   | 10min | none |
+| 4   | Remove last 3 `json:` tags from CBOR examples  | LOW    | 3min  | none |
+| 5   | Commit uncommitted `ECOSYSTEM_BOUNDARIES.md`   | LOW    | 1min  | none |
+| 6   | Reorder README Usage section: CBOR before JSON | LOW    | 2min  | none |
 
 ### Medium Effort (30-60 min each)
 
-| # | Task | Impact | Work | Risk |
-|---|------|--------|------|------|
-| 7 | Change `schema.WithCodec` to accept `codec.Codec` | MED | 20min | API change (additive) |
-| 8 | Add `schema.WithCodec` deprecation path (keep old func) | MED | 10min | none |
-| 9 | Add property-based roundtrip test with `rapid` | MED | 30min | none |
-| 10 | Add `codec.Size(v any) (jsonSize, cborSize int)` helper | LOW | 15min | none |
-| 11 | Add CBOR codec to example/deployer-first | MED | 20min | none |
-| 12 | Document the stack-vs-store default asymmetry in AGENTS.md | HIGH | 10min | none |
-| 13 | Add `event.DefaultCodec` package var (mutable for CBOR adoption) | HIGH | 15min | behavioral |
-| 14 | Add stack-level `WithEventCodec()` option for event.New | HIGH | 20min | none |
-| 15 | Test: verify schema.Validator rejects encrypted encoding gracefully | MED | 15min | none |
+| #   | Task                                                                | Impact | Work  | Risk                  |
+| --- | ------------------------------------------------------------------- | ------ | ----- | --------------------- |
+| 7   | Change `schema.WithCodec` to accept `codec.Codec`                   | MED    | 20min | API change (additive) |
+| 8   | Add `schema.WithCodec` deprecation path (keep old func)             | MED    | 10min | none                  |
+| 9   | Add property-based roundtrip test with `rapid`                      | MED    | 30min | none                  |
+| 10  | Add `codec.Size(v any) (jsonSize, cborSize int)` helper             | LOW    | 15min | none                  |
+| 11  | Add CBOR codec to example/deployer-first                            | MED    | 20min | none                  |
+| 12  | Document the stack-vs-store default asymmetry in AGENTS.md          | HIGH   | 10min | none                  |
+| 13  | Add `event.DefaultCodec` package var (mutable for CBOR adoption)    | HIGH   | 15min | behavioral            |
+| 14  | Add stack-level `WithEventCodec()` option for event.New             | HIGH   | 20min | none                  |
+| 15  | Test: verify schema.Validator rejects encrypted encoding gracefully | MED    | 15min | none                  |
 
 ### Larger Effort (1-4 hours)
 
-| # | Task | Impact | Work | Risk |
-|---|------|--------|------|------|
-| 16 | Add codec injection to gRPC transport | MED | 1h | API change |
-| 17 | Design encoding stamp for blind stores (envelope or key prefix) | HIGH | 2h | schema change |
-| 18 | Add `codec.AutoDetect(data []byte) Encoding` — sniff format from bytes | MED | 30min | none |
-| 19 | Add `codec.Transcoder(src, dst Codec)` — convert JSON↔CBOR on the fly | LOW | 1h | none |
-| 20 | Add migration tool: scan JSON events, re-encode as CBOR | MED | 2h | data change |
-| 21 | Benchmark: event store with 10k mixed JSON+CBOR events | LOW | 1h | none |
-| 22 | Add `cbor:",keyasint"` example to codec/examples | LOW | 30min | none |
+| #   | Task                                                                   | Impact | Work  | Risk          |
+| --- | ---------------------------------------------------------------------- | ------ | ----- | ------------- |
+| 16  | Add codec injection to gRPC transport                                  | MED    | 1h    | API change    |
+| 17  | Design encoding stamp for blind stores (envelope or key prefix)        | HIGH   | 2h    | schema change |
+| 18  | Add `codec.AutoDetect(data []byte) Encoding` — sniff format from bytes | MED    | 30min | none          |
+| 19  | Add `codec.Transcoder(src, dst Codec)` — convert JSON↔CBOR on the fly  | LOW    | 1h    | none          |
+| 20  | Add migration tool: scan JSON events, re-encode as CBOR                | MED    | 2h    | data change   |
+| 21  | Benchmark: event store with 10k mixed JSON+CBOR events                 | LOW    | 1h    | none          |
+| 22  | Add `cbor:",keyasint"` example to codec/examples                       | LOW    | 30min | none          |
 
 ### v4 Preparation
 
-| # | Task | Impact | Work | Risk |
-|---|------|--------|------|------|
-| 23 | Flip blind store defaults to CBOR in a feature branch | HIGH | 2h | v4 breaking |
-| 24 | Design composite encoding for encryption ("cbor+encrypted") | HIGH | 2h | schema change |
-| 25 | Write migration guide: JSON→CBOR for existing consumers | HIGH | 1h | docs only |
+| #   | Task                                                        | Impact | Work | Risk          |
+| --- | ----------------------------------------------------------- | ------ | ---- | ------------- |
+| 23  | Flip blind store defaults to CBOR in a feature branch       | HIGH   | 2h   | v4 breaking   |
+| 24  | Design composite encoding for encryption ("cbor+encrypted") | HIGH   | 2h   | schema change |
+| 25  | Write migration guide: JSON→CBOR for existing consumers     | HIGH   | 1h   | docs only     |
 
 ---
 
@@ -212,6 +214,7 @@ gets stamped `encoding="encrypted"`. On decode, you must pass the exact same `en
 3. **Migration:** If you want to drop encryption later, you don't know what codec to use for the plaintext
 
 **Options I see but can't decide between:**
+
 - **A:** Composite encoding string: `"cbor+encrypted"` or `"encrypted:cbor"` — expressive but changes the encoding type contract
 - **B:** Keep `"encrypted"` and add a separate `InnerEncoding()` method to the codec — doesn't help the event's stamped encoding
 - **C:** Don't use `encryption.Codec` for event creation at all — use the EncryptMiddleware/DecryptMiddleware path instead, which preserves the original encoding stamp. This is already the documented recommended path in AGENTS.md.
