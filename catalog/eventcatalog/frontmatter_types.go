@@ -83,6 +83,7 @@ type messageFM struct {
 	Owners     []string          `yaml:"owners,omitempty"`
 	Labels     map[string]string `yaml:"labels,omitempty"`
 	Channels   []string          `yaml:"channels,omitempty,flow"`
+	Schemas    []schemaPointerFM `yaml:"schemas,omitempty"`
 	Changelog  []changeFM        `yaml:"changelog,omitempty"`
 	Producers  []pointer         `yaml:"producers,omitempty"`
 	Consumers  []pointer         `yaml:"consumers,omitempty"`
@@ -109,6 +110,7 @@ type serviceFM struct {
 	Repository     *repositoryFM     `yaml:"repository,omitempty"`
 	Specifications []specificationFM `yaml:"specifications,omitempty"`
 	Attachments    []attachmentFM    `yaml:"attachments,omitempty"`
+	baseConfigFM   `yaml:",inline"`
 }
 
 type domainFM struct {
@@ -127,6 +129,7 @@ type domainFM struct {
 	UbiquitousLanguage []ubiquitousLanguageTermFM `yaml:"ubiquitousLanguage,omitempty"`
 	Badges             []badgeFM                  `yaml:"badges,omitempty"`
 	Attachments        []attachmentFM             `yaml:"attachments,omitempty"`
+	baseConfigFM       `yaml:",inline"`
 }
 
 type entityPropertyFM struct {
@@ -149,6 +152,7 @@ type entityFM struct {
 	Properties    []entityPropertyFM `yaml:"properties,omitempty"`
 	Owners        []string           `yaml:"owners,omitempty"`
 	Badges        []badgeFM          `yaml:"badges,omitempty"`
+	Schemas       []schemaPointerFM  `yaml:"schemas,omitempty"`
 	SchemaPath    string             `yaml:"schemaPath,omitempty"`
 }
 
@@ -280,20 +284,90 @@ type flowFM struct {
 	Steps   []flowStepFM `yaml:"steps,omitempty"`
 }
 
+type sourceFM struct {
+	Provider string `yaml:"provider"`
+	ID       string `yaml:"id,omitempty"`
+	URL      string `yaml:"url,omitempty"`
+}
+
 type teamFM struct {
-	ID                    string   `yaml:"id"`
-	Name                  string   `yaml:"name"`
-	Summary               string   `yaml:"summary,omitempty"`
-	Members               []string `yaml:"members,omitempty,flow"`
-	Email                 string   `yaml:"email,omitempty"`
-	SlackDirectMessageURL string   `yaml:"slackDirectMessageUrl,omitempty"`
+	ID                    string    `yaml:"id"`
+	Name                  string    `yaml:"name"`
+	Summary               string    `yaml:"summary,omitempty"`
+	Members               []string  `yaml:"members,omitempty,flow"`
+	Email                 string    `yaml:"email,omitempty"`
+	AvatarURL             string    `yaml:"avatarUrl,omitempty"`
+	Role                  string    `yaml:"role,omitempty"`
+	SlackDirectMessageURL string    `yaml:"slackDirectMessageUrl,omitempty"`
+	Hidden                bool      `yaml:"hidden,omitempty"`
+	ReadOnly              bool      `yaml:"readOnly,omitempty"`
+	Source                *sourceFM `yaml:"source,omitempty"`
 }
 
 type userFM struct {
-	ID                    string `yaml:"id"`
-	Name                  string `yaml:"name"`
-	AvatarURL             string `yaml:"avatarUrl,omitempty"`
-	Role                  string `yaml:"role,omitempty"`
-	Email                 string `yaml:"email,omitempty"`
-	SlackDirectMessageURL string `yaml:"slackDirectMessageUrl,omitempty"`
+	ID                    string    `yaml:"id"`
+	Name                  string    `yaml:"name"`
+	AvatarURL             string    `yaml:"avatarUrl,omitempty"`
+	Role                  string    `yaml:"role,omitempty"`
+	Email                 string    `yaml:"email,omitempty"`
+	SlackDirectMessageURL string    `yaml:"slackDirectMessageUrl,omitempty"`
+	Hidden                bool      `yaml:"hidden,omitempty"`
+	ReadOnly              bool      `yaml:"readOnly,omitempty"`
+	Source                *sourceFM `yaml:"source,omitempty"`
+}
+
+type customDocFM struct {
+	ID      string    `yaml:"id"`
+	Title   string    `yaml:"title"`
+	Summary string    `yaml:"summary,omitempty"`
+	Slug    string    `yaml:"slug,omitempty"`
+	Owners  []string  `yaml:"owners,omitempty"`
+	Badges  []badgeFM `yaml:"badges,omitempty"`
+}
+
+type schemaPointerFM struct {
+	ID      string `yaml:"id,omitempty"`
+	Ref     string `yaml:"$ref,omitempty"`
+	File    string `yaml:"file,omitempty"`
+	Path    string `yaml:"path,omitempty"`
+	Name    string `yaml:"name,omitempty"`
+	Format  string `yaml:"format,omitempty"`
+	Default bool   `yaml:"default,omitempty"`
+}
+
+type sidebarFM struct {
+	Badge string `yaml:"badge,omitempty"`
+	Label string `yaml:"label,omitempty"`
+}
+
+type stylesFM struct {
+	Icon      string `yaml:"icon,omitempty"`
+	NodeColor string `yaml:"nodeColor,omitempty"`
+	NodeLabel string `yaml:"nodeLabel,omitempty"`
+}
+
+type draftFM struct {
+	Title   string `yaml:"title,omitempty"`
+	Message string `yaml:"message,omitempty"`
+}
+
+type resourceGroupFM struct {
+	ID    string   `yaml:"id"`
+	Title string   `yaml:"title"`
+	Items []string `yaml:"items,omitempty,flow"`
+	Limit int      `yaml:"limit,omitempty"`
+}
+
+type detailsPanelFM struct {
+	Sections []string `yaml:"sections,omitempty,flow"`
+}
+
+type baseConfigFM struct {
+	Sidebar        *sidebarFM         `yaml:"sidebar,omitempty"`
+	Styles         *stylesFM          `yaml:"styles,omitempty"`
+	EditUrl        string             `yaml:"editUrl,omitempty"`
+	Draft          *draftFM           `yaml:"draft,omitempty"`
+	Visualiser     *bool              `yaml:"visualiser,omitempty"`
+	ResourceGroups []resourceGroupFM  `yaml:"resourceGroups,omitempty"`
+	DetailsPanel   *detailsPanelFM    `yaml:"detailsPanel,omitempty"`
 }

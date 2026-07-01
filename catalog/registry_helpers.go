@@ -31,6 +31,7 @@ func copyMessage(m Message) Message {
 		Version:     m.Version,
 		Summary:     m.Summary,
 		Schema:      m.Schema,
+		Schemas:     copySlice(m.Schemas),
 		Direction:   m.Direction,
 		Examples:    copySlice(m.Examples),
 		Owners:      copySlice(m.Owners),
@@ -82,6 +83,46 @@ func copyBadges(badges []Badge) []Badge {
 	return copySlice(badges)
 }
 
+func copyBaseConfig(b BaseConfig) BaseConfig {
+	return BaseConfig{
+		Sidebar:        copySidebar(b.Sidebar),
+		Styles:         copyStyles(b.Styles),
+		EditUrl:        b.EditUrl,
+		Draft:          copyDraft(b.Draft),
+		Visualiser:     b.Visualiser,
+		ResourceGroups: copySlice(b.ResourceGroups),
+		DetailsPanel:   copyDetailsPanel(b.DetailsPanel),
+	}
+}
+
+func copySidebar(s *SidebarConfig) *SidebarConfig {
+	if s == nil {
+		return nil
+	}
+	return &SidebarConfig{Badge: s.Badge, Label: s.Label}
+}
+
+func copyStyles(s *StylesConfig) *StylesConfig {
+	if s == nil {
+		return nil
+	}
+	return &StylesConfig{Icon: s.Icon, NodeColor: s.NodeColor, NodeLabel: s.NodeLabel}
+}
+
+func copyDraft(d *DraftConfig) *DraftConfig {
+	if d == nil {
+		return nil
+	}
+	return &DraftConfig{Title: d.Title, Message: d.Message}
+}
+
+func copyDetailsPanel(d *DetailsPanelConfig) *DetailsPanelConfig {
+	if d == nil {
+		return nil
+	}
+	return &DetailsPanelConfig{Sections: copySlice(d.Sections)}
+}
+
 func copyMap[K comparable, V any](m map[K]V) map[K]V {
 	if m == nil {
 		return nil
@@ -109,6 +150,7 @@ func copyService(s *Service) Service {
 		Specifications: copySlice(s.Specifications),
 		Attachments:    copySlice(s.Attachments),
 		ExternalSystem: s.ExternalSystem,
+		BaseConfig:     copyBaseConfig(s.BaseConfig),
 	}
 }
 
@@ -129,6 +171,7 @@ func copyDomain(d *Domain) Domain {
 		UbiquitousLanguage: copyUbiquitousLanguage(d.UbiquitousLanguage),
 		SubDomains:         copySlice(d.SubDomains),
 		DataProducts:       copySlice(d.DataProducts),
+		BaseConfig:         copyBaseConfig(d.BaseConfig),
 	}
 }
 

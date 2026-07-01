@@ -27,6 +27,27 @@
 //
 //	b, err := sqlite.New("log.db", sqlite.WithOptimizations())
 //
+// # Filesystem Considerations
+//
+// WAL mode relies on mmap and file locking that behave differently across
+// filesystems. The default (WAL enabled) is correct for local filesystems.
+//
+//	| Filesystem | WAL support | Notes                                                  |
+//	| ---------- | ----------- | ------------------------------------------------------ |
+//	| ext4/xfs   | Full        | No special action.                                     |
+//	| ZFS        | Full        | Honors fsync correctly; one of the safest choices.     |
+//	| btrfs      | Works       | CoW fragments the WAL under append-heavy load. Set     |
+//	|            |             | NOCOW (chattr +C) on the DB directory before creating  |
+//	|            |             | the database to avoid fragmentation. Tradeoff: that    |
+//	|            |             | directory is excluded from btrfs snapshots.            |
+//	| NFS/SMB    | Broken      | mmap + locking unreliable. Use [WithoutWAL].           |
+//
+// NOCOW only takes effect on an empty file or directory, so set it before
+// creating the database:
+//
+//	mkdir /var/lib/myapp && chattr +C /var/lib/myapp
+//	b, err := sqlite.New("/var/lib/myapp/log.db")
+//
 // # Multi-Database Topology
 //
 // Split concerns across separate database files to eliminate reader/writer

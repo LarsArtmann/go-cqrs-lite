@@ -164,6 +164,19 @@ func (e *Exporter) Export(cat *catalog.Catalog) error {
 		}
 	}
 
+	for _, doc := range enriched.CustomDocs {
+		err := e.writeCustomDoc(doc)
+		if err != nil {
+			return errorfamily.Newf(
+				errorfamily.Infrastructure,
+				"catalog.exporter.18",
+				"write custom doc %s: %v",
+				doc.ID,
+				err,
+			)
+		}
+	}
+
 	err := e.writeConfig(cat)
 	if err != nil {
 		return errorfamily.Newf(
@@ -258,6 +271,7 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 		Repository:     toRepository(svc.Repository),
 		Specifications: toSpecifications(svc.Specifications),
 		Attachments:    toAttachments(svc.Attachments),
+		baseConfigFM:   toBaseConfig(svc.BaseConfig),
 	}
 
 	content, err := renderMDX(fm, string(svc.Name), string(svc.Summary), true)
@@ -316,6 +330,7 @@ func (e *Exporter) writeDomain(domain catalog.Domain) error {
 		UbiquitousLanguage: toUbiquitousLanguage(domain.UbiquitousLanguage),
 		Badges:             toBadges(domain.Badges),
 		Attachments:        toAttachments(domain.Attachments),
+		baseConfigFM:       toBaseConfig(domain.BaseConfig),
 	}
 
 	content, err := renderMDX(fm, string(domain.Name), string(domain.Summary), true)

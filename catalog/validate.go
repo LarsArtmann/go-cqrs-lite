@@ -65,6 +65,23 @@ func (c *Catalog) Validate() []Violation {
 		violations = append(violations, validateAgent(agent)...)
 	}
 
+	for _, doc := range c.CustomDocs {
+		violations = append(violations, validateCustomDoc(doc)...)
+	}
+
+	return violations
+}
+
+func validateCustomDoc(doc CustomDoc) []Violation {
+	var violations []Violation
+
+	if doc.ID == "" {
+		violations = append(violations, Violation{
+			Path:    fmt.Sprintf("customDocs[%s].id", doc.Title),
+			Message: "custom doc ID must not be empty",
+		})
+	}
+
 	return violations
 }
 

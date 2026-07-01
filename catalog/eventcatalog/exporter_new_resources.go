@@ -27,6 +27,7 @@ func (e *Exporter) writeEntity(entity catalog.Entity) error {
 		Properties:    toEntityProperties(entity.Properties),
 		Owners:        entity.Owners,
 		Badges:        toBadges(entity.Badges),
+		Schemas:       toSchemas(entity.Schemas),
 	}
 
 	if entity.Schema != nil {

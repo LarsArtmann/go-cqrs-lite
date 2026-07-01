@@ -67,3 +67,16 @@ func WalkAgents(cat *Catalog, fn WalkAgentFn) {
 		}
 	}
 }
+
+// WalkCustomDocFn is called for each custom doc in the catalog.
+type WalkCustomDocFn func(doc CustomDoc) bool
+
+// WalkCustomDocs iterates all custom docs in the catalog.
+// Stops early if fn returns false.
+func WalkCustomDocs(cat *Catalog, fn WalkCustomDocFn) {
+	for _, doc := range cat.CustomDocs {
+		if !fn(doc) {
+			return
+		}
+	}
+}

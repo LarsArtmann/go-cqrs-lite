@@ -26,6 +26,7 @@ type Entity struct {
 	Version       Version          `json:"version"`
 	Summary       Summary          `json:"summary,omitempty"`
 	Schema        *Schema          `json:"schema,omitempty"`
+	Schemas       []SchemaPointer  `json:"schemas,omitempty"`
 	AggregateRoot bool             `json:"aggregateRoot,omitempty"`
 	Identifier    string           `json:"identifier,omitempty"`
 	Properties    []EntityProperty `json:"properties,omitempty"`
@@ -173,6 +174,68 @@ type FlowEdge struct {
 	Label string     `json:"label,omitempty"`
 }
 
+// SchemaPointer references a schema file by path, format, and optional environment.
+type SchemaPointer struct {
+	ID          string `json:"id,omitempty"`
+	Ref         string `json:"$ref,omitempty"`
+	File        string `json:"file,omitempty"`
+	Path        string `json:"path,omitempty"`
+	Name        Name   `json:"name,omitempty"`
+	Format      string `json:"format,omitempty"`
+	Default     bool   `json:"default,omitempty"`
+}
+
+// SidebarConfig customizes how a resource appears in EventCatalog's sidebar.
+type SidebarConfig struct {
+	Badge string `json:"badge,omitempty"`
+	Label string `json:"label,omitempty"`
+}
+
+// StylesConfig customizes visual styling for a resource in EventCatalog.
+type StylesConfig struct {
+	Icon     string `json:"icon,omitempty"`
+	NodeColor string `json:"nodeColor,omitempty"`
+	NodeLabel string `json:"nodeLabel,omitempty"`
+}
+
+// DraftConfig marks a resource as draft with a title and message.
+type DraftConfig struct {
+	Title   string `json:"title,omitempty"`
+	Message string `json:"message,omitempty"`
+}
+
+// ResourceGroup groups related resources in EventCatalog's UI.
+type ResourceGroup struct {
+	ID    string   `json:"id"`
+	Title string   `json:"title"`
+	Items []string `json:"items,omitempty"`
+	Limit int      `json:"limit,omitempty"`
+}
+
+// DetailsPanelConfig controls visibility of detail panel sections.
+type DetailsPanelConfig struct {
+	Sections []string `json:"sections,omitempty"`
+}
+
+// BaseConfig holds shared EventCatalog UI configuration fields.
+// Embedded in Service and Domain for convenience.
+type BaseConfig struct {
+	Sidebar        *SidebarConfig    `json:"sidebar,omitempty"`
+	Styles         *StylesConfig     `json:"styles,omitempty"`
+	EditUrl        string            `json:"editUrl,omitempty"`
+	Draft          *DraftConfig      `json:"draft,omitempty"`
+	Visualiser     *bool             `json:"visualiser,omitempty"`
+	ResourceGroups []ResourceGroup   `json:"resourceGroups,omitempty"`
+	DetailsPanel   *DetailsPanelConfig `json:"detailsPanel,omitempty"`
+}
+
+// Source represents an external system that syncs ownership data (GitHub, Azure AD, etc.).
+type Source struct {
+	Provider string `json:"provider"`
+	ID       string `json:"id,omitempty"`
+	URL      URL    `json:"url,omitempty"`
+}
+
 // Team represents a team that owns catalog resources.
 type Team struct {
 	ID                    TeamID   `json:"id"`
@@ -180,17 +243,25 @@ type Team struct {
 	Summary               Summary  `json:"summary,omitempty"`
 	Members               []string `json:"members,omitempty"`
 	Email                 Email    `json:"email,omitempty"`
+	AvatarURL             URL      `json:"avatarUrl,omitempty"`
+	Role                  Role     `json:"role,omitempty"`
 	SlackDirectMessageURL URL      `json:"slackDirectMessageUrl,omitempty"`
+	Hidden                bool     `json:"hidden,omitempty"`
+	ReadOnly              bool     `json:"readOnly,omitempty"`
+	Source                *Source  `json:"source,omitempty"`
 }
 
 // User represents an individual who owns catalog resources.
 type User struct {
-	ID                    UserID `json:"id"`
-	Name                  Name   `json:"name"`
-	AvatarURL             URL    `json:"avatarUrl,omitempty"`
-	Role                  Role   `json:"role,omitempty"`
-	Email                 Email  `json:"email,omitempty"`
-	SlackDirectMessageURL URL    `json:"slackDirectMessageUrl,omitempty"`
+	ID                    UserID  `json:"id"`
+	Name                  Name    `json:"name"`
+	AvatarURL             URL     `json:"avatarUrl,omitempty"`
+	Role                  Role    `json:"role,omitempty"`
+	Email                 Email   `json:"email,omitempty"`
+	SlackDirectMessageURL URL     `json:"slackDirectMessageUrl,omitempty"`
+	Hidden                bool    `json:"hidden,omitempty"`
+	ReadOnly              bool    `json:"readOnly,omitempty"`
+	Source                *Source `json:"source,omitempty"`
 }
 
 // CustomDoc represents a global custom documentation page (ADRs, architecture docs, etc.).

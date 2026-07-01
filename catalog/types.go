@@ -128,6 +128,7 @@ type Message struct {
 	Version     Version           `json:"version"`
 	Summary     Summary           `json:"summary,omitempty"`
 	Schema      *Schema           `json:"schema,omitempty"`
+	Schemas     []SchemaPointer   `json:"schemas,omitempty"`
 	Direction   Direction         `json:"direction"`
 	Examples    []json.RawMessage `json:"examples,omitempty"`
 	Owners      []string          `json:"owners,omitempty"`
@@ -161,6 +162,7 @@ type Service struct {
 	Specifications []Specification `json:"specifications,omitempty"`
 	Attachments    []Attachment    `json:"attachments,omitempty"`
 	ExternalSystem bool            `json:"externalSystem,omitempty"`
+	BaseConfig
 }
 
 type Domain struct {
@@ -179,6 +181,7 @@ type Domain struct {
 	UbiquitousLanguage []UbiquitousLanguageTerm `json:"ubiquitousLanguage,omitempty"`
 	SubDomains         []DomainID               `json:"subDomains,omitempty"`
 	DataProducts       []DataProductID          `json:"dataProducts,omitempty"`
+	BaseConfig
 }
 
 type Channel struct {

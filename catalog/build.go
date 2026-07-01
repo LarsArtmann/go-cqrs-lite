@@ -118,6 +118,11 @@ func (b *Builder) AddAgent(agent Agent) {
 	b.registry.AddAgent(agent)
 }
 
+// AddCustomDoc registers a custom documentation page in the catalog.
+func (b *Builder) AddCustomDoc(doc CustomDoc) {
+	b.registry.AddCustomDoc(doc)
+}
+
 // Build returns the immutable Catalog with all registered entries.
 func (b *Builder) Build() *Catalog {
 	return b.registry.Build()

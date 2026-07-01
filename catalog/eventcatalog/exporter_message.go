@@ -31,6 +31,7 @@ func (e *Exporter) writeMessage(
 		Owners:     msg.Owners,
 		Labels:     msg.Labels,
 		Channels:   channelIDsToStrings(msg.Channels),
+		Schemas:    toSchemas(msg.Schemas),
 		Changelog:  toChangelog(msg.Changelog),
 		Producers:  toPointers(msg.Producers),
 		Consumers:  toPointers(msg.Consumers),

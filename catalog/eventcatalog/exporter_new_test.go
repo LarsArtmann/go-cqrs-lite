@@ -239,6 +239,117 @@ func TestExporter_Export_User(t *testing.T) {
 	assertContains(t, content, "role: Senior Engineer")
 }
 
+func TestExporter_Export_ServiceWithBaseConfig(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	visualiser := false
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddService(catalog.Service{
+		ID: "svc", Name: "Service", Version: "1.0.0",
+		BaseConfig: catalog.BaseConfig{
+			EditUrl:    "https://github.com/org/repo/edit/main/svc.mdx",
+			Visualiser: &visualiser,
+			Sidebar:    &catalog.SidebarConfig{Badge: "v2", Label: "MySvc"},
+			Styles:     &catalog.StylesConfig{Icon: "server", NodeColor: "blue"},
+			Draft:      &catalog.DraftConfig{Title: "WIP", Message: "Do not use yet"},
+			ResourceGroups: []catalog.ResourceGroup{
+				{ID: "rg1", Title: "Group 1", Limit: 5},
+			},
+		},
+	})
+
+	cat := reg.Build()
+	exp := NewExporter(tmpDir)
+	if err := exp.Export(cat); err != nil {
+		t.Fatal(err)
+	}
+
+	path := filepath.Join(tmpDir, "services", "svc", "index.mdx")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read service file: %v", err)
+	}
+
+	content := string(data)
+	assertContains(t, content, "editUrl: https://github.com/org/repo/edit/main/svc.mdx")
+	assertContains(t, content, "visualiser: false")
+	assertContains(t, content, "badge: v2")
+	assertContains(t, content, "label: MySvc")
+	assertContains(t, content, "icon: server")
+	assertContains(t, content, "nodeColor: blue")
+	assertContains(t, content, "title: WIP")
+}
+
+func TestExporter_Export_TeamWithSource(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddTeam(catalog.Team{
+		ID:       "platform-team",
+		Name:     "Platform",
+		Hidden:   true,
+		ReadOnly: true,
+		Source: &catalog.Source{
+			Provider: "github",
+			ID:       "org/platform",
+		},
+	})
+
+	cat := reg.Build()
+	exp := NewExporter(tmpDir)
+	if err := exp.Export(cat); err != nil {
+		t.Fatal(err)
+	}
+
+	path := filepath.Join(tmpDir, "teams", "platform-team.mdx")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read team file: %v", err)
+	}
+
+	content := string(data)
+	assertContains(t, content, "id: platform-team")
+	assertContains(t, content, "hidden: true")
+	assertContains(t, content, "readOnly: true")
+	assertContains(t, content, "provider: github")
+}
+
+func TestExporter_Export_UserWithSource(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddUser(catalog.User{
+		ID:       "bob",
+		Name:     "Bob Jones",
+		Hidden:   true,
+		ReadOnly: true,
+		Source: &catalog.Source{
+			Provider: "azure-ad",
+			ID:       "bob@company.com",
+		},
+	})
+
+	cat := reg.Build()
+	exp := NewExporter(tmpDir)
+	if err := exp.Export(cat); err != nil {
+		t.Fatal(err)
+	}
+
+	path := filepath.Join(tmpDir, "users", "bob.mdx")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read user file: %v", err)
+	}
+
+	content := string(data)
+	assertContains(t, content, "id: bob")
+	assertContains(t, content, "hidden: true")
+	assertContains(t, content, "provider: azure-ad")
+}
+
 func TestExporter_Export_ServiceWithBadges(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()

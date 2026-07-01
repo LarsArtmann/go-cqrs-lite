@@ -105,7 +105,12 @@ func copyTeam(t *Team) Team {
 		Summary:               t.Summary,
 		Members:               copySlice(t.Members),
 		Email:                 t.Email,
+		AvatarURL:             t.AvatarURL,
+		Role:                  t.Role,
 		SlackDirectMessageURL: t.SlackDirectMessageURL,
+		Hidden:                t.Hidden,
+		ReadOnly:              t.ReadOnly,
+		Source:                copySource(t.Source),
 	}
 }
 
@@ -117,7 +122,18 @@ func copyUser(u *User) User {
 		Role:                  u.Role,
 		Email:                 u.Email,
 		SlackDirectMessageURL: u.SlackDirectMessageURL,
+		Hidden:                u.Hidden,
+		ReadOnly:              u.ReadOnly,
+		Source:                copySource(u.Source),
 	}
+}
+
+func copySource(s *Source) *Source {
+	if s == nil {
+		return nil
+	}
+
+	return &Source{Provider: s.Provider, ID: s.ID, URL: s.URL}
 }
 
 func copyEntity(e *Entity) Entity {
@@ -127,6 +143,7 @@ func copyEntity(e *Entity) Entity {
 		Version:       e.Version,
 		Summary:       e.Summary,
 		Schema:        e.Schema,
+		Schemas:       copySlice(e.Schemas),
 		AggregateRoot: e.AggregateRoot,
 		Identifier:    e.Identifier,
 		Properties:    copyEntityProperties(e.Properties),

@@ -49,7 +49,12 @@ func (e *Exporter) writeTeam(team catalog.Team) error {
 		Summary:               string(team.Summary),
 		Members:               team.Members,
 		Email:                 string(team.Email),
+		AvatarURL:             string(team.AvatarURL),
+		Role:                  string(team.Role),
 		SlackDirectMessageURL: string(team.SlackDirectMessageURL),
+		Hidden:                team.Hidden,
+		ReadOnly:              team.ReadOnly,
+		Source:                toSource(team.Source),
 	}
 
 	content, err := renderMDX(fm, string(team.Name), "", false)
@@ -76,6 +81,9 @@ func (e *Exporter) writeUser(user catalog.User) error {
 		Role:                  string(user.Role),
 		Email:                 string(user.Email),
 		SlackDirectMessageURL: string(user.SlackDirectMessageURL),
+		Hidden:                user.Hidden,
+		ReadOnly:              user.ReadOnly,
+		Source:                toSource(user.Source),
 	}
 
 	content, err := renderMDX(fm, string(user.Name), "", false)

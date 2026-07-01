@@ -310,6 +310,45 @@ func toFlowSteps(steps []catalog.FlowStep) []flowStepFM {
 	return out
 }
 
+func toBaseConfig(b catalog.BaseConfig) baseConfigFM {
+	var fm baseConfigFM
+	if b.Sidebar != nil {
+		fm.Sidebar = &sidebarFM{Badge: b.Sidebar.Badge, Label: b.Sidebar.Label}
+	}
+	if b.Styles != nil {
+		fm.Styles = &stylesFM{Icon: b.Styles.Icon, NodeColor: b.Styles.NodeColor, NodeLabel: b.Styles.NodeLabel}
+	}
+	fm.EditUrl = b.EditUrl
+	if b.Draft != nil {
+		fm.Draft = &draftFM{Title: b.Draft.Title, Message: b.Draft.Message}
+	}
+	fm.Visualiser = b.Visualiser
+	if len(b.ResourceGroups) > 0 {
+		fm.ResourceGroups = make([]resourceGroupFM, len(b.ResourceGroups))
+		for i, rg := range b.ResourceGroups {
+			fm.ResourceGroups[i] = resourceGroupFM{
+				ID: rg.ID, Title: rg.Title, Items: rg.Items, Limit: rg.Limit,
+			}
+		}
+	}
+	if b.DetailsPanel != nil {
+		fm.DetailsPanel = &detailsPanelFM{Sections: b.DetailsPanel.Sections}
+	}
+	return fm
+}
+
+func toSource(s *catalog.Source) *sourceFM {
+	if s == nil {
+		return nil
+	}
+
+	return &sourceFM{
+		Provider: s.Provider,
+		ID:       s.ID,
+		URL:      string(s.URL),
+	}
+}
+
 func toDeprecated(deprecated bool, info *catalog.DeprecationInfo) any {
 	if info != nil {
 		fm := deprecationFM{Message: info.Message}
@@ -361,6 +400,22 @@ func toDataProductOutputs(outputs []catalog.DataProductOutput) []dataProductOutp
 		}
 
 		out[i] = fm
+	}
+
+	return out
+}
+
+func toSchemas(schemas []catalog.SchemaPointer) []schemaPointerFM {
+	if len(schemas) == 0 {
+		return nil
+	}
+
+	out := make([]schemaPointerFM, len(schemas))
+	for i, s := range schemas {
+		out[i] = schemaPointerFM{
+			ID: s.ID, Ref: s.Ref, File: s.File, Path: s.Path,
+			Name: string(s.Name), Format: s.Format, Default: s.Default,
+		}
 	}
 
 	return out

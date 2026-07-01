@@ -186,6 +186,82 @@ func TestExporter_MessageWithChannels(t *testing.T) {
 	)
 }
 
+func TestExporter_MessageWithSchemas(t *testing.T) {
+	t.Parallel()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddService(catalog.Service{
+		ID:      "svc",
+		Name:    "Service",
+		Version: "1.0.0",
+		Commands: []catalog.Message{
+			{
+				Kind:    catalog.CommandMessage,
+				ID:      "create-order",
+				Name:    "CreateOrder",
+				Version: "1.0.0",
+				Schemas: []catalog.SchemaPointer{
+					{Path: "schemas/asyncapi.yaml", Format: "asyncapi", Default: true},
+					{Path: "schemas/openapi.yaml", Format: "openapi"},
+				},
+			},
+		},
+	})
+
+	tmpDir := exportCatalog(t, reg)
+	content := readExported(t, tmpDir, "services", "svc", "commands", "create-order", "index.mdx")
+
+	cattest.AssertContentContains(t, content, "message with schemas",
+		"schemas:",
+		"format: asyncapi",
+		"default: true",
+		"format: openapi",
+	)
+}
+
+func TestExporter_CustomDoc(t *testing.T) {
+	t.Parallel()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddCustomDoc(catalog.CustomDoc{
+		ID:      "adr-001",
+		Title:   "ADR-001: Use Event Sourcing",
+		Summary: "Decision to adopt event sourcing",
+		Slug:    "adrs/adr-001",
+		Content: "## Context\nWe need an audit trail.\n## Decision\nEvent sourcing.",
+		Owners:  []string{"arch-team"},
+	})
+
+	tmpDir := exportCatalog(t, reg)
+	content := readExported(t, tmpDir, "docs", "adrs", "adr-001", "index.mdx")
+
+	cattest.AssertContentContains(
+		t, content, "custom doc mdx",
+		"id: adr-001",
+		"title: 'ADR-001: Use Event Sourcing'",
+		"slug: adrs/adr-001",
+		"Event sourcing",
+	)
+}
+
+func TestExporter_CustomDocDefaultSlug(t *testing.T) {
+	t.Parallel()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddCustomDoc(catalog.CustomDoc{
+		ID:    "architecture",
+		Title: "Architecture Overview",
+	})
+
+	tmpDir := exportCatalog(t, reg)
+	content := readExported(t, tmpDir, "docs", "architecture", "index.mdx")
+
+	cattest.AssertContentContains(t, content, "custom doc default slug",
+		"id: architecture",
+		"# Architecture Overview",
+	)
+}
+
 func TestExporter_EntityWithProperties(t *testing.T) {
 	t.Parallel()
 

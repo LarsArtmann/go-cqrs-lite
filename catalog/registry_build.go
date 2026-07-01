@@ -17,5 +17,6 @@ func (r *Registry) Build() *Catalog {
 		Entities:     sortedCopy(r.entities, copyEntity),
 		DataProducts: sortedCopy(r.dataProducts, copyDataProduct),
 		Agents:       sortedCopy(r.agents, copyAgent),
+		CustomDocs:   sortedCopy(r.customDocs, copyCustomDoc),
 	}
 }

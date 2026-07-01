@@ -167,16 +167,17 @@ The exporter supports all EventCatalog resource types:
 
 | Resource      | Exported To                    | Notes                                                                    |
 | ------------- | ------------------------------ | ------------------------------------------------------------------------ |
-| Services      | `services/<id>/index.mdx`      | With messages, specs, data stores, external flag                         |
-| Domains       | `domains/<id>/index.mdx`       | With ubiquitous language, sub-domains, data products                     |
-| Entities      | `entities/<id>/index.mdx`      | First-class domain entities with schemas                                 |
-| Data Products | `data-products/<id>/index.mdx` | Data mesh products with inputs/outputs                                   |
+| Services      | `services/<id>/index.mdx`      | With messages, specs, data stores, external flag, base config (sidebar, styles, editUrl, draft, visualiser) |
+| Domains       | `domains/<id>/index.mdx`       | With ubiquitous language, sub-domains, data products, base config        |
+| Entities      | `entities/<id>/index.mdx`      | DDD entities: aggregateRoot, identifier, properties with references/relationTypes |
+| Data Products | `data-products/<id>/index.mdx` | Data mesh products with inputs/outputs, output contracts, hidden flag    |
 | Agents        | `agents/<id>/index.mdx`        | AI agents with sends/receives, model, tools, data stores                 |
-| Channels      | `channels/<id>/index.mdx`      | With protocols, parameters, routes                                       |
-| Data Stores   | `data/<id>/index.mdx`          | Databases, caches with classification                                    |
+| Channels      | `channels/<id>/index.mdx`      | With protocols, parameters, routes, delivery guarantees                  |
+| Data Stores   | `data/<id>/index.mdx`          | Databases/caches with authoritative, accessMode, classification          |
 | Flows         | `flows/<id>/index.mdx`         | All step types: service, message, agent, dataStore, dataProduct, subFlow |
-| Teams         | `teams/<id>.mdx`               | Ownership metadata                                                       |
-| Users         | `users/<id>.mdx`               | Individual owners                                                        |
+| Teams         | `teams/<id>.mdx`               | With external source sync, hidden, readOnly                              |
+| Users         | `users/<id>.mdx`               | With external source sync, hidden, readOnly                              |
+| Custom Docs   | `docs/<slug>/index.mdx`        | Global documentation pages (ADRs, architecture docs)                     |
 
 #### DDD Ubiquitous Language
 
@@ -202,7 +203,14 @@ builder.ConfigureService("stripe", catalog.ServiceExternalSystem())
 #### Entities, Data Products, Agents
 
 ```go
-builder.AddEntity(catalog.Entity{ID: "order", Name: "Order", Version: "1.0.0",
+builder.AddEntity(catalog.Entity{
+    ID: "order", Name: "Order", Version: "1.0.0",
+    AggregateRoot: true,
+    Identifier:    "orderId",
+    Properties: []catalog.EntityProperty{
+        {Name: "orderId", Type: "string", Required: true},
+        {Name: "customerId", Type: "string", References: "Customer", RelationType: "many-to-one"},
+    },
     Schema: catalog.SchemaFromType[Order]()})
 
 builder.AddDataProduct(catalog.DataProduct{ID: "metrics", Name: "Metrics", Version: "1.0.0",
@@ -235,6 +243,47 @@ builder.AddFlow(catalog.Flow{
             NextStep: &catalog.FlowEdge{ID: "3"}},
         {ID: "3", Title: "Publish metrics", DataProduct: &catalog.FlowStepRef{ID: "sales-data"}},
     },
+})
+```
+
+#### Custom Documentation Pages
+
+```go
+builder.AddCustomDoc(catalog.CustomDoc{
+    ID:      "adr-001",
+    Title:   "ADR-001: Event Sourcing",
+    Summary: "Why we chose event sourcing",
+    Slug:    "adrs/adr-001",
+    Content: "## Decision\nWe adopted event sourcing for auditability.",
+})
+```
+
+#### Message Deprecation
+
+```go
+// Simple boolean deprecation
+reg.AddEvent("svc", catalog.Message{
+    ID: "old-event", Name: "OldEvent", Version: "1.0.0",
+    Deprecated: true,
+})
+
+// Structured deprecation with date and message
+reg.AddEvent("svc", catalog.Message{
+    ID: "old-event", Name: "OldEvent", Version: "1.0.0",
+    Deprecation: &catalog.DeprecationInfo{
+        Date:    &time.Now(),
+        Message: "Use new-event instead",
+    },
+})
+```
+
+#### External Team/User Sync
+
+```go
+builder.AddUser(catalog.User{
+    ID: "alice", Name: "Alice",
+    Source: &catalog.Source{Provider: "github", ID: "alice@org"},
+    ReadOnly: true,
 })
 ```
 
@@ -313,6 +362,7 @@ type UserID string        // catalog.UserID
 type EntityID string      // catalog.EntityID
 type DataProductID string // catalog.DataProductID
 type AgentID string       // catalog.AgentID
+type CustomDocID string   // catalog.CustomDocID
 ```
 
 ## Dependencies
