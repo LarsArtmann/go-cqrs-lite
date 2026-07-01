@@ -66,14 +66,33 @@ func TestAutoDetect_CBOR(t *testing.T) {
 	}
 }
 
-func TestAutoDetect_UnknownIsRaw(t *testing.T) {
+func TestAutoDetect_HighBytesAreCBOR(t *testing.T) {
 	t.Parallel()
 
-	// Random bytes that are neither valid JSON nor CBOR
-	got := AutoDetect([]byte{0xff, 0xee, 0xdd})
-	// 0xff is major type 7 → CBOR path, but invalid CBOR → falls through to Raw
-	if got != EncodingRaw && got != EncodingCBOR {
-		t.Errorf("AutoDetect(garbage) = %q, expected Raw or CBOR", got)
+	// Bytes >= 0x80 are CBOR major types 4-7 and never start valid JSON.
+	// AutoDetect returns CBOR even if the full payload is invalid CBOR —
+	// it identifies the encoding family, not validity (documented behavior).
+	cases := [][]byte{
+		{0xff, 0xee, 0xdd}, // major type 7
+		{0xa0},             // empty map
+		{0x9f},             // stream array start
+	}
+
+	for _, data := range cases {
+		if got := AutoDetect(data); got != EncodingCBOR {
+			t.Errorf("AutoDetect(%v) = %q, want %q (first byte >= 0x80)", data, got, EncodingCBOR)
+		}
+	}
+}
+
+func TestAutoDetect_GenuinelyUnknownIsRaw(t *testing.T) {
+	t.Parallel()
+
+	// 0x1f is below 0x80, not a JSON structural start, not a valid JSON
+	// token start, and not valid standalone CBOR → AutoDetect returns Raw.
+	data := []byte{0x1f}
+	if got := AutoDetect(data); got != EncodingRaw {
+		t.Errorf("AutoDetect(%v) = %q, want %q", data, got, EncodingRaw)
 	}
 }
 

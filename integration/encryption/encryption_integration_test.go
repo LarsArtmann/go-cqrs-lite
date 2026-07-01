@@ -201,3 +201,81 @@ func TestEncryptMiddleware_DetectsAlgorithm_Integration(t *testing.T) {
 		t.Fatalf("expected key-id 'aes-key-1', got %q", keyID)
 	}
 }
+
+func TestEncryptDecrypt_CBOREventPreservesEncoding(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	bus := eventtest.NewFakeBus()
+	defer bus.Close()
+
+	key := make([]byte, 32)
+	for i := range key {
+		key[i] = byte(i)
+	}
+
+	enc, _ := encryption.NewAES256GCM(key)
+
+	_ = bus.UsePublish(encryption.EncryptMiddleware(enc))
+	_ = bus.Use(encryption.DecryptMiddleware(enc))
+
+	type userData struct {
+		Name  string `json:"name"`
+		Email string `json:"email"`
+	}
+
+	var received event.Event
+
+	_ = bus.Subscribe("user.created", func(_ context.Context, evt event.Event) error {
+		received = evt
+
+		return nil
+	})
+
+	// Create a CBOR-encoded event.
+	aggID := id.NewAggregateID()
+
+	evt, err := event.New(
+		"user.created", aggID, "User", 1,
+		userData{Name: "Alice", Email: "alice@test.com"},
+		event.WithCodec(codec.CBORCodec{}),
+	)
+	if err != nil {
+		t.Fatalf("create event: %v", err)
+	}
+
+	if evt.Encoding() != codec.EncodingCBOR {
+		t.Fatalf("pre-publish encoding = %s, want cbor", evt.Encoding())
+	}
+
+	if err := bus.Publish(ctx, evt); err != nil {
+		t.Fatalf("publish: %v", err)
+	}
+
+	time.Sleep(50 * time.Millisecond)
+
+	if received == nil {
+		t.Fatal("no event received")
+	}
+
+	// Encoding must survive the encrypt→decrypt round-trip.
+	if received.Encoding() != codec.EncodingCBOR {
+		t.Fatalf("post-decrypt encoding = %s, want cbor (encoding must survive encryption)",
+			received.Encoding())
+	}
+
+	// DecodePayloadAuto dispatches based on the encoding stamp — CBOR event
+	// must decode with CBOR, not JSON.
+	decoded, err := event.DecodePayloadAuto[userData](received)
+	if err != nil {
+		t.Fatalf("DecodePayloadAuto: %v", err)
+	}
+
+	if decoded.Name != "Alice" || decoded.Email != "alice@test.com" {
+		t.Errorf("decoded = %+v, want {Alice alice@test.com}", decoded)
+	}
+
+	if encryption.HasEncryption(received) {
+		t.Error("decrypted event should not carry encryption metadata")
+	}
+}
