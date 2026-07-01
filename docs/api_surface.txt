@@ -278,6 +278,7 @@ codec/func AutoDetect
 codec/func CBORDecMode
 codec/func CBOREncMode
 codec/func Diagnose
+codec/func ForEncoding
 codec/func NewCBORDecoder
 codec/func NewCBOREncoder
 codec/func Size
@@ -309,6 +310,7 @@ codec/struct RawCodec
 codec/type Encoding
 codec/var ErrDecodeRawType
 codec/var ErrEncodeRawType
+codec/var ErrUnknownEncoding
 command/func EnsureCustom
 command/func New
 command/func NewAggregateRef
@@ -634,6 +636,7 @@ event/func CommandCausalityFromContext
 event/func CompositeEnricher
 event/func DecodeBase64String
 event/func DecodePayload
+event/func DecodePayloadAuto
 event/func DecodePayloads
 event/func DetectTombstone
 event/func EnsureCustom
