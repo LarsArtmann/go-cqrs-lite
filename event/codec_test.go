@@ -478,3 +478,115 @@ func TestDefaultCodec_ExplicitWithCodecOverrides(t *testing.T) {
 			evt.Encoding(), codecpkg.EncodingJSON)
 	}
 }
+
+func TestDecodePayloadAuto_JSONEvent(t *testing.T) {
+	t.Parallel()
+
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+
+	evt, err := event.New(
+		"UserCreated", aggID, "User", 1,
+		struct{ Name string }{Name: "Alice"},
+		event.WithCodec(codecpkg.JSONCodec{}),
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	got, err := event.DecodePayloadAuto[struct{ Name string }](evt)
+	if err != nil {
+		t.Fatalf("DecodePayloadAuto: %v", err)
+	}
+
+	if got.Name != "Alice" {
+		t.Errorf("Name = %q, want Alice", got.Name)
+	}
+}
+
+func TestDecodePayloadAuto_CBOREvent(t *testing.T) {
+	t.Parallel()
+
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+
+	evt, err := event.New(
+		"UserCreated", aggID, "User", 1,
+		struct{ Name string }{Name: "Bob"},
+		event.WithCodec(codecpkg.CBORCodec{}),
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	got, err := event.DecodePayloadAuto[struct{ Name string }](evt)
+	if err != nil {
+		t.Fatalf("DecodePayloadAuto: %v", err)
+	}
+
+	if got.Name != "Bob" {
+		t.Errorf("Name = %q, want Bob", got.Name)
+	}
+}
+
+func TestDecodePayloadAuto_MixedStream(t *testing.T) {
+	t.Parallel()
+
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	type user struct{ Name string }
+
+	jsonEvt, err := event.New(
+		"UserCreated", aggID, "User", 1, user{Name: "JSON"},
+		event.WithCodec(codecpkg.JSONCodec{}),
+	)
+	if err != nil {
+		t.Fatalf("New JSON: %v", err)
+	}
+
+	cborEvt, err := event.New(
+		"UserUpdated", aggID, "User", 2, user{Name: "CBOR"},
+		event.WithCodec(codecpkg.CBORCodec{}),
+	)
+	if err != nil {
+		t.Fatalf("New CBOR: %v", err)
+	}
+
+	for _, tc := range []struct {
+		name string
+		evt  event.Event
+		want string
+	}{
+		{"JSON event", jsonEvt, "JSON"},
+		{"CBOR event", cborEvt, "CBOR"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := event.DecodePayloadAuto[user](tc.evt)
+			if err != nil {
+				t.Fatalf("DecodePayloadAuto: %v", err)
+			}
+
+			if got.Name != tc.want {
+				t.Errorf("Name = %q, want %q", got.Name, tc.want)
+			}
+		})
+	}
+}
+
+func TestDecodePayloadAuto_UnknownEncodingErrors(t *testing.T) {
+	t.Parallel()
+
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+
+	evt, err := event.NewEvent(
+		"UserCreated", aggID, "User", 1, []byte(`{"name":"test"}`),
+		event.WithEncoding(codecpkg.Encoding("encrypted")),
+	)
+	if err != nil {
+		t.Fatalf("NewEvent: %v", err)
+	}
+
+	_, err = event.DecodePayloadAuto[struct{ Name string }](evt)
+	if err == nil {
+		t.Fatal("expected error for unknown encoding, got nil")
+	}
+}

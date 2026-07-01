@@ -23,6 +23,8 @@ const (
 
 // Event payloads — auto-marshaled via event.New(), using event.DefaultCodec
 // (set to CBOR in main.go via stack.WithEventCodec).
+// Decoding uses event.DecodePayloadAuto, which dispatches based on each
+// event's encoding stamp — so mixed JSON+CBOR streams decode correctly.
 
 type TodoCreatedPayload struct {
 	Title string `json:"title"`
@@ -46,7 +48,7 @@ type TodoState struct {
 func applyTodo(state TodoState, evt event.Event) (TodoState, error) {
 	switch evt.Type() {
 	case eventTodoCreated:
-		p, err := event.DecodePayload[TodoCreatedPayload](evt, event.DefaultCodec)
+		p, err := event.DecodePayloadAuto[TodoCreatedPayload](evt)
 		if err != nil {
 			return state, err
 		}
