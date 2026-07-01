@@ -199,6 +199,41 @@ func (b *Builder) InnerBuilder() *catalog.Builder {
 	return b.inner
 }
 
+// AddEntity registers a domain entity on the underlying builder.
+func (b *Builder) AddEntity(entity catalog.Entity) *Builder {
+	b.inner.AddEntity(entity)
+	return b
+}
+
+// Entity registers a typed entity with auto-derived schema on the builder.
+func Entity[T any](b *Builder, id string) *Builder {
+	b.inner.AddEntity(catalog.Entity{
+		ID:      catalog.EntityID(id),
+		Name:    catalog.Name(id),
+		Version: catalog.Version(b.serviceCfg.version),
+		Schema:  catalog.SchemaFromType[T](),
+	})
+	return b
+}
+
+// AddDataProduct registers a data product on the underlying builder.
+func (b *Builder) AddDataProduct(dp catalog.DataProduct) *Builder {
+	b.inner.AddDataProduct(dp)
+	return b
+}
+
+// AddAgent registers an AI agent on the underlying builder.
+func (b *Builder) AddAgent(agent catalog.Agent) *Builder {
+	b.inner.AddAgent(agent)
+	return b
+}
+
+// AddDomain registers a domain on the underlying builder.
+func (b *Builder) AddDomain(id catalog.DomainID, name, version, summary string, services ...catalog.ServiceID) *Builder {
+	b.inner.AddDomain(id, name, version, summary, services...)
+	return b
+}
+
 // WithOperation attaches HTTP endpoint metadata to a message.
 // The OpenAPI exporter uses this to generate accurate paths.
 //
