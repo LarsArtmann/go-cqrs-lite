@@ -42,8 +42,9 @@ func WithCodec(c codec.Codec) Option {
 	}
 }
 
-// configForServer builds a config from variadic options (server-side).
-func configForServer(opts []Option) *config {
+// resolveConfig builds a config from variadic options, applying defaults.
+// Shared by both server registration and client construction.
+func resolveConfig(opts []Option) *config {
 	cfg := defaultConfig()
 	cfg.apply(opts...)
 

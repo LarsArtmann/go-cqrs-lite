@@ -12,7 +12,12 @@ package codec
 func Size(v any) (int, int) {
 	jsonData, err := (JSONCodec{}).Encode(v)
 	if err != nil {
-		return -1, cborSize(v)
+		cborData, cborErr := (CBORCodec{}).Encode(v)
+		if cborErr != nil {
+			return -1, -1
+		}
+
+		return -1, len(cborData)
 	}
 
 	cborData, err := (CBORCodec{}).Encode(v)
@@ -21,13 +26,4 @@ func Size(v any) (int, int) {
 	}
 
 	return len(jsonData), len(cborData)
-}
-
-func cborSize(v any) int {
-	data, err := (CBORCodec{}).Encode(v)
-	if err != nil {
-		return -1
-	}
-
-	return len(data)
 }

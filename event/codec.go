@@ -14,12 +14,18 @@ import (
 //
 //	event.DefaultCodec = codec.CBORCodec{}
 //
+// Concurrency contract: set this ONCE at program startup, BEFORE any
+// goroutine creates events. Like [net/http.DefaultClient], it is a plain
+// package-level variable — concurrent reads after startup are safe, but
+// concurrent read+write is a data race. Do not mutate it after events are
+// in flight.
+//
 // This is a package-level default (like [net/http.DefaultClient]): it affects
 // every [New] call in the process that does not override it with [WithCodec].
 // Events created with an explicit [WithCodec] are unaffected. Because the
 // encoding is stamped on each event ([ImmutableEvent.Encoding]), mixed streams
-// of JSON and CBOR events decode correctly — consumers call
-// [event.DecodePayload] with whichever codec matches the stamp.
+// of JSON and CBOR events decode correctly via [DecodePayloadAuto], which
+// dispatches based on the per-event encoding stamp.
 //
 // Changing this after events have been created with the old default does NOT
 // alter existing events; it only affects subsequently created ones.

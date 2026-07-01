@@ -21,9 +21,12 @@ type CommandDispatcher interface {
 // RegisterCommandService registers a CQRS command dispatch service on the
 // given gRPC server. Remote clients can dispatch commands via gRPC.
 //
-// Command payloads are JSON-encoded on the wire. When non-empty, the payload
-// is stored in the command metadata under the key "payload" as a JSON string.
-// Server-side handlers extract it via cmd.Metadata().Custom["payload"].
+// Unlike [RegisterQueryService], the command service does NOT accept a
+// [WithCodec] option. Command payloads travel as metadata strings (not
+// codec-encoded wire bytes), so there is no codec to configure. If you need
+// structured command payloads over gRPC, encode them client-side and pass
+// via command metadata custom fields — the server-side handler extracts them
+// from cmd.Metadata().Custom.
 func RegisterCommandService(srv *grpc.Server, dispatcher CommandDispatcher) {
 	cqrsproto.RegisterCommandServiceServer(
 		srv,

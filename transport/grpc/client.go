@@ -83,8 +83,7 @@ type QueryClient struct {
 // NewQueryClient creates a remote query dispatcher backed by conn.
 // Pass [WithCodec] to override the default JSON wire encoding.
 func NewQueryClient(conn *grpc.ClientConn, opts ...Option) *QueryClient {
-	cfg := defaultConfig()
-	cfg.apply(opts...)
+	cfg := resolveConfig(opts)
 
 	return &QueryClient{
 		client: cqrsproto.NewQueryServiceClient(conn),

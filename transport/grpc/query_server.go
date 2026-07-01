@@ -24,7 +24,7 @@ type QueryDispatcher interface {
 // Query payloads and results are encoded on the wire using the configured
 // codec (JSON by default; override with [WithCodec]).
 func RegisterQueryService(srv *grpc.Server, dispatcher QueryDispatcher, opts ...Option) {
-	cfg := configForServer(opts)
+	cfg := resolveConfig(opts)
 	cqrsproto.RegisterQueryServiceServer(
 		srv,
 		&queryServer{ //nolint:exhaustruct // grpc server pattern: embedded Unimplemented is zero-valued
