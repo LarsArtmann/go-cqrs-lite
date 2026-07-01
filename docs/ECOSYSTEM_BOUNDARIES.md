@@ -1,7 +1,7 @@
 # Ecosystem Boundaries: Where to Put What
 
 > **Status:** Authoritative | **Scope:** `go-cqrs-lite` ↔ `cqrs-htmx` ↔ `go-localsync` (+ `github-local-sync`)
-> **Date:** 2026-06-22
+> **Date:** 2026-06-22 | **Updated:** 2026-07-01 (module counts, usermgmt constraint, file counts)
 
 ## TL;DR
 
@@ -24,7 +24,7 @@ mappings, and inconsistent import conventions _at the boundaries between repos_.
                               go-cqrs-lite (v3)
                           ┌─────────────┴─────────────┐
                           │ CQRS + Event Sourcing     │
-                          │ 38 modules, library-only  │
+                          │ 42 modules, library-only  │
                           │ id/, event/, command/,    │
                           │ query/, decider/, codec/, │
                           │ storage/, catalog/, ...   │
@@ -103,9 +103,14 @@ If yes → cqrs-htmx. If it's transport-agnostic → go-cqrs-lite.
 | Tenants, memberships, bots, impersonation        | Event store SQL (that's go-cqrs-lite)  |
 | SQL session store                                |                                        |
 
-**Key constraint:** `usermgmt` has **zero imports** from the cqrs-htmx root module.
-It depends only on `go-cqrs-lite`. The bridging happens in consumer apps via
-structural interfaces (`Enforcer`) and string conversion (`UserID.String()`).
+**Key constraint (updated 2026-07-01):** `usermgmt` imports `cqrs-htmx/v3` root for
+`RateLimiter` (since 2026-06-28, one-way dependency). It also directly depends on
+go-webauthn, golang.org/x/oauth2, coreos/go-oidc, pquerna/otp, modernc/sqlite, and
+casbin/v3 — forcing these as transitive deps on all consumers. The original constraint
+("zero imports from root, depends only on go-cqrs-lite") no longer holds. The auth dep
+bloat is documented as known debt (`cqrs-htmx/docs/modularization/2026-07-01_PROPOSAL.html`),
+with sub-package extraction planned for v4. The bridging still happens in consumer apps
+via structural interfaces (`Enforcer`) and string conversion (`UserID.String()`).
 
 **Litmus test:** _"Is this identity/auth domain logic?"_ → usermgmt.
 _"Is this HTTP wiring?"_ → cqrs-htmx root.
@@ -228,8 +233,8 @@ Based on existing analysis docs, these have been explicitly evaluated and reject
 | Proposal                                             | Verdict                                                               | Source                                                               |
 | ---------------------------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------- |
 | Extract `usermgmt` into its own repo                 | **No** — module split already gives 80% of the benefit; scored 3.2/10 | `cqrs-htmx/docs/brainstorming/extract-usermgmt-pro-contra.html`      |
-| Split cqrs-htmx root into sub-modules                | **No** — 40 files form a cohesive unit; errors↔response↔csrf cycle    | `cqrs-htmx/docs/modularization/2026-06-21_PROPOSAL.html`             |
-| Merge go-cqrs-lite catalog sub-modules               | **Yes, do this** — zero isolation benefit, 6 go.mod files             | `go-cqrs-lite/docs/modularization/PROPOSAL_catalog_consolidation.md` |
+| Split cqrs-htmx root into sub-modules                | **No** — 46 files form a cohesive unit; errors↔response↔csrf cycle    | `cqrs-htmx/docs/modularization/2026-07-01_PROPOSAL.html`             |
+| Merge go-cqrs-lite catalog sub-modules               | **✅ DONE** — consolidated into 1 go.mod with sub-packages             | `go-cqrs-lite/docs/modularization/PROPOSAL_catalog_consolidation.md` |
 | Move CRDT/conflict from go-localsync to go-cqrs-lite | **No** — sync-specific, not generic CQRS                              | (architectural reasoning)                                            |
 | Move catalog HTTP handlers to go-cqrs-lite           | **No** — HTTP is cqrs-htmx's domain                                   | (this document)                                                      |
 
@@ -267,7 +272,7 @@ Based on existing analysis docs, these have been explicitly evaluated and reject
 
 6. **go-cqrs-lite:** ✅ Catalog sub-modules already merged into one. ✅ eventtest extracted as separate module (breaks partial cycle). ⏳ Remaining cycle: event → storage/memory → command → event (via test dependencies). Breaking requires moving event test files to a separate integration test module.
 
-7. **cqrs-htmx:** ⏳ Decompose `usermgmt` god-package (71 files) into 8 sub-packages per `docs/modularization/2026-06-21_EXECUTION_PLAN.html`. (E10 — deferred)
+7. **cqrs-htmx:** ⏳ Decompose `usermgmt` god-package (84 files, ~11K LOC) — sub-package extraction (webauthn/, oauth2/, totp/, sql/) planned for v4. See `docs/modularization/2026-07-01_PROPOSAL.html`. CI layer enforcement scripts should be added first to prevent further degradation. (E10 — deferred)
 
 8. **go-localsync:** ✅ The bypassed `query.Dispatcher` is an intentional performance optimization for hot read paths (documented in `stack_adapters.go`). The dispatcher is still wired for tests. No change needed.
 
