@@ -6,8 +6,8 @@ import "github.com/larsartmann/go-cqrs-lite/storage/v3/relational"
 // Consumers importing storage/ can use these types unchanged.
 // New consumers should prefer importing storage/relational directly.
 var (
-	NewRelationalProjection = relational.NewRelationalProjection
-	NewRelationalStore      = relational.NewRelationalStore
+	NewRelationalProjection = relational.NewRelationalProjection //nolint:gochecknoglobals // backward-compat re-export
+	NewRelationalStore      = relational.NewRelationalStore      //nolint:gochecknoglobals // backward-compat re-export
 )
 
 type (

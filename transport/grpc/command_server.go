@@ -93,7 +93,7 @@ func (s *commandServer) Dispatch(
 		return errorResult(err), nil
 	}
 
-	return &cqrsproto.CommandResult{Success: true, Error: ""}, nil
+	return &cqrsproto.CommandResult{Success: true, Error: "", ErrorCode: "", ErrorFamily: ""}, nil
 }
 
 func errorResult(err error) *cqrsproto.CommandResult {

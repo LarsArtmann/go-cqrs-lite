@@ -10,9 +10,10 @@ import (
 )
 
 const (
-	filePerm  = 0o600
-	dirPerm   = 0o750
-	indexFile = "index.mdx"
+	filePerm      = 0o600
+	dirPerm       = 0o750
+	indexFile     = "index.mdx"
+	schemaPathKey = "schemas/schema.json"
 )
 
 // Exporter generates EventCatalog-compatible MDX files from a catalog.
@@ -26,7 +27,7 @@ func NewExporter(outputDir string) *Exporter {
 }
 
 // Export writes all services, messages, and schemas as MDX files to the output directory.
-func (e *Exporter) Export(cat *catalog.Catalog) error {
+func (e *Exporter) Export(cat *catalog.Catalog) error { //nolint:cyclop // straight-line pipeline
 	enriched := autoDeriveProducersConsumers(cat)
 
 	for _, svc := range enriched.Services {

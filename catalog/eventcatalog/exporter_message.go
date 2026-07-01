@@ -41,7 +41,7 @@ func (e *Exporter) writeMessage(
 	}
 
 	if msg.Schema != nil {
-		fm.SchemaPath = "schemas/schema.json"
+		fm.SchemaPath = schemaPathKey
 	}
 
 	content, err := renderMDX(fm, string(msg.Name), string(msg.Summary), false)

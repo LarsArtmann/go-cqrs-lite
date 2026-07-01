@@ -145,6 +145,8 @@ type Message struct {
 }
 
 type Service struct {
+	BaseConfig
+
 	ID             ServiceID       `json:"id"`
 	Name           Name            `json:"name"`
 	Version        Version         `json:"version"`
@@ -162,10 +164,11 @@ type Service struct {
 	Specifications []Specification `json:"specifications,omitempty"`
 	Attachments    []Attachment    `json:"attachments,omitempty"`
 	ExternalSystem bool            `json:"externalSystem,omitempty"`
-	BaseConfig
 }
 
 type Domain struct {
+	BaseConfig
+
 	ID                 DomainID                 `json:"id"`
 	Name               Name                     `json:"name"`
 	Version            Version                  `json:"version"`
@@ -181,7 +184,6 @@ type Domain struct {
 	UbiquitousLanguage []UbiquitousLanguageTerm `json:"ubiquitousLanguage,omitempty"`
 	SubDomains         []DomainID               `json:"subDomains,omitempty"`
 	DataProducts       []DataProductID          `json:"dataProducts,omitempty"`
-	BaseConfig
 }
 
 type Channel struct {

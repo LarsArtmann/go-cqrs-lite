@@ -69,7 +69,7 @@ func exportMessages(e *Exporter, doc *Document, cat *catalog.Catalog) {
 
 // exportAgentMessages resolves agent Sends/Receives refs to actual messages
 // from the catalog and adds operations for each agent.
-func exportAgentMessages(e *Exporter, doc *Document, cat *catalog.Catalog) {
+func exportAgentMessages(_ *Exporter, doc *Document, cat *catalog.Catalog) {
 	if len(cat.Agents) == 0 {
 		return
 	}

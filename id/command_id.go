@@ -56,13 +56,13 @@ func DeriveCommandID(namespace string, keys ...string) CommandID {
 		_, _ = h.Write([]byte(k))
 	}
 
-	var u ulid.ULID
+	var derived ulid.ULID
 	copy(
-		u[ulidTimestampLen:],
+		derived[ulidTimestampLen:],
 		h.Sum(nil)[:ulidRandomLen],
 	) // entropy into randomness; timestamp stays zero
 
-	return cbid.NewID[CommandMarker](u)
+	return cbid.NewID[CommandMarker](derived)
 }
 
 // IsDerivedCommandID reports whether the CommandID was produced by

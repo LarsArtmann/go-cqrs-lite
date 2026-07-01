@@ -16,11 +16,14 @@
 package simple
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v3/internal/caseutil"
 )
+
+var errCatalogValidation = errors.New("simple: catalog validation failed")
 
 // Builder accumulates messages and produces an immutable catalog.Catalog.
 // It wraps catalog.Builder with a streamlined single-service API.
@@ -171,7 +174,7 @@ func (b *Builder) BuildE() (*catalog.Catalog, error) {
 	cat := b.inner.Build()
 
 	if violations := cat.Validate(); len(violations) > 0 {
-		return cat, fmt.Errorf("simple: catalog validation failed: %v", violations)
+		return cat, fmt.Errorf("%w: %v", errCatalogValidation, violations)
 	}
 
 	return cat, nil
@@ -208,7 +211,7 @@ func (b *Builder) AddEntity(entity catalog.Entity) *Builder {
 
 // Entity registers a typed entity with auto-derived schema on the builder.
 func Entity[T any](b *Builder, id string) *Builder {
-	b.inner.AddEntity(catalog.Entity{
+	b.inner.AddEntity(catalog.Entity{ //nolint:exhaustruct // optional fields default to zero
 		ID:      catalog.EntityID(id),
 		Name:    catalog.Name(id),
 		Version: catalog.Version(b.serviceCfg.version),

@@ -563,7 +563,10 @@ func TestKVAdapter_SetIfAbsent_FirstWriterWins(t *testing.T) {
 	t.Parallel()
 
 	store := openTestKVStore(t)
-	cw := store.(kv.ConditionalWriter)
+	cw, ok := store.(kv.ConditionalWriter)
+	if !ok {
+		t.Fatalf("store does not implement kv.ConditionalWriter: %T", store)
+	}
 
 	ok, err := cw.SetIfAbsent([]byte("lock"), []byte("owner-1"))
 	if err != nil {
@@ -597,7 +600,10 @@ func TestKVAdapter_SetIfAbsent_FirstWriterWins(t *testing.T) {
 func TestKVAdapter_SetIfAbsent_ConcurrentExactlyOneWinner(t *testing.T) {
 	t.Parallel()
 
-	cw := openTestKVStore(t).(kv.ConditionalWriter)
+	cw, ok := openTestKVStore(t).(kv.ConditionalWriter)
+	if !ok {
+		t.Fatalf("store does not implement kv.ConditionalWriter")
+	}
 
 	const goroutines = 200
 	var winners atomic.Int64

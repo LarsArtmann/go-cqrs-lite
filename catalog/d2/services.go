@@ -258,21 +258,21 @@ func (e *Exporter) writeEntityRelationships(buf *strings.Builder, cat *catalog.C
 }
 
 func (e *Exporter) writeDataProducts(buf *strings.Builder, cat *catalog.Catalog) {
-	for _, dp := range cat.DataProducts {
-		id := "dp_" + sanitizeID(string(dp.ID))
+	for _, product := range cat.DataProducts {
+		id := "dp_" + sanitizeID(string(product.ID))
 
 		fmt.Fprintf(buf, "%s: {\n", id)
 		fmt.Fprintf(buf, "  class: dataProduct\n")
-		fmt.Fprintf(buf, "  label: %q\n", dp.Name)
+		fmt.Fprintf(buf, "  label: %q\n", product.Name)
 		buf.WriteString("  shape: package\n")
 		buf.WriteString("}\n\n")
 
-		for _, input := range dp.Inputs {
+		for _, input := range product.Inputs {
 			inputID := sanitizeID(string(input.ID))
 			fmt.Fprintf(buf, "%s -> %s: \"feeds\"\n\n", inputID, id)
 		}
 
-		for _, output := range dp.Outputs {
+		for _, output := range product.Outputs {
 			outputID := sanitizeID(string(output.ID))
 			fmt.Fprintf(buf, "%s -> %s: \"produces\"\n\n", id, outputID)
 		}

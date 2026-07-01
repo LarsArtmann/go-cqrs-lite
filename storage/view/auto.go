@@ -7,8 +7,9 @@ import (
 )
 
 const (
-	sqlTypeText   = "TEXT"
-	keyColumnName = "key"
+	sqlTypeText    = "TEXT"
+	sqlTypeInteger = "INTEGER"
+	keyColumnName  = "key"
 )
 
 // AutoMapper generates a [ViewMapper] from struct tags on V. Fields tagged
@@ -168,11 +169,11 @@ func goTypeToSQL(rt reflect.Type) (string, bool) {
 	case reflect.String:
 		return sqlTypeText, false
 	case reflect.Int, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint32, reflect.Uint64:
-		return "INTEGER", false
+		return sqlTypeInteger, false
 	case reflect.Float32, reflect.Float64:
 		return "REAL", false
 	case reflect.Bool:
-		return "INTEGER", true
+		return sqlTypeInteger, true
 	default:
 		if rt == reflect.TypeFor[time.Time]() {
 			return sqlTypeText, false

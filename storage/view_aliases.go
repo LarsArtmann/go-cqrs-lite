@@ -19,7 +19,7 @@ type (
 	ViewStoreOption                     = view.ViewStoreOption
 )
 
-// Re-exported generic constructor wrappers for backward compatibility.
+// NewSQLiteViewStore is re-exported for backward compatibility.
 func NewSQLiteViewStore[V any, K fmt.Stringer](
 	db *sql.DB,
 	mapper ViewMapper[V],

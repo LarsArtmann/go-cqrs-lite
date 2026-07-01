@@ -46,8 +46,10 @@ func wireToFamily(s string) (cqrsevent.Family, bool) {
 // classifyError extracts the machine-readable code and wire-family string from
 // an error using the CQRS taxonomy. Used by the gRPC servers to populate the
 // structured error fields on the response proto.
-func classifyError(err error) (code, family string) {
-	family = familyToWire(cqrsevent.Classify(err))
+func classifyError(err error) (string, string) {
+	family := familyToWire(cqrsevent.Classify(err))
+
+	code := ""
 
 	if ce, ok := errors.AsType[*cqrsevent.Error](err); ok {
 		code = ce.Code()

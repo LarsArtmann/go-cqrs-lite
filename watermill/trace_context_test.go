@@ -69,12 +69,12 @@ func TestTraceContext_PropagationLinksSpans(t *testing.T) {
 		}
 
 		// Extract trace context from message metadata.
-		consumeCtx := wm.ExtractContext(msg.Context(), msg)
+		extractedCtx := wm.ExtractContext(msg.Context(), msg)
 
 		// Create a consumer span under the extracted context.
 		tracer := cqrsotel.NewTracer("test")
-		consumeCtx, consumeSpan := cqrsotel.StartSpan(
-			consumeCtx, tracer, "consumer.handle",
+		_, consumeSpan := cqrsotel.StartSpan(
+			extractedCtx, tracer, "consumer.handle",
 			cqrsotel.SpanKindConsumer,
 		)
 		consumeSpan.End()
@@ -160,7 +160,7 @@ func TestTraceContext_MessageCarriesTraceparent(t *testing.T) {
 
 var consumeTimeout = consumeTimeoutDuration()
 
-func consumeTimeoutDuration() (ch <-chan struct{}) {
+func consumeTimeoutDuration() <-chan struct{} {
 	c := make(chan struct{})
 	close(c)
 

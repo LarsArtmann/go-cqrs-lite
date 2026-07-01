@@ -31,7 +31,7 @@ var ErrUnknownEncoding = errors.New("codec: unknown encoding (no built-in codec)
 // stamp to its codec. Together they enable mixed-stream decoding — see
 // [event.DecodePayloadAuto].
 func ForEncoding(enc Encoding) (Codec, error) {
-	switch enc {
+	switch enc { //nolint:exhaustive // Raw has no codec
 	case EncodingJSON:
 		return JSONCodec{}, nil
 	case EncodingCBOR:

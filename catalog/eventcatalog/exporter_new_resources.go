@@ -31,7 +31,7 @@ func (e *Exporter) writeEntity(entity catalog.Entity) error {
 	}
 
 	if entity.Schema != nil {
-		fm.SchemaPath = "schemas/schema.json"
+		fm.SchemaPath = schemaPathKey
 	}
 
 	content, err := renderMDX(fm, string(entity.Name), string(entity.Summary), true)

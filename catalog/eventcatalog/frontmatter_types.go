@@ -94,6 +94,8 @@ type messageFM struct {
 }
 
 type serviceFM struct {
+	baseConfigFM `yaml:",inline"`
+
 	ID             string            `yaml:"id"`
 	Name           string            `yaml:"name"`
 	Version        string            `yaml:"version"`
@@ -110,10 +112,11 @@ type serviceFM struct {
 	Repository     *repositoryFM     `yaml:"repository,omitempty"`
 	Specifications []specificationFM `yaml:"specifications,omitempty"`
 	Attachments    []attachmentFM    `yaml:"attachments,omitempty"`
-	baseConfigFM   `yaml:",inline"`
 }
 
 type domainFM struct {
+	baseConfigFM `yaml:",inline"`
+
 	ID                 string                     `yaml:"id"`
 	Name               string                     `yaml:"name"`
 	Version            string                     `yaml:"version"`
@@ -125,11 +128,10 @@ type domainFM struct {
 	Entities           []string                   `yaml:"entities,omitempty,flow"`
 	Flows              []string                   `yaml:"flows,omitempty,flow"`
 	Domains            []string                   `yaml:"domains,omitempty,flow"`
-	DataProducts       []string                   `yaml:"data-products,omitempty,flow"`
+	DataProducts       []string                   `yaml:"data-products,omitempty,flow"` //nolint:tagliatelle // EventCatalog format
 	UbiquitousLanguage []ubiquitousLanguageTermFM `yaml:"ubiquitousLanguage,omitempty"`
 	Badges             []badgeFM                  `yaml:"badges,omitempty"`
 	Attachments        []attachmentFM             `yaml:"attachments,omitempty"`
-	baseConfigFM       `yaml:",inline"`
 }
 
 type entityPropertyFM struct {
@@ -225,14 +227,14 @@ type dataStoreFM struct {
 	ID             string    `yaml:"id"`
 	Name           string    `yaml:"name"`
 	Version        string    `yaml:"version"`
-	ContainerType  string    `yaml:"container_type"`
+	ContainerType  string    `yaml:"container_type"` //nolint:tagliatelle // EventCatalog format
 	Summary        string    `yaml:"summary,omitempty"`
 	Technology     string    `yaml:"technology,omitempty"`
 	Classification string    `yaml:"classification,omitempty"`
 	Retention      string    `yaml:"retention,omitempty"`
 	Residency      string    `yaml:"residency,omitempty"`
 	Authoritative  bool      `yaml:"authoritative,omitempty"`
-	AccessMode     string    `yaml:"access_mode,omitempty"`
+	AccessMode     string    `yaml:"access_mode,omitempty"` //nolint:tagliatelle // EventCatalog format
 	Owners         []string  `yaml:"owners,omitempty"`
 	Badges         []badgeFM `yaml:"badges,omitempty"`
 }
@@ -256,8 +258,8 @@ type flowStepFM struct {
 	DataStore   *pointer     `yaml:"dataStore,omitempty"`
 	DataProduct *pointer     `yaml:"dataProduct,omitempty"`
 	SubFlow     *pointer     `yaml:"subFlow,omitempty"`
-	NextStep    *flowEdgeFM  `yaml:"next_step,omitempty"`
-	NextSteps   []flowEdgeFM `yaml:"next_steps,omitempty"`
+	NextStep    *flowEdgeFM  `yaml:"next_step,omitempty"`  //nolint:tagliatelle // EventCatalog format
+	NextSteps   []flowEdgeFM `yaml:"next_steps,omitempty"` //nolint:tagliatelle // EventCatalog format
 }
 
 type flowActor struct {

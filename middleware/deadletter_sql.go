@@ -319,8 +319,10 @@ func deadLetterError(s string) error { return storeError(s) }
 // classifyDeadLetterError extracts the machine-readable code and lowercase
 // family name from err using the CQRS taxonomy. Used when storing dead-letter
 // entries so the classification survives the SQL round-trip.
-func classifyDeadLetterError(err error) (code, family string) {
-	family = familyToWire(event.Classify(err))
+func classifyDeadLetterError(err error) (string, string) {
+	family := familyToWire(event.Classify(err))
+
+	code := ""
 
 	if ce, ok := errors.AsType[*event.Error](err); ok {
 		code = ce.Code()
