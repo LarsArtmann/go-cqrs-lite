@@ -25,24 +25,34 @@ func copyMessages(msgs []Message) []Message {
 
 func copyMessage(m Message) Message {
 	return Message{
-		Kind:       m.Kind,
-		ID:         m.ID,
-		Name:       m.Name,
-		Version:    m.Version,
-		Summary:    m.Summary,
-		Schema:     m.Schema,
-		Direction:  m.Direction,
-		Examples:   copySlice(m.Examples),
-		Owners:     copySlice(m.Owners),
-		Labels:     copyMap(m.Labels),
-		Deprecated: m.Deprecated,
-		Changelog:  copySlice(m.Changelog),
-		Producers:  copySlice(m.Producers),
-		Consumers:  copySlice(m.Consumers),
-		Operation:  copyOperation(m.Operation),
-		Badges:     copyBadges(m.Badges),
-		Repository: copyRepository(m.Repository),
+		Kind:        m.Kind,
+		ID:          m.ID,
+		Name:        m.Name,
+		Version:     m.Version,
+		Summary:     m.Summary,
+		Schema:      m.Schema,
+		Direction:   m.Direction,
+		Examples:    copySlice(m.Examples),
+		Owners:      copySlice(m.Owners),
+		Labels:      copyMap(m.Labels),
+		Deprecated:  m.Deprecated,
+		Deprecation: copyDeprecationInfo(m.Deprecation),
+		Channels:    copySlice(m.Channels),
+		Changelog:   copySlice(m.Changelog),
+		Producers:   copySlice(m.Producers),
+		Consumers:   copySlice(m.Consumers),
+		Operation:   copyOperation(m.Operation),
+		Badges:      copyBadges(m.Badges),
+		Repository:  copyRepository(m.Repository),
 	}
+}
+
+func copyDeprecationInfo(d *DeprecationInfo) *DeprecationInfo {
+	if d == nil {
+		return nil
+	}
+
+	return &DeprecationInfo{Date: d.Date, Message: d.Message}
 }
 
 func copyOperation(op *Operation) *Operation {

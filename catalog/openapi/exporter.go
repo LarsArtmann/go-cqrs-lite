@@ -93,7 +93,20 @@ func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 		}
 	}
 
+	for _, entity := range cat.Entities {
+		e.addEntitySchema(doc, entity)
+	}
+
 	return doc
+}
+
+func (e *Exporter) addEntitySchema(doc *Document, entity catalog.Entity) {
+	if entity.Schema == nil {
+		return
+	}
+
+	key := "entity." + string(entity.ID)
+	doc.Components.Schemas[key] = schemaToAny(entity.Schema)
 }
 
 func jsonContent(schema any) map[string]MediaType {

@@ -192,3 +192,75 @@ func TestValidate_ChannelEmptyID(t *testing.T) {
 
 	expectViolationMessage(t, cat, "channel ID must not be empty")
 }
+
+func TestValidate_EntityPropertyWithoutName(t *testing.T) {
+	t.Parallel()
+
+	cat := &Catalog{
+		Title:   "Test",
+		Version: "1.0.0",
+		Entities: []Entity{
+			{ID: "e1", Name: "E1", Properties: []EntityProperty{{Type: "string"}}},
+		},
+	}
+
+	violations := cat.Validate()
+	found := false
+	for _, v := range violations {
+		if strings.Contains(v.Message, "must have a name") {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("expected property name violation, got: %v", violations)
+	}
+}
+
+func TestValidate_EntityPropertyWithoutType(t *testing.T) {
+	t.Parallel()
+
+	cat := &Catalog{
+		Title:   "Test",
+		Version: "1.0.0",
+		Entities: []Entity{
+			{ID: "e1", Name: "E1", Properties: []EntityProperty{{Name: "id"}}},
+		},
+	}
+
+	violations := cat.Validate()
+	found := false
+	for _, v := range violations {
+		if strings.Contains(v.Message, "must have a type") {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("expected property type violation, got: %v", violations)
+	}
+}
+
+func TestValidate_EntityDuplicateProperty(t *testing.T) {
+	t.Parallel()
+
+	cat := &Catalog{
+		Title:   "Test",
+		Version: "1.0.0",
+		Entities: []Entity{
+			{ID: "e1", Name: "E1", Properties: []EntityProperty{
+				{Name: "id", Type: "string"},
+				{Name: "id", Type: "string"},
+			}},
+		},
+	}
+
+	violations := cat.Validate()
+	found := false
+	for _, v := range violations {
+		if strings.Contains(v.Message, "duplicate") {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("expected duplicate property violation, got: %v", violations)
+	}
+}

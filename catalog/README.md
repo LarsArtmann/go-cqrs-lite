@@ -170,8 +170,8 @@ The exporter supports all EventCatalog resource types:
 | Services      | `services/<id>/index.mdx`      | With messages, specs, data stores, external flag                         |
 | Domains       | `domains/<id>/index.mdx`       | With ubiquitous language, sub-domains, data products                     |
 | Entities      | `entities/<id>/index.mdx`      | First-class domain entities with schemas                                 |
-| Data Products | `data-products/<id>/index.mdx` | Data mesh products with inputs/outputs                                |
-| Agents        | `agents/<id>/index.mdx`        | AI agents with sends/receives, model, tools, data stores               |
+| Data Products | `data-products/<id>/index.mdx` | Data mesh products with inputs/outputs                                   |
+| Agents        | `agents/<id>/index.mdx`        | AI agents with sends/receives, model, tools, data stores                 |
 | Channels      | `channels/<id>/index.mdx`      | With protocols, parameters, routes                                       |
 | Data Stores   | `data/<id>/index.mdx`          | Databases, caches with classification                                    |
 | Flows         | `flows/<id>/index.mdx`         | All step types: service, message, agent, dataStore, dataProduct, subFlow |

@@ -122,23 +122,25 @@ const (
 type Property = schema.Property
 
 type Message struct {
-	Kind       MessageKind       `json:"kind"`
-	ID         MessageID         `json:"id"`
-	Name       Name              `json:"name"`
-	Version    Version           `json:"version"`
-	Summary    Summary           `json:"summary,omitempty"`
-	Schema     *Schema           `json:"schema,omitempty"`
-	Direction  Direction         `json:"direction"`
-	Examples   []json.RawMessage `json:"examples,omitempty"`
-	Owners     []string          `json:"owners,omitempty"`
-	Labels     map[string]string `json:"labels,omitempty"`
-	Deprecated bool              `json:"deprecated,omitempty"`
-	Changelog  []Change          `json:"changelog,omitempty"`
-	Producers  []ServiceID       `json:"producers,omitempty"`
-	Consumers  []ServiceID       `json:"consumers,omitempty"`
-	Operation  *Operation        `json:"operation,omitempty"`
-	Badges     []Badge           `json:"badges,omitempty"`
-	Repository *Repository       `json:"repository,omitempty"`
+	Kind        MessageKind       `json:"kind"`
+	ID          MessageID         `json:"id"`
+	Name        Name              `json:"name"`
+	Version     Version           `json:"version"`
+	Summary     Summary           `json:"summary,omitempty"`
+	Schema      *Schema           `json:"schema,omitempty"`
+	Direction   Direction         `json:"direction"`
+	Examples    []json.RawMessage `json:"examples,omitempty"`
+	Owners      []string          `json:"owners,omitempty"`
+	Labels      map[string]string `json:"labels,omitempty"`
+	Deprecated  bool              `json:"deprecated,omitempty"`
+	Deprecation *DeprecationInfo  `json:"deprecation,omitempty"`
+	Channels    []ChannelID       `json:"channels,omitempty"`
+	Changelog   []Change          `json:"changelog,omitempty"`
+	Producers   []ServiceID       `json:"producers,omitempty"`
+	Consumers   []ServiceID       `json:"consumers,omitempty"`
+	Operation   *Operation        `json:"operation,omitempty"`
+	Badges      []Badge           `json:"badges,omitempty"`
+	Repository  *Repository       `json:"repository,omitempty"`
 }
 
 type Service struct {
@@ -207,6 +209,7 @@ type Catalog struct {
 	Entities     []Entity      `json:"entities,omitempty"`
 	DataProducts []DataProduct `json:"dataProducts,omitempty"`
 	Agents       []Agent       `json:"agents,omitempty"`
+	CustomDocs   []CustomDoc   `json:"customDocs,omitempty"`
 }
 
 // Key returns the unique key for the message: msg.ID if set, otherwise msg.Name.

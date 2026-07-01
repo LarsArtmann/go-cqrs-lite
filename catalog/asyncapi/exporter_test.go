@@ -493,3 +493,80 @@ func TestExporter_Export_Examples(t *testing.T) {
 		t.Errorf("example payload = %q, want orderId", string(exampleJSON))
 	}
 }
+
+func TestExporter_AgentMessages(t *testing.T) {
+	t.Parallel()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddService(catalog.Service{
+		ID:      "order-svc",
+		Name:    "Order Service",
+		Version: "1.0.0",
+		Events: []catalog.Message{
+			{
+				Kind:      catalog.EventMessage,
+				ID:        "OrderCreated",
+				Name:      "OrderCreated",
+				Version:   "1.0.0",
+				Direction: catalog.Sends,
+			},
+		},
+		Commands: []catalog.Message{
+			{
+				Kind:    catalog.CommandMessage,
+				ID:      "CancelOrder",
+				Name:    "CancelOrder",
+				Version: "1.0.0",
+			},
+		},
+	})
+	reg.AddAgent(catalog.Agent{
+		ID:      "order-bot",
+		Name:    "Order Bot",
+		Version: "1.0.0",
+		Sends: []catalog.Ref{
+			{ID: "CancelOrder"},
+		},
+		Receives: []catalog.Ref{
+			{ID: "OrderCreated"},
+		},
+	})
+
+	cat := reg.Build()
+	exp := NewExporter("TestCatalog", "1.0.0")
+	doc := exp.Export(cat)
+
+	sendOp, ok := doc.Operations["send.order-bot.CancelOrder"]
+	if !ok {
+		t.Fatalf("expected agent send operation for CancelOrder, operations: %v", opKeys(doc))
+	}
+
+	if sendOp.Action != "send" {
+		t.Errorf("CancelOrder action = %q, want send", sendOp.Action)
+	}
+
+	recvOp, ok := doc.Operations["receive.order-bot.OrderCreated"]
+	if !ok {
+		t.Fatalf("expected agent receive operation for OrderCreated, operations: %v", opKeys(doc))
+	}
+
+	if recvOp.Action != "receive" {
+		t.Errorf("OrderCreated action = %q, want receive", recvOp.Action)
+	}
+
+	if _, ok := doc.Components.Messages["command.CancelOrder"]; !ok {
+		t.Error("expected CancelOrder message component")
+	}
+
+	if _, ok := doc.Components.Messages["event.OrderCreated"]; !ok {
+		t.Error("expected OrderCreated message component")
+	}
+}
+
+func opKeys(doc *Document) []string {
+	keys := make([]string, 0, len(doc.Operations))
+	for k := range doc.Operations {
+		keys = append(keys, k)
+	}
+	return keys
+}

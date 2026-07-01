@@ -32,7 +32,7 @@ func TestRegistry_AddDataProduct(t *testing.T) {
 	reg.AddDataProduct(catalog.DataProduct{
 		ID: "metrics", Name: "Metrics", Version: "1.0.0",
 		Inputs:  []catalog.Ref{{ID: "OrderCreated"}},
-		Outputs: []catalog.Ref{{ID: "MetricsReady"}},
+		Outputs: []catalog.DataProductOutput{{Ref: catalog.Ref{ID: "MetricsReady"}}},
 	})
 
 	cat := reg.Build()
@@ -209,6 +209,39 @@ func TestRegistry_NewResourcesAreCopied(t *testing.T) {
 	cat := reg.Build()
 	if cat.Entities[0].Owners[0] != "a" {
 		t.Error("entity was not deep-copied on Add")
+	}
+}
+
+func TestEntity_DeepCopyProperties(t *testing.T) {
+	t.Parallel()
+
+	reg := catalog.NewRegistry("Test", "1.0.0")
+	original := catalog.Entity{
+		ID:            "order",
+		Name:          "Order",
+		Version:       "1.0.0",
+		AggregateRoot: true,
+		Identifier:    "id",
+		Properties: []catalog.EntityProperty{
+			{Name: "id", Type: "string", Required: true},
+			{Name: "customerId", Type: "string", References: "Customer"},
+		},
+	}
+	reg.AddEntity(original)
+
+	original.Properties[0].Name = "mutated"
+
+	cat := reg.Build()
+	if cat.Entities[0].Properties[0].Name != "id" {
+		t.Error("entity properties were not deep-copied on Add")
+	}
+
+	if !cat.Entities[0].AggregateRoot {
+		t.Error("AggregateRoot not preserved")
+	}
+
+	if cat.Entities[0].Identifier != "id" {
+		t.Error("Identifier not preserved")
 	}
 }
 

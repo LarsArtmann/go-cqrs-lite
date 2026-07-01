@@ -246,20 +246,34 @@ func toFlowSteps(steps []catalog.FlowStep) []flowStepFM {
 
 		if s.Actor != nil {
 			step.Actor = &flowActor{
-				Name: string(s.Actor.Name), Summary: string(s.Actor.Summary), URL: string(s.Actor.URL),
+				Name: string(
+					s.Actor.Name,
+				),
+				Summary: string(s.Actor.Summary),
+				URL:     string(s.Actor.URL),
 			}
 		}
 
 		if s.External != nil {
 			step.ExternalSys = &flowActor{
-				Name: string(s.External.Name), Summary: string(s.External.Summary), URL: string(s.External.URL),
+				Name: string(
+					s.External.Name,
+				),
+				Summary: string(s.External.Summary),
+				URL:     string(s.External.URL),
 			}
 		}
 
 		if s.Custom != nil {
 			step.Custom = &flowCustom{
-				Title: string(s.Custom.Title), Icon: string(s.Custom.Icon), Type: s.Custom.Type,
-				Summary: string(s.Custom.Summary), URL: string(s.Custom.URL), Color: string(s.Custom.Color),
+				Title: string(s.Custom.Title),
+				Icon:  string(s.Custom.Icon),
+				Type:  s.Custom.Type,
+				Summary: string(
+					s.Custom.Summary,
+				),
+				URL:   string(s.Custom.URL),
+				Color: string(s.Custom.Color),
 			}
 		}
 
@@ -296,6 +310,83 @@ func toFlowSteps(steps []catalog.FlowStep) []flowStepFM {
 	return out
 }
 
+func toDeprecated(deprecated bool, info *catalog.DeprecationInfo) any {
+	if info != nil {
+		fm := deprecationFM{Message: info.Message}
+		if info.Date != nil {
+			fm.Date = info.Date.Format(time.DateOnly)
+		}
+
+		return fm
+	}
+
+	if deprecated {
+		return true
+	}
+
+	return nil
+}
+
+func channelIDsToStrings(ids []catalog.ChannelID) []string {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	out := make([]string, len(ids))
+	for i, id := range ids {
+		out[i] = string(id)
+	}
+
+	return out
+}
+
+func toDataProductOutputs(outputs []catalog.DataProductOutput) []dataProductOutputFM {
+	if len(outputs) == 0 {
+		return nil
+	}
+
+	out := make([]dataProductOutputFM, len(outputs))
+	for i, o := range outputs {
+		fm := dataProductOutputFM{
+			ID:      string(o.ID),
+			Version: string(o.Version),
+		}
+
+		if o.Contract != nil {
+			fm.Contract = &dataContractFM{
+				Path: o.Contract.Path,
+				Name: string(o.Contract.Name),
+				Type: o.Contract.Type,
+			}
+		}
+
+		out[i] = fm
+	}
+
+	return out
+}
+
+func toEntityProperties(props []catalog.EntityProperty) []entityPropertyFM {
+	if len(props) == 0 {
+		return nil
+	}
+
+	out := make([]entityPropertyFM, len(props))
+	for i, p := range props {
+		out[i] = entityPropertyFM{
+			Name:                 string(p.Name),
+			Type:                 p.Type,
+			Required:             p.Required,
+			Description:          p.Description,
+			References:           string(p.References),
+			ReferencesIdentifier: p.ReferencesIdentifier,
+			RelationType:         p.RelationType,
+		}
+	}
+
+	return out
+}
+
 // --- Message ID collection (shared by service and agent) ---
 
 func collectSendsReceives(svc catalog.Service) ([]pointer, []pointer) {
@@ -312,7 +403,10 @@ func collectSendsReceives(svc catalog.Service) ([]pointer, []pointer) {
 	}
 
 	for _, cmd := range svc.Commands {
-		receives = append(receives, pointer{ID: string(catalog.Key(cmd)), Version: string(cmd.Version)})
+		receives = append(
+			receives,
+			pointer{ID: string(catalog.Key(cmd)), Version: string(cmd.Version)},
+		)
 	}
 
 	for _, q := range svc.Queries {

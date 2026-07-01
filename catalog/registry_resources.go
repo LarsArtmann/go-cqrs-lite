@@ -69,3 +69,10 @@ func (r *Registry) AddAgent(agent Agent) {
 
 	r.agents[agent.ID] = copyPtr(copyAgent, agent)
 }
+
+func (r *Registry) AddCustomDoc(doc CustomDoc) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.customDocs[doc.ID] = copyPtr(copyCustomDoc, doc)
+}

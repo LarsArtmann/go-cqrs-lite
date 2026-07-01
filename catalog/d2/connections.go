@@ -181,6 +181,13 @@ func (e *Exporter) writeDomains(buf *strings.Builder, cat *catalog.Catalog) {
 		fmt.Fprintf(buf, "domain_%s: {\n", domainDisplayID)
 		fmt.Fprintf(buf, "  label: %q\n  shape: text\n", domain.Name)
 
+		if len(domain.UbiquitousLanguage) > 0 {
+			tooltip := e.buildUbiquitousLanguageTooltip(domain.UbiquitousLanguage)
+			if tooltip != "" {
+				fmt.Fprintf(buf, "  tooltip: %q\n", tooltip)
+			}
+		}
+
 		buf.WriteString(
 			"  style: {\n    font-size: 16\n    bold: true\n    font-color: \"#424242\"\n  }\n}\n\n",
 		)
@@ -220,4 +227,18 @@ func sanitizeID(s string) string {
 			return r
 		}
 	}, s))
+}
+
+func (e *Exporter) buildUbiquitousLanguageTooltip(terms []catalog.UbiquitousLanguageTerm) string {
+	parts := make([]string, 0, len(terms))
+	for _, t := range terms {
+		entry := string(t.Name)
+		if t.Description != "" {
+			entry += ": " + t.Description
+		}
+
+		parts = append(parts, entry)
+	}
+
+	return "Ubiquitous Language:\n" + strings.Join(parts, "\n")
 }

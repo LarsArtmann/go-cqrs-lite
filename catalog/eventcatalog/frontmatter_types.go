@@ -69,21 +69,27 @@ type agentToolFM struct {
 
 // --- Resource frontmatter types ---
 
+type deprecationFM struct {
+	Date    string `yaml:"date,omitempty"`
+	Message string `yaml:"message,omitempty"`
+}
+
 type messageFM struct {
-	ID         string             `yaml:"id"`
-	Name       string             `yaml:"name"`
-	Version    string             `yaml:"version"`
-	Summary    string             `yaml:"summary,omitempty"`
-	Deprecated bool               `yaml:"deprecated,omitempty"`
-	Owners     []string           `yaml:"owners,omitempty"`
-	Labels     map[string]string  `yaml:"labels,omitempty"`
-	Changelog  []changeFM         `yaml:"changelog,omitempty"`
-	Producers  []pointer          `yaml:"producers,omitempty"`
-	Consumers  []pointer          `yaml:"consumers,omitempty"`
-	Operation  *operationFM       `yaml:"operation,omitempty"`
-	Badges     []badgeFM          `yaml:"badges,omitempty"`
-	Repository *repositoryFM      `yaml:"repository,omitempty"`
-	SchemaPath string             `yaml:"schemaPath,omitempty"`
+	ID         string            `yaml:"id"`
+	Name       string            `yaml:"name"`
+	Version    string            `yaml:"version"`
+	Summary    string            `yaml:"summary,omitempty"`
+	Deprecated any               `yaml:"deprecated,omitempty"`
+	Owners     []string          `yaml:"owners,omitempty"`
+	Labels     map[string]string `yaml:"labels,omitempty"`
+	Channels   []string          `yaml:"channels,omitempty,flow"`
+	Changelog  []changeFM        `yaml:"changelog,omitempty"`
+	Producers  []pointer         `yaml:"producers,omitempty"`
+	Consumers  []pointer         `yaml:"consumers,omitempty"`
+	Operation  *operationFM      `yaml:"operation,omitempty"`
+	Badges     []badgeFM         `yaml:"badges,omitempty"`
+	Repository *repositoryFM     `yaml:"repository,omitempty"`
+	SchemaPath string            `yaml:"schemaPath,omitempty"`
 }
 
 type serviceFM struct {
@@ -106,42 +112,68 @@ type serviceFM struct {
 }
 
 type domainFM struct {
-	ID                 string                       `yaml:"id"`
-	Name               string                       `yaml:"name"`
-	Version            string                       `yaml:"version"`
-	Summary            string                       `yaml:"summary,omitempty"`
-	Owners             []string                     `yaml:"owners,omitempty"`
-	Services           []pointer                    `yaml:"services,omitempty"`
-	Sends              []pointer                    `yaml:"sends,omitempty"`
-	Receives           []pointer                    `yaml:"receives,omitempty"`
-	Entities           []string                     `yaml:"entities,omitempty,flow"`
-	Flows              []string                     `yaml:"flows,omitempty,flow"`
-	Domains            []string                     `yaml:"domains,omitempty,flow"`
-	DataProducts       []string                     `yaml:"data-products,omitempty,flow"`
-	UbiquitousLanguage []ubiquitousLanguageTermFM   `yaml:"ubiquitousLanguage,omitempty"`
-	Badges             []badgeFM                    `yaml:"badges,omitempty"`
-	Attachments        []attachmentFM               `yaml:"attachments,omitempty"`
+	ID                 string                     `yaml:"id"`
+	Name               string                     `yaml:"name"`
+	Version            string                     `yaml:"version"`
+	Summary            string                     `yaml:"summary,omitempty"`
+	Owners             []string                   `yaml:"owners,omitempty"`
+	Services           []pointer                  `yaml:"services,omitempty"`
+	Sends              []pointer                  `yaml:"sends,omitempty"`
+	Receives           []pointer                  `yaml:"receives,omitempty"`
+	Entities           []string                   `yaml:"entities,omitempty,flow"`
+	Flows              []string                   `yaml:"flows,omitempty,flow"`
+	Domains            []string                   `yaml:"domains,omitempty,flow"`
+	DataProducts       []string                   `yaml:"data-products,omitempty,flow"`
+	UbiquitousLanguage []ubiquitousLanguageTermFM `yaml:"ubiquitousLanguage,omitempty"`
+	Badges             []badgeFM                  `yaml:"badges,omitempty"`
+	Attachments        []attachmentFM             `yaml:"attachments,omitempty"`
+}
+
+type entityPropertyFM struct {
+	Name                 string `yaml:"name"`
+	Type                 string `yaml:"type"`
+	Required             bool   `yaml:"required,omitempty"`
+	Description          string `yaml:"description,omitempty"`
+	References           string `yaml:"references,omitempty"`
+	ReferencesIdentifier string `yaml:"referencesIdentifier,omitempty"`
+	RelationType         string `yaml:"relationType,omitempty"`
 }
 
 type entityFM struct {
-	ID         string    `yaml:"id"`
-	Name       string    `yaml:"name"`
-	Version    string    `yaml:"version"`
-	Summary    string    `yaml:"summary,omitempty"`
-	Owners     []string  `yaml:"owners,omitempty"`
-	Badges     []badgeFM `yaml:"badges,omitempty"`
-	SchemaPath string    `yaml:"schemaPath,omitempty"`
+	ID            string             `yaml:"id"`
+	Name          string             `yaml:"name"`
+	Version       string             `yaml:"version"`
+	Summary       string             `yaml:"summary,omitempty"`
+	AggregateRoot bool               `yaml:"aggregateRoot,omitempty"`
+	Identifier    string             `yaml:"identifier,omitempty"`
+	Properties    []entityPropertyFM `yaml:"properties,omitempty"`
+	Owners        []string           `yaml:"owners,omitempty"`
+	Badges        []badgeFM          `yaml:"badges,omitempty"`
+	SchemaPath    string             `yaml:"schemaPath,omitempty"`
+}
+
+type dataContractFM struct {
+	Path string `yaml:"path"`
+	Name string `yaml:"name,omitempty"`
+	Type string `yaml:"type,omitempty"`
+}
+
+type dataProductOutputFM struct {
+	ID       string          `yaml:"id"`
+	Version  string          `yaml:"version,omitempty"`
+	Contract *dataContractFM `yaml:"contract,omitempty"`
 }
 
 type dataProductFM struct {
-	ID      string    `yaml:"id"`
-	Name    string    `yaml:"name"`
-	Version string    `yaml:"version"`
-	Summary string    `yaml:"summary,omitempty"`
-	Owners  []string  `yaml:"owners,omitempty"`
-	Inputs  []pointer `yaml:"inputs,omitempty"`
-	Outputs []pointer `yaml:"outputs,omitempty"`
-	Badges  []badgeFM `yaml:"badges,omitempty"`
+	ID      string                `yaml:"id"`
+	Name    string                `yaml:"name"`
+	Version string                `yaml:"version"`
+	Summary string                `yaml:"summary,omitempty"`
+	Hidden  bool                  `yaml:"hidden,omitempty"`
+	Owners  []string              `yaml:"owners,omitempty"`
+	Inputs  []pointer             `yaml:"inputs,omitempty"`
+	Outputs []dataProductOutputFM `yaml:"outputs,omitempty"`
+	Badges  []badgeFM             `yaml:"badges,omitempty"`
 }
 
 type agentFM struct {
@@ -171,18 +203,18 @@ type channelRouteFM struct {
 }
 
 type channelFM struct {
-	ID                string                   `yaml:"id"`
-	Name              string                   `yaml:"name"`
-	Version           string                   `yaml:"version"`
-	Summary           string                   `yaml:"summary,omitempty"`
-	Address           string                   `yaml:"address,omitempty"`
-	Protocols         []string                 `yaml:"protocols,omitempty,flow"`
-	Messages          []pointer                `yaml:"messages,omitempty"`
-	DeliveryGuarantee string                   `yaml:"deliveryGuarantee,omitempty"`
+	ID                string                    `yaml:"id"`
+	Name              string                    `yaml:"name"`
+	Version           string                    `yaml:"version"`
+	Summary           string                    `yaml:"summary,omitempty"`
+	Address           string                    `yaml:"address,omitempty"`
+	Protocols         []string                  `yaml:"protocols,omitempty,flow"`
+	Messages          []pointer                 `yaml:"messages,omitempty"`
+	DeliveryGuarantee string                    `yaml:"deliveryGuarantee,omitempty"`
 	Parameters        map[string]channelParamFM `yaml:"parameters,omitempty"`
-	Routes            []channelRouteFM         `yaml:"routes,omitempty"`
-	Owners            []string                 `yaml:"owners,omitempty"`
-	Badges            []badgeFM                `yaml:"badges,omitempty"`
+	Routes            []channelRouteFM          `yaml:"routes,omitempty"`
+	Owners            []string                  `yaml:"owners,omitempty"`
+	Badges            []badgeFM                 `yaml:"badges,omitempty"`
 }
 
 type dataStoreFM struct {
@@ -195,6 +227,8 @@ type dataStoreFM struct {
 	Classification string    `yaml:"classification,omitempty"`
 	Retention      string    `yaml:"retention,omitempty"`
 	Residency      string    `yaml:"residency,omitempty"`
+	Authoritative  bool      `yaml:"authoritative,omitempty"`
+	AccessMode     string    `yaml:"access_mode,omitempty"`
 	Owners         []string  `yaml:"owners,omitempty"`
 	Badges         []badgeFM `yaml:"badges,omitempty"`
 }
@@ -205,20 +239,20 @@ type flowEdgeFM struct {
 }
 
 type flowStepFM struct {
-	ID          string      `yaml:"id"`
-	Title       string      `yaml:"title"`
-	Summary     string      `yaml:"summary,omitempty"`
-	Service     *pointer    `yaml:"service,omitempty"`
-	Message     *pointer    `yaml:"message,omitempty"`
-	Channel     *pointer    `yaml:"channel,omitempty"`
-	Actor       *flowActor  `yaml:"actor,omitempty"`
-	ExternalSys *flowActor  `yaml:"externalSystem,omitempty"`
-	Custom      *flowCustom `yaml:"custom,omitempty"`
-	Agent       *pointer    `yaml:"agent,omitempty"`
-	DataStore   *pointer    `yaml:"dataStore,omitempty"`
-	DataProduct *pointer    `yaml:"dataProduct,omitempty"`
-	SubFlow     *pointer    `yaml:"subFlow,omitempty"`
-	NextStep    *flowEdgeFM `yaml:"next_step,omitempty"`
+	ID          string       `yaml:"id"`
+	Title       string       `yaml:"title"`
+	Summary     string       `yaml:"summary,omitempty"`
+	Service     *pointer     `yaml:"service,omitempty"`
+	Message     *pointer     `yaml:"message,omitempty"`
+	Channel     *pointer     `yaml:"channel,omitempty"`
+	Actor       *flowActor   `yaml:"actor,omitempty"`
+	ExternalSys *flowActor   `yaml:"externalSystem,omitempty"`
+	Custom      *flowCustom  `yaml:"custom,omitempty"`
+	Agent       *pointer     `yaml:"agent,omitempty"`
+	DataStore   *pointer     `yaml:"dataStore,omitempty"`
+	DataProduct *pointer     `yaml:"dataProduct,omitempty"`
+	SubFlow     *pointer     `yaml:"subFlow,omitempty"`
+	NextStep    *flowEdgeFM  `yaml:"next_step,omitempty"`
 	NextSteps   []flowEdgeFM `yaml:"next_steps,omitempty"`
 }
 
@@ -238,21 +272,21 @@ type flowCustom struct {
 }
 
 type flowFM struct {
-	ID      string      `yaml:"id"`
-	Name    string      `yaml:"name"`
-	Version string      `yaml:"version"`
-	Summary string      `yaml:"summary,omitempty"`
-	Badges  []badgeFM   `yaml:"badges,omitempty"`
+	ID      string       `yaml:"id"`
+	Name    string       `yaml:"name"`
+	Version string       `yaml:"version"`
+	Summary string       `yaml:"summary,omitempty"`
+	Badges  []badgeFM    `yaml:"badges,omitempty"`
 	Steps   []flowStepFM `yaml:"steps,omitempty"`
 }
 
 type teamFM struct {
-	ID                    string `yaml:"id"`
-	Name                  string `yaml:"name"`
-	Summary               string `yaml:"summary,omitempty"`
+	ID                    string   `yaml:"id"`
+	Name                  string   `yaml:"name"`
+	Summary               string   `yaml:"summary,omitempty"`
 	Members               []string `yaml:"members,omitempty,flow"`
-	Email                 string `yaml:"email,omitempty"`
-	SlackDirectMessageURL string `yaml:"slackDirectMessageUrl,omitempty"`
+	Email                 string   `yaml:"email,omitempty"`
+	SlackDirectMessageURL string   `yaml:"slackDirectMessageUrl,omitempty"`
 }
 
 type userFM struct {

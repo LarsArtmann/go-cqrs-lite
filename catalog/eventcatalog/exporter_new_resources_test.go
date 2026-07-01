@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v3/internal/cattest"
@@ -63,6 +64,170 @@ func TestExporter_EntityWithoutSchema(t *testing.T) {
 	}
 }
 
+func TestExporter_DataProductWithContract(t *testing.T) {
+	t.Parallel()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddDataProduct(catalog.DataProduct{
+		ID:      "user-analytics",
+		Name:    "User Analytics",
+		Version: "1.0.0",
+		Hidden:  true,
+		Outputs: []catalog.DataProductOutput{
+			{
+				Ref: catalog.Ref{ID: "UserMetrics"},
+				Contract: &catalog.DataContract{
+					Path: "contracts/user-metrics.json",
+					Name: "UserMetrics",
+					Type: "json-schema",
+				},
+			},
+		},
+	})
+
+	tmpDir := exportCatalog(t, reg)
+	content := readExported(t, tmpDir, "data-products", "user-analytics", "index.mdx")
+
+	cattest.AssertContentContains(
+		t, content, "data product with contract",
+		"hidden: true",
+		"contract:",
+		"path: contracts/user-metrics.json",
+		"type: json-schema",
+	)
+}
+
+func TestExporter_DataStoreWithNewFields(t *testing.T) {
+	t.Parallel()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddDataStore(catalog.DataStore{
+		ID:            "primary-db",
+		Name:          "Primary DB",
+		Version:       "1.0.0",
+		ContainerType: "database",
+		Technology:    "PostgreSQL",
+		Authoritative: true,
+		AccessMode:    "read-write",
+	})
+
+	tmpDir := exportCatalog(t, reg)
+	content := readExported(t, tmpDir, "data", "primary-db", "index.mdx")
+
+	cattest.AssertContentContains(
+		t, content, "data store with new fields",
+		"authoritative: true",
+		"access_mode: read-write",
+	)
+}
+
+func TestExporter_MessageWithDeprecationInfo(t *testing.T) {
+	t.Parallel()
+
+	deprecationDate := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddService(catalog.Service{
+		ID:      "svc",
+		Name:    "Service",
+		Version: "1.0.0",
+		Events: []catalog.Message{
+			{
+				Kind:    catalog.EventMessage,
+				ID:      "old-event",
+				Name:    "OldEvent",
+				Version: "1.0.0",
+				Deprecation: &catalog.DeprecationInfo{
+					Date:    &deprecationDate,
+					Message: "Use new-event instead",
+				},
+			},
+		},
+	})
+
+	tmpDir := exportCatalog(t, reg)
+	content := readExported(t, tmpDir, "services", "svc", "events", "old-event", "index.mdx")
+
+	cattest.AssertContentContains(
+		t, content, "deprecation info",
+		"deprecated:",
+		"message: Use new-event instead",
+		"date: \"2026-01-15\"",
+	)
+}
+
+func TestExporter_MessageWithChannels(t *testing.T) {
+	t.Parallel()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddService(catalog.Service{
+		ID:      "svc",
+		Name:    "Service",
+		Version: "1.0.0",
+		Commands: []catalog.Message{
+			{
+				Kind:     catalog.CommandMessage,
+				ID:       "do-thing",
+				Name:     "DoThing",
+				Version:  "1.0.0",
+				Channels: []catalog.ChannelID{"kafka-main", "http-ingress"},
+			},
+		},
+	})
+
+	tmpDir := exportCatalog(t, reg)
+	content := readExported(t, tmpDir, "services", "svc", "commands", "do-thing", "index.mdx")
+
+	cattest.AssertContentContains(
+		t, content, "message with channels",
+		"channels:",
+		"kafka-main",
+		"http-ingress",
+	)
+}
+
+func TestExporter_EntityWithProperties(t *testing.T) {
+	t.Parallel()
+
+	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg.AddEntity(catalog.Entity{
+		ID:            "order-aggregate",
+		Name:          "Order",
+		Version:       "2.0.0",
+		Summary:       "Order aggregate root",
+		AggregateRoot: true,
+		Identifier:    "orderId",
+		Properties: []catalog.EntityProperty{
+			{
+				Name:        "orderId",
+				Type:        "string",
+				Required:    true,
+				Description: "Unique order identifier",
+			},
+			{
+				Name: "customerId", Type: "string", Required: true, References: "Customer",
+				ReferencesIdentifier: "customerId", RelationType: "many-to-one",
+			},
+			{Name: "items", Type: "array", RelationType: "one-to-many", References: "OrderItem"},
+		},
+	})
+
+	tmpDir := exportCatalog(t, reg)
+	content := readExported(t, tmpDir, "entities", "order-aggregate", "index.mdx")
+
+	cattest.AssertContentContains(
+		t, content, "entity with properties",
+		"aggregateRoot: true",
+		"identifier: orderId",
+		"name: orderId",
+		"type: string",
+		"required: true",
+		"references: Customer",
+		"relationType: many-to-one",
+		"referencesIdentifier: customerId",
+	)
+}
+
 func TestExporter_DataProduct(t *testing.T) {
 	t.Parallel()
 
@@ -77,8 +242,8 @@ func TestExporter_DataProduct(t *testing.T) {
 			{ID: "OrderConfirmed", Version: "1.0.0"},
 			{ID: "PaymentProcessed"},
 		},
-		Outputs: []catalog.Ref{
-			{ID: "OrderMetricsCalculated", Version: "1.0.0"},
+		Outputs: []catalog.DataProductOutput{
+			{Ref: catalog.Ref{ID: "OrderMetricsCalculated", Version: "1.0.0"}},
 		},
 	})
 

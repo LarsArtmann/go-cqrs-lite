@@ -186,6 +186,34 @@ func validateEntity(entity Entity) []Violation {
 		})
 	}
 
+	seenProps := make(map[string]bool, len(entity.Properties))
+	for _, prop := range entity.Properties {
+		if prop.Name == "" {
+			violations = append(violations, Violation{
+				Path:    fmt.Sprintf("entities[%s].properties", entity.ID),
+				Message: "entity property must have a name",
+			})
+
+			continue
+		}
+
+		if seenProps[string(prop.Name)] {
+			violations = append(violations, Violation{
+				Path:    fmt.Sprintf("entities[%s].properties[%s]", entity.ID, prop.Name),
+				Message: "duplicate entity property",
+			})
+		}
+
+		seenProps[string(prop.Name)] = true
+
+		if prop.Type == "" {
+			violations = append(violations, Violation{
+				Path:    fmt.Sprintf("entities[%s].properties[%s]", entity.ID, prop.Name),
+				Message: "entity property must have a type",
+			})
+		}
+	}
+
 	return violations
 }
 

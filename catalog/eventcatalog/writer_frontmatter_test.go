@@ -28,22 +28,25 @@ func TestRenderMDX_MessageFullFields(t *testing.T) {
 		Badges: []catalog.Badge{
 			{Content: "stable", BackgroundColor: "green", TextColor: "white", Icon: "check"},
 		},
-		Repository: &catalog.Repository{Language: "go", URL: "https://github.com/example/order-svc"},
-		Schema:     &catalog.Schema{Type: catalog.TypeObject},
+		Repository: &catalog.Repository{
+			Language: "go",
+			URL:      "https://github.com/example/order-svc",
+		},
+		Schema: &catalog.Schema{Type: catalog.TypeObject},
 	}
 
 	fm := messageFM{
-		ID:        string(catalog.Key(msg)),
-		Name:      string(msg.Name),
-		Version:   string(msg.Version),
-		Summary:   string(msg.Summary),
-		Owners:    msg.Owners,
-		Labels:    msg.Labels,
-		Changelog: toChangelog(msg.Changelog),
-		Producers: toPointers(msg.Producers),
-		Consumers: toPointers(msg.Consumers),
-		Operation: toOperation(msg.Operation),
-		Badges:    toBadges(msg.Badges),
+		ID:         string(catalog.Key(msg)),
+		Name:       string(msg.Name),
+		Version:    string(msg.Version),
+		Summary:    string(msg.Summary),
+		Owners:     msg.Owners,
+		Labels:     msg.Labels,
+		Changelog:  toChangelog(msg.Changelog),
+		Producers:  toPointers(msg.Producers),
+		Consumers:  toPointers(msg.Consumers),
+		Operation:  toOperation(msg.Operation),
+		Badges:     toBadges(msg.Badges),
 		Repository: toRepository(msg.Repository),
 	}
 	if msg.Schema != nil {

@@ -11,6 +11,8 @@ func copyDataStore(ds *DataStore) DataStore {
 		Classification: ds.Classification,
 		Retention:      ds.Retention,
 		Residency:      ds.Residency,
+		Authoritative:  ds.Authoritative,
+		AccessMode:     ds.AccessMode,
 		Owners:         copySlice(ds.Owners),
 		Badges:         copyBadges(ds.Badges),
 	}
@@ -120,14 +122,28 @@ func copyUser(u *User) User {
 
 func copyEntity(e *Entity) Entity {
 	return Entity{
-		ID:      e.ID,
-		Name:    e.Name,
-		Version: e.Version,
-		Summary: e.Summary,
-		Schema:  e.Schema,
-		Owners:  copySlice(e.Owners),
-		Badges:  copyBadges(e.Badges),
+		ID:            e.ID,
+		Name:          e.Name,
+		Version:       e.Version,
+		Summary:       e.Summary,
+		Schema:        e.Schema,
+		AggregateRoot: e.AggregateRoot,
+		Identifier:    e.Identifier,
+		Properties:    copyEntityProperties(e.Properties),
+		Owners:        copySlice(e.Owners),
+		Badges:        copyBadges(e.Badges),
 	}
+}
+
+func copyEntityProperties(props []EntityProperty) []EntityProperty {
+	if props == nil {
+		return nil
+	}
+
+	cp := make([]EntityProperty, len(props))
+	copy(cp, props)
+
+	return cp
 }
 
 func copyDataProduct(dp *DataProduct) DataProduct {
@@ -137,10 +153,35 @@ func copyDataProduct(dp *DataProduct) DataProduct {
 		Version: dp.Version,
 		Summary: dp.Summary,
 		Inputs:  copySlice(dp.Inputs),
-		Outputs: copySlice(dp.Outputs),
+		Outputs: copyDataProductOutputs(dp.Outputs),
+		Hidden:  dp.Hidden,
 		Owners:  copySlice(dp.Owners),
 		Badges:  copyBadges(dp.Badges),
 	}
+}
+
+func copyDataProductOutputs(outputs []DataProductOutput) []DataProductOutput {
+	if outputs == nil {
+		return nil
+	}
+
+	cp := make([]DataProductOutput, len(outputs))
+	for i, o := range outputs {
+		cp[i] = DataProductOutput{
+			Ref:      o.Ref,
+			Contract: copyDataContract(o.Contract),
+		}
+	}
+
+	return cp
+}
+
+func copyDataContract(c *DataContract) *DataContract {
+	if c == nil {
+		return nil
+	}
+
+	return &DataContract{Path: c.Path, Name: c.Name, Type: c.Type}
 }
 
 func copyAgent(a *Agent) Agent {
@@ -183,4 +224,16 @@ func copyAgentTools(tools []AgentTool) []AgentTool {
 	}
 
 	return cp
+}
+
+func copyCustomDoc(d *CustomDoc) CustomDoc {
+	return CustomDoc{
+		ID:      d.ID,
+		Title:   d.Title,
+		Summary: d.Summary,
+		Slug:    d.Slug,
+		Content: d.Content,
+		Owners:  copySlice(d.Owners),
+		Badges:  copyBadges(d.Badges),
+	}
 }

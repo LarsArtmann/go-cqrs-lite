@@ -184,9 +184,76 @@ func (e *Exporter) writeEntities(buf *strings.Builder, cat *catalog.Catalog) {
 
 		fmt.Fprintf(buf, "%s: {\n", id)
 		fmt.Fprintf(buf, "  class: entity\n")
-		fmt.Fprintf(buf, "  label: %q\n", entity.Name)
+
+		label := string(entity.Name)
+		if entity.AggregateRoot {
+			label += " [Aggregate Root]"
+		}
+
+		fmt.Fprintf(buf, "  label: %q\n", label)
 		buf.WriteString("  shape: cylinder\n")
+
+		tooltip := e.buildEntityTooltip(entity)
+		if tooltip != "" {
+			fmt.Fprintf(buf, "  tooltip: %q\n", tooltip)
+		}
+
 		buf.WriteString("}\n\n")
+	}
+
+	e.writeEntityRelationships(buf, cat)
+}
+
+func (e *Exporter) buildEntityTooltip(entity catalog.Entity) string {
+	var parts []string
+
+	if entity.Summary != "" {
+		parts = append(parts, string(entity.Summary))
+	}
+
+	if entity.Identifier != "" {
+		parts = append(parts, "Identifier: "+entity.Identifier)
+	}
+
+	if len(entity.Properties) > 0 {
+		propParts := make([]string, 0, len(entity.Properties))
+		for _, p := range entity.Properties {
+			propStr := string(p.Name) + ": " + p.Type
+			if p.Required {
+				propStr += " (required)"
+			}
+
+			propParts = append(propParts, propStr)
+		}
+
+		parts = append(parts, "Properties: "+strings.Join(propParts, ", "))
+	}
+
+	return strings.Join(parts, "\n")
+}
+
+func (e *Exporter) writeEntityRelationships(buf *strings.Builder, cat *catalog.Catalog) {
+	for _, entity := range cat.Entities {
+		fromID := "entity_" + sanitizeID(string(entity.ID))
+
+		for _, prop := range entity.Properties {
+			if prop.References == "" {
+				continue
+			}
+
+			toID := "entity_" + sanitizeID(string(prop.References))
+
+			label := prop.RelationType
+			if label == "" {
+				label = "references"
+			}
+
+			fmt.Fprintf(buf, "%s -> %s: %q {\n", fromID, toID, label)
+			buf.WriteString("  style: {\n")
+			buf.WriteString("    stroke: \"#00838f\"\n")
+			buf.WriteString("    stroke-dash: 3\n")
+			buf.WriteString("  }\n}\n\n")
+		}
 	}
 }
 

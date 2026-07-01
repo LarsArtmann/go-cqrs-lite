@@ -438,3 +438,69 @@ func TestExporter_Export_ValidD2(t *testing.T) {
 		}
 	}
 }
+
+func TestExporter_EntityRelationships(t *testing.T) {
+	t.Parallel()
+
+	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg.AddEntity(catalog.Entity{
+		ID:            "order",
+		Name:          "Order",
+		AggregateRoot: true,
+		Identifier:    "orderId",
+		Properties: []catalog.EntityProperty{
+			{Name: "orderId", Type: "string", Required: true},
+			{
+				Name:         "customerId",
+				Type:         "string",
+				References:   "Customer",
+				RelationType: "many-to-one",
+			},
+		},
+	})
+	reg.AddEntity(catalog.Entity{
+		ID:   "customer",
+		Name: "Customer",
+		Properties: []catalog.EntityProperty{
+			{Name: "id", Type: "string", Required: true},
+		},
+	})
+
+	cat := reg.Build()
+	output := NewExporter("Test", "1.0.0").Export(cat)
+
+	assertContains(t, output, "Aggregate Root", "expected aggregate root label")
+	assertContains(t, output, "entity_order", "expected order entity node")
+	assertContains(t, output, "entity_customer", "expected customer entity node")
+	assertContains(t, output, "entity_order -> entity_customer", "expected relationship edge")
+	assertContains(t, output, "many-to-one", "expected relation type label")
+	assertContains(t, output, "Identifier: orderId", "expected identifier in tooltip")
+}
+
+func TestExporter_UbiquitousLanguage(t *testing.T) {
+	t.Parallel()
+
+	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg.AddService(catalog.Service{
+		ID:      "order-svc",
+		Name:    "Order Service",
+		Version: "1.0.0",
+	})
+	reg.AddDomain(catalog.Domain{
+		ID:       "orders",
+		Name:     "Orders",
+		Version:  "1.0.0",
+		Services: []catalog.ServiceID{"order-svc"},
+		UbiquitousLanguage: []catalog.UbiquitousLanguageTerm{
+			{Name: "Order", Description: "A customer's purchase request"},
+			{Name: "Fulfillment", Description: "Processing an order for delivery"},
+		},
+	})
+
+	cat := reg.Build()
+	output := NewExporter("Test", "1.0.0").Export(cat)
+
+	assertContains(t, output, "Ubiquitous Language", "expected ubiquitous language tooltip")
+	assertContains(t, output, "Order: A customer", "expected ubiquitous language term")
+	assertContains(t, output, "Fulfillment", "expected ubiquitous language term")
+}

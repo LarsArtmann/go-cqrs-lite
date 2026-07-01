@@ -1,32 +1,49 @@
 package catalog
 
+import "time"
+
 // UbiquitousLanguageTerm represents a single term in a domain's ubiquitous language (DDD glossary).
 type UbiquitousLanguageTerm struct {
 	Name        Name   `json:"name"`
 	Description string `json:"description,omitempty"`
 }
 
+// EntityProperty describes a single property of a domain entity.
+type EntityProperty struct {
+	Name                 Name   `json:"name"`
+	Type                 string `json:"type"`
+	Required             bool   `json:"required,omitempty"`
+	Description          string `json:"description,omitempty"`
+	References           Name   `json:"references,omitempty"`
+	ReferencesIdentifier string `json:"referencesIdentifier,omitempty"`
+	RelationType         string `json:"relationType,omitempty"`
+}
+
 // Entity represents a first-class domain entity with optional schema, owners, and badges.
 type Entity struct {
-	ID      EntityID `json:"id"`
-	Name    Name     `json:"name"`
-	Version Version  `json:"version"`
-	Summary Summary  `json:"summary,omitempty"`
-	Schema  *Schema  `json:"schema,omitempty"`
-	Owners  []string `json:"owners,omitempty"`
-	Badges  []Badge  `json:"badges,omitempty"`
+	ID            EntityID         `json:"id"`
+	Name          Name             `json:"name"`
+	Version       Version          `json:"version"`
+	Summary       Summary          `json:"summary,omitempty"`
+	Schema        *Schema          `json:"schema,omitempty"`
+	AggregateRoot bool             `json:"aggregateRoot,omitempty"`
+	Identifier    string           `json:"identifier,omitempty"`
+	Properties    []EntityProperty `json:"properties,omitempty"`
+	Owners        []string         `json:"owners,omitempty"`
+	Badges        []Badge          `json:"badges,omitempty"`
 }
 
 // DataProduct represents a data product in a data mesh — a curated, owned dataset.
 type DataProduct struct {
-	ID      DataProductID `json:"id"`
-	Name    Name          `json:"name"`
-	Version Version       `json:"version"`
-	Summary Summary       `json:"summary,omitempty"`
-	Inputs  []Ref         `json:"inputs,omitempty"`
-	Outputs []Ref         `json:"outputs,omitempty"`
-	Owners  []string      `json:"owners,omitempty"`
-	Badges  []Badge       `json:"badges,omitempty"`
+	ID      DataProductID       `json:"id"`
+	Name    Name                `json:"name"`
+	Version Version             `json:"version"`
+	Summary Summary             `json:"summary,omitempty"`
+	Inputs  []Ref               `json:"inputs,omitempty"`
+	Outputs []DataProductOutput `json:"outputs,omitempty"`
+	Hidden  bool                `json:"hidden,omitempty"`
+	Owners  []string            `json:"owners,omitempty"`
+	Badges  []Badge             `json:"badges,omitempty"`
 }
 
 // Agent represents an AI agent that sends/receives messages and uses tools.
@@ -62,6 +79,26 @@ type AgentTool struct {
 	Icon        Icon        `json:"icon,omitempty"`
 }
 
+// DataContract represents a data contract attached to a data product output.
+type DataContract struct {
+	Path string `json:"path"`
+	Name Name   `json:"name,omitempty"`
+	Type string `json:"type,omitempty"`
+}
+
+// DataProductOutput extends a Ref with an optional data contract.
+type DataProductOutput struct {
+	Ref
+
+	Contract *DataContract `json:"contract,omitempty"`
+}
+
+// DeprecationInfo carries structured deprecation metadata (date + message).
+type DeprecationInfo struct {
+	Date    *time.Time `json:"date,omitempty"`
+	Message string     `json:"message,omitempty"`
+}
+
 // DataStore represents a data store (database, cache, object store, etc.).
 type DataStore struct {
 	ID             DataStoreID `json:"id"`
@@ -73,6 +110,8 @@ type DataStore struct {
 	Classification string      `json:"classification,omitempty"`
 	Retention      string      `json:"retention,omitempty"`
 	Residency      string      `json:"residency,omitempty"`
+	Authoritative  bool        `json:"authoritative,omitempty"`
+	AccessMode     string      `json:"accessMode,omitempty"`
 	Owners         []string    `json:"owners,omitempty"`
 	Badges         []Badge     `json:"badges,omitempty"`
 }
@@ -153,3 +192,21 @@ type User struct {
 	Email                 Email  `json:"email,omitempty"`
 	SlackDirectMessageURL URL    `json:"slackDirectMessageUrl,omitempty"`
 }
+
+// CustomDoc represents a global custom documentation page (ADRs, architecture docs, etc.).
+type CustomDoc struct {
+	ID      CustomDocID `json:"id"`
+	Title   Title       `json:"title"`
+	Summary Summary     `json:"summary,omitempty"`
+	Slug    string      `json:"slug,omitempty"`
+	Content string      `json:"content,omitempty"`
+	Owners  []string    `json:"owners,omitempty"`
+	Badges  []Badge     `json:"badges,omitempty"`
+}
+
+// CustomDocID is a branded identifier for a custom documentation page.
+type CustomDocID string
+
+func (id CustomDocID) String() string { return string(id) }
+
+func (id CustomDocID) IsZero() bool { return id == "" }

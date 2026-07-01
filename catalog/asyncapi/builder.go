@@ -63,6 +63,143 @@ func exportMessages(e *Exporter, doc *Document, cat *catalog.Catalog) {
 			e.addMessage(doc, svc.ID, q, kindQuery)
 		}
 	}
+
+	exportAgentMessages(e, doc, cat)
+}
+
+// exportAgentMessages resolves agent Sends/Receives refs to actual messages
+// from the catalog and adds operations for each agent.
+func exportAgentMessages(e *Exporter, doc *Document, cat *catalog.Catalog) {
+	if len(cat.Agents) == 0 {
+		return
+	}
+
+	msgLookup := buildMessageLookup(cat)
+
+	for _, agent := range cat.Agents {
+		for _, ref := range agent.Sends {
+			msg, ok := msgLookup[ref.ID]
+			if !ok {
+				continue
+			}
+
+			addAgentOperation(doc, agent.ID, msg, actionSend)
+		}
+
+		for _, ref := range agent.Receives {
+			msg, ok := msgLookup[ref.ID]
+			if !ok {
+				continue
+			}
+
+			addAgentOperation(doc, agent.ID, msg, actionReceive)
+		}
+	}
+}
+
+// addAgentOperation creates an operation for an agent's send/receive of a message.
+// Uses agent-specific operation keys to avoid collisions with service operations.
+func addAgentOperation(doc *Document, agentID catalog.AgentID, msg catalog.Message, action string) {
+	messageID := catalog.Key(msg)
+	kind := messageKindForKind(msg.Kind)
+	channelKey := string(kind) + "." + string(messageID)
+	componentKey := string(msg.Kind) + "." + string(messageID)
+	ref := "#/components/messages/" + componentKey
+
+	ensureMessageComponent(doc, msg, componentKey)
+	ensureChannel(doc, agentID, msg, kind, channelKey, ref)
+
+	opName := action + "." + string(agentID) + "." + string(messageID)
+
+	doc.Operations[opName] = Operation{
+		Title:    action + " " + string(msg.Name) + " (agent: " + string(agentID) + ")",
+		Summary:  string(msg.Summary),
+		Action:   action,
+		Channel:  Ref{Ref: "#/channels/" + channelKey},
+		Messages: []Ref{{Ref: ref}},
+		Tags:     buildTags(kind, catalog.ServiceID(agentID), msg),
+		Reply:    nil,
+	}
+}
+
+func ensureMessageComponent(doc *Document, msg catalog.Message, componentKey string) {
+	if _, exists := doc.Components.Messages[componentKey]; exists {
+		return
+	}
+
+	messageID := catalog.Key(msg)
+	doc.Components.Messages[componentKey] = Message{
+		Name:        string(messageID),
+		Title:       string(msg.Name),
+		Summary:     string(msg.Summary),
+		ContentType: contentType,
+		Payload:     Ref{Ref: "#/components/schemas/" + componentKey},
+		Tags:        []Tag{{Name: kindToTagName(msg.Kind)}},
+		Deprecated:  msg.Deprecated,
+	}
+
+	if msg.Schema != nil {
+		doc.Components.Schemas[componentKey] = SchemaToAny(msg.Schema)
+	} else {
+		doc.Components.Schemas[componentKey] = SchemaToAny(nil)
+	}
+}
+
+func ensureChannel(
+	doc *Document,
+	ownerID catalog.AgentID,
+	msg catalog.Message,
+	kind messageKind,
+	channelKey, ref string,
+) {
+	if _, exists := doc.Channels[channelKey]; exists {
+		return
+	}
+
+	doc.Channels[channelKey] = Channel{
+		Address: fmt.Sprintf(
+			"%s.%s.%s",
+			ownerID,
+			kind,
+			dotSeparated(string(catalog.Key(msg))),
+		),
+		Title:       string(msg.Name) + " " + strings.TrimSuffix(string(kind), "s") + " Channel",
+		Description: string(msg.Summary),
+		Messages:    map[string]Ref{string(kind): {Ref: ref}},
+	}
+}
+
+func buildMessageLookup(cat *catalog.Catalog) map[catalog.MessageID]catalog.Message {
+	lookup := make(map[catalog.MessageID]catalog.Message)
+
+	for _, svc := range cat.Services {
+		for _, msg := range svc.Commands {
+			lookup[catalog.Key(msg)] = msg
+		}
+
+		for _, msg := range svc.Events {
+			lookup[catalog.Key(msg)] = msg
+		}
+
+		for _, msg := range svc.Queries {
+			lookup[catalog.Key(msg)] = msg
+		}
+	}
+
+	return lookup
+}
+
+func messageKindForKind(kind catalog.MessageKind) messageKind {
+	switch kind {
+	case catalog.CommandMessage:
+		return kindCommand
+	case catalog.EventMessage:
+		return kindEvent
+	case catalog.QueryMessage:
+		return kindQuery
+	default:
+		return kindCommand
+	}
 }
 
 func (e *Exporter) addMessage(

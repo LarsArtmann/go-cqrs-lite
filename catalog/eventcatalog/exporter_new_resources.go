@@ -18,12 +18,15 @@ func (e *Exporter) writeEntity(entity catalog.Entity) error {
 	}
 
 	fm := entityFM{
-		ID:      string(entity.ID),
-		Name:    string(entity.Name),
-		Version: string(entity.Version),
-		Summary: string(entity.Summary),
-		Owners:  entity.Owners,
-		Badges:  toBadges(entity.Badges),
+		ID:            string(entity.ID),
+		Name:          string(entity.Name),
+		Version:       string(entity.Version),
+		Summary:       string(entity.Summary),
+		AggregateRoot: entity.AggregateRoot,
+		Identifier:    entity.Identifier,
+		Properties:    toEntityProperties(entity.Properties),
+		Owners:        entity.Owners,
+		Badges:        toBadges(entity.Badges),
 	}
 
 	if entity.Schema != nil {
@@ -61,9 +64,10 @@ func (e *Exporter) writeDataProduct(dp catalog.DataProduct) error {
 		Name:    string(dp.Name),
 		Version: string(dp.Version),
 		Summary: string(dp.Summary),
+		Hidden:  dp.Hidden,
 		Owners:  dp.Owners,
 		Inputs:  toRefs(dp.Inputs),
-		Outputs: toRefs(dp.Outputs),
+		Outputs: toDataProductOutputs(dp.Outputs),
 		Badges:  toBadges(dp.Badges),
 	}
 

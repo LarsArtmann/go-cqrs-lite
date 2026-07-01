@@ -69,6 +69,8 @@ func (e *Exporter) writeDataStore(ds catalog.DataStore) error {
 		Classification: ds.Classification,
 		Retention:      ds.Retention,
 		Residency:      ds.Residency,
+		Authoritative:  ds.Authoritative,
+		AccessMode:     ds.AccessMode,
 		Owners:         ds.Owners,
 		Badges:         toBadges(ds.Badges),
 	}

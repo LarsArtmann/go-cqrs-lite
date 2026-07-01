@@ -248,3 +248,58 @@ func TestExporter_EmptyCatalog(t *testing.T) {
 		t.Errorf("paths = %d, want 0", len(doc.Paths))
 	}
 }
+
+func TestExporter_EntitySchemas(t *testing.T) {
+	t.Parallel()
+
+	reg := catalog.NewRegistry("Test API", "1.0.0")
+	reg.AddEntity(catalog.Entity{
+		ID:   "user-entity",
+		Name: "User",
+		Schema: &catalog.Schema{
+			Type: catalog.TypeObject,
+			Properties: map[string]catalog.Property{
+				"id":    {Type: catalog.TypeString, Description: "User ID"},
+				"email": {Type: catalog.TypeString, Description: "User email"},
+			},
+		},
+	})
+	reg.AddEntity(catalog.Entity{
+		ID:   "order-entity",
+		Name: "Order",
+		Schema: &catalog.Schema{
+			Type: catalog.TypeObject,
+			Properties: map[string]catalog.Property{
+				"id":     {Type: catalog.TypeString},
+				"status": {Type: catalog.TypeString},
+			},
+		},
+	})
+	reg.AddEntity(catalog.Entity{
+		ID:   "schemaless",
+		Name: "Schemaless",
+	})
+
+	cat := reg.Build()
+	doc := NewExporter("Test API", "1.0.0").Export(cat)
+
+	if _, ok := doc.Components.Schemas["entity.user-entity"]; !ok {
+		t.Errorf("expected entity.user-entity in schemas, got keys: %v", schemaKeys(doc))
+	}
+
+	if _, ok := doc.Components.Schemas["entity.order-entity"]; !ok {
+		t.Errorf("expected entity.order-entity in schemas, got keys: %v", schemaKeys(doc))
+	}
+
+	if _, ok := doc.Components.Schemas["entity.schemaless"]; ok {
+		t.Error("schemaless entity should not appear in components")
+	}
+}
+
+func schemaKeys(doc *Document) []string {
+	keys := make([]string, 0, len(doc.Components.Schemas))
+	for k := range doc.Components.Schemas {
+		keys = append(keys, k)
+	}
+	return keys
+}
