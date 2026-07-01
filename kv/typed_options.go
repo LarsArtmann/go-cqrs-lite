@@ -16,7 +16,9 @@ var errNilTypedValue = errors.New("kv: TypedStore.Set called with a nil value")
 type TypedOption[T any, K fmt.Stringer] func(*TypedStore[T, K])
 
 // WithTypedCodec sets the serialization codec used by [TypedStore.Set] and [TypedStore.Get].
-// Defaults to [codec.JSONCodec].
+// Defaults to [codec.JSONCodec] when constructing a TypedStore directly.
+// When using [stack.ReadModel] or [stack.NewMaterialize], the Bundle's
+// [stack.Bundle.DefaultCodec] (CBORCodec by default) is used instead.
 //
 // Pass [codec.CBORCodec] for smaller payloads or [codec.CBORCompactCodec]
 // for maximum compactness (see the codec package docs for the toarray tradeoff).
