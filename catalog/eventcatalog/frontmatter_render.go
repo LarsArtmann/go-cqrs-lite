@@ -316,7 +316,11 @@ func toBaseConfig(b catalog.BaseConfig) baseConfigFM {
 		fm.Sidebar = &sidebarFM{Badge: b.Sidebar.Badge, Label: b.Sidebar.Label}
 	}
 	if b.Styles != nil {
-		fm.Styles = &stylesFM{Icon: b.Styles.Icon, NodeColor: b.Styles.NodeColor, NodeLabel: b.Styles.NodeLabel}
+		fm.Styles = &stylesFM{
+			Icon:      b.Styles.Icon,
+			NodeColor: b.Styles.NodeColor,
+			NodeLabel: b.Styles.NodeLabel,
+		}
 	}
 	fm.EditUrl = b.EditUrl
 	if b.Draft != nil {
@@ -334,6 +338,7 @@ func toBaseConfig(b catalog.BaseConfig) baseConfigFM {
 	if b.DetailsPanel != nil {
 		fm.DetailsPanel = &detailsPanelFM{Sections: b.DetailsPanel.Sections}
 	}
+
 	return fm
 }
 

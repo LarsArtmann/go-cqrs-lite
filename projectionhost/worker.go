@@ -27,9 +27,16 @@ type worker struct {
 	stateMu sync.RWMutex
 	state   WorkerState
 
-	processed atomic.Int64
-	errors    atomic.Int64
-	restarts  atomic.Int64
+	processed       atomic.Int64
+	errors          atomic.Int64
+	restarts        atomic.Int64
+	lastProcessedNs atomic.Int64 // Unix nanoseconds of the most recently processed event
+
+	// seenIDs accumulates event IDs during journal drain so the live phase
+	// can skip events that overlap the replay→live boundary. Bounded to the
+	// replay backlog size — never grows during live processing.
+	seenMu  sync.Mutex
+	seenIDs map[string]struct{}
 
 	stop chan struct{}
 	done chan struct{}
@@ -164,7 +171,7 @@ func (w *worker) process(ctx context.Context) error {
 		}
 
 		if len(events) == 0 {
-			return nil
+			break
 		}
 
 		for _, evt := range events {
@@ -178,6 +185,7 @@ func (w *worker) process(ctx context.Context) error {
 
 			if !w.shouldHandle(evt) {
 				afterID = evt.ID()
+				w.markSeen(evt.ID().String())
 
 				continue
 			}
@@ -214,6 +222,8 @@ func (w *worker) process(ctx context.Context) error {
 			afterID = evt.ID()
 
 			w.processed.Add(1)
+			w.markSeen(evt.ID().String())
+			w.lastProcessedNs.Store(time.Now().UnixNano())
 		}
 
 		if err := w.cpStore.Save(ctx, w.name, event.Checkpoint{
@@ -235,9 +245,16 @@ func (w *worker) process(ctx context.Context) error {
 		}
 
 		if len(events) < w.opts.batchSize {
-			return nil
+			break
 		}
 	}
+
+	// Phase 2: live subscription (if configured).
+	if w.opts.subscriber != nil {
+		return w.processLive(ctx)
+	}
+
+	return nil
 }
 
 func (w *worker) shouldHandle(evt event.Event) bool {
@@ -333,4 +350,102 @@ func familyToName(f event.Family) string {
 	default:
 		return ""
 	}
+}
+
+// markSeen records an event ID as processed during journal drain. Thread-safe;
+// only called during the drain phase (single goroutine).
+func (w *worker) markSeen(id string) {
+	w.seenMu.Lock()
+	defer w.seenMu.Unlock()
+
+	if w.seenIDs == nil {
+		w.seenIDs = make(map[string]struct{})
+	}
+
+	w.seenIDs[id] = struct{}{}
+}
+
+// wasSeen reports whether an event ID was seen during journal drain.
+func (w *worker) wasSeen(id string) bool {
+	w.seenMu.Lock()
+	defer w.seenMu.Unlock()
+
+	_, ok := w.seenIDs[id]
+
+	return ok
+}
+
+// processLive subscribes to live events via the configured subscriber. Events
+// already processed during journal drain are silently skipped. Blocks until the
+// context is cancelled, the subscriber returns an error, or the worker is stopped.
+func (w *worker) processLive(ctx context.Context) error {
+	w.setStatus(WorkerLive)
+
+	return w.opts.subscriber.SubscribeAll(func(_ context.Context, evt event.Event) error {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-w.stop:
+			return nil
+		default:
+		}
+
+		// Dedup: skip events that were already processed during journal drain.
+		if w.wasSeen(evt.ID().String()) {
+			return nil
+		}
+
+		if !w.shouldHandle(evt) {
+			w.lastProcessedNs.Store(time.Now().UnixNano())
+
+			return nil
+		}
+
+		start := time.Now()
+		handleErr := w.applyWithRetry(ctx, evt)
+		duration := time.Since(start)
+
+		if handleErr != nil {
+			if w.opts.dlq != nil {
+				dlqErr := w.sendToDLQ(ctx, evt, handleErr)
+				if dlqErr != nil {
+					return dlqErr
+				}
+
+				w.recordMetric(func(m MetricsRecorder) {
+					m.EventDeadLettered(w.name, string(evt.Type()))
+				})
+			} else {
+				return handleErr
+			}
+		} else {
+			w.recordMetric(func(m MetricsRecorder) {
+				m.EventProcessed(w.name, string(evt.Type()), duration)
+			})
+		}
+
+		if saveErr := w.cpStore.Save(ctx, w.name, event.Checkpoint{
+			EventID:     evt.ID(),
+			ProcessedAt: time.Now(),
+		}); saveErr != nil {
+			w.logger.Warn("save checkpoint after live event",
+				"projection", w.name, "event_id", evt.ID().String(), "error", saveErr)
+		}
+
+		w.processed.Add(1)
+		w.lastProcessedNs.Store(time.Now().UnixNano())
+
+		return nil
+	})
+}
+
+// lastProcessedAt returns the wall-clock time of the most recently processed
+// event, or the zero time if the worker has not processed any event yet.
+func (w *worker) lastProcessedAt() time.Time {
+	nanos := w.lastProcessedNs.Load()
+	if nanos == 0 {
+		return time.Time{}
+	}
+
+	return time.Unix(0, nanos)
 }

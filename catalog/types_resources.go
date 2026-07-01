@@ -176,13 +176,13 @@ type FlowEdge struct {
 
 // SchemaPointer references a schema file by path, format, and optional environment.
 type SchemaPointer struct {
-	ID          string `json:"id,omitempty"`
-	Ref         string `json:"$ref,omitempty"`
-	File        string `json:"file,omitempty"`
-	Path        string `json:"path,omitempty"`
-	Name        Name   `json:"name,omitempty"`
-	Format      string `json:"format,omitempty"`
-	Default     bool   `json:"default,omitempty"`
+	ID      string `json:"id,omitempty"`
+	Ref     string `json:"$ref,omitempty"`
+	File    string `json:"file,omitempty"`
+	Path    string `json:"path,omitempty"`
+	Name    Name   `json:"name,omitempty"`
+	Format  string `json:"format,omitempty"`
+	Default bool   `json:"default,omitempty"`
 }
 
 // SidebarConfig customizes how a resource appears in EventCatalog's sidebar.
@@ -193,7 +193,7 @@ type SidebarConfig struct {
 
 // StylesConfig customizes visual styling for a resource in EventCatalog.
 type StylesConfig struct {
-	Icon     string `json:"icon,omitempty"`
+	Icon      string `json:"icon,omitempty"`
 	NodeColor string `json:"nodeColor,omitempty"`
 	NodeLabel string `json:"nodeLabel,omitempty"`
 }
@@ -220,12 +220,12 @@ type DetailsPanelConfig struct {
 // BaseConfig holds shared EventCatalog UI configuration fields.
 // Embedded in Service and Domain for convenience.
 type BaseConfig struct {
-	Sidebar        *SidebarConfig    `json:"sidebar,omitempty"`
-	Styles         *StylesConfig     `json:"styles,omitempty"`
-	EditUrl        string            `json:"editUrl,omitempty"`
-	Draft          *DraftConfig      `json:"draft,omitempty"`
-	Visualiser     *bool             `json:"visualiser,omitempty"`
-	ResourceGroups []ResourceGroup   `json:"resourceGroups,omitempty"`
+	Sidebar        *SidebarConfig      `json:"sidebar,omitempty"`
+	Styles         *StylesConfig       `json:"styles,omitempty"`
+	EditUrl        string              `json:"editUrl,omitempty"`
+	Draft          *DraftConfig        `json:"draft,omitempty"`
+	Visualiser     *bool               `json:"visualiser,omitempty"`
+	ResourceGroups []ResourceGroup     `json:"resourceGroups,omitempty"`
 	DetailsPanel   *DetailsPanelConfig `json:"detailsPanel,omitempty"`
 }
 

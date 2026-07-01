@@ -16,6 +16,8 @@ const (
 	WorkerIdle WorkerStatus = "idle"
 	// WorkerRunning means the worker is actively processing events.
 	WorkerRunning WorkerStatus = "running"
+	// WorkerLive means the worker caught up on replay and is processing live events.
+	WorkerLive WorkerStatus = "live"
 	// WorkerBackoff means the worker is waiting before a restart.
 	WorkerBackoff WorkerStatus = "backoff"
 	// WorkerDraining means the worker is shutting down, waiting for in-flight events.

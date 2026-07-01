@@ -597,6 +597,190 @@ func requireEventually(t *testing.T, timeout time.Duration, cond func() bool) {
 // Ensure the projection interface is satisfied.
 var _ projection.Projection = (*countingProjection)(nil)
 
+// --- Live subscriber test fixtures ---
+
+// channelSubscriber is a minimal event.Subscriber that delivers events from
+// a Go channel. Used to simulate live event delivery after journal drain.
+type channelSubscriber struct {
+	ch chan event.Event
+}
+
+func newChannelSubscriber() *channelSubscriber {
+	return &channelSubscriber{ch: make(chan event.Event, 64)}
+}
+
+func (s *channelSubscriber) Subscribe(_ event.Type, _ event.Handler) error {
+	return errors.New("channelSubscriber only supports SubscribeAll")
+}
+
+func (s *channelSubscriber) SubscribeAll(handler event.Handler) error {
+	for evt := range s.ch {
+		if err := handler(context.Background(), evt); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *channelSubscriber) send(evt event.Event) { s.ch <- evt }
+func (s *channelSubscriber) close()               { close(s.ch) }
+
+// --- Live-mode tests ---
+
+func TestHost_WithSubscriber_DrainsThenLive(t *testing.T) {
+	t.Parallel()
+
+	journal := &memoryJournal{}
+	cpStore := newMemoryCheckpointStore()
+	liveSub := newChannelSubscriber()
+
+	// Seed two events in the journal (replay phase).
+	evt1 := makeEvent("task.created")
+	evt2 := makeEvent("task.created")
+	journal.append(evt1)
+	journal.append(evt2)
+
+	proj := &countingProjection{name: "replay+live", eventTypes: []event.Type{"task.created"}}
+
+	host, err := projectionhost.New(
+		journal, cpStore,
+		projectionhost.WithSubscriber(liveSub),
+		projectionhost.WithBatchSize(10),
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	if err := host.Register(proj); err != nil {
+		t.Fatalf("Register: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	if err := host.Start(ctx); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
+
+	// Wait for replay events to be processed.
+	requireEventually(t, 2*time.Second, func() bool {
+		return proj.count.Load() >= 2
+	})
+
+	// Send a live event — it should be processed too.
+	evt3 := makeEvent("task.created")
+	liveSub.send(evt3)
+
+	requireEventually(t, 2*time.Second, func() bool {
+		return proj.count.Load() >= 3
+	})
+
+	cancel()
+	liveSub.close()
+	_ = host.Stop()
+}
+
+func TestHost_WithSubscriber_DedupOverlap(t *testing.T) {
+	t.Parallel()
+
+	journal := &memoryJournal{}
+	cpStore := newMemoryCheckpointStore()
+	liveSub := newChannelSubscriber()
+
+	// Seed one event in the journal.
+	evt1 := makeEvent("task.created")
+	journal.append(evt1)
+
+	// The same event will also arrive via the live subscriber — it must be
+	// deduped, not double-processed.
+	proj := &countingProjection{name: "dedup", eventTypes: []event.Type{"task.created"}}
+
+	host, err := projectionhost.New(
+		journal, cpStore,
+		projectionhost.WithSubscriber(liveSub),
+		projectionhost.WithBatchSize(10),
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	if err := host.Register(proj); err != nil {
+		t.Fatalf("Register: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	if err := host.Start(ctx); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
+
+	// Wait for replay to process the journal event.
+	requireEventually(t, 2*time.Second, func() bool {
+		return proj.count.Load() >= 1
+	})
+
+	// Send the SAME event ID via live — must be deduped.
+	liveSub.send(evt1)
+
+	// Send a new event — must be processed.
+	evt2 := makeEvent("task.created")
+	liveSub.send(evt2)
+
+	requireEventually(t, 2*time.Second, func() bool {
+		return proj.count.Load() >= 2
+	})
+
+	// Give a brief moment for any potential dedup failure to show up.
+	time.Sleep(100 * time.Millisecond)
+
+	if got := proj.count.Load(); got != 2 {
+		t.Fatalf("expected count=2 (deduped overlap), got %d", got)
+	}
+
+	cancel()
+	liveSub.close()
+	_ = host.Stop()
+}
+
+func TestHost_LastProcessedAt_ReportsTime(t *testing.T) {
+	t.Parallel()
+
+	journal := &memoryJournal{}
+	cpStore := newMemoryCheckpointStore()
+
+	evt := makeEvent("task.created")
+	journal.append(evt)
+
+	proj := &countingProjection{name: "ts", eventTypes: []event.Type{"task.created"}}
+	host, _ := projectionhost.New(journal, cpStore)
+	_ = host.Register(proj)
+
+	before := time.Now()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	_ = host.Start(ctx)
+
+	requireEventually(t, 2*time.Second, func() bool {
+		return proj.count.Load() >= 1
+	})
+
+	last := host.LastProcessedAt()
+	if last.IsZero() {
+		t.Fatal("expected non-zero LastProcessedAt after processing events")
+	}
+
+	if !last.After(before) {
+		t.Fatal("expected LastProcessedAt to be after start time")
+	}
+
+	cancel()
+	_ = host.Stop()
+}
+
 // Ensure unused imports are referenced.
 var (
 	_ = fmt.Sprintf

@@ -3,6 +3,8 @@ package projectionhost
 import (
 	"log/slog"
 	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // HostOption configures a Host.
@@ -17,6 +19,7 @@ type hostOptions struct {
 	dlqThreshold   int
 	logger         *slog.Logger
 	metrics        MetricsRecorder
+	subscriber     event.Subscriber
 }
 
 func defaultOptions() hostOptions {
@@ -68,5 +71,17 @@ func WithLogger(l *slog.Logger) HostOption {
 		if l != nil {
 			o.logger = l
 		}
+	}
+}
+
+// WithSubscriber enables live event processing after journal drain. When set,
+// each worker drains the journal (replay), then transitions to live subscription
+// via subscriber.SubscribeAll. Events seen during replay are deduped in the live
+// phase to prevent double-processing at the replay→live boundary.
+//
+// Without this option, the host is a batch-drainer: workers exit after catching up.
+func WithSubscriber(subscriber event.Subscriber) HostOption {
+	return func(o *hostOptions) {
+		o.subscriber = subscriber
 	}
 }

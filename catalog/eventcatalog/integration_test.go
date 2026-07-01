@@ -23,10 +23,21 @@ func TestIntegration_FullEventCatalogExport(t *testing.T) {
 		ID: "order-svc", Name: "Order Service", Version: "1.0.0",
 		Summary: "Manages orders",
 		Events: []catalog.Message{
-			{Kind: catalog.EventMessage, ID: "OrderCreated", Name: "OrderCreated", Version: "1.0.0", Direction: catalog.Sends},
+			{
+				Kind:      catalog.EventMessage,
+				ID:        "OrderCreated",
+				Name:      "OrderCreated",
+				Version:   "1.0.0",
+				Direction: catalog.Sends,
+			},
 		},
 		Commands: []catalog.Message{
-			{Kind: catalog.CommandMessage, ID: "CreateOrder", Name: "CreateOrder", Version: "1.0.0"},
+			{
+				Kind:    catalog.CommandMessage,
+				ID:      "CreateOrder",
+				Name:    "CreateOrder",
+				Version: "1.0.0",
+			},
 		},
 	})
 
@@ -88,7 +99,9 @@ func TestIntegration_FullEventCatalogExport(t *testing.T) {
 
 	// Custom doc
 	reg.AddCustomDoc(catalog.CustomDoc{
-		ID: "architecture", Title: "Architecture", Content: "## Overview\nMicroservices architecture.",
+		ID:      "architecture",
+		Title:   "Architecture",
+		Content: "## Overview\nMicroservices architecture.",
 	})
 
 	cat := reg.Build()

@@ -196,6 +196,26 @@ func (h *Host) Status() []WorkerState {
 	return result
 }
 
+// LastProcessedAt returns the wall-clock time of the most recently processed
+// event across all workers, or the zero time if no worker has processed any
+// event yet. Useful for projection-lag gauges: compare against the last event
+// capture time to detect if projections are falling behind.
+func (h *Host) LastProcessedAt() time.Time {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	var latest time.Time
+
+	for _, w := range h.workers {
+		ts := w.lastProcessedAt()
+		if ts.After(latest) {
+			latest = ts
+		}
+	}
+
+	return latest
+}
+
 // RegisterAndWait is a convenience that registers a projection, starts the
 // host, and blocks until ctx is cancelled or all workers stop. Useful for
 // simple single-projection setups.

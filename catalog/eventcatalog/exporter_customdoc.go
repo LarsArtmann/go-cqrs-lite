@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	errorfamily "github.com/larsartmann/go-error-family"
 	yaml "github.com/go-faster/yaml"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
 )

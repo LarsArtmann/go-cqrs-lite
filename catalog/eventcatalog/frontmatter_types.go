@@ -363,11 +363,11 @@ type detailsPanelFM struct {
 }
 
 type baseConfigFM struct {
-	Sidebar        *sidebarFM         `yaml:"sidebar,omitempty"`
-	Styles         *stylesFM          `yaml:"styles,omitempty"`
-	EditUrl        string             `yaml:"editUrl,omitempty"`
-	Draft          *draftFM           `yaml:"draft,omitempty"`
-	Visualiser     *bool              `yaml:"visualiser,omitempty"`
-	ResourceGroups []resourceGroupFM  `yaml:"resourceGroups,omitempty"`
-	DetailsPanel   *detailsPanelFM    `yaml:"detailsPanel,omitempty"`
+	Sidebar        *sidebarFM        `yaml:"sidebar,omitempty"`
+	Styles         *stylesFM         `yaml:"styles,omitempty"`
+	EditUrl        string            `yaml:"editUrl,omitempty"`
+	Draft          *draftFM          `yaml:"draft,omitempty"`
+	Visualiser     *bool             `yaml:"visualiser,omitempty"`
+	ResourceGroups []resourceGroupFM `yaml:"resourceGroups,omitempty"`
+	DetailsPanel   *detailsPanelFM   `yaml:"detailsPanel,omitempty"`
 }

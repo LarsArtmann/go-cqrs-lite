@@ -99,6 +99,7 @@ func copySidebar(s *SidebarConfig) *SidebarConfig {
 	if s == nil {
 		return nil
 	}
+
 	return &SidebarConfig{Badge: s.Badge, Label: s.Label}
 }
 
@@ -106,6 +107,7 @@ func copyStyles(s *StylesConfig) *StylesConfig {
 	if s == nil {
 		return nil
 	}
+
 	return &StylesConfig{Icon: s.Icon, NodeColor: s.NodeColor, NodeLabel: s.NodeLabel}
 }
 
@@ -113,6 +115,7 @@ func copyDraft(d *DraftConfig) *DraftConfig {
 	if d == nil {
 		return nil
 	}
+
 	return &DraftConfig{Title: d.Title, Message: d.Message}
 }
 
@@ -120,6 +123,7 @@ func copyDetailsPanel(d *DetailsPanelConfig) *DetailsPanelConfig {
 	if d == nil {
 		return nil
 	}
+
 	return &DetailsPanelConfig{Sections: copySlice(d.Sections)}
 }
 

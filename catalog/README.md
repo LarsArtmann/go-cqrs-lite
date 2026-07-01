@@ -165,19 +165,19 @@ Generates `llms.txt` and `schemas.txt` for AI consumption.
 
 The exporter supports all EventCatalog resource types:
 
-| Resource      | Exported To                    | Notes                                                                    |
-| ------------- | ------------------------------ | ------------------------------------------------------------------------ |
+| Resource      | Exported To                    | Notes                                                                                                       |
+| ------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------- |
 | Services      | `services/<id>/index.mdx`      | With messages, specs, data stores, external flag, base config (sidebar, styles, editUrl, draft, visualiser) |
-| Domains       | `domains/<id>/index.mdx`       | With ubiquitous language, sub-domains, data products, base config        |
-| Entities      | `entities/<id>/index.mdx`      | DDD entities: aggregateRoot, identifier, properties with references/relationTypes |
-| Data Products | `data-products/<id>/index.mdx` | Data mesh products with inputs/outputs, output contracts, hidden flag    |
-| Agents        | `agents/<id>/index.mdx`        | AI agents with sends/receives, model, tools, data stores                 |
-| Channels      | `channels/<id>/index.mdx`      | With protocols, parameters, routes, delivery guarantees                  |
-| Data Stores   | `data/<id>/index.mdx`          | Databases/caches with authoritative, accessMode, classification          |
-| Flows         | `flows/<id>/index.mdx`         | All step types: service, message, agent, dataStore, dataProduct, subFlow |
-| Teams         | `teams/<id>.mdx`               | With external source sync, hidden, readOnly                              |
-| Users         | `users/<id>.mdx`               | With external source sync, hidden, readOnly                              |
-| Custom Docs   | `docs/<slug>/index.mdx`        | Global documentation pages (ADRs, architecture docs)                     |
+| Domains       | `domains/<id>/index.mdx`       | With ubiquitous language, sub-domains, data products, base config                                           |
+| Entities      | `entities/<id>/index.mdx`      | DDD entities: aggregateRoot, identifier, properties with references/relationTypes                           |
+| Data Products | `data-products/<id>/index.mdx` | Data mesh products with inputs/outputs, output contracts, hidden flag                                       |
+| Agents        | `agents/<id>/index.mdx`        | AI agents with sends/receives, model, tools, data stores                                                    |
+| Channels      | `channels/<id>/index.mdx`      | With protocols, parameters, routes, delivery guarantees                                                     |
+| Data Stores   | `data/<id>/index.mdx`          | Databases/caches with authoritative, accessMode, classification                                             |
+| Flows         | `flows/<id>/index.mdx`         | All step types: service, message, agent, dataStore, dataProduct, subFlow                                    |
+| Teams         | `teams/<id>.mdx`               | With external source sync, hidden, readOnly                                                                 |
+| Users         | `users/<id>.mdx`               | With external source sync, hidden, readOnly                                                                 |
+| Custom Docs   | `docs/<slug>/index.mdx`        | Global documentation pages (ADRs, architecture docs)                                                        |
 
 #### DDD Ubiquitous Language
 

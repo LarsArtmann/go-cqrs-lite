@@ -211,7 +211,8 @@ func TestExporter_MessageWithSchemas(t *testing.T) {
 	tmpDir := exportCatalog(t, reg)
 	content := readExported(t, tmpDir, "services", "svc", "commands", "create-order", "index.mdx")
 
-	cattest.AssertContentContains(t, content, "message with schemas",
+	cattest.AssertContentContains(
+		t, content, "message with schemas",
 		"schemas:",
 		"format: asyncapi",
 		"default: true",
@@ -256,7 +257,8 @@ func TestExporter_CustomDocDefaultSlug(t *testing.T) {
 	tmpDir := exportCatalog(t, reg)
 	content := readExported(t, tmpDir, "docs", "architecture", "index.mdx")
 
-	cattest.AssertContentContains(t, content, "custom doc default slug",
+	cattest.AssertContentContains(
+		t, content, "custom doc default slug",
 		"id: architecture",
 		"# Architecture Overview",
 	)
