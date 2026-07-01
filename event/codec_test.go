@@ -356,6 +356,49 @@ func TestEvent_Encoding_DefaultIsJSON(t *testing.T) {
 	}
 }
 
+func TestDecodePayload_JSONEventWithCBORCodec_Rejected(t *testing.T) {
+	t.Parallel()
+
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+
+	evt, err := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`))
+	if err != nil {
+		t.Fatalf("NewEvent: %v", err)
+	}
+
+	_, err = event.DecodePayload[struct{ Name string }](evt, codecpkg.CBORCodec{})
+	if err == nil {
+		t.Fatal("expected encoding mismatch rejection for JSON event with CBOR codec")
+	}
+
+	if event.Classify(err) != event.Rejection {
+		t.Fatalf("expected Rejection, got %T: %v", err, err)
+	}
+}
+
+func TestDecodePayload_CBOREventWithJSONCodec_Rejected(t *testing.T) {
+	t.Parallel()
+
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+
+	evt, err := event.New(
+		"UserCreated", aggID, "User", 1, struct{ Name string }{Name: "Alice"},
+		event.WithCodec(codecpkg.CBORCodec{}),
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	_, err = event.DecodePayload[struct{ Name string }](evt, codecpkg.JSONCodec{})
+	if err == nil {
+		t.Fatal("expected encoding mismatch rejection for CBOR event with JSON codec")
+	}
+
+	if event.Classify(err) != event.Rejection {
+		t.Fatalf("expected Rejection, got %T: %v", err, err)
+	}
+}
+
 func TestPayloadReadOnly_ReturnsInternalReference(t *testing.T) {
 	t.Parallel()
 

@@ -98,12 +98,8 @@ func DecodePayloads[T any](events []Event, c codec.Codec) ([]T, error) {
 
 func validateEncodingMatch(evt Event, c codec.Codec) error {
 	evtEnc := evt.Encoding()
-	if evtEnc == "" || evtEnc == codec.EncodingJSON {
-		return nil
-	}
-
 	codecEnc := c.Encoding()
-	if codecEnc != evtEnc {
+	if evtEnc != codecEnc {
 		return Newf(Rejection, "event.encoding_mismatch",
 			"event encoding %q does not match codec encoding %q (decode payload for event %s)",
 			evtEnc, codecEnc, evt.Type())
