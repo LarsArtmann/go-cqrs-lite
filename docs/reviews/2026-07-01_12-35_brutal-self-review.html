@@ -1,229 +1,594 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Brutal Self-Review — CBOR Integration Follow-up</title>
-<style>
-:root {
-  --color-graphite: #0e0e10;
-  --color-graphite-2: #18181d;
-  --color-graphite-3: #16161a;
-  --color-bone: #f4f4f0;
-  --color-red: #ff6b6b;
-  --color-blue: #6eb5ff;
-  --color-yellow: #f4d35e;
-  --color-amber: #ffb347;
-  --color-green: #51cf66;
-  --color-hairline: rgba(244,244,240,0.12);
-  --color-hairline-strong: rgba(244,244,240,0.25);
-  --surface: var(--color-graphite);
-  --surface-raised: var(--color-graphite-2);
-  --surface-sunken: var(--color-graphite-3);
-  --text: var(--color-bone);
-  --text-muted: rgba(244,244,240,0.72);
-  --text-faint: rgba(244,244,240,0.45);
-  --border: var(--color-hairline);
-  --problem: var(--color-red);
-  --solution: var(--color-blue);
-  --warning: var(--color-yellow);
-  --good: var(--color-green);
-  --font-heading: ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-body: ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", monospace;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{background:var(--surface);color:var(--text);font-family:var(--font-body);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1100px;margin:0 auto;padding:2rem 1.5rem 4rem}
-header{border-bottom:2px solid var(--color-amber);padding-bottom:1.5rem;margin-bottom:2rem}
-header h1{font-family:var(--font-heading);font-weight:900;font-size:2rem;letter-spacing:-0.03em;line-height:1.1}
-header .meta{color:var(--text-muted);font-size:0.85rem;margin-top:0.5rem}
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:2.5rem}
-.stat{background:var(--surface-raised);border:1px solid var(--border);padding:1.2rem;border-left:4px solid var(--color-amber)}
-.stat .num{font-family:var(--font-heading);font-weight:900;font-size:2.5rem;line-height:1;color:var(--color-amber)}
-.stat .num.red{color:var(--problem)}
-.stat .num.blue{color:var(--solution)}
-.stat .num.green{color:var(--good)}
-.stat .lbl{color:var(--text-muted);font-size:0.8rem;margin-top:0.4rem;text-transform:uppercase;letter-spacing:0.05em}
-section{margin-bottom:2.5rem}
-section h2{font-family:var(--font-heading);font-weight:800;font-size:1.4rem;letter-spacing:-0.02em;margin-bottom:1rem;padding-bottom:0.4rem;border-bottom:1px solid var(--border)}
-.card{background:var(--surface-raised);border:1px solid var(--border);padding:1.2rem 1.4rem;margin-bottom:0.8rem}
-.card-problem{border-left:4px solid var(--problem)}
-.card-solution{border-left:4px solid var(--good)}
-.card-warning{border-left:4px solid var(--warning)}
-.card h3{font-family:var(--font-heading);font-weight:700;font-size:1.05rem;margin-bottom:0.4rem}
-.card .tag{display:inline-block;font-size:0.7rem;font-weight:700;padding:2px 8px;text-transform:uppercase;letter-spacing:0.05em;margin-left:0.5rem;vertical-align:middle}
-.tag-critical{background:var(--problem);color:var(--surface)}
-.tag-high{background:var(--warning);color:var(--surface)}
-.tag-fixed{background:var(--good);color:var(--surface)}
-.card p{color:var(--text-muted);margin-top:0.3rem}
-.card code{font-family:var(--font-mono);font-size:0.85em;background:var(--surface-sunken);padding:1px 5px;border-radius:2px;color:var(--color-amber)}
-table{width:100%;border-collapse:collapse;font-size:0.85rem}
-table th{text-align:left;font-weight:700;padding:0.6rem 0.8rem;border-bottom:2px solid var(--border-strong);text-transform:uppercase;font-size:0.75rem;letter-spacing:0.05em;color:var(--text-muted)}
-table td{padding:0.6rem 0.8rem;border-bottom:1px solid var(--border)}
-table tr:hover td{background:var(--surface-sunken)}
-.prio{font-weight:700;font-family:var(--font-mono)}
-.prio-critical{color:var(--problem)}
-.prio-high{color:var(--warning)}
-.prio-med{color:var(--color-blue)}
-.prio-low{color:var(--text-faint)}
-.status-done{color:var(--good);font-weight:700}
-ol.steps{list-style:none;counter-reset:step}
-ol.steps li{counter-increment:step;padding:0.6rem 0 0.6rem 2.8rem;position:relative;border-bottom:1px solid var(--border)}
-ol.steps li::before{content:counter(step);position:absolute;left:0;top:0.5rem;width:2rem;height:2rem;background:var(--color-amber);color:var(--surface);font-weight:900;font-family:var(--font-heading);font-size:0.9rem;display:flex;align-items:center;justify-content:center}
-ol.steps li .title{font-weight:700}
-ol.steps li .detail{color:var(--text-muted);font-size:0.85rem;margin-top:0.2rem}
-ol.steps li .check{color:var(--good);font-weight:700;font-size:0.8rem}
-footer{margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);color:var(--text-faint);font-size:0.8rem}
-</style>
-</head>
-<body>
-<div class="wrap">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Brutal Self-Review — CBOR Integration Follow-up</title>
+    <style>
+      :root {
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-green: #51cf66;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+        --good: var(--color-green);
+        --font-heading: ui-sans-serif, system-ui, -apple-system, sans-serif;
+        --font-body: ui-sans-serif, system-ui, -apple-system, sans-serif;
+        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", monospace;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      .wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem;
+      }
+      header {
+        border-bottom: 2px solid var(--color-amber);
+        padding-bottom: 1.5rem;
+        margin-bottom: 2rem;
+      }
+      header h1 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        font-size: 2rem;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+      }
+      header .meta {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+      }
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2.5rem;
+      }
+      .stat {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.2rem;
+        border-left: 4px solid var(--color-amber);
+      }
+      .stat .num {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        font-size: 2.5rem;
+        line-height: 1;
+        color: var(--color-amber);
+      }
+      .stat .num.red {
+        color: var(--problem);
+      }
+      .stat .num.blue {
+        color: var(--solution);
+      }
+      .stat .num.green {
+        color: var(--good);
+      }
+      .stat .lbl {
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        margin-top: 0.4rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      section {
+        margin-bottom: 2.5rem;
+      }
+      section h2 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        font-size: 1.4rem;
+        letter-spacing: -0.02em;
+        margin-bottom: 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 0.8rem;
+      }
+      .card-problem {
+        border-left: 4px solid var(--problem);
+      }
+      .card-solution {
+        border-left: 4px solid var(--good);
+      }
+      .card-warning {
+        border-left: 4px solid var(--warning);
+      }
+      .card h3 {
+        font-family: var(--font-heading);
+        font-weight: 700;
+        font-size: 1.05rem;
+        margin-bottom: 0.4rem;
+      }
+      .card .tag {
+        display: inline-block;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-left: 0.5rem;
+        vertical-align: middle;
+      }
+      .tag-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .tag-high {
+        background: var(--warning);
+        color: var(--surface);
+      }
+      .tag-fixed {
+        background: var(--good);
+        color: var(--surface);
+      }
+      .card p {
+        color: var(--text-muted);
+        margin-top: 0.3rem;
+      }
+      .card code {
+        font-family: var(--font-mono);
+        font-size: 0.85em;
+        background: var(--surface-sunken);
+        padding: 1px 5px;
+        border-radius: 2px;
+        color: var(--color-amber);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+      }
+      table th {
+        text-align: left;
+        font-weight: 700;
+        padding: 0.6rem 0.8rem;
+        border-bottom: 2px solid var(--border-strong);
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+      }
+      table td {
+        padding: 0.6rem 0.8rem;
+        border-bottom: 1px solid var(--border);
+      }
+      table tr:hover td {
+        background: var(--surface-sunken);
+      }
+      .prio {
+        font-weight: 700;
+        font-family: var(--font-mono);
+      }
+      .prio-critical {
+        color: var(--problem);
+      }
+      .prio-high {
+        color: var(--warning);
+      }
+      .prio-med {
+        color: var(--color-blue);
+      }
+      .prio-low {
+        color: var(--text-faint);
+      }
+      .status-done {
+        color: var(--good);
+        font-weight: 700;
+      }
+      ol.steps {
+        list-style: none;
+        counter-reset: step;
+      }
+      ol.steps li {
+        counter-increment: step;
+        padding: 0.6rem 0 0.6rem 2.8rem;
+        position: relative;
+        border-bottom: 1px solid var(--border);
+      }
+      ol.steps li::before {
+        content: counter(step);
+        position: absolute;
+        left: 0;
+        top: 0.5rem;
+        width: 2rem;
+        height: 2rem;
+        background: var(--color-amber);
+        color: var(--surface);
+        font-weight: 900;
+        font-family: var(--font-heading);
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      ol.steps li .title {
+        font-weight: 700;
+      }
+      ol.steps li .detail {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        margin-top: 0.2rem;
+      }
+      ol.steps li .check {
+        color: var(--good);
+        font-weight: 700;
+        font-size: 0.8rem;
+      }
+      footer {
+        margin-top: 3rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+        color: var(--text-faint);
+        font-size: 0.8rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <h1>Brutal Self-Review: CBOR Integration Follow-up</h1>
+        <div class="meta">
+          2026-07-01 &middot; go-cqrs-lite &middot; 13 tasks executed &middot; All tests pass with
+          -race
+        </div>
+      </header>
 
-<header>
-  <h1>Brutal Self-Review: CBOR Integration Follow-up</h1>
-  <div class="meta">2026-07-01 &middot; go-cqrs-lite &middot; 13 tasks executed &middot; All tests pass with -race</div>
-</header>
+      <div class="stat-grid">
+        <div class="stat">
+          <div class="num red">3</div>
+          <div class="lbl">Critical Issues Found</div>
+        </div>
+        <div class="stat">
+          <div class="num blue">4</div>
+          <div class="lbl">Test Gaps Closed</div>
+        </div>
+        <div class="stat">
+          <div class="num green">13</div>
+          <div class="lbl">Tasks Completed</div>
+        </div>
+        <div class="stat">
+          <div class="num">3</div>
+          <div class="lbl">New Public APIs</div>
+        </div>
+      </div>
 
-<div class="stat-grid">
-  <div class="stat"><div class="num red">3</div><div class="lbl">Critical Issues Found</div></div>
-  <div class="stat"><div class="num blue">4</div><div class="lbl">Test Gaps Closed</div></div>
-  <div class="stat"><div class="num green">13</div><div class="lbl">Tasks Completed</div></div>
-  <div class="stat"><div class="num">3</div><div class="lbl">New Public APIs</div></div>
-</div>
+      <section id="findings">
+        <h2>Critical Issues Found &amp; Fixed</h2>
 
-<section id="findings">
-  <h2>Critical Issues Found &amp; Fixed</h2>
+        <div class="card card-problem">
+          <h3>
+            The "mixed streams" promise was a lie <span class="tag tag-critical">Critical</span>
+            <span class="tag tag-fixed">Fixed</span>
+          </h3>
+          <p>
+            <code>DecodePayload[T](evt, codec)</code> validated encoding match and
+            <strong>rejected</strong> mismatched events. Migrating JSON&rarr;CBOR broke old events
+            silently. The <code>schema.Validator</code> already had this dispatch internally
+            (<code>decoderFor</code>), but the public decode API did not.
+          </p>
+          <p>
+            <strong>Fix:</strong> Added <code>codec.ForEncoding(enc)</code> +
+            <code>event.DecodePayloadAuto[T](evt)</code> &mdash; dispatches based on each event's
+            encoding stamp. Mixed JSON+CBOR streams now decode correctly.
+          </p>
+        </div>
 
-  <div class="card card-problem">
-    <h3>The "mixed streams" promise was a lie <span class="tag tag-critical">Critical</span> <span class="tag tag-fixed">Fixed</span></h3>
-    <p><code>DecodePayload[T](evt, codec)</code> validated encoding match and <strong>rejected</strong> mismatched events. Migrating JSON&rarr;CBOR broke old events silently. The <code>schema.Validator</code> already had this dispatch internally (<code>decoderFor</code>), but the public decode API did not.</p>
-    <p><strong>Fix:</strong> Added <code>codec.ForEncoding(enc)</code> + <code>event.DecodePayloadAuto[T](evt)</code> &mdash; dispatches based on each event's encoding stamp. Mixed JSON+CBOR streams now decode correctly.</p>
-  </div>
+        <div class="card card-problem">
+          <h3>
+            gRPC query service had ZERO test coverage <span class="tag tag-critical">Critical</span>
+            <span class="tag tag-fixed">Fixed</span>
+          </h3>
+          <p>
+            The <code>WithCodec</code> option was added to <code>RegisterQueryService</code> and
+            <code>NewQueryClient</code>, but no <code>query_test.go</code> existed. The codec
+            injection was completely untested.
+          </p>
+          <p>
+            <strong>Fix:</strong> Added 4 tests: JSON round-trip, CBOR round-trip, handler error
+            propagation, codec mismatch detection.
+          </p>
+        </div>
 
-  <div class="card card-problem">
-    <h3>gRPC query service had ZERO test coverage <span class="tag tag-critical">Critical</span> <span class="tag tag-fixed">Fixed</span></h3>
-    <p>The <code>WithCodec</code> option was added to <code>RegisterQueryService</code> and <code>NewQueryClient</code>, but no <code>query_test.go</code> existed. The codec injection was completely untested.</p>
-    <p><strong>Fix:</strong> Added 4 tests: JSON round-trip, CBOR round-trip, handler error propagation, codec mismatch detection.</p>
-  </div>
+        <div class="card card-problem">
+          <h3>
+            Non-deterministic AutoDetect test <span class="tag tag-critical">Critical</span>
+            <span class="tag tag-fixed">Fixed</span>
+          </h3>
+          <p>
+            <code>TestAutoDetect_UnknownIsRaw</code> accepted EITHER <code>Raw</code> OR
+            <code>CBOR</code> &mdash; it didn't assert actual behavior. For <code>0xff</code> bytes,
+            AutoDetect always returns CBOR (byte &ge; 0x80), but the test was uncertain.
+          </p>
+          <p>
+            <strong>Fix:</strong> Split into two deterministic tests: high bytes &rarr; CBOR
+            (asserted), genuinely unknown (<code>0x1f</code>) &rarr; Raw (asserted).
+          </p>
+        </div>
+      </section>
 
-  <div class="card card-problem">
-    <h3>Non-deterministic AutoDetect test <span class="tag tag-critical">Critical</span> <span class="tag tag-fixed">Fixed</span></h3>
-    <p><code>TestAutoDetect_UnknownIsRaw</code> accepted EITHER <code>Raw</code> OR <code>CBOR</code> &mdash; it didn't assert actual behavior. For <code>0xff</code> bytes, AutoDetect always returns CBOR (byte &ge; 0x80), but the test was uncertain.</p>
-    <p><strong>Fix:</strong> Split into two deterministic tests: high bytes &rarr; CBOR (asserted), genuinely unknown (<code>0x1f</code>) &rarr; Raw (asserted).</p>
-  </div>
-</section>
+      <section id="moderate">
+        <h2>Moderate Issues Found &amp; Fixed</h2>
 
-<section id="moderate">
-  <h2>Moderate Issues Found &amp; Fixed</h2>
+        <div class="card card-warning">
+          <h3>
+            DefaultCodec concurrency contract undocumented <span class="tag tag-high">High</span>
+            <span class="tag tag-fixed">Fixed</span>
+          </h3>
+          <p>
+            Mutable package-level <code>var</code> without documenting the "set once at startup"
+            contract. Users could hit a data race if mutating after goroutines start creating
+            events.
+          </p>
+          <p>
+            <strong>Fix:</strong> Documented the concurrency contract clearly: "set ONCE at program
+            startup, BEFORE any goroutine creates events."
+          </p>
+        </div>
 
-  <div class="card card-warning">
-    <h3>DefaultCodec concurrency contract undocumented <span class="tag tag-high">High</span> <span class="tag tag-fixed">Fixed</span></h3>
-    <p>Mutable package-level <code>var</code> without documenting the "set once at startup" contract. Users could hit a data race if mutating after goroutines start creating events.</p>
-    <p><strong>Fix:</strong> Documented the concurrency contract clearly: "set ONCE at program startup, BEFORE any goroutine creates events."</p>
-  </div>
+        <div class="card card-warning">
+          <h3>
+            Encryption encoding bug fix lacked integration test
+            <span class="tag tag-high">High</span> <span class="tag tag-fixed">Fixed</span>
+          </h3>
+          <p>
+            The encoding-preservation bug fix (CBOR events losing their stamp through
+            encrypt/decrypt) only had unit-level middleware tests &mdash; no end-to-end integration
+            test.
+          </p>
+          <p>
+            <strong>Fix:</strong> Added integration test in
+            <code>integration/encryption/</code> verifying CBOR events survive
+            encrypt&rarr;bus&rarr;decrypt with encoding preserved and
+            <code>DecodePayloadAuto</code> dispatch.
+          </p>
+        </div>
 
-  <div class="card card-warning">
-    <h3>Encryption encoding bug fix lacked integration test <span class="tag tag-high">High</span> <span class="tag tag-fixed">Fixed</span></h3>
-    <p>The encoding-preservation bug fix (CBOR events losing their stamp through encrypt/decrypt) only had unit-level middleware tests &mdash; no end-to-end integration test.</p>
-    <p><strong>Fix:</strong> Added integration test in <code>integration/encryption/</code> verifying CBOR events survive encrypt&rarr;bus&rarr;decrypt with encoding preserved and <code>DecodePayloadAuto</code> dispatch.</p>
-  </div>
+        <div class="card card-warning">
+          <h3>
+            Broken doc references in AGENTS.md <span class="tag tag-high">Pre-existing</span>
+            <span class="tag tag-fixed">Fixed</span>
+          </h3>
+          <p>
+            The codec asymmetry table referenced <code>snapshot.WithCodec</code>,
+            <code>command.TypedStore</code>, <code>command.WithTypedCodec</code> &mdash; none of
+            which exist. The doc-check caught these.
+          </p>
+          <p><strong>Fix:</strong> Corrected to actual APIs (positional constructor args).</p>
+        </div>
+      </section>
 
-  <div class="card card-warning">
-    <h3>Broken doc references in AGENTS.md <span class="tag tag-high">Pre-existing</span> <span class="tag tag-fixed">Fixed</span></h3>
-    <p>The codec asymmetry table referenced <code>snapshot.WithCodec</code>, <code>command.TypedStore</code>, <code>command.WithTypedCodec</code> &mdash; none of which exist. The doc-check caught these.</p>
-    <p><strong>Fix:</strong> Corrected to actual APIs (positional constructor args).</p>
-  </div>
-</section>
+      <section id="quality">
+        <h2>Code Quality Improvements</h2>
 
-<section id="quality">
-  <h2>Code Quality Improvements</h2>
+        <div class="card card-solution">
+          <h3>Inlined single-use helper <span class="tag tag-fixed">Done</span></h3>
+          <p>
+            <code>cborSize()</code> was called once in <code>Size()</code>. Inlined for clarity.
+          </p>
+        </div>
 
-  <div class="card card-solution">
-    <h3>Inlined single-use helper <span class="tag tag-fixed">Done</span></h3>
-    <p><code>cborSize()</code> was called once in <code>Size()</code>. Inlined for clarity.</p>
-  </div>
+        <div class="card card-solution">
+          <h3>Deduplicated gRPC config <span class="tag tag-fixed">Done</span></h3>
+          <p>
+            Renamed <code>configForServer</code> &rarr; <code>resolveConfig</code> (shared by both
+            server and client).
+          </p>
+        </div>
 
-  <div class="card card-solution">
-    <h3>Deduplicated gRPC config <span class="tag tag-fixed">Done</span></h3>
-    <p>Renamed <code>configForServer</code> &rarr; <code>resolveConfig</code> (shared by both server and client).</p>
-  </div>
+        <div class="card card-solution">
+          <h3>Documented gRPC codec asymmetry <span class="tag tag-fixed">Done</span></h3>
+          <p>
+            Command service doesn't take <code>WithCodec</code> because payloads travel as metadata
+            strings, not codec-encoded wire bytes. Documented why.
+          </p>
+        </div>
+      </section>
 
-  <div class="card card-solution">
-    <h3>Documented gRPC codec asymmetry <span class="tag tag-fixed">Done</span></h3>
-    <p>Command service doesn't take <code>WithCodec</code> because payloads travel as metadata strings, not codec-encoded wire bytes. Documented why.</p>
-  </div>
-</section>
+      <section id="plan">
+        <h2>Execution Plan &amp; Status</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>Add <code>codec.ForEncoding()</code> helper</td>
+              <td class="prio prio-critical">Critical</td>
+              <td>Med</td>
+              <td class="status-done">Done</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>Add <code>event.DecodePayloadAuto[T]()</code></td>
+              <td class="prio prio-critical">Critical</td>
+              <td>Med</td>
+              <td class="status-done">Done</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>Update example to use <code>DecodePayloadAuto</code></td>
+              <td class="prio prio-high">High</td>
+              <td>Low</td>
+              <td class="status-done">Done</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>Add gRPC query round-trip tests</td>
+              <td class="prio prio-critical">Critical</td>
+              <td>Med</td>
+              <td class="status-done">Done</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>Add encryption+CBOR integration test</td>
+              <td class="prio prio-high">High</td>
+              <td>Med</td>
+              <td class="status-done">Done</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>Fix non-deterministic AutoDetect test</td>
+              <td class="prio prio-med">Med</td>
+              <td>Trivial</td>
+              <td class="status-done">Done</td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td>Document DefaultCodec concurrency contract</td>
+              <td class="prio prio-med">Med</td>
+              <td>Trivial</td>
+              <td class="status-done">Done</td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td>Inline cborSize + deduplicate gRPC config</td>
+              <td class="prio prio-low">Low</td>
+              <td>Trivial</td>
+              <td class="status-done">Done</td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td>Document gRPC command/query codec asymmetry</td>
+              <td class="prio prio-low">Low</td>
+              <td>Trivial</td>
+              <td class="status-done">Done</td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td>Update AGENTS.md, CHANGELOG, SKILL.md</td>
+              <td class="prio prio-med">Med</td>
+              <td>Low</td>
+              <td class="status-done">Done</td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td>Full test suite + lint + API surface</td>
+              <td class="prio prio-high">High</td>
+              <td>Low</td>
+              <td class="status-done">Done</td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td>Write HTML self-review report</td>
+              <td class="prio prio-low">Low</td>
+              <td>Low</td>
+              <td class="status-done">Done</td>
+            </tr>
+            <tr>
+              <td>13</td>
+              <td>Commit and push</td>
+              <td class="prio prio-high">High</td>
+              <td>Trivial</td>
+              <td class="status-done">Done</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
 
-<section id="plan">
-  <h2>Execution Plan &amp; Status</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Task</th>
-        <th>Impact</th>
-        <th>Effort</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td>1</td><td>Add <code>codec.ForEncoding()</code> helper</td><td class="prio prio-critical">Critical</td><td>Med</td><td class="status-done">Done</td></tr>
-      <tr><td>2</td><td>Add <code>event.DecodePayloadAuto[T]()</code></td><td class="prio prio-critical">Critical</td><td>Med</td><td class="status-done">Done</td></tr>
-      <tr><td>3</td><td>Update example to use <code>DecodePayloadAuto</code></td><td class="prio prio-high">High</td><td>Low</td><td class="status-done">Done</td></tr>
-      <tr><td>4</td><td>Add gRPC query round-trip tests</td><td class="prio prio-critical">Critical</td><td>Med</td><td class="status-done">Done</td></tr>
-      <tr><td>5</td><td>Add encryption+CBOR integration test</td><td class="prio prio-high">High</td><td>Med</td><td class="status-done">Done</td></tr>
-      <tr><td>6</td><td>Fix non-deterministic AutoDetect test</td><td class="prio prio-med">Med</td><td>Trivial</td><td class="status-done">Done</td></tr>
-      <tr><td>7</td><td>Document DefaultCodec concurrency contract</td><td class="prio prio-med">Med</td><td>Trivial</td><td class="status-done">Done</td></tr>
-      <tr><td>8</td><td>Inline cborSize + deduplicate gRPC config</td><td class="prio prio-low">Low</td><td>Trivial</td><td class="status-done">Done</td></tr>
-      <tr><td>9</td><td>Document gRPC command/query codec asymmetry</td><td class="prio prio-low">Low</td><td>Trivial</td><td class="status-done">Done</td></tr>
-      <tr><td>10</td><td>Update AGENTS.md, CHANGELOG, SKILL.md</td><td class="prio prio-med">Med</td><td>Low</td><td class="status-done">Done</td></tr>
-      <tr><td>11</td><td>Full test suite + lint + API surface</td><td class="prio prio-high">High</td><td>Low</td><td class="status-done">Done</td></tr>
-      <tr><td>12</td><td>Write HTML self-review report</td><td class="prio prio-low">Low</td><td>Low</td><td class="status-done">Done</td></tr>
-      <tr><td>13</td><td>Commit and push</td><td class="prio prio-high">High</td><td>Trivial</td><td class="status-done">Done</td></tr>
-    </tbody>
-  </table>
-</section>
+      <section id="positive">
+        <h2>What Was Done Well (Preserve These)</h2>
+        <div class="card card-solution">
+          <h3>Encryption bug fix was correct</h3>
+          <p>
+            Preserving <code>event.WithEncoding(evt.Encoding())</code> through encrypt/decrypt was
+            the right fix. The integration test now proves it end-to-end.
+          </p>
+        </div>
+        <div class="card card-solution">
+          <h3>AutoDetect heuristic is well-reasoned</h3>
+          <p>
+            First-byte discrimination between JSON and CBOR is correct and documented as a
+            heuristic, not a security boundary.
+          </p>
+        </div>
+        <div class="card card-solution">
+          <h3>gRPC options.go shared config is clean</h3>
+          <p>
+            Functional options pattern with shared <code>config</code> struct for both server and
+            client is the right design.
+          </p>
+        </div>
+      </section>
 
-<section id="positive">
-  <h2>What Was Done Well (Preserve These)</h2>
-  <div class="card card-solution">
-    <h3>Encryption bug fix was correct</h3>
-    <p>Preserving <code>event.WithEncoding(evt.Encoding())</code> through encrypt/decrypt was the right fix. The integration test now proves it end-to-end.</p>
-  </div>
-  <div class="card card-solution">
-    <h3>AutoDetect heuristic is well-reasoned</h3>
-    <p>First-byte discrimination between JSON and CBOR is correct and documented as a heuristic, not a security boundary.</p>
-  </div>
-  <div class="card card-solution">
-    <h3>gRPC options.go shared config is clean</h3>
-    <p>Functional options pattern with shared <code>config</code> struct for both server and client is the right design.</p>
-  </div>
-</section>
+      <section id="remaining">
+        <h2>Remaining Considerations (Not Blocking)</h2>
+        <ol class="steps">
+          <li>
+            <div class="title">gRPC command payload serialization</div>
+            <div class="detail">
+              Command client doesn't serialize domain payload over gRPC (only type + metadata).
+              Pre-existing limitation, not from codec work. Would need a payload field + codec on
+              CommandEnvelope.
+            </div>
+          </li>
+          <li>
+            <div class="title">v4 blind-store encoding stamps (ADR-0044)</div>
+            <div class="detail">
+              kv/snapshot/command/query stores have no encoding stamp. Switching defaults would
+              silently break data. Envelope wrapper proposed for v4.
+            </div>
+          </li>
+          <li>
+            <div class="title">Size() partial-failure paths</div>
+            <div class="detail">
+              The -1 return paths for partial encode failures (JSON succeeds, CBOR fails) are
+              practically unreachable &mdash; both codecs handle all standard Go types. Defensive
+              code only.
+            </div>
+          </li>
+        </ol>
+      </section>
 
-<section id="remaining">
-  <h2>Remaining Considerations (Not Blocking)</h2>
-  <ol class="steps">
-    <li>
-      <div class="title">gRPC command payload serialization</div>
-      <div class="detail">Command client doesn't serialize domain payload over gRPC (only type + metadata). Pre-existing limitation, not from codec work. Would need a payload field + codec on CommandEnvelope.</div>
-    </li>
-    <li>
-      <div class="title">v4 blind-store encoding stamps (ADR-0044)</div>
-      <div class="detail">kv/snapshot/command/query stores have no encoding stamp. Switching defaults would silently break data. Envelope wrapper proposed for v4.</div>
-    </li>
-    <li>
-      <div class="title">Size() partial-failure paths</div>
-      <div class="detail">The -1 return paths for partial encode failures (JSON succeeds, CBOR fails) are practically unreachable &mdash; both codecs handle all standard Go types. Defensive code only.</div>
-    </li>
-  </ol>
-</section>
-
-<footer>
-  Generated by brutal-self-review skill &middot; go-cqrs-lite CBOR integration follow-up &middot; 2026-07-01
-</footer>
-
-</div>
-</body>
+      <footer>
+        Generated by brutal-self-review skill &middot; go-cqrs-lite CBOR integration follow-up
+        &middot; 2026-07-01
+      </footer>
+    </div>
+  </body>
 </html>

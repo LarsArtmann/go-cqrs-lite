@@ -182,17 +182,17 @@ cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 
 ## 4. Anti-Patterns to Avoid
 
-| Anti-pattern                               | Correct approach                                             |
-| ------------------------------------------ | ------------------------------------------------------------ |
-| Adding a `Delete()` method to Store        | Use tombstone metadata (`event.MarkTombstone`)               |
-| Taking `Store` param when you only read    | Take `EventSource` or `Journal`                              |
+| Anti-pattern                               | Correct approach                                                        |
+| ------------------------------------------ | ----------------------------------------------------------------------- |
+| Adding a `Delete()` method to Store        | Use tombstone metadata (`event.MarkTombstone`)                          |
+| Taking `Store` param when you only read    | Take `EventSource` or `Journal`                                         |
 | Type-asserting `evt.Payload()`             | Use `event.DecodePayloadAuto[T](evt)` or `DecodePayload[T](evt, codec)` |
-| Importing `go.opentelemetry.io` directly   | Import `otel/v3` re-exports                                  |
-| Manually setting event version in `Decide` | Let `event.NewEvents` auto-increment from the passed version |
-| Creating a saga/process-manager module     | Use projection + command dispatch (see `example/todo/`)      |
-| Editing dependency go.mod files by hand    | Use `go get` commands                                        |
-| Using `any` types in public APIs           | Use generics / branded types                                 |
-| Storing the \*sql.DB lifetime in backend   | `backend.Close()` closes stores, NOT your `*sql.DB`          |
+| Importing `go.opentelemetry.io` directly   | Import `otel/v3` re-exports                                             |
+| Manually setting event version in `Decide` | Let `event.NewEvents` auto-increment from the passed version            |
+| Creating a saga/process-manager module     | Use projection + command dispatch (see `example/todo/`)                 |
+| Editing dependency go.mod files by hand    | Use `go get` commands                                                   |
+| Using `any` types in public APIs           | Use generics / branded types                                            |
+| Storing the \*sql.DB lifetime in backend   | `backend.Close()` closes stores, NOT your `*sql.DB`                     |
 
 ---
 
