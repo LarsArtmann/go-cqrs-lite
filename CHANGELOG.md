@@ -62,6 +62,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`TestValidator_EncryptedEncoding_WithCustomDecoder`** — consumers can register
   a custom decoder for the "encrypted" encoding.
 
+#### Mixed-Stream Decode — `codec/v3`, `event/v3`
+
+- **`codec.ForEncoding(enc Encoding) (Codec, error)`** — resolves the built-in codec
+  for a given encoding stamp. Returns `JSONCodec` for JSON, `CBORCodec` for CBOR,
+  and an error for unknown encodings. The codec-level counterpart to `AutoDetect`.
+- **`event.DecodePayloadAuto[T](evt) (T, error)`** — decodes an event's payload by
+  dispatching to the codec matching the event's `Encoding()` stamp via `ForEncoding`.
+  This fulfills the mixed-stream promise: JSON and CBOR events in the same store
+  decode correctly without the caller knowing or passing the codec. Previously,
+  `DecodePayload` rejected events whose encoding didn't match the caller-provided
+  codec — making JSON→CBOR migration impossible without manual branching.
+
+#### gRPC Query Tests — `transport/grpc/v3`
+
+- **Query round-trip test coverage** — the query gRPC service had ZERO test coverage.
+  Added tests for JSON round-trip, CBOR round-trip (with `WithCodec`), handler error
+  propagation, and codec mismatch detection.
+
+#### Encryption Integration Test — `integration/v3/encryption`
+
+- **CBOR event through encrypt→decrypt** — integration test verifying CBOR events
+  survive the encrypt→bus→decrypt cycle with encoding stamp preserved, and
+  `DecodePayloadAuto` dispatches correctly post-decryption.
+
 #### Documentation
 
 - **`docs/migration/JSON_TO_CBOR.md`** — comprehensive migration guide with

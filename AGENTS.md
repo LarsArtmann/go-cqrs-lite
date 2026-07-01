@@ -316,18 +316,25 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   event.New()               | JSONCodec         | event.DefaultCodec = codec.CBORCodec{}
 //                             |                   |   or event.WithCodec(c) per-event
 //   kv.NewTypedStore()        | JSONCodec         | kv.WithTypedCodec(c)
-//   snapshot.TypedStore       | JSONCodec         | snapshot.WithCodec(c)
-//   command.TypedStore        | JSONCodec         | command.WithTypedCodec(c)
-//   query.TypedStore          | JSONCodec         | query.WithTypedCodec(c)
+//   snapshot.NewTypedStore()  | JSONCodec         | positional arg: NewTypedStore(store, c)
+//   command typed store       | JSONCodec         | positional arg: NewTypedCommandStore(store, c)
+//   query typed store         | JSONCodec         | positional arg: NewTypedQueryStore(store, c)
 //
 //   Events are SELF-DESCRIBING: evt.Encoding() is stamped on every event,
-//   so mixed JSON+CBOR event streams decode correctly with DecodePayload.
+//   so mixed JSON+CBOR event streams decode correctly via DecodePayloadAuto.
 //   Blind stores (kv/snapshot/command/query) have NO encoding stamp —
 //   changing the default would silently break existing data. v4 flips these.
 //
 //   One-call CBOR for both events AND read models:
 //   bundle, _ := sqlite.New(dsn, stack.WithEventCodec(codec.CBORCodec{}))
 //   // Then in decide functions: event.WithCodec(bundle.EventCodec())
+
+// Mixed-stream decode — JSON and CBOR events in the same store (ADR-CODEC)
+//   // DecodePayloadAuto dispatches based on each event's encoding stamp.
+//   // Use this in fold/apply functions when migrating from JSON to CBOR:
+//   p, err := event.DecodePayloadAuto[UserCreated](evt)
+//   // Internally: codec.ForEncoding(evt.Encoding()) picks JSON or CBOR.
+//   // For unknown encodings ("raw", "encrypted"), returns an error.
 
 // Pebble recommended defaults (bloom filter, concurrent compactions, logging)
 //   backend, _ := pebble.Open(dir, pebble.DefaultOptions(), logger)

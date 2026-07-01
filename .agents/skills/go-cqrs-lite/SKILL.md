@@ -130,10 +130,14 @@ var seekable event.SeekableJournal = store // position-based: ReadFrom(afterID, 
 ### 3.3 Decode payloads with a codec — never type-assert
 
 ```go
-// Correct — use CBORCodec (recommended) or match the event's encoding
+// Recommended — DecodePayloadAuto dispatches based on the event's encoding stamp.
+// Works for mixed JSON+CBOR streams (e.g. during JSON→CBOR migration):
+payload, err := event.DecodePayloadAuto[UserCreated](evt)
+
+// Explicit codec — use when you know the encoding and want validation:
 payload, err := event.DecodePayload[UserCreated](evt, codec.CBORCodec{})
 
-// Wrong — Payload() returns []any, not your type
+// Wrong — Payload() returns []byte, not your type
 payload := evt.Payload().(UserCreated) // DON'T
 ```
 
@@ -182,7 +186,7 @@ cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 | ------------------------------------------ | ------------------------------------------------------------ |
 | Adding a `Delete()` method to Store        | Use tombstone metadata (`event.MarkTombstone`)               |
 | Taking `Store` param when you only read    | Take `EventSource` or `Journal`                              |
-| Type-asserting `evt.Payload()`             | Use `event.DecodePayload[T](evt, codec)`                     |
+| Type-asserting `evt.Payload()`             | Use `event.DecodePayloadAuto[T](evt)` or `DecodePayload[T](evt, codec)` |
 | Importing `go.opentelemetry.io` directly   | Import `otel/v3` re-exports                                  |
 | Manually setting event version in `Decide` | Let `event.NewEvents` auto-increment from the passed version |
 | Creating a saga/process-manager module     | Use projection + command dispatch (see `example/todo/`)      |
@@ -263,7 +267,8 @@ Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability, cmd
 // Events
 evt, _ := event.NewEvent("user.created", aggID, "User", event.Version(1), payload, opts...)
 events, _ := event.NewEvents(aggID, "User", baseVersion, []event.Type{...}, []any{...})
-p, _ := event.DecodePayload[T](evt, codec.CBORCodec{})  // recommended
+p, _ := event.DecodePayloadAuto[T](evt)                 // mixed streams (recommended)
+p, _ := event.DecodePayload[T](evt, codec.CBORCodec{})  // explicit codec
 ref := event.NewAggregateRef("User", aggID)
 
 // Store (Sink/Source split)
