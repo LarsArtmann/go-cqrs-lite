@@ -306,6 +306,28 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   bundle, _ := sqlite.New(dsn, stack.WithDefaultCodec(codec.CBORCodec{}))
 //   store, _ := stack.ReadModel[Todo, TodoID](bundle, nil) // nil → uses CBOR
 //   mat, _ := stack.NewMaterialize[Todo, TodoID](bundle, nil, keyFunc)   // nil → uses CBOR
+//
+// ⚠️ CODEC DEFAULT ASYMMETRY (read this if you're debugging encoding issues):
+//   The default codec differs by layer:
+//
+//   LAYER                     | DEFAULT CODEC     | HOW TO OVERRIDE
+//   --------------------------|-------------------|----------------------------------
+//   stack.ReadModel/Materialize| CBORCodec         | stack.WithDefaultCodec(json)
+//   event.New()               | JSONCodec         | event.DefaultCodec = codec.CBORCodec{}
+//                             |                   |   or event.WithCodec(c) per-event
+//   kv.NewTypedStore()        | JSONCodec         | kv.WithTypedCodec(c)
+//   snapshot.TypedStore       | JSONCodec         | snapshot.WithCodec(c)
+//   command.TypedStore        | JSONCodec         | command.WithTypedCodec(c)
+//   query.TypedStore          | JSONCodec         | query.WithTypedCodec(c)
+//
+//   Events are SELF-DESCRIBING: evt.Encoding() is stamped on every event,
+//   so mixed JSON+CBOR event streams decode correctly with DecodePayload.
+//   Blind stores (kv/snapshot/command/query) have NO encoding stamp —
+//   changing the default would silently break existing data. v4 flips these.
+//
+//   One-call CBOR for both events AND read models:
+//   bundle, _ := sqlite.New(dsn, stack.WithEventCodec(codec.CBORCodec{}))
+//   // Then in decide functions: event.WithCodec(bundle.EventCodec())
 
 // Pebble recommended defaults (bloom filter, concurrent compactions, logging)
 //   backend, _ := pebble.Open(dir, pebble.DefaultOptions(), logger)

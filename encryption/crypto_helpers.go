@@ -75,6 +75,7 @@ func decryptEvent(evt event.Event, dec Decrypter) (event.Event, error) {
 		event.WithEventID(evt.ID()),
 		event.WithOccurredAt(evt.OccurredAt()),
 		event.WithSchemaVersion(evt.SchemaVersion()),
+		event.WithEncoding(evt.Encoding()),
 		event.WithMetadata(md),
 	)
 	if err != nil {

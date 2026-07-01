@@ -6,6 +6,25 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 )
 
+// DefaultCodec is the codec used by [New] when no [WithCodec] option is
+// provided. It defaults to [codec.JSONCodec] for backwards compatibility.
+//
+// To adopt CBOR for all events created via [New] without passing
+// [WithCodec] on every call, set this once at program startup:
+//
+//	event.DefaultCodec = codec.CBORCodec{}
+//
+// This is a package-level default (like [net/http.DefaultClient]): it affects
+// every [New] call in the process that does not override it with [WithCodec].
+// Events created with an explicit [WithCodec] are unaffected. Because the
+// encoding is stamped on each event ([ImmutableEvent.Encoding]), mixed streams
+// of JSON and CBOR events decode correctly — consumers call
+// [event.DecodePayload] with whichever codec matches the stamp.
+//
+// Changing this after events have been created with the old default does NOT
+// alter existing events; it only affects subsequently created ones.
+var DefaultCodec codec.Codec = codec.JSONCodec{}
+
 // DecodePayload decodes an event's payload bytes into a typed value using
 // the provided codec. This is the standard way to deserialize event data
 // in event handlers and projectors.

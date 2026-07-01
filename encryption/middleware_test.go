@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/encryption/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -197,5 +198,104 @@ func TestDecryptMiddleware_NilDecrypter(t *testing.T) {
 	)
 	if err == nil {
 		t.Error("expected error with nil decrypter")
+	}
+}
+
+func TestMiddleware_PreservesEncoding(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name     string
+		codec    codec.Codec
+		wantEnc  codec.Encoding
+		payload  struct{ Name string }
+		wantName string
+	}{
+		{
+			name:     "JSON",
+			codec:    codec.JSONCodec{},
+			wantEnc:  codec.EncodingJSON,
+			payload:  struct{ Name string }{Name: "Alice"},
+			wantName: "Alice",
+		},
+		{
+			name:     "CBOR",
+			codec:    codec.CBORCodec{},
+			wantEnc:  codec.EncodingCBOR,
+			payload:  struct{ Name string }{Name: "Bob"},
+			wantName: "Bob",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			key := generateTestKey(t)
+			enc, err := encryption.NewAES256GCM(key)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			aggID := id.NewAggregateID()
+			evt, err := event.New(
+				"user.created", aggID, "User", 1, tc.payload,
+				event.WithCodec(tc.codec),
+			)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if evt.Encoding() != tc.wantEnc {
+				t.Fatalf("pre-encrypt encoding = %s, want %s", evt.Encoding(), tc.wantEnc)
+			}
+
+			// Encrypt via publish middleware
+			var captured event.Event
+			inner := event.PublisherFunc(func(_ context.Context, events ...event.Event) error {
+				if len(events) > 0 {
+					captured = events[0]
+				}
+
+				return nil
+			})
+
+			pub := encryption.EncryptMiddleware(enc)(inner)
+			if err := pub.Publish(context.Background(), evt); err != nil {
+				t.Fatal(err)
+			}
+
+			if captured.Encoding() != tc.wantEnc {
+				t.Errorf("encrypted encoding = %s, want %s (preserved)",
+					captured.Encoding(), tc.wantEnc)
+			}
+
+			// Decrypt via handler middleware
+			var decrypted event.Event
+			decryptMw := encryption.DecryptMiddleware(enc)
+			handler := decryptMw(func(_ context.Context, e event.Event) error {
+				decrypted = e
+
+				return nil
+			})
+
+			if err := handler(context.Background(), captured); err != nil {
+				t.Fatal(err)
+			}
+
+			if decrypted.Encoding() != tc.wantEnc {
+				t.Errorf("decrypted encoding = %s, want %s (preserved)",
+					decrypted.Encoding(), tc.wantEnc)
+			}
+
+			got, err := event.DecodePayload[struct{ Name string }](decrypted, tc.codec)
+			if err != nil {
+				t.Fatalf("decode decrypted payload: %v", err)
+			}
+
+			if got.Name != tc.wantName {
+				t.Errorf("Name = %q, want %q", got.Name, tc.wantName)
+			}
+		})
 	}
 }

@@ -2,11 +2,11 @@ package grpc
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"google.golang.org/grpc"
 
+	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
 	cqrsproto "github.com/larsartmann/go-cqrs-lite/transport/grpc/v3/proto"
@@ -77,15 +77,24 @@ func (c *CommandClient) Dispatch(ctx context.Context, cmd command.Command) error
 // QueryClient dispatches queries to a remote gRPC server.
 type QueryClient struct {
 	client cqrsproto.QueryServiceClient
+	codec  codec.Codec
 }
 
 // NewQueryClient creates a remote query dispatcher backed by conn.
-func NewQueryClient(conn *grpc.ClientConn) *QueryClient {
-	return &QueryClient{client: cqrsproto.NewQueryServiceClient(conn)}
+// Pass [WithCodec] to override the default JSON wire encoding.
+func NewQueryClient(conn *grpc.ClientConn, opts ...Option) *QueryClient {
+	cfg := defaultConfig()
+	cfg.apply(opts...)
+
+	return &QueryClient{
+		client: cqrsproto.NewQueryServiceClient(conn),
+		codec:  cfg.codec,
+	}
 }
 
-// Ask sends a query to the remote gRPC server and unmarshals the JSON result
-// into out. out must be a pointer.
+// Ask sends a query to the remote gRPC server and decodes the result into out.
+// out must be a pointer. The wire encoding is determined by the client's codec
+// (JSON by default; override via [WithCodec] at construction).
 func (c *QueryClient) Ask(ctx context.Context, queryType string, out any) error {
 	result, err := c.client.Ask(
 		ctx,
@@ -100,7 +109,7 @@ func (c *QueryClient) Ask(ctx context.Context, queryType string, out any) error 
 			result.GetError(), result.GetErrorCode(), result.GetErrorFamily())
 	}
 
-	err = json.Unmarshal(result.GetPayload(), out)
+	err = c.codec.Decode(result.GetPayload(), out)
 	if err != nil {
 		return fmt.Errorf("%w: %w", errUnmarshalResult, err)
 	}

@@ -274,11 +274,13 @@ catalog/var ErrEmptyServiceID
 codec/const EncodingCBOR
 codec/const EncodingJSON
 codec/const EncodingRaw
+codec/func AutoDetect
 codec/func CBORDecMode
 codec/func CBOREncMode
 codec/func Diagnose
 codec/func NewCBORDecoder
 codec/func NewCBOREncoder
+codec/func Size
 codec/interface BufferEncoder
 codec/interface Codec
 codec/method Decode
@@ -821,6 +823,7 @@ event/type TombstoneStatus
 event/type Type
 event/type UserAgent
 event/type Version
+event/var DefaultCodec
 event/var ErrAggregateNotFound
 event/var ErrBinaryNotFound
 event/var ErrBusClosed
@@ -1374,6 +1377,7 @@ stack/func WithCommandStore
 stack/func WithDatabase
 stack/func WithDefaultCodec
 stack/func WithDrainer
+stack/func WithEventCodec
 stack/func WithEventSink
 stack/func WithEventSource
 stack/func WithEventStore
@@ -1396,6 +1400,7 @@ stack/method Database
 stack/method Debug
 stack/method DefaultCodec
 stack/method Error
+stack/method EventCodec
 stack/method EventTypes
 stack/method GracefulClose
 stack/method Handle

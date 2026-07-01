@@ -78,13 +78,13 @@ All quick wins and medium-effort tasks from the original status report are now c
 
 ---
 
-## c) NOT STARTED ❌
+## c) PREVIOUSLY NOT STARTED — NOW DONE ✅
 
-| #   | Item                                   | Impact | Why                                                                                  |
-| --- | -------------------------------------- | ------ | ------------------------------------------------------------------------------------ |
-| 1   | **event.New() encoding-aware default** | HIGH   | Currently hardcodes JSONCodec; should use a package-level default variable or option |
-| 2   | **Blind store encoding tagging**       | HIGH   | kv/snapshot/command/query stores don't stamp encoding — fundamental gap              |
-| 3   | **Transport layer codec awareness**    | MED    | gRPC (query_server.go, client.go) hardcodes json.Marshal — no codec injection        |
+| #   | Item                                   | Status | Implementation                                                    |
+| --- | -------------------------------------- | ------ | ----------------------------------------------------------------- |
+| 1   | **event.New() encoding-aware default** | ✅     | `event.DefaultCodec` package var — mutable, defaults to JSONCodec |
+| 2   | **Blind store encoding tagging**       | DESIGN | ADR-0044 written — envelope wrapper proposed for v4               |
+| 3   | **Transport layer codec awareness**    | ✅     | `grpc.WithCodec(c)` — query server + client now codec-injectable  |
 
 ---
 
@@ -148,58 +148,54 @@ A consumer reading the README would reasonably expect CBOR everywhere. They get 
 
 ### Medium Effort (30-60 min each)
 
-| #   | Task                                                                | Impact | Work  | Risk       |
-| --- | ------------------------------------------------------------------- | ------ | ----- | ---------- |
-| 6   | ~~Change `schema.WithCodec` to accept `codec.Codec`~~               | ✅     | DONE  |            |
-| 7   | ~~Add `schema.WithCodec` deprecation path (keep old func)~~         | ✅     | DONE  |            |
-| 8   | ~~Add property-based roundtrip test with `rapid`~~                  | ✅     | DONE  |            |
-| 9   | Add `codec.Size(v any) (jsonSize, cborSize int)` helper             | LOW    | 15min | none       |
-| 10  | Add CBOR codec to example/deployer-first                            | MED    | 20min | none       |
-| 11  | Document the stack-vs-store default asymmetry in AGENTS.md          | HIGH   | 10min | none       |
-| 12  | Add `event.DefaultCodec` package var (mutable for CBOR adoption)    | HIGH   | 15min | behavioral |
-| 13  | Add stack-level `WithEventCodec()` option for event.New             | HIGH   | 20min | none       |
-| 14  | Test: verify schema.Validator rejects encrypted encoding gracefully | MED    | 15min | none       |
+| #   | Task                                                                 | Impact | Work | Risk       |
+| --- | -------------------------------------------------------------------- | ------ | ---- | ---------- |
+| 6   | ~~Change `schema.WithCodec` to accept `codec.Codec`~~                | ✅     | DONE |            |
+| 7   | ~~Add `schema.WithCodec` deprecation path (keep old func)~~          | ✅     | DONE |            |
+| 8   | ~~Add property-based roundtrip test with `rapid`~~                   | ✅     | DONE |            |
+| 9   | ~~Add `codec.Size(v any) (jsonSize, cborSize int)` helper~~          | ✅     | DONE | none       |
+| 10  | ~~Add CBOR codec to example/deployer-first~~                         | ✅     | DONE | none       |
+| 11  | ~~Document the stack-vs-store default asymmetry in AGENTS.md~~       | ✅     | DONE | none       |
+| 12  | ~~Add `event.DefaultCodec` package var (mutable for CBOR adoption)~~ | ✅     | DONE | behavioral |
+| 13  | ~~Add stack-level `WithEventCodec()` option for event.New~~          | ✅     | DONE | none       |
+| 14  | ~~Test: schema.Validator rejects encrypted encoding gracefully~~     | ✅     | DONE | none       |
 
 ### Larger Effort (1-4 hours)
 
-| #   | Task                                                                   | Impact | Work | Risk          |
-| --- | ---------------------------------------------------------------------- | ------ | ---- | ------------- |
-| 15  | Add codec injection to gRPC transport                                  | MED    | 1h   | API change    |
-| 16  | Design encoding stamp for blind stores (envelope or key prefix)        | HIGH   | 2h   | schema change |
-| 17  | Add `codec.AutoDetect(data []byte) Encoding` — sniff format from bytes | MED    | 30m  | none          |
-| 18  | Add migration tool: scan JSON events, re-encode as CBOR                | MED    | 2h   | data change   |
-| 19  | Add `cbor:",keyasint"` example to codec/examples                       | LOW    | 30m  | none          |
+| #   | Task                                                                       | Impact | Work | Risk        |
+| --- | -------------------------------------------------------------------------- | ------ | ---- | ----------- |
+| 15  | ~~Add codec injection to gRPC transport~~                                  | ✅     | DONE | additive    |
+| 16  | ~~Design encoding stamp for blind stores (envelope or key prefix)~~        | ✅     | DONE | ADR-0044    |
+| 17  | ~~Add `codec.AutoDetect(data []byte) Encoding` — sniff format from bytes~~ | ✅     | DONE | none        |
+| 18  | Add migration tool: scan JSON events, re-encode as CBOR                    | MED    | 2h   | data change |
+| 19  | ~~Add `cbor:",keyasint"` example to codec/examples~~                       | ✅     | DONE | none        |
 
 ### v4 Preparation
 
-| #   | Task                                                        | Impact | Work | Risk          |
-| --- | ----------------------------------------------------------- | ------ | ---- | ------------- |
-| 20  | Flip blind store defaults to CBOR in a feature branch       | HIGH   | 2h   | v4 breaking   |
-| 21  | Design composite encoding for encryption ("cbor+encrypted") | HIGH   | 2h   | schema change |
-| 22  | Write migration guide: JSON→CBOR for existing consumers     | HIGH   | 1h   | docs only     |
+| #   | Task                                                            | Impact | Work | Risk                     |
+| --- | --------------------------------------------------------------- | ------ | ---- | ------------------------ |
+| 20  | Flip blind store defaults to CBOR in a feature branch           | HIGH   | 2h   | v4 breaking              |
+| 21  | ~~Design composite encoding for encryption ("cbor+encrypted")~~ | ✅     | DONE | Option C adopted instead |
+| 22  | ~~Write migration guide: JSON→CBOR for existing consumers~~     | ✅     | DONE | docs only                |
 
 ---
 
-## g) Top #1 Question I Cannot Figure Out Myself
+## g) RESOLVED ✅: Encryption Encoding Question
 
-**How should the encryption codec report its encoding?**
+**Decision: Option C — middleware is the recommended path for event encryption.**
 
-Currently `encryption.Codec.Encoding()` returns `"encrypted"`, which discards the inner codec's format (JSON or CBOR). With symmetric validation, an event created via:
+The middleware path (`EncryptMiddleware`/`DecryptMiddleware`) now **preserves the
+original encoding stamp** through the encrypt → decrypt cycle (bug fix in this PR).
+Events created as CBOR stay stamped `"cbor"` after encryption and decryption.
 
-```go
-event.New(..., event.WithCodec(encryption.NewCodec(codec.CBORCodec{}, enc)))
-```
+`encryption.NewCodec` is documented as "for non-event serialization" — use it for
+snapshot values, command payloads in blind stores, etc. where the encoding field
+isn't used for routing.
 
-gets stamped `encoding="encrypted"`. On decode, you must pass the exact same `encryptingCodec` — it works, but you lose the information that the plaintext is CBOR. This matters for:
+**What was done:**
 
-1. **Debugging:** You can't tell from the encoding field whether the plaintext was JSON or CBOR
-2. **Mixed streams:** Unencrypted CBOR events stamp `"cbor"`, encrypted CBOR events stamp `"encrypted"` — no common decode path
-3. **Migration:** If you want to drop encryption later, you don't know what codec to use for the plaintext
-
-**Options I see but can't decide between:**
-
-- **A:** Composite encoding string: `"cbor+encrypted"` or `"encrypted:cbor"` — expressive but changes the encoding type contract
-- **B:** Keep `"encrypted"` and add a separate `InnerEncoding()` method to the codec — doesn't help the event's stamped encoding
-- **C:** Don't use `encryption.Codec` for event creation at all — use the EncryptMiddleware/DecryptMiddleware path instead, which preserves the original encoding stamp. This is already the documented recommended path in AGENTS.md.
-
-**Option C** seems cleanest (middleware preserves encoding, codec wrapper is for non-event use cases), but it means the `encryption.NewCodec` function is a footgun when used with `event.WithCodec`. Should we deprecate that combination? Document it? I don't know the right call.
+- `AttachEncryption` and `decryptEvent` now pass `event.WithEncoding(evt.Encoding())`
+- `encryption.NewCodec` has a doc comment warning against use with `event.New`
+- Tests verify encoding preservation for both JSON and CBOR through the middleware path
+- Mixed streams (unencrypted CBOR + encrypted CBOR) work: both stamp `"cbor"`, both
+  decode with `event.DecodePayload(evt, codec.CBORCodec{})`

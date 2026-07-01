@@ -12,8 +12,8 @@ import (
 //
 // If payload is []byte or json.RawMessage, it is used directly and the encoding
 // defaults to [codec.EncodingJSON]. For all other types, the payload is marshaled
-// using the codec provided via [WithNewCodec] (defaults to [codec.JSONCodec] if none
-// is given), and the encoding is auto-stamped from the codec.
+// using the codec provided via [WithCodec] (falling back to [DefaultCodec], which
+// defaults to [codec.JSONCodec]), and the encoding is auto-stamped from the codec.
 //
 // Returns an error if payload is nil.
 func New(
@@ -39,7 +39,7 @@ func New(
 	}
 
 	if c == nil {
-		c = codec.JSONCodec{}
+		c = DefaultCodec
 	}
 
 	data, err := marshalPayload(payload, eventType, c)

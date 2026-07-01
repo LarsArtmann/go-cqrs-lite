@@ -80,6 +80,10 @@ type Bundle struct {
 	// codec.JSONCodec when unset.
 	defaultCodec codec.Codec
 
+	// eventCodec is the codec for event payload creation, exposed via
+	// EventCodec(). Set via WithEventCodec. nil means "use event.DefaultCodec".
+	eventCodec codec.Codec
+
 	closers []io.Closer
 }
 
@@ -197,6 +201,22 @@ func (b *Bundle) DefaultCodec() codec.Codec {
 	}
 
 	return codec.CBORCodec{}
+}
+
+// EventCodec returns the codec for event payload creation. Returns the codec
+// set via [WithEventCodec], or falls back to [event.DefaultCodec] (which
+// defaults to [codec.JSONCodec]) when unset.
+//
+// Consumers use this to create events with the Bundle's configured codec:
+//
+//	evt, _ := event.New("user.created", id, "User", v,
+//	    payload, event.WithCodec(bundle.EventCodec()))
+func (b *Bundle) EventCodec() codec.Codec {
+	if b.eventCodec != nil {
+		return b.eventCodec
+	}
+
+	return event.DefaultCodec
 }
 
 // Drainer stops accepting new work and finishes in-flight work, bounded by

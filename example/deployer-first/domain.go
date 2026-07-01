@@ -1,10 +1,6 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-
-	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/decider/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -25,7 +21,8 @@ const (
 	aggregateType = event.AggregateType("Todo")
 )
 
-// Event payloads — auto-marshaled to JSON.
+// Event payloads — auto-marshaled via event.New(), using event.DefaultCodec
+// (set to CBOR in main.go via stack.WithEventCodec).
 
 type TodoCreatedPayload struct {
 	Title string `json:"title"`
@@ -46,12 +43,10 @@ type TodoState struct {
 	Deleted   bool
 }
 
-var jsonCodec = codec.JSONCodec{}
-
 func applyTodo(state TodoState, evt event.Event) (TodoState, error) {
 	switch evt.Type() {
 	case eventTodoCreated:
-		p, err := event.DecodePayload[TodoCreatedPayload](evt, jsonCodec)
+		p, err := event.DecodePayload[TodoCreatedPayload](evt, event.DefaultCodec)
 		if err != nil {
 			return state, err
 		}
@@ -70,16 +65,6 @@ func applyTodo(state TodoState, evt event.Event) (TodoState, error) {
 // Command decision functions. Each returns a DecideFunc that the
 // decider.Repository executes against the current (replayed) state.
 
-// marshalPayload serializes v to JSON, returning an Infrastructure error on failure.
-func marshalPayload(v any) ([]byte, error) {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return nil, fmt.Errorf("marshal payload: %w", err)
-	}
-
-	return b, nil
-}
-
 func decideCreate(aggID id.AggregateID, title string) DecideFunc {
 	return func(state TodoState, version event.Version) ([]event.Event, error) {
 		if state.Exists {
@@ -90,14 +75,9 @@ func decideCreate(aggID id.AggregateID, title string) DecideFunc {
 			return nil, event.NewRejection("todo.create.title_required", "title is required")
 		}
 
-		payload, err := marshalPayload(TodoCreatedPayload{Title: title})
-		if err != nil {
-			return nil, event.Newf(event.Infrastructure, "todo.create.payload", "%v", err)
-		}
-
-		evt, err := event.NewEvent(
+		evt, err := event.New(
 			eventTodoCreated, aggID, aggregateType, version.Increment(),
-			payload,
+			TodoCreatedPayload{Title: title},
 		)
 		if err != nil {
 			return nil, event.Newf(event.Infrastructure, "todo.create.1", "build event: %v", err)
@@ -117,14 +97,9 @@ func decideComplete(aggID id.AggregateID) DecideFunc {
 			return nil, event.NewConflict("todo.complete.done", "todo already completed")
 		}
 
-		payload, err := marshalPayload(TodoCompletedPayload{})
-		if err != nil {
-			return nil, event.Newf(event.Infrastructure, "todo.complete.payload", "%v", err)
-		}
-
-		evt, err := event.NewEvent(
+		evt, err := event.New(
 			eventTodoCompleted, aggID, aggregateType, version.Increment(),
-			payload,
+			TodoCompletedPayload{},
 		)
 		if err != nil {
 			return nil, event.Newf(event.Infrastructure, "todo.complete.1", "build event: %v", err)
@@ -144,14 +119,9 @@ func decideDelete(aggID id.AggregateID, reason string) DecideFunc {
 			return nil, event.NewConflict("todo.delete.deleted", "todo already deleted")
 		}
 
-		payload, err := marshalPayload(TodoDeletedPayload{Reason: reason})
-		if err != nil {
-			return nil, event.Newf(event.Infrastructure, "todo.delete.payload", "%v", err)
-		}
-
-		evt, err := event.NewEvent(
+		evt, err := event.New(
 			eventTodoDeleted, aggID, aggregateType, version.Increment(),
-			payload,
+			TodoDeletedPayload{Reason: reason},
 		)
 		if err != nil {
 			return nil, event.Newf(event.Infrastructure, "todo.delete.1", "build event: %v", err)

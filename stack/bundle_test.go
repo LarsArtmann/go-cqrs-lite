@@ -485,3 +485,51 @@ func TestDefaultCodec_DefaultIsCBOR(t *testing.T) {
 		t.Fatalf("DefaultCodec = %s, want %s", b.DefaultCodec().Encoding(), codec.EncodingCBOR)
 	}
 }
+
+func TestWithEventCodec_SetsEventCodec(t *testing.T) {
+	t.Parallel()
+
+	b, err := stack.New(
+		stack.WithReadModels(kv.NewMemStore()),
+		stack.WithEventCodec(codec.CBORCodec{}),
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	if b.EventCodec().Encoding() != codec.EncodingCBOR {
+		t.Fatalf("EventCodec = %s, want %s", b.EventCodec().Encoding(), codec.EncodingCBOR)
+	}
+}
+
+func TestWithEventCodec_AlsoSetsDefaultCodec(t *testing.T) {
+	t.Parallel()
+
+	b, err := stack.New(
+		stack.WithReadModels(kv.NewMemStore()),
+		stack.WithEventCodec(codec.CBORCodec{}),
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	// WithEventCodec is a superset of WithDefaultCodec — read models get it too
+	if b.DefaultCodec().Encoding() != codec.EncodingCBOR {
+		t.Fatalf("DefaultCodec = %s, want %s", b.DefaultCodec().Encoding(), codec.EncodingCBOR)
+	}
+}
+
+func TestEventCodec_FallsBackToEventDefaultCodec(t *testing.T) {
+	t.Parallel()
+
+	b, err := stack.New(stack.WithReadModels(kv.NewMemStore()))
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	// No WithEventCodec → falls back to event.DefaultCodec (JSON by default)
+	if b.EventCodec().Encoding() != codec.EncodingJSON {
+		t.Fatalf("EventCodec = %s, want %s (event.DefaultCodec fallback)",
+			b.EventCodec().Encoding(), codec.EncodingJSON)
+	}
+}

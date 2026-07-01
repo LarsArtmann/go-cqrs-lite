@@ -39,6 +39,7 @@ func AttachEncryption(
 		event.WithEventID(evt.ID()),
 		event.WithOccurredAt(evt.OccurredAt()),
 		event.WithSchemaVersion(evt.SchemaVersion()),
+		event.WithEncoding(evt.Encoding()),
 		event.WithMetadata(evt.Metadata()),
 		event.WithCustom(MetadataKey, encoded),
 	}

@@ -9,6 +9,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/decider/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
@@ -61,6 +62,11 @@ func main() {
 		stack.WithBus(cqrswatermill.NewEventBus()),
 		stack.WithReadModels(kv.NewMemStore()),
 		stack.WithCheckpointStore(memory.NewMemoryCheckpointStore()),
+		// Adopt CBOR for both event payloads and read models in one call.
+		// stack.WithEventCodec also sets the read-model default (like
+		// WithDefaultCodec), and exposes bundle.EventCodec() for use in
+		// decide functions via event.WithCodec().
+		stack.WithEventCodec(codec.CBORCodec{}),
 	)
 	if err != nil {
 		log.Fatalf("deployer: stack.New: %v", err)
@@ -68,8 +74,16 @@ func main() {
 
 	defer func() { _ = bundle.Close() }()
 
+	// Set the package-level default so domain code calling event.New() without
+	// explicit WithCodec also uses CBOR. This is the recommended one-line
+	// adoption: event.DefaultCodec is mutable (like http.DefaultClient).
+	event.DefaultCodec = bundle.EventCodec()
+
 	// ── CONSUMER: build the materialized view ───────────────────────────
-	mat, err := stack.NewMaterialize[TodoView, id.AggregateID](bundle, codec.JSONCodec{}, todoKey)
+	// Passing nil codec falls back to bundle.DefaultCodec() (CBOR via
+	// WithEventCodec above). Events created with event.WithCodec(bundle.EventCodec())
+	// will also be CBOR — mixed streams decode correctly via evt.Encoding().
+	mat, err := stack.NewMaterialize[TodoView, id.AggregateID](bundle, nil, todoKey)
 	if err != nil {
 		log.Fatalf("consumer: NewMaterialize: %v", err)
 	}

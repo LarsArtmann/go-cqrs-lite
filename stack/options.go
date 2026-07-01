@@ -258,10 +258,35 @@ func WithDatabase(db any) Option {
 //	store, _ := stack.ReadModel[Todo, TodoID](bundle, nil) // uses CBOR
 //
 // Event payload encoding is NOT affected — events are encoded at creation
-// time via event.New(event.WithCodec(c)).
+// time via event.New(event.WithCodec(c)). For event-level codec adoption use
+// [WithEventCodec] or set [event.DefaultCodec] at program startup.
 func WithDefaultCodec(c codec.Codec) Option {
 	return func(b *Bundle) {
 		if c != nil {
+			b.defaultCodec = c
+		}
+	}
+}
+
+// WithEventCodec sets the codec used for event payload creation via [event.New].
+// It stores the codec on the Bundle and exposes it via [Bundle.EventCodec] so
+// that consumers can pass it to [event.WithCodec] in their decide functions.
+//
+// This does NOT mutate [event.DefaultCodec] — consumers who want a process-wide
+// default should set [event.DefaultCodec] directly at program startup. Use this
+// option when you prefer explicit, per-Bundle wiring:
+//
+//	bundle, _ := sqlite.New(dsn, stack.WithEventCodec(codec.CBORCodec{}))
+//	// In your decide function:
+//	evt, _ := event.New("user.created", id, "User", v,
+//	    payload, event.WithCodec(bundle.EventCodec()))
+//
+// WithEventCodec also sets the read-model default (like [WithDefaultCodec]),
+// so a single option adopts CBOR for both events and read models.
+func WithEventCodec(c codec.Codec) Option {
+	return func(b *Bundle) {
+		if c != nil {
+			b.eventCodec = c
 			b.defaultCodec = c
 		}
 	}

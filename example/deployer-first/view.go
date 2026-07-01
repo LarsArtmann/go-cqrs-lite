@@ -34,7 +34,7 @@ func todoKey(evt event.Event) (id.AggregateID, error) {
 // lives. The deployer already chose WHERE the view is stored (see main.go).
 func configureMaterialize(mat *stack.Materialize[TodoView, id.AggregateID]) {
 	mat.OnCreate = func(_ context.Context, evt event.Event) (*TodoView, error) {
-		p, err := event.DecodePayload[TodoCreatedPayload](evt, jsonCodec)
+		p, err := event.DecodePayload[TodoCreatedPayload](evt, event.DefaultCodec)
 		if err != nil {
 			return nil, fmt.Errorf("decode todo.created: %w", err)
 		}

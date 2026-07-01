@@ -16,6 +16,20 @@ type encryptingCodec struct {
 
 var _ codec.Codec = (*encryptingCodec)(nil)
 
+// NewCodec wraps an inner codec with encryption. The returned codec.Encode
+// first serializes with the inner codec, then encrypts; Decode reverses the
+// process.
+//
+// **For event payloads, prefer [EncryptMiddleware]/[DecryptMiddleware] instead.**
+// The middleware path encrypts the already-serialized payload at publish time
+// and decrypts at handle time, preserving the original encoding stamp
+// (evt.Encoding() stays "json" or "cbor"). This codec wrapper stamps
+// Encoding() as "encrypted", discarding the inner codec's format — making
+// mixed streams (unencrypted CBOR + encrypted CBOR) undecodable with a single
+// path.
+//
+// Use NewCodec for non-event serialization (e.g. snapshot values, command
+// payloads in blind stores) where the encoding field is not used for routing.
 func NewCodec(inner codec.Codec, enc EncrypterDecrypter) *encryptingCodec {
 	return &encryptingCodec{inner: inner, encrypter: enc, decrypter: enc}
 }

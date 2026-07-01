@@ -416,3 +416,65 @@ func TestPayloadReadOnly_ReturnsInternalReference(t *testing.T) {
 		t.Errorf("PayloadReadOnly = %q, want %q", readOnly, payload)
 	}
 }
+
+func TestDefaultCodec_DefaultIsJSON(t *testing.T) {
+	t.Parallel()
+
+	if event.DefaultCodec.Encoding() != codecpkg.EncodingJSON {
+		t.Errorf("DefaultCodec encoding = %q, want %q",
+			event.DefaultCodec.Encoding(), codecpkg.EncodingJSON)
+	}
+}
+
+func TestDefaultCodec_CBORDefaultProducesCBOREvents(t *testing.T) {
+	// NOT parallel: mutates package-level DefaultCodec.
+	prev := event.DefaultCodec
+	defer func() { event.DefaultCodec = prev }()
+
+	event.DefaultCodec = codecpkg.CBORCodec{}
+
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+
+	evt, err := event.New(
+		"UserCreated", aggID, "User", 1, struct{ Name string }{Name: "Alice"},
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	if evt.Encoding() != codecpkg.EncodingCBOR {
+		t.Errorf("Encoding() = %q, want %q", evt.Encoding(), codecpkg.EncodingCBOR)
+	}
+
+	got, err := event.DecodePayload[struct{ Name string }](evt, codecpkg.CBORCodec{})
+	if err != nil {
+		t.Fatalf("DecodePayload: %v", err)
+	}
+
+	if got.Name != "Alice" {
+		t.Errorf("Name = %q, want Alice", got.Name)
+	}
+}
+
+func TestDefaultCodec_ExplicitWithCodecOverrides(t *testing.T) {
+	// NOT parallel: mutates package-level DefaultCodec.
+	prev := event.DefaultCodec
+	defer func() { event.DefaultCodec = prev }()
+
+	event.DefaultCodec = codecpkg.CBORCodec{}
+
+	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+
+	evt, err := event.New(
+		"UserCreated", aggID, "User", 1, struct{ Name string }{Name: "Alice"},
+		event.WithCodec(codecpkg.JSONCodec{}),
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	if evt.Encoding() != codecpkg.EncodingJSON {
+		t.Errorf("Encoding() = %q, want %q (WithCodec must override DefaultCodec)",
+			evt.Encoding(), codecpkg.EncodingJSON)
+	}
+}

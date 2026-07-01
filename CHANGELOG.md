@@ -10,6 +10,69 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+#### CBOR Adoption Primitives — `event/v3`, `stack/v3`
+
+- **`event.DefaultCodec`** — mutable package-level variable (like `http.DefaultClient`)
+  that controls the codec used by `event.New()` when no `WithCodec` option is passed.
+  Defaults to `JSONCodec{}` for backwards compatibility. Set to `CBORCodec{}` for
+  process-wide CBOR adoption: `event.DefaultCodec = codec.CBORCodec{}`.
+- **`stack.WithEventCodec(c codec.Codec) Option`** — one-call adoption for both event
+  payloads and read models. Sets `bundle.EventCodec()` and also `bundle.DefaultCodec()`.
+  Consumers use `bundle.EventCodec()` in decide functions via `event.WithCodec()`.
+- **`Bundle.EventCodec()`** — accessor for the event payload codec. Falls back to
+  `event.DefaultCodec` when unset.
+
+#### Codec Utilities — `codec/v3`
+
+- **`AutoDetect(data []byte) Encoding`** — sniffs the serialization format from raw
+  bytes by examining structural first-byte patterns. Distinguishes JSON from CBOR.
+  Best-effort heuristic for diagnostics and tooling, not a security boundary.
+- **`Size(v any) (jsonSize, cborSize int)`** — encodes v with both codecs and returns
+  the byte sizes. Useful for evaluating CBOR adoption before committing.
+- **`keyasint` example** — `ExampleCBORCodec_keyasint` demonstrating CBOR integer keys
+  (CWT claim registry pattern) for 22% size reduction over string keys.
+
+#### gRPC Codec Injection — `transport/grpc/v3`
+
+- **`WithCodec(c codec.Codec) Option`** — shared functional option for
+  `RegisterQueryService`, `NewQueryClient` (and future command/event transport).
+  Defaults to JSON for backwards compatibility. Both server and client must use the
+  same codec.
+- **`QueryServer.codec`** — query results are encoded with the configured codec
+  instead of hardcoded `json.Marshal`.
+- **`QueryClient.codec`** — query results are decoded with the configured codec
+  instead of hardcoded `json.Unmarshal`.
+
+#### Encryption Encoding Fix — `encryption/v3`
+
+- **Encoding preservation through middleware** — `AttachEncryption` and
+  `decryptEvent` now preserve the original event's `Encoding()` stamp. Previously,
+  CBOR events lost their encoding during the encrypt → decrypt cycle, causing
+  `DecodePayload` to fail. JSON events were unaffected (the default).
+- **`NewCodec` doc comment** — warns that `encryption.NewCodec` is for non-event
+  serialization. For event payloads, use `EncryptMiddleware`/`DecryptMiddleware`,
+  which preserves the encoding stamp.
+
+#### Encryption Validation Tests — `schema/v3`
+
+- **`TestValidator_EncryptedEncoding_RejectedGracefully`** — encrypted events
+  (encoding="encrypted") produce a clean Rejection error, not a panic.
+- **`TestValidator_UnknownEncoding_FallsBackToJSON`** — unknown encodings fall
+  back to the JSON decoder.
+- **`TestValidator_EncryptedEncoding_WithCustomDecoder`** — consumers can register
+  a custom decoder for the "encrypted" encoding.
+
+#### Documentation
+
+- **`docs/migration/JSON_TO_CBOR.md`** — comprehensive migration guide with
+  step-by-step instructions, decision matrix, and encryption guidance.
+- **`docs/adr/0044-blind-store-encoding-stamps.md`** — design doc for v4 envelope
+  wrapper to add encoding stamps to blind stores.
+- **AGENTS.md codec default asymmetry table** — documents which layer defaults to
+  which codec and how to override each.
+- **`example/deployer-first`** — refactored to use `event.New()` with typed payloads
+  (instead of pre-marshaled JSON bytes) and `stack.WithEventCodec(CBORCodec{})`.
+
 #### CBOR as Recommended Default — `codec/v3`
 
 - **CBOR listed first** in README, doc.go, and examples with "Recommended" badge.

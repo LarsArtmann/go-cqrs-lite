@@ -282,3 +282,82 @@ func TestValidator_CBOREncoding_Invalid_Rejected(t *testing.T) {
 		t.Fatalf("expected Rejection, got %T: %v", err, err)
 	}
 }
+
+func TestValidator_EncryptedEncoding_RejectedGracefully(t *testing.T) {
+	t.Parallel()
+
+	v := NewValidator()
+	RegisterType[userCreatedPayload](v, "user.created")
+
+	// Simulate an encrypted event: random-looking ciphertext stamped "encrypted".
+	// The validator has no decoder for "encrypted" — it should fall back to the
+	// default JSON decoder, which will reject the ciphertext as malformed JSON,
+	// producing a clean Rejection error (not a panic).
+	aggID := id.NewAggregateID()
+	evt, err := event.NewEvent(
+		event.Type("user.created"), aggID, "User", 1,
+		[]byte{0x72, 0x4a, 0x8f, 0x3b, 0xc1, 0xe9, 0xd0, 0x5a},
+		event.WithEncoding(codec.Encoding("encrypted")),
+	)
+	if err != nil {
+		t.Fatalf("NewEvent: %v", err)
+	}
+
+	err = v.Validate(evt)
+	if err == nil {
+		t.Fatal("expected rejection for encrypted payload with no matching decoder")
+	}
+
+	if event.Classify(err) != event.Rejection {
+		t.Fatalf("expected Rejection, got %T: %v", err, err)
+	}
+}
+
+func TestValidator_UnknownEncoding_FallsBackToJSON(t *testing.T) {
+	t.Parallel()
+
+	v := NewValidator()
+	RegisterType[userCreatedPayload](v, "user.created")
+
+	// An unknown encoding falls back to the default JSON decoder.
+	// A valid JSON payload should pass.
+	aggID := id.NewAggregateID()
+	evt, err := event.NewEvent(
+		event.Type("user.created"), aggID, "User", 1,
+		[]byte(`{"name":"Alice","email":"alice@test.com"}`),
+		event.WithEncoding(codec.Encoding("msgpack")),
+	)
+	if err != nil {
+		t.Fatalf("NewEvent: %v", err)
+	}
+
+	err = v.Validate(evt)
+	if err != nil {
+		t.Fatalf("expected unknown encoding to fall back to JSON and pass, got: %v", err)
+	}
+}
+
+func TestValidator_EncryptedEncoding_WithCustomDecoder(t *testing.T) {
+	t.Parallel()
+
+	// If a consumer registers a decoder for the "encrypted" encoding (e.g.
+	// wrapping a decrypt + unmarshal pipeline), the validator should use it.
+	v := NewValidator(WithDecoder(codec.Encoding("encrypted"), func(data []byte, target any) error {
+		return json.Unmarshal([]byte(`{"name":"Alice","email":"alice@test.com"}`), target)
+	}))
+	RegisterType[userCreatedPayload](v, "user.created")
+
+	aggID := id.NewAggregateID()
+	evt, err := event.NewEvent(
+		event.Type("user.created"), aggID, "User", 1,
+		[]byte{0xde, 0xad, 0xbe, 0xef},
+		event.WithEncoding(codec.Encoding("encrypted")),
+	)
+	if err != nil {
+		t.Fatalf("NewEvent: %v", err)
+	}
+
+	if err := v.Validate(evt); err != nil {
+		t.Fatalf("expected custom encrypted decoder to validate, got: %v", err)
+	}
+}

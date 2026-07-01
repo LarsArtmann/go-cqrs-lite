@@ -266,3 +266,43 @@ func ExampleCBOREncMode() {
 	// Output:
 	// active/42 (18 bytes)
 }
+
+// ExampleCBORCodec_keyasint demonstrates the keyasint struct tag that encodes
+// field names as compact integer keys instead of strings. This is the COSE/CWT
+// (CBOR Web Token) pattern used by JWT-like claims: each field gets a small
+// integer key, shrinking payloads without losing the self-describing map
+// structure (unlike toarray, field order doesn't matter).
+func ExampleCBORCodec_keyasint() {
+	c := codec.CBORCodec{}
+
+	// Integer keys follow the CWT claim registry (RFC 8392).
+	type Claims struct {
+		Iss string `cbor:"1,keyasint"`
+		Sub string `cbor:"2,keyasint"`
+		Aud string `cbor:"3,keyasint"`
+		Exp int64  `cbor:"4,keyasint"`
+	}
+
+	// String-keyed equivalent for size comparison
+	type ClaimsString struct {
+		Iss string
+		Sub string
+		Aud string
+		Exp int64
+	}
+
+	claims := Claims{Iss: "s6BhdRkqt3", Sub: "24400320", Aud: "s6BhdRkqt3", Exp: 1735689600}
+
+	data, _ := c.Encode(claims)
+	stringData, _ := c.Encode(ClaimsString(claims))
+
+	fmt.Printf("keyasint: %d bytes, string keys: %d bytes\n", len(data), len(stringData))
+
+	var decoded Claims
+	_ = c.Decode(data, &decoded)
+	fmt.Println(decoded.Iss)
+
+	// Output:
+	// keyasint: 41 bytes, string keys: 53 bytes
+	// s6BhdRkqt3
+}

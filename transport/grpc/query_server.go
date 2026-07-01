@@ -2,11 +2,11 @@ package grpc
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"google.golang.org/grpc"
 
+	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
 	cqrsproto "github.com/larsartmann/go-cqrs-lite/transport/grpc/v3/proto"
@@ -21,11 +21,16 @@ type QueryDispatcher interface {
 // RegisterQueryService registers a CQRS query dispatch service on the
 // given gRPC server. Remote clients can dispatch queries via gRPC.
 //
-// Query payloads and results are JSON-encoded on the wire.
-func RegisterQueryService(srv *grpc.Server, dispatcher QueryDispatcher) {
+// Query payloads and results are encoded on the wire using the configured
+// codec (JSON by default; override with [WithCodec]).
+func RegisterQueryService(srv *grpc.Server, dispatcher QueryDispatcher, opts ...Option) {
+	cfg := configForServer(opts)
 	cqrsproto.RegisterQueryServiceServer(
 		srv,
-		&queryServer{dispatcher: dispatcher}, //nolint:exhaustruct // grpc server pattern
+		&queryServer{ //nolint:exhaustruct // grpc server pattern: embedded Unimplemented is zero-valued
+			dispatcher: dispatcher,
+			codec:      cfg.codec,
+		},
 	)
 }
 
@@ -33,6 +38,7 @@ type queryServer struct {
 	cqrsproto.UnimplementedQueryServiceServer
 
 	dispatcher QueryDispatcher
+	codec      codec.Codec
 }
 
 func (s *queryServer) Ask(
@@ -62,7 +68,7 @@ func (s *queryServer) Ask(
 		return queryErrorResult(err), nil
 	}
 
-	payload, err := json.Marshal(result)
+	payload, err := s.codec.Encode(result)
 	if err != nil {
 		return queryErrorResult(fmt.Errorf("marshal result: %w", err)), nil
 	}
