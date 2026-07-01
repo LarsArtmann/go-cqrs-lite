@@ -179,7 +179,7 @@ func TestValidator_RegisteredTypes(t *testing.T) {
 func TestValidator_WithCustomCodec(t *testing.T) {
 	t.Parallel()
 
-	v := NewValidator(WithCodec(json.Unmarshal))
+	v := NewValidator(WithCodec(codec.JSONCodec{}))
 	RegisterType[userCreatedPayload](v, "user.created")
 
 	payload, err := json.Marshal(userCreatedPayload{Name: "Alice"})
@@ -190,6 +190,44 @@ func TestValidator_WithCustomCodec(t *testing.T) {
 
 	if err := v.Validate(evt); err != nil {
 		t.Fatalf("expected valid payload with custom codec to pass, got: %v", err)
+	}
+}
+
+func TestValidator_WithCodec_CBOR(t *testing.T) {
+	t.Parallel()
+
+	v := NewValidator(WithCodec(codec.CBORCodec{}))
+	RegisterType[userCreatedPayload](v, "user.created")
+
+	aggID := id.NewAggregateID()
+	evt, err := event.New(
+		event.Type("user.created"), aggID, "User", 1,
+		userCreatedPayload{Name: "Alice", Email: "alice@test.com"},
+		event.WithCodec(codec.CBORCodec{}),
+	)
+	if err != nil {
+		t.Fatalf("New with CBOR codec: %v", err)
+	}
+
+	if err := v.Validate(evt); err != nil {
+		t.Fatalf("expected CBOR payload via WithCodec to pass, got: %v", err)
+	}
+}
+
+func TestValidator_WithDecodeFunc_BackwardCompat(t *testing.T) {
+	t.Parallel()
+
+	v := NewValidator(WithDecodeFunc(json.Unmarshal))
+	RegisterType[userCreatedPayload](v, "user.created")
+
+	payload, err := json.Marshal(userCreatedPayload{Name: "Alice"})
+	if err != nil {
+		t.Fatalf("Marshal: %v", err)
+	}
+	evt := testEvent(t, "user.created", payload)
+
+	if err := v.Validate(evt); err != nil {
+		t.Fatalf("expected valid payload via WithDecodeFunc to pass, got: %v", err)
 	}
 }
 

@@ -34,16 +34,7 @@ type BufferEncoder interface {
 
 ## Usage
 
-### JSON
-
-```go
-codec := codec.JSONCodec{}
-data, _ := codec.Encode(MyPayload{Name: "Alice"})
-var decoded MyPayload
-_ = codec.Decode(data, &decoded)
-```
-
-### CBOR (Canonical)
+### CBOR (Canonical) — Recommended
 
 ```go
 codec := codec.CBORCodec{}
@@ -55,6 +46,15 @@ _ = codec.Decode(data, &decoded)
 CBOR produces deterministic output (sorted map keys, shortest floats), making it
 safe for content-addressed storage and cryptographic signing. The pebble event
 store uses CBOR internally for its on-disk envelope format.
+
+### JSON
+
+```go
+codec := codec.JSONCodec{}
+data, _ := codec.Encode(MyPayload{Name: "Alice"})
+var decoded MyPayload
+_ = codec.Decode(data, &decoded)
+```
 
 ### CBOR Compact (Strict)
 

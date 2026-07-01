@@ -6,6 +6,7 @@ require (
 	github.com/fxamacker/cbor/v2 v2.9.2
 	github.com/larsartmann/go-error-family v0.5.1
 	github.com/onsi/gomega v1.42.0
+	pgregory.net/rapid v1.3.0
 )
 
 require (

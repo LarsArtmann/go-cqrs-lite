@@ -4,6 +4,85 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [3.5.0] - 2026-07-01
+
+**CBOR promoted to first-class default, encoding-aware validator, symmetric validation.**
+
+### Added
+
+#### CBOR as Recommended Default — `codec/v3`
+
+- **CBOR listed first** in README, doc.go, and examples with "Recommended" badge.
+  JSON remains fully supported as the interop/debugging codec.
+- **`CBORCompactCodec`** — stricter CBOR (RFC 8949 Core Deterministic) with
+  unknown-field rejection on decode, enabling schema drift detection.
+- **`BufferEncoder` interface** — zero-allocation encoding via `EncodeToBuffer(v, buf)`.
+  Implemented by `JSONCodec`, `CBORCodec`, and `CBORCompactCodec`.
+- **Streaming CBOR** — `NewCBOREncoder`/`NewCBORDecoder` for batch encoding without
+  materializing the full byte slice.
+- **`Diagnose(data)`** — converts CBOR bytes to human-readable diagnostic notation
+  for debugging.
+- **Exported `CBOREncMode()`/`CBORDecMode()`** — shared canonical encoding modes so
+  storage backends use one deterministic CBOR configuration.
+- **6 new runnable examples** — CBORCompactCodec, toarray, BufferEncoder, streaming,
+  Diagnose, CBOREncMode.
+- **Realistic benchmarks** — `realisticOrder` struct with nested items. Results:
+  CBOR 19% smaller than JSON, CBOR+toarray 43% smaller. Decode: CBOR 66% faster,
+  CBOR+toarray 72% faster.
+- **Property-based roundtrip tests** (`pgregory.net/rapid`) — 4 tests proving
+  JSON, CBOR, CBORCompact all roundtrip correctly, plus CBOR determinism property.
+
+#### Stack-Level Default Codec — `stack/v3`
+
+- **`WithDefaultCodec(c codec.Codec) Option`** — set a bundle-level default codec.
+  Defaults to `CBORCodec{}` (changed from JSON).
+- **`Bundle.DefaultCodec()`** — returns the configured default codec.
+- **`ReadModel()` and `NewMaterialize()`** — use `DefaultCodec()` instead of
+  hardcoded `JSONCodec{}` when the caller passes nil codec.
+
+#### Encoding-Aware Validator — `schema/v3`
+
+- **`WithCodec(c codec.Codec) ValidatorOption`** — replaces the old
+  `func([]byte, any) error` parameter with a type-safe `codec.Codec` interface.
+  The codec's `Encoding()` determines which encoding the decoder handles.
+- **`WithDecodeFunc(fn) ValidatorOption`** — backward-compatible deprecated alias
+  for the old `WithCodec` raw-function API. Will be removed in v4.
+- **`WithDecoder(enc, fn) ValidatorOption`** — register a decode function for a
+  specific encoding.
+- **Auto-detected CBOR** — the validator now auto-detects event payload encoding
+  via `evt.Encoding()` and picks the matching decoder. JSON and CBOR work
+  out of the box with no configuration.
+
+### Changed
+
+#### Symmetric Encoding Validation — `event/v3`
+
+- **`validateEncodingMatch` is now symmetric.** Previously, JSON events got a free
+  pass — a JSON event decoded with CBORCodec would bypass validation and fail with
+  a confusing corruption error. Now ALL encodings are compared equally:
+  `evtEnc != codecEnc`. Mismatches in either direction produce a clear
+  `event.encoding_mismatch` Rejection error immediately.
+
+### Documentation
+
+- **`codec/README.md`** — full rewrite. CBOR listed first with "Recommended" badge,
+  "When to Use" decision table, struct tag guide (toarray/keyasint/omitzero),
+  BufferEncoder, streaming, shared CBOR modes, diagnostic notation.
+- **`codec/doc.go`** — updated from "Three implementations" to "Four implementations".
+  Added "Choosing a Codec" section.
+- **`AGENTS.md`** — added toarray, BufferEncoder, streaming, and `WithDefaultCodec`
+  code patterns.
+- **`SKILL.md`** — cheat sheet changed from `JSONCodec{}` to `CBORCodec{}` with
+  "recommended" note.
+- **`kv/typed_options.go`** — `WithTypedCodec` doc mentions `stack.Bundle.DefaultCodec`.
+
+### Migration Notes
+
+- **`schema.WithCodec` signature changed** from `func([]byte, any) error` to
+  `codec.Codec`. The old function signature is preserved as `schema.WithDecodeFunc`
+  (deprecated). Migrate by replacing `WithCodec(json.Unmarshal)` with
+  `WithCodec(codec.JSONCodec{})`.
+
 ## [3.4.0] - 2026-06-29
 
 **Managed projection host maturity, durable scheduling, scenario-testing DSL, go mod tidy sweep.**

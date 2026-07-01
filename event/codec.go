@@ -11,7 +11,7 @@ import (
 // in event handlers and projectors.
 //
 // Returns a rejection error if the codec's encoding does not match the event's
-// declared encoding (when both are non-empty and differ).
+// declared encoding.
 func DecodePayload[T any](evt Event, c codec.Codec) (T, error) {
 	var zero T
 
@@ -63,7 +63,7 @@ func encodingForCopy(evt Event) codec.Encoding {
 }
 
 // DecodePayloads decodes multiple events' payloads into a slice of typed values.
-// Validates encoding once for the batch instead of per-event.
+// Each event's encoding is validated against the codec before decoding.
 // Returns an error at the first decode failure, indicating the index.
 func DecodePayloads[T any](events []Event, c codec.Codec) ([]T, error) {
 	result := make([]T, 0, len(events))

@@ -42,7 +42,7 @@ func ExampleCBORCodec() {
 	c := codec.CBORCodec{}
 
 	type User struct {
-		Name string `json:"name"`
+		Name string
 	}
 
 	data, err := c.Encode(User{Name: "Alice"})
@@ -246,8 +246,8 @@ func ExampleDiagnose() {
 // CBOR mode, ensuring all modules share one deterministic encoding.
 func ExampleCBOREncMode() {
 	type Snapshot struct {
-		State string `json:"state"`
-		N     int    `json:"n"`
+		State string
+		N     int
 	}
 
 	snap := Snapshot{State: "active", N: 42}

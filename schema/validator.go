@@ -42,16 +42,28 @@ type Validator struct {
 // ValidatorOption configures a Validator.
 type ValidatorOption func(*Validator)
 
-// WithCodec overrides the decode function for JSON payloads. When set, the
-// validator uses this function instead of encoding/json.Unmarshal for events
-// whose encoding is JSON or empty.
+// WithCodec configures the validator to use the given codec's Decode function
+// for events whose encoding matches the codec's Encoding(). For example,
+// passing codec.JSONCodec{} overrides the default JSON decoder with the codec's
+// own implementation, and passing codec.CBORCodec{} overrides the CBOR decoder.
 //
-// For CBOR events, the validator auto-detects the encoding via
-// evt.Encoding() and uses codec.CBORCodec{}.Decode — no configuration needed.
+// To register decoders for multiple encodings, call WithCodec once per codec or
+// use WithDecoder for individual encodings.
+func WithCodec(c codec.Codec) ValidatorOption {
+	return func(v *Validator) {
+		if c != nil {
+			v.decoders[c.Encoding()] = c.Decode
+		}
+	}
+}
+
+// WithDecodeFunc overrides the default JSON decode function and the fallback
+// decoder for unknown encodings. This is a low-level escape hatch for callers
+// who need to inject a raw function rather than a full codec.Codec.
 //
-// To use a non-standard codec for ALL encodings, register decoders for each
-// encoding via WithDecoder.
-func WithCodec(decode func([]byte, any) error) ValidatorOption {
+// Deprecated: Use WithCodec(codec.JSONCodec{}) or WithDecoder(codec.EncodingJSON, fn)
+// for type safety. WithDecodeFunc will be removed in v4.
+func WithDecodeFunc(decode func([]byte, any) error) ValidatorOption {
 	return func(v *Validator) {
 		v.decode = decode
 		v.decoders[codec.EncodingJSON] = decode
