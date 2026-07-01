@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
@@ -189,5 +190,57 @@ func TestValidator_WithCustomCodec(t *testing.T) {
 
 	if err := v.Validate(evt); err != nil {
 		t.Fatalf("expected valid payload with custom codec to pass, got: %v", err)
+	}
+}
+
+func TestValidator_CBOREncoding_AutoDetected(t *testing.T) {
+	t.Parallel()
+
+	v := NewValidator()
+	RegisterType[userCreatedPayload](v, "user.created")
+
+	cborCodec := codec.CBORCodec{}
+
+	aggID := id.NewAggregateID()
+	evt, err := event.New(
+		event.Type("user.created"), aggID, "User", 1,
+		userCreatedPayload{Name: "Alice", Email: "alice@test.com"},
+		event.WithCodec(cborCodec),
+	)
+	if err != nil {
+		t.Fatalf("New with CBOR codec: %v", err)
+	}
+
+	if evt.Encoding() != codec.EncodingCBOR {
+		t.Fatalf("event encoding = %s, want %s", evt.Encoding(), codec.EncodingCBOR)
+	}
+
+	if err := v.Validate(evt); err != nil {
+		t.Fatalf("expected CBOR payload to validate via auto-detection, got: %v", err)
+	}
+}
+
+func TestValidator_CBOREncoding_Invalid_Rejected(t *testing.T) {
+	t.Parallel()
+
+	v := NewValidator()
+	RegisterType[userCreatedPayload](v, "user.created")
+
+	aggID := id.NewAggregateID()
+	evt, err := event.NewEvent(
+		event.Type("user.created"), aggID, "User", 1, []byte{0xa0},
+		event.WithCodec(codec.CBORCodec{}),
+	)
+	if err != nil {
+		t.Fatalf("NewEvent: %v", err)
+	}
+
+	err = v.Validate(evt)
+	if err == nil {
+		t.Fatal("expected rejection for invalid CBOR payload")
+	}
+
+	if event.Classify(err) != event.Rejection {
+		t.Fatalf("expected Rejection, got %T: %v", err, err)
 	}
 }

@@ -187,15 +187,16 @@ func (b *Bundle) GracefulClose(ctx context.Context) error {
 func (b *Bundle) Database() any { return b.db }
 
 // DefaultCodec returns the fallback Codec for [ReadModel] and [NewMaterialize]
-// when the caller passes nil. Returns [codec.JSONCodec] unless
-// [WithDefaultCodec] was used. Call this to inspect what a nil-codec accessor
-// will use.
+// when the caller passes nil. Returns [codec.CBORCodec] unless
+// [WithDefaultCodec] was used. CBOR is the recommended production codec —
+// smaller payloads, faster decode, deterministic encoding for signing.
+// Read models are projections and can be rebuilt if the format changes.
 func (b *Bundle) DefaultCodec() codec.Codec {
 	if b.defaultCodec != nil {
 		return b.defaultCodec
 	}
 
-	return codec.JSONCodec{}
+	return codec.CBORCodec{}
 }
 
 // Drainer stops accepting new work and finishes in-flight work, bounded by

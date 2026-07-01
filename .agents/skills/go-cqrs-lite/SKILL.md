@@ -130,8 +130,8 @@ var seekable event.SeekableJournal = store // position-based: ReadFrom(afterID, 
 ### 3.3 Decode payloads with a codec — never type-assert
 
 ```go
-// Correct
-payload, err := event.DecodePayload[UserCreated](evt, codec.JSONCodec{})
+// Correct — use CBORCodec (recommended) or match the event's encoding
+payload, err := event.DecodePayload[UserCreated](evt, codec.CBORCodec{})
 
 // Wrong — Payload() returns []any, not your type
 payload := evt.Payload().(UserCreated) // DON'T
@@ -263,7 +263,7 @@ Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability, cmd
 // Events
 evt, _ := event.NewEvent("user.created", aggID, "User", event.Version(1), payload, opts...)
 events, _ := event.NewEvents(aggID, "User", baseVersion, []event.Type{...}, []any{...})
-p, _ := event.DecodePayload[T](evt, codec.JSONCodec{})
+p, _ := event.DecodePayload[T](evt, codec.CBORCodec{})  // recommended
 ref := event.NewAggregateRef("User", aggID)
 
 // Store (Sink/Source split)
@@ -357,7 +357,7 @@ repo, _ := decider.NewRepository(store, bus, d, decider.WithSnapshotStrategy(str
 b.On("user.created", handler)
 
 // Correct — free function with type parameter
-projection.On[UserCreated](b, "user.created", codec.JSONCodec{}, handler)
+projection.On[UserCreated](b, "user.created", codec.CBORCodec{}, handler)
 ```
 
 ### "Pebble KV — `NewKVAdapter` not found"

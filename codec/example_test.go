@@ -125,10 +125,10 @@ func ExampleCBORCodec_toarray() {
 	// Field ORDER becomes part of the wire format — add new fields only at end.
 	type PaymentProcessed struct {
 		_           struct{} `cbor:",toarray"`
-		PaymentID   string   `json:"payment_id"`
-		AmountCents int64    `json:"amount_cents"`
-		Currency    string   `json:"currency"`
-		OccurredAt  int64    `json:"occurred_at"`
+		PaymentID   string
+		AmountCents int64
+		Currency    string
+		OccurredAt  int64
 	}
 
 	payload := PaymentProcessed{
@@ -152,7 +152,7 @@ func ExampleCBORCodec_toarray() {
 	fmt.Println(decoded.PaymentID, decoded.AmountCents)
 
 	// Output:
-	// JSON: 89 bytes, CBOR+toarray: 24 bytes (73% smaller)
+	// JSON: 86 bytes, CBOR+toarray: 24 bytes (72% smaller)
 	// pay_abc123 4999
 }
 

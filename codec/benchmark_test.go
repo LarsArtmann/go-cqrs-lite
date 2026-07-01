@@ -211,31 +211,31 @@ func BenchmarkCBORCompact_vs_Canon_Size(b *testing.B) {
 
 // realisticOrder simulates a real-world event payload with mixed field types.
 type realisticOrder struct {
-	OrderID    string      `json:"order_id"`
-	CustomerID string      `json:"customer_id"`
-	Items      []orderItem `json:"items"`
-	TotalCents int64       `json:"total_cents"`
-	Currency   string      `json:"currency"`
-	Status     string      `json:"status"`
-	CreatedAt  int64       `json:"created_at"`
+	OrderID    string
+	CustomerID string
+	Items      []orderItem
+	TotalCents int64
+	Currency   string
+	Status     string
+	CreatedAt  int64
 }
 
 type orderItem struct {
-	SKU       string `json:"sku"`
-	Quantity  int    `json:"quantity"`
-	UnitPrice int64  `json:"unit_price"`
+	SKU       string
+	Quantity  int
+	UnitPrice int64
 }
 
 // realisticOrderArray uses the toarray tag for positional CBOR encoding.
 type realisticOrderArray struct {
-	_          struct{}    `cbor:",toarray"`
-	OrderID    string      `json:"order_id"`
-	CustomerID string      `json:"customer_id"`
-	Items      []orderItem `json:"items"`
-	TotalCents int64       `json:"total_cents"`
-	Currency   string      `json:"currency"`
-	Status     string      `json:"status"`
-	CreatedAt  int64       `json:"created_at"`
+	_          struct{} `cbor:",toarray"`
+	OrderID    string
+	CustomerID string
+	Items      []orderItem
+	TotalCents int64
+	Currency   string
+	Status     string
+	CreatedAt  int64
 }
 
 func sampleOrder() realisticOrder {

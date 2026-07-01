@@ -4,10 +4,19 @@
 // event construction can work with any encoding format. Four implementations
 // are provided:
 //
-//   - JSONCodec: standard encoding/json marshal/unmarshal
-//   - CBORCodec: fxamacker/cbor with canonical (deterministic) map ordering
+//   - CBORCodec: recommended default — canonical CBOR (deterministic, signing-safe)
+//   - JSONCodec: standard encoding/json — universal interop, human-readable
 //   - CBORCompactCodec: stricter CBOR with unknown-field rejection (schema drift guard)
 //   - RawCodec: passthrough for pre-encoded []byte payloads
+//
+// # Choosing a Codec
+//
+// Both JSON and CBOR are fully supported across the library. CBOR is recommended
+// for internal serialization: smaller (~19-43%), faster to encode and decode,
+// and deterministic (same input always produces the same output bytes — safe for
+// cryptographic signing). JSON is the right choice for external interop, HTTP
+// APIs, debugging, and any case where human-readability matters. The
+// stack.Bundle's DefaultCodec() returns CBORCodec.
 //
 // # Usage
 //

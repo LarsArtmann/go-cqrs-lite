@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"sync"
 
+	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
@@ -34,19 +35,26 @@ type Validator struct {
 	types      map[event.Type]reflect.Type
 	validators map[event.Type]func(any) error
 	decode     func([]byte, any) error
+	decoders   map[codec.Encoding]func([]byte, any) error
 	strict     bool
 }
 
 // ValidatorOption configures a Validator.
 type ValidatorOption func(*Validator)
 
-// WithCodec sets a custom decode function for payload decoding.
-// Defaults to encoding/json.Unmarshal. Use this for CBOR or other codecs:
+// WithCodec overrides the decode function for JSON payloads. When set, the
+// validator uses this function instead of encoding/json.Unmarshal for events
+// whose encoding is JSON or empty.
 //
-//	v := schema.NewValidator(schema.WithCodec(cborCodec.Decode))
+// For CBOR events, the validator auto-detects the encoding via
+// evt.Encoding() and uses codec.CBORCodec{}.Decode — no configuration needed.
+//
+// To use a non-standard codec for ALL encodings, register decoders for each
+// encoding via WithDecoder.
 func WithCodec(decode func([]byte, any) error) ValidatorOption {
 	return func(v *Validator) {
 		v.decode = decode
+		v.decoders[codec.EncodingJSON] = decode
 	}
 }
 
@@ -58,12 +66,33 @@ func WithStrictMode() ValidatorOption {
 	}
 }
 
+// WithDecoder registers a decode function for a specific encoding. Use this when
+// you need a non-standard codec for a specific encoding (e.g. a custom CBOR
+// decoder with different options):
+//
+//	v := schema.NewValidator(schema.WithDecoder(codec.EncodingCBOR, myCBORDecoder))
+func WithDecoder(enc codec.Encoding, decode func([]byte, any) error) ValidatorOption {
+	return func(v *Validator) {
+		if decode != nil {
+			v.decoders[enc] = decode
+		}
+	}
+}
+
 // NewValidator creates a new schema Validator with the given options.
+// The validator auto-detects event payload encoding via evt.Encoding() and
+// picks the matching decoder — JSON and CBOR work out of the box.
 func NewValidator(opts ...ValidatorOption) *Validator {
+	cborCodec := codec.CBORCodec{}
+
 	v := &Validator{
 		types:      make(map[event.Type]reflect.Type),
 		validators: make(map[event.Type]func(any) error),
 		decode:     json.Unmarshal,
+		decoders: map[codec.Encoding]func([]byte, any) error{
+			codec.EncodingJSON: json.Unmarshal,
+			codec.EncodingCBOR: cborCodec.Decode,
+		},
 	}
 
 	for _, opt := range opts {
@@ -140,9 +169,11 @@ func (v *Validator) Validate(evt event.Event) error {
 		return nil
 	}
 
+	decode := v.decoderFor(evt.Encoding())
+
 	instance := reflect.New(t).Interface()
 
-	err := v.decode(payload, instance)
+	err := decode(payload, instance)
 	if err != nil {
 		return event.WrapRejection(
 			err,
@@ -181,4 +212,14 @@ func (v *Validator) RegisteredTypes() []event.Type {
 	}
 
 	return types
+}
+
+// decoderFor selects the decode function based on the event's declared encoding.
+// Falls back to the default JSON decoder for unknown encodings.
+func (v *Validator) decoderFor(enc codec.Encoding) func([]byte, any) error {
+	if dec, ok := v.decoders[enc]; ok {
+		return dec
+	}
+
+	return v.decode
 }

@@ -10,12 +10,12 @@ go get github.com/larsartmann/go-cqrs-lite/codec/v3
 
 ## Codecs
 
-| Codec              | Description                                                           |
-| ------------------ | --------------------------------------------------------------------- |
-| `JSONCodec`        | Standard `encoding/json` marshal/unmarshal                            |
-| `CBORCodec`        | Canonical CBOR (RFC 7049) — deterministic, signing-safe               |
-| `CBORCompactCodec` | Stricter CBOR (RFC 8949 Core Deterministic) + unknown-field rejection |
-| `RawCodec`         | Passthrough for pre-encoded `[]byte` payloads                         |
+| Codec              | Description                                                              |
+| ------------------ | ------------------------------------------------------------------------ |
+| `CBORCodec`        | **Recommended.** Canonical CBOR (RFC 7049) — deterministic, signing-safe |
+| `JSONCodec`        | Standard `encoding/json` — universal interop, human-readable             |
+| `CBORCompactCodec` | Stricter CBOR (RFC 8949 Core Deterministic) + unknown-field rejection    |
+| `RawCodec`         | Passthrough for pre-encoded `[]byte` payloads                            |
 
 ## Interface
 
@@ -94,13 +94,22 @@ _ = c.Decode(data, &decoded)
 
 ### When to Use CBOR vs JSON
 
+**CBOR is the recommended default** for internal serialization — it is
+smaller (19-43%), faster to encode/decode (25-72%), and deterministic (same bytes
+every time — safe for signing). JSON is fully supported and remains the right
+choice for external interop, debugging, and human-readable payloads. Both codecs
+work everywhere in the library; pick one per use case.
+
 | Scenario                                | Recommended Codec  | Why                                 |
 | --------------------------------------- | ------------------ | ----------------------------------- |
+| **Default for new projects**            | `CBORCodec`        | Smaller, faster, signing-safe       |
 | Event payloads in PebbleDB              | `CBORCodec`        | Deterministic encoding for signing  |
 | Cryptographic signing of payloads       | `CBORCodec`        | Canonical byte representation       |
 | High-throughput event streams           | `CBORCodec`        | Smaller encoded size, faster decode |
+| Read models / projections               | `CBORCodec`        | Stack `DefaultCodec()` returns CBOR |
 | New event store with schema drift guard | `CBORCompactCodec` | Unknown-field rejection on decode   |
-| Interoperability with external systems  | `JSONCodec`        | Universal support                   |
+| External system interop / HTTP APIs     | `JSONCodec`        | Universal support                   |
+| Debugging / human-readable payloads     | `JSONCodec`        | Readable in logs, curl, DB queries  |
 | Pre-encoded payloads                    | `RawCodec`         | Zero-copy passthrough               |
 
 ## CBOR Struct Tags for Smaller Payloads

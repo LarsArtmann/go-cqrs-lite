@@ -99,6 +99,29 @@ to work around cockroachdb/errors#79.
 **Alias-able?** N/A.
 **Priority:** Blocked on upstream.
 
+### 8. CBOR as universal default
+
+**Current:** `event.New()` defaults to `JSONCodec`. All blind stores
+(`kv.TypedStore`, `snapshot.TypedStore`, `command.TypedStore`,
+`query.TypedStore`) default to `JSONCodec`. The stack's `DefaultCodec()`
+already returns `CBORCodec` (v3.5.0). The `schema.Validator` auto-detects
+encoding (v3.5.0).
+
+**v4:** Flip all remaining defaults to `CBORCodec`:
+
+- `event.New()` → stamp `"cbor"` instead of `"json"`
+- `kv.NewTypedStore` → `CBORCodec` default
+- `snapshot.TypedStore` → `CBORCodec` default
+- `command.TypedStore` → `CBORCodec` default
+- `query.TypedStore` → `CBORCodec` default
+
+**Blast radius:** All consumers with existing JSON-encoded data in blind stores.
+Requires data migration (clear and rebuild projections; re-snapshot aggregates).
+Events are self-describing (`evt.Encoding()` is stamped), so mixed JSON/CBOR
+event streams work after the change — only blind stores need migration.
+**Alias-able?** No — default codec change is behavioral, not signature.
+**Priority:** Medium. v3.5.0 made the stack + validator CBOR-ready; v4 completes it.
+
 ---
 
 ## Tracked But NOT Breaking (v3.x)

@@ -397,7 +397,7 @@ func TestReadModel_Accessor_MissingBackendReturnsError(t *testing.T) {
 	}
 }
 
-func TestReadModel_Accessor_NilCodecDefaultsToJSON(t *testing.T) {
+func TestReadModel_Accessor_NilCodecDefaultsToCBOR(t *testing.T) {
 	t.Parallel()
 
 	b, err := stack.New(stack.WithReadModels(kv.NewMemStore()))
@@ -417,7 +417,7 @@ func TestReadModel_Accessor_NilCodecDefaultsToJSON(t *testing.T) {
 	ctx := context.Background()
 
 	if err := store.Set(ctx, "1", &record{Value: "ok"}); err != nil {
-		t.Fatalf("Set with default JSON codec: %v", err)
+		t.Fatalf("Set with default CBOR codec: %v", err)
 	}
 }
 
@@ -473,7 +473,7 @@ func TestWithDefaultCodec_ReadModelUsesIt(t *testing.T) {
 	}
 }
 
-func TestDefaultCodec_DefaultIsJSON(t *testing.T) {
+func TestDefaultCodec_DefaultIsCBOR(t *testing.T) {
 	t.Parallel()
 
 	b, err := stack.New(stack.WithReadModels(kv.NewMemStore()))
@@ -481,7 +481,7 @@ func TestDefaultCodec_DefaultIsJSON(t *testing.T) {
 		t.Fatalf("New: %v", err)
 	}
 
-	if b.DefaultCodec().Encoding() != codec.EncodingJSON {
-		t.Fatalf("DefaultCodec = %s, want %s", b.DefaultCodec().Encoding(), codec.EncodingJSON)
+	if b.DefaultCodec().Encoding() != codec.EncodingCBOR {
+		t.Fatalf("DefaultCodec = %s, want %s", b.DefaultCodec().Encoding(), codec.EncodingCBOR)
 	}
 }
