@@ -88,7 +88,7 @@ func TestExporter_Export_Domain(t *testing.T) {
 		"domain file",
 		"id: ordering",
 		"services:",
-		"- id: order-svc",
+		"id: order-svc",
 	)
 }
 

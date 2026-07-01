@@ -36,7 +36,7 @@ func TestExporter_Entity(t *testing.T) {
 		t, content, "entity mdx",
 		"id: order-entity",
 		"name: Order",
-		"summary: \"The Order aggregate root\"",
+		"The Order aggregate root",
 		"schemaPath: schemas/schema.json",
 		"# Order",
 	)
@@ -92,7 +92,7 @@ func TestExporter_DataProduct(t *testing.T) {
 		"inputs:",
 		"outputs:",
 		"id: OrderConfirmed",
-		"version: \"1.0.0\"",
+		"version: 1.0.0",
 	)
 }
 
@@ -139,8 +139,8 @@ func TestExporter_Agent(t *testing.T) {
 		"readsFrom:",
 		"writesTo:",
 		"model:",
-		"provider: \"OpenAI\"",
-		"name: \"gpt-4.1\"",
+		"provider: OpenAI",
+		"name: gpt-4.1",
 		"tools:",
 		"type: mcp",
 	)
@@ -192,8 +192,8 @@ func TestExporter_DomainWithUbiquitousLanguage(t *testing.T) {
 		t, content, "domain mdx",
 		"id: orders",
 		"ubiquitousLanguage:",
-		"name: \"Order\"",
-		"description: \"A customer request to purchase items\"",
+		"name: Order",
+		"description: A customer request to purchase items",
 		"data-products:",
 	)
 }

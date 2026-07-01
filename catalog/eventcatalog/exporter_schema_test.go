@@ -88,8 +88,8 @@ func TestExporter_Export_ServiceSendsReceives(t *testing.T) {
 		"service file",
 		"id: order-svc",
 		"sends:",
-		"- id: OrderCreated",
+		"id: OrderCreated",
 		"receives:",
-		"- id: PaymentProcessed",
+		"id: PaymentProcessed",
 	)
 }

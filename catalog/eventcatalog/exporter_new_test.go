@@ -43,8 +43,8 @@ func TestExporter_Export_Channel(t *testing.T) {
 	content := string(data)
 	assertContains(t, content, "id: order-events")
 	assertContains(t, content, "name: Order Events")
-	assertContains(t, content, "address: \"orders.{env}.events\"")
-	assertContains(t, content, "- kafka")
+	assertContains(t, content, "address: orders.{env}.events")
+	assertContains(t, content, "kafka")
 	assertContains(t, content, "- platform-team")
 	assertContains(t, content, "<NodeGraph />")
 }
@@ -82,8 +82,8 @@ func TestExporter_Export_ChannelWithParams(t *testing.T) {
 	assertContains(t, content, "deliveryGuarantee: at-least-once")
 	assertContains(t, content, "parameters:")
 	assertContains(t, content, "env:")
-	assertContains(t, content, "- dev")
-	assertContains(t, content, "- prod")
+	assertContains(t, content, "dev")
+	assertContains(t, content, "prod")
 	assertContains(t, content, "default: dev")
 }
 
@@ -120,7 +120,7 @@ func TestExporter_Export_DataStore(t *testing.T) {
 	content := string(data)
 	assertContains(t, content, "id: orders-db")
 	assertContains(t, content, "container_type: database")
-	assertContains(t, content, "technology: \"postgres@16\"")
+	assertContains(t, content, "technology: postgres@16")
 	assertContains(t, content, "classification: internal")
 	assertContains(t, content, "- order-team")
 	assertContains(t, content, "<NodeGraph />")
@@ -169,7 +169,7 @@ func TestExporter_Export_Flow(t *testing.T) {
 	assertContains(t, content, "service:")
 	assertContains(t, content, "id: order-svc")
 	assertContains(t, content, "next_step:")
-	assertContains(t, content, "label: \"submit\"")
+	assertContains(t, content, "label: submit")
 }
 
 func TestExporter_Export_Team(t *testing.T) {
@@ -202,9 +202,9 @@ func TestExporter_Export_Team(t *testing.T) {
 	content := string(data)
 	assertContains(t, content, "id: order-team")
 	assertContains(t, content, "name: Order Team")
-	assertContains(t, content, "- alice")
-	assertContains(t, content, "- bob")
-	assertContains(t, content, "email: \"orders@example.com\"")
+	assertContains(t, content, "alice")
+	assertContains(t, content, "bob")
+	assertContains(t, content, "email: orders@example.com")
 }
 
 func TestExporter_Export_User(t *testing.T) {
@@ -236,7 +236,7 @@ func TestExporter_Export_User(t *testing.T) {
 	content := string(data)
 	assertContains(t, content, "id: alice")
 	assertContains(t, content, "name: Alice Smith")
-	assertContains(t, content, "role: \"Senior Engineer\"")
+	assertContains(t, content, "role: Senior Engineer")
 }
 
 func TestExporter_Export_ServiceWithBadges(t *testing.T) {
@@ -268,10 +268,10 @@ func TestExporter_Export_ServiceWithBadges(t *testing.T) {
 
 	content := string(data)
 	assertContains(t, content, "badges:")
-	assertContains(t, content, "content: \"Production\"")
-	assertContains(t, content, "backgroundColor: \"green\"")
+	assertContains(t, content, "content: Production")
+	assertContains(t, content, "backgroundColor: green")
 	assertContains(t, content, "repository:")
-	assertContains(t, content, "language: \"Go\"")
+	assertContains(t, content, "language: Go")
 	assertContains(t, content, "<NodeGraph />")
 }
 

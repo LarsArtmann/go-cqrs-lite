@@ -58,8 +58,8 @@ func TestExporter_Export_CommandsAndQueriesMergedIntoReceives(t *testing.T) {
 		content,
 		"service file",
 		"receives:",
-		"- id: CreateOrder",
-		"- id: GetOrder",
+		"id: CreateOrder",
+		"id: GetOrder",
 	)
 
 	if strings.Contains(content, "commands:") {
@@ -163,8 +163,8 @@ func TestExporter_Export_ServiceWithOwners(t *testing.T) {
 		readExported(t, tmpDir, "services", "owned-svc", "index.mdx"),
 		"service index.mdx",
 		"owners:",
-		"- team-platform",
-		"- john-doe",
+		"team-platform",
+		"john-doe",
 	)
 }
 

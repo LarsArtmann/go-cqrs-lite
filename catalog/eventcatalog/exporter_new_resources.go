@@ -1,7 +1,6 @@
 package eventcatalog
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -13,36 +12,33 @@ import (
 func (e *Exporter) writeEntity(entity catalog.Entity) error {
 	dir := filepath.Join(e.outputDir, "entities", string(entity.ID))
 
-	err := os.MkdirAll(dir, dirPerm)
-	if err != nil {
-		return errorfamily.Newf(
-			errorfamily.Infrastructure,
-			"catalog.exporter_new.1",
-			"create entity dir: %v",
-			err,
-		)
+	if err := os.MkdirAll(dir, dirPerm); err != nil {
+		return errorfamily.Newf(errorfamily.Infrastructure, "catalog.exporter_new.1",
+			"create entity dir: %v", err)
 	}
 
-	md := newFrontmatterWriter()
-	writeBaseFrontmatter(md, string(entity.ID), string(entity.Name), string(entity.Version),
-		string(entity.Summary), entity.Owners)
-	writeBadges(md, entity.Badges)
+	fm := entityFM{
+		ID:      string(entity.ID),
+		Name:    string(entity.Name),
+		Version: string(entity.Version),
+		Summary: string(entity.Summary),
+		Owners:  entity.Owners,
+		Badges:  toBadges(entity.Badges),
+	}
 
 	if entity.Schema != nil {
-		_, _ = md.WriteString("schemaPath: schemas/schema.json\n")
+		fm.SchemaPath = "schemas/schema.json"
 	}
 
-	md.finishWithGraph(string(entity.Name), string(entity.Summary))
-
-	err = e.writeMDXFile(filepath.Join(dir, indexFile), md.String())
+	content, err := renderMDX(fm, string(entity.Name), string(entity.Summary), true)
 	if err != nil {
-		return errorfamily.Newf(
-			errorfamily.Infrastructure,
-			"catalog.exporter_new.2",
-			"write entity %s: %v",
-			entity.ID,
-			err,
-		)
+		return errorfamily.Newf(errorfamily.Infrastructure, "catalog.exporter_new.2",
+			"render entity %s: %v", entity.ID, err)
+	}
+
+	if err := e.writeMDXFile(filepath.Join(dir, indexFile), content); err != nil {
+		return errorfamily.Newf(errorfamily.Infrastructure, "catalog.exporter_new.2b",
+			"write entity %s: %v", entity.ID, err)
 	}
 
 	if entity.Schema != nil {
@@ -55,122 +51,60 @@ func (e *Exporter) writeEntity(entity catalog.Entity) error {
 func (e *Exporter) writeDataProduct(dp catalog.DataProduct) error {
 	dir := filepath.Join(e.outputDir, "data-products", string(dp.ID))
 
-	err := os.MkdirAll(dir, dirPerm)
-	if err != nil {
-		return errorfamily.Newf(
-			errorfamily.Infrastructure,
-			"catalog.exporter_new.3",
-			"create data product dir: %v",
-			err,
-		)
+	if err := os.MkdirAll(dir, dirPerm); err != nil {
+		return errorfamily.Newf(errorfamily.Infrastructure, "catalog.exporter_new.3",
+			"create data product dir: %v", err)
 	}
 
-	md := newFrontmatterWriter()
-	writeBaseFrontmatter(md, string(dp.ID), string(dp.Name), string(dp.Version),
-		string(dp.Summary), dp.Owners)
-
-	writeMessagePointers(md, "inputs", dp.Inputs)
-	writeMessagePointers(md, "outputs", dp.Outputs)
-	writeBadges(md, dp.Badges)
-	md.finishWithGraph(string(dp.Name), string(dp.Summary))
-
-	err = e.writeMDXFile(filepath.Join(dir, indexFile), md.String())
-	if err != nil {
-		return errorfamily.Newf(
-			errorfamily.Infrastructure,
-			"catalog.exporter_new.4",
-			"write data product %s: %v",
-			dp.ID,
-			err,
-		)
+	fm := dataProductFM{
+		ID:      string(dp.ID),
+		Name:    string(dp.Name),
+		Version: string(dp.Version),
+		Summary: string(dp.Summary),
+		Owners:  dp.Owners,
+		Inputs:  toRefs(dp.Inputs),
+		Outputs: toRefs(dp.Outputs),
+		Badges:  toBadges(dp.Badges),
 	}
 
-	return nil
+	content, err := renderMDX(fm, string(dp.Name), string(dp.Summary), true)
+	if err != nil {
+		return errorfamily.Newf(errorfamily.Infrastructure, "catalog.exporter_new.4",
+			"render data product %s: %v", dp.ID, err)
+	}
+
+	return e.writeMDXFile(filepath.Join(dir, indexFile), content)
 }
 
 func (e *Exporter) writeAgent(agent catalog.Agent) error {
 	dir := filepath.Join(e.outputDir, "agents", string(agent.ID))
 
-	err := os.MkdirAll(dir, dirPerm)
+	if err := os.MkdirAll(dir, dirPerm); err != nil {
+		return errorfamily.Newf(errorfamily.Infrastructure, "catalog.exporter_new.5",
+			"create agent dir: %v", err)
+	}
+
+	fm := agentFM{
+		ID:        string(agent.ID),
+		Name:      string(agent.Name),
+		Version:   string(agent.Version),
+		Summary:   string(agent.Summary),
+		Owners:    agent.Owners,
+		Sends:     toRefs(agent.Sends),
+		Receives:  toRefs(agent.Receives),
+		ReadsFrom: toPointers(agent.ReadsFrom),
+		WritesTo:  toPointers(agent.WritesTo),
+		Model:     toAgentModel(agent.Model),
+		Tools:     toAgentTools(agent.Tools),
+		Flows:     flowIDsToStrings(agent.Flows),
+		Badges:    toBadges(agent.Badges),
+	}
+
+	content, err := renderMDX(fm, string(agent.Name), string(agent.Summary), true)
 	if err != nil {
-		return errorfamily.Newf(
-			errorfamily.Infrastructure,
-			"catalog.exporter_new.5",
-			"create agent dir: %v",
-			err,
-		)
+		return errorfamily.Newf(errorfamily.Infrastructure, "catalog.exporter_new.6",
+			"render agent %s: %v", agent.ID, err)
 	}
 
-	md := newFrontmatterWriter()
-	writeBaseFrontmatter(md, string(agent.ID), string(agent.Name), string(agent.Version),
-		string(agent.Summary), agent.Owners)
-
-	writeMessagePointers(md, "sends", agent.Sends)
-	writeMessagePointers(md, "receives", agent.Receives)
-	writeIDListField(md, "readsFrom", agent.ReadsFrom)
-	writeIDListField(md, "writesTo", agent.WritesTo)
-	writeAgentModel(md, agent.Model)
-	writeAgentTools(md, agent.Tools)
-	writeIDListField(md, "flows", agent.Flows)
-	writeBadges(md, agent.Badges)
-	md.finishWithGraph(string(agent.Name), string(agent.Summary))
-
-	return e.writeMDXFile(filepath.Join(dir, indexFile), md.String())
-}
-
-func writeAgentModel(md *frontmatterWriter, model *catalog.AgentModel) {
-	if model == nil {
-		return
-	}
-
-	_, _ = md.WriteString("model:\n")
-	_, _ = fmt.Fprintf(md, "  provider: %q\n", model.Provider)
-	_, _ = fmt.Fprintf(md, "  name: %q\n", model.Name)
-
-	if model.Version != "" {
-		_, _ = fmt.Fprintf(md, "  version: %q\n", model.Version)
-	}
-}
-
-func writeAgentTools(md *frontmatterWriter, tools []catalog.AgentTool) {
-	if len(tools) == 0 {
-		return
-	}
-
-	_, _ = md.WriteString("tools:\n")
-
-	for _, t := range tools {
-		_, _ = fmt.Fprintf(md, "  - name: %q\n", t.Name)
-
-		if t.Type != "" {
-			_, _ = fmt.Fprintf(md, "    type: %s\n", t.Type)
-		}
-
-		if t.URL != "" {
-			_, _ = fmt.Fprintf(md, "    url: %q\n", t.URL)
-		}
-
-		if t.Description != "" {
-			_, _ = fmt.Fprintf(md, "    description: %q\n", t.Description)
-		}
-
-		if t.Icon != "" {
-			_, _ = fmt.Fprintf(md, "    icon: %q\n", t.Icon)
-		}
-	}
-}
-
-func writeUbiquitousLanguage(md *frontmatterWriter, terms []catalog.UbiquitousLanguageTerm) {
-	if len(terms) == 0 {
-		return
-	}
-
-	_, _ = md.WriteString("ubiquitousLanguage:\n")
-
-	for _, t := range terms {
-		_, _ = fmt.Fprintf(md, "  - name: %q\n", t.Name)
-		if t.Description != "" {
-			_, _ = fmt.Fprintf(md, "    description: %q\n", t.Description)
-		}
-	}
+	return e.writeMDXFile(filepath.Join(dir, indexFile), content)
 }

@@ -234,97 +234,95 @@ func (e *Exporter) writeServiceMessages(svc catalog.Service) error {
 func (e *Exporter) writeService(svc catalog.Service) error {
 	dir := filepath.Join(e.outputDir, "services", string(svc.ID))
 
-	err := os.MkdirAll(dir, dirPerm)
+	if err := os.MkdirAll(dir, dirPerm); err != nil {
+		return errorfamily.Newf(errorfamily.Infrastructure, "catalog.exporter.12",
+			"create service dir: %v", err)
+	}
+
+	sends, receives := collectSendsReceives(svc)
+
+	fm := serviceFM{
+		ID:             string(svc.ID),
+		Name:           string(svc.Name),
+		Version:        string(svc.Version),
+		Summary:        string(svc.Summary),
+		Owners:         svc.Owners,
+		Sends:          sends,
+		Receives:       receives,
+		WritesTo:       toPointers(svc.WritesTo),
+		ReadsFrom:      toPointers(svc.ReadsFrom),
+		Entities:       svc.Entities,
+		Flows:          flowIDsToStrings(svc.Flows),
+		ExternalSystem: svc.ExternalSystem,
+		Badges:         toBadges(svc.Badges),
+		Repository:     toRepository(svc.Repository),
+		Specifications: toSpecifications(svc.Specifications),
+		Attachments:    toAttachments(svc.Attachments),
+	}
+
+	content, err := renderMDX(fm, string(svc.Name), string(svc.Summary), true)
 	if err != nil {
-		return errorfamily.Newf(
-			errorfamily.Infrastructure,
-			"catalog.exporter.12",
-			"create service dir: %v",
-			err,
-		)
+		return errorfamily.Newf(errorfamily.Infrastructure, "catalog.exporter.12b",
+			"render service %s: %v", svc.ID, err)
 	}
 
-	md := newFrontmatterWriter()
-	writeBaseFrontmatter(md, string(svc.ID), string(svc.Name), string(svc.Version),
-		string(svc.Summary), svc.Owners)
-
-	sends, receives := collectMessageIDs(svc)
-
-	addObjectIDsListField(md, "sends", sends)
-	addObjectIDsListField(md, "receives", receives)
-	writeIDListField(md, "writesTo", svc.WritesTo)
-	writeIDListField(md, "readsFrom", svc.ReadsFrom)
-	writeIDListField(md, "entities", svc.Entities)
-	writeIDListField(md, "flows", svc.Flows)
-
-	if svc.ExternalSystem {
-		_, _ = md.WriteString("externalSystem: true\n")
-	}
-
-	writeBadges(md, svc.Badges)
-	writeRepository(md, svc.Repository)
-	writeSpecifications(md, svc.Specifications)
-	writeAttachments(md, svc.Attachments)
-	md.finishWithGraph(string(svc.Name), string(svc.Summary))
-
-	return e.writeMDXFile(filepath.Join(dir, indexFile), md.String())
+	return e.writeMDXFile(filepath.Join(dir, indexFile), content)
 }
 
-func collectMessageIDs(
-	svc catalog.Service,
-) (sends, receives []catalog.MessageID) {
-	sends = make([]catalog.MessageID, 0, len(svc.Events))
-	receives = make([]catalog.MessageID, 0, len(svc.Events)+len(svc.Commands)+len(svc.Queries))
-
-	for _, msg := range svc.Events {
-		messageID := catalog.Key(msg)
-
-		if msg.IsSend() {
-			sends = append(sends, messageID)
-		} else {
-			receives = append(receives, messageID)
-		}
+func flowIDsToStrings(ids []catalog.FlowID) []string {
+	if len(ids) == 0 {
+		return nil
 	}
 
-	for _, cmd := range svc.Commands {
-		receives = append(receives, catalog.Key(cmd))
+	out := make([]string, len(ids))
+	for i, id := range ids {
+		out[i] = string(id)
 	}
 
-	for _, q := range svc.Queries {
-		receives = append(receives, catalog.Key(q))
-	}
-
-	return sends, receives
+	return out
 }
 
 func (e *Exporter) writeDomain(domain catalog.Domain) error {
 	dir := filepath.Join(e.outputDir, "domains", string(domain.ID))
 
-	err := os.MkdirAll(dir, dirPerm)
-	if err != nil {
-		return errorfamily.Newf(
-			errorfamily.Infrastructure,
-			"catalog.exporter.13",
-			"create domain dir: %v",
-			err,
-		)
+	if err := os.MkdirAll(dir, dirPerm); err != nil {
+		return errorfamily.Newf(errorfamily.Infrastructure, "catalog.exporter.13",
+			"create domain dir: %v", err)
 	}
 
-	md := newFrontmatterWriter()
-	writeBaseFrontmatter(md, string(domain.ID), string(domain.Name), string(domain.Version),
-		string(domain.Summary), domain.Owners)
+	domainIDs := make([]string, len(domain.SubDomains))
+	for i, id := range domain.SubDomains {
+		domainIDs[i] = string(id)
+	}
 
-	addObjectIDsListField(md, "services", domain.Services)
-	writeMessagePointers(md, "sends", domain.Sends)
-	writeMessagePointers(md, "receives", domain.Receives)
-	writeIDListField(md, "entities", domain.Entities)
-	writeIDListField(md, "flows", domain.Flows)
-	writeIDListField(md, "domains", domain.SubDomains)
-	writeIDListField(md, "data-products", domain.DataProducts)
-	writeUbiquitousLanguage(md, domain.UbiquitousLanguage)
-	writeBadges(md, domain.Badges)
-	writeAttachments(md, domain.Attachments)
-	md.finishWithGraph(string(domain.Name), string(domain.Summary))
+	dpDataIDs := make([]string, len(domain.DataProducts))
+	for i, id := range domain.DataProducts {
+		dpDataIDs[i] = string(id)
+	}
 
-	return e.writeMDXFile(filepath.Join(dir, indexFile), md.String())
+	fm := domainFM{
+		ID:                 string(domain.ID),
+		Name:               string(domain.Name),
+		Version:            string(domain.Version),
+		Summary:            string(domain.Summary),
+		Owners:             domain.Owners,
+		Services:           toPointers(domain.Services),
+		Sends:              toRefs(domain.Sends),
+		Receives:           toRefs(domain.Receives),
+		Entities:           domain.Entities,
+		Flows:              flowIDsToStrings(domain.Flows),
+		Domains:            domainIDs,
+		DataProducts:       dpDataIDs,
+		UbiquitousLanguage: toUbiquitousLanguage(domain.UbiquitousLanguage),
+		Badges:             toBadges(domain.Badges),
+		Attachments:        toAttachments(domain.Attachments),
+	}
+
+	content, err := renderMDX(fm, string(domain.Name), string(domain.Summary), true)
+	if err != nil {
+		return errorfamily.Newf(errorfamily.Infrastructure, "catalog.exporter.13b",
+			"render domain %s: %v", domain.ID, err)
+	}
+
+	return e.writeMDXFile(filepath.Join(dir, indexFile), content)
 }

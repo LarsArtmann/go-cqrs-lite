@@ -198,7 +198,12 @@ func (e *Exporter) writeDomains(buf *strings.Builder, cat *catalog.Catalog) {
 		for _, subDomainID := range domain.SubDomains {
 			subDisplayID := sanitizeID(string(subDomainID))
 
-			fmt.Fprintf(buf, "domain_%s -> domain_%s: \"sub-domain\" {\n", domainDisplayID, subDisplayID)
+			fmt.Fprintf(
+				buf,
+				"domain_%s -> domain_%s: \"sub-domain\" {\n",
+				domainDisplayID,
+				subDisplayID,
+			)
 			buf.WriteString(
 				"  style: {\n    stroke: \"#9e9e9e\"\n    stroke-dash: 5\n  }\n}\n\n",
 			)

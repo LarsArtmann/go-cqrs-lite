@@ -2,14 +2,17 @@
 id: order-svc
 name: Order Service
 version: 1.0.0
-summary: "Manages orders"
+summary: Manages orders
 sends:
-  - id: OrderCreated
+    -   id: OrderCreated
+        version: 1.0.0
 receives:
-  - id: CreateOrder
-  - id: GetOrder
+    -   id: CreateOrder
+        version: 1.0.0
+    -   id: GetOrder
+        version: 1.0.0
 writesTo:
-  - id: orders-db
+    -   id: orders-db
 ---
 
 # Order Service

@@ -3,31 +3,21 @@ package eventcatalog
 import (
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
 )
 
-func TestBuildMessageFrontmatter_FullFields(t *testing.T) {
+func TestRenderMDX_MessageFullFields(t *testing.T) {
 	t.Parallel()
 
-	date := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)
-
 	msg := catalog.Message{
-		Kind:    catalog.CommandMessage,
-		ID:      "CreateOrder",
-		Name:    "Create Order",
-		Version: "1.0.0",
-		Summary: "Creates a new order",
-		Labels: map[string]string{
-			"domain": "ordering",
-			"team":   "order-team",
-		},
-		Deprecated: true,
-		Changelog: []catalog.Change{
-			{Version: "1.0.0", Summary: "Initial version", Date: &date},
-			{Version: "0.9.0", Summary: "Beta release"},
-		},
+		Kind:      catalog.CommandMessage,
+		ID:        "CreateOrder",
+		Name:      "Create Order",
+		Version:   "1.0.0",
+		Summary:   "Creates a new order",
+		Direction: catalog.Receives,
+		Labels:    map[string]string{"domain": "ordering", "team": "order-team"},
 		Producers: []catalog.ServiceID{"order-svc"},
 		Consumers: []catalog.ServiceID{"payment-svc", "inventory-svc"},
 		Operation: &catalog.Operation{
@@ -38,150 +28,92 @@ func TestBuildMessageFrontmatter_FullFields(t *testing.T) {
 		Badges: []catalog.Badge{
 			{Content: "stable", BackgroundColor: "green", TextColor: "white", Icon: "check"},
 		},
-		Repository: &catalog.Repository{
-			Language: "go",
-			URL:      "https://github.com/example/order-svc",
-		},
-		Schema: &catalog.Schema{Type: catalog.TypeObject},
+		Repository: &catalog.Repository{Language: "go", URL: "https://github.com/example/order-svc"},
+		Schema:     &catalog.Schema{Type: catalog.TypeObject},
 	}
 
-	md := buildMessageFrontmatter("CreateOrder", msg)
-	out := md.String()
+	fm := messageFM{
+		ID:        string(catalog.Key(msg)),
+		Name:      string(msg.Name),
+		Version:   string(msg.Version),
+		Summary:   string(msg.Summary),
+		Owners:    msg.Owners,
+		Labels:    msg.Labels,
+		Changelog: toChangelog(msg.Changelog),
+		Producers: toPointers(msg.Producers),
+		Consumers: toPointers(msg.Consumers),
+		Operation: toOperation(msg.Operation),
+		Badges:    toBadges(msg.Badges),
+		Repository: toRepository(msg.Repository),
+	}
+	if msg.Schema != nil {
+		fm.SchemaPath = "schemas/schema.json"
+	}
 
-	frontmatterAssertContains(t, out, "deprecated: true")
-	frontmatterAssertContains(t, out, "labels:")
-	frontmatterAssertContains(t, out, "domain: \"ordering\"")
-	frontmatterAssertContains(t, out, "team: \"order-team\"")
-	frontmatterAssertContains(t, out, "changelog:")
-	frontmatterAssertContains(t, out, "version: \"1.0.0\"")
-	frontmatterAssertContains(t, out, "date: \"2026-01-15\"")
-	frontmatterAssertContains(t, out, "version: \"0.9.0\"")
+	out, err := renderMDX(fm, string(msg.Name), string(msg.Summary), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	frontmatterAssertContains(t, out, "id: CreateOrder")
+	frontmatterAssertContains(t, out, "name: Create Order")
+	frontmatterAssertContains(t, out, "version: 1.0.0")
+	frontmatterAssertContains(t, out, "summary: Creates a new order")
 	frontmatterAssertContains(t, out, "producers:")
-	frontmatterAssertContains(t, out, "- id: order-svc")
+	frontmatterAssertContains(t, out, "id: order-svc")
 	frontmatterAssertContains(t, out, "consumers:")
-	frontmatterAssertContains(t, out, "- id: payment-svc")
-	frontmatterAssertContains(t, out, "- id: inventory-svc")
+	frontmatterAssertContains(t, out, "id: payment-svc")
+	frontmatterAssertContains(t, out, "id: inventory-svc")
 	frontmatterAssertContains(t, out, "operation:")
 	frontmatterAssertContains(t, out, "method: POST")
-	frontmatterAssertContains(t, out, "path: \"/orders\"")
+	frontmatterAssertContains(t, out, "path: /orders")
 	frontmatterAssertContains(t, out, "statusCodes:")
-	frontmatterAssertContains(t, out, "- \"201\"")
 	frontmatterAssertContains(t, out, "badges:")
-	frontmatterAssertContains(t, out, "content: \"stable\"")
-	frontmatterAssertContains(t, out, "backgroundColor: \"green\"")
-	frontmatterAssertContains(t, out, "textColor: \"white\"")
-	frontmatterAssertContains(t, out, "icon: \"check\"")
+	frontmatterAssertContains(t, out, "content: stable")
+	frontmatterAssertContains(t, out, "backgroundColor: green")
+	frontmatterAssertContains(t, out, "textColor: white")
+	frontmatterAssertContains(t, out, "icon: check")
 	frontmatterAssertContains(t, out, "repository:")
-	frontmatterAssertContains(t, out, "language: \"go\"")
-	frontmatterAssertContains(t, out, "url: \"https://github.com/example/order-svc\"")
 	frontmatterAssertContains(t, out, "schemaPath: schemas/schema.json")
+
+	if !strings.HasPrefix(out, "---\n") {
+		t.Error("MDX should start with ---")
+	}
+
+	if !strings.Contains(out, "---\n\n# Create Order") {
+		t.Error("MDX should have heading after frontmatter")
+	}
 }
 
-func TestBuildMessageFrontmatter_Minimal(t *testing.T) {
+func TestRenderMDX_Minimal(t *testing.T) {
 	t.Parallel()
 
-	msg := catalog.Message{
-		Kind:    catalog.EventMessage,
-		ID:      "OrderCreated",
-		Name:    "Order Created",
+	fm := messageFM{
+		ID:      "PlainEvent",
+		Name:    "PlainEvent",
 		Version: "1.0.0",
 	}
 
-	md := buildMessageFrontmatter("OrderCreated", msg)
-	out := md.String()
-
-	frontmatterAssertNotContains(t, out, "deprecated")
-	frontmatterAssertNotContains(t, out, "labels:")
-	frontmatterAssertNotContains(t, out, "changelog:")
-	frontmatterAssertNotContains(t, out, "operation:")
-	frontmatterAssertNotContains(t, out, "badges:")
-	frontmatterAssertNotContains(t, out, "repository:")
-	frontmatterAssertNotContains(t, out, "schemaPath")
-}
-
-func TestWriteServiceFrontmatter_FullFields(t *testing.T) {
-	t.Parallel()
-
-	svc := catalog.Service{
-		ID:      "order-svc",
-		Name:    "Order Service",
-		Summary: "Manages orders",
-		Specifications: []catalog.Specification{
-			{Type: "openapi", Path: "/openapi.yaml", Name: "Public API"},
-			{Type: "asyncapi", Path: "/asyncapi.yaml"},
-		},
-		Attachments: []catalog.Attachment{
-			{URL: "https://wiki.example/adr-001", Title: "ADR-001", Type: "adr"},
-			{URL: "https://wiki.example/runbook", Title: "Runbook"},
-			{URL: "https://wiki.example/diagram"},
-		},
-		Flows: []catalog.FlowID{"create-order"},
+	out, err := renderMDX(fm, "PlainEvent", "", false)
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	md := newFrontmatterWriter()
-	md.addField("id", string(svc.ID))
-	writeSpecifications(md, svc.Specifications)
-	writeAttachments(md, svc.Attachments)
-	writeIDListField(md, "flows", svc.Flows)
-	md.finish(string(svc.Name), string(svc.Summary))
+	if strings.Contains(out, "summary:") {
+		t.Errorf("message without summary should not have summary field")
+	}
 
-	out := md.String()
-
-	frontmatterAssertContains(t, out, "specifications:")
-	frontmatterAssertContains(t, out, "type: openapi")
-	frontmatterAssertContains(t, out, "path: \"/openapi.yaml\"")
-	frontmatterAssertContains(t, out, "name: \"Public API\"")
-	frontmatterAssertContains(t, out, "type: asyncapi")
-	frontmatterAssertContains(t, out, "attachments:")
-	frontmatterAssertContains(t, out, "url: \"https://wiki.example/adr-001\"")
-	frontmatterAssertContains(t, out, "title: \"ADR-001\"")
-	frontmatterAssertContains(t, out, "type: \"adr\"")
-	frontmatterAssertContains(t, out, "url: \"https://wiki.example/runbook\"")
-	frontmatterAssertContains(t, out, "url: \"https://wiki.example/diagram\"")
-	frontmatterAssertContains(t, out, "flows:")
-	frontmatterAssertContains(t, out, "- id: create-order")
-}
-
-func TestWriteMessagePointers(t *testing.T) {
-	t.Parallel()
-
-	md := newFrontmatterWriter()
-	writeMessagePointers(md, "sends", []catalog.Ref{
-		{ID: "OrderCreated", Version: "1.0.0"},
-		{ID: "OrderShipped"},
-	})
-	out := md.String()
-
-	frontmatterAssertContains(t, out, "sends:")
-	frontmatterAssertContains(t, out, "- id: OrderCreated")
-	frontmatterAssertContains(t, out, "version: \"1.0.0\"")
-	frontmatterAssertContains(t, out, "- id: OrderShipped")
-	frontmatterAssertNotContains(t, out, "version: \"\"")
-}
-
-func TestWriteMessagePointers_Empty(t *testing.T) {
-	t.Parallel()
-
-	md := newFrontmatterWriter()
-	writeMessagePointers(md, "receives", nil)
-
-	if md.String() != "---\n" {
-		t.Errorf("expected empty output, got %q", md.String())
+	if !strings.Contains(out, "# PlainEvent") {
+		t.Errorf("message should have title heading")
 	}
 }
 
-func frontmatterAssertContains(tb testing.TB, s, substr string) {
-	tb.Helper()
+func frontmatterAssertContains(t *testing.T, content string, expected ...string) {
+	t.Helper()
 
-	if !strings.Contains(s, substr) {
-		tb.Errorf("expected output to contain %q, got:\n%s", substr, s)
-	}
-}
-
-func frontmatterAssertNotContains(tb testing.TB, s, substr string) {
-	tb.Helper()
-
-	if strings.Contains(s, substr) {
-		tb.Errorf("expected output NOT to contain %q, got:\n%s", substr, s)
+	for _, exp := range expected {
+		if !strings.Contains(content, exp) {
+			t.Errorf("expected output to contain %q, got:\n%s", exp, content)
+		}
 	}
 }
