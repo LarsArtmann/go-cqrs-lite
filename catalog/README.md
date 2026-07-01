@@ -170,8 +170,8 @@ The exporter supports all EventCatalog resource types:
 | Services      | `services/<id>/index.mdx`      | With messages, specs, data stores, external flag                         |
 | Domains       | `domains/<id>/index.mdx`       | With ubiquitous language, sub-domains, data products                     |
 | Entities      | `entities/<id>/index.mdx`      | First-class domain entities with schemas                                 |
-| Data Products | `data-products/<id>/index.mdx` | Data mesh products with schemas                                          |
-| Agents        | `agents/<id>/index.mdx`        | AI agents with messages, data stores, flows                              |
+| Data Products | `data-products/<id>/index.mdx` | Data mesh products with inputs/outputs                                |
+| Agents        | `agents/<id>/index.mdx`        | AI agents with sends/receives, model, tools, data stores               |
 | Channels      | `channels/<id>/index.mdx`      | With protocols, parameters, routes                                       |
 | Data Stores   | `data/<id>/index.mdx`          | Databases, caches with classification                                    |
 | Flows         | `flows/<id>/index.mdx`         | All step types: service, message, agent, dataStore, dataProduct, subFlow |
@@ -206,10 +206,19 @@ builder.AddEntity(catalog.Entity{ID: "order", Name: "Order", Version: "1.0.0",
     Schema: catalog.SchemaFromType[Order]()})
 
 builder.AddDataProduct(catalog.DataProduct{ID: "metrics", Name: "Metrics", Version: "1.0.0",
-    Domain: "analytics", Schema: catalog.SchemaFromType[Metrics]()})
+    Inputs:  []catalog.Ref{{ID: "OrderCreated"}},
+    Outputs: []catalog.Ref{{ID: "MetricsReady"}}})
 
-builder.AddAgent(catalog.Agent{ID: "order-bot", Name: "Order Bot", Version: "1.0.0",
-    Summary: "AI agent for order processing"})
+builder.AddAgent(catalog.Agent{ID: "fraud-bot", Name: "Fraud Bot", Version: "1.0.0",
+    Summary: "Reviews risky payments",
+    Receives: []catalog.Ref{{ID: "PaymentInitiated", Version: "1.0.0"}},
+    Sends:    []catalog.Ref{{ID: "FraudReviewCompleted", Version: "1.0.0"}},
+    ReadsFrom: []catalog.DataStoreID{"fraud-db"},
+    Model: &catalog.AgentModel{Provider: "OpenAI", Name: "gpt-4.1", Version: "2025-04-14"},
+    Tools: []catalog.AgentTool{
+        {Name: "Risk lookup", Type: "mcp", URL: "https://mcp.example.com/risk"},
+    },
+})
 ```
 
 #### Flow Step Types
