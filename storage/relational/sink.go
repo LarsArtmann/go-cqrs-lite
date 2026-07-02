@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
 )
@@ -107,7 +108,8 @@ func (s *sqlSink) Upsert(ctx context.Context, table string, row Row, conflictCol
 	)
 
 	if _, err := s.tx.ExecContext(ctx, query, vals...); err != nil {
-		return fmt.Errorf("sink: upsert %s: %w", table, err)
+		return cqrsevent.WrapTransient(err, "relational.sink_upsert",
+			fmt.Sprintf("upsert into %s", table))
 	}
 
 	return nil
@@ -127,7 +129,8 @@ func (s *sqlSink) Ensure(ctx context.Context, table string, row Row) error {
 	)
 
 	if _, err := s.tx.ExecContext(ctx, query, vals...); err != nil {
-		return fmt.Errorf("sink: ensure %s: %w", table, err)
+		return cqrsevent.WrapTransient(err, "relational.sink_ensure",
+			fmt.Sprintf("ensure into %s", table))
 	}
 
 	return nil
@@ -158,7 +161,8 @@ func (s *sqlSink) Update(ctx context.Context, table string, set, match Row) erro
 	query := fmt.Sprintf("UPDATE %s SET %s WHERE %s", table, strings.Join(pairs, ", "), where)
 
 	if _, err := s.tx.ExecContext(ctx, query, args...); err != nil {
-		return fmt.Errorf("sink: update %s: %w", table, err)
+		return cqrsevent.WrapTransient(err, "relational.sink_update",
+			fmt.Sprintf("update %s", table))
 	}
 
 	return nil
@@ -175,7 +179,8 @@ func (s *sqlSink) DeleteWhere(ctx context.Context, table string, match Row) erro
 	query := fmt.Sprintf("DELETE FROM %s WHERE %s", table, where)
 
 	if _, err := s.tx.ExecContext(ctx, query, whereArgs...); err != nil {
-		return fmt.Errorf("sink: delete %s: %w", table, err)
+		return cqrsevent.WrapTransient(err, "relational.sink_delete",
+			fmt.Sprintf("delete from %s", table))
 	}
 
 	return nil
@@ -199,7 +204,8 @@ func (s *sqlSink) QueryOne(ctx context.Context, table, column string, match Row)
 			return nil, fmt.Errorf("sink: query %s.%s: %w", table, column, errSinkNoRows)
 		}
 
-		return nil, fmt.Errorf("sink: query %s.%s: %w", table, column, err)
+		return nil, cqrsevent.WrapCorruption(err, "relational.sink_query",
+			fmt.Sprintf("query %s.%s", table, column))
 	}
 
 	return result, nil

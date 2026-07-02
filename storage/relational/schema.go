@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+
+	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // RelationalSchema declares the set of SQL tables a relational projection owns
@@ -156,7 +158,8 @@ func (s RelationalSchema) Migrate(ctx context.Context, db *sql.DB) error {
 
 	for _, t := range s.Tables {
 		if _, err := db.ExecContext(ctx, t.DDL()); err != nil {
-			return fmt.Errorf("relational schema: migrate table %q: %w", t.Name, err)
+			return cqrsevent.WrapTransient(err, "relational.migrate",
+				fmt.Sprintf("migrate table %q", t.Name))
 		}
 	}
 

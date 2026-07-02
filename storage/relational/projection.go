@@ -3,7 +3,6 @@ package relational
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"slices"
 
@@ -141,13 +140,28 @@ func WithoutRelationalAutoMigrate() RelationalProjectionOption {
 	return func(p *RelationalProjection) { p.autoMigrate = false }
 }
 
-var errRelational = errors.New("relational projection")
+var errRelational = cqrsevent.NewRejection(
+	"relational.base",
+	"relational projection",
+)
 
 var (
-	errRelationalNoName     = fmt.Errorf("%w: name is required", errRelational)
-	errRelationalNilDB      = fmt.Errorf("%w: db must not be nil", errRelational)
-	errRelationalNilDialect = fmt.Errorf("%w: dialect must not be nil", errRelational)
-	errRelationalNilHandler = fmt.Errorf("%w: handler must not be nil", errRelational)
+	errRelationalNoName     = cqrsevent.NewRejection(
+		"relational.no_name",
+		"relational projection: name is required",
+	)
+	errRelationalNilDB      = cqrsevent.NewRejection(
+		"relational.nil_db",
+		"relational projection: db must not be nil",
+	)
+	errRelationalNilDialect = cqrsevent.NewRejection(
+		"relational.nil_dialect",
+		"relational projection: dialect must not be nil",
+	)
+	errRelationalNilHandler = cqrsevent.NewRejection(
+		"relational.nil_handler",
+		"relational projection: handler must not be nil",
+	)
 )
 
 var _ cqrsprojection.Projection = (*RelationalProjection)(nil)
