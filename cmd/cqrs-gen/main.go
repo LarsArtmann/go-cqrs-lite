@@ -112,7 +112,8 @@ func scan(paths []string, genType string) ([]Entry, error) {
 	for _, path := range paths {
 		found, err := scanPath(path, genType)
 		if err != nil {
-			return nil, err
+			return nil, errorfamily.WrapInfrastructure(err, "cqrs_gen.scan",
+				fmt.Sprintf("scan path %s", path))
 		}
 		entries = append(entries, found...)
 	}
@@ -125,7 +126,8 @@ func scanPath(root, genType string) ([]Entry, error) {
 
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
-			return err
+			return errorfamily.WrapInfrastructure(err, "cqrs_gen.walk",
+				fmt.Sprintf("walk %s", path))
 		}
 		if d.IsDir() || !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
 			return nil
@@ -152,7 +154,8 @@ func scanFile(path, genType string) ([]Entry, error) {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, path, nil, parser.ParseComments)
 	if err != nil {
-		return nil, err
+		return nil, errorfamily.WrapInfrastructure(err, "cqrs_gen.parse",
+			fmt.Sprintf("parse %s", path))
 	}
 
 	var entries []Entry
