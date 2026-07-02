@@ -272,7 +272,8 @@ func (h *Host) ReplayDeadLetters(ctx context.Context, projectionName string) (Re
 
 	entries, err := dlq.List(ctx, projectionName)
 	if err != nil {
-		return ReplayResult{}, fmt.Errorf("projectionhost: list dead letters: %w", err)
+		return ReplayResult{}, event.WrapInfrastructure(err, "projectionhost.list_dead_letters",
+			"list dead letters for replay")
 	}
 
 	result := ReplayResult{}
