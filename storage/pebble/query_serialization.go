@@ -2,7 +2,6 @@ package pebble
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
@@ -30,7 +29,7 @@ func (s *QueryStore) serializeQuery(q *query.PersistedQuery) ([]byte, error) {
 
 	data, err := marshalCBOR(serialized)
 	if err != nil {
-		return nil, fmt.Errorf("pebble: marshal query: %w", err)
+		return nil, event.WrapCorruption(err, "pebble.serialize_query", "marshal query")
 	}
 
 	return data, nil

@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 )
 
@@ -50,14 +52,16 @@ func NewTypedStore[T any, K fmt.Stringer](
 func (s *TypedStore[T, K]) Get(_ context.Context, id K) (*T, error) {
 	data, err := s.backend.Get(s.key(id))
 	if err != nil {
-		return nil, fmt.Errorf("kv: get key %q: %w", s.key(id), err)
+		return nil, errorfamily.Wrap(err, errorfamily.Classify(err),
+			"kv.typed_store.get", fmt.Sprintf("get key %q", s.key(id)))
 	}
 
 	var val T
 
 	err = s.codec.Decode(data, &val)
 	if err != nil {
-		return nil, fmt.Errorf("kv: decode key %q: %w", s.key(id), err)
+		return nil, errorfamily.WrapCorruption(err, "kv.typed_store.decode",
+			fmt.Sprintf("decode key %q", s.key(id)))
 	}
 
 	return &val, nil
@@ -67,7 +71,8 @@ func (s *TypedStore[T, K]) Get(_ context.Context, id K) (*T, error) {
 func (s *TypedStore[T, K]) Has(_ context.Context, id K) (bool, error) {
 	has, err := s.backend.Has(s.key(id))
 	if err != nil {
-		return false, fmt.Errorf("kv: has key %q: %w", s.key(id), err)
+		return false, errorfamily.Wrap(err, errorfamily.Classify(err),
+			"kv.typed_store.has", fmt.Sprintf("has key %q", s.key(id)))
 	}
 
 	return has, nil
@@ -76,17 +81,20 @@ func (s *TypedStore[T, K]) Has(_ context.Context, id K) (bool, error) {
 // Set encodes val and stores it under id, replacing any existing value.
 func (s *TypedStore[T, K]) Set(_ context.Context, id K, val *T) error {
 	if val == nil {
-		return fmt.Errorf("%w for key %q", errNilTypedValue, s.key(id))
+		return errorfamily.WrapRejection(errNilTypedValue, "kv.typed_store.set_nil",
+			fmt.Sprintf("nil value for key %q", s.key(id)))
 	}
 
 	data, err := s.codec.Encode(val)
 	if err != nil {
-		return fmt.Errorf("kv: encode key %q: %w", s.key(id), err)
+		return errorfamily.WrapCorruption(err, "kv.typed_store.encode",
+			fmt.Sprintf("encode key %q", s.key(id)))
 	}
 
 	err = s.backend.Set(s.key(id), data)
 	if err != nil {
-		return fmt.Errorf("kv: set key %q: %w", s.key(id), err)
+		return errorfamily.Wrap(err, errorfamily.Classify(err),
+			"kv.typed_store.set", fmt.Sprintf("set key %q", s.key(id)))
 	}
 
 	return nil
@@ -96,7 +104,8 @@ func (s *TypedStore[T, K]) Set(_ context.Context, id K, val *T) error {
 func (s *TypedStore[T, K]) Delete(_ context.Context, id K) error {
 	err := s.backend.Delete(s.key(id))
 	if err != nil {
-		return fmt.Errorf("kv: delete key %q: %w", s.key(id), err)
+		return errorfamily.Wrap(err, errorfamily.Classify(err),
+			"kv.typed_store.delete", fmt.Sprintf("delete key %q", s.key(id)))
 	}
 
 	return nil
@@ -117,7 +126,8 @@ func (s *TypedStore[T, K]) Scan(_ context.Context, prefix []byte) ([]*T, error) 
 
 	iter, err := s.backend.NewIterator(scanPrefix)
 	if err != nil {
-		return nil, fmt.Errorf("kv: scan iterator: %w", err)
+		return nil, errorfamily.Wrap(err, errorfamily.Classify(err),
+			"kv.typed_store.scan_iter", "create scan iterator")
 	}
 
 	defer func() { _ = iter.Close() }()
@@ -129,7 +139,8 @@ func (s *TypedStore[T, K]) Scan(_ context.Context, prefix []byte) ([]*T, error) 
 
 		err = s.codec.Decode(iter.Value(), &val)
 		if err != nil {
-			return nil, fmt.Errorf("kv: scan decode key %q: %w", iter.Key(), err)
+			return nil, errorfamily.WrapCorruption(err, "kv.typed_store.scan_decode",
+				fmt.Sprintf("decode key %q", iter.Key()))
 		}
 
 		results = append(results, &val)
@@ -137,7 +148,8 @@ func (s *TypedStore[T, K]) Scan(_ context.Context, prefix []byte) ([]*T, error) 
 
 	err = iter.Error()
 	if err != nil {
-		return nil, fmt.Errorf("kv: scan iteration: %w", err)
+		return nil, errorfamily.Wrap(err, errorfamily.Classify(err),
+			"kv.typed_store.scan_error", "scan iteration")
 	}
 
 	return results, nil
@@ -157,7 +169,8 @@ func (s *TypedStore[T, K]) Backend() Store { return s.backend }
 func (s *TypedStore[T, K]) DeleteAll(_ context.Context) error {
 	iter, err := s.backend.NewIterator(s.prefix)
 	if err != nil {
-		return fmt.Errorf("kv: delete-all iterator: %w", err)
+		return errorfamily.Wrap(err, errorfamily.Classify(err),
+			"kv.typed_store.delete_all_iter", "create delete-all iterator")
 	}
 
 	keys := make([][]byte, 0)
@@ -169,11 +182,13 @@ func (s *TypedStore[T, K]) DeleteAll(_ context.Context) error {
 	if err = iter.Error(); err != nil {
 		_ = iter.Close()
 
-		return fmt.Errorf("kv: delete-all iteration: %w", err)
+		return errorfamily.Wrap(err, errorfamily.Classify(err),
+			"kv.typed_store.delete_all_error", "delete-all iteration")
 	}
 
 	if err = iter.Close(); err != nil {
-		return fmt.Errorf("kv: delete-all close iterator: %w", err)
+		return errorfamily.Wrap(err, errorfamily.Classify(err),
+			"kv.typed_store.delete_all_close", "close delete-all iterator")
 	}
 
 	if len(keys) == 0 {
@@ -190,12 +205,14 @@ func (s *TypedStore[T, K]) DeleteAll(_ context.Context) error {
 	for _, k := range keys {
 		err = batch.Delete(k)
 		if err != nil {
-			return fmt.Errorf("kv: delete-all batch: %w", err)
+			return errorfamily.Wrap(err, errorfamily.Classify(err),
+				"kv.typed_store.delete_all_batch", "batch delete key")
 		}
 	}
 
 	if err = batch.Commit(); err != nil {
-		return fmt.Errorf("kv: delete-all commit: %w", err)
+		return errorfamily.Wrap(err, errorfamily.Classify(err),
+			"kv.typed_store.delete_all_commit", "commit delete-all batch")
 	}
 
 	return nil
@@ -205,7 +222,8 @@ func (s *TypedStore[T, K]) deleteAllOneByOne(keys [][]byte) error {
 	for _, k := range keys {
 		err := s.backend.Delete(k)
 		if err != nil {
-			return fmt.Errorf("kv: delete-all key %q: %w", k, err)
+			return errorfamily.Wrap(err, errorfamily.Classify(err),
+				"kv.typed_store.delete_one", fmt.Sprintf("delete key %q", k))
 		}
 	}
 

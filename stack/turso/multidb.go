@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 	cqrsturso "github.com/larsartmann/go-cqrs-lite/storage/turso/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
@@ -26,7 +27,8 @@ func openSecondaryBackend(
 	if err != nil {
 		_ = secDB.Close()
 
-		return nil, nil, fmt.Errorf("turso: create backend for %q: %w", dbPath, err)
+		return nil, nil, event.WrapInfrastructure(err, "turso.create_secondary_backend",
+			fmt.Sprintf("create backend for %q", dbPath))
 	}
 
 	closer := stack.NewMultiCloser(secBackend, stack.NewFuncCloser(secDB.Close))
@@ -38,7 +40,8 @@ func openSecondaryBackend(
 func openSecondaryDB(dbPath string, cfg config) (*sql.DB, error) {
 	sqlDB, err := cqrsturso.Open(cqrsturso.DbPath(dbPath))
 	if err != nil {
-		return nil, fmt.Errorf("turso: open %q: %w", dbPath, err)
+		return nil, event.WrapInfrastructure(err, "turso.open_secondary",
+			fmt.Sprintf("open %q", dbPath))
 	}
 
 	cqrsturso.ConfigurePool(sqlDB)

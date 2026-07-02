@@ -169,7 +169,8 @@ func (b *Bundle) Close() error {
 func (b *Bundle) GracefulClose(ctx context.Context) error {
 	for _, d := range b.drainers {
 		if err := d.Drain(ctx); err != nil {
-			return fmt.Errorf("graceful drain: %w", err)
+			return event.WrapInfrastructure(err, "stack.bundle.graceful_drain",
+				"graceful drain")
 		}
 	}
 

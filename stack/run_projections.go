@@ -40,12 +40,14 @@ func (b *Bundle) RunProjections(
 
 	catchUp, err := b.CatchUpSubscriber()
 	if err != nil {
-		return fmt.Errorf("run projections: %w", err)
+		return cqrsevent.WrapInfrastructure(err, "stack.run_projections.catchup",
+			"run projections")
 	}
 
 	msgs, err := catchUp.Subscribe(ctx, cqrswatermill.DefaultEventBusTopic)
 	if err != nil {
-		return fmt.Errorf("run projections: subscribe: %w", err)
+		return cqrsevent.WrapInfrastructure(err, "stack.run_projections.subscribe",
+			"subscribe to event stream")
 	}
 
 	defer func() { _ = catchUp.Close() }()
@@ -61,7 +63,8 @@ func (b *Bundle) RunProjections(
 				msg.Metadata.Get("event_type"), msg,
 			)
 			if decodeErr != nil {
-				return fmt.Errorf("run projections: decode message: %w", decodeErr)
+				return cqrsevent.WrapCorruption(decodeErr, "stack.run_projections.decode",
+					"decode message")
 			}
 
 			for _, proj := range projections {
@@ -78,8 +81,9 @@ func (b *Bundle) RunProjections(
 						"error", handleErr,
 					)
 
-					return fmt.Errorf("run projections: %s handle %s: %w",
-						proj.Name(), evt.ID().String(), handleErr)
+					return cqrsevent.Wrap(handleErr, cqrsevent.Classify(handleErr),
+						"stack.run_projections.handle",
+						fmt.Sprintf("%s handle %s", proj.Name(), evt.ID().String()))
 				}
 			}
 

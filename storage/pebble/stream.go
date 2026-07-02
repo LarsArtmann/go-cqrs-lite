@@ -2,7 +2,6 @@ package pebble
 
 import (
 	"context"
-	"fmt"
 	"io"
 
 	"github.com/cockroachdb/pebble"
@@ -93,7 +92,7 @@ func (it *pebbleEventIterator) Close() error {
 
 	err := it.iter.Close()
 	if err != nil {
-		return fmt.Errorf("close pebble iterator: %w", err)
+		return event.WrapInfrastructure(err, "pebble.stream.close_iterator", "close pebble iterator")
 	}
 
 	return nil

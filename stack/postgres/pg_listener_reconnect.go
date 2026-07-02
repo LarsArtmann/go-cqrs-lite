@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // receiveLoop processes incoming LISTEN/NOTIFY messages. On connection error
@@ -36,7 +38,8 @@ func (l *PgxListener) receiveLoop(ctx context.Context) {
 func (l *PgxListener) receiveOnce(ctx context.Context) error {
 	notification, err := l.conn.Conn().WaitForNotification(ctx)
 	if err != nil {
-		return fmt.Errorf("pgx_listener: wait for notification: %w", err)
+		return event.WrapInfrastructure(err, "postgres.wait_notification",
+			"wait for notification")
 	}
 
 	select {

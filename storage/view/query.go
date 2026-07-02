@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 )
 
@@ -52,7 +53,7 @@ func (s *SQLViewStore[V, K]) Query(ctx context.Context, q kv.ViewQuery) ([]*V, e
 
 	rows, err := s.DB.QueryContext(ctx, b.String(), args...)
 	if err != nil {
-		return nil, fmt.Errorf("view-store: query: %w", err)
+		return nil, event.WrapTransient(err, "storage.view.query", "query view records")
 	}
 
 	defer func() { _ = rows.Close() }()

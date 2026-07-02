@@ -48,11 +48,14 @@ func (s RelationalSchema) Validate() error {
 		t := s.Tables[i]
 
 		if err := t.validate(); err != nil {
-			return fmt.Errorf("relational schema: table %q: %w", t.Name, err)
+			return cqrsevent.WrapRejection(err,
+				"relational.schema_table", fmt.Sprintf("table %q", t.Name))
 		}
 
 		if _, dup := seen[t.Name]; dup {
-			return fmt.Errorf("relational schema: %w: %q", errSchemaDuplicateTable, t.Name)
+			return cqrsevent.WrapRejection(errSchemaDuplicateTable,
+				"relational.schema_duplicate_table",
+				fmt.Sprintf("duplicate table %q", t.Name))
 		}
 
 		seen[t.Name] = struct{}{}
@@ -89,15 +92,21 @@ func (t RelationalTable) validate() error {
 		c := t.Columns[i]
 
 		if c.Name == "" {
-			return fmt.Errorf("column %d: %w", i, errSchemaColumnNoName)
+			return cqrsevent.WrapRejection(errSchemaColumnNoName,
+				"relational.schema_column_no_name",
+				fmt.Sprintf("column %d", i))
 		}
 
 		if c.Type == "" {
-			return fmt.Errorf("column %q: %w", c.Name, errSchemaColumnNoType)
+			return cqrsevent.WrapRejection(errSchemaColumnNoType,
+				"relational.schema_column_no_type",
+				fmt.Sprintf("column %q", c.Name))
 		}
 
 		if _, dup := colNames[c.Name]; dup {
-			return fmt.Errorf("column %q: %w", c.Name, errSchemaDuplicateColumn)
+			return cqrsevent.WrapRejection(errSchemaDuplicateColumn,
+				"relational.schema_duplicate_column",
+				fmt.Sprintf("column %q", c.Name))
 		}
 
 		colNames[c.Name] = struct{}{}
@@ -105,7 +114,9 @@ func (t RelationalTable) validate() error {
 
 	for _, pk := range t.PrimaryKey {
 		if _, ok := colNames[pk]; !ok {
-			return fmt.Errorf("primary key column %q: %w", pk, errSchemaUnknownPKColumn)
+			return cqrsevent.WrapRejection(errSchemaUnknownPKColumn,
+				"relational.schema_unknown_pk",
+				fmt.Sprintf("primary key column %q", pk))
 		}
 	}
 

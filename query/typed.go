@@ -41,7 +41,8 @@ func NewTypedQueryStore[P any](store QueryStore, c codec.Codec) *TypedQueryStore
 func (t *TypedQueryStore[P]) SaveQuery(ctx context.Context, q TypedQuery[P]) error {
 	data, err := t.codec.Encode(q.Payload)
 	if err != nil {
-		return fmt.Errorf("query: encode typed payload: %w", err)
+		return event.WrapCorruption(err, "query.typed_store.encode",
+			"encode typed payload")
 	}
 
 	opts := []QueryPersistOption{
@@ -88,7 +89,8 @@ func (t *TypedQueryStore[P]) LoadQueries(
 
 		err := t.codec.Decode(q.Payload(), &payload)
 		if err != nil {
-			return nil, fmt.Errorf("query: decode typed payload for %s: %w", q.ID(), err)
+			return nil, event.WrapCorruption(err, "query.typed_store.decode",
+				fmt.Sprintf("decode typed payload for %s", q.ID()))
 		}
 
 		result = append(result, TypedQuery[P]{

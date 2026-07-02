@@ -2,9 +2,10 @@ package kv
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/maypok86/otter/v2"
 )
@@ -13,8 +14,8 @@ const defaultCacheCapacity = 1000
 
 // Sentinel errors for Cache construction.
 var (
-	ErrNilTypedStore   = errors.New("kv: store must not be nil")
-	ErrInvalidCacheCap = errors.New("kv: capacity must be positive")
+	ErrNilTypedStore   = errorfamily.NewRejection("kv.cache.nil_store", "kv: store must not be nil")
+	ErrInvalidCacheCap = errorfamily.NewRejection("kv.cache.invalid_capacity", "kv: capacity must be positive")
 )
 
 // Cache wraps a [TypedStore] with an in-memory Otter cache (ADR-0032).
@@ -72,7 +73,9 @@ func NewCache[T any, K fmt.Stringer](
 	}
 
 	if cfg.capacity <= 0 {
-		return nil, fmt.Errorf("%w: got %d", ErrInvalidCacheCap, cfg.capacity)
+		return nil, errorfamily.WrapRejection(ErrInvalidCacheCap,
+			"kv.cache.invalid_capacity",
+			fmt.Sprintf("capacity must be positive, got %d", cfg.capacity))
 	}
 
 	otterOpts := &otter.Options[string, *T]{ //nolint:exhaustruct // only MaximumSize needed by default
@@ -103,7 +106,7 @@ func (cs *Cache[T, K]) Get(ctx context.Context, id K) (*T, error) {
 
 	val, err := cs.store.Get(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("kv: cache get %s: %w", key, err)
+		return nil, err
 	}
 
 	cs.cache.Set(key, val)
@@ -120,7 +123,7 @@ func (cs *Cache[T, K]) Has(ctx context.Context, id K) (bool, error) {
 
 	has, err := cs.store.Has(ctx, id)
 	if err != nil {
-		return false, fmt.Errorf("kv: cache has %s: %w", id.String(), err)
+		return false, err
 	}
 
 	return has, nil
@@ -130,7 +133,7 @@ func (cs *Cache[T, K]) Has(ctx context.Context, id K) (bool, error) {
 func (cs *Cache[T, K]) Set(ctx context.Context, id K, val *T) error {
 	err := cs.store.Set(ctx, id, val)
 	if err != nil {
-		return fmt.Errorf("kv: cache set %s: %w", id.String(), err)
+		return err
 	}
 
 	cs.cache.Set(id.String(), val)
@@ -142,7 +145,7 @@ func (cs *Cache[T, K]) Set(ctx context.Context, id K, val *T) error {
 func (cs *Cache[T, K]) Delete(ctx context.Context, id K) error {
 	err := cs.store.Delete(ctx, id)
 	if err != nil {
-		return fmt.Errorf("kv: cache delete %s: %w", id.String(), err)
+		return err
 	}
 
 	cs.cache.Invalidate(id.String())
@@ -154,7 +157,7 @@ func (cs *Cache[T, K]) Delete(ctx context.Context, id K) error {
 func (cs *Cache[T, K]) Scan(ctx context.Context, prefix []byte) ([]*T, error) {
 	results, err := cs.store.Scan(ctx, prefix)
 	if err != nil {
-		return nil, fmt.Errorf("kv: cache scan: %w", err)
+		return nil, err
 	}
 
 	return results, nil

@@ -246,7 +246,8 @@ func buildMetadata(md message.Metadata) (event.Metadata, error) {
 			}
 			m.Tombstone = &mark
 		} else {
-			errs = append(errs, fmt.Errorf("parse %s: %w", metaTombstoneStatus, err))
+			errs = append(errs, event.WrapRejection(err, "watermill.parse_tombstone_status",
+				fmt.Sprintf("parse %s", metaTombstoneStatus)))
 		}
 	}
 

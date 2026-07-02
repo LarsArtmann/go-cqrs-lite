@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
@@ -15,7 +16,8 @@ import (
 func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
 	sqlDB, err := sql.Open("pgx", dsn)
 	if err != nil {
-		return nil, fmt.Errorf("postgres preset: open %q: %w", dsn, err)
+		return nil, event.WrapInfrastructure(err, "postgres.open_secondary",
+			fmt.Sprintf("open %q", dsn))
 	}
 
 	if cfg.autoMigrate {
@@ -25,7 +27,8 @@ func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
 		if err != nil {
 			_ = sqlDB.Close()
 
-			return nil, fmt.Errorf("postgres preset: init schema on %q: %w", dsn, err)
+			return nil, event.WrapInfrastructure(err, "postgres.init_schema",
+				fmt.Sprintf("init schema on %q", dsn))
 		}
 	}
 
@@ -48,7 +51,8 @@ func openSecondaryBackend(
 	if err != nil {
 		_ = secDB.Close()
 
-		return nil, nil, fmt.Errorf("postgres preset: create backend for %q: %w", dsn, err)
+		return nil, nil, event.WrapInfrastructure(err, "postgres.create_backend",
+			fmt.Sprintf("create backend for %q", dsn))
 	}
 
 	closer := stack.NewMultiCloser(secBackend, stack.NewFuncCloser(secDB.Close))

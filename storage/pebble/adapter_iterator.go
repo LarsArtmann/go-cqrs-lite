@@ -1,11 +1,11 @@
 package pebble
 
 import (
-	"fmt"
 	"slices"
 
 	"github.com/cockroachdb/pebble"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 )
 
@@ -42,7 +42,8 @@ func (it *pebbleIterator) Value() []byte {
 func (it *pebbleIterator) Error() error {
 	err := it.iter.Error()
 	if err != nil {
-		return fmt.Errorf("pebble: iterator error: %w", err)
+		return event.WrapInfrastructure(err, "pebble.iterator.error",
+			"iterator error")
 	}
 
 	return nil
@@ -57,7 +58,8 @@ func (it *pebbleIterator) Close() error {
 
 	err := it.iter.Close()
 	if err != nil {
-		return fmt.Errorf("pebble: close iterator: %w", err)
+		return event.WrapInfrastructure(err, "pebble.iterator.close",
+			"close iterator")
 	}
 
 	return nil

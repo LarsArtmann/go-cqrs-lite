@@ -1,14 +1,15 @@
 package kv
 
 import (
-	"errors"
 	"fmt"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 )
 
 // errNilTypedValue is returned by [TypedStore.Set] when val is nil.
-var errNilTypedValue = errors.New("kv: TypedStore.Set called with a nil value")
+var errNilTypedValue = errorfamily.NewRejection("kv.nil_value", "kv: TypedStore.Set called with a nil value")
 
 // TypedOption configures a [TypedStore]. It follows the codebase convention of
 // func(*T) with no error return: invalid options are either ignored or panic

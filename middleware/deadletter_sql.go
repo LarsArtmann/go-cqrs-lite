@@ -297,21 +297,22 @@ func (s *SQLDeadLetterStore) parseTime(src any) (time.Time, error) {
 			return t, nil
 		}
 
-		return time.Time{}, fmt.Errorf(
-			"%w: expected time.Time, got %T",
-			errUnexpectedTimeTypeDL,
-			src,
-		)
+		return time.Time{}, event.WrapCorruption(errUnexpectedTimeTypeDL,
+			"middleware.deadletter_sql.unexpected_time_type",
+			fmt.Sprintf("expected time.Time, got %T", src))
 	}
 
 	str, ok := src.(string)
 	if !ok {
-		return time.Time{}, fmt.Errorf("%w: expected string, got %T", errUnexpectedTimeTypeDL, src)
+		return time.Time{}, event.WrapCorruption(errUnexpectedTimeTypeDL,
+			"middleware.deadletter_sql.unexpected_string_type",
+			fmt.Sprintf("expected string, got %T", src))
 	}
 
 	t, err := time.Parse(time.RFC3339Nano, str)
 	if err != nil {
-		return time.Time{}, fmt.Errorf("parse sqlite time: %w", err)
+		return time.Time{}, event.WrapCorruption(err,
+			"middleware.deadletter_sql.parse_time", "parse sqlite time")
 	}
 
 	return t, nil

@@ -116,7 +116,8 @@ func (p *RelationalProjection) EventTypes() []cqrsevent.Type { return slices.Clo
 func (p *RelationalProjection) Handle(ctx context.Context, evt cqrsevent.Event) error {
 	tx, err := p.db.BeginTx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("relational projection %q: begin tx: %w", p.name, err)
+		return cqrsevent.WrapTransient(err, "relational.projection_begin_tx",
+			fmt.Sprintf("projection %q: begin tx", p.name))
 	}
 
 	defer func() { _ = tx.Rollback() }()
@@ -128,7 +129,8 @@ func (p *RelationalProjection) Handle(ctx context.Context, evt cqrsevent.Event) 
 	}
 
 	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("relational projection %q: commit: %w", p.name, err)
+		return cqrsevent.WrapTransient(err, "relational.projection_commit",
+			fmt.Sprintf("projection %q: commit", p.name))
 	}
 
 	return nil

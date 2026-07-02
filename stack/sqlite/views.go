@@ -2,8 +2,8 @@ package sqlite
 
 import (
 	"database/sql"
-	"fmt"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
@@ -28,7 +28,8 @@ func buildPrimaryViewOptions(backend *storage.SQLBackend, sqlDB *sql.DB) ([]stac
 		_ = backend.Close()
 		_ = sqlDB.Close()
 
-		return nil, fmt.Errorf("sqlite: kv store: %w", err)
+		return nil, event.WrapInfrastructure(err, "sqlite.kv_store",
+			"create KV store")
 	}
 
 	return []stack.Option{stack.WithReadModels(kvStore)}, nil
@@ -44,7 +45,8 @@ func buildSecondaryViewOptions(
 		_ = backend.Close()
 		_ = sqlDB.Close()
 
-		return nil, fmt.Errorf("sqlite: open view db: %w", err)
+		return nil, event.WrapInfrastructure(err, "sqlite.open_view_db",
+			"open view database")
 	}
 
 	viewBackend, err := storage.NewSQLiteBackend(viewDB)
@@ -53,7 +55,8 @@ func buildSecondaryViewOptions(
 		_ = sqlDB.Close()
 		_ = viewDB.Close()
 
-		return nil, fmt.Errorf("sqlite: create view backend: %w", err)
+		return nil, event.WrapInfrastructure(err, "sqlite.create_view_backend",
+			"create view backend")
 	}
 
 	kvStore, err := viewBackend.KVStore()
@@ -62,7 +65,8 @@ func buildSecondaryViewOptions(
 		_ = backend.Close()
 		_ = sqlDB.Close()
 
-		return nil, fmt.Errorf("sqlite: kv store (view db): %w", err)
+		return nil, event.WrapInfrastructure(err, "sqlite.view_kv_store",
+			"create KV store for view database")
 	}
 
 	return []stack.Option{

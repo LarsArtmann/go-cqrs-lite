@@ -186,7 +186,9 @@ func GivenProjection(
 	ctx := context.Background()
 	for _, evt := range events {
 		if err := proj.Handle(ctx, evt); err != nil {
-			sc.errs = append(sc.errs, fmt.Errorf("event %s: %w", evt.Type(), err))
+			sc.errs = append(sc.errs, event.Wrap(err, event.Classify(err),
+				"scenario.projection.handle",
+				fmt.Sprintf("event %s", evt.Type())))
 		}
 	}
 

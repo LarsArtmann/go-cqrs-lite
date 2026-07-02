@@ -31,7 +31,8 @@ func RegisterEventService(srv *grpc.Server, bus EventSubscriber) (*EventServer, 
 
 	err := bus.SubscribeAll(eventSrv.handleEvent)
 	if err != nil {
-		return nil, fmt.Errorf("grpc: subscribe to event bus: %w", err)
+		return nil, event.WrapInfrastructure(err, "grpc.event_server.subscribe",
+			"subscribe to event bus")
 	}
 
 	cqrsproto.RegisterEventServiceServer(srv, eventSrv)
@@ -81,7 +82,8 @@ func (s *EventServer) Subscribe(
 
 			err := stream.Send(envelope)
 			if err != nil {
-				return fmt.Errorf("grpc: send event: %w", err)
+				return event.WrapInfrastructure(err, "grpc.event_server.send",
+					"send event")
 			}
 		}
 	}

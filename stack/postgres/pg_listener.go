@@ -161,7 +161,8 @@ func (l *PgxListener) Listen(ctx context.Context, channel string) error {
 	if err != nil {
 		cancel()
 
-		return fmt.Errorf("pgx_listener: acquire conn: %w", err)
+		return event.WrapInfrastructure(err, "postgres.acquire_conn",
+			"acquire connection from pool")
 	}
 
 	// Postgres LISTEN takes an unquoted identifier (lowercased) or a
@@ -172,7 +173,8 @@ func (l *PgxListener) Listen(ctx context.Context, channel string) error {
 		cancel()
 		conn.Release()
 
-		return fmt.Errorf("pgx_listener: LISTEN %q: %w", channel, err)
+		return event.WrapInfrastructure(err, "postgres.listen",
+			fmt.Sprintf("LISTEN %q", channel))
 	}
 
 	l.conn = conn
@@ -253,7 +255,8 @@ func validateChannelName(channel string) error {
 		ok := r == '_' || (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') ||
 			(i > 0 && r >= '0' && r <= '9')
 		if !ok {
-			return fmt.Errorf("%w: %q", errInvalidChannelName, channel)
+			return event.WrapRejection(errInvalidChannelName, "postgres.invalid_channel",
+				fmt.Sprintf("invalid channel name %q", channel))
 		}
 	}
 

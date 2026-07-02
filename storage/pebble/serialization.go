@@ -2,7 +2,6 @@ package pebble
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
@@ -55,7 +54,7 @@ func (a *EventStore) serializeEvent(evt event.Event) ([]byte, error) {
 
 	data, err := marshalCBOR(s)
 	if err != nil {
-		return nil, fmt.Errorf("pebble: marshal event: %w", err)
+		return nil, event.WrapCorruption(err, "pebble.serialize_event", "marshal event")
 	}
 
 	return data, nil

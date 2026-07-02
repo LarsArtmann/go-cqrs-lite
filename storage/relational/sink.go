@@ -201,7 +201,9 @@ func (s *sqlSink) QueryOne(ctx context.Context, table, column string, match Row)
 	err = s.tx.QueryRowContext(ctx, query, whereArgs...).Scan(&result)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("sink: query %s.%s: %w", table, column, errSinkNoRows)
+			return nil, cqrsevent.WrapRejection(errSinkNoRows,
+				"relational.sink_no_rows",
+				fmt.Sprintf("query %s.%s", table, column))
 		}
 
 		return nil, cqrsevent.WrapCorruption(err, "relational.sink_query",
@@ -222,7 +224,9 @@ func (s *sqlSink) rowColumns(table string, row Row) ([]string, []any, error) {
 
 	t := s.schema.Table(table)
 	if t == nil {
-		return nil, nil, fmt.Errorf("sink: table %q: %w", table, errSinkUnknownTable)
+		return nil, nil, cqrsevent.WrapRejection(errSinkUnknownTable,
+			"relational.sink_unknown_table",
+			fmt.Sprintf("table %q", table))
 	}
 
 	colSet := make(map[string]struct{}, len(t.Columns))
@@ -233,12 +237,10 @@ func (s *sqlSink) rowColumns(table string, row Row) ([]string, []any, error) {
 	cols := make([]string, 0, len(row))
 	for name := range row {
 		if _, ok := colSet[name]; !ok {
-			return nil, nil, fmt.Errorf(
-				"sink: table %q: column %q: %w",
-				table,
-				name,
+			return nil, nil, cqrsevent.WrapRejection(
 				errSinkUnknownColumn,
-			)
+				"relational.sink_unknown_column",
+				fmt.Sprintf("table %q: column %q", table, name))
 		}
 
 		cols = append(cols, name)

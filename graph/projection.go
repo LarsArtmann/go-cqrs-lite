@@ -101,7 +101,9 @@ func (p *GraphProjection) Handle(ctx context.Context, evt cqrsevent.Event) error
 		return p.handler(ctx, evt, validated)
 	})
 	if err != nil {
-		return fmt.Errorf("graph projection %q: %w", p.name, err)
+		return cqrsevent.Wrap(err, cqrsevent.Classify(err),
+			"graph.projection.handle",
+			fmt.Sprintf("projection %q", p.name))
 	}
 
 	return nil
@@ -115,7 +117,8 @@ func (p *GraphProjection) Close() error {
 	}
 
 	if err := p.driver.Close(); err != nil {
-		return fmt.Errorf("graph projection %q: close driver: %w", p.name, err)
+		return cqrsevent.WrapInfrastructure(err, "graph.projection.close",
+			fmt.Sprintf("projection %q: close driver", p.name))
 	}
 
 	return nil

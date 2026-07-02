@@ -2,10 +2,10 @@ package grpc
 
 import (
 	"context"
-	"fmt"
 
 	"google.golang.org/grpc"
 
+	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
@@ -58,7 +58,8 @@ func (s *commandServer) Dispatch(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return errorResult(fmt.Errorf("parse aggregate ID: %w", err)), nil
+		return errorResult(cqrsevent.WrapRejection(err, "grpc.command.parse_aggregate_id",
+			"parse aggregate ID")), nil
 	}
 
 	var opts []command.Option
@@ -83,7 +84,8 @@ func (s *commandServer) Dispatch(
 
 	cmd, err := command.New(command.Type(envelope.GetType()), aggID, opts...)
 	if err != nil {
-		return errorResult(fmt.Errorf("create command: %w", err)), nil
+		return errorResult(cqrsevent.WrapRejection(err, "grpc.command.create",
+			"create command")), nil
 	}
 
 	err = s.dispatcher.Dispatch(ctx, cmd)

@@ -118,11 +118,14 @@ func (m *Materialize[V, K]) HandlerFunc() message.NoPublishHandlerFunc {
 
 		evt, err := cqrswatermill.MessageToEvent(topic, msg)
 		if err != nil {
-			return fmt.Errorf("materialize: decode message: %w", err)
+			return event.WrapCorruption(err, "stack.materialize.decode",
+				"decode message")
 		}
 
 		if err := m.handleEvent(ctx, evt); err != nil {
-			return fmt.Errorf("materialize: handle event %s: %w", evt.ID().String(), err)
+			return event.Wrap(err, event.Classify(err),
+				"stack.materialize.handle_event",
+				fmt.Sprintf("handle event %s", evt.ID().String()))
 		}
 
 		return nil
@@ -132,7 +135,8 @@ func (m *Materialize[V, K]) HandlerFunc() message.NoPublishHandlerFunc {
 func (m *Materialize[V, K]) handleEvent(ctx context.Context, evt event.Event) error {
 	key, err := m.KeyFromEvent(evt)
 	if err != nil {
-		return fmt.Errorf("extract key: %w", err)
+		return event.WrapRejection(err, "stack.materialize.extract_key",
+			"extract key from event")
 	}
 
 	md := evt.Metadata()
@@ -141,7 +145,8 @@ func (m *Materialize[V, K]) handleEvent(ctx context.Context, evt event.Event) er
 	if md.Tombstone != nil {
 		existing, getErr := m.Store.Get(ctx, key)
 		if getErr != nil && !errors.Is(getErr, kv.ErrNotFound) {
-			return fmt.Errorf("materialize: load existing for tombstone: %w", getErr)
+			return event.Wrap(getErr, event.Classify(getErr),
+				"stack.materialize.load_tombstone", "load existing for tombstone")
 		}
 
 		if errors.Is(getErr, kv.ErrNotFound) {
@@ -179,7 +184,8 @@ func (m *Materialize[V, K]) handleEvent(ctx context.Context, evt event.Event) er
 	existing, err := m.Store.Get(ctx, key)
 	if err != nil {
 		if !errors.Is(err, kv.ErrNotFound) {
-			return fmt.Errorf("materialize: load existing: %w", err)
+			return event.Wrap(err, event.Classify(err),
+				"stack.materialize.load_existing", "load existing record")
 		}
 
 		// Not found → create.

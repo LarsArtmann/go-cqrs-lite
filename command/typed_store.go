@@ -56,7 +56,8 @@ func (t *TypedCommandStore[P]) Save(
 ) error {
 	data, err := t.codec.Encode(cmd.Payload)
 	if err != nil {
-		return fmt.Errorf("command: encode typed payload: %w", err)
+		return event.WrapCorruption(err, "command.typed_store.encode",
+			"encode typed payload")
 	}
 
 	opts := []PersistOption{
@@ -98,7 +99,8 @@ func (t *TypedCommandStore[P]) AppendBatch(
 	for i, cmd := range cmds {
 		data, err := t.codec.Encode(cmd.Payload)
 		if err != nil {
-			return fmt.Errorf("command: encode typed payload at index %d: %w", i, err)
+			return event.WrapCorruption(err, "command.typed_store.encode_batch",
+				fmt.Sprintf("encode typed payload at index %d", i))
 		}
 
 		opts := []PersistOption{
@@ -152,7 +154,8 @@ func (t *TypedCommandStore[P]) Load(
 
 		err := t.codec.Decode(cmd.Payload(), &payload)
 		if err != nil {
-			return nil, fmt.Errorf("command: decode typed payload for %s: %w", cmd.ID(), err)
+			return nil, event.WrapCorruption(err, "command.typed_store.decode",
+				fmt.Sprintf("decode typed payload for %s", cmd.ID()))
 		}
 
 		result = append(result, TypedPersistedCommand[P]{

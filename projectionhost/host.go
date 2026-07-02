@@ -87,7 +87,8 @@ func (h *Host) Register(p projection.Projection) error {
 	}
 
 	if _, exists := h.workers[name]; exists {
-		return fmt.Errorf("projectionhost: projection %q already registered", name)
+		return event.NewRejection("projectionhost.duplicate_name",
+			fmt.Sprintf("projection %q already registered", name))
 	}
 
 	h.workers[name] = &worker{

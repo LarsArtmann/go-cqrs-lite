@@ -2,8 +2,8 @@ package turso
 
 import (
 	"database/sql"
-	"fmt"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
@@ -31,7 +31,8 @@ func buildPrimaryViewOptions(
 		_ = backend.Close()
 		_ = sqlDB.Close()
 
-		return nil, fmt.Errorf("turso: kv store: %w", err)
+		return nil, event.WrapInfrastructure(err, "turso.kv_store",
+			"create KV store")
 	}
 
 	return []stack.Option{stack.WithReadModels(kvStore)}, nil
@@ -47,7 +48,8 @@ func buildSecondaryViewOptions(
 		_ = backend.Close()
 		_ = sqlDB.Close()
 
-		return nil, fmt.Errorf("turso: open view db: %w", err)
+		return nil, event.WrapInfrastructure(err, "turso.open_view_db",
+			"open view database")
 	}
 
 	viewBackend, err := storage.NewSQLiteBackend(viewDB)
@@ -56,7 +58,8 @@ func buildSecondaryViewOptions(
 		_ = sqlDB.Close()
 		_ = viewDB.Close()
 
-		return nil, fmt.Errorf("turso: create view backend: %w", err)
+		return nil, event.WrapInfrastructure(err, "turso.create_view_backend",
+			"create view backend")
 	}
 
 	kvStore, err := viewBackend.KVStore()
@@ -65,7 +68,8 @@ func buildSecondaryViewOptions(
 		_ = backend.Close()
 		_ = sqlDB.Close()
 
-		return nil, fmt.Errorf("turso: kv store (view db): %w", err)
+		return nil, event.WrapInfrastructure(err, "turso.view_kv_store",
+			"create KV store for view database")
 	}
 
 	return []stack.Option{

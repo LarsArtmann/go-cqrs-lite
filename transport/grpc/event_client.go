@@ -2,7 +2,6 @@ package grpc
 
 import (
 	"context"
-	"fmt"
 
 	"google.golang.org/grpc"
 
@@ -35,23 +34,27 @@ func (c *EventClient) Subscribe(
 		EventTypes: eventTypes,
 	})
 	if err != nil {
-		return fmt.Errorf("grpc: open event stream: %w", err)
+		return event.WrapInfrastructure(err, "grpc.event_client.open_stream",
+			"open event stream")
 	}
 
 	for {
 		envelope, err := stream.Recv()
 		if err != nil {
-			return fmt.Errorf("grpc: receive event: %w", err)
+			return event.WrapInfrastructure(err, "grpc.event_client.receive",
+				"receive event")
 		}
 
 		evt, err := envelopeToEvent(envelope)
 		if err != nil {
-			return fmt.Errorf("grpc: decode event: %w", err)
+			return event.WrapCorruption(err, "grpc.event_client.decode",
+				"decode event")
 		}
 
 		err = handler(ctx, evt)
 		if err != nil {
-			return fmt.Errorf("grpc: event handler: %w", err)
+			return event.Wrap(err, event.Classify(err),
+				"grpc.event_client.handler", "event handler")
 		}
 	}
 }
@@ -59,7 +62,8 @@ func (c *EventClient) Subscribe(
 func envelopeToEvent(envelope *cqrsproto.EventEnvelope) (event.Event, error) {
 	aggID, err := id.ParseAggregateID(envelope.GetAggregateId())
 	if err != nil {
-		return nil, fmt.Errorf("parse aggregate ID: %w", err)
+		return nil, event.WrapRejection(err, "grpc.event_client.parse_aggregate_id",
+			"parse aggregate ID")
 	}
 
 	var opts []event.Option
@@ -82,7 +86,8 @@ func envelopeToEvent(envelope *cqrsproto.EventEnvelope) (event.Event, error) {
 		opts...,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("reconstruct event: %w", err)
+		return nil, event.WrapCorruption(err, "grpc.event_client.reconstruct",
+			"reconstruct event")
 	}
 
 	return evt, nil

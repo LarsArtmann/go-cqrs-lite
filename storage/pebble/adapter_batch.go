@@ -5,6 +5,7 @@ import (
 
 	"github.com/cockroachdb/pebble"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 )
 
@@ -19,7 +20,8 @@ var _ kv.Batch = (*pebbleBatch)(nil)
 func (batch *pebbleBatch) Set(key, value []byte) error {
 	err := batch.batch.Set(key, value, nil)
 	if err != nil {
-		return fmt.Errorf("pebble: batch set %q: %w", key, err)
+		return event.WrapInfrastructure(err, "pebble.batch.set",
+			fmt.Sprintf("batch set %q", key))
 	}
 
 	return nil
@@ -28,7 +30,8 @@ func (batch *pebbleBatch) Set(key, value []byte) error {
 func (batch *pebbleBatch) Delete(key []byte) error {
 	err := batch.batch.Delete(key, nil)
 	if err != nil {
-		return fmt.Errorf("pebble: batch delete %q: %w", key, err)
+		return event.WrapInfrastructure(err, "pebble.batch.delete",
+			fmt.Sprintf("batch delete %q", key))
 	}
 
 	return nil
@@ -43,7 +46,8 @@ func (batch *pebbleBatch) Commit() error {
 
 	err := batch.batch.Commit(batch.commitOpts)
 	if err != nil {
-		return fmt.Errorf("pebble: batch commit: %w", err)
+		return event.WrapInfrastructure(err, "pebble.batch.commit",
+			"commit batch")
 	}
 
 	return nil
@@ -56,7 +60,8 @@ func (batch *pebbleBatch) Close() error {
 
 	err := batch.batch.Close()
 	if err != nil {
-		return fmt.Errorf("pebble: batch close: %w", err)
+		return event.WrapInfrastructure(err, "pebble.batch.close",
+			"close batch")
 	}
 
 	return nil

@@ -170,7 +170,8 @@ func (s *CatchUpSubscriber) replayPhase(ctx context.Context, sub *catchUpSubscri
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return fmt.Errorf("load checkpoint for %s: %w", sub.topic, err)
+		return event.WrapInfrastructure(err, "watermill.catchup.load_checkpoint",
+			fmt.Sprintf("load checkpoint for %s", sub.topic))
 	}
 
 	var after id.EventID
@@ -183,7 +184,8 @@ func (s *CatchUpSubscriber) replayPhase(ctx context.Context, sub *catchUpSubscri
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return fmt.Errorf("replay read from journal: %w", err)
+		return event.WrapInfrastructure(err, "watermill.catchup.replay_read",
+			"replay read from journal")
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrEventCount, len(events)))
@@ -233,7 +235,8 @@ func (s *CatchUpSubscriber) replayPhase(ctx context.Context, sub *catchUpSubscri
 func (s *CatchUpSubscriber) livePhase(ctx context.Context, sub *catchUpSubscription) error {
 	liveMsgs, err := s.live.Subscribe(ctx, sub.topic)
 	if err != nil {
-		return fmt.Errorf("subscribe live for %s: %w", sub.topic, err)
+		return event.WrapInfrastructure(err, "watermill.catchup.subscribe_live",
+			fmt.Sprintf("subscribe live for %s", sub.topic))
 	}
 
 	for {

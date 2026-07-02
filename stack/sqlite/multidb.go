@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
@@ -15,7 +16,8 @@ import (
 func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
 	sqlDB, err := sql.Open("sqlite", dsn)
 	if err != nil {
-		return nil, fmt.Errorf("sqlite: open %q: %w", dsn, err)
+		return nil, event.WrapInfrastructure(err, "sqlite.open",
+			fmt.Sprintf("open %q", dsn))
 	}
 
 	ctx := context.Background()
@@ -25,7 +27,8 @@ func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
 		if err != nil {
 			_ = sqlDB.Close()
 
-			return nil, fmt.Errorf("sqlite: enable WAL on %q: %w", dsn, err)
+			return nil, event.WrapInfrastructure(err, "sqlite.enable_wal",
+				fmt.Sprintf("enable WAL on %q", dsn))
 		}
 	}
 
@@ -34,7 +37,8 @@ func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
 		if err != nil {
 			_ = sqlDB.Close()
 
-			return nil, fmt.Errorf("sqlite: enable foreign keys on %q: %w", dsn, err)
+			return nil, event.WrapInfrastructure(err, "sqlite.enable_fk",
+				fmt.Sprintf("enable foreign keys on %q", dsn))
 		}
 	}
 
@@ -43,7 +47,8 @@ func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
 		if err != nil {
 			_ = sqlDB.Close()
 
-			return nil, fmt.Errorf("sqlite: init schema on %q: %w", dsn, err)
+			return nil, event.WrapInfrastructure(err, "sqlite.init_schema",
+				fmt.Sprintf("init schema on %q", dsn))
 		}
 	}
 
@@ -52,7 +57,8 @@ func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
 		if err != nil {
 			_ = sqlDB.Close()
 
-			return nil, fmt.Errorf("sqlite: apply optimizations on %q: %w", dsn, err)
+			return nil, event.WrapInfrastructure(err, "sqlite.optimize",
+				fmt.Sprintf("apply optimizations on %q", dsn))
 		}
 	}
 
@@ -75,7 +81,8 @@ func openSecondaryBackend(
 	if err != nil {
 		_ = secDB.Close()
 
-		return nil, nil, fmt.Errorf("sqlite: create backend for %q: %w", dsn, err)
+		return nil, nil, event.WrapInfrastructure(err, "sqlite.create_backend",
+			fmt.Sprintf("create backend for %q", dsn))
 	}
 
 	closer := stack.NewMultiCloser(secBackend, stack.NewFuncCloser(secDB.Close))

@@ -47,7 +47,9 @@ func (c *CommandClient) Dispatch(ctx context.Context, cmd command.Command) error
 	}
 
 	if cmd.ID().IsZero() {
-		return fmt.Errorf("grpc: dispatch %s: %w", cmd.Type(), errMissingCommandID)
+		return cqrsevent.WrapRejection(errMissingCommandID,
+			"grpc.dispatch_missing_id",
+			fmt.Sprintf("dispatch %s", cmd.Type()))
 	}
 
 	envelope.Metadata = make(map[string]string)
@@ -63,7 +65,8 @@ func (c *CommandClient) Dispatch(ctx context.Context, cmd command.Command) error
 
 	result, err := c.client.Dispatch(ctx, envelope)
 	if err != nil {
-		return fmt.Errorf("grpc: dispatch %s: %w", cmd.Type(), err)
+		return cqrsevent.WrapInfrastructure(err, "grpc.dispatch",
+			fmt.Sprintf("dispatch %s", cmd.Type()))
 	}
 
 	if !result.GetSuccess() {
@@ -100,7 +103,8 @@ func (c *QueryClient) Ask(ctx context.Context, queryType string, out any) error 
 		&cqrsproto.QueryEnvelope{Type: queryType}, //nolint:exhaustruct // proto
 	)
 	if err != nil {
-		return fmt.Errorf("grpc: ask %s: %w", queryType, err)
+		return cqrsevent.WrapInfrastructure(err, "grpc.ask",
+			fmt.Sprintf("ask %s", queryType))
 	}
 
 	if result.GetError() != "" {
@@ -110,7 +114,8 @@ func (c *QueryClient) Ask(ctx context.Context, queryType string, out any) error 
 
 	err = c.codec.Decode(result.GetPayload(), out)
 	if err != nil {
-		return fmt.Errorf("%w: %w", errUnmarshalResult, err)
+		return cqrsevent.WrapCorruption(err, "grpc.unmarshal_result",
+			"unmarshal query result")
 	}
 
 	return nil

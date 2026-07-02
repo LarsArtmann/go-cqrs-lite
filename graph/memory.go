@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"maps"
 	"sync"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // MemoryDriver is an in-memory [GraphDriver] — the reference implementation.
@@ -127,12 +129,14 @@ func (r EdgeRef) key() (edgeKey, error) {
 
 	from, err := r.From.key()
 	if err != nil {
-		return edgeKey{}, fmt.Errorf("edge from: %w", err)
+		return edgeKey{}, event.WrapRejection(err, "graph.edge_from",
+			"parse edge from")
 	}
 
 	to, err := r.To.key()
 	if err != nil {
-		return edgeKey{}, fmt.Errorf("edge to: %w", err)
+		return edgeKey{}, event.WrapRejection(err, "graph.edge_to",
+			"parse edge to")
 	}
 
 	return edgeKey{typ: r.Type, from: from, to: to}, nil
