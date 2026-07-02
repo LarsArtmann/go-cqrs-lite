@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3/sqlopt"
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
@@ -114,7 +115,8 @@ func New(dsn string, opts ...Option) (*stack.Bundle, error) {
 func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	sqlDB, backend, err := openBackend(dsn, cfg)
 	if err != nil {
-		return nil, err
+		return nil, event.WrapInfrastructure(err, "sqlite_preset.open_backend",
+			"open primary backend")
 	}
 
 	stackOpts := sqlopt.AllOptions(backend)
@@ -127,7 +129,8 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 			_ = backend.Close()
 			_ = sqlDB.Close()
 
-			return nil, fmt.Errorf("sqlite: open event db: %w", eErr)
+			return nil, event.WrapInfrastructure(eErr, "sqlite_preset.open_event_db",
+				"open event database")
 		}
 
 		stackOpts = append(stackOpts, sqlopt.EventStoreOptions(evtBackend)...)
@@ -142,7 +145,8 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 			_ = backend.Close()
 			_ = sqlDB.Close()
 
-			return nil, fmt.Errorf("sqlite: open query db: %w", qErr)
+			return nil, event.WrapInfrastructure(qErr, "sqlite_preset.open_query_db",
+				"open query database")
 		}
 
 		stackOpts = append(stackOpts, sqlopt.QueryStoreOptions(qBackend)...)
@@ -154,7 +158,8 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 
 	viewOpts, err := buildViewOptions(cfg, backend, sqlDB)
 	if err != nil {
-		return nil, err
+		return nil, event.WrapInfrastructure(err, "sqlite_preset.view_options",
+			"build view options")
 	}
 
 	stackOpts = append(stackOpts, viewOpts...)
@@ -174,7 +179,8 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 
 		_ = sqlDB.Close()
 
-		return nil, fmt.Errorf("sqlite: wire bundle: %w", err)
+		return nil, event.WrapInfrastructure(err, "sqlite_preset.wire_bundle",
+			"wire sqlite bundle")
 	}
 
 	return b, nil
@@ -185,7 +191,8 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 	sqlDB, err := sql.Open("sqlite", dsn)
 	if err != nil {
-		return nil, nil, fmt.Errorf("sqlite: open %q: %w", dsn, err)
+		return nil, nil, event.WrapInfrastructure(err, "sqlite_preset.open_primary",
+			fmt.Sprintf("open sqlite %q", dsn))
 	}
 
 	ctx := context.Background()
@@ -195,7 +202,8 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 		if err != nil {
 			_ = sqlDB.Close()
 
-			return nil, nil, fmt.Errorf("sqlite: enable WAL: %w", err)
+			return nil, nil, event.WrapInfrastructure(err, "sqlite_preset.enable_wal",
+				"enable WAL mode")
 		}
 	}
 
@@ -204,7 +212,8 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 		if err != nil {
 			_ = sqlDB.Close()
 
-			return nil, nil, fmt.Errorf("sqlite: enable foreign keys: %w", err)
+			return nil, nil, event.WrapInfrastructure(err, "sqlite_preset.enable_foreign_keys",
+				"enable foreign keys")
 		}
 	}
 
@@ -213,7 +222,8 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 		if err != nil {
 			_ = sqlDB.Close()
 
-			return nil, nil, fmt.Errorf("sqlite: init schema: %w", err)
+			return nil, nil, event.WrapInfrastructure(err, "sqlite_preset.init_schema",
+				"initialize sqlite schema")
 		}
 	}
 
@@ -222,7 +232,8 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 		if err != nil {
 			_ = sqlDB.Close()
 
-			return nil, nil, fmt.Errorf("sqlite: apply optimizations: %w", err)
+			return nil, nil, event.WrapInfrastructure(err, "sqlite_preset.apply_optimizations",
+				"apply sqlite optimizations")
 		}
 	}
 
@@ -230,7 +241,8 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 	if err != nil {
 		_ = sqlDB.Close()
 
-		return nil, nil, fmt.Errorf("sqlite: create backend: %w", err)
+		return nil, nil, event.WrapInfrastructure(err, "sqlite_preset.create_backend",
+			"create SQL backend")
 	}
 
 	return sqlDB, backend, nil
