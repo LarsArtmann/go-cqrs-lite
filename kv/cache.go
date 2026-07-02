@@ -6,7 +6,6 @@ import (
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/maypok86/otter/v2"
 )
 
@@ -15,7 +14,10 @@ const defaultCacheCapacity = 1000
 // Sentinel errors for Cache construction.
 var (
 	ErrNilTypedStore   = errorfamily.NewRejection("kv.cache.nil_store", "kv: store must not be nil")
-	ErrInvalidCacheCap = errorfamily.NewRejection("kv.cache.invalid_capacity", "kv: capacity must be positive")
+	ErrInvalidCacheCap = errorfamily.NewRejection(
+		"kv.cache.invalid_capacity",
+		"kv: capacity must be positive",
+	)
 )
 
 // Cache wraps a [TypedStore] with an in-memory Otter cache (ADR-0032).

@@ -33,7 +33,10 @@ func NewMemoryBus() *MemoryBus {
 
 var (
 	errNilBusHandler      = event.NewRejection("command.nil_handler", "command: nil handler")
-	errNilBusSubscribeAll = event.NewRejection("command.nil_subscribe_all", "command: subscribe-all: nil handler")
+	errNilBusSubscribeAll = event.NewRejection(
+		"command.nil_subscribe_all",
+		"command: subscribe-all: nil handler",
+	)
 )
 
 // Subscribe registers a handler for a specific command type.

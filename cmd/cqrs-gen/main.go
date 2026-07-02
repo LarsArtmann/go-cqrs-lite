@@ -113,7 +113,7 @@ func scan(paths []string, genType string) ([]Entry, error) {
 		found, err := scanPath(path, genType)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(err, "cqrs_gen.scan",
-				fmt.Sprintf("scan path %s", path))
+				"scan path "+path)
 		}
 		entries = append(entries, found...)
 	}
@@ -127,7 +127,7 @@ func scanPath(root, genType string) ([]Entry, error) {
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return errorfamily.WrapInfrastructure(err, "cqrs_gen.walk",
-				fmt.Sprintf("walk %s", path))
+				"walk "+path)
 		}
 		if d.IsDir() || !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
 			return nil
@@ -155,7 +155,7 @@ func scanFile(path, genType string) ([]Entry, error) {
 	f, err := parser.ParseFile(fset, path, nil, parser.ParseComments)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err, "cqrs_gen.parse",
-			fmt.Sprintf("parse %s", path))
+			"parse "+path)
 	}
 
 	var entries []Entry

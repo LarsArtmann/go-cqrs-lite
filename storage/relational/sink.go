@@ -240,7 +240,8 @@ func (s *sqlSink) rowColumns(table string, row Row) ([]string, []any, error) {
 			return nil, nil, cqrsevent.WrapRejection(
 				errSinkUnknownColumn,
 				"relational.sink_unknown_column",
-				fmt.Sprintf("table %q: column %q", table, name))
+				fmt.Sprintf("table %q: column %q", table, name),
+			)
 		}
 
 		cols = append(cols, name)

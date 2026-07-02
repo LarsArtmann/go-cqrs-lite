@@ -154,8 +154,8 @@ func NewSync(
 
 	if cfg.eventPath != "" || cfg.queryPath != "" || cfg.viewPath != "" {
 		return nil, event.NewRejection("turso_preset.multi_db_incompatible",
-			"turso: multi-DB options (WithEventDB, WithQueryDB, WithViewDB) " +
-				"are incompatible with NewSync — all stores must share one " +
+			"turso: multi-DB options (WithEventDB, WithQueryDB, WithViewDB) "+
+				"are incompatible with NewSync — all stores must share one "+
 				"syncing database")
 	}
 

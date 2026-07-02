@@ -232,5 +232,3 @@ func (s *RelationalStore) requireTable(table string) error {
 
 	return nil
 }
-
-

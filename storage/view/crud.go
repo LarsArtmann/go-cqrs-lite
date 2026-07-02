@@ -66,7 +66,7 @@ func (s *SQLViewStore[V, K]) Set(ctx context.Context, key K, val *V) error {
 	_, err := s.DB.ExecContext(ctx, q, args...)
 	if err != nil {
 		return event.WrapTransient(err, "storage.view.set",
-		fmt.Sprintf("set key %q", key.String()))
+			fmt.Sprintf("set key %q", key.String()))
 	}
 
 	return nil
@@ -89,7 +89,7 @@ func (s *SQLViewStore[V, K]) Delete(ctx context.Context, key K) error {
 	_, err := s.DB.ExecContext(ctx, q, s.keyString(key))
 	if err != nil {
 		return event.WrapTransient(err, "storage.view.delete",
-		fmt.Sprintf("delete key %q", key.String()))
+			fmt.Sprintf("delete key %q", key.String()))
 	}
 
 	return nil

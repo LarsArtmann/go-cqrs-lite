@@ -53,7 +53,11 @@ func buildSecondaryViewOptions(
 		_ = sqlDB.Close()
 		_ = viewDB.Close()
 
-		return nil, event.WrapInfrastructure(err, "postgres.create_view_backend", "create view backend")
+		return nil, event.WrapInfrastructure(
+			err,
+			"postgres.create_view_backend",
+			"create view backend",
+		)
 	}
 
 	kvStore, err := viewBackend.KVStore()

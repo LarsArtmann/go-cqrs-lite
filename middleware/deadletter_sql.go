@@ -50,7 +50,7 @@ func NewSQLDeadLetterStore(db *sql.DB, dialect string) (*SQLDeadLetterStore, err
 	s := &SQLDeadLetterStore{db: db, dialect: dialect}
 
 	if err := s.migrate(); err != nil {
-			return nil, event.WrapInfrastructure(err, "deadletter.migrate",
+		return nil, event.WrapInfrastructure(err, "deadletter.migrate",
 			"migrate dead-letter table")
 	}
 

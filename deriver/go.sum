@@ -14,6 +14,8 @@ github.com/larsartmann/go-branded-id v0.3.1 h1:n53Vz3MCUy3S8YfW/v+zxL/qT96iiXZOT
 github.com/larsartmann/go-branded-id v0.3.1/go.mod h1:fiv3t1PyNCITnE/8KtymGCUz7tQRuQxF+8oqNdFmA/Y=
 github.com/larsartmann/go-cqrs-lite/codec/v3 v3.3.0 h1:I2gbOs582TR0CB/ZSPeOQIxNzS87RSXG2QEPSOaaLlw=
 github.com/larsartmann/go-cqrs-lite/codec/v3 v3.3.0/go.mod h1:Lkta6jxYz+IeYJUSdGT8MTkDuj50hD5od2CLDNbTOYo=
+github.com/larsartmann/go-cqrs-lite/codec/v3 v3.5.0 h1:Vb5z2e1uSROgCPZyTPX7EUQd8591O8I4wGNctnHVQ6Y=
+github.com/larsartmann/go-cqrs-lite/codec/v3 v3.5.0/go.mod h1:utx7cQNt76Yuueau3KnzArk77Nj5vSlji9UbvrkiZbU=
 github.com/larsartmann/go-cqrs-lite/query/v3 v3.3.0 h1:MCg/5OcadTDtY2MtoPu8qHmPR/RmNSyibSee+28DJGM=
 github.com/larsartmann/go-cqrs-lite/query/v3 v3.3.0/go.mod h1:H/yVbHLCCUbRfcBkVri7FmyVrHkHFnn6eMtsjZVuOT4=
 github.com/larsartmann/go-cqrs-lite/schema/v3 v3.0.0 h1:6f0fcorVfPgpMMTVb/LKcYKbOxLEoJ4C+tpl/3ukfxg=

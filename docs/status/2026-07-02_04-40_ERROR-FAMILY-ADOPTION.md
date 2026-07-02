@@ -14,14 +14,15 @@ Systematic adoption of the `go-error-family` 5-family taxonomy (Rejection / Conf
 
 ### Before vs After (branching-flow metrics)
 
-| Metric | Before | After | Delta |
-|--------|--------|-------|-------|
-| Semantic context error rows | 59 | 21 | **-64%** |
-| Sites with `Error Family: false` | ~55 | ~10 | **-82%** |
-| Bare `return err` (no wrapping) | ~40 | ~10 | **-75%** |
-| `fmt.Errorf` without family | ~20 | ~3 | **-85%** |
+| Metric                           | Before | After | Delta    |
+| -------------------------------- | ------ | ----- | -------- |
+| Semantic context error rows      | 59     | 21    | **-64%** |
+| Sites with `Error Family: false` | ~55    | ~10   | **-82%** |
+| Bare `return err` (no wrapping)  | ~40    | ~10   | **-75%** |
+| `fmt.Errorf` without family      | ~20    | ~3    | **-85%** |
 
 The remaining 21 rows are:
+
 - **9 propagating pre-classified errors** (graph validate() → Rejection, relational rowColumns → Rejection, ctx.Err() → context cancellation)
 - **3 storage/view** sites (not in original scope — added in a later session)
 - **1 watermill/protocol.go** (not in original scope)
@@ -30,21 +31,21 @@ The remaining 21 rows are:
 
 ## Modules Completed (17 commits)
 
-| Module | Files | Sites | Families Used |
-|--------|-------|-------|---------------|
-| idempotency | kv_store.go | 3 | Transient |
-| storage/pebble | journal.go, command_read.go, query_read.go, iteration.go, backend.go | ~18 | Infrastructure, Corruption |
-| projectionhost | host.go | 1 | Infrastructure |
-| catalog | frontmatter_render.go | 1 | Corruption |
-| storage (core) | pg_bus_listen.go, event_store_stream.go, memory/stream.go | 6 | Infrastructure |
-| cmd/cqrs-gen | main.go | 3 | Infrastructure |
-| stack/pebble | preset.go | 2 | Infrastructure |
-| stack/postgres | pg_listener.go, preset.go | 12 | Rejection (DSN), Infrastructure |
-| stack/sqlite | preset.go | 11 | Infrastructure |
-| stack/turso | preset.go | 12 | Rejection (multi-DB), Infrastructure |
-| middleware | deadletter_sql.go | 7 | Infrastructure, Transient, Corruption |
-| storage (kv_sql) | kv_sql.go | 13 | Transient, Infrastructure, Corruption |
-| storage/relational | store.go, sink.go, schema.go, projection.go | ~25 | Rejection, Transient, Corruption |
+| Module             | Files                                                                | Sites | Families Used                         |
+| ------------------ | -------------------------------------------------------------------- | ----- | ------------------------------------- |
+| idempotency        | kv_store.go                                                          | 3     | Transient                             |
+| storage/pebble     | journal.go, command_read.go, query_read.go, iteration.go, backend.go | ~18   | Infrastructure, Corruption            |
+| projectionhost     | host.go                                                              | 1     | Infrastructure                        |
+| catalog            | frontmatter_render.go                                                | 1     | Corruption                            |
+| storage (core)     | pg_bus_listen.go, event_store_stream.go, memory/stream.go            | 6     | Infrastructure                        |
+| cmd/cqrs-gen       | main.go                                                              | 3     | Infrastructure                        |
+| stack/pebble       | preset.go                                                            | 2     | Infrastructure                        |
+| stack/postgres     | pg_listener.go, preset.go                                            | 12    | Rejection (DSN), Infrastructure       |
+| stack/sqlite       | preset.go                                                            | 11    | Infrastructure                        |
+| stack/turso        | preset.go                                                            | 12    | Rejection (multi-DB), Infrastructure  |
+| middleware         | deadletter_sql.go                                                    | 7     | Infrastructure, Transient, Corruption |
+| storage (kv_sql)   | kv_sql.go                                                            | 13    | Transient, Infrastructure, Corruption |
+| storage/relational | store.go, sink.go, schema.go, projection.go                          | ~25   | Rejection, Transient, Corruption      |
 
 **Graph module** (`graph/memory.go`, `schema_sink.go`): Already fully classified via `event.NewRejection` sentinels in `errors.go`. Bare returns propagate pre-classified errors — no wrapping needed.
 
@@ -52,13 +53,13 @@ The remaining 21 rows are:
 
 ## Classification Strategy
 
-| Family | When | HTTP Status | Retryable |
-|--------|------|-------------|-----------|
-| **Rejection** | Bad input, caller misuse, schema validation, not found | 400 | No |
-| **Conflict** | Version mismatch, duplicate key, optimistic lock failure | 409 | No |
-| **Transient** | Network, timeout, connection pool, SQL execution failure | 503 | Yes |
-| **Corruption** | Deserialization failure, data integrity violation | 500 | No |
-| **Infrastructure** | DB down, config error, resource unavailable, lifecycle | 503 | No |
+| Family             | When                                                     | HTTP Status | Retryable |
+| ------------------ | -------------------------------------------------------- | ----------- | --------- |
+| **Rejection**      | Bad input, caller misuse, schema validation, not found   | 400         | No        |
+| **Conflict**       | Version mismatch, duplicate key, optimistic lock failure | 409         | No        |
+| **Transient**      | Network, timeout, connection pool, SQL execution failure | 503         | Yes       |
+| **Corruption**     | Deserialization failure, data integrity violation        | 500         | No        |
+| **Infrastructure** | DB down, config error, resource unavailable, lifecycle   | 503         | No        |
 
 ### Facade Pattern
 

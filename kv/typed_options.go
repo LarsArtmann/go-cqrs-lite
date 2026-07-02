@@ -9,7 +9,10 @@ import (
 )
 
 // errNilTypedValue is returned by [TypedStore.Set] when val is nil.
-var errNilTypedValue = errorfamily.NewRejection("kv.nil_value", "kv: TypedStore.Set called with a nil value")
+var errNilTypedValue = errorfamily.NewRejection(
+	"kv.nil_value",
+	"kv: TypedStore.Set called with a nil value",
+)
 
 // TypedOption configures a [TypedStore]. It follows the codebase convention of
 // func(*T) with no error return: invalid options are either ignored or panic

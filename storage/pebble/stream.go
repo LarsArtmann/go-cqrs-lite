@@ -92,7 +92,11 @@ func (it *pebbleEventIterator) Close() error {
 
 	err := it.iter.Close()
 	if err != nil {
-		return event.WrapInfrastructure(err, "pebble.stream.close_iterator", "close pebble iterator")
+		return event.WrapInfrastructure(
+			err,
+			"pebble.stream.close_iterator",
+			"close pebble iterator",
+		)
 	}
 
 	return nil

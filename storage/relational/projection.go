@@ -148,11 +148,11 @@ var errRelational = cqrsevent.NewRejection(
 )
 
 var (
-	errRelationalNoName     = cqrsevent.NewRejection(
+	errRelationalNoName = cqrsevent.NewRejection(
 		"relational.no_name",
 		"relational projection: name is required",
 	)
-	errRelationalNilDB      = cqrsevent.NewRejection(
+	errRelationalNilDB = cqrsevent.NewRejection(
 		"relational.nil_db",
 		"relational projection: db must not be nil",
 	)

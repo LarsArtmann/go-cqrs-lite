@@ -125,7 +125,7 @@ func (m *Materialize[V, K]) HandlerFunc() message.NoPublishHandlerFunc {
 		if err := m.handleEvent(ctx, evt); err != nil {
 			return event.Wrap(err, event.Classify(err),
 				"stack.materialize.handle_event",
-				fmt.Sprintf("handle event %s", evt.ID().String()))
+				"handle event "+evt.ID().String())
 		}
 
 		return nil
