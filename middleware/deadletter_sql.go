@@ -50,7 +50,8 @@ func NewSQLDeadLetterStore(db *sql.DB, dialect string) (*SQLDeadLetterStore, err
 	s := &SQLDeadLetterStore{db: db, dialect: dialect}
 
 	if err := s.migrate(); err != nil {
-		return nil, fmt.Errorf("sql dead letter store: migrate: %w", err)
+			return nil, event.WrapInfrastructure(err, "deadletter.migrate",
+			"migrate dead-letter table")
 	}
 
 	return s, nil
@@ -60,7 +61,8 @@ func (s *SQLDeadLetterStore) migrate() error {
 	ctx := context.Background()
 
 	if _, err := s.db.ExecContext(ctx, s.schemaSQL()); err != nil {
-		return fmt.Errorf("create table %s: %w", tableDeadLetters, err)
+		return event.WrapInfrastructure(err, "deadletter.create_table",
+			"create dead_letters table")
 	}
 
 	s.migrateColumns(ctx)
@@ -194,7 +196,8 @@ func (s *SQLDeadLetterStore) Entries(ctx context.Context) ([]DeadLetterEntry, er
 
 	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil {
-		return nil, fmt.Errorf("sql dead letter store: query: %w", err)
+		return nil, event.WrapTransient(err, "deadletter.query",
+			"query dead-letter entries")
 	}
 
 	defer func() { _ = rows.Close() }()
@@ -223,7 +226,8 @@ func (s *SQLDeadLetterStore) Entries(ctx context.Context) ([]DeadLetterEntry, er
 			&attempts,
 			&failedAtRaw,
 		); err != nil {
-			return nil, fmt.Errorf("sql dead letter store: scan: %w", err)
+			return nil, event.WrapCorruption(err, "deadletter.scan",
+				"scan dead-letter row")
 		}
 
 		entry := DeadLetterEntry{ //nolint:exhaustruct // AggregateID/Error/FailedAt set below
@@ -253,7 +257,8 @@ func (s *SQLDeadLetterStore) Entries(ctx context.Context) ([]DeadLetterEntry, er
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("sql dead letter store: rows: %w", err)
+		return nil, event.WrapTransient(err, "deadletter.rows_err",
+			"dead-letter rows iteration")
 	}
 
 	return entries, nil
@@ -267,7 +272,8 @@ func (s *SQLDeadLetterStore) Count(ctx context.Context) (int, error) {
 
 	err := s.db.QueryRowContext(ctx, query).Scan(&count)
 	if err != nil {
-		return 0, fmt.Errorf("sql dead letter store: count: %w", err)
+		return 0, event.WrapTransient(err, "deadletter.count",
+			"count dead-letter entries")
 	}
 
 	return count, nil
@@ -278,7 +284,8 @@ func (s *SQLDeadLetterStore) Clear(ctx context.Context) error {
 	query := "DELETE FROM " + tableDeadLetters
 
 	if _, err := s.db.ExecContext(ctx, query); err != nil {
-		return fmt.Errorf("sql dead letter store: clear: %w", err)
+		return event.WrapInfrastructure(err, "deadletter.clear",
+			"clear dead-letter table")
 	}
 
 	return nil
