@@ -110,7 +110,8 @@ func New(dsn string, opts ...Option) (*stack.Bundle, error) {
 func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	sqlDB, backend, err := openBackend(dsn, cfg)
 	if err != nil {
-		return nil, err
+		return nil, event.WrapInfrastructure(err, "postgres_preset.open_backend",
+			"open primary backend")
 	}
 
 	stackOpts := sqlopt.AllOptions(backend)
@@ -123,7 +124,8 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 			_ = backend.Close()
 			_ = sqlDB.Close()
 
-			return nil, fmt.Errorf("postgres preset: open event db: %w", eErr)
+			return nil, event.WrapInfrastructure(eErr, "postgres_preset.open_event_db",
+				"open event database")
 		}
 
 		stackOpts = append(stackOpts, sqlopt.EventStoreOptions(evtBackend)...)
@@ -138,7 +140,8 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 			_ = backend.Close()
 			_ = sqlDB.Close()
 
-			return nil, fmt.Errorf("postgres preset: open query db: %w", qErr)
+			return nil, event.WrapInfrastructure(qErr, "postgres_preset.open_query_db",
+				"open query database")
 		}
 
 		stackOpts = append(stackOpts, sqlopt.QueryStoreOptions(qBackend)...)
@@ -150,7 +153,8 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 		_ = backend.Close()
 		_ = sqlDB.Close()
 
-		return nil, fmt.Errorf("postgres preset: bus: %w", err)
+		return nil, event.WrapInfrastructure(err, "postgres_preset.bus",
+			"build event bus")
 	}
 
 	stackOpts = append(stackOpts, stack.WithBus(bus))
@@ -161,7 +165,8 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 
 	viewOpts, err := buildViewOptions(cfg, backend, sqlDB)
 	if err != nil {
-		return nil, err
+		return nil, event.WrapInfrastructure(err, "postgres_preset.view_options",
+			"build view options")
 	}
 
 	stackOpts = append(stackOpts, viewOpts...)
@@ -178,7 +183,8 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 		_ = backend.Close()
 		_ = sqlDB.Close()
 
-		return nil, fmt.Errorf("postgres preset: wire bundle: %w", err)
+		return nil, event.WrapInfrastructure(err, "postgres_preset.wire_bundle",
+			"wire postgres bundle")
 	}
 
 	return b, nil
@@ -189,7 +195,8 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 	sqlDB, err := sql.Open("pgx", dsn)
 	if err != nil {
-		return nil, nil, fmt.Errorf("postgres preset: open %q: %w", dsn, err)
+		return nil, nil, event.WrapInfrastructure(err, "postgres_preset.open_primary",
+			fmt.Sprintf("open postgres %q", dsn))
 	}
 
 	ctx := context.Background()
@@ -199,7 +206,8 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 		if err != nil {
 			_ = sqlDB.Close()
 
-			return nil, nil, fmt.Errorf("postgres preset: init schema: %w", err)
+			return nil, nil, event.WrapInfrastructure(err, "postgres_preset.init_schema",
+				"initialize postgres schema")
 		}
 	}
 
@@ -207,7 +215,8 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 	if err != nil {
 		_ = sqlDB.Close()
 
-		return nil, nil, fmt.Errorf("postgres preset: create backend: %w", err)
+		return nil, nil, event.WrapInfrastructure(err, "postgres_preset.create_backend",
+			"create SQL backend")
 	}
 
 	return sqlDB, backend, nil
@@ -229,7 +238,8 @@ func buildBus(
 
 	pgBus, err := storage.NewPostgresBus(dbHandle, store, cfg.listener, cfg.busOpts...)
 	if err != nil {
-		return nil, nil, fmt.Errorf("create postgres bus: %w", err)
+		return nil, nil, event.WrapInfrastructure(err, "postgres_preset.create_bus",
+			"create postgres LISTEN/NOTIFY bus")
 	}
 
 	return pgBus, pgBus, nil
