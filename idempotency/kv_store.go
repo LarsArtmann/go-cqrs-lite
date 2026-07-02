@@ -42,7 +42,7 @@ func (s *KVStore) Seen(ctx context.Context, key string) (bool, error) {
 			return false, nil
 		}
 
-		return false, err
+		return false, event.Wrapf(err, event.Transient, "idempotency.kv.seen", "key %q", key)
 	}
 
 	expiry, err := strconv.ParseInt(string(val), 10, 64)
@@ -99,7 +99,7 @@ func (s *KVStore) CheckAndRecord(ctx context.Context, key string, ttl time.Durat
 			return ErrDuplicate
 		}
 
-		return err
+		return event.Wrapf(err, event.Transient, "idempotency.kv.check_existing", "key %q", key)
 	}
 
 	prevExpiry, err := strconv.ParseInt(string(existing), 10, 64)
@@ -113,7 +113,13 @@ func (s *KVStore) CheckAndRecord(ctx context.Context, key string, ttl time.Durat
 	if time.Now().UnixNano() >= prevExpiry {
 		// Expired — overwrite and claim.
 		if err := s.backend.Set([]byte(key), val); err != nil {
-			return err
+			return event.Wrapf(
+				err,
+				event.Transient,
+				"idempotency.kv.overwrite_expired",
+				"key %q",
+				key,
+			)
 		}
 
 		return nil
