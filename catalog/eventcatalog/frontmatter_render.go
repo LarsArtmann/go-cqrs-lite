@@ -5,6 +5,7 @@ import (
 	"time"
 
 	yaml "github.com/go-faster/yaml"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
 )
@@ -13,7 +14,8 @@ import (
 func renderMDX(fm any, title, summary string, includeGraph bool) (string, error) {
 	data, err := yaml.Marshal(fm)
 	if err != nil {
-		return "", fmt.Errorf("marshal frontmatter: %w", err)
+		return "", errorfamily.WrapCorruption(err, "catalog.marshal_frontmatter",
+			"marshal frontmatter to YAML")
 	}
 
 	body := fmt.Sprintf("---\n%s---\n\n# %s\n", string(data), title)
