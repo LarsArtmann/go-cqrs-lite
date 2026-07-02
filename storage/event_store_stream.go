@@ -92,7 +92,8 @@ func (s *SQLEventStore) streamByAggregate(
 	_ string,
 ) (event.EventIterator, error) {
 	if err := s.checkClosed(); err != nil {
-		return nil, err
+		return nil, event.WrapInfrastructure(err, "storage.stream_by_aggregate",
+			"stream events for aggregate")
 	}
 
 	p1, p2 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2)
@@ -118,7 +119,8 @@ func (s *SQLEventStore) streamByAggregate(
 // It yields every event in the store ordered by occurred_at, one at a time.
 func (s *SQLEventStore) ReadStream(ctx context.Context) (event.EventIterator, error) {
 	if err := s.checkClosed(); err != nil {
-		return nil, err
+		return nil, event.WrapInfrastructure(err, "storage.stream_read_all",
+			"stream all events")
 	}
 
 	_, span := cqrsotel.StartSpan(ctx, sqlpkg.Tracer(), "event.store.read_stream",

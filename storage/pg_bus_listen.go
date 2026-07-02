@@ -98,7 +98,8 @@ func (b *PostgresBus) refetchByID(
 		}
 
 		if !errors.Is(loadErr, event.ErrEventNotFound) {
-			return nil, loadErr
+			return nil, event.WrapInfrastructure(loadErr, "pg_bus.refetch_by_id",
+				"load event by ID during refetch")
 		}
 
 		lastErr = loadErr
