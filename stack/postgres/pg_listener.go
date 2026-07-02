@@ -10,6 +10,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
 
@@ -107,7 +108,8 @@ func NewPgxListenerFromDSN(
 ) (*PgxListener, error) {
 	cfg, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
-		return nil, fmt.Errorf("pgx_listener: parse dsn: %w", err)
+		return nil, event.WrapRejection(err, "pgx_listener.parse_dsn",
+			"parse PostgreSQL DSN")
 	}
 
 	// A listener needs only one connection. Pool-concurrency of 1 guarantees
@@ -116,7 +118,8 @@ func NewPgxListenerFromDSN(
 
 	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
-		return nil, fmt.Errorf("pgx_listener: create pool: %w", err)
+		return nil, event.WrapInfrastructure(err, "pgx_listener.create_pool",
+			"create pgx connection pool")
 	}
 
 	l := NewPgxListener(pool, opts...)
