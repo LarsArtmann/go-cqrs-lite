@@ -67,7 +67,8 @@ func (a *EventStore) Load(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, err
+		return nil, event.WrapInfrastructure(err, "pebble.event_load",
+			"load events for aggregate")
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))
@@ -93,7 +94,8 @@ func (a *EventStore) LoadFromVersion(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, err
+		return nil, event.WrapInfrastructure(err, "pebble.event_load_from_version",
+			"load events from version")
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))
@@ -112,7 +114,8 @@ func (a *EventStore) loadFiltered(
 
 	events, err := a.iterateEvents(prefix, upperBound, predicate)
 	if err != nil {
-		return nil, err
+		return nil, event.WrapInfrastructure(err, "pebble.event_load_filtered",
+			"load filtered events")
 	}
 
 	if len(events) == 0 {
@@ -138,7 +141,8 @@ func (a *EventStore) LoadToVersion(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, err
+		return nil, event.WrapInfrastructure(err, "pebble.event_load_to_version",
+			"load events up to version")
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))
@@ -167,7 +171,8 @@ func (a *EventStore) LoadToTimestamp(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, err
+		return nil, event.WrapInfrastructure(err, "pebble.event_load_to_timestamp",
+			"load events up to timestamp")
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))

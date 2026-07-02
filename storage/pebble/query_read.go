@@ -28,7 +28,8 @@ func (s *QueryStore) LoadQueries(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, err
+		return nil, event.WrapInfrastructure(err, "pebble.query_load_queries",
+			"load queries after timestamp")
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt("query.count", len(queries)))
@@ -47,7 +48,8 @@ func (s *QueryStore) ReadAllQueries(ctx context.Context) ([]*query.PersistedQuer
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, err
+		return nil, event.WrapInfrastructure(err, "pebble.query_read_all",
+			"read all queries from journal")
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt("query.count", len(queries)))
@@ -77,7 +79,8 @@ func (s *QueryStore) ReadQueriesFrom(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, err
+		return nil, event.WrapInfrastructure(err, "pebble.query_read_from",
+			"read queries from journal after checkpoint")
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt("query.count", len(queries)))

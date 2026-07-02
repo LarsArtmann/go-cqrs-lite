@@ -37,7 +37,8 @@ func (a *EventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, err
+		return nil, event.WrapInfrastructure(err, "pebble.journal_read_all",
+			"read all events from journal")
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))
@@ -71,7 +72,8 @@ func (a *EventStore) ReadFrom(
 		if err != nil {
 			cqrsotel.RecordError(span, err)
 
-			return nil, err
+			return nil, event.WrapInfrastructure(err, "pebble.journal_read_from",
+				"read events from journal beginning")
 		}
 
 		span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))
@@ -90,7 +92,8 @@ func (a *EventStore) ReadFrom(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, err
+		return nil, event.WrapInfrastructure(err, "pebble.journal_read_from",
+			"read events from journal (narrowed seek)")
 	}
 
 	// Fallback: target not in narrowed range (rare edge case — backdated event).
@@ -100,7 +103,8 @@ func (a *EventStore) ReadFrom(
 		if err != nil {
 			cqrsotel.RecordError(span, err)
 
-			return nil, err
+			return nil, event.WrapInfrastructure(err, "pebble.journal_read_from",
+				"read events from journal (fallback scan)")
 		}
 	}
 

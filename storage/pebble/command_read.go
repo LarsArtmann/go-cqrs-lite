@@ -28,7 +28,8 @@ func (s *CommandStore) Load(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, err
+		return nil, event.WrapInfrastructure(err, "pebble.command_load",
+			"load commands for aggregate")
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt("command.count", len(cmds)))
@@ -58,7 +59,8 @@ func (s *CommandStore) LoadFromTimestamp(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, err
+		return nil, event.WrapInfrastructure(err, "pebble.command_load_from_timestamp",
+			"load commands after timestamp")
 	}
 
 	return cmds, nil
@@ -84,7 +86,8 @@ func (s *CommandStore) LoadToTimestamp(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, err
+		return nil, event.WrapInfrastructure(err, "pebble.command_load_to_timestamp",
+			"load commands up to timestamp")
 	}
 
 	return cmds, nil
@@ -105,7 +108,8 @@ func (s *CommandStore) ReadAll(ctx context.Context) ([]*command.PersistedCommand
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, err
+		return nil, event.WrapInfrastructure(err, "pebble.command_read_all",
+			"read all commands from journal")
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt("command.count", len(cmds)))
@@ -139,7 +143,8 @@ func (s *CommandStore) ReadFrom(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, err
+		return nil, event.WrapInfrastructure(err, "pebble.command_read_from",
+			"read commands from journal after checkpoint")
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt("command.count", len(cmds)))
@@ -214,12 +219,11 @@ func (s *CommandStore) scanCommands(
 }
 
 // journalKeyCommandID extracts the command ID portion from a journal key.
-// Journal key format: {prefix}{commandID}.
 func journalKeyCommandID(key []byte) string {
-	prefixLen := len("cqrs_cmd_journal:")
-
-	if len(key) > prefixLen {
-		return string(key[prefixLen:])
+	for i := len(key) - 1; i >= 0; i-- { //nolint:modernize // reverse scan is clearer here
+		if key[i] == ':' {
+			return string(key[i+1:])
+		}
 	}
 
 	return string(key)
