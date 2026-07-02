@@ -2,9 +2,8 @@ package turso
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3/sqlopt"
 	cqrsturso "github.com/larsartmann/go-cqrs-lite/storage/turso/v3"
@@ -154,11 +153,10 @@ func NewSync(
 	}
 
 	if cfg.eventPath != "" || cfg.queryPath != "" || cfg.viewPath != "" {
-		return nil, errors.New(
+		return nil, event.NewRejection("turso_preset.multi_db_incompatible",
 			"turso: multi-DB options (WithEventDB, WithQueryDB, WithViewDB) " +
 				"are incompatible with NewSync — all stores must share one " +
-				"syncing database",
-		)
+				"syncing database")
 	}
 
 	return newSyncBundle(ctx, dbPath, remoteURL, authToken, cfg)
@@ -167,7 +165,8 @@ func NewSync(
 func newLocalBundle(dbPath string, cfg config) (*Bundle, error) {
 	sqlDB, backend, err := openLocalBackend(dbPath, cfg)
 	if err != nil {
-		return nil, err
+		return nil, event.WrapInfrastructure(err, "turso_preset.open_local_backend",
+			"open local backend")
 	}
 
 	stackOpts := sqlopt.AllOptions(backend)
@@ -181,7 +180,8 @@ func newLocalBundle(dbPath string, cfg config) (*Bundle, error) {
 			_ = backend.Close()
 			_ = sqlDB.Close()
 
-			return nil, fmt.Errorf("turso: open event db: %w", eErr)
+			return nil, event.WrapInfrastructure(eErr, "turso_preset.open_event_db",
+				"open event database")
 		}
 
 		stackOpts = append(stackOpts, sqlopt.EventStoreOptions(evtBackend)...)
@@ -196,7 +196,8 @@ func newLocalBundle(dbPath string, cfg config) (*Bundle, error) {
 			_ = backend.Close()
 			_ = sqlDB.Close()
 
-			return nil, fmt.Errorf("turso: open query db: %w", qErr)
+			return nil, event.WrapInfrastructure(qErr, "turso_preset.open_query_db",
+				"open query database")
 		}
 
 		stackOpts = append(stackOpts, sqlopt.QueryStoreOptions(qBackend)...)
@@ -208,7 +209,8 @@ func newLocalBundle(dbPath string, cfg config) (*Bundle, error) {
 
 	viewOpts, err := buildViewOptions(cfg, backend, sqlDB)
 	if err != nil {
-		return nil, err
+		return nil, event.WrapInfrastructure(err, "turso_preset.view_options",
+			"build view options")
 	}
 
 	stackOpts = append(stackOpts, viewOpts...)
@@ -227,7 +229,8 @@ func newLocalBundle(dbPath string, cfg config) (*Bundle, error) {
 
 		_ = sqlDB.Close()
 
-		return nil, fmt.Errorf("turso: wire bundle: %w", err)
+		return nil, event.WrapInfrastructure(err, "turso_preset.wire_local_bundle",
+			"wire local turso bundle")
 	}
 
 	return &Bundle{Bundle: b}, nil
@@ -246,7 +249,8 @@ func newSyncBundle(
 		cfg.syncOpts...,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("turso: open sync db: %w", err)
+		return nil, event.WrapInfrastructure(err, "turso_preset.open_sync_db",
+			"open syncing turso database")
 	}
 
 	sqlDB := syncDB.DB
@@ -256,14 +260,16 @@ func newSyncBundle(
 	if err := applySchemaAndPragmas(sqlDB, cfg); err != nil {
 		_ = syncDB.Close()
 
-		return nil, err
+		return nil, event.WrapInfrastructure(err, "turso_preset.schema_pragmas",
+			"apply schema and pragmas")
 	}
 
 	backend, err := cqrsturso.NewBackend(sqlDB)
 	if err != nil {
 		_ = syncDB.Close()
 
-		return nil, fmt.Errorf("turso: create backend: %w", err)
+		return nil, event.WrapInfrastructure(err, "turso_preset.create_backend",
+			"create turso backend")
 	}
 
 	stackOpts := sqlopt.AllOptions(backend)
@@ -275,7 +281,8 @@ func newSyncBundle(
 		_ = backend.Close()
 		_ = syncDB.Close()
 
-		return nil, fmt.Errorf("turso: kv store: %w", err)
+		return nil, event.WrapInfrastructure(err, "turso_preset.kv_store",
+			"create KV store")
 	}
 
 	stackOpts = append(stackOpts, stack.WithReadModels(kvStore))
@@ -293,7 +300,8 @@ func newSyncBundle(
 		_ = backend.Close()
 		_ = syncDB.Close()
 
-		return nil, fmt.Errorf("turso: wire bundle: %w", err)
+		return nil, event.WrapInfrastructure(err, "turso_preset.wire_sync_bundle",
+			"wire sync turso bundle")
 	}
 
 	return &Bundle{Bundle: b, syncDB: syncDB}, nil
