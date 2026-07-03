@@ -104,7 +104,7 @@ func (c *QueryClient) Ask(ctx context.Context, queryType string, out any) error 
 	)
 	if err != nil {
 		return cqrsevent.WrapInfrastructure(err, "grpc.ask",
-			fmt.Sprintf("ask %s", queryType))
+			"ask "+queryType)
 	}
 
 	if result.GetError() != "" {
