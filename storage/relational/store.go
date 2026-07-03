@@ -90,7 +90,7 @@ func (s *RelationalStore) Count(
 
 	if err := s.db.QueryRowContext(ctx, b.String(), args...).Scan(&count); err != nil {
 		return 0, cqrsevent.WrapTransient(err, "relational.count",
-			fmt.Sprintf("count rows in %s", table))
+			"count rows in "+table)
 	}
 
 	return count, nil
@@ -191,7 +191,7 @@ func (s *RelationalStore) Query(
 	rows, err := s.db.QueryContext(ctx, b.String(), args...)
 	if err != nil {
 		return cqrsevent.WrapTransient(err, "relational.query",
-			fmt.Sprintf("query %s", table))
+			"query "+table)
 	}
 
 	defer func() { _ = rows.Close() }()

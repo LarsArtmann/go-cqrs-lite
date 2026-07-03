@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
-
 	cqrsturso "github.com/larsartmann/go-cqrs-lite/storage/turso/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )

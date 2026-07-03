@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
-
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
 )
 
@@ -245,7 +244,7 @@ func (s *SQLViewStore[V, K]) createTable(ctx context.Context) error {
 	_, err := s.DB.ExecContext(ctx, b.String())
 	if err != nil {
 		return event.WrapInfrastructure(err, "storage.view.create_table",
-			fmt.Sprintf("create table %s", s.mapper.Table))
+			"create table "+s.mapper.Table)
 	}
 
 	return nil
@@ -257,7 +256,7 @@ func (s *SQLViewStore[V, K]) createIndexes(ctx context.Context) error {
 			idx.Name, s.mapper.Table, strings.Join(idx.Columns, ", "))
 		if _, err := s.DB.ExecContext(ctx, stmt); err != nil {
 			return event.WrapInfrastructure(err, "storage.view.create_index",
-				fmt.Sprintf("create index %s", idx.Name))
+				"create index "+idx.Name)
 		}
 	}
 

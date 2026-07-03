@@ -109,7 +109,7 @@ func (s *sqlSink) Upsert(ctx context.Context, table string, row Row, conflictCol
 
 	if _, err := s.tx.ExecContext(ctx, query, vals...); err != nil {
 		return cqrsevent.WrapTransient(err, "relational.sink_upsert",
-			fmt.Sprintf("upsert into %s", table))
+			"upsert into "+table)
 	}
 
 	return nil
@@ -130,7 +130,7 @@ func (s *sqlSink) Ensure(ctx context.Context, table string, row Row) error {
 
 	if _, err := s.tx.ExecContext(ctx, query, vals...); err != nil {
 		return cqrsevent.WrapTransient(err, "relational.sink_ensure",
-			fmt.Sprintf("ensure into %s", table))
+			"ensure into "+table)
 	}
 
 	return nil
@@ -162,7 +162,7 @@ func (s *sqlSink) Update(ctx context.Context, table string, set, match Row) erro
 
 	if _, err := s.tx.ExecContext(ctx, query, args...); err != nil {
 		return cqrsevent.WrapTransient(err, "relational.sink_update",
-			fmt.Sprintf("update %s", table))
+			"update "+table)
 	}
 
 	return nil
@@ -180,7 +180,7 @@ func (s *sqlSink) DeleteWhere(ctx context.Context, table string, match Row) erro
 
 	if _, err := s.tx.ExecContext(ctx, query, whereArgs...); err != nil {
 		return cqrsevent.WrapTransient(err, "relational.sink_delete",
-			fmt.Sprintf("delete from %s", table))
+			"delete from "+table)
 	}
 
 	return nil

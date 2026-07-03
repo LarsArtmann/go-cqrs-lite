@@ -1,8 +1,6 @@
 package pebble
 
 import (
-	"fmt"
-
 	"github.com/cockroachdb/pebble"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
@@ -20,7 +18,7 @@ func (b *Backend) Checkpoint(dir string) error {
 	err := b.database.Checkpoint(dir)
 	if err != nil {
 		return event.WrapInfrastructure(err, "pebble.checkpoint",
-			fmt.Sprintf("checkpoint to %s", dir))
+			"checkpoint to "+dir)
 	}
 
 	return nil
