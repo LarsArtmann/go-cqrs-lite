@@ -13,7 +13,7 @@ use (
 	./dispatcher
 	./encryption
 	./event
-	./event/eventtest
+	./event/v3/eventtest
 	./example/deployer-first
 	./example/deployer-first-heterogeneous
 	./example/deployer-first-multidb

@@ -31,7 +31,7 @@ require (
 	golang.org/x/sys v0.46.0 // indirect
 )
 
-replace github.com/larsartmann/go-cqrs-lite/event/v3/eventtest => ../../event/eventtest
+replace github.com/larsartmann/go-cqrs-lite/event/v3/eventtest => ../../event/v3/eventtest
 
 replace (
 	github.com/larsartmann/go-cqrs-lite/codec/v3 => ../../codec

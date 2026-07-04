@@ -124,4 +124,4 @@ replace github.com/larsartmann/go-cqrs-lite/stack/v3 => ../stack
 
 replace github.com/larsartmann/go-cqrs-lite/watermill/v3 => ../watermill
 
-replace github.com/larsartmann/go-cqrs-lite/event/v3/eventtest => ../event/eventtest
+replace github.com/larsartmann/go-cqrs-lite/event/v3/eventtest => ../event/v3/eventtest
