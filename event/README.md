@@ -105,7 +105,7 @@ return event.NewCorruption("store.invalid_event", "checksum mismatch")
 
 | Package           | Purpose                                                |
 | ----------------- | ------------------------------------------------------ |
-| `event/eventtest` | FakeStore, FakeBus, FakeSnapshotStore, test assertions |
+| `event/v3/eventtest` | FakeStore, FakeBus, FakeSnapshotStore, test assertions |
 
 ## Dependencies
 

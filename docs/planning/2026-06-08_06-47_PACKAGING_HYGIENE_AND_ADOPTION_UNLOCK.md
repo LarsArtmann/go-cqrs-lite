@@ -29,7 +29,7 @@
 
 ### Blocked — Go module system limitations
 
-- ❌ **eventtest as separate module** — Go doesn't support nested modules whose path is a sub-path of the parent module. Making eventtest a top-level module would change the import path for 40+ consumers. The test-only deps (command, query, memory, schema, snapshot) in event/go.mod can't be removed without removing the \_test.go files that import them.
+- ✅ **eventtest as separate module** — RESOLVED (2026-07-05). The original claim "Go doesn't support nested modules" was incorrect. Nested modules ARE supported, but the directory must match the module path per the Go spec. Moved from `event/eventtest/` to `event/v3/eventtest/` so VCS resolution finds `go.mod` at the expected path. See `docs/adr/0044-eventtest-module-path-fix.md`.
 - ⚠️ **Reactive split** — Same nested module problem. Would need a top-level module (e.g. `eventbus/`) which changes import paths. The `samber/ro` dep is lightweight and acceptable for an event sourcing library.
 
 ### Deferred — multi-day effort

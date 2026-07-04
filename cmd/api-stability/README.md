@@ -20,7 +20,7 @@ api-stability
 api-stability -update
 ```
 
-The golden file lives at `docs/api_surface.txt`. It enumerates every exported symbol across 17 core packages: `command`, `event`, `query`, `decider`, `id`, `dispatcher`, `memory`, `catalog`, `middleware`, `signing`, `encryption`, `projection`, `listing`, `otel`, `storage`, `event/eventtest`, `watermill`.
+The golden file lives at `docs/api_surface.txt`. It enumerates every exported symbol across 17 core packages: `command`, `event`, `query`, `decider`, `id`, `dispatcher`, `memory`, `catalog`, `middleware`, `signing`, `encryption`, `projection`, `listing`, `otel`, `storage`, `event/v3/eventtest`, `watermill`.
 
 ## How It Works
 

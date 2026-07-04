@@ -40,7 +40,7 @@ Multi-module Go workspace (`go.work`) with 54 `go.mod` files — all wired into 
 ```
 go-cqrs-lite/
 ├── event/               # EventSink, EventSource, Store, Journal, SeekableJournal, Bus, ImmutableEvent, NewEvent, Clone
-│   └── eventtest/       # FakeStore, FakeBus, FakeSnapshotStore, event factories, test assertions
+│   └── v3/eventtest/    # FakeStore, FakeBus, FakeSnapshotStore, event factories, test assertions
 ├── command/             # Dispatcher, Handler, Middleware, Command, BasicCommand, PersistedCommand
 │                        # Store: CommandSink, CommandSource, Store, CommandJournal, SeekableCommandJournal
 │                        # Bus: Publisher, Subscriber, Bus, PublishMiddleware (command pub/sub)
@@ -680,7 +680,7 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 - Per-module isolation: `cd event && GOWORK=off go test ./... -count=1`
 - Golden tests use shared `eventtest.AssertGolden(t, path, got, *update)` from `event/v3/eventtest`
 - Modules without event dependency (otel, codec) keep their own local golden helper
-- **eventtest nested module**: `event/v3/eventtest` is a nested Go module inside `event/`'s directory tree. This is a known Go tooling limitation: `go mod tidy` in `event/` (or any consumer) emits warnings about the nested `go.mod`. Workaround: run `go mod tidy -e` (the `-e` flag suppresses the nested-module resolution error). This is warnings-only, not a build failure. The nested layout is kept because eventtest is imported by ~92 files across the repo; flattening to a top-level module would be a large, low-value churn. Do NOT "fix" by deleting or moving it without a full impact check.
+- **eventtest nested module**: `event/v3/eventtest` lives at `event/v3/eventtest/` (directory MUST match module path per Go spec — a path without a trailing `/vN` suffix requires `go.mod` at the exact subdirectory). `go mod tidy` in `event/` (or any consumer) emits warnings about the nested `go.mod`; run `go mod tidy -e` to suppress (warnings-only, not a build failure). Tagged as `event/v3/eventtest/v0.1.0` (v0 because the path's last element is `eventtest`, not `/vN`). See `docs/adr/0045-eventtest-module-path-fix.md` for the full rationale.
 
 ### Lint Conventions
 
