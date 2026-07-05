@@ -1689,6 +1689,7 @@ watermill/method Close
 watermill/method Get
 watermill/method Has
 watermill/method Keys
+watermill/method Len
 watermill/method MessageSubscriber
 watermill/method Publish
 watermill/method Publish
