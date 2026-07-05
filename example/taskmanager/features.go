@@ -1,14 +1,15 @@
 package main
 
 import (
-	"context"
 	"crypto/rand"
+	"fmt"
 
 	otel "go.opentelemetry.io/otel"
 
 	"github.com/larsartmann/go-cqrs-lite/middleware/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 	"github.com/larsartmann/go-cqrs-lite/signing/v3"
+	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v3"
 )
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -58,21 +59,27 @@ func setupFeatures(s *Server) error {
 	//
 	// Sign on publish, verify on consume. Tampered events are rejected
 	// before they reach projections — tamper-evident event streams.
+	// The bundle stores the bus as event.Publisher; we type-assert to
+	// *EventBus (which has UsePublish/Use) to install middleware.
 	signer := newDemoSigner()
-
-	if false {
-		_ = signing.SignMiddleware
-	}
-
-	// Store the signer for reference (testing, key rotation).
 	s.signer = signer
+
+	if bus, ok := s.Bundle.Publisher.(*cqrswatermill.EventBus); ok {
+		if err := bus.UsePublish(signing.SignMiddleware(signer)); err != nil {
+			return fmt.Errorf("setup: sign middleware: %w", err)
+		}
+
+		if err := bus.Use(signing.VerifyMiddleware(signer)); err != nil {
+			return fmt.Errorf("setup: verify middleware: %w", err)
+		}
+	}
 
 	return nil
 }
 
-// newDemoSigner creates an HMAC-SHA256 signer with a random key.
+// newDemoSigner creates an HMAC-SHA256 signer-verifier with a random key.
 // In production, load the key from a secret manager (vault, KMS, etc.).
-func newDemoSigner() signing.Signer {
+func newDemoSigner() signing.SignerVerifier {
 	key := make([]byte, 32)
 	if _, err := rand.Read(key); err != nil {
 		panic("failed to generate signing key: " + err.Error())
@@ -84,11 +91,4 @@ func newDemoSigner() signing.Signer {
 	}
 
 	return signer
-}
-
-// Shutdown gracefully shuts down the OTel provider.
-func (s *Server) shutdownOTel(ctx context.Context) {
-	if s.otelProvider != nil {
-		_ = s.otelProvider.Shutdown(ctx)
-	}
 }

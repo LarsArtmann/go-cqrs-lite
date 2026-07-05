@@ -34,7 +34,7 @@ type Server struct {
 	CatchUp      *cqrswatermill.CatchUpSubscriber
 	Logger       *slog.Logger
 	otelProvider *cqrsotel.Provider
-	signer       signing.Signer
+	signer       signing.SignerVerifier
 	httpServer   *http.Server
 }
 
@@ -158,7 +158,8 @@ func (s *Server) StartHTTP(addr string) error {
 	go func() {
 		s.Logger.Info("HTTP server starting", "addr", s.httpServer.Addr)
 
-		if err := s.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err := s.httpServer.ListenAndServe(); err != nil &&
+			!errors.Is(err, http.ErrServerClosed) {
 			s.Logger.Error("HTTP server", "error", err)
 		}
 	}()
