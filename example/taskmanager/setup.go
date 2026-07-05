@@ -152,6 +152,13 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 
 	registerHandlers(srv)
 
+	// Deriver: auto-assign new tasks to default team lead (event→command reaction)
+	if err := projHost.Register(newDeriverProjection(srv.CmdDisp, logger)); err != nil {
+		_ = srv.Bundle.Close()
+
+		return nil, fmt.Errorf("setup: register deriver: %w", err)
+	}
+
 	if err := setupFeatures(srv); err != nil {
 		_ = srv.Bundle.Close()
 
