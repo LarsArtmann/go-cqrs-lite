@@ -9,6 +9,7 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill/message"
 
+	"github.com/larsartmann/go-cqrs-lite/dedup/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
@@ -62,7 +63,7 @@ type catchUpSubscription struct {
 	topic     string
 	output    chan *message.Message
 	cancel    context.CancelFunc
-	replayIDs *dedupRing // bounded set of event IDs seen during replay
+	replayIDs *dedup.Ring // bounded set of event IDs seen during replay
 }
 
 // NewCatchUpSubscriber creates a CatchUpSubscriber.
@@ -129,7 +130,7 @@ func (s *CatchUpSubscriber) Subscribe(
 		topic:     topic,
 		output:    output,
 		cancel:    cancel,
-		replayIDs: newDedupRing(dedupRingCapacity),
+		replayIDs: dedup.NewRing(catchUpDedupRingCapacity),
 	}
 
 	s.subs = append(s.subs, sub)
@@ -180,24 +181,15 @@ func (s *CatchUpSubscriber) replayPhase(ctx context.Context, sub *catchUpSubscri
 		after = checkpoint.EventID
 	}
 
-	events, err := s.journal.ReadFrom(ctx, after, 0)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
+	// Replay in fixed-size batches so memory stays bounded regardless of
+	// journal size (same pattern as transport/http.SSEBroker). Each batch is
+	// fetched, forwarded, and checkpointed before the next is loaded.
+	const batchSize = 500
 
-		return event.WrapInfrastructure(err, "watermill.catchup.replay_read",
-			"replay read from journal")
-	}
+	cursor := after
+	totalReplayed := 0
 
-	span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrEventCount, len(events)))
-
-	s.logger.Info(
-		"catch-up replay",
-		"topic", sub.topic,
-		"events", len(events),
-		"after", after.String(),
-	)
-
-	for _, evt := range events {
+	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -206,28 +198,67 @@ func (s *CatchUpSubscriber) replayPhase(ctx context.Context, sub *catchUpSubscri
 		default:
 		}
 
-		msg := eventToMessage(evt)
-		// Mark ModeReplay in message metadata. Consumers reconstruct it into
-		// the handler context via ProcessingModeMiddleware (the metadata is
-		// the only channel that survives process boundaries in Watermill).
-		msg.Metadata.Set(metaProcessingMode, string(event.ModeReplay))
+		events, err := s.journal.ReadFrom(ctx, cursor, batchSize)
+		if err != nil {
+			cqrsotel.RecordError(span, err)
 
-		sub.replayIDs.Add(evt.ID().String())
-
-		select {
-		case sub.output <- msg:
-			// Save checkpoint after forwarding each replay event.
-			// Best-effort: log on error, don't block the stream.
-			if saveErr := s.saveCheckpoint(ctx, sub.topic, evt.ID()); saveErr != nil {
-				s.logger.Warn("catch-up: save checkpoint after replay event",
-					"topic", sub.topic, "event_id", evt.ID().String(), "error", saveErr)
-			}
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-s.closeCh:
-			return nil
+			return event.WrapInfrastructure(err, "watermill.catchup.replay_read",
+				"replay read from journal")
 		}
+
+		if len(events) == 0 {
+			break
+		}
+
+		for _, evt := range events {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-s.closeCh:
+				return nil
+			default:
+			}
+
+			msg := eventToMessage(evt)
+			// Mark ModeReplay in message metadata. Consumers reconstruct it into
+			// the handler context via ProcessingModeMiddleware (the metadata is
+			// the only channel that survives process boundaries in Watermill).
+			msg.Metadata.Set(metaProcessingMode, string(event.ModeReplay))
+
+			sub.replayIDs.Add(evt.ID().String())
+
+			select {
+			case sub.output <- msg:
+				// Save checkpoint after forwarding each replay event.
+				// Best-effort: log on error, don't block the stream.
+				if saveErr := s.saveCheckpoint(ctx, sub.topic, evt.ID()); saveErr != nil {
+					s.logger.Warn("catch-up: save checkpoint after replay event",
+						"topic", sub.topic, "event_id", evt.ID().String(), "error", saveErr)
+				}
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-s.closeCh:
+				return nil
+			}
+		}
+
+		totalReplayed += len(events)
+
+		if len(events) < batchSize {
+			break // journal drained
+		}
+
+		cursor = events[len(events)-1].ID()
 	}
+
+	span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrEventCount, totalReplayed))
+
+	s.logger.Info(
+		"catch-up replay",
+		"topic", sub.topic,
+		"events", totalReplayed,
+		"after", after.String(),
+	)
 
 	return nil
 }
@@ -313,5 +344,10 @@ func (s *CatchUpSubscriber) Close() error {
 }
 
 const metaProcessingMode = "processing_mode"
+
+// catchUpDedupRingCapacity bounds the replay→live dedup ring. 1024 entries ×
+// ~90 bytes = ~90KB. The output channel buffer is 256, so 1024 is a 4x safety
+// margin covering any events published during the replay window.
+const catchUpDedupRingCapacity = 1024
 
 var _ message.Subscriber = (*CatchUpSubscriber)(nil)

@@ -5,7 +5,8 @@ go 1.26.3
 require (
 	github.com/ThreeDotsLabs/watermill v1.5.2
 	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/command/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/command/v3 v3.5.0
+	github.com/larsartmann/go-cqrs-lite/dedup/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/event/v3/eventtest v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.0.0-00010101000000-000000000000
@@ -44,12 +45,14 @@ require (
 replace (
 	github.com/larsartmann/go-cqrs-lite/codec/v3 => ../codec
 	github.com/larsartmann/go-cqrs-lite/command/v3 => ../command
+	github.com/larsartmann/go-cqrs-lite/dedup/v3 => ../dedup
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 => ../dispatcher
 	github.com/larsartmann/go-cqrs-lite/event/v3 => ../event
 	github.com/larsartmann/go-cqrs-lite/event/v3/eventtest => ../event/v3/eventtest
 	github.com/larsartmann/go-cqrs-lite/id/v3 => ../id
 	github.com/larsartmann/go-cqrs-lite/otel/v3 => ../otel
 	github.com/larsartmann/go-cqrs-lite/query/v3 => ../query
+	github.com/larsartmann/go-cqrs-lite/schema/v3 => ../schema
 	github.com/larsartmann/go-cqrs-lite/snapshot/v3 => ../snapshot
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 => ../storage/memory
 )
