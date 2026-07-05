@@ -21,32 +21,32 @@ If a word means something different to a consumer than to an implementer, it is 
 
 ### Event Sourcing
 
-| Term                | Definition                                                                  | Context                                                                                       |
-| ------------------- | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| **Event**           | Immutable record of something that happened in the domain                   | `event.Event = *ImmutableEvent` — the single concrete implementation (not an interface)       |
-| **ImmutableEvent**  | The concrete event struct: ID, type, aggregate, version, payload, metadata  | `event.New()` (typed payload) or `event.NewEvent()` (raw bytes)                               |
-| **Aggregate**       | Cluster of domain objects treated as a single unit of consistency           | Has a unique identity (`AggregateRef`) and an event stream; state is app-defined              |
-| **AggregateRef**    | `{Type, ID}` — canonical identity of an aggregate instance                  | `event.NewAggregateRef(type, id)` — passed to all Store methods                               |
-| **AggregateType**   | String category for an aggregate (e.g. `"User"`, `"Order"`)                 | `type AggregateType string`                                                                   |
-| **Stream**          | Ordered sequence of events for a single aggregate, ordered by Version       | `Load()` returns the full stream; `LoadFromVersion()` returns a suffix                        |
-| **Version**         | Monotonically increasing position of an event within its stream (1-indexed) | `type Version uint64` — used for optimistic concurrency                                       |
-| **Event Store**     | Append-only persistence layer for event streams                             | `event.Store` (composite of `EventSink` + `EventSource`)                                      |
-| **Journal**         | Global append-only log of all events across all aggregates                  | `event.Journal.ReadAll()` — cross-aggregate reads                                             |
-| **SeekableJournal** | Journal with position-based reading (by EventID)                            | `event.SeekableJournal.ReadFrom(afterEventID, limit)` — efficient projection catch-up         |
-| **BackwardsSource** | Read-side that loads events in reverse (newest-first)                       | `event.BackwardsSource.LoadBackwards(ref)`                                                    |
-| **Snapshot**        | Point-in-time capture of aggregate state at a specific version              | Avoids replaying the entire stream on every load                                              |
-| **Snapshot Store**  | Persistence layer for aggregate snapshots                                   | `snapshot.SnapshotStore` (composite of `SnapshotSink` + `SnapshotSource`)                     |
-| **Projection**      | Consumer-side contract for building a read model from events                | `projection.Projection` — `Name()`, `Handle()`, `EventTypes()`                                |
-| **Checkpoint**      | Last-processed event position for a specific projection                     | `event.CheckpointStore` — enables resume after restart                                        |
-| **Tombstone**       | Soft-delete marker on event metadata (3 statuses)                           | `Active`, `Tombstoned`, `Undetermined` — detected via `event.DetectTombstone()`               |
-| **Rebirth**         | Undo of a tombstone — marks an aggregate as live again                      | `event.MarkRebirth(evt)` — sets rebirth metadata                                              |
-| **ProcessingMode**  | Context-scoped flag: `ModeLive` vs `ModeReplay`                             | `event.WithProcessingMode(ctx, ModeReplay)` — lets handlers skip side-effects during catch-up |
-| **Metadata**        | Typed envelope on every event: tracing, causation, tombstone, custom fields | `event.Metadata` struct — `Tracing`, `Causation`, `Tombstone`, `Custom map[MetadataKey]string` |
-| **Tracing**         | Embedded metadata fields: CorrelationID, CausationID, UserID, RequestID      | `event.Tracing` struct — promoted into `Metadata`, JSON-serializable                          |
-| **Causation**       | Links an event to the command that caused it (type + ID)                     | `event.Causation{CommandType, CommandID}` — set via `event.WithCommandCausality(ctx, type, id)` |
-| **ContextEnricher** | Function that extracts metadata from context and stamps it onto new events   | `event.ContextEnricher` — `decider.Repository` applies it automatically on Save               |
-| **SnapshotStrategy** | Policy deciding when to persist a snapshot                                 | `snapshot.SnapshotStrategy` — `ShouldSnapshot(type, version) bool`; impl: `snapshot.EveryNEvents(n)` |
-| **Load Coalescing** | Concurrent `Load` calls for the same aggregate coalesce into one store query | `decider.Repository` uses `singleflight.Group` — transparent, disable via `WithLoadCoalescing[State](false)` |
+| Term                 | Definition                                                                   | Context                                                                                                      |
+| -------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **Event**            | Immutable record of something that happened in the domain                    | `event.Event = *ImmutableEvent` — the single concrete implementation (not an interface)                      |
+| **ImmutableEvent**   | The concrete event struct: ID, type, aggregate, version, payload, metadata   | `event.New()` (typed payload) or `event.NewEvent()` (raw bytes)                                              |
+| **Aggregate**        | Cluster of domain objects treated as a single unit of consistency            | Has a unique identity (`AggregateRef`) and an event stream; state is app-defined                             |
+| **AggregateRef**     | `{Type, ID}` — canonical identity of an aggregate instance                   | `event.NewAggregateRef(type, id)` — passed to all Store methods                                              |
+| **AggregateType**    | String category for an aggregate (e.g. `"User"`, `"Order"`)                  | `type AggregateType string`                                                                                  |
+| **Stream**           | Ordered sequence of events for a single aggregate, ordered by Version        | `Load()` returns the full stream; `LoadFromVersion()` returns a suffix                                       |
+| **Version**          | Monotonically increasing position of an event within its stream (1-indexed)  | `type Version uint64` — used for optimistic concurrency                                                      |
+| **Event Store**      | Append-only persistence layer for event streams                              | `event.Store` (composite of `EventSink` + `EventSource`)                                                     |
+| **Journal**          | Global append-only log of all events across all aggregates                   | `event.Journal.ReadAll()` — cross-aggregate reads                                                            |
+| **SeekableJournal**  | Journal with position-based reading (by EventID)                             | `event.SeekableJournal.ReadFrom(afterEventID, limit)` — efficient projection catch-up                        |
+| **BackwardsSource**  | Read-side that loads events in reverse (newest-first)                        | `event.BackwardsSource.LoadBackwards(ref)`                                                                   |
+| **Snapshot**         | Point-in-time capture of aggregate state at a specific version               | Avoids replaying the entire stream on every load                                                             |
+| **Snapshot Store**   | Persistence layer for aggregate snapshots                                    | `snapshot.SnapshotStore` (composite of `SnapshotSink` + `SnapshotSource`)                                    |
+| **Projection**       | Consumer-side contract for building a read model from events                 | `projection.Projection` — `Name()`, `Handle()`, `EventTypes()`                                               |
+| **Checkpoint**       | Last-processed event position for a specific projection                      | `event.CheckpointStore` — enables resume after restart                                                       |
+| **Tombstone**        | Soft-delete marker on event metadata (3 statuses)                            | `Active`, `Tombstoned`, `Undetermined` — detected via `event.DetectTombstone()`                              |
+| **Rebirth**          | Undo of a tombstone — marks an aggregate as live again                       | `event.MarkRebirth(evt)` — sets rebirth metadata                                                             |
+| **ProcessingMode**   | Context-scoped flag: `ModeLive` vs `ModeReplay`                              | `event.WithProcessingMode(ctx, ModeReplay)` — lets handlers skip side-effects during catch-up                |
+| **Metadata**         | Typed envelope on every event: tracing, causation, tombstone, custom fields  | `event.Metadata` struct — `Tracing`, `Causation`, `Tombstone`, `Custom map[MetadataKey]string`               |
+| **Tracing**          | Embedded metadata fields: CorrelationID, CausationID, UserID, RequestID      | `event.Tracing` struct — promoted into `Metadata`, JSON-serializable                                         |
+| **Causation**        | Links an event to the command that caused it (type + ID)                     | `event.Causation{CommandType, CommandID}` — set via `event.WithCommandCausality(ctx, type, id)`              |
+| **ContextEnricher**  | Function that extracts metadata from context and stamps it onto new events   | `event.ContextEnricher` — `decider.Repository` applies it automatically on Save                              |
+| **SnapshotStrategy** | Policy deciding when to persist a snapshot                                   | `snapshot.SnapshotStrategy` — `ShouldSnapshot(type, version) bool`; impl: `snapshot.EveryNEvents(n)`         |
+| **Load Coalescing**  | Concurrent `Load` calls for the same aggregate coalesce into one store query | `decider.Repository` uses `singleflight.Group` — transparent, disable via `WithLoadCoalescing[State](false)` |
 
 ### CQRS
 
@@ -101,13 +101,13 @@ All errors are classified into a 5-family taxonomy:
 
 | Term               | Definition                                                                           | Context                                                                                                                                             |
 | ------------------ | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Dialect**        | SQL dialect abstraction for portable store implementations                           | `sql.Dialect` interface in `storage/sql` — `SQLiteDialect{}`, `PostgresDialect{}` (re-exported as `storage.SQLiteDialect`)  |
-| **SQLEventStore**  | SQL-backed implementation of `event.Store` + `Journal` + `SeekableJournal`           | `storage.NewSQLiteEventStore(db)`, `storage.NewSQLEventStore(db)`, `storage.NewSQLEventStoreWithDialect(db, dialect)` |
+| **Dialect**        | SQL dialect abstraction for portable store implementations                           | `sql.Dialect` interface in `storage/sql` — `SQLiteDialect{}`, `PostgresDialect{}` (re-exported as `storage.SQLiteDialect`)                          |
+| **SQLEventStore**  | SQL-backed implementation of `event.Store` + `Journal` + `SeekableJournal`           | `storage.NewSQLiteEventStore(db)`, `storage.NewSQLEventStore(db)`, `storage.NewSQLEventStoreWithDialect(db, dialect)`                               |
 | **SQLBackend**     | Facade exposing all SQL stores sharing one `*sql.DB` (lazy, goroutine-safe)          | `storage.NewSQLiteBackend(db)`, `storage.NewSQLBackend(db)` — exposes EventStore, CommandStore, QueryStore, SnapshotStore, CheckpointStore, KVStore |
-| **Pebble Store**   | Embedded KV event store (no SQL dependency)                                          | `pebble.NewStore(db, logger)` (package: `storage/pebble`)                                                       |
-| **Pebble Backend** | Facade exposing all Pebble stores sharing one `*pebble.DB` via disjoint key prefixes | `pebble.Open(dir, opts, logger)` (owns DB) or `pebble.NewBackend(db, logger)` (borrows DB)                          |
-| **Turso**          | Embedded LibSQL connector with sync support                          | `turso.Open(dbPath)`, `turso.OpenInMemory()`, `turso.OpenSync()` (package: `storage/turso`) |
-| **MemoryStore**    | In-memory implementations for testing                                | `memory.NewMemoryStore()`, `memory.NewMemorySnapshotStore()` (package: `storage/memory`) |
+| **Pebble Store**   | Embedded KV event store (no SQL dependency)                                          | `pebble.NewStore(db, logger)` (package: `storage/pebble`)                                                                                           |
+| **Pebble Backend** | Facade exposing all Pebble stores sharing one `*pebble.DB` via disjoint key prefixes | `pebble.Open(dir, opts, logger)` (owns DB) or `pebble.NewBackend(db, logger)` (borrows DB)                                                          |
+| **Turso**          | Embedded LibSQL connector with sync support                                          | `turso.Open(dbPath)`, `turso.OpenInMemory()`, `turso.OpenSync()` (package: `storage/turso`)                                                         |
+| **MemoryStore**    | In-memory implementations for testing                                                | `memory.NewMemoryStore()`, `memory.NewMemorySnapshotStore()` (package: `storage/memory`)                                                            |
 
 ---
 
@@ -115,13 +115,13 @@ All errors are classified into a 5-family taxonomy:
 
 The primary consumer entry point. A **Bundle** wires all stores, buses, and journals into one struct — one constructor call per backend.
 
-| Term              | Definition                                                             | Context                                                                        |
-| ----------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| **Bundle**        | Pre-wired facade: all stores + buses + journals in one struct           | `stack.Bundle` — `EventSink`, `EventSource`, `Journal`, `Publisher`, `CommandSink`, `QuerySink`, `KVStore`, etc. |
-| **Stack Preset**  | One-call constructor that builds a Bundle for a specific backend        | `sqlite.New(dsn)`, `memory.New()`, `pebble.New(dir)`, `postgres.New(dsn)`, `turso.New(dbPath)` |
-| **ReadModel**     | One-call typed read-model store from a Bundle                           | `stack.ReadModel[T,K](bundle, nil)` — nil uses default codec (CBOR)            |
-| **NewMaterialize**| One-call tombstone-aware projection builder from a Bundle               | `stack.NewMaterialize[T,K](bundle, nil, keyFunc)` — nil uses default codec      |
-| **SQLViewModel**  | One-call SQL view store from a SQLite/Postgres Bundle                   | `sqlite.SQLViewModel[V,K](bundle, mapper)`                                     |
+| Term               | Definition                                                       | Context                                                                                                          |
+| ------------------ | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Bundle**         | Pre-wired facade: all stores + buses + journals in one struct    | `stack.Bundle` — `EventSink`, `EventSource`, `Journal`, `Publisher`, `CommandSink`, `QuerySink`, `KVStore`, etc. |
+| **Stack Preset**   | One-call constructor that builds a Bundle for a specific backend | `sqlite.New(dsn)`, `memory.New()`, `pebble.New(dir)`, `postgres.New(dsn)`, `turso.New(dbPath)`                   |
+| **ReadModel**      | One-call typed read-model store from a Bundle                    | `stack.ReadModel[T,K](bundle, nil)` — nil uses default codec (CBOR)                                              |
+| **NewMaterialize** | One-call tombstone-aware projection builder from a Bundle        | `stack.NewMaterialize[T,K](bundle, nil, keyFunc)` — nil uses default codec                                       |
+| **SQLViewModel**   | One-call SQL view store from a SQLite/Postgres Bundle            | `sqlite.SQLViewModel[V,K](bundle, mapper)`                                                                       |
 
 > **When to use Stack vs raw modules:** Stack presets are the recommended entry point for new consumers. Use raw modules (`storage.NewSQLiteEventStore`, `pebble.NewStore`, etc.) when you need fine-grained control over which stores to create.
 
@@ -213,16 +213,16 @@ The library provides three projection tiers, chosen by read-pattern shape:
 
 ## Tooling & Testing
 
-| Term              | Definition                                                       | Context                                                                        |
-| ----------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Term              | Definition                                                           | Context                                                                                                           |
+| ----------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | **cqrs-gen**      | Code generator: typed handler registration from annotated Go structs | `cmd/cqrs-gen` — generates `RegisterTyped` boilerplate from `//cqrs:command`, `//cqrs:query`, `//cqrs:event` tags |
-| **api-stability** | CI tool: compares exported API surface against a golden file      | `cmd/api-stability` — catches breaking changes before release                  |
-| **doc-check**     | CI tool: verifies Go import paths + qualified symbols in docs     | `cmd/doc-check` — validates SKILL.md, AGENTS.md, and skill references by default |
-| **eventtest**     | Test helpers: FakeStore, FakeBus, FakeSnapshotStore, assertions   | `event/v3/eventtest` — `AssertGolden`, event factories                         |
-| **querytest**     | Test helper: `New(tb, queryType)` for query construction          | `query/querytest` — `tb.Fatalf` on error, no panics                            |
-| **idtest**        | Test helpers: `Parse*(tb, s)` for branded ID parsing              | `id/idtest` — `tb.Fatalf` on error, no panics                                  |
-| **testutil**      | Shared cross-module test helpers                                  | `testutil` — `NewCmd(tb, ...)`                                                 |
-| **Scenario**      | Fluent BDD test DSL for deciders and projections                  | `scenario.Given/When/Then`, `scenario.GivenProjection/ThenNoError`             |
+| **api-stability** | CI tool: compares exported API surface against a golden file         | `cmd/api-stability` — catches breaking changes before release                                                     |
+| **doc-check**     | CI tool: verifies Go import paths + qualified symbols in docs        | `cmd/doc-check` — validates SKILL.md, AGENTS.md, and skill references by default                                  |
+| **eventtest**     | Test helpers: FakeStore, FakeBus, FakeSnapshotStore, assertions      | `event/v3/eventtest` — `AssertGolden`, event factories                                                            |
+| **querytest**     | Test helper: `New(tb, queryType)` for query construction             | `query/querytest` — `tb.Fatalf` on error, no panics                                                               |
+| **idtest**        | Test helpers: `Parse*(tb, s)` for branded ID parsing                 | `id/idtest` — `tb.Fatalf` on error, no panics                                                                     |
+| **testutil**      | Shared cross-module test helpers                                     | `testutil` — `NewCmd(tb, ...)`                                                                                    |
+| **Scenario**      | Fluent BDD test DSL for deciders and projections                     | `scenario.Given/When/Then`, `scenario.GivenProjection/ThenNoError`                                                |
 
 ---
 
