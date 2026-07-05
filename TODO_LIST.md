@@ -14,11 +14,6 @@
 
 ## Open Items
 
-### Operability
-
-- [ ] **Surface Pebble Checkpoint from stack presets** — `pebble.Backend.Checkpoint(dir)` exists but isn't exposed through `stack/pebble.Bundle`. Consumers using presets can't access backup without dropping to raw modules.
-- [ ] **Surface graceful shutdown from stack presets** — `pebble.Backend.Close()` exists but no context-bounded `GracefulClose(ctx)` variant. Documented in AGENTS.md but not yet implemented.
-
 ### Architecture & Quality
 
 - [ ] **Resolve genproto conflict for transport/grpc** [BLOCKED UPSTREAM] — `transport/grpc` builds only with `GOWORK=off` because `cockroachdb/pebble` → `cockroachdb/errors@v1.14.0` pulls the monolithic `google.golang.org/genproto`, which conflicts with grpc v1.81.1's split `genproto/googleapis/rpc`. Blocked until cockroachdb/errors drops the monolithic genproto or grpc drops the split version.

@@ -1,6 +1,7 @@
 package pebble
 
 import (
+	"context"
 	"log/slog"
 
 	"github.com/cockroachdb/pebble"
@@ -117,4 +118,25 @@ func (b *Backend) Close() error {
 	}
 
 	return nil
+}
+
+// GracefulClose is like Close but bounded by the given context. If the
+// context is cancelled before Close finishes, the context error is returned
+// and the close continues in the background. Use this in shutdown handlers
+// to avoid hanging on slow flushes:
+//
+//	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+//	defer cancel()
+//	err := backend.GracefulClose(ctx)
+func (b *Backend) GracefulClose(ctx context.Context) error {
+	done := make(chan error, 1)
+
+	go func() { done <- b.Close() }()
+
+	select {
+	case err := <-done:
+		return err
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }

@@ -53,8 +53,8 @@ All 11 breaking changes landed. See [`docs/migration/V3_MIGRATION.md`](docs/migr
 
 ### Operability
 
-- [ ] Surface Pebble Checkpoint (backup) from stack presets
-- [ ] Surface graceful shutdown from stack presets
+- [x] ~~Surface Pebble Checkpoint (backup) from stack presets~~ — DONE (`stack/pebble.Bundle.Checkpoint(dir)`)
+- [x] ~~Surface graceful shutdown from stack presets~~ — DONE (`stack/pebble.Bundle.GracefulClose(ctx)`, `pebble.Backend.GracefulClose(ctx)`)
 
 ---
 

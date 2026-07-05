@@ -29,6 +29,45 @@ func TestBackend_OpenAndClose(t *testing.T) {
 	}
 }
 
+func TestBackend_GracefulClose(t *testing.T) {
+	t.Parallel()
+
+	t.Run("success", func(t *testing.T) {
+		t.Parallel()
+
+		dir := t.TempDir()
+		backend, err := cqrspebble.Open(dir, &pebble.Options{}, slog.Default())
+		if err != nil {
+			t.Fatalf("Open failed: %v", err)
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		if err := backend.GracefulClose(ctx); err != nil {
+			t.Fatalf("GracefulClose failed: %v", err)
+		}
+	})
+
+	t.Run("timeout", func(t *testing.T) {
+		t.Parallel()
+
+		dir := t.TempDir()
+		backend, err := cqrspebble.Open(dir, &pebble.Options{}, slog.Default())
+		if err != nil {
+			t.Fatalf("Open failed: %v", err)
+		}
+
+		// Immediately cancelled context — Pebble Close is fast, so this
+		// tests the select path without guaranteeing a race. The key
+		// assertion is that GracefulClose doesn't panic or deadlock.
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+
+		_ = backend.GracefulClose(ctx) // may return nil or ctx.Err()
+	})
+}
+
 func TestBackend_FullStack(t *testing.T) {
 	t.Parallel()
 

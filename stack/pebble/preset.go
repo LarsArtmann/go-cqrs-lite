@@ -1,6 +1,7 @@
 package pebble
 
 import (
+	"context"
 	"log/slog"
 
 	"github.com/cockroachdb/pebble"
@@ -71,6 +72,13 @@ func (b *Bundle) Flush() error {
 // Use BlockCacheHitRate() to monitor cache effectiveness.
 func (b *Bundle) Metrics() cqrspebble.PebbleMetrics {
 	return b.backend.Metrics()
+}
+
+// GracefulClose is like Close but bounded by the given context. If the
+// context is cancelled before Close finishes, the context error is returned
+// and the close continues in the background.
+func (b *Bundle) GracefulClose(ctx context.Context) error {
+	return b.backend.GracefulClose(ctx)
 }
 
 // New opens a PebbleDB database at dir and returns a fully-wired [Bundle].
