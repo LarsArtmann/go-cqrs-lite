@@ -62,7 +62,7 @@ type catchUpSubscription struct {
 	topic     string
 	output    chan *message.Message
 	cancel    context.CancelFunc
-	replayIDs map[string]struct{} // event IDs seen during replay
+	replayIDs *dedupRing // bounded set of event IDs seen during replay
 }
 
 // NewCatchUpSubscriber creates a CatchUpSubscriber.
@@ -129,7 +129,7 @@ func (s *CatchUpSubscriber) Subscribe(
 		topic:     topic,
 		output:    output,
 		cancel:    cancel,
-		replayIDs: make(map[string]struct{}),
+		replayIDs: newDedupRing(dedupRingCapacity),
 	}
 
 	s.subs = append(s.subs, sub)
@@ -212,7 +212,7 @@ func (s *CatchUpSubscriber) replayPhase(ctx context.Context, sub *catchUpSubscri
 		// the only channel that survives process boundaries in Watermill).
 		msg.Metadata.Set(metaProcessingMode, string(event.ModeReplay))
 
-		sub.replayIDs[evt.ID().String()] = struct{}{}
+		sub.replayIDs.Add(evt.ID().String())
 
 		select {
 		case sub.output <- msg:
@@ -252,12 +252,10 @@ func (s *CatchUpSubscriber) livePhase(ctx context.Context, sub *catchUpSubscript
 
 			// Dedup: skip events already seen during replay.
 			eventID := msg.Metadata.Get(metaEventID)
-			if eventID != "" {
-				if _, seen := sub.replayIDs[eventID]; seen {
-					msg.Ack()
+			if eventID != "" && sub.replayIDs.Has(eventID) {
+				msg.Ack()
 
-					continue
-				}
+				continue
 			}
 
 			select {
