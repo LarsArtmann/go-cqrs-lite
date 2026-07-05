@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/example/taskmanager
 go 1.26.3
 
 require (
-	github.com/larsartmann/go-cqrs-lite/command/v3 v3.5.0
+	github.com/larsartmann/go-cqrs-lite/command/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/decider/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/deriver/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.0.0-00010101000000-000000000000
