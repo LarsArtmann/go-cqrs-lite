@@ -32,6 +32,7 @@ github.com/larsartmann/go-cqrs-lite/event/v3/eventtest v0.1.0 h1:GUldN9ynVf4bgBb
 github.com/larsartmann/go-cqrs-lite/event/v3/eventtest v0.1.0/go.mod h1:Sl195ODnLfBq2V8EoaTgKl3o0LVCZPzjjfd2JEnv7b0=
 github.com/larsartmann/go-cqrs-lite/query/v3 v3.4.0 h1:zQeSVGt9NVwCKFeocsTYdKuciXGHYbmRUZ+C6SSW17I=
 github.com/larsartmann/go-cqrs-lite/query/v3 v3.4.0/go.mod h1:FB/WQB9kn5kvREURJ77UvydM5acWXr+3h9cI1N8/xiI=
+github.com/larsartmann/go-cqrs-lite/query/v3 v3.5.0/go.mod h1:D2HXVkZI/PlPJSoeIEjlEIe6jBTTo8hdKkIYfyUckxs=
 github.com/larsartmann/go-error-family v0.5.1 h1:rYDNU0sv+6ri0xel6MswIeDT2dRh3q+RSc5uWnAwecg=
 github.com/larsartmann/go-error-family v0.5.1/go.mod h1:JbSRM+qePUMzqr2L28oEeIf7QjWUnwAnUHpUfqp/flg=
 github.com/maruel/natural v1.1.1 h1:Hja7XhhmvEFhcByqDoHz9QZbkWey+COd9xWfCfn1ioo=

@@ -41,6 +41,7 @@ github.com/larsartmann/go-branded-id v0.3.1 h1:n53Vz3MCUy3S8YfW/v+zxL/qT96iiXZOT
 github.com/larsartmann/go-branded-id v0.3.1/go.mod h1:fiv3t1PyNCITnE/8KtymGCUz7tQRuQxF+8oqNdFmA/Y=
 github.com/larsartmann/go-cqrs-lite/command/v3 v3.4.0 h1:82PbUNUo4l9bLoqmA1v2dlDMQL3bHHX8VEex5QvCc3c=
 github.com/larsartmann/go-cqrs-lite/command/v3 v3.4.0/go.mod h1:HqyZ75AgWBmE8RdTYSwP+L256OAIXZ2U9RT555m8GC0=
+github.com/larsartmann/go-cqrs-lite/command/v3 v3.5.0/go.mod h1:e2rX0tqijaChCOAIImtsFT1IdyVEDeb6yIZPHBM2Nco=
 github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.3.0 h1:gCmAJn3+ZoDmLt8N0JRIrxC0Ji9XxNrEqZC43KkgGv4=
 github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.3.0/go.mod h1:DwJ9zG/ruPaWCCZV7jbLJNYl4K+ZepdHQ5erCZ7cJzw=
 github.com/larsartmann/go-cqrs-lite/event/v3/eventtest v0.1.0 h1:GUldN9ynVf4bgBb+ln/xeFbkbMbmoQ8rPClF0iIKZRY=
@@ -53,6 +54,7 @@ github.com/larsartmann/go-cqrs-lite/otel/v3 v3.3.0 h1:EbffZnvhy+IHAXb7i5nKCJ2ZlI
 github.com/larsartmann/go-cqrs-lite/otel/v3 v3.3.0/go.mod h1:L2MNWMOYRGwh2nbS1bc+gAalgdkWNng0dwEyemMEwno=
 github.com/larsartmann/go-cqrs-lite/query/v3 v3.4.0 h1:zQeSVGt9NVwCKFeocsTYdKuciXGHYbmRUZ+C6SSW17I=
 github.com/larsartmann/go-cqrs-lite/query/v3 v3.4.0/go.mod h1:FB/WQB9kn5kvREURJ77UvydM5acWXr+3h9cI1N8/xiI=
+github.com/larsartmann/go-cqrs-lite/query/v3 v3.5.0/go.mod h1:D2HXVkZI/PlPJSoeIEjlEIe6jBTTo8hdKkIYfyUckxs=
 github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.5.0 h1:9hgiXryOuqw6H/nN6h3dn5gd7Zae43RwE14cK4vJ7t4=
 github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.5.0/go.mod h1:opRaeUrUpU8D+rJsUa+WZdXWGc20WYSpS2wCC1lC3hY=
 github.com/larsartmann/go-error-family v0.5.1 h1:rYDNU0sv+6ri0xel6MswIeDT2dRh3q+RSc5uWnAwecg=
