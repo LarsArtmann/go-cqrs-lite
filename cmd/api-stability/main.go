@@ -21,6 +21,7 @@ func main() {
 		"dispatcher",
 		"codec",
 		"kv",
+		"dedup",
 		// Layer 1
 		"event",
 		"event/eventtest",

@@ -423,6 +423,13 @@ decider/var ErrNilBus
 decider/var ErrNilPublisher
 decider/var ErrNilStore
 decider/var ErrSaveFailed
+dedup/const DefaultCapacity
+dedup/func NewRing
+dedup/method Add
+dedup/method Capacity
+dedup/method Has
+dedup/method Len
+dedup/struct Ring
 dispatcher/func NewDispatcher
 dispatcher/method Add
 dispatcher/method Apply
@@ -1409,6 +1416,8 @@ storage/func NewSQLQueryStore
 storage/func NewSQLQueryStoreWithDialect
 storage/func NewSQLSnapshotStore
 storage/func NewSQLSnapshotStoreWithDialect
+storage/func NewSQLTimerStore
+storage/func NewSQLTimerStoreWithDialect
 storage/func NewSQLViewStore
 storage/func NewSQLiteBackend
 storage/func NewSQLiteCheckpointStore
@@ -1417,6 +1426,7 @@ storage/func NewSQLiteEventStore
 storage/func NewSQLiteKVStore
 storage/func NewSQLiteQueryStore
 storage/func NewSQLiteSnapshotStore
+storage/func NewSQLiteTimerStore
 storage/func NewSQLiteViewStore
 storage/func NewViewStoreWithDialect
 storage/func OpenSQLite
@@ -1428,7 +1438,9 @@ storage/func SQLiteEnableForeignKeys
 storage/func SQLiteEnableWAL
 storage/func SQLiteInitSchema
 storage/func SQLiteSnapshotSchema
+storage/func SQLiteTimerSchema
 storage/func SnapshotSchema
+storage/func TimerSchema
 storage/func WithBusChannel
 storage/func WithNotifyFunc
 storage/func WithRefetchAttempts
@@ -1440,6 +1452,7 @@ storage/interface NotificationListener
 storage/method AppendBatch
 storage/method AppendBatch
 storage/method Batch
+storage/method Cancel
 storage/method CheckpointStore
 storage/method Close
 storage/method Close
@@ -1451,6 +1464,7 @@ storage/method Commit
 storage/method Delete
 storage/method Delete
 storage/method Delete
+storage/method Due
 storage/method Error
 storage/method EventStore
 storage/method EventTypes
@@ -1476,6 +1490,7 @@ storage/method LoadStreamFromVersion
 storage/method LoadToTimestamp
 storage/method LoadToTimestamp
 storage/method LoadToVersion
+storage/method MarkFired
 storage/method Name
 storage/method NewIterator
 storage/method Next
@@ -1495,6 +1510,7 @@ storage/method Save
 storage/method Save
 storage/method Save
 storage/method SaveQuery
+storage/method Schedule
 storage/method Set
 storage/method Set
 storage/method SnapshotStore
@@ -1565,6 +1581,8 @@ storage/sql/method ScanTimeDest
 storage/sql/method SetOwnership
 storage/sql/method SnapshotSchema
 storage/sql/method SnapshotSchema
+storage/sql/method TimerSchema
+storage/sql/method TimerSchema
 storage/sql/struct DBHandle
 storage/sql/struct LoadParams
 storage/sql/struct OwnedDBHandle
@@ -1588,6 +1606,7 @@ storage/struct SQLEventStore
 storage/struct SQLKVStore
 storage/struct SQLQueryStore
 storage/struct SQLSnapshotStore
+storage/struct SQLTimerStore
 storage/type IndexSpec
 storage/type PostgresBusOption
 storage/type ProjectionSink
@@ -1613,6 +1632,7 @@ testutil/func EventType
 testutil/func MetadataMap
 testutil/func NewCapturingSlogHandler
 testutil/func NewCmd
+testutil/func NewDelayedJournal
 testutil/func NonEmptyString
 testutil/func NoopCommandHandler
 testutil/func Timestamp
@@ -1620,10 +1640,12 @@ testutil/func Version
 testutil/method Count
 testutil/method Enabled
 testutil/method Handle
+testutil/method ReadFrom
 testutil/method Records
 testutil/method WithAttrs
 testutil/method WithGroup
 testutil/struct CapturingSlogHandler
+testutil/struct DelayedJournal
 transport/http/const DefaultSSEHeartbeat
 transport/http/const DefaultSSEReplayLimit
 transport/http/const SSEReplayIncompleteEvent
@@ -1636,13 +1658,10 @@ transport/http/func WithReconnectJournal
 transport/http/func WithReplayTimeout
 transport/http/func WriteSSEEvent
 transport/http/func WriteSSEHeartbeat
-transport/http/method Add
 transport/http/method AddClient
 transport/http/method ClientCount
 transport/http/method Close
-transport/http/method Has
 transport/http/method IsZero
-transport/http/method Len
 transport/http/method Name
 transport/http/method RemoveClient
 transport/http/method String
@@ -1678,7 +1697,6 @@ watermill/func WithCommandBusLogger
 watermill/func WithCommandBusTopic
 watermill/func WithEventBusLogger
 watermill/func WithEventBusTopic
-watermill/method Add
 watermill/method Close
 watermill/method Close
 watermill/method Close
@@ -1687,9 +1705,7 @@ watermill/method Close
 watermill/method Close
 watermill/method Close
 watermill/method Get
-watermill/method Has
 watermill/method Keys
-watermill/method Len
 watermill/method MessageSubscriber
 watermill/method Publish
 watermill/method Publish

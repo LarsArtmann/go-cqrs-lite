@@ -14,6 +14,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/testutil/v3"
 )
 
 func TestWriteSSEEvent_Simple(t *testing.T) {
@@ -576,27 +577,8 @@ func TestSSEHandler_UnlimitedReplay(t *testing.T) {
 	}
 }
 
-// delayedJournal wraps a SeekableJournal and blocks ReadFrom for the given
-// delay, respecting context cancellation. Used to test replay timeouts.
-type delayedJournal struct {
-	event.SeekableJournal
-
-	delay time.Duration
-}
-
-func (j *delayedJournal) ReadFrom(
-	ctx context.Context,
-	after id.EventID,
-	limit int,
-) ([]event.Event, error) {
-	select {
-	case <-time.After(j.delay):
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	}
-
-	return j.SeekableJournal.ReadFrom(ctx, after, limit)
-}
+// delayedJournal was promoted to testutil.DelayedJournal for reuse across
+// modules. See testutil/journal.go.
 
 func TestSSEHandler_ReplayTimeout_SendsAdvisoryEvent(t *testing.T) {
 	// When replayTimeout fires before the journal read completes, the broker
@@ -623,7 +605,7 @@ func TestSSEHandler_ReplayTimeout_SendsAdvisoryEvent(t *testing.T) {
 	}
 
 	// Wrap the store with a 200ms delay so the 10ms timeout fires mid-read.
-	slowStore := &delayedJournal{SeekableJournal: store, delay: 200 * time.Millisecond}
+	slowStore := testutil.NewDelayedJournal(store, 200*time.Millisecond)
 
 	broker, err := NewSSEBroker(
 		bus,

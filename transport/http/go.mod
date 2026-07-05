@@ -3,12 +3,23 @@ module github.com/larsartmann/go-cqrs-lite/transport/http/v3
 go 1.26.3
 
 require (
+	github.com/larsartmann/go-cqrs-lite/dedup/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/event/v3/eventtest v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/testutil/v3 v3.0.0-00010101000000-000000000000
 	go.opentelemetry.io/otel v1.44.0
 	go.opentelemetry.io/otel/sdk v1.44.0
+)
+
+require github.com/larsartmann/go-cqrs-lite/query/v3 v3.0.0-00010101000000-000000000000 // indirect
+
+require (
+	github.com/larsartmann/go-cqrs-lite/command/v3 v3.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.0.0-00010101000000-000000000000 // indirect
+	pgregory.net/rapid v1.3.0 // indirect
 )
 
 require (
@@ -36,6 +47,7 @@ replace github.com/larsartmann/go-cqrs-lite/event/v3/eventtest => ../../event/v3
 replace (
 	github.com/larsartmann/go-cqrs-lite/codec/v3 => ../../codec
 	github.com/larsartmann/go-cqrs-lite/command/v3 => ../../command
+	github.com/larsartmann/go-cqrs-lite/dedup/v3 => ../../dedup
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 => ../../dispatcher
 	github.com/larsartmann/go-cqrs-lite/event/v3 => ../../event
 	github.com/larsartmann/go-cqrs-lite/id/v3 => ../../id
@@ -44,4 +56,5 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/schema/v3 => ../../schema
 	github.com/larsartmann/go-cqrs-lite/snapshot/v3 => ../../snapshot
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 => ../../storage/memory
+	github.com/larsartmann/go-cqrs-lite/testutil/v3 => ../../testutil
 )

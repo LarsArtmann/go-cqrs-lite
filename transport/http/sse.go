@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/dedup/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 )
@@ -52,6 +53,23 @@ const DefaultSSEReplayLimit = 1000
 // received EventID (or use a backfill endpoint) to catch up.
 const SSEReplayIncompleteEvent = "cqrs.replay.incomplete"
 
+// WithReplayByteBudget caps unlimited replay by total payload bytes instead
+// of event count. When the cumulative size of replayed event payloads exceeds
+// the budget, replay stops and an SSEReplayIncompleteEvent advisory is sent.
+//
+// This is safer than count-based batching (sseReplayBatchSize) for journals
+// containing very large payloads (e.g. 1MB+ blob events): a fixed count of 500
+// such events would consume 500MB. The default budget
+// (sseDefaultReplayByteBudget = 8MB) is a sensible bound; pass 0 to disable
+// byte-budgeting (replay falls back to count-based batching).
+//
+// Applies only when replayLimit <= 0 (unlimited replay).
+func WithReplayByteBudget(bytes int) SSEBrokerOption {
+	return func(b *SSEBroker) {
+		b.replayByteBudget = bytes
+	}
+}
+
 // WithReplayTimeout sets the maximum duration for journal replay before
 // switching to live delivery. If replay is not complete when the timeout
 // fires, the broker sends an advisory SSEReplayIncompleteEvent and begins
@@ -67,10 +85,44 @@ func WithReplayTimeout(d time.Duration) SSEBrokerOption {
 	}
 }
 
-// sseReplayBatchSize is the batch size for unlimited streaming replay.
+// WithReplayMetrics installs OpenTelemetry instruments for SSE replay
+// observability (duration histogram, events counter, incomplete counter).
+// Pass a *ReplayMetrics from NewReplayMetrics; nil disables metrics (no-op).
+//
+// Without this option, replay records only span attributes — useful in traces
+// but invisible to dashboards. This option promotes replay telemetry to
+// first-class OTel instruments scrapeable by Prometheus.
+func WithReplayMetrics(metrics *ReplayMetrics) SSEBrokerOption {
+	return func(b *SSEBroker) {
+		b.replayMetrics = metrics
+	}
+}
+
+// WithDedupRingCapacity overrides the default SSE dedup ring capacity
+// (sseDedupRingCapacity = 1024). The ring bounds replay→live deduplication
+// memory at ~capacity × 90 bytes.
+//
+// Increase if your live channel buffer (sseChannelBufSize) is raised above
+// the default 100. Decrease for memory-constrained deployments with small
+// journals. Values <= 0 fall back to the default.
+func WithDedupRingCapacity(capacity int) SSEBrokerOption {
+	return func(b *SSEBroker) {
+		b.dedupRingCap = capacity
+	}
+}
+
+// sseReplayBatchSize is the default batch size for unlimited streaming replay.
 // Each batch is fetched from the journal, written to the client, and flushed
-// before the next batch is loaded — keeping memory bounded.
+// before the next batch is loaded — keeping memory bounded. For very large
+// payloads (1MB+), prefer WithReplayByteBudget which bounds by total bytes
+// rather than event count.
 const sseReplayBatchSize = 500
+
+// sseDefaultReplayByteBudget is the default byte budget for replay when
+// WithReplayByteBudget is used. 8MB accommodates ~5000 typical 1.5KB events
+// while keeping per-client memory bounded. A budget of 0 disables byte-budget
+// mode (count-based sseReplayBatchSize is used instead).
+const sseDefaultReplayByteBudget = 8 * 1024 * 1024
 
 // sseDedupRingCapacity is the maximum number of event IDs retained for
 // replay→live deduplication. Only the tail of the replay stream can overlap
@@ -82,13 +134,16 @@ const sseDedupRingCapacity = 1024
 
 // SSEBroker bridges an event bus to Server-Sent Events HTTP clients.
 type SSEBroker struct {
-	mu            sync.RWMutex
-	clients       map[SSEClientID]chan event.Event
-	handler       event.Handler
-	cancel        context.CancelFunc
-	journal       event.SeekableJournal // optional: for Last-Event-ID replay
-	replayLimit   int                   // <=0 = unlimited (batch streaming); >0 = bounded
-	replayTimeout time.Duration         // <=0 = no limit; >0 = max replay duration
+	mu               sync.RWMutex
+	clients          map[SSEClientID]chan event.Event
+	handler          event.Handler
+	cancel           context.CancelFunc
+	journal          event.SeekableJournal // optional: for Last-Event-ID replay
+	replayLimit      int                   // <=0 = unlimited (batch streaming); >0 = bounded
+	replayTimeout    time.Duration         // <=0 = no limit; >0 = max replay duration
+	replayMetrics    *ReplayMetrics        // optional: OTel instruments for replay
+	replayByteBudget int                   // <=0 = disabled; >0 = max bytes before stopping
+	dedupRingCap     int                   // <=0 = default (sseDedupRingCapacity)
 }
 
 // NewSSEBroker creates a new SSE broker that subscribes to the given bus.
@@ -241,7 +296,7 @@ func SSEHandler(broker *SSEBroker) http.Handler {
 
 		// Last-Event-ID reconnection: replay missed events if journal is available.
 		// The dedup ring is carried into the live loop to suppress duplicates.
-		replayed := (*dedupRing)(nil)
+		var replayed *dedup.Ring
 
 		if broker.journal != nil {
 			if lastEventID := r.Header.Get("Last-Event-ID"); lastEventID != "" {

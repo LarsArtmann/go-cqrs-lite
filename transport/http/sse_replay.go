@@ -3,7 +3,9 @@ package http
 import (
 	"context"
 	"net/http"
+	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/dedup/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
@@ -30,7 +32,7 @@ func replayEvents(
 	broker *SSEBroker,
 	ctx context.Context,
 	lastEventID string,
-) *dedupRing {
+) *dedup.Ring {
 	if broker.replayTimeout > 0 {
 		var cancel context.CancelFunc
 
@@ -54,9 +56,14 @@ func replayEvents(
 		return nil // invalid ID: skip replay, start live
 	}
 
-	replayed := newDedupRing(sseDedupRingCapacity)
+	replayed := dedup.NewRing(broker.dedupRingCap) // falls back to default when <=0
 	totalReplayed := 0
+	totalBytes := 0
 	timedOut := false
+	byteBudgetExceeded := false
+	start := time.Now()
+
+	budget := broker.replayByteBudget // <=0 = disabled (count-based batching only)
 
 	if broker.replayLimit > 0 {
 		// Bounded replay: single call with the cap.
@@ -68,8 +75,12 @@ func replayEvents(
 				cqrsotel.RecordError(span, err)
 			}
 		} else {
-			writeReplayBatch(w, events, replayed)
+			totalBytes = writeReplayBatch(w, events, replayed)
 			totalReplayed = len(events)
+
+			if budget > 0 && totalBytes > budget {
+				byteBudgetExceeded = true
+			}
 		}
 	} else {
 		// Unlimited replay: stream in batches to keep memory bounded.
@@ -97,8 +108,17 @@ func replayEvents(
 				break
 			}
 
-			writeReplayBatch(w, events, replayed)
+			totalBytes += writeReplayBatch(w, events, replayed)
 			totalReplayed += len(events)
+
+			// Byte budget check (optional): stop when cumulative payload size
+			// exceeds the configured budget. Safer than count-based batching
+			// for journals with large event payloads.
+			if budget > 0 && totalBytes > budget {
+				byteBudgetExceeded = true
+
+				break
+			}
 
 			cursor = events[len(events)-1].ID()
 
@@ -108,31 +128,52 @@ func replayEvents(
 		}
 	}
 
-	if timedOut {
-		span.SetAttributes(cqrsotel.AttrString("cqrs.sse.replay_status", "incomplete"))
+	if timedOut || byteBudgetExceeded {
+		status := "incomplete"
+		if byteBudgetExceeded {
+			status = "byte_budget_exceeded"
+		}
+
+		span.SetAttributes(cqrsotel.AttrString("cqrs.sse.replay_status", status))
+		span.SetAttributes(cqrsotel.AttrInt("cqrs.sse.replay_bytes", totalBytes))
 
 		_ = WriteSSEEvent(w, SSEEvent{
 			Event: SSEReplayIncompleteEvent,
-			Data:  `{"message":"replay timed out; some historical events were not delivered"}`,
+			Data:  `{"message":"replay stopped early; some historical events were not delivered"}`,
 		})
 	}
 
 	flusher.Flush()
 	span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrEventCount, totalReplayed))
 
+	broker.replayMetrics.RecordReplay(
+		ctx,
+		float64(time.Since(start).Microseconds())/1000.0,
+		totalReplayed,
+		timedOut || byteBudgetExceeded,
+	)
+
 	return replayed
 }
 
 // writeReplayBatch writes a batch of events to the client and records their
-// IDs in the dedup ring.
-func writeReplayBatch(w http.ResponseWriter, events []event.Event, replayed *dedupRing) {
+// IDs in the dedup ring. Returns the total payload bytes written (for
+// byte-budget accounting).
+func writeReplayBatch(w http.ResponseWriter, events []event.Event, replayed *dedup.Ring) int {
+	total := 0
+
 	for _, evt := range events {
 		replayed.Add(evt.ID().String())
+
+		data := string(event.PayloadReadOnly(evt))
+		total += len(data)
 
 		_ = WriteSSEEvent(w, SSEEvent{
 			Event: string(evt.Type()),
 			ID:    NewSSEEventID(evt.ID().String()),
-			Data:  string(event.PayloadReadOnly(evt)),
+			Data:  data,
 		})
 	}
+
+	return total
 }
