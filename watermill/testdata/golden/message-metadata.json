@@ -8,6 +8,7 @@
   "event_type": "order.created",
   "ip_address": "10.0.0.1",
   "occurred_at": "2026-03-10T12:00:00Z",
+  "payload_encoding": "json",
   "schema_version": "2",
   "source": "test-service",
   "user_agent": "test-agent/1.0",

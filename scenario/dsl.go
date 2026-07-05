@@ -50,6 +50,26 @@ func Given[Cmd, State any](
 	}
 }
 
+// GivenState is a convenience variant of [Given] for the common case where the
+// command type parameter is unused — the decide function is called inline in
+// When with nil as the command. This eliminates the redundant [any] type
+// parameter: GivenState[State](...) instead of Given[any, State](...).
+func GivenState[State any](
+	t *testing.T,
+	apply func(State, event.Event) (State, error),
+	initial State,
+	events ...event.Event,
+) *DeciderScenario[any, State] {
+	t.Helper()
+
+	return &DeciderScenario[any, State]{
+		t:       t,
+		apply:   apply,
+		initial: initial,
+		given:   events,
+	}
+}
+
 // When sets the command to execute against the folded state.
 func (s *DeciderScenario[Cmd, State]) When(
 	cmd Cmd,

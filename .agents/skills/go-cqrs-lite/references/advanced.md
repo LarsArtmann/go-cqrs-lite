@@ -200,7 +200,106 @@ for _, s := range host.Status() {     // health snapshot per worker
 // Worker states: idle, running, backoff, draining, stopped, failed.
 // Reads directly from event.SeekableJournal — NO message-bus dependency.
 // For live (push) delivery alongside replay, pair with watermill/CatchUpSubscriber.
+
+// Projection lag metric (register as Prometheus gauge):
+lag := host.LagDuration() // time.Duration since last processed event
 ```
+
+#### Projectionhost lifecycle (replay → live → DLQ)
+
+Understanding the lifecycle prevents common integration mistakes:
+
+1. **Host starts** → spawns one goroutine per registered projection.
+2. **Replay phase** → reads events from `SeekableJournal` in batches (`WithBatchSize`).
+   Each event is passed to `projection.Handle(ctx, evt)`.
+3. **Checkpoint advance** → after each successful event, the checkpoint is persisted.
+4. **Live transition** → when the journal catch-up completes, the host transitions
+   to the subscriber (if `WithSubscriber` was configured). Event-ID dedup prevents
+   double-processing at the replay→live boundary.
+5. **Error handling** → on `Handle` error, the worker enters exponential backoff
+   (`WithBackoff`) with jitter. After `WithMaxRestarts` consecutive failures, the
+   event goes to the dead-letter store (`WithDeadLetterStore`) and the worker
+   advances to the next event.
+6. **Poison messages** → events that exhaust the restart budget are moved to DLQ.
+   Use `host.ReplayDeadLetters(ctx, projectionName)` to retry after fixing the handler.
+
+#### SQL-backed dead-letter store (survives restarts)
+
+The in-memory `MemoryDeadLetterStore` is development-only. For production, implement
+the `DeadLetterStore` interface against SQL:
+
+```go
+// DeadLetterStore interface (implement for SQL persistence):
+//   Store(ctx, DeadLetterEntry) error
+//   List(ctx, projectionName string) ([]DeadLetterEntry, error)
+//   Delete(ctx, projectionName, eventID string) error
+//   Purge(ctx, projectionName string) error
+
+// Example: SQLDeadLetterStore implements DeadLetterStore over *sql.DB
+type SQLDeadLetterStore struct { db *sql.DB }
+
+// Wire it into the host:
+host, _ := projectionhost.New(journal, cpStore,
+    projectionhost.WithDeadLetterStore(&SQLDeadLetterStore{db: db}, 3),
+)
+// Poison messages survive restarts. Replay them after fixing the handler:
+_ = host.ReplayDeadLetters(ctx, "user-projection")
+```
+
+#### Projectionhost + EventBus + CatchUpSubscriber (live delivery)
+
+The projectionhost drains the journal then idles. For live push delivery, pair it
+with `watermill.CatchUpSubscriber`. The two coexist without conflict:
+
+```go
+// 1. Existing EventBus for live event delivery
+bus := watermill.NewEventBus()
+
+// 2. Projectionhost reads from the journal (replay + checkpoint)
+host, _ := projectionhost.New(seekableJournal, cpStore,
+    projectionhost.WithBatchSize(500),
+)
+
+// 3. CatchUpSubscriber for projections that need replay→live handoff
+catchUp, _ := watermill.NewCatchUpSubscriber(seekableJournal, liveSub, cpStore, logger)
+
+// 4. Wire projections:
+//    - Simple projections: register with host (reads journal directly)
+//    - Ordered projections: consume catchUp.Subscribe() from a single goroutine
+_ = host.Register(&UserProjection{})
+go host.Start(ctx)
+
+msgs, _ := catchUp.Subscribe(ctx, "user.created")
+go func() {
+    for msg := range msgs {
+        orderProjection.Handle(ctx, watermill.MessageToEvent("user.created", msg))
+        msg.Ack()
+    }
+}()
+```
+
+**⚠️ ORDERING:** `projectionhost` workers run sequentially within a single projection
+(one goroutine per projection, FIFO from journal). For ordered multi-projection
+delivery, consume the `CatchUpSubscriber` output channel from a single goroutine.
+
+#### Projection idempotency (at-least-once delivery)
+
+Event delivery is **at-least-once** — the same event may be replayed after a crash
+or restart. Your projection handlers MUST be idempotent. Common patterns:
+
+```go
+// Pattern 1: INSERT OR REPLACE (SQLite) — last-write-wins
+sink.Upsert(ctx, "users", storage.Row{"id": userID, "name": name})
+
+// Pattern 2: INSERT OR IGNORE — first-write-wins (created events)
+sink.Ensure(ctx, "users", storage.Row{"id": userID, "created_at": ts})
+
+// Pattern 3: Content-hash tracking — verify before applying
+// Store a hash of the last applied event ID; skip if already seen.
+```
+
+The `WithSubscriber` dedup handles the replay→live boundary, but NOT cross-restart
+replay idempotency. Your handlers must handle both cases.
 
 ### 6.10 Scenario-Testing DSL (Given/When/Then)
 
@@ -217,6 +316,12 @@ scenario.Given[incrementCmd, counterState](t, foldCounter, counterState{},
 // Variants:
 //   .ThenError(target)                 // asserts decide returns an error wrapping target
 //   .ThenState(fold, initial, expected)// folds produced events, asserts final state
+
+// GivenState: convenience variant (no unused Cmd type parameter)
+scenario.GivenState[CounterState](t, foldCounter, counterState{},
+    mustEvent(evtIncremented)).
+    When(nil, func(s counterState, _ any) ([]event.Event, error) { return []event.Event{evtIncremented}, nil }).
+    Then("counter.incremented")
 
 // Projection: feed events, assert no error
 scenario.GivenProjection(t, &UserProjection{}, evt1, evt2).ThenNoError()

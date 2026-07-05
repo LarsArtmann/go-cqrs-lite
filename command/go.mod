@@ -13,7 +13,7 @@ require (
 )
 
 require (
-	github.com/larsartmann/go-cqrs-lite/query/v3 v3.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/query/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-error-family v0.5.1 // indirect
 )
 
@@ -46,3 +46,5 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v3 => ../snapshot
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 => ../storage/memory
 )
+
+replace github.com/larsartmann/go-cqrs-lite/query/v3 => ../query

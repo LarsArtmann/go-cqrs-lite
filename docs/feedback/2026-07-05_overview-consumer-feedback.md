@@ -102,3 +102,15 @@ As a **transitive consumer**, Overview's experience with go-cqrs-lite is mostly 
 The most impactful improvement is **clarifying the `go-error-family` ↔ `event/v3` relationship** — Overview chose go-error-family because it's standalone, but the lack of documentation about when to use which creates uncertainty for every non-CQRS consumer of cqrs-htmx.
 
 The error family taxonomy itself (Rejection/Conflict/Transient/Infrastructure/Corruption) is excellent and powers Overview's entire error UX — from structured logging to family-colored error pages. This is the most valuable design exported by the go-cqrs-lite ecosystem for read-only apps.
+
+---
+
+## Appendix: Session Response (2026-07-05)
+
+> Tracking which feedback items were addressed. See `docs/status/2026-07-05_05-14_consumer-feedback-execution.md`.
+
+| #   | Feedback Item                                                             | Status             | What changed                                                                                                                                                                                                                 |
+| --- | ------------------------------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `go-error-family` vs `event/v3` error constructors — unclear relationship | ✅ **Documented**  | Added to skill FAQ: explains that go-error-family is the standalone extraction, event/v3 wraps the same families with event-store context. Non-CQRS consumers should use go-error-family. Classification is interchangeable. |
+| 2   | Indirect dependency weight — 12 modules for middleware-only usage         | ❌ **Not started** | This is a cqrs-htmx architecture concern (splitting middleware/SSE into a lighter sub-module). Not actionable from go-cqrs-lite's side alone.                                                                                |
+| 3   | `id/v3` branded types require `.String()` conversion at boundaries        | ❌ **Not started** | The `.String()` helper request is for cqrs-htmx, not go-cqrs-lite. Noted as a low-priority ergonomic improvement for cqrs-htmx.                                                                                              |

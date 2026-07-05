@@ -127,3 +127,20 @@ This works via go.work replaces but is fragile and confusing.
 ## Summary
 
 go-cqrs-lite is a **powerful, well-designed CQRS/ES framework** with the best decider pattern I've used. The #1 issue by far is the **watermill encoding metadata loss** — it blocks CBOR and undermines `DecodePayloadAuto`. The #2 issue is the eventtest consumer workspace complexity. Fix those two and the DX is excellent.
+
+---
+
+## Appendix: Session Response (2026-07-05)
+
+> Tracking which feedback items were addressed. See `docs/status/2026-07-05_05-14_consumer-feedback-execution.md`.
+
+### Pain Points
+
+| #   | Feedback Item                                             | Status             | What changed                                                                                                                                                                                                                                                                                         |
+| --- | --------------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **CRITICAL: watermill EventBus loses `payload_encoding`** | ✅ **FIXED**       | `watermill/protocol.go` now writes `payload_encoding` to message metadata in `EventToMessage` and restores it via `event.WithEncoding()` in `MessageToEvent`. Added 2 tests: JSON+CBOR round-trip preservation, backward compat (old messages without encoding → JSON default). Golden test updated. |
+| 2   | eventtest pseudo-version dependency hell                  | ✅ **Documented**  | Added to skill FAQ with consumer-side `replace` directive. Structural fix (tag/restructure) is a maintainer decision.                                                                                                                                                                                |
+| 3   | `WithEnricher` can't infer type parameter                 | ✅ **Documented**  | Added to skill FAQ: `decider.WithEnricher[UserState](event.CommandCausalityEnricher)` with explicit type param.                                                                                                                                                                                      |
+| 4   | `event.New()` rejects nil payloads                        | ✅ **Documented**  | Added to skill FAQ: explains `New()` validates (typed constructor) vs `NewEvent()` accepts raw `[]byte` (low-level).                                                                                                                                                                                 |
+| 5   | projectionhost integration story unclear                  | ✅ **Documented**  | Added full integration recipe to `references/advanced.md`: EventBus + projectionhost + CatchUpSubscriber coexisting with wiring example.                                                                                                                                                             |
+| 6   | decider version fragmentation                             | ❌ **Not started** | Blocked by eventtest module resolution. Will resolve once eventtest is tagged.                                                                                                                                                                                                                       |

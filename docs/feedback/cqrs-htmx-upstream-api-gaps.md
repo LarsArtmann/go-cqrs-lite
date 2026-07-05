@@ -6,6 +6,12 @@
 > `132106e6` (projection split + 3 markers) and `c565d183` (remaining 5 markers
 > exported for API consistency). `RunReplay`/`RunLive` shipped; all 8 marker
 > types exported. See CHANGELOG `[Unreleased]` and ADR-0024.
+>
+> **Session update (2026-07-05):** No further changes needed. Both items confirmed
+> resolved in the codebase. `projection.RunReplay()` and `projection.RunLive()`
+> exist. All 8 marker types (`UserMarker`, `CorrelationMarker`, `RequestMarker`,
+> `AggregateMarker`, `EventMarker`, `CommandMarker`, `CausationMarker`,
+> `QueryMarker`) are exported.
 
 ---
 

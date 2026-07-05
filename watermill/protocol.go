@@ -9,6 +9,7 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill/message"
 
+	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
@@ -31,6 +32,7 @@ const (
 	metaUserAgent       = "user_agent"
 	metaTombstoneStatus = "tombstone_status"
 	metaTombstoneReason = "tombstone_reason"
+	metaPayloadEncoding = "payload_encoding"
 	metaCustomPrefix    = "custom."
 )
 
@@ -58,6 +60,13 @@ func eventToMessage(evt event.Event) *message.Message {
 	md.Set(metaVersion, strconv.Itoa(evt.Version().Int()))
 	md.Set(metaSchemaVersion, strconv.Itoa(evt.SchemaVersion().Int()))
 	md.Set(metaOccurredAt, evt.OccurredAt().Format(time.RFC3339Nano))
+
+	// Preserve payload encoding so non-JSON codecs (CBOR, etc.) survive the round-trip.
+	// Without this, MessageToEvent defaults to JSON and DecodePayloadAuto fails on
+	// CBOR-encoded payloads with "invalid character" errors.
+	if enc := string(evt.Encoding()); enc != "" {
+		md.Set(metaPayloadEncoding, enc)
+	}
 
 	m := evt.Metadata()
 	writeTracing(md, m.Tracing)
@@ -119,6 +128,12 @@ func MessageToEvent(topic string, msg *message.Message) (event.Event, error) {
 	}
 
 	opts := []event.Option{event.WithSchemaVersion(event.SchemaVersion(schemaVersion))}
+
+	// Restore payload encoding so DecodePayloadAuto picks the correct codec.
+	// Defaults to JSON when absent (backward compatibility with old messages).
+	if enc := md.Get(metaPayloadEncoding); enc != "" {
+		opts = append(opts, event.WithEncoding(codec.Encoding(enc)))
+	}
 
 	if eventOpts, err := parseOptionalFields(md); err != nil {
 		return nil, event.Wrapf(

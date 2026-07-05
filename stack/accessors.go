@@ -88,6 +88,17 @@ func (b *Bundle) eventStore() (event.Store, bool) {
 	return store, ok
 }
 
+// EventStore returns the composite event.Store from the Bundle's EventSink
+// field. Consumers frequently need the raw store for query handlers, journal
+// access, or SSE broker registration without keeping a separate reference.
+//
+// Returns the store and true when configured via [WithEventStore] (or a preset
+// that sets one). Returns nil, false when no store is configured or when
+// [WithEventSink] was used with a sink that doesn't also implement EventSource.
+func (b *Bundle) EventStore() (event.Store, bool) {
+	return b.eventStore()
+}
+
 // TypedRepository constructs a [decider.TypedRepository] over the Bundle's
 // event store, binding both the State and Command type parameters at compile
 // time. The Decide function lives on the TypedDecider, not passed per-call.

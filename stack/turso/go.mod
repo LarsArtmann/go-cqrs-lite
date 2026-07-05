@@ -69,7 +69,7 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/otel/v3 => ../../otel
 	github.com/larsartmann/go-cqrs-lite/query/v3 => ../../query
 	github.com/larsartmann/go-cqrs-lite/snapshot/v3 => ../../snapshot
-	github.com/larsartmann/go-cqrs-lite/stack/v3 => ..
+	github.com/larsartmann/go-cqrs-lite/stack/v3 => ../../stack
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 => ../../storage/memory
 	github.com/larsartmann/go-cqrs-lite/storage/turso/v3 => ../../storage/turso
 	github.com/larsartmann/go-cqrs-lite/storage/v3 => ../../storage

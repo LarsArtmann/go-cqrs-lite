@@ -14,15 +14,8 @@ use (
 	./encryption
 	./event
 	./event/v3/eventtest
-	./example/deployer-first
-	./example/deployer-first-heterogeneous
-	./example/deployer-first-multidb
-	./example/deriver
-	./example/encryption
-	./example/graph-demo
-	./example/projectionhost
-	./example/todo
-	./example/user
+	./example/getting-started
+	./example/taskmanager
 	./graph
 	./id
 	./idempotency

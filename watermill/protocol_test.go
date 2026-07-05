@@ -7,6 +7,7 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill/message"
 
+	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -158,5 +159,67 @@ func assertMetadata(t *testing.T, md message.Metadata, key, want string) {
 	t.Helper()
 	if got := md.Get(key); got != want {
 		t.Errorf("%s = %q, want %q", key, got, want)
+	}
+}
+
+func TestEventToMessage_PreservesEncoding(t *testing.T) {
+	t.Parallel()
+
+	aggID := id.NewAggregateID()
+
+	tests := []struct {
+		name     string
+		encoding codec.Encoding
+	}{
+		{"json", codec.EncodingJSON},
+		{"cbor", codec.EncodingCBOR},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			original, err := event.NewEvent("test.event", aggID, "Test", 1,
+				[]byte(`{"v":1}`), event.WithEncoding(tt.encoding))
+			if err != nil {
+				t.Fatalf("create event: %v", err)
+			}
+
+			msg := wm.EventToMessage(original)
+			assertMetadata(t, msg.Metadata, "payload_encoding", string(tt.encoding))
+
+			reconstructed, err := wm.MessageToEvent("test.event", msg)
+			if err != nil {
+				t.Fatalf("reconstruct: %v", err)
+			}
+			if reconstructed.Encoding() != tt.encoding {
+				t.Errorf("encoding = %q, want %q", reconstructed.Encoding(), tt.encoding)
+			}
+		})
+	}
+}
+
+func TestMessageToEvent_DefaultsJSONWhenNoEncoding(t *testing.T) {
+	t.Parallel()
+
+	aggID := id.NewAggregateID()
+
+	original, err := event.NewEvent("test.event", aggID, "Test", 1,
+		[]byte(`{"v":1}`))
+	if err != nil {
+		t.Fatalf("create event: %v", err)
+	}
+
+	msg := wm.EventToMessage(original)
+
+	// Simulate an old message from before the encoding fix
+	msg.Metadata.Set("payload_encoding", "")
+
+	reconstructed, err := wm.MessageToEvent("test.event", msg)
+	if err != nil {
+		t.Fatalf("reconstruct: %v", err)
+	}
+	if reconstructed.Encoding() != codec.EncodingJSON {
+		t.Errorf("encoding = %q, want %q (default)", reconstructed.Encoding(), codec.EncodingJSON)
 	}
 }

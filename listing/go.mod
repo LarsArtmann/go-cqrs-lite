@@ -4,7 +4,7 @@ go 1.26.3
 
 require (
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/event/v3/eventtest v0.1.0
+	github.com/larsartmann/go-cqrs-lite/event/v3/eventtest v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.0.0-00010101000000-000000000000
 	github.com/onsi/ginkgo/v2 v2.31.0
@@ -46,3 +46,5 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v3 => ../snapshot
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 => ../storage/memory
 )
+
+replace github.com/larsartmann/go-cqrs-lite/event/v3/eventtest => ../event/v3/eventtest

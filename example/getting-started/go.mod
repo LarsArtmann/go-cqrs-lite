@@ -1,15 +1,15 @@
-module github.com/larsartmann/go-cqrs-lite/stack/postgres/v3
+module github.com/larsartmann/go-cqrs-lite/example/getting-started
 
 go 1.26.3
 
 require (
-	github.com/jackc/pgx/v5 v5.10.0
+	github.com/larsartmann/go-cqrs-lite/decider/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/stack/v3 v3.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/storage/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/watermill/v3 v3.0.0-00010101000000-000000000000
-	pgregory.net/rapid v1.3.0
 )
 
 require (
@@ -21,16 +21,10 @@ require (
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/jackc/pgpassfile v1.0.0 // indirect
-	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
-	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.0.0-00010101000000-000000000000 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v3 v3.0.0-00010101000000-000000000000 // indirect
-	github.com/larsartmann/go-cqrs-lite/decider/v3 v3.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v3 v3.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.0.0-00010101000000-000000000000 // indirect
-	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.0.0-00010101000000-000000000000 // indirect
-	github.com/larsartmann/go-cqrs-lite/listing/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.0.0-00010101000000-000000000000 // indirect
@@ -54,30 +48,37 @@ require (
 	go.opentelemetry.io/otel/trace v1.44.0 // indirect
 	golang.org/x/sync v0.21.0 // indirect
 	golang.org/x/sys v0.46.0 // indirect
-	golang.org/x/text v0.38.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace (
-	github.com/larsartmann/go-cqrs-lite/codec/v3 => ../../codec
-	github.com/larsartmann/go-cqrs-lite/command/v3 => ../../command
-	github.com/larsartmann/go-cqrs-lite/decider/v3 => ../../decider
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 => ../../dispatcher
-	github.com/larsartmann/go-cqrs-lite/event/v3 => ../../event
-	github.com/larsartmann/go-cqrs-lite/id/v3 => ../../id
-	github.com/larsartmann/go-cqrs-lite/kv/v3 => ../../kv
-	github.com/larsartmann/go-cqrs-lite/otel/v3 => ../../otel
-	github.com/larsartmann/go-cqrs-lite/query/v3 => ../../query
-	github.com/larsartmann/go-cqrs-lite/snapshot/v3 => ../../snapshot
-	github.com/larsartmann/go-cqrs-lite/stack/v3 => ../../stack
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 => ../../storage/memory
-	github.com/larsartmann/go-cqrs-lite/storage/v3 => ../../storage
-)
+replace github.com/larsartmann/go-cqrs-lite/codec/v3 => ../../codec
 
-replace github.com/larsartmann/go-cqrs-lite/watermill/v3 => ../../watermill
+replace github.com/larsartmann/go-cqrs-lite/command/v3 => ../../command
+
+replace github.com/larsartmann/go-cqrs-lite/decider/v3 => ../../decider
+
+replace github.com/larsartmann/go-cqrs-lite/dispatcher/v3 => ../../dispatcher
+
+replace github.com/larsartmann/go-cqrs-lite/event/v3 => ../../event
+
+replace github.com/larsartmann/go-cqrs-lite/id/v3 => ../../id
+
+replace github.com/larsartmann/go-cqrs-lite/kv/v3 => ../../kv
+
+replace github.com/larsartmann/go-cqrs-lite/otel/v3 => ../../otel
 
 replace github.com/larsartmann/go-cqrs-lite/projection/v3 => ../../projection
 
+replace github.com/larsartmann/go-cqrs-lite/query/v3 => ../../query
+
+replace github.com/larsartmann/go-cqrs-lite/snapshot/v3 => ../../snapshot
+
+replace github.com/larsartmann/go-cqrs-lite/stack/v3 => ../../stack
+
+replace github.com/larsartmann/go-cqrs-lite/storage/memory/v3 => ../../storage/memory
+
+replace github.com/larsartmann/go-cqrs-lite/watermill/v3 => ../../watermill
+
 replace github.com/larsartmann/go-cqrs-lite/event/v3/eventtest => ../../event/v3/eventtest
 
-replace github.com/larsartmann/go-cqrs-lite/listing/v3 => ../../listing
+replace github.com/larsartmann/go-cqrs-lite/schema/v3 => ../../schema

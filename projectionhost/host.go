@@ -217,7 +217,32 @@ func (h *Host) LastProcessedAt() time.Time {
 	return latest
 }
 
-// RegisterAndWait is a convenience that registers a projection, starts the
+// LagDuration returns how long since the most recently processed event across
+// all workers. This is a projection-lag indicator: if the value grows over
+// time, projections are falling behind. Returns 0 if no event has been
+// processed yet. Consumers register this as a Prometheus gauge:
+//
+//	gauge.Set(float64(host.LagDuration().Milliseconds()))
+func (h *Host) LagDuration() time.Duration {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	var latest time.Time
+
+	for _, w := range h.workers {
+		ts := w.lastProcessedAt()
+		if ts.After(latest) {
+			latest = ts
+		}
+	}
+
+	if latest.IsZero() {
+		return 0
+	}
+
+	return time.Since(latest)
+}
+
 // host, and blocks until ctx is cancelled or all workers stop. Useful for
 // simple single-projection setups.
 func RegisterAndWait(ctx context.Context, h *Host, projections ...projection.Projection) error {

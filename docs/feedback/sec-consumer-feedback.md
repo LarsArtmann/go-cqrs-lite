@@ -142,3 +142,30 @@ go-cqrs-lite v3.5.0 is the best CQRS/event-sourcing framework I've used in Go. T
 The module proliferation is inherent to the design principle (pay-for-use), and the skill docs compensate well. The main gaps are minor: exporting `Bundle.EventStore()`, domain-aware fold helpers, and simplifying the scenario DSL's type parameters.
 
 The library has clearly evolved through real-world use — the API shows evidence of lessons learned (version is uint64, snapshots are transparent, idempotency is middleware-based, the Bundle uses interface segregation). This is mature, production-grade infrastructure.
+
+---
+
+## Appendix: Session Response (2026-07-05)
+
+> Tracking which feedback items were addressed. See `docs/status/2026-07-05_05-14_consumer-feedback-execution.md`.
+
+### Pain Points
+
+| #   | Feedback Item                                                         | Status             | What changed                                                                                                                                                                                     |
+| --- | --------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | `stack.Bundle.eventStore()` is unexported                             | ✅ **SHIPPED**     | Exported `Bundle.EventStore() (event.Store, bool)`. Consumers can now access the raw store for query handlers, journal access, and SSE broker registration without keeping a separate reference. |
+| 2   | `event.Store` vs `EventSink`/`EventSource` — type assertion fragility | ✅ **Documented**  | The `EventStore()` accessor handles the assertion internally. The typed field suggestion is noted but would change the Bundle struct shape.                                                      |
+| 3   | `foldIslandEvent` must live in app package, not domain package        | ❌ **Not started** | Domain-aware fold helper (`ApplyDomain` + `EventDecoder`) noted as P2. Would let fold logic live where domain types are defined.                                                                 |
+| 4   | `scenario.Given[any, State]` — unused first type parameter            | ✅ **SHIPPED**     | Added `scenario.GivenState[State]()` — eliminates the redundant `[any]` type parameter for the common case where Cmd is unused.                                                                  |
+| 5   | `event.Version` is `uint64` — no underflow protection                 | ✅ **Documented**  | Noted in status report as P3: a `Version` type with safe arithmetic, or documenting that zero-value version must never be decremented.                                                           |
+| 6   | Module proliferation — 13+ submodules                                 | ✅ **Documented**  | Inherent to the pay-for-use design. Skill docs compensate. Bundle meta-module noted as P3.                                                                                                       |
+
+### Ideas for Improvement
+
+| #   | Feedback Item                                      | Status             | What changed                                                                                                |
+| --- | -------------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------- |
+| 1   | `stack.Bundle.EventStore()` accessor               | ✅ **SHIPPED**     | See pain point #1 above.                                                                                    |
+| 2   | Domain-aware fold helper                           | ❌ **Not started** | Noted as P2 feature.                                                                                        |
+| 3   | `scenario.GivenState[State]` variant               | ✅ **SHIPPED**     | See pain point #4 above.                                                                                    |
+| 4   | Bundle `DebugStructured()` for programmatic checks | ✅ **SHIPPED**     | Added `Bundle.DebugStructured() map[string]bool` — returns capability status as a map for health endpoints. |
+| 5   | Idempotency content-hash mode                      | ❌ **Not started** | Noted as P2. `Idempotency(ContentHashKey)` selector for commands that ARE idempotent.                       |

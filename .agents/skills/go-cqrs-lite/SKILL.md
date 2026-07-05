@@ -311,6 +311,20 @@ data, _ := codec.JSONCodec{}.Encode(payload)
 data, _ := codec.CBORCodec{}.Encode(payload)         // 19% smaller, 32% faster encode
 payload, _ := codec.CBORCodec{}.Decode(data)
 // Stack-level default: stack.WithDefaultCodec(codec.CBORCodec{}) at bundle creation
+
+// Stack Bundle accessors (v3.6+)
+store, ok := bundle.EventStore()                    // typed event.Store accessor
+status := bundle.DebugStructured()                  // map[string]bool for health checks
+lag := projHost.LagDuration()                       // projection lag gauge (time.Duration)
+
+// Query middleware (symmetric with command middleware)
+qDisp.Use(query.QueryRecovery())
+qDisp.Use(query.QueryLogging(logger))
+qDisp.Use(query.QueryMetrics(recorder))
+
+// Scenario testing — GivenState (no unused Cmd type param)
+scenario.GivenState[CounterState](t, fold, initial, events...).
+    When(nil, decideFunc).Then(expectedTypes...)
 ```
 
 ---
@@ -400,6 +414,101 @@ reg := catalog.NewRegistry()
 // Correct
 reg := catalog.NewRegistry("My API", "1.0.0")
 ```
+
+### "Local `go mod tidy` fails with eventtest pseudo-version errors"
+
+**Cause:** `event/v3/eventtest` is a standalone Go module at `event/v3/eventtest/go.mod` with no published tag. It resolves via `replace` directives in `go.work`, but `go mod tidy` in a **consumer** workspace can't inherit those replaces.
+
+**Fix (consumer side):** Add a `replace` directive in your `go.work`:
+
+```go
+replace github.com/larsartmann/go-cqrs-lite/event/v3/eventtest => ../go-cqrs-lite/event/v3/eventtest
+```
+
+Inside the go-cqrs-lite repo, run `go mod tidy -e` (the warnings are cosmetic — the build works via `go.work`).
+
+### "event.New() rejects nil payload but event.NewEvent() accepts []byte{}"
+
+**Cause:** `event.New()` validates the payload (rejects nil), while `event.NewEvent()` accepts raw `[]byte` (including empty). This is intentional — `New()` is the typed-payload constructor, `NewEvent()` is the low-level constructor for stores and tests.
+
+```go
+// event.New() — typed, validates payload
+evt, err := event.New("user.created", aggID, "User", 1, UserCreated{Name: "Alice"})
+// err is non-nil if payload is nil
+
+// event.NewEvent() — raw bytes, no validation
+evt, err := event.NewEvent("user.created", aggID, "User", 1, []byte{})
+// works fine — for test helpers and store internals
+```
+
+### "WithEnricher can't infer the type parameter"
+
+**Cause:** Go generics can't infer `State` from the enricher function type alone. Provide it explicitly:
+
+```go
+// Wrong — compiler error: cannot infer State
+repo := decider.WithEnricher(event.CommandCausalityEnricher)
+
+// Correct — explicit type parameter
+repo := decider.WithEnricher[UserState](event.CommandCausalityEnricher)
+```
+
+### "go-error-family vs event/v3 error constructors — which should I use?"
+
+**Relationship:** `go-error-family` is the **standalone** extraction of the five-family error taxonomy (Rejection, Conflict, Transient, Infrastructure, Corruption). `event/v3` wraps the **same** families with event-store context (event payloads, codec integration, metadata).
+
+- **CQRS apps:** use `event.NewRejection(...)`, `event.WrapTransient(err, ...)` — they integrate with the event store and bus.
+- **Non-CQRS apps** (middleware-only consumers, HTTP services): use `go-error-family` directly. It's the same classification without event coupling.
+- They are **interchangeable** for classification: `event.Classify(err)` and `errorfamily.Classify(err)` produce the same family.
+
+### "Is eventtest.FakeBus production-safe?"
+
+**Yes** — `FakeBus` is a synchronous in-memory event bus suitable for **single-process production apps**. The name is historical (it started as a test double). For multi-process or distributed setups, use `watermill.EventBus` with a real message broker.
+
+### "Can I share one \*sql.DB for events AND read models?"
+
+**Yes.** The `stack/*` presets create separate `*sql.DB` connections, but you can wire a shared database manually:
+
+```go
+// Shared *sql.DB for events + projections + read models
+db, _ := sql.Open("sqlite3", "app.db")
+eventStore, _ := storage.NewSQLiteEventStore(db)
+viewStore, _ := storage.NewSQLiteViewStore[TodoView, TodoID](db, mapper)
+// Pass the SAME db to both — transactions span both if needed.
+```
+
+Do NOT use `stack/sqlite.New()` for this case — it creates separate connections. See `references/recipes.md` §2.3 for the shared-database recipe.
+
+### "When should I use snapshots?"
+
+**Rule of thumb:** use snapshots when your largest aggregate exceeds **~100 events**. Below that, full replay is faster than snapshot load + remaining replay.
+
+```go
+// Snapshot every 50 events — good for aggregates that grow large
+strategy, _ := snapshot.EveryNEvents(50)
+repo, _ := decider.NewRepository(store, bus, d,
+    decider.WithSnapshotStore(snapStore),
+    decider.WithSnapshotStrategy(strategy),
+)
+// Load() transparently uses snapshots when available.
+```
+
+For small aggregates (5-20 events), skip snapshots — the overhead exceeds the savings.
+
+### "Storage package restructure — where did types move?"
+
+v3.5.0 reorganized `storage/` into sub-packages. All old import paths still work via
+backward-compatible aliases, but the canonical paths are:
+
+| Old path (still works)         | Canonical path (v3.5+)                                  | Types                   |
+| ------------------------------ | ------------------------------------------------------- | ----------------------- |
+| `storage.SQLViewStore`         | `storage.NewSQLiteViewStore` / `storage.NewPGViewStore` | View store constructors |
+| `storage.ViewMapper`           | `storage.ViewMapper` (unchanged)                        | View column mapping     |
+| `storage.RelationalProjection` | `storage.NewRelationalProjection` (unchanged)           | Multi-table projections |
+| `storage/sql.Dialect`          | `storage/sql.Dialect` (unchanged)                       | SQL dialect types       |
+| `storage/view.*`               | `storage/view.*` (unchanged)                            | View internals          |
+
+**If your old code compiles, it still works.** The aliases are permanent.
 
 ---
 

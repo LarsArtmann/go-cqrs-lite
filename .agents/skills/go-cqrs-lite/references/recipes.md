@@ -97,6 +97,36 @@ cached, _ := kv.NewCache(store,
     kv.WithCacheTTL[TodoView, TodoID](5*time.Minute))
 ```
 
+#### Shared database (events + reads in one \*sql.DB)
+
+When your events and read models share a single SQLite/Postgres database, skip the
+`stack/*` presets (they create separate connections). Wire manually instead:
+
+```go
+import (
+    "database/sql"
+    "github.com/larsartmann/go-cqrs-lite/storage/v3"
+    cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v3"
+)
+
+// One shared *sql.DB for everything
+db, _ := sql.Open("sqlite3", "app.db")
+
+// Event store + journal from the same DB
+backend, _ := storage.NewSQLiteBackend(db)
+eventStore := backend.EventStore()
+
+// Read model views from the same DB
+viewStore, _ := storage.NewSQLiteViewStore[TodoView, TodoID](db, mapper)
+
+// Projections read from the journal, write to viewStore — same DB, same tx if needed
+// This architecture is common for single-process apps (DiscordSync, SEC, etc.)
+```
+
+**When to use this:** single-process apps, embedded systems, personal projects,
+CI test harnesses. **When NOT to use:** multi-process or distributed setups that
+need separate connection pools or cross-process pub/sub.
+
 See [`docs/PRESETS.md`](docs/PRESETS.md) and [`docs/INFRASTRUCTURE_RECOMMENDATIONS.md`](docs/INFRASTRUCTURE_RECOMMENDATIONS.md) for full documentation.
 
 #### Bundle.Debug() — verify your wiring
@@ -326,6 +356,35 @@ defer store.Close()
 // Pass a custom KeyExtractor for client-supplied idempotency keys.
 cmdDispatcher.Use(idempotency.CommandIdempotency(store, 10*time.Minute, nil))
 ```
+
+#### Query Middleware (symmetric with command middleware)
+
+Query middleware provides the same recovery, logging, metrics, and retry capabilities
+as command middleware. Apply it to your query dispatcher for production-grade resilience:
+
+```go
+// Query middleware chain (same pattern as command middleware)
+qDisp.Use(middleware.QueryRecovery())           // panic → error, don't crash the process
+qDisp.Use(middleware.QueryLogging(slog.Default())) // structured query logging
+qDisp.Use(middleware.QueryRetry(3, time.Second))   // retry transient failures
+
+// OTel metrics for queries
+meter := otel.GetMeterProvider().Meter("my-app")
+recorder, _ := middleware.NewOTelMetricsRecorder(meter)
+qDisp.Use(middleware.QueryMetrics(recorder))
+
+// OTel tracing for queries
+tracer := otel.GetTracerProvider().Tracer("my-app")
+qDisp.Use(middleware.QueryTracing(tracer))
+```
+
+The full middleware matrix (all symmetric across command/event/query):
+
+|         | Recovery | Logging | Retry | CircuitBreaker | Metrics | Tracing |
+| ------- | -------- | ------- | ----- | -------------- | ------- | ------- |
+| Command | ✅       | ✅      | ✅    | ✅             | ✅      | ✅      |
+| Event   | ✅       | ✅      | ✅    | ✅             | ✅      | ✅      |
+| Query   | ✅       | ✅      | ✅    | ✅             | ✅      | ✅      |
 
 ### 2.9 Auto-Documentation (catalog)
 
