@@ -75,7 +75,13 @@ func replayEvents(
 				cqrsotel.RecordError(span, err)
 			}
 		} else {
-			written, count, budgetHit := writeReplayBatchBounded(w, events, replayed, totalBytes, budget)
+			written, count, budgetHit := writeReplayBatchBounded(
+				w,
+				events,
+				replayed,
+				totalBytes,
+				budget,
+			)
 			totalBytes += written
 			totalReplayed += count
 
@@ -109,7 +115,13 @@ func replayEvents(
 				break
 			}
 
-			written, count, budgetHit := writeReplayBatchBounded(w, events, replayed, totalBytes, budget)
+			written, count, budgetHit := writeReplayBatchBounded(
+				w,
+				events,
+				replayed,
+				totalBytes,
+				budget,
+			)
 			totalBytes += written
 			totalReplayed += count
 
