@@ -132,3 +132,5 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 # <<< buildflow-managed (.gitignore) <<<
+example/taskmanager/taskmanager
+example/getting-started/getting-started
