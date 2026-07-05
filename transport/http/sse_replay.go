@@ -75,10 +75,11 @@ func replayEvents(
 				cqrsotel.RecordError(span, err)
 			}
 		} else {
-			totalBytes = writeReplayBatch(w, events, replayed)
-			totalReplayed = len(events)
+			written, count, budgetHit := writeReplayBatchBounded(w, events, replayed, totalBytes, budget)
+			totalBytes += written
+			totalReplayed += count
 
-			if budget > 0 && totalBytes > budget {
+			if budgetHit {
 				byteBudgetExceeded = true
 			}
 		}
@@ -108,13 +109,11 @@ func replayEvents(
 				break
 			}
 
-			totalBytes += writeReplayBatch(w, events, replayed)
-			totalReplayed += len(events)
+			written, count, budgetHit := writeReplayBatchBounded(w, events, replayed, totalBytes, budget)
+			totalBytes += written
+			totalReplayed += count
 
-			// Byte budget check (optional): stop when cumulative payload size
-			// exceeds the configured budget. Safer than count-based batching
-			// for journals with large event payloads.
-			if budget > 0 && totalBytes > budget {
+			if budgetHit {
 				byteBudgetExceeded = true
 
 				break
@@ -156,17 +155,28 @@ func replayEvents(
 	return replayed
 }
 
-// writeReplayBatch writes a batch of events to the client and records their
-// IDs in the dedup ring. Returns the total payload bytes written (for
-// byte-budget accounting).
-func writeReplayBatch(w http.ResponseWriter, events []event.Event, replayed *dedup.Ring) int {
-	total := 0
-
+// writeReplayBatchBounded writes events to the client, recording IDs in the
+// dedup ring. If budget > 0 and the cumulative payload bytes (priorBytes +
+// this batch) would exceed budget, writing stops mid-batch and budgetHit is
+// returned true. Returns (bytesWritten, eventsWritten, budgetHit).
+//
+// When budget <= 0, all events are written (byte-budgeting disabled).
+func writeReplayBatchBounded(
+	w http.ResponseWriter,
+	events []event.Event,
+	replayed *dedup.Ring,
+	priorBytes, budget int,
+) (bytesWritten, eventsWritten int, budgetHit bool) {
 	for _, evt := range events {
-		replayed.Add(evt.ID().String())
-
 		data := string(event.PayloadReadOnly(evt))
-		total += len(data)
+
+		if budget > 0 && priorBytes+bytesWritten+len(data) > budget {
+			return bytesWritten, eventsWritten, true
+		}
+
+		replayed.Add(evt.ID().String())
+		bytesWritten += len(data)
+		eventsWritten++
 
 		_ = WriteSSEEvent(w, SSEEvent{
 			Event: string(evt.Type()),
@@ -175,5 +185,5 @@ func writeReplayBatch(w http.ResponseWriter, events []event.Event, replayed *ded
 		})
 	}
 
-	return total
+	return bytesWritten, eventsWritten, false
 }
