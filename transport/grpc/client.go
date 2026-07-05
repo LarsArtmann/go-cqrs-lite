@@ -18,7 +18,6 @@ var (
 		"grpc: server returned failure",
 	)
 	errQueryFailed      = cqrsevent.NewInfrastructure("grpc.query_failed", "grpc: query failed")
-	errUnmarshalResult  = cqrsevent.NewCorruption("grpc.unmarshal_result", "grpc: unmarshal result")
 	errMissingCommandID = cqrsevent.NewRejection(
 		"grpc.missing_command_id",
 		"grpc: command has no ID",

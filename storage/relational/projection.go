@@ -142,11 +142,6 @@ func WithoutRelationalAutoMigrate() RelationalProjectionOption {
 	return func(p *RelationalProjection) { p.autoMigrate = false }
 }
 
-var errRelational = cqrsevent.NewRejection(
-	"relational.base",
-	"relational projection",
-)
-
 var (
 	errRelationalNoName = cqrsevent.NewRejection(
 		"relational.no_name",

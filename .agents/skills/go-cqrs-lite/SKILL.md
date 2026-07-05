@@ -367,9 +367,9 @@ status := bundle.DebugStructured()                  // map[string]bool for healt
 lag := projHost.LagDuration()                       // projection lag gauge (time.Duration)
 
 // Query middleware (symmetric with command middleware)
-qDisp.Use(query.QueryRecovery())
-qDisp.Use(query.QueryLogging(logger))
-qDisp.Use(query.QueryMetrics(recorder))
+qDisp.Use(middleware.QueryRecovery())
+qDisp.Use(middleware.QueryLogging(logger))
+qDisp.Use(middleware.QueryMetrics(recorder))
 
 // Scenario testing — GivenState (no unused Cmd type param)
 scenario.GivenState[CounterState](t, fold, initial, events...).
