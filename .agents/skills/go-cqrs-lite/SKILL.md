@@ -189,7 +189,7 @@ cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 | Type-asserting `evt.Payload()`             | Use `event.DecodePayloadAuto[T](evt)` or `DecodePayload[T](evt, codec)` |
 | Importing `go.opentelemetry.io` directly   | Import `otel/v3` re-exports                                             |
 | Manually setting event version in `Decide` | Let `event.NewEvents` auto-increment from the passed version            |
-| Creating a saga/process-manager module     | Use projection + command dispatch (see `example/todo/`)                 |
+| Creating a saga/process-manager module     | Use projection + command dispatch (see `example/taskmanager/`)          |
 | Editing dependency go.mod files by hand    | Use `go get` commands                                                   |
 | Using `any` types in public APIs           | Use generics / branded types                                            |
 | Storing the \*sql.DB lifetime in backend   | `backend.Close()` closes stores, NOT your `*sql.DB`                     |
@@ -230,17 +230,16 @@ Layer 5: middleware/, storage/, listing/, watermill/, transport/http/, transport
 Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability, cmd/doc-check
 ```
 
-**Saga pattern:** No dedicated module. Multi-step orchestration = projection + command dispatch. See `example/todo/`.
+**Saga pattern:** No dedicated module. Multi-step orchestration = projection + command dispatch. See `example/taskmanager/`.
 
 ---
 
 ## 9. Examples in the Repo
 
-| Example        | Path                  | Demonstrates                                                         |
-| -------------- | --------------------- | -------------------------------------------------------------------- |
-| **todo**       | `example/todo/`       | Full app: HTTP API, decider, projections, queries, Pebble storage    |
-| **user**       | `example/user/`       | Advanced: signing, middleware chains, catalog gen, tombstone/rebirth |
-| **encryption** | `example/encryption/` | Bus-level + store-level encryption, key rotation                     |
+| Example             | Path                       | Demonstrates                                                              |
+| ------------------- | -------------------------- | ------------------------------------------------------------------------- |
+| **taskmanager**     | `example/taskmanager/`     | Flagship: full HTTP service, CQRS/ES, signing, SSE, snapshots, tombstones |
+| **getting-started** | `example/getting-started/` | Minimal: 80-line demo of the core loop (bundle → repo → projection)       |
 
 ---
 

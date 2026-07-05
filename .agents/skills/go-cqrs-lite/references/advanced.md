@@ -28,7 +28,7 @@ store.Save(ctx, ref, []event.Event{marked}, expectedVersion)
 status := event.DetectTombstone(events) // Active | Tombstoned | Undetermined
 
 // Rebirth: emit a new event after tombstone (tombstone is just metadata)
-// See example/user/ for the full tombstone + rebirth cycle
+// See example/taskmanager/ for the full tombstone + rebirth cycle
 ```
 
 ### 6.2 Command & Query Persistence (audit trail)

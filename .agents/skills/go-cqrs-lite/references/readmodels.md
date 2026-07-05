@@ -169,7 +169,7 @@ For ordered, durable projections, use `CatchUpSubscriber` — NOT the Watermill
 Router directly. The Router processes messages in parallel (one goroutine per
 message), which breaks ordering for projections that need FIFO guarantees.
 
-The canonical pattern (see `example/deployer-first`):
+The canonical pattern (see `example/taskmanager`):
 
 ```go
 b, _ := sqlite.New("app.db")

@@ -92,8 +92,10 @@ Five presets available: `stack/memory` (tests), `stack/sqlite` (embedded),
 `stack/pebble` (high-throughput embedded KV), `stack/postgres` (distributed),
 `stack/turso` (embedded LibSQL with optional remote sync).
 
-See [`example/deployer-first/`](example/deployer-first/) for a complete
-end-to-end example with projection catch-up and ordered delivery.
+See [`example/taskmanager/`](example/taskmanager/) for a complete
+end-to-end HTTP service with CQRS/ES, projections, signing, SSE, and more.
+See [`example/getting-started/`](example/getting-started/) for a minimal
+80-line demo of the core loop.
 
 ## Modules
 
@@ -161,13 +163,10 @@ Every module has its own README with detailed usage, types, and examples.
 
 ### Examples
 
-| Module                             | Purpose                                             |
-| ---------------------------------- | --------------------------------------------------- |
-| **example/todo**                   | Full app: HTTP API, decider, projections, queries   |
-| **example/user**                   | Advanced patterns: signing, middleware, catalog     |
-| **example/encryption**             | Event encryption patterns: bus, store, key rotation |
-| **example/deployer-first**         | Deployer-first stack with catch-up projections      |
-| **example/deployer-first-multidb** | Multi-database isolation (separate DBs)             |
+| Module                      | Purpose                                                               |
+| --------------------------- | --------------------------------------------------------------------- |
+| **example/taskmanager**     | Flagship HTTP service: full CQRS/ES pipeline, signing, SSE, snapshots |
+| **example/getting-started** | Minimal demo: bundle → repository → commands → projection → query     |
 
 ## Design Principles
 
