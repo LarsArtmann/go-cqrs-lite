@@ -23,6 +23,7 @@ type Dialect interface {
 	SnapshotSchema() string
 	CheckpointSchema() string
 	KVSchema() string
+	TimerSchema() string
 }
 
 // PostgresDialect is the Dialect for PostgreSQL databases.
@@ -130,6 +131,17 @@ func (PostgresDialect) KVSchema() string {
 );`
 }
 
+func (PostgresDialect) TimerSchema() string {
+	return `CREATE TABLE IF NOT EXISTS timers (
+    id         TEXT PRIMARY KEY,
+    fire_at    TIMESTAMP WITH TIME ZONE NOT NULL,
+    payload    BYTEA NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_timers_fire_at ON timers(fire_at);`
+}
+
 // SQLiteDialect is the Dialect for SQLite databases.
 type SQLiteDialect struct{}
 
@@ -233,6 +245,17 @@ func (SQLiteDialect) KVSchema() string {
     key   BLOB PRIMARY KEY,
     value BLOB NOT NULL
 );`
+}
+
+func (SQLiteDialect) TimerSchema() string {
+	return `CREATE TABLE IF NOT EXISTS timers (
+    id         TEXT PRIMARY KEY,
+    fire_at    TEXT NOT NULL,
+    payload    BLOB NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_timers_fire_at ON timers(fire_at);`
 }
 
 // Placeholders returns a comma-separated list of placeholders for the given count.

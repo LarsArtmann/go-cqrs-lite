@@ -67,3 +67,12 @@ CREATE TABLE IF NOT EXISTS cqrs_kv (
     key   BLOB PRIMARY KEY,
     value BLOB NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS timers (
+    id         TEXT PRIMARY KEY,
+    fire_at    TEXT NOT NULL,
+    payload    BLOB NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_timers_fire_at ON timers(fire_at);
