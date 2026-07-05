@@ -18,7 +18,7 @@ func NewAutoIndexer(db *sql.DB) *indexing.AutoIndexer {
 }
 
 // ApplyTursoOptimizations applies performance PRAGMAs recommended for
-// CQRS workloads on Turso/LibSQL databases.
+// CQRS workloads on Turso databases.
 func ApplyTursoOptimizations(ctx context.Context, db *sql.DB) error {
 	return indexing.ApplyOptimizations(ctx, db)
 }
@@ -45,7 +45,7 @@ func InitSchemaWithIndexes(ctx context.Context, db *sql.DB) error {
 // InitSchemaWithIndexesAndOptimizations creates all tables, applies
 // CQRS-optimized indexes, AND applies performance PRAGMAs in a single
 // call. This is the most complete one-shot setup for production
-// Turso/LibSQL event-sourcing workloads.
+// Turso event-sourcing workloads.
 func InitSchemaWithIndexesAndOptimizations(ctx context.Context, db *sql.DB) error {
 	if err := InitSchemaWithIndexes(ctx, db); err != nil {
 		return err

@@ -162,12 +162,12 @@ Sorted by **impact/effort ratio** (highest first).
 
 ### M08: Turso Sync Test (4 subtasks)
 
-| ID  | Subtask                                              | Est   |
-| --- | ---------------------------------------------------- | ----- |
-| F39 | Design test for `NewSync` constructor (local LibSQL) | 10min |
-| F40 | Implement sync mode basic roundtrip test             | 15min |
-| F41 | Verify `Sync()` method returns valid handle          | 10min |
-| F42 | Wire into turso_test.go suite                        | 10min |
+| ID  | Subtask                                             | Est   |
+| --- | --------------------------------------------------- | ----- |
+| F39 | Design test for `NewSync` constructor (local Turso) | 10min |
+| F40 | Implement sync mode basic roundtrip test            | 15min |
+| F41 | Verify `Sync()` method returns valid handle         | 10min |
+| F42 | Wire into turso_test.go suite                       | 10min |
 
 ### M09: ADR-0033 (3 subtasks)
 
@@ -343,7 +343,7 @@ graph TD
 | ----------------------------------------------------------- | -------------------------------------------------------------------- |
 | Postgres schema-based multi-DB breaks existing queries      | Test against existing contract suite before merging                  |
 | Shared builder extraction introduces subtle behavior change | Run all existing tests after migration; keep old code until verified |
-| Turso sync test needs remote server                         | Use local LibSQL mode (no network required)                          |
+| Turso sync test needs remote server                         | Use local Turso mode (no network required)                           |
 | doc.go audit finds more broken refs than expected           | Fix incrementally, don't block on any single fix                     |
 | File size limit (350 lines) exceeded by new code            | Split into helper files like turso/multidb.go pattern                |
 

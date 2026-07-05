@@ -67,7 +67,7 @@ go-cqrs-lite/
 │   ├── view/            # SQLViewStore[V,K] (column-mapped views), ViewMapper, ViewColumn, IndexSpec, AutoMapper
 │   ├── migrations/      # Embedded .sql DDL files (postgres.sql, sqlite.sql) via //go:embed
 │   ├── pebble/          # Embedded KV store (PebbleDB): EventStore, SnapshotStore, CheckpointStore, KVAdapter (kv.Store). CBOR envelope, shared DB
-│   └── turso/           # Turso database connector (embedded LibSQL sync), indexing advisor
+│   └── turso/           # Turso database connector (embedded Turso Database sync), indexing advisor
 ├── otel/                # Shared OpenTelemetry helpers: Tracer, Meter, Spans, Attributes
 ├── prometheus/         # OTel→Prometheus metrics bridge: Setup() MeterProvider + /metrics HTTP handler, WithRegistry()
 ├── listing/             # AggregateListing, AggregateStatus, tombstone detection, StatusMiddleware, InMemoryAggregateReader

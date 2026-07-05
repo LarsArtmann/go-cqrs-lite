@@ -73,7 +73,7 @@ Available presets:
 | SQLite   | `stack/sqlite`   | SQLite (modernc) | SQL KV (persistent) |
 | Pebble   | `stack/pebble`   | PebbleDB (LSM)   | Pebble KV           |
 | Postgres | `stack/postgres` | PostgreSQL (pgx) | SQL KV (persistent) |
-| Turso    | `stack/turso`    | LibSQL (turso)   | SQL KV (persistent) |
+| Turso    | `stack/turso`    | Turso Database   | SQL KV (persistent) |
 
 Multi-DB split (SQLite, Turso, Postgres only) — isolates event writes from
 read-model scans by routing each concern to a separate database:

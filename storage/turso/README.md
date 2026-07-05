@@ -2,7 +2,7 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/storage/turso/v3.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/storage/turso/v3)
 
-CQRS storage adapters for [Turso](https://turso.tech/) databases (embedded LibSQL/SQLite with optional remote sync).
+CQRS storage adapters for [Turso](https://turso.tech/) databases (embedded Turso Database with optional remote sync).
 
 ```bash
 go get github.com/larsartmann/go-cqrs-lite/turso/v3
@@ -19,7 +19,7 @@ go get github.com/larsartmann/go-cqrs-lite/turso/v3
 | `InitSchema(ctx, db)`                            | `error`                        | Create all tables (events, commands, queries, snapshots, checkpoints) |
 | `InitSchemaWithIndexes(ctx, db)`                 | `error`                        | Create tables + CQRS-optimized indexes                                |
 | `InitSchemaWithIndexesAndOptimizations(ctx, db)` | `error`                        | Tables + indexes + performance PRAGMAs (one-shot production setup)    |
-| `ConfigurePool(db)`                              | —                              | Cap connection pool at 1 (required for embedded LibSQL)               |
+| `ConfigurePool(db)`                              | —                              | Cap connection pool at 1 (required for embedded Turso Database)       |
 | `NewBackend(db)`                                 | `(*Backend, error)`            | Facade exposing all 5 stores sharing one `*sql.DB`                    |
 | `NewEventStore(db)`                              | `(*SQLEventStore, error)`      | Event store backed by Turso                                           |
 | `NewCommandStore(db)`                            | `(*SQLCommandStore, error)`    | Command audit store                                                   |
@@ -36,7 +36,7 @@ ctx := context.Background()
 
 db, _ := turso.Open(turso.DbPath("app.db"))
 defer db.Close()
-turso.ConfigurePool(db) // cap pool at 1 — required for embedded LibSQL
+turso.ConfigurePool(db) // cap pool at 1 — required for embedded Turso Database
 
 turso.InitSchema(ctx, db)
 
@@ -81,7 +81,7 @@ For offline-first applications with remote sync:
 ```go
 syncDB, _ := turso.OpenSync(ctx,
     turso.DbPath("local.db"),
-    turso.RemoteURL("libsql://my-db.turso.io"),
+    turso.RemoteURL("https://my-db.turso.io"),
     turso.AuthToken("token"),
 )
 defer syncDB.Close()
@@ -99,7 +99,7 @@ Use `OpenSyncWithConfig` with `SyncOption` functions for fine-grained control:
 ```go
 syncDB, _ := turso.OpenSyncWithConfig(ctx,
     turso.DbPath("local.db"),
-    turso.RemoteURL("libsql://my-db.turso.io"),
+    turso.RemoteURL("https://my-db.turso.io"),
     turso.AuthToken("token"),
     turso.WithSyncClientName("my-app"),
     turso.WithSyncLongPollTimeout(30*time.Second),
@@ -123,7 +123,7 @@ Available `SyncOption` functions:
 
 ## Auto-Smart Indexing (turso/indexing)
 
-The `turso/indexing` sub-package provides **auto-smart index management** for Turso/LibSQL databases. It analyzes `EXPLAIN QUERY PLAN` output, detects full-table scans, and recommends or automatically creates indexes optimized for CQRS event-sourcing workloads.
+The `turso/indexing` sub-package provides **auto-smart index management** for Turso databases. It analyzes `EXPLAIN QUERY PLAN` output, detects full-table scans, and recommends or automatically creates indexes optimized for CQRS event-sourcing workloads.
 
 ```bash
 # No extra dependency — it's part of the turso module.
@@ -212,7 +212,7 @@ _ = indexing.Analyze(ctx, db)          // update query planner statistics
 _ = indexing.AnalyzeTable(ctx, db, "events")
 ```
 
-Pragmas not supported by a specific LibSQL/Turso variant are silently skipped.
+Pragmas not supported by a specific Turso variant are silently skipped.
 
 ### Index Definition Helpers
 

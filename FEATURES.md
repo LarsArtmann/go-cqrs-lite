@@ -651,14 +651,14 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 | Feature                 | Detail                                                                                                                                                         | Status |
 | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| Local DB                | `Open(dbPath)`, `OpenInMemory()` — embedded LibSQL                                                                                                             | ✅     |
+| Local DB                | `Open(dbPath)`, `OpenInMemory()` — embedded Turso Database                                                                                                     | ✅     |
 | Schema init             | `InitSchema(ctx, db)` — delegates to `storage.SQLiteInitSchema`                                                                                                | ✅     |
 | Backend facade          | `NewBackend(db)` — all 5 stores (event, command, query, snapshot, checkpoint) sharing one `*sql.DB`, goroutine-safe lazy init                                  | ✅     |
 | Convenience stores      | `NewEventStore`, `NewCommandStore`, `NewQueryStore`, `NewSnapshotStore`, `NewCheckpointStore` — thin wrappers over storage/                                    | ✅     |
 | Remote sync             | `OpenSync(ctx, dbPath, remoteURL, authToken)` — `SyncDB` with `Push`, `Pull`, `Checkpoint`, `Stats`, `HealthCheck`, `Close`                                    | ✅     |
 | Advanced sync config    | `OpenSyncWithConfig(ctx, ..., opts)` — `WithSyncClientName`, `WithSyncLongPollTimeout`, `WithSyncBusyTimeout`, `WithSyncBootstrapIfEmpty`, `WithSyncNamespace` | ✅     |
 | Phantom types           | `DbPath`, `RemoteURL`, `AuthToken` — compile-time type safety                                                                                                  | ✅     |
-| Pool configuration      | `ConfigurePool(db)` — caps `MaxOpenConns` at 1 for embedded LibSQL (required to avoid "database is locked")                                                    | ✅     |
+| Pool configuration      | `ConfigurePool(db)` — caps `MaxOpenConns` at 1 for embedded Turso Database (required to avoid "database is locked")                                            | ✅     |
 | Backward-compat aliases | `OpenTurso`, `NewTursoEventStore`, `NewTursoCommandStore`, `NewTursoQueryStore`, etc. — deprecated aliases preserved                                           | ✅     |
 | Indexed schema init     | `InitSchemaWithIndexes`, `InitSchemaWithIndexesAndOptimizations` — tables + indexes + pragmas                                                                  | ✅     |
 | Index convenience       | `NewIndexAdvisor`, `NewAutoIndexer`, `ApplyCQRSIndexes`, `ApplyTursoOptimizations`                                                                             | ✅     |

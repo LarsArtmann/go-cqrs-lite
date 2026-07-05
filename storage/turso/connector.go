@@ -55,7 +55,7 @@ func Open(dbPath DbPath) (*sql.DB, error) {
 // intermittently see "no such table" when the pool hands out a fresh connection.
 //
 // For parallel test suites that need many simultaneous databases, prefer
-// [OpenTemp] with per-test temp directories — the LibSQL native engine
+// [OpenTemp] with per-test temp directories — the Turso Database engine
 // has resource limits that ":memory:" can exhaust under heavy parallelism.
 func OpenInMemory() (*sql.DB, error) {
 	database, err := Open(":memory:")
@@ -73,7 +73,7 @@ func OpenInMemory() (*sql.DB, error) {
 // closing the returned *sql.DB. For tests, pair with t.TempDir().
 //
 // Prefer this over [OpenInMemory] for parallel test suites — file-backed
-// databases don't exhaust the LibSQL engine's native in-memory resource pool.
+// databases don't exhaust the Turso Database engine's native in-memory resource pool.
 func OpenTemp(dir string) (*sql.DB, error) {
 	if dir == "" {
 		dir = os.TempDir()
@@ -146,8 +146,8 @@ func NewViewStore[V any, K fmt.Stringer](
 }
 
 // ConfigurePool sets connection-pool defaults recommended for embedded
-// LibSQL/Turso databases. Embedded LibSQL serializes writes through a single
-// connection, so the pool is capped at one open connection to avoid
+// Turso databases. The embedded Turso Database serializes writes through a
+// single connection, so the pool is capped at one open connection to avoid
 // "database is locked" errors under concurrent load.
 //
 // Call once after [Open] or [OpenSync]:

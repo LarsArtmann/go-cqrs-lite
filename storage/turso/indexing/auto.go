@@ -329,7 +329,7 @@ func (a *AutoIndexer) createIndex(ctx context.Context, idx Index) error {
 }
 
 // isIndexAlreadyExists reports whether err is the "index already exists"
-// message SQLite/libSQL returns when CREATE INDEX hits a duplicate name. It is
+// message the SQLite-compatible driver returns when CREATE INDEX hits a duplicate name. It is
 // an idempotency guard so concurrent AutoIndexer runs don't fail when another
 // run created the same index first. The driver exposes no typed code for this
 // case, so the message contract is matched explicitly and lowercased to stay

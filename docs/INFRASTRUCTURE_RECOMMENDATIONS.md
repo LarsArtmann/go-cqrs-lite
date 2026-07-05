@@ -84,13 +84,13 @@ projection handlers that populate SQL tables directly.
 
 ## Preset selection guide
 
-| Situation                              | Recommended preset | Why                                    |
-| -------------------------------------- | ------------------ | -------------------------------------- |
-| **Development / testing**              | `stack/memory`     | Zero setup, ephemeral, fastest         |
-| **Single-node, embedded**              | `stack/sqlite`     | One file, zero ops, WAL + busy timeout |
-| **Single-node, high write throughput** | `stack/pebble`     | LSM-tree optimized for appends         |
-| **Multi-node, managed**                | `stack/postgres`   | LISTEN/NOTIFY for distributed bus      |
-| **Edge / offline-first**               | `stack/turso`      | LibSQL sync to remote, works offline   |
+| Situation                              | Recommended preset | Why                                          |
+| -------------------------------------- | ------------------ | -------------------------------------------- |
+| **Development / testing**              | `stack/memory`     | Zero setup, ephemeral, fastest               |
+| **Single-node, embedded**              | `stack/sqlite`     | One file, zero ops, WAL + busy timeout       |
+| **Single-node, high write throughput** | `stack/pebble`     | LSM-tree optimized for appends               |
+| **Multi-node, managed**                | `stack/postgres`   | LISTEN/NOTIFY for distributed bus            |
+| **Edge / offline-first**               | `stack/turso`      | Turso Database sync to remote, works offline |
 
 All presets implement the same `stack.Bundle` contract (verified by
 `contracttest.RunSuite`), so switching is a one-line change with zero consumer

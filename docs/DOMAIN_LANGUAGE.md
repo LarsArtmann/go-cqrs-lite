@@ -106,7 +106,7 @@ All errors are classified into a 5-family taxonomy:
 | **SQLBackend**     | Facade exposing all SQL stores sharing one `*sql.DB` (lazy, goroutine-safe)          | `storage.NewSQLiteBackend(db)`, `storage.NewSQLBackend(db)` — exposes EventStore, CommandStore, QueryStore, SnapshotStore, CheckpointStore, KVStore |
 | **Pebble Store**   | Embedded KV event store (no SQL dependency)                                          | `pebble.NewStore(db, logger)` (package: `storage/pebble`)                                                                                           |
 | **Pebble Backend** | Facade exposing all Pebble stores sharing one `*pebble.DB` via disjoint key prefixes | `pebble.Open(dir, opts, logger)` (owns DB) or `pebble.NewBackend(db, logger)` (borrows DB)                                                          |
-| **Turso**          | Embedded LibSQL connector with sync support                                          | `turso.Open(dbPath)`, `turso.OpenInMemory()`, `turso.OpenSync()` (package: `storage/turso`)                                                         |
+| **Turso**          | Embedded Turso Database connector with sync support                                  | `turso.Open(dbPath)`, `turso.OpenInMemory()`, `turso.OpenSync()` (package: `storage/turso`)                                                         |
 | **MemoryStore**    | In-memory implementations for testing                                                | `memory.NewMemoryStore()`, `memory.NewMemorySnapshotStore()` (package: `storage/memory`)                                                            |
 
 ---

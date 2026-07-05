@@ -1,6 +1,6 @@
 # turso/indexing — Auto-Smart Index Management
 
-Production-grade auto-smart indexing for Turso/LibSQL CQRS event-sourcing
+Production-grade auto-smart indexing for Turso CQRS event-sourcing
 workloads. Detects full table scans, recommends indexes, and applies
 CQRS-optimized defaults in one call.
 
@@ -157,6 +157,6 @@ Same as the parent project.
 
 ## Related Modules
 
-- [**turso/v2**](../README.md) — Parent module; Turso/LibSQL connector
+- [**turso/v2**](../README.md) — Parent module; Turso connector
 - [**otel/v2**](../../otel/README.md) — Index analysis and auto-indexer emit OTel spans/metrics
 - [**storage/v2**](../../storage/README.md) — SQL store implementations that indexing optimizes

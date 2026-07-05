@@ -589,7 +589,7 @@ func TestConfigurePool(t *testing.T) {
 
 	turso.ConfigurePool(db)
 
-	// Embedded LibSQL serializes writes — pool must be capped at 1.
+	// The embedded Turso Database serializes writes — pool must be capped at 1.
 	if got := db.Stats().MaxOpenConnections; got != 1 {
 		t.Errorf("after ConfigurePool: MaxOpenConnections = %d, want 1", got)
 	}

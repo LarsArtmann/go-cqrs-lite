@@ -26,7 +26,7 @@ store, _ := stack.ReadModel[TodoView, TodoID](b, codec.JSONCodec{},
 | SQLite   | `stack/sqlite`   | SQLite (modernc) | Yes        | Memory                 | SQL KV (cqrs_kv) |
 | Pebble   | `stack/pebble`   | PebbleDB (LSM)   | Yes        | Memory                 | Pebble KV        |
 | Postgres | `stack/postgres` | PostgreSQL (pgx) | Yes        | Memory / LISTEN-NOTIFY | SQL KV (cqrs_kv) |
-| Turso    | `stack/turso`    | LibSQL           | Yes        | Memory                 | SQL KV (cqrs_kv) |
+| Turso    | `stack/turso`    | Turso Database   | Yes        | Memory                 | SQL KV (cqrs_kv) |
 
 All presets wire every capability: event store + bus, command store, query
 store, snapshot store, checkpoint store, and read-model backend.

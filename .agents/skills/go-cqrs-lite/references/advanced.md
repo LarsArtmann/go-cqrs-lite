@@ -81,7 +81,7 @@ messages, _ := subscriber.Subscribe(ctx, "user.created")
 ```go
 import "github.com/larsartmann/go-cqrs-lite/storage/turso/v3"
 
-// Offline-first: local embedded LibSQL with background sync to Turso cloud
+// Offline-first: local embedded Turso Database with background sync to Turso cloud
 db, _ := turso.OpenSync(ctx, "file:local.db", "libsql://my-db.turso.io", authToken)
 backend, _ := turso.NewBackend(db)
 // Or without sync: db, _ := turso.Open("file:local.db")

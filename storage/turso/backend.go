@@ -7,7 +7,7 @@ import (
 )
 
 // Backend is a facade that exposes every SQL-backed CQRS store sharing a
-// single Turso/LibSQL database connection. It is the Turso equivalent of
+// single Turso database connection. It is the Turso equivalent of
 // [storage.SQLBackend] (constructed via [storage.NewSQLiteBackend]) and is
 // the recommended one-stop entry point for applications that want the full
 // event-sourcing stack: events, commands, queries, snapshots, and
@@ -32,9 +32,9 @@ import (
 //	cpStore, _ := backend.CheckpointStore()
 type Backend = storage.SQLBackend
 
-// NewBackend creates a [Backend] facade over a Turso/LibSQL database.
+// NewBackend creates a [Backend] facade over a Turso database.
 //
-// It delegates to [storage.NewSQLiteBackend] because Turso's embedded LibSQL
+// It delegates to [storage.NewSQLiteBackend] because Turso's embedded database
 // uses the SQLite dialect. All five stores (event, command, query, snapshot,
 // checkpoint) share the provided *sql.DB connection and are created lazily on
 // first accessor call.

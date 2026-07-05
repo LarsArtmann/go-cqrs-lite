@@ -22,7 +22,7 @@
 - **[Signing Architecture](signing-architecture.md)** — Event signing with HMAC-SHA256 and Ed25519
 - **[Error Taxonomy](error-taxonomy.md)** — 5-family error classification system (Rejection / Conflict / Transient / Infrastructure / Corruption)
 - **[Domain Language](DOMAIN_LANGUAGE.md)** — Glossary of domain terms and ubiquitous language
-- **[Turso Indexing Guidance](turso-indexing-guidance.md)** — Index management for Turso/LibSQL
+- **[Turso Indexing Guidance](turso-indexing-guidance.md)** — Index management for Turso
 
 ## Modules
 

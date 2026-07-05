@@ -1,10 +1,10 @@
-// Package turso provides a Turso (embedded LibSQL) preset for [stack.Bundle].
+// Package turso provides a Turso (embedded database) preset for [stack.Bundle].
 //
 // It is the recommended preset for deployments that need Turso's embedded
-// LibSQL database with optional remote sync. Events, commands, queries,
+// Turso Database with optional remote sync. Events, commands, queries,
 // snapshots, checkpoints, and read models are all stored in a single Turso
-// database file. The event bus uses an in-process GoChannel (LibSQL has no
-// pub/sub semantics).
+// database file. The event bus uses an in-process GoChannel (the database
+// has no pub/sub semantics).
 //
 // # Quick Start — Local Embedded Database
 //
@@ -14,7 +14,7 @@
 // # Quick Start — Remote Sync (Offline-First)
 //
 //	b, err := turso.NewSync(ctx, "local.db",
-//	    "libsql://my-db.turso.io", "auth-token")
+//	    "https://my-db.turso.io", "auth-token")
 //	defer b.Close()
 //
 //	// Local writes work offline. Sync with the remote server:

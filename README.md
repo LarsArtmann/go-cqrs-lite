@@ -90,7 +90,7 @@ defer bundle.Close()
 
 Five presets available: `stack/memory` (tests), `stack/sqlite` (embedded),
 `stack/pebble` (high-throughput embedded KV), `stack/postgres` (distributed),
-`stack/turso` (embedded LibSQL with optional remote sync).
+`stack/turso` (embedded Turso Database with optional remote sync).
 
 See [`example/taskmanager/`](example/taskmanager/) for a complete
 end-to-end HTTP service with CQRS/ES, projections, signing, SSE, and more.
@@ -121,7 +121,7 @@ Every module has its own README with detailed usage, types, and examples.
 | **storage/memory** | In-memory store/snapshot/checkpoint — for tests & dev             |
 | **storage**        | SQL event/snapshot/checkpoint/command stores (PostgreSQL, SQLite) |
 | **storage/pebble** | Embedded KV: event/snapshot/checkpoint stores (PebbleDB + CBOR)   |
-| **storage/turso**  | Turso/LibSQL connector with offline-first sync + indexing advisor |
+| **storage/turso**  | Turso connector with offline-first sync + indexing advisor        |
 | **kv**             | Layer-0 KV store abstraction: Store, MemStore, TypedStore, Cache  |
 | **snapshot**       | Snapshot types, strategies, store interfaces                      |
 | **schema**         | Schema evolution via upcasters and VersionedStore                 |
@@ -159,7 +159,7 @@ Every module has its own README with detailed usage, types, and examples.
 | **stack/sqlite**   | Embedded SQLite preset (single-file persistence)    |
 | **stack/pebble**   | Embedded PebbleDB preset (high-throughput KV)       |
 | **stack/postgres** | PostgreSQL preset (distributed, LISTEN/NOTIFY bus)  |
-| **stack/turso**    | Turso/LibSQL preset (offline-first with sync)       |
+| **stack/turso**    | Turso preset (offline-first with sync)              |
 
 ### Examples
 

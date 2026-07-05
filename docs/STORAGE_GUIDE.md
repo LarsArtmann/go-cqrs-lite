@@ -104,12 +104,12 @@ kvStore     := backend.ReadModels()
 
 All three share one Pebble DB via disjoint key prefixes.
 
-### Turso (libSQL)
+### Turso (Embedded Database)
 
 ```go
 import "github.com/larsartmann/go-cqrs-lite/storage/turso"
 
-db, _ := turso.Open("libsql://...") // or turso.OpenInMemory() for tests
+db, _ := turso.Open(turso.DbPath("app.db")) // or turso.OpenInMemory() for tests
 backend, _ := turso.NewBackend(db)
 ```
 

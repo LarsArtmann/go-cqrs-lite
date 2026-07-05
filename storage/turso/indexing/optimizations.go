@@ -12,14 +12,14 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
-// Pragma is a SQLite/LibSQL PRAGMA setting.
+// Pragma is a SQLite-compatible PRAGMA setting.
 type Pragma struct {
 	Name  string
 	Value string
 }
 
 // DefaultOptimizations returns the recommended PRAGMAs for CQRS workloads
-// on Turso/LibSQL databases.
+// on Turso databases.
 func DefaultOptimizations() []Pragma {
 	return []Pragma{
 		{Name: "journal_mode", Value: "WAL"},
@@ -70,7 +70,7 @@ func SetMemoryMap(ctx context.Context, db *sql.DB, size int64) error {
 }
 
 // RunOptimize runs PRAGMA optimize to let SQLite update statistics.
-// Silently skipped on LibSQL/Turso variants that do not support this pragma.
+// Silently skipped on Turso variants that do not support this pragma.
 func RunOptimize(ctx context.Context, db *sql.DB) error {
 	_, err := db.ExecContext(ctx, "PRAGMA optimize")
 	if err != nil && !isUnsupportedPragma(err) {

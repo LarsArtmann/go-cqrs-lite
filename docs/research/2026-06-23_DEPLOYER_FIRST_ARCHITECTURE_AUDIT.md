@@ -36,7 +36,7 @@ bundle, err := sqlite.New("app.db")    // one line, everything in SQLite
 bundle, err := memory.New()             // one line, everything in memory
 bundle, err := pebble.New("data")       // one line, everything in Pebble
 bundle, err := postgres.New(dsn)        // one line, everything in Postgres
-bundle, err := turso.New("app.db")      // one line, everything in LibSQL
+bundle, err := turso.New("app.db")      // one line, everything in Turso
 ```
 
 The deployer picks one engine. All six concerns (events, commands, queries,
@@ -105,7 +105,7 @@ Postgres and Pebble do **not** support this split.
 | ------------------------- | -------------------------------- | --------------- |
 | In-memory                 | `storage.MemoryStore`            | memory          |
 | SQLite (modernc, pure Go) | `storage.SQLEventStore`          | sqlite          |
-| Turso/LibSQL              | `storage.SQLEventStore` (shared) | turso           |
+| Turso                     | `storage.SQLEventStore` (shared) | turso           |
 | Postgres (pgx)            | `storage.SQLEventStore` (shared) | postgres        |
 | Pebble (LSM-tree)         | `pebble.EventStore`              | pebble          |
 | Redis                     | —                                | —               |

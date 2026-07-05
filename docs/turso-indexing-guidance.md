@@ -1,4 +1,4 @@
-# Turso/LibSQL Indexing & Health Check Guidance
+# Turso Indexing & Health Check Guidance
 
 This document provides platform-specific guidance for using the `turso/indexing`
 module with different database backends, and shows how to integrate Turso health
@@ -8,9 +8,9 @@ checks with the `middleware` health check system.
 
 ## Platform-Specific Indexing Guidance
 
-### Turso (Embedded LibSQL with Sync)
+### Turso (Embedded Database with Sync)
 
-Turso uses embedded LibSQL with optional cloud sync. Indexing behavior:
+Turso uses an embedded database with optional cloud sync. Indexing behavior:
 
 - **CREATE INDEX** is fully supported and recommended for CQRS access patterns.
 - Use `indexing.ApplyOptimizations(ctx, db)` to set Turso-specific pragmas
@@ -78,7 +78,7 @@ CREATE INDEX CONCURRENTLY idx_events_cursor
 ## Health Check Integration
 
 The `middleware` package provides a health check HTTP handler. To monitor a
-Turso/LibSQL database connection opened via `turso.Open`:
+Turso database connection opened via `turso.Open`:
 
 ```go
 import (
@@ -121,7 +121,7 @@ For a sync-enabled database (`turso.OpenSync`), use the built-in
 ```go
 syncDB, _ := turso.OpenSync(ctx,
     turso.DbPath("local.db"),
-    turso.RemoteURL("libsql://my-db.turso.io"),
+    turso.RemoteURL("https://my-db.turso.io"),
     turso.AuthToken("token"),
 )
 defer syncDB.Close()

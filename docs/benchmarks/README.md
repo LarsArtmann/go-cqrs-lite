@@ -186,7 +186,7 @@ Fix: `InMemoryAggregateReader` now caches a sorted aggregate index. First `List(
 | Publisher Publish |   593 |  616 |        12 |
 | buildMetadata     |   122 |    0 |         0 |
 
-### Turso (Embedded LibSQL)
+### Turso (Embedded Turso Database)
 
 | Benchmark  |     ns/op |    B/op | allocs/op |
 | ---------- | --------: | ------: | --------: |

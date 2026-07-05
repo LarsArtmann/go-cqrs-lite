@@ -117,7 +117,7 @@ with projection + read model.
 | List all aggregates + their status                    | `listing`                                                                       | advanced §6.3   |
 | Persist to PostgreSQL / SQLite                        | `storage`                                                                       | recipes §2.2    |
 | Persist to embedded PebbleDB                          | `storage/pebble`                                                                | recipes §2.2    |
-| Offline-first sync via LibSQL                         | `storage/turso`                                                                 | advanced §6.5   |
+| Offline-first sync via Turso Database                 | `storage/turso`                                                                 | advanced §6.5   |
 | Generic key-value abstraction                         | `kv`                                                                            | advanced §6.6   |
 | Snapshot aggregates for speed                         | `snapshot`                                                                      | recipes §2.4    |
 | Evolve event schemas over time                        | `schema`                                                                        | recipes §2.5    |

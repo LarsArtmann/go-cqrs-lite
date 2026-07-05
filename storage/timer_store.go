@@ -170,7 +170,7 @@ func (s *SQLTimerStore[P]) MarkFired(ctx context.Context, id scheduling.TimerID)
 	ctx, span := s.startSpan(ctx, "timer.mark_fired", id)
 	defer span.End()
 
-	query := fmt.Sprintf(`DELETE FROM timers WHERE id = %s`, s.Dialect.Placeholder(1))
+	query := "DELETE FROM timers WHERE id = " + s.Dialect.Placeholder(1)
 
 	if _, err := s.DB.ExecContext(ctx, query, id); err != nil {
 		cqrsotel.RecordError(span, err)
@@ -187,7 +187,7 @@ func (s *SQLTimerStore[P]) Cancel(ctx context.Context, id scheduling.TimerID) er
 	ctx, span := s.startSpan(ctx, "timer.cancel", id)
 	defer span.End()
 
-	query := fmt.Sprintf(`DELETE FROM timers WHERE id = %s`, s.Dialect.Placeholder(1))
+	query := "DELETE FROM timers WHERE id = " + s.Dialect.Placeholder(1)
 
 	if _, err := s.DB.ExecContext(ctx, query, id); err != nil {
 		cqrsotel.RecordError(span, err)

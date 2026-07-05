@@ -132,7 +132,7 @@ func ExampleConfigurePool() {
 
 	turso.ConfigurePool(db)
 
-	// Embedded LibSQL serializes writes — pool is capped at 1.
+	// The embedded Turso Database serializes writes — pool is capped at 1.
 	fmt.Println(db.Stats().MaxOpenConnections)
 
 	// Output:
@@ -167,7 +167,7 @@ func ExampleOpenSync_phantomTypes() {
 	_, err := turso.OpenSync(
 		ctx,
 		turso.DbPath(":memory:"),
-		turso.RemoteURL("libsql://example.turso.io"),
+		turso.RemoteURL("https://example.turso.io"),
 		turso.AuthToken("token"),
 	)
 	fmt.Println(err != nil)

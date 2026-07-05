@@ -73,7 +73,7 @@ What the design philosophy documents demand from storage, and how well the curre
 | `storage/`     | ~3,200 | Store, Journal, SeekableJournal, BackwardsSource, StreamLoader, TransactionalSink, Outbox, SnapshotStore, CheckpointStore | PostgreSQL, SQLite |
 | `storage/sql/` | ~800   | _(shared infrastructure, no interfaces)_                                                                                  | —                  |
 | `pebble/`      | ~600   | Store only                                                                                                                | Pebble KV          |
-| `turso/`       | ~200   | _(delegates to storage/)_                                                                                                 | Turso/libSQL       |
+| `turso/`       | ~200   | _(delegates to storage/)_                                                                                                 | Turso              |
 | `memory/`      | ~400   | Store, Bus, SnapshotStore                                                                                                 | In-memory          |
 
 ### Interface Coverage Matrix

@@ -1,6 +1,6 @@
 // Package turso provides CQRS storage adapters for Turso databases (embedded
-// LibSQL with optional remote sync). It is the recommended integration path
-// for applications that want SQLite-compatible storage with offline-first
+// Turso Database with optional remote sync). It is the recommended integration
+// path for applications that want SQLite-compatible storage with offline-first
 // sync, edge deployment, or Turso's serverless data platform.
 //
 // Turso uses the same SQL dialect as SQLite, so this package delegates store
@@ -44,7 +44,7 @@
 //
 //	syncDB, _ := turso.OpenSync(ctx,
 //	    turso.DbPath("local.db"),
-//	    turso.RemoteURL("libsql://my-db.turso.io"),
+//	    turso.RemoteURL("https://my-db.turso.io"),
 //	    turso.AuthToken("token"),
 //	)
 //	defer syncDB.Close()
@@ -75,8 +75,8 @@
 //
 // # Connection Pool
 //
-// Embedded LibSQL serializes writes through a single connection. Always call
-// [ConfigurePool] after opening to cap MaxOpenConns at 1, preventing
+// The embedded Turso Database serializes writes through a single connection.
+// Always call [ConfigurePool] after opening to cap MaxOpenConns at 1, preventing
 // "database is locked" errors under concurrent load:
 //
 //	db, _ := turso.Open(turso.DbPath("app.db"))

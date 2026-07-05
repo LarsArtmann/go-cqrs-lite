@@ -105,14 +105,14 @@ func (b *Bundle) Sync() *cqrsturso.SyncDB {
 	return b.syncDB
 }
 
-// New opens a local Turso (embedded LibSQL) database at dbPath and returns a
+// New opens a local Turso (embedded database) at dbPath and returns a
 // fully-wired [Bundle].
 //
-// dbPath is a filesystem path for the LibSQL database file (e.g. "app.db").
+// dbPath is a filesystem path for the Turso database file (e.g. "app.db").
 //
 // Events, commands, queries, snapshots, checkpoints, AND read models are all
 // persisted to the database. The event bus uses an in-process GoChannel since
-// LibSQL has no pub/sub semantics.
+// the embedded database has no pub/sub semantics.
 //
 // On any setup failure the database is closed before the error is returned —
 // no resource leaks. The returned Bundle owns the database; Close releases it.
@@ -130,8 +130,8 @@ func New(dbPath string, opts ...Option) (*Bundle, error) {
 // [Bundle]. The local database works offline; call [Bundle.Sync] to access
 // Push/Pull/Checkpoint/Stats for synchronization with the remote server.
 //
-// dbPath is a filesystem path for the local LibSQL file. remoteURL is the
-// Turso server URL (e.g. "libsql://my-db.turso.io"). authToken is the Turso
+// dbPath is a filesystem path for the local Turso database file. remoteURL is the
+// Turso server URL (e.g. "https://my-db.turso.io"). authToken is the Turso
 // auth token.
 //
 // Multi-database options ([WithEventDB], [WithQueryDB], [WithViewDB]) are
@@ -204,7 +204,7 @@ func newLocalBundle(dbPath string, cfg config) (*Bundle, error) {
 		stackOpts = append(stackOpts, stack.WithCloser(qCloser))
 	}
 
-	// Bus is in-process GoChannel (LibSQL has no pub/sub).
+	// Bus is in-process GoChannel (the embedded database has no pub/sub).
 	stackOpts = append(stackOpts, stack.WithBus(cqrswatermill.NewEventBus()))
 
 	viewOpts, err := buildViewOptions(cfg, backend, sqlDB)

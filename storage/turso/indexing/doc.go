@@ -1,5 +1,5 @@
-// Package indexing provides auto-smart index management for Turso/LibSQL
-// databases used in CQRS event-sourcing workloads.
+// Package indexing provides auto-smart index management for Turso databases
+// used in CQRS event-sourcing workloads.
 //
 // It analyzes EXPLAIN QUERY PLAN output to detect full-table scans, tracks
 // query patterns, and recommends or automatically creates indexes tailored
