@@ -20,8 +20,6 @@ github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.3.0 h1:gCmAJn3+ZoDmLt8N0JRI
 github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.3.0/go.mod h1:DwJ9zG/ruPaWCCZV7jbLJNYl4K+ZepdHQ5erCZ7cJzw=
 github.com/larsartmann/go-cqrs-lite/query/v3 v3.4.0 h1:zQeSVGt9NVwCKFeocsTYdKuciXGHYbmRUZ+C6SSW17I=
 github.com/larsartmann/go-cqrs-lite/query/v3 v3.4.0/go.mod h1:FB/WQB9kn5kvREURJ77UvydM5acWXr+3h9cI1N8/xiI=
-github.com/larsartmann/go-cqrs-lite/schema/v3 v3.0.0 h1:6f0fcorVfPgpMMTVb/LKcYKbOxLEoJ4C+tpl/3ukfxg=
-github.com/larsartmann/go-cqrs-lite/schema/v3 v3.0.0/go.mod h1:glHbQ8sBwhIhc++m065IRUobcGE/Q/XOTAClD+WGwY4=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.0.0 h1:K87yvgQoFUc/uLR7zcYRkgRaWZczIIM77FTX8cloPUU=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.0.0/go.mod h1:fVSYaW6Wd0uzKVJQgje+o1egJ5aecNw2HSaGjwpikus=
 github.com/larsartmann/go-error-family v0.5.1 h1:rYDNU0sv+6ri0xel6MswIeDT2dRh3q+RSc5uWnAwecg=

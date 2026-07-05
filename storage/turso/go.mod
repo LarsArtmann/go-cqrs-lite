@@ -4,13 +4,13 @@ go 1.26.3
 
 require (
 	github.com/larsartmann/go-cqrs-lite/command/v3 v3.4.0
-	github.com/larsartmann/go-cqrs-lite/event/v3 v3.3.0
-	github.com/larsartmann/go-cqrs-lite/event/v3/eventtest v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/event/v3 v3.5.0
+	github.com/larsartmann/go-cqrs-lite/event/v3/eventtest v0.1.0
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.5.0
 	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.4.0
-	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.3.0
+	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.5.0
 	github.com/larsartmann/go-cqrs-lite/storage/v3 v3.0.0-00010101000000-000000000000
 	go.opentelemetry.io/otel v1.44.0
 	go.opentelemetry.io/otel/trace v1.44.0

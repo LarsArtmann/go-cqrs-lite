@@ -7,14 +7,15 @@ require (
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.5.0
 	github.com/larsartmann/go-cqrs-lite/command/v3 v3.4.0
-	github.com/larsartmann/go-cqrs-lite/event/v3 v3.3.0
+	github.com/larsartmann/go-cqrs-lite/event/v3 v3.5.0
+	github.com/larsartmann/go-cqrs-lite/event/v3/eventtest v0.1.0
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.5.0
 	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/listing/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.4.0
-	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.3.0
+	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.5.0
 	github.com/larsartmann/go-error-family v0.5.1
 	modernc.org/sqlite v1.53.0
 )

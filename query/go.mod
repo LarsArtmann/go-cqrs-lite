@@ -13,10 +13,7 @@ require (
 	pgregory.net/rapid v1.3.0
 )
 
-require (
-	github.com/larsartmann/go-cqrs-lite/command/v3 v3.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/event/v3/eventtest v0.1.0 // indirect
-)
+require github.com/larsartmann/go-cqrs-lite/command/v3 v3.4.0 // indirect
 
 require (
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
