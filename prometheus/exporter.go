@@ -56,7 +56,11 @@ func (p *Provider) Handler() http.Handler {
 
 // Shutdown flushes pending metrics and releases resources.
 func (p *Provider) Shutdown(ctx context.Context) error {
-	return fmt.Errorf("shutdown: %w", p.meterProvider.Shutdown(ctx))
+	if err := p.meterProvider.Shutdown(ctx); err != nil {
+		return fmt.Errorf("shutdown: %w", err)
+	}
+
+	return nil
 }
 
 // Setup creates a Prometheus-backed MeterProvider and HTTP handler in one call.
