@@ -104,7 +104,7 @@ func TestScheduler_DispatchesDueTimers(t *testing.T) {
 	})
 
 	var dispatched atomic.Int64
-	sched := scheduling.New[string](
+	sched := scheduling.New(
 		store,
 		func(_ context.Context, timer scheduling.Timer[string]) error {
 			if timer.ID != "task-1" {
@@ -140,7 +140,7 @@ func TestScheduler_RetriesFailedDispatch(t *testing.T) {
 	})
 
 	var attempts atomic.Int64
-	sched := scheduling.New[string](
+	sched := scheduling.New(
 		store,
 		func(_ context.Context, _ scheduling.Timer[string]) error {
 			if attempts.Add(1) < 2 {
@@ -196,7 +196,7 @@ func TestScheduler_RetryDelayIsRespected(t *testing.T) {
 		secondAt atomic.Int64 // unix-nano of second attempt
 	)
 
-	sched := scheduling.New[string](
+	sched := scheduling.New(
 		store,
 		func(_ context.Context, _ scheduling.Timer[string]) error {
 			n := attempts.Add(1)
@@ -245,7 +245,7 @@ func TestScheduler_WithLoggerIsUsed(t *testing.T) {
 	capture := testutil.NewCapturingSlogHandler(slog.LevelError)
 	logger := slog.New(capture)
 
-	sched := scheduling.New[string](
+	sched := scheduling.New(
 		store, func(_ context.Context, _ scheduling.Timer[string]) error {
 			return errFail
 		},
@@ -278,7 +278,7 @@ func TestScheduler_FailedTimerSurvivesForRetry(t *testing.T) {
 	})
 
 	var attempts atomic.Int64
-	sched := scheduling.New[string](
+	sched := scheduling.New(
 		store,
 		func(_ context.Context, _ scheduling.Timer[string]) error {
 			attempts.Add(1)

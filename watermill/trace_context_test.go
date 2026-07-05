@@ -157,12 +157,3 @@ func TestTraceContext_MessageCarriesTraceparent(t *testing.T) {
 		t.Fatal("timed out waiting for message")
 	}
 }
-
-var consumeTimeout = consumeTimeoutDuration()
-
-func consumeTimeoutDuration() <-chan struct{} {
-	c := make(chan struct{})
-	close(c)
-
-	return c
-}

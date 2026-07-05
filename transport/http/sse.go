@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 )
 
@@ -28,9 +27,12 @@ type SSEBrokerOption func(*SSEBroker)
 // they also arrive via the live bus (same dedup strategy as
 // watermill.CatchUpSubscriber).
 //
-// replayLimit caps the number of replayed events per connection. Use 0 for
-// the default cap of 1000 (prevents unbounded replay on first connect with
-// a large journal).
+// replayLimit controls the maximum number of replayed events:
+//   - replayLimit > 0: bounded replay capped at that many events.
+//   - replayLimit <= 0: unlimited replay — events are streamed in batches
+//     from the journal so memory stays bounded regardless of journal size.
+//
+// For a sensible bounded default, pass DefaultSSEReplayLimit (1000).
 func WithReconnectJournal(journal event.SeekableJournal, replayLimit int) SSEBrokerOption {
 	return func(b *SSEBroker) {
 		b.journal = journal
@@ -38,14 +40,55 @@ func WithReconnectJournal(journal event.SeekableJournal, replayLimit int) SSEBro
 	}
 }
 
+// DefaultSSEReplayLimit is the suggested bounded replay cap for callers who
+// want a finite replay window. Pass it to WithReconnectJournal, or pass <= 0
+// for unlimited streaming replay.
+const DefaultSSEReplayLimit = 1000
+
+// SSEReplayIncompleteEvent is the SSE event type sent when journal replay is
+// cut short by a timeout (see WithReplayTimeout). The event carries no id
+// field so it does not advance the client's Last-Event-ID. Clients receiving
+// this event know they are behind and should reconnect with their latest
+// received EventID (or use a backfill endpoint) to catch up.
+const SSEReplayIncompleteEvent = "cqrs.replay.incomplete"
+
+// WithReplayTimeout sets the maximum duration for journal replay before
+// switching to live delivery. If replay is not complete when the timeout
+// fires, the broker sends an advisory SSEReplayIncompleteEvent and begins
+// live streaming.
+//
+// A timeout of zero (the default) means no limit — replay runs until the
+// journal is exhausted. Use a non-zero timeout for browser-facing SSE where
+// handler starvation must be avoided (e.g. a client reconnecting after a long
+// offline period with a very large journal).
+func WithReplayTimeout(d time.Duration) SSEBrokerOption {
+	return func(b *SSEBroker) {
+		b.replayTimeout = d
+	}
+}
+
+// sseReplayBatchSize is the batch size for unlimited streaming replay.
+// Each batch is fetched from the journal, written to the client, and flushed
+// before the next batch is loaded — keeping memory bounded.
+const sseReplayBatchSize = 500
+
+// sseDedupRingCapacity is the maximum number of event IDs retained for
+// replay→live deduplication. Only the tail of the replay stream can overlap
+// with the live channel (events published during the replay window), and the
+// live channel buffer is bounded at sseChannelBufSize. A ring of 1024 entries
+// gives a 10x safety margin while bounding memory to ~90KB regardless of
+// journal size.
+const sseDedupRingCapacity = 1024
+
 // SSEBroker bridges an event bus to Server-Sent Events HTTP clients.
 type SSEBroker struct {
-	mu          sync.RWMutex
-	clients     map[SSEClientID]chan event.Event
-	handler     event.Handler
-	cancel      context.CancelFunc
-	journal     event.SeekableJournal // optional: for Last-Event-ID replay
-	replayLimit int                   // 0 = unlimited
+	mu            sync.RWMutex
+	clients       map[SSEClientID]chan event.Event
+	handler       event.Handler
+	cancel        context.CancelFunc
+	journal       event.SeekableJournal // optional: for Last-Event-ID replay
+	replayLimit   int                   // <=0 = unlimited (batch streaming); >0 = bounded
+	replayTimeout time.Duration         // <=0 = no limit; >0 = max replay duration
 }
 
 // NewSSEBroker creates a new SSE broker that subscribes to the given bus.
@@ -191,15 +234,20 @@ func SSEHandler(broker *SSEBroker) http.Handler {
 
 		flusher.Flush()
 
-		// Last-Event-ID reconnection: replay missed events if journal is available.
-		if broker.journal != nil {
-			if lastEventID := r.Header.Get("Last-Event-ID"); lastEventID != "" {
-				replayEvents(w, flusher, broker, r.Context(), lastEventID)
-			}
-		}
-
+		// Register the client BEFORE replay so concurrent live events are
+		// buffered in the channel rather than lost during the replay window.
 		ch := broker.AddClient(SSEClientID(clientID))
 		defer broker.RemoveClient(SSEClientID(clientID))
+
+		// Last-Event-ID reconnection: replay missed events if journal is available.
+		// The dedup ring is carried into the live loop to suppress duplicates.
+		replayed := (*dedupRing)(nil)
+
+		if broker.journal != nil {
+			if lastEventID := r.Header.Get("Last-Event-ID"); lastEventID != "" {
+				replayed = replayEvents(w, flusher, broker, r.Context(), lastEventID)
+			}
+		}
 
 		ticker := time.NewTicker(DefaultSSEHeartbeat)
 		defer ticker.Stop()
@@ -209,6 +257,11 @@ func SSEHandler(broker *SSEBroker) http.Handler {
 			case evt := <-ch:
 				if evt == nil {
 					return
+				}
+
+				// Suppress events already delivered during replay.
+				if replayed.Has(evt.ID().String()) {
+					continue
 				}
 
 				_ = WriteSSEEvent(w, SSEEvent{
@@ -227,65 +280,4 @@ func SSEHandler(broker *SSEBroker) http.Handler {
 			}
 		}
 	})
-}
-
-// defaultReplayLimit caps replay when WithReconnectJournal is called with 0.
-const defaultReplayLimit = 1000
-
-// replayEvents sends missed events to a reconnecting client.
-// Events are read from the journal starting after lastEventID and written
-// to the client before live streaming begins.
-// Returns the set of replayed EventIDs for live-phase deduplication.
-func replayEvents(
-	w http.ResponseWriter,
-	flusher http.Flusher,
-	broker *SSEBroker,
-	ctx context.Context,
-	lastEventID string,
-) map[string]struct{} {
-	ctx, span := cqrsotel.StartSpan(
-		ctx, tracer(), "sse.replay",
-		cqrsotel.SpanKindInternal,
-		cqrsotel.WithAttributes(
-			cqrsotel.AttrString("cqrs.sse.last_event_id", lastEventID),
-		),
-	)
-	defer span.End()
-
-	afterID, err := id.ParseEventID(lastEventID)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
-
-		return nil // invalid ID: skip replay, start live
-	}
-
-	limit := broker.replayLimit
-	if limit <= 0 {
-		limit = defaultReplayLimit
-	}
-
-	events, err := broker.journal.ReadFrom(ctx, afterID, limit)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
-
-		return nil // journal error: skip replay, start live
-	}
-
-	span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrEventCount, len(events)))
-
-	replayed := make(map[string]struct{}, len(events))
-
-	for _, evt := range events {
-		replayed[evt.ID().String()] = struct{}{}
-
-		_ = WriteSSEEvent(w, SSEEvent{
-			Event: string(evt.Type()),
-			ID:    NewSSEEventID(evt.ID().String()),
-			Data:  string(event.PayloadReadOnly(evt)),
-		})
-	}
-
-	flusher.Flush()
-
-	return replayed
 }
