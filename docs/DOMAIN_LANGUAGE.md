@@ -301,3 +301,195 @@ These concepts are intentionally absent as dedicated modules. They emerge from c
 | **Saga / Process Manager** | `bus.SubscribeAll` + `command.Dispatcher` + `deriver.Deriver`                  | Multi-step orchestration is domain-specific; a generic saga module imposes the wrong abstraction. See `example/taskmanager/` for a real implementation. |
 | **Domain Entity**          | App-defined inside the consumer's decider `Apply` function                     | The library models aggregate identity (`AggregateRef`), not aggregate state — state shape is the consumer's domain decision.                            |
 | **Message Broker**         | Injected via Watermill adapter (`watermill.NewEventBus` with Kafka/NATS/Redis) | The library is transport-agnostic. The GoChannel default is for single-process; brokers are consumer choices.                                           |
+
+---
+
+## Verification
+
+The code block below is scanned by `cmd/doc-check` to verify every symbol
+referenced in this document still exists in the codebase. Do not remove.
+
+```go
+package domain_language_verification
+
+import (
+	// Event Sourcing
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/projection/v3"
+	"github.com/larsartmann/go-cqrs-lite/snapshot/v3"
+
+	// CQRS
+	"github.com/larsartmann/go-cqrs-lite/command/v3"
+	"github.com/larsartmann/go-cqrs-lite/decider/v3"
+	"github.com/larsartmann/go-cqrs-lite/deriver/v3"
+	"github.com/larsartmann/go-cqrs-lite/dispatcher/v3"
+	"github.com/larsartmann/go-cqrs-lite/query/v3"
+
+	// Identity
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
+
+	// Storage
+	"github.com/larsartmann/go-cqrs-lite/storage/v3"
+	"github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
+	"github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
+	"github.com/larsartmann/go-cqrs-lite/storage/pebble/v3"
+	"github.com/larsartmann/go-cqrs-lite/storage/turso/v3"
+
+	// Read Models
+	"github.com/larsartmann/go-cqrs-lite/graph/v3"
+	"github.com/larsartmann/go-cqrs-lite/kv/v3"
+	"github.com/larsartmann/go-cqrs-lite/listing/v3"
+	"github.com/larsartmann/go-cqrs-lite/stack/v3"
+
+	// Messaging & Transport
+	http "github.com/larsartmann/go-cqrs-lite/transport/http/v3"
+	grpc "github.com/larsartmann/go-cqrs-lite/transport/grpc/v3"
+	"github.com/larsartmann/go-cqrs-lite/watermill/v3"
+
+	// Security
+	"github.com/larsartmann/go-cqrs-lite/codec/v3"
+	"github.com/larsartmann/go-cqrs-lite/encryption/v3"
+	"github.com/larsartmann/go-cqrs-lite/signing/v3"
+
+	// Cross-Cutting
+	"github.com/larsartmann/go-cqrs-lite/idempotency/v3"
+	"github.com/larsartmann/go-cqrs-lite/middleware/v3"
+	"github.com/larsartmann/go-cqrs-lite/otel/v3"
+	"github.com/larsartmann/go-cqrs-lite/prometheus/v3"
+	"github.com/larsartmann/go-cqrs-lite/scheduling/v3"
+	"github.com/larsartmann/go-cqrs-lite/schema/v3"
+	"github.com/larsartmann/go-cqrs-lite/scenario/v3"
+	"github.com/larsartmann/go-cqrs-lite/projectionhost/v3"
+
+	// Catalog + Tooling
+	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/id/v3/idtest"
+	"github.com/larsartmann/go-cqrs-lite/query/v3/querytest"
+	"github.com/larsartmann/go-cqrs-lite/testutil/v3"
+)
+
+var _ = []any{
+	// Event Sourcing
+	event.New,
+	event.NewEvent,
+	event.NewAggregateRef,
+	event.DetectTombstone,
+	event.MarkTombstone,
+	event.MarkRebirth,
+	event.WithProcessingMode,
+	event.ProcessingModeFrom,
+	event.DecodePayloadAuto,
+	event.NewMetadata,
+	event.NewRejection,
+	event.NewConflict,
+	event.NewTransient,
+	event.NewInfrastructure,
+	event.NewCorruption,
+	projection.NewProjection,
+	snapshot.NewTypedStore,
+	snapshot.EveryNEvents,
+	sql.SQLiteDialect{},
+	sql.PostgresDialect{},
+
+	// CQRS
+	command.New,
+	command.NewPersistedCommand,
+	command.NewDispatcher,
+	command.NewMemoryBus,
+	command.RegisterTyped,
+	query.New,
+	query.NewPersistedQuery,
+	query.NewDispatcher,
+	query.RegisterTyped,
+	query.DispatchTyped,
+	decider.NewRepository,
+	deriver.Noop,
+
+	// Identity
+	id.New,
+	id.NewAggregateID,
+	id.NewEventID,
+	id.NewCorrelationID,
+	id.NewCausationID,
+	id.NewCommandID,
+	id.DeriveAggregateID,
+	id.DeriveCommandID,
+
+	// Storage
+	storage.NewSQLiteEventStore,
+	storage.NewSQLEventStore,
+	storage.NewSQLEventStoreWithDialect,
+	storage.NewSQLiteBackend,
+	storage.NewSQLBackend,
+	storage.NewSQLiteViewStore,
+	storage.NewRelationalProjection,
+	storage.NewRelationalStore,
+	memory.NewMemoryStore,
+	memory.NewMemorySnapshotStore,
+	memory.NewMemoryCheckpointStore,
+	pebble.NewStore,
+	pebble.Open,
+	pebble.NewBackend,
+	turso.Open,
+	turso.OpenInMemory,
+	turso.OpenSync,
+
+	// Read Models
+	kv.NewMemStore,
+	kv.NewTypedStore[any, id.AggregateID],
+	kv.NewCache[any, id.AggregateID],
+	stack.NewMaterialize[any, id.AggregateID],
+	stack.ReadModel[any, id.AggregateID],
+	graph.NewGraphProjection,
+	graph.NewMemoryDriver,
+
+	// Projection Lifecycle
+	projectionhost.New,
+	listing.NewInMemoryAggregateReader,
+	watermill.NewEventBus,
+	watermill.NewCommandBus,
+	watermill.NewCatchUpSubscriber,
+	watermill.NewEventPublisher,
+	watermill.NewCommandPublisher,
+
+	// Transport
+	http.NewSSEBroker,
+	grpc.NewCommandClient,
+	grpc.NewQueryClient,
+	grpc.RegisterCommandService,
+	grpc.RegisterQueryService,
+
+	// Security
+	signing.NewHMAC,
+	signing.NewEd25519,
+	encryption.NewXChaCha20Poly1305,
+	encryption.NewAES256GCM,
+	encryption.DeriveKey,
+	codec.JSONCodec{},
+	codec.CBORCodec{},
+	codec.CBORCompactCodec{},
+	codec.RawCodec{},
+
+	// Cross-Cutting
+	idempotency.NewMemoryStore,
+	idempotency.ErrDuplicate,
+	scheduling.NewMemoryTimerStore,
+	scheduling.New,
+	schema.NewVersionedStore,
+	schema.NewValidator,
+	scenario.Given,
+	otel.Setup,
+	otel.NewTracer,
+	otel.NewMeter,
+	prometheus.Setup,
+
+	// Catalog + Tooling
+	catalog.NewRegistry,
+	catalog.SchemaFromType[any],
+	eventtest.AssertGolden,
+	querytest.New,
+	idtest.ParseEventID,
+	testutil.NewCmd,
+}
+```

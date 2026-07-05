@@ -48,6 +48,7 @@ func main() {
 		files = []string{
 			filepath.Join(root, "SKILL.md"),
 			filepath.Join(root, "AGENTS.md"),
+			filepath.Join(root, "docs/DOMAIN_LANGUAGE.md"),
 		}
 		// Auto-discover skill reference files so split SKILL.md content stays checked.
 		if refFiles, err := filepath.Glob(
@@ -57,8 +58,8 @@ func main() {
 		}
 	}
 
-	// Resolve repo root from the directory of the first markdown file.
-	repoRoot, _ := filepath.Abs(filepath.Dir(files[0]))
+	// Resolve repo root by walking up from the first file's directory.
+	repoRoot := findRepoRootFromPath(filepath.Dir(files[0]))
 
 	var allRefs []ref
 
@@ -100,6 +101,15 @@ func main() {
 		log.Fatalf("%d broken reference(s) found.", broken)
 	}
 
+	if len(allRefs) == 0 {
+		log.Printf( //nolint:gosec,lll // G706: CLI tool, no untrusted input
+			"⚠  WARNING: 0 Go references found — no fenced ```go code blocks detected.\n" +
+				"Documents were NOT verified. Add a verification code block or pass files with Go samples.",
+		)
+
+		return
+	}
+
 	log.Printf( //nolint:gosec,lll // G706: CLI tool, no untrusted input
 		"✓ All %d references valid across %d package(s).",
 		len(allRefs), len(exportIndex),
@@ -113,6 +123,13 @@ func findRepoRoot() string {
 	if err != nil {
 		return "."
 	}
+
+	return findRepoRootFromPath(dir)
+}
+
+// findRepoRootFromPath walks up from the given directory to the nearest .git marker.
+func findRepoRootFromPath(start string) string {
+	dir := start
 
 	for {
 		if info, err := os.Stat(filepath.Join(dir, ".git")); err == nil && info.IsDir() {
@@ -238,13 +255,24 @@ func buildExportIndex(imports []string, repoRoot string) map[string]map[string]b
 		// Convert import path to directory: strip the module prefix.
 		dir := strings.TrimPrefix(imp, repoImportPrefix)
 
-		// Strip version suffix — /v3 can appear mid-path (e.g. catalog/v3/asyncapi)
-		// or at the end (e.g. event/v3).
-		dir = strings.Replace(dir, "/v3/", "/", 1)
+		// Strip trailing version suffix (e.g. event/v3 → event).
+		// Do NOT strip /v3/ from the middle of the path — for nested modules
+		// like event/v3/eventtest, the /v3/ is part of the physical directory.
 		dir = strings.TrimSuffix(dir, "/v3")
+		if dir == "v3" {
+			dir = "."
+		}
 
-		// Resolve relative to repo root.
+		// Resolve relative to repo root. If the path with /v3/ preserved
+		// doesn't exist, try stripping /v3/ segments (some nested packages
+		// like storage/v3/sql physically live at storage/sql).
 		fullDir := filepath.Join(repoRoot, dir)
+		if _, err := os.Stat(fullDir); os.IsNotExist(err) {
+			stripped := strings.Replace(dir, "/v3/", "/", 1)
+			if stripped != dir {
+				fullDir = filepath.Join(repoRoot, stripped)
+			}
+		}
 
 		// The last path segment is the package name (alias in docs).
 		pkgName := filepath.Base(dir)
