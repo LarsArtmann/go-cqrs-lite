@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-06-29 (projectionhost + scenario + scheduling modules added; testing→scenario rename; projectionhost example + DLQ replay + WithLogger; Pebble SetIfAbsent; eventtest workaround documented) · **Module count:** 53 `go.mod` files (all wired into `go.work`) · **Go version:** 1.26.3
+**Last audited:** 2026-07-05 (error taxonomy sweep, deriver module, DOMAIN_LANGUAGE.md rebuild, dead code removal, ROADMAP/TODO reconciliation) · **Module count:** 47 `go.mod` files (all wired into `go.work`) · **Go version:** 1.26.3
 
 ## Status Legend
 

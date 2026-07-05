@@ -1,25 +1,37 @@
 # Roadmap — go-cqrs-lite
 
 > Where we are, where we're going, and what's next.
-> **Last updated:** 2026-06-28
+> **Last updated:** 2026-07-05
 
 ---
 
-## Current State (v3.1.0 released, v3.3.0 in progress)
+## Current State (v3.6.0 released)
 
-**v3.1.0 is tagged** (2026-06-25) — all 46 modules are on `/v3` import paths. v3.1.0 adds SQL-backed view stores with queryable columns, multi-database split for all SQL presets, shared metadata utilities, and 12 design documents for future features. v3.0.0 shipped all 11 breaking changes (see [CHANGELOG.md](CHANGELOG.md) and the [v3 Migration Guide](docs/migration/V3_MIGRATION.md)). All core CQRS/ES primitives are shipped.
+**v3.6.0 is tagged** (2026-07-05) — all 47 modules are on `/v3` import paths. The library covers the full CQRS/ES lifecycle: event sourcing with branded IDs, command/query dispatch, pure-function deciders, three projection tiers (document/KV, relational/SQL, graph), durable deadline scheduling, event→command derivation, dead-letter quarantine, managed projection hosting, event signing/encryption, OTel tracing/metrics, and auto-documentation generation (AsyncAPI, OpenAPI, D2, EventCatalog).
 
-**v3.3.0 (in progress)** adds three projection tiers (document/KV, relational/SQL, graph/traversal), a Watermill command bridge, dead-letter quarantine, Drainer semantics, and CI isolation gates.
+v3.0.0 shipped all 11 breaking changes (see [CHANGELOG.md](CHANGELOG.md) and the [v3 Migration Guide](docs/migration/V3_MIGRATION.md)).
 
-## Short Term (Next 90 Days)
+## Short Term
+
+### v3.6.0 — Shipped (2026-07-05)
+
+Error taxonomy sweep (5-family classification), deriver module (event→command derivation, ADR-0040), flagship example consolidation, DOMAIN_LANGUAGE.md rebuild.
+
+### v3.5.0 — Shipped
+
+Idempotency module, dispatch middleware, dead-letter queue (dispatch-tier), SSE promoted to branded types, scenario-testing DSL (Given/When/Then for deciders + projections), scheduling module (durable deadline timers), managed projection host (crash-restart lifecycle).
+
+### v3.3.0 — Shipped (2026-06-28)
+
+Three projection tiers (document/KV, relational/SQL, graph/traversal), Watermill command bridge, dead-letter quarantine, Drainer semantics, CI isolation gates.
 
 ### v3.1.0 — Shipped (2026-06-25)
 
-SQL-backed view stores, multi-database split, shared metadata utilities, 12 design documents. See [CHANGELOG.md](CHANGELOG.md).
+SQL-backed view stores with queryable columns, multi-database split for all SQL presets, shared metadata utilities.
 
 ### v3.0.0 — Shipped (2026-06-22)
 
-All 11 breaking changes landed and v3.0.0 is tagged. The new shapes were added in v2, so migration is additive. See [`docs/migration/V3_MIGRATION.md`](docs/migration/V3_MIGRATION.md) for the full guide and [CHANGELOG.md](CHANGELOG.md) for the release notes.
+All 11 breaking changes landed. See [`docs/migration/V3_MIGRATION.md`](docs/migration/V3_MIGRATION.md) for the full guide and [CHANGELOG.md](CHANGELOG.md) for release notes.
 
 ### Transport Adapters (ADR-0025)
 
@@ -52,6 +64,8 @@ All 11 breaking changes landed and v3.0.0 is tagged. The new shapes were added i
 
 - [ ] Zero-allocation event encoding path (jsonv2 — blocked on Go stdlib)
 - [ ] Arena allocation for high-throughput event creation (blocked on Go stdlib)
+- [ ] Hot-State cache (decider) — Optional `RepositoryOption[State]` for aggregates commanded 100+ times/sec. Profile before building.
+- [ ] Read-pressure snapshot strategy — Snapshot based on load frequency, not just write count. Consider after hot-state cache.
 - [x] ~~Streaming event reads without materializing full slice~~ — DONE
 
 ### Reliability
@@ -60,6 +74,9 @@ All 11 breaking changes landed and v3.0.0 is tagged. The new shapes were added i
 - [x] ~~Distributed checkpointing for projections~~ — DONE
 - [x] ~~Projection replay→live dedup gap~~ — FIXED
 - [x] ~~Dead-letter quarantine for retry exhaustion~~ — DONE
+- [x] ~~Managed projection host (crash-restart lifecycle)~~ — DONE (`projectionhost/`)
+- [x] ~~Durable deadline timers~~ — DONE (`scheduling/`)
+- [x] ~~Event→command derivation (stateless saga)~~ — DONE (`deriver/`)
 
 ### Consumer Experience
 
@@ -69,6 +86,7 @@ All 11 breaking changes landed and v3.0.0 is tagged. The new shapes were added i
 - [x] ~~Watermill CommandBus~~ — DONE (command pub/sub over any broker)
 - [x] ~~gRPC transport~~ — DONE (remote command/query dispatch)
 - [x] ~~SSE transport with Last-Event-ID reconnect~~ — DONE
+- [x] ~~Scenario-testing DSL~~ — DONE (`scenario/` — Given/When/Then for deciders + projections)
 
 ### Observability
 
@@ -90,9 +108,7 @@ All 11 breaking changes landed and v3.0.0 is tagged. The new shapes were added i
 - Property-based integration testing with state machine verification
 - Performance regression dashboard (historical benchmark tracking)
 - Neo4j/Memgraph graph driver (`graph/neo4j/`) — consumer-pulled sibling module
-- Scheduler module (deadlines, timeouts, cron-style triggers)
-- Deriver module (stateless saga: events → commands)
 
 ---
 
-_Last updated: 2026-06-29 — v3.3.0 tagged. Idempotency module + dispatch middleware shipped. Dead-letter queue (dispatch-tier) shipped. SSE promoted to branded types. Transactional Outbox (A2) deferred — relay-over-outbox stands. Remaining gaps: Managed Projection Host (A1), Scenario-testing DSL (A5), Scheduled commands (A6)._
+_Last updated: 2026-07-05 — v3.6.0 tagged. All framework gaps (A1–A6) shipped: projectionhost, scenario, scheduling, deriver, idempotency. Remaining: operability surfacing from stack presets, Go-stdlib-blocked experiments (jsonv2, arenas), performance features (hot-state cache, read-pressure snapshots)._
