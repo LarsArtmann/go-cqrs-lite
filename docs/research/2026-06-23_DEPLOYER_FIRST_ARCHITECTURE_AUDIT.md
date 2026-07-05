@@ -49,7 +49,7 @@ identical regardless of which preset was chosen.
 bundle, err := stack.New(
     stack.WithEventStore(pebbleBackend.EventStore()),   // Pebble for events
     stack.WithReadModels(sqlKVStore),                    // SQL for views
-    stack.WithCheckpointStore(redisCheckpoint),          // Redis for checkpoints
+    stack.WithCheckpointStore(redisCheckpoint),          // Redis for checkpoints (author prefers ValKey)
     stack.WithBus(cqrswatermill.NewEventBus()),
 )
 ```

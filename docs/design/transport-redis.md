@@ -1,11 +1,19 @@
 # Design Spike: Redis Transport Adapter
 
+> **⚠️ Editorial stance on Redis:** The author is not a fan of Redis. This
+> adapter may ship one day for consumers who already operate Redis and want
+> to stay on it — but even then, [ValKey](https://valkey.io) (the
+> Linux-Foundation-backed Redis fork) is the recommended alternative. ValKey
+> is a drop-in replacement for most workloads and avoids the licensing and
+> governance concerns that motivated the fork. If you are starting fresh,
+> pick ValKey (or NATS, or Kafka) instead.
+
 **Status:** Accepted (ADR-0025). Implementation pending.
 **Module:** `transport/redis/`
 
 ## Problem
 
-Some consumers already operate Redis and prefer it over introducing NATS. Redis Streams provides consumer groups, persistence, and acknowledgment — sufficient for event distribution across processes.
+Some consumers already operate Redis and prefer it over introducing NATS. Redis Streams provides consumer groups, persistence, and acknowledgment — sufficient for event distribution across processes. (The same design applies to [ValKey](https://valkey.io), which is the author's preferred drop-in replacement.)
 
 ## Design
 
@@ -59,12 +67,12 @@ func (s *Subscriber) Subscribe(ctx context.Context, eventType event.Type) (<-cha
 
 ### Dependencies
 
-- `github.com/redis/go-redis/v9` (production)
+- `github.com/redis/go-redis/v9` (production — also works with [ValKey](https://valkey.io), the recommended alternative)
 - `github.com/larsartmann/go-cqrs-lite/event/v3`
 - `github.com/larsartmann/go-cqrs-lite/codec/v3`
 
 ### Testing Strategy
 
-- Unit tests with miniredis (`github.com/alicebob/miniredis/v2`)
+- Unit tests with miniredis (`github.com/alicebob/miniredis/v2`) — compatible with ValKey wire protocol
 - Integration test: XADD → XREADGROUP → verify delivery + ack
 - Consumer group failover test: simulate crash, verify XAUTOCLAIM reclaims

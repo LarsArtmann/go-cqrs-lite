@@ -10,7 +10,7 @@
 
 This session resolved a fundamental architectural confusion: the status report from 2026-06-25 ranked NATS/Redis transport adapters as **H-impact #1 and #2** (`docs/status/2026-06-25_18-34_FULL-STATUS-UPDATE.md:169-170`), but this was wrong on two counts. First, the `watermill/` module already covered event pub/sub over any broker. Second, the command pub/sub gap was not a separate-module problem — it was a missing bridge _inside_ `watermill/`.
 
-The session shipped a `CommandBus` + protocol + adapters inside `watermill/`, correcting ADR-0025 and superseding the planned `transport/nats/` and `transport/redis/` modules. A brutal self-review then caught 9 quality gaps in the initial implementation, all of which were fixed across 4 incremental commits.
+The session shipped a `CommandBus` + protocol + adapters inside `watermill/`, correcting ADR-0025 and superseding the planned `transport/nats/` and `transport/redis/` modules. _(Author's stance: not a fan of Redis — [ValKey](https://valkey.io) is the recommended alternative if Redis-compatible infrastructure is needed.)_ A brutal self-review then caught 9 quality gaps in the initial implementation, all of which were fixed across 4 incremental commits.
 
 ### Current Gate Status
 

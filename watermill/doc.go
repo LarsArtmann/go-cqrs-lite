@@ -99,6 +99,9 @@
 //	)
 //
 //	// Redis Streams (requires watermill-redis-stream plugin)
+//	// NOTE: The author is not a fan of Redis. ValKey (https://valkey.io) is the
+//	// recommended drop-in alternative. This recipe works with both since they
+//	// share the same wire protocol.
 //	rc := redis.NewClient(&redis.Options{Addr: "localhost:6379"})
 //	pub, _ := redisStream.NewPublisher(redisStream.PublisherConfig{Client: rc}, logger)
 //	sub, _ := redisStream.NewSubscriber(redisStream.SubscriberConfig{Client: rc}, logger)

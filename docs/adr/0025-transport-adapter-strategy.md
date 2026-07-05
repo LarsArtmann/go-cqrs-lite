@@ -72,6 +72,12 @@ defines its own wire format.
 - **HTTP**: **Implemented.** SSE event delivery moved from `middleware/` to `transport/http/`. Generic HTTP utilities (healthcheck, metrics, pprof) were deleted — they had no CQRS dependencies and zero consumers.
 - **NATS / Redis**: **Superseded by the `watermill/` command bridge.** Instead of building `transport/nats/` and `transport/redis/` as separate modules (which would duplicate Watermill's broker abstraction), the `watermill/` module now bridges both `event.Bus` AND `command.Bus` to any Watermill-compatible broker backend (Kafka, NATS, Redis Streams, etc.) via `WithBackend` / `WithCommandBackend`. Consumers inject the broker plugin of their choice. This covers the event AND command pub/sub use cases. Design docs retained for reference but implementation is not planned.
 
+> **Editorial note on Redis:** The author is not a fan of Redis. If a native
+> adapter ever ships, it will be for consumers who already operate Redis. Even
+> then, [ValKey](https://valkey.io) — the Linux-Foundation-backed Redis fork —
+> is the recommended alternative. ValKey shares the same wire protocol, so the
+> `go-redis` client and Watermill plugins work unchanged.
+
 ### Scope split
 
 | Use case                         | Paradigm            | Coverage                                |

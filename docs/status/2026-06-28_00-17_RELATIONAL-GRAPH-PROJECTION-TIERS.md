@@ -280,15 +280,15 @@ Sorted by impact/effort (Pareto). Tier 1 first.
 
 ### Tier 4: Future / nice-to-have
 
-| #   | Task                                                                 | Impact             | Effort | Why                                               |
-| --- | -------------------------------------------------------------------- | ------------------ | ------ | ------------------------------------------------- |
-| 19  | **Build Neo4j/Cypher GraphDriver** (`graph/neo4j/`)                  | High (when needed) | 3-4h   | Consumer-pulled; build when someone deploys Neo4j |
-| 20  | **Add NATS JetStream transport adapter**                             | Medium             | 3h     | ADR-0025 accepted, zero code                      |
-| 21  | **Add Outbox DLQ + reference-based outbox**                          | Medium             | 2h     | Pre-existing gaps                                 |
-| 22  | **Add FTS5 full-text search to RelationalStore**                     | Medium             | 2h     | DiscordSync's SearchMessages needs it             |
-| 23  | **Add Durability profiles** (Sync/BatchedSync/Async across backends) | Low                | 1.5h   | Pre-existing gap                                  |
-| 24  | **Add Redis GraphDriver** (`graph/redisgraph/`)                      | Low                | 3h     | RedisGraph speaks openCypher too                  |
-| 25  | **Documentation site** (Docusaurus/MkDocs)                           | Low                | 4h+    | Zero work; 44 modules need browsable docs         |
+| #   | Task                                                                 | Impact             | Effort | Why                                                                                                          |
+| --- | -------------------------------------------------------------------- | ------------------ | ------ | ------------------------------------------------------------------------------------------------------------ |
+| 19  | **Build Neo4j/Cypher GraphDriver** (`graph/neo4j/`)                  | High (when needed) | 3-4h   | Consumer-pulled; build when someone deploys Neo4j                                                            |
+| 20  | **Add NATS JetStream transport adapter**                             | Medium             | 3h     | ADR-0025 accepted, zero code                                                                                 |
+| 21  | **Add Outbox DLQ + reference-based outbox**                          | Medium             | 2h     | Pre-existing gaps                                                                                            |
+| 22  | **Add FTS5 full-text search to RelationalStore**                     | Medium             | 2h     | DiscordSync's SearchMessages needs it                                                                        |
+| 23  | **Add Durability profiles** (Sync/BatchedSync/Async across backends) | Low                | 1.5h   | Pre-existing gap                                                                                             |
+| 24  | **Add Redis GraphDriver** (`graph/redisgraph/`)                      | Low                | 3h     | RedisGraph speaks openCypher too. Author is not a fan of Redis; ValKey would be preferred if/when this ships |
+| 25  | **Documentation site** (Docusaurus/MkDocs)                           | Low                | 4h+    | Zero work; 44 modules need browsable docs                                                                    |
 
 ---
 

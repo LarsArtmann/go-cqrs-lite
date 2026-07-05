@@ -38,7 +38,7 @@ Surfaced by the code-quality, architecture, data-model, naming, and modularizati
 ### Experimental / long-term
 
 - [x] **gRPC transport adapter** — ADR-0025 accepted. `transport/grpc/` module with protobuf command + query dispatch (commit `81d29455`).
-- [ ] **NATS/Redis Stream adapter** — ADR-0025 accepted. Separate `transport/nats/` and `transport/redis/` modules.
+- [ ] **NATS/Redis Stream adapter** — ADR-0025 accepted. Separate `transport/nats/` and `transport/redis/` modules. _(Author is not a fan of Redis; [ValKey](https://valkey.io) is the recommended alternative for consumers who want Redis-compatible infrastructure.)_
 - [ ] **jsonv2 codec experiment** — `codec/jsonv2_experiment.go` exists behind `goexperiment.jsonv2` build tag (ADR-0026). Pending Go stdlib stabilization.
 - [ ] **Arena allocation experiment** — `event/arena_experiment.go` exists behind `goexperiment.arenas` build tag (ADR-0026). Pending Go arena API stabilization.
 - [ ] **Hot-State cache (decider)** — Optional `RepositoryOption[State]` that caches folded aggregate state keyed by `(aggID, version)` to eliminate snapshot+delta replay on sustained-hot aggregates. Safe under single-master because optimistic concurrency (`expectedVersion` in `Save`) already gates writes. Write-through: update or invalidate on every successful `Execute`. Lives above singleflight (concurrent-burst coalescing) and above `loadFromSnapshot`/`loadFromStore` (sequential-burst coalescing). Cold start pays the replay cost once; not a correctness concern. Profile before building — snapshot + page-cache-resident events already make sequential loads cheap; this only pays off for aggregates commanded 100+ times/sec.

@@ -28,6 +28,12 @@ All 11 breaking changes landed and v3.0.0 is tagged. The new shapes were added i
 - [x] ~~`transport/nats/`~~ — Superseded by Watermill command bridge (ADR-0025 revised). NATS/Redis/Kafka backends plug into `watermill.NewCommandBus` via publisher/subscriber adapters.
 - [x] ~~`transport/redis/`~~ — Superseded by Watermill command bridge. See broker plugin recipe in `watermill/doc.go`.
 
+> **Editorial note on Redis:** The author is not a fan of Redis. A native
+> adapter may ship one day for consumers who already operate it — but even
+> then, [ValKey](https://valkey.io) (the LF-backed Redis fork) is the
+> recommended alternative. If you are starting fresh, pick ValKey, NATS, or
+> Kafka instead.
+
 ### Read-Model Enhancements
 
 - [x] ~~Secondary indexes / ranged scans for large read-model sets~~ — DONE (SQLViewStore supports IndexSpec, RelationalStore supports cursor pagination)
