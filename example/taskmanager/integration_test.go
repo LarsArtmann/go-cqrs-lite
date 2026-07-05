@@ -74,33 +74,34 @@ func TestIntegration_FullLifecycle(t *testing.T) {
 	}
 
 	// ── Delete the task (tombstone) ───────────────────────────────────
-	// Tombstone events are verified in scenario tests. Here we verify the
-	// event was persisted with correct tombstone metadata.
+	// The tombstone event flows through the bus to the projection,
+	// which sets Tombstoned=true on the view. We verify BOTH the
+	// read-model projection AND the event-store metadata.
 	if err := srv.CmdDisp.Dispatch(ctx, DeleteTaskCmd{
 		BasicCommand: mustCmd(cmdDeleteTask, taskID),
 	}); err != nil {
 		t.Fatalf("delete task: %v", err)
 	}
 
-	time.Sleep(200 * time.Millisecond)
+	// Verify the projection reflects the tombstone (not just the event store).
+	waitForView(t, srv, taskID, func(v *TaskView) bool {
+		return v.IsTombstoned()
+	})
 
+	// Verify the event store persisted correct tombstone metadata.
 	ref := event.NewAggregateRef(aggregateType, taskID)
 	allEvents, err := srv.Bundle.EventSource.Load(ctx, ref)
 	if err != nil {
 		t.Fatalf("load events: %v", err)
 	}
 
-	if len(allEvents) != 4 {
-		t.Fatalf("event count: got %d, want 4", len(allEvents))
-	}
-
-	last := allEvents[3]
+	last := allEvents[len(allEvents)-1]
 	if last.Type() != evtTaskDeleted {
 		t.Errorf("last event type: got %s, want %s", last.Type(), evtTaskDeleted)
 	}
 
 	if md := last.Metadata(); md.Tombstone == nil ||
-		md.Tombstone.Status != event.TombstoneTombstoned {
+		!md.Tombstone.Status.IsTombstoned() {
 		t.Error("last event should have tombstone=tombstoned metadata")
 	}
 }

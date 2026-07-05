@@ -27,7 +27,7 @@ type TaskView struct {
 	AssigneeID  string   `json:"assigneeId,omitempty"`
 	DueDate     string   `json:"dueDate,omitempty"`
 	BlockedBy   []string `json:"blockedBy,omitempty"`
-	Tombstoned  bool     `json:"-"`
+	Tombstoned  bool     `json:"tombstoned,omitempty"`
 }
 
 // IsTombstoned enables Materialize.List to filter soft-deleted records.
