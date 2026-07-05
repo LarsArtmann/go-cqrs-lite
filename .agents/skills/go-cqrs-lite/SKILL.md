@@ -144,6 +144,8 @@ with projection + read model.
 | Derive commands reactively from events                | `deriver`                                                                       | advanced §6.12  |
 | Build graph/traversal read models (nodes + edges)     | `graph`                                                                         | advanced §6.13  |
 | Expose CQRS metrics via Prometheus `/metrics`         | `prometheus`                                                                    | advanced §6.14  |
+| Stream events to browsers via SSE                     | `transport/http` (`SSEBroker`)                                                  | advanced §6.15  |
+| Replay events to reconnecting clients (catch-up)      | `transport/http` (Last-Event-ID) or `watermill` (`CatchUpSubscriber`)           | advanced §6.15  |
 
 > **§2 (recipes), §5 (module reference), §6 (advanced patterns)** live in the on-demand `references/` files, not in this core file. This is the progressive-disclosure design — the core file holds the decision material needed on every trigger; the references hold long copy-paste recipes loaded only when needed.
 

@@ -467,7 +467,39 @@ provider, handler, _ = prometheus.Setup(prometheus.WithRegistry(myRegistry))
 
 ---
 
-## Common Mistakes (pitfalls when applying these patterns)
+### 6.15 SSE Streaming vs CatchUpSubscriber — Which Replay Path?
+
+Both `transport/http.SSEBroker` and `watermill.CatchUpSubscriber` solve the
+**catch-up problem**: deliver historical events (replay) then seamlessly
+transition to live events. They share the same dedup ring and batched journal
+read patterns. **Pick based on where events need to arrive:**
+
+| Need                              | SSEBroker (`transport/http`)                                                          | CatchUpSubscriber (`watermill`)                                                                  |
+| --------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| **Destination**                   | Browser / HTTP client (text/event-stream)                                             | Watermill message channel (in-process or broker)                                                 |
+| **Transport**                     | HTTP/1.1 or HTTP/2, unidirectional                                                    | Any Watermill subscriber (GoChannel, NATS, Kafka, Redis)                                         |
+| **Reconnect protocol**            | Native `Last-Event-ID` header                                                         | Manual: checkpoint store persists last-processed EventID                                         |
+| **Bidirectional?**                | No (server→client only)                                                               | No (but the broker can be bidirectional if you publish back)                                     |
+| **Throughput target**             | ~100s–1000s of clients per broker                                                     | 1 consumer per topic (projections are sequential)                                                |
+| **Ordering guarantee**            | Per-client FIFO (single handler goroutine)                                            | Per-topic FIFO (single goroutine per subscription)                                               |
+| **Backpressure when client slow** | Non-blocking send, event dropped (configurable)                                       | Channel-buffered, blocks publisher when full (or use GoChannel `BlockPublishUntilSubscriberAck`) |
+| **Replay cap**                    | `WithReconnectJournal(journal, limit)` + `WithReplayTimeout` + `WithReplayByteBudget` | Unbounded batched streaming (500/batch), checkpoint-driven                                       |
+| **Metrics**                       | `WithReplayMetrics` (duration, events, incomplete counters)                           | Span attributes only                                                                             |
+| **Best for**                      | UI dashboards, notification feeds, browser push                                       | Server-side projections, integrations, async workers                                             |
+
+**Rule of thumb:**
+
+- **Browser/client-facing** → `SSEBroker`. Built-in `Last-Event-ID` reconnection, heartbeat keepalives, advisory events on timeout. Pair with a reverse proxy (Nginx/Cloudflare) that supports SSE.
+- **Server-side projections / integrations** → `CatchUpSubscriber` + `projectionhost.Host`. Survives crashes, checkpoint-persisted, routes through any Watermill-compatible broker for multi-instance scaling.
+
+**Both are ordered within a single client/subscription.** Neither is a queue — use Watermill with a real broker (NATS/Kafka) if you need competing consumers.
+
+**Anti-pattern:** Routing ordered projections through the Watermill Router
+(parallelism=1 still has per-message goroutine overhead). Consume the
+`CatchUpSubscriber` output channel from a single goroutine instead. See
+`example/taskmanager` for the correct pattern.
+
+---
 
 These are the failure modes we see most often. Read them before reaching for an advanced pattern.
 

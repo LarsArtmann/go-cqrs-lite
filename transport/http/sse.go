@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/dedup/v3"
@@ -132,10 +133,37 @@ const sseDefaultReplayByteBudget = 8 * 1024 * 1024
 // journal size.
 const sseDedupRingCapacity = 1024
 
+// fanoutPolicy controls how handleEvent delivers an event to client channels.
+type fanoutPolicy int
+
+const (
+	// fanoutSequential iterates clients under the read lock on the broker
+	// goroutine. Best for typical deployments (<500 clients).
+	fanoutSequential fanoutPolicy = iota
+	// fanoutParallel dispatches to a worker pool so client channels don't
+	// block each other. Use WithParallelFanout for high client counts.
+	fanoutParallel
+)
+
+// dropPolicy controls what happens when a client channel is full.
+type dropPolicy int
+
+const (
+	// dropNewest (default) drops the incoming event when the channel is full.
+	// Non-blocking; preserves events already buffered (FIFO order honored
+	// for buffered events).
+	dropNewest dropPolicy = iota
+	// dropOldest evicts the oldest buffered event to make room for the newest.
+	// Use when consumers care about CURRENT state more than history (e.g.
+	// dashboards showing the latest value). Slower than dropNewest under
+	// sustained pressure because each eviction requires a drain + resend.
+	dropOldest
+)
+
 // SSEBroker bridges an event bus to Server-Sent Events HTTP clients.
 type SSEBroker struct {
 	mu               sync.RWMutex
-	clients          map[SSEClientID]chan event.Event
+	clients          map[SSEClientID]*sseClient
 	handler          event.Handler
 	cancel           context.CancelFunc
 	journal          event.SeekableJournal // optional: for Last-Event-ID replay
@@ -144,6 +172,42 @@ type SSEBroker struct {
 	replayMetrics    *ReplayMetrics        // optional: OTel instruments for replay
 	replayByteBudget int                   // <=0 = disabled; >0 = max bytes before stopping
 	dedupRingCap     int                   // <=0 = default (sseDedupRingCapacity)
+	fanout           fanoutPolicy
+	drop             dropPolicy
+	fanoutWorkers    int
+}
+
+// sseClient wraps a client channel with per-client accounting (dropped events,
+// buffered depth) for Stats() observability.
+type sseClient struct {
+	ch      chan event.Event
+	dropped atomic.Int64
+}
+
+// WithParallelFanout switches handleEvent from sequential per-client iteration
+// to a worker pool of the given size. Each worker drains a dispatch queue;
+// slow clients don't block the broker goroutine or other clients.
+//
+// workers <= 0 falls back to sequential (the default). Recommended: set
+// workers to roughly the expected client count divided by 50 (e.g. 4 workers
+// for ~200 clients). The pool is created lazily on first handleEvent.
+func WithParallelFanout(workers int) SSEBrokerOption {
+	return func(b *SSEBroker) {
+		if workers > 0 {
+			b.fanout = fanoutParallel
+			b.fanoutWorkers = workers
+		}
+	}
+}
+
+// WithDropOldestPolicy changes the per-client backpressure policy from
+// dropNewest (default — drop the incoming event when full) to dropOldest
+// (evict the oldest buffered event to admit the newest). Use when consumers
+// prioritize current state over history.
+func WithDropOldestPolicy() SSEBrokerOption {
+	return func(b *SSEBroker) {
+		b.drop = dropOldest
+	}
 }
 
 // NewSSEBroker creates a new SSE broker that subscribes to the given bus.
@@ -157,7 +221,7 @@ func NewSSEBroker(bus event.Bus, opts ...SSEBrokerOption) (*SSEBroker, error) {
 	_, cancel := context.WithCancel(context.Background())
 
 	b := &SSEBroker{
-		clients: make(map[SSEClientID]chan event.Event),
+		clients: make(map[SSEClientID]*sseClient),
 		cancel:  cancel,
 	}
 
@@ -198,18 +262,126 @@ func (b *SSEBroker) handleEvent(ctx context.Context, evt event.Event) error {
 	defer span.End()
 
 	b.mu.RLock()
-	defer b.mu.RUnlock()
-
 	span.SetAttributes(cqrsotel.AttrInt("cqrs.sse.client_count", len(b.clients)))
 
-	for _, ch := range b.clients {
-		select {
-		case ch <- evt:
-		default:
+	if b.fanout == fanoutParallel {
+		b.fanoutParallelLocked(span, evt)
+	} else {
+		b.fanoutSequentialLocked(span, evt)
+	}
+
+	b.mu.RUnlock()
+
+	return nil
+}
+
+// fanoutSequentialLocked iterates clients under the read lock. Callers must
+// hold b.mu (RLock). Non-blocking: full channels drop per the drop policy.
+func (b *SSEBroker) fanoutSequentialLocked(span cqrsotel.Span, evt event.Event) {
+	var dropped int64
+
+	for _, c := range b.clients {
+		if !b.sendToClient(c, evt) {
+			dropped++
 		}
 	}
 
-	return nil
+	if dropped > 0 {
+		span.SetAttributes(cqrsotel.AttrInt("cqrs.sse.dropped_clients", int(dropped)))
+	}
+}
+
+// fanoutParallelLocked dispatches via a worker pool. Callers must hold b.mu.
+// The pool is created lazily and sized to b.fanoutWorkers.
+func (b *SSEBroker) fanoutParallelLocked(span cqrsotel.Span, evt event.Event) {
+	clients := make([]*sseClient, 0, len(b.clients))
+	for _, c := range b.clients {
+		clients = append(clients, c)
+	}
+
+	workers := b.fanoutWorkers
+	if workers > len(clients) {
+		workers = len(clients)
+	}
+
+	if workers == 0 {
+		return
+	}
+
+	var (
+		wg      sync.WaitGroup
+		dropped atomic.Int64
+	)
+
+	chunk := (len(clients) + workers - 1) / workers
+
+	for w := range workers {
+		start := w * chunk
+		end := start + chunk
+		if end > len(clients) {
+			end = len(clients)
+		}
+
+		if start >= end {
+			break
+		}
+
+		wg.Add(1)
+
+		go func(slice []*sseClient) {
+			defer wg.Done()
+
+			for _, c := range slice {
+				if !b.sendToClient(c, evt) {
+					dropped.Add(1)
+				}
+			}
+		}(clients[start:end])
+	}
+
+	wg.Wait()
+
+	if d := dropped.Load(); d > 0 {
+		span.SetAttributes(cqrsotel.AttrInt("cqrs.sse.dropped_clients", int(d)))
+	}
+}
+
+// sendToClient delivers evt to a single client using the broker's drop policy.
+// Returns false if the event was dropped (channel full). Callers must hold b.mu.
+func (b *SSEBroker) sendToClient(c *sseClient, evt event.Event) bool {
+	switch b.drop {
+	case dropOldest:
+		select {
+		case c.ch <- evt:
+			return true
+		default:
+			// Channel full — evict the oldest buffered event to make room.
+			select {
+			case <-c.ch: // drain oldest
+			default:
+			}
+
+			select {
+			case c.ch <- evt:
+				c.dropped.Add(1)
+
+				return false // we dropped an event (the oldest)
+			default:
+				c.dropped.Add(1)
+
+				return false
+			}
+		}
+	default: // dropNewest
+		select {
+		case c.ch <- evt:
+			return true
+		default:
+			c.dropped.Add(1)
+
+			return false
+		}
+	}
 }
 
 const sseChannelBufSize = 100
