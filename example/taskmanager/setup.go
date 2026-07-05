@@ -18,10 +18,10 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
+	"github.com/larsartmann/go-cqrs-lite/projectionhost/v3"
 	"github.com/larsartmann/go-cqrs-lite/signing/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
-	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v3"
 )
 
 // Server is the composition root — all wired components live here.
@@ -31,7 +31,7 @@ type Server struct {
 	CmdDisp      *command.Dispatcher
 	ReadModel    *kv.TypedStore[TaskView, TaskID]
 	Mat          *stack.Materialize[TaskView, TaskID]
-	CatchUp      *cqrswatermill.CatchUpSubscriber
+	ProjHost     *projectionhost.Host
 	Logger       *slog.Logger
 	otelProvider *cqrsotel.Provider
 	signer       signing.SignerVerifier
@@ -95,11 +95,31 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 
 	configureProjection(mat)
 
-	catchUp, err := bundle.CatchUpSubscriber()
+	// ── ProjectionHost: managed projection runner with DLQ + crash-restart ──
+	// Replaces the raw CatchUpSubscriber loop. The host reads from the
+	// journal (replay), then tails live events via the subscriber. Poison
+	// messages are captured in the dead-letter store after 3 failures.
+	dlq := projectionhost.NewMemoryDeadLetterStore()
+
+	projHost, err := projectionhost.New(
+		bundle.SeekableJournal,
+		bundle.CheckpointStore,
+		projectionhost.WithBatchSize(100),
+		projectionhost.WithDeadLetterStore(dlq, 3),
+		projectionhost.WithMaxRestarts(-1),
+		projectionhost.WithLogger(logger),
+		projectionhost.WithSubscriber(bundle.Subscriber),
+	)
 	if err != nil {
 		_ = bundle.Close()
 
-		return nil, fmt.Errorf("setup: catch-up subscriber: %w", err)
+		return nil, fmt.Errorf("setup: projection host: %w", err)
+	}
+
+	if err := projHost.Register(mat); err != nil {
+		_ = bundle.Close()
+
+		return nil, fmt.Errorf("setup: register projection: %w", err)
 	}
 
 	srv := &Server{
@@ -108,7 +128,7 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 		CmdDisp:   command.NewDispatcher(),
 		ReadModel: rmStore,
 		Mat:       mat,
-		CatchUp:   catchUp,
+		ProjHost:  projHost,
 		Logger:    logger,
 	}
 
@@ -123,24 +143,12 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 	return srv, nil
 }
 
-// Start launches the projection goroutine. Call StartHTTP separately
-// for the HTTP API (not needed in tests that use httptest).
+// Start launches the ProjectionHost (replay + live tailing with DLQ).
+// Call StartHTTP separately for the HTTP API (not needed in tests).
 func (s *Server) Start(ctx context.Context) error {
-	msgs, err := s.CatchUp.Subscribe(ctx, cqrswatermill.DefaultEventBusTopic)
-	if err != nil {
-		return fmt.Errorf("start: subscribe: %w", err)
-	}
-
-	handler := s.Mat.HandlerFunc()
-
 	go func() {
-		for msg := range msgs {
-			if err := handler(msg); err != nil {
-				s.Logger.Error("projection error",
-					"type", msg.Metadata.Get("event_type"), "error", err)
-			}
-
-			msg.Ack()
+		if err := s.ProjHost.Start(ctx); err != nil {
+			s.Logger.Error("projection host", "error", err)
 		}
 	}()
 
@@ -171,6 +179,10 @@ func (s *Server) StartHTTP(addr string) error {
 func (s *Server) Stop() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
+
+	if s.ProjHost != nil {
+		_ = s.ProjHost.Stop()
+	}
 
 	if s.httpServer != nil {
 		_ = s.httpServer.Shutdown(ctx)
