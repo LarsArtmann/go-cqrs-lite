@@ -103,8 +103,8 @@ return event.NewCorruption("store.invalid_event", "checksum mismatch")
 
 ## Sub-packages
 
-| Package           | Purpose                                                |
-| ----------------- | ------------------------------------------------------ |
+| Package              | Purpose                                                |
+| -------------------- | ------------------------------------------------------ |
 | `event/v3/eventtest` | FakeStore, FakeBus, FakeSnapshotStore, test assertions |
 
 ## Dependencies
