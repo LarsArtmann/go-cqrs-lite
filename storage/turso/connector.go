@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
@@ -78,7 +79,7 @@ func OpenTemp(dir string) (*sql.DB, error) {
 		dir = os.TempDir()
 	}
 
-	path := filepath.Join(dir, "test.db")
+	path := filepath.Join(dir, fmt.Sprintf("cqrs-test-%d.db", time.Now().UnixNano()))
 
 	return Open(DbPath(path))
 }

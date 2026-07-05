@@ -4,6 +4,68 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [3.6.0] - 2026-07-05
+
+**Error-family taxonomy full sweep, deriver module, flagship example consolidation.**
+
+### Added
+
+#### Deriver — Event→Command Derivation (`deriver/v3`, `example/taskmanager`)
+
+- **`deriver.Deriver`** — reacts to events by deriving new commands. Chainable `Then`,
+  `Filter`, `Idempotent`, and `AsHandler` operators for declarative event→command
+  pipelines. Implements ADR-0040.
+- **Taskmanager example** — auto-assigns new tasks via a `user.created` →
+  `task.assign` derivation, demonstrating real-world usage.
+
+#### Flagship Example Consolidation
+
+- **9 examples → 2**: the scattered `deployer-first`, `deployer-first-multidb`,
+  `deployer-first-heterogeneous`, `encryption`, `deriver`, `graph-demo`,
+  `projectionhost`, `todo`, and `user` examples are consolidated into:
+  - **`example/taskmanager`** — the complete reference: event sourcing, projections
+    (KV + tombstone), SSE streaming, snapshot strategy, signing, ProjectionHost with
+    DLQ, deriver integration.
+  - **`example/getting-started`** — minimal getting-started guide.
+
+### Changed
+
+#### Error Family Taxonomy — Full Sweep
+
+Adopted the 5-family error taxonomy (Rejection / Conflict / Transient /
+Infrastructure / Corruption via `go-error-family`) across all production modules:
+
+| Module                 | Classification                                                                |
+| ---------------------- | ----------------------------------------------------------------------------- |
+| `storage`              | `WrapInfrastructure` for event store streams, memory streams, PG bus listener |
+| `storage/pebble`       | `WrapInfrastructure` for backend, command read, iteration paths               |
+| `storage/relational`   | `WrapInfrastructure` for projection, schema, sink                             |
+| `storage` (KV SQL)     | `WrapTransient` for idempotency KV store                                      |
+| `middleware`           | `WrapInfrastructure` for dead-letter SQL store                                |
+| `catalog/eventcatalog` | `WrapCorruption` for frontmatter marshal                                      |
+| `projectionhost`       | `WrapInfrastructure` for dead-letter list                                     |
+| `cmd/cqrs-gen`         | `WrapInfrastructure` for scan/walk/parse                                      |
+| `stack/sqlite`         | `WrapInfrastructure` for preset errors                                        |
+| `stack/postgres`       | `WrapInfrastructure` for preset + `WrapRejection` for bad DSN                 |
+| `stack/pebble`         | `WrapInfrastructure` for preset errors                                        |
+| `stack/turso`          | `WrapInfrastructure` for preset errors                                        |
+| `idempotency`          | `WrapTransient` for KV store                                                  |
+| `command`              | Taxonomy for memory bus + typed store                                         |
+| `graph`                | Taxonomy for memory driver                                                    |
+
+### Fixed
+
+- **Tombstone projection persistence** — tombstone marks now survive KV store
+  roundtrips correctly (`example/taskmanager/projection.go`).
+- **Event signing middleware wiring** — signing middleware now correctly wired via
+  EventBus type assertion instead of direct `UsePublish`.
+- **eventtest module path** — moved to `event/v3/eventtest/` to match the Go module
+  path spec for VCS resolution (ADR-0045). Fixes `go mod tidy` warnings.
+- **Invalid v0 pseudo-versions** — corrected pseudo-versions for `/v3` module paths
+  in cross-module `go.mod` dependencies.
+- **go.mod/go.sum stabilization** — convergence tidy across all modules; workspace
+  replace directives aligned for consistent local resolution.
+
 ## [3.5.0] - 2026-07-01
 
 **CBOR promoted to first-class default, encoding-aware validator, symmetric validation.**

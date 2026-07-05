@@ -85,11 +85,8 @@
           modulePaths = builtins.concatStringsSep " " (map (m: "./${m}/...") testModules);
 
           examplePaths = builtins.concatStringsSep " " [
-            "./example/todo/..."
-            "./example/user/..."
-            "./example/encryption/..."
-            "./example/deployer-first/..."
-            "./example/deployer-first-multidb/..."
+            "./example/getting-started/..."
+            "./example/taskmanager/..."
           ];
 
           allPaths = "${modulePaths} ${examplePaths}";
@@ -162,7 +159,7 @@
           # and are invoked via `nix run .#<app>`. Pattern mirrors cqrs-htmx/flake.nix.
           packages.default = pkgs.stdenvNoCC.mkDerivation {
             pname = "go-cqrs-lite";
-            version = "3.3.0";
+            version = "3.6.0";
 
             dontUnpack = true;
             dontConfigure = true;
