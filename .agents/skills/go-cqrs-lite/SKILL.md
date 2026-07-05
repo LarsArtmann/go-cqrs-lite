@@ -8,7 +8,7 @@ metadata:
 
 # go-cqrs-lite — AI Consumer Guide
 
-> This is the **single source of truth for AI consumers**. It replaces the need to discover and read 28 module READMEs. AGENTS.md (in the library repo) is for contributors; this file is for users.
+> This is the **single source of truth for AI consumers**. It replaces the need to discover and read 28+ module READMEs. AGENTS.md (in the library repo) is for contributors; this file is for users.
 
 ## How to use this skill
 
@@ -52,7 +52,54 @@ Query   → Dispatcher → Handler → Read Model
 | **Storage**       | Where do events/snapshots/checkpoints live? | `storage/memory`, `storage`, `storage/pebble`, `storage/turso`, `kv`, `stack`        |
 | **Cross-cutting** | Security, evolution, observability, docs    | `signing`, `encryption`, `schema`, `middleware`, `otel`, `catalog`, `transport/http` |
 
-You do NOT need all of them. Start with the minimal recipe (§2), then bolt on capabilities.
+You do NOT need all of them. Start with the 30-second quickstart below, then use §1 to pick modules.
+
+### 30-second quickstart — "Hello CQRS"
+
+The minimal loop: define state + events → wire infrastructure → execute → query. This is the
+complete example from `example/getting-started/main.go` distilled to its essence:
+
+```go
+// 1. Define your domain (pure functions, no framework coupling)
+type CounterState struct{ Value int }
+type Incremented struct{ Amount int }
+
+func apply(s CounterState, evt event.Event) (CounterState, error) {
+    p, _ := event.DecodePayloadAuto[Incremented](evt)
+    s.Value += p.Amount
+    return s, nil
+}
+
+// 2. Wire infrastructure (one call — swap memory→sqlite→pebble by changing ONE line)
+bundle, _ := stack.New(
+    stack.WithEventStore(memory.NewMemoryStore()),
+    stack.WithBus(cqrswatermill.NewEventBus()),
+    stack.WithReadModels(kv.NewMemStore()),
+    stack.WithCheckpointStore(memory.NewMemoryCheckpointStore()),
+)
+defer bundle.Close()
+
+// 3. Create repository (load → fold → decide → save → publish in one call)
+repo, _ := stack.Repository(bundle, decider.Decider[CounterState]{
+    Initial: CounterState{}, Apply: apply,
+})
+
+// 4. Execute commands — events are sourced and published
+ctx := context.Background()
+aggID := id.NewAggregateID()
+_ = repo.Execute(ctx, aggID, "Counter", func(_ CounterState, v event.Version) ([]event.Event, error) {
+    evt, _ := event.New("counter.incremented", aggID, "Counter", v.Increment(), Incremented{Amount: 5})
+    return []event.Event{evt}, nil
+})
+
+// 5. Query the materialized view (projection not shown — see example/getting-started)
+//    view, _ := mat.View(ctx, aggID)
+//    fmt.Println(view.Value) // 5
+```
+
+Swap `memory.NewMemoryStore()` → `sqlite.New("app.db")` → `pebble.New("./data")` for persistence.
+**The domain code doesn't change.** See `example/getting-started/` for the full runnable version
+with projection + read model.
 
 ---
 
@@ -97,6 +144,8 @@ You do NOT need all of them. Start with the minimal recipe (§2), then bolt on c
 | Derive commands reactively from events                | `deriver`                                                                       | advanced §6.12  |
 | Build graph/traversal read models (nodes + edges)     | `graph`                                                                         | advanced §6.13  |
 | Expose CQRS metrics via Prometheus `/metrics`         | `prometheus`                                                                    | advanced §6.14  |
+
+> **§2 (recipes), §5 (module reference), §6 (advanced patterns)** live in the on-demand `references/` files, not in this core file. This is the progressive-disclosure design — the core file holds the decision material needed on every trigger; the references hold long copy-paste recipes loaded only when needed.
 
 ---
 
@@ -248,7 +297,7 @@ Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability, cmd
 | Need                    | Source                                                                                                                                                                             |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Per-module API details  | Each module's `README.md` and `doc.go` (renders on pkg.go.dev)                                                                                                                     |
-| Architectural decisions | `docs/adr/` (23 ADRs)                                                                                                                                                              |
+| Architectural decisions | `docs/adr/` (43 ADRs)                                                                                                                                                              |
 | Storage deep-dive       | `docs/STORAGE_GUIDE.md`                                                                                                                                                            |
 | Error system            | `docs/error-taxonomy.md`                                                                                                                                                           |
 | Signing internals       | `docs/signing-architecture.md`                                                                                                                                                     |
@@ -256,6 +305,7 @@ Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability, cmd
 | Migration guides        | `docs/MIGRATION.md`, `docs/MIGRATION_v1.md`                                                                                                                                        |
 | Feature inventory       | `FEATURES.md`                                                                                                                                                                      |
 | Contributor guide       | `AGENTS.md` (in repo)                                                                                                                                                              |
+| Consumer feedback       | `docs/feedback/` (7 files, 5 consumers)                                                                                                                                            |
 | HTTP/HTMX integration   | [`cqrs-htmx`](https://github.com/LarsArtmann/cqrs-htmx) — wires this library's dispatch into `net/http` with HTMX/SSE/WebSocket. Has its own Crush skill for HTTP-layer questions. |
 
 ---
@@ -513,10 +563,8 @@ backward-compatible aliases, but the canonical paths are:
 
 ## 13. About This Skill
 
-**Structure.** This core file (under 500 lines) holds the decision-making and lookup material that's needed on every trigger. Long copy-paste recipes, the read-models deep-dive, the full module table, and advanced patterns live in `references/` and load **on demand** — keeping the per-trigger context cost ~65% lower than a single monolith (measured: ~5.7k tokens core vs ~16.5k for the old single-file form).
+**Structure.** The core file holds decision-making and lookup material needed on every trigger. §2 (recipes), §5 (module reference), and §6 (advanced patterns) live in `references/` and load on demand.
 
-**Why §7 (Testing) and §9 (Examples) live in core, not a reference.** Both are short lookup tables, not decision-making, but they answer the two most common follow-up questions after a consumer picks a recipe ("how do I test this?" and "is there a working example?"). Moving them to a reference would add a round-trip for near-zero context savings (together <50 lines). They stay in core.
+**Verification.** Every Go import path and qualified symbol in this skill is verified by `cmd/doc-check` in CI (430+ references across 33 packages). If the code compiles and doc-check passes, the recipes are accurate.
 
-**Visual style.** This skill is markdown-only (no themed HTML variant). An editorial-light or dashboard-dark rendered variant was considered and **deliberately skipped**: the skill is consumed by AI agents in plain text, where styling adds overhead without benefit. Consumers who want a styled overview can read the status reports in `docs/status/`.
-
-**Provenance.** Restructured 2026-06-29 from a 1377-line monolith into this progressive-disclosure layout. Full rationale and before/after metrics: `docs/status/2026-06-29_18-17_SKILL-RESTRUCTURE-STATUS.html`. Every Go import path and qualified symbol here is verified by `cmd/doc-check` in CI.
+**Provenance.** Restructured 2026-06-29 from a 1377-line monolith into this progressive-disclosure layout. Full rationale: `docs/status/2026-06-29_18-17_SKILL-RESTRUCTURE-STATUS.html`.

@@ -2007,10 +2007,24 @@ query.Dispatcher
       <section class="reveal">
         <div class="section-label">09 — Post-session update</div>
         <h2>What actually <em>got done</em></h2>
-        <span class="badge" style="font-size: 10px; padding: 4px 12px; border-radius: 6px; background: var(--cyan-dim); color: var(--cyan); border: 1px solid rgba(34, 211, 238, 0.2); margin-bottom: 24px; display: inline-block;">2026-07-05</span>
+        <span
+          class="badge"
+          style="
+            font-size: 10px;
+            padding: 4px 12px;
+            border-radius: 6px;
+            background: var(--cyan-dim);
+            color: var(--cyan);
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            margin-bottom: 24px;
+            display: inline-block;
+          "
+          >2026-07-05</span
+        >
 
         <p>
-          A triage session processed all 7 feedback files. Here's what changed for the proposals in this document:
+          A triage session processed all 7 feedback files. Here's what changed for the proposals in
+          this document:
         </p>
 
         <table class="matrix">
@@ -2025,27 +2039,40 @@ query.Dispatcher
             <tr>
               <td>P1 — Extract generic middleware (stdlib-only)</td>
               <td><span class="badge amber">not started</span></td>
-              <td>Accepted but not implemented. Multi-day architectural extraction. Noted as the #1 next priority.</td>
+              <td>
+                Accepted but not implemented. Multi-day architectural extraction. Noted as the #1
+                next priority.
+              </td>
             </tr>
             <tr>
               <td>P2 — Split event/v2 into layered leaves</td>
               <td><span class="badge red">rejected (by author)</span></td>
-              <td>Maintainer's response (§8) already rejected this: event/v2 IS a leaf in production code. Problem is go.mod hygiene, not architecture.</td>
+              <td>
+                Maintainer's response (§8) already rejected this: event/v2 IS a leaf in production
+                code. Problem is go.mod hygiene, not architecture.
+              </td>
             </tr>
             <tr>
               <td>P3 — Make OTel optional</td>
               <td><span class="badge amber">not started</span></td>
-              <td>Noted as P2 (2-3 days). P1 (resilience extraction) already solves the external-consumer case.</td>
+              <td>
+                Noted as P2 (2-3 days). P1 (resilience extraction) already solves the
+                external-consumer case.
+              </td>
             </tr>
             <tr>
               <td>P4 — Generic decorator pattern</td>
               <td><span class="badge amber">not started</span></td>
-              <td>Partially exists (<code>NewRetry[M any]()</code>). Full extraction depends on P1.</td>
+              <td>
+                Partially exists (<code>NewRetry[M any]()</code>). Full extraction depends on P1.
+              </td>
             </tr>
             <tr>
               <td>P5 — Configurable ID backing type</td>
               <td><span class="badge green">withdrawn (by author)</span></td>
-              <td>Self-corrected in the appendix. ULID is the right choice for event-sourced systems.</td>
+              <td>
+                Self-corrected in the appendix. ULID is the right choice for event-sourced systems.
+              </td>
             </tr>
             <tr>
               <td>P6 — Dependency budget CI</td>
@@ -2098,11 +2125,10 @@ query.Dispatcher
           <p>
             <strong>Nothing from the revised action plan was implemented yet.</strong> The session
             focused on consumer-facing improvements (bug fixes, API additions, documentation) from
-            the other 5 feedback files. The architectural extractions (resilience, OTel shim,
-            go.mod cleanup, dep budget CI) are all multi-day efforts that need dedicated sessions.
-            They are tracked in
-            <code>docs/status/2026-07-05_05-14_consumer-feedback-execution.md</code> as the top next
-            priorities.
+            the other 5 feedback files. The architectural extractions (resilience, OTel shim, go.mod
+            cleanup, dep budget CI) are all multi-day efforts that need dedicated sessions. They are
+            tracked in <code>docs/status/2026-07-05_05-14_consumer-feedback-execution.md</code> as
+            the top next priorities.
           </p>
         </div>
       </section>
