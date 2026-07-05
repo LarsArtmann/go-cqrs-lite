@@ -14,8 +14,10 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/scenario/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/signing/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/stack/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/transport/http/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/watermill/v3 v3.0.0-00010101000000-000000000000
 	go.opentelemetry.io/otel v1.44.0
 )
@@ -35,7 +37,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.0.0-00010101000000-000000000000 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-error-family v0.5.1 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
@@ -96,6 +97,8 @@ replace github.com/larsartmann/go-cqrs-lite/scenario/v3 => ../../scenario
 replace github.com/larsartmann/go-cqrs-lite/signing/v3 => ../../signing
 
 replace github.com/larsartmann/go-cqrs-lite/snapshot/v3 => ../../snapshot
+
+replace github.com/larsartmann/go-cqrs-lite/transport/http/v3 => ../../transport/http
 
 replace github.com/larsartmann/go-cqrs-lite/stack/sqlite/v3 => ../../stack/sqlite
 

@@ -11,6 +11,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
+	cqrshttp "github.com/larsartmann/go-cqrs-lite/transport/http/v3"
 )
 
 // routes builds the HTTP mux with all task management endpoints.
@@ -23,6 +24,11 @@ func (s *Server) routes() *http.ServeMux {
 	mux.HandleFunc("GET /api/tasks/", s.handleTaskSubresource)
 	mux.HandleFunc("PATCH /api/tasks/", s.handleTaskSubresource)
 	mux.HandleFunc("DELETE /api/tasks/", s.handleTaskSubresource)
+
+	// SSE: real-time event stream for clients
+	if s.sseBroker != nil {
+		mux.Handle("GET /events", cqrshttp.SSEHandler(s.sseBroker))
+	}
 
 	return mux
 }

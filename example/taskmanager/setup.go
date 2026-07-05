@@ -20,8 +20,10 @@ import (
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v3"
 	"github.com/larsartmann/go-cqrs-lite/signing/v3"
+	"github.com/larsartmann/go-cqrs-lite/snapshot/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
+	cqrshttp "github.com/larsartmann/go-cqrs-lite/transport/http/v3"
 )
 
 // Server is the composition root — all wired components live here.
@@ -36,6 +38,7 @@ type Server struct {
 	otelProvider *cqrsotel.Provider
 	signer       signing.SignerVerifier
 	httpServer   *http.Server
+	sseBroker    *cqrshttp.SSEBroker
 }
 
 // Config configures the Server.
@@ -72,7 +75,22 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 		db.SetMaxOpenConns(1)
 	}
 
-	repo, err := stack.Repository(bundle, TaskDecider)
+	// ── Repository with snapshot strategy (every 10 events) ──────────
+	// Snapshots accelerate aggregate loading by folding from the last
+	// snapshot instead of the full event history.
+	snapStrategy, err := snapshot.EveryNEvents(10)
+	if err != nil {
+		_ = bundle.Close()
+
+		return nil, fmt.Errorf("setup: snapshot strategy: %w", err)
+	}
+
+	repo, err := stack.Repository(
+		bundle, TaskDecider,
+		decider.WithSnapshotStore[TaskState](bundle.SnapshotStore),
+		decider.WithSnapshotStrategy[TaskState](snapStrategy),
+		decider.WithCodec[TaskState](bundle.DefaultCodec()),
+	)
 	if err != nil {
 		_ = bundle.Close()
 
@@ -138,6 +156,18 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 		_ = srv.Bundle.Close()
 
 		return nil, fmt.Errorf("setup: features: %w", err)
+	}
+
+	// ── SSE broker: real-time event streaming over HTTP ──────────────
+	// Clients connect to GET /events to receive a live stream of domain
+	// events as Server-Sent Events.
+	if bus, ok := bundle.Publisher.(event.Bus); ok {
+		broker, brokerErr := cqrshttp.NewSSEBroker(bus)
+		if brokerErr != nil {
+			return nil, fmt.Errorf("setup: SSE broker: %w", brokerErr)
+		}
+
+		srv.sseBroker = broker
 	}
 
 	return srv, nil
