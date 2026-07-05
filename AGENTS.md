@@ -635,6 +635,15 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   // Clients sending "Last-Event-ID" header get missed events replayed
 //   // from the journal before live streaming begins. Dedup prevents
 //   // duplicate delivery (same strategy as CatchUpSubscriber).
+//
+//   // Unlimited replay + browser timeout safety:
+//   broker, _ := http.NewSSEBroker(bus,
+//       http.WithReconnectJournal(journalStore, 0), // 0 = unlimited streaming
+//       http.WithReplayTimeout(30*time.Second))     // stop replay after 30s
+//   // replayLimit <= 0 streams ALL events in batches of 500 (memory-bounded).
+//   // WithReplayTimeout caps the duration — on timeout, an
+//   // SSEReplayIncompleteEvent advisory is sent before live starts.
+//   // DefaultSSEReplayLimit (1000) is the suggested bounded cap.
 
 // Managed projection host — the "last loop every consumer rewrites" (projectionhost)
 //   host, _ := projectionhost.New(journal, checkpointStore,
