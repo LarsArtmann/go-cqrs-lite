@@ -53,6 +53,8 @@ github.com/larsartmann/go-cqrs-lite/dedup/v3 v3.0.0-20260706015727-d7950658678d 
 github.com/larsartmann/go-cqrs-lite/dedup/v3 v3.0.0-20260706015727-d7950658678d/go.mod h1:TEguHPG2HwxjOwq6EomfNitRM8rGSZycoFAVgbJh9UU=
 github.com/larsartmann/go-cqrs-lite/dedup/v3 v3.0.0-20260706022304-9fb0c649b3ac h1:MJMODhxc6T3lUFaECU2m5Mur4Lu1isrZ/t0E/rbf0lE=
 github.com/larsartmann/go-cqrs-lite/dedup/v3 v3.0.0-20260706022304-9fb0c649b3ac/go.mod h1:TEguHPG2HwxjOwq6EomfNitRM8rGSZycoFAVgbJh9UU=
+github.com/larsartmann/go-cqrs-lite/dedup/v3 v3.0.0-20260706025749-cef6523c9e03 h1:XXd2avqxg2u5dBmGFFdWoj39hREUcK0R8LSt0yL3YFs=
+github.com/larsartmann/go-cqrs-lite/dedup/v3 v3.0.0-20260706025749-cef6523c9e03/go.mod h1:TEguHPG2HwxjOwq6EomfNitRM8rGSZycoFAVgbJh9UU=
 github.com/larsartmann/go-cqrs-lite/scheduling/v3 v3.6.0 h1:+x4z9Iaf1fhahSi6fymzSOwwrgb19R9XFEV5aykzrWs=
 github.com/larsartmann/go-cqrs-lite/scheduling/v3 v3.6.0/go.mod h1:W55Sbrq3JBl8HfctTsNl/h6tYX2fUOcOktFKQMn0TfM=
 github.com/larsartmann/go-error-family v0.6.1 h1:GLfo9UaMER3PkniYLNIHs6ay0I67gE91VFEifw1Goo8=

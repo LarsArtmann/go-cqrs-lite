@@ -3,791 +3,1765 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>go-cqrs-lite — Architecture Layers</title>
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <title>go-cqrs-lite — Architecture Layers Reconsidered</title>
     <style>
+      /* =========================================================================
+   BAUHAUS DARK — Architecture Report
+   Zero external dependencies: system fonts, no CDN, no build step.
+   ========================================================================= */
+
       :root {
-        --bg: #0e0e10;
-        --surface: #18181d;
-        --surface-2: #16161a;
-        --bone: #f4f4f0;
-        --muted: rgba(244, 244, 240, 0.65);
-        --faint: rgba(244, 244, 240, 0.35);
-        --hairline: rgba(244, 244, 240, 0.1);
-        --red: #ff6b6b;
-        --blue: #6eb5ff;
-        --yellow: #f4d35e;
-        --green: #6ee7a7;
-        --orange: #ffb347;
-        --purple: #c4a7e7;
-        --mono: ui-monospace, "JetBrains Mono", Menlo, monospace;
-        --sans: ui-sans-serif, system-ui, -apple-system, sans-serif;
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-red-dim: color-mix(in srgb, var(--color-red) 15%, transparent);
+        --color-blue: #6eb5ff;
+        --color-blue-dim: color-mix(in srgb, var(--color-blue) 12%, transparent);
+        --color-yellow: #f4d35e;
+        --color-yellow-dim: color-mix(in srgb, var(--color-yellow) 12%, transparent);
+        --color-amber: #ffb347;
+        --color-amber-dim: color-mix(in srgb, var(--color-amber) 12%, transparent);
+        --color-green: #6ee7a7;
+        --color-green-dim: color-mix(in srgb, var(--color-green) 12%, transparent);
+        --color-purple: #c4a7e7;
+        --color-purple-dim: color-mix(in srgb, var(--color-purple) 12%, transparent);
+        --color-hairline: rgba(244, 244, 240, 0.1);
+        --color-hairline-strong: rgba(244, 244, 240, 0.22);
+
+        --font-sans:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
       }
+
       * {
         box-sizing: border-box;
         margin: 0;
         padding: 0;
       }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
       body {
-        background: var(--bg);
-        color: var(--bone);
-        font-family: var(--sans);
+        background: var(--color-graphite);
+        color: var(--color-bone);
+        font-family: var(--font-sans);
+        font-size: 15px;
         line-height: 1.6;
         -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
-      header {
-        padding: 32px 40px 20px;
-        border-bottom: 1px solid var(--hairline);
-      }
-      header h1 {
-        font-size: 24px;
+
+      /* --- Top bar --- */
+      .top-bar {
+        background: var(--color-bone);
+        color: var(--color-graphite);
+        padding: 0.55rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
         font-weight: 700;
-        letter-spacing: -0.3px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 100;
       }
-      header p {
-        color: var(--muted);
-        font-size: 14px;
-        margin-top: 6px;
-        max-width: 720px;
+
+      /* --- Layout --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
       }
-      .tabs {
+      .sidebar {
+        width: 200px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 3rem;
+        align-self: flex-start;
+        height: calc(100vh - 4rem);
+        overflow-y: auto;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--color-amber);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--color-hairline-strong);
+      }
+      .sidebar a {
+        font-size: 0.82rem;
+        color: rgba(244, 244, 240, 0.6);
+        text-decoration: none;
+        padding: 0.4rem 0.7rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--color-amber);
+        border-left-color: var(--color-amber);
+        background: var(--color-amber-dim);
+      }
+
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Typography --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-sans);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 3rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--color-hairline-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.76rem;
+        color: var(--color-amber);
+        font-weight: 700;
+      }
+      h3 {
+        font-size: 1.05rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.95rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.85em;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1rem;
+        border-bottom: 2px solid var(--color-hairline-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--color-graphite);
+        background: var(--color-amber);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: rgba(244, 244, 240, 0.65);
+        max-width: 68ch;
+        margin: 0;
+      }
+
+      /* --- Stat row --- */
+      .stats {
         display: flex;
         gap: 0;
-        padding: 0 40px;
-        border-bottom: 1px solid var(--hairline);
-      }
-      .tab {
-        background: none;
-        border: none;
-        color: var(--muted);
-        font-family: var(--sans);
-        font-size: 14px;
-        font-weight: 600;
-        padding: 14px 24px;
-        cursor: pointer;
-        border-bottom: 2px solid transparent;
-        transition: all 0.15s;
-      }
-      .tab:hover {
-        color: var(--bone);
-      }
-      .tab.active {
-        color: var(--bone);
-        border-bottom-color: var(--orange);
-      }
-      .diagram-panel {
-        display: none;
-        padding: 24px 40px 60px;
-      }
-      .diagram-panel.active {
-        display: block;
-      }
-      .diagram-wrapper {
-        background: var(--surface);
-        border: 1px solid var(--hairline);
-        border-radius: 4px;
-        overflow: hidden;
-        position: relative;
-      }
-      .diagram-scroll {
-        overflow: auto;
-        max-height: calc(100vh - 240px);
-        padding: 20px;
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-      }
-      .diagram-scroll svg {
-        max-width: none;
-        height: auto;
-      }
-      .zoom-controls {
-        position: absolute;
-        bottom: 16px;
-        right: 16px;
-        display: flex;
-        gap: 4px;
-        background: var(--surface-2);
-        border: 1px solid var(--hairline);
-        border-radius: 4px;
-        padding: 4px;
-        z-index: 10;
-      }
-      .zoom-controls button {
-        background: none;
-        border: none;
-        color: var(--bone);
-        font-family: var(--sans);
-        font-size: 16px;
-        width: 32px;
-        height: 32px;
-        cursor: pointer;
-        border-radius: 2px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .zoom-controls button:hover {
-        background: var(--hairline);
-      }
-      .zoom-level {
-        color: var(--muted);
-        font-size: 12px;
-        font-family: var(--mono);
-        display: flex;
-        align-items: center;
-        padding: 0 8px;
-        min-width: 48px;
-        justify-content: center;
-      }
-      .legend {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 16px;
-        padding: 12px 20px;
-        border-bottom: 1px solid var(--hairline);
-        background: var(--surface-2);
-        font-size: 12px;
-        color: var(--muted);
-      }
-      .legend-item {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-      .legend-swatch {
-        width: 16px;
-        height: 16px;
-        border-radius: 3px;
-        flex-shrink: 0;
-      }
-      .legend-line {
-        width: 24px;
-        height: 2px;
-        flex-shrink: 0;
-      }
-      .callouts {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 16px;
-        margin-bottom: 24px;
-      }
-      .callout {
-        background: var(--surface);
-        border: 1px solid var(--hairline);
-        border-radius: 4px;
-        padding: 16px 20px;
-      }
-      .callout h3 {
-        font-size: 13px;
-        font-weight: 700;
-        margin-bottom: 6px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      .callout p {
-        font-size: 13px;
-        color: var(--muted);
-        line-height: 1.5;
-      }
-      .callout .tag {
-        display: inline-block;
-        font-size: 10px;
-        font-family: var(--mono);
-        font-weight: 700;
-        padding: 2px 6px;
-        border-radius: 2px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-      .tag-red {
-        background: rgba(255, 107, 107, 0.15);
-        color: var(--red);
-      }
-      .tag-green {
-        background: rgba(110, 231, 167, 0.15);
-        color: var(--green);
-      }
-      .tag-yellow {
-        background: rgba(244, 211, 94, 0.15);
-        color: var(--yellow);
-      }
-      .summary-stats {
-        display: flex;
-        gap: 32px;
-        margin-bottom: 24px;
-        flex-wrap: wrap;
+        margin: 1.5rem 0;
+        border: 1px solid var(--color-hairline-strong);
       }
       .stat {
-        text-align: left;
+        flex: 1;
+        padding: 1.1rem 1.3rem;
+        border-right: 1px solid var(--color-hairline);
+      }
+      .stat:last-child {
+        border-right: none;
       }
       .stat .num {
-        font-family: var(--mono);
-        font-size: 32px;
-        font-weight: 700;
+        font-family: var(--font-mono);
+        font-size: 2rem;
+        font-weight: 800;
         line-height: 1;
       }
       .stat .label {
-        font-size: 12px;
-        color: var(--muted);
-        margin-top: 4px;
+        font-size: 0.78rem;
+        color: rgba(244, 244, 240, 0.5);
+        margin-top: 0.4rem;
+      }
+
+      /* --- Cards --- */
+      .card {
+        background: var(--color-graphite-2);
+        border: 1px solid var(--color-hairline);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--color-hairline-strong);
+      }
+      .card-problem {
+        border-left-color: var(--color-red);
+        background: var(--color-red-dim);
+      }
+      .card-solution {
+        border-left-color: var(--color-green);
+        background: var(--color-green-dim);
+      }
+      .card-warning {
+        border-left-color: var(--color-yellow);
+        background: var(--color-yellow-dim);
+      }
+      .card-insight {
+        border-left-color: var(--color-amber);
+        background: var(--color-amber-dim);
+      }
+      .card p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Tables --- */
+      .tbl {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.86rem;
+        margin-bottom: 1rem;
+      }
+      .tbl th {
+        text-align: left;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: rgba(244, 244, 240, 0.5);
+        padding: 0.6rem 0.8rem;
+        border-bottom: 2px solid var(--color-hairline-strong);
+      }
+      .tbl td {
+        padding: 0.5rem 0.8rem;
+        border-bottom: 1px solid var(--color-hairline);
+      }
+      .tbl tr:hover td {
+        background: rgba(244, 244, 240, 0.03);
+      }
+      .tbl code {
+        font-size: 0.82rem;
+      }
+
+      /* --- Severity badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.15rem 0.45rem;
+        border-radius: 0;
+      }
+      .badge-red {
+        background: var(--color-red-dim);
+        color: var(--color-red);
+      }
+      .badge-green {
+        background: var(--color-green-dim);
+        color: var(--color-green);
+      }
+      .badge-yellow {
+        background: var(--color-yellow-dim);
+        color: var(--color-yellow);
+      }
+      .badge-blue {
+        background: var(--color-blue-dim);
+        color: var(--color-blue);
+      }
+      .badge-amber {
+        background: var(--color-amber-dim);
+        color: var(--color-amber);
+      }
+      .badge-purple {
+        background: var(--color-purple-dim);
+        color: var(--color-purple);
+      }
+
+      /* --- Module chips --- */
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-family: var(--font-mono);
+        font-size: 0.76rem;
+        font-weight: 600;
+        padding: 0.25rem 0.55rem;
+        border: 1px solid var(--color-hairline-strong);
+        background: var(--color-graphite-2);
+        white-space: nowrap;
+      }
+      .chip-red {
+        border-color: var(--color-red);
+        color: var(--color-red);
+      }
+      .chip-green {
+        border-color: var(--color-green);
+        color: var(--color-green);
+      }
+      .chip-blue {
+        border-color: var(--color-blue);
+        color: var(--color-blue);
+      }
+      .chip-amber {
+        border-color: var(--color-amber);
+        color: var(--color-amber);
+      }
+      .chip-purple {
+        border-color: var(--color-purple);
+        color: var(--color-purple);
+      }
+      .chip-muted {
+        color: rgba(244, 244, 240, 0.5);
+      }
+
+      /* =========================================================
+   CUSTOM DIAGRAM STYLES
+   ========================================================= */
+
+      /* --- God Module diagram (3 concerns) --- */
+      .god-module {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 0;
+        border: 2px solid var(--color-red);
+        margin: 1.5rem 0;
+      }
+      .god-concern {
+        padding: 1rem 1.2rem;
+        border-right: 1px solid var(--color-hairline);
+        position: relative;
+      }
+      .god-concern:last-child {
+        border-right: none;
+      }
+      .god-concern h4 {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 0.6rem;
+      }
+      .god-concern ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .god-concern li {
+        font-family: var(--font-mono);
+        font-size: 0.76rem;
+        padding: 0.12rem 0;
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .god-concern.domain {
+        background: color-mix(in srgb, var(--color-blue) 8%, var(--color-graphite-2));
+      }
+      .god-concern.domain h4 {
+        color: var(--color-blue);
+      }
+      .god-concern.errors {
+        background: color-mix(in srgb, var(--color-red) 8%, var(--color-graphite-2));
+      }
+      .god-concern.errors h4 {
+        color: var(--color-red);
+      }
+      .god-concern.infra {
+        background: color-mix(in srgb, var(--color-amber) 8%, var(--color-graphite-2));
+      }
+      .god-concern.infra h4 {
+        color: var(--color-amber);
+      }
+      .god-label {
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--color-graphite);
+        padding: 0 0.6rem;
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--color-red);
+      }
+
+      /* --- Who-needs-what matrix --- */
+      .matrix {
+        display: grid;
+        grid-template-columns: 130px 1fr 1fr 1fr;
+        gap: 1px;
+        background: var(--color-hairline);
+        border: 1px solid var(--color-hairline-strong);
+        margin: 1rem 0;
+      }
+      .matrix-head {
+        background: var(--color-graphite-3);
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: rgba(244, 244, 240, 0.5);
+        padding: 0.6rem 0.8rem;
+      }
+      .matrix-cell {
+        background: var(--color-graphite-2);
+        padding: 0.5rem 0.8rem;
+        font-size: 0.82rem;
+        display: flex;
+        align-items: center;
+      }
+      .matrix-cell.dim {
+        color: rgba(244, 244, 240, 0.35);
+      }
+      .matrix-cell code {
+        font-size: 0.78rem;
+      }
+      .cell-yes {
+        color: var(--color-green);
+      }
+      .cell-no {
+        color: rgba(244, 244, 240, 0.25);
+      }
+      .cell-partial {
+        color: var(--color-yellow);
+      }
+
+      /* --- Error flow diagrams --- */
+      .flow-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin: 1.5rem 0;
+      }
+      .flow-box {
+        border: 1px solid var(--color-hairline-strong);
+        padding: 1.2rem;
+      }
+      .flow-box.before {
+        border-color: var(--color-red);
+      }
+      .flow-box.after {
+        border-color: var(--color-green);
+      }
+      .flow-title {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 1rem;
+      }
+      .flow-title.before {
+        color: var(--color-red);
+      }
+      .flow-title.after {
+        color: var(--color-green);
+      }
+
+      .flow-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        margin: 0.5rem 0;
+      }
+      .flow-modules {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        justify-content: center;
+        align-items: center;
+        max-width: 200px;
+      }
+      .flow-arrow {
+        font-family: var(--font-mono);
+        font-size: 1.1rem;
+        color: rgba(244, 244, 240, 0.3);
+        flex-shrink: 0;
+      }
+      .flow-arrow.red {
+        color: var(--color-red);
+      }
+      .flow-arrow.green {
+        color: var(--color-green);
+      }
+      .flow-hub {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 0.5rem 0.8rem;
+        border: 1px solid;
+        text-align: center;
+      }
+      .flow-hub.god {
+        border-color: var(--color-red);
+        color: var(--color-red);
+        background: var(--color-red-dim);
+      }
+      .flow-hub.direct {
+        border-color: var(--color-green);
+        color: var(--color-green);
+        background: var(--color-green-dim);
+      }
+      .flow-hub.ext {
+        border-color: var(--color-yellow);
+        color: var(--color-yellow);
+        background: var(--color-yellow-dim);
+      }
+      .flow-caption {
+        text-align: center;
+        font-size: 0.78rem;
+        color: rgba(244, 244, 240, 0.4);
+        margin-top: 0.8rem;
+      }
+
+      /* --- Layer stack --- */
+      .layer-stack {
+        margin: 1.5rem 0;
+      }
+      .layer-row {
+        display: flex;
+        align-items: stretch;
+        margin-bottom: 2px;
+      }
+      .layer-label {
+        width: 90px;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 0.6rem 0.8rem;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        border-right: 2px solid var(--color-hairline-strong);
+      }
+      .layer-label .num {
+        font-size: 1.1rem;
+        color: var(--color-amber);
+      }
+      .layer-label .desc {
+        font-size: 0.62rem;
+        color: rgba(244, 244, 240, 0.4);
+        text-transform: none;
+        letter-spacing: 0;
+        margin-top: 0.15rem;
+      }
+      .layer-modules {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        padding: 0.6rem 0.8rem;
+        align-items: center;
+        flex: 1;
+      }
+      .layer-row.violation .layer-label {
+        border-right-color: var(--color-red);
+      }
+      .layer-row.violation .layer-label .num {
+        color: var(--color-red);
+      }
+
+      /* --- Tier diagram --- */
+      .tier-stack {
+        margin: 1.5rem 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .tier {
+        padding: 1.2rem 1.5rem;
+        border: 1px solid var(--color-hairline-strong);
+        border-bottom: none;
+        position: relative;
+      }
+      .tier:last-child {
+        border-bottom: 1px solid var(--color-hairline-strong);
+      }
+      .tier-label {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-bottom: 0.3rem;
+      }
+      .tier-desc {
+        font-size: 0.82rem;
+        color: rgba(244, 244, 240, 0.5);
+        margin-bottom: 0.8rem;
+      }
+      .tier-modules {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+      }
+
+      .tier-domain {
+        background: color-mix(in srgb, var(--color-green) 6%, var(--color-graphite-2));
+        border-left: 4px solid var(--color-green);
+      }
+      .tier-domain .tier-label {
+        color: var(--color-green);
+      }
+      .tier-infra {
+        background: color-mix(in srgb, var(--color-blue) 6%, var(--color-graphite-2));
+        border-left: 4px solid var(--color-blue);
+      }
+      .tier-infra .tier-label {
+        color: var(--color-blue);
+      }
+      .tier-ops {
+        background: color-mix(in srgb, var(--color-amber) 6%, var(--color-graphite-2));
+        border-left: 4px solid var(--color-amber);
+      }
+      .tier-ops .tier-label {
+        color: var(--color-amber);
+      }
+      .tier-comp {
+        background: color-mix(in srgb, var(--color-purple) 6%, var(--color-graphite-2));
+        border-left: 4px solid var(--color-purple);
+      }
+      .tier-comp .tier-label {
+        color: var(--color-purple);
+      }
+
+      /* --- Nested domain detail --- */
+      .domain-detail {
+        border: 1px solid var(--color-green);
+        padding: 1.2rem;
+        margin: 1rem 0;
+      }
+      .domain-sub {
+        margin-bottom: 0.8rem;
+      }
+      .domain-sub:last-child {
+        margin-bottom: 0;
+      }
+      .domain-sub-label {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--color-green);
+        margin-bottom: 0.4rem;
+      }
+      .domain-sub-modules {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+      }
+
+      /* --- Code blocks --- */
+      .code-block {
+        background: var(--color-graphite-3);
+        border: 1px solid var(--color-hairline);
+        padding: 0.9rem 1.1rem;
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        line-height: 1.5;
+        overflow-x: auto;
+        margin: 0.8rem 0;
+      }
+      .code-block .kw {
+        color: var(--color-purple);
+      }
+      .code-block .fn {
+        color: var(--color-blue);
+      }
+      .code-block .str {
+        color: var(--color-green);
+      }
+      .code-block .cmt {
+        color: rgba(244, 244, 240, 0.35);
+      }
+      .code-block .red {
+        color: var(--color-red);
+      }
+      .code-block .green {
+        color: var(--color-green);
+      }
+
+      /* --- Migration phases --- */
+      .phases {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        margin: 1.5rem 0;
+      }
+      .phase {
+        display: grid;
+        grid-template-columns: 50px 1fr 120px;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--color-hairline);
+        align-items: start;
+      }
+      .phase:last-child {
+        border-bottom: none;
+      }
+      .phase-num {
+        font-family: var(--font-mono);
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: rgba(244, 244, 240, 0.2);
+      }
+      .phase-body h4 {
+        margin-bottom: 0.2rem;
+      }
+      .phase-body p {
+        font-size: 0.85rem;
+        color: rgba(244, 244, 240, 0.6);
+        margin-bottom: 0;
+      }
+      .phase-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+        align-items: flex-end;
+      }
+
+      /* --- Don't change list --- */
+      .keep-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.8rem;
+        margin: 1rem 0;
+      }
+      .keep-item {
+        background: var(--color-graphite-2);
+        border: 1px solid var(--color-hairline);
+        border-left: 3px solid var(--color-green);
+        padding: 0.8rem 1rem;
+      }
+      .keep-item h4 {
+        font-size: 0.85rem;
+        margin-bottom: 0.2rem;
+      }
+      .keep-item p {
+        font-size: 0.8rem;
+        color: rgba(244, 244, 240, 0.55);
+        margin: 0;
+      }
+
+      /* --- Verdict --- */
+      .verdict {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        border: 1px solid var(--color-hairline-strong);
+        margin: 1rem 0;
+      }
+      .verdict-col {
+        padding: 1.2rem;
+      }
+      .verdict-for {
+        border-right: 1px solid var(--color-hairline);
+      }
+      .verdict-for h4 {
+        color: var(--color-green);
+      }
+      .verdict-against h4 {
+        color: var(--color-red);
+      }
+      .verdict-col h4 {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 0.8rem;
+      }
+      .verdict-col ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .verdict-col li {
+        font-size: 0.84rem;
+        padding: 0.3rem 0;
+        border-bottom: 1px solid var(--color-hairline);
+      }
+      .verdict-col li:last-child {
+        border-bottom: none;
+      }
+
+      /* Responsive */
+      @media (max-width: 900px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .sidebar {
+          position: static;
+          width: 100%;
+          height: auto;
+        }
+        .flow-container,
+        .keep-list,
+        .verdict {
+          grid-template-columns: 1fr;
+        }
+        .verdict-for {
+          border-right: none;
+          border-bottom: 1px solid var(--color-hairline);
+        }
+        .god-module {
+          grid-template-columns: 1fr;
+        }
+        .matrix {
+          grid-template-columns: 1fr;
+        }
+        .stats {
+          flex-direction: column;
+        }
+        .stat {
+          border-right: none;
+          border-bottom: 1px solid var(--color-hairline);
+        }
       }
     </style>
   </head>
   <body>
-    <header>
-      <h1>go-cqrs-lite — Architecture Layers</h1>
-      <p>
-        Honest audit of the current 7-layer system and the proposed four-tier target. The core
-        problem: <code style="color: var(--red)">event/</code> is a god module conflating domain
-        model, error taxonomy, and infrastructure contracts — creating artificial coupling across
-        30+ modules.
-      </p>
-    </header>
-
-    <div class="tabs">
-      <button class="tab active" onclick="showTab('current')">
-        🔴 Current State — 7 Broken Layers
-      </button>
-      <button class="tab" onclick="showTab('target')">✅ Target State — 4 Clean Tiers</button>
-      <button class="tab" onclick="showTab('comparison')">
-        📊 Error Taxonomy: Before vs After
-      </button>
+    <div class="top-bar">
+      <span>go-cqrs-lite — Architecture Layers Reconsidered</span>
+      <span>2026-07-06</span>
     </div>
 
-    <!-- ==================== TAB 1: CURRENT ==================== -->
-    <div id="tab-current" class="diagram-panel active">
-      <div class="callouts">
-        <div class="callout">
-          <h3><span class="tag tag-red">PROBLEM 1</span> kv/ is NOT Layer 0</h3>
-          <p>
-            <code>kv/</code> depends on <code>codec/</code> (TypedStore serialization) and
-            <code>otter</code> (Cache). It's actually Layer 1.
-          </p>
-        </div>
-        <div class="callout">
-          <h3><span class="tag tag-red">PROBLEM 2</span> event/ is a god module</h3>
-          <p>
-            Conflates 3 concerns: domain model, error taxonomy (1:1 re-export of go-error-family),
-            and infrastructure contracts (Store/Bus interfaces).
-          </p>
-        </div>
-        <div class="callout">
-          <h3><span class="tag tag-red">PROBLEM 3</span> Error taxonomy trap</h3>
-          <p>
-            ~129 files across 30+ modules import <code>event/</code> ONLY for error classification.
-            They pull in the entire event domain model as baggage.
-          </p>
-        </div>
-      </div>
+    <div class="layout">
+      <!-- ============ SIDEBAR ============ -->
+      <aside class="sidebar">
+        <nav>
+          <div class="label">Sections</div>
+          <a href="#hero">Overview</a>
+          <a href="#god-module">The God Module</a>
+          <a href="#who-needs-what">Who Needs What</a>
+          <a href="#error-trap">Error Taxonomy Trap</a>
+          <a href="#coupling">Cmd/Query Coupling</a>
+          <a href="#violations">Layer Violations</a>
+          <a href="#target">Target: 4 Tiers</a>
+          <a href="#domain-detail">Domain Detail</a>
+          <a href="#migration">Migration Path</a>
+          <a href="#keep">What NOT to Change</a>
+          <a href="#verdict">The Verdict</a>
+        </nav>
+      </aside>
 
-      <div class="legend">
-        <div class="legend-item">
-          <div class="legend-swatch" style="background: #ff6b6b"></div>
-          God module / violation
-        </div>
-        <div class="legend-item">
-          <div class="legend-swatch" style="background: #2e7d32"></div>
-          True leaf module
-        </div>
-        <div class="legend-item">
-          <div class="legend-swatch" style="background: #6eb5ff"></div>
-          Normal module
-        </div>
-        <div class="legend-item">
-          <svg width="24" height="8">
-            <line
-              x1="0"
-              y1="4"
-              x2="24"
-              y2="4"
-              stroke="#ff6b6b"
-              stroke-width="2"
-              stroke-dasharray="4 3"
-            />
-          </svg>
-          Artificial coupling (errors only)
-        </div>
-        <div class="legend-item">
-          <svg width="24" height="8">
-            <line x1="0" y1="4" x2="24" y2="4" stroke="#6ee7a7" stroke-width="2" />
-          </svg>
-          Legitimate domain dep
-        </div>
-      </div>
+      <!-- ============ MAIN ============ -->
+      <div class="main">
+        <!-- ─────────── HERO ─────────── -->
+        <section id="hero">
+          <div class="hero">
+            <div class="hero-badge">Analysis — No Execution Without Review</div>
+            <h1>Architecture Layers Reconsidered</h1>
+            <p class="hero-subtitle">
+              A first-principles audit of <code>go-cqrs-lite</code>'s module dependency
+              architecture. The trigger: <strong>"Why is <code>kv/</code> Layer 0?"</strong> — the
+              question that exposed a broken layering system built on a god module conflating three
+              distinct architectural concerns.
+            </p>
+          </div>
 
-      <div class="diagram-wrapper">
-        <div class="diagram-scroll" id="scroll-current">
-          <pre class="mermaid">
-flowchart TB
-    classDef leaf fill:#1b3a2a,stroke:#2e7d32,color:#e0f0e0
-    classDef normal fill:#1a2744,stroke:#6eb5ff,color:#e0eaff
-    classDef god fill:#3a1515,stroke:#ff6b6b,color:#ffe0e0,stroke-width:2px
-    classDef viol fill:#3a2a00,stroke:#ffb347,color:#fff3d0
-    classDef ext fill:#3a3514,stroke:#f4d35e,color:#fffde0
-    classDef layerTitle fill:none,stroke:none,color:rgba(244,244,240,0.3),font-size:11px
-
-    subgraph L0["Layer 0 — DOCUMENTED leaf modules"]
-        direction LR
-        id1["id/"]:::leaf
-        codec1["codec/"]:::leaf
-        kv1["kv/"]:::viol
-    end
-
-    subgraph L1["Layer 1 — Message Types"]
-        direction LR
-        event1["🔴 event/\nGOD MODULE"]:::god
-        cmd1["command/"]:::normal
-        q1["query/"]:::normal
-    end
-
-    subgraph L2["Layer 2"]
-        direction LR
-        schema1["schema/"]:::normal
-        snap1["snapshot/"]:::normal
-        proj1["projection/"]:::normal
-        idem1["idempotency/"]:::normal
-        deriv1["deriver/"]:::normal
-    end
-
-    subgraph L3["Layer 3"]
-        direction LR
-        dec1["decider/"]:::normal
-        graph1["graph/"]:::normal
-        ph1["projectionhost/"]:::normal
-    end
-
-    subgraph L45["Layers 4–5 — Infrastructure + Operations"]
-        direction LR
-        stor1["storage/"]:::normal
-        mw1["middleware/"]:::normal
-        sign1["signing/"]:::normal
-        wm1["watermill/"]:::normal
-        trans1["transport/"]:::normal
-        enc1["encryption/"]:::normal
-        otel1["otel/"]:::leaf
-    end
-
-    subgraph L67["Layers 6–7 — Composition"]
-        direction LR
-        stk1["stack/"]:::normal
-        cat1["catalog/"]:::normal
-        ex1["example/"]:::normal
-    end
-
-    ef1["go-error-family (external)"]:::ext
-
-    %% The re-export: event/ is the bottleneck
-    event1 -->|"re-exports 1:1"| ef1
-
-    %% Layering violation
-    kv1 -->|"depends on"| codec1
-
-    %% Legitimate domain edges
-    event1 --> id1
-    event1 --> codec1
-    cmd1 -->|"AggregateRef"| event1
-    dec1 --> event1
-    dec1 --> snap1
-
-    %% Error taxonomy trap — 30+ modules route through event/ for errors
-    q1 -.->|"errors only"| event1
-    idem1 -.->|"errors only"| event1
-    schema1 -.->|"errors"| event1
-    mw1 -.->|"errors"| event1
-    stor1 -.->|"errors"| event1
-    sign1 -.->|"errors"| event1
-    enc1 -.->|"errors"| event1
-    wm1 -.->|"errors"| event1
-    trans1 -.->|"errors"| event1
-    ph1 -.->|"errors"| event1
-    graph1 -.->|"errors"| event1
-    deriv1 -.->|"errors"| event1
-    stk1 -.->|"errors"| event1
-      </pre
-          >
-        </div>
-        <div class="zoom-controls">
-          <button onclick="zoom('current', -0.15)">−</button>
-          <span class="zoom-level" id="zoom-current">100%</span>
-          <button onclick="zoom('current', 0.15)">+</button>
-          <button onclick="resetZoom('current')">⟲</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== TAB 2: TARGET ==================== -->
-    <div id="tab-target" class="diagram-panel">
-      <div class="callouts">
-        <div class="callout">
-          <h3><span class="tag tag-green">FIX 1</span> Direct error imports</h3>
-          <p>
-            Every module imports <code>go-error-family</code> directly.
-            <code>event/errors.go</code> deleted. Zero coupling for error classification.
-          </p>
-        </div>
-        <div class="callout">
-          <h3><span class="tag tag-green">FIX 2</span> kv/ becomes true Layer 0</h3>
-          <p>
-            Split <code>kv/</code> into raw (Store, Reader, Writer) and
-            <code>kv/typed/</code> (TypedStore, Cache). Raw has zero internal deps.
-          </p>
-        </div>
-        <div class="callout">
-          <h3><span class="tag tag-green">FIX 3</span> query/ fully independent</h3>
-          <p>
-            With error taxonomy extracted, <code>query/</code> has <strong>zero</strong> dependency
-            on <code>event/</code>. Pure CQRS separation validated.
-          </p>
-        </div>
-      </div>
-
-      <div class="legend">
-        <div class="legend-item">
-          <div class="legend-swatch" style="background: #1b3a2a; border: 1px solid #2e7d32"></div>
-          Domain tier
-        </div>
-        <div class="legend-item">
-          <div class="legend-swatch" style="background: #1a2744; border: 1px solid #6eb5ff"></div>
-          Infrastructure
-        </div>
-        <div class="legend-item">
-          <div class="legend-swatch" style="background: #3a2a00; border: 1px solid #ffb347"></div>
-          Operations
-        </div>
-        <div class="legend-item">
-          <div class="legend-swatch" style="background: #2a1a3a; border: 1px solid #c4a7e7"></div>
-          Composition
-        </div>
-        <div class="legend-item">
-          <svg width="24" height="8">
-            <line x1="0" y1="4" x2="24" y2="4" stroke="#6ee7a7" stroke-width="2" />
-          </svg>
-          Direct error import
-        </div>
-      </div>
-
-      <div class="diagram-wrapper">
-        <div class="diagram-scroll" id="scroll-target">
-          <pre class="mermaid">
-flowchart TB
-    classDef dom fill:#1b3a2a,stroke:#2e7d32,color:#e0f0e0
-    classDef infra fill:#1a2744,stroke:#6eb5ff,color:#e0eaff
-    classDef ops fill:#3a2a00,stroke:#ffb347,color:#fff3d0
-    classDef comp fill:#2a1a3a,stroke:#c4a7e7,color:#f0e5ff
-    classDef ext fill:#3a3514,stroke:#f4d35e,color:#fffde0
-    classDef tierLabel fill:none,stroke:none,color:rgba(244,244,240,0.3),font-size:11px
-
-    subgraph DOM["DOMAIN TIER — Pure domain model + contracts"]
-        direction TB
-        subgraph PRIM["Primitives — zero internal deps"]
-            direction LR
-            id2["id/"]:::dom
-            codec2["codec/"]:::dom
-            kvraw["kv/ raw\nTRUE Layer 0"]:::dom
-        end
-        subgraph MSG["Message Types"]
-            direction LR
-            event2["event/ slimmed\n(domain + interfaces)"]:::dom
-            cmd2["command/"]:::dom
-            q2["query/\nNO event/ dep!"]:::dom
-        end
-        subgraph LOGIC["Domain Logic"]
-            direction LR
-            dec2["decider/"]:::dom
-            deriv2["deriver/"]:::dom
-            proj2["projection/"]:::dom
-            sch2["schema/"]:::dom
-            snap2["snapshot/"]:::dom
-            disp2["dispatcher/"]:::dom
-        end
-    end
-
-    subgraph INFRA["INFRASTRUCTURE TIER — Backend implementations"]
-        direction LR
-        stor2["storage/"]:::infra
-        storpeb["storage/pebble/"]:::infra
-        stortur["storage/turso/"]:::infra
-        stormem["storage/memory/"]:::infra
-        trans2["transport/"]:::infra
-        wm2["watermill/"]:::infra
-    end
-
-    subgraph OPS["OPERATIONS TIER — Cross-cutting concerns"]
-        direction LR
-        mw2["middleware/\n+ idempotency/"]:::ops
-        sign2["signing/"]:::ops
-        enc2["encryption/"]:::ops
-        ph2["projectionhost/"]:::ops
-        otel2["otel/"]:::ops
-        prom2["prometheus/"]:::ops
-    end
-
-    subgraph COMP["COMPOSITION TIER — Wire everything together"]
-        direction LR
-        stk2["stack/"]:::comp
-        cat2["catalog/"]:::comp
-        scen2["scenario/"]:::comp
-        ex2["example/"]:::comp
-    end
-
-    ef2["go-error-family\n(imported DIRECTLY by all)"]:::ext
-
-    %% Direct error imports — no more event/ bottleneck
-    id2 ==>|direct| ef2
-    codec2 ==>|direct| ef2
-    kvraw ==>|direct| ef2
-    event2 ==>|direct| ef2
-    cmd2 ==>|direct| ef2
-    q2 ==>|direct| ef2
-    dec2 ==>|direct| ef2
-    mw2 ==>|direct| ef2
-    sign2 ==>|direct| ef2
-    stor2 ==>|direct| ef2
-
-    %% Clean domain edges (no error baggage)
-    event2 --> id2
-    event2 --> codec2
-    cmd2 --> event2
-    q2 --> disp2
-    dec2 --> event2
-    dec2 --> snap2
-    sch2 --> event2
-    snap2 --> event2
-    deriv2 --> cmd2
-
-    %% Cross-tier (upward only)
-    stor2 --> event2
-    storpeb --> stor2
-    stortur --> stor2
-    wm2 --> event2
-    trans2 --> event2
-    mw2 --> cmd2
-    mw2 --> event2
-    sign2 --> event2
-    ph2 --> proj2
-    stk2 --> stor2
-    stk2 --> dec2
-    stk2 --> mw2
-    cat2 --> event2
-    ex2 --> stk2
-      </pre
-          >
-        </div>
-        <div class="zoom-controls">
-          <button onclick="zoom('target', -0.15)">−</button>
-          <span class="zoom-level" id="zoom-target">100%</span>
-          <button onclick="zoom('target', 0.15)">+</button>
-          <button onclick="resetZoom('target')">⟲</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== TAB 3: COMPARISON ==================== -->
-    <div id="tab-comparison" class="diagram-panel">
-      <div class="summary-stats">
-        <div class="stat">
-          <div class="num" style="color: var(--red)">129</div>
-          <div class="label">files using event.* error re-exports</div>
-        </div>
-        <div class="stat">
-          <div class="num" style="color: var(--red)">30+</div>
-          <div class="label">modules with artificial event/ coupling</div>
-        </div>
-        <div class="stat">
-          <div class="num" style="color: var(--green)">0</div>
-          <div class="label">new modules needed (just import go-error-family)</div>
-        </div>
-        <div class="stat">
-          <div class="num" style="color: var(--yellow)">~50</div>
-          <div class="label">files to change (mechanical find-replace)</div>
-        </div>
-      </div>
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px">
-        <div>
-          <h3 style="font-size: 14px; color: var(--red); margin-bottom: 12px">
-            BEFORE — Every module routes through event/
-          </h3>
-          <div class="diagram-wrapper">
-            <div class="diagram-scroll" id="scroll-comp-before" style="max-height: 520px">
-              <pre class="mermaid">
-flowchart LR
-    classDef mod fill:#1a2744,stroke:#6eb5ff,color:#e0eaff
-    classDef god fill:#3a1515,stroke:#ff6b6b,color:#ffe0e0,stroke-width:2px
-    classDef ext fill:#3a3514,stroke:#f4d35e,color:#fffde0
-
-    cmd["command/"]:::mod
-    q["query/"]:::mod
-    idem["idempotency/"]:::mod
-    dec["decider/"]:::mod
-    mw["middleware/"]:::mod
-    stor["storage/"]:::mod
-    sign["signing/"]:::mod
-    more["... 25 more\nmodules"]:::mod
-
-    event["event/\nerrors.go"]:::god
-    ef["go-error-family"]:::ext
-
-    cmd -.->|"errors"| event
-    q -.->|"errors"| event
-    idem -.->|"errors"| event
-    dec -.->|"errors"| event
-    mw -.->|"errors"| event
-    stor -.->|"errors"| event
-    sign -.->|"errors"| event
-    more -.->|"errors"| event
-
-    event -->|"re-exports"| ef
-          </pre
-              >
+          <div class="stats">
+            <div class="stat">
+              <div class="num" style="color: var(--color-red)">129</div>
+              <div class="label">files use <code>event.*</code> error re-exports</div>
+            </div>
+            <div class="stat">
+              <div class="num" style="color: var(--color-red)">30+</div>
+              <div class="label">modules artificially coupled to <code>event/</code></div>
+            </div>
+            <div class="stat">
+              <div class="num" style="color: var(--color-green)">8</div>
+              <div class="label">modules already import go-error-family directly</div>
+            </div>
+            <div class="stat">
+              <div class="num" style="color: var(--color-yellow)">~50</div>
+              <div class="label">files to change (mechanical find-replace)</div>
             </div>
           </div>
-        </div>
-        <div>
-          <h3 style="font-size: 14px; color: var(--green); margin-bottom: 12px">
-            AFTER — Direct imports, no bottleneck
-          </h3>
-          <div class="diagram-wrapper">
-            <div class="diagram-scroll" id="scroll-comp-after" style="max-height: 520px">
-              <pre class="mermaid">
-flowchart LR
-    classDef mod fill:#1b3a2a,stroke:#2e7d32,color:#e0f0e0
-    classDef ext fill:#3a3514,stroke:#f4d35e,color:#fffde0
 
-    cmd["command/"]:::mod
-    q["query/"]:::mod
-    idem["idempotency/"]:::mod
-    dec["decider/"]:::mod
-    mw["middleware/"]:::mod
-    stor["storage/"]:::mod
-    sign["signing/"]:::mod
-    more["... 25 more\nmodules"]:::mod
+          <div class="card card-insight">
+            <p>
+              <strong>Root cause:</strong> <code>event/errors.go</code> is a 1:1 re-export of
+              <code>go-error-family</code>. Every module that needs error classification pulls in
+              the entire event domain model + store/bus contracts as baggage. The layer numbering is
+              broken because it conflates <strong>domain model</strong>,
+              <strong>error taxonomy</strong>, and <strong>infrastructure contracts</strong> into a
+              single linear stack.
+            </p>
+          </div>
+        </section>
 
-    event["event/\n(own use only)"]:::mod
-    ef["go-error-family"]:::ext
+        <!-- ─────────── THE GOD MODULE ─────────── -->
+        <section id="god-module">
+          <h2><span class="num">01</span> The Core Problem: One Package, Three Concerns</h2>
 
-    cmd -->|direct| ef
-    q -->|direct| ef
-    idem -->|direct| ef
-    dec -->|direct| ef
-    mw -->|direct| ef
-    stor -->|direct| ef
-    sign -->|direct| ef
-    more -->|direct| ef
-    event -->|direct| ef
-          </pre
-              >
+          <p>
+            <code>event/</code> is not a module — it's
+            <strong>three modules in a trench coat</strong>. It contains domain types, error
+            classification, and infrastructure contracts. Every consumer gets all three whether it
+            needs them or not.
+          </p>
+
+          <div class="god-module">
+            <span class="god-label">event/</span>
+            <div class="god-concern domain">
+              <h4>Domain Model</h4>
+              <ul>
+                <li>ImmutableEvent</li>
+                <li>NewEvent</li>
+                <li>Type, Metadata</li>
+                <li>Causality</li>
+                <li>SchemaVersion</li>
+                <li>Tombstone detection</li>
+                <li>AggregateRef</li>
+              </ul>
+            </div>
+            <div class="god-concern errors">
+              <h4>Error Taxonomy</h4>
+              <ul>
+                <li>NewConflict</li>
+                <li>NewRejection</li>
+                <li>Wrapf</li>
+                <li>Classify</li>
+                <li>Transient</li>
+                <li>Conflict</li>
+              </ul>
+              <p style="margin-top: 0.4rem; font-size: 0.72rem; color: rgba(244, 244, 240, 0.35)">
+                ↑ 1:1 re-export of go-error-family
+              </p>
+            </div>
+            <div class="god-concern infra">
+              <h4>Infrastructure Contracts</h4>
+              <ul>
+                <li>EventSink</li>
+                <li>EventSource</li>
+                <li>Store</li>
+                <li>Journal</li>
+                <li>SeekableJournal</li>
+                <li>Bus, Publisher</li>
+                <li>PublishMiddleware</li>
+              </ul>
             </div>
           </div>
-        </div>
-      </div>
 
-      <div class="callouts" style="margin-top: 24px">
-        <div class="callout">
-          <h3>What happens to event/?</h3>
+          <div class="card card-problem">
+            <p>
+              <strong>The coupling tax:</strong> A module like <code>idempotency/</code> that only
+              needs <code>event.NewConflict()</code> for error classification pulls in the entire
+              event store/bus interface surface. It doesn't use events at all — it just wants to
+              classify a duplicate-key error.
+            </p>
+          </div>
+        </section>
+
+        <!-- ─────────── WHO NEEDS WHAT ─────────── -->
+        <section id="who-needs-what">
+          <h2><span class="num">02</span> Who Needs What</h2>
+
           <p>
-            <code>event/</code> keeps its domain model + interfaces (ImmutableEvent, Store, Bus).
-            Only <code>errors.go</code> is deleted — it was a 1:1 re-export that created the
-            coupling.
+            Only <code>storage/</code> needs all three concerns. Most modules need one or two. But
+            the package boundary forces all-or-nothing.
           </p>
-        </div>
-        <div class="callout">
-          <h3>What about command/ → event/?</h3>
+
+          <div class="matrix">
+            <div class="matrix-head">Consumer</div>
+            <div class="matrix-head">Domain Model?</div>
+            <div class="matrix-head">Error Taxonomy?</div>
+            <div class="matrix-head">Infrastructure?</div>
+
+            <div class="matrix-cell"><code>decider/</code></div>
+            <div class="matrix-cell cell-yes">✅ Yes (Event type)</div>
+            <div class="matrix-cell cell-yes">✅ Yes</div>
+            <div class="matrix-cell cell-yes">✅ Yes (Store)</div>
+
+            <div class="matrix-cell"><code>command/</code></div>
+            <div class="matrix-cell cell-partial">🔶 Partial (AggregateRef)</div>
+            <div class="matrix-cell cell-yes">✅ Yes</div>
+            <div class="matrix-cell dim">❌ No</div>
+
+            <div class="matrix-cell"><code>query/</code></div>
+            <div class="matrix-cell dim">❌ No</div>
+            <div class="matrix-cell cell-yes">✅ Yes</div>
+            <div class="matrix-cell dim">❌ No</div>
+
+            <div class="matrix-cell"><code>idempotency/</code></div>
+            <div class="matrix-cell dim">❌ No</div>
+            <div class="matrix-cell cell-yes">✅ Yes</div>
+            <div class="matrix-cell dim">❌ No</div>
+
+            <div class="matrix-cell"><code>middleware/</code></div>
+            <div class="matrix-cell cell-partial">🔶 Partial (EventTracing)</div>
+            <div class="matrix-cell cell-yes">✅ Yes</div>
+            <div class="matrix-cell dim">❌ No</div>
+
+            <div class="matrix-cell"><code>signing/</code></div>
+            <div class="matrix-cell cell-yes">✅ Yes (payload)</div>
+            <div class="matrix-cell cell-yes">✅ Yes</div>
+            <div class="matrix-cell dim">❌ No</div>
+
+            <div class="matrix-cell"><code>storage/</code></div>
+            <div class="matrix-cell cell-yes">✅ Yes</div>
+            <div class="matrix-cell cell-yes">✅ Yes</div>
+            <div class="matrix-cell cell-yes">✅ Yes (implements Store)</div>
+
+            <div class="matrix-cell"><code>kv/</code></div>
+            <div class="matrix-cell dim">❌ No</div>
+            <div class="matrix-cell" style="color: var(--color-green)">
+              ✅ (direct import already)
+            </div>
+            <div class="matrix-cell dim">❌ No</div>
+          </div>
+
+          <div class="card card-insight">
+            <p>
+              <strong>Key insight:</strong> <code>kv/</code> already bypasses the re-export and
+              imports <code>go-error-family</code> directly. So do <code>id/</code>,
+              <code>codec/</code>, <code>encryption/</code>, <code>dispatcher/</code>, and
+              <code>catalog/</code>. <strong>8 modules prove the pattern works.</strong> The
+              remaining 30+ are stuck on the re-export purely by historical inertia.
+            </p>
+          </div>
+        </section>
+
+        <!-- ─────────── ERROR TAXONOMY TRAP ─────────── -->
+        <section id="error-trap">
+          <h2><span class="num">03</span> The Error Taxonomy Trap</h2>
+
           <p>
-            Stays! <code>command/</code> needs <code>event/</code> for
-            <code>AggregateRef</code> (shared domain type). Only the error-classification calls
-            change from <code>event.NewRejection()</code> to
-            <code>errorfamily.NewRejection()</code>.
+            <code>event/errors.go</code> is a <strong>1:1 re-export</strong> of
+            <code>go-error-family</code> — identical function signatures, zero added logic. This
+            creates an artificial bottleneck:
           </p>
-        </div>
-        <div class="callout">
-          <h3>Why not a CQRS-specific errors/ module?</h3>
+
+          <div class="code-block">
+            <span class="cmt">// event/errors.go // what go-error-family provides</span><br />
+            <span class="kw">func</span> <span class="red">NewConflict</span>(code, msg
+            <span class="kw">string</span>) *Error {
+            <span class="kw">return</span> errorfamily.<span class="green">NewConflict</span>(code,
+            msg) }<br />
+            <span class="kw">func</span> <span class="red">NewRejection</span>(code, msg
+            <span class="kw">string</span>) *Error {
+            <span class="kw">return</span> errorfamily.<span class="green">NewRejection</span>(code,
+            msg) }<br />
+            <span class="kw">func</span> <span class="red">Wrapf</span>(err
+            <span class="kw">error</span>, f Family, ...) *Error {
+            <span class="kw">return</span> errorfamily.<span class="green">Wrapf</span>(err, f, ...)
+            }<br />
+            <span class="kw">func</span> <span class="red">Classify</span>(err
+            <span class="kw">error</span>) Family { <span class="kw">return</span> errorfamily.<span
+              class="green"
+              >Classify</span
+            >(err) }
+          </div>
+
+          <div class="flow-container">
+            <div class="flow-box before">
+              <div class="flow-title before">⚠ BEFORE — Bottleneck through event/</div>
+              <div class="flow-row">
+                <div class="flow-modules">
+                  <span class="chip chip-muted">command/</span>
+                  <span class="chip chip-muted">query/</span>
+                  <span class="chip chip-muted">decider/</span>
+                  <span class="chip chip-muted">middleware/</span>
+                  <span class="chip chip-muted">signing/</span>
+                  <span class="chip chip-muted">storage/</span>
+                  <span class="chip chip-muted">watermill/</span>
+                  <span class="chip chip-muted">…25 more</span>
+                </div>
+                <span class="flow-arrow red">→</span>
+                <div class="flow-hub god">event/<br />errors.go</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-hub ext">go-error-<br />family</div>
+              </div>
+              <div class="flow-caption">30+ modules → 1 bottleneck → 1 external dep</div>
+            </div>
+            <div class="flow-box after">
+              <div class="flow-title after">✓ AFTER — Direct imports, no bottleneck</div>
+              <div class="flow-row">
+                <div class="flow-modules">
+                  <span class="chip chip-green">command/</span>
+                  <span class="chip chip-green">query/</span>
+                  <span class="chip chip-green">decider/</span>
+                  <span class="chip chip-green">middleware/</span>
+                  <span class="chip chip-green">signing/</span>
+                  <span class="chip chip-green">storage/</span>
+                  <span class="chip chip-green">watermill/</span>
+                  <span class="chip chip-green">…25 more</span>
+                </div>
+                <span class="flow-arrow green">→</span>
+                <div class="flow-hub direct">go-error-<br />family</div>
+              </div>
+              <div class="flow-caption">
+                30+ modules → 1 external dep (event/ uses it internally too)
+              </div>
+            </div>
+          </div>
+
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>Pattern</th>
+                <th>Modules</th>
+                <th>Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Import <code>event/</code> ONLY for error classification</td>
+                <td style="font-family: var(--font-mono); font-size: 0.78rem">
+                  command, query, decider, middleware, signing, schema, snapshot, listing, deriver,
+                  scenario, projectionhost, graph, idempotency, watermill, transport/*, storage/*,
+                  stack/*
+                </td>
+                <td><span class="badge badge-red">~30</span></td>
+              </tr>
+              <tr>
+                <td>Import <code>go-error-family</code> directly</td>
+                <td style="font-family: var(--font-mono); font-size: 0.78rem">
+                  id, kv, codec, encryption, dispatcher, catalog, cmd/*
+                </td>
+                <td><span class="badge badge-green">8</span></td>
+              </tr>
+              <tr>
+                <td>Mixed (both patterns in same module)</td>
+                <td style="font-family: var(--font-mono); font-size: 0.78rem">
+                  storage (1 direct / 25 via event/), query (1 direct / 5 via event/)
+                </td>
+                <td><span class="badge badge-yellow">2</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- ─────────── CMD/QUERY COUPLING ─────────── -->
+        <section id="coupling">
+          <h2><span class="num">04</span> The Command/Query Coupling Problem</h2>
+
           <p>
-            Option A (direct import) beats Option B (wrapper module): go-error-family already has
-            the right API. The 8 modules that already import it directly prove the pattern. A
-            wrapper adds indirection without value.
+            <code>command/</code> lists <code>event/</code> as a direct dependency. Some of that is
+            legitimate (shared domain types), but most is artificial (error classification):
           </p>
-        </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem">
+            <div>
+              <h4 style="color: var(--color-green)">✅ Legitimate coupling</h4>
+              <div class="code-block">
+                <span class="cmt">// Domain types — shared vocabulary</span><br />
+                command/aggregate_ref.go:<br />
+                &nbsp;&nbsp;<span class="kw">type</span> AggregateRef =
+                <span class="green">event.AggregateRef</span><br />
+                &nbsp;&nbsp;<span class="green">event.NewAggregateRef</span>(...)<br />
+                &nbsp;&nbsp;<span class="green">event.ParseAggregateType</span>(...)
+              </div>
+              <p style="font-size: 0.82rem; color: rgba(244, 244, 240, 0.5)">
+                <code>AggregateRef</code> is the shared domain type for targeting aggregates. This
+                coupling is correct — commands target aggregates.
+              </p>
+            </div>
+            <div>
+              <h4 style="color: var(--color-red)">❌ Artificial coupling</h4>
+              <div class="code-block">
+                <span class="cmt">// Error classification — re-export trap</span><br />
+                command/errors.go:<br />
+                &nbsp;&nbsp;<span class="red">event.NewRejection</span>(...)<br />
+                &nbsp;&nbsp;<span class="red">event.NewConflict</span>(...)<br />
+                &nbsp;&nbsp;<span class="red">event.NewInfrastructure</span>(...)<br />
+                command/dispatcher.go:<br />
+                &nbsp;&nbsp;<span class="red">event.WrapRejection</span>(...)<br />
+                &nbsp;&nbsp;<span class="red">event.Classify</span>(...)
+              </div>
+              <p style="font-size: 0.82rem; color: rgba(244, 244, 240, 0.5)">
+                15+ error calls route through the re-export. <code>command/</code> pulls in the
+                entire store/bus interface surface to get <code>event.NewRejection</code>.
+              </p>
+            </div>
+          </div>
+
+          <div class="card card-solution">
+            <p>
+              <strong>The most interesting case: <code>query/</code>.</strong> If the error taxonomy
+              is extracted, <code>query/</code> has
+              <strong>zero dependency on <code>event/</code></strong
+              >. This means commands and queries don't need events — proving the CQRS separation. A
+              consumer could use query dispatch without pulling in any event sourcing machinery.
+              <code>query/store.go</code> already bypasses to <code>go-error-family</code> directly
+              — the rest should follow.
+            </p>
+          </div>
+        </section>
+
+        <!-- ─────────── LAYER VIOLATIONS ─────────── -->
+        <section id="violations">
+          <h2><span class="num">05</span> Layer Violations: Documented vs Actual</h2>
+
+          <p>The documented 7-layer system is misleading. Here's what's actually true:</p>
+
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>Module</th>
+                <th>Documented</th>
+                <th>Actual</th>
+                <th>Why</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>kv/</code></td>
+                <td>Layer 0</td>
+                <td>Layer 1</td>
+                <td>Depends on <code>codec/</code> + <code>otter</code> for TypedStore/Cache</td>
+                <td><span class="badge badge-red">Wrong</span></td>
+              </tr>
+              <tr>
+                <td><code>event/</code></td>
+                <td>Layer 1</td>
+                <td>Layer 2 (prod) / 4 (declared)</td>
+                <td>
+                  Test deps (<code>schema/</code>, <code>snapshot/</code>,
+                  <code>storage/memory/</code>) leak into go.mod as direct
+                </td>
+                <td><span class="badge badge-red">Wrong</span></td>
+              </tr>
+              <tr>
+                <td><code>command/</code></td>
+                <td>Layer 1</td>
+                <td>Layer 2</td>
+                <td>
+                  Depends on <code>event/</code> (Layer 2) + <code>storage/memory/</code> (Layer 4)
+                </td>
+                <td><span class="badge badge-red">Wrong</span></td>
+              </tr>
+              <tr>
+                <td><code>query/</code></td>
+                <td>Layer 1</td>
+                <td>Layer 2</td>
+                <td>
+                  Same as command/ — depends on <code>event/</code> + <code>storage/memory/</code>
+                </td>
+                <td><span class="badge badge-red">Wrong</span></td>
+              </tr>
+              <tr>
+                <td><code>idempotency/</code></td>
+                <td>Layer 2</td>
+                <td>Layer 2</td>
+                <td>
+                  Correct — depends on <code>event/</code>, <code>kv/</code>, <code>command/</code>
+                </td>
+                <td><span class="badge badge-green">OK</span></td>
+              </tr>
+              <tr>
+                <td><code>decider/</code></td>
+                <td>Layer 3</td>
+                <td>Layer 4</td>
+                <td>
+                  Depends on <code>event/</code>, <code>snapshot/</code>, <code>otel/</code>,
+                  <code>storage/memory/</code>
+                </td>
+                <td><span class="badge badge-yellow">Off by 1</span></td>
+              </tr>
+              <tr>
+                <td><code>scenario/</code></td>
+                <td>Layer 3</td>
+                <td>Layer 3</td>
+                <td>Correct</td>
+                <td><span class="badge badge-green">OK</span></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>Below is the documented layer system with violations marked:</p>
+
+          <div class="layer-stack">
+            <div class="layer-row">
+              <div class="layer-label">
+                <span class="num">0</span><span class="desc">Leaf modules</span>
+              </div>
+              <div class="layer-modules">
+                <span class="chip chip-green">id/ ✓</span>
+                <span class="chip chip-green">dispatcher/ ✓</span>
+                <span class="chip chip-green">codec/ ✓</span>
+                <span class="chip chip-red">kv/ ⚠ needs codec/</span>
+              </div>
+            </div>
+            <div class="layer-row violation">
+              <div class="layer-label">
+                <span class="num">1</span><span class="desc">Message types</span>
+              </div>
+              <div class="layer-modules">
+                <span class="chip chip-red">event/ ⚠ GOD MODULE</span>
+                <span class="chip">command/</span>
+                <span class="chip">query/</span>
+              </div>
+            </div>
+            <div class="layer-row">
+              <div class="layer-label">
+                <span class="num">2</span><span class="desc">Domain layering</span>
+              </div>
+              <div class="layer-modules">
+                <span class="chip">schema/</span>
+                <span class="chip">snapshot/</span>
+                <span class="chip">projection/</span>
+                <span class="chip">idempotency/</span>
+                <span class="chip">deriver/</span>
+              </div>
+            </div>
+            <div class="layer-row violation">
+              <div class="layer-label">
+                <span class="num">3</span><span class="desc">Aggregate logic</span>
+              </div>
+              <div class="layer-modules">
+                <span class="chip chip-red">decider/ ⚠ actual: L4</span>
+                <span class="chip">graph/</span>
+                <span class="chip">scenario/ ✓</span>
+                <span class="chip">projectionhost/</span>
+              </div>
+            </div>
+            <div class="layer-row">
+              <div class="layer-label">
+                <span class="num">4</span><span class="desc">Impl + otel</span>
+              </div>
+              <div class="layer-modules">
+                <span class="chip">storage/memory/</span>
+                <span class="chip">signing/</span>
+                <span class="chip">encryption/</span>
+                <span class="chip chip-green">otel/ ✓</span>
+              </div>
+            </div>
+            <div class="layer-row">
+              <div class="layer-label">
+                <span class="num">5</span><span class="desc">Infra + ops</span>
+              </div>
+              <div class="layer-modules">
+                <span class="chip">middleware/</span>
+                <span class="chip">storage/</span>
+                <span class="chip">watermill/</span>
+                <span class="chip">transport/http/</span>
+                <span class="chip">transport/grpc/</span>
+                <span class="chip">storage/pebble/</span>
+                <span class="chip">storage/turso/</span>
+                <span class="chip">listing/</span>
+                <span class="chip">prometheus/</span>
+              </div>
+            </div>
+            <div class="layer-row">
+              <div class="layer-label">
+                <span class="num">6</span><span class="desc">Stack presets</span>
+              </div>
+              <div class="layer-modules">
+                <span class="chip">stack/</span>
+                <span class="chip">stack/sqlite/</span>
+                <span class="chip">stack/pebble/</span>
+                <span class="chip">stack/postgres/</span>
+                <span class="chip">stack/memory/</span>
+              </div>
+            </div>
+            <div class="layer-row">
+              <div class="layer-label">
+                <span class="num">7</span><span class="desc">Composition</span>
+              </div>
+              <div class="layer-modules">
+                <span class="chip">catalog/</span>
+                <span class="chip">integration/</span>
+                <span class="chip">example/</span>
+                <span class="chip">cmd/</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ─────────── TARGET ARCHITECTURE ─────────── -->
+        <section id="target">
+          <h2><span class="num">06</span> Target: Four Tiers (Not Seven Layers)</h2>
+
+          <p>
+            Replace the misleading 7-layer system with <strong>four tiers</strong> that represent
+            real architectural boundaries. Within each tier, modules depend on each other freely.
+            Cross-tier dependencies flow upward only.
+          </p>
+
+          <div class="tier-stack">
+            <div class="tier tier-comp">
+              <div class="tier-label">Composition Tier</div>
+              <div class="tier-desc">Wire everything together for the consumer</div>
+              <div class="tier-modules">
+                <span class="chip chip-purple">stack/</span>
+                <span class="chip chip-purple">stack/sqlite/</span>
+                <span class="chip chip-purple">stack/postgres/</span>
+                <span class="chip chip-purple">catalog/</span>
+                <span class="chip chip-purple">scenario/</span>
+                <span class="chip chip-purple">testutil/</span>
+                <span class="chip chip-purple">cmd/</span>
+                <span class="chip chip-purple">example/</span>
+              </div>
+            </div>
+            <div class="tier tier-ops">
+              <div class="tier-label">Operations Tier</div>
+              <div class="tier-desc">Cross-cutting concerns applied across the system</div>
+              <div class="tier-modules">
+                <span class="chip chip-amber">middleware/</span>
+                <span class="chip chip-amber">+ idempotency/ (sub-pkg)</span>
+                <span class="chip chip-amber">otel/</span>
+                <span class="chip chip-amber">prometheus/</span>
+                <span class="chip chip-amber">signing/</span>
+                <span class="chip chip-amber">encryption/</span>
+                <span class="chip chip-amber">projectionhost/</span>
+                <span class="chip chip-amber">listing/</span>
+                <span class="chip chip-amber">scheduling/</span>
+              </div>
+            </div>
+            <div class="tier tier-infra">
+              <div class="tier-label">Infrastructure Tier</div>
+              <div class="tier-desc">Implement the contracts for specific backends</div>
+              <div class="tier-modules">
+                <span class="chip chip-blue">storage/</span>
+                <span class="chip chip-blue">storage/pebble/</span>
+                <span class="chip chip-blue">storage/turso/</span>
+                <span class="chip chip-blue">storage/memory/</span>
+                <span class="chip chip-blue">transport/http/</span>
+                <span class="chip chip-blue">transport/grpc/</span>
+                <span class="chip chip-blue">watermill/</span>
+              </div>
+            </div>
+            <div class="tier tier-domain">
+              <div class="tier-label">Domain Tier</div>
+              <div class="tier-desc">Pure domain model + contracts. No backend knowledge.</div>
+              <div class="tier-modules">
+                <span class="chip chip-green">id/</span>
+                <span class="chip chip-green">codec/</span>
+                <span class="chip chip-green">kv/ (raw)</span>
+                <span class="chip chip-green">event/</span>
+                <span class="chip chip-green">command/</span>
+                <span class="chip chip-green">query/</span>
+                <span class="chip chip-green">decider/</span>
+                <span class="chip chip-green">deriver/</span>
+                <span class="chip chip-green">projection/</span>
+                <span class="chip chip-green">schema/</span>
+                <span class="chip chip-green">dispatcher/</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ─────────── DOMAIN DETAIL ─────────── -->
+        <section id="domain-detail">
+          <h2><span class="num">07</span> Domain Tier: Internal Structure</h2>
+
+          <p>
+            The Domain Tier itself has internal layering — three sub-levels with clear dependency
+            direction:
+          </p>
+
+          <div class="domain-detail">
+            <div class="domain-sub">
+              <div class="domain-sub-label">Primitives — zero internal deps</div>
+              <div class="domain-sub-modules">
+                <span class="chip chip-green">id/ — branded IDs (ULID, markers)</span>
+                <span class="chip chip-green">codec/ — encoding contract (JSON, CBOR)</span>
+                <span class="chip chip-green">kv/ (raw) — Store, Reader, Writer, Batch</span>
+              </div>
+            </div>
+            <div class="domain-sub">
+              <div class="domain-sub-label">Message Types — depend on primitives</div>
+              <div class="domain-sub-modules">
+                <span class="chip chip-green"
+                  >event/ — ImmutableEvent, Metadata, Store/Bus interfaces</span
+                >
+                <span class="chip chip-green">command/ — Command, AggregateRef</span>
+                <span class="chip chip-green">query/ — Query, Type (NO event/ dep!)</span>
+              </div>
+            </div>
+            <div class="domain-sub">
+              <div class="domain-sub-label">Domain Logic — depend on message types</div>
+              <div class="domain-sub-modules">
+                <span class="chip chip-green">decider/ — Decider[State], Repository[State]</span>
+                <span class="chip chip-green">deriver/ — event→command derivation</span>
+                <span class="chip chip-green">projection/ — Projection interface</span>
+                <span class="chip chip-green">schema/ — upcasting, versioning</span>
+                <span class="chip chip-green">dispatcher/ — generic dispatch</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card card-solution">
+            <p>
+              <strong>The <code>kv/</code> split:</strong> Currently <code>kv/</code> contains both
+              raw byte-level types (<code>Store</code>, <code>Reader</code>, <code>Writer</code>)
+              AND typed wrappers (<code>TypedStore[T,K]</code>, <code>Cache[T,K]</code>). The raw
+              types are true Layer 0 — zero internal deps. The typed wrappers need
+              <code>codec/</code> and <code>otter</code>. Split: <code>kv/</code> (raw) stays Layer
+              0, <code>kv/typed/</code> moves up.
+            </p>
+          </div>
+        </section>
+
+        <!-- ─────────── MIGRATION PATH ─────────── -->
+        <section id="migration">
+          <h2><span class="num">08</span> Migration Path (Prioritized by Impact / Effort)</h2>
+
+          <div class="phases">
+            <div class="phase">
+              <div class="phase-num">1</div>
+              <div class="phase-body">
+                <h4>Extract Error Taxonomy</h4>
+                <p>
+                  Replace all <code>event.*</code> error calls with
+                  <code>errorfamily.*</code> direct imports. Delete <code>event/errors.go</code>.
+                  Run <code>go mod tidy</code> in each module to drop indirect deps. Zero API change
+                  visible to consumers — same functions, different import path.
+                </p>
+              </div>
+              <div class="phase-meta">
+                <span class="badge badge-green">80% benefit</span>
+                <span class="badge badge-amber">~50 files</span>
+                <span class="badge badge-blue">Low risk</span>
+              </div>
+            </div>
+            <div class="phase">
+              <div class="phase-num">2</div>
+              <div class="phase-body">
+                <h4>Fix <code>kv/</code> Layering</h4>
+                <p>
+                  Move <code>typed_store.go</code>, <code>cache.go</code>,
+                  <code>view_store.go</code> to <code>kv/typed/</code>. <code>kv/</code> keeps only
+                  raw byte-level types. <code>kv/</code> go.mod drops <code>codec/</code> and
+                  <code>otter</code>. <code>kv/</code> becomes a true Layer 0 leaf module.
+                </p>
+              </div>
+              <div class="phase-meta">
+                <span class="badge badge-green">High clarity</span>
+                <span class="badge badge-amber">~15 files</span>
+                <span class="badge badge-blue">Low risk</span>
+              </div>
+            </div>
+            <div class="phase">
+              <div class="phase-num">3</div>
+              <div class="phase-body">
+                <h4>Merge <code>idempotency/</code> into <code>middleware/idempotency/</code></h4>
+                <p>
+                  Move the Store primitive + KVStore adapter into a
+                  <code>middleware/idempotency/</code> sub-package. Create a generic
+                  <code>NewIdempotency[M]</code> factory following the
+                  <code>NewValidation[M]</code> / <code>NewTracing[M]</code> precedent. See the
+                  <a
+                    href="../planning/2026-07-06_IDEMPOTENCY_MERGE_PLAN.md"
+                    style="color: var(--color-amber)"
+                    >dedicated merge plan</a
+                  >.
+                </p>
+              </div>
+              <div class="phase-meta">
+                <span class="badge badge-yellow">Medium</span>
+                <span class="badge badge-amber">~20 files</span>
+                <span class="badge badge-blue">Low risk</span>
+              </div>
+            </div>
+            <div class="phase">
+              <div class="phase-num">4</div>
+              <div class="phase-body">
+                <h4>Clean Up <code>event/</code> Test Deps</h4>
+                <p>
+                  Move test-only deps (<code>schema/</code>, <code>snapshot/</code>,
+                  <code>storage/memory/</code>) out of the production <code>require</code> block. Go
+                  can't separate test-only deps natively — may need a separate test module or move
+                  affected tests to <code>integration/</code>.
+                </p>
+              </div>
+              <div class="phase-meta">
+                <span class="badge badge-yellow">Medium</span>
+                <span class="badge badge-red">Go limitation</span>
+              </div>
+            </div>
+            <div class="phase">
+              <div class="phase-num">5</div>
+              <div class="phase-body">
+                <h4>Document the Tier Model</h4>
+                <p>
+                  Update <code>AGENTS.md</code> Module Graph to use the four-tier model. Update
+                  <code>flake.nix</code> testModules. Update
+                  <code>cmd/api-stability/main.go</code> to scan all packages including
+                  currently-missing ones.
+                </p>
+              </div>
+              <div class="phase-meta">
+                <span class="badge badge-green">Easy</span>
+                <span class="badge badge-green">Docs only</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ─────────── WHAT NOT TO CHANGE ─────────── -->
+        <section id="keep">
+          <h2><span class="num">09</span> What NOT to Change</h2>
+
+          <p>Not everything is broken. These decisions are correct and should stay:</p>
+
+          <div class="keep-list">
+            <div class="keep-item">
+              <h4>event/ contains Store/Bus interfaces</h4>
+              <p>
+                Interfaces are domain contracts, not implementations. Every event consumer needs
+                both types and interfaces. The problem was never "Store is in event/" — it was
+                "error taxonomy is in event/".
+              </p>
+            </div>
+            <div class="keep-item">
+              <h4>command/ → event/ for AggregateRef</h4>
+              <p>
+                Legitimate domain coupling. Commands target aggregates. <code>AggregateRef</code> is
+                the shared vocabulary.
+              </p>
+            </div>
+            <div class="keep-item">
+              <h4>decider/ → event/ + snapshot/</h4>
+              <p>
+                Core ES pattern — the decider loads events from a store and snapshots state. This
+                coupling is the architecture.
+              </p>
+            </div>
+            <div class="keep-item">
+              <h4>dedup/ as separate leaf module</h4>
+              <p>
+                True Layer 0 (zero deps). Different concern from idempotency (ring buffer vs TTL
+                store). Correctly separate.
+              </p>
+            </div>
+            <div class="keep-item">
+              <h4>Multi-module workspace (go.work)</h4>
+              <p>
+                Each module having its own <code>go.mod</code> is deliberate — consumer import
+                isolation. The workspace ties them together for development.
+              </p>
+            </div>
+            <div class="keep-item">
+              <h4>Import go-error-family directly</h4>
+              <p>
+                Not a wrapper module. <code>go-error-family</code> IS the taxonomy — it already has
+                the right API. 8 modules prove it. A CQRS wrapper adds indirection without value.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ─────────── VERDICT ─────────── -->
+        <section id="verdict">
+          <h2><span class="num">10</span> The Verdict: Is This Worth It?</h2>
+
+          <div class="verdict">
+            <div class="verdict-col verdict-for">
+              <h4>✓ Argument FOR</h4>
+              <ul>
+                <li>30+ modules have artificial coupling to <code>event/</code></li>
+                <li>Error taxonomy trap makes every new module carry event baggage</li>
+                <li><code>kv/</code> Layer 0 claim is false and misleading</li>
+                <li>Phase 1 is ~50 file mechanical change for 80% of the benefit</li>
+                <li><code>query/</code> could become truly independent of <code>event/</code></li>
+                <li>Sets up clean v4 boundaries</li>
+              </ul>
+            </div>
+            <div class="verdict-col verdict-against">
+              <h4>✗ Argument AGAINST</h4>
+              <ul>
+                <li>It works today. The coupling doesn't cause runtime bugs.</li>
+                <li>Consumers don't see the coupling — they import what they need.</li>
+                <li>Just fix the AGENTS.md text, don't restructure.</li>
+                <li>50 files is a lot of churn for "just change the import path."</li>
+                <li>
+                  <code>query/</code> already works — who cares if it imports <code>event/</code>?
+                </li>
+                <li>v4 is not planned.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="card card-solution">
+            <p>
+              <strong>Recommendation:</strong>
+              <strong>Phase 1 (extract error taxonomy) is worth doing.</strong>
+              The coupling is real, the fix is mechanical, and it unblocks independent use of
+              query/command without event baggage.
+              <strong>Phase 2 (kv/ split)</strong> is worth doing because the false Layer 0 claim
+              will mislead contributors. Everything else can wait for v4.
+            </p>
+          </div>
+        </section>
       </div>
+      <!-- /main -->
     </div>
+    <!-- /layout -->
 
     <script>
-      mermaid.initialize({
-        startOnLoad: true,
-        theme: "base",
-        themeVariables: {
-          primaryColor: "#18181d",
-          primaryTextColor: "#f4f4f0",
-          primaryBorderColor: "rgba(244,244,240,0.15)",
-          lineColor: "rgba(244,244,240,0.3)",
-          secondaryColor: "#16161a",
-          tertiaryColor: "#18181d",
-          fontFamily: "ui-sans-serif, system-ui, sans-serif",
-          fontSize: "13px",
+      // Active sidebar link on scroll
+      const sections = document.querySelectorAll("section[id]");
+      const navLinks = document.querySelectorAll(".sidebar a");
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              navLinks.forEach((link) => {
+                link.classList.toggle(
+                  "active",
+                  link.getAttribute("href") === "#" + entry.target.id,
+                );
+              });
+            }
+          });
         },
-        flowchart: {
-          curve: "basis",
-          padding: 20,
-          nodeSpacing: 40,
-          rankSpacing: 50,
-        },
-      });
-
-      const zoomState = {};
-
-      function showTab(name) {
-        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
-        document.querySelectorAll(".diagram-panel").forEach((p) => p.classList.remove("active"));
-        event.target.classList.add("active");
-        document.getElementById("tab-" + name).classList.add("active");
-      }
-
-      function zoom(id, delta) {
-        if (!zoomState[id]) zoomState[id] = 1;
-        zoomState[id] = Math.max(0.3, Math.min(3, zoomState[id] + delta));
-        applyZoom(id);
-      }
-
-      function resetZoom(id) {
-        zoomState[id] = 1;
-        applyZoom(id);
-      }
-
-      function applyZoom(id) {
-        const el = document.getElementById("scroll-" + id);
-        if (!el) return;
-        const svg = el.querySelector("svg");
-        if (!svg) return;
-        svg.style.transform = "scale(" + zoomState[id] + ")";
-        svg.style.transformOrigin = "top center";
-        const display = Math.round(zoomState[id] * 100);
-        const label = document.getElementById("zoom-" + id);
-        if (label) label.textContent = display + "%";
-      }
-
-      // Mouse wheel zoom on diagram containers
-      document.querySelectorAll(".diagram-scroll").forEach((container) => {
-        container.addEventListener(
-          "wheel",
-          function (e) {
-            if (!e.ctrlKey) return;
-            e.preventDefault();
-            const id = this.id
-              .replace("scroll-", "")
-              .replace("comp-before", "")
-              .replace("comp-after", "");
-            // Find which tab we're in
-            const panel = this.closest(".diagram-panel");
-            const panelId = panel.id.replace("tab-", "");
-            if (panelId === "comparison") return; // no zoom controls for comparison
-            if (e.deltaY < 0) zoom(panelId, 0.1);
-            else zoom(panelId, -0.1);
-          },
-          { passive: false },
-        );
-      });
+        { rootMargin: "-20% 0px -70% 0px" },
+      );
+      sections.forEach((s) => observer.observe(s));
     </script>
   </body>
 </html>
