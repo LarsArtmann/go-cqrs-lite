@@ -5,13 +5,14 @@ import (
 	"errors"
 	"log/slog"
 	"math/rand/v2"
-	"slices"
 	"sync"
 	"sync/atomic"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/dedup/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 )
 
@@ -24,6 +25,10 @@ type worker struct {
 	opts       hostOptions
 	logger     *slog.Logger
 
+	// typeSet is a pre-built set of event types the projection handles.
+	// nil means "all events". Built once at construction to make shouldHandle O(1).
+	typeSet map[event.Type]struct{}
+
 	stateMu sync.RWMutex
 	state   WorkerState
 
@@ -32,11 +37,12 @@ type worker struct {
 	restarts        atomic.Int64
 	lastProcessedNs atomic.Int64 // Unix nanoseconds of the most recently processed event
 
-	// seenIDs accumulates event IDs during journal drain so the live phase
-	// can skip events that overlap the replay→live boundary. Bounded to the
-	// replay backlog size — never grows during live processing.
-	seenMu  sync.Mutex
-	seenIDs map[string]struct{}
+	// seenIDs is a bounded ring of event IDs accumulated during journal drain
+	// so the live phase can skip events that overlap the replay→live boundary.
+	// Bounded to dedup.DefaultCapacity entries — never grows during live
+	// processing. Not safe for concurrent use; only accessed during drain
+	// (single goroutine).
+	seenIDs *dedup.Ring
 
 	stop chan struct{}
 	done chan struct{}
@@ -111,6 +117,14 @@ func (w *worker) run(ctx context.Context, wg *sync.WaitGroup) {
 		restartCount := int(w.restarts.Add(1))
 		if w.opts.maxRestarts >= 0 && restartCount > w.opts.maxRestarts {
 			w.setStatus(WorkerFailed)
+			w.recordMetric(func(m MetricsRecorder) {
+				m.WorkerFailed(w.name)
+			})
+
+			if w.opts.onFailed != nil {
+				w.opts.onFailed(w.name, err.Error())
+			}
+
 			w.logger.Error("projection worker exhausted restart budget",
 				"projection", w.name, "restarts", restartCount, "error", err)
 
@@ -144,6 +158,13 @@ func (w *worker) run(ctx context.Context, wg *sync.WaitGroup) {
 }
 
 func (w *worker) process(ctx context.Context) error {
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "projectionhost.drain",
+		cqrsotel.SpanKindInternal,
+		cqrsotel.WithAttributes(cqrsotel.AttrString("cqrs.projection.name", w.name)),
+	)
+	defer span.End()
+
 	cp, err := w.cpStore.Load(ctx, w.name)
 	if err != nil {
 		return err
@@ -258,17 +279,27 @@ func (w *worker) process(ctx context.Context) error {
 }
 
 func (w *worker) shouldHandle(evt event.Event) bool {
-	types := w.projection.EventTypes()
-	if types == nil {
+	if w.typeSet == nil {
 		return true
 	}
 
-	evtType := evt.Type()
+	_, ok := w.typeSet[evt.Type()]
 
-	return slices.Contains(types, evtType)
+	return ok
 }
 
 func (w *worker) applyWithRetry(ctx context.Context, evt event.Event) error {
+	ctx, span := cqrsotel.StartSpan(
+		ctx, tracer(), "projectionhost.handle_event",
+		cqrsotel.SpanKindConsumer,
+		cqrsotel.WithAttributes(
+			cqrsotel.AttrString("cqrs.projection.name", w.name),
+			cqrsotel.AttrString("cqrs.event.type", string(evt.Type())),
+			cqrsotel.AttrString("cqrs.event.id", evt.ID().String()),
+		),
+	)
+	defer span.End()
+
 	var lastErr error
 
 	for attempt := range w.opts.dlqThreshold {
@@ -309,6 +340,8 @@ func (w *worker) applyWithRetry(ctx context.Context, evt event.Event) error {
 			}
 		}
 	}
+
+	cqrsotel.RecordError(span, lastErr)
 
 	return lastErr
 }
@@ -352,27 +385,14 @@ func familyToName(f event.Family) string {
 	}
 }
 
-// markSeen records an event ID as processed during journal drain. Thread-safe;
-// only called during the drain phase (single goroutine).
+// markSeen records an event ID as processed during journal drain.
 func (w *worker) markSeen(id string) {
-	w.seenMu.Lock()
-	defer w.seenMu.Unlock()
-
-	if w.seenIDs == nil {
-		w.seenIDs = make(map[string]struct{})
-	}
-
-	w.seenIDs[id] = struct{}{}
+	w.seenIDs.Add(id)
 }
 
 // wasSeen reports whether an event ID was seen during journal drain.
 func (w *worker) wasSeen(id string) bool {
-	w.seenMu.Lock()
-	defer w.seenMu.Unlock()
-
-	_, ok := w.seenIDs[id]
-
-	return ok
+	return w.seenIDs.Has(id)
 }
 
 // processLive subscribes to live events via the configured subscriber. Events
@@ -428,8 +448,8 @@ func (w *worker) processLive(ctx context.Context) error {
 			EventID:     evt.ID(),
 			ProcessedAt: time.Now(),
 		}); saveErr != nil {
-			w.logger.Warn("save checkpoint after live event",
-				"projection", w.name, "event_id", evt.ID().String(), "error", saveErr)
+			return event.WrapInfrastructure(saveErr, "projectionhost.save_checkpoint_live",
+				"save checkpoint after live event")
 		}
 
 		w.processed.Add(1)

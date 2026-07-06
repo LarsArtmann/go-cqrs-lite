@@ -19,6 +19,7 @@ type capturingMetricsRecorder struct {
 	errored       atomic.Int64
 	deadLettered  atomic.Int64
 	restarted     atomic.Int64
+	failed        atomic.Int64
 	checkpointAdv atomic.Int64
 }
 
@@ -38,6 +39,10 @@ func (c *capturingMetricsRecorder) EventDeadLettered(_, _ string) {
 
 func (c *capturingMetricsRecorder) WorkerRestarted(_ string) {
 	c.restarted.Add(1)
+}
+
+func (c *capturingMetricsRecorder) WorkerFailed(_ string) {
+	c.failed.Add(1)
 }
 
 func (c *capturingMetricsRecorder) CheckpointAdvanced(_ string, _ time.Duration) {

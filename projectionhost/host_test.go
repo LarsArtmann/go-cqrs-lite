@@ -781,6 +781,401 @@ func TestHost_LastProcessedAt_ReportsTime(t *testing.T) {
 	_ = host.Stop()
 }
 
+// --- New feature tests (M1, M6, M7, M8) ---
+
+// failingCheckpointStore wraps a memoryCheckpointStore and fails on the Nth Save.
+type failingCheckpointStore struct {
+	*memoryCheckpointStore
+
+	failAfter int // fail after this many successful saves (0 = never)
+	saves     atomic.Int64
+}
+
+func newFailingCheckpointStore(failAfter int) *failingCheckpointStore {
+	return &failingCheckpointStore{
+		memoryCheckpointStore: newMemoryCheckpointStore(),
+		failAfter:             failAfter,
+	}
+}
+
+func (s *failingCheckpointStore) Save(ctx context.Context, name string, cp event.Checkpoint) error {
+	if s.failAfter > 0 && s.saves.Add(1) > int64(s.failAfter) {
+		return errors.New("simulated checkpoint store failure")
+	}
+
+	return s.memoryCheckpointStore.Save(ctx, name, cp)
+}
+
+// resettableCountingProjection extends countingProjection with Reset support.
+type resettableCountingProjection struct {
+	countingProjection
+
+	resetCount atomic.Int64
+}
+
+func (p *resettableCountingProjection) Reset(_ context.Context) error {
+	p.resetCount.Add(1)
+	p.count.Store(0)
+	p.mu.Lock()
+	p.seen = nil
+	p.mu.Unlock()
+
+	return nil
+}
+
+// alwaysFailingProjection returns failErr on every Handle call.
+type alwaysFailingProjection struct {
+	name    string
+	calls   atomic.Int64
+	failErr error
+}
+
+func (p *alwaysFailingProjection) Name() string             { return p.name }
+func (p *alwaysFailingProjection) EventTypes() []event.Type { return nil }
+
+func (p *alwaysFailingProjection) Handle(_ context.Context, _ event.Event) error {
+	p.calls.Add(1)
+
+	return p.failErr
+}
+
+func TestHost_OnFailed_FiresOnExhaustedRestarts(t *testing.T) {
+	t.Parallel()
+
+	journal := &memoryJournal{}
+	cpStore := newMemoryCheckpointStore()
+	journal.append(makeEvent("data.fail"))
+
+	var failedName string
+	var failedErr string
+	var failedMu sync.Mutex
+
+	proj := &alwaysFailingProjection{
+		name:    "always-fail",
+		failErr: errors.New("permanent handler failure"),
+	}
+
+	host, _ := projectionhost.New(
+		journal, cpStore,
+		projectionhost.WithMaxRestarts(1),
+		projectionhost.WithBackoff(time.Millisecond, 5*time.Millisecond),
+		projectionhost.WithOnFailed(func(name, lastErr string) {
+			failedMu.Lock()
+			failedName = name
+			failedErr = lastErr
+			failedMu.Unlock()
+		}),
+	)
+	_ = host.Register(proj)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	_ = host.Start(ctx)
+
+	requireEventually(t, 5*time.Second, func() bool {
+		failedMu.Lock()
+		defer failedMu.Unlock()
+
+		return failedName != ""
+	})
+
+	failedMu.Lock()
+	defer failedMu.Unlock()
+
+	if failedName != "always-fail" {
+		t.Fatalf("expected OnFailed for 'always-fail', got %q", failedName)
+	}
+
+	if failedErr == "" {
+		t.Fatal("expected non-empty lastError in OnFailed callback")
+	}
+}
+
+func TestHost_WorkerFailedMetric(t *testing.T) {
+	t.Parallel()
+
+	journal := &memoryJournal{}
+	cpStore := newMemoryCheckpointStore()
+	journal.append(makeEvent("data.fail"))
+
+	recorder := &capturingMetricsRecorder{}
+
+	proj := &alwaysFailingProjection{
+		name:    "metric-fail",
+		failErr: errors.New("permanent handler failure"),
+	}
+
+	host, _ := projectionhost.New(
+		journal, cpStore,
+		projectionhost.WithMaxRestarts(1),
+		projectionhost.WithBackoff(time.Millisecond, 5*time.Millisecond),
+		projectionhost.WithMetrics(recorder),
+	)
+	_ = host.Register(proj)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	_ = host.Start(ctx)
+
+	requireEventually(t, 5*time.Second, func() bool {
+		return recorder.failed.Load() >= 1
+	})
+
+	if recorder.failed.Load() != 1 {
+		t.Fatalf("expected 1 WorkerFailed call, got %d", recorder.failed.Load())
+	}
+
+	_ = host.Stop()
+}
+
+func TestHost_Reset_DropsCheckpointAndReplaysFromZero(t *testing.T) {
+	t.Parallel()
+
+	journal := &memoryJournal{}
+	cpStore := newMemoryCheckpointStore()
+
+	for range 3 {
+		journal.append(makeEvent("data.reset"))
+	}
+
+	proj := &countingProjection{name: "reset-test"}
+	host, _ := projectionhost.New(journal, cpStore, projectionhost.WithBatchSize(10))
+	_ = host.Register(proj)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	go host.Start(ctx)
+
+	requireEventually(t, 2*time.Second, func() bool {
+		return proj.count.Load() == 3
+	})
+
+	cancel()
+	_ = host.Stop()
+
+	if err := host.Reset(context.Background(), "reset-test"); err != nil {
+		t.Fatalf("Reset: %v", err)
+	}
+
+	if proj.count.Load() != 3 {
+		t.Fatal("Reset should not affect projection state when not Resettable")
+	}
+
+	ctx2, cancel2 := context.WithCancel(context.Background())
+	defer cancel2()
+	host2, _ := projectionhost.New(journal, cpStore, projectionhost.WithBatchSize(10))
+	_ = host2.Register(proj)
+	go host2.Start(ctx2)
+
+	requireEventually(t, 2*time.Second, func() bool {
+		return proj.count.Load() == 6 // 3 original + 3 replayed
+	})
+
+	cancel2()
+	_ = host2.Stop()
+}
+
+func TestHost_Reset_CallsResettableProjection(t *testing.T) {
+	t.Parallel()
+
+	journal := &memoryJournal{}
+	cpStore := newMemoryCheckpointStore()
+
+	for range 3 {
+		journal.append(makeEvent("data.rst"))
+	}
+
+	proj := &resettableCountingProjection{
+		countingProjection: countingProjection{name: "rst-proj"},
+	}
+	host, _ := projectionhost.New(journal, cpStore, projectionhost.WithBatchSize(10))
+	_ = host.Register(proj)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	go host.Start(ctx)
+
+	requireEventually(t, 2*time.Second, func() bool {
+		return proj.count.Load() == 3
+	})
+
+	cancel()
+	_ = host.Stop()
+
+	if err := host.Reset(context.Background(), "rst-proj"); err != nil {
+		t.Fatalf("Reset: %v", err)
+	}
+
+	if proj.resetCount.Load() != 1 {
+		t.Fatalf("expected Resettable.Reset called once, got %d", proj.resetCount.Load())
+	}
+
+	if proj.count.Load() != 0 {
+		t.Fatalf("expected count reset to 0, got %d", proj.count.Load())
+	}
+
+	cp, _ := cpStore.Load(context.Background(), "rst-proj")
+	if !cp.IsZero() {
+		t.Fatal("expected checkpoint cleared after Reset")
+	}
+}
+
+func TestHost_Reset_UnknownProjection_ReturnsError(t *testing.T) {
+	t.Parallel()
+
+	journal := &memoryJournal{}
+	cpStore := newMemoryCheckpointStore()
+
+	host, _ := projectionhost.New(journal, cpStore)
+
+	err := host.Reset(context.Background(), "nonexistent")
+	if err == nil {
+		t.Fatal("expected error for unknown projection")
+	}
+}
+
+func TestHost_Reset_WhileRunning_ReturnsError(t *testing.T) {
+	t.Parallel()
+
+	journal := &memoryJournal{}
+	cpStore := newMemoryCheckpointStore()
+	journal.append(makeEvent("data.run"))
+
+	proj := &countingProjection{name: "running"}
+	host, _ := projectionhost.New(journal, cpStore, projectionhost.WithBatchSize(1))
+	_ = host.Register(proj)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	_ = host.Start(ctx)
+
+	requireEventually(t, 2*time.Second, func() bool {
+		return proj.count.Load() >= 1
+	})
+
+	err := host.Reset(context.Background(), "running")
+	if err == nil {
+		t.Fatal("expected error when resetting while running")
+	}
+
+	cancel()
+	_ = host.Stop()
+}
+
+func TestHost_LiveCheckpointFailure_StopsWorker(t *testing.T) {
+	t.Parallel()
+
+	journal := &memoryJournal{}
+	cpStore := newFailingCheckpointStore(1) // succeed once (drain), fail in live
+	liveSub := newChannelSubscriber()
+
+	// Seed one event in journal for drain phase.
+	journal.append(makeEvent("task.live"))
+
+	proj := &countingProjection{name: "live-cp-fail", eventTypes: []event.Type{"task.live"}}
+	host, _ := projectionhost.New(
+		journal, cpStore,
+		projectionhost.WithSubscriber(liveSub),
+		projectionhost.WithBatchSize(10),
+		projectionhost.WithMaxRestarts(0), // don't restart — we want to see the failure
+	)
+	_ = host.Register(proj)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	_ = host.Start(ctx)
+
+	// Wait for drain to complete (1 event processed).
+	requireEventually(t, 2*time.Second, func() bool {
+		return proj.count.Load() == 1
+	})
+
+	// Send a live event — checkpoint save should fail and worker should stop.
+	liveSub.send(makeEvent("task.live"))
+
+	requireEventually(t, 3*time.Second, func() bool {
+		states := host.Status()
+		for _, s := range states {
+			if s.Status == projectionhost.WorkerFailed || s.Status == projectionhost.WorkerStopped {
+				return true
+			}
+		}
+
+		return false
+	})
+
+	liveSub.close()
+	cancel()
+	_ = host.Stop()
+}
+
+func TestHost_WorkerDraining_StatusDuringShutdown(t *testing.T) {
+	t.Parallel()
+
+	journal := &memoryJournal{}
+	cpStore := newMemoryCheckpointStore()
+
+	// Add enough events that the worker is still processing when Stop fires.
+	for range 100 {
+		journal.append(makeEvent("data.drain"))
+	}
+
+	proj := &countingProjection{name: "drain-test"}
+	host, _ := projectionhost.New(journal, cpStore, projectionhost.WithBatchSize(5))
+	_ = host.Register(proj)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	_ = host.Start(ctx)
+
+	requireEventually(t, 2*time.Second, func() bool {
+		return proj.count.Load() >= 1
+	})
+
+	_ = host.Stop()
+
+	states := host.Status()
+	for _, s := range states {
+		if s.Status != projectionhost.WorkerStopped {
+			t.Fatalf("expected WorkerStopped after Stop, got %s", s.Status)
+		}
+	}
+}
+
+func TestHost_WithShutdownTimeout_CustomValue(t *testing.T) {
+	t.Parallel()
+
+	journal := &memoryJournal{}
+	cpStore := newMemoryCheckpointStore()
+	journal.append(makeEvent("data.timeout"))
+
+	proj := &countingProjection{name: "timeout-test"}
+	host, _ := projectionhost.New(
+		journal, cpStore,
+		projectionhost.WithShutdownTimeout(5*time.Second),
+	)
+	_ = host.Register(proj)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	_ = host.Start(ctx)
+
+	requireEventually(t, 2*time.Second, func() bool {
+		return proj.count.Load() >= 1
+	})
+
+	// Stop should succeed within the custom timeout.
+	start := time.Now()
+	err := host.Stop()
+	elapsed := time.Since(start)
+
+	if err != nil {
+		t.Fatalf("Stop: %v", err)
+	}
+
+	if elapsed > 5*time.Second {
+		t.Fatalf("Stop took %s, expected < 5s", elapsed)
+	}
+}
+
 // Ensure unused imports are referenced.
 var (
 	_ = fmt.Sprintf

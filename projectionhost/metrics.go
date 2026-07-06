@@ -26,6 +26,11 @@ type MetricsRecorder interface {
 	// by the host's crash-recovery loop.
 	WorkerRestarted(projectionName string)
 
+	// WorkerFailed is called when a worker exhausts its restart budget and
+	// transitions to WorkerFailed. This is a terminal state — the worker will
+	// not restart without manual intervention (Reset + Start).
+	WorkerFailed(projectionName string)
+
 	// CheckpointAdvanced is called when a worker persists a new checkpoint.
 	// lag is the time between the event's creation and its processing.
 	CheckpointAdvanced(projectionName string, lag time.Duration)

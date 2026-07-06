@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/dedup/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 )
@@ -98,6 +99,8 @@ func (h *Host) Register(p projection.Projection) error {
 		cpStore:    h.cpStore,
 		opts:       h.opts,
 		logger:     h.opts.logger,
+		seenIDs:    dedup.NewRing(dedup.DefaultCapacity),
+		typeSet:    buildTypeSet(p.EventTypes()),
 		state: WorkerState{
 			Name:   name,
 			Status: WorkerIdle,
@@ -140,9 +143,20 @@ func (h *Host) Start(ctx context.Context) error {
 	}
 	h.mu.Unlock()
 
-	for _, w := range workers {
+	for i, w := range workers {
 		h.wg.Add(1)
-		go w.run(runCtx, &h.wg)
+
+		go func(worker *worker, delay int) {
+			if delay > 0 {
+				select {
+				case <-time.After(time.Duration(delay) * time.Millisecond):
+				case <-runCtx.Done():
+					return
+				}
+			}
+
+			worker.run(runCtx, &h.wg)
+		}(w, i*10) // 10ms stagger between workers to avoid thundering herd on journal
 	}
 
 	return nil
@@ -162,6 +176,10 @@ func (h *Host) Stop() error {
 	h.cancel()
 
 	for _, w := range h.workers {
+		if s := w.snapshot().Status; s == WorkerRunning || s == WorkerLive || s == WorkerBackoff {
+			w.setStatus(WorkerDraining)
+		}
+
 		close(w.stop)
 	}
 	h.mu.Unlock()
@@ -176,10 +194,13 @@ func (h *Host) Stop() error {
 	select {
 	case <-done:
 		return nil
-	case <-time.After(30 * time.Second):
+	case <-time.After(h.opts.shutdownTimeout):
 		return event.NewInfrastructure(
 			"projectionhost.shutdown_timeout",
-			"projectionhost: graceful shutdown timed out after 30s",
+			fmt.Sprintf(
+				"projectionhost: graceful shutdown timed out after %s",
+				h.opts.shutdownTimeout,
+			),
 		)
 	}
 }
@@ -241,6 +262,83 @@ func (h *Host) LagDuration() time.Duration {
 	}
 
 	return time.Since(latest)
+}
+
+// Resettable is an optional interface a Projection can implement to support
+// full state reset. When Host.Reset detects that the projection implements
+// Resettable, it calls Reset(ctx) so the projection can clear its read-model
+// state (e.g. drop all rows from a SQL table, flush a KV store).
+//
+// Projections that don't implement Resettable will only have their checkpoint
+// dropped — the next Start replays from zero, but any stale read-model state
+// remains unless the consumer clears it manually.
+type Resettable interface {
+	Reset(ctx context.Context) error
+}
+
+// Reset drops the checkpoint for the named projection and, if the projection
+// implements [Resettable], calls its Reset method to clear read-model state.
+// After Reset, the next Start replys all events from the beginning of the
+// journal. Use this to rebuild a projection from scratch after fixing a
+// handler bug.
+//
+// Reset returns an error if the projection name is not registered or the host
+// is currently running (Stop first). It is safe to call Reset multiple times.
+func (h *Host) Reset(ctx context.Context, name string) error {
+	h.mu.Lock()
+
+	if h.started && !h.stopped {
+		h.mu.Unlock()
+
+		return event.NewRejection(
+			"projectionhost.reset_while_running",
+			"projectionhost: cannot reset while host is running — Stop first",
+		)
+	}
+
+	w, ok := h.workers[name]
+	if !ok {
+		h.mu.Unlock()
+
+		return event.NewRejection(
+			"projectionhost.unknown_projection",
+			fmt.Sprintf("projection %q is not registered", name),
+		)
+	}
+
+	h.mu.Unlock()
+
+	if r, ok := w.projection.(Resettable); ok {
+		if err := r.Reset(ctx); err != nil {
+			return event.WrapInfrastructure(err, "projectionhost.reset_projection",
+				fmt.Sprintf("reset projection %q", name))
+		}
+	}
+
+	if err := h.cpStore.Save(ctx, name, event.Checkpoint{}); err != nil {
+		return event.WrapInfrastructure(err, "projectionhost.reset_checkpoint",
+			fmt.Sprintf("clear checkpoint for %q", name))
+	}
+
+	w.setCheckpoint("")
+
+	return nil
+}
+
+// buildTypeSet converts a slice of event types into an O(1) lookup map.
+// Returns nil for empty/nil input, which means "handle all events".
+func buildTypeSet(types []event.Type) map[event.Type]struct{} {
+	if len(types) == 0 {
+		return nil
+	}
+
+	m := make(map[event.Type]struct{}, len(types))
+
+	for _, t := range types {
+		m[t] = struct{}{}
+	}
+
+	return m
 }
 
 // host, and blocks until ctx is cancelled or all workers stop. Useful for
