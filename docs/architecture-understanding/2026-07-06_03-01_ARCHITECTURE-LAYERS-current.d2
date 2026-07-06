@@ -1,0 +1,190 @@
+direction: down
+layout: elk
+
+# Title
+title: |md
+  # go-cqrs-lite: Current Architecture (Honest View)
+  7 layers that conflate domain model, error taxonomy, and infrastructure.
+| {style.font-size: 22}
+
+# ============================================================
+# LAYER 0 (documented) — but kv/ is NOT Layer 0
+# ============================================================
+Layer_0: {
+  label: "Layer 0 — Leaf Modules (DOCUMENTED)"
+  style.fill: "#e8f5e9"
+
+  id_: "id/" {style.fill: white}
+  dispatcher_: "dispatcher/" {style.fill: white}
+  codec_: "codec/" {style.fill: white}
+  kv_: "kv/\n⚠ requires codec/ + otter\n(NOT Layer 0 — actually Layer 1)" {
+    style.fill: "#ffebee"
+    style.stroke: "#c62828"
+  }
+}
+
+# ============================================================
+# LAYER 1
+# ============================================================
+Layer_1: {
+  label: "Layer 1 (DOCUMENTED)"
+  style.fill: "#e3f2fd"
+
+  event_: "event/\nGOD MODULE: 3 concerns\n• Domain Model\n• Error Taxonomy (re-export)\n• Infrastructure Contracts" {
+    style.fill: "#ffebee"
+    style.stroke: "#c62828"
+    style.stroke-width: 2
+    style.bold: true
+  }
+  command_: "command/\nneeds event/ for errors\n(artificial coupling)"
+  query_: "query/\nneeds event/ for errors\n(store.go already bypasses)"
+}
+
+# ============================================================
+# LAYER 2
+# ============================================================
+Layer_2: {
+  label: "Layer 2"
+  style.fill: "#fff3e0"
+
+  schema_: "schema/"
+  snapshot_: "snapshot/"
+  projection_: "projection/"
+  idempotency_: "idempotency/\nneeds event/ ONLY for\nerror classification"
+  deriver_: "deriver/"
+}
+
+# ============================================================
+# LAYER 3
+# ============================================================
+Layer_3: {
+  label: "Layer 3"
+  style.fill: "#f3e5f5"
+
+  decider_: "decider/\nneeds event/ + snapshot/\n+ otel/ + storage/memory/"
+  graph_: "graph/"
+  scenario_: "scenario/"
+  projectionhost_: "projectionhost/"
+}
+
+# ============================================================
+# LAYER 4
+# ============================================================
+Layer_4: {
+  label: "Layer 4"
+  style.fill: "#e0f7fa"
+
+  storage_memory: "storage/memory/"
+  signing_: "signing/"
+  encryption_: "encryption/"
+  otel_: "otel/"
+}
+
+# ============================================================
+# LAYER 5
+# ============================================================
+Layer_5: {
+  label: "Layer 5"
+  style.fill: "#fce4ec"
+
+  middleware_: "middleware/\n(9 files use event.* errors)"
+  storage_: "storage/\n(~25 files use event.* errors)"
+  watermill_: "watermill/"
+  transport_http: "transport/http/"
+  transport_grpc: "transport/grpc/"
+  storage_pebble: "storage/pebble/"
+  storage_turso: "storage/turso/"
+  listing_: "listing/"
+  prometheus_: "prometheus/"
+}
+
+# ============================================================
+# LAYER 6
+# ============================================================
+Layer_6: {
+  label: "Layer 6"
+  style.fill: "#e8eaf6"
+
+  stack_: "stack/"
+  stack_sqlite: "stack/sqlite/"
+  stack_pebble: "stack/pebble/"
+  stack_postgres: "stack/postgres/"
+  stack_memory: "stack/memory/"
+}
+
+# ============================================================
+# LAYER 7
+# ============================================================
+Layer_7: {
+  label: "Layer 7"
+  style.fill: "#f5f5f5"
+
+  catalog_: "catalog/"
+  integration_: "integration/"
+  example_: "example/"
+  cmd_: "cmd/"
+}
+
+# ============================================================
+# ERROR TAXONOMY TRAP — the real picture
+# ============================================================
+go_error_family: "go-error-family\n(external)" {style.fill: "#fff9c4"; style.stroke: "#f57f17"}
+
+ErrorTaxonomyCoupling: {
+  label: "THE ERROR TAXONOMY TRAP\n30+ modules route error classification through event/"
+  style.fill: "#ffebee"
+  style.stroke-dash: 4
+  style.stroke: "#b71c1c"
+
+  err_source: "event/errors.go\n1:1 re-export of go-error-family" {
+    style.fill: "#ffcdd2"
+    style.bold: true
+  }
+}
+
+# The re-export chain (the disease)
+err_source -> go_error_family: "delegates to\n(same signatures)"
+event_ -> err_source: "contains"
+
+# The artificial coupling (every module reaches event/ for errors)
+command_ -> event_: "AggregateRef (legit)\n+ errors (artificial)" {style.stroke: "#c62828"; style.stroke-dash: 3}
+query_ -> event_: "errors ONLY\n(store.go bypasses)" {style.stroke: "#c62828"; style.stroke-dash: 3}
+idempotency_ -> event_: "errors ONLY" {style.stroke: "#c62828"; style.stroke-dash: 3}
+middleware_ -> event_: "Event type (partial)\n+ errors" {style.stroke: "#c62828"; style.stroke-dash: 3}
+storage_ -> event_: "ImmutableEvent (legit)\n+ errors" {style.stroke-dash: 3}
+signing_ -> event_: "Event payload (legit)\n+ errors" {style.stroke: "#c62828"; style.stroke-dash: 3}
+
+# kv/ layering violation
+kv_ -> codec_: "TypedStore serialization\n(LAYER VIOLATION)"
+
+# Legitimate domain edges
+event_ -> id_: "branded IDs"
+event_ -> codec_: "payload encoding"
+schema_ -> event_
+snapshot_ -> event_
+projection_ -> event_
+deriver_ -> command_
+decider_ -> event_
+decider_ -> snapshot_
+decider_ -> otel_
+graph_ -> event_
+scenario_ -> event_
+storage_memory -> event_
+listing_ -> event_
+encryption_ -> event_
+encryption_ -> codec_
+watermill_ -> event_
+transport_http -> event_
+transport_grpc -> event_
+projectionhost_ -> event_
+idempotency_ -> kv_
+
+# stack tier pulls everything
+stack_ -> storage_
+stack_ -> decider_
+stack_sqlite -> storage_
+stack_pebble -> storage_pebble
+stack_postgres -> storage_
+catalog_ -> event_
+integration_ -> stack_
+example_ -> stack_

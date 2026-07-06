@@ -77,11 +77,11 @@ Go's `go mod tidy` cannot separate test-only deps from production deps in a sing
 
 This is the core problem. `event/` contains:
 
-| Concern | What's in it | Who needs it |
-|---|---|---|
-| **Domain model** | `ImmutableEvent`, `NewEvent`, `Type`, `Metadata`, `Causality`, `SchemaVersion`, tombstone detection | Pure domain code (decider, deriver, command, query) |
-| **Error taxonomy** | `NewConflict`, `NewRejection`, `Wrapf`, `Classify`, `Transient`, `Conflict` — line-for-line re-export of `go-error-family` | **Every module that classifies errors** (30+ modules) |
-| **Infrastructure contracts** | `EventSink`, `EventSource`, `Store`, `Journal`, `SeekableJournal`, `Bus`, `Publisher`, `PublishMiddleware` | Storage and transport implementations |
+| Concern                      | What's in it                                                                                                               | Who needs it                                          |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| **Domain model**             | `ImmutableEvent`, `NewEvent`, `Type`, `Metadata`, `Causality`, `SchemaVersion`, tombstone detection                        | Pure domain code (decider, deriver, command, query)   |
+| **Error taxonomy**           | `NewConflict`, `NewRejection`, `Wrapf`, `Classify`, `Transient`, `Conflict` — line-for-line re-export of `go-error-family` | **Every module that classifies errors** (30+ modules) |
+| **Infrastructure contracts** | `EventSink`, `EventSource`, `Store`, `Journal`, `SeekableJournal`, `Bus`, `Publisher`, `PublishMiddleware`                 | Storage and transport implementations                 |
 
 Every module that needs error classification pulls in the entire event domain model + event store/bus contracts. This is why `idempotency/` depends on `event/` — not for events, but for `event.NewConflict`.
 
@@ -99,11 +99,11 @@ func Classify(err error) Family            { return errorfamily.Classify(err) }
 
 This creates artificial coupling across the entire codebase:
 
-| Pattern | Modules | Count |
-|---|---|---|
-| **Import `event/` ONLY for error classification** | command, query, decider, middleware, signing, schema, snapshot, listing, deriver, scenario, projectionhost, graph, idempotency, watermill, transport/http, transport/grpc, storage/*, stack/* | ~30 |
-| **Import `go-error-family` directly** (bypassing event/) | id, kv, codec, encryption, dispatcher, catalog, cmd/api-stability, cmd/cqrs-gen | 8 |
-| **Mixed** (both patterns in same module) | storage (1 file direct, 25 files via event/), query (1 file direct, 5 files via event/) | 2 |
+| Pattern                                                  | Modules                                                                                                                                                                                       | Count |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| **Import `event/` ONLY for error classification**        | command, query, decider, middleware, signing, schema, snapshot, listing, deriver, scenario, projectionhost, graph, idempotency, watermill, transport/http, transport/grpc, storage/_, stack/_ | ~30   |
+| **Import `go-error-family` directly** (bypassing event/) | id, kv, codec, encryption, dispatcher, catalog, cmd/api-stability, cmd/cqrs-gen                                                                                                               | 8     |
+| **Mixed** (both patterns in same module)                 | storage (1 file direct, 25 files via event/), query (1 file direct, 5 files via event/)                                                                                                       | 2     |
 
 The inconsistency tells the story: leaf modules that don't already depend on `event/` import `go-error-family` directly. Everything else routes through the re-export and picks up the full event domain model as baggage.
 
@@ -133,15 +133,15 @@ command/command.go:         event.WrapRejection(...)
 
 ### 2.5 The Fake Layer Summary
 
-| Module | Documented Layer | Actual Layer (by deps) | Why |
-|---|---|---|---|
-| `kv/` | 0 | 1 | Depends on `codec/` + `otter` |
-| `event/` | 1 | 2 (production) / 4 (declared) | Test deps leak into go.mod as direct |
-| `command/` | 1 | 2 | Depends on `event/` (Layer 2) + `storage/memory/` (Layer 4) |
-| `query/` | 1 | 2 | Depends on `event/` + `storage/memory/` |
-| `idempotency/` | 2 | 2 | Depends on `event/`, `kv/`, `command/` |
-| `scenario/` | 3 | 3 | OK |
-| `decider/` | 3 | 4 | Depends on `event/`, `snapshot/`, `otel/`, `storage/memory/` |
+| Module         | Documented Layer | Actual Layer (by deps)        | Why                                                          |
+| -------------- | ---------------- | ----------------------------- | ------------------------------------------------------------ |
+| `kv/`          | 0                | 1                             | Depends on `codec/` + `otter`                                |
+| `event/`       | 1                | 2 (production) / 4 (declared) | Test deps leak into go.mod as direct                         |
+| `command/`     | 1                | 2                             | Depends on `event/` (Layer 2) + `storage/memory/` (Layer 4)  |
+| `query/`       | 1                | 2                             | Depends on `event/` + `storage/memory/`                      |
+| `idempotency/` | 2                | 2                             | Depends on `event/`, `kv/`, `command/`                       |
+| `scenario/`    | 3                | 3                             | OK                                                           |
+| `decider/`     | 3                | 4                             | Depends on `event/`, `snapshot/`, `otel/`, `storage/memory/` |
 
 ---
 
@@ -180,16 +180,16 @@ command/command.go:         event.WrapRejection(...)
 
 **Who needs what:**
 
-| Consumer | Needs domain model? | Needs error taxonomy? | Needs infrastructure contracts? |
-|---|---|---|---|
-| `decider/` | Yes (Event type) | Yes (error wrapping) | Yes (Store, to load/save) |
-| `command/` | Partially (AggregateRef) | Yes (error wrapping) | No |
-| `query/` | No | Yes (error wrapping) | No |
-| `idempotency/` | No | Yes (error wrapping) | No |
-| `middleware/` | Partially (Event type for EventTracing) | Yes (error wrapping) | No |
-| `signing/` | Yes (Event payload, ImmutableEvent) | Yes (error wrapping) | No |
-| `storage/` | Yes (ImmutableEvent) | Yes (error wrapping) | Yes (implements Store) |
-| `kv/` | No | Yes (but imports go-error-family directly) | No |
+| Consumer       | Needs domain model?                     | Needs error taxonomy?                      | Needs infrastructure contracts? |
+| -------------- | --------------------------------------- | ------------------------------------------ | ------------------------------- |
+| `decider/`     | Yes (Event type)                        | Yes (error wrapping)                       | Yes (Store, to load/save)       |
+| `command/`     | Partially (AggregateRef)                | Yes (error wrapping)                       | No                              |
+| `query/`       | No                                      | Yes (error wrapping)                       | No                              |
+| `idempotency/` | No                                      | Yes (error wrapping)                       | No                              |
+| `middleware/`  | Partially (Event type for EventTracing) | Yes (error wrapping)                       | No                              |
+| `signing/`     | Yes (Event payload, ImmutableEvent)     | Yes (error wrapping)                       | No                              |
+| `storage/`     | Yes (ImmutableEvent)                    | Yes (error wrapping)                       | Yes (implements Store)          |
+| `kv/`          | No                                      | Yes (but imports go-error-family directly) | No                              |
 
 Only `storage/` needs all three. Most modules need one or two. But the package boundary forces all-or-nothing.
 
@@ -282,20 +282,20 @@ DOMAIN TIER
 
 **The biggest single change.** Split `event/` into:
 
-| New package | Contains | Deps |
-|---|---|---|
-| `event/` (slimmed) | `ImmutableEvent`, `NewEvent`, `Type`, `Metadata`, `Causality`, `SchemaVersion`, `AggregateRef`, tombstone, `CloneEvent`, `PayloadReadOnly` | `id/`, `codec/`, `go-error-family` |
-| `store/` (new) | `EventSink`, `EventSource`, `Store`, `Journal`, `SeekableJournal`, `BackwardsSource`, `EventStore` (facade), `MemoryStore` (in-memory impl) | `event/` |
-| `bus/` (new) | `Bus`, `Publisher`, `PublishMiddleware`, `EventBus`, `MemoryBus` | `event/` |
+| New package        | Contains                                                                                                                                    | Deps                               |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| `event/` (slimmed) | `ImmutableEvent`, `NewEvent`, `Type`, `Metadata`, `Causality`, `SchemaVersion`, `AggregateRef`, tombstone, `CloneEvent`, `PayloadReadOnly`  | `id/`, `codec/`, `go-error-family` |
+| `store/` (new)     | `EventSink`, `EventSource`, `Store`, `Journal`, `SeekableJournal`, `BackwardsSource`, `EventStore` (facade), `MemoryStore` (in-memory impl) | `event/`                           |
+| `bus/` (new)       | `Bus`, `Publisher`, `PublishMiddleware`, `EventBus`, `MemoryBus`                                                                            | `event/`                           |
 
 Wait — `MemoryStore` and `MemoryBus` are currently in `storage/memory/`. Let me reconsider.
 
 Actually, the cleanest split is:
 
-| Package | Contains |
-|---|---|
-| `event/` | Domain model only: `ImmutableEvent`, `NewEvent`, `Type`, `Metadata`, etc. + the Sink/Source/Store/Bus **interfaces** (they're just interfaces, they belong with the domain types) |
-| `errors/` | Error taxonomy re-export (or use `go-error-family` directly everywhere) |
+| Package   | Contains                                                                                                                                                                          |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `event/`  | Domain model only: `ImmutableEvent`, `NewEvent`, `Type`, `Metadata`, etc. + the Sink/Source/Store/Bus **interfaces** (they're just interfaces, they belong with the domain types) |
+| `errors/` | Error taxonomy re-export (or use `go-error-family` directly everywhere)                                                                                                           |
 
 The interfaces (`EventSink`, `EventSource`, etc.) are **domain contracts** — they define what an event store IS, not how it's implemented. They belong in `event/`. The implementations belong in infrastructure.
 
@@ -313,10 +313,10 @@ AFTER:  30+ modules → go-error-family (direct)
 
 **Two options:**
 
-| Option | Description | Cost | Benefit |
-|---|---|---|---|
+| Option                                 | Description                                                                                                                        | Cost                                        | Benefit                                                                                    |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------ |
 | **A: Import go-error-family directly** | Every module that currently does `event.NewConflict(...)` changes to `errorfamily.NewConflict(...)`. `event/errors.go` is deleted. | ~50 files changed (mechanical find-replace) | Zero new modules. Coupling eliminated. Consistent with the 8 modules that already do this. |
-| **B: Create `errors/` module** | New thin module that re-exports go-error-family with CQRS-specific defaults. Every module imports `errors/v3` instead of `event/`. | New module + ~50 files changed | Single import point. Can add CQRS-specific error helpers. But... it's still a re-export. |
+| **B: Create `errors/` module**         | New thin module that re-exports go-error-family with CQRS-specific defaults. Every module imports `errors/v3` instead of `event/`. | New module + ~50 files changed              | Single import point. Can add CQRS-specific error helpers. But... it's still a re-export.   |
 
 **Recommendation: Option A.** A re-export module is just indirection. `go-error-family` IS the error taxonomy — it already has the right API. The 8 modules that import it directly prove the pattern works. Adding a CQRS-specific wrapper adds a layer without adding value.
 
@@ -324,10 +324,10 @@ AFTER:  30+ modules → go-error-family (direct)
 
 Split `kv/` into raw and typed layers:
 
-| Package | Contains | Deps |
-|---|---|---|
-| `kv/` (raw) | `Store`, `Reader`, `Writer`, `Iterator`, `Batch`, `ConditionalWriter`, `MemStore`, `ErrNotFound`, `ErrClosed` | `go-error-family` only |
-| `kv/typed/` (new sub-package) | `TypedStore[T,K]`, `Cache[T,K]`, `ViewStore[V,K]`, `ViewQuery`, `ViewQuerier`, `Condition`, `Operator` | `kv/`, `codec/`, `otter` |
+| Package                       | Contains                                                                                                      | Deps                     |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------ |
+| `kv/` (raw)                   | `Store`, `Reader`, `Writer`, `Iterator`, `Batch`, `ConditionalWriter`, `MemStore`, `ErrNotFound`, `ErrClosed` | `go-error-family` only   |
+| `kv/typed/` (new sub-package) | `TypedStore[T,K]`, `Cache[T,K]`, `ViewStore[V,K]`, `ViewQuery`, `ViewQuerier`, `Condition`, `Operator`        | `kv/`, `codec/`, `otter` |
 
 This makes `kv/` a true Layer 0 leaf module. The typed layer is explicitly higher-level.
 
@@ -389,15 +389,16 @@ COMPOSITION TIER
 
 ### 4.8 Key Differences From Current
 
-| Change | Impact | Effort |
-|---|---|---|
-| **Error taxonomy: `event.*` → `go-error-family` direct** | 30+ modules shed their artificial `event/` dep | ~50 files mechanical find-replace |
-| **`kv/` split into raw + typed** | `kv/` becomes true Layer 0; typed concerns explicit | Move `typed_store.go`, `cache.go`, `view_store.go` to sub-package |
-| **`command/` stops depending on `event/` for errors** | Still depends on `event/` for `AggregateRef` (legitimate) | Mechanical: `event.NewRejection` → `errorfamily.NewRejection` |
-| **`query/` stops depending on `event/`** entirely** | Query has no domain coupling to events — it was ALL error classification | Mechanical: already started in `query/store.go` |
-| **`idempotency/` merges into `middleware/idempotency/`** | See dedicated plan | Separate execution plan |
+| Change                                                   | Impact                                                                   | Effort                                                            |
+| -------------------------------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| **Error taxonomy: `event.*` → `go-error-family` direct** | 30+ modules shed their artificial `event/` dep                           | ~50 files mechanical find-replace                                 |
+| **`kv/` split into raw + typed**                         | `kv/` becomes true Layer 0; typed concerns explicit                      | Move `typed_store.go`, `cache.go`, `view_store.go` to sub-package |
+| **`command/` stops depending on `event/` for errors**    | Still depends on `event/` for `AggregateRef` (legitimate)                | Mechanical: `event.NewRejection` → `errorfamily.NewRejection`     |
+| **`query/` stops depending on `event/`** entirely\*\*    | Query has no domain coupling to events — it was ALL error classification | Mechanical: already started in `query/store.go`                   |
+| **`idempotency/` merges into `middleware/idempotency/`** | See dedicated plan                                                       | Separate execution plan                                           |
 
 **`query/` is the most interesting case.** If we extract the error taxonomy, `query/` has **zero dependency on `event/`**. This means:
+
 - `query/` and `event/` are independent domain concerns
 - A consumer can use query dispatch without pulling in the event sourcing machinery
 - This validates the CQRS separation: commands and queries don't need events
@@ -449,13 +450,13 @@ See [`2026-07-06_IDEMPOTENCY_MERGE_PLAN.md`](2026-07-06_IDEMPOTENCY_MERGE_PLAN.m
 
 ## 6. What NOT to Change
 
-| Thing | Why it stays |
-|---|---|
+| Thing                                                        | Why it stays                                                                                                                                                                                                                                                         |
+| ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `event/` contains both domain types AND store/bus interfaces | Interfaces are domain contracts, not implementations. Moving them to a separate `store/` package adds a module boundary without adding clarity — every event consumer needs both. The problem was never "Store is in event/" — it was "error taxonomy is in event/". |
-| `command/` depends on `event/` for `AggregateRef` | This is legitimate domain coupling. Commands target aggregates. `AggregateRef` is the shared vocabulary. |
-| `decider/` depends on `event/` + `snapshot/` | Legitimate — the decider loads events from a store and snapshots state. This is the core ES pattern. |
-| `dedup/` as a separate Layer 0 leaf | It IS a true leaf (zero deps). Different concern from idempotency (ring buffer vs TTL store). Correctly separate. |
-| Multi-module workspace (`go.work`) | Each module having its own `go.mod` is a deliberate design choice for consumer import isolation. The workspace ties them together for development. This is correct. |
+| `command/` depends on `event/` for `AggregateRef`            | This is legitimate domain coupling. Commands target aggregates. `AggregateRef` is the shared vocabulary.                                                                                                                                                             |
+| `decider/` depends on `event/` + `snapshot/`                 | Legitimate — the decider loads events from a store and snapshots state. This is the core ES pattern.                                                                                                                                                                 |
+| `dedup/` as a separate Layer 0 leaf                          | It IS a true leaf (zero deps). Different concern from idempotency (ring buffer vs TTL store). Correctly separate.                                                                                                                                                    |
+| Multi-module workspace (`go.work`)                           | Each module having its own `go.mod` is a deliberate design choice for consumer import isolation. The workspace ties them together for development. This is correct.                                                                                                  |
 
 ---
 
@@ -463,14 +464,14 @@ See [`2026-07-06_IDEMPOTENCY_MERGE_PLAN.md`](2026-07-06_IDEMPOTENCY_MERGE_PLAN.m
 
 **Is this refactoring worth it?**
 
-| Argument FOR | Argument AGAINST |
-|---|---|
-| 30+ modules have artificial coupling to `event/` | It works today. The coupling doesn't cause runtime bugs. |
-| Error taxonomy trap makes every new module carry event baggage | Consumers don't see the coupling — they import what they need. |
-| `kv/` Layer 0 claim is false and misleading | Just fix the AGENTS.md text, don't restructure. |
-| Phase 1 (error taxonomy) is ~50 file mechanical change for 80% of the benefit | 50 files is a lot of churn for "just change the import path." |
-| `query/` could become truly independent of `event/` | `query/` already works — who cares if it imports `event/`? |
-| Sets up clean v4 boundaries | v4 is not planned. |
+| Argument FOR                                                                  | Argument AGAINST                                               |
+| ----------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| 30+ modules have artificial coupling to `event/`                              | It works today. The coupling doesn't cause runtime bugs.       |
+| Error taxonomy trap makes every new module carry event baggage                | Consumers don't see the coupling — they import what they need. |
+| `kv/` Layer 0 claim is false and misleading                                   | Just fix the AGENTS.md text, don't restructure.                |
+| Phase 1 (error taxonomy) is ~50 file mechanical change for 80% of the benefit | 50 files is a lot of churn for "just change the import path."  |
+| `query/` could become truly independent of `event/`                           | `query/` already works — who cares if it imports `event/`?     |
+| Sets up clean v4 boundaries                                                   | v4 is not planned.                                             |
 
 **My recommendation:** Phase 1 (extract error taxonomy) is worth doing. The coupling is real, the fix is mechanical, and it unblocks independent use of query/command without event baggage. The rest is nice-to-have documentation cleanup.
 
@@ -541,25 +542,25 @@ example/getting-started/  decider/, event/, id/, kv/, stack/sqlite/, stack/, sto
 
 Every `.go` file (non-test) that calls `event.*` error functions, grouped by module:
 
-| Module | Files using event.* errors | Should use go-error-family directly? |
-|---|---|---|
-| `command/` | 8 files | YES — only `AggregateRef` is legitimate event coupling |
-| `query/` | 5 files | YES — zero legitimate event coupling (already started) |
-| `decider/` | 3 files | YES — error wrapping only |
-| `middleware/` | 9 files | YES — error wrapping only |
-| `signing/` | 10 files | YES — error wrapping only |
-| `schema/` | 5 files | YES — error wrapping only |
-| `snapshot/` | 3 files | YES — error wrapping only |
-| `listing/` | 3 files | YES — error wrapping only |
-| `idempotency/` | 3 files | YES — being merged into middleware/ |
-| `storage/` | ~25 files | YES — error wrapping only |
-| `watermill/` | ~12 files | YES — error wrapping only |
-| `transport/http/` | 2 files | YES — error wrapping only |
-| `transport/grpc/` | 7 files | YES — error wrapping only |
-| `projectionhost/` | 2 files | YES — error wrapping only |
-| `deriver/` | 1 file | YES — error wrapping only |
-| `scenario/` | 1 file | YES — error wrapping only |
-| `graph/` | 4 files | YES — error wrapping only |
-| `stack/*` | ~20 files | YES — error wrapping only |
-| `example/*` | 4 files | YES — error wrapping only |
-| **Total** | **~129 files** | |
+| Module            | Files using event.\* errors | Should use go-error-family directly?                   |
+| ----------------- | --------------------------- | ------------------------------------------------------ |
+| `command/`        | 8 files                     | YES — only `AggregateRef` is legitimate event coupling |
+| `query/`          | 5 files                     | YES — zero legitimate event coupling (already started) |
+| `decider/`        | 3 files                     | YES — error wrapping only                              |
+| `middleware/`     | 9 files                     | YES — error wrapping only                              |
+| `signing/`        | 10 files                    | YES — error wrapping only                              |
+| `schema/`         | 5 files                     | YES — error wrapping only                              |
+| `snapshot/`       | 3 files                     | YES — error wrapping only                              |
+| `listing/`        | 3 files                     | YES — error wrapping only                              |
+| `idempotency/`    | 3 files                     | YES — being merged into middleware/                    |
+| `storage/`        | ~25 files                   | YES — error wrapping only                              |
+| `watermill/`      | ~12 files                   | YES — error wrapping only                              |
+| `transport/http/` | 2 files                     | YES — error wrapping only                              |
+| `transport/grpc/` | 7 files                     | YES — error wrapping only                              |
+| `projectionhost/` | 2 files                     | YES — error wrapping only                              |
+| `deriver/`        | 1 file                      | YES — error wrapping only                              |
+| `scenario/`       | 1 file                      | YES — error wrapping only                              |
+| `graph/`          | 4 files                     | YES — error wrapping only                              |
+| `stack/*`         | ~20 files                   | YES — error wrapping only                              |
+| `example/*`       | 4 files                     | YES — error wrapping only                              |
+| **Total**         | **~129 files**              |                                                        |

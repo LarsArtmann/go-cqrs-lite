@@ -1,0 +1,191 @@
+direction: down
+layout: elk
+
+# Title
+title: |md
+  # go-cqrs-lite: Target Architecture (Four Tiers)
+  Domain → Infrastructure → Operations → Composition.
+  Error taxonomy extracted; kv/ split into raw + typed.
+| {style.font-size: 22}
+
+# ============================================================
+# DOMAIN TIER
+# ============================================================
+DOMAIN_TIER: {
+  label: "DOMAIN TIER — Pure domain model + contracts. No backend knowledge."
+  style.fill: "#e8f5e9"
+  style.stroke: "#2e7d32"
+
+  Primitives: {
+    label: "Primitives (zero internal deps)"
+    style.fill: "#c8e6c9"
+
+    id__: "id/" {style.fill: white}
+    codec__: "codec/" {style.fill: white}
+    kv_raw: "kv/ (raw)\nStore, Reader, Writer\nTRUE Layer 0" {
+      style.fill: white
+      style.bold: true
+    }
+  }
+
+  MessageTypes: {
+    label: "Message Types (depend on primitives)"
+    style.fill: "#a5d6a7"
+
+    event__: "event/ (slimmed)\nImmutableEvent, NewEvent\nMetadata, AggregateRef\n+ Store/Bus INTERFACES\n(domain contracts)" {
+      style.fill: white
+    }
+    command__: "command/\nCommand, AggregateRef"
+    query__: "query/\nQuery, Type\n(NO event/ dependency!)"
+  }
+
+  DomainLogic: {
+    label: "Domain Logic (depend on types + contracts)"
+    style.fill: "#81c784"
+
+    dispatcher__: "dispatcher/"
+    decider__: "decider/"
+    deriver__: "deriver/"
+    projection__: "projection/"
+    schema__: "schema/"
+    snapshot__: "snapshot/"
+  }
+}
+
+# ============================================================
+# INFRASTRUCTURE TIER
+# ============================================================
+INFRASTRUCTURE_TIER: {
+  label: "INFRASTRUCTURE TIER — Implement contracts for specific backends"
+  style.fill: "#e3f2fd"
+  style.stroke: "#1565c0"
+
+  storage__: "storage/\n(+ sql/, view/, relational/)"
+  storage_pebble__: "storage/pebble/"
+  storage_turso__: "storage/turso/"
+  storage_memory__: "storage/memory/"
+  transport_http__: "transport/http/"
+  transport_grpc__: "transport/grpc/"
+  watermill__: "watermill/"
+}
+
+# ============================================================
+# OPERATIONS TIER
+# ============================================================
+OPERATIONS_TIER: {
+  label: "OPERATIONS TIER — Cross-cutting concerns across the system"
+  style.fill: "#fff3e0"
+  style.stroke: "#e65100"
+
+  middleware__: "middleware/\n+ idempotency/ sub-package"
+  otel__: "otel/"
+  prometheus__: "prometheus/"
+  signing__: "signing/"
+  encryption__: "encryption/"
+  projectionhost__: "projectionhost/"
+  listing__: "listing/"
+  scheduling__: "scheduling/"
+}
+
+# ============================================================
+# COMPOSITION TIER
+# ============================================================
+COMPOSITION_TIER: {
+  label: "COMPOSITION TIER — Wire everything together for the consumer"
+  style.fill: "#f3e5f5"
+  style.stroke: "#6a1b9a"
+
+  stack__: "stack/\n(+ sqlite/, postgres/,\npebble/, memory/)"
+  catalog__: "catalog/"
+  scenario__: "scenario/"
+  testutil__: "testutil/"
+  cmd__: "cmd/"
+  example__: "example/"
+}
+
+# ============================================================
+# EXTERNAL — error taxonomy now direct
+# ============================================================
+go_error_family__: "go-error-family\n(external — imported DIRECTLY\nby every module that\nclassifies errors)" {
+  style.fill: "#fff9c4"
+  style.stroke: "#f57f17"
+  style.bold: true
+}
+
+# ============================================================
+# THE FIX: direct error imports (no more event/ re-export)
+# ============================================================
+# Primitives → error family directly
+id__ -> go_error_family__: "direct" {style.stroke: "#2e7d32"; style.bold: true}
+codec__ -> go_error_family__: "direct" {style.stroke: "#2e7d32"; style.bold: true}
+kv_raw -> go_error_family__: "direct" {style.stroke: "#2e7d32"; style.bold: true}
+
+# Message types → error family directly (no more event/errors.go)
+event__ -> go_error_family__: "direct" {style.stroke: "#2e7d32"; style.bold: true}
+command__ -> go_error_family__: "direct" {style.stroke: "#2e7d32"; style.bold: true}
+query__ -> go_error_family__: "direct" {style.stroke: "#2e7d32"; style.bold: true}
+
+# Domain logic → error family directly
+schema__ -> go_error_family__: "direct" {style.stroke: "#2e7d32"}
+decider__ -> go_error_family__: "direct" {style.stroke: "#2e7d32"}
+
+# Operations → error family directly
+middleware__ -> go_error_family__: "direct" {style.stroke: "#2e7d32"}
+signing__ -> go_error_family__: "direct" {style.stroke: "#2e7d32"}
+
+# ============================================================
+# LEGITIMATE DOMAIN EDGES (clean, no error-taxonomy baggage)
+# ============================================================
+event__ -> id__: "branded IDs"
+event__ -> codec__: "payload encoding"
+
+command__ -> id__: "AggregateRef\n(shared vocab)"
+command__ -> event__: "AggregateRef\n(legitimate domain)"
+
+query__ -> dispatcher__: "dispatch"
+query__ -> id__: "branded IDs"
+
+deriver__ -> command__
+deriver__ -> event__
+decider__ -> event__
+decider__ -> snapshot__
+schema__ -> event__
+snapshot__ -> event__
+projection__ -> event__
+dispatcher__ -> id__
+
+# ============================================================
+# CROSS-TIER (upward only)
+# ============================================================
+storage__ -> event__: "implements\nStore contract"
+storage_memory__ -> event__
+storage_pebble__ -> storage__
+storage_turso__ -> storage__
+transport_http__ -> event__
+transport_grpc__ -> command__
+transport_grpc__ -> event__
+transport_grpc__ -> query__
+watermill__ -> event__
+watermill__ -> command__
+
+middleware__ -> command__: "typed middleware"
+middleware__ -> event__
+middleware__ -> query__
+signing__ -> event__
+encryption__ -> event__
+encryption__ -> codec__
+projectionhost__ -> event__
+projectionhost__ -> projection__
+listing__ -> event__
+otel__ -> id__
+
+stack__ -> storage__
+stack__ -> decider__
+stack__ -> middleware__
+stack__ -> watermill__
+catalog__ -> event__
+scenario__ -> event__
+scenario__ -> projection__
+testutil__ -> event__
+example__ -> stack__
+cmd__ -> stack__
