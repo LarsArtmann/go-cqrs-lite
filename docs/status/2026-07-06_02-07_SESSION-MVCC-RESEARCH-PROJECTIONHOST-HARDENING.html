@@ -46,14 +46,29 @@
         --teal: var(--solution);
 
         --radius: 0px;
-        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
       }
 
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      html { scroll-behavior: smooth; }
-      section[id], [id] { scroll-margin-top: 60px; }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
 
       body {
         background: var(--surface);
@@ -65,7 +80,10 @@
         -moz-osx-font-smoothing: grayscale;
       }
 
-      :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
 
       .top-bar {
         background: var(--text);
@@ -81,177 +99,496 @@
         align-items: center;
       }
 
-      .layout { display: flex; gap: 2.5rem; padding: 2rem; }
-      .sidebar {
-        width: 220px; flex-shrink: 0; position: sticky; top: 1rem;
-        align-self: flex-start; height: calc(100vh - 2rem);
-        overflow-y: auto; display: none;
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
       }
-      .sidebar nav { display: flex; flex-direction: column; gap: 0; }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
       .sidebar .label {
-        font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700;
-        text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent);
-        margin-bottom: 0.75rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border-strong);
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
       }
       .sidebar a {
-        font-size: 0.85rem; color: var(--text-muted); text-decoration: none;
-        padding: 0.45rem 0.75rem; border-left: 2px solid transparent;
-        transition: all 0.15s ease; line-height: 1.4; font-weight: 500;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
       }
-      .sidebar a:hover, .sidebar a.active {
-        color: var(--accent); border-left-color: var(--accent);
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
         background: color-mix(in srgb, var(--accent) 8%, transparent);
       }
-      .main { flex: 1; min-width: 0; }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
 
-      h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -0.02em; }
-      h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.1; margin: 0 0 0.6rem; }
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
       h2 {
-        font-size: 1.4rem; margin: 2.5rem 0 1rem; padding-bottom: 0.4rem;
-        border-bottom: 2px solid var(--border-strong); display: flex; align-items: baseline; gap: 0.6rem;
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
       }
-      h2 .num { font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent); font-weight: 700; letter-spacing: 0.06em; }
-      h3 { font-size: 1.1rem; margin: 0 0 0.4rem; font-weight: 700; }
-      h4 { font-size: 0.98rem; margin: 0 0 0.3rem; font-weight: 700; }
-      p { margin: 0 0 1rem; }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
 
-      .hero { padding: 1.5rem 0 1.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border-strong); }
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
       .hero-badge {
-        display: inline-block; font-family: var(--font-mono); font-size: 0.7rem;
-        font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em;
-        color: var(--surface); background: var(--accent); padding: 0.3rem 0.7rem; margin-bottom: 0.9rem;
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
       }
-      .hero-subtitle { font-size: 1.05rem; color: var(--text-muted); max-width: 70ch; margin: 0; }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
 
-      .hero-shapes { position: relative; height: 80px; margin-bottom: 1rem; }
-      .hero-shapes .circle { position: absolute; top: 0; left: 0; width: 56px; height: 56px; background: var(--problem); border-radius: 50%; }
-      .hero-shapes .square { position: absolute; top: 24px; left: 72px; width: 48px; height: 48px; background: var(--solution); }
-      .hero-shapes .tri { position: absolute; top: 8px; left: 140px; width: 0; height: 0; border-left: 28px solid transparent; border-right: 28px solid transparent; border-bottom: 48px solid var(--warning); }
+      .hero-shapes {
+        position: relative;
+        height: 80px;
+        margin-bottom: 1rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 24px;
+        left: 72px;
+        width: 48px;
+        height: 48px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        left: 140px;
+        width: 0;
+        height: 0;
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 48px solid var(--warning);
+      }
 
       .card {
-        background: var(--surface-raised); border: 1px solid var(--border);
-        padding: 1.1rem 1.3rem; margin-bottom: 1rem; border-left: 4px solid var(--border-strong);
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
       }
-      .card-problem { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised)); }
-      .card-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised)); }
-      .card-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised)); }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
 
       .issue {
-        background: var(--surface-raised); border: 1px solid var(--border);
-        padding: 1.1rem 1.3rem; margin-bottom: 1rem; border-left: 4px solid var(--border-strong);
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
       }
-      .issue-critical { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised)); }
-      .issue-important { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised)); }
-      .issue-nice { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised)); }
-      .issue h3 { margin-bottom: 0.3rem; }
-      .issue .where { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-faint); margin: 0.2rem 0 0.6rem; }
-      .issue p:last-child { margin-bottom: 0; }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
 
       .severity {
-        display: inline-block; font-family: var(--font-mono); font-size: 0.62rem;
-        font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-        padding: 0.2rem 0.55rem; margin-bottom: 0.6rem; color: var(--surface);
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
       }
-      .severity-critical { background: var(--problem); }
-      .severity-important { background: var(--warning); }
-      .severity-nice { background: var(--solution); }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
 
       .badge {
-        display: inline-block; font-family: var(--font-mono); font-size: 0.62rem;
-        font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
-        padding: 0.18rem 0.5rem; border: 1px solid var(--border-strong); color: var(--text-muted);
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
       }
-      .badge-critical { color: var(--problem); border-color: var(--problem); }
-      .badge-high { color: var(--warning); border-color: var(--warning); }
-      .badge-medium { color: var(--accent); border-color: var(--accent); }
-      .badge-low { color: var(--text-muted); }
-      .badge-fixed { color: var(--solution); border-color: var(--solution); }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
 
       .callout {
-        margin: 0.8rem 0 0; padding: 0.7rem 0.9rem; border-left: 3px solid var(--border-strong);
-        background: color-mix(in srgb, var(--text) 5%, transparent); font-size: 0.9rem;
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
       }
-      .callout strong { display: inline-block; margin-right: 0.4rem; }
-      .callout-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 10%, transparent); }
-      .callout-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 10%, transparent); }
-      .callout-problem { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 10%, transparent); }
-
-      .stat-grid, .scorecard {
-        display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 0.75rem; margin: 1rem 0 1.5rem;
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
       }
-      .stat-card, .score-card {
-        background: var(--surface-raised); border: 1px solid var(--border);
-        padding: 1.1rem 1rem; position: relative;
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
       }
-      .stat-card::before, .score-card::before {
-        content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--border-strong);
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
       }
-      .stat-bad::before, .score-bad::before { background: var(--problem); }
-      .stat-good::before, .score-good::before { background: var(--solution); }
-      .stat-warn::before, .score-warn::before { background: var(--warning); }
-      .stat-value, .score {
-        font-family: var(--font-heading); font-size: 2rem; font-weight: 800;
-        line-height: 1; letter-spacing: -0.03em; color: var(--text);
-      }
-      .stat-bad .stat-value, .score-bad .score { color: var(--problem); }
-      .stat-good .stat-value, .score-good .score { color: var(--solution); }
-      .stat-warn .stat-value, .score-warn .score { color: var(--warning); }
-      .stat-label, .score-card .label {
-        font-family: var(--font-mono); font-size: 0.65rem; font-weight: 600;
-        text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-faint); margin-top: 0.5rem;
+      .callout-problem {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 10%, transparent);
       }
 
-      .strengths { display: grid; gap: 0.5rem; margin: 1rem 0 1.5rem; }
+      .stat-grid,
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card,
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before,
+      .score-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad::before,
+      .score-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before,
+      .score-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before,
+      .score-warn::before {
+        background: var(--warning);
+      }
+      .stat-value,
+      .score {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value,
+      .score-bad .score {
+        color: var(--problem);
+      }
+      .stat-good .stat-value,
+      .score-good .score {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value,
+      .score-warn .score {
+        color: var(--warning);
+      }
+      .stat-label,
+      .score-card .label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
       .strength {
-        display: grid; grid-template-columns: auto 1fr; gap: 0.8rem;
-        padding: 0.7rem 0; border-bottom: 1px solid var(--border);
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
       }
-      .strength .check { font-family: var(--font-mono); font-weight: 700; color: var(--solution); font-size: 1.1rem; line-height: 1.4; }
-      .strength .text strong { display: block; margin-bottom: 0.15rem; }
-      .strength .text span { color: var(--text-muted); font-size: 0.9rem; }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
 
-      .table-wrap { overflow-x: auto; }
-      table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.9rem; }
-      th {
-        text-align: left; padding: 0.6rem 0.9rem; background: var(--surface-raised);
-        color: var(--text-faint); font-family: var(--font-mono); font-size: 0.66rem;
-        font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border-bottom: 1px solid var(--border-strong);
+      .table-wrap {
+        overflow-x: auto;
       }
-      td { padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); }
-      tr:hover td { background: var(--surface-raised); }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
 
       pre {
-        background: var(--surface-sunken); border: 1px solid var(--border);
-        padding: 1rem 1.2rem; margin: 1rem 0; font-family: var(--font-mono);
-        font-size: 0.82rem; line-height: 1.65; overflow-x: auto;
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
       }
-      code { font-family: var(--font-mono); }
-      p code, li code, td code { font-size: 0.88em; background: var(--surface-sunken); padding: 0.1rem 0.35rem; }
-      .tok-comment { color: var(--text-faint); font-style: italic; }
-      .tok-keyword { color: var(--accent); }
-      .tok-string { color: var(--solution); }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-comment {
+        color: var(--text-faint);
+        font-style: italic;
+      }
+      .tok-keyword {
+        color: var(--accent);
+      }
+      .tok-string {
+        color: var(--solution);
+      }
 
       .toc {
-        background: var(--surface-raised); border: 1px solid var(--border);
-        border-left: 3px solid var(--accent); padding: 1rem 1.3rem; margin: 1rem 0 1.5rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
       }
-      .toc h3 { margin-bottom: 0.5rem; }
-      .toc ul { list-style: none; padding: 0; }
-      .toc li { margin: 0.25rem 0; }
-      .toc a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; }
-      .toc a:hover { color: var(--accent); }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
 
       .footer {
-        margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border);
-        font-size: 0.8rem; color: var(--text-faint); font-family: var(--font-mono);
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
       }
 
-      @media (min-width: 1024px) { .sidebar { display: block; } }
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
       @media (max-width: 768px) {
-        .layout { flex-direction: column; padding: 1rem; }
-        .top-bar { padding: 0.6rem 1rem; flex-wrap: wrap; gap: 0.3rem; }
-        .stat-grid, .scorecard { grid-template-columns: repeat(2, 1fr); }
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .stat-grid,
+        .scorecard {
+          grid-template-columns: repeat(2, 1fr);
+        }
       }
     </style>
   </head>
@@ -287,9 +624,10 @@
           <div class="hero-badge">Session Status</div>
           <h1>Turso MVCC Research + Projectionhost Hardening + Docs Sweep</h1>
           <p class="hero-subtitle">
-            Three work streams collided in the working tree: a completed Turso/LibSQL docs rebrand (committed),
-            an in-flight projectionhost production hardening (9/13 tasks coded, uncommitted), and a
-            MaxOpenConns/MVCC research deep-dive with documentation (this session).
+            Three work streams collided in the working tree: a completed Turso/LibSQL docs rebrand
+            (committed), an in-flight projectionhost production hardening (9/13 tasks coded,
+            uncommitted), and a MaxOpenConns/MVCC research deep-dive with documentation (this
+            session).
           </p>
         </div>
 
@@ -331,11 +669,12 @@
         <div class="card card-solution">
           <h4>Session scope</h4>
           <p>
-            <strong>This session</strong> (the conversation you're reading) did two things: (1) researched whether
-            <code>MaxOpenConns=1</code> is still needed with the Turso MVCC engine, and (2) documented the findings
-            in <code>TODO_LIST.md</code> and <code>storage/sqlite_helpers.go</code>.
-            <strong>A concurrent session</strong> did the Turso docs rebrand (committed) and started the
-            projectionhost production hardening (9/13 tasks coded, uncommitted).
+            <strong>This session</strong> (the conversation you're reading) did two things: (1)
+            researched whether <code>MaxOpenConns=1</code> is still needed with the Turso MVCC
+            engine, and (2) documented the findings in <code>TODO_LIST.md</code> and
+            <code>storage/sqlite_helpers.go</code>. <strong>A concurrent session</strong> did the
+            Turso docs rebrand (committed) and started the projectionhost production hardening (9/13
+            tasks coded, uncommitted).
           </p>
         </div>
 
@@ -347,32 +686,38 @@
           <h3>MaxOpenConns=1 research &mdash; definitive answer</h3>
           <div class="where">storage/sqlite_helpers.go, TODO_LIST.md</div>
           <p>
-            Researched Turso's concurrency model via official docs and blog posts. <strong>Verdict:
-            <code>MaxOpenConns=1</code> is still the correct default.</strong> The Turso Database engine defaults
-            to WAL mode, which &mdash; like SQLite WAL &mdash; serializes writes through a single exclusive lock.
-            MVCC mode exists but is experimental, requires <code>BEGIN CONCURRENT</code> (not <code>BEGIN</code>),
-            and needs application-level conflict-retry logic. Not actionable today.
+            Researched Turso's concurrency model via official docs and blog posts.
+            <strong>Verdict: <code>MaxOpenConns=1</code> is still the correct default.</strong> The
+            Turso Database engine defaults to WAL mode, which &mdash; like SQLite WAL &mdash;
+            serializes writes through a single exclusive lock. MVCC mode exists but is experimental,
+            requires <code>BEGIN CONCURRENT</code> (not <code>BEGIN</code>), and needs
+            application-level conflict-retry logic. Not actionable today.
           </p>
           <div class="callout callout-solution">
             <strong>Delivered</strong>
-            Comprehensive comment on <code>ConfigureTursoPool</code> explaining WAL-mode rationale, read-concurrency
-            tradeoff, and MVCC path forward. TODO_LIST.md entry with <code>[BLOCKED UPSTREAM]</code> tag and unblock criteria.
+            Comprehensive comment on <code>ConfigureTursoPool</code> explaining WAL-mode rationale,
+            read-concurrency tradeoff, and MVCC path forward. TODO_LIST.md entry with
+            <code>[BLOCKED UPSTREAM]</code> tag and unblock criteria.
           </div>
         </div>
 
         <div class="issue issue-nice">
           <span class="severity severity-nice">Verified</span>
           <h3>Turso/LibSQL docs rebrand (committed prior)</h3>
-          <div class="where">commit 2f3b0875 — 28+ files across 11 Go sources, 17 markdown, 4 skill docs</div>
+          <div class="where">
+            commit 2f3b0875 — 28+ files across 11 Go sources, 17 markdown, 4 skill docs
+          </div>
           <p>
             All "LibSQL" prose branding swept to "Turso Database". URL examples changed from
-            <code>libsql://</code> to <code>https://</code>. Historical docs (archive, ADR, research)
-            intentionally left untouched. Bug fix: <code>STORAGE_GUIDE.md</code> was passing a URL to
-            <code>turso.Open()</code> which takes a <code>DbPath</code> (file path).
+            <code>libsql://</code> to <code>https://</code>. Historical docs (archive, ADR,
+            research) intentionally left untouched. Bug fix: <code>STORAGE_GUIDE.md</code> was
+            passing a URL to <code>turso.Open()</code> which takes a <code>DbPath</code> (file
+            path).
           </p>
           <div class="callout callout-solution">
             <strong>Verified</strong>
-            Build clean, tests pass (<code>-race</code>), doc-check reports "All 790 references valid across 34 package(s)".
+            Build clean, tests pass (<code>-race</code>), doc-check reports "All 790 references
+            valid across 34 package(s)".
           </div>
         </div>
 
@@ -382,11 +727,15 @@
         <div class="issue issue-important">
           <span class="severity severity-important">In-Flight</span>
           <h3>Projectionhost production hardening (9/13 tasks coded, 0 committed)</h3>
-          <div class="where">projectionhost/ — host.go, worker.go, options.go, metrics.go, metrics_test.go, go.mod, go.sum</div>
+          <div class="where">
+            projectionhost/ — host.go, worker.go, options.go, metrics.go, metrics_test.go, go.mod,
+            go.sum
+          </div>
           <p>
-            A 13-task hardening plan was created and partially executed. <strong>9 of 13 tasks are coded
-            in the working tree but uncommitted.</strong> The code builds and tests pass via <code>go.work</code>
-            (2.0s, <code>-race</code>). But there are significant gaps:
+            A 13-task hardening plan was created and partially executed.
+            <strong>9 of 13 tasks are coded in the working tree but uncommitted.</strong> The code
+            builds and tests pass via <code>go.work</code> (2.0s, <code>-race</code>). But there are
+            significant gaps:
           </p>
 
           <table>
@@ -468,10 +817,11 @@
 
           <div class="callout callout-warning">
             <strong>Tests missing for new features</strong>
-            Zero test functions exist for: <code>OnFailed</code> callback, <code>WithShutdownTimeout</code>,
-            <code>Reset</code> method, <code>typeSet</code> O(1) lookup, OTel tracing spans, or the M1
-            checkpoint-failure-return-error fix. The <code>WorkerFailed</code> metric has a mock implementation
-            in <code>metrics_test.go</code> but no test that exercises the path.
+            Zero test functions exist for: <code>OnFailed</code> callback,
+            <code>WithShutdownTimeout</code>, <code>Reset</code> method, <code>typeSet</code> O(1)
+            lookup, OTel tracing spans, or the M1 checkpoint-failure-return-error fix. The
+            <code>WorkerFailed</code> metric has a mock implementation in
+            <code>metrics_test.go</code> but no test that exercises the path.
           </div>
         </div>
 
@@ -481,26 +831,27 @@
         <div class="card card-warning">
           <h4>M10: Startup jitter</h4>
           <p>
-            Random 0&ndash;100ms delay before each <code>go w.run()</code> to avoid thundering herd on multi-projection
-            startup. Not implemented. <code>worker.go</code> already has backoff jitter (exponential + full jitter),
-            but that's different from startup jitter.
+            Random 0&ndash;100ms delay before each <code>go w.run()</code> to avoid thundering herd
+            on multi-projection startup. Not implemented. <code>worker.go</code> already has backoff
+            jitter (exponential + full jitter), but that's different from startup jitter.
           </p>
         </div>
 
         <div class="card card-warning">
           <h4>M11: Integration test for checkpoint failure</h4>
           <p>
-            No test proves that M1 (live checkpoint error now returns error instead of being swallowed) causes a
-            worker restart. This was the highest-value test in the plan.
+            No test proves that M1 (live checkpoint error now returns error instead of being
+            swallowed) causes a worker restart. This was the highest-value test in the plan.
           </p>
         </div>
 
         <div class="card card-warning">
           <h4>M12: Documentation update</h4>
           <p>
-            <code>doc.go</code> has zero mentions of any new feature (<code>WithShutdownTimeout</code>,
-            <code>WithOnFailed</code>, <code>Reset</code>, <code>Resettable</code>, <code>WorkerFailed</code>,
-            OTel tracing). AGENTS.md, SKILL.md, and README are similarly untouched.
+            <code>doc.go</code> has zero mentions of any new feature
+            (<code>WithShutdownTimeout</code>, <code>WithOnFailed</code>, <code>Reset</code>,
+            <code>Resettable</code>, <code>WorkerFailed</code>, OTel tracing). AGENTS.md, SKILL.md,
+            and README are similarly untouched.
           </p>
         </div>
 
@@ -509,8 +860,8 @@
           <p>
             <code>go test ./projectionhost/... -race</code> passes via go.work, but
             <code>GOWORK=off go test</code> fails with a stale <code>go.sum</code> entry (missing
-            <code>scheduling/v3</code>). <code>nix run .#lint</code> and <code>nix run .#build</code> have
-            not been run on the full repo.
+            <code>scheduling/v3</code>). <code>nix run .#lint</code> and
+            <code>nix run .#build</code> have not been run on the full repo.
           </p>
         </div>
 
@@ -522,39 +873,45 @@
           <h3>go.sum is broken for GOWORK=off builds</h3>
           <div class="where">projectionhost/go.sum — missing scheduling/v3 entry</div>
           <p>
-            <code>GOWORK=off go test ./projectionhost/...</code> fails: "missing go.sum entry for module providing
-            package <code>github.com/larsartmann/go-cqrs-lite/scheduling/v3</code>". This is because
-            <code>storage/</code> imports <code>scheduling/</code> (via <code>timer_store.go</code>), and the
-            replace directive in <code>projectionhost/go.mod</code> points to <code>../dedup</code> but the
-            go.sum wasn't regenerated with <code>go mod tidy</code>.
+            <code>GOWORK=off go test ./projectionhost/...</code> fails: "missing go.sum entry for
+            module providing package
+            <code>github.com/larsartmann/go-cqrs-lite/scheduling/v3</code>". This is because
+            <code>storage/</code> imports <code>scheduling/</code> (via
+            <code>timer_store.go</code>), and the replace directive in
+            <code>projectionhost/go.mod</code> points to <code>../dedup</code> but the go.sum wasn't
+            regenerated with <code>go mod tidy</code>.
           </p>
           <p>
             <strong>Impact:</strong> CI (which uses <code>GOWORK=off</code> per-module) will fail on
-            projectionhost. This is a <strong>release blocker</strong> if the projectionhost changes are
-            committed without fixing go.sum.
+            projectionhost. This is a <strong>release blocker</strong> if the projectionhost changes
+            are committed without fixing go.sum.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            Run <code>cd projectionhost && GOWORK=off go mod tidy</code> to regenerate go.sum with all
-            transitive replace-directive deps.
+            Run <code>cd projectionhost && GOWORK=off go mod tidy</code> to regenerate go.sum with
+            all transitive replace-directive deps.
           </div>
         </div>
 
         <div class="issue issue-critical">
           <span class="severity severity-critical">Fucked Up</span>
           <h3>Zero tests for 7 new projectionhost features</h3>
-          <div class="where">projectionhost/*_test.go — no coverage for M1, M3, M4, M5, M6, M8, M9</div>
+          <div class="where">
+            projectionhost/*_test.go — no coverage for M1, M3, M4, M5, M6, M8, M9
+          </div>
           <p>
-            The concurrent session coded 7 new features but wrote <strong>zero tests</strong> for any of them.
-            The only test change is adding <code>WorkerFailed</code> to the mock in <code>metrics_test.go</code> —
-            and even that has no test exercising the path. For a library that bills itself as
-            "the last loop every consumer rewrites," shipping untested lifecycle code is dangerous.
+            The concurrent session coded 7 new features but wrote <strong>zero tests</strong> for
+            any of them. The only test change is adding <code>WorkerFailed</code> to the mock in
+            <code>metrics_test.go</code> — and even that has no test exercising the path. For a
+            library that bills itself as "the last loop every consumer rewrites," shipping untested
+            lifecycle code is dangerous.
           </p>
           <div class="callout callout-warning">
             <strong>Risk</strong>
-            The M1 fix (checkpoint error now returns error) changes the live-processing contract. If a worker
-            doesn't actually restart on checkpoint failure, the fix is worse than the original — it turns a
-            logged warning into a silent worker death with no test to catch the regression.
+            The M1 fix (checkpoint error now returns error) changes the live-processing contract. If
+            a worker doesn't actually restart on checkpoint failure, the fix is worse than the
+            original — it turns a logged warning into a silent worker death with no test to catch
+            the regression.
           </div>
         </div>
 
@@ -566,46 +923,57 @@
             <div class="check">!</div>
             <div class="text">
               <strong>Test-first discipline for the projectionhost session</strong>
-              <span>7 features coded with zero tests. This is the biggest quality debt in the working tree. Every
-                M-task in the plan had test tasks (F3, F13, F18, F26, F30, F37&ndash;F38, F43, F47) &mdash; none were
-                executed.</span>
+              <span
+                >7 features coded with zero tests. This is the biggest quality debt in the working
+                tree. Every M-task in the plan had test tasks (F3, F13, F18, F26, F30,
+                F37&ndash;F38, F43, F47) &mdash; none were executed.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">!</div>
             <div class="text">
               <strong>go.sum hygiene after adding replace directives</strong>
-              <span>When adding <code>dedup/v3 => ../dedup</code> to projectionhost/go.mod, the session didn't run
-                <code>go mod tidy</code> with <code>GOWORK=off</code>. CI uses <code>GOWORK=off</code> per-module,
-                so this would fail.</span>
+              <span
+                >When adding <code>dedup/v3 => ../dedup</code> to projectionhost/go.mod, the session
+                didn't run <code>go mod tidy</code> with <code>GOWORK=off</code>. CI uses
+                <code>GOWORK=off</code> per-module, so this would fail.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">!</div>
             <div class="text">
               <strong>Commit granularity &mdash; too much uncommitted at once</strong>
-              <span>9 features across 7 files, all uncommitted, intermingled with my MaxOpenConns documentation
-                changes. Should be split into logical commits (bug fixes vs features vs docs) before
-                committing.</span>
+              <span
+                >9 features across 7 files, all uncommitted, intermingled with my MaxOpenConns
+                documentation changes. Should be split into logical commits (bug fixes vs features
+                vs docs) before committing.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">!</div>
             <div class="text">
               <strong>doc.go is stale &mdash; package docs don't mention any new API</strong>
-              <span><code>projectionhost/doc.go</code> is 27 lines. It describes the basic Start/Stop/Register
-                flow but has zero mentions of <code>WithShutdownTimeout</code>, <code>WithOnFailed</code>,
-                <code>Reset</code>, <code>Resettable</code>, or OTel tracing. Consumers reading the package docs
-                won't know these features exist.</span>
+              <span
+                ><code>projectionhost/doc.go</code> is 27 lines. It describes the basic
+                Start/Stop/Register flow but has zero mentions of <code>WithShutdownTimeout</code>,
+                <code>WithOnFailed</code>, <code>Reset</code>, <code>Resettable</code>, or OTel
+                tracing. Consumers reading the package docs won't know these features exist.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>MaxOpenConns research was thorough and well-documented</strong>
-              <span>The research went deep (3 agentic_fetch calls, official docs + blog posts), produced a
-                definitive answer, and was documented in two places (code comment + TODO_LIST) with unblock
-                criteria. This is how research tasks should be handled.</span>
+              <span
+                >The research went deep (3 agentic_fetch calls, official docs + blog posts),
+                produced a definitive answer, and was documented in two places (code comment +
+                TODO_LIST) with unblock criteria. This is how research tasks should be
+                handled.</span
+              >
             </div>
           </div>
         </div>
@@ -613,194 +981,262 @@
         <!-- Next 25 Tasks -->
         <h2 id="next"><span class="num">06</span>Top 25 Next Tasks</h2>
         <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Task</th>
-              <th>Impact</th>
-              <th>Effort</th>
-              <th>Tier</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>1</td>
-              <td><strong>Fix projectionhost go.sum</strong> &mdash; <code>cd projectionhost && GOWORK=off go mod tidy</code></td>
-              <td><span class="badge badge-critical">Critical</span></td>
-              <td>5min</td>
-              <td>CI blocker</td>
-            </tr>
-            <tr>
-              <td>2</td>
-              <td><strong>Write M1 test</strong> &mdash; checkpoint save failure in live mode returns error &amp; triggers restart</td>
-              <td><span class="badge badge-critical">Critical</span></td>
-              <td>30min</td>
-              <td>Correctness</td>
-            </tr>
-            <tr>
-              <td>3</td>
-              <td><strong>Write M4 test</strong> &mdash; <code>WithShutdownTimeout</code> custom value is respected</td>
-              <td><span class="badge badge-high">High</span></td>
-              <td>15min</td>
-              <td>Contract</td>
-            </tr>
-            <tr>
-              <td>4</td>
-              <td><strong>Write M6 test</strong> &mdash; <code>OnFailed</code> fires on max-restarts-exhausted</td>
-              <td><span class="badge badge-high">High</span></td>
-              <td>20min</td>
-              <td>Contract</td>
-            </tr>
-            <tr>
-              <td>5</td>
-              <td><strong>Write M8 test</strong> &mdash; <code>Reset(name)</code> drops checkpoint &amp; projection state</td>
-              <td><span class="badge badge-high">High</span></td>
-              <td>30min</td>
-              <td>Contract</td>
-            </tr>
-            <tr>
-              <td>6</td>
-              <td><strong>Write M9 test</strong> &mdash; typeSet correctly filters events by type</td>
-              <td><span class="badge badge-medium">Medium</span></td>
-              <td>15min</td>
-              <td>Regression</td>
-            </tr>
-            <tr>
-              <td>7</td>
-              <td><strong>Update projectionhost/doc.go</strong> &mdash; document all new options and types</td>
-              <td><span class="badge badge-high">High</span></td>
-              <td>30min</td>
-              <td>Docs</td>
-            </tr>
-            <tr>
-              <td>8</td>
-              <td><strong>Split and commit projectionhost work</strong> &mdash; separate bug fixes (M1, M2) from features (M3-M9)</td>
-              <td><span class="badge badge-critical">Critical</span></td>
-              <td>20min</td>
-              <td>Hygiene</td>
-            </tr>
-            <tr>
-              <td>9</td>
-              <td><strong>Commit MaxOpenConns documentation</strong> &mdash; TODO_LIST.md + sqlite_helpers.go</td>
-              <td><span class="badge badge-medium">Medium</span></td>
-              <td>5min</td>
-              <td>Hygiene</td>
-            </tr>
-            <tr>
-              <td>10</td>
-              <td><strong>M10: Startup jitter</strong> &mdash; 0&ndash;100ms random delay before <code>go w.run()</code></td>
-              <td><span class="badge badge-low">Low</span></td>
-              <td>15min</td>
-              <td>Polish</td>
-            </tr>
-            <tr>
-              <td>11</td>
-              <td><strong>Run <code>nix run .#lint</code></strong> on full repo after projectionhost changes</td>
-              <td><span class="badge badge-high">High</span></td>
-              <td>10min</td>
-              <td>Verification</td>
-            </tr>
-            <tr>
-              <td>12</td>
-              <td><strong>Run <code>nix run .#test</code></strong> on full repo</td>
-              <td><span class="badge badge-high">High</span></td>
-              <td>15min</td>
-              <td>Verification</td>
-            </tr>
-            <tr>
-              <td>13</td>
-              <td><strong>Update AGENTS.md projectionhost description</strong> with new features</td>
-              <td><span class="badge badge-medium">Medium</span></td>
-              <td>10min</td>
-              <td>Docs</td>
-            </tr>
-            <tr>
-              <td>14</td>
-              <td><strong>Update SKILL.md modules.md</strong> with projectionhost new API</td>
-              <td><span class="badge badge-medium">Medium</span></td>
-              <td>5min</td>
-              <td>Docs</td>
-            </tr>
-            <tr>
-              <td>15</td>
-              <td><strong>Run doc-check</strong> after all doc updates</td>
-              <td><span class="badge badge-medium">Medium</span></td>
-              <td>5min</td>
-              <td>Verification</td>
-            </tr>
-            <tr>
-              <td>16</td>
-              <td><strong>Update API surface golden file</strong> (<code>api-stability</code>) for new exports</td>
-              <td><span class="badge badge-high">High</span></td>
-              <td>10min</td>
-              <td>Contract</td>
-            </tr>
-            <tr>
-              <td>17</td>
-              <td><strong>Add projectionhost README.md</strong> if it doesn't exist, or update it</td>
-              <td><span class="badge badge-low">Low</span></td>
-              <td>20min</td>
-              <td>Docs</td>
-            </tr>
-            <tr>
-              <td>18</td>
-              <td><strong>Verify OTel spans</strong> &mdash; run with stdout exporter to confirm span names/attributes</td>
-              <td><span class="badge badge-medium">Medium</span></td>
-              <td>20min</td>
-              <td>Observability</td>
-            </tr>
-            <tr>
-              <td>19</td>
-              <td><strong>Update FEATURES.md</strong> with projectionhost production-hardening features</td>
-              <td><span class="badge badge-low">Low</span></td>
-              <td>15min</td>
-              <td>Docs</td>
-            </tr>
-            <tr>
-              <td>20</td>
-              <td><strong>Check if <code>Resettable</code> interface should be in <code>projection/</code> package</strong> instead of <code>projectionhost/</code></td>
-              <td><span class="badge badge-low">Low</span></td>
-              <td>15min</td>
-              <td>Architecture</td>
-            </tr>
-            <tr>
-              <td>21</td>
-              <td><strong>Stress test the dedup.Ring boundary</strong> &mdash; verify eviction doesn't cause replay→live duplicates</td>
-              <td><span class="badge badge-medium">Medium</span></td>
-              <td>30min</td>
-              <td>Correctness</td>
-            </tr>
-            <tr>
-              <td>22</td>
-              <td><strong>Run <code>nix run .#check-layers</code></strong> to verify dependency budgets with new OTel dep in projectionhost</td>
-              <td><span class="badge badge-medium">Medium</span></td>
-              <td>5min</td>
-              <td>Architecture</td>
-            </tr>
-            <tr>
-              <td>23</td>
-              <td><strong>Update example/taskmanager</strong> to demonstrate <code>WithOnFailed</code> and <code>Reset</code></td>
-              <td><span class="badge badge-low">Low</span></td>
-              <td>30min</td>
-              <td>Example</td>
-            </tr>
-            <tr>
-              <td>24</td>
-              <td><strong>Review whether M1's error-return change breaks existing consumers</strong> who depend on checkpoint-failure being non-fatal</td>
-              <td><span class="badge badge-medium">Medium</span></td>
-              <td>20min</td>
-              <td>Compatibility</td>
-            </tr>
-            <tr>
-              <td>25</td>
-              <td><strong>Write an ADR</strong> for the projectionhost production-hardening decisions (dedup.Ring, WorkerDraining, OnFailed, Reset)</td>
-              <td><span class="badge badge-low">Low</span></td>
-              <td>30min</td>
-              <td>Docs</td>
-            </tr>
-          </tbody>
-        </table>
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Task</th>
+                <th>Impact</th>
+                <th>Effort</th>
+                <th>Tier</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>
+                  <strong>Fix projectionhost go.sum</strong> &mdash;
+                  <code>cd projectionhost && GOWORK=off go mod tidy</code>
+                </td>
+                <td><span class="badge badge-critical">Critical</span></td>
+                <td>5min</td>
+                <td>CI blocker</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>
+                  <strong>Write M1 test</strong> &mdash; checkpoint save failure in live mode
+                  returns error &amp; triggers restart
+                </td>
+                <td><span class="badge badge-critical">Critical</span></td>
+                <td>30min</td>
+                <td>Correctness</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>
+                  <strong>Write M4 test</strong> &mdash; <code>WithShutdownTimeout</code> custom
+                  value is respected
+                </td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>15min</td>
+                <td>Contract</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>
+                  <strong>Write M6 test</strong> &mdash; <code>OnFailed</code> fires on
+                  max-restarts-exhausted
+                </td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>20min</td>
+                <td>Contract</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>
+                  <strong>Write M8 test</strong> &mdash; <code>Reset(name)</code> drops checkpoint
+                  &amp; projection state
+                </td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>30min</td>
+                <td>Contract</td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>
+                  <strong>Write M9 test</strong> &mdash; typeSet correctly filters events by type
+                </td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>15min</td>
+                <td>Regression</td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td>
+                  <strong>Update projectionhost/doc.go</strong> &mdash; document all new options and
+                  types
+                </td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>30min</td>
+                <td>Docs</td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td>
+                  <strong>Split and commit projectionhost work</strong> &mdash; separate bug fixes
+                  (M1, M2) from features (M3-M9)
+                </td>
+                <td><span class="badge badge-critical">Critical</span></td>
+                <td>20min</td>
+                <td>Hygiene</td>
+              </tr>
+              <tr>
+                <td>9</td>
+                <td>
+                  <strong>Commit MaxOpenConns documentation</strong> &mdash; TODO_LIST.md +
+                  sqlite_helpers.go
+                </td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>5min</td>
+                <td>Hygiene</td>
+              </tr>
+              <tr>
+                <td>10</td>
+                <td>
+                  <strong>M10: Startup jitter</strong> &mdash; 0&ndash;100ms random delay before
+                  <code>go w.run()</code>
+                </td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>15min</td>
+                <td>Polish</td>
+              </tr>
+              <tr>
+                <td>11</td>
+                <td>
+                  <strong>Run <code>nix run .#lint</code></strong> on full repo after projectionhost
+                  changes
+                </td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>10min</td>
+                <td>Verification</td>
+              </tr>
+              <tr>
+                <td>12</td>
+                <td>
+                  <strong>Run <code>nix run .#test</code></strong> on full repo
+                </td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>15min</td>
+                <td>Verification</td>
+              </tr>
+              <tr>
+                <td>13</td>
+                <td>
+                  <strong>Update AGENTS.md projectionhost description</strong> with new features
+                </td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>10min</td>
+                <td>Docs</td>
+              </tr>
+              <tr>
+                <td>14</td>
+                <td><strong>Update SKILL.md modules.md</strong> with projectionhost new API</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>5min</td>
+                <td>Docs</td>
+              </tr>
+              <tr>
+                <td>15</td>
+                <td><strong>Run doc-check</strong> after all doc updates</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>5min</td>
+                <td>Verification</td>
+              </tr>
+              <tr>
+                <td>16</td>
+                <td>
+                  <strong>Update API surface golden file</strong> (<code>api-stability</code>) for
+                  new exports
+                </td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>10min</td>
+                <td>Contract</td>
+              </tr>
+              <tr>
+                <td>17</td>
+                <td>
+                  <strong>Add projectionhost README.md</strong> if it doesn't exist, or update it
+                </td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>20min</td>
+                <td>Docs</td>
+              </tr>
+              <tr>
+                <td>18</td>
+                <td>
+                  <strong>Verify OTel spans</strong> &mdash; run with stdout exporter to confirm
+                  span names/attributes
+                </td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>20min</td>
+                <td>Observability</td>
+              </tr>
+              <tr>
+                <td>19</td>
+                <td>
+                  <strong>Update FEATURES.md</strong> with projectionhost production-hardening
+                  features
+                </td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>15min</td>
+                <td>Docs</td>
+              </tr>
+              <tr>
+                <td>20</td>
+                <td>
+                  <strong
+                    >Check if <code>Resettable</code> interface should be in
+                    <code>projection/</code> package</strong
+                  >
+                  instead of <code>projectionhost/</code>
+                </td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>15min</td>
+                <td>Architecture</td>
+              </tr>
+              <tr>
+                <td>21</td>
+                <td>
+                  <strong>Stress test the dedup.Ring boundary</strong> &mdash; verify eviction
+                  doesn't cause replay→live duplicates
+                </td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>30min</td>
+                <td>Correctness</td>
+              </tr>
+              <tr>
+                <td>22</td>
+                <td>
+                  <strong>Run <code>nix run .#check-layers</code></strong> to verify dependency
+                  budgets with new OTel dep in projectionhost
+                </td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>5min</td>
+                <td>Architecture</td>
+              </tr>
+              <tr>
+                <td>23</td>
+                <td>
+                  <strong>Update example/taskmanager</strong> to demonstrate
+                  <code>WithOnFailed</code> and <code>Reset</code>
+                </td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>30min</td>
+                <td>Example</td>
+              </tr>
+              <tr>
+                <td>24</td>
+                <td>
+                  <strong>Review whether M1's error-return change breaks existing consumers</strong>
+                  who depend on checkpoint-failure being non-fatal
+                </td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>20min</td>
+                <td>Compatibility</td>
+              </tr>
+              <tr>
+                <td>25</td>
+                <td>
+                  <strong>Write an ADR</strong> for the projectionhost production-hardening
+                  decisions (dedup.Ring, WorkerDraining, OnFailed, Reset)
+                </td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>30min</td>
+                <td>Docs</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
         <!-- #1 Question -->
@@ -809,30 +1245,43 @@
         <div class="card card-problem">
           <h4>Is the M1 checkpoint-failure behavior change safe for existing consumers?</h4>
           <p>
-            The concurrent session changed <code>processLive</code> to return an error when checkpoint
-            <code>Save</code> fails (previously: <code>logger.Warn</code> + continue). This is the correct fix
-            for silent data loss &mdash; but it changes a runtime contract. A consumer whose checkpoint store
-            is flaky (e.g. a remote Postgres with intermittent connectivity) will now see their projection
-            worker <strong>die and restart</strong> on every checkpoint failure, instead of logging and moving on.
+            The concurrent session changed <code>processLive</code> to return an error when
+            checkpoint <code>Save</code> fails (previously: <code>logger.Warn</code> + continue).
+            This is the correct fix for silent data loss &mdash; but it changes a runtime contract.
+            A consumer whose checkpoint store is flaky (e.g. a remote Postgres with intermittent
+            connectivity) will now see their projection worker <strong>die and restart</strong> on
+            every checkpoint failure, instead of logging and moving on.
           </p>
           <p>
-            <strong>I cannot determine</strong> whether this is a breaking change for existing consumers without:
+            <strong>I cannot determine</strong> whether this is a breaking change for existing
+            consumers without:
           </p>
-          <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
-            <li>Knowing whether any consumer actually depends on the "swallow + continue" behavior</li>
-            <li>Understanding whether the restart loop (M1 error &rarr; backoff &rarr; restart &rarr; replay from last checkpoint &rarr; same failure) is better or worse than the old behavior for flaky checkpoint stores</li>
-            <li>Whether there should be a <code>WithLenientCheckpoint</code> option to preserve the old behavior for consumers who prefer availability over exactly-once checkpointing</li>
+          <ul style="margin-left: 1.5rem; margin-bottom: 1rem">
+            <li>
+              Knowing whether any consumer actually depends on the "swallow + continue" behavior
+            </li>
+            <li>
+              Understanding whether the restart loop (M1 error &rarr; backoff &rarr; restart &rarr;
+              replay from last checkpoint &rarr; same failure) is better or worse than the old
+              behavior for flaky checkpoint stores
+            </li>
+            <li>
+              Whether there should be a <code>WithLenientCheckpoint</code> option to preserve the
+              old behavior for consumers who prefer availability over exactly-once checkpointing
+            </li>
           </ul>
           <div class="callout callout-warning">
             <strong>Why this matters</strong>
-            This is a library, not an app. Changing runtime contracts without an option flag or migration path
-            violates the "would a consumer trust this enough to import it?" quality gate. The fix may be correct
-            for most consumers but hostile to consumers with eventually-consistent checkpoint stores.
+            This is a library, not an app. Changing runtime contracts without an option flag or
+            migration path violates the "would a consumer trust this enough to import it?" quality
+            gate. The fix may be correct for most consumers but hostile to consumers with
+            eventually-consistent checkpoint stores.
           </div>
         </div>
 
         <footer class="footer">
-          Generated 2026-07-06 02:07 &middot; Based on this session's work + working tree analysis &middot; No external research beyond Turso MVCC docs
+          Generated 2026-07-06 02:07 &middot; Based on this session's work + working tree analysis
+          &middot; No external research beyond Turso MVCC docs
         </footer>
       </main>
     </div>
@@ -847,7 +1296,9 @@
           return l.getAttribute("href").slice(1);
         });
         var sections = ids
-          .map(function (id) { return document.getElementById(id); })
+          .map(function (id) {
+            return document.getElementById(id);
+          })
           .filter(Boolean);
         if (!sections.length) return;
         var observer = new IntersectionObserver(
@@ -855,15 +1306,19 @@
             entries.forEach(function (entry) {
               if (entry.isIntersecting) {
                 links.forEach(function (link) {
-                  link.classList.toggle("active",
-                    link.getAttribute("href") === "#" + entry.target.id);
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
                 });
               }
             });
           },
-          { rootMargin: "-80px 0px -60% 0px", threshold: 0 }
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
         );
-        sections.forEach(function (s) { observer.observe(s); });
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
       })();
     </script>
   </body>

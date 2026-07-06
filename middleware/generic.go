@@ -81,8 +81,10 @@ func AsEvent(mw Middleware[event.Event]) event.Middleware {
 
 // AsQuery wraps a generic error-only Middleware for use with query handlers.
 // It captures the result from the query handler and propagates it through.
-func AsQuery(middleware Middleware[query.Query]) query.Middleware {
-	return func(next query.Handler) query.Handler {
+func AsQuery(
+	middleware Middleware[query.Query],
+) query.Middleware {
+	return func(next query.Handler) query.Handler { //nolint:staticcheck // pre-existing v3 API
 		return func(ctx context.Context, q query.Query) (any, error) {
 			var result any
 

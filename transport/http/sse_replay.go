@@ -65,7 +65,7 @@ func replayEvents(
 
 	budget := broker.replayByteBudget // <=0 = disabled (count-based batching only)
 
-	if broker.replayLimit > 0 {
+	if broker.replayLimit > 0 { //nolint:nestif // two-phase replay (bounded vs unlimited) is inherently nested
 		// Bounded replay: single call with the cap.
 		events, err := broker.journal.ReadFrom(ctx, afterID, broker.replayLimit)
 		if err != nil {
@@ -157,9 +157,11 @@ func replayEvents(
 	flusher.Flush()
 	span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrEventCount, totalReplayed))
 
+	durationMs := float64(time.Since(start).Microseconds()) / float64(time.Millisecond/time.Microsecond)
+
 	broker.replayMetrics.RecordReplay(
 		ctx,
-		float64(time.Since(start).Microseconds())/1000.0,
+		durationMs,
 		totalReplayed,
 		timedOut || byteBudgetExceeded,
 	)
@@ -178,7 +180,9 @@ func writeReplayBatchBounded(
 	events []event.Event,
 	replayed *dedup.Ring,
 	priorBytes, budget int,
-) (bytesWritten, eventsWritten int, budgetHit bool) {
+) (int, int, bool) {
+	var bytesWritten, eventsWritten int
+
 	for _, evt := range events {
 		data := string(event.PayloadReadOnly(evt))
 

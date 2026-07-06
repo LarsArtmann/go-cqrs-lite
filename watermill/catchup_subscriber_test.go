@@ -85,7 +85,7 @@ func TestCatchUpSubscriber_BatchedReplay(t *testing.T) {
 	const total = 1500
 	aggID := id.NewAggregateID()
 
-	var events []event.Event
+	events := make([]event.Event, 0, total)
 	for range total {
 		evt, _ := event.NewEvent(
 			event.Type("bulk.event"),

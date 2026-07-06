@@ -22,7 +22,7 @@ type ReplayMetrics struct {
 // handle it gracefully.
 func NewReplayMetrics(meter cqrsotel.Meter) (*ReplayMetrics, error) {
 	if meter == nil {
-		return nil, nil
+		return nil, nil //nolint:nilnil // nil meter = opt-out, nil metrics is the correct sentinel
 	}
 
 	duration, err := meter.Float64Histogram(

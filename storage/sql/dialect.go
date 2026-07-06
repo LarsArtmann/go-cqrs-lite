@@ -12,7 +12,7 @@ import (
 // Dialect abstracts SQL differences between database backends (PostgreSQL, SQLite).
 // Each store method delegates placeholder formatting and time handling to a Dialect,
 // eliminating the duplicated PostgreSQL/SQLite store pairs.
-type Dialect interface {
+type Dialect interface { //nolint:interfacebloat // each method returns a distinct schema DDL
 	Placeholder(index int) string
 	FormatTime(t time.Time) any
 	ScanTimeDest() any

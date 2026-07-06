@@ -80,7 +80,10 @@ func TestCommandDispatch_ServerSpanCarriesAttrs(t *testing.T) {
 		t.Fatalf("grpc.command.dispatch span not found, got: %v", names)
 	}
 
-	attrs := make(map[string]string, len(dispatch.Attributes))
+	attrs := make(
+		map[string]string,
+		len(dispatch.Attributes),
+	)
 	for _, kv := range dispatch.Attributes {
 		attrs[string(kv.Key)] = kv.Value.AsString()
 	}

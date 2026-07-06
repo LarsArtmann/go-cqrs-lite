@@ -67,6 +67,10 @@ const SSEReplayIncompleteEvent = "cqrs.replay.incomplete"
 // Applies only when replayLimit <= 0 (unlimited replay).
 func WithReplayByteBudget(bytes int) SSEBrokerOption {
 	return func(b *SSEBroker) {
+		if bytes <= 0 {
+			bytes = sseDefaultReplayByteBudget
+		}
+
 		b.replayByteBudget = bytes
 	}
 }
@@ -373,7 +377,7 @@ func (b *SSEBroker) sendToClient(c *sseClient, evt event.Event) bool {
 				return false
 			}
 		}
-	default: // dropNewest
+	case dropNewest: // default policy — drop the incoming event when full
 		select {
 		case c.ch <- evt:
 			return true
@@ -383,6 +387,8 @@ func (b *SSEBroker) sendToClient(c *sseClient, evt event.Event) bool {
 			return false
 		}
 	}
+
+	return false // unreachable — only two drop policies exist
 }
 
 const sseChannelBufSize = 100
