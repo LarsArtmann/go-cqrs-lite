@@ -1,7 +1,7 @@
 package graph
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Compile-time assertion: MemoryDriver implements ReadableDriver.
@@ -164,13 +164,13 @@ func (d *MemoryDriver) ShortestPath(from, target NodeRef) ([]NodeRef, error) {
 
 	fromKey, err := from.key()
 	if err != nil {
-		return nil, event.WrapRejection(err, "graph.shortest_path_from",
+		return nil, errorfamily.WrapRejection(err, "graph.shortest_path_from",
 			"parse shortest path from")
 	}
 
 	targetKey, err := target.key()
 	if err != nil {
-		return nil, event.WrapRejection(err, "graph.shortest_path_to",
+		return nil, errorfamily.WrapRejection(err, "graph.shortest_path_to",
 			"parse shortest path to")
 	}
 

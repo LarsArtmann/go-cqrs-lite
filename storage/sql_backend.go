@@ -5,7 +5,8 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
 )
@@ -43,7 +44,7 @@ func NewSQLBackendWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLBackend, error)
 func newSQLBackendWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLBackend, error) {
 	store, err := newSQLEventStoreWithDialect(db, d)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "backend.event_store", "event store")
+		return nil, errorfamily.WrapInfrastructure(err, "backend.event_store", "event store")
 	}
 
 	return &SQLBackend{store: store}, nil
@@ -64,7 +65,7 @@ func (b *SQLBackend) CommandStore() (*SQLCommandStore, error) {
 
 	store, err := newSQLCommandStoreWithDialect(b.store.DB, b.store.Dialect)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "backend.command_store", "command store")
+		return nil, errorfamily.WrapInfrastructure(err, "backend.command_store", "command store")
 	}
 
 	b.cmdStore = store
@@ -84,7 +85,7 @@ func (b *SQLBackend) QueryStore() (*SQLQueryStore, error) {
 
 	store, err := newSQLQueryStoreWithDialect(b.store.DB, b.store.Dialect)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "backend.query_store", "query store")
+		return nil, errorfamily.WrapInfrastructure(err, "backend.query_store", "query store")
 	}
 
 	b.queryStore = store
@@ -104,7 +105,7 @@ func (b *SQLBackend) SnapshotStore() (*SQLSnapshotStore, error) {
 
 	store, err := newSQLSnapshotStoreWithDialect(b.store.DB, b.store.Dialect)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "backend.snapshot_store", "snapshot store")
+		return nil, errorfamily.WrapInfrastructure(err, "backend.snapshot_store", "snapshot store")
 	}
 
 	b.snapStore = store
@@ -124,7 +125,11 @@ func (b *SQLBackend) CheckpointStore() (*SQLCheckpointStore, error) {
 
 	store, err := newSQLCheckpointStoreWithDialect(b.store.DB, b.store.Dialect)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "backend.checkpoint_store", "checkpoint store")
+		return nil, errorfamily.WrapInfrastructure(
+			err,
+			"backend.checkpoint_store",
+			"checkpoint store",
+		)
 	}
 
 	b.cpStore = store
@@ -147,7 +152,7 @@ func (b *SQLBackend) KVStore() (kv.Store, error) {
 
 	store, err := newSQLKVStoreWithDialect(b.store.DB, b.store.Dialect)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "backend.kv_store", "kv store")
+		return nil, errorfamily.WrapInfrastructure(err, "backend.kv_store", "kv store")
 	}
 
 	b.kvStore = store

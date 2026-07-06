@@ -3,9 +3,10 @@ package event_test
 import (
 	"testing"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/decider/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
@@ -14,15 +15,15 @@ import (
 func TestClassify_DeciderSentinels(t *testing.T) {
 	t.Parallel()
 
-	if event.Classify(decider.ErrNilApply) != event.Rejection {
+	if errorfamily.Classify(decider.ErrNilApply) != errorfamily.Rejection {
 		t.Error("decider.ErrNilApply should be Rejection")
 	}
 
-	if event.Classify(decider.ErrNilStore) != event.Infrastructure {
+	if errorfamily.Classify(decider.ErrNilStore) != errorfamily.Infrastructure {
 		t.Error("decider.ErrNilStore should be Infrastructure")
 	}
 
-	if event.Classify(decider.ErrNilBus) != event.Infrastructure {
+	if errorfamily.Classify(decider.ErrNilBus) != errorfamily.Infrastructure {
 		t.Error("decider.ErrNilBus should be Infrastructure")
 	}
 }
@@ -30,7 +31,7 @@ func TestClassify_DeciderSentinels(t *testing.T) {
 func TestClassify_StorageSentinels(t *testing.T) {
 	t.Parallel()
 
-	if event.Classify(storage.ErrNilDB) != event.Infrastructure {
+	if errorfamily.Classify(storage.ErrNilDB) != errorfamily.Infrastructure {
 		t.Error("storage.ErrNilDB should be Infrastructure")
 	}
 }
@@ -38,19 +39,19 @@ func TestClassify_StorageSentinels(t *testing.T) {
 func TestClassify_MiddlewareSentinels(t *testing.T) {
 	t.Parallel()
 
-	if event.Classify(middleware.ErrValidationFailed) != event.Rejection {
+	if errorfamily.Classify(middleware.ErrValidationFailed) != errorfamily.Rejection {
 		t.Error("middleware.ErrValidationFailed should be Rejection")
 	}
 
-	if event.Classify(middleware.ErrRetryExhausted) != event.Infrastructure {
+	if errorfamily.Classify(middleware.ErrRetryExhausted) != errorfamily.Infrastructure {
 		t.Error("middleware.ErrRetryExhausted should be Infrastructure")
 	}
 
-	if event.Classify(middleware.ErrRetryCanceled) != event.Infrastructure {
+	if errorfamily.Classify(middleware.ErrRetryCanceled) != errorfamily.Infrastructure {
 		t.Error("middleware.ErrRetryCanceled should be Infrastructure")
 	}
 
-	if event.Classify(middleware.ErrPanicRecovered) != event.Corruption {
+	if errorfamily.Classify(middleware.ErrPanicRecovered) != errorfamily.Corruption {
 		t.Error("middleware.ErrPanicRecovered should be Corruption")
 	}
 }
@@ -58,19 +59,19 @@ func TestClassify_MiddlewareSentinels(t *testing.T) {
 func TestClassify_CommandQuerySentinels(t *testing.T) {
 	t.Parallel()
 
-	if event.Classify(command.ErrHandlerNotFound) != event.Rejection {
+	if errorfamily.Classify(command.ErrHandlerNotFound) != errorfamily.Rejection {
 		t.Error("command.ErrHandlerNotFound should be Rejection")
 	}
 
-	if event.Classify(command.ErrDispatcherClosed) != event.Infrastructure {
+	if errorfamily.Classify(command.ErrDispatcherClosed) != errorfamily.Infrastructure {
 		t.Error("command.ErrDispatcherClosed should be Infrastructure")
 	}
 
-	if event.Classify(query.ErrHandlerNotFound) != event.Rejection {
+	if errorfamily.Classify(query.ErrHandlerNotFound) != errorfamily.Rejection {
 		t.Error("query.ErrHandlerNotFound should be Rejection")
 	}
 
-	if event.Classify(query.ErrDispatcherClosed) != event.Infrastructure {
+	if errorfamily.Classify(query.ErrDispatcherClosed) != errorfamily.Infrastructure {
 		t.Error("query.ErrDispatcherClosed should be Infrastructure")
 	}
 }

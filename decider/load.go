@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
@@ -84,7 +86,7 @@ func opError(
 	}
 
 	if len(errs) == 0 {
-		return event.Newf(event.Infrastructure, "decider.op_error", fmtMsg, args...)
+		return errorfamily.Newf(errorfamily.Infrastructure, "decider.op_error", fmtMsg, args...)
 	}
 
 	cause := errs[0]
@@ -92,7 +94,12 @@ func opError(
 		cause = errors.Join(errs...)
 	}
 
-	return event.Wrapf(cause, event.Classify(cause), "decider.op_error", fmtMsg, args...)
+	return errorfamily.Wrapf(
+		cause,
+		errorfamily.Classify(cause),
+		"decider.op_error",
+		fmtMsg,
+		args...)
 }
 
 // LoadAtVersion reconstructs state from events up to and including maxVersion.

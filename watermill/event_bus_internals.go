@@ -4,6 +4,8 @@ import (
 	"context"
 	"slices"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
@@ -12,7 +14,7 @@ func (b *EventBus) rebuildPublisherChain() {
 		for _, evt := range events {
 			msg := eventToMessage(evt)
 			if err := b.publisher.Publish(b.topic, msg); err != nil {
-				return event.WrapInfrastructure(err, "watermill.event_bus_publish",
+				return errorfamily.WrapInfrastructure(err, "watermill.event_bus_publish",
 					"publish to topic "+b.topic)
 			}
 		}

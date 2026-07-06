@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // SchemaChangeHook returns a hook that re-analyzes indexes when schema
@@ -38,7 +38,7 @@ func analyzeAfterSchemaChange(ctx context.Context, a *AutoIndexer) error {
 
 	recs, err := a.Recommendations(ctx)
 	if err != nil {
-		return event.WrapInfrastructure(err, "indexing.schema_change",
+		return errorfamily.WrapInfrastructure(err, "indexing.schema_change",
 			"analyze indexes after schema change")
 	}
 
@@ -60,25 +60,25 @@ func MigrateWithIndexing(
 ) error {
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
-		return event.WrapInfrastructure(err, "indexing.migrate",
+		return errorfamily.WrapInfrastructure(err, "indexing.migrate",
 			"begin migration transaction")
 	}
 
 	defer func() { _ = tx.Rollback() }()
 
 	if err := migration(ctx, tx); err != nil {
-		return event.WrapInfrastructure(err, "indexing.migrate",
+		return errorfamily.WrapInfrastructure(err, "indexing.migrate",
 			fmt.Sprintf("run migration: %v", err))
 	}
 
 	if err := tx.Commit(); err != nil {
-		return event.WrapInfrastructure(err, "indexing.migrate",
+		return errorfamily.WrapInfrastructure(err, "indexing.migrate",
 			"commit migration")
 	}
 
 	if autoIndexer != nil && autoIndexer.IsEnabled() {
 		if err := analyzeAfterSchemaChange(ctx, autoIndexer); err != nil {
-			return event.WrapInfrastructure(err, "indexing.migrate",
+			return errorfamily.WrapInfrastructure(err, "indexing.migrate",
 				"analyze indexes after migration")
 		}
 	}

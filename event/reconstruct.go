@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
@@ -28,7 +30,7 @@ func ReconstructEventFromFields(
 		string(eventType),
 	)
 	if err != nil {
-		return nil, WrapCorruption(
+		return nil, errorfamily.WrapCorruption(
 			err,
 			errCodePrefix+".metadata_unmarshal",
 			fmt.Sprintf(
@@ -63,7 +65,7 @@ func ReconstructEventFromFields(
 		opts...,
 	)
 	if err != nil {
-		return nil, WrapCorruption(err, errCodePrefix+".reconstruct_event",
+		return nil, errorfamily.WrapCorruption(err, errCodePrefix+".reconstruct_event",
 			"reconstruct event "+string(eventType))
 	}
 

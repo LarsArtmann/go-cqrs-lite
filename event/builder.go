@@ -3,6 +3,8 @@ package event
 import (
 	"slices"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
@@ -70,7 +72,7 @@ func (b *builder) Build() (*ImmutableEvent, error) {
 		b.payload,
 	)
 	if err != nil {
-		return nil, WrapCorruption(
+		return nil, errorfamily.WrapCorruption(
 			err,
 			"event.build_failed",
 			"build event "+string(b.eventType),

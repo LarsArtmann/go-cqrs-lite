@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 type queryPattern struct {
@@ -23,7 +23,13 @@ func (a *Advisor) explain(
 ) ([]PlanRow, error) {
 	rows, err := a.db.QueryContext(ctx, "EXPLAIN QUERY PLAN "+query, args...)
 	if err != nil {
-		return nil, event.Wrapf(err, event.Infrastructure, "turso.explain_query", "query=%v", query)
+		return nil, errorfamily.Wrapf(
+			err,
+			errorfamily.Infrastructure,
+			"turso.explain_query",
+			"query=%v",
+			query,
+		)
 	}
 
 	defer func() { _ = rows.Close() }()
@@ -36,7 +42,7 @@ func (a *Advisor) explain(
 		var notUsed int
 
 		if scanErr := rows.Scan(&row.ID, &row.Parent, &notUsed, &row.Detail); scanErr != nil {
-			return nil, event.WrapInfrastructure(scanErr, "indexing.scan_plan_row",
+			return nil, errorfamily.WrapInfrastructure(scanErr, "indexing.scan_plan_row",
 				"scan query plan row")
 		}
 
@@ -44,7 +50,7 @@ func (a *Advisor) explain(
 	}
 
 	if planErr := rows.Err(); planErr != nil {
-		return nil, event.WrapInfrastructure(planErr, "indexing.plan_rows",
+		return nil, errorfamily.WrapInfrastructure(planErr, "indexing.plan_rows",
 			"read query plan rows")
 	}
 
@@ -113,7 +119,7 @@ func (a *Advisor) userTables(ctx context.Context) ([]string, error) {
 	rows, err := a.db.QueryContext(ctx,
 		"SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'")
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "indexing.list_tables",
+		return nil, errorfamily.WrapInfrastructure(err, "indexing.list_tables",
 			"list user tables")
 	}
 
@@ -124,7 +130,7 @@ func (a *Advisor) userTables(ctx context.Context) ([]string, error) {
 	for rows.Next() {
 		var name string
 		if scanErr := rows.Scan(&name); scanErr != nil {
-			return nil, event.WrapInfrastructure(scanErr, "indexing.scan_table_name",
+			return nil, errorfamily.WrapInfrastructure(scanErr, "indexing.scan_table_name",
 				"scan table name")
 		}
 

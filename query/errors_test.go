@@ -3,7 +3,8 @@ package query_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
 )
 
@@ -13,22 +14,22 @@ func TestQueryErrors_Classification(t *testing.T) {
 	tests := []struct {
 		name string
 		err  error
-		want event.Family
+		want errorfamily.Family
 	}{
-		{"ErrHandlerNotFound", query.ErrHandlerNotFound, event.Rejection},
-		{"ErrDispatcherClosed", query.ErrDispatcherClosed, event.Infrastructure},
-		{"ErrEmptyQueryType", query.ErrEmptyQueryType, event.Rejection},
-		{"ErrTypeAssertion", query.ErrTypeAssertion, event.Rejection},
-		{"ErrStoreClosed", query.ErrStoreClosed, event.Infrastructure},
-		{"ErrQueryNotFound", query.ErrQueryNotFound, event.Rejection},
-		{"ErrDuplicateQuery", query.ErrDuplicateQuery, event.Conflict},
+		{"ErrHandlerNotFound", query.ErrHandlerNotFound, errorfamily.Rejection},
+		{"ErrDispatcherClosed", query.ErrDispatcherClosed, errorfamily.Infrastructure},
+		{"ErrEmptyQueryType", query.ErrEmptyQueryType, errorfamily.Rejection},
+		{"ErrTypeAssertion", query.ErrTypeAssertion, errorfamily.Rejection},
+		{"ErrStoreClosed", query.ErrStoreClosed, errorfamily.Infrastructure},
+		{"ErrQueryNotFound", query.ErrQueryNotFound, errorfamily.Rejection},
+		{"ErrDuplicateQuery", query.ErrDuplicateQuery, errorfamily.Conflict},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			if got := event.Classify(tc.err); got != tc.want {
+			if got := errorfamily.Classify(tc.err); got != tc.want {
 				t.Fatalf("Classify(%s) = %s, want %s", tc.name, got, tc.want)
 			}
 		})

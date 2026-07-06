@@ -5,8 +5,9 @@ import (
 	"errors"
 	"io"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/dispatcher/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // Dispatcher routes commands to their handlers.
@@ -43,7 +44,7 @@ func (d *Dispatcher) Register(cmdType Type, handler Handler) error {
 		},
 	)
 	if err != nil {
-		return event.WrapInfrastructure(
+		return errorfamily.WrapInfrastructure(
 			err,
 			"command.register_handler_failed",
 			"registering handler for command type "+string(cmdType),
@@ -63,16 +64,16 @@ func (d *Dispatcher) Dispatch(ctx context.Context, cmd Command) error {
 	wrapped, err := d.inner.Dispatch(string(cmd.Type()))
 	if err != nil {
 		if errors.Is(err, dispatcher.ErrHandlerNotFound) {
-			return event.WrapRejection(
+			return errorfamily.WrapRejection(
 				ErrHandlerNotFound,
 				"command.handler_not_found",
 				"handler not found for command type "+string(cmd.Type()),
 			)
 		}
 
-		return event.Wrap(
+		return errorfamily.Wrap(
 			err,
-			event.Classify(err),
+			errorfamily.Classify(err),
 			"command.handler_failed",
 			"command type "+string(cmd.Type()),
 		)
@@ -84,7 +85,7 @@ func (d *Dispatcher) Dispatch(ctx context.Context, cmd Command) error {
 func (d *Dispatcher) checkClosed(code, msg string) error {
 	err := d.inner.CheckClosed(ErrDispatcherClosed)
 	if err != nil {
-		return event.WrapInfrastructure(err, code, msg)
+		return errorfamily.WrapInfrastructure(err, code, msg)
 	}
 
 	return nil
@@ -94,7 +95,7 @@ func (d *Dispatcher) checkClosed(code, msg string) error {
 func (d *Dispatcher) Close() error {
 	err := d.inner.Close()
 	if err != nil {
-		return event.WrapInfrastructure(err, "command.dispatcher_close",
+		return errorfamily.WrapInfrastructure(err, "command.dispatcher_close",
 			"close command dispatcher")
 	}
 

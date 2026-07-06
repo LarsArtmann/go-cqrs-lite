@@ -4,6 +4,8 @@ import (
 	"slices"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/signing/v3"
 )
@@ -45,22 +47,25 @@ type SignatureEntry struct {
 // Validate checks that the signature entry has all required fields.
 func (e SignatureEntry) Validate() error {
 	if e.Actor == "" {
-		return event.NewRejection("signing.empty_actor", "signature entry actor cannot be empty")
+		return errorfamily.NewRejection(
+			"signing.empty_actor",
+			"signature entry actor cannot be empty",
+		)
 	}
 
 	if e.Algorithm == "" {
-		return event.NewRejection(
+		return errorfamily.NewRejection(
 			"signing.empty_algorithm",
 			"signature entry algorithm cannot be empty",
 		)
 	}
 
 	if e.Sig.IsZero() {
-		return event.NewRejection("signing.empty_sig", "signature entry sig cannot be empty")
+		return errorfamily.NewRejection("signing.empty_sig", "signature entry sig cannot be empty")
 	}
 
 	if e.SignedAt.IsZero() {
-		return event.NewRejection(
+		return errorfamily.NewRejection(
 			"signing.empty_signed_at",
 			"signature entry signedAt cannot be zero",
 		)

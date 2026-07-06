@@ -4,14 +4,15 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
 )
 
 func OpenSQLite(dbPath string) (*sql.DB, error) {
 	db, err := sql.Open("sqlite", dbPath+"?_loc=auto&_time_format=sqlite")
 	if err != nil {
-		return nil, event.WrapInfrastructure(
+		return nil, errorfamily.WrapInfrastructure(
 			err,
 			"storage.open_sqlite",
 			"open sqlite database at "+dbPath,
@@ -26,7 +27,7 @@ func execDDL(ctx context.Context, db *sql.DB, ddls []string) error {
 	for _, ddl := range ddls {
 		_, err := db.ExecContext(ctx, ddl)
 		if err != nil {
-			return event.WrapInfrastructure(err, "storage.exec_ddl", "exec DDL: "+ddl)
+			return errorfamily.WrapInfrastructure(err, "storage.exec_ddl", "exec DDL: "+ddl)
 		}
 	}
 	return nil
@@ -48,7 +49,7 @@ func SQLiteEnableWAL(ctx context.Context, db *sql.DB) error {
 	}
 	for _, pragma := range pragmas {
 		if _, err := db.ExecContext(ctx, pragma); err != nil {
-			return event.WrapInfrastructure(err, "storage.enable_wal", "exec "+pragma)
+			return errorfamily.WrapInfrastructure(err, "storage.enable_wal", "exec "+pragma)
 		}
 	}
 	return nil
@@ -63,7 +64,7 @@ func SQLiteEnableForeignKeys(ctx context.Context, db *sql.DB) error {
 	const pragma = "PRAGMA foreign_keys=ON"
 
 	if _, err := db.ExecContext(ctx, pragma); err != nil {
-		return event.WrapInfrastructure(err, "storage.enable_foreign_keys", "exec "+pragma)
+		return errorfamily.WrapInfrastructure(err, "storage.enable_foreign_keys", "exec "+pragma)
 	}
 
 	return nil
@@ -81,7 +82,11 @@ func SQLiteApplyOptimizations(ctx context.Context, db *sql.DB) error {
 	}
 	for _, pragma := range pragmas {
 		if _, err := db.ExecContext(ctx, pragma); err != nil {
-			return event.WrapInfrastructure(err, "storage.apply_optimizations", "exec "+pragma)
+			return errorfamily.WrapInfrastructure(
+				err,
+				"storage.apply_optimizations",
+				"exec "+pragma,
+			)
 		}
 	}
 	return nil

@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -37,7 +39,7 @@ func ScanSlice[T any](rows *sql.Rows, fn func(*sql.Rows) (T, error)) ([]T, error
 
 	err := rows.Err()
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "storage.iterate_rows",
+		return nil, errorfamily.WrapInfrastructure(err, "storage.iterate_rows",
 			"iterate rows")
 	}
 
@@ -74,7 +76,7 @@ func UnmarshalEventMetadata(data []byte, eventType string) ([]event.Option, erro
 func MarshalMetadata(m any) ([]byte, error) {
 	data, err := json.Marshal(m)
 	if err != nil {
-		return nil, event.WrapCorruption(err, "storage.marshal_metadata", "marshal metadata")
+		return nil, errorfamily.WrapCorruption(err, "storage.marshal_metadata", "marshal metadata")
 	}
 
 	return data, nil
@@ -84,7 +86,7 @@ func MarshalMetadata(m any) ([]byte, error) {
 func CommitTx(tx *sql.Tx) error {
 	err := tx.Commit()
 	if err != nil {
-		return event.WrapInfrastructure(err, "storage.commit_tx",
+		return errorfamily.WrapInfrastructure(err, "storage.commit_tx",
 			"commit transaction")
 	}
 

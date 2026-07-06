@@ -3,6 +3,8 @@ package middleware
 import (
 	"context"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
@@ -29,8 +31,8 @@ func NewValidation[M any](
 					)
 				}
 
-				return event.Wrapf(
-					err, event.Rejection,
+				return errorfamily.Wrapf(
+					err, errorfamily.Rejection,
 					"middleware."+adapter.Kind+"_validation",
 					"validation failed for %s %s",
 					adapter.Kind,

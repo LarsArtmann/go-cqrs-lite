@@ -1,11 +1,13 @@
 package schema
 
-import "github.com/larsartmann/go-cqrs-lite/event/v3"
+import (
+	errorfamily "github.com/larsartmann/go-error-family"
+)
 
 var (
 	// ErrNilStore is returned when a nil event.Store is passed to NewVersionedStore.
-	ErrNilStore = event.NewRejection("schema.nil_store", "store is required")
+	ErrNilStore = errorfamily.NewRejection("schema.nil_store", "store is required")
 
 	// ErrNilUpcaster is returned when an upcaster with a nil function is called.
-	ErrNilUpcaster = event.NewRejection("schema.nil_upcaster", "upcaster function is nil")
+	ErrNilUpcaster = errorfamily.NewRejection("schema.nil_upcaster", "upcaster function is nil")
 )

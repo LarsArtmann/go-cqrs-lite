@@ -6,9 +6,8 @@ import (
 	"testing"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	tursoclient "turso.tech/database/tursogo"
-
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // fakeSyncEngine is a test double for syncEngine. Each method returns the
@@ -222,12 +221,12 @@ func TestSyncDB_SyncClient_NilForTestConstructor(t *testing.T) {
 // isInfraError reports whether err is classified as an Infrastructure error.
 func isInfraError(t *testing.T, err error) bool {
 	t.Helper()
-	var famErr *event.Error
+	var famErr *errorfamily.Error
 	if !errors.As(err, &famErr) {
 		return false
 	}
 
-	return famErr.ErrorFamily() == event.Infrastructure
+	return famErr.ErrorFamily() == errorfamily.Infrastructure
 }
 
 func TestSyncDB_HealthCheck_Success(t *testing.T) {

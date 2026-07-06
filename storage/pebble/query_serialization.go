@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
 )
@@ -29,7 +30,7 @@ func (s *QueryStore) serializeQuery(q *query.PersistedQuery) ([]byte, error) {
 
 	data, err := marshalCBOR(serialized)
 	if err != nil {
-		return nil, event.WrapCorruption(err, "pebble.serialize_query", "marshal query")
+		return nil, errorfamily.WrapCorruption(err, "pebble.serialize_query", "marshal query")
 	}
 
 	return data, nil
@@ -50,7 +51,7 @@ func (s *QueryStore) deserializeQuery(data []byte) (*query.PersistedQuery, error
 	}
 
 	if err != nil {
-		return nil, event.WrapCorruption(err, "pebble.unmarshal_query",
+		return nil, errorfamily.WrapCorruption(err, "pebble.unmarshal_query",
 			"failed to unmarshal query")
 	}
 
@@ -62,7 +63,7 @@ func (s *QueryStore) deserializeQuery(data []byte) (*query.PersistedQuery, error
 		query.WithQueryMetadata(serialized.Metadata),
 	)
 	if err != nil {
-		return nil, event.WrapCorruption(err, "pebble.reconstruct_query",
+		return nil, errorfamily.WrapCorruption(err, "pebble.reconstruct_query",
 			"failed to reconstruct query from stored fields")
 	}
 

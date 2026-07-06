@@ -7,8 +7,9 @@ import (
 	"sync"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/dispatcher/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
 )
@@ -39,7 +40,11 @@ func NewMemoryQueryStore() *MemoryQueryStore {
 func (s *MemoryQueryStore) SaveQuery(_ context.Context, q *query.PersistedQuery) error {
 	err := s.CheckClosed(query.ErrStoreClosed)
 	if err != nil {
-		return event.WrapInfrastructure(err, "memory.save_query_failed", "memory query store save")
+		return errorfamily.WrapInfrastructure(
+			err,
+			"memory.save_query_failed",
+			"memory query store save",
+		)
 	}
 
 	s.mu.Lock()
@@ -57,7 +62,7 @@ func (s *MemoryQueryStore) LoadQueries(
 ) ([]*query.PersistedQuery, error) {
 	err := s.CheckClosed(query.ErrStoreClosed)
 	if err != nil {
-		return nil, event.WrapInfrastructure(
+		return nil, errorfamily.WrapInfrastructure(
 			err,
 			"memory.load_queries_failed",
 			"memory query store load queries",
@@ -81,7 +86,7 @@ func (s *MemoryQueryStore) LoadQueries(
 func (s *MemoryQueryStore) ReadAllQueries(_ context.Context) ([]*query.PersistedQuery, error) {
 	err := s.CheckClosed(query.ErrStoreClosed)
 	if err != nil {
-		return nil, event.WrapInfrastructure(
+		return nil, errorfamily.WrapInfrastructure(
 			err,
 			"memory.readall_queries_failed",
 			"memory query journal readall",
@@ -101,7 +106,7 @@ func (s *MemoryQueryStore) ReadQueriesFrom(
 ) ([]*query.PersistedQuery, error) {
 	err := s.CheckClosed(query.ErrStoreClosed)
 	if err != nil {
-		return nil, event.WrapInfrastructure(
+		return nil, errorfamily.WrapInfrastructure(
 			err,
 			"memory.readqueries_from_failed",
 			"memory query journal readfrom",

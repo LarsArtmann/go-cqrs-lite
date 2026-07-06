@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 	cqrsturso "github.com/larsartmann/go-cqrs-lite/storage/turso/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
@@ -27,7 +28,7 @@ func openSecondaryBackend(
 	if err != nil {
 		_ = secDB.Close()
 
-		return nil, nil, event.WrapInfrastructure(err, "turso.create_secondary_backend",
+		return nil, nil, errorfamily.WrapInfrastructure(err, "turso.create_secondary_backend",
 			fmt.Sprintf("create backend for %q", dbPath))
 	}
 
@@ -40,7 +41,7 @@ func openSecondaryBackend(
 func openSecondaryDB(dbPath string, cfg config) (*sql.DB, error) {
 	sqlDB, err := cqrsturso.Open(cqrsturso.DbPath(dbPath))
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "turso.open_secondary",
+		return nil, errorfamily.WrapInfrastructure(err, "turso.open_secondary",
 			fmt.Sprintf("open %q", dbPath))
 	}
 

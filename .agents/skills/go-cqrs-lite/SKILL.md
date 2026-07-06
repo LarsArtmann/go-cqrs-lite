@@ -212,11 +212,11 @@ uid := id.New[UserID]()
 ### 3.7 Errors as values — 5 families, no panics
 
 ```go
-event.NewRejection("user.create.empty_email", "...")    // client error, not retryable
-event.NewConflict("user.create.duplicate", "...")        // optimistic concurrency
-event.NewTransient("store.timeout", "...")               // retryable
-event.NewInfrastructure("store.connection", "...")       // system-level
-event.NewCorruption("store.invalid_event", "...")        // data integrity
+errorfamily.NewRejection("user.create.empty_email", "...")    // client error, not retryable
+errorfamily.NewConflict("user.create.duplicate", "...")        // optimistic concurrency
+errorfamily.NewTransient("store.timeout", "...")               // retryable
+errorfamily.NewInfrastructure("store.connection", "...")       // system-level
+errorfamily.NewCorruption("store.invalid_event", "...")        // data integrity
 ```
 
 ### 3.8 Event causality for traceability
@@ -508,9 +508,9 @@ repo := decider.WithEnricher[UserState](event.CommandCausalityEnricher)
 
 **Relationship:** `go-error-family` is the **standalone** extraction of the five-family error taxonomy (Rejection, Conflict, Transient, Infrastructure, Corruption). `event/v3` wraps the **same** families with event-store context (event payloads, codec integration, metadata).
 
-- **CQRS apps:** use `event.NewRejection(...)`, `event.WrapTransient(err, ...)` — they integrate with the event store and bus.
+- **CQRS apps:** use `errorfamily.NewRejection(...)`, `errorfamily.WrapTransient(err, ...)` directly from [go-error-family](https://github.com/larsartmann/go-error-family).
 - **Non-CQRS apps** (middleware-only consumers, HTTP services): use `go-error-family` directly. It's the same classification without event coupling.
-- They are **interchangeable** for classification: `event.Classify(err)` and `errorfamily.Classify(err)` produce the same family.
+- The event package retains type aliases (`event.Family`, `event.Error`) for backward compatibility, but construction/classification functions were removed. Always import `go-error-family` directly.
 
 ### "Is eventtest.FakeBus production-safe?"
 

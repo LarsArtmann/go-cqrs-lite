@@ -132,8 +132,9 @@ cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-c
 
 - **Sentinel errors**: `errors.New` in `errors.go` files
 - **Contextual errors**: `fmt.Errorf("failed to process %s: %w", name, err)`
-- **Classified errors**: `event.NewRejection(...)`, `event.NewConflict(...)` via go-error-family
+- **Classified errors**: `errorfamily.NewRejection(...)`, `errorfamily.WrapConflict(...)` via [go-error-family](https://github.com/larsartmann/go-error-family) — imported directly, no facade
 - **5-family taxonomy**: Rejection / Conflict / Transient / Infrastructure / Corruption
+- **Direct import**: All modules import `errorfamily "github.com/larsartmann/go-error-family"` directly. The `event/` package retains type aliases (`event.Family`, `event.Error`) and family constants for backward compatibility, but error construction/classification/wrapping functions were removed. Use `go-error-family` directly.
 
 ## Key Patterns
 

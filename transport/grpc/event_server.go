@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	"google.golang.org/grpc"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
@@ -31,7 +32,7 @@ func RegisterEventService(srv *grpc.Server, bus EventSubscriber) (*EventServer, 
 
 	err := bus.SubscribeAll(eventSrv.handleEvent)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "grpc.event_server.subscribe",
+		return nil, errorfamily.WrapInfrastructure(err, "grpc.event_server.subscribe",
 			"subscribe to event bus")
 	}
 
@@ -82,7 +83,7 @@ func (s *EventServer) Subscribe(
 
 			err := stream.Send(envelope)
 			if err != nil {
-				return event.WrapInfrastructure(err, "grpc.event_server.send",
+				return errorfamily.WrapInfrastructure(err, "grpc.event_server.send",
 					"send event")
 			}
 		}

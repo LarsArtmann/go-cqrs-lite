@@ -3,6 +3,8 @@ package encryption
 import (
 	"context"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
@@ -19,7 +21,7 @@ func WithMiddlewareKeyID(id KeyID) MiddlewareOption {
 func rejectingPublishMiddleware(code, msg string) event.PublishMiddleware {
 	return func(_ event.Publisher) event.Publisher {
 		return event.PublisherFunc(func(_ context.Context, _ ...event.Event) error {
-			return event.NewRejection(code, msg)
+			return errorfamily.NewRejection(code, msg)
 		})
 	}
 }
@@ -27,7 +29,7 @@ func rejectingPublishMiddleware(code, msg string) event.PublishMiddleware {
 func rejectingHandlerMiddleware(code, msg string) event.Middleware {
 	return func(_ event.Handler) event.Handler {
 		return func(_ context.Context, _ event.Event) error {
-			return event.NewRejection(code, msg)
+			return errorfamily.NewRejection(code, msg)
 		}
 	}
 }

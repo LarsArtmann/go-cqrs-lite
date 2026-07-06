@@ -5,14 +5,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // ErrDuplicate is returned by [Store.CheckAndRecord] when the key was already
 // recorded and has not expired. It is classified as a Conflict: a retried
 // command with the same idempotency key conflicts with a prior, still-valid
 // recording.
-var ErrDuplicate = event.NewConflict(
+var ErrDuplicate = errorfamily.NewConflict(
 	"idempotency.duplicate",
 	"key has already been recorded",
 )

@@ -7,10 +7,10 @@ import (
 	"strings"
 	"sync"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 )
 
@@ -104,7 +104,7 @@ func (a *AutoIndexer) Apply(ctx context.Context, recs []Recommendation) error {
 	defer endSpan(span, nil)
 
 	if !a.IsEnabled() {
-		err := event.NewRejection("indexing.disabled",
+		err := errorfamily.NewRejection("indexing.disabled",
 			"auto-indexer is disabled: call Enable() first")
 		cqrsotel.RecordError(span, err)
 
@@ -125,7 +125,7 @@ func (a *AutoIndexer) Apply(ctx context.Context, recs []Recommendation) error {
 		}
 
 		if err := a.createIndex(ctx, rec.Index); err != nil {
-			wrappedErr := event.WrapInfrastructure(err, "indexing.create_index",
+			wrappedErr := errorfamily.WrapInfrastructure(err, "indexing.create_index",
 				fmt.Sprintf("create index %s on %s", rec.Index.Name, rec.Index.Table))
 			cqrsotel.RecordError(span, wrappedErr)
 
@@ -158,7 +158,7 @@ func (a *AutoIndexer) ApplyRecommended(ctx context.Context) error {
 	defer endSpan(span, nil)
 
 	if !a.IsEnabled() {
-		err := event.NewRejection("indexing.disabled",
+		err := errorfamily.NewRejection("indexing.disabled",
 			"auto-indexer is disabled: call Enable() first")
 		cqrsotel.RecordError(span, err)
 
@@ -167,7 +167,7 @@ func (a *AutoIndexer) ApplyRecommended(ctx context.Context) error {
 
 	recs, err := a.advisor.MissingIndexes(ctx)
 	if err != nil {
-		wrappedErr := event.WrapInfrastructure(err, "indexing.missing_indexes",
+		wrappedErr := errorfamily.WrapInfrastructure(err, "indexing.missing_indexes",
 			"find missing indexes")
 		cqrsotel.RecordError(span, wrappedErr)
 
@@ -187,7 +187,7 @@ func (a *AutoIndexer) ApplyCQRSIndexes(ctx context.Context) error {
 	defer endSpan(span, nil)
 
 	if !a.IsEnabled() {
-		err := event.NewRejection("indexing.disabled",
+		err := errorfamily.NewRejection("indexing.disabled",
 			"auto-indexer is disabled: call Enable() first")
 		cqrsotel.RecordError(span, err)
 
@@ -208,7 +208,7 @@ func (a *AutoIndexer) ApplyCQRSIndexes(ctx context.Context) error {
 		}
 
 		if err := a.createIndex(ctx, idx); err != nil {
-			wrappedErr := event.WrapInfrastructure(err, "indexing.create_cqrs_index",
+			wrappedErr := errorfamily.WrapInfrastructure(err, "indexing.create_cqrs_index",
 				fmt.Sprintf("create CQRS index %s", idx.Name))
 			cqrsotel.RecordError(span, wrappedErr)
 
@@ -256,7 +256,7 @@ func (a *AutoIndexer) Drop(ctx context.Context, indexes ...Index) error {
 	defer endSpan(span, nil)
 
 	if !a.IsEnabled() {
-		err := event.NewRejection("indexing.disabled",
+		err := errorfamily.NewRejection("indexing.disabled",
 			"auto-indexer is disabled: call Enable() first")
 		cqrsotel.RecordError(span, err)
 
@@ -274,7 +274,7 @@ func (a *AutoIndexer) Drop(ctx context.Context, indexes ...Index) error {
 
 		_, err := a.db.ExecContext(ctx, ddl)
 		if err != nil {
-			wrappedErr := event.WrapInfrastructure(err, "indexing.drop_index",
+			wrappedErr := errorfamily.WrapInfrastructure(err, "indexing.drop_index",
 				fmt.Sprintf("drop index %s", idx.Name))
 			cqrsotel.RecordError(span, wrappedErr)
 

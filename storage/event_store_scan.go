@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -43,24 +45,24 @@ func (s *SQLEventStore) scanEvent(rows *sql.Rows) (event.Event, error) {
 		timeDest,
 	)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "storage.scan_event",
+		return nil, errorfamily.WrapInfrastructure(err, "storage.scan_event",
 			fmt.Sprintf("scan event row for %s/%s v%d (schema v%d) event %s (id %s)",
 				aggIDStr, aggType, version, schemaVersion, eventType, eventIDStr))
 	}
 	occurredAt, err := s.Dialect.ParseTime(timeDest)
 	if err != nil {
-		return nil, event.WrapCorruption(err, "storage.parse_occurred_at",
+		return nil, errorfamily.WrapCorruption(err, "storage.parse_occurred_at",
 			fmt.Sprintf("parse occurred_at for %s/%s v%d (schema v%d) event %s (id %s)",
 				aggIDStr, aggType, version, schemaVersion, eventType, eventIDStr))
 	}
 	parsedEventID, err := id.ParseEventID(eventIDStr)
 	if err != nil {
-		return nil, event.WrapCorruption(err, "storage.parse_event_id",
+		return nil, errorfamily.WrapCorruption(err, "storage.parse_event_id",
 			fmt.Sprintf("parse event ID %q for %s v%d", eventIDStr, aggType, version))
 	}
 	parsedAggID, err := id.ParseAggregateID(aggIDStr)
 	if err != nil {
-		return nil, event.WrapCorruption(err, "storage.parse_aggregate_id",
+		return nil, errorfamily.WrapCorruption(err, "storage.parse_aggregate_id",
 			fmt.Sprintf("parse aggregate ID %q for %s v%d", aggIDStr, aggType, version))
 	}
 	return sqlpkg.ReconstructEvent(

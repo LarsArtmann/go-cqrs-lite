@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
@@ -111,7 +113,7 @@ func (s TaskState) HasDependency(depID id.AggregateID) bool {
 func ParsePriority(s string) (Priority, error) {
 	p := Priority(strings.ToLower(strings.TrimSpace(s)))
 	if !p.Valid() {
-		return "", event.NewRejection(
+		return "", errorfamily.NewRejection(
 			"task.priority.invalid",
 			"priority must be low, medium, high, or urgent",
 		)
@@ -124,11 +126,14 @@ func ParsePriority(s string) (Priority, error) {
 func normaliseTitle(raw string) (string, error) {
 	t := strings.TrimSpace(raw)
 	if t == "" {
-		return "", event.NewRejection("task.title.empty", "title must not be empty")
+		return "", errorfamily.NewRejection("task.title.empty", "title must not be empty")
 	}
 
 	if len(t) > maxTitleLength {
-		return "", event.NewRejection("task.title.too_long", "title must not exceed 500 characters")
+		return "", errorfamily.NewRejection(
+			"task.title.too_long",
+			"title must not exceed 500 characters",
+		)
 	}
 
 	return t, nil

@@ -3,8 +3,9 @@ package command_test
 import (
 	"testing"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
@@ -14,24 +15,24 @@ func TestCommandErrors_Classification(t *testing.T) {
 	tests := []struct {
 		name string
 		err  error
-		want event.Family
+		want errorfamily.Family
 	}{
-		{"ErrHandlerNotFound", command.ErrHandlerNotFound, event.Rejection},
-		{"ErrDispatcherClosed", command.ErrDispatcherClosed, event.Infrastructure},
-		{"ErrEmptyCommandType", command.ErrEmptyCommandType, event.Rejection},
-		{"ErrNilAggregateID", command.ErrNilAggregateID, event.Rejection},
-		{"ErrTypeAssertion", command.ErrTypeAssertion, event.Rejection},
-		{"ErrEmptyAggregateType", command.ErrEmptyAggregateType, event.Rejection},
-		{"ErrDuplicateCommand", command.ErrDuplicateCommand, event.Conflict},
-		{"ErrCommandNotFound", command.ErrCommandNotFound, event.Rejection},
-		{"ErrStoreClosed", command.ErrStoreClosed, event.Infrastructure},
+		{"ErrHandlerNotFound", command.ErrHandlerNotFound, errorfamily.Rejection},
+		{"ErrDispatcherClosed", command.ErrDispatcherClosed, errorfamily.Infrastructure},
+		{"ErrEmptyCommandType", command.ErrEmptyCommandType, errorfamily.Rejection},
+		{"ErrNilAggregateID", command.ErrNilAggregateID, errorfamily.Rejection},
+		{"ErrTypeAssertion", command.ErrTypeAssertion, errorfamily.Rejection},
+		{"ErrEmptyAggregateType", command.ErrEmptyAggregateType, errorfamily.Rejection},
+		{"ErrDuplicateCommand", command.ErrDuplicateCommand, errorfamily.Conflict},
+		{"ErrCommandNotFound", command.ErrCommandNotFound, errorfamily.Rejection},
+		{"ErrStoreClosed", command.ErrStoreClosed, errorfamily.Infrastructure},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			if got := event.Classify(tc.err); got != tc.want {
+			if got := errorfamily.Classify(tc.err); got != tc.want {
 				t.Fatalf("Classify(%s) = %s, want %s", tc.name, got, tc.want)
 			}
 		})
@@ -73,7 +74,7 @@ func TestDispatchOnClosed(t *testing.T) {
 		t.Fatal("expected error dispatching on closed dispatcher")
 	}
 
-	if event.Classify(err) != event.Infrastructure {
-		t.Errorf("expected Infrastructure, got %v", event.Classify(err))
+	if errorfamily.Classify(err) != errorfamily.Infrastructure {
+		t.Errorf("expected Infrastructure, got %v", errorfamily.Classify(err))
 	}
 }

@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
@@ -27,7 +29,11 @@ func (s *SQLEventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
 	rows, err := s.DB.QueryContext(ctx, query)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
-		return nil, event.WrapInfrastructure(err, "storage.query_all_events", "query all events")
+		return nil, errorfamily.WrapInfrastructure(
+			err,
+			"storage.query_all_events",
+			"query all events",
+		)
 	}
 	defer func() { _ = rows.Close() }()
 	events, scanErr := s.scanEvents(rows)
@@ -44,7 +50,7 @@ func (s *SQLEventStore) ReadFrom(
 	limit int,
 ) ([]event.Event, error) {
 	if err := s.checkClosed(); err != nil {
-		return nil, event.Wrapf(err, event.Infrastructure, "storage.event_read_from",
+		return nil, errorfamily.Wrapf(err, errorfamily.Infrastructure, "storage.event_read_from",
 			"read from store (limit=%d, after=%s)", limit, afterEventID)
 	}
 
@@ -60,7 +66,7 @@ func (s *SQLEventStore) ReadFrom(
 		events, err := s.loadAllFromStart(ctx, limit)
 		if err != nil {
 			cqrsotel.RecordError(span, err)
-			return events, event.WrapInfrastructure(err, "storage.read_from_start",
+			return events, errorfamily.WrapInfrastructure(err, "storage.read_from_start",
 				fmt.Sprintf("read from start (limit=%d)", limit))
 		}
 		span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrEventCount, len(events)))
@@ -86,14 +92,14 @@ func (s *SQLEventStore) ReadFrom(
 	rows, err := s.DB.QueryContext(ctx, query, args...)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
-		return nil, event.WrapInfrastructure(err, "storage.query_from_position",
+		return nil, errorfamily.WrapInfrastructure(err, "storage.query_from_position",
 			fmt.Sprintf("query events from position (limit=%d)", limit))
 	}
 	defer func() { _ = rows.Close() }()
 	events, scanErr := s.scanEvents(rows)
 	if scanErr != nil {
 		cqrsotel.RecordError(span, scanErr)
-		return events, event.WrapInfrastructure(scanErr, "storage.scan_from_position",
+		return events, errorfamily.WrapInfrastructure(scanErr, "storage.scan_from_position",
 			fmt.Sprintf("scan events from position (limit=%d)", limit))
 	}
 	span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrEventCount, len(events)))
@@ -109,7 +115,7 @@ func (s *SQLEventStore) loadAllFromStart(ctx context.Context, limit int) ([]even
 		FROM ` + sqlpkg.TableEvents + ` ORDER BY occurred_at ASC LIMIT ` + p1
 	rows, err := s.DB.QueryContext(ctx, query, limit)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "storage.query_from_start",
+		return nil, errorfamily.WrapInfrastructure(err, "storage.query_from_start",
 			fmt.Sprintf("query events from start (limit=%d)", limit))
 	}
 	defer func() { _ = rows.Close() }()

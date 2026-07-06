@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
@@ -36,7 +38,7 @@ func (it *sqlEventIterator) Next() (event.Event, error) {
 
 	if !it.rows.Next() {
 		if err := it.rows.Err(); err != nil {
-			return nil, event.WrapInfrastructure(err, "storage.stream_iterate",
+			return nil, errorfamily.WrapInfrastructure(err, "storage.stream_iterate",
 				"iterate event stream")
 		}
 
@@ -92,7 +94,7 @@ func (s *SQLEventStore) streamByAggregate(
 	_ string,
 ) (event.EventIterator, error) {
 	if err := s.checkClosed(); err != nil {
-		return nil, event.WrapInfrastructure(err, "storage.stream_by_aggregate",
+		return nil, errorfamily.WrapInfrastructure(err, "storage.stream_by_aggregate",
 			"stream events for aggregate")
 	}
 
@@ -108,7 +110,7 @@ func (s *SQLEventStore) streamByAggregate(
 
 	rows, err := s.DB.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "storage.stream_query",
+		return nil, errorfamily.WrapInfrastructure(err, "storage.stream_query",
 			fmt.Sprintf("stream events for %s %s", ref.Type, ref.ID))
 	}
 
@@ -119,7 +121,7 @@ func (s *SQLEventStore) streamByAggregate(
 // It yields every event in the store ordered by occurred_at, one at a time.
 func (s *SQLEventStore) ReadStream(ctx context.Context) (event.EventIterator, error) {
 	if err := s.checkClosed(); err != nil {
-		return nil, event.WrapInfrastructure(err, "storage.stream_read_all",
+		return nil, errorfamily.WrapInfrastructure(err, "storage.stream_read_all",
 			"stream all events")
 	}
 
@@ -133,7 +135,11 @@ func (s *SQLEventStore) ReadStream(ctx context.Context) (event.EventIterator, er
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, event.WrapInfrastructure(err, "storage.stream_read_all", "stream all events")
+		return nil, errorfamily.WrapInfrastructure(
+			err,
+			"storage.stream_read_all",
+			"stream all events",
+		)
 	}
 
 	return newSQLEventIterator(rows, s.scanEvent), nil
@@ -146,7 +152,7 @@ func (s *SQLEventStore) ReadStreamFrom(
 	limit int,
 ) (event.EventIterator, error) {
 	if err := s.checkClosed(); err != nil {
-		return nil, event.Wrapf(err, event.Infrastructure, "storage.stream_read_from",
+		return nil, errorfamily.Wrapf(err, errorfamily.Infrastructure, "storage.stream_read_from",
 			"stream from store (limit=%d, after=%s)", limit, afterEventID)
 	}
 
@@ -172,7 +178,7 @@ func (s *SQLEventStore) ReadStreamFrom(
 
 	rows, err := s.DB.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "storage.stream_query_from",
+		return nil, errorfamily.WrapInfrastructure(err, "storage.stream_query_from",
 			fmt.Sprintf("stream events from position (limit=%d)", limit))
 	}
 
@@ -199,7 +205,7 @@ func (s *SQLEventStore) streamFromStart(
 
 	rows, err := s.DB.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "storage.stream_from_start",
+		return nil, errorfamily.WrapInfrastructure(err, "storage.stream_from_start",
 			fmt.Sprintf("stream events from start (limit=%d)", limit))
 	}
 

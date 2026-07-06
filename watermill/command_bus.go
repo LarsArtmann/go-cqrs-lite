@@ -9,6 +9,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
 	gochannel "github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
@@ -84,7 +85,7 @@ func (b *CommandBus) Publish(_ context.Context, cmds ...command.Command) error {
 	if b.closed {
 		b.mu.Unlock()
 
-		return event.WrapInfrastructure(event.ErrBusClosed,
+		return errorfamily.WrapInfrastructure(event.ErrBusClosed,
 			"watermill.command_bus_publish", "command bus is closed")
 	}
 
@@ -102,7 +103,7 @@ func (b *CommandBus) Publish(_ context.Context, cmds ...command.Command) error {
 	}
 
 	if err := pub.Publish(topic, msgs...); err != nil {
-		return event.WrapInfrastructure(err, "watermill.command_bus_publish",
+		return errorfamily.WrapInfrastructure(err, "watermill.command_bus_publish",
 			"publish to topic "+topic)
 	}
 
@@ -115,7 +116,7 @@ func (b *CommandBus) Subscribe(cmdType command.Type, handler command.Handler) er
 	defer b.mu.Unlock()
 
 	if b.closed {
-		return event.WrapInfrastructure(event.ErrBusClosed,
+		return errorfamily.WrapInfrastructure(event.ErrBusClosed,
 			"watermill.command_bus_subscribe", "command bus is closed")
 	}
 
@@ -132,7 +133,7 @@ func (b *CommandBus) SubscribeAll(handler command.Handler) error {
 	defer b.mu.Unlock()
 
 	if b.closed {
-		return event.WrapInfrastructure(event.ErrBusClosed,
+		return errorfamily.WrapInfrastructure(event.ErrBusClosed,
 			"watermill.command_bus_subscribe_all", "command bus is closed")
 	}
 

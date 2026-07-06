@@ -3,6 +3,8 @@ package multisig
 import (
 	"encoding/json"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/signing/v3"
 )
@@ -24,8 +26,8 @@ func VerifyAll(evt event.Event, verifiers map[Actor]signing.Verifier) error {
 	for _, entry := range multiSig.Entries {
 		verifier, ok := verifiers[entry.Actor]
 		if !ok {
-			return event.Newf(
-				event.Rejection,
+			return errorfamily.Newf(
+				errorfamily.Rejection,
 				"signing.no_verifier",
 				"%s",
 				entry.Actor,
@@ -34,7 +36,7 @@ func VerifyAll(evt event.Event, verifiers map[Actor]signing.Verifier) error {
 
 		verifyErr := verifier.Verify(evt, entry.Sig)
 		if verifyErr != nil {
-			return event.WrapInfrastructure(
+			return errorfamily.WrapInfrastructure(
 				verifyErr,
 				"signing.verify_all",
 				"verify actor "+string(entry.Actor)+" ("+string(entry.Algorithm)+")",
@@ -65,7 +67,7 @@ func ExtractMultiSignature(evt event.Event) (MultiSignature, error) {
 
 	unmarshalErr := json.Unmarshal([]byte(encoded), &multiSig)
 	if unmarshalErr != nil {
-		return MultiSignature{Entries: nil}, event.WrapInfrastructure(
+		return MultiSignature{Entries: nil}, errorfamily.WrapInfrastructure(
 			unmarshalErr,
 			"signing.decode_multi_sig",
 			"decode multi-signature",
@@ -108,7 +110,7 @@ func attachMultiSignature(
 ) (event.Event, error) {
 	encoded, err := json.Marshal(multiSig)
 	if err != nil {
-		return nil, event.WrapInfrastructure(
+		return nil, errorfamily.WrapInfrastructure(
 			err,
 			"signing.encode_multi_sig",
 			"encode multi-signature",
@@ -117,7 +119,7 @@ func attachMultiSignature(
 
 	clone, err := signing.CloneEvent(evt, MultiSigMetadataKey, string(encoded))
 	if err != nil {
-		return nil, event.WrapInfrastructure(
+		return nil, errorfamily.WrapInfrastructure(
 			err,
 			"signing.reconstruct_multi_sig",
 			"reconstruct event with multi-sig",

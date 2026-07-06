@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -79,7 +81,7 @@ func NewTypedStore[State any](store SnapshotStore, c codec.Codec) *TypedStore[St
 func (t *TypedStore[State]) Save(ctx context.Context, snapshot TypedSnapshot[State]) error {
 	encoded, err := t.codec.Encode(snapshot.State)
 	if err != nil {
-		return event.Wrapf(err, event.Corruption, "snapshot.encode_state",
+		return errorfamily.Wrapf(err, errorfamily.Corruption, "snapshot.encode_state",
 			"encode state for %s v%d", snapshot.AggregateID, snapshot.Version)
 	}
 
@@ -91,7 +93,7 @@ func (t *TypedStore[State]) Save(ctx context.Context, snapshot TypedSnapshot[Sta
 		CreatedAt:     snapshot.CreatedAt,
 	})
 	if err != nil {
-		return event.Wrapf(err, event.Infrastructure, "snapshot.save",
+		return errorfamily.Wrapf(err, errorfamily.Infrastructure, "snapshot.save",
 			"save %s v%d", snapshot.AggregateID, snapshot.Version)
 	}
 
@@ -102,7 +104,7 @@ func (t *TypedStore[State]) Save(ctx context.Context, snapshot TypedSnapshot[Sta
 func (t *TypedStore[State]) Delete(ctx context.Context, ref event.AggregateRef) error {
 	err := t.store.Delete(ctx, ref)
 	if err != nil {
-		return event.Wrapf(err, event.Infrastructure, "snapshot.delete",
+		return errorfamily.Wrapf(err, errorfamily.Infrastructure, "snapshot.delete",
 			"delete %s", ref)
 	}
 
@@ -116,7 +118,7 @@ func (t *TypedStore[State]) Load(
 ) (*TypedSnapshot[State], error) {
 	raw, err := t.store.Load(ctx, ref)
 	if err != nil {
-		return nil, event.Wrapf(err, event.Infrastructure, "snapshot.load",
+		return nil, errorfamily.Wrapf(err, errorfamily.Infrastructure, "snapshot.load",
 			"load %s", ref)
 	}
 
@@ -132,7 +134,7 @@ func (t *TypedStore[State]) LoadAtVersion(
 ) (*TypedSnapshot[State], error) {
 	raw, err := t.store.LoadAtVersion(ctx, ref, version)
 	if err != nil {
-		return nil, event.Wrapf(err, event.Infrastructure, "snapshot.load_version",
+		return nil, errorfamily.Wrapf(err, errorfamily.Infrastructure, "snapshot.load_version",
 			"load %s v%d", ref, version)
 	}
 
@@ -147,7 +149,7 @@ func (t *TypedStore[State]) decode(raw *Snapshot) (*TypedSnapshot[State], error)
 
 	err := t.codec.Decode(raw.State, &state)
 	if err != nil {
-		return nil, event.Wrapf(err, event.Corruption, "snapshot.decode_state",
+		return nil, errorfamily.Wrapf(err, errorfamily.Corruption, "snapshot.decode_state",
 			"decode state for %s v%d", raw.AggregateID, raw.Version)
 	}
 

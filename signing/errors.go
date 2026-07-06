@@ -1,30 +1,30 @@
 package signing
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 var (
 	// ErrInvalidKey is returned when a signing key is empty or too short.
-	ErrInvalidKey = event.NewRejection(
+	ErrInvalidKey = errorfamily.NewRejection(
 		"signing.invalid_key",
 		"signing key is empty or too short",
 	)
 
 	// ErrInvalidSignature is returned when verification fails.
-	ErrInvalidSignature = event.NewRejection(
+	ErrInvalidSignature = errorfamily.NewRejection(
 		"signing.invalid_signature",
 		"event signature verification failed",
 	)
 
 	// ErrNilSignature is returned when a nil/empty signature is provided to Verify.
-	ErrNilSignature = event.NewRejection(
+	ErrNilSignature = errorfamily.NewRejection(
 		"signing.nil_signature",
 		"signature is nil or empty",
 	)
 
 	// ErrNilEvent is returned when a nil event is passed to Sign or Verify.
-	ErrNilEvent = event.NewRejection(
+	ErrNilEvent = errorfamily.NewRejection(
 		"signing.nil_event",
 		"event is nil",
 	)

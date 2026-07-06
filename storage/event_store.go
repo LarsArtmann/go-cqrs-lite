@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
@@ -50,7 +52,7 @@ func newSQLEventStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLEventStore, 
 
 // errStoreClosed is a package-level sentinel to avoid allocating a new error
 // on every checkClosed call (the hot path for every Save/Load).
-var errStoreClosed = event.NewInfrastructure("storage.closed", "store is closed")
+var errStoreClosed = errorfamily.NewInfrastructure("storage.closed", "store is closed")
 
 func (s *SQLEventStore) checkClosed() error {
 	return s.CheckClosed(errStoreClosed)
@@ -85,7 +87,7 @@ func (s *SQLEventStore) Save(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return event.WrapInfrastructure(err, "storage.begin_tx",
+		return errorfamily.WrapInfrastructure(err, "storage.begin_tx",
 			"begin transaction")
 	}
 
@@ -97,7 +99,7 @@ func (s *SQLEventStore) Save(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return event.WrapInfrastructure(err, "storage.check_version",
+		return errorfamily.WrapInfrastructure(err, "storage.check_version",
 			fmt.Sprintf("check version for %s %s", aggregateType, aggregateID))
 	}
 
@@ -143,7 +145,7 @@ func (s *SQLEventStore) AppendBatch(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return event.WrapInfrastructure(err, "storage.begin_tx",
+		return errorfamily.WrapInfrastructure(err, "storage.begin_tx",
 			"begin transaction")
 	}
 
@@ -172,7 +174,7 @@ func (s *SQLEventStore) wrapInsertEventsErr(
 ) error {
 	cqrsotel.RecordError(span, err)
 
-	return event.WrapInfrastructure(err, "storage.insert_events",
+	return errorfamily.WrapInfrastructure(err, "storage.insert_events",
 		fmt.Sprintf("insert %d events for %s", len(events), ref))
 }
 

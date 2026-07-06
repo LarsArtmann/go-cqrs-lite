@@ -2,8 +2,7 @@ package pebble
 
 import (
 	"github.com/cockroachdb/pebble"
-
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Checkpoint creates a point-in-time snapshot of the entire database at the
@@ -17,7 +16,7 @@ import (
 func (b *Backend) Checkpoint(dir string) error {
 	err := b.database.Checkpoint(dir)
 	if err != nil {
-		return event.WrapInfrastructure(err, "pebble.checkpoint",
+		return errorfamily.WrapInfrastructure(err, "pebble.checkpoint",
 			"checkpoint to "+dir)
 	}
 
@@ -46,7 +45,7 @@ func (b *Backend) NewSnapshot() *pebble.Snapshot {
 func (b *Backend) Flush() error {
 	err := b.database.Flush()
 	if err != nil {
-		return event.WrapInfrastructure(err, "pebble.flush", "flush database")
+		return errorfamily.WrapInfrastructure(err, "pebble.flush", "flush database")
 	}
 
 	return nil

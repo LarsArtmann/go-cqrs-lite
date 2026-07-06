@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -38,7 +40,7 @@ func SaveSnapshot(
 		CreatedAt:     time.Now().UTC(),
 	})
 	if err != nil {
-		return event.WrapInfrastructure(
+		return errorfamily.WrapInfrastructure(
 			err,
 			"snapshot.save_failed",
 			"save snapshot for "+string(aggType)+" "+aggID.String(),

@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"slices"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
 	cqrsprojection "github.com/larsartmann/go-cqrs-lite/projection/v3"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
@@ -116,7 +118,7 @@ func (p *RelationalProjection) EventTypes() []cqrsevent.Type { return slices.Clo
 func (p *RelationalProjection) Handle(ctx context.Context, evt cqrsevent.Event) error {
 	tx, err := p.db.BeginTx(ctx, nil)
 	if err != nil {
-		return cqrsevent.WrapTransient(err, "relational.projection_begin_tx",
+		return errorfamily.WrapTransient(err, "relational.projection_begin_tx",
 			fmt.Sprintf("projection %q: begin tx", p.name))
 	}
 
@@ -129,7 +131,7 @@ func (p *RelationalProjection) Handle(ctx context.Context, evt cqrsevent.Event) 
 	}
 
 	if err := tx.Commit(); err != nil {
-		return cqrsevent.WrapTransient(err, "relational.projection_commit",
+		return errorfamily.WrapTransient(err, "relational.projection_commit",
 			fmt.Sprintf("projection %q: commit", p.name))
 	}
 
@@ -143,19 +145,19 @@ func WithoutRelationalAutoMigrate() RelationalProjectionOption {
 }
 
 var (
-	errRelationalNoName = cqrsevent.NewRejection(
+	errRelationalNoName = errorfamily.NewRejection(
 		"relational.no_name",
 		"relational projection: name is required",
 	)
-	errRelationalNilDB = cqrsevent.NewRejection(
+	errRelationalNilDB = errorfamily.NewRejection(
 		"relational.nil_db",
 		"relational projection: db must not be nil",
 	)
-	errRelationalNilDialect = cqrsevent.NewRejection(
+	errRelationalNilDialect = errorfamily.NewRejection(
 		"relational.nil_dialect",
 		"relational projection: dialect must not be nil",
 	)
-	errRelationalNilHandler = cqrsevent.NewRejection(
+	errRelationalNilHandler = errorfamily.NewRejection(
 		"relational.nil_handler",
 		"relational projection: handler must not be nil",
 	)

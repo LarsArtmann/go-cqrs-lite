@@ -4,7 +4,8 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 )
 
@@ -22,7 +23,7 @@ func RunInTx(
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
-		return event.WrapInfrastructure(err, "storage.begin_tx", "begin transaction")
+		return errorfamily.WrapInfrastructure(err, "storage.begin_tx", "begin transaction")
 	}
 
 	defer func() {

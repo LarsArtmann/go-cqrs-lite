@@ -3,6 +3,8 @@ package encryption
 import (
 	"encoding/base64"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
@@ -61,7 +63,7 @@ func AttachEncryption(
 		eventOpts...,
 	)
 	if err != nil {
-		return nil, event.WrapInfrastructure(
+		return nil, errorfamily.WrapInfrastructure(
 			err,
 			"encryption.attach",
 			"reconstruct event with ciphertext",
@@ -78,7 +80,7 @@ func ExtractCiphertext(evt event.Event) (Ciphertext, error) {
 
 	decoded, found, err := event.ExtractCustomBytes(evt, MetadataKey)
 	if err != nil {
-		return nil, event.WrapInfrastructure(
+		return nil, errorfamily.WrapInfrastructure(
 			err,
 			"encryption.extract",
 			"extract ciphertext from event",
@@ -98,5 +100,5 @@ func HasEncryption(evt event.Event) bool {
 		return true
 	}
 
-	return event.Classify(err) != event.Rejection
+	return errorfamily.Classify(err) != errorfamily.Rejection
 }

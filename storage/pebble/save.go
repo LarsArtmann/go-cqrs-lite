@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/cockroachdb/pebble"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
@@ -15,13 +16,13 @@ func (a *EventStore) checkVersion(
 ) error {
 	count, err := a.countEvents(ref)
 	if err != nil {
-		return event.WrapInfrastructure(err, "pebble.concurrency_check",
+		return errorfamily.WrapInfrastructure(err, "pebble.concurrency_check",
 			"concurrency check")
 	}
 
 	err = event.CheckVersionConflict(count, expectedVersion)
 	if err != nil {
-		return event.WrapConflict(err, "pebble.version_conflict",
+		return errorfamily.WrapConflict(err, "pebble.version_conflict",
 			"concurrency check")
 	}
 
@@ -39,7 +40,7 @@ func (a *EventStore) countEvents(ref event.AggregateRef) (int, error) {
 		},
 	)
 	if err != nil {
-		return 0, event.WrapInfrastructure(err, "pebble.create_iterator",
+		return 0, errorfamily.WrapInfrastructure(err, "pebble.create_iterator",
 			"failed to create count iterator")
 	}
 
@@ -48,7 +49,7 @@ func (a *EventStore) countEvents(ref event.AggregateRef) (int, error) {
 	if !iter.Last() {
 		err := iter.Error()
 		if err != nil {
-			return 0, event.WrapInfrastructure(err, "pebble.iterator_error",
+			return 0, errorfamily.WrapInfrastructure(err, "pebble.iterator_error",
 				"last iterator error")
 		}
 
@@ -59,7 +60,7 @@ func (a *EventStore) countEvents(ref event.AggregateRef) (int, error) {
 
 	version, err := parseVersionFromKey(key)
 	if err != nil {
-		return 0, event.WrapInfrastructure(err, "pebble.parse_version",
+		return 0, errorfamily.WrapInfrastructure(err, "pebble.parse_version",
 			"failed to parse version from last key")
 	}
 
@@ -74,12 +75,12 @@ func parseVersionFromKey(key []byte) (int, error) {
 	lastColon := len(str) - (versionDigits + 1)
 
 	if lastColon < 0 || str[lastColon] != ':' {
-		return 0, event.NewCorruption("pebble.invalid_key_format", "invalid key format: "+str)
+		return 0, errorfamily.NewCorruption("pebble.invalid_key_format", "invalid key format: "+str)
 	}
 
 	n, err := strconv.Atoi(str[lastColon+1:])
 	if err != nil {
-		return 0, event.WrapCorruption(err, "pebble.parse_version", "parse version from key")
+		return 0, errorfamily.WrapCorruption(err, "pebble.parse_version", "parse version from key")
 	}
 
 	return n, nil
@@ -94,13 +95,13 @@ func (a *EventStore) writeEventsToBatch(
 	for i, evt := range events {
 		err := validateEventOwnership(evt, ref)
 		if err != nil {
-			return event.WrapCorruption(err, "pebble.validate_event",
+			return errorfamily.WrapCorruption(err, "pebble.validate_event",
 				fmt.Sprintf("validate event %d", i))
 		}
 
 		expectedEventVersion := expectedVersion.Int() + i + 1
 		if evt.Version() != event.Version(expectedEventVersion) {
-			return event.WrapConflict(ErrVersionMismatch, "pebble.version_mismatch",
+			return errorfamily.WrapConflict(ErrVersionMismatch, "pebble.version_mismatch",
 				fmt.Sprintf("expected %d, got %d", expectedEventVersion, evt.Version()))
 		}
 
@@ -108,7 +109,7 @@ func (a *EventStore) writeEventsToBatch(
 
 		err = a.serializeAndAddToBatchWithJournal(batch, key, evt)
 		if err != nil {
-			return event.WrapCorruption(err, "pebble.serialize_event",
+			return errorfamily.WrapCorruption(err, "pebble.serialize_event",
 				fmt.Sprintf("serialize event %d for %s %s", i, ref.Type, ref.ID))
 		}
 	}
@@ -121,12 +122,12 @@ func validateEventOwnership(
 	ref event.AggregateRef,
 ) error {
 	if evt.AggregateType() != ref.Type {
-		return event.WrapConflict(ErrAggregateTypeMismatch, "pebble.aggregate_type_mismatch",
+		return errorfamily.WrapConflict(ErrAggregateTypeMismatch, "pebble.aggregate_type_mismatch",
 			fmt.Sprintf("expected %s, got %s", ref.Type, evt.AggregateType()))
 	}
 
 	if evt.AggregateID() != ref.ID {
-		return event.WrapConflict(ErrAggregateIDMismatch, "pebble.aggregate_id_mismatch",
+		return errorfamily.WrapConflict(ErrAggregateIDMismatch, "pebble.aggregate_id_mismatch",
 			fmt.Sprintf("expected %s, got %s", ref.ID, evt.AggregateID()))
 	}
 

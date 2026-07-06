@@ -5,6 +5,8 @@ import (
 	"crypto/sha256"
 	"slices"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
@@ -26,8 +28,8 @@ var _ SignerVerifier = (*hmacSigner)(nil)
 // Returns ErrInvalidKey if the key is nil or shorter than MinimumKeyLength.
 func NewHMAC(key []byte) (*hmacSigner, error) {
 	if len(key) < MinimumKeyLength {
-		return nil, event.Wrapf(
-			ErrInvalidKey, event.Rejection,
+		return nil, errorfamily.Wrapf(
+			ErrInvalidKey, errorfamily.Rejection,
 			"signing.hmac_key_too_short",
 			"HMAC key length %d < minimum %d",
 			len(key),

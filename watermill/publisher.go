@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ThreeDotsLabs/watermill/message"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
@@ -26,7 +27,7 @@ func (a *PublisherAdapter) Publish(topic string, messages ...*message.Message) e
 	for _, msg := range messages {
 		evt, err := MessageToEvent(topic, msg)
 		if err != nil {
-			return event.WrapCorruption(
+			return errorfamily.WrapCorruption(
 				err,
 				"watermill.convert_message_failed",
 				"convert message "+msg.UUID,
@@ -34,7 +35,7 @@ func (a *PublisherAdapter) Publish(topic string, messages ...*message.Message) e
 		}
 
 		if err := a.publisher.Publish(ctx, evt); err != nil {
-			return event.WrapInfrastructure(
+			return errorfamily.WrapInfrastructure(
 				err,
 				"watermill.publish_event_failed",
 				"publish event "+string(evt.Type()),

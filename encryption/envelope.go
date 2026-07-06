@@ -4,6 +4,8 @@ import (
 	"encoding/base64"
 	"encoding/json"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
@@ -35,7 +37,11 @@ func MarshalEnvelope(env Envelope) (string, error) {
 
 	data, err := json.Marshal(env)
 	if err != nil {
-		return "", event.WrapInfrastructure(err, "encryption.marshal_envelope", "marshal envelope")
+		return "", errorfamily.WrapInfrastructure(
+			err,
+			"encryption.marshal_envelope",
+			"marshal envelope",
+		)
 	}
 
 	return base64.URLEncoding.EncodeToString(data), nil
@@ -45,7 +51,7 @@ func MarshalEnvelope(env Envelope) (string, error) {
 func UnmarshalEnvelope(encoded string) (Envelope, error) {
 	data, err := base64.URLEncoding.DecodeString(encoded)
 	if err != nil {
-		return Envelope{}, event.WrapInfrastructure(
+		return Envelope{}, errorfamily.WrapInfrastructure(
 			err,
 			"encryption.unmarshal_envelope",
 			"decode envelope base64",
@@ -55,7 +61,7 @@ func UnmarshalEnvelope(encoded string) (Envelope, error) {
 	var env Envelope
 
 	if err := json.Unmarshal(data, &env); err != nil {
-		return Envelope{}, event.WrapInfrastructure(
+		return Envelope{}, errorfamily.WrapInfrastructure(
 			err,
 			"encryption.unmarshal_envelope",
 			"unmarshal envelope JSON",
@@ -63,7 +69,7 @@ func UnmarshalEnvelope(encoded string) (Envelope, error) {
 	}
 
 	if env.Version == "" {
-		return Envelope{}, event.NewRejection(
+		return Envelope{}, errorfamily.NewRejection(
 			"encryption.missing_envelope_version",
 			"envelope has no version field: "+string(data),
 		)

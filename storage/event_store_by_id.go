@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
@@ -42,7 +44,7 @@ func (s *SQLEventStore) LoadByEventID(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, event.WrapInfrastructure(err, "storage.query_by_event_id",
+		return nil, errorfamily.WrapInfrastructure(err, "storage.query_by_event_id",
 			"query event by ID "+eventID.String())
 	}
 
@@ -52,11 +54,11 @@ func (s *SQLEventStore) LoadByEventID(
 		if err := rows.Err(); err != nil {
 			cqrsotel.RecordError(span, err)
 
-			return nil, event.WrapInfrastructure(err, "storage.scan_by_event_id",
+			return nil, errorfamily.WrapInfrastructure(err, "storage.scan_by_event_id",
 				"scan event by ID "+eventID.String())
 		}
 
-		return nil, event.WrapRejection(event.ErrEventNotFound, "storage.event_not_found",
+		return nil, errorfamily.WrapRejection(event.ErrEventNotFound, "storage.event_not_found",
 			"event "+eventID.String()+" not found")
 	}
 

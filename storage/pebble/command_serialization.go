@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
@@ -34,7 +35,7 @@ func (s *CommandStore) serializeCommand(cmd *command.PersistedCommand) ([]byte, 
 
 	data, err := marshalCBOR(serialized)
 	if err != nil {
-		return nil, event.WrapCorruption(err, "pebble.serialize_command", "marshal command")
+		return nil, errorfamily.WrapCorruption(err, "pebble.serialize_command", "marshal command")
 	}
 
 	return data, nil
@@ -55,7 +56,7 @@ func (s *CommandStore) deserializeCommand(data []byte) (*command.PersistedComman
 	}
 
 	if err != nil {
-		return nil, event.WrapCorruption(err, "pebble.unmarshal_command",
+		return nil, errorfamily.WrapCorruption(err, "pebble.unmarshal_command",
 			"failed to unmarshal command")
 	}
 
@@ -73,7 +74,7 @@ func (s *CommandStore) deserializeCommand(data []byte) (*command.PersistedComman
 		command.WithCommandMetadata(serialized.Metadata),
 	)
 	if err != nil {
-		return nil, event.WrapCorruption(err, "pebble.reconstruct_command",
+		return nil, errorfamily.WrapCorruption(err, "pebble.reconstruct_command",
 			"failed to reconstruct command from stored fields")
 	}
 

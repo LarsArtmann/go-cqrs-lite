@@ -6,6 +6,8 @@ import (
 	"log/slog"
 	"slices"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
 	cqrsprojection "github.com/larsartmann/go-cqrs-lite/projection/v3"
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v3"
@@ -40,13 +42,13 @@ func (b *Bundle) RunProjections(
 
 	catchUp, err := b.CatchUpSubscriber()
 	if err != nil {
-		return cqrsevent.WrapInfrastructure(err, "stack.run_projections.catchup",
+		return errorfamily.WrapInfrastructure(err, "stack.run_projections.catchup",
 			"run projections")
 	}
 
 	msgs, err := catchUp.Subscribe(ctx, cqrswatermill.DefaultEventBusTopic)
 	if err != nil {
-		return cqrsevent.WrapInfrastructure(err, "stack.run_projections.subscribe",
+		return errorfamily.WrapInfrastructure(err, "stack.run_projections.subscribe",
 			"subscribe to event stream")
 	}
 
@@ -63,7 +65,7 @@ func (b *Bundle) RunProjections(
 				msg.Metadata.Get("event_type"), msg,
 			)
 			if decodeErr != nil {
-				return cqrsevent.WrapCorruption(decodeErr, "stack.run_projections.decode",
+				return errorfamily.WrapCorruption(decodeErr, "stack.run_projections.decode",
 					"decode message")
 			}
 
@@ -81,7 +83,7 @@ func (b *Bundle) RunProjections(
 						"error", handleErr,
 					)
 
-					return cqrsevent.Wrap(handleErr, cqrsevent.Classify(handleErr),
+					return errorfamily.Wrap(handleErr, errorfamily.Classify(handleErr),
 						"stack.run_projections.handle",
 						fmt.Sprintf("%s handle %s", proj.Name(), evt.ID().String()))
 				}

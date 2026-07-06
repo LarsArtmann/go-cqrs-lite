@@ -9,6 +9,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/dedup/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -348,11 +350,11 @@ func (w *worker) applyWithRetry(ctx context.Context, evt event.Event) error {
 
 func (w *worker) sendToDLQ(ctx context.Context, evt event.Event, handlerErr error) error {
 	code, family := "", ""
-	if ce, ok := errors.AsType[*event.Error](handlerErr); ok {
+	if ce, ok := errors.AsType[*errorfamily.Error](handlerErr); ok {
 		code = ce.Code()
 	}
 
-	family = familyToName(event.Classify(handlerErr))
+	family = familyToName(errorfamily.Classify(handlerErr))
 
 	return w.opts.dlq.Store(ctx, DeadLetterEntry{
 		ProjectionName: w.name,
@@ -368,17 +370,17 @@ func (w *worker) sendToDLQ(ctx context.Context, evt event.Event, handlerErr erro
 }
 
 // familyToName maps a taxonomy family to its lowercase wire name.
-func familyToName(f event.Family) string {
+func familyToName(f errorfamily.Family) string {
 	switch f {
-	case event.Rejection:
+	case errorfamily.Rejection:
 		return "rejection"
-	case event.Conflict:
+	case errorfamily.Conflict:
 		return "conflict"
-	case event.Transient:
+	case errorfamily.Transient:
 		return "transient"
-	case event.Corruption:
+	case errorfamily.Corruption:
 		return "corruption"
-	case event.Infrastructure:
+	case errorfamily.Infrastructure:
 		return "infrastructure"
 	default:
 		return ""
@@ -448,7 +450,7 @@ func (w *worker) processLive(ctx context.Context) error {
 			EventID:     evt.ID(),
 			ProcessedAt: time.Now(),
 		}); saveErr != nil {
-			return event.WrapInfrastructure(saveErr, "projectionhost.save_checkpoint_live",
+			return errorfamily.WrapInfrastructure(saveErr, "projectionhost.save_checkpoint_live",
 				"save checkpoint after live event")
 		}
 

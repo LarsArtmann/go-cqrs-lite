@@ -5,8 +5,9 @@ import (
 	"errors"
 	"io"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/dispatcher/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // Handler processes a query and returns a result.
@@ -61,7 +62,7 @@ func (d *Dispatcher) Register(queryType Type, handler Handler) error {
 		},
 	)
 	if err != nil {
-		return event.WrapInfrastructure(
+		return errorfamily.WrapInfrastructure(
 			err,
 			"query.register_handler_failed",
 			"registering handler for query type "+string(queryType),
@@ -100,16 +101,16 @@ func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
 	wrapped, err := d.inner.Dispatch(string(query.Type()))
 	if err != nil {
 		if errors.Is(err, dispatcher.ErrHandlerNotFound) {
-			return nil, event.WrapRejection(
+			return nil, errorfamily.WrapRejection(
 				ErrHandlerNotFound,
 				"query.handler_not_found",
 				"no handler registered for query: "+string(query.Type()),
 			)
 		}
 
-		return nil, event.Wrap(
+		return nil, errorfamily.Wrap(
 			err,
-			event.Classify(err),
+			errorfamily.Classify(err),
 			"query.handler_failed",
 			"query type "+string(query.Type()),
 		)
@@ -121,7 +122,7 @@ func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
 func (d *Dispatcher) ensureOpen(code, msg string) error {
 	closedErr := d.inner.CheckClosed(ErrDispatcherClosed)
 	if closedErr != nil {
-		return event.WrapInfrastructure(closedErr, code, msg)
+		return errorfamily.WrapInfrastructure(closedErr, code, msg)
 	}
 
 	return nil
@@ -138,7 +139,7 @@ func DispatchTyped[T any](ctx context.Context, d *Dispatcher, query Query) (T, e
 
 	typed, ok := result.(T)
 	if !ok {
-		return zero, event.NewCorruption(
+		return zero, errorfamily.NewCorruption(
 			"query.type_mismatch",
 			"unexpected result type for query "+string(query.Type()),
 		)
@@ -151,7 +152,7 @@ func DispatchTyped[T any](ctx context.Context, d *Dispatcher, query Query) (T, e
 func (d *Dispatcher) Close() error {
 	closeErr := d.inner.Close()
 	if closeErr != nil {
-		return event.WrapInfrastructure(closeErr, "query.dispatcher_close",
+		return errorfamily.WrapInfrastructure(closeErr, "query.dispatcher_close",
 			"close query dispatcher")
 	}
 

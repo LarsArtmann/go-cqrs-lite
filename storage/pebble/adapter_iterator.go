@@ -4,8 +4,8 @@ import (
 	"slices"
 
 	"github.com/cockroachdb/pebble"
+	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 )
 
@@ -42,7 +42,7 @@ func (it *pebbleIterator) Value() []byte {
 func (it *pebbleIterator) Error() error {
 	err := it.iter.Error()
 	if err != nil {
-		return event.WrapInfrastructure(err, "pebble.iterator.error",
+		return errorfamily.WrapInfrastructure(err, "pebble.iterator.error",
 			"iterator error")
 	}
 
@@ -58,7 +58,7 @@ func (it *pebbleIterator) Close() error {
 
 	err := it.iter.Close()
 	if err != nil {
-		return event.WrapInfrastructure(err, "pebble.iterator.close",
+		return errorfamily.WrapInfrastructure(err, "pebble.iterator.close",
 			"close iterator")
 	}
 

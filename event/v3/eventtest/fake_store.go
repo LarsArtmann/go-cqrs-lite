@@ -5,6 +5,8 @@ import (
 	"sync"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
@@ -167,7 +169,7 @@ func (s *FakeStore) ReadFrom(
 
 	all, err := s.ReadAll(ctx)
 	if err != nil {
-		return nil, event.Wrapf(err, event.Infrastructure, "eventtest.read_from",
+		return nil, errorfamily.Wrapf(err, errorfamily.Infrastructure, "eventtest.read_from",
 			"read all for ReadFrom (limit=%d, after=%s)", limit, afterEventID)
 	}
 

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"slices"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
 	cqrsprojection "github.com/larsartmann/go-cqrs-lite/projection/v3"
 )
@@ -101,7 +103,7 @@ func (p *GraphProjection) Handle(ctx context.Context, evt cqrsevent.Event) error
 		return p.handler(ctx, evt, validated)
 	})
 	if err != nil {
-		return cqrsevent.Wrap(err, cqrsevent.Classify(err),
+		return errorfamily.Wrap(err, errorfamily.Classify(err),
 			"graph.projection.handle",
 			fmt.Sprintf("projection %q", p.name))
 	}
@@ -117,7 +119,7 @@ func (p *GraphProjection) Close() error {
 	}
 
 	if err := p.driver.Close(); err != nil {
-		return cqrsevent.WrapInfrastructure(err, "graph.projection.close",
+		return errorfamily.WrapInfrastructure(err, "graph.projection.close",
 			fmt.Sprintf("projection %q: close driver", p.name))
 	}
 

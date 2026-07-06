@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/ThreeDotsLabs/watermill/message"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
@@ -105,19 +106,19 @@ func MessageToEvent(topic string, msg *message.Message) (event.Event, error) {
 
 	aggregateID, err := id.ParseAggregateID(md.Get(metaAggregateID))
 	if err != nil {
-		return nil, event.WrapRejection(err,
+		return nil, errorfamily.WrapRejection(err,
 			"watermill.parse_aggregate_id_failed", "parse aggregate_id")
 	}
 
 	aggregateType := event.AggregateType(md.Get(metaAggregateType))
 	if aggregateType == "" {
-		return nil, event.NewRejection("watermill.missing_metadata",
+		return nil, errorfamily.NewRejection("watermill.missing_metadata",
 			"missing "+metaAggregateType+" metadata")
 	}
 
 	version, err := parseInt(md.Get(metaVersion), metaVersion)
 	if err != nil {
-		return nil, event.WrapRejection(err,
+		return nil, errorfamily.WrapRejection(err,
 			"watermill.parse_version_failed",
 			fmt.Sprintf("topic %s: parse %s", topic, metaVersion))
 	}
@@ -136,9 +137,9 @@ func MessageToEvent(topic string, msg *message.Message) (event.Event, error) {
 	}
 
 	if eventOpts, err := parseOptionalFields(md); err != nil {
-		return nil, event.Wrapf(
+		return nil, errorfamily.Wrapf(
 			err,
-			event.Rejection,
+			errorfamily.Rejection,
 			"watermill.parse_optional",
 			"topic %s: parse optional fields",
 			topic,
@@ -159,11 +160,11 @@ func MessageToEvent(topic string, msg *message.Message) (event.Event, error) {
 		opts...,
 	)
 	if err != nil {
-		return nil, event.WrapCorruption(err, "watermill.create_event_failed", "create event")
+		return nil, errorfamily.WrapCorruption(err, "watermill.create_event_failed", "create event")
 	}
 
 	if metaErr != nil {
-		return evt, event.WrapCorruption(metaErr, "watermill.corrupt_metadata",
+		return evt, errorfamily.WrapCorruption(metaErr, "watermill.corrupt_metadata",
 			"event created with corrupt metadata fields")
 	}
 
@@ -178,7 +179,7 @@ func parseSchemaVersion(md message.Metadata, topic string) (int, error) {
 
 	version, err := parseInt(svStr, metaSchemaVersion)
 	if err != nil {
-		return 0, event.WrapRejection(err,
+		return 0, errorfamily.WrapRejection(err,
 			"watermill.parse_schema_version_failed",
 			fmt.Sprintf("topic %s: parse %s", topic, metaSchemaVersion))
 	}
@@ -192,7 +193,7 @@ func parseOptionalFields(md message.Metadata) ([]event.Option, error) {
 	if eventIDStr := md.Get(metaEventID); eventIDStr != "" {
 		eventID, err := id.ParseEventID(eventIDStr)
 		if err != nil {
-			return nil, event.WrapRejection(
+			return nil, errorfamily.WrapRejection(
 				err,
 				"watermill.parse_event_id_failed",
 				"parse event_id",
@@ -204,7 +205,7 @@ func parseOptionalFields(md message.Metadata) ([]event.Option, error) {
 	if occurredAtStr := md.Get(metaOccurredAt); occurredAtStr != "" {
 		occurredAt, err := time.Parse(time.RFC3339Nano, occurredAtStr)
 		if err != nil {
-			return nil, event.WrapRejection(
+			return nil, errorfamily.WrapRejection(
 				err,
 				"watermill.parse_occurred_at_failed",
 				"parse occurred_at",
@@ -261,7 +262,7 @@ func buildMetadata(md message.Metadata) (event.Metadata, error) {
 			}
 			m.Tombstone = &mark
 		} else {
-			errs = append(errs, event.WrapRejection(err, "watermill.parse_tombstone_status",
+			errs = append(errs, errorfamily.WrapRejection(err, "watermill.parse_tombstone_status",
 				fmt.Sprintf("parse %s", metaTombstoneStatus)))
 		}
 	}
@@ -290,7 +291,10 @@ func parseIDField[T any](
 
 	parsed, err := parse(v)
 	if err != nil {
-		*errs = append(*errs, event.WrapRejection(err, "watermill.parse_id_field_failed", key))
+		*errs = append(
+			*errs,
+			errorfamily.WrapRejection(err, "watermill.parse_id_field_failed", key),
+		)
 
 		return
 	}
@@ -300,12 +304,15 @@ func parseIDField[T any](
 
 func parseInt(s, field string) (int, error) {
 	if s == "" {
-		return 0, event.NewRejection("watermill.missing_metadata", "missing "+field+" metadata")
+		return 0, errorfamily.NewRejection(
+			"watermill.missing_metadata",
+			"missing "+field+" metadata",
+		)
 	}
 
 	v, err := strconv.Atoi(s)
 	if err != nil {
-		return 0, event.WrapRejection(err, "watermill.parse_failed", "parse "+field)
+		return 0, errorfamily.WrapRejection(err, "watermill.parse_failed", "parse "+field)
 	}
 
 	return v, nil

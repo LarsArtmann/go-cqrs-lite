@@ -3,6 +3,8 @@ package simulation
 import (
 	"fmt"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
@@ -40,9 +42,9 @@ func (g *EventGenerator) Generate(count int) ([]event.Event, error) {
 
 	events, err := event.NewEvents(aggID, g.aggregateType, 1, types, payloads)
 	if err != nil {
-		return nil, event.Wrapf(
+		return nil, errorfamily.Wrapf(
 			err,
-			event.Infrastructure,
+			errorfamily.Infrastructure,
 			"simulation.generate",
 			"generate %d events",
 			count,
@@ -68,9 +70,9 @@ func (g *EventGenerator) GenerateMulti(aggregates, eventsPerAggregate int) ([]ev
 
 		events, err := event.NewEvents(aggID, g.aggregateType, 1, types, payloads)
 		if err != nil {
-			return nil, event.Wrapf(
+			return nil, errorfamily.Wrapf(
 				err,
-				event.Infrastructure,
+				errorfamily.Infrastructure,
 				"simulation.generate_multi",
 				"generate aggregate %d/%d (eventsPerAggregate=%d)",
 				aggIdx+1,

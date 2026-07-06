@@ -3,7 +3,8 @@ package postgres
 import (
 	"database/sql"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
@@ -28,7 +29,7 @@ func buildPrimaryViewOptions(backend *storage.SQLBackend, sqlDB *sql.DB) ([]stac
 		_ = backend.Close()
 		_ = sqlDB.Close()
 
-		return nil, event.WrapInfrastructure(err, "postgres.kv_store", "create KV store")
+		return nil, errorfamily.WrapInfrastructure(err, "postgres.kv_store", "create KV store")
 	}
 
 	return []stack.Option{stack.WithReadModels(kvStore)}, nil
@@ -44,7 +45,11 @@ func buildSecondaryViewOptions(
 		_ = backend.Close()
 		_ = sqlDB.Close()
 
-		return nil, event.WrapInfrastructure(err, "postgres.open_view_db", "open view database")
+		return nil, errorfamily.WrapInfrastructure(
+			err,
+			"postgres.open_view_db",
+			"open view database",
+		)
 	}
 
 	viewBackend, err := storage.NewSQLBackend(viewDB)
@@ -53,7 +58,7 @@ func buildSecondaryViewOptions(
 		_ = sqlDB.Close()
 		_ = viewDB.Close()
 
-		return nil, event.WrapInfrastructure(
+		return nil, errorfamily.WrapInfrastructure(
 			err,
 			"postgres.create_view_backend",
 			"create view backend",
@@ -66,7 +71,7 @@ func buildSecondaryViewOptions(
 		_ = backend.Close()
 		_ = sqlDB.Close()
 
-		return nil, event.WrapInfrastructure(err, "postgres.view_kv_store",
+		return nil, errorfamily.WrapInfrastructure(err, "postgres.view_kv_store",
 			"create KV store for view database")
 	}
 

@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3/sqlopt"
@@ -110,7 +112,7 @@ func New(dsn string, opts ...Option) (*stack.Bundle, error) {
 func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	sqlDB, backend, err := openBackend(dsn, cfg)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "postgres_preset.open_backend",
+		return nil, errorfamily.WrapInfrastructure(err, "postgres_preset.open_backend",
 			"open primary backend")
 	}
 
@@ -124,7 +126,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 			_ = backend.Close()
 			_ = sqlDB.Close()
 
-			return nil, event.WrapInfrastructure(eErr, "postgres_preset.open_event_db",
+			return nil, errorfamily.WrapInfrastructure(eErr, "postgres_preset.open_event_db",
 				"open event database")
 		}
 
@@ -140,7 +142,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 			_ = backend.Close()
 			_ = sqlDB.Close()
 
-			return nil, event.WrapInfrastructure(qErr, "postgres_preset.open_query_db",
+			return nil, errorfamily.WrapInfrastructure(qErr, "postgres_preset.open_query_db",
 				"open query database")
 		}
 
@@ -153,7 +155,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 		_ = backend.Close()
 		_ = sqlDB.Close()
 
-		return nil, event.WrapInfrastructure(err, "postgres_preset.bus",
+		return nil, errorfamily.WrapInfrastructure(err, "postgres_preset.bus",
 			"build event bus")
 	}
 
@@ -165,7 +167,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 
 	viewOpts, err := buildViewOptions(cfg, backend, sqlDB)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "postgres_preset.view_options",
+		return nil, errorfamily.WrapInfrastructure(err, "postgres_preset.view_options",
 			"build view options")
 	}
 
@@ -183,7 +185,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 		_ = backend.Close()
 		_ = sqlDB.Close()
 
-		return nil, event.WrapInfrastructure(err, "postgres_preset.wire_bundle",
+		return nil, errorfamily.WrapInfrastructure(err, "postgres_preset.wire_bundle",
 			"wire postgres bundle")
 	}
 
@@ -195,7 +197,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 	sqlDB, err := sql.Open("pgx", dsn)
 	if err != nil {
-		return nil, nil, event.WrapInfrastructure(err, "postgres_preset.open_primary",
+		return nil, nil, errorfamily.WrapInfrastructure(err, "postgres_preset.open_primary",
 			fmt.Sprintf("open postgres %q", dsn))
 	}
 
@@ -206,7 +208,7 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 		if err != nil {
 			_ = sqlDB.Close()
 
-			return nil, nil, event.WrapInfrastructure(err, "postgres_preset.init_schema",
+			return nil, nil, errorfamily.WrapInfrastructure(err, "postgres_preset.init_schema",
 				"initialize postgres schema")
 		}
 	}
@@ -215,7 +217,7 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 	if err != nil {
 		_ = sqlDB.Close()
 
-		return nil, nil, event.WrapInfrastructure(err, "postgres_preset.create_backend",
+		return nil, nil, errorfamily.WrapInfrastructure(err, "postgres_preset.create_backend",
 			"create SQL backend")
 	}
 
@@ -238,7 +240,7 @@ func buildBus(
 
 	pgBus, err := storage.NewPostgresBus(dbHandle, store, cfg.listener, cfg.busOpts...)
 	if err != nil {
-		return nil, nil, event.WrapInfrastructure(err, "postgres_preset.create_bus",
+		return nil, nil, errorfamily.WrapInfrastructure(err, "postgres_preset.create_bus",
 			"create postgres LISTEN/NOTIFY bus")
 	}
 

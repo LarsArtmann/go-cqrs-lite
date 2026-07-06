@@ -5,6 +5,8 @@ import (
 	"errors"
 	"testing"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -59,7 +61,7 @@ func TestValidator_InvalidPayload_Rejected(t *testing.T) {
 		t.Fatal("expected rejection for malformed payload")
 	}
 
-	if event.Classify(err) != event.Rejection {
+	if errorfamily.Classify(err) != errorfamily.Rejection {
 		t.Fatalf("expected Rejection error, got %T: %v", err, err)
 	}
 }
@@ -102,7 +104,7 @@ func TestValidator_UnregisteredType_StrictMode(t *testing.T) {
 		t.Fatal("expected rejection for unregistered type in strict mode")
 	}
 
-	if event.Classify(err) != event.Rejection {
+	if errorfamily.Classify(err) != errorfamily.Rejection {
 		t.Fatalf("expected Rejection error, got %T: %v", err, err)
 	}
 }
@@ -278,7 +280,7 @@ func TestValidator_CBOREncoding_Invalid_Rejected(t *testing.T) {
 		t.Fatal("expected rejection for invalid CBOR payload")
 	}
 
-	if event.Classify(err) != event.Rejection {
+	if errorfamily.Classify(err) != errorfamily.Rejection {
 		t.Fatalf("expected Rejection, got %T: %v", err, err)
 	}
 }
@@ -308,7 +310,7 @@ func TestValidator_EncryptedEncoding_RejectedGracefully(t *testing.T) {
 		t.Fatal("expected rejection for encrypted payload with no matching decoder")
 	}
 
-	if event.Classify(err) != event.Rejection {
+	if errorfamily.Classify(err) != errorfamily.Rejection {
 		t.Fatalf("expected Rejection, got %T: %v", err, err)
 	}
 }

@@ -3,6 +3,8 @@ package main
 import (
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/decider/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -134,7 +136,7 @@ type CreateTask struct {
 func Create(cmd CreateTask) decider.DecideFunc[TaskState] {
 	return func(s TaskState, v event.Version) ([]event.Event, error) {
 		if s.Exists {
-			return nil, event.NewConflict("task.create.exists", "task already exists")
+			return nil, errorfamily.NewConflict("task.create.exists", "task already exists")
 		}
 
 		title, err := normaliseTitle(cmd.Title)
@@ -145,8 +147,8 @@ func Create(cmd CreateTask) decider.DecideFunc[TaskState] {
 		evt, err := event.New(evtTaskCreated, cmd.ID, aggregateType, v.Increment(),
 			TaskCreatedPayload{Title: title, Description: cmd.Description, Priority: cmd.Priority})
 		if err != nil {
-			return nil, event.Newf(
-				event.Infrastructure,
+			return nil, errorfamily.Newf(
+				errorfamily.Infrastructure,
 				"task.create.event",
 				"build event: %v",
 				err,
@@ -166,21 +168,24 @@ type AssignTask struct {
 func Assign(cmd AssignTask) decider.DecideFunc[TaskState] {
 	return func(s TaskState, v event.Version) ([]event.Event, error) {
 		if !s.IsActive() {
-			return nil, event.NewRejection(
+			return nil, errorfamily.NewRejection(
 				"task.assign.not_found",
 				"task does not exist or is deleted",
 			)
 		}
 
 		if s.AssigneeID == cmd.AssigneeID {
-			return nil, event.NewConflict("task.assign.same", "task already assigned to this user")
+			return nil, errorfamily.NewConflict(
+				"task.assign.same",
+				"task already assigned to this user",
+			)
 		}
 
 		evt, err := event.New(evtTaskAssigned, cmd.ID, aggregateType, v.Increment(),
 			TaskAssignedPayload{AssigneeID: cmd.AssigneeID})
 		if err != nil {
-			return nil, event.Newf(
-				event.Infrastructure,
+			return nil, errorfamily.Newf(
+				errorfamily.Infrastructure,
 				"task.assign.event",
 				"build event: %v",
 				err,
@@ -199,14 +204,14 @@ type StartTask struct {
 func Start(cmd StartTask) decider.DecideFunc[TaskState] {
 	return func(s TaskState, v event.Version) ([]event.Event, error) {
 		if !s.IsActive() {
-			return nil, event.NewRejection(
+			return nil, errorfamily.NewRejection(
 				"task.start.not_found",
 				"task does not exist or is deleted",
 			)
 		}
 
 		if !s.CanTransitionTo(StatusActive) {
-			return nil, event.NewConflict("task.start.invalid_transition",
+			return nil, errorfamily.NewConflict("task.start.invalid_transition",
 				"cannot start a task in "+string(s.Status)+" status")
 		}
 
@@ -218,7 +223,12 @@ func Start(cmd StartTask) decider.DecideFunc[TaskState] {
 			TaskStartedPayload{},
 		)
 		if err != nil {
-			return nil, event.Newf(event.Infrastructure, "task.start.event", "build event: %v", err)
+			return nil, errorfamily.Newf(
+				errorfamily.Infrastructure,
+				"task.start.event",
+				"build event: %v",
+				err,
+			)
 		}
 
 		return []event.Event{evt}, nil
@@ -233,14 +243,14 @@ type CompleteTask struct {
 func Complete(cmd CompleteTask) decider.DecideFunc[TaskState] {
 	return func(s TaskState, v event.Version) ([]event.Event, error) {
 		if !s.IsActive() {
-			return nil, event.NewRejection(
+			return nil, errorfamily.NewRejection(
 				"task.complete.not_found",
 				"task does not exist or is deleted",
 			)
 		}
 
 		if !s.CanTransitionTo(StatusCompleted) {
-			return nil, event.NewConflict("task.complete.invalid_transition",
+			return nil, errorfamily.NewConflict("task.complete.invalid_transition",
 				"cannot complete a task in "+string(s.Status)+" status")
 		}
 
@@ -252,8 +262,8 @@ func Complete(cmd CompleteTask) decider.DecideFunc[TaskState] {
 			TaskCompletedPayload{},
 		)
 		if err != nil {
-			return nil, event.Newf(
-				event.Infrastructure,
+			return nil, errorfamily.Newf(
+				errorfamily.Infrastructure,
 				"task.complete.event",
 				"build event: %v",
 				err,
@@ -272,14 +282,14 @@ type ArchiveTask struct {
 func Archive(cmd ArchiveTask) decider.DecideFunc[TaskState] {
 	return func(s TaskState, v event.Version) ([]event.Event, error) {
 		if !s.IsActive() {
-			return nil, event.NewRejection(
+			return nil, errorfamily.NewRejection(
 				"task.archive.not_found",
 				"task does not exist or is deleted",
 			)
 		}
 
 		if !s.CanTransitionTo(StatusArchived) {
-			return nil, event.NewConflict("task.archive.invalid_transition",
+			return nil, errorfamily.NewConflict("task.archive.invalid_transition",
 				"cannot archive a task in "+string(s.Status)+" status")
 		}
 
@@ -291,8 +301,8 @@ func Archive(cmd ArchiveTask) decider.DecideFunc[TaskState] {
 			TaskArchivedPayload{},
 		)
 		if err != nil {
-			return nil, event.Newf(
-				event.Infrastructure,
+			return nil, errorfamily.Newf(
+				errorfamily.Infrastructure,
 				"task.archive.event",
 				"build event: %v",
 				err,
@@ -312,7 +322,7 @@ type UpdateTitle struct {
 func UpdateTaskTitle(cmd UpdateTitle) decider.DecideFunc[TaskState] {
 	return func(s TaskState, v event.Version) ([]event.Event, error) {
 		if !s.IsActive() {
-			return nil, event.NewRejection(
+			return nil, errorfamily.NewRejection(
 				"task.title.not_found",
 				"task does not exist or is deleted",
 			)
@@ -324,13 +334,18 @@ func UpdateTaskTitle(cmd UpdateTitle) decider.DecideFunc[TaskState] {
 		}
 
 		if title == s.Title {
-			return nil, event.NewConflict("task.title.unchanged", "title is the same")
+			return nil, errorfamily.NewConflict("task.title.unchanged", "title is the same")
 		}
 
 		evt, err := event.New(evtTaskTitleUpdated, cmd.ID, aggregateType, v.Increment(),
 			TaskTitleUpdatedPayload{Title: title})
 		if err != nil {
-			return nil, event.Newf(event.Infrastructure, "task.title.event", "build event: %v", err)
+			return nil, errorfamily.Newf(
+				errorfamily.Infrastructure,
+				"task.title.event",
+				"build event: %v",
+				err,
+			)
 		}
 
 		return []event.Event{evt}, nil
@@ -346,26 +361,26 @@ type ChangePriority struct {
 func ChangeTaskPriority(cmd ChangePriority) decider.DecideFunc[TaskState] {
 	return func(s TaskState, v event.Version) ([]event.Event, error) {
 		if !s.IsActive() {
-			return nil, event.NewRejection(
+			return nil, errorfamily.NewRejection(
 				"task.priority.not_found",
 				"task does not exist or is deleted",
 			)
 		}
 
 		if !cmd.Priority.Valid() {
-			return nil, event.NewRejection("task.priority.invalid",
+			return nil, errorfamily.NewRejection("task.priority.invalid",
 				"priority must be low, medium, high, or urgent")
 		}
 
 		if cmd.Priority == s.Priority {
-			return nil, event.NewConflict("task.priority.unchanged", "priority is the same")
+			return nil, errorfamily.NewConflict("task.priority.unchanged", "priority is the same")
 		}
 
 		evt, err := event.New(evtTaskPriorityChanged, cmd.ID, aggregateType, v.Increment(),
 			TaskPriorityChangedPayload{Priority: cmd.Priority})
 		if err != nil {
-			return nil, event.Newf(
-				event.Infrastructure,
+			return nil, errorfamily.Newf(
+				errorfamily.Infrastructure,
 				"task.priority.event",
 				"build event: %v",
 				err,
@@ -385,7 +400,7 @@ type SetDueDate struct {
 func SetTaskDueDate(cmd SetDueDate) decider.DecideFunc[TaskState] {
 	return func(s TaskState, v event.Version) ([]event.Event, error) {
 		if !s.IsActive() {
-			return nil, event.NewRejection(
+			return nil, errorfamily.NewRejection(
 				"task.duedate.not_found",
 				"task does not exist or is deleted",
 			)
@@ -394,8 +409,8 @@ func SetTaskDueDate(cmd SetDueDate) decider.DecideFunc[TaskState] {
 		evt, err := event.New(evtTaskDueDateSet, cmd.ID, aggregateType, v.Increment(),
 			TaskDueDateSetPayload{DueDate: cmd.DueDate})
 		if err != nil {
-			return nil, event.Newf(
-				event.Infrastructure,
+			return nil, errorfamily.Newf(
+				errorfamily.Infrastructure,
 				"task.duedate.event",
 				"build event: %v",
 				err,
@@ -415,24 +430,29 @@ type BlockBy struct {
 func AddBlocker(cmd BlockBy) decider.DecideFunc[TaskState] {
 	return func(s TaskState, v event.Version) ([]event.Event, error) {
 		if !s.IsActive() {
-			return nil, event.NewRejection(
+			return nil, errorfamily.NewRejection(
 				"task.block.not_found",
 				"task does not exist or is deleted",
 			)
 		}
 
 		if s.HasDependency(cmd.DependencyID) {
-			return nil, event.NewConflict("task.block.exists", "dependency already exists")
+			return nil, errorfamily.NewConflict("task.block.exists", "dependency already exists")
 		}
 
 		if cmd.ID == cmd.DependencyID {
-			return nil, event.NewRejection("task.block.self", "a task cannot block itself")
+			return nil, errorfamily.NewRejection("task.block.self", "a task cannot block itself")
 		}
 
 		evt, err := event.New(evtTaskBlockedBy, cmd.ID, aggregateType, v.Increment(),
 			TaskBlockedByPayload{DependencyID: cmd.DependencyID.String()})
 		if err != nil {
-			return nil, event.Newf(event.Infrastructure, "task.block.event", "build event: %v", err)
+			return nil, errorfamily.Newf(
+				errorfamily.Infrastructure,
+				"task.block.event",
+				"build event: %v",
+				err,
+			)
 		}
 
 		return []event.Event{evt}, nil
@@ -448,21 +468,21 @@ type UnblockBy struct {
 func RemoveBlocker(cmd UnblockBy) decider.DecideFunc[TaskState] {
 	return func(s TaskState, v event.Version) ([]event.Event, error) {
 		if !s.IsActive() {
-			return nil, event.NewRejection(
+			return nil, errorfamily.NewRejection(
 				"task.unblock.not_found",
 				"task does not exist or is deleted",
 			)
 		}
 
 		if !s.HasDependency(cmd.DependencyID) {
-			return nil, event.NewConflict("task.unblock.missing", "dependency does not exist")
+			return nil, errorfamily.NewConflict("task.unblock.missing", "dependency does not exist")
 		}
 
 		evt, err := event.New(evtTaskUnblocked, cmd.ID, aggregateType, v.Increment(),
 			TaskUnblockedPayload{DependencyID: cmd.DependencyID.String()})
 		if err != nil {
-			return nil, event.Newf(
-				event.Infrastructure,
+			return nil, errorfamily.Newf(
+				errorfamily.Infrastructure,
 				"task.unblock.event",
 				"build event: %v",
 				err,
@@ -481,11 +501,11 @@ type DeleteTask struct {
 func Delete(cmd DeleteTask) decider.DecideFunc[TaskState] {
 	return func(s TaskState, v event.Version) ([]event.Event, error) {
 		if !s.Exists {
-			return nil, event.NewRejection("task.delete.not_found", "task does not exist")
+			return nil, errorfamily.NewRejection("task.delete.not_found", "task does not exist")
 		}
 
 		if s.Tombstoned {
-			return nil, event.NewConflict("task.delete.deleted", "task already deleted")
+			return nil, errorfamily.NewConflict("task.delete.deleted", "task already deleted")
 		}
 
 		evt, err := event.New(
@@ -496,8 +516,8 @@ func Delete(cmd DeleteTask) decider.DecideFunc[TaskState] {
 			TaskDeletedPayload{},
 		)
 		if err != nil {
-			return nil, event.Newf(
-				event.Infrastructure,
+			return nil, errorfamily.Newf(
+				errorfamily.Infrastructure,
 				"task.delete.event",
 				"build event: %v",
 				err,
@@ -506,8 +526,8 @@ func Delete(cmd DeleteTask) decider.DecideFunc[TaskState] {
 
 		marked, markErr := event.MarkTombstone(evt)
 		if markErr != nil {
-			return nil, event.Newf(
-				event.Infrastructure,
+			return nil, errorfamily.Newf(
+				errorfamily.Infrastructure,
 				"task.delete.tombstone",
 				"mark: %v",
 				markErr,

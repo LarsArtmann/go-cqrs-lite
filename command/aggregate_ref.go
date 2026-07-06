@@ -1,6 +1,8 @@
 package command
 
 import (
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
@@ -17,7 +19,11 @@ type AggregateRef = event.AggregateRef
 func ParseAggregateType(s string) (AggregateType, error) {
 	t, err := event.ParseAggregateType(s)
 	if err != nil {
-		return "", event.WrapRejection(err, "command.parse_aggregate_type", "parse aggregate type")
+		return "", errorfamily.WrapRejection(
+			err,
+			"command.parse_aggregate_type",
+			"parse aggregate type",
+		)
 	}
 
 	return t, nil

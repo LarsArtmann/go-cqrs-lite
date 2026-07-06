@@ -164,3 +164,124 @@ func TestSSEHandler_DedupRingCapacity_Custom(t *testing.T) {
 		t.Errorf("expected evt1 delivered once (deduped), got %d; body: %q", count, body)
 	}
 }
+
+// TestSSEHandler_EventFilter verifies that WithEventFilter drops events
+// the predicate rejects, and forwards those it accepts.
+func TestSSEHandler_EventFilter(t *testing.T) {
+	t.Parallel()
+
+	bus := eventtest.NewFakeBus()
+	defer bus.Close()
+
+	broker, err := NewSSEBroker(
+		bus,
+		WithEventFilter(func(typ event.Type) bool {
+			return string(typ) == "user.created"
+		}),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer broker.Close()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events?client=filter", nil)
+	rec := httptest.NewRecorder()
+	done := make(chan struct{})
+
+	go func() {
+		defer close(done)
+		SSEHandler(broker).ServeHTTP(rec, req)
+	}()
+
+	time.Sleep(50 * time.Millisecond)
+
+	aggID := id.NewAggregateID()
+
+	accepted, _ := event.NewEvent("user.created", aggID, "User", 1, []byte(`{"n":"alice"}`))
+	rejected, _ := event.NewEvent("order.placed", aggID, "Order", 1, []byte(`{"item":"book"}`))
+
+	_ = bus.Publish(context.Background(), accepted)
+	_ = bus.Publish(context.Background(), rejected)
+
+	time.Sleep(50 * time.Millisecond)
+	cancel()
+	<-done
+
+	body := rec.Body.String()
+
+	if !strings.Contains(body, "user.created") {
+		t.Errorf("accepted event should be in body; got: %q", body)
+	}
+
+	if strings.Contains(body, "order.placed") {
+		t.Errorf("rejected event should NOT be in body; got: %q", body)
+	}
+}
+
+// TestSSEHandler_RetryField verifies that the SSE retry field is sent on
+// connect and reflects WithRetryInterval.
+func TestSSEHandler_RetryField(t *testing.T) {
+	t.Parallel()
+
+	bus := eventtest.NewFakeBus()
+	defer bus.Close()
+
+	broker, err := NewSSEBroker(bus, WithRetryInterval(3*time.Second))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer broker.Close()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events?client=retry", nil)
+	rec := httptest.NewRecorder()
+	done := make(chan struct{})
+
+	go func() {
+		defer close(done)
+		SSEHandler(broker).ServeHTTP(rec, req)
+	}()
+
+	time.Sleep(50 * time.Millisecond)
+	cancel()
+	<-done
+
+	body := rec.Body.String()
+
+	if !strings.Contains(body, "retry: 3000") {
+		t.Errorf("expected 'retry: 3000' in body; got: %q", body)
+	}
+}
+
+// TestSSEHandler_ConcurrentClose verifies that Close() during active
+// streaming doesn't panic or race (close guard for #15).
+func TestSSEHandler_ConcurrentClose(t *testing.T) {
+	t.Parallel()
+
+	bus := eventtest.NewFakeBus()
+	defer bus.Close()
+
+	broker, err := NewSSEBroker(bus)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events?client=conc", nil)
+	rec := httptest.NewRecorder()
+	done := make(chan struct{})
+
+	go func() {
+		defer close(done)
+		SSEHandler(broker).ServeHTTP(rec, req)
+	}()
+
+	time.Sleep(50 * time.Millisecond)
+
+	// Close while the handler is running — should not panic.
+	broker.Close()
+
+	cancel()
+	<-done
+}

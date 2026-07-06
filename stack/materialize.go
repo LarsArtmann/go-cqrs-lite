@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/ThreeDotsLabs/watermill/message"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
@@ -118,12 +119,12 @@ func (m *Materialize[V, K]) HandlerFunc() message.NoPublishHandlerFunc {
 
 		evt, err := cqrswatermill.MessageToEvent(topic, msg)
 		if err != nil {
-			return event.WrapCorruption(err, "stack.materialize.decode",
+			return errorfamily.WrapCorruption(err, "stack.materialize.decode",
 				"decode message")
 		}
 
 		if err := m.handleEvent(ctx, evt); err != nil {
-			return event.Wrap(err, event.Classify(err),
+			return errorfamily.Wrap(err, errorfamily.Classify(err),
 				"stack.materialize.handle_event",
 				"handle event "+evt.ID().String())
 		}
@@ -135,7 +136,7 @@ func (m *Materialize[V, K]) HandlerFunc() message.NoPublishHandlerFunc {
 func (m *Materialize[V, K]) handleEvent(ctx context.Context, evt event.Event) error {
 	key, err := m.KeyFromEvent(evt)
 	if err != nil {
-		return event.WrapRejection(err, "stack.materialize.extract_key",
+		return errorfamily.WrapRejection(err, "stack.materialize.extract_key",
 			"extract key from event")
 	}
 
@@ -145,7 +146,7 @@ func (m *Materialize[V, K]) handleEvent(ctx context.Context, evt event.Event) er
 	if md.Tombstone != nil {
 		existing, getErr := m.Store.Get(ctx, key)
 		if getErr != nil && !errors.Is(getErr, kv.ErrNotFound) {
-			return event.Wrap(getErr, event.Classify(getErr),
+			return errorfamily.Wrap(getErr, errorfamily.Classify(getErr),
 				"stack.materialize.load_tombstone", "load existing for tombstone")
 		}
 
@@ -184,7 +185,7 @@ func (m *Materialize[V, K]) handleEvent(ctx context.Context, evt event.Event) er
 	existing, err := m.Store.Get(ctx, key)
 	if err != nil {
 		if !errors.Is(err, kv.ErrNotFound) {
-			return event.Wrap(err, event.Classify(err),
+			return errorfamily.Wrap(err, errorfamily.Classify(err),
 				"stack.materialize.load_existing", "load existing record")
 		}
 

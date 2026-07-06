@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/cockroachdb/pebble"
+	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 )
 
@@ -20,7 +20,7 @@ var _ kv.Batch = (*pebbleBatch)(nil)
 func (batch *pebbleBatch) Set(key, value []byte) error {
 	err := batch.batch.Set(key, value, nil)
 	if err != nil {
-		return event.WrapInfrastructure(err, "pebble.batch.set",
+		return errorfamily.WrapInfrastructure(err, "pebble.batch.set",
 			fmt.Sprintf("batch set %q", key))
 	}
 
@@ -30,7 +30,7 @@ func (batch *pebbleBatch) Set(key, value []byte) error {
 func (batch *pebbleBatch) Delete(key []byte) error {
 	err := batch.batch.Delete(key, nil)
 	if err != nil {
-		return event.WrapInfrastructure(err, "pebble.batch.delete",
+		return errorfamily.WrapInfrastructure(err, "pebble.batch.delete",
 			fmt.Sprintf("batch delete %q", key))
 	}
 
@@ -46,7 +46,7 @@ func (batch *pebbleBatch) Commit() error {
 
 	err := batch.batch.Commit(batch.commitOpts)
 	if err != nil {
-		return event.WrapInfrastructure(err, "pebble.batch.commit",
+		return errorfamily.WrapInfrastructure(err, "pebble.batch.commit",
 			"commit batch")
 	}
 
@@ -60,7 +60,7 @@ func (batch *pebbleBatch) Close() error {
 
 	err := batch.batch.Close()
 	if err != nil {
-		return event.WrapInfrastructure(err, "pebble.batch.close",
+		return errorfamily.WrapInfrastructure(err, "pebble.batch.close",
 			"close batch")
 	}
 

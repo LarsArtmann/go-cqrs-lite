@@ -6,7 +6,7 @@ import (
 	"slices"
 	"sync"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // MemoryBus is an in-memory implementation of [Bus]. It dispatches commands
@@ -32,8 +32,8 @@ func NewMemoryBus() *MemoryBus {
 }
 
 var (
-	errNilBusHandler      = event.NewRejection("command.nil_handler", "command: nil handler")
-	errNilBusSubscribeAll = event.NewRejection(
+	errNilBusHandler      = errorfamily.NewRejection("command.nil_handler", "command: nil handler")
+	errNilBusSubscribeAll = errorfamily.NewRejection(
 		"command.nil_subscribe_all",
 		"command: subscribe-all: nil handler",
 	)
@@ -44,7 +44,7 @@ var (
 // synchronously on Publish. Returns an error if handler is nil.
 func (b *MemoryBus) Subscribe(cmdType Type, handler Handler) error {
 	if handler == nil {
-		return event.WrapRejection(errNilBusHandler, "command.memory_bus.subscribe",
+		return errorfamily.WrapRejection(errNilBusHandler, "command.memory_bus.subscribe",
 			fmt.Sprintf("subscribe %s", cmdType))
 	}
 
@@ -96,7 +96,7 @@ func (b *MemoryBus) Publish(ctx context.Context, cmds ...Command) error {
 	for _, cmd := range cmds {
 		err := b.dispatch(ctx, cmd, mw)
 		if err != nil {
-			return event.Wrap(err, event.Classify(err),
+			return errorfamily.Wrap(err, errorfamily.Classify(err),
 				"command.memory_bus.publish",
 				fmt.Sprintf("publish %s", cmd.Type()))
 		}

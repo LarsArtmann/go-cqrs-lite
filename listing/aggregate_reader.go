@@ -3,7 +3,7 @@ package listing
 import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // AggregateReader queries aggregate streams.
@@ -29,7 +29,7 @@ func ListRefsFromStatus(
 ) (*Page[AggregateListing], error) {
 	statusPage, err := r.ListWithStatus(ctx, opts)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "listing.list_with_status",
+		return nil, errorfamily.WrapInfrastructure(err, "listing.list_with_status",
 			"list with status")
 	}
 

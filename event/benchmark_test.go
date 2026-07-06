@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
@@ -68,19 +70,19 @@ func BenchmarkNew_TypedPayload(b *testing.B) {
 
 func BenchmarkClassify(b *testing.B) {
 	b.ReportAllocs()
-	err := event.NewTransient("db.timeout", "connection lost")
+	err := errorfamily.NewTransient("db.timeout", "connection lost")
 
 	for b.Loop() {
-		_ = event.Classify(err)
+		_ = errorfamily.Classify(err)
 	}
 }
 
 func BenchmarkIsRetryable(b *testing.B) {
 	b.ReportAllocs()
-	err := event.NewTransient("db.timeout", "connection lost")
+	err := errorfamily.NewTransient("db.timeout", "connection lost")
 
 	for b.Loop() {
-		_ = event.IsRetryable(err)
+		_ = errorfamily.IsRetryable(err)
 	}
 }
 

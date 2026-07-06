@@ -1,29 +1,31 @@
 package graph
 
-import "github.com/larsartmann/go-cqrs-lite/event/v3"
+import (
+	errorfamily "github.com/larsartmann/go-error-family"
+)
 
 var (
-	errNoName = event.NewRejection(
+	errNoName = errorfamily.NewRejection(
 		"graph.projection.name_required",
 		"graph projection: name is required",
 	)
-	errNilDriver = event.NewRejection(
+	errNilDriver = errorfamily.NewRejection(
 		"graph.projection.driver_required",
 		"graph projection: driver must not be nil",
 	)
-	errNilHandler = event.NewRejection(
+	errNilHandler = errorfamily.NewRejection(
 		"graph.projection.handler_required",
 		"graph projection: handler must not be nil",
 	)
-	errEmptyLabel = event.NewRejection(
+	errEmptyLabel = errorfamily.NewRejection(
 		"graph.noderef.label_required",
 		"graph: NodeRef.Label is required",
 	)
-	errEmptyKeyProp = event.NewRejection(
+	errEmptyKeyProp = errorfamily.NewRejection(
 		"graph.noderef.key_prop_required",
 		"graph: NodeRef.KeyProp is required",
 	)
-	errEmptyEdgeType = event.NewRejection(
+	errEmptyEdgeType = errorfamily.NewRejection(
 		"graph.edgeref.type_required",
 		"graph: EdgeRef.Type is required",
 	)
@@ -31,67 +33,67 @@ var (
 
 // Schema declaration errors — returned by Schema.Validate().
 var (
-	errSchemaNoNodeTypes = event.NewRejection(
+	errSchemaNoNodeTypes = errorfamily.NewRejection(
 		"graph.schema.no_node_types",
 		"graph schema: at least one node type is required",
 	)
-	errSchemaEmptyLabel = event.NewRejection(
+	errSchemaEmptyLabel = errorfamily.NewRejection(
 		"graph.schema.label_required",
 		"graph schema: node label is required",
 	)
-	errSchemaEmptyKeyProp = event.NewRejection(
+	errSchemaEmptyKeyProp = errorfamily.NewRejection(
 		"graph.schema.key_prop_required",
 		"graph schema: key prop is required",
 	)
-	errSchemaDuplicateNodeLabel = event.NewRejection(
+	errSchemaDuplicateNodeLabel = errorfamily.NewRejection(
 		"graph.schema.duplicate_node_label",
 		"graph schema: duplicate node label",
 	)
-	errSchemaKeyPropInProperties = event.NewRejection(
+	errSchemaKeyPropInProperties = errorfamily.NewRejection(
 		"graph.schema.key_prop_in_properties",
 		"graph schema: key prop must not also be listed in properties",
 	)
-	errSchemaEmptyEdgeType = event.NewRejection(
+	errSchemaEmptyEdgeType = errorfamily.NewRejection(
 		"graph.schema.edge_type_required",
 		"graph schema: edge type is required",
 	)
-	errSchemaDuplicateEdgeType = event.NewRejection(
+	errSchemaDuplicateEdgeType = errorfamily.NewRejection(
 		"graph.schema.duplicate_edge_type",
 		"graph schema: duplicate edge type",
 	)
-	errSchemaEmptyFromLabel = event.NewRejection(
+	errSchemaEmptyFromLabel = errorfamily.NewRejection(
 		"graph.schema.from_label_required",
 		"graph schema: edge from-label is required",
 	)
-	errSchemaEmptyToLabel = event.NewRejection(
+	errSchemaEmptyToLabel = errorfamily.NewRejection(
 		"graph.schema.to_label_required",
 		"graph schema: edge to-label is required",
 	)
-	errSchemaUnknownFromLabel = event.NewRejection(
+	errSchemaUnknownFromLabel = errorfamily.NewRejection(
 		"graph.schema.unknown_from_label",
 		"graph schema: edge from-label not declared as a node type",
 	)
-	errSchemaUnknownToLabel = event.NewRejection(
+	errSchemaUnknownToLabel = errorfamily.NewRejection(
 		"graph.schema.unknown_to_label",
 		"graph schema: edge to-label not declared as a node type",
 	)
-	errSchemaEmptyPropName = event.NewRejection(
+	errSchemaEmptyPropName = errorfamily.NewRejection(
 		"graph.schema.prop_name_required",
 		"graph schema: property name is required",
 	)
-	errSchemaDuplicateProp = event.NewRejection(
+	errSchemaDuplicateProp = errorfamily.NewRejection(
 		"graph.schema.duplicate_prop",
 		"graph schema: duplicate property",
 	)
-	errSchemaEmptyIndexName = event.NewRejection(
+	errSchemaEmptyIndexName = errorfamily.NewRejection(
 		"graph.schema.index_name_required",
 		"graph schema: index name is required",
 	)
-	errSchemaUnknownIndexLabel = event.NewRejection(
+	errSchemaUnknownIndexLabel = errorfamily.NewRejection(
 		"graph.schema.unknown_index_label",
 		"graph schema: index label not declared as a node type",
 	)
-	errSchemaUnknownIndexProp = event.NewRejection(
+	errSchemaUnknownIndexProp = errorfamily.NewRejection(
 		"graph.schema.unknown_index_prop",
 		"graph schema: index property not declared on node type",
 	)
@@ -99,23 +101,23 @@ var (
 
 // Schema enforcement errors — returned by the schema-validating sink wrapper.
 var (
-	errSinkUnknownNodeLabel = event.NewRejection(
+	errSinkUnknownNodeLabel = errorfamily.NewRejection(
 		"graph.sink.unknown_node_label",
 		"graph: node label not declared in schema",
 	)
-	errSinkUnknownEdgeType = event.NewRejection(
+	errSinkUnknownEdgeType = errorfamily.NewRejection(
 		"graph.sink.unknown_edge_type",
 		"graph: edge type not declared in schema",
 	)
-	errSinkWrongKeyProp = event.NewRejection(
+	errSinkWrongKeyProp = errorfamily.NewRejection(
 		"graph.sink.wrong_key_prop",
 		"graph: key prop does not match schema declaration",
 	)
-	errSinkUnknownProp = event.NewRejection(
+	errSinkUnknownProp = errorfamily.NewRejection(
 		"graph.sink.unknown_prop",
 		"graph: property not declared in schema",
 	)
-	errSinkEdgeEndpointMismatch = event.NewRejection(
+	errSinkEdgeEndpointMismatch = errorfamily.NewRejection(
 		"graph.sink.edge_endpoint_mismatch",
 		"graph: edge endpoint label does not match schema declaration",
 	)
@@ -123,7 +125,7 @@ var (
 
 // Read API errors — returned by MemoryDriver read operations.
 var (
-	ErrPathNotFound = event.NewRejection(
+	ErrPathNotFound = errorfamily.NewRejection(
 		"graph.read.path_not_found",
 		"graph: no path found between nodes",
 	)

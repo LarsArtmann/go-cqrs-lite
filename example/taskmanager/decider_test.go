@@ -3,6 +3,8 @@ package main
 import (
 	"testing"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/scenario/v3"
@@ -30,14 +32,14 @@ func mustEvt(typ event.Type, aggID id.AggregateID, payload any) event.Event {
 
 // errMatch constructs an error with the same code+family as the decider would
 // return, enabling errors.Is matching in ThenError.
-func errMatch(family event.Family, code string) error {
+func errMatch(family errorfamily.Family, code string) error {
 	switch family {
-	case event.Rejection:
-		return event.NewRejection(code, "")
-	case event.Conflict:
-		return event.NewConflict(code, "")
+	case errorfamily.Rejection:
+		return errorfamily.NewRejection(code, "")
+	case errorfamily.Conflict:
+		return errorfamily.NewConflict(code, "")
 	default:
-		return event.Newf(family, code, "")
+		return errorfamily.Newf(family, code, "")
 	}
 }
 
@@ -61,7 +63,7 @@ func TestDecider_CreateTask(t *testing.T) {
 		scenario.Given[CreateTask, TaskState](t, applyTask, TaskState{}).
 			When(CreateTask{ID: taskID, Title: "  "},
 				func(s TaskState, cmd CreateTask) ([]event.Event, error) { return Create(cmd)(s, 0) }).
-			ThenError(errMatch(event.Rejection, "task.title.empty"))
+			ThenError(errMatch(errorfamily.Rejection, "task.title.empty"))
 	})
 
 	t.Run("rejects duplicate creation", func(t *testing.T) {
@@ -79,7 +81,7 @@ func TestDecider_CreateTask(t *testing.T) {
 		).
 			When(CreateTask{ID: taskID, Title: "New"},
 				func(s TaskState, cmd CreateTask) ([]event.Event, error) { return Create(cmd)(s, 0) }).
-			ThenError(errMatch(event.Conflict, "task.create.exists"))
+			ThenError(errMatch(errorfamily.Conflict, "task.create.exists"))
 	})
 }
 
@@ -117,7 +119,7 @@ func TestDecider_Lifecycle(t *testing.T) {
 		scenario.Given[ArchiveTask, TaskState](t, applyTask, TaskState{}, created).
 			When(ArchiveTask{ID: taskID},
 				func(s TaskState, cmd ArchiveTask) ([]event.Event, error) { return Archive(cmd)(s, 0) }).
-			ThenError(errMatch(event.Conflict, "task.archive.invalid_transition"))
+			ThenError(errMatch(errorfamily.Conflict, "task.archive.invalid_transition"))
 	})
 }
 
@@ -148,7 +150,7 @@ func TestDecider_AssignTask(t *testing.T) {
 		scenario.Given[AssignTask, TaskState](t, applyTask, TaskState{}, created, assigned).
 			When(AssignTask{ID: taskID, AssigneeID: "user-123"},
 				func(s TaskState, cmd AssignTask) ([]event.Event, error) { return Assign(cmd)(s, 0) }).
-			ThenError(errMatch(event.Conflict, "task.assign.same"))
+			ThenError(errMatch(errorfamily.Conflict, "task.assign.same"))
 	})
 }
 
@@ -180,7 +182,7 @@ func TestDecider_DeleteTask(t *testing.T) {
 		scenario.Given[DeleteTask, TaskState](t, applyTask, TaskState{}, created, deleted).
 			When(DeleteTask{ID: taskID},
 				func(s TaskState, cmd DeleteTask) ([]event.Event, error) { return Delete(cmd)(s, 0) }).
-			ThenError(errMatch(event.Conflict, "task.delete.deleted"))
+			ThenError(errMatch(errorfamily.Conflict, "task.delete.deleted"))
 	})
 }
 
@@ -210,7 +212,7 @@ func TestDecider_BlockBy(t *testing.T) {
 		scenario.Given[BlockBy, TaskState](t, applyTask, TaskState{}, created).
 			When(BlockBy{ID: taskID, DependencyID: taskID},
 				func(s TaskState, cmd BlockBy) ([]event.Event, error) { return AddBlocker(cmd)(s, 0) }).
-			ThenError(errMatch(event.Rejection, "task.block.self"))
+			ThenError(errMatch(errorfamily.Rejection, "task.block.self"))
 	})
 }
 

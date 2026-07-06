@@ -5,6 +5,8 @@ import (
 	"errors"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -392,26 +394,26 @@ var _ = Describe("Error Classification", func() {
 			It(
 				"should treat transient errors as safe to retry, so my infrastructure can self-heal",
 				func() {
-					err := event.NewTransient("test.retry", "connection timeout")
-					Expect(event.IsRetryable(err)).To(BeTrue())
+					err := errorfamily.NewTransient("test.retry", "connection timeout")
+					Expect(errorfamily.IsRetryable(err)).To(BeTrue())
 				},
 			)
 
 			It("should treat rejection errors as permanent, so I stop retrying bad input", func() {
-				err := event.NewRejection("test.reject", "invalid input")
-				Expect(event.IsRetryable(err)).To(BeFalse())
+				err := errorfamily.NewRejection("test.reject", "invalid input")
+				Expect(errorfamily.IsRetryable(err)).To(BeFalse())
 			})
 
 			It(
 				"should treat conflict errors as permanent, so I don't hammer a version mismatch",
 				func() {
-					err := event.NewConflict("test.conflict", "version mismatch")
-					Expect(event.IsRetryable(err)).To(BeFalse())
+					err := errorfamily.NewConflict("test.conflict", "version mismatch")
+					Expect(errorfamily.IsRetryable(err)).To(BeFalse())
 				},
 			)
 
 			It("should treat unknown errors as retryable (safe default)", func() {
-				Expect(event.IsRetryable(errors.New("something"))).To(BeTrue())
+				Expect(errorfamily.IsRetryable(errors.New("something"))).To(BeTrue())
 			})
 		})
 	})

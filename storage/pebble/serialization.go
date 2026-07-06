@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -54,7 +56,7 @@ func (a *EventStore) serializeEvent(evt event.Event) ([]byte, error) {
 
 	data, err := marshalCBOR(s)
 	if err != nil {
-		return nil, event.WrapCorruption(err, "pebble.serialize_event", "marshal event")
+		return nil, errorfamily.WrapCorruption(err, "pebble.serialize_event", "marshal event")
 	}
 
 	return data, nil
@@ -78,13 +80,13 @@ func (a *EventStore) deserializeEvent(data []byte) (event.Event, error) {
 	}
 
 	if err != nil {
-		return nil, event.WrapCorruption(err, "pebble.unmarshal_event",
+		return nil, errorfamily.WrapCorruption(err, "pebble.unmarshal_event",
 			"failed to unmarshal event")
 	}
 
 	metadataJSON, err := event.MarshalMetadataJSON(s.Metadata, "pebble.marshal_metadata")
 	if err != nil {
-		return nil, event.WrapCorruption(err, "pebble.marshal_metadata",
+		return nil, errorfamily.WrapCorruption(err, "pebble.marshal_metadata",
 			"failed to marshal metadata for deserialization")
 	}
 
@@ -97,7 +99,7 @@ func (a *EventStore) deserializeEvent(data []byte) (event.Event, error) {
 		"pebble",
 	)
 	if err != nil {
-		return nil, event.WrapCorruption(err, "pebble.reconstruct_event",
+		return nil, errorfamily.WrapCorruption(err, "pebble.reconstruct_event",
 			"failed to reconstruct event from fields")
 	}
 

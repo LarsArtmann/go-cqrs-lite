@@ -8,9 +8,10 @@ import (
 	"sync"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/dispatcher/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
@@ -48,7 +49,11 @@ func (s *MemoryCommandStore) Save(
 ) error {
 	err := s.CheckClosed(command.ErrStoreClosed)
 	if err != nil {
-		return event.WrapInfrastructure(err, "memory.save_failed", "memory command store save")
+		return errorfamily.WrapInfrastructure(
+			err,
+			"memory.save_failed",
+			"memory command store save",
+		)
 	}
 
 	s.mu.Lock()
@@ -73,7 +78,7 @@ func (s *MemoryCommandStore) AppendBatch(
 ) error {
 	err := s.CheckClosed(command.ErrStoreClosed)
 	if err != nil {
-		return event.WrapInfrastructure(
+		return errorfamily.WrapInfrastructure(
 			err,
 			"memory.append_batch_failed",
 			"memory command store append batch",
@@ -86,7 +91,7 @@ func (s *MemoryCommandStore) AppendBatch(
 	seen := make(map[id.CommandID]struct{}, len(cmds))
 	for _, cmd := range cmds {
 		if _, dup := seen[cmd.ID()]; dup {
-			return event.WrapConflict(
+			return errorfamily.WrapConflict(
 				command.ErrDuplicateCommand,
 				"memory.duplicate_command",
 				fmt.Sprintf("command with ID %s appears multiple times in batch", cmd.ID()),
@@ -158,7 +163,7 @@ func (s *MemoryCommandStore) Close() error {
 func (s *MemoryCommandStore) ReadAll(_ context.Context) ([]*command.PersistedCommand, error) {
 	err := s.CheckClosed(command.ErrStoreClosed)
 	if err != nil {
-		return nil, event.WrapInfrastructure(
+		return nil, errorfamily.WrapInfrastructure(
 			err,
 			"memory.readall_failed",
 			"memory command journal readall",
@@ -180,7 +185,7 @@ func (s *MemoryCommandStore) ReadFrom(
 ) ([]*command.PersistedCommand, error) {
 	err := s.CheckClosed(command.ErrStoreClosed)
 	if err != nil {
-		return nil, event.WrapInfrastructure(
+		return nil, errorfamily.WrapInfrastructure(
 			err,
 			"memory.readfrom_failed",
 			"memory command journal readfrom",
@@ -212,7 +217,7 @@ func (s *MemoryCommandStore) ReadFrom(
 
 func (s *MemoryCommandStore) checkDuplicate(cmdID id.CommandID, suffix string) error {
 	if _, exists := s.commandIDIndex[cmdID]; exists {
-		return event.WrapConflict(
+		return errorfamily.WrapConflict(
 			command.ErrDuplicateCommand,
 			"memory.duplicate_command",
 			fmt.Sprintf("command with ID %s already exists%s", cmdID, suffix),
@@ -236,9 +241,9 @@ func (s *MemoryCommandStore) loadFiltered(
 ) ([]*command.PersistedCommand, error) {
 	err := s.CheckClosed(command.ErrStoreClosed)
 	if err != nil {
-		return nil, event.Wrapf(
+		return nil, errorfamily.Wrapf(
 			err,
-			event.Infrastructure,
+			errorfamily.Infrastructure,
 			"memory.load_failed",
 			"memory command store %s failed",
 			op,
@@ -252,7 +257,7 @@ func (s *MemoryCommandStore) loadFiltered(
 
 	indices, exists := s.streamIndex[key]
 	if !exists {
-		return nil, event.WrapRejection(command.ErrCommandNotFound,
+		return nil, errorfamily.WrapRejection(command.ErrCommandNotFound,
 			"memory.command_not_found",
 			fmt.Sprintf("memory %s aggregate %s not found", op, ref))
 	}

@@ -5,8 +5,8 @@ import (
 	"log/slog"
 
 	"github.com/cockroachdb/pebble"
+	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 )
 
@@ -30,7 +30,7 @@ type Backend struct {
 func Open(dir string, opts *pebble.Options, logger *slog.Logger) (*Backend, error) {
 	database, err := pebble.Open(dir, opts)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "pebble.open_backend",
+		return nil, errorfamily.WrapInfrastructure(err, "pebble.open_backend",
 			"open pebble database")
 	}
 
@@ -113,7 +113,7 @@ func (b *Backend) ReadModels() kv.Store { return b.readMods }
 func (b *Backend) Close() error {
 	err := b.database.Close()
 	if err != nil {
-		return event.WrapInfrastructure(err, "pebble.close_backend",
+		return errorfamily.WrapInfrastructure(err, "pebble.close_backend",
 			"close pebble database")
 	}
 

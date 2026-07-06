@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/cockroachdb/pebble"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -58,9 +59,9 @@ func (it *pebbleEventIterator) Next() (event.Event, error) {
 
 		evt, err := it.store.deserializeEvent(it.iter.Value())
 		if err != nil {
-			it.firstErr = event.Wrapf(
+			it.firstErr = errorfamily.Wrapf(
 				it.store.corruptEventErr(string(it.iter.Key()), err),
-				event.Corruption, "pebble.stream_corrupt_event",
+				errorfamily.Corruption, "pebble.stream_corrupt_event",
 				"corrupt event during stream iteration",
 			)
 
@@ -74,7 +75,7 @@ func (it *pebbleEventIterator) Next() (event.Event, error) {
 
 	err := checkIteratorError(it.iter)
 	if err != nil {
-		it.firstErr = event.Wrapf(err, event.Infrastructure, "pebble.stream_iterator",
+		it.firstErr = errorfamily.Wrapf(err, errorfamily.Infrastructure, "pebble.stream_iterator",
 			"iterator error during stream iteration")
 
 		return nil, it.firstErr
@@ -92,7 +93,7 @@ func (it *pebbleEventIterator) Close() error {
 
 	err := it.iter.Close()
 	if err != nil {
-		return event.WrapInfrastructure(
+		return errorfamily.WrapInfrastructure(
 			err,
 			"pebble.stream.close_iterator",
 			"close pebble iterator",
@@ -115,7 +116,7 @@ func (a *EventStore) newPebbleIterator(
 		},
 	)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "pebble.stream_create_iterator",
+		return nil, errorfamily.WrapInfrastructure(err, "pebble.stream_create_iterator",
 			"create streaming iterator")
 	}
 

@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/cockroachdb/pebble"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
@@ -111,7 +112,7 @@ func (a *EventStore) Save(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return event.WrapInfrastructure(err, "pebble.check_version",
+		return errorfamily.WrapInfrastructure(err, "pebble.check_version",
 			fmt.Sprintf("pebble check version for %s %s", ref.Type, ref.ID))
 	}
 
@@ -125,7 +126,7 @@ func (a *EventStore) Save(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return event.WrapInfrastructure(
+		return errorfamily.WrapInfrastructure(
 			err,
 			"pebble.write_events",
 			fmt.Sprintf(

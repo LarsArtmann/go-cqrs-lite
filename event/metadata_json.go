@@ -1,6 +1,10 @@
 package event
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	errorfamily "github.com/larsartmann/go-error-family"
+)
 
 // UnmarshalMetadataJSON parses metadata JSON into event options.
 // Returns nil options for empty data. Wraps parse errors as corruption errors
@@ -14,7 +18,11 @@ func UnmarshalMetadataJSON(data []byte, errCode, eventType string) ([]Option, er
 
 	err := json.Unmarshal(data, &meta)
 	if err != nil {
-		return nil, WrapCorruption(err, errCode, "unmarshal metadata for event "+eventType)
+		return nil, errorfamily.WrapCorruption(
+			err,
+			errCode,
+			"unmarshal metadata for event "+eventType,
+		)
 	}
 
 	return []Option{WithMetadata(meta)}, nil
@@ -25,7 +33,7 @@ func UnmarshalMetadataJSON(data []byte, errCode, eventType string) ([]Option, er
 func MarshalMetadataJSON(m Metadata, errCode string) ([]byte, error) {
 	data, err := json.Marshal(m)
 	if err != nil {
-		return nil, WrapCorruption(err, errCode, "marshal metadata")
+		return nil, errorfamily.WrapCorruption(err, errCode, "marshal metadata")
 	}
 
 	return data, nil

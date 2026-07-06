@@ -7,7 +7,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 )
 
@@ -24,7 +25,7 @@ func (s *SQLViewStore[V, K]) Get(ctx context.Context, key K) (*V, error) {
 			return nil, kv.ErrNotFound
 		}
 
-		return nil, event.WrapCorruption(err, "storage.view.get",
+		return nil, errorfamily.WrapCorruption(err, "storage.view.get",
 			fmt.Sprintf("get key %q", key.String()))
 	}
 
@@ -34,7 +35,7 @@ func (s *SQLViewStore[V, K]) Get(ctx context.Context, key K) (*V, error) {
 // Set upserts val under key, replacing any existing record.
 func (s *SQLViewStore[V, K]) Set(ctx context.Context, key K, val *V) error {
 	if val == nil {
-		return event.WrapRejection(errNilViewValue, "storage.view.set_nil",
+		return errorfamily.WrapRejection(errNilViewValue, "storage.view.set_nil",
 			fmt.Sprintf("nil view value: key %q", key.String()))
 	}
 
@@ -65,7 +66,7 @@ func (s *SQLViewStore[V, K]) Set(ctx context.Context, key K, val *V) error {
 
 	_, err := s.DB.ExecContext(ctx, q, args...)
 	if err != nil {
-		return event.WrapTransient(err, "storage.view.set",
+		return errorfamily.WrapTransient(err, "storage.view.set",
 			fmt.Sprintf("set key %q", key.String()))
 	}
 
@@ -88,7 +89,7 @@ func (s *SQLViewStore[V, K]) Delete(ctx context.Context, key K) error {
 
 	_, err := s.DB.ExecContext(ctx, q, s.keyString(key))
 	if err != nil {
-		return event.WrapTransient(err, "storage.view.delete",
+		return errorfamily.WrapTransient(err, "storage.view.delete",
 			fmt.Sprintf("delete key %q", key.String()))
 	}
 
@@ -112,7 +113,7 @@ func (s *SQLViewStore[V, K]) Scan(ctx context.Context, prefix []byte) ([]*V, err
 
 	rows, err := s.DB.QueryContext(ctx, q, args...)
 	if err != nil {
-		return nil, event.WrapTransient(err, "storage.view.scan", "scan records")
+		return nil, errorfamily.WrapTransient(err, "storage.view.scan", "scan records")
 	}
 
 	defer func() { _ = rows.Close() }()
@@ -126,14 +127,18 @@ func (s *SQLViewStore[V, K]) scanRows(rows *sql.Rows) ([]*V, error) {
 	for rows.Next() {
 		val, err := s.mapper.ScanRow(rows.Scan)
 		if err != nil {
-			return nil, event.WrapCorruption(err, "storage.view.scan_row", "scan row during scan")
+			return nil, errorfamily.WrapCorruption(
+				err,
+				"storage.view.scan_row",
+				"scan row during scan",
+			)
 		}
 
 		results = append(results, val)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, event.WrapTransient(err, "storage.view.scan_rows_err", "rows iteration")
+		return nil, errorfamily.WrapTransient(err, "storage.view.scan_rows_err", "rows iteration")
 	}
 
 	return results, nil

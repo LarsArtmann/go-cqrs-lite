@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"slices"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
@@ -51,7 +53,7 @@ func (s *Signature) UnmarshalJSON(data []byte) error {
 
 	err := json.Unmarshal(data, &encoded)
 	if err != nil {
-		return event.WrapInfrastructure(
+		return errorfamily.WrapInfrastructure(
 			err,
 			"signing.unmarshal_signature",
 			"unmarshal signature string",
@@ -60,7 +62,7 @@ func (s *Signature) UnmarshalJSON(data []byte) error {
 
 	decoded, err := event.DecodeBase64String(encoded)
 	if err != nil {
-		return event.WrapInfrastructure(
+		return errorfamily.WrapInfrastructure(
 			err,
 			"signing.decode_signature",
 			"decode signature base64",

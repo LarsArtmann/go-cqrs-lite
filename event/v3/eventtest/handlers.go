@@ -3,6 +3,8 @@ package eventtest
 import (
 	"context"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
@@ -28,13 +30,13 @@ func NoopEventPublisher() event.Publisher {
 
 func FailingEventPublisher(msg string) event.Publisher {
 	return event.PublisherFunc(func(_ context.Context, _ ...event.Event) error {
-		return event.NewRejection("eventtest.failing_publisher", msg)
+		return errorfamily.NewRejection("eventtest.failing_publisher", msg)
 	})
 }
 
 func FailingEventHandler(msg string) event.Handler {
 	return func(_ context.Context, _ event.Event) error {
-		return event.NewRejection("eventtest.failing_handler", msg)
+		return errorfamily.NewRejection("eventtest.failing_handler", msg)
 	}
 }
 

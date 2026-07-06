@@ -7,8 +7,9 @@ import (
 	"strings"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 	cqrshttp "github.com/larsartmann/go-cqrs-lite/transport/http/v3"
@@ -276,16 +277,16 @@ func (s *Server) dispatchSimple(
 
 // writeCQRSError maps the 5-family error taxonomy to HTTP status codes.
 func writeCQRSError(w http.ResponseWriter, err error) {
-	switch event.Classify(err) {
-	case event.Rejection:
+	switch errorfamily.Classify(err) {
+	case errorfamily.Rejection:
 		writeError(w, http.StatusBadRequest, err.Error())
-	case event.Conflict:
+	case errorfamily.Conflict:
 		writeError(w, http.StatusConflict, err.Error())
-	case event.Transient:
+	case errorfamily.Transient:
 		writeError(w, http.StatusServiceUnavailable, err.Error())
-	case event.Corruption:
+	case errorfamily.Corruption:
 		writeError(w, http.StatusInternalServerError, err.Error())
-	case event.Infrastructure:
+	case errorfamily.Infrastructure:
 		writeError(w, http.StatusInternalServerError, err.Error())
 	default:
 		writeError(w, http.StatusInternalServerError, err.Error())

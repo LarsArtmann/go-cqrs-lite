@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
 )
@@ -23,7 +25,7 @@ func NewAggregateProjection(
 ) (*AggregateProjection, error) {
 	tbl, err := newListingTable(tablePrefix)
 	if err != nil {
-		return nil, event.WrapRejection(err, "listing.invalid_table_prefix",
+		return nil, errorfamily.WrapRejection(err, "listing.invalid_table_prefix",
 			fmt.Sprintf("invalid table prefix %q", tablePrefix))
 	}
 
@@ -35,7 +37,7 @@ func NewAggregateProjection(
 
 	err = p.createTable(ctx)
 	if err != nil {
-		return nil, event.WrapInfrastructure(
+		return nil, errorfamily.WrapInfrastructure(
 			err,
 			"listing.create_table",
 			"create aggregates table",

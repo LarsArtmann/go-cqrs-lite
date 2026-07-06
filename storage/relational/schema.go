@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // RelationalSchema declares the set of SQL tables a relational projection owns
@@ -48,12 +48,12 @@ func (s RelationalSchema) Validate() error {
 		t := s.Tables[i]
 
 		if err := t.validate(); err != nil {
-			return cqrsevent.WrapRejection(err,
+			return errorfamily.WrapRejection(err,
 				"relational.schema_table", fmt.Sprintf("table %q", t.Name))
 		}
 
 		if _, dup := seen[t.Name]; dup {
-			return cqrsevent.WrapRejection(errSchemaDuplicateTable,
+			return errorfamily.WrapRejection(errSchemaDuplicateTable,
 				"relational.schema_duplicate_table",
 				fmt.Sprintf("duplicate table %q", t.Name))
 		}
@@ -92,19 +92,19 @@ func (t RelationalTable) validate() error {
 		c := t.Columns[i]
 
 		if c.Name == "" {
-			return cqrsevent.WrapRejection(errSchemaColumnNoName,
+			return errorfamily.WrapRejection(errSchemaColumnNoName,
 				"relational.schema_column_no_name",
 				fmt.Sprintf("column %d", i))
 		}
 
 		if c.Type == "" {
-			return cqrsevent.WrapRejection(errSchemaColumnNoType,
+			return errorfamily.WrapRejection(errSchemaColumnNoType,
 				"relational.schema_column_no_type",
 				fmt.Sprintf("column %q", c.Name))
 		}
 
 		if _, dup := colNames[c.Name]; dup {
-			return cqrsevent.WrapRejection(errSchemaDuplicateColumn,
+			return errorfamily.WrapRejection(errSchemaDuplicateColumn,
 				"relational.schema_duplicate_column",
 				fmt.Sprintf("column %q", c.Name))
 		}
@@ -114,7 +114,7 @@ func (t RelationalTable) validate() error {
 
 	for _, pk := range t.PrimaryKey {
 		if _, ok := colNames[pk]; !ok {
-			return cqrsevent.WrapRejection(errSchemaUnknownPKColumn,
+			return errorfamily.WrapRejection(errSchemaUnknownPKColumn,
 				"relational.schema_unknown_pk",
 				fmt.Sprintf("primary key column %q", pk))
 		}
@@ -169,7 +169,7 @@ func (s RelationalSchema) Migrate(ctx context.Context, db *sql.DB) error {
 
 	for _, t := range s.Tables {
 		if _, err := db.ExecContext(ctx, t.DDL()); err != nil {
-			return cqrsevent.WrapTransient(err, "relational.migrate",
+			return errorfamily.WrapTransient(err, "relational.migrate",
 				fmt.Sprintf("migrate table %q", t.Name))
 		}
 	}

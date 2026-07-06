@@ -3,14 +3,14 @@ package storage
 import (
 	"regexp"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 var validListingTablePrefix = regexp.MustCompile(`^[a-z_][a-z0-9_]*$`)
 
 func validateListingTablePrefix(prefix string) error {
 	if !validListingTablePrefix.MatchString(prefix) {
-		return event.NewRejection(
+		return errorfamily.NewRejection(
 			"listing.invalid_table_prefix",
 			"invalid table prefix: must match ^[a-z_][a-z0-9_]*$",
 		)
@@ -29,9 +29,9 @@ type listingTable struct {
 
 func newListingTable(prefix string) (listingTable, error) {
 	if err := validateListingTablePrefix(prefix); err != nil {
-		return listingTable{}, event.Wrapf(
+		return listingTable{}, errorfamily.Wrapf(
 			err,
-			event.Rejection,
+			errorfamily.Rejection,
 			"storage.listing_table_prefix",
 			"prefix=%v",
 			prefix,

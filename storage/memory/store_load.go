@@ -6,6 +6,8 @@ import (
 	"slices"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
@@ -32,7 +34,13 @@ func (s *MemoryStore) loadFiltered(
 ) ([]event.Event, error) {
 	events, err := s.getEvents(ref, op)
 	if err != nil {
-		return nil, event.Wrapf(err, event.Classify(err), "memory.load_filtered", "op=%s", op)
+		return nil, errorfamily.Wrapf(
+			err,
+			errorfamily.Classify(err),
+			"memory.load_filtered",
+			"op=%s",
+			op,
+		)
 	}
 
 	return filter(events), nil
@@ -92,9 +100,9 @@ func (s *MemoryStore) getEvents(
 ) ([]event.Event, error) {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return nil, event.Wrapf(
+		return nil, errorfamily.Wrapf(
 			err,
-			event.Infrastructure,
+			errorfamily.Infrastructure,
 			"memory.load_failed",
 			"memory store %s failed",
 			op,
@@ -108,7 +116,7 @@ func (s *MemoryStore) getEvents(
 
 	indices, exists := s.streamIndex[key]
 	if !exists {
-		return nil, event.WrapRejection(event.ErrAggregateNotFound,
+		return nil, errorfamily.WrapRejection(event.ErrAggregateNotFound,
 			"memory.aggregate_not_found",
 			fmt.Sprintf("memory %s aggregate %s not found", op, ref))
 	}
@@ -145,7 +153,11 @@ func copyEvents(events []event.Event) []event.Event {
 func (s *MemoryStore) ReadAll(_ context.Context) ([]event.Event, error) {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "memory.read_all_failed", "memory store read all")
+		return nil, errorfamily.WrapInfrastructure(
+			err,
+			"memory.read_all_failed",
+			"memory store read all",
+		)
 	}
 
 	s.mu.RLock()
@@ -163,9 +175,9 @@ func (s *MemoryStore) ReadFrom(
 ) ([]event.Event, error) {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return nil, event.Wrapf(
+		return nil, errorfamily.Wrapf(
 			err,
-			event.Infrastructure,
+			errorfamily.Infrastructure,
 			"memory.read_from_failed",
 			"memory store read from (limit=%d) failed",
 			limit,

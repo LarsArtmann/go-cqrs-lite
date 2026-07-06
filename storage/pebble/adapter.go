@@ -8,8 +8,8 @@ import (
 	"sync/atomic"
 
 	"github.com/cockroachdb/pebble"
+	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 )
 
@@ -103,7 +103,7 @@ func (adapter *KVAdapter) Get(key []byte) ([]byte, error) {
 			return nil, kv.ErrNotFound
 		}
 
-		return nil, event.WrapInfrastructure(err, "pebble.adapter.get",
+		return nil, errorfamily.WrapInfrastructure(err, "pebble.adapter.get",
 			fmt.Sprintf("get %q", key))
 	}
 
@@ -125,7 +125,7 @@ func (adapter *KVAdapter) Has(key []byte) (bool, error) {
 			return false, nil
 		}
 
-		return false, event.WrapInfrastructure(err, "pebble.adapter.has",
+		return false, errorfamily.WrapInfrastructure(err, "pebble.adapter.has",
 			fmt.Sprintf("has %q", key))
 	}
 
@@ -150,7 +150,7 @@ func (adapter *KVAdapter) NewIterator(prefix []byte) (kv.Iterator, error) {
 
 	iter, err := adapter.database.NewIter(opts)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "pebble.adapter.new_iterator",
+		return nil, errorfamily.WrapInfrastructure(err, "pebble.adapter.new_iterator",
 			"create iterator")
 	}
 
@@ -168,7 +168,7 @@ func (adapter *KVAdapter) Set(key, value []byte) error {
 
 	err = adapter.database.Set(key, value, adapter.writeOptions())
 	if err != nil {
-		return event.WrapInfrastructure(err, "pebble.adapter.set",
+		return errorfamily.WrapInfrastructure(err, "pebble.adapter.set",
 			fmt.Sprintf("set %q", key))
 	}
 
@@ -184,7 +184,7 @@ func (adapter *KVAdapter) Delete(key []byte) error {
 
 	err = adapter.database.Delete(key, adapter.writeOptions())
 	if err != nil {
-		return event.WrapInfrastructure(err, "pebble.adapter.delete",
+		return errorfamily.WrapInfrastructure(err, "pebble.adapter.delete",
 			fmt.Sprintf("delete %q", key))
 	}
 
@@ -209,7 +209,7 @@ func (adapter *KVAdapter) SetIfAbsent(key, value []byte) (bool, error) {
 	_, closer, err := adapter.database.Get(key)
 	if err != nil {
 		if !errors.Is(err, pebble.ErrNotFound) {
-			return false, event.WrapInfrastructure(err, "pebble.adapter.set_if_absent_get",
+			return false, errorfamily.WrapInfrastructure(err, "pebble.adapter.set_if_absent_get",
 				fmt.Sprintf("set-if-absent get %q", key))
 		}
 	} else {
@@ -219,7 +219,7 @@ func (adapter *KVAdapter) SetIfAbsent(key, value []byte) (bool, error) {
 	}
 
 	if err := adapter.database.Set(key, value, adapter.writeOptions()); err != nil {
-		return false, event.WrapInfrastructure(err, "pebble.adapter.set_if_absent_set",
+		return false, errorfamily.WrapInfrastructure(err, "pebble.adapter.set_if_absent_set",
 			fmt.Sprintf("set-if-absent set %q", key))
 	}
 
@@ -260,7 +260,7 @@ func (adapter *KVAdapter) Close() error {
 
 	err := adapter.database.Close()
 	if err != nil {
-		return event.WrapInfrastructure(err, "pebble.adapter.close",
+		return errorfamily.WrapInfrastructure(err, "pebble.adapter.close",
 			"close database")
 	}
 

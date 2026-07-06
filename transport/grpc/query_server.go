@@ -3,10 +3,10 @@ package grpc
 import (
 	"context"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	"google.golang.org/grpc"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
-	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
 	cqrsproto "github.com/larsartmann/go-cqrs-lite/transport/grpc/v3/proto"
@@ -70,7 +70,7 @@ func (s *queryServer) Ask(
 
 	payload, err := s.codec.Encode(result)
 	if err != nil {
-		return queryErrorResult(cqrsevent.WrapCorruption(err, "grpc.query.marshal_result",
+		return queryErrorResult(errorfamily.WrapCorruption(err, "grpc.query.marshal_result",
 			"marshal result")), nil
 	}
 

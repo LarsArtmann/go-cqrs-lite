@@ -3,6 +3,8 @@ package event
 import (
 	"fmt"
 	"slices"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // TombstoneStatus represents the soft-delete state of an aggregate.
@@ -123,7 +125,7 @@ func copyWithTombstoneMark(
 	label string,
 ) (*ImmutableEvent, error) {
 	if evt == nil {
-		return nil, NewRejection("event.nil_event", label+": event is required")
+		return nil, errorfamily.NewRejection("event.nil_event", label+": event is required")
 	}
 
 	rawPayload := payloadForDecode(evt)

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/cockroachdb/pebble"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
@@ -28,7 +29,7 @@ func (a *EventStore) iterateEvents(
 		},
 	)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "pebble.create_iterator",
+		return nil, errorfamily.WrapInfrastructure(err, "pebble.create_iterator",
 			"failed to create iterator")
 	}
 
@@ -67,7 +68,7 @@ func (a *EventStore) Load(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, event.WrapInfrastructure(err, "pebble.event_load",
+		return nil, errorfamily.WrapInfrastructure(err, "pebble.event_load",
 			"load events for aggregate")
 	}
 
@@ -94,7 +95,7 @@ func (a *EventStore) LoadFromVersion(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, event.WrapInfrastructure(err, "pebble.event_load_from_version",
+		return nil, errorfamily.WrapInfrastructure(err, "pebble.event_load_from_version",
 			"load events from version")
 	}
 
@@ -114,7 +115,7 @@ func (a *EventStore) loadFiltered(
 
 	events, err := a.iterateEvents(prefix, upperBound, predicate)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "pebble.event_load_filtered",
+		return nil, errorfamily.WrapInfrastructure(err, "pebble.event_load_filtered",
 			"load filtered events")
 	}
 
@@ -141,7 +142,7 @@ func (a *EventStore) LoadToVersion(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, event.WrapInfrastructure(err, "pebble.event_load_to_version",
+		return nil, errorfamily.WrapInfrastructure(err, "pebble.event_load_to_version",
 			"load events up to version")
 	}
 
@@ -171,7 +172,7 @@ func (a *EventStore) LoadToTimestamp(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, event.WrapInfrastructure(err, "pebble.event_load_to_timestamp",
+		return nil, errorfamily.WrapInfrastructure(err, "pebble.event_load_to_timestamp",
 			"load events up to timestamp")
 	}
 

@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v3"
@@ -75,7 +77,7 @@ func (s *SQLSnapshotStore) Save(ctx context.Context, snap snapshot.Snapshot) err
 		snap.Version.Int(), snap.State, s.Dialect.FormatTime(snap.CreatedAt))
 	if err != nil {
 		cqrsotel.RecordError(span, err)
-		return event.WrapInfrastructure(err, "storage.save_snapshot",
+		return errorfamily.WrapInfrastructure(err, "storage.save_snapshot",
 			fmt.Sprintf("save snapshot for %s %s", snap.AggregateType, snap.AggregateID))
 	}
 	return nil
@@ -90,7 +92,7 @@ func (s *SQLSnapshotStore) Load(
 	snap, err := s.querySnapshot(ctx, ref)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
-		return nil, event.WrapInfrastructure(err, "storage.load_snapshot",
+		return nil, errorfamily.WrapInfrastructure(err, "storage.load_snapshot",
 			fmt.Sprintf("load snapshot for %s %s", ref.Type, ref.ID))
 	}
 	return snap, nil
@@ -113,7 +115,7 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 	snap, err := s.querySnapshotAtVersion(ctx, ref, version)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
-		return nil, event.WrapInfrastructure(err, "storage.load_snapshot_version",
+		return nil, errorfamily.WrapInfrastructure(err, "storage.load_snapshot_version",
 			fmt.Sprintf("load snapshot at version %d for %s %s", version, ref.Type, ref.ID))
 	}
 	return snap, nil
@@ -154,18 +156,18 @@ func (s *SQLSnapshotStore) scanSnapshot(
 	err := row.Scan(&version, &stateBytes, timeDest)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, event.WrapRejection(
+			return nil, errorfamily.WrapRejection(
 				snapshot.ErrSnapshotNotFound,
 				"storage.snapshot_not_found",
 				fmt.Sprintf("%s/%s at v%d", ref.Type, ref.ID, event.Version(version)),
 			)
 		}
-		return nil, event.WrapInfrastructure(err, "storage.scan_snapshot",
+		return nil, errorfamily.WrapInfrastructure(err, "storage.scan_snapshot",
 			fmt.Sprintf("scan snapshot for %s/%s", ref.Type, ref.ID))
 	}
 	createdAt, err := s.Dialect.ParseTime(timeDest)
 	if err != nil {
-		return nil, event.WrapCorruption(
+		return nil, errorfamily.WrapCorruption(
 			err,
 			"storage.parse_snapshot_created_at",
 			"parse snapshot created_at",

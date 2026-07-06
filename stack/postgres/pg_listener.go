@@ -9,8 +9,8 @@ import (
 	"sync/atomic"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
 
@@ -108,7 +108,7 @@ func NewPgxListenerFromDSN(
 ) (*PgxListener, error) {
 	cfg, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
-		return nil, event.WrapRejection(err, "pgx_listener.parse_dsn",
+		return nil, errorfamily.WrapRejection(err, "pgx_listener.parse_dsn",
 			"parse PostgreSQL DSN")
 	}
 
@@ -118,7 +118,7 @@ func NewPgxListenerFromDSN(
 
 	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "pgx_listener.create_pool",
+		return nil, errorfamily.WrapInfrastructure(err, "pgx_listener.create_pool",
 			"create pgx connection pool")
 	}
 
@@ -161,7 +161,7 @@ func (l *PgxListener) Listen(ctx context.Context, channel string) error {
 	if err != nil {
 		cancel()
 
-		return event.WrapInfrastructure(err, "postgres.acquire_conn",
+		return errorfamily.WrapInfrastructure(err, "postgres.acquire_conn",
 			"acquire connection from pool")
 	}
 
@@ -173,7 +173,7 @@ func (l *PgxListener) Listen(ctx context.Context, channel string) error {
 		cancel()
 		conn.Release()
 
-		return event.WrapInfrastructure(err, "postgres.listen",
+		return errorfamily.WrapInfrastructure(err, "postgres.listen",
 			fmt.Sprintf("LISTEN %q", channel))
 	}
 
@@ -255,7 +255,7 @@ func validateChannelName(channel string) error {
 		ok := r == '_' || (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') ||
 			(i > 0 && r >= '0' && r <= '9')
 		if !ok {
-			return event.WrapRejection(errInvalidChannelName, "postgres.invalid_channel",
+			return errorfamily.WrapRejection(errInvalidChannelName, "postgres.invalid_channel",
 				fmt.Sprintf("invalid channel name %q", channel))
 		}
 	}

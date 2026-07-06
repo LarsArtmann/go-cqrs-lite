@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"slices"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
@@ -15,7 +17,7 @@ import (
 // lightweight JSON reference — never the full event payload.
 func (b *PostgresBus) Publish(ctx context.Context, events ...event.Event) error {
 	if b.closed.Load() {
-		return event.WrapInfrastructure(event.ErrBusClosed, "storage.pg_bus_publish",
+		return errorfamily.WrapInfrastructure(event.ErrBusClosed, "storage.pg_bus_publish",
 			"postgres bus publish: bus is closed")
 	}
 
@@ -71,14 +73,14 @@ func (b *PostgresBus) publishOne(ctx context.Context, evt event.Event) error {
 	payloadJSON, err := json.Marshal(payload)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
-		return event.WrapInfrastructure(err, "storage.pg_bus_marshal",
+		return errorfamily.WrapInfrastructure(err, "storage.pg_bus_marshal",
 			"marshal notify payload for "+string(evt.Type()))
 	}
 
 	err = b.opts.notifyFn(ctx, b.opts.channel, string(payloadJSON))
 	if err != nil {
 		cqrsotel.RecordError(span, err)
-		return event.WrapInfrastructure(err, "storage.pg_bus_notify",
+		return errorfamily.WrapInfrastructure(err, "storage.pg_bus_notify",
 			"send NOTIFY for "+string(evt.Type()))
 	}
 
@@ -126,7 +128,7 @@ func (b *PostgresBus) rebuildHandlerChain() {
 // Subscribe registers a handler for a specific event type.
 func (b *PostgresBus) Subscribe(eventType event.Type, handler event.Handler) error {
 	if handler == nil {
-		return event.WrapInfrastructure(errNilBusHandler, "storage.pg_bus_subscribe",
+		return errorfamily.WrapInfrastructure(errNilBusHandler, "storage.pg_bus_subscribe",
 			"subscribe: nil handler")
 	}
 
@@ -142,7 +144,7 @@ func (b *PostgresBus) Subscribe(eventType event.Type, handler event.Handler) err
 // SubscribeAll registers a catch-all handler that receives every event.
 func (b *PostgresBus) SubscribeAll(handler event.Handler) error {
 	if handler == nil {
-		return event.WrapInfrastructure(errNilBusHandler, "storage.pg_bus_subscribe_all",
+		return errorfamily.WrapInfrastructure(errNilBusHandler, "storage.pg_bus_subscribe_all",
 			"subscribe all: nil handler")
 	}
 

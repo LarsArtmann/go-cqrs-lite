@@ -6,6 +6,7 @@ import (
 	"log/slog"
 
 	"github.com/cockroachdb/pebble"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
@@ -30,7 +31,7 @@ func (a *EventStore) AppendBatch(
 
 		err := a.serializeAndAddToBatchWithJournal(batch, key, evt)
 		if err != nil {
-			return event.WrapCorruption(err, "pebble.serialize_event",
+			return errorfamily.WrapCorruption(err, "pebble.serialize_event",
 				fmt.Sprintf("serialize event %s for %s %s", evt.Type(), ref.Type, ref.ID))
 		}
 	}
@@ -77,7 +78,7 @@ func (a *EventStore) serializeAndAddToBatchWithJournal(
 ) error {
 	data, err := a.serializeEvent(evt)
 	if err != nil {
-		return event.WrapCorruption(err, "pebble.serialize_event",
+		return errorfamily.WrapCorruption(err, "pebble.serialize_event",
 			"failed to serialize event")
 	}
 
@@ -95,7 +96,7 @@ func (a *EventStore) serializeAndAddToBatchWithJournal(
 func (a *EventStore) addToBatch(batch *pebble.Batch, key, data []byte) error {
 	err := batch.Set(key, data, nil)
 	if err != nil {
-		return event.WrapInfrastructure(err, "pebble.add_to_batch",
+		return errorfamily.WrapInfrastructure(err, "pebble.add_to_batch",
 			"failed to add event to batch")
 	}
 
@@ -111,7 +112,7 @@ func (a *EventStore) commitAndLog(
 ) error {
 	err := batch.Commit(a.writeOptions())
 	if err != nil {
-		return event.WrapInfrastructure(err, "pebble.commit_batch",
+		return errorfamily.WrapInfrastructure(err, "pebble.commit_batch",
 			fmt.Sprintf("failed to commit %d events (%s)", count, logMsg))
 	}
 
@@ -126,7 +127,7 @@ func (a *EventStore) corruptEventErr(key string, err error) error {
 		a.logger.Warn("corrupt event in pebble store", "key", key, "error", err)
 	}
 
-	return event.WrapCorruption(err, "pebble.corrupt_event",
+	return errorfamily.WrapCorruption(err, "pebble.corrupt_event",
 		"corrupt event at key "+key)
 }
 
@@ -134,7 +135,7 @@ func (a *EventStore) corruptEventErr(key string, err error) error {
 func checkIteratorError(iter *pebble.Iterator) error {
 	err := iter.Error()
 	if err != nil {
-		return event.WrapInfrastructure(err, "pebble.iterator_error",
+		return errorfamily.WrapInfrastructure(err, "pebble.iterator_error",
 			"iterator error")
 	}
 

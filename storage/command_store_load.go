@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
 )
@@ -18,10 +19,10 @@ var commandQueryConfig = sqlpkg.QueryConfig[*command.PersistedCommand]{ //nolint
 	Table:    sqlpkg.TableCommands,
 	ScanRows: nil, // set per-store in loadWithSpan
 	WrapError: func(err error, code, msg string) error {
-		return event.WrapInfrastructure(err, code, msg)
+		return errorfamily.WrapInfrastructure(err, code, msg)
 	},
 	WrapEmpty: func(err error, code, msg string) error {
-		return event.WrapRejection(err, code, msg)
+		return errorfamily.WrapRejection(err, code, msg)
 	},
 	NotFound:   command.ErrCommandNotFound,
 	DomainNoun: "commands",

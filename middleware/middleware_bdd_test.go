@@ -6,6 +6,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -104,7 +105,7 @@ var _ = Describe("Retry Middleware", func() {
 				handler := mw(func(_ context.Context, _ command.Command) error {
 					attempts.Add(1)
 
-					return event.NewRejection("test.reject", "not retryable")
+					return errorfamily.NewRejection("test.reject", "not retryable")
 				})
 
 				err := handler(ctx, &bddCommand{aggregateID: id.NewAggregateID()})

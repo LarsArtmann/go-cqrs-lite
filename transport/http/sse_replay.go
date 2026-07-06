@@ -156,6 +156,7 @@ func replayEvents(
 
 	flusher.Flush()
 	span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrEventCount, totalReplayed))
+	span.SetAttributes(cqrsotel.AttrInt("cqrs.sse.dedup_ring_size", replayed.Len()))
 
 	durationMs := float64(
 		time.Since(start).Microseconds(),

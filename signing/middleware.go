@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
@@ -25,7 +27,7 @@ func ExtractOrPassThrough[T any](
 			return zero, true, next(ctx, evt)
 		}
 
-		return zero, true, event.WrapInfrastructure(err, code, msg)
+		return zero, true, errorfamily.WrapInfrastructure(err, code, msg)
 	}
 
 	return result, false, nil
@@ -34,7 +36,7 @@ func ExtractOrPassThrough[T any](
 func RejectingPublishMiddleware(code, msg string) event.PublishMiddleware {
 	return func(_ event.Publisher) event.Publisher {
 		return event.PublisherFunc(func(_ context.Context, _ ...event.Event) error {
-			return event.NewRejection(code, msg)
+			return errorfamily.NewRejection(code, msg)
 		})
 	}
 }
@@ -42,7 +44,7 @@ func RejectingPublishMiddleware(code, msg string) event.PublishMiddleware {
 func RejectingHandlerMiddleware(code, msg string) event.Middleware {
 	return func(_ event.Handler) event.Handler {
 		return func(_ context.Context, _ event.Event) error {
-			return event.NewRejection(code, msg)
+			return errorfamily.NewRejection(code, msg)
 		}
 	}
 }
@@ -68,7 +70,7 @@ func SignMiddleware(signer Signer) event.PublishMiddleware {
 			for _, evt := range events {
 				sig, err := signer.Sign(evt)
 				if err != nil {
-					return event.WrapInfrastructure(
+					return errorfamily.WrapInfrastructure(
 						err,
 						"signing.sign_event",
 						"sign event "+string(evt.Type()),
@@ -77,7 +79,7 @@ func SignMiddleware(signer Signer) event.PublishMiddleware {
 
 				clone, err := AttachSignature(evt, sig)
 				if err != nil {
-					return event.WrapInfrastructure(
+					return errorfamily.WrapInfrastructure(
 						err,
 						"signing.attach_signature",
 						"attach signature to event "+string(evt.Type()),
@@ -119,7 +121,7 @@ func VerifyMiddleware(verifier Verifier) event.Middleware {
 
 			err = verifier.Verify(evt, sig)
 			if err != nil {
-				return event.WrapInfrastructure(
+				return errorfamily.WrapInfrastructure(
 					err,
 					"signing.verify_event",
 					"verify event "+string(evt.Type()),
@@ -144,8 +146,8 @@ func RequireSignatureMiddleware(verifier Verifier) event.Middleware {
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
 			if !HasSignature(evt) {
-				return event.Newf(
-					event.Rejection,
+				return errorfamily.Newf(
+					errorfamily.Rejection,
 					"signing.missing_signature",
 					"event %s is missing a signature",
 					evt.Type(),
@@ -154,7 +156,7 @@ func RequireSignatureMiddleware(verifier Verifier) event.Middleware {
 
 			sig, extractErr := ExtractSignature(evt)
 			if extractErr != nil {
-				return event.WrapInfrastructure(
+				return errorfamily.WrapInfrastructure(
 					extractErr,
 					"signing.corrupt_signature",
 					"corrupt signature on event "+string(evt.Type()),
@@ -163,7 +165,7 @@ func RequireSignatureMiddleware(verifier Verifier) event.Middleware {
 
 			verifyErr := verifier.Verify(evt, sig)
 			if verifyErr != nil {
-				return event.WrapInfrastructure(
+				return errorfamily.WrapInfrastructure(
 					verifyErr,
 					"signing.verify_event",
 					"verify event "+string(evt.Type()),

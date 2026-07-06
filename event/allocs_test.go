@@ -3,6 +3,8 @@ package event
 import (
 	"testing"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
@@ -54,10 +56,10 @@ func TestAllocs_NewMetadata_Empty(t *testing.T) {
 }
 
 func TestAllocs_Classify(t *testing.T) {
-	err := NewRejection("test.op", "test rejection")
+	err := errorfamily.NewRejection("test.op", "test rejection")
 
 	allocs := testing.AllocsPerRun(100, func() {
-		_ = Classify(err)
+		_ = errorfamily.Classify(err)
 	})
 
 	if allocs != 0 {

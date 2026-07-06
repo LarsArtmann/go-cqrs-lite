@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	"google.golang.org/grpc"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
@@ -34,26 +35,26 @@ func (c *EventClient) Subscribe(
 		EventTypes: eventTypes,
 	})
 	if err != nil {
-		return event.WrapInfrastructure(err, "grpc.event_client.open_stream",
+		return errorfamily.WrapInfrastructure(err, "grpc.event_client.open_stream",
 			"open event stream")
 	}
 
 	for {
 		envelope, err := stream.Recv()
 		if err != nil {
-			return event.WrapInfrastructure(err, "grpc.event_client.receive",
+			return errorfamily.WrapInfrastructure(err, "grpc.event_client.receive",
 				"receive event")
 		}
 
 		evt, err := envelopeToEvent(envelope)
 		if err != nil {
-			return event.WrapCorruption(err, "grpc.event_client.decode",
+			return errorfamily.WrapCorruption(err, "grpc.event_client.decode",
 				"decode event")
 		}
 
 		err = handler(ctx, evt)
 		if err != nil {
-			return event.Wrap(err, event.Classify(err),
+			return errorfamily.Wrap(err, errorfamily.Classify(err),
 				"grpc.event_client.handler", "event handler")
 		}
 	}
@@ -62,7 +63,7 @@ func (c *EventClient) Subscribe(
 func envelopeToEvent(envelope *cqrsproto.EventEnvelope) (event.Event, error) {
 	aggID, err := id.ParseAggregateID(envelope.GetAggregateId())
 	if err != nil {
-		return nil, event.WrapRejection(err, "grpc.event_client.parse_aggregate_id",
+		return nil, errorfamily.WrapRejection(err, "grpc.event_client.parse_aggregate_id",
 			"parse aggregate ID")
 	}
 
@@ -86,7 +87,7 @@ func envelopeToEvent(envelope *cqrsproto.EventEnvelope) (event.Event, error) {
 		opts...,
 	)
 	if err != nil {
-		return nil, event.WrapCorruption(err, "grpc.event_client.reconstruct",
+		return nil, errorfamily.WrapCorruption(err, "grpc.event_client.reconstruct",
 			"reconstruct event")
 	}
 

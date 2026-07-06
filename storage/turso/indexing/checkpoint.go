@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // CheckpointScheduler runs PRAGMA checkpoint on a periodic interval.
@@ -70,7 +70,7 @@ func (s *CheckpointScheduler) run(ctx context.Context, stop <-chan struct{}, don
 func (s *CheckpointScheduler) runOnce(ctx context.Context) error {
 	_, err := s.db.ExecContext(ctx, "PRAGMA wal_checkpoint(TRUNCATE)")
 	if err != nil {
-		return event.WrapInfrastructure(err, "indexing.checkpoint",
+		return errorfamily.WrapInfrastructure(err, "indexing.checkpoint",
 			fmt.Sprintf("PRAGMA wal_checkpoint (interval=%s)", s.interval))
 	}
 

@@ -8,6 +8,8 @@ import (
 	"math/rand/v2"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
@@ -117,7 +119,7 @@ func retry(
 		case <-ctx.Done():
 			timer.Stop()
 
-			return event.WrapInfrastructure(ErrRetryCanceled, "middleware.retry_canceled",
+			return errorfamily.WrapInfrastructure(ErrRetryCanceled, "middleware.retry_canceled",
 				entry.Type+": retry canceled").WithCause(err)
 		}
 
@@ -131,7 +133,7 @@ func retry(
 		config.OnDeadLetter(ctx, entry)
 	}
 
-	return event.WrapInfrastructure(ErrRetryExhausted, "middleware.retry_exhausted",
+	return errorfamily.WrapInfrastructure(ErrRetryExhausted, "middleware.retry_exhausted",
 		fmt.Sprintf("all %d attempts failed for %s", config.MaxAttempts, entry.Type)).WithCause(err)
 }
 

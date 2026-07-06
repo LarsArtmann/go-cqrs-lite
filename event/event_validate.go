@@ -3,6 +3,8 @@ package event
 import (
 	"strconv"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
@@ -14,7 +16,7 @@ func validateEventParams(
 	payload []byte,
 ) error {
 	if eventType == "" {
-		return WrapRejection(
+		return errorfamily.WrapRejection(
 			ErrEmptyEventType,
 			"event.empty_event_type",
 			"event type is required: got empty for aggregate "+aggregateID.String()+" of type "+string(
@@ -24,7 +26,7 @@ func validateEventParams(
 	}
 
 	if aggregateID.IsZero() {
-		return WrapRejection(
+		return errorfamily.WrapRejection(
 			ErrNilAggregateID,
 			"event.nil_aggregate_id",
 			"aggregate ID is required: for event type "+string(
@@ -36,7 +38,7 @@ func validateEventParams(
 	}
 
 	if aggregateType == "" {
-		return WrapRejection(
+		return errorfamily.WrapRejection(
 			ErrEmptyAggregateType,
 			"event.empty_aggregate_type",
 			"aggregate type is required: for aggregate "+aggregateID.String()+", event type "+string(
@@ -46,7 +48,7 @@ func validateEventParams(
 	}
 
 	if version.IsZero() {
-		return WrapRejection(
+		return errorfamily.WrapRejection(
 			ErrVersionNotPositive,
 			"event.version_not_positive",
 			"version must be positive: for aggregate "+aggregateID.String()+" of type "+string(

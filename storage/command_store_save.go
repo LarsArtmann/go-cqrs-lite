@@ -5,8 +5,9 @@ import (
 	"database/sql"
 	"fmt"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
 )
@@ -36,7 +37,7 @@ func (s *SQLCommandStore) Save(
 		if err != nil {
 			cqrsotel.RecordError(span, err)
 
-			return event.WrapInfrastructure(err, "storage.insert_command",
+			return errorfamily.WrapInfrastructure(err, "storage.insert_command",
 				fmt.Sprintf("insert command %s for %s", cmd.Type(), ref))
 		}
 
@@ -77,7 +78,7 @@ func (s *SQLCommandStore) AppendBatch(
 			if err != nil {
 				cqrsotel.RecordError(span, err)
 
-				return event.WrapInfrastructure(err, "storage.insert_command",
+				return errorfamily.WrapInfrastructure(err, "storage.insert_command",
 					fmt.Sprintf("insert command %s for %s", cmd.Type(), ref))
 			}
 		}
@@ -111,7 +112,7 @@ func (s *SQLCommandStore) insertCommand(
 
 	metadata, err := sqlpkg.MarshalMetadata(cmd.Metadata())
 	if err != nil {
-		return event.WrapCorruption(err, "storage.marshal_metadata",
+		return errorfamily.WrapCorruption(err, "storage.marshal_metadata",
 			"marshal metadata for command "+string(cmd.Type()))
 	}
 
@@ -128,14 +129,14 @@ func (s *SQLCommandStore) insertCommand(
 	)
 	if err != nil {
 		if sqlpkg.IsDuplicateKeyError(err) {
-			return event.WrapConflict(
+			return errorfamily.WrapConflict(
 				command.ErrDuplicateCommand,
 				"storage.duplicate_command",
 				fmt.Sprintf("command with ID %s already exists", cmd.ID()),
 			)
 		}
 
-		return event.WrapInfrastructure(err, "storage.insert_command",
+		return errorfamily.WrapInfrastructure(err, "storage.insert_command",
 			"insert command "+string(cmd.Type()))
 	}
 

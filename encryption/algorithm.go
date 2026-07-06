@@ -1,6 +1,10 @@
 package encryption
 
-import "github.com/larsartmann/go-cqrs-lite/event/v3"
+import (
+	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v3"
+)
 
 type Algorithm string
 
@@ -41,7 +45,7 @@ func ExtractAlgorithm(evt event.Event) (Algorithm, error) {
 
 	alg := Algorithm(v)
 	if alg != AES256GCM && alg != XChaCha20Poly1305 {
-		return "", event.NewRejection(
+		return "", errorfamily.NewRejection(
 			"encryption.unknown_algorithm",
 			"unknown encryption algorithm: "+v,
 		)

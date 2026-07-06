@@ -3,6 +3,8 @@ package event
 import (
 	"strconv"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
@@ -18,7 +20,7 @@ func NewEvents(
 	opts ...Option,
 ) ([]Event, error) {
 	if len(eventTypes) != len(payloads) {
-		return nil, Wrap(
+		return nil, errorfamily.Wrap(
 			ErrMismatchedEventCount,
 			Rejection,
 			"event.mismatched_event_count",
@@ -46,7 +48,7 @@ func NewEvents(
 			opts...,
 		)
 		if err != nil {
-			return nil, WrapCorruption(
+			return nil, errorfamily.WrapCorruption(
 				err,
 				"event.create_failed",
 				"create event "+strconv.Itoa(i),

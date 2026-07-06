@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v3"
@@ -146,8 +148,8 @@ func TestEventStore_LoadNonExistent(t *testing.T) {
 		t.Fatal("expected error for non-existent aggregate")
 	}
 
-	if event.Classify(err) != event.Rejection {
-		t.Errorf("expected Rejection, got %s", event.Classify(err))
+	if errorfamily.Classify(err) != errorfamily.Rejection {
+		t.Errorf("expected Rejection, got %s", errorfamily.Classify(err))
 	}
 }
 

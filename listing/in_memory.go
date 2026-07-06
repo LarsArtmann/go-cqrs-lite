@@ -6,6 +6,8 @@ import (
 	"strings"
 	"sync"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
@@ -72,7 +74,7 @@ func (r *InMemoryAggregateReader) getRefsUnsorted() []AggregateStatus {
 func (r *InMemoryAggregateReader) rebuildCache(ctx context.Context) ([]AggregateStatus, error) {
 	all, err := r.journal.ReadAll(ctx)
 	if err != nil {
-		return nil, event.WrapInfrastructure(
+		return nil, errorfamily.WrapInfrastructure(
 			err,
 			"listing.in_memory_list",
 			"stream in-memory list",

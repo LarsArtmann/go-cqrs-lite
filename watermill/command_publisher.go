@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/ThreeDotsLabs/watermill/message"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 )
 
@@ -59,7 +59,7 @@ func (p *CommandPublisher) Publish(ctx context.Context, cmds ...command.Command)
 	if err := p.publisher.Publish(p.topic, msgs...); err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return event.WrapInfrastructure(
+		return errorfamily.WrapInfrastructure(
 			err, "watermill.publish_command_failed", "publish to topic "+p.topic,
 		)
 	}

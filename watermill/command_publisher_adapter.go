@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/ThreeDotsLabs/watermill/message"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // CommandPublisherAdapter wraps a go-cqrs-lite command.Publisher as a
@@ -31,7 +31,7 @@ func (a *CommandPublisherAdapter) Publish(topic string, messages ...*message.Mes
 	for _, msg := range messages {
 		cmd, err := MessageToCommand(topic, msg)
 		if err != nil {
-			return event.WrapCorruption(
+			return errorfamily.WrapCorruption(
 				err,
 				"watermill.convert_message_failed",
 				"convert message "+msg.UUID,
@@ -39,7 +39,7 @@ func (a *CommandPublisherAdapter) Publish(topic string, messages ...*message.Mes
 		}
 
 		if err := a.publisher.Publish(ctx, cmd); err != nil {
-			return event.WrapInfrastructure(
+			return errorfamily.WrapInfrastructure(
 				err,
 				"watermill.publish_command_failed",
 				"publish command "+string(cmd.Type()),

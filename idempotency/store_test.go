@@ -7,7 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/idempotency/v3"
 )
 
@@ -40,7 +41,7 @@ func TestMemoryStore_CheckAndRecord_DuplicateReturnsErrDuplicate(t *testing.T) {
 	}
 
 	// ErrDuplicate must be a Conflict so it maps to HTTP 409 downstream.
-	if fam := event.Classify(err); fam != event.Conflict {
+	if fam := errorfamily.Classify(err); fam != errorfamily.Conflict {
 		t.Fatalf("family: want Conflict, got %s", fam)
 	}
 }
@@ -215,10 +216,10 @@ func TestMemoryStore_CheckAndRecord_AllowsAfterExpiry(t *testing.T) {
 func TestErrDuplicate_IsConflict(t *testing.T) {
 	t.Parallel()
 
-	if fam := event.Classify(idempotency.ErrDuplicate); fam != event.Conflict {
+	if fam := errorfamily.Classify(idempotency.ErrDuplicate); fam != errorfamily.Conflict {
 		t.Fatalf("family: want Conflict, got %s", fam)
 	}
-	if event.IsRetryable(idempotency.ErrDuplicate) {
+	if errorfamily.IsRetryable(idempotency.ErrDuplicate) {
 		t.Fatal("Conflict must not be retryable")
 	}
 }

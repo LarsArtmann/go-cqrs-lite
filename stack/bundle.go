@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
@@ -169,7 +171,7 @@ func (b *Bundle) Close() error {
 func (b *Bundle) GracefulClose(ctx context.Context) error {
 	for _, d := range b.drainers {
 		if err := d.Drain(ctx); err != nil {
-			return event.WrapInfrastructure(err, "stack.bundle.graceful_drain",
+			return errorfamily.WrapInfrastructure(err, "stack.bundle.graceful_drain",
 				"graceful drain")
 		}
 	}

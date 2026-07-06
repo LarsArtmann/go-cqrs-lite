@@ -8,6 +8,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
@@ -41,24 +43,30 @@ func DefaultCircuitBreakerConfig() CircuitBreakerConfig {
 		FailureThreshold: defaultFailureThreshold,
 		SuccessThreshold: defaultSuccessThreshold,
 		Timeout:          defaultTimeout,
-		IsFailure:        event.IsRetryable,
+		IsFailure:        errorfamily.IsRetryable,
 	}
 }
 
 // Validate checks that the circuit breaker configuration is valid.
 func (c CircuitBreakerConfig) Validate() error {
 	if c.FailureThreshold < 1 {
-		return event.WrapRejection(ErrValidationFailed, "middleware.cb_invalid_failure_threshold",
-			fmt.Sprintf("FailureThreshold must be >= 1, got %d", c.FailureThreshold))
+		return errorfamily.WrapRejection(
+			ErrValidationFailed,
+			"middleware.cb_invalid_failure_threshold",
+			fmt.Sprintf("FailureThreshold must be >= 1, got %d", c.FailureThreshold),
+		)
 	}
 
 	if c.SuccessThreshold < 1 {
-		return event.WrapRejection(ErrValidationFailed, "middleware.cb_invalid_success_threshold",
-			fmt.Sprintf("SuccessThreshold must be >= 1, got %d", c.SuccessThreshold))
+		return errorfamily.WrapRejection(
+			ErrValidationFailed,
+			"middleware.cb_invalid_success_threshold",
+			fmt.Sprintf("SuccessThreshold must be >= 1, got %d", c.SuccessThreshold),
+		)
 	}
 
 	if c.Timeout <= 0 {
-		return event.WrapRejection(ErrValidationFailed, "middleware.cb_invalid_timeout",
+		return errorfamily.WrapRejection(ErrValidationFailed, "middleware.cb_invalid_timeout",
 			fmt.Sprintf("Timeout must be positive, got %s", c.Timeout))
 	}
 
@@ -161,7 +169,7 @@ func (cb *circuitBreaker) execute(
 				"operation", opName, "error", err)
 		}
 
-		return event.WrapTransient(err, "middleware.circuit_open",
+		return errorfamily.WrapTransient(err, "middleware.circuit_open",
 			"circuit breaker rejected "+opName)
 	}
 
@@ -174,7 +182,7 @@ func (cb *circuitBreaker) execute(
 
 	isFailure := cb.config.IsFailure
 	if isFailure == nil {
-		isFailure = event.IsRetryable
+		isFailure = errorfamily.IsRetryable
 	}
 
 	if isFailure(err) {
@@ -183,7 +191,7 @@ func (cb *circuitBreaker) execute(
 		cb.recordSuccess()
 	}
 
-	return event.Wrap(err, event.Classify(err), opName, err.Error())
+	return errorfamily.Wrap(err, errorfamily.Classify(err), opName, err.Error())
 }
 
 // NewCircuitBreaker returns a generic middleware that implements the circuit breaker pattern.
@@ -228,7 +236,7 @@ func QueryCircuitBreaker(config CircuitBreakerConfig, opts ...Option) query.Midd
 	return AsQuery(NewCircuitBreaker(QueryAdapter, config, opts...))
 }
 
-var ErrCircuitBreakerOpen = event.NewInfrastructure(
+var ErrCircuitBreakerOpen = errorfamily.NewInfrastructure(
 	"middleware.circuit_breaker_open",
 	"circuit breaker open",
 )

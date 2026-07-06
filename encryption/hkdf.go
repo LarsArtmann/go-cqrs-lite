@@ -4,9 +4,8 @@ import (
 	"crypto/sha256"
 	"io"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	"golang.org/x/crypto/hkdf"
-
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // MaxHKDFKeyLen is the maximum output length for HKDF-SHA256
@@ -27,7 +26,7 @@ func DeriveKey(masterKey []byte, info string, length int) ([]byte, error) {
 	}
 
 	if length <= 0 || length > MaxHKDFKeyLen {
-		return nil, event.NewRejection(
+		return nil, errorfamily.NewRejection(
 			"encryption.invalid_key_length",
 			"derived key length must be between 1 and MaxHKDFKeyLen",
 		)
@@ -38,7 +37,7 @@ func DeriveKey(masterKey []byte, info string, length int) ([]byte, error) {
 
 	_, err := io.ReadFull(reader, key)
 	if err != nil {
-		return nil, event.WrapInfrastructure(
+		return nil, errorfamily.WrapInfrastructure(
 			err,
 			"encryption.derive_key",
 			"read derived key",

@@ -4,6 +4,8 @@ import (
 	"context"
 	"sync"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/dispatcher/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	snappkg "github.com/larsartmann/go-cqrs-lite/snapshot/v3"
@@ -33,7 +35,11 @@ func NewMemorySnapshotStore() *MemorySnapshotStore {
 func (s *MemorySnapshotStore) Save(_ context.Context, snap snappkg.Snapshot) error {
 	err := s.CheckClosed(snappkg.ErrSnapshotStoreClosed)
 	if err != nil {
-		return event.WrapInfrastructure(err, "memory.snapshot_save_failed", "snapshot store save")
+		return errorfamily.WrapInfrastructure(
+			err,
+			"memory.snapshot_save_failed",
+			"snapshot store save",
+		)
 	}
 
 	s.mu.Lock()
@@ -57,7 +63,7 @@ func (s *MemorySnapshotStore) Load(
 ) (*snappkg.Snapshot, error) {
 	err := s.CheckClosed(snappkg.ErrSnapshotStoreClosed)
 	if err != nil {
-		return nil, event.WrapInfrastructure(
+		return nil, errorfamily.WrapInfrastructure(
 			err,
 			"memory.snapshot_load_failed",
 			"snapshot store load",
@@ -86,7 +92,7 @@ func (s *MemorySnapshotStore) LoadAtVersion(
 ) (*snappkg.Snapshot, error) {
 	err := s.CheckClosed(snappkg.ErrSnapshotStoreClosed)
 	if err != nil {
-		return nil, event.WrapInfrastructure(
+		return nil, errorfamily.WrapInfrastructure(
 			err,
 			"memory.snapshot_load_at_version_failed",
 			"snapshot store load at version",
@@ -129,7 +135,7 @@ func (s *MemorySnapshotStore) Delete(
 ) error {
 	err := s.CheckClosed(snappkg.ErrSnapshotStoreClosed)
 	if err != nil {
-		return event.WrapInfrastructure(
+		return errorfamily.WrapInfrastructure(
 			err,
 			"memory.snapshot_delete_failed",
 			"snapshot store delete",

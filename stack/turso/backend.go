@@ -5,7 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	cqrsturso "github.com/larsartmann/go-cqrs-lite/storage/turso/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
@@ -18,7 +19,7 @@ func openLocalBackend(
 ) (*sql.DB, *storage.SQLBackend, error) {
 	sqlDB, err := cqrsturso.Open(cqrsturso.DbPath(dbPath))
 	if err != nil {
-		return nil, nil, event.WrapInfrastructure(err, "turso.open",
+		return nil, nil, errorfamily.WrapInfrastructure(err, "turso.open",
 			fmt.Sprintf("open %q", dbPath))
 	}
 
@@ -34,7 +35,7 @@ func openLocalBackend(
 	if err != nil {
 		_ = sqlDB.Close()
 
-		return nil, nil, event.WrapInfrastructure(err, "turso.create_backend",
+		return nil, nil, errorfamily.WrapInfrastructure(err, "turso.create_backend",
 			"create backend")
 	}
 
@@ -50,7 +51,7 @@ func applySchemaAndPragmas(sqlDB *sql.DB, cfg config) error {
 	if cfg.wal {
 		err := storage.SQLiteEnableWAL(ctx, sqlDB)
 		if err != nil {
-			return event.WrapInfrastructure(err, "turso.enable_wal",
+			return errorfamily.WrapInfrastructure(err, "turso.enable_wal",
 				"enable WAL")
 		}
 	}
@@ -64,7 +65,7 @@ func applySchemaAndPragmas(sqlDB *sql.DB, cfg config) error {
 		}
 
 		if err != nil {
-			return event.WrapInfrastructure(err, "turso.init_schema",
+			return errorfamily.WrapInfrastructure(err, "turso.init_schema",
 				"init schema")
 		}
 	}
@@ -72,7 +73,7 @@ func applySchemaAndPragmas(sqlDB *sql.DB, cfg config) error {
 	if cfg.foreignKeys {
 		err := storage.SQLiteEnableForeignKeys(ctx, sqlDB)
 		if err != nil {
-			return event.WrapInfrastructure(err, "turso.enable_fk",
+			return errorfamily.WrapInfrastructure(err, "turso.enable_fk",
 				"enable foreign keys")
 		}
 	}

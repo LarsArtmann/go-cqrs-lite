@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
@@ -56,7 +57,7 @@ func (t *TypedCommandStore[P]) Save(
 ) error {
 	data, err := t.codec.Encode(cmd.Payload)
 	if err != nil {
-		return event.WrapCorruption(err, "command.typed_store.encode",
+		return errorfamily.WrapCorruption(err, "command.typed_store.encode",
 			"encode typed payload")
 	}
 
@@ -81,7 +82,7 @@ func (t *TypedCommandStore[P]) Save(
 
 	err = t.store.Save(ctx, ref, persisted)
 	if err != nil {
-		return event.WrapInfrastructure(err, "command.typed_store.save", "save typed command")
+		return errorfamily.WrapInfrastructure(err, "command.typed_store.save", "save typed command")
 	}
 
 	return nil
@@ -99,7 +100,7 @@ func (t *TypedCommandStore[P]) AppendBatch(
 	for i, cmd := range cmds {
 		data, err := t.codec.Encode(cmd.Payload)
 		if err != nil {
-			return event.WrapCorruption(err, "command.typed_store.encode_batch",
+			return errorfamily.WrapCorruption(err, "command.typed_store.encode_batch",
 				fmt.Sprintf("encode typed payload at index %d", i))
 		}
 
@@ -127,7 +128,7 @@ func (t *TypedCommandStore[P]) AppendBatch(
 
 	err := t.store.AppendBatch(ctx, ref, persisted)
 	if err != nil {
-		return event.WrapInfrastructure(
+		return errorfamily.WrapInfrastructure(
 			err,
 			"command.typed_store.append_batch",
 			"append typed commands",
@@ -144,7 +145,11 @@ func (t *TypedCommandStore[P]) Load(
 ) ([]TypedPersistedCommand[P], error) {
 	cmds, err := t.store.Load(ctx, ref)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "command.typed_store.load", "load typed commands")
+		return nil, errorfamily.WrapInfrastructure(
+			err,
+			"command.typed_store.load",
+			"load typed commands",
+		)
 	}
 
 	result := make([]TypedPersistedCommand[P], 0, len(cmds))
@@ -154,7 +159,7 @@ func (t *TypedCommandStore[P]) Load(
 
 		err := t.codec.Decode(cmd.Payload(), &payload)
 		if err != nil {
-			return nil, event.WrapCorruption(err, "command.typed_store.decode",
+			return nil, errorfamily.WrapCorruption(err, "command.typed_store.decode",
 				fmt.Sprintf("decode typed payload for %s", cmd.ID()))
 		}
 

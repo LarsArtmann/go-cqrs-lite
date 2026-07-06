@@ -4,7 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/storage/turso/v3/indexing"
 )
 
@@ -40,8 +41,8 @@ func TestAutoIndexer_ApplyRecommended_Disabled(t *testing.T) {
 		t.Fatal("expected error when disabled")
 	}
 
-	if event.Classify(err) != event.Rejection {
-		t.Errorf("expected Rejection classification, got %v", event.Classify(err))
+	if errorfamily.Classify(err) != errorfamily.Rejection {
+		t.Errorf("expected Rejection classification, got %v", errorfamily.Classify(err))
 	}
 }
 

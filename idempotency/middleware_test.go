@@ -6,8 +6,9 @@ import (
 	"testing"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/idempotency/v3"
 )
@@ -178,7 +179,7 @@ func TestCommandIdempotency_StoreErrorIsTransient(t *testing.T) {
 	if called {
 		t.Fatal("handler must NOT be called when store errors")
 	}
-	if fam := event.Classify(err); fam != event.Transient {
+	if fam := errorfamily.Classify(err); fam != errorfamily.Transient {
 		t.Fatalf("store error family: want Transient, got %s", fam)
 	}
 }
@@ -202,5 +203,5 @@ type failingStore struct{}
 func (failingStore) Seen(context.Context, string) (bool, error)          { return false, nil }
 func (failingStore) Record(context.Context, string, time.Duration) error { return nil }
 func (failingStore) CheckAndRecord(context.Context, string, time.Duration) error {
-	return event.NewInfrastructure("test.store_failure", "simulated store failure")
+	return errorfamily.NewInfrastructure("test.store_failure", "simulated store failure")
 }

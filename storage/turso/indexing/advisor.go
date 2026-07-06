@@ -7,10 +7,10 @@ import (
 	"regexp"
 	"sync"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 )
 
@@ -124,7 +124,7 @@ func (a *Advisor) AnalyzeQuery(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, event.WrapInfrastructure(err, "indexing.explain",
+		return nil, errorfamily.WrapInfrastructure(err, "indexing.explain",
 			"explain query plan")
 	}
 
@@ -147,7 +147,7 @@ func (a *Advisor) AnalyzeTable(
 	for _, pat := range patterns {
 		recs, err := a.AnalyzeQuery(ctx, pat.Query, pat.Args...)
 		if err != nil {
-			return nil, event.WrapInfrastructure(err, "indexing.analyze_table",
+			return nil, errorfamily.WrapInfrastructure(err, "indexing.analyze_table",
 				fmt.Sprintf("analyze table %s", table))
 		}
 
@@ -162,7 +162,7 @@ func (a *Advisor) AnalyzeTable(
 func (a *Advisor) MissingIndexes(ctx context.Context) ([]Recommendation, error) {
 	tables, err := a.userTables(ctx)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "indexing.list_tables",
+		return nil, errorfamily.WrapInfrastructure(err, "indexing.list_tables",
 			"list user tables")
 	}
 
@@ -189,7 +189,7 @@ func (a *Advisor) ExistingIndexes(ctx context.Context) error {
 	rows, err := a.db.QueryContext(ctx,
 		"SELECT name FROM sqlite_master WHERE type = 'index' AND sql IS NOT NULL")
 	if err != nil {
-		return event.WrapInfrastructure(err, "indexing.list_indexes",
+		return errorfamily.WrapInfrastructure(err, "indexing.list_indexes",
 			"list existing indexes")
 	}
 
@@ -200,7 +200,7 @@ func (a *Advisor) ExistingIndexes(ctx context.Context) error {
 	for rows.Next() {
 		var name string
 		if err := rows.Scan(&name); err != nil {
-			return event.WrapInfrastructure(err, "indexing.scan_index",
+			return errorfamily.WrapInfrastructure(err, "indexing.scan_index",
 				"scan index name")
 		}
 

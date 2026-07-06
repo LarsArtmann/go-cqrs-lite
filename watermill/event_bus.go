@@ -9,6 +9,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
 	gochannel "github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
@@ -103,7 +104,7 @@ func (b *EventBus) Publish(ctx context.Context, events ...event.Event) error {
 	if b.closed {
 		b.mu.Unlock()
 
-		return event.WrapInfrastructure(event.ErrBusClosed, "watermill.event_bus_publish",
+		return errorfamily.WrapInfrastructure(event.ErrBusClosed, "watermill.event_bus_publish",
 			"event bus is closed")
 	}
 
@@ -123,7 +124,7 @@ func (b *EventBus) Subscribe(eventType event.Type, handler event.Handler) error 
 	defer b.mu.Unlock()
 
 	if b.closed {
-		return event.WrapInfrastructure(event.ErrBusClosed, "watermill.event_bus_subscribe",
+		return errorfamily.WrapInfrastructure(event.ErrBusClosed, "watermill.event_bus_subscribe",
 			"event bus is closed")
 	}
 
@@ -140,8 +141,11 @@ func (b *EventBus) SubscribeAll(handler event.Handler) error {
 	defer b.mu.Unlock()
 
 	if b.closed {
-		return event.WrapInfrastructure(event.ErrBusClosed, "watermill.event_bus_subscribe_all",
-			"event bus is closed")
+		return errorfamily.WrapInfrastructure(
+			event.ErrBusClosed,
+			"watermill.event_bus_subscribe_all",
+			"event bus is closed",
+		)
 	}
 
 	b.allHandlers = append(b.allHandlers, handler)

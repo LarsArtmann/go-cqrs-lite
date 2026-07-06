@@ -5,7 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
@@ -31,20 +32,20 @@ func (s *SQLQueryStore) scanQuery(rows *sql.Rows) (*query.PersistedQuery, error)
 		timeDest,
 	)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "storage.scan_query",
+		return nil, errorfamily.WrapInfrastructure(err, "storage.scan_query",
 			fmt.Sprintf("scan query row for %s (id %s)", queryType, requestIDStr))
 	}
 
 	receivedAt, err := s.Dialect.ParseTime(timeDest)
 	if err != nil {
-		return nil, event.WrapCorruption(err, "storage.parse_received_at",
+		return nil, errorfamily.WrapCorruption(err, "storage.parse_received_at",
 			fmt.Sprintf("parse received_at for %s query %s (id %s)",
 				queryType, requestIDStr, requestIDStr))
 	}
 
 	parsedRequestID, err := id.ParseRequestID(requestIDStr)
 	if err != nil {
-		return nil, event.WrapCorruption(
+		return nil, errorfamily.WrapCorruption(
 			err,
 			"storage.parse_request_id",
 			fmt.Sprintf("parse request ID %q for %s query", requestIDStr, queryType),
@@ -59,7 +60,7 @@ func (s *SQLQueryStore) scanQuery(rows *sql.Rows) (*query.PersistedQuery, error)
 	if len(metadataJSON) > 0 {
 		var meta query.Metadata
 		if jsonErr := json.Unmarshal(metadataJSON, &meta); jsonErr != nil {
-			return nil, event.WrapCorruption(jsonErr, "storage.parse_query_metadata",
+			return nil, errorfamily.WrapCorruption(jsonErr, "storage.parse_query_metadata",
 				fmt.Sprintf("unmarshal metadata for %s query (id %s)", queryType, requestIDStr))
 		}
 		opts = append(opts, query.WithQueryMetadata(meta))
@@ -71,7 +72,7 @@ func (s *SQLQueryStore) scanQuery(rows *sql.Rows) (*query.PersistedQuery, error)
 		opts...,
 	)
 	if err != nil {
-		return nil, event.WrapCorruption(err, "storage.reconstruct_query",
+		return nil, errorfamily.WrapCorruption(err, "storage.reconstruct_query",
 			"reconstruct query "+queryType)
 	}
 

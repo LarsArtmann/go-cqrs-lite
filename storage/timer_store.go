@@ -7,7 +7,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v3"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
@@ -72,7 +73,7 @@ func (s *SQLTimerStore[P]) Schedule(ctx context.Context, t scheduling.Timer[P]) 
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return event.WrapCorruption(err, "storage.schedule_timer",
+		return errorfamily.WrapCorruption(err, "storage.schedule_timer",
 			"marshal timer payload for "+t.ID)
 	}
 
@@ -90,7 +91,7 @@ func (s *SQLTimerStore[P]) Schedule(ctx context.Context, t scheduling.Timer[P]) 
 	); err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return event.WrapInfrastructure(err, "storage.schedule_timer",
+		return errorfamily.WrapInfrastructure(err, "storage.schedule_timer",
 			"insert timer "+t.ID)
 	}
 
@@ -112,7 +113,7 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, event.WrapInfrastructure(err, "storage.due_timers",
+		return nil, errorfamily.WrapInfrastructure(err, "storage.due_timers",
 			"query due timers")
 	}
 	defer func() { _ = rows.Close() }()
@@ -129,7 +130,7 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 		if err := rows.Scan(&t.ID, fireDest, &payload); err != nil {
 			cqrsotel.RecordError(span, err)
 
-			return nil, event.WrapCorruption(err, "storage.scan_timer",
+			return nil, errorfamily.WrapCorruption(err, "storage.scan_timer",
 				"scan due timer row")
 		}
 
@@ -137,7 +138,7 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 		if err != nil {
 			cqrsotel.RecordError(span, err)
 
-			return nil, event.WrapCorruption(err, "storage.parse_fire_at",
+			return nil, errorfamily.WrapCorruption(err, "storage.parse_fire_at",
 				"parse fire_at for timer "+t.ID)
 		}
 
@@ -146,7 +147,7 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 		if err := json.Unmarshal(payload, &t.Payload); err != nil {
 			cqrsotel.RecordError(span, err)
 
-			return nil, event.WrapCorruption(err, "storage.unmarshal_timer_payload",
+			return nil, errorfamily.WrapCorruption(err, "storage.unmarshal_timer_payload",
 				"unmarshal payload for timer "+t.ID)
 		}
 
@@ -156,7 +157,7 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 	if err := rows.Err(); err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, event.WrapInfrastructure(err, "storage.iterate_timers",
+		return nil, errorfamily.WrapInfrastructure(err, "storage.iterate_timers",
 			"iterate due timer rows")
 	}
 
@@ -175,7 +176,7 @@ func (s *SQLTimerStore[P]) MarkFired(ctx context.Context, id scheduling.TimerID)
 	if _, err := s.DB.ExecContext(ctx, query, id); err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return event.WrapInfrastructure(err, "storage.mark_timer_fired",
+		return errorfamily.WrapInfrastructure(err, "storage.mark_timer_fired",
 			"delete timer "+id)
 	}
 
@@ -192,7 +193,7 @@ func (s *SQLTimerStore[P]) Cancel(ctx context.Context, id scheduling.TimerID) er
 	if _, err := s.DB.ExecContext(ctx, query, id); err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return event.WrapInfrastructure(err, "storage.cancel_timer",
+		return errorfamily.WrapInfrastructure(err, "storage.cancel_timer",
 			"delete timer "+id)
 	}
 

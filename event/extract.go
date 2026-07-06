@@ -1,5 +1,9 @@
 package event
 
+import (
+	errorfamily "github.com/larsartmann/go-error-family"
+)
+
 // ExtractCustomBytes retrieves a base64-encoded value from event custom metadata.
 // Returns (decoded, found, error) where:
 //   - found=false, err=nil: key not present or empty
@@ -19,7 +23,7 @@ func ExtractCustomBytes(evt Event, key MetadataKey) ([]byte, bool, error) {
 
 	decoded, err := DecodeBase64String(encoded)
 	if err != nil {
-		return nil, true, WrapInfrastructure(
+		return nil, true, errorfamily.WrapInfrastructure(
 			err,
 			"event.decode_custom_bytes",
 			"decode base64 from custom metadata",

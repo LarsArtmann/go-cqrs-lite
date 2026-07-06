@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 const (
@@ -142,7 +142,7 @@ func AutoMapperWithTombstone[V any](table, tombstoneCol string) ViewMapper[V] {
 			}
 
 			if err := scan(dest...); err != nil {
-				return nil, event.WrapCorruption(err, "storage.view.auto.scan_row",
+				return nil, errorfamily.WrapCorruption(err, "storage.view.auto.scan_row",
 					"scan row via reflection")
 			}
 

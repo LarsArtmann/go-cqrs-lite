@@ -5,7 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/storage/turso/v3"
 )
 
@@ -26,8 +27,8 @@ func TestOpenSync_MemoryWithRemote(t *testing.T) {
 		t.Errorf("error = %v, want ErrMemorySync", err)
 	}
 
-	classification := event.Classify(err)
-	if classification != event.Rejection {
+	classification := errorfamily.Classify(err)
+	if classification != errorfamily.Rejection {
 		t.Errorf("Classify = %s, want Rejection", classification)
 	}
 }

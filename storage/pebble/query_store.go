@@ -8,8 +8,8 @@ import (
 	"log/slog"
 
 	"github.com/cockroachdb/pebble"
+	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
@@ -90,7 +90,7 @@ func (s *QueryStore) SaveQuery(
 	key := s.queryKey(q.ID())
 
 	if s.queryExists(key) {
-		return event.WrapConflict(query.ErrDuplicateQuery, "pebble.duplicate_query",
+		return errorfamily.WrapConflict(query.ErrDuplicateQuery, "pebble.duplicate_query",
 			fmt.Sprintf("query %s already exists", q.ID()))
 	}
 
@@ -98,7 +98,7 @@ func (s *QueryStore) SaveQuery(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return event.WrapCorruption(err, "pebble.serialize_query",
+		return errorfamily.WrapCorruption(err, "pebble.serialize_query",
 			fmt.Sprintf("serialize query %s", q.ID()))
 	}
 
@@ -106,7 +106,7 @@ func (s *QueryStore) SaveQuery(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return event.WrapInfrastructure(err, "pebble.query_write",
+		return errorfamily.WrapInfrastructure(err, "pebble.query_write",
 			fmt.Sprintf("write query %s", q.ID()))
 	}
 

@@ -5,8 +5,9 @@ import (
 	"errors"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // KeyExtractor derives the idempotency key from a command. Return an empty
@@ -61,8 +62,8 @@ func CommandIdempotency(
 					return err
 				}
 
-				return event.Wrapf(
-					err, event.Transient,
+				return errorfamily.Wrapf(
+					err, errorfamily.Transient,
 					"idempotency.store_error",
 					"check-and-record failed for command %s", cmd.Type(),
 				)

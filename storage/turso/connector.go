@@ -8,7 +8,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
 
@@ -40,7 +41,7 @@ func (t AuthToken) IsZero() bool { return t == "" }
 func Open(dbPath DbPath) (*sql.DB, error) {
 	database, err := sql.Open("turso", string(dbPath))
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "turso.open",
+		return nil, errorfamily.WrapInfrastructure(err, "turso.open",
 			"open turso database at "+string(dbPath))
 	}
 

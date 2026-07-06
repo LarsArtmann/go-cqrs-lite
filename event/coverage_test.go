@@ -3,6 +3,8 @@ package event_test
 import (
 	"testing"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	codecpkg "github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -151,14 +153,14 @@ func TestImmutableEvent_String(t *testing.T) {
 func TestWrapTransient(t *testing.T) {
 	t.Parallel()
 
-	inner := event.NewRejection("test.reject", "rejected")
-	wrapped := event.WrapTransient(inner, "test.transient", "test wrap")
+	inner := errorfamily.NewRejection("test.reject", "rejected")
+	wrapped := errorfamily.WrapTransient(inner, "test.transient", "test wrap")
 
-	if wrapped.Family() != event.Transient {
+	if wrapped.Family() != errorfamily.Transient {
 		t.Errorf("Family = %s, want Transient", wrapped.Family())
 	}
 
-	if !event.IsRetryable(wrapped) {
+	if !errorfamily.IsRetryable(wrapped) {
 		t.Error("Transient should be retryable")
 	}
 }

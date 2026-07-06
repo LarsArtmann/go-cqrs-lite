@@ -1,54 +1,56 @@
 package encryption
 
-import "github.com/larsartmann/go-cqrs-lite/event/v3"
+import (
+	errorfamily "github.com/larsartmann/go-error-family"
+)
 
 var (
-	ErrInvalidKey = event.NewRejection(
+	ErrInvalidKey = errorfamily.NewRejection(
 		"encryption.invalid_key",
 		"encryption key is empty or invalid",
 	)
 
-	ErrDecryptionFailed = event.NewRejection(
+	ErrDecryptionFailed = errorfamily.NewRejection(
 		"encryption.decryption_failed",
 		"decryption failed, ciphertext may be corrupt or wrong key",
 	)
 
-	ErrNilCiphertext = event.NewRejection(
+	ErrNilCiphertext = errorfamily.NewRejection(
 		"encryption.nil_ciphertext",
 		"ciphertext is nil or empty",
 	)
 
-	ErrNilEvent = event.NewRejection(
+	ErrNilEvent = errorfamily.NewRejection(
 		"encryption.nil_event",
 		"event is nil",
 	)
 
-	ErrInnerStoreNotJournal = event.NewRejection(
+	ErrInnerStoreNotJournal = errorfamily.NewRejection(
 		"encryption.inner_store_not_journal",
 		"inner store does not implement event.Journal",
 	)
 
-	ErrInnerStoreNotSeekable = event.NewRejection(
+	ErrInnerStoreNotSeekable = errorfamily.NewRejection(
 		"encryption.inner_store_not_seekable",
 		"inner store does not implement event.SeekableJournal",
 	)
 
-	ErrInnerStoreNotBackwards = event.NewRejection(
+	ErrInnerStoreNotBackwards = errorfamily.NewRejection(
 		"encryption.inner_store_not_backwards",
 		"inner store does not implement event.BackwardsSource",
 	)
 
-	ErrUnknownAlgorithm = event.NewRejection(
+	ErrUnknownAlgorithm = errorfamily.NewRejection(
 		"encryption.unknown_algorithm",
 		"unknown encryption algorithm",
 	)
 
-	ErrUnknownAlgorithmID = event.NewRejection(
+	ErrUnknownAlgorithmID = errorfamily.NewRejection(
 		"encryption.unknown_algorithm_id",
 		"unknown algorithm ID in versioned ciphertext",
 	)
 
-	ErrUnknownKeyID = event.NewRejection(
+	ErrUnknownKeyID = errorfamily.NewRejection(
 		"encryption.unknown_key_id",
 		"unknown key ID",
 	)

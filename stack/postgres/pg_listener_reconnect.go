@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // receiveLoop processes incoming LISTEN/NOTIFY messages. On connection error
@@ -38,7 +38,7 @@ func (l *PgxListener) receiveLoop(ctx context.Context) {
 func (l *PgxListener) receiveOnce(ctx context.Context) error {
 	notification, err := l.conn.Conn().WaitForNotification(ctx)
 	if err != nil {
-		return event.WrapInfrastructure(err, "postgres.wait_notification",
+		return errorfamily.WrapInfrastructure(err, "postgres.wait_notification",
 			"wait for notification")
 	}
 

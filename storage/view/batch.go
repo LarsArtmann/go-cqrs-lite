@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 )
 
@@ -49,7 +50,7 @@ func (s *SQLViewStore[V, K]) batchChunk(ctx context.Context, items []kv.ViewItem
 
 	for rowIdx, item := range items {
 		if item.Value == nil {
-			return event.WrapRejection(errNilViewValue, "storage.view.batch_nil",
+			return errorfamily.WrapRejection(errNilViewValue, "storage.view.batch_nil",
 				fmt.Sprintf("nil view value: key %q", item.Key.String()))
 		}
 
@@ -79,7 +80,7 @@ func (s *SQLViewStore[V, K]) batchChunk(ctx context.Context, items []kv.ViewItem
 	)
 
 	if _, err := s.DB.ExecContext(ctx, q, args...); err != nil {
-		return event.WrapTransient(err, "storage.view.batch_chunk", "batch insert chunk")
+		return errorfamily.WrapTransient(err, "storage.view.batch_chunk", "batch insert chunk")
 	}
 
 	return nil
@@ -101,7 +102,7 @@ func (s *SQLViewStore[V, K]) DeleteAll(ctx context.Context) error {
 	q := "DELETE FROM " + s.mapper.Table
 
 	if _, err := s.DB.ExecContext(ctx, q); err != nil {
-		return event.WrapTransient(err, "storage.view.delete_all", "delete all records")
+		return errorfamily.WrapTransient(err, "storage.view.delete_all", "delete all records")
 	}
 
 	return nil

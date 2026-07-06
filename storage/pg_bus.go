@@ -9,6 +9,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
@@ -166,27 +168,27 @@ var (
 )
 
 // ErrNilNotificationListener is returned when a nil listener is passed to NewPostgresBus.
-var ErrNilNotificationListener = event.NewInfrastructure(
+var ErrNilNotificationListener = errorfamily.NewInfrastructure(
 	"storage.nil_notification_listener",
 	"storage: nil notification listener",
 )
 
 // errNilBusHandler is a sentinel for nil handler arguments.
-var errNilBusHandler = event.NewInfrastructure(
+var errNilBusHandler = errorfamily.NewInfrastructure(
 	"storage.nil_bus_handler",
 	"storage: nil bus handler",
 )
 
 // errNilEventSource is a sentinel for nil event source arguments.
-var errNilEventSource = event.NewInfrastructure(
+var errNilEventSource = errorfamily.NewInfrastructure(
 	"storage.nil_event_source",
 	"storage: nil event source",
 )
 
 // errEventNotFoundAfterRetries is the classified sentinel for re-fetch
-// failures. Uses event.NewInfrastructure for consistency with the rest of
+// failures. Uses errorfamily.NewInfrastructure for consistency with the rest of
 // the storage error taxonomy (go-error-family); supports errors.Is/As.
-var errEventNotFoundAfterRetries = event.NewInfrastructure(
+var errEventNotFoundAfterRetries = errorfamily.NewInfrastructure(
 	"storage.event_not_found_after_retries",
 	"event not found after retries",
 )
@@ -205,18 +207,21 @@ func NewPostgresBus(
 	opts ...PostgresBusOption,
 ) (*PostgresBus, error) {
 	if db == nil {
-		return nil, event.WrapInfrastructure(ErrNilDB, "storage.create_pg_bus",
+		return nil, errorfamily.WrapInfrastructure(ErrNilDB, "storage.create_pg_bus",
 			"create postgres bus: nil db")
 	}
 
 	if store == nil {
-		return nil, event.WrapInfrastructure(errNilEventSource, "storage.create_pg_bus",
+		return nil, errorfamily.WrapInfrastructure(errNilEventSource, "storage.create_pg_bus",
 			"create postgres bus: nil event source")
 	}
 
 	if listener == nil {
-		return nil, event.WrapInfrastructure(ErrNilNotificationListener, "storage.create_pg_bus",
-			"create postgres bus: nil notification listener")
+		return nil, errorfamily.WrapInfrastructure(
+			ErrNilNotificationListener,
+			"storage.create_pg_bus",
+			"create postgres bus: nil notification listener",
+		)
 	}
 
 	o := postgresBusOptions{
@@ -235,7 +240,7 @@ func NewPostgresBus(
 
 	if err := listener.Listen(ctx, o.channel); err != nil {
 		cancel()
-		return nil, event.WrapInfrastructure(err, "storage.pg_bus_listen",
+		return nil, errorfamily.WrapInfrastructure(err, "storage.pg_bus_listen",
 			"listener.Listen on channel "+o.channel)
 	}
 

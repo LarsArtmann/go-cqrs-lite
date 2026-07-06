@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"sync"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
@@ -166,7 +168,7 @@ func (v *Validator) Validate(evt event.Event) error {
 
 	if !ok {
 		if v.strict {
-			return event.WrapRejection(
+			return errorfamily.WrapRejection(
 				errUnregisteredType,
 				"schema.unregistered_type",
 				"strict mode: unregistered event type",
@@ -187,7 +189,7 @@ func (v *Validator) Validate(evt event.Event) error {
 
 	err := decode(payload, instance)
 	if err != nil {
-		return event.WrapRejection(
+		return errorfamily.WrapRejection(
 			err,
 			"schema.decode_failed",
 			fmt.Sprintf("payload does not conform to schema for %q", evt.Type()),
@@ -202,7 +204,7 @@ func (v *Validator) Validate(evt event.Event) error {
 
 		err := customValidate(val.Interface())
 		if err != nil {
-			return event.WrapRejection(
+			return errorfamily.WrapRejection(
 				err,
 				"schema.validation_failed",
 				fmt.Sprintf("validation failed for %q: %s", evt.Type(), err),

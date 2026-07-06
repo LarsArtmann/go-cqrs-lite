@@ -7,7 +7,8 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
 )
@@ -48,7 +49,7 @@ func NewSQLKVStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLKVStore, error)
 func newSQLKVStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLKVStore, error) {
 	handle, err := sqlpkg.NewDBHandle(db, d)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "kv_sql.create_handle",
+		return nil, errorfamily.WrapInfrastructure(err, "kv_sql.create_handle",
 			"create DB handle for KV store")
 	}
 
@@ -77,7 +78,7 @@ func (s *SQLKVStore) Get(key []byte) ([]byte, error) {
 	}
 
 	if err != nil {
-		return nil, event.WrapTransient(err, "kv_sql.get",
+		return nil, errorfamily.WrapTransient(err, "kv_sql.get",
 			"get value from KV store")
 	}
 
@@ -96,7 +97,7 @@ func (s *SQLKVStore) Has(key []byte) (bool, error) {
 	}
 
 	if err != nil {
-		return false, event.WrapTransient(err, "kv_sql.has",
+		return false, errorfamily.WrapTransient(err, "kv_sql.has",
 			"check existence in KV store")
 	}
 
@@ -107,7 +108,7 @@ func (s *SQLKVStore) Has(key []byte) (bool, error) {
 func (s *SQLKVStore) Set(key, value []byte) error {
 	_, err := s.DB.ExecContext(context.Background(), s.upsertSQL(), key, value)
 	if err != nil {
-		return event.WrapTransient(err, "kv_sql.set",
+		return errorfamily.WrapTransient(err, "kv_sql.set",
 			"set value in KV store")
 	}
 
@@ -120,7 +121,7 @@ func (s *SQLKVStore) Delete(key []byte) error {
 
 	_, err := s.DB.ExecContext(context.Background(), q, key)
 	if err != nil {
-		return event.WrapTransient(err, "kv_sql.delete",
+		return errorfamily.WrapTransient(err, "kv_sql.delete",
 			"delete key from KV store")
 	}
 
@@ -134,7 +135,7 @@ func (s *SQLKVStore) NewIterator(prefix []byte) (kv.Iterator, error) {
 
 	rows, err := s.DB.QueryContext(context.Background(), query, args...) //nolint:rowserrcheck
 	if err != nil {
-		return nil, event.WrapTransient(err, "kv_sql.iterator",
+		return nil, errorfamily.WrapTransient(err, "kv_sql.iterator",
 			"create KV iterator")
 	}
 
@@ -164,7 +165,7 @@ func (s *SQLKVStore) iterQuery(prefix []byte) (string, []any) {
 func (s *SQLKVStore) Batch() (kv.Batch, error) {
 	tx, err := s.DB.BeginTx(context.Background(), nil)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "kv_sql.begin_batch",
+		return nil, errorfamily.WrapInfrastructure(err, "kv_sql.begin_batch",
 			"begin KV batch transaction")
 	}
 
@@ -213,7 +214,7 @@ func (it *sqlKVIterator) Next() bool {
 	err := it.rows.Scan(&key, &value)
 	if err != nil {
 		it.done = true
-		it.err = event.WrapCorruption(err, "kv_sql.scan",
+		it.err = errorfamily.WrapCorruption(err, "kv_sql.scan",
 			"scan KV iterator row")
 
 		return false
@@ -238,7 +239,7 @@ func (it *sqlKVIterator) Close() error {
 	it.rows = nil
 
 	if err != nil {
-		return event.WrapInfrastructure(err, "kv_sql.close_iterator",
+		return errorfamily.WrapInfrastructure(err, "kv_sql.close_iterator",
 			"close KV iterator")
 	}
 
@@ -254,7 +255,7 @@ type sqlKVBatch struct {
 func (b *sqlKVBatch) Set(key, value []byte) error {
 	_, err := b.tx.ExecContext(context.Background(), b.store.upsertSQL(), key, value)
 	if err != nil {
-		return event.WrapTransient(err, "kv_sql.batch_set",
+		return errorfamily.WrapTransient(err, "kv_sql.batch_set",
 			"batch set in KV store")
 	}
 
@@ -266,7 +267,7 @@ func (b *sqlKVBatch) Delete(key []byte) error {
 
 	_, err := b.tx.ExecContext(context.Background(), q, key)
 	if err != nil {
-		return event.WrapTransient(err, "kv_sql.batch_delete",
+		return errorfamily.WrapTransient(err, "kv_sql.batch_delete",
 			"batch delete in KV store")
 	}
 
@@ -282,7 +283,7 @@ func (b *sqlKVBatch) Commit() error {
 	b.closed = true
 
 	if err != nil {
-		return event.WrapInfrastructure(err, "kv_sql.batch_commit",
+		return errorfamily.WrapInfrastructure(err, "kv_sql.batch_commit",
 			"commit KV batch")
 	}
 
@@ -298,7 +299,7 @@ func (b *sqlKVBatch) Close() error {
 
 	err := b.tx.Rollback()
 	if err != nil {
-		return event.WrapInfrastructure(err, "kv_sql.batch_rollback",
+		return errorfamily.WrapInfrastructure(err, "kv_sql.batch_rollback",
 			"rollback KV batch on close")
 	}
 

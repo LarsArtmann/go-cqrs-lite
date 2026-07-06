@@ -1,9 +1,11 @@
 package memory
 
-import "github.com/larsartmann/go-cqrs-lite/event/v3"
+import (
+	errorfamily "github.com/larsartmann/go-error-family"
+)
 
 // ErrHandlerNil is returned when a nil handler is passed to Subscribe or SubscribeAll.
-var ErrHandlerNil = event.NewRejection(
+var ErrHandlerNil = errorfamily.NewRejection(
 	"memory.handler_nil",
 	"handler must not be nil",
 )

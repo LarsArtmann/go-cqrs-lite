@@ -3,6 +3,8 @@ package multisig
 import (
 	"context"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/signing/v3"
 )
@@ -32,7 +34,7 @@ func MultiSignMiddleware(signer *MultiSigner) event.PublishMiddleware {
 			for _, evt := range events {
 				clone, err := signer.Sign(evt)
 				if err != nil {
-					return event.WrapInfrastructure(
+					return errorfamily.WrapInfrastructure(
 						err,
 						"signing.multi_sign_event",
 						"multi-sign event "+string(evt.Type())+" as "+string(signer.Actor()),
@@ -67,7 +69,7 @@ func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware {
 			)
 			if handled {
 				if err != nil {
-					return event.WrapCorruption(
+					return errorfamily.WrapCorruption(
 						err,
 						"signing.multi_verify_extract",
 						"multi-verify extract",
@@ -79,7 +81,7 @@ func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware {
 
 			verifyErr := signer.Verify(evt)
 			if verifyErr != nil {
-				return event.WrapInfrastructure(
+				return errorfamily.WrapInfrastructure(
 					verifyErr,
 					"signing.verify_multi_sig",
 					"verify multi-sig for actor "+string(
@@ -115,7 +117,7 @@ func MultiVerifyMiddlewareFor(actor Actor, verifier signing.Verifier) event.Midd
 			)
 			if handled {
 				if err != nil {
-					return event.WrapCorruption(
+					return errorfamily.WrapCorruption(
 						err,
 						"signing.multi_verify_for_extract",
 						"multi-verify-for extract",
@@ -127,8 +129,8 @@ func MultiVerifyMiddlewareFor(actor Actor, verifier signing.Verifier) event.Midd
 
 			entry := multiSig.Get(actor)
 			if entry == nil {
-				return event.Newf(
-					event.Rejection,
+				return errorfamily.Newf(
+					errorfamily.Rejection,
 					"signing.missing_actor_signature",
 					"no signature from actor %s on event %s",
 					actor,
@@ -138,7 +140,7 @@ func MultiVerifyMiddlewareFor(actor Actor, verifier signing.Verifier) event.Midd
 
 			verifyErr := verifier.Verify(evt, entry.Sig)
 			if verifyErr != nil {
-				return event.WrapInfrastructure(
+				return errorfamily.WrapInfrastructure(
 					verifyErr,
 					"signing.verify_multi_sig",
 					"verify multi-sig for actor "+string(actor)+" on event "+string(evt.Type()),
@@ -158,7 +160,7 @@ func RequireMultiSigMiddleware(verifiers map[Actor]signing.Verifier) event.Middl
 	if len(verifiers) == 0 {
 		return func(_ event.Handler) event.Handler {
 			return func(_ context.Context, _ event.Event) error {
-				return event.NewRejection(
+				return errorfamily.NewRejection(
 					"signing.empty_verifiers",
 					"RequireMultiSigMiddleware called with empty verifiers map",
 				)
@@ -169,7 +171,7 @@ func RequireMultiSigMiddleware(verifiers map[Actor]signing.Verifier) event.Middl
 	return func(next event.Handler) event.Handler {
 		return func(ctx context.Context, evt event.Event) error {
 			if evt == nil {
-				return event.WrapRejection(
+				return errorfamily.WrapRejection(
 					signing.ErrNilSignature,
 					"signing.nil_event_multi_sig",
 					"nil event",
@@ -178,7 +180,7 @@ func RequireMultiSigMiddleware(verifiers map[Actor]signing.Verifier) event.Middl
 
 			multiSig, err := ExtractMultiSignature(evt)
 			if err != nil {
-				return event.WrapRejection(
+				return errorfamily.WrapRejection(
 					signing.ErrNilSignature,
 					"signing.no_multi_sig",
 					"event "+string(evt.Type())+" has no multi-signature",
@@ -187,8 +189,8 @@ func RequireMultiSigMiddleware(verifiers map[Actor]signing.Verifier) event.Middl
 
 			for actor := range verifiers {
 				if !multiSig.HasActor(actor) {
-					return event.Newf(
-						event.Rejection,
+					return errorfamily.Newf(
+						errorfamily.Rejection,
 						"signing.missing_actor_signature",
 						"event %s missing signature from actor %s",
 						evt.Type(),
@@ -199,7 +201,7 @@ func RequireMultiSigMiddleware(verifiers map[Actor]signing.Verifier) event.Middl
 
 			verifyErr := VerifyAll(evt, verifiers)
 			if verifyErr != nil {
-				return event.WrapInfrastructure(
+				return errorfamily.WrapInfrastructure(
 					verifyErr,
 					"signing.require_multi_sig",
 					"require multi-sig",

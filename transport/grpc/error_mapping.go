@@ -1,67 +1,37 @@
 package grpc
 
 import (
-	"errors"
-
-	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-// familyToWire maps an error-family.Family value to the lowercase string used
-// on the wire. Empty string means "unclassified".
-func familyToWire(f cqrsevent.Family) string {
-	switch f {
-	case cqrsevent.Rejection:
-		return "rejection"
-	case cqrsevent.Conflict:
-		return "conflict"
-	case cqrsevent.Transient:
-		return "transient"
-	case cqrsevent.Corruption:
-		return "corruption"
-	case cqrsevent.Infrastructure:
-		return "infrastructure"
-	default:
-		return ""
-	}
-}
+// familyToWire converts a Family to its lowercase wire representation.
+// Delegates to Family.String(); kept as a named function for readability at call sites.
+func familyToWire(f errorfamily.Family) string { return f.String() }
 
-// wireToFamily is the inverse of familyToWire. Returns false for unknown strings.
-func wireToFamily(s string) (cqrsevent.Family, bool) {
-	switch s {
-	case "rejection":
-		return cqrsevent.Rejection, true
-	case "conflict":
-		return cqrsevent.Conflict, true
-	case "transient":
-		return cqrsevent.Transient, true
-	case "corruption":
-		return cqrsevent.Corruption, true
-	case "infrastructure":
-		return cqrsevent.Infrastructure, true
-	default:
+// wireToFamily parses a wire string back to a Family.
+// Returns ok=false for empty or unrecognized strings.
+// Uses ParseFamily with round-trip verification to distinguish known from unknown.
+func wireToFamily(s string) (errorfamily.Family, bool) {
+	if s == "" {
 		return 0, false
 	}
+
+	f := errorfamily.ParseFamily(s)
+
+	return f, s == f.String()
 }
 
 // classifyError extracts the machine-readable code and wire-family string from
-// an error using the CQRS taxonomy. Used by the gRPC servers to populate the
-// structured error fields on the response proto.
+// an error using the error-family taxonomy. Used by the gRPC servers to populate
+// the structured error fields on the response proto.
 func classifyError(err error) (string, string) {
-	family := familyToWire(cqrsevent.Classify(err))
-
-	code := ""
-
-	if ce, ok := errors.AsType[*cqrsevent.Error](err); ok {
-		code = ce.Code()
-	}
-
-	return code, family
+	return errorfamily.Code(err), familyToWire(errorfamily.Classify(err))
 }
 
-// reconstructError rebuilds a typed *event.Error from the wire fields so callers
-// can use event.Classify, event.IsRetryable, and errors.As on the client side.
-// Falls back to wrapErr when the server didn't send structured fields (backward
-// compatibility with older servers that only populated the error string).
+// reconstructError rebuilds a typed *errorfamily.Error from the wire fields so
+// callers can use errorfamily.Classify, errorfamily.IsRetryable, and errors.As
+// on the client side. Falls back to a wrapped error when the server didn't send
+// structured fields (backward compatibility with older servers).
 func reconstructError(wrapErr error, errMsg, errCode, errFamily string) error {
 	if errMsg == "" {
 		return nil
@@ -69,28 +39,9 @@ func reconstructError(wrapErr error, errMsg, errCode, errFamily string) error {
 
 	family, ok := wireToFamily(errFamily)
 	if !ok || errCode == "" {
-		// Old server or unclassified error — preserve the string-only behavior.
-		return cqrsevent.Wrap(wrapErr, cqrsevent.Classify(wrapErr),
+		return errorfamily.Wrap(wrapErr, errorfamily.Classify(wrapErr),
 			"grpc.remote_error", errMsg)
 	}
 
-	return newClassifiedError(family, errCode, errMsg)
-}
-
-// newClassifiedError constructs a *event.Error for the given family+code+message.
-func newClassifiedError(family cqrsevent.Family, code, message string) error {
-	switch family {
-	case cqrsevent.Rejection:
-		return cqrsevent.NewRejection(code, message)
-	case cqrsevent.Conflict:
-		return cqrsevent.NewConflict(code, message)
-	case cqrsevent.Transient:
-		return cqrsevent.NewTransient(code, message)
-	case cqrsevent.Corruption:
-		return cqrsevent.NewCorruption(code, message)
-	case cqrsevent.Infrastructure:
-		return cqrsevent.NewInfrastructure(code, message)
-	default:
-		return cqrsevent.NewTransient(code, message)
-	}
+	return errorfamily.New(family, errCode, errMsg)
 }

@@ -3,7 +3,8 @@ package turso
 import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3/sqlopt"
 	cqrsturso "github.com/larsartmann/go-cqrs-lite/storage/turso/v3"
@@ -153,7 +154,7 @@ func NewSync(
 	}
 
 	if cfg.eventPath != "" || cfg.queryPath != "" || cfg.viewPath != "" {
-		return nil, event.NewRejection("turso_preset.multi_db_incompatible",
+		return nil, errorfamily.NewRejection("turso_preset.multi_db_incompatible",
 			"turso: multi-DB options (WithEventDB, WithQueryDB, WithViewDB) "+
 				"are incompatible with NewSync — all stores must share one "+
 				"syncing database")
@@ -165,7 +166,7 @@ func NewSync(
 func newLocalBundle(dbPath string, cfg config) (*Bundle, error) {
 	sqlDB, backend, err := openLocalBackend(dbPath, cfg)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "turso_preset.open_local_backend",
+		return nil, errorfamily.WrapInfrastructure(err, "turso_preset.open_local_backend",
 			"open local backend")
 	}
 
@@ -180,7 +181,7 @@ func newLocalBundle(dbPath string, cfg config) (*Bundle, error) {
 			_ = backend.Close()
 			_ = sqlDB.Close()
 
-			return nil, event.WrapInfrastructure(eErr, "turso_preset.open_event_db",
+			return nil, errorfamily.WrapInfrastructure(eErr, "turso_preset.open_event_db",
 				"open event database")
 		}
 
@@ -196,7 +197,7 @@ func newLocalBundle(dbPath string, cfg config) (*Bundle, error) {
 			_ = backend.Close()
 			_ = sqlDB.Close()
 
-			return nil, event.WrapInfrastructure(qErr, "turso_preset.open_query_db",
+			return nil, errorfamily.WrapInfrastructure(qErr, "turso_preset.open_query_db",
 				"open query database")
 		}
 
@@ -209,7 +210,7 @@ func newLocalBundle(dbPath string, cfg config) (*Bundle, error) {
 
 	viewOpts, err := buildViewOptions(cfg, backend, sqlDB)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "turso_preset.view_options",
+		return nil, errorfamily.WrapInfrastructure(err, "turso_preset.view_options",
 			"build view options")
 	}
 
@@ -229,7 +230,7 @@ func newLocalBundle(dbPath string, cfg config) (*Bundle, error) {
 
 		_ = sqlDB.Close()
 
-		return nil, event.WrapInfrastructure(err, "turso_preset.wire_local_bundle",
+		return nil, errorfamily.WrapInfrastructure(err, "turso_preset.wire_local_bundle",
 			"wire local turso bundle")
 	}
 
@@ -249,7 +250,7 @@ func newSyncBundle(
 		cfg.syncOpts...,
 	)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "turso_preset.open_sync_db",
+		return nil, errorfamily.WrapInfrastructure(err, "turso_preset.open_sync_db",
 			"open syncing turso database")
 	}
 
@@ -260,7 +261,7 @@ func newSyncBundle(
 	if err := applySchemaAndPragmas(sqlDB, cfg); err != nil {
 		_ = syncDB.Close()
 
-		return nil, event.WrapInfrastructure(err, "turso_preset.schema_pragmas",
+		return nil, errorfamily.WrapInfrastructure(err, "turso_preset.schema_pragmas",
 			"apply schema and pragmas")
 	}
 
@@ -268,7 +269,7 @@ func newSyncBundle(
 	if err != nil {
 		_ = syncDB.Close()
 
-		return nil, event.WrapInfrastructure(err, "turso_preset.create_backend",
+		return nil, errorfamily.WrapInfrastructure(err, "turso_preset.create_backend",
 			"create turso backend")
 	}
 
@@ -281,7 +282,7 @@ func newSyncBundle(
 		_ = backend.Close()
 		_ = syncDB.Close()
 
-		return nil, event.WrapInfrastructure(err, "turso_preset.kv_store",
+		return nil, errorfamily.WrapInfrastructure(err, "turso_preset.kv_store",
 			"create KV store")
 	}
 
@@ -300,7 +301,7 @@ func newSyncBundle(
 		_ = backend.Close()
 		_ = syncDB.Close()
 
-		return nil, event.WrapInfrastructure(err, "turso_preset.wire_sync_bundle",
+		return nil, errorfamily.WrapInfrastructure(err, "turso_preset.wire_sync_bundle",
 			"wire sync turso bundle")
 	}
 

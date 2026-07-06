@@ -7,7 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 )
 
@@ -42,12 +43,18 @@ func (s *KVStore) Seen(ctx context.Context, key string) (bool, error) {
 			return false, nil
 		}
 
-		return false, event.Wrapf(err, event.Transient, "idempotency.kv.seen", "key %q", key)
+		return false, errorfamily.Wrapf(
+			err,
+			errorfamily.Transient,
+			"idempotency.kv.seen",
+			"key %q",
+			key,
+		)
 	}
 
 	expiry, err := strconv.ParseInt(string(val), 10, 64)
 	if err != nil {
-		return false, event.NewCorruption(
+		return false, errorfamily.NewCorruption(
 			"idempotency.kv.decode_failed",
 			"failed to decode expiry timestamp from KV store",
 		)
@@ -74,7 +81,13 @@ func (s *KVStore) CheckAndRecord(ctx context.Context, key string, ttl time.Durat
 
 	inserted, err := s.backend.SetIfAbsent([]byte(key), val)
 	if err != nil {
-		return event.Wrapf(err, event.Transient, "idempotency.kv.check_and_record", "key %q", key)
+		return errorfamily.Wrapf(
+			err,
+			errorfamily.Transient,
+			"idempotency.kv.check_and_record",
+			"key %q",
+			key,
+		)
 	}
 
 	if inserted {
@@ -89,7 +102,13 @@ func (s *KVStore) CheckAndRecord(ctx context.Context, key string, ttl time.Durat
 			// Retry once.
 			inserted, err = s.backend.SetIfAbsent([]byte(key), val)
 			if err != nil {
-				return event.Wrapf(err, event.Transient, "idempotency.kv.retry", "key %q", key)
+				return errorfamily.Wrapf(
+					err,
+					errorfamily.Transient,
+					"idempotency.kv.retry",
+					"key %q",
+					key,
+				)
 			}
 
 			if inserted {
@@ -99,12 +118,18 @@ func (s *KVStore) CheckAndRecord(ctx context.Context, key string, ttl time.Durat
 			return ErrDuplicate
 		}
 
-		return event.Wrapf(err, event.Transient, "idempotency.kv.check_existing", "key %q", key)
+		return errorfamily.Wrapf(
+			err,
+			errorfamily.Transient,
+			"idempotency.kv.check_existing",
+			"key %q",
+			key,
+		)
 	}
 
 	prevExpiry, err := strconv.ParseInt(string(existing), 10, 64)
 	if err != nil {
-		return event.NewCorruption(
+		return errorfamily.NewCorruption(
 			"idempotency.kv.decode_failed",
 			"failed to decode expiry timestamp from KV store",
 		)
@@ -113,9 +138,9 @@ func (s *KVStore) CheckAndRecord(ctx context.Context, key string, ttl time.Durat
 	if time.Now().UnixNano() >= prevExpiry {
 		// Expired — overwrite and claim.
 		if err := s.backend.Set([]byte(key), val); err != nil {
-			return event.Wrapf(
+			return errorfamily.Wrapf(
 				err,
-				event.Transient,
+				errorfamily.Transient,
 				"idempotency.kv.overwrite_expired",
 				"key %q",
 				key,

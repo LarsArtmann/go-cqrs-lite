@@ -1,14 +1,16 @@
 package snapshot
 
-import "github.com/larsartmann/go-cqrs-lite/event/v3"
+import (
+	errorfamily "github.com/larsartmann/go-error-family"
+)
 
 var (
-	ErrSnapshotNotFound    = event.NewRejection("snapshot.not_found", "snapshot not found")
-	ErrSnapshotStoreClosed = event.NewInfrastructure(
+	ErrSnapshotNotFound    = errorfamily.NewRejection("snapshot.not_found", "snapshot not found")
+	ErrSnapshotStoreClosed = errorfamily.NewInfrastructure(
 		"snapshot.store_closed",
 		"snapshot store is closed",
 	)
-	ErrInvalidInterval = event.NewRejection(
+	ErrInvalidInterval = errorfamily.NewRejection(
 		"snapshot.invalid_interval",
 		"snapshot interval must be positive",
 	)

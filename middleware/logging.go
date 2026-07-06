@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -39,7 +41,14 @@ func logWithContext(
 			"error", err,
 		)
 
-		return event.Wrapf(err, event.Classify(err), "middleware.logging", "%s %s", prefix, msgType)
+		return errorfamily.Wrapf(
+			err,
+			errorfamily.Classify(err),
+			"middleware.logging",
+			"%s %s",
+			prefix,
+			msgType,
+		)
 	}
 
 	logger.Info(

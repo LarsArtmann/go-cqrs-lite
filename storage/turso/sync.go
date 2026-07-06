@@ -7,9 +7,8 @@ import (
 	"strings"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	tursoclient "turso.tech/database/tursogo"
-
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // syncEngine abstracts the Turso sync operations for testability.
@@ -118,13 +117,13 @@ func realCreateSyncDb(
 ) (syncDbConnection, error) {
 	syncDb, err := tursoclient.NewTursoSyncDb(ctx, cfg)
 	if err != nil {
-		return syncDbConnection{}, event.WrapInfrastructure(err,
+		return syncDbConnection{}, errorfamily.WrapInfrastructure(err,
 			"turso.create_sync_db", "NewTursoSyncDb")
 	}
 
 	database, err := syncDb.Connect(ctx)
 	if err != nil {
-		return syncDbConnection{}, event.WrapInfrastructure(err,
+		return syncDbConnection{}, errorfamily.WrapInfrastructure(err,
 			"turso.connect_sync_db", "sync db connect")
 	}
 
@@ -145,7 +144,7 @@ func OpenSyncWithConfig(
 	opts ...SyncOption,
 ) (*SyncDB, error) {
 	if remoteURL != "" && strings.HasPrefix(string(dbPath), ":memory:") {
-		return nil, event.WrapRejection(
+		return nil, errorfamily.WrapRejection(
 			ErrMemorySync,
 			"storage.turso_memory_sync",
 			fmt.Sprintf(
@@ -167,7 +166,7 @@ func OpenSyncWithConfig(
 
 	conn, err := createSyncDb(ctx, cfg)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "storage.open_turso_sync",
+		return nil, errorfamily.WrapInfrastructure(err, "storage.open_turso_sync",
 			"open turso sync db for "+string(remoteURL))
 	}
 
@@ -178,7 +177,7 @@ func OpenSyncWithConfig(
 func (t *SyncDB) Push(ctx context.Context) error {
 	err := t.engine.Push(ctx)
 	if err != nil {
-		return event.WrapInfrastructure(err, "storage.turso_push",
+		return errorfamily.WrapInfrastructure(err, "storage.turso_push",
 			"turso push")
 	}
 
@@ -190,7 +189,7 @@ func (t *SyncDB) Push(ctx context.Context) error {
 func (t *SyncDB) Pull(ctx context.Context) (bool, error) {
 	changed, err := t.engine.Pull(ctx)
 	if err != nil {
-		return changed, event.WrapInfrastructure(err, "storage.turso_pull",
+		return changed, errorfamily.WrapInfrastructure(err, "storage.turso_pull",
 			"turso pull")
 	}
 
@@ -201,7 +200,7 @@ func (t *SyncDB) Pull(ctx context.Context) (bool, error) {
 func (t *SyncDB) Checkpoint(ctx context.Context) error {
 	err := t.engine.Checkpoint(ctx)
 	if err != nil {
-		return event.WrapInfrastructure(err, "storage.turso_checkpoint",
+		return errorfamily.WrapInfrastructure(err, "storage.turso_checkpoint",
 			"turso checkpoint")
 	}
 
@@ -218,7 +217,7 @@ func (t *SyncDB) Close() error {
 func (t *SyncDB) Stats(ctx context.Context) (tursoclient.TursoSyncDbStats, error) {
 	stats, err := t.engine.Stats(ctx)
 	if err != nil {
-		return stats, event.WrapInfrastructure(err, "storage.turso_stats",
+		return stats, errorfamily.WrapInfrastructure(err, "storage.turso_stats",
 			"turso stats")
 	}
 
@@ -232,11 +231,11 @@ func (t *SyncDB) Stats(ctx context.Context) (tursoclient.TursoSyncDbStats, error
 // [SyncDB.Stats] to confirm the remote server is reachable. HealthCheck is
 // suitable for liveness/readiness probes in orchestrators (k8s, Nomad, etc.).
 //
-// Returns nil if the database responds, an [event.Infrastructure] error otherwise.
+// Returns nil if the database responds, an [errorfamily.Infrastructure] error otherwise.
 func (t *SyncDB) HealthCheck(ctx context.Context) error {
 	err := t.PingContext(ctx)
 	if err != nil {
-		return event.WrapInfrastructure(err, "storage.turso_health_check",
+		return errorfamily.WrapInfrastructure(err, "storage.turso_health_check",
 			"ping turso database")
 	}
 

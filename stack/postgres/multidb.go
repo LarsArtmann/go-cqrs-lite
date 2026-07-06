@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
@@ -16,7 +17,7 @@ import (
 func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
 	sqlDB, err := sql.Open("pgx", dsn)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "postgres.open_secondary",
+		return nil, errorfamily.WrapInfrastructure(err, "postgres.open_secondary",
 			fmt.Sprintf("open %q", dsn))
 	}
 
@@ -27,7 +28,7 @@ func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
 		if err != nil {
 			_ = sqlDB.Close()
 
-			return nil, event.WrapInfrastructure(err, "postgres.init_schema",
+			return nil, errorfamily.WrapInfrastructure(err, "postgres.init_schema",
 				fmt.Sprintf("init schema on %q", dsn))
 		}
 	}
@@ -51,7 +52,7 @@ func openSecondaryBackend(
 	if err != nil {
 		_ = secDB.Close()
 
-		return nil, nil, event.WrapInfrastructure(err, "postgres.create_backend",
+		return nil, nil, errorfamily.WrapInfrastructure(err, "postgres.create_backend",
 			fmt.Sprintf("create backend for %q", dsn))
 	}
 

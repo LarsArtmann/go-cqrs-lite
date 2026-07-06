@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/cockroachdb/pebble"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 )
@@ -28,7 +28,7 @@ func (s *CommandStore) Load(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, event.WrapInfrastructure(err, "pebble.command_load",
+		return nil, errorfamily.WrapInfrastructure(err, "pebble.command_load",
 			"load commands for aggregate")
 	}
 
@@ -59,7 +59,7 @@ func (s *CommandStore) LoadFromTimestamp(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, event.WrapInfrastructure(err, "pebble.command_load_from_timestamp",
+		return nil, errorfamily.WrapInfrastructure(err, "pebble.command_load_from_timestamp",
 			"load commands after timestamp")
 	}
 
@@ -86,7 +86,7 @@ func (s *CommandStore) LoadToTimestamp(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, event.WrapInfrastructure(err, "pebble.command_load_to_timestamp",
+		return nil, errorfamily.WrapInfrastructure(err, "pebble.command_load_to_timestamp",
 			"load commands up to timestamp")
 	}
 
@@ -108,7 +108,7 @@ func (s *CommandStore) ReadAll(ctx context.Context) ([]*command.PersistedCommand
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, event.WrapInfrastructure(err, "pebble.command_read_all",
+		return nil, errorfamily.WrapInfrastructure(err, "pebble.command_read_all",
 			"read all commands from journal")
 	}
 
@@ -143,7 +143,7 @@ func (s *CommandStore) ReadFrom(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, event.WrapInfrastructure(err, "pebble.command_read_from",
+		return nil, errorfamily.WrapInfrastructure(err, "pebble.command_read_from",
 			"read commands from journal after checkpoint")
 	}
 
@@ -173,7 +173,7 @@ func (s *CommandStore) scanCommands(
 		},
 	)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "pebble.command_iter",
+		return nil, errorfamily.WrapInfrastructure(err, "pebble.command_iter",
 			"create command iterator")
 	}
 
@@ -194,7 +194,7 @@ func (s *CommandStore) scanCommands(
 
 		cmd, err := s.deserializeCommand(iter.Value())
 		if err != nil {
-			return nil, event.WrapCorruption(err, "pebble.command_corrupt",
+			return nil, errorfamily.WrapCorruption(err, "pebble.command_corrupt",
 				"corrupt command at key "+string(iter.Key()))
 		}
 
@@ -211,7 +211,7 @@ func (s *CommandStore) scanCommands(
 
 	err = checkIteratorError(iter)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "pebble.command_iter_error",
+		return nil, errorfamily.WrapInfrastructure(err, "pebble.command_iter_error",
 			"command iterator error")
 	}
 

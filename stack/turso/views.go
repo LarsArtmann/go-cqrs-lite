@@ -3,7 +3,8 @@ package turso
 import (
 	"database/sql"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
@@ -31,7 +32,7 @@ func buildPrimaryViewOptions(
 		_ = backend.Close()
 		_ = sqlDB.Close()
 
-		return nil, event.WrapInfrastructure(err, "turso.kv_store",
+		return nil, errorfamily.WrapInfrastructure(err, "turso.kv_store",
 			"create KV store")
 	}
 
@@ -48,7 +49,7 @@ func buildSecondaryViewOptions(
 		_ = backend.Close()
 		_ = sqlDB.Close()
 
-		return nil, event.WrapInfrastructure(err, "turso.open_view_db",
+		return nil, errorfamily.WrapInfrastructure(err, "turso.open_view_db",
 			"open view database")
 	}
 
@@ -58,7 +59,7 @@ func buildSecondaryViewOptions(
 		_ = sqlDB.Close()
 		_ = viewDB.Close()
 
-		return nil, event.WrapInfrastructure(err, "turso.create_view_backend",
+		return nil, errorfamily.WrapInfrastructure(err, "turso.create_view_backend",
 			"create view backend")
 	}
 
@@ -68,7 +69,7 @@ func buildSecondaryViewOptions(
 		_ = backend.Close()
 		_ = sqlDB.Close()
 
-		return nil, event.WrapInfrastructure(err, "turso.view_kv_store",
+		return nil, errorfamily.WrapInfrastructure(err, "turso.view_kv_store",
 			"create KV store for view database")
 	}
 

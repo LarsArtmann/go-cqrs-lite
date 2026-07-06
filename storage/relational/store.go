@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
 )
@@ -89,7 +90,7 @@ func (s *RelationalStore) Count(
 	var count int64
 
 	if err := s.db.QueryRowContext(ctx, b.String(), args...).Scan(&count); err != nil {
-		return 0, cqrsevent.WrapTransient(err, "relational.count",
+		return 0, errorfamily.WrapTransient(err, "relational.count",
 			"count rows in "+table)
 	}
 
@@ -138,7 +139,7 @@ func (s *RelationalStore) Query(
 	}
 
 	if len(columns) == 0 {
-		return cqrsevent.NewRejection(
+		return errorfamily.NewRejection(
 			"relational.query_no_columns",
 			fmt.Sprintf("query %s: at least one column is required", table),
 		)
@@ -190,7 +191,7 @@ func (s *RelationalStore) Query(
 
 	rows, err := s.db.QueryContext(ctx, b.String(), args...)
 	if err != nil {
-		return cqrsevent.WrapTransient(err, "relational.query",
+		return errorfamily.WrapTransient(err, "relational.query",
 			"query "+table)
 	}
 
@@ -198,13 +199,13 @@ func (s *RelationalStore) Query(
 
 	for rows.Next() {
 		if err := scanFn(rows.Scan); err != nil {
-			return cqrsevent.WrapCorruption(err, "relational.scan_row",
+			return errorfamily.WrapCorruption(err, "relational.scan_row",
 				fmt.Sprintf("scan %s row", table))
 		}
 	}
 
 	if err := rows.Err(); err != nil {
-		return cqrsevent.WrapTransient(err, "relational.rows_err",
+		return errorfamily.WrapTransient(err, "relational.rows_err",
 			fmt.Sprintf("query %s row iteration", table))
 	}
 
@@ -224,7 +225,7 @@ func (s *RelationalStore) defaultOrder(table string) string {
 
 func (s *RelationalStore) requireTable(table string) error {
 	if s.schema.Table(table) == nil {
-		return cqrsevent.NewRejection(
+		return errorfamily.NewRejection(
 			"relational.unknown_table",
 			fmt.Sprintf("query: table %q not declared in schema", table),
 		)

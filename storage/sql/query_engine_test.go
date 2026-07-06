@@ -8,8 +8,7 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func testQueryConfig() QueryConfig[string] {
@@ -18,7 +17,7 @@ func testQueryConfig() QueryConfig[string] {
 		Table:      "test_table",
 		ScanRows:   testScanRows,
 		WrapError:  func(err error, code, msg string) error { return fmt.Errorf("wrap: %w", err) },
-		WrapEmpty:  func(err error, code, msg string) error { return event.WrapRejection(err, code, msg) },
+		WrapEmpty:  func(err error, code, msg string) error { return errorfamily.WrapRejection(err, code, msg) },
 		NotFound:   errors.New("not found"),
 		DomainNoun: "items",
 	}

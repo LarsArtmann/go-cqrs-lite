@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"sync"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
@@ -50,7 +52,7 @@ func (r *upcasterRegistry) upcast(evt event.Event) (event.Event, error) {
 
 		next, err := uc.Upcast(current)
 		if err != nil {
-			return nil, event.WrapCorruption(
+			return nil, errorfamily.WrapCorruption(
 				err,
 				"event.upcast_failed",
 				"upcast "+string(

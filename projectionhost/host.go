@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/dedup/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/projection/v3"
@@ -40,14 +42,14 @@ func New(
 	opts ...HostOption,
 ) (*Host, error) {
 	if journal == nil {
-		return nil, event.NewRejection(
+		return nil, errorfamily.NewRejection(
 			"projectionhost.journal_required",
 			"projectionhost: journal must not be nil",
 		)
 	}
 
 	if cpStore == nil {
-		return nil, event.NewRejection(
+		return nil, errorfamily.NewRejection(
 			"projectionhost.checkpoint_store_required",
 			"projectionhost: checkpoint store must not be nil",
 		)
@@ -73,7 +75,7 @@ func (h *Host) Register(p projection.Projection) error {
 	defer h.mu.Unlock()
 
 	if h.started {
-		return event.NewRejection(
+		return errorfamily.NewRejection(
 			"projectionhost.register_after_start",
 			"projectionhost: cannot register after Start",
 		)
@@ -81,14 +83,14 @@ func (h *Host) Register(p projection.Projection) error {
 
 	name := p.Name()
 	if name == "" {
-		return event.NewRejection(
+		return errorfamily.NewRejection(
 			"projectionhost.empty_projection_name",
 			"projectionhost: projection name must not be empty",
 		)
 	}
 
 	if _, exists := h.workers[name]; exists {
-		return event.NewRejection("projectionhost.duplicate_name",
+		return errorfamily.NewRejection("projectionhost.duplicate_name",
 			fmt.Sprintf("projection %q already registered", name))
 	}
 
@@ -127,7 +129,7 @@ func (h *Host) Start(ctx context.Context) error {
 	if h.started {
 		h.mu.Unlock()
 
-		return event.NewRejection(
+		return errorfamily.NewRejection(
 			"projectionhost.already_started",
 			"projectionhost: already started",
 		)
@@ -195,7 +197,7 @@ func (h *Host) Stop() error {
 	case <-done:
 		return nil
 	case <-time.After(h.opts.shutdownTimeout):
-		return event.NewInfrastructure(
+		return errorfamily.NewInfrastructure(
 			"projectionhost.shutdown_timeout",
 			fmt.Sprintf(
 				"projectionhost: graceful shutdown timed out after %s",
@@ -290,7 +292,7 @@ func (h *Host) Reset(ctx context.Context, name string) error {
 	if h.started && !h.stopped {
 		h.mu.Unlock()
 
-		return event.NewRejection(
+		return errorfamily.NewRejection(
 			"projectionhost.reset_while_running",
 			"projectionhost: cannot reset while host is running — Stop first",
 		)
@@ -300,7 +302,7 @@ func (h *Host) Reset(ctx context.Context, name string) error {
 	if !ok {
 		h.mu.Unlock()
 
-		return event.NewRejection(
+		return errorfamily.NewRejection(
 			"projectionhost.unknown_projection",
 			fmt.Sprintf("projection %q is not registered", name),
 		)
@@ -310,13 +312,13 @@ func (h *Host) Reset(ctx context.Context, name string) error {
 
 	if r, ok := w.projection.(Resettable); ok {
 		if err := r.Reset(ctx); err != nil {
-			return event.WrapInfrastructure(err, "projectionhost.reset_projection",
+			return errorfamily.WrapInfrastructure(err, "projectionhost.reset_projection",
 				fmt.Sprintf("reset projection %q", name))
 		}
 	}
 
 	if err := h.cpStore.Save(ctx, name, event.Checkpoint{}); err != nil {
-		return event.WrapInfrastructure(err, "projectionhost.reset_checkpoint",
+		return errorfamily.WrapInfrastructure(err, "projectionhost.reset_checkpoint",
 			fmt.Sprintf("clear checkpoint for %q", name))
 	}
 
@@ -388,7 +390,7 @@ func (h *Host) ReplayDeadLetters(ctx context.Context, projectionName string) (Re
 	h.mu.Unlock()
 
 	if dlq == nil {
-		return ReplayResult{}, event.NewRejection(
+		return ReplayResult{}, errorfamily.NewRejection(
 			"projectionhost.no_dead_letter_store",
 			"projectionhost: no dead-letter store configured",
 		)
@@ -396,8 +398,11 @@ func (h *Host) ReplayDeadLetters(ctx context.Context, projectionName string) (Re
 
 	entries, err := dlq.List(ctx, projectionName)
 	if err != nil {
-		return ReplayResult{}, event.WrapInfrastructure(err, "projectionhost.list_dead_letters",
-			"list dead letters for replay")
+		return ReplayResult{}, errorfamily.WrapInfrastructure(
+			err,
+			"projectionhost.list_dead_letters",
+			"list dead letters for replay",
+		)
 	}
 
 	result := ReplayResult{}

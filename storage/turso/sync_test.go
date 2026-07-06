@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	tursoclient "turso.tech/database/tursogo"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/turso/v3"
 )
 
@@ -160,8 +160,8 @@ func TestOpenSyncWithConfig_ErrorClassification(t *testing.T) {
 		turso.WithSyncClientName("test"),
 	)
 
-	classification := event.Classify(err)
-	if classification != event.Rejection {
+	classification := errorfamily.Classify(err)
+	if classification != errorfamily.Rejection {
 		t.Errorf("Classify = %s, want Rejection", classification)
 	}
 }

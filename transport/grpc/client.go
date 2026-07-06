@@ -4,21 +4,21 @@ import (
 	"context"
 	"fmt"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	"google.golang.org/grpc"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
 	cqrsproto "github.com/larsartmann/go-cqrs-lite/transport/grpc/v3/proto"
 )
 
 var (
-	errDispatchFailed = cqrsevent.NewInfrastructure(
+	errDispatchFailed = errorfamily.NewInfrastructure(
 		"grpc.dispatch_failed",
 		"grpc: server returned failure",
 	)
-	errQueryFailed      = cqrsevent.NewInfrastructure("grpc.query_failed", "grpc: query failed")
-	errMissingCommandID = cqrsevent.NewRejection(
+	errQueryFailed      = errorfamily.NewInfrastructure("grpc.query_failed", "grpc: query failed")
+	errMissingCommandID = errorfamily.NewRejection(
 		"grpc.missing_command_id",
 		"grpc: command has no ID",
 	)
@@ -46,7 +46,7 @@ func (c *CommandClient) Dispatch(ctx context.Context, cmd command.Command) error
 	}
 
 	if cmd.ID().IsZero() {
-		return cqrsevent.WrapRejection(errMissingCommandID,
+		return errorfamily.WrapRejection(errMissingCommandID,
 			"grpc.dispatch_missing_id",
 			fmt.Sprintf("dispatch %s", cmd.Type()))
 	}
@@ -64,7 +64,7 @@ func (c *CommandClient) Dispatch(ctx context.Context, cmd command.Command) error
 
 	result, err := c.client.Dispatch(ctx, envelope)
 	if err != nil {
-		return cqrsevent.WrapInfrastructure(err, "grpc.dispatch",
+		return errorfamily.WrapInfrastructure(err, "grpc.dispatch",
 			fmt.Sprintf("dispatch %s", cmd.Type()))
 	}
 
@@ -102,7 +102,7 @@ func (c *QueryClient) Ask(ctx context.Context, queryType string, out any) error 
 		&cqrsproto.QueryEnvelope{Type: queryType}, //nolint:exhaustruct // proto
 	)
 	if err != nil {
-		return cqrsevent.WrapInfrastructure(err, "grpc.ask",
+		return errorfamily.WrapInfrastructure(err, "grpc.ask",
 			"ask "+queryType)
 	}
 
@@ -113,7 +113,7 @@ func (c *QueryClient) Ask(ctx context.Context, queryType string, out any) error 
 
 	err = c.codec.Decode(result.GetPayload(), out)
 	if err != nil {
-		return cqrsevent.WrapCorruption(err, "grpc.unmarshal_result",
+		return errorfamily.WrapCorruption(err, "grpc.unmarshal_result",
 			"unmarshal query result")
 	}
 

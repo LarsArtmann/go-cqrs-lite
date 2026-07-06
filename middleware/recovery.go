@@ -3,14 +3,16 @@ package middleware
 import (
 	"context"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
 )
 
 func panicError(msgKind, typeName string, r any) error {
-	return event.Wrapf(
-		ErrPanicRecovered, event.Corruption,
+	return errorfamily.Wrapf(
+		ErrPanicRecovered, errorfamily.Corruption,
 		"middleware.panic_detail",
 		"panic recovered in %s %s: %v",
 		msgKind,
@@ -31,9 +33,9 @@ func handleRecovery(cfg middlewareConfig, msgKind, typeName string, r any) error
 		)
 	}
 
-	return event.Wrapf(
+	return errorfamily.Wrapf(
 		err,
-		event.Corruption,
+		errorfamily.Corruption,
 		"middleware.recovery",
 		"msgKind=%s, typeName=%s",
 		msgKind,

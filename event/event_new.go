@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"slices"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
@@ -66,7 +68,7 @@ func New(
 
 func marshalPayload(payload any, eventType Type, c codec.Codec) ([]byte, error) {
 	if payload == nil {
-		return nil, WrapRejection(
+		return nil, errorfamily.WrapRejection(
 			ErrNilPayload,
 			"event.nil_payload",
 			"payload is required for event type "+string(eventType),
@@ -81,7 +83,7 @@ func marshalPayload(payload any, eventType Type, c codec.Codec) ([]byte, error) 
 	default:
 		data, err := c.Encode(payload)
 		if err != nil {
-			return nil, WrapCorruption(
+			return nil, errorfamily.WrapCorruption(
 				err,
 				"event.marshal_payload_failed",
 				"marshal payload for event type "+string(eventType),

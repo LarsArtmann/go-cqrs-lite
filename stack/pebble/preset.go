@@ -5,8 +5,8 @@ import (
 	"log/slog"
 
 	"github.com/cockroachdb/pebble"
+	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 	cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v3"
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v3"
@@ -103,7 +103,7 @@ func New(dir string, opts ...Option) (*Bundle, error) {
 
 	backend, err := cqrspebble.Open(dir, cfg.pebbleOpts, cfg.logger)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "pebble_preset.open_backend",
+		return nil, errorfamily.WrapInfrastructure(err, "pebble_preset.open_backend",
 			"open pebble backend")
 	}
 
@@ -118,7 +118,7 @@ func New(dir string, opts ...Option) (*Bundle, error) {
 		stack.WithCloser(backend),
 	)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "pebble_preset.wire_bundle",
+		return nil, errorfamily.WrapInfrastructure(err, "pebble_preset.wire_bundle",
 			"wire pebble bundle")
 	}
 

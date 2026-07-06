@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/cockroachdb/pebble"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -111,7 +112,7 @@ func (s *SnapshotStore) Save(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return event.WrapCorruption(err, "pebble.serialize_snapshot",
+		return errorfamily.WrapCorruption(err, "pebble.serialize_snapshot",
 			fmt.Sprintf("serialize snapshot for %s %s", snap.AggregateType, snap.AggregateID))
 	}
 
@@ -119,7 +120,7 @@ func (s *SnapshotStore) Save(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return event.WrapInfrastructure(err, "pebble.write_snapshot",
+		return errorfamily.WrapInfrastructure(err, "pebble.write_snapshot",
 			fmt.Sprintf("write snapshot for %s %s", snap.AggregateType, snap.AggregateID))
 	}
 
@@ -196,7 +197,7 @@ func (s *SnapshotStore) Delete(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return event.WrapInfrastructure(err, "pebble.delete_snapshot",
+		return errorfamily.WrapInfrastructure(err, "pebble.delete_snapshot",
 			fmt.Sprintf("delete snapshot for %s %s", ref.Type, ref.ID))
 	}
 
@@ -223,7 +224,7 @@ func (s *SnapshotStore) loadRaw(key []byte) (*serializableSnapshot, bool, error)
 			return nil, false, nil
 		}
 
-		return nil, false, event.WrapInfrastructure(err, "pebble.read_snapshot",
+		return nil, false, errorfamily.WrapInfrastructure(err, "pebble.read_snapshot",
 			"read snapshot at key "+string(key))
 	}
 
@@ -235,7 +236,7 @@ func (s *SnapshotStore) loadRaw(key []byte) (*serializableSnapshot, bool, error)
 
 	stored, err := deserializeSnapshot(buf)
 	if err != nil {
-		return nil, false, event.WrapCorruption(err, "pebble.deserialize_snapshot",
+		return nil, false, errorfamily.WrapCorruption(err, "pebble.deserialize_snapshot",
 			"deserialize snapshot at key "+string(key))
 	}
 
@@ -280,9 +281,9 @@ func deserializeSnapshot(data []byte) (*serializableSnapshot, error) {
 	if isCBOR(data) {
 		err := unmarshalCBOR(data, &s)
 		if err != nil {
-			return nil, event.Wrapf(
+			return nil, errorfamily.Wrapf(
 				err,
-				event.Corruption,
+				errorfamily.Corruption,
 				"pebble.snapshot_cbor",
 				"cbor unmarshal snapshot",
 			)
@@ -291,9 +292,9 @@ func deserializeSnapshot(data []byte) (*serializableSnapshot, error) {
 		// Legacy JSON fallback for snapshots written before CBOR migration.
 		err := json.Unmarshal(data, &s)
 		if err != nil {
-			return nil, event.Wrapf(
+			return nil, errorfamily.Wrapf(
 				err,
-				event.Corruption,
+				errorfamily.Corruption,
 				"pebble.snapshot_json",
 				"json unmarshal snapshot",
 			)

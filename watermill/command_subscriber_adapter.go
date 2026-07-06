@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/ThreeDotsLabs/watermill/message"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
@@ -46,13 +47,13 @@ func (a *CommandSubscriberAdapter) Subscribe(
 		case a.outputCh <- msg:
 			return nil
 		case <-a.closeCh:
-			return event.WrapInfrastructure(
+			return errorfamily.WrapInfrastructure(
 				event.ErrBusClosed,
 				"watermill.topic_closed",
 				fmt.Sprintf("topic %s", topic),
 			)
 		case <-ctx.Done():
-			return event.WrapInfrastructure(
+			return errorfamily.WrapInfrastructure(
 				ctx.Err(),
 				"watermill.topic_cancelled",
 				fmt.Sprintf("topic %s", topic),
@@ -61,7 +62,7 @@ func (a *CommandSubscriberAdapter) Subscribe(
 	}
 
 	if err := a.subscriber.Subscribe(command.Type(topic), handler); err != nil {
-		return nil, event.WrapInfrastructure(
+		return nil, errorfamily.WrapInfrastructure(
 			err, "watermill.subscribe_failed", "subscribe to "+topic,
 		)
 	}

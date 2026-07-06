@@ -3,6 +3,8 @@ package event
 import (
 	"strconv"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 )
 
@@ -48,7 +50,7 @@ func DecodePayloadAuto[T any](evt Event) (T, error) {
 
 	c, err := codec.ForEncoding(evt.Encoding())
 	if err != nil {
-		return zero, WrapCorruption(
+		return zero, errorfamily.WrapCorruption(
 			err,
 			"event.decode_payload_auto_no_codec",
 			"no built-in codec for encoding "+string(evt.Encoding())+
@@ -82,7 +84,7 @@ func DecodePayload[T any](evt Event, c codec.Codec) (T, error) {
 
 	err := c.Decode(payload, &target)
 	if err != nil {
-		return zero, WrapCorruption(
+		return zero, errorfamily.WrapCorruption(
 			err,
 			"event.decode_payload_failed",
 			"decode payload for event "+string(evt.Type()),
@@ -124,7 +126,7 @@ func DecodePayloads[T any](events []Event, c codec.Codec) ([]T, error) {
 
 	for i, evt := range events {
 		if err := validateEncodingMatch(evt, c); err != nil {
-			return nil, WrapCorruption(
+			return nil, errorfamily.WrapCorruption(
 				err,
 				"event.decode_payload_failed",
 				"decode payload ["+strconv.Itoa(i)+"] for event "+string(evt.Type()),
@@ -136,7 +138,7 @@ func DecodePayloads[T any](events []Event, c codec.Codec) ([]T, error) {
 		var target T
 		if len(payload) > 0 {
 			if err := c.Decode(payload, &target); err != nil {
-				return nil, WrapCorruption(
+				return nil, errorfamily.WrapCorruption(
 					err,
 					"event.decode_payload_failed",
 					"decode payload ["+strconv.Itoa(i)+"] for event "+string(evt.Type()),
@@ -154,7 +156,7 @@ func validateEncodingMatch(evt Event, c codec.Codec) error {
 	evtEnc := evt.Encoding()
 	codecEnc := c.Encoding()
 	if evtEnc != codecEnc {
-		return Newf(Rejection, "event.encoding_mismatch",
+		return errorfamily.Newf(Rejection, "event.encoding_mismatch",
 			"event encoding %q does not match codec encoding %q (decode payload for event %s)",
 			evtEnc, codecEnc, evt.Type())
 	}

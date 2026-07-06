@@ -5,6 +5,8 @@ import (
 	"io"
 	"sync"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/dispatcher/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -47,7 +49,7 @@ func (s *MemoryStore) Save(
 ) error {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return event.WrapInfrastructure(err, "memory.save_failed", "memory store save")
+		return errorfamily.WrapInfrastructure(err, "memory.save_failed", "memory store save")
 	}
 
 	s.mu.Lock()
@@ -58,7 +60,7 @@ func (s *MemoryStore) Save(
 
 	err = event.CheckVersionConflict(streamLen, expectedVersion)
 	if err != nil {
-		return event.WrapInfrastructure(err, "memory.save_failed", "memory store save")
+		return errorfamily.WrapInfrastructure(err, "memory.save_failed", "memory store save")
 	}
 
 	s.appendToGlobalLog(key, events)
@@ -74,7 +76,7 @@ func (s *MemoryStore) AppendBatch(
 ) error {
 	err := s.CheckClosed(event.ErrStoreClosed)
 	if err != nil {
-		return event.WrapInfrastructure(
+		return errorfamily.WrapInfrastructure(
 			err,
 			"memory.append_batch_failed",
 			"memory store append batch",

@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"slices"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
@@ -34,7 +36,7 @@ func (c *Ciphertext) UnmarshalJSON(data []byte) error {
 
 	err := json.Unmarshal(data, &encoded)
 	if err != nil {
-		return event.WrapInfrastructure(
+		return errorfamily.WrapInfrastructure(
 			err,
 			"encryption.unmarshal_ciphertext",
 			"unmarshal ciphertext string",
@@ -43,7 +45,7 @@ func (c *Ciphertext) UnmarshalJSON(data []byte) error {
 
 	decoded, err := event.DecodeBase64String(encoded)
 	if err != nil {
-		return event.WrapInfrastructure(
+		return errorfamily.WrapInfrastructure(
 			err,
 			"encryption.decode_ciphertext",
 			"decode ciphertext base64",

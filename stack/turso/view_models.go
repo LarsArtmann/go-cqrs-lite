@@ -4,14 +4,15 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
 )
 
 // ErrNoDatabase is returned when the Bundle was not created by an SQL preset
 // and therefore has no *sql.DB handle for SQLViewModel.
-var ErrNoDatabase = event.NewRejection("turso.no_database",
+var ErrNoDatabase = errorfamily.NewRejection("turso.no_database",
 	"turso: bundle has no SQL database handle")
 
 // SQLViewModel creates a [storage.SQLViewStore] from the Bundle's Turso
@@ -46,7 +47,7 @@ func SQLViewModel[V any, K fmt.Stringer](
 
 	store, err := storage.NewSQLiteViewStore[V, K](db, mapper)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "turso.create_view_model",
+		return nil, errorfamily.WrapInfrastructure(err, "turso.create_view_model",
 			"create view model")
 	}
 

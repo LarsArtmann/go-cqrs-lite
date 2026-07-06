@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Clock returns the current time. Override for deterministic testing.
@@ -28,7 +30,7 @@ func ParseSource(s string) (Source, error) {
 
 	s = strings.TrimSpace(s)
 	if s == "" {
-		return "", NewRejection(
+		return "", errorfamily.NewRejection(
 			"event.empty_source",
 			fmt.Sprintf("source cannot be empty (input: %q)", original),
 		)
@@ -57,7 +59,7 @@ func ParseIPAddress(s string) (IPAddress, error) {
 
 	addr, err := netip.ParseAddr(s)
 	if err != nil {
-		return "", WrapRejection(
+		return "", errorfamily.WrapRejection(
 			err,
 			"event.invalid_ip_address",
 			"invalid IP address "+s,
@@ -111,7 +113,10 @@ func (v Version) IsZero() bool { return v == 0 }
 func (v Version) Increment() Version { return v + 1 }
 
 // ErrVersionUnderflow is returned when a Version operation would result in a negative value.
-var ErrVersionUnderflow = NewRejection("event.version_underflow", "event: version underflow")
+var ErrVersionUnderflow = errorfamily.NewRejection(
+	"event.version_underflow",
+	"event: version underflow",
+)
 
 // Decrement returns a new Version decremented by 1.
 // Returns ErrVersionUnderflow if v is 0.
@@ -156,7 +161,7 @@ func (v Version) Cmp(other Version) int {
 // Useful for optimistic concurrency checks in event stores.
 func CheckVersionConflict(existingLen int, expected Version) error {
 	if existingLen != expected.Int() {
-		return WrapConflict(
+		return errorfamily.WrapConflict(
 			ErrVersionConflict,
 			"event.version_conflict",
 			"expected version "+expected.String()+", got "+strconv.Itoa(existingLen),
@@ -174,7 +179,7 @@ type SchemaVersion int
 // Returns an error if the schema version is negative or zero.
 func ParseSchemaVersion(v int) (SchemaVersion, error) {
 	if v < 1 {
-		return 0, NewRejection(
+		return 0, errorfamily.NewRejection(
 			"event.invalid_schema_version",
 			fmt.Sprintf("schema version must be positive: %d", v),
 		)
@@ -184,7 +189,7 @@ func ParseSchemaVersion(v int) (SchemaVersion, error) {
 }
 
 // ErrSchemaVersionUnderflow is returned when a SchemaVersion operation would result in a non-positive value.
-var ErrSchemaVersionUnderflow = NewRejection(
+var ErrSchemaVersionUnderflow = errorfamily.NewRejection(
 	"event.schema_version_underflow",
 	"event: schema version underflow",
 )

@@ -6,7 +6,7 @@ import (
 	"crypto/rand"
 	"io"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 const KeySize = 32
@@ -28,8 +28,8 @@ var _ EncrypterDecrypter = (*aes256gcm)(nil)
 // [NewXChaCha20Poly1305] (24-byte nonce, safe well beyond 2⁹⁶ messages).
 func NewAES256GCM(key []byte) (*aes256gcm, error) {
 	if len(key) != KeySize {
-		return nil, event.Wrapf(
-			ErrInvalidKey, event.Rejection,
+		return nil, errorfamily.Wrapf(
+			ErrInvalidKey, errorfamily.Rejection,
 			"encryption.aes_key_wrong_size",
 			"AES-256 key length %d != required %d",
 			len(key), KeySize,
@@ -38,12 +38,20 @@ func NewAES256GCM(key []byte) (*aes256gcm, error) {
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "encryption.aes_init", "initialize AES cipher")
+		return nil, errorfamily.WrapInfrastructure(
+			err,
+			"encryption.aes_init",
+			"initialize AES cipher",
+		)
 	}
 
 	aead, err := cipher.NewGCM(block)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "encryption.gcm_init", "initialize GCM mode")
+		return nil, errorfamily.WrapInfrastructure(
+			err,
+			"encryption.gcm_init",
+			"initialize GCM mode",
+		)
 	}
 
 	return &aes256gcm{aead: aead}, nil
@@ -61,7 +69,7 @@ func (e *aes256gcm) Encrypt(plaintext []byte) (Ciphertext, error) {
 		rand.Reader,
 		nonce,
 	); err != nil {
-		return nil, event.WrapInfrastructure(err, "encryption.nonce_gen", "generate nonce")
+		return nil, errorfamily.WrapInfrastructure(err, "encryption.nonce_gen", "generate nonce")
 	}
 
 	sealed := e.aead.Seal(nil, nonce, plaintext, nil)
@@ -79,8 +87,8 @@ func (e *aes256gcm) Decrypt(ciphertext Ciphertext) ([]byte, error) {
 	}
 
 	if len(ciphertext) < aesGCMNonceSize+e.aead.Overhead() {
-		return nil, event.Wrapf(
-			ErrDecryptionFailed, event.Rejection,
+		return nil, errorfamily.Wrapf(
+			ErrDecryptionFailed, errorfamily.Rejection,
 			"encryption.ciphertext_too_short",
 			"ciphertext length %d < minimum %d",
 			len(ciphertext), aesGCMNonceSize+e.aead.Overhead(),
@@ -92,7 +100,7 @@ func (e *aes256gcm) Decrypt(ciphertext Ciphertext) ([]byte, error) {
 
 	plaintext, err := e.aead.Open(nil, nonce, data, nil)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "encryption.decrypt", "decrypt ciphertext")
+		return nil, errorfamily.WrapInfrastructure(err, "encryption.decrypt", "decrypt ciphertext")
 	}
 
 	return plaintext, nil

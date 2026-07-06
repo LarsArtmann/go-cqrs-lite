@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
@@ -30,7 +32,7 @@ func DeleteByAggregate(
 
 	_, err := db.ExecContext(ctx, query, string(ref.Type), ref.ID)
 	if err != nil {
-		return event.WrapInfrastructure(
+		return errorfamily.WrapInfrastructure(
 			err,
 			"storage.delete_by_aggregate",
 			fmt.Sprintf(
@@ -58,7 +60,7 @@ func SharedInsertEvents(
 	for _, evt := range events {
 		metadata, err := MarshalMetadata(evt.Metadata())
 		if err != nil {
-			return event.WrapCorruption(err, "storage.marshal_metadata",
+			return errorfamily.WrapCorruption(err, "storage.marshal_metadata",
 				"marshal metadata for event "+string(evt.Type()))
 		}
 
@@ -77,7 +79,7 @@ func SharedInsertEvents(
 			formatTime(evt.OccurredAt()),
 		)
 		if err != nil {
-			return event.WrapInfrastructure(err, "storage.insert_event",
+			return errorfamily.WrapInfrastructure(err, "storage.insert_event",
 				"insert event "+string(evt.Type()))
 		}
 	}
@@ -134,7 +136,7 @@ func insertMultiValues(
 	for i, evt := range events {
 		metadata, err := MarshalMetadata(evt.Metadata())
 		if err != nil {
-			return event.WrapCorruption(err, "storage.marshal_metadata",
+			return errorfamily.WrapCorruption(err, "storage.marshal_metadata",
 				"marshal metadata for event "+string(evt.Type()))
 		}
 
@@ -164,7 +166,7 @@ func insertMultiValues(
 
 	_, err := tx.ExecContext(ctx, query, args...)
 	if err != nil {
-		return event.WrapInfrastructure(err, "storage.batch_insert_events",
+		return errorfamily.WrapInfrastructure(err, "storage.batch_insert_events",
 			fmt.Sprintf("batch insert %d events", n))
 	}
 
@@ -187,12 +189,12 @@ func SharedCheckVersion(
 	err := tx.QueryRowContext(ctx, query, string(ref.Type), ref.ID).
 		Scan(&currentVersion)
 	if err != nil {
-		return event.WrapInfrastructure(err, "storage.check_version",
+		return errorfamily.WrapInfrastructure(err, "storage.check_version",
 			"check current version")
 	}
 
 	if currentVersion != expectedVersion.Int() {
-		return event.WrapConflict(ErrConcurrencyConflict, "storage.version_mismatch",
+		return errorfamily.WrapConflict(ErrConcurrencyConflict, "storage.version_mismatch",
 			fmt.Sprintf("expected version %d, got %d for %s %s",
 				expectedVersion.Int(), currentVersion, ref.Type, ref.ID))
 	}
@@ -220,19 +222,19 @@ func SharedCheckpointLoad(
 			return event.Checkpoint{}, nil
 		}
 
-		return event.Checkpoint{}, event.WrapInfrastructure(err, "storage.load_checkpoint",
+		return event.Checkpoint{}, errorfamily.WrapInfrastructure(err, "storage.load_checkpoint",
 			"load checkpoint for projection "+projectionName)
 	}
 
 	parsed, err := id.ParseEventID(eventIDStr)
 	if err != nil {
-		return event.Checkpoint{}, event.WrapCorruption(err, "storage.parse_event_id",
+		return event.Checkpoint{}, errorfamily.WrapCorruption(err, "storage.parse_event_id",
 			fmt.Sprintf("parse event ID %q for projection %q", eventIDStr, projectionName))
 	}
 
 	processedAt, err := d.ParseTime(processedAtDest)
 	if err != nil {
-		return event.Checkpoint{}, event.WrapCorruption(err, "storage.parse_processed_at",
+		return event.Checkpoint{}, errorfamily.WrapCorruption(err, "storage.parse_processed_at",
 			fmt.Sprintf("parse processed_at for projection %q", projectionName))
 	}
 
@@ -256,7 +258,7 @@ func SharedCheckpointSave(
 
 	_, err := db.ExecContext(ctx, query, projectionName, cp.EventID, d.FormatTime(cp.ProcessedAt))
 	if err != nil {
-		return event.WrapInfrastructure(err, "storage.save_checkpoint",
+		return errorfamily.WrapInfrastructure(err, "storage.save_checkpoint",
 			"save checkpoint for projection "+projectionName)
 	}
 

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
@@ -27,7 +29,7 @@ type RetryConfig struct {
 	InitialDelay time.Duration
 	MaxDelay     time.Duration
 	Multiplier   float64
-	IsRetryable  func(error) bool  // defaults to event.IsRetryable (classifies via error taxonomy)
+	IsRetryable  func(error) bool  // defaults to errorfamily.IsRetryable (classifies via error taxonomy)
 	OnDeadLetter DeadLetterHandler // optional; called when retries are exhausted
 }
 
@@ -45,24 +47,24 @@ func DefaultRetryConfig() RetryConfig {
 		InitialDelay: defaultRetryInitDelay,
 		MaxDelay:     defaultRetryMaxDelay,
 		Multiplier:   defaultRetryMultiplier,
-		IsRetryable:  event.IsRetryable,
+		IsRetryable:  errorfamily.IsRetryable,
 	}
 }
 
 // Validate checks that the retry configuration is valid.
 func (c RetryConfig) Validate() error {
 	if c.MaxAttempts < 1 {
-		return event.WrapRejection(ErrValidationFailed, "middleware.invalid_max_attempts",
+		return errorfamily.WrapRejection(ErrValidationFailed, "middleware.invalid_max_attempts",
 			fmt.Sprintf("MaxAttempts must be >= 1, got %d", c.MaxAttempts))
 	}
 
 	if c.InitialDelay <= 0 {
-		return event.WrapRejection(ErrValidationFailed, "middleware.invalid_initial_delay",
+		return errorfamily.WrapRejection(ErrValidationFailed, "middleware.invalid_initial_delay",
 			fmt.Sprintf("InitialDelay must be positive, got %s", c.InitialDelay))
 	}
 
 	if c.Multiplier <= 1 {
-		return event.WrapRejection(ErrValidationFailed, "middleware.invalid_multiplier",
+		return errorfamily.WrapRejection(ErrValidationFailed, "middleware.invalid_multiplier",
 			fmt.Sprintf("Multiplier must be > 1, got %f", c.Multiplier))
 	}
 

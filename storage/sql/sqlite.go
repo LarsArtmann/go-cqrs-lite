@@ -3,7 +3,7 @@ package sql
 import (
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // ParseSQLiteTimestamp parses a SQLite timestamp string using multiple layouts.
@@ -26,7 +26,7 @@ func ParseSQLiteTimestamp(s string) (time.Time, error) {
 		}
 	}
 
-	return time.Time{}, event.WrapCorruption(
+	return time.Time{}, errorfamily.WrapCorruption(
 		ErrUnsupportedTimestamp,
 		"storage.unsupported_timestamp",
 		"unsupported timestamp format: "+s,

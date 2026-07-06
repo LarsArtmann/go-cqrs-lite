@@ -3,10 +3,10 @@ package grpc
 import (
 	"context"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	"google.golang.org/grpc"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 	cqrsproto "github.com/larsartmann/go-cqrs-lite/transport/grpc/v3/proto"
@@ -58,7 +58,7 @@ func (s *commandServer) Dispatch(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return errorResult(cqrsevent.WrapRejection(err, "grpc.command.parse_aggregate_id",
+		return errorResult(errorfamily.WrapRejection(err, "grpc.command.parse_aggregate_id",
 			"parse aggregate ID")), nil
 	}
 
@@ -84,7 +84,7 @@ func (s *commandServer) Dispatch(
 
 	cmd, err := command.New(command.Type(envelope.GetType()), aggID, opts...)
 	if err != nil {
-		return errorResult(cqrsevent.WrapRejection(err, "grpc.command.create",
+		return errorResult(errorfamily.WrapRejection(err, "grpc.command.create",
 			"create command")), nil
 	}
 

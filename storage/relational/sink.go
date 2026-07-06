@@ -9,7 +9,8 @@ import (
 	"strings"
 	"time"
 
-	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
 )
@@ -108,7 +109,7 @@ func (s *sqlSink) Upsert(ctx context.Context, table string, row Row, conflictCol
 	)
 
 	if _, err := s.tx.ExecContext(ctx, query, vals...); err != nil {
-		return cqrsevent.WrapTransient(err, "relational.sink_upsert",
+		return errorfamily.WrapTransient(err, "relational.sink_upsert",
 			"upsert into "+table)
 	}
 
@@ -129,7 +130,7 @@ func (s *sqlSink) Ensure(ctx context.Context, table string, row Row) error {
 	)
 
 	if _, err := s.tx.ExecContext(ctx, query, vals...); err != nil {
-		return cqrsevent.WrapTransient(err, "relational.sink_ensure",
+		return errorfamily.WrapTransient(err, "relational.sink_ensure",
 			"ensure into "+table)
 	}
 
@@ -161,7 +162,7 @@ func (s *sqlSink) Update(ctx context.Context, table string, set, match Row) erro
 	query := fmt.Sprintf("UPDATE %s SET %s WHERE %s", table, strings.Join(pairs, ", "), where)
 
 	if _, err := s.tx.ExecContext(ctx, query, args...); err != nil {
-		return cqrsevent.WrapTransient(err, "relational.sink_update",
+		return errorfamily.WrapTransient(err, "relational.sink_update",
 			"update "+table)
 	}
 
@@ -179,7 +180,7 @@ func (s *sqlSink) DeleteWhere(ctx context.Context, table string, match Row) erro
 	query := fmt.Sprintf("DELETE FROM %s WHERE %s", table, where)
 
 	if _, err := s.tx.ExecContext(ctx, query, whereArgs...); err != nil {
-		return cqrsevent.WrapTransient(err, "relational.sink_delete",
+		return errorfamily.WrapTransient(err, "relational.sink_delete",
 			"delete from "+table)
 	}
 
@@ -201,12 +202,12 @@ func (s *sqlSink) QueryOne(ctx context.Context, table, column string, match Row)
 	err = s.tx.QueryRowContext(ctx, query, whereArgs...).Scan(&result)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, cqrsevent.WrapRejection(errSinkNoRows,
+			return nil, errorfamily.WrapRejection(errSinkNoRows,
 				"relational.sink_no_rows",
 				fmt.Sprintf("query %s.%s", table, column))
 		}
 
-		return nil, cqrsevent.WrapCorruption(err, "relational.sink_query",
+		return nil, errorfamily.WrapCorruption(err, "relational.sink_query",
 			fmt.Sprintf("query %s.%s", table, column))
 	}
 
@@ -224,7 +225,7 @@ func (s *sqlSink) rowColumns(table string, row Row) ([]string, []any, error) {
 
 	t := s.schema.Table(table)
 	if t == nil {
-		return nil, nil, cqrsevent.WrapRejection(errSinkUnknownTable,
+		return nil, nil, errorfamily.WrapRejection(errSinkUnknownTable,
 			"relational.sink_unknown_table",
 			fmt.Sprintf("table %q", table))
 	}
@@ -237,7 +238,7 @@ func (s *sqlSink) rowColumns(table string, row Row) ([]string, []any, error) {
 	cols := make([]string, 0, len(row))
 	for name := range row {
 		if _, ok := colSet[name]; !ok {
-			return nil, nil, cqrsevent.WrapRejection(
+			return nil, nil, errorfamily.WrapRejection(
 				errSinkUnknownColumn,
 				"relational.sink_unknown_column",
 				fmt.Sprintf("table %q: column %q", table, name),

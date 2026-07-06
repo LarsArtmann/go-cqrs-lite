@@ -2,6 +2,8 @@ package event
 
 import (
 	"encoding/base64"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // DecodeBase64String decodes a base64-encoded string, trying URL-safe
@@ -17,7 +19,13 @@ func DecodeBase64String(encoded string) ([]byte, error) {
 	}
 
 	if err != nil {
-		return decoded, Wrapf(err, Corruption, "event.base64_decode", "encoded=%v", encoded)
+		return decoded, errorfamily.Wrapf(
+			err,
+			Corruption,
+			"event.base64_decode",
+			"encoded=%v",
+			encoded,
+		)
 	}
 
 	return decoded, nil

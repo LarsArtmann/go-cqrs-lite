@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
@@ -32,7 +33,7 @@ func (s *SQLCommandStore) ReadAll(ctx context.Context) ([]*command.PersistedComm
 	rows, err := s.DB.QueryContext(ctx, query)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
-		return nil, event.WrapInfrastructure(
+		return nil, errorfamily.WrapInfrastructure(
 			err,
 			"storage.query_all_commands",
 			"query all commands",
@@ -58,7 +59,7 @@ func (s *SQLCommandStore) ReadFrom(
 	limit int,
 ) ([]*command.PersistedCommand, error) {
 	if err := s.checkClosed(); err != nil {
-		return nil, event.Wrapf(err, event.Infrastructure, "storage.command_read_from",
+		return nil, errorfamily.Wrapf(err, errorfamily.Infrastructure, "storage.command_read_from",
 			"read from command store (limit=%d, after=%s)", limit, afterCommandID)
 	}
 
@@ -75,7 +76,7 @@ func (s *SQLCommandStore) ReadFrom(
 		cmds, err := s.loadCommandsFromStart(ctx, limit)
 		if err != nil {
 			cqrsotel.RecordError(span, err)
-			return cmds, event.WrapInfrastructure(err, "storage.read_from_start",
+			return cmds, errorfamily.WrapInfrastructure(err, "storage.read_from_start",
 				fmt.Sprintf("read commands from start (limit=%d)", limit))
 		}
 		span.SetAttributes(cqrsotel.AttrInt("command.count", len(cmds)))
@@ -103,7 +104,7 @@ func (s *SQLCommandStore) ReadFrom(
 	rows, err := s.DB.QueryContext(ctx, query, args...)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
-		return nil, event.WrapInfrastructure(err, "storage.query_from_position",
+		return nil, errorfamily.WrapInfrastructure(err, "storage.query_from_position",
 			fmt.Sprintf("query commands from position (limit=%d)", limit))
 	}
 	defer func() { _ = rows.Close() }()
@@ -111,7 +112,7 @@ func (s *SQLCommandStore) ReadFrom(
 	cmds, scanErr := s.scanCommands(rows)
 	if scanErr != nil {
 		cqrsotel.RecordError(span, scanErr)
-		return cmds, event.WrapInfrastructure(scanErr, "storage.scan_from_position",
+		return cmds, errorfamily.WrapInfrastructure(scanErr, "storage.scan_from_position",
 			fmt.Sprintf("scan commands from position (limit=%d)", limit))
 	}
 	span.SetAttributes(cqrsotel.AttrInt("command.count", len(cmds)))
@@ -133,7 +134,7 @@ func (s *SQLCommandStore) loadCommandsFromStart(
 
 	rows, err := s.DB.QueryContext(ctx, query, limit)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "storage.query_from_start",
+		return nil, errorfamily.WrapInfrastructure(err, "storage.query_from_start",
 			fmt.Sprintf("query commands from start (limit=%d)", limit))
 	}
 	defer func() { _ = rows.Close() }()

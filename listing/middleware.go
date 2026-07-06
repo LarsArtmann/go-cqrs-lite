@@ -3,6 +3,8 @@ package listing
 import (
 	"context"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
@@ -31,7 +33,7 @@ func StatusMiddleware(deleteTypes, rebirthTypes []event.Type) event.PublishMiddl
 				case isDelete:
 					m, err := event.MarkTombstone(evt)
 					if err != nil {
-						return event.WrapInfrastructure(
+						return errorfamily.WrapInfrastructure(
 							err,
 							"listing.tombstone",
 							"status middleware tombstone "+string(evt.Type()),
@@ -42,7 +44,7 @@ func StatusMiddleware(deleteTypes, rebirthTypes []event.Type) event.PublishMiddl
 				case isRebirth:
 					m, err := event.MarkRebirth(evt)
 					if err != nil {
-						return event.WrapInfrastructure(
+						return errorfamily.WrapInfrastructure(
 							err,
 							"listing.rebirth",
 							"status middleware rebirth "+string(evt.Type()),
@@ -79,7 +81,7 @@ func CacheInvalidationMiddleware(reader CacheInvalidator) event.PublishMiddlewar
 		return event.PublisherFunc(func(ctx context.Context, events ...event.Event) error {
 			err := next.Publish(ctx, events...)
 			if err != nil {
-				return event.WrapInfrastructure(err,
+				return errorfamily.WrapInfrastructure(err,
 					"listing.publish_events_failed",
 					"publish events")
 			}

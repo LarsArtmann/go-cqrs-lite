@@ -6,8 +6,9 @@ import (
 	"testing"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
@@ -26,7 +27,7 @@ func TestWithLogger_RetryLogsAttempts(t *testing.T) {
 
 	logger, logHandler := newTestLogger()
 
-	retryErr := event.NewTransient("test.transient", "retry me")
+	retryErr := errorfamily.NewTransient("test.transient", "retry me")
 
 	middleware := CommandRetry(defaultRetryConfig(), WithLogger(logger))
 
@@ -118,7 +119,7 @@ func TestWithLogger_NoLogger_NoPanic(t *testing.T) {
 	cmdHandler := middleware(func(_ context.Context, _ command.Command) error {
 		callCount++
 
-		return event.NewTransient("test.transient", "always fail")
+		return errorfamily.NewTransient("test.transient", "always fail")
 	})
 
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}

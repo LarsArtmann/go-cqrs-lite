@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	codecpkg "github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -371,7 +373,7 @@ func TestDecodePayload_JSONEventWithCBORCodec_Rejected(t *testing.T) {
 		t.Fatal("expected encoding mismatch rejection for JSON event with CBOR codec")
 	}
 
-	if event.Classify(err) != event.Rejection {
+	if errorfamily.Classify(err) != errorfamily.Rejection {
 		t.Fatalf("expected Rejection, got %T: %v", err, err)
 	}
 }
@@ -394,7 +396,7 @@ func TestDecodePayload_CBOREventWithJSONCodec_Rejected(t *testing.T) {
 		t.Fatal("expected encoding mismatch rejection for CBOR event with JSON codec")
 	}
 
-	if event.Classify(err) != event.Rejection {
+	if errorfamily.Classify(err) != errorfamily.Rejection {
 		t.Fatalf("expected Rejection, got %T: %v", err, err)
 	}
 }

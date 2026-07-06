@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/listing/v3"
@@ -34,7 +36,7 @@ func NewSQLAggregateReader(
 ) (*SQLAggregateReader, error) {
 	tbl, err := newListingTable(tablePrefix)
 	if err != nil {
-		return nil, event.NewRejection("listing.invalid_prefix",
+		return nil, errorfamily.NewRejection("listing.invalid_prefix",
 			"invalid table prefix")
 	}
 
@@ -57,7 +59,7 @@ func (r *SQLAggregateReader) ListWithStatus(
 	opts listing.ListOptions,
 ) (*listing.Page[listing.AggregateStatus], error) {
 	if opts.Type == "" {
-		return nil, event.NewRejection(
+		return nil, errorfamily.NewRejection(
 			"listing.type_required",
 			"ListOptions.Type is required",
 		)
@@ -67,7 +69,7 @@ func (r *SQLAggregateReader) ListWithStatus(
 
 	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "listing.sql_list", "listing sql list")
+		return nil, errorfamily.WrapInfrastructure(err, "listing.sql_list", "listing sql list")
 	}
 	defer func() { _ = rows.Close() }()
 
@@ -137,12 +139,12 @@ func scanAggregateStatuses(rows *sql.Rows) ([]listing.AggregateStatus, error) {
 
 		err := rows.Scan(&aggType, &aggID, &version, &count, &lastAt, &statusInt)
 		if err != nil {
-			return nil, event.WrapInfrastructure(err, "listing.sql_scan", "listing sql scan")
+			return nil, errorfamily.WrapInfrastructure(err, "listing.sql_scan", "listing sql scan")
 		}
 
 		parsedID, err := id.ParseAggregateID(aggID)
 		if err != nil {
-			return nil, event.WrapInfrastructure(
+			return nil, errorfamily.WrapInfrastructure(
 				err,
 				"listing.sql_parse_id",
 				"listing sql parse id",
@@ -161,7 +163,7 @@ func scanAggregateStatuses(rows *sql.Rows) ([]listing.AggregateStatus, error) {
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, event.WrapInfrastructure(err, "listing.sql_rows", "listing sql rows")
+		return nil, errorfamily.WrapInfrastructure(err, "listing.sql_rows", "listing sql rows")
 	}
 
 	return items, nil

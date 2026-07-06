@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
@@ -45,7 +47,7 @@ func (s *SQLCheckpointStore) Load(
 	cp, err := sqlpkg.SharedCheckpointLoad(ctx, s.DB, projectionName, s.Dialect)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
-		return event.Checkpoint{}, event.WrapInfrastructure(err,
+		return event.Checkpoint{}, errorfamily.WrapInfrastructure(err,
 			"storage.load_checkpoint",
 			"load checkpoint for projection "+projectionName)
 	}
@@ -62,7 +64,7 @@ func (s *SQLCheckpointStore) Save(
 	err := sqlpkg.SharedCheckpointSave(ctx, s.DB, projectionName, cp, s.Dialect)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
-		return event.WrapInfrastructure(err,
+		return errorfamily.WrapInfrastructure(err,
 			"storage.save_checkpoint",
 			"save checkpoint for projection "+projectionName)
 	}

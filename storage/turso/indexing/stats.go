@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // IndexUsageStats reports per-index statistics from the query planner.
@@ -31,7 +31,7 @@ func Stats(ctx context.Context, db *sql.DB) ([]IndexUsageStats, error) {
 		WHERE type = 'index' AND sql IS NOT NULL
 	`)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "indexing.list_indexes",
+		return nil, errorfamily.WrapInfrastructure(err, "indexing.list_indexes",
 			"list indexes for stats")
 	}
 
@@ -44,7 +44,7 @@ func Stats(ctx context.Context, db *sql.DB) ([]IndexUsageStats, error) {
 		var sqlDDL string
 
 		if err := rows.Scan(&stat.Name, &stat.Table, &sqlDDL); err != nil {
-			return nil, event.WrapInfrastructure(err, "indexing.scan_index",
+			return nil, errorfamily.WrapInfrastructure(err, "indexing.scan_index",
 				"scan index for stats")
 		}
 
@@ -53,7 +53,7 @@ func Stats(ctx context.Context, db *sql.DB) ([]IndexUsageStats, error) {
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, event.WrapInfrastructure(err, "indexing.iterate_indexes",
+		return nil, errorfamily.WrapInfrastructure(err, "indexing.iterate_indexes",
 			"iterate indexes for stats")
 	}
 
@@ -141,7 +141,12 @@ func queryStat1(ctx context.Context, db *sql.DB) ([]stat1Row, error) {
 	rows, err := db.QueryContext(ctx, "SELECT idx, stat FROM sqlite_stat1")
 	if err != nil {
 		// sqlite_stat1 may not exist if ANALYZE has not been run.
-		return nil, event.Wrapf(err, event.Infrastructure, "turso.stat1_query", "sqlite_stat1")
+		return nil, errorfamily.Wrapf(
+			err,
+			errorfamily.Infrastructure,
+			"turso.stat1_query",
+			"sqlite_stat1",
+		)
 	}
 	defer func() { _ = rows.Close() }()
 
@@ -151,7 +156,13 @@ func queryStat1(ctx context.Context, db *sql.DB) ([]stat1Row, error) {
 		var name, stat string
 
 		if err := rows.Scan(&name, &stat); err != nil {
-			return nil, event.Wrapf(err, event.Infrastructure, "turso.stat1_scan", "stat=%v", stat)
+			return nil, errorfamily.Wrapf(
+				err,
+				errorfamily.Infrastructure,
+				"turso.stat1_scan",
+				"stat=%v",
+				stat,
+			)
 		}
 
 		rows := parseStat1Rows(stat)
@@ -159,9 +170,9 @@ func queryStat1(ctx context.Context, db *sql.DB) ([]stat1Row, error) {
 	}
 
 	if err := rows.Err(); err != nil {
-		return out, event.Wrapf(
+		return out, errorfamily.Wrapf(
 			err,
-			event.Infrastructure,
+			errorfamily.Infrastructure,
 			"turso.stat1_iter",
 			"sqlite_stat1 iteration",
 		)

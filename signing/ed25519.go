@@ -4,6 +4,8 @@ import (
 	"crypto/ed25519"
 	"slices"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
@@ -20,8 +22,8 @@ var _ Signer = (*ed25519Signer)(nil)
 // Returns ErrInvalidKey if the key is nil or the wrong length.
 func NewEd25519(privateKey ed25519.PrivateKey) (*ed25519Signer, error) {
 	if len(privateKey) != ed25519.PrivateKeySize {
-		return nil, event.Wrapf(
-			ErrInvalidKey, event.Rejection,
+		return nil, errorfamily.Wrapf(
+			ErrInvalidKey, errorfamily.Rejection,
 			"signing.ed25519_invalid_private_key",
 			"expected Ed25519 private key of %d bytes, got %d",
 			ed25519.PrivateKeySize,
@@ -59,8 +61,8 @@ var _ Verifier = (*ed25519Verifier)(nil)
 // Returns ErrInvalidKey if the key is nil or the wrong length.
 func NewEd25519Verifier(publicKey ed25519.PublicKey) (*ed25519Verifier, error) {
 	if len(publicKey) != ed25519.PublicKeySize {
-		return nil, event.Wrapf(
-			ErrInvalidKey, event.Rejection,
+		return nil, errorfamily.Wrapf(
+			ErrInvalidKey, errorfamily.Rejection,
 			"signing.ed25519_invalid_public_key",
 			"expected Ed25519 public key of %d bytes, got %d",
 			ed25519.PublicKeySize,
@@ -98,7 +100,7 @@ func (v *ed25519Verifier) Verify(evt event.Event, sig Signature) error {
 func GenerateEd25519KeyPair() (ed25519.PublicKey, ed25519.PrivateKey, error) {
 	pub, priv, err := ed25519.GenerateKey(nil)
 	if err != nil {
-		return nil, nil, event.WrapInfrastructure(
+		return nil, nil, errorfamily.WrapInfrastructure(
 			err,
 			"signing.ed25519_keygen",
 			"generate ed25519 key pair",

@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
@@ -286,15 +288,15 @@ func TestDefaultRetryConfig_IsRetryable(t *testing.T) {
 		t.Error("default IsRetryable should return true for unknown errors")
 	}
 
-	if !config.IsRetryable(event.NewTransient("test", "transient")) {
+	if !config.IsRetryable(errorfamily.NewTransient("test", "transient")) {
 		t.Error("default IsRetryable should return true for Transient errors")
 	}
 
-	if config.IsRetryable(event.NewRejection("test", "rejected")) {
+	if config.IsRetryable(errorfamily.NewRejection("test", "rejected")) {
 		t.Error("default IsRetryable should return false for Rejection errors")
 	}
 
-	if config.IsRetryable(event.NewConflict("test", "conflict")) {
+	if config.IsRetryable(errorfamily.NewConflict("test", "conflict")) {
 		t.Error("default IsRetryable should return false for Conflict errors")
 	}
 

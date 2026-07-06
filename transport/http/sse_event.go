@@ -7,8 +7,7 @@ import (
 	"strings"
 
 	brandid "github.com/larsartmann/go-branded-id"
-
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // sseEventBrand is the phantom brand type for SSEEventID.
@@ -33,7 +32,7 @@ func NewSSEEventID(s string) SSEEventID { return brandid.NewID[sseEventBrand](s)
 const base10 = 10
 
 // errSSEEventIDInvalid is returned by ParseSSEEventID for malformed values.
-var errSSEEventIDInvalid = event.NewRejection(
+var errSSEEventIDInvalid = errorfamily.NewRejection(
 	"http.sse.event_id_invalid",
 	"sse event id: contains forbidden character (newline or carriage return)",
 )
@@ -43,7 +42,7 @@ var errSSEEventIDInvalid = event.NewRejection(
 // are allowed (representing "no ID" / initial connection).
 func ParseSSEEventID(s string) (SSEEventID, error) {
 	if strings.ContainsAny(s, "\n\r") {
-		return SSEEventID{}, event.Wrapf(errSSEEventIDInvalid, event.Rejection,
+		return SSEEventID{}, errorfamily.Wrapf(errSSEEventIDInvalid, errorfamily.Rejection,
 			"http.sse.event_id_invalid", "%q", s)
 	}
 
@@ -121,7 +120,12 @@ func WriteSSEEvent(w io.Writer, evt SSEEvent) error {
 	buf = append(buf, '\n')
 
 	if _, err := w.Write(buf); err != nil {
-		return event.Wrapf(err, event.Transient, "http.sse.write_failed", "write sse event")
+		return errorfamily.Wrapf(
+			err,
+			errorfamily.Transient,
+			"http.sse.write_failed",
+			"write sse event",
+		)
 	}
 
 	return nil
@@ -132,6 +136,15 @@ func WriteSSEEvent(w io.Writer, evt SSEEvent) error {
 // ALB/Nginx/Cloudflare idle timeouts.
 func WriteSSEHeartbeat(w io.Writer) error {
 	_, err := w.Write([]byte(": heartbeat\n\n"))
+
+	return err
+}
+
+// WriteSSERetry writes the SSE retry field, telling the browser how many
+// milliseconds to wait before reconnecting after a connection drop.
+// Per the SSE spec, this is sent once and persists until overwritten.
+func WriteSSERetry(w io.Writer, ms int) error {
+	_, err := fmt.Fprintf(w, "retry: %d\n\n", ms)
 
 	return err
 }

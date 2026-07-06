@@ -5,7 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3/sqlopt"
 	"github.com/larsartmann/go-cqrs-lite/storage/v3"
@@ -115,7 +116,7 @@ func New(dsn string, opts ...Option) (*stack.Bundle, error) {
 func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	sqlDB, backend, err := openBackend(dsn, cfg)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "sqlite_preset.open_backend",
+		return nil, errorfamily.WrapInfrastructure(err, "sqlite_preset.open_backend",
 			"open primary backend")
 	}
 
@@ -129,7 +130,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 			_ = backend.Close()
 			_ = sqlDB.Close()
 
-			return nil, event.WrapInfrastructure(eErr, "sqlite_preset.open_event_db",
+			return nil, errorfamily.WrapInfrastructure(eErr, "sqlite_preset.open_event_db",
 				"open event database")
 		}
 
@@ -145,7 +146,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 			_ = backend.Close()
 			_ = sqlDB.Close()
 
-			return nil, event.WrapInfrastructure(qErr, "sqlite_preset.open_query_db",
+			return nil, errorfamily.WrapInfrastructure(qErr, "sqlite_preset.open_query_db",
 				"open query database")
 		}
 
@@ -158,7 +159,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 
 	viewOpts, err := buildViewOptions(cfg, backend, sqlDB)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "sqlite_preset.view_options",
+		return nil, errorfamily.WrapInfrastructure(err, "sqlite_preset.view_options",
 			"build view options")
 	}
 
@@ -179,7 +180,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 
 		_ = sqlDB.Close()
 
-		return nil, event.WrapInfrastructure(err, "sqlite_preset.wire_bundle",
+		return nil, errorfamily.WrapInfrastructure(err, "sqlite_preset.wire_bundle",
 			"wire sqlite bundle")
 	}
 
@@ -191,7 +192,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 	sqlDB, err := sql.Open("sqlite", dsn)
 	if err != nil {
-		return nil, nil, event.WrapInfrastructure(err, "sqlite_preset.open_primary",
+		return nil, nil, errorfamily.WrapInfrastructure(err, "sqlite_preset.open_primary",
 			fmt.Sprintf("open sqlite %q", dsn))
 	}
 
@@ -202,7 +203,7 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 		if err != nil {
 			_ = sqlDB.Close()
 
-			return nil, nil, event.WrapInfrastructure(err, "sqlite_preset.enable_wal",
+			return nil, nil, errorfamily.WrapInfrastructure(err, "sqlite_preset.enable_wal",
 				"enable WAL mode")
 		}
 	}
@@ -212,8 +213,11 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 		if err != nil {
 			_ = sqlDB.Close()
 
-			return nil, nil, event.WrapInfrastructure(err, "sqlite_preset.enable_foreign_keys",
-				"enable foreign keys")
+			return nil, nil, errorfamily.WrapInfrastructure(
+				err,
+				"sqlite_preset.enable_foreign_keys",
+				"enable foreign keys",
+			)
 		}
 	}
 
@@ -222,7 +226,7 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 		if err != nil {
 			_ = sqlDB.Close()
 
-			return nil, nil, event.WrapInfrastructure(err, "sqlite_preset.init_schema",
+			return nil, nil, errorfamily.WrapInfrastructure(err, "sqlite_preset.init_schema",
 				"initialize sqlite schema")
 		}
 	}
@@ -232,8 +236,11 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 		if err != nil {
 			_ = sqlDB.Close()
 
-			return nil, nil, event.WrapInfrastructure(err, "sqlite_preset.apply_optimizations",
-				"apply sqlite optimizations")
+			return nil, nil, errorfamily.WrapInfrastructure(
+				err,
+				"sqlite_preset.apply_optimizations",
+				"apply sqlite optimizations",
+			)
 		}
 	}
 
@@ -241,7 +248,7 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 	if err != nil {
 		_ = sqlDB.Close()
 
-		return nil, nil, event.WrapInfrastructure(err, "sqlite_preset.create_backend",
+		return nil, nil, errorfamily.WrapInfrastructure(err, "sqlite_preset.create_backend",
 			"create SQL backend")
 	}
 

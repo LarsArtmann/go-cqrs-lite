@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
 )
 
@@ -136,13 +137,13 @@ func newViewStore[V any, K fmt.Stringer](
 	opts []ViewStoreOption,
 ) (*SQLViewStore[V, K], error) {
 	if err := validateMapper(mapper); err != nil {
-		return nil, event.WrapRejection(err, "storage.view.validate_mapper",
+		return nil, errorfamily.WrapRejection(err, "storage.view.validate_mapper",
 			"view store: validate mapper")
 	}
 
 	handle, err := sqlpkg.NewDBHandle(db, dialect)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "storage.view.new_handle",
+		return nil, errorfamily.WrapInfrastructure(err, "storage.view.new_handle",
 			"view store: create db handle")
 	}
 
@@ -161,12 +162,12 @@ func newViewStore[V any, K fmt.Stringer](
 
 	if cfg.autoMigrate {
 		if err := s.createTable(context.Background()); err != nil {
-			return nil, event.WrapInfrastructure(err, "storage.view.migrate",
+			return nil, errorfamily.WrapInfrastructure(err, "storage.view.migrate",
 				"view store: auto-migrate table")
 		}
 
 		if err := s.createIndexes(context.Background()); err != nil {
-			return nil, event.WrapInfrastructure(err, "storage.view.create_indexes",
+			return nil, errorfamily.WrapInfrastructure(err, "storage.view.create_indexes",
 				"view store: create secondary indexes")
 		}
 	}
@@ -191,25 +192,25 @@ func validateMapper[V any](m ViewMapper[V]) error {
 
 	for i, col := range m.Columns {
 		if col.Name == "" {
-			return event.WrapRejection(errMapperColumnNameEmpty,
+			return errorfamily.WrapRejection(errMapperColumnNameEmpty,
 				"storage.view.mapper.column_name_required",
 				fmt.Sprintf("mapper: column %d: name is required", i))
 		}
 
 		if col.Extract == nil {
-			return event.WrapRejection(errMapperExtractRequired,
+			return errorfamily.WrapRejection(errMapperExtractRequired,
 				"storage.view.mapper.extract_required",
 				fmt.Sprintf("mapper: column %d (%s): Extract is required", i, col.Name))
 		}
 
 		if strings.EqualFold(col.Name, "key") {
-			return event.WrapRejection(errMapperKeyReserved,
+			return errorfamily.WrapRejection(errMapperKeyReserved,
 				"storage.view.mapper.key_reserved",
 				fmt.Sprintf("mapper: column %d (%s): name \"key\" is reserved", i, col.Name))
 		}
 
 		if _, dup := seen[col.Name]; dup {
-			return event.WrapRejection(errMapperDuplicateColumn,
+			return errorfamily.WrapRejection(errMapperDuplicateColumn,
 				"storage.view.mapper.duplicate_column",
 				fmt.Sprintf("mapper: column %d (%s): duplicate column name", i, col.Name))
 		}
@@ -243,7 +244,7 @@ func (s *SQLViewStore[V, K]) createTable(ctx context.Context) error {
 
 	_, err := s.DB.ExecContext(ctx, b.String())
 	if err != nil {
-		return event.WrapInfrastructure(err, "storage.view.create_table",
+		return errorfamily.WrapInfrastructure(err, "storage.view.create_table",
 			"create table "+s.mapper.Table)
 	}
 
@@ -255,7 +256,7 @@ func (s *SQLViewStore[V, K]) createIndexes(ctx context.Context) error {
 		stmt := fmt.Sprintf("CREATE INDEX IF NOT EXISTS %s ON %s (%s)",
 			idx.Name, s.mapper.Table, strings.Join(idx.Columns, ", "))
 		if _, err := s.DB.ExecContext(ctx, stmt); err != nil {
-			return event.WrapInfrastructure(err, "storage.view.create_index",
+			return errorfamily.WrapInfrastructure(err, "storage.view.create_index",
 				"create index "+idx.Name)
 		}
 	}

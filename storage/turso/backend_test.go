@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -270,8 +272,12 @@ func TestBackend_Close(t *testing.T) {
 		t.Fatal("expected error loading from closed store")
 	}
 
-	if event.Classify(err) != event.Infrastructure {
-		t.Errorf("expected Infrastructure classification, got %s: %v", event.Classify(err), err)
+	if errorfamily.Classify(err) != errorfamily.Infrastructure {
+		t.Errorf(
+			"expected Infrastructure classification, got %s: %v",
+			errorfamily.Classify(err),
+			err,
+		)
 	}
 }
 

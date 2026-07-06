@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"testing"
 
-	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/graph/v3"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v3"
 	"github.com/larsartmann/go-cqrs-lite/stack/v3"
 )
 
 // TestErrorClassification verifies that sentinels from modules that were
-// converted from plain errors.New to event.NewRejection (etc.) are now
+// converted from plain errors.New to errorfamily.NewRejection (etc.) are now
 // classified correctly by the taxonomy. Before the fix, these fell through to
 // the Transient default and were retried by the retry middleware — even
 // though they represent non-retryable Rejections.
@@ -22,39 +23,39 @@ func TestErrorClassification(t *testing.T) {
 	tests := []struct {
 		name       string
 		err        error
-		wantFamily cqrsevent.Family
+		wantFamily errorfamily.Family
 		wantRetry  bool
 	}{
 		// graph: schema and sink violations are Rejections
-		{"graph path not found", graph.ErrPathNotFound, cqrsevent.Rejection, false},
+		{"graph path not found", graph.ErrPathNotFound, errorfamily.Rejection, false},
 		{
 			"graph wrapped schema error",
 			fmt.Errorf("validate: %w", errors.New("graph schema: duplicate node label")),
-			cqrsevent.Transient, // plain errors.New still defaults to Transient
+			errorfamily.Transient, // plain errors.New still defaults to Transient
 			true,
 		},
 
 		// stack: bundle misconfiguration is Rejection
-		{"stack empty bundle", stack.ErrEmpty, cqrsevent.Rejection, false},
-		{"stack missing event store", stack.ErrMissingEventStore, cqrsevent.Rejection, false},
-		{"stack missing read models", stack.ErrMissingReadModels, cqrsevent.Rejection, false},
-		{"stack missing journal", stack.ErrMissingJournal, cqrsevent.Rejection, false},
+		{"stack empty bundle", stack.ErrEmpty, errorfamily.Rejection, false},
+		{"stack missing event store", stack.ErrMissingEventStore, errorfamily.Rejection, false},
+		{"stack missing read models", stack.ErrMissingReadModels, errorfamily.Rejection, false},
+		{"stack missing journal", stack.ErrMissingJournal, errorfamily.Rejection, false},
 
 		// middleware: meter required is Rejection (programmer error)
-		{"middleware meter required", middleware.ErrMeterRequired, cqrsevent.Rejection, false},
+		{"middleware meter required", middleware.ErrMeterRequired, errorfamily.Rejection, false},
 
 		// middleware: already-classified sentinels stay correct
 		{
 			"middleware retry exhausted",
 			middleware.ErrRetryExhausted,
-			cqrsevent.Infrastructure,
+			errorfamily.Infrastructure,
 			false,
 		},
-		{"middleware panic recovered", middleware.ErrPanicRecovered, cqrsevent.Corruption, false},
+		{"middleware panic recovered", middleware.ErrPanicRecovered, errorfamily.Corruption, false},
 		{
 			"middleware validation failed",
 			middleware.ErrValidationFailed,
-			cqrsevent.Rejection,
+			errorfamily.Rejection,
 			false,
 		},
 	}
@@ -63,12 +64,12 @@ func TestErrorClassification(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			family := cqrsevent.Classify(tc.err)
+			family := errorfamily.Classify(tc.err)
 			if family != tc.wantFamily {
 				t.Errorf("Classify(%v) = %v, want %v", tc.err, family, tc.wantFamily)
 			}
 
-			retry := cqrsevent.IsRetryable(tc.err)
+			retry := errorfamily.IsRetryable(tc.err)
 			if retry != tc.wantRetry {
 				t.Errorf("IsRetryable(%v) = %v, want %v", tc.err, retry, tc.wantRetry)
 			}
@@ -84,12 +85,12 @@ func TestErrorClassificationWrappedChain(t *testing.T) {
 
 	wrapped := fmt.Errorf("dispatch failed: %w", stack.ErrMissingEventStore)
 
-	if cqrsevent.Classify(wrapped) != cqrsevent.Rejection {
+	if errorfamily.Classify(wrapped) != errorfamily.Rejection {
 		t.Errorf("wrapped stack.ErrMissingEventStore classified as %v, want Rejection",
-			cqrsevent.Classify(wrapped))
+			errorfamily.Classify(wrapped))
 	}
 
-	if cqrsevent.IsRetryable(wrapped) {
+	if errorfamily.IsRetryable(wrapped) {
 		t.Error("wrapped stack.ErrMissingEventStore should not be retryable")
 	}
 }

@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
@@ -41,7 +42,7 @@ func NewTypedQueryStore[P any](store QueryStore, c codec.Codec) *TypedQueryStore
 func (t *TypedQueryStore[P]) SaveQuery(ctx context.Context, q TypedQuery[P]) error {
 	data, err := t.codec.Encode(q.Payload)
 	if err != nil {
-		return event.WrapCorruption(err, "query.typed_store.encode",
+		return errorfamily.WrapCorruption(err, "query.typed_store.encode",
 			"encode typed payload")
 	}
 
@@ -66,7 +67,7 @@ func (t *TypedQueryStore[P]) SaveQuery(ctx context.Context, q TypedQuery[P]) err
 
 	err = t.store.SaveQuery(ctx, persisted)
 	if err != nil {
-		return event.WrapInfrastructure(err, "query.typed_store.save", "save typed query")
+		return errorfamily.WrapInfrastructure(err, "query.typed_store.save", "save typed query")
 	}
 
 	return nil
@@ -79,7 +80,11 @@ func (t *TypedQueryStore[P]) LoadQueries(
 ) ([]TypedQuery[P], error) {
 	queries, err := t.store.LoadQueries(ctx, after)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "query.typed_store.load", "load typed queries")
+		return nil, errorfamily.WrapInfrastructure(
+			err,
+			"query.typed_store.load",
+			"load typed queries",
+		)
 	}
 
 	result := make([]TypedQuery[P], 0, len(queries))
@@ -89,7 +94,7 @@ func (t *TypedQueryStore[P]) LoadQueries(
 
 		err := t.codec.Decode(q.Payload(), &payload)
 		if err != nil {
-			return nil, event.WrapCorruption(err, "query.typed_store.decode",
+			return nil, errorfamily.WrapCorruption(err, "query.typed_store.decode",
 				fmt.Sprintf("decode typed payload for %s", q.ID()))
 		}
 

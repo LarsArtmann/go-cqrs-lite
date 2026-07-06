@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"testing"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 )
@@ -206,7 +208,7 @@ func GivenProjection(
 	ctx := context.Background()
 	for _, evt := range events {
 		if err := proj.Handle(ctx, evt); err != nil {
-			sc.errs = append(sc.errs, event.Wrap(err, event.Classify(err),
+			sc.errs = append(sc.errs, errorfamily.Wrap(err, errorfamily.Classify(err),
 				"scenario.projection.handle",
 				fmt.Sprintf("event %s", evt.Type())))
 		}

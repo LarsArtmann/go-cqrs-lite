@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/cockroachdb/pebble"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -37,7 +38,7 @@ func (a *EventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, event.WrapInfrastructure(err, "pebble.journal_read_all",
+		return nil, errorfamily.WrapInfrastructure(err, "pebble.journal_read_all",
 			"read all events from journal")
 	}
 
@@ -72,7 +73,7 @@ func (a *EventStore) ReadFrom(
 		if err != nil {
 			cqrsotel.RecordError(span, err)
 
-			return nil, event.WrapInfrastructure(err, "pebble.journal_read_from",
+			return nil, errorfamily.WrapInfrastructure(err, "pebble.journal_read_from",
 				"read events from journal beginning")
 		}
 
@@ -92,7 +93,7 @@ func (a *EventStore) ReadFrom(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, event.WrapInfrastructure(err, "pebble.journal_read_from",
+		return nil, errorfamily.WrapInfrastructure(err, "pebble.journal_read_from",
 			"read events from journal (narrowed seek)")
 	}
 
@@ -103,7 +104,7 @@ func (a *EventStore) ReadFrom(
 		if err != nil {
 			cqrsotel.RecordError(span, err)
 
-			return nil, event.WrapInfrastructure(err, "pebble.journal_read_from",
+			return nil, errorfamily.WrapInfrastructure(err, "pebble.journal_read_from",
 				"read events from journal (fallback scan)")
 		}
 	}
@@ -132,7 +133,7 @@ func (a *EventStore) scanJournalWithSkip(
 		},
 	)
 	if err != nil {
-		return nil, false, event.WrapInfrastructure(err, "pebble.scan_journal",
+		return nil, false, errorfamily.WrapInfrastructure(err, "pebble.scan_journal",
 			"create iterator")
 	}
 
@@ -155,9 +156,9 @@ func (a *EventStore) scanJournalWithSkip(
 
 		evt, err := a.deserializeEvent(iter.Value())
 		if err != nil {
-			return nil, found, event.Wrapf(
+			return nil, found, errorfamily.Wrapf(
 				a.corruptEventErr(string(iter.Key()), err),
-				event.Corruption, "pebble.journal_corrupt_event",
+				errorfamily.Corruption, "pebble.journal_corrupt_event",
 				"corrupt event in journal (limit=%d)", limit,
 			)
 		}
@@ -171,8 +172,13 @@ func (a *EventStore) scanJournalWithSkip(
 
 	err = checkIteratorError(iter)
 	if err != nil {
-		return nil, found, event.Wrapf(err, event.Infrastructure, "pebble.journal_iterator",
-			"iterator error in journal (limit=%d)", limit)
+		return nil, found, errorfamily.Wrapf(
+			err,
+			errorfamily.Infrastructure,
+			"pebble.journal_iterator",
+			"iterator error in journal (limit=%d)",
+			limit,
+		)
 	}
 
 	return events, found, nil

@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/ThreeDotsLabs/watermill/message"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
@@ -68,7 +69,7 @@ func MessageToCommand(topic string, msg *message.Message) (*command.BasicCommand
 	}
 
 	if cmdType.IsZero() {
-		return nil, event.NewRejection(
+		return nil, errorfamily.NewRejection(
 			"watermill.missing_metadata",
 			"missing "+metaCommandType+" metadata and empty topic",
 		)
@@ -76,7 +77,7 @@ func MessageToCommand(topic string, msg *message.Message) (*command.BasicCommand
 
 	aggregateID, err := id.ParseAggregateID(md.Get(metaAggregateID))
 	if err != nil {
-		return nil, event.WrapRejection(err,
+		return nil, errorfamily.WrapRejection(err,
 			"watermill.parse_aggregate_id_failed", "parse aggregate_id")
 	}
 
@@ -84,7 +85,11 @@ func MessageToCommand(topic string, msg *message.Message) (*command.BasicCommand
 
 	cmd, err := command.New(cmdType, aggregateID, opts...)
 	if err != nil {
-		return nil, event.WrapCorruption(err, "watermill.create_command_failed", "create command")
+		return nil, errorfamily.WrapCorruption(
+			err,
+			"watermill.create_command_failed",
+			"create command",
+		)
 	}
 
 	return cmd, nil

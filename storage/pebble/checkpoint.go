@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/cockroachdb/pebble"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -81,7 +82,7 @@ func (s *CheckpointStore) Save(
 	defer span.End()
 
 	if projectionName == "" {
-		return event.NewRejection("pebble.empty_projection_name",
+		return errorfamily.NewRejection("pebble.empty_projection_name",
 			"projection name must not be empty")
 	}
 
@@ -91,7 +92,7 @@ func (s *CheckpointStore) Save(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return event.WrapCorruption(err, "pebble.serialize_checkpoint",
+		return errorfamily.WrapCorruption(err, "pebble.serialize_checkpoint",
 			"serialize checkpoint for projection "+projectionName)
 	}
 
@@ -99,7 +100,7 @@ func (s *CheckpointStore) Save(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return event.WrapInfrastructure(err, "pebble.write_checkpoint",
+		return errorfamily.WrapInfrastructure(err, "pebble.write_checkpoint",
 			"write checkpoint for projection "+projectionName)
 	}
 
@@ -120,7 +121,7 @@ func (s *CheckpointStore) Load(
 	if projectionName == "" {
 		return event.Checkpoint{
 				EventID: id.EventID{},
-			}, event.NewRejection("pebble.empty_projection_name",
+			}, errorfamily.NewRejection("pebble.empty_projection_name",
 				"projection name must not be empty")
 	}
 
@@ -138,7 +139,7 @@ func (s *CheckpointStore) Load(
 
 		return event.Checkpoint{
 				EventID: id.EventID{},
-			}, event.WrapInfrastructure(err, "pebble.read_checkpoint",
+			}, errorfamily.WrapInfrastructure(err, "pebble.read_checkpoint",
 				"read checkpoint for projection "+projectionName)
 	}
 
@@ -153,7 +154,7 @@ func (s *CheckpointStore) Load(
 
 		return event.Checkpoint{
 				EventID: id.EventID{},
-			}, event.WrapCorruption(err, "pebble.deserialize_checkpoint",
+			}, errorfamily.WrapCorruption(err, "pebble.deserialize_checkpoint",
 				"deserialize checkpoint for projection "+projectionName)
 	}
 
@@ -189,9 +190,9 @@ func deserializeCheckpoint(data []byte) (event.Checkpoint, error) {
 	if isCBOR(data) {
 		err := unmarshalCBOR(data, &s)
 		if err != nil {
-			return event.Checkpoint{}, event.Wrapf(
+			return event.Checkpoint{}, errorfamily.Wrapf(
 				err,
-				event.Corruption,
+				errorfamily.Corruption,
 				"pebble.checkpoint_cbor",
 				"cbor unmarshal checkpoint",
 			)
@@ -200,9 +201,9 @@ func deserializeCheckpoint(data []byte) (event.Checkpoint, error) {
 		// Legacy JSON fallback for checkpoints written before CBOR migration.
 		err := json.Unmarshal(data, &s)
 		if err != nil {
-			return event.Checkpoint{}, event.Wrapf(
+			return event.Checkpoint{}, errorfamily.Wrapf(
 				err,
-				event.Corruption,
+				errorfamily.Corruption,
 				"pebble.checkpoint_json",
 				"json unmarshal checkpoint",
 			)

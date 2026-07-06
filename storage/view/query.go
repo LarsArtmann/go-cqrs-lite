@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 )
 
@@ -53,7 +54,7 @@ func (s *SQLViewStore[V, K]) Query(ctx context.Context, q kv.ViewQuery) ([]*V, e
 
 	rows, err := s.DB.QueryContext(ctx, b.String(), args...)
 	if err != nil {
-		return nil, event.WrapTransient(err, "storage.view.query", "query view records")
+		return nil, errorfamily.WrapTransient(err, "storage.view.query", "query view records")
 	}
 
 	defer func() { _ = rows.Close() }()

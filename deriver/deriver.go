@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"strconv"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	cqrscommand "github.com/larsartmann/go-cqrs-lite/command/v3"
 	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
 	cqrsid "github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 // ErrNilDispatcher is returned when AsHandler is called with a nil dispatcher.
-var ErrNilDispatcher = cqrsevent.NewRejection(
+var ErrNilDispatcher = errorfamily.NewRejection(
 	"deriver.nil_dispatcher",
 	"deriver: dispatcher must not be nil",
 )

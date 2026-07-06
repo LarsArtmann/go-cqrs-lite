@@ -16,15 +16,15 @@ func TestFamily_String(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		family event.Family
+		family errorfamily.Family
 		want   string
 	}{
-		{event.Rejection, "rejection"},
-		{event.Conflict, "conflict"},
-		{event.Transient, "transient"},
-		{event.Corruption, "corruption"},
-		{event.Infrastructure, "infrastructure"},
-		{event.Family(99), "unknown"},
+		{errorfamily.Rejection, "rejection"},
+		{errorfamily.Conflict, "conflict"},
+		{errorfamily.Transient, "transient"},
+		{errorfamily.Corruption, "corruption"},
+		{errorfamily.Infrastructure, "infrastructure"},
+		{errorfamily.Family(99), "unknown"},
 	}
 	for _, tc := range cases {
 		if got := tc.family.String(); got != tc.want {
@@ -38,38 +38,38 @@ func TestError_Constructors(t *testing.T) {
 
 	cases := []struct {
 		name   string
-		err    *event.Error
-		family event.Family
+		err    *errorfamily.Error
+		family errorfamily.Family
 		code   string
 	}{
 		{
 			"rejection",
-			event.NewRejection("test.reject", "rejected"),
-			event.Rejection,
+			errorfamily.NewRejection("test.reject", "rejected"),
+			errorfamily.Rejection,
 			"test.reject",
 		},
 		{
 			"conflict",
-			event.NewConflict("test.conflict", "conflicted"),
-			event.Conflict,
+			errorfamily.NewConflict("test.conflict", "conflicted"),
+			errorfamily.Conflict,
 			"test.conflict",
 		},
 		{
 			"transient",
-			event.NewTransient("test.transient", "transient fail"),
-			event.Transient,
+			errorfamily.NewTransient("test.transient", "transient fail"),
+			errorfamily.Transient,
 			"test.transient",
 		},
 		{
 			"corruption",
-			event.NewCorruption("test.corrupt", "corrupted"),
-			event.Corruption,
+			errorfamily.NewCorruption("test.corrupt", "corrupted"),
+			errorfamily.Corruption,
 			"test.corrupt",
 		},
 		{
 			"infrastructure",
-			event.NewInfrastructure("test.infra", "down"),
-			event.Infrastructure,
+			errorfamily.NewInfrastructure("test.infra", "down"),
+			errorfamily.Infrastructure,
 			"test.infra",
 		},
 	}
@@ -97,7 +97,7 @@ func TestError_WithCause(t *testing.T) {
 
 	inner := errors.New("inner error")
 
-	err := event.NewTransient("test.retry", "retry me").WithCause(inner)
+	err := errorfamily.NewTransient("test.retry", "retry me").WithCause(inner)
 	if !errors.Is(err.Unwrap(), inner) {
 		t.Error("WithCause did not set cause")
 	}
@@ -107,12 +107,12 @@ func TestError_WithCause_chaining(t *testing.T) {
 	t.Parallel()
 
 	inner := errors.New("root")
-	err := event.NewConflict("test.c", "msg").WithCause(inner)
+	err := errorfamily.NewConflict("test.c", "msg").WithCause(inner)
 	wrapped := fmt.Errorf("outer: %w", err)
 
-	extracted, ok := errors.AsType[*event.Error](wrapped)
+	extracted, ok := errors.AsType[*errorfamily.Error](wrapped)
 	if !ok {
-		t.Fatal("errors.AsType should find *event.Error in wrapped chain")
+		t.Fatal("errors.AsType should find *errorfamily.Error in wrapped chain")
 	}
 
 	if extracted.Code() != "test.c" {
@@ -130,21 +130,21 @@ func TestClassify_sentinelMapping(t *testing.T) {
 	cases := []struct {
 		name string
 		err  error
-		want event.Family
+		want errorfamily.Family
 	}{
-		{"version conflict", event.ErrVersionConflict, event.Conflict},
-		{"aggregate not found", event.ErrAggregateNotFound, event.Rejection},
-		{"snapshot not found", snapshot.ErrSnapshotNotFound, event.Rejection},
-		{"store closed", event.ErrStoreClosed, event.Infrastructure},
-		{"bus closed", event.ErrBusClosed, event.Infrastructure},
-		{"snapshot store closed", snapshot.ErrSnapshotStoreClosed, event.Infrastructure},
+		{"version conflict", event.ErrVersionConflict, errorfamily.Conflict},
+		{"aggregate not found", event.ErrAggregateNotFound, errorfamily.Rejection},
+		{"snapshot not found", snapshot.ErrSnapshotNotFound, errorfamily.Rejection},
+		{"store closed", event.ErrStoreClosed, errorfamily.Infrastructure},
+		{"bus closed", event.ErrBusClosed, errorfamily.Infrastructure},
+		{"snapshot store closed", snapshot.ErrSnapshotStoreClosed, errorfamily.Infrastructure},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			if got := event.Classify(tc.err); got != tc.want {
-				t.Errorf("Classify(%v) = %v, want %v", tc.err, got, tc.want)
+			if got := errorfamily.Classify(tc.err); got != tc.want {
+				t.Errorf("errorfamily.Classify(%v) = %v, want %v", tc.err, got, tc.want)
 			}
 		})
 	}
@@ -153,20 +153,24 @@ func TestClassify_sentinelMapping(t *testing.T) {
 func TestClassify_typedError(t *testing.T) {
 	t.Parallel()
 
-	err := event.NewRejection("test.r", "bad input")
-	if got := event.Classify(err); got != event.Rejection {
-		t.Errorf("Classify(typed error) = %v, want %v", got, event.Rejection)
+	err := errorfamily.NewRejection("test.r", "bad input")
+	if got := errorfamily.Classify(err); got != errorfamily.Rejection {
+		t.Errorf("errorfamily.Classify(typed error) = %v, want %v", got, errorfamily.Rejection)
 	}
 }
 
 func TestClassify_wrappedTypedError(t *testing.T) {
 	t.Parallel()
 
-	inner := event.NewConflict("test.c", "conflict")
+	inner := errorfamily.NewConflict("test.c", "conflict")
 
 	wrapped := fmt.Errorf("handler failed: %w", inner)
-	if got := event.Classify(wrapped); got != event.Conflict {
-		t.Errorf("Classify(wrapped typed error) = %v, want %v", got, event.Conflict)
+	if got := errorfamily.Classify(wrapped); got != errorfamily.Conflict {
+		t.Errorf(
+			"errorfamily.Classify(wrapped typed error) = %v, want %v",
+			got,
+			errorfamily.Conflict,
+		)
 	}
 }
 
@@ -174,16 +178,20 @@ func TestClassify_unknownDefaultsToTransient(t *testing.T) {
 	t.Parallel()
 
 	err := errors.New("something unexpected")
-	if got := event.Classify(err); got != event.Transient {
-		t.Errorf("Classify(unknown) = %v, want %v (Transient)", got, event.Transient)
+	if got := errorfamily.Classify(err); got != errorfamily.Transient {
+		t.Errorf(
+			"errorfamily.Classify(unknown) = %v, want %v (Transient)",
+			got,
+			errorfamily.Transient,
+		)
 	}
 }
 
 func TestClassify_nilError(t *testing.T) {
 	t.Parallel()
 
-	if got := event.Classify(nil); got != event.Rejection {
-		t.Errorf("Classify(nil) = %v, want %v (Rejection)", got, event.Rejection)
+	if got := errorfamily.Classify(nil); got != errorfamily.Rejection {
+		t.Errorf("errorfamily.Classify(nil) = %v, want %v (Rejection)", got, errorfamily.Rejection)
 	}
 }
 
@@ -195,12 +203,12 @@ func TestIsRetryable(t *testing.T) {
 		err   error
 		retry bool
 	}{
-		{"transient", event.NewTransient("t", "msg"), true},
+		{"transient", errorfamily.NewTransient("t", "msg"), true},
 		{"nil error", nil, false},
-		{"rejection", event.NewRejection("r", "msg"), false},
-		{"conflict", event.NewConflict("c", "msg"), false},
-		{"corruption", event.NewCorruption("x", "msg"), false},
-		{"infrastructure", event.NewInfrastructure("i", "msg"), false},
+		{"rejection", errorfamily.NewRejection("r", "msg"), false},
+		{"conflict", errorfamily.NewConflict("c", "msg"), false},
+		{"corruption", errorfamily.NewCorruption("x", "msg"), false},
+		{"infrastructure", errorfamily.NewInfrastructure("i", "msg"), false},
 		{"ErrVersionConflict", event.ErrVersionConflict, false},
 		{"ErrStoreClosed", event.ErrStoreClosed, false},
 	}
@@ -208,8 +216,8 @@ func TestIsRetryable(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			if got := event.IsRetryable(tc.err); got != tc.retry {
-				t.Errorf("IsRetryable(%v) = %v, want %v", tc.err, got, tc.retry)
+			if got := errorfamily.IsRetryable(tc.err); got != tc.retry {
+				t.Errorf("errorfamily.IsRetryable(%v) = %v, want %v", tc.err, got, tc.retry)
 			}
 		})
 	}
@@ -218,7 +226,7 @@ func TestIsRetryable(t *testing.T) {
 func TestError_Format(t *testing.T) {
 	t.Parallel()
 
-	err := event.NewTransient("db.timeout", "connection lost")
+	err := errorfamily.NewTransient("db.timeout", "connection lost")
 
 	got := fmt.Sprintf("%v", err)
 	want := "[transient:db.timeout] connection lost"
@@ -246,7 +254,7 @@ func TestError_Format(t *testing.T) {
 func TestNewf(t *testing.T) {
 	t.Parallel()
 
-	err := event.Newf(event.Rejection, "test.newf", "formatted %s %d", "hello", 42)
+	err := errorfamily.Newf(errorfamily.Rejection, "test.newf", "formatted %s %d", "hello", 42)
 	if err.Code() != "test.newf" {
 		t.Errorf("Code() = %q, want %q", err.Code(), "test.newf")
 	}
@@ -259,7 +267,7 @@ func TestWrapf(t *testing.T) {
 	t.Parallel()
 
 	inner := errors.New("root cause")
-	err := event.Wrapf(inner, event.Transient, "test.wrapf", "wrapped %s", "value")
+	err := errorfamily.Wrapf(inner, errorfamily.Transient, "test.wrapf", "wrapped %s", "value")
 	if !errors.Is(err, inner) {
 		t.Error("Wrapf should preserve cause for errors.Is")
 	}
@@ -271,7 +279,7 @@ func TestWrapf(t *testing.T) {
 func TestWithContext(t *testing.T) {
 	t.Parallel()
 
-	err := event.NewRejection("test.ctx", "msg")
+	err := errorfamily.NewRejection("test.ctx", "msg")
 	result := err.WithContext("key", "value")
 	if result.ContextValue("key") != "value" {
 		t.Errorf("ContextValue(key) = %q, want %q", result.ContextValue("key"), "value")
@@ -281,14 +289,14 @@ func TestWithContext(t *testing.T) {
 func TestExitCode(t *testing.T) {
 	t.Parallel()
 
-	if got := event.ExitCode(nil); got != 0 {
-		t.Errorf("ExitCode(nil) = %d, want 0", got)
+	if got := errorfamily.ExitCode(nil); got != 0 {
+		t.Errorf("errorfamily.ExitCode(nil) = %d, want 0", got)
 	}
-	if got := event.ExitCode(event.NewRejection("r", "msg")); got != 1 {
-		t.Errorf("ExitCode(Rejection) = %d, want 1", got)
+	if got := errorfamily.ExitCode(errorfamily.NewRejection("r", "msg")); got != 1 {
+		t.Errorf("errorfamily.ExitCode(Rejection) = %d, want 1", got)
 	}
-	if got := event.ExitCode(event.NewTransient("t", "msg")); got != 75 {
-		t.Errorf("ExitCode(Transient) = %d, want 75", got)
+	if got := errorfamily.ExitCode(errorfamily.NewTransient("t", "msg")); got != 75 {
+		t.Errorf("errorfamily.ExitCode(Transient) = %d, want 75", got)
 	}
 }
 
@@ -300,7 +308,7 @@ func TestHandleErrorDetailed(t *testing.T) {
 		t.Errorf("HandleErrorDetailed(nil).ExitCode = %d, want 0", result.ExitCode)
 	}
 
-	result = errorfamily.HandleErrorDetailed(event.NewRejection("test.input", "bad input"))
+	result = errorfamily.HandleErrorDetailed(errorfamily.NewRejection("test.input", "bad input"))
 	if result.ExitCode != 1 {
 		t.Errorf("HandleErrorDetailed(Rejection).ExitCode = %d, want 1", result.ExitCode)
 	}
@@ -313,7 +321,7 @@ func TestError_Format_withCause(t *testing.T) {
 	t.Parallel()
 
 	inner := errors.New("tcp reset")
-	err := event.NewTransient("db.timeout", "connection lost").WithCause(inner)
+	err := errorfamily.NewTransient("db.timeout", "connection lost").WithCause(inner)
 
 	got := fmt.Sprintf("%+v", err)
 	if got == "" {
@@ -328,9 +336,9 @@ func TestError_Format_withCause(t *testing.T) {
 func TestError_Is(t *testing.T) {
 	t.Parallel()
 
-	err1 := event.NewRejection("not_found", "user not found")
-	err2 := event.NewRejection("not_found", "different message")
-	err3 := event.NewConflict("not_found", "user not found")
+	err1 := errorfamily.NewRejection("not_found", "user not found")
+	err2 := errorfamily.NewRejection("not_found", "different message")
+	err3 := errorfamily.NewConflict("not_found", "user not found")
 
 	if !err1.Is(err2) {
 		t.Error("Is should match errors with same Code and Family")

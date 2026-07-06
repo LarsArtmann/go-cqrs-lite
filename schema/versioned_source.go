@@ -6,6 +6,8 @@ import (
 	"io"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
@@ -82,7 +84,7 @@ func (s *VersionedStore) loadAndUpcast(
 ) ([]event.Event, error) {
 	events, err := load()
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, code, msg)
+		return nil, errorfamily.WrapInfrastructure(err, code, msg)
 	}
 
 	return s.upcastAll(events)
@@ -92,7 +94,7 @@ func (s *VersionedStore) Close() error {
 	if c, ok := s.inner.(io.Closer); ok {
 		err := c.Close()
 		if err != nil {
-			return event.WrapInfrastructure(err, "schema.versioned_close",
+			return errorfamily.WrapInfrastructure(err, "schema.versioned_close",
 				"close versioned store")
 		}
 	}
@@ -105,7 +107,7 @@ func (s *VersionedStore) upcastAll(events []event.Event) ([]event.Event, error) 
 	for i, evt := range events {
 		upcasted, err := s.registry.upcast(evt)
 		if err != nil {
-			return nil, event.WrapCorruption(
+			return nil, errorfamily.WrapCorruption(
 				err,
 				"schema.upcast_failed",
 				"upcast event "+evt.ID().String(),

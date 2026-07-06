@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"strings"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
-
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
 // Pragma is a SQLite-compatible PRAGMA setting.
@@ -74,7 +73,7 @@ func SetMemoryMap(ctx context.Context, db *sql.DB, size int64) error {
 func RunOptimize(ctx context.Context, db *sql.DB) error {
 	_, err := db.ExecContext(ctx, "PRAGMA optimize")
 	if err != nil && !isUnsupportedPragma(err) {
-		return event.WrapInfrastructure(err, "indexing.optimize",
+		return errorfamily.WrapInfrastructure(err, "indexing.optimize",
 			"run PRAGMA optimize")
 	}
 
@@ -85,7 +84,7 @@ func RunOptimize(ctx context.Context, db *sql.DB) error {
 func Analyze(ctx context.Context, db *sql.DB) error {
 	_, err := db.ExecContext(ctx, "ANALYZE")
 	if err != nil {
-		return event.WrapInfrastructure(err, "indexing.analyze",
+		return errorfamily.WrapInfrastructure(err, "indexing.analyze",
 			"run ANALYZE")
 	}
 
@@ -96,7 +95,7 @@ func Analyze(ctx context.Context, db *sql.DB) error {
 func AnalyzeTable(ctx context.Context, db *sql.DB, table string) error {
 	_, err := db.ExecContext(ctx, fmt.Sprintf("ANALYZE %s", table))
 	if err != nil {
-		return event.WrapInfrastructure(err, "indexing.analyze_table",
+		return errorfamily.WrapInfrastructure(err, "indexing.analyze_table",
 			"run ANALYZE "+table)
 	}
 
@@ -109,7 +108,7 @@ func applyPragmas(ctx context.Context, db *sql.DB, pragmas []Pragma) error {
 
 		_, err := db.ExecContext(ctx, sqlStr)
 		if err != nil && !isUnsupportedPragma(err) {
-			return event.WrapInfrastructure(err, "indexing.pragma",
+			return errorfamily.WrapInfrastructure(err, "indexing.pragma",
 				"set PRAGMA "+p.Name)
 		}
 	}

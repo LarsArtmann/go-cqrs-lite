@@ -3,6 +3,8 @@ package multisig
 import (
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/signing/v3"
 )
@@ -17,15 +19,15 @@ func NewMultiSigner(
 	opts ...MultiSignerOption,
 ) (*MultiSigner, error) {
 	if actor == "" {
-		return nil, event.NewRejection("signing.empty_actor", "actor name cannot be empty")
+		return nil, errorfamily.NewRejection("signing.empty_actor", "actor name cannot be empty")
 	}
 
 	if signer == nil {
-		return nil, event.NewRejection("signing.nil_signer", "signer cannot be nil")
+		return nil, errorfamily.NewRejection("signing.nil_signer", "signer cannot be nil")
 	}
 
 	if algorithm == "" {
-		return nil, event.NewRejection("signing.empty_algorithm", "algorithm cannot be empty")
+		return nil, errorfamily.NewRejection("signing.empty_algorithm", "algorithm cannot be empty")
 	}
 
 	var verifier signing.Verifier
@@ -46,14 +48,14 @@ func NewMultiSigner(
 	}
 
 	if multi.verifier == nil {
-		return nil, event.NewRejection(
+		return nil, errorfamily.NewRejection(
 			"signing.nil_verifier",
 			"verifier cannot be nil; pass WithVerifier for Ed25519 signers",
 		)
 	}
 
 	if multi.clock == nil {
-		return nil, event.NewRejection("signing.nil_clock", "clock option cannot be nil")
+		return nil, errorfamily.NewRejection("signing.nil_clock", "clock option cannot be nil")
 	}
 
 	return multi, nil
@@ -76,7 +78,7 @@ func (m *MultiSigner) Sign(evt event.Event) (event.Event, error) {
 
 	sig, err := m.signer.Sign(evt)
 	if err != nil {
-		return nil, event.WrapInfrastructure(
+		return nil, errorfamily.WrapInfrastructure(
 			err,
 			"signing.multi_sign",
 			"sign event for actor "+string(m.actor),
@@ -102,7 +104,7 @@ func (m *MultiSigner) Sign(evt event.Event) (event.Event, error) {
 
 	validateErr := entry.Validate()
 	if validateErr != nil {
-		return nil, event.WrapRejection(
+		return nil, errorfamily.WrapRejection(
 			validateErr,
 			"signing.invalid_entry",
 			"validate signature entry",
@@ -119,7 +121,7 @@ func (m *MultiSigner) Sign(evt event.Event) (event.Event, error) {
 func (m *MultiSigner) Verify(evt event.Event) error {
 	err := verifyActorEntry(evt, m.actor, m.verifier)
 	if err != nil {
-		return event.WrapInfrastructure(
+		return errorfamily.WrapInfrastructure(
 			err,
 			"signing.verify_actor",
 			"verify actor "+string(m.actor),
@@ -134,7 +136,7 @@ func (m *MultiSigner) Verify(evt event.Event) error {
 func (m *MultiSigner) VerifyActor(evt event.Event, actor Actor, verifier signing.Verifier) error {
 	err := verifyActorEntry(evt, actor, verifier)
 	if err != nil {
-		return event.WrapInfrastructure(
+		return errorfamily.WrapInfrastructure(
 			err,
 			"signing.verify_actor",
 			"verify actor "+string(actor),
@@ -157,8 +159,8 @@ func verifyActorEntry(evt event.Event, actor Actor, verifier signing.Verifier) e
 
 	entry := multiSig.Get(actor)
 	if entry == nil {
-		return event.Wrapf(
-			signing.ErrNilSignature, event.Rejection,
+		return errorfamily.Wrapf(
+			signing.ErrNilSignature, errorfamily.Rejection,
 			"signing.no_actor_signature",
 			"no signature found for actor %s",
 			actor,
@@ -167,7 +169,7 @@ func verifyActorEntry(evt event.Event, actor Actor, verifier signing.Verifier) e
 
 	verifyErr := verifier.Verify(evt, entry.Sig)
 	if verifyErr != nil {
-		return event.WrapInfrastructure(
+		return errorfamily.WrapInfrastructure(
 			verifyErr,
 			"signing.verify_actor_entry",
 			"verify entry for actor "+string(actor),

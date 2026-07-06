@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	"golang.org/x/sync/singleflight"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
@@ -151,7 +152,7 @@ func (r *Repository[State]) Execute(
 		err = r.publisher.Publish(ctx, newEvents...)
 		if err != nil {
 			cqrsotel.RecordError(span, err)
-			wrapErr := event.WrapInfrastructure(err, "event.publish_failed", "publish events")
+			wrapErr := errorfamily.WrapInfrastructure(err, "event.publish_failed", "publish events")
 
 			return opError(ref, "%w", wrapErr)
 		}

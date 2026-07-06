@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
@@ -98,7 +100,7 @@ func (b *PostgresBus) refetchByID(
 		}
 
 		if !errors.Is(loadErr, event.ErrEventNotFound) {
-			return nil, event.WrapInfrastructure(loadErr, "pg_bus.refetch_by_id",
+			return nil, errorfamily.WrapInfrastructure(loadErr, "pg_bus.refetch_by_id",
 				"load event by ID during refetch")
 		}
 
@@ -111,7 +113,7 @@ func (b *PostgresBus) refetchByID(
 		}
 	}
 
-	return nil, event.WrapInfrastructure(
+	return nil, errorfamily.WrapInfrastructure(
 		lastErr,
 		"storage.pg_bus_refetch_by_id",
 		"re-fetch event "+eventID.String()+" after "+strconv.Itoa(
@@ -150,7 +152,7 @@ func (b *PostgresBus) refetchByVersion(ctx context.Context, np notifyPayload) (e
 	}
 
 	if lastErr != nil {
-		return nil, event.WrapInfrastructure(
+		return nil, errorfamily.WrapInfrastructure(
 			lastErr,
 			"storage.pg_bus_refetch",
 			"re-fetch event "+np.EventID.String()+" after "+strconv.Itoa(
@@ -159,7 +161,7 @@ func (b *PostgresBus) refetchByVersion(ctx context.Context, np notifyPayload) (e
 		)
 	}
 
-	return nil, event.WrapInfrastructure(
+	return nil, errorfamily.WrapInfrastructure(
 		errEventNotFoundAfterRetries,
 		"storage.pg_bus_refetch_not_found",
 		"event "+np.EventID.String()+" not found after re-fetch attempts",
@@ -182,7 +184,7 @@ func (b *PostgresBus) Close() error {
 	if b.listener != nil {
 		err := b.listener.Close()
 		if err != nil {
-			return event.WrapInfrastructure(err, "storage.pg_bus_close_listener",
+			return errorfamily.WrapInfrastructure(err, "storage.pg_bus_close_listener",
 				"close notification listener")
 		}
 	}

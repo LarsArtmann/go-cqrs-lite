@@ -1,6 +1,8 @@
 package encryption
 
 import (
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 )
 
@@ -14,7 +16,7 @@ func encryptEvent(evt event.Event, enc Encrypter, keyID KeyID) (event.Event, err
 
 	ciphertext, err := enc.Encrypt(payload)
 	if err != nil {
-		return nil, event.WrapInfrastructure(
+		return nil, errorfamily.WrapInfrastructure(
 			err,
 			"encryption.encrypt_event",
 			"encrypt event "+string(evt.Type()),
@@ -34,7 +36,7 @@ func encryptEvent(evt event.Event, enc Encrypter, keyID KeyID) (event.Event, err
 
 	clone, err := AttachEncryption(evt, ciphertext, attachOpts...)
 	if err != nil {
-		return nil, event.WrapInfrastructure(
+		return nil, errorfamily.WrapInfrastructure(
 			err,
 			"encryption.attach_ciphertext",
 			"attach ciphertext to event "+string(evt.Type()),
@@ -54,7 +56,7 @@ func decryptEvent(evt event.Event, dec Decrypter) (event.Event, error) {
 
 	plaintext, err := dec.Decrypt(ct)
 	if err != nil {
-		return nil, event.WrapInfrastructure(
+		return nil, errorfamily.WrapInfrastructure(
 			err,
 			"encryption.decrypt_event",
 			"decrypt event "+string(evt.Type()),
@@ -79,7 +81,7 @@ func decryptEvent(evt event.Event, dec Decrypter) (event.Event, error) {
 		event.WithMetadata(md),
 	)
 	if err != nil {
-		return nil, event.WrapInfrastructure(
+		return nil, errorfamily.WrapInfrastructure(
 			err,
 			"encryption.rebuild_event",
 			"rebuild decrypted event "+string(evt.Type()),

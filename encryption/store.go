@@ -5,6 +5,8 @@ import (
 	"io"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
@@ -140,7 +142,7 @@ func (s *encryptedStore) LoadToTimestamp(
 func (s *encryptedStore) ReadAll(ctx context.Context) ([]event.Event, error) {
 	journal, ok := s.inner.(event.Journal)
 	if !ok {
-		return nil, event.Wrapf(ErrInnerStoreNotJournal, event.Rejection,
+		return nil, errorfamily.Wrapf(ErrInnerStoreNotJournal, errorfamily.Rejection,
 			"encryption.store_not_journal", "inner store %T does not implement Journal", s.inner)
 	}
 
@@ -161,9 +163,9 @@ func (s *encryptedStore) ReadFrom(
 ) ([]event.Event, error) {
 	seekable, ok := s.inner.(event.SeekableJournal)
 	if !ok {
-		return nil, event.Wrapf(
+		return nil, errorfamily.Wrapf(
 			ErrInnerStoreNotSeekable,
-			event.Rejection,
+			errorfamily.Rejection,
 			"encryption.store_not_seekable",
 			"limit=%d: inner store %T does not implement SeekableJournal",
 			limit,
@@ -173,9 +175,9 @@ func (s *encryptedStore) ReadFrom(
 
 	events, err := seekable.ReadFrom(ctx, afterEventID, limit)
 	if err != nil {
-		return nil, event.Wrapf(
+		return nil, errorfamily.Wrapf(
 			err,
-			event.Infrastructure,
+			errorfamily.Infrastructure,
 			"encryption.read_from",
 			"limit=%d",
 			limit,
@@ -193,9 +195,9 @@ func (s *encryptedStore) LoadBackwards(
 ) ([]event.Event, error) {
 	backwards, ok := s.inner.(event.BackwardsSource)
 	if !ok {
-		return nil, event.Wrapf(
+		return nil, errorfamily.Wrapf(
 			ErrInnerStoreNotBackwards,
-			event.Rejection,
+			errorfamily.Rejection,
 			"encryption.store_not_backwards",
 			"inner store %T does not implement BackwardsSource",
 			s.inner,

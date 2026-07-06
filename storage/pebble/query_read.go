@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/cockroachdb/pebble"
+	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
@@ -28,7 +28,7 @@ func (s *QueryStore) LoadQueries(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, event.WrapInfrastructure(err, "pebble.query_load_queries",
+		return nil, errorfamily.WrapInfrastructure(err, "pebble.query_load_queries",
 			"load queries after timestamp")
 	}
 
@@ -48,7 +48,7 @@ func (s *QueryStore) ReadAllQueries(ctx context.Context) ([]*query.PersistedQuer
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, event.WrapInfrastructure(err, "pebble.query_read_all",
+		return nil, errorfamily.WrapInfrastructure(err, "pebble.query_read_all",
 			"read all queries from journal")
 	}
 
@@ -79,7 +79,7 @@ func (s *QueryStore) ReadQueriesFrom(
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return nil, event.WrapInfrastructure(err, "pebble.query_read_from",
+		return nil, errorfamily.WrapInfrastructure(err, "pebble.query_read_from",
 			"read queries from journal after checkpoint")
 	}
 
@@ -107,7 +107,7 @@ func (s *QueryStore) scanQueries(
 		},
 	)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "pebble.query_iter",
+		return nil, errorfamily.WrapInfrastructure(err, "pebble.query_iter",
 			"create query iterator")
 	}
 
@@ -128,7 +128,7 @@ func (s *QueryStore) scanQueries(
 
 		q, err := s.deserializeQuery(iter.Value())
 		if err != nil {
-			return nil, event.WrapCorruption(err, "pebble.query_corrupt",
+			return nil, errorfamily.WrapCorruption(err, "pebble.query_corrupt",
 				"corrupt query at key "+string(iter.Key()))
 		}
 
@@ -145,7 +145,7 @@ func (s *QueryStore) scanQueries(
 
 	err = checkIteratorError(iter)
 	if err != nil {
-		return nil, event.WrapInfrastructure(err, "pebble.query_iter_error",
+		return nil, errorfamily.WrapInfrastructure(err, "pebble.query_iter_error",
 			"query iterator error")
 	}
 

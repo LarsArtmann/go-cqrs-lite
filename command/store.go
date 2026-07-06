@@ -6,7 +6,8 @@ import (
 	"slices"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
@@ -65,7 +66,7 @@ func NewPersistedCommand(
 	opts ...PersistOption,
 ) (*PersistedCommand, error) {
 	if cmdType == "" {
-		return nil, event.WrapRejection(
+		return nil, errorfamily.WrapRejection(
 			ErrEmptyCommandType,
 			"command.empty_command_type",
 			"command type is required",
@@ -73,7 +74,7 @@ func NewPersistedCommand(
 	}
 
 	if ref.Type.IsZero() {
-		return nil, event.WrapRejection(
+		return nil, errorfamily.WrapRejection(
 			ErrEmptyAggregateType,
 			"command.empty_aggregate_type",
 			"aggregate type is required in ref",
@@ -81,7 +82,7 @@ func NewPersistedCommand(
 	}
 
 	if ref.ID.IsZero() {
-		return nil, event.WrapRejection(
+		return nil, errorfamily.WrapRejection(
 			ErrNilAggregateID,
 			"command.nil_aggregate_id",
 			"aggregate ID is required in ref",
