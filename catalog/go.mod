@@ -1,10 +1,10 @@
 module github.com/larsartmann/go-cqrs-lite/catalog/v3
 
-go 1.26.3
+go 1.26.4
 
 require (
 	github.com/go-faster/yaml v0.4.6
-	github.com/larsartmann/go-error-family v0.5.1
+	github.com/larsartmann/go-error-family v0.6.1
 	github.com/onsi/ginkgo/v2 v2.31.0
 	github.com/onsi/gomega v1.42.0
 )

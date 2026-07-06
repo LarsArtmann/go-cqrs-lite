@@ -1,10 +1,10 @@
 module github.com/larsartmann/go-cqrs-lite/id/v3
 
-go 1.26.3
+go 1.26.4
 
 require (
 	github.com/larsartmann/go-branded-id v0.3.1
-	github.com/larsartmann/go-error-family v0.5.1
+	github.com/larsartmann/go-error-family v0.6.1
 	github.com/oklog/ulid/v2 v2.1.1
 )
 
