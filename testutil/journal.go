@@ -2,6 +2,7 @@ package testutil
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
@@ -36,8 +37,11 @@ func (j *DelayedJournal) ReadFrom(
 	select {
 	case <-time.After(j.Delay):
 	case <-ctx.Done():
-		return nil, ctx.Err()
+		return nil, fmt.Errorf(
+			"delayed journal cancelled: %w",
+			ctx.Err(),
+		)
 	}
 
-	return j.SeekableJournal.ReadFrom(ctx, after, limit)
+	return j.SeekableJournal.ReadFrom(ctx, after, limit) //nolint:wrapcheck // direct delegation
 }
