@@ -159,7 +159,7 @@
           # and are invoked via `nix run .#<app>`. Pattern mirrors cqrs-htmx/flake.nix.
           packages.default = pkgs.stdenvNoCC.mkDerivation {
             pname = "go-cqrs-lite";
-            version = "3.7.0";
+            version = "3.7.1";
 
             dontUnpack = true;
             dontConfigure = true;

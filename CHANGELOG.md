@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [3.7.1] - 2026-07-07
+
+**Release documentation completeness — all 48 modules synced to v3.7.1.**
+
+v3.7.0 was published with 46 modules tagged (otel skipped as unchanged). This
+patch releases all 48 modules at a uniform version for consumer dependency
+alignment, and adds the CHANGELOG/version-string updates that v3.7.0 shipped
+without.
+
+### Fixed
+
+- **CHANGELOG.md** — added [3.7.0] section (was missing from the v3.7.0 release).
+- **flake.nix** — package version bumped to 3.7.0 (was stale at 3.6.0).
+- **v4-WISHLIST.md** — "Current major" updated to v3.7.0 (was stale at v3.4.0).
+- **otel/v3.7.0** tagged for version-line consistency (module unchanged since v3.5.0).
+
+### Verified
+
+- **govulncheck**: 0 vulnerabilities across all 48 modules.
+- **All gates green**: build, test, lint, isolation (GOWORK=off), version drift.
+
 ## [3.7.0] - 2026-07-07
 
 **Dedup module extraction, SSE production hardening, go-error-family direct adoption, SQLTimerStore.**
