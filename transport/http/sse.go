@@ -108,6 +108,10 @@ func WithReplayMetrics(metrics *ReplayMetrics) SSEBrokerOption {
 // journals. Values <= 0 fall back to the default.
 func WithDedupRingCapacity(capacity int) SSEBrokerOption {
 	return func(b *SSEBroker) {
+		if capacity <= 0 {
+			capacity = sseDedupRingCapacity
+		}
+
 		b.dedupRingCap = capacity
 	}
 }
@@ -223,6 +227,8 @@ func NewSSEBroker(bus event.Bus, opts ...SSEBrokerOption) (*SSEBroker, error) {
 	b := &SSEBroker{
 		clients: make(map[SSEClientID]*sseClient),
 		cancel:  cancel,
+		fanout:  fanoutSequential,
+		drop:    dropNewest,
 	}
 
 	for _, opt := range opts {
@@ -299,10 +305,7 @@ func (b *SSEBroker) fanoutParallelLocked(span cqrsotel.Span, evt event.Event) {
 		clients = append(clients, c)
 	}
 
-	workers := b.fanoutWorkers
-	if workers > len(clients) {
-		workers = len(clients)
-	}
+	workers := min(b.fanoutWorkers, len(clients))
 
 	if workers == 0 {
 		return
@@ -317,10 +320,8 @@ func (b *SSEBroker) fanoutParallelLocked(span cqrsotel.Span, evt event.Event) {
 
 	for w := range workers {
 		start := w * chunk
-		end := start + chunk
-		if end > len(clients) {
-			end = len(clients)
-		}
+
+		end := min(start+chunk, len(clients))
 
 		if start >= end {
 			break
@@ -391,10 +392,10 @@ func (b *SSEBroker) AddClient(id SSEClientID) chan event.Event {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	ch := make(chan event.Event, sseChannelBufSize)
-	b.clients[id] = ch
+	c := &sseClient{ch: make(chan event.Event, sseChannelBufSize)}
+	b.clients[id] = c
 
-	return ch
+	return c.ch
 }
 
 // RemoveClient unregisters an SSE client.
@@ -423,11 +424,11 @@ func (b *SSEBroker) Close() {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	for _, ch := range b.clients {
-		close(ch)
+	for _, c := range b.clients {
+		close(c.ch)
 	}
 
-	b.clients = make(map[SSEClientID]chan event.Event)
+	b.clients = make(map[SSEClientID]*sseClient)
 }
 
 // DefaultSSEHeartbeat is the default interval for SSE keepalive comment frames.

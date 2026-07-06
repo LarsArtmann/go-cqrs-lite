@@ -187,6 +187,7 @@ func writeReplayBatchBounded(
 		}
 
 		replayed.Add(evt.ID().String())
+
 		bytesWritten += len(data)
 		eventsWritten++
 
