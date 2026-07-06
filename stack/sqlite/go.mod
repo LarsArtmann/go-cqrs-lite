@@ -85,3 +85,7 @@ replace github.com/larsartmann/go-cqrs-lite/projection/v3 => ../../projection
 replace github.com/larsartmann/go-cqrs-lite/event/v3/eventtest => ../../event/v3/eventtest
 
 replace github.com/larsartmann/go-cqrs-lite/listing/v3 => ../../listing
+
+replace github.com/larsartmann/go-cqrs-lite/dedup/v3 => ../../dedup
+
+replace github.com/larsartmann/go-cqrs-lite/scheduling/v3 => ../../scheduling

@@ -32,6 +32,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-cqrs-lite/scheduling/v3 v3.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v3 v3.6.0 // indirect
 	github.com/larsartmann/go-error-family v0.6.1 // indirect
@@ -57,7 +58,7 @@ require (
 	golang.org/x/sync v0.21.0 // indirect
 	golang.org/x/sys v0.46.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	modernc.org/libc v1.73.5 // indirect
+	modernc.org/libc v1.74.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 	modernc.org/sqlite v1.53.0 // indirect
@@ -94,3 +95,11 @@ replace github.com/larsartmann/go-cqrs-lite/watermill/v3 => ../../watermill
 replace github.com/larsartmann/go-cqrs-lite/event/v3/eventtest => ../../event/v3/eventtest
 
 replace github.com/larsartmann/go-cqrs-lite/schema/v3 => ../../schema
+
+replace github.com/larsartmann/go-cqrs-lite/dedup/v3 => ../../dedup
+
+replace github.com/larsartmann/go-cqrs-lite/listing/v3 => ../../listing
+
+replace github.com/larsartmann/go-cqrs-lite/stack/sqlite/v3 => ../../stack/sqlite
+
+replace github.com/larsartmann/go-cqrs-lite/storage/v3 => ../../storage

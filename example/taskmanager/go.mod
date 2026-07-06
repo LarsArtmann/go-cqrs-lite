@@ -117,3 +117,7 @@ replace github.com/larsartmann/go-cqrs-lite/storage/memory/v3 => ../../storage/m
 replace github.com/larsartmann/go-cqrs-lite/schema/v3 => ../../schema
 
 replace github.com/larsartmann/go-cqrs-lite/event/v3/eventtest => ../../event/v3/eventtest
+
+replace github.com/larsartmann/go-cqrs-lite/dedup/v3 => ../../dedup
+
+replace github.com/larsartmann/go-cqrs-lite/scheduling/v3 => ../../scheduling

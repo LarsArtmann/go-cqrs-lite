@@ -33,7 +33,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.0.0-00010101000000-000000000000 // indirect
-	github.com/larsartmann/go-cqrs-lite/scheduling/v3 v3.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/scheduling/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
@@ -73,3 +73,7 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/storage/v3 => ../storage
 	github.com/larsartmann/go-cqrs-lite/watermill/v3 => ../watermill
 )
+
+replace github.com/larsartmann/go-cqrs-lite/dedup/v3 => ../dedup
+
+replace github.com/larsartmann/go-cqrs-lite/scheduling/v3 => ../scheduling

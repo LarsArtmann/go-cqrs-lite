@@ -96,3 +96,5 @@ replace github.com/larsartmann/go-cqrs-lite/watermill/v3 => ../../watermill
 replace github.com/larsartmann/go-cqrs-lite/projection/v3 => ../../projection
 
 replace github.com/larsartmann/go-cqrs-lite/event/v3/eventtest => ../../event/v3/eventtest
+
+replace github.com/larsartmann/go-cqrs-lite/dedup/v3 => ../../dedup

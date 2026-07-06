@@ -60,11 +60,11 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/dedup/v3 v3.0.0-20260706025749-cef6523c9e03 // indirect
+	github.com/larsartmann/go-cqrs-lite/dedup/v3 v3.0.0-20260706141209-fcd8277fc331 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.0.0-00010101000000-000000000000 // indirect
-	github.com/larsartmann/go-cqrs-lite/scheduling/v3 v3.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/scheduling/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
@@ -127,3 +127,7 @@ replace github.com/larsartmann/go-cqrs-lite/stack/v3 => ../stack
 replace github.com/larsartmann/go-cqrs-lite/watermill/v3 => ../watermill
 
 replace github.com/larsartmann/go-cqrs-lite/event/v3/eventtest => ../event/v3/eventtest
+
+replace github.com/larsartmann/go-cqrs-lite/dedup/v3 => ../dedup
+
+replace github.com/larsartmann/go-cqrs-lite/scheduling/v3 => ../scheduling

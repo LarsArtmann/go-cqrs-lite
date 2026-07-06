@@ -63,3 +63,5 @@ replace (
 )
 
 replace github.com/larsartmann/go-cqrs-lite/projection/v3 => ../../projection
+
+replace github.com/larsartmann/go-cqrs-lite/scheduling/v3 => ../../scheduling
