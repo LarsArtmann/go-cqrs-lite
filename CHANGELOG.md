@@ -4,6 +4,82 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [3.7.0] - 2026-07-07
+
+**Dedup module extraction, SSE production hardening, go-error-family direct adoption, SQLTimerStore.**
+
+### Added
+
+#### Dedup — Bounded Dedup Ring Buffer (`dedup/v3`, first release)
+
+- **`dedup.Ring`** — O(1) fixed-capacity ID deduplication for stream boundaries.
+  Extracted from the inline SSE and watermill implementations into a reusable
+  module. Used by `projectionhost`, `watermill`, and `transport/http` (SSE).
+
+#### SSE Production Hardening (`transport/http`)
+
+- **Fanout and drop policies** for high-fanout deployments — configurable behavior
+  when subscriber count exceeds budget.
+- **Backfill REST endpoint** — query missed events by aggregate or timestamp range.
+- **Auth middleware** — pluggable authentication for SSE connections.
+- **Offline reconnection example** — reference pattern for resilient clients.
+- **Byte-budget replay** — stops mid-batch when a configurable byte limit is
+  exceeded (prevents memory blowups on large replays).
+- **Replay timeout** — caps replay duration; sends an advisory event on timeout
+  before live streaming begins.
+
+#### ProjectionHost Graceful Teardown (`projectionhost`)
+
+- **`WorkerDraining` status** — workers transition through Draining before Stopped,
+  enabling graceful shutdown that respects in-flight events.
+
+#### SQLTimerStore (`storage`)
+
+- **`SQLTimerStore`** — persistent `scheduling.TimerStore` backed by SQL, enabling
+  durable deadline timers that survive restarts.
+
+#### Watermill Batched Replay (`watermill`)
+
+- **CatchUpSubscriber replay** now batches historical events into fixed-size chunks
+  instead of loading the entire backlog at once.
+
+#### Pebble GracefulClose (`stack/pebble`, `storage/pebble`)
+
+- **`GracefulClose(ctx)`** — bounds `Close()` with a timeout, preventing hung
+  shutdowns on slow flushes.
+
+### Changed
+
+#### Go-Error-Family Direct Adoption
+
+- All modules now import `go-error-family` directly instead of through the `event/`
+  package facade. The `event/` package retains type aliases (`event.Family`,
+  `event.Error`) for backward compatibility, but error construction and
+  classification functions now use `go-error-family` directly.
+- **`go-error-family` bumped to v0.6.1.**
+
+#### Turso Database Rebrand
+
+- "LibSQL" terminology replaced with "Turso Database" across the codebase and
+  documentation.
+
+### Fixed
+
+- **dedupRing panic** — removed panic from constructor on invalid capacity; returns
+  error or falls back to default.
+- **Prometheus provider shutdown** — now returns nil on successful shutdown.
+- **Tombstone projection** — persists correctly across KV store roundtrip.
+- **gRPC test nil-deref** — guard added.
+- **Pattern B sentinels** — replaced placeholder sentinels with real versions for
+  external consumption.
+
+### Infrastructure
+
+- **47 modules tagged at v3.7.0** (including first-ever `dedup/v3.7.0` and
+  version-line-consistency tag for `otel/v3.7.0`).
+- Replace directives completed across all modules for GOWORK=off build correctness.
+- Go toolchain at 1.26.4.
+
 ## [3.6.0] - 2026-07-05
 
 **Error-family taxonomy full sweep, deriver module, flagship example consolidation.**

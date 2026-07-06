@@ -4,7 +4,7 @@
 > justify a major version bump. Do NOT cut v4 until 3+ items on this list are
 > concrete and aliases can't solve them.
 >
-> **Current major:** v3.4.0 (54 modules, 27 consumer projects)
+> **Current major:** v3.7.0 (48 modules, 27 consumer projects)
 > **Created:** 2026-06-29
 
 ---
