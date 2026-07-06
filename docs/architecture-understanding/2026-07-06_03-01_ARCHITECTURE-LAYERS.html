@@ -1,262 +1,325 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>go-cqrs-lite — Architecture Layers</title>
-<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
-<style>
-:root {
-  --bg: #0e0e10;
-  --surface: #18181d;
-  --surface-2: #16161a;
-  --bone: #f4f4f0;
-  --muted: rgba(244,244,240,0.65);
-  --faint: rgba(244,244,240,0.35);
-  --hairline: rgba(244,244,240,0.10);
-  --red: #ff6b6b;
-  --blue: #6eb5ff;
-  --yellow: #f4d35e;
-  --green: #6ee7a7;
-  --orange: #ffb347;
-  --purple: #c4a7e7;
-  --mono: ui-monospace, "JetBrains Mono", Menlo, monospace;
-  --sans: ui-sans-serif, system-ui, -apple-system, sans-serif;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  background: var(--bg);
-  color: var(--bone);
-  font-family: var(--sans);
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-}
-header {
-  padding: 32px 40px 20px;
-  border-bottom: 1px solid var(--hairline);
-}
-header h1 {
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: -0.3px;
-}
-header p {
-  color: var(--muted);
-  font-size: 14px;
-  margin-top: 6px;
-  max-width: 720px;
-}
-.tabs {
-  display: flex;
-  gap: 0;
-  padding: 0 40px;
-  border-bottom: 1px solid var(--hairline);
-}
-.tab {
-  background: none;
-  border: none;
-  color: var(--muted);
-  font-family: var(--sans);
-  font-size: 14px;
-  font-weight: 600;
-  padding: 14px 24px;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: all 0.15s;
-}
-.tab:hover { color: var(--bone); }
-.tab.active {
-  color: var(--bone);
-  border-bottom-color: var(--orange);
-}
-.diagram-panel {
-  display: none;
-  padding: 24px 40px 60px;
-}
-.diagram-panel.active { display: block; }
-.diagram-wrapper {
-  background: var(--surface);
-  border: 1px solid var(--hairline);
-  border-radius: 4px;
-  overflow: hidden;
-  position: relative;
-}
-.diagram-scroll {
-  overflow: auto;
-  max-height: calc(100vh - 240px);
-  padding: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-}
-.diagram-scroll svg {
-  max-width: none;
-  height: auto;
-}
-.zoom-controls {
-  position: absolute;
-  bottom: 16px;
-  right: 16px;
-  display: flex;
-  gap: 4px;
-  background: var(--surface-2);
-  border: 1px solid var(--hairline);
-  border-radius: 4px;
-  padding: 4px;
-  z-index: 10;
-}
-.zoom-controls button {
-  background: none;
-  border: none;
-  color: var(--bone);
-  font-family: var(--sans);
-  font-size: 16px;
-  width: 32px;
-  height: 32px;
-  cursor: pointer;
-  border-radius: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.zoom-controls button:hover { background: var(--hairline); }
-.zoom-level {
-  color: var(--muted);
-  font-size: 12px;
-  font-family: var(--mono);
-  display: flex;
-  align-items: center;
-  padding: 0 8px;
-  min-width: 48px;
-  justify-content: center;
-}
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  padding: 12px 20px;
-  border-bottom: 1px solid var(--hairline);
-  background: var(--surface-2);
-  font-size: 12px;
-  color: var(--muted);
-}
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.legend-swatch {
-  width: 16px;
-  height: 16px;
-  border-radius: 3px;
-  flex-shrink: 0;
-}
-.legend-line {
-  width: 24px;
-  height: 2px;
-  flex-shrink: 0;
-}
-.callouts {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
-}
-.callout {
-  background: var(--surface);
-  border: 1px solid var(--hairline);
-  border-radius: 4px;
-  padding: 16px 20px;
-}
-.callout h3 {
-  font-size: 13px;
-  font-weight: 700;
-  margin-bottom: 6px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.callout p {
-  font-size: 13px;
-  color: var(--muted);
-  line-height: 1.5;
-}
-.callout .tag {
-  display: inline-block;
-  font-size: 10px;
-  font-family: var(--mono);
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 2px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.tag-red { background: rgba(255,107,107,0.15); color: var(--red); }
-.tag-green { background: rgba(110,231,167,0.15); color: var(--green); }
-.tag-yellow { background: rgba(244,211,94,0.15); color: var(--yellow); }
-.summary-stats {
-  display: flex;
-  gap: 32px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-}
-.stat {
-  text-align: left;
-}
-.stat .num {
-  font-family: var(--mono);
-  font-size: 32px;
-  font-weight: 700;
-  line-height: 1;
-}
-.stat .label {
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 4px;
-}
-</style>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>go-cqrs-lite — Architecture Layers</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <style>
+      :root {
+        --bg: #0e0e10;
+        --surface: #18181d;
+        --surface-2: #16161a;
+        --bone: #f4f4f0;
+        --muted: rgba(244, 244, 240, 0.65);
+        --faint: rgba(244, 244, 240, 0.35);
+        --hairline: rgba(244, 244, 240, 0.1);
+        --red: #ff6b6b;
+        --blue: #6eb5ff;
+        --yellow: #f4d35e;
+        --green: #6ee7a7;
+        --orange: #ffb347;
+        --purple: #c4a7e7;
+        --mono: ui-monospace, "JetBrains Mono", Menlo, monospace;
+        --sans: ui-sans-serif, system-ui, -apple-system, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: var(--bg);
+        color: var(--bone);
+        font-family: var(--sans);
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      header {
+        padding: 32px 40px 20px;
+        border-bottom: 1px solid var(--hairline);
+      }
+      header h1 {
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: -0.3px;
+      }
+      header p {
+        color: var(--muted);
+        font-size: 14px;
+        margin-top: 6px;
+        max-width: 720px;
+      }
+      .tabs {
+        display: flex;
+        gap: 0;
+        padding: 0 40px;
+        border-bottom: 1px solid var(--hairline);
+      }
+      .tab {
+        background: none;
+        border: none;
+        color: var(--muted);
+        font-family: var(--sans);
+        font-size: 14px;
+        font-weight: 600;
+        padding: 14px 24px;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all 0.15s;
+      }
+      .tab:hover {
+        color: var(--bone);
+      }
+      .tab.active {
+        color: var(--bone);
+        border-bottom-color: var(--orange);
+      }
+      .diagram-panel {
+        display: none;
+        padding: 24px 40px 60px;
+      }
+      .diagram-panel.active {
+        display: block;
+      }
+      .diagram-wrapper {
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: 4px;
+        overflow: hidden;
+        position: relative;
+      }
+      .diagram-scroll {
+        overflow: auto;
+        max-height: calc(100vh - 240px);
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+      }
+      .diagram-scroll svg {
+        max-width: none;
+        height: auto;
+      }
+      .zoom-controls {
+        position: absolute;
+        bottom: 16px;
+        right: 16px;
+        display: flex;
+        gap: 4px;
+        background: var(--surface-2);
+        border: 1px solid var(--hairline);
+        border-radius: 4px;
+        padding: 4px;
+        z-index: 10;
+      }
+      .zoom-controls button {
+        background: none;
+        border: none;
+        color: var(--bone);
+        font-family: var(--sans);
+        font-size: 16px;
+        width: 32px;
+        height: 32px;
+        cursor: pointer;
+        border-radius: 2px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .zoom-controls button:hover {
+        background: var(--hairline);
+      }
+      .zoom-level {
+        color: var(--muted);
+        font-size: 12px;
+        font-family: var(--mono);
+        display: flex;
+        align-items: center;
+        padding: 0 8px;
+        min-width: 48px;
+        justify-content: center;
+      }
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        padding: 12px 20px;
+        border-bottom: 1px solid var(--hairline);
+        background: var(--surface-2);
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .legend-swatch {
+        width: 16px;
+        height: 16px;
+        border-radius: 3px;
+        flex-shrink: 0;
+      }
+      .legend-line {
+        width: 24px;
+        height: 2px;
+        flex-shrink: 0;
+      }
+      .callouts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+      .callout {
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: 4px;
+        padding: 16px 20px;
+      }
+      .callout h3 {
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .callout p {
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+      .callout .tag {
+        display: inline-block;
+        font-size: 10px;
+        font-family: var(--mono);
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 2px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .tag-red {
+        background: rgba(255, 107, 107, 0.15);
+        color: var(--red);
+      }
+      .tag-green {
+        background: rgba(110, 231, 167, 0.15);
+        color: var(--green);
+      }
+      .tag-yellow {
+        background: rgba(244, 211, 94, 0.15);
+        color: var(--yellow);
+      }
+      .summary-stats {
+        display: flex;
+        gap: 32px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+      }
+      .stat {
+        text-align: left;
+      }
+      .stat .num {
+        font-family: var(--mono);
+        font-size: 32px;
+        font-weight: 700;
+        line-height: 1;
+      }
+      .stat .label {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>go-cqrs-lite — Architecture Layers</h1>
+      <p>
+        Honest audit of the current 7-layer system and the proposed four-tier target. The core
+        problem: <code style="color: var(--red)">event/</code> is a god module conflating domain
+        model, error taxonomy, and infrastructure contracts — creating artificial coupling across
+        30+ modules.
+      </p>
+    </header>
 
-<header>
-  <h1>go-cqrs-lite — Architecture Layers</h1>
-  <p>Honest audit of the current 7-layer system and the proposed four-tier target. The core problem: <code style="color:var(--red)">event/</code> is a god module conflating domain model, error taxonomy, and infrastructure contracts — creating artificial coupling across 30+ modules.</p>
-</header>
-
-<div class="tabs">
-  <button class="tab active" onclick="showTab('current')">🔴 Current State — 7 Broken Layers</button>
-  <button class="tab" onclick="showTab('target')">✅ Target State — 4 Clean Tiers</button>
-  <button class="tab" onclick="showTab('comparison')">📊 Error Taxonomy: Before vs After</button>
-</div>
-
-<!-- ==================== TAB 1: CURRENT ==================== -->
-<div id="tab-current" class="diagram-panel active">
-  <div class="callouts">
-    <div class="callout">
-      <h3><span class="tag tag-red">PROBLEM 1</span> kv/ is NOT Layer 0</h3>
-      <p><code>kv/</code> depends on <code>codec/</code> (TypedStore serialization) and <code>otter</code> (Cache). It's actually Layer 1.</p>
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('current')">
+        🔴 Current State — 7 Broken Layers
+      </button>
+      <button class="tab" onclick="showTab('target')">✅ Target State — 4 Clean Tiers</button>
+      <button class="tab" onclick="showTab('comparison')">
+        📊 Error Taxonomy: Before vs After
+      </button>
     </div>
-    <div class="callout">
-      <h3><span class="tag tag-red">PROBLEM 2</span> event/ is a god module</h3>
-      <p>Conflates 3 concerns: domain model, error taxonomy (1:1 re-export of go-error-family), and infrastructure contracts (Store/Bus interfaces).</p>
-    </div>
-    <div class="callout">
-      <h3><span class="tag tag-red">PROBLEM 3</span> Error taxonomy trap</h3>
-      <p>~129 files across 30+ modules import <code>event/</code> ONLY for error classification. They pull in the entire event domain model as baggage.</p>
-    </div>
-  </div>
 
-  <div class="legend">
-    <div class="legend-item"><div class="legend-swatch" style="background:#ff6b6b"></div> God module / violation</div>
-    <div class="legend-item"><div class="legend-swatch" style="background:#2e7d32"></div> True leaf module</div>
-    <div class="legend-item"><div class="legend-swatch" style="background:#6eb5ff"></div> Normal module</div>
-    <div class="legend-item"><svg width="24" height="8"><line x1="0" y1="4" x2="24" y2="4" stroke="#ff6b6b" stroke-width="2" stroke-dasharray="4 3"/></svg> Artificial coupling (errors only)</div>
-    <div class="legend-item"><svg width="24" height="8"><line x1="0" y1="4" x2="24" y2="4" stroke="#6ee7a7" stroke-width="2"/></svg> Legitimate domain dep</div>
-  </div>
+    <!-- ==================== TAB 1: CURRENT ==================== -->
+    <div id="tab-current" class="diagram-panel active">
+      <div class="callouts">
+        <div class="callout">
+          <h3><span class="tag tag-red">PROBLEM 1</span> kv/ is NOT Layer 0</h3>
+          <p>
+            <code>kv/</code> depends on <code>codec/</code> (TypedStore serialization) and
+            <code>otter</code> (Cache). It's actually Layer 1.
+          </p>
+        </div>
+        <div class="callout">
+          <h3><span class="tag tag-red">PROBLEM 2</span> event/ is a god module</h3>
+          <p>
+            Conflates 3 concerns: domain model, error taxonomy (1:1 re-export of go-error-family),
+            and infrastructure contracts (Store/Bus interfaces).
+          </p>
+        </div>
+        <div class="callout">
+          <h3><span class="tag tag-red">PROBLEM 3</span> Error taxonomy trap</h3>
+          <p>
+            ~129 files across 30+ modules import <code>event/</code> ONLY for error classification.
+            They pull in the entire event domain model as baggage.
+          </p>
+        </div>
+      </div>
 
-  <div class="diagram-wrapper">
-    <div class="diagram-scroll" id="scroll-current">
-      <pre class="mermaid">
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-swatch" style="background: #ff6b6b"></div>
+          God module / violation
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch" style="background: #2e7d32"></div>
+          True leaf module
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch" style="background: #6eb5ff"></div>
+          Normal module
+        </div>
+        <div class="legend-item">
+          <svg width="24" height="8">
+            <line
+              x1="0"
+              y1="4"
+              x2="24"
+              y2="4"
+              stroke="#ff6b6b"
+              stroke-width="2"
+              stroke-dasharray="4 3"
+            />
+          </svg>
+          Artificial coupling (errors only)
+        </div>
+        <div class="legend-item">
+          <svg width="24" height="8">
+            <line x1="0" y1="4" x2="24" y2="4" stroke="#6ee7a7" stroke-width="2" />
+          </svg>
+          Legitimate domain dep
+        </div>
+      </div>
+
+      <div class="diagram-wrapper">
+        <div class="diagram-scroll" id="scroll-current">
+          <pre class="mermaid">
 flowchart TB
     classDef leaf fill:#1b3a2a,stroke:#2e7d32,color:#e0f0e0
     classDef normal fill:#1a2744,stroke:#6eb5ff,color:#e0eaff
@@ -342,45 +405,72 @@ flowchart TB
     graph1 -.->|"errors"| event1
     deriv1 -.->|"errors"| event1
     stk1 -.->|"errors"| event1
-      </pre>
+      </pre
+          >
+        </div>
+        <div class="zoom-controls">
+          <button onclick="zoom('current', -0.15)">−</button>
+          <span class="zoom-level" id="zoom-current">100%</span>
+          <button onclick="zoom('current', 0.15)">+</button>
+          <button onclick="resetZoom('current')">⟲</button>
+        </div>
+      </div>
     </div>
-    <div class="zoom-controls">
-      <button onclick="zoom('current',-0.15)">−</button>
-      <span class="zoom-level" id="zoom-current">100%</span>
-      <button onclick="zoom('current',0.15)">+</button>
-      <button onclick="resetZoom('current')">⟲</button>
-    </div>
-  </div>
-</div>
 
-<!-- ==================== TAB 2: TARGET ==================== -->
-<div id="tab-target" class="diagram-panel">
-  <div class="callouts">
-    <div class="callout">
-      <h3><span class="tag tag-green">FIX 1</span> Direct error imports</h3>
-      <p>Every module imports <code>go-error-family</code> directly. <code>event/errors.go</code> deleted. Zero coupling for error classification.</p>
-    </div>
-    <div class="callout">
-      <h3><span class="tag tag-green">FIX 2</span> kv/ becomes true Layer 0</h3>
-      <p>Split <code>kv/</code> into raw (Store, Reader, Writer) and <code>kv/typed/</code> (TypedStore, Cache). Raw has zero internal deps.</p>
-    </div>
-    <div class="callout">
-      <h3><span class="tag tag-green">FIX 3</span> query/ fully independent</h3>
-      <p>With error taxonomy extracted, <code>query/</code> has <strong>zero</strong> dependency on <code>event/</code>. Pure CQRS separation validated.</p>
-    </div>
-  </div>
+    <!-- ==================== TAB 2: TARGET ==================== -->
+    <div id="tab-target" class="diagram-panel">
+      <div class="callouts">
+        <div class="callout">
+          <h3><span class="tag tag-green">FIX 1</span> Direct error imports</h3>
+          <p>
+            Every module imports <code>go-error-family</code> directly.
+            <code>event/errors.go</code> deleted. Zero coupling for error classification.
+          </p>
+        </div>
+        <div class="callout">
+          <h3><span class="tag tag-green">FIX 2</span> kv/ becomes true Layer 0</h3>
+          <p>
+            Split <code>kv/</code> into raw (Store, Reader, Writer) and
+            <code>kv/typed/</code> (TypedStore, Cache). Raw has zero internal deps.
+          </p>
+        </div>
+        <div class="callout">
+          <h3><span class="tag tag-green">FIX 3</span> query/ fully independent</h3>
+          <p>
+            With error taxonomy extracted, <code>query/</code> has <strong>zero</strong> dependency
+            on <code>event/</code>. Pure CQRS separation validated.
+          </p>
+        </div>
+      </div>
 
-  <div class="legend">
-    <div class="legend-item"><div class="legend-swatch" style="background:#1b3a2a;border:1px solid #2e7d32"></div> Domain tier</div>
-    <div class="legend-item"><div class="legend-swatch" style="background:#1a2744;border:1px solid #6eb5ff"></div> Infrastructure</div>
-    <div class="legend-item"><div class="legend-swatch" style="background:#3a2a00;border:1px solid #ffb347"></div> Operations</div>
-    <div class="legend-item"><div class="legend-swatch" style="background:#2a1a3a;border:1px solid #c4a7e7"></div> Composition</div>
-    <div class="legend-item"><svg width="24" height="8"><line x1="0" y1="4" x2="24" y2="4" stroke="#6ee7a7" stroke-width="2"/></svg> Direct error import</div>
-  </div>
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-swatch" style="background: #1b3a2a; border: 1px solid #2e7d32"></div>
+          Domain tier
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch" style="background: #1a2744; border: 1px solid #6eb5ff"></div>
+          Infrastructure
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch" style="background: #3a2a00; border: 1px solid #ffb347"></div>
+          Operations
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch" style="background: #2a1a3a; border: 1px solid #c4a7e7"></div>
+          Composition
+        </div>
+        <div class="legend-item">
+          <svg width="24" height="8">
+            <line x1="0" y1="4" x2="24" y2="4" stroke="#6ee7a7" stroke-width="2" />
+          </svg>
+          Direct error import
+        </div>
+      </div>
 
-  <div class="diagram-wrapper">
-    <div class="diagram-scroll" id="scroll-target">
-      <pre class="mermaid">
+      <div class="diagram-wrapper">
+        <div class="diagram-scroll" id="scroll-target">
+          <pre class="mermaid">
 flowchart TB
     classDef dom fill:#1b3a2a,stroke:#2e7d32,color:#e0f0e0
     classDef infra fill:#1a2744,stroke:#6eb5ff,color:#e0eaff
@@ -482,44 +572,47 @@ flowchart TB
     stk2 --> mw2
     cat2 --> event2
     ex2 --> stk2
-      </pre>
+      </pre
+          >
+        </div>
+        <div class="zoom-controls">
+          <button onclick="zoom('target', -0.15)">−</button>
+          <span class="zoom-level" id="zoom-target">100%</span>
+          <button onclick="zoom('target', 0.15)">+</button>
+          <button onclick="resetZoom('target')">⟲</button>
+        </div>
+      </div>
     </div>
-    <div class="zoom-controls">
-      <button onclick="zoom('target',-0.15)">−</button>
-      <span class="zoom-level" id="zoom-target">100%</span>
-      <button onclick="zoom('target',0.15)">+</button>
-      <button onclick="resetZoom('target')">⟲</button>
-    </div>
-  </div>
-</div>
 
-<!-- ==================== TAB 3: COMPARISON ==================== -->
-<div id="tab-comparison" class="diagram-panel">
-  <div class="summary-stats">
-    <div class="stat">
-      <div class="num" style="color:var(--red)">129</div>
-      <div class="label">files using event.* error re-exports</div>
-    </div>
-    <div class="stat">
-      <div class="num" style="color:var(--red)">30+</div>
-      <div class="label">modules with artificial event/ coupling</div>
-    </div>
-    <div class="stat">
-      <div class="num" style="color:var(--green)">0</div>
-      <div class="label">new modules needed (just import go-error-family)</div>
-    </div>
-    <div class="stat">
-      <div class="num" style="color:var(--yellow)">~50</div>
-      <div class="label">files to change (mechanical find-replace)</div>
-    </div>
-  </div>
+    <!-- ==================== TAB 3: COMPARISON ==================== -->
+    <div id="tab-comparison" class="diagram-panel">
+      <div class="summary-stats">
+        <div class="stat">
+          <div class="num" style="color: var(--red)">129</div>
+          <div class="label">files using event.* error re-exports</div>
+        </div>
+        <div class="stat">
+          <div class="num" style="color: var(--red)">30+</div>
+          <div class="label">modules with artificial event/ coupling</div>
+        </div>
+        <div class="stat">
+          <div class="num" style="color: var(--green)">0</div>
+          <div class="label">new modules needed (just import go-error-family)</div>
+        </div>
+        <div class="stat">
+          <div class="num" style="color: var(--yellow)">~50</div>
+          <div class="label">files to change (mechanical find-replace)</div>
+        </div>
+      </div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-    <div>
-      <h3 style="font-size:14px;color:var(--red);margin-bottom:12px;">BEFORE — Every module routes through event/</h3>
-      <div class="diagram-wrapper">
-        <div class="diagram-scroll" id="scroll-comp-before" style="max-height:520px">
-          <pre class="mermaid">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px">
+        <div>
+          <h3 style="font-size: 14px; color: var(--red); margin-bottom: 12px">
+            BEFORE — Every module routes through event/
+          </h3>
+          <div class="diagram-wrapper">
+            <div class="diagram-scroll" id="scroll-comp-before" style="max-height: 520px">
+              <pre class="mermaid">
 flowchart LR
     classDef mod fill:#1a2744,stroke:#6eb5ff,color:#e0eaff
     classDef god fill:#3a1515,stroke:#ff6b6b,color:#ffe0e0,stroke-width:2px
@@ -547,15 +640,18 @@ flowchart LR
     more -.->|"errors"| event
 
     event -->|"re-exports"| ef
-          </pre>
+          </pre
+              >
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-    <div>
-      <h3 style="font-size:14px;color:var(--green);margin-bottom:12px;">AFTER — Direct imports, no bottleneck</h3>
-      <div class="diagram-wrapper">
-        <div class="diagram-scroll" id="scroll-comp-after" style="max-height:520px">
-          <pre class="mermaid">
+        <div>
+          <h3 style="font-size: 14px; color: var(--green); margin-bottom: 12px">
+            AFTER — Direct imports, no bottleneck
+          </h3>
+          <div class="diagram-wrapper">
+            <div class="diagram-scroll" id="scroll-comp-after" style="max-height: 520px">
+              <pre class="mermaid">
 flowchart LR
     classDef mod fill:#1b3a2a,stroke:#2e7d32,color:#e0f0e0
     classDef ext fill:#3a3514,stroke:#f4d35e,color:#fffde0
@@ -581,97 +677,117 @@ flowchart LR
     sign -->|direct| ef
     more -->|direct| ef
     event -->|direct| ef
-          </pre>
+          </pre
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callouts" style="margin-top: 24px">
+        <div class="callout">
+          <h3>What happens to event/?</h3>
+          <p>
+            <code>event/</code> keeps its domain model + interfaces (ImmutableEvent, Store, Bus).
+            Only <code>errors.go</code> is deleted — it was a 1:1 re-export that created the
+            coupling.
+          </p>
+        </div>
+        <div class="callout">
+          <h3>What about command/ → event/?</h3>
+          <p>
+            Stays! <code>command/</code> needs <code>event/</code> for
+            <code>AggregateRef</code> (shared domain type). Only the error-classification calls
+            change from <code>event.NewRejection()</code> to
+            <code>errorfamily.NewRejection()</code>.
+          </p>
+        </div>
+        <div class="callout">
+          <h3>Why not a CQRS-specific errors/ module?</h3>
+          <p>
+            Option A (direct import) beats Option B (wrapper module): go-error-family already has
+            the right API. The 8 modules that already import it directly prove the pattern. A
+            wrapper adds indirection without value.
+          </p>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="callouts" style="margin-top:24px">
-    <div class="callout">
-      <h3>What happens to event/?</h3>
-      <p><code>event/</code> keeps its domain model + interfaces (ImmutableEvent, Store, Bus). Only <code>errors.go</code> is deleted — it was a 1:1 re-export that created the coupling.</p>
-    </div>
-    <div class="callout">
-      <h3>What about command/ → event/?</h3>
-      <p>Stays! <code>command/</code> needs <code>event/</code> for <code>AggregateRef</code> (shared domain type). Only the error-classification calls change from <code>event.NewRejection()</code> to <code>errorfamily.NewRejection()</code>.</p>
-    </div>
-    <div class="callout">
-      <h3>Why not a CQRS-specific errors/ module?</h3>
-      <p>Option A (direct import) beats Option B (wrapper module): go-error-family already has the right API. The 8 modules that already import it directly prove the pattern. A wrapper adds indirection without value.</p>
-    </div>
-  </div>
-</div>
+    <script>
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: "base",
+        themeVariables: {
+          primaryColor: "#18181d",
+          primaryTextColor: "#f4f4f0",
+          primaryBorderColor: "rgba(244,244,240,0.15)",
+          lineColor: "rgba(244,244,240,0.3)",
+          secondaryColor: "#16161a",
+          tertiaryColor: "#18181d",
+          fontFamily: "ui-sans-serif, system-ui, sans-serif",
+          fontSize: "13px",
+        },
+        flowchart: {
+          curve: "basis",
+          padding: 20,
+          nodeSpacing: 40,
+          rankSpacing: 50,
+        },
+      });
 
-<script>
-mermaid.initialize({
-  startOnLoad: true,
-  theme: 'base',
-  themeVariables: {
-    primaryColor: '#18181d',
-    primaryTextColor: '#f4f4f0',
-    primaryBorderColor: 'rgba(244,244,240,0.15)',
-    lineColor: 'rgba(244,244,240,0.3)',
-    secondaryColor: '#16161a',
-    tertiaryColor: '#18181d',
-    fontFamily: 'ui-sans-serif, system-ui, sans-serif',
-    fontSize: '13px',
-  },
-  flowchart: {
-    curve: 'basis',
-    padding: 20,
-    nodeSpacing: 40,
-    rankSpacing: 50,
-  },
-});
+      const zoomState = {};
 
-const zoomState = {};
+      function showTab(name) {
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        document.querySelectorAll(".diagram-panel").forEach((p) => p.classList.remove("active"));
+        event.target.classList.add("active");
+        document.getElementById("tab-" + name).classList.add("active");
+      }
 
-function showTab(name) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.diagram-panel').forEach(p => p.classList.remove('active'));
-  event.target.classList.add('active');
-  document.getElementById('tab-' + name).classList.add('active');
-}
+      function zoom(id, delta) {
+        if (!zoomState[id]) zoomState[id] = 1;
+        zoomState[id] = Math.max(0.3, Math.min(3, zoomState[id] + delta));
+        applyZoom(id);
+      }
 
-function zoom(id, delta) {
-  if (!zoomState[id]) zoomState[id] = 1;
-  zoomState[id] = Math.max(0.3, Math.min(3, zoomState[id] + delta));
-  applyZoom(id);
-}
+      function resetZoom(id) {
+        zoomState[id] = 1;
+        applyZoom(id);
+      }
 
-function resetZoom(id) {
-  zoomState[id] = 1;
-  applyZoom(id);
-}
+      function applyZoom(id) {
+        const el = document.getElementById("scroll-" + id);
+        if (!el) return;
+        const svg = el.querySelector("svg");
+        if (!svg) return;
+        svg.style.transform = "scale(" + zoomState[id] + ")";
+        svg.style.transformOrigin = "top center";
+        const display = Math.round(zoomState[id] * 100);
+        const label = document.getElementById("zoom-" + id);
+        if (label) label.textContent = display + "%";
+      }
 
-function applyZoom(id) {
-  const el = document.getElementById('scroll-' + id);
-  if (!el) return;
-  const svg = el.querySelector('svg');
-  if (!svg) return;
-  svg.style.transform = 'scale(' + zoomState[id] + ')';
-  svg.style.transformOrigin = 'top center';
-  const display = Math.round(zoomState[id] * 100);
-  const label = document.getElementById('zoom-' + id);
-  if (label) label.textContent = display + '%';
-}
-
-// Mouse wheel zoom on diagram containers
-document.querySelectorAll('.diagram-scroll').forEach(container => {
-  container.addEventListener('wheel', function(e) {
-    if (!e.ctrlKey) return;
-    e.preventDefault();
-    const id = this.id.replace('scroll-', '').replace('comp-before','').replace('comp-after','');
-    // Find which tab we're in
-    const panel = this.closest('.diagram-panel');
-    const panelId = panel.id.replace('tab-','');
-    if (panelId === 'comparison') return; // no zoom controls for comparison
-    if (e.deltaY < 0) zoom(panelId, 0.1);
-    else zoom(panelId, -0.1);
-  }, { passive: false });
-});
-</script>
-
-</body>
+      // Mouse wheel zoom on diagram containers
+      document.querySelectorAll(".diagram-scroll").forEach((container) => {
+        container.addEventListener(
+          "wheel",
+          function (e) {
+            if (!e.ctrlKey) return;
+            e.preventDefault();
+            const id = this.id
+              .replace("scroll-", "")
+              .replace("comp-before", "")
+              .replace("comp-after", "");
+            // Find which tab we're in
+            const panel = this.closest(".diagram-panel");
+            const panelId = panel.id.replace("tab-", "");
+            if (panelId === "comparison") return; // no zoom controls for comparison
+            if (e.deltaY < 0) zoom(panelId, 0.1);
+            else zoom(panelId, -0.1);
+          },
+          { passive: false },
+        );
+      });
+    </script>
+  </body>
 </html>

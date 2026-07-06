@@ -45,10 +45,11 @@ const SSEReplayIncompleteEvent = "cqrs.replay.incomplete"
 // This is safer than count-based batching (sseReplayBatchSize) for journals
 // containing very large payloads (e.g. 1MB+ blob events): a fixed count of 500
 // such events would consume 500MB. The default budget
-// (sseDefaultReplayByteBudget = 8MB) is a sensible bound; pass 0 to disable
-// byte-budgeting (replay falls back to count-based batching).
+// (sseDefaultReplayByteBudget = 8MB) is applied automatically for unlimited
+// replay; pass an explicit value to override it.
 //
-// Applies only when replayLimit <= 0 (unlimited replay).
+// Applies only when replayLimit <= 0 (unlimited replay). Bounded replay
+// (replayLimit > 0) is capped by event count and ignores this setting.
 func WithReplayByteBudget(bytes int) SSEBrokerOption {
 	return func(b *SSEBroker) {
 		b.replayByteBudget = bytes
@@ -116,10 +117,10 @@ func WithRetryInterval(d time.Duration) SSEBrokerOption {
 // rather than event count.
 const sseReplayBatchSize = 500
 
-// sseDefaultReplayByteBudget is the default byte budget for replay when
-// WithReplayByteBudget is used. 8MB accommodates ~5000 typical 1.5KB events
-// while keeping per-client memory bounded. A budget of 0 disables byte-budget
-// mode (count-based sseReplayBatchSize is used instead).
+// sseDefaultReplayByteBudget is the default byte budget applied when unlimited
+// replay (replayLimit <= 0) is used without an explicit WithReplayByteBudget.
+// 8MB accommodates ~5000 typical 1.5KB events while keeping per-client memory
+// bounded. Callers can override via WithReplayByteBudget.
 const sseDefaultReplayByteBudget = 8 * 1024 * 1024
 
 // sseDedupRingCapacity is the maximum number of event IDs retained for

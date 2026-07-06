@@ -56,14 +56,26 @@ func replayEvents(
 		return nil // invalid ID: skip replay, start live
 	}
 
-	replayed := dedup.NewRing(broker.dedupRingCap) // falls back to default when <=0
+	ringCap := broker.dedupRingCap
+	if ringCap <= 0 {
+		ringCap = sseDedupRingCapacity
+	}
+
+	replayed := dedup.NewRing(ringCap)
 	totalReplayed := 0
 	totalBytes := 0
 	timedOut := false
 	byteBudgetExceeded := false
 	start := time.Now()
 
-	budget := broker.replayByteBudget // <=0 = disabled (count-based batching only)
+	// Apply the default byte budget for unlimited replay when no explicit
+	// budget was set. This prevents unbounded memory consumption when a client
+	// reconnects after a long offline period with a very large journal.
+	// Bounded replay (replayLimit > 0) is already capped by event count.
+	budget := broker.replayByteBudget
+	if broker.replayLimit <= 0 && budget <= 0 {
+		budget = sseDefaultReplayByteBudget
+	}
 
 	if broker.replayLimit > 0 { //nolint:nestif // two-phase replay (bounded vs unlimited) is inherently nested
 		// Bounded replay: single call with the cap.
