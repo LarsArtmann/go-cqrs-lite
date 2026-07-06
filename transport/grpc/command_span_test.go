@@ -78,6 +78,8 @@ func TestCommandDispatch_ServerSpanCarriesAttrs(t *testing.T) {
 			names = append(names, s.Name)
 		}
 		t.Fatalf("grpc.command.dispatch span not found, got: %v", names)
+
+		return // unreachable; satisfies nil-dereference analysis
 	}
 
 	attrs := make(

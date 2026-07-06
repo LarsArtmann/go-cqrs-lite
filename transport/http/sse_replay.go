@@ -157,7 +157,11 @@ func replayEvents(
 	flusher.Flush()
 	span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrEventCount, totalReplayed))
 
-	durationMs := float64(time.Since(start).Microseconds()) / float64(time.Millisecond/time.Microsecond)
+	durationMs := float64(
+		time.Since(start).Microseconds(),
+	) / float64(
+		time.Millisecond/time.Microsecond,
+	)
 
 	broker.replayMetrics.RecordReplay(
 		ctx,
