@@ -4,14 +4,14 @@ go 1.26.4
 
 require (
 	github.com/ThreeDotsLabs/watermill v1.5.2
-	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.7.3
-	github.com/larsartmann/go-cqrs-lite/command/v3 v3.7.3
-	github.com/larsartmann/go-cqrs-lite/dedup/v3 v3.7.3
-	github.com/larsartmann/go-cqrs-lite/event/v3 v3.7.3
-	github.com/larsartmann/go-cqrs-lite/event/v3/eventtest v0.1.0
-	github.com/larsartmann/go-cqrs-lite/id/v3 v3.7.3
-	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.7.3
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.7.3
+	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/command/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/dedup/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/event/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/event/v3/eventtest v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/id/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-error-family v0.6.1
 	go.opentelemetry.io/otel v1.44.0
 	go.opentelemetry.io/otel/sdk v1.44.0
@@ -25,9 +25,9 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.7.3 // indirect
-	github.com/larsartmann/go-cqrs-lite/query/v3 v3.7.3 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.7.3 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-cqrs-lite/query/v3 v3.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect

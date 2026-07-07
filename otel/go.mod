@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/otel/v3
 go 1.26.3
 
 require (
-	github.com/onsi/gomega v1.42.0
+	github.com/onsi/gomega v1.42.1
 	go.opentelemetry.io/otel v1.44.0
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.44.0
 	go.opentelemetry.io/otel/metric v1.44.0
@@ -25,5 +25,5 @@ require (
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/net v0.56.0 // indirect
 	golang.org/x/sys v0.46.0 // indirect
-	golang.org/x/text v0.38.0 // indirect
+	golang.org/x/text v0.39.0 // indirect
 )
