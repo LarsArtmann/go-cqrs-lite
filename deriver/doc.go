@@ -9,7 +9,8 @@
 // For at-least-once safety, chain [Deriver.Idempotent] before [Deriver.AsHandler].
 // Idempotent re-stamps each command with a deterministic [id.CommandID] derived
 // from the source event's ID, so an idempotency store keyed on the command ID
-// (see idempotency.CommandIDKey) deduplicates redeliveries automatically:
+// (see middleware.CommandIdempotency with a nil keyExtractor) deduplicates
+// redeliveries automatically:
 //
 //	d := sendWelcomeEmail.Then(syncToCrm)
 //	bus.SubscribeAll(d.Filter("user.created").Idempotent().AsHandler(cmdDispatcher))

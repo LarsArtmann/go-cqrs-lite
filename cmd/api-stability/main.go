@@ -28,6 +28,7 @@ func main() {
 		"command",
 		"query",
 		"query/querytest",
+		"idempotency",
 		// Layer 2
 		"schema",
 		"snapshot",

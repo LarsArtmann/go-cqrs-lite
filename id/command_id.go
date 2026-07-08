@@ -37,7 +37,8 @@ const (
 // This is the idempotency primitive for command derivation: re-deriving a
 // command from the same source inputs yields the same CommandID, so an
 // idempotency store keyed on the command ID (see
-// idempotency.CommandIDKey) deduplicates at-least-once redeliveries.
+// middleware.CommandIdempotency with a nil keyExtractor) deduplicates
+// at-least-once redeliveries.
 //
 // The result is a valid ULID-encoded CommandID, but the timestamp portion is
 // zeroed (epoch 1970-01-01) as a sentinel: [ULID] on a derived ID returns the

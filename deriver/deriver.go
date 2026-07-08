@@ -110,7 +110,8 @@ func (d Deriver) AsHandler(dispatcher *cqrscommand.Dispatcher) cqrsevent.Handler
 // deterministic [id.CommandID] derived from the source event's ID and the
 // command's position in the output slice. Same event re-processed → same
 // command IDs, so an idempotency store keyed on the command ID (see
-// idempotency.CommandIDKey) deduplicates at-least-once redeliveries.
+// middleware.CommandIdempotency with a nil keyExtractor) deduplicates
+// at-least-once redeliveries.
 //
 // The source event's ID is also stamped as custom metadata
 // (SourceEventIDKey) on each command for traceability.

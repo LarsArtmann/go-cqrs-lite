@@ -36,7 +36,7 @@ func NewKVStore(backend KVBackend) *KVStore {
 	return &KVStore{backend: backend}
 }
 
-func (s *KVStore) Seen(ctx context.Context, key string) (bool, error) {
+func (s *KVStore) Seen(_ context.Context, key string) (bool, error) {
 	val, err := s.backend.Get([]byte(key))
 	if err != nil {
 		if errors.Is(err, kv.ErrNotFound) {
@@ -69,13 +69,16 @@ func (s *KVStore) Seen(ctx context.Context, key string) (bool, error) {
 	return true, nil
 }
 
-func (s *KVStore) Record(ctx context.Context, key string, ttl time.Duration) error {
+func (s *KVStore) Record(_ context.Context, key string, ttl time.Duration) error {
 	expiry := time.Now().Add(ttl).UnixNano()
 
-	return s.backend.Set([]byte(key), []byte(strconv.FormatInt(expiry, 10)))
+	return s.backend.Set(
+		[]byte(key),
+		[]byte(strconv.FormatInt(expiry, 10)),
+	)
 }
 
-func (s *KVStore) CheckAndRecord(ctx context.Context, key string, ttl time.Duration) error {
+func (s *KVStore) CheckAndRecord(_ context.Context, key string, ttl time.Duration) error {
 	expiry := time.Now().Add(ttl).UnixNano()
 	val := []byte(strconv.FormatInt(expiry, 10))
 
@@ -96,7 +99,7 @@ func (s *KVStore) CheckAndRecord(ctx context.Context, key string, ttl time.Durat
 
 	// Key exists — check if it's expired.
 	existing, err := s.backend.Get([]byte(key))
-	if err != nil {
+	if err != nil { //nolint:nestif // retry-on-race logic
 		if errors.Is(err, kv.ErrNotFound) {
 			// Raced: another goroutine deleted it between SetIfAbsent and Get.
 			// Retry once.
@@ -154,5 +157,5 @@ func (s *KVStore) CheckAndRecord(ctx context.Context, key string, ttl time.Durat
 }
 
 func (s *KVStore) Close() error {
-	return s.backend.Close()
+	return s.backend.Close() //nolint:wrapcheck // passthrough
 }

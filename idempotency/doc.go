@@ -23,8 +23,9 @@
 //	    return err // store failure — do not process
 //	}
 //
-// This module owns the store and a command dispatch middleware. The store is
-// the primitive; [CommandIdempotency] wires it into a command.Dispatcher
-// middleware chain. For custom integrations (transport hooks, manual checks),
-// use the [Store] interface directly.
+// This module owns the storage primitive only. For middleware that wires the
+// store into command, event, or query dispatch pipelines, import the
+// middleware package and use CommandIdempotency, EventIdempotency, or
+// QueryIdempotency. For custom integrations (transport hooks, manual
+// checks), use the Store interface directly.
 package idempotency

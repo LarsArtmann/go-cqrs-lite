@@ -158,15 +158,14 @@
 
 > `import "github.com/larsartmann/go-cqrs-lite/idempotency/v3"`
 
-| Feature             | Detail                                                                                     | Status |
-| ------------------- | ------------------------------------------------------------------------------------------ | ------ |
-| Store interface     | `Store`: `Seen`, `Record`, `CheckAndRecord` — dedup opaque keys (command idempotency keys) | ✅     |
-| MemoryStore         | `MemoryStore` — in-memory TTL store with background sweep + lazy deletion                  | ✅     |
-| Atomic dedup        | `CheckAndRecord` — single-lock check+record prevents the TOCTOU race (exactly one winner)  | ✅     |
-| TTL expiration      | Keys expire after a configurable duration; removed by sweeper and lazily on read           | ✅     |
-| ErrDuplicate        | Conflict sentinel returned when a key is already recorded (maps to HTTP 409)               | ✅     |
-| Dispatch middleware | `CommandIdempotency` — `command.Middleware` that deduplicates by `Command.ID()`            | ✅     |
-| KeyExtractor        | `KeyExtractor` func type + `CommandIDKey` default extractor                                | ✅     |
+| Feature             | Detail                                                                                       | Status |
+| ------------------- | -------------------------------------------------------------------------------------------- | ------ |
+| Store interface     | `Store`: `Seen`, `Record`, `CheckAndRecord` — dedup opaque keys (command idempotency keys)   | ✅     |
+| MemoryStore         | `MemoryStore` — in-memory TTL store with background sweep + lazy deletion                    | ✅     |
+| Atomic dedup        | `CheckAndRecord` — single-lock check+record prevents the TOCTOU race (exactly one winner)    | ✅     |
+| TTL expiration      | Keys expire after a configurable duration; removed by sweeper and lazily on read             | ✅     |
+| ErrDuplicate        | Conflict sentinel returned when a key is already recorded (maps to HTTP 409)                 | ✅     |
+| Dispatch middleware | `middleware.CommandIdempotency` — deduplicates by `Command.ID()` (also Event/Query variants) | ✅     |
 
 **Sentinel errors:** `ErrDuplicate` (Conflict)
 

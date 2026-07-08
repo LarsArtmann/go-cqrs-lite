@@ -347,14 +347,16 @@ cmdDispatcher.Use(middleware.CommandRetry(3, time.Second))
 ```go
 import (
     "github.com/larsartmann/go-cqrs-lite/idempotency/v3"
+    "github.com/larsartmann/go-cqrs-lite/middleware/v3"
 )
 
 store := idempotency.NewMemoryStore(5 * time.Minute)
 defer store.Close()
 
-// Rejects duplicate commands within the TTL. Default key: cmd.ID().
-// Pass a custom KeyExtractor for client-supplied idempotency keys.
-cmdDispatcher.Use(idempotency.CommandIdempotency(store, 10*time.Minute, nil))
+// Rejects duplicate commands within the TTL. Default key: cmd.ID().String().
+// Pass a custom key extractor for client-supplied idempotency keys.
+// Also available: middleware.EventIdempotency, middleware.QueryIdempotency.
+cmdDispatcher.Use(middleware.CommandIdempotency(store, 10*time.Minute, nil))
 ```
 
 #### Query Middleware (symmetric with command middleware)

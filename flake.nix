@@ -70,6 +70,7 @@
             "watermill"
             "encryption"
             "kv"
+            "idempotency"
             "listing"
             "otel"
             "testutil"

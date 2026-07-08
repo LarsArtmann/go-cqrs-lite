@@ -20,6 +20,15 @@ require (
 )
 
 require (
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
+	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.0.0-00010101000000-000000000000 // indirect
+	github.com/maypok86/otter/v2 v2.3.0 // indirect
+	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
+	github.com/stretchr/testify v1.11.1 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
+)
+
+require (
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
@@ -33,6 +42,7 @@ require (
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-cqrs-lite/idempotency/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
@@ -66,3 +76,9 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v3 => ../snapshot
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 => ../storage/memory
 )
+
+replace github.com/larsartmann/go-cqrs-lite/idempotency/v3 => ../idempotency
+
+replace github.com/larsartmann/go-cqrs-lite/kv/v3 => ../kv
+
+replace github.com/larsartmann/go-cqrs-lite/schema/v3 => ../schema

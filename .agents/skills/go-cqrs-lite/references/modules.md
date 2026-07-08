@@ -49,7 +49,7 @@
 
 | Module           | Import              | One-liner                                                                                                                    |
 | ---------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `idempotency`    | `idempotency/v3`    | `Store`, `MemoryStore`, `KVStore` (any `kv.Store`+`ConditionalWriter`), `ErrDuplicate`, middleware + `KeyExtractor`. Dedup.  |
+| `idempotency`    | `idempotency/v3`    | `Store`, `MemoryStore`, `KVStore` (any `kv.Store`+`ConditionalWriter`), `ErrDuplicate`. Middleware in `middleware/`.         |
 | `scheduling`     | `scheduling/v3`     | `TimerStore`, `MemoryTimerStore`, `Scheduler` (poll + retry). Idempotent durable deadlines ("cancel order after 30 min").    |
 | `projection`     | `projection/v3`     | `Projection`, `NewProjection`. Consumer-side projection interface extracted from `event/`.                                   |
 | `projectionhost` | `projectionhost/v3` | `Host`, `WorkerState`, `DeadLetterStore`, `MemoryDeadLetterStore`. Managed lifecycle: crash-restart, checkpoint, poison DLQ. |

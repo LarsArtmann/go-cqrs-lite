@@ -124,7 +124,7 @@ with projection + read model.
 | Make event streams tamper-proof                       | `signing`                                                                       | recipes §2.6    |
 | Encrypt confidential payloads                         | `encryption`                                                                    | recipes §2.7    |
 | Add logging/retry/recovery/circuit-breaker            | `middleware`                                                                    | recipes §2.8    |
-| Deduplicate commands on retry (idempotency)           | `idempotency`                                                                   | recipes §2.8    |
+| Deduplicate commands on retry (idempotency)           | `idempotency` + `middleware`                                                    | recipes §2.8    |
 | Add OpenTelemetry tracing/metrics                     | `otel` + `middleware`                                                           | recipes §2.8    |
 | Auto-generate AsyncAPI/OpenAPI/EventCatalog/D2 docs   | `catalog`                                                                       | recipes §2.9    |
 | Soft-delete aggregates without data loss              | `event` (tombstone metadata)                                                    | advanced §6.1   |

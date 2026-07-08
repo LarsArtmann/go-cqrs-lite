@@ -51,14 +51,14 @@ go-cqrs-lite/
 ├── deriver/             # Event→command derivation: Deriver, Then, Filter, Idempotent, AsHandler (ADR-0040)
 ├── id/                  # Branded IDs: id.Of[T] = cbid.ID[T, ulid.ULID], AggregateID, EventID, etc.
 │   └── idtest/          # Parse*(tb, s) test helpers — tb.Fatalf on error, no panics
-├── idempotency/         # Command idempotency store: Store, MemoryStore, ErrDuplicate (dedup for at-least-once delivery)
+├── idempotency/         # Dedup store: Store, MemoryStore, KVStore, ErrDuplicate (dedup for at-least-once delivery)
 ├── dispatcher/          # Generic Dispatcher[H, M] with LifecycleMixin
 ├── schema/              # Upcaster, VersionedStore, upcasterRegistry (schema evolution); Validator with RegisterType[T]() (ADR-0017)
 ├── snapshot/            # Snapshot, SnapshotSink/Source/Store, SnapshotStrategy, EveryNEvents
 ├── storage/memory/       # MemoryStore, MemorySnapshotStore, MemoryCheckpointStore, MemoryCommandStore, MemoryQueryStore (in-memory test impls)
 ├── catalog/             # Registry, SchemaFromType[T](), AsyncAPI/D2/EventCatalog/OpenAPI exporters
 │   └── schema/          # JSON Schema types, reflection engine, YAML serialization
-├── middleware/           # Logging, Retry, Recovery, Validation, Metrics, OTel Tracing+Metrics (command+event+query)
+├── middleware/           # Logging, Retry, Recovery, Validation, Idempotency, Metrics, OTel Tracing+Metrics (command+event+query)
 ├── signing/             # Event signing/verification: HMAC-SHA256, Ed25519, multisig, middleware
 ├── encryption/          # Event payload encryption: XChaCha20-Poly1305, AES-256-GCM, codec wrapper, middleware
 ├── storage/             # SQLEventStore, SQLSnapshotStore, SQLCheckpointStore, SQLCommandStore, SQLQueryStore (PG/SQLite/Turso), SQLKVStore, SQLBackend facade, SQLite/PG helpers
@@ -551,6 +551,15 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   cmdClient := cqrsgrpc.NewCommandClient(conn)
 //   err := cmdClient.Dispatch(ctx, cmd) // transparent remote dispatch
 
+// Idempotency middleware (dedup for at-least-once delivery, all 3 CQRS message types)
+//   store := idempotency.NewMemoryStore(5 * time.Minute)
+//   defer store.Close()
+//   cmds.Use(middleware.CommandIdempotency(store, 10*time.Minute, nil))
+//   bus.Use(middleware.EventIdempotency(store, 10*time.Minute, nil))
+//   qry.Use(middleware.QueryIdempotency(store, 10*time.Minute, keyFn))
+//   // nil keyExtractor defaults to cmd.ID().String() / evt.ID().String()
+//   // For queries, a keyExtractor must be provided (no default identity)
+
 // In-memory command bus (typed pub/sub, first command.Bus impl)
 //   bus := command.NewMemoryBus()
 //   bus.Subscribe("user.create", handlerFunc)
@@ -723,8 +732,8 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 
 ```
 Layer 0: id/, dispatcher/, codec/, kv/, dedup/         (leaf modules, no internal deps)
-Layer 1: event/ (→id, codec, ro), command/ (→id, dispatcher, ro), query/ (→dispatcher, ro), scheduling/ (→stdlib only; testutil is test-only)
-Layer 2: schema/ (→event), snapshot/ (→event), projection/ (→event), idempotency/ (→command, event, id, kv), deriver/ (→command, event, id)
+Layer 1: event/ (→id, codec, ro), command/ (→id, dispatcher, ro), query/ (→dispatcher, ro), idempotency/ (→kv), scheduling/ (→stdlib only; testutil is test-only)
+Layer 2: schema/ (→event), snapshot/ (→event), projection/ (→event), deriver/ (→command, event, id)
 Layer 3: decider/ (→event, snapshot), graph/ (→event, id, projection), scenario/ (→event, id, projection), projectionhost/ (→event, id, projection, dedup, otel)
 Layer 4: storage/memory/, signing/, encryption/, otel/
 Layer 5: middleware/, storage/, listing/, watermill/, transport/http/, transport/grpc/, storage/pebble/, storage/turso/, prometheus/

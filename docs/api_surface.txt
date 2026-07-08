@@ -798,6 +798,21 @@ id/type Of
 id/type RequestID
 id/type UserID
 id/var ErrEmptyString
+idempotency/func NewKVStore
+idempotency/func NewMemoryStore
+idempotency/interface KVBackend
+idempotency/interface Store
+idempotency/method CheckAndRecord
+idempotency/method CheckAndRecord
+idempotency/method Close
+idempotency/method Close
+idempotency/method Record
+idempotency/method Record
+idempotency/method Seen
+idempotency/method Seen
+idempotency/struct KVStore
+idempotency/struct MemoryStore
+idempotency/var ErrDuplicate
 kv/const OpEq
 kv/const OpGt
 kv/const OpGte
@@ -906,6 +921,7 @@ middleware/func AsCommand
 middleware/func AsEvent
 middleware/func AsQuery
 middleware/func CommandCircuitBreaker
+middleware/func CommandIdempotency
 middleware/func CommandLogging
 middleware/func CommandMetrics
 middleware/func CommandOTelMetrics
@@ -919,6 +935,7 @@ middleware/func CommandValidation
 middleware/func DefaultCircuitBreakerConfig
 middleware/func DefaultRetryConfig
 middleware/func EventCircuitBreaker
+middleware/func EventIdempotency
 middleware/func EventLogging
 middleware/func EventMetrics
 middleware/func EventOTelMetrics
@@ -931,6 +948,7 @@ middleware/func EventTracing
 middleware/func EventTypedMetrics
 middleware/func EventValidation
 middleware/func NewCircuitBreaker
+middleware/func NewIdempotency
 middleware/func NewLogging
 middleware/func NewMemoryDeadLetterStore
 middleware/func NewMetrics
@@ -948,6 +966,7 @@ middleware/func NewValidation
 middleware/func OTelCorrelationEnricher
 middleware/func OTelCorrelationIDFromEvent
 middleware/func QueryCircuitBreaker
+middleware/func QueryIdempotency
 middleware/func QueryLogging
 middleware/func QueryMetrics
 middleware/func QueryOTelMetrics

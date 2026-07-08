@@ -1,8 +1,8 @@
-# idempotency — Command Idempotency Store
+# idempotency — Deduplication Store
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/idempotency/v3.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/idempotency/v3)
 
-A deduplication store for command idempotency keys (and any other opaque
+A deduplication store for idempotency keys (and any other opaque
 at-most-once-processing keys).
 
 ```bash
@@ -35,14 +35,12 @@ concurrent callers with the same key produce exactly one winner.
 
 ## Key Types
 
-| Type                 | Purpose                                                        |
-| -------------------- | -------------------------------------------------------------- |
-| `Store`              | Interface: `Seen`, `Record`, `CheckAndRecord`                  |
-| `MemoryStore`        | In-memory `Store` with TTL expiration + background sweep       |
-| `ErrDuplicate`       | Conflict sentinel returned when a key is already recorded      |
-| `KeyExtractor`       | Function type: extracts the dedup key from a `command.Command` |
-| `CommandIDKey`       | Default `KeyExtractor`: returns `cmd.ID().String()`            |
-| `CommandIdempotency` | `command.Middleware` that deduplicates via a `Store`           |
+| Type           | Purpose                                                   |
+| -------------- | --------------------------------------------------------- |
+| `Store`        | Interface: `Seen`, `Record`, `CheckAndRecord`             |
+| `MemoryStore`  | In-memory `Store` with TTL expiration + background sweep  |
+| `KVStore`      | `Store` backed by any `kv.Store` + `kv.ConditionalWriter` |
+| `ErrDuplicate` | Conflict sentinel returned when a key is already recorded |
 
 ## Design
 
@@ -55,25 +53,27 @@ concurrent callers with the same key produce exactly one winner.
 - **Atomic check-and-record** — `CheckAndRecord` prevents the TOCTOU race that a
   separate `Seen` + `Record` pair would create.
 - **No dispatch coupling** — the store owns deduplication only. Wire it into a
-  command dispatch pipeline via the built-in `CommandIdempotency` middleware, or
-  use the store directly for custom integrations.
+  command, event, or query dispatch pipeline via the middleware package (see
+  below), or use the store directly for custom integrations.
 
 ## Dispatch Middleware
 
-`CommandIdempotency` wires the store into a `command.Dispatcher` middleware chain:
+The [middleware/v3](../middleware) package provides generic idempotency
+middleware for all three CQRS message types:
 
 ```go
 store := idempotency.NewMemoryStore(5 * time.Minute)
 defer store.Close()
 
-cmds := command.NewDispatcher()
-cmds.Use(idempotency.CommandIdempotency(store, 10*time.Minute, nil))
+cmds.Use(middleware.CommandIdempotency(store, 10*time.Minute, nil))
+bus.Use(middleware.EventIdempotency(store, 10*time.Minute, nil))
+qry.Use(middleware.QueryIdempotency(store, 10*time.Minute, keyFn))
 ```
 
-Pass `nil` for the key extractor to use `CommandIDKey` (the command's minted ID).
-For cross-retry dedup, provide a custom `KeyExtractor` that reads a
-client-supplied idempotency key, or use `command.WithCommandID` to set a
-deterministic ID at construction time.
+Pass `nil` for the key extractor to use the message's minted ID
+(`cmd.ID().String()` / `evt.ID().String()`). For cross-retry dedup, provide a
+custom key extractor that reads a client-supplied idempotency key, or use
+`command.WithCommandID` to set a deterministic ID at construction time.
 
 ## Future Backends
 
@@ -87,7 +87,9 @@ distributed backends:
 
 - [command/v3](../command) — `Command.ID()` / `WithCommandID` provide the stable
   command identity that feeds this store.
-- [middleware/v3](../middleware) — command dispatch middleware chain where an
-  idempotency check composes.
-- [event/v3](../event) — `ErrDuplicate` is classified as a `Conflict` via the
-  shared error taxonomy.
+- [middleware/v3](../middleware) — `CommandIdempotency`, `EventIdempotency`,
+  `QueryIdempotency` wire the store into dispatch pipelines.
+- [kv/v3](../kv) — `KVStore` adapts any `kv.Store` + `kv.ConditionalWriter` into
+  an idempotency `Store`.
+- [go-error-family](https://github.com/larsartmann/go-error-family) — `ErrDuplicate`
+  is classified as a `Conflict`.

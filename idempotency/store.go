@@ -67,7 +67,7 @@ type MemoryStore struct {
 // Pass sweepInterval == 0 to disable the background sweep; lazy deletion on
 // read still bounds growth.
 func NewMemoryStore(sweepInterval time.Duration) *MemoryStore {
-	s := &MemoryStore{
+	s := &MemoryStore{ //nolint:exhaustruct // mu, stopOnce are zero-valued
 		entries: make(map[string]time.Time),
 		stop:    make(chan struct{}),
 	}

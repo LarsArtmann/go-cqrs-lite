@@ -37,9 +37,9 @@ The BDD DSL for testing deciders is excellent. `scenario.Given[any, State](t, ap
 
 `EveryNEvents(50)` snapshots every 50 events. `repo.Load()` uses snapshots when available. The snapshot round-trip test I wrote confirmed byte-identical state between snapshot path and full replay. Transparent to the consumer — just add 3 options to the repository constructor.
 
-### 8. `idempotency.CommandIdempotency` middleware
+### 8. `middleware.CommandIdempotency` middleware
 
-Wire `MemoryStore` + `CommandIdempotency(idemStore, ttl, CommandIDKey)` on the dispatcher. Deduplicates by command ID. Works correctly with `X-Command-Id` header from frontend retries.
+Wire `MemoryStore` + `middleware.CommandIdempotency(idemStore, ttl, nil)` on the dispatcher. Deduplicates by command ID. Works correctly with `X-Command-Id` header from frontend retries.
 
 ### 9. `query.DispatchTyped[T](ctx, dispatcher, query)`
 
@@ -129,9 +129,9 @@ Remove the unused command type parameter for the common case where the decide fu
 
 `Bundle.Debug()` prints capability status (✓/✗ for each field). Consider a `DebugStructured() map[string]bool` variant for programmatic checks (e.g., health endpoint).
 
-### 5. Idempotency: `CommandIdempotency` content-hash mode
+### 5. Idempotency: content-hash key mode
 
-I tested content-hash dedup and rejected it because `PlayRound` isn't idempotent. But for commands that ARE idempotent (`CreateGame`, `StartRun`), content-hash dedup would be useful. Consider `Idempotency(ContentHashKey | CommandIDKey)` selector.
+I tested content-hash dedup and rejected it because `PlayRound` isn't idempotent. But for commands that ARE idempotent (`CreateGame`, `StartRun`), content-hash dedup would be useful. Consider a custom key extractor for content-hash dedup.
 
 ---
 
