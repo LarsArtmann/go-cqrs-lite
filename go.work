@@ -23,6 +23,7 @@ use (
 	./integration
 	./kv
 	./listing
+	./metadata
 	./middleware
 	./otel
 	./projection

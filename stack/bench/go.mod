@@ -6,6 +6,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/metadata/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.0.0-00010101000000-000000000000
 )
@@ -21,7 +22,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.0.0-00010101000000-000000000000 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v3 v3.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/decider/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.0.0-00010101000000-000000000000 // indirect
@@ -71,3 +72,5 @@ replace (
 replace github.com/larsartmann/go-cqrs-lite/projection/v3 => ../../projection
 
 replace github.com/larsartmann/go-cqrs-lite/dedup/v3 => ../../dedup
+
+replace github.com/larsartmann/go-cqrs-lite/metadata/v3 => ../../metadata

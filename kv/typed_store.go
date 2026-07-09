@@ -49,8 +49,8 @@ func NewTypedStore[T any, K fmt.Stringer](
 
 // Get retrieves the value for id, decoding it into a new T.
 // Returns [ErrNotFound] if no value exists.
-func (s *TypedStore[T, K]) Get(_ context.Context, id K) (*T, error) {
-	data, err := s.backend.Get(s.key(id))
+func (s *TypedStore[T, K]) Get(ctx context.Context, id K) (*T, error) {
+	data, err := s.backend.Get(ctx, s.key(id))
 	if err != nil {
 		return nil, errorfamily.Wrap(err, errorfamily.Classify(err),
 			"kv.typed_store.get", fmt.Sprintf("get key %q", s.key(id)))
@@ -68,8 +68,8 @@ func (s *TypedStore[T, K]) Get(_ context.Context, id K) (*T, error) {
 }
 
 // Has reports whether a value exists for id without reading it.
-func (s *TypedStore[T, K]) Has(_ context.Context, id K) (bool, error) {
-	has, err := s.backend.Has(s.key(id))
+func (s *TypedStore[T, K]) Has(ctx context.Context, id K) (bool, error) {
+	has, err := s.backend.Has(ctx, s.key(id))
 	if err != nil {
 		return false, errorfamily.Wrap(err, errorfamily.Classify(err),
 			"kv.typed_store.has", fmt.Sprintf("has key %q", s.key(id)))
@@ -79,7 +79,7 @@ func (s *TypedStore[T, K]) Has(_ context.Context, id K) (bool, error) {
 }
 
 // Set encodes val and stores it under id, replacing any existing value.
-func (s *TypedStore[T, K]) Set(_ context.Context, id K, val *T) error {
+func (s *TypedStore[T, K]) Set(ctx context.Context, id K, val *T) error {
 	if val == nil {
 		return errorfamily.WrapRejection(errNilTypedValue, "kv.typed_store.set_nil",
 			fmt.Sprintf("nil value for key %q", s.key(id)))
@@ -91,7 +91,7 @@ func (s *TypedStore[T, K]) Set(_ context.Context, id K, val *T) error {
 			fmt.Sprintf("encode key %q", s.key(id)))
 	}
 
-	err = s.backend.Set(s.key(id), data)
+	err = s.backend.Set(ctx, s.key(id), data)
 	if err != nil {
 		return errorfamily.Wrap(err, errorfamily.Classify(err),
 			"kv.typed_store.set", fmt.Sprintf("set key %q", s.key(id)))
@@ -101,8 +101,8 @@ func (s *TypedStore[T, K]) Set(_ context.Context, id K, val *T) error {
 }
 
 // Delete removes the value for id. Deleting a missing key is a no-op.
-func (s *TypedStore[T, K]) Delete(_ context.Context, id K) error {
-	err := s.backend.Delete(s.key(id))
+func (s *TypedStore[T, K]) Delete(ctx context.Context, id K) error {
+	err := s.backend.Delete(ctx, s.key(id))
 	if err != nil {
 		return errorfamily.Wrap(err, errorfamily.Classify(err),
 			"kv.typed_store.delete", fmt.Sprintf("delete key %q", s.key(id)))
@@ -117,14 +117,14 @@ func (s *TypedStore[T, K]) Delete(_ context.Context, id K) error {
 //
 // Pass an empty prefix to scan every key in this store's namespace.
 // The caller owns the returned slice; the store does not retain it.
-func (s *TypedStore[T, K]) Scan(_ context.Context, prefix []byte) ([]*T, error) {
+func (s *TypedStore[T, K]) Scan(ctx context.Context, prefix []byte) ([]*T, error) {
 	scanPrefix := prefix
 
 	if len(s.prefix) > 0 {
 		scanPrefix = append(append([]byte{}, s.prefix...), prefix...)
 	}
 
-	iter, err := s.backend.NewIterator(scanPrefix)
+	iter, err := s.backend.NewIterator(ctx, scanPrefix)
 	if err != nil {
 		return nil, errorfamily.Wrap(err, errorfamily.Classify(err),
 			"kv.typed_store.scan_iter", "create scan iterator")
@@ -166,8 +166,8 @@ func (s *TypedStore[T, K]) Backend() Store { return s.backend }
 //
 // The operation iterates all keys and deletes them via a [Batch] when the
 // backend supports it (atomic), otherwise one-by-one.
-func (s *TypedStore[T, K]) DeleteAll(_ context.Context) error {
-	iter, err := s.backend.NewIterator(s.prefix)
+func (s *TypedStore[T, K]) DeleteAll(ctx context.Context) error {
+	iter, err := s.backend.NewIterator(ctx, s.prefix)
 	if err != nil {
 		return errorfamily.Wrap(err, errorfamily.Classify(err),
 			"kv.typed_store.delete_all_iter", "create delete-all iterator")
@@ -195,22 +195,22 @@ func (s *TypedStore[T, K]) DeleteAll(_ context.Context) error {
 		return nil
 	}
 
-	batch, batchErr := s.backend.Batch()
+	batch, batchErr := s.backend.Batch(ctx)
 	if batchErr != nil {
-		return s.deleteAllOneByOne(keys)
+		return s.deleteAllOneByOne(ctx, keys)
 	}
 
 	defer func() { _ = batch.Close() }()
 
 	for _, k := range keys {
-		err = batch.Delete(k)
+		err = batch.Delete(ctx, k)
 		if err != nil {
 			return errorfamily.Wrap(err, errorfamily.Classify(err),
 				"kv.typed_store.delete_all_batch", "batch delete key")
 		}
 	}
 
-	if err = batch.Commit(); err != nil {
+	if err = batch.Commit(ctx); err != nil {
 		return errorfamily.Wrap(err, errorfamily.Classify(err),
 			"kv.typed_store.delete_all_commit", "commit delete-all batch")
 	}
@@ -218,9 +218,9 @@ func (s *TypedStore[T, K]) DeleteAll(_ context.Context) error {
 	return nil
 }
 
-func (s *TypedStore[T, K]) deleteAllOneByOne(keys [][]byte) error {
+func (s *TypedStore[T, K]) deleteAllOneByOne(ctx context.Context, keys [][]byte) error {
 	for _, k := range keys {
-		err := s.backend.Delete(k)
+		err := s.backend.Delete(ctx, k)
 		if err != nil {
 			return errorfamily.Wrap(err, errorfamily.Classify(err),
 				"kv.typed_store.delete_one", fmt.Sprintf("delete key %q", k))

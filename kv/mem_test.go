@@ -2,6 +2,7 @@ package kv
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"sync"
 	"testing"
@@ -18,12 +19,12 @@ func TestMemStore_SetAndGet(t *testing.T) {
 	key := []byte("user:1")
 	val := []byte(`{"name":"alice"}`)
 
-	err := s.Set(key, val)
+	err := s.Set(context.Background(), key, val)
 	if err != nil {
 		t.Fatalf("Set: %v", err)
 	}
 
-	got, err := s.Get(key)
+	got, err := s.Get(context.Background(), key)
 	if err != nil {
 		t.Fatalf("Get: %v", err)
 	}
@@ -39,7 +40,7 @@ func TestMemStore_GetNotFound(t *testing.T) {
 	s := NewMemStore()
 	defer func() { _ = s.Close() }()
 
-	_, err := s.Get([]byte("missing"))
+	_, err := s.Get(context.Background(), []byte("missing"))
 	if !errors.Is(err, ErrNotFound) {
 		t.Fatalf("Get missing: err = %v, want ErrNotFound", err)
 	}
@@ -51,12 +52,12 @@ func TestMemStore_Has(t *testing.T) {
 	s := NewMemStore()
 	defer func() { _ = s.Close() }()
 
-	err := s.Set([]byte("k1"), []byte("v1"))
+	err := s.Set(context.Background(), []byte("k1"), []byte("v1"))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	exists, err := s.Has([]byte("k1"))
+	exists, err := s.Has(context.Background(), []byte("k1"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,7 +66,7 @@ func TestMemStore_Has(t *testing.T) {
 		t.Fatal("Has(k1) = false, want true")
 	}
 
-	exists, err = s.Has([]byte("missing"))
+	exists, err = s.Has(context.Background(), []byte("missing"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -83,17 +84,17 @@ func TestMemStore_Delete(t *testing.T) {
 
 	key := []byte("k1")
 
-	err := s.Set(key, []byte("v1"))
+	err := s.Set(context.Background(), key, []byte("v1"))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = s.Delete(key)
+	err = s.Delete(context.Background(), key)
 	if err != nil {
 		t.Fatalf("Delete: %v", err)
 	}
 
-	_, err = s.Get(key)
+	_, err = s.Get(context.Background(), key)
 	if !errors.Is(err, ErrNotFound) {
 		t.Fatalf("Get after delete: err = %v, want ErrNotFound", err)
 	}
@@ -105,7 +106,7 @@ func TestMemStore_DeleteMissing(t *testing.T) {
 	s := NewMemStore()
 	defer func() { _ = s.Close() }()
 
-	err := s.Delete([]byte("never-existed"))
+	err := s.Delete(context.Background(), []byte("never-existed"))
 	if err != nil {
 		t.Fatalf("Delete missing should be no-op, got: %v", err)
 	}
@@ -120,12 +121,12 @@ func TestMemStore_GetReturnsClone(t *testing.T) {
 	defer func() { _ = s.Close() }()
 
 	original := []byte("value")
-	_ = s.Set([]byte("k"), original)
+	_ = s.Set(context.Background(), []byte("k"), original)
 
-	got, _ := s.Get([]byte("k"))
+	got, _ := s.Get(context.Background(), []byte("k"))
 	got[0] = 'X'
 
-	again, _ := s.Get([]byte("k"))
+	again, _ := s.Get(context.Background(), []byte("k"))
 	if !bytes.Equal(again, original) {
 		t.Fatalf("Get returned a reference, not a clone: got %q, want %q", again, original)
 	}
@@ -138,10 +139,10 @@ func TestMemStore_SetClonesValue(t *testing.T) {
 	defer func() { _ = s.Close() }()
 
 	val := []byte("value")
-	_ = s.Set([]byte("k"), val)
+	_ = s.Set(context.Background(), []byte("k"), val)
 	val[0] = 'X'
 
-	got, _ := s.Get([]byte("k"))
+	got, _ := s.Get(context.Background(), []byte("k"))
 	if got[0] != 'v' {
 		t.Fatalf("Set did not clone: got %q, want %q", got, "value")
 	}
@@ -157,32 +158,32 @@ func TestMemStore_CloseBlocksOps(t *testing.T) {
 
 	want := ErrClosed
 
-	_, err := s.Get([]byte("k"))
+	_, err := s.Get(context.Background(), []byte("k"))
 	if !errors.Is(err, want) {
 		t.Fatalf("Get after close: %v, want %v", err, want)
 	}
 
-	_, err = s.Has([]byte("k"))
+	_, err = s.Has(context.Background(), []byte("k"))
 	if !errors.Is(err, want) {
 		t.Fatalf("Has after close: %v, want %v", err, want)
 	}
 
-	err = s.Set([]byte("k"), []byte("v"))
+	err = s.Set(context.Background(), []byte("k"), []byte("v"))
 	if !errors.Is(err, want) {
 		t.Fatalf("Set after close: %v, want %v", err, want)
 	}
 
-	err = s.Delete([]byte("k"))
+	err = s.Delete(context.Background(), []byte("k"))
 	if !errors.Is(err, want) {
 		t.Fatalf("Delete after close: %v, want %v", err, want)
 	}
 
-	_, err = s.Batch()
+	_, err = s.Batch(context.Background())
 	if !errors.Is(err, want) {
 		t.Fatalf("Batch after close: %v, want %v", err, want)
 	}
 
-	_, err = s.NewIterator(nil)
+	_, err = s.NewIterator(context.Background(), nil)
 	if !errors.Is(err, want) {
 		t.Fatalf("NewIterator after close: %v, want %v", err, want)
 	}
@@ -196,7 +197,7 @@ func TestMemStore_ConcurrentReadWrite(t *testing.T) {
 	s := NewMemStore()
 	defer func() { _ = s.Close() }()
 
-	_ = s.Set([]byte("init"), []byte("0"))
+	_ = s.Set(context.Background(), []byte("init"), []byte("0"))
 
 	var wg sync.WaitGroup
 
@@ -205,15 +206,15 @@ func TestMemStore_ConcurrentReadWrite(t *testing.T) {
 		go func(n int) {
 			defer wg.Done()
 			key := []byte("key")
-			_ = s.Set(key, []byte("val"))
-			_, _ = s.Get(key)
-			_, _ = s.Has(key)
+			_ = s.Set(context.Background(), key, []byte("val"))
+			_, _ = s.Get(context.Background(), key)
+			_, _ = s.Has(context.Background(), key)
 		}(i)
 	}
 
 	wg.Wait()
 
-	val, err := s.Get([]byte("key"))
+	val, err := s.Get(context.Background(), []byte("key"))
 	if err != nil {
 		t.Fatalf("Get after concurrent writes: %v", err)
 	}

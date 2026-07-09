@@ -309,11 +309,10 @@ func writeError(w http.ResponseWriter, status int, msg string) {
 
 func decodeJSON(r *http.Request, dst any) error {
 	dec := jsontext.NewDecoder(r.Body)
-	dec.DisallowUnknownFields()
 
 	defer func() { _ = r.Body.Close() }()
 
-	return json.UnmarshalDecode(dec, dst)
+	return json.UnmarshalDecode(dec, dst, json.RejectUnknownMembers(true))
 }
 
 // contextKey is an unexported type for context keys in this package.

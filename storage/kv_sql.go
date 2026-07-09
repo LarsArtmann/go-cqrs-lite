@@ -67,12 +67,12 @@ func (s *SQLKVStore) upsertSQL() string {
 }
 
 // Get returns the value for key, or [kv.ErrNotFound] if no row exists.
-func (s *SQLKVStore) Get(key []byte) ([]byte, error) {
+func (s *SQLKVStore) Get(ctx context.Context, key []byte) ([]byte, error) {
 	q := fmt.Sprintf("SELECT value FROM %s WHERE key = %s", kvTableName, s.Dialect.Placeholder(1))
 
 	var value []byte
 
-	err := s.DB.QueryRowContext(context.Background(), q, key).Scan(&value)
+	err := s.DB.QueryRowContext(ctx, q, key).Scan(&value)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, kv.ErrNotFound
 	}
@@ -86,12 +86,12 @@ func (s *SQLKVStore) Get(key []byte) ([]byte, error) {
 }
 
 // Has reports whether a row exists for key.
-func (s *SQLKVStore) Has(key []byte) (bool, error) {
+func (s *SQLKVStore) Has(ctx context.Context, key []byte) (bool, error) {
 	q := fmt.Sprintf("SELECT 1 FROM %s WHERE key = %s", kvTableName, s.Dialect.Placeholder(1))
 
 	var one int
 
-	err := s.DB.QueryRowContext(context.Background(), q, key).Scan(&one)
+	err := s.DB.QueryRowContext(ctx, q, key).Scan(&one)
 	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil
 	}
@@ -105,8 +105,8 @@ func (s *SQLKVStore) Has(key []byte) (bool, error) {
 }
 
 // Set upserts key/value atomically.
-func (s *SQLKVStore) Set(key, value []byte) error {
-	_, err := s.DB.ExecContext(context.Background(), s.upsertSQL(), key, value)
+func (s *SQLKVStore) Set(ctx context.Context, key, value []byte) error {
+	_, err := s.DB.ExecContext(ctx, s.upsertSQL(), key, value)
 	if err != nil {
 		return errorfamily.WrapTransient(err, "kv_sql.set",
 			"set value in KV store")
@@ -116,10 +116,10 @@ func (s *SQLKVStore) Set(key, value []byte) error {
 }
 
 // Delete removes key. Deleting a missing key is a no-op.
-func (s *SQLKVStore) Delete(key []byte) error {
+func (s *SQLKVStore) Delete(ctx context.Context, key []byte) error {
 	q := fmt.Sprintf("DELETE FROM %s WHERE key = %s", kvTableName, s.Dialect.Placeholder(1))
 
-	_, err := s.DB.ExecContext(context.Background(), q, key)
+	_, err := s.DB.ExecContext(ctx, q, key)
 	if err != nil {
 		return errorfamily.WrapTransient(err, "kv_sql.delete",
 			"delete key from KV store")
@@ -130,10 +130,10 @@ func (s *SQLKVStore) Delete(key []byte) error {
 
 // NewIterator returns an iterator over keys matching prefix in lexicographic
 // order. A nil/empty prefix iterates over every key.
-func (s *SQLKVStore) NewIterator(prefix []byte) (kv.Iterator, error) {
+func (s *SQLKVStore) NewIterator(ctx context.Context, prefix []byte) (kv.Iterator, error) {
 	query, args := s.iterQuery(prefix)
 
-	rows, err := s.DB.QueryContext(context.Background(), query, args...) //nolint:rowserrcheck
+	rows, err := s.DB.QueryContext(ctx, query, args...) //nolint:rowserrcheck
 	if err != nil {
 		return nil, errorfamily.WrapTransient(err, "kv_sql.iterator",
 			"create KV iterator")
@@ -162,8 +162,8 @@ func (s *SQLKVStore) iterQuery(prefix []byte) (string, []any) {
 }
 
 // Batch returns a batch backed by a single SQL transaction.
-func (s *SQLKVStore) Batch() (kv.Batch, error) {
-	tx, err := s.DB.BeginTx(context.Background(), nil)
+func (s *SQLKVStore) Batch(ctx context.Context) (kv.Batch, error) {
+	tx, err := s.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err, "kv_sql.begin_batch",
 			"begin KV batch transaction")
@@ -252,8 +252,8 @@ type sqlKVBatch struct {
 	closed bool
 }
 
-func (b *sqlKVBatch) Set(key, value []byte) error {
-	_, err := b.tx.ExecContext(context.Background(), b.store.upsertSQL(), key, value)
+func (b *sqlKVBatch) Set(ctx context.Context, key, value []byte) error {
+	_, err := b.tx.ExecContext(ctx, b.store.upsertSQL(), key, value)
 	if err != nil {
 		return errorfamily.WrapTransient(err, "kv_sql.batch_set",
 			"batch set in KV store")
@@ -262,10 +262,10 @@ func (b *sqlKVBatch) Set(key, value []byte) error {
 	return nil
 }
 
-func (b *sqlKVBatch) Delete(key []byte) error {
+func (b *sqlKVBatch) Delete(ctx context.Context, key []byte) error {
 	q := fmt.Sprintf("DELETE FROM %s WHERE key = %s", kvTableName, b.store.Dialect.Placeholder(1))
 
-	_, err := b.tx.ExecContext(context.Background(), q, key)
+	_, err := b.tx.ExecContext(ctx, q, key)
 	if err != nil {
 		return errorfamily.WrapTransient(err, "kv_sql.batch_delete",
 			"batch delete in KV store")
@@ -274,7 +274,7 @@ func (b *sqlKVBatch) Delete(key []byte) error {
 	return nil
 }
 
-func (b *sqlKVBatch) Commit() error {
+func (b *sqlKVBatch) Commit(ctx context.Context) error {
 	if b.closed {
 		return nil
 	}

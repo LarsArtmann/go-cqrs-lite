@@ -12,7 +12,9 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v3/eventtest v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/graph/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/idempotency/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/listing/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/metadata/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/middleware/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.0.0-00010101000000-000000000000
@@ -84,7 +86,7 @@ require (
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.44.0 // indirect
 	go.opentelemetry.io/otel/metric v1.44.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/crypto v0.53.0 // indirect
+	golang.org/x/crypto v0.54.0 // indirect
 	golang.org/x/exp v0.0.0-20260611194520-c48552f49976 // indirect
 	golang.org/x/mod v0.37.0 // indirect
 	golang.org/x/net v0.56.0 // indirect
@@ -105,6 +107,7 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/encryption/v3 => ../encryption
 	github.com/larsartmann/go-cqrs-lite/event/v3 => ../event
 	github.com/larsartmann/go-cqrs-lite/id/v3 => ../id
+	github.com/larsartmann/go-cqrs-lite/idempotency/v3 => ../idempotency
 	github.com/larsartmann/go-cqrs-lite/kv/v3 => ../kv
 	github.com/larsartmann/go-cqrs-lite/listing/v3 => ../listing
 	github.com/larsartmann/go-cqrs-lite/middleware/v3 => ../middleware
@@ -131,3 +134,5 @@ replace github.com/larsartmann/go-cqrs-lite/event/v3/eventtest => ../event/v3/ev
 replace github.com/larsartmann/go-cqrs-lite/dedup/v3 => ../dedup
 
 replace github.com/larsartmann/go-cqrs-lite/scheduling/v3 => ../scheduling
+
+replace github.com/larsartmann/go-cqrs-lite/metadata/v3 => ../metadata

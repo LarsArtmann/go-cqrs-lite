@@ -3,9 +3,11 @@ package main
 import (
 	"crypto/rand"
 	"fmt"
+	"time"
 
 	otel "go.opentelemetry.io/otel"
 
+	"github.com/larsartmann/go-cqrs-lite/idempotency/v3"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 	"github.com/larsartmann/go-cqrs-lite/signing/v3"
@@ -26,6 +28,11 @@ import (
 
 // setupFeatures wires production-grade middleware and event security.
 func setupFeatures(s *Server) error {
+	// ── Idempotency: deduplicate commands by ID ─────────────────────
+	// Prevents double-execution when a client retries a command due to
+	// network failure. Uses the command's minted ID as the dedup key.
+	s.idemStore = idempotency.NewMemoryStore(0)
+
 	// ── OTel: one-call setup (no-op exporter when no OTLP endpoint) ────
 	provider, err := cqrsotel.Setup(
 		cqrsotel.WithService("taskmanager", "1.0.0", "dev"),
@@ -52,6 +59,7 @@ func setupFeatures(s *Server) error {
 		middleware.CommandRecovery(),
 		middleware.CommandLogging(s.Logger),
 		middleware.CommandRetry(middleware.DefaultRetryConfig()),
+		middleware.CommandIdempotency(s.idemStore, 10*time.Minute, nil),
 	)
 	s.CmdDisp.Use(otelBundle.Command()...)
 

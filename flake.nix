@@ -188,7 +188,7 @@
             '';
 
             build = mkApp "build" goModules ''
-              ${goPkg}/bin/go build ${allPaths} "$@"
+              ${goPkg}/bin/go build ${tagFlags} ${allPaths} "$@"
             '';
 
             vet = mkApp "vet" goModules ''

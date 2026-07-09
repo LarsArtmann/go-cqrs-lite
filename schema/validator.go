@@ -99,12 +99,16 @@ func WithDecoder(enc codec.Encoding, decode func([]byte, any) error) ValidatorOp
 func NewValidator(opts ...ValidatorOption) *Validator {
 	cborCodec := codec.CBORCodec{}
 
+	decodeJSON := func(data []byte, v any) error {
+		return json.Unmarshal(data, v)
+	}
+
 	v := &Validator{
 		types:      make(map[event.Type]reflect.Type),
 		validators: make(map[event.Type]func(any) error),
-		decode:     json.Unmarshal,
+		decode:     decodeJSON,
 		decoders: map[codec.Encoding]func([]byte, any) error{
-			codec.EncodingJSON: json.Unmarshal,
+			codec.EncodingJSON: decodeJSON,
 			codec.EncodingCBOR: cborCodec.Decode,
 		},
 	}

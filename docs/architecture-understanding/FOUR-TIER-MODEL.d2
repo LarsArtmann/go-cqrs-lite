@@ -1,0 +1,73 @@
+direction: down
+t0: "Tier 0 — Primitives" {
+  shape: package
+  style.fill: "#e8f5e9"
+  id_: "id/"
+  codec_: "codec/"
+  kv_: "kv/"
+  dedup_: "dedup/"
+  dispatcher_: "dispatcher/"
+}
+
+t1: "Tier 1 — Core Domain" {
+  shape: package
+  style.fill: "#e3f2fd"
+  event_: "event/"
+  command_: "command/"
+  query_: "query/"
+  scheduling_: "scheduling/"
+}
+
+t2: "Tier 2 — Domain Utilities" {
+  shape: package
+  style.fill: "#fff3e0"
+  schema_: "schema/"
+  snapshot_: "snapshot/"
+  projection_: "projection/"
+  idempotency_: "idempotency/"
+  deriver_: "deriver/"
+}
+
+t3: "Tier 3 — Aggregation" {
+  shape: package
+  style.fill: "#f3e5f5"
+  decider_: "decider/"
+  graph_: "graph/"
+  scenario_: "scenario/"
+  projectionhost_: "projectionhost/"
+  listing_: "listing/"
+}
+
+t4: "Tier 4 — Infrastructure" {
+  shape: package
+  style.fill: "#fce4ec"
+  storage_: "storage/"
+  middleware_: "middleware/"
+  signing_: "signing/"
+  encryption_: "encryption/"
+  otel_: "otel/"
+  watermill_: "watermill/"
+  transport_: "transport/http + grpc"
+}
+
+t5: "Tier 5 — Composition" {
+  shape: package
+  style.fill: "#e0f7fa"
+  stack_: "stack/ + presets"
+}
+
+t6: "Tier 6 — Tooling & Examples" {
+  shape: package
+  style.fill: "#f5f5f5"
+  catalog_: "catalog/"
+  integration_: "integration/"
+  cmd_: "cmd/*"
+  example_: "example/*"
+}
+
+t1 -> t0
+t2 -> t1
+t3 -> t2
+t4 -> t3
+t5 -> t4
+t6 -> t5

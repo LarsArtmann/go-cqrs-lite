@@ -39,22 +39,28 @@ func TestSQLKVStore_CRUD(t *testing.T) {
 	store := newTestKVStore(t)
 
 	// Get on missing key → ErrNotFound.
-	if _, err := store.Get([]byte("missing")); !errors.Is(err, kv.ErrNotFound) {
+	if _, err := store.Get(
+		context.Background(),
+		[]byte("missing"),
+	); !errors.Is(
+		err,
+		kv.ErrNotFound,
+	) {
 		t.Fatalf("Get missing: err = %v, want ErrNotFound", err)
 	}
 
 	// Has on missing → false.
-	has, err := store.Has([]byte("missing"))
+	has, err := store.Has(context.Background(), []byte("missing"))
 	if err != nil || has {
 		t.Fatalf("Has missing: has=%v err=%v, want false nil", has, err)
 	}
 
 	// Set + Get roundtrip.
-	if err := store.Set([]byte("k1"), []byte("v1")); err != nil {
+	if err := store.Set(context.Background(), []byte("k1"), []byte("v1")); err != nil {
 		t.Fatalf("Set: %v", err)
 	}
 
-	got, err := store.Get([]byte("k1"))
+	got, err := store.Get(context.Background(), []byte("k1"))
 	if err != nil {
 		t.Fatalf("Get: %v", err)
 	}
@@ -64,17 +70,17 @@ func TestSQLKVStore_CRUD(t *testing.T) {
 	}
 
 	// Has existing → true.
-	has, err = store.Has([]byte("k1"))
+	has, err = store.Has(context.Background(), []byte("k1"))
 	if err != nil || !has {
 		t.Fatalf("Has existing: has=%v err=%v, want true nil", has, err)
 	}
 
 	// Set overwrite (upsert).
-	if err := store.Set([]byte("k1"), []byte("v1-updated")); err != nil {
+	if err := store.Set(context.Background(), []byte("k1"), []byte("v1-updated")); err != nil {
 		t.Fatalf("Set overwrite: %v", err)
 	}
 
-	got, err = store.Get([]byte("k1"))
+	got, err = store.Get(context.Background(), []byte("k1"))
 	if err != nil {
 		t.Fatalf("Get after overwrite: %v", err)
 	}
@@ -84,16 +90,16 @@ func TestSQLKVStore_CRUD(t *testing.T) {
 	}
 
 	// Delete.
-	if err := store.Delete([]byte("k1")); err != nil {
+	if err := store.Delete(context.Background(), []byte("k1")); err != nil {
 		t.Fatalf("Delete: %v", err)
 	}
 
-	if _, err := store.Get([]byte("k1")); !errors.Is(err, kv.ErrNotFound) {
+	if _, err := store.Get(context.Background(), []byte("k1")); !errors.Is(err, kv.ErrNotFound) {
 		t.Fatalf("Get after delete: err = %v, want ErrNotFound", err)
 	}
 
 	// Delete missing is a no-op.
-	if err := store.Delete([]byte("never-existed")); err != nil {
+	if err := store.Delete(context.Background(), []byte("never-existed")); err != nil {
 		t.Fatalf("Delete missing: err = %v, want nil", err)
 	}
 }
@@ -112,7 +118,7 @@ func TestSQLKVStore_Iterator(t *testing.T) {
 	}
 
 	for k, v := range seed {
-		if err := store.Set([]byte(k), []byte(v)); err != nil {
+		if err := store.Set(context.Background(), []byte(k), []byte(v)); err != nil {
 			t.Fatalf("Set %q: %v", k, err)
 		}
 	}
@@ -153,47 +159,51 @@ func TestSQLKVStore_Batch(t *testing.T) {
 
 	store := newTestKVStore(t)
 
-	if err := store.Set([]byte("keep"), []byte("k")); err != nil {
+	if err := store.Set(context.Background(), []byte("keep"), []byte("k")); err != nil {
 		t.Fatalf("Set keep: %v", err)
 	}
 
-	if err := store.Set([]byte("drop"), []byte("d")); err != nil {
+	if err := store.Set(context.Background(), []byte("drop"), []byte("d")); err != nil {
 		t.Fatalf("Set drop: %v", err)
 	}
 
 	// Committed batch: add one, delete one, atomically.
-	batch, err := store.Batch()
+	batch, err := store.Batch(context.Background())
 	if err != nil {
 		t.Fatalf("Batch: %v", err)
 	}
 
-	if err := batch.Set([]byte("added"), []byte("n")); err != nil {
+	if err := batch.Set(context.Background(), []byte("added"), []byte("n")); err != nil {
 		t.Fatalf("batch Set: %v", err)
 	}
 
-	if err := batch.Delete([]byte("drop")); err != nil {
+	if err := batch.Delete(context.Background(), []byte("drop")); err != nil {
 		t.Fatalf("batch Delete: %v", err)
 	}
 
-	if err := batch.Commit(); err != nil {
+	if err := batch.Commit(context.Background()); err != nil {
 		t.Fatalf("Commit: %v", err)
 	}
 
-	if got, err := store.Get([]byte("added")); err != nil || string(got) != "n" {
+	if got, err := store.Get(
+		context.Background(),
+		[]byte("added"),
+	); err != nil ||
+		string(got) != "n" {
 		t.Fatalf("after commit Get added: got %q err=%v, want n", got, err)
 	}
 
-	if _, err := store.Get([]byte("drop")); !errors.Is(err, kv.ErrNotFound) {
+	if _, err := store.Get(context.Background(), []byte("drop")); !errors.Is(err, kv.ErrNotFound) {
 		t.Fatalf("after commit Get drop: err=%v, want ErrNotFound", err)
 	}
 
 	// Discarded batch (Close without Commit) writes nothing.
-	discard, err := store.Batch()
+	discard, err := store.Batch(context.Background())
 	if err != nil {
 		t.Fatalf("Batch: %v", err)
 	}
 
-	if err := discard.Set([]byte("ephemeral"), []byte("x")); err != nil {
+	if err := discard.Set(context.Background(), []byte("ephemeral"), []byte("x")); err != nil {
 		t.Fatalf("discard Set: %v", err)
 	}
 
@@ -201,12 +211,18 @@ func TestSQLKVStore_Batch(t *testing.T) {
 		t.Fatalf("discard Close: %v", err)
 	}
 
-	if _, err := store.Get([]byte("ephemeral")); !errors.Is(err, kv.ErrNotFound) {
+	if _, err := store.Get(
+		context.Background(),
+		[]byte("ephemeral"),
+	); !errors.Is(
+		err,
+		kv.ErrNotFound,
+	) {
 		t.Fatalf("after discard Get ephemeral: err=%v, want ErrNotFound", err)
 	}
 
 	// Commit after Close is a no-op (no panic, no double-commit error).
-	if err := discard.Commit(); err != nil {
+	if err := discard.Commit(context.Background()); err != nil {
 		t.Fatalf("Commit after Close: %v, want nil", err)
 	}
 }
@@ -214,7 +230,7 @@ func TestSQLKVStore_Batch(t *testing.T) {
 func collectIter(t *testing.T, store *storage.SQLKVStore, prefix []byte) ([]string, []string) {
 	t.Helper()
 
-	iter, err := store.NewIterator(prefix)
+	iter, err := store.NewIterator(context.Background(), prefix)
 	if err != nil {
 		t.Fatalf("NewIterator %q: %v", prefix, err)
 	}

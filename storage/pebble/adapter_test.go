@@ -2,6 +2,7 @@ package pebble
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"sync"
@@ -42,12 +43,12 @@ func TestKVAdapter_SetAndGet(t *testing.T) {
 
 	store := openTestKVStore(t)
 
-	err := store.Set([]byte("k1"), []byte("v1"))
+	err := store.Set(context.Background(), []byte("k1"), []byte("v1"))
 	if err != nil {
 		t.Fatalf("Set: %v", err)
 	}
 
-	val, err := store.Get([]byte("k1"))
+	val, err := store.Get(context.Background(), []byte("k1"))
 	if err != nil {
 		t.Fatalf("Get: %v", err)
 	}
@@ -62,7 +63,7 @@ func TestKVAdapter_GetNotFound(t *testing.T) {
 
 	store := openTestKVStore(t)
 
-	_, err := store.Get([]byte("missing"))
+	_, err := store.Get(context.Background(), []byte("missing"))
 	if !errors.Is(err, kv.ErrNotFound) {
 		t.Fatalf("got err %v, want kv.ErrNotFound", err)
 	}
@@ -74,19 +75,19 @@ func TestKVAdapter_GetReturnsCopy(t *testing.T) {
 	store := openTestKVStore(t)
 
 	original := []byte("value")
-	err := store.Set([]byte("k"), original)
+	err := store.Set(context.Background(), []byte("k"), original)
 	if err != nil {
 		t.Fatalf("Set: %v", err)
 	}
 
-	got, err := store.Get([]byte("k"))
+	got, err := store.Get(context.Background(), []byte("k"))
 	if err != nil {
 		t.Fatalf("Get: %v", err)
 	}
 
 	got[0] = 'X'
 
-	again, err := store.Get([]byte("k"))
+	again, err := store.Get(context.Background(), []byte("k"))
 	if err != nil {
 		t.Fatalf("Get second: %v", err)
 	}
@@ -101,12 +102,12 @@ func TestKVAdapter_Has(t *testing.T) {
 
 	store := openTestKVStore(t)
 
-	err := store.Set([]byte("exists"), []byte("v"))
+	err := store.Set(context.Background(), []byte("exists"), []byte("v"))
 	if err != nil {
 		t.Fatalf("Set: %v", err)
 	}
 
-	has, err := store.Has([]byte("exists"))
+	has, err := store.Has(context.Background(), []byte("exists"))
 	if err != nil {
 		t.Fatalf("Has(exists): %v", err)
 	}
@@ -115,7 +116,7 @@ func TestKVAdapter_Has(t *testing.T) {
 		t.Fatal("Has(exists) = false, want true")
 	}
 
-	has, err = store.Has([]byte("missing"))
+	has, err = store.Has(context.Background(), []byte("missing"))
 	if err != nil {
 		t.Fatalf("Has(missing): %v", err)
 	}
@@ -130,17 +131,17 @@ func TestKVAdapter_Delete(t *testing.T) {
 
 	store := openTestKVStore(t)
 
-	err := store.Set([]byte("k"), []byte("v"))
+	err := store.Set(context.Background(), []byte("k"), []byte("v"))
 	if err != nil {
 		t.Fatalf("Set: %v", err)
 	}
 
-	err = store.Delete([]byte("k"))
+	err = store.Delete(context.Background(), []byte("k"))
 	if err != nil {
 		t.Fatalf("Delete: %v", err)
 	}
 
-	_, err = store.Get([]byte("k"))
+	_, err = store.Get(context.Background(), []byte("k"))
 	if !errors.Is(err, kv.ErrNotFound) {
 		t.Fatalf("after delete: got err %v, want kv.ErrNotFound", err)
 	}
@@ -151,7 +152,7 @@ func TestKVAdapter_DeleteNonExistent(t *testing.T) {
 
 	store := openTestKVStore(t)
 
-	err := store.Delete([]byte("never-existed"))
+	err := store.Delete(context.Background(), []byte("never-existed"))
 	if err != nil {
 		t.Fatalf("Delete non-existent should be no-op, got: %v", err)
 	}
@@ -166,13 +167,13 @@ func TestKVIterator_AllKeys(t *testing.T) {
 
 	keys := []string{"a", "b", "c", "d"}
 	for _, k := range keys {
-		err := store.Set([]byte(k), []byte("val-"+k))
+		err := store.Set(context.Background(), []byte(k), []byte("val-"+k))
 		if err != nil {
 			t.Fatalf("Set %s: %v", k, err)
 		}
 	}
 
-	iter, err := store.NewIterator(nil)
+	iter, err := store.NewIterator(context.Background(), nil)
 	if err != nil {
 		t.Fatalf("NewIterator: %v", err)
 	}
@@ -214,13 +215,13 @@ func TestKVIterator_PrefixFilter(t *testing.T) {
 	}
 
 	for k, v := range pairs {
-		err := store.Set([]byte(k), []byte(v))
+		err := store.Set(context.Background(), []byte(k), []byte(v))
 		if err != nil {
 			t.Fatalf("Set %s: %v", k, err)
 		}
 	}
 
-	iter, err := store.NewIterator([]byte("prefix:"))
+	iter, err := store.NewIterator(context.Background(), []byte("prefix:"))
 	if err != nil {
 		t.Fatalf("NewIterator: %v", err)
 	}
@@ -253,12 +254,12 @@ func TestKVIterator_ValuesAreSafe(t *testing.T) {
 
 	store := openTestKVStore(t)
 
-	err := store.Set([]byte("k"), []byte("original"))
+	err := store.Set(context.Background(), []byte("k"), []byte("original"))
 	if err != nil {
 		t.Fatalf("Set: %v", err)
 	}
 
-	iter, err := store.NewIterator(nil)
+	iter, err := store.NewIterator(context.Background(), nil)
 	if err != nil {
 		t.Fatalf("NewIterator: %v", err)
 	}
@@ -271,7 +272,7 @@ func TestKVIterator_ValuesAreSafe(t *testing.T) {
 	val := iter.Value()
 	val[0] = 'X'
 
-	again, err := store.Get([]byte("k"))
+	again, err := store.Get(context.Background(), []byte("k"))
 	if err != nil {
 		t.Fatalf("Get: %v", err)
 	}
@@ -288,44 +289,44 @@ func TestKVBatch_AtomicCommit(t *testing.T) {
 
 	store := openTestKVStore(t)
 
-	batch, err := store.Batch()
+	batch, err := store.Batch(context.Background())
 	if err != nil {
 		t.Fatalf("Batch: %v", err)
 	}
 
-	err = batch.Set([]byte("batch:1"), []byte("a"))
+	err = batch.Set(context.Background(), []byte("batch:1"), []byte("a"))
 	if err != nil {
 		t.Fatalf("batch.Set: %v", err)
 	}
 
-	err = batch.Set([]byte("batch:2"), []byte("b"))
+	err = batch.Set(context.Background(), []byte("batch:2"), []byte("b"))
 	if err != nil {
 		t.Fatalf("batch.Set: %v", err)
 	}
 
-	err = batch.Delete([]byte("batch:1"))
+	err = batch.Delete(context.Background(), []byte("batch:1"))
 	if err != nil {
 		t.Fatalf("batch.Delete: %v", err)
 	}
 
 	// Before commit, keys should not be visible.
-	_, err = store.Get([]byte("batch:2"))
+	_, err = store.Get(context.Background(), []byte("batch:2"))
 	if !errors.Is(err, kv.ErrNotFound) {
 		t.Fatalf("before commit: got err %v, want kv.ErrNotFound", err)
 	}
 
-	err = batch.Commit()
+	err = batch.Commit(context.Background())
 	if err != nil {
 		t.Fatalf("batch.Commit: %v", err)
 	}
 
 	// After commit, only batch:2 should exist (batch:1 was set then deleted).
-	_, err = store.Get([]byte("batch:1"))
+	_, err = store.Get(context.Background(), []byte("batch:1"))
 	if !errors.Is(err, kv.ErrNotFound) {
 		t.Fatalf("after commit: batch:1 should be deleted, got err %v", err)
 	}
 
-	val, err := store.Get([]byte("batch:2"))
+	val, err := store.Get(context.Background(), []byte("batch:2"))
 	if err != nil {
 		t.Fatalf("after commit: Get batch:2: %v", err)
 	}
@@ -340,12 +341,12 @@ func TestKVBatch_CloseDiscards(t *testing.T) {
 
 	store := openTestKVStore(t)
 
-	batch, err := store.Batch()
+	batch, err := store.Batch(context.Background())
 	if err != nil {
 		t.Fatalf("Batch: %v", err)
 	}
 
-	err = batch.Set([]byte("discarded"), []byte("v"))
+	err = batch.Set(context.Background(), []byte("discarded"), []byte("v"))
 	if err != nil {
 		t.Fatalf("batch.Set: %v", err)
 	}
@@ -355,7 +356,7 @@ func TestKVBatch_CloseDiscards(t *testing.T) {
 		t.Fatalf("batch.Close: %v", err)
 	}
 
-	_, err = store.Get([]byte("discarded"))
+	_, err = store.Get(context.Background(), []byte("discarded"))
 	if !errors.Is(err, kv.ErrNotFound) {
 		t.Fatalf("after Close: got err %v, want kv.ErrNotFound", err)
 	}
@@ -366,17 +367,17 @@ func TestKVBatch_CommitThenCloseIsNoOp(t *testing.T) {
 
 	store := openTestKVStore(t)
 
-	batch, err := store.Batch()
+	batch, err := store.Batch(context.Background())
 	if err != nil {
 		t.Fatalf("Batch: %v", err)
 	}
 
-	err = batch.Set([]byte("k"), []byte("v"))
+	err = batch.Set(context.Background(), []byte("k"), []byte("v"))
 	if err != nil {
 		t.Fatalf("batch.Set: %v", err)
 	}
 
-	err = batch.Commit()
+	err = batch.Commit(context.Background())
 	if err != nil {
 		t.Fatalf("batch.Commit: %v", err)
 	}
@@ -403,7 +404,7 @@ func TestKVAdapter_CloseOwnedDB(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = store.Set([]byte("k"), []byte("v"))
+	err = store.Set(context.Background(), []byte("k"), []byte("v"))
 	if err != nil {
 		t.Fatalf("Set: %v", err)
 	}
@@ -414,7 +415,7 @@ func TestKVAdapter_CloseOwnedDB(t *testing.T) {
 	}
 
 	// After close, operations should return ErrClosed.
-	_, err = store.Get([]byte("k"))
+	_, err = store.Get(context.Background(), []byte("k"))
 	if !errors.Is(err, kv.ErrClosed) {
 		t.Fatalf("after Close: got err %v, want kv.ErrClosed", err)
 	}
@@ -435,7 +436,7 @@ func TestKVAdapter_CloseBorrowedDB(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = store.Set([]byte("k"), []byte("v"))
+	err = store.Set(context.Background(), []byte("k"), []byte("v"))
 	if err != nil {
 		t.Fatalf("Set: %v", err)
 	}
@@ -479,7 +480,7 @@ func TestKVAdapter_OperationsAfterClose(t *testing.T) {
 
 	store := openTestKVStore(t)
 
-	if err := store.Set([]byte("seed"), []byte("v")); err != nil {
+	if err := store.Set(context.Background(), []byte("seed"), []byte("v")); err != nil {
 		t.Fatalf("seed Set before close: %v", err)
 	}
 
@@ -489,21 +490,28 @@ func TestKVAdapter_OperationsAfterClose(t *testing.T) {
 
 	t.Run("Set", func(t *testing.T) {
 		t.Parallel()
-		if err := store.Set([]byte("k"), []byte("v")); !errors.Is(err, kv.ErrClosed) {
+		if err := store.Set(
+			context.Background(),
+			[]byte("k"),
+			[]byte("v"),
+		); !errors.Is(
+			err,
+			kv.ErrClosed,
+		) {
 			t.Fatalf("Set after close: got %v, want kv.ErrClosed", err)
 		}
 	})
 
 	t.Run("Delete", func(t *testing.T) {
 		t.Parallel()
-		if err := store.Delete([]byte("k")); !errors.Is(err, kv.ErrClosed) {
+		if err := store.Delete(context.Background(), []byte("k")); !errors.Is(err, kv.ErrClosed) {
 			t.Fatalf("Delete after close: got %v, want kv.ErrClosed", err)
 		}
 	})
 
 	t.Run("Has", func(t *testing.T) {
 		t.Parallel()
-		_, err := store.Has([]byte("k"))
+		_, err := store.Has(context.Background(), []byte("k"))
 		if !errors.Is(err, kv.ErrClosed) {
 			t.Fatalf("Has after close: got %v, want kv.ErrClosed", err)
 		}
@@ -511,7 +519,7 @@ func TestKVAdapter_OperationsAfterClose(t *testing.T) {
 
 	t.Run("Get", func(t *testing.T) {
 		t.Parallel()
-		_, err := store.Get([]byte("k"))
+		_, err := store.Get(context.Background(), []byte("k"))
 		if !errors.Is(err, kv.ErrClosed) {
 			t.Fatalf("Get after close: got %v, want kv.ErrClosed", err)
 		}
@@ -519,7 +527,7 @@ func TestKVAdapter_OperationsAfterClose(t *testing.T) {
 
 	t.Run("NewIterator", func(t *testing.T) {
 		t.Parallel()
-		_, err := store.NewIterator(nil)
+		_, err := store.NewIterator(context.Background(), nil)
 		if !errors.Is(err, kv.ErrClosed) {
 			t.Fatalf("NewIterator after close: got %v, want kv.ErrClosed", err)
 		}
@@ -527,7 +535,7 @@ func TestKVAdapter_OperationsAfterClose(t *testing.T) {
 
 	t.Run("Batch", func(t *testing.T) {
 		t.Parallel()
-		_, err := store.Batch()
+		_, err := store.Batch(context.Background())
 		if !errors.Is(err, kv.ErrClosed) {
 			t.Fatalf("Batch after close: got %v, want kv.ErrClosed", err)
 		}
@@ -539,7 +547,7 @@ func TestKVAdapter_OperationsAfterClose(t *testing.T) {
 		if !ok {
 			t.Fatalf("store does not implement kv.ConditionalWriter")
 		}
-		got, err := cw.SetIfAbsent([]byte("k"), []byte("v"))
+		got, err := cw.SetIfAbsent(context.Background(), []byte("k"), []byte("v"))
 		if got || !errors.Is(err, kv.ErrClosed) {
 			t.Fatalf("SetIfAbsent after close: got (%v,%v), want (false, kv.ErrClosed)", got, err)
 		}
@@ -568,7 +576,7 @@ func TestKVAdapter_SetIfAbsent_FirstWriterWins(t *testing.T) {
 		t.Fatalf("store does not implement kv.ConditionalWriter: %T", store)
 	}
 
-	ok, err := cw.SetIfAbsent([]byte("lock"), []byte("owner-1"))
+	ok, err := cw.SetIfAbsent(context.Background(), []byte("lock"), []byte("owner-1"))
 	if err != nil {
 		t.Fatalf("first SetIfAbsent: %v", err)
 	}
@@ -577,7 +585,7 @@ func TestKVAdapter_SetIfAbsent_FirstWriterWins(t *testing.T) {
 	}
 
 	// Second call on the same key must report the key already exists.
-	ok, err = cw.SetIfAbsent([]byte("lock"), []byte("owner-2"))
+	ok, err = cw.SetIfAbsent(context.Background(), []byte("lock"), []byte("owner-2"))
 	if err != nil {
 		t.Fatalf("second SetIfAbsent: %v", err)
 	}
@@ -586,7 +594,7 @@ func TestKVAdapter_SetIfAbsent_FirstWriterWins(t *testing.T) {
 	}
 
 	// The original value is preserved — SetIfAbsent must not overwrite.
-	val, err := store.Get([]byte("lock"))
+	val, err := store.Get(context.Background(), []byte("lock"))
 	if err != nil {
 		t.Fatalf("Get after SetIfAbsent: %v", err)
 	}
@@ -617,7 +625,7 @@ func TestKVAdapter_SetIfAbsent_ConcurrentExactlyOneWinner(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			<-start
-			ok, err := cw.SetIfAbsent([]byte("contested"), []byte("won"))
+			ok, err := cw.SetIfAbsent(context.Background(), []byte("contested"), []byte("won"))
 			if err != nil {
 				t.Errorf("SetIfAbsent: %v", err)
 				return
@@ -685,13 +693,13 @@ func TestKVIterator_ManyKeys(t *testing.T) {
 	const n = 500
 
 	for i := range n {
-		err := store.Set(fmt.Appendf(nil, "key:%05d", i), []byte("val"))
+		err := store.Set(context.Background(), fmt.Appendf(nil, "key:%05d", i), []byte("val"))
 		if err != nil {
 			t.Fatalf("Set %d: %v", i, err)
 		}
 	}
 
-	iter, err := store.NewIterator([]byte("key:"))
+	iter, err := store.NewIterator(context.Background(), []byte("key:"))
 	if err != nil {
 		t.Fatalf("NewIterator: %v", err)
 	}

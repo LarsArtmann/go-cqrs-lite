@@ -1,6 +1,7 @@
 package pebble
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -15,12 +16,12 @@ func testContractGetSet(t *testing.T, makeStore func(t *testing.T) kv.Store) {
 	t.Parallel()
 
 	store := makeStore(t)
-	err := store.Set([]byte("k"), []byte("v"))
+	err := store.Set(context.Background(), []byte("k"), []byte("v"))
 	if err != nil {
 		t.Fatalf("Set: %v", err)
 	}
 
-	val, err := store.Get([]byte("k"))
+	val, err := store.Get(context.Background(), []byte("k"))
 	if err != nil {
 		t.Fatalf("Get: %v", err)
 	}
@@ -36,7 +37,7 @@ func testContractGetNotFound(t *testing.T, makeStore func(t *testing.T) kv.Store
 	t.Parallel()
 
 	store := makeStore(t)
-	_, err := store.Get([]byte("missing"))
+	_, err := store.Get(context.Background(), []byte("missing"))
 	if !errors.Is(err, kv.ErrNotFound) {
 		t.Fatalf("got %v, want ErrNotFound", err)
 	}
@@ -49,17 +50,17 @@ func testContractHas(t *testing.T, makeStore func(t *testing.T) kv.Store) {
 
 	store := makeStore(t)
 
-	err := store.Set([]byte("exists"), []byte("v"))
+	err := store.Set(context.Background(), []byte("exists"), []byte("v"))
 	if err != nil {
 		t.Fatalf("Set: %v", err)
 	}
 
-	has, err := store.Has([]byte("exists"))
+	has, err := store.Has(context.Background(), []byte("exists"))
 	if err != nil || !has {
 		t.Fatalf("Has(exists) = %v, %v, want true, nil", has, err)
 	}
 
-	has, err = store.Has([]byte("missing"))
+	has, err = store.Has(context.Background(), []byte("missing"))
 	if err != nil || has {
 		t.Fatalf("Has(missing) = %v, %v, want false, nil", has, err)
 	}
@@ -72,17 +73,17 @@ func testContractDelete(t *testing.T, makeStore func(t *testing.T) kv.Store) {
 
 	store := makeStore(t)
 
-	err := store.Set([]byte("k"), []byte("v"))
+	err := store.Set(context.Background(), []byte("k"), []byte("v"))
 	if err != nil {
 		t.Fatalf("Set: %v", err)
 	}
 
-	err = store.Delete([]byte("k"))
+	err = store.Delete(context.Background(), []byte("k"))
 	if err != nil {
 		t.Fatalf("Delete: %v", err)
 	}
 
-	_, err = store.Get([]byte("k"))
+	_, err = store.Get(context.Background(), []byte("k"))
 	if !errors.Is(err, kv.ErrNotFound) {
 		t.Fatalf("after Delete: got %v, want ErrNotFound", err)
 	}
@@ -94,7 +95,7 @@ func testContractDeleteNonExistent(t *testing.T, makeStore func(t *testing.T) kv
 	t.Parallel()
 
 	store := makeStore(t)
-	err := store.Delete([]byte("never"))
+	err := store.Delete(context.Background(), []byte("never"))
 	if err != nil {
 		t.Fatalf("Delete non-existent should be no-op: %v", err)
 	}
@@ -107,22 +108,22 @@ func testContractBatchAtomic(t *testing.T, makeStore func(t *testing.T) kv.Store
 
 	store := makeStore(t)
 
-	batch, err := store.Batch()
+	batch, err := store.Batch(context.Background())
 	if err != nil {
 		t.Fatalf("Batch: %v", err)
 	}
 
-	err = batch.Set([]byte("batch:1"), []byte("a"))
+	err = batch.Set(context.Background(), []byte("batch:1"), []byte("a"))
 	if err != nil {
 		t.Fatalf("batch.Set: %v", err)
 	}
 
-	err = batch.Commit()
+	err = batch.Commit(context.Background())
 	if err != nil {
 		t.Fatalf("batch.Commit: %v", err)
 	}
 
-	val, err := store.Get([]byte("batch:1"))
+	val, err := store.Get(context.Background(), []byte("batch:1"))
 	if err != nil {
 		t.Fatalf("Get after commit: %v", err)
 	}
@@ -139,12 +140,12 @@ func testContractBatchCloseDiscards(t *testing.T, makeStore func(t *testing.T) k
 
 	store := makeStore(t)
 
-	batch, err := store.Batch()
+	batch, err := store.Batch(context.Background())
 	if err != nil {
 		t.Fatalf("Batch: %v", err)
 	}
 
-	err = batch.Set([]byte("discarded"), []byte("v"))
+	err = batch.Set(context.Background(), []byte("discarded"), []byte("v"))
 	if err != nil {
 		t.Fatalf("batch.Set: %v", err)
 	}
@@ -154,7 +155,7 @@ func testContractBatchCloseDiscards(t *testing.T, makeStore func(t *testing.T) k
 		t.Fatalf("batch.Close: %v", err)
 	}
 
-	_, err = store.Get([]byte("discarded"))
+	_, err = store.Get(context.Background(), []byte("discarded"))
 	if !errors.Is(err, kv.ErrNotFound) {
 		t.Fatalf("after Close: got %v, want ErrNotFound", err)
 	}
@@ -168,13 +169,13 @@ func testContractIterator(t *testing.T, makeStore func(t *testing.T) kv.Store) {
 	store := makeStore(t)
 
 	for _, k := range []string{"a", "b", "c"} {
-		err := store.Set([]byte(k), []byte("val"))
+		err := store.Set(context.Background(), []byte(k), []byte("val"))
 		if err != nil {
 			t.Fatalf("Set %s: %v", k, err)
 		}
 	}
 
-	iter, err := store.NewIterator(nil)
+	iter, err := store.NewIterator(context.Background(), nil)
 	if err != nil {
 		t.Fatalf("NewIterator: %v", err)
 	}
@@ -209,13 +210,13 @@ func testContractIteratorPrefix(t *testing.T, makeStore func(t *testing.T) kv.St
 	store := makeStore(t)
 
 	for _, k := range []string{"pfx:1", "pfx:2", "other:1"} {
-		err := store.Set([]byte(k), []byte("val"))
+		err := store.Set(context.Background(), []byte(k), []byte("val"))
 		if err != nil {
 			t.Fatalf("Set %s: %v", k, err)
 		}
 	}
 
-	iter, err := store.NewIterator([]byte("pfx:"))
+	iter, err := store.NewIterator(context.Background(), []byte("pfx:"))
 	if err != nil {
 		t.Fatalf("NewIterator: %v", err)
 	}
@@ -239,19 +240,19 @@ func testContractValueSafety(t *testing.T, makeStore func(t *testing.T) kv.Store
 
 	store := makeStore(t)
 
-	err := store.Set([]byte("k"), []byte("original"))
+	err := store.Set(context.Background(), []byte("k"), []byte("original"))
 	if err != nil {
 		t.Fatalf("Set: %v", err)
 	}
 
-	val, err := store.Get([]byte("k"))
+	val, err := store.Get(context.Background(), []byte("k"))
 	if err != nil {
 		t.Fatalf("Get: %v", err)
 	}
 
 	val[0] = 'X'
 
-	again, err := store.Get([]byte("k"))
+	again, err := store.Get(context.Background(), []byte("k"))
 	if err != nil {
 		t.Fatalf("Get again: %v", err)
 	}

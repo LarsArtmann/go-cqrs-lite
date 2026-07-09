@@ -1,6 +1,9 @@
 package kv
 
-import "io"
+import (
+	"context"
+	"io"
+)
 
 // Store is the core key-value store interface combining read and write access.
 type Store interface {
@@ -13,31 +16,31 @@ type Store interface {
 type Reader interface {
 	// Get retrieves the value for the given key.
 	// Returns [ErrNotFound] if the key does not exist.
-	Get(key []byte) ([]byte, error)
+	Get(ctx context.Context, key []byte) ([]byte, error)
 
 	// Has reports whether a key exists without reading the value.
-	Has(key []byte) (bool, error)
+	Has(ctx context.Context, key []byte) (bool, error)
 
 	// NewIterator returns an iterator over keys matching the given prefix.
 	// A nil prefix iterates over all keys.
 	// Keys are yielded in lexicographic order.
 	// The caller must call Close on the returned iterator.
-	NewIterator(prefix []byte) (Iterator, error)
+	NewIterator(ctx context.Context, prefix []byte) (Iterator, error)
 }
 
 // Writer provides write access to the store.
 type Writer interface {
 	// Set stores the value for the given key.
-	Set(key, value []byte) error
+	Set(ctx context.Context, key, value []byte) error
 
 	// Delete removes the value for the given key.
 	// Deleting a non-existent key is a no-op.
-	Delete(key []byte) error
+	Delete(ctx context.Context, key []byte) error
 
 	// Batch returns a new [Batch] for atomic writes.
 	// All operations queued on the batch are committed atomically on
 	// [Batch.Commit].
-	Batch() (Batch, error)
+	Batch(ctx context.Context) (Batch, error)
 }
 
 // Iterator yields key-value pairs in lexicographic key order.
@@ -66,14 +69,14 @@ type Iterator interface {
 // A Batch is not safe for concurrent use by multiple goroutines.
 type Batch interface {
 	// Set queues a set operation.
-	Set(key, value []byte) error
+	Set(ctx context.Context, key, value []byte) error
 
 	// Delete queues a delete operation.
-	Delete(key []byte) error
+	Delete(ctx context.Context, key []byte) error
 
 	// Commit applies all queued operations atomically.
 	// After Commit the batch is closed and cannot be reused.
-	Commit() error
+	Commit(ctx context.Context) error
 
 	// Close releases batch resources.
 	// Uncommitted operations are discarded.
@@ -88,5 +91,5 @@ type ConditionalWriter interface {
 	// SetIfAbsent atomically sets the value only if the key does not
 	// currently exist. Returns true if the set succeeded (key was
 	// absent), false if the key already existed.
-	SetIfAbsent(key, value []byte) (bool, error)
+	SetIfAbsent(ctx context.Context, key, value []byte) (bool, error)
 }

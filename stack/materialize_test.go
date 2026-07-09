@@ -111,9 +111,15 @@ type failingStore struct{ kv.Store }
 
 var errFailingStore = errors.New("simulated database failure")
 
-func (f *failingStore) Get(key []byte) ([]byte, error) { return nil, errFailingStore }
-func (f *failingStore) Has(key []byte) (bool, error)   { return false, errFailingStore }
-func (f *failingStore) NewIterator(prefix []byte) (kv.Iterator, error) {
+func (f *failingStore) Get(_ context.Context, key []byte) ([]byte, error) {
+	return nil, errFailingStore
+}
+
+func (f *failingStore) Has(_ context.Context, key []byte) (bool, error) {
+	return false, errFailingStore
+}
+
+func (f *failingStore) NewIterator(_ context.Context, prefix []byte) (kv.Iterator, error) {
 	return nil, errFailingStore
 }
 

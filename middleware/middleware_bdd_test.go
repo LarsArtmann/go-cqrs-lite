@@ -13,6 +13,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/idempotency/v3"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v3"
 	"github.com/larsartmann/go-cqrs-lite/query/v3"
 )
@@ -223,6 +224,155 @@ var _ = Describe("Event and Query Middleware Variants", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("panic recovered"))
 				Expect(result).To(BeNil())
+			})
+		})
+	})
+})
+
+var _ = Describe("Command Idempotency Middleware", func() {
+	var ctx context.Context
+
+	BeforeEach(func() {
+		ctx = context.Background()
+	})
+
+	Describe("As a developer protecting against duplicate commands", func() {
+		Context("when the same command is dispatched twice", func() {
+			It("should execute the handler once and reject the duplicate", func() {
+				store := idempotency.NewMemoryStore(0)
+				defer store.Close()
+
+				var callCount int32
+				mw := middleware.CommandIdempotency(store, time.Minute, nil)
+				handler := mw(func(_ context.Context, _ command.Command) error {
+					callCount++
+
+					return nil
+				})
+
+				cmd := &bddCommand{
+					commandID:   id.NewCommandID(),
+					aggregateID: id.NewAggregateID(),
+				}
+
+				Expect(handler(ctx, cmd)).To(Succeed())
+				err := handler(ctx, cmd)
+				Expect(err).To(MatchError(idempotency.ErrDuplicate))
+				Expect(callCount).To(Equal(int32(1)))
+			})
+		})
+
+		Context("when two different commands arrive", func() {
+			It("should execute the handler for both", func() {
+				store := idempotency.NewMemoryStore(0)
+				defer store.Close()
+
+				var callCount int32
+				mw := middleware.CommandIdempotency(store, time.Minute, nil)
+				handler := mw(func(_ context.Context, _ command.Command) error {
+					callCount++
+
+					return nil
+				})
+
+				Expect(
+					handler(
+						ctx,
+						&bddCommand{aggregateID: id.NewAggregateID(), commandID: id.NewCommandID()},
+					),
+				).To(Succeed())
+				Expect(
+					handler(
+						ctx,
+						&bddCommand{aggregateID: id.NewAggregateID(), commandID: id.NewCommandID()},
+					),
+				).To(Succeed())
+				Expect(callCount).To(Equal(int32(2)))
+			})
+		})
+
+		Context("when a custom key extractor returns empty", func() {
+			It("should skip dedup and always pass through", func() {
+				store := idempotency.NewMemoryStore(0)
+				defer store.Close()
+
+				var callCount int32
+				mw := middleware.CommandIdempotency(
+					store,
+					time.Minute,
+					func(_ command.Command) string { return "" },
+				)
+				handler := mw(func(_ context.Context, _ command.Command) error {
+					callCount++
+
+					return nil
+				})
+
+				Expect(
+					handler(
+						ctx,
+						&bddCommand{aggregateID: id.NewAggregateID(), commandID: id.NewCommandID()},
+					),
+				).To(Succeed())
+				Expect(
+					handler(
+						ctx,
+						&bddCommand{aggregateID: id.NewAggregateID(), commandID: id.NewCommandID()},
+					),
+				).To(Succeed())
+				Expect(callCount).To(Equal(int32(2)))
+			})
+		})
+	})
+})
+
+var _ = Describe("Query Idempotency Middleware", func() {
+	var ctx context.Context
+
+	BeforeEach(func() {
+		ctx = context.Background()
+	})
+
+	Describe("As a developer protecting against duplicate queries", func() {
+		Context("when the same query key is seen twice", func() {
+			It("should return a result once and reject the duplicate", func() {
+				store := idempotency.NewMemoryStore(0)
+				defer store.Close()
+
+				var callCount int32
+				mw := middleware.QueryIdempotency(
+					store,
+					time.Minute,
+					func(_ query.Query) string { return "q-key-123" },
+				)
+				handler := mw(func(_ context.Context, _ query.Query) (any, error) {
+					callCount++
+
+					return "result-data", nil
+				})
+
+				q, err := query.New("test.query")
+				Expect(err).ToNot(HaveOccurred())
+
+				result, err := handler(ctx, q)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(result).To(Equal("result-data"))
+
+				result2, err := handler(ctx, q)
+				Expect(err).To(MatchError(idempotency.ErrDuplicate))
+				Expect(result2).To(BeNil())
+				Expect(callCount).To(Equal(int32(1)))
+			})
+		})
+
+		Context("when the nil keyExtractor is provided", func() {
+			It("should panic at construction with a clear message", func() {
+				store := idempotency.NewMemoryStore(0)
+				defer store.Close()
+
+				Expect(func() {
+					middleware.QueryIdempotency(store, time.Minute, nil)
+				}).To(PanicWith(MatchRegexp("keyExtractor must not be nil")))
 			})
 		})
 	})

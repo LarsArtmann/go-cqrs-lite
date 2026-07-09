@@ -30,3 +30,5 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v3 => ../snapshot
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 => ../storage/memory
 )
+
+replace github.com/larsartmann/go-cqrs-lite/metadata/v3 => ../metadata

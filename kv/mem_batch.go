@@ -1,6 +1,9 @@
 package kv
 
-import "slices"
+import (
+	"context"
+	"slices"
+)
 
 type batchOp struct {
 	isDelete bool
@@ -16,7 +19,7 @@ type memBatch struct {
 
 var _ Batch = (*memBatch)(nil)
 
-func (b *memBatch) Set(key, value []byte) error {
+func (b *memBatch) Set(ctx context.Context, key, value []byte) error {
 	if b.closed {
 		return ErrClosed
 	}
@@ -29,7 +32,7 @@ func (b *memBatch) Set(key, value []byte) error {
 	return nil
 }
 
-func (b *memBatch) Delete(key []byte) error {
+func (b *memBatch) Delete(ctx context.Context, key []byte) error {
 	if b.closed {
 		return ErrClosed
 	}
@@ -42,7 +45,7 @@ func (b *memBatch) Delete(key []byte) error {
 	return nil
 }
 
-func (b *memBatch) Commit() error {
+func (b *memBatch) Commit(ctx context.Context) error {
 	if b.closed {
 		return ErrClosed
 	}

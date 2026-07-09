@@ -1,8 +1,8 @@
 package command
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/metadata/v3"
 )
 
 // MetadataKey represents a custom metadata key for commands.
@@ -11,7 +11,7 @@ import (
 type MetadataKey string
 
 // Metadata contains tracing and contextual information for commands.
-// It embeds event.Tracing for the cross-cutting tracing identifiers and adds
+// It embeds metadata.Tracing for the cross-cutting tracing identifiers and adds
 // a Custom map for arbitrary key-value metadata.
 //
 // Unlike the old alias of event.Metadata, command.Metadata does NOT carry
@@ -19,7 +19,7 @@ type MetadataKey string
 // no event-causation link. Each module owns its own Metadata so a change to
 // the event's shape cannot silently reshape commands. See ADR-0031.
 type Metadata struct {
-	event.CustomData[MetadataKey]
+	metadata.CustomData[MetadataKey]
 }
 
 // NewMetadata creates a Metadata with zero-value fields.

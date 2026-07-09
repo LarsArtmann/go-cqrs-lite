@@ -1,6 +1,7 @@
 package kv
 
 import (
+	"context"
 	"testing"
 )
 
@@ -12,10 +13,10 @@ func TestMemStore_IteratorOrdering(t *testing.T) {
 
 	keys := []string{"c", "a", "b", "e", "d"}
 	for _, k := range keys {
-		_ = s.Set([]byte(k), []byte("val-"+k))
+		_ = s.Set(context.Background(), []byte(k), []byte("val-"+k))
 	}
 
-	iter, err := s.NewIterator(nil)
+	iter, err := s.NewIterator(context.Background(), nil)
 	if err != nil {
 		t.Fatalf("NewIterator: %v", err)
 	}
@@ -47,11 +48,11 @@ func TestMemStore_IteratorPrefix(t *testing.T) {
 	s := NewMemStore()
 	defer func() { _ = s.Close() }()
 
-	_ = s.Set([]byte("user:1"), []byte("alice"))
-	_ = s.Set([]byte("user:2"), []byte("bob"))
-	_ = s.Set([]byte("order:1"), []byte("shoes"))
+	_ = s.Set(context.Background(), []byte("user:1"), []byte("alice"))
+	_ = s.Set(context.Background(), []byte("user:2"), []byte("bob"))
+	_ = s.Set(context.Background(), []byte("order:1"), []byte("shoes"))
 
-	iter, err := s.NewIterator([]byte("user:"))
+	iter, err := s.NewIterator(context.Background(), []byte("user:"))
 	if err != nil {
 		t.Fatalf("NewIterator: %v", err)
 	}
@@ -83,9 +84,9 @@ func TestMemStore_IteratorValue(t *testing.T) {
 	s := NewMemStore()
 	defer func() { _ = s.Close() }()
 
-	_ = s.Set([]byte("k1"), []byte("val1"))
+	_ = s.Set(context.Background(), []byte("k1"), []byte("val1"))
 
-	iter, _ := s.NewIterator(nil)
+	iter, _ := s.NewIterator(context.Background(), nil)
 	defer func() { _ = iter.Close() }()
 
 	if !iter.Next() {
@@ -107,7 +108,7 @@ func TestMemStore_IteratorEmpty(t *testing.T) {
 	s := NewMemStore()
 	defer func() { _ = s.Close() }()
 
-	iter, err := s.NewIterator(nil)
+	iter, err := s.NewIterator(context.Background(), nil)
 	if err != nil {
 		t.Fatalf("NewIterator: %v", err)
 	}
@@ -125,14 +126,14 @@ func TestMemStore_IteratorSnapshot(t *testing.T) {
 	s := NewMemStore()
 	defer func() { _ = s.Close() }()
 
-	_ = s.Set([]byte("a"), []byte("1"))
-	_ = s.Set([]byte("b"), []byte("2"))
+	_ = s.Set(context.Background(), []byte("a"), []byte("1"))
+	_ = s.Set(context.Background(), []byte("b"), []byte("2"))
 
-	iter, _ := s.NewIterator(nil)
+	iter, _ := s.NewIterator(context.Background(), nil)
 	defer func() { _ = iter.Close() }()
 
-	_ = s.Set([]byte("c"), []byte("3"))
-	_ = s.Delete([]byte("a"))
+	_ = s.Set(context.Background(), []byte("c"), []byte("3"))
+	_ = s.Delete(context.Background(), []byte("a"))
 
 	var count int
 

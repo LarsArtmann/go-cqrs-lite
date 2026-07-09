@@ -7,10 +7,12 @@ replace github.com/larsartmann/go-cqrs-lite/id/v3 => ../id
 require github.com/larsartmann/go-cqrs-lite/testutil/v3 v3.0.0-00010101000000-000000000000
 
 require (
+	github.com/larsartmann/go-cqrs-lite/metadata/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.0.0-00010101000000-000000000000 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v3 v3.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v3 v3.0.0-00010101000000-000000000000
+
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.0.0-00010101000000-000000000000 // indirect
@@ -25,6 +27,7 @@ replace github.com/larsartmann/go-cqrs-lite/testutil/v3 => ../testutil
 replace github.com/larsartmann/go-cqrs-lite/codec/v3 => ../codec
 
 replace github.com/larsartmann/go-cqrs-lite/command/v3 => ../command
+replace github.com/larsartmann/go-cqrs-lite/metadata/v3 => ../metadata
 
 replace github.com/larsartmann/go-cqrs-lite/dispatcher/v3 => ../dispatcher
 

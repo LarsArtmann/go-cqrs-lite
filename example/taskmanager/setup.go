@@ -16,6 +16,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/decider/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/idempotency/v3"
 	"github.com/larsartmann/go-cqrs-lite/kv/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v3"
@@ -37,6 +38,7 @@ type Server struct {
 	Logger       *slog.Logger
 	otelProvider *cqrsotel.Provider
 	signer       signing.SignerVerifier
+	idemStore    idempotency.Store
 	httpServer   *http.Server
 	sseBroker    *cqrshttp.SSEBroker
 }
@@ -150,6 +152,15 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 		Logger:    logger,
 	}
 
+	// Middleware must be configured BEFORE handlers are registered —
+	// the dispatcher applies middleware at registration time, not at
+	// dispatch time.
+	if err := setupFeatures(srv); err != nil {
+		_ = srv.Bundle.Close()
+
+		return nil, fmt.Errorf("setup: features: %w", err)
+	}
+
 	registerHandlers(srv)
 
 	// Deriver: auto-assign new tasks to default team lead (event→command reaction)
@@ -157,12 +168,6 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 		_ = srv.Bundle.Close()
 
 		return nil, fmt.Errorf("setup: register deriver: %w", err)
-	}
-
-	if err := setupFeatures(srv); err != nil {
-		_ = srv.Bundle.Close()
-
-		return nil, fmt.Errorf("setup: features: %w", err)
 	}
 
 	// ── SSE broker: real-time event streaming over HTTP ──────────────

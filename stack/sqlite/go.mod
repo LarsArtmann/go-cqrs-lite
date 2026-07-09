@@ -9,6 +9,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/id/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/metadata/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/storage/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/watermill/v3 v3.0.0-00010101000000-000000000000
@@ -89,3 +90,5 @@ replace github.com/larsartmann/go-cqrs-lite/listing/v3 => ../../listing
 replace github.com/larsartmann/go-cqrs-lite/dedup/v3 => ../../dedup
 
 replace github.com/larsartmann/go-cqrs-lite/scheduling/v3 => ../../scheduling
+
+replace github.com/larsartmann/go-cqrs-lite/metadata/v3 => ../../metadata

@@ -728,18 +728,20 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 
 **Coverage**: core modules 84–98% (event 91.3%, decider 98.3%, id 97.6%, dispatcher 98.0%, schema 93.5%, storage/memory 94.1%, command 89.4%); mid-tier 81–84% (snapshot 81.1%, query 83.9%); newer modules 70–76% (kv 70.2%, codec 76.0%). Workspace total: 78.7%. Bundle layer (stack presets, cache) 0–87% — presets emphasise the shared contract suite + happy paths, so constructor error branches are lighter (stack/postgres shows 0% locally because its tests skip without `POSTGRES_TEST_DSN`). See `docs/status/` for latest.
 
-**Module Graph**:
+**Module Graph** (four-tier model, see [ADR-0046](docs/adr/0046-four-tier-model.md) and [FOUR-TIER-MODEL.md](docs/architecture-understanding/FOUR-TIER-MODEL.md)):
 
 ```
-Layer 0: id/, dispatcher/, codec/, kv/, dedup/         (leaf modules, no internal deps)
-Layer 1: event/ (→id, codec, ro), command/ (→id, dispatcher, ro), query/ (→dispatcher, ro), idempotency/ (→kv), scheduling/ (→stdlib only; testutil is test-only)
-Layer 2: schema/ (→event), snapshot/ (→event), projection/ (→event), deriver/ (→command, event, id)
-Layer 3: decider/ (→event, snapshot), graph/ (→event, id, projection), scenario/ (→event, id, projection), projectionhost/ (→event, id, projection, dedup, otel)
-Layer 4: storage/memory/, signing/, encryption/, otel/
-Layer 5: middleware/, storage/, listing/, watermill/, transport/http/, transport/grpc/, storage/pebble/, storage/turso/, prometheus/
-Layer 6: stack/, stack/memory/, stack/sqlite/, stack/pebble/, stack/postgres/
-Layer 7: catalog/, integration/, stack/bench/, examples/, cmd/cqrs-gen, cmd/api-stability, cmd/doc-check
+Tier 0 — Primitives: id/, dispatcher/, codec/, kv/, dedup/
+Tier 1 — Core Domain: event/, command/, query/, scheduling/
+Tier 2 — Domain Utilities: schema/, snapshot/, projection/, idempotency/, deriver/
+Tier 3 — Aggregation: decider/, graph/, scenario/, projectionhost/, listing/
+Tier 4 — Infrastructure: storage/memory/, storage/, middleware/, signing/, encryption/, otel/, watermill/, transport/http/, transport/grpc/, storage/pebble/, storage/turso/, prometheus/
+Tier 5 — Composition: stack/, stack/memory/, stack/sqlite/, stack/pebble/, stack/postgres/, stack/turso/
+Tier 6 — Tooling & Examples: catalog/, integration/, stack/bench/, examples/, cmd/*
 ```
+
+> Note: the old 7-layer system (pre-ADR-0046) was inaccurate — kv/ depends on codec/, command/
+> depends on event/, and 38 of 48 modules depend on codec/. The four-tier model reflects reality.
 
 > **Saga pattern**: No dedicated saga module. Multi-step orchestration emerges from bus.SubscribeAll + command dispatch. See `example/taskmanager/` for a real architecture.
 

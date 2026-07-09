@@ -27,24 +27,13 @@ func ParseType(s string) (Type, error) {
 	return Type(s), nil
 }
 
-// AggregateType is a type identifier for aggregate roots.
-type AggregateType string
+// Deprecated: Use id.AggregateType directly. This alias exists for backward
+// compatibility and will be removed in v4.
+type AggregateType = id.AggregateType
 
-// String returns the aggregate type as a string.
-func (a AggregateType) String() string { return string(a) }
-
-// IsZero reports whether the aggregate type is empty.
-func (a AggregateType) IsZero() bool { return a == "" }
-
-// ParseAggregateType validates and returns an AggregateType.
-// Returns an error if empty.
-func ParseAggregateType(s string) (AggregateType, error) {
-	if s == "" {
-		return "", ErrEmptyAggregateType
-	}
-
-	return AggregateType(s), nil
-}
+// Deprecated: Use id.ParseAggregateType directly. This alias exists for
+// backward compatibility and will be removed in v4.
+var ParseAggregateType = id.ParseAggregateType
 
 // Event is the concrete domain-event type: a pointer to [ImmutableEvent].
 //

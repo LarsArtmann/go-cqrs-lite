@@ -260,7 +260,9 @@ func validateProperties(props []PropertyType, kind, owner string) error {
 	return nil
 }
 
-func hasProperty(props []PropertyType, name string) bool { return slices.Contains(props, name) }
+func hasProperty(props []PropertyType, name string) bool {
+	return slices.ContainsFunc(props, func(p PropertyType) bool { return p.Name == name })
+}
 
 // validateNodeRef checks that ref conforms to the schema's declared node type.
 func (s *Schema) validateNodeRef(ref NodeRef) error {

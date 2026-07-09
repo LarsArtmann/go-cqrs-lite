@@ -36,8 +36,8 @@ func NewKVStore(backend KVBackend) *KVStore {
 	return &KVStore{backend: backend}
 }
 
-func (s *KVStore) Seen(_ context.Context, key string) (bool, error) {
-	val, err := s.backend.Get([]byte(key))
+func (s *KVStore) Seen(ctx context.Context, key string) (bool, error) {
+	val, err := s.backend.Get(ctx, []byte(key))
 	if err != nil {
 		if errors.Is(err, kv.ErrNotFound) {
 			return false, nil
@@ -61,7 +61,7 @@ func (s *KVStore) Seen(_ context.Context, key string) (bool, error) {
 	}
 
 	if time.Now().UnixNano() >= expiry {
-		_ = s.backend.Delete([]byte(key))
+		_ = s.backend.Delete(ctx, []byte(key))
 
 		return false, nil
 	}
@@ -69,20 +69,21 @@ func (s *KVStore) Seen(_ context.Context, key string) (bool, error) {
 	return true, nil
 }
 
-func (s *KVStore) Record(_ context.Context, key string, ttl time.Duration) error {
+func (s *KVStore) Record(ctx context.Context, key string, ttl time.Duration) error {
 	expiry := time.Now().Add(ttl).UnixNano()
 
-	return s.backend.Set( //nolint:wrapcheck // passthrough
+	return s.backend.Set(
+		ctx,
 		[]byte(key),
 		[]byte(strconv.FormatInt(expiry, 10)),
 	)
 }
 
-func (s *KVStore) CheckAndRecord(_ context.Context, key string, ttl time.Duration) error {
+func (s *KVStore) CheckAndRecord(ctx context.Context, key string, ttl time.Duration) error {
 	expiry := time.Now().Add(ttl).UnixNano()
 	val := []byte(strconv.FormatInt(expiry, 10))
 
-	inserted, err := s.backend.SetIfAbsent([]byte(key), val)
+	inserted, err := s.backend.SetIfAbsent(ctx, []byte(key), val)
 	if err != nil {
 		return errorfamily.Wrapf(
 			err,
@@ -98,12 +99,12 @@ func (s *KVStore) CheckAndRecord(_ context.Context, key string, ttl time.Duratio
 	}
 
 	// Key exists — check if it's expired.
-	existing, err := s.backend.Get([]byte(key))
+	existing, err := s.backend.Get(ctx, []byte(key))
 	if err != nil { //nolint:nestif // retry-on-race logic
 		if errors.Is(err, kv.ErrNotFound) {
 			// Raced: another goroutine deleted it between SetIfAbsent and Get.
 			// Retry once.
-			inserted, err = s.backend.SetIfAbsent([]byte(key), val)
+			inserted, err = s.backend.SetIfAbsent(ctx, []byte(key), val)
 			if err != nil {
 				return errorfamily.Wrapf(
 					err,
@@ -140,7 +141,7 @@ func (s *KVStore) CheckAndRecord(_ context.Context, key string, ttl time.Duratio
 
 	if time.Now().UnixNano() >= prevExpiry {
 		// Expired — overwrite and claim.
-		if err := s.backend.Set([]byte(key), val); err != nil {
+		if err := s.backend.Set(ctx, []byte(key), val); err != nil {
 			return errorfamily.Wrapf(
 				err,
 				errorfamily.Transient,

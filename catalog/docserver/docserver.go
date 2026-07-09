@@ -213,8 +213,7 @@ func (ds *DocsServer) serveCatalogJSON(w http.ResponseWriter, _ *http.Request) {
 func (ds *DocsServer) serveJSON(w http.ResponseWriter, v any) {
 	w.Header().Set("Content-Type", "application/json")
 
-	enc := jsontext.NewEncoder(w)
-	enc.SetIndent("", "  ")
+	enc := jsontext.NewEncoder(w, jsontext.WithIndent("  "))
 
 	//nolint:errchkjson // known-safe JSON template string
 	_ = json.MarshalEncode(enc, v)

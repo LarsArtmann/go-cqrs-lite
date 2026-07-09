@@ -129,11 +129,15 @@ func TestBackend_ReadModelsE2E(t *testing.T) {
 
 	kvStore := backend.ReadModels()
 
-	if err := kvStore.Set([]byte("rm:user:1"), []byte(`{"name":"alice"}`)); err != nil {
+	if err := kvStore.Set(
+		context.Background(),
+		[]byte("rm:user:1"),
+		[]byte(`{"name":"alice"}`),
+	); err != nil {
 		t.Fatalf("Set: %v", err)
 	}
 
-	val, err := kvStore.Get([]byte("rm:user:1"))
+	val, err := kvStore.Get(context.Background(), []byte("rm:user:1"))
 	if err != nil {
 		t.Fatalf("Get: %v", err)
 	}
@@ -142,7 +146,7 @@ func TestBackend_ReadModelsE2E(t *testing.T) {
 		t.Errorf("unexpected value: %s", string(val))
 	}
 
-	has, err := kvStore.Has([]byte("rm:user:1"))
+	has, err := kvStore.Has(context.Background(), []byte("rm:user:1"))
 	if err != nil {
 		t.Fatalf("Has: %v", err)
 	}
