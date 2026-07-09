@@ -19,6 +19,7 @@
         "summary": "Create Order",
         "description": "Create a new order",
         "operationId": "postCreateorder",
+        "deprecated": false,
         "requestBody": {
           "description": "Create Order request",
           "content": {
@@ -62,6 +63,7 @@
         "summary": "Event: Order Created",
         "description": "Order was created",
         "operationId": "eventOrdercreated",
+        "deprecated": false,
         "requestBody": {
           "description": "Order Created event payload",
           "content": {
@@ -88,6 +90,7 @@
         "summary": "Get Order",
         "description": "Get order by ID",
         "operationId": "getGetorder",
+        "deprecated": false,
         "responses": {
           "200": {
             "description": "Success",
@@ -118,6 +121,8 @@
       "command.CreateOrder": {
         "properties": {
           "orderId": {
+            "deprecated": false,
+            "nullable": false,
             "type": "string"
           }
         },

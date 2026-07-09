@@ -24,5 +24,9 @@ func (JSONCodecV2) Encode(v any) ([]byte, error) {
 
 // Decode deserializes data into v using json v2.
 func (JSONCodecV2) Decode(data []byte, v any) error {
-	return json.Unmarshal(data, v) //nolint:wrapcheck // codec layer
+	return json.Unmarshal(
+		data,
+		v,
+		json.MatchCaseInsensitiveNames(true),
+	)
 }

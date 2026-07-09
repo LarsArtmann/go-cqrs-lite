@@ -19,5 +19,10 @@ func (d *Document) MarshalJSON() ([]byte, error) {
 	type alias Document
 
 	//nolint:wrapcheck // MarshalJSON returns bytes; caller handles error
-	return json.Marshal((*alias)(d), jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
+	return json.Marshal(
+		(*alias)(d),
+		json.Deterministic(true),
+		jsontext.WithIndentPrefix(""),
+		jsontext.WithIndent("  "),
+	)
 }

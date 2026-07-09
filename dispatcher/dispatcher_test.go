@@ -315,6 +315,104 @@ func TestLifecycle_ConcurrentAccess(t *testing.T) {
 	wg.Wait()
 }
 
+func TestDispatcher_MiddlewareAppliedAtDispatchTime(t *testing.T) {
+	t.Parallel()
+
+	d := NewDispatcher[testHandler, testMiddleware]()
+
+	var order []string
+
+	handler := func(_ string) string {
+		order = append(order, "handler")
+
+		return "result"
+	}
+
+	_ = d.Register("test", handler, testWrap)
+
+	// Add middleware AFTER registration — must still be applied.
+	d.Use(testMW(&order, "mw-late"))
+
+	result, err := d.Dispatch("test")
+	if err != nil {
+		t.Fatalf("Dispatch() error = %v", err)
+	}
+
+	if result("x") != "result" {
+		t.Error("unexpected result")
+	}
+
+	assertCallOrder(t, order, []string{"mw-late", "handler"})
+}
+
+func TestDispatcher_MiddlewareAddedBeforeAndAfter(t *testing.T) {
+	t.Parallel()
+
+	d := NewDispatcher[testHandler, testMiddleware]()
+
+	var order []string
+
+	d.Use(testMW(&order, "mw-early"))
+
+	handler := func(_ string) string {
+		order = append(order, "handler")
+
+		return "result"
+	}
+
+	_ = d.Register("test", handler, testWrap)
+
+	d.Use(testMW(&order, "mw-late"))
+
+	result, err := d.Dispatch("test")
+	if err != nil {
+		t.Fatalf("Dispatch() error = %v", err)
+	}
+
+	_ = result("x")
+
+	// Execution order: first-added is outermost wrapper (runs first).
+	assertCallOrder(t, order, []string{"mw-early", "mw-late", "handler"})
+}
+
+func TestDispatcher_MiddlewareChangeVisibleOnNextDispatch(t *testing.T) {
+	t.Parallel()
+
+	d := NewDispatcher[testHandler, testMiddleware]()
+
+	var callCount int
+
+	mw := func(h testHandler) testHandler {
+		return func(s string) string {
+			callCount++
+
+			return h(s)
+		}
+	}
+
+	handler := func(_ string) string { return "ok" }
+	_ = d.Register("test", handler, func(m testMiddleware, h testHandler) testHandler {
+		return m(h)
+	})
+
+	// First dispatch: no middleware.
+	result, _ := d.Dispatch("test")
+	_ = result("x")
+	if callCount != 0 {
+		t.Errorf("expected 0 middleware calls, got %d", callCount)
+	}
+
+	// Add middleware.
+	d.Use(mw)
+
+	// Second dispatch: middleware now active.
+	result, _ = d.Dispatch("test")
+	_ = result("x")
+	if callCount != 1 {
+		t.Errorf("expected 1 middleware call after Use(), got %d", callCount)
+	}
+}
+
 func TestMiddlewareChain_ConcurrentAccess(t *testing.T) {
 	t.Parallel()
 

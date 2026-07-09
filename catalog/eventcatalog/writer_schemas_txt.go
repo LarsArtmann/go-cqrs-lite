@@ -59,7 +59,12 @@ func writeSchemasTxtEntry(
 	fmt.Fprintf(buf, "## %s (v%s)\n", name, version)
 	fmt.Fprintf(buf, "Context: %s\n", context)
 
-	data, err := json.Marshal(schema, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
+	data, err := json.Marshal(
+		schema,
+		json.Deterministic(true),
+		jsontext.WithIndentPrefix(""),
+		jsontext.WithIndent("  "),
+	)
 	if err != nil {
 		fmt.Fprintf(buf, "Schema: <error: %v>\n\n", err)
 

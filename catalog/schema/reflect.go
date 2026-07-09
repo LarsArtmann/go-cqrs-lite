@@ -32,7 +32,12 @@ func ToJSON(s *Schema) ([]byte, error) {
 	}
 
 	//nolint:wrapcheck // MarshalIndent returns bytes, error from json.MarshalIndent
-	return json.Marshal(s, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
+	return json.Marshal(
+		s,
+		json.Deterministic(true),
+		jsontext.WithIndentPrefix(""),
+		jsontext.WithIndent("  "),
+	)
 }
 
 func ToAny(s *Schema) (any, error) {
@@ -40,7 +45,7 @@ func ToAny(s *Schema) (any, error) {
 		return nil, ErrNilSchema
 	}
 
-	raw, err := json.Marshal(s)
+	raw, err := json.Marshal(s, json.Deterministic(true))
 	if err != nil {
 		return nil, errorfamily.Newf(
 			errorfamily.Infrastructure,

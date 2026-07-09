@@ -152,9 +152,6 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 		Logger:    logger,
 	}
 
-	// Middleware must be configured BEFORE handlers are registered —
-	// the dispatcher applies middleware at registration time, not at
-	// dispatch time.
 	if err := setupFeatures(srv); err != nil {
 		_ = srv.Bundle.Close()
 

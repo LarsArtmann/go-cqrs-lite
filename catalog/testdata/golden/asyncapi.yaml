@@ -70,6 +70,8 @@ components:
         command.CreateOrder:
             properties:
                 orderId:
+                    deprecated: false
+                    nullable: false
                     type: string
             type: object
         event.OrderCreated:

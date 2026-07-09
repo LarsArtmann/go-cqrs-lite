@@ -21,7 +21,7 @@ func (JSONCodec) Encode(v any) ([]byte, error) {
 // Decode unmarshals JSON bytes into a value.
 func (JSONCodec) Decode(data []byte, v any) error {
 	//nolint:wrapcheck // thin wrapper over json.Unmarshal
-	return json.Unmarshal(data, v)
+	return json.Unmarshal(data, v, json.MatchCaseInsensitiveNames(true))
 }
 
 // EncodeToBuffer writes JSON encoding of v directly into buf,

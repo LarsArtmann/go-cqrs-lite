@@ -37,6 +37,14 @@ func TestIntegration_FullLifecycle(t *testing.T) {
 		return v.Title == "Integration Test" && v.Priority == PriorityHigh
 	})
 
+	// Wait for the deriver's auto-assign to complete before dispatching
+	// the next command. The deriver dispatches task.assign asynchronously
+	// on task.created — if we send task.start before the assign commits,
+	// we get an optimistic-concurrency version conflict.
+	waitForView(t, srv, taskID, func(v *TaskView) bool {
+		return v.AssigneeID == defaultAssignee
+	})
+
 	// ── Start the task ────────────────────────────────────────────────
 	if err := srv.CmdDisp.Dispatch(ctx, StartTaskCmd{
 		BasicCommand: mustCmd(cmdStartTask, taskID),

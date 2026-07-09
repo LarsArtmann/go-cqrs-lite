@@ -50,5 +50,6 @@ func (d *Document) MarshalJSON() ([]byte, error) {
 	type docAlias Document
 
 	//nolint:wrapcheck // serialization output; caller handles error
-	return json.Marshal((*docAlias)(d), jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
+	return json.Marshal((*docAlias)(d), json.Deterministic(true),
+		jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 }

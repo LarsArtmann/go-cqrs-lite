@@ -20,7 +20,8 @@ func (c *middlewareChain[H, M]) Add(middleware ...M) {
 	c.middleware = append(c.middleware, middleware...)
 }
 
-// Apply wraps a handler with all middleware in reverse order (last added runs first).
+// Apply wraps a handler with all middleware. The first-added middleware
+// becomes the outermost wrapper (runs first in the execution chain).
 // The wrap function converts a middleware and handler into a wrapped handler.
 func (c *middlewareChain[H, M]) Apply(handler H, wrap func(M, H) H) H {
 	c.mu.RLock()
@@ -42,9 +43,16 @@ func (c *middlewareChain[H, M]) Middleware() []M {
 	return slices.Clone(c.middleware)
 }
 
+// handlerEntry stores a raw handler and its wrap function so middleware
+// can be applied at dispatch time rather than registration time.
+type handlerEntry[H, M any] struct {
+	handler H
+	wrap    func(M, H) H
+}
+
 // Dispatcher is a generic dispatcher that routes requests to their handlers.
 type Dispatcher[H any, M any] struct {
-	handlers   map[string]H
+	handlers   map[string]handlerEntry[H, M]
 	handlersMu sync.RWMutex
 	lifecycle  Lifecycle
 	middleware middlewareChain[H, M]
@@ -53,7 +61,7 @@ type Dispatcher[H any, M any] struct {
 // NewDispatcher creates a new dispatcher.
 func NewDispatcher[H, M any]() *Dispatcher[H, M] {
 	return &Dispatcher[H, M]{
-		handlers:   make(map[string]H),
+		handlers:   make(map[string]handlerEntry[H, M]),
 		handlersMu: sync.RWMutex{},
 		lifecycle:  Lifecycle{mu: sync.RWMutex{}, closed: false},
 		middleware: middlewareChain[H, M]{mu: sync.RWMutex{}, middleware: nil},
@@ -65,9 +73,10 @@ func (d *Dispatcher[H, M]) Use(middleware ...M) {
 	d.middleware.Add(middleware...)
 }
 
-// Register binds a handler to a type, applying middleware immediately.
+// Register binds a handler to a type.
 // The wrap function converts middleware and handler into a wrapped handler.
-// Middleware must be configured via Use() before Register() is called.
+// Middleware is applied at dispatch time, so Use() can be called in any order
+// relative to Register().
 func (d *Dispatcher[H, M]) Register(t string, handler H, wrap func(M, H) H) error {
 	err := d.lifecycle.CheckClosed(ErrDispatcherClosed)
 	if err != nil {
@@ -85,19 +94,25 @@ func (d *Dispatcher[H, M]) Register(t string, handler H, wrap func(M, H) H) erro
 		)
 	}
 
-	d.handlers[t] = d.middleware.Apply(handler, wrap)
+	d.handlers[t] = handlerEntry[H, M]{handler: handler, wrap: wrap}
 
 	return nil
 }
 
-// getHandler returns the handler for a type and whether it exists.
+// getHandler returns the middleware-wrapped handler for a type and whether it exists.
+// Middleware is applied at dispatch time using the current chain.
 func (d *Dispatcher[H, M]) getHandler(t string) (H, bool) {
 	d.handlersMu.RLock()
-	defer d.handlersMu.RUnlock()
+	entry, ok := d.handlers[t]
+	d.handlersMu.RUnlock()
 
-	h, ok := d.handlers[t]
+	if !ok {
+		var zero H
 
-	return h, ok
+		return zero, false
+	}
+
+	return d.middleware.Apply(entry.handler, entry.wrap), true
 }
 
 // Dispatch returns the wrapped handler for a type.

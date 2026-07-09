@@ -58,7 +58,12 @@ func (e *Exporter) writeExamples(dir string, examples []jsontext.Value) error {
 		return nil
 	}
 
-	data, err := json.Marshal(examples, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
+	data, err := json.Marshal(
+		examples,
+		json.Deterministic(true),
+		jsontext.WithIndentPrefix(""),
+		jsontext.WithIndent("  "),
+	)
 	if err != nil {
 		return errorfamily.Newf(
 			errorfamily.Infrastructure,
@@ -114,7 +119,12 @@ func (e *Exporter) writePackageJSON(cat *catalog.Catalog) error {
 		},
 	}
 
-	data, err := json.Marshal(pkg, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
+	data, err := json.Marshal(
+		pkg,
+		json.Deterministic(true),
+		jsontext.WithIndentPrefix(""),
+		jsontext.WithIndent("  "),
+	)
 	if err != nil {
 		return errorfamily.Newf(
 			errorfamily.Infrastructure,
