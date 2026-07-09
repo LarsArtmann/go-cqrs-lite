@@ -1,0 +1,1526 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Architecture Review — go-cqrs-lite</title>
+    <style>
+      :root {
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+        --radius: 0px;
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+      }
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, var(--surface-raised));
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 18%, var(--surface-raised));
+      }
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>Architecture Review</span>
+      <span>2026-07-09</span>
+      <span>go-cqrs-lite v3.7.1</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#verdict">Verdict</a>
+          <a href="#scorecard">Scorecard</a>
+          <a href="#strengths">Strengths</a>
+          <a href="#god-modules">God Modules</a>
+          <a href="#coupling">Hidden Coupling</a>
+          <a href="#scalability">Scalability Gaps</a>
+          <a href="#composability">Composability</a>
+          <a href="#target">Target Architecture</a>
+          <a href="#roadmap">Action Roadmap</a>
+          <a href="#matrix">Dependency Matrix</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <header class="hero">
+          <div class="eyebrow">Architecture Review &middot; 2026-07-09</div>
+          <h1>go-cqrs-lite: Can It Scale?</h1>
+          <p class="subtitle">
+            A deep review of modularity, coupling, composability, and scalability across 48 Go
+            modules. The library has excellent patterns and serious god-module debt. This report
+            identifies what breaks at scale and provides a concrete roadmap to fix it.
+          </p>
+          <div class="meta">
+            <span class="tag amber">48 modules</span>
+            <span class="tag">14,330 lines in storage/</span>
+            <span class="tag teal">Reviewed against v3.7.1</span>
+          </div>
+        </header>
+
+        <!-- Scorecard -->
+        <section id="scorecard" class="scorecard">
+          <div class="score-card score-good">
+            <div class="score">9</div>
+            <div class="label">Type Safety</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">8</div>
+            <div class="label">Composability</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">6</div>
+            <div class="label">Modularity</div>
+          </div>
+          <div class="score-card score-bad">
+            <div class="score">5</div>
+            <div class="label">Scalability</div>
+          </div>
+          <div class="score-card">
+            <div class="score">7.0</div>
+            <div class="label">Overall</div>
+          </div>
+        </section>
+
+        <!-- Verdict -->
+        <section id="verdict">
+          <h2><span class="num">&#9670;</span>The Bottom Line</h2>
+          <p>
+            go-cqrs-lite has <strong>genuinely excellent design patterns</strong> — ISP-honest
+            interfaces, a composition-root Bundle, generic middleware, functional deciders, three
+            projection tiers. These are the right abstractions, well-executed. The library is
+            <strong>usable today for single-process applications</strong>.
+          </p>
+          <p>
+            However, three structural problems will block production scale:
+            <strong>(1)</strong> <code>event/</code> is a god module coupling 17+ modules to
+            unrelated concerns. <strong>(2)</strong> <code>storage/</code> is a god module mixing
+            every persistence concern in one package. <strong>(3)</strong> The
+            <code>kv/</code> interface has zero <code>context.Context</code> parameters — 11 I/O
+            methods with no cancellation or timeout.
+          </p>
+          <div class="callout callout-amber">
+            <strong>Verdict:</strong>
+            Production-ready for single-process. Needs 3 focused refactors before multi-node
+            deployment. The error taxonomy extraction (Pareto: 80% benefit, 20% effort) is the
+            single highest-impact change.
+          </div>
+        </section>
+
+        <!-- Strengths -->
+        <section id="strengths">
+          <h2><span class="num">&#9670;</span>What's Already Excellent</h2>
+          <p>
+            Before the criticism: these patterns are genuinely best-in-class for a Go CQRS library.
+          </p>
+
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>ISP applied aggressively</strong>
+                <span
+                  ><code>EventSink</code> &ne; <code>EventSource</code>, <code>Publisher</code> &ne;
+                  <code>Subscriber</code>. Consumers depend on exactly what they need.
+                  <code>event/store.go</code>, <code>event/bus.go</code></span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Generic middleware factory</strong>
+                <span
+                  ><code>Middleware[M]</code> + <code>MessageAdapter[M]</code> +
+                  <code>AsCommand/AsEvent/AsQuery</code> bridges. One pattern, 9 concerns &times; 3
+                  types = 27 middleware factories. <code>middleware/generic.go</code></span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Functional decider pattern</strong>
+                <span
+                  >Pure <code>Apply(state, event) &rarr; state</code> + impure
+                  <code>Repository.Execute</code> shell. Singleflight load coalescing.
+                  <code>decider/decider.go</code></span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Three projection tiers</strong>
+                <span
+                  >KV (document per key), Relational (multi-table SQL), Graph (nodes + edges). Each
+                  with atomic writes, dialect-portable, correct abstraction level.
+                  <code>storage/relational/</code>, <code>graph/</code></span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Bundle composition root</strong>
+                <span
+                  >~20 ISP-honest fields, functional options, nil-able optional capabilities. The
+                  deployer picks a backend; the app never touches a storage driver.
+                  <code>stack/bundle.go</code></span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Branded IDs with phantom markers</strong>
+                <span
+                  ><code>id.Of[T]</code> makes impossible states unrepresentable.
+                  <code>UserMarker</code>, <code>CommandMarker</code>, <code>EventMarker</code> all
+                  exported. <code>id/</code></span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Multi-module workspace</strong>
+                <span
+                  >48 independent <code>go.mod</code> files. Consumers import exactly what they
+                  need. A consumer wanting just branded IDs imports <code>id/v3</code> (0 internal
+                  deps).</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Managed projection host</strong>
+                <span
+                  >Crash-restart lifecycle, dead-letter queue, checkpoint persistence, OTel tracing,
+                  bounded dedup ring, graceful drain. The "last loop every consumer rewrites" is now
+                  a module. <code>projectionhost/host.go</code></span
+                >
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- God Modules -->
+        <section id="god-modules">
+          <h2><span class="num">01</span>God Module #1: event/</h2>
+          <p>
+            <code>event/</code> is the most impactful structural problem. It conflates
+            <strong>nine distinct concerns</strong> into one package with 130+ exported symbols,
+            imported by 17 modules across 84 files.
+          </p>
+
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Critical &middot; Blocks modularity</span>
+            <h3>event/ mixes 9 unrelated concerns</h3>
+            <div class="where">event/ — 39 non-test files, 3,617 lines, ~130 exports</div>
+            <p>What's in <code>event/</code> today:</p>
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Concern</th>
+                  <th>Key Symbols</th>
+                  <th>Belongs In</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1</td>
+                  <td>Core domain types</td>
+                  <td>
+                    <code>Event</code>, <code>ImmutableEvent</code>, <code>Type</code>,
+                    <code>Version</code>
+                  </td>
+                  <td>&#9989; Correctly here</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>Persistence interfaces</td>
+                  <td>
+                    <code>Store</code>, <code>EventSink</code>, <code>EventSource</code>,
+                    <code>Journal</code>
+                  </td>
+                  <td>&#9989; Arguably fine</td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td>Pub/sub interfaces</td>
+                  <td><code>Bus</code>, <code>Publisher</code>, <code>Subscriber</code></td>
+                  <td>&#9989; Arguably fine</td>
+                </tr>
+                <tr>
+                  <td>4</td>
+                  <td><strong>Checkpoint tracking</strong></td>
+                  <td><code>CheckpointStore</code>, <code>CheckpointSink</code></td>
+                  <td>&#10060; Projection concern</td>
+                </tr>
+                <tr>
+                  <td>5</td>
+                  <td><strong>Tombstone/soft-delete</strong></td>
+                  <td><code>DetectTombstone</code>, <code>MarkTombstone</code></td>
+                  <td>&#10060; Aggregate lifecycle</td>
+                </tr>
+                <tr>
+                  <td>6</td>
+                  <td><strong>Command causality</strong></td>
+                  <td><code>CommandCausalityEnricher</code></td>
+                  <td>&#10060; Cross-module bridging</td>
+                </tr>
+                <tr>
+                  <td>7</td>
+                  <td><strong>Shared metadata plumbing</strong></td>
+                  <td><code>CustomData[K]</code>, <code>Tracing</code></td>
+                  <td>&#10060; Creates command&rarr;event dep</td>
+                </tr>
+                <tr>
+                  <td>8</td>
+                  <td><strong>Codec utilities</strong></td>
+                  <td><code>DecodeBase64String</code>, <code>ExtractCustomBytes</code></td>
+                  <td>&#10060; Utility functions</td>
+                </tr>
+                <tr>
+                  <td>9</td>
+                  <td><strong>Replay mode</strong></td>
+                  <td><code>ProcessingMode</code>, <code>IsReplay</code></td>
+                  <td>&#10060; Infrastructure concern</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="callout callout-teal">
+              <strong>Fix:</strong>
+              Keep concerns 1-3 in <code>event/</code>. Extract concerns 4-9 into their own modules
+              or into the consumers that actually use them. This is the Pareto fix — 80% of the
+              coupling benefit from ~50 file changes.
+            </div>
+          </div>
+
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Critical &middot; 30+ modules affected</span>
+            <h3>30+ modules import event/ ONLY for error classification</h3>
+            <div class="where">event/errors.go — 1:1 re-export of go-error-family</div>
+            <p>
+              Modules like <code>command/</code>, <code>query/</code>, <code>signing/</code>,
+              <code>middleware/</code>, <code>schema/</code> import <code>event/</code> solely for
+              <code>event.NewConflict()</code> — which is a line-for-line re-export of
+              <code>go-error-family</code>. They drag in the entire event domain model + store/bus
+              contracts as transitive baggage.
+            </p>
+            <p>
+              8 leaf modules already bypass this and import <code>go-error-family</code> directly,
+              proving the re-export adds no value. The error taxonomy extraction was identified in
+              the <code>ARCHITECTURE_LAYERS_RECONSIDERED.md</code> analysis but never executed.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix:</strong>
+              Replace every <code>event.NewConflict(...)</code> with
+              <code>errorfamily.NewConflict(...)</code>. Delete <code>event/errors.go</code>. ~50
+              files, mechanical find-replace. Zero API change visible to consumers.
+            </div>
+          </div>
+        </section>
+
+        <!-- Hidden Coupling -->
+        <section id="coupling">
+          <h2><span class="num">02</span>Hidden Coupling</h2>
+
+          <div class="issue issue-critical">
+            <span class="severity severity-critical"
+              >Critical &middot; Compile-time dependency</span
+            >
+            <h3>command/ has a hard compile dependency on event/</h3>
+            <div class="where">command/aggregate_ref.go, command/metadata.go</div>
+            <p>
+              <code>command/metadata.go</code> embeds <code>event.CustomData[MetadataKey]</code>,
+              and <code>command/aggregate_ref.go</code> aliases <code>event.AggregateType</code> and
+              <code>event.AggregateRef</code>. This means
+              <strong>commands and events are not independent CQRS sides</strong> — every change to
+              <code>event.Tracing</code>, <code>event.CustomData</code>, or
+              <code>event.AggregateRef</code> forces a recompile of <code>command/</code> and all 8
+              downstream consumers.
+            </p>
+            <p>
+              This violates CQRS separation: commands should be dispatchable without pulling in
+              event sourcing machinery. A consumer who wants only command dispatch must import
+              <code>event/</code>
+              transitively.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix:</strong>
+              Extract <code>AggregateRef</code> and <code>CustomData[K]</code> into a shared
+              <code>shared/</code> or <code>types/</code> module (Layer 0). Both
+              <code>event/</code> and <code>command/</code> depend on it; neither depends on the
+              other.
+            </div>
+          </div>
+
+          <div class="issue issue-important">
+            <span class="severity severity-important"
+              >Important &middot; Test deps leak as production deps</span
+            >
+            <h3>event/ declares test-only deps as production requirements</h3>
+            <div class="where">
+              event/go.mod — requires schema/v3, snapshot/v3, storage/memory/v3
+            </div>
+            <p>
+              Three "direct production dependencies" (<code>schema/</code>, <code>snapshot/</code>,
+              <code>storage/memory/</code>) are only imported in test and example files. Go's
+              <code>go mod tidy</code> cannot separate test-only deps from production deps in a
+              single module, so they leak into the production <code>require</code> block.
+            </p>
+            <p>
+              This makes <code>event/</code> appear to be Layer 4+ when its real production deps are
+              only <code>codec/</code> and <code>id/</code>. The layer numbering is a lie.
+            </p>
+          </div>
+        </section>
+
+        <!-- God Module #2 -->
+        <section id="god-modules-2">
+          <h2><span class="num">03</span>God Module #2: storage/</h2>
+
+          <div class="issue issue-critical">
+            <span class="severity severity-critical"
+              >Critical &middot; 100+ files, 14 direct deps</span
+            >
+            <h3>storage/ mixes every persistence concern in one package</h3>
+            <div class="where">storage/ — 109 non-test files, 14,330 lines, 12 internal deps</div>
+            <p>The root <code>storage</code> package handles:</p>
+            <table>
+              <thead>
+                <tr>
+                  <th>Concern</th>
+                  <th>Files</th>
+                  <th>Should Be</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Event stores (SQL + Pebble + memory)</td>
+                  <td>~15</td>
+                  <td>Separate per-backend</td>
+                </tr>
+                <tr>
+                  <td>Command stores</td>
+                  <td>~5</td>
+                  <td>Separate module</td>
+                </tr>
+                <tr>
+                  <td>Query stores</td>
+                  <td>~5</td>
+                  <td>Separate module</td>
+                </tr>
+                <tr>
+                  <td>Snapshot stores</td>
+                  <td>~5</td>
+                  <td>Separate module</td>
+                </tr>
+                <tr>
+                  <td>Checkpoint stores</td>
+                  <td>~3</td>
+                  <td>Belongs with projectionhost</td>
+                </tr>
+                <tr>
+                  <td>KV stores</td>
+                  <td>~5</td>
+                  <td>Separate module</td>
+                </tr>
+                <tr>
+                  <td>View stores (CRUD, query, batch)</td>
+                  <td>~8</td>
+                  <td>Separate module</td>
+                </tr>
+                <tr>
+                  <td>Timer stores</td>
+                  <td>~3</td>
+                  <td>Belongs with scheduling</td>
+                </tr>
+                <tr>
+                  <td>Relational projections</td>
+                  <td>~4</td>
+                  <td>Already in subpackage &mdash; good</td>
+                </tr>
+                <tr>
+                  <td>Postgres LISTEN/NOTIFY bus</td>
+                  <td>~3</td>
+                  <td>Separate transport module</td>
+                </tr>
+                <tr>
+                  <td>SQL dialect abstraction</td>
+                  <td>~12</td>
+                  <td>Already in subpackage &mdash; good</td>
+                </tr>
+                <tr>
+                  <td>Turso sync + indexing advisor</td>
+                  <td>~15</td>
+                  <td>Separate module</td>
+                </tr>
+              </tbody>
+            </table>
+            <p>
+              ADR-0029 ("storage consolidation") merged these intentionally, but the consolidation
+              produced a monolith. Changing any store implementation recompiles all of them.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix:</strong>
+              Split by concern: <code>storage/event/</code>, <code>storage/command/</code>,
+              <code>storage/kv/</code>, <code>storage/view/</code>. Each shares the SQL helpers in
+              <code>storage/sql/</code> but has its own package boundary. This is a v4 change.
+            </div>
+          </div>
+        </section>
+
+        <!-- Scalability -->
+        <section id="scalability">
+          <h2><span class="num">04</span>Scalability Gaps</h2>
+
+          <div class="issue issue-critical">
+            <span class="severity severity-critical"
+              >Critical &middot; Hung I/O blocks forever</span
+            >
+            <h3>kv/ interface has ZERO context.Context parameters</h3>
+            <div class="where">kv/kv.go — 11 I/O methods, 0 take context.Context</div>
+            <p>
+              <code>Get</code>, <code>Set</code>, <code>Delete</code>, <code>Has</code>,
+              <code>Batch</code>, <code>Commit</code>, <code>NewIterator</code>, <code>Next</code>,
+              <code>Close</code>, <code>SetIfAbsent</code> — <strong>all contextless</strong>. No
+              timeouts. No cancellation. No tracing propagation.
+            </p>
+            <p>
+              A slow Pebble <code>Get</code> or a hung <code>Batch.Commit</code> blocks the
+              goroutine indefinitely with no way to cancel it. Every consumer of
+              <code>kv.Store</code>
+              (projectionhost checkpoints, idempotency store, view stores, SQL KV store) inherits
+              this deficiency.
+            </p>
+            <p>
+              <strong>Contrast:</strong> The <code>idempotency.Store</code> interface DOES take
+              <code>context.Context</code> — but its <code>KVStore</code> wrapper cannot pass it to
+              the underlying <code>kv.Store</code>. The context is accepted then silently discarded.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix:</strong>
+              Add <code>context.Context</code> as the first parameter of every
+              <code>kv.Store</code>, <code>kv.Reader</code>, <code>kv.Writer</code>,
+              <code>kv.Iterator</code>, and <code>kv.Batch</code> method. Breaking change — schedule
+              for v4.
+            </div>
+          </div>
+
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Critical &middot; Single-process only</span>
+            <h3>No persistent or distributed event bus</h3>
+            <div class="where">command/memory_bus.go, watermill/event_bus.go:86</div>
+            <p>
+              <code>MemoryBus.Publish()</code> dispatches handlers
+              <strong>inline on the caller's goroutine</strong> — fully synchronous, fully blocking.
+              A slow handler blocks every subsequent publisher. No buffering, no queuing, no
+              timeout, no backpressure.
+            </p>
+            <p>
+              The Watermill <code>EventBus</code> uses GoChannel with
+              <code>BlockPublishUntilSubscriberAck: true</code> — still blocking, still
+              single-process. Multi-node deployment requires external wiring (NATS, Redis, Kafka)
+              that doesn't exist as a built-in adapter.
+            </p>
+          </div>
+
+          <div class="issue issue-important">
+            <span class="severity severity-important"
+              >Important &middot; No reliable publishing</span
+            >
+            <h3>No outbox pattern for atomic save + publish</h3>
+            <div class="where">decider/decider.go — Repository.Execute</div>
+            <p>
+              <code>Repository.Execute</code> does: Load &rarr; decide &rarr; Save &rarr; Publish.
+              If Save succeeds but Publish fails, events are persisted but not delivered. The
+              comment acknowledges this: "Save-fail (nothing persisted) vs publish-fail (persisted
+              but not published)." No outbox table, no retry queue, no compensation.
+            </p>
+            <div class="callout callout-amber">
+              <strong>Mitigation available:</strong>
+              The <code>SeekableJournal</code> + <code>CatchUpSubscriber</code> pattern can replay
+              missed events from the journal — but this requires consumer-side recovery, not
+              producer-side guarantee.
+            </div>
+          </div>
+
+          <div class="issue issue-important">
+            <span class="severity severity-important">Important &middot; Hash collisions</span>
+            <h3>Pebble store: sharded mutex with 256 shards</h3>
+            <div class="where">storage/pebble/store.go:17-29</div>
+            <p>
+              The Pebble event store uses a 256-shard mutex pool to serialize check-then-commit per
+              aggregate. At ~50K aggregates, hash collision probability becomes significant — two
+              unrelated aggregates sharing a shard serialize unnecessarily. And this is
+              <strong>single-process only</strong> — no distributed locking.
+            </p>
+          </div>
+        </section>
+
+        <!-- Composability -->
+        <section id="composability">
+          <h2><span class="num">05</span>Composability Assessment</h2>
+          <p>The composability story is the strongest aspect of this library.</p>
+
+          <div class="card card-solution">
+            <h3>Bundle: ISP-honest composition root</h3>
+            <p>
+              <code>stack.Bundle</code> has ~20 fields, each a segregated interface. EventSink &ne;
+              EventSource. Publisher &ne; Subscriber. A consumer wires exactly what they need and
+              leaves the rest nil. Presets (<code>sqlite.New()</code>, <code>pebble.New()</code>)
+              assemble everything in one call.
+            </p>
+          </div>
+
+          <div class="card card-solution">
+            <h3>Generic middleware: one pattern, 27 factories</h3>
+            <p>
+              <code>Handler[M any]</code> + <code>Middleware[M any]</code> +
+              <code>MessageAdapter[M]</code>. Each concern (Logging, Retry, Recovery, Validation,
+              Metrics, Tracing, Circuit Breaker, Idempotency, Signing) has 3 typed wrappers. Adding
+              a new concern = 1 generic function + 3 one-liner wrappers.
+            </p>
+          </div>
+
+          <div class="card card-warning">
+            <h3>Mild concern: Bundle.db is untyped</h3>
+            <p>
+              <code>Bundle.db any</code> is an untyped escape hatch for SQL presets. Only
+              preset-specific constructors know how to use it. This breaks type safety — but it's
+              deliberate (avoids forcing a <code>*sql.DB</code> dependency on the base stack
+              module).
+            </p>
+          </div>
+
+          <div class="card card-warning">
+            <h3>Mild concern: Query middleware impedance mismatch</h3>
+            <p>
+              <code>AsQuery()</code> must capture a result from an <code>any</code>-returning
+              handler inside an error-only middleware closure. This is forced by
+              <code>query.Handler</code> returning <code>(any, error)</code> while the generic
+              middleware only returns <code>error</code>. The deprecation hints confirm
+              <code>query.Handler</code> is slated for replacement in v4.
+            </p>
+          </div>
+        </section>
+
+        <!-- Target Architecture -->
+        <section id="target">
+          <h2><span class="num">06</span>Target: Four Tiers (Not Seven Fake Layers)</h2>
+          <p>
+            The current 7-layer system is a lie — <code>kv/</code> claims Layer 0 but depends on
+            <code>codec/</code>; <code>event/</code> claims Layer 1 but depends on Layer 2-4
+            modules. Replace with four real tiers representing architectural boundaries, not
+            dependency order.
+          </p>
+
+          <div class="dep-tree">
+            <span class="root">DOMAIN TIER</span> &mdash; Pure domain model + contracts. No backend
+            knowledge.
+            <span class="ok"
+              >Primitives: id/ codec/ kv/ (raw only) Message Types: event/ command/ query/ (NO
+              cross-deps for errors!) Domain Logic: decider/ deriver/ projection/ schema/ snapshot/
+              dispatcher/</span
+            >
+
+            <span class="root">INFRASTRUCTURE TIER</span> &mdash; Implement contracts for specific
+            backends storage/event/ storage/command/ storage/kv/ storage/view/ storage/pebble/
+            storage/turso/ storage/memory/ transport/http/ transport/grpc/ watermill/
+
+            <span class="root">OPERATIONS TIER</span> &mdash; Cross-cutting concerns across the
+            system middleware/ idempotency/ otel/ prometheus/ signing/ encryption/ projectionhost/
+            listing/ scheduling/
+
+            <span class="root">COMPOSITION TIER</span> &mdash; Wire everything together for the
+            consumer stack/ stack/sqlite/ stack/postgres/ stack/pebble/ stack/memory/ catalog/
+            scenario/ testutil/ cmd/ example/
+          </div>
+
+          <div class="callout callout-teal">
+            <strong>Key difference:</strong>
+            Tiers represent <strong>architectural boundaries</strong>, not dependency order. Within
+            each tier, modules can depend on each other freely. Cross-tier dependencies flow upward
+            only. This is honest about what the system IS, not what the layer numbers claim.
+          </div>
+        </section>
+
+        <!-- Roadmap -->
+        <section id="roadmap">
+          <h2><span class="num">07</span>Action Roadmap (Pareto-Sorted)</h2>
+
+          <div class="migration-step">
+            <div class="migration-num">1</div>
+            <div class="migration-content">
+              <h4>
+                Extract error taxonomy from event/ &mdash;
+                <span class="badge badge-high">80% benefit, 20% effort</span>
+              </h4>
+              <p>
+                Replace <code>event.NewConflict(...)</code> &rarr;
+                <code>errorfamily.NewConflict(...)</code> across ~50 files. Delete
+                <code>event/errors.go</code>. Zero API change. Unblocks independent use of
+                command/query without event baggage. This was identified in
+                <code>ARCHITECTURE_LAYERS_RECONSIDERED.md</code> as Phase 1 and is the single
+                highest-impact change.
+              </p>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">2</div>
+            <div class="migration-content">
+              <h4>
+                Extract shared types (AggregateRef, CustomData) &mdash;
+                <span class="badge badge-high">Breaks command&rarr;event dep</span>
+              </h4>
+              <p>
+                Move <code>AggregateRef</code>, <code>AggregateType</code>,
+                <code>CustomData[K]</code>, <code>Tracing</code> into a <code>shared/</code> module
+                (Layer 0). Both <code>event/</code> and <code>command/</code> depend on it; neither
+                depends on the other. Commands become truly independent of events.
+              </p>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">3</div>
+            <div class="migration-content">
+              <h4>
+                Add context.Context to kv/ interface &mdash;
+                <span class="badge badge-critical">Critical for production</span>
+              </h4>
+              <p>
+                Add <code>context.Context</code> as first parameter of every <code>kv.Store</code>,
+                <code>Reader</code>, <code>Writer</code>, <code>Iterator</code>,
+                <code>Batch</code> method. Breaking change — v4. Without this, hung I/O in Pebble
+                blocks goroutines forever with no cancellation.
+              </p>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">4</div>
+            <div class="migration-content">
+              <h4>
+                Split storage/ by concern &mdash;
+                <span class="badge badge-medium">v4, high effort</span>
+              </h4>
+              <p>
+                Split <code>storage/</code> into <code>storage/event/</code>,
+                <code>storage/command/</code>, <code>storage/kv/</code>, <code>storage/view/</code>.
+                Each shares <code>storage/sql/</code> helpers but has its own package boundary. 100+
+                files become 4 focused packages of ~25 files each.
+              </p>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">5</div>
+            <div class="migration-content">
+              <h4>
+                Implement outbox pattern &mdash; <span class="badge badge-high">Reliability</span>
+              </h4>
+              <p>
+                Add an optional outbox table to <code>Repository.Execute</code>: Save events +
+                outbox row in the same transaction. A background process reads the outbox and
+                publishes. Eliminates the "saved but not published" gap.
+              </p>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">6</div>
+            <div class="migration-content">
+              <h4>
+                Document the four-tier model &mdash;
+                <span class="badge badge-medium">Replace fake layers</span>
+              </h4>
+              <p>
+                Update <code>AGENTS.md</code>, <code>flake.nix</code>,
+                <code>cmd/api-stability</code>
+                to use the four-tier model instead of the seven fake layers. Aligns documentation
+                with reality.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Dependency Matrix -->
+        <section id="matrix">
+          <h2><span class="num">08</span>Appendix: Module Dependency Matrix</h2>
+          <p>
+            Verified from <code>go.work</code> + every <code>go.mod</code> file. Sorted by internal
+            dependency count (library modules only).
+          </p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Module</th>
+                  <th>Non-Test Files</th>
+                  <th>Lines</th>
+                  <th>Internal Deps</th>
+                  <th>Dep Count</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>storage/</code></td>
+                  <td>109</td>
+                  <td>14,330</td>
+                  <td>
+                    codec, command, dispatcher, event, eventtest, id, kv, listing, otel, projection,
+                    query, scheduling, schema, snapshot, storage/memory, testutil
+                  </td>
+                  <td><strong>14</strong></td>
+                </tr>
+                <tr>
+                  <td><code>projectionhost/</code></td>
+                  <td>6</td>
+                  <td>1,321</td>
+                  <td>
+                    codec, command, dedup, dispatcher, event, id, kv, listing, otel, projection,
+                    query, scheduling, snapshot, storage, storage/memory, testutil
+                  </td>
+                  <td><strong>15</strong></td>
+                </tr>
+                <tr>
+                  <td><code>middleware/</code></td>
+                  <td>21</td>
+                  <td>2,346</td>
+                  <td>
+                    codec, command, dispatcher, event, eventtest, idempotency, id, kv, otel, query,
+                    schema, snapshot, storage/memory
+                  </td>
+                  <td><strong>13</strong></td>
+                </tr>
+                <tr>
+                  <td><code>transport/http/</code></td>
+                  <td>9</td>
+                  <td>1,127</td>
+                  <td>
+                    codec, command, dedup, dispatcher, event, eventtest, id, otel, query, schema,
+                    snapshot, storage/memory, testutil
+                  </td>
+                  <td><strong>13</strong></td>
+                </tr>
+                <tr>
+                  <td><code>watermill/</code></td>
+                  <td>21</td>
+                  <td>2,285</td>
+                  <td>
+                    codec, command, dedup, dispatcher, event, eventtest, id, otel, query, schema,
+                    snapshot, storage/memory
+                  </td>
+                  <td><strong>12</strong></td>
+                </tr>
+                <tr>
+                  <td><code>transport/grpc/</code></td>
+                  <td>13</td>
+                  <td>1,658</td>
+                  <td>
+                    codec, command, dispatcher, event, eventtest, id, otel, query, schema, snapshot
+                  </td>
+                  <td><strong>10</strong></td>
+                </tr>
+                <tr>
+                  <td><code>decider/</code></td>
+                  <td>8</td>
+                  <td>815</td>
+                  <td>
+                    codec, command, dispatcher, event, eventtest, id, otel, query, snapshot,
+                    storage/memory
+                  </td>
+                  <td><strong>10</strong></td>
+                </tr>
+                <tr>
+                  <td><code>event/</code></td>
+                  <td>39</td>
+                  <td>3,617</td>
+                  <td>
+                    codec, command, dispatcher, eventtest, id, query, schema, snapshot,
+                    storage/memory
+                  </td>
+                  <td><strong>9</strong></td>
+                </tr>
+                <tr>
+                  <td><code>schema/</code></td>
+                  <td>6</td>
+                  <td>510</td>
+                  <td>
+                    codec, command, dispatcher, event, eventtest, id, query, snapshot,
+                    storage/memory
+                  </td>
+                  <td><strong>9</strong></td>
+                </tr>
+                <tr>
+                  <td><code>listing/</code></td>
+                  <td>6</td>
+                  <td>557</td>
+                  <td>
+                    codec, command, dispatcher, event, eventtest, id, query, snapshot,
+                    storage/memory
+                  </td>
+                  <td><strong>9</strong></td>
+                </tr>
+                <tr>
+                  <td><code>query/</code></td>
+                  <td>10</td>
+                  <td>852</td>
+                  <td>codec, command, dispatcher, event, id, snapshot, storage/memory</td>
+                  <td><strong>7</strong></td>
+                </tr>
+                <tr>
+                  <td><code>command/</code></td>
+                  <td>12</td>
+                  <td>980</td>
+                  <td>codec, dispatcher, event, id, query, snapshot, storage/memory</td>
+                  <td><strong>7</strong></td>
+                </tr>
+                <tr>
+                  <td><code>graph/</code></td>
+                  <td>10</td>
+                  <td>1,853</td>
+                  <td>codec, command, dispatcher, event, id, projection</td>
+                  <td><strong>6</strong></td>
+                </tr>
+                <tr>
+                  <td><code>signing/</code></td>
+                  <td>17</td>
+                  <td>1,510</td>
+                  <td>codec, event, eventtest, id, snapshot</td>
+                  <td><strong>5</strong></td>
+                </tr>
+                <tr>
+                  <td><code>encryption/</code></td>
+                  <td>16</td>
+                  <td>1,451</td>
+                  <td>codec, event, eventtest, id, snapshot</td>
+                  <td><strong>5</strong></td>
+                </tr>
+                <tr>
+                  <td><code>deriver/</code></td>
+                  <td>2</td>
+                  <td>177</td>
+                  <td>codec, command, dispatcher, event, id</td>
+                  <td><strong>5</strong></td>
+                </tr>
+                <tr>
+                  <td><code>kv/</code></td>
+                  <td>10</td>
+                  <td>1,346</td>
+                  <td>codec</td>
+                  <td><strong>1</strong></td>
+                </tr>
+                <tr>
+                  <td><code>id/</code></td>
+                  <td>13</td>
+                  <td>538</td>
+                  <td>&mdash;</td>
+                  <td><strong>0 (leaf)</strong></td>
+                </tr>
+                <tr>
+                  <td><code>codec/</code></td>
+                  <td>11</td>
+                  <td>578</td>
+                  <td>&mdash;</td>
+                  <td><strong>0 (leaf)</strong></td>
+                </tr>
+                <tr>
+                  <td><code>dispatcher/</code></td>
+                  <td>4</td>
+                  <td>230</td>
+                  <td>&mdash;</td>
+                  <td><strong>0 (leaf)</strong></td>
+                </tr>
+                <tr>
+                  <td><code>dedup/</code></td>
+                  <td>1</td>
+                  <td>92</td>
+                  <td>&mdash;</td>
+                  <td><strong>0 (leaf)</strong></td>
+                </tr>
+                <tr>
+                  <td><code>otel/</code></td>
+                  <td>11</td>
+                  <td>760</td>
+                  <td>&mdash;</td>
+                  <td><strong>0 (leaf)</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout callout-amber">
+            <strong>Note:</strong>
+            <code>idempotency/</code> shows 10 deps in go.mod but after the idempotency merge (this
+            session series) it depends only on <code>kv/</code> + <code>go-error-family</code>. The
+            go.mod reflects pre-merge state.
+          </div>
+
+          <h3>Key Observations</h3>
+          <ul>
+            <li>
+              <strong>38 of 48 modules</strong> depend on <code>codec/</code> — the most
+              depended-upon module.
+            </li>
+            <li>
+              <strong>17 modules</strong> import <code>event/</code> — 30+ do so ONLY for error
+              classification.
+            </li>
+            <li>
+              <strong>7 leaf modules</strong> (id, codec, dispatcher, dedup, otel, prometheus,
+              catalog) have zero internal deps — true foundation.
+            </li>
+            <li>
+              <code>storage/</code> with 14 deps and 100+ files is the clearest god-module
+              candidate.
+            </li>
+            <li>
+              <code>projectionhost/</code> with 15 deps is approaching god-module status — it pulls
+              in nearly the entire tree.
+            </li>
+            <li>No circular dependencies exist (verified from go.mod analysis).</li>
+          </ul>
+        </section>
+
+        <footer class="footer">
+          <p>
+            Generated 2026-07-09 &middot; Reviewed against go-cqrs-lite v3.7.1 &middot; All claims
+            verified against source code &middot; 48 modules analyzed
+          </p>
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

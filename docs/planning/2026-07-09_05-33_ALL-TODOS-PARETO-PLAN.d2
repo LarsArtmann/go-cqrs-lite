@@ -1,0 +1,46 @@
+direction: down
+tier_unblock: "Unblock & Stabilize (P0)" {
+  shape: package
+  style.fill: "#fee2e2"
+  T01: "Fix schema/validator.go build blocker [8m] CRITICAL"
+  T02: "Fix flake.nix build tagFlags [4m]"
+  T03: "Verify workspace build green [10m]"
+}
+tier_tests: "Test Coverage — Idempotency (P3)" {
+  shape: package
+  style.fill: "#dcfce7"
+  T04: "BDD command idempotency [12m]"
+  T05: "BDD query idempotency [12m]"
+  T06: "Integration test e2e [12m]"
+}
+tier_dogfood: "Dogfooding — Example (P4)" {
+  shape: package
+  style.fill: "#dcfce7"
+  T07: "Wire idempotency into taskmanager [12m]"
+  T08: "Demo handler + test [12m]"
+}
+tier_docs: "Documentation (P5)" {
+  shape: package
+  style.fill: "#dbeafe"
+  T09: "Four-tier model definition doc [12m]"
+  T10: "Render D2 diagrams [12m]"
+  T11: "Update AGENTS.md + ADR-0046 [12m]"
+}
+tier_v4_struct: "v4 Structural - APPROVAL REQUIRED" {
+  shape: package
+  style.fill: "#f3e8ff"
+  T12: "Move AggregateRef to id [10m] + Create metadata module [8m]"
+  T13: "Move CustomData+Tracing to metadata [10m]"
+  T14: "event deprecated aliases [12m]"
+  T15: "command decouple from event [12m]"
+  T16: "Verify decoupled command build [10m]"
+  T17: "kv ctx Reader+Writer+Batch+ConditionalWriter [12m each]"
+  T18: "kv ctx impls MemStore+Pebble+SQL+TypedStore [12m each]"
+  T19: "kv ctx 121 call sites + verify [12m]"
+  T20: "storage split proposal [12m]"
+}
+
+tier_unblock -> tier_tests: "unblocks all verification"
+tier_tests -> tier_dogfood
+tier_dogfood -> tier_docs
+tier_docs -> tier_v4_struct: "breaking change needs sign-off"
