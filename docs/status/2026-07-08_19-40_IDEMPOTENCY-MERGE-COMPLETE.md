@@ -279,17 +279,17 @@ The report describes the **before** state (idempotency/ depends on event/ for er
 
 #### HTML Report — 9 stale references
 
-| Line | Section | What it says | What it should say |
-|---|---|---|---|
-| 999 | §01 God Module | "`idempotency/` that only needs `event.NewConflict()` for error classification pulls in the entire event store/bus interface surface" | **FIXED.** `idempotency/` now imports `go-error-family` directly. No `event/` dependency. |
-| 1037 | §02 Who Needs What | Matrix row: `idempotency/` → Domain Model: ❌, Error Taxonomy: ✅ Yes, Infrastructure: ❌ | Error Taxonomy column should now say ❌ (uses `go-error-family` directly, not `event/` re-export) |
-| 1163 | §04 Error Taxonomy Trap | Lists `idempotency` among "~30 modules import `event/` ONLY for error classification" | Remove `idempotency` from this list. It now imports `go-error-family` directly. |
-| 1296 | §06 Layer Violations | Table row: `idempotency/` — Current Layer: 2, Expected: 2, "Correct — depends on `event/`, `kv/`, `command/`" — badge: OK | Should say: Current Layer: 1, Expected: 1, "Correct — depends on `kv/` only" — badge: OK |
-| 1356 | §06 Layer Violations | Layer 2 chip: `idempotency/` | Should move to Layer 1 chip row (line ~1340, alongside `event/`, `command/`, `query/`) |
-| 1454 | §07 Target: 4 Tiers | Operations Tier chip: `+ idempotency/ (sub-pkg)` | Should say: `idempotency/ (separate module, middleware factory in middleware/)` — or simply remove the sub-pkg annotation |
-| 1591 | §09 Migration Path | Phase 3: "Merge `idempotency/` into `middleware/idempotency/`" — describes sub-package approach | Should be marked **✅ DONE** with actual implementation: "Generic factory added to `middleware/`, Store stays in `idempotency/` as separate module" |
-| 1594 | §09 Migration Path | "Move the Store primitive + KVStore adapter into a `middleware/idempotency/` sub-package" | Store was NOT moved. Only the middleware factory was added to `middleware/`. |
-| 1677 | §10 Verdict | "Different concern from idempotency (ring buffer vs TTL store)" | Still correct — `dedup/` vs `idempotency/` distinction is unchanged. No update needed. |
+| Line | Section                 | What it says                                                                                                                          | What it should say                                                                                                                                  |
+| ---- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 999  | §01 God Module          | "`idempotency/` that only needs `event.NewConflict()` for error classification pulls in the entire event store/bus interface surface" | **FIXED.** `idempotency/` now imports `go-error-family` directly. No `event/` dependency.                                                           |
+| 1037 | §02 Who Needs What      | Matrix row: `idempotency/` → Domain Model: ❌, Error Taxonomy: ✅ Yes, Infrastructure: ❌                                             | Error Taxonomy column should now say ❌ (uses `go-error-family` directly, not `event/` re-export)                                                   |
+| 1163 | §04 Error Taxonomy Trap | Lists `idempotency` among "~30 modules import `event/` ONLY for error classification"                                                 | Remove `idempotency` from this list. It now imports `go-error-family` directly.                                                                     |
+| 1296 | §06 Layer Violations    | Table row: `idempotency/` — Current Layer: 2, Expected: 2, "Correct — depends on `event/`, `kv/`, `command/`" — badge: OK             | Should say: Current Layer: 1, Expected: 1, "Correct — depends on `kv/` only" — badge: OK                                                            |
+| 1356 | §06 Layer Violations    | Layer 2 chip: `idempotency/`                                                                                                          | Should move to Layer 1 chip row (line ~1340, alongside `event/`, `command/`, `query/`)                                                              |
+| 1454 | §07 Target: 4 Tiers     | Operations Tier chip: `+ idempotency/ (sub-pkg)`                                                                                      | Should say: `idempotency/ (separate module, middleware factory in middleware/)` — or simply remove the sub-pkg annotation                           |
+| 1591 | §09 Migration Path      | Phase 3: "Merge `idempotency/` into `middleware/idempotency/`" — describes sub-package approach                                       | Should be marked **✅ DONE** with actual implementation: "Generic factory added to `middleware/`, Store stays in `idempotency/` as separate module" |
+| 1594 | §09 Migration Path      | "Move the Store primitive + KVStore adapter into a `middleware/idempotency/` sub-package"                                             | Store was NOT moved. Only the middleware factory was added to `middleware/`.                                                                        |
+| 1677 | §10 Verdict             | "Different concern from idempotency (ring buffer vs TTL store)"                                                                       | Still correct — `dedup/` vs `idempotency/` distinction is unchanged. No update needed.                                                              |
 
 **Actual stale: 8 of 9 references** (line 1677 is still accurate).
 
@@ -297,17 +297,17 @@ The report describes the **before** state (idempotency/ depends on event/ for er
 
 **`2026-07-06_03-01_ARCHITECTURE-LAYERS-current.d2`** (3 references):
 
-| Line | What it says | What it should say |
-|---|---|---|
-| 53 | `idempotency_: "idempotency/\nneeds event/ ONLY for\nerror classification"` | `idempotency_: "idempotency/\ndepends on kv/ only"` |
-| 152 | `idempotency_ -> event_: "errors ONLY"` (red dashed edge) | Remove this edge — no longer depends on `event/` |
-| 180 | `idempotency_ -> kv_` | Still correct — keep |
+| Line | What it says                                                                | What it should say                                  |
+| ---- | --------------------------------------------------------------------------- | --------------------------------------------------- |
+| 53   | `idempotency_: "idempotency/\nneeds event/ ONLY for\nerror classification"` | `idempotency_: "idempotency/\ndepends on kv/ only"` |
+| 152  | `idempotency_ -> event_: "errors ONLY"` (red dashed edge)                   | Remove this edge — no longer depends on `event/`    |
+| 180  | `idempotency_ -> kv_`                                                       | Still correct — keep                                |
 
 **`2026-07-06_03-01_ARCHITECTURE-LAYERS-improved.d2`** (1 reference):
 
-| Line | What it says | What it should say |
-|---|---|---|
-| 80 | `middleware__: "middleware/\n+ idempotency/ sub-package"` | `middleware__: "middleware/\n+ idempotency factory"` or `middleware__: "middleware/\n(imports idempotency/v3)"` |
+| Line | What it says                                              | What it should say                                                                                              |
+| ---- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| 80   | `middleware__: "middleware/\n+ idempotency/ sub-package"` | `middleware__: "middleware/\n+ idempotency factory"` or `middleware__: "middleware/\n(imports idempotency/v3)"` |
 
 ### Impact
 
@@ -325,6 +325,7 @@ These stale references are **visual documentation only** — they don't affect b
 I didn't notice the HTML report during my Phase 6 documentation sweep. My search (`rg "CommandIDKey|idempotency\.CommandIdempotency|idempotency\.KeyExtractor"`) targeted removed symbols, not the broader architectural claims about `idempotency/` dependencies. The HTML report doesn't reference removed symbols — it references the module's dependency graph, which changed but wasn't part of my search criteria.
 
 This is a **search strategy failure**: I should have searched for ALL references to `idempotency` across ALL doc files, not just the removed symbols. The correct command would have been:
+
 ```bash
 rg -l "idempotency" --type md --type html docs/
 ```

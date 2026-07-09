@@ -1,7 +1,7 @@
 package schema
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 
 	"github.com/go-faster/yaml"
 	errorfamily "github.com/larsartmann/go-error-family"

@@ -2,7 +2,7 @@ package storage
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"slices"
 
 	errorfamily "github.com/larsartmann/go-error-family"

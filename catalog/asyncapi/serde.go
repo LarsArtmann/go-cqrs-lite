@@ -1,7 +1,8 @@
 package asyncapi
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 
 	"github.com/go-faster/yaml"
 
@@ -23,7 +24,7 @@ func dotSeparated(s string) string {
 	return caseutil.DotSeparated(s)
 }
 
-func toExamples(raw []json.RawMessage) []Example {
+func toExamples(raw []jsontext.Value) []Example {
 	if len(raw) == 0 {
 		return nil
 	}
@@ -49,5 +50,5 @@ func (d *Document) MarshalJSON() ([]byte, error) {
 	type docAlias Document
 
 	//nolint:wrapcheck // serialization output; caller handles error
-	return json.MarshalIndent((*docAlias)(d), "", "  ")
+	return json.Marshal((*docAlias)(d), jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 }

@@ -1,7 +1,7 @@
 package catalog
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v3/schema"
 )
@@ -130,7 +130,7 @@ type Message struct {
 	Schema      *Schema           `json:"schema,omitempty"`
 	Schemas     []SchemaPointer   `json:"schemas,omitempty"`
 	Direction   Direction         `json:"direction"`
-	Examples    []json.RawMessage `json:"examples,omitempty"`
+	Examples    []jsontext.Value  `json:"examples,omitempty"`
 	Owners      []string          `json:"owners,omitempty"`
 	Labels      map[string]string `json:"labels,omitempty"`
 	Deprecated  bool              `json:"deprecated,omitempty"`

@@ -23,7 +23,8 @@ package docserver
 
 import (
 	"cmp"
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"io/fs"
 	"net/http"
 
@@ -212,11 +213,11 @@ func (ds *DocsServer) serveCatalogJSON(w http.ResponseWriter, _ *http.Request) {
 func (ds *DocsServer) serveJSON(w http.ResponseWriter, v any) {
 	w.Header().Set("Content-Type", "application/json")
 
-	enc := json.NewEncoder(w)
+	enc := jsontext.NewEncoder(w)
 	enc.SetIndent("", "  ")
 
 	//nolint:errchkjson // known-safe JSON template string
-	_ = enc.Encode(v)
+	_ = json.MarshalEncode(enc, v)
 }
 
 func (ds *DocsServer) serveYAML(w http.ResponseWriter, jsonBytes []byte, errMsg string) {

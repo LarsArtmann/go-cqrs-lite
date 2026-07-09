@@ -86,12 +86,21 @@ func EventIdempotency(
 }
 
 // QueryIdempotency wires the Store into a query dispatcher middleware chain.
-// Queries have no built-in identity, so a keyExtractor must be provided.
+// Queries have no built-in identity, so a non-nil keyExtractor must be provided.
 // Return "" from the keyExtractor to skip dedup for a specific query.
+//
+// Panics if keyExtractor is nil — this is a programming error, not a runtime
+// condition. Use CommandIdempotency or EventIdempotency if you want a default
+// key strategy.
 func QueryIdempotency(
 	store idempotency.Store,
 	ttl time.Duration,
 	keyExtractor func(query.Query) string,
 ) query.Middleware {
+	if keyExtractor == nil {
+		panic("middleware.QueryIdempotency: keyExtractor must not be nil " +
+			"(queries have no built-in identity; provide a func(query.Query) string)")
+	}
+
 	return AsQuery(NewIdempotency(QueryAdapter, store, ttl, keyExtractor))
 }

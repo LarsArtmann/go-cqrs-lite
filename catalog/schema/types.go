@@ -1,6 +1,8 @@
 package schema
 
-import "encoding/json"
+import (
+	"encoding/json/jsontext"
+)
 
 type Type string
 
@@ -19,7 +21,7 @@ type Schema struct {
 	Properties map[string]Property `json:"properties,omitempty"`
 	Required   []string            `json:"required,omitempty"`
 	Items      *Property           `json:"items,omitempty"`
-	Examples   []json.RawMessage   `json:"examples,omitempty"`
+	Examples   []jsontext.Value    `json:"examples,omitempty"`
 }
 
 type Property struct {
@@ -34,5 +36,5 @@ type Property struct {
 	Nullable    bool                `json:"nullable,omitempty"`
 	Deprecated  bool                `json:"deprecated,omitempty"`
 	Pattern     string              `json:"pattern,omitempty"`
-	Examples    []json.RawMessage   `json:"examples,omitempty"`
+	Examples    []jsontext.Value    `json:"examples,omitempty"`
 }

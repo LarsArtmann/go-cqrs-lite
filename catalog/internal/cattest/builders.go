@@ -1,7 +1,7 @@
 package cattest
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
 	"fmt"
 	"testing"
 
@@ -168,7 +168,7 @@ func AddCommandWithExamples(
 	serviceID catalog.ServiceID,
 	messageID catalog.MessageID,
 	name, version string,
-	examples ...json.RawMessage,
+	examples ...jsontext.Value,
 ) *catalog.Registry {
 	tb.Helper()
 
@@ -323,7 +323,7 @@ func AddCommandWithExample(
 		messageID,
 		name,
 		version,
-		json.RawMessage(payload),
+		jsontext.Value(payload),
 	)
 }
 

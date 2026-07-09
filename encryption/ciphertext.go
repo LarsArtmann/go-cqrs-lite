@@ -3,7 +3,7 @@ package encryption
 import (
 	"crypto/subtle"
 	"encoding/base64"
-	"encoding/json"
+	"encoding/json/v2"
 	"slices"
 
 	errorfamily "github.com/larsartmann/go-error-family"

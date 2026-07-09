@@ -2,6 +2,7 @@ package graph
 
 import (
 	"fmt"
+	"slices"
 )
 
 // Schema declares the set of node and edge types a graph projection owns.
@@ -259,15 +260,7 @@ func validateProperties(props []PropertyType, kind, owner string) error {
 	return nil
 }
 
-func hasProperty(props []PropertyType, name string) bool {
-	for i := range props {
-		if props[i].Name == name {
-			return true
-		}
-	}
-
-	return false
-}
+func hasProperty(props []PropertyType, name string) bool { return slices.Contains(props, name) }
 
 // validateNodeRef checks that ref conforms to the schema's declared node type.
 func (s *Schema) validateNodeRef(ref NodeRef) error {

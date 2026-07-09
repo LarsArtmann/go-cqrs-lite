@@ -1,7 +1,8 @@
 package openapi
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 
 	"github.com/go-faster/yaml"
 )
@@ -18,5 +19,5 @@ func (d *Document) MarshalJSON() ([]byte, error) {
 	type alias Document
 
 	//nolint:wrapcheck // MarshalJSON returns bytes; caller handles error
-	return json.MarshalIndent((*alias)(d), "", "  ")
+	return json.Marshal((*alias)(d), jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 }

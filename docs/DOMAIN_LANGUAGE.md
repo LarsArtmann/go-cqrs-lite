@@ -197,17 +197,17 @@ The library provides three projection tiers, chosen by read-pattern shape:
 
 ## Cross-Cutting
 
-| Term                 | Definition                                                                                      | Context                                                                            |
-| -------------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| **Idempotency**      | Command deduplication for at-least-once delivery                                                | `idempotency.Store` — `CheckAndRecord` is atomic; `idempotency.ErrDuplicate`       |
-| **Timer**            | Durable deadline: "cancel order after 30 min unpaid"                                            | `scheduling.TimerStore[P]` — `Schedule` (idempotent), `Due`, `MarkFired`, `Cancel` |
-| **Scheduler**        | Polls a TimerStore and dispatches due timers with retry                                         | `scheduling.New(store, dispatchFunc)` — exponential backoff, max retries           |
-| **Catalog**          | Auto-generates AsyncAPI, OpenAPI, D2, and EventCatalog docs                                     | `catalog.Registry` + `catalog.SchemaFromType[T]()` + per-format exporters          |
-| **Middleware**       | Cross-cutting concerns: Logging, Retry, Recovery, Validation, Metrics, Tracing, Circuit Breaker | `middleware/` — 3 variants each (Command*/Event*/Query\*)                          |
-| **OTel**             | OpenTelemetry tracing + metrics re-exports                                                      | `otel.Setup()` — one-call provider; `otel.NewTracer()`, `otel.NewMeter()`          |
-| **Prometheus**       | OTel→Prometheus metrics bridge with `/metrics` HTTP handler                                     | `prometheus.Setup()`                                                               |
-| **Schema Evolution** | Upcasting: transform old event versions on load                                                 | `schema.Upcaster`, `schema.VersionedStore` — migrate payloads at read time         |
-| **Validator**        | Runtime type registration for event payload validation                                          | `schema.Validator` — `RegisterType[T]()`                                           |
+| Term                 | Definition                                                                                                   | Context                                                                                                                                                                                 |
+| -------------------- | ------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Idempotency**      | Deduplication for at-least-once delivery (commands, events, queries)                                         | `idempotency.Store` — `CheckAndRecord` is atomic; `idempotency.ErrDuplicate`; middleware: `middleware.CommandIdempotency`, `middleware.EventIdempotency`, `middleware.QueryIdempotency` |
+| **Timer**            | Durable deadline: "cancel order after 30 min unpaid"                                                         | `scheduling.TimerStore[P]` — `Schedule` (idempotent), `Due`, `MarkFired`, `Cancel`                                                                                                      |
+| **Scheduler**        | Polls a TimerStore and dispatches due timers with retry                                                      | `scheduling.New(store, dispatchFunc)` — exponential backoff, max retries                                                                                                                |
+| **Catalog**          | Auto-generates AsyncAPI, OpenAPI, D2, and EventCatalog docs                                                  | `catalog.Registry` + `catalog.SchemaFromType[T]()` + per-format exporters                                                                                                               |
+| **Middleware**       | Cross-cutting concerns: Logging, Retry, Recovery, Validation, Metrics, Tracing, Circuit Breaker, Idempotency | `middleware/` — 3 variants each (Command*/Event*/Query\*)                                                                                                                               |
+| **OTel**             | OpenTelemetry tracing + metrics re-exports                                                                   | `otel.Setup()` — one-call provider; `otel.NewTracer()`, `otel.NewMeter()`                                                                                                               |
+| **Prometheus**       | OTel→Prometheus metrics bridge with `/metrics` HTTP handler                                                  | `prometheus.Setup()`                                                                                                                                                                    |
+| **Schema Evolution** | Upcasting: transform old event versions on load                                                              | `schema.Upcaster`, `schema.VersionedStore` — migrate payloads at read time                                                                                                              |
+| **Validator**        | Runtime type registration for event payload validation                                                       | `schema.Validator` — `RegisterType[T]()`                                                                                                                                                |
 
 ---
 
@@ -474,6 +474,9 @@ var _ = []any{
 	// Cross-Cutting
 	idempotency.NewMemoryStore,
 	idempotency.ErrDuplicate,
+	middleware.CommandIdempotency,
+	middleware.EventIdempotency,
+	middleware.QueryIdempotency,
 	scheduling.NewMemoryTimerStore,
 	scheduling.New,
 	schema.NewVersionedStore,

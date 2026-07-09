@@ -24,8 +24,8 @@ This document audits the current layering honestly, then proposes a first-princi
 
 ```
 Layer 0: id/, dispatcher/, codec/, kv/         (leaf modules, no internal deps)
-Layer 1: event/ (→id, codec, ro), command/ (→id, dispatcher, ro), query/ (→dispatcher, ro)
-Layer 2: schema/ (→event), snapshot/ (→event), projection/ (→event), idempotency/ (→command, event, id, kv), deriver/ (→command, event, id)
+Layer 1: event/ (→id, codec, ro), command/ (→id, dispatcher, ro), query/ (→dispatcher, ro), idempotency/ (→kv) ✅ fixed
+Layer 2: schema/ (→event), snapshot/ (→event), projection/ (→event), deriver/ (→command, event, id)
 Layer 3: decider/ (→event, snapshot), graph/, scenario/, projectionhost/
 Layer 4: storage/memory/, signing/, encryption/, otel/
 Layer 5: middleware/, storage/, listing/, watermill/, transport/http/, transport/grpc/, storage/pebble/, storage/turso/, prometheus/
@@ -133,15 +133,15 @@ command/command.go:         event.WrapRejection(...)
 
 ### 2.5 The Fake Layer Summary
 
-| Module         | Documented Layer | Actual Layer (by deps)        | Why                                                          |
-| -------------- | ---------------- | ----------------------------- | ------------------------------------------------------------ |
-| `kv/`          | 0                | 1                             | Depends on `codec/` + `otter`                                |
-| `event/`       | 1                | 2 (production) / 4 (declared) | Test deps leak into go.mod as direct                         |
-| `command/`     | 1                | 2                             | Depends on `event/` (Layer 2) + `storage/memory/` (Layer 4)  |
-| `query/`       | 1                | 2                             | Depends on `event/` + `storage/memory/`                      |
-| `idempotency/` | 2                | 2                             | Depends on `event/`, `kv/`, `command/`                       |
-| `scenario/`    | 3                | 3                             | OK                                                           |
-| `decider/`     | 3                | 4                             | Depends on `event/`, `snapshot/`, `otel/`, `storage/memory/` |
+| Module         | Documented Layer | Actual Layer (by deps)        | Why                                                             |
+| -------------- | ---------------- | ----------------------------- | --------------------------------------------------------------- |
+| `kv/`          | 0                | 1                             | Depends on `codec/` + `otter`                                   |
+| `event/`       | 1                | 2 (production) / 4 (declared) | Test deps leak into go.mod as direct                            |
+| `command/`     | 1                | 2                             | Depends on `event/` (Layer 2) + `storage/memory/` (Layer 4)     |
+| `query/`       | 1                | 2                             | Depends on `event/` + `storage/memory/`                         |
+| `idempotency/` | 1                | 1                             | Depends on `kv/` only ✅ fixed (was Layer 2 → event/, command/) |
+| `scenario/`    | 3                | 3                             | OK                                                              |
+| `decider/`     | 3                | 4                             | Depends on `event/`, `snapshot/`, `otel/`, `storage/memory/`    |
 
 ---
 
@@ -185,7 +185,7 @@ command/command.go:         event.WrapRejection(...)
 | `decider/`     | Yes (Event type)                        | Yes (error wrapping)                       | Yes (Store, to load/save)       |
 | `command/`     | Partially (AggregateRef)                | Yes (error wrapping)                       | No                              |
 | `query/`       | No                                      | Yes (error wrapping)                       | No                              |
-| `idempotency/` | No                                      | Yes (error wrapping)                       | No                              |
+| `idempotency/` | No                                      | ✅ DONE (imports go-error-family directly) | No                              |
 | `middleware/`  | Partially (Event type for EventTracing) | Yes (error wrapping)                       | No                              |
 | `signing/`     | Yes (Event payload, ImmutableEvent)     | Yes (error wrapping)                       | No                              |
 | `storage/`     | Yes (ImmutableEvent)                    | Yes (error wrapping)                       | Yes (implements Store)          |
@@ -368,7 +368,7 @@ INFRASTRUCTURE TIER
 OPERATIONS TIER
 ═══════════════
     middleware/   → command/, event/, query/, otel/, idempotency/
-    middleware/idempotency/ → go-error-family, kv/  [storage primitive]
+    idempotency/  → go-error-family, kv/  ✅ DONE [separate module, not sub-pkg]
     otel/         → (stdlib + OTel SDK)
     prometheus/   → otel/
     signing/      → event/, id/
@@ -389,13 +389,13 @@ COMPOSITION TIER
 
 ### 4.8 Key Differences From Current
 
-| Change                                                   | Impact                                                                   | Effort                                                            |
-| -------------------------------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------- |
-| **Error taxonomy: `event.*` → `go-error-family` direct** | 30+ modules shed their artificial `event/` dep                           | ~50 files mechanical find-replace                                 |
-| **`kv/` split into raw + typed**                         | `kv/` becomes true Layer 0; typed concerns explicit                      | Move `typed_store.go`, `cache.go`, `view_store.go` to sub-package |
-| **`command/` stops depending on `event/` for errors**    | Still depends on `event/` for `AggregateRef` (legitimate)                | Mechanical: `event.NewRejection` → `errorfamily.NewRejection`     |
-| **`query/` stops depending on `event/`** entirely\*\*    | Query has no domain coupling to events — it was ALL error classification | Mechanical: already started in `query/store.go`                   |
-| **`idempotency/` merges into `middleware/idempotency/`** | See dedicated plan                                                       | Separate execution plan                                           |
+| Change                                                   | Impact                                                                   | Effort                                                                 |
+| -------------------------------------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| **Error taxonomy: `event.*` → `go-error-family` direct** | 30+ modules shed their artificial `event/` dep                           | ~50 files mechanical find-replace                                      |
+| **`kv/` split into raw + typed**                         | `kv/` becomes true Layer 0; typed concerns explicit                      | Move `typed_store.go`, `cache.go`, `view_store.go` to sub-package      |
+| **`command/` stops depending on `event/` for errors**    | Still depends on `event/` for `AggregateRef` (legitimate)                | Mechanical: `event.NewRejection` → `errorfamily.NewRejection`          |
+| **`query/` stops depending on `event/`** entirely\*\*    | Query has no domain coupling to events — it was ALL error classification | Mechanical: already started in `query/store.go`                        |
+| **`idempotency/` merges into `middleware/idempotency/`** | See dedicated plan                                                       | ✅ DONE — kept as separate module, middleware factory in `middleware/` |
 
 **`query/` is the most interesting case.** If we extract the error taxonomy, `query/` has **zero dependency on `event/`**. This means:
 
@@ -429,9 +429,12 @@ COMPOSITION TIER
 
 **Effort:** ~15 files moved + import updates.
 
-### Phase 3: Merge `idempotency/` (separate plan)
+### Phase 3: Merge `idempotency/` (separate plan) ✅ DONE
 
 See [`2026-07-06_IDEMPOTENCY_MERGE_PLAN.md`](2026-07-06_IDEMPOTENCY_MERGE_PLAN.md).
+Completed 2026-07-08. Deviated from plan: kept `idempotency/` as separate module
+(deps: `kv/` + `go-error-family` only), added generic middleware factory to
+`middleware/`. `idempotency/` moved from Layer 2 to Layer 1.
 
 ### Phase 4: Clean Up `event/` Test Deps
 
@@ -503,7 +506,7 @@ query/                    dispatcher/, event/, id/, storage/memory/, codec/
 snapshot/                 codec/, event/, eventtest, id/
 schema/                   codec/, event/, eventtest, id/, storage/memory/
 projection/               event/, id/
-idempotency/              command/, event/, id/, kv/
+idempotency/              kv/  ✅ fixed (was: command/, event/, id/, kv/)
 deriver/                  command/, event/, id/
 testutil/                 command/, event/, id/
 scenario/                 event/, id/, projection/
@@ -552,7 +555,7 @@ Every `.go` file (non-test) that calls `event.*` error functions, grouped by mod
 | `schema/`         | 5 files                     | YES — error wrapping only                              |
 | `snapshot/`       | 3 files                     | YES — error wrapping only                              |
 | `listing/`        | 3 files                     | YES — error wrapping only                              |
-| `idempotency/`    | 3 files                     | YES — being merged into middleware/                    |
+| `idempotency/`    | 0 files                     | ✅ DONE — now imports `go-error-family` directly       |
 | `storage/`        | ~25 files                   | YES — error wrapping only                              |
 | `watermill/`      | ~12 files                   | YES — error wrapping only                              |
 | `transport/http/` | 2 files                     | YES — error wrapping only                              |

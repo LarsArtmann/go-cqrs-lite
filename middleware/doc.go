@@ -4,7 +4,7 @@
 // # Available Concerns
 //
 // Logging, Recovery, Retry, Validation, Metrics, Tracing (OTel),
-// Circuit Breaker, Event Signing, and OTel Correlation Enricher.
+// Circuit Breaker, Event Signing, Idempotency, and OTel Correlation Enricher.
 //
 // Each middleware concern has 3 variants: Command*, Event*, Query*.
 //

@@ -997,9 +997,9 @@
           <div class="card card-problem">
             <p>
               <strong>The coupling tax:</strong> A module like <code>idempotency/</code> that only
-              needs <code>event.NewConflict()</code> for error classification pulls in the entire
-              event store/bus interface surface. It doesn't use events at all — it just wants to
-              classify a duplicate-key error.
+              needs error classification would pull in the entire event store/bus interface surface.
+              <span class="badge badge-green">FIXED</span> <code>idempotency/</code> now imports
+              <code>go-error-family</code> directly — no <code>event/</code> dependency.
             </p>
           </div>
         </section>
@@ -1036,7 +1036,7 @@
 
             <div class="matrix-cell"><code>idempotency/</code></div>
             <div class="matrix-cell dim">❌ No</div>
-            <div class="matrix-cell cell-yes">✅ Yes</div>
+            <div class="matrix-cell dim">❌ No <span class="badge badge-green">fixed</span></div>
             <div class="matrix-cell dim">❌ No</div>
 
             <div class="matrix-cell"><code>middleware/</code></div>
@@ -1160,8 +1160,7 @@
                 <td>Import <code>event/</code> ONLY for error classification</td>
                 <td style="font-family: var(--font-mono); font-size: 0.78rem">
                   command, query, decider, middleware, signing, schema, snapshot, listing, deriver,
-                  scenario, projectionhost, graph, idempotency, watermill, transport/*, storage/*,
-                  stack/*
+                  scenario, projectionhost, graph, watermill, transport/*, storage/*, stack/*
                 </td>
                 <td><span class="badge badge-red">~30</span></td>
               </tr>
@@ -1294,10 +1293,11 @@
               </tr>
               <tr>
                 <td><code>idempotency/</code></td>
-                <td>Layer 2</td>
-                <td>Layer 2</td>
+                <td>Layer 1</td>
+                <td>Layer 1</td>
                 <td>
-                  Correct — depends on <code>event/</code>, <code>kv/</code>, <code>command/</code>
+                  Correct — depends on <code>kv/</code> only
+                  <span class="badge badge-green">fixed</span>
                 </td>
                 <td><span class="badge badge-green">OK</span></td>
               </tr>
@@ -1343,6 +1343,7 @@
                 <span class="chip chip-red">event/ ⚠ GOD MODULE</span>
                 <span class="chip">command/</span>
                 <span class="chip">query/</span>
+                <span class="chip">idempotency/</span>
               </div>
             </div>
             <div class="layer-row">
@@ -1353,7 +1354,6 @@
                 <span class="chip">schema/</span>
                 <span class="chip">snapshot/</span>
                 <span class="chip">projection/</span>
-                <span class="chip">idempotency/</span>
                 <span class="chip">deriver/</span>
               </div>
             </div>
@@ -1451,7 +1451,7 @@
               <div class="tier-desc">Cross-cutting concerns applied across the system</div>
               <div class="tier-modules">
                 <span class="chip chip-amber">middleware/</span>
-                <span class="chip chip-amber">+ idempotency/ (sub-pkg)</span>
+                <span class="chip chip-amber">idempotency/ (separate module)</span>
                 <span class="chip chip-amber">otel/</span>
                 <span class="chip chip-amber">prometheus/</span>
                 <span class="chip chip-amber">signing/</span>
@@ -1588,16 +1588,19 @@
             <div class="phase">
               <div class="phase-num">3</div>
               <div class="phase-body">
-                <h4>Merge <code>idempotency/</code> into <code>middleware/idempotency/</code></h4>
+                <h4>
+                  Merge <code>idempotency/</code> middleware into <code>middleware/</code>
+                  <span class="badge badge-green">✅ DONE</span>
+                </h4>
                 <p>
-                  Move the Store primitive + KVStore adapter into a
-                  <code>middleware/idempotency/</code> sub-package. Create a generic
-                  <code>NewIdempotency[M]</code> factory following the
-                  <code>NewValidation[M]</code> / <code>NewTracing[M]</code> precedent. See the
+                  Generic <code>NewIdempotency[M]</code> factory added to <code>middleware/</code>,
+                  following the <code>NewValidation[M]</code> /
+                  <code>NewTracing[M]</code> precedent. Store stays in <code>idempotency/</code> as
+                  a separate lightweight module (kv/ + go-error-family only). See the
                   <a
                     href="../planning/2026-07-06_IDEMPOTENCY_MERGE_PLAN.md"
                     style="color: var(--color-amber)"
-                    >dedicated merge plan</a
+                    >merge plan</a
                   >.
                 </p>
               </div>

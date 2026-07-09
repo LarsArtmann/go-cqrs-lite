@@ -1,7 +1,7 @@
 package event
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
 	"slices"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -78,7 +78,7 @@ func marshalPayload(payload any, eventType Type, c codec.Codec) ([]byte, error) 
 	switch v := payload.(type) {
 	case []byte:
 		return slices.Clone(v), nil
-	case json.RawMessage:
+	case jsontext.Value:
 		return slices.Clone(v), nil
 	default:
 		data, err := c.Encode(payload)

@@ -2,7 +2,8 @@ package main
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"net/http"
 	"strings"
 	"time"
@@ -299,7 +300,7 @@ func writeJSON(w http.ResponseWriter, status int, body any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 
-	_ = json.NewEncoder(w).Encode(body)
+	_ = json.MarshalWrite(w, body)
 }
 
 func writeError(w http.ResponseWriter, status int, msg string) {
@@ -307,12 +308,12 @@ func writeError(w http.ResponseWriter, status int, msg string) {
 }
 
 func decodeJSON(r *http.Request, dst any) error {
-	dec := json.NewDecoder(r.Body)
+	dec := jsontext.NewDecoder(r.Body)
 	dec.DisallowUnknownFields()
 
 	defer func() { _ = r.Body.Close() }()
 
-	return dec.Decode(dst)
+	return json.UnmarshalDecode(dec, dst)
 }
 
 // contextKey is an unexported type for context keys in this package.

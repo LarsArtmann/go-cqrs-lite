@@ -2,7 +2,7 @@ package storage
 
 import (
 	"database/sql"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 
 	errorfamily "github.com/larsartmann/go-error-family"

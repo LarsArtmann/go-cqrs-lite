@@ -4,7 +4,8 @@ package schema
 
 import (
 	"cmp"
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"reflect"
 	"strings"
 	"sync"
@@ -31,7 +32,7 @@ func ToJSON(s *Schema) ([]byte, error) {
 	}
 
 	//nolint:wrapcheck // MarshalIndent returns bytes, error from json.MarshalIndent
-	return json.MarshalIndent(s, "", "  ")
+	return json.Marshal(s, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 }
 
 func ToAny(s *Schema) (any, error) {

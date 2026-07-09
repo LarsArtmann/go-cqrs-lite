@@ -4,6 +4,38 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Added
+
+#### Idempotency Middleware — Generic Factory (`middleware/v3`)
+
+- **`middleware.NewIdempotency[M]`** — generic idempotency middleware factory following the
+  `NewValidation[M]` / `NewTracing[M]` pattern. Works for all 3 CQRS message types:
+  - **`middleware.CommandIdempotency(store, ttl, keyExtractor)`** — command dedup using the
+    command's minted ID by default (pass `nil` for keyExtractor).
+  - **`middleware.EventIdempotency(store, ttl, keyExtractor)`** — event dedup using the event's
+    minted ID by default (pass `nil` for keyExtractor). For ordered event consumption (projections),
+    checkpoint-based dedup (`projectionhost`) is structurally stronger — use this when you don't own
+    the checkpoint (webhooks, external sinks, cross-system delivery).
+  - **`middleware.QueryIdempotency(store, ttl, keyExtractor)`** — query dedup. Requires a non-nil
+    keyExtractor (queries have no built-in identity). Panics at construction if nil.
+- Store errors are classified as `Transient` via `errorfamily.Wrapf`. Duplicate keys return
+  `idempotency.ErrDuplicate` (a `Conflict` family error).
+
+### Changed
+
+#### Idempotency Module Slimmed Down (`idempotency/v3`)
+
+- Removed `idempotency.CommandIdempotency`, `idempotency.KeyExtractor`, and
+  `idempotency.CommandIDKey` — replaced by the generic `middleware.CommandIdempotency` factory.
+- Module dependencies reduced: `command/v3` and `id/v3` dropped from direct deps. Now depends on
+  `kv/v3` + `go-error-family` only.
+- Layer changed from Layer 2 (→command, event, id, kv) to Layer 1 (→kv).
+- Added to `flake.nix` testModules and `cmd/api-stability` module tracking (was missing from both
+  since module creation).
+- Pre-existing lint issues fixed: `exhaustruct`, `nestif`, `revive` (unused ctx), `wrapcheck`.
+
 ## [3.7.1] - 2026-07-07
 
 **Release documentation completeness — all 48 modules synced to v3.7.1.**

@@ -77,7 +77,7 @@ OPERATIONS_TIER: {
   style.fill: "#fff3e0"
   style.stroke: "#e65100"
 
-  middleware__: "middleware/\n+ idempotency/ sub-package"
+  middleware__: "middleware/\n(imports idempotency/v3)"
   otel__: "otel/"
   prometheus__: "prometheus/"
   signing__: "signing/"

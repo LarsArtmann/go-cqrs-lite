@@ -2,7 +2,7 @@ package encryption
 
 import (
 	"encoding/base64"
-	"encoding/json"
+	"encoding/json/v2"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 

@@ -1,7 +1,8 @@
 package eventcatalog
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -52,12 +53,12 @@ func (e *Exporter) writeSchema(dir string, schema *catalog.Schema) error {
 	)
 }
 
-func (e *Exporter) writeExamples(dir string, examples []json.RawMessage) error {
+func (e *Exporter) writeExamples(dir string, examples []jsontext.Value) error {
 	if len(examples) == 0 {
 		return nil
 	}
 
-	data, err := json.MarshalIndent(examples, "", "  ")
+	data, err := json.Marshal(examples, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 	if err != nil {
 		return errorfamily.Newf(
 			errorfamily.Infrastructure,
@@ -113,7 +114,7 @@ func (e *Exporter) writePackageJSON(cat *catalog.Catalog) error {
 		},
 	}
 
-	data, err := json.MarshalIndent(pkg, "", "  ")
+	data, err := json.Marshal(pkg, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 	if err != nil {
 		return errorfamily.Newf(
 			errorfamily.Infrastructure,

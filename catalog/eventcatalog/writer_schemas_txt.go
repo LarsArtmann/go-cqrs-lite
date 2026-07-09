@@ -1,7 +1,8 @@
 package eventcatalog
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -58,7 +59,7 @@ func writeSchemasTxtEntry(
 	fmt.Fprintf(buf, "## %s (v%s)\n", name, version)
 	fmt.Fprintf(buf, "Context: %s\n", context)
 
-	data, err := json.MarshalIndent(schema, "", "  ")
+	data, err := json.Marshal(schema, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 	if err != nil {
 		fmt.Fprintf(buf, "Schema: <error: %v>\n\n", err)
 

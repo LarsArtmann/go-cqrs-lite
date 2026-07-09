@@ -72,7 +72,7 @@ func (s *KVStore) Seen(_ context.Context, key string) (bool, error) {
 func (s *KVStore) Record(_ context.Context, key string, ttl time.Duration) error {
 	expiry := time.Now().Add(ttl).UnixNano()
 
-	return s.backend.Set(
+	return s.backend.Set( //nolint:wrapcheck // passthrough
 		[]byte(key),
 		[]byte(strconv.FormatInt(expiry, 10)),
 	)

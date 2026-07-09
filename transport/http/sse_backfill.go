@@ -2,7 +2,8 @@ package http
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"net/http"
 	"strconv"
 
@@ -100,9 +101,9 @@ func BackfillHandler(journal event.SeekableJournal) http.Handler {
 		}
 
 		type backfillItem struct {
-			ID      string          `json:"id"`
-			Type    string          `json:"type"`
-			Payload json.RawMessage `json:"payload"`
+			ID      string         `json:"id"`
+			Type    string         `json:"type"`
+			Payload jsontext.Value `json:"payload"`
 		}
 
 		items := make([]backfillItem, 0, len(events))
@@ -114,13 +115,13 @@ func BackfillHandler(journal event.SeekableJournal) http.Handler {
 			})
 		}
 
-		_ = json.NewEncoder(w).Encode(items)
+		_ = json.MarshalWrite(w, items)
 	})
 }
 
 func writeBackfillError(w http.ResponseWriter, code int, msg string) {
 	w.WriteHeader(code)
-	_ = json.NewEncoder(w).Encode(map[string]string{"error": msg})
+	_ = json.MarshalWrite(w, map[string]string{"error": msg})
 }
 
 var _ = context.Background // reserved for future context-aware auth

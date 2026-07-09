@@ -1,9 +1,30 @@
 # Idempotency Merge Plan: `idempotency/` → `middleware/idempotency/`
 
-> **Status:** PROPOSED
+> **Status:** ✅ COMPLETED (2026-07-08)
 > **Effort:** ~30 minutes execution (mechanical moves + one new file)
 > **Risk:** Low — zero internal consumers, not in api-stability tracking, not in flake.nix testModules
 > **Breaking:** Import path change for external consumers (`idempotency/v3` → `middleware/v3/idempotency`). Pre-v4, acceptable.
+
+> ### ⚠ Architectural Deviation from Plan
+>
+> The plan below describes moving the Store primitive into `middleware/idempotency/`
+> (a sub-package sharing middleware's go.mod). **The actual implementation deviated:**
+> `idempotency/` was kept as a **separate lightweight module** (depends on `kv/v3` +
+> `go-error-family` only), and only the generic middleware factory was added to
+> `middleware/`.
+>
+> **Rationale:** Composability — `middleware/` has heavy deps (otel, ginkgo, gomega,
+> sqlite). A consumer who wants just the dedup Store shouldn't drag those in. Keeping
+> `idempotency/` as a leaf module preserves its independence.
+>
+> **What was actually done:**
+>
+> - `middleware/idempotency.go` — generic `NewIdempotency[M]` + 3 wrappers (created)
+> - `middleware/idempotency_test.go` — 11 tests (created)
+> - `idempotency/middleware.go` + `middleware_test.go` — deleted (replaced by above)
+> - `idempotency/` module — kept as separate module, deps slimmed to `kv/` + `go-error-family`
+> - `idempotency/` added to `flake.nix` testModules + `cmd/api-stability` tracking
+> - `QueryIdempotency` panics at construction if `keyExtractor` is nil (nil safety guard)
 
 ---
 

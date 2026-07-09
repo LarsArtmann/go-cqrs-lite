@@ -2,7 +2,7 @@ package codec
 
 import (
 	"bytes"
-	"encoding/json"
+	"encoding/json/v2"
 )
 
 // JSONCodec implements Codec using encoding/json.
@@ -28,5 +28,5 @@ func (JSONCodec) Decode(data []byte, v any) error {
 // avoiding the allocation that Encode returns. Implements BufferEncoder.
 func (JSONCodec) EncodeToBuffer(v any, buf *bytes.Buffer) error {
 	//nolint:wrapcheck // thin wrapper over json.Encoder.Encode
-	return json.NewEncoder(buf).Encode(v)
+	return json.MarshalWrite(buf, v)
 }

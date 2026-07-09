@@ -2,7 +2,7 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/middleware/v3.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/middleware/v3)
 
-Pre-built middleware for command, event, and query handlers. **24 middleware factories** covering 8 concerns across all 3 message types.
+Pre-built middleware for command, event, and query handlers. **27 middleware factories** covering 9 concerns across all 3 message types.
 
 ```bash
 go get github.com/larsartmann/go-cqrs-lite/middleware/v3
@@ -52,6 +52,12 @@ go get github.com/larsartmann/go-cqrs-lite/middleware/v3
 - `EventCircuitBreaker(opts)` — circuit breaker for event handlers
 - `QueryCircuitBreaker(opts)` — circuit breaker for queries
 
+### Idempotency
+
+- `CommandIdempotency(store, ttl, keyExtractor)` — deduplicates commands by ID (at-least-once delivery)
+- `EventIdempotency(store, ttl, keyExtractor)` — deduplicates events by ID (webhooks, cross-system delivery)
+- `QueryIdempotency(store, ttl, keyExtractor)` — deduplicates queries by custom key (requires non-nil keyExtractor)
+
 ### Event Signing
 
 - `EventSignMiddleware(signer)` — signs events on publish
@@ -71,6 +77,7 @@ cmds.Use(middleware.CommandRetry(3, 100*time.Millisecond))
 - [**command/v2**](../command/README.md) — `command.Dispatcher.Use()` applies command middleware
 - [**event/v2**](../event/README.md) — `event.Bus.Use()` / `UsePublish()` applies event middleware
 - [**query/v2**](../query/README.md) — `query.Dispatcher.Use()` applies query middleware
+- [**idempotency/v3**](../idempotency/README.md) — `Store`, `MemoryStore`, `KVStore`, `ErrDuplicate` (used by idempotency middleware)
 - [**signing/v2**](../signing/README.md) — `EventSignMiddleware` / `EventVerifyMiddleware` live here
 - [**encryption/v2**](../encryption/README.md) — `EncryptMiddleware` / `DecryptMiddleware` live here
 - [**otel/v2**](../otel/README.md) — Tracing middleware uses OTel tracers from this module

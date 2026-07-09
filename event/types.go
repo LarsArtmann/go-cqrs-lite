@@ -2,7 +2,7 @@ package event
 
 import (
 	"cmp"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"net/netip"
 	"strconv"

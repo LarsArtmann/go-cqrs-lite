@@ -1,7 +1,7 @@
 package codec
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -19,7 +19,7 @@ func (RawCodec) Encode(v any) ([]byte, error) {
 	switch b := v.(type) {
 	case []byte:
 		return b, nil
-	case json.RawMessage:
+	case jsontext.Value:
 		return b, nil
 	default:
 		return nil, errorfamily.Wrapf(

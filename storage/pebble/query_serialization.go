@@ -1,7 +1,7 @@
 package pebble
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"

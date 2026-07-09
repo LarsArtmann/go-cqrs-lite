@@ -1,7 +1,7 @@
 package docserver
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"net/http"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
@@ -18,7 +18,7 @@ func HealthCheckHandler(cat *catalog.Catalog) http.HandlerFunc {
 		if cat == nil || len(cat.Services) == 0 {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusServiceUnavailable)
-			_ = json.NewEncoder(w).Encode(map[string]any{
+			_ = json.MarshalWrite(w, map[string]any{
 				"status":  "unhealthy",
 				"message": "catalog has no services",
 			})
@@ -28,7 +28,7 @@ func HealthCheckHandler(cat *catalog.Catalog) http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		_ = json.NewEncoder(w).Encode(map[string]any{
+		_ = json.MarshalWrite(w, map[string]any{
 			"status":   "healthy",
 			"services": len(cat.Services),
 		})

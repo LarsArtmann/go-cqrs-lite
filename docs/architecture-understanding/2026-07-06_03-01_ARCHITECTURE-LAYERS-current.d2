@@ -50,7 +50,7 @@ Layer_2: {
   schema_: "schema/"
   snapshot_: "snapshot/"
   projection_: "projection/"
-  idempotency_: "idempotency/\nneeds event/ ONLY for\nerror classification"
+  idempotency_: "idempotency/\ndepends on kv/ only"
   deriver_: "deriver/"
 }
 
@@ -149,7 +149,6 @@ event_ -> err_source: "contains"
 # The artificial coupling (every module reaches event/ for errors)
 command_ -> event_: "AggregateRef (legit)\n+ errors (artificial)" {style.stroke: "#c62828"; style.stroke-dash: 3}
 query_ -> event_: "errors ONLY\n(store.go bypasses)" {style.stroke: "#c62828"; style.stroke-dash: 3}
-idempotency_ -> event_: "errors ONLY" {style.stroke: "#c62828"; style.stroke-dash: 3}
 middleware_ -> event_: "Event type (partial)\n+ errors" {style.stroke: "#c62828"; style.stroke-dash: 3}
 storage_ -> event_: "ImmutableEvent (legit)\n+ errors" {style.stroke-dash: 3}
 signing_ -> event_: "Event payload (legit)\n+ errors" {style.stroke: "#c62828"; style.stroke-dash: 3}
