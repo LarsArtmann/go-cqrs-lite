@@ -4,7 +4,6 @@ import (
 	"crypto/ed25519"
 	"crypto/hmac"
 	"crypto/sha256"
-	"math"
 	"slices"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -316,7 +315,7 @@ func VerifyCOSE1(
 		)
 	}
 
-	algID, err := normalizeCOSEAlgorithm(alg)
+	algID, err := codec.NormalizeCOSEAlgorithm(alg)
 	if err != nil {
 		return errorfamily.Wrapf(
 			ErrInvalidSignature, errorfamily.Rejection,
@@ -358,34 +357,4 @@ func VerifyCOSE1(
 	}
 
 	return nil
-}
-
-// normalizeCOSEAlgorithm converts a CBOR-decoded algorithm value to int64.
-func normalizeCOSEAlgorithm(v any) (int64, error) {
-	switch val := v.(type) {
-	case int64:
-		return val, nil
-	case int:
-		return int64(val), nil
-	case int32:
-		return int64(val), nil
-	case uint64:
-		if val > math.MaxInt64 {
-			return 0, errorfamily.Wrapf(
-				ErrCOSEAlgorithmOverflow, errorfamily.Rejection,
-				"signing.cose_algorithm_overflow",
-				"uint64 value %d overflows int64", val,
-			)
-		}
-
-		return int64(val), nil
-	case uint32:
-		return int64(val), nil
-	default:
-		return 0, errorfamily.Wrapf(
-			ErrCOSEInvalidAlgorithm, errorfamily.Rejection,
-			"signing.cose_invalid_algorithm",
-			"expected integer, got %T", v,
-		)
-	}
 }

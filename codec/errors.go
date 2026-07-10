@@ -19,4 +19,12 @@ var (
 		"codec.invalid_cose_encrypt0",
 		"COSE_Encrypt0 structure has an invalid number of elements",
 	)
+	ErrCOSEAlgorithmOverflow = errorfamily.NewRejection(
+		"codec.cose_algorithm_overflow",
+		"COSE algorithm value overflows int64",
+	)
+	ErrCOSEInvalidAlgorithm = errorfamily.NewRejection(
+		"codec.cose_invalid_algorithm",
+		"COSE algorithm value is not an integer",
+	)
 )

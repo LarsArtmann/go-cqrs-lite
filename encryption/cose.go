@@ -3,7 +3,6 @@ package encryption
 import (
 	"crypto/rand"
 	"io"
-	"math"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
@@ -252,7 +251,7 @@ func DecryptCOSE0(coseBytes []byte, dec COSEDecrypter, opts ...COSEEncryptOption
 		)
 	}
 
-	alg, err := normalizeCOSEAlgorithm(protected[codec.COSEHeaderAlg])
+	alg, err := codec.NormalizeCOSEAlgorithm(protected[codec.COSEHeaderAlg])
 	if err != nil {
 		return nil, errorfamily.Wrapf(
 			ErrUnknownAlgorithm, errorfamily.Rejection,
@@ -300,36 +299,6 @@ func DecryptCOSE0(coseBytes []byte, dec COSEDecrypter, opts ...COSEEncryptOption
 	}
 
 	return plaintext, nil
-}
-
-// normalizeCOSEAlgorithm converts a CBOR-decoded algorithm value to int64.
-func normalizeCOSEAlgorithm(v any) (int64, error) {
-	switch val := v.(type) {
-	case int64:
-		return val, nil
-	case int:
-		return int64(val), nil
-	case int32:
-		return int64(val), nil
-	case uint64:
-		if val > math.MaxInt64 {
-			return 0, errorfamily.Wrapf(
-				ErrCOSEAlgorithmOverflow, errorfamily.Rejection,
-				"encryption.cose_algorithm_overflow",
-				"uint64 value %d overflows int64", val,
-			)
-		}
-
-		return int64(val), nil
-	case uint32:
-		return int64(val), nil
-	default:
-		return 0, errorfamily.Wrapf(
-			ErrCOSEInvalidAlgorithm, errorfamily.Rejection,
-			"encryption.cose_invalid_algorithm",
-			"expected integer, got %T", v,
-		)
-	}
 }
 
 // extractCOSEIV extracts the initialization vector from the unprotected header.

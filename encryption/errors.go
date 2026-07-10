@@ -40,16 +40,6 @@ var (
 		"COSE algorithm does not match decrypter",
 	)
 
-	ErrCOSEAlgorithmOverflow = errorfamily.NewRejection(
-		"encryption.cose_algorithm_overflow",
-		"COSE algorithm value overflows int64",
-	)
-
-	ErrCOSEInvalidAlgorithm = errorfamily.NewRejection(
-		"encryption.cose_invalid_algorithm",
-		"COSE algorithm value is not an integer",
-	)
-
 	ErrInnerStoreNotJournal = errorfamily.NewRejection(
 		"encryption.inner_store_not_journal",
 		"inner store does not implement event.Journal",

@@ -2,6 +2,7 @@ package codec
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/fxamacker/cbor/v2"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -35,6 +36,41 @@ const (
 	COSEAlgEdDSA            int64 = -8
 	COSEAlgEd25519          int64 = -19
 )
+
+// NormalizeCOSEAlgorithm converts a CBOR-decoded algorithm value to int64.
+// CBOR decodes integers as the narrowest Go type that fits, which means
+// small positive values arrive as uint64. This helper normalizes all
+// integer variants to int64 so callers can compare against the COSEAlg*
+// constants. Returns ErrCOSEAlgorithmOverflow for values that exceed
+// int64, and ErrCOSEInvalidAlgorithm for non-integer types.
+func NormalizeCOSEAlgorithm(v any) (int64, error) {
+	switch val := v.(type) {
+	case int64:
+		return val, nil
+	case int:
+		return int64(val), nil
+	case int32:
+		return int64(val), nil
+	case uint64:
+		if val > math.MaxInt64 {
+			return 0, errorfamily.Wrapf(
+				ErrCOSEAlgorithmOverflow, errorfamily.Rejection,
+				"codec.cose_algorithm_overflow",
+				"uint64 value %d overflows int64", val,
+			)
+		}
+
+		return int64(val), nil
+	case uint32:
+		return int64(val), nil
+	default:
+		return 0, errorfamily.Wrapf(
+			ErrCOSEInvalidAlgorithm, errorfamily.Rejection,
+			"codec.cose_invalid_algorithm",
+			"expected integer, got %T", v,
+		)
+	}
+}
 
 // COSESign1 represents a COSE_Sign1 structure as defined in RFC 9052.
 // It is a single-signer signed message with protected headers, unprotected headers,
