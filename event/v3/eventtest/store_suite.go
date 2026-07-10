@@ -12,7 +12,7 @@ import (
 
 // StoreTestConfig configures a store test suite with event type/payload details.
 type StoreTestConfig struct {
-	AggType event.AggregateType
+	AggType id.AggregateType
 	EvtType event.Type
 	Payload func(version event.Version) []byte
 }
@@ -43,7 +43,7 @@ func (c StoreTestConfig) NewTestEvent(
 
 // NewStoreTestConfig creates a StoreTestConfig with a JSON payload template.
 func NewStoreTestConfig(
-	aggType event.AggregateType,
+	aggType id.AggregateType,
 	evtType event.Type,
 	jsonField, valuePrefix string,
 ) StoreTestConfig {
@@ -78,7 +78,7 @@ func SaveEvent(
 
 	err := store.Save(
 		context.Background(),
-		event.NewAggregateRef(cfg.AggType, aggID),
+		id.NewAggregateRef(cfg.AggType, aggID),
 		[]event.Event{evt},
 		event.Version(0),
 	)
@@ -96,7 +96,7 @@ func TestStoreSaveAndLoad(t *testing.T, store event.Store, cfg StoreTestConfig) 
 
 	err := store.Save(
 		context.Background(),
-		event.NewAggregateRef(cfg.AggType, aggID),
+		id.NewAggregateRef(cfg.AggType, aggID),
 		[]event.Event{evt},
 		event.Version(0),
 	)
@@ -104,7 +104,7 @@ func TestStoreSaveAndLoad(t *testing.T, store event.Store, cfg StoreTestConfig) 
 		t.Fatalf("Save: %v", err)
 	}
 
-	loaded, err := store.Load(context.Background(), event.NewAggregateRef(cfg.AggType, aggID))
+	loaded, err := store.Load(context.Background(), id.NewAggregateRef(cfg.AggType, aggID))
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
@@ -135,7 +135,7 @@ func TestStoreConcurrencyConflict(t *testing.T, store event.Store, cfg StoreTest
 
 	err := store.Save(
 		context.Background(),
-		event.NewAggregateRef(cfg.AggType, aggID),
+		id.NewAggregateRef(cfg.AggType, aggID),
 		[]event.Event{evt2},
 		event.Version(0),
 	)
@@ -154,14 +154,14 @@ func TestStoreAppendBatch(t *testing.T, store event.Store, cfg StoreTestConfig) 
 
 	err := store.AppendBatch(
 		context.Background(),
-		event.NewAggregateRef(cfg.AggType, aggID),
+		id.NewAggregateRef(cfg.AggType, aggID),
 		[]event.Event{evt1, evt2},
 	)
 	if err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
 
-	loaded, err := store.Load(context.Background(), event.NewAggregateRef(cfg.AggType, aggID))
+	loaded, err := store.Load(context.Background(), id.NewAggregateRef(cfg.AggType, aggID))
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
@@ -185,7 +185,7 @@ func TestStoreLoadFromVersion(t *testing.T, store event.Store, cfg StoreTestConf
 
 	err := store.AppendBatch(
 		context.Background(),
-		event.NewAggregateRef(cfg.AggType, aggID),
+		id.NewAggregateRef(cfg.AggType, aggID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 	if err != nil {
@@ -194,7 +194,7 @@ func TestStoreLoadFromVersion(t *testing.T, store event.Store, cfg StoreTestConf
 
 	loaded, err := store.LoadFromVersion(
 		context.Background(),
-		event.NewAggregateRef(cfg.AggType, aggID),
+		id.NewAggregateRef(cfg.AggType, aggID),
 		event.Version(1),
 	)
 	if err != nil {
@@ -230,7 +230,7 @@ func TestStoreMetadataRoundtrip(
 
 	SaveEvent(t, store, cfg, aggID, evt)
 
-	loaded, err := store.Load(context.Background(), event.NewAggregateRef(cfg.AggType, aggID))
+	loaded, err := store.Load(context.Background(), id.NewAggregateRef(cfg.AggType, aggID))
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}

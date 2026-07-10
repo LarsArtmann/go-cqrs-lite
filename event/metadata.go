@@ -2,11 +2,13 @@ package event
 
 import (
 	"maps"
+
+	"github.com/larsartmann/go-cqrs-lite/metadata/v3"
 )
 
 // Metadata contains tracing and contextual information for events.
 type Metadata struct {
-	Tracing
+	metadata.Tracing
 	Source    Source                 `json:"source,omitempty"`
 	IPAddress IPAddress              `json:"ipAddress,omitempty"`
 	UserAgent UserAgent              `json:"userAgent,omitempty"`
@@ -77,7 +79,7 @@ func (m Metadata) Merge(other Metadata) Metadata {
 		result.Causation = &c
 	}
 
-	result.Custom = MergeCustomMaps(result.Custom, other.Custom)
+	result.Custom = metadata.MergeCustomMaps(result.Custom, other.Custom)
 
 	return result
 }

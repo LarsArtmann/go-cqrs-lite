@@ -34,7 +34,7 @@ func (e *ImmutableEvent) Clone() *ImmutableEvent {
 func NewEvent(
 	eventType Type,
 	aggregateID id.AggregateID,
-	aggregateType AggregateType,
+	aggregateType id.AggregateType,
 	version Version,
 	payload []byte,
 	opts ...Option,
@@ -59,7 +59,7 @@ func NewEvent(
 func buildEvent(
 	eventType Type,
 	aggregateID id.AggregateID,
-	aggregateType AggregateType,
+	aggregateType id.AggregateType,
 	version Version,
 	payload []byte,
 	opts []Option,

@@ -41,16 +41,19 @@ func (b *Bundle) HealthCheck(ctx context.Context) error {
 	seen := make(map[HealthChecker]struct{}, len(b.closers))
 
 	for _, c := range b.closers {
-		if hc, ok := c.(HealthChecker); ok {
-			if _, dup := seen[hc]; dup {
-				continue
-			}
+		checker, ok := c.(HealthChecker)
+		if !ok {
+			continue
+		}
 
-			seen[hc] = struct{}{}
+		if _, dup := seen[checker]; dup {
+			continue
+		}
 
-			if err := hc.HealthCheck(ctx); err != nil {
-				errs = append(errs, err)
-			}
+		seen[checker] = struct{}{}
+
+		if err := checker.HealthCheck(ctx); err != nil {
+			errs = append(errs, err)
 		}
 	}
 

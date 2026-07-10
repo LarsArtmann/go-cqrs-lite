@@ -156,3 +156,31 @@ func WithEventFilter(fn func(event.Type) bool) SSEBrokerOption {
 		b.eventFilter = fn
 	}
 }
+
+// WithPayloadTransform installs a function that transforms each event's
+// payload bytes before they are written to the SSE wire. Without this option,
+// the broker sends event.PayloadReadOnly(evt) verbatim — the correct default
+// for JSON-encoded payloads.
+//
+// Consumers using CBOR (or any non-JSON codec) as the default event codec must
+// pass a transform that decodes the payload and re-encodes it as JSON, because
+// browsers cannot parse CBOR. The transform is applied uniformly across the
+// live delivery path and the replay path, so the wire format is consistent
+// regardless of whether an event arrives live or is replayed from the journal.
+//
+// Example — CBOR→JSON transcoding:
+//
+//	broker, _ := NewSSEBroker(bus, WithPayloadTransform(func(evt event.Event) []byte {
+//	    // Decode from the event's encoding, re-encode as JSON for the browser.
+//	    p, err := event.DecodePayloadAuto[YourPayload](evt)
+//	    if err != nil {
+//	        return event.PayloadReadOnly(evt) // fallback to raw
+//	    }
+//	    jsonBytes, _ := json.Marshal(p)
+//	    return jsonBytes
+//	}))
+func WithPayloadTransform(fn func(event.Event) []byte) SSEBrokerOption {
+	return func(b *SSEBroker) {
+		b.payloadTransform = fn
+	}
+}

@@ -55,7 +55,7 @@ type TypedSnapshotSource[State any] interface {
 //
 // Construct one with [NewTypedStore]:
 //
-//	ts := snapshot.NewTypedStore[MyState](store, codec.JSONCodec{})
+//	ts := snapshot.NewTypedStore[MyState](store, codec.CBORCodec{})
 //	_ = ts.Save(ctx, snapshot.TypedSnapshot[MyState]{State: state, ...})
 //	got, _ := ts.Load(ctx, ref)
 //	// got.State is MyState, not []byte
@@ -68,10 +68,11 @@ type TypedStore[State any] struct {
 }
 
 // NewTypedStore creates a typed adapter over store using c for State
-// serialization. If c is nil, [codec.JSONCodec] is used.
+// serialization. If c is nil, [codec.CBORCodec] is used.
+// Pre-envelope data (raw JSON) is auto-detected on read.
 func NewTypedStore[State any](store SnapshotStore, c codec.Codec) *TypedStore[State] {
 	if c == nil {
-		c = codec.JSONCodec{}
+		c = codec.CBORCodec{}
 	}
 
 	return &TypedStore[State]{store: store, codec: c}
@@ -147,7 +148,7 @@ func (t *TypedStore[State]) Store() SnapshotStore { return t.store }
 func (t *TypedStore[State]) decode(raw *Snapshot) (*TypedSnapshot[State], error) {
 	var state State
 
-	c, inner := codec.UnwrapDecode(raw.State, t.codec)
+	c, inner := codec.UnwrapDecode(raw.State, codec.JSONCodec{})
 
 	err := c.Decode(inner, &state)
 	if err != nil {

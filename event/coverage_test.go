@@ -16,13 +16,13 @@ func TestAggregateRef_IsZero(t *testing.T) {
 	var ref id.AggregateRef
 
 	if !ref.IsZero() {
-		t.Error("expected zero AggregateRef to be zero")
+		t.Error("expected zero id.AggregateRef to be zero")
 	}
 
 	ref = id.NewAggregateRef("User", id.NewAggregateID())
 
 	if ref.IsZero() {
-		t.Error("expected non-zero AggregateRef to not be zero")
+		t.Error("expected non-zero id.AggregateRef to not be zero")
 	}
 }
 

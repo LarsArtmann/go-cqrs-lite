@@ -89,13 +89,13 @@ func TestAllocs_FilterByTimestamp(t *testing.T) {
 
 func TestAllocs_NewAggregateRef(t *testing.T) {
 	aggID := id.NewAggregateID()
-	aggType := AggregateType("Test")
+	aggType := id.AggregateType("Test")
 
 	allocs := testing.AllocsPerRun(100, func() {
-		_ = NewAggregateRef(aggType, aggID)
+		_ = id.NewAggregateRef(aggType, aggID)
 	})
 
 	if allocs != 0 {
-		t.Errorf("NewAggregateRef allocations = %v, want 0", allocs)
+		t.Errorf("id.NewAggregateRef allocations = %v, want 0", allocs)
 	}
 }

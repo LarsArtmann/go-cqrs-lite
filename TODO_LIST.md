@@ -37,7 +37,7 @@
 - [x] **BDD tests for EventIdempotency middleware** — 3 Ginkgo scenarios added: duplicate dedup, different events pass through, empty key skips dedup.
 - [x] **SSE large-payload test (>8MB)** — `TestSSEHandler_ByteBudget_LargePayload` with 100KB×5 events under 250KB budget.
 - [x] **ADR-0044: Blind store encoding stamps** — IMPLEMENTED. `codec/envelope.go` with WrapEncode/UnwrapDecode. Wired into all 4 blind stores (kv, snapshot, command, query). Backward-compatible raw decode fallback. ADR status: ACCEPTED.
-- [x] **Fix file-size violations** — All 5 files split under 350-line CI limit.
+- [x] **Fix file-size violations** — 3 production files split under 350-line CI limit: signing/cose.go → cose_sign1.go, cmd/doc-check/main.go → exports.go, catalog/eventcatalog/frontmatter_render.go → frontmatter_convert.go.
 - [x] **Add SECURITY.md** — Documents vulnerability reporting process.
 - [x] **json quality audit: Deterministic(true)** — Added to all Marshal calls in signing, encryption, event, storage, transport, listing, catalog.
 - [x] **json quality audit: MatchCaseInsensitiveNames(true)** — Added to all Unmarshal calls across all modules.

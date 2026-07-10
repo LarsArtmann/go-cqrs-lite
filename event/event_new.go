@@ -21,7 +21,7 @@ import (
 func New(
 	eventType Type,
 	aggregateID id.AggregateID,
-	aggregateType AggregateType,
+	aggregateType id.AggregateType,
 	version Version,
 	payload any,
 	opts ...Option,

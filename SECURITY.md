@@ -2,68 +2,44 @@
 
 ## Supported Versions
 
-This library is pre-v1. Security fixes are applied to the latest `master` branch only.
+This is a library/SDK. Only the latest release line receives security fixes.
 
 | Version | Supported          |
 | ------- | ------------------ |
-| master  | :white_check_mark: |
-| < 1.0   | :x: (pre-release)  |
+| v3.x    | :white_check_mark: |
+| < v3    | :x:                |
 
 ## Reporting a Vulnerability
 
-**Do NOT open a public GitHub issue for security vulnerabilities.**
+If you discover a security vulnerability in go-cqrs-lite, please report it
+responsibly:
 
-Instead, please report vulnerabilities privately:
+1. **Do NOT open a public GitHub issue.**
+2. Email the maintainer directly with details of the vulnerability.
+3. Include a proof of concept or steps to reproduce if possible.
+4. You will receive an acknowledgment within 48 hours.
 
-1. Open a GitHub Security Advisory via the **Security** tab → **Report a vulnerability**.
-2. Or email the maintainer directly.
+## Security Features
 
-Please include:
+The library provides opt-in security modules:
 
-- A description of the vulnerability and its potential impact.
-- Steps to reproduce or a proof-of-concept.
-- The affected module(s) (e.g., `signing/`, `encryption/`).
-- Any suggested mitigations.
+- **Event signing** (`signing/`): HMAC-SHA256 and Ed25519 signatures with
+  COSE_Sign1 (RFC 9052) support. Tamper-evident event streams.
+- **Event encryption** (`encryption/`): XChaCha20-Poly1305 and AES-256-GCM
+  authenticated encryption for confidential payloads. HKDF key derivation
+  for multi-tenant scenarios.
+- **Input validation** (`schema/`): JSON Schema validation with typed
+  registration. Prevents malformed payloads from entering the event stream.
 
-**Response timeline:**
+These modules are **opt-in**. If you do not wire them into your middleware
+chain, events are stored and transported in plaintext without integrity
+protection.
 
-- Acknowledgement within 48 hours.
-- Initial assessment within 5 business days.
-- Fix or mitigation published as soon as practicable, depending on severity.
+## Dependency Policy
 
-## Scope
-
-This library provides cryptographic building blocks for CQRS + Event Sourcing applications:
-
-### `signing/` — Event Integrity
-
-- **HMAC-SHA256** for symmetric event signing.
-- **Ed25519** for asymmetric event signing (recommended for distributed systems).
-- **Multisig** support for multi-party event integrity.
-- Middleware for transparent sign-on-publish and verify-on-consume.
-
-### `encryption/` — Event Confidentiality
-
-- **XChaCha20-Poly1305** for authenticated encryption (recommended — nonce-misuse resistant, 192-bit nonce).
-- **AES-256-GCM** for compatibility with systems requiring NIST-approved ciphers.
-- HKDF-SHA256 key derivation for multi-tenant encryption.
-- Codec wrapper for seamless encrypt/decrypt integration with the codec pipeline.
-- Middleware for transparent encrypt-on-publish and decrypt-on-consume.
-
-## Out of Scope
-
-This library does **not** provide:
-
-- Key management (rotation, storage, HSM integration) — bring your own KMS.
-- Transport-layer security (TLS) — use your HTTP/gRPC server's TLS configuration.
-- Access control / authorization — handled at the application layer.
-- Side-channel resistance guarantees beyond what the underlying Go `crypto/*` packages provide.
-
-## Security Recommendations for Consumers
-
-1. **Never hardcode secrets** — load encryption keys and signing secrets from a secrets manager (Vault, AWS KMS, etc.).
-2. **Rotate keys regularly** — use the `keyID` field on signed/encrypted events to support key rotation.
-3. **Prefer Ed25519 for signing** — it is faster, has smaller signatures, and eliminates nonce-reuse risks.
-4. **Prefer XChaCha20-Poly1305 for encryption** — the 192-bit nonce makes random-nonce collision practically impossible.
-5. **Enable both signing AND encryption** — signing alone protects integrity but not confidentiality; encryption alone protects confidentiality but not integrity.
-6. **Verify on every consume** — do not skip `signing.VerifyMiddleware` even in "trusted" internal services.
+- Production dependencies are kept minimal and audited.
+- Direct production dependencies: `oklog/ulid`, `go-branded-id`,
+  `go-error-family`, `go-faster/yaml`, `fxamacker/cbor`, `golang.org/x/crypto`.
+- Test-only dependencies (`ginkgo`, `gomega`, `rapid`) are excluded from
+  production builds.
+- Per-module dependency budgets are enforced by `nix run .#check-layers`.

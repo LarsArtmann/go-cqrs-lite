@@ -29,10 +29,11 @@ type TypedQueryStore[P any] struct {
 }
 
 // NewTypedQueryStore creates a typed adapter over store using c for payload
-// serialization. If c is nil, [codec.JSONCodec] is used.
+// serialization. If c is nil, [codec.CBORCodec] is used.
+// Pre-envelope data (raw JSON) is auto-detected on read.
 func NewTypedQueryStore[P any](store QueryStore, c codec.Codec) *TypedQueryStore[P] {
 	if c == nil {
-		c = codec.JSONCodec{}
+		c = codec.CBORCodec{}
 	}
 
 	return &TypedQueryStore[P]{store: store, codec: c}
@@ -92,7 +93,7 @@ func (t *TypedQueryStore[P]) LoadQueries(
 	for _, q := range queries {
 		var payload P
 
-		c, inner := codec.UnwrapDecode(q.Payload(), t.codec)
+		c, inner := codec.UnwrapDecode(q.Payload(), codec.JSONCodec{})
 
 		err := c.Decode(inner, &payload)
 		if err != nil {

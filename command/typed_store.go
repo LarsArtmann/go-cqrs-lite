@@ -30,7 +30,7 @@ type TypedPersistedCommand[P any] struct {
 // TypedCommandStore adapts an untyped [Store] plus a [codec.Codec] into a
 // typed interface over P. It handles encode/decode at the store boundary.
 //
-//	ts := command.NewTypedCommandStore[CreateTodoPayload](store, codec.JSONCodec{})
+//	ts := command.NewTypedCommandStore[CreateTodoPayload](store, codec.CBORCodec{})
 //	_ = ts.Save(ctx, ref, command.TypedPersistedCommand[CreateTodoPayload]{...})
 //	loaded, _ := ts.Load(ctx, ref)
 //	// loaded[0].Payload is CreateTodoPayload, not []byte
@@ -40,10 +40,11 @@ type TypedCommandStore[P any] struct {
 }
 
 // NewTypedCommandStore creates a typed adapter over store using c for payload
-// serialization. If c is nil, [codec.JSONCodec] is used.
+// serialization. If c is nil, [codec.CBORCodec] is used.
+// Pre-envelope data (raw JSON) is auto-detected on read.
 func NewTypedCommandStore[P any](store Store, c codec.Codec) *TypedCommandStore[P] {
 	if c == nil {
-		c = codec.JSONCodec{}
+		c = codec.CBORCodec{}
 	}
 
 	return &TypedCommandStore[P]{store: store, codec: c}
@@ -157,7 +158,7 @@ func (t *TypedCommandStore[P]) Load(
 	for _, cmd := range cmds {
 		var payload P
 
-		c, inner := codec.UnwrapDecode(cmd.Payload(), t.codec)
+		c, inner := codec.UnwrapDecode(cmd.Payload(), codec.JSONCodec{})
 
 		err := c.Decode(inner, &payload)
 		if err != nil {

@@ -1,0 +1,288 @@
+package eventcatalog
+
+import (
+	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
+)
+
+// --- Conversion helpers: catalog types → frontmatter types ---
+
+func toPointers[S ~string](ids []S) []pointer {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	out := make([]pointer, len(ids))
+	for i, id := range ids {
+		out[i] = pointer{ID: string(id)}
+	}
+
+	return out
+}
+
+func toRefs(refs []catalog.Ref) []pointer {
+	if len(refs) == 0 {
+		return nil
+	}
+
+	out := make([]pointer, len(refs))
+	for i, r := range refs {
+		out[i] = pointer{ID: string(r.ID), Version: string(r.Version)}
+	}
+
+	return out
+}
+
+func toBadges(badges []catalog.Badge) []badgeFM {
+	if len(badges) == 0 {
+		return nil
+	}
+
+	out := make([]badgeFM, len(badges))
+	for i, b := range badges {
+		out[i] = badgeFM{
+			Content:         b.Content,
+			BackgroundColor: string(b.BackgroundColor),
+			TextColor:       string(b.TextColor),
+			Icon:            string(b.Icon),
+			URL:             string(b.URL),
+		}
+	}
+
+	return out
+}
+
+func toRepository(repo *catalog.Repository) *repositoryFM {
+	if repo == nil {
+		return nil
+	}
+
+	return &repositoryFM{
+		Language: string(repo.Language),
+		URL:      string(repo.URL),
+	}
+}
+
+func toOperation(op *catalog.Operation) *operationFM {
+	if op == nil {
+		return nil
+	}
+
+	return &operationFM{
+		Method:      string(op.Method),
+		Path:        op.Path,
+		StatusCodes: op.StatusCodes,
+	}
+}
+
+func toSpecifications(specs []catalog.Specification) []specificationFM {
+	if len(specs) == 0 {
+		return nil
+	}
+
+	out := make([]specificationFM, len(specs))
+	for i, s := range specs {
+		out[i] = specificationFM{
+			Type: s.Type,
+			Path: s.Path,
+			Name: string(s.Name),
+		}
+	}
+
+	return out
+}
+
+func toAttachments(attachments []catalog.Attachment) []attachmentFM {
+	if len(attachments) == 0 {
+		return nil
+	}
+
+	out := make([]attachmentFM, len(attachments))
+	for i, a := range attachments {
+		out[i] = attachmentFM{
+			URL:         string(a.URL),
+			Title:       string(a.Title),
+			Description: string(a.Description),
+			Type:        a.Type,
+			Icon:        string(a.Icon),
+		}
+	}
+
+	return out
+}
+
+func toChangelog(changes []catalog.Change) []changeFM {
+	if len(changes) == 0 {
+		return nil
+	}
+
+	out := make([]changeFM, len(changes))
+	for i, c := range changes {
+		out[i] = changeFM{
+			Version: string(c.Version),
+			Summary: string(c.Summary),
+		}
+
+		if c.Date != nil {
+			out[i].Date = c.Date.Format(time.DateOnly)
+		}
+	}
+
+	return out
+}
+
+func toUbiquitousLanguage(terms []catalog.UbiquitousLanguageTerm) []ubiquitousLanguageTermFM {
+	if len(terms) == 0 {
+		return nil
+	}
+
+	out := make([]ubiquitousLanguageTermFM, len(terms))
+	for i, t := range terms {
+		out[i] = ubiquitousLanguageTermFM{
+			Name:        string(t.Name),
+			Description: t.Description,
+		}
+	}
+
+	return out
+}
+
+func toAgentModel(model *catalog.AgentModel) *agentModelFM {
+	if model == nil {
+		return nil
+	}
+
+	return &agentModelFM{
+		Provider: string(model.Provider),
+		Name:     string(model.Name),
+		Version:  string(model.Version),
+	}
+}
+
+func toAgentTools(tools []catalog.AgentTool) []agentToolFM {
+	if len(tools) == 0 {
+		return nil
+	}
+
+	out := make([]agentToolFM, len(tools))
+	for i, t := range tools {
+		out[i] = agentToolFM{
+			Name:        string(t.Name),
+			Type:        t.Type,
+			URL:         string(t.URL),
+			Description: string(t.Description),
+			Icon:        string(t.Icon),
+		}
+	}
+
+	return out
+}
+
+func toChannelParams(params map[string]catalog.ChannelParam) map[string]channelParamFM {
+	if len(params) == 0 {
+		return nil
+	}
+
+	out := make(map[string]channelParamFM, len(params))
+	for k, v := range params {
+		out[k] = channelParamFM{
+			Enum:        v.Enum,
+			Default:     v.Default,
+			Description: string(v.Description),
+		}
+	}
+
+	return out
+}
+
+func toFlowSteps(steps []catalog.FlowStep) []flowStepFM {
+	if len(steps) == 0 {
+		return nil
+	}
+
+	out := make([]flowStepFM, len(steps))
+	for i, s := range steps {
+		step := flowStepFM{
+			ID:      string(s.ID),
+			Title:   string(s.Title),
+			Summary: string(s.Summary),
+		}
+
+		if s.Service != nil {
+			step.Service = &pointer{ID: s.Service.ID.String(), Version: string(s.Service.Version)}
+		}
+
+		if s.Message != nil {
+			step.Message = &pointer{ID: s.Message.ID.String(), Version: string(s.Message.Version)}
+		}
+
+		if s.Channel != nil {
+			step.Channel = &pointer{ID: s.Channel.ID.String()}
+		}
+
+		if s.Actor != nil {
+			step.Actor = &flowActor{
+				Name: string(
+					s.Actor.Name,
+				),
+				Summary: string(s.Actor.Summary),
+				URL:     string(s.Actor.URL),
+			}
+		}
+
+		if s.External != nil {
+			step.ExternalSys = &flowActor{
+				Name: string(
+					s.External.Name,
+				),
+				Summary: string(s.External.Summary),
+				URL:     string(s.External.URL),
+			}
+		}
+
+		if s.Custom != nil {
+			step.Custom = &flowCustom{
+				Title: string(s.Custom.Title),
+				Icon:  string(s.Custom.Icon),
+				Type:  s.Custom.Type,
+				Summary: string(
+					s.Custom.Summary,
+				),
+				URL:   string(s.Custom.URL),
+				Color: string(s.Custom.Color),
+			}
+		}
+
+		if s.Agent != nil {
+			step.Agent = &pointer{ID: s.Agent.ID.String(), Version: string(s.Agent.Version)}
+		}
+
+		if s.DataStore != nil {
+			step.DataStore = &pointer{ID: s.DataStore.ID.String()}
+		}
+
+		if s.DataProduct != nil {
+			step.DataProduct = &pointer{ID: s.DataProduct.ID.String()}
+		}
+
+		if s.SubFlow != nil {
+			step.SubFlow = &pointer{ID: s.SubFlow.ID.String()}
+		}
+
+		if s.NextStep != nil {
+			step.NextStep = &flowEdgeFM{ID: string(s.NextStep.ID), Label: s.NextStep.Label}
+		}
+
+		if len(s.NextSteps) > 0 {
+			step.NextSteps = make([]flowEdgeFM, len(s.NextSteps))
+			for j, ns := range s.NextSteps {
+				step.NextSteps[j] = flowEdgeFM{ID: string(ns.ID), Label: ns.Label}
+			}
+		}
+
+		out[i] = step
+	}
+
+	return out
+}

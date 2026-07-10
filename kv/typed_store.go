@@ -28,15 +28,15 @@ type TypedStore[T any, K fmt.Stringer] struct {
 }
 
 // NewTypedStore creates a [TypedStore] over backend, applying the given options.
-// The default codec is [codec.JSONCodec]; the default key encoding is the
-// key's String() form.
+// The default codec is [codec.CBORCodec]; the default key encoding is the
+// key's String() form. Pre-envelope data (raw JSON) is auto-detected on read.
 func NewTypedStore[T any, K fmt.Stringer](
 	backend Store,
 	opts ...TypedOption[T, K],
 ) *TypedStore[T, K] {
 	s := &TypedStore[T, K]{ //nolint:exhaustruct // prefix set via WithKeyPrefix option
 		backend: backend,
-		codec:   codec.JSONCodec{},
+		codec:   codec.CBORCodec{},
 		keyFunc: func(k K) []byte { return []byte(k.String()) },
 	}
 
@@ -58,7 +58,7 @@ func (s *TypedStore[T, K]) Get(ctx context.Context, id K) (*T, error) {
 
 	var val T
 
-	c, inner := codec.UnwrapDecode(data, s.codec)
+	c, inner := codec.UnwrapDecode(data, codec.JSONCodec{})
 
 	err = c.Decode(inner, &val)
 	if err != nil {
@@ -139,7 +139,7 @@ func (s *TypedStore[T, K]) Scan(ctx context.Context, prefix []byte) ([]*T, error
 	for iter.Next() {
 		var val T
 
-		c, inner := codec.UnwrapDecode(iter.Value(), s.codec)
+		c, inner := codec.UnwrapDecode(iter.Value(), codec.JSONCodec{})
 
 		err = c.Decode(inner, &val)
 		if err != nil {

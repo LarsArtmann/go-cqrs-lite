@@ -27,16 +27,6 @@ func ParseType(s string) (Type, error) {
 	return Type(s), nil
 }
 
-// Deprecated: Use id.AggregateType directly. This alias exists for backward
-// compatibility and will be removed in v4.
-// v4-removal: remove this alias and update all consumers to import id/ directly.
-type AggregateType = id.AggregateType
-
-// Deprecated: Use id.ParseAggregateType directly. This alias exists for
-// backward compatibility and will be removed in v4.
-// v4-removal: remove this alias.
-var ParseAggregateType = id.ParseAggregateType
-
 // Event is the concrete domain-event type: a pointer to [ImmutableEvent].
 //
 // It is a type alias (not an interface) because ImmutableEvent is the single
@@ -58,7 +48,7 @@ type ImmutableEvent struct {
 	id            id.EventID
 	eventType     Type
 	aggregateID   id.AggregateID
-	aggregateType AggregateType
+	aggregateType id.AggregateType
 	version       Version
 	schemaVersion SchemaVersion
 	encoding      codec.Encoding
@@ -84,7 +74,7 @@ func (e *ImmutableEvent) Type() Type { return e.eventType }
 func (e *ImmutableEvent) AggregateID() id.AggregateID { return e.aggregateID }
 
 // AggregateType returns the aggregate type.
-func (e *ImmutableEvent) AggregateType() AggregateType { return e.aggregateType }
+func (e *ImmutableEvent) AggregateType() id.AggregateType { return e.aggregateType }
 
 // Version returns the stream position of this event within the aggregate.
 func (e *ImmutableEvent) Version() Version { return e.version }

@@ -59,20 +59,6 @@ func WithCodec(c codec.Codec) ValidatorOption {
 	}
 }
 
-// WithDecodeFunc overrides the default JSON decode function and the fallback
-// decoder for unknown encodings. This is a low-level escape hatch for callers
-// who need to inject a raw function rather than a full codec.Codec.
-//
-// Deprecated: Use WithCodec(codec.JSONCodec{}) or WithDecoder(codec.EncodingJSON, fn)
-// for type safety. WithDecodeFunc will be removed in v4.
-// v4-removal: remove this function.
-func WithDecodeFunc(decode func([]byte, any) error) ValidatorOption {
-	return func(v *Validator) {
-		v.decode = decode
-		v.decoders[codec.EncodingJSON] = decode
-	}
-}
-
 // WithStrictMode rejects events whose type is not registered with the validator.
 // By default, unregistered event types pass validation (lenient mode).
 func WithStrictMode() ValidatorOption {

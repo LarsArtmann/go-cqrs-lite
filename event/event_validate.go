@@ -11,7 +11,7 @@ import (
 func validateEventParams(
 	eventType Type,
 	aggregateID id.AggregateID,
-	aggregateType AggregateType,
+	aggregateType id.AggregateType,
 	version Version,
 	payload []byte,
 ) error {

@@ -81,6 +81,8 @@ type DeadLetterStore interface {
 }
 
 // MemoryDeadLetterStore is an in-memory DeadLetterStore for development and testing.
+// Entries are lost on restart. For production use, prefer SQLiteDeadLetterStore,
+// which persists entries across restarts.
 type MemoryDeadLetterStore struct {
 	mu      sync.Mutex
 	entries []DeadLetterEntry

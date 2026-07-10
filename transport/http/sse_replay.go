@@ -95,6 +95,7 @@ func replayEvents(
 				replayed,
 				totalBytes,
 				budget,
+				broker.payloadTransform,
 			)
 			totalBytes += written
 			totalReplayed += count
@@ -135,6 +136,7 @@ func replayEvents(
 				replayed,
 				totalBytes,
 				budget,
+				broker.payloadTransform,
 			)
 			totalBytes += written
 			totalReplayed += count
@@ -199,11 +201,17 @@ func writeReplayBatchBounded(
 	events []event.Event,
 	replayed *dedup.Ring,
 	priorBytes, budget int,
+	transform func(event.Event) []byte,
 ) (int, int, bool) {
 	var bytesWritten, eventsWritten int
 
 	for _, evt := range events {
-		data := string(event.PayloadReadOnly(evt))
+		var data string
+		if transform != nil {
+			data = string(transform(evt))
+		} else {
+			data = string(event.PayloadReadOnly(evt))
+		}
 
 		if budget > 0 && priorBytes+bytesWritten+len(data) > budget {
 			return bytesWritten, eventsWritten, true

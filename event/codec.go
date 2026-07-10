@@ -9,29 +9,23 @@ import (
 )
 
 // DefaultCodec is the codec used by [New] when no [WithCodec] option is
-// provided. It defaults to [codec.JSONCodec] for backwards compatibility.
+// provided. It defaults to [codec.CBORCodec] for compact payload encoding.
 //
-// To adopt CBOR for all events created via [New] without passing
-// [WithCodec] on every call, set this once at program startup:
+// Events are self-describing: each event stamps its encoding via
+// [ImmutableEvent.Encoding], so mixed JSON/CBOR streams decode correctly via
+// [DecodePayloadAuto]. Changing this default only affects subsequently created
+// events — existing events retain their stamped encoding.
 //
-//	event.DefaultCodec = codec.CBORCodec{}
+// To revert to JSON for all events created via [New]:
+//
+//	event.DefaultCodec = codec.JSONCodec{}
 //
 // Concurrency contract: set this ONCE at program startup, BEFORE any
 // goroutine creates events. Like [net/http.DefaultClient], it is a plain
 // package-level variable — concurrent reads after startup are safe, but
 // concurrent read+write is a data race. Do not mutate it after events are
 // in flight.
-//
-// This is a package-level default (like [net/http.DefaultClient]): it affects
-// every [New] call in the process that does not override it with [WithCodec].
-// Events created with an explicit [WithCodec] are unaffected. Because the
-// encoding is stamped on each event ([ImmutableEvent.Encoding]), mixed streams
-// of JSON and CBOR events decode correctly via [DecodePayloadAuto], which
-// dispatches based on the per-event encoding stamp.
-//
-// Changing this after events have been created with the old default does NOT
-// alter existing events; it only affects subsequently created ones.
-var DefaultCodec codec.Codec = codec.JSONCodec{}
+var DefaultCodec codec.Codec = codec.CBORCodec{}
 
 // DecodePayloadAuto decodes an event's payload into a typed value using the
 // codec that matches the event's declared encoding ([ImmutableEvent.Encoding]).

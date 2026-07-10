@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v3"
 )
 
@@ -63,14 +64,14 @@ func (s *FakeSnapshotStore) Save(_ context.Context, snap snapshot.Snapshot) erro
 
 func (s *FakeSnapshotStore) Load(
 	_ context.Context,
-	_ event.AggregateRef,
+	_ id.AggregateRef,
 ) (*snapshot.Snapshot, error) {
 	return s.loadSnapshot()
 }
 
 func (s *FakeSnapshotStore) LoadAtVersion(
 	_ context.Context,
-	_ event.AggregateRef,
+	_ id.AggregateRef,
 	_ event.Version,
 ) (*snapshot.Snapshot, error) {
 	return s.loadSnapshot()
@@ -85,7 +86,7 @@ func (s *FakeSnapshotStore) loadSnapshot() (*snapshot.Snapshot, error) {
 
 func (s *FakeSnapshotStore) Delete(
 	_ context.Context,
-	_ event.AggregateRef,
+	_ id.AggregateRef,
 ) error {
 	return nil
 }

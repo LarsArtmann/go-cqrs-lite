@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -434,5 +435,117 @@ func TestSSEHandler_ByteBudget_LargePayload(t *testing.T) {
 			delivered,
 			eventCount-1,
 		)
+	}
+}
+
+// TestSSEHandler_PayloadTransform_Live verifies that WithPayloadTransform
+// is applied to events on the live delivery path — the raw payload does NOT
+// appear on the wire, and the transformed payload does.
+func TestSSEHandler_PayloadTransform_Live(t *testing.T) {
+	t.Parallel()
+
+	bus := eventtest.NewFakeBus()
+	defer bus.Close()
+
+	broker, err := NewSSEBroker(
+		bus,
+		WithPayloadTransform(func(evt event.Event) []byte {
+			return []byte(`{"transformed":true}`)
+		}),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer broker.Close()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events?client=xform-live", nil)
+	rec := httptest.NewRecorder()
+	done := make(chan struct{})
+
+	go func() {
+		defer close(done)
+		SSEHandler(broker).ServeHTTP(rec, req)
+	}()
+
+	time.Sleep(50 * time.Millisecond)
+
+	aggID := id.NewAggregateID()
+	evt, _ := event.NewEvent("user.created", aggID, "User", 1, []byte(`{"raw":"cbor-bytes"}`))
+	_ = bus.Publish(context.Background(), evt)
+
+	time.Sleep(100 * time.Millisecond)
+	cancel()
+	<-done
+
+	body := rec.Body.String()
+
+	if !strings.Contains(body, `{"transformed":true}`) {
+		t.Errorf("transformed payload missing from wire; body: %q", body)
+	}
+
+	if strings.Contains(body, `{"raw":"cbor-bytes"}`) {
+		t.Errorf("raw payload should NOT appear on wire; body: %q", body)
+	}
+}
+
+// TestSSEHandler_PayloadTransform_Replay verifies that WithPayloadTransform
+// is applied to events on the replay path — the same transform applied to
+// live events is also applied to journal-replayed events.
+func TestSSEHandler_PayloadTransform_Replay(t *testing.T) {
+	t.Parallel()
+
+	store := eventtest.NewFakeStore()
+	bus := eventtest.NewFakeBus()
+	defer bus.Close()
+
+	aggID := id.NewAggregateID()
+	ref := id.NewAggregateRef("Test", aggID)
+
+	evt0, _ := event.NewEvent("TestEvent", aggID, "Test", 1, []byte(`{"seq":0}`))
+	evt1, _ := event.NewEvent("TestEvent", aggID, "Test", 2, []byte(`{"seq":1}`))
+
+	if err := store.Save(context.Background(), ref, []event.Event{evt0, evt1}, 0); err != nil {
+		t.Fatalf("save: %v", err)
+	}
+
+	broker, err := NewSSEBroker(
+		bus,
+		WithReconnectJournal(store, 100),
+		WithPayloadTransform(func(evt event.Event) []byte {
+			var data map[string]any
+			_ = json.Unmarshal(evt.Payload(), &data)
+			data["transformed"] = true
+
+			out, _ := json.Marshal(data)
+
+			return out
+		}),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer broker.Close()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events?client=xform-replay", nil)
+	req.Header.Set("Last-Event-ID", evt0.ID().String())
+
+	rec := httptest.NewRecorder()
+	done := make(chan struct{})
+
+	go func() {
+		defer close(done)
+		SSEHandler(broker).ServeHTTP(rec, req)
+	}()
+
+	time.Sleep(200 * time.Millisecond)
+	cancel()
+	<-done
+
+	body := rec.Body.String()
+
+	if !strings.Contains(body, `"transformed":true`) {
+		t.Errorf("replayed event should be transformed; body: %q", body)
 	}
 }

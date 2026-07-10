@@ -216,23 +216,6 @@ func TestValidator_WithCodec_CBOR(t *testing.T) {
 	}
 }
 
-func TestValidator_WithDecodeFunc_BackwardCompat(t *testing.T) {
-	t.Parallel()
-
-	v := NewValidator(WithDecodeFunc(json.Unmarshal))
-	RegisterType[userCreatedPayload](v, "user.created")
-
-	payload, err := json.Marshal(userCreatedPayload{Name: "Alice"})
-	if err != nil {
-		t.Fatalf("Marshal: %v", err)
-	}
-	evt := testEvent(t, "user.created", payload)
-
-	if err := v.Validate(evt); err != nil {
-		t.Fatalf("expected valid payload via WithDecodeFunc to pass, got: %v", err)
-	}
-}
-
 func TestValidator_CBOREncoding_AutoDetected(t *testing.T) {
 	t.Parallel()
 

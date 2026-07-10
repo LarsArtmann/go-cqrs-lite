@@ -42,12 +42,12 @@ type EventIterator interface {
 // their slice-returning methods with NewSliceIterator.
 type StreamingSource interface {
 	// LoadStream is the streaming equivalent of Load.
-	LoadStream(ctx context.Context, ref AggregateRef) (EventIterator, error)
+	LoadStream(ctx context.Context, ref id.AggregateRef) (EventIterator, error)
 
 	// LoadStreamFromVersion is the streaming equivalent of LoadFromVersion.
 	LoadStreamFromVersion(
 		ctx context.Context,
-		ref AggregateRef,
+		ref id.AggregateRef,
 		version Version,
 	) (EventIterator, error)
 }

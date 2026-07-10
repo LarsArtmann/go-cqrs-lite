@@ -10,7 +10,7 @@ import (
 // SaveFunc is the function signature for EventSink.Save implementations.
 type SaveFunc func(
 	ctx context.Context,
-	ref AggregateRef,
+	ref id.AggregateRef,
 	events []Event,
 	expectedVersion Version,
 ) error
@@ -21,7 +21,7 @@ type EventSink interface {
 	// Save appends events with optimistic concurrency check.
 	Save(
 		ctx context.Context,
-		ref AggregateRef,
+		ref id.AggregateRef,
 		events []Event,
 		expectedVersion Version,
 	) error
@@ -30,7 +30,7 @@ type EventSink interface {
 	// For bulk imports, event replay, and migrations.
 	AppendBatch(
 		ctx context.Context,
-		ref AggregateRef,
+		ref id.AggregateRef,
 		events []Event,
 	) error
 }
@@ -41,13 +41,13 @@ type EventSource interface {
 	// Load retrieves all events for an aggregate.
 	Load(
 		ctx context.Context,
-		ref AggregateRef,
+		ref id.AggregateRef,
 	) ([]Event, error)
 
 	// LoadFromVersion retrieves events starting after version (exclusive).
 	LoadFromVersion(
 		ctx context.Context,
-		ref AggregateRef,
+		ref id.AggregateRef,
 		version Version,
 	) ([]Event, error)
 
@@ -55,7 +55,7 @@ type EventSource interface {
 	// Returns ErrAggregateNotFound if no events exist for the aggregate.
 	LoadToVersion(
 		ctx context.Context,
-		ref AggregateRef,
+		ref id.AggregateRef,
 		maxVersion Version,
 	) ([]Event, error)
 
@@ -63,7 +63,7 @@ type EventSource interface {
 	// Returns ErrAggregateNotFound if no events exist for the aggregate.
 	LoadToTimestamp(
 		ctx context.Context,
-		ref AggregateRef,
+		ref id.AggregateRef,
 		maxTime time.Time,
 	) ([]Event, error)
 }
@@ -102,5 +102,5 @@ type SeekableJournal interface {
 // Useful for tail-loading scenarios where only the most recent events are needed.
 type BackwardsSource interface {
 	EventSource
-	LoadBackwards(ctx context.Context, ref AggregateRef) ([]Event, error)
+	LoadBackwards(ctx context.Context, ref id.AggregateRef) ([]Event, error)
 }

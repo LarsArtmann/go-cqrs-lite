@@ -69,3 +69,21 @@ func (r *upcasterRegistry) upcast(evt event.Event) (event.Event, error) {
 
 	return current, nil
 }
+
+func (r *upcasterRegistry) upcastAll(events []event.Event) ([]event.Event, error) {
+	result := make([]event.Event, len(events))
+	for i, evt := range events {
+		upcasted, err := r.upcast(evt)
+		if err != nil {
+			return nil, errorfamily.WrapCorruption(
+				err,
+				"schema.upcast_failed",
+				"upcast event "+evt.ID().String(),
+			)
+		}
+
+		result[i] = upcasted
+	}
+
+	return result, nil
+}

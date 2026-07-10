@@ -197,3 +197,21 @@ func TestSetup_HistogramMetrics(t *testing.T) {
 
 	t.Fatal("cqrs_latency_ms metric not found")
 }
+
+func TestSetup_WithViews(t *testing.T) {
+	t.Parallel()
+
+	reg := promClient.NewRegistry()
+	provider, err := cqrsprom.Setup(
+		cqrsprom.WithRegistry(reg),
+		cqrsprom.WithViews(),
+	)
+	if err != nil {
+		t.Fatalf("Setup: %v", err)
+	}
+	defer func() { _ = provider.Shutdown(context.Background()) }()
+
+	if provider.AsMeterProvider() == nil {
+		t.Fatal("expected non-nil MeterProvider")
+	}
+}

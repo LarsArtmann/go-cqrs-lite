@@ -19,14 +19,10 @@
 package main
 
 import (
-	"go/ast"
-	"go/parser"
-	"go/token"
 	"log"
 	"os"
 	"path/filepath"
 	"regexp"
-	"sort"
 	"strings"
 )
 
@@ -208,160 +204,22 @@ func scanMarkdown(path string) ([]ref, []string, error) {
 
 func isStdlibOrBuiltin(alias string) bool {
 	skip := map[string]bool{
-		// stdlib
 		"fmt": true, "os": true, "time": true, "sync": true,
 		"context": true, "errors": true, "strings": true, "strconv": true,
 		"log": true, "testing": true, "bytes": true, "io": true,
 		"json": true, "database": true, "sql": true, "net": true,
 		"http": true, "reflect": true, "sort": true, "math": true,
 		"filepath": true, "regexp": true, "slog": true, "rand": true,
-		// external packages that share aliases with cqrs-lite packages
-		"otel": true, // go.opentelemetry.io/otel vs our otel/
-		"grpc": true, // google.golang.org/grpc vs our transport/grpc/
-		// cqrs sub-packages imported with custom aliases in docs
-		"pebble":       true, // storage/pebble — docs use cqrspebble or pebble alias
-		"projection":   true, // referenced in SKILL.md but module was never created
-		"turso":        true, // storage/turso — docs use cqrsturso or turso alias
-		"asyncapi":     true, // catalog/asyncapi sub-package
-		"openapi":      true, // catalog/openapi sub-package
+		"otel":         true,
+		"grpc":         true,
+		"pebble":       true,
+		"projection":   true,
+		"turso":        true,
+		"asyncapi":     true,
+		"openapi":      true,
 		"eventcatalog": true,
-		"d2":           true, // catalog/d2 sub-package
+		"d2":           true,
 	}
 
 	return skip[alias]
-}
-
-// buildExportIndex creates a map: package alias → set of exported symbols.
-// It maps import paths to their package directories and parses the .go files
-// to collect exported declarations.
-func buildExportIndex(imports []string, repoRoot string) map[string]map[string]bool {
-	// Deduplicate and sort imports.
-	seen := make(map[string]bool)
-
-	var unique []string
-
-	for _, imp := range imports {
-		if !seen[imp] {
-			seen[imp] = true
-			unique = append(unique, imp)
-		}
-	}
-
-	sort.Strings(unique)
-
-	index := make(map[string]map[string]bool)
-
-	for _, imp := range unique {
-		// Convert import path to directory: strip the module prefix.
-		dir := strings.TrimPrefix(imp, repoImportPrefix)
-
-		// Strip trailing version suffix (e.g. event/v3 → event).
-		// Do NOT strip /v3/ from the middle of the path — for nested modules
-		// like event/v3/eventtest, the /v3/ is part of the physical directory.
-		dir = strings.TrimSuffix(dir, "/v3")
-		if dir == "v3" {
-			dir = "."
-		}
-
-		// Resolve relative to repo root. If the path with /v3/ preserved
-		// doesn't exist, try stripping /v3/ segments (some nested packages
-		// like storage/v3/sql physically live at storage/sql).
-		fullDir := filepath.Join(repoRoot, dir)
-		if _, err := os.Stat(fullDir); os.IsNotExist(err) {
-			stripped := strings.Replace(dir, "/v3/", "/", 1)
-			if stripped != dir {
-				fullDir = filepath.Join(repoRoot, stripped)
-			}
-		}
-
-		// The last path segment is the package name (alias in docs).
-		pkgName := filepath.Base(dir)
-
-		exports := parsePackageExports(fullDir)
-		if len(exports) == 0 {
-			log.Printf("warning: no exports found in %s", dir) //nolint:gosec,lll // G706: CLI tool
-
-			continue
-		}
-
-		if _, ok := index[pkgName]; !ok {
-			index[pkgName] = make(map[string]bool)
-		}
-
-		for sym := range exports {
-			index[pkgName][sym] = true
-		}
-	}
-
-	return index
-}
-
-// parsePackageExports parses all non-test .go files in dir and returns
-// a set of exported symbol names (types, functions, vars, consts).
-func parsePackageExports(dir string) map[string]bool {
-	entries, err := os.ReadDir(dir)
-	if err != nil {
-		log.Printf("warning: cannot read %s: %v", dir, err) //nolint:gosec,lll // G706: CLI tool
-
-		return nil
-	}
-
-	exports := make(map[string]bool)
-
-	fset := token.NewFileSet()
-
-	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
-		}
-
-		if !shouldParseFile(entry.Name()) {
-			continue
-		}
-
-		collectExports(fset, filepath.Join(dir, entry.Name()), exports)
-	}
-
-	return exports
-}
-
-func shouldParseFile(name string) bool {
-	return strings.HasSuffix(name, ".go") && !strings.HasSuffix(name, "_test.go")
-}
-
-func collectExports(fset *token.FileSet, path string, exports map[string]bool) {
-	file, err := parser.ParseFile(fset, path, nil, 0)
-	if err != nil {
-		return // skip unparseable files
-	}
-
-	for _, decl := range file.Decls {
-		switch d := decl.(type) {
-		case *ast.FuncDecl:
-			if d.Name.IsExported() {
-				exports[d.Name.Name] = true
-			}
-
-		case *ast.GenDecl:
-			for _, spec := range d.Specs {
-				collectGenDeclExports(spec, exports)
-			}
-		}
-	}
-}
-
-func collectGenDeclExports(spec ast.Spec, exports map[string]bool) {
-	if vs, ok := spec.(*ast.ValueSpec); ok {
-		for _, name := range vs.Names {
-			if name.IsExported() {
-				exports[name.Name] = true
-			}
-		}
-	}
-
-	if ts, ok := spec.(*ast.TypeSpec); ok {
-		if ts.Name.IsExported() {
-			exports[ts.Name.Name] = true
-		}
-	}
 }

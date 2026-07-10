@@ -239,7 +239,7 @@ func TestMarkTombstone_AllFieldsPreserved(t *testing.T) {
 	}
 
 	if marked.AggregateType() != orig.AggregateType() {
-		t.Error("AggregateType not preserved")
+		t.Error("id.AggregateType not preserved")
 	}
 
 	if marked.Version() != orig.Version() {

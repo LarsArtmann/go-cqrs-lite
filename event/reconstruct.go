@@ -16,7 +16,7 @@ import (
 func ReconstructEventFromFields(
 	eventID id.EventID,
 	eventType Type,
-	aggType AggregateType,
+	aggType id.AggregateType,
 	aggID id.AggregateID,
 	version, schemaVersion int,
 	payload, metadataJSON []byte,

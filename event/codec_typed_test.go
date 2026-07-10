@@ -1,7 +1,6 @@
 package event_test
 
 import (
-	"encoding/json"
 	"errors"
 	"testing"
 
@@ -35,8 +34,12 @@ func TestNew_StructPayload(t *testing.T) {
 		Email string `json:"email"`
 	}
 
-	if err := json.Unmarshal(evt.Payload(), &got); err != nil {
-		t.Fatalf("unmarshal: %v", err)
+	got, err = event.DecodePayloadAuto[struct {
+		Name  string `json:"name"`
+		Email string `json:"email"`
+	}](evt)
+	if err != nil {
+		t.Fatalf("DecodePayloadAuto: %v", err)
 	}
 
 	if got.Name != "Alice" || got.Email != "alice@example.com" {
@@ -44,7 +47,7 @@ func TestNew_StructPayload(t *testing.T) {
 	}
 }
 
-func TestNew_MapPayload(t *testing.T) {
+func TestNew_MapPayload_DefaultCodecCBOR(t *testing.T) {
 	t.Parallel()
 
 	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
@@ -55,9 +58,15 @@ func TestNew_MapPayload(t *testing.T) {
 		t.Fatalf("New() error = %v", err)
 	}
 
-	var got map[string]any
-	if err := json.Unmarshal(evt.Payload(), &got); err != nil {
-		t.Fatalf("unmarshal: %v", err)
+	// DefaultCodec is now CBOR — event should be CBOR-encoded.
+	if evt.Encoding() != "cbor" {
+		t.Fatalf("expected cbor encoding, got %s", evt.Encoding())
+	}
+
+	// DecodePayloadAuto handles the per-event encoding stamp.
+	got, err := event.DecodePayloadAuto[map[string]any](evt)
+	if err != nil {
+		t.Fatalf("DecodePayloadAuto: %v", err)
 	}
 
 	if got["key"] != "value" {

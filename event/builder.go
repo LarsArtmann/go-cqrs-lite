@@ -11,7 +11,7 @@ import (
 type builder struct {
 	eventType     Type
 	aggregateID   id.AggregateID
-	aggregateType AggregateType
+	aggregateType id.AggregateType
 	version       Version
 	payload       []byte
 	opts          []Option
@@ -20,7 +20,7 @@ type builder struct {
 func newBuilder(
 	eventType Type,
 	aggregateID id.AggregateID,
-	aggregateType AggregateType,
+	aggregateType id.AggregateType,
 	version Version,
 ) *builder {
 	return &builder{

@@ -88,7 +88,7 @@ func (s *VersionedStore) loadAndUpcast(
 		return nil, errorfamily.WrapInfrastructure(err, code, msg)
 	}
 
-	return s.upcastAll(events)
+	return s.registry.upcastAll(events)
 }
 
 func (s *VersionedStore) Close() error {
@@ -101,22 +101,4 @@ func (s *VersionedStore) Close() error {
 	}
 
 	return nil
-}
-
-func (s *VersionedStore) upcastAll(events []event.Event) ([]event.Event, error) {
-	result := make([]event.Event, len(events))
-	for i, evt := range events {
-		upcasted, err := s.registry.upcast(evt)
-		if err != nil {
-			return nil, errorfamily.WrapCorruption(
-				err,
-				"schema.upcast_failed",
-				"upcast event "+evt.ID().String(),
-			)
-		}
-
-		result[i] = upcasted
-	}
-
-	return result, nil
 }

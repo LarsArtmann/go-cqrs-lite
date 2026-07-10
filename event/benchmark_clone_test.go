@@ -6,6 +6,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/metadata/v3"
 )
 
 func BenchmarkPayload(b *testing.B) {
@@ -140,7 +141,7 @@ func BenchmarkDecodePayload_clone_vs_direct(b *testing.B) {
 
 func BenchmarkMetadata_access(b *testing.B) {
 	meta := Metadata{
-		Tracing: Tracing{
+		Tracing: metadata.Tracing{
 			CorrelationID: id.NewCorrelationID(),
 			CausationID:   id.NewCausationID(),
 			UserID:        id.NewUserID(),

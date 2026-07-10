@@ -13,7 +13,7 @@ import (
 // aggregateType, and options but have different eventTypes and payloads.
 func NewEvents(
 	aggregateID id.AggregateID,
-	aggregateType AggregateType,
+	aggregateType id.AggregateType,
 	version Version,
 	eventTypes []Type,
 	payloads []any,

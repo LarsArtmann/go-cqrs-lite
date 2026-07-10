@@ -59,6 +59,16 @@ func (s *SQLEventStore) checkClosed() error {
 	return s.CheckClosed(errStoreClosed)
 }
 
+// HealthCheck verifies the database connection is alive via PingContext.
+// Implements the stack.HealthChecker interface for Kubernetes liveness/readiness probes.
+func (s *SQLEventStore) HealthCheck(ctx context.Context) error {
+	if err := s.checkClosed(); err != nil {
+		return err
+	}
+
+	return s.DB.PingContext(ctx)
+}
+
 // Save persists events with optimistic concurrency check.
 func (s *SQLEventStore) Save(
 	ctx context.Context,

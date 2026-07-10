@@ -20,7 +20,7 @@ type TimelineEvent struct {
 
 func MakeTimelineEvents(
 	tb testing.TB,
-	aggType event.AggregateType,
+	aggType id.AggregateType,
 	aggID id.AggregateID,
 	events []TimelineEvent,
 ) []event.Event {
@@ -56,7 +56,7 @@ func NewEventOpts(
 	tb testing.TB,
 	typ event.Type,
 	aggID id.AggregateID,
-	aggType event.AggregateType,
+	aggType id.AggregateType,
 	version event.Version,
 	payload []byte,
 	opts ...event.Option,
@@ -75,7 +75,7 @@ func NewEvent(
 	t *testing.T,
 	eventType event.Type,
 	aggID id.AggregateID,
-	aggType event.AggregateType,
+	aggType id.AggregateType,
 	version event.Version,
 	payload []byte,
 ) event.Event {
@@ -92,7 +92,7 @@ func NewEvent(
 func MakeEvent(
 	eventType event.Type,
 	aggID id.AggregateID,
-	aggType event.AggregateType,
+	aggType id.AggregateType,
 	version event.Version,
 	payload []byte,
 ) (event.Event, error) {
@@ -104,7 +104,7 @@ func MakeEvent(
 func QuickEvent(
 	eventType event.Type,
 	aggID id.AggregateID,
-	aggType event.AggregateType,
+	aggType id.AggregateType,
 	version event.Version,
 	payload []byte,
 ) event.Event {
@@ -116,7 +116,7 @@ func QuickEvent(
 func QuickEventOpts(
 	eventType event.Type,
 	aggID id.AggregateID,
-	aggType event.AggregateType,
+	aggType id.AggregateType,
 	version event.Version,
 	payload []byte,
 	opts ...event.Option,
@@ -145,7 +145,7 @@ func TamperEvent(original event.Event, newPayload []byte) event.Event {
 type AppendBatcher interface {
 	AppendBatch(
 		ctx context.Context,
-		ref event.AggregateRef,
+		ref id.AggregateRef,
 		events []event.Event,
 	) error
 }
@@ -154,7 +154,7 @@ func MakeLoadToTimestampFixtures(
 	tb testing.TB,
 	store AppendBatcher,
 	ctx context.Context,
-	aggType event.AggregateType,
+	aggType id.AggregateType,
 	aggID id.AggregateID,
 	versions [3]event.Version,
 ) (time.Time, id.AggregateID) {
@@ -168,7 +168,7 @@ func MakeLoadToTimestampFixtures(
 		{Type: "Deleted", Version: versions[2], Offset: 0},
 	})
 
-	err := store.AppendBatch(ctx, event.NewAggregateRef(aggType, aggID), events)
+	err := store.AppendBatch(ctx, id.NewAggregateRef(aggType, aggID), events)
 	if err != nil {
 		tb.Fatalf("AppendBatch: %v", err)
 	}
@@ -178,9 +178,9 @@ func MakeLoadToTimestampFixtures(
 
 func MakeThreeTimelineEvents(
 	tb testing.TB,
-	aggType1 event.AggregateType,
+	aggType1 id.AggregateType,
 	aggID1 id.AggregateID,
-	aggType2 event.AggregateType,
+	aggType2 id.AggregateType,
 	aggID2 id.AggregateID,
 ) ([]event.Event, []event.Event, []event.Event) {
 	tb.Helper()
@@ -200,7 +200,7 @@ func MakeThreeTimelineEvents(
 
 func QuickSnapshot(
 	aggID id.AggregateID,
-	aggType event.AggregateType,
+	aggType id.AggregateType,
 	version event.Version,
 	state []byte,
 ) snapshot.Snapshot {

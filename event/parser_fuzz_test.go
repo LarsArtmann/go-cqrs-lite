@@ -54,7 +54,7 @@ func FuzzParseAggregateType(f *testing.F) {
 				t.Errorf("unexpected error: %v", err)
 			}
 			if string(typ) != input {
-				t.Errorf("ParseAggregateType: got %q, want %q", typ, input)
+				t.Errorf("id.ParseAggregateType: got %q, want %q", typ, input)
 			}
 		}
 	})

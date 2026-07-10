@@ -54,7 +54,7 @@ go-cqrs-lite/
 ├── metadata/            # Tracing, CustomData[K] (extracted from event/ — shared metadata types for command/query/event)
 ├── idempotency/         # Dedup store: Store, MemoryStore, KVStore, ErrDuplicate (dedup for at-least-once delivery)
 ├── dispatcher/          # Generic Dispatcher[H, M] with LifecycleMixin
-├── schema/              # Upcaster, VersionedStore, upcasterRegistry (schema evolution); Validator with RegisterType[T]() (ADR-0017)
+├── schema/              # Upcaster, VersionedStore, VersionedSeekableJournal, upcasterRegistry (schema evolution); Validator with RegisterType[T]() (ADR-0017)
 ├── snapshot/            # Snapshot, SnapshotSink/Source/Store, SnapshotStrategy, EveryNEvents
 ├── storage/memory/       # MemoryStore, MemorySnapshotStore, MemoryCheckpointStore, MemoryCommandStore, MemoryQueryStore (in-memory test impls)
 ├── catalog/             # Registry, SchemaFromType[T](), AsyncAPI/D2/EventCatalog/OpenAPI exporters
@@ -70,7 +70,7 @@ go-cqrs-lite/
 │   ├── pebble/          # Embedded KV store (PebbleDB): EventStore, SnapshotStore, CheckpointStore, KVAdapter (kv.Store). CBOR envelope, shared DB
 │   └── turso/           # Turso database connector (embedded Turso Database sync), indexing advisor
 ├── otel/                # Shared OpenTelemetry helpers: Tracer, Meter, Spans, Attributes
-├── prometheus/         # OTel→Prometheus metrics bridge: Setup() MeterProvider + /metrics HTTP handler, WithRegistry()
+├── prometheus/         # OTel→Prometheus metrics bridge: Setup() MeterProvider + /metrics HTTP handler, WithRegistry(), WithViews()
 ├── listing/             # AggregateListing, AggregateStatus, tombstone detection, StatusMiddleware, InMemoryAggregateReader
 ├── watermill/           # Watermill adapter: event AND command bridges — EventBus, CommandBus, PublisherAdapter, SubscriberAdapter, EventPublisher, CommandPublisher, CatchUpSubscriber (replay+live+checkpoint), MessageToEvent/MessageToCommand
 ├── transport/http/       # SSE event delivery: SSEBroker, SSEHandler (bridges event.Bus to HTTP clients, ADR-0025)
@@ -223,7 +223,13 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //           newPayload, event.WithSchemaVersion(2))
 //   })
 //   versioned := schema.NewVersionedStore(store, upcaster)
-//   events, _ := versioned.Load(ctx, event.NewAggregateRef("User", aggregateID))
+//
+//   // VersionedSeekableJournal — upcasters for projectionhost (ADR-feedback-gap1)
+//   // VersionedStore implements EventSource, but projectionhost.New() takes
+//   // SeekableJournal. VersionedSeekableJournal bridges this gap.
+//   vjournal, _ := schema.NewVersionedSeekableJournal(store, upcaster)
+//   host, _ := projectionhost.New(vjournal, cpStore)
+//   events, _ := versioned.Load(ctx, id.NewAggregateRef("User", aggregateID))
 
 // Event signing (tamper-proof streams)
 //   signer, _ := signing.NewHMAC(secret)
@@ -254,6 +260,17 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   bus.UsePublish(bundle.Publish()...)
 //   qryDisp.Use(bundle.Query()...)
 //   // Tracing-only: pass nil meter + middleware.WithMetricsDisabled()
+//
+//   // otel.Setup + prometheus.Setup composition (tracing + Prometheus metrics):
+//   // Call otel.Setup for tracing, then override the meter provider with
+//   // prometheus.Setup, passing CQRS views so histogram boundaries are applied.
+//   tracingProvider, _ := cqrsotel.Setup(cqrsotel.WithService("app", "1.0", "i1"))
+//   defer tracingProvider.Shutdown(ctx)
+//   metricsProvider, _ := cqrsprometheus.Setup(
+//       cqrsprometheus.WithViews(cqrsotel.NewCQRSViews()...),
+//   )
+//   defer metricsProvider.Shutdown(ctx)
+//   otel.SetMeterProvider(metricsProvider.AsMeterProvider())
 
 // OpenTelemetry tracing (opt-in, no-op when no provider configured)
 //   tracer := otel.GetTracerProvider().Tracer("my-app")
@@ -309,7 +326,7 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   store, _ := stack.ReadModel[Todo, TodoID](bundle, nil) // nil → uses CBOR
 //   mat, _ := stack.NewMaterialize[Todo, TodoID](bundle, nil, keyFunc)   // nil → uses CBOR
 //
-// ⚠️ CODEC DEFAULT ASYMMETRY (read this if you're debugging encoding issues):
+// ⚠️ CODEC DEFAULTS (read this if you're debugging encoding issues):
 //   The default codec differs by layer:
 //
 //   LAYER                     | DEFAULT CODEC     | HOW TO OVERRIDE
@@ -317,15 +334,17 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   stack.ReadModel/Materialize| CBORCodec         | stack.WithDefaultCodec(json)
 //   event.New()               | JSONCodec         | event.DefaultCodec = codec.CBORCodec{}
 //                             |                   |   or event.WithCodec(c) per-event
-//   kv.NewTypedStore()        | JSONCodec         | kv.WithTypedCodec(c)
-//   snapshot.NewTypedStore()  | JSONCodec         | positional arg: NewTypedStore(store, c)
-//   command typed store       | JSONCodec         | positional arg: NewTypedCommandStore(store, c)
-//   query typed store         | JSONCodec         | positional arg: NewTypedQueryStore(store, c)
+//   kv.NewTypedStore()        | CBORCodec (v4)    | kv.WithTypedCodec(c)
+//   snapshot.NewTypedStore()  | CBORCodec (v4)    | positional arg: NewTypedStore(store, c)
+//   command typed store       | CBORCodec (v4)    | positional arg: NewTypedCommandStore(store, c)
+//   query typed store         | CBORCodec (v4)    | positional arg: NewTypedQueryStore(store, c)
 //
 //   Events are SELF-DESCRIBING: evt.Encoding() is stamped on every event,
 //   so mixed JSON+CBOR event streams decode correctly via DecodePayloadAuto.
-//   Blind stores (kv/snapshot/command/query) have NO encoding stamp —
-//   changing the default would silently break existing data. v4 flips these.
+//   Blind stores (kv/snapshot/command/query) are now self-describing too via
+//   the ADR-0044 envelope: WrapEncode/UnwrapDecode stamp the codec on write and
+//   auto-detect it on read. The UnwrapDecode fallback uses JSONCodec for
+//   backward compat with pre-envelope data.
 //
 //   One-call CBOR for both events AND read models:
 //   bundle, _ := sqlite.New(dsn, stack.WithEventCodec(codec.CBORCodec{}))
@@ -663,6 +682,17 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //       http.WithReplayByteBudget(8*1024*1024))           // 8MB default
 //   // WithReplayByteBudget(0) also defaults to 8MB (safety).
 //   // http.SSEReplayBudgetDisabled = -1 to explicitly disable budgeting.
+//
+//   // Payload transform for non-JSON codecs (CBOR→JSON for browsers):
+//   broker, _ := http.NewSSEBroker(bus,
+//       http.WithPayloadTransform(func(evt event.Event) []byte {
+//           p, err := event.DecodePayloadAuto[YourPayload](evt)
+//           if err != nil { return event.PayloadReadOnly(evt) }
+//           jsonBytes, _ := json.Marshal(p)
+//           return jsonBytes
+//       }))
+//   // Without this, CBOR-encoded events go out as raw CBOR bytes that browsers
+//   // cannot parse. Applied uniformly across live + replay paths.
 
 // Managed projection host — the "last loop every consumer rewrites" (projectionhost)
 //   host, _ := projectionhost.New(journal, checkpointStore,
@@ -687,6 +717,11 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   // OTel tracing: automatic spans (projectionhost.handle_event) when provider configured
 //   // Reads directly from event.SeekableJournal — no Watermill dependency.
 //   // For live push delivery, pair with watermill/CatchUpSubscriber.
+//
+//   // SQLite dead-letter store (persists poison events across restarts):
+//   dlqStore, _ := projectionhost.NewSQLiteDeadLetterStore(db)
+//   host, _ := projectionhost.New(journal, cpStore,
+//       projectionhost.WithDeadLetterStore(dlqStore, 3))
 
 // Scenario-testing DSL — fluent Given/When/Then for deciders + projections (scenario)
 //   scenario.Given[incrementCmd, counterState](t, foldCounter, counterState{},
@@ -707,6 +742,23 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   })  // idempotent: re-scheduling the same ID is a no-op
 //   _ = store.Cancel(ctx, "order-123-timeout") // order paid → cancel timeout
 //   go sched.Start(ctx) // polls Due(), dispatches, MarkFired(); retries failed dispatches
+
+// Health checks — Kubernetes liveness/readiness probes (stack.Bundle)
+//   bundle, _ := sqlite.New(dsn)
+//   if err := bundle.HealthCheck(ctx); err != nil {
+//       // database unreachable or a registered resource is unhealthy
+//   }
+//   // SQLEventStore implements stack.HealthChecker via db.PingContext.
+//   // Bundle.HealthCheck pings the DB + calls HealthCheck on every registered
+//   // closer that implements the interface.
+
+// Shutdown ordering — declare close-time dependencies (stack.Bundle)
+//   bundle, _ := sqlite.New(dsn,
+//       stack.WithShutdownDependency("eventstore", "projectionhost"),
+//   )
+//   defer bundle.Close() // topological sort: eventstore closes AFTER projectionhost
+//   // Cycles fall back to registration order. Use for stores that projections
+//   // read from — projections must drain before the event store closes.
 ```
 
 ## Testing

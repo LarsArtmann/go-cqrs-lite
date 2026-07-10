@@ -84,11 +84,11 @@ func TestParseAggregateType(t *testing.T) {
 
 	got, err := id.ParseAggregateType("User")
 	if err != nil {
-		t.Fatalf("ParseAggregateType: %v", err)
+		t.Fatalf("id.ParseAggregateType: %v", err)
 	}
 
 	if got != "User" {
-		t.Errorf("ParseAggregateType = %q, want %q", got, "User")
+		t.Errorf("id.ParseAggregateType = %q, want %q", got, "User")
 	}
 
 	if got.IsZero() {

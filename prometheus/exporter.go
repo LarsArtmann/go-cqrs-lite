@@ -18,6 +18,7 @@ type Option func(*config)
 type config struct {
 	registry    prometheus.Registerer
 	handlerOpts promhttp.HandlerOpts
+	views       []metric.View
 }
 
 // WithRegistry uses a custom Prometheus registry instead of the default.
@@ -32,6 +33,16 @@ func WithRegistry(r prometheus.Registerer) Option {
 func WithHandlerOptions(opts promhttp.HandlerOpts) Option {
 	return func(c *config) {
 		c.handlerOpts = opts
+	}
+}
+
+// WithViews applies custom metric views to the meter provider. Use this to
+// pass cqrsotel.NewCQRSViews() when composing otel.Setup (for tracing) with
+// prometheus.Setup (for metrics) so the CQRS histogram boundaries are applied
+// to the Prometheus exporter.
+func WithViews(views ...metric.View) Option {
+	return func(c *config) {
+		c.views = append(c.views, views...)
 	}
 }
 
@@ -74,6 +85,18 @@ func (p *Provider) Shutdown(ctx context.Context) error {
 //
 //	otel.SetMeterProvider(provider.AsMeterProvider())
 //	mux.Handle("/metrics", provider.Handler())
+//
+// When composing with otel.Setup for tracing, pass CQRS views so histogram
+// boundaries are applied to the Prometheus exporter:
+//
+//	tracingProvider, _ := cqrsotel.Setup(cqrsotel.WithService("app", "1.0", "i1"))
+//	defer tracingProvider.Shutdown(ctx)
+//
+//	metricsProvider, _ := cqrsprom.Setup(
+//	    cqrsprom.WithViews(cqrsotel.NewCQRSViews()...),
+//	)
+//	defer metricsProvider.Shutdown(ctx)
+//	otel.SetMeterProvider(metricsProvider.AsMeterProvider())
 func Setup(opts ...Option) (*Provider, error) {
 	cfg := &config{} //nolint:exhaustruct // options applied below
 
@@ -92,7 +115,12 @@ func Setup(opts ...Option) (*Provider, error) {
 		return nil, fmt.Errorf("create prometheus exporter: %w", err)
 	}
 
-	meterProvider := metric.NewMeterProvider(metric.WithReader(exporter))
+	meterOpts := []metric.Option{metric.WithReader(exporter)}
+	if len(cfg.views) > 0 {
+		meterOpts = append(meterOpts, metric.WithView(cfg.views...))
+	}
+
+	meterProvider := metric.NewMeterProvider(meterOpts...)
 
 	gatherer, ok := cfg.registry.(prometheus.Gatherer)
 	if !ok {

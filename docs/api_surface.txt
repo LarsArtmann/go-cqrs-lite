@@ -305,6 +305,8 @@ codec/func Size
 codec/func UnmarshalCOSEEncrypt0
 codec/func UnmarshalCOSEProtectedHeader
 codec/func UnmarshalCOSESign1
+codec/func UnwrapDecode
+codec/func WrapEncode
 codec/interface BufferEncoder
 codec/interface Codec
 codec/method Decode
@@ -616,7 +618,6 @@ event/func IsReplay
 event/func MarkRebirth
 event/func MarkTombstone
 event/func MarshalMetadataJSON
-event/func MergeCustomMaps
 event/func New
 event/func NewArenaBatchBuilder
 event/func NewEvent
@@ -743,11 +744,8 @@ event/struct ImmutableEvent
 event/struct Metadata
 event/struct SliceIterator
 event/struct TombstoneMark
-event/type AggregateRef
-event/type AggregateType
 event/type Clock
 event/type ContextEnricher
-event/type CustomData
 event/type Error
 event/type Event
 event/type Family
@@ -763,7 +761,6 @@ event/type SaveFunc
 event/type SchemaVersion
 event/type Source
 event/type TombstoneStatus
-event/type Tracing
 event/type Type
 event/type UserAgent
 event/type Version
@@ -783,8 +780,6 @@ event/var ErrStoreClosed
 event/var ErrVersionConflict
 event/var ErrVersionNotPositive
 event/var ErrVersionUnderflow
-event/var NewAggregateRef
-event/var ParseAggregateType
 graph/func NewGraphProjection
 graph/func NewMemoryDriver
 graph/func WithDriverSchema
@@ -1382,7 +1377,6 @@ schema/func NewVersionedStore
 schema/func RegisterType
 schema/func RegisterTypeWithValidator
 schema/func WithCodec
-schema/func WithDecodeFunc
 schema/func WithDecoder
 schema/func WithStrictMode
 schema/interface Upcaster
@@ -1510,9 +1504,11 @@ stack/func WithQuerySource
 stack/func WithQueryStore
 stack/func WithReadModels
 stack/func WithSeekableJournal
+stack/func WithShutdownDependency
 stack/func WithSnapshotStore
 stack/func WithSubscriber
 stack/interface Drainer
+stack/interface HealthChecker
 stack/memory/func New
 stack/method CatchUpSubscriber
 stack/method Close
@@ -1529,6 +1525,7 @@ stack/method EventTypes
 stack/method GracefulClose
 stack/method Handle
 stack/method HandlerFunc
+stack/method HealthCheck
 stack/method List
 stack/method Name
 stack/method RunProjections
@@ -1731,6 +1728,7 @@ storage/method EventTypes
 storage/method Get
 storage/method Handle
 storage/method Has
+storage/method HealthCheck
 storage/method KVStore
 storage/method Key
 storage/method List

@@ -15,11 +15,11 @@ type FakeStore struct {
 	mu                sync.RWMutex
 	events            map[string][]event.Event
 	saveFn            event.SaveFunc
-	loadFn            func(ref event.AggregateRef) ([]event.Event, error)
-	loadFromVersionFn func(ref event.AggregateRef, version event.Version) ([]event.Event, error)
-	loadToVersionFn   func(ref event.AggregateRef, maxVersion event.Version) ([]event.Event, error)
-	loadToTimestampFn func(ref event.AggregateRef, maxTime time.Time) ([]event.Event, error)
-	appendBatchFn     func(ref event.AggregateRef, events []event.Event) error
+	loadFn            func(ref id.AggregateRef) ([]event.Event, error)
+	loadFromVersionFn func(ref id.AggregateRef, version event.Version) ([]event.Event, error)
+	loadToVersionFn   func(ref id.AggregateRef, maxVersion event.Version) ([]event.Event, error)
+	loadToTimestampFn func(ref id.AggregateRef, maxTime time.Time) ([]event.Event, error)
+	appendBatchFn     func(ref id.AggregateRef, events []event.Event) error
 	closeFn           func() error
 	readAllFn         func() ([]event.Event, error)
 	readFromFn        func(afterEventID id.EventID, limit int) ([]event.Event, error)
@@ -38,7 +38,7 @@ func getOverride[T any](s *FakeStore, fn *T) T {
 
 func (s *FakeStore) Save(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {
@@ -57,7 +57,7 @@ func (s *FakeStore) Save(
 
 func (s *FakeStore) AppendBatch(
 	_ context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	events []event.Event,
 ) error {
 	if fn := getOverride(s, &s.appendBatchFn); fn != nil {
@@ -75,7 +75,7 @@ func (s *FakeStore) AppendBatch(
 
 func (s *FakeStore) Load(
 	_ context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 ) ([]event.Event, error) {
 	if fn := getOverride(s, &s.loadFn); fn != nil {
 		return fn(ref)
@@ -90,7 +90,7 @@ func (s *FakeStore) Load(
 }
 
 func (s *FakeStore) loadEventsHelper(
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 ) []event.Event {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -102,7 +102,7 @@ func (s *FakeStore) loadEventsHelper(
 
 func (s *FakeStore) LoadFromVersion(
 	_ context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	version event.Version,
 ) ([]event.Event, error) {
 	if fn := getOverride(s, &s.loadFromVersionFn); fn != nil {
@@ -119,7 +119,7 @@ func (s *FakeStore) LoadFromVersion(
 
 func (s *FakeStore) LoadToVersion(
 	_ context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	maxVersion event.Version,
 ) ([]event.Event, error) {
 	if fn := getOverride(s, &s.loadToVersionFn); fn != nil {
@@ -131,7 +131,7 @@ func (s *FakeStore) LoadToVersion(
 
 func (s *FakeStore) LoadToTimestamp(
 	_ context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	maxTime time.Time,
 ) ([]event.Event, error) {
 	if fn := getOverride(s, &s.loadToTimestampFn); fn != nil {
@@ -208,7 +208,7 @@ func (s *FakeStore) SaveFn(fn event.SaveFunc) *FakeStore {
 }
 
 func (s *FakeStore) LoadFn(
-	fn func(ref event.AggregateRef) ([]event.Event, error),
+	fn func(ref id.AggregateRef) ([]event.Event, error),
 ) *FakeStore {
 	s.loadFn = fn
 
@@ -216,7 +216,7 @@ func (s *FakeStore) LoadFn(
 }
 
 func (s *FakeStore) LoadFromVersionFn(
-	fn func(ref event.AggregateRef, version event.Version) ([]event.Event, error),
+	fn func(ref id.AggregateRef, version event.Version) ([]event.Event, error),
 ) *FakeStore {
 	s.loadFromVersionFn = fn
 
@@ -224,7 +224,7 @@ func (s *FakeStore) LoadFromVersionFn(
 }
 
 func (s *FakeStore) LoadToVersionFn(
-	fn func(ref event.AggregateRef, maxVersion event.Version) ([]event.Event, error),
+	fn func(ref id.AggregateRef, maxVersion event.Version) ([]event.Event, error),
 ) *FakeStore {
 	s.loadToVersionFn = fn
 
@@ -232,7 +232,7 @@ func (s *FakeStore) LoadToVersionFn(
 }
 
 func (s *FakeStore) LoadToTimestampFn(
-	fn func(ref event.AggregateRef, maxTime time.Time) ([]event.Event, error),
+	fn func(ref id.AggregateRef, maxTime time.Time) ([]event.Event, error),
 ) *FakeStore {
 	s.loadToTimestampFn = fn
 
@@ -246,7 +246,7 @@ func (s *FakeStore) CloseFn(fn func() error) *FakeStore {
 }
 
 func (s *FakeStore) AppendBatchFn(
-	fn func(ref event.AggregateRef, events []event.Event) error,
+	fn func(ref id.AggregateRef, events []event.Event) error,
 ) *FakeStore {
 	s.appendBatchFn = fn
 
@@ -255,8 +255,8 @@ func (s *FakeStore) AppendBatchFn(
 
 func VersionQueryFn(
 	called *bool,
-) func(event.AggregateRef, event.Version) ([]event.Event, error) {
-	return func(_ event.AggregateRef, _ event.Version) ([]event.Event, error) {
+) func(id.AggregateRef, event.Version) ([]event.Event, error) {
+	return func(_ id.AggregateRef, _ event.Version) ([]event.Event, error) {
 		*called = true
 
 		return nil, nil

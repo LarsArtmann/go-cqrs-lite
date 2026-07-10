@@ -29,14 +29,26 @@ type SSEBroker struct {
 	clients          map[SSEClientID]chan event.Event
 	handler          event.Handler
 	cancel           context.CancelFunc
-	journal          event.SeekableJournal // optional: for Last-Event-ID replay
-	replayLimit      int                   // <=0 = unlimited (batch streaming); >0 = bounded
-	replayTimeout    time.Duration         // <=0 = no limit; >0 = max replay duration
-	replayMetrics    *ReplayMetrics        // optional: OTel instruments for replay
-	replayByteBudget int                   // 0 = auto-default (8MB for unlimited replay); -1 = explicitly disabled; >0 = explicit budget
-	dedupRingCap     int                   // <=0 = default (sseDedupRingCapacity)
-	retryInterval    time.Duration         // <=0 = default (DefaultSSERetryInterval)
-	eventFilter      func(event.Type) bool // nil = forward all events
+	journal          event.SeekableJournal    // optional: for Last-Event-ID replay
+	replayLimit      int                      // <=0 = unlimited (batch streaming); >0 = bounded
+	replayTimeout    time.Duration            // <=0 = no limit; >0 = max replay duration
+	replayMetrics    *ReplayMetrics           // optional: OTel instruments for replay
+	replayByteBudget int                      // 0 = auto-default (8MB for unlimited replay); -1 = explicitly disabled; >0 = explicit budget
+	dedupRingCap     int                      // <=0 = default (sseDedupRingCapacity)
+	retryInterval    time.Duration            // <=0 = default (DefaultSSERetryInterval)
+	eventFilter      func(event.Type) bool    // nil = forward all events
+	payloadTransform func(event.Event) []byte // nil = raw payload (backward compatible)
+}
+
+// payloadForWire returns the bytes to send to SSE clients. If a payload
+// transform is configured, it is applied; otherwise the raw event payload
+// bytes are returned (backward compatible).
+func (b *SSEBroker) payloadForWire(evt event.Event) []byte {
+	if b.payloadTransform != nil {
+		return b.payloadTransform(evt)
+	}
+
+	return event.PayloadReadOnly(evt)
 }
 
 // NewSSEBroker creates a new SSE broker that subscribes to the given bus.
@@ -229,7 +241,7 @@ func SSEHandler(broker *SSEBroker) http.Handler {
 				_ = WriteSSEEvent(w, SSEEvent{
 					Event: string(evt.Type()),
 					ID:    NewSSEEventID(evt.ID().String()),
-					Data:  string(event.PayloadReadOnly(evt)),
+					Data:  string(broker.payloadForWire(evt)),
 				})
 
 				flusher.Flush()
