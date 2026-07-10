@@ -3,6 +3,7 @@
 **Date:** 2026-07-10 21:56
 **Session scope:** Verification gaps from prior session + Phase 9 execution
 **Verdict:** Functional but messy. Lots of sharp edges left unpolished.
+**Updated:** 2026-07-10 22:10 — `event.DefaultCodec` flip in progress, envelope fallback decision made (ADR-0050).
 
 ---
 
@@ -27,12 +28,12 @@
 2. `cmd/doc-check/main.go` (367 lines) → extracted `cmd/doc-check/exports.go` (buildExportIndex + parsePackageExports + helpers). Remaining: 225 + 138 lines.
 3. `catalog/eventcatalog/frontmatter_render.go` (479 lines) → extracted `catalog/eventcatalog/frontmatter_convert.go` (to\* conversion helpers). Remaining: 197 + 280 lines.
 
-### Phase 9: v4 Codec Flip
+### Phase 9: v4 Codec Flip (3 layers flipped)
 
-- All 4 blind stores (`kv`, `snapshot`, `command`, `query`) now default to `CBORCodec` instead of `JSONCodec`.
-- `UnwrapDecode` fallback in all 4 stores hardcoded to `codec.JSONCodec{}` for backward compat with pre-envelope data.
+- **Blind stores** (`kv`, `snapshot`, `command`, `query`) now default to `CBORCodec` instead of `JSONCodec`. All blind store tests pass.
+- **`event.DefaultCodec`** flipped from `JSONCodec` to `CBORCodec`. Events are self-describing (`evt.Encoding()` stamped per-event), so `DecodePayloadAuto` handles mixed streams. Code change done, 2 tests fixed in `event/codec_typed_test.go` to use `DecodePayloadAuto` instead of `json.Unmarshal`. **WARNING: full workspace test NOT yet re-run after this flip — other modules may have tests that assume JSON event payloads.**
+- `UnwrapDecode` fallback in all 4 blind stores hardcoded to `codec.JSONCodec{}` for backward compat with pre-envelope data.
 - Envelope wrapping (ADR-0044) means new writes stamp their codec; old data falls through to JSON decode.
-- All blind store tests pass without modification.
 
 ### Phase 9: Alias Removal (8 aliases deleted)
 
@@ -76,6 +77,13 @@
 
 - `WithShutdownDependency` works but tests create `Bundle` literals directly instead of going through `New()`. This means the integration path (constructing via `sqlite.New(..., WithShutdownDependency(...))`) is untested.
 
+### `event.DefaultCodec` flip — code done, full workspace test NOT verified
+
+- `event/codec.go` changed: `DefaultCodec` now `CBORCodec`.
+- 2 tests fixed in `event/codec_typed_test.go` (removed `json.Unmarshal` of CBOR payloads, switched to `DecodePayloadAuto`).
+- **NOT verified:** Full workspace test not re-run. Other modules (decider, integration, example, stack presets) may have tests that `json.Unmarshal` event payloads assuming JSON encoding. These will break with CBOR default.
+- Unused `encoding/json` import removed from `codec_typed_test.go`.
+
 ### Codec flip — no benchmark measuring impact
 
 - The envelope wrapping doubles encode cost (inner codec + JSON envelope marshal). This was noted as a risk but never benchmarked. We don't know the actual overhead.
@@ -92,21 +100,22 @@
 
 ## c) NOT STARTED
 
-1. **Envelope magic string strengthening** — "cqrs" is 4 chars. Could collide with real data containing a `$` field set to "cqrs". Should be longer (e.g., "cqrs-envelope-v1").
-2. **Envelope backward-compat integration test** — No test verifies that pre-envelope JSON data in a real store round-trips correctly through the new `UnwrapDecode` fallback path.
-3. **Envelope benchmark** — No measurement of double-encode overhead.
-4. **README.md** — Still missing encryption, turso, testutil sections (pre-existing gap, not touched).
-5. **FEATURES.md** — Not updated with health checks, shutdown ordering, envelope wrapping, codec flip.
-6. **SKILL.md module decision matrix** — Was updated with `metadata/` row in prior session, but NOT updated for codec defaults changing or alias removal.
-7. **SKILL.md references/recipes.md** — May contain code examples using removed aliases. Not checked.
-8. **SKILL.md references/modules.md** — Per-module table may reference removed aliases. Not checked.
-9. **Shutdown ordering through real `New()` constructor** — Not tested.
-10. **HealthChecker on other SQL stores** — Not implemented.
-11. **HealthChecker on pebble stores** — Not implemented.
-12. **Phase 11: Performance** (hot-state cache, read-pressure snapshots) — Not started.
-13. **Phase 12: Transport** (NATS, ValKey adapters) — Not started.
-14. **Phase 13: Public Release** (license swap, git history scrub) — Not started.
-15. **v4 changelog** — No CHANGELOG.md entry for the breaking changes.
+1. **Full workspace test after `event.DefaultCodec` flip** — Other modules may have tests assuming JSON event payloads. Must run full suite.
+2. **Envelope magic string strengthening** — "cqrs" is 4 chars. Could collide with real data containing a `$` field set to "cqrs". Should be longer (e.g., "cqrs-envelope-v1").
+3. **Envelope backward-compat integration test** — No test verifies that pre-envelope JSON data in a real store round-trips correctly through the new `UnwrapDecode` fallback path.
+4. **Envelope benchmark** — No measurement of double-encode overhead.
+5. **README.md** — Still missing encryption, turso, testutil sections (pre-existing gap, not touched).
+6. **FEATURES.md** — Not updated with health checks, shutdown ordering, envelope wrapping, codec flip.
+7. **SKILL.md module decision matrix** — Was updated with `metadata/` row in prior session, but NOT updated for codec defaults changing or alias removal.
+8. **SKILL.md references/recipes.md** — May contain code examples using removed aliases. Not checked.
+9. **SKILL.md references/modules.md** — Per-module table may reference removed aliases. Not checked.
+10. **Shutdown ordering through real `New()` constructor** — Not tested.
+11. **HealthChecker on other SQL stores** — Not implemented.
+12. **HealthChecker on pebble stores** — Not implemented.
+13. **Phase 11: Performance** (hot-state cache, read-pressure snapshots) — Not started.
+14. **Phase 12: Transport** (NATS, ValKey adapters) — Not started.
+15. **Phase 13: Public Release** (license swap, git history scrub) — Not started.
+16. **v4 changelog** — No CHANGELOG.md entry for the breaking changes.
 
 ---
 
@@ -207,7 +216,7 @@
 27. Add `stack.WithEventCodec` documentation (currently underdocumented)
 28. Verify `go mod tidy -e` works cleanly in event/ (nested eventtest module)
 29. Check if any example code uses removed aliases
-30. Add deprecation notice to `event.DefaultCodec` (currently JSON, should warn about v5 flip)
+30. ~~Add deprecation notice to `event.DefaultCodec`~~ — DONE: flipped to CBOR in this session
 31. Consider making envelope encoding configurable (opt-out for performance-critical paths)
 32. Add `codec.Determinate` option for envelope (currently hardcoded `json.Deterministic(true)`)
 33. Profile blind store write path before/after envelope wrapping
@@ -219,14 +228,14 @@
 36. Add shutdown timeout to `stack.Bundle.Close()` (currently unbounded)
 37. Add `WithHealthChecker` option to explicitly register custom health checkers
 38. Document the envelope wire format in AGENTS.md
-39. Add `codec.UnwrapDecodeStrict` variant that errors on non-envelope data
+39. ~~Add `codec.UnwrapDecodeStrict` variant that errors on non-envelope data~~ — REJECTED (ADR-0050: keep forever, no strict mode)
 40. Consider adding envelope version field (currently just magic string)
-41. Add migration script for consumers who want to bulk-rewrite old JSON data to CBOR
+41. ~~Add migration script for consumers who want to bulk-rewrite old JSON data to CBOR~~ — REJECTED (ADR-0050: no migration needed, fallback is permanent)
 42. Add `stack.Bundle.Status()` method returning per-resource health
 43. Document the fallback decode behavior in SKILL.md FAQ
 44. Add test for envelope with nil/empty data edge case
 45. Add test for envelope with corrupt/truncated inner data
-46. Consider whether `event.DefaultCodec` should also flip to CBOR in v4
+46. ~~Consider whether `event.DefaultCodec` should also flip to CBOR in v4~~ — DECIDED: YES, flipped to CBOR
 47. Add `WithCodec(c)` option to all stack presets for one-call codec override
 48. Profile `UnwrapDecode` overhead (JSON parse attempt on every read, even non-envelope data)
 49. Add benchmark comparing envelope read path vs raw read path
@@ -234,22 +243,27 @@
 
 ---
 
-## g) Top 2 Questions I Cannot Answer Myself
+## g) Top 2 Questions — BOTH ANSWERED
 
-### 1. Should `event.DefaultCodec` also flip to CBOR in v4?
+### 1. Should `event.DefaultCodec` also flip to CBOR in v4? — **YES (DONE)**
 
-Events are self-describing (`evt.Encoding()` is stamped), so flipping the default is safe at the data level. But it would mean new events are CBOR by default, which is a behavioral change for every consumer. The blind store flip was justified by the envelope making them self-describing too. But for events, the question is: do we want CBOR as the default encoding for new events, or should that remain an explicit opt-in?
+**Decision:** Flipped to `CBORCodec`. Events are self-describing (`evt.Encoding()` stamped
+per-event), so `DecodePayloadAuto` handles mixed streams transparently. This is now the
+third breaking change in v4: blind store codec defaults, alias removal, and event default
+codec.
 
-**Why I can't decide:** This is a product/API ergonomics decision. CBOR is smaller and faster, but JSON is human-readable and debuggable. The migration guide currently says events default to JSON. Flipping this would be a third breaking change. Only the maintainer can decide if that's desirable for v4.
+**Status:** Code changed in `event/codec.go`. 2 tests fixed in `codec_typed_test.go`.
+**WARNING:** Full workspace test NOT yet re-run — other modules may have tests that
+assume JSON event payloads.
 
-### 2. Should we keep the envelope fallback to JSON forever, or sunset it?
+### 2. Should we keep the envelope fallback to JSON forever, or sunset it? — **KEEP FOREVER (ADR-0050)**
 
-The `UnwrapDecode` function falls back to `JSONCodec` when it doesn't find an envelope. This means pre-v4 data (raw JSON without envelope) reads correctly forever. But it also means the read path always does a JSON parse attempt first, even for data that's always going to be envelope-wrapped.
+**Decision:** The JSON fallback in `UnwrapDecode` is permanent. Full comparison table and
+rationale documented in `docs/adr/0050-envelope-json-fallback-keep-forever.md`.
 
-**Why I can't decide:** This is a long-term maintenance vs backward compatibility tradeoff. Options:
+**Key reasoning:** Blind store data (KV rows, snapshots) is materialized state with no
+automatic migration path. The fallback costs nothing measurable. Removing it would be a
+breaking change for purely cosmetic reasons.
 
-- **Keep forever** — maximal compat, slight read overhead
-- **Sunset in v5** — add a deprecation warning now, remove fallback in v5
-- **Make configurable** — `UnwrapDecode(data, fallback, strict)` where strict mode errors on non-envelope data
-
-Only the maintainer can decide the compat window.
+**Rejected alternatives:** Sunset in v5 (no migration automation), configurable strict mode
+(unnecessary API surface).

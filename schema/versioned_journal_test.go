@@ -2,7 +2,6 @@ package schema_test
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
@@ -201,6 +200,3 @@ func TestVersionedSeekableJournal_NilUpcasters(t *testing.T) {
 
 // Compile-time: VersionedSeekableJournal implements event.SeekableJournal.
 var _ event.SeekableJournal = (*schema.VersionedSeekableJournal)(nil)
-
-// Ensure errors import is used (shared test helpers reference it).
-var _ = errors.New

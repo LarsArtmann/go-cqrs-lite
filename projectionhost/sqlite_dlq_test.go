@@ -3,7 +3,6 @@ package projectionhost_test
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"testing"
 	"time"
 
@@ -326,5 +325,3 @@ func TestSQLiteDeadLetterStore_PreservesEventFields(t *testing.T) {
 		t.Errorf("AggregateType = %q", got.Event.AggregateType())
 	}
 }
-
-var _ = errors.New
