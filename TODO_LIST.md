@@ -67,7 +67,7 @@
 ### Public Release Readiness
 
 - [ ] **License swap (PROPRIETARY → Apache-2.0)** — Hard blocker for public adoption.
-- [ ] **Git history scrub for internal docs** — AGENTS.md, docs/planning/*, docs/ActaFlow-* contain internal strategy/AI-workflow detail. Going public exposes ALL git history.
+- [ ] **Git history scrub for internal docs** — AGENTS.md, docs/planning/_, docs/ActaFlow-_ contain internal strategy/AI-workflow detail. Going public exposes ALL git history.
 - [ ] **Postgres CI coverage matrix** — `stack/postgres` shows 0% coverage locally (tests skip without `POSTGRES_TEST_DSN`). Either add CI Postgres service or label experimental.
 - [ ] **README polish to "sales page" standard** — Per project's own AGENTS.md rule, README should be a sales page for end-users.
 
