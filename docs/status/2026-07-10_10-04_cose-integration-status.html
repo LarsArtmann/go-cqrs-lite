@@ -29,86 +29,457 @@
         --solution: var(--color-blue);
         --warning: var(--color-yellow);
         --radius: 0px;
-        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
       }
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      html { scroll-behavior: smooth; }
-      section[id], [id] { scroll-margin-top: 60px; }
-      body { background: var(--surface); color: var(--text); font-family: var(--font-body); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
-      :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-      .top-bar { background: var(--text); color: var(--surface); padding: 0.6rem 2rem; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
-      .layout { display: flex; gap: 2.5rem; padding: 2rem; }
-      .sidebar { width: 220px; flex-shrink: 0; position: sticky; top: 1rem; align-self: flex-start; height: calc(100vh - 2rem); overflow-y: auto; display: none; }
-      .sidebar nav { display: flex; flex-direction: column; gap: 0; }
-      .sidebar .label { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent); margin-bottom: 0.75rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border-strong); }
-      .sidebar a { font-size: 0.85rem; color: var(--text-muted); text-decoration: none; padding: 0.45rem 0.75rem; border-left: 2px solid transparent; transition: all 0.15s ease; line-height: 1.4; font-weight: 500; }
-      .sidebar a:hover, .sidebar a.active { color: var(--accent); border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
-      .main { flex: 1; min-width: 0; }
-      h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -0.02em; }
-      h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.1; margin: 0 0 0.6rem; }
-      h2 { font-size: 1.4rem; margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border-strong); display: flex; align-items: baseline; gap: 0.6rem; }
-      h2 .num { font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent); font-weight: 700; letter-spacing: 0.06em; }
-      h3 { font-size: 1.1rem; margin: 0 0 0.4rem; font-weight: 700; }
-      h4 { font-size: 0.98rem; margin: 0 0 0.3rem; font-weight: 700; }
-      p { margin: 0 0 1rem; }
-      .hero { padding: 1.5rem 0 1.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border-strong); }
-      .hero-badge { display: inline-block; font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--surface); background: var(--accent); padding: 0.3rem 0.7rem; margin-bottom: 0.9rem; }
-      .hero-subtitle { font-size: 1.05rem; color: var(--text-muted); max-width: 70ch; margin: 0; }
-      .card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1.3rem; margin-bottom: 1rem; border-left: 4px solid var(--border-strong); }
-      .card-problem { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised)); }
-      .card-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised)); }
-      .card-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised)); }
-      .issue { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1.3rem; margin-bottom: 1rem; border-left: 4px solid var(--border-strong); }
-      .issue-critical { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised)); }
-      .issue-important { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised)); }
-      .issue-nice { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised)); }
-      .issue h3 { margin-bottom: 0.3rem; }
-      .issue .where { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-faint); margin: 0.2rem 0 0.6rem; }
-      .issue p:last-child { margin-bottom: 0; }
-      .severity { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.2rem 0.55rem; margin-bottom: 0.6rem; color: var(--surface); }
-      .severity-critical { background: var(--problem); }
-      .severity-important { background: var(--warning); }
-      .severity-nice { background: var(--solution); }
-      .badge { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.18rem 0.5rem; border: 1px solid var(--border-strong); color: var(--text-muted); }
-      .badge-critical { color: var(--problem); border-color: var(--problem); }
-      .badge-high { color: var(--warning); border-color: var(--warning); }
-      .badge-medium { color: var(--accent); border-color: var(--accent); }
-      .badge-low { color: var(--text-muted); }
-      .badge-fixed { color: var(--solution); border-color: var(--solution); }
-      .callout { margin: 0.8rem 0 0; padding: 0.7rem 0.9rem; border-left: 3px solid var(--border-strong); background: color-mix(in srgb, var(--text) 5%, transparent); font-size: 0.9rem; }
-      .callout strong { display: inline-block; margin-right: 0.4rem; }
-      .callout-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 10%, transparent); }
-      .callout-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 10%, transparent); }
-      .callout-problem { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 10%, transparent); }
-      .stat-grid, .scorecard { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin: 1rem 0 1.5rem; }
-      .stat-card, .score-card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1rem; position: relative; }
-      .stat-card::before, .score-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--border-strong); }
-      .stat-bad::before, .score-bad::before { background: var(--problem); }
-      .stat-good::before, .score-good::before { background: var(--solution); }
-      .stat-warn::before, .score-warn::before { background: var(--warning); }
-      .stat-value, .score { font-family: var(--font-heading); font-size: 2rem; font-weight: 800; line-height: 1; letter-spacing: -0.03em; color: var(--text); }
-      .stat-bad .stat-value, .score-bad .score { color: var(--problem); }
-      .stat-good .stat-value, .score-good .score { color: var(--solution); }
-      .stat-warn .stat-value, .score-warn .score { color: var(--warning); }
-      .stat-label, .score-card .label { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-faint); margin-top: 0.5rem; }
-      .strengths { display: grid; gap: 0.5rem; margin: 1rem 0 1.5rem; }
-      .strength { display: grid; grid-template-columns: auto 1fr; gap: 0.8rem; padding: 0.7rem 0; border-bottom: 1px solid var(--border); }
-      .strength .check { font-family: var(--font-mono); font-weight: 700; color: var(--solution); font-size: 1.1rem; line-height: 1.4; }
-      .strength .text strong { display: block; margin-bottom: 0.15rem; }
-      .strength .text span { color: var(--text-muted); font-size: 0.9rem; }
-      .table-wrap { overflow-x: auto; }
-      table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.9rem; }
-      th { text-align: left; padding: 0.6rem 0.9rem; background: var(--surface-raised); color: var(--text-faint); font-family: var(--font-mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border-bottom: 1px solid var(--border-strong); }
-      td { padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); }
-      tr:hover td { background: var(--surface-raised); }
-      pre { background: var(--surface-sunken); border: 1px solid var(--border); padding: 1rem 1.2rem; margin: 1rem 0; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.65; overflow-x: auto; }
-      code { font-family: var(--font-mono); }
-      p code, li code, td code { font-size: 0.88em; background: var(--surface-sunken); padding: 0.1rem 0.35rem; }
-      .footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.8rem; color: var(--text-faint); font-family: var(--font-mono); }
-      @media (min-width: 1024px) { .sidebar { display: block; } }
-      @media (max-width: 768px) { .layout { flex-direction: column; padding: 1rem; } .stat-grid, .scorecard { grid-template-columns: repeat(2, 1fr); } }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+      .callout-problem {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 10%, transparent);
+      }
+      .stat-grid,
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card,
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before,
+      .score-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad::before,
+      .score-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before,
+      .score-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before,
+      .score-warn::before {
+        background: var(--warning);
+      }
+      .stat-value,
+      .score {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value,
+      .score-bad .score {
+        color: var(--problem);
+      }
+      .stat-good .stat-value,
+      .score-good .score {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value,
+      .score-warn .score {
+        color: var(--warning);
+      }
+      .stat-label,
+      .score-card .label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .stat-grid,
+        .scorecard {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
     </style>
   </head>
   <body>
@@ -138,11 +509,10 @@
           <div class="hero-badge">COSE Integration &mdash; Revised</div>
           <h1>COSE Support: Accurate Status After Self-Correction</h1>
           <p class="hero-subtitle">
-            Revised audit of RFC 9052/9053 COSE implementation. The first report
-            had false claims (dead code already removed), fixable problems framed
-            as status items (duplication now fixed), and fantasy filler (50 tasks
-            trimmed to 20 real ones). This report reflects the codebase as it
-            actually is right now.
+            Revised audit of RFC 9052/9053 COSE implementation. The first report had false claims
+            (dead code already removed), fixable problems framed as status items (duplication now
+            fixed), and fantasy filler (50 tasks trimmed to 20 real ones). This report reflects the
+            codebase as it actually is right now.
           </p>
         </div>
 
@@ -191,12 +561,11 @@
         <div class="card card-problem">
           <h4>False claim: "dead encodeToBuffer function at codec/cose.go:306"</h4>
           <p>
-            The first report claimed <code>encodeToBuffer</code> was dead code
-            still in the codebase. Verification: <code>grep -rn 'encodeToBuffer'
-            codec/</code> returns nothing. It was removed during the original
-            refactoring before the commit. The report documented a problem that
-            didn't exist &mdash; because the report's author didn't verify the
-            claim against the actual code.
+            The first report claimed <code>encodeToBuffer</code> was dead code still in the
+            codebase. Verification: <code>grep -rn 'encodeToBuffer' codec/</code> returns nothing.
+            It was removed during the original refactoring before the commit. The report documented
+            a problem that didn't exist &mdash; because the report's author didn't verify the claim
+            against the actual code.
           </p>
         </div>
 
@@ -204,39 +573,38 @@
           <h4>Fixed: duplicated normalizeCOSEAlgorithm</h4>
           <p>
             The first report correctly identified that
-            <code>normalizeCOSEAlgorithm</code> was copy-pasted into both
-            signing/cose.go and encryption/cose.go. <strong>This has now been
-            fixed.</strong> The function is exported as
-            <code>codec.NormalizeCOSEAlgorithm</code> in codec/cose.go. Both
-            signing and encryption call it via the codec import. The duplicated
-            copies, their unused errors (<code>ErrCOSEAlgorithmOverflow</code>,
-            <code>ErrCOSEInvalidAlgorithm</code>), and the <code>math</code>
+            <code>normalizeCOSEAlgorithm</code> was copy-pasted into both signing/cose.go and
+            encryption/cose.go. <strong>This has now been fixed.</strong> The function is exported
+            as <code>codec.NormalizeCOSEAlgorithm</code> in codec/cose.go. Both signing and
+            encryption call it via the codec import. The duplicated copies, their unused errors
+            (<code>ErrCOSEAlgorithmOverflow</code>, <code>ErrCOSEInvalidAlgorithm</code>), and the
+            <code>math</code>
             import were removed from both modules.
           </p>
           <div class="callout callout-solution">
             <strong>Net change</strong>
-            +48 lines (shared function + errors in codec/), -88 lines (duplicated code + errors + imports in signing/ and encryption/).
+            +48 lines (shared function + errors in codec/), -88 lines (duplicated code + errors +
+            imports in signing/ and encryption/).
           </div>
         </div>
 
         <div class="card card-warning">
           <h4>Trimmed: 50-task roadmap was 60% fantasy</h4>
           <p>
-            The original 50-task list included ECDSA P-384, WalnutDSA,
-            post-quantum algorithms (ML-DSA-44/65/87), CWT claims, verifiable
-            data structure proofs, and 6 forms of key agreement. These are not
-            tasks for a Go CQRS library &mdash; they're an IETF working group
-            backlog. The revised report has 20 tasks, all of which are
-            actionable by one developer in one sitting.
+            The original 50-task list included ECDSA P-384, WalnutDSA, post-quantum algorithms
+            (ML-DSA-44/65/87), CWT claims, verifiable data structure proofs, and 6 forms of key
+            agreement. These are not tasks for a Go CQRS library &mdash; they're an IETF working
+            group backlog. The revised report has 20 tasks, all of which are actionable by one
+            developer in one sitting.
           </p>
         </div>
 
         <div class="card card-warning">
           <h4>Answered: 2 "unanswerable" design questions</h4>
           <p>
-            The first report posed two design questions it claimed it couldn't
-            answer. Both are answerable from the library's existing design
-            principles. See <a href="#decisions">section 06</a>.
+            The first report posed two design questions it claimed it couldn't answer. Both are
+            answerable from the library's existing design principles. See
+            <a href="#decisions">section 06</a>.
           </p>
         </div>
 
@@ -247,43 +615,67 @@
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
-              <strong>codec/cose.go &mdash; COSE structure serialization + shared helpers (349 lines)</strong>
-              <span>COSESign1, COSEEncrypt0 types, Marshal/Unmarshal, SigStructure, EncStructure0, NormalizeCOSEAlgorithm (extracted from signing/encryption), IANA constants, diagnostic helpers.</span>
+              <strong
+                >codec/cose.go &mdash; COSE structure serialization + shared helpers (349
+                lines)</strong
+              >
+              <span
+                >COSESign1, COSEEncrypt0 types, Marshal/Unmarshal, SigStructure, EncStructure0,
+                NormalizeCOSEAlgorithm (extracted from signing/encryption), IANA constants,
+                diagnostic helpers.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>signing/cose.go &mdash; COSE_Sign1 signing (360 lines)</strong>
-              <span>COSESigner/COSEVerifier interfaces, HMAC + Ed25519 implementations, SignCOSE1/VerifyCOSE1 with external AAD and key ID. No duplicated helpers.</span>
+              <span
+                >COSESigner/COSEVerifier interfaces, HMAC + Ed25519 implementations,
+                SignCOSE1/VerifyCOSE1 with external AAD and key ID. No duplicated helpers.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>encryption/cose.go &mdash; COSE_Encrypt0 encryption (330 lines)</strong>
-              <span>COSEEncrypter/COSEDecrypter interfaces, XChaCha20-Poly1305 + AES-256-GCM implementations, EncryptCOSE0/DecryptCOSE0 with AAD. No duplicated helpers.</span>
+              <span
+                >COSEEncrypter/COSEDecrypter interfaces, XChaCha20-Poly1305 + AES-256-GCM
+                implementations, EncryptCOSE0/DecryptCOSE0 with AAD. No duplicated helpers.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>37 test functions, 289 tests passing (1,031 lines of tests)</strong>
-              <span>Round-trip, tamper detection, algorithm mismatch, nil inputs, external AAD, key ID, detached payload, empty plaintext, raw sign/verify. Verified: codec 86, signing 95, encryption 108.</span>
+              <span
+                >Round-trip, tamper detection, algorithm mismatch, nil inputs, external AAD, key ID,
+                detached payload, empty plaintext, raw sign/verify. Verified: codec 86, signing 95,
+                encryption 108.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>ADR-0047 + zero new dependencies</strong>
-              <span>Design document with rationale. Reuses fxamacker/cbor/v2 and stdlib crypto only.</span>
+              <span
+                >Design document with rationale. Reuses fxamacker/cbor/v2 and stdlib crypto
+                only.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Deduplication fix applied</strong>
-              <span>normalizeCOSEAlgorithm extracted to codec/ as shared NormalizeCOSEAlgorithm. 4 error sentinels removed from signing/ and encryption/ (2 moved to codec/, 2 were dead).</span>
+              <span
+                >normalizeCOSEAlgorithm extracted to codec/ as shared NormalizeCOSEAlgorithm. 4
+                error sentinels removed from signing/ and encryption/ (2 moved to codec/, 2 were
+                dead).</span
+              >
             </div>
           </div>
         </div>
@@ -296,9 +688,9 @@
           <h3>No example_test.go for COSE usage patterns</h3>
           <div class="where">signing/, encryption/</div>
           <p>
-            Every existing module has <code>example_test.go</code> for pkg.go.dev.
-            COSE has none. A consumer reading the docs has no runnable example
-            showing <code>SignCOSE1</code> or <code>EncryptCOSE0</code>.
+            Every existing module has <code>example_test.go</code> for pkg.go.dev. COSE has none. A
+            consumer reading the docs has no runnable example showing <code>SignCOSE1</code> or
+            <code>EncryptCOSE0</code>.
           </p>
         </div>
 
@@ -307,9 +699,9 @@
           <h3>No golden test files pinning exact CBOR wire bytes</h3>
           <div class="where">codec/testdata/golden/, signing/testdata/golden/</div>
           <p>
-            Other tests use <code>testdata/golden/</code> to pin byte output.
-            COSE tests verify round-trips but not exact wire format. A refactor
-            could silently change the CBOR encoding without test failure.
+            Other tests use <code>testdata/golden/</code> to pin byte output. COSE tests verify
+            round-trips but not exact wire format. A refactor could silently change the CBOR
+            encoding without test failure.
           </p>
         </div>
 
@@ -318,10 +710,9 @@
           <h3>No fuzz tests for COSE unmarshal paths</h3>
           <div class="where">codec/cose_test.go</div>
           <p>
-            <code>UnmarshalCOSESign1</code> and <code>UnmarshalCOSEEncrypt0</code>
-            parse untrusted CBOR. Other modules have <code>fuzz_test.go</code>.
-            Malformed CBOR arrays could panic on edge cases not covered by unit
-            tests.
+            <code>UnmarshalCOSESign1</code> and <code>UnmarshalCOSEEncrypt0</code> parse untrusted
+            CBOR. Other modules have <code>fuzz_test.go</code>. Malformed CBOR arrays could panic on
+            edge cases not covered by unit tests.
           </p>
         </div>
 
@@ -330,9 +721,8 @@
           <h3>No benchmark tests</h3>
           <div class="where">signing/cose_test.go, encryption/cose_test.go</div>
           <p>
-            Existing modules have <code>benchmark_test.go</code>. No benchmarks
-            for SignCOSE1, VerifyCOSE1, EncryptCOSE0, DecryptCOSE0. Consumers
-            have no performance expectations.
+            Existing modules have <code>benchmark_test.go</code>. No benchmarks for SignCOSE1,
+            VerifyCOSE1, EncryptCOSE0, DecryptCOSE0. Consumers have no performance expectations.
           </p>
         </div>
 
@@ -341,8 +731,8 @@
           <h3>AGENTS.md, FEATURES.md, SKILL.md not updated</h3>
           <div class="where">AGENTS.md, FEATURES.md, SKILL.md, README.md files</div>
           <p>
-            The library's living documentation doesn't mention COSE. Consumers
-            discovering the module via docs won't know it exists.
+            The library's living documentation doesn't mention COSE. Consumers discovering the
+            module via docs won't know it exists.
           </p>
         </div>
 
@@ -361,17 +751,24 @@
             <tbody>
               <tr>
                 <td>COSE bus middleware</td>
-                <td>SignCOSE1Middleware/VerifyCOSE1Middleware + EncryptCOSE0Middleware/DecryptCOSE0Middleware for bus.UsePublish/Use</td>
+                <td>
+                  SignCOSE1Middleware/VerifyCOSE1Middleware +
+                  EncryptCOSE0Middleware/DecryptCOSE0Middleware for bus.UsePublish/Use
+                </td>
                 <td><span class="badge badge-high">High</span></td>
               </tr>
               <tr>
                 <td>RFC 9052 test vectors</td>
-                <td>Validate against published Appendix C test vectors to prove interoperability</td>
+                <td>
+                  Validate against published Appendix C test vectors to prove interoperability
+                </td>
                 <td><span class="badge badge-high">High</span></td>
               </tr>
               <tr>
                 <td>External interop test</td>
-                <td>Verify our COSE_Sign1/Encrypt0 bytes validate in a Python/Rust COSE implementation</td>
+                <td>
+                  Verify our COSE_Sign1/Encrypt0 bytes validate in a Python/Rust COSE implementation
+                </td>
                 <td><span class="badge badge-high">High</span></td>
               </tr>
               <tr>
@@ -386,7 +783,9 @@
               </tr>
               <tr>
                 <td>CBOR tag support</td>
-                <td>Tag 18 (COSE_Sign1) and tag 16 (COSE_Encrypt0) for self-identifying messages</td>
+                <td>
+                  Tag 18 (COSE_Sign1) and tag 16 (COSE_Encrypt0) for self-identifying messages
+                </td>
                 <td><span class="badge badge-medium">Medium</span></td>
               </tr>
             </tbody>
@@ -399,48 +798,45 @@
         <div class="card card-warning">
           <h4>No RFC 9052 test vectors</h4>
           <p>
-            RFC 9052 Appendix C contains canonical test vectors. Our tests verify
-            round-trips but never compare against the RFC's published bytes. We
-            could be producing valid but non-standard CBOR.
+            RFC 9052 Appendix C contains canonical test vectors. Our tests verify round-trips but
+            never compare against the RFC's published bytes. We could be producing valid but
+            non-standard CBOR.
           </p>
         </div>
 
         <div class="card card-warning">
           <h4>Canonical payload is not portable</h4>
           <p>
-            SignCOSE1 places the library's custom canonical signing bytes
-            (length-prefixed event fields + SHA-256 payload hash) in the COSE
-            payload field. The COSE message is structurally valid RFC 9052 but
-            the payload is only meaningful to go-cqrs-lite. This is a deliberate
-            tradeoff (see Design Decisions) but limits interop.
+            SignCOSE1 places the library's custom canonical signing bytes (length-prefixed event
+            fields + SHA-256 payload hash) in the COSE payload field. The COSE message is
+            structurally valid RFC 9052 but the payload is only meaningful to go-cqrs-lite. This is
+            a deliberate tradeoff (see Design Decisions) but limits interop.
           </p>
         </div>
 
         <div class="card card-warning">
           <h4>No content type header</h4>
           <p>
-            RFC 9052 defines <code>content type</code> (label 3) for identifying
-            payload format. Our messages don't set it. Consumers need out-of-band
-            knowledge to interpret the payload.
+            RFC 9052 defines <code>content type</code> (label 3) for identifying payload format. Our
+            messages don't set it. Consumers need out-of-band knowledge to interpret the payload.
           </p>
         </div>
 
         <div class="card card-warning">
           <h4>No CBOR tags</h4>
           <p>
-            RFC 9052 defines CBOR tags 18 (COSE_Sign1) and 16 (COSE_Encrypt0).
-            Our messages are untagged arrays. Tagged messages are self-identifying.
+            RFC 9052 defines CBOR tags 18 (COSE_Sign1) and 16 (COSE_Encrypt0). Our messages are
+            untagged arrays. Tagged messages are self-identifying.
           </p>
         </div>
 
         <div class="card card-warning">
           <h4>go.mod replace directive maintenance burden</h4>
           <p>
-            signing/go.mod and encryption/go.mod now carry 11 replace directives
-            each. Any time event/ gains a new dependency, both must be updated
-            manually for GOWORK=off (CI per-module tests). This is a workspace-
-            level problem, not COSE-specific, but COSE triggered the latest
-            instance.
+            signing/go.mod and encryption/go.mod now carry 11 replace directives each. Any time
+            event/ gains a new dependency, both must be updated manually for GOWORK=off (CI
+            per-module tests). This is a workspace- level problem, not COSE-specific, but COSE
+            triggered the latest instance.
           </p>
         </div>
 
@@ -448,44 +844,40 @@
         <h2 id="decisions"><span class="num">06</span>Design Decisions (Self-Answered)</h2>
 
         <p>
-          The first report posed two questions it claimed it couldn't answer.
-          Both are answerable from the library's stated design principles.
+          The first report posed two questions it claimed it couldn't answer. Both are answerable
+          from the library's stated design principles.
         </p>
 
         <div class="card card-solution">
           <h4>D1: Canonical payload vs raw event bytes in COSE_Sign1</h4>
           <p>
-            <strong>Decision: canonical payload is correct for v1.</strong> The
-            library's <code>Signer</code> interface defines signing over
-            <code>canonicalPayload(evt)</code> &mdash; covering event ID, type,
-            aggregate, version, schema version, occurredAt, and payload hash.
-            COSE_Sign1 wraps this same byte string. This ensures identical
-            security coverage to the existing non-COSE signing path.
+            <strong>Decision: canonical payload is correct for v1.</strong> The library's
+            <code>Signer</code> interface defines signing over
+            <code>canonicalPayload(evt)</code> &mdash; covering event ID, type, aggregate, version,
+            schema version, occurredAt, and payload hash. COSE_Sign1 wraps this same byte string.
+            This ensures identical security coverage to the existing non-COSE signing path.
           </p>
           <p>
-            A future <code>SignCOSE1Raw</code> variant could sign just the event
-            payload bytes for systems that only need payload integrity (not event
-            metadata). But that would be a different trust boundary, not a
-            replacement. The current design is the right default.
+            A future <code>SignCOSE1Raw</code> variant could sign just the event payload bytes for
+            systems that only need payload integrity (not event metadata). But that would be a
+            different trust boundary, not a replacement. The current design is the right default.
           </p>
         </div>
 
         <div class="card card-solution">
           <h4>D2: Additive middleware vs replacement of existing signing</h4>
           <p>
-            <strong>Decision: additive, not replacement.</strong> The library's
-            principle #1 is "Library, not framework." COSE is an opt-in
-            interoperability escape hatch. The existing metadata-based signing
-            (<code>SignMiddleware</code>) remains the default because it's
-            simpler and already works. COSE middleware
-            (<code>SignCOSE1Middleware</code>) will attach the COSE bytes in
-            custom metadata alongside the existing signature, giving consumers
-            both formats when they need cross-system interop.
+            <strong>Decision: additive, not replacement.</strong> The library's principle #1 is
+            "Library, not framework." COSE is an opt-in interoperability escape hatch. The existing
+            metadata-based signing (<code>SignMiddleware</code>) remains the default because it's
+            simpler and already works. COSE middleware (<code>SignCOSE1Middleware</code>) will
+            attach the COSE bytes in custom metadata alongside the existing signature, giving
+            consumers both formats when they need cross-system interop.
           </p>
           <p>
-            Replacing the existing signing path entirely would be a v4 breaking
-            change that serves no one &mdash; consumers who don't need COSE
-            interop would pay the CBOR overhead for no benefit.
+            Replacing the existing signing path entirely would be a v4 breaking change that serves
+            no one &mdash; consumers who don't need COSE interop would pay the CBOR overhead for no
+            benefit.
           </p>
         </div>
 
@@ -503,34 +895,136 @@
               </tr>
             </thead>
             <tbody>
-              <tr><td>1</td><td>Add example_test.go for signing/cose.go (SignCOSE1, VerifyCOSE1, Ed25519 + HMAC)</td><td><span class="badge badge-high">High</span></td><td>30 min</td></tr>
-              <tr><td>2</td><td>Add example_test.go for encryption/cose.go (EncryptCOSE0, DecryptCOSE0)</td><td><span class="badge badge-high">High</span></td><td>30 min</td></tr>
-              <tr><td>3</td><td>Add fuzz tests for UnmarshalCOSESign1/UnmarshalCOSEEncrypt0</td><td><span class="badge badge-high">High</span></td><td>1 hr</td></tr>
-              <tr><td>4</td><td>Add golden test files pinning exact COSE CBOR bytes</td><td><span class="badge badge-high">High</span></td><td>1 hr</td></tr>
-              <tr><td>5</td><td>Add benchmark_test.go for COSE signing (HMAC + Ed25519)</td><td><span class="badge badge-medium">Medium</span></td><td>1 hr</td></tr>
-              <tr><td>6</td><td>Add benchmark_test.go for COSE encryption (XChaCha20 + AES-GCM)</td><td><span class="badge badge-medium">Medium</span></td><td>1 hr</td></tr>
-              <tr><td>7</td><td>Add RFC 9052 Appendix C test vectors for COSE_Sign1</td><td><span class="badge badge-high">High</span></td><td>2 hr</td></tr>
-              <tr><td>8</td><td>Write interop test with a Python/Rust COSE library</td><td><span class="badge badge-high">High</span></td><td>4 hr</td></tr>
-              <tr><td>9</td><td>Add SignCOSE1Middleware / VerifyCOSE1Middleware for bus</td><td><span class="badge badge-high">High</span></td><td>2 hr</td></tr>
-              <tr><td>10</td><td>Add EncryptCOSE0Middleware / DecryptCOSE0Middleware for bus</td><td><span class="badge badge-high">High</span></td><td>2 hr</td></tr>
-              <tr><td>11</td><td>Add CBOR tag 18/16 support (<code>WithTag()</code> option)</td><td><span class="badge badge-medium">Medium</span></td><td>1 hr</td></tr>
-              <tr><td>12</td><td>Add <code>content type</code> header to COSE messages</td><td><span class="badge badge-medium">Medium</span></td><td>30 min</td></tr>
-              <tr><td>13</td><td>Update AGENTS.md with COSE patterns and module list</td><td><span class="badge badge-medium">Medium</span></td><td>30 min</td></tr>
-              <tr><td>14</td><td>Update signing/README.md and encryption/README.md with COSE sections</td><td><span class="badge badge-medium">Medium</span></td><td>20 min</td></tr>
-              <tr><td>15</td><td>Update FEATURES.md with COSE status, TODO_LIST.md check-off</td><td><span class="badge badge-low">Low</span></td><td>15 min</td></tr>
-              <tr><td>16</td><td>Update SKILL.md with COSE composition recipe</td><td><span class="badge badge-medium">Medium</span></td><td>30 min</td></tr>
-              <tr><td>17</td><td>Add property-based tests (rapid) for COSE round-trip invariants</td><td><span class="badge badge-medium">Medium</span></td><td>2 hr</td></tr>
-              <tr><td>18</td><td>Add integration test combining COSE signing + encryption</td><td><span class="badge badge-medium">Medium</span></td><td>1 hr</td></tr>
-              <tr><td>19</td><td>Add COSE_Mac0 support (HMAC via COSE MAC structure)</td><td><span class="badge badge-medium">Medium</span></td><td>3 hr</td></tr>
-              <tr><td>20</td><td>Automate go.mod replace directive sync across workspace</td><td><span class="badge badge-high">High</span></td><td>3 hr</td></tr>
+              <tr>
+                <td>1</td>
+                <td>
+                  Add example_test.go for signing/cose.go (SignCOSE1, VerifyCOSE1, Ed25519 + HMAC)
+                </td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>30 min</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>Add example_test.go for encryption/cose.go (EncryptCOSE0, DecryptCOSE0)</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>30 min</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>Add fuzz tests for UnmarshalCOSESign1/UnmarshalCOSEEncrypt0</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>1 hr</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>Add golden test files pinning exact COSE CBOR bytes</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>1 hr</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>Add benchmark_test.go for COSE signing (HMAC + Ed25519)</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>1 hr</td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>Add benchmark_test.go for COSE encryption (XChaCha20 + AES-GCM)</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>1 hr</td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td>Add RFC 9052 Appendix C test vectors for COSE_Sign1</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>2 hr</td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td>Write interop test with a Python/Rust COSE library</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>4 hr</td>
+              </tr>
+              <tr>
+                <td>9</td>
+                <td>Add SignCOSE1Middleware / VerifyCOSE1Middleware for bus</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>2 hr</td>
+              </tr>
+              <tr>
+                <td>10</td>
+                <td>Add EncryptCOSE0Middleware / DecryptCOSE0Middleware for bus</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>2 hr</td>
+              </tr>
+              <tr>
+                <td>11</td>
+                <td>Add CBOR tag 18/16 support (<code>WithTag()</code> option)</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>1 hr</td>
+              </tr>
+              <tr>
+                <td>12</td>
+                <td>Add <code>content type</code> header to COSE messages</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>30 min</td>
+              </tr>
+              <tr>
+                <td>13</td>
+                <td>Update AGENTS.md with COSE patterns and module list</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>30 min</td>
+              </tr>
+              <tr>
+                <td>14</td>
+                <td>Update signing/README.md and encryption/README.md with COSE sections</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>20 min</td>
+              </tr>
+              <tr>
+                <td>15</td>
+                <td>Update FEATURES.md with COSE status, TODO_LIST.md check-off</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>15 min</td>
+              </tr>
+              <tr>
+                <td>16</td>
+                <td>Update SKILL.md with COSE composition recipe</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>30 min</td>
+              </tr>
+              <tr>
+                <td>17</td>
+                <td>Add property-based tests (rapid) for COSE round-trip invariants</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>2 hr</td>
+              </tr>
+              <tr>
+                <td>18</td>
+                <td>Add integration test combining COSE signing + encryption</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>1 hr</td>
+              </tr>
+              <tr>
+                <td>19</td>
+                <td>Add COSE_Mac0 support (HMAC via COSE MAC structure)</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>3 hr</td>
+              </tr>
+              <tr>
+                <td>20</td>
+                <td>Automate go.mod replace directive sync across workspace</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>3 hr</td>
+              </tr>
             </tbody>
           </table>
         </div>
 
         <footer class="footer">
-          Generated 2026-07-10 (revised) &middot; Verified against working tree after dedup fix &middot;
-          Coverage from <code>go test -cover</code> &middot; 289 tests passing &middot;
-          No lint issues in COSE files
+          Generated 2026-07-10 (revised) &middot; Verified against working tree after dedup fix
+          &middot; Coverage from <code>go test -cover</code> &middot; 289 tests passing &middot; No
+          lint issues in COSE files
         </footer>
       </main>
     </div>
