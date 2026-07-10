@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-07-05 (error taxonomy sweep, deriver module, DOMAIN_LANGUAGE.md rebuild, dead code removal, ROADMAP/TODO reconciliation) · **Module count:** 47 `go.mod` files (all wired into `go.work`) · **Go version:** 1.26.3
+**Last audited:** 2026-07-10 (kv context propagation, metadata/ extraction, dispatcher dispatch-time middleware, json/v2 case-insensitive decode, idempotency generic factory, SSE hardening, catalog deterministic encoding) · **Module count:** 48 modules in `go.work` (49 `go.mod` files incl. eventtest) · **Go version:** 1.26.3
 
 ## Status Legend
 
@@ -29,7 +29,7 @@
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
 | Command dispatch         | `Dispatcher.Dispatch(ctx, cmd)` routes to registered handler                                                                                       | ✅     |
 | Handler registration     | `Dispatcher.Register(cmdType, handler)` with duplicate guard                                                                                       | ✅     |
-| Middleware chain         | `Dispatcher.Use(middleware...)` — applied at registration time, reverse order                                                                      | ✅     |
+| Middleware chain         | `Dispatcher.Use(middleware...)` — applied at **dispatch time** (can be added before or after Register)                                            | ✅     |
 | Lifecycle                | `Dispatcher.Close()` — rejects all ops after close                                                                                                 | ✅     |
 | Validation               | `New()` rejects empty type and zero aggregateID                                                                                                    | ✅     |
 | TypedHandler[T]          | `RegisterTyped[T](d, type, handler)` — type-safe handler receiving `T` not `Command`                                                               | ✅     |
@@ -151,7 +151,7 @@
 | ------------------- | -------------------------------------------------------------- | ------ |
 | Generic Dispatcher  | `Dispatcher[H, M]` — type-safe handler + middleware dispatcher | ✅     |
 | LifecycleMixin      | `Lifecycle` — `Close()` prevents all ops; thread-safe          | ✅     |
-| Middleware ordering | Reverse-order middleware application at registration time      | ✅     |
+| Middleware ordering | Middleware applied at dispatch time (any order vs Register)   | ✅     |
 | Duplicate guard     | `ErrHandlerAlreadyRegistered` — prevents double-registration   | ✅     |
 
 ### Idempotency ✅ FULLY_FUNCTIONAL
@@ -165,7 +165,11 @@
 | Atomic dedup        | `CheckAndRecord` — single-lock check+record prevents the TOCTOU race (exactly one winner)    | ✅     |
 | TTL expiration      | Keys expire after a configurable duration; removed by sweeper and lazily on read             | ✅     |
 | ErrDuplicate        | Conflict sentinel returned when a key is already recorded (maps to HTTP 409)                 | ✅     |
-| Dispatch middleware | `middleware.CommandIdempotency` — deduplicates by `Command.ID()` (also Event/Query variants) | ✅     |
+| Generic factory     | `middleware.NewIdempotency[M]` — generic dedup factory for any message type                                                        | ✅     |
+| Command dedup        | `middleware.CommandIdempotency(store, ttl, keyFn)` — defaults to `cmd.ID().String()` when keyFn is nil                              | ✅     |
+| Event dedup          | `middleware.EventIdempotency(store, ttl, keyFn)` — defaults to `evt.ID().String()` when keyFn is nil                               | ✅     |
+| Query dedup          | `middleware.QueryIdempotency(store, ttl, keyFn)` — panics if keyFn is nil (queries have no built-in identity)                      | ✅     |
+| KVStore              | `idempotency.KVStore` — persistent dedup backed by any `kv.Store`                                                                   | ✅     |
 
 **Sentinel errors:** `ErrDuplicate` (Conflict)
 
@@ -428,11 +432,22 @@ Deleted — generic utility with no CQRS dependencies and zero consumers.
 
 > `import "github.com/larsartmann/go-cqrs-lite/transport/http/v3"`
 
-| Feature     | Detail                                                                             | Status |
-| ----------- | ---------------------------------------------------------------------------------- | ------ |
-| SSEBroker   | Server-Sent Events broker with `AddClient`, `RemoveClient`, `ClientCount`, `Close` | ✅     |
-| SSEHandler  | `net/http` handler for SSE connections with client ID extraction                   | ✅     |
-| Thread-safe | Concurrent client management with proper channel lifecycle                         | ✅     |
+| Feature              | Detail                                                                                          | Status |
+| -------------------- | ----------------------------------------------------------------------------------------------- | ------ |
+| SSEBroker            | Server-Sent Events broker with `AddClient`, `RemoveClient`, `ClientCount`, `Close`              | ✅     |
+| SSEHandler           | `net/http` handler for SSE connections with client ID extraction                               | ✅     |
+| Thread-safe          | Concurrent client management with proper channel lifecycle                                     | ✅     |
+| Last-Event-ID replay | Reconnect via `WithReconnectJournal(journal, limit)` — replays missed events before live        | ✅     |
+| Replay timeout       | `WithReplayTimeout(d)` — stops replay after duration, sends advisory event, switches to live    | ✅     |
+| Byte-budget replay   | `WithReplayByteBudget(bytes)` — stops replay when payload bytes exceed budget                   | ⚠️     |
+| Retry field          | `WithRetryInterval(d)` — writes `retry:` field on connect for browser auto-reconnect            | ✅     |
+| Event filtering      | `WithEventFilter(fn)` — broker-level predicate that drops events before fanout                  | ✅     |
+| Auth middleware       | `SSEAuthMiddleware(next, tokenFunc)` — reference bearer-token auth implementation               | ✅     |
+| Backfill endpoint    | `BackfillHandler(journal)` — REST endpoint returning missed events as JSON array               | ✅     |
+| Per-client stats     | `Stats() []ClientStats` — per-client buffered event depth for debugging slow consumers          | ✅     |
+| Graceful close       | `CloseWithGrace(d)` — drains in-flight events before closing client channels                    | ✅     |
+| Dedup ring           | Bounded `dedup.Ring` (1024 entries) for replay→live deduplication — O(1), memory-bounded         | ✅     |
+| Replay metrics       | `ReplayMetrics` struct + OTel instruments (duration histogram, event counter, incomplete counter) | ✅     |
 
 ### gRPC Transport ✅ FULLY_FUNCTIONAL
 
@@ -448,7 +463,7 @@ Remote gRPC transport for command & query dispatch (ADR-0025). Bridges gRPC clie
 | QueryClient       | `NewQueryClient(conn)` — remote `query.Dispatcher` over a gRPC conn     | ✅     |
 | Protobuf contract | Generated `.proto` types in `transport/grpc/proto`                      | ✅     |
 
-> Note: `transport/grpc` is wired into `go.work` and covered by CI. It builds under the workspace; per-module `GOWORK=off` isolation is blocked until [cockroachdb/errors#79](https://github.com/cockroachdb/errors/issues/79) drops the monolithic `google.golang.org/genproto` (it conflicts with grpc-go's split `genproto/googleapis/rpc`).
+> Note: `transport/grpc` is a first-class member of `go.work`. The genproto conflict (cockroachdb/errors monolithic `google.golang.org/genproto` vs grpc-go's split `genproto/googleapis/rpc`) is resolved via a workspace-level `replace` directive pinning genproto to a version where the `googleapis/rpc` packages are split out.
 
 ### Profiling ❌ REMOVED
 
@@ -841,13 +856,10 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 
 ## Examples 💡 DEMO
 
-| Example                           | Detail                                                                                        |
-| --------------------------------- | --------------------------------------------------------------------------------------------- |
-| `example/todo/`                   | Full CQRS app: HTTP API, decider, projections, queries, Pebble + memory storage, saga pattern |
-| `example/user/`                   | Event sourcing lifecycle: create, replay, mutate, signing, SSE, catalog, Docker packaging     |
-| `example/encryption/`             | Signing + encryption middleware end-to-end                                                    |
-| `example/deployer-first/`         | Deployer-first stack: CatchUpSubscriber + Materialize + Watermill EventBus                    |
-| `example/deployer-first-multidb/` | Multi-database isolation: separate DBs for events, queries, and views                         |
+| Example                     | Detail                                                                                                                              |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `example/taskmanager/`      | Flagship full HTTP service: event sourcing, CQRS, KV + tombstone projections, SSE streaming, ProjectionHost with DLQ, signing, snapshot strategy, deriver (event→command), idempotency middleware |
+| `example/getting-started/`  | Minimal 80-line example showing the core pipeline: counter aggregate, command dispatch, event store, bus, projection                |
 
 **Not reference applications.** These demonstrate library usage patterns.
 
@@ -876,76 +888,68 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | ------------------------- | ------------------------------------------------ |
 | PostgreSQL testcontainers | testcontainers-based real PG testing             |
 | Documentation site        | Docusaurus/MkDocs/Hugo site                      |
-| Transport adapters        | gRPC ✅, NATS/Redis (ADR-0025 accepted, no code) |
+| Transport adapters        | gRPC ✅, NATS/ValKey (ADR-0025 accepted, no code) |
+| stack health checks       | `Bundle.HealthCheck(ctx)` — consumer request (HIGH) |
+| Topological shutdown      | `WithDependency()` shutdown ordering — consumer request (HIGH) |
+| Distributed projection runner | Leader election, multi-node coordination — raw idea |
 
 ---
 
 ## Module Maturity Matrix
 
-| Module                           | Import Path                        | Maturity        |
-| -------------------------------- | ---------------------------------- | --------------- |
-| `event`                          | `…/event/v3`                       | ✅ Production   |
-| `event/eventtest`                | `…/event/v3/eventtest`             | 🧪 Test helper  |
-| `command`                        | `…/command/v3`                     | ✅ Production   |
-| `query`                          | `…/query/v3`                       | ✅ Production   |
-| `decider`                        | `…/decider/v3`                     | ✅ Production   |
-| `id`                             | `…/id/v3`                          | ✅ Production   |
-| `dispatcher`                     | `…/dispatcher/v3`                  | ✅ Production   |
-| `schema`                         | `…/schema/v3`                      | ✅ Production   |
-| `snapshot`                       | `…/snapshot/v3`                    | ✅ Production   |
-| `codec`                          | `…/codec/v3`                       | ✅ Production   |
-| `kv`                             | `…/kv/v3`                          | ✅ Production   |
-| `storage/memory`                 | `…/storage/memory/v3`              | 🧪 Test utility |
-| `catalog`                        | `…/catalog/v3`                     | ✅ Production   |
-| `catalog/asyncapi`               | `…/catalog/v3/asyncapi`            | ✅ Production   |
-| `catalog/d2`                     | `…/catalog/v3/d2`                  | ✅ Production   |
-| `catalog/openapi`                | `…/catalog/v3/openapi`             | ✅ Production   |
-| `catalog/eventcatalog`           | `…/catalog/v3/eventcatalog`        | ✅ Production   |
-| `catalog/docserver`              | `…/catalog/v3/docserver`           | ✅ Production   |
-| `catalog/schema`                 | `…/catalog/v3/schema`              | ✅ Production   |
-| `middleware`                     | `…/middleware/v3`                  | ✅ Production   |
-| `integration`                    | `…/integration/v3`                 | ✅ Test suite   |
-| `signing`                        | `…/signing/v3`                     | ✅ Production   |
-| `signing/multisig`               | `…/signing/v3/multisig`            | ✅ Production   |
-| `encryption`                     | `…/encryption/v3`                  | ✅ Production   |
-| `storage`                        | `…/storage/v3`                     | ✅ Production   |
-| `storage/sql`                    | `…/storage/v3/sql`                 | 🧪 Shared infra |
-| `watermill`                      | `…/watermill/v3`                   | ✅ Production   |
-| `listing`                        | `…/listing/v3`                     | ✅ Production   |
-| `otel`                           | `…/otel/v3`                        | ✅ Production   |
-| `storage/pebble`                 | `…/storage/pebble/v3`              | ✅ Production   |
-| `storage/turso`                  | `…/storage/turso/v3`               | ✅ Production   |
-| `storage/turso/indexing`         | `…/storage/turso/v3/indexing`      | ✅ Production   |
-| `transport/http`                 | `…/transport/http/v3`              | ✅ Production   |
-| `transport/grpc`                 | `…/transport/grpc/v3`              | ✅ Production   |
-| `prometheus`                     | `…/prometheus/v3`                  | ✅ Production   |
-| `testutil`                       | `…/testutil/v3`                    | 🧪 Test utility |
-| `cmd/cqrs-gen`                   | `…/cmd/cqrs-gen/v3`                | 🔧 Tool         |
-| `cmd/api-stability`              | `…/cmd/api-stability/v3`           | 🔧 Tool         |
-| `cmd/doc-check`                  | `…/cmd/doc-check/v3`               | 🔧 Tool         |
-| `example/user`                   | `…/example/user`                   | 💡 Demo         |
-| `example/todo`                   | `…/example/todo`                   | 💡 Demo         |
-| `example/encryption`             | `…/example/encryption`             | 💡 Demo         |
-| `example/deployer-first`         | `…/example/deployer-first`         | 💡 Demo         |
-| `example/deployer-first-multidb` | `…/example/deployer-first-multidb` | 💡 Demo         |
-| `stack`                          | `…/stack/v3`                       | ✅ Production   |
-| `stack/memory`                   | `…/stack/memory/v3`                | ✅ Production   |
-| `stack/sqlite`                   | `…/stack/sqlite/v3`                | ✅ Production   |
-| `stack/pebble`                   | `…/stack/pebble/v3`                | ✅ Production   |
-| `stack/postgres`                 | `…/stack/postgres/v3`              | ✅ Production   |
-| `stack/turso`                    | `…/stack/turso/v3`                 | ✅ Production   |
-| `stack/bench`                    | `…/stack/bench/v3`                 | 🧪 Benchmarks   |
+> 48 modules in `go.work` (49 `go.mod` files incl. eventtest). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig) share their parent's `go.mod`.
 
-| `deriver` | `…/deriver/v3` | ✅ Production |
-| `graph` | `…/graph/v3` | ✅ Production |
-| `idempotency` | `…/idempotency/v3` | ✅ Production |
-| `projection` | `…/projection/v3` | ✅ Production |
-| `projectionhost` | `…/projectionhost/v3` | ✅ Production |
-| `scenario` | `…/scenario/v3` | ✅ Production |
-| `scheduling` | `…/scheduling/v3` | ✅ Production |
-| `example/graph-demo` | `…/example/graph-demo` | 💡 Demo |
-| `example/deployer-first-heterogeneous` | `…/example/deployer-first-heterogeneous` | 💡 Demo |
-| `example/projectionhost` | `…/example/projectionhost` | 💡 Demo |
+| Module                  | Import Path                | Maturity        |
+| ----------------------- | -------------------------- | --------------- |
+| `event`                 | `…/event/v3`               | ✅ Production   |
+| `event/eventtest`       | `…/event/v3/eventtest`     | 🧪 Test helper  |
+| `command`               | `…/command/v3`             | ✅ Production   |
+| `query`                 | `…/query/v3`               | ✅ Production   |
+| `decider`               | `…/decider/v3`             | ✅ Production   |
+| `id`                    | `…/id/v3`                  | ✅ Production   |
+| `dispatcher`            | `…/dispatcher/v3`          | ✅ Production   |
+| `schema`                | `…/schema/v3`              | ✅ Production   |
+| `snapshot`              | `…/snapshot/v3`            | ✅ Production   |
+| `codec`                 | `…/codec/v3`               | ✅ Production   |
+| `kv`                    | `…/kv/v3`                  | ✅ Production   |
+| `metadata`              | `…/metadata/v3`            | ✅ Production   |
+| `dedup`                 | `…/dedup/v3`               | ✅ Production   |
+| `storage/memory`        | `…/storage/memory/v3`      | 🧪 Test utility |
+| `catalog`               | `…/catalog/v3`             | ✅ Production   |
+| `middleware`            | `…/middleware/v3`          | ✅ Production   |
+| `integration`           | `…/integration/v3`         | ✅ Test suite   |
+| `signing`               | `…/signing/v3`             | ✅ Production   |
+| `encryption`            | `…/encryption/v3`          | ✅ Production   |
+| `storage`               | `…/storage/v3`             | ✅ Production   |
+| `storage/sql`           | `…/storage/v3/sql`         | 🧪 Shared infra |
+| `watermill`             | `…/watermill/v3`           | ✅ Production   |
+| `listing`               | `…/listing/v3`             | ✅ Production   |
+| `otel`                  | `…/otel/v3`                | ✅ Production   |
+| `storage/pebble`        | `…/storage/pebble/v3`      | ✅ Production   |
+| `storage/turso`         | `…/storage/turso/v3`       | ✅ Production   |
+| `transport/http`        | `…/transport/http/v3`      | ✅ Production   |
+| `transport/grpc`        | `…/transport/grpc/v3`      | ✅ Production   |
+| `prometheus`            | `…/prometheus/v3`          | ✅ Production   |
+| `testutil`              | `…/testutil/v3`            | 🧪 Test utility |
+| `cmd/cqrs-gen`          | `…/cmd/cqrs-gen/v3`        | 🔧 Tool         |
+| `cmd/api-stability`     | `…/cmd/api-stability/v3`   | 🔧 Tool         |
+| `cmd/doc-check`         | `…/cmd/doc-check/v3`       | 🔧 Tool         |
+| `stack`                 | `…/stack/v3`               | ✅ Production   |
+| `stack/memory`          | `…/stack/memory/v3`        | ✅ Production   |
+| `stack/sqlite`          | `…/stack/sqlite/v3`        | ✅ Production   |
+| `stack/pebble`          | `…/stack/pebble/v3`        | ✅ Production   |
+| `stack/postgres`        | `…/stack/postgres/v3`      | ⚠️ Partial (0% test coverage locally — skips without `POSTGRES_TEST_DSN`) |
+| `stack/turso`           | `…/stack/turso/v3`         | ✅ Production   |
+| `stack/bench`           | `…/stack/bench/v3`         | 🧪 Benchmarks   |
+| `deriver`               | `…/deriver/v3`             | ✅ Production   |
+| `graph`                 | `…/graph/v3`               | ✅ Production   |
+| `idempotency`           | `…/idempotency/v3`         | ✅ Production   |
+| `projection`            | `…/projection/v3`          | ✅ Production   |
+| `projectionhost`        | `…/projectionhost/v3`      | ✅ Production   |
+| `scenario`              | `…/scenario/v3`            | ✅ Production   |
+| `scheduling`            | `…/scheduling/v3`          | ✅ Production   |
+| `example/taskmanager`   | `…/example/taskmanager`    | 💡 Demo         |
+| `example/getting-started` | `…/example/getting-started` | 💡 Demo       |
 
 ---
 
@@ -953,7 +957,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 | Guarantee              | Detail                                                                                                                                                                                                     |
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Lint posture           | ~68 findings across 15/37 modules after config tuning (noinlineerr disabled, makezero set to `always:false`). Mostly wrapcheck/err113/exhaustruct — style issues, not bugs. 22/37 modules pass lint clean. |
+| Lint posture           | `nix run .#lint` passes with 0 issues across all 48 modules (as of v3.7.0 release prep) |
 | Race-free              | `go test -race` passes across all modules                                                                                                                                                                  |
 | Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                                                                                                                                             |
 | Strong types           | `event.Event` is a concrete type alias (`= *ImmutableEvent`); core store/bus are interfaces for DI                                                                                                         |
