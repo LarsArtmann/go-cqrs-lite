@@ -108,11 +108,9 @@ v3.5.0 restructured the storage package with backward-compatible aliases, but th
 
 ## What's Missing
 
-### 1. No projection parallelism
+### 1. ~~No projection parallelism~~ (RESOLVED — was always the default)
 
-All projections run sequentially within a single `projectionhost.Host`. For DiscordSync (4 projections: messages, reactions, members, threads), this means a slow message projection blocks the reaction projection.
-
-**Suggestion:** Add `WithParallelProjections()` option that runs each projection in its own goroutine with its own checkpoint.
+> **Update (2026-07-10):** This was a misunderstanding. `projectionhost.Host` **already runs each projection in its own goroutine** with its own independent checkpoint (`host.go:147`, one `go worker.run()` per registered projection, 10ms staggered launch). A slow message projection does **not** block the reaction projection — they are fully independent readers with separate cursors. No `WithParallelProjections()` option is needed; parallelism is the default and only behavior.
 
 ### 2. No projection lag metric built-in
 
@@ -174,15 +172,15 @@ The skill file (`/.agents/skills/go-cqrs-lite/SKILL.md`) is **the best skill fil
 
 ## Summary Scorecard
 
-| Dimension             | Score      | Notes                                                                 |
-| --------------------- | ---------- | --------------------------------------------------------------------- |
-| API design            | 9/10       | Clean interfaces, right abstractions, ISP-respecting splits           |
-| Documentation (skill) | 9/10       | Best skill file; minor gaps in shared-DB + projectionhost lifecycle   |
-| Ease of adoption      | 7/10       | 28 modules is high cognitive overhead; eventtest breaks local tidy    |
-| Projection system     | 9/10       | projectionhost is production-grade; needs parallelism                 |
-| Codec support         | 10/10      | CBOR + JSON with auto-detection is exemplary                          |
-| Observability         | 9/10       | OTel + Prometheus bridge is excellent; needs built-in lag metric      |
-| Overall               | **8.5/10** | Best Go CQRS/ES library; modular architecture is a double-edged sword |
+| Dimension             | Score      | Notes                                                                                  |
+| --------------------- | ---------- | -------------------------------------------------------------------------------------- |
+| API design            | 9/10       | Clean interfaces, right abstractions, ISP-respecting splits                            |
+| Documentation (skill) | 9/10       | Best skill file; minor gaps in shared-DB + projectionhost lifecycle                    |
+| Ease of adoption      | 7/10       | 28 modules is high cognitive overhead; eventtest breaks local tidy                     |
+| Projection system     | 9/10       | projectionhost is production-grade; parallel by default (one goroutine per projection) |
+| Codec support         | 10/10      | CBOR + JSON with auto-detection is exemplary                                           |
+| Observability         | 9/10       | OTel + Prometheus bridge is excellent; needs built-in lag metric                       |
+| Overall               | **8.5/10** | Best Go CQRS/ES library; modular architecture is a double-edged sword                  |
 
 ---
 
@@ -202,12 +200,12 @@ The skill file (`/.agents/skills/go-cqrs-lite/SKILL.md`) is **the best skill fil
 
 ### What's Missing
 
-| #   | Feedback Item                                 | Status             | What changed                                                                                    |
-| --- | --------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------------- |
-| 1   | No projection parallelism                     | ❌ **Not started** | `WithParallelProjections()` is a P2 feature request.                                            |
-| 2   | No projection lag metric built-in             | ✅ **SHIPPED**     | `projectionhost.Host.LagDuration() time.Duration` added. Register as Prometheus gauge directly. |
-| 3   | No guidance on "shared database" architecture | ✅ **SHIPPED**     | Added shared-DB recipe to `references/recipes.md` §2.0 — manual wiring with one `*sql.DB`.      |
-| 4   | No `event.CaptureFromGateway` convenience     | ❌ **Not started** | Noted as P2 feature request.                                                                    |
+| #   | Feedback Item                                 | Status                     | What changed                                                                                                                                        |
+| --- | --------------------------------------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ~~No projection parallelism~~                 | ✅ **Already the default** | Projections always ran in parallel — one goroutine each with independent checkpoints. Feedback was based on a misunderstanding of the architecture. |
+| 2   | No projection lag metric built-in             | ✅ **SHIPPED**             | `projectionhost.Host.LagDuration() time.Duration` added. Register as Prometheus gauge directly.                                                     |
+| 3   | No guidance on "shared database" architecture | ✅ **SHIPPED**             | Added shared-DB recipe to `references/recipes.md` §2.0 — manual wiring with one `*sql.DB`.                                                          |
+| 4   | No `event.CaptureFromGateway` convenience     | ❌ **Not started**         | Noted as P2 feature request.                                                                                                                        |
 
 ### Skill Feedback
 

@@ -69,7 +69,7 @@
 7. **CI check: go.work ↔ api-stability tracking sync** — Same gap for api-stability tracking.
 8. **SSE large-payload test (>8MB)** — Test with events exceeding default byte budget.
 9. **Adopt `errorfamily.HTTPStatus()` in example/taskmanager** — Taskmanager hand-rolls error→status mapping.
-10. **Projection parallelism** — `WithParallelProjections()` — consumer request from DiscordSync.
+10. ~~**Projection parallelism**~~ — Already the default (one goroutine per projection, independent checkpoints). DiscordSync feedback was a misunderstanding.
 
 ### P3 — Polish (4 remaining)
 
@@ -186,11 +186,10 @@ I ran `go mod tidy -e` in transport/http, middleware, and projectionhost. This m
 15. **CI check: go.work ↔ api-stability tracking sync** — Same for api-stability.
 16. **SSE large-payload test (>8MB)** — Verify budget boundary with real >8MB data.
 17. **Adopt `errorfamily.HTTPStatus()` in example/taskmanager** — Replace hand-rolled mapping.
-18. **Projection parallelism** — `WithParallelProjections()`.
-19. **json.Marshal Deterministic(true) audit** — Sweep all json.Marshal calls with map fields.
-20. **json.Unmarshal MatchCaseInsensitiveNames(true) audit** — Sweep all decode paths.
-21. **Add ADRs for json/v2 decisions** — Three ADRs: case-insensitive decode, deterministic encoding, dispatch-time middleware.
-22. **Add missing testutil/ module to check-module-layers.sh** — It has a go.mod but may not be in the script.
+18. **json.Marshal Deterministic(true) audit** — Sweep all json.Marshal calls with map fields.
+19. **json.Unmarshal MatchCaseInsensitiveNames(true) audit** — Sweep all decode paths.
+20. **Add ADRs for json/v2 decisions** — Three ADRs: case-insensitive decode, deterministic encoding, dispatch-time middleware.
+21. **Add missing testutil/ module to check-module-layers.sh** — It has a go.mod but may not be in the script.
 
 ### P3 remaining (POLISH)
 
