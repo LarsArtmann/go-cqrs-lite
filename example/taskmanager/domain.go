@@ -7,7 +7,6 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
@@ -19,7 +18,7 @@ import (
 // beyond event/ (for error taxonomy) and id/ (for branded IDs).
 // ──────────────────────────────────────────────────────────────────────────
 
-const aggregateType = event.AggregateType("Task")
+const aggregateType = id.AggregateType("Task")
 
 // TaskID is the identifier for a Task aggregate. It uses id.AggregateID
 // because the event system keys on that type. For compile-time branded

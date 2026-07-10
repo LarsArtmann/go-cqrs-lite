@@ -42,7 +42,7 @@ var _ = Describe("MemoryStore", func() {
 					events := []event.Event{makeMemEvent("Created", aggID, 1)}
 					err := store.Save(
 						ctx,
-						event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+						id.NewAggregateRef(id.AggregateType("TestAggregate"), aggID),
 						events,
 						0,
 					)
@@ -50,7 +50,7 @@ var _ = Describe("MemoryStore", func() {
 
 					loaded, err := store.Load(
 						ctx,
-						event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+						id.NewAggregateRef(id.AggregateType("TestAggregate"), aggID),
 					)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(loaded).To(HaveLen(1))
@@ -66,7 +66,7 @@ var _ = Describe("MemoryStore", func() {
 					events := []event.Event{makeMemEvent("Created", aggID, 1)}
 					err := store.Save(
 						ctx,
-						event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+						id.NewAggregateRef(id.AggregateType("TestAggregate"), aggID),
 						events,
 						0,
 					)
@@ -75,7 +75,7 @@ var _ = Describe("MemoryStore", func() {
 					more := []event.Event{makeMemEvent("Updated", aggID, 2)}
 					err = store.Save(
 						ctx,
-						event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+						id.NewAggregateRef(id.AggregateType("TestAggregate"), aggID),
 						more,
 						0,
 					) // wrong expected version
@@ -88,7 +88,7 @@ var _ = Describe("MemoryStore", func() {
 			It("should explain that the aggregate was not found", func() {
 				_, err := store.Load(
 					ctx,
-					event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+					id.NewAggregateRef(id.AggregateType("TestAggregate"), aggID),
 				)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("aggregate not found"))
@@ -103,7 +103,7 @@ var _ = Describe("MemoryStore", func() {
 					Expect(
 						store.Save(
 							ctx,
-							event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+							id.NewAggregateRef(id.AggregateType("TestAggregate"), aggID),
 							initial,
 							0,
 						),
@@ -116,14 +116,14 @@ var _ = Describe("MemoryStore", func() {
 					Expect(
 						store.AppendBatch(
 							ctx,
-							event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+							id.NewAggregateRef(id.AggregateType("TestAggregate"), aggID),
 							batch,
 						),
 					).To(Succeed())
 
 					loaded, err := store.Load(
 						ctx,
-						event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+						id.NewAggregateRef(id.AggregateType("TestAggregate"), aggID),
 					)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(loaded).To(HaveLen(3))
@@ -143,7 +143,7 @@ var _ = Describe("MemoryStore", func() {
 					Expect(
 						store.Save(
 							ctx,
-							event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+							id.NewAggregateRef(id.AggregateType("TestAggregate"), aggID),
 							events,
 							0,
 						),
@@ -153,7 +153,7 @@ var _ = Describe("MemoryStore", func() {
 					// Version(2) → index 2 → only version 3 event
 					fromV2, err := store.LoadFromVersion(
 						ctx,
-						event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+						id.NewAggregateRef(id.AggregateType("TestAggregate"), aggID),
 						2,
 					)
 					Expect(err).ToNot(HaveOccurred())
@@ -163,7 +163,7 @@ var _ = Describe("MemoryStore", func() {
 					// Version(1) → index 1 → versions 2 and 3
 					fromV1, err := store.LoadFromVersion(
 						ctx,
-						event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+						id.NewAggregateRef(id.AggregateType("TestAggregate"), aggID),
 						1,
 					)
 					Expect(err).ToNot(HaveOccurred())
@@ -180,7 +180,7 @@ var _ = Describe("MemoryStore", func() {
 
 					err := store.Save(
 						ctx,
-						event.NewAggregateRef(event.AggregateType("TestAggregate"), aggID),
+						id.NewAggregateRef(id.AggregateType("TestAggregate"), aggID),
 						[]event.Event{makeMemEvent("Created", aggID, 1)},
 						0,
 					)
@@ -272,14 +272,14 @@ var _ = Describe("MemorySnapshotStore", func() {
 		ctx       context.Context
 		snapStore *memory.MemorySnapshotStore
 		aggID     id.AggregateID
-		aggType   event.AggregateType
+		aggType   id.AggregateType
 	)
 
 	BeforeEach(func() {
 		ctx = context.Background()
 		snapStore = memory.NewMemorySnapshotStore()
 		aggID = id.NewAggregateID()
-		aggType = event.AggregateType("Order")
+		aggType = id.AggregateType("Order")
 	})
 
 	Describe("As a developer speeding up aggregate loading with snapshots", func() {
@@ -293,7 +293,7 @@ var _ = Describe("MemorySnapshotStore", func() {
 				}
 				Expect(snapStore.Save(ctx, snap)).To(Succeed())
 
-				loaded, err := snapStore.Load(ctx, event.NewAggregateRef(aggType, aggID))
+				loaded, err := snapStore.Load(ctx, id.NewAggregateRef(aggType, aggID))
 				Expect(err).ToNot(HaveOccurred())
 				Expect(loaded.Version).To(Equal(event.Version(5)))
 				Expect(loaded.State).To(Equal([]byte(`{"status":"active","items":3}`)))
@@ -310,7 +310,7 @@ var _ = Describe("MemorySnapshotStore", func() {
 					aggID, aggType, event.Version(7), []byte(`{"status":"new"}`),
 				))).To(Succeed())
 
-				loaded, err := snapStore.Load(ctx, event.NewAggregateRef(aggType, aggID))
+				loaded, err := snapStore.Load(ctx, id.NewAggregateRef(aggType, aggID))
 				Expect(err).ToNot(HaveOccurred())
 				Expect(loaded.Version).To(Equal(event.Version(7)))
 			})
@@ -318,7 +318,7 @@ var _ = Describe("MemorySnapshotStore", func() {
 
 		Context("when I load a snapshot for a non-existent aggregate", func() {
 			It("should explain that no snapshot was found so I fall back to full replay", func() {
-				_, err := snapStore.Load(ctx, event.NewAggregateRef(aggType, aggID))
+				_, err := snapStore.Load(ctx, id.NewAggregateRef(aggType, aggID))
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("snapshot not found"))
 			})

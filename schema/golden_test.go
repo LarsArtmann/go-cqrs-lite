@@ -9,6 +9,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3/idtest"
 	"github.com/larsartmann/go-cqrs-lite/schema/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
@@ -48,7 +49,7 @@ func TestGolden_UpcasterOutput(t *testing.T) {
 
 	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
 	evtID := idtest.ParseEventID(t, "01HK1540X0841Y0A6BSX1VKR96")
-	ref := event.NewAggregateRef("User", aggID)
+	ref := id.NewAggregateRef("User", aggID)
 
 	evt, err := event.NewEvent(
 		"UserCreated", aggID, "User", 1,

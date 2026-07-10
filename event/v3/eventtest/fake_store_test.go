@@ -24,7 +24,7 @@ func appendTestEvents(
 	t *testing.T,
 	store *FakeStore,
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	n int,
 ) {
 	t.Helper()
@@ -38,7 +38,7 @@ func TestFakeStore_Save_Default(t *testing.T) {
 	store := NewFakeStore()
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Test", aggID)
+	ref := id.NewAggregateRef("Test", aggID)
 	evt := newTestEvent(t, aggID, 1)
 
 	if err := store.Save(ctx, ref, []event.Event{evt}, 0); err != nil {
@@ -57,13 +57,13 @@ func TestFakeStore_Save_Default(t *testing.T) {
 func TestFakeStore_Save_Override(t *testing.T) {
 	t.Parallel()
 	store := NewFakeStore()
-	store.saveFn = func(context.Context, event.AggregateRef, []event.Event, event.Version) error {
+	store.saveFn = func(context.Context, id.AggregateRef, []event.Event, event.Version) error {
 		return errors.New("save override")
 	}
 
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Test", aggID)
+	ref := id.NewAggregateRef("Test", aggID)
 	evt := newTestEvent(t, aggID, 1)
 
 	if err := store.Save(
@@ -82,7 +82,7 @@ func TestFakeStore_Load_Default(t *testing.T) {
 	store := NewFakeStore()
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Test", aggID)
+	ref := id.NewAggregateRef("Test", aggID)
 
 	evt1 := newTestEvent(t, aggID, 1)
 	evt2 := newTestEvent(t, aggID, 2)
@@ -102,7 +102,7 @@ func TestFakeStore_Load_DefensiveCopy(t *testing.T) {
 	store := NewFakeStore()
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Test", aggID)
+	ref := id.NewAggregateRef("Test", aggID)
 
 	evt := newTestEvent(t, aggID, 1)
 	_ = store.AppendBatch(ctx, ref, []event.Event{evt})
@@ -119,13 +119,13 @@ func TestFakeStore_Load_DefensiveCopy(t *testing.T) {
 func TestFakeStore_Load_Override(t *testing.T) {
 	t.Parallel()
 	store := NewFakeStore()
-	store.loadFn = func(event.AggregateRef) ([]event.Event, error) {
+	store.loadFn = func(id.AggregateRef) ([]event.Event, error) {
 		return nil, errors.New("load override")
 	}
 
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Test", aggID)
+	ref := id.NewAggregateRef("Test", aggID)
 
 	if _, err := store.Load(ctx, ref); err == nil || err.Error() != "load override" {
 		t.Fatalf("expected load override error, got: %v", err)
@@ -137,7 +137,7 @@ func TestFakeStore_LoadFromVersion_Default(t *testing.T) {
 	store := NewFakeStore()
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Test", aggID)
+	ref := id.NewAggregateRef("Test", aggID)
 
 	appendTestEvents(t, store, ctx, ref, 5)
 
@@ -153,13 +153,13 @@ func TestFakeStore_LoadFromVersion_Default(t *testing.T) {
 func TestFakeStore_LoadFromVersion_Override(t *testing.T) {
 	t.Parallel()
 	store := NewFakeStore()
-	store.loadFromVersionFn = func(event.AggregateRef, event.Version) ([]event.Event, error) {
+	store.loadFromVersionFn = func(id.AggregateRef, event.Version) ([]event.Event, error) {
 		return nil, errors.New("override")
 	}
 
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Test", aggID)
+	ref := id.NewAggregateRef("Test", aggID)
 
 	if _, err := store.LoadFromVersion(ctx, ref, 0); err == nil || err.Error() != "override" {
 		t.Fatalf("expected override error, got: %v", err)
@@ -171,7 +171,7 @@ func TestFakeStore_LoadToVersion_Default(t *testing.T) {
 	store := NewFakeStore()
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Test", aggID)
+	ref := id.NewAggregateRef("Test", aggID)
 
 	appendTestEvents(t, store, ctx, ref, 5)
 
@@ -189,7 +189,7 @@ func TestFakeStore_LoadToTimestamp_Default(t *testing.T) {
 	store := NewFakeStore()
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Test", aggID)
+	ref := id.NewAggregateRef("Test", aggID)
 
 	now := time.Now()
 	for i := range 3 {
@@ -212,7 +212,7 @@ func TestFakeStore_AppendBatch_Default(t *testing.T) {
 	store := NewFakeStore()
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Test", aggID)
+	ref := id.NewAggregateRef("Test", aggID)
 
 	evt1 := newTestEvent(t, aggID, 1)
 	evt2 := newTestEvent(t, aggID, 2)
@@ -232,7 +232,7 @@ func TestFakeStore_ReadAll_Default(t *testing.T) {
 	for range 3 {
 		aggID := id.NewAggregateID()
 		evt := newTestEvent(t, aggID, 1)
-		_ = store.AppendBatch(ctx, event.NewAggregateRef("Test", aggID), []event.Event{evt})
+		_ = store.AppendBatch(ctx, id.NewAggregateRef("Test", aggID), []event.Event{evt})
 	}
 
 	all, err := store.ReadAll(ctx)
@@ -266,7 +266,7 @@ func TestFakeStore_ReadFrom_Default(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 	evt := newTestEvent(t, aggID, 1)
-	_ = store.AppendBatch(ctx, event.NewAggregateRef("Test", aggID), []event.Event{evt})
+	_ = store.AppendBatch(ctx, id.NewAggregateRef("Test", aggID), []event.Event{evt})
 
 	// ReadFrom after the only event should return 0
 	from, err := store.ReadFrom(ctx, evt.ID(), 0)
@@ -320,7 +320,7 @@ func TestFakeStore_ConcurrentAccess(t *testing.T) {
 	store := NewFakeStore()
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Test", aggID)
+	ref := id.NewAggregateRef("Test", aggID)
 
 	for i := range 100 {
 		go func(v int) {

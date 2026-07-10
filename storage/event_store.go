@@ -8,6 +8,7 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
 )
@@ -61,7 +62,7 @@ func (s *SQLEventStore) checkClosed() error {
 // Save persists events with optimistic concurrency check.
 func (s *SQLEventStore) Save(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {
@@ -120,7 +121,7 @@ func (s *SQLEventStore) Save(
 // All events are inserted in a single transaction for atomicity.
 func (s *SQLEventStore) AppendBatch(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	events []event.Event,
 ) error {
 	if err := s.checkClosed(); err != nil {
@@ -170,7 +171,7 @@ func (s *SQLEventStore) wrapInsertEventsErr(
 	span cqrsotel.Span,
 	err error,
 	events []event.Event,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 ) error {
 	cqrsotel.RecordError(span, err)
 
@@ -181,7 +182,7 @@ func (s *SQLEventStore) wrapInsertEventsErr(
 func (s *SQLEventStore) checkVersion(
 	ctx context.Context,
 	tx *sql.Tx,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	expectedVersion event.Version,
 ) error {
 	p1, p2 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2)

@@ -380,7 +380,7 @@ func TestSSEHandler_LastEventID_Reconnect(t *testing.T) {
 
 	// Save two events to the store (journal).
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Test", aggID)
+	ref := id.NewAggregateRef("Test", aggID)
 
 	evt1, err := event.NewEvent("TestEvent", aggID, "Test", 1, []byte(`{"seq":1}`))
 	if err != nil {
@@ -445,7 +445,7 @@ func TestSSEHandler_ReplayDedup_NoDuplicates(t *testing.T) {
 	defer bus.Close()
 
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Test", aggID)
+	ref := id.NewAggregateRef("Test", aggID)
 
 	evt0, err := event.NewEvent("TestEvent", aggID, "Test", 1, []byte(`{"seq":0}`))
 	if err != nil {
@@ -513,7 +513,7 @@ func TestSSEHandler_UnlimitedReplay(t *testing.T) {
 	defer bus.Close()
 
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Test", aggID)
+	ref := id.NewAggregateRef("Test", aggID)
 
 	// Create more events than sseReplayBatchSize (500) to force multiple batches.
 	// We need them in the global journal, so we save them all to one aggregate.
@@ -588,7 +588,7 @@ func TestSSEHandler_ReplayTimeout_SendsAdvisoryEvent(t *testing.T) {
 	defer bus.Close()
 
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Test", aggID)
+	ref := id.NewAggregateRef("Test", aggID)
 
 	evt0, err := event.NewEvent("TestEvent", aggID, "Test", 1, []byte(`{"seq":0}`))
 	if err != nil {

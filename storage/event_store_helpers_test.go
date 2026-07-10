@@ -96,7 +96,7 @@ func saveEvt(t *testing.T, store *SQLEventStore, evt event.Event) error {
 	t.Helper()
 
 	return store.Save(
-		context.Background(), event.NewAggregateRef(evt.AggregateType(), evt.AggregateID()),
+		context.Background(), id.NewAggregateRef(evt.AggregateType(), evt.AggregateID()),
 		[]event.Event{evt},
 		event.Version(0),
 	)
@@ -107,7 +107,7 @@ func appendBatchEvt(t *testing.T, store *SQLEventStore, evt event.Event) error {
 
 	return store.AppendBatch(
 		context.Background(),
-		event.NewAggregateRef(evt.AggregateType(), evt.AggregateID()),
+		id.NewAggregateRef(evt.AggregateType(), evt.AggregateID()),
 		[]event.Event{evt},
 	)
 }

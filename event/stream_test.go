@@ -101,7 +101,7 @@ func TestStreamingSource_MemoryStore_LoadStream(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		event.NewAggregateRef(event.AggregateType("Order"), aggID),
+		id.NewAggregateRef(id.AggregateType("Order"), aggID),
 		wantEvents,
 	)
 	if err != nil {
@@ -110,7 +110,7 @@ func TestStreamingSource_MemoryStore_LoadStream(t *testing.T) {
 
 	var ss event.StreamingSource = store
 
-	iter, err := ss.LoadStream(ctx, event.NewAggregateRef(event.AggregateType("Order"), aggID))
+	iter, err := ss.LoadStream(ctx, id.NewAggregateRef(id.AggregateType("Order"), aggID))
 	if err != nil {
 		t.Fatalf("LoadStream: %v", err)
 	}

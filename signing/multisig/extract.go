@@ -65,7 +65,7 @@ func ExtractMultiSignature(evt event.Event) (MultiSignature, error) {
 
 	var multiSig MultiSignature
 
-	unmarshalErr := json.Unmarshal([]byte(encoded), &multiSig)
+	unmarshalErr := json.Unmarshal([]byte(encoded), &multiSig, json.MatchCaseInsensitiveNames(true))
 	if unmarshalErr != nil {
 		return MultiSignature{Entries: nil}, errorfamily.WrapInfrastructure(
 			unmarshalErr,
@@ -108,7 +108,7 @@ func attachMultiSignature(
 	evt event.Event,
 	multiSig MultiSignature,
 ) (event.Event, error) {
-	encoded, err := json.Marshal(multiSig)
+	encoded, err := json.Marshal(multiSig, json.Deterministic(true))
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(
 			err,

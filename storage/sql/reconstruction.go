@@ -50,7 +50,7 @@ func ScanSlice[T any](rows *sql.Rows, fn func(*sql.Rows) (T, error)) ([]T, error
 func ReconstructEvent(
 	eventID id.EventID,
 	eventType event.Type,
-	aggType event.AggregateType,
+	aggType id.AggregateType,
 	aggID id.AggregateID,
 	version, schemaVersion int,
 	payload, metadataJSON []byte,
@@ -74,7 +74,7 @@ func UnmarshalEventMetadata(data []byte, eventType string) ([]event.Option, erro
 // embedded Tracing + Custom JSON shape, so the SQL layer need not depend on
 // any one module's concrete type (ADR-0031).
 func MarshalMetadata(m any) ([]byte, error) {
-	data, err := json.Marshal(m)
+	data, err := json.Marshal(m, json.Deterministic(true))
 	if err != nil {
 		return nil, errorfamily.WrapCorruption(err, "storage.marshal_metadata", "marshal metadata")
 	}

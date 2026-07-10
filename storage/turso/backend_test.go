@@ -70,7 +70,7 @@ func TestBackend_EventStore(t *testing.T) {
 		t.Fatalf("NewEvent: %v", err)
 	}
 
-	ref := event.NewAggregateRef("TestAggregate", aggID)
+	ref := id.NewAggregateRef("TestAggregate", aggID)
 	ctx := context.Background()
 	if err := store.Save(ctx, ref, []event.Event{evt}, 0); err != nil {
 		t.Fatalf("Save: %v", err)
@@ -267,7 +267,7 @@ func TestBackend_Close(t *testing.T) {
 	// After Close, the event store should report closed (Infrastructure family).
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	_, err := backend.EventStore().Load(ctx, event.NewAggregateRef("X", aggID))
+	_, err := backend.EventStore().Load(ctx, id.NewAggregateRef("X", aggID))
 	if err == nil {
 		t.Fatal("expected error loading from closed store")
 	}
@@ -341,7 +341,7 @@ func TestBackend_FullLifecycle(t *testing.T) {
 
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Issue", aggID)
+	ref := id.NewAggregateRef("Issue", aggID)
 
 	t.Run("EventStore_SaveLoadMultiVersion", func(t *testing.T) {
 		verifyEventStoreRoundtrip(t, ctx, backend, aggID, ref)
@@ -365,7 +365,7 @@ func verifyEventStoreRoundtrip(
 	ctx context.Context,
 	backend *storage.SQLBackend,
 	aggID id.AggregateID,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 ) {
 	t.Helper()
 
@@ -413,7 +413,7 @@ func verifySnapshotStoreRoundtrip(
 	ctx context.Context,
 	backend *storage.SQLBackend,
 	aggID id.AggregateID,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 ) {
 	t.Helper()
 

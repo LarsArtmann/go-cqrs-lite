@@ -37,12 +37,12 @@ func seedPebbleStreamEvents(
 	t *testing.T,
 	store *cqrspebble.EventStore,
 	count int,
-) (event.AggregateRef, []event.Event) {
+) (id.AggregateRef, []event.Event) {
 	t.Helper()
 
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Order", aggID)
+	ref := id.NewAggregateRef("Order", aggID)
 	events := make([]event.Event, count)
 	for i := range count {
 		evt, err := event.NewEvent(

@@ -7,8 +7,8 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/metadata/v3"
 )
 
 // Metadata keys for command field mapping. Tracing and custom keys are shared
@@ -95,10 +95,10 @@ func MessageToCommand(topic string, msg *message.Message) (*command.BasicCommand
 	return cmd, nil
 }
 
-// writeTracing writes the 4 shared tracing identifiers from event.Tracing
+// writeTracing writes the 4 shared tracing identifiers from metadata.Tracing
 // into message metadata. Both event.Metadata and command.Metadata embed
-// event.Tracing, so this is reused by both protocols.
-func writeTracing(md message.Metadata, t event.Tracing) {
+// metadata.Tracing, so this is reused by both protocols.
+func writeTracing(md message.Metadata, t metadata.Tracing) {
 	if !t.CorrelationID.IsZero() {
 		md.Set(metaCorrelationID, t.CorrelationID.String())
 	}

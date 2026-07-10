@@ -128,7 +128,7 @@ func TestExecute_SaveError(t *testing.T) {
 
 	store := eventtest.NewFakeStore()
 	store.SaveFn(
-		func(_ context.Context, _ event.AggregateRef, _ []event.Event, _ event.Version) error {
+		func(_ context.Context, _ id.AggregateRef, _ []event.Event, _ event.Version) error {
 			return errors.New("db connection lost")
 		},
 	)

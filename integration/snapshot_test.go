@@ -125,7 +125,7 @@ func TestSnapshot_EventSerialization(t *testing.T) {
 		t.Fatalf("execute: %v", err)
 	}
 
-	events, err := store.Load(ctx, event.NewAggregateRef("User", aggID))
+	events, err := store.Load(ctx, id.NewAggregateRef("User", aggID))
 	if err != nil {
 		t.Fatalf("load: %v", err)
 	}

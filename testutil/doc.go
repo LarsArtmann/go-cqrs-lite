@@ -16,7 +16,7 @@
 //	        version := testutil.Version().Draw(rt, "version")
 //
 //	        evt, err := event.NewEvent(event.Type(eventType), id.NewAggregateID(),
-//	            event.AggregateType(aggType), event.Version(version), nil)
+//	            id.AggregateType(aggType), event.Version(version), nil)
 //	        if err != nil {
 //	            return // skip invalid combinations
 //	        }

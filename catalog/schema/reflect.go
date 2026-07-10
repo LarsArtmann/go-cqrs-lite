@@ -57,7 +57,7 @@ func ToAny(s *Schema) (any, error) {
 
 	var result any
 
-	err = json.Unmarshal(raw, &result)
+	err = json.Unmarshal(raw, &result, json.MatchCaseInsensitiveNames(true))
 	if err != nil {
 		return nil, errorfamily.Newf(
 			errorfamily.Infrastructure,

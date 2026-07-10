@@ -106,10 +106,10 @@ type DecideFunc[State any] func(state State, currentVersion event.Version) ([]ev
 func (r *Repository[State]) Execute(
 	ctx context.Context,
 	aggregateID id.AggregateID,
-	aggregateType event.AggregateType,
+	aggregateType id.AggregateType,
 	decide DecideFunc[State],
 ) error {
-	ref := event.NewAggregateRef(aggregateType, aggregateID)
+	ref := id.NewAggregateRef(aggregateType, aggregateID)
 
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.execute",
@@ -170,7 +170,7 @@ func (r *Repository[State]) Execute(
 // swallowed — snapshots are best-effort and must not block the write path.
 func (r *Repository[State]) saveSnapshotAfterEvents(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	newVersion event.Version,
 	state State,
 	newEvents []event.Event,
@@ -233,7 +233,7 @@ func (r *Repository[State]) saveSnapshotAfterEvents(
 func (r *Repository[State]) Load(
 	ctx context.Context,
 	aggregateID id.AggregateID,
-	aggregateType event.AggregateType,
+	aggregateType id.AggregateType,
 ) (State, event.Version, error) {
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.load",

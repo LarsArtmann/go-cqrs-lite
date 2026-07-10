@@ -3,8 +3,8 @@ package query
 import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/metadata/v3"
 )
 
 // Type identifies a query type.
@@ -36,7 +36,7 @@ type Query interface {
 type MetadataKey string
 
 // Metadata contains tracing and contextual information for queries.
-// It embeds event.CustomData for the cross-cutting tracing identifiers and
+// It embeds metadata.CustomData for the cross-cutting tracing identifiers and
 // custom key-value metadata.
 //
 // Unlike the old alias of event.Metadata, query.Metadata does NOT carry
@@ -44,7 +44,7 @@ type MetadataKey string
 // Metadata so a change to the event's shape cannot silently reshape queries.
 // See ADR-0031.
 type Metadata struct {
-	event.CustomData[MetadataKey]
+	metadata.CustomData[MetadataKey]
 }
 
 // NewMetadata creates a Metadata with zero-value fields.

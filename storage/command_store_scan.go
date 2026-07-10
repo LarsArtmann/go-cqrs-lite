@@ -83,7 +83,11 @@ func (s *SQLCommandStore) scanCommand(rows *sql.Rows) (*command.PersistedCommand
 
 	if len(metadataJSON) > 0 {
 		var meta command.Metadata
-		if jsonErr := json.Unmarshal(metadataJSON, &meta); jsonErr != nil {
+		if jsonErr := json.Unmarshal(
+			metadataJSON,
+			&meta,
+			json.MatchCaseInsensitiveNames(true),
+		); jsonErr != nil {
 			return nil, errorfamily.WrapCorruption(jsonErr, "storage.parse_command_metadata",
 				fmt.Sprintf("unmarshal metadata for %s command (id %s)", commandType, commandIDStr))
 		}

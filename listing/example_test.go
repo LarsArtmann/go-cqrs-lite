@@ -16,7 +16,7 @@ func ExampleNewInMemoryAggregateReader() {
 	reader := listing.NewInMemoryAggregateReader(store)
 
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("User", aggID)
+	ref := id.NewAggregateRef("User", aggID)
 
 	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`))
 	_ = store.Save(context.Background(), ref, []event.Event{evt}, 0)
@@ -41,7 +41,7 @@ func ExampleNewListBuilder() {
 	reader := listing.NewInMemoryAggregateReader(store)
 
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Order", aggID)
+	ref := id.NewAggregateRef("Order", aggID)
 
 	evt, _ := event.NewEvent("OrderPlaced", aggID, "Order", 1, []byte(`{"total":42}`))
 	_ = store.Save(context.Background(), ref, []event.Event{evt}, 0)
@@ -86,7 +86,7 @@ func ExampleCacheInvalidationMiddleware() {
 
 	// Seed an aggregate
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("User", aggID)
+	ref := id.NewAggregateRef("User", aggID)
 	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{}`))
 	_ = store.Save(context.Background(), ref, []event.Event{evt}, 0)
 

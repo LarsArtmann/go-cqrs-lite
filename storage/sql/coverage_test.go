@@ -58,7 +58,7 @@ func TestReconstructEvent(t *testing.T) {
 	now := time.Now().UTC().Truncate(time.Millisecond)
 
 	evt, err := sqlpkg.ReconstructEvent(
-		eventID, event.Type("user.created"), event.AggregateType("User"), aggID,
+		eventID, event.Type("user.created"), id.AggregateType("User"), aggID,
 		1, 1,
 		[]byte(`{"name":"Alice"}`),
 		[]byte(`{}`),
@@ -161,7 +161,7 @@ func TestStartAggregateSpan(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	ref := event.NewAggregateRef("User", id.NewAggregateID())
+	ref := id.NewAggregateRef("User", id.NewAggregateID())
 
 	_, span := sqlpkg.StartAggregateSpan(ctx, "test.span", ref)
 	if span == nil {
@@ -175,7 +175,7 @@ func TestStartSaveSpan(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	ref := event.NewAggregateRef("User", id.NewAggregateID())
+	ref := id.NewAggregateRef("User", id.NewAggregateID())
 
 	_, span := sqlpkg.StartSaveSpan(ctx, "test.save", ref, event.Version(0), 3)
 	if span == nil {

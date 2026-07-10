@@ -3,7 +3,6 @@ package encryption
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
@@ -12,7 +11,7 @@ type encTestEnv struct {
 	store *encryptedStore
 	inner *eventtest.FakeStore
 	aggID id.AggregateID
-	ref   event.AggregateRef
+	ref   id.AggregateRef
 }
 
 func newEncTestEnv(t *testing.T, opts ...MiddlewareOption) encTestEnv {
@@ -36,6 +35,6 @@ func newEncTestEnv(t *testing.T, opts ...MiddlewareOption) encTestEnv {
 		store: store,
 		inner: inner,
 		aggID: aggID,
-		ref:   event.NewAggregateRef("User", aggID),
+		ref:   id.NewAggregateRef("User", aggID),
 	}
 }

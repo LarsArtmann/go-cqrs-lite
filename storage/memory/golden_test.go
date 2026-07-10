@@ -9,6 +9,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3/idtest"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
@@ -21,7 +22,7 @@ func TestGolden_EventStoreRoundTrip(t *testing.T) {
 	t.Cleanup(func() { _ = store.Close() })
 
 	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
-	ref := event.NewAggregateRef("Order", aggID)
+	ref := id.NewAggregateRef("Order", aggID)
 
 	types := []struct {
 		typ     string
@@ -101,7 +102,7 @@ func TestGolden_SnapshotStoreRoundTrip(t *testing.T) {
 	t.Cleanup(func() { _ = store.Close() })
 
 	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
-	ref := event.NewAggregateRef("User", aggID)
+	ref := id.NewAggregateRef("User", aggID)
 
 	state, err := json.Marshal(map[string]string{"name": "Bob", "role": "admin"})
 	if err != nil {

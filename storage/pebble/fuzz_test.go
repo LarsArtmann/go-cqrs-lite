@@ -38,7 +38,7 @@ func FuzzSnapshotStore_Roundtrip(f *testing.F) {
 		}
 
 		aggID := id.NewAggregateID()
-		aggType := event.AggregateType("FuzzSnap")
+		aggType := id.AggregateType("FuzzSnap")
 		snap := snapshot.Snapshot{
 			AggregateID:   aggID,
 			AggregateType: aggType,
@@ -52,7 +52,7 @@ func FuzzSnapshotStore_Roundtrip(f *testing.F) {
 			t.Fatalf("Save: %v", err)
 		}
 
-		ref := event.NewAggregateRef(aggType, aggID)
+		ref := id.NewAggregateRef(aggType, aggID)
 		loaded, err := snapStore.Load(ctx, ref)
 		if err != nil {
 			t.Fatalf("Load: %v", err)

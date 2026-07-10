@@ -25,7 +25,7 @@ func TestMemoryStore_Closed(t *testing.T) {
 
 	err := store.Save(
 		ctx,
-		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		id.NewAggregateRef(id.AggregateType("User"), aggID),
 		[]event.Event{evt},
 		0,
 	)
@@ -43,8 +43,8 @@ func TestMemoryStore_ClosedLoad(t *testing.T) {
 
 	_, err := store.Load(
 		ctx,
-		event.NewAggregateRef(
-			event.AggregateType("User"),
+		id.NewAggregateRef(
+			id.AggregateType("User"),
 			idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 		),
 	)
@@ -64,7 +64,7 @@ func TestMemoryStore_ClosedLoadFromVersion(t *testing.T) {
 
 	_, err := store.LoadFromVersion(
 		ctx,
-		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		id.NewAggregateRef(id.AggregateType("User"), aggID),
 		0,
 	)
 	if err == nil {
@@ -80,7 +80,7 @@ func TestMemoryStore_LoadToVersion_Closed(t *testing.T) {
 
 	_, err := store.LoadToVersion(
 		context.Background(),
-		event.NewAggregateRef(event.AggregateType("User"), id.NewAggregateID()),
+		id.NewAggregateRef(id.AggregateType("User"), id.NewAggregateID()),
 		1,
 	)
 	if err == nil {
@@ -96,7 +96,7 @@ func TestMemoryStore_LoadToTimestamp_Closed(t *testing.T) {
 
 	_, err := store.LoadToTimestamp(
 		context.Background(),
-		event.NewAggregateRef(event.AggregateType("User"), id.NewAggregateID()),
+		id.NewAggregateRef(id.AggregateType("User"), id.NewAggregateID()),
 		time.Now(),
 	)
 	if err == nil {
@@ -123,7 +123,7 @@ func TestMemoryStore_LoadBackwards_Closed(t *testing.T) {
 	_ = store.Close()
 
 	backwardsLoader := event.BackwardsSource(store)
-	_, err := backwardsLoader.LoadBackwards(context.Background(), event.AggregateRef{})
+	_, err := backwardsLoader.LoadBackwards(context.Background(), id.AggregateRef{})
 	if err == nil {
 		t.Fatal("expected error for closed store")
 	}

@@ -57,12 +57,12 @@ func seedStreamEvents(
 	t *testing.T,
 	store *storage.SQLEventStore,
 	count int,
-) (event.AggregateRef, []event.Event) {
+) (id.AggregateRef, []event.Event) {
 	t.Helper()
 
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Order", aggID)
+	ref := id.NewAggregateRef("Order", aggID)
 	events := make([]event.Event, count)
 	for i := range count {
 		events[i] = mustStreamEvent(t, "order.updated", aggID, i+1)
@@ -118,7 +118,7 @@ func TestSQLStream_LoadStream_Empty(t *testing.T) {
 	t.Parallel()
 
 	store := newSQLiteStreamStore(t)
-	ref := event.NewAggregateRef("Order", id.NewAggregateID())
+	ref := id.NewAggregateRef("Order", id.NewAggregateID())
 
 	iter, err := store.LoadStream(context.Background(), ref)
 	if err != nil {

@@ -8,10 +8,11 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 func (a *EventStore) checkVersion(
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	expectedVersion event.Version,
 ) error {
 	count, err := a.countEvents(ref)
@@ -29,7 +30,7 @@ func (a *EventStore) checkVersion(
 	return nil
 }
 
-func (a *EventStore) countEvents(ref event.AggregateRef) (int, error) {
+func (a *EventStore) countEvents(ref id.AggregateRef) (int, error) {
 	prefix := a.aggregatePrefix(ref)
 	upperBound := a.aggregateUpperBound(ref)
 
@@ -88,7 +89,7 @@ func parseVersionFromKey(key []byte) (int, error) {
 
 func (a *EventStore) writeEventsToBatch(
 	batch *pebble.Batch,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {
@@ -119,7 +120,7 @@ func (a *EventStore) writeEventsToBatch(
 
 func validateEventOwnership(
 	evt event.Event,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 ) error {
 	if evt.AggregateType() != ref.Type {
 		return errorfamily.WrapConflict(ErrAggregateTypeMismatch, "pebble.aggregate_type_mismatch",

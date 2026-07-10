@@ -66,7 +66,7 @@ func TestBackfillHandler_ReturnsEvents(t *testing.T) {
 
 	store := eventtest.NewFakeStore()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Test", aggID)
+	ref := id.NewAggregateRef("Test", aggID)
 
 	evt0, _ := event.NewEvent("test.event", aggID, "Test", 1, []byte(`{"n":0}`))
 	evt1, _ := event.NewEvent("test.event", aggID, "Test", 2, []byte(`{"n":1}`))
@@ -129,7 +129,7 @@ func TestBackfillHandler_LimitsTo1000(t *testing.T) {
 
 	store := eventtest.NewFakeStore()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Test", aggID)
+	ref := id.NewAggregateRef("Test", aggID)
 	evt0, _ := event.NewEvent("test.event", aggID, "Test", 1, []byte(`{}`))
 	_ = store.Save(context.Background(), ref, []event.Event{evt0}, 0)
 

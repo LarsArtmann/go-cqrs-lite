@@ -163,7 +163,7 @@ func seedOrders(
 
 	for i := range aggCount {
 		aggIDs[i] = id.NewAggregateID()
-		ref := event.NewAggregateRef("Order", aggIDs[i])
+		ref := id.NewAggregateRef("Order", aggIDs[i])
 		events := make([]event.Event, eventsPerAgg)
 
 		for v := range eventsPerAgg {

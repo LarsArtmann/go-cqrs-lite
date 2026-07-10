@@ -62,7 +62,7 @@ func saveEvent(
 ) {
 	t.Helper()
 
-	ref := event.NewAggregateRef(evt.AggregateType(), evt.AggregateID())
+	ref := id.NewAggregateRef(evt.AggregateType(), evt.AggregateID())
 	if err := store.Save(ctx, ref, []event.Event{evt}, expectedVersion); err != nil {
 		t.Fatalf("Save: %v", err)
 	}
@@ -76,7 +76,7 @@ func TestEventStore_SaveAndLoad(t *testing.T) {
 	evt := makeEvent(t, aggID, 1)
 	saveEvent(t, store, ctx, evt, 0)
 
-	ref := event.NewAggregateRef("TestAggregate", aggID)
+	ref := id.NewAggregateRef("TestAggregate", aggID)
 	events, err := store.Load(ctx, ref)
 	if err != nil {
 		t.Fatalf("Load: %v", err)
@@ -100,7 +100,7 @@ func TestEventStore_AppendBatch(t *testing.T) {
 
 	evt2 := makeEvent(t, aggID, 2)
 	evt3 := makeEvent(t, aggID, 3)
-	ref := event.NewAggregateRef("TestAggregate", aggID)
+	ref := id.NewAggregateRef("TestAggregate", aggID)
 	if err := store.AppendBatch(ctx, ref, []event.Event{evt2, evt3}); err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
@@ -125,7 +125,7 @@ func TestEventStore_LoadFromVersion(t *testing.T) {
 		saveEvent(t, store, ctx, makeEvent(t, aggID, i), event.Version(i-1))
 	}
 
-	ref := event.NewAggregateRef("TestAggregate", aggID)
+	ref := id.NewAggregateRef("TestAggregate", aggID)
 	events, err := store.LoadFromVersion(ctx, ref, 1)
 	if err != nil {
 		t.Fatalf("LoadFromVersion: %v", err)
@@ -142,7 +142,7 @@ func TestEventStore_LoadNonExistent(t *testing.T) {
 	store, ctx := setupEventStore(t)
 	aggID := id.NewAggregateID()
 
-	ref := event.NewAggregateRef("TestAggregate", aggID)
+	ref := id.NewAggregateRef("TestAggregate", aggID)
 	_, err := store.Load(ctx, ref)
 	if err == nil {
 		t.Fatal("expected error for non-existent aggregate")
@@ -204,7 +204,7 @@ func TestSnapshotStore_SaveAndLoad(t *testing.T) {
 		t.Fatalf("Save snapshot: %v", err)
 	}
 
-	ref := event.NewAggregateRef("TestAggregate", aggID)
+	ref := id.NewAggregateRef("TestAggregate", aggID)
 	loaded, err := store.LoadAtVersion(ctx, ref, 5)
 	if err != nil {
 		t.Fatalf("LoadAtVersion: %v", err)

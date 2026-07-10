@@ -25,7 +25,7 @@ import (
 // [TypedStore.BytesToTyped] (or just let the adapter handle it).
 type TypedSnapshot[State any] struct {
 	AggregateID   id.AggregateID
-	AggregateType event.AggregateType
+	AggregateType id.AggregateType
 	Version       event.Version
 	State         State
 	CreatedAt     time.Time
@@ -36,16 +36,16 @@ type TypedSnapshot[State any] struct {
 // store is the adapter's job).
 type TypedSnapshotSink[State any] interface {
 	Save(ctx context.Context, snapshot TypedSnapshot[State]) error
-	Delete(ctx context.Context, ref event.AggregateRef) error
+	Delete(ctx context.Context, ref id.AggregateRef) error
 }
 
 // TypedSnapshotSource loads typed snapshots. The typed analogue of
 // [SnapshotSource].
 type TypedSnapshotSource[State any] interface {
-	Load(ctx context.Context, ref event.AggregateRef) (*TypedSnapshot[State], error)
+	Load(ctx context.Context, ref id.AggregateRef) (*TypedSnapshot[State], error)
 	LoadAtVersion(
 		ctx context.Context,
-		ref event.AggregateRef,
+		ref id.AggregateRef,
 		version event.Version,
 	) (*TypedSnapshot[State], error)
 }
@@ -79,7 +79,7 @@ func NewTypedStore[State any](store SnapshotStore, c codec.Codec) *TypedStore[St
 
 // Save encodes snapshot.State and delegates to the underlying [SnapshotStore].
 func (t *TypedStore[State]) Save(ctx context.Context, snapshot TypedSnapshot[State]) error {
-	encoded, err := t.codec.Encode(snapshot.State)
+	encoded, err := codec.WrapEncode(snapshot.State, t.codec)
 	if err != nil {
 		return errorfamily.Wrapf(err, errorfamily.Corruption, "snapshot.encode_state",
 			"encode state for %s v%d", snapshot.AggregateID, snapshot.Version)
@@ -101,7 +101,7 @@ func (t *TypedStore[State]) Save(ctx context.Context, snapshot TypedSnapshot[Sta
 }
 
 // Delete removes the snapshot for ref from the underlying store.
-func (t *TypedStore[State]) Delete(ctx context.Context, ref event.AggregateRef) error {
+func (t *TypedStore[State]) Delete(ctx context.Context, ref id.AggregateRef) error {
 	err := t.store.Delete(ctx, ref)
 	if err != nil {
 		return errorfamily.Wrapf(err, errorfamily.Infrastructure, "snapshot.delete",
@@ -114,7 +114,7 @@ func (t *TypedStore[State]) Delete(ctx context.Context, ref event.AggregateRef) 
 // Load retrieves the snapshot for ref and decodes its State.
 func (t *TypedStore[State]) Load(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 ) (*TypedSnapshot[State], error) {
 	raw, err := t.store.Load(ctx, ref)
 	if err != nil {
@@ -129,7 +129,7 @@ func (t *TypedStore[State]) Load(
 // decodes its State.
 func (t *TypedStore[State]) LoadAtVersion(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	version event.Version,
 ) (*TypedSnapshot[State], error) {
 	raw, err := t.store.LoadAtVersion(ctx, ref, version)
@@ -147,7 +147,9 @@ func (t *TypedStore[State]) Store() SnapshotStore { return t.store }
 func (t *TypedStore[State]) decode(raw *Snapshot) (*TypedSnapshot[State], error) {
 	var state State
 
-	err := t.codec.Decode(raw.State, &state)
+	c, inner := codec.UnwrapDecode(raw.State, t.codec)
+
+	err := c.Decode(inner, &state)
 	if err != nil {
 		return nil, errorfamily.Wrapf(err, errorfamily.Corruption, "snapshot.decode_state",
 			"decode state for %s v%d", raw.AggregateID, raw.Version)

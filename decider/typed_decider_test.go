@@ -54,7 +54,7 @@ func TestTypedDecider_ExecuteCommand(t *testing.T) {
 		t.Fatalf("ExecuteCommand: %v", err)
 	}
 
-	events, err := store.Load(ctx, event.NewAggregateRef("Counter", aggID))
+	events, err := store.Load(ctx, id.NewAggregateRef("Counter", aggID))
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
@@ -92,7 +92,7 @@ func TestTypedDecider_NilPublisher(t *testing.T) {
 		t.Fatalf("ExecuteCommand with nil publisher: %v", err)
 	}
 
-	events, err := store.Load(ctx, event.NewAggregateRef("Counter", aggID))
+	events, err := store.Load(ctx, id.NewAggregateRef("Counter", aggID))
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}

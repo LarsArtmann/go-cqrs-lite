@@ -263,7 +263,7 @@ func mustCBTestEvent(tb testing.TB) event.Event {
 	evt, err := event.New(
 		event.Type("test.event"),
 		id.NewAggregateID(),
-		event.AggregateType("Test"),
+		id.AggregateType("Test"),
 		event.Version(1),
 		map[string]any{"data": "test"},
 	)

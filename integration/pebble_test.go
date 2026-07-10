@@ -49,14 +49,14 @@ func TestPebbleEventStoreWithProjectionRunner(t *testing.T) {
 
 	// Seed two events before the runner starts so replay is exercised.
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef(event.AggregateType("Counter"), aggID)
+	ref := id.NewAggregateRef(id.AggregateType("Counter"), aggID)
 
 	for i := range 2 {
 		version := event.Version(i + 1)
 		evt, err := event.NewEvent(
 			"CounterIncremented",
 			aggID,
-			event.AggregateType("Counter"),
+			id.AggregateType("Counter"),
 			version,
 			nil,
 		)
@@ -83,7 +83,7 @@ func TestPebbleEventStoreWithProjectionRunner(t *testing.T) {
 	liveEvt, err := event.NewEvent(
 		"CounterIncremented",
 		aggID,
-		event.AggregateType("Counter"),
+		id.AggregateType("Counter"),
 		event.Version(3),
 		nil,
 	)
@@ -141,7 +141,7 @@ func TestPebbleSnapshotStoreWithDeciderRepository(t *testing.T) {
 	}
 
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef(event.AggregateType("Counter"), aggID)
+	ref := id.NewAggregateRef(id.AggregateType("Counter"), aggID)
 
 	// Execute three increments; snapshot should be saved at version 2.
 	for range 3 {
@@ -153,7 +153,7 @@ func TestPebbleSnapshotStoreWithDeciderRepository(t *testing.T) {
 				evt, err := event.NewEvent(
 					"CounterIncremented",
 					aggID,
-					event.AggregateType("Counter"),
+					id.AggregateType("Counter"),
 					v.Add(1),
 					nil,
 				)

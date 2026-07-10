@@ -31,7 +31,7 @@ func writeJournalEvents(
 			event.WithOccurredAt(base.Add(time.Duration(i)*time.Millisecond)))
 		events[i] = evt
 
-		err := store.Save(ctx, event.NewAggregateRef("Issue", aggID),
+		err := store.Save(ctx, id.NewAggregateRef("Issue", aggID),
 			[]event.Event{evt}, event.Version(0))
 		if err != nil {
 			t.Fatalf("Save event %d: %v", i, err)

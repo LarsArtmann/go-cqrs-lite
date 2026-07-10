@@ -58,7 +58,9 @@ func (s *TypedStore[T, K]) Get(ctx context.Context, id K) (*T, error) {
 
 	var val T
 
-	err = s.codec.Decode(data, &val)
+	c, inner := codec.UnwrapDecode(data, s.codec)
+
+	err = c.Decode(inner, &val)
 	if err != nil {
 		return nil, errorfamily.WrapCorruption(err, "kv.typed_store.decode",
 			fmt.Sprintf("decode key %q", s.key(id)))
@@ -85,7 +87,7 @@ func (s *TypedStore[T, K]) Set(ctx context.Context, id K, val *T) error {
 			fmt.Sprintf("nil value for key %q", s.key(id)))
 	}
 
-	data, err := s.codec.Encode(val)
+	data, err := codec.WrapEncode(val, s.codec)
 	if err != nil {
 		return errorfamily.WrapCorruption(err, "kv.typed_store.encode",
 			fmt.Sprintf("encode key %q", s.key(id)))
@@ -137,7 +139,9 @@ func (s *TypedStore[T, K]) Scan(ctx context.Context, prefix []byte) ([]*T, error
 	for iter.Next() {
 		var val T
 
-		err = s.codec.Decode(iter.Value(), &val)
+		c, inner := codec.UnwrapDecode(iter.Value(), s.codec)
+
+		err = c.Decode(inner, &val)
 		if err != nil {
 			return nil, errorfamily.WrapCorruption(err, "kv.typed_store.scan_decode",
 				fmt.Sprintf("decode key %q", iter.Key()))

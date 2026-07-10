@@ -96,7 +96,7 @@ func testFullRouting(t *testing.T, factory MultiDBFactory) {
 	aggID := id.NewAggregateID()
 
 	// Event → must land in the event DB.
-	ref := event.NewAggregateRef("Routing", aggID)
+	ref := id.NewAggregateRef("Routing", aggID)
 
 	evts, err := event.NewEvents(
 		aggID, "Routing", 0,

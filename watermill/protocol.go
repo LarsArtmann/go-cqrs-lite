@@ -110,7 +110,7 @@ func MessageToEvent(topic string, msg *message.Message) (event.Event, error) {
 			"watermill.parse_aggregate_id_failed", "parse aggregate_id")
 	}
 
-	aggregateType := event.AggregateType(md.Get(metaAggregateType))
+	aggregateType := id.AggregateType(md.Get(metaAggregateType))
 	if aggregateType == "" {
 		return nil, errorfamily.NewRejection("watermill.missing_metadata",
 			"missing "+metaAggregateType+" metadata")

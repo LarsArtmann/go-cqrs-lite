@@ -1,10 +1,10 @@
 # v4 Wishlist — Breaking Changes Batched for go-cqrs-lite/v4
 
-> **Status:** NOT STARTED. This document tracks breaking changes that would
-> justify a major version bump. Do NOT cut v4 until 3+ items on this list are
-> concrete and aliases can't solve them.
->
-> **Current major:** v3.7.1 (48 modules, 27 consumer projects)
+> **Status:** PREP COMPLETE. ADR-0044 blind store envelopes shipped (v3.8).
+> Deprecated aliases marked, internal code cleaned, migration guide written.
+> Ready to cut when trigger criteria met.
+> Trigger check: 2 items concrete (codec flip + alias removal), need 1 more.
+> **Current major:** v3.8.0 (49 modules, 27 consumer projects)
 > **Created:** 2026-06-29
 
 ---
@@ -143,3 +143,6 @@ These are tracked here for context but can ship in v3.x:
 | 2026-06-29 | Do NOT cut v4 yet                     | 27 consumers, aliases solve everything, no concrete break request |
 | 2026-06-29 | Ship storage/ split as v3.5.0 aliases | Zero consumer migration                                           |
 | 2026-06-29 | Do NOT split event/ even in v4        | 27 importers, cohesion is real                                    |
+| 2026-07-10 | ADR-0044 envelopes shipped (v3.8)     | Blind stores now self-describing; codec flip unblocked            |
+| 2026-07-10 | Deprecated aliases cleaned internally | ~200 usages across 42 files updated; SA1019 lint clean            |
+| 2026-07-10 | json Deterministic + CaseInsensitive  | All Marshal/Unmarshal calls audited (ADR-0047, ADR-0048)          |

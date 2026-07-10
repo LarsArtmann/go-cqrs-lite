@@ -28,13 +28,13 @@ func (c Ciphertext) String() string {
 func (c Ciphertext) MarshalJSON() ([]byte, error) {
 	encoded := base64.URLEncoding.EncodeToString(c)
 
-	return json.Marshal(encoded) //nolint:wrapcheck // ciphertext encoding, no wrapping needed
+	return json.Marshal(encoded, json.Deterministic(true)) //nolint:wrapcheck // ciphertext encoding
 }
 
 func (c *Ciphertext) UnmarshalJSON(data []byte) error {
 	var encoded string
 
-	err := json.Unmarshal(data, &encoded)
+	err := json.Unmarshal(data, &encoded, json.MatchCaseInsensitiveNames(true))
 	if err != nil {
 		return errorfamily.WrapInfrastructure(
 			err,

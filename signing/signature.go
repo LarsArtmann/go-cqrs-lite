@@ -43,7 +43,7 @@ func (s Signature) String() string {
 func (s Signature) MarshalJSON() ([]byte, error) {
 	encoded := base64.URLEncoding.EncodeToString(s)
 
-	return json.Marshal(encoded) //nolint:wrapcheck // signature encoding, no wrapping needed
+	return json.Marshal(encoded, json.Deterministic(true)) //nolint:wrapcheck // signature encoding
 }
 
 // UnmarshalJSON decodes a URL-safe base64 JSON string into the signature.
@@ -51,7 +51,7 @@ func (s Signature) MarshalJSON() ([]byte, error) {
 func (s *Signature) UnmarshalJSON(data []byte) error {
 	var encoded string
 
-	err := json.Unmarshal(data, &encoded)
+	err := json.Unmarshal(data, &encoded, json.MatchCaseInsensitiveNames(true))
 	if err != nil {
 		return errorfamily.WrapInfrastructure(
 			err,

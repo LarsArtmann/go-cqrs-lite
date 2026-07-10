@@ -65,6 +65,7 @@ func WithCodec(c codec.Codec) ValidatorOption {
 //
 // Deprecated: Use WithCodec(codec.JSONCodec{}) or WithDecoder(codec.EncodingJSON, fn)
 // for type safety. WithDecodeFunc will be removed in v4.
+// v4-removal: remove this function.
 func WithDecodeFunc(decode func([]byte, any) error) ValidatorOption {
 	return func(v *Validator) {
 		v.decode = decode
@@ -100,7 +101,7 @@ func NewValidator(opts ...ValidatorOption) *Validator {
 	cborCodec := codec.CBORCodec{}
 
 	decodeJSON := func(data []byte, v any) error {
-		return json.Unmarshal(data, v)
+		return json.Unmarshal(data, v, json.MatchCaseInsensitiveNames(true))
 	}
 
 	v := &Validator{

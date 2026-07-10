@@ -3,9 +3,10 @@ package event_test
 import (
 	"testing"
 
+	"pgregory.net/rapid"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
-	"pgregory.net/rapid"
 )
 
 func makeTombstoneEvent(t *rapid.T) event.Event {

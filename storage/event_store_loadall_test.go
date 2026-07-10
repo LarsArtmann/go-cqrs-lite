@@ -130,7 +130,7 @@ func TestSQLEventStore_LoadBackwards_Success(t *testing.T) {
 	backwardsLoader := event.BackwardsSource(store)
 	events, err := backwardsLoader.LoadBackwards(
 		context.Background(),
-		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		id.NewAggregateRef(id.AggregateType("User"), aggID),
 	)
 	if err != nil {
 		t.Fatalf("LoadBackwards: %v", err)
@@ -157,7 +157,7 @@ func TestSQLEventStore_LoadBackwards_NotFound(t *testing.T) {
 	backwardsLoader := event.BackwardsSource(store)
 	_, err := backwardsLoader.LoadBackwards(
 		context.Background(),
-		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		id.NewAggregateRef(id.AggregateType("User"), aggID),
 	)
 	if !errors.Is(err, event.ErrAggregateNotFound) {
 		t.Fatalf("expected ErrAggregateNotFound, got %v", err)
@@ -189,7 +189,7 @@ func TestSQLEventStore_SQLInjectionSafety(t *testing.T) {
 
 	store, mock := newTestStore(t)
 
-	maliciousAggType := event.AggregateType("User'; DROP TABLE events; --")
+	maliciousAggType := id.AggregateType("User'; DROP TABLE events; --")
 	maliciousAggID := id.NewAggregateID()
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
@@ -198,7 +198,7 @@ func TestSQLEventStore_SQLInjectionSafety(t *testing.T) {
 
 	events, err := store.Load(
 		context.Background(),
-		event.NewAggregateRef(maliciousAggType, maliciousAggID),
+		id.NewAggregateRef(maliciousAggType, maliciousAggID),
 	)
 	if !errors.Is(err, event.ErrAggregateNotFound) {
 		t.Fatalf("Load with malicious input: expected ErrAggregateNotFound, got %v", err)

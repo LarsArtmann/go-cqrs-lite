@@ -1,6 +1,9 @@
 # ADR 0044: Blind Store Encoding Stamps
 
-> **Status:** PROPOSED — design only, not implemented. Targeted for v4.
+> **Status:** ACCEPTED — implemented in v3.8.0. Envelope wrapping is active for
+> all blind stores (kv.TypedStore, snapshot.TypedStore, command.TypedStore,
+> query.TypedStore). Old unenveloped data auto-detected via backward-compatible
+> fallback decode. v4 codec default flip is now unblocked.
 > **Date:** 2026-07-01
 > **Related:** `docs/v4-WISHLIST.md` item #8, `docs/migration/JSON_TO_CBOR.md`
 

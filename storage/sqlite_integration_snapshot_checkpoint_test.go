@@ -29,7 +29,7 @@ func TestSQLiteSnapshotStore_Roundtrip(t *testing.T) {
 		t.Fatalf("Save: %v", err)
 	}
 
-	loaded, err := store.Load(context.Background(), event.NewAggregateRef("Issue", aggID))
+	loaded, err := store.Load(context.Background(), id.NewAggregateRef("Issue", aggID))
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
@@ -62,7 +62,7 @@ func TestSQLiteSnapshotStore_LoadAtVersion(t *testing.T) {
 
 	_, err = store.LoadAtVersion(
 		context.Background(),
-		event.NewAggregateRef("Issue", aggID),
+		id.NewAggregateRef("Issue", aggID),
 		event.Version(5),
 	)
 	if !errors.Is(err, snapshot.ErrSnapshotNotFound) {
@@ -71,7 +71,7 @@ func TestSQLiteSnapshotStore_LoadAtVersion(t *testing.T) {
 
 	loaded, err := store.LoadAtVersion(
 		context.Background(),
-		event.NewAggregateRef("Issue", aggID),
+		id.NewAggregateRef("Issue", aggID),
 		event.Version(15),
 	)
 	if err != nil {

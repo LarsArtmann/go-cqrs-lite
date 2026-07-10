@@ -52,7 +52,7 @@ func BenchmarkSQLEventStore_Load(b *testing.B) {
 
 		_, _ = store.Load(
 			context.Background(),
-			event.NewAggregateRef(event.AggregateType("User"), aggID),
+			id.NewAggregateRef(id.AggregateType("User"), aggID),
 		)
 
 		if err := mock.ExpectationsWereMet(); err != nil {
@@ -78,7 +78,7 @@ func BenchmarkSQLEventStore_Save(b *testing.B) {
 
 	for b.Loop() {
 		evt, _ := event.NewEvent(
-			event.Type("user.created"), aggID, event.AggregateType("User"),
+			event.Type("user.created"), aggID, id.AggregateType("User"),
 			event.Version(1), payload,
 		)
 
@@ -95,7 +95,7 @@ func BenchmarkSQLEventStore_Save(b *testing.B) {
 		mock.ExpectCommit()
 
 		_ = store.Save(
-			context.Background(), event.NewAggregateRef(event.AggregateType("User"), aggID),
+			context.Background(), id.NewAggregateRef(id.AggregateType("User"), aggID),
 			[]event.Event{evt}, event.Version(0),
 		)
 
@@ -136,7 +136,7 @@ func BenchmarkSQLEventStore_LoadToVersion(b *testing.B) {
 
 		_, _ = store.LoadToVersion(
 			context.Background(),
-			event.NewAggregateRef(event.AggregateType("User"), aggID),
+			id.NewAggregateRef(id.AggregateType("User"), aggID),
 			2,
 		)
 

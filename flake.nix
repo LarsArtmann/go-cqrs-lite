@@ -56,6 +56,14 @@
             "schema"
             "snapshot"
             "codec"
+            "dedup"
+            "deriver"
+            "graph"
+            "metadata"
+            "projection"
+            "projectionhost"
+            "scenario"
+            "scheduling"
             "storage/memory"
             "storage/pebble"
             "storage/turso"
@@ -126,7 +134,7 @@
             };
           };
 
-          devShells.default = pkgs.mkShell {
+          devShells.default = pkgs.mkShellNoCC {
             packages = [
               goPkg
               pkgs.golangci-lint
@@ -160,7 +168,7 @@
           # and are invoked via `nix run .#<app>`. Pattern mirrors cqrs-htmx/flake.nix.
           packages.default = pkgs.stdenvNoCC.mkDerivation {
             pname = "go-cqrs-lite";
-            version = "3.7.1";
+            version = self.rev or self.dirtyRev or "dev";
 
             dontUnpack = true;
             dontConfigure = true;

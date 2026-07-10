@@ -154,7 +154,7 @@ func scanAggregateStatuses(rows *sql.Rows) ([]listing.AggregateStatus, error) {
 		items = append(items, listing.AggregateStatus{
 			Ref: listing.AggregateListing{
 				ID:         parsedID,
-				Type:       event.AggregateType(aggType),
+				Type:       id.AggregateType(aggType),
 				Version:    event.Version(version),
 				EventCount: count,
 			},

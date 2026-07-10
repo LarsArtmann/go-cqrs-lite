@@ -23,7 +23,7 @@ func ExampleNewSQLiteEventStore() {
 	store, _ := storage.NewSQLiteEventStore(db)
 
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("User", aggID)
+	ref := id.NewAggregateRef("User", aggID)
 
 	evt, _ := event.NewEvent("user.created", aggID, "User", event.Version(1),
 		[]byte(`{"name":"Alice"}`))

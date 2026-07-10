@@ -87,7 +87,7 @@ func TestDefaultOptions_OpensRealDBAndWorks(t *testing.T) {
 	store := backend.EventStore()
 	cfg := issueStoreConfig()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Issue", aggID)
+	ref := id.NewAggregateRef("Issue", aggID)
 
 	evt := cfg.NewTestEvent(t, aggID, 1)
 

@@ -102,7 +102,7 @@ func TestIdempotencyIntegration(t *testing.T) {
 		t.Fatalf("handler call count: want 1, got %d", handlerCallCount)
 	}
 
-	events, err := store.Load(ctx, event.NewAggregateRef(event.AggregateType("User"), aggID))
+	events, err := store.Load(ctx, id.NewAggregateRef(id.AggregateType("User"), aggID))
 	if err != nil {
 		t.Fatalf("load events: %v", err)
 	}

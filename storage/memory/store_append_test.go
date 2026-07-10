@@ -6,6 +6,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3/idtest"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
 )
@@ -23,14 +24,14 @@ func TestMemoryStore_AppendBatch(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		id.NewAggregateRef(id.AggregateType("User"), aggID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	events, err := store.Load(ctx, event.NewAggregateRef(event.AggregateType("User"), aggID))
+	events, err := store.Load(ctx, id.NewAggregateRef(id.AggregateType("User"), aggID))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -48,7 +49,7 @@ func TestMemoryStore_AppendBatch_AppendsToExisting(t *testing.T) {
 	evt1 := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 	_ = store.Save(
 		ctx,
-		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		id.NewAggregateRef(id.AggregateType("User"), aggID),
 		[]event.Event{evt1},
 		0,
 	)
@@ -58,14 +59,14 @@ func TestMemoryStore_AppendBatch_AppendsToExisting(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		id.NewAggregateRef(id.AggregateType("User"), aggID),
 		[]event.Event{evt2, evt3},
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	events, err := store.Load(ctx, event.NewAggregateRef(event.AggregateType("User"), aggID))
+	events, err := store.Load(ctx, id.NewAggregateRef(id.AggregateType("User"), aggID))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -84,7 +85,7 @@ func TestMemoryStore_AppendBatch_Closed(t *testing.T) {
 
 	err := store.AppendBatch(
 		context.Background(),
-		event.NewAggregateRef("User", aggID),
+		id.NewAggregateRef("User", aggID),
 		[]event.Event{evt},
 	)
 	if err == nil {

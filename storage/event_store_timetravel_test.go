@@ -18,7 +18,7 @@ func appendFiveEvents(t *testing.T, store *SQLEventStore, aggID id.AggregateID) 
 		evt := issueStoreConfig().NewTestEvent(t, aggID, event.Version(i+1))
 		if err := store.AppendBatch(
 			ctx,
-			event.NewAggregateRef(event.AggregateType("Issue"), aggID),
+			id.NewAggregateRef(id.AggregateType("Issue"), aggID),
 			[]event.Event{evt},
 		); err != nil {
 			t.Fatalf("AppendBatch: %v", err)
@@ -49,7 +49,7 @@ func TestSQLiteEventStore_LoadToVersion(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		event.NewAggregateRef(event.AggregateType("Issue"), aggID),
+		id.NewAggregateRef(id.AggregateType("Issue"), aggID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 	if err != nil {
@@ -58,7 +58,7 @@ func TestSQLiteEventStore_LoadToVersion(t *testing.T) {
 
 	events, err := store.LoadToVersion(
 		ctx,
-		event.NewAggregateRef(event.AggregateType("Issue"), aggID),
+		id.NewAggregateRef(id.AggregateType("Issue"), aggID),
 		2,
 	)
 	if err != nil {
@@ -77,7 +77,7 @@ func TestSQLiteEventStore_LoadToVersion_NotFound(t *testing.T) {
 
 	_, err := store.LoadToVersion(
 		context.Background(),
-		event.NewAggregateRef("Issue", id.NewAggregateID()),
+		id.NewAggregateRef("Issue", id.NewAggregateID()),
 		5,
 	)
 	if !errors.Is(err, event.ErrAggregateNotFound) {
@@ -100,7 +100,7 @@ func TestSQLiteEventStore_LoadToTimestamp(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		event.NewAggregateRef(event.AggregateType("Issue"), aggID),
+		id.NewAggregateRef(id.AggregateType("Issue"), aggID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 	if err != nil {
@@ -109,7 +109,7 @@ func TestSQLiteEventStore_LoadToTimestamp(t *testing.T) {
 
 	events, err := store.LoadToTimestamp(
 		ctx,
-		event.NewAggregateRef(event.AggregateType("Issue"), aggID),
+		id.NewAggregateRef(id.AggregateType("Issue"), aggID),
 		now.Add(-30*time.Minute),
 	)
 	if err != nil {
@@ -127,7 +127,7 @@ func TestSQLiteEventStore_LoadToTimestamp_NotFound(t *testing.T) {
 	store := newSQLiteTestStore(t)
 
 	_, err := store.LoadToTimestamp(
-		context.Background(), event.NewAggregateRef("Issue", id.NewAggregateID()),
+		context.Background(), id.NewAggregateRef("Issue", id.NewAggregateID()),
 		time.Now(),
 	)
 	if !errors.Is(err, event.ErrAggregateNotFound) {
@@ -153,7 +153,7 @@ func TestSQLiteEventStore_ReadFrom(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		event.NewAggregateRef(event.AggregateType("Issue"), aggID),
+		id.NewAggregateRef(id.AggregateType("Issue"), aggID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 	if err != nil {
@@ -188,7 +188,7 @@ func TestSQLiteEventStore_ReadFrom_ZeroID(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		event.NewAggregateRef(event.AggregateType("Issue"), aggID),
+		id.NewAggregateRef(id.AggregateType("Issue"), aggID),
 		[]event.Event{evt},
 	)
 	if err != nil {

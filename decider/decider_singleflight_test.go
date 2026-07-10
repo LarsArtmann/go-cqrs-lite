@@ -21,7 +21,7 @@ type countLoadStore struct {
 	count atomic.Int32
 }
 
-func (c *countLoadStore) Load(ctx context.Context, ref event.AggregateRef) ([]event.Event, error) {
+func (c *countLoadStore) Load(ctx context.Context, ref id.AggregateRef) ([]event.Event, error) {
 	c.count.Add(1)
 	time.Sleep(50 * time.Millisecond)
 

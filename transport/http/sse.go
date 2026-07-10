@@ -33,7 +33,7 @@ type SSEBroker struct {
 	replayLimit      int                   // <=0 = unlimited (batch streaming); >0 = bounded
 	replayTimeout    time.Duration         // <=0 = no limit; >0 = max replay duration
 	replayMetrics    *ReplayMetrics        // optional: OTel instruments for replay
-	replayByteBudget int                   // <=0 = disabled; >0 = max bytes before stopping
+	replayByteBudget int                   // 0 = auto-default (8MB for unlimited replay); -1 = explicitly disabled; >0 = explicit budget
 	dedupRingCap     int                   // <=0 = default (sseDedupRingCapacity)
 	retryInterval    time.Duration         // <=0 = default (DefaultSSERetryInterval)
 	eventFilter      func(event.Type) bool // nil = forward all events

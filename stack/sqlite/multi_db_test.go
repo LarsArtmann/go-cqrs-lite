@@ -84,7 +84,7 @@ func TestMultiDB_Routing(t *testing.T) {
 	aggID := id.NewAggregateID()
 
 	// Event → must land in the event DB.
-	ref := event.NewAggregateRef("Test", aggID)
+	ref := id.NewAggregateRef("Test", aggID)
 	evts, err := event.NewEvents(
 		aggID, "Test", 0,
 		[]event.Type{"test.created"},
@@ -188,7 +188,7 @@ func TestMultiDB_PersistenceAcrossReopen(t *testing.T) {
 
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Todo", aggID)
+	ref := id.NewAggregateRef("Todo", aggID)
 
 	evts, err := event.NewEvents(
 		aggID, "Todo", 0,
@@ -278,7 +278,7 @@ func TestNew_WithForeignKeys(t *testing.T) {
 	// Verify the database accepts writes (schema is valid with FK on).
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("FK", aggID)
+	ref := id.NewAggregateRef("FK", aggID)
 
 	evts, err := event.NewEvents(
 		aggID, "FK", 0,

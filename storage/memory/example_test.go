@@ -13,7 +13,7 @@ func ExampleNewMemoryStore() {
 	store := memory.NewMemoryStore()
 
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("User", aggID)
+	ref := id.NewAggregateRef("User", aggID)
 
 	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`))
 

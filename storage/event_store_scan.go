@@ -68,7 +68,7 @@ func (s *SQLEventStore) scanEvent(rows *sql.Rows) (event.Event, error) {
 	return sqlpkg.ReconstructEvent(
 		parsedEventID,
 		event.Type(eventType),
-		event.AggregateType(aggType),
+		id.AggregateType(aggType),
 		parsedAggID,
 		version,
 		schemaVersion,
@@ -82,7 +82,7 @@ func (s *SQLEventStore) scanEvent(rows *sql.Rows) (event.Event, error) {
 func (s *SQLEventStore) insertEvents(
 	ctx context.Context,
 	tx *sql.Tx,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	events []event.Event,
 ) error {
 	return sqlpkg.SharedBatchInsertEvents(ctx, tx, ref, events, s.Dialect, s.Dialect.FormatTime)

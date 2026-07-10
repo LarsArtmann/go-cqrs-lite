@@ -11,14 +11,14 @@ import (
 
 // EventGenerator produces deterministic event sequences for stress testing.
 type EventGenerator struct {
-	aggregateType event.AggregateType
+	aggregateType id.AggregateType
 	eventType     event.Type
 	payloadGen    func(int) any
 }
 
 // NewEventGenerator creates a generator for the given aggregate and event types.
 func NewEventGenerator(
-	aggregateType event.AggregateType,
+	aggregateType id.AggregateType,
 	eventType event.Type,
 	payloadGen func(int) any,
 ) *EventGenerator {

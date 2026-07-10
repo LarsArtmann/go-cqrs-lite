@@ -33,7 +33,7 @@ func TestEventStore_CorruptEventTriggersCorruptionError(t *testing.T) {
 	}
 
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Test", aggID)
+	ref := id.NewAggregateRef("Test", aggID)
 
 	// Write a valid event first
 	evt, err := event.NewEvent("test.event", aggID, "Test", event.Version(1), []byte(`{}`))
@@ -138,7 +138,7 @@ func TestSnapshotStore_CorruptData(t *testing.T) {
 	}
 
 	_, err = snapStore.LoadAtVersion(context.Background(),
-		event.NewAggregateRef("Test", aggID), 5)
+		id.NewAggregateRef("Test", aggID), 5)
 	_ = err
 
 	// Write corrupt JSON snapshot
@@ -147,7 +147,7 @@ func TestSnapshotStore_CorruptData(t *testing.T) {
 	}
 
 	_, _ = snapStore.LoadAtVersion(context.Background(),
-		event.NewAggregateRef("Test", aggID), 5)
+		id.NewAggregateRef("Test", aggID), 5)
 }
 
 // TestSnapshotStore_Delete verifies snapshot deletion.
@@ -168,7 +168,7 @@ func TestSnapshotStore_Delete(t *testing.T) {
 	}
 
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Test", aggID)
+	ref := id.NewAggregateRef("Test", aggID)
 
 	// Save a snapshot
 	snap := snapshot.Snapshot{

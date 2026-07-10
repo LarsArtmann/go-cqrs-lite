@@ -377,3 +377,87 @@ var _ = Describe("Query Idempotency Middleware", func() {
 		})
 	})
 })
+
+var _ = Describe("Event Idempotency Middleware", func() {
+	var ctx context.Context
+
+	BeforeEach(func() {
+		ctx = context.Background()
+	})
+
+	Describe("As a developer protecting against duplicate events", func() {
+		Context("when the same event is seen twice", func() {
+			It("should process the handler once and reject the duplicate", func() {
+				store := idempotency.NewMemoryStore(0)
+				defer store.Close()
+
+				var callCount int32
+				mw := middleware.EventIdempotency(store, time.Minute, nil)
+				handler := mw(func(_ context.Context, evt event.Event) error {
+					atomic.AddInt32(&callCount, 1)
+
+					return nil
+				})
+
+				aggID := id.NewAggregateID()
+				evt, err := event.NewEvent("test.event", aggID, "Test", 1, nil)
+				Expect(err).To(Succeed())
+
+				Expect(handler(ctx, evt)).To(Succeed())
+				err = handler(ctx, evt)
+				Expect(err).To(MatchError(idempotency.ErrDuplicate))
+				Expect(callCount).To(Equal(int32(1)))
+			})
+		})
+
+		Context("when two different events arrive", func() {
+			It("should process both events", func() {
+				store := idempotency.NewMemoryStore(0)
+				defer store.Close()
+
+				var callCount int32
+				mw := middleware.EventIdempotency(store, time.Minute, nil)
+				handler := mw(func(_ context.Context, evt event.Event) error {
+					atomic.AddInt32(&callCount, 1)
+
+					return nil
+				})
+
+				aggID := id.NewAggregateID()
+				evt1, err := event.NewEvent("test.event", aggID, "Test", 1, nil)
+				Expect(err).To(Succeed())
+				evt2, err := event.NewEvent("test.event2", aggID, "Test", 1, nil)
+				Expect(err).To(Succeed())
+
+				Expect(handler(ctx, evt1)).To(Succeed())
+				Expect(handler(ctx, evt2)).To(Succeed())
+				Expect(callCount).To(Equal(int32(2)))
+			})
+		})
+
+		Context("when a custom key extractor returns empty", func() {
+			It("should skip dedup and process all events", func() {
+				store := idempotency.NewMemoryStore(0)
+				defer store.Close()
+
+				var callCount int32
+				mw := middleware.EventIdempotency(store, time.Minute, func(_ event.Event) string {
+					return ""
+				})
+				handler := mw(func(_ context.Context, evt event.Event) error {
+					atomic.AddInt32(&callCount, 1)
+
+					return nil
+				})
+
+				aggID := id.NewAggregateID()
+				evt, err := event.NewEvent("test.event", aggID, "Test", 1, nil)
+				Expect(err).To(Succeed())
+
+				Expect(handler(ctx, evt)).To(Succeed())
+				Expect(handler(ctx, evt)).To(Succeed())
+				Expect(callCount).To(Equal(int32(2)))
+			})
+		})
+	})
+})

@@ -88,7 +88,7 @@ func TestBundle_RunProjections_GraphProjection(t *testing.T) {
 
 	// Phase 1: save historical events before RunProjections starts.
 	aggID, _ := id.ParseAggregateID("social")
-	ref := cqrsevent.NewAggregateRef("Social", aggID)
+	ref := id.NewAggregateRef("Social", aggID)
 
 	createEvents := make([]cqrsevent.Event, 0, 3)
 

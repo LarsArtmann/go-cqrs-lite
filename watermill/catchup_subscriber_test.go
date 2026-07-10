@@ -28,7 +28,7 @@ func TestCatchUpSubscriber_Replay(t *testing.T) {
 		[]byte(`{"msg":"hello"}`),
 	)
 	_ = store.AppendBatch(context.Background(),
-		event.NewAggregateRef("TestAggregate", aggID),
+		id.NewAggregateRef("TestAggregate", aggID),
 		[]event.Event{historicalEvt})
 
 	liveSub := NewSubscriberAdapter(bus)
@@ -96,7 +96,7 @@ func TestCatchUpSubscriber_BatchedReplay(t *testing.T) {
 	}
 
 	_ = store.AppendBatch(context.Background(),
-		event.NewAggregateRef("BulkAggregate", aggID), events)
+		id.NewAggregateRef("BulkAggregate", aggID), events)
 
 	liveSub := NewSubscriberAdapter(bus)
 

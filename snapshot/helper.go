@@ -15,7 +15,7 @@ func ShouldSnapshot(
 	strategy SnapshotStrategy,
 	sink SnapshotSink,
 	c codec.Codec,
-	aggType event.AggregateType,
+	aggType id.AggregateType,
 	version event.Version,
 ) bool {
 	return strategy != nil &&
@@ -27,7 +27,7 @@ func ShouldSnapshot(
 func SaveSnapshot(
 	ctx context.Context,
 	sink SnapshotSink,
-	aggType event.AggregateType,
+	aggType id.AggregateType,
 	aggID id.AggregateID,
 	version event.Version,
 	state []byte,

@@ -40,7 +40,7 @@ func BenchmarkEveryNEvents_ShouldSnapshot(b *testing.B) {
 	for b.Loop() {
 		_ = snapshot.ShouldSnapshot(
 			strategy, sink, codec.JSONCodec{},
-			event.AggregateType("User"), event.Version(100),
+			id.AggregateType("User"), event.Version(100),
 		)
 	}
 }
@@ -60,7 +60,7 @@ func BenchmarkSaveSnapshot(b *testing.B) {
 	for b.Loop() {
 		err := snapshot.SaveSnapshot(
 			ctx, sink,
-			event.AggregateType("User"), aggID,
+			id.AggregateType("User"), aggID,
 			event.Version(100), state,
 		)
 		if err != nil {
@@ -90,7 +90,7 @@ func BenchmarkMemorySnapshotStore_Load(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, err := sink.Load(ctx, event.NewAggregateRef("User", aggID))
+		_, err := sink.Load(ctx, id.NewAggregateRef("User", aggID))
 		if err != nil {
 			b.Fatalf("Load: %v", err)
 		}

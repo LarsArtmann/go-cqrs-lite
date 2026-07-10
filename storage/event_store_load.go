@@ -8,6 +8,7 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
 )
@@ -28,7 +29,7 @@ var eventQueryConfig = sqlpkg.QueryConfig[event.Event]{ //nolint:gochecknoglobal
 
 func (s *SQLEventStore) loadWithSpan(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	p sqlpkg.LoadParams,
 ) ([]event.Event, error) {
 	cfg := eventQueryConfig
@@ -39,7 +40,7 @@ func (s *SQLEventStore) loadWithSpan(
 
 func (s *SQLEventStore) loadSimple(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	spanName, order, errMsg string,
 ) ([]event.Event, error) {
 	return s.loadWithSpan(ctx, ref, sqlpkg.LoadParams{
@@ -49,13 +50,13 @@ func (s *SQLEventStore) loadSimple(
 	})
 }
 
-func (s *SQLEventStore) Load(ctx context.Context, ref event.AggregateRef) ([]event.Event, error) {
+func (s *SQLEventStore) Load(ctx context.Context, ref id.AggregateRef) ([]event.Event, error) {
 	return s.loadSimple(ctx, ref, "event.store.load", "ORDER BY version ASC", "query events")
 }
 
 func (s *SQLEventStore) LoadFromVersion(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	version event.Version,
 ) ([]event.Event, error) {
 	return s.loadWithSpan(ctx, ref, sqlpkg.LoadParams{
@@ -70,7 +71,7 @@ func (s *SQLEventStore) LoadFromVersion(
 
 func (s *SQLEventStore) LoadToVersion(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	maxVersion event.Version,
 ) ([]event.Event, error) {
 	return s.loadWithSpan(ctx, ref, sqlpkg.LoadParams{
@@ -85,7 +86,7 @@ func (s *SQLEventStore) LoadToVersion(
 
 func (s *SQLEventStore) LoadToTimestamp(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	maxTime time.Time,
 ) ([]event.Event, error) {
 	return s.loadWithSpan(ctx, ref, sqlpkg.LoadParams{
@@ -103,7 +104,7 @@ func (s *SQLEventStore) LoadToTimestamp(
 
 func (s *SQLEventStore) LoadBackwards(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 ) ([]event.Event, error) {
 	return s.loadSimple(
 		ctx, ref,

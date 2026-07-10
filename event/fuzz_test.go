@@ -89,7 +89,7 @@ func FuzzNewEvent(f *testing.F) {
 		func(t *testing.T, eventType, aggType string, version, schemaVersion int64, payload string) {
 			aggID := id.NewAggregateID()
 			evt, err := event.NewEvent(
-				event.Type(eventType), aggID, event.AggregateType(aggType),
+				event.Type(eventType), aggID, id.AggregateType(aggType),
 				event.Version(int(version)), []byte(payload),
 				event.WithSchemaVersion(event.SchemaVersion(int(schemaVersion))),
 			)
@@ -121,7 +121,7 @@ func FuzzDecodePayload(f *testing.F) {
 		aggID := id.NewAggregateID()
 
 		evt, err := event.NewEvent(
-			event.Type("test"), aggID, event.AggregateType("Test"),
+			event.Type("test"), aggID, id.AggregateType("Test"),
 			event.Version(1), json.RawMessage(payloadJSON),
 		)
 		if err != nil {

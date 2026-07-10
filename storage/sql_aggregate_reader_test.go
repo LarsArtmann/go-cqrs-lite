@@ -30,7 +30,7 @@ func openSQLiteListingDB(t *testing.T) (*sql.DB, *AggregateProjection) {
 func seedListingAggregates(
 	t *testing.T,
 	proj *AggregateProjection,
-	aggType event.AggregateType,
+	aggType id.AggregateType,
 	count int,
 ) []id.AggregateID {
 	t.Helper()
@@ -229,13 +229,13 @@ func TestSQLAggregateReader_List_TombstoneFilter(t *testing.T) {
 	aggID := id.NewAggregateID()
 
 	evt, _ := event.NewEvent(
-		event.Type("user.created"), aggID, event.AggregateType("User"),
+		event.Type("user.created"), aggID, id.AggregateType("User"),
 		event.Version(1), []byte(`{}`),
 	)
 	_ = proj.Handle(ctx, evt)
 
 	tombstoneEvt, err := event.NewEvent(
-		event.Type("user.deleted"), aggID, event.AggregateType("User"),
+		event.Type("user.deleted"), aggID, id.AggregateType("User"),
 		event.Version(2), []byte(`{}`),
 	)
 	if err != nil {

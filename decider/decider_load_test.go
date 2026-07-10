@@ -59,7 +59,7 @@ func TestLoad_StoreLoadError(t *testing.T) {
 	t.Parallel()
 
 	store := eventtest.NewFakeStore().LoadFn(
-		func(_ event.AggregateRef) ([]event.Event, error) {
+		func(_ id.AggregateRef) ([]event.Event, error) {
 			return nil, errors.New("db unavailable")
 		},
 	)

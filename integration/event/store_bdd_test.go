@@ -16,14 +16,14 @@ var _ = Describe("Event Store", func() {
 		ctx     context.Context
 		store   *memory.MemoryStore
 		aggID   id.AggregateID
-		aggType event.AggregateType
+		aggType id.AggregateType
 	)
 
 	BeforeEach(func() {
 		ctx = context.Background()
 		store = memory.NewMemoryStore()
 		aggID = id.NewAggregateID()
-		aggType = event.AggregateType("TestAggregate")
+		aggType = id.AggregateType("TestAggregate")
 	})
 
 	Describe("As a developer building an event-sourced system", func() {
@@ -35,13 +35,13 @@ var _ = Describe("Event Store", func() {
 
 				err := store.Save(
 					ctx,
-					event.NewAggregateRef(aggType, aggID),
+					id.NewAggregateRef(aggType, aggID),
 					events,
 					event.Version(0),
 				)
 				Expect(err).ToNot(HaveOccurred())
 
-				loaded, err := store.Load(ctx, event.NewAggregateRef(aggType, aggID))
+				loaded, err := store.Load(ctx, id.NewAggregateRef(aggType, aggID))
 				Expect(err).ToNot(HaveOccurred())
 				Expect(loaded).To(HaveLen(1))
 				Expect(loaded[0].Type()).To(Equal(event.Type("TestCreated")))
@@ -54,20 +54,20 @@ var _ = Describe("Event Store", func() {
 			It("should maintain event order and increment versions", func() {
 				first := []event.Event{createTestEvent("TestCreated", aggID, 1, nil)}
 				Expect(
-					store.Save(ctx, event.NewAggregateRef(aggType, aggID), first, event.Version(0)),
+					store.Save(ctx, id.NewAggregateRef(aggType, aggID), first, event.Version(0)),
 				).To(Succeed())
 
 				second := []event.Event{createTestEvent("TestUpdated", aggID, 2, nil)}
 				Expect(
 					store.Save(
 						ctx,
-						event.NewAggregateRef(aggType, aggID),
+						id.NewAggregateRef(aggType, aggID),
 						second,
 						event.Version(1),
 					),
 				).To(Succeed())
 
-				loaded, err := store.Load(ctx, event.NewAggregateRef(aggType, aggID))
+				loaded, err := store.Load(ctx, id.NewAggregateRef(aggType, aggID))
 				Expect(err).ToNot(HaveOccurred())
 				Expect(loaded).To(HaveLen(2))
 				Expect(loaded[0].Type()).To(Equal(event.Type("TestCreated")))
@@ -80,13 +80,13 @@ var _ = Describe("Event Store", func() {
 			It("should detect the version conflict and reject the save", func() {
 				first := []event.Event{createTestEvent("TestCreated", aggID, 1, nil)}
 				Expect(
-					store.Save(ctx, event.NewAggregateRef(aggType, aggID), first, event.Version(0)),
+					store.Save(ctx, id.NewAggregateRef(aggType, aggID), first, event.Version(0)),
 				).To(Succeed())
 
 				conflicting := []event.Event{createTestEvent("TestConflict", aggID, 2, nil)}
 				err := store.Save(
 					ctx,
-					event.NewAggregateRef(aggType, aggID),
+					id.NewAggregateRef(aggType, aggID),
 					conflicting,
 					event.Version(0),
 				)
@@ -97,7 +97,7 @@ var _ = Describe("Event Store", func() {
 
 		Context("when I load events for a non-existent aggregate", func() {
 			It("should explain that the aggregate was not found", func() {
-				_, err := store.Load(ctx, event.NewAggregateRef(aggType, id.NewAggregateID()))
+				_, err := store.Load(ctx, id.NewAggregateRef(aggType, id.NewAggregateID()))
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("aggregate not found"))
 			})
@@ -113,7 +113,7 @@ var _ = Describe("Event Store", func() {
 				Expect(
 					store.Save(
 						ctx,
-						event.NewAggregateRef(aggType, aggID),
+						id.NewAggregateRef(aggType, aggID),
 						events,
 						event.Version(0),
 					),
@@ -121,7 +121,7 @@ var _ = Describe("Event Store", func() {
 
 				loaded, err := store.LoadFromVersion(
 					ctx,
-					event.NewAggregateRef(aggType, aggID),
+					id.NewAggregateRef(aggType, aggID),
 					event.Version(2),
 				)
 				Expect(err).ToNot(HaveOccurred())
@@ -136,7 +136,7 @@ var _ = Describe("Event Store", func() {
 				Expect(
 					store.Save(
 						ctx,
-						event.NewAggregateRef(aggType, aggID),
+						id.NewAggregateRef(aggType, aggID),
 						events,
 						event.Version(0),
 					),
@@ -144,7 +144,7 @@ var _ = Describe("Event Store", func() {
 
 				loaded, err := store.LoadFromVersion(
 					ctx,
-					event.NewAggregateRef(aggType, aggID),
+					id.NewAggregateRef(aggType, aggID),
 					event.Version(99),
 				)
 				Expect(err).ToNot(HaveOccurred())
@@ -163,10 +163,10 @@ var _ = Describe("Event Store", func() {
 					}
 
 					Expect(
-						store.AppendBatch(ctx, event.NewAggregateRef(aggType, aggID), events),
+						store.AppendBatch(ctx, id.NewAggregateRef(aggType, aggID), events),
 					).To(Succeed())
 
-					loaded, err := store.Load(ctx, event.NewAggregateRef(aggType, aggID))
+					loaded, err := store.Load(ctx, id.NewAggregateRef(aggType, aggID))
 					Expect(err).ToNot(HaveOccurred())
 					Expect(loaded).To(HaveLen(3))
 					Expect(loaded[0].Version()).To(Equal(event.Version(1)))
@@ -184,7 +184,7 @@ var _ = Describe("Event Store", func() {
 
 				err := store.Save(
 					ctx,
-					event.NewAggregateRef(aggType, id.NewAggregateID()),
+					id.NewAggregateRef(aggType, id.NewAggregateID()),
 					nil,
 					event.Version(0),
 				)

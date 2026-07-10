@@ -38,7 +38,7 @@ func TestNew_WithoutAutoMigrate_NoTables(t *testing.T) {
 	// Saving an event should fail because the events table was never created.
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Test", aggID)
+	ref := id.NewAggregateRef("Test", aggID)
 
 	evts, evErr := event.NewEvents(
 		aggID, "Test", 0,
@@ -73,7 +73,7 @@ func TestNew_WithoutWAL(t *testing.T) {
 	// Verify the database accepts writes (WAL disabled didn't break anything).
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("NoWal", aggID)
+	ref := id.NewAggregateRef("NoWal", aggID)
 
 	evts, evErr := event.NewEvents(
 		aggID, "NoWal", 0,

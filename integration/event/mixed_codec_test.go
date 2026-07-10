@@ -27,7 +27,7 @@ func TestMixedCodecStream(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := t.Context()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("User", aggID)
+	ref := id.NewAggregateRef("User", aggID)
 
 	// Event 1: JSON-encoded (default)
 	evt1, err := event.New(

@@ -96,7 +96,7 @@ func seedStreamEvents(ctx context.Context, store *memory.MemoryStore) {
 	Expect(
 		store.Save(
 			ctx,
-			event.NewAggregateRef(event.AggregateType("User"), activeID),
+			id.NewAggregateRef(id.AggregateType("User"), activeID),
 			[]event.Event{activeEvt},
 			event.Version(0),
 		),
@@ -112,7 +112,7 @@ func seedStreamEvents(ctx context.Context, store *memory.MemoryStore) {
 	Expect(
 		store.Save(
 			ctx,
-			event.NewAggregateRef(event.AggregateType("User"), deletedID),
+			id.NewAggregateRef(id.AggregateType("User"), deletedID),
 			[]event.Event{deletedEvt},
 			event.Version(0),
 		),
@@ -127,7 +127,7 @@ func seedStreamEvents(ctx context.Context, store *memory.MemoryStore) {
 	Expect(
 		store.Save(
 			ctx,
-			event.NewAggregateRef(event.AggregateType("Order"), orderID),
+			id.NewAggregateRef(id.AggregateType("Order"), orderID),
 			[]event.Event{orderEvt},
 			event.Version(0),
 		),

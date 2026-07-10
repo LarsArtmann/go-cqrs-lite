@@ -93,7 +93,7 @@ func TestSliceIterator_AdaptsMemoryStore(t *testing.T) {
 	store := eventtest.NewFakeStore()
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("User", aggID)
+	ref := id.NewAggregateRef("User", aggID)
 
 	evts := []event.Event{
 		eventtest.NewEvent(t, "user.created", aggID, "User", 1, []byte(`{}`)),

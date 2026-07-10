@@ -23,7 +23,7 @@ func TestEventStore_MultipleAggregates(t *testing.T) {
 	saveEvent(t, store, ctx, makeEvent(t, agg2, 1), 0)
 	saveEvent(t, store, ctx, makeEvent(t, agg1, 2), 1)
 
-	events1, err := store.Load(ctx, event.NewAggregateRef("TestAggregate", agg1))
+	events1, err := store.Load(ctx, id.NewAggregateRef("TestAggregate", agg1))
 	if err != nil {
 		t.Fatalf("Load agg1: %v", err)
 	}
@@ -32,7 +32,7 @@ func TestEventStore_MultipleAggregates(t *testing.T) {
 		t.Fatalf("agg1: expected 2 events, got %d", len(events1))
 	}
 
-	events2, err := store.Load(ctx, event.NewAggregateRef("TestAggregate", agg2))
+	events2, err := store.Load(ctx, id.NewAggregateRef("TestAggregate", agg2))
 	if err != nil {
 		t.Fatalf("Load agg2: %v", err)
 	}
@@ -52,7 +52,7 @@ func TestEventStore_VersionOrdering(t *testing.T) {
 		saveEvent(t, store, ctx, makeEvent(t, aggID, i), event.Version(i-1))
 	}
 
-	events, err := store.Load(ctx, event.NewAggregateRef("TestAggregate", aggID))
+	events, err := store.Load(ctx, id.NewAggregateRef("TestAggregate", aggID))
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
@@ -78,7 +78,7 @@ func TestEventStore_LoadToVersion(t *testing.T) {
 		saveEvent(t, store, ctx, makeEvent(t, aggID, i), event.Version(i-1))
 	}
 
-	ref := event.NewAggregateRef("TestAggregate", aggID)
+	ref := id.NewAggregateRef("TestAggregate", aggID)
 	events, err := store.LoadToVersion(ctx, ref, 3)
 	if err != nil {
 		t.Fatalf("LoadToVersion: %v", err)
@@ -103,7 +103,7 @@ func TestEventStore_LoadToTimestamp(t *testing.T) {
 
 	saveEvent(t, store, ctx, makeEvent(t, aggID, 2), 1)
 
-	ref := event.NewAggregateRef("TestAggregate", aggID)
+	ref := id.NewAggregateRef("TestAggregate", aggID)
 	events, err := store.LoadToTimestamp(ctx, ref, cutoff)
 	if err != nil {
 		t.Fatalf("LoadToTimestamp: %v", err)
@@ -196,7 +196,7 @@ func TestEventStore_Save_VersionConflict(t *testing.T) {
 	saveEvent(t, store, ctx, makeEvent(t, aggID, 1), 0)
 
 	evt2 := makeEvent(t, aggID, 2)
-	ref := event.NewAggregateRef("TestAggregate", aggID)
+	ref := id.NewAggregateRef("TestAggregate", aggID)
 	err := store.Save(ctx, ref, []event.Event{evt2}, 0)
 	if err == nil {
 		t.Fatal("expected version conflict error")
@@ -249,7 +249,7 @@ func TestSnapshotStore_Overwrite(t *testing.T) {
 		t.Fatalf("Save snap2: %v", err)
 	}
 
-	loaded, err := store.LoadAtVersion(ctx, event.NewAggregateRef("TestAggregate", aggID), 5)
+	loaded, err := store.LoadAtVersion(ctx, id.NewAggregateRef("TestAggregate", aggID), 5)
 	if err != nil {
 		t.Fatalf("LoadAtVersion: %v", err)
 	}
@@ -280,7 +280,7 @@ func TestSnapshotStore_LoadNonExistent(t *testing.T) {
 
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	_, err = store.LoadAtVersion(ctx, event.NewAggregateRef("TestAggregate", aggID), 1)
+	_, err = store.LoadAtVersion(ctx, id.NewAggregateRef("TestAggregate", aggID), 1)
 	if err == nil {
 		t.Fatal("expected error for non-existent snapshot")
 	}
@@ -386,7 +386,7 @@ func TestEventStore_CloseThenAccess(t *testing.T) {
 	}
 
 	aggID := id.NewAggregateID()
-	_, err := store.Load(ctx, event.NewAggregateRef("TestAggregate", aggID))
+	_, err := store.Load(ctx, id.NewAggregateRef("TestAggregate", aggID))
 	if err == nil {
 		t.Fatal("expected error after close")
 	}
@@ -409,7 +409,7 @@ func TestEventStore_EmptyPayload(t *testing.T) {
 		t.Fatalf("NewEvent: %v", err)
 	}
 
-	ref := event.NewAggregateRef("TestAggregate", aggID)
+	ref := id.NewAggregateRef("TestAggregate", aggID)
 	if err := store.Save(ctx, ref, []event.Event{evt}, 0); err != nil {
 		t.Fatalf("Save: %v", err)
 	}
@@ -437,7 +437,7 @@ func TestEventStore_MultipleAppendBatch(t *testing.T) {
 		evts[i] = makeEvent(t, aggID, i+2)
 	}
 
-	ref := event.NewAggregateRef("TestAggregate", aggID)
+	ref := id.NewAggregateRef("TestAggregate", aggID)
 	if err := store.AppendBatch(ctx, ref, evts); err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
@@ -483,7 +483,7 @@ func TestEventStore_DefensiveCopy(t *testing.T) {
 	aggID := id.NewAggregateID()
 
 	evt := makeEvent(t, aggID, 1)
-	ref := event.NewAggregateRef("TestAggregate", aggID)
+	ref := id.NewAggregateRef("TestAggregate", aggID)
 	if err := store.Save(ctx, ref, []event.Event{evt}, 0); err != nil {
 		t.Fatalf("Save: %v", err)
 	}

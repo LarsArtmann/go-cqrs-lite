@@ -102,7 +102,7 @@ func testEventRoundtrip(t *testing.T, factory Factory) {
 
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Contract", aggID)
+	ref := id.NewAggregateRef("Contract", aggID)
 
 	events, err := event.NewEvents(
 		aggID, "Contract", 0,

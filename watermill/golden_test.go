@@ -13,6 +13,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v3/idtest"
+	"github.com/larsartmann/go-cqrs-lite/metadata/v3"
 	wm "github.com/larsartmann/go-cqrs-lite/watermill/v3"
 )
 
@@ -46,7 +47,7 @@ func TestGolden_MessageMetadata(t *testing.T) {
 		event.WithOccurredAt(time.Date(2026, 3, 10, 12, 0, 0, 0, time.UTC)),
 		event.WithSchemaVersion(2),
 		event.WithMetadata(event.Metadata{
-			Tracing: event.Tracing{
+			Tracing: metadata.Tracing{
 				CorrelationID: corrID,
 				CausationID:   causID,
 				UserID:        userID,

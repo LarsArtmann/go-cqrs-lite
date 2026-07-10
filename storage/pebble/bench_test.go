@@ -50,7 +50,7 @@ func seedPebbleBenchEvents(
 		events[i] = evt
 	}
 
-	err = store.AppendBatch(ctx, event.NewAggregateRef(event.AggregateType("Issue"), aggID), events)
+	err = store.AppendBatch(ctx, id.NewAggregateRef(id.AggregateType("Issue"), aggID), events)
 	if err != nil {
 		b.Fatalf("AppendBatch: %v", err)
 	}
@@ -79,7 +79,7 @@ func BenchmarkEventStore_LoadToTimestamp(b *testing.B) {
 			for b.Loop() {
 				result, err := store.LoadToTimestamp(
 					ctx,
-					event.NewAggregateRef(event.AggregateType("Issue"), aggID),
+					id.NewAggregateRef(id.AggregateType("Issue"), aggID),
 					baseTime.Add(tc.offset),
 				)
 				if err != nil {
@@ -172,7 +172,7 @@ func BenchmarkEventStore_Save_SingleEvent(b *testing.B) {
 
 	for b.Loop() {
 		aggID := id.NewAggregateID()
-		ref := event.NewAggregateRef("Bench", aggID)
+		ref := id.NewAggregateRef("Bench", aggID)
 
 		evt, err := event.NewEvent("BenchSaved", aggID, "Bench", event.Version(1),
 			[]byte(`{"name":"save-bench","value":42}`))
@@ -197,7 +197,7 @@ func BenchmarkEventStore_AppendBatch_10Events(b *testing.B) {
 
 	for b.Loop() {
 		aggID := id.NewAggregateID()
-		ref := event.NewAggregateRef("Bench", aggID)
+		ref := id.NewAggregateRef("Bench", aggID)
 
 		events := make([]event.Event, 10)
 		for idx := range 10 {

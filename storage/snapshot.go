@@ -9,6 +9,7 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v3"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
@@ -85,7 +86,7 @@ func (s *SQLSnapshotStore) Save(ctx context.Context, snap snapshot.Snapshot) err
 
 func (s *SQLSnapshotStore) Load(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 ) (*snapshot.Snapshot, error) {
 	ctx, span := sqlpkg.StartAggregateSpan(ctx, "snapshot.load", ref)
 	defer span.End()
@@ -100,7 +101,7 @@ func (s *SQLSnapshotStore) Load(
 
 func (s *SQLSnapshotStore) LoadAtVersion(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	version event.Version,
 ) (*snapshot.Snapshot, error) {
 	ctx, span := cqrsotel.StartSpan(
@@ -123,7 +124,7 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 
 func (s *SQLSnapshotStore) querySnapshotAtVersion(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	maxVersion event.Version,
 ) (*snapshot.Snapshot, error) {
 	p1, p2, p3 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2), s.Dialect.Placeholder(3)
@@ -138,7 +139,7 @@ func (s *SQLSnapshotStore) querySnapshotAtVersion(
 
 func (s *SQLSnapshotStore) querySnapshot(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 ) (*snapshot.Snapshot, error) {
 	p1, p2 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2)
 	query := fmt.Sprintf(`SELECT version, state, created_at FROM `+sqlpkg.TableSnapshots+`
@@ -148,7 +149,7 @@ func (s *SQLSnapshotStore) querySnapshot(
 
 func (s *SQLSnapshotStore) scanSnapshot(
 	row *sql.Row,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 ) (*snapshot.Snapshot, error) {
 	var version int
 	var stateBytes []byte
@@ -179,7 +180,7 @@ func (s *SQLSnapshotStore) scanSnapshot(
 	}, nil
 }
 
-func (s *SQLSnapshotStore) Delete(ctx context.Context, ref event.AggregateRef) error {
+func (s *SQLSnapshotStore) Delete(ctx context.Context, ref id.AggregateRef) error {
 	p1, p2 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2)
 	return sqlpkg.DeleteByAggregate(s.DB, ctx, ref, sqlpkg.TableSnapshots, p1, p2, "snapshot")
 }

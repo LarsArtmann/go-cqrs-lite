@@ -70,7 +70,7 @@ func (b *PostgresBus) publishOne(ctx context.Context, evt event.Event) error {
 		Version:       evt.Version(),
 	}
 
-	payloadJSON, err := json.Marshal(payload)
+	payloadJSON, err := json.Marshal(payload, json.Deterministic(true))
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 		return errorfamily.WrapInfrastructure(err, "storage.pg_bus_marshal",

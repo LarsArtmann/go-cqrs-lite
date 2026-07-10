@@ -8,6 +8,7 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 )
 
@@ -56,7 +57,7 @@ func (a *EventStore) iterateEvents(
 // Load implements event.Store.Load.
 func (a *EventStore) Load(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 ) ([]event.Event, error) {
 	_, span := startAggregateSpan(ctx, "pebble.event.load", ref)
 	defer span.End()
@@ -81,7 +82,7 @@ func (a *EventStore) Load(
 // Returns events with version strictly greater than the given version.
 func (a *EventStore) LoadFromVersion(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	version event.Version,
 ) ([]event.Event, error) {
 	_, span := startAggregateSpan(ctx, "pebble.event.load_from_version", ref,
@@ -107,7 +108,7 @@ func (a *EventStore) LoadFromVersion(
 // loadFiltered iterates events and returns them filtered by predicate.
 // Returns ErrAggregateNotFound if no events match the filter.
 func (a *EventStore) loadFiltered(
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	upperBound []byte,
 	predicate eventPredicate,
 ) ([]event.Event, error) {
@@ -129,7 +130,7 @@ func (a *EventStore) loadFiltered(
 // LoadToVersion retrieves events up to and including maxVersion.
 func (a *EventStore) LoadToVersion(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	maxVersion event.Version,
 ) ([]event.Event, error) {
 	_, span := startAggregateSpan(ctx, "pebble.event.load_to_version", ref,
@@ -157,7 +158,7 @@ func (a *EventStore) LoadToVersion(
 // encounters an event past maxTime — avoiding a full aggregate scan.
 func (a *EventStore) LoadToTimestamp(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	maxTime time.Time,
 ) ([]event.Event, error) {
 	_, span := startAggregateSpan(ctx, "pebble.event.load_to_timestamp", ref)

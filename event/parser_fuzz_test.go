@@ -44,7 +44,7 @@ func FuzzParseAggregateType(f *testing.F) {
 	f.Add(strings.Repeat("Z", 1024))
 
 	f.Fuzz(func(t *testing.T, input string) {
-		typ, err := event.ParseAggregateType(input)
+		typ, err := id.ParseAggregateType(input)
 		if input == "" {
 			if err == nil {
 				t.Error("expected error for empty input")

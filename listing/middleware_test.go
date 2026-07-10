@@ -142,7 +142,7 @@ func TestCacheInvalidationMiddleware_InvalidatesAfterPublish(t *testing.T) {
 
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("User", aggID)
+	ref := id.NewAggregateRef("User", aggID)
 
 	evt, err := event.NewEvent("user.created", aggID, "User", event.Version(1), []byte(`{}`))
 	if err != nil {

@@ -6,6 +6,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3/idtest"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v3"
 )
@@ -20,7 +21,7 @@ func (m *mockSink) Save(_ context.Context, snap snapshot.Snapshot) error {
 	return nil
 }
 
-func (m *mockSink) Delete(_ context.Context, _ event.AggregateRef) error { return nil }
+func (m *mockSink) Delete(_ context.Context, _ id.AggregateRef) error { return nil }
 
 func (m *mockSink) Close() error { return nil }
 

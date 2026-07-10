@@ -27,7 +27,7 @@ var _ = Describe("Event Creation", func() {
 				evt, err := event.NewEvent(
 					event.Type("UserRegistered"),
 					aggID,
-					event.AggregateType("User"),
+					id.AggregateType("User"),
 					1,
 					[]byte(`{"email":"alice@example.com"}`),
 					event.WithCorrelationID(corrID),
@@ -40,7 +40,7 @@ var _ = Describe("Event Creation", func() {
 
 				Expect(evt.Type()).To(Equal(event.Type("UserRegistered")))
 				Expect(evt.AggregateID()).To(Equal(aggID))
-				Expect(evt.AggregateType()).To(Equal(event.AggregateType("User")))
+				Expect(evt.AggregateType()).To(Equal(id.AggregateType("User")))
 				Expect(evt.Version()).To(Equal(event.Version(1)))
 				Expect(evt.Payload()).To(ContainSubstring("alice@example.com"))
 				Expect(evt.Metadata().CorrelationID).To(Equal(corrID))
@@ -60,7 +60,7 @@ var _ = Describe("Event Creation", func() {
 				_, err := event.NewEvent(
 					event.Type("BadEvent"),
 					emptyID,
-					event.AggregateType("User"),
+					id.AggregateType("User"),
 					1,
 					nil,
 				)
@@ -71,20 +71,20 @@ var _ = Describe("Event Creation", func() {
 
 		DescribeTable(
 			"when I create an event with invalid parameters",
-			func(aggID id.AggregateID, aggType event.AggregateType, version event.Version, expectedMsg string) {
+			func(aggID id.AggregateID, aggType id.AggregateType, version event.Version, expectedMsg string) {
 				expectNewEventValidationFails(aggID, aggType, version, expectedMsg)
 			},
 			Entry(
 				"empty aggregate type",
 				id.NewAggregateID(),
-				event.AggregateType(""),
+				id.AggregateType(""),
 				event.Version(1),
 				"aggregate type is required",
 			),
 			Entry(
 				"zero version",
 				id.NewAggregateID(),
-				event.AggregateType("User"),
+				id.AggregateType("User"),
 				event.Version(0),
 				"version",
 			),
@@ -96,7 +96,7 @@ var _ = Describe("Event Creation", func() {
 				evt, err := event.NewEvent(
 					event.Type("TestEvent"),
 					aggID,
-					event.AggregateType("Test"),
+					id.AggregateType("Test"),
 					1,
 					nil,
 					event.WithCustom(event.MetadataKey("tenant"), "acme-corp"),

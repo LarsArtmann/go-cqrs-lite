@@ -38,7 +38,7 @@ func BenchmarkScale_Listing_10KAggregates(b *testing.B) {
 
 		err = store.AppendBatch(
 			ctx,
-			event.NewAggregateRef("Item", aggIDs[i]),
+			id.NewAggregateRef("Item", aggIDs[i]),
 			[]event.Event{evt},
 		)
 		if err != nil {
@@ -81,7 +81,7 @@ func BenchmarkScale_Listing_PaginateThrough10K(b *testing.B) {
 		if err != nil {
 			b.Fatalf("NewEvent: %v", err)
 		}
-		_ = store.AppendBatch(ctx, event.NewAggregateRef("Item", aggID), []event.Event{evt})
+		_ = store.AppendBatch(ctx, id.NewAggregateRef("Item", aggID), []event.Event{evt})
 	}
 
 	reader := listing.NewInMemoryAggregateReader(store)

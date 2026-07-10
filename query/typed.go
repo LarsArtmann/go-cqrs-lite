@@ -40,7 +40,7 @@ func NewTypedQueryStore[P any](store QueryStore, c codec.Codec) *TypedQueryStore
 
 // SaveQuery encodes q.Payload and delegates to the underlying [QueryStore].
 func (t *TypedQueryStore[P]) SaveQuery(ctx context.Context, q TypedQuery[P]) error {
-	data, err := t.codec.Encode(q.Payload)
+	data, err := codec.WrapEncode(q.Payload, t.codec)
 	if err != nil {
 		return errorfamily.WrapCorruption(err, "query.typed_store.encode",
 			"encode typed payload")
@@ -92,7 +92,9 @@ func (t *TypedQueryStore[P]) LoadQueries(
 	for _, q := range queries {
 		var payload P
 
-		err := t.codec.Decode(q.Payload(), &payload)
+		c, inner := codec.UnwrapDecode(q.Payload(), t.codec)
+
+		err := c.Decode(inner, &payload)
 		if err != nil {
 			return nil, errorfamily.WrapCorruption(err, "query.typed_store.decode",
 				fmt.Sprintf("decode typed payload for %s", q.ID()))

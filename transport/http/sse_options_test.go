@@ -24,7 +24,7 @@ func TestSSEHandler_ByteBudget_StopsReplayEarly(t *testing.T) {
 	defer bus.Close()
 
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Big", aggID)
+	ref := id.NewAggregateRef("Big", aggID)
 
 	// 10 events × ~50 bytes each = ~500 bytes total. Budget of 150 → ~3 events.
 	const eventCount = 10
@@ -95,7 +95,78 @@ func TestSSEHandler_ByteBudget_StopsReplayEarly(t *testing.T) {
 	}
 }
 
-// TestSSEHandler_DedupRingCapacity_Custom verifies that a custom dedup ring
+// TestSSEHandler_ByteBudget_DisabledSentinel verifies that
+// WithReplayByteBudget(SSEReplayBudgetDisabled) allows all events to be
+// replayed without any byte-budget cut, even when total payload would
+// exceed the default 8MB auto-default.
+func TestSSEHandler_ByteBudget_DisabledSentinel(t *testing.T) {
+	t.Parallel()
+
+	store := eventtest.NewFakeStore()
+	bus := eventtest.NewFakeBus()
+	defer bus.Close()
+
+	aggID := id.NewAggregateID()
+	ref := id.NewAggregateRef("Big", aggID)
+
+	const eventCount = 10
+	events := make([]event.Event, 0, eventCount)
+
+	for i := range eventCount {
+		evt, err := event.NewEvent("BigEvent", aggID, "Big", 1,
+			[]byte(`{"payload":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}`))
+		if err != nil {
+			t.Fatalf("create evt %d: %v", i, err)
+		}
+
+		events = append(events, evt)
+	}
+
+	if err := store.Save(context.Background(), ref, events, 0); err != nil {
+		t.Fatalf("save: %v", err)
+	}
+
+	broker, err := NewSSEBroker(
+		bus,
+		WithReconnectJournal(store, 0), // unlimited → batched streaming
+		WithReplayByteBudget(SSEReplayBudgetDisabled), // explicitly disabled
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer broker.Close()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events?client=no-budget", nil)
+	req.Header.Set("Last-Event-ID", events[0].ID().String())
+
+	rec := httptest.NewRecorder()
+	done := make(chan struct{})
+
+	go func() {
+		defer close(done)
+		SSEHandler(broker).ServeHTTP(rec, req)
+	}()
+
+	time.Sleep(200 * time.Millisecond)
+	cancel()
+	<-done
+
+	body := rec.Body.String()
+
+	// All 9 remaining events should be replayed — no budget cut.
+	got := strings.Count(body, "event: BigEvent")
+	if got != eventCount-1 {
+		t.Errorf("expected %d events (all replayed, budget disabled), got %d; body: %q",
+			eventCount-1, got, body)
+	}
+
+	if strings.Contains(body, SSEReplayIncompleteEvent) {
+		t.Errorf("did not expect %q advisory when budget disabled; body: %q",
+			SSEReplayIncompleteEvent, body)
+	}
+}
+
 // capacity still correctly deduplicates replay→live overlap. Uses a tiny ring
 // to confirm the option is wired through.
 func TestSSEHandler_DedupRingCapacity_Custom(t *testing.T) {
@@ -106,7 +177,7 @@ func TestSSEHandler_DedupRingCapacity_Custom(t *testing.T) {
 	defer bus.Close()
 
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Test", aggID)
+	ref := id.NewAggregateRef("Test", aggID)
 
 	evt0, err := event.NewEvent("TestEvent", aggID, "Test", 1, []byte(`{"seq":0}`))
 	if err != nil {
@@ -284,4 +355,84 @@ func TestSSEHandler_ConcurrentClose(t *testing.T) {
 
 	cancel()
 	<-done
+}
+
+// TestSSEHandler_ByteBudget_LargePayload verifies that the byte budget
+// correctly handles events with large payloads (exceeding the budget).
+func TestSSEHandler_ByteBudget_LargePayload(t *testing.T) {
+	t.Parallel()
+
+	store := eventtest.NewFakeStore()
+	bus := eventtest.NewFakeBus()
+	defer bus.Close()
+
+	aggID := id.NewAggregateID()
+	ref := id.NewAggregateRef("Big", aggID)
+
+	// Create 5 events, each with ~100KB payload → 500KB total.
+	// Budget of 250KB → ~2-3 events before cutoff.
+	const payloadSize = 100 * 1024 // 100KB
+	const eventCount = 5
+
+	events := make([]event.Event, 0, eventCount)
+	for i := range eventCount {
+		payload := make([]byte, payloadSize)
+		for j := range payload {
+			payload[j] = byte('A' + (i % 26))
+		}
+
+		evt, err := event.NewEvent("BigEvent", aggID, "Big", event.Version(i+1), payload)
+		if err != nil {
+			t.Fatalf("create event %d: %v", i, err)
+		}
+
+		events = append(events, evt)
+	}
+
+	if err := store.Save(context.Background(), ref, events, 0); err != nil {
+		t.Fatalf("save events: %v", err)
+	}
+
+	broker, err := NewSSEBroker(
+		bus,
+		WithReconnectJournal(store, 0), // unlimited streaming
+		WithReplayByteBudget(250*1024), // 250KB budget
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer broker.Close()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events?client=big-payload", nil)
+	req.Header.Set("Last-Event-ID", events[0].ID().String()) // cursor → replay events[1..]
+
+	rec := httptest.NewRecorder()
+	done := make(chan struct{})
+
+	go func() {
+		defer close(done)
+		SSEHandler(broker).ServeHTTP(rec, req)
+	}()
+
+	time.Sleep(200 * time.Millisecond)
+	cancel()
+	<-done
+
+	body := rec.Body.String()
+
+	// Should have delivered some events but been cut short by the budget.
+	delivered := strings.Count(body, "event: BigEvent")
+	if delivered == 0 {
+		t.Error("expected at least one event delivered before budget cutoff")
+	}
+
+	// 4 remaining events × 100KB = 400KB. Budget is 250KB → ~2 events max.
+	if delivered >= eventCount-1 {
+		t.Errorf(
+			"budget should cut replay short; got %d events (expected < %d)",
+			delivered,
+			eventCount-1,
+		)
+	}
 }

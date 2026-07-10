@@ -31,7 +31,7 @@ func BenchmarkMemoryStore_Save(b *testing.B) {
 
 	aggID := id.NewAggregateID()
 	ctx := context.Background()
-	ref := event.NewAggregateRef("Bench", aggID)
+	ref := id.NewAggregateRef("Bench", aggID)
 
 	b.ResetTimer()
 
@@ -49,7 +49,7 @@ func BenchmarkMemoryStore_Load(b *testing.B) {
 
 	aggID := id.NewAggregateID()
 	ctx := context.Background()
-	ref := event.NewAggregateRef("Bench", aggID)
+	ref := id.NewAggregateRef("Bench", aggID)
 
 	for i := range 100 {
 		evt := benchEvent(b, aggID, event.Version(i+1))
@@ -112,11 +112,11 @@ func BenchmarkMemoryStore_ConcurrentWriters(b *testing.B) {
 			b.ReportAllocs()
 
 			aggIDs := make([]id.AggregateID, concurrency)
-			refs := make([]event.AggregateRef, concurrency)
+			refs := make([]id.AggregateRef, concurrency)
 
 			for i := range concurrency {
 				aggIDs[i] = id.NewAggregateID()
-				refs[i] = event.NewAggregateRef("Bench", aggIDs[i])
+				refs[i] = id.NewAggregateRef("Bench", aggIDs[i])
 			}
 
 			b.ResetTimer()

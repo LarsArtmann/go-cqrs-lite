@@ -87,6 +87,17 @@ type Bundle struct {
 	eventCodec codec.Codec
 
 	closers []io.Closer
+
+	// shutdownDeps declares ordering constraints for Close(). Each edge says
+	// "before must close before after". Close() topologically sorts based on
+	// these edges; closers not in any edge keep their registration order.
+	shutdownDeps []shutdownEdge
+}
+
+// shutdownEdge declares that `before` must be closed before `after` during
+// Bundle.Close(). See [WithShutdownDependency].
+type shutdownEdge struct {
+	before, after io.Closer
 }
 
 // New constructs a Bundle from the given options and validates the result.
@@ -125,11 +136,12 @@ func New(opts ...Option) (*Bundle, error) {
 // Returns the joined errors from every Close call. A nil return means every
 // closer succeeded. Close is idempotent: subsequent calls are no-ops.
 func (b *Bundle) Close() error {
-	seen := make(map[io.Closer]struct{}, len(b.closers))
+	closers := b.orderedClosers()
+	seen := make(map[io.Closer]struct{}, len(closers))
 
 	var errs []error
 
-	for _, c := range b.closers {
+	for _, c := range closers {
 		if c == nil {
 			continue
 		}

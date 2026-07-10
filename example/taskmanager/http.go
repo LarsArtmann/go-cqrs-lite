@@ -276,22 +276,10 @@ func (s *Server) dispatchSimple(
 
 // ── Error mapping ──────────────────────────────────────────────────────────
 
-// writeCQRSError maps the 5-family error taxonomy to HTTP status codes.
+// writeCQRSError maps the 5-family error taxonomy to HTTP status codes via
+// errorfamily.HTTPStatus.
 func writeCQRSError(w http.ResponseWriter, err error) {
-	switch errorfamily.Classify(err) {
-	case errorfamily.Rejection:
-		writeError(w, http.StatusBadRequest, err.Error())
-	case errorfamily.Conflict:
-		writeError(w, http.StatusConflict, err.Error())
-	case errorfamily.Transient:
-		writeError(w, http.StatusServiceUnavailable, err.Error())
-	case errorfamily.Corruption:
-		writeError(w, http.StatusInternalServerError, err.Error())
-	case errorfamily.Infrastructure:
-		writeError(w, http.StatusInternalServerError, err.Error())
-	default:
-		writeError(w, http.StatusInternalServerError, err.Error())
-	}
+	writeError(w, errorfamily.HTTPStatus(err), err.Error())
 }
 
 // ── JSON helpers ───────────────────────────────────────────────────────────

@@ -21,13 +21,13 @@ type counterState struct {
 func mustAppendBatch(
 	t *testing.T,
 	store event.Store,
-	aggType event.AggregateType,
+	aggType id.AggregateType,
 	aggID id.AggregateID,
 	events []event.Event,
 ) {
 	t.Helper()
 
-	err := store.AppendBatch(t.Context(), event.NewAggregateRef(aggType, aggID), events)
+	err := store.AppendBatch(t.Context(), id.NewAggregateRef(aggType, aggID), events)
 	if err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
@@ -349,7 +349,7 @@ type errStore struct {
 
 func (e *errStore) LoadToVersion(
 	_ context.Context,
-	_ event.AggregateRef,
+	_ id.AggregateRef,
 	_ event.Version,
 ) ([]event.Event, error) {
 	return nil, e.loadToVersionErr
@@ -357,7 +357,7 @@ func (e *errStore) LoadToVersion(
 
 func (e *errStore) LoadToTimestamp(
 	_ context.Context,
-	_ event.AggregateRef,
+	_ id.AggregateRef,
 	_ time.Time,
 ) ([]event.Event, error) {
 	return nil, e.loadToTimestampErr
@@ -375,7 +375,7 @@ func (c *ctxCheckStore) checkCtx(ctx context.Context) error {
 
 func (c *ctxCheckStore) Save(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {
@@ -388,7 +388,7 @@ func (c *ctxCheckStore) Save(
 
 func (c *ctxCheckStore) Load(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 ) ([]event.Event, error) {
 	if err := c.checkCtx(ctx); err != nil {
 		return nil, err

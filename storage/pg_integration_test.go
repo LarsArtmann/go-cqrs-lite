@@ -66,7 +66,7 @@ func TestPostgresEventStore_CRUD(t *testing.T) {
 
 	store := backend.EventStore()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("User", aggID)
+	ref := id.NewAggregateRef("User", aggID)
 
 	// Save
 	evt, _ := event.NewEvent("user.created", aggID, "User", event.Version(1),
@@ -152,7 +152,7 @@ func TestPostgresBackend_FullStack(t *testing.T) {
 
 	// Verify all work together
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Test", aggID)
+	ref := id.NewAggregateRef("Test", aggID)
 
 	// Event
 	evt, _ := event.NewEvent("test.event", aggID, "Test", event.Version(1), []byte(`{}`))

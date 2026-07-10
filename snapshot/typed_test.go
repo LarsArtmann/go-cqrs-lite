@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v3"
 )
@@ -22,7 +21,7 @@ func TestTypedStore_SaveLoad_Roundtrip(t *testing.T) {
 	store := snapshot.NewTypedStore[counterState](newFakeStore(), codec.JSONCodec{})
 
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Counter", aggID)
+	ref := id.NewAggregateRef("Counter", aggID)
 
 	input := snapshot.TypedSnapshot[counterState]{
 		AggregateID:   aggID,
@@ -56,7 +55,7 @@ func TestTypedStore_Load_NotFound(t *testing.T) {
 
 	store := snapshot.NewTypedStore[counterState](newFakeStore(), codec.JSONCodec{})
 
-	ref := event.NewAggregateRef("Counter", id.NewAggregateID())
+	ref := id.NewAggregateRef("Counter", id.NewAggregateID())
 
 	_, err := store.Load(context.Background(), ref)
 	if !errors.Is(err, snapshot.ErrSnapshotNotFound) {
@@ -70,7 +69,7 @@ func TestTypedStore_LoadAtVersion(t *testing.T) {
 	store := snapshot.NewTypedStore[counterState](newFakeStore(), codec.JSONCodec{})
 
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Counter", aggID)
+	ref := id.NewAggregateRef("Counter", aggID)
 
 	ctx := context.Background()
 
@@ -99,7 +98,7 @@ func TestTypedStore_Delete(t *testing.T) {
 	store := snapshot.NewTypedStore[counterState](newFakeStore(), codec.JSONCodec{})
 
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Counter", aggID)
+	ref := id.NewAggregateRef("Counter", aggID)
 
 	ctx := context.Background()
 
@@ -127,7 +126,7 @@ func TestTypedStore_NilCodecDefaultsToJSON(t *testing.T) {
 	store := snapshot.NewTypedStore[counterState](newFakeStore(), nil)
 
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Counter", aggID)
+	ref := id.NewAggregateRef("Counter", aggID)
 
 	ctx := context.Background()
 

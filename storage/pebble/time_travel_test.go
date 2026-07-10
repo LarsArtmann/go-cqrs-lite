@@ -24,14 +24,14 @@ func TestEventStore_LoadFromVersion(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		event.NewAggregateRef(cfg.AggType, aggID),
+		id.NewAggregateRef(cfg.AggType, aggID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 	if err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
 
-	events, err := store.LoadFromVersion(ctx, event.NewAggregateRef(cfg.AggType, aggID), 1)
+	events, err := store.LoadFromVersion(ctx, id.NewAggregateRef(cfg.AggType, aggID), 1)
 	if err != nil {
 		t.Fatalf("LoadFromVersion: %v", err)
 	}
@@ -54,12 +54,12 @@ func TestEventStore_LoadFromVersion_Empty(t *testing.T) {
 	aggID := id.NewAggregateID()
 
 	evt1 := cfg.NewTestEvent(t, aggID, 1)
-	err := store.AppendBatch(ctx, event.NewAggregateRef(cfg.AggType, aggID), []event.Event{evt1})
+	err := store.AppendBatch(ctx, id.NewAggregateRef(cfg.AggType, aggID), []event.Event{evt1})
 	if err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
 
-	events, err := store.LoadFromVersion(ctx, event.NewAggregateRef(cfg.AggType, aggID), 5)
+	events, err := store.LoadFromVersion(ctx, id.NewAggregateRef(cfg.AggType, aggID), 5)
 	if err != nil {
 		t.Fatalf("LoadFromVersion: %v", err)
 	}
@@ -83,14 +83,14 @@ func TestEventStore_LoadToVersion(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		event.NewAggregateRef(cfg.AggType, aggID),
+		id.NewAggregateRef(cfg.AggType, aggID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 	if err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
 
-	events, err := store.LoadToVersion(ctx, event.NewAggregateRef(cfg.AggType, aggID), 2)
+	events, err := store.LoadToVersion(ctx, id.NewAggregateRef(cfg.AggType, aggID), 2)
 	if err != nil {
 		t.Fatalf("LoadToVersion: %v", err)
 	}
@@ -107,7 +107,7 @@ func TestEventStore_LoadToVersion_NotFound(t *testing.T) {
 
 	_, err := store.LoadToVersion(
 		context.Background(),
-		event.NewAggregateRef("Issue", id.NewAggregateID()),
+		id.NewAggregateRef("Issue", id.NewAggregateID()),
 		5,
 	)
 	if !errors.Is(err, event.ErrAggregateNotFound) {
@@ -130,7 +130,7 @@ func TestEventStore_LoadToTimestamp(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		event.NewAggregateRef(cfg.AggType, aggID),
+		id.NewAggregateRef(cfg.AggType, aggID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 	if err != nil {
@@ -139,7 +139,7 @@ func TestEventStore_LoadToTimestamp(t *testing.T) {
 
 	events, err := store.LoadToTimestamp(
 		ctx,
-		event.NewAggregateRef(cfg.AggType, aggID),
+		id.NewAggregateRef(cfg.AggType, aggID),
 		now.Add(-30*time.Minute),
 	)
 	if err != nil {
@@ -158,7 +158,7 @@ func TestEventStore_LoadToTimestamp_NotFound(t *testing.T) {
 
 	_, err := store.LoadToTimestamp(
 		context.Background(),
-		event.NewAggregateRef("Issue", id.NewAggregateID()),
+		id.NewAggregateRef("Issue", id.NewAggregateID()),
 		time.Now(),
 	)
 	if !errors.Is(err, event.ErrAggregateNotFound) {
@@ -184,7 +184,7 @@ func TestEventStore_ConcurrentSave_VersionConflict(t *testing.T) {
 			evt := cfg.NewTestEvent(t, aggID, 2)
 			errCh <- store.Save(
 				context.Background(),
-				event.NewAggregateRef(cfg.AggType, aggID),
+				id.NewAggregateRef(cfg.AggType, aggID),
 				[]event.Event{evt},
 				event.Version(1),
 			)
@@ -212,7 +212,7 @@ func TestEventStore_ConcurrentSave_VersionConflict(t *testing.T) {
 		t.Fatalf("expected %d conflicts, got %d", goroutines-1, conflicts)
 	}
 
-	loaded, err := store.Load(context.Background(), event.NewAggregateRef(cfg.AggType, aggID))
+	loaded, err := store.Load(context.Background(), id.NewAggregateRef(cfg.AggType, aggID))
 	if err != nil {
 		t.Fatalf("load: %v", err)
 	}

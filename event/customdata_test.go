@@ -5,12 +5,13 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/metadata/v3"
 )
 
 func TestMergeCustomMaps_BothNil(t *testing.T) {
 	t.Parallel()
 
-	result := event.MergeCustomMaps[event.MetadataKey](nil, nil)
+	result := metadata.MergeCustomMaps[event.MetadataKey](nil, nil)
 	if result != nil {
 		t.Errorf("MergeCustomMaps(nil, nil) = %v, want nil", result)
 	}
@@ -20,7 +21,7 @@ func TestMergeCustomMaps_NilOtherReturnsBaseUnchanged(t *testing.T) {
 	t.Parallel()
 
 	base := map[event.MetadataKey]string{"a": "1"}
-	result := event.MergeCustomMaps(base, nil)
+	result := metadata.MergeCustomMaps(base, nil)
 
 	result["a"] = "modified"
 	if base["a"] != "modified" {
@@ -34,7 +35,7 @@ func TestMergeCustomMaps_EmptyOtherReturnsBaseUnchanged(t *testing.T) {
 	t.Parallel()
 
 	base := map[event.MetadataKey]string{"a": "1"}
-	result := event.MergeCustomMaps(base, map[event.MetadataKey]string{})
+	result := metadata.MergeCustomMaps(base, map[event.MetadataKey]string{})
 
 	if len(result) != 1 || result["a"] != "1" {
 		t.Errorf("MergeCustomMaps with empty other should preserve base, got %v", result)
@@ -47,7 +48,7 @@ func TestMergeCustomMaps_OverlaysOther(t *testing.T) {
 	base := map[event.MetadataKey]string{"a": "1", "b": "2"}
 	other := map[event.MetadataKey]string{"b": "3", "c": "4"}
 
-	result := event.MergeCustomMaps(base, other)
+	result := metadata.MergeCustomMaps(base, other)
 
 	if result["a"] != "1" {
 		t.Errorf("base entry a lost: got %q", result["a"])
@@ -68,7 +69,7 @@ func TestMergeCustomMaps_DoesNotMutateBase(t *testing.T) {
 	base := map[event.MetadataKey]string{"a": "1"}
 	other := map[event.MetadataKey]string{"b": "2"}
 
-	result := event.MergeCustomMaps(base, other)
+	result := metadata.MergeCustomMaps(base, other)
 
 	if _, ok := base["b"]; ok {
 		t.Error("MergeCustomMaps mutated the base map")
@@ -83,7 +84,7 @@ func TestMergeCustomMaps_DoesNotMutateBase(t *testing.T) {
 func TestCustomData_Clone_NilCustom(t *testing.T) {
 	t.Parallel()
 
-	d := event.CustomData[event.MetadataKey]{}
+	d := metadata.CustomData[event.MetadataKey]{}
 	cp := d.Clone()
 
 	if cp.Custom != nil {
@@ -94,7 +95,7 @@ func TestCustomData_Clone_NilCustom(t *testing.T) {
 func TestCustomData_Clone_DeepCopy(t *testing.T) {
 	t.Parallel()
 
-	d := event.CustomData[event.MetadataKey]{
+	d := metadata.CustomData[event.MetadataKey]{
 		Custom: map[event.MetadataKey]string{"key": "value"},
 	}
 	cp := d.Clone()
@@ -108,7 +109,9 @@ func TestCustomData_Clone_DeepCopy(t *testing.T) {
 func TestCustomData_Merge_BothZero(t *testing.T) {
 	t.Parallel()
 
-	result := event.CustomData[event.MetadataKey]{}.Merge(event.CustomData[event.MetadataKey]{})
+	result := metadata.CustomData[event.MetadataKey]{}.Merge(
+		metadata.CustomData[event.MetadataKey]{},
+	)
 	if result.Custom != nil {
 		t.Errorf("Merge of two zero CustomData should have nil Custom, got %v", result.Custom)
 	}
@@ -119,12 +122,12 @@ func TestCustomData_Merge_OverlaysTracingAndCustom(t *testing.T) {
 
 	cid := id.NewCorrelationID()
 
-	base := event.CustomData[event.MetadataKey]{
-		Tracing: event.Tracing{CorrelationID: cid},
+	base := metadata.CustomData[event.MetadataKey]{
+		Tracing: metadata.Tracing{CorrelationID: cid},
 		Custom:  map[event.MetadataKey]string{"tenant": "acme"},
 	}
-	other := event.CustomData[event.MetadataKey]{
-		Tracing: event.Tracing{UserID: id.NewUserID()},
+	other := metadata.CustomData[event.MetadataKey]{
+		Tracing: metadata.Tracing{UserID: id.NewUserID()},
 		Custom:  map[event.MetadataKey]string{"region": "us-east-1"},
 	}
 
@@ -150,10 +153,10 @@ func TestCustomData_Merge_OverlaysTracingAndCustom(t *testing.T) {
 func TestCustomData_Merge_DoesNotMutateBase(t *testing.T) {
 	t.Parallel()
 
-	base := event.CustomData[event.MetadataKey]{
+	base := metadata.CustomData[event.MetadataKey]{
 		Custom: map[event.MetadataKey]string{"a": "1"},
 	}
-	other := event.CustomData[event.MetadataKey]{
+	other := metadata.CustomData[event.MetadataKey]{
 		Custom: map[event.MetadataKey]string{"b": "2"},
 	}
 
@@ -170,7 +173,7 @@ func TestCustomData_EnsureCustom(t *testing.T) {
 	t.Run("initializes nil map", func(t *testing.T) {
 		t.Parallel()
 
-		var d event.CustomData[event.MetadataKey]
+		var d metadata.CustomData[event.MetadataKey]
 		d.EnsureCustom()
 
 		if d.Custom == nil {
@@ -181,7 +184,7 @@ func TestCustomData_EnsureCustom(t *testing.T) {
 	t.Run("preserves existing entries", func(t *testing.T) {
 		t.Parallel()
 
-		d := event.CustomData[event.MetadataKey]{
+		d := metadata.CustomData[event.MetadataKey]{
 			Custom: map[event.MetadataKey]string{"existing": "value"},
 		}
 		d.EnsureCustom()

@@ -31,7 +31,7 @@ func UnmarshalMetadataJSON(data []byte, errCode, eventType string) ([]Option, er
 // MarshalMetadataJSON serializes event metadata to JSON.
 // Wraps serialization errors as corruption errors with the provided error code prefix.
 func MarshalMetadataJSON(m Metadata, errCode string) ([]byte, error) {
-	data, err := json.Marshal(m)
+	data, err := json.Marshal(m, json.Deterministic(true))
 	if err != nil {
 		return nil, errorfamily.WrapCorruption(err, errCode, "marshal metadata")
 	}

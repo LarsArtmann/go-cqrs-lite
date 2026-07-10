@@ -81,7 +81,7 @@ func (s *SnapshotStore) Save(
 	snap snapshot.Snapshot,
 ) error {
 	_, span := startAggregateSpan(ctx, "pebble.snapshot.save",
-		event.NewAggregateRef(snap.AggregateType, snap.AggregateID),
+		id.NewAggregateRef(snap.AggregateType, snap.AggregateID),
 		cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, snap.Version.Int()))
 	defer span.End()
 
@@ -131,7 +131,7 @@ func (s *SnapshotStore) Save(
 // Returns snapshot.ErrSnapshotNotFound when no snapshot exists.
 func (s *SnapshotStore) Load(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 ) (*snapshot.Snapshot, error) {
 	_, span := startAggregateSpan(ctx, "pebble.snapshot.load", ref)
 	defer span.End()
@@ -159,7 +159,7 @@ func (s *SnapshotStore) Load(
 // when no such snapshot exists.
 func (s *SnapshotStore) LoadAtVersion(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	version event.Version,
 ) (*snapshot.Snapshot, error) {
 	_, span := startAggregateSpan(ctx, "pebble.snapshot.load_at_version", ref,
@@ -186,7 +186,7 @@ func (s *SnapshotStore) LoadAtVersion(
 // exists.
 func (s *SnapshotStore) Delete(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 ) error {
 	_, span := startAggregateSpan(ctx, "pebble.snapshot.delete", ref)
 	defer span.End()
@@ -209,7 +209,7 @@ func (s *SnapshotStore) Delete(
 func (s *SnapshotStore) Close() error { return nil }
 
 func (s *SnapshotStore) snapshotKey(
-	aggType event.AggregateType,
+	aggType id.AggregateType,
 	aggID id.AggregateID,
 ) []byte {
 	return fmt.Appendf(nil, "%s%s:%s", s.prefix, aggType, aggID)
@@ -253,7 +253,7 @@ type serializableSnapshot struct {
 	CreatedAt     int64          `json:"created_at"`
 }
 
-func (s *serializableSnapshot) toSnapshot(ref event.AggregateRef) *snapshot.Snapshot {
+func (s *serializableSnapshot) toSnapshot(ref id.AggregateRef) *snapshot.Snapshot {
 	return &snapshot.Snapshot{
 		AggregateID:   ref.ID,
 		AggregateType: ref.Type,
@@ -290,7 +290,7 @@ func deserializeSnapshot(data []byte) (*serializableSnapshot, error) {
 		}
 	} else {
 		// Legacy JSON fallback for snapshots written before CBOR migration.
-		err := json.Unmarshal(data, &s)
+		err := json.Unmarshal(data, &s, json.MatchCaseInsensitiveNames(true))
 		if err != nil {
 			return nil, errorfamily.Wrapf(
 				err,

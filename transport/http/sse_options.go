@@ -46,7 +46,10 @@ const SSEReplayIncompleteEvent = "cqrs.replay.incomplete"
 // containing very large payloads (e.g. 1MB+ blob events): a fixed count of 500
 // such events would consume 500MB. The default budget
 // (sseDefaultReplayByteBudget = 8MB) is applied automatically for unlimited
-// replay; pass an explicit value to override it.
+// replay when no explicit budget is set.
+//
+// To disable byte-budgeting entirely (truly unlimited replay), pass
+// SSEReplayBudgetDisabled.
 //
 // Applies only when replayLimit <= 0 (unlimited replay). Bounded replay
 // (replayLimit > 0) is capped by event count and ignores this setting.
@@ -120,8 +123,15 @@ const sseReplayBatchSize = 500
 // sseDefaultReplayByteBudget is the default byte budget applied when unlimited
 // replay (replayLimit <= 0) is used without an explicit WithReplayByteBudget.
 // 8MB accommodates ~5000 typical 1.5KB events while keeping per-client memory
-// bounded. Callers can override via WithReplayByteBudget.
+// bounded. Callers can override via WithReplayByteBudget or disable it entirely
+// with SSEReplayBudgetDisabled.
 const sseDefaultReplayByteBudget = 8 * 1024 * 1024
+
+// SSEReplayBudgetDisabled is the sentinel value for WithReplayByteBudget that
+// explicitly disables byte-budget enforcement, allowing truly unlimited replay
+// with no byte cap. Use with caution — a client reconnecting after a long
+// offline period with a very large journal will stream the entire journal.
+const SSEReplayBudgetDisabled = -1
 
 // sseDedupRingCapacity is the maximum number of event IDs retained for
 // replay→live deduplication. Only the tail of the replay stream can overlap

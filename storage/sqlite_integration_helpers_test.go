@@ -56,7 +56,7 @@ func newSQLiteTestStore(t *testing.T) *SQLEventStore {
 
 func newTestSnapshot(
 	aggID id.AggregateID,
-	aggregateType event.AggregateType,
+	aggregateType id.AggregateType,
 	version event.Version,
 	state []byte,
 ) snapshot.Snapshot {

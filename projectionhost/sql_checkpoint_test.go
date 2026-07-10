@@ -57,7 +57,7 @@ func TestIntegration_ProjectionHost_SQLiteCheckpoint(t *testing.T) {
 	}
 
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Item", aggID)
+	ref := id.NewAggregateRef("Item", aggID)
 	for range 3 {
 		evt, _ := event.New("item.added", aggID, "Item", 1, []byte("payload"))
 		_ = store.AppendBatch(context.Background(), ref, []event.Event{evt})

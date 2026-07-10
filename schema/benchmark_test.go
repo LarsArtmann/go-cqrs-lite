@@ -57,13 +57,13 @@ func BenchmarkVersionedStore_Load(b *testing.B) {
 
 	for i := range 100 {
 		evt := benchEvent(b, aggID, event.Version(i+1))
-		_ = store.AppendBatch(ctx, event.NewAggregateRef("User", aggID), []event.Event{evt})
+		_ = store.AppendBatch(ctx, id.NewAggregateRef("User", aggID), []event.Event{evt})
 	}
 
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, err := versionedStore.Load(ctx, event.NewAggregateRef("User", aggID))
+		_, err := versionedStore.Load(ctx, id.NewAggregateRef("User", aggID))
 		if err != nil {
 			b.Fatalf("Load: %v", err)
 		}

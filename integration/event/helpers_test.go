@@ -26,7 +26,7 @@ func createTestEvent(
 
 func expectNewEventValidationFails(
 	aggID id.AggregateID,
-	aggType event.AggregateType,
+	aggType id.AggregateType,
 	version event.Version,
 	expectedMsg string,
 ) {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
@@ -32,9 +31,9 @@ func TestMemoryStore_ReadFrom(t *testing.T) {
 
 	evt1, evt2, evt3 := eventtest.MakeThreeTimelineEvents(t, "User", aggID1, "Order", aggID2)
 
-	_ = store.AppendBatch(ctx, event.NewAggregateRef(event.AggregateType("User"), aggID1), evt1)
-	_ = store.AppendBatch(ctx, event.NewAggregateRef(event.AggregateType("Order"), aggID2), evt2)
-	_ = store.AppendBatch(ctx, event.NewAggregateRef(event.AggregateType("User"), aggID1), evt3)
+	_ = store.AppendBatch(ctx, id.NewAggregateRef(id.AggregateType("User"), aggID1), evt1)
+	_ = store.AppendBatch(ctx, id.NewAggregateRef(id.AggregateType("Order"), aggID2), evt2)
+	_ = store.AppendBatch(ctx, id.NewAggregateRef(id.AggregateType("User"), aggID1), evt3)
 
 	all, err := store.ReadAll(ctx)
 	eventtest.AssertNoError(t, err, "ReadAll")

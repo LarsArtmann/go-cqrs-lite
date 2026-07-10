@@ -9,13 +9,14 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
 // AppendBatch implements event.Store.AppendBatch.
 // Appends events without optimistic concurrency checks.
 func (a *EventStore) AppendBatch(
 	_ context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	events []event.Event,
 ) error {
 	if len(events) == 0 {
@@ -52,7 +53,7 @@ func (a *EventStore) Close() error { return nil }
 // logEventOperation logs a debug message for event operations.
 func (a *EventStore) logEventOperation(
 	msg string,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	count int,
 ) {
 	if a.logger == nil {
@@ -107,7 +108,7 @@ func (a *EventStore) addToBatch(batch *pebble.Batch, key, data []byte) error {
 func (a *EventStore) commitAndLog(
 	batch *pebble.Batch,
 	logMsg string,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	count int,
 ) error {
 	err := batch.Commit(a.writeOptions())

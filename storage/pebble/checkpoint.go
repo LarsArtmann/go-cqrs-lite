@@ -199,7 +199,7 @@ func deserializeCheckpoint(data []byte) (event.Checkpoint, error) {
 		}
 	} else {
 		// Legacy JSON fallback for checkpoints written before CBOR migration.
-		err := json.Unmarshal(data, &s)
+		err := json.Unmarshal(data, &s, json.MatchCaseInsensitiveNames(true))
 		if err != nil {
 			return event.Checkpoint{}, errorfamily.Wrapf(
 				err,

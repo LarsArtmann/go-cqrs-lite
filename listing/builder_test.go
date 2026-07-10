@@ -120,7 +120,7 @@ func TestAggregateStatus_MarshalJSON(t *testing.T) {
 	status := listing.AggregateStatus{
 		Ref: listing.AggregateListing{
 			ID:          aggID,
-			Type:        event.AggregateType("User"),
+			Type:        id.AggregateType("User"),
 			Version:     event.Version(3),
 			EventCount:  3,
 			LastEventAt: ts,

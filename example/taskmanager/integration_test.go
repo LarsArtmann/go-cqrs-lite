@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
@@ -97,7 +96,7 @@ func TestIntegration_FullLifecycle(t *testing.T) {
 	})
 
 	// Verify the event store persisted correct tombstone metadata.
-	ref := event.NewAggregateRef(aggregateType, taskID)
+	ref := id.NewAggregateRef(aggregateType, taskID)
 	allEvents, err := srv.Bundle.EventSource.Load(ctx, ref)
 	if err != nil {
 		t.Fatalf("load events: %v", err)

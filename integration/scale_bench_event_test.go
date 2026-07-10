@@ -56,7 +56,7 @@ func BenchmarkScale_EventSave_10KAggregates_100EventsEach(b *testing.B) {
 
 			err := store.AppendBatch(
 				ctx,
-				event.NewAggregateRef("Item", aggID),
+				id.NewAggregateRef("Item", aggID),
 				events,
 			)
 			if err != nil {

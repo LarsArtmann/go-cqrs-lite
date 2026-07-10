@@ -17,9 +17,9 @@ import (
 func (r *Repository[State]) loadFromStore(
 	ctx context.Context,
 	aggregateID id.AggregateID,
-	aggregateType event.AggregateType,
+	aggregateType id.AggregateType,
 ) (State, event.Version, error) {
-	ref := event.NewAggregateRef(aggregateType, aggregateID)
+	ref := id.NewAggregateRef(aggregateType, aggregateID)
 
 	return r.loadByEvents(
 		func() ([]event.Event, error) {
@@ -47,7 +47,7 @@ func (r *Repository[State]) loadFromStore(
 func (r *Repository[State]) foldEvents(
 	state State,
 	events []event.Event,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 ) (State, error) {
 	var err error
 
@@ -70,7 +70,7 @@ func (r *Repository[State]) foldEvents(
 }
 
 func opError(
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	msg string,
 	args ...any,
 ) error {
@@ -99,7 +99,8 @@ func opError(
 		errorfamily.Classify(cause),
 		"decider.op_error",
 		fmtMsg,
-		args...)
+		args...,
+	)
 }
 
 // LoadAtVersion reconstructs state from events up to and including maxVersion.
@@ -107,10 +108,10 @@ func opError(
 func (r *Repository[State]) LoadAtVersion(
 	ctx context.Context,
 	aggregateID id.AggregateID,
-	aggregateType event.AggregateType,
+	aggregateType id.AggregateType,
 	maxVersion event.Version,
 ) (State, event.Version, error) {
-	ref := event.NewAggregateRef(aggregateType, aggregateID)
+	ref := id.NewAggregateRef(aggregateType, aggregateID)
 
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.load_at_version",
@@ -141,10 +142,10 @@ func (r *Repository[State]) LoadAtVersion(
 func (r *Repository[State]) LoadAtTime(
 	ctx context.Context,
 	aggregateID id.AggregateID,
-	aggregateType event.AggregateType,
+	aggregateType id.AggregateType,
 	maxTime time.Time,
 ) (State, event.Version, error) {
-	ref := event.NewAggregateRef(aggregateType, aggregateID)
+	ref := id.NewAggregateRef(aggregateType, aggregateID)
 
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.load_at_time",
@@ -171,7 +172,7 @@ func (r *Repository[State]) LoadAtTime(
 
 func (r *Repository[State]) loadByEvents(
 	loadFn func() ([]event.Event, error),
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 ) (State, event.Version, error) {
 	events, err := loadFn()
 	if err != nil {
@@ -195,7 +196,7 @@ func (r *Repository[State]) loadByEvents(
 }
 
 func (r *Repository[State]) shouldSnapshot(
-	aggregateType event.AggregateType,
+	aggregateType id.AggregateType,
 	version event.Version,
 ) bool {
 	return snapshot.ShouldSnapshot(
@@ -210,9 +211,9 @@ func (r *Repository[State]) shouldSnapshot(
 func (r *Repository[State]) loadFromSnapshot(
 	ctx context.Context,
 	aggregateID id.AggregateID,
-	aggregateType event.AggregateType,
+	aggregateType id.AggregateType,
 ) (State, event.Version, error) {
-	ref := event.NewAggregateRef(aggregateType, aggregateID)
+	ref := id.NewAggregateRef(aggregateType, aggregateID)
 
 	snap, err := r.snapshotStore.Load(ctx, ref)
 	if err != nil {

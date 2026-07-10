@@ -30,7 +30,7 @@ func fuzzEvent(
 	evt, err := event.NewEvent(
 		event.Type(eventType),
 		id.NewAggregateID(),
-		event.AggregateType(aggType),
+		id.AggregateType(aggType),
 		event.Version(version),
 		payload,
 		event.WithSchemaVersion(event.SchemaVersion(schemaVersion)),

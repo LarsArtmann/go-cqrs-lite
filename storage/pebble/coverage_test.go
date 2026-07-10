@@ -31,7 +31,7 @@ func TestEventStore_OptionAsyncWrites(t *testing.T) {
 	}
 
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("TestOpts", aggID)
+	ref := id.NewAggregateRef("TestOpts", aggID)
 	evt, err := event.NewEvent("test.event", aggID, "TestOpts", event.Version(1), []byte(`{}`))
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
@@ -102,7 +102,7 @@ func TestSnapshotStore_Options(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.NewAggregateID()
-	aggType := event.AggregateType("TestOpts")
+	aggType := id.AggregateType("TestOpts")
 	snap := snapshot.Snapshot{
 		AggregateID:   aggID,
 		AggregateType: aggType,
@@ -116,7 +116,7 @@ func TestSnapshotStore_Options(t *testing.T) {
 		t.Fatalf("Save: %v", err)
 	}
 
-	ref := event.NewAggregateRef(aggType, aggID)
+	ref := id.NewAggregateRef(aggType, aggID)
 	loaded, err := snapStore.Load(ctx, ref)
 	if err != nil {
 		t.Fatalf("Load: %v", err)
@@ -142,7 +142,7 @@ func TestEventStore_SaveEmpty(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ref := event.NewAggregateRef("Empty", id.NewAggregateID())
+	ref := id.NewAggregateRef("Empty", id.NewAggregateID())
 
 	err = store.Save(context.Background(), ref, nil, event.Version(0))
 	if err != nil {
@@ -165,7 +165,7 @@ func TestEventStore_LoadNonExistent(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ref := event.NewAggregateRef("NoExist", id.NewAggregateID())
+	ref := id.NewAggregateRef("NoExist", id.NewAggregateID())
 
 	events, err := store.Load(context.Background(), ref)
 	if err == nil && len(events) > 0 {
@@ -201,7 +201,7 @@ func TestEventStore_AppendBatchMultiple(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("TestAppend", aggID)
+	ref := id.NewAggregateRef("TestAppend", aggID)
 	evt, _ := event.NewEvent("test.created", aggID, "TestAppend", event.Version(1), []byte(`{}`))
 	_ = store.Save(ctx, ref, []event.Event{evt}, event.Version(0))
 
@@ -263,7 +263,7 @@ func TestEventStore_LoadFromVersion(t *testing.T) {
 	baseTime := time.Now()
 
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("TestLFV", aggID)
+	ref := id.NewAggregateRef("TestLFV", aggID)
 
 	for i := range 3 {
 		evt, _ := event.NewEvent("test.event", aggID, "TestLFV", event.Version(i+1),
@@ -301,7 +301,7 @@ func TestEventStore_LoadToTimestamp(t *testing.T) {
 	baseTime := time.Now()
 
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("TestLTT", aggID)
+	ref := id.NewAggregateRef("TestLTT", aggID)
 
 	for i := range 3 {
 		evt, _ := event.NewEvent("test.event", aggID, "TestLTT", event.Version(i+1),
@@ -335,7 +335,7 @@ func TestSnapshotStore_LoadNonExistent(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ref := event.NewAggregateRef("NoSnap", id.NewAggregateID())
+	ref := id.NewAggregateRef("NoSnap", id.NewAggregateID())
 
 	_, err = snapStore.Load(context.Background(), ref)
 	if err == nil {

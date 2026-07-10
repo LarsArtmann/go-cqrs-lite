@@ -38,7 +38,11 @@ func (b *PostgresBus) listenLoop(ctx context.Context) {
 
 func (b *PostgresBus) handleNotification(ctx context.Context, payload string) {
 	var np notifyPayload
-	if err := json.Unmarshal([]byte(payload), &np); err != nil {
+	if err := json.Unmarshal(
+		[]byte(payload),
+		&np,
+		json.MatchCaseInsensitiveNames(true),
+	); err != nil {
 		b.opts.logger.ErrorContext(ctx, "failed to unmarshal notify payload", "error", err)
 		return
 	}
@@ -123,7 +127,7 @@ func (b *PostgresBus) refetchByID(
 }
 
 func (b *PostgresBus) refetchByVersion(ctx context.Context, np notifyPayload) (event.Event, error) {
-	ref := event.NewAggregateRef(np.AggregateType, np.AggregateID)
+	ref := id.NewAggregateRef(np.AggregateType, np.AggregateID)
 
 	var lastErr error
 

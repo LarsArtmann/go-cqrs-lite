@@ -37,7 +37,7 @@ func FuzzAggregateListing_JSON_Roundtrip(f *testing.F) {
 
 		original := listing.AggregateListing{
 			ID:          idVal,
-			Type:        event.AggregateType(aggType),
+			Type:        id.AggregateType(aggType),
 			Version:     event.Version(version),
 			EventCount:  eventCount,
 			LastEventAt: time.Unix(0, 0).UTC(),
@@ -125,7 +125,7 @@ func FuzzAggregateStatus_MarshalOnly(f *testing.F) {
 			original := listing.AggregateStatus{
 				Ref: listing.AggregateListing{
 					ID:          idVal,
-					Type:        event.AggregateType(aggType),
+					Type:        id.AggregateType(aggType),
 					Version:     event.Version(version),
 					EventCount:  eventCount,
 					LastEventAt: time.Unix(0, 0).UTC(),

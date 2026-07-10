@@ -3,7 +3,6 @@ package listing
 import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
@@ -30,7 +29,7 @@ func NewListBuilder(reader AggregateReader) *ListBuilder {
 }
 
 // OfType filters to a specific aggregate type.
-func (b *ListBuilder) OfType(t event.AggregateType) *ListBuilder {
+func (b *ListBuilder) OfType(t id.AggregateType) *ListBuilder {
 	b.opts.Type = t
 
 	return b

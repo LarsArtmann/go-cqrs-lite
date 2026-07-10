@@ -13,13 +13,13 @@ import (
 func TestAggregateRef_IsZero(t *testing.T) {
 	t.Parallel()
 
-	var ref event.AggregateRef
+	var ref id.AggregateRef
 
 	if !ref.IsZero() {
 		t.Error("expected zero AggregateRef to be zero")
 	}
 
-	ref = event.NewAggregateRef("User", id.NewAggregateID())
+	ref = id.NewAggregateRef("User", id.NewAggregateID())
 
 	if ref.IsZero() {
 		t.Error("expected non-zero AggregateRef to not be zero")
@@ -32,7 +32,7 @@ func TestAggregateRef_Validate(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
 		t.Parallel()
 
-		ref := event.NewAggregateRef("User", id.NewAggregateID())
+		ref := id.NewAggregateRef("User", id.NewAggregateID())
 
 		err := ref.Validate()
 		if err != nil {
@@ -43,7 +43,7 @@ func TestAggregateRef_Validate(t *testing.T) {
 	t.Run("empty type", func(t *testing.T) {
 		t.Parallel()
 
-		ref := event.NewAggregateRef("", id.NewAggregateID())
+		ref := id.NewAggregateRef("", id.NewAggregateID())
 
 		err := ref.Validate()
 		if err == nil {
@@ -54,7 +54,7 @@ func TestAggregateRef_Validate(t *testing.T) {
 	t.Run("empty ID", func(t *testing.T) {
 		t.Parallel()
 
-		ref := event.NewAggregateRef("User", id.AggregateID{})
+		ref := id.NewAggregateRef("User", id.AggregateID{})
 
 		err := ref.Validate()
 		if err == nil {
@@ -136,7 +136,7 @@ func TestImmutableEvent_String(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		event.Type("user.created"), id.NewAggregateID(),
-		event.AggregateType("User"), event.Version(1),
+		id.AggregateType("User"), event.Version(1),
 		[]byte(`{"name":"test"}`),
 	)
 	if err != nil {

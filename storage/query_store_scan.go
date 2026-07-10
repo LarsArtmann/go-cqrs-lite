@@ -59,7 +59,11 @@ func (s *SQLQueryStore) scanQuery(rows *sql.Rows) (*query.PersistedQuery, error)
 
 	if len(metadataJSON) > 0 {
 		var meta query.Metadata
-		if jsonErr := json.Unmarshal(metadataJSON, &meta); jsonErr != nil {
+		if jsonErr := json.Unmarshal(
+			metadataJSON,
+			&meta,
+			json.MatchCaseInsensitiveNames(true),
+		); jsonErr != nil {
 			return nil, errorfamily.WrapCorruption(jsonErr, "storage.parse_query_metadata",
 				fmt.Sprintf("unmarshal metadata for %s query (id %s)", queryType, requestIDStr))
 		}

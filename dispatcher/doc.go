@@ -19,10 +19,13 @@
 //
 // # Middleware Chain
 //
-// Middleware is applied at Register time (not dispatch time) in reverse order,
-// so the last middleware added wraps the outermost layer:
+// Middleware is applied at dispatch time, so Use() can be called in any order
+// relative to Register(). The chain is rebuilt on each Dispatch call via
+// slices.Backward, making the first-added middleware the outermost wrapper:
 //
 //	d.Use(loggingMiddleware, wrapFunc)
 //	d.Use(recoveryMiddleware, wrapFunc)
-//	// handler = recoveryMiddleware(loggingMiddleware(rawHandler))
+//	// handler = loggingMiddleware(recoveryMiddleware(rawHandler))
+//
+// Adding middleware after Register() takes effect on the next Dispatch.
 package dispatcher

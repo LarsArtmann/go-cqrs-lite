@@ -10,7 +10,7 @@ import (
 func JSONToYAML(jsonBytes []byte) ([]byte, error) {
 	var obj any
 
-	err := json.Unmarshal(jsonBytes, &obj)
+	err := json.Unmarshal(jsonBytes, &obj, json.MatchCaseInsensitiveNames(true))
 	if err != nil {
 		return nil, errorfamily.Newf(
 			errorfamily.Infrastructure,

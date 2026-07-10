@@ -55,7 +55,7 @@ func BenchmarkMemoryStore_Save(b *testing.B) {
 		evt, _ := event.NewEvent("BenchEvent", aggregateID, "Bench", 1, nil)
 		_ = store.Save(
 			ctx,
-			event.NewAggregateRef(event.AggregateType("Bench"), aggregateID),
+			id.NewAggregateRef(id.AggregateType("Bench"), aggregateID),
 			[]event.Event{evt},
 			1,
 		)
@@ -72,13 +72,13 @@ func BenchmarkMemoryStore_Load(b *testing.B) {
 		evt, _ := event.NewEvent("BenchEvent", aggregateID, "Bench", 1, nil)
 		_ = store.Save(
 			ctx,
-			event.NewAggregateRef(event.AggregateType("Bench"), aggregateID),
+			id.NewAggregateRef(id.AggregateType("Bench"), aggregateID),
 			[]event.Event{evt},
 			event.Version(i+1),
 		)
 	}
 
 	for b.Loop() {
-		_, _ = store.Load(ctx, event.NewAggregateRef(event.AggregateType("Bench"), aggregateID))
+		_, _ = store.Load(ctx, id.NewAggregateRef(id.AggregateType("Bench"), aggregateID))
 	}
 }

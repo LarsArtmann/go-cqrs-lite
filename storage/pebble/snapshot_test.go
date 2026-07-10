@@ -56,7 +56,7 @@ func TestSnapshotStore_SaveAndLoad(t *testing.T) {
 	store := newSnapshotStore(t)
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Order", aggID)
+	ref := id.NewAggregateRef("Order", aggID)
 	snap := testSnapshot(t, aggID, 5, `{"status":"shipped"}`)
 
 	if err := store.Save(ctx, snap); err != nil {
@@ -89,7 +89,7 @@ func TestSnapshotStore_Load_NotFound(t *testing.T) {
 	t.Parallel()
 
 	store := newSnapshotStore(t)
-	ref := event.NewAggregateRef("Order", id.NewAggregateID())
+	ref := id.NewAggregateRef("Order", id.NewAggregateID())
 
 	_, err := store.Load(context.Background(), ref)
 	if !errors.Is(err, snapshot.ErrSnapshotNotFound) {
@@ -104,7 +104,7 @@ func TestSnapshotStore_LoadAtVersion_NotFound(t *testing.T) {
 		t.Parallel()
 
 		store := newSnapshotStore(t)
-		ref := event.NewAggregateRef("Order", id.NewAggregateID())
+		ref := id.NewAggregateRef("Order", id.NewAggregateID())
 
 		_, err := store.LoadAtVersion(context.Background(), ref, event.Version(10))
 		if !errors.Is(err, snapshot.ErrSnapshotNotFound) {
@@ -118,7 +118,7 @@ func TestSnapshotStore_LoadAtVersion_NotFound(t *testing.T) {
 		store := newSnapshotStore(t)
 		ctx := context.Background()
 		aggID := id.NewAggregateID()
-		ref := event.NewAggregateRef("Order", aggID)
+		ref := id.NewAggregateRef("Order", aggID)
 
 		snap := testSnapshot(t, aggID, 5, `{"status":"shipped"}`)
 		if err := store.Save(ctx, snap); err != nil {
@@ -138,7 +138,7 @@ func TestSnapshotStore_LoadAtVersion_AtOrAfter(t *testing.T) {
 	store := newSnapshotStore(t)
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Order", aggID)
+	ref := id.NewAggregateRef("Order", aggID)
 
 	if err := store.Save(ctx, testSnapshot(t, aggID, 5, `{"status":"shipped"}`)); err != nil {
 		t.Fatalf("Save: %v", err)
@@ -202,7 +202,7 @@ func TestSnapshotStore_Save_VersionPrecedence(t *testing.T) {
 			store := newSnapshotStore(t)
 			ctx := context.Background()
 			aggID := id.NewAggregateID()
-			ref := event.NewAggregateRef("Order", aggID)
+			ref := id.NewAggregateRef("Order", aggID)
 
 			if err := store.Save(ctx, testSnapshot(t, aggID, tt.first, tt.firstState)); err != nil {
 				t.Fatalf("Save first: %v", err)
@@ -237,7 +237,7 @@ func TestSnapshotStore_Delete(t *testing.T) {
 	store := newSnapshotStore(t)
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Order", aggID)
+	ref := id.NewAggregateRef("Order", aggID)
 
 	if err := store.Save(ctx, testSnapshot(t, aggID, 5, `{"status":"shipped"}`)); err != nil {
 		t.Fatalf("Save: %v", err)
@@ -257,7 +257,7 @@ func TestSnapshotStore_Delete_Idempotent(t *testing.T) {
 	t.Parallel()
 
 	store := newSnapshotStore(t)
-	ref := event.NewAggregateRef("Order", id.NewAggregateID())
+	ref := id.NewAggregateRef("Order", id.NewAggregateID())
 
 	err := store.Delete(context.Background(), ref)
 	if err != nil {
@@ -281,12 +281,12 @@ func TestSnapshotStore_DistinctAggregates(t *testing.T) {
 		t.Fatalf("Save agg2: %v", err)
 	}
 
-	loaded1, err := store.Load(ctx, event.NewAggregateRef("Order", agg1))
+	loaded1, err := store.Load(ctx, id.NewAggregateRef("Order", agg1))
 	if err != nil {
 		t.Fatalf("Load agg1: %v", err)
 	}
 
-	loaded2, err := store.Load(ctx, event.NewAggregateRef("Order", agg2))
+	loaded2, err := store.Load(ctx, id.NewAggregateRef("Order", agg2))
 	if err != nil {
 		t.Fatalf("Load agg2: %v", err)
 	}
@@ -318,7 +318,7 @@ func TestSnapshotStore_SharedDB_WithEventStore(t *testing.T) {
 
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Issue", aggID)
+	ref := id.NewAggregateRef("Issue", aggID)
 	cfg := issueStoreConfig()
 
 	evt := cfg.NewTestEvent(t, aggID, 1)
@@ -327,7 +327,7 @@ func TestSnapshotStore_SharedDB_WithEventStore(t *testing.T) {
 	}
 
 	// Same aggregate type + ID but snapshot prefix is disjoint from event prefix.
-	snapRef := event.NewAggregateRef("Issue", aggID)
+	snapRef := id.NewAggregateRef("Issue", aggID)
 	snap := snapshot.Snapshot{
 		AggregateID:   aggID,
 		AggregateType: "Issue",

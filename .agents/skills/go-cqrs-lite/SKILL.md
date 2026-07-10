@@ -111,6 +111,7 @@ with projection + read model.
 | Dispatch type-safe commands                           | `command`                                                                       | recipes §2.1    |
 | Run an event-sourced aggregate                        | `decider`                                                                       | recipes §2.1    |
 | Generate unique, type-safe IDs                        | `id`                                                                            | recipes §2.1    |
+| Typed event metadata (tracing, custom data)           | `metadata`                                                                      | —               |
 | Encode payloads as JSON/CBOR                          | `codec`                                                                         | recipes §2.1    |
 | Build a read model from events                        | `stack.Materialize` + `kv.TypedStore`                                           | readmodels §2.3 |
 | Dispatch type-safe queries                            | `query`                                                                         | readmodels §2.3 |

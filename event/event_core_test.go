@@ -52,7 +52,7 @@ func TestNewEvent_InvalidInputErrors(t *testing.T) {
 		name          string
 		eventType     event.Type
 		aggregateID   id.AggregateID
-		aggregateType event.AggregateType
+		aggregateType id.AggregateType
 		version       event.Version
 		wantErr       error
 	}{
@@ -118,7 +118,7 @@ func TestNewEvent_ErrorMessagesContainContext(t *testing.T) {
 		name          string
 		eventType     event.Type
 		aggregateID   id.AggregateID
-		aggregateType event.AggregateType
+		aggregateType id.AggregateType
 		version       event.Version
 		wantContains  []string
 	}{

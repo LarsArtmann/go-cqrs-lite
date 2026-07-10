@@ -248,7 +248,7 @@ func TestEventStore_Persistence_CBOR(t *testing.T) {
 		t.Fatalf("create event: %v", err)
 	}
 
-	ref := event.NewAggregateRef("Item", aggID)
+	ref := id.NewAggregateRef("Item", aggID)
 
 	err = store.Save(ctx, ref, []event.Event{evt}, event.Version(0))
 	if err != nil {
@@ -311,7 +311,7 @@ func TestEventStore_BinaryPayload(t *testing.T) {
 		t.Fatalf("create event: %v", err)
 	}
 
-	ref := event.NewAggregateRef("Bin", aggID)
+	ref := id.NewAggregateRef("Bin", aggID)
 
 	err = store.Save(ctx, ref, []event.Event{evt}, event.Version(0))
 	if err != nil {

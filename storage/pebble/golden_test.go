@@ -11,6 +11,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3/idtest"
 	pb "github.com/larsartmann/go-cqrs-lite/storage/pebble/v3"
 )
@@ -33,7 +34,7 @@ func TestGolden_EventStoreRoundTrip(t *testing.T) {
 	t.Cleanup(func() { _ = db.Close() })
 
 	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
-	ref := event.NewAggregateRef("Order", aggID)
+	ref := id.NewAggregateRef("Order", aggID)
 
 	types := []struct {
 		typ     event.Type

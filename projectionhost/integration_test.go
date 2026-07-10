@@ -65,7 +65,7 @@ func TestIntegration_ProjectionHost_WithMemoryStore(t *testing.T) {
 
 	// Seed the real store with 3 good events + 1 poison event.
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Item", aggID)
+	ref := id.NewAggregateRef("Item", aggID)
 	goodEvents := []event.Type{"item.added", "item.added", "item.added"}
 	for _, typ := range goodEvents {
 		evt, _ := event.New(typ, aggID, "Item", 1, []byte("payload"))

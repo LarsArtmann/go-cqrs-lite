@@ -82,7 +82,7 @@ func TestParseType_Empty(t *testing.T) {
 func TestParseAggregateType(t *testing.T) {
 	t.Parallel()
 
-	got, err := event.ParseAggregateType("User")
+	got, err := id.ParseAggregateType("User")
 	if err != nil {
 		t.Fatalf("ParseAggregateType: %v", err)
 	}
@@ -99,7 +99,7 @@ func TestParseAggregateType(t *testing.T) {
 func TestParseAggregateType_Empty(t *testing.T) {
 	t.Parallel()
 
-	_, err := event.ParseAggregateType("")
+	_, err := id.ParseAggregateType("")
 	if err == nil {
 		t.Fatal("expected error for empty aggregate type")
 	}

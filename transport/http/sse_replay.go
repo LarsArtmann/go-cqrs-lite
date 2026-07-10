@@ -69,11 +69,13 @@ func replayEvents(
 	start := time.Now()
 
 	// Apply the default byte budget for unlimited replay when no explicit
-	// budget was set. This prevents unbounded memory consumption when a client
-	// reconnects after a long offline period with a very large journal.
-	// Bounded replay (replayLimit > 0) is already capped by event count.
+	// budget was set (zero value). This prevents unbounded memory consumption
+	// when a client reconnects after a long offline period with a very large
+	// journal. Bounded replay (replayLimit > 0) is already capped by event
+	// count. SSEReplayBudgetDisabled (-1) skips the auto-default for truly
+	// unlimited replay; any positive value is an explicit budget.
 	budget := broker.replayByteBudget
-	if broker.replayLimit <= 0 && budget <= 0 {
+	if broker.replayLimit <= 0 && budget == 0 {
 		budget = sseDefaultReplayByteBudget
 	}
 

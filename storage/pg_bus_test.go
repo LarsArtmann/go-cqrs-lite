@@ -185,7 +185,7 @@ func TestPostgresBus_SubscribeAndPublish(t *testing.T) {
 	}
 
 	if err := store.AppendBatch(context.Background(),
-		event.NewAggregateRef("Test", aggID), []event.Event{evt}); err != nil {
+		id.NewAggregateRef("Test", aggID), []event.Event{evt}); err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
 
@@ -243,7 +243,7 @@ func TestPostgresBus_NotificationRefetch(t *testing.T) {
 	}
 
 	if err := store.AppendBatch(context.Background(),
-		event.NewAggregateRef("Test", aggID), []event.Event{evt}); err != nil {
+		id.NewAggregateRef("Test", aggID), []event.Event{evt}); err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
 
@@ -314,7 +314,7 @@ func TestPostgresBus_SubscribeAll(t *testing.T) {
 	evt, _ := event.NewEvent("any.event", aggID, "Test", event.Version(1), []byte(`{}`))
 
 	if err := store.AppendBatch(context.Background(),
-		event.NewAggregateRef("Test", aggID), []event.Event{evt}); err != nil {
+		id.NewAggregateRef("Test", aggID), []event.Event{evt}); err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
 
@@ -394,7 +394,7 @@ func TestPostgresBus_Middleware(t *testing.T) {
 	evt, _ := event.NewEvent("test.mw", aggID, "Test", event.Version(1), []byte(`{}`))
 
 	_ = store.AppendBatch(context.Background(),
-		event.NewAggregateRef("Test", aggID), []event.Event{evt})
+		id.NewAggregateRef("Test", aggID), []event.Event{evt})
 
 	_ = bus.Subscribe("test.mw", func(_ context.Context, _ event.Event) error { return nil })
 	_ = bus.Publish(context.Background(), evt)
@@ -473,25 +473,25 @@ type versionOnlySource struct {
 
 func (v *versionOnlySource) Load(
 	ctx context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 ) ([]event.Event, error) {
 	return v.inner.Load(ctx, ref)
 }
 
 func (v *versionOnlySource) LoadFromVersion(
-	ctx context.Context, ref event.AggregateRef, ver event.Version,
+	ctx context.Context, ref id.AggregateRef, ver event.Version,
 ) ([]event.Event, error) {
 	return v.inner.LoadFromVersion(ctx, ref, ver)
 }
 
 func (v *versionOnlySource) LoadToVersion(
-	ctx context.Context, ref event.AggregateRef, maxVer event.Version,
+	ctx context.Context, ref id.AggregateRef, maxVer event.Version,
 ) ([]event.Event, error) {
 	return v.inner.LoadToVersion(ctx, ref, maxVer)
 }
 
 func (v *versionOnlySource) LoadToTimestamp(
-	ctx context.Context, ref event.AggregateRef, maxTime time.Time,
+	ctx context.Context, ref id.AggregateRef, maxTime time.Time,
 ) ([]event.Event, error) {
 	return v.inner.LoadToTimestamp(ctx, ref, maxTime)
 }
@@ -535,7 +535,7 @@ func TestPostgresBus_RefetchVersionFallback(t *testing.T) {
 
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Test", aggID)
+	ref := id.NewAggregateRef("Test", aggID)
 
 	evt, err := event.NewEvent("test.versioned", aggID, "Test", event.Version(1),
 		[]byte(`{"n":1}`))

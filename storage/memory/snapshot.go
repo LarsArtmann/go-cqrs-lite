@@ -8,6 +8,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/dispatcher/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	snappkg "github.com/larsartmann/go-cqrs-lite/snapshot/v3"
 )
 
@@ -45,7 +46,7 @@ func (s *MemorySnapshotStore) Save(_ context.Context, snap snappkg.Snapshot) err
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	key := event.NewAggregateRef(snap.AggregateType, snap.AggregateID).StreamKey()
+	key := id.NewAggregateRef(snap.AggregateType, snap.AggregateID).StreamKey()
 
 	existing, exists := s.snapshots[key]
 	if exists && existing.Version.Int() > snap.Version.Int() {
@@ -59,7 +60,7 @@ func (s *MemorySnapshotStore) Save(_ context.Context, snap snappkg.Snapshot) err
 
 func (s *MemorySnapshotStore) Load(
 	_ context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 ) (*snappkg.Snapshot, error) {
 	err := s.CheckClosed(snappkg.ErrSnapshotStoreClosed)
 	if err != nil {
@@ -87,7 +88,7 @@ func (s *MemorySnapshotStore) Load(
 
 func (s *MemorySnapshotStore) LoadAtVersion(
 	_ context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	version event.Version,
 ) (*snappkg.Snapshot, error) {
 	err := s.CheckClosed(snappkg.ErrSnapshotStoreClosed)
@@ -131,7 +132,7 @@ func copySnapshot(snap *snappkg.Snapshot) *snappkg.Snapshot {
 
 func (s *MemorySnapshotStore) Delete(
 	_ context.Context,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 ) error {
 	err := s.CheckClosed(snappkg.ErrSnapshotStoreClosed)
 	if err != nil {

@@ -63,7 +63,7 @@ func NewTypedRepository[State, Cmd any](
 func (r *TypedRepository[State, Cmd]) ExecuteCommand(
 	ctx context.Context,
 	aggregateID id.AggregateID,
-	aggregateType event.AggregateType,
+	aggregateType id.AggregateType,
 	cmd Cmd,
 ) error {
 	return r.inner.Execute(
@@ -78,7 +78,7 @@ func (r *TypedRepository[State, Cmd]) ExecuteCommand(
 func (r *TypedRepository[State, Cmd]) Load(
 	ctx context.Context,
 	aggregateID id.AggregateID,
-	aggregateType event.AggregateType,
+	aggregateType id.AggregateType,
 ) (State, event.Version, error) {
 	return r.inner.Load(ctx, aggregateID, aggregateType)
 }

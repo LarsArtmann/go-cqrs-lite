@@ -12,11 +12,11 @@ import (
 // AggregateListing is a summary of an aggregate stream.
 // No derived state. Status is computed separately by the reader.
 type AggregateListing struct {
-	ID          id.AggregateID      `json:"id"`
-	Type        event.AggregateType `json:"type"`
-	Version     event.Version       `json:"version"`
-	EventCount  uint                `json:"event_count"`   //nolint:tagliatelle // on-disk/external format uses snake_case
-	LastEventAt time.Time           `json:"last_event_at"` //nolint:tagliatelle // on-disk/external format uses snake_case
+	ID          id.AggregateID   `json:"id"`
+	Type        id.AggregateType `json:"type"`
+	Version     event.Version    `json:"version"`
+	EventCount  uint             `json:"event_count"`   //nolint:tagliatelle // on-disk/external format uses snake_case
+	LastEventAt time.Time        `json:"last_event_at"` //nolint:tagliatelle // on-disk/external format uses snake_case
 }
 
 // AggregateStatus pairs an aggregate with its computed tombstone state.
@@ -71,7 +71,7 @@ func (s AggregateStatus) MarshalJSON() ([]byte, error) {
 // ListOptions controls aggregate listing queries.
 type ListOptions struct {
 	// Type is the aggregate type to list. Required for cursor pagination.
-	Type event.AggregateType
+	Type id.AggregateType
 
 	// After is the cursor for the next page.
 	// Pass the last AggregateListing.ID from the previous Page.

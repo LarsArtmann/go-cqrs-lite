@@ -50,7 +50,7 @@ func ExampleNewVersionedStore() {
 	store := memory.NewMemoryStore()
 	_ = store.Save(
 		context.Background(),
-		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		id.NewAggregateRef(id.AggregateType("User"), aggID),
 		[]event.Event{v1Event},
 		0,
 	)
@@ -70,7 +70,7 @@ func ExampleNewVersionedStore() {
 
 	events, err := versioned.Load(
 		context.Background(),
-		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		id.NewAggregateRef(id.AggregateType("User"), aggID),
 	)
 	if err != nil {
 		fmt.Println("error:", err)

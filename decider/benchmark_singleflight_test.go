@@ -23,7 +23,7 @@ func setupBenchStore(b *testing.B) (id.AggregateID, *eventtest.FakeStore) {
 
 	err = store.AppendBatch(
 		context.Background(),
-		event.NewAggregateRef("Counter", aggID),
+		id.NewAggregateRef("Counter", aggID),
 		[]event.Event{evt},
 	)
 	if err != nil {

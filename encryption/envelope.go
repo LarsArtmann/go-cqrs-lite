@@ -35,7 +35,7 @@ func MarshalEnvelope(env Envelope) (string, error) {
 		env.Version = EnvelopeVersionV1
 	}
 
-	data, err := json.Marshal(env)
+	data, err := json.Marshal(env, json.Deterministic(true))
 	if err != nil {
 		return "", errorfamily.WrapInfrastructure(
 			err,
@@ -60,7 +60,7 @@ func UnmarshalEnvelope(encoded string) (Envelope, error) {
 
 	var env Envelope
 
-	if err := json.Unmarshal(data, &env); err != nil {
+	if err := json.Unmarshal(data, &env, json.MatchCaseInsensitiveNames(true)); err != nil {
 		return Envelope{}, errorfamily.WrapInfrastructure(
 			err,
 			"encryption.unmarshal_envelope",

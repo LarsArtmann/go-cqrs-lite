@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	"github.com/larsartmann/go-cqrs-lite/idempotency/v3"
 )
@@ -53,7 +52,7 @@ func TestIdempotencyDemo(t *testing.T) {
 
 	events, err := srv.Bundle.EventSource.Load(
 		ctx,
-		event.NewAggregateRef(event.AggregateType("Task"), taskID),
+		id.NewAggregateRef(id.AggregateType("Task"), taskID),
 	)
 	if err != nil {
 		t.Fatalf("load events: %v", err)

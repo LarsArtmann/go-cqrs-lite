@@ -69,7 +69,7 @@ func (s *SQLTimerStore[P]) Schedule(ctx context.Context, t scheduling.Timer[P]) 
 	ctx, span := s.startSpan(ctx, "timer.schedule", t.ID)
 	defer span.End()
 
-	payload, err := json.Marshal(t.Payload)
+	payload, err := json.Marshal(t.Payload, json.Deterministic(true))
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
@@ -144,7 +144,11 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 
 		t.FireAt = fireAt
 
-		if err := json.Unmarshal(payload, &t.Payload); err != nil {
+		if err := json.Unmarshal(
+			payload,
+			&t.Payload,
+			json.MatchCaseInsensitiveNames(true),
+		); err != nil {
 			cqrsotel.RecordError(span, err)
 
 			return nil, errorfamily.WrapCorruption(err, "storage.unmarshal_timer_payload",

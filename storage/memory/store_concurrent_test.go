@@ -39,7 +39,7 @@ func TestMemoryStore_ConcurrentSaveAndLoad(t *testing.T) {
 				)
 				_ = store.Save(
 					ctx,
-					event.NewAggregateRef(event.AggregateType("User"), aggID),
+					id.NewAggregateRef(id.AggregateType("User"), aggID),
 					[]event.Event{evt},
 					event.Version(idx),
 				)
@@ -50,7 +50,7 @@ func TestMemoryStore_ConcurrentSaveAndLoad(t *testing.T) {
 			defer wg.Done()
 
 			for range eventsPerGoroutine {
-				_, _ = store.Load(ctx, event.NewAggregateRef(event.AggregateType("User"), aggID))
+				_, _ = store.Load(ctx, id.NewAggregateRef(id.AggregateType("User"), aggID))
 			}
 		}()
 
@@ -71,7 +71,7 @@ func TestMemoryStore_ReadFrom_ZeroID(t *testing.T) {
 
 	_ = store.AppendBatch(
 		ctx,
-		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		id.NewAggregateRef(id.AggregateType("User"), aggID),
 		[]event.Event{evt},
 	)
 

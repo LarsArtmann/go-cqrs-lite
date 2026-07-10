@@ -27,7 +27,7 @@ func testListingStatus(
 	return listing.AggregateStatus{
 		Ref: listing.AggregateListing{
 			ID:          aggID,
-			Type:        event.AggregateType(aggType),
+			Type:        id.AggregateType(aggType),
 			Version:     event.Version(v),
 			EventCount:  uint(evtCount),
 			LastEventAt: lastEventAt,

@@ -65,7 +65,7 @@ func TestNew_E2E_EventSaveLoadRoundtrip(t *testing.T) {
 
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Todo", aggID)
+	ref := id.NewAggregateRef("Todo", aggID)
 
 	types := []event.Type{"todo.created", "todo.completed"}
 	payloads := []any{

@@ -53,13 +53,13 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 
 		err = store.Save(
 			ctx,
-			event.NewAggregateRef(event.AggregateType("User"), aggID),
+			id.NewAggregateRef(id.AggregateType("User"), aggID),
 			[]event.Event{evt},
 			event.Version(0),
 		)
 		Expect(err).ToNot(HaveOccurred())
 
-		loaded, err := store.Load(ctx, event.NewAggregateRef(event.AggregateType("User"), aggID))
+		loaded, err := store.Load(ctx, id.NewAggregateRef(id.AggregateType("User"), aggID))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(loaded).To(HaveLen(1))
 
@@ -67,7 +67,7 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 		Expect(got.ID()).To(Equal(evt.ID()))
 		Expect(got.Type()).To(Equal(event.Type("user.created")))
 		Expect(got.AggregateID()).To(Equal(aggID))
-		Expect(got.AggregateType()).To(Equal(event.AggregateType("User")))
+		Expect(got.AggregateType()).To(Equal(id.AggregateType("User")))
 		Expect(got.Version()).To(Equal(event.Version(1)))
 
 		meta := got.Metadata()
@@ -93,13 +93,13 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 
 		err = store.Save(
 			ctx,
-			event.NewAggregateRef(event.AggregateType("Test"), aggID),
+			id.NewAggregateRef(id.AggregateType("Test"), aggID),
 			[]event.Event{evt},
 			event.Version(0),
 		)
 		Expect(err).ToNot(HaveOccurred())
 
-		loaded, err := store.Load(ctx, event.NewAggregateRef(event.AggregateType("Test"), aggID))
+		loaded, err := store.Load(ctx, id.NewAggregateRef(id.AggregateType("Test"), aggID))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(loaded[0].Payload()).To(Equal(payload))
 		Expect(loaded[0].OccurredAt()).To(BeTemporally("~", evt.OccurredAt(), 0))
@@ -108,7 +108,7 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 	It("preserves metadata through LoadFromVersion", func() {
 		aggID := id.NewAggregateID()
 		corrID := id.NewCorrelationID()
-		aggType := event.AggregateType("Test")
+		aggType := id.AggregateType("Test")
 
 		var events []event.Event
 
@@ -127,12 +127,12 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 		}
 
 		Expect(
-			store.Save(ctx, event.NewAggregateRef(aggType, aggID), events, event.Version(0)),
+			store.Save(ctx, id.NewAggregateRef(aggType, aggID), events, event.Version(0)),
 		).To(Succeed())
 
 		loaded, err := store.LoadFromVersion(
 			ctx,
-			event.NewAggregateRef(aggType, aggID),
+			id.NewAggregateRef(aggType, aggID),
 			event.Version(1),
 		)
 		Expect(err).ToNot(HaveOccurred())

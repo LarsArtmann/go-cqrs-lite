@@ -47,7 +47,7 @@ func TestSQLEventStore_LoadToVersion_Mock_Success(t *testing.T) {
 
 	events, err := store.LoadToVersion(
 		context.Background(),
-		event.NewAggregateRef("User", aggID),
+		id.NewAggregateRef("User", aggID),
 		1,
 	)
 	if err != nil {
@@ -69,7 +69,7 @@ func TestSQLEventStore_LoadToVersion_Mock_NotFound(t *testing.T) {
 		WithArgs("User", aggID, 5).
 		WillReturnRows(sqlmock.NewRows(eventColumns()))
 
-	_, err := store.LoadToVersion(context.Background(), event.NewAggregateRef("User", aggID), 5)
+	_, err := store.LoadToVersion(context.Background(), id.NewAggregateRef("User", aggID), 5)
 	if !errors.Is(err, event.ErrAggregateNotFound) {
 		t.Fatalf("expected ErrAggregateNotFound, got: %v", err)
 	}
@@ -85,7 +85,7 @@ func TestSQLEventStore_LoadToVersion_Mock_QueryError(t *testing.T) {
 		WithArgs("User", aggID, 5).
 		WillReturnError(errors.New("connection lost"))
 
-	_, err := store.LoadToVersion(context.Background(), event.NewAggregateRef("User", aggID), 5)
+	_, err := store.LoadToVersion(context.Background(), id.NewAggregateRef("User", aggID), 5)
 	if err == nil {
 		t.Fatal("expected error from query failure")
 	}
@@ -105,7 +105,7 @@ func TestSQLEventStore_LoadToTimestamp_Mock_Success(t *testing.T) {
 
 	events, err := store.LoadToTimestamp(
 		context.Background(),
-		event.NewAggregateRef("User", aggID),
+		id.NewAggregateRef("User", aggID),
 		evt.OccurredAt(),
 	)
 	if err != nil {
@@ -129,7 +129,7 @@ func TestSQLEventStore_LoadToTimestamp_Mock_QueryError(t *testing.T) {
 
 	_, err := store.LoadToTimestamp(
 		context.Background(),
-		event.NewAggregateRef("User", aggID),
+		id.NewAggregateRef("User", aggID),
 		testEvent(t).OccurredAt(),
 	)
 	if err == nil {
@@ -158,7 +158,7 @@ func TestSQLEventStore_Load_Mock_ScanError(t *testing.T) {
 			"invalid-id", "", "User", aggID, 1, 1, nil, "", nil, testEvent(t).OccurredAt(),
 		))
 
-	_, err := store.Load(context.Background(), event.NewAggregateRef("User", aggID))
+	_, err := store.Load(context.Background(), id.NewAggregateRef("User", aggID))
 	if err == nil {
 		t.Fatal("expected error from scan with invalid event ID")
 	}

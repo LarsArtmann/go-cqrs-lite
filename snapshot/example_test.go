@@ -28,7 +28,7 @@ func ExampleSnapshotStore() {
 	store := newFakeStore()
 
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("User", aggID)
+	ref := id.NewAggregateRef("User", aggID)
 	now := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 
 	snap := snapshot.Snapshot{

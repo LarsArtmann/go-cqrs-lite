@@ -38,7 +38,7 @@ func TestSSEExample_OfflineReconnection(t *testing.T) {
 	defer broker.Close()
 
 	aggID := id.NewAggregateID()
-	ref := event.NewAggregateRef("Doc", aggID)
+	ref := id.NewAggregateRef("Doc", aggID)
 
 	// Phase 1: events arrive while the client is OFFLINE.
 	docCreated, _ := event.NewEvent("doc.created", aggID, "Doc", 1, []byte(`{"title":"Hello"}`))

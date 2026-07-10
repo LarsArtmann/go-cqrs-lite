@@ -32,7 +32,7 @@ func TestBackend_Checkpoint(t *testing.T) {
 		t.Fatalf("NewEvent: %v", err)
 	}
 
-	err = store.Save(context.Background(), event.NewAggregateRef("User", aggID),
+	err = store.Save(context.Background(), id.NewAggregateRef("User", aggID),
 		[]event.Event{evt}, 0)
 	if err != nil {
 		t.Fatalf("Save: %v", err)
@@ -60,7 +60,7 @@ func TestBackend_Checkpoint(t *testing.T) {
 	defer func() { _ = restored.Close() }()
 
 	loaded, err := restored.EventStore().Load(context.Background(),
-		event.NewAggregateRef("User", aggID))
+		id.NewAggregateRef("User", aggID))
 	if err != nil {
 		t.Fatalf("Load from checkpoint: %v", err)
 	}
@@ -87,7 +87,7 @@ func TestBackend_NewSnapshot_ConsistentReads(t *testing.T) {
 	aggID := id.NewAggregateID()
 
 	evt1, _ := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{}`))
-	if err := store.Save(context.Background(), event.NewAggregateRef("User", aggID),
+	if err := store.Save(context.Background(), id.NewAggregateRef("User", aggID),
 		[]event.Event{evt1}, 0); err != nil {
 		t.Fatalf("Save evt1: %v", err)
 	}
@@ -101,13 +101,13 @@ func TestBackend_NewSnapshot_ConsistentReads(t *testing.T) {
 	defer func() { _ = snap.Close() }()
 
 	evt2, _ := event.NewEvent("UserUpdated", aggID, "User", 2, []byte(`{}`))
-	if err := store.Save(context.Background(), event.NewAggregateRef("User", aggID),
+	if err := store.Save(context.Background(), id.NewAggregateRef("User", aggID),
 		[]event.Event{evt2}, 1); err != nil {
 		t.Fatalf("Save evt2: %v", err)
 	}
 
 	liveEvents, err := store.Load(context.Background(),
-		event.NewAggregateRef("User", aggID))
+		id.NewAggregateRef("User", aggID))
 	if err != nil {
 		t.Fatalf("Live Load: %v", err)
 	}

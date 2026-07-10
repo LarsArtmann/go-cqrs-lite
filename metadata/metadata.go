@@ -1,9 +1,3 @@
-// Package metadata provides the shared tracing and custom-data containers
-// used by event, command, and query metadata types (ADR-0031).
-//
-// Each module embeds metadata.Tracing and metadata.CustomData[K] rather than
-// importing event/, keeping module boundaries clean. This breaks the
-// command/ → event/ compile dependency without duplicating the logic.
 package metadata
 
 import (

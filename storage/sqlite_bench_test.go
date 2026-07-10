@@ -57,7 +57,7 @@ func BenchmarkSQLiteEventStore_Load(b *testing.B) {
 func benchLoadAggregate(
 	b *testing.B,
 	store *SQLEventStore,
-	aggType event.AggregateType,
+	aggType id.AggregateType,
 	aggID id.AggregateID,
 ) {
 	ctx := context.Background()
@@ -65,7 +65,7 @@ func benchLoadAggregate(
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, err := store.Load(ctx, event.NewAggregateRef(aggType, aggID))
+		_, err := store.Load(ctx, id.NewAggregateRef(aggType, aggID))
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -88,7 +88,7 @@ func seedSQLiteBenchEvents(b *testing.B, store *SQLEventStore, n int) {
 
 		err := store.AppendBatch(
 			ctx,
-			event.NewAggregateRef(event.AggregateType("Bench"), aggID),
+			id.NewAggregateRef(id.AggregateType("Bench"), aggID),
 			[]event.Event{evt},
 		)
 		if err != nil {
@@ -150,7 +150,7 @@ func BenchmarkSQLiteEventStore_LoadToVersion(b *testing.B) {
 	for b.Loop() {
 		_, err := store.LoadToVersion(
 			ctx,
-			event.NewAggregateRef(event.AggregateType("User"), aggID),
+			id.NewAggregateRef(id.AggregateType("User"), aggID),
 			event.Version(25),
 		)
 		if err != nil {
@@ -162,7 +162,7 @@ func BenchmarkSQLiteEventStore_LoadToVersion(b *testing.B) {
 func benchSaveNewAggregate(
 	b *testing.B,
 	store *SQLEventStore,
-	aggType event.AggregateType,
+	aggType id.AggregateType,
 	eventType event.Type,
 	payload []byte,
 ) {
@@ -180,7 +180,7 @@ func benchSaveNewAggregate(
 
 		err := store.Save(
 			ctx,
-			event.NewAggregateRef(aggType, aggID),
+			id.NewAggregateRef(aggType, aggID),
 			[]event.Event{evt},
 			event.Version(0),
 		)
@@ -193,7 +193,7 @@ func benchSaveNewAggregate(
 func seedSQLiteEvents(
 	b *testing.B,
 	store *SQLEventStore,
-	aggType event.AggregateType,
+	aggType id.AggregateType,
 	aggID id.AggregateID,
 	eventType event.Type,
 	payload []byte,
@@ -211,7 +211,7 @@ func seedSQLiteEvents(
 
 		err := store.Save(
 			ctx,
-			event.NewAggregateRef(aggType, aggID),
+			id.NewAggregateRef(aggType, aggID),
 			[]event.Event{evt},
 			event.Version(i),
 		)

@@ -108,7 +108,7 @@ func (r *InMemoryAggregateReader) InvalidateCache() {
 
 func buildRefs(events []event.Event) []AggregateStatus {
 	type streamKey struct {
-		aggType event.AggregateType
+		aggType id.AggregateType
 		aggID   id.AggregateID
 	}
 
@@ -151,7 +151,7 @@ func buildRefs(events []event.Event) []AggregateStatus {
 	return result
 }
 
-func filterByType(refs []AggregateStatus, aggregateType event.AggregateType) []AggregateStatus {
+func filterByType(refs []AggregateStatus, aggregateType id.AggregateType) []AggregateStatus {
 	filtered := make([]AggregateStatus, 0, len(refs))
 
 	for _, r := range refs {

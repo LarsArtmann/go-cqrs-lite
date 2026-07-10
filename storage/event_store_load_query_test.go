@@ -40,7 +40,7 @@ func TestSQLEventStore_Load_Success(t *testing.T) {
 
 	events, err := store.Load(
 		context.Background(),
-		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		id.NewAggregateRef(id.AggregateType("User"), aggID),
 	)
 	if err != nil {
 		t.Fatalf("Load: %v", err)
@@ -76,7 +76,7 @@ func TestSQLEventStore_Load_NotFound(t *testing.T) {
 
 	events, err := store.Load(
 		context.Background(),
-		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		id.NewAggregateRef(id.AggregateType("User"), aggID),
 	)
 	if err == nil {
 		t.Fatal("expected ErrAggregateNotFound for empty result, got nil")
@@ -108,7 +108,7 @@ func TestSQLEventStore_LoadFromVersion(t *testing.T) {
 
 	events, err := store.LoadFromVersion(
 		context.Background(),
-		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		id.NewAggregateRef(id.AggregateType("User"), aggID),
 		event.Version(2),
 	)
 	if err != nil {
@@ -134,7 +134,7 @@ func TestSQLEventStore_Load_QueryError(t *testing.T) {
 
 	_, err := store.Load(
 		context.Background(),
-		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		id.NewAggregateRef(id.AggregateType("User"), aggID),
 	)
 	if err == nil {
 		t.Fatal("expected error for query failure")
@@ -153,7 +153,7 @@ func TestSQLEventStore_LoadFromVersion_QueryError(t *testing.T) {
 
 	_, err := store.LoadFromVersion(
 		context.Background(),
-		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		id.NewAggregateRef(id.AggregateType("User"), aggID),
 		event.Version(2),
 	)
 	if err == nil {
@@ -210,7 +210,7 @@ func TestScanEvents_InvalidAggregateID(t *testing.T) {
 			"valid-id", "UserCreated", "User", "not-a-valid-ulid", 1, 1, nil, "", nil, time.Now(),
 		))
 
-	_, err := store.Load(context.Background(), event.NewAggregateRef("User", id.NewAggregateID()))
+	_, err := store.Load(context.Background(), id.NewAggregateRef("User", id.NewAggregateID()))
 	if err == nil {
 		t.Fatal("expected error for invalid aggregate ID")
 	}
@@ -232,7 +232,7 @@ func TestScanEvents_InvalidEventID(t *testing.T) {
 
 	_, err := store.Load(
 		context.Background(),
-		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		id.NewAggregateRef(id.AggregateType("User"), aggID),
 	)
 	if err == nil {
 		t.Fatal("expected error for invalid event ID")
@@ -250,7 +250,7 @@ func TestScanEvents_RowScanError(t *testing.T) {
 			[]string{"id", "event_type"},
 		).AddRow("only-two-columns", "UserCreated"))
 
-	_, err := store.Load(context.Background(), event.NewAggregateRef("User", id.NewAggregateID()))
+	_, err := store.Load(context.Background(), id.NewAggregateRef("User", id.NewAggregateID()))
 	if err == nil {
 		t.Fatal("expected error for row scan failure")
 	}
@@ -275,7 +275,7 @@ func TestScanEvents_InvalidMetadata(t *testing.T) {
 
 	_, err := store.Load(
 		context.Background(),
-		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		id.NewAggregateRef(id.AggregateType("User"), aggID),
 	)
 	if err == nil {
 		t.Fatal("expected error for invalid metadata JSON")
@@ -325,7 +325,7 @@ func TestScanEvents_MetadataRoundtrip(t *testing.T) {
 
 	loaded, err := store.Load(
 		context.Background(),
-		event.NewAggregateRef(event.AggregateType("User"), aggID),
+		id.NewAggregateRef(id.AggregateType("User"), aggID),
 	)
 	if err != nil {
 		t.Fatalf("Load: %v", err)

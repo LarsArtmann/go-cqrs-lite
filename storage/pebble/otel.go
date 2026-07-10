@@ -3,7 +3,7 @@ package pebble
 import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v3"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
 )
 
@@ -21,7 +21,7 @@ func tracer() cqrsotel.Tracer {
 func startAggregateSpan(
 	ctx context.Context,
 	spanName string,
-	ref event.AggregateRef,
+	ref id.AggregateRef,
 	extraAttrs ...cqrsotel.KeyValue,
 ) (context.Context, cqrsotel.Span) {
 	return cqrsotel.StartSpan(
