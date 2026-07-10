@@ -28,4 +28,28 @@ var (
 		"signing.nil_event",
 		"event is nil",
 	)
+
+	// ErrNilSigner is returned when a nil signer is passed to a COSE signing function.
+	ErrNilSigner = errorfamily.NewRejection(
+		"signing.nil_signer",
+		"signer is nil",
+	)
+
+	// ErrNilVerifier is returned when a nil verifier is passed to a COSE verification function.
+	ErrNilVerifier = errorfamily.NewRejection(
+		"signing.nil_verifier",
+		"verifier is nil",
+	)
+
+	// ErrCOSEAlgorithmOverflow is returned when a COSE algorithm value cannot fit in int64.
+	ErrCOSEAlgorithmOverflow = errorfamily.NewRejection(
+		"signing.cose_algorithm_overflow",
+		"COSE algorithm value overflows int64",
+	)
+
+	// ErrCOSEInvalidAlgorithm is returned when a COSE algorithm value is not an integer.
+	ErrCOSEInvalidAlgorithm = errorfamily.NewRejection(
+		"signing.cose_invalid_algorithm",
+		"COSE algorithm value is not an integer",
+	)
 )

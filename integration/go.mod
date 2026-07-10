@@ -4,22 +4,22 @@ go 1.26.4
 
 require (
 	github.com/cockroachdb/pebble v1.1.5
-	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.7.4
 	github.com/larsartmann/go-cqrs-lite/command/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/decider/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/encryption/v3 v3.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/event/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/event/v3 v3.7.4
 	github.com/larsartmann/go-cqrs-lite/event/v3/eventtest v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/graph/v3 v3.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/id/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/id/v3 v3.7.4
 	github.com/larsartmann/go-cqrs-lite/idempotency/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/listing/v3 v3.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/metadata/v3 v3.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-cqrs-lite/metadata/v3 v3.0.0-20260709065930-af339166ad5b // indirect
 	github.com/larsartmann/go-cqrs-lite/middleware/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/signing/v3 v3.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.7.4
 	github.com/larsartmann/go-cqrs-lite/stack/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v3 v3.0.0-00010101000000-000000000000
@@ -87,13 +87,13 @@ require (
 	go.opentelemetry.io/otel/metric v1.44.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/crypto v0.54.0 // indirect
-	golang.org/x/exp v0.0.0-20260611194520-c48552f49976 // indirect
-	golang.org/x/mod v0.37.0 // indirect
-	golang.org/x/net v0.56.0 // indirect
+	golang.org/x/exp v0.0.0-20260709172345-9ea1abe57597 // indirect
+	golang.org/x/mod v0.38.0 // indirect
+	golang.org/x/net v0.57.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.40.0 // indirect
-	golang.org/x/tools v0.47.0 // indirect
+	golang.org/x/tools v0.48.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	pgregory.net/rapid v1.3.0 // indirect

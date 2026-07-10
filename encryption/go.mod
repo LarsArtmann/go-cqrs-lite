@@ -4,16 +4,22 @@ go 1.26.4
 
 replace (
 	github.com/larsartmann/go-cqrs-lite/codec/v3 => ../codec
+	github.com/larsartmann/go-cqrs-lite/command/v3 => ../command
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 => ../dispatcher
 	github.com/larsartmann/go-cqrs-lite/event/v3 => ../event
 	github.com/larsartmann/go-cqrs-lite/id/v3 => ../id
+	github.com/larsartmann/go-cqrs-lite/metadata/v3 => ../metadata
+	github.com/larsartmann/go-cqrs-lite/query/v3 => ../query
+	github.com/larsartmann/go-cqrs-lite/schema/v3 => ../schema
 	github.com/larsartmann/go-cqrs-lite/snapshot/v3 => ../snapshot
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 => ../storage/memory
 )
 
 require (
-	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/event/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.7.4
+	github.com/larsartmann/go-cqrs-lite/event/v3 v3.7.4
 	github.com/larsartmann/go-cqrs-lite/event/v3/eventtest v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/id/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/id/v3 v3.7.4
 	github.com/larsartmann/go-error-family v0.6.1
 	github.com/onsi/ginkgo/v2 v2.32.0
 	github.com/onsi/gomega v1.42.1
@@ -31,7 +37,8 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/pprof v0.0.0-20260604005048-7023385849c0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-cqrs-lite/metadata/v3 v3.0.0-20260709065930-af339166ad5b // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.7.4 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/tidwall/gjson v1.19.0 // indirect
