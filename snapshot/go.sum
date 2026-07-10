@@ -14,6 +14,8 @@ github.com/larsartmann/go-branded-id v0.3.1 h1:n53Vz3MCUy3S8YfW/v+zxL/qT96iiXZOT
 github.com/larsartmann/go-branded-id v0.3.1/go.mod h1:fiv3t1PyNCITnE/8KtymGCUz7tQRuQxF+8oqNdFmA/Y=
 github.com/larsartmann/go-cqrs-lite/metadata/v3 v3.0.0-20260709065930-af339166ad5b h1:YFmkoH8MN5Ka70tU0W6txinvU4pkhDFfDeezKVojPF4=
 github.com/larsartmann/go-cqrs-lite/metadata/v3 v3.0.0-20260709065930-af339166ad5b/go.mod h1:EYytL13aE2UdzEme+X/gF7+TJpvoRgYNKNoYRP8Cqt8=
+github.com/larsartmann/go-cqrs-lite/metadata/v3 v3.0.0-20260710081327-27da59cabbb4 h1:8WCnSaP0P+w/Sua+jkcbwZYp9T7wUonRxTuMr1D/Ttw=
+github.com/larsartmann/go-cqrs-lite/metadata/v3 v3.0.0-20260710081327-27da59cabbb4/go.mod h1:F9cRQPhvMbFuR0QpTRAY89IcgRGVZECTCiMq1EYqw6g=
 github.com/larsartmann/go-error-family v0.6.1 h1:GLfo9UaMER3PkniYLNIHs6ay0I67gE91VFEifw1Goo8=
 github.com/larsartmann/go-error-family v0.6.1/go.mod h1:JEvLiYWT8p9WrNXrD1Ow97DphYsB9Bksr2lNmwG3Vm4=
 github.com/oklog/ulid/v2 v2.1.1 h1:suPZ4ARWLOJLegGFiZZ1dFAkqzhMjL3J1TzI+5wHz8s=
