@@ -8,6 +8,46 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+#### Projectionhost Observability
+
+- **`Host.LagPerProjection() map[string]time.Duration`** — per-worker lag keyed by
+  projection name, for Prometheus dashboards with `WithLabelValues`. Returns 0 for
+  workers that haven't processed any event yet (item 38).
+- **`WorkerState.Lag` field** — `Lag time.Duration` populated in `snapshot()` via the
+  new `worker.lagDuration()` method. Previously only available via the aggregate
+  `Host.LagDuration()` (item 39).
+- **`Reset(ctx, name, opts...)` with `WithPurgeDeadLetters()`** — projection reset
+  now optionally purges dead-letter entries from the configured `DeadLetterStore`.
+  Backward compatible: `Reset(ctx, name)` still works without purging (item 46).
+- **`Host.LagDuration()` refactored** — now delegates to `worker.lagDuration()` for
+  consistency (returns max lag across all workers).
+- **6 new tests** — lag before/after processing, per-projection map, DLQ purge
+  with/without flag, WorkerState.Lag in Status().
+
+#### Scenario Projection Tests
+
+- **`scenario.GivenProjection` tests** — added `ThenError`, multiple-events, and
+  empty-events tests covering the projection DSL more thoroughly (item 48).
+
+#### Race Detector Coverage
+
+- **Full `-race` suite** — all 48 modules pass with race detector. Only
+  `cmd/api-stability` fails (pre-existing: subprocess doesn't inherit
+  `goexperiment.jsonv2` tags) (item 13).
+
+#### Documentation
+
+- **ADR-0043 Part B** — consumer operational guide for the two `DeadLetterEntry`
+  types: decision tree, code examples for dispatch-side vs projection-side DLQ,
+  and structural comparison table explaining why they can't merge (item 45).
+- **README docs freshness** — fixed stale `testutil` API references
+  (`MustNewCmd`→`NewCmd`, removed `ParseAggID`, `NoopCommandHandler{}`→`NoopCommandHandler()`)
+  and `v2`→`v3` paths in `testutil/README.md`.
+- **AGENTS.md** — updated projectionhost key patterns with `LagPerProjection()`,
+  `WorkerState.Lag`, and `WithPurgeDeadLetters()` examples.
+- **`projectionhost/README.md`** — added Status & Lag section with dashboard examples,
+  Reset section with purge option.
+
 #### P3 Polish & Cleanup
 
 - **Restored bundle.go architectural comment** — documented the Bundle↔CatchUpSubscriber

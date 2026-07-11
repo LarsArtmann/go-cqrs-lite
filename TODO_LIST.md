@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-07-11 (session: completed P3 polish items + CBOR→JSON SSE e2e test)
+**Updated:** 2026-07-11 (session: projectionhost observability + scenario tests + ADR-0043 Part B + README freshness)
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in [ROADMAP.md](ROADMAP.md). Raw ideas live in [ROADMAP.md § Raw Ideas](ROADMAP.md#raw-ideas-no-design-yet).
 
 ## Legend
@@ -22,19 +22,19 @@ _All items in this section have been completed and moved to [CHANGELOG.md](CHANG
 
 ### Projectionhost observability
 
-- [ ] **`LagPerProjection() map[string]time.Duration`** — Per-worker lag for dashboards (item 38).
-- [ ] **`WorkerState.Lag` field** — Currently only available via aggregate `LagDuration()` (item 39).
-- [ ] **`Reset(ctx, name)` purges DLQ** — Projection reset should optionally clear DLQ entries for that projection (item 46).
+- [x] **`LagPerProjection() map[string]time.Duration`** — Per-worker lag for dashboards (item 38). Moved to CHANGELOG.
+- [x] **`WorkerState.Lag` field** — Populated in `snapshot()` via `worker.lagDuration()` (item 39). Moved to CHANGELOG.
+- [x] **`Reset(ctx, name, opts...)` purges DLQ** — `WithPurgeDeadLetters()` option clears DLQ entries on reset (item 46). Moved to CHANGELOG.
 
 ### Testing improvements
 
-- [ ] **Race detector on ALL modules** — CI runs `-race` on changed modules; run full suite periodically (item 13).
-- [ ] **`scenario.GivenProjection` test** — For VersionedSeekableJournal + projectionhost (item 48, P3).
+- [x] **Race detector on ALL modules** — Full suite passes `-race` across all 48 modules; only `cmd/api-stability` fails (pre-existing: subprocess doesn't inherit goexperiment tags) (item 13). Moved to CHANGELOG.
+- [x] **`scenario.GivenProjection` tests** — Added `ThenError`, multiple-events, and empty-events tests (item 48). Moved to CHANGELOG.
 
 ### Documentation
 
-- [ ] **Document two DeadLetterEntry types** — ADR-0043 Part B: dispatch-side vs projection poison, intentionally separate (item 45, P3).
-- [ ] **README.md docs freshness** — Missing `encryption`, `turso`, `testutil` module sections.
+- [x] **Document two DeadLetterEntry types** — ADR-0043 Part B added: consumer operational guide with decision tree, code examples, and structural comparison (item 45). Moved to CHANGELOG.
+- [x] **README.md docs freshness** — Fixed stale `testutil` API refs (`MustNewCmd`→`NewCmd`, removed `ParseAggID`, `NoopCommandHandler{}`→`NoopCommandHandler()`) and `v2`→`v3` paths in `testutil/README.md`. Moved to CHANGELOG.
 
 ### Experimental / Go-stdlib-blocked
 
