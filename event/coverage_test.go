@@ -165,7 +165,7 @@ func TestWrapTransient(t *testing.T) {
 	}
 }
 
-func TestWithNewCodec(t *testing.T) {
+func TestWithCodec(t *testing.T) {
 	t.Parallel()
 
 	c := codecpkg.JSONCodec{}
@@ -173,10 +173,10 @@ func TestWithNewCodec(t *testing.T) {
 	evt, err := event.New(
 		"test", id.NewAggregateID(), "Test", 1,
 		map[string]string{"key": "val"},
-		event.WithNewCodec(c),
+		event.WithCodec(c),
 	)
 	if err != nil {
-		t.Fatalf("WithNewCodec: %v", err)
+		t.Fatalf("WithCodec: %v", err)
 	}
 
 	if evt.Encoding() != c.Encoding() {

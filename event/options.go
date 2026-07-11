@@ -21,9 +21,6 @@ func WithCodec(c codec.Codec) Option {
 	}
 }
 
-// WithNewCodec is deprecated: use WithCodec instead.
-func WithNewCodec(c codec.Codec) Option { return WithCodec(c) }
-
 // metadataOption sets a single field on Metadata.
 type metadataOption[T any] func(*Metadata, T)
 

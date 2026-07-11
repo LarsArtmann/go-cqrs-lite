@@ -184,7 +184,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **SKILL.md** updated — `VersionedSeekableJournal`, `BackfillHandlerWithTransform`, `WithViews`
   added to decision matrix + cheat sheet. doc-check passes (868 refs).
 - **metadata/ + id/** added to AGENTS.md module table.
-- **v4-removal markers** — all 8 deprecated alias sites marked with `// v4-removal:` comments.
+- **Deprecated alias cleanup** — 8 deprecated aliases deleted from `event/` + `schema/`
+  (AggregateRef, Tracing, CustomData, etc.). Internal usage migrated to `id.` and `metadata.`.
+  `event.WithNewCodec` removed (use `WithCodec`). `event.WithReplay` removed (use `WithProcessingMode`).
+  `query.Handler` deprecation notice removed — it is the dispatch core, not deprecated.
 
 ### Changed
 
@@ -200,8 +203,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **~200 usages across 42 files** updated from `event.AggregateRef` → `id.AggregateRef`,
   `event.Tracing` → `metadata.Tracing`, etc. All internal code now uses `id.` and `metadata.`
   directly. SA1019 deprecated alias warnings eliminated across all modules.
-- **Deprecated alias verification test** — `event/deprecated_alias_test.go` verifies all 6
-  deprecated aliases have proper `Deprecated:` comments.
 
 #### JSON Quality Audit
 

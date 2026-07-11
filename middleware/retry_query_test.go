@@ -57,7 +57,7 @@ func TestQueryRetry_AllAttemptsFail(t *testing.T) {
 func errorQueryHandler(
 	errMsg string,
 	callCount *int,
-) query.Handler { //nolint:staticcheck // pre-existing v3 API, migration to TypedHandler is separate
+) query.Handler {
 	return func(_ context.Context, _ query.Query) (any, error) {
 		*callCount++
 
@@ -69,7 +69,7 @@ func setupQueryRetryHandler(
 	t *testing.T,
 	config RetryConfig,
 	errMsg string,
-) (query.Handler, *int) { //nolint:staticcheck // pre-existing v3 API
+) (query.Handler, *int) {
 	t.Helper()
 	mw := QueryRetry(config)
 	callCount := 0

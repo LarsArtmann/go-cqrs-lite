@@ -71,7 +71,10 @@ _All items in this section have been completed and moved to [CHANGELOG.md](CHANG
 
 > **Partially unblocked.** Codec default flip is DONE (see CHANGELOG). Remaining items await final v4 cut.
 
-- [v4] **Remove deprecated APIs** — 8 aliases in event/ + schema/ + query.Handler.
+- [x] **Remove deprecated APIs** — 8 event/+schema/ aliases deleted; `event.WithNewCodec` and
+      `event.WithReplay` removed (replaced by `WithCodec` and `WithProcessingMode`); `query.Handler`
+      deprecation notice removed (it is the load-bearing dispatch core, not deprecated —
+      `TypedHandler` is the recommended ergonomic layer on top).
 - [v4] **Storage/ split execution** — Proposal at `docs/planning/2026-07-09_STORAGE-SPLIT-PROPOSAL.md`. Awaits approval.
 - [v4] **Event/ god module decomposition** — Explicitly decided: DO NOT SPLIT (27 importers, cohesion is real).
 - [v4] **BackfillHandler taking \*SSEBroker** — Cleaner architecture; backfill can access broker's transform (item 47).

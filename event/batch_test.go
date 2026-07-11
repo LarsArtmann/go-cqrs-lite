@@ -232,23 +232,6 @@ func TestSchemaVersion_JSON(t *testing.T) {
 	}
 }
 
-func TestWithReplay(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	replayCtx := event.WithReplay(ctx, true)
-
-	val, ok := replayCtx.Value(nil).(*bool)
-	_ = val
-	_ = ok
-
-	replayCtx2 := event.WithReplay(ctx, false)
-
-	if replayCtx == replayCtx2 {
-		t.Error("different replay values should produce different contexts")
-	}
-}
-
 func TestIsReplay(t *testing.T) {
 	t.Parallel()
 
@@ -258,12 +241,12 @@ func TestIsReplay(t *testing.T) {
 		t.Error("background context should not be replay")
 	}
 
-	if event.IsReplay(event.WithReplay(ctx, false)) {
-		t.Error("WithReplay(false) should not be replay")
+	if event.IsReplay(event.WithProcessingMode(ctx, event.ModeLive)) {
+		t.Error("ModeLive should not be replay")
 	}
 
-	if !event.IsReplay(event.WithReplay(ctx, true)) {
-		t.Error("WithReplay(true) should be replay")
+	if !event.IsReplay(event.WithProcessingMode(ctx, event.ModeReplay)) {
+		t.Error("ModeReplay should be replay")
 	}
 }
 

@@ -33,12 +33,6 @@ func ProcessingModeFrom(ctx context.Context) ProcessingMode {
 	return ModeLive
 }
 
-// WithReplay marks the context as a replay context.
-// Deprecated: Use [WithProcessingMode] with [ModeReplay] for self-documenting call sites.
-func WithReplay(ctx context.Context, replay bool) context.Context {
-	return context.WithValue(ctx, replayKey, replay)
-}
-
 // IsReplay reports whether the context is marked as a replay context.
 func IsReplay(ctx context.Context) bool {
 	val, _ := ctx.Value(replayKey).(bool)

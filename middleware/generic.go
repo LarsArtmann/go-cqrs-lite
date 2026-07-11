@@ -84,7 +84,7 @@ func AsEvent(mw Middleware[event.Event]) event.Middleware {
 func AsQuery(
 	middleware Middleware[query.Query],
 ) query.Middleware {
-	return func(next query.Handler) query.Handler { //nolint:staticcheck // pre-existing v3 API
+	return func(next query.Handler) query.Handler {
 		return func(ctx context.Context, q query.Query) (any, error) {
 			var result any
 
