@@ -254,3 +254,74 @@ func TestSetup_WithViews(t *testing.T) {
 		t.Error("renamed metric 'test_renamed_total' not found — view was not applied")
 	}
 }
+
+func TestSetup_WithViews_HistogramBoundaries(t *testing.T) {
+	t.Parallel()
+
+	reg := promClient.NewRegistry()
+
+	// CQRS histogram boundaries (matches cqrsotel.CQRSHistogramBoundaries).
+	boundaries := []float64{
+		0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000,
+	}
+
+	bucketView := metric.NewView(
+		metric.Instrument{Name: "cqrs.*"},
+		metric.Stream{
+			Aggregation: metric.AggregationExplicitBucketHistogram{
+				Boundaries: boundaries,
+			},
+		},
+	)
+
+	provider, err := cqrsprom.Setup(
+		cqrsprom.WithRegistry(reg),
+		cqrsprom.WithViews(bucketView),
+	)
+	if err != nil {
+		t.Fatalf("Setup: %v", err)
+	}
+	defer func() { _ = provider.Shutdown(context.Background()) }()
+
+	meter := provider.AsMeterProvider().Meter("test")
+	hist, err := meter.Float64Histogram("cqrs.operation.duration")
+	if err != nil {
+		t.Fatalf("Float64Histogram: %v", err)
+	}
+
+	hist.Record(context.Background(), 0.3)
+	hist.Record(context.Background(), 75.0)
+
+	metricFamilies, err := reg.Gather()
+	if err != nil {
+		t.Fatalf("Gather: %v", err)
+	}
+
+	for _, family := range metricFamilies {
+		if family.GetName() != "cqrs_operation_duration" {
+			continue
+		}
+
+		histData := family.GetMetric()[0].GetHistogram()
+		gotBounds := histData.GetBucket()
+
+		if len(gotBounds) != len(boundaries) {
+			t.Fatalf("expected %d buckets, got %d", len(boundaries), len(gotBounds))
+		}
+
+		for i, b := range gotBounds {
+			if b.GetUpperBound() != boundaries[i] {
+				t.Errorf("bucket[%d]: expected upper bound %f, got %f",
+					i, boundaries[i], b.GetUpperBound())
+			}
+		}
+
+		if histData.GetSampleCount() != 2 {
+			t.Errorf("expected 2 samples, got %d", histData.GetSampleCount())
+		}
+
+		return
+	}
+
+	t.Fatal("cqrs_operation_duration metric not found — view did not apply boundaries")
+}

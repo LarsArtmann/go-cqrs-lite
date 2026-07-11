@@ -296,6 +296,3 @@ func Run() error {
 
 	return nil
 }
-
-// Ensure event package is used (for WithCommandCausality etc. in handlers).
-var _ = event.Version(0)

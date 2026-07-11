@@ -36,7 +36,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/scheduling/v3 v3.7.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v3 v3.0.0-00010101000000-000000000000 // indirect
-	github.com/larsartmann/go-error-family v0.6.1 // indirect
+	github.com/larsartmann/go-error-family v0.7.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect

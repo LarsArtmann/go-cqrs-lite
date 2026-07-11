@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"net/http"
@@ -325,5 +324,3 @@ func loggingMiddleware(logger interface{ Info(string, ...any) }, next http.Handl
 		)
 	})
 }
-
-var _ = context.Background

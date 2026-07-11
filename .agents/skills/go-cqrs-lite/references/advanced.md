@@ -499,6 +499,16 @@ read patterns. **Pick based on where events need to arrive:**
 `CatchUpSubscriber` output channel from a single goroutine instead. See
 `example/taskmanager` for the correct pattern.
 
+**Payload transforms (CBOR→JSON for browsers):** When events use CBOR encoding,
+browsers cannot parse the raw bytes. `http.WithPayloadTransform(fn)` applies a
+transform on **all three SSE delivery paths** — live stream, journal replay,
+and reconnect backfill. For pull-based REST endpoints (not streaming), use
+`http.BackfillHandlerWithTransform(journal, fn)` — same transform contract,
+delivered as a JSON array response. `BackfillHandler(journal)` is shorthand for
+`BackfillHandlerWithTransform(journal, nil)`. The transform receives the full
+`event.Event` and returns `[]byte` for the wire; it must be read-only (no
+mutation).
+
 ---
 
 These are the failure modes we see most often. Read them before reaching for an advanced pattern.

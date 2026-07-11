@@ -692,7 +692,19 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //           return jsonBytes
 //       }))
 //   // Without this, CBOR-encoded events go out as raw CBOR bytes that browsers
-//   // cannot parse. Applied uniformly across live + replay paths.
+//   // cannot parse. Applied uniformly across live, replay, AND backfill paths.
+//
+//   // BackfillHandlerWithTransform — same transform for the REST backfill endpoint:
+//   // GET /events/backfill?after=<event-id>&limit=500 → JSON array of transformed events.
+//   // Use when clients need a pull-based snapshot (not SSE streaming).
+//   backfillHandler := http.BackfillHandlerWithTransform(journal, func(evt event.Event) []byte {
+//       p, err := event.DecodePayloadAuto[YourPayload](evt)
+//       if err != nil { return event.PayloadReadOnly(evt) }
+//       jsonBytes, _ := json.Marshal(p)
+//       return jsonBytes
+//   })
+//   mux.Handle("/events/backfill", backfillHandler)
+//   // BackfillHandler(journal) is shorthand for BackfillHandlerWithTransform(journal, nil).
 
 // Managed projection host — the "last loop every consumer rewrites" (projectionhost)
 //   host, _ := projectionhost.New(journal, checkpointStore,

@@ -342,6 +342,48 @@ cmdDispatcher.Use(middleware.CommandRetry(3, time.Second))
 
 > **Rule:** Import OTel via `otel/` re-exports, NOT `go.opentelemetry.io` directly.
 
+#### Tracing + Prometheus metrics (otel.Setup + prometheus.Setup)
+
+`otel.Setup` configures tracing. `prometheus.Setup` configures a Prometheus
+meter provider with a `/metrics` endpoint. Pass `cqrsotel.NewCQRSViews()` so
+histogram boundaries match CQRS latency ranges:
+
+```go
+import (
+    cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
+    cqrsprometheus "github.com/larsartmann/go-cqrs-lite/prometheus/v3"
+    "github.com/larsartmann/go-cqrs-lite/otel/v3"
+)
+
+// 1. Tracing provider (spans)
+tracingProvider, _ := cqrsotel.Setup(
+    cqrsotel.WithService("my-app", "1.0.0", "instance-1"),
+)
+defer tracingProvider.Shutdown(ctx)
+
+// 2. Prometheus meter provider with CQRS histogram boundaries
+metricsProvider, _ := cqrsprometheus.Setup(
+    cqrsprometheus.WithViews(cqrsotel.NewCQRSViews()...),
+)
+defer metricsProvider.Shutdown(ctx)
+
+// 3. Wire Prometheus as the global meter provider
+otel.SetMeterProvider(metricsProvider.AsMeterProvider())
+
+// 4. Create the OTel middleware bundle (uses global tracer + meter providers)
+bundle, _ := middleware.NewOTelBundle(
+    cqrsotel.NewTracer("my-app"), cqrsotel.NewMeter("my-app"),
+)
+cmdDispatcher.Use(bundle.Command()...)
+bus.Use(bundle.Event()...)
+bus.UsePublish(bundle.Publish()...)
+qDispatcher.Use(bundle.Query()...)
+```
+
+`WithViews` is optional — without it, Prometheus uses SDK-default histogram
+boundaries. With it, latency histograms use CQRS-optimized buckets
+(`[0.05, 0.1, ..., 10000]` ms).
+
 #### Command Idempotency (dedup on retry)
 
 ```go

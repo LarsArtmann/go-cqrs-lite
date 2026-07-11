@@ -22,7 +22,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/stack/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/transport/http/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/watermill/v3 v3.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-error-family v0.6.1
+	github.com/larsartmann/go-error-family v0.7.0
 	go.opentelemetry.io/otel v1.44.0
 )
 

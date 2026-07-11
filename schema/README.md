@@ -16,7 +16,27 @@ versioned, _ := schema.NewVersionedStore(store, upcaster)
 events, _ := versioned.Load(ctx, ref)
 ```
 
+## VersionedSeekableJournal — upcasters for projectionhost
+
+`VersionedStore` wraps an `event.Store` (provides `Load`/`Save` per aggregate).
+`VersionedSeekableJournal` wraps an `event.SeekableJournal` (provides
+`ReadFrom(position)` across all aggregates) — the interface `projectionhost.New()`
+requires. Use it when you need schema evolution on the projection read path:
+
+```go
+vjournal, _ := schema.NewVersionedSeekableJournal(journal, upcaster)
+host, _ := projectionhost.New(vjournal, checkpointStore)
+```
+
+Upcasters run transparently on every `ReadFrom` call. The projection handler
+always sees the latest schema version, regardless of what version was stored.
+
+**Scope:** `VersionedSeekableJournal` wraps `SeekableJournal` (position-based
+`ReadFrom`), not the full `event.Store` interface. For aggregate-scoped loads
+(`Load`/`Save`), use `VersionedStore` instead.
+
 ## Related Modules
 
-- [**event/v2**](../event/README.md) — `VersionedStore` wraps an `event.Store`
-- [**decider/v2**](../decider/README.md) — Apply upcasters transparently when loading aggregate state
+- [**event/v3**](../event/README.md) — `VersionedStore` wraps an `event.Store`
+- [**decider/v3**](../decider/README.md) — Apply upcasters transparently when loading aggregate state
+- [**projectionhost/v3**](../projectionhost/README.md) — `VersionedSeekableJournal` feeds upcasted events to projections

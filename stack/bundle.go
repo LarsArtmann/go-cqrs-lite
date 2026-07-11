@@ -283,7 +283,3 @@ func (b *Bundle) validate() error {
 
 	return nil
 }
-
-// Compile-time assertion that Bundle provides the fields CatchUpSubscriber
-// needs: Journal + Subscriber + CheckpointStore.
-var _ = []any{event.Journal(nil), event.Subscriber(nil)}

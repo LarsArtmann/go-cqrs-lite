@@ -1,7 +1,6 @@
 package http
 
 import (
-	"context"
 	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"net/http"
@@ -147,5 +146,3 @@ func writeBackfillError(w http.ResponseWriter, code int, msg string) {
 	w.WriteHeader(code)
 	_ = json.MarshalWrite(w, map[string]string{"error": msg})
 }
-
-var _ = context.Background // reserved for future context-aware auth
