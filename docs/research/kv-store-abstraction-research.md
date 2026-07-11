@@ -93,7 +93,7 @@ type Store interface {
 
 | Criteria              | Verdict                                                                                                                                        |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Backends              | 6 — Consul, etcd v2/v3, ZooKeeper, Redis, BoltDB, DynamoDB                                                                                     |
+| Backends              | 6 — Consul, etcd v2/v4, ZooKeeper, Redis, BoltDB, DynamoDB                                                                                     |
 | Iteration/range scans | ⚠️ `List(directory)` returns all keys under a prefix — crude but works                                                                         |
 | Atomic batch writes   | ❌ `AtomicPut` is CAS on a single key, not multi-key batch                                                                                     |
 | Transactions          | ❌ No multi-key transactions                                                                                                                   |

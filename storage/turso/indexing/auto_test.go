@@ -6,7 +6,7 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/storage/turso/v3/indexing"
+	"github.com/larsartmann/go-cqrs-lite/storage/turso/v4/indexing"
 )
 
 func TestAutoIndexer_EnableDisable(t *testing.T) {

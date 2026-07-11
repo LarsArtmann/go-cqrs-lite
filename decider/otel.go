@@ -3,7 +3,7 @@ package decider
 import (
 	"sync"
 
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 const deciderComponent = "decider"

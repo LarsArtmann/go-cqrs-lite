@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
 // FakeBus is a synchronous in-memory event.Bus for tests.

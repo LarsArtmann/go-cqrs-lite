@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/larsartmann/go-cqrs-lite/storage/turso/v3/indexing"
+	"github.com/larsartmann/go-cqrs-lite/storage/turso/v4/indexing"
 )
 
 // NewIndexAdvisor is a convenience wrapper for indexing.NewAdvisor.

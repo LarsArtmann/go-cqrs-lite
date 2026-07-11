@@ -21,33 +21,33 @@ Both repos were **already upgraded to v3.0.0** before this session. The code, mo
 
 | Item                                  | Status   | Evidence                                                                                                                  |
 | ------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------- |
-| All 38 sub-module paths `/v3`         | ✅       | Every `go.mod` first line: `module .../v3`                                                                                |
+| All 38 sub-module paths `/v4`         | ✅       | Every `go.mod` first line: `module .../v4`                                                                                |
 | Root module (no version suffix)       | ✅       | `module github.com/larsartmann/go-cqrs-lite` (correct — no major version in path for non-versioned root)                  |
-| All `.go` imports use `/v3`           | ✅       | `grep -r 'go-cqrs-lite/.*/v2' --include='*.go'` returns 0 results                                                         |
-| All `go.mod` require blocks use `/v3` | ✅       | Zero v2 require directives for own modules                                                                                |
-| All v3.0.0 git tags pushed            | ✅       | 33 `*/v3.0.0` tags exist and match remote                                                                                 |
+| All `.go` imports use `/v4`           | ✅       | `grep -r 'go-cqrs-lite/.*/v2' --include='*.go'` returns 0 results                                                         |
+| All `go.mod` require blocks use `/v4` | ✅       | Zero v2 require directives for own modules                                                                                |
+| All v3.0.0 git tags pushed            | ✅       | 33 `*/v4.0.0` tags exist and match remote                                                                                 |
 | All 11 v3 breaking changes shipped    | ✅       | See `docs/migration/V3_MIGRATION.md` — all marked Done                                                                    |
 | Build passes (`go build ./...`)       | ✅       | Workspace mode, all 39 modules                                                                                            |
 | Tests pass (`-short`, workspace mode) | ✅       | All 39 modules green                                                                                                      |
 | Race tests pass (`-race`)             | ✅       | 10 key modules tested (event, command, query, id, decider, middleware, storage, storage/memory, kv, catalog)              |
 | Architecture layer check script       | ✅ Fixed | `check-module-layers.sh` now version-agnostic, parses go.mod directly, uses `-gt` for same-layer deps, exceptions updated |
 | Version drift check script            | ✅ Fixed | `check-version-drift.sh` now version-agnostic, no longer crashes on empty grep                                            |
-| 23 README badge URLs                  | ✅ Fixed | All `/v2.svg` → `/v3.svg`; two badge paths corrected (turso, cqrs-gen)                                                    |
+| 23 README badge URLs                  | ✅ Fixed | All `/v2.svg` → `/v4.svg`; two badge paths corrected (turso, cqrs-gen)                                                    |
 | Zero TODO/FIXME in code               | ✅       | No TODO/FIXME/HACK/XXX in any `.go` file                                                                                  |
 
 ### cqrs-htmx (7 modules)
 
 | Item                                     | Status   | Evidence                                                                                                                           |
 | ---------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| All 3 publishable modules at `/v3`       | ✅       | Root, usermgmt, catalog all `/v3`                                                                                                  |
+| All 3 publishable modules at `/v4`       | ✅       | Root, usermgmt, catalog all `/v4`                                                                                                  |
 | 4 internal modules correctly unversioned | ✅       | integration_test + 3 examples (no major version suffix — correct for internal modules)                                             |
-| All `.go` imports use `/v3`              | ✅       | `grep -r 'go-cqrs-lite/.*/v2\|cqrs-htmx/.*/v2' --include='*.go'` returns 0                                                         |
-| All `go.mod` require blocks use `/v3`    | ✅       | Zero v2 require directives for own/larsartmann modules                                                                             |
+| All `.go` imports use `/v4`              | ✅       | `grep -r 'go-cqrs-lite/.*/v2\|cqrs-htmx/.*/v2' --include='*.go'` returns 0                                                         |
+| All `go.mod` require blocks use `/v4`    | ✅       | Zero v2 require directives for own/larsartmann modules                                                                             |
 | v3.0.0 git tag pushed                    | ✅       | Tag exists on remote, HEAD is at/after tag                                                                                         |
 | All 7 modules: build + test pass         | ✅       | Root, catalog, usermgmt, integration_test, 3 examples                                                                              |
 | Race tests pass (`-race`)                | ✅       | All 7 modules tested                                                                                                               |
-| Doc v2 references removed                | ✅ Fixed | AGENTS.md, README.md, CONTRIBUTING.md, TODO_LIST.md, catalog/README.md, usermgmt/README.md, usermgmt/AGENTS.md — all `/v2` → `/v3` |
-| `.gitignore` cleaned                     | ✅ Fixed | Removed stale `/v2` and `/v3` build artifact entries                                                                               |
+| Doc v2 references removed                | ✅ Fixed | AGENTS.md, README.md, CONTRIBUTING.md, TODO_LIST.md, catalog/README.md, usermgmt/README.md, usermgmt/AGENTS.md — all `/v2` → `/v4` |
+| `.gitignore` cleaned                     | ✅ Fixed | Removed stale `/v2` and `/v4` build artifact entries                                                                               |
 | go-error-family version in docs          | ✅ Fixed | `v0.4.0` → `v0.5.0` in AGENTS.md (matches actual go.mod)                                                                           |
 | Zero TODO/FIXME in code                  | ✅       | No TODO/FIXME/HACK/XXX in any `.go` file                                                                                           |
 
@@ -119,7 +119,7 @@ Both repos were **already upgraded to v3.0.0** before this session. The code, mo
 
 **`check-version-drift.sh`** had hardcoded `/v2` in grep patterns:
 
-- `grep -rh "go-cqrs-lite/.*/v2 v" */go.mod` matched nothing (all deps are now `/v3`)
+- `grep -rh "go-cqrs-lite/.*/v2 v" */go.mod` matched nothing (all deps are now `/v4`)
 - With `set -euo pipefail`, the empty grep result caused exit code 1
 - **Result**: Version drift check always crashed, masking any real drift.
 
@@ -143,7 +143,7 @@ Both repos were **already upgraded to v3.0.0** before this session. The code, mo
 
 ### Architecture & Type Safety
 
-1. **Scripts must be version-agnostic** — any script hardcoding a major version (`/v2`, `/v3`) will break on the next bump. This session's fix (regex `/v[0-9]+`) is the pattern to follow. Consider a lint check that rejects hardcoded version paths in shell scripts.
+1. **Scripts must be version-agnostic** — any script hardcoding a major version (`/v2`, `/v4`) will break on the next bump. This session's fix (regex `/v[0-9]+`) is the pattern to follow. Consider a lint check that rejects hardcoded version paths in shell scripts.
 
 2. **`branching-flow errorfamily` needs CI wiring** — cqrs-htmx documents it as policy but has no automated gate. A documented policy without enforcement is wishful thinking. Wire it into `.buildflow.yml` or flake.nix.
 

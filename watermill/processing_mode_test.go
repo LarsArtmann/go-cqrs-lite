@@ -6,8 +6,8 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill/message"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	wm "github.com/larsartmann/go-cqrs-lite/watermill/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	wm "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 
 // TestProcessingModeMiddleware_ReplayFlagPropagates verifies that a message

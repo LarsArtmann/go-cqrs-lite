@@ -1,4 +1,4 @@
-# projectionhost/v3
+# projectionhost/v4
 
 Managed lifecycle for projection workers — the "last loop every consumer rewrites."
 

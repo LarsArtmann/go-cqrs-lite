@@ -56,7 +56,7 @@ The previous status report (`2026-07-10_23-30_session-brutal-self-review.md`) li
 | Item                                                                  | Impact                                                                                   |
 | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
 | `nix run .#test` (full nix-based test runner)                         | Only ran `go test` directly on 4 modules; ~36 other modules not re-verified this session |
-| `go.work` sync verification                                           | Added `schema/v3` dep to `projectionhost/go.mod` — should verify workspace integrity     |
+| `go.work` sync verification                                           | Added `schema/v4` dep to `projectionhost/go.mod` — should verify workspace integrity     |
 | AGENTS.md `BackfillHandlerWithTransform` documentation                | New public API not documented in the contributor guide                                   |
 | SKILL.md update for backfill transform                                | Consumer-facing skill doesn't mention the backfill transform variant                     |
 | Recipe for `otel.Setup` + `prometheus.Setup(WithViews())` composition | Feedback doc explicitly requested this; only the option exists, no recipe                |
@@ -187,9 +187,9 @@ The previous self-review literally said: "Never mark a TODO completed without re
 ### Codebase hygiene
 
 41. **Audit entire codebase for `var _ =` hacks** — `grep -rn 'var _ =' --include='*.go' | grep -v _test.go`
-42. **Verify `go.work` sync** after adding `schema/v3` to projectionhost
+42. **Verify `go.work` sync** after adding `schema/v4` to projectionhost
 43. **Run `nix run .#check-layers`** — dependency budget verification after adding schema dep to projectionhost
-44. **Check `.golangci.yml` depguard allow list** — `schema/v3` import in projectionhost tests may need allowlisting
+44. **Check `.golangci.yml` depguard allow list** — `schema/v4` import in projectionhost tests may need allowlisting
 
 ### Future considerations
 
@@ -212,7 +212,7 @@ These are all quick fixes (under 5 minutes total). But the working tree is clean
 
 ### G2. Should I run the full `nix run .#test` suite now?
 
-I only tested the 4 changed modules. The full suite tests ~40 modules. The `nix run .#test` command may take several minutes. The previous session's changes (adding `schema/v3` as a dependency of `projectionhost`) could theoretically affect module graph resolution in other modules. Should I run the full suite now to verify nothing is broken, or trust that `go.work` + `GOWORK=off` per-module isolation prevents cross-module breakage?
+I only tested the 4 changed modules. The full suite tests ~40 modules. The `nix run .#test` command may take several minutes. The previous session's changes (adding `schema/v4` as a dependency of `projectionhost`) could theoretically affect module graph resolution in other modules. Should I run the full suite now to verify nothing is broken, or trust that `go.work` + `GOWORK=off` per-module isolation prevents cross-module breakage?
 
 ---
 

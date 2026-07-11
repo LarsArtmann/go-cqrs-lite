@@ -136,7 +136,7 @@ First: added 9 new exports (`DefaultSSEReplayLimit`, `SSEReplayIncompleteEvent`,
 | 2   | **P2**   | Implement `SQLTimerStore` in `scheduling/`                       | Durable deadlines, production-ready   |
 | 3   | **P2**   | Promote `delayedJournal` test helper to `eventtest`/`testutil`   | Reusable context-cancellation testing |
 | 4   | **P2**   | Add SSE replay integration test with real `MemoryStore`          | Catches store-specific replay bugs    |
-| 5   | **P2**   | Fix `watermill/go.mod` tidy issue (`schema/v3` zero-revision)    | Clean `go mod tidy` without `-e`      |
+| 5   | **P2**   | Fix `watermill/go.mod` tidy issue (`schema/v4` zero-revision)    | Clean `go mod tidy` without `-e`      |
 | 6   | **P3**   | Add SSE replay metrics as OTel instruments                       | Dashboard-ready observability         |
 | 7   | **P3**   | Document SSE vs CatchUpSubscriber decision matrix in SKILL.md    | Consumer guidance                     |
 | 8   | **P3**   | Add `example/` showing SSE + offline client reconnection         | Usage demo                            |

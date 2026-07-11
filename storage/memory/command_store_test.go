@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3/idtest"
-	"github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4/idtest"
+	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
 func validCommandRef(tb testing.TB) command.AggregateRef {

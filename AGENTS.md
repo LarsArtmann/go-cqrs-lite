@@ -715,17 +715,12 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   // Without this, CBOR-encoded events go out as raw CBOR bytes that browsers
 //   // cannot parse. Applied uniformly across live, replay, AND backfill paths.
 //
-//   // BackfillHandlerWithTransform — same transform for the REST backfill endpoint:
-//   // GET /events/backfill?after=<event-id>&limit=500 → JSON array of transformed events.
-//   // Use when clients need a pull-based snapshot (not SSE streaming).
-//   backfillHandler := http.BackfillHandlerWithTransform(journal, func(evt event.Event) []byte {
-//       p, err := event.DecodePayloadAuto[YourPayload](evt)
-//       if err != nil { return event.PayloadReadOnly(evt) }
-//       jsonBytes, _ := json.Marshal(p)
-//       return jsonBytes
-//   })
-//   mux.Handle("/events/backfill", backfillHandler)
-//   // BackfillHandler(journal) is shorthand for BackfillHandlerWithTransform(journal, nil).
+//   // BackfillHandler — REST backfill using the broker's journal + transform:
+//   // GET /events/backfill?after=<event-id>&limit=500 → JSON array of events.
+//   // The broker's WithPayloadTransform (if set) is applied automatically,
+//   // so SSE and REST backfill share the same codec configuration.
+//   mux.Handle("/events/backfill", http.BackfillHandler(broker))
+//   // The broker must have WithReconnectJournal configured; otherwise 503.
 
 // Managed projection host — the "last loop every consumer rewrites" (projectionhost)
 //   host, _ := projectionhost.New(journal, checkpointStore,
@@ -810,12 +805,12 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 
 ## Testing
 
-- Table-driven tests preferred; BDD via Ginkgo v2 + Gomega for event/decider/query; fluent Given/When/Then via `scenario/v3` (framework gap A5)
+- Table-driven tests preferred; BDD via Ginkgo v2 + Gomega for event/decider/query; fluent Given/When/Then via `scenario/v4` (framework gap A5)
 - `t.Parallel()` for independent tests; core packages >80% coverage (most >90%)
 - Per-module isolation: `cd event && GOWORK=off go test ./... -count=1`
-- Golden tests use shared `eventtest.AssertGolden(t, path, got, *update)` from `event/v3/eventtest`
+- Golden tests use shared `eventtest.AssertGolden(t, path, got, *update)` from `event/v4/eventtest`
 - Modules without event dependency (otel, codec) keep their own local golden helper
-- **eventtest nested module**: `event/v3/eventtest` lives at `event/v3/eventtest/` (directory MUST match module path per Go spec — a path without a trailing `/vN` suffix requires `go.mod` at the exact subdirectory). `go mod tidy` in `event/` (or any consumer) emits warnings about the nested `go.mod`; run `go mod tidy -e` to suppress (warnings-only, not a build failure). Tagged as `event/v3/eventtest/v0.1.0` (v0 because the path's last element is `eventtest`, not `/vN`). See `docs/adr/0045-eventtest-module-path-fix.md` for the full rationale.
+- **eventtest nested module**: `event/v4/eventtest` lives at `event/v4/eventtest/` (directory MUST match module path per Go spec — a path without a trailing `/vN` suffix requires `go.mod` at the exact subdirectory). `go mod tidy` in `event/` (or any consumer) emits warnings about the nested `go.mod`; run `go mod tidy -e` to suppress (warnings-only, not a build failure). Tagged as `event/v4/eventtest/v0.1.0` (v0 because the path's last element is `eventtest`, not `/vN`). See `docs/adr/0045-eventtest-module-path-fix.md` for the full rationale.
 
 ### Lint Conventions
 

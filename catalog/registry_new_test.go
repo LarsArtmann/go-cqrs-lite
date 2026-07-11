@@ -3,7 +3,7 @@ package catalog_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
 
 func TestRegistry_AddEntity(t *testing.T) {

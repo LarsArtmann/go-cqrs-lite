@@ -26,7 +26,7 @@
 
 ## Modules
 
-The authoritative module index with README links lives in the **[project README](../README.md)** (28 modules across Core / Persistence / Infrastructure / Tooling / Examples). Each module also has a `doc.go` rendered on [pkg.go.dev](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v3).
+The authoritative module index with README links lives in the **[project README](../README.md)** (28 modules across Core / Persistence / Infrastructure / Tooling / Examples). Each module also has a `doc.go` rendered on [pkg.go.dev](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v4).
 
 ## Examples
 
@@ -82,7 +82,7 @@ The authoritative module index with README links lives in the **[project README]
 ## API Reference
 
 - **[API Surface Snapshot](api_surface.txt)** — Machine-readable list of all exported symbols
-- **[pkg.go.dev](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v3)** — Godoc for every module
+- **[pkg.go.dev](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v4)** — Godoc for every module
 - Run `go run ./cmd/api-stability/ -update` to regenerate the surface snapshot
 - Run `go run ./cmd/api-stability/` to verify no breaking changes against the golden file
 

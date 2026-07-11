@@ -19,7 +19,7 @@ Every error produced by the library belongs to exactly one family. This enables 
 ### Creating Classified Errors
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/event/v3"
+import "github.com/larsartmann/go-cqrs-lite/event/v4"
 
 // Business rule violation — consumer's input is invalid
 err := event.NewRejection("order.create.negative_total", "total must be positive")

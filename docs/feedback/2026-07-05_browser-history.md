@@ -2,7 +2,7 @@
 
 **From:** browser-history project (github.com/larsartmann/browser-history)
 **Date:** 2026-07-05
-**Versions used:** event v3.4, command/query v3.4, decider v3.1/v3.3, storage v3.3, projection v3.4, watermill v3.3
+**Versions used:** event v3.4, command/query v3.4, decider v3.1/v4.3, storage v3.3, projection v3.4, watermill v3.3
 **Consumer:** Crush (AI assistant) + Lars
 
 ---
@@ -56,25 +56,25 @@ enc := codec.Encoding(msg.Metadata.Get("payload_encoding"))
 
 ### 2. The eventtest pseudo-version dependency hell
 
-**Problem:** `event/v3/eventtest` go.mod requires `event/v3`, `id/v3`, `snapshot/v3` at pseudo-versions (`v0.0.0-00010101000000-000000000000`). These resolve via module-level `replace` directives within the go-cqrs-lite repo. But when a **consumer** workspace replaces eventtest, Go's workspace replaces **override** module-level replaces — they don't inherit them.
+**Problem:** `event/v4/eventtest` go.mod requires `event/v4`, `id/v4`, `snapshot/v4` at pseudo-versions (`v0.0.0-00010101000000-000000000000`). These resolve via module-level `replace` directives within the go-cqrs-lite repo. But when a **consumer** workspace replaces eventtest, Go's workspace replaces **override** module-level replaces — they don't inherit them.
 
 **Impact:** Consumer workspaces need 14 `replace` directives to use go-cqrs-lite:
 
 ```go.work
 replace (
-    github.com/larsartmann/go-cqrs-lite/codec/v3 => ../go-cqrs-lite/codec
-    github.com/larsartmann/go-cqrs-lite/command/v3 => ../go-cqrs-lite/command
+    github.com/larsartmann/go-cqrs-lite/codec/v4 => ../go-cqrs-lite/codec
+    github.com/larsartmann/go-cqrs-lite/command/v4 => ../go-cqrs-lite/command
     // ...12 more
 )
 ```
 
-**This took 3 iterations to get right** (path changed from `event/eventtest` to `event/v3/eventtest`, needed transitive deps for all 14 modules).
+**This took 3 iterations to get right** (path changed from `event/eventtest` to `event/v4/eventtest`, needed transitive deps for all 14 modules).
 
 **Suggestion:** Consider either:
 
 - (a) Publish eventtest as a real tagged module (not pseudo-version)
 - (b) Document the full set of consumer-side replaces needed
-- (c) Make eventtest a `//go:build test` package within event/v3 instead of a separate module
+- (c) Make eventtest a `//go:build test` package within event/v4 instead of a separate module
 
 ### 3. `WithEnricher` can't infer the type parameter
 

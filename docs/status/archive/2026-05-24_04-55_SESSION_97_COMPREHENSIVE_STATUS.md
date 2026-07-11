@@ -160,7 +160,7 @@ The `example/todo/go.mod` has a massive dependency tree:
 
 - `cockroachdb/pebble` (storage engine)
 - `turso.tech/database/tursogo` (Turso DB)
-- `casbin/casbin/v3` (authorization)
+- `casbin/casbin/v4` (authorization)
 - `prometheus/client_golang` (metrics)
 - `larsartmann/cqrs-htmx` (HTMX framework — broken)
 

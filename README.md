@@ -1,7 +1,7 @@
 # go-cqrs-lite
 
 [![CI](https://github.com/LarsArtmann/go-cqrs-lite/actions/workflows/ci.yml/badge.svg)](https://github.com/LarsArtmann/go-cqrs-lite/actions/workflows/ci.yml)
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/event/v3.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/event/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v4)
 
 **CQRS and Event Sourcing for Go — without the framework tax.**
 
@@ -12,7 +12,7 @@ A composable library of 48 independent modules. Import exactly what you need: no
 ## Quick Start
 
 ```bash
-go get github.com/larsartmann/go-cqrs-lite/event/v3
+go get github.com/larsartmann/go-cqrs-lite/event/v4
 ```
 
 ```go
@@ -22,12 +22,12 @@ import (
     "context"
     "fmt"
 
-    "github.com/larsartmann/go-cqrs-lite/command/v3"
-    "github.com/larsartmann/go-cqrs-lite/decider/v3"
-    "github.com/larsartmann/go-cqrs-lite/event/v3"
-    "github.com/larsartmann/go-cqrs-lite/id/v3"
-    "github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
-    cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v3"
+    "github.com/larsartmann/go-cqrs-lite/command/v4"
+    "github.com/larsartmann/go-cqrs-lite/decider/v4"
+    "github.com/larsartmann/go-cqrs-lite/event/v4"
+    "github.com/larsartmann/go-cqrs-lite/id/v4"
+    "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+    cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 
 type UserState struct{ Name string }
@@ -79,7 +79,7 @@ func main() {
 When you are ready for persistent storage, a wired event bus, read models, and projections, take a **stack preset** — one import, one function call:
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v3"
+import "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
 
 // Events, commands, queries, snapshots, checkpoints, read models — all persisted.
 // Event bus wired (watermill GoChannel for in-process pub/sub).
@@ -208,9 +208,9 @@ Every module is independently importable and has its own `go.mod`. Modules with 
 
 ## Maturity
 
-48 modules on `/v3` import paths. Core modules carry 84–98% test coverage (event 91%, decider 98%, id 97%, dispatcher 98%). The library covers the full CQRS/ES lifecycle: event sourcing with branded IDs, command/query dispatch, pure-function deciders, three projection tiers (document/KV, relational/SQL, graph), durable deadline scheduling, dead-letter quarantine, managed projection hosting, event signing and encryption, OTel tracing and metrics, and auto-documentation generation.
+48 modules on `/v4` import paths. Core modules carry 84–98% test coverage (event 91%, decider 98%, id 97%, dispatcher 98%). The library covers the full CQRS/ES lifecycle: event sourcing with branded IDs, command/query dispatch, pure-function deciders, three projection tiers (document/KV, relational/SQL, graph), durable deadline scheduling, dead-letter quarantine, managed projection hosting, event signing and encryption, OTel tracing and metrics, and auto-documentation generation.
 
-**Migrating from v2?** Read the **[v3 Migration Guide](docs/migration/V3_MIGRATION.md)** — all changes are additive; import paths move from `…/v2` to `…/v3`.
+**Migrating from v2?** Read the **[v3 Migration Guide](docs/migration/V3_MIGRATION.md)** — all changes are additive; import paths move from `…/v2` to `…/v4`.
 
 For the full feature inventory see [FEATURES.md](FEATURES.md), for direction see [ROADMAP.md](ROADMAP.md), and for architecture decisions, benchmarks, and storage guides see [docs/](docs/).
 

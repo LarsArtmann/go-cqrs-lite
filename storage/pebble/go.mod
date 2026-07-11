@@ -1,18 +1,18 @@
-module github.com/larsartmann/go-cqrs-lite/storage/pebble/v3
+module github.com/larsartmann/go-cqrs-lite/storage/pebble/v4
 
 go 1.26.4
 
 require (
 	github.com/cockroachdb/pebble v1.1.5
-	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/command/v3 v3.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/event/v3 v3.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/event/v3/eventtest v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/id/v3 v3.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/query/v3 v3.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-error-family v0.7.0
 	github.com/onsi/gomega v1.42.1
 )
@@ -39,8 +39,8 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.0.0-00010101000000-000000000000 // indirect
-	github.com/larsartmann/go-cqrs-lite/metadata/v3 v3.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0-00010101000000-000000000000 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
@@ -70,17 +70,17 @@ require (
 )
 
 replace (
-	github.com/larsartmann/go-cqrs-lite/codec/v3 => ../../codec
-	github.com/larsartmann/go-cqrs-lite/command/v3 => ../../command
-	github.com/larsartmann/go-cqrs-lite/event/v3 => ../../event
-	github.com/larsartmann/go-cqrs-lite/id/v3 => ../../id
-	github.com/larsartmann/go-cqrs-lite/kv/v3 => ../../kv
-	github.com/larsartmann/go-cqrs-lite/metadata/v3 => ../../metadata
-	github.com/larsartmann/go-cqrs-lite/otel/v3 => ../../otel
-	github.com/larsartmann/go-cqrs-lite/query/v3 => ../../query
-	github.com/larsartmann/go-cqrs-lite/snapshot/v3 => ../../snapshot
+	github.com/larsartmann/go-cqrs-lite/codec/v4 => ../../codec
+	github.com/larsartmann/go-cqrs-lite/command/v4 => ../../command
+	github.com/larsartmann/go-cqrs-lite/event/v4 => ../../event
+	github.com/larsartmann/go-cqrs-lite/id/v4 => ../../id
+	github.com/larsartmann/go-cqrs-lite/kv/v4 => ../../kv
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 => ../../metadata
+	github.com/larsartmann/go-cqrs-lite/otel/v4 => ../../otel
+	github.com/larsartmann/go-cqrs-lite/query/v4 => ../../query
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 => ../../snapshot
 )
 
-replace github.com/larsartmann/go-cqrs-lite/dispatcher/v3 => ../../dispatcher
+replace github.com/larsartmann/go-cqrs-lite/dispatcher/v4 => ../../dispatcher
 
-replace github.com/larsartmann/go-cqrs-lite/event/v3/eventtest => ../../event/v3/eventtest
+replace github.com/larsartmann/go-cqrs-lite/event/v4/eventtest => ../../event/v4/eventtest

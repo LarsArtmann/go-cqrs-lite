@@ -7,8 +7,8 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
 
 type AggregateProjection struct {

@@ -7,7 +7,7 @@
 // This sub-package builds on the root signing package's [signing.Signer], [signing.Verifier],
 // and [signing.Signature] types. Import as:
 //
-//	import "github.com/larsartmann/go-cqrs-lite/signing/v3/multisig"
+//	import "github.com/larsartmann/go-cqrs-lite/signing/v4/multisig"
 //
 // Each actor creates a [MultiSigner] with their own cryptographic key:
 //

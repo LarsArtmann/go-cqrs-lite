@@ -8,9 +8,9 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/dedup/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/projection/v3"
+	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/projection/v4"
 )
 
 // workerStartStaggerMs is the millisecond delay added between consecutive

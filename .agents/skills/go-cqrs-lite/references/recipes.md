@@ -19,7 +19,7 @@
 > The deployer picks a preset; the app developer never imports a backend.
 
 ```go
-import cqrspebble "github.com/larsartmann/go-cqrs-lite/stack/pebble/v3"
+import cqrspebble "github.com/larsartmann/go-cqrs-lite/stack/pebble/v4"
 
 // One call wires: event store + bus, command store, query store,
 // snapshot store, checkpoint store, read-model backend.
@@ -105,8 +105,8 @@ When your events and read models share a single SQLite/Postgres database, skip t
 ```go
 import (
     "database/sql"
-    "github.com/larsartmann/go-cqrs-lite/storage/v3"
-    cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v3"
+    "github.com/larsartmann/go-cqrs-lite/storage/v4"
+    cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v4"
 )
 
 // One shared *sql.DB for everything
@@ -170,13 +170,13 @@ import (
     "context"
     "fmt"
 
-    "github.com/larsartmann/go-cqrs-lite/codec/v3"
-    "github.com/larsartmann/go-cqrs-lite/command/v3"
-    "github.com/larsartmann/go-cqrs-lite/decider/v3"
-    "github.com/larsartmann/go-cqrs-lite/event/v3"
-    "github.com/larsartmann/go-cqrs-lite/id/v3"
-    "github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
-    cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v3"
+    "github.com/larsartmann/go-cqrs-lite/codec/v4"
+    "github.com/larsartmann/go-cqrs-lite/command/v4"
+    "github.com/larsartmann/go-cqrs-lite/decider/v4"
+    "github.com/larsartmann/go-cqrs-lite/event/v4"
+    "github.com/larsartmann/go-cqrs-lite/id/v4"
+    "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+    cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 
 type UserState struct{ Name string }
@@ -222,7 +222,7 @@ Replace `memory` with a real backend. Two choices:
 **SQL (PostgreSQL / SQLite):**
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/storage/v3"
+import "github.com/larsartmann/go-cqrs-lite/storage/v4"
 
 // db is a *sql.DB (Postgres or SQLite)
 backend, _ := storage.NewSQLiteBackend(db)   // or NewSQLBackend(db) for Postgres (dialect auto-detected from driver)
@@ -238,7 +238,7 @@ cpStore, _  := backend.CheckpointStore()     // *SQLCheckpointStore (lazy)
 **Embedded PebbleDB (single binary, one DB for the full stack):**
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/storage/pebble/v3"
+import "github.com/larsartmann/go-cqrs-lite/storage/pebble/v4"
 
 backend, _ := pebble.Open(dir, &pebble.Options{}, logger)
 defer backend.Close() // closes DB AND all stores
@@ -255,7 +255,7 @@ cpStore     := backend.CheckpointStore()
 Avoid replaying long event streams. Snapshots cache aggregate state at a version.
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/snapshot/v3"
+import "github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 
 strategy, _ := snapshot.EveryNEvents(100)                                 // returns (SnapshotStrategy, error)
 repo, _ := decider.NewRepository[UserState](store, bus, d,
@@ -270,7 +270,7 @@ repo, _ := decider.NewRepository[UserState](store, bus, d,
 Migrate old event payloads on read without rewriting history.
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/schema/v3"
+import "github.com/larsartmann/go-cqrs-lite/schema/v4"
 
 // Upcast UserCreated v1 → v2 (adds a default field)
 upcaster := schema.NewUpcaster("UserCreated", 1, func(evt event.Event) (*event.ImmutableEvent, error) {
@@ -289,13 +289,13 @@ versioned := schema.NewVersionedStore(eventStore, upcaster)
 Cryptographic signatures detect tampering in transit and at rest.
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/signing/v3"
+import "github.com/larsartmann/go-cqrs-lite/signing/v4"
 
 signer, _ := signing.NewHMAC(secret)
 bus.UsePublish(signing.SignMiddleware(signer))   // sign on publish
 bus.Use(signing.VerifyMiddleware(signer))        // verify on receive
 // Ed25519: signing.NewEd25519(privateKey, publicKey)
-// Multisig: signing/v3/multisig
+// Multisig: signing/v4/multisig
 ```
 
 ### 2.7 Encrypted Payloads (encryption)
@@ -303,7 +303,7 @@ bus.Use(signing.VerifyMiddleware(signer))        // verify on receive
 Confidential event payloads encrypted at rest.
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/encryption/v3"
+import "github.com/larsartmann/go-cqrs-lite/encryption/v4"
 
 enc, _ := encryption.NewXChaCha20Poly1305(key)   // or NewAES256GCM(key)
 bus.UsePublish(encryption.EncryptMiddleware(enc, encryption.WithMiddlewareKeyID("key-v1")))
@@ -323,8 +323,8 @@ resolver := encryption.NewStaticKeyResolver(map[encryption.KeyID]encryption.Decr
 
 ```go
 import (
-    "github.com/larsartmann/go-cqrs-lite/middleware/v3"
-    "github.com/larsartmann/go-cqrs-lite/otel/v3"
+    "github.com/larsartmann/go-cqrs-lite/middleware/v4"
+    "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 tracer := otel.GetTracerProvider().Tracer("my-app")
@@ -350,9 +350,9 @@ histogram boundaries match CQRS latency ranges:
 
 ```go
 import (
-    cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
-    cqrsprometheus "github.com/larsartmann/go-cqrs-lite/prometheus/v3"
-    "github.com/larsartmann/go-cqrs-lite/otel/v3"
+    cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
+    cqrsprometheus "github.com/larsartmann/go-cqrs-lite/prometheus/v4"
+    "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 // 1. Tracing provider (spans)
@@ -388,8 +388,8 @@ boundaries. With it, latency histograms use CQRS-optimized buckets
 
 ```go
 import (
-    "github.com/larsartmann/go-cqrs-lite/idempotency/v3"
-    "github.com/larsartmann/go-cqrs-lite/middleware/v3"
+    "github.com/larsartmann/go-cqrs-lite/idempotency/v4"
+    "github.com/larsartmann/go-cqrs-lite/middleware/v4"
 )
 
 store := idempotency.NewMemoryStore(5 * time.Minute)
@@ -436,11 +436,11 @@ Generate AsyncAPI 3.0, EventCatalog, OpenAPI, and D2 diagrams from your Go types
 
 ```go
 import (
-    "github.com/larsartmann/go-cqrs-lite/catalog/v3"
-    "github.com/larsartmann/go-cqrs-lite/catalog/v3/asyncapi"
-    "github.com/larsartmann/go-cqrs-lite/catalog/v3/d2"
-    "github.com/larsartmann/go-cqrs-lite/catalog/v3/eventcatalog"
-    "github.com/larsartmann/go-cqrs-lite/catalog/v3/openapi"
+    "github.com/larsartmann/go-cqrs-lite/catalog/v4"
+    "github.com/larsartmann/go-cqrs-lite/catalog/v4/asyncapi"
+    "github.com/larsartmann/go-cqrs-lite/catalog/v4/d2"
+    "github.com/larsartmann/go-cqrs-lite/catalog/v4/eventcatalog"
+    "github.com/larsartmann/go-cqrs-lite/catalog/v4/openapi"
 )
 
 reg := catalog.NewRegistry("My API", "1.0.0")

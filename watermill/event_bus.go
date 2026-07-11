@@ -11,7 +11,7 @@ import (
 	gochannel "github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
 // EventBus is a full event.Bus implementation backed by a Watermill GoChannel.

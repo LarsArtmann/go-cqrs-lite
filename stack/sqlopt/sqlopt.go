@@ -9,8 +9,8 @@
 package sqlopt
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/stack/v3"
-	"github.com/larsartmann/go-cqrs-lite/storage/v3"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4"
+	"github.com/larsartmann/go-cqrs-lite/storage/v4"
 )
 
 // AllOptions assembles the full stack.Option set from a storage.SQLBackend.

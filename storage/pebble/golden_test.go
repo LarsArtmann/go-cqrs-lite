@@ -9,11 +9,11 @@ import (
 
 	"github.com/cockroachdb/pebble"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3/idtest"
-	pb "github.com/larsartmann/go-cqrs-lite/storage/pebble/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4/idtest"
+	pb "github.com/larsartmann/go-cqrs-lite/storage/pebble/v4"
 )
 
 var update = flag.Bool("update", false, "update golden files")

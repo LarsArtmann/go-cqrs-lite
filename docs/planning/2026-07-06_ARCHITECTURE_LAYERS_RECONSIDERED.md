@@ -39,7 +39,7 @@ Layer 7: catalog/, integration/, stack/bench/, examples/, cmd/
 
 ```
 kv/go.mod requires:
-  github.com/larsartmann/go-cqrs-lite/codec/v3   ← Layer 0 dep
+  github.com/larsartmann/go-cqrs-lite/codec/v4   ← Layer 0 dep
   github.com/maypok86/otter/v2                    ← external dep
   github.com/larsartmann/go-error-family          ← external dep
 ```
@@ -52,23 +52,23 @@ The raw KV interface (`Store`, `Reader`, `Writer`, `Iterator`, `Batch`, `MemStor
 
 ```
 event/go.mod DIRECT deps (as declared):
-  codec/v3           ← Layer 0 (legitimate: payload encoding)
-  event/v3/eventtest ← Layer 1 (test helper — should be test-only dep)
-  id/v3              ← Layer 0 (legitimate: branded IDs)
-  schema/v3          ← Layer 2 (test-only usage — NOT production code)
-  snapshot/v3        ← Layer 2 (test-only usage — NOT production code)
-  storage/memory/v3  ← Layer 4 (test-only usage — NOT production code)
+  codec/v4           ← Layer 0 (legitimate: payload encoding)
+  event/v4/eventtest ← Layer 1 (test helper — should be test-only dep)
+  id/v4              ← Layer 0 (legitimate: branded IDs)
+  schema/v4          ← Layer 2 (test-only usage — NOT production code)
+  snapshot/v4        ← Layer 2 (test-only usage — NOT production code)
+  storage/memory/v4  ← Layer 4 (test-only usage — NOT production code)
 ```
 
 Three of these "direct production dependencies" (`schema/`, `snapshot/`, `storage/memory/`) are **only imported in test and example files**:
 
 ```
-event/event_bdd_test.go:13:  "schema/v3"
-event/event_bdd_test.go:14:  "storage/memory/v3"
-event/example_test.go:9:     "schema/v3"
-event/example_test.go:10:    "storage/memory/v3"
-event/stream_test.go:13:     "storage/memory/v3"
-event/errors_taxonomy_test.go:12: "snapshot/v3"
+event/event_bdd_test.go:13:  "schema/v4"
+event/event_bdd_test.go:14:  "storage/memory/v4"
+event/example_test.go:9:     "schema/v4"
+event/example_test.go:10:    "storage/memory/v4"
+event/stream_test.go:13:     "storage/memory/v4"
+event/errors_taxonomy_test.go:12: "snapshot/v4"
 ```
 
 Go's `go mod tidy` cannot separate test-only deps from production deps in a single-module package, so they leak into the production `require` block. This makes `event/` appear to be Layer 4+ when its real production deps are only `codec/` and `id/`.
@@ -316,7 +316,7 @@ AFTER:  30+ modules → go-error-family (direct)
 | Option                                 | Description                                                                                                                        | Cost                                        | Benefit                                                                                    |
 | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------ |
 | **A: Import go-error-family directly** | Every module that currently does `event.NewConflict(...)` changes to `errorfamily.NewConflict(...)`. `event/errors.go` is deleted. | ~50 files changed (mechanical find-replace) | Zero new modules. Coupling eliminated. Consistent with the 8 modules that already do this. |
-| **B: Create `errors/` module**         | New thin module that re-exports go-error-family with CQRS-specific defaults. Every module imports `errors/v3` instead of `event/`. | New module + ~50 files changed              | Single import point. Can add CQRS-specific error helpers. But... it's still a re-export.   |
+| **B: Create `errors/` module**         | New thin module that re-exports go-error-family with CQRS-specific defaults. Every module imports `errors/v4` instead of `event/`. | New module + ~50 files changed              | Single import point. Can add CQRS-specific error helpers. But... it's still a re-export.   |
 
 **Recommendation: Option A.** A re-export module is just indirection. `go-error-family` IS the error taxonomy — it already has the right API. The 8 modules that import it directly prove the pattern works. Adding a CQRS-specific wrapper adds a layer without adding value.
 
@@ -441,7 +441,7 @@ Completed 2026-07-08. Deviated from plan: kept `idempotency/` as separate module
 1. Move test-only deps (`schema/`, `snapshot/`, `storage/memory/`) to a separate test module, OR accept the leak and document it
 2. Alternative: move `event/` tests that need these deps into `integration/`
 
-**Effort:** Medium — Go doesn't natively support test-only module deps. May need a separate `event/eventtest/` module (which already exists for `event/v3/eventtest`).
+**Effort:** Medium — Go doesn't natively support test-only module deps. May need a separate `event/eventtest/` module (which already exists for `event/v4/eventtest`).
 
 ### Phase 5: Document the Tier Model
 
@@ -499,7 +499,7 @@ catalog/                  (none — true leaf)
 
 kv/                       codec/
 event/                    codec/, id/, eventtest, schema/, snapshot/, storage/memory/
-event/v3/eventtest/       event/, id/, snapshot/
+event/v4/eventtest/       event/, id/, snapshot/
 command/                  dispatcher/, event/, id/, storage/memory/, codec/
 query/                    dispatcher/, event/, id/, storage/memory/, codec/
 

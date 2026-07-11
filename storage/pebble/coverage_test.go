@@ -8,10 +8,10 @@ import (
 
 	"github.com/cockroachdb/pebble"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
-	"github.com/larsartmann/go-cqrs-lite/snapshot/v3"
-	cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
+	cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v4"
 )
 
 func TestEventStore_OptionAsyncWrites(t *testing.T) {

@@ -3,7 +3,7 @@ package metadata
 import (
 	"maps"
 
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 // Tracing holds the cross-cutting tracing identifiers shared by event,

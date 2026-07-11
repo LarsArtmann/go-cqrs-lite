@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
-	"github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
+	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
 
 var update = flag.Bool("update", false, "update golden files")

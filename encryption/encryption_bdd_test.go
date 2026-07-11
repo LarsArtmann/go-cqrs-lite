@@ -8,10 +8,10 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v3"
-	. "github.com/larsartmann/go-cqrs-lite/encryption/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
+	. "github.com/larsartmann/go-cqrs-lite/encryption/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 var _ = Describe("Encryption", func() {

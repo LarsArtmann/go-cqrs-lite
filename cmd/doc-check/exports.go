@@ -33,14 +33,14 @@ func buildExportIndex(imports []string, repoRoot string) map[string]map[string]b
 	for _, imp := range unique {
 		dir := strings.TrimPrefix(imp, repoImportPrefix)
 
-		dir = strings.TrimSuffix(dir, "/v3")
+		dir = strings.TrimSuffix(dir, "/v4")
 		if dir == "v3" {
 			dir = "."
 		}
 
 		fullDir := filepath.Join(repoRoot, dir)
 		if _, err := os.Stat(fullDir); os.IsNotExist(err) {
-			stripped := strings.Replace(dir, "/v3/", "/", 1)
+			stripped := strings.Replace(dir, "/v4/", "/", 1)
 			if stripped != dir {
 				fullDir = filepath.Join(repoRoot, stripped)
 			}

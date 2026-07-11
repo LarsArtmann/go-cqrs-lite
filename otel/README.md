@@ -1,11 +1,11 @@
 # otel — OpenTelemetry Helpers
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/otel/v3.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/otel/v3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/otel/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/otel/v4)
 
 Shared OTel instrumentation utilities. All instrumentation is opt-in — no-op when no provider is configured.
 
 ```bash
-go get github.com/larsartmann/go-cqrs-lite/otel/v3
+go get github.com/larsartmann/go-cqrs-lite/otel/v4
 ```
 
 ## Quick Start (5 Lines)
@@ -118,11 +118,11 @@ ctx = cqrsotel.WithCorrelationID(ctx, traceID.String())
 
 ## Related Modules
 
-- [**middleware/v3**](../middleware/README.md) — `OTelBundle` and tracing/metrics middleware
+- [**middleware/v4**](../middleware/README.md) — `OTelBundle` and tracing/metrics middleware
 - [**storage/v2**](../storage/README.md) — SQL stores record spans via `otel/` re-exports
-- [**prometheus/v3**](../prometheus/README.md) — OTel→Prometheus metrics bridge
+- [**prometheus/v4**](../prometheus/README.md) — OTel→Prometheus metrics bridge
 - [**transport/http**](../transport/http/) — SSE event delivery with consumer spans
 - [**transport/grpc**](../transport/grpc/) — Remote command/query dispatch with server spans
 - [**watermill**](../watermill/) — Broker bridges with producer spans
 
-> **Rule:** Import OTel via `otel/v3`, NOT `go.opentelemetry.io` directly. This keeps the SDK indirect in go.mod files.
+> **Rule:** Import OTel via `otel/v4`, NOT `go.opentelemetry.io` directly. This keeps the SDK indirect in go.mod files.

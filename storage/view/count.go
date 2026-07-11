@@ -7,7 +7,7 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/kv/v3"
+	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 
 // Count returns the number of records matching the query's conditions, without

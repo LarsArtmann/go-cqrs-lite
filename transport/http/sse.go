@@ -8,9 +8,9 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/dedup/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
+	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 // SSEClientID identifies a connected SSE client.
@@ -151,6 +151,26 @@ func (b *SSEBroker) ClientCount() int {
 	defer b.mu.RUnlock()
 
 	return len(b.clients)
+}
+
+// Journal returns the seekable journal used for Last-Event-ID replay and
+// REST backfill. Returns nil if no journal was configured via
+// WithReconnectJournal. BackfillHandler checks for this and returns an error.
+func (b *SSEBroker) Journal() event.SeekableJournal {
+	b.mu.RLock()
+	defer b.mu.RUnlock()
+
+	return b.journal
+}
+
+// PayloadTransform returns the configured payload transform function, or nil
+// if none was set. Used by BackfillHandler to apply the same transform that
+// SSE clients receive.
+func (b *SSEBroker) PayloadTransform() func(event.Event) []byte {
+	b.mu.RLock()
+	defer b.mu.RUnlock()
+
+	return b.payloadTransform
 }
 
 // Close shuts down the broker and disconnects all clients.

@@ -9,7 +9,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 // failingExporter returns an error on Shutdown to test error propagation.

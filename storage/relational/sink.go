@@ -11,7 +11,7 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
 
 // Row is an ordered-by-name set of column/value pairs for a sink write.

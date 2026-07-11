@@ -176,7 +176,7 @@ all face this.
 
 ### D2. `eventtest` Workspace Resolution (pre-existing)
 
-`go mod tidy` in child modules fails because `event/v3/eventtest` is a separate module
+`go mod tidy` in child modules fails because `event/v4/eventtest` is a separate module
 not declared in parent `go.mod` replace directives. Produces warnings during `go mod tidy`
 in `graph/` and other modules. Not blocking (workspace mode resolves it) but noisy.
 

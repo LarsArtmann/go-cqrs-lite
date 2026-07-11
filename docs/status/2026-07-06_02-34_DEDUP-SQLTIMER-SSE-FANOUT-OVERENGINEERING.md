@@ -42,7 +42,7 @@ Two new tests in `transport/http/sse_integration_test.go`:
 
 ### P2 #5: Fixed `watermill/go.mod` Tidy Issue
 
-Added missing `replace github.com/larsartmann/go-cqrs-lite/schema/v3 => ../schema` directive. `go mod tidy` now runs clean (no `-e` needed).
+Added missing `replace github.com/larsartmann/go-cqrs-lite/schema/v4 => ../schema` directive. `go mod tidy` now runs clean (no `-e` needed).
 
 ### P3 #6: SSE Replay Metrics as OTel Instruments
 

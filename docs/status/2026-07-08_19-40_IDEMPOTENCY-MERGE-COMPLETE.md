@@ -18,13 +18,13 @@ The original plan called for moving the Store primitive into `middleware/idempot
 - **Deleted** `idempotency/middleware_test.go` (207 lines — 6 tests)
 - **Updated** `idempotency/doc.go` — removed middleware references, points to `middleware/` package
 - **Rewrote** `idempotency/README.md` — updated Key Types table (removed `KeyExtractor`, `CommandIDKey`, `CommandIdempotency`; added `KVStore`), new Dispatch Middleware section showing all 3 message types, updated Related Modules
-- **Ran** `go mod tidy` — `command/v3` and `id/v3` dropped from direct deps. Module now depends on `kv/v3` + `go-error-family` only
+- **Ran** `go mod tidy` — `command/v4` and `id/v4` dropped from direct deps. Module now depends on `kv/v4` + `go-error-family` only
 - **Layer change:** `idempotency/` moved from Layer 2 (→command, event, id, kv) to Layer 1 (→kv)
 
-### 3. Phase 2: Added `idempotency/v3` Dependency to `middleware/`
+### 3. Phase 2: Added `idempotency/v4` Dependency to `middleware/`
 
-- Added `require` + `replace` for `idempotency/v3` in `middleware/go.mod`
-- Also added missing `replace` directives for `kv/v3` and `schema/v3` (transitive deps that surfaced during `go mod tidy`)
+- Added `require` + `replace` for `idempotency/v4` in `middleware/go.mod`
+- Also added missing `replace` directives for `kv/v4` and `schema/v4` (transitive deps that surfaced during `go mod tidy`)
 - `go mod tidy` succeeded
 
 ### 4. Phase 3: Created Generic Idempotency Middleware
@@ -73,7 +73,7 @@ Fixed pre-existing lint issues in `idempotency/` that surfaced when adding it to
 | Check               | Result                                                                                           |
 | ------------------- | ------------------------------------------------------------------------------------------------ |
 | `nix run .#build`   | ✅ SUCCESS                                                                                       |
-| `nix run .#test`    | ✅ All modules pass (including `idempotency/v3` — now in CI)                                     |
+| `nix run .#test`    | ✅ All modules pass (including `idempotency/v4` — now in CI)                                     |
 | `nix run .#lint`    | ✅ 0 issues in `middleware/` and `idempotency/` (pre-existing `transport/http` issues unrelated) |
 | `cmd/api-stability` | ✅ 1758 exports verified                                                                         |
 | `cmd/doc-check`     | ✅ All 808 references valid across 34 packages                                                   |
@@ -84,7 +84,7 @@ Fixed pre-existing lint issues in `idempotency/` that surfaced when adding it to
 
 ### 1. DOMAIN_LANGUAGE.md — NOT Updated
 
-The planning doc explicitly lists `docs/DOMAIN_LANGUAGE.md` as needing updates (lines 202, 475-476). I identified this in my pre-execution research but forgot to update it during execution. The file still references `idempotency.Store` and `idempotency.ErrDuplicate` which are still correct (the Store didn't move), but line 202 says "Command deduplication" which should be "Deduplication" now that it's generic. The code example on line 355 shows `idempotency/v3` import which is still correct but could mention the middleware integration.
+The planning doc explicitly lists `docs/DOMAIN_LANGUAGE.md` as needing updates (lines 202, 475-476). I identified this in my pre-execution research but forgot to update it during execution. The file still references `idempotency.Store` and `idempotency.ErrDuplicate` which are still correct (the Store didn't move), but line 202 says "Command deduplication" which should be "Deduplication" now that it's generic. The code example on line 355 shows `idempotency/v4` import which is still correct but could mention the middleware integration.
 
 ### 2. CHANGELOG.md — NOT Updated
 
@@ -307,7 +307,7 @@ The report describes the **before** state (idempotency/ depends on event/ for er
 
 | Line | What it says                                              | What it should say                                                                                              |
 | ---- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| 80   | `middleware__: "middleware/\n+ idempotency/ sub-package"` | `middleware__: "middleware/\n+ idempotency factory"` or `middleware__: "middleware/\n(imports idempotency/v3)"` |
+| 80   | `middleware__: "middleware/\n+ idempotency/ sub-package"` | `middleware__: "middleware/\n+ idempotency factory"` or `middleware__: "middleware/\n(imports idempotency/v4)"` |
 
 ### Impact
 

@@ -1,6 +1,6 @@
 package grpc
 
-import "github.com/larsartmann/go-cqrs-lite/event/v3"
+import "github.com/larsartmann/go-cqrs-lite/event/v4"
 
 // safeInt64FromVersion converts event.Version (uint64) to int64 without
 // triggering gosec G115. Extracted as a helper per AGENTS.md convention.

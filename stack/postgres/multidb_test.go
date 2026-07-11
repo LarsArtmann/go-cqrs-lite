@@ -10,8 +10,8 @@ import (
 
 	_ "github.com/jackc/pgx/v5/stdlib" // register pgx driver
 
-	"github.com/larsartmann/go-cqrs-lite/stack/postgres/v3"
-	"github.com/larsartmann/go-cqrs-lite/stack/v3/contracttest"
+	"github.com/larsartmann/go-cqrs-lite/stack/postgres/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4/contracttest"
 )
 
 // TestMultiDBContract verifies that the Postgres multi-DB split routes each

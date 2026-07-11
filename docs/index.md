@@ -23,7 +23,7 @@ no opinionated transport, message broker, or SQL driver.
 ### Bundle preset (recommended)
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/stack/memory/v3"
+import "github.com/larsartmann/go-cqrs-lite/stack/memory/v4"
 
 // One call wires the event store, bus, snapshot store, checkpoint store,
 // command store, query store, and read-model backend.
@@ -39,9 +39,9 @@ store := readmodel.NewStore[UserView, UserID](bundle.ReadModels, codec.JSONCodec
 
 ```go
 import (
-    "github.com/larsartmann/go-cqrs-lite/event/v3"
-    "github.com/larsartmann/go-cqrs-lite/decider/v3"
-    "github.com/larsartmann/go-cqrs-lite/memory/v3"
+    "github.com/larsartmann/go-cqrs-lite/event/v4"
+    "github.com/larsartmann/go-cqrs-lite/decider/v4"
+    "github.com/larsartmann/go-cqrs-lite/memory/v4"
 )
 
 store := memory.NewMemoryStore()

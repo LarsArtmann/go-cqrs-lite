@@ -89,7 +89,7 @@ The only close call: the `noinlineerr` linter caught the refactored `deserialize
 
 1. **Golden test drift** — Golden files in `catalog/testdata/golden/` keep drifting between sessions. The `-update` flag fixes them but it's a recurring annoyance. Consider making golden tests auto-refresh in CI or pinning go-faster/yaml version.
 
-2. **example/todo external deps** — The example pulls in `cqrs-htmx`, `cockroachdb/pebble`, `stretchr/testify`, `casbin/casbin/v3`, `prometheus/client_golang` — 37 indirect deps. The `MarshalJSON` recursion bug was in example code. Could use a simpler example or at least a lint/test gate.
+2. **example/todo external deps** — The example pulls in `cqrs-htmx`, `cockroachdb/pebble`, `stretchr/testify`, `casbin/casbin/v4`, `prometheus/client_golang` — 37 indirect deps. The `MarshalJSON` recursion bug was in example code. Could use a simpler example or at least a lint/test gate.
 
 3. **testhelpers drift** — `fake_bus.go` and `fake_store.go` keep getting method-level overrides that diverge from their `memory/` counterparts. Consider code generation or shared test suites.
 

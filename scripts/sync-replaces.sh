@@ -10,9 +10,9 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO_ROOT"
 
 # Map a module path suffix to its repo-relative directory.
-# "event/v3"          -> "event"
-# "storage/memory/v3" -> "storage/memory"
-# "event/v3/eventtest" -> "event/v3/eventtest"  (no /vN at end -> keep as-is)
+# "event/v4"          -> "event"
+# "storage/memory/v4" -> "storage/memory"
+# "event/v4/eventtest" -> "event/v4/eventtest"  (no /vN at end -> keep as-is)
 modpath_to_dir() {
 	local suffix="$1"
 	if [[ "$suffix" =~ ^(.+)/v[0-9]+$ ]]; then
@@ -45,7 +45,7 @@ while IFS= read -r -d '' gomod; do
 			grep -oP 'github\.com/larsartmann/go-cqrs-lite/[^\s/]+' |
 			sort -u || true
 	)
-	# Also catch multi-segment paths like .../storage/memory/v3, .../event/v3/eventtest
+	# Also catch multi-segment paths like .../storage/memory/v4, .../event/v4/eventtest
 	mapfile -t required_full < <(
 		grep -E '^\s+github\.com/larsartmann/go-cqrs-lite/' "$gomod" |
 			grep -v '=>' |

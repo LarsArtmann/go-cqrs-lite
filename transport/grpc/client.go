@@ -7,9 +7,9 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 	"google.golang.org/grpc"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v3"
-	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	cqrsproto "github.com/larsartmann/go-cqrs-lite/transport/grpc/v3/proto"
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	cqrsproto "github.com/larsartmann/go-cqrs-lite/transport/grpc/v4/proto"
 )
 
 var (

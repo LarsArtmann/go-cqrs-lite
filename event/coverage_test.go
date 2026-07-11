@@ -5,9 +5,9 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	codecpkg "github.com/larsartmann/go-cqrs-lite/codec/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	codecpkg "github.com/larsartmann/go-cqrs-lite/codec/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 func TestAggregateRef_IsZero(t *testing.T) {

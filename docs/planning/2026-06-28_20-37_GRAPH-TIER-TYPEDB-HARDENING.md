@@ -170,7 +170,7 @@ Add **`example/graph-demo/`** (first real consumer, validates end-to-end), **rew
 
 | Sub# | Task                                                                              | Parent | Est |
 | ---- | --------------------------------------------------------------------------------- | ------ | --- |
-| C1.1 | Create `example/graph-demo/go.mod` (depends on graph/v3, event/v3, projection/v3) | C1     | 15m |
+| C1.1 | Create `example/graph-demo/go.mod` (depends on graph/v4, event/v4, projection/v4) | C1     | 15m |
 | C1.2 | Create `example/graph-demo/main.go` skeleton with imports + main func             | C1     | 15m |
 | C2.1 | Define domain types: User, Message, Reply event types + payloads                  | C2     | 15m |
 | C2.2 | Define graph Schema: User nodes, Message nodes, AUTHORED_BY + REPLY_TO edges      | C2     | 15m |

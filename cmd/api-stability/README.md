@@ -1,13 +1,13 @@
 # api-stability — API Surface Checker
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/cmd/api-stability/v3.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/cmd/api-stability/v3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/cmd/api-stability/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/cmd/api-stability/v4)
 
 CLI tool that walks core library packages, collects their exported symbols (types, funcs, methods, vars, consts) via Go AST parsing, and compares them against a golden file to detect breaking or unexpected API surface changes.
 
 ## Install
 
 ```bash
-go install github.com/larsartmann/go-cqrs-lite/cmd/api-stability/v3@latest
+go install github.com/larsartmann/go-cqrs-lite/cmd/api-stability/v4@latest
 ```
 
 ## Usage
@@ -20,7 +20,7 @@ api-stability
 api-stability -update
 ```
 
-The golden file lives at `docs/api_surface.txt`. It enumerates every exported symbol across 17 core packages: `command`, `event`, `query`, `decider`, `id`, `dispatcher`, `memory`, `catalog`, `middleware`, `signing`, `encryption`, `projection`, `listing`, `otel`, `storage`, `event/v3/eventtest`, `watermill`.
+The golden file lives at `docs/api_surface.txt`. It enumerates every exported symbol across 17 core packages: `command`, `event`, `query`, `decider`, `id`, `dispatcher`, `memory`, `catalog`, `middleware`, `signing`, `encryption`, `projection`, `listing`, `otel`, `storage`, `event/v4/eventtest`, `watermill`.
 
 ## How It Works
 

@@ -9,13 +9,13 @@
 
 ## Context: Overview is an indirect consumer
 
-Overview does **not** import any `go-cqrs-lite/*/v3` module directly. All 12 go-cqrs-lite modules in `go.mod` are indirect, pulled in by `cqrs-htmx/v4`:
+Overview does **not** import any `go-cqrs-lite/*/v4` module directly. All 12 go-cqrs-lite modules in `go.mod` are indirect, pulled in by `cqrs-htmx/v4`:
 
 ```
-github.com/larsartmann/go-cqrs-lite/codec/v3 v3.5.0 // indirect
-github.com/larsartmann/go-cqrs-lite/command/v3 v3.5.0 // indirect
-github.com/larsartmann/go-cqrs-lite/event/v3 v3.5.0 // indirect
-github.com/larsartmann/go-cqrs-lite/id/v3 v3.5.0 // indirect
+github.com/larsartmann/go-cqrs-lite/codec/v4 v3.5.0 // indirect
+github.com/larsartmann/go-cqrs-lite/command/v4 v3.5.0 // indirect
+github.com/larsartmann/go-cqrs-lite/event/v4 v3.5.0 // indirect
+github.com/larsartmann/go-cqrs-lite/id/v4 v3.5.0 // indirect
 ...
 ```
 
@@ -25,7 +25,7 @@ Overview uses cqrs-htmx only for its **middleware/SSE/embedded-asset surface** �
 
 ## What worked superbly
 
-### 1. `event/v3` error families — inherited via `go-error-family`
+### 1. `event/v4` error families — inherited via `go-error-family`
 
 Overview uses `go-error-family` directly (which is the standalone evolution of go-cqrs-lite's error family system). The five-family model (Rejection, Conflict, Transient, Infrastructure, Corruption) is the right taxonomy for HTTP error classification:
 
@@ -36,7 +36,7 @@ errorfamily.WrapTransient(err, codeDiscovery, "sdk discover")
 
 `errorfamily.Classify(err).String()` powers structured logging (`family` field in slog attrs) and the `errorpage.FromError()` family-colored rendering. This error vocabulary is the backbone of Overview's error UX.
 
-### 2. `id/v3` — ULID-based request IDs (via cqrs-htmx)
+### 2. `id/v4` — ULID-based request IDs (via cqrs-htmx)
 
 `ContextEnrichmentMiddleware` uses go-cqrs-lite's `id` package to generate ULID request IDs. These flow through the entire middleware chain and appear in structured logs. The branded type system (`id.Of[T]`) prevents mixing request IDs with other ID types at compile time — even though Overview only uses one ID type, the type safety is architecturally sound.
 
@@ -48,21 +48,21 @@ Despite pulling in 12 indirect modules, the actual compile-time surface for Over
 
 ## Pain points
 
-### 1. `go-error-family` vs `event/v3` error constructors — unclear relationship
+### 1. `go-error-family` vs `event/v4` error constructors — unclear relationship
 
 **Severity:** Medium (architecture clarity)
 
-Overview uses `go-error-family` for error construction, but `cqrs-htmx`'s skill says to use `event.New*`/`event.Wrap*` from `go-cqrs-lite/event/v3` (not `fmt.Errorf`). These appear to be the same five families (Rejection, Conflict, Transient, Infrastructure, Corruption) with potentially different APIs.
+Overview uses `go-error-family` for error construction, but `cqrs-htmx`'s skill says to use `event.New*`/`event.Wrap*` from `go-cqrs-lite/event/v4` (not `fmt.Errorf`). These appear to be the same five families (Rejection, Conflict, Transient, Infrastructure, Corruption) with potentially different APIs.
 
 It's unclear:
 
-- Is `go-error-family` a standalone extraction of `event/v3`'s error system?
-- Should non-CQRS apps use `go-error-family` or `event/v3` for errors?
+- Is `go-error-family` a standalone extraction of `event/v4`'s error system?
+- Should non-CQRS apps use `go-error-family` or `event/v4` for errors?
 - Are they interchangeable? Can you `Classify()` an error created by `event.NewRejection()`?
 
 Overview chose `go-error-family` because it doesn't need event payloads or codec integration — just the error taxonomy. This works, but the relationship between the two packages should be documented in both places.
 
-**Suggestion:** Add a section to `go-error-family` README: "Relationship to go-cqrs-lite/event/v3" — explain that go-error-family is the standalone error classification, and event/v3 wraps the same families with event-store context. Non-CQRS consumers should use go-error-family.
+**Suggestion:** Add a section to `go-error-family` README: "Relationship to go-cqrs-lite/event/v4" — explain that go-error-family is the standalone error classification, and event/v4 wraps the same families with event-store context. Non-CQRS consumers should use go-error-family.
 
 ### 2. Indirect dependency weight — 12 modules for middleware-only usage
 
@@ -71,15 +71,15 @@ Overview chose `go-error-family` because it doesn't need event payloads or codec
 Pulling in `cqrs-htmx/v4` for just middleware + SSE + embedded assets transitively brings all 12 go-cqrs-lite modules into `go.mod`:
 
 ```
-codec/v3, command/v3, dispatcher/v3, event/v3, id/v3, idempotency/v3,
-kv/v3, otel/v3, query/v3, transport/http/v3
+codec/v4, command/v4, dispatcher/v4, event/v4, id/v4, idempotency/v4,
+kv/v4, otel/v4, query/v4, transport/http/v4
 ```
 
 None of these are imported by Overview's code. The dependency weight is cosmetic (Go modules don't compile unused imports), but it inflates `go.mod` and makes `go mod tidy` surface confusing.
 
 This is likely unavoidable given cqrs-htmx's architecture (it genuinely depends on go-cqrs-lite). If cqrs-htmx ever splits its middleware/SSE surface into a lighter sub-module that doesn't depend on the CQRS core, that would reduce the transitive footprint for read-only consumers.
 
-### 3. `id/v3` branded types require `.String()` conversion at boundaries
+### 3. `id/v4` branded types require `.String()` conversion at boundaries
 
 **Severity:** Low (ergonomic)
 
@@ -99,7 +99,7 @@ This `.String()` conversion appears in every log call site. The branded type is 
 
 As a **transitive consumer**, Overview's experience with go-cqrs-lite is mostly invisible — and that's a good thing. The module isolation works; the CQRS machinery doesn't leak into the middleware/SSE surface.
 
-The most impactful improvement is **clarifying the `go-error-family` ↔ `event/v3` relationship** — Overview chose go-error-family because it's standalone, but the lack of documentation about when to use which creates uncertainty for every non-CQRS consumer of cqrs-htmx.
+The most impactful improvement is **clarifying the `go-error-family` ↔ `event/v4` relationship** — Overview chose go-error-family because it's standalone, but the lack of documentation about when to use which creates uncertainty for every non-CQRS consumer of cqrs-htmx.
 
 The error family taxonomy itself (Rejection/Conflict/Transient/Infrastructure/Corruption) is excellent and powers Overview's entire error UX — from structured logging to family-colored error pages. This is the most valuable design exported by the go-cqrs-lite ecosystem for read-only apps.
 
@@ -111,6 +111,6 @@ The error family taxonomy itself (Rejection/Conflict/Transient/Infrastructure/Co
 
 | #   | Feedback Item                                                             | Status             | What changed                                                                                                                                                                                                                 |
 | --- | ------------------------------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `go-error-family` vs `event/v3` error constructors — unclear relationship | ✅ **Documented**  | Added to skill FAQ: explains that go-error-family is the standalone extraction, event/v3 wraps the same families with event-store context. Non-CQRS consumers should use go-error-family. Classification is interchangeable. |
+| 1   | `go-error-family` vs `event/v4` error constructors — unclear relationship | ✅ **Documented**  | Added to skill FAQ: explains that go-error-family is the standalone extraction, event/v4 wraps the same families with event-store context. Non-CQRS consumers should use go-error-family. Classification is interchangeable. |
 | 2   | Indirect dependency weight — 12 modules for middleware-only usage         | ❌ **Not started** | This is a cqrs-htmx architecture concern (splitting middleware/SSE into a lighter sub-module). Not actionable from go-cqrs-lite's side alone.                                                                                |
-| 3   | `id/v3` branded types require `.String()` conversion at boundaries        | ❌ **Not started** | The `.String()` helper request is for cqrs-htmx, not go-cqrs-lite. Noted as a low-priority ergonomic improvement for cqrs-htmx.                                                                                              |
+| 3   | `id/v4` branded types require `.String()` conversion at boundaries        | ❌ **Not started** | The `.String()` helper request is for cqrs-htmx, not go-cqrs-lite. Noted as a low-priority ergonomic improvement for cqrs-htmx.                                                                                              |

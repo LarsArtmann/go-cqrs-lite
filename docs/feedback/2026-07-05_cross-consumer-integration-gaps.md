@@ -1,4 +1,4 @@
-# Cross-Consumer Integration Feedback: stack/v3, schema/v3, and the Lifecycle Gap
+# Cross-Consumer Integration Feedback: stack/v4, schema/v4, and the Lifecycle Gap
 
 **From:** Deep integration review of DiscordSync ↔ SwettySwipperWeb
 **Date:** 2026-07-05
@@ -17,17 +17,17 @@
 
 ```
 DiscordSync (Go, capture-only CQRS)              SwettySwipperWeb (Go, decider CQRS)
-├── event/v3                                     ├── event/v3
-├── storage/v3 (SQLite + Turso)                  ├── storage/v3 (SQLite)
-├── projectionhost/v3                            ├── decider/v3
-├── projection/v3                                ├── command/v3
-├── catalog/v3 (events only)                     ├── query/v3
-├── watermill/v3                                 ├── catalog/v3 (events only)
-├── middleware/v3                                ├── middleware/v3
-├── codec/v3 (CBOR default)                      ├── idempotency/v3
-├── otel/v3 + prometheus/v3                      └── storage/memory/v3 (tests)
-├── scenario/v3 + testutil/v3
-├── id/v3
+├── event/v4                                     ├── event/v4
+├── storage/v4 (SQLite + Turso)                  ├── storage/v4 (SQLite)
+├── projectionhost/v4                            ├── decider/v4
+├── projection/v4                                ├── command/v4
+├── catalog/v4 (events only)                     ├── query/v4
+├── watermill/v4                                 ├── catalog/v4 (events only)
+├── middleware/v4                                ├── middleware/v4
+├── codec/v4 (CBOR default)                      ├── idempotency/v4
+├── otel/v4 + prometheus/v4                      └── storage/memory/v4 (tests)
+├── scenario/v4 + testutil/v4
+├── id/v4
 └── samber/do/v2 (NOT go-cqrs-lite) ← container
 
     REST API (GET /api/messages, /api/guilds, /api/channels)
@@ -40,7 +40,7 @@ caused by gaps in go-cqrs-lite's module design — not by consumer misuse.
 
 ---
 
-## Gap 1: `stack/v3` Lacks Lifecycle Primitives That Real Services Need
+## Gap 1: `stack/v4` Lacks Lifecycle Primitives That Real Services Need
 
 ### The Problem
 
@@ -56,7 +56,7 @@ It does NOT provide:
 - **Topological shutdown ordering** (closers shut down in registration order, not dependency order)
 - **Lazy provisioning** (no factory/DAG — capabilities are pre-built at Bundle construction)
 
-Real services need all three. DiscordSync proves this: it rejected `stack/v3`
+Real services need all three. DiscordSync proves this: it rejected `stack/v4`
 entirely and built its own container on `samber/do/v2` (`container.go`, 183
 lines) that provides exactly these capabilities.
 
@@ -93,9 +93,9 @@ rejected"_ or _"premature now."_
 
 This was correct for the **library** — go-cqrs-lite should not depend on a DI
 library. But the removal left a vacuum: the library has a composition root
-(`stack/v3`) that is strictly less capable than what real consumers build
+(`stack/v4`) that is strictly less capable than what real consumers build
 themselves. Every consumer that needs health checks or topological shutdown
-must bypass `stack/v3` and build their own container.
+must bypass `stack/v4` and build their own container.
 
 ### What Should Happen
 
@@ -135,31 +135,31 @@ If the library doesn't want lifecycle complexity, explicitly say so: "Bundle
 handles resource close and drain. For health checks, topological shutdown, and
 lazy provisioning, wrap Bundle in your own container (we use samber/do)."
 
-The current state — where `stack/v3` looks like a complete composition root
+The current state — where `stack/v4` looks like a complete composition root
 but silently lacks the lifecycle primitives real services need — is the worst
 of both worlds. Consumers either don't know they need more (and discover it in
 production) or bypass Bundle entirely (and lose the dedup/drain logic).
 
 ### Severity: HIGH
 
-This is why DiscordSync's ADR rejected `stack/v3`. The stated reason ("shared
+This is why DiscordSync's ADR rejected `stack/v4`. The stated reason ("shared
 DB architecture") is a secondary concern. The primary reason is that `Bundle`
 provides strictly less lifecycle than `samber/do`, which DiscordSync already
 had.
 
 ---
 
-## Gap 2: `schema/v3` Is Critically Undervalued by Consumers
+## Gap 2: `schema/v4` Is Critically Undervalued by Consumers
 
 ### The Problem
 
-DiscordSync's ADR excludes `schema/v3` with this justification:
+DiscordSync's ADR excludes `schema/v4` with this justification:
 
 > _"Go typed structs ARE the schema validation."_
 
 This is **objectively wrong** — it conflates two different concerns:
 
-| Concern                              | What Go structs handle             | What `schema/v3` handles        |
+| Concern                              | What Go structs handle             | What `schema/v4` handles        |
 | ------------------------------------ | ---------------------------------- | ------------------------------- |
 | Compile-time type checking           | ✅                                 | —                               |
 | Current payload shape                | ✅                                 | —                               |
@@ -185,7 +185,7 @@ optional fields that decode to zero values. But the first **breaking** change
 
 ### Why This Matters for go-cqrs-lite
 
-The `schema/v3` module is purpose-built for exactly this problem, but
+The `schema/v4` module is purpose-built for exactly this problem, but
 consumers don't understand its value. The SKILL.md and module docs describe
 it as "schema validation" (implying compile-time type safety), when its
 actual purpose is **runtime schema evolution without data loss**.
@@ -198,7 +198,7 @@ actual purpose is **runtime schema evolution without data loss**.
 
 2. **Add a "when you need this" decision guide to the SKILL.md:**
 
-   > Use `schema/v3` when you have event payloads that may change shape over
+   > Use `schema/v4` when you have event payloads that may change shape over
    > time. If you ever rename a field, remove a field, change a type, or
    > restructure a payload, old events in your store will fail to decode.
    > `schema.NewUpcaster` + `schema.NewVersionedStore` transform old events
@@ -309,11 +309,11 @@ consumer expects a different convention.
 
 ---
 
-## Gap 4: `catalog/v3` Documents Events But Not REST Endpoints
+## Gap 4: `catalog/v4` Documents Events But Not REST Endpoints
 
 ### The Problem
 
-Both DiscordSync and SwettySwipperWeb use `catalog/v3` for **event
+Both DiscordSync and SwettySwipperWeb use `catalog/v4` for **event
 documentation only**. Neither documents their REST API endpoints.
 
 DiscordSync's catalog (`internal/catalog/catalog.go`) registers 11 event types
@@ -342,7 +342,7 @@ registered its REST responses in the catalog, SwettySwipperWeb could generate
 
 ### What Should Happen
 
-Add REST endpoint support to `catalog/v3`:
+Add REST endpoint support to `catalog/v4`:
 
 ```go
 // Proposed API (conceptual):
@@ -375,15 +375,15 @@ preserved:
 
 | Module                            | Assessment                                                                                                                             |
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `event/v3`                        | Superb. ISP split (Sink/Source/Journal/SeekableJournal), 5-family error taxonomy, immutable events. Both consumers use it as designed. |
-| `decider/v3`                      | Clean Decider + Repository pattern. SwettySwipper uses all of it. DiscordSync correctly excludes it (capture-only system).             |
-| `projectionhost/v3`               | Production-grade. Replaced DiscordSync's 297-line custom Runner. Per-projection checkpoints, crash recovery, SQLite DLQ.               |
-| `codec/v3`                        | Exemplary. CBOR default (19% smaller, 66% faster), `DecodePayloadAuto` handles mixed JSON+CBOR streams transparently.                  |
-| `middleware/v3`                   | Complete and symmetric. Recovery/Logging/Retry/CircuitBreaker/Metrics for all three message types.                                     |
-| `id/v3`                           | Branded types prevent ID mixing at compile time. Deterministic IDs for dedup.                                                          |
-| `watermill/v3`                    | Solid in-process event bus with middleware support.                                                                                    |
-| `storage/v3` + `storage/turso/v3` | SQLite + Turso backends work well. Shared-DB recipe now documented.                                                                    |
-| `testutil/v3` + `scenario/v3`     | Property-based test generators and BDD DSL are excellent for projection testing.                                                       |
+| `event/v4`                        | Superb. ISP split (Sink/Source/Journal/SeekableJournal), 5-family error taxonomy, immutable events. Both consumers use it as designed. |
+| `decider/v4`                      | Clean Decider + Repository pattern. SwettySwipper uses all of it. DiscordSync correctly excludes it (capture-only system).             |
+| `projectionhost/v4`               | Production-grade. Replaced DiscordSync's 297-line custom Runner. Per-projection checkpoints, crash recovery, SQLite DLQ.               |
+| `codec/v4`                        | Exemplary. CBOR default (19% smaller, 66% faster), `DecodePayloadAuto` handles mixed JSON+CBOR streams transparently.                  |
+| `middleware/v4`                   | Complete and symmetric. Recovery/Logging/Retry/CircuitBreaker/Metrics for all three message types.                                     |
+| `id/v4`                           | Branded types prevent ID mixing at compile time. Deterministic IDs for dedup.                                                          |
+| `watermill/v4`                    | Solid in-process event bus with middleware support.                                                                                    |
+| `storage/v4` + `storage/turso/v4` | SQLite + Turso backends work well. Shared-DB recipe now documented.                                                                    |
+| `testutil/v4` + `scenario/v4`     | Property-based test generators and BDD DSL are excellent for projection testing.                                                       |
 
 ---
 
@@ -391,12 +391,12 @@ preserved:
 
 | #   | Gap                                              | Severity | Effort | Action                                                                                                                              |
 | --- | ------------------------------------------------ | -------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `stack/v3` lacks health checks                   | HIGH     | Medium | Add `HealthChecker` interface + `Bundle.HealthCheck(ctx)` method. ~4h.                                                              |
-| 2   | `stack/v3` lacks topological shutdown            | HIGH     | Medium | Add `WithDependency()` option for shutdown ordering, OR document that consumers should wrap Bundle in samber/do. ~4h or ~1h (docs). |
-| 3   | `schema/v3` undervalued by consumers             | HIGH     | Low    | Reframe as "Schema Evolution" in docs. Add decision guide + failure-mode recipe. ~2h.                                               |
+| 1   | `stack/v4` lacks health checks                   | HIGH     | Medium | Add `HealthChecker` interface + `Bundle.HealthCheck(ctx)` method. ~4h.                                                              |
+| 2   | `stack/v4` lacks topological shutdown            | HIGH     | Medium | Add `WithDependency()` option for shutdown ordering, OR document that consumers should wrap Bundle in samber/do. ~4h or ~1h (docs). |
+| 3   | `schema/v4` undervalued by consumers             | HIGH     | Low    | Reframe as "Schema Evolution" in docs. Add decision guide + failure-mode recipe. ~2h.                                               |
 | 4   | JSON serialization convention undocumented       | MEDIUM   | Low    | Add convention to SKILL.md: "Use Go default (PascalCase)." Add `sql.Null*` gotcha. ~1h.                                             |
-| 5   | `catalog/v3` doesn't document REST endpoints     | MEDIUM   | High   | Add endpoint registration API to catalog builder. ~8h.                                                                              |
-| 6   | `schema/v3` — no SDK guidance on version bumping | MEDIUM   | Low    | Add to conventions: "Bump `event.Version` when payload struct changes shape." ~30min.                                               |
+| 5   | `catalog/v4` doesn't document REST endpoints     | MEDIUM   | High   | Add endpoint registration API to catalog builder. ~8h.                                                                              |
+| 6   | `schema/v4` — no SDK guidance on version bumping | MEDIUM   | Low    | Add to conventions: "Bump `event.Version` when payload struct changes shape." ~30min.                                               |
 
 ---
 
@@ -408,9 +408,9 @@ service lifecycle layer that wraps it.**
 
 Real services need:
 
-1. Health checks (Gap 1) → not in `stack/v3`
+1. Health checks (Gap 1) → not in `stack/v4`
 2. Schema evolution (Gap 2) → exists but consumers don't understand it
-3. API contracts (Gap 4) → `catalog/v3` covers events, not REST
+3. API contracts (Gap 4) → `catalog/v4` covers events, not REST
 4. Serialization conventions (Gap 3) → undocumented, left to consumer guesswork
 
 The event-sourcing core is excellent. The "last mile" between the core and a

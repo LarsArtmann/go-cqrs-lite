@@ -10,11 +10,11 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill/message"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
-	"github.com/larsartmann/go-cqrs-lite/id/v3/idtest"
-	"github.com/larsartmann/go-cqrs-lite/metadata/v3"
-	wm "github.com/larsartmann/go-cqrs-lite/watermill/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/id/v4/idtest"
+	"github.com/larsartmann/go-cqrs-lite/metadata/v4"
+	wm "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 
 var update = flag.Bool("update", false, "update golden files")

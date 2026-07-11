@@ -7,9 +7,9 @@ import (
 	"github.com/cockroachdb/pebble"
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/stack/v3"
-	cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v3"
-	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v3"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4"
+	cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v4"
+	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 
 // Option configures the Pebble preset.

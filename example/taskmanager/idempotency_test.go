@@ -7,9 +7,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
-	"github.com/larsartmann/go-cqrs-lite/idempotency/v3"
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/idempotency/v4"
 )
 
 // TestIdempotencyDemo verifies that the taskmanager's command dispatcher

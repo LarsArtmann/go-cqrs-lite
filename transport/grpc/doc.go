@@ -6,7 +6,7 @@
 //
 // Register the CQRS services on a gRPC server:
 //
-//	import cqrsgrpc "github.com/larsartmann/go-cqrs-lite/transport/grpc/v3"
+//	import cqrsgrpc "github.com/larsartmann/go-cqrs-lite/transport/grpc/v4"
 //
 //	srv := grpc.NewServer()
 //	cqrsgrpc.RegisterCommandService(srv, cmdDispatcher)

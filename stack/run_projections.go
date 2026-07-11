@@ -8,9 +8,9 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
-	cqrsprojection "github.com/larsartmann/go-cqrs-lite/projection/v3"
-	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v3"
+	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v4"
+	cqrsprojection "github.com/larsartmann/go-cqrs-lite/projection/v4"
+	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 
 // RunProjections runs the given projections against the Bundle's event stream.

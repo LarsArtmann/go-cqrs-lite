@@ -3,7 +3,7 @@ package event
 import (
 	"slices"
 
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 // Clone returns a deep copy of the event. The returned event is fully independent —

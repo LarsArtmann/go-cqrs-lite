@@ -18,7 +18,7 @@
 | 3   | **Add `scenario.GivenState[State]()`**                  | API add | `scenario/dsl.go`                                                                                        | Eliminates `Given[any, State]` boilerplate for the common case where Cmd is unused.                                                                                                                                      |
 | 4   | **Add `projectionhost.Host.LagDuration()`**             | API add | `projectionhost/host.go`                                                                                 | Built-in projection lag metric — register as Prometheus gauge directly.                                                                                                                                                  |
 | 5   | **Add `Bundle.DebugStructured()`**                      | API add | `stack/debug.go`                                                                                         | `map[string]bool` for programmatic health checks (vs string-based `Debug()`).                                                                                                                                            |
-| 6   | **Skill docs: 8 new FAQ entries**                       | Docs    | `.agents/skills/go-cqrs-lite/SKILL.md`                                                                   | eventtest gotcha, `event.New()` vs `NewEvent()` nil behavior, `WithEnricher` type param, go-error-family vs event/v3, FakeBus production-safety, shared database, snapshot decision guide, storage path migration guide. |
+| 6   | **Skill docs: 8 new FAQ entries**                       | Docs    | `.agents/skills/go-cqrs-lite/SKILL.md`                                                                   | eventtest gotcha, `event.New()` vs `NewEvent()` nil behavior, `WithEnricher` type param, go-error-family vs event/v4, FakeBus production-safety, shared database, snapshot decision guide, storage path migration guide. |
 | 7   | **Advanced.md: projectionhost lifecycle + integration** | Docs    | `.agents/skills/go-cqrs-lite/references/advanced.md`                                                     | Replay→live→DLQ lifecycle, SQL-backed DLQ interface pattern, projectionhost+EventBus+CatchUpSubscriber integration recipe, projection idempotency guidance, `GivenState` example, `LagDuration` in cheat sheet.          |
 | 8   | **Recipes.md: shared DB recipe + query middleware**     | Docs    | `.agents/skills/go-cqrs-lite/references/recipes.md`                                                      | Shared-database wiring pattern, query middleware matrix (Recovery/Logging/Retry/Tracing/Metrics), full symmetric middleware table.                                                                                       |
 
@@ -151,11 +151,11 @@ These were identified in the feedback but were NOT addressed:
 
 Three consumers (DiscordSync, browser-history, SwettySwipper) independently hit this problem. The options are:
 
-1. **Tag it as `v0.1.0`** — simplest fix, but `eventtest` has a `/v3/eventtest` path that doesn't end in `/vN`, so it would be `v0.x` forever (Go semver convention). This feels wrong for a `v3` ecosystem.
+1. **Tag it as `v0.1.0`** — simplest fix, but `eventtest` has a `/v4/eventtest` path that doesn't end in `/vN`, so it would be `v0.x` forever (Go semver convention). This feels wrong for a `v3` ecosystem.
 
-2. **Move test helpers into `_test.go` files** within `event/v3` — eliminates the separate module entirely, but breaks consumers who import `eventtest` in their own test files (like DiscordSync, browser-history, SEC all do).
+2. **Move test helpers into `_test.go` files** within `event/v4` — eliminates the separate module entirely, but breaks consumers who import `eventtest` in their own test files (like DiscordSync, browser-history, SEC all do).
 
-3. **Rename to `event/v3/testkit`** and tag as `v3.x` — aligns with the ecosystem versioning, but is a breaking import path change for all consumers.
+3. **Rename to `event/v4/testkit`** and tag as `v3.x` — aligns with the ecosystem versioning, but is a breaking import path change for all consumers.
 
 4. **Keep as-is, document the `replace` directive** — no code change, but every new consumer hits this.
 

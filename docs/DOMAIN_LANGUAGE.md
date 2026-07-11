@@ -6,7 +6,7 @@ Inspired by Domain-Driven Design (DDD).
 Every term below should mean the **same thing** to everyone who reads it.
 If a word means something different to a consumer than to an implementer, it is defined here.
 
-> **Import convention:** All modules use the `/v3` import path suffix (e.g. `github.com/larsartmann/go-cqrs-lite/event/v3`). The `Context` column uses abbreviated package names (`event.`, `command.`, `storage.`) for readability — consumers must append `/v3` when importing.
+> **Import convention:** All modules use the `/v4` import path suffix (e.g. `github.com/larsartmann/go-cqrs-lite/event/v4`). The `Context` column uses abbreviated package names (`event.`, `command.`, `storage.`) for readability — consumers must append `/v4` when importing.
 
 > **How to use this file:**
 >
@@ -218,7 +218,7 @@ The library provides three projection tiers, chosen by read-pattern shape:
 | **cqrs-gen**      | Code generator: typed handler registration from annotated Go structs | `cmd/cqrs-gen` — generates `RegisterTyped` boilerplate from `//cqrs:command`, `//cqrs:query`, `//cqrs:event` tags |
 | **api-stability** | CI tool: compares exported API surface against a golden file         | `cmd/api-stability` — catches breaking changes before release                                                     |
 | **doc-check**     | CI tool: verifies Go import paths + qualified symbols in docs        | `cmd/doc-check` — validates SKILL.md, AGENTS.md, and skill references by default                                  |
-| **eventtest**     | Test helpers: FakeStore, FakeBus, FakeSnapshotStore, assertions      | `event/v3/eventtest` — `AssertGolden`, event factories                                                            |
+| **eventtest**     | Test helpers: FakeStore, FakeBus, FakeSnapshotStore, assertions      | `event/v4/eventtest` — `AssertGolden`, event factories                                                            |
 | **querytest**     | Test helper: `New(tb, queryType)` for query construction             | `query/querytest` — `tb.Fatalf` on error, no panics                                                               |
 | **idtest**        | Test helpers: `Parse*(tb, s)` for branded ID parsing                 | `id/idtest` — `tb.Fatalf` on error, no panics                                                                     |
 | **testutil**      | Shared cross-module test helpers                                     | `testutil` — `NewCmd(tb, ...)`                                                                                    |
@@ -314,59 +314,59 @@ package domain_language_verification
 
 import (
 	// Event Sourcing
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/projection/v3"
-	"github.com/larsartmann/go-cqrs-lite/snapshot/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/projection/v4"
+	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 
 	// CQRS
-	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/decider/v3"
-	"github.com/larsartmann/go-cqrs-lite/deriver/v3"
-	"github.com/larsartmann/go-cqrs-lite/dispatcher/v3"
-	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/decider/v4"
+	"github.com/larsartmann/go-cqrs-lite/deriver/v4"
+	"github.com/larsartmann/go-cqrs-lite/dispatcher/v4"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
 
 	// Identity
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 
 	// Storage
-	"github.com/larsartmann/go-cqrs-lite/storage/v3"
-	"github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
-	"github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
-	"github.com/larsartmann/go-cqrs-lite/storage/pebble/v3"
-	"github.com/larsartmann/go-cqrs-lite/storage/turso/v3"
+	"github.com/larsartmann/go-cqrs-lite/storage/v4"
+	"github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
+	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+	"github.com/larsartmann/go-cqrs-lite/storage/pebble/v4"
+	"github.com/larsartmann/go-cqrs-lite/storage/turso/v4"
 
 	// Read Models
-	"github.com/larsartmann/go-cqrs-lite/graph/v3"
-	"github.com/larsartmann/go-cqrs-lite/kv/v3"
-	"github.com/larsartmann/go-cqrs-lite/listing/v3"
-	"github.com/larsartmann/go-cqrs-lite/stack/v3"
+	"github.com/larsartmann/go-cqrs-lite/graph/v4"
+	"github.com/larsartmann/go-cqrs-lite/kv/v4"
+	"github.com/larsartmann/go-cqrs-lite/listing/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 
 	// Messaging & Transport
-	http "github.com/larsartmann/go-cqrs-lite/transport/http/v3"
-	grpc "github.com/larsartmann/go-cqrs-lite/transport/grpc/v3"
-	"github.com/larsartmann/go-cqrs-lite/watermill/v3"
+	http "github.com/larsartmann/go-cqrs-lite/transport/http/v4"
+	grpc "github.com/larsartmann/go-cqrs-lite/transport/grpc/v4"
+	"github.com/larsartmann/go-cqrs-lite/watermill/v4"
 
 	// Security
-	"github.com/larsartmann/go-cqrs-lite/codec/v3"
-	"github.com/larsartmann/go-cqrs-lite/encryption/v3"
-	"github.com/larsartmann/go-cqrs-lite/signing/v3"
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
+	"github.com/larsartmann/go-cqrs-lite/encryption/v4"
+	"github.com/larsartmann/go-cqrs-lite/signing/v4"
 
 	// Cross-Cutting
-	"github.com/larsartmann/go-cqrs-lite/idempotency/v3"
-	"github.com/larsartmann/go-cqrs-lite/middleware/v3"
-	"github.com/larsartmann/go-cqrs-lite/otel/v3"
-	"github.com/larsartmann/go-cqrs-lite/prometheus/v3"
-	"github.com/larsartmann/go-cqrs-lite/scheduling/v3"
-	"github.com/larsartmann/go-cqrs-lite/schema/v3"
-	"github.com/larsartmann/go-cqrs-lite/scenario/v3"
-	"github.com/larsartmann/go-cqrs-lite/projectionhost/v3"
+	"github.com/larsartmann/go-cqrs-lite/idempotency/v4"
+	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
+	"github.com/larsartmann/go-cqrs-lite/otel/v4"
+	"github.com/larsartmann/go-cqrs-lite/prometheus/v4"
+	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
+	"github.com/larsartmann/go-cqrs-lite/schema/v4"
+	"github.com/larsartmann/go-cqrs-lite/scenario/v4"
+	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 
 	// Catalog + Tooling
-	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
-	"github.com/larsartmann/go-cqrs-lite/id/v3/idtest"
-	"github.com/larsartmann/go-cqrs-lite/query/v3/querytest"
-	"github.com/larsartmann/go-cqrs-lite/testutil/v3"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/id/v4/idtest"
+	"github.com/larsartmann/go-cqrs-lite/query/v4/querytest"
+	"github.com/larsartmann/go-cqrs-lite/testutil/v4"
 )
 
 var _ = []any{

@@ -26,7 +26,7 @@ Ran `branching-flow dupe . --format markdown`, reviewed all 15 groups, identifie
 ### c) NOT STARTED
 
 - No new features or architectural changes were started this session
-- No TODO_LIST.md items were attempted (all 37 remaining items are FUTURE/BLOCKED/v2/v3)
+- No TODO_LIST.md items were attempted (all 37 remaining items are FUTURE/BLOCKED/v2/v4)
 
 ### d) REMAINING LINT ISSUES (per-module, GOWORK=off)
 
@@ -140,7 +140,7 @@ Ran `branching-flow dupe . --format markdown`, reviewed all 15 groups, identifie
 | `nix run .#test`  | PARTIAL            | `pebble/v2` fails (untracked `cbor_test.go`)             |
 | `nix run .#lint`  | PARTIAL            | Stops at schema (1 nlreturn), 7 more modules have issues |
 | `nix fmt`         | PASS               | All files formatted                                      |
-| TODO_LIST.md      | 37 items remaining | All are FUTURE/BLOCKED/v2/v3                             |
+| TODO_LIST.md      | 37 items remaining | All are FUTURE/BLOCKED/v2/v4                             |
 
 ## TODO_LIST.md Status
 

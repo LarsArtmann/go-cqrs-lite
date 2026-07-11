@@ -40,11 +40,11 @@ is expected (and vice versa).
 
 ### 2. event/ god-package split
 
-**Current:** `event/v3` has 37 files, ~5000 LOC. `Event = *ImmutableEvent` is
+**Current:** `event/v4` has 37 files, ~5000 LOC. `Event = *ImmutableEvent` is
 the most imported type across 27 consumer projects.
 
 **v4:** Split into `event/core`, `event/metadata`, `event/builder`, etc.
-**Blast radius:** 27 projects import `event/v3`. Catastrophic migration.
+**Blast radius:** 27 projects import `event/v4`. Catastrophic migration.
 **Alias-able?** Partially — type aliases help, but interface changes don't alias.
 **Priority:** LOW. Cohesion is real; 350-line file limit suffices.
 **Verdict:** DO NOT SPLIT even in v4 unless a concrete pain point emerges.

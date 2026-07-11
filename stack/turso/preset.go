@@ -5,10 +5,10 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/stack/v3"
-	"github.com/larsartmann/go-cqrs-lite/stack/v3/sqlopt"
-	cqrsturso "github.com/larsartmann/go-cqrs-lite/storage/turso/v3"
-	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v3"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
+	cqrsturso "github.com/larsartmann/go-cqrs-lite/storage/turso/v4"
+	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 
 // Option configures the Turso preset.

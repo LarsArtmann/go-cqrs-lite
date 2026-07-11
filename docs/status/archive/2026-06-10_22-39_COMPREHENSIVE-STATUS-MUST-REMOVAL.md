@@ -72,7 +72,7 @@
 ### TODO List Completion Rate
 
 - **Done:** 57 items
-- **Deferred to v2/v3:** 3 items
+- **Deferred to v2/v4:** 3 items
 - **Blocked/Future:** 5 items
 - **Open:** 0 remaining actionable items
 

@@ -92,7 +92,7 @@ The `dedup/` module was just extracted (commit `7ca5a2d8`) from inline ring impl
 
 | #   | Task                                                                        | Est  |
 | --- | --------------------------------------------------------------------------- | ---- |
-| F5  | Add `dedup/v3` to `projectionhost/go.mod`                                   | 2min |
+| F5  | Add `dedup/v4` to `projectionhost/go.mod`                                   | 2min |
 | F6  | Replace `seenIDs map` + `seenMu` fields with `*dedup.Ring` in worker struct | 5min |
 | F7  | Replace `markSeen`/`wasSeen` calls with `ring.Add`/`ring.Has`               | 5min |
 | F8  | Initialize ring in `Register()` with `dedup.DefaultCapacity`                | 5min |
@@ -121,7 +121,7 @@ The `dedup/` module was just extracted (commit `7ca5a2d8`) from inline ring impl
 
 | #   | Task                                                                    | Est   |
 | --- | ----------------------------------------------------------------------- | ----- |
-| F19 | Add `otel/v3` direct dep to `projectionhost/go.mod`                     | 3min  |
+| F19 | Add `otel/v4` direct dep to `projectionhost/go.mod`                     | 3min  |
 | F20 | Add `tracer cqrsotel.Tracer` to `hostOptions` + `WithTracer` option     | 5min  |
 | F21 | Add per-batch span in `process()` around journal `ReadFrom` loop        | 10min |
 | F22 | Add per-event span in `applyWithRetry` around `projection.Handle`       | 10min |

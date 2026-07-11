@@ -5,7 +5,7 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v3"
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 )
 
 // errNilTypedValue is returned by [TypedStore.Set] when val is nil.

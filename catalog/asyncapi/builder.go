@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
 
 // Export generates an AsyncAPI 3.0 Document from the given catalog.

@@ -3,8 +3,8 @@ package simple_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
-	"github.com/larsartmann/go-cqrs-lite/catalog/v3/simple"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/simple"
 )
 
 type testCmd struct {

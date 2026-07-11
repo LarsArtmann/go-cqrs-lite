@@ -11,7 +11,7 @@ of the benefits that justify multi-module layout, while imposing real ongoing co
 The fix is mechanical and **non-breaking for consumers**: collapse the 5 sub-modules
 into packages within the single `catalog` module. Import paths are preserved because a
 package at `catalog/d2/` inside module `catalog/v2` has the identical import path
-`github.com/larsartmann/go-cqrs-lite/catalog/v3/d2` as the current standalone module.
+`github.com/larsartmann/go-cqrs-lite/catalog/v4/d2` as the current standalone module.
 
 **Why now:** The sub-modules have **zero release tags** (only `catalog/v2.3.0` exists;
 no `catalog/d2/v*` was ever tagged) and are absent from `release.yml`. They are
@@ -57,7 +57,7 @@ module boundaries buy nothing.
 | **5 redundant CI invocations** | `flake.nix` `testModules` lists all 5 separately; each runs `go test` with the same dep closure as the parent.                            |
 | **6 go.mod to maintain**       | Dependency bumps must be applied 6× instead of 1×.                                                                                        |
 | **3-way replace tangle**       | `docserver/go.mod` has 3 replace directives with `v0.0.0` placeholders.                                                                   |
-| **Self-referential replace**   | Each child has `replace github.com/larsartmann/go-cqrs-lite/catalog/v3 => ../` — pointing at the thing it's pretending not to be part of. |
+| **Self-referential replace**   | Each child has `replace github.com/larsartmann/go-cqrs-lite/catalog/v4 => ../` — pointing at the thing it's pretending not to be part of. |
 | **5 import paths to memorize** | Consumers must learn `catalog/v2/d2`, `catalog/v2/asyncapi`, … when they're all one product.                                              |
 
 ### External consumers
@@ -80,7 +80,7 @@ Import paths are unchanged by the merge, so this file needs **zero edits**.
 ### Single module, packages preserved
 
 ```
-catalog/                          # ONE module: github.com/larsartmann/go-cqrs-lite/catalog/v3
+catalog/                          # ONE module: github.com/larsartmann/go-cqrs-lite/catalog/v4
 ├── go.mod                        # only go.mod in the tree
 ├── *.go                          # package catalog (Registry, SchemaFromType, etc.)
 ├── schema/                       # package catalog/schema   (unchanged)
@@ -96,8 +96,8 @@ catalog/                          # ONE module: github.com/larsartmann/go-cqrs-l
 
 | Before (separate module)                                  | After (package in catalog module)                         |
 | --------------------------------------------------------- | --------------------------------------------------------- |
-| `github.com/larsartmann/go-cqrs-lite/catalog/v2/d2`       | `github.com/larsartmann/go-cqrs-lite/catalog/v3/d2`       |
-| `github.com/larsartmann/go-cqrs-lite/catalog/v2/asyncapi` | `github.com/larsartmann/go-cqrs-lite/catalog/v3/asyncapi` |
+| `github.com/larsartmann/go-cqrs-lite/catalog/v2/d2`       | `github.com/larsartmann/go-cqrs-lite/catalog/v4/d2`       |
+| `github.com/larsartmann/go-cqrs-lite/catalog/v2/asyncapi` | `github.com/larsartmann/go-cqrs-lite/catalog/v4/asyncapi` |
 | ...                                                       | (identical for all 5)                                     |
 
 A package at path `catalog/d2/` inside module `catalog/v2` resolves to import path

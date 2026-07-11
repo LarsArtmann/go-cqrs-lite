@@ -79,7 +79,7 @@ Three sessions of brutal self-review progressively found deeper issues. Session 
 | 2   | SQL-backed `DeadLetterStore` for projectionhost                | Med    | Only MemoryDeadLetterStore exists; matches middleware's SQLDeadLetterStore pattern   |
 | 3   | Pebble-backed `TimerStore` for scheduling                      | Low    | Only needed when a concrete consumer needs durable timers across restarts            |
 | 4   | `scripts/tag-release.sh` for multi-module tag automation       | Med    | Manual tagging caused the testing→scenario rename tag issue                          |
-| 5   | Delete stale remote `testing/v3.3.0` tag                       | Low    | Needs `git push origin :refs/tags/testing/v3.3.0` — destructive, needs user approval |
+| 5   | Delete stale remote `testing/v4.3.0` tag                       | Low    | Needs `git push origin :refs/tags/testing/v4.3.0` — destructive, needs user approval |
 | 6   | eventtest nested-module `-e` workaround ADR                    | Med    | Every consumer's `go mod tidy` emits warnings                                        |
 | 7   | `any` audit at library boundaries across all modules           | Low    | Compliance sweep                                                                     |
 | 8   | `stack/projectionhost` preset (host + checkpoint + DLQ bundle) | Low    | Batteries-included composition                                                       |
@@ -126,7 +126,7 @@ Sorted by **impact ÷ effort** (highest first).
 | --- | -------------------------------------------------------------------------------------- | ------ | ------- |
 | 1   | Prometheus adapter for `projectionhost.MetricsRecorder`                                | High   | Low     |
 | 2   | SQL-backed `DeadLetterStore` for projectionhost (mirror middleware.SQLDeadLetterStore) | High   | Med     |
-| 3   | Delete stale remote `testing/v3.3.0` tag (needs user OK)                               | Med    | Trivial |
+| 3   | Delete stale remote `testing/v4.3.0` tag (needs user OK)                               | Med    | Trivial |
 | 4   | `scripts/tag-release.sh` for multi-module tag automation                               | Med    | Med     |
 | 5   | eventtest nested-module ADR (decide: flatten or permanently document `-e`)             | Med    | Low     |
 | 6   | `stack/projectionhost` preset (host + checkpoint + DLQ one-liner)                      | Med    | Med     |

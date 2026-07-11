@@ -4,7 +4,7 @@ import (
 	"maps"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 // testKey is a named string type for testing the generic CustomData[K].

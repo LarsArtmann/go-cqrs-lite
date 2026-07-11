@@ -49,7 +49,7 @@ The real actionable work was: (1) two unused constants in `transport/http`, (2) 
 ### ProjectionHost go.mod dependency hygiene
 
 - Promoted `go.opentelemetry.io/otel/sdk` from indirect to direct (required by new span test's `tracetest` import).
-- **`go mod tidy -e` pulled `command/v3@v3.6.0` (remote) instead of the local pseudo-version** — the recurring monorepo trap documented in the prior session. Fixed manually by reverting to `v3.0.0-00010101000000-000000000000`.
+- **`go mod tidy -e` pulled `command/v4@v3.6.0` (remote) instead of the local pseudo-version** — the recurring monorepo trap documented in the prior session. Fixed manually by reverting to `v3.0.0-00010101000000-000000000000`.
 - **Partially done because:** the root cause (go mod tidy pulling remote versions for internal modules) is not solved — only patched. Every `go mod tidy` in this repo risks re-introducing the problem.
 
 ---
@@ -170,6 +170,6 @@ This is a product/API design decision, not a technical one. The user must decide
 | `transport/http/sse_replay.go`  | Wired both constants into replay logic                | +13 -2 |
 | `transport/http/sse_options.go` | Updated doc comments for both constants               | +8 -7  |
 | `projectionhost/span_test.go`   | **NEW** — OTel span name/attribute verification test  | +112   |
-| `projectionhost/go.mod`         | Promoted OTel SDK to direct, fixed command/v3 version | +1 -1  |
+| `projectionhost/go.mod`         | Promoted OTel SDK to direct, fixed command/v4 version | +1 -1  |
 
 **Test results:** 60+ packages, 0 FAIL, all green.

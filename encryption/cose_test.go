@@ -3,8 +3,8 @@ package encryption_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v3"
-	"github.com/larsartmann/go-cqrs-lite/encryption/v3"
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
+	"github.com/larsartmann/go-cqrs-lite/encryption/v4"
 )
 
 func TestNewCOSEXChaCha20Poly1305(t *testing.T) {

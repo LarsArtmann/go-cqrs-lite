@@ -4,9 +4,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/stack/postgres/v3"
-	"github.com/larsartmann/go-cqrs-lite/stack/v3"
-	"github.com/larsartmann/go-cqrs-lite/stack/v3/contracttest"
+	"github.com/larsartmann/go-cqrs-lite/stack/postgres/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4/contracttest"
 )
 
 func TestContract(t *testing.T) {

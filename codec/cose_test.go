@@ -6,7 +6,7 @@ import (
 	"github.com/fxamacker/cbor/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v3"
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 )
 
 func TestCOSEConstants(t *testing.T) {

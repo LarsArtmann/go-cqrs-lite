@@ -9,10 +9,10 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
-	"github.com/larsartmann/go-cqrs-lite/stack/v3"
-	cqrshttp "github.com/larsartmann/go-cqrs-lite/transport/http/v3"
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4"
+	cqrshttp "github.com/larsartmann/go-cqrs-lite/transport/http/v4"
 )
 
 // routes builds the HTTP mux with all task management endpoints.

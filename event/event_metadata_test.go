@@ -4,10 +4,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3/idtest"
-	"github.com/larsartmann/go-cqrs-lite/metadata/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4/idtest"
+	"github.com/larsartmann/go-cqrs-lite/metadata/v4"
 )
 
 func TestEventOptions(t *testing.T) {

@@ -94,16 +94,16 @@ Closes the stated cross-repo goal: zero harmful duplication, single source of tr
 | F7  | Verify full workspace build: `go build ./...`                                              | 5   | F6  |
 | F8  | Verify each affected module builds in `GOWORK=off` CI-isolation mode                       | 10  | F7  |
 | F9  | Run full test suite with `-race` in workspace + isolation modes                            | 12  | F8  |
-| F10 | Create version tags: `event/v3.3.0`, `command/v3.3.0`, `idempotency/v3.3.0` (+ transitive) | 8   | F9  |
+| F10 | Create version tags: `event/v4.3.0`, `command/v4.3.0`, `idempotency/v4.3.0` (+ transitive) | 8   | F9  |
 | F11 | Push tags: `git push --tags`                                                               | 3   | F10 |
-| F12 | Verify tags resolve externally: `go list -m .../idempotency/v3@v3.3.0`                     | 5   | F11 |
+| F12 | Verify tags resolve externally: `go list -m .../idempotency/v4@v3.3.0`                     | 5   | F11 |
 
 ### M3 · Delegate cqrs-htmx idempotency → upstream aliases
 
 | ID  | Task                                                                                        | Min | Dep |
 | --- | ------------------------------------------------------------------------------------------- | --- | --- |
 | F13 | Read current `cqrs-htmx/idempotency.go` + `idempotency_test.go` fully                       | 8   | M2  |
-| F14 | Add `require .../idempotency/v3 v3.3.0` to `cqrs-htmx/go.mod`; `go mod tidy`                | 10  | F13 |
+| F14 | Add `require .../idempotency/v4 v3.3.0` to `cqrs-htmx/go.mod`; `go mod tidy`                | 10  | F13 |
 | F15 | Rewrite `idempotency.go` as type aliases (Store, MemoryStore, ErrDuplicate, ctor)           | 10  | F14 |
 | F16 | Fix `idempotency_test.go`: remove internal field access (`store.mu`/`entries`) → public API | 12  | F15 |
 | F17 | Run cqrs-htmx root test suite with `-race`                                                  | 10  | F16 |

@@ -10,9 +10,9 @@ import (
 
 	_ "modernc.org/sqlite" // SQLite driver
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
-	"github.com/larsartmann/go-cqrs-lite/projectionhost/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 )
 
 func newSQLiteDLQ(t *testing.T) *projectionhost.SQLiteDeadLetterStore {

@@ -196,7 +196,7 @@ Several docs are stale relative to code state:
 | PostgreSQL integration tests (testcontainers-go) | ❌ Not started | None                                                            |
 | Replace directive CI check script                | ❌ Not started | None                                                            |
 
-### Deferred Breaking Changes (Tier 6 — v2/v3)
+### Deferred Breaking Changes (Tier 6 — v2/v4)
 
 | Change                                                | Major | ADR      |
 | ----------------------------------------------------- | ----- | -------- |

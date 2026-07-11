@@ -76,7 +76,7 @@ Removed 3 unused indirect dependencies:
 
 - `memory/go.mod` — `google.golang.org/protobuf`
 - `projection/go.mod` — `google.golang.org/protobuf`
-- `storage/go.mod` — `github.com/Masterminds/semver/v3`
+- `storage/go.mod` — `github.com/Masterminds/semver/v4`
 
 **Commit:** `4315745`
 

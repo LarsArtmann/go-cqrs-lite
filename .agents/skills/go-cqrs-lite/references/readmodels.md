@@ -16,8 +16,8 @@ Projections rebuild queryable state from the event stream. There are **two ways 
 
 ```go
 import (
-    "github.com/larsartmann/go-cqrs-lite/projection/v3"
-    "github.com/larsartmann/go-cqrs-lite/projectionhost/v3"
+    "github.com/larsartmann/go-cqrs-lite/projection/v4"
+    "github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 )
 
 // Define a projection implementing projection.Projection
@@ -66,8 +66,8 @@ ORDER BY, and LIMIT/OFFSET at the database level.
 
 ```go
 import (
-    "github.com/larsartmann/go-cqrs-lite/storage/v3"
-    "github.com/larsartmann/go-cqrs-lite/stack/v3"
+    "github.com/larsartmann/go-cqrs-lite/storage/v4"
+    "github.com/larsartmann/go-cqrs-lite/stack/v4"
 )
 
 // 1. Define how your view maps to SQL columns.
@@ -219,7 +219,7 @@ atomically (a message + its attachments[] + a member_roles junction), use
 `RelationalProjection` instead. For N-hop queries, use `GraphProjection` (see advanced.md §6.13).
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/storage/v3"
+import "github.com/larsartmann/go-cqrs-lite/storage/v4"
 
 // Relational: one event → many tables, atomic, dialect-agnostic.
 schema := storage.RelationalSchema{Tables: []storage.RelationalTable{

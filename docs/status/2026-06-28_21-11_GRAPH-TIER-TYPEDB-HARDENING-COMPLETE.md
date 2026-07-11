@@ -128,7 +128,7 @@ These shipped during my session via concurrent commits. Not my work, but part of
 
 ### B1. transport/http Dependency Budget Overrun
 
-`transport/http` has 3 production deps (budget: 2). The OTel instrumentation commit (`001bf8ab`) added `otel/v3` as a direct dependency. The budget needs to be bumped to 3, or `otel/v3` needs to be made indirect. This causes `nix run .#check-layers` to fail.
+`transport/http` has 3 production deps (budget: 2). The OTel instrumentation commit (`001bf8ab`) added `otel/v4` as a direct dependency. The budget needs to be bumped to 3, or `otel/v4` needs to be made indirect. This causes `nix run .#check-layers` to fail.
 
 **Status:** `check-arch` reports "Module layer check FAILED." All 6 per-module arch-lint configs pass; the failure is the cross-module budget check only.
 
@@ -183,10 +183,10 @@ Honest answer: **nothing is critically broken.** All tests pass, the build is cl
 
 ### D1. transport/http Dep Budget — BLOCKING check-layers
 
-The `check-layers` gate FAILS because `transport/http` has 3 production deps against a budget of 2. The OTel instrumentation commit (`001bf8ab`) added the `otel/v3` dependency. This is a **CI-breaking regression** that was introduced by the concurrent OTel session and has not been fixed.
+The `check-layers` gate FAILS because `transport/http` has 3 production deps against a budget of 2. The OTel instrumentation commit (`001bf8ab`) added the `otel/v4` dependency. This is a **CI-breaking regression** that was introduced by the concurrent OTel session and has not been fixed.
 
 **Impact:** `nix run .#check-layers` exits non-zero. Any CI that runs this gate will fail.
-**Fix:** Either bump `DEP_BUDGET[transport/http]=3` in the layer-check script, or make `otel/v3` indirect.
+**Fix:** Either bump `DEP_BUDGET[transport/http]=3` in the layer-check script, or make `otel/v4` indirect.
 
 ### D2. Concurrent Sessions Committing to master Without Coordination
 

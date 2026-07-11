@@ -7,7 +7,7 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
 // MinimumKeyLength is the minimum acceptable key length in bytes for HMAC-SHA256.

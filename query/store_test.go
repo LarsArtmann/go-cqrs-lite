@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
 
 func TestNewPersistedQuery_Success(t *testing.T) {

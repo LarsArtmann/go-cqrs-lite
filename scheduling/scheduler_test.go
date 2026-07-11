@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/scheduling/v3"
-	"github.com/larsartmann/go-cqrs-lite/testutil/v3"
+	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
+	"github.com/larsartmann/go-cqrs-lite/testutil/v4"
 )
 
 func TestMemoryTimerStore_ScheduleAndDue(t *testing.T) {

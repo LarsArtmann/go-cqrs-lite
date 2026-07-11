@@ -14,7 +14,7 @@ go_work_modules=$(grep -oE '\./[a-zA-Z0-9/_-]+' go.work | sed 's|^\./||' | sort 
 
 # Modules intentionally excluded from API stability tracking
 EXCLUDE=(
-  "event/v3/eventtest"
+  "event/v4/eventtest"
   "query/querytest"
   "id/idtest"
   "kv/viewstoretest"

@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 // maxBackfillLimit caps the number of events a single backfill response will
@@ -58,31 +58,40 @@ func SSEAuthMiddleware(
 // events while offline (or exceed the SSE replay window) can call this endpoint
 // to catch up synchronously.
 //
+// The handler reads from the broker's configured journal (set via
+// WithReconnectJournal) and applies the broker's payload transform
+// (set via WithPayloadTransform) if one is configured. This unifies SSE and
+// REST backfill under a single codec configuration — no separate transform
+// function is needed.
+//
 // The handler accepts these query parameters:
 //   - after: the EventID to start from (exclusive). Required.
 //   - limit: maximum events to return (default: 100, max: 1000).
 //
-// Response: 200 OK with `[]event.Event` JSON array, or 400/500 on error.
+// Response: 200 OK with a JSON array of events, or 400/500 on error.
 //
-// Payload bytes are sent raw (same encoding as stored). For wire-format
-// transcoding (e.g., CBOR→JSON), use BackfillHandlerWithTransform.
-func BackfillHandler(journal event.SeekableJournal) http.Handler {
-	return BackfillHandlerWithTransform(journal, nil)
-}
-
-// BackfillHandlerWithTransform is like BackfillHandler but applies the given
-// transform to each event's payload before serializing. Pass nil for raw
-// payload bytes (identical to BackfillHandler).
-//
-// This variant exists so consumers using CBOR (or any non-JSON codec) can
-// transcode payloads to JSON for browser-compatible REST responses, matching
-// the behavior of WithPayloadTransform on SSEBroker.
-func BackfillHandlerWithTransform(
-	journal event.SeekableJournal,
-	transform func(event.Event) []byte,
-) http.Handler {
+// The broker must have been created with WithReconnectJournal; otherwise
+// the handler returns 503 Service Unavailable on every request.
+func BackfillHandler(broker *SSEBroker) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
+
+		if broker == nil {
+			writeBackfillError(w, http.StatusInternalServerError,
+				"broker is nil")
+
+			return
+		}
+
+		journal := broker.Journal()
+		if journal == nil {
+			writeBackfillError(w, http.StatusServiceUnavailable,
+				"broker has no journal configured (use WithReconnectJournal)")
+
+			return
+		}
+
+		transform := broker.PayloadTransform()
 
 		afterIDStr := r.URL.Query().Get("after")
 		if afterIDStr == "" {

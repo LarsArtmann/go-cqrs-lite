@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
-	"github.com/larsartmann/go-cqrs-lite/catalog/v3/eventcatalog"
-	"github.com/larsartmann/go-cqrs-lite/catalog/v3/internal/cattest"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/eventcatalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/internal/cattest"
 )
 
 //nolint:gochecknoglobals // golden test pattern requires package-level flag

@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
-	"github.com/larsartmann/go-cqrs-lite/storage/v3/view"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
+	"github.com/larsartmann/go-cqrs-lite/storage/v4/view"
 )
 
 // View sub-package re-exports.

@@ -3,7 +3,7 @@ package querytest
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
 
 func New(tb testing.TB, queryType query.Type) *query.BasicQuery {

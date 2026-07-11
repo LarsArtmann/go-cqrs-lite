@@ -7,9 +7,9 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/stack/v3"
-	cqrsturso "github.com/larsartmann/go-cqrs-lite/storage/turso/v3"
-	"github.com/larsartmann/go-cqrs-lite/storage/v3"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4"
+	cqrsturso "github.com/larsartmann/go-cqrs-lite/storage/turso/v4"
+	"github.com/larsartmann/go-cqrs-lite/storage/v4"
 )
 
 // openSecondaryBackend opens and configures a secondary Turso database,

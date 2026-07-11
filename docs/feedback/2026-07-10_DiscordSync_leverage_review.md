@@ -70,18 +70,18 @@ the primary beneficiary.
 
 ---
 
-## Gap 2: No payload transform hook on `transport/http/v3.SSEBroker` (HIGH priority)
+## Gap 2: No payload transform hook on `transport/http/v4.SSEBroker` (HIGH priority)
 
 ### The problem
 
-`transport/http/v3.SSEBroker` is the library's built-in SSE solution with
+`transport/http/v4.SSEBroker` is the library's built-in SSE solution with
 rich features the cqrs-htmx alternative lacks: byte-budget replay, replay
 timeout, per-broker event filter, OTel replay metrics, dedup ring tuning.
 
 But `SSEHandler` sends `event.PayloadReadOnly(evt)` as raw bytes:
 
 ```go
-// vendor transport/http/v3/sse.go line 227
+// vendor transport/http/v4/sse.go line 227
 _ = WriteSSEEvent(w, SSEEvent{
     Data: string(event.PayloadReadOnly(evt)),
 })
@@ -108,7 +108,7 @@ This means DiscordSync **cannot adopt** the library's richer SSE features:
 ### Suggested fix
 
 ```go
-// transport/http/v3/sse_options.go
+// transport/http/v4/sse_options.go
 func WithPayloadTransform(fn func(event.Event) []byte) SSEBrokerOption
 ```
 
@@ -135,8 +135,8 @@ pass a transcoded.
 
 ### The problem
 
-`projectionhost/v3` defines the `DeadLetterStore` interface and ships only
-`MemoryDeadLetterStore` (in-memory, lost on restart). The `middleware/v3`
+`projectionhost/v4` defines the `DeadLetterStore` interface and ships only
+`MemoryDeadLetterStore` (in-memory, lost on restart). The `middleware/v4`
 package ships `SQLDeadLetterStore` — but it implements `DeadLetterHandler`
 (a function type), not `projectionhost.DeadLetterStore` (an interface with
 `Store`/`List`/`Delete`/`Purge`).
@@ -203,7 +203,7 @@ it accepts an existing reader. Wait — this already exists on `otel.Setup`
 but not on `prometheus.Setup`.
 
 Option B (simpler): Document the intended composition pattern in the
-`prometheus/v3` package doc: "Call `otel.Setup()` first for tracing, then
+`prometheus/v4` package doc: "Call `otel.Setup()` first for tracing, then
 override the meter provider with `prometheus.Setup()`. The CQRS views from
 `otel.Setup()` are not lost — pass them to `prometheus.Setup` via
 `WithMetricReader`."

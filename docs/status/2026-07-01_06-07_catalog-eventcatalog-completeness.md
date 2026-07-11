@@ -195,15 +195,15 @@ The tradeoff is between schema completeness (matching EC exactly) and API ergono
 ## Test Results
 
 ```
-ok  github.com/larsartmann/go-cqrs-lite/catalog/v3                   1.027s
-ok  github.com/larsartmann/go-cqrs-lite/catalog/v3/asyncapi           1.015s
-ok  github.com/larsartmann/go-cqrs-lite/catalog/v3/d2                 1.010s
-ok  github.com/larsartmann/go-cqrs-lite/catalog/v3/docserver          1.071s
-ok  github.com/larsartmann/go-cqrs-lite/catalog/v3/eventcatalog       1.029s
-ok  github.com/larsartmann/go-cqrs-lite/catalog/v3/internal/caseutil  1.007s
-ok  github.com/larsartmann/go-cqrs-lite/catalog/v3/openapi            1.009s
-ok  github.com/larsartmann/go-cqrs-lite/catalog/v3/schema             1.010s
-ok  github.com/larsartmann/go-cqrs-lite/catalog/v3/simple             1.009s
+ok  github.com/larsartmann/go-cqrs-lite/catalog/v4                   1.027s
+ok  github.com/larsartmann/go-cqrs-lite/catalog/v4/asyncapi           1.015s
+ok  github.com/larsartmann/go-cqrs-lite/catalog/v4/d2                 1.010s
+ok  github.com/larsartmann/go-cqrs-lite/catalog/v4/docserver          1.071s
+ok  github.com/larsartmann/go-cqrs-lite/catalog/v4/eventcatalog       1.029s
+ok  github.com/larsartmann/go-cqrs-lite/catalog/v4/internal/caseutil  1.007s
+ok  github.com/larsartmann/go-cqrs-lite/catalog/v4/openapi            1.009s
+ok  github.com/larsartmann/go-cqrs-lite/catalog/v4/schema             1.010s
+ok  github.com/larsartmann/go-cqrs-lite/catalog/v4/simple             1.009s
 ```
 
 **Race detector: clean. go vet: clean. 10/10 packages pass.**

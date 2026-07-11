@@ -97,7 +97,7 @@ type Batch interface {
 
 ```
 kv/
-├── go.mod           ← module github.com/larsartmann/go-cqrs-lite/kv/v3, go 1.26.3, zero deps
+├── go.mod           ← module github.com/larsartmann/go-cqrs-lite/kv/v4, go 1.26.3, zero deps
 ├── doc.go           ← package doc with usage examples
 ├── kv.go            ← Store, Reader, Writer, Iterator, Batch interfaces
 ├── errors.go        ← ErrNotFound, ErrClosed sentinel errors
@@ -207,7 +207,7 @@ package pebble
 
 import (
     "github.com/cockroachdb/pebble"
-    "github.com/larsartmann/go-cqrs-lite/kv/v3"
+    "github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 
 // pebbleStore adapts *pebble.DB to the kv.Store interface.
@@ -279,8 +279,8 @@ func (s *pebbleStore) Close() error {
 
 ```bash
 cd pebble
-GOWORK=off go get github.com/larsartmann/go-cqrs-lite/kv/v3@latest
-echo 'replace github.com/larsartmann/go-cqrs-lite/kv/v3 => ../kv' >> go.mod
+GOWORK=off go get github.com/larsartmann/go-cqrs-lite/kv/v4@latest
+echo 'replace github.com/larsartmann/go-cqrs-lite/kv/v4 => ../kv' >> go.mod
 GOWORK=off go mod tidy
 ```
 

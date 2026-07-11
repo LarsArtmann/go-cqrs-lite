@@ -278,4 +278,4 @@ The tension: removing them keeps the API lean, but they're documented, tested, a
 | Modules lint-clean              | 24/24                |
 | Layer violations (pre-existing) | 3                    |
 | Tasks completed (T0-T3)         | ~39 of 100           |
-| Tasks skipped (T4-T6)           | ~36 (speculative/v3) |
+| Tasks skipped (T4-T6)           | ~36 (speculative/v4) |

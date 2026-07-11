@@ -3,8 +3,8 @@ package eventcatalog_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
-	"github.com/larsartmann/go-cqrs-lite/catalog/v3/eventcatalog"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/eventcatalog"
 )
 
 func BenchmarkEventCatalog_Export(b *testing.B) {

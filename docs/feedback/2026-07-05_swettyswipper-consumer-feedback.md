@@ -22,7 +22,7 @@ Load → fold → decide → save → publish in one call. Pure functions for de
 
 ### 2. Middleware Module — Complete and Symmetric
 
-The `middleware/v3` module provides symmetric middleware for all three message types:
+The `middleware/v4` module provides symmetric middleware for all three message types:
 
 |         | Recovery | Logging | Retry | CircuitBreaker | Metrics | Validation |
 | ------- | -------- | ------- | ----- | -------------- | ------- | ---------- |
@@ -52,9 +52,9 @@ The `codec.JSONCodec{}` / `codec.CBORCodec{}` system is clean. `event.NewEvents`
 
 ### 1. The `eventtest` Module Path Split-Brain
 
-**Problem:** `event/v3/eventtest` is a standalone Go module with its own `go.mod` that was never published to the Go proxy. The path changed at some point from `event/eventtest` to `event/v3/eventtest`. This broke ALL Go tests in our project.
+**Problem:** `event/v4/eventtest` is a standalone Go module with its own `go.mod` that was never published to the Go proxy. The path changed at some point from `event/eventtest` to `event/v4/eventtest`. This broke ALL Go tests in our project.
 
-**Impact:** Hours of debugging. The `go.work` file and 5 consuming `go.mod` files needed `require` + `replace` directives with version `v0.0.0` (not `v3.0.0` because the path ends in `/eventtest`, not `/v3`).
+**Impact:** Hours of debugging. The `go.work` file and 5 consuming `go.mod` files needed `require` + `replace` directives with version `v0.0.0` (not `v3.0.0` because the path ends in `/eventtest`, not `/v4`).
 
 **Ask:** Either publish `eventtest` to the Go proxy, or document the exact `require` + `replace` needed in every consuming module. The current state is a recurring footgun.
 
@@ -112,13 +112,13 @@ The SKILL.md and recipes focus heavily on command-side middleware. Query middlew
 
 ### 2. Snapshot Store — Undocumented for Small Apps
 
-The `snapshot/v3` module exists but there's no guidance on WHEN to use it. For our app (aggregates with 5-20 events), snapshots are unnecessary overhead. For larger apps (100+ events per aggregate), they're essential.
+The `snapshot/v4` module exists but there's no guidance on WHEN to use it. For our app (aggregates with 5-20 events), snapshots are unnecessary overhead. For larger apps (100+ events per aggregate), they're essential.
 
 **Ask:** Add a decision guide: "Use snapshots when your largest aggregate exceeds N events" with benchmark numbers.
 
 ### 3. Prometheus Integration — Heavyweight for Simple Apps
 
-The `prometheus/v3` module requires OTel infrastructure (`MeterProvider`, `otel/v3` imports). For apps that just want Prometheus metrics without OTel, there's no lightweight path.
+The `prometheus/v4` module requires OTel infrastructure (`MeterProvider`, `otel/v4` imports). For apps that just want Prometheus metrics without OTel, there's no lightweight path.
 
 **Impact:** We use raw `promhttp.Handler()` because the library's Prometheus module requires OTel we don't have.
 
@@ -136,11 +136,11 @@ The `DeadLetterHandler` with `MemoryDeadLetterStore` is great for development bu
 
 ### 1. Graph Projections
 
-The `graph/v3` module provides graph/traversal read models. This is a powerful abstraction but extremely niche. Most apps need simple flat read models (list, get by ID). The graph module adds conceptual overhead for the 99% case.
+The `graph/v4` module provides graph/traversal read models. This is a powerful abstraction but extremely niche. Most apps need simple flat read models (list, get by ID). The graph module adds conceptual overhead for the 99% case.
 
 ### 2. Deriver / Saga Module
 
-The `deriver/v3` module provides reactive command dispatch from events (essentially a saga/process manager). The SKILL.md correctly says "use projection + command dispatch" instead, which is simpler. The deriver module may be over-engineering for most use cases.
+The `deriver/v4` module provides reactive command dispatch from events (essentially a saga/process manager). The SKILL.md correctly says "use projection + command dispatch" instead, which is simpler. The deriver module may be over-engineering for most use cases.
 
 ---
 

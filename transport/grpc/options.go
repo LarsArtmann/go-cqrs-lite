@@ -1,7 +1,7 @@
 package grpc
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/codec/v3"
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 )
 
 // Option configures a gRPC server or client. It is the shared functional-option

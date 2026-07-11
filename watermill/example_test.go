@@ -9,10 +9,10 @@ import (
 	wmlog "github.com/ThreeDotsLabs/watermill"
 	gochannel "github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
-	"github.com/larsartmann/go-cqrs-lite/watermill/v3"
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 
 func ExampleNewSubscriberAdapter() {

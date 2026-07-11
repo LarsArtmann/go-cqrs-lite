@@ -3,7 +3,7 @@ package dispatcher_test
 import (
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/dispatcher/v3"
+	"github.com/larsartmann/go-cqrs-lite/dispatcher/v4"
 )
 
 type handler func() error

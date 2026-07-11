@@ -33,7 +33,7 @@ The library now covers **all three fundamental data-model paradigms** for event-
 | `031e0622` | Improve framework gaps readability by converting dep-tree div to structured table |
 | `3a5c272c` | Bump all internal module dependencies from v3.0.0 to v3.1.0                       |
 | `5dcd8ed1` | Add full comprehensive status dashboard (2026-06-28)                              |
-| `179f5ee3` | Fix signing module: add missing event/v3/eventtest dependency                     |
+| `179f5ee3` | Fix signing module: add missing event/v4/eventtest dependency                     |
 | `3245329a` | Extract Projection interface to new projection/ module and add graph tier         |
 | `424c562e` | Normalize YAML indentation and auto-format HTML status report                     |
 
@@ -84,7 +84,7 @@ Design: writes ARE portable (openCypher MERGE: Neo4j, Memgraph, Apache Age, Redi
 | Configs   | `.go-arch-lint.yml` (workspace), `storage/.go-arch-lint.yml` (per-module) |
 | Flake.nix | `nix run .#check-arch` wired in                                           |
 
-**Two-layer approach** (because go-arch-lint cannot resolve `/v3`-suffixed cross-module imports in Go workspaces):
+**Two-layer approach** (because go-arch-lint cannot resolve `/v4`-suffixed cross-module imports in Go workspaces):
 
 - Layer 1: `check-module-layers.sh` — parses go.mod files for cross-module layer rules (CI-enforced, was already working)
 - Layer 2: `go-arch-lint` per-module — checks intra-module package rules (new, storage/ is first module)

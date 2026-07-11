@@ -7,9 +7,9 @@ A lightweight CQRS library for Go with Event Sourcing, branded IDs, and auto-doc
 go-cqrs-lite is a multi-module monorepo. Import only what you need:
 
 ```bash
-go get github.com/larsartmann/go-cqrs-lite/event/v3
-go get github.com/larsartmann/go-cqrs-lite/command/v3
-go get github.com/larsartmann/go-cqrs-lite/memory/v3
+go get github.com/larsartmann/go-cqrs-lite/event/v4
+go get github.com/larsartmann/go-cqrs-lite/command/v4
+go get github.com/larsartmann/go-cqrs-lite/memory/v4
 ```
 
 ## Quick Start
@@ -24,9 +24,9 @@ type UserCreated struct{ Name string }
 
 ```go
 import (
-    "github.com/larsartmann/go-cqrs-lite/event/v3"
-    "github.com/larsartmann/go-cqrs-lite/id/v3"
-    "github.com/larsartmann/go-cqrs-lite/memory/v3"
+    "github.com/larsartmann/go-cqrs-lite/event/v4"
+    "github.com/larsartmann/go-cqrs-lite/id/v4"
+    "github.com/larsartmann/go-cqrs-lite/memory/v4"
 )
 
 store := memory.NewMemoryStore()
@@ -55,7 +55,7 @@ _ = bus.Publish(ctx, evt)
 ### 3. Dispatch Commands
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/command/v3"
+import "github.com/larsartmann/go-cqrs-lite/command/v4"
 
 // Define a command embedding BasicCommand
 type CreateUserCmd struct {
@@ -85,7 +85,7 @@ cmds.Dispatch(ctx, cmd)
 The Decider pattern uses pure functions for load → fold → decide → save → publish:
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/decider/v3"
+import "github.com/larsartmann/go-cqrs-lite/decider/v4"
 
 type UserState struct{ Name string }
 
@@ -113,7 +113,7 @@ state, version, _ := repo.Load(ctx, aggID, "User")
 ### 5. Branded IDs
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/id/v3"
+import "github.com/larsartmann/go-cqrs-lite/id/v4"
 
 // Use built-in types
 aggID := id.NewAggregateID()

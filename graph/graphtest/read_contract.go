@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/graph/v3"
+	"github.com/larsartmann/go-cqrs-lite/graph/v4"
 )
 
 // test-graph expected counts — named to silence mnd.

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/storage/turso/v3/indexing"
+	"github.com/larsartmann/go-cqrs-lite/storage/turso/v4/indexing"
 )
 
 func TestStats_Basic(t *testing.T) {

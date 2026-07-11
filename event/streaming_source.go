@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 // EventIterator yields events one at a time, avoiding the need to

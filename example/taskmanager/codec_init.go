@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/codec/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
 // Use JSON encoding for events so payloads are human-readable in the database

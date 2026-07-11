@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v3"
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 )
 
 func ExampleJSONCodec() {

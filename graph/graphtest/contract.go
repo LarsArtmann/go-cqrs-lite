@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/graph/v3"
+	"github.com/larsartmann/go-cqrs-lite/graph/v4"
 )
 
 // contract test constants — extracted to silence goconst.

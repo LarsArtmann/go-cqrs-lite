@@ -10,7 +10,7 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/kv/v3"
+	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 
 // KVBackend is the contract a KV store must satisfy to back an idempotency

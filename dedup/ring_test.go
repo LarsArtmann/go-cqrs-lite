@@ -3,7 +3,7 @@ package dedup_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/dedup/v3"
+	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
 )
 
 func TestRing_Basic(t *testing.T) {

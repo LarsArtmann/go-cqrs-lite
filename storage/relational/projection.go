@@ -8,9 +8,9 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
-	cqrsprojection "github.com/larsartmann/go-cqrs-lite/projection/v3"
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
+	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v4"
+	cqrsprojection "github.com/larsartmann/go-cqrs-lite/projection/v4"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
 
 // RelationalHandler processes one event, writing through sink to any number of

@@ -14,7 +14,7 @@ use (
 	./dispatcher
 	./encryption
 	./event
-	./event/v3/eventtest
+	./event/v4/eventtest
 	./example/getting-started
 	./example/taskmanager
 	./graph

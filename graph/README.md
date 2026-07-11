@@ -1,6 +1,6 @@
 # graph — Projection tier for graph-structured read models
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/graph/v3.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/graph/v3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/graph/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/graph/v4)
 
 The third fundamental projection tier, alongside `kv.ViewStore` (document/KV)
 and `storage.RelationalProjection` (relational/SQL). Use it when the dominant
@@ -9,7 +9,7 @@ connected-component queries** — reply chains, social graphs, causation DAGs,
 role memberships, reaction networks.
 
 ```bash
-go get github.com/larsartmann/go-cqrs-lite/graph/v3
+go get github.com/larsartmann/go-cqrs-lite/graph/v4
 ```
 
 ## When to use which tier
@@ -142,7 +142,7 @@ Their reads stay native (Cypher/Gremlin), per [ADR-0038](../docs/adr/0038-graph-
 
 | Driver                           | Module                                          | Use case                                             |
 | -------------------------------- | ----------------------------------------------- | ---------------------------------------------------- |
-| `MemoryDriver`                   | `graph/v3` (this module)                        | Tests, single-process local-first apps. Zero deps.   |
+| `MemoryDriver`                   | `graph/v4` (this module)                        | Tests, single-process local-first apps. Zero deps.   |
 | Neo4j / openCypher               | consumer-pulled sibling module (`graph/neo4j/`) | Production graph queries. Brings its own driver dep. |
 | Memgraph, Apache Age, RedisGraph | future                                          | All speak openCypher MERGE — same sink interface.    |
 
@@ -152,7 +152,7 @@ bring their backend; the library provides the portable sink abstraction.
 
 ## Related Modules
 
-- [**event/v3**](../event/README.md) — `event.Projection` interface this tier implements
-- [**storage/v3**](../storage/README.md) — `RelationalProjection` (the relational peer tier)
-- [**stack/v3**](../stack/README.md) — `Materialize` (the document/KV peer tier)
-- [**kv/v3**](../kv/README.md) — `ViewStore[V,K]` (the document interface)
+- [**event/v4**](../event/README.md) — `event.Projection` interface this tier implements
+- [**storage/v4**](../storage/README.md) — `RelationalProjection` (the relational peer tier)
+- [**stack/v4**](../stack/README.md) — `Materialize` (the document/KV peer tier)
+- [**kv/v4**](../kv/README.md) — `ViewStore[V,K]` (the document interface)

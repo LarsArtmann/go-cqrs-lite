@@ -4,8 +4,8 @@ import (
 	"container/list"
 	"sync"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 // DefaultStateCacheCapacity is used when capacity <= 0.

@@ -59,8 +59,8 @@
 
 1. **Consumer migration guide for id/ + metadata/ extraction** — Write a guide for consumers migrating from importing event/ for AggregateRef/Tracing/CustomData.
 2. **Deprecated alias verification test** — Test verifying `// Deprecated:` comments in event/ are correct (staticcheck SA1019).
-3. **stack/v3 health checks** — Bundle lacks `HealthCheck(ctx)` interface for liveness/readiness probes.
-4. **stack/v3 topological shutdown ordering** — No way to express shutdown dependencies.
+3. **stack/v4 health checks** — Bundle lacks `HealthCheck(ctx)` interface for liveness/readiness probes.
+4. **stack/v4 topological shutdown ordering** — No way to express shutdown dependencies.
 
 ### P2 — Medium Value (6 remaining)
 
@@ -175,8 +175,8 @@ I ran `go mod tidy -e` in transport/http, middleware, and projectionhost. This m
 
 8. **Consumer migration guide for id/ + metadata/** — The extraction is done but consumers don't know how to migrate.
 9. **Deprecated alias verification test** — Quick staticcheck SA1019 compliance test.
-10. **stack/v3 health checks** — `HealthCheck(ctx)` interface on Bundle.
-11. **stack/v3 topological shutdown ordering** — `WithDependency()` or documented pattern.
+10. **stack/v4 health checks** — `HealthCheck(ctx)` interface on Bundle.
+11. **stack/v4 topological shutdown ordering** — `WithDependency()` or documented pattern.
 12. **Actually wire event/, command/, query/ to use metadata/** — The module exists but isn't imported anywhere.
 
 ### P2 remaining (MEDIUM VALUE)

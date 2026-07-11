@@ -9,9 +9,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
-	cqrsgrpc "github.com/larsartmann/go-cqrs-lite/transport/grpc/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	cqrsgrpc "github.com/larsartmann/go-cqrs-lite/transport/grpc/v4"
 )
 
 // miniBus is a minimal event.Bus for testing — fan-out to all subscribers.

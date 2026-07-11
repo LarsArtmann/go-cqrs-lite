@@ -3,7 +3,7 @@
 **Consumer:** [SEC](https://github.com/larsartmann/sec) — dice-based game (CQRS + event sourcing)
 **Date:** 2026-07-05
 **Version used:** v3.5.0 (workspace replaces)
-**Session:** Full stack.Bundle adoption, Repository.Execute(), snapshot/v3, scenario/v3 BDD, idempotency/v3, catalog/v3
+**Session:** Full stack.Bundle adoption, Repository.Execute(), snapshot/v4, scenario/v4 BDD, idempotency/v4, catalog/v4
 
 ---
 

@@ -3,7 +3,7 @@ package otel_test
 import (
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/otel/v3"
+	"github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 type stringer string

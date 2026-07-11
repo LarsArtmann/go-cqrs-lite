@@ -80,7 +80,7 @@
 - **Total items:** ~100
 - **Done:** ~90
 - **Actionable open:** 0
-- **Deferred (v2/v3):** 4
+- **Deferred (v2/v4):** 4
 - **Blocked (external):** 8
 - **Future/speculative:** ~15
 

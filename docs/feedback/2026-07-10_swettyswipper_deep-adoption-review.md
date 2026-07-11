@@ -70,7 +70,7 @@ The 49 ADRs are a goldmine for understanding WHY decisions were made. ADR-0001 (
 
 **Concrete impact this session:** The `pipeline_test.go` in our API service has a pre-existing build failure because `event.AggregateRef` was removed (it's now `id.AggregateRef` per the v4 migration guide), and we can't easily fix it because the test imports `eventtest` which pulls in the version drift.
 
-**Ask:** Publish `eventtest` to the Go proxy. Even a `v0.0.1` would eliminate the `replace` directive friction across 5+ consuming modules. Alternatively, move `FakeBus` and `FakeSnapshotStore` into the main `event/v3` package behind a `_test.go`-safe interface, or into `testutil/v3` which IS published.
+**Ask:** Publish `eventtest` to the Go proxy. Even a `v0.0.1` would eliminate the `replace` directive friction across 5+ consuming modules. Alternatively, move `FakeBus` and `FakeSnapshotStore` into the main `event/v4` package behind a `_test.go`-safe interface, or into `testutil/v4` which IS published.
 
 ### 2. 49 Modules Is Too Many to Navigate (MEDIUM PRIORITY)
 
@@ -86,7 +86,7 @@ The 49 ADRs are a goldmine for understanding WHY decisions were made. ADR-0001 (
 
 ### 3. Stale `docs/getting-started.md` (MEDIUM PRIORITY)
 
-**Problem:** `docs/getting-started.md` uses `/v2` import paths, references `memory/v3` (which doesn't exist — it's `storage/memory/v3`), and points to dead example directories (`example/todo/`, `example/user/`). A new user following this guide will hit immediate errors.
+**Problem:** `docs/getting-started.md` uses `/v2` import paths, references `memory/v4` (which doesn't exist — it's `storage/memory/v4`), and points to dead example directories (`example/todo/`, `example/user/`). A new user following this guide will hit immediate errors.
 
 **The actual getting-started experience is in `SKILL.md`** which is excellent. But `docs/getting-started.md` is the file that shows up in GitHub's file browser first.
 
@@ -185,7 +185,7 @@ The preset's `New(dsn, opts...)` doesn't expose hooks for these. We'd need to us
 
 ### 1. `graph` Module — Premature for Most Consumers
 
-The `graph/v3` module provides graph/traversal read models. In 6 months of building a production CQRS app, we've never needed graph queries. Flat projections (list by type, get by ID, filter by predicate) cover 100% of our read-model needs. The graph module adds conceptual tax without clear payoff.
+The `graph/v4` module provides graph/traversal read models. In 6 months of building a production CQRS app, we've never needed graph queries. Flat projections (list by type, get by ID, filter by predicate) cover 100% of our read-model needs. The graph module adds conceptual tax without clear payoff.
 
 **Suggestion:** Keep it (someone might need it), but don't feature it prominently in documentation. Most consumers should start with flat projections.
 

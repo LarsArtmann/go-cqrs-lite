@@ -470,7 +470,7 @@ linters:
       - _templ\.go$
       - event/
       - event/eventtest/
-      - event/v3/eventtest/
+      - event/v4/eventtest/
       - storage/view/
       - vendor/
 formatters:
@@ -495,7 +495,7 @@ formatters:
       - _templ\.go$
       - event/
       - event/eventtest/
-      - event/v3/eventtest/
+      - event/v4/eventtest/
       - storage/view/
 issues:
   max-issues-per-linter: 50

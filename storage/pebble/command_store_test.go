@@ -9,9 +9,9 @@ import (
 
 	"github.com/cockroachdb/pebble"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
-	cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v3"
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v4"
 )
 
 func newCommandStore(t *testing.T) *cqrspebble.CommandStore {

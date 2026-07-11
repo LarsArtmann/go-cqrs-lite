@@ -3,7 +3,7 @@ package main
 import (
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
 // ──────────────────────────────────────────────────────────────────────────

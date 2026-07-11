@@ -88,7 +88,7 @@ mapping, triplicated error re-exports, and ambiguous ActorID — are **resolved*
 
 - Convention established and enforced:
   - `event/errors.go` is the single re-export hub for `go-error-family`
-  - Modules that depend on `event/v3` use `event.NewRejection()` etc.
+  - Modules that depend on `event/v4` use `event.NewRejection()` etc.
   - Modules that don't depend on `event` (codec, catalog, cmd) import `errorfamily` directly
   - External consumers use `event.` re-export or `errorfamily` directly — consistent within each repo
 - `command/dispatcher.go`, `command/command.go`, `command/store.go` → switched from `errorfamily.` to `event.`

@@ -63,7 +63,7 @@ The remaining 21 rows are:
 
 ### Facade Pattern
 
-- Modules importing `event/v3` → `event.Wrap*` / `event.New*` (re-exports from `event/errors.go`)
+- Modules importing `event/v4` → `event.Wrap*` / `event.New*` (re-exports from `event/errors.go`)
 - Leaf modules (`catalog`, `cmd/cqrs-gen`) → `errorfamily.Wrap*` / `errorfamily.New*` directly
 - Pre-classified sentinels propagate through bare `return err` — no double-wrapping
 

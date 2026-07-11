@@ -7,10 +7,10 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3/idtest"
-	"github.com/larsartmann/go-cqrs-lite/signing/v3"
-	"github.com/larsartmann/go-cqrs-lite/signing/v3/internal/testutil"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4/idtest"
+	"github.com/larsartmann/go-cqrs-lite/signing/v4"
+	"github.com/larsartmann/go-cqrs-lite/signing/v4/internal/testutil"
 )
 
 func TestSignature(t *testing.T) {

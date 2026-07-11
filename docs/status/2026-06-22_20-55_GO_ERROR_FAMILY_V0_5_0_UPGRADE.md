@@ -241,7 +241,7 @@ Arguments for v3.0.1:
 - The v0.5.0 bump is additive (new APIs available, no removed APIs we used)
 
 I cannot determine the versioning policy for this ecosystem without user input. The previous
-v3.0.0 release notes say "All 38 modules migrated to /v3 import paths" — it's unclear whether
+v3.0.0 release notes say "All 38 modules migrated to /v4 import paths" — it's unclear whether
 patch releases are expected for individual module changes or if all modules version together.
 
 ---

@@ -9,9 +9,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
-	cqrsgrpc "github.com/larsartmann/go-cqrs-lite/transport/grpc/v3"
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	cqrsgrpc "github.com/larsartmann/go-cqrs-lite/transport/grpc/v4"
 )
 
 func listen(t *testing.T) net.Listener {

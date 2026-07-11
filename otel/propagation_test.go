@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 func TestCorrelationID_BaggageRoundTrip(t *testing.T) {

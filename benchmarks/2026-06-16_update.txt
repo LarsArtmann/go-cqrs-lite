@@ -11,7 +11,7 @@ go: downloading github.com/cockroachdb/pebble v1.1.5
 go: downloading github.com/oklog/ulid v1.3.1
 go: downloading github.com/tursodatabase/turso-go-platform-libs v0.6.1
 go: downloading github.com/ebitengine/purego v0.10.1
-go: downloading github.com/lithammer/shortuuid/v3 v3.0.7
+go: downloading github.com/lithammer/shortuuid/v4 v3.0.7
 go: downloading github.com/cockroachdb/redact v1.1.8
 go: downloading github.com/cockroachdb/tokenbucket v0.0.0-20250429170803-42689b6311bb
 go: downloading github.com/cockroachdb/errors v1.13.0

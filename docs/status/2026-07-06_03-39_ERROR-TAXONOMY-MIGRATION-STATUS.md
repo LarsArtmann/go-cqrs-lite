@@ -36,7 +36,7 @@ The migration replaced all `event.*` facade calls with `errorfamily.*` direct im
 
 ### B1. Breaking API change not communicated as such
 
-Removing `event.NewRejection()`, `event.Classify()`, `event.WrapRejection()`, etc. is a **BREAKING CHANGE** for any external consumer importing `event/v3`. I kept type aliases (`event.Family`, `event.Error`) and family constants (`event.Rejection`) for partial backward compat, but the ~16 removed constructor/classification functions will cause compile errors for consumers. This should have been:
+Removing `event.NewRejection()`, `event.Classify()`, `event.WrapRejection()`, etc. is a **BREAKING CHANGE** for any external consumer importing `event/v4`. I kept type aliases (`event.Family`, `event.Error`) and family constants (`event.Rejection`) for partial backward compat, but the ~16 removed constructor/classification functions will cause compile errors for consumers. This should have been:
 
 - Flagged as a breaking change requiring a major version bump (v4), OR
 - Done via deprecation cycle (keep wrappers with `// Deprecated:` comments), OR

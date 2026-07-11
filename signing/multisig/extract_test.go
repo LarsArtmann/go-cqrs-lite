@@ -4,12 +4,12 @@ import (
 	"crypto/ed25519"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
-	"github.com/larsartmann/go-cqrs-lite/id/v3/idtest"
-	"github.com/larsartmann/go-cqrs-lite/signing/v3"
-	"github.com/larsartmann/go-cqrs-lite/signing/v3/internal/testutil"
-	"github.com/larsartmann/go-cqrs-lite/signing/v3/multisig"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/id/v4/idtest"
+	"github.com/larsartmann/go-cqrs-lite/signing/v4"
+	"github.com/larsartmann/go-cqrs-lite/signing/v4/internal/testutil"
+	"github.com/larsartmann/go-cqrs-lite/signing/v4/multisig"
 )
 
 func TestExtractMultiSignature(t *testing.T) {

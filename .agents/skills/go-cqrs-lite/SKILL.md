@@ -1,6 +1,6 @@
 ---
 name: go-cqrs-lite
-description: Build Go applications with go-cqrs-lite — the composable CQRS + Event Sourcing library (event-sourced aggregates, deciders, projections, read models, SQL/Pebble/Turso storage, snapshots, schema evolution, signing, encryption, scheduling, deriver sagas, graph projections, catalog docs). Use this skill whenever a project imports any github.com/larsartmann/go-cqrs-lite/*/v3 module, OR the user asks how to build CQRS/event-sourcing systems in Go, dispatch commands/queries, build read models or projections, use event stores or buses, or work with any go-cqrs-lite module (event, command, query, decider, id, codec, storage, stack, kv, listing, projection, projectionhost, schema, signing, encryption, middleware, otel, catalog, watermill, scheduling, deriver, graph, prometheus, scenario) — even when the user does NOT name the library explicitly (e.g. "set up event sourcing", "build a read model", "dispatch a command", "snapshot an aggregate", "replay events", "idempotent commands", "soft-delete aggregate", "project events to SQL").
+description: Build Go applications with go-cqrs-lite — the composable CQRS + Event Sourcing library (event-sourced aggregates, deciders, projections, read models, SQL/Pebble/Turso storage, snapshots, schema evolution, signing, encryption, scheduling, deriver sagas, graph projections, catalog docs). Use this skill whenever a project imports any github.com/larsartmann/go-cqrs-lite/*/v4 module, OR the user asks how to build CQRS/event-sourcing systems in Go, dispatch commands/queries, build read models or projections, use event stores or buses, or work with any go-cqrs-lite module (event, command, query, decider, id, codec, storage, stack, kv, listing, projection, projectionhost, schema, signing, encryption, middleware, otel, catalog, watermill, scheduling, deriver, graph, prometheus, scenario) — even when the user does NOT name the library explicitly (e.g. "set up event sourcing", "build a read model", "dispatch a command", "snapshot an aggregate", "replay events", "idempotent commands", "soft-delete aggregate", "project events to SQL").
 user-invocable: true
 metadata:
   tags: cqrs, event-sourcing, go, decider, projection, read-model, event-store, domain-driven-design
@@ -23,7 +23,7 @@ This core file holds the mental model, the module decision matrix, the critical 
 
 **Rule of thumb:** start with §1 (decision matrix) below to pick the right modules, then jump to the matching recipe in `references/recipes.md`.
 
-> **Versioning:** recipes and imports target **go-cqrs-lite v3.x** (the current major line). All import paths use the `/v3` suffix, e.g. `github.com/larsartmann/go-cqrs-lite/event/v3`. The skill is kept in sync with the library via `cmd/doc-check`, which verifies every Go import path and qualified symbol against the actual source — so if the code compiles and doc-check passes, the recipes are accurate.
+> **Versioning:** recipes and imports target **go-cqrs-lite v3.x** (the current major line). All import paths use the `/v4` suffix, e.g. `github.com/larsartmann/go-cqrs-lite/event/v4`. The skill is kept in sync with the library via `cmd/doc-check`, which verifies every Go import path and qualified symbol against the actual source — so if the code compiles and doc-check passes, the recipes are accurate.
 
 ---
 
@@ -195,7 +195,7 @@ payload := evt.Payload().(UserCreated) // DON'T
 
 ### 3.4 OTel via otel/ — never go.opentelemetry.io directly
 
-Modules must import `github.com/larsartmann/go-cqrs-lite/otel/v3`, not `go.opentelemetry.io/otel`. The otel module re-exports the needed types and keeps the SDK indirect in go.mod.
+Modules must import `github.com/larsartmann/go-cqrs-lite/otel/v4`, not `go.opentelemetry.io/otel`. The otel module re-exports the needed types and keeps the SDK indirect in go.mod.
 
 ### 3.5 Strong types — no `any` in public APIs
 
@@ -239,7 +239,7 @@ cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 | Adding a `Delete()` method to Store        | Use tombstone metadata (`event.MarkTombstone`)                          |
 | Taking `Store` param when you only read    | Take `EventSource` or `Journal`                                         |
 | Type-asserting `evt.Payload()`             | Use `event.DecodePayloadAuto[T](evt)` or `DecodePayload[T](evt, codec)` |
-| Importing `go.opentelemetry.io` directly   | Import `otel/v3` re-exports                                             |
+| Importing `go.opentelemetry.io` directly   | Import `otel/v4` re-exports                                             |
 | Manually setting event version in `Decide` | Let `event.NewEvents` auto-increment from the passed version            |
 | Creating a saga/process-manager module     | Use projection + command dispatch (see `example/taskmanager/`)          |
 | Editing dependency go.mod files by hand    | Use `go get` commands                                                   |
@@ -258,12 +258,12 @@ snapStore := memory.NewMemorySnapshotStore()
 cpStore := memory.NewMemoryCheckpointStore()
 
 // Event test helpers (for golden tests, assertions)
-import "github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
+import "github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
 
 eventtest.AssertGolden(t, "testdata/event.golden", got, update)
 
 // Shared test utilities
-import "github.com/larsartmann/go-cqrs-lite/testutil/v3"
+import "github.com/larsartmann/go-cqrs-lite/testutil/v4"
 
 cmd := testutil.NewCmd(t, "user.create", aggID) // t = *testing.T
 ```
@@ -469,12 +469,12 @@ reg := catalog.NewRegistry("My API", "1.0.0")
 
 ### "Local `go mod tidy` fails with eventtest pseudo-version errors"
 
-**Cause:** `event/v3/eventtest` is a standalone Go module at `event/v3/eventtest/go.mod` with no published tag. It resolves via `replace` directives in `go.work`, but `go mod tidy` in a **consumer** workspace can't inherit those replaces.
+**Cause:** `event/v4/eventtest` is a standalone Go module at `event/v4/eventtest/go.mod` with no published tag. It resolves via `replace` directives in `go.work`, but `go mod tidy` in a **consumer** workspace can't inherit those replaces.
 
 **Fix (consumer side):** Add a `replace` directive in your `go.work`:
 
 ```go
-replace github.com/larsartmann/go-cqrs-lite/event/v3/eventtest => ../go-cqrs-lite/event/v3/eventtest
+replace github.com/larsartmann/go-cqrs-lite/event/v4/eventtest => ../go-cqrs-lite/event/v4/eventtest
 ```
 
 Inside the go-cqrs-lite repo, run `go mod tidy -e` (the warnings are cosmetic — the build works via `go.work`).
@@ -505,9 +505,9 @@ repo := decider.WithEnricher(event.CommandCausalityEnricher)
 repo := decider.WithEnricher[UserState](event.CommandCausalityEnricher)
 ```
 
-### "go-error-family vs event/v3 error constructors — which should I use?"
+### "go-error-family vs event/v4 error constructors — which should I use?"
 
-**Relationship:** `go-error-family` is the **standalone** extraction of the five-family error taxonomy (Rejection, Conflict, Transient, Infrastructure, Corruption). `event/v3` wraps the **same** families with event-store context (event payloads, codec integration, metadata).
+**Relationship:** `go-error-family` is the **standalone** extraction of the five-family error taxonomy (Rejection, Conflict, Transient, Infrastructure, Corruption). `event/v4` wraps the **same** families with event-store context (event payloads, codec integration, metadata).
 
 - **CQRS apps:** use `errorfamily.NewRejection(...)`, `errorfamily.WrapTransient(err, ...)` directly from [go-error-family](https://github.com/larsartmann/go-error-family).
 - **Non-CQRS apps** (middleware-only consumers, HTTP services): use `go-error-family` directly. It's the same classification without event coupling.

@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 // Checkpoint records the last processed event position for a projection.

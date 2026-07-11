@@ -51,8 +51,8 @@ queries, _ := qStore.LoadQueries(ctx, after) // QuerySource
 
 ```go
 import (
-    "github.com/larsartmann/go-cqrs-lite/listing/v3"
-    "github.com/larsartmann/go-cqrs-lite/storage/v3"
+    "github.com/larsartmann/go-cqrs-lite/listing/v4"
+    "github.com/larsartmann/go-cqrs-lite/storage/v4"
 )
 
 // In-memory reader (consumes a Journal to track aggregate statuses)
@@ -79,7 +79,7 @@ messages, _ := subscriber.Subscribe(ctx, "user.created")
 ### 6.5 Turso Offline-First
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/storage/turso/v3"
+import "github.com/larsartmann/go-cqrs-lite/storage/turso/v4"
 
 // Offline-first: local embedded Turso Database with background sync to Turso cloud
 db, _ := turso.OpenSync(ctx, "file:local.db", "libsql://my-db.turso.io", authToken)
@@ -92,7 +92,7 @@ backend, _ := turso.NewBackend(db)
 ```go
 import (
     "github.com/cockroachdb/pebble"
-    cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v3"
+    cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v4"
 )
 
 db, _ := pebble.Open(dir, &pebble.Options{})               // raw cockroachdb/pebble
@@ -105,7 +105,7 @@ val, _ := kvStore.Get([]byte("k"))
 ### 6.7 Code Generation (cqrs-gen)
 
 ```bash
-go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v3@latest
+go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v4@latest
 ```
 
 Add markers to your types:
@@ -133,7 +133,7 @@ Expose local dispatchers over gRPC, or dispatch to a remote CQRS server.
 ```go
 import (
     "google.golang.org/grpc"
-    cqrsgrpc "github.com/larsartmann/go-cqrs-lite/transport/grpc/v3"
+    cqrsgrpc "github.com/larsartmann/go-cqrs-lite/transport/grpc/v4"
 )
 
 // --- Server side: expose your dispatchers over gRPC ---
@@ -177,8 +177,8 @@ restarts, persisted checkpoints, and a poison-message dead-letter queue.
 
 ```go
 import (
-    "github.com/larsartmann/go-cqrs-lite/projection/v3"
-    "github.com/larsartmann/go-cqrs-lite/projectionhost/v3"
+    "github.com/larsartmann/go-cqrs-lite/projection/v4"
+    "github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 )
 
 // journal: any event.SeekableJournal (MemoryStore, SQLEventStore, pebble.EventStore, ...)
@@ -306,7 +306,7 @@ replay idempotency. Your handlers must handle both cases.
 Fluent BDD for deciders and projections — no store or bus needed, just pure functions.
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/scenario/v3"
+import "github.com/larsartmann/go-cqrs-lite/scenario/v4"
 
 // Decider: pure fold + pure decide
 scenario.Given[incrementCmd, counterState](t, foldCounter, counterState{},
@@ -336,7 +336,7 @@ dispatches. Scheduling is idempotent (same `TimerID` is a no-op), so it is safe 
 re-schedule on command retry.
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/scheduling/v3"
+import "github.com/larsartmann/go-cqrs-lite/scheduling/v4"
 
 store := scheduling.NewMemoryTimerStore()
 sched := scheduling.New(store, func(ctx context.Context, t scheduling.Timer) error {
@@ -366,7 +366,7 @@ delivery: the same event always produces the same commands, so idempotency at
 the command handler deduplicates replays.
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/deriver/v3"
+import "github.com/larsartmann/go-cqrs-lite/deriver/v4"
 
 // A deriver: user.created → send welcome email + sync to CRM
 sendWelcomeEmail := deriver.Deriver(
@@ -407,7 +407,7 @@ Neo4j, Memgraph, Apache Age, RedisGraph). Reads run native Cypher/Gremlin via
 the driver (only `MemoryDriver` offers a Go-native read API).
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/graph/v3"
+import "github.com/larsartmann/go-cqrs-lite/graph/v4"
 
 driver := graph.NewMemoryDriver()
 proj, _ := graph.NewGraphProjection("discord-graph", driver,
@@ -450,7 +450,7 @@ standard `/metrics` endpoint. Wraps the OTel Prometheus exporter so any
 
 ```go
 import (
-    "github.com/larsartmann/go-cqrs-lite/prometheus/v3"
+    "github.com/larsartmann/go-cqrs-lite/prometheus/v4"
     "go.opentelemetry.io/otel"
 )
 

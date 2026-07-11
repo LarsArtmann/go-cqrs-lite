@@ -45,7 +45,7 @@ Added `[Unreleased]` section at the top with:
 - Factory count: "24 middleware factories" → "27 middleware factories"
 - Concern count: "8 concerns" → "9 concerns"
 - New section: "### Idempotency" with all 3 wrappers listed
-- New related module link: `idempotency/v3`
+- New related module link: `idempotency/v4`
 
 ### 5. middleware/doc.go Updated
 
@@ -60,7 +60,7 @@ Added "Idempotency" to the Available Concerns list in the package doc comment.
 
 **`improved.d2`** (1 edit):
 
-- Line 80: `"middleware/\n+ idempotency/ sub-package"` → `"middleware/\n(imports idempotency/v3)"`
+- Line 80: `"middleware/\n+ idempotency/ sub-package"` → `"middleware/\n(imports idempotency/v4)"`
 
 ### 7. SVGs Re-rendered
 
@@ -158,7 +158,7 @@ idempotency + retry + logging).
 
 `schema/validator.go:105,107` has a `json.Unmarshal` signature mismatch — the json v2 migration
 changed `json.Unmarshal`'s signature to include `opts ...json.Options`, but `schema/validator.go`
-uses it as `func([]byte, any) error`. This causes `event/v3` and `catalog/v3` build failures.
+uses it as `func([]byte, any) error`. This causes `event/v4` and `catalog/v4` build failures.
 This is from a prior session's uncommitted work, not mine. I fixed the 4 unused imports but
 this is a deeper type mismatch that requires understanding the validator's intent.
 
@@ -194,7 +194,7 @@ unblock the build. I did NOT revert any other changes in those files.
 
 A prior session started migrating to `encoding/json/v2` (Go experimental) across the codebase.
 This migration is **half-finished** — 4 files had unused imports removed, but `schema/validator.go`
-has a deeper type mismatch that still blocks `event/v3` and `catalog/v3` builds. This means the
+has a deeper type mismatch that still blocks `event/v4` and `catalog/v4` builds. This means the
 full test suite does NOT pass — `event/`, `schema/`, `catalog/`, `integration/` all fail to build.
 
 **Impact:** The repo is in a broken state from the prior session's uncommitted work. This is

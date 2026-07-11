@@ -499,7 +499,7 @@ const file_cqrs_proto_rawDesc = "" +
 	"\fQueryService\x123\n" +
 	"\x03Ask\x12\x16.cqrs.v1.QueryEnvelope\x1a\x14.cqrs.v1.QueryResult2S\n" +
 	"\fEventService\x12C\n" +
-	"\tSubscribe\x12\x1c.cqrs.v1.SubscriptionRequest\x1a\x16.cqrs.v1.EventEnvelope0\x01BGZEgithub.com/larsartmann/go-cqrs-lite/transport/grpc/v3/proto;cqrsprotob\x06proto3"
+	"\tSubscribe\x12\x1c.cqrs.v1.SubscriptionRequest\x1a\x16.cqrs.v1.EventEnvelope0\x01BGZEgithub.com/larsartmann/go-cqrs-lite/transport/grpc/v4/proto;cqrsprotob\x06proto3"
 
 var (
 	file_cqrs_proto_rawDescOnce sync.Once

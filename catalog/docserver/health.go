@@ -4,7 +4,7 @@ import (
 	"encoding/json/v2"
 	"net/http"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
 
 // HealthCheckHandler returns a simple health check handler that verifies

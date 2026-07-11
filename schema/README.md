@@ -1,11 +1,11 @@
 # schema — Schema Evolution via Upcasting
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/schema/v3.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/schema/v3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/schema/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/schema/v4)
 
 Transform old event payloads to the current schema on load, without modifying stored data.
 
 ```bash
-go get github.com/larsartmann/go-cqrs-lite/schema/v3
+go get github.com/larsartmann/go-cqrs-lite/schema/v4
 ```
 
 ## Quick Start
@@ -37,6 +37,6 @@ always sees the latest schema version, regardless of what version was stored.
 
 ## Related Modules
 
-- [**event/v3**](../event/README.md) — `VersionedStore` wraps an `event.Store`
-- [**decider/v3**](../decider/README.md) — Apply upcasters transparently when loading aggregate state
-- [**projectionhost/v3**](../projectionhost/README.md) — `VersionedSeekableJournal` feeds upcasted events to projections
+- [**event/v4**](../event/README.md) — `VersionedStore` wraps an `event.Store`
+- [**decider/v4**](../decider/README.md) — Apply upcasters transparently when loading aggregate state
+- [**projectionhost/v4**](../projectionhost/README.md) — `VersionedSeekableJournal` feeds upcasted events to projections

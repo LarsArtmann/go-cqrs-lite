@@ -8,7 +8,7 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
 
 // ViewColumn describes one SQL column that maps a field of view type V.

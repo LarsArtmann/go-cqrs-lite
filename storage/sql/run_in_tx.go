@@ -6,7 +6,7 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 // RunInTx executes fn inside a database transaction.

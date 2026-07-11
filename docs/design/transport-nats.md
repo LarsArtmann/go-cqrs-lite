@@ -13,7 +13,7 @@ Consumers need a message broker-backed transport for distributing CQRS events ac
 
 ```
 transport/nats/
-├── go.mod          # github.com/larsartmann/go-cqrs-lite/transport/nats/v3
+├── go.mod          # github.com/larsartmann/go-cqrs-lite/transport/nats/v4
 ├── publisher.go    # EventPublisher → NATS JetStream
 ├── subscriber.go   # NATS JetStream → event subscription
 ├── protocol.go     # Event ↔ NATS message conversion
@@ -58,8 +58,8 @@ func (s *Subscriber) SubscribeAll(ctx context.Context) (<-chan event.Event, erro
 ### Dependencies
 
 - `github.com/nats-io/nats.go` (production)
-- `github.com/larsartmann/go-cqrs-lite/event/v3`
-- `github.com/larsartmann/go-cqrs-lite/codec/v3`
+- `github.com/larsartmann/go-cqrs-lite/event/v4`
+- `github.com/larsartmann/go-cqrs-lite/codec/v4`
 
 ### Testing Strategy
 

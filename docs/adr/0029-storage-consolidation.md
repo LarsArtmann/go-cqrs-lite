@@ -42,7 +42,7 @@ storage/
 └── turso/           # ← moved from turso/
 ```
 
-Module paths become `github.com/larsartmann/go-cqrs-lite/storage/pebble/v3`, etc.
+Module paths become `github.com/larsartmann/go-cqrs-lite/storage/pebble/v4`, etc.
 
 `storage/` itself keeps the SQL facade (`SQLEventStore`, `NewSQLiteBackend`).
 `memory/` keeps only the in-memory **stores**; the bus implementations are

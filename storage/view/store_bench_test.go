@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/kv/v3"
+	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 
 func BenchmarkSQLViewStore_Set(b *testing.B) {

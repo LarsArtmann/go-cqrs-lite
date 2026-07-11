@@ -12,8 +12,8 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/sdk/metric"
 
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
-	cqrsprom "github.com/larsartmann/go-cqrs-lite/prometheus/v3"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
+	cqrsprom "github.com/larsartmann/go-cqrs-lite/prometheus/v4"
 )
 
 func TestSetup_CreatesProviderAndHandler(t *testing.T) {

@@ -40,7 +40,7 @@ This was the most consequential session in the project's history. **22 commits**
 | `031e0622` | Improve framework gaps readability by converting dep-tree div to structured table |
 | `3a5c272c` | Bump all internal module dependencies from v3.0.0 to v3.1.0                       |
 | `5dcd8ed1` | Add full comprehensive status dashboard (2026-06-28)                              |
-| `179f5ee3` | Fix signing module: add missing event/v3/eventtest dependency                     |
+| `179f5ee3` | Fix signing module: add missing event/v4/eventtest dependency                     |
 
 ### Phase 3: Module Architecture (projection extraction + arch enforcement)
 
@@ -195,7 +195,7 @@ Every commit in this session used `--no-verify`. The hook runs golangci-lint on 
 
 ### D3. Stack Dep Budget Increase
 
-Adding `projection/v3` to `stack/` pushed its production dep count from 12 to 13, triggering the budget check. Fixed by bumping the budget (`DEP_BUDGET[stack]=13`), but the budget creep signals that `stack/` is accumulating dependencies — it's becoming a god-module.
+Adding `projection/v4` to `stack/` pushed its production dep count from 12 to 13, triggering the budget check. Fixed by bumping the budget (`DEP_BUDGET[stack]=13`), but the budget creep signals that `stack/` is accumulating dependencies — it's becoming a god-module.
 
 ### D4. graph/graphtest Package Reports 0% Coverage
 
@@ -227,7 +227,7 @@ Highest-friction DX issue. Every commit needs `--no-verify`.
 
 ### E6. The `graph/` Module Is Currently a Ghost
 
-Zero external consumers — no module's go.mod depends on `graph/v3`. This is expected for a library module (quality gate: "would a consumer trust this enough to import it?"), but it means the graph tier is unproven in real use.
+Zero external consumers — no module's go.mod depends on `graph/v4`. This is expected for a library module (quality gate: "would a consumer trust this enough to import it?"), but it means the graph tier is unproven in real use.
 
 ### E7. `projection.NewProjection` Still Has Zero External Consumers
 

@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
-	"github.com/larsartmann/go-cqrs-lite/query/v3"
-	"github.com/larsartmann/go-cqrs-lite/query/v3/querytest"
+	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	"github.com/larsartmann/go-cqrs-lite/query/v4/querytest"
 )
 
 func registerHandler[T any](d *query.Dispatcher, queryType string, result T) error {

@@ -95,7 +95,7 @@ The `consumeTimeout` variable and `consumeTimeoutDuration` function were **never
 
 ### The `watermill/go.mod` has a pre-existing `go mod tidy` issue
 
-Running `go mod tidy` in the watermill module fails because `event/v3`'s test suite imports `schema/v3` which has the `000000000000` zero-revision placeholder. This is a **pre-existing workspace issue** (the `000000000000` revision is Go's placeholder for replace-directive modules that haven't been published). `go mod tidy -e` suppresses it but also silently "fixes" the `command/v3` dependency version from `00010101000000-000000000000` to `v3.5.0` — an unintended change. I caught this and reverted the `go.mod` change. **Tests pass via `go.work` (workspace mode) regardless.**
+Running `go mod tidy` in the watermill module fails because `event/v4`'s test suite imports `schema/v4` which has the `000000000000` zero-revision placeholder. This is a **pre-existing workspace issue** (the `000000000000` revision is Go's placeholder for replace-directive modules that haven't been published). `go mod tidy -e` suppresses it but also silently "fixes" the `command/v4` dependency version from `00010101000000-000000000000` to `v3.5.0` — an unintended change. I caught this and reverted the `go.mod` change. **Tests pass via `go.work` (workspace mode) regardless.**
 
 ---
 
@@ -124,7 +124,7 @@ Running `go mod tidy` in the watermill module fails because `event/v3`'s test su
 | 3   | **P2**   | Implement `SQLTimerStore` in `scheduling/`                                             | Makes durable deadlines production-ready                             |
 | 4   | **P2**   | Add SSE replay integration test with real `MemoryStore` (not just `FakeStore`)         | Catches store-specific replay bugs                                   |
 | 5   | **P2**   | Promote `delayedJournal` test helper to `eventtest`/`testutil`                         | Reusable context-cancellation testing                                |
-| 6   | **P2**   | Fix `watermill/go.mod` tidy issue (`schema/v3` zero-revision)                          | Clean `go mod tidy` without `-e`                                     |
+| 6   | **P2**   | Fix `watermill/go.mod` tidy issue (`schema/v4` zero-revision)                          | Clean `go mod tidy` without `-e`                                     |
 | 7   | **P3**   | Add SSE replay metrics as OTel instruments (replay_count, replay_duration, dedup_hits) | Dashboard-ready observability                                        |
 | 8   | **P3**   | Document SSE vs CatchUpSubscriber decision matrix in SKILL.md                          | Consumer guidance for choosing transport                             |
 | 9   | **P3**   | Add `example/` showing SSE + offline client reconnection with `WithReplayTimeout`      | Usage demo for the new feature                                       |

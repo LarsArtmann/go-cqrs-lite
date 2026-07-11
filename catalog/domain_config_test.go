@@ -3,7 +3,7 @@ package catalog_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
 
 func TestBuilder_ConfigureDomain_Sends(t *testing.T) {

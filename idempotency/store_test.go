@@ -9,7 +9,7 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/idempotency/v3"
+	"github.com/larsartmann/go-cqrs-lite/idempotency/v4"
 )
 
 func TestMemoryStore_CheckAndRecord_FirstCallSucceeds(t *testing.T) {

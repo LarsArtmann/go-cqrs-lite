@@ -3,7 +3,7 @@ package idtest
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 func parse[T any](tb testing.TB, s string, fn func(string) (T, error)) T {

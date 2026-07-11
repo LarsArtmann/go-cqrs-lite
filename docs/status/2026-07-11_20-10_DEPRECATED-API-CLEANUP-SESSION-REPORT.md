@@ -53,9 +53,9 @@ User asked whether the v4 task "Remove deprecated APIs — 8 aliases in event/ +
 
 ```
 go test -tags "goexperiment.arenas goexperiment.jsonv2" ./event/... ./query/... -count=1
-ok  github.com/larsartmann/go-cqrs-lite/event/v3          0.017s
-ok  github.com/larsartmann/go-cqrs-lite/query/v3          0.006s
-ok  github.com/larsartmann/go-cqrs-lite/query/v3/querytest 0.002s
+ok  github.com/larsartmann/go-cqrs-lite/event/v4          0.017s
+ok  github.com/larsartmann/go-cqrs-lite/query/v4          0.006s
+ok  github.com/larsartmann/go-cqrs-lite/query/v4/querytest 0.002s
 ```
 
 ---

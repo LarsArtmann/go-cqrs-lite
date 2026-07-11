@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/idempotency/v3"
-	"github.com/larsartmann/go-cqrs-lite/kv/v3"
+	"github.com/larsartmann/go-cqrs-lite/idempotency/v4"
+	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 
 func TestKVStore_SeenReturnsFalseForNewKey(t *testing.T) {

@@ -33,7 +33,7 @@ are complete and shipped.
 
 ```go
 // AFTER (v3)
-import cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v3"
+import cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 
 bus := cqrswatermill.NewEventBus()
 ```
@@ -145,7 +145,7 @@ broker, _ := middleware.NewSSEBroker(bus)
 handler := middleware.SSEHandler(broker)
 
 // AFTER (v3)
-import "github.com/larsartmann/go-cqrs-lite/transport/http/v3"
+import "github.com/larsartmann/go-cqrs-lite/transport/http/v4"
 broker, _ := http.NewSSEBroker(bus)
 handler := http.SSEHandler(broker)
 ```

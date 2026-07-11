@@ -1,7 +1,7 @@
 package schema
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
 type Upcaster interface {

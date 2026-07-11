@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog/v3/internal/cattest"
-	"github.com/larsartmann/go-cqrs-lite/catalog/v3/openapi"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/internal/cattest"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/openapi"
 )
 
 //nolint:gochecknoglobals // golden test pattern requires package-level flag

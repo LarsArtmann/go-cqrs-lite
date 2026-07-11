@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package cqrs.v1;
 
-option go_package = "github.com/larsartmann/go-cqrs-lite/transport/grpc/v3/proto;cqrsproto";
+option go_package = "github.com/larsartmann/go-cqrs-lite/transport/grpc/v4/proto;cqrsproto";
 
 // CommandEnvelope wraps a CQRS command for wire transmission.
 // The payload is JSON-encoded (matching the watermill protocol).

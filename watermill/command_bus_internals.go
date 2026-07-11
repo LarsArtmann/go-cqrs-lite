@@ -4,7 +4,7 @@ import (
 	"context"
 	"slices"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v3"
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
 )
 
 func (b *CommandBus) rebuildHandlerChain() {

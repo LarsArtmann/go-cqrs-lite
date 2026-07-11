@@ -3,8 +3,8 @@ package query
 import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
-	"github.com/larsartmann/go-cqrs-lite/metadata/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/metadata/v4"
 )
 
 // Type identifies a query type.

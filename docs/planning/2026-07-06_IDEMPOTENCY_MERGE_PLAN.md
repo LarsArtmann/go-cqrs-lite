@@ -3,13 +3,13 @@
 > **Status:** ✅ COMPLETED (2026-07-08)
 > **Effort:** ~30 minutes execution (mechanical moves + one new file)
 > **Risk:** Low — zero internal consumers, not in api-stability tracking, not in flake.nix testModules
-> **Breaking:** Import path change for external consumers (`idempotency/v3` → `middleware/v3/idempotency`). Pre-v4, acceptable.
+> **Breaking:** Import path change for external consumers (`idempotency/v4` → `middleware/v4/idempotency`). Pre-v4, acceptable.
 
 > ### ⚠ Architectural Deviation from Plan
 >
 > The plan below describes moving the Store primitive into `middleware/idempotency/`
 > (a sub-package sharing middleware's go.mod). **The actual implementation deviated:**
-> `idempotency/` was kept as a **separate lightweight module** (depends on `kv/v3` +
+> `idempotency/` was kept as a **separate lightweight module** (depends on `kv/v4` +
 > `go-error-family` only), and only the generic middleware factory was added to
 > `middleware/`.
 >
@@ -136,10 +136,10 @@ import (
     "errors"
     "time"
 
-    "github.com/larsartmann/go-cqrs-lite/command/v3"
-    "github.com/larsartmann/go-cqrs-lite/event/v3"
-    "github.com/larsartmann/go-cqrs-lite/middleware/v3/idempotency"
-    "github.com/larsartmann/go-cqrs-lite/query/v3"
+    "github.com/larsartmann/go-cqrs-lite/command/v4"
+    "github.com/larsartmann/go-cqrs-lite/event/v4"
+    "github.com/larsartmann/go-cqrs-lite/middleware/v4/idempotency"
+    "github.com/larsartmann/go-cqrs-lite/query/v4"
 )
 
 // NewIdempotency returns a generic middleware that rejects duplicate messages
@@ -248,7 +248,7 @@ This drops the `event/` dependency from the sub-package entirely. The sub-packag
 ### Before
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/idempotency/v3"
+import "github.com/larsartmann/go-cqrs-lite/idempotency/v4"
 
 store := idempotency.NewMemoryStore(5 * time.Minute)
 defer store.Close()
@@ -259,8 +259,8 @@ cmds.Use(idempotency.CommandIdempotency(store, 10*time.Minute, nil))
 
 ```go
 import (
-    "github.com/larsartmann/go-cqrs-lite/middleware/v3"
-    "github.com/larsartmann/go-cqrs-lite/middleware/v3/idempotency"
+    "github.com/larsartmann/go-cqrs-lite/middleware/v4"
+    "github.com/larsartmann/go-cqrs-lite/middleware/v4/idempotency"
 )
 
 store := idempotency.NewMemoryStore(5 * time.Minute)
@@ -287,7 +287,7 @@ One extra import line. Same `idempotency.` qualifier for the Store. Three messag
 | 1.3  | `git mv idempotency/doc.go middleware/idempotency/doc.go`                     | Package docs                                          |
 | 1.4  | `git mv idempotency/store_test.go middleware/idempotency/store_test.go`       | Store tests                                           |
 | 1.5  | `git mv idempotency/kv_store_test.go middleware/idempotency/kv_store_test.go` | KV store tests                                        |
-| 1.6  | Fix imports in moved test files                                               | `idempotency/v3` → `middleware/v3/idempotency`        |
+| 1.6  | Fix imports in moved test files                                               | `idempotency/v4` → `middleware/v4/idempotency`        |
 | 1.7  | Fix error classification in store.go + kv_store.go                            | `event.NewConflict` → `errorfamily.NewConflict`, etc. |
 | 1.8  | Update doc.go                                                                 | Package path, cross-references                        |
 
@@ -302,8 +302,8 @@ One extra import line. Same `idempotency.` qualifier for the Store. Three messag
 
 | Step | Action                                                            |
 | ---- | ----------------------------------------------------------------- |
-| 3.1  | Add `github.com/larsartmann/go-cqrs-lite/kv/v3` as direct require |
-| 3.2  | Add `replace github.com/larsartmann/go-cqrs-lite/kv/v3 => ../kv`  |
+| 3.1  | Add `github.com/larsartmann/go-cqrs-lite/kv/v4` as direct require |
+| 3.2  | Add `replace github.com/larsartmann/go-cqrs-lite/kv/v4 => ../kv`  |
 | 3.3  | Run `cd middleware && GOWORK=off go mod tidy`                     |
 
 ### Phase 4: Delete old module

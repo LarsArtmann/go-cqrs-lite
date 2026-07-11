@@ -4,6 +4,70 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [4.0.0] - 2026-07-11
+
+**Major version cut — CBOR defaults, API cleanup, BackfillHandler consolidation.**
+
+This release flips all codec defaults from JSON to CBOR (with full backward
+compatibility via envelope wrapping), removes deprecated APIs, consolidates
+the SSE backfill API, and migrates module paths to `/v4`.
+
+See [`docs/migration/MIGRATION-GUIDE.md`](docs/migration/MIGRATION-GUIDE.md)
+for step-by-step upgrade instructions.
+
+### Breaking Changes
+
+1. **Module path migration `/v4` → `/v4`** — All 49 `go.mod` files and every
+   import path updated. Consumers must update `go.mod` require directives and
+   all import statements. `go mod tidy` resolves most of this automatically.
+
+2. **Codec defaults flipped to CBOR** — `event.DefaultCodec`, `kv.NewTypedStore`,
+   `snapshot.NewTypedStore`, `command.NewTypedStore`, `query.NewTypedStore`,
+   and `stack.ReadModel`/`Materialize` all default to `CBORCodec` instead of
+   `JSONCodec`. **No data migration required** — envelope wrapping (ADR-0044)
+   stamps the encoding on every write and auto-detects on read. Old JSON data
+   is transparently handled via the permanent JSONCodec fallback (ADR-0050).
+   See ADR-0053 for the full rationale.
+
+3. **Deprecated aliases removed** — 8 event/+schema/ aliases deleted
+   (`AggregateRef`, `Tracing`, `CustomData`, etc.). `event.WithNewCodec`
+   removed (use `WithCodec`). `event.WithReplay` removed (use
+   `WithProcessingMode`). `query.Handler` deprecation notice removed.
+
+4. **`BackfillHandler` signature changed** — Now takes `*SSEBroker` instead of
+   `event.SeekableJournal`. The broker's journal and payload transform are used
+   directly, unifying SSE and REST backfill under a single codec configuration.
+   `BackfillHandlerWithTransform` removed (consolidated — configure the
+   transform on the broker via `WithPayloadTransform`).
+
+### Migration
+
+```go
+// Before (v3):
+import "github.com/larsartmann/go-cqrs-lite/event/v4"
+handler := http.BackfillHandler(journal)
+
+// After (v4):
+import "github.com/larsartmann/go-cqrs-lite/event/v4"
+handler := http.BackfillHandler(broker) // broker must have WithReconnectJournal
+```
+
+Codec defaults: no action needed. Old data reads correctly. New data is CBOR.
+To revert process-wide: `event.DefaultCodec = codec.JSONCodec{}`.
+
+### Added
+
+- **`HealthCheck` on `OwnedDBHandle`** — all SQL stores (event, snapshot,
+  checkpoint, command, query) now inherit `HealthCheck(ctx)` via embedding.
+  Previously only `*SQLEventStore` implemented it.
+- **`SSEBroker.Journal()` and `SSEBroker.PayloadTransform()` accessors** —
+  exposed for `BackfillHandler` and consumer introspection.
+- **ADR-0053** — Unified codec default flip rationale and backward-compat
+  guarantees.
+- **Envelope backward-compat integration tests** — `kv.TestTypedStore_Migration_*`
+  verify old raw JSON data reads through new CBOR-default stores, and mixed
+  old+new data coexists correctly.
+
 ## [Unreleased]
 
 ### Added
@@ -157,7 +221,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Database driver classifiers** — SQLite BUSY/LOCKED→Transient, CONSTRAINT→Conflict;
   Postgres SQLSTATE class mappings. Registered via `init()` in `storage/sql/classify_init.go`.
 
-#### Idempotency Middleware — Generic Factory (`middleware/v3`)
+#### Idempotency Middleware — Generic Factory (`middleware/v4`)
 
 - **`middleware.NewIdempotency[M]`** — generic idempotency middleware factory following the
   `NewValidation[M]` / `NewTracing[M]` pattern. Works for all 3 CQRS message types:
@@ -230,12 +294,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`scripts/check-module-layers.sh`** — dependency budget violations fixed (deriver=4,
   stack=14). projectionhost raised 7→9, watermill raised 8→9 (SQLite DLQ + metadata extraction).
 
-#### Idempotency Module Slimmed Down (`idempotency/v3`)
+#### Idempotency Module Slimmed Down (`idempotency/v4`)
 
 - Removed `idempotency.CommandIdempotency`, `idempotency.KeyExtractor`, and
   `idempotency.CommandIDKey` — replaced by the generic `middleware.CommandIdempotency` factory.
-- Module dependencies reduced: `command/v3` and `id/v3` dropped from direct deps. Now depends on
-  `kv/v3` + `go-error-family` only.
+- Module dependencies reduced: `command/v4` and `id/v4` dropped from direct deps. Now depends on
+  `kv/v4` + `go-error-family` only.
 - Layer changed from Layer 2 (→command, event, id, kv) to Layer 1 (→kv).
 - Added to `flake.nix` testModules and `cmd/api-stability` module tracking (was missing from both
   since module creation).
@@ -272,7 +336,7 @@ without.
 - **CHANGELOG.md** — added [3.7.0] section (was missing from the v3.7.0 release).
 - **flake.nix** — package version bumped to 3.7.0 (was stale at 3.6.0).
 - **v4-WISHLIST.md** — "Current major" updated to v3.7.0 (was stale at v3.4.0).
-- **otel/v3.7.0** tagged for version-line consistency (module unchanged since v3.5.0).
+- **otel/v4.7.0** tagged for version-line consistency (module unchanged since v3.5.0).
 
 ### Verified
 
@@ -285,7 +349,7 @@ without.
 
 ### Added
 
-#### Dedup — Bounded Dedup Ring Buffer (`dedup/v3`, first release)
+#### Dedup — Bounded Dedup Ring Buffer (`dedup/v4`, first release)
 
 - **`dedup.Ring`** — O(1) fixed-capacity ID deduplication for stream boundaries.
   Extracted from the inline SSE and watermill implementations into a reusable
@@ -350,8 +414,8 @@ without.
 
 ### Infrastructure
 
-- **47 modules tagged at v3.7.0** (including first-ever `dedup/v3.7.0` and
-  version-line-consistency tag for `otel/v3.7.0`).
+- **47 modules tagged at v3.7.0** (including first-ever `dedup/v4.7.0` and
+  version-line-consistency tag for `otel/v4.7.0`).
 - Replace directives completed across all modules for GOWORK=off build correctness.
 - Go toolchain at 1.26.4.
 
@@ -361,7 +425,7 @@ without.
 
 ### Added
 
-#### Deriver — Event→Command Derivation (`deriver/v3`, `example/taskmanager`)
+#### Deriver — Event→Command Derivation (`deriver/v4`, `example/taskmanager`)
 
 - **`deriver.Deriver`** — reacts to events by deriving new commands. Chainable `Then`,
   `Filter`, `Idempotent`, and `AsHandler` operators for declarative event→command
@@ -410,9 +474,9 @@ Infrastructure / Corruption via `go-error-family`) across all production modules
   roundtrips correctly (`example/taskmanager/projection.go`).
 - **Event signing middleware wiring** — signing middleware now correctly wired via
   EventBus type assertion instead of direct `UsePublish`.
-- **eventtest module path** — moved to `event/v3/eventtest/` to match the Go module
+- **eventtest module path** — moved to `event/v4/eventtest/` to match the Go module
   path spec for VCS resolution (ADR-0045). Fixes `go mod tidy` warnings.
-- **Invalid v0 pseudo-versions** — corrected pseudo-versions for `/v3` module paths
+- **Invalid v0 pseudo-versions** — corrected pseudo-versions for `/v4` module paths
   in cross-module `go.mod` dependencies.
 - **go.mod/go.sum stabilization** — convergence tidy across all modules; workspace
   replace directives aligned for consistent local resolution.
@@ -423,7 +487,7 @@ Infrastructure / Corruption via `go-error-family`) across all production modules
 
 ### Added
 
-#### CBOR Adoption Primitives — `event/v3`, `stack/v3`
+#### CBOR Adoption Primitives — `event/v4`, `stack/v4`
 
 - **`event.DefaultCodec`** — mutable package-level variable (like `http.DefaultClient`)
   that controls the codec used by `event.New()` when no `WithCodec` option is passed.
@@ -435,7 +499,7 @@ Infrastructure / Corruption via `go-error-family`) across all production modules
 - **`Bundle.EventCodec()`** — accessor for the event payload codec. Falls back to
   `event.DefaultCodec` when unset.
 
-#### Codec Utilities — `codec/v3`
+#### Codec Utilities — `codec/v4`
 
 - **`AutoDetect(data []byte) Encoding`** — sniffs the serialization format from raw
   bytes by examining structural first-byte patterns. Distinguishes JSON from CBOR.
@@ -445,7 +509,7 @@ Infrastructure / Corruption via `go-error-family`) across all production modules
 - **`keyasint` example** — `ExampleCBORCodec_keyasint` demonstrating CBOR integer keys
   (CWT claim registry pattern) for 22% size reduction over string keys.
 
-#### gRPC Codec Injection — `transport/grpc/v3`
+#### gRPC Codec Injection — `transport/grpc/v4`
 
 - **`WithCodec(c codec.Codec) Option`** — shared functional option for
   `RegisterQueryService`, `NewQueryClient` (and future command/event transport).
@@ -456,7 +520,7 @@ Infrastructure / Corruption via `go-error-family`) across all production modules
 - **`QueryClient.codec`** — query results are decoded with the configured codec
   instead of hardcoded `json.Unmarshal`.
 
-#### Encryption Encoding Fix — `encryption/v3`
+#### Encryption Encoding Fix — `encryption/v4`
 
 - **Encoding preservation through middleware** — `AttachEncryption` and
   `decryptEvent` now preserve the original event's `Encoding()` stamp. Previously,
@@ -466,7 +530,7 @@ Infrastructure / Corruption via `go-error-family`) across all production modules
   serialization. For event payloads, use `EncryptMiddleware`/`DecryptMiddleware`,
   which preserves the encoding stamp.
 
-#### Encryption Validation Tests — `schema/v3`
+#### Encryption Validation Tests — `schema/v4`
 
 - **`TestValidator_EncryptedEncoding_RejectedGracefully`** — encrypted events
   (encoding="encrypted") produce a clean Rejection error, not a panic.
@@ -475,7 +539,7 @@ Infrastructure / Corruption via `go-error-family`) across all production modules
 - **`TestValidator_EncryptedEncoding_WithCustomDecoder`** — consumers can register
   a custom decoder for the "encrypted" encoding.
 
-#### Mixed-Stream Decode — `codec/v3`, `event/v3`
+#### Mixed-Stream Decode — `codec/v4`, `event/v4`
 
 - **`codec.ForEncoding(enc Encoding) (Codec, error)`** — resolves the built-in codec
   for a given encoding stamp. Returns `JSONCodec` for JSON, `CBORCodec` for CBOR,
@@ -487,13 +551,13 @@ Infrastructure / Corruption via `go-error-family`) across all production modules
   `DecodePayload` rejected events whose encoding didn't match the caller-provided
   codec — making JSON→CBOR migration impossible without manual branching.
 
-#### gRPC Query Tests — `transport/grpc/v3`
+#### gRPC Query Tests — `transport/grpc/v4`
 
 - **Query round-trip test coverage** — the query gRPC service had ZERO test coverage.
   Added tests for JSON round-trip, CBOR round-trip (with `WithCodec`), handler error
   propagation, and codec mismatch detection.
 
-#### Encryption Integration Test — `integration/v3/encryption`
+#### Encryption Integration Test — `integration/v4/encryption`
 
 - **CBOR event through encrypt→decrypt** — integration test verifying CBOR events
   survive the encrypt→bus→decrypt cycle with encoding stamp preserved, and
@@ -510,7 +574,7 @@ Infrastructure / Corruption via `go-error-family`) across all production modules
 - **`example/deployer-first`** — refactored to use `event.New()` with typed payloads
   (instead of pre-marshaled JSON bytes) and `stack.WithEventCodec(CBORCodec{})`.
 
-#### CBOR as Recommended Default — `codec/v3`
+#### CBOR as Recommended Default — `codec/v4`
 
 - **CBOR listed first** in README, doc.go, and examples with "Recommended" badge.
   JSON remains fully supported as the interop/debugging codec.
@@ -532,7 +596,7 @@ Infrastructure / Corruption via `go-error-family`) across all production modules
 - **Property-based roundtrip tests** (`pgregory.net/rapid`) — 4 tests proving
   JSON, CBOR, CBORCompact all roundtrip correctly, plus CBOR determinism property.
 
-#### Stack-Level Default Codec — `stack/v3`
+#### Stack-Level Default Codec — `stack/v4`
 
 - **`WithDefaultCodec(c codec.Codec) Option`** — set a bundle-level default codec.
   Defaults to `CBORCodec{}` (changed from JSON).
@@ -540,7 +604,7 @@ Infrastructure / Corruption via `go-error-family`) across all production modules
 - **`ReadModel()` and `NewMaterialize()`** — use `DefaultCodec()` instead of
   hardcoded `JSONCodec{}` when the caller passes nil codec.
 
-#### Encoding-Aware Validator — `schema/v3`
+#### Encoding-Aware Validator — `schema/v4`
 
 - **`WithCodec(c codec.Codec) ValidatorOption`** — replaces the old
   `func([]byte, any) error` parameter with a type-safe `codec.Codec` interface.
@@ -555,7 +619,7 @@ Infrastructure / Corruption via `go-error-family`) across all production modules
 
 ### Changed
 
-#### Symmetric Encoding Validation — `event/v3`
+#### Symmetric Encoding Validation — `event/v4`
 
 - **`validateEncodingMatch` is now symmetric.** Previously, JSON events got a free
   pass — a JSON event decoded with CBORCodec would bypass validation and fail with
@@ -589,7 +653,7 @@ Infrastructure / Corruption via `go-error-family`) across all production modules
 
 ### Added
 
-#### Managed Projection Host — `projectionhost/v3`
+#### Managed Projection Host — `projectionhost/v4`
 
 - **`Host`** — managed lifecycle for projection workers: per-projection
   goroutines, crash auto-restart with exponential backoff, checkpoint
@@ -602,13 +666,13 @@ Infrastructure / Corruption via `go-error-family`) across all production modules
   lifecycle events (crashes, restarts, DLQ captures). Default: `slog.Default()`.
 - **`MemoryDeadLetterStore`** — in-memory `DeadLetterStore` for dev/test.
 
-#### Scenario-Testing DSL — `scenario/v3`
+#### Scenario-Testing DSL — `scenario/v4`
 
 - Fluent BDD harness: `Given[Cmd,State](t, apply, initial, events...).When(cmd,
 decide).Then(types...)`, plus `ThenError`, `ThenState`, and projection
   `GivenProjection/ThenNoError` (framework gap A5).
 
-#### Scheduling — `scheduling/v3`
+#### Scheduling — `scheduling/v4`
 
 - Durable deadline timers: `TimerStore` (`Schedule`/`Due`/`MarkFired`/`Cancel`),
   `MemoryTimerStore`, and `Scheduler` with configurable poll interval and retry.
@@ -644,10 +708,10 @@ decide).Then(types...)`, plus `ThenError`, `ThenState`, and projection
 
 ### Changed
 
-- **`testing/v3` renamed to `scenario/v3`** — avoids collision with Go's stdlib
+- **`testing/v4` renamed to `scenario/v4`** — avoids collision with Go's stdlib
   `testing` package in import paths. The package name is now `scenario`
-  (`scenario.Given[...]`). Consumers importing `testing/v3` must update to
-  `scenario/v3`.
+  (`scenario.Given[...]`). Consumers importing `testing/v4` must update to
+  `scenario/v4`.
 - **`scheduling.WithLogger`** — previously a no-op (discarded the logger); now
   correctly wires the injected `*slog.Logger`.
 - **`scenario.DecideFunc` doc** — corrected the false "import cycle" claim;
@@ -735,7 +799,7 @@ decide).Then(types...)`, plus `ThenError`, `ThenState`, and projection
 
 ### Added
 
-#### catalog/v3.2.0
+#### catalog/v4.2.0
 
 - **`catalog/simple` sub-package** — single-service Builder facade (`New`,
   `Command[T]`, `Query[T]`, `Event[T]`, `Build`, `BuildValid`) with auto-kebab
@@ -787,7 +851,7 @@ decide).Then(types...)`, plus `ThenError`, `ThenState`, and projection
 
 - `event.Projection` → `projection.Projection`
 - `event.NewProjection` → `projection.NewProjection`
-- **Migration:** change imports from `event/v3` to `projection/v3` for Projection
+- **Migration:** change imports from `event/v4` to `projection/v4` for Projection
   types. All other event types (`Event`, `Type`, `Store`, etc.) remain in `event/`.
 - **Rationale:** Projections are event CONSUMERS. The Projection interface had zero
   internal consumers in `event/` — it was a layering inversion. Moving it establishes
@@ -827,7 +891,7 @@ decide).Then(types...)`, plus `ThenError`, `ThenState`, and projection
 - **`scripts/check-arch.sh`** — two-layer arch enforcement (cross-module via
   go.mod parsing + intra-module via go-arch-lint). Wired as `nix run .#check-arch`.
 - **`storage/.go-arch-lint.yml`** — first per-module arch-lint config.
-- Stack dep budget bumped from 12 to 13 (added `projection/v3` dependency).
+- Stack dep budget bumped from 12 to 13 (added `projection/v4` dependency).
 
 #### ADRs
 
@@ -934,7 +998,7 @@ decide).Then(types...)`, plus `ThenError`, `ThenState`, and projection
 
 ## [3.0.0] - 2026-06-22
 
-**Major release — tagged.** All 38 modules migrated to `/v3` import paths. The 11 breaking changes are additive in nature (the new shapes existed in v2). See the **[v3 Migration Guide](docs/migration/V3_MIGRATION.md)** for step-by-step instructions.
+**Major release — tagged.** All 38 modules migrated to `/v4` import paths. The 11 breaking changes are additive in nature (the new shapes existed in v2). See the **[v3 Migration Guide](docs/migration/V3_MIGRATION.md)** for step-by-step instructions.
 
 ### Breaking Changes
 
@@ -971,7 +1035,7 @@ decide).Then(types...)`, plus `ThenError`, `ThenState`, and projection
 
 ### Changed
 
-- **Module paths** — All 38 modules migrated from `…/v2` to `…/v3` import paths (e.g. `github.com/larsartmann/go-cqrs-lite/event/v3`). Consumers update `go get` targets and import statements. The `example/*` modules remain unversioned.
+- **Module paths** — All 38 modules migrated from `…/v2` to `…/v4` import paths (e.g. `github.com/larsartmann/go-cqrs-lite/event/v4`). Consumers update `go get` targets and import statements. The `example/*` modules remain unversioned.
 - **Zero-panic API migration** — All production `panic()` calls converted to error returns. Breaking signature changes:
   - `pebble.NewStore/NewSnapshotStore/NewCheckpointStore/NewKVStore/NewQueryStore/NewCommandStore` now return `(T, error)` — returns `ErrNilDatabase` (classified as `Rejection`) if db is nil.
   - `pebble.NewBackend` now returns `(*Backend, error)`.

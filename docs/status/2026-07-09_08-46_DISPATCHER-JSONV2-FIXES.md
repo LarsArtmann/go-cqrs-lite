@@ -82,7 +82,7 @@ The comment "Middleware must be configured BEFORE handlers are registered — th
 
 Ran `go mod tidy -e` across all 49 modules. Key outcome:
 
-- `command/go.mod`: `event/v3` demoted from direct to `// indirect` — confirms the extraction broke the compile dependency completely. Zero Go files in `command/` (not even tests) import `event/`.
+- `command/go.mod`: `event/v4` demoted from direct to `// indirect` — confirms the extraction broke the compile dependency completely. Zero Go files in `command/` (not even tests) import `event/`.
 
 ### 7. Deterministic Placement Audit — DONE
 

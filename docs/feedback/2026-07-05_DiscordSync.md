@@ -56,11 +56,11 @@ Four lines, complete observability stack. Ordering matters (tracing first so the
 
 The SSE reconnection replay uses this for cursor-based replay from the last event ID. No full journal scan. The `JournalSSEStore` in cqrs-htmx wraps this perfectly.
 
-### 8. `scenario/v3` BDD DSL for projection testing
+### 8. `scenario/v4` BDD DSL for projection testing
 
 `GivenProjection`/`ThenNoError` reads like a spec document. We use it in `scenario_poc_test.go`.
 
-### 9. `testutil/v3` Rapid property-based test generators
+### 9. `testutil/v4` Rapid property-based test generators
 
 `EventType`, `AggregateType`, `Version`, `MetadataMap` generators for property-based testing with `pgregory.net/rapid`. Our idempotency test runs 100 random events through the projection and asserts byte-exact SQL equality.
 
@@ -68,9 +68,9 @@ The SSE reconnection replay uses this for cursor-based replay from the last even
 
 ## What's Painful
 
-### 1. The `event/v3/eventtest` tagless nested module breaks local `go mod tidy`
+### 1. The `event/v4/eventtest` tagless nested module breaks local `go mod tidy`
 
-`go-cqrs-lite/event/v3` test files import `event/v3/eventtest` (`event/eventtest/go.mod`), which has no published version. **Local `go mod tidy` fails on the host.** The authoritative tidy runs inside the Nix sandbox where `mkPreparedSource` auto-discovers all nested go.mod files.
+`go-cqrs-lite/event/v4` test files import `event/v4/eventtest` (`event/eventtest/go.mod`), which has no published version. **Local `go mod tidy` fails on the host.** The authoritative tidy runs inside the Nix sandbox where `mkPreparedSource` auto-discovers all nested go.mod files.
 
 This is documented in our AGENTS.md but it's a real pain point — every developer who clones go-cqrs-lite and runs `go mod tidy` hits this.
 
@@ -80,7 +80,7 @@ This is documented in our AGENTS.md but it's a real pain point — every develop
 
 The dependency layering (Layer 0–6) is well-documented, but discovering which module contains which type/API requires the skill file's decision matrix. Consumers import from 14 separate module paths.
 
-**Impact:** `go.mod` has 16 direct go-cqrs-lite dependencies. Version drift is a constant risk (we have `dispatcher/v3` at v3.3.0 while everything else is v3.5.0).
+**Impact:** `go.mod` has 16 direct go-cqrs-lite dependencies. Version drift is a constant risk (we have `dispatcher/v4` at v3.3.0 while everything else is v3.5.0).
 
 **Suggestion:** Consider a "bundle" meta-module for the common case (event + storage + projection + projectionhost + watermill + codec + middleware + otel + prometheus). One import, one version.
 
@@ -96,7 +96,7 @@ Our projection handlers are idempotent by design (INSERT OR REPLACE, INSERT OR I
 
 **Impact:** We wrote our own idempotency tests (`property_test.go`, 100 rapid iterations) to verify replaying yields identical SQL. This works but it's consumer-implemented.
 
-**Suggestion:** Consider adding `idempotency/v3` integration at the projectionhost level — track processed event IDs per projection, skip already-processed events on replay. (The `WithSubscriber` dedup handles the replay→live boundary, but not cross-restart replay idempotency.)
+**Suggestion:** Consider adding `idempotency/v4` integration at the projectionhost level — track processed event IDs per projection, skip already-processed events on replay. (The `WithSubscriber` dedup handles the replay→live boundary, but not cross-restart replay idempotency.)
 
 ### 5. The `storage` package restructure (v3.5.0) into `view/relational/` subdirs
 
@@ -134,16 +134,16 @@ DiscordSync captures Discord Gateway events. The pattern is: receive WebSocket e
 
 | Module                | Why                                                            |
 | --------------------- | -------------------------------------------------------------- |
-| `command/v3`          | DiscordSync captures external events, doesn't issue commands   |
-| `decider/v3`          | No aggregate decision logic. Events are captured, not decided. |
-| `snapshot/v3`         | No aggregate state to snapshot. Projections ARE the state.     |
-| `listing/v3`          | SQL read model handles listing with cursors                    |
-| `query/v3`            | The 49-method Database interface IS the query layer            |
-| `kv/v3`               | No key-value storage need. SQLite handles everything.          |
+| `command/v4`          | DiscordSync captures external events, doesn't issue commands   |
+| `decider/v4`          | No aggregate decision logic. Events are captured, not decided. |
+| `snapshot/v4`         | No aggregate state to snapshot. Projections ARE the state.     |
+| `listing/v4`          | SQL read model handles listing with cursors                    |
+| `query/v4`            | The 49-method Database interface IS the query layer            |
+| `kv/v4`               | No key-value storage need. SQLite handles everything.          |
 | `stack/*` presets     | Shared DB architecture — presets create separate `*sql.DB`     |
-| `schema/v3` Validator | Go typed structs ARE the schema validation                     |
-| `signing/v3`          | No security requirement for a personal backup                  |
-| `encryption/v3`       | Same                                                           |
+| `schema/v4` Validator | Go typed structs ARE the schema validation                     |
+| `signing/v4`          | No security requirement for a personal backup                  |
+| `encryption/v4`       | Same                                                           |
 | `transport/grpc`      | No gRPC transport need                                         |
 
 ---
@@ -166,7 +166,7 @@ The skill file (`/.agents/skills/go-cqrs-lite/SKILL.md`) is **the best skill fil
 - **The `eventtest` gotcha isn't mentioned** — consumers will hit `go mod tidy` failures and not know why
 - **`projectionhost` lifecycle isn't documented** — the replay → live transition, checkpoint behavior, and DLQ flow need a sequence diagram
 - **No guidance on projection idempotency** — consumers must implement and test this themselves
-- **The `scenario/v3` BDD DSL needs more examples** — the skill mentions it but doesn't show a complete Given/When/Then
+- **The `scenario/v4` BDD DSL needs more examples** — the skill mentions it but doesn't show a complete Given/When/Then
 
 ---
 
@@ -215,4 +215,4 @@ The skill file (`/.agents/skills/go-cqrs-lite/SKILL.md`) is **the best skill fil
 | eventtest gotcha not mentioned          | ✅ Added to FAQ                         |
 | projectionhost lifecycle not documented | ✅ Added lifecycle + integration recipe |
 | No guidance on projection idempotency   | ✅ Added patterns                       |
-| scenario/v3 needs more examples         | ✅ Added `GivenState` example           |
+| scenario/v4 needs more examples         | ✅ Added `GivenState` example           |

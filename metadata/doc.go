@@ -21,7 +21,7 @@
 //
 // # Usage
 //
-//	import "github.com/larsartmann/go-cqrs-lite/metadata/v3"
+//	import "github.com/larsartmann/go-cqrs-lite/metadata/v4"
 //
 //	type MyKey string
 //

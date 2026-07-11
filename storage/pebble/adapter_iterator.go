@@ -6,7 +6,7 @@ import (
 	"github.com/cockroachdb/pebble"
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/kv/v3"
+	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 
 type pebbleIterator struct {

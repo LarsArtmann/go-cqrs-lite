@@ -50,7 +50,7 @@
 
 - 4 alias files deleted (`aggregate_ref.go`, `customdata.go`, `custommap.go`, `tracing.go`).
 - `deprecated_alias_test.go` deleted (tested aliases that no longer exist).
-- All internal usages in `event/` and `event/v3/eventtest/` updated.
+- All internal usages in `event/` and `event/v4/eventtest/` updated.
 - All doc references in `SKILL.md` and `AGENTS.md` fixed.
 
 ### Other Completed Items

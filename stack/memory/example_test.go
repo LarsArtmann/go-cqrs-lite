@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v3"
-	"github.com/larsartmann/go-cqrs-lite/kv/v3"
-	stackmemory "github.com/larsartmann/go-cqrs-lite/stack/memory/v3"
-	"github.com/larsartmann/go-cqrs-lite/stack/v3"
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
+	"github.com/larsartmann/go-cqrs-lite/kv/v4"
+	stackmemory "github.com/larsartmann/go-cqrs-lite/stack/memory/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 )
 
 // ExampleNew shows the canonical Bundle entry point. A single call wires every

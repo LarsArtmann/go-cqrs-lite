@@ -7,11 +7,11 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 	"golang.org/x/sync/singleflight"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
-	"github.com/larsartmann/go-cqrs-lite/snapshot/v3"
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
+	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 )
 
 // Decider defines how to reconstruct state from events.

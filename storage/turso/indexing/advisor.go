@@ -11,7 +11,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 var (

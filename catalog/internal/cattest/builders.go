@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
 
 func NewRegistry(tb testing.TB, title, version string) *catalog.Registry {

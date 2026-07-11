@@ -1,13 +1,13 @@
 # cqrs-gen — Code Generator
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v3.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v4)
 
 CLI tool that scans Go source files for `//cqrs:command` or `//cqrs:query` marker comments on type declarations and emits typed handler-registration boilerplate (`handlers_gen.go`). Eliminates repetitive `RegisterTyped` call sites.
 
 ## Install
 
 ```bash
-go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v3@latest
+go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v4@latest
 ```
 
 ## Usage

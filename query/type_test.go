@@ -3,7 +3,7 @@ package query_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
 
 func TestType_IsZero(t *testing.T) {

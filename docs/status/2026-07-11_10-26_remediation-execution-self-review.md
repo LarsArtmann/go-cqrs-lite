@@ -38,7 +38,7 @@ The auto-commit (see D1) captured code changes + documentation, but TODO_LIST.md
 
 ### B3. 4 residual go.mod/go.sum files have metadata version bumps
 
-`projection/go.mod`, `scenario/go.mod`, `snapshot/go.mod`, `event/v3/eventtest/go.mod` all have `metadata/v3` version bumps from `go work sync` that weren't captured in the auto-commit. These are indirect dependency version bumps (`v3.0.0-20260711075750-ede4dbf781b3` → `v3.0.0-20260711081559-0fef413ebee3`).
+`projection/go.mod`, `scenario/go.mod`, `snapshot/go.mod`, `event/v4/eventtest/go.mod` all have `metadata/v4` version bumps from `go work sync` that weren't captured in the auto-commit. These are indirect dependency version bumps (`v3.0.0-20260711075750-ede4dbf781b3` → `v3.0.0-20260711081559-0fef413ebee3`).
 
 ---
 
@@ -78,7 +78,7 @@ The auto-commit (see D1) captured code changes + documentation, but TODO_LIST.md
 I listed Task 6 as "verify go.work sync" and ran `go work sync`. This command REWRITES go.mod files. It even printed a SECURITY ERROR:
 
 ```
-verifying github.com/larsartmann/go-cqrs-lite/testutil/v3@v3.7.3: checksum mismatch
+verifying github.com/larsartmann/go-cqrs-lite/testutil/v4@v3.7.3: checksum mismatch
     downloaded: h1:WtKw6rG+eObll74uAIe/ski8kbZ+y+SX2alVfepuVsg=
     go.sum:     h1:VwHmDHaSk1XbOHYcaf3EvWQ2Ugut/WC1V0BspUfox+g=
 SECURITY ERROR
@@ -138,7 +138,7 @@ The code was dead (the `var _ =` doesn't actually enforce anything), but the COM
 
 5. **When you identify a doc gap (SKILL.md), CLOSE IT.** Don't update 4 out of 5 files that need changes and call it done. Grep ALL files that reference the API.
 
-6. **Question budget increases.** Raising projectionhost from 7→9 and watermill from 8→9 was the easy path. The real question: does projectionhost need `codec/v3` as a direct dep? Could it be indirect? Could the SQLite DLQ avoid importing codec by using `database/sql` scan directly?
+6. **Question budget increases.** Raising projectionhost from 7→9 and watermill from 8→9 was the easy path. The real question: does projectionhost need `codec/v4` as a direct dep? Could it be indirect? Could the SQLite DLQ avoid importing codec by using `database/sql` scan directly?
 
 7. **Run `nix flake check` after changing ANY file used by the flake.** `scripts/check-module-layers.sh` is called by the flake. Changing it requires re-running flake check.
 
@@ -208,8 +208,8 @@ The code was dead (the `var _ =` doesn't actually enforce anything), but the COM
 
 ### Architecture improvements
 
-34. **Investigate projectionhost codec dep** — can `codec/v3` be indirect? Would reduce budget from 9→8.
-35. **Investigate watermill metadata dep** — can `metadata/v3` be indirect? Would reduce budget from 9→8.
+34. **Investigate projectionhost codec dep** — can `codec/v4` be indirect? Would reduce budget from 9→8.
+35. **Investigate watermill metadata dep** — can `metadata/v4` be indirect? Would reduce budget from 9→8.
 36. **Consider `BackfillHandler` taking `*SSEBroker` in v4** — cleaner architecture.
 
 ### Codebase hygiene

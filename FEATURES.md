@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-07-11 (DLQ production hardening: DeadLetterStoreAdmin interface with Count/ListPaged/PurgeBefore, DLQ index optimization, DLQ serialization docs; VersionedSeekableJournal property tests + benchmarks; SKILL.md new API docs) · **Module count:** 48 modules in `go.work` (49 `go.mod` files incl. eventtest) · **Go version:** 1.26.3
+**Last audited:** 2026-07-11 (v4 release: codec default flip to CBOR, BackfillHandler consolidation, HealthCheck on OwnedDBHandle, envelope backward-compat tests, ADR-0053) · **Module count:** 48 modules in `go.work` (49 `go.mod` files incl. eventtest) · **Go version:** 1.26.3
 
 ## Status Legend
 
@@ -23,7 +23,7 @@
 
 ### Command Dispatcher ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/command/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/command/v4"`
 
 | Feature                  | Detail                                                                                                                                             | Status |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -45,7 +45,7 @@
 
 ### Query Dispatcher ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/query/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/query/v4"`
 
 | Feature                | Detail                                                                             | Status |
 | ---------------------- | ---------------------------------------------------------------------------------- | ------ |
@@ -68,7 +68,7 @@
 
 ### Event System ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/event/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/event/v4"`
 
 | Feature               | Detail                                                                                                                                                                                                                                                                                                                                      | Status |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -111,7 +111,7 @@
 
 ### Decider (Pure-Function Aggregate) ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/decider/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/decider/v4"`
 
 | Feature              | Detail                                                                                           | Status |
 | -------------------- | ------------------------------------------------------------------------------------------------ | ------ |
@@ -131,7 +131,7 @@
 
 ### Branded IDs ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/id/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/id/v4"`
 
 | Feature                | Detail                                                                                                                                                        | Status |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -147,7 +147,7 @@
 
 ### Generic Dispatcher ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/dispatcher/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/dispatcher/v4"`
 
 | Feature             | Detail                                                         | Status |
 | ------------------- | -------------------------------------------------------------- | ------ |
@@ -158,7 +158,7 @@
 
 ### Idempotency ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/idempotency/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/idempotency/v4"`
 
 | Feature         | Detail                                                                                                        | Status |
 | --------------- | ------------------------------------------------------------------------------------------------------------- | ------ |
@@ -177,8 +177,8 @@
 
 ### Dead-Letter Queue ✅ FULLY_FUNCTIONAL
 
-> Dispatch-side: `import "github.com/larsartmann/go-cqrs-lite/middleware/v3"`
-> Projection-side: `import "github.com/larsartmann/go-cqrs-lite/projectionhost/v3"`
+> Dispatch-side: `import "github.com/larsartmann/go-cqrs-lite/middleware/v4"`
+> Projection-side: `import "github.com/larsartmann/go-cqrs-lite/projectionhost/v4"`
 
 Two intentionally separate dead-letter systems (ADR-0043): dispatch-side captures
 commands/events/queries that exhausted retries in the middleware pipeline;
@@ -207,7 +207,7 @@ DLQ (above) + managed projection host + scheduled deadlines.
 
 ### Managed Projection Host ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/projectionhost/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/projectionhost/v4"`
 
 The "last loop every consumer rewrites", as a library module. Composes any
 `event.SeekableJournal` + `event.CheckpointStore` + `projection.Projection`s
@@ -231,7 +231,7 @@ live (push) delivery alongside replay, pair with `watermill/CatchUpSubscriber`.
 
 ### Scheduling (Durable Deadlines) ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/scheduling/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/scheduling/v4"`
 
 Classic ES need — "cancel the order 30 minutes after creation if still unpaid" —
 as a library primitive.
@@ -249,7 +249,7 @@ as a library primitive.
 
 ## Schema Evolution ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/schema/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/schema/v4"`
 
 | Feature                  | Detail                                                                                                    | Status |
 | ------------------------ | --------------------------------------------------------------------------------------------------------- | ------ |
@@ -266,7 +266,7 @@ as a library primitive.
 
 ## Snapshot ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/snapshot/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/snapshot/v4"`
 
 | Feature          | Detail                                                                              | Status |
 | ---------------- | ----------------------------------------------------------------------------------- | ------ |
@@ -281,24 +281,26 @@ as a library primitive.
 
 ## Payload Codec ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/codec/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/codec/v4"`
 
-| Feature            | Detail                                                                      | Status |
-| ------------------ | --------------------------------------------------------------------------- | ------ |
-| Codec interface    | `Codec` — `Encoding()`, `Encode(v)`, `Decode(data, v)`                      | ✅     |
-| JSON codec         | `JSONCodec` — standard JSON encoding                                        | ✅     |
-| CBOR codec         | `CBORCodec` — deterministic canonical CBOR with sorted map keys             | ✅     |
-| CBOR compact codec | `CBORCompactCodec` — ~35% smaller via `toarray` positional mode             | ✅     |
-| Raw passthrough    | `RawCodec` — `[]byte` pass-through (no encoding)                            | ✅     |
-| BufferEncoder      | Optional `BufferEncoder` interface — zero-alloc encoding into caller buffer | ✅     |
-| CBOR diagnostic    | `Diagnose(data)` — human-readable CBOR output for debugging                 | ✅     |
-| Encoding constants | `EncodingJSON`, `EncodingCBOR`, `EncodingRaw`                               | ✅     |
+| Feature            | Detail                                                                        | Status |
+| ------------------ | ----------------------------------------------------------------------------- | ------ |
+| Codec interface    | `Codec` — `Encoding()`, `Encode(v)`, `Decode(data, v)`                        | ✅     |
+| JSON codec         | `JSONCodec` — standard JSON encoding                                          | ✅     |
+| CBOR codec         | `CBORCodec` — deterministic canonical CBOR with sorted map keys               | ✅     |
+| CBOR compact codec | `CBORCompactCodec` — ~35% smaller via `toarray` positional mode               | ✅     |
+| Raw passthrough    | `RawCodec` — `[]byte` pass-through (no encoding)                              | ✅     |
+| BufferEncoder      | Optional `BufferEncoder` interface — zero-alloc encoding into caller buffer   | ✅     |
+| CBOR diagnostic    | `Diagnose(data)` — human-readable CBOR output for debugging                   | ✅     |
+| Encoding constants | `EncodingJSON`, `EncodingCBOR`, `EncodingRaw`                                 | ✅     |
+| Envelope wrapping  | `WrapEncode`/`UnwrapDecode` — self-describing blind stores (ADR-0044)         | ✅     |
+| CBOR default       | All codec defaults flipped to CBOR (ADR-0053) — backward-compat via envelopes | ✅     |
 
 ---
 
 ## In-Memory Implementations 🧪 TESTING_ONLY
 
-> `import "github.com/larsartmann/go-cqrs-lite/storage/memory/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"`
 
 | Component             | Detail                                                                                                   | Status |
 | --------------------- | -------------------------------------------------------------------------------------------------------- | ------ |
@@ -316,7 +318,7 @@ as a library primitive.
 
 ## Middleware Suite ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/middleware/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/middleware/v4"`
 
 All **9 concerns** are provided for all 3 message types (command, event, query) — **27 domain-specific middleware factories** + generic `Middleware[M]` for custom message types.
 
@@ -447,7 +449,7 @@ Deleted — generic utility with no CQRS dependencies and zero consumers.
 
 ### SSE Broker ✅ (moved to transport/http/)
 
-> `import "github.com/larsartmann/go-cqrs-lite/transport/http/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/transport/http/v4"`
 
 | Feature              | Detail                                                                                            | Status |
 | -------------------- | ------------------------------------------------------------------------------------------------- | ------ |
@@ -460,9 +462,8 @@ Deleted — generic utility with no CQRS dependencies and zero consumers.
 | Retry field          | `WithRetryInterval(d)` — writes `retry:` field on connect for browser auto-reconnect              | ✅     |
 | Event filtering      | `WithEventFilter(fn)` — broker-level predicate that drops events before fanout                    | ✅     |
 | Auth middleware      | `SSEAuthMiddleware(next, tokenFunc)` — reference bearer-token auth implementation                 | ✅     |
-| Backfill endpoint    | `BackfillHandler(journal)` — REST endpoint returning missed events as JSON array                  | ✅     |
-| Payload transform    | `WithPayloadTransform(fn)` — wire-format transcoding (e.g. CBOR→JSON) on all 3 SSE paths          | ✅     |
-| Backfill + transform | `BackfillHandlerWithTransform(journal, fn)` — transform variant for REST backfill endpoint        | ✅     |
+| Backfill endpoint    | `BackfillHandler(broker)` — REST endpoint returning missed events as JSON array                   | ✅     |
+| Payload transform    | `WithPayloadTransform(fn)` — wire-format transcoding (e.g. CBOR→JSON) on SSE + backfill paths     | ✅     |
 | Per-client stats     | `Stats() []ClientStats` — per-client buffered event depth for debugging slow consumers            | ✅     |
 | Graceful close       | `CloseWithGrace(d)` — drains in-flight events before closing client channels                      | ✅     |
 | Dedup ring           | Bounded `dedup.Ring` (1024 entries) for replay→live deduplication — O(1), memory-bounded          | ✅     |
@@ -470,7 +471,7 @@ Deleted — generic utility with no CQRS dependencies and zero consumers.
 
 ### gRPC Transport ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/transport/grpc/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/transport/grpc/v4"`
 
 Remote gRPC transport for command & query dispatch (ADR-0025). Bridges gRPC clients to local dispatchers.
 
@@ -492,7 +493,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ## Event Signing ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/signing/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/signing/v4"`
 
 ### Single-Signature Mode
 
@@ -528,7 +529,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ## Event Encryption ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/encryption/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/encryption/v4"`
 
 | Feature            | Detail                                                                              | Status |
 | ------------------ | ----------------------------------------------------------------------------------- | ------ |
@@ -553,7 +554,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ### Catalog System ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/catalog/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/catalog/v4"`
 
 | Feature             | Detail                                                                                                                                                         | Status |
 | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -572,7 +573,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Service config      | `ServiceBadges`, `ServiceRepository`, `ServiceWritesTo`, `ServiceReadsFrom`, `ServiceEntities`, `ServiceSpecifications`, `ServiceAttachments`, `ServiceOwners` | ✅     |
 | ID parsing          | `ParseServiceID`, `ParseDomainID`, `ParseMessageID`, `ParseChannelID`                                                                                          | ✅     |
 
-> `import "github.com/larsartmann/go-cqrs-lite/catalog/v3/asyncapi"`
+> `import "github.com/larsartmann/go-cqrs-lite/catalog/v4/asyncapi"`
 
 | Feature             | Detail                                                                                                      | Status |
 | ------------------- | ----------------------------------------------------------------------------------------------------------- | ------ |
@@ -582,7 +583,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Server config       | `WithServer(name, host, protocol)` option (defaults: kafka, localhost:9092)                                 | ✅     |
 | Channel mapping     | Commands → `receive`, Events with `Sends` → `send`, Events with `Receives` → `receive`, Queries → `receive` | ✅     |
 
-> `import "github.com/larsartmann/go-cqrs-lite/catalog/v3/eventcatalog"`
+> `import "github.com/larsartmann/go-cqrs-lite/catalog/v4/eventcatalog"`
 
 | Feature        | Detail                                                                        | Status |
 | -------------- | ----------------------------------------------------------------------------- | ------ |
@@ -592,7 +593,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Config files   | `eventcatalog.config.js`, `package.json` with `@eventcatalog/core` dependency | ✅     |
 | LLM summary    | `llms.txt` — plain-text catalog summary for LLM consumption                   | ✅     |
 
-> `import "github.com/larsartmann/go-cqrs-lite/catalog/v3/d2"`
+> `import "github.com/larsartmann/go-cqrs-lite/catalog/v4/d2"`
 
 | Feature             | Detail                                                      | Status |
 | ------------------- | ----------------------------------------------------------- | ------ |
@@ -602,7 +603,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Domain grouping     | Domain labels with dashed "contains" links to services      | ✅     |
 | Schema tooltips     | Field names and types shown on hover                        | ✅     |
 
-> `import "github.com/larsartmann/go-cqrs-lite/catalog/v3/openapi"`
+> `import "github.com/larsartmann/go-cqrs-lite/catalog/v4/openapi"`
 
 | Feature             | Detail                                                            | Status |
 | ------------------- | ----------------------------------------------------------------- | ------ |
@@ -612,7 +613,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Base path support   | `WithBasePath(path)` option for API path prefix                   | ✅     |
 | Description option  | `WithDescription(desc)` for document metadata                     | ✅     |
 
-> `import "github.com/larsartmann/go-cqrs-lite/catalog/v3/docserver"`
+> `import "github.com/larsartmann/go-cqrs-lite/catalog/v4/docserver"`
 
 | Feature            | Detail                                                                | Status |
 | ------------------ | --------------------------------------------------------------------- | ------ |
@@ -629,7 +630,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ### SQL Stores (PostgreSQL / SQLite)
 
-> `import "github.com/larsartmann/go-cqrs-lite/storage/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/storage/v4"`
 
 | Feature                   | Detail                                                                                                                                       | Status |
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -656,10 +657,11 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Dialect abstraction       | `Dialect` interface with `Placeholder`, `FormatTime`, `ScanTimeDest`, `ParseTime`, 5 schema methods                                          | ✅     |
 | SQL sub-package           | `storage/sql` — `DBHandle`, `OwnedDBHandle`, generic `LoadWithSpan[T]`, `QueryRows[T]`, `ScanSlice[T]`, `ReconstructEvent`                   | ✅     |
 | Close lifecycle           | No-op `Close()` — does not close `*sql.DB`; caller owns DB lifecycle                                                                         | ✅     |
+| HealthCheck (all stores)  | `OwnedDBHandle.HealthCheck(ctx)` — inherited by all SQL stores via embedding. Pings DB, checks closed state                                  | ✅     |
 
 ### Pebble Key-Value Store
 
-> `import "github.com/larsartmann/go-cqrs-lite/storage/pebble/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/storage/pebble/v4"`
 
 | Feature                | Detail                                                                                 | Status |
 | ---------------------- | -------------------------------------------------------------------------------------- | ------ |
@@ -680,7 +682,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ### Turso Database Connector
 
-> `import "github.com/larsartmann/go-cqrs-lite/storage/turso/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/storage/turso/v4"`
 
 | Feature                 | Detail                                                                                                                                                         | Status |
 | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -698,7 +700,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ### Turso Indexing (sub-package) ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/storage/turso/v3/indexing"`
+> `import "github.com/larsartmann/go-cqrs-lite/storage/turso/v4/indexing"`
 
 | Feature                  | Detail                                                                                          | Status |
 | ------------------------ | ----------------------------------------------------------------------------------------------- | ------ |
@@ -720,7 +722,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ## Stream Read Model ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/listing/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/listing/v4"`
 
 | Feature                     | Detail                                                                                               | Status |
 | --------------------------- | ---------------------------------------------------------------------------------------------------- | ------ |
@@ -739,7 +741,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ## OpenTelemetry Helpers ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/otel/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/otel/v4"`
 
 | Feature            | Detail                                                                                                                                                                                       | Status |
 | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -760,7 +762,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ## Watermill Adapter ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/watermill/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/watermill/v4"`
 
 | Feature              | Detail                                                                                                    | Status |
 | -------------------- | --------------------------------------------------------------------------------------------------------- | ------ |
@@ -779,7 +781,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ## Prometheus Metrics Exporter ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/prometheus/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/prometheus/v4"`
 
 || Feature | Detail | Status |
 || ------------------- | ------------------------------------------------------------------------------------------------- | ------ |
@@ -794,7 +796,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ### eventtest 🧪
 
-> `import "github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"`
+> `import "github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"`
 
 | Feature           | Detail                                                                                                                                                              | Status |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -809,7 +811,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ### Scenario Testing DSL ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/scenario/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/scenario/v4"`
 
 Fluent BDD harness for deciders and projections — no store or bus needed, just pure functions.
 
@@ -827,7 +829,7 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 
 ### cqrs-gen Code Generator 🔧
 
-> `go run github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v3`
+> `go run github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v4`
 
 | Feature             | Detail                                                                       | Status |
 | ------------------- | ---------------------------------------------------------------------------- | ------ |
@@ -838,7 +840,7 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 
 ### API Stability Checker 🔧
 
-> `go run github.com/larsartmann/go-cqrs-lite/cmd/api-stability/v3`
+> `go run github.com/larsartmann/go-cqrs-lite/cmd/api-stability/v4`
 
 | Feature                | Detail                                                      | Status |
 | ---------------------- | ----------------------------------------------------------- | ------ |
@@ -849,7 +851,7 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 
 ### doc-check 🔧
 
-> `go run github.com/larsartmann/go-cqrs-lite/cmd/doc-check/v3`
+> `go run github.com/larsartmann/go-cqrs-lite/cmd/doc-check/v4`
 
 | Feature             | Detail                                                                  | Status |
 | ------------------- | ----------------------------------------------------------------------- | ------ |
@@ -861,7 +863,7 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 
 ## Integration Tests ✅
 
-> `import "github.com/larsartmann/go-cqrs-lite/integration/v3"`
+> `import "github.com/larsartmann/go-cqrs-lite/integration/v4"`
 
 | Feature              | Detail                                                                         | Status |
 | -------------------- | ------------------------------------------------------------------------------ | ------ |
@@ -921,53 +923,53 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 | Module                    | Import Path                 | Maturity                                                                  |
 | ------------------------- | --------------------------- | ------------------------------------------------------------------------- |
-| `event`                   | `…/event/v3`                | ✅ Production                                                             |
-| `event/eventtest`         | `…/event/v3/eventtest`      | 🧪 Test helper                                                            |
-| `command`                 | `…/command/v3`              | ✅ Production                                                             |
-| `query`                   | `…/query/v3`                | ✅ Production                                                             |
-| `decider`                 | `…/decider/v3`              | ✅ Production                                                             |
-| `id`                      | `…/id/v3`                   | ✅ Production                                                             |
-| `dispatcher`              | `…/dispatcher/v3`           | ✅ Production                                                             |
-| `schema`                  | `…/schema/v3`               | ✅ Production                                                             |
-| `snapshot`                | `…/snapshot/v3`             | ✅ Production                                                             |
-| `codec`                   | `…/codec/v3`                | ✅ Production                                                             |
-| `kv`                      | `…/kv/v3`                   | ✅ Production                                                             |
-| `metadata`                | `…/metadata/v3`             | ✅ Production                                                             |
-| `dedup`                   | `…/dedup/v3`                | ✅ Production                                                             |
-| `storage/memory`          | `…/storage/memory/v3`       | 🧪 Test utility                                                           |
-| `catalog`                 | `…/catalog/v3`              | ✅ Production                                                             |
-| `middleware`              | `…/middleware/v3`           | ✅ Production                                                             |
-| `integration`             | `…/integration/v3`          | ✅ Test suite                                                             |
-| `signing`                 | `…/signing/v3`              | ✅ Production                                                             |
-| `encryption`              | `…/encryption/v3`           | ✅ Production                                                             |
-| `storage`                 | `…/storage/v3`              | ✅ Production                                                             |
-| `storage/sql`             | `…/storage/v3/sql`          | 🧪 Shared infra                                                           |
-| `watermill`               | `…/watermill/v3`            | ✅ Production                                                             |
-| `listing`                 | `…/listing/v3`              | ✅ Production                                                             |
-| `otel`                    | `…/otel/v3`                 | ✅ Production                                                             |
-| `storage/pebble`          | `…/storage/pebble/v3`       | ✅ Production                                                             |
-| `storage/turso`           | `…/storage/turso/v3`        | ✅ Production                                                             |
-| `transport/http`          | `…/transport/http/v3`       | ✅ Production                                                             |
-| `transport/grpc`          | `…/transport/grpc/v3`       | ✅ Production                                                             |
-| `prometheus`              | `…/prometheus/v3`           | ✅ Production                                                             |
-| `testutil`                | `…/testutil/v3`             | 🧪 Test utility                                                           |
-| `cmd/cqrs-gen`            | `…/cmd/cqrs-gen/v3`         | 🔧 Tool                                                                   |
-| `cmd/api-stability`       | `…/cmd/api-stability/v3`    | 🔧 Tool                                                                   |
-| `cmd/doc-check`           | `…/cmd/doc-check/v3`        | 🔧 Tool                                                                   |
-| `stack`                   | `…/stack/v3`                | ✅ Production                                                             |
-| `stack/memory`            | `…/stack/memory/v3`         | ✅ Production                                                             |
-| `stack/sqlite`            | `…/stack/sqlite/v3`         | ✅ Production                                                             |
-| `stack/pebble`            | `…/stack/pebble/v3`         | ✅ Production                                                             |
-| `stack/postgres`          | `…/stack/postgres/v3`       | ⚠️ Partial (0% test coverage locally — skips without `POSTGRES_TEST_DSN`) |
-| `stack/turso`             | `…/stack/turso/v3`          | ✅ Production                                                             |
-| `stack/bench`             | `…/stack/bench/v3`          | 🧪 Benchmarks                                                             |
-| `deriver`                 | `…/deriver/v3`              | ✅ Production                                                             |
-| `graph`                   | `…/graph/v3`                | ✅ Production                                                             |
-| `idempotency`             | `…/idempotency/v3`          | ✅ Production                                                             |
-| `projection`              | `…/projection/v3`           | ✅ Production                                                             |
-| `projectionhost`          | `…/projectionhost/v3`       | ✅ Production                                                             |
-| `scenario`                | `…/scenario/v3`             | ✅ Production                                                             |
-| `scheduling`              | `…/scheduling/v3`           | ✅ Production                                                             |
+| `event`                   | `…/event/v4`                | ✅ Production                                                             |
+| `event/eventtest`         | `…/event/v4/eventtest`      | 🧪 Test helper                                                            |
+| `command`                 | `…/command/v4`              | ✅ Production                                                             |
+| `query`                   | `…/query/v4`                | ✅ Production                                                             |
+| `decider`                 | `…/decider/v4`              | ✅ Production                                                             |
+| `id`                      | `…/id/v4`                   | ✅ Production                                                             |
+| `dispatcher`              | `…/dispatcher/v4`           | ✅ Production                                                             |
+| `schema`                  | `…/schema/v4`               | ✅ Production                                                             |
+| `snapshot`                | `…/snapshot/v4`             | ✅ Production                                                             |
+| `codec`                   | `…/codec/v4`                | ✅ Production                                                             |
+| `kv`                      | `…/kv/v4`                   | ✅ Production                                                             |
+| `metadata`                | `…/metadata/v4`             | ✅ Production                                                             |
+| `dedup`                   | `…/dedup/v4`                | ✅ Production                                                             |
+| `storage/memory`          | `…/storage/memory/v4`       | 🧪 Test utility                                                           |
+| `catalog`                 | `…/catalog/v4`              | ✅ Production                                                             |
+| `middleware`              | `…/middleware/v4`           | ✅ Production                                                             |
+| `integration`             | `…/integration/v4`          | ✅ Test suite                                                             |
+| `signing`                 | `…/signing/v4`              | ✅ Production                                                             |
+| `encryption`              | `…/encryption/v4`           | ✅ Production                                                             |
+| `storage`                 | `…/storage/v4`              | ✅ Production                                                             |
+| `storage/sql`             | `…/storage/v4/sql`          | 🧪 Shared infra                                                           |
+| `watermill`               | `…/watermill/v4`            | ✅ Production                                                             |
+| `listing`                 | `…/listing/v4`              | ✅ Production                                                             |
+| `otel`                    | `…/otel/v4`                 | ✅ Production                                                             |
+| `storage/pebble`          | `…/storage/pebble/v4`       | ✅ Production                                                             |
+| `storage/turso`           | `…/storage/turso/v4`        | ✅ Production                                                             |
+| `transport/http`          | `…/transport/http/v4`       | ✅ Production                                                             |
+| `transport/grpc`          | `…/transport/grpc/v4`       | ✅ Production                                                             |
+| `prometheus`              | `…/prometheus/v4`           | ✅ Production                                                             |
+| `testutil`                | `…/testutil/v4`             | 🧪 Test utility                                                           |
+| `cmd/cqrs-gen`            | `…/cmd/cqrs-gen/v4`         | 🔧 Tool                                                                   |
+| `cmd/api-stability`       | `…/cmd/api-stability/v4`    | 🔧 Tool                                                                   |
+| `cmd/doc-check`           | `…/cmd/doc-check/v4`        | 🔧 Tool                                                                   |
+| `stack`                   | `…/stack/v4`                | ✅ Production                                                             |
+| `stack/memory`            | `…/stack/memory/v4`         | ✅ Production                                                             |
+| `stack/sqlite`            | `…/stack/sqlite/v4`         | ✅ Production                                                             |
+| `stack/pebble`            | `…/stack/pebble/v4`         | ✅ Production                                                             |
+| `stack/postgres`          | `…/stack/postgres/v4`       | ⚠️ Partial (0% test coverage locally — skips without `POSTGRES_TEST_DSN`) |
+| `stack/turso`             | `…/stack/turso/v4`          | ✅ Production                                                             |
+| `stack/bench`             | `…/stack/bench/v4`          | 🧪 Benchmarks                                                             |
+| `deriver`                 | `…/deriver/v4`              | ✅ Production                                                             |
+| `graph`                   | `…/graph/v4`                | ✅ Production                                                             |
+| `idempotency`             | `…/idempotency/v4`          | ✅ Production                                                             |
+| `projection`              | `…/projection/v4`           | ✅ Production                                                             |
+| `projectionhost`          | `…/projectionhost/v4`       | ✅ Production                                                             |
+| `scenario`                | `…/scenario/v4`             | ✅ Production                                                             |
+| `scheduling`              | `…/scheduling/v4`           | ✅ Production                                                             |
 | `example/taskmanager`     | `…/example/taskmanager`     | 💡 Demo                                                                   |
 | `example/getting-started` | `…/example/getting-started` | 💡 Demo                                                                   |
 

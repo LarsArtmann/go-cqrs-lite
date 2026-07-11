@@ -3,8 +3,8 @@ package snapshot
 import (
 	"sync"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 // ReadPressure is a SnapshotStrategy that triggers snapshots based on how

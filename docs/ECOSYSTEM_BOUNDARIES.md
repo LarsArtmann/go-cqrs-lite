@@ -103,10 +103,10 @@ If yes → cqrs-htmx. If it's transport-agnostic → go-cqrs-lite.
 | Tenants, memberships, bots, impersonation        | Event store SQL (that's go-cqrs-lite)  |
 | SQL session store                                |                                        |
 
-**Key constraint (updated 2026-07-01):** `usermgmt` imports `cqrs-htmx/v3` root for
+**Key constraint (updated 2026-07-01):** `usermgmt` imports `cqrs-htmx/v4` root for
 `RateLimiter` (since 2026-06-28, one-way dependency). It also directly depends on
 go-webauthn, golang.org/x/oauth2, coreos/go-oidc, pquerna/otp, modernc/sqlite, and
-casbin/v3 — forcing these as transitive deps on all consumers. The original constraint
+casbin/v4 — forcing these as transitive deps on all consumers. The original constraint
 ("zero imports from root, depends only on go-cqrs-lite") no longer holds. The auth dep
 bloat is documented as known debt (`cqrs-htmx/docs/modularization/2026-07-01_PROPOSAL.html`),
 with sub-package extraction planned for v4. The bridging still happens in consumer apps
@@ -174,7 +174,7 @@ The three types are now clearly distinct concepts, not a duplication:
 
 - `event/errors.go` is the single re-export hub for `go-error-family` in go-cqrs-lite (v0.5.0 — `Compose` removed, use stdlib `errors.Join`)
 - `command/` and `query/` no longer re-export error family functions (E05 — triplication eliminated)
-- Modules that depend on `event/v3` use `event.NewRejection()` etc.
+- Modules that depend on `event/v4` use `event.NewRejection()` etc.
 - Modules that don't depend on `event` (codec, catalog, cmd) import `errorfamily` directly
 - External consumers (cqrs-htmx, go-localsync) use `event.` re-export or `errorfamily` directly — consistent within each repo
 

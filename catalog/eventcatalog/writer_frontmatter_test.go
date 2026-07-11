@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
 
 func TestRenderMDX_MessageFullFields(t *testing.T) {

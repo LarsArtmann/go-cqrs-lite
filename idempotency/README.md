@@ -1,12 +1,12 @@
 # idempotency — Deduplication Store
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/idempotency/v3.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/idempotency/v3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/idempotency/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/idempotency/v4)
 
 A deduplication store for idempotency keys (and any other opaque
 at-most-once-processing keys).
 
 ```bash
-go get github.com/larsartmann/go-cqrs-lite/idempotency/v3
+go get github.com/larsartmann/go-cqrs-lite/idempotency/v4
 ```
 
 ## Why
@@ -58,7 +58,7 @@ concurrent callers with the same key produce exactly one winner.
 
 ## Dispatch Middleware
 
-The [middleware/v3](../middleware) package provides generic idempotency
+The [middleware/v4](../middleware) package provides generic idempotency
 middleware for all three CQRS message types:
 
 ```go
@@ -85,11 +85,11 @@ distributed backends:
 
 ## Related Modules
 
-- [command/v3](../command) — `Command.ID()` / `WithCommandID` provide the stable
+- [command/v4](../command) — `Command.ID()` / `WithCommandID` provide the stable
   command identity that feeds this store.
-- [middleware/v3](../middleware) — `CommandIdempotency`, `EventIdempotency`,
+- [middleware/v4](../middleware) — `CommandIdempotency`, `EventIdempotency`,
   `QueryIdempotency` wire the store into dispatch pipelines.
-- [kv/v3](../kv) — `KVStore` adapts any `kv.Store` + `kv.ConditionalWriter` into
+- [kv/v4](../kv) — `KVStore` adapts any `kv.Store` + `kv.ConditionalWriter` into
   an idempotency `Store`.
 - [go-error-family](https://github.com/larsartmann/go-error-family) — `ErrDuplicate`
   is classified as a `Conflict`.

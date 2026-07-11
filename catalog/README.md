@@ -1,11 +1,11 @@
 # catalog — API Documentation Generation from Go Types
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/catalog/v3.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/catalog/v3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/catalog/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/catalog/v4)
 
 Automatically generate [AsyncAPI 3.0](https://www.asyncapi.com/) specs, [EventCatalog](https://www.eventcatalog.dev/) documentation, [OpenAPI/Swagger](https://swagger.io/specification/) specs, and [D2](https://d2lang.com/) architecture diagrams from your Go CQRS types.
 
 ```bash
-go get github.com/larsartmann/go-cqrs-lite/catalog/v3
+go get github.com/larsartmann/go-cqrs-lite/catalog/v4
 ```
 
 ## Packages
@@ -307,7 +307,7 @@ text := d2.NewExporter().Export(catalog)
 Serve auto-generated API documentation from a `*catalog.Catalog` via stdlib `net/http`:
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/catalog/v3/docserver"
+import "github.com/larsartmann/go-cqrs-lite/catalog/v4/docserver"
 
 // Full docs server (OpenAPI/AsyncAPI JSON+YAML+HTML UI, catalog JSON)
 ds := docserver.NewDocsServer(func() *catalog.Catalog {
@@ -337,7 +337,7 @@ err := docserver.GenerateEventCatalog(cat, "./eventcatalog")
 Most services document a single application. The `simple` package reduces ceremony:
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/catalog/v3/simple"
+import "github.com/larsartmann/go-cqrs-lite/catalog/v4/simple"
 
 b := simple.New("User Service", "1.0.0")
 simple.Command[RegisterUserCmd](b, "register-user",

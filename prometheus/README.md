@@ -18,7 +18,7 @@ import (
     "net/http"
 
     "go.opentelemetry.io/otel"
-    "github.com/larsartmann/go-cqrs-lite/prometheus/v3"
+    "github.com/larsartmann/go-cqrs-lite/prometheus/v4"
 )
 
 func main() {

@@ -6,7 +6,7 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/projection/v3"
+	"github.com/larsartmann/go-cqrs-lite/projection/v4"
 )
 
 // RegisterAndWait registers all projections with the host, then starts the

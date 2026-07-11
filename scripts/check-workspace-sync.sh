@@ -7,7 +7,7 @@ cd "$(git rev-parse --show-toplevel)"
 
 # Modules that are test helpers (tested transitively by their parent module)
 EXCLUDE=(
-  "event/v3/eventtest"  # tested by event/ tests
+  "event/v4/eventtest"  # tested by event/ tests
 )
 
 is_excluded() {

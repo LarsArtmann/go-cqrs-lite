@@ -3,8 +3,8 @@ package graph_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/graph/v3"
-	"github.com/larsartmann/go-cqrs-lite/graph/v3/graphtest"
+	"github.com/larsartmann/go-cqrs-lite/graph/v4"
+	"github.com/larsartmann/go-cqrs-lite/graph/v4/graphtest"
 )
 
 func TestMemoryDriverContract(t *testing.T) {

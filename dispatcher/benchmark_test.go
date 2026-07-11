@@ -3,7 +3,7 @@ package dispatcher_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/dispatcher/v3"
+	"github.com/larsartmann/go-cqrs-lite/dispatcher/v4"
 )
 
 type benchHandler func() error

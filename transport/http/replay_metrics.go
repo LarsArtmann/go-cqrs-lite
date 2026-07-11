@@ -3,7 +3,7 @@ package http
 import (
 	"context"
 
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 // ReplayMetrics holds the OpenTelemetry instruments for SSE replay

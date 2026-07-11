@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 func TestSSEAuthMiddleware_RejectsMissingToken(t *testing.T) {
@@ -62,6 +62,16 @@ func TestSSEAuthMiddleware_AcceptsValidToken(t *testing.T) {
 	}
 }
 
+func newTestBrokerWithJournal(t *testing.T, store *eventtest.FakeStore) *SSEBroker {
+	t.Helper()
+	bus := eventtest.NewFakeBus()
+	broker, err := NewSSEBroker(bus, WithReconnectJournal(store, 100))
+	if err != nil {
+		t.Fatalf("NewSSEBroker: %v", err)
+	}
+	return broker
+}
+
 func TestBackfillHandler_ReturnsEvents(t *testing.T) {
 	t.Parallel()
 
@@ -75,7 +85,8 @@ func TestBackfillHandler_ReturnsEvents(t *testing.T) {
 
 	_ = store.Save(context.Background(), ref, []event.Event{evt0, evt1, evt2}, 0)
 
-	handler := BackfillHandler(store)
+	broker := newTestBrokerWithJournal(t, store)
+	handler := BackfillHandler(broker)
 
 	// Request events after evt0.
 	req := httptest.NewRequestWithContext(
@@ -115,7 +126,8 @@ func TestBackfillHandler_MissingAfterParam(t *testing.T) {
 	t.Parallel()
 
 	store := eventtest.NewFakeStore()
-	handler := BackfillHandler(store)
+	broker := newTestBrokerWithJournal(t, store)
+	handler := BackfillHandler(broker)
 
 	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/backfill", nil)
 	rec := httptest.NewRecorder()
@@ -135,7 +147,8 @@ func TestBackfillHandler_LimitsTo1000(t *testing.T) {
 	evt0, _ := event.NewEvent("test.event", aggID, "Test", 1, []byte(`{}`))
 	_ = store.Save(context.Background(), ref, []event.Event{evt0}, 0)
 
-	handler := BackfillHandler(store)
+	broker := newTestBrokerWithJournal(t, store)
+	handler := BackfillHandler(broker)
 
 	// limit=99999 should be silently capped to 1000, not error.
 	req := httptest.NewRequestWithContext(
@@ -152,7 +165,7 @@ func TestBackfillHandler_LimitsTo1000(t *testing.T) {
 	}
 }
 
-func TestBackfillHandlerWithTransform_AppliesTransform(t *testing.T) {
+func TestBackfillHandler_PayloadTransformFromBroker(t *testing.T) {
 	t.Parallel()
 
 	store := eventtest.NewFakeStore()
@@ -164,9 +177,18 @@ func TestBackfillHandlerWithTransform_AppliesTransform(t *testing.T) {
 
 	_ = store.Save(context.Background(), ref, []event.Event{evt0, evt1}, 0)
 
-	handler := BackfillHandlerWithTransform(store, func(evt event.Event) []byte {
-		return []byte(`{"transformed":true}`)
-	})
+	bus := eventtest.NewFakeBus()
+	broker, err := NewSSEBroker(bus,
+		WithReconnectJournal(store, 100),
+		WithPayloadTransform(func(evt event.Event) []byte {
+			return []byte(`{"transformed":true}`)
+		}),
+	)
+	if err != nil {
+		t.Fatalf("NewSSEBroker: %v", err)
+	}
+
+	handler := BackfillHandler(broker)
 
 	req := httptest.NewRequestWithContext(
 		t.Context(),
@@ -189,5 +211,30 @@ func TestBackfillHandlerWithTransform_AppliesTransform(t *testing.T) {
 
 	if strings.Contains(body, `{"raw":true}`) {
 		t.Errorf("raw payload should NOT appear; body: %q", body)
+	}
+}
+
+func TestBackfillHandler_NoJournalReturns503(t *testing.T) {
+	t.Parallel()
+
+	bus := eventtest.NewFakeBus()
+	broker, err := NewSSEBroker(bus)
+	if err != nil {
+		t.Fatalf("NewSSEBroker: %v", err)
+	}
+
+	handler := BackfillHandler(broker)
+
+	req := httptest.NewRequestWithContext(
+		t.Context(),
+		http.MethodGet,
+		"/backfill?after="+id.NewEventID().String()+"&limit=10",
+		nil,
+	)
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusServiceUnavailable {
+		t.Errorf("expected 503, got %d: %s", rec.Code, rec.Body.String())
 	}
 }

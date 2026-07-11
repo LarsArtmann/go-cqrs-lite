@@ -17,7 +17,7 @@ The prior session shipped 3 new modules (projectionhost, scenario, scheduling) a
 | Commits this pass                  | 0                    | **4** (all BuildFlow green)                             |
 | Correctness bugs I introduced      | 1 (silent data loss) | **0** (fixed; pure-replay design)                       |
 | Lint warnings in my new code       | 21                   | **0** (`nix fmt` + auto-fix)                            |
-| Stale tags                         | `testing/v3.3.0`     | **0** (deleted; `scenario/v3.3.0` created)              |
+| Stale tags                         | `testing/v4.3.0`     | **0** (deleted; `scenario/v4.3.0` created)              |
 | Dead code in integration test      | 2 unused fields      | **0**                                                   |
 | Architectural smells found         | —                    | **2** documented (split-brain DLQ; `Timer.Payload any`) |
 | Status reports written (prior ask) | 0                    | **1** (this file)                                       |
@@ -29,7 +29,7 @@ The prior session shipped 3 new modules (projectionhost, scenario, scheduling) a
 ### The scenario rename
 
 - **Commit:** `293f6c63`
-- `testing/v3` → `scenario/v3` (stdlib import-path collision eliminated). One internal consumer, zero external consumers at rename time. Tagged `scenario/v3.3.0`; deleted stale local `testing/v3.3.0`.
+- `testing/v4` → `scenario/v4` (stdlib import-path collision eliminated). One internal consumer, zero external consumers at rename time. Tagged `scenario/v4.3.0`; deleted stale local `testing/v4.3.0`.
 
 ### Pure ReplayDeadLetters (correctness fix)
 
@@ -65,11 +65,11 @@ The prior session shipped 3 new modules (projectionhost, scenario, scheduling) a
 
 ### scenario module tag pushed to remote
 
-- Local `scenario/v3.3.0` tag created; `testing/v3.3.0` local tag deleted. **Remote tag push deferred** — requires user approval (safety rule: never push without explicit ask). The stale `testing/v3.3.0` still exists on remote until manually deleted.
+- Local `scenario/v4.3.0` tag created; `testing/v4.3.0` local tag deleted. **Remote tag push deferred** — requires user approval (safety rule: never push without explicit ask). The stale `testing/v4.3.0` still exists on remote until manually deleted.
 
-### Remote deletion of stale testing/v3.3.0 tag
+### Remote deletion of stale testing/v4.3.0 tag
 
-- Local delete done. Remote still has it. Needs `git push origin :refs/tags/testing/v3.3.0` with user approval.
+- Local delete done. Remote still has it. Needs `git push origin :refs/tags/testing/v4.3.0` with user approval.
 
 ---
 
@@ -151,7 +151,7 @@ Sorted by **impact ÷ effort** (highest first).
 | #   | Task                                                                                                                                            | Impact   | Effort  | Why                                                                       |
 | --- | ----------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------- | ------------------------------------------------------------------------- |
 | 1   | **Unify `middleware.DeadLetterEntry` + `projectionhost.DeadLetterEntry`** into one type (new `dlq/` module or in `event/`). Write an ADR first. | Critical | Med     | Split brain in the "reliability trio" — the #1 architectural debt         |
-| 2   | Push `scenario/v3.3.0` tag + delete remote `testing/v3.3.0` tag                                                                                 | High     | Trivial | Consumers resolving `scenario/v3` currently fail on the stale tag         |
+| 2   | Push `scenario/v4.3.0` tag + delete remote `testing/v4.3.0` tag                                                                                 | High     | Trivial | Consumers resolving `scenario/v4` currently fail on the stale tag         |
 | 3   | Add `event.Event` carrier to the unified DLQ type so middleware DLQ can also replay                                                             | High     | Low     | middleware.DeadLetterEntry currently can't replay — only inspect          |
 | 4   | Make `ReplayDeadLetters` available on the unified DLQ interface (not just projectionhost.Host)                                                  | High     | Low     | Replay is currently host-coupled; a store-level replay is more composable |
 | 5   | Make `scheduling.Timer` generic over payload: `Timer[P any]` — kills the `any` violation                                                        | Med      | Low     | Domain model honesty; AGENTS.md rule #9 compliance                        |

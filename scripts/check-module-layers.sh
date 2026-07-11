@@ -197,7 +197,7 @@ for mod in "${!LAYER[@]}"; do
         fi
 
         # Extract module name from import path
-        # github.com/larsartmann/go-cqrs-lite/EVENT/v3 -> event
+        # github.com/larsartmann/go-cqrs-lite/EVENT/v4 -> event
         dep_mod=$(echo "$req" | sed 's|github.com/larsartmann/go-cqrs-lite/||; s|/v[0-9]\+||')
 
         # Skip root module and examples/cmd (not in layer map)

@@ -6,10 +6,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/stack/turso/v3"
-	"github.com/larsartmann/go-cqrs-lite/stack/v3"
-	"github.com/larsartmann/go-cqrs-lite/stack/v3/contracttest"
-	cqrsturso "github.com/larsartmann/go-cqrs-lite/storage/turso/v3"
+	"github.com/larsartmann/go-cqrs-lite/stack/turso/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4/contracttest"
+	cqrsturso "github.com/larsartmann/go-cqrs-lite/storage/turso/v4"
 )
 
 func TestContract(t *testing.T) {

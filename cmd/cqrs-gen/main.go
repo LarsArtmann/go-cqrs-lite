@@ -254,7 +254,7 @@ const (
 	commandImports = `import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v3"
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
 )
 
 `
@@ -262,7 +262,7 @@ const (
 	queryImports = `import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/query/v3"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
 
 `
@@ -270,8 +270,8 @@ const (
 	eventImports = `import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v3"
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
 `

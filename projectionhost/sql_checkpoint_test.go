@@ -9,12 +9,12 @@ import (
 
 	_ "modernc.org/sqlite" // SQLite driver
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
-	"github.com/larsartmann/go-cqrs-lite/projectionhost/v3"
-	memory "github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
-	"github.com/larsartmann/go-cqrs-lite/storage/v3"
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
+	memory "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+	"github.com/larsartmann/go-cqrs-lite/storage/v4"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
 
 // TestIntegration_ProjectionHost_SQLiteCheckpoint proves the host persists

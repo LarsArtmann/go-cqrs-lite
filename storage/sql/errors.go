@@ -3,13 +3,19 @@ package sql
 import (
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
 // ErrNilDB is returned when a nil *sql.DB is passed to a storage constructor.
 var ErrNilDB = errorfamily.NewInfrastructure(
 	"storage.nil_db",
 	"storage: nil database connection",
+)
+
+// ErrClosed is returned when a store operation is attempted after Close.
+var ErrClosed = errorfamily.NewInfrastructure(
+	"storage.closed",
+	"storage: store is closed",
 )
 
 // ErrAggregateTypeMismatch is returned when an event's aggregate type doesn't match the expected type.

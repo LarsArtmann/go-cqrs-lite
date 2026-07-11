@@ -11,9 +11,9 @@ import (
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 
-	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/kv/v3"
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v3/sql"
+	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/kv/v4"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
 
 // pgDiscordSchema is the same as discordSchema but with PG-compatible

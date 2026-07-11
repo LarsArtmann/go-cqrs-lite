@@ -1,11 +1,11 @@
 # decider — Pure-Function Aggregate Pattern
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/decider/v3.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/decider/v3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/decider/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/decider/v4)
 
 The Decider replaces mutable aggregate roots with two pure functions: DecideFunc and Fold.
 
 ```bash
-go get github.com/larsartmann/go-cqrs-lite/decider/v3
+go get github.com/larsartmann/go-cqrs-lite/decider/v4
 ```
 
 ## Quick Start

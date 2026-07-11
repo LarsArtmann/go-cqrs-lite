@@ -10,7 +10,7 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/storage/v3"
+	"github.com/larsartmann/go-cqrs-lite/storage/v4"
 )
 
 // DbPath is a phantom type for local database file paths.

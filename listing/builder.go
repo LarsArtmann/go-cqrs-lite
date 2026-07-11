@@ -3,7 +3,7 @@ package listing
 import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 const (

@@ -1,11 +1,11 @@
 # codec — Payload Encoding for Event Sourcing
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/codec/v3.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/codec/v3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/codec/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/codec/v4)
 
 Encoding/decoding for event payloads. Provides the `Codec` interface used by stores, snapshots, and event construction.
 
 ```bash
-go get github.com/larsartmann/go-cqrs-lite/codec/v3
+go get github.com/larsartmann/go-cqrs-lite/codec/v4
 ```
 
 ## Codecs

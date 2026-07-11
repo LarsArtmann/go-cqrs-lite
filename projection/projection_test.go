@@ -6,8 +6,8 @@ import (
 	"slices"
 	"testing"
 
-	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 func TestNewProjection_NameAndEventTypes(t *testing.T) {

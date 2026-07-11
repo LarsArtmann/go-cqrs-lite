@@ -1,6 +1,6 @@
 # integration — Cross-Module Tests
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/integration/v3.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/integration/v3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/integration/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/integration/v4)
 
 End-to-end tests that verify multiple go-cqrs-lite modules work together correctly.
 

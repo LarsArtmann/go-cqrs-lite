@@ -7,9 +7,9 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/graph/v3"
-	"github.com/larsartmann/go-cqrs-lite/middleware/v3"
-	"github.com/larsartmann/go-cqrs-lite/stack/v3"
+	"github.com/larsartmann/go-cqrs-lite/graph/v4"
+	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 )
 
 // TestErrorClassification verifies that sentinels from modules that were

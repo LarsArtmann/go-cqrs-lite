@@ -36,19 +36,19 @@ In one session, we went from _"is everything in the right place?"_ to **closing 
 
 ### M2 — Tag go-cqrs-lite v3.3.0 (full tag set)
 
-- **What:** Created and pushed **47 module tags** at v3.3.0/v3.3.1 covering all modules referenced by cqrs-htmx or internal consumers. Includes the tricky multi-module tag graph (event ← command ← idempotency ← transport/http).
+- **What:** Created and pushed **47 module tags** at v3.3.0/v4.3.1 covering all modules referenced by cqrs-htmx or internal consumers. Includes the tricky multi-module tag graph (event ← command ← idempotency ← transport/http).
 - **Impact:** cqrs-htmx can now import all upstream modules at stable versions. No more local replace directives needed in consumer repos.
 
 ### M3 — Delegate cqrs-htmx idempotency to upstream
 
 - **Commit:** `cecb835`, `08a8f3c` (cqrs-htmx)
-- **What:** Replaced cqrs-htmx's 154-line local `idempotency.go` with 5 type aliases to `go-cqrs-lite/idempotency/v3`. Fixed all test command types to implement the new `ID() id.CommandID` interface method (20 production commands in usermgmt + 4 test commands in root + 1 in examples/basic). Bumped all go-cqrs-lite deps from v3.1.0 to v3.3.0 across all 8 cqrs-htmx modules. Fixed `event.Projection` → `projection.Projection` migration (55 references).
+- **What:** Replaced cqrs-htmx's 154-line local `idempotency.go` with 5 type aliases to `go-cqrs-lite/idempotency/v4`. Fixed all test command types to implement the new `ID() id.CommandID` interface method (20 production commands in usermgmt + 4 test commands in root + 1 in examples/basic). Bumped all go-cqrs-lite deps from v3.1.0 to v3.3.0 across all 8 cqrs-htmx modules. Fixed `event.Projection` → `projection.Projection` migration (55 references).
 - **Impact:** Single source of truth for command dedup. Zero harmful duplication.
 
 ### M4 — Unify SSE primitives
 
 - **Commit:** `f48f37ac` (go-cqrs-lite), `d453fa2` (cqrs-htmx)
-- **What:** Promoted cqrs-htmx's superior SSE implementation (branded `SSEEventID`, zero-alloc `WriteSSEEvent`, `splitSSELines` fast path) upstream into `transport/http/sse_event.go`. Tagged `transport/http/v3.3.1`. Replaced cqrs-htmx's 163-line `sse_event.go` with thin aliases.
+- **What:** Promoted cqrs-htmx's superior SSE implementation (branded `SSEEventID`, zero-alloc `WriteSSEEvent`, `splitSSELines` fast path) upstream into `transport/http/sse_event.go`. Tagged `transport/http/v4.3.1`. Replaced cqrs-htmx's 163-line `sse_event.go` with thin aliases.
 - **Impact:** SSE wire-format duplication eliminated. Better implementation now available to all consumers.
 
 ### M5 — Reconcile docs
@@ -60,7 +60,7 @@ In one session, we went from _"is everything in the right place?"_ to **closing 
 ### M6-M8 — Managed Projection Host (THE #1 framework gap)
 
 - **Commit:** `cdc93ae0`
-- **What:** New `projectionhost/v3` module (6 files, ~450 lines production + ~330 lines tests). Composes `event.SeekableJournal` + `projection.Projection` + `event.CheckpointStore` + `DeadLetterStore` into a managed lifecycle: per-projection goroutines, crash auto-restart with exponential backoff, checkpoint persistence, poison-message DLQ (capture + advance checkpoint), health/liveness via `Status()`, graceful drain via `Stop()`.
+- **What:** New `projectionhost/v4` module (6 files, ~450 lines production + ~330 lines tests). Composes `event.SeekableJournal` + `projection.Projection` + `event.CheckpointStore` + `DeadLetterStore` into a managed lifecycle: per-projection goroutines, crash auto-restart with exponential backoff, checkpoint persistence, poison-message DLQ (capture + advance checkpoint), health/liveness via `Status()`, graceful drain via `Stop()`.
 - **Tests:** 12 tests: happy path, checkpoint persistence across restarts, multiple projections independence, DLQ poison capture, graceful drain, status reporting, error validation, DLQ store filtering. All `-race` clean.
 - **Impact:** "The last loop every consumer rewrites" — now a library module. Combined with the existing dispatch DLQ and idempotency, the reliability trio is complete (sans optional outbox).
 
@@ -74,7 +74,7 @@ In one session, we went from _"is everything in the right place?"_ to **closing 
 ### M10 — Scenario-testing DSL (A5)
 
 - **Commit:** `f0085ede`
-- **What:** New `testing/v3` module. Fluent BDD harness:
+- **What:** New `testing/v4` module. Fluent BDD harness:
   - `Given[Cmd, State](t, fold, initial, events...).When(cmd, decide).Then(expectedTypes...)`
   - Also: `ThenError(target)`, `ThenState(fold, initial, expected)`
   - `GivenProjection(t, proj, events...).ThenNoError() / ThenError()`
@@ -84,7 +84,7 @@ In one session, we went from _"is everything in the right place?"_ to **closing 
 ### M11 — Scheduled commands / durable deadlines (A6)
 
 - **Commit:** `c0787a5e`
-- **What:** New `scheduling/v3` module. `TimerStore` interface (Schedule, Due, MarkFired, Cancel) + `MemoryTimerStore` + `Scheduler` with configurable poll interval and retry. Idempotent scheduling.
+- **What:** New `scheduling/v4` module. `TimerStore` interface (Schedule, Due, MarkFired, Cancel) + `MemoryTimerStore` + `Scheduler` with configurable poll interval and retry. Idempotent scheduling.
 - **Tests:** 6 tests. All `-race` clean.
 - **Impact:** Classic ES need ("cancel order after 30 min unpaid") now a library primitive.
 
@@ -106,7 +106,7 @@ In one session, we went from _"is everything in the right place?"_ to **closing 
 ### eventtest module resolution
 
 - **Status:** Tagged but still produces `go mod tidy` warnings.
-- **Issue:** `event/eventtest` has its own `go.mod` at path `event/v3/eventtest`, which confuses `go mod tidy` when resolving the test dependencies of `event/v3`. The `-e` flag works around it. This is a Go tooling limitation with nested modules.
+- **Issue:** `event/eventtest` has its own `go.mod` at path `event/v4/eventtest`, which confuses `go mod tidy` when resolving the test dependencies of `event/v4`. The `-e` flag works around it. This is a Go tooling limitation with nested modules.
 - **Fix needed:** Either move eventtest out of the event/ directory, or add a note to AGENTS.md documenting the workaround.
 
 ### Pebble/Redis/SQL KV adapters implementing ConditionalWriter
@@ -159,7 +159,7 @@ No regressions, no broken builds, no data loss, no broken tags. Everything compi
 
 ### 1. eventtest nested-module problem
 
-The `event/eventtest/` sub-module's import path (`event/v3/eventtest`) confuses `go mod tidy` in consumer repos. Every `go mod tidy` emits warnings. Fix: either flatten (move to `eventtest/` top-level) or document the `-e` workaround permanently.
+The `event/eventtest/` sub-module's import path (`event/v4/eventtest`) confuses `go mod tidy` in consumer repos. Every `go mod tidy` emits warnings. Fix: either flatten (move to `eventtest/` top-level) or document the `-e` workaround permanently.
 
 ### 2. Tag automation
 
@@ -169,9 +169,9 @@ We manually created 47 tags this session. A `scripts/tag-release.sh` that reads 
 
 We corrected 45→49, then shipped 3 more modules (now 52). FEATURES.md says 49. Needs another reconciliation. This is a process problem — module count changes faster than docs.
 
-### 4. The `testing/v3` module name conflicts with Go's convention
+### 4. The `testing/v4` module name conflicts with Go's convention
 
-`testing` is a stdlib package name. While Go module paths disambiguate (`cqrs-lite/testing/v3` vs `testing`), it's confusing. Consider renaming to `cqrs_testing/` or `scenario/` or `bdd/`.
+`testing` is a stdlib package name. While Go module paths disambiguate (`cqrs-lite/testing/v4` vs `testing`), it's confusing. Consider renaming to `cqrs_testing/` or `scenario/` or `bdd/`.
 
 ### 5. cqrs-htmx go.sum drift after every BuildFlow run
 
@@ -192,7 +192,7 @@ projectionhost, testing, and scheduling are wired into go.work and tagged, but n
 | #   | Task                                                                                               | Impact | Effort | Why                                                                    |
 | --- | -------------------------------------------------------------------------------------------------- | ------ | ------ | ---------------------------------------------------------------------- |
 | 1   | Update AGENTS.md + SKILL.md + FEATURES.md with 3 new modules (projectionhost, testing, scheduling) | High   | Low    | New modules are invisible to AI sessions and contributors without docs |
-| 2   | Rename `testing/v3` → `cqrs_testing/v3` or `scenario/v3` to avoid stdlib confusion                 | High   | Low    | Prevents import confusion; easier to do now than after adoption        |
+| 2   | Rename `testing/v4` → `cqrs_testing/v4` or `scenario/v4` to avoid stdlib confusion                 | High   | Low    | Prevents import confusion; easier to do now than after adoption        |
 | 3   | Fix eventtest nested-module problem (flatten or document)                                          | High   | Low    | Every consumer's `go mod tidy` emits warnings                          |
 | 4   | Tag projectionhost/testing/scheduling go.work-clean versions                                       | Med    | Low    | Current tags may not match go.work state after auto-fixes              |
 | 5   | Write `scripts/tag-release.sh` for multi-module tag automation                                     | Med    | Med    | Prevents manual tag errors on future releases                          |
@@ -221,19 +221,19 @@ projectionhost, testing, and scheduling are wired into go.work and tagged, but n
 
 ## G) TOP QUESTION I CANNOT FIGURE OUT MYSELF 🤔
 
-**#1 Question: Should the `testing/v3` module be renamed before any further adoption?**
+**#1 Question: Should the `testing/v4` module be renamed before any further adoption?**
 
-The package is named `cqrs_testing` (with underscore) but the module path is `testing/v3`. This creates a confusing situation:
+The package is named `cqrs_testing` (with underscore) but the module path is `testing/v4`. This creates a confusing situation:
 
-- `import "github.com/larsartmann/go-cqrs-lite/testing/v3"` looks like it imports Go's stdlib `testing`
+- `import "github.com/larsartmann/go-cqrs-lite/testing/v4"` looks like it imports Go's stdlib `testing`
 - The package name inside is `cqrs_testing`, so usage is `cqrs_testing.Given[...]` — which is clear
 - But IDE autocomplete and grep may get confused
 
 I cannot decide whether:
 
-- **(A)** Rename now to `cqrs_testing/v3` or `scenario/v3` (clean, but 1 more rename in the same session that already had many renames)
-- **(B)** Keep as-is because the package name (`cqrs_testing`) disambiguates and the module path (`go-cqrs-lite/testing/v3`) is unique enough
-- **(C)** Use a completely different name like `bdd/v3` or `harness/v3`
+- **(A)** Rename now to `cqrs_testing/v4` or `scenario/v4` (clean, but 1 more rename in the same session that already had many renames)
+- **(B)** Keep as-is because the package name (`cqrs_testing`) disambiguates and the module path (`go-cqrs-lite/testing/v4`) is unique enough
+- **(C)** Use a completely different name like `bdd/v4` or `harness/v4`
 
 This is a naming/taste decision that affects every future consumer's import lines. I need your call.
 
@@ -252,12 +252,12 @@ This is a naming/taste decision that affects every future consumer's import line
 
 | Gap                        | Status     | Module                            |
 | -------------------------- | ---------- | --------------------------------- |
-| A1 Managed Projection Host | ✅ DONE    | `projectionhost/v3`               |
+| A1 Managed Projection Host | ✅ DONE    | `projectionhost/v4`               |
 | A2 Transactional Outbox    | ⏸ DEFERRED | —                                 |
-| A3 Command Idempotency     | ✅ DONE    | `idempotency/v3`                  |
+| A3 Command Idempotency     | ✅ DONE    | `idempotency/v4`                  |
 | A4 Dead-Letter Queue       | ✅ DONE    | `middleware/` + `projectionhost/` |
-| A5 Scenario-testing DSL    | ✅ DONE    | `testing/v3`                      |
-| A6 Scheduled commands      | ✅ DONE    | `scheduling/v3`                   |
+| A5 Scenario-testing DSL    | ✅ DONE    | `testing/v4`                      |
+| A6 Scheduled commands      | ✅ DONE    | `scheduling/v4`                   |
 
 ---
 

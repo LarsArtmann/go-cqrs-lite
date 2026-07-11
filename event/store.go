@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 // SaveFunc is the function signature for EventSink.Save implementations.

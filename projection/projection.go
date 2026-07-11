@@ -14,7 +14,7 @@ import (
 	"context"
 	"slices"
 
-	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
+	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
 // Projection processes events of specific types within a projection runner.

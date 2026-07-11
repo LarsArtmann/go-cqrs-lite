@@ -127,7 +127,7 @@ The `// Deprecated:` comments are in place but:
 
 ### metadata/ go.mod Contamination
 
-When adding `metadata/v3` as indirect dependency to 27 go.mod files, the initial sed script produced **malformed go.mod files** in 12 modules — it inserted the require line outside a `require ( )` block, creating `unknown directive` errors. Required a second pass to fix all 12. This was a mechanical automation failure that should have been caught by a test build immediately after the batch edit.
+When adding `metadata/v4` as indirect dependency to 27 go.mod files, the initial sed script produced **malformed go.mod files** in 12 modules — it inserted the require line outside a `require ( )` block, creating `unknown directive` errors. Required a second pass to fix all 12. This was a mechanical automation failure that should have been caught by a test build immediately after the batch edit.
 
 **Lesson:** Never batch-edit 27 go.mod files with sed without running `go build` after every 2-3 files. The sed approach was fragile — should have used `go mod edit` instead.
 
@@ -287,7 +287,7 @@ I cannot decide this because I don't know if the golden files are consumed by ex
 | Test status             | 52 ok, 5 FAIL (all pre-existing golden file mismatches)                             |
 | New files created       | 8 (metadata module, 4 docs, 3 tests)                                                |
 | Files modified          | ~55 (kv interface + impls + consumers + go.mod files + taskmanager + event aliases) |
-| New Go module           | `metadata/v3`                                                                       |
+| New Go module           | `metadata/v4`                                                                       |
 | Build blockers fixed    | 5 (schema, docserver, taskmanager, graph, flake.nix)                                |
 | Architectural wins      | command/ → event/ compile dependency BROKEN; kv/ now context-aware                  |
 | Pre-existing bugs fixed | 1 (taskmanager middleware ordering — ALL middleware was silently bypassed)          |

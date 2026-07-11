@@ -3,7 +3,7 @@ package command
 import (
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 // AggregateType and AggregateRef are type aliases for the id package types.

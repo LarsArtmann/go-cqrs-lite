@@ -56,7 +56,7 @@
 
 Analyzed and rejected. The data:
 
-- **469 files** import `event/v3` (vs ~50 for storage/)
+- **469 files** import `event/v4` (vs ~50 for storage/)
 - **High cross-file coupling**: Metadata in 7 files, Option in 9 files
 - **2,321 LOC / 29 files** — under 350-line CI limit
 - **Cohesion is real**: every file serves the Event type
@@ -205,11 +205,11 @@ Sorted by **impact/effort** (Pareto order).
 
 ### "Should the storage/ split continue into separate go.mod files, or stay as sub-packages within one module?"
 
-**Context:** Right now `storage/relational/` and `storage/view/` are sub-packages within the single `storage/v3` go.mod. This means a consumer who only needs `storage/relational/` still pulls in the full storage module dependency tree (modernc.org/sqlite, all the event/command/etc deps).
+**Context:** Right now `storage/relational/` and `storage/view/` are sub-packages within the single `storage/v4` go.mod. This means a consumer who only needs `storage/relational/` still pulls in the full storage module dependency tree (modernc.org/sqlite, all the event/command/etc deps).
 
-**Option A (current):** Sub-packages within one go.mod. Simple. Consumers import `storage/v3/relational`. Full dep tree comes along.
+**Option A (current):** Sub-packages within one go.mod. Simple. Consumers import `storage/v4/relational`. Full dep tree comes along.
 
-**Option B:** Separate go.mod files. `storage/relational/v3` becomes its own module. Consumers who only need relational projections import just that module + its minimal deps (event, kv, projection, sql). Lighter dependency footprint.
+**Option B:** Separate go.mod files. `storage/relational/v4` becomes its own module. Consumers who only need relational projections import just that module + its minimal deps (event, kv, projection, sql). Lighter dependency footprint.
 
 **Why I can't decide:** The library's design principle says "minimal dependencies — each module has its own go.mod with only needed deps." Option B aligns with this. BUT: splitting go.mod files for sub-packages within a directory creates the `eventtest` nested-module problem (go mod tidy warnings, tooling friction). And the type aliases at root would need replace directives to work across module boundaries.
 

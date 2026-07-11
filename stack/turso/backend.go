@@ -7,8 +7,8 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	cqrsturso "github.com/larsartmann/go-cqrs-lite/storage/turso/v3"
-	"github.com/larsartmann/go-cqrs-lite/storage/v3"
+	cqrsturso "github.com/larsartmann/go-cqrs-lite/storage/turso/v4"
+	"github.com/larsartmann/go-cqrs-lite/storage/v4"
 )
 
 // openLocalBackend opens the database, configures the pool, applies the schema,

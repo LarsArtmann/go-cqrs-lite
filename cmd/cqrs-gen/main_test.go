@@ -113,7 +113,7 @@ func TestGenerate_Query(t *testing.T) {
 
 	code := generate("handlers", "query", entries)
 
-	if !strings.Contains(code, "github.com/larsartmann/go-cqrs-lite/query/v3") {
+	if !strings.Contains(code, "github.com/larsartmann/go-cqrs-lite/query/v4") {
 		t.Error("missing query import")
 	}
 
@@ -618,11 +618,11 @@ func TestGenerate_Event(t *testing.T) {
 
 	code := generate("handlers", "event", entries)
 
-	if !strings.Contains(code, "github.com/larsartmann/go-cqrs-lite/event/v3") {
+	if !strings.Contains(code, "github.com/larsartmann/go-cqrs-lite/event/v4") {
 		t.Error("missing event import")
 	}
 
-	if !strings.Contains(code, "github.com/larsartmann/go-cqrs-lite/codec/v3") {
+	if !strings.Contains(code, "github.com/larsartmann/go-cqrs-lite/codec/v4") {
 		t.Error("missing codec import")
 	}
 

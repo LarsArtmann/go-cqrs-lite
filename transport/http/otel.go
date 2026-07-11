@@ -1,6 +1,6 @@
 package http
 
-import cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
+import cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 
 const transportComponent = "transport.http"
 

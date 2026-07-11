@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"context"
 	"database/sql"
 	"sync/atomic"
 )
@@ -88,4 +89,15 @@ func (b *OwnedDBHandle) CheckClosed(closedErr error) error {
 	}
 
 	return nil
+}
+
+// HealthCheck verifies the database connection is alive via PingContext.
+// Implements the stack.HealthChecker interface for Kubernetes liveness/readiness probes.
+// All stores that embed OwnedDBHandle inherit this method automatically.
+func (b *OwnedDBHandle) HealthCheck(ctx context.Context) error {
+	if err := b.CheckClosed(ErrClosed); err != nil {
+		return err
+	}
+
+	return b.DB.PingContext(ctx)
 }

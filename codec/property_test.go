@@ -6,7 +6,7 @@ import (
 	"github.com/onsi/gomega"
 	"pgregory.net/rapid"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v3"
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 )
 
 type roundtripPayload struct {

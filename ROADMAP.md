@@ -7,7 +7,7 @@
 
 ## Current State (v3.6.0 released)
 
-**v3.6.0 is tagged** (2026-07-05) — all 47 modules are on `/v3` import paths. The library covers the full CQRS/ES lifecycle: event sourcing with branded IDs, command/query dispatch, pure-function deciders, three projection tiers (document/KV, relational/SQL, graph), durable deadline scheduling, event→command derivation, dead-letter quarantine, managed projection hosting, event signing/encryption, OTel tracing/metrics, and auto-documentation generation (AsyncAPI, OpenAPI, D2, EventCatalog).
+**v3.6.0 is tagged** (2026-07-05) — all 47 modules are on `/v4` import paths. The library covers the full CQRS/ES lifecycle: event sourcing with branded IDs, command/query dispatch, pure-function deciders, three projection tiers (document/KV, relational/SQL, graph), durable deadline scheduling, event→command derivation, dead-letter quarantine, managed projection hosting, event signing/encryption, OTel tracing/metrics, and auto-documentation generation (AsyncAPI, OpenAPI, D2, EventCatalog).
 
 v3.0.0 shipped all 11 breaking changes (see [CHANGELOG.md](CHANGELOG.md) and the [v3 Migration Guide](docs/migration/V3_MIGRATION.md)).
 

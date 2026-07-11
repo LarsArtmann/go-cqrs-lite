@@ -7,11 +7,11 @@ import (
 
 	otel "go.opentelemetry.io/otel"
 
-	"github.com/larsartmann/go-cqrs-lite/idempotency/v3"
-	"github.com/larsartmann/go-cqrs-lite/middleware/v3"
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v3"
-	"github.com/larsartmann/go-cqrs-lite/signing/v3"
-	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v3"
+	"github.com/larsartmann/go-cqrs-lite/idempotency/v4"
+	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
+	"github.com/larsartmann/go-cqrs-lite/signing/v4"
+	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 
 // ──────────────────────────────────────────────────────────────────────────

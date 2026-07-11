@@ -22,7 +22,7 @@ Additionally, `stack.Materialize` — the KV/document projection tier — did NO
 
 - All three projection tiers (Materialize, RelationalProjection, GraphProjection) now implement the same contract.
 - `projection/` can grow a `Runner` (replay → live → checkpoint → dispatch) without bloating `event/`.
-- External consumers must update imports from `event/v3` to `projection/v3` for Projection types.
+- External consumers must update imports from `event/v4` to `projection/v4` for Projection types.
 - `event/` is now purely producer-side: Event types, Store interfaces, Bus, metadata, causality.
 
 ## Alternatives Considered

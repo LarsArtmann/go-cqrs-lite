@@ -9,7 +9,7 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill/message"
 
-	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v3"
+	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 
 func TestCorrelationIDMiddleware_NotNil(t *testing.T) {

@@ -86,7 +86,7 @@ After verifying with Turso's current docs: `tursogo`'s sync driver accepts both 
 ### 6. Verification
 
 - ✅ Build passes (`go build ./storage/turso/... ./stack/turso/...`)
-- ✅ All tests pass with `-race` (`storage/turso/v3`, `storage/turso/v3/indexing`, `stack/turso/v3`)
+- ✅ All tests pass with `-race` (`storage/turso/v4`, `storage/turso/v4/indexing`, `stack/turso/v4`)
 - ✅ doc-checker validates all 790 Go references in skill docs (`cmd/doc-check`)
 - ✅ Zero remaining LibSQL references in living docs (archive/adr/research excluded by design)
 

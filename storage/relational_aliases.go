@@ -1,6 +1,6 @@
 package storage
 
-import "github.com/larsartmann/go-cqrs-lite/storage/v3/relational"
+import "github.com/larsartmann/go-cqrs-lite/storage/v4/relational"
 
 // Relational sub-package re-exports.
 // Consumers importing storage/ can use these types unchanged.

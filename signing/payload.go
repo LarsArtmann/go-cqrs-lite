@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
 const canonicalFormatVersion = "go-cqrs-lite/signing/v1"

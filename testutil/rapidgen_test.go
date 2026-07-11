@@ -6,7 +6,7 @@ import (
 
 	"pgregory.net/rapid"
 
-	"github.com/larsartmann/go-cqrs-lite/testutil/v3"
+	"github.com/larsartmann/go-cqrs-lite/testutil/v4"
 )
 
 var eventPattern = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9._-]{2,63}$`)

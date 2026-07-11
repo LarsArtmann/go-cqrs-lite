@@ -40,7 +40,7 @@
 
 - `storage/turso/view_store_test.go` — 4 tests: CRUD, QueryConditions (eq/IN/range), Count+DeleteAll, QueryByTombstone
 
-**Bug fixed:** Pre-existing missing `eventtest` dependency in `storage/turso/go.mod` (golden_test.go imported it but it wasn't in go.mod). Added `event/v3/eventtest` require + replace directive.
+**Bug fixed:** Pre-existing missing `eventtest` dependency in `storage/turso/go.mod` (golden_test.go imported it but it wasn't in go.mod). Added `event/v4/eventtest` require + replace directive.
 
 **Tests:** `cd storage/turso && GOWORK=off go test ./... -race` — all pass (13 tests total).
 
@@ -134,13 +134,13 @@ service EventService { rpc Subscribe(SubscriptionRequest) returns (stream EventE
 
 ### `nix fmt` corrupts catalog YAML imports
 
-**Problem:** Running `nix fmt` silently replaces `github.com/go-faster/yaml` (the REQUIRED library per AGENTS.md) with `go.yaml.in/yaml/v3` (the BANNED library) across `catalog/asyncapi/serde.go`, `catalog/openapi/serde.go`, `catalog/schema/yaml.go`, and updates `go.mod`/`go.sum` accordingly.
+**Problem:** Running `nix fmt` silently replaces `github.com/go-faster/yaml` (the REQUIRED library per AGENTS.md) with `go.yaml.in/yaml/v4` (the BANNED library) across `catalog/asyncapi/serde.go`, `catalog/openapi/serde.go`, `catalog/schema/yaml.go`, and updates `go.mod`/`go.sum` accordingly.
 
 **Impact:** Every `nix fmt` run introduces a banned dependency into the catalog module. This was caught and reverted manually this session, but it WILL recur.
 
-**Root cause:** A `gci` or `goimports` linter step in the nix formatter has a misconfigured import ordering rule that doesn't respect the project's depguard allow-list. It sees `go.yaml.in/yaml/v3` as "more canonical" than `go-faster/yaml` and rewrites the import.
+**Root cause:** A `gci` or `goimports` linter step in the nix formatter has a misconfigured import ordering rule that doesn't respect the project's depguard allow-list. It sees `go.yaml.in/yaml/v4` as "more canonical" than `go-faster/yaml` and rewrites the import.
 
-**Fix needed:** Either (a) pin the formatter to not rewrite imports, or (b) add a depguard rule that rejects `go.yaml.in/yaml/v3`.
+**Fix needed:** Either (a) pin the formatter to not rewrite imports, or (b) add a depguard rule that rejects `go.yaml.in/yaml/v4`.
 
 ---
 
@@ -164,7 +164,7 @@ service EventService { rpc Subscribe(SubscriptionRequest) returns (stream EventE
 
 | Priority | #   | Task                                                                                                               | Effort | Impact                                                  |
 | -------- | --- | ------------------------------------------------------------------------------------------------------------------ | ------ | ------------------------------------------------------- |
-| 🔴       | 1   | **Fix `nix fmt` YAML import corruption** — stop it from swapping go-faster/yaml → go.yaml.in/yaml/v3               | 30min  | Prevents recurring banned-dep introduction              |
+| 🔴       | 1   | **Fix `nix fmt` YAML import corruption** — stop it from swapping go-faster/yaml → go.yaml.in/yaml/v4               | 30min  | Prevents recurring banned-dep introduction              |
 | 🔴       | 2   | **Add 8 missing modules to CI per-module matrix** — `event/eventtest`, 5 examples, `prometheus`, `stack/turso`     | 30min  | Catches missing-dep bugs like the turso eventtest issue |
 | 🔴       | 3   | **Fix BuildFlow pre-commit hook timeout** — increase to 300s or exclude transport/grpc                             | 30min  | Every commit currently needs `--no-verify`              |
 | 🟡       | 4   | **Add Postgres testcontainer to CI** — stack/postgres has 0% local coverage                                        | 2h     | Real coverage for the distributed preset                |
@@ -196,7 +196,7 @@ service EventService { rpc Subscribe(SubscriptionRequest) returns (stream EventE
 
 **Should `transport/grpc` be permanently excluded from `go.work`, or should we invest in fixing the genproto conflict?**
 
-The conflict: `cockroachdb/errors` (used by `event/v3`) pulls the old monolithic `google.golang.org/genproto` package, while `google.golang.org/grpc` requires the split genproto packages (`genproto/googleapis/api`, `genproto/googleapis/rpc`). Having both causes "ambiguous import" errors in workspace mode.
+The conflict: `cockroachdb/errors` (used by `event/v4`) pulls the old monolithic `google.golang.org/genproto` package, while `google.golang.org/grpc` requires the split genproto packages (`genproto/googleapis/api`, `genproto/googleapis/rpc`). Having both causes "ambiguous import" errors in workspace mode.
 
 Options:
 

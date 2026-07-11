@@ -1,6 +1,6 @@
 package asyncapi
 
-import "github.com/larsartmann/go-cqrs-lite/catalog/v3"
+import "github.com/larsartmann/go-cqrs-lite/catalog/v4"
 
 const (
 	asyncAPIVersion = "3.0.0"

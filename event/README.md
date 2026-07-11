@@ -1,19 +1,19 @@
 # event — Event Sourcing Core
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/event/v3.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/event/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v4)
 
 Immutable events, store/bus interfaces, event sourcing primitives, and the 5-family error taxonomy for CQRS + Event Sourcing. Zero infrastructure dependencies (no HTTP, no database, no message broker).
 
 ```bash
-go get github.com/larsartmann/go-cqrs-lite/event/v3
+go get github.com/larsartmann/go-cqrs-lite/event/v4
 ```
 
 ## Quick Start
 
 ```go
 import (
-    "github.com/larsartmann/go-cqrs-lite/event/v3"
-    "github.com/larsartmann/go-cqrs-lite/id/v3"
+    "github.com/larsartmann/go-cqrs-lite/event/v4"
+    "github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 // Create an event
@@ -105,7 +105,7 @@ return event.NewCorruption("store.invalid_event", "checksum mismatch")
 
 | Package              | Purpose                                                |
 | -------------------- | ------------------------------------------------------ |
-| `event/v3/eventtest` | FakeStore, FakeBus, FakeSnapshotStore, test assertions |
+| `event/v4/eventtest` | FakeStore, FakeBus, FakeSnapshotStore, test assertions |
 
 ## Dependencies
 

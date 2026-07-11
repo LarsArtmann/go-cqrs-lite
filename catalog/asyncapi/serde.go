@@ -6,9 +6,9 @@ import (
 
 	"github.com/go-faster/yaml"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog/v3"
-	"github.com/larsartmann/go-cqrs-lite/catalog/v3/internal/caseutil"
-	"github.com/larsartmann/go-cqrs-lite/catalog/v3/schema"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/internal/caseutil"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/schema"
 )
 
 func SchemaToAny(s *catalog.Schema) any {

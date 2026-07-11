@@ -6,12 +6,12 @@ import (
 	"testing"
 	"time"
 
-	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
-	cqrsgraph "github.com/larsartmann/go-cqrs-lite/graph/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
-	"github.com/larsartmann/go-cqrs-lite/stack/v3"
-	"github.com/larsartmann/go-cqrs-lite/storage/memory/v3"
-	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v3"
+	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v4"
+	cqrsgraph "github.com/larsartmann/go-cqrs-lite/graph/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4"
+	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 
 type graphUserCreated struct {

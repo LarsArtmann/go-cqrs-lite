@@ -7,9 +7,9 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	cqrscommand "github.com/larsartmann/go-cqrs-lite/command/v3"
-	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v3"
-	cqrsid "github.com/larsartmann/go-cqrs-lite/id/v3"
+	cqrscommand "github.com/larsartmann/go-cqrs-lite/command/v4"
+	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v4"
+	cqrsid "github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 // ErrNilDispatcher is returned when AsHandler is called with a nil dispatcher.

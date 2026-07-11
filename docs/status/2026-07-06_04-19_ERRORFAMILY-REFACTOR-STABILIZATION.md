@@ -29,11 +29,11 @@ The working tree had **218 uncommitted files** from a prior session — a system
 
 The errorfamily refactor added a direct dependency on `github.com/larsartmann/go-error-family` to 21 modules, but `go.mod`/`go.sum` files were never updated. Every affected module failed with `missing go.sum entry`.
 
-**What I did:** Ran `go mod tidy` across all 48 modules. Fixed `storage/go.mod` where `go get` had wrongly pulled remote versions (`command/v3@v3.6.0`, `scheduling/v3@v3.6.0`) instead of preserving local pseudo-versions.
+**What I did:** Ran `go mod tidy` across all 48 modules. Fixed `storage/go.mod` where `go get` had wrongly pulled remote versions (`command/v4@v3.6.0`, `scheduling/v4@v3.6.0`) instead of preserving local pseudo-versions.
 
 ### 3. `projectionhost/go.mod` missing `scheduling` replace directive
 
-The `projectionhost` module transitively depends on `scheduling` (via `storage`), but had no `replace github.com/larsartmann/go-cqrs-lite/scheduling/v3 => ../scheduling` directive. This caused `missing go.sum entry` failures.
+The `projectionhost` module transitively depends on `scheduling` (via `storage`), but had no `replace github.com/larsartmann/go-cqrs-lite/scheduling/v4 => ../scheduling` directive. This caused `missing go.sum entry` failures.
 
 **What I did:** Added the missing replace directive. `projectionhost` tests now pass.
 
@@ -104,7 +104,7 @@ I wrote a complete corrected `sse.go` (480 lines). The write tool reported succe
 
 ### 2. I ran `go get` which pulled remote module versions
 
-When fixing the `scheduling` go.sum issue in `storage`, I ran `go get github.com/larsartmann/go-cqrs-lite/scheduling/v3` which upgraded the require from the local pseudo-version to `v3.6.0` (published remote). This would have broken the monorepo's local replace pattern if I hadn't caught it.
+When fixing the `scheduling` go.sum issue in `storage`, I ran `go get github.com/larsartmann/go-cqrs-lite/scheduling/v4` which upgraded the require from the local pseudo-version to `v3.6.0` (published remote). This would have broken the monorepo's local replace pattern if I hadn't caught it.
 
 **Root cause:** `go get` resolves to the latest published version. In a monorepo with local replaces, you should never use `go get` for internal modules — only `go mod tidy` with proper replace directives.
 

@@ -21,7 +21,7 @@ Some consumers already operate Redis and prefer it over introducing NATS. Redis 
 
 ```
 transport/redis/
-├── go.mod          # github.com/larsartmann/go-cqrs-lite/transport/redis/v3
+├── go.mod          # github.com/larsartmann/go-cqrs-lite/transport/redis/v4
 ├── publisher.go    # EventPublisher → Redis Streams
 ├── subscriber.go   # Redis Streams → event subscription
 ├── protocol.go     # Event ↔ Redis message conversion
@@ -68,8 +68,8 @@ func (s *Subscriber) Subscribe(ctx context.Context, eventType event.Type) (<-cha
 ### Dependencies
 
 - `github.com/redis/go-redis/v9` (production — also works with [ValKey](https://valkey.io), the recommended alternative)
-- `github.com/larsartmann/go-cqrs-lite/event/v3`
-- `github.com/larsartmann/go-cqrs-lite/codec/v3`
+- `github.com/larsartmann/go-cqrs-lite/event/v4`
+- `github.com/larsartmann/go-cqrs-lite/codec/v4`
 
 ### Testing Strategy
 

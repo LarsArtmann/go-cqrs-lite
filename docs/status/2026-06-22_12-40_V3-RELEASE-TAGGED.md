@@ -1,14 +1,14 @@
 # Comprehensive Status — 2026-06-22 12:40 CEST
 
-**Base:** `4099aeb6` (release: migrate all 38 modules from /v2 to /v3)
+**Base:** `4099aeb6` (release: migrate all 38 modules from /v2 to /v4)
 
 ---
 
 ## Executive Summary
 
-**v3.0.0 is tagged.** All 33 versioned modules carry `v3.0.0` annotated tags. The full `/v2`→`/v3` migration (706 files) is committed and passes build + vet + race tests across all 38 modules. The previous "v2-with-v3-teed-up" limbo is over — consumers can now pin a major version.
+**v3.0.0 is tagged.** All 33 versioned modules carry `v3.0.0` annotated tags. The full `/v2`→`/v4` migration (706 files) is committed and passes build + vet + race tests across all 38 modules. The previous "v2-with-v3-teed-up" limbo is over — consumers can now pin a major version.
 
-This session's work: FEATURES.md freshness audit, README positioning rewrite, CHANGELOG v3.0.0 section, stack/sqlite lint cleanup (11→0), and the mechanical `/v2`→`/v3` migration across `.go` imports, `go.mod` paths/versions/replaces, and documentation.
+This session's work: FEATURES.md freshness audit, README positioning rewrite, CHANGELOG v3.0.0 section, stack/sqlite lint cleanup (11→0), and the mechanical `/v2`→`/v4` migration across `.go` imports, `go.mod` paths/versions/replaces, and documentation.
 
 ---
 
@@ -18,9 +18,9 @@ This session's work: FEATURES.md freshness audit, README positioning rewrite, CH
 
 | Item                  | Detail                                                                                                                                     | Commit     |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
-| `/v2`→`/v3` migration | 706 files: all `.go` imports, 37 `go.mod` module paths + version pins + replace directives, `go.sum` entries, 49 `.md` documentation paths | `4099aeb6` |
+| `/v2`→`/v4` migration | 706 files: all `.go` imports, 37 `go.mod` module paths + version pins + replace directives, `go.sum` entries, 49 `.md` documentation paths | `4099aeb6` |
 | v3.0.0 tags           | 33 annotated tags created (all versioned modules)                                                                                          | git tag    |
-| ComponentTracer fix   | Hardcoded `/v2` in `otel/spans.go:49` format string → `/v3` (caught by test, not by sed)                                                   | `4099aeb6` |
+| ComponentTracer fix   | Hardcoded `/v2` in `otel/spans.go:49` format string → `/v4` (caught by test, not by sed)                                                   | `4099aeb6` |
 | API surface regen     | `docs/api_surface.txt` regenerated (1605 exports, unchanged from v2)                                                                       | `4099aeb6` |
 
 ### Documentation Polish (THIS SESSION)
@@ -28,9 +28,9 @@ This session's work: FEATURES.md freshness audit, README positioning rewrite, CH
 | Item                  | Detail                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | FEATURES.md freshness | Deleted ghost `projection/` section (25 rows), `readmodel/cache` rows, reactive bus entries (`NewEventBus`, `NewCommandBus`, `DistinctByEventID`, `HandlerToObserver`, `ro.Observer`); fixed `memory/`→`storage/memory/` path; fixed `io.Closer` claims on 3 interfaces; fixed "all types are interfaces" lie; marked streaming reads as done; added `transport/http`, `prometheus`, `deployer-first` to Module Maturity Matrix; updated lint count from "0 across 29 modules" to honest "~60 across 38" |
-| README positioning    | New "Why this library?" section + comparison table expanded to 10 capabilities vs go-cqrs/Watermill/cqrs-go; migration guide link in Status section; badge URL fixed `/v2`→`/v3`                                                                                                                                                                                                                                                                                                                         |
+| README positioning    | New "Why this library?" section + comparison table expanded to 10 capabilities vs go-cqrs/Watermill/cqrs-go; migration guide link in Status section; badge URL fixed `/v2`→`/v4`                                                                                                                                                                                                                                                                                                                         |
 | CHANGELOG v3.0.0      | New `[3.0.0]` section with 11-row breaking-change table + migration guide link; cleaned stale Unreleased entries (DistributedRunner, cqrs-gen event mode — both deleted with projection/)                                                                                                                                                                                                                                                                                                                |
-| V3_MIGRATION.md       | AFTER sections updated to `/v3`; BEFORE sections preserved for migration context                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| V3_MIGRATION.md       | AFTER sections updated to `/v4`; BEFORE sections preserved for migration context                                                                                                                                                                                                                                                                                                                                                                                                                         |
 
 ### Stack Polish (THIS SESSION)
 
@@ -113,7 +113,7 @@ The pre-commit hook has a `doc-files-age-check` that passed on this commit, yet 
 
 ### 1. Push the tags and clean go.sum entries
 
-The v3.0.0 release is not real until tags are on the remote. `git push --tags` + per-module `go mod tidy` closes the loop. Until then, `go get .../event/v3` fails for external consumers.
+The v3.0.0 release is not real until tags are on the remote. `git push --tags` + per-module `go mod tidy` closes the loop. Until then, `go get .../event/v4` fails for external consumers.
 
 ### 2. Archive old status reports — enforce it
 

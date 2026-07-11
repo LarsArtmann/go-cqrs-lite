@@ -3,8 +3,8 @@ package decider
 import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v3"
-	"github.com/larsartmann/go-cqrs-lite/id/v3"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 // TypedDecider binds the command type at compile time (ADR-0001 evolution).

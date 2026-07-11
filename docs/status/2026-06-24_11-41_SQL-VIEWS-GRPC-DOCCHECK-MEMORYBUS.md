@@ -57,7 +57,7 @@
 ### 5. SEC Consumer Migration (commit `81d29455`)
 
 - Added `replace` directives pointing to local go-cqrs-lite
-- Added `stack/v3` + `stack/sqlite/v3` dependencies
+- Added `stack/v4` + `stack/sqlite/v4` dependencies
 - Added `NewCQRSAppFromBundle()` constructor
 - **Fixed data-loss bug**: `server.go` was passing `nil` journal → projections couldn't replay on restart
 
@@ -125,7 +125,7 @@ The BuildFlow pre-commit hook runs golangci-lint on every module. Each lint fix 
 5. **`toAnySlice` uses reflection** in view_store_count.go — should be a simple type switch
 6. **Unused `errors` import in command_server.go** — the `var _ = errors.New` hack should be removed
 7. **SEC's `NewCQRSAppFromBundle` is dead code** — server.go still calls `NewCQRSAppWithStore`. The bundle constructor was added but never wired
-8. **Turso go.mod was manually edited** — the replace directive for `kv/v3` was added by hand instead of `go mod tidy`
+8. **Turso go.mod was manually edited** — the replace directive for `kv/v4` was added by hand instead of `go mod tidy`
 
 ---
 

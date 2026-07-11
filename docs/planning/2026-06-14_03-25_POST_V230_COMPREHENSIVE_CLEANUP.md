@@ -2,7 +2,7 @@
 
 **Created:** 2026-06-14 03:25
 **Status:** ✅ COMPLETED
-**Scope:** ALL remaining open items from TODO_LIST.md (excluding v2/v3 breaking changes and BLOCKED items)
+**Scope:** ALL remaining open items from TODO_LIST.md (excluding v2/v4 breaking changes and BLOCKED items)
 
 ---
 
@@ -12,7 +12,7 @@ go-cqrs-lite is a multi-module CQRS/Event Sourcing library for Go at v2.3.0. The
 
 ### Exclusions (NOT in scope)
 
-- **v2/v3 breaking changes** (6 items) — Deferred to next major version
+- **v2/v4 breaking changes** (6 items) — Deferred to next major version
 - **Playwright E2E** — Requires Node.js/browser infrastructure (different ecosystem)
 - **Arena allocation / jsonv2 / SIMD** — Experimental Go features behind build tags, need design first
 - **Clean test deps from go.mod** — Go language limitation (no separate test-only require blocks)
