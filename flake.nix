@@ -154,14 +154,14 @@
               # Make the Crush skill globally available so AI assistants trigger it
               # from any consumer project, not just inside this repo. Idempotent & non-destructive.
               if [ -d "''${HOME:-}/.config/crush/skills" ]; then
-                ln -sfn "${inputs.self}/.agents/skills/go-cqrs-lite" "$HOME/.config/crush/skills/go-cqrs-lite"
+                ln -sfn "${self}/.agents/skills/go-cqrs-lite" "$HOME/.config/crush/skills/go-cqrs-lite"
               fi
             '';
           };
 
           checks = {
             build = config.packages.default;
-            format = config.treefmt.build.check inputs.self;
+            format = config.treefmt.build.check self;
           };
 
           # No-op default package so `nix build .` (BuildFlow's full mode) succeeds.
