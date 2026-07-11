@@ -200,16 +200,16 @@ The "last loop every consumer rewrites", as a library module. Composes any
 `event.SeekableJournal` + `event.CheckpointStore` + `projection.Projection`s
 into a managed lifecycle.
 
-| Feature                   | Detail                                                                                      | Status |
-| ------------------------- | ------------------------------------------------------------------------------------------- | ------ |
-| Host                      | `Host` — manages projection workers, lifecycle, and health                                  | ✅     |
-| Per-projection goroutines | Each registered projection runs independently in its own goroutine                          | ✅     |
-| Crash auto-restart        | Workers restart on panic/error with exponential backoff (configurable initial/max)          | ✅     |
-| Checkpoint persistence    | Survives restarts — reads resume from the last committed checkpoint (no event loss)         | ✅     |
-| Dead-letter queue         | `DeadLetterStore` / `MemoryDeadLetterStore` — poison messages captured, checkpoint advances | ✅     |
-| Health / liveness         | `Status()` reports per-worker state + processed/errors/restarts counters                    | ✅     |
-| Graceful drain            | `Stop()` waits for in-flight events (30s timeout)                                           | ✅     |
-| RegisterAndWait           | Convenience: register + start + block until ctx cancelled                                   | ✅     |
+| Feature                   | Detail                                                                                                                | Status |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------ |
+| Host                      | `Host` — manages projection workers, lifecycle, and health                                                            | ✅     |
+| Per-projection goroutines | Each registered projection runs independently in its own goroutine                                                    | ✅     |
+| Crash auto-restart        | Workers restart on panic/error with exponential backoff (configurable initial/max)                                    | ✅     |
+| Checkpoint persistence    | Survives restarts — reads resume from the last committed checkpoint (no event loss)                                   | ✅     |
+| Dead-letter queue         | `DeadLetterStore` / `MemoryDeadLetterStore` / `SQLiteDeadLetterStore` — poison messages captured, checkpoint advances | ✅     |
+| Health / liveness         | `Status()` reports per-worker state + processed/errors/restarts counters                                              | ✅     |
+| Graceful drain            | `Stop()` waits for in-flight events (30s timeout)                                                                     | ✅     |
+| RegisterAndWait           | Convenience: register + start + block until ctx cancelled                                                             | ✅     |
 
 Worker states: `idle`, `running`, `backoff`, `draining`, `stopped`, `failed`.
 Reads directly from `event.SeekableJournal` — no message-bus dependency. For
@@ -237,15 +237,16 @@ as a library primitive.
 
 > `import "github.com/larsartmann/go-cqrs-lite/schema/v3"`
 
-| Feature              | Detail                                                                               | Status |
-| -------------------- | ------------------------------------------------------------------------------------ | ------ |
-| Upcaster             | `Upcaster` interface — transforms old schema versions to newer on load               | ✅     |
-| Upcaster constructor | `NewUpcaster(eventType, fromVersion, fn)` — version-gated transform                  | ✅     |
-| Cycle detection      | Registry detects schema version revisits during upcast chain                         | ✅     |
-| VersionedStore       | `VersionedStore` wraps any `event.Store` — transparent upcasting on all read methods | ✅     |
-| Full load API        | `Load`, `LoadFromVersion`, `LoadToVersion`, `LoadToTimestamp` — all with upcasting   | ✅     |
-| Schema validator     | `Validator` with `RegisterType[T]()`, strict/lenient modes, custom codecs (ADR-0017) | ✅     |
-| Custom validators    | `RegisterTypeWithValidator[T](v, type, fn)` — business-rule validation after decode  | ✅     |
+| Feature                  | Detail                                                                                                    | Status |
+| ------------------------ | --------------------------------------------------------------------------------------------------------- | ------ |
+| Upcaster                 | `Upcaster` interface — transforms old schema versions to newer on load                                    | ✅     |
+| Upcaster constructor     | `NewUpcaster(eventType, fromVersion, fn)` — version-gated transform                                       | ✅     |
+| Cycle detection          | Registry detects schema version revisits during upcast chain                                              | ✅     |
+| VersionedStore           | `VersionedStore` wraps any `event.Store` — transparent upcasting on all read methods                      | ✅     |
+| VersionedSeekableJournal | `VersionedSeekableJournal` wraps `SeekableJournal` — upcasting for projection host (`ReadAll`/`ReadFrom`) | ✅     |
+| Full load API            | `Load`, `LoadFromVersion`, `LoadToVersion`, `LoadToTimestamp` — all with upcasting                        | ✅     |
+| Schema validator         | `Validator` with `RegisterType[T]()`, strict/lenient modes, custom codecs (ADR-0017)                      | ✅     |
+| Custom validators        | `RegisterTypeWithValidator[T](v, type, fn)` — business-rule validation after decode                       | ✅     |
 
 ---
 
@@ -444,6 +445,8 @@ Deleted — generic utility with no CQRS dependencies and zero consumers.
 | Event filtering      | `WithEventFilter(fn)` — broker-level predicate that drops events before fanout                    | ✅     |
 | Auth middleware      | `SSEAuthMiddleware(next, tokenFunc)` — reference bearer-token auth implementation                 | ✅     |
 | Backfill endpoint    | `BackfillHandler(journal)` — REST endpoint returning missed events as JSON array                  | ✅     |
+| Payload transform    | `WithPayloadTransform(fn)` — wire-format transcoding (e.g. CBOR→JSON) on all 3 SSE paths          | ✅     |
+| Backfill + transform | `BackfillHandlerWithTransform(journal, fn)` — transform variant for REST backfill endpoint        | ✅     |
 | Per-client stats     | `Stats() []ClientStats` — per-client buffered event depth for debugging slow consumers            | ✅     |
 | Graceful close       | `CloseWithGrace(d)` — drains in-flight events before closing client channels                      | ✅     |
 | Dedup ring           | Bounded `dedup.Ring` (1024 entries) for replay→live deduplication — O(1), memory-bounded          | ✅     |
@@ -767,6 +770,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 || OTel→Prom bridge | `Setup()` — creates MeterProvider + HTTP handler backed by Prometheus registry | ✅ |
 || Custom registry | `WithRegistry(r)` — use a custom Prometheus registry | ✅ |
 || Handler options | `WithHandlerOptions(opts)` — configure promhttp.HandlerOpts | ✅ |
+| Custom views | `WithViews(views...)` — apply OTel metric views (e.g. `cqrsotel.NewCQRSViews()`) for histogram boundaries | ✅ |
 
 ---
 

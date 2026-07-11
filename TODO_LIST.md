@@ -110,6 +110,14 @@
 - [x] **Idempotency merge** — Generic NewIdempotency[M] factory + 3 wrappers.
 - [x] **Projectionhost production hardening** — M1-M13 complete.
 - [x] **Error taxonomy migration** — All event._ facade calls → errorfamily._ direct imports.
+- [x] **DiscordSync feedback gaps (Round 2)** — 5 gaps from `2026-07-10_DiscordSync_leverage_review.md`:
+  - [x] `schema.VersionedSeekableJournal` — wraps SeekableJournal with upcasters for projection host
+  - [x] `transport/http.WithPayloadTransform` + `BackfillHandlerWithTransform` — wire-format transcoding on all 3 SSE paths (live, replay, backfill)
+  - [x] `projectionhost.SQLiteDeadLetterStore` — production SQLite-backed DLQ + ADR-0043 documentation
+  - [x] `prometheus.WithViews` — custom metric views for Prometheus exporter (compose with `cqrsotel.NewCQRSViews()`)
+  - [x] Cross-module integration test: VersionedSeekableJournal + projectionhost.New()
+  - [x] API surface golden file updated (2212 exports)
+  - [x] `nix fmt` + `nix run .#lint` clean on all changed files
 
 ---
 

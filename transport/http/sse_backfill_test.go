@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
@@ -146,5 +147,44 @@ func TestBackfillHandler_LimitsTo1000(t *testing.T) {
 
 	if rec.Code != http.StatusOK {
 		t.Errorf("expected 200, got %d: %s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestBackfillHandlerWithTransform_AppliesTransform(t *testing.T) {
+	t.Parallel()
+
+	store := eventtest.NewFakeStore()
+	aggID := id.NewAggregateID()
+	ref := id.NewAggregateRef("Test", aggID)
+
+	evt0, _ := event.NewEvent("test.event", aggID, "Test", 1, []byte(`{"raw":true}`))
+	evt1, _ := event.NewEvent("test.event", aggID, "Test", 2, []byte(`{"seq":1}`))
+
+	_ = store.Save(context.Background(), ref, []event.Event{evt0, evt1}, 0)
+
+	handler := BackfillHandlerWithTransform(store, func(evt event.Event) []byte {
+		return []byte(`{"transformed":true}`)
+	})
+
+	req := httptest.NewRequest(
+		http.MethodGet,
+		"/backfill?after="+evt0.ID().String()+"&limit=10",
+		nil,
+	)
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d: %s", rec.Code, rec.Body.String())
+	}
+
+	body := rec.Body.String()
+
+	if !strings.Contains(body, `{"transformed":true}`) {
+		t.Errorf("transformed payload missing; body: %q", body)
+	}
+
+	if strings.Contains(body, `{"raw":true}`) {
+		t.Errorf("raw payload should NOT appear; body: %q", body)
 	}
 }

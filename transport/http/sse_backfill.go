@@ -59,7 +59,24 @@ func SSEAuthMiddleware(
 //   - limit: maximum events to return (default: 100, max: 1000).
 //
 // Response: 200 OK with `[]event.Event` JSON array, or 400/500 on error.
+//
+// Payload bytes are sent raw (same encoding as stored). For wire-format
+// transcoding (e.g., CBOR→JSON), use BackfillHandlerWithTransform.
 func BackfillHandler(journal event.SeekableJournal) http.Handler {
+	return BackfillHandlerWithTransform(journal, nil)
+}
+
+// BackfillHandlerWithTransform is like BackfillHandler but applies the given
+// transform to each event's payload before serializing. Pass nil for raw
+// payload bytes (identical to BackfillHandler).
+//
+// This variant exists so consumers using CBOR (or any non-JSON codec) can
+// transcode payloads to JSON for browser-compatible REST responses, matching
+// the behavior of WithPayloadTransform on SSEBroker.
+func BackfillHandlerWithTransform(
+	journal event.SeekableJournal,
+	transform func(event.Event) []byte,
+) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -108,10 +125,17 @@ func BackfillHandler(journal event.SeekableJournal) http.Handler {
 
 		items := make([]backfillItem, 0, len(events))
 		for _, evt := range events {
+			var payload []byte
+			if transform != nil {
+				payload = transform(evt)
+			} else {
+				payload = event.PayloadReadOnly(evt)
+			}
+
 			items = append(items, backfillItem{
 				ID:      evt.ID().String(),
 				Type:    string(evt.Type()),
-				Payload: event.PayloadReadOnly(evt),
+				Payload: payload,
 			})
 		}
 

@@ -10,6 +10,7 @@ import (
 
 	promClient "github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/sdk/metric"
 
 	cqrsprom "github.com/larsartmann/go-cqrs-lite/prometheus/v3"
 )
@@ -202,16 +203,54 @@ func TestSetup_WithViews(t *testing.T) {
 	t.Parallel()
 
 	reg := promClient.NewRegistry()
+
+	// A view that renames the instrument: test_original → test_renamed.
+	// This proves the view is actually applied through prometheus.Setup.
+	renameView := metric.NewView(
+		metric.Instrument{Name: "test_original"},
+		metric.Stream{Name: "test_renamed"},
+	)
+
 	provider, err := cqrsprom.Setup(
 		cqrsprom.WithRegistry(reg),
-		cqrsprom.WithViews(),
+		cqrsprom.WithViews(renameView),
 	)
 	if err != nil {
 		t.Fatalf("Setup: %v", err)
 	}
 	defer func() { _ = provider.Shutdown(context.Background()) }()
 
-	if provider.AsMeterProvider() == nil {
-		t.Fatal("expected non-nil MeterProvider")
+	// Register a counter under the ORIGINAL name — the view should rename it.
+	counter, err := provider.AsMeterProvider().
+		Meter("test").
+		Int64Counter("test_original")
+	if err != nil {
+		t.Fatalf("Int64Counter: %v", err)
+	}
+
+	counter.Add(context.Background(), 99)
+
+	// Gather from the Prometheus registry — the view should have renamed
+	// the instrument so it appears as "test_renamed_total", NOT
+	// "test_original_total".
+	metricFamilies, err := reg.Gather()
+	if err != nil {
+		t.Fatalf("Gather: %v", err)
+	}
+
+	foundRenamed := false
+
+	for _, family := range metricFamilies {
+		if family.GetName() == "test_renamed_total" {
+			foundRenamed = true
+		}
+
+		if family.GetName() == "test_original_total" {
+			t.Error("original name should NOT appear when view renames it")
+		}
+	}
+
+	if !foundRenamed {
+		t.Error("renamed metric 'test_renamed_total' not found — view was not applied")
 	}
 }

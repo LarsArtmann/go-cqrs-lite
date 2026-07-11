@@ -51,6 +51,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/command/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-cqrs-lite/schema/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/testutil/v3 v3.0.0-00010101000000-000000000000
@@ -89,3 +90,7 @@ replace github.com/larsartmann/go-cqrs-lite/query/v3 => ../query
 replace github.com/larsartmann/go-cqrs-lite/snapshot/v3 => ../snapshot
 
 replace github.com/larsartmann/go-cqrs-lite/scheduling/v3 => ../scheduling
+
+replace github.com/larsartmann/go-cqrs-lite/schema/v3 => ../schema
+
+replace github.com/larsartmann/go-cqrs-lite/event/v3/eventtest => ../event/v3/eventtest
