@@ -37,8 +37,10 @@ func NewRing(capacity int) *Ring {
 	}
 
 	return &Ring{
-		buf: make([]string, capacity),
-		idx: make(map[string]int, capacity),
+		buf:   make([]string, capacity),
+		idx:   make(map[string]int, capacity),
+		head:  0,
+		count: 0,
 	}
 }
 

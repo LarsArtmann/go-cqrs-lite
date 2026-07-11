@@ -3,6 +3,7 @@ package idempotency
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"strconv"
 	"time"
@@ -72,11 +73,15 @@ func (s *KVStore) Seen(ctx context.Context, key string) (bool, error) {
 func (s *KVStore) Record(ctx context.Context, key string, ttl time.Duration) error {
 	expiry := time.Now().Add(ttl).UnixNano()
 
-	return s.backend.Set(
+	if err := s.backend.Set(
 		ctx,
 		[]byte(key),
 		[]byte(strconv.FormatInt(expiry, 10)),
-	)
+	); err != nil {
+		return fmt.Errorf("idempotency: failed to record key %q: %w", key, err)
+	}
+
+	return nil
 }
 
 func (s *KVStore) CheckAndRecord(ctx context.Context, key string, ttl time.Duration) error {

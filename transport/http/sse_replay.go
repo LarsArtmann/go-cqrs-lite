@@ -62,107 +62,23 @@ func replayEvents(
 	}
 
 	replayed := dedup.NewRing(ringCap)
-	totalReplayed := 0
-	totalBytes := 0
-	timedOut := false
-	byteBudgetExceeded := false
 	start := time.Now()
 
-	// Apply the default byte budget for unlimited replay when no explicit
-	// budget was set (zero value). This prevents unbounded memory consumption
-	// when a client reconnects after a long offline period with a very large
-	// journal. Bounded replay (replayLimit > 0) is already capped by event
-	// count. SSEReplayBudgetDisabled (-1) skips the auto-default for truly
-	// unlimited replay; any positive value is an explicit budget.
-	budget := broker.replayByteBudget
-	if broker.replayLimit <= 0 && budget == 0 {
-		budget = sseDefaultReplayByteBudget
+	budget := resolveReplayBudget(broker)
+
+	res := runReplayLoop(ctx, broker, w, afterID, replayed, budget)
+	if res.journalErr != nil {
+		cqrsotel.RecordError(span, res.journalErr)
 	}
 
-	if broker.replayLimit > 0 { //nolint:nestif // two-phase replay (bounded vs unlimited) is inherently nested
-		// Bounded replay: single call with the cap.
-		events, err := broker.journal.ReadFrom(ctx, afterID, broker.replayLimit)
-		if err != nil {
-			if ctx.Err() != nil {
-				timedOut = true
-			} else {
-				cqrsotel.RecordError(span, err)
-			}
-		} else {
-			written, count, budgetHit := writeReplayBatchBounded(
-				w,
-				events,
-				replayed,
-				totalBytes,
-				budget,
-				broker.payloadTransform,
-			)
-			totalBytes += written
-			totalReplayed += count
-
-			if budgetHit {
-				byteBudgetExceeded = true
-			}
-		}
-	} else {
-		// Unlimited replay: stream in batches to keep memory bounded.
-		cursor := afterID
-
-		for {
-			if ctx.Err() != nil {
-				timedOut = true
-
-				break
-			}
-
-			events, err := broker.journal.ReadFrom(ctx, cursor, sseReplayBatchSize)
-			if err != nil {
-				if ctx.Err() != nil {
-					timedOut = true
-				} else {
-					cqrsotel.RecordError(span, err)
-				}
-
-				break // journal error or timeout: stop, deliver what we have
-			}
-
-			if len(events) == 0 {
-				break
-			}
-
-			written, count, budgetHit := writeReplayBatchBounded(
-				w,
-				events,
-				replayed,
-				totalBytes,
-				budget,
-				broker.payloadTransform,
-			)
-			totalBytes += written
-			totalReplayed += count
-
-			if budgetHit {
-				byteBudgetExceeded = true
-
-				break
-			}
-
-			cursor = events[len(events)-1].ID()
-
-			if len(events) < sseReplayBatchSize {
-				break // journal drained
-			}
-		}
-	}
-
-	if timedOut || byteBudgetExceeded {
+	if res.timedOut || res.budgetExceeded {
 		status := "incomplete"
-		if byteBudgetExceeded {
+		if res.budgetExceeded {
 			status = "byte_budget_exceeded"
 		}
 
 		span.SetAttributes(cqrsotel.AttrString("cqrs.sse.replay_status", status))
-		span.SetAttributes(cqrsotel.AttrInt("cqrs.sse.replay_bytes", totalBytes))
+		span.SetAttributes(cqrsotel.AttrInt("cqrs.sse.replay_bytes", res.totalBytes))
 
 		_ = WriteSSEEvent(w, SSEEvent{
 			Event: SSEReplayIncompleteEvent,
@@ -171,7 +87,7 @@ func replayEvents(
 	}
 
 	flusher.Flush()
-	span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrEventCount, totalReplayed))
+	span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrEventCount, res.totalReplayed))
 	span.SetAttributes(cqrsotel.AttrInt("cqrs.sse.dedup_ring_size", replayed.Len()))
 
 	durationMs := float64(
@@ -183,11 +99,135 @@ func replayEvents(
 	broker.replayMetrics.RecordReplay(
 		ctx,
 		durationMs,
-		totalReplayed,
-		timedOut || byteBudgetExceeded,
+		res.totalReplayed,
+		res.timedOut || res.budgetExceeded,
 	)
 
 	return replayed
+}
+
+// replayResult holds the mutable state accumulated during a replay pass.
+type replayResult struct {
+	totalReplayed  int
+	totalBytes     int
+	timedOut       bool
+	budgetExceeded bool
+	journalErr     error
+}
+
+// resolveReplayBudget applies the default byte budget for unlimited replay when
+// no explicit budget was set (zero value). Bounded replay (replayLimit > 0) is
+// already capped by event count. SSEReplayBudgetDisabled (-1) skips the
+// auto-default for truly unlimited replay.
+func resolveReplayBudget(broker *SSEBroker) int {
+	if broker.replayLimit <= 0 && broker.replayByteBudget == 0 {
+		return sseDefaultReplayByteBudget
+	}
+
+	return broker.replayByteBudget
+}
+
+// runReplayLoop dispatches to the bounded or unlimited replay path.
+func runReplayLoop(
+	ctx context.Context,
+	broker *SSEBroker,
+	w http.ResponseWriter,
+	afterID id.EventID,
+	replayed *dedup.Ring,
+	budget int,
+) replayResult {
+	if broker.replayLimit > 0 {
+		return runBoundedReplay(ctx, broker, w, afterID, replayed, budget)
+	}
+
+	return runUnlimitedReplay(ctx, broker, w, afterID, replayed, budget)
+}
+
+// runBoundedReplay reads events in a single bounded call.
+func runBoundedReplay(
+	ctx context.Context,
+	broker *SSEBroker,
+	w http.ResponseWriter,
+	afterID id.EventID,
+	replayed *dedup.Ring,
+	budget int,
+) replayResult {
+	var res replayResult
+
+	events, err := broker.journal.ReadFrom(ctx, afterID, broker.replayLimit)
+	if err != nil {
+		if ctx.Err() != nil {
+			res.timedOut = true
+		} else {
+			res.journalErr = err
+		}
+
+		return res
+	}
+
+	written, count, budgetHit := writeReplayBatchBounded(
+		w, events, replayed, 0, budget, broker.payloadTransform,
+	)
+	res.totalBytes = written
+	res.totalReplayed = count
+	res.budgetExceeded = budgetHit
+
+	return res
+}
+
+// runUnlimitedReplay streams events in batches to keep memory bounded.
+func runUnlimitedReplay(
+	ctx context.Context,
+	broker *SSEBroker,
+	w http.ResponseWriter,
+	afterID id.EventID,
+	replayed *dedup.Ring,
+	budget int,
+) replayResult {
+	var res replayResult
+
+	cursor := afterID
+
+	for {
+		if ctx.Err() != nil {
+			res.timedOut = true
+
+			return res
+		}
+
+		events, err := broker.journal.ReadFrom(ctx, cursor, sseReplayBatchSize)
+		if err != nil {
+			if ctx.Err() != nil {
+				res.timedOut = true
+			} else {
+				res.journalErr = err
+			}
+
+			return res
+		}
+
+		if len(events) == 0 {
+			return res
+		}
+
+		written, count, budgetHit := writeReplayBatchBounded(
+			w, events, replayed, res.totalBytes, budget, broker.payloadTransform,
+		)
+		res.totalBytes += written
+		res.totalReplayed += count
+
+		if budgetHit {
+			res.budgetExceeded = true
+
+			return res
+		}
+
+		cursor = events[len(events)-1].ID()
+
+		if len(events) < sseReplayBatchSize {
+			return res // journal drained
+		}
+	}
 }
 
 // writeReplayBatchBounded writes events to the client, recording IDs in the

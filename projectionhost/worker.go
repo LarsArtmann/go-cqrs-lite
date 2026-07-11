@@ -3,6 +3,7 @@ package projectionhost
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"math/rand/v2"
 	"sync"
@@ -143,7 +144,9 @@ func (w *worker) run(ctx context.Context, wg *sync.WaitGroup) {
 			w.opts.backoffInitial*time.Duration(1<<uint(restartCount-1)),
 			w.opts.backoffMax,
 		)
-		backoff := time.Duration(rand.Int64N(int64(exp) + 1))
+		backoff := time.Duration(
+			rand.Int64N(int64(exp) + 1),
+		)
 
 		w.setStatus(WorkerBackoff)
 		w.recordMetric(func(m MetricsRecorder) {
@@ -189,7 +192,7 @@ func (w *worker) applyWithRetry(ctx context.Context, evt event.Event) error {
 	for attempt := range w.opts.dlqThreshold {
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return fmt.Errorf("retry cancelled: %w", ctx.Err())
 		default:
 		}
 
@@ -215,11 +218,13 @@ func (w *worker) applyWithRetry(ctx context.Context, evt event.Event) error {
 				w.opts.backoffMax,
 			)
 			half := int64(exp) / 2
-			delay := time.Duration(half + rand.Int64N(half+1))
+			delay := time.Duration(
+				half + rand.Int64N(half+1),
+			)
 
 			select {
 			case <-ctx.Done():
-				return ctx.Err()
+				return fmt.Errorf("backoff cancelled: %w", ctx.Err())
 			case <-time.After(delay):
 			}
 		}
@@ -238,7 +243,7 @@ func (w *worker) sendToDLQ(ctx context.Context, evt event.Event, handlerErr erro
 
 	family = familyToName(errorfamily.Classify(handlerErr))
 
-	return w.opts.dlq.Store(ctx, DeadLetterEntry{
+	if err := w.opts.dlq.Store(ctx, DeadLetterEntry{
 		ProjectionName: w.name,
 		EventID:        evt.ID().String(),
 		EventType:      string(evt.Type()),
@@ -248,7 +253,11 @@ func (w *worker) sendToDLQ(ctx context.Context, evt event.Event, handlerErr erro
 		ErrorCode:      code,
 		ErrorFamily:    family,
 		FailedAt:       time.Now(),
-	})
+	}); err != nil {
+		return fmt.Errorf("store dead-letter entry: %w", err)
+	}
+
+	return nil
 }
 
 // familyToName maps a taxonomy family to its lowercase wire name.

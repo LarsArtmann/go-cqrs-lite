@@ -116,28 +116,28 @@ Every module has its own README with detailed usage, types, and examples.
 
 ### Persistence
 
-| Module             | Purpose                                                           |
-| ------------------ | ----------------------------------------------------------------- |
-| **storage/memory** | In-memory store/snapshot/checkpoint — for tests & dev             |
-| **storage**        | SQL event/snapshot/checkpoint/command stores (PostgreSQL, SQLite) |
-| **storage/pebble** | Embedded KV: event/snapshot/checkpoint stores (PebbleDB + CBOR)   |
-| **storage/turso**  | Turso connector with offline-first sync + indexing advisor        |
-| **kv**             | Layer-0 KV store abstraction: Store, MemStore, TypedStore, Cache  |
-| **snapshot**       | Snapshot types, strategies, store interfaces                      |
-| **schema**         | Schema evolution via upcasters and VersionedStore                 |
+| Module             | Purpose                                                           | README                            |
+| ------------------ | ----------------------------------------------------------------- | --------------------------------- |
+| **storage/memory** | In-memory store/snapshot/checkpoint — for tests & dev             |                                   |
+| **storage**        | SQL event/snapshot/checkpoint/command stores (PostgreSQL, SQLite) |                                   |
+| **storage/pebble** | Embedded KV: event/snapshot/checkpoint stores (PebbleDB + CBOR)   |                                   |
+| **storage/turso**  | Turso connector with offline-first sync + indexing advisor        | [README](storage/turso/README.md) |
+| **kv**             | Layer-0 KV store abstraction: Store, MemStore, TypedStore, Cache  |                                   |
+| **snapshot**       | Snapshot types, strategies, store interfaces                      |                                   |
+| **schema**         | Schema evolution via upcasters and VersionedStore                 |                                   |
 
 ### Infrastructure
 
-| Module             | Purpose                                                             |
-| ------------------ | ------------------------------------------------------------------- |
-| **middleware**     | Logging, retry, validation, recovery, circuit breaker, OTel tracing |
-| **transport/http** | SSE event delivery (Server-Sent Events over HTTP)                   |
-| **signing**        | Event signing: HMAC-SHA256, Ed25519, multi-sig                      |
-| **encryption**     | Payload encryption: XChaCha20-Poly1305, AES-256-GCM, key rotation   |
-| **listing**        | Aggregate listing read model with tombstone-aware status            |
-| **otel**           | Shared OpenTelemetry helpers (tracer, meter, spans)                 |
-| **watermill**      | EventBus adapter, CatchUpSubscriber, EventPublisher                 |
-| **prometheus**     | OTel→Prometheus metrics bridge with /metrics handler                |
+| Module             | Purpose                                                             | README                         |
+| ------------------ | ------------------------------------------------------------------- | ------------------------------ |
+| **middleware**     | Logging, retry, validation, recovery, circuit breaker, OTel tracing |                                |
+| **transport/http** | SSE event delivery (Server-Sent Events over HTTP)                   |                                |
+| **signing**        | Event signing: HMAC-SHA256, Ed25519, multi-sig                      |                                |
+| **encryption**     | Payload encryption: XChaCha20-Poly1305, AES-256-GCM, key rotation   | [README](encryption/README.md) |
+| **listing**        | Aggregate listing read model with tombstone-aware status            |                                |
+| **otel**           | Shared OpenTelemetry helpers (tracer, meter, spans)                 |                                |
+| **watermill**      | EventBus adapter, CatchUpSubscriber, EventPublisher                 |                                |
+| **prometheus**     | OTel→Prometheus metrics bridge with /metrics handler                |                                |
 
 ### Tooling & Docs
 
@@ -190,6 +190,43 @@ Most Go CQRS libraries are **frameworks** — they own your transport, your brok
 - **Multi-module isolation** — Each module has its own `go.mod` with minimal deps. Import `event` alone (3 deps) or the full `stack/sqlite` preset. Your dependency tree stays clean.
 - **Production primitives** — Event signing (HMAC, Ed25519, multisig), payload encryption (XChaCha20-Poly1305, AES-256-GCM), OTel tracing+metrics, Prometheus bridge. Not stubs.
 - **Honest error taxonomy** — 5-family classification (Rejection / Conflict / Transient / Infrastructure / Corruption) with sentinel errors and `%w` wrapping. No panics in production paths.
+
+## Security & Operations
+
+### Event Encryption
+
+Encrypt event payloads at rest with AEAD ciphers. Key rotation via `keyID` stamps.
+
+```go
+enc, _ := encryption.NewXChaCha20Poly1305(key)
+bus.UsePublish(encryption.EncryptMiddleware(enc, encryption.WithMiddlewareKeyID("v1")))
+bus.Use(encryption.DecryptMiddleware(enc))
+```
+
+Supports XChaCha20-Poly1305 (recommended), AES-256-GCM, HKDF key derivation for multi-tenant setups, and a composable codec wrapper. See [`encryption/README.md`](encryption/README.md).
+
+### Turso: Embedded SQLite with Remote Sync
+
+`storage/turso` provides an embedded Turso Database (SQLite-compatible) with optional remote replication. The indexing advisor analyzes your query patterns and recommends optimal indexes.
+
+```go
+store, _ := turso.NewStore(db, turso.WithRemoteSync("libsql://your-db.turso.io", token))
+advisor := turso.NewIndexingAdvisor(db)
+recommendations, _ := advisor.Analyze(ctx, slowQueries)
+```
+
+See [`storage/turso/README.md`](storage/turso/README.md) for the full API.
+
+### Test Utilities
+
+`testutil` provides shared helpers for writing concise test code across all CQRS modules:
+
+```go
+cmd := testutil.MustNewCmd(t, "user.create", aggID, CreateUser{Name: "Alice"})
+handler := testutil.NoopCommandHandler{}
+```
+
+See [`testutil/README.md`](testutil/README.md) for the full list of helpers.
 
 ## Comparison
 

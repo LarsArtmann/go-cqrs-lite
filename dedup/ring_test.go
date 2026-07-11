@@ -101,16 +101,16 @@ func TestRing_NilSafe(t *testing.T) {
 func TestRing_LargeCapacity_Wraparound(t *testing.T) {
 	t.Parallel()
 
-	const cap = 1024
-	r := dedup.NewRing(cap)
+	const capacity = 1024
+	r := dedup.NewRing(capacity)
 
 	// Fill beyond capacity to exercise wraparound.
-	for i := range cap * 3 {
+	for i := range capacity * 3 {
 		r.Add(string(rune(i)))
 	}
 
-	if r.Len() != cap {
-		t.Errorf("Len: got %d, want %d", r.Len(), cap)
+	if r.Len() != capacity {
+		t.Errorf("Len: got %d, want %d", r.Len(), capacity)
 	}
 
 	// The oldest entries should be evicted.
@@ -119,7 +119,7 @@ func TestRing_LargeCapacity_Wraparound(t *testing.T) {
 	}
 
 	// The newest entries should be present.
-	if !r.Has(string(rune(cap*3 - 1))) {
+	if !r.Has(string(rune(capacity*3 - 1))) {
 		t.Error("last entry should be present")
 	}
 }
@@ -145,34 +145,34 @@ func TestRing_DefaultCapacityFallback(t *testing.T) {
 func TestRing_RingShapeInvariants(t *testing.T) {
 	t.Parallel()
 
-	const cap = 8
-	r := dedup.NewRing(cap)
+	const capacity = 8
+	r := dedup.NewRing(capacity)
 	seen := make(map[string]bool)
 	idGen := func(i int) string {
 		// Use a sparse string space to avoid collisions within the test run.
 		return string(rune('a'+i%26)) + "-" + itoa(i)
 	}
 
-	for i := range cap * 5 {
+	for i := range capacity * 5 {
 		id := idGen(i)
 		r.Add(id)
 		seen[id] = true
 
-		if r.Len() > cap {
-			t.Fatalf("iteration %d: Len %d exceeded capacity %d", i, r.Len(), cap)
+		if r.Len() > capacity {
+			t.Fatalf("iteration %d: Len %d exceeded capacity %d", i, r.Len(), capacity)
 		}
 
-		// The last `cap` unique IDs should be present; older ones may have been evicted.
-		if i >= cap {
-			oldest := idGen(i - cap)
+		// The last `capacity` unique IDs should be present; older ones may have been evicted.
+		if i >= capacity {
+			oldest := idGen(i - capacity)
 			if r.Has(oldest) {
 				t.Fatalf("iteration %d: oldest-in-window %q should have been evicted", i, oldest)
 			}
 		}
 	}
 
-	if r.Len() != cap {
-		t.Errorf("after saturation: Len %d, want %d", r.Len(), cap)
+	if r.Len() != capacity {
+		t.Errorf("after saturation: Len %d, want %d", r.Len(), capacity)
 	}
 }
 

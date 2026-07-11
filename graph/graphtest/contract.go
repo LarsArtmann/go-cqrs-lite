@@ -15,6 +15,7 @@ package graphtest
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/graph/v3"
@@ -128,6 +129,8 @@ func nodeRef(label, key string) graph.NodeRef {
 }
 
 func testMergeNodeCreates(t *testing.T, driver graph.GraphDriver) {
+	t.Helper()
+
 	_ = driver.RunInTx(func(sink graph.GraphSink) error {
 		return sink.MergeNode(nodeRef("User", "u1"), map[string]any{"name": "alice"})
 	})
@@ -139,6 +142,8 @@ func testMergeNodeCreates(t *testing.T, driver graph.GraphDriver) {
 }
 
 func testMergeNodeUpdates(t *testing.T, driver graph.GraphDriver) {
+	t.Helper()
+
 	_ = driver.RunInTx(func(sink graph.GraphSink) error {
 		return sink.MergeNode(nodeRef("User", "u1"), map[string]any{"name": "alice", "age": 30})
 	})
@@ -150,6 +155,8 @@ func testMergeNodeUpdates(t *testing.T, driver graph.GraphDriver) {
 }
 
 func testMergeEdgeCreatesEndpoints(t *testing.T, driver graph.GraphDriver) {
+	t.Helper()
+
 	_ = driver.RunInTx(func(sink graph.GraphSink) error {
 		return sink.MergeEdge(graph.EdgeRef{
 			Type: "KNOWS",
@@ -170,6 +177,8 @@ func testMergeEdgeCreatesEndpoints(t *testing.T, driver graph.GraphDriver) {
 }
 
 func testMergeEdgeUpdatesProps(t *testing.T, driver graph.GraphDriver) {
+	t.Helper()
+
 	_ = driver.RunInTx(func(sink graph.GraphSink) error {
 		return sink.MergeEdge(graph.EdgeRef{
 			Type: "KNOWS", From: nodeRef("User", "u1"), To: nodeRef("User", "u2"),
@@ -187,7 +196,7 @@ func testMergeEdgeUpdatesProps(t *testing.T, driver graph.GraphDriver) {
 func testRemoveNodeDeletesIncidentEdges(t *testing.T, driver graph.GraphDriver) {
 	_ = driver.RunInTx(func(sink graph.GraphSink) error {
 		if err := sink.MergeNode(nodeRef("User", "u1"), nil); err != nil {
-			return err
+			return fmt.Errorf("merge node u1: %w", err)
 		}
 
 		return sink.MergeEdge(graph.EdgeRef{
@@ -238,11 +247,11 @@ func testAtomicRollbackOnError(t *testing.T, driver graph.GraphDriver) {
 			nodeRef("User", "u1"),
 			map[string]any{"name": "alice"},
 		); err != nil {
-			return err
+			return fmt.Errorf("merge node u1: %w", err)
 		}
 
 		if err := sink.MergeNode(nodeRef("User", "u2"), map[string]any{"name": "bob"}); err != nil {
-			return err
+			return fmt.Errorf("merge node u2: %w", err)
 		}
 
 		return wantErr

@@ -10,7 +10,7 @@
 | `event`      | `event/v3`      | `Event`, `Store` (=`EventSink`+`EventSource`), `Bus`, `Journal`, `SeekableJournal`, `NewEvent`, `NewEvents`, `DecodePayload[T]`, `DecodePayloadAuto[T]`, `DefaultCodec`, 5-family errors, tombstone (`TombstoneMark`), causality (`Causation`), `Tracing`, `Checkpoint`. |
 | `command`    | `command/v3`    | `Dispatcher`, `Handler`, `RegisterTyped`, `BasicCommand`, `PersistedCommand`, `CommandSink`/`Source`, `CommandBus` (pub/sub).                                                                                                                                            |
 | `query`      | `query/v3`      | `Dispatcher`, `TypedHandler[Q,R]`, `RegisterTyped`, `PaginatedResult[T]`, `PersistedQuery`, `QuerySink`/`Source`.                                                                                                                                                        |
-| `decider`    | `decider/v3`    | `Decider[State]{Initial, Apply}`, `Repository[State]` (`Execute`, `Load`, `LoadAtVersion`), snapshot integration.                                                                                                                                                        |
+| `decider`    | `decider/v3`    | `Decider[State]{Initial, Apply}`, `Repository[State]` (`Execute`, `Load`, `LoadAtVersion`), `NewStateCache`, snapshot integration.                                                                                                                                       |
 
 ### Read models (Layer 4–5)
 
@@ -30,8 +30,8 @@
 | `pebble`   | `storage/pebble/v3` | `EventStore`, `SnapshotStore`, `CheckpointStore`, `NewKVStore`. CBOR envelope. Shared DB via disjoint key prefixes. `Open()` facade.                                                                                                                                            |
 | `turso`    | `storage/turso/v3`  | Turso connector, embedded sync, `indexing/` sub-package for index management. Delegates to `storage`.                                                                                                                                                                           |
 | `kv`       | `kv/v3`             | `Store` (Reader+Writer+Closer), `MemStore`, `Iterator`, `Batch`, `TypedStore[T,K]`, `Cache[T,K]` (Otter LRU).                                                                                                                                                                   |
-| `snapshot` | `snapshot/v3`       | `Snapshot`, `SnapshotSink`/`Source`/`Store`, `SnapshotStrategy`, `EveryNEvents(n)`.                                                                                                                                                                                             |
-| `schema`   | `schema/v3`         | `Upcaster`, `VersionedStore`, `upcasterRegistry`. Schema evolution on read.                                                                                                                                                                                                     |
+| `snapshot` | `snapshot/v3`       | `Snapshot`, `SnapshotSink`/`Source`/`Store`, `SnapshotStrategy`, `EveryNEvents(n)`, `NewReadPressure(loads)`.                                                                                                                                                                   |
+| `schema`   | `schema/v3`         | `Upcaster`, `VersionedStore`, `VersionedSeekableJournal`, `Validator`, `RegisterType[T]()`. Schema evolution on read.                                                                                                                                                           |
 
 ### Cross-cutting (Layer 4–5)
 
@@ -47,13 +47,13 @@
 
 ### Reliability & Testing (Layer 1–3)
 
-| Module           | Import              | One-liner                                                                                                                    |
-| ---------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `idempotency`    | `idempotency/v3`    | `Store`, `MemoryStore`, `KVStore` (any `kv.Store`+`ConditionalWriter`), `ErrDuplicate`. Middleware in `middleware/`.         |
-| `scheduling`     | `scheduling/v3`     | `TimerStore`, `MemoryTimerStore`, `Scheduler` (poll + retry). Idempotent durable deadlines ("cancel order after 30 min").    |
-| `projection`     | `projection/v3`     | `Projection`, `NewProjection`. Consumer-side projection interface extracted from `event/`.                                   |
-| `projectionhost` | `projectionhost/v3` | `Host`, `WorkerState`, `DeadLetterStore`, `MemoryDeadLetterStore`. Managed lifecycle: crash-restart, checkpoint, poison DLQ. |
-| `scenario`       | `scenario/v3`       | Fluent BDD: `Given/When/Then`, `ThenError`, `ThenState`, `GivenProjection/ThenNoError`. Test deciders + projections.         |
+| Module           | Import              | One-liner                                                                                                                                                                                                                                           |
+| ---------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `idempotency`    | `idempotency/v3`    | `Store`, `MemoryStore`, `KVStore` (any `kv.Store`+`ConditionalWriter`), `ErrDuplicate`. Middleware in `middleware/`.                                                                                                                                |
+| `scheduling`     | `scheduling/v3`     | `TimerStore`, `MemoryTimerStore`, `Scheduler` (poll + retry). Idempotent durable deadlines ("cancel order after 30 min").                                                                                                                           |
+| `projection`     | `projection/v3`     | `Projection`, `NewProjection`. Consumer-side projection interface extracted from `event/`.                                                                                                                                                          |
+| `projectionhost` | `projectionhost/v3` | `Host`, `WorkerState`, `DeadLetterStore`, `SQLiteDeadLetterStore`, `DeadLetterStoreAdmin` (Count/ListPaged/PurgeBefore), `MemoryDeadLetterStore`, `RegisterAndWait`, `ReplayDeadLetters`. Managed lifecycle: crash-restart, checkpoint, poison DLQ. |
+| `scenario`       | `scenario/v3`       | Fluent BDD: `Given/When/Then`, `ThenError`, `ThenState`, `GivenProjection/ThenNoError`. Test deciders + projections.                                                                                                                                |
 
 ### Tooling (Layer 6)
 

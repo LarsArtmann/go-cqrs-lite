@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 )
 
+// RegisterAndWait registers all projections with the host, then starts the
 // host, and blocks until ctx is cancelled or all workers stop. Useful for
 // simple single-projection setups.
 func RegisterAndWait(ctx context.Context, h *Host, projections ...projection.Projection) error {
@@ -71,7 +72,7 @@ func (h *Host) ReplayDeadLetters(ctx context.Context, projectionName string) (Re
 		)
 	}
 
-	result := ReplayResult{}
+	result := ReplayResult{} //nolint:exhaustruct // zero-value init
 
 	for _, entry := range entries {
 		w, ok := workers[entry.ProjectionName]

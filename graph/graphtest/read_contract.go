@@ -2,6 +2,7 @@ package graphtest
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/graph/v3"
@@ -22,30 +23,30 @@ func SeedReadGraph(t *testing.T, driver graph.GraphDriver) {
 			nodeRef("User", "a"),
 			map[string]any{"name": "alice"},
 		); err != nil {
-			return err
+			return fmt.Errorf("seed node a: %w", err)
 		}
 
 		if err := sink.MergeNode(nodeRef("User", "b"), map[string]any{"name": "bob"}); err != nil {
-			return err
+			return fmt.Errorf("seed node b: %w", err)
 		}
 
 		if err := sink.MergeNode(
 			nodeRef("User", "c"),
 			map[string]any{"name": "carol"},
 		); err != nil {
-			return err
+			return fmt.Errorf("seed node c: %w", err)
 		}
 
 		if err := sink.MergeEdge(graph.EdgeRef{
 			Type: "KNOWS", From: nodeRef("User", "a"), To: nodeRef("User", "b"),
 		}, nil); err != nil {
-			return err
+			return fmt.Errorf("seed edge a→b: %w", err)
 		}
 
 		if err := sink.MergeEdge(graph.EdgeRef{
 			Type: "KNOWS", From: nodeRef("User", "b"), To: nodeRef("User", "c"),
 		}, nil); err != nil {
-			return err
+			return fmt.Errorf("seed edge b→c: %w", err)
 		}
 
 		return sink.MergeEdge(graph.EdgeRef{

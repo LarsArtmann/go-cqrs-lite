@@ -126,8 +126,10 @@
 
 ### Public Release Readiness
 
-- [ ] **License swap (PROPRIETARY → Apache-2.0)** — Hard blocker for public adoption. **Needs user approval (irreversible).**
-- [ ] **Git history scrub for internal docs** — AGENTS.md, docs/planning/\* contain internal strategy. **Needs user approval (irreversible).**
+> **Release strategy decided 2026-07-11:** Public release (license swap + history scrub) happens **AFTER v4 cut**, not before. Not a current priority — v4 breaking changes (deprecated API removal, Storage/ split) come first.
+
+- [ ] **License swap (PROPRIETARY → Apache-2.0)** — Hard blocker for public adoption. **Needs user approval (irreversible).** After v4.
+- [ ] **Git history scrub for internal docs** — AGENTS.md, docs/planning/\* contain internal strategy. **Needs user approval (irreversible).** After v4.
 - [ ] **Postgres CI coverage matrix** — Add CI Postgres service or label experimental.
 - [ ] **README polish to "sales page" standard** — Per AGENTS.md rule.
 

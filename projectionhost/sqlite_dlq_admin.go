@@ -3,6 +3,7 @@ package projectionhost
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -62,7 +63,7 @@ func (s *SQLiteDeadLetterStore) ListPaged(
 		)
 	}
 
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var result []DeadLetterEntry
 
@@ -75,7 +76,11 @@ func (s *SQLiteDeadLetterStore) ListPaged(
 		result = append(result, entry)
 	}
 
-	return result, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate dead-letter rows: %w", err)
+	}
+
+	return result, nil
 }
 
 // PurgeBefore removes all dead-letter entries that failed before the given timestamp.

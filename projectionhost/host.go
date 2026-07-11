@@ -59,7 +59,7 @@ func New(
 		opt(&o)
 	}
 
-	return &Host{
+	return &Host{ //nolint:exhaustruct // mutex/cancel/wg start zero-valued
 		journal: journal,
 		cpStore: cpStore,
 		opts:    o,
@@ -93,7 +93,7 @@ func (h *Host) Register(p projection.Projection) error {
 			fmt.Sprintf("projection %q already registered", name))
 	}
 
-	h.workers[name] = &worker{
+	h.workers[name] = &worker{ //nolint:exhaustruct // counters start at zero
 		name:       name,
 		projection: p,
 		journal:    h.journal,
@@ -102,7 +102,7 @@ func (h *Host) Register(p projection.Projection) error {
 		logger:     h.opts.logger,
 		seenIDs:    dedup.NewRing(dedup.DefaultCapacity),
 		typeSet:    buildTypeSet(p.EventTypes()),
-		state: WorkerState{
+		state: WorkerState{ //nolint:exhaustruct // zero-value counters
 			Name:   name,
 			Status: WorkerIdle,
 		},
@@ -316,7 +316,11 @@ func (h *Host) Reset(ctx context.Context, name string) error {
 		}
 	}
 
-	if err := h.cpStore.Save(ctx, name, event.Checkpoint{}); err != nil {
+	if err := h.cpStore.Save(
+		ctx,
+		name,
+		event.Checkpoint{},
+	); err != nil {
 		return errorfamily.WrapInfrastructure(err, "projectionhost.reset_checkpoint",
 			fmt.Sprintf("clear checkpoint for %q", name))
 	}

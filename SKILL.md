@@ -195,6 +195,24 @@ payload, err := event.DecodePayload[UserCreated](evt, codec.CBORCodec{})
 payload := evt.Payload().(UserCreated) // DON'T
 ```
 
+**Default codec is CBOR** (ADR-0051). `event.DefaultCodec = codec.CBORCodec{}`.
+Events created via `event.New()` are auto-stamped with their encoding, so mixed
+JSON+CBOR streams decode correctly via `DecodePayloadAuto[T]`. To revert to
+JSON globally: `event.DefaultCodec = codec.JSONCodec{}`.
+
+For browser-facing SSE endpoints, CBOR payloads must be transformed to JSON
+(CBOR is penalized by SSE's text framing — base64 adds 33%):
+
+```go
+broker, _ := http.NewSSEBroker(bus,
+    http.WithPayloadTransform(func(evt event.Event) []byte {
+        p, err := event.DecodePayloadAuto[YourPayload](evt)
+        if err != nil { return event.PayloadReadOnly(evt) }
+        jsonBytes, _ := json.Marshal(p)
+        return jsonBytes
+    }))
+```
+
 ### 3.4 OTel via otel/ — never go.opentelemetry.io directly
 
 Modules must import `github.com/larsartmann/go-cqrs-lite/otel/v3`, not `go.opentelemetry.io/otel`. The otel module re-exports the needed types and keeps the SDK indirect in go.mod.

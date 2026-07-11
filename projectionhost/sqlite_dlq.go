@@ -18,6 +18,24 @@ var (
 	_ DeadLetterStoreAdmin = (*SQLiteDeadLetterStore)(nil)
 )
 
+// intFromVersion converts an event.Version (uint64) to int for SQL storage.
+// Event versions are small sequential integers that never approach int32 max.
+func intFromVersion(v event.Version) int {
+	return int(v) //nolint:gosec // G115: versions are small sequential integers
+}
+
+// sqliteDLQSchema defines the projection dead-letter table and its indexes.
+//
+// Index audit (ADR feedback): three indexes cover all access patterns:
+//   - UNIQUE(projection_name, event_id): point lookups for Store (INSERT OR
+//     REPLACE conflict) and Delete.
+//   - idx_pdl_projection_time(projection_name, failed_at): filtered listings
+//     (List, ListPaged, Purge by projection). projection_name is the leftmost
+//     column so single-column projection lookups also use this index.
+//   - idx_pdl_failed_at(failed_at): global ORDER BY and time-bounded PurgeBefore.
+//
+// failed_at is TEXT (RFC3339Nano) — lexicographic order matches chronological
+// order, so index range scans are valid.
 const sqliteDLQSchema = `CREATE TABLE IF NOT EXISTS projection_dead_letters (
     id               INTEGER PRIMARY KEY AUTOINCREMENT,
     projection_name  TEXT NOT NULL,
@@ -95,7 +113,7 @@ func (s *SQLiteDeadLetterStore) Store(ctx context.Context, entry DeadLetterEntry
 	encoding, occurredAt := "json", ""
 
 	if evt != nil {
-		version = int(evt.Version())
+		version = intFromVersion(evt.Version())
 		schemaVersion = evt.SchemaVersion().Int()
 		encoding = string(evt.Encoding())
 		occurredAt = evt.OccurredAt().Format(time.RFC3339Nano)
@@ -166,7 +184,7 @@ func (s *SQLiteDeadLetterStore) List(
 		)
 	}
 
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var result []DeadLetterEntry
 
@@ -179,7 +197,11 @@ func (s *SQLiteDeadLetterStore) List(
 		result = append(result, entry)
 	}
 
-	return result, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate dead-letter rows: %w", err)
+	}
+
+	return result, nil
 }
 
 func (s *SQLiteDeadLetterStore) Delete(

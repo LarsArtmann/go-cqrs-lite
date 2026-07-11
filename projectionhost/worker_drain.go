@@ -2,6 +2,7 @@ package projectionhost
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -24,7 +25,7 @@ func (w *worker) process(ctx context.Context) error {
 
 	cp, err := w.cpStore.Load(ctx, w.name)
 	if err != nil {
-		return err
+		return fmt.Errorf("load checkpoint for %q: %w", w.name, err)
 	}
 
 	var afterID id.EventID
@@ -37,7 +38,7 @@ func (w *worker) process(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return fmt.Errorf("drain cancelled: %w", ctx.Err())
 		case <-w.stop:
 			return nil
 		default:
@@ -45,7 +46,7 @@ func (w *worker) process(ctx context.Context) error {
 
 		events, err := w.journal.ReadFrom(ctx, afterID, w.opts.batchSize)
 		if err != nil {
-			return err
+			return fmt.Errorf("read journal batch: %w", err)
 		}
 
 		if len(events) == 0 {
@@ -55,7 +56,7 @@ func (w *worker) process(ctx context.Context) error {
 		for _, evt := range events {
 			select {
 			case <-ctx.Done():
-				return ctx.Err()
+				return fmt.Errorf("drain event loop cancelled: %w", ctx.Err())
 			case <-w.stop:
 				return nil
 			default:
@@ -73,23 +74,8 @@ func (w *worker) process(ctx context.Context) error {
 			duration := time.Since(start)
 
 			if err != nil {
-				if w.opts.dlq != nil {
-					dlqErr := w.sendToDLQ(ctx, evt, err)
-					if dlqErr != nil {
-						return dlqErr
-					}
-
-					w.recordMetric(func(m MetricsRecorder) {
-						m.EventDeadLettered(w.name, string(evt.Type()))
-					})
-
-					w.logger.Warn("event sent to dead-letter queue after retries",
-						"projection", w.name,
-						"event_id", evt.ID().String(),
-						"event_type", string(evt.Type()),
-						"error", err)
-				} else {
-					return err
+				if e := w.handleProcessEventError(ctx, evt, err); e != nil {
+					return e
 				}
 			} else {
 				w.recordMetric(func(m MetricsRecorder) {
@@ -108,7 +94,7 @@ func (w *worker) process(ctx context.Context) error {
 			EventID:     afterID,
 			ProcessedAt: time.Now(),
 		}); err != nil {
-			return err
+			return fmt.Errorf("save checkpoint: %w", err)
 		}
 
 		w.setCheckpoint(afterID.String())
@@ -135,13 +121,43 @@ func (w *worker) process(ctx context.Context) error {
 	return nil
 }
 
+// handleProcessEventError handles an error from applyWithRetry. If a DLQ is
+// configured, the event is sent to the dead-letter store and nil is returned
+// (the error is swallowed — the event is quarantined, not fatal). If no DLQ
+// is configured, the original error is returned (fatal).
+func (w *worker) handleProcessEventError(
+	ctx context.Context,
+	evt event.Event,
+	err error,
+) error {
+	if w.opts.dlq == nil {
+		return err
+	}
+
+	if dlqErr := w.sendToDLQ(ctx, evt, err); dlqErr != nil {
+		return dlqErr
+	}
+
+	w.recordMetric(func(m MetricsRecorder) {
+		m.EventDeadLettered(w.name, string(evt.Type()))
+	})
+
+	w.logger.Warn("event sent to dead-letter queue after retries",
+		"projection", w.name,
+		"event_id", evt.ID().String(),
+		"event_type", string(evt.Type()),
+		"error", err)
+
+	return nil
+}
+
 // processLive subscribes to live events via the configured subscriber. Events
 // already processed during journal drain are silently skipped. Blocks until the
 // context is cancelled, the subscriber returns an error, or the worker is stopped.
 func (w *worker) processLive(ctx context.Context) error {
 	w.setStatus(WorkerLive)
 
-	return w.opts.subscriber.SubscribeAll(func(_ context.Context, evt event.Event) error {
+	if err := w.opts.subscriber.SubscribeAll(func(_ context.Context, evt event.Event) error {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -166,17 +182,8 @@ func (w *worker) processLive(ctx context.Context) error {
 		duration := time.Since(start)
 
 		if handleErr != nil {
-			if w.opts.dlq != nil {
-				dlqErr := w.sendToDLQ(ctx, evt, handleErr)
-				if dlqErr != nil {
-					return dlqErr
-				}
-
-				w.recordMetric(func(m MetricsRecorder) {
-					m.EventDeadLettered(w.name, string(evt.Type()))
-				})
-			} else {
-				return handleErr
+			if e := w.handleProcessEventError(ctx, evt, handleErr); e != nil {
+				return e
 			}
 		} else {
 			w.recordMetric(func(m MetricsRecorder) {
@@ -196,5 +203,9 @@ func (w *worker) processLive(ctx context.Context) error {
 		w.lastProcessedNs.Store(time.Now().UnixNano())
 
 		return nil
-	})
+	}); err != nil {
+		return fmt.Errorf("subscribe live events: %w", err)
+	}
+
+	return nil
 }
