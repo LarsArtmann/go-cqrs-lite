@@ -650,10 +650,8 @@ event/func WithEncoding
 event/func WithEventID
 event/func WithIPAddress
 event/func WithMetadata
-event/func WithNewCodec
 event/func WithOccurredAt
 event/func WithProcessingMode
-event/func WithReplay
 event/func WithRequestID
 event/func WithSchemaVersion
 event/func WithSource
