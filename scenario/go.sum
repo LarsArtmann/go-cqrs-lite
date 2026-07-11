@@ -32,6 +32,8 @@ github.com/larsartmann/go-cqrs-lite/metadata/v3 v3.0.0-20260711081559-0fef413ebe
 github.com/larsartmann/go-cqrs-lite/metadata/v3 v3.0.0-20260711081559-0fef413ebee3/go.mod h1:rRTLznfGdpVQUbwn7d9GXSP+ZuQlp+jGKnyJfUvq5ho=
 github.com/larsartmann/go-cqrs-lite/metadata/v3 v3.0.0-20260711094323-d396bb6fc23f h1:YZO/TAshUwema+oEVDEZSjlvjPeJTKMwRok0HqTM3W0=
 github.com/larsartmann/go-cqrs-lite/metadata/v3 v3.0.0-20260711094323-d396bb6fc23f/go.mod h1:rRTLznfGdpVQUbwn7d9GXSP+ZuQlp+jGKnyJfUvq5ho=
+github.com/larsartmann/go-cqrs-lite/metadata/v3 v3.0.0-20260711155012-11e0572b75a8 h1:JAa3E3xx1PhtTsFjUF05lIY2UJQbThjQifW9d/a9B4E=
+github.com/larsartmann/go-cqrs-lite/metadata/v3 v3.0.0-20260711155012-11e0572b75a8/go.mod h1:rRTLznfGdpVQUbwn7d9GXSP+ZuQlp+jGKnyJfUvq5ho=
 github.com/larsartmann/go-cqrs-lite/query/v3 v3.7.4 h1:fI0ngVN8y0KnpFkmG1il7F2CKcIcjQ5IHBjuBRNhmzY=
 github.com/larsartmann/go-cqrs-lite/query/v3 v3.7.4/go.mod h1:9WBn4IMlJvEyw7weH6z2ZB9hS6kujK3MNThtzHosrH8=
 github.com/larsartmann/go-cqrs-lite/schema/v3 v3.7.3 h1:iDuoD1S19d1i/CrVwxjIOmEWCBt8Zl/ReRg2Zzn3qLs=

@@ -4,22 +4,22 @@ go 1.26.4
 
 require (
 	github.com/cockroachdb/pebble v1.1.5
-	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.7.4
-	github.com/larsartmann/go-cqrs-lite/command/v3 v3.7.4
+	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/command/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/decider/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/encryption/v3 v3.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/event/v3 v3.7.4
-	github.com/larsartmann/go-cqrs-lite/event/v3/eventtest v0.1.0
+	github.com/larsartmann/go-cqrs-lite/event/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/event/v3/eventtest v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/graph/v3 v3.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/id/v3 v3.7.4
-	github.com/larsartmann/go-cqrs-lite/idempotency/v3 v3.7.4
+	github.com/larsartmann/go-cqrs-lite/id/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/idempotency/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/listing/v3 v3.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/metadata/v3 v3.0.0-20260711094323-d396bb6fc23f // indirect
+	github.com/larsartmann/go-cqrs-lite/metadata/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/middleware/v3 v3.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.7.4
-	github.com/larsartmann/go-cqrs-lite/query/v3 v3.7.4
+	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/query/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/signing/v3 v3.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.7.4
+	github.com/larsartmann/go-cqrs-lite/snapshot/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/stack/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v3 v3.0.0-00010101000000-000000000000
@@ -63,8 +63,8 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v3 v3.0.0-00010101000000-000000000000 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.7.4 // indirect
-	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.7.4 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-cqrs-lite/kv/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
