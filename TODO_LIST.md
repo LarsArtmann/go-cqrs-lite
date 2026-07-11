@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-07-11 (session: moved completed items to CHANGELOG.md)
+**Updated:** 2026-07-11 (session: completed P3 polish items + CBOR→JSON SSE e2e test)
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in [ROADMAP.md](ROADMAP.md). Raw ideas live in [ROADMAP.md § Raw Ideas](ROADMAP.md#raw-ideas-no-design-yet).
 
 ## Legend
@@ -14,14 +14,11 @@
 
 ## P3 — Polish & Cleanup
 
-- [ ] **Restore bundle.go architectural comment** — Removed dead `var _ = []any{...}` code but also removed the documentation of Bundle↔CatchUpSubscriber relationship. Add a real doc comment.
-- [ ] **Fix histogram test hard-coded values** — `prometheus/exporter_test.go:265` duplicates `otel.CQRSHistogramBoundaries` as a literal. If boundaries change in otel, test passes with stale values.
-- [ ] **Run `nix flake check`** — Changed `scripts/check-module-layers.sh` but never re-ran flake check.
-- [ ] **Run race detector on `stack/` and `example/taskmanager/`** — Changed `bundle.go`, `http.go`, `setup.go` this session; only ran race on projectionhost + transport/http.
+_All items in this section have been completed and moved to [CHANGELOG.md](CHANGELOG.md)._
 
 ### SSE transform follow-ups (Gap 2)
 
-- [ ] **CBOR→JSON e2e test** — Through all 3 SSE paths (live, replay, backfill) with a real CBOR-encoded event (item 25).
+- [x] **CBOR→JSON e2e test** — `TestSSEHandler_PayloadTransform_CBOR_ToJSON_BrowserFlow` added in `transport/http/sse_options_test.go`. Moved to CHANGELOG.
 
 ### Projectionhost observability
 

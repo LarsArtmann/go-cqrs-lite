@@ -8,6 +8,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+#### P3 Polish & Cleanup
+
+- **Restored bundle.go architectural comment** — documented the Bundle↔CatchUpSubscriber
+  relationship (SeekableJournal + Subscriber + CheckpointStore fields compose into the
+  replay-then-live projection pipeline) after dead `var _` code was removed.
+- **Fixed histogram test hard-coded values** — `prometheus/exporter_test.go` now references
+  `cqrsotel.CQRSHistogramBoundaries` directly instead of duplicating the literal. If boundaries
+  change in `otel/`, the test tracks the real value.
+- **Verified `nix flake check`** — passes after `scripts/check-module-layers.sh` changes.
+- **Race detector verified** on `stack/` and `example/taskmanager/` — both pass with `-race`.
+- **CBOR→JSON SSE e2e test** — `TestSSEHandler_PayloadTransform_CBOR_ToJSON_BrowserFlow`
+  in `transport/http/sse_options_test.go` verifies CBOR events transform to JSON for browser
+  consumption across all SSE delivery paths.
+- **Fixed taskmanager integration test failures** — `example/taskmanager` now uses JSON codec
+  (`event.DefaultCodec = codec.JSONCodec{}`) via `codec_init.go` to fix CBOR decode failures
+  in the projection pipeline. Events are also human-readable in the database and SSE stream.
+
 #### DLQ Admin Operations & SQLite Dead-Letter Store (`projectionhost`)
 
 - **`DeadLetterStoreAdmin` interface** — production management operations for dead-letter stores:
