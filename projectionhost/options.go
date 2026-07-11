@@ -14,6 +14,17 @@ import (
 // HostOption configures a Host.
 type HostOption func(*hostOptions)
 
+// Defaults for [hostOptions]. Named constants exist so the defaults can be
+// referenced from tests and external documentation.
+const (
+	defaultMaxRestarts     = 5
+	defaultBackoffInitial  = 1 * time.Second
+	defaultBackoffMax      = 30 * time.Second
+	defaultBatchSize       = 100
+	defaultDLQThreshold    = 3
+	defaultShutdownTimeout = 30 * time.Second
+)
+
 type hostOptions struct {
 	maxRestarts     int
 	backoffInitial  time.Duration
@@ -30,13 +41,13 @@ type hostOptions struct {
 
 func defaultOptions() hostOptions {
 	return hostOptions{ //nolint:exhaustruct // option fields default to zero
-		maxRestarts:     5,
-		backoffInitial:  1 * time.Second,
-		backoffMax:      30 * time.Second,
-		batchSize:       100,
-		dlqThreshold:    3,
+		maxRestarts:     defaultMaxRestarts,
+		backoffInitial:  defaultBackoffInitial,
+		backoffMax:      defaultBackoffMax,
+		batchSize:       defaultBatchSize,
+		dlqThreshold:    defaultDLQThreshold,
 		logger:          slog.Default(),
-		shutdownTimeout: 30 * time.Second,
+		shutdownTimeout: defaultShutdownTimeout,
 	}
 }
 
@@ -48,21 +59,21 @@ func tracer() trace.Tracer {
 }
 
 // WithMaxRestarts sets the maximum number of restarts per worker before it
-// transitions to WorkerFailed. Default: 5. Set to -1 for unlimited.
+// transitions to WorkerFailed. Default: [defaultMaxRestarts]. Set to -1 for unlimited.
 func WithMaxRestarts(n int) HostOption {
 	return func(o *hostOptions) { o.maxRestarts = n }
 }
 
 // WithBackoff sets the initial and maximum exponential backoff duration
 // between restarts. Default: 1s initial, 30s max.
-func WithBackoff(initial, max time.Duration) HostOption {
+func WithBackoff(initial, maxDur time.Duration) HostOption {
 	return func(o *hostOptions) {
 		o.backoffInitial = initial
-		o.backoffMax = max
+		o.backoffMax = maxDur
 	}
 }
 
-// WithBatchSize sets the number of events read per journal batch. Default: 100.
+// WithBatchSize sets the number of events read per journal batch. Default: [defaultBatchSize].
 func WithBatchSize(n int) HostOption {
 	return func(o *hostOptions) { o.batchSize = n }
 }
@@ -101,8 +112,9 @@ func WithSubscriber(subscriber event.Subscriber) HostOption {
 }
 
 // WithShutdownTimeout sets the maximum duration Stop waits for in-flight events
-// to complete before returning a timeout error. Default: 30s. Increase for
-// projections with slow handlers; decrease for fast-fail shutdown requirements.
+// to complete before returning a timeout error. Default: [defaultShutdownTimeout].
+// Increase for projections with slow handlers; decrease for fast-fail shutdown
+// requirements.
 func WithShutdownTimeout(d time.Duration) HostOption {
 	return func(o *hostOptions) { o.shutdownTimeout = d }
 }

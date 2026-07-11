@@ -104,35 +104,54 @@ func (s *Schema) Validate() error {
 		return errSchemaNoNodeTypes
 	}
 
-	seenNodes := make(map[string]struct{}, len(s.Nodes))
+	seenNodes, err := s.validateNodeTypes()
+	if err != nil {
+		return err
+	}
+
+	if err := s.validateEdgeTypes(seenNodes); err != nil {
+		return err
+	}
+
+	return s.validateIndexes()
+}
+
+// validateNodeTypes checks every declared node type. Returns the set of seen
+// labels so callers can validate edge endpoint references against it.
+func (s *Schema) validateNodeTypes() (map[string]struct{}, error) {
+	seen := make(map[string]struct{}, len(s.Nodes))
 
 	for i := range s.Nodes {
 		nodeType := s.Nodes[i]
 
 		if nodeType.Label == "" {
-			return fmt.Errorf("graph schema: node type %d: %w", i, errSchemaEmptyLabel)
+			return nil, fmt.Errorf("graph schema: node type %d: %w", i, errSchemaEmptyLabel)
 		}
 
 		if nodeType.KeyProp == "" {
-			return fmt.Errorf(
+			return nil, fmt.Errorf(
 				"graph schema: node type %q: %w",
 				nodeType.Label,
 				errSchemaEmptyKeyProp,
 			)
 		}
 
-		if _, dup := seenNodes[nodeType.Label]; dup {
-			return fmt.Errorf("graph schema: %w: %q", errSchemaDuplicateNodeLabel, nodeType.Label)
+		if _, dup := seen[nodeType.Label]; dup {
+			return nil, fmt.Errorf(
+				"graph schema: %w: %q",
+				errSchemaDuplicateNodeLabel,
+				nodeType.Label,
+			)
 		}
 
-		seenNodes[nodeType.Label] = struct{}{}
+		seen[nodeType.Label] = struct{}{}
 
 		if err := validateProperties(nodeType.Properties, "node", nodeType.Label); err != nil {
-			return err
+			return nil, err
 		}
 
 		if hasProperty(nodeType.Properties, nodeType.KeyProp) {
-			return fmt.Errorf(
+			return nil, fmt.Errorf(
 				"graph schema: node type %q: %w",
 				nodeType.Label,
 				errSchemaKeyPropInProperties,
@@ -140,7 +159,13 @@ func (s *Schema) Validate() error {
 		}
 	}
 
-	seenEdges := make(map[string]struct{}, len(s.Edges))
+	return seen, nil
+}
+
+// validateEdgeTypes checks every declared edge type, including endpoint
+// labels referring to declared node types.
+func (s *Schema) validateEdgeTypes(seenNodes map[string]struct{}) error {
+	seen := make(map[string]struct{}, len(s.Edges))
 
 	for i := range s.Edges {
 		edgeType := s.Edges[i]
@@ -149,51 +174,61 @@ func (s *Schema) Validate() error {
 			return fmt.Errorf("graph schema: edge type %d: %w", i, errSchemaEmptyEdgeType)
 		}
 
-		if _, dup := seenEdges[edgeType.Type]; dup {
+		if _, dup := seen[edgeType.Type]; dup {
 			return fmt.Errorf("graph schema: %w: %q", errSchemaDuplicateEdgeType, edgeType.Type)
 		}
 
-		seenEdges[edgeType.Type] = struct{}{}
+		seen[edgeType.Type] = struct{}{}
 
-		if edgeType.FromLabel == "" {
-			return fmt.Errorf(
-				"graph schema: edge type %q: %w",
-				edgeType.Type,
-				errSchemaEmptyFromLabel,
-			)
-		}
-
-		if edgeType.ToLabel == "" {
-			return fmt.Errorf(
-				"graph schema: edge type %q: %w",
-				edgeType.Type,
-				errSchemaEmptyToLabel,
-			)
-		}
-
-		if _, ok := seenNodes[edgeType.FromLabel]; !ok {
-			return fmt.Errorf(
-				"graph schema: edge type %q: %w: %q",
-				edgeType.Type,
-				errSchemaUnknownFromLabel,
-				edgeType.FromLabel,
-			)
-		}
-
-		if _, ok := seenNodes[edgeType.ToLabel]; !ok {
-			return fmt.Errorf(
-				"graph schema: edge type %q: %w: %q",
-				edgeType.Type,
-				errSchemaUnknownToLabel,
-				edgeType.ToLabel,
-			)
-		}
-
-		if err := validateProperties(edgeType.Properties, "edge", edgeType.Type); err != nil {
+		if err := s.validateSingleEdge(edgeType, seenNodes); err != nil {
 			return err
 		}
 	}
 
+	return nil
+}
+
+// validateSingleEdge checks endpoint labels and properties for one edge type.
+func (s *Schema) validateSingleEdge(edgeType EdgeType, seenNodes map[string]struct{}) error {
+	if edgeType.FromLabel == "" {
+		return fmt.Errorf(
+			"graph schema: edge type %q: %w",
+			edgeType.Type,
+			errSchemaEmptyFromLabel,
+		)
+	}
+
+	if edgeType.ToLabel == "" {
+		return fmt.Errorf(
+			"graph schema: edge type %q: %w",
+			edgeType.Type,
+			errSchemaEmptyToLabel,
+		)
+	}
+
+	if _, ok := seenNodes[edgeType.FromLabel]; !ok {
+		return fmt.Errorf(
+			"graph schema: edge type %q: %w: %q",
+			edgeType.Type,
+			errSchemaUnknownFromLabel,
+			edgeType.FromLabel,
+		)
+	}
+
+	if _, ok := seenNodes[edgeType.ToLabel]; !ok {
+		return fmt.Errorf(
+			"graph schema: edge type %q: %w: %q",
+			edgeType.Type,
+			errSchemaUnknownToLabel,
+			edgeType.ToLabel,
+		)
+	}
+
+	return validateProperties(edgeType.Properties, "edge", edgeType.Type)
+}
+
+// validateIndexes checks every declared index for a valid label and properties.
+func (s *Schema) validateIndexes() error {
 	for i := range s.Indexes {
 		idx := s.Indexes[i]
 

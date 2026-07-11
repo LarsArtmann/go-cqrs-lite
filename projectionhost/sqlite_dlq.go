@@ -66,23 +66,26 @@ type SQLiteDeadLetterStore struct {
 }
 
 // NewSQLiteDeadLetterStore creates a SQLite-backed dead-letter store.
-// The db must already be open. The table is created if it does not exist.
-// The caller owns the *sql.DB and must close it.
-func NewSQLiteDeadLetterStore(db *sql.DB) (*SQLiteDeadLetterStore, error) {
-	if db == nil {
+// The database must already be open; the caller owns its lifecycle. The table
+// is created if it does not exist. The initial schema bootstrap uses ctx.
+func NewSQLiteDeadLetterStore(
+	ctx context.Context,
+	database *sql.DB,
+) (*SQLiteDeadLetterStore, error) {
+	if database == nil {
 		return nil, errorfamily.NewRejection(
 			"projectionhost.nil_db", "database handle is required",
 		)
 	}
 
-	if _, err := db.Exec(sqliteDLQSchema); err != nil {
+	if _, err := database.ExecContext(ctx, sqliteDLQSchema); err != nil {
 		return nil, errorfamily.WrapInfrastructure(
 			err, "projectionhost.dlq_schema",
 			"create projection_dead_letters table",
 		)
 	}
 
-	return &SQLiteDeadLetterStore{db: db}, nil
+	return &SQLiteDeadLetterStore{db: database}, nil
 }
 
 func (s *SQLiteDeadLetterStore) Store(ctx context.Context, entry DeadLetterEntry) error {

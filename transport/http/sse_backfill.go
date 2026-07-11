@@ -10,6 +10,11 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
+// maxBackfillLimit caps the number of events a single backfill response will
+// return. Consumers asking for more get clamped to this cap to bound response
+// time and memory. Replays use the same cap by default (see SSEBroker).
+const maxBackfillLimit = 1000
+
 // SSEAuthMiddleware wraps an http.Handler with token-based authentication.
 // The tokenFunc extracts and validates a bearer token from the request,
 // returning the authenticated client ID on success.
@@ -101,8 +106,8 @@ func BackfillHandlerWithTransform(
 			}
 		}
 
-		if limit > 1000 {
-			limit = 1000
+		if limit > maxBackfillLimit {
+			limit = maxBackfillLimit
 		}
 
 		events, err := journal.ReadFrom(r.Context(), afterID, limit)

@@ -34,7 +34,7 @@ func (s *MemStore) checkClosed() error {
 	return nil
 }
 
-func (s *MemStore) Get(ctx context.Context, key []byte) ([]byte, error) {
+func (s *MemStore) Get(_ context.Context, key []byte) ([]byte, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -51,7 +51,7 @@ func (s *MemStore) Get(ctx context.Context, key []byte) ([]byte, error) {
 	return slices.Clone(val), nil
 }
 
-func (s *MemStore) Has(ctx context.Context, key []byte) (bool, error) {
+func (s *MemStore) Has(_ context.Context, key []byte) (bool, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -65,7 +65,7 @@ func (s *MemStore) Has(ctx context.Context, key []byte) (bool, error) {
 	return ok, nil
 }
 
-func (s *MemStore) Set(ctx context.Context, key, value []byte) error {
+func (s *MemStore) Set(_ context.Context, key, value []byte) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -79,7 +79,7 @@ func (s *MemStore) Set(ctx context.Context, key, value []byte) error {
 	return nil
 }
 
-func (s *MemStore) Delete(ctx context.Context, key []byte) error {
+func (s *MemStore) Delete(_ context.Context, key []byte) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -95,7 +95,7 @@ func (s *MemStore) Delete(ctx context.Context, key []byte) error {
 
 // SetIfAbsent atomically sets the value only if the key does not currently
 // exist. Returns true if the set succeeded, false if the key already existed.
-func (s *MemStore) SetIfAbsent(ctx context.Context, key, value []byte) (bool, error) {
+func (s *MemStore) SetIfAbsent(_ context.Context, key, value []byte) (bool, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -113,7 +113,7 @@ func (s *MemStore) SetIfAbsent(ctx context.Context, key, value []byte) (bool, er
 	return true, nil
 }
 
-func (s *MemStore) Batch(ctx context.Context) (Batch, error) {
+func (s *MemStore) Batch(_ context.Context) (Batch, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -125,7 +125,7 @@ func (s *MemStore) Batch(ctx context.Context) (Batch, error) {
 	return &memBatch{store: s}, nil //nolint:exhaustruct // zero-value fields are intentional
 }
 
-func (s *MemStore) NewIterator(ctx context.Context, prefix []byte) (Iterator, error) {
+func (s *MemStore) NewIterator(_ context.Context, prefix []byte) (Iterator, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 

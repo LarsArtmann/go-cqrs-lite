@@ -26,7 +26,7 @@ func newSQLiteDLQ(t *testing.T) *projectionhost.SQLiteDeadLetterStore {
 	db.SetMaxOpenConns(1)
 	t.Cleanup(func() { _ = db.Close() })
 
-	store, err := projectionhost.NewSQLiteDeadLetterStore(db)
+	store, err := projectionhost.NewSQLiteDeadLetterStore(t.Context(), db)
 	if err != nil {
 		t.Fatalf("NewSQLiteDeadLetterStore: %v", err)
 	}
@@ -65,7 +65,7 @@ func makeDLQEntry(t *testing.T, projName string) projectionhost.DeadLetterEntry 
 func TestSQLiteDeadLetterStore_NilDB(t *testing.T) {
 	t.Parallel()
 
-	store, err := projectionhost.NewSQLiteDeadLetterStore(nil)
+	store, err := projectionhost.NewSQLiteDeadLetterStore(t.Context(), nil)
 	if store != nil {
 		t.Fatal("expected nil store")
 	}
@@ -583,7 +583,7 @@ func TestSQLiteDeadLetterStore_CorruptPayload(t *testing.T) {
 	db.SetMaxOpenConns(1)
 	t.Cleanup(func() { _ = db.Close() })
 
-	store, err := projectionhost.NewSQLiteDeadLetterStore(db)
+	store, err := projectionhost.NewSQLiteDeadLetterStore(t.Context(), db)
 	if err != nil {
 		t.Fatalf("NewSQLiteDeadLetterStore: %v", err)
 	}

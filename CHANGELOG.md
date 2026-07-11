@@ -8,6 +8,91 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+#### DLQ Admin Operations & SQLite Dead-Letter Store (`projectionhost`)
+
+- **`DeadLetterStoreAdmin` interface** — production management operations for dead-letter stores:
+  `Count(ctx) (int64, error)`, `ListPaged(ctx, projectionName, offset, limit)`,
+  `PurgeBefore(ctx, before time.Time) (int64, error)`.
+- **`SQLiteDeadLetterStore`** — persistent SQLite-backed dead-letter store (survives restarts).
+  Full column layout, index strategy, and reconstruction docs in `projectionhost/doc.go`.
+- **DLQ index optimization** — replaced redundant `idx_pdl_projection` with
+  `idx_pdl_projection_time(projection_name, failed_at)` (covers List + pagination + ORDER BY)
+  and `idx_pdl_failed_at(failed_at)` (covers List-all + PurgeBefore).
+- **DLQ test coverage** — stress test (10k entries: Count, ListPaged, PurgeBefore), concurrent
+  store test (20 goroutines × 50 entries = 1000 writes), corrupt-payload test (surfaces error
+  with event ID, no panic).
+
+#### VersionedSeekableJournal (`schema`)
+
+- **`schema.VersionedSeekableJournal`** — wraps `event.SeekableJournal` with upcaster chains,
+  enabling schema evolution for `projectionhost.New()` (which requires `SeekableJournal`).
+  Cross-module integration test with `projectionhost.New()` included.
+- **Property tests** (rapid, 100 iterations each) — upcaster chain (random depth + events),
+  passthrough (unregistered types), ReadFrom (position-based seek with upcasting).
+- **Mid-stream upcast error test** — 10 events, upcaster fails on event 5, error propagates
+  from both ReadAll and ReadFrom (no panic, no partial results).
+- **Benchmarks** — ReadAll no-upcasters (140µs), ReadAll 3-chain (7.5ms), ReadFrom 3-chain
+  500 events (536µs).
+
+#### SSE Transform & Replay Safety (`transport/http`)
+
+- **`WithPayloadTransform`** — wire-format transcoding (e.g., CBOR→JSON for browsers) applied
+  uniformly across all three SSE paths: live, replay, and backfill.
+- **`BackfillHandlerWithTransform`** — REST backfill endpoint with the same payload transform.
+- **`SSEReplayBudgetDisabled = -1`** sentinel — `WithReplayByteBudget(0)` now auto-defaults to
+  the 8MB safety budget; pass -1 to explicitly disable budgeting.
+- **Large-payload byte-budget test** — 100KB × 5 events under 250KB budget boundary verification.
+
+#### Blind Store Encoding Envelopes (`codec`, `kv`, `snapshot`, `command`, `query`)
+
+- **`codec.WrapEncode` / `codec.UnwrapDecode`** — ADR-0044 encoding stamps on blind stores.
+  All four blind stores (kv, snapshot, command, query) are now self-describing: the codec is
+  stamped on write and auto-detected on read. `UnwrapDecode` falls back to JSONCodec for
+  backward compat with pre-envelope data.
+
+#### Prometheus Custom Views (`prometheus`)
+
+- **`WithViews(views ...metric.View) Option`** — custom metric views for the Prometheus exporter.
+  Compose with `cqrsotel.NewCQRSViews()` to apply CQRS histogram boundaries.
+
+#### Stack Health Checks & Shutdown Ordering (`stack`)
+
+- **`HealthChecker` interface + `Bundle.HealthCheck(ctx)`** — pings the database and calls
+  `HealthCheck` on every registered closer that implements the interface. Enables Kubernetes
+  liveness/readiness probes.
+- **`WithShutdownDependency(before, after string) Option`** — topological sort (Kahn's algorithm)
+  for close-time dependency ordering. Projections drain before the event store closes. Cycles
+  fall back to registration order.
+
+#### Decider Hot-State Cache (`decider`)
+
+- **`StateCache[State]` interface + LRU implementation** — incremental loads: on cache hit,
+  `LoadFromVersion(cachedVer)` + fold delta → O(new events) instead of O(total events).
+  `WithStateCache[State]` option enables it. Cache updated on every Execute, invalidated on
+  fold/store errors. Benchmark: 7.4x faster Load (2090→283 ns/op) with 500-event history.
+  Process-local, best-effort, zero new dependencies.
+
+#### Read-Pressure Snapshot Strategy (`snapshot`)
+
+- **`ReadPressure` strategy** — triggers snapshots based on read count (hot-read, cold-write
+  aggregates). `AggregateAwareStrategy` and `ReadTracker` optional interfaces.
+  Composable with `EveryNEvents` via `WithInnerStrategy`. Wired into decider Repository via
+  optional interface checks. Fully backward compatible.
+
+#### id/ + metadata/ Package Extraction
+
+- **`id/` package** — branded IDs (`AggregateRef`, `EventID`, markers) extracted from `event/`
+  into a standalone, zero-event-dependency module.
+- **`metadata/` package** — `Tracing`, `CustomData[K]`, and shared metadata types extracted from
+  `event/` for cross-module reuse (command, query, event).
+
+#### SQL Error Classification Auto-Registration (`storage/sql`)
+
+- **`errorfamily.RegisterStdlibDefaults()`** called via `init()` — registers stdlib error
+  classifications automatically on import.
+- **Database driver classifiers** — SQLite BUSY/LOCKED→Transient, CONSTRAINT→Conflict;
+  Postgres SQLSTATE class mappings. Registered via `init()` in `storage/sql/classify_init.go`.
+
 #### Idempotency Middleware — Generic Factory (`middleware/v3`)
 
 - **`middleware.NewIdempotency[M]`** — generic idempotency middleware factory following the
@@ -23,7 +108,62 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Store errors are classified as `Transient` via `errorfamily.Wrapf`. Duplicate keys return
   `idempotency.ErrDuplicate` (a `Conflict` family error).
 
+#### Documentation & ADRs
+
+- **ADR-0043** — Dead-letter store design (dispatch-side vs projection poison entries).
+- **ADR-0044** — Blind store encoding stamps (envelope wrapper).
+- **ADR-0047** — json/v2 case-insensitive decode.
+- **ADR-0048** — Deterministic encoding.
+- **ADR-0049** — Dispatch-time middleware ordering.
+- **SECURITY.md** — vulnerability reporting process.
+- **Consumer migration guide** — `docs/migration/MIGRATION-GUIDE.md` for id/ + metadata/ extraction.
+- **SKILL.md** updated — `VersionedSeekableJournal`, `BackfillHandlerWithTransform`, `WithViews`
+  added to decision matrix + cheat sheet. doc-check passes (868 refs).
+- **metadata/ + id/** added to AGENTS.md module table.
+- **v4-removal markers** — all 8 deprecated alias sites marked with `// v4-removal:` comments.
+
 ### Changed
+
+#### CBOR is the Default Codec (`event`, `codec`, `stack`)
+
+- **`event.DefaultCodec`** is now `codec.CBORCodec{}` (was `JSONCodec{}`). Events are
+  self-describing (`evt.Encoding()` stamp on every event), so mixed JSON+CBOR streams decode
+  correctly via `DecodePayloadAuto`. Blind stores are self-describing via ADR-0044 envelopes.
+  Blind store defaults (kv, snapshot, command, query) also flipped to CBOR.
+
+#### Deprecated Alias Cleanup
+
+- **~200 usages across 42 files** updated from `event.AggregateRef` → `id.AggregateRef`,
+  `event.Tracing` → `metadata.Tracing`, etc. All internal code now uses `id.` and `metadata.`
+  directly. SA1019 deprecated alias warnings eliminated across all modules.
+- **Deprecated alias verification test** — `event/deprecated_alias_test.go` verifies all 6
+  deprecated aliases have proper `Deprecated:` comments.
+
+#### JSON Quality Audit
+
+- **`Deterministic(true)`** added to all `Marshal` calls in signing, encryption, event, storage,
+  transport, listing, catalog.
+- **`MatchCaseInsensitiveNames(true)`** added to all `Unmarshal` calls across all modules.
+  Implements ADR-0047 (case-insensitive decode) and ADR-0048 (deterministic encoding).
+
+#### errorfamily.HTTPStatus() Adoption (`example/taskmanager`)
+
+- **`writeCQRSError`** simplified from 15-line switch statement to a 1-line
+  `errorfamily.HTTPStatus(err)` call.
+
+#### Dispatcher Middleware-at-Dispatch-Time Fix (`dispatcher`)
+
+- Middleware can now be added in any order — the chain is rebuilt at dispatch time, not
+  construction time. Documented in `dispatcher/doc.go`.
+
+#### CI Sync Scripts
+
+- **`scripts/check-workspace-sync.sh`** — verifies go.work ↔ flake.nix module sync. 8 missing
+  modules added to flake.nix testModules.
+- **`scripts/check-api-stability-sync.sh`** — verifies go.work ↔ api-stability tracking sync.
+  12 missing modules added to api-stability tracking.
+- **`scripts/check-module-layers.sh`** — dependency budget violations fixed (deriver=4,
+  stack=14). projectionhost raised 7→9, watermill raised 8→9 (SQLite DLQ + metadata extraction).
 
 #### Idempotency Module Slimmed Down (`idempotency/v3`)
 
@@ -35,6 +175,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added to `flake.nix` testModules and `cmd/api-stability` module tracking (was missing from both
   since module creation).
 - Pre-existing lint issues fixed: `exhaustruct`, `nestif`, `revive` (unused ctx), `wrapcheck`.
+
+### Fixed
+
+- **`WithReplayByteBudget(0)` semantics** — 0 now auto-defaults to the 8MB safety budget;
+  `SSEReplayBudgetDisabled = -1` explicitly disables budgeting.
+- **`api_surface.txt`** — removed dead `JSONCodecV2` entry. Regenerated golden with all new
+  modules tracked (2212 exports).
+- **File-size violations** — 3 production files split under the 350-line CI limit:
+  `signing/cose.go` → `cose_sign1.go`, `cmd/doc-check/main.go` → `exports.go`,
+  `catalog/eventcatalog/frontmatter_render.go` → `frontmatter_convert.go`.
+- **Dead code removed** — `codec/jsonv2_experiment.go` (dead Go experiment tag gated zero files).
+  All 4 `var _ =` hacks removed (`sse_backfill.go`, `example/taskmanager/http.go`,
+  `stack/bundle.go`, `example/taskmanager/setup.go`).
+
+### Security
+
+- **SECURITY.md** — documents the vulnerability reporting process.
 
 ## [3.7.1] - 2026-07-07
 

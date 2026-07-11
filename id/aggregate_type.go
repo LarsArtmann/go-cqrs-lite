@@ -71,4 +71,6 @@ func (r AggregateRef) Validate() error {
 }
 
 // Verify AggregateRef satisfies fmt.Stringer at compile time.
+//
+//nolint:exhaustruct // zero-value proves interface is satisfied at compile time
 var _ fmt.Stringer = AggregateRef{}

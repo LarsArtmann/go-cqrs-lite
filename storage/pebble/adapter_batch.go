@@ -18,7 +18,7 @@ type pebbleBatch struct {
 
 var _ kv.Batch = (*pebbleBatch)(nil)
 
-func (batch *pebbleBatch) Set(ctx context.Context, key, value []byte) error {
+func (batch *pebbleBatch) Set(_ context.Context, key, value []byte) error {
 	err := batch.batch.Set(key, value, nil)
 	if err != nil {
 		return errorfamily.WrapInfrastructure(err, "pebble.batch.set",
@@ -28,7 +28,7 @@ func (batch *pebbleBatch) Set(ctx context.Context, key, value []byte) error {
 	return nil
 }
 
-func (batch *pebbleBatch) Delete(ctx context.Context, key []byte) error {
+func (batch *pebbleBatch) Delete(_ context.Context, key []byte) error {
 	err := batch.batch.Delete(key, nil)
 	if err != nil {
 		return errorfamily.WrapInfrastructure(err, "pebble.batch.delete",
@@ -38,7 +38,7 @@ func (batch *pebbleBatch) Delete(ctx context.Context, key []byte) error {
 	return nil
 }
 
-func (batch *pebbleBatch) Commit(ctx context.Context) error {
+func (batch *pebbleBatch) Commit(_ context.Context) error {
 	if batch.committed {
 		return nil
 	}

@@ -49,7 +49,7 @@ func main() {
     d := decider.Decider[UserState]{
         Initial: UserState{},
         Apply: func(s UserState, e event.Event) (UserState, error) {
-            p, _ := event.DecodePayload[UserCreated](e, codec.JSONCodec{})
+            p, _ := event.DecodePayloadAuto[UserCreated](e)
             s.Name = p.Name
             return s, nil
         },

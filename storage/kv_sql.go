@@ -275,6 +275,8 @@ func (b *sqlKVBatch) Delete(ctx context.Context, key []byte) error {
 }
 
 func (b *sqlKVBatch) Commit(ctx context.Context) error {
+	_ = ctx // retained for kv.Batch interface; tx.Commit is non-context-aware
+
 	if b.closed {
 		return nil
 	}

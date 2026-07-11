@@ -24,7 +24,7 @@ func TestSSEAuthMiddleware_RejectsMissingToken(t *testing.T) {
 		return "", false
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/events", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/events", nil)
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
 
@@ -52,7 +52,7 @@ func TestSSEAuthMiddleware_AcceptsValidToken(t *testing.T) {
 		return "", false
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/events", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/events", nil)
 	req.Header.Set("Authorization", "Bearer valid-token")
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
@@ -78,7 +78,8 @@ func TestBackfillHandler_ReturnsEvents(t *testing.T) {
 	handler := BackfillHandler(store)
 
 	// Request events after evt0.
-	req := httptest.NewRequest(
+	req := httptest.NewRequestWithContext(
+		t.Context(),
 		http.MethodGet,
 		"/backfill?after="+evt0.ID().String()+"&limit=10",
 		nil,
@@ -116,7 +117,7 @@ func TestBackfillHandler_MissingAfterParam(t *testing.T) {
 	store := eventtest.NewFakeStore()
 	handler := BackfillHandler(store)
 
-	req := httptest.NewRequest(http.MethodGet, "/backfill", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/backfill", nil)
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
 
@@ -137,7 +138,8 @@ func TestBackfillHandler_LimitsTo1000(t *testing.T) {
 	handler := BackfillHandler(store)
 
 	// limit=99999 should be silently capped to 1000, not error.
-	req := httptest.NewRequest(
+	req := httptest.NewRequestWithContext(
+		t.Context(),
 		http.MethodGet,
 		"/backfill?after="+evt0.ID().String()+"&limit=99999",
 		nil,
@@ -166,7 +168,8 @@ func TestBackfillHandlerWithTransform_AppliesTransform(t *testing.T) {
 		return []byte(`{"transformed":true}`)
 	})
 
-	req := httptest.NewRequest(
+	req := httptest.NewRequestWithContext(
+		t.Context(),
 		http.MethodGet,
 		"/backfill?after="+evt0.ID().String()+"&limit=10",
 		nil,

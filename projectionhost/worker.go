@@ -18,6 +18,10 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 )
 
+// jitterHalfDivisor splits the backoff window in half so jitter is symmetric
+// around the midpoint (delay = half + rand(0..half]).
+const jitterHalfDivisor = 2
+
 // worker is a single projection's event-processing goroutine.
 type worker struct {
 	name       string
@@ -145,7 +149,7 @@ func (w *worker) run(ctx context.Context, wg *sync.WaitGroup) {
 			w.opts.backoffMax,
 		)
 		backoff := time.Duration(
-			rand.Int64N(int64(exp) + 1),
+			rand.Int64N(int64(exp) + 1), //nolint:gosec // non-crypto backoff jitter
 		)
 
 		w.setStatus(WorkerBackoff)
@@ -217,9 +221,9 @@ func (w *worker) applyWithRetry(ctx context.Context, evt event.Event) error {
 				w.opts.backoffInitial*time.Duration(1<<uint(attempt)),
 				w.opts.backoffMax,
 			)
-			half := int64(exp) / 2
+			half := int64(exp) / jitterHalfDivisor
 			delay := time.Duration(
-				half + rand.Int64N(half+1),
+				half + rand.Int64N(half+1), //nolint:gosec // non-crypto backoff jitter
 			)
 
 			select {
@@ -236,12 +240,13 @@ func (w *worker) applyWithRetry(ctx context.Context, evt event.Event) error {
 }
 
 func (w *worker) sendToDLQ(ctx context.Context, evt event.Event, handlerErr error) error {
-	code, family := "", ""
+	var code string
+
 	if ce, ok := errors.AsType[*errorfamily.Error](handlerErr); ok {
 		code = ce.Code()
 	}
 
-	family = familyToName(errorfamily.Classify(handlerErr))
+	family := familyToName(errorfamily.Classify(handlerErr))
 
 	if err := w.opts.dlq.Store(ctx, DeadLetterEntry{
 		ProjectionName: w.name,

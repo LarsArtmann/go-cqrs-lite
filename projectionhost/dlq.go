@@ -36,7 +36,7 @@ type WorkerState struct {
 	Processed  int64        `json:"processed"`
 	Errors     int64        `json:"errors"`
 	Restarts   int          `json:"restarts"`
-	LastError  string       `json:"last_error,omitempty"`
+	LastError  string       `json:"lastError,omitempty"`
 }
 
 // DeadLetterEntry captures a poison message that exceeded the retry threshold.

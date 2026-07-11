@@ -6,7 +6,7 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-func init() {
+func init() { //nolint:gochecknoinits // package-wide registration of stdlib/driver error classifiers, must run before any store operation
 	// Register stdlib error classifications so database/sql and context
 	// errors classify correctly throughout the storage layer:
 	//   sql.ErrNoRows     → Rejection (caller's concern, not a system fault)

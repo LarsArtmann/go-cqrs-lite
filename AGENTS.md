@@ -752,7 +752,7 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   // For live push delivery, pair with watermill/CatchUpSubscriber.
 //
 //   // SQLite dead-letter store (persists poison events across restarts):
-//   dlqStore, _ := projectionhost.NewSQLiteDeadLetterStore(db)
+//   dlqStore, _ := projectionhost.NewSQLiteDeadLetterStore(ctx, db)
 //   host, _ := projectionhost.New(journal, cpStore,
 //       projectionhost.WithDeadLetterStore(dlqStore, 3))
 //

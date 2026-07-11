@@ -129,14 +129,14 @@ func (d Deriver) Idempotent() Deriver {
 		}
 
 		for i := range cmds {
-			bc, ok := cmds[i].(*cqrscommand.BasicCommand)
+			basicCmd, ok := cmds[i].(*cqrscommand.BasicCommand)
 			if !ok {
 				continue
 			}
 
 			derivedID := cqrsid.DeriveCommandID("deriver", evt.ID().String(), strconv.Itoa(i))
-			cqrscommand.WithCommandID(derivedID)(bc)
-			cqrscommand.WithCustomMetadata(string(SourceEventIDKey), evt.ID().String())(bc)
+			cqrscommand.WithCommandID(derivedID)(basicCmd)
+			cqrscommand.WithCustomMetadata(string(SourceEventIDKey), evt.ID().String())(basicCmd)
 		}
 
 		return cmds, nil

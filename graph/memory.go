@@ -43,7 +43,7 @@ func WithDriverSchema(schema *Schema) MemoryDriverOption {
 // NewMemoryDriver constructs an empty in-memory graph.
 // Options allow attaching a [Schema] for write validation.
 func NewMemoryDriver(opts ...MemoryDriverOption) *MemoryDriver {
-	d := &MemoryDriver{
+	d := &MemoryDriver{ //nolint:exhaustruct // schema is opt-in zero-value
 		mu:   sync.Mutex{},
 		data: newGraphData(),
 	}
@@ -133,13 +133,13 @@ func (r EdgeRef) key() (edgeKey, error) {
 			"parse edge from")
 	}
 
-	to, err := r.To.key()
+	target, err := r.To.key()
 	if err != nil {
 		return edgeKey{}, errorfamily.WrapRejection(err, "graph.edge_to",
 			"parse edge to")
 	}
 
-	return edgeKey{typ: r.Type, from: from, to: to}, nil
+	return edgeKey{typ: r.Type, from: from, to: target}, nil
 }
 
 // node is a stored node: its identity key plus a property map.

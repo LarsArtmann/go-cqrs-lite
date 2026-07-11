@@ -31,7 +31,10 @@ func TestIntegration_ProjectionHost_SQLiteCheckpoint(t *testing.T) {
 	defer db.Close()
 
 	// Create the checkpoints table (the store expects it to exist).
-	if _, err := db.Exec(sqlpkg.SQLiteDialect{}.CheckpointSchema()); err != nil {
+	if _, err := db.ExecContext(
+		t.Context(),
+		sqlpkg.SQLiteDialect{}.CheckpointSchema(),
+	); err != nil {
 		t.Fatalf("create checkpoints table: %v", err)
 	}
 

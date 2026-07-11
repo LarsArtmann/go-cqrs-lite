@@ -92,7 +92,7 @@ func (adapter *KVAdapter) checkClosed() error {
 // ── Reader ───────────────────────────────────────────────────
 
 // Get implements [kv.Reader.Get].
-func (adapter *KVAdapter) Get(ctx context.Context, key []byte) ([]byte, error) {
+func (adapter *KVAdapter) Get(_ context.Context, key []byte) ([]byte, error) {
 	err := adapter.checkClosed()
 	if err != nil {
 		return nil, err
@@ -114,7 +114,7 @@ func (adapter *KVAdapter) Get(ctx context.Context, key []byte) ([]byte, error) {
 }
 
 // Has implements [kv.Reader.Has].
-func (adapter *KVAdapter) Has(ctx context.Context, key []byte) (bool, error) {
+func (adapter *KVAdapter) Has(_ context.Context, key []byte) (bool, error) {
 	err := adapter.checkClosed()
 	if err != nil {
 		return false, err
@@ -137,7 +137,7 @@ func (adapter *KVAdapter) Has(ctx context.Context, key []byte) (bool, error) {
 
 // NewIterator implements [kv.Reader.NewIterator].
 // A nil or empty prefix iterates over all keys.
-func (adapter *KVAdapter) NewIterator(ctx context.Context, prefix []byte) (kv.Iterator, error) {
+func (adapter *KVAdapter) NewIterator(_ context.Context, prefix []byte) (kv.Iterator, error) {
 	err := adapter.checkClosed()
 	if err != nil {
 		return nil, err
@@ -161,7 +161,7 @@ func (adapter *KVAdapter) NewIterator(ctx context.Context, prefix []byte) (kv.It
 // ── Writer ───────────────────────────────────────────────────
 
 // Set implements [kv.Writer.Set].
-func (adapter *KVAdapter) Set(ctx context.Context, key, value []byte) error {
+func (adapter *KVAdapter) Set(_ context.Context, key, value []byte) error {
 	err := adapter.checkClosed()
 	if err != nil {
 		return err
@@ -177,7 +177,7 @@ func (adapter *KVAdapter) Set(ctx context.Context, key, value []byte) error {
 }
 
 // Delete implements [kv.Writer.Delete].
-func (adapter *KVAdapter) Delete(ctx context.Context, key []byte) error {
+func (adapter *KVAdapter) Delete(_ context.Context, key []byte) error {
 	err := adapter.checkClosed()
 	if err != nil {
 		return err
@@ -199,7 +199,7 @@ func (adapter *KVAdapter) Delete(ctx context.Context, key []byte) error {
 // instance (matching [kv.MemStore.SetIfAbsent]'s process-local guarantee). It is
 // NOT safe against concurrent writers using a DIFFERENT KVAdapter on the same
 // underlying *pebble.DB — a single shared adapter (the default) must be used.
-func (adapter *KVAdapter) SetIfAbsent(ctx context.Context, key, value []byte) (bool, error) {
+func (adapter *KVAdapter) SetIfAbsent(_ context.Context, key, value []byte) (bool, error) {
 	if err := adapter.checkClosed(); err != nil {
 		return false, err
 	}
@@ -234,7 +234,7 @@ var (
 )
 
 // Batch implements [kv.Writer.Batch].
-func (adapter *KVAdapter) Batch(ctx context.Context) (kv.Batch, error) {
+func (adapter *KVAdapter) Batch(_ context.Context) (kv.Batch, error) {
 	err := adapter.checkClosed()
 	if err != nil {
 		return nil, err

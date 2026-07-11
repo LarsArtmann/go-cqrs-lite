@@ -283,3 +283,21 @@ func (b *Bundle) validate() error {
 
 	return nil
 }
+
+// Bundle fields compose into a replay-then-live projection pipeline. Three
+// fields — SeekableJournal, Subscriber, and CheckpointStore — are exactly the
+// inputs that watermill.CatchUpSubscriber and projectionhost.New (with
+// projectionhost.WithSubscriber) consume:
+//
+//	catchUp, _ := watermill.NewCatchUpSubscriber(
+//	    bundle.SeekableJournal, bundle.Subscriber, bundle.CheckpointStore, logger)
+//	// or the managed host:
+//	host, _ := projectionhost.New(
+//	    bundle.SeekableJournal, bundle.CheckpointStore,
+//	    projectionhost.WithSubscriber(bundle.Subscriber))
+//
+// SeekableJournal drives the replay phase (historical events from a position),
+// Subscriber drives the live phase, and CheckpointStore persists progress so a
+// restart resumes without re-replaying. This is why the three fields are kept
+// on the Bundle even though the projection layer lives in a separate module:
+// the Bundle is the single assembly point where a deployer wires them together.

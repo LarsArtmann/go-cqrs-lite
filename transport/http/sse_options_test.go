@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/codec/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3"
 	"github.com/larsartmann/go-cqrs-lite/event/v3/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
@@ -486,6 +487,93 @@ func TestSSEHandler_PayloadTransform_Live(t *testing.T) {
 
 	if strings.Contains(body, `{"raw":"cbor-bytes"}`) {
 		t.Errorf("raw payload should NOT appear on wire; body: %q", body)
+	}
+}
+
+// TestSSEHandler_PayloadTransform_CBOR_ToJSON_BrowserFlow verifies the
+// cross-codec translation that documents ADR-0051: typed CBOR-stamped events
+// (created via [event.New]) flow through [WithPayloadTransform], where the
+// consumer decodes the CBOR body and re-emits it as JSON. Without the
+// transform, browsers cannot parse raw CBOR — the transform is the only
+// sanctioned way to bridge internal CBOR encoding to browser-friendly JSON.
+func TestSSEHandler_PayloadTransform_CBOR_ToJSON_BrowserFlow(t *testing.T) {
+	t.Parallel()
+
+	bus := eventtest.NewFakeBus()
+	defer bus.Close()
+
+	broker, err := NewSSEBroker(
+		bus,
+		WithPayloadTransform(func(evt event.Event) []byte {
+			type payload struct {
+				Name string `json:"name"`
+			}
+
+			p, decodeErr := event.DecodePayloadAuto[payload](evt)
+			if decodeErr != nil {
+				return []byte(`{"decode_error":"` + decodeErr.Error() + `"}`)
+			}
+
+			out, marshalErr := json.Marshal(p)
+			if marshalErr != nil {
+				return []byte(`{"marshal_error":"` + marshalErr.Error() + `"}`)
+			}
+
+			return out
+		}),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer broker.Close()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events?client=cbor-json", nil)
+	rec := httptest.NewRecorder()
+	done := make(chan struct{})
+
+	go func() {
+		defer close(done)
+		SSEHandler(broker).ServeHTTP(rec, req)
+	}()
+
+	time.Sleep(50 * time.Millisecond)
+
+	aggID := id.NewAggregateID()
+	typed := struct {
+		Name string `cbor:"name"`
+	}{Name: "alice-cbor"}
+
+	evt, err := event.New("user.created", aggID, "User", 1, typed)
+	if err != nil {
+		t.Fatalf("event.New: %v", err)
+	}
+
+	if evt.Encoding() != codec.EncodingCBOR {
+		t.Fatalf(
+			"expected CBOR encoding, got %q — New() didn't pick up DefaultCodec",
+			evt.Encoding(),
+		)
+	}
+
+	if publishErr := bus.Publish(context.Background(), evt); publishErr != nil {
+		t.Fatalf("publish: %v", publishErr)
+	}
+
+	time.Sleep(100 * time.Millisecond)
+	cancel()
+	<-done
+
+	body := rec.Body.String()
+
+	if !strings.Contains(body, `{"name":"alice-cbor"}`) {
+		t.Errorf("transformed CBOR→JSON payload missing from wire; body: %q", body)
+	}
+
+	if strings.Contains(body, `alice-cbor`) && !strings.Contains(body, `"alice-cbor"`) {
+		t.Errorf("payload bytes appeared without JSON quoting; body: %q", body)
 	}
 }
 

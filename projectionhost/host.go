@@ -13,6 +13,12 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/projection/v3"
 )
 
+// workerStartStaggerMs is the millisecond delay added between consecutive
+// worker goroutines on Host.Start(). Without staggering, all workers would
+// race to open journal iterators in lockstep, causing sharp load spikes at
+// restart time.
+const workerStartStaggerMs = 10
+
 // Host manages the lifecycle of multiple projection workers. Each worker reads
 // events from a shared journal, applies them to a registered Projection, and
 // tracks its checkpoint independently.
@@ -157,7 +163,7 @@ func (h *Host) Start(ctx context.Context) error {
 			}
 
 			worker.run(runCtx, &h.wg)
-		}(w, i*10) // 10ms stagger between workers to avoid thundering herd on journal
+		}(w, i*workerStartStaggerMs) // staggered ms between workers to avoid thundering herd
 	}
 
 	return nil
@@ -319,7 +325,7 @@ func (h *Host) Reset(ctx context.Context, name string) error {
 	if err := h.cpStore.Save(
 		ctx,
 		name,
-		event.Checkpoint{},
+		event.Checkpoint{}, //nolint:exhaustruct // zero-value is the cleared-checkpoint intent
 	); err != nil {
 		return errorfamily.WrapInfrastructure(err, "projectionhost.reset_checkpoint",
 			fmt.Sprintf("clear checkpoint for %q", name))
