@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-07-10 (session: comprehensive v4 prep execution)
+**Updated:** 2026-07-11 (session: remediation execution + self-review)
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in [ROADMAP.md](ROADMAP.md). Raw ideas live in [ROADMAP.md § Raw Ideas](ROADMAP.md#raw-ideas-no-design-yet).
 
 ## Legend
@@ -14,7 +14,9 @@
 
 ## P0 — Critical (correctness, CI green, trust)
 
-- [ ] **Fix premature codec default flip** — Commit `b3cca247` changed `event.DefaultCodec` from JSON to CBOR (`codec.go:28`), but the v4 flip is marked BLOCKED on user go-ahead. 3 tests fail: `TestDefaultCodec_DefaultIsJSON`, `TestMixedCodecStream`, `TestEventCodec_FallsBackToEventDefaultCodec`. Either revert to JSON or update tests + un-block the v4 task.
+- [ ] **Fix premature codec default flip (CI RED)** — Commit `b3cca247` changed `event.DefaultCodec` from JSON to CBOR (`codec.go:28`), but the v4 flip is marked BLOCKED on user go-ahead. 3 tests fail: `TestDefaultCodec_DefaultIsJSON`, `TestMixedCodecStream`, `TestEventCodec_FallsBackToEventDefaultCodec`. Either revert to JSON or update tests + un-block the v4 task.
+- [ ] **Update SKILL.md with new APIs** — `BackfillHandlerWithTransform`, `WithViews`, `VersionedSeekableJournal` not in consumer-facing module table (core file, 34KB). Identified this session, not yet closed.
+- [ ] **Investigate auto-commit `0fef413e`** — 99-file commit appeared at 10:15:59 without explicit `git commit`. Determine if a Crush/git hook is active. If so, document in AGENTS.md and consider disabling.
 
 - [x] **Register stdlib error classifications** — `errorfamily.RegisterStdlibDefaults()` called via init() in `storage/sql/classify_init.go`.
 - [x] **Register database driver classifiers** — SQLite BUSY/LOCKED→Transient, CONSTRAINT→Conflict; Postgres SQLSTATE classes. Registered via init() in `storage/sql/classify_init.go`.
@@ -29,7 +31,7 @@
 - [x] **Deprecated alias verification test** — `event/deprecated_alias_test.go` verifies all 6 deprecated aliases have proper Deprecated: comments.
 - [x] **stack/v3 health checks** — `HealthChecker` interface + `Bundle.HealthCheck(ctx)` implemented in `stack/health.go`. Tests in `stack/health_shutdown_test.go`.
 - [x] **stack/v3 topological shutdown ordering** — `WithShutdownDependency(before, after)` + Kahn's algorithm topo sort in `stack/shutdown.go`. Tests verify ordering.
-- [x] **Update `scripts/check-module-layers.sh`** — All budget violations fixed (deriver=4, projectionhost=7, stack=14). Layer exception added for projectionhost→otel.
+- [x] **Update `scripts/check-module-layers.sh`** — Budget violations fixed (deriver=4, stack=14). projectionhost raised 7→9, watermill raised 8→9 (both from feature additions: SQLite DLQ + metadata extraction).
 - [x] **CI check: go.work ↔ flake.nix sync** — `scripts/check-workspace-sync.sh` written. 8 missing modules added to flake.nix testModules.
 - [x] **CI check: go.work ↔ api-stability tracking sync** — `scripts/check-api-stability-sync.sh` written. 12 missing modules added to api-stability tracking.
 - [x] **Adopt `errorfamily.HTTPStatus()` in example/taskmanager** — `writeCQRSError` simplified from 15-line switch to 1-line `errorfamily.HTTPStatus(err)` call.
@@ -55,7 +57,10 @@
 - [x] **Add `// Importing this package registers SQL classifiers` doc** — Added to `storage/sql/doc.go`.
 - [x] **Write ADRs** — ADR-0047 (json/v2 case-insensitive decode), ADR-0048 (deterministic encoding), ADR-0049 (dispatch-time middleware).
 - [x] **Deprecated alias cleanup** — All internal code updated from `event.AggregateRef` → `id.AggregateRef`, etc. ~200 usages across 42 files.
-- [ ] **README.md docs freshness** — Missing `encryption`, `turso`, `testutil` module sections.
+- [ ] **Restore bundle.go architectural comment** — Removed dead `var _ = []any{...}` code but also removed the documentation of Bundle↔CatchUpSubscriber relationship. Add a real doc comment.
+- [ ] **Fix histogram test hard-coded values** — `prometheus/exporter_test.go:265` duplicates `otel.CQRSHistogramBoundaries` as a literal. If boundaries change in otel, test passes with stale values.
+- [ ] **Run `nix flake check`** — Changed `scripts/check-module-layers.sh` but never re-ran flake check.
+- [ ] **Run race detector on `stack/` and `example/taskmanager/`** — Changed `bundle.go`, `http.go`, `setup.go` this session; only ran race on projectionhost + transport/http.
 
 ### Experimental / Go-stdlib-blocked
 
@@ -137,7 +142,7 @@
 
 > **BLOCKED on user go-ahead.** All prep work is done (ADR-0044 envelopes, deprecation markers, alias cleanup, migration guide). Execute when ready to cut v4.
 
-- [v4] **Flip codec defaults** — Events + blind stores → CBOR. Safe now with ADR-0044 envelopes.
+- [v4] **Flip codec defaults** — Events + blind stores → CBOR. Safe now with ADR-0044 envelopes. **NOTE:** `event.DefaultCodec` was prematurely flipped to CBOR in `b3cca247`; see P0 above. Blind stores already self-describing via ADR-0044.
 - [v4] **Remove deprecated APIs** — 8 aliases in event/ + schema/ + query.Handler.
 - [v4] **Storage/ split execution** — Proposal at `docs/planning/2026-07-09_STORAGE-SPLIT-PROPOSAL.md`. Awaits approval.
 - [v4] **Event/ god module decomposition** — Explicitly decided: DO NOT SPLIT (27 importers, cohesion is real).
@@ -164,6 +169,7 @@
 - [x] **Idempotency merge** — Generic NewIdempotency[M] factory + 3 wrappers.
 - [x] **Projectionhost production hardening** — M1-M13 complete.
 - [x] **Error taxonomy migration** — All event._ facade calls → errorfamily._ direct imports.
+- [x] **Removed ALL `var _ =` hacks** — 4 found and removed: `sse_backfill.go:151` (context.Background), `example/taskmanager/http.go:329` (context.Background, report missed this), `stack/bundle.go:289` (dead-code assertion), `example/taskmanager/setup.go:301` (dead-code event.Version(0)).
 - [x] **DiscordSync feedback gaps (Round 2)** — 5 gaps from `2026-07-10_DiscordSync_leverage_review.md`:
   - [x] `schema.VersionedSeekableJournal` — wraps SeekableJournal with upcasters for projection host
   - [x] `transport/http.WithPayloadTransform` + `BackfillHandlerWithTransform` — wire-format transcoding on all 3 SSE paths (live, replay, backfill)
