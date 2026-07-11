@@ -67,6 +67,14 @@ To revert process-wide: `event.DefaultCodec = codec.JSONCodec{}`.
 - **Envelope backward-compat integration tests** — `kv.TestTypedStore_Migration_*`
   verify old raw JSON data reads through new CBOR-default stores, and mixed
   old+new data coexists correctly.
+- **`storage/eventstore/` sub-package** — SQLEventStore, SQLSnapshotStore,
+  SQLCheckpointStore extracted into focused package. Full backward compat via
+  type aliases and constructor re-exports in `storage/`.
+- **`storage/readmodel/` sub-package** — SQLKVStore extracted into focused
+  package. Full backward compat via type aliases and constructor re-exports.
+- **`WithShutdownDependency` integration tests** — now tested through real
+  `stack.New()` constructor path with close-order tracking, not just struct
+  literals.
 
 ## [Unreleased]
 

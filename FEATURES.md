@@ -656,6 +656,8 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | DB helpers                | `OpenSQLite`, `OpenSQLiteInMemory`, `SQLiteInitSchema`, `SQLiteEnableWAL`, `ConfigureSQLitePool`, `ConfigureTursoPool`, `PostgresInitSchema` | ✅     |
 | Dialect abstraction       | `Dialect` interface with `Placeholder`, `FormatTime`, `ScanTimeDest`, `ParseTime`, 5 schema methods                                          | ✅     |
 | SQL sub-package           | `storage/sql` — `DBHandle`, `OwnedDBHandle`, generic `LoadWithSpan[T]`, `QueryRows[T]`, `ScanSlice[T]`, `ReconstructEvent`                   | ✅     |
+| Eventstore sub-package    | `storage/eventstore` — `SQLEventStore`, `SQLSnapshotStore`, `SQLCheckpointStore` (re-exported via aliases in `storage/`)                     | ✅     |
+| Readmodel sub-package     | `storage/readmodel` — `SQLKVStore` (re-exported via aliases in `storage/`)                                                                   | ✅     |
 | Close lifecycle           | No-op `Close()` — does not close `*sql.DB`; caller owns DB lifecycle                                                                         | ✅     |
 | HealthCheck (all stores)  | `OwnedDBHandle.HealthCheck(ctx)` — inherited by all SQL stores via embedding. Pings DB, checks closed state                                  | ✅     |
 

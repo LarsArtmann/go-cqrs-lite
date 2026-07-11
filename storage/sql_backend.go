@@ -8,6 +8,8 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
+	"github.com/larsartmann/go-cqrs-lite/storage/v4/eventstore"
+	"github.com/larsartmann/go-cqrs-lite/storage/v4/readmodel"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
 
@@ -42,7 +44,7 @@ func NewSQLBackendWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLBackend, error)
 }
 
 func newSQLBackendWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLBackend, error) {
-	store, err := newSQLEventStoreWithDialect(db, d)
+	store, err := eventstore.NewSQLEventStoreWithDialect(db, d)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err, "backend.event_store", "event store")
 	}
@@ -103,7 +105,7 @@ func (b *SQLBackend) SnapshotStore() (*SQLSnapshotStore, error) {
 		return b.snapStore, nil
 	}
 
-	store, err := newSQLSnapshotStoreWithDialect(b.store.DB, b.store.Dialect)
+	store, err := eventstore.NewSQLSnapshotStoreWithDialect(b.store.DB, b.store.Dialect)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err, "backend.snapshot_store", "snapshot store")
 	}
@@ -123,7 +125,7 @@ func (b *SQLBackend) CheckpointStore() (*SQLCheckpointStore, error) {
 		return b.cpStore, nil
 	}
 
-	store, err := newSQLCheckpointStoreWithDialect(b.store.DB, b.store.Dialect)
+	store, err := eventstore.NewSQLCheckpointStoreWithDialect(b.store.DB, b.store.Dialect)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(
 			err,
@@ -150,7 +152,7 @@ func (b *SQLBackend) KVStore() (kv.Store, error) {
 		return b.kvStore, nil
 	}
 
-	store, err := newSQLKVStoreWithDialect(b.store.DB, b.store.Dialect)
+	store, err := readmodel.NewSQLKVStoreWithDialect(b.store.DB, b.store.Dialect)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err, "backend.kv_store", "kv store")
 	}

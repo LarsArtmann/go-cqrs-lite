@@ -1,7 +1,7 @@
 # Proposal: Split storage/ into Focused Packages
 
 > Generated as part of the v4 structural improvement plan (ADR-0046).
-> Status: **Proposal** — not yet started. Awaits approval.
+> Status: **DONE** — implemented in v4.0.0. `storage/eventstore/` and `storage/readmodel/` sub-packages created with full backward compat via type aliases.
 
 ## Current State
 

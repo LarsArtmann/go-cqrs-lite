@@ -4,7 +4,11 @@ import (
 	"context"
 	"errors"
 	"io"
+	"sync"
 	"testing"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 type testCloser struct {
@@ -17,6 +21,32 @@ func (tc *testCloser) Close() error {
 	tc.closed = true
 
 	return tc.closeErr
+}
+
+var _ io.Closer = (*testCloser)(nil)
+
+// orderTracker is a thread-safe closer that records the order in which
+// Close is called relative to other orderTrackers sharing the same log.
+type orderTracker struct {
+	name string
+	log  *orderLog
+}
+
+type orderLog struct {
+	mu  sync.Mutex
+	seq []string
+}
+
+func (l *orderLog) record(name string) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.seq = append(l.seq, name)
+}
+
+func (t *orderTracker) Close() error {
+	t.log.record(t.name)
+
+	return nil
 }
 
 func TestHealthCheck_NoResources(t *testing.T) {
@@ -135,4 +165,96 @@ func TestShutdown_CloseErrorReturned(t *testing.T) {
 	}
 }
 
-var _ io.Closer = (*testCloser)(nil)
+// TestShutdown_ThroughNewConstructor verifies that WithShutdownDependency
+// works when wired through the real stack.New() constructor path — not
+// struct literals. This is the integration test: it proves the option
+// function is invoked, the closer pointers registered by WithCloser match
+// the pointers passed to WithShutdownDependency, and Close() respects the
+// declared ordering.
+func TestShutdown_ThroughNewConstructor(t *testing.T) {
+	t.Parallel()
+
+	log := &orderLog{}
+
+	storeA := &orderTracker{name: "eventstore", log: log}
+	projectionHost := &orderTracker{name: "projectionhost", log: log}
+
+	// Register in registration order: eventstore first, projectionhost second.
+	// Declare: projectionhost must close BEFORE eventstore (reverse of registration).
+	// This is the real-world pattern: projections drain before the store they read from.
+	bundle, err := New(
+		WithCloser(storeA),
+		WithCloser(projectionHost),
+		WithShutdownDependency(projectionHost, storeA),
+		WithEventSink(nilEventSink{}), // satisfy validate() — at least one capability
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	if err := bundle.Close(); err != nil {
+		t.Fatalf("Close: %v", err)
+	}
+
+	if len(log.seq) != 2 {
+		t.Fatalf("expected 2 closes, got %d: %v", len(log.seq), log.seq)
+	}
+
+	if log.seq[0] != "projectionhost" {
+		t.Fatalf("expected projectionhost to close first, got %q in position 0", log.seq[0])
+	}
+
+	if log.seq[1] != "eventstore" {
+		t.Fatalf("expected eventstore to close second, got %q in position 1", log.seq[1])
+	}
+}
+
+// TestShutdown_ThroughNewConstructor_NoDeps verifies that without
+// WithShutdownDependency, registration order is preserved through the
+// real stack.New() constructor path.
+func TestShutdown_ThroughNewConstructor_NoDeps(t *testing.T) {
+	t.Parallel()
+
+	log := &orderLog{}
+
+	first := &orderTracker{name: "first", log: log}
+	second := &orderTracker{name: "second", log: log}
+
+	bundle, err := New(
+		WithCloser(first),
+		WithCloser(second),
+		WithEventSink(nilEventSink{}),
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	if err := bundle.Close(); err != nil {
+		t.Fatalf("Close: %v", err)
+	}
+
+	if len(log.seq) != 2 {
+		t.Fatalf("expected 2 closes, got %d", len(log.seq))
+	}
+
+	if log.seq[0] != "first" || log.seq[1] != "second" {
+		t.Fatalf("expected [first second], got %v", log.seq)
+	}
+}
+
+// nilEventSink satisfies event.EventSink so Bundle.validate() passes.
+// It is a no-op store that is never actually used in shutdown tests.
+type nilEventSink struct{}
+
+func (nilEventSink) Save(
+	_ context.Context,
+	_ id.AggregateRef,
+	_ []event.Event,
+	_ event.Version,
+) error {
+	return nil
+}
+
+func (nilEventSink) AppendBatch(_ context.Context, _ id.AggregateRef, _ []event.Event) error {
+	return nil
+}

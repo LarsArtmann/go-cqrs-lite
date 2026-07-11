@@ -36,7 +36,9 @@
       `BackfillHandler(journal event.SeekableJournal)` to `BackfillHandler(broker *SSEBroker)`.
       `BackfillHandlerWithTransform` removed (consolidated — transform configured on broker).
 - [x] **Event/ god module decomposition** — Explicitly decided: DO NOT SPLIT (27 importers, cohesion is real).
-- [x] **Storage/ split execution** — Deferred to v4.1 (NOT bundled with path migration to avoid verschlimmbessern).
+- [x] **Storage/ split execution** — `storage/eventstore/` (SQLEventStore, SQLSnapshotStore,
+      SQLCheckpointStore) and `storage/readmodel/` (SQLKVStore) extracted as sub-packages.
+      Full backward compat via type aliases in `storage/`. All tests pass.
 
 ### v4 Release Blockers (ALL RESOLVED)
 
@@ -53,7 +55,11 @@
 
 - [x] **`HealthCheck` on `OwnedDBHandle`** — All SQL stores now inherit `HealthCheck(ctx)` via embedding.
       Removed redundant implementation from `*SQLEventStore`.
-- [x] **Update FEATURES.md for v4** — Envelope wrapping, codec flip, health checks, BackfillHandler change added.
+- [x] **Update FEATURES.md for v4** — Envelope wrapping, codec flip, health checks, BackfillHandler change,
+      storage split sub-packages added.
+- [x] **`WithShutdownDependency` integration tests** — Tests through real `stack.New()` constructor
+      with close-order tracking. Proves option function, pointer identity, and Close() ordering all work
+      through the real integration path.
 
 ### Remaining Release Step
 
@@ -76,22 +82,21 @@
 - [ ] **Phase 3: `stack/duckdb`** — Preset wiring: DuckDB materializations + optional Parquet
       journal. The "lakehouse for events" pattern (DuckDB queries Parquet segments natively).
 
-### v4.1 — Storage/ Split
+### v4.1 — Storage/ Split (DONE in v4.0.0)
 
-> Proposal at `docs/planning/2026-07-09_STORAGE-SPLIT-PROPOSAL.md`. Deferred from v4 to avoid
-> doubling import-path churn. 3 packages: `eventstore/`, `readmodel/`, `sql/` (existing).
+> Originally planned for v4.1 but pulled into v4.0.0. `storage/eventstore/` and
+> `storage/readmodel/` sub-packages created with full backward compat.
 
-- [ ] **Extract `storage/eventstore/`** — SQLEventStore, SQLSnapshotStore, SQLCheckpointStore + migrations
-- [ ] **Extract `storage/readmodel/`** — SQLKVStore, SQLViewStore, RelationalProjection, RelationalStore
-- [ ] **Dispatch log stays in `storage/`** — SQLCommandStore, SQLQueryStore alongside SQLBackend facade
+- [x] **Extract `storage/eventstore/`** — SQLEventStore, SQLSnapshotStore, SQLCheckpointStore
+- [x] **Extract `storage/readmodel/`** — SQLKVStore
+- [x] **Dispatch log stays in `storage/`** — SQLCommandStore, SQLQueryStore alongside SQLBackend facade
+- [x] **Deprecated re-exports in `storage/`** — type aliases + constructor re-exports for backward compat
 
 ### Public Release Readiness
 
 > **Release strategy decided 2026-07-11:** Public release (license swap + history scrub) happens
 > **AFTER v4 cut**, not before.
 
-- [ ] **Test `WithShutdownDependency` through real `sqlite.New()`** — Deferred from v4. Current struct-literal
-      tests cover the topological sort logic, but a test through the real constructor path would add confidence.
 - [ ] **License swap (PROPRIETARY → Apache-2.0)** — Hard blocker for public adoption. **Needs user
       approval (irreversible).** After v4.
 - [ ] **Git history scrub for internal docs** — AGENTS.md, docs/planning/\* contain internal

@@ -62,7 +62,9 @@ go-cqrs-lite/
 ├── middleware/           # Logging, Retry, Recovery, Validation, Idempotency, Metrics, OTel Tracing+Metrics (command+event+query)
 ├── signing/             # Event signing/verification: HMAC-SHA256, Ed25519, multisig, middleware
 ├── encryption/          # Event payload encryption: XChaCha20-Poly1305, AES-256-GCM, codec wrapper, middleware
-├── storage/             # SQLEventStore, SQLSnapshotStore, SQLCheckpointStore, SQLCommandStore, SQLQueryStore (PG/SQLite/Turso), SQLKVStore, SQLBackend facade, SQLite/PG helpers
+├── storage/             # SQLBackend facade, SQLCommandStore, SQLQueryStore (dispatch log), PostgresListenNotifyBus, SQLite/PG helpers. Re-exports eventstore/ + readmodel/ types for backward compat
+│   ├── eventstore/      # SQLEventStore, SQLSnapshotStore, SQLCheckpointStore (+ migrations)
+│   ├── readmodel/       # SQLKVStore (kv.Store backed by SQL)
 │   ├── sql/             # Dialect, DBHandle, OwnedDBHandle, QueryEngine, RunInTx, IsDuplicateKeyError (typed codes + string fallback), ScanSlice, CommitTx, MarshalMetadata
 │   ├── relational/      # RelationalSchema, RelationalProjection, RelationalStore, ProjectionSink (multi-table SQL projections, ADR-0033)
 │   ├── view/            # SQLViewStore[V,K] (column-mapped views), ViewMapper, ViewColumn, IndexSpec, AutoMapper
