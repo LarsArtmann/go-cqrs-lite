@@ -43,6 +43,7 @@ type Repository[State any] struct {
 	decider          Decider[State]
 	loadGroup        singleflight.Group
 	loadCoalescing   bool
+	stateCache       StateCache[State]
 }
 
 // NewRepository creates a decider-backed repository.
@@ -162,6 +163,10 @@ func (r *Repository[State]) Execute(
 
 	r.saveSnapshotAfterEvents(ctx, ref, newVersion, state, newEvents)
 
+	if r.stateCache != nil {
+		r.updateCacheAfterExecute(ref, state, newVersion, newEvents)
+	}
+
 	return nil
 }
 
@@ -175,7 +180,7 @@ func (r *Repository[State]) saveSnapshotAfterEvents(
 	state State,
 	newEvents []event.Event,
 ) {
-	if !r.shouldSnapshot(ref.Type, newVersion) {
+	if !r.shouldSnapshot(ref, newVersion) {
 		return
 	}
 
@@ -228,6 +233,29 @@ func (r *Repository[State]) saveSnapshotAfterEvents(
 	}
 }
 
+// updateCacheAfterExecute folds the new events onto the pre-command state
+// and stores the result in the hot-state cache. On fold error the cache
+// entry is invalidated to force a full reload on next access.
+func (r *Repository[State]) updateCacheAfterExecute(
+	ref id.AggregateRef,
+	state State,
+	newVersion event.Version,
+	newEvents []event.Event,
+) {
+	if len(newEvents) == 0 {
+		return
+	}
+
+	finalState, err := r.foldEvents(state, newEvents, ref)
+	if err != nil {
+		r.stateCache.Invalidate(ref)
+
+		return
+	}
+
+	r.stateCache.Put(ref, finalState, newVersion)
+}
+
 // Load reconstructs state from the aggregate's event history without any
 // side effects. Useful for read-only state access or debugging.
 func (r *Repository[State]) Load(
@@ -248,6 +276,15 @@ func (r *Repository[State]) Load(
 		err   error
 	)
 
+	if r.stateCache != nil {
+		state, ver, ok := r.loadFromCache(ctx, aggregateID, aggregateType)
+		if ok {
+			r.recordRead(id.NewAggregateRef(aggregateType, aggregateID), ver)
+
+			return state, ver, nil
+		}
+	}
+
 	if r.snapshotStore != nil && r.codec != nil {
 		state, ver, err = r.loadFromSnapshot(ctx, aggregateID, aggregateType)
 	} else {
@@ -256,6 +293,15 @@ func (r *Repository[State]) Load(
 
 	if err != nil {
 		cqrsotel.RecordError(span, err)
+
+		return state, ver, err
+	}
+
+	ref := id.NewAggregateRef(aggregateType, aggregateID)
+	r.recordRead(ref, ver)
+
+	if r.stateCache != nil {
+		r.stateCache.Put(ref, state, ver)
 	}
 
 	return state, ver, err

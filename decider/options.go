@@ -51,3 +51,22 @@ func WithLoadCoalescing[State any](enabled bool) RepositoryOption[State] {
 		r.loadCoalescing = enabled
 	}
 }
+
+// WithStateCache enables an in-memory hot-state cache for folded aggregate
+// state. On a cache hit, Load fetches only events since the cached version
+// instead of replaying the full history — O(new events) instead of O(total).
+//
+// The cache is process-local, LRU-bounded, and best-effort: misses and
+// staleness fall back to the normal load path. Execute updates the cache
+// after every successful write, so it stays fresh for the current process.
+//
+//	repo, _ := decider.NewRepository(store, bus, d,
+//	    decider.WithStateCache[MyState](decider.NewStateCache[MyState](256)))
+//
+// Profile before enabling: for small aggregates the fold cost may be
+// negligible, and the cache adds map+mutex overhead on every Load/Execute.
+func WithStateCache[State any](cache StateCache[State]) RepositoryOption[State] {
+	return func(r *Repository[State]) {
+		r.stateCache = cache
+	}
+}

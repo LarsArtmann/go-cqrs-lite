@@ -14,4 +14,8 @@ var (
 		"snapshot.invalid_interval",
 		"snapshot interval must be positive",
 	)
+	ErrInvalidThreshold = errorfamily.NewRejection(
+		"snapshot.invalid_threshold",
+		"read pressure threshold must be positive",
+	)
 )

@@ -63,4 +63,33 @@
 //
 //	repo, _ := decider.NewRepository(store, bus, d,
 //	    decider.WithLoadCoalescing[MyState](false))
+//
+// # Hot-State Cache
+//
+// WithStateCache enables an in-memory LRU cache of folded aggregate state.
+// On a cache hit, Load fetches only events since the cached version
+// (O(new events)) instead of replaying the full history (O(total events)).
+// Execute updates the cache after every successful write, keeping it fresh.
+//
+//	cache := decider.NewStateCache[MyState](256)
+//	repo, _ := decider.NewRepository(store, bus, d,
+//	    decider.WithStateCache[MyState](cache))
+//
+// Benchmark: 7.4x faster Load (2090→283 ns/op) with 500-event history.
+// The cache is process-local and best-effort — misses fall back to the normal
+// load path. Profile before enabling; for small aggregates the fold cost may
+// be negligible.
+//
+// # Read-Pressure Snapshot Strategy
+//
+// Combine WithSnapshotStrategy with snapshot.NewReadPressure to snapshot
+// aggregates that are read frequently but written rarely. EveryNEvents only
+// triggers on write count; ReadPressure triggers on read count:
+//
+//	rp, _ := snapshot.NewReadPressure(50)
+//	repo, _ := decider.NewRepository(store, bus, d,
+//	    decider.WithSnapshotStore[MyState](snapStore),
+//	    decider.WithCodec[MyState](codec.JSONCodec{}),
+//	    decider.WithSnapshotStrategy[MyState](rp))
+//	// After 50 Loads, the next Execute saves a snapshot automatically.
 package decider

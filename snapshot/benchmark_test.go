@@ -45,6 +45,43 @@ func BenchmarkEveryNEvents_ShouldSnapshot(b *testing.B) {
 	}
 }
 
+func BenchmarkReadPressure_ShouldSnapshotFor(b *testing.B) {
+	b.ReportAllocs()
+
+	rp, err := snapshot.NewReadPressure(5)
+	if err != nil {
+		b.Fatalf("NewReadPressure: %v", err)
+	}
+
+	ref := id.NewAggregateRef("User", id.NewAggregateID())
+	for range 5 {
+		rp.RecordRead(ref, event.Version(1))
+	}
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		_ = rp.ShouldSnapshotFor(ref, event.Version(1))
+	}
+}
+
+func BenchmarkReadPressure_RecordRead(b *testing.B) {
+	b.ReportAllocs()
+
+	rp, err := snapshot.NewReadPressure(1000)
+	if err != nil {
+		b.Fatalf("NewReadPressure: %v", err)
+	}
+
+	ref := id.NewAggregateRef("User", id.NewAggregateID())
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		rp.RecordRead(ref, event.Version(1))
+	}
+}
+
 func BenchmarkSaveSnapshot(b *testing.B) {
 	b.ReportAllocs()
 

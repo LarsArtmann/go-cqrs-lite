@@ -196,14 +196,14 @@ func (r *Repository[State]) loadByEvents(
 }
 
 func (r *Repository[State]) shouldSnapshot(
-	aggregateType id.AggregateType,
+	ref id.AggregateRef,
 	version event.Version,
 ) bool {
-	return snapshot.ShouldSnapshot(
+	return snapshot.ShouldSnapshotFor(
 		r.snapshotStrategy,
 		r.snapshotStore,
 		r.codec,
-		aggregateType,
+		ref,
 		version,
 	)
 }
@@ -254,4 +254,62 @@ func (r *Repository[State]) loadFromSnapshot(
 	}
 
 	return state, snap.Version.Add(uint(len(events))), nil
+}
+
+// loadFromCache attempts an incremental load from the hot-state cache.
+// On a hit, it loads only events after the cached version and folds them
+// onto the cached state. Returns ok=false on miss, error, or fold failure
+// (the caller falls back to the full load path).
+func (r *Repository[State]) loadFromCache(
+	ctx context.Context,
+	aggregateID id.AggregateID,
+	aggregateType id.AggregateType,
+) (State, event.Version, bool) {
+	ref := id.NewAggregateRef(aggregateType, aggregateID)
+
+	cachedState, cachedVersion, ok := r.stateCache.Get(ref)
+	if !ok {
+		var zero State
+
+		return zero, 0, false
+	}
+
+	events, err := r.store.LoadFromVersion(ctx, ref, cachedVersion)
+	if err != nil {
+		r.stateCache.Invalidate(ref)
+
+		var zero State
+
+		return zero, 0, false
+	}
+
+	if len(events) == 0 {
+		return cachedState, cachedVersion, true
+	}
+
+	finalState, err := r.foldEvents(cachedState, events, ref)
+	if err != nil {
+		r.stateCache.Invalidate(ref)
+
+		var zero State
+
+		return zero, 0, false
+	}
+
+	finalVersion := cachedVersion.Add(uint(len(events)))
+	r.stateCache.Put(ref, finalState, finalVersion)
+
+	return finalState, finalVersion, true
+}
+
+// recordRead notifies the snapshot strategy of a read, enabling read-pressure
+// strategies like ReadPressure to track load frequency.
+func (r *Repository[State]) recordRead(ref id.AggregateRef, version event.Version) {
+	if r.snapshotStrategy == nil {
+		return
+	}
+
+	if tracker, ok := r.snapshotStrategy.(snapshot.ReadTracker); ok {
+		tracker.RecordRead(ref, version)
+	}
 }

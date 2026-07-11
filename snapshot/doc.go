@@ -37,9 +37,21 @@
 //
 // # Strategies
 //
-// Use EveryNEvents to snapshot automatically:
+// Use EveryNEvents to snapshot automatically based on write count:
 //
 //	strategy, _ := snapshot.EveryNEvents(100)
+//
+// Use ReadPressure to snapshot based on read count — ideal for hot-read,
+// cold-write aggregates that never hit EveryNEvents thresholds:
+//
+//	rp, _ := snapshot.NewReadPressure(50)
+//	// Snapshots after the next write when an aggregate has been loaded
+//	// at least 50 times since its last snapshot.
+//
+// Combine both via the Inner option:
+//
+//	rp, _ := snapshot.NewReadPressure(50,
+//	    snapshot.WithInnerStrategy(everyN100))
 //
 // # ISP Split
 //
