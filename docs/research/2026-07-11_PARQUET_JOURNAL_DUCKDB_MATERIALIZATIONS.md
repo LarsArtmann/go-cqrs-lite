@@ -16,6 +16,7 @@
 6. [Risks & Mitigations](#6-risks--mitigations)
 7. [Alternatives Considered](#7-alternatives-considered)
 8. [Appendix: Technology Reference](#8-appendix-technology-reference)
+9. [Cross-Project Validation (monitor365)](#9-cross-project-validation-monitor365)
 
 ---
 
@@ -53,6 +54,8 @@ Two complementary capabilities for the analytics-heavy edge of the CQRS stack:
 | **Phase 3** | `stack/duckdb` — Preset: DuckDB materializations + Parquet journal | Yes (CGO)    | Both above              |
 
 Each phase is independently valuable and independently deployable. Phase 1 gives cloud-native event archiving with zero CGO. Phase 2 gives OLAP materializations. Phase 3 combines them into the lakehouse pattern.
+
+> **Cross-project validation:** An independent architecture redesign in the Rust-based `monitor365` project reached the same conclusions independently: DuckDB replaces SQLite for analytics, Parquet for cold archival, CBOR for serialization, ULID for IDs, and segment files for append-only buffers. See [Section 8: Cross-Project Validation](#8-cross-project-validation-monitor365) for lessons learned and enhancements adopted.
 
 ---
 
@@ -417,9 +420,10 @@ The Parquet journal implements **only** `event.SeekableJournal` (which embeds `J
 
 ```go
 // EventRecord is the Parquet row representation of an event.
+// Mirrors ImmutableEvent fields with Parquet-specific encoding tags.
 type EventRecord struct {
     ID            string `parquet:"id,delta,zstd"`
-    Timestamp     int64  `parquet:"timestamp,timestamp(microsecond),delta,zstd"`
+    Timestamp     int64  `parquet:"timestamp,timestamp(microsecond),delta,zstd"`  // OccurredAt (domain clock)
     Type          string `parquet:"type,dict,zstd"`
     AggregateType string `parquet:"aggregate_type,dict,zstd"`
     AggregateID   string `parquet:"aggregate_id,zstd"`
@@ -438,6 +442,8 @@ Design rationale:
 - `zstd` everywhere (best ratio/speed balance)
 - Timestamp as `timestamp(microsecond)` — Parquet native timestamp type, microsecond precision matches ULID's embedded timestamp
 - Metadata as blob (preserves the existing `event.Metadata` CBOR serialization)
+
+> **Future consideration — dual clock (from monitor365 D22):** monitor365 carries both `occurred_at` (domain clock — when the event happened) and `ingested_at`/`recorded_at` (persistence clock — when the store committed it). go-cqrs-lite currently has `ImmutableEvent.occurredAt` but no `recordedAt` surfaced on the Event type (the SQL schema has `created_at DEFAULT datetime('now')` but it's not promoted to the domain model). Adding a `RecordedAt int64` column to EventRecord (and eventually to ImmutableEvent) would enable clock-skew detection and ingestion-lag analytics. This is **not blocking for Phase 1** — the field can be added via Parquet schema evolution (new column, old files return zero-value).
 
 #### Segment Lifecycle
 
@@ -550,6 +556,8 @@ for range ticker.C {
     lastArchivedID = events[len(events)-1].ID()
 }
 ```
+
+> **Transparent cold/hot query (from monitor365 D16):** The archival pipeline's full power emerges when DuckDB queries both the hot journal AND cold Parquet with **the same SQL** — `SELECT * FROM events UNION ALL SELECT * FROM read_parquet('archive/*.parquet')`. Consumers don't know or care where data lives. monitor365 partitions cold Parquet by `event_type/year/month/day/` for efficient pruning. This pattern is directly applicable to the `stack/duckdb` preset (Phase 3).
 
 #### Record ↔ Event Conversion
 
@@ -1200,6 +1208,63 @@ DESCRIBE SELECT * FROM read_parquet('journal/segments/seg_000001.parquet');
 
 ---
 
+## 9. Cross-Project Validation (monitor365)
+
+> **Source:** [`monitor365/docs/research/agent-architecture-redesign.md`](../../../monitor365/docs/research/agent-architecture-redesign.md) — a Rust-based monitoring system with an event-sourced server architecture. Independently reached the same storage conclusions as this document.
+
+### 9.1 Validations (existing decisions confirmed right)
+
+These decisions in go-cqrs-lite were independently validated by monitor365's redesign:
+
+| monitor365 decision                             | go-cqrs-lite equivalent                         | Verdict               |
+| ----------------------------------------------- | ----------------------------------------------- | --------------------- |
+| **D22: ULID binary, not UUID TEXT**             | `id.EventID = id.Of[EventMarker, ulid.ULID]`    | Already correct       |
+| **D5/D22: CBOR everywhere**                     | CBOR adopted as default codec (ADR-0051)        | Already correct       |
+| **D21: Version on ALL events**                  | `event.SchemaVersion` on every `ImmutableEvent` | Already correct       |
+| **D14: journal.db + derived.db split**          | `event.Store` vs `kv.Store` / `SQLViewStore`    | Already correct       |
+| **D20: All queries through materialized views** | `projectionhost` + `stack.Materialize`          | Already correct       |
+| **D5: Segment files for append-only workloads** | Parquet segment journal design (Phase 1)        | Independently reached |
+| **D13: DuckDB replaces SQLite for analytics**   | DuckDB materializations (Phase 2)               | Independently reached |
+| **D16: Parquet archival pipeline**              | Cold-storage archive tier (Phase 1/3)           | Independently reached |
+
+### 9.2 Enhancements Adopted into This Design
+
+#### Dual Clock — `occurred_at` + `recorded_at` (monitor365 D22)
+
+go-cqrs-lite has `ImmutableEvent.occurredAt` but no `recordedAt` (when the store persisted it). monitor365's insight: both clocks matter — `occurredAt` for domain semantics, `recordedAt` for ordering/skew detection and ingestion-lag analytics. The SQL schema already has `created_at DEFAULT datetime('now')` but it is **not surfaced on the Event type**.
+
+**Action:** EventRecord should include a `RecordedAt` field (Parquet schema evolution compatible). Longer-term, `ImmutableEvent` should promote `recordedAt` to a first-class field. This is deferred — not blocking for Phase 1.
+
+#### Transparent Cold/Hot Query Pattern (monitor365 D16)
+
+The archival pipeline's full value is unlocked when DuckDB queries both local journal AND cold Parquet with the same SQL syntax. monitor365 partitions Parquet by `event_type/year/month/day/` and DuckDB's predicate pushdown skips irrelevant files. This pattern is now documented in [Section 4.2: Pattern B](#pattern-b-periodic-archival-cold-flush) and informs the Phase 3 preset design.
+
+#### Segment File Simplicity Over Embedded DB (monitor365 D5)
+
+monitor365 rejected LMDB/SQLite for their agent buffer (~130 lines of segment files). Their reasoning — append, read-range, delete-range, crash-safe = don't need MVCC/B+tree/multi-process — is the same logic behind the Parquet segment journal. This validates keeping `storage/parquet` as a lightweight, zero-database-dependency module rather than building on an embedded DB.
+
+### 9.3 Future Ideas Worth Tracking
+
+#### xxhash3 for Integrity Checks (monitor365 D22)
+
+monitor365 uses xxhash3 (128-bit, 10-50x faster than SHA-256) for corruption detection. Their threat model insight: disk rot and torn writes are the enemy, not crypto adversaries. go-cqrs-lite's `signing/` module is correct for tamper-proofing (HMAC-SHA256, Ed25519), but a lightweight integrity checksum on the event envelope would use xxhash3, not SHA-256. **Not actionable yet** — worth tracking for future integrity features.
+
+#### Per-Projection Schema-Version Rebuild (monitor365 D24)
+
+go-cqrs-lite's `projectionhost` has `Reset(ctx, name)` for full rebuild. monitor365 adds a third trigger: when a projection's code schema changes (new column), rebuild only that projection, not all. This could be an enhancement to `projectionhost` — a `ResetIfSchemaChanged(ctx, name, codeVersion)` method that compares a stored schema version against the code's current version and rebuilds only on mismatch. **Action:** Add to TODO_LIST.md as a future enhancement.
+
+#### "Querying IS Replay" Framing (monitor365 D21)
+
+monitor365's profound framing: any read of old data IS replay, even a dashboard query. When a query reads a 2-year-old event whose payload format has changed, the query layer must know which schema version it's reading — that IS replay. This isn't a new feature, but it's a **documentation insight** for go-cqrs-lite's `schema/` module. The `schema.Upcaster` and `VersionedStore` exist for exactly this reason, but their documentation doesn't frame the _why_ in these terms. **Action:** Enhance `schema/` package documentation with this framing.
+
+### 9.4 Anti-Pattern Warning (monitor365 D1)
+
+monitor365 warns against _pretending_ to be event-sourced when you're just a data pipeline stage. Their agent buffer accumulated snapshots and replay infrastructure that was never consumed — dead complexity.
+
+For go-cqrs-lite, this means: the Parquet journal must be honestly documented as a **SeekableJournal / archive tier**, not marketed as a full event store. It implements `ReadAll` + `ReadFrom` only — no `Save`, no `Load`, no optimistic concurrency. The `Backend.Append` method is for journal ingestion, not aggregate commands. This design already follows the principle (the type system enforces it — `Backend` does not implement `event.Store`), but the documentation should state it explicitly.
+
+---
+
 ## Summary Decision Matrix
 
 | Decision                                 | Choice                  | Confidence | Reversible?                           |
@@ -1212,4 +1277,4 @@ DESCRIBE SELECT * FROM read_parquet('journal/segments/seg_000001.parquet');
 | Phase into 3 independent deliverables    | Yes                     | High       | N/A                                   |
 | CGO opt-in (not in core modules)         | Yes                     | High       | Yes (modules are isolated)            |
 
-**The design follows every library principle**: library-not-framework (opt-in modules), composition over inheritance (dialect interface, stack.Bundle), minimal dependencies (pure Go Parquet, isolated CGO DuckDB), strong types (EventRecord with typed Parquet tags), and the existing patterns (two-module backend+stack, Dialect interface, SeekableJournal).
+**The design follows every library principle**: library-not-framework (opt-in modules), composition over inheritance (dialect interface, stack.Bundle), minimal dependencies (pure Go Parquet, isolated CGO DuckDB), strong types (EventRecord with typed Parquet tags), and the existing patterns (two-module backend+stack, Dialect interface, SeekableJournal). Independently validated by the monitor365 architecture redesign (see [Section 8](#8-cross-project-validation-monitor365)).
