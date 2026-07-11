@@ -15,6 +15,7 @@ type (
 	EventByIDLoader    = eventstore.EventByIDLoader
 )
 
+//nolint:gochecknoglobals // intentional API re-exports for backward compat
 var (
 	NewSQLEventStore                 = eventstore.NewSQLEventStore
 	NewSQLiteEventStore              = eventstore.NewSQLiteEventStore

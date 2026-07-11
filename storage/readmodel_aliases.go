@@ -10,6 +10,7 @@ import (
 
 type SQLKVStore = readmodel.SQLKVStore
 
+//nolint:gochecknoglobals // intentional API re-exports for backward compat
 var (
 	NewSQLKVStore            = readmodel.NewSQLKVStore
 	NewSQLiteKVStore         = readmodel.NewSQLiteKVStore

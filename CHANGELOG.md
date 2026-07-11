@@ -17,7 +17,7 @@ for step-by-step upgrade instructions.
 
 ### Breaking Changes
 
-1. **Module path migration `/v4` → `/v4`** — All 49 `go.mod` files and every
+1. **Module path migration `/v3` → `/v4`** — All 49 `go.mod` files and every
    import path updated. Consumers must update `go.mod` require directives and
    all import statements. `go mod tidy` resolves most of this automatically.
 
@@ -44,7 +44,7 @@ for step-by-step upgrade instructions.
 
 ```go
 // Before (v3):
-import "github.com/larsartmann/go-cqrs-lite/event/v4"
+import "github.com/larsartmann/go-cqrs-lite/event/v3"
 handler := http.BackfillHandler(journal)
 
 // After (v4):

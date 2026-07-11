@@ -6,9 +6,9 @@
 
 ---
 
-## Breaking Change 1: Module Path Migration `/v4` → `/v4`
+## Breaking Change 1: Module Path Migration `/v3` → `/v4`
 
-All module paths change from `/v4` to `/v4`. This is the largest mechanical
+All module paths change from `/v3` to `/v4`. This is the largest mechanical
 change but requires no logic changes.
 
 ### What to change
@@ -18,8 +18,8 @@ Every `go.mod` require directive and every import path:
 ```go
 // Before (v3):
 import (
-    "github.com/larsartmann/go-cqrs-lite/event/v4"
-    "github.com/larsartmann/go-cqrs-lite/decider/v4"
+    "github.com/larsartmann/go-cqrs-lite/event/v3"
+    "github.com/larsartmann/go-cqrs-lite/decider/v3"
 )
 
 // After (v4):
@@ -31,7 +31,7 @@ import (
 
 ### Migration steps
 
-1. Update all `go.mod` require directives: `/v4` → `/v4`
+1. Update all `go.mod` require directives: `/v3` → `/v4`
 2. Find-and-replace import paths in all `.go` files
 3. Run `go mod tidy`
 

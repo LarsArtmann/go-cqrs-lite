@@ -51,12 +51,8 @@ func newSQLEventStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLEventStore, 
 	return &SQLEventStore{OwnedDBHandle: handle, insertEventSQL: buildInsertEventSQL(d)}, nil
 }
 
-// errStoreClosed is a package-level sentinel to avoid allocating a new error
-// on every checkClosed call (the hot path for every Save/Load).
-var errStoreClosed = errorfamily.NewInfrastructure("storage.closed", "store is closed")
-
 func (s *SQLEventStore) checkClosed() error {
-	return s.CheckClosed(errStoreClosed)
+	return s.CheckClosed(sqlpkg.ErrClosed)
 }
 
 // Save persists events with optimistic concurrency check.
