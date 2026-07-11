@@ -3,12 +3,12 @@ module github.com/larsartmann/go-cqrs-lite/projectionhost/v3
 go 1.26.4
 
 require (
-	github.com/larsartmann/go-cqrs-lite/dedup/v3 v3.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/event/v3 v3.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/id/v3 v3.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/metadata/v3 v3.0.0-00010101000000-000000000000 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/dedup/v3 v3.7.4
+	github.com/larsartmann/go-cqrs-lite/event/v3 v3.7.4
+	github.com/larsartmann/go-cqrs-lite/id/v3 v3.7.4
+	github.com/larsartmann/go-cqrs-lite/metadata/v3 v3.0.0-20260711094323-d396bb6fc23f // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v3 v3.7.4
+	github.com/larsartmann/go-cqrs-lite/projection/v3 v3.7.4
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v3 v3.0.0-00010101000000-000000000000
 	go.opentelemetry.io/otel v1.44.0
 	go.opentelemetry.io/otel/sdk v1.44.0
@@ -47,7 +47,7 @@ require (
 require (
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/codec/v3 v3.7.4
 	github.com/larsartmann/go-cqrs-lite/command/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v3 v3.0.0-00010101000000-000000000000 // indirect
