@@ -33,8 +33,10 @@ require (
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.0.0-20260711192758-e443adb3bfd0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.0.0-20260711192758-e443adb3bfd0 // indirect
 	github.com/larsartmann/go-error-family v0.7.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect

@@ -54,12 +54,10 @@
 - [x] **`HealthCheck` on `OwnedDBHandle`** — All SQL stores now inherit `HealthCheck(ctx)` via embedding.
       Removed redundant implementation from `*SQLEventStore`.
 - [x] **Update FEATURES.md for v4** — Envelope wrapping, codec flip, health checks, BackfillHandler change added.
-- [ ] **Test `WithShutdownDependency` through real `sqlite.New()`** — Deferred (non-blocking, current tests
-      use struct literals which cover the logic).
 
 ### Remaining Release Step
 
-- [ ] **`git tag v4.0.0`** — All code, tests, and docs are ready. Push when user approves.
+- [ ] **`git tag v4.0.0` + push** — All code, tests, and docs are ready. Awaiting user approval.
 
 ---
 
@@ -92,6 +90,8 @@
 > **Release strategy decided 2026-07-11:** Public release (license swap + history scrub) happens
 > **AFTER v4 cut**, not before.
 
+- [ ] **Test `WithShutdownDependency` through real `sqlite.New()`** — Deferred from v4. Current struct-literal
+      tests cover the topological sort logic, but a test through the real constructor path would add confidence.
 - [ ] **License swap (PROPRIETARY → Apache-2.0)** — Hard blocker for public adoption. **Needs user
       approval (irreversible).** After v4.
 - [ ] **Git history scrub for internal docs** — AGENTS.md, docs/planning/\* contain internal

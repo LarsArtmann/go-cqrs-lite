@@ -69,6 +69,7 @@ func newTestBrokerWithJournal(t *testing.T, store *eventtest.FakeStore) *SSEBrok
 	if err != nil {
 		t.Fatalf("NewSSEBroker: %v", err)
 	}
+
 	return broker
 }
 
@@ -178,7 +179,8 @@ func TestBackfillHandler_PayloadTransformFromBroker(t *testing.T) {
 	_ = store.Save(context.Background(), ref, []event.Event{evt0, evt1}, 0)
 
 	bus := eventtest.NewFakeBus()
-	broker, err := NewSSEBroker(bus,
+	broker, err := NewSSEBroker(
+		bus,
 		WithReconnectJournal(store, 100),
 		WithPayloadTransform(func(evt event.Event) []byte {
 			return []byte(`{"transformed":true}`)
