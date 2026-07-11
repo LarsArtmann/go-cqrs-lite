@@ -183,7 +183,12 @@
               description = "Lightweight CQRS/Event-Sourcing library for Go";
               homepage = "https://github.com/larsartmann/go-cqrs-lite";
               license = licenses.mit;
-              maintainers = [ maintainers.larsartmann ];
+              maintainers = [
+                {
+                  name = "Lars Artmann";
+                  github = "LarsArtmann";
+                }
+              ];
               platforms = platforms.unix;
             };
           };
