@@ -14,6 +14,8 @@
 
 ## P0 — Critical (correctness, CI green, trust)
 
+- [ ] **Fix premature codec default flip** — Commit `b3cca247` changed `event.DefaultCodec` from JSON to CBOR (`codec.go:28`), but the v4 flip is marked BLOCKED on user go-ahead. 3 tests fail: `TestDefaultCodec_DefaultIsJSON`, `TestMixedCodecStream`, `TestEventCodec_FallsBackToEventDefaultCodec`. Either revert to JSON or update tests + un-block the v4 task.
+
 - [x] **Register stdlib error classifications** — `errorfamily.RegisterStdlibDefaults()` called via init() in `storage/sql/classify_init.go`.
 - [x] **Register database driver classifiers** — SQLite BUSY/LOCKED→Transient, CONSTRAINT→Conflict; Postgres SQLSTATE classes. Registered via init() in `storage/sql/classify_init.go`.
 - [x] **Fix `WithReplayByteBudget(0)` semantics** — Added `SSEReplayBudgetDisabled = -1` sentinel. 0 auto-defaults to 8MB; -1 explicitly disables.
@@ -61,6 +63,57 @@
 - [BLOCKED] **Arena allocation experiment** — Pending Go arena API stabilization.
 - [BLOCKED] **Turso MVCC concurrent-write support** — Blocked on upstream experimental MVCC.
 
+### SQLiteDeadLetterStore production hardening (Gap 3 follow-ups)
+
+- [ ] **DLQ `Purge(ctx, before time.Time)`** — Time-bounded cleanup for production DLQ management (item 28).
+- [ ] **DLQ `List(ctx, offset, limit int)`** — Pagination for 100k+ dead letters (item 29).
+- [ ] **DLQ `PurgeForProjection(ctx, name)`** — Purge entries for a specific projection during reset (item 33).
+- [ ] **DLQ `Count(ctx) (int64, error)`** — Dashboard metrics for DLQ depth (item 30).
+- [ ] **DLQ serialization format docs** — Document what event fields are stored and how to migrate the schema (item 32).
+- [ ] **DLQ stress test** — 10k entries, verify query performance (item 16).
+- [ ] **DLQ concurrent Store test** — Verify SQLite busy_timeout under concurrent writes (item 17).
+- [ ] **DLQ corrupt JSON test** — Verify graceful failure on malformed event payload (item 18).
+
+### VersionedSeekableJournal follow-ups (Gap 1)
+
+- [ ] **Property test with rapid** — Random upcaster chains on event streams (item 14).
+- [ ] **Upcaster error mid-stream test** — What happens when an upcaster returns an error during projection host replay? (item 23).
+- [ ] **Benchmark: upcasting overhead** — `ReadFrom` with 10k events (item 15, P3).
+
+### SSE transform follow-ups (Gap 2)
+
+- [ ] **CBOR→JSON e2e test** — Through all 3 SSE paths (live, replay, backfill) with a real CBOR-encoded event (item 25).
+
+### Projectionhost observability
+
+- [ ] **`LagPerProjection() map[string]time.Duration`** — Per-worker lag for dashboards (item 38).
+- [ ] **`WorkerState.Lag` field** — Currently only available via aggregate `LagDuration()` (item 39).
+- [ ] **`Reset(ctx, name)` purges DLQ** — Projection reset should optionally clear DLQ entries for that projection (item 46).
+
+### Testing improvements
+
+- [ ] **Race detector on ALL modules** — CI runs `-race` on changed modules; run full suite periodically (item 13).
+- [ ] **`scenario.GivenProjection` test** — For VersionedSeekableJournal + projectionhost (item 48, P3).
+
+### Index/Performance
+
+- [ ] **DLQ index optimization audit** — Verify `UNIQUE(projection_name, event_id)` is optimal for List-by-projection (item 31, P3).
+
+### Documentation
+
+- [ ] **Document two DeadLetterEntry types** — ADR-0043 Part B: dispatch-side vs projection poison, intentionally separate (item 45, P3).
+- [ ] **README.md docs freshness** — Missing `encryption`, `turso`, `testutil` module sections.
+
+### Rejected (with reasons)
+
+- **Unify VersionedStore + VersionedSeekableJournal** (item 20) — Different interfaces (Store: Load/Save per aggregate, SeekableJournal: ReadFrom position-based). One type can't cleanly implement both. YAGNI.
+- **VersionedJournal (ReadAll only)** (items 22, 49) — No consumer needs `ReadAll` with upcasters. SeekableJournal is the projectionhost interface. YAGNI.
+- **Expose `SSEBroker.PayloadTransform()` accessor** (item 24) — No demand. Consumers configure the transform at construction.
+- **`WithPayloadTransform` on SSEHandler** (item 27) — SSEHandler wraps the broker; adding transform there duplicates responsibility (SRP violation).
+- **Auto-apply CQRS views by default** (items 35, 50) — Violates "library, not framework" principle. Consumers choose their histogram boundaries.
+- **VersionedSeekableJournal implementing event.Store** (item 40) — Different scope (position-based vs aggregate-based reads). YAGNI.
+- **Integration test in `integration/` module** (item 19) — Redundant with `projectionhost/versioned_journal_integration_test.go`.
+
 ### Performance
 
 - [ ] **Hot-State cache (decider)** — Optional `RepositoryOption[State]` that caches folded aggregate state. Profile before building.
@@ -88,6 +141,7 @@
 - [v4] **Remove deprecated APIs** — 8 aliases in event/ + schema/ + query.Handler.
 - [v4] **Storage/ split execution** — Proposal at `docs/planning/2026-07-09_STORAGE-SPLIT-PROPOSAL.md`. Awaits approval.
 - [v4] **Event/ god module decomposition** — Explicitly decided: DO NOT SPLIT (27 importers, cohesion is real).
+- [v4] **BackfillHandler taking \*SSEBroker** — Cleaner architecture; backfill can access broker's transform (item 47).
 
 ---
 
