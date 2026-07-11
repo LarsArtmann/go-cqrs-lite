@@ -392,6 +392,27 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   // calls for the same aggregate coalesce into one store.Load query.
 //   // No API change needed; it's transparent.
 
+// Decider hot-state cache (incremental loads — 7.4x faster for hot aggregates)
+//   cache := decider.NewStateCache[MyState](256) // LRU-bounded, process-local
+//   repo, _ := decider.NewRepository(store, bus, d,
+//       decider.WithStateCache[MyState](cache))
+//   // On cache hit: LoadFromVersion(cachedVer) + fold delta → O(new events)
+//   // On miss: full Load → O(total events), then cache is populated
+//   // Execute updates the cache after every successful write
+//   // Fold/store errors invalidate the entry (next Load repopulates from store)
+
+// Read-pressure snapshot strategy (snapshot hot-read, cold-write aggregates)
+//   rp, _ := snapshot.NewReadPressure(50) // snapshot after 50 loads + next write
+//   repo, _ := decider.NewRepository(store, bus, d,
+//       decider.WithSnapshotStore[MyState](snapStore),
+//       decider.WithCodec[MyState](codec.JSONCodec{}),
+//       decider.WithSnapshotStrategy[MyState](rp))
+//   // Combine with EveryNEvents (either triggers):
+//   rp, _ := snapshot.NewReadPressure(50,
+//       snapshot.WithInnerStrategy(everyN100))
+//   // AggregateAwareStrategy + ReadTracker are optional interfaces;
+//   // EveryNEvents (no ReadTracker) still works via ShouldSnapshot fallback.
+
 // OTel distributed correlation (baggage propagation)
 //   ctx = cqrsotel.WithCorrelationID(ctx, "abc-123") // store in baggage
 //   corrID := cqrsotel.CorrelationIDFromContext(ctx)  // retrieve from baggage

@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-07-11 (session: remediation execution + self-review)
+**Updated:** 2026-07-11 (session: performance features — hot-state cache + read-pressure snapshots)
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in [ROADMAP.md](ROADMAP.md). Raw ideas live in [ROADMAP.md § Raw Ideas](ROADMAP.md#raw-ideas-no-design-yet).
 
 ## Legend
@@ -119,11 +119,6 @@
 - **VersionedSeekableJournal implementing event.Store** (item 40) — Different scope (position-based vs aggregate-based reads). YAGNI.
 - **Integration test in `integration/` module** (item 19) — Redundant with `projectionhost/versioned_journal_integration_test.go`.
 
-### Performance
-
-- [ ] **Hot-State cache (decider)** — Optional `RepositoryOption[State]` that caches folded aggregate state. Profile before building.
-- [ ] **Read-pressure snapshot strategy** — `EveryNEvents` snapshots based on writes; add `ReadPressureStrategy`.
-
 ### Transport
 
 - [ ] **NATS/ValKey Stream adapter** — ADR-0025 accepted. Separate `transport/nats/` and `transport/redis/` modules.
@@ -170,6 +165,8 @@
 - [x] **Projectionhost production hardening** — M1-M13 complete.
 - [x] **Error taxonomy migration** — All event._ facade calls → errorfamily._ direct imports.
 - [x] **Removed ALL `var _ =` hacks** — 4 found and removed: `sse_backfill.go:151` (context.Background), `example/taskmanager/http.go:329` (context.Background, report missed this), `stack/bundle.go:289` (dead-code assertion), `example/taskmanager/setup.go:301` (dead-code event.Version(0)).
+- [x] **Hot-State cache (decider)** — `StateCache[State]` interface + LRU impl in `decider/cache.go`. `WithStateCache[State]` option enables incremental loads (O(new events) instead of O(total)). Benchmark: 7.4x faster Load (2090→283 ns/op) with 500-event history. Cache updated on every Execute, invalidated on fold/store errors. Process-local, best-effort, zero new dependencies.
+- [x] **Read-pressure snapshot strategy (snapshot)** — `ReadPressure` strategy + `AggregateAwareStrategy` and `ReadTracker` interfaces in `snapshot/read_pressure.go`. Triggers snapshots based on read count (hot-read, cold-write aggregates). `ShouldSnapshotFor` helper in `snapshot/helper.go` falls back to `ShouldSnapshot` for non-aware strategies. Composable with `EveryNEvents` via `WithInnerStrategy`. Wired into decider Repository via optional interface checks. Backward compatible.
 - [x] **DiscordSync feedback gaps (Round 2)** — 5 gaps from `2026-07-10_DiscordSync_leverage_review.md`:
   - [x] `schema.VersionedSeekableJournal` — wraps SeekableJournal with upcasters for projection host
   - [x] `transport/http.WithPayloadTransform` + `BackfillHandlerWithTransform` — wire-format transcoding on all 3 SSE paths (live, replay, backfill)

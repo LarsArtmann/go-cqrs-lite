@@ -113,17 +113,19 @@
 
 > `import "github.com/larsartmann/go-cqrs-lite/decider/v3"`
 
-| Feature              | Detail                                                                                       | Status |
-| -------------------- | -------------------------------------------------------------------------------------------- | ------ |
-| Decider[State]       | `{Initial State; Fold func(State, Event) (State, error)}` — pure-function aggregate pattern  | ✅     |
-| Repository[State]    | `NewRepository[State](store, publisher, decider, opts...)` — manages aggregate lifecycle     | ✅     |
-| Execute              | `Repository.Execute(ctx, aggID, aggType, decide)` — load → decide → save → publish           | ✅     |
-| Load                 | `Repository.Load(ctx, aggID, aggType)` — returns `(State, Version, error)`                   | ✅     |
-| LoadAtVersion        | `Repository.LoadAtVersion(ctx, aggID, aggType, maxVersion)` — time-travel to version         | ✅     |
-| LoadAtTime           | `Repository.LoadAtTime(ctx, aggID, aggType, maxTime)` — time-travel to timestamp             | ✅     |
-| Snapshot integration | `WithSnapshotStore` + `WithSnapshotStrategy` + `WithCodec` — automatic snapshot optimization | ✅     |
-| Context enrichment   | `WithEnricher` — injects metadata from context into events                                   | ✅     |
-| OTel tracing         | OpenTelemetry spans for load/save/execute operations (opt-in)                                | ✅     |
+| Feature              | Detail                                                                                           | Status |
+| -------------------- | ------------------------------------------------------------------------------------------------ | ------ |
+| Decider[State]       | `{Initial State; Fold func(State, Event) (State, error)}` — pure-function aggregate pattern      | ✅     |
+| Repository[State]    | `NewRepository[State](store, publisher, decider, opts...)` — manages aggregate lifecycle         | ✅     |
+| Execute              | `Repository.Execute(ctx, aggID, aggType, decide)` — load → decide → save → publish               | ✅     |
+| Load                 | `Repository.Load(ctx, aggID, aggType)` — returns `(State, Version, error)`                       | ✅     |
+| LoadAtVersion        | `Repository.LoadAtVersion(ctx, aggID, aggType, maxVersion)` — time-travel to version             | ✅     |
+| LoadAtTime           | `Repository.LoadAtTime(ctx, aggID, aggType, maxTime)` — time-travel to timestamp                 | ✅     |
+| Snapshot integration | `WithSnapshotStore` + `WithSnapshotStrategy` + `WithCodec` — automatic snapshot optimization     | ✅     |
+| Hot-state cache      | `WithStateCache` + `NewStateCache[State](capacity)` — LRU cache, incremental loads (7.4x faster) | ✅     |
+| Load coalescing      | `WithLoadCoalescing` — singleflight dedup of concurrent Loads for same aggregate                 | ✅     |
+| Context enrichment   | `WithEnricher` — injects metadata from context into events                                       | ✅     |
+| OTel tracing         | OpenTelemetry spans for load/save/execute operations (opt-in)                                    | ✅     |
 
 **Sentinel errors:** `ErrNilStore`, `ErrNilPublisher`, `ErrNilFold`, `ErrLoadFailed`, `ErrFoldFailed`, `ErrSaveFailed`, `ErrIncompleteSnapshotConfig`
 
@@ -254,12 +256,14 @@ as a library primitive.
 
 > `import "github.com/larsartmann/go-cqrs-lite/snapshot/v3"`
 
-| Feature          | Detail                                                          | Status |
-| ---------------- | --------------------------------------------------------------- | ------ |
-| Snapshot type    | `Snapshot` struct with AggregateRef, Version, State, SavedAt    | ✅     |
-| Store interfaces | `SnapshotSink`, `SnapshotSource`, `SnapshotStore` (Sink+Source) | ✅     |
-| Strategy         | `SnapshotStrategy` interface + `EveryNEvents(n)` built-in       | ✅     |
-| Helper functions | `ShouldSnapshot`, `SaveSnapshot` — decider integration helpers  | ✅     |
+| Feature          | Detail                                                                              | Status |
+| ---------------- | ----------------------------------------------------------------------------------- | ------ |
+| Snapshot type    | `Snapshot` struct with AggregateRef, Version, State, SavedAt                        | ✅     |
+| Store interfaces | `SnapshotSink`, `SnapshotSource`, `SnapshotStore` (Sink+Source)                     | ✅     |
+| Strategy         | `SnapshotStrategy` interface + `EveryNEvents(n)` built-in                           | ✅     |
+| Read-pressure    | `ReadPressure` strategy — snapshots based on load frequency                         | ✅     |
+| Aggregate-aware  | `AggregateAwareStrategy` + `ReadTracker` optional interfaces                        | ✅     |
+| Helper functions | `ShouldSnapshot`, `ShouldSnapshotFor`, `SaveSnapshot` — decider integration helpers | ✅     |
 
 ---
 

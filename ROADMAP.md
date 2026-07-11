@@ -64,8 +64,8 @@ All 11 breaking changes landed. See [`docs/migration/V3_MIGRATION.md`](docs/migr
 
 - [ ] Zero-allocation event encoding path (jsonv2 — blocked on Go stdlib)
 - [ ] Arena allocation for high-throughput event creation (blocked on Go stdlib)
-- [ ] Hot-State cache (decider) — Optional `RepositoryOption[State]` for aggregates commanded 100+ times/sec. Profile before building.
-- [ ] Read-pressure snapshot strategy — Snapshot based on load frequency, not just write count. Consider after hot-state cache.
+- [x] ~~Hot-State cache (decider)~~ — DONE (`decider/cache.go`: `StateCache[State]`, `WithStateCache`, LRU-bounded, 7.4x faster Load)
+- [x] ~~Read-pressure snapshot strategy~~ — DONE (`snapshot/read_pressure.go`: `ReadPressure`, `AggregateAwareStrategy`, `ReadTracker`)
 - [x] ~~Streaming event reads without materializing full slice~~ — DONE
 
 ### Reliability
@@ -111,4 +111,4 @@ All 11 breaking changes landed. See [`docs/migration/V3_MIGRATION.md`](docs/migr
 
 ---
 
-_Last updated: 2026-07-05 — v3.6.0 tagged. All framework gaps (A1–A6) shipped: projectionhost, scenario, scheduling, deriver, idempotency. Remaining: operability surfacing from stack presets, Go-stdlib-blocked experiments (jsonv2, arenas), performance features (hot-state cache, read-pressure snapshots)._
+_Last updated: 2026-07-11 — v3.6.0 tagged. All framework gaps (A1–A6) shipped: projectionhost, scenario, scheduling, deriver, idempotency. Performance features shipped: hot-state cache, read-pressure snapshots. Remaining: operability surfacing from stack presets, Go-stdlib-blocked experiments (jsonv2, arenas)._
