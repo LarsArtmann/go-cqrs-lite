@@ -30,13 +30,14 @@ const (
 
 // WorkerState is a point-in-time snapshot of a single worker's state.
 type WorkerState struct {
-	Name       string       `json:"name"`
-	Status     WorkerStatus `json:"status"`
-	Checkpoint string       `json:"checkpoint"`
-	Processed  int64        `json:"processed"`
-	Errors     int64        `json:"errors"`
-	Restarts   int          `json:"restarts"`
-	LastError  string       `json:"lastError,omitempty"`
+	Name       string        `json:"name"`
+	Status     WorkerStatus  `json:"status"`
+	Checkpoint string        `json:"checkpoint"`
+	Processed  int64         `json:"processed"`
+	Errors     int64         `json:"errors"`
+	Restarts   int           `json:"restarts"`
+	Lag        time.Duration `json:"lag"`
+	LastError  string        `json:"lastError,omitempty"`
 }
 
 // DeadLetterEntry captures a poison message that exceeded the retry threshold.

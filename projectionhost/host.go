@@ -255,20 +255,35 @@ func (h *Host) LagDuration() time.Duration {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	var latest time.Time
+	var maxLag time.Duration
 
 	for _, w := range h.workers {
-		ts := w.lastProcessedAt()
-		if ts.After(latest) {
-			latest = ts
+		if lag := w.lagDuration(); lag > maxLag {
+			maxLag = lag
 		}
 	}
 
-	if latest.IsZero() {
-		return 0
+	return maxLag
+}
+
+// LagPerProjection returns the lag for each registered projection, keyed by
+// projection name. Lag is the duration since the worker's most recently
+// processed event; 0 means the worker has not processed any event yet. Use this
+// for per-projection dashboards:
+//
+//	for name, lag := range host.LagPerProjection() {
+//	    gauge.WithLabelValues(name).Set(float64(lag.Milliseconds()))
+//	}
+func (h *Host) LagPerProjection() map[string]time.Duration {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	result := make(map[string]time.Duration, len(h.workers))
+	for _, w := range h.workers {
+		result[w.name] = w.lagDuration()
 	}
 
-	return time.Since(latest)
+	return result
 }
 
 // Resettable is an optional interface a Projection can implement to support
@@ -283,15 +298,40 @@ type Resettable interface {
 	Reset(ctx context.Context) error
 }
 
+// ResetOption configures a Reset call.
+type ResetOption func(*resetConfig)
+
+type resetConfig struct {
+	purgeDLQ bool
+}
+
+// WithPurgeDeadLetters instructs Reset to also purge dead-letter entries for
+// the named projection from the DeadLetterStore (if one is configured). Use this
+// when rebuilding a projection from scratch: stale poison entries from a
+// previous handler bug serve no purpose once the projection is wiped.
+//
+//	host.Reset(ctx, "users", projectionhost.WithPurgeDeadLetters())
+func WithPurgeDeadLetters() ResetOption {
+	return func(c *resetConfig) { c.purgeDLQ = true }
+}
+
 // Reset drops the checkpoint for the named projection and, if the projection
 // implements [Resettable], calls its Reset method to clear read-model state.
 // After Reset, the next Start replys all events from the beginning of the
 // journal. Use this to rebuild a projection from scratch after fixing a
 // handler bug.
 //
+// Pass [WithPurgeDeadLetters] to also clear dead-letter entries for the
+// projection from the configured DeadLetterStore.
+//
 // Reset returns an error if the projection name is not registered or the host
 // is currently running (Stop first). It is safe to call Reset multiple times.
-func (h *Host) Reset(ctx context.Context, name string) error {
+func (h *Host) Reset(ctx context.Context, name string, opts ...ResetOption) error {
+	cfg := resetConfig{}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
 	h.mu.Lock()
 
 	if h.started && !h.stopped {
@@ -332,6 +372,13 @@ func (h *Host) Reset(ctx context.Context, name string) error {
 	}
 
 	w.setCheckpoint("")
+
+	if cfg.purgeDLQ && h.opts.dlq != nil {
+		if err := h.opts.dlq.Purge(ctx, name); err != nil {
+			return errorfamily.WrapInfrastructure(err, "projectionhost.reset_dlq_purge",
+				fmt.Sprintf("purge dead-letter entries for %q", name))
+		}
+	}
 
 	return nil
 }

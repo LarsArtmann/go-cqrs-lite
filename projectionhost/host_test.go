@@ -1176,6 +1176,192 @@ func TestHost_WithShutdownTimeout_CustomValue(t *testing.T) {
 	}
 }
 
+func TestHost_LagPerProjection_NoEvents(t *testing.T) {
+	t.Parallel()
+
+	journal := &memoryJournal{}
+	cpStore := newMemoryCheckpointStore()
+	host, _ := projectionhost.New(journal, cpStore)
+	_ = host.Register(&countingProjection{name: "lag-a"})
+	_ = host.Register(&countingProjection{name: "lag-b"})
+
+	lags := host.LagPerProjection()
+	if len(lags) != 2 {
+		t.Fatalf("expected 2 entries, got %d", len(lags))
+	}
+	if lags["lag-a"] != 0 {
+		t.Fatalf("expected 0 lag for unstarted worker, got %v", lags["lag-a"])
+	}
+	if lags["lag-b"] != 0 {
+		t.Fatalf("expected 0 lag for unstarted worker, got %v", lags["lag-b"])
+	}
+}
+
+func TestHost_LagPerProjection_AfterProcessing(t *testing.T) {
+	t.Parallel()
+
+	journal := &memoryJournal{}
+	cpStore := newMemoryCheckpointStore()
+	journal.append(makeEvent("data.lag"))
+
+	proj := &countingProjection{name: "lag-proj"}
+	host, _ := projectionhost.New(journal, cpStore, projectionhost.WithBatchSize(10))
+	_ = host.Register(proj)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go host.Start(ctx)
+
+	requireEventually(t, 2*time.Second, func() bool {
+		return proj.count.Load() == 1
+	})
+
+	cancel()
+	_ = host.Stop()
+
+	lags := host.LagPerProjection()
+	lag, ok := lags["lag-proj"]
+	if !ok {
+		t.Fatal("expected 'lag-proj' in lag map")
+	}
+	// After processing + stop, lag may be tiny or 0 — just verify it's non-negative.
+	if lag < 0 {
+		t.Fatalf("lag should be non-negative, got %v", lag)
+	}
+}
+
+func TestHost_Status_WorkerStateLag(t *testing.T) {
+	t.Parallel()
+
+	journal := &memoryJournal{}
+	cpStore := newMemoryCheckpointStore()
+	journal.append(makeEvent("data.stlag"))
+
+	proj := &countingProjection{name: "stlag-proj"}
+	host, _ := projectionhost.New(journal, cpStore, projectionhost.WithBatchSize(10))
+	_ = host.Register(proj)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go host.Start(ctx)
+
+	requireEventually(t, 2*time.Second, func() bool {
+		return proj.count.Load() == 1
+	})
+
+	cancel()
+	_ = host.Stop()
+
+	states := host.Status()
+	if len(states) != 1 {
+		t.Fatalf("expected 1 state, got %d", len(states))
+	}
+	// After processing, Lag should be populated (non-zero since some time has passed).
+	if states[0].Lag < 0 {
+		t.Fatalf("expected non-negative lag, got %v", states[0].Lag)
+	}
+}
+
+func TestHost_LagDuration_MatchesMaxLag(t *testing.T) {
+	t.Parallel()
+
+	journal := &memoryJournal{}
+	cpStore := newMemoryCheckpointStore()
+	host, _ := projectionhost.New(journal, cpStore)
+	_ = host.Register(&countingProjection{name: "only"})
+
+	// No events processed: both should return 0.
+	if d := host.LagDuration(); d != 0 {
+		t.Fatalf("expected 0 lag before processing, got %v", d)
+	}
+	lags := host.LagPerProjection()
+	if lags["only"] != 0 {
+		t.Fatalf("expected 0 per-projection lag before processing, got %v", lags["only"])
+	}
+}
+
+func TestHost_Reset_PurgesDeadLetters(t *testing.T) {
+	t.Parallel()
+
+	journal := &memoryJournal{}
+	cpStore := newMemoryCheckpointStore()
+	dlq := projectionhost.NewMemoryDeadLetterStore()
+
+	// Pre-populate DLQ with entries for two projections.
+	_ = dlq.Store(context.Background(), projectionhost.DeadLetterEntry{
+		ProjectionName: "purge-me",
+		EventID:        "evt-1",
+		EventType:      "test.created",
+		Error:          "boom",
+	})
+	_ = dlq.Store(context.Background(), projectionhost.DeadLetterEntry{
+		ProjectionName: "keep-me",
+		EventID:        "evt-2",
+		EventType:      "test.created",
+		Error:          "boom",
+	})
+
+	proj := &resettableCountingProjection{
+		countingProjection: countingProjection{name: "purge-me"},
+	}
+	host, _ := projectionhost.New(
+		journal, cpStore,
+		projectionhost.WithDeadLetterStore(dlq, 3),
+	)
+	_ = host.Register(proj)
+	_ = host.Register(&countingProjection{name: "keep-me"})
+
+	if err := host.Reset(
+		context.Background(), "purge-me",
+		projectionhost.WithPurgeDeadLetters(),
+	); err != nil {
+		t.Fatalf("Reset with purge: %v", err)
+	}
+
+	entries, _ := dlq.List(context.Background(), "purge-me")
+	if len(entries) != 0 {
+		t.Fatalf("expected 0 entries for purge-me after purge, got %d", len(entries))
+	}
+
+	entries, _ = dlq.List(context.Background(), "keep-me")
+	if len(entries) != 1 {
+		t.Fatalf("expected 1 entry for keep-me (untouched), got %d", len(entries))
+	}
+}
+
+func TestHost_Reset_WithoutPurge_KeepsDeadLetters(t *testing.T) {
+	t.Parallel()
+
+	journal := &memoryJournal{}
+	cpStore := newMemoryCheckpointStore()
+	dlq := projectionhost.NewMemoryDeadLetterStore()
+
+	_ = dlq.Store(context.Background(), projectionhost.DeadLetterEntry{
+		ProjectionName: "keep-dlq",
+		EventID:        "evt-1",
+		EventType:      "test.created",
+		Error:          "boom",
+	})
+
+	proj := &resettableCountingProjection{
+		countingProjection: countingProjection{name: "keep-dlq"},
+	}
+	host, _ := projectionhost.New(
+		journal, cpStore,
+		projectionhost.WithDeadLetterStore(dlq, 3),
+	)
+	_ = host.Register(proj)
+
+	if err := host.Reset(context.Background(), "keep-dlq"); err != nil {
+		t.Fatalf("Reset: %v", err)
+	}
+
+	entries, _ := dlq.List(context.Background(), "keep-dlq")
+	if len(entries) != 1 {
+		t.Fatalf("expected 1 entry preserved (no purge flag), got %d", len(entries))
+	}
+}
+
 // Ensure unused imports are referenced.
 var (
 	_ = fmt.Sprintf

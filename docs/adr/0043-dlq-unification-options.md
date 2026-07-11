@@ -115,6 +115,84 @@ these different storage and replay needs, not carelessness.
 The name "dead letter" is accurate for both — it's the postal term for
 undeliverable mail. The implementations diverge because the problems diverge.
 
+## Part B: Consumer Operational Guide
+
+The decision above is the _why_. This section is the _what to do about it_ when
+you encounter dead letters in production.
+
+### Which DeadLetterEntry am I looking at?
+
+| Symptom                                                       | Type                             | Where                      |
+| ------------------------------------------------------------- | -------------------------------- | -------------------------- |
+| A command/event/query failed in the middleware retry pipeline | `middleware.DeadLetterEntry`     | `middleware/deadletter.go` |
+| A projection handler returned an error past the retry limit   | `projectionhost.DeadLetterEntry` | `projectionhost/dlq.go`    |
+
+### Dispatch-side dead letters (`middleware.DeadLetterEntry`)
+
+These fire when the **retry middleware** exhausts its attempt budget on a
+command, event, or query handler. The message is handed to a
+`DeadLetterHandler` callback (one-shot, no Store interface). Common causes:
+malformed payload, schema mismatch, nil-pointer in the handler.
+
+```go
+// Wire a dead-letter handler into the retry middleware:
+cmds.Use(middleware.RetryWithDeadLetter(retryCfg, func(ctx context.Context, entry middleware.DeadLetterEntry) {
+    alerting.Notify(ctx, fmt.Sprintf("dispatch dead-letter: %s/%s: %s",
+        entry.Kind, entry.Type, entry.Error))
+}))
+```
+
+**Replay:** Not built-in. Dispatch-side failures are typically permanent. If the
+handler was fixed and the original message can be reconstructed, re-dispatch
+manually.
+
+### Projection-side dead letters (`projectionhost.DeadLetterEntry`)
+
+These fire when a **projection's `Handle` method** returns an error past the DLQ
+threshold (default: 3 retries with backoff). The entry is stored in a
+`DeadLetterStore` (interface with Store/List/Delete/Purge/Count). Common causes:
+handler bug, transient data corruption, downstream service unavailable.
+
+```go
+// Inspect dead-letter entries:
+entries, _ := dlqStore.List(ctx, "users")
+for _, e := range entries {
+    log.Printf("poison event %s (%s): %s [%s/%s]", e.EventID, e.EventType, e.Error, e.ErrorFamily, e.ErrorCode)
+}
+
+// Replay after fixing the handler bug:
+result, _ := host.ReplayDeadLetters(ctx, "users")
+for _, e := range result.StillFailing {
+    log.Printf("still failing: %s", e.Err)
+}
+// Purge successfully replayed entries:
+for _, e := range result.Replayed {
+    dlqStore.Delete(ctx, e.ProjectionName, e.EventID)
+}
+
+// Or purge everything during a full reset:
+host.Reset(ctx, "users", projectionhost.WithPurgeDeadLetters())
+```
+
+**Replay:** Built-in via `Host.ReplayDeadLetters` (pure — does NOT mutate the
+store). The caller decides whether to Delete/Purge after a successful replay.
+
+### Why they can't share a type
+
+The field divergence is structural, not cosmetic:
+
+| Need                          | middleware.DLQ                           | projectionhost.DLQ                       |
+| ----------------------------- | ---------------------------------------- | ---------------------------------------- |
+| Message type varies?          | Yes (command/event/query → `Kind` field) | No (always `event.Event`)                |
+| Need the original message?    | No (handler has it)                      | Yes (replay requires the event payload)  |
+| Error as `error` or `string`? | `error` (caller inspects immediately)    | `string` (serialized for persistence)    |
+| Store vs callback?            | Callback (fire-and-forget)               | Store interface (query, paginate, purge) |
+| Replay needed?                | Rarely (permanent failures)              | Always (fixable bugs)                    |
+
+Forcing them into one type would make middleware carry `event.Event` even for
+command/query dead-letters, and would couple the dispatch pipeline to projection
+replay semantics.
+
 ## References
 
 - ADR-0042 (pure replay design — the projectionhost side of this story)

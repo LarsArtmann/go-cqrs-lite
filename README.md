@@ -141,14 +141,14 @@ Every module has its own README with detailed usage, types, and examples.
 
 ### Tooling & Docs
 
-| Module                | Purpose                                                               | README                                |
-| --------------------- | --------------------------------------------------------------------- | ------------------------------------- |
-| **catalog**           | Auto-generate AsyncAPI 3.0, EventCatalog, OpenAPI, D2 from Go types   | [README](catalog/README.md)           |
-| **testutil**          | Shared test helpers: `MustNewCmd`, `ParseAggID`, `NoopCommandHandler` | [README](testutil/README.md)          |
-| **cmd/cqrs-gen**      | Code generator: typed handler registration from `//cqrs:` markers     | [README](cmd/cqrs-gen/README.md)      |
-| **cmd/api-stability** | API surface checker: compare exports against golden file              | [README](cmd/api-stability/README.md) |
-| **cmd/doc-check**     | Doc cross-reference verifier: validates Go symbols in markdown docs   |                                       |
-| **integration**       | Cross-module integration tests                                        | [README](integration/README.md)       |
+| Module                | Purpose                                                             | README                                |
+| --------------------- | ------------------------------------------------------------------- | ------------------------------------- |
+| **catalog**           | Auto-generate AsyncAPI 3.0, EventCatalog, OpenAPI, D2 from Go types | [README](catalog/README.md)           |
+| **testutil**          | Shared test helpers: `NewCmd`, `NoopCommandHandler`                 | [README](testutil/README.md)          |
+| **cmd/cqrs-gen**      | Code generator: typed handler registration from `//cqrs:` markers   | [README](cmd/cqrs-gen/README.md)      |
+| **cmd/api-stability** | API surface checker: compare exports against golden file            | [README](cmd/api-stability/README.md) |
+| **cmd/doc-check**     | Doc cross-reference verifier: validates Go symbols in markdown docs |                                       |
+| **integration**       | Cross-module integration tests                                      | [README](integration/README.md)       |
 
 ### Stack Presets
 
@@ -222,8 +222,8 @@ See [`storage/turso/README.md`](storage/turso/README.md) for the full API.
 `testutil` provides shared helpers for writing concise test code across all CQRS modules:
 
 ```go
-cmd := testutil.MustNewCmd(t, "user.create", aggID, CreateUser{Name: "Alice"})
-handler := testutil.NoopCommandHandler{}
+cmd := testutil.NewCmd(t, "user.create", aggID)
+handler := testutil.NoopCommandHandler()
 ```
 
 See [`testutil/README.md`](testutil/README.md) for the full list of helpers.

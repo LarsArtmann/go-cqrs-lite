@@ -11,7 +11,8 @@ handling into a single embeddable component:
 - **Crash auto-restart** with exponential backoff
 - **Checkpoint persistence** — survives restarts, no event loss
 - **Dead-letter queue** — poison messages captured, checkpoint advances
-- **Health/liveness** — `Status()` reports per-worker state
+- **Health/liveness** — `Status()` reports per-worker state with lag
+- **Per-projection lag** — `LagPerProjection()` for dashboards
 - **Graceful drain** — `Stop()` waits for in-flight events
 
 ## Quick Start
@@ -47,16 +48,35 @@ host.Stop() // graceful drain
 | `WithBatchSize(n)`                  | 100      | Events read per journal batch            |
 | `WithDeadLetterStore(s, threshold)` | disabled | Poison-message capture after N retries   |
 
-## Status
+## Status & Lag
 
 ```go
 for _, s := range host.Status() {
-    fmt.Printf("%s: %s (processed=%d, errors=%d, restarts=%d)\n",
-        s.Name, s.Status, s.Processed, s.Errors, s.Restarts)
+    fmt.Printf("%s: %s (processed=%d, errors=%d, lag=%s)\n",
+        s.Name, s.Status, s.Processed, s.Errors, s.Lag)
 }
+
+// Per-projection lag for dashboards:
+for name, lag := range host.LagPerProjection() {
+    gauge.WithLabelValues(name).Set(float64(lag.Milliseconds()))
+}
+
+// Aggregate lag (max across all workers):
+gauge.Set(float64(host.LagDuration().Milliseconds()))
 ```
 
-Worker states: `idle`, `running`, `backoff`, `draining`, `stopped`, `failed`.
+Worker states: `idle`, `running`, `live`, `backoff`, `draining`, `stopped`, `failed`.
+
+## Reset
+
+Rebuild a projection from scratch after fixing a handler bug:
+
+```go
+host.Stop()
+// Drop checkpoint + call Resettable.Reset + optionally purge DLQ:
+host.Reset(ctx, "users", projectionhost.WithPurgeDeadLetters())
+host.Start(ctx) // replays from zero
+```
 
 ## Design
 

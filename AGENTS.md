@@ -741,12 +741,19 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   go host.Start(ctx)          // one goroutine per projection, crash auto-restart + backoff
 //   defer host.Stop()           // graceful drain (WorkerDraining → WorkerStopped)
 //   for _, s := range host.Status() {  // health: idle/running/live/backoff/draining/stopped/failed
-//       fmt.Printf("%s: %s processed=%d errors=%d\n", s.Name, s.Status, s.Processed, s.Errors)
+//       fmt.Printf("%s: %s processed=%d errors=%d lag=%s\n", s.Name, s.Status, s.Processed, s.Errors, s.Lag)
 //   }
 //   // Rebuild a projection from scratch after fixing a handler bug:
 //   host.Stop()
 //   host.Reset(ctx, "users") // drops checkpoint + calls Resettable.Reset if implemented
+//   // host.Reset(ctx, "users", projectionhost.WithPurgeDeadLetters()) // also purge DLQ entries
 //   host.Start(ctx)           // replays from zero
+//   // Per-projection lag for dashboards:
+//   for name, lag := range host.LagPerProjection() {
+//       gauge.WithLabelValues(name).Set(float64(lag.Milliseconds()))
+//   }
+//   // Aggregate lag (max across all workers):
+//   gauge.Set(float64(host.LagDuration().Milliseconds()))
 //   // OTel tracing: automatic spans (projectionhost.handle_event) when provider configured
 //   // Reads directly from event.SeekableJournal — no Watermill dependency.
 //   // For live push delivery, pair with watermill/CatchUpSubscriber.

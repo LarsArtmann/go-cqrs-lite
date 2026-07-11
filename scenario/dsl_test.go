@@ -103,9 +103,40 @@ func (p *testProj) Name() string                                  { return "test
 func (p *testProj) Handle(_ context.Context, _ event.Event) error { return nil }
 func (p *testProj) EventTypes() []event.Type                      { return nil }
 
+// failingProj always returns an error on Handle.
+type failingProj struct{ err error }
+
+func (p *failingProj) Name() string                                  { return "failing" }
+func (p *failingProj) Handle(_ context.Context, _ event.Event) error { return p.err }
+func (p *failingProj) EventTypes() []event.Type                      { return nil }
+
 func TestGivenProjection_ThenNoError(t *testing.T) {
 	t.Parallel()
 	proj := &testProj{}
 	scenario.GivenProjection(t, proj, mustEvent(evtIncremented)).
 		ThenNoError()
+}
+
+func TestGivenProjection_MultipleEvents_ThenNoError(t *testing.T) {
+	t.Parallel()
+	proj := &testProj{}
+	scenario.GivenProjection(
+		t, proj,
+		mustEvent(evtIncremented),
+		mustEvent(evtIncremented),
+		mustEvent(evtDecremented),
+	).ThenNoError()
+}
+
+func TestGivenProjection_ThenError(t *testing.T) {
+	t.Parallel()
+	proj := &failingProj{err: errors.New("handler exploded")}
+	scenario.GivenProjection(t, proj, mustEvent(evtIncremented)).
+		ThenError()
+}
+
+func TestGivenProjection_NoEvents_ThenNoError(t *testing.T) {
+	t.Parallel()
+	proj := &testProj{}
+	scenario.GivenProjection(t, proj).ThenNoError()
 }

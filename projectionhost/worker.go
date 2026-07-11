@@ -62,6 +62,7 @@ func (w *worker) snapshot() WorkerState {
 	s.Processed = w.processed.Load()
 	s.Errors = w.errors.Load()
 	s.Restarts = int(w.restarts.Load())
+	s.Lag = w.lagDuration()
 
 	return s
 }
@@ -302,4 +303,15 @@ func (w *worker) lastProcessedAt() time.Time {
 	}
 
 	return time.Unix(0, nanos)
+}
+
+// lagDuration returns how long since the most recently processed event for this
+// worker. Returns 0 if the worker has not processed any event yet.
+func (w *worker) lagDuration() time.Duration {
+	ts := w.lastProcessedAt()
+	if ts.IsZero() {
+		return 0
+	}
+
+	return time.Since(ts)
 }
