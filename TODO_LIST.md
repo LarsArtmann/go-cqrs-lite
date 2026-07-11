@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-07-11 (session: performance features — hot-state cache + read-pressure snapshots)
+**Updated:** 2026-07-11 (session: DLQ production hardening + VersionedSeekableJournal tests + SKILL.md API docs)
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in [ROADMAP.md](ROADMAP.md). Raw ideas live in [ROADMAP.md § Raw Ideas](ROADMAP.md#raw-ideas-no-design-yet).
 
 ## Legend

@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-07-10 (kv context propagation, metadata/ extraction, dispatcher dispatch-time middleware, json/v2 case-insensitive decode, idempotency generic factory, SSE hardening, catalog deterministic encoding) · **Module count:** 48 modules in `go.work` (49 `go.mod` files incl. eventtest) · **Go version:** 1.26.3
+**Last audited:** 2026-07-11 (DLQ production hardening: DeadLetterStoreAdmin interface with Count/ListPaged/PurgeBefore, DLQ index optimization, DLQ serialization docs; VersionedSeekableJournal property tests + benchmarks; SKILL.md new API docs) · **Module count:** 48 modules in `go.work` (49 `go.mod` files incl. eventtest) · **Go version:** 1.26.3
 
 ## Status Legend
 
@@ -177,15 +177,26 @@
 
 ### Dead-Letter Queue ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/middleware/v3"`
+> Dispatch-side: `import "github.com/larsartmann/go-cqrs-lite/middleware/v3"`
+> Projection-side: `import "github.com/larsartmann/go-cqrs-lite/projectionhost/v3"`
 
-| Feature           | Detail                                                                             | Status |
-| ----------------- | ---------------------------------------------------------------------------------- | ------ |
-| DeadLetterStore   | `DeadLetterStore` interface — `Store`, `List`, `Replay`, `Purge`                   | ✅     |
-| MemoryDLQStore    | In-memory `DeadLetterStore` for dev/test                                           | ✅     |
-| SQLDLQStore       | SQL-backed `DeadLetterStore` (Postgres, SQLite)                                    | ✅     |
-| DeadLetterWrapper | Wraps a projection/event handler — captures poison messages, advances checkpoint   | ✅     |
-| Error metadata    | Each dead-letter entry captures event, error, handler name, timestamp, retry count | ✅     |
+Two intentionally separate dead-letter systems (ADR-0043): dispatch-side captures
+commands/events/queries that exhausted retries in the middleware pipeline;
+projection-side captures events that poisoned a projection handler.
+
+| Feature                              | Detail                                                                                                             | Status |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------ | ------ |
+| **Dispatch-side (middleware)**       |                                                                                                                    |
+| DeadLetterHandler                    | `DeadLetterHandler` func type — wired via `RetryConfig.OnDeadLetter`                                               | ✅     |
+| MemoryDeadLetterStore                | In-memory store: `Handle`, `Entries`, `Count`, `Clear`                                                             | ✅     |
+| SQLDeadLetterStore                   | SQL-backed (Postgres + SQLite): `Handle`, `Entries`, `Count`, `Clear` with auto-migrating schema                   | ✅     |
+| DeadLetterEntry                      | Captures Kind, Type, AggregateID, Error, ErrorCode, ErrorFamily, Attempts, FailedAt                                | ✅     |
+| **Projection-side (projectionhost)** |                                                                                                                    |
+| DeadLetterStore                      | `DeadLetterStore` interface — `Store`, `List`, `Delete`, `Purge`                                                   | ✅     |
+| DeadLetterStoreAdmin                 | Optional interface: `Count`, `ListPaged`, `PurgeBefore` — production management (pagination, time-bounded cleanup) | ✅     |
+| MemoryDeadLetterStore                | In-memory `DeadLetterStore` + `DeadLetterStoreAdmin` for dev/test                                                  | ✅     |
+| SQLiteDeadLetterStore                | SQLite-backed `DeadLetterStore` + `DeadLetterStoreAdmin` — persists across restarts                                | ✅     |
+| Poison capture                       | Exceeded retry threshold → entry stored, checkpoint advances (no stream blockage)                                  | ✅     |
 
 ---
 
@@ -202,18 +213,19 @@ The "last loop every consumer rewrites", as a library module. Composes any
 `event.SeekableJournal` + `event.CheckpointStore` + `projection.Projection`s
 into a managed lifecycle.
 
-| Feature                   | Detail                                                                                                                | Status |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------ |
-| Host                      | `Host` — manages projection workers, lifecycle, and health                                                            | ✅     |
-| Per-projection goroutines | Each registered projection runs independently in its own goroutine                                                    | ✅     |
-| Crash auto-restart        | Workers restart on panic/error with exponential backoff (configurable initial/max)                                    | ✅     |
-| Checkpoint persistence    | Survives restarts — reads resume from the last committed checkpoint (no event loss)                                   | ✅     |
-| Dead-letter queue         | `DeadLetterStore` / `MemoryDeadLetterStore` / `SQLiteDeadLetterStore` — poison messages captured, checkpoint advances | ✅     |
-| Health / liveness         | `Status()` reports per-worker state + processed/errors/restarts counters                                              | ✅     |
-| Graceful drain            | `Stop()` waits for in-flight events (30s timeout)                                                                     | ✅     |
-| RegisterAndWait           | Convenience: register + start + block until ctx cancelled                                                             | ✅     |
+| Feature                   | Detail                                                                                                                 | Status |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------ |
+| Host                      | `Host` — manages projection workers, lifecycle, and health                                                             | ✅     |
+| Per-projection goroutines | Each registered projection runs independently in its own goroutine                                                     | ✅     |
+| Crash auto-restart        | Workers restart on panic/error with exponential backoff (configurable initial/max)                                     | ✅     |
+| Checkpoint persistence    | Survives restarts — reads resume from the last committed checkpoint (no event loss)                                    | ✅     |
+| Dead-letter queue         | `DeadLetterStore` / `MemoryDeadLetterStore` / `SQLiteDeadLetterStore` — poison messages captured, checkpoint advances  | ✅     |
+| DLQ admin                 | `DeadLetterStoreAdmin` (optional): `Count`, `ListPaged`, `PurgeBefore` — pagination, depth metrics, time-bounded purge | ✅     |
+| Health / liveness         | `Status()` reports per-worker state + processed/errors/restarts counters                                               | ✅     |
+| Graceful drain            | `Stop()` waits for in-flight events (30s timeout)                                                                      | ✅     |
+| RegisterAndWait           | Convenience: register + start + block until ctx cancelled                                                              | ✅     |
 
-Worker states: `idle`, `running`, `backoff`, `draining`, `stopped`, `failed`.
+Worker states: `idle`, `running`, `live`, `backoff`, `draining`, `stopped`, `failed`.
 Reads directly from `event.SeekableJournal` — no message-bus dependency. For
 live (push) delivery alongside replay, pair with `watermill/CatchUpSubscriber`.
 

@@ -90,7 +90,11 @@ func (w *worker) recordMetric(fn func(MetricsRecorder)) {
 func (w *worker) run(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
 	defer close(w.done)
-	defer w.setStatus(WorkerStopped)
+	defer func() {
+		if w.snapshot().Status != WorkerFailed {
+			w.setStatus(WorkerStopped)
+		}
+	}()
 
 	for {
 		select {
