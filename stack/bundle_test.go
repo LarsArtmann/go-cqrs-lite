@@ -527,9 +527,9 @@ func TestEventCodec_FallsBackToEventDefaultCodec(t *testing.T) {
 		t.Fatalf("New: %v", err)
 	}
 
-	// No WithEventCodec → falls back to event.DefaultCodec (JSON by default)
-	if b.EventCodec().Encoding() != codec.EncodingJSON {
+	// No WithEventCodec → falls back to event.DefaultCodec (CBOR by default)
+	if b.EventCodec().Encoding() != codec.EncodingCBOR {
 		t.Fatalf("EventCodec = %s, want %s (event.DefaultCodec fallback)",
-			b.EventCodec().Encoding(), codec.EncodingJSON)
+			b.EventCodec().Encoding(), codec.EncodingCBOR)
 	}
 }

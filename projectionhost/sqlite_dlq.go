@@ -13,7 +13,10 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v3"
 )
 
-var _ DeadLetterStore = (*SQLiteDeadLetterStore)(nil)
+var (
+	_ DeadLetterStore      = (*SQLiteDeadLetterStore)(nil)
+	_ DeadLetterStoreAdmin = (*SQLiteDeadLetterStore)(nil)
+)
 
 const sqliteDLQSchema = `CREATE TABLE IF NOT EXISTS projection_dead_letters (
     id               INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,7 +37,8 @@ const sqliteDLQSchema = `CREATE TABLE IF NOT EXISTS projection_dead_letters (
     failed_at        TEXT NOT NULL,
     UNIQUE(projection_name, event_id)
 );
-CREATE INDEX IF NOT EXISTS idx_pdl_projection ON projection_dead_letters(projection_name);`
+CREATE INDEX IF NOT EXISTS idx_pdl_projection_time ON projection_dead_letters(projection_name, failed_at);
+CREATE INDEX IF NOT EXISTS idx_pdl_failed_at ON projection_dead_letters(failed_at);`
 
 // SQLiteDeadLetterStore is a persistent DeadLetterStore backed by SQLite.
 // It survives restarts, unlike MemoryDeadLetterStore.

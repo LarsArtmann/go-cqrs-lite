@@ -85,7 +85,8 @@ func (e *ImmutableEvent) Version() Version { return e.version }
 func (e *ImmutableEvent) SchemaVersion() SchemaVersion { return e.schemaVersion }
 
 // Encoding returns the serialization format used for the event payload.
-// Defaults to [codec.EncodingJSON] for events created with [NewEvent].
+// Defaults to [codec.EncodingJSON] for events created with [NewEvent] (raw
+// bytes path). Events created with [New] are auto-stamped from the codec used.
 func (e *ImmutableEvent) Encoding() codec.Encoding {
 	if e.encoding == "" {
 		return codec.EncodingJSON

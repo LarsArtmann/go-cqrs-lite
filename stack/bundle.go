@@ -220,7 +220,7 @@ func (b *Bundle) DefaultCodec() codec.Codec {
 
 // EventCodec returns the codec for event payload creation. Returns the codec
 // set via [WithEventCodec], or falls back to [event.DefaultCodec] (which
-// defaults to [codec.JSONCodec]) when unset.
+// defaults to [codec.CBORCodec]) when unset.
 //
 // Consumers use this to create events with the Bundle's configured codec:
 //

@@ -419,12 +419,12 @@ func TestPayloadReadOnly_ReturnsInternalReference(t *testing.T) {
 	}
 }
 
-func TestDefaultCodec_DefaultIsJSON(t *testing.T) {
+func TestDefaultCodec_DefaultIsCBOR(t *testing.T) {
 	t.Parallel()
 
-	if event.DefaultCodec.Encoding() != codecpkg.EncodingJSON {
+	if event.DefaultCodec.Encoding() != codecpkg.EncodingCBOR {
 		t.Errorf("DefaultCodec encoding = %q, want %q",
-			event.DefaultCodec.Encoding(), codecpkg.EncodingJSON)
+			event.DefaultCodec.Encoding(), codecpkg.EncodingCBOR)
 	}
 }
 

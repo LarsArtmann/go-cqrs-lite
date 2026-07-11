@@ -3,6 +3,8 @@ package projectionhost_test
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -323,5 +325,312 @@ func TestSQLiteDeadLetterStore_PreservesEventFields(t *testing.T) {
 
 	if got.Event.AggregateType() != "Order" {
 		t.Errorf("AggregateType = %q", got.Event.AggregateType())
+	}
+}
+
+func TestSQLiteDeadLetterStore_Count(t *testing.T) {
+	t.Parallel()
+
+	store := newSQLiteDLQ(t)
+	ctx := context.Background()
+
+	count, err := store.Count(ctx)
+	if err != nil {
+		t.Fatalf("Count: %v", err)
+	}
+
+	if count != 0 {
+		t.Fatalf("expected 0, got %d", count)
+	}
+
+	_ = store.Store(ctx, makeDLQEntry(t, "a"))
+	_ = store.Store(ctx, makeDLQEntry(t, "b"))
+	_ = store.Store(ctx, makeDLQEntry(t, "c"))
+
+	count, err = store.Count(ctx)
+	if err != nil {
+		t.Fatalf("Count after store: %v", err)
+	}
+
+	if count != 3 {
+		t.Fatalf("expected 3, got %d", count)
+	}
+}
+
+func TestSQLiteDeadLetterStore_ListPaged(t *testing.T) {
+	t.Parallel()
+
+	store := newSQLiteDLQ(t)
+	ctx := context.Background()
+
+	for i := 0; i < 10; i++ {
+		entry := makeDLQEntry(t, "users-proj")
+		entry.FailedAt = time.Now().UTC().Add(time.Duration(i) * time.Minute)
+		_ = store.Store(ctx, entry)
+	}
+
+	page1, err := store.ListPaged(ctx, "users-proj", 0, 3)
+	if err != nil {
+		t.Fatalf("ListPaged page1: %v", err)
+	}
+
+	if len(page1) != 3 {
+		t.Fatalf("expected 3 entries on page1, got %d", len(page1))
+	}
+
+	page2, err := store.ListPaged(ctx, "users-proj", 3, 3)
+	if err != nil {
+		t.Fatalf("ListPaged page2: %v", err)
+	}
+
+	if len(page2) != 3 {
+		t.Fatalf("expected 3 entries on page2, got %d", len(page2))
+	}
+
+	lastPage, err := store.ListPaged(ctx, "users-proj", 9, 3)
+	if err != nil {
+		t.Fatalf("ListPaged lastPage: %v", err)
+	}
+
+	if len(lastPage) != 1 {
+		t.Fatalf("expected 1 entry on last page, got %d", len(lastPage))
+	}
+
+	empty, err := store.ListPaged(ctx, "users-proj", 100, 3)
+	if err != nil {
+		t.Fatalf("ListPaged beyond: %v", err)
+	}
+
+	if len(empty) != 0 {
+		t.Fatalf("expected 0 entries beyond data, got %d", len(empty))
+	}
+}
+
+func TestSQLiteDeadLetterStore_ListPaged_AllProjections(t *testing.T) {
+	t.Parallel()
+
+	store := newSQLiteDLQ(t)
+	ctx := context.Background()
+
+	_ = store.Store(ctx, makeDLQEntry(t, "a"))
+	_ = store.Store(ctx, makeDLQEntry(t, "b"))
+
+	page, err := store.ListPaged(ctx, "", 0, 10)
+	if err != nil {
+		t.Fatalf("ListPaged all: %v", err)
+	}
+
+	if len(page) != 2 {
+		t.Fatalf("expected 2 entries, got %d", len(page))
+	}
+}
+
+func TestSQLiteDeadLetterStore_PurgeBefore(t *testing.T) {
+	t.Parallel()
+
+	store := newSQLiteDLQ(t)
+	ctx := context.Background()
+
+	now := time.Now().UTC()
+
+	old := makeDLQEntry(t, "users-proj")
+	old.FailedAt = now.Add(-2 * time.Hour)
+	_ = store.Store(ctx, old)
+
+	recent := makeDLQEntry(t, "users-proj")
+	recent.FailedAt = now.Add(-10 * time.Minute)
+	_ = store.Store(ctx, recent)
+
+	deleted, err := store.PurgeBefore(ctx, now.Add(-1*time.Hour))
+	if err != nil {
+		t.Fatalf("PurgeBefore: %v", err)
+	}
+
+	if deleted != 1 {
+		t.Fatalf("expected 1 deleted, got %d", deleted)
+	}
+
+	remaining, _ := store.List(ctx, "users-proj")
+	if len(remaining) != 1 {
+		t.Fatalf("expected 1 remaining entry, got %d", len(remaining))
+	}
+}
+
+func TestSQLiteDeadLetterStore_PurgeBefore_None(t *testing.T) {
+	t.Parallel()
+
+	store := newSQLiteDLQ(t)
+	ctx := context.Background()
+
+	_ = store.Store(ctx, makeDLQEntry(t, "users-proj"))
+
+	deleted, err := store.PurgeBefore(ctx, time.Now().UTC().Add(-24*time.Hour))
+	if err != nil {
+		t.Fatalf("PurgeBefore: %v", err)
+	}
+
+	if deleted != 0 {
+		t.Fatalf("expected 0 deleted, got %d", deleted)
+	}
+}
+
+func TestSQLiteDeadLetterStore_DeadLetterStoreAdmin(t *testing.T) {
+	t.Parallel()
+
+	store := newSQLiteDLQ(t)
+
+	var _ projectionhost.DeadLetterStoreAdmin = store
+}
+
+func TestSQLiteDeadLetterStore_Stress_10k(t *testing.T) {
+	t.Parallel()
+
+	store := newSQLiteDLQ(t)
+	ctx := context.Background()
+
+	const n = 10_000
+
+	for i := 0; i < n; i++ {
+		entry := makeDLQEntry(t, fmt.Sprintf("proj-%d", i%5))
+		_ = store.Store(ctx, entry)
+	}
+
+	count, err := store.Count(ctx)
+	if err != nil {
+		t.Fatalf("Count: %v", err)
+	}
+
+	if count != n {
+		t.Fatalf("expected %d entries, got %d", n, count)
+	}
+
+	start := time.Now()
+
+	page, err := store.ListPaged(ctx, "proj-0", 0, 100)
+	if err != nil {
+		t.Fatalf("ListPaged: %v", err)
+	}
+
+	elapsed := time.Since(start)
+
+	if len(page) != 100 {
+		t.Fatalf("expected 100 entries, got %d", len(page))
+	}
+
+	if elapsed > 100*time.Millisecond {
+		t.Logf("WARNING: ListPaged took %v (expected <100ms)", elapsed)
+	}
+
+	deleted, err := store.PurgeBefore(ctx, time.Now().UTC().Add(time.Hour))
+	if err != nil {
+		t.Fatalf("PurgeBefore future: %v", err)
+	}
+
+	if deleted != n {
+		t.Fatalf("expected %d deleted, got %d", n, deleted)
+	}
+}
+
+func TestSQLiteDeadLetterStore_ConcurrentStore(t *testing.T) {
+	t.Parallel()
+
+	store := newSQLiteDLQ(t)
+	ctx := context.Background()
+
+	const goroutines = 20
+
+	const perGoroutine = 50
+
+	var wg sync.WaitGroup
+
+	wg.Add(goroutines)
+
+	for g := 0; g < goroutines; g++ {
+		go func(projName string) {
+			defer wg.Done()
+
+			for i := 0; i < perGoroutine; i++ {
+				entry := makeDLQEntry(t, projName)
+				_ = store.Store(ctx, entry)
+			}
+		}(fmt.Sprintf("proj-%d", g%3))
+	}
+
+	wg.Wait()
+
+	count, err := store.Count(ctx)
+	if err != nil {
+		t.Fatalf("Count after concurrent stores: %v", err)
+	}
+
+	expected := int64(goroutines * perGoroutine)
+
+	if count != expected {
+		t.Fatalf("expected %d entries after concurrent writes, got %d", expected, count)
+	}
+}
+
+func TestSQLiteDeadLetterStore_CorruptPayload(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	db, err := sql.Open("sqlite", "file:"+t.Name()+"?mode=memory&cache=shared")
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+
+	db.SetMaxOpenConns(1)
+	t.Cleanup(func() { _ = db.Close() })
+
+	store, err := projectionhost.NewSQLiteDeadLetterStore(db)
+	if err != nil {
+		t.Fatalf("NewSQLiteDeadLetterStore: %v", err)
+	}
+
+	_, err = db.ExecContext(
+		ctx, `INSERT INTO projection_dead_letters
+        (projection_name, event_id, event_type, aggregate_type, aggregate_id,
+         version, schema_version, payload, payload_encoding, metadata, occurred_at,
+         error_text, error_code, error_family, failed_at)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+		"corrupt-proj",
+		"evt-corrupt",
+		"test.corrupt",
+		"Test",
+		"01H8XQDVQNNJ1TF4D2JEEQX5S2",
+		1,
+		1,
+		[]byte("\x00\x01\x02not-valid-json\x00"),
+		"json",
+		"{\"corrupt\": true",
+		time.Now().UTC().Format(time.RFC3339Nano),
+		"corruption error",
+		"test.corrupt",
+		"corruption",
+		time.Now().UTC().Format(time.RFC3339Nano),
+	)
+	if err != nil {
+		t.Fatalf("insert corrupt row: %v", err)
+	}
+
+	entries, err := store.List(ctx, "corrupt-proj")
+	if err != nil {
+		t.Logf("List returned error on corrupt payload (acceptable): %v", err)
+
+		return
+	}
+
+	if len(entries) != 1 {
+		t.Fatalf("expected 1 entry, got %d", len(entries))
+	}
+
+	got := entries[0]
+	if got.EventID != "evt-corrupt" {
+		t.Errorf("EventID = %q, want evt-corrupt", got.EventID)
+	}
+
+	if got.Error != "corruption error" {
+		t.Errorf("Error = %q, want corruption error", got.Error)
 	}
 }

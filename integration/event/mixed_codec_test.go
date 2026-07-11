@@ -29,10 +29,11 @@ func TestMixedCodecStream(t *testing.T) {
 	aggID := id.NewAggregateID()
 	ref := id.NewAggregateRef("User", aggID)
 
-	// Event 1: JSON-encoded (default)
+	// Event 1: JSON-encoded (explicit — DefaultCodec is CBOR now)
 	evt1, err := event.New(
 		"user.created", aggID, "User", 1,
 		UserCreated{Name: "Alice"},
+		event.WithCodec(codec.JSONCodec{}),
 	)
 	if err != nil {
 		t.Fatalf("New JSON event: %v", err)

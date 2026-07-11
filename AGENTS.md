@@ -332,12 +332,12 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   LAYER                     | DEFAULT CODEC     | HOW TO OVERRIDE
 //   --------------------------|-------------------|----------------------------------
 //   stack.ReadModel/Materialize| CBORCodec         | stack.WithDefaultCodec(json)
-//   event.New()               | JSONCodec         | event.DefaultCodec = codec.CBORCodec{}
+//   event.New()               | CBORCodec         | event.DefaultCodec = codec.JSONCodec{}
 //                             |                   |   or event.WithCodec(c) per-event
-//   kv.NewTypedStore()        | CBORCodec (v4)    | kv.WithTypedCodec(c)
-//   snapshot.NewTypedStore()  | CBORCodec (v4)    | positional arg: NewTypedStore(store, c)
-//   command typed store       | CBORCodec (v4)    | positional arg: NewTypedCommandStore(store, c)
-//   query typed store         | CBORCodec (v4)    | positional arg: NewTypedQueryStore(store, c)
+//   kv.NewTypedStore()        | CBORCodec         | kv.WithTypedCodec(c)
+//   snapshot.NewTypedStore()  | CBORCodec         | positional arg: NewTypedStore(store, c)
+//   command typed store       | CBORCodec         | positional arg: NewTypedCommandStore(store, c)
+//   query typed store         | CBORCodec         | positional arg: NewTypedQueryStore(store, c)
 //
 //   Events are SELF-DESCRIBING: evt.Encoding() is stamped on every event,
 //   so mixed JSON+CBOR event streams decode correctly via DecodePayloadAuto.
@@ -755,6 +755,13 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   dlqStore, _ := projectionhost.NewSQLiteDeadLetterStore(db)
 //   host, _ := projectionhost.New(journal, cpStore,
 //       projectionhost.WithDeadLetterStore(dlqStore, 3))
+//
+//   // Dead-letter store admin (production management — DeadLetterStoreAdmin interface):
+//   if admin, ok := dlqStore.(projectionhost.DeadLetterStoreAdmin); ok {
+//       count, _ := admin.Count(ctx)                                     // total entries
+//       page, _ := admin.ListPaged(ctx, "users", 0, 100)                // paginated list
+//       deleted, _ := admin.PurgeBefore(ctx, time.Now().Add(-7*24*time.Hour)) // cleanup old entries
+//   }
 
 // Scenario-testing DSL — fluent Given/When/Then for deciders + projections (scenario)
 //   scenario.Given[incrementCmd, counterState](t, foldCounter, counterState{},

@@ -80,6 +80,36 @@ type DeadLetterStore interface {
 	Purge(ctx context.Context, projectionName string) error
 }
 
+// DeadLetterStoreAdmin extends DeadLetterStore with production management
+// capabilities: counting, pagination, and time-bounded purge.
+// SQLiteDeadLetterStore implements this interface; consumers can type-assert
+// to access these features without requiring them from every implementation.
+//
+//	if admin, ok := store.(projectionhost.DeadLetterStoreAdmin); ok {
+//	    count, _ := admin.Count(ctx)
+//	}
+type DeadLetterStoreAdmin interface {
+	DeadLetterStore
+	// Count returns the total number of dead-letter entries across all projections.
+	Count(ctx context.Context) (int64, error)
+	// ListPaged returns dead-letter entries with pagination.
+	// An empty projectionName returns entries across all projections.
+	// offset is zero-based; limit is the maximum entries to return (0 defaults to 50).
+	ListPaged(
+		ctx context.Context,
+		projectionName string,
+		offset, limit int,
+	) ([]DeadLetterEntry, error)
+	// PurgeBefore removes all entries that failed before the given timestamp.
+	// Returns the number of entries removed.
+	PurgeBefore(ctx context.Context, before time.Time) (int64, error)
+}
+
+var (
+	_ DeadLetterStore      = (*MemoryDeadLetterStore)(nil)
+	_ DeadLetterStoreAdmin = (*MemoryDeadLetterStore)(nil)
+)
+
 // MemoryDeadLetterStore is an in-memory DeadLetterStore for development and testing.
 // Entries are lost on restart. For production use, prefer SQLiteDeadLetterStore,
 // which persists entries across restarts.
@@ -168,4 +198,65 @@ func (s *MemoryDeadLetterStore) Purge(_ context.Context, projectionName string) 
 	s.entries = filtered
 
 	return nil
+}
+
+func (s *MemoryDeadLetterStore) Count(_ context.Context) (int64, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	return int64(len(s.entries)), nil
+}
+
+func (s *MemoryDeadLetterStore) ListPaged(
+	_ context.Context,
+	projectionName string,
+	offset, limit int,
+) ([]DeadLetterEntry, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	var filtered []DeadLetterEntry
+
+	for _, e := range s.entries {
+		if projectionName == "" || e.ProjectionName == projectionName {
+			filtered = append(filtered, e)
+		}
+	}
+
+	if offset >= len(filtered) {
+		return nil, nil
+	}
+
+	if limit <= 0 {
+		limit = 50
+	}
+
+	end := min(offset+limit, len(filtered))
+
+	result := make([]DeadLetterEntry, end-offset)
+	copy(result, filtered[offset:end])
+
+	return result, nil
+}
+
+func (s *MemoryDeadLetterStore) PurgeBefore(_ context.Context, before time.Time) (int64, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	var count int64
+
+	filtered := s.entries[:0]
+	for _, e := range s.entries {
+		if e.FailedAt.Before(before) {
+			count++
+
+			continue
+		}
+
+		filtered = append(filtered, e)
+	}
+
+	s.entries = filtered
+
+	return count, nil
 }

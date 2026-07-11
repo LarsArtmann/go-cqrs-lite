@@ -122,6 +122,7 @@ with projection + read model.
 | Generic key-value abstraction                         | `kv`                                                                            | advanced §6.6   |
 | Snapshot aggregates for speed                         | `snapshot`                                                                      | recipes §2.4    |
 | Evolve event schemas over time                        | `schema`                                                                        | recipes §2.5    |
+| Upcast events during projection replay                | `schema` (`VersionedSeekableJournal`)                                           | advanced §6.9   |
 | Make event streams tamper-proof                       | `signing`                                                                       | recipes §2.6    |
 | Encrypt confidential payloads                         | `encryption`                                                                    | recipes §2.7    |
 | Add logging/retry/recovery/circuit-breaker            | `middleware`                                                                    | recipes §2.8    |
@@ -147,6 +148,7 @@ with projection + read model.
 | Expose CQRS metrics via Prometheus `/metrics`         | `prometheus`                                                                    | advanced §6.14  |
 | Stream events to browsers via SSE                     | `transport/http` (`SSEBroker`)                                                  | advanced §6.15  |
 | Replay events to reconnecting clients (catch-up)      | `transport/http` (Last-Event-ID) or `watermill` (`CatchUpSubscriber`)           | advanced §6.15  |
+| Pull-based event backfill (REST endpoint)             | `transport/http` (`BackfillHandlerWithTransform`)                               | advanced §6.15  |
 
 > **§2 (recipes), §5 (module reference), §6 (advanced patterns)** live in the on-demand `references/` files, not in this core file. This is the progressive-disclosure design — the core file holds the decision material needed on every trigger; the references hold long copy-paste recipes loaded only when needed.
 
@@ -377,6 +379,19 @@ qDisp.Use(middleware.QueryMetrics(recorder))
 // Scenario testing — GivenState (no unused Cmd type param)
 scenario.GivenState[CounterState](t, fold, initial, events...).
     When(nil, decideFunc).Then(expectedTypes...)
+
+// Schema evolution — VersionedSeekableJournal (upcast events during projection replay)
+vjournal, _ := schema.NewVersionedSeekableJournal(journal, upcaster1, upcaster2)
+host, _ := projectionhost.New(vjournal, cpStore)  // transparent upcasting on ReadFrom
+
+// Prometheus metrics with CQRS histogram views
+metricsProvider, _ := cqrsprometheus.Setup(
+    cqrsprometheus.WithViews(cqrsotel.NewCQRSViews()...),
+)
+defer metricsProvider.Shutdown(ctx)
+
+// REST backfill endpoint (pull-based event snapshot for clients)
+mux.Handle("/events/backfill", http.BackfillHandlerWithTransform(journal, transformFunc))
 ```
 
 ---
