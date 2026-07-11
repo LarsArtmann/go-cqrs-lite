@@ -34,7 +34,7 @@ require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/larsartmann/go-branded-id v0.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.0.0-00010101000000-000000000000 // indirect
-	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0-20260711192758-e443adb3bfd0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0-00010101000000-000000000000 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect

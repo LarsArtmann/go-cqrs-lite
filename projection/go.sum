@@ -2,6 +2,8 @@ github.com/fxamacker/cbor/v2 v2.9.2 h1:X4Ksno9+x3cz0TZv69ec1hxP/+tymuR8PXQJyDwfh
 github.com/fxamacker/cbor/v2 v2.9.2/go.mod h1:vM4b+DJCtHn+zz7h3FFp/hDAI9WNWCsZj23V5ytsSxQ=
 github.com/larsartmann/go-branded-id v0.3.1 h1:n53Vz3MCUy3S8YfW/v+zxL/qT96iiXZOT6p46HZysyA=
 github.com/larsartmann/go-branded-id v0.3.1/go.mod h1:fiv3t1PyNCITnE/8KtymGCUz7tQRuQxF+8oqNdFmA/Y=
+github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0-20260711202820-6d093b4c0e3f h1:/NDyNQpKzvZqSgpx8vGAJGPzL3Tka7WvlcK9m5GsVww=
+github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0-20260711202820-6d093b4c0e3f/go.mod h1:ynDsyIzY0WltWvG9PKoCWSkXCrOPOLpOU+RwYr3P3U4=
 github.com/larsartmann/go-error-family v0.7.0 h1:D3fMZbx0gjVjtWOyIfevlUKWMWE65NnHFwtpBP3l9bw=
 github.com/larsartmann/go-error-family v0.7.0/go.mod h1:JEvLiYWT8p9WrNXrD1Ow97DphYsB9Bksr2lNmwG3Vm4=
 github.com/oklog/ulid/v2 v2.1.1 h1:suPZ4ARWLOJLegGFiZZ1dFAkqzhMjL3J1TzI+5wHz8s=
