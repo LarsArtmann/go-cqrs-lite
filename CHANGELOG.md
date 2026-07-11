@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+#### Dead Code Cleanup
+
+- **Deleted `event/arena_experiment.go`** — 36-line stub with zero consumers, no tests,
+  and no real GC benefit (arena-allocating a struct header while its fields remain
+  heap-allocated saves nothing). Removed `goexperiment.arenas` from `flake.nix`,
+  `scripts/check-module-isolation.sh`, and all living docs.
+
 #### Projectionhost Observability
 
 - **`Host.LagPerProjection() map[string]time.Duration`** — per-worker lag keyed by

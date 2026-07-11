@@ -111,4 +111,4 @@ All 11 breaking changes landed. See [`docs/migration/V3_MIGRATION.md`](docs/migr
 
 ---
 
-_Last updated: 2026-07-11 — v3.6.0 tagged. All framework gaps (A1–A6) shipped: projectionhost, scenario, scheduling, deriver, idempotency. Performance features shipped: hot-state cache, read-pressure snapshots. Remaining: operability surfacing from stack presets, Go-stdlib-blocked experiments (jsonv2, arenas)._
+_Last updated: 2026-07-11 — v3.6.0 tagged. All framework gaps (A1–A6) shipped: projectionhost, scenario, scheduling, deriver, idempotency. Performance features shipped: hot-state cache, read-pressure snapshots. Remaining: operability surfacing from stack presets, Go-stdlib-blocked jsonv2 build tag removal (Go 1.27+). Arena experiment removed — zero consumers, zero value._

@@ -38,8 +38,7 @@ _All items in this section have been completed and moved to [CHANGELOG.md](CHANG
 
 ### Experimental / Go-stdlib-blocked
 
-- [BLOCKED] **jsonv2 codec experiment** — Pending Go stdlib stabilization (expected Go 1.27+).
-- [BLOCKED] **Arena allocation experiment** — Pending Go arena API stabilization.
+- [BLOCKED] **Remove `goexperiment.jsonv2` tag** — JSON v2 is fully adopted (~25 production files import `encoding/json/v2`). The build tag remains only because Go 1.26 hasn't graduated json/v2 from experimental. Remove the tag when Go stabilizes it (expected Go 1.27+).
 - [BLOCKED] **Turso MVCC concurrent-write support** — Blocked on upstream experimental MVCC.
 
 ### Rejected (with reasons)

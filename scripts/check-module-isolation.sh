@@ -21,7 +21,7 @@ if [ "${1:-}" = "--test" ]; then
   MODE="test"
 fi
 
-TAGS="-tags=goexperiment.arenas,goexperiment.jsonv2"
+TAGS="-tags=goexperiment.jsonv2"
 failures=0
 total=0
 failed_modules=""

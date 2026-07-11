@@ -41,7 +41,6 @@
           goPkg = pkgs.go_1_26;
 
           goTags = [
-            "goexperiment.arenas"
             "goexperiment.jsonv2"
           ];
           tagFlags = builtins.concatStringsSep " " (map (t: "-tags=${t}") goTags);

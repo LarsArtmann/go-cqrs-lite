@@ -10,18 +10,14 @@ These items are blocked by upstream dependencies and cannot be resolved within t
 
 **Result:** `transport/grpc` is now a first-class member of `go.work`; `go build ./...` and `go test ./...` across the workspace include it.
 
-## 2. JSON v2 Codec Stabilization
+## 2. JSON v2 Build Tag Removal
 
-**Blocker:** Go stdlib `encoding/json/v2` is behind the `goexperiment.jsonv2` build tag. It's experimental and subject to change.
+**Blocker:** Go stdlib `encoding/json/v2` is behind the `goexperiment.jsonv2` build tag in Go 1.26. It's experimental at the toolchain level.
 
-**Impact:** `codec/jsonv2_experiment.go` exists but is gated behind the build tag. Cannot be the default codec until the API stabilizes in a Go release.
+**Impact:** JSON v2 is **fully adopted** — ~25 production files import `encoding/json/v2` directly (`codec/json.go`, `event/types.go`, `schema/validator.go`, all `catalog/*`, `encryption/*`, `signing/*`, etc.). The `goexperiment.jsonv2` tag is required on every `go build`/`go test` invocation. The tag itself is the only remaining friction.
 
-**Resolution:** Wait for Go stdlib to stabilize JSON v2 (expected in Go 1.27 or later). The experiment file is ready — just remove the build tag when the API is stable.
+**Resolution:** Remove the build tag when Go graduates json/v2 from experimental (expected Go 1.27+). No code changes needed — just drop the tag from `flake.nix` and `scripts/check-module-isolation.sh`.
 
-## 3. Arena Allocation Stabilization
+## 3. Arena Allocation — Removed
 
-**Blocker:** Go's `arena` package is behind the `goexperiment.arenas` build tag. It's experimental and the API may change.
-
-**Impact:** `event/arena_experiment.go` exists but is gated. Cannot be used in production.
-
-**Resolution:** Wait for Go to stabilize the arena API. The experiment file demonstrates the pattern; implementation will need to track any API changes.
+**Status:** Deleted (2026-07-11). The 36-line `event/arena_experiment.go` stub had zero consumers, no tests, and provided no real value — arena-allocating an `ImmutableEvent` struct header while its slice/map fields remain heap-allocated saves nothing on GC pressure. The `goexperiment.arenas` build tag was removed from `flake.nix` and `scripts/check-module-isolation.sh`.
