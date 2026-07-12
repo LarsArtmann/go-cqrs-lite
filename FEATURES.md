@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-07-11 (v4 release: codec default flip to CBOR, BackfillHandler consolidation, HealthCheck on OwnedDBHandle, envelope backward-compat tests, ADR-0053) · **Module count:** 48 modules in `go.work` (49 `go.mod` files incl. eventtest) · **Go version:** 1.26.3
+**Last audited:** 2026-07-11 (v4 release: codec default flip to CBOR, BackfillHandler consolidation, HealthCheck on OwnedDBHandle, envelope backward-compat tests, ADR-0053) · **Module count:** 48 independently importable modules in `go.work` (49 `go.mod` files incl. root workspace) · **Go version:** 1.26.4
 
 ## Status Legend
 
@@ -921,7 +921,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 ## Module Maturity Matrix
 
-> 48 modules in `go.work` (49 `go.mod` files incl. eventtest). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig) share their parent's `go.mod`.
+> 48 independently importable modules in `go.work` (49 `go.mod` files incl. root workspace). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig, storage/eventstore, storage/readmodel) share their parent's `go.mod`.
 
 | Module                    | Import Path                 | Maturity                                                                  |
 | ------------------------- | --------------------------- | ------------------------------------------------------------------------- |

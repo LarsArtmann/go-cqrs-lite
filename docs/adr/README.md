@@ -133,3 +133,27 @@ watermill/     — Watermill protocol adapter
 | [0030](0030-dissolve-projection.md)               | Dissolve projection/ into CatchUp + Materialize | 2026-06-20 | Accepted                 |
 | [0031](0031-metadata-split.md)                    | Kill Metadata Aliases, Add Typed Fields         | 2026-06-20 | Accepted                 |
 | [0032](0032-merge-readmodel-into-kv.md)           | Merge readmodel/ into kv/                       | 2026-06-20 | Accepted                 |
+| [0033](0033-multi-db-split.md)                    | Multi-Database Split for Concern Isolation      | 2026-06-23 | Accepted                 |
+| [0034](0034-session-store-boundary.md)            | Session Store Boundary                          | 2026-06-23 | Accepted                 |
+| [0035](0035-branded-dsn-types.md)                 | Branded DSN Types (Considered and Rejected)     | 2026-06-24 | Rejected                 |
+| [0037](0037-projection-module-extraction.md)      | Projection Interface Extraction from event/     | —          | Accepted                 |
+| [0038](0038-graph-projection-tier.md)             | Graph Projection Tier — Writes Portable, Reads Native | —     | Accepted                 |
+| [0039](0039-graph-schema.md)                      | Graph Schema — Boundary Typing for Graph Projections | —     | Accepted                 |
+| [0040](0040-deriver-design.md)                    | Deriver Module Design (TypeDB Rule Model Reference) | —     | Accepted                 |
+| [0042](0042-pure-replay-dead-letters.md)          | Pure Replay for Dead-Letter Queue               | —          | Accepted                 |
+| [0043](0043-dlq-unification-options.md)           | Dead-Letter Store Unification Options           | —          | Accepted                 |
+| [0044](0044-blind-store-encoding-stamps.md)       | Blind Store Encoding Stamps                     | 2026-07-01 | Accepted                 |
+| [0045](0045-eventtest-module-path-fix.md)         | eventtest Module Path / Directory Alignment     | 2026-07-05 | Accepted                 |
+| [0046](0046-four-tier-model.md)                   | Four-Tier Dependency Model                      | 2026-07-09 | Accepted                 |
+| [0047](0047-cose-support.md)                      | COSE Support for Signing, Encryption, and Codec | 2026-07-10 | Accepted                 |
+| [0047](0047-json-v2-case-insensitive-decode.md)   | json/v2 Case-Insensitive Decode                 | 2026-07-10 | Accepted                 |
+| [0048](0048-deterministic-json-encoding.md)       | Deterministic JSON Encoding in Security-Critical Paths | 2026-07-10 | Accepted           |
+| [0049](0049-dispatch-time-middleware.md)          | Dispatch-Time Middleware Application            | 2026-07-10 | Accepted                 |
+| [0050](0050-envelope-json-fallback-keep-forever.md) | Envelope JSON Fallback — Keep Forever         | 2026-07-10 | Accepted                 |
+| [0051](0051-cbor-as-default-codec.md)             | CBOR as Default Codec for event.New()           | 2026-07-11 | Accepted                 |
+| [0052](0052-transport-boundary-codec-strategy.md) | Transport Boundary Codec Strategy               | —          | Accepted                 |
+| [0053](0053-unified-codec-default-flip.md)        | Unified Codec Default Flip (JSON → CBOR)        | 2026-07-11 | Accepted                 |
+
+> **Note:** ADRs 0036 and 0041 were never assigned (gaps in numbering). Two
+> ADRs share number 0047 (COSE Support and json/v2 Case-Insensitive Decode) —
+> this is a pre-existing numbering conflict.

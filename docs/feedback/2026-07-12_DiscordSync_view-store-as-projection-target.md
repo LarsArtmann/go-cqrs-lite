@@ -359,31 +359,32 @@ hand-written SQL (~229 statements across 37 files).
 ## Appendix: Maintainer Decision (2026-07-12)
 
 **Verdict:** The feedback is high quality — real consumer pain, concrete
-numbers, concrete fixes. But its unspoken premise is wrong: it frames
-everything as a ViewStore gap, when the library already has a three-tier
-projection model
-(`Materialize`/`SQLViewStore` → `RelationalProjection` → `GraphProjection`).
-Four of the five "gaps" are the consumer reaching for the wrong tier or asking
-the library to become a query builder.
+numbers, concrete fixes. The unspoken premise (ViewStore as the ONE projection
+tool) contradicts the three-tier model
+(`Materialize`/`SQLViewStore` → `RelationalProjection` → `GraphProjection`),
+but four of the five gaps identified legitimate missing capability. Gap 2 is
+the exception: composite keys belong in the relational tier.
 
 ### What was shipped
 
-| Change                                                                         | Files           | LOC |
-| ------------------------------------------------------------------------------ | --------------- | --- |
-| Gap 1: `[]byte` → `BLOB` in AutoMapper (`storage/view/auto.go`)                | 1 prod + 1 test | ~6  |
-| SKILL.md: "Which projection tier?" decision table + `RelationalProjection` row | SKILL.md        | ~15 |
+| Change | Files | LOC |
+| ------ | ----- | --- |
+| Gap 1: `[]byte` → `BLOB` in AutoMapper | `storage/view/auto.go` + test | ~6 |
+| Gap 3: `OpIsNull` / `OpIsNotNull` operators | `kv/view_store.go`, `storage/view/count.go`, `query.go` | ~15 |
+| Gap 4: `RawWhere` / `RawArgs` escape hatch | `kv/view_store.go`, `storage/view/{query,count}.go` | ~25 |
+| Gap 5: `ViewUpdater[V,K]` atomic read-modify-write interface | `kv/view_store.go` | ~15 |
+| SKILL.md: three-tier projection decision table | `SKILL.md` | ~20 |
 
-That's it. The root cause was discoverability — the tier decision table was
-buried in `readmodels.md` reference, not in the core SKILL.md that every
-consumer reads. That is now fixed.
+All changes are additive — no breaking changes to existing APIs.
 
 ### Gap-by-gap verdicts
 
-#### Gap 1: BLOB support in AutoMapper — FIXED
+#### Gap 1: BLOB support in AutoMapper — SHIPPED
 
 `[]byte` → `BLOB` is the only correct mapping. The old `TEXT` mapping was a
-bug. Three-line fix, plus a roundtrip test proving binary data survives
-Set/Get.
+bug. Three-line fix in `goTypeToSQL` (reflect.Slice + byte elem type → BLOB),
+plus a roundtrip test proving binary data (including 0x00 and 0xFF bytes)
+survives Set/Get without corruption.
 
 #### Gap 2: Composite keys — REJECTED (wrong tier)
 
@@ -401,41 +402,59 @@ keys are relational territory by design.
 **Action for DiscordSync:** Use `RelationalProjection` for `GuildMember`,
 `VoiceState`, `Reaction`, `MemberRole`.
 
-#### Gap 3: Tombstone timestamps — REJECTED (composition, not a gap)
+#### Gap 3: Nullable-column filtering — SHIPPED (IS NULL operators)
 
-Nullable timestamp filtering works today via `stack.Materialize`'s
-`OnTombstone` hook — store the timestamp in any column you want. The library
-should not add nullable-column operators or overload the tombstone concept
-(a deliberate boolean, design principle #11) to serve one consumer's
-query pattern. If the consumer needs `WHERE deleted_at IS NULL` on
-`SQLViewStore`, that's a column like any other — filter via existing
-`kv.Condition` operators.
+Added `kv.OpIsNull` and `kv.OpIsNotNull` operators. These produce bare SQL
+predicates without binding a parameter, enabling nullable-column filtering:
 
-#### Gap 4: OR conditions — REJECTED (ORM creep)
+```go
+Conditions: []kv.Condition{
+    {Column: "deleted_at", Op: kv.OpIsNull},  // WHERE deleted_at IS NULL
+}
+```
 
-All three proposed options are the same trap: building a query builder. Once
-the library ships `OrClause`/`RawWhere`/`Chain`, every consumer wants more
-operators, subqueries, CTEs. Principle #1 is "Library, not framework." The
-structured `kv.Condition` API covers the 95% case. The 5% that needs `OR`,
-parentheses, or mixed operators is either:
+The tombstone concept itself (design principle #11) remains a deliberate
+boolean — `stack.Materialize`'s `OnTombstone` hook stores any timestamp in
+any column. But nullable-column querying is now first-class, not a gap.
 
-- Relational tier (`RelationalProjection` + `RelationalStore.Query` with raw
-  SQL fragments), or
-- Hand-written SQL via `*sql.DB` directly.
+#### Gap 4: OR / complex predicates — SHIPPED (RawWhere escape hatch)
 
-The library already provides both escape valves. Adding a third inside
-ViewStore makes the library worse, not better.
+Shipped `RawWhere string` + `RawArgs []any` on `kv.ViewQuery` as an escape
+hatch for predicates the structured `Condition` DSL cannot express:
 
-#### Gap 5: Atomic read-modify-write — REJECTED (already composable)
+```go
+q := kv.ViewQuery{
+    Conditions: []kv.Condition{{Column: "guild_id", Op: kv.OpEq, Value: gid}},
+    RawWhere:   "(deleted_at IS NULL OR deleted_at > ?)",
+    RawArgs:    []any{cutoff},
+}
+```
 
-`storage/sql.RunInTx` exists for exactly this. The consumer can compose
-`Get → mutate → Set` inside a transaction today:
-`RunInTx(ctx, db, span, func(tx *sql.Tx) error { ... })`.
+This is deliberately NOT a full query builder (no `OrClause`, no `NotClause`,
+no nested groups). It is a pragmatic escape valve for the 5% of queries that
+need OR, subqueries, or date arithmetic — AND-joined with typed Conditions.
+Callers are responsible for parameterisation. The structured `Condition` API
+remains the primary path for the 95% case.
 
-Adding `Update()` to ViewStore bloats the API for a pattern that's already
-expressible. For SQLite (DiscordSync's database), `SELECT ... FOR UPDATE`
-doesn't even work — it serializes the whole database, which is functionally
-identical to the consumer's existing `MaxOpenConns=1` workaround.
+#### Gap 5: Atomic read-modify-write — SHIPPED (ViewUpdater interface)
+
+Introduced `kv.ViewUpdater[V, K]` — an optional interface for view stores
+that support atomic read-modify-write via a transaction:
+
+```go
+type ViewUpdater[V any, K fmt.Stringer] interface {
+    Update(ctx context.Context, key K, update func(current *V) (*V, error)) error
+}
+```
+
+Consumers type-assert at runtime (`if updater, ok := store.(kv.ViewUpdater[...]); ok`)
+so the capability is opt-in without bloating the core `ViewStore` interface.
+The update function receives the current value (or nil) and returns the new
+value. Returning nil deletes the record.
+
+`storage/sql.RunInTx` still exists for manual composition, but `ViewUpdater`
+provides the ES-native pattern for event-driven counters and stats projections
+without the boilerplate.
 
 ### Root cause
 

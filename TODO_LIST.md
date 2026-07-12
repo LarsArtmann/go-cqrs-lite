@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-07-11 (session: v4 release execution — all blockers resolved, ready to tag)
+**Updated:** 2026-07-12 (session: documentation reconciliation — fixed feedback doc contradiction, getting-started guide, ADR index, module counts)
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in [ROADMAP.md](ROADMAP.md). Raw ideas live in [ROADMAP.md § Raw Ideas](ROADMAP.md#raw-ideas-no-design-yet).
 
 ## Legend
@@ -12,9 +12,11 @@
 
 ---
 
-## v4 Release — EXECUTION COMPLETE
+## v4 Release — SHIPPED
 
-> **Status:** All code changes done, all tests pass, all docs updated. Ready to `git tag v4.0.0` and push.
+> **Status:** v4.0.0 tagged and pushed. All per-module v4.0.0 tags exist. Storage/ split
+> shipped with backward-compat aliases. View store gaps (IS NULL, RawWhere, ViewUpdater, BLOB)
+> shipped as additive features.
 >
 > **Decisions locked in:**
 >
@@ -22,8 +24,9 @@
 > - Envelope magic string change: **dropped** (collision risk is already near-zero via `"$"` JSON key)
 > - License swap + git history scrub: **after v4**
 > - Parquet/DuckDB modules: **deferred to v4.1**
-> - Storage/ split: **deferred to v4.1**
+> - Storage/ split: **shipped in v4.0.0** (sub-packages with backward-compat aliases)
 > - v3 git tags: **backfilled** (v3.0.0 through v3.7.1 now tagged)
+> - View store gaps: 4 of 5 shipped (BLOB, IS NULL, RawWhere, ViewUpdater); composite keys rejected (use RelationalProjection)
 
 ### v4 Breaking Changes (ALL DONE)
 
@@ -61,9 +64,9 @@
       with close-order tracking. Proves option function, pointer identity, and Close() ordering all work
       through the real integration path.
 
-### Remaining Release Step
+### Release Status
 
-- [ ] **`git tag v4.0.0` + push** — All code, tests, and docs are ready. Awaiting user approval.
+- [x] **`git tag v4.0.0` + push** — Tagged. All per-module v4.0.0 tags exist.
 
 ---
 
