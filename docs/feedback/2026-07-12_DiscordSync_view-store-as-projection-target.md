@@ -356,96 +356,95 @@ hand-written SQL (~229 statements across 37 files).
 
 ---
 
-## Appendix: Maintainer Assessment (2026-07-12)
+## Appendix: Maintainer Decision (2026-07-12)
 
 **Verdict:** The feedback is high quality — real consumer pain, concrete
-numbers, concrete fixes. But it has one major blind spot: it never mentions
-`storage.RelationalProjection`, which already exists and solves two of the
-five "gaps" by design. The report frames everything as a ViewStore gap, when
-the library already has a three-tier projection model
-(`Materialize` → `SQLViewStore` → `RelationalProjection`/`GraphProjection`).
-Several gaps are consumers reaching for the wrong tier.
+numbers, concrete fixes. But its unspoken premise is wrong: it frames
+everything as a ViewStore gap, when the library already has a three-tier
+projection model
+(`Materialize`/`SQLViewStore` → `RelationalProjection` → `GraphProjection`).
+Four of the five "gaps" are the consumer reaching for the wrong tier or asking
+the library to become a query builder.
 
-### Gap 1: BLOB support in AutoMapper — ACCEPT
+### What was shipped
 
-`[]byte` → `BLOB` is the only correct mapping. Three lines. Zero design
-tension. The current `TEXT` mapping is a bug. Ship it.
+| Change                                                                         | Files           | LOC |
+| ------------------------------------------------------------------------------ | --------------- | --- |
+| Gap 1: `[]byte` → `BLOB` in AutoMapper (`storage/view/auto.go`)                | 1 prod + 1 test | ~6  |
+| SKILL.md: "Which projection tier?" decision table + `RelationalProjection` row | SKILL.md        | ~15 |
 
-### Gap 2: Composite keys — REJECT (redirect to RelationalProjection)
+That's it. The root cause was discoverability — the tier decision table was
+buried in `readmodels.md` reference, not in the core SKILL.md that every
+consumer reads. That is now fixed.
+
+### Gap-by-gap verdicts
+
+#### Gap 1: BLOB support in AutoMapper — FIXED
+
+`[]byte` → `BLOB` is the only correct mapping. The old `TEXT` mapping was a
+bug. Three-line fix, plus a roundtrip test proving binary data survives
+Set/Get.
+
+#### Gap 2: Composite keys — REJECTED (wrong tier)
 
 `RelationalProjection` already supports composite primary keys — including
 triple-key junction tables (`guild_id`, `user_id`, `role_id`) — with atomic
-multi-table writes. See AGENTS.md's `member_roles` example. This gap is
-documented as solved.
+multi-table writes. See AGENTS.md's `member_roles` example.
 
 The proposed fix breaks the `K fmt.Stringer` type parameter — the core
 abstraction that makes ViewStore composable with `kv.Store`, `kv.Cache`,
-`kv.TypedStore`. Relaxing to `K any` ripples through the entire KV tier.
-That's a massive blast radius for a convenience feature.
+`kv.TypedStore`. That blast radius is unacceptable for a convenience feature.
 
-ViewStore is explicitly documented as "ONE record to ONE table per event."
-Composite keys + junction tables are multi-entity relational territory.
+ViewStore is "ONE record, ONE table, ONE key column per event." Composite
+keys are relational territory by design.
 
-**Recommendation:** Point DiscordSync at `RelationalProjection` for
-`GuildMember`, `VoiceState`, `Reaction`, `MemberRole`.
+**Action for DiscordSync:** Use `RelationalProjection` for `GuildMember`,
+`VoiceState`, `Reaction`, `MemberRole`.
 
-### Gap 3: Tombstone timestamps — PARTIAL ACCEPT
+#### Gap 3: Tombstone timestamps — REJECTED (composition, not a gap)
 
-Nullable timestamp filtering is a real need. But overloading the tombstone
-concept (a deliberate boolean soft-delete marker, design principle #11) with
-timestamp semantics muddies the model.
+Nullable timestamp filtering works today via `stack.Materialize`'s
+`OnTombstone` hook — store the timestamp in any column you want. The library
+should not add nullable-column operators or overload the tombstone concept
+(a deliberate boolean, design principle #11) to serve one consumer's
+query pattern. If the consumer needs `WHERE deleted_at IS NULL` on
+`SQLViewStore`, that's a column like any other — filter via existing
+`kv.Condition` operators.
 
-**Accept:** `OpIsNull` / `OpIsNotNull` operators (the alternative proposal).
-General, composable, fixes the gap without touching tombstone semantics.
-~10 lines added to the `Operator` enum.
+#### Gap 4: OR conditions — REJECTED (ORM creep)
 
-**Reject:** Tombstone-column-as-nullable-timestamp. Keeps the tombstone
-concept honest.
+All three proposed options are the same trap: building a query builder. Once
+the library ships `OrClause`/`RawWhere`/`Chain`, every consumer wants more
+operators, subqueries, CTEs. Principle #1 is "Library, not framework." The
+structured `kv.Condition` API covers the 95% case. The 5% that needs `OR`,
+parentheses, or mixed operators is either:
 
-### Gap 4: OR conditions — ACCEPT escape hatch only
+- Relational tier (`RelationalProjection` + `RelationalStore.Query` with raw
+  SQL fragments), or
+- Hand-written SQL via `*sql.DB` directly.
 
-- **Option A (WhereClause AST):** REJECT. This is building a query builder —
-  exactly the ORM creep principle #1 ("Library, not framework") warns
-  against. Once shipped, every consumer wants more operators, subqueries,
-  CTEs.
-- **Option B (Chain field):** REJECT. Can't express precedence; positional
-  semantics on a declarative-looking API is the worst kind of design.
-- **Option C (RawWhere):** ACCEPT. The honest answer. Pragmatic 5% escape
-  valve, clearly labeled unsafe, doesn't grow. Matches the library's
-  philosophy: sharp tools, not guardrails. ~20 lines.
+The library already provides both escape valves. Adding a third inside
+ViewStore makes the library worse, not better.
 
-### Gap 5: Atomic read-modify-write — ACCEPT with caveat
+#### Gap 5: Atomic read-modify-write — REJECTED (already composable)
 
-Genuinely useful ES primitive. The `Update(ctx, key, merge)` pattern is the
-correct way to maintain incremental aggregate views.
+`storage/sql.RunInTx` exists for exactly this. The consumer can compose
+`Get → mutate → Set` inside a transaction today:
+`RunInTx(ctx, db, span, func(tx *sql.Tx) error { ... })`.
 
-**Caveat:** `SELECT ... FOR UPDATE` is Postgres-only. SQLite has no
-row-level locking. The implementation must use `BEGIN IMMEDIATE` for SQLite
-(serialize writes) and `SELECT FOR UPDATE` for Postgres. For SQLite
-(DiscordSync's database), this is functionally equivalent to
-`MaxOpenCons=1` for write throughput — but it's still the right API to own.
+Adding `Update()` to ViewStore bloats the API for a pattern that's already
+expressible. For SQLite (DiscordSync's database), `SELECT ... FOR UPDATE`
+doesn't even work — it serializes the whole database, which is functionally
+identical to the consumer's existing `MaxOpenConns=1` workaround.
 
-**Accept:** Option A (`Update` method via `RunInTx` with dialect-appropriate
-locking). ~40 lines.
-**Reject:** Option B (`AggregateStore`). Too narrow; one-trick type.
+### Root cause
 
-### Summary
+The feedback exists because the projection tier decision table was buried in
+`readmodels.md` reference, not in the core SKILL.md. A consumer who only
+reads SKILL.md would never know `RelationalProjection` exists — so they try
+to make ViewStore do everything.
 
-| Gap | Verdict | Rationale                              |
-| --- | ------- | -------------------------------------- |
-| 1   | Accept  | Bug fix, not a feature                 |
-| 2   | Reject  | RelationalProjection already does this |
-| 3   | Partial | Accept `OpIsNull`/`OpIsNotNull` only   |
-| 4   | Partial | Accept `RawWhere` only                 |
-| 5   | Accept  | Real gap, needs SQLite-correct locking |
-
-**Total accepted: ~70 lines across 3 gaps + 1 bug fix.**
-
-The feedback asks for 5 features; the library should ship ~3.5. The
-rejected parts (composite keys, query AST) belong to `RelationalProjection`
-and raw SQL respectively — the library already provides both.
-
-The feedback's unspoken premise — "ViewStore should be the ONE projection
-tool" — contradicts the three-tier model. The right response to "I can't
-express X in ViewStore" is often "that's because X belongs in the
-relational tier."
+**That discoverability gap is now fixed.** The SKILL.md decision matrix now
+includes the tier table with explicit "Do NOT use for" guidance. The next
+consumer who reaches for ViewStore when they need composite keys or
+multi-table writes will see `RelationalProjection` before filing feedback.
