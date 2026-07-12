@@ -181,17 +181,24 @@ The project enforces a layered module dependency graph via `scripts/check-module
 nix run .#check-layers
 ```
 
-This validates that modules only depend on their allowed layer. The dependency graph is:
+This validates that modules only depend on their allowed tier. The dependency model
+is the **Four-Tier Model** ([ADR-0046](docs/adr/0046-four-tier-model.md),
+[full reference](docs/architecture-understanding/FOUR-TIER-MODEL.md)):
 
 ```
-Layer 0: id/, dispatcher/, codec/         (leaf modules, no internal deps)
-Layer 1: event/, command/, query/          (depend on Layer 0)
-Layer 2: schema/, snapshot/                (depend on Layer 1)
-Layer 3: decider/                          (depends on event, snapshot)
-Layer 4: memory/, signing/, otel/          (leaf or Layer 1 deps)
-Layer 5: middleware/, storage/, projection/ (depend on Layers 0-4)
-Layer 6: integration/, catalog/, examples/ (depend on everything)
+Tier 0 — Primitives:    id/, dispatcher/, codec/, kv/, dedup/
+Tier 1 — Core Domain:   event/, command/, query/, scheduling/, metadata/
+Tier 2 — Utilities:     schema/, snapshot/, projection/, idempotency/, deriver/
+Tier 3 — Aggregation:   decider/, graph/, scenario/, projectionhost/, listing/
+Tier 4 — Infrastructure: storage/memory/, storage/, middleware/, signing/, encryption/,
+                          otel/, watermill/, transport/http/, transport/grpc/,
+                          storage/pebble/, storage/turso/, prometheus/
+Tier 5 — Composition:   stack/, stack/memory/, stack/sqlite/, stack/pebble/,
+                          stack/postgres/, stack/turso/
+Tier 6 — Tooling:       catalog/, integration/, stack/bench/, examples/, cmd/*
 ```
+
+Each tier may only import from its own tier or lower.
 
 ### Dependency Budgets
 
@@ -225,3 +232,33 @@ go test ./signing/... -update -count=1
 ## Architecture Decisions
 
 See `docs/adr/` for recorded decisions.
+
+## Working with AI Agents
+
+This repo is co-developed with AI agents. Follow these rules to avoid chaos:
+
+### Debug-print discipline
+
+Never leave `fmt.Printf("DEBUG ...")` or `panic("DEBUG ...")` in production
+code (non-test, non-cmd, non-example packages). These crash tests and pollute
+output. If you need debug output, use `slog.Debug()` and remove it before
+committing.
+
+### Don't revert changes you didn't author
+
+If you find unexpected uncommitted changes, **investigate before touching**.
+Another agent or the user made those changes intentionally. Reverting them is
+sabotage. The exception: obvious debug instrumentation that is actively
+crashing the test suite (e.g., slice-out-of-range panics on empty payloads).
+
+### Always format before lint directives
+
+Run `nix fmt` BEFORE placing `//nolint` directives. The formatter (golines,
+max-len: 120) reformats long lines and moves nolint comments to wrong
+positions if placed first.
+
+### Verify before declaring done
+
+Never mark a task complete without reading the actual code path it covers.
+Grep ALL documentation for related references after adding or removing public
+API. Run `nix run .#test`, not just `go test` on changed modules.

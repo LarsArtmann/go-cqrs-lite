@@ -21,7 +21,7 @@ type Timer[P any] struct {
 	ID TimerID `json:"id"`
 
 	// FireAt is when the timer should trigger. Must be in the future.
-	FireAt time.Time `json:"fire_at"`
+	FireAt time.Time `json:"fireAt"`
 
 	// Payload is delivered to the dispatch callback when the timer fires.
 	Payload P `json:"payload"`

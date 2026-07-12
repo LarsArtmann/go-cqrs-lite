@@ -190,6 +190,87 @@ Every module is independently importable and has its own `go.mod`. Modules with 
 | **cmd/doc-check**     | Doc cross-reference verifier for markdown                           |                                       |
 | **integration**       | Cross-module integration tests                                      | [README](integration/README.md)       |
 
+## Module dependency graph
+
+Modules are organized in tiers (ADR-0046). Each tier may only import from its own tier or lower.
+
+```mermaid
+graph TD
+    subgraph T0["Tier 0 — Primitives"]
+        id[id]
+        codec[codec]
+        kv[kv]
+        dedup[dedup]
+        dispatcher[dispatcher]
+    end
+
+    subgraph T1["Tier 1 — Core Domain"]
+        event[event]
+        command[command]
+        query[query]
+        scheduling[scheduling]
+        metadata[metadata]
+    end
+
+    subgraph T2["Tier 2 — Utilities"]
+        schema[schema]
+        snapshot[snapshot]
+        projection[projection]
+        idempotency[idempotency]
+        deriver[deriver]
+    end
+
+    subgraph T3["Tier 3 — Aggregation"]
+        decider[decider]
+        projectionhost[projectionhost]
+        listing[listing]
+        graph_tier[graph]
+        scenario[scenario]
+    end
+
+    subgraph T4["Tier 4 — Infrastructure"]
+        storage[storage]
+        pebble[storage/pebble]
+        memory[storage/memory]
+        middleware[middleware]
+        signing[signing]
+        encryption[encryption]
+        otel[otel]
+        watermill[watermill]
+        http[transport/http]
+        grpc[transport/grpc]
+        prometheus[prometheus]
+    end
+
+    subgraph T5["Tier 5 — Composition"]
+        stack[stack]
+        sqlite[stack/sqlite]
+        postgres[stack/postgres]
+        turso[stack/turso]
+    end
+
+    event --> id & codec & metadata
+    command --> event
+    query --> event
+
+    schema --> event
+    snapshot --> event
+    deriver --> event & command
+
+    decider --> event & snapshot & schema
+    projectionhost --> projection & event & dedup
+
+    storage --> event & kv & snapshot
+    middleware --> event & command & query
+    signing --> event
+    watermill --> event & command
+
+    stack --> storage & decider & middleware
+    sqlite --> stack
+```
+
+**Quick start:** Need events only? → `event` + `id`. Need aggregates? → add `decider`. Need projections? → add `projectionhost` + a storage module. Need everything wired? → use `stack/sqlite`.
+
 ## How it compares
 
 | Capability                          | go-cqrs-lite | go-cqrs | Watermill  | cqrs-go |

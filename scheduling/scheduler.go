@@ -3,6 +3,7 @@ package scheduling
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"math/rand/v2"
 	"time"
@@ -17,6 +18,13 @@ type Scheduler[P any] struct {
 	logger   *slog.Logger
 }
 
+const (
+	defaultPollInterval = 1 * time.Second
+	defaultMaxRetries   = 3
+	defaultRetryDelay   = 100 * time.Millisecond
+	jitterHalfDivisor   = 2
+)
+
 type schedulerOptions struct {
 	pollInterval time.Duration
 	maxRetries   int
@@ -28,10 +36,10 @@ type schedulerOptions struct {
 type Option func(*schedulerOptions)
 
 func defaultOptions() schedulerOptions {
-	return schedulerOptions{
-		pollInterval: 1 * time.Second,
-		maxRetries:   3,
-		retryDelay:   100 * time.Millisecond,
+	return schedulerOptions{ //nolint:exhaustruct // logger set by New() if nil
+		pollInterval: defaultPollInterval,
+		maxRetries:   defaultMaxRetries,
+		retryDelay:   defaultRetryDelay,
 	}
 }
 
@@ -91,7 +99,7 @@ func (s *Scheduler[P]) Start(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return fmt.Errorf("scheduler stopped: %w", ctx.Err())
 		case <-ticker.C:
 			if err := s.tick(ctx); err != nil {
 				s.logger.Warn("scheduler tick failed", "error", err)
@@ -105,7 +113,7 @@ func (s *Scheduler[P]) tick(ctx context.Context) error {
 
 	due, err := s.store.Due(ctx, now)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to query due timers: %w", err)
 	}
 
 	for _, timer := range due {
@@ -137,7 +145,7 @@ func (s *Scheduler[P]) dispatchWithRetry(ctx context.Context, timer Timer[P]) er
 	for attempt := range s.opts.maxRetries {
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return fmt.Errorf("scheduler stopped: %w", ctx.Err())
 		default:
 		}
 
@@ -154,12 +162,12 @@ func (s *Scheduler[P]) dispatchWithRetry(ctx context.Context, timer Timer[P]) er
 			// Better than full jitter for per-message retries where a guaranteed
 			// minimum delay gives the downstream a real window to recover.
 			exp := s.opts.retryDelay * time.Duration(1<<uint(attempt))
-			half := int64(exp) / 2
-			delay := time.Duration(half + rand.Int64N(half+1))
+			half := int64(exp) / jitterHalfDivisor
+			delay := time.Duration(half + rand.Int64N(half+1)) //nolint:gosec // non-crypto jitter
 
 			select {
 			case <-ctx.Done():
-				return ctx.Err()
+				return fmt.Errorf("scheduler stopped during retry backoff: %w", ctx.Err())
 			case <-time.After(delay):
 			}
 		}

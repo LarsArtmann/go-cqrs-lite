@@ -617,4 +617,4 @@ backward-compatible aliases, but the canonical paths are:
 
 **Verification.** Every Go import path and qualified symbol in this skill is verified by `cmd/doc-check` in CI (430+ references across 33 packages). If the code compiles and doc-check passes, the recipes are accurate.
 
-**Provenance.** Restructured 2026-06-29 from a 1377-line monolith into this progressive-disclosure layout. Full rationale: `docs/status/2026-06-29_18-17_SKILL-RESTRUCTURE-STATUS.html`.
+**Provenance.** Restructured 2026-06-29 from a 1377-line monolith into this progressive-disclosure layout. Full rationale: `docs/status/archive/2026-06-29_18-17_SKILL-RESTRUCTURE-STATUS.html`.

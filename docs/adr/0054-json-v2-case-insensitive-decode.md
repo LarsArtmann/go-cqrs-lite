@@ -1,4 +1,4 @@
-# ADR 0047: json/v2 Case-Insensitive Decode
+# ADR-0054: json/v2 Case-Insensitive Decode
 
 > **Status:** ACCEPTED
 > **Date:** 2026-07-10

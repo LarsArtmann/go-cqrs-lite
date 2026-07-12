@@ -160,11 +160,11 @@ func TestScheduler_RetriesFailedDispatch(t *testing.T) {
 	cancel()
 }
 
-var errFail = errStr("fail")
+var errFail = errStrError("fail")
 
-type errStr string
+type errStrError string
 
-func (e errStr) Error() string { return string(e) }
+func (e errStrError) Error() string { return string(e) }
 
 func waitFor(t *testing.T, timeout time.Duration, cond func() bool) {
 	t.Helper()

@@ -78,7 +78,7 @@
 ## Priority 4 — Post-v4.1 (breaking changes, new major version)
 
 - [ ] **Deprecated API removal batch 2** — Remove 9 deprecated items: `middleware.{NewMetrics,
-  CommandMetrics, EventMetrics, QueryMetrics, MetricsRecorder, Observe}`,
+CommandMetrics, EventMetrics, QueryMetrics, MetricsRecorder, Observe}`,
       `catalog.Exporter` (non-generic), `storage/sql.{NewDBHandle, NewDBHandleFromDB}`.
       Breaking → v4.1 cut. ~60min.
 - [ ] **Postgres CI coverage matrix** — Add CI Postgres service or label `stack/postgres`
@@ -99,7 +99,7 @@
 
 ## Future — v4.1+ Parquet Journal + DuckDB
 
-> Design complete at `docs/research/2026-07-11_PARQUET_JOURNAL_DUCKDB_MATERIALIZATIONS.md`.
+> Design complete at `docs/research/archive/2026-07-11_PARQUET_JOURNAL_DUCKDB_MATERIALIZATIONS.md`.
 > Three independent phases, all additive (no breaking changes).
 
 - [ ] **Phase 1: `storage/parquet`** — Parquet segment journal (`SeekableJournal`). Pure Go

@@ -44,7 +44,7 @@ func Given[Cmd, State any](
 ) *DeciderScenario[Cmd, State] {
 	t.Helper()
 
-	return &DeciderScenario[Cmd, State]{
+	return &DeciderScenario[Cmd, State]{ //nolint:exhaustruct // cmd+decide set by When()
 		t:       t,
 		apply:   apply,
 		initial: initial,
@@ -64,7 +64,7 @@ func GivenState[State any](
 ) *DeciderScenario[any, State] {
 	t.Helper()
 
-	return &DeciderScenario[any, State]{
+	return &DeciderScenario[any, State]{ //nolint:exhaustruct // cmd+decide set by When()
 		t:       t,
 		apply:   apply,
 		initial: initial,
@@ -203,18 +203,18 @@ func GivenProjection(
 	events ...event.Event,
 ) *ProjectionScenario {
 	t.Helper()
-	sc := &ProjectionScenario{proj: proj, t: t}
+	scenario := &ProjectionScenario{proj: proj, t: t} //nolint:exhaustruct // errs populated below
 
 	ctx := context.Background()
 	for _, evt := range events {
 		if err := proj.Handle(ctx, evt); err != nil {
-			sc.errs = append(sc.errs, errorfamily.Wrap(err, errorfamily.Classify(err),
+			scenario.errs = append(scenario.errs, errorfamily.Wrap(err, errorfamily.Classify(err),
 				"scenario.projection.handle",
 				fmt.Sprintf("event %s", evt.Type())))
 		}
 	}
 
-	return sc
+	return scenario
 }
 
 // ThenNoError asserts the projection handled all events without error.

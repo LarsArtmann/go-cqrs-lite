@@ -21,7 +21,7 @@ type (
 var (
 	evtIncremented = event.Type("CounterIncremented")
 	evtDecremented = event.Type("CounterDecremented")
-	evtErrLimit    = errors.New("count cannot go below zero")
+	errEvtLimit    = errors.New("count cannot go below zero")
 )
 
 func foldCounter(s counterState, evt event.Event) (counterState, error) {
@@ -41,7 +41,7 @@ func decideIncrement(s counterState, _ incrementCmd) ([]event.Event, error) {
 
 func decideDecrement(s counterState, _ decrementCmd) ([]event.Event, error) {
 	if s.Count <= 0 {
-		return nil, evtErrLimit
+		return nil, errEvtLimit
 	}
 
 	return []event.Event{mustEvent(evtDecremented)}, nil
@@ -81,7 +81,7 @@ func TestGiven_When_ThenError(t *testing.T) {
 	t.Parallel()
 	scenario.Given[decrementCmd, counterState](t, foldCounter, counterState{}).
 		When(decrementCmd{}, decideDecrement).
-		ThenError(evtErrLimit)
+		ThenError(errEvtLimit)
 }
 
 func TestGiven_When_ThenState(t *testing.T) {

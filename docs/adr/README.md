@@ -146,14 +146,12 @@ watermill/     — Watermill protocol adapter
 | [0045](0045-eventtest-module-path-fix.md)           | eventtest Module Path / Directory Alignment            | 2026-07-05 | Accepted                 |
 | [0046](0046-four-tier-model.md)                     | Four-Tier Dependency Model                             | 2026-07-09 | Accepted                 |
 | [0047](0047-cose-support.md)                        | COSE Support for Signing, Encryption, and Codec        | 2026-07-10 | Accepted                 |
-| [0047](0047-json-v2-case-insensitive-decode.md)     | json/v2 Case-Insensitive Decode                        | 2026-07-10 | Accepted                 |
 | [0048](0048-deterministic-json-encoding.md)         | Deterministic JSON Encoding in Security-Critical Paths | 2026-07-10 | Accepted                 |
 | [0049](0049-dispatch-time-middleware.md)            | Dispatch-Time Middleware Application                   | 2026-07-10 | Accepted                 |
 | [0050](0050-envelope-json-fallback-keep-forever.md) | Envelope JSON Fallback — Keep Forever                  | 2026-07-10 | Accepted                 |
 | [0051](0051-cbor-as-default-codec.md)               | CBOR as Default Codec for event.New()                  | 2026-07-11 | Accepted                 |
 | [0052](0052-transport-boundary-codec-strategy.md)   | Transport Boundary Codec Strategy                      | —          | Accepted                 |
 | [0053](0053-unified-codec-default-flip.md)          | Unified Codec Default Flip (JSON → CBOR)               | 2026-07-11 | Accepted                 |
+| [0054](0054-json-v2-case-insensitive-decode.md)     | json/v2 Case-Insensitive Decode                        | 2026-07-10 | Accepted                 |
 
-> **Note:** ADRs 0036 and 0041 were never assigned (gaps in numbering). Two
-> ADRs share number 0047 (COSE Support and json/v2 Case-Insensitive Decode) —
-> this is a pre-existing numbering conflict.
+> **Note:** ADRs 0036 and 0041 were never assigned (gaps in numbering).
