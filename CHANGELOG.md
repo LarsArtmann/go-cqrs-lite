@@ -4,6 +4,44 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Fixed
+
+- **README.md and docs/getting-started.md code examples** — Command examples
+  were missing the required `ID()` method (inherited via `*command.BasicCommand`
+  embedding). Getting-started also used `event.NewEvent` instead of `event.New`
+  for typed payloads, referenced nonexistent `event.NewMemoryBus()`, and used
+  `Fold` instead of `Apply` on `decider.Decider`. All examples now compile-verified.
+- **api-stability golden file** — `docs/api_surface.txt` was stale (missing
+  `kv.OpIsNull`, `kv.OpIsNotNull`, `kv.ViewUpdater` shipped in v4.0.0). Regenerated.
+- **kv/benchmark_test.go** — Replaced `[]byte(fmt.Sprintf(...))` with
+  `fmt.Appendf(nil, ...)` to clear `fmtappendf` diagnostics.
+
+### Changed
+
+- **scheduling: JSON tag `fire_at` → `fireAt`** — Tagliatelle (camelCase)
+  compliance. The scheduling module is new in v4; no pre-v4 data exists to break.
+- **scheduling: Magic numbers extracted to named constants** —
+  `defaultPollInterval`, `defaultMaxRetries`, `defaultRetryDelay`,
+  `jitterHalfDivisor`. All `ctx.Err()` returns wrapped per wrapcheck.
+- **scenario: Lint cleanup** — `exhaustruct` nolints on builder-pattern structs,
+  `errname`/`varnamelen` fixes.
+
+### Documentation
+
+- **287 session artifacts archived** — `docs/{status,planning,research,reviews,
+quality,architecture-understanding,brainstorming,modularization}/` timestamped
+  files moved to `archive/` subdirectories with explanatory READMEs.
+- **Feedback doc reconciled** — DiscordSync round 3 appendix Gaps 3-5 changed
+  from "REJECTED" to "SHIPPED" to match actual code.
+- **ADR index extended** — From 0032 to 0054 (21 new entries, duplicate 0047
+  renumbered to 0054).
+- **CONTRIBUTING.md** — 7-layer model replaced with Four-Tier Model (ADR-0046).
+  Added "Working with AI Agents" section.
+- **New docs/middleware-ordering.md** — Recommended middleware application order
+  for all 30+ middlewares.
+
 ## [4.0.0] - 2026-07-11
 
 **Major version cut — CBOR defaults, API cleanup, BackfillHandler consolidation.**

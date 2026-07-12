@@ -10,109 +10,73 @@ go-cqrs-lite is a multi-module monorepo. Import only what you need:
 
 ```bash
 go get github.com/larsartmann/go-cqrs-lite/event/v4
-go get github.com/larsartmann/go-cqrs-lite/command/v4
+go get github.com/larsartmann/go-cqrs-lite/decider/v4
+go get github.com/larsartmann/go-cqrs-lite/id/v4
 go get github.com/larsartmann/go-cqrs-lite/storage/memory/v4
 ```
 
 ## Quick Start
 
-### 1. Define Events
+### 1. Define Your Domain
 
 ```go
 type UserCreated struct{ Name string }
+type UserState struct{ Name string }
 ```
 
-### 2. Create and Store Events
-
-```go
-import (
-    "github.com/larsartmann/go-cqrs-lite/event/v4"
-    "github.com/larsartmann/go-cqrs-lite/id/v4"
-    memory "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
-)
-
-store := memory.NewMemoryStore()
-bus := event.NewMemoryBus()
-aggID := id.NewAggregateID()
-
-// Create a typed event — payload is auto-marshaled to CBOR (the default codec)
-evt, err := event.NewEvent(
-    "user.created", aggID, "User", event.Version(1),
-    UserCreated{Name: "Alice"},
-)
-if err != nil {
-    log.Fatal(err)
-}
-
-// Save with optimistic concurrency
-ref := id.NewAggregateRef("User", aggID)
-if err := store.Save(ctx, ref, []event.Event{evt}, 0); err != nil {
-    log.Fatal(err)
-}
-
-// Publish to subscribers
-_ = bus.Publish(ctx, evt)
-```
-
-### 3. Dispatch Commands
-
-```go
-import "github.com/larsartmann/go-cqrs-lite/command/v4"
-
-// Define a command embedding BasicCommand
-type CreateUserCmd struct {
-    *command.BasicCommand
-    Name string
-}
-
-// Type-safe handler registration
-cmds := command.NewDispatcher()
-command.RegisterTyped(cmds, "user.create",
-    func(ctx context.Context, cmd *CreateUserCmd) error {
-        // handle command
-        return nil
-    },
-)
-
-// Dispatch
-cmd := &CreateUserCmd{
-    BasicCommand: command.MustNew("user.create", aggID),
-    Name: "Alice",
-}
-cmds.Dispatch(ctx, cmd)
-```
-
-### 4. Event Sourcing with Decider
+### 2. Event Sourcing with Decider
 
 The Decider pattern uses pure functions for load → fold → decide → save → publish:
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/decider/v4"
+import (
+    "context"
+    "log"
 
-type UserState struct{ Name string }
+    "github.com/larsartmann/go-cqrs-lite/decider/v4"
+    "github.com/larsartmann/go-cqrs-lite/event/v4"
+    "github.com/larsartmann/go-cqrs-lite/id/v4"
+    memory "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+    cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
+)
 
-d := decider.Decider[UserState]{
-    Initial: UserState{},
-    Fold: func(s UserState, evt event.Event) (UserState, error) {
-        p, _ := event.DecodePayloadAuto[UserCreated](evt)
-        s.Name = p.Name
-        return s, nil
-    },
+func main() {
+    ctx := context.Background()
+    store := memory.NewMemoryStore()
+    bus := cqrswatermill.NewEventBus()
+
+    d := decider.Decider[UserState]{
+        Initial: UserState{},
+        Apply: func(s UserState, evt event.Event) (UserState, error) {
+            p, _ := event.DecodePayloadAuto[UserCreated](evt)
+            s.Name = p.Name
+            return s, nil
+        },
+    }
+
+    repo, err := decider.NewRepository(store, bus, d)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    aggID := id.NewAggregateID()
+
+    // Execute a command (load state → fold → decide → save → publish)
+    err = repo.Execute(ctx, aggID, "User", func(_ UserState, v event.Version) ([]event.Event, error) {
+        return event.NewEvents(aggID, "User", v,
+            []event.Type{"user.created"}, []any{UserCreated{Name: "Alice"}})
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Load current state
+    state, _, _ := repo.Load(ctx, aggID, "User")
+    fmt.Printf("User: %s\n", state.Name) // User: Alice
 }
-
-repo, _ := decider.NewRepository[UserState](store, bus, d)
-
-// Execute a command (load state → fold → decide → save → publish)
-repo.Execute(ctx, aggID, "User", func(s UserState, v event.Version) ([]event.Event, error) {
-    return event.NewEvents(aggID, "User", v,
-        []event.Type{"user.created"}, []any{UserCreated{Name: "Alice"}})
-})
-
-// Load current state
-state, version, _ := repo.Load(ctx, aggID, "User")
 ```
 
-### 5. Branded IDs
+### 3. Branded IDs
 
 ```go
 import "github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -124,6 +88,29 @@ eventID := id.NewEventID()
 // Create custom branded types
 type OrderID = id.Of[struct{}]
 orderID := id.New[OrderID]()
+```
+
+### 4. Commands with Typed Handlers
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/command/v4"
+
+type CreateUser struct {
+    *command.BasicCommand
+    Name string
+}
+
+cmds := command.NewDispatcher()
+_ = command.RegisterTyped(cmds, "user.create",
+    func(ctx context.Context, cmd *CreateUser) error {
+        return repo.Execute(ctx, cmd.AggregateID(), "User", func(_ UserState, v event.Version) ([]event.Event, error) {
+            return event.NewEvents(cmd.AggregateID(), "User", v,
+                []event.Type{"user.created"}, []any{UserCreated{Name: cmd.Name}})
+        })
+    })
+
+basic, _ := command.New("user.create", aggID)
+_ = cmds.Dispatch(ctx, &CreateUser{BasicCommand: basic, Name: "Bob"})
 ```
 
 ## Architecture
@@ -152,13 +139,12 @@ Query   → Dispatcher → Handler            Projection
 | schema         | `.../schema/v4`         | Schema evolution (upcasters, versioned stores)                |
 | signing        | `.../signing/v4`        | Event signing/verification (HMAC, Ed25519)                    |
 
-For the full list of 49 modules, see [AGENTS.md](../AGENTS.md).
+For the full list of 49 modules, see [AGENTS.md](AGENTS.md).
 
 ## Next Steps
 
-- **[SKILL.md](../SKILL.md)** — The AI consumer guide: module decision matrix, composition recipes, conventions, anti-patterns. This is the single best starting point.
+- **[SKILL.md](SKILL.md)** — The AI consumer guide: module decision matrix, composition recipes, conventions, anti-patterns. This is the single best starting point.
 - See `example/getting-started/` for a minimal 80-line example showing the core pipeline
 - See `example/taskmanager/` for a flagship full HTTP service: event sourcing, CQRS, projections, middleware, OTel, signing
-- See `README.md` for the full feature comparison and Quick Start
-- Browse `docs/adr/` for 53 architectural decisions
+- Browse `docs/adr/` for 54 architectural decisions
 - Check `FEATURES.md` for the full feature inventory

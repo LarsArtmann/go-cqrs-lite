@@ -72,7 +72,7 @@ func BenchmarkMemStore_BatchCommit(b *testing.B) {
 	for b.Loop() {
 		batch, _ := s.Batch(context.Background())
 		for i := range 10 {
-			_ = batch.Set(context.Background(), []byte(fmt.Sprintf("key-%d", i)), []byte("val"))
+			_ = batch.Set(context.Background(), fmt.Appendf(nil, "key-%d", i), []byte("val"))
 		}
 		_ = batch.Commit(context.Background())
 	}
@@ -83,7 +83,7 @@ func BenchmarkMemStore_Iterator(b *testing.B) {
 	defer func() { _ = s.Close() }()
 
 	for i := range 100 {
-		_ = s.Set(context.Background(), []byte(fmt.Sprintf("key:%03d", i)), []byte("value"))
+		_ = s.Set(context.Background(), fmt.Appendf(nil, "key:%03d", i), []byte("value"))
 	}
 
 	b.ReportAllocs()

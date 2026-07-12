@@ -916,6 +916,8 @@ kv/const OpEq
 kv/const OpGt
 kv/const OpGte
 kv/const OpIn
+kv/const OpIsNotNull
+kv/const OpIsNull
 kv/const OpLike
 kv/const OpLt
 kv/const OpLte
@@ -939,6 +941,7 @@ kv/interface ViewCounter
 kv/interface ViewQuerier
 kv/interface ViewResetter
 kv/interface ViewStore
+kv/interface ViewUpdater
 kv/interface Writer
 kv/method Backend
 kv/method Backend

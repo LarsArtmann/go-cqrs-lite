@@ -33,14 +33,11 @@ import (
 type UserState struct{ Name string }
 type UserCreated struct{ Name string }
 
-// CreateUser implements command.Command (Type + AggregateID required).
+// CreateUser implements command.Command via embedded *BasicCommand.
 type CreateUser struct {
-    aggID id.AggregateID
-    Name  string
+    *command.BasicCommand
+    Name string
 }
-
-func (c *CreateUser) Type() command.Type          { return "user.create" }
-func (c *CreateUser) AggregateID() id.AggregateID { return c.aggID }
 
 func main() {
     ctx := context.Background()
@@ -59,15 +56,16 @@ func main() {
 
     cmds := command.NewDispatcher()
     aggID := id.NewAggregateID()
-    command.RegisterTyped(cmds, "user.create",
+    _ = command.RegisterTyped(cmds, "user.create",
         func(ctx context.Context, cmd *CreateUser) error {
-            return repo.Execute(ctx, aggID, "User", func(s UserState, v event.Version) ([]event.Event, error) {
-                return event.NewEvents(aggID, "User", v,
+            return repo.Execute(ctx, cmd.AggregateID(), "User", func(s UserState, v event.Version) ([]event.Event, error) {
+                return event.NewEvents(cmd.AggregateID(), "User", v,
                     []event.Type{"user.created"}, []any{UserCreated{Name: cmd.Name}})
             })
         })
 
-    _ = cmds.Dispatch(ctx, &CreateUser{aggID: aggID, Name: "Alice"})
+    basic, _ := command.New("user.create", aggID)
+    _ = cmds.Dispatch(ctx, &CreateUser{BasicCommand: basic, Name: "Alice"})
 
     state, _, _ := repo.Load(ctx, aggID, "User")
     fmt.Printf("User: %s\n", state.Name) // User: Alice
@@ -224,7 +222,7 @@ graph TD
         decider[decider]
         projectionhost[projectionhost]
         listing[listing]
-        graph_tier[graph]
+        graphmod["graph"] %% node ID can't be 'graph' — mermaid keyword
         scenario[scenario]
     end
 
