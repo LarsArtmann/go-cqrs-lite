@@ -1,115 +1,117 @@
 # TODO List
 
-**Updated:** 2026-07-12 (session: documentation reconciliation — fixed feedback doc contradiction, getting-started guide, ADR index, module counts)
+**Updated:** 2026-07-12 (post-v4 comprehensive planning session)
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in [ROADMAP.md](ROADMAP.md). Raw ideas live in [ROADMAP.md § Raw Ideas](ROADMAP.md#raw-ideas-no-design-yet).
+**Full plan:** [`docs/planning/2026-07-12_14-18_POST-V4-COMPREHENSIVE-PLAN.md`](docs/planning/2026-07-12_14-18_POST-V4-COMPREHENSIVE-PLAN.md) — Pareto breakdown, micro-tasks, mermaid graph.
 
 ## Legend
 
 - `[ ]` = Open
 - `[x]` = Done (moved to [CHANGELOG.md](CHANGELOG.md))
-- `[v4]` = Breaking change, part of v4 cut
-- `[BLOCKED]` = Blocked on upstream dependency
+- `[BLOCKED]` = Blocked on upstream dependency or user approval
+- `🔥` = High impact (top 20% that delivers 80% of value)
 
 ---
 
-## v4 Release — SHIPPED
+## v4.0.0 — SHIPPED
 
-> **Status:** v4.0.0 tagged and pushed. All per-module v4.0.0 tags exist. Storage/ split
-> shipped with backward-compat aliases. View store gaps (IS NULL, RawWhere, ViewUpdater, BLOB)
-> shipped as additive features.
->
-> **Decisions locked in:**
->
-> - BackfillHandler → `*SSEBroker`: **done**
-> - Envelope magic string change: **dropped** (collision risk is already near-zero via `"$"` JSON key)
-> - License swap + git history scrub: **after v4**
-> - Parquet/DuckDB modules: **deferred to v4.1**
-> - Storage/ split: **shipped in v4.0.0** (sub-packages with backward-compat aliases)
-> - v3 git tags: **backfilled** (v3.0.0 through v3.7.1 now tagged)
-> - View store gaps: 4 of 5 shipped (BLOB, IS NULL, RawWhere, ViewUpdater); composite keys rejected (use RelationalProjection)
-
-### v4 Breaking Changes (ALL DONE)
-
-- [x] **Remove deprecated APIs** — 8 event/+schema/ aliases deleted; `event.WithNewCodec` and
-      `event.WithReplay` removed; `query.Handler` deprecation notice removed.
-- [x] **Blind store codec default flip** — `kv.NewTypedStore`, `snapshot.NewTypedStore`,
-      `command.TypedStore`, `query.TypedStore` all default to `CBORCodec`.
-- [x] **`event.DefaultCodec` flip** — Changed from `JSONCodec` to `CBORCodec` in `event/codec.go`.
-- [x] **BackfillHandler → `*SSEBroker`** — Signature changed from
-      `BackfillHandler(journal event.SeekableJournal)` to `BackfillHandler(broker *SSEBroker)`.
-      `BackfillHandlerWithTransform` removed (consolidated — transform configured on broker).
-- [x] **Event/ god module decomposition** — Explicitly decided: DO NOT SPLIT (27 importers, cohesion is real).
-- [x] **Storage/ split execution** — `storage/eventstore/` (SQLEventStore, SQLSnapshotStore,
-      SQLCheckpointStore) and `storage/readmodel/` (SQLKVStore) extracted as sub-packages.
-      Full backward compat via type aliases in `storage/`. All tests pass.
-
-### v4 Release Blockers (ALL RESOLVED)
-
-- [x] ~~**Strengthen envelope magic string**~~ — DROPPED. Collision risk already near-zero via `"$"` JSON key.
-- [x] **Envelope backward-compat integration test** — `kv.TestTypedStore_Migration_*` tests verify
-      old raw JSON data reads through new CBOR-default stores, and mixed old+new data coexists.
-- [x] **`[v4.0.0]` CHANGELOG section** — Written with 4 breaking changes, migration steps, and link to guide.
-- [x] **ADR for codec default flip** — ADR-0053 written (`docs/adr/0053-unified-codec-default-flip.md`).
-- [x] **Backfill missing v3 git tags** — v3.0.0, v3.3.0–v3.7.1 tagged.
-- [x] **`/v3` → `/v4` module path migration** — All 49 go.mod files, all imports, all docs, all scripts,
-      all tools updated. Full workspace build + test + vet pass.
-
-### v4 Release High-Value (ALL DONE)
-
-- [x] **`HealthCheck` on `OwnedDBHandle`** — All SQL stores now inherit `HealthCheck(ctx)` via embedding.
-      Removed redundant implementation from `*SQLEventStore`.
-- [x] **Update FEATURES.md for v4** — Envelope wrapping, codec flip, health checks, BackfillHandler change,
-      storage split sub-packages added.
-- [x] **`WithShutdownDependency` integration tests** — Tests through real `stack.New()` constructor
-      with close-order tracking. Proves option function, pointer identity, and Close() ordering all work
-      through the real integration path.
-
-### Release Status
-
-- [x] **`git tag v4.0.0` + push** — Tagged. All per-module v4.0.0 tags exist.
+> v4.0.0 tagged and pushed. All per-module tags exist. See [CHANGELOG.md](CHANGELOG.md) `[4.0.0]` for details.
 
 ---
 
-## Post-v4
+## Priority 1 — The 1% that delivers 51%
 
-### v4.1 — Parquet Journal + DuckDB Materializations
+- [ ] 🔥 **Publish `eventtest` to Go proxy as `v0.1.0`** — The #1 consumer pain point across
+      ALL feedback rounds (DiscordSync ×3, SwettySwipper ×2). Every consumer must manually
+      `replace` it in go.mod. Tag + push, verify proxy fetch works. ~30min.
+
+---
+
+## Priority 2 — The 4% that delivers 64%
+
+- [ ] 🔥 **Archive 565 session files to `docs/archive/`** — `docs/status/` and `docs/planning/`
+      called "overwhelming" and "unnavigable" by both consumers. `git mv` timestamped files,
+      keep only current docs in `docs/`. ~45min.
+- [ ] 🔥 **Consolidate to one dependency model** — CONTRIBUTING.md has a stale 7-layer model;
+      ADR-0046 Four-Tier Model is honest. Update CONTRIBUTING.md to reference it. ~30min.
+- [ ] 🔥 **Module relationship diagram in README** — 49 modules, no visual map. Add a mermaid
+      dependency graph + "which modules do I need?" decision flow. ~60min.
+
+---
+
+## Priority 3 — The 20% that delivers 80%
+
+### Consumer-facing
+
+- [ ] 🔥 **Middleware ordering guide** — 30+ middlewares, no recommended order. New
+      `docs/middleware-ordering.md` with rationale. Both consumers guessed. ~45min.
+- [ ] **SQL `TimerStore` for `scheduling`** — Only ships `MemoryTimerStore`. Both consumers
+      can't adopt `scheduling` without hand-rolling SQL. ~90min.
+- [ ] **SQL `AggregateReader` for `listing`** — Only ships `InMemoryAggregateReader`. Same gap. ~60min.
+- [ ] **README "sales page" rewrite** — Per AGENTS.md rule. What this does, why it exists,
+      how to get started. ~90min.
+
+### Code quality
+
+- [ ] **Lint-clean `scheduling`** — 19 lint issues (mnd, exhaustruct, gosec, wrapcheck,
+      tagliatelle, errname). Mostly mechanical constant extraction + renames. ~45min.
+- [ ] **Lint-clean `scenario`** — 7 lint issues (errname, exhaustruct ×3). Mechanical. ~30min.
+- [ ] **CBOR-stamp tests for gRPC + watermill** — Cross-encoding round-trip tests proving
+      CBOR-stamped events survive transport. Only SSE has this coverage today. ~45min.
+- [ ] **Pre-commit hooks** — `fmt.Printf` ban in prod packages, api_surface.txt regen check,
+      `nix fmt --fail-on-change`. Via flake.nix. ~60min.
+
+### Documentation
+
+- [ ] **ADR numbering fix** — Two ADRs share number 0047 (COSE + json/v2). Renumber second
+      to 0054. Document gaps 0036/0041. ~30min.
+- [ ] **CONTRIBUTING.md agent safety rules** — Document concurrent-agent etiquette, debug-print
+      discipline, "don't revert changes you didn't author" nuance. ~30min.
+- [ ] **`DeadLetterStoreAdmin` documentation** — Document Count, ListPaged, PurgeBefore in
+      AGENTS.md + SKILL.md. ~30min.
+- [ ] **Per-projection lag in `WorkerState`** — Add `Lag time.Duration` field to `Status()`
+      output. Currently only aggregate `LagDuration()` available. ~45min.
+- [ ] **`event/batch_test.go` go mod tidy** — Pre-existing per-module testing friction. ~15min.
+
+---
+
+## Priority 4 — Post-v4.1 (breaking changes, new major version)
+
+- [ ] **Deprecated API removal batch 2** — Remove 9 deprecated items: `middleware.{NewMetrics,
+    CommandMetrics, EventMetrics, QueryMetrics, MetricsRecorder, Observe}`,
+      `catalog.Exporter` (non-generic), `storage/sql.{NewDBHandle, NewDBHandleFromDB}`.
+      Breaking → v4.1 cut. ~60min.
+- [ ] **Postgres CI coverage matrix** — Add CI Postgres service or label `stack/postgres`
+      experimental. ~60min.
+
+---
+
+## Priority 5 — Public Release Readiness (NEEDS USER APPROVAL)
+
+> **These are irreversible. Do NOT execute without explicit user approval.**
+
+- [ ] [BLOCKED] **License swap (PROPRIETARY → Apache-2.0)** — Hard blocker for public adoption.
+      **Needs user approval (irreversible).**
+- [ ] [BLOCKED] **Git history scrub for internal docs** — AGENTS.md, docs/planning/\* contain
+      internal strategy. **Needs user approval (irreversible).**
+
+---
+
+## Future — v4.1+ Parquet Journal + DuckDB
 
 > Design complete at `docs/research/2026-07-11_PARQUET_JOURNAL_DUCKDB_MATERIALIZATIONS.md`.
-> Three independent phases, all additive (no breaking changes). Deferred from v4 to keep
-> the major version cut focused on cleanup.
+> Three independent phases, all additive (no breaking changes).
 
 - [ ] **Phase 1: `storage/parquet`** — Parquet segment journal (`SeekableJournal`). Pure Go
       (`parquet-go/parquet-go`), no CGO. Segment-based append-only log with manifest index.
 - [ ] **Phase 2: `storage/duckdb`** — DuckDB connector + `DuckDBDialect` (11 methods). Unlocks
       `SQLViewStore` + `RelationalProjection` for OLAP-grade materializations. Requires CGO.
 - [ ] **Phase 3: `stack/duckdb`** — Preset wiring: DuckDB materializations + optional Parquet
-      journal. The "lakehouse for events" pattern (DuckDB queries Parquet segments natively).
-
-### v4.1 — Storage/ Split (DONE in v4.0.0)
-
-> Originally planned for v4.1 but pulled into v4.0.0. `storage/eventstore/` and
-> `storage/readmodel/` sub-packages created with full backward compat.
-
-- [x] **Extract `storage/eventstore/`** — SQLEventStore, SQLSnapshotStore, SQLCheckpointStore
-- [x] **Extract `storage/readmodel/`** — SQLKVStore
-- [x] **Dispatch log stays in `storage/`** — SQLCommandStore, SQLQueryStore alongside SQLBackend facade
-- [x] **Deprecated re-exports in `storage/`** — type aliases + constructor re-exports for backward compat
-
-### Public Release Readiness
-
-> **Release strategy decided 2026-07-11:** Public release (license swap + history scrub) happens
-> **AFTER v4 cut**, not before.
-
-- [ ] **License swap (PROPRIETARY → Apache-2.0)** — Hard blocker for public adoption. **Needs user
-      approval (irreversible).** After v4.
-- [ ] **Git history scrub for internal docs** — AGENTS.md, docs/planning/\* contain internal
-      strategy. **Needs user approval (irreversible).** After v4.
-- [ ] **Postgres CI coverage matrix** — Add CI Postgres service or label experimental.
-- [ ] **README polish to "sales page" standard** — Per AGENTS.md rule.
+      journal. The "lakehouse for events" pattern.
 
 ---
 
-## Transport (future expansion)
+## Future — Transport Expansion
 
 - [ ] **NATS/ValKey Stream adapter** — ADR-0025 accepted. Separate `transport/nats/` and
       `transport/redis/` modules.
@@ -128,28 +130,28 @@
 
 ## Rejected (with reasons)
 
-- **Strengthen envelope magic string (`"cqrs"` → `"cqrs-envelope-v1"`)** — Dropped. The `"$"` JSON key
-  provides 99% of collision avoidance. The value is belt-and-suspenders. Extra bytes per record for
-  near-zero benefit.
-- **Unify VersionedStore + VersionedSeekableJournal** (item 20) — Different interfaces (Store:
-  Load/Save per aggregate, SeekableJournal: ReadFrom position-based). One type can't cleanly
-  implement both. YAGNI.
-- **VersionedJournal (ReadAll only)** (items 22, 49) — No consumer needs `ReadAll` with upcasters.
-  SeekableJournal is the projectionhost interface. YAGNI.
-- **Expose `SSEBroker.PayloadTransform()` accessor** (item 24) — Implemented for BackfillHandler
-  (necessary), but no standalone demand from consumers.
-- **`WithPayloadTransform` on SSEHandler** (item 27) — SSEHandler wraps the broker; adding transform
-  there duplicates responsibility (SRP violation).
-- **Auto-apply CQRS views by default** (items 35, 50) — Violates "library, not framework" principle.
-  Consumers choose their histogram boundaries.
-- **VersionedSeekableJournal implementing event.Store** (item 40) — Different scope (position-based
-  vs aggregate-based reads). YAGNI.
-- **Integration test in `integration/` module** (item 19) — Redundant with
+- **Strengthen envelope magic string (`"cqrs"` → `"cqrs-envelope-v1"`)** — The `"$"` JSON key
+  provides 99% of collision avoidance. Extra bytes per record for near-zero benefit.
+- **Composite keys in `SQLViewStore`** — Breaks `K fmt.Stringer` type parameter. Composite keys
+  are relational territory — use `RelationalProjection` (supports junction tables, multi-table
+  atomic writes). See ADR-0033.
+- **OR conditions / query builder in ViewStore** — `RawWhere` escape hatch covers the 5% case.
+  Building `OrClause`/`NotClause`/nested groups is ORM creep. Principle #1: "Library, not framework."
+- **Unify VersionedStore + VersionedSeekableJournal** — Different interfaces (Store: Load/Save per
+  aggregate, SeekableJournal: ReadFrom position-based). YAGNI.
+- **VersionedJournal (ReadAll only)** — No consumer needs `ReadAll` with upcasters. YAGNI.
+- **Expose `SSEBroker.PayloadTransform()` accessor** — Implemented for BackfillHandler (necessary),
+  but no standalone demand from consumers.
+- **`WithPayloadTransform` on SSEHandler** — SSEHandler wraps the broker; adding transform there
+  duplicates responsibility (SRP violation).
+- **Auto-apply CQRS views by default** — Violates "library, not framework." Consumers choose
+  their histogram boundaries.
+- **VersionedSeekableJournal implementing event.Store** — Different scope (position-based vs
+  aggregate-based reads). YAGNI.
+- **Integration test in `integration/` module** — Redundant with
   `projectionhost/versioned_journal_integration_test.go`.
-- **`storage/auditstore/` package** — Lying name. "Audit" implies after-the-fact compliance review,
-  but these stores serve replay/debugging/accountability. Renamed to "dispatch log" and kept in
-  `storage/` — they're small CRUD wrappers (~1,100 lines) that belong with the backend facade.
-  See updated `docs/planning/2026-07-09_STORAGE-SPLIT-PROPOSAL.md`.
+- **`storage/auditstore/` package** — Lying name. Renamed to "dispatch log" and kept in `storage/`.
+- **Split event/ module** — 27 importers, real cohesion. Explicitly decided in v4.
 
 ---
 

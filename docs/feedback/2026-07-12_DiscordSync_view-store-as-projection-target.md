@@ -367,13 +367,13 @@ the exception: composite keys belong in the relational tier.
 
 ### What was shipped
 
-| Change | Files | LOC |
-| ------ | ----- | --- |
-| Gap 1: `[]byte` → `BLOB` in AutoMapper | `storage/view/auto.go` + test | ~6 |
-| Gap 3: `OpIsNull` / `OpIsNotNull` operators | `kv/view_store.go`, `storage/view/count.go`, `query.go` | ~15 |
-| Gap 4: `RawWhere` / `RawArgs` escape hatch | `kv/view_store.go`, `storage/view/{query,count}.go` | ~25 |
-| Gap 5: `ViewUpdater[V,K]` atomic read-modify-write interface | `kv/view_store.go` | ~15 |
-| SKILL.md: three-tier projection decision table | `SKILL.md` | ~20 |
+| Change                                                       | Files                                                   | LOC |
+| ------------------------------------------------------------ | ------------------------------------------------------- | --- |
+| Gap 1: `[]byte` → `BLOB` in AutoMapper                       | `storage/view/auto.go` + test                           | ~6  |
+| Gap 3: `OpIsNull` / `OpIsNotNull` operators                  | `kv/view_store.go`, `storage/view/count.go`, `query.go` | ~15 |
+| Gap 4: `RawWhere` / `RawArgs` escape hatch                   | `kv/view_store.go`, `storage/view/{query,count}.go`     | ~25 |
+| Gap 5: `ViewUpdater[V,K]` atomic read-modify-write interface | `kv/view_store.go`                                      | ~15 |
+| SKILL.md: three-tier projection decision table               | `SKILL.md`                                              | ~20 |
 
 All changes are additive — no breaking changes to existing APIs.
 

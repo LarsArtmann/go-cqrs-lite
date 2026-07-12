@@ -136,21 +136,21 @@ Query   → Dispatcher → Handler            Projection
 
 ## Core Modules
 
-| Module         | Import Path                 | Purpose                                     |
-| -------------- | --------------------------- | ------------------------------------------- |
-| event          | `.../event/v4`              | Events, Store, Bus, reactive streams        |
-| command        | `.../command/v4`            | Commands, Dispatcher, typed handlers        |
-| query          | `.../query/v4`              | Queries, Dispatcher, typed results          |
-| decider        | `.../decider/v4`            | Pure-function aggregate pattern             |
-| id             | `.../id/v4`                 | Branded IDs (AggregateID, EventID, etc.)    |
-| projection     | `.../projection/v4`         | Projection interface (consumer-side)        |
-| projectionhost | `.../projectionhost/v4`     | Managed projection lifecycle (goroutines, DLQ, checkpointing) |
-| storage/memory | `.../storage/memory/v4`     | In-memory implementations (testing)         |
-| storage        | `.../storage/v4`            | SQL stores, Pebble, Turso connectors        |
-| middleware     | `.../middleware/v4`         | Logging, retry, recovery, validation, OTel  |
-| catalog        | `.../catalog/v4`            | Auto-documentation (AsyncAPI, EventCatalog) |
-| schema         | `.../schema/v4`             | Schema evolution (upcasters, versioned stores) |
-| signing        | `.../signing/v4`            | Event signing/verification (HMAC, Ed25519)  |
+| Module         | Import Path             | Purpose                                                       |
+| -------------- | ----------------------- | ------------------------------------------------------------- |
+| event          | `.../event/v4`          | Events, Store, Bus, reactive streams                          |
+| command        | `.../command/v4`        | Commands, Dispatcher, typed handlers                          |
+| query          | `.../query/v4`          | Queries, Dispatcher, typed results                            |
+| decider        | `.../decider/v4`        | Pure-function aggregate pattern                               |
+| id             | `.../id/v4`             | Branded IDs (AggregateID, EventID, etc.)                      |
+| projection     | `.../projection/v4`     | Projection interface (consumer-side)                          |
+| projectionhost | `.../projectionhost/v4` | Managed projection lifecycle (goroutines, DLQ, checkpointing) |
+| storage/memory | `.../storage/memory/v4` | In-memory implementations (testing)                           |
+| storage        | `.../storage/v4`        | SQL stores, Pebble, Turso connectors                          |
+| middleware     | `.../middleware/v4`     | Logging, retry, recovery, validation, OTel                    |
+| catalog        | `.../catalog/v4`        | Auto-documentation (AsyncAPI, EventCatalog)                   |
+| schema         | `.../schema/v4`         | Schema evolution (upcasters, versioned stores)                |
+| signing        | `.../signing/v4`        | Event signing/verification (HMAC, Ed25519)                    |
 
 For the full list of 49 modules, see [AGENTS.md](../AGENTS.md).
 
