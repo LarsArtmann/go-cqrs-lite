@@ -11,6 +11,7 @@ import (
 const (
 	sqlTypeText    = "TEXT"
 	sqlTypeInteger = "INTEGER"
+	sqlTypeBlob    = "BLOB"
 	keyColumnName  = "key"
 )
 
@@ -31,6 +32,7 @@ const (
 //	float32, float64 → REAL
 //	bool             → INTEGER
 //	time.Time        → TEXT
+//	[]byte           → BLOB
 //
 // Example:
 //
@@ -177,6 +179,11 @@ func goTypeToSQL(rt reflect.Type) (string, bool) {
 		return "REAL", false
 	case reflect.Bool:
 		return sqlTypeInteger, true
+	case reflect.Slice:
+		if rt.Elem() == reflect.TypeFor[byte]() {
+			return sqlTypeBlob, false
+		}
+		return sqlTypeText, false
 	default:
 		if rt == reflect.TypeFor[time.Time]() {
 			return sqlTypeText, false

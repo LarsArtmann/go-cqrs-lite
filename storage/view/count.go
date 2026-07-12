@@ -26,6 +26,16 @@ func (s *SQLViewStore[V, K]) Count(ctx context.Context, q kv.ViewQuery) (int64, 
 		fmt.Fprintf(&b, " WHERE %s", whereClause)
 	}
 
+	if q.RawWhere != "" {
+		if whereClause != "" {
+			fmt.Fprintf(&b, " AND (%s)", q.RawWhere)
+		} else {
+			fmt.Fprintf(&b, " WHERE %s", q.RawWhere)
+		}
+
+		args = append(args, q.RawArgs...)
+	}
+
 	var count int64
 
 	err := s.DB.QueryRowContext(ctx, b.String(), args...).Scan(&count)
@@ -65,6 +75,12 @@ func buildWhereClause(conditions []kv.Condition, placeholder func(int) string) (
 
 			parts = append(parts, cond.Column+" IN ("+strings.Join(placeholders, ", ")+")")
 			args = append(args, cond.Values...)
+
+			continue
+		}
+
+		if cond.Op == kv.OpIsNull || cond.Op == kv.OpIsNotNull {
+			parts = append(parts, cond.Column+" "+string(cond.Op))
 
 			continue
 		}

@@ -36,6 +36,21 @@ type ViewQuery struct {
 	Desc       bool
 	Limit      int
 	Offset     int
+
+	// RawWhere is an additional WHERE clause AND-joined with Conditions.
+	// This is an escape hatch for predicates that cannot be expressed via
+	// [Condition] (e.g. OR groups, subqueries, date arithmetic). The caller
+	// is responsible for parameterisation — values go in [RawArgs].
+	//
+	// Example:
+	//
+	//	q := kv.ViewQuery{
+	//	    Conditions: []kv.Condition{{Column: "guild_id", Op: kv.OpEq, Value: gid}},
+	//	    RawWhere:   "(deleted_at IS NULL OR deleted_at > ?)",
+	//	    RawArgs:    []any{cutoff},
+	//	}
+	RawWhere string
+	RawArgs  []any
 }
 
 // ViewQuerier is an optional capability implemented by view stores that support
@@ -87,6 +102,18 @@ type ViewResetter[V any] interface {
 	DeleteAll(ctx context.Context) error
 }
 
+// ViewUpdater is an optional capability implemented by view stores that support
+// atomic read-modify-write via a transaction. The update function receives the
+// current value (or nil if the key does not exist) and returns the new value to
+// persist. Returning nil from the function deletes the record.
+//
+// This is critical for event-driven counters and stats projections where
+// multiple events increment the same row — a plain Get→Set race would lose
+// updates under concurrent projection.
+type ViewUpdater[V any, K fmt.Stringer] interface {
+	Update(ctx context.Context, key K, update func(current *V) (*V, error)) error
+}
+
 // ViewBatchSetter is an optional capability implemented by view stores that
 // support atomic batch upserts. This is critical for projection replay
 // throughput — replaying thousands of events one Set at a time is O(n) round
@@ -128,14 +155,16 @@ type Condition struct {
 type Operator string
 
 const (
-	OpEq   Operator = "="
-	OpNeq  Operator = "!="
-	OpLt   Operator = "<"
-	OpLte  Operator = "<="
-	OpGt   Operator = ">"
-	OpGte  Operator = ">="
-	OpLike Operator = "LIKE"
-	OpIn   Operator = "IN"
+	OpEq        Operator = "="
+	OpNeq       Operator = "!="
+	OpLt        Operator = "<"
+	OpLte       Operator = "<="
+	OpGt        Operator = ">"
+	OpGte       Operator = ">="
+	OpLike      Operator = "LIKE"
+	OpIn        Operator = "IN"
+	OpIsNull    Operator = "IS NULL"
+	OpIsNotNull Operator = "IS NOT NULL"
 )
 
 // Compile-time assertion: *TypedStore satisfies ViewStore.

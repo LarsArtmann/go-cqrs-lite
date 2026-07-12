@@ -25,6 +25,16 @@ func (s *SQLViewStore[V, K]) Query(ctx context.Context, q kv.ViewQuery) ([]*V, e
 		fmt.Fprintf(&b, " WHERE %s", whereClause)
 	}
 
+	if q.RawWhere != "" {
+		if whereClause != "" {
+			fmt.Fprintf(&b, " AND (%s)", q.RawWhere)
+		} else {
+			fmt.Fprintf(&b, " WHERE %s", q.RawWhere)
+		}
+
+		args = append(args, q.RawArgs...)
+	}
+
 	orderCol := q.OrderBy
 	if orderCol == "" {
 		orderCol = keyColumnName

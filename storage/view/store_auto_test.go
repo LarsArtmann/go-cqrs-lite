@@ -79,3 +79,46 @@ func TestSQLViewStore_AutoMapper(t *testing.T) {
 		t.Fatalf("Tombstoned: got %d, want 1", len(tombstoned))
 	}
 }
+
+type blobView struct {
+	Name    string `view:"name"`
+	Payload []byte `view:"payload"`
+}
+
+func TestSQLViewStore_AutoMapperBlobType(t *testing.T) {
+	t.Parallel()
+
+	mapper := AutoMapper[blobView]("blob_views")
+
+	for _, col := range mapper.Columns {
+		if col.Name == "payload" && col.Type != sqlTypeBlob {
+			t.Fatalf("payload column: got %s, want BLOB", col.Type)
+		}
+	}
+
+	db, err := openSQLiteInMemory()
+	if err != nil {
+		t.Fatalf("OpenSQLiteInMemory: %v", err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+
+	store, err := NewSQLiteViewStore[blobView, testKey](db, mapper)
+	if err != nil {
+		t.Fatalf("NewSQLiteViewStore: %v", err)
+	}
+
+	ctx := context.Background()
+	payload := []byte{0x00, 0xFF, 0x42, 0x7F}
+	v := &blobView{Name: "blob1", Payload: payload}
+	if err := store.Set(ctx, testKey("b1"), v); err != nil {
+		t.Fatalf("Set: %v", err)
+	}
+
+	got, err := store.Get(ctx, testKey("b1"))
+	if err != nil {
+		t.Fatalf("Get: %v", err)
+	}
+	if string(got.Payload) != string(payload) {
+		t.Fatalf("Payload: got %v, want %v", got.Payload, payload)
+	}
+}

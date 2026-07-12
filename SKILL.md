@@ -113,7 +113,8 @@ with projection + read model.
 | Generate unique, type-safe IDs                        | `id`                                                                            | recipes §2.1    |
 | Typed event metadata (tracing, custom data)           | `metadata`                                                                      | —               |
 | Encode payloads as JSON/CBOR                          | `codec`                                                                         | recipes §2.1    |
-| Build a read model from events                        | `stack.Materialize` + `kv.TypedStore`                                           | readmodels §2.3 |
+| Build a read model from events                        | `stack.Materialize` + `kv.ViewStore` (see tier table below)                     | readmodels §2.3 |
+| Multi-table projection (composite keys, junctions)    | `storage.RelationalProjection`                                                  | readmodels §2.3 |
 | Dispatch type-safe queries                            | `query`                                                                         | readmodels §2.3 |
 | List all aggregates + their status                    | `listing`                                                                       | advanced §6.3   |
 | Persist to PostgreSQL / SQLite                        | `storage`                                                                       | recipes §2.2    |
@@ -151,6 +152,18 @@ with projection + read model.
 | Pull-based event backfill (REST endpoint)             | `transport/http` (`BackfillHandler`)                                            | advanced §6.15  |
 
 > **§2 (recipes), §5 (module reference), §6 (advanced patterns)** live in the on-demand `references/` files, not in this core file. This is the progressive-disclosure design — the core file holds the decision material needed on every trigger; the references hold long copy-paste recipes loaded only when needed.
+
+### Which projection tier?
+
+**Three tiers** — pick by read-access pattern, not by preference:
+
+| Tier            | Module                               | One event writes…       | Use when                                                                            | Do NOT use for                                           |
+| --------------- | ------------------------------------ | ----------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| **Document/KV** | `stack.Materialize` + `kv.ViewStore` | one record, one table   | single-entity lookups, CRUD reads, simple WHERE/ORDER BY on columns                 | composite keys, multi-table writes, OR conditions, JOINs |
+| **Relational**  | `storage.RelationalProjection`       | several tables (atomic) | composite primary keys, junction tables, multi-table denormalization, complex WHERE | variable-depth traversal                                 |
+| **Graph**       | `graph.GraphProjection`              | nodes + edges           | N-hop traversal, adjacency, path-finding, causation DAGs                            | simple CRUD (overkill)                                   |
+
+`SQLViewStore` is the document tier **with queryable SQL columns** — still one record per event, single-column primary key. If you need composite keys or one event writing to multiple tables, that's `RelationalProjection`. Don't try to make ViewStore do relational work — the tiers exist because no single tier serves all read patterns well.
 
 ---
 
