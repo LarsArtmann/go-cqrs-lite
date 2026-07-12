@@ -353,3 +353,99 @@ Events → [pipeline gaps, round 2] → Projection → [output gaps, this round]
 
 Fixing all 8 gaps would allow DiscordSync to eliminate 100% of its
 hand-written SQL (~229 statements across 37 files).
+
+---
+
+## Appendix: Maintainer Assessment (2026-07-12)
+
+**Verdict:** The feedback is high quality — real consumer pain, concrete
+numbers, concrete fixes. But it has one major blind spot: it never mentions
+`storage.RelationalProjection`, which already exists and solves two of the
+five "gaps" by design. The report frames everything as a ViewStore gap, when
+the library already has a three-tier projection model
+(`Materialize` → `SQLViewStore` → `RelationalProjection`/`GraphProjection`).
+Several gaps are consumers reaching for the wrong tier.
+
+### Gap 1: BLOB support in AutoMapper — ACCEPT
+
+`[]byte` → `BLOB` is the only correct mapping. Three lines. Zero design
+tension. The current `TEXT` mapping is a bug. Ship it.
+
+### Gap 2: Composite keys — REJECT (redirect to RelationalProjection)
+
+`RelationalProjection` already supports composite primary keys — including
+triple-key junction tables (`guild_id`, `user_id`, `role_id`) — with atomic
+multi-table writes. See AGENTS.md's `member_roles` example. This gap is
+documented as solved.
+
+The proposed fix breaks the `K fmt.Stringer` type parameter — the core
+abstraction that makes ViewStore composable with `kv.Store`, `kv.Cache`,
+`kv.TypedStore`. Relaxing to `K any` ripples through the entire KV tier.
+That's a massive blast radius for a convenience feature.
+
+ViewStore is explicitly documented as "ONE record to ONE table per event."
+Composite keys + junction tables are multi-entity relational territory.
+
+**Recommendation:** Point DiscordSync at `RelationalProjection` for
+`GuildMember`, `VoiceState`, `Reaction`, `MemberRole`.
+
+### Gap 3: Tombstone timestamps — PARTIAL ACCEPT
+
+Nullable timestamp filtering is a real need. But overloading the tombstone
+concept (a deliberate boolean soft-delete marker, design principle #11) with
+timestamp semantics muddies the model.
+
+**Accept:** `OpIsNull` / `OpIsNotNull` operators (the alternative proposal).
+General, composable, fixes the gap without touching tombstone semantics.
+~10 lines added to the `Operator` enum.
+
+**Reject:** Tombstone-column-as-nullable-timestamp. Keeps the tombstone
+concept honest.
+
+### Gap 4: OR conditions — ACCEPT escape hatch only
+
+- **Option A (WhereClause AST):** REJECT. This is building a query builder —
+  exactly the ORM creep principle #1 ("Library, not framework") warns
+  against. Once shipped, every consumer wants more operators, subqueries,
+  CTEs.
+- **Option B (Chain field):** REJECT. Can't express precedence; positional
+  semantics on a declarative-looking API is the worst kind of design.
+- **Option C (RawWhere):** ACCEPT. The honest answer. Pragmatic 5% escape
+  valve, clearly labeled unsafe, doesn't grow. Matches the library's
+  philosophy: sharp tools, not guardrails. ~20 lines.
+
+### Gap 5: Atomic read-modify-write — ACCEPT with caveat
+
+Genuinely useful ES primitive. The `Update(ctx, key, merge)` pattern is the
+correct way to maintain incremental aggregate views.
+
+**Caveat:** `SELECT ... FOR UPDATE` is Postgres-only. SQLite has no
+row-level locking. The implementation must use `BEGIN IMMEDIATE` for SQLite
+(serialize writes) and `SELECT FOR UPDATE` for Postgres. For SQLite
+(DiscordSync's database), this is functionally equivalent to
+`MaxOpenCons=1` for write throughput — but it's still the right API to own.
+
+**Accept:** Option A (`Update` method via `RunInTx` with dialect-appropriate
+locking). ~40 lines.
+**Reject:** Option B (`AggregateStore`). Too narrow; one-trick type.
+
+### Summary
+
+| Gap | Verdict | Rationale                              |
+| --- | ------- | -------------------------------------- |
+| 1   | Accept  | Bug fix, not a feature                 |
+| 2   | Reject  | RelationalProjection already does this |
+| 3   | Partial | Accept `OpIsNull`/`OpIsNotNull` only   |
+| 4   | Partial | Accept `RawWhere` only                 |
+| 5   | Accept  | Real gap, needs SQLite-correct locking |
+
+**Total accepted: ~70 lines across 3 gaps + 1 bug fix.**
+
+The feedback asks for 5 features; the library should ship ~3.5. The
+rejected parts (composite keys, query AST) belong to `RelationalProjection`
+and raw SQL respectively — the library already provides both.
+
+The feedback's unspoken premise — "ViewStore should be the ONE projection
+tool" — contradicts the three-tier model. The right response to "I can't
+express X in ViewStore" is often "that's because X belongs in the
+relational tier."
