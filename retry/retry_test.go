@@ -8,6 +8,7 @@ import (
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/retry/v4"
 )
 
@@ -15,12 +16,15 @@ func TestDo_SucceedsOnFirstAttempt(t *testing.T) {
 	t.Parallel()
 
 	var calls atomic.Int32
-	err := retry.Do(context.Background(), fastConfig(), func(ctx context.Context, attempt int) error {
-		calls.Add(1)
+	err := retry.Do(
+		context.Background(),
+		fastConfig(),
+		func(ctx context.Context, attempt int) error {
+			calls.Add(1)
 
-		return nil
-	})
-
+			return nil
+		},
+	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -33,15 +37,18 @@ func TestDo_RetriesUntilSuccess(t *testing.T) {
 	t.Parallel()
 
 	var calls atomic.Int32
-	err := retry.Do(context.Background(), fastConfig(), func(ctx context.Context, attempt int) error {
-		calls.Add(1)
-		if attempt < 3 {
-			return errorfamily.NewTransient("test.transient", "fail")
-		}
+	err := retry.Do(
+		context.Background(),
+		fastConfig(),
+		func(ctx context.Context, attempt int) error {
+			calls.Add(1)
+			if attempt < 3 {
+				return errorfamily.NewTransient("test.transient", "fail")
+			}
 
-		return nil
-	})
-
+			return nil
+		},
+	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -56,11 +63,15 @@ func TestDo_ReturnsErrExhaustedWhenAllAttemptsFail(t *testing.T) {
 	transient := errorfamily.NewTransient("test.transient", "always fail")
 
 	var calls atomic.Int32
-	err := retry.Do(context.Background(), fastConfig(), func(ctx context.Context, attempt int) error {
-		calls.Add(1)
+	err := retry.Do(
+		context.Background(),
+		fastConfig(),
+		func(ctx context.Context, attempt int) error {
+			calls.Add(1)
 
-		return transient
-	})
+			return transient
+		},
+	)
 
 	if !errors.Is(err, retry.ErrExhausted) {
 		t.Fatalf("expected ErrExhausted, got %v", err)
@@ -79,11 +90,15 @@ func TestDo_DoesNotRetryNonRetryableError(t *testing.T) {
 	rejection := errorfamily.NewRejection("test.rejection", "non-retryable")
 
 	var calls atomic.Int32
-	err := retry.Do(context.Background(), fastConfig(), func(ctx context.Context, attempt int) error {
-		calls.Add(1)
+	err := retry.Do(
+		context.Background(),
+		fastConfig(),
+		func(ctx context.Context, attempt int) error {
+			calls.Add(1)
 
-		return rejection
-	})
+			return rejection
+		},
+	)
 
 	if !errors.Is(err, rejection) {
 		t.Fatalf("expected rejection error, got %v", err)
@@ -232,16 +247,24 @@ func TestDo_InvalidConfigReturnsError(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests { //nolint:paralleltest // table test
+	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := retry.Do(context.Background(), tt.config, func(ctx context.Context, attempt int) error {
-				t.Fatal("fn should not be called with invalid config")
+			err := retry.Do(
+				context.Background(),
+				tt.config,
+				func(ctx context.Context, attempt int) error {
+					t.Fatal("fn should not be called with invalid config")
 
-				return nil
-			})
+					return nil
+				},
+			)
 
 			if errorfamily.Classify(err) != errorfamily.Rejection {
-				t.Fatalf("expected Rejection family, got %v (family: %s)", err, errorfamily.Classify(err))
+				t.Fatalf(
+					"expected Rejection family, got %v (family: %s)",
+					err,
+					errorfamily.Classify(err),
+				)
 			}
 		})
 	}
