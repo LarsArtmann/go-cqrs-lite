@@ -93,8 +93,7 @@ func (w *worker) recordMetric(fn func(MetricsRecorder)) {
 	}
 }
 
-func (w *worker) run(ctx context.Context, wg *sync.WaitGroup) {
-	defer wg.Done()
+func (w *worker) run(ctx context.Context) {
 	defer close(w.done)
 	defer func() {
 		if w.snapshot().Status != WorkerFailed {

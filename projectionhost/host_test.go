@@ -1362,6 +1362,63 @@ func TestHost_Reset_WithoutPurge_KeepsDeadLetters(t *testing.T) {
 	}
 }
 
+// TestHost_StaggerShutdownNoLeak is a regression test for a goroutine-leak bug
+// where workers cancelled during their stagger delay (before run() was called)
+// would return without decrementing the WaitGroup, causing Stop() to block for
+// the full shutdownTimeout. With many projections in a single host and immediate
+// Stop(), the stagger window (N workers × 10ms) guarantees some workers are
+// still in their delay when Stop() cancels the context. Stop() should return
+// promptly instead of blocking for the full shutdown timeout.
+func TestHost_StaggerShutdownNoLeak(t *testing.T) {
+	t.Parallel()
+
+	journal := &memoryJournal{}
+	cpStore := newMemoryCheckpointStore()
+
+	host, err := projectionhost.New(
+		journal, cpStore,
+		projectionhost.WithBatchSize(100),
+		projectionhost.WithShutdownTimeout(5*time.Second),
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	// Register enough projections so the total stagger window is significant.
+	// 20 workers × 10ms = 200ms stagger window — guaranteed to overlap with
+	// an immediate Stop().
+	const numProjections = 20
+	for i := range numProjections {
+		if err := host.Register(&countingProjection{
+			name: fmt.Sprintf("proj-%d", i),
+		}); err != nil {
+			t.Fatalf("Register: %v", err)
+		}
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	if err := host.Start(ctx); err != nil {
+		cancel()
+		t.Fatalf("Start: %v", err)
+	}
+
+	// Cancel immediately — some workers are still in their stagger delay.
+	cancel()
+
+	start := time.Now()
+	if err := host.Stop(); err != nil {
+		t.Fatalf("Stop: %v", err)
+	}
+	elapsed := time.Since(start)
+
+	// With the bug, Stop() blocked for the full shutdownTimeout (5s here).
+	// With the fix, all stagger goroutines decrement the WaitGroup on return.
+	// 2s is generous; the stagger window for 20 workers is ~200ms.
+	if elapsed > 2*time.Second {
+		t.Fatalf("Stop took %v — goroutine leak in stagger shutdown (expected <2s)", elapsed)
+	}
+}
+
 // Ensure unused imports are referenced.
 var (
 	_ = fmt.Sprintf

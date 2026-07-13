@@ -154,6 +154,8 @@ func (h *Host) Start(ctx context.Context) error {
 		h.wg.Add(1)
 
 		go func(worker *worker, delay int) {
+			defer h.wg.Done()
+
 			if delay > 0 {
 				select {
 				case <-time.After(time.Duration(delay) * time.Millisecond):
@@ -162,7 +164,7 @@ func (h *Host) Start(ctx context.Context) error {
 				}
 			}
 
-			worker.run(runCtx, &h.wg)
+			worker.run(runCtx)
 		}(w, i*workerStartStaggerMs) // staggered ms between workers to avoid thundering herd
 	}
 
