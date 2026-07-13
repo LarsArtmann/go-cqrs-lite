@@ -1,4 +1,4 @@
-package idempotency_test
+package kvstore_test
 
 import (
 	"context"
@@ -8,13 +8,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/idempotency/kvstore/v4"
 	"github.com/larsartmann/go-cqrs-lite/idempotency/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 
-func TestKVStore_SeenReturnsFalseForNewKey(t *testing.T) {
+func TestStore_SeenReturnsFalseForNewKey(t *testing.T) {
 	t.Parallel()
-	store := idempotency.NewKVStore(kv.NewMemStore())
+	store := kvstore.New(kv.NewMemStore())
 
 	seen, err := store.Seen(context.Background(), "cmd-1")
 	if err != nil {
@@ -25,9 +26,9 @@ func TestKVStore_SeenReturnsFalseForNewKey(t *testing.T) {
 	}
 }
 
-func TestKVStore_SeenReturnsTrueAfterRecord(t *testing.T) {
+func TestStore_SeenReturnsTrueAfterRecord(t *testing.T) {
 	t.Parallel()
-	store := idempotency.NewKVStore(kv.NewMemStore())
+	store := kvstore.New(kv.NewMemStore())
 	ctx := context.Background()
 
 	if err := store.Record(ctx, "cmd-1", time.Minute); err != nil {
@@ -39,9 +40,9 @@ func TestKVStore_SeenReturnsTrueAfterRecord(t *testing.T) {
 	}
 }
 
-func TestKVStore_ExpiredEntriesAreNotSeen(t *testing.T) {
+func TestStore_ExpiredEntriesAreNotSeen(t *testing.T) {
 	t.Parallel()
-	store := idempotency.NewKVStore(kv.NewMemStore())
+	store := kvstore.New(kv.NewMemStore())
 	ctx := context.Background()
 
 	store.Record(ctx, "expired", 1*time.Millisecond)
@@ -53,9 +54,9 @@ func TestKVStore_ExpiredEntriesAreNotSeen(t *testing.T) {
 	}
 }
 
-func TestKVStore_CheckAndRecord_RejectsDuplicate(t *testing.T) {
+func TestStore_CheckAndRecord_RejectsDuplicate(t *testing.T) {
 	t.Parallel()
-	store := idempotency.NewKVStore(kv.NewMemStore())
+	store := kvstore.New(kv.NewMemStore())
 	ctx := context.Background()
 
 	if err := store.CheckAndRecord(ctx, "dup", time.Minute); err != nil {
@@ -67,9 +68,9 @@ func TestKVStore_CheckAndRecord_RejectsDuplicate(t *testing.T) {
 	}
 }
 
-func TestKVStore_CheckAndRecord_AllowsDifferentKeys(t *testing.T) {
+func TestStore_CheckAndRecord_AllowsDifferentKeys(t *testing.T) {
 	t.Parallel()
-	store := idempotency.NewKVStore(kv.NewMemStore())
+	store := kvstore.New(kv.NewMemStore())
 	ctx := context.Background()
 
 	store.CheckAndRecord(ctx, "a", time.Minute)
@@ -78,9 +79,9 @@ func TestKVStore_CheckAndRecord_AllowsDifferentKeys(t *testing.T) {
 	}
 }
 
-func TestKVStore_ExpiredKeyCanBeReclaimed(t *testing.T) {
+func TestStore_ExpiredKeyCanBeReclaimed(t *testing.T) {
 	t.Parallel()
-	store := idempotency.NewKVStore(kv.NewMemStore())
+	store := kvstore.New(kv.NewMemStore())
 	ctx := context.Background()
 
 	store.CheckAndRecord(ctx, "reclaim", 1*time.Millisecond)
@@ -91,9 +92,9 @@ func TestKVStore_ExpiredKeyCanBeReclaimed(t *testing.T) {
 	}
 }
 
-func TestKVStore_ConcurrentSameKeyExactlyOneWins(t *testing.T) {
+func TestStore_ConcurrentSameKeyExactlyOneWins(t *testing.T) {
 	t.Parallel()
-	store := idempotency.NewKVStore(kv.NewMemStore())
+	store := kvstore.New(kv.NewMemStore())
 
 	const n = 200
 	ctx := context.Background()
@@ -126,7 +127,7 @@ func TestKVStore_ConcurrentSameKeyExactlyOneWins(t *testing.T) {
 	}
 }
 
-func TestKVStore_SatisfiesStoreInterface(t *testing.T) {
+func TestStore_SatisfiesStoreInterface(t *testing.T) {
 	t.Parallel()
-	var _ idempotency.Store = idempotency.NewKVStore(kv.NewMemStore())
+	var _ idempotency.Store = kvstore.New(kv.NewMemStore())
 }

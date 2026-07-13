@@ -22,6 +22,7 @@ func main() {
 		"codec",
 		"kv",
 		"dedup",
+		"retry",
 		// Layer 1
 		"event",
 		"event/eventtest",
@@ -29,6 +30,7 @@ func main() {
 		"query",
 		"query/querytest",
 		"idempotency",
+		"idempotency/kvstore",
 		// Layer 2
 		"schema",
 		"snapshot",

@@ -1,4 +1,4 @@
-package idempotency
+package kvstore
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
+	"github.com/larsartmann/go-cqrs-lite/idempotency/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 
@@ -23,21 +24,21 @@ type KVBackend interface {
 	io.Closer
 }
 
-// KVStore adapts any KVBackend into an idempotency.Store.
+// Store adapts any KVBackend into an idempotency.Store.
 // The expiry timestamp is stored as the value (Unix nano). Expired entries
 // are lazily deleted on read. CheckAndRecord uses SetIfAbsent for atomicity.
-type KVStore struct {
+type Store struct {
 	backend KVBackend
 }
 
-// NewKVStore wraps a KVBackend as an idempotency.Store.
+// New wraps a KVBackend as an idempotency.Store.
 // The caller retains ownership of the backend's Close — calling Close on the
 // returned store closes the underlying backend.
-func NewKVStore(backend KVBackend) *KVStore {
-	return &KVStore{backend: backend}
+func New(backend KVBackend) *Store {
+	return &Store{backend: backend}
 }
 
-func (s *KVStore) Seen(ctx context.Context, key string) (bool, error) {
+func (s *Store) Seen(ctx context.Context, key string) (bool, error) {
 	val, err := s.backend.Get(ctx, []byte(key))
 	if err != nil {
 		if errors.Is(err, kv.ErrNotFound) {
@@ -70,7 +71,7 @@ func (s *KVStore) Seen(ctx context.Context, key string) (bool, error) {
 	return true, nil
 }
 
-func (s *KVStore) Record(ctx context.Context, key string, ttl time.Duration) error {
+func (s *Store) Record(ctx context.Context, key string, ttl time.Duration) error {
 	expiry := time.Now().Add(ttl).UnixNano()
 
 	if err := s.backend.Set(
@@ -84,7 +85,7 @@ func (s *KVStore) Record(ctx context.Context, key string, ttl time.Duration) err
 	return nil
 }
 
-func (s *KVStore) CheckAndRecord(ctx context.Context, key string, ttl time.Duration) error {
+func (s *Store) CheckAndRecord(ctx context.Context, key string, ttl time.Duration) error {
 	expiry := time.Now().Add(ttl).UnixNano()
 	val := []byte(strconv.FormatInt(expiry, 10))
 
@@ -124,7 +125,7 @@ func (s *KVStore) CheckAndRecord(ctx context.Context, key string, ttl time.Durat
 				return nil
 			}
 
-			return ErrDuplicate
+			return idempotency.ErrDuplicate
 		}
 
 		return errorfamily.Wrapf(
@@ -159,9 +160,9 @@ func (s *KVStore) CheckAndRecord(ctx context.Context, key string, ttl time.Durat
 		return nil
 	}
 
-	return ErrDuplicate
+	return idempotency.ErrDuplicate
 }
 
-func (s *KVStore) Close() error {
+func (s *Store) Close() error {
 	return s.backend.Close() //nolint:wrapcheck // passthrough
 }
