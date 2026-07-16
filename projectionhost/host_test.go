@@ -1424,3 +1424,44 @@ var (
 	_ = fmt.Sprintf
 	_ = id.NewAggregateID
 )
+
+func TestHost_Status_ReturnsSortedByName(t *testing.T) {
+	t.Parallel()
+
+	journal := &memoryJournal{}
+	cpStore := newMemoryCheckpointStore()
+
+	host, _ := projectionhost.New(journal, cpStore)
+
+	names := []string{
+		"discord-zebra",
+		"discord-alpha",
+		"discord-mike",
+		"discord-charlie",
+		"discord-bravo",
+	}
+	for _, name := range names {
+		if err := host.Register(&countingProjection{name: name}); err != nil {
+			t.Fatalf("Register(%s): %v", name, err)
+		}
+	}
+
+	states := host.Status()
+	if len(states) != len(names) {
+		t.Fatalf("expected %d states, got %d", len(names), len(states))
+	}
+
+	sorted := []string{
+		"discord-alpha",
+		"discord-bravo",
+		"discord-charlie",
+		"discord-mike",
+		"discord-zebra",
+	}
+	for i, s := range states {
+		if s.Name != sorted[i] {
+			t.Fatalf("Status() position %d: expected %q, got %q — output must be sorted by name",
+				i, sorted[i], s.Name)
+		}
+	}
+}

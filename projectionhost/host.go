@@ -1,8 +1,10 @@
 package projectionhost
 
 import (
+	"cmp"
 	"context"
 	"fmt"
+	"slices"
 	"sync"
 	"time"
 
@@ -214,7 +216,8 @@ func (h *Host) Stop() error {
 	}
 }
 
-// Status returns a snapshot of every worker's current state.
+// Status returns a snapshot of every worker's current state, sorted
+// alphabetically by worker name for deterministic output.
 func (h *Host) Status() []WorkerState {
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -223,6 +226,10 @@ func (h *Host) Status() []WorkerState {
 	for _, w := range h.workers {
 		result = append(result, w.snapshot())
 	}
+
+	slices.SortFunc(result, func(a, b WorkerState) int {
+		return cmp.Compare(a.Name, b.Name)
+	})
 
 	return result
 }
