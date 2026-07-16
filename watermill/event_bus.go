@@ -180,9 +180,10 @@ func (b *EventBus) UsePublish(mw ...event.PublishMiddleware) error {
 // Close shuts down the backend. Safe to call multiple times.
 func (b *EventBus) Close() error {
 	b.mu.Lock()
-	defer b.mu.Unlock()
 
 	if b.closed {
+		b.mu.Unlock()
+
 		return nil
 	}
 
@@ -192,8 +193,14 @@ func (b *EventBus) Close() error {
 		b.subCancel()
 	}
 
-	if b.backend != nil {
-		return b.backend.Close()
+	backend := b.backend
+
+	b.mu.Unlock()
+
+	// Close the backend outside the lock to avoid blocking the dispatch
+	// goroutine, which may be finishing an in-flight message via dispatchLocal.
+	if backend != nil {
+		return backend.Close()
 	}
 
 	return nil
