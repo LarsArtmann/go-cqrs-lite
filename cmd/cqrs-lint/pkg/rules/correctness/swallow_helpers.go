@@ -15,7 +15,7 @@ func isPayloadCall(expr ast.Expr) bool {
 		return false
 	}
 
-	sel, ok := call.Fun.(*ast.SelectorExpr)
+	sel, ok := analyzer.SelectorFromExpr(call.Fun)
 	if !ok {
 		return false
 	}
@@ -64,7 +64,7 @@ func inspectForSwallowedError(
 					continue
 				}
 
-				_, ok = call.Fun.(*ast.SelectorExpr)
+				_, ok = analyzer.SelectorFromExpr(call.Fun)
 				if !ok {
 					continue
 				}

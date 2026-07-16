@@ -135,7 +135,7 @@ func NewB007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							continue
 						}
 
-						sel, ok := call.Fun.(*ast.SelectorExpr)
+						sel, ok := analyzer.SelectorFromExpr(call.Fun)
 						if !ok {
 							continue
 						}

@@ -55,7 +55,7 @@ func NewB001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 									return true
 								}
 
-								sel, ok := call.Fun.(*ast.SelectorExpr)
+								sel, ok := analyzer.SelectorFromExpr(call.Fun)
 								if !ok {
 									return true
 								}
@@ -129,7 +129,7 @@ func NewB002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							return true
 						}
 
-						_, ok = call.Fun.(*ast.SelectorExpr)
+						_, ok = analyzer.SelectorFromExpr(call.Fun)
 						if !ok {
 							return true
 						}
@@ -195,7 +195,7 @@ func NewB003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							return true
 						}
 
-						sel, ok := call.Fun.(*ast.SelectorExpr)
+						sel, ok := analyzer.SelectorFromExpr(call.Fun)
 						if !ok {
 							return true
 						}

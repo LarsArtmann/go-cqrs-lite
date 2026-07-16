@@ -154,6 +154,12 @@ func NewA014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
+					// event.NewEvent inside schema.NewUpcaster closures is the
+					// correct API — upcasters reconstruct events from raw bytes.
+					if sel.Sel.Name == "NewEvent" && analyzer.IsInsideUpcasterClosure(gf, call) {
+						return true
+					}
+
 					pos := ctx.Fset.Position(call.Pos())
 
 					f, err := finding.NewBuilder(

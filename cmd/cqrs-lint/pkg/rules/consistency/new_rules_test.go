@@ -95,3 +95,47 @@ func TestD005_DetectsStaleDocVersion(t *testing.T) {
 	findings := runDetector(t, consistency.NewD005Detector(ctx))
 	assertRule(t, findings, "D005", 1)
 }
+
+// --- D005: Wildcard version (v4.0.x) is compatible with v4.0.0
+
+func TestD005_NoFindingForWildcardVersion(t *testing.T) {
+	tmpDir := t.TempDir()
+	_ = os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(
+		"module example.com/app\n\nrequire github.com/larsartmann/go-cqrs-lite v4.0.0\n",
+	),
+		0o644)
+	_ = os.WriteFile(filepath.Join(tmpDir, "AGENTS.md"), []byte(
+		"# Project\n\nUses go-cqrs-lite v4.0.x\n",
+	),
+		0o644)
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main`,
+	})
+	ctx.ProjectRoot = tmpDir
+
+	findings := runDetector(t, consistency.NewD005Detector(ctx))
+	assertRule(t, findings, "D005", 0)
+}
+
+// --- D005: Migration arrow (v2→v3) in ADR context is NOT flagged
+
+func TestD005_NoFindingForMigrationArrow(t *testing.T) {
+	tmpDir := t.TempDir()
+	_ = os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(
+		"module example.com/app\n\nrequire github.com/larsartmann/go-cqrs-lite v4.0.0\n",
+	),
+		0o644)
+	_ = os.WriteFile(filepath.Join(tmpDir, "README.md"), []byte(
+		"| [007](docs/adr/007.md) | go-cqrs-lite v3 Migration | v2→v3, memory → watermill |\n",
+	),
+		0o644)
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main`,
+	})
+	ctx.ProjectRoot = tmpDir
+
+	findings := runDetector(t, consistency.NewD005Detector(ctx))
+	assertRule(t, findings, "D005", 0)
+}

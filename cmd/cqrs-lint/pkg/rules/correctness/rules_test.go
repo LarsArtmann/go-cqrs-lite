@@ -239,6 +239,25 @@ func doSomething() {
 	assertRule(t, findings, "C009", 0)
 }
 
+// --- C009: panic inside must* functions is NOT flagged (established Go convention)
+
+func TestC009_NoFindingInMustFunc(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"commands.go": `package main
+
+func mustCommand(cmdType string, aggID string) *Command {
+	cmd, err := newCommand(cmdType, aggID)
+	if err != nil {
+		panic(err)
+	}
+	return cmd
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC009Detector(ctx))
+	assertRule(t, findings, "C009", 0)
+}
+
 // --- C008: float64 for money ---
 
 func TestC008_DetectsFloat64ForMoney(t *testing.T) {

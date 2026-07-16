@@ -2,6 +2,8 @@ package correctness
 
 import (
 	"go/ast"
+
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 )
 
 func returnsError(fn *ast.FuncDecl) bool {
@@ -31,7 +33,7 @@ func findBeginTxVar(fn *ast.FuncDecl) string {
 			return true
 		}
 
-		sel, ok := call.Fun.(*ast.SelectorExpr)
+		sel, ok := analyzer.SelectorFromExpr(call.Fun)
 		if !ok {
 			return true
 		}
@@ -114,7 +116,7 @@ func hasCommitCall(fn *ast.FuncDecl, txVar string) bool {
 			return true
 		}
 
-		sel, ok := call.Fun.(*ast.SelectorExpr)
+		sel, ok := analyzer.SelectorFromExpr(call.Fun)
 		if !ok {
 			return true
 		}
@@ -147,7 +149,7 @@ func hasDeferCommit(fn *ast.FuncDecl, txVar string) bool {
 			return true
 		}
 
-		sel, ok := call.Fun.(*ast.SelectorExpr)
+		sel, ok := analyzer.SelectorFromExpr(call.Fun)
 		if !ok {
 			return true
 		}
