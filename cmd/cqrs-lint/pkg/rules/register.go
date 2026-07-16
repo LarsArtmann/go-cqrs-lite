@@ -70,7 +70,6 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		consistency.NewD001Detector(ctx),
 		consistency.NewD002Detector(ctx),
 		consistency.NewD003Detector(ctx),
-		consistency.NewD004Detector(ctx),
 		consistency.NewD005Detector(ctx),
 		// Architecture
 		architecture.NewE001Detector(ctx),

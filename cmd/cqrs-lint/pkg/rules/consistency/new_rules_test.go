@@ -21,36 +21,6 @@ func TestD003_NoCrashOnEmptyContext(t *testing.T) {
 	assertRule(t, findings, "D003", 0)
 }
 
-// --- D004: Inconsistent JSON key casing ---
-
-func TestD004_DetectsMixedCasing(t *testing.T) {
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"types.go": `package main
-
-type User struct {
-	FirstName string ` + "`json:\"first_name\"`" + `
-	LastName  string ` + "`json:\"lastName\"`" + `
-}
-`,
-	})
-	findings := runDetector(t, consistency.NewD004Detector(ctx))
-	assertRule(t, findings, "D004", 1)
-}
-
-func TestD004_NoFindingForConsistentCasing(t *testing.T) {
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"types.go": `package main
-
-type User struct {
-	FirstName string ` + "`json:\"first_name\"`" + `
-	LastName  string ` + "`json:\"last_name\"`" + `
-}
-`,
-	})
-	findings := runDetector(t, consistency.NewD004Detector(ctx))
-	assertRule(t, findings, "D004", 0)
-}
-
 // --- D003: Positive test — mixed logging libraries ---
 
 func TestD003_DetectsMixedLogging(t *testing.T) {

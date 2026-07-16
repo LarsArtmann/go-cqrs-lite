@@ -95,7 +95,7 @@ func scanStructFields(st *ast.StructType, info *CommandInfo) {
 }
 
 func isCommandType(info *CommandInfo) bool {
-	return info.HasBasicCmd || info.ManualID || info.ManualType || info.ManualAggID
+	return info.HasBasicCmd || info.ManualID
 }
 
 func isBasicCommandEmbed(expr ast.Expr) bool {

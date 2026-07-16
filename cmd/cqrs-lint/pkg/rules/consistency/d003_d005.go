@@ -3,7 +3,6 @@ package consistency
 import (
 	"context"
 	"fmt"
-	"go/ast"
 	"os"
 	"strings"
 
@@ -73,72 +72,6 @@ func NewD003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				Build()
 			if err == nil {
 				findings = append(findings, f)
-			}
-
-			return findings, nil
-		},
-	)
-}
-
-// D004: Inconsistent JSON key casing.
-// Detects struct fields with mixed camelCase and snake_case JSON tags.
-func NewD004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
-	return finding.NamedDetectorFunc(
-		"D004-inconsistent-json-key-casing",
-		func(_ context.Context) ([]finding.Finding, error) {
-			var findings []finding.Finding
-
-			camelCount := 0
-			snakeCount := 0
-
-			for _, gf := range ctx.GoFiles {
-				if gf.IsTest {
-					continue
-				}
-
-				ast.Inspect(gf.AST, func(n ast.Node) bool {
-					st, ok := n.(*ast.StructType)
-					if !ok || st.Fields == nil {
-						return true
-					}
-
-					for _, field := range st.Fields.List {
-						if field.Tag == nil {
-							continue
-						}
-
-						tag := field.Tag.Value
-
-						jsonTag := analyzer.ExtractJSONTag(tag)
-						if jsonTag == "" || jsonTag == "-" {
-							continue
-						}
-
-						if strings.Contains(jsonTag, "_") {
-							snakeCount++
-						} else if jsonTag[0] >= 'a' && jsonTag[0] <= 'z' {
-							camelCount++
-						}
-					}
-
-					return true
-				})
-			}
-
-			if camelCount > 0 && snakeCount > 0 {
-				f, err := finding.NewBuilder(
-					"D004", toolName,
-					fmt.Sprintf("Mixed JSON key casing: %d camelCase, %d snake_case — pick one convention", camelCount, snakeCount),
-					finding.SeverityInfo,
-					finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1),
-				).
-					WithCategory(finding.CategoryNaming).
-					WithConfidence(finding.ConfidenceMedium).
-					WithSuggestion("Standardize on snake_case for JSON event payloads (conventional for event stores and APIs)").
-					Build()
-				if err == nil {
-					findings = append(findings, f)
-				}
 			}
 
 			return findings, nil

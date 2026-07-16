@@ -1,7 +1,6 @@
 package analyzer
 
 import (
-	"go/ast"
 	"go/parser"
 	"go/token"
 	"go/types"
@@ -48,25 +47,4 @@ func BuildContextFromSource(t *testing.T, sources map[string]string) *AnalysisCo
 	}
 
 	return ctx
-}
-
-// AssertFindingsCount asserts that the detector produces exactly n findings.
-func AssertFindingsCount(t *testing.T, findings []any, ruleID string, want int) {
-	t.Helper()
-
-	count := 0
-
-	for _, f := range findings {
-		_ = f
-		count++
-	}
-
-	if count != want {
-		t.Errorf("rule %s: got %d findings, want %d", ruleID, count, want)
-	}
-}
-
-// PositionOf returns the token.Position for a given node in the context.
-func (ctx *AnalysisContext) PositionOf(n ast.Node) token.Position {
-	return ctx.Fset.Position(n.Pos())
 }

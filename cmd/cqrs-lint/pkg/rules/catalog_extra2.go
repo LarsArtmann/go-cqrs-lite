@@ -94,15 +94,6 @@ func extraRulesBatch2() []RuleInfo {
 			AutoFix:     false,
 		},
 		{
-			ID:          "D004",
-			Name:        "inconsistent-json-key-casing",
-			Category:    "consistency",
-			Severity:    "info",
-			Confidence:  "medium",
-			Description: "Mixed camelCase and snake_case JSON tags",
-			AutoFix:     false,
-		},
-		{
 			ID:          "D005",
 			Name:        "stale-documentation-version",
 			Category:    "consistency",

@@ -42,7 +42,7 @@ cqrs-lint ./...
 
 ## Rule Count
 
-**61 rules** across 6 categories: correctness (12), API misuse (19), boilerplate (15), consistency (5), architecture (7), security (3).
+**60 rules** across 6 categories: correctness (12), API misuse (19), boilerplate (15), consistency (4), architecture (7), security (3).
 
 ## Correctness Rules (bugs)
 
@@ -112,7 +112,6 @@ cqrs-lint ./...
 | D001 | inconsistent-event-naming    | Info     | Mixed dot notation and PascalCase            |
 | D002 | inconsistent-json-casing     | Info     | Mixed camelCase and snake_case JSON tags     |
 | D003 | inconsistent-logging-library | Info     | Project mixes multiple logging libraries     |
-| D004 | inconsistent-json-key-casing | Info     | Mixed camelCase and snake_case JSON tags     |
 | D005 | stale-documentation-version  | Warning  | Docs reference different version than go.mod |
 
 ## Architecture Rules
@@ -148,7 +147,7 @@ Built with [cmdguard](https://github.com/larsartmann/cmdguard) for type-safe fla
 | `--min-confidence` |       | low     | Minimum confidence: low, medium, high            |
 | `--fix`            |       | false   | Apply auto-fixes                                 |
 | `--dry-run`        |       | false   | Show fixes without applying                      |
-| `--fast`           |       | false   | Run only Critical/High correctness rules         |
+| `--fast`           |       | false   | Run only Critical correctness rules              |
 | `--health-score`   |       | false   | Print the health score after findings            |
 | `--only`           |       |         | Filter by category or rule IDs (comma-separated) |
 | `--exclude`        |       |         | Exclude paths (comma-separated)                  |
@@ -188,7 +187,7 @@ cqrs-lint --fix --dry-run ./...  # preview
 cqrs-lint --fix ./...            # apply
 ```
 
-C006 (manual version arithmetic) and C003 (silent fold) are auto-fixable.
+C001 (missing tx commit), C003 (silent fold), and C006 (manual version arithmetic) are auto-fixable.
 
 ## Architecture
 

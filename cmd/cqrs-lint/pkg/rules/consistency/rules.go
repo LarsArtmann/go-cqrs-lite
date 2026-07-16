@@ -110,7 +110,7 @@ func NewD002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					).
 						WithCategory(finding.CategoryStyle).
 						WithConfidence(finding.ConfidenceLow).
-						WithSuggestion("Use consistent JSON casing — camelCase is conventional for JSON APIs").
+						WithSuggestion("Pick one JSON key casing convention — camelCase for API types, snake_case for event payloads").
 						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()
 					if err == nil {

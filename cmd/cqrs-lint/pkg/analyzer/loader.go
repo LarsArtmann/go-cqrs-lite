@@ -10,18 +10,6 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-// LoadPackages loads Go packages from the given directory with full type info.
-func LoadPackages(dir string) ([]*packages.Package, *token.FileSet, error) {
-	fset := token.NewFileSet()
-
-	pkgs, err := loadFromDir(dir, fset)
-	if err != nil {
-		return nil, nil, fmt.Errorf("load packages: %w", err)
-	}
-
-	return pkgs, fset, nil
-}
-
 func loadFromDir(dir string, fset *token.FileSet) ([]*packages.Package, error) {
 	cfg := &packages.Config{
 		Mode: packages.NeedName | packages.NeedTypes | packages.NeedTypesInfo |
@@ -158,49 +146,4 @@ func filterEventPayloads(ctx *AnalysisContext) {
 		}
 	}
 	ctx.Registry.Events = filtered
-}
-
-// BuildContextFromPackages creates an AnalysisContext from pre-loaded packages.
-// This is used by tests that parse inline source code.
-func BuildContextFromPackages(fset *token.FileSet, pkgs []*packages.Package) *AnalysisContext {
-	ctx := &AnalysisContext{
-		Fset:     fset,
-		Packages: pkgs,
-		Registry: NewCQRSRegistry(),
-	}
-
-	for _, pkg := range pkgs {
-		if len(pkg.Errors) > 0 {
-			continue
-		}
-
-		for i, file := range pkg.Syntax {
-			if file == nil {
-				continue
-			}
-
-			path := ""
-			if i < len(pkg.GoFiles) {
-				path = pkg.GoFiles[i]
-			}
-
-			if path == "" && file.Name != nil {
-				path = filepath.Join(pkg.PkgPath, file.Name.Name+".go")
-			}
-
-			goFile := &GoFile{
-				Path:   path,
-				Pkg:    pkg,
-				AST:    file,
-				IsTest: strings.HasSuffix(path, "_test.go"),
-			}
-			ctx.GoFiles = append(ctx.GoFiles, goFile)
-
-			if !goFile.IsTest {
-				scanFile(ctx, goFile)
-			}
-		}
-	}
-
-	return ctx
 }

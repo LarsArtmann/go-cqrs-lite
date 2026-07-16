@@ -26,8 +26,6 @@ type CommandInfo struct {
 	Pos           token.Position
 	HasBasicCmd   bool     // embeds *command.BasicCommand
 	ManualID      bool     // has manual ID() method
-	ManualType    bool     // has manual Type() method
-	ManualAggID   bool     // has manual AggregateID() method
 	IDReturnsZero bool     // ID() returns zero-value composite literal
 	Fields        []string // field names
 }
@@ -55,12 +53,11 @@ type FoldInfo struct {
 
 // DeciderInfo describes a decider construct.
 type DeciderInfo struct {
-	Package      string
-	File         string
-	Pos          token.Position
-	StateType    string
-	IsOO         bool // object-oriented aggregate (has uncommittedEvents)
-	IsFunctional bool // functional decider (uses decider.Decider)
+	Package   string
+	File      string
+	Pos       token.Position
+	StateType string
+	IsOO      bool // object-oriented aggregate (has uncommittedEvents)
 }
 
 // ProjectionInfo describes a projection implementation.
@@ -71,14 +68,6 @@ type ProjectionInfo struct {
 	Pos        token.Position
 	HasAsync   bool // Handle method launches goroutines or sends to channels
 	EventTypes []string
-}
-
-// HandlerInfo describes a registered command/query handler.
-type HandlerInfo struct {
-	CommandType string
-	FuncName    string
-	File        string
-	Pos         token.Position
 }
 
 // AnalysisContext provides shared state for all rule detectors.

@@ -8,7 +8,6 @@ type CQRSRegistry struct {
 	Folds       []FoldInfo
 	Deciders    []DeciderInfo
 	Projections []ProjectionInfo
-	Handlers    []HandlerInfo
 
 	// EventTypesEmitted tracks event type strings emitted via event.New/NewEvent.
 	EventTypesEmitted map[string]EventEmission // event type string → emission location
@@ -50,11 +49,4 @@ func (r *CQRSRegistry) IsCommandRegistered(cmdType string) bool {
 // IsEventInCatalog returns true if an event type has been cataloged.
 func (r *CQRSRegistry) IsEventInCatalog(eventType string) bool {
 	return r.EventTypesInCatalog[eventType]
-}
-
-// IsEventEmitted returns true if an event type string was found in event.New/NewEvent calls.
-func (r *CQRSRegistry) IsEventEmitted(eventType string) bool {
-	_, ok := r.EventTypesEmitted[eventType]
-
-	return ok
 }
