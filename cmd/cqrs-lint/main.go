@@ -246,12 +246,12 @@ func printDetectorTimings(w io.Writer, snap pipeline.MetricsSnapshot) {
 		return stats[i].duration > stats[j].duration
 	})
 
-	fmt.Fprintln(w, "Detector timings (slowest first):")
+	_, _ = fmt.Fprintln(w, "Detector timings (slowest first):")
 	for _, s := range stats {
 		if s.duration < time.Millisecond {
 			continue
 		}
-		fmt.Fprintf(
+		_, _ = fmt.Fprintf(
 			w,
 			"  %-40s %8s  %d findings\n",
 			s.name,
@@ -259,5 +259,5 @@ func printDetectorTimings(w io.Writer, snap pipeline.MetricsSnapshot) {
 			s.findings,
 		)
 	}
-	fmt.Fprintln(w)
+	_, _ = fmt.Fprintln(w)
 }
