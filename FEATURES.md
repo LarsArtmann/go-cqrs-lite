@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-07-11 (v4 release: codec default flip to CBOR, BackfillHandler consolidation, HealthCheck on OwnedDBHandle, envelope backward-compat tests, ADR-0053) · **Module count:** 48 independently importable modules in `go.work` (49 `go.mod` files incl. root workspace) · **Go version:** 1.26.4
+**Last audited:** 2026-07-16 (docs-health audit: ROADMAP rebuild, TODO cleanup, module count corrected) · **Module count:** 52 `go.mod` files (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`) · **Go version:** 1.26.4
 
 ## Status Legend
 
@@ -240,6 +240,7 @@ as a library primitive.
 | ------------------- | -------------------------------------------------------------------------------- | ------ |
 | TimerStore          | `TimerStore` interface — `Schedule`, `Due`, `MarkFired`, `Cancel`                | ✅     |
 | MemoryTimerStore    | In-memory `TimerStore` for development and testing                               | ✅     |
+| SQLTimerStore       | `storage.SQLTimerStore[T]` — persistent `TimerStore` backed by `*sql.DB`         | ✅     |
 | Scheduler           | Polls `Due()`, dispatches via callback, `MarkFired()`; retries failed dispatches | ✅     |
 | Idempotent schedule | Re-scheduling the same `TimerID` is a no-op (safe on command retry)              | ✅     |
 | Cancel              | Remove a timer before it fires (e.g. order paid → cancel timeout)                | ✅     |
@@ -860,6 +861,22 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 | Markdown scanning   | Scans `.md` files for Go code blocks                                    | ✅     |
 | Symbol verification | Verifies Go import paths & qualified symbol refs actually exist in code | ✅     |
 | Ghost detection     | Flags references to renamed/deleted symbols (docs-freshness gate)       | ✅     |
+
+### cqrs-lint Domain-Aware Linter 🔧
+
+> `go run github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4`
+
+| Feature                      | Detail                                                                                               | Status |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------- | ------ |
+| 60 rules across 6 categories | Correctness (12), API misuse (19), boilerplate (15), consistency (4), architecture (7), security (3) | ✅     |
+| Output formats               | Text, JSON, SARIF (GitHub Code Scanning), Markdown                                                   | ✅     |
+| Health score                 | 0-100 score with severity-weighted breakdown                                                         | ✅     |
+| Auto-fix                     | `--fix` / `--dry-run` with CQRSFixProvider (BeforeCode/AfterCode matching)                           | ✅     |
+| Suppression comments         | `//cqrs-lint:ignore(rule-id) reason`                                                                 | ✅     |
+| CLI features                 | `--only C001,C002`, `--exclude`, `--color`, `--verbose`, `--health-score`, `init`                    | ✅     |
+| Config file                  | `.cqrs-lint.json` via cmdguard                                                                       | ✅     |
+| Monorepo support             | Multi-module scanning via go.mod discovery                                                           | ✅     |
+| Source snippets              | 34 of 60 detectors emit source-line context for SARIF/IDE integration                                | ✅     |
 
 ---
 

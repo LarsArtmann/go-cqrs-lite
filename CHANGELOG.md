@@ -8,6 +8,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- **README.md license section** — Said "MIT" but actual LICENSE file is
+  PROPRIETARY. Corrected to match reality. This was a Critical documentation
+  lie — consumers could have assumed MIT when the code is proprietary.
+- **Module count across all docs** — AGENTS.md, README.md, FEATURES.md, and
+  CONTRIBUTING.md said "48 modules" but the actual count is 52 `go.mod` files.
+  All references now say 52 with a verify command.
+- **ROADMAP.md** — Was frozen at v3.6.0 ("Current State: v3.6.0 released")
+  despite v4.0.0 being shipped. Rebuilt from scratch: current state reflects
+  v4.0.0, release history table added, Long Term Vision cleaned (completed
+  items removed — they belong in CHANGELOG, not ROADMAP).
+- **TODO_LIST.md** — 13 completed items were still listed as open (middleware
+  ordering guide, SQL TimerStore, SQL AggregateReader, lint-clean scheduling
+  and scenario, ADR numbering fix, CONTRIBUTING agent rules, DeadLetterStoreAdmin
+  docs, per-projection lag, session archiving, module graph, dependency model
+  consolidation, event go.mod tidy). Removed; remaining items are genuinely open.
+- **README.md migration reference** — Said "Migrating from v2?" but the current
+  version is v4. Updated to reference both v3 and v4 migration guides.
 - **README.md and docs/getting-started.md code examples** — Command examples
   were missing the required `ID()` method (inherited via `*command.BasicCommand`
   embedding). Getting-started also used `event.NewEvent` instead of `event.New`

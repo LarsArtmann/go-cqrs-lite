@@ -5,7 +5,7 @@
 
 **CQRS and Event Sourcing for Go — without the framework tax.**
 
-A composable library of 48 independent modules. Import exactly what you need: nothing is forced on you — no transport, no broker, no database driver. Wire your own stack, or grab a zero-config preset. Every module ships with its own `go.mod`, so your dependency tree stays as lean as you want it.
+A composable library of 52 independent modules. Import exactly what you need: nothing is forced on you — no transport, no broker, no database driver. Wire your own stack, or grab a zero-config preset. Every module ships with its own `go.mod`, so your dependency tree stays as lean as you want it.
 
 > Using this library with an AI assistant? [`SKILL.md`](SKILL.md) is the single-source guide — module decision matrix, copy-paste recipes, and conventions.
 
@@ -287,12 +287,12 @@ graph TD
 
 ## Maturity
 
-48 modules on `/v4` import paths. Core modules carry 84–98% test coverage (event 91%, decider 98%, id 97%, dispatcher 98%). The library covers the full CQRS/ES lifecycle: event sourcing with branded IDs, command/query dispatch, pure-function deciders, three projection tiers (document/KV, relational/SQL, graph), durable deadline scheduling, dead-letter quarantine, managed projection hosting, event signing and encryption, OTel tracing and metrics, and auto-documentation generation.
+52 modules on `/v4` import paths. Core modules carry 84–98% test coverage (event 91%, decider 98%, id 97%, dispatcher 98%). The library covers the full CQRS/ES lifecycle: event sourcing with branded IDs, command/query dispatch, pure-function deciders, three projection tiers (document/KV, relational/SQL, graph), durable deadline scheduling, dead-letter quarantine, managed projection hosting, event signing and encryption, OTel tracing and metrics, auto-documentation generation, and a domain-aware linter (cqrs-lint).
 
-**Migrating from v2?** Read the **[v3 Migration Guide](docs/migration/V3_MIGRATION.md)** — all changes are additive; import paths move from `…/v2` to `…/v4`.
+**Migrating from v3?** Read the **[Migration Guide](docs/migration/MIGRATION-GUIDE.md)** — covers the v4 breaking changes (codec defaults, API cleanup, path migration). For v2→v3 changes, see the **[v3 Migration Guide](docs/migration/V3_MIGRATION.md)**.
 
 For the full feature inventory see [FEATURES.md](FEATURES.md), for direction see [ROADMAP.md](ROADMAP.md), and for architecture decisions, benchmarks, and storage guides see [docs/](docs/).
 
 ## License
 
-MIT
+PROPRIETARY — see [LICENSE](LICENSE). Public release under Apache-2.0 is planned (see [ROADMAP.md](ROADMAP.md)).

@@ -1,10 +1,9 @@
 # v4 Wishlist — Breaking Changes Batched for go-cqrs-lite/v4
 
-> **Status:** PREP COMPLETE. ADR-0044 blind store envelopes shipped (v3.8).
-> Deprecated aliases marked, internal code cleaned, migration guide written.
-> Ready to cut when trigger criteria met.
-> Trigger check: 2 items concrete (codec flip + alias removal), need 1 more.
-> **Current major:** v3.8.0 (49 modules, 27 consumer projects)
+> **Status:** SHIPPED. v4.0.0 tagged 2026-07-11. All items below were executed.
+> See [CHANGELOG.md](../CHANGELOG.md) `[4.0.0]` for release notes and
+> [docs/migration/MIGRATION-GUIDE.md](migration/MIGRATION-GUIDE.md) for migration steps.
+> **Current major:** v4.0.0 (52 modules)
 > **Created:** 2026-06-29
 
 ---

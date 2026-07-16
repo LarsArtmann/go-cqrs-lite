@@ -1,8 +1,7 @@
 # TODO List
 
-**Updated:** 2026-07-12 (post-v4 comprehensive planning session)
-**Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in [ROADMAP.md](ROADMAP.md). Raw ideas live in [ROADMAP.md § Raw Ideas](ROADMAP.md#raw-ideas-no-design-yet).
-**Full plan:** [`docs/planning/2026-07-12_14-18_POST-V4-COMPREHENSIVE-PLAN.md`](docs/planning/2026-07-12_14-18_POST-V4-COMPREHENSIVE-PLAN.md) — Pareto breakdown, micro-tasks, mermaid graph.
+**Updated:** 2026-07-16 (docs-health audit)
+**Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in [ROADMAP.md](ROADMAP.md).
 
 ## Legend
 
@@ -19,63 +18,23 @@
 
 ---
 
-## Priority 1 — The 1% that delivers 51%
+## Priority 1 — Consumer Experience
 
 - [ ] 🔥 **Publish `eventtest` to Go proxy as `v0.1.0`** — The #1 consumer pain point across
-      ALL feedback rounds (DiscordSync ×3, SwettySwipper ×2). Every consumer must manually
-      `replace` it in go.mod. Tag + push, verify proxy fetch works. ~30min.
-
----
-
-## Priority 2 — The 4% that delivers 64%
-
-- [ ] 🔥 **Archive 565 session files to `docs/archive/`** — `docs/status/` and `docs/planning/`
-      called "overwhelming" and "unnavigable" by both consumers. `git mv` timestamped files,
-      keep only current docs in `docs/`. ~45min.
-- [ ] 🔥 **Consolidate to one dependency model** — CONTRIBUTING.md has a stale 7-layer model;
-      ADR-0046 Four-Tier Model is honest. Update CONTRIBUTING.md to reference it. ~30min.
-- [ ] 🔥 **Module relationship diagram in README** — 49 modules, no visual map. Add a mermaid
-      dependency graph + "which modules do I need?" decision flow. ~60min.
-
----
-
-## Priority 3 — The 20% that delivers 80%
-
-### Consumer-facing
-
-- [ ] 🔥 **Middleware ordering guide** — 30+ middlewares, no recommended order. New
-      `docs/middleware-ordering.md` with rationale. Both consumers guessed. ~45min.
-- [ ] **SQL `TimerStore` for `scheduling`** — Only ships `MemoryTimerStore`. Both consumers
-      can't adopt `scheduling` without hand-rolling SQL. ~90min.
-- [ ] **SQL `AggregateReader` for `listing`** — Only ships `InMemoryAggregateReader`. Same gap. ~60min.
-- [ ] **README "sales page" rewrite** — Per AGENTS.md rule. What this does, why it exists,
-      how to get started. ~90min.
-
-### Code quality
-
-- [ ] **Lint-clean `scheduling`** — 19 lint issues (mnd, exhaustruct, gosec, wrapcheck,
-      tagliatelle, errname). Mostly mechanical constant extraction + renames. ~45min.
-- [ ] **Lint-clean `scenario`** — 7 lint issues (errname, exhaustruct ×3). Mechanical. ~30min.
+      ALL feedback rounds (DiscordSync ×3, SwettySwipper ×2). Tag exists locally but is
+      not pushed. Run `git push origin event/v4/eventtest/v0.1.0`, then verify proxy fetch.
+      Also delete the wrong `event/v4/eventtest/v4.0.0` tag (violates Go versioning rules).
+- [ ] 🔥 **README "sales page" rewrite** — Per docs-health model, README should be the
+      end-user entry point: what this does, why it exists, how to get started in 3 steps.
+      Currently mixes internal docs with user-facing content. ~90min.
 - [ ] **CBOR-stamp tests for gRPC + watermill** — Cross-encoding round-trip tests proving
       CBOR-stamped events survive transport. Only SSE has this coverage today. ~45min.
 - [ ] **Pre-commit hooks** — `fmt.Printf` ban in prod packages, api_surface.txt regen check,
       `nix fmt --fail-on-change`. Via flake.nix. ~60min.
 
-### Documentation
-
-- [ ] **ADR numbering fix** — Two ADRs share number 0047 (COSE + json/v2). Renumber second
-      to 0054. Document gaps 0036/0041. ~30min.
-- [ ] **CONTRIBUTING.md agent safety rules** — Document concurrent-agent etiquette, debug-print
-      discipline, "don't revert changes you didn't author" nuance. ~30min.
-- [ ] **`DeadLetterStoreAdmin` documentation** — Document Count, ListPaged, PurgeBefore in
-      AGENTS.md + SKILL.md. ~30min.
-- [ ] **Per-projection lag in `WorkerState`** — Add `Lag time.Duration` field to `Status()`
-      output. Currently only aggregate `LagDuration()` available. ~45min.
-- [ ] **`event/batch_test.go` go mod tidy** — Pre-existing per-module testing friction. ~15min.
-
 ---
 
-## Priority 4 — Post-v4.1 (breaking changes, new major version)
+## Priority 2 — Post-v4.1 (breaking changes, new major version)
 
 - [ ] **Deprecated API removal batch 2** — Remove 9 deprecated items: `middleware.{NewMetrics,
 CommandMetrics, EventMetrics, QueryMetrics, MetricsRecorder, Observe}`,
@@ -86,7 +45,7 @@ CommandMetrics, EventMetrics, QueryMetrics, MetricsRecorder, Observe}`,
 
 ---
 
-## Priority 5 — Public Release Readiness (NEEDS USER APPROVAL)
+## Priority 3 — Public Release Readiness (NEEDS USER APPROVAL)
 
 > **These are irreversible. Do NOT execute without explicit user approval.**
 
@@ -155,4 +114,4 @@ CommandMetrics, EventMetrics, QueryMetrics, MetricsRecorder, Observe}`,
 
 ---
 
-_All completed items have been moved to [CHANGELOG.md](CHANGELOG.md) under `[4.0.0]`._
+_All completed items have been moved to [CHANGELOG.md](CHANGELOG.md) under `[4.0.0]` or `[Unreleased]`._
