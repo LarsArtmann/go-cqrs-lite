@@ -13,11 +13,11 @@ Implemented fixes for all 11 detector bugs and heuristic improvements identified
 
 ### Commits Made This Session
 
-| Commit | Description |
-|--------|-------------|
-| `579a3438` | Core fixes: SelectorFromExpr helper, closure handler tracing, Type() over-match fix, D005 version regex, C009 must* pattern, comprehensive generics migration |
-| `e2cb08aa` | SelectorFromExpr applied to all remaining detectors, upcaster context detection, new tests |
-| **Uncommitted** | A012 tombstone heuristic, A015 read-only globals, A016 dispatcher usage check, S002 local-only downgrade |
+| Commit          | Description                                                                                                                                                   |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `579a3438`      | Core fixes: SelectorFromExpr helper, closure handler tracing, Type() over-match fix, D005 version regex, C009 must* pattern, comprehensive generics migration |
+| `e2cb08aa`      | SelectorFromExpr applied to all remaining detectors, upcaster context detection, new tests                                                                    |
+| **Uncommitted** | A012 tombstone heuristic, A015 read-only globals, A016 dispatcher usage check, S002 local-only downgrade                                                      |
 
 ---
 
@@ -104,6 +104,7 @@ Implemented fixes for all 11 detector bugs and heuristic improvements identified
 ### System Archetype / Profile System — NOT STARTED
 
 The biggest improvement opportunity. Proposed in conversation but not implemented:
+
 - `SystemArchetype` type (Deployment, DataSensitivity, CommandFlow, Observability, Persistence)
 - Named profiles (`local-cli`, `read-only`, `production`, `library`)
 - Config file `profile` field in `.cqrs-lint.json`
@@ -167,6 +168,7 @@ A012, A015, A016, S002 fixes, and their test updates are sitting in the working 
 **Problem:** Per-detector heuristics distribute system-level context across individual rules. Each detector independently re-derives "is this a local tool?", "is this read-only?", "does this domain have soft-delete?"
 
 **Solution:** Centralized `SystemArchetype` declaration:
+
 ```go
 type SystemArchetype struct {
     Deployment      DeploymentKind   // LocalCLI | SingleProcess | Distributed
@@ -296,16 +298,16 @@ The archetype concept (`Deployment`, `Persistence`, `CommandFlow`) is useful bey
 
 ## Session Metrics
 
-| Metric | Value |
-|--------|-------|
-| Findings addressed | 11 of 11 detector bugs + heuristics from feedback |
-| False positives eliminated | 23 (all from feedback Part 1) |
-| Valid findings improved | 8 (all from feedback Part 2) |
-| Tests passing | 171 |
-| Tests failing | 0 |
-| Files changed | 22 (across 2 commits + uncommitted) |
-| Lines added | ~550 |
-| Lines removed | ~130 |
-| Commits made | 2 (both need cleanup — not atomic) |
-| Uncommitted files | 5 |
-| Pushed | No |
+| Metric                     | Value                                             |
+| -------------------------- | ------------------------------------------------- |
+| Findings addressed         | 11 of 11 detector bugs + heuristics from feedback |
+| False positives eliminated | 23 (all from feedback Part 1)                     |
+| Valid findings improved    | 8 (all from feedback Part 2)                      |
+| Tests passing              | 171                                               |
+| Tests failing              | 0                                                 |
+| Files changed              | 22 (across 2 commits + uncommitted)               |
+| Lines added                | ~550                                              |
+| Lines removed              | ~130                                              |
+| Commits made               | 2 (both need cleanup — not atomic)                |
+| Uncommitted files          | 5                                                 |
+| Pushed                     | No                                                |
