@@ -998,7 +998,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 | Guarantee              | Detail                                                                                                 |
 | ---------------------- | ------------------------------------------------------------------------------------------------------ |
-| Lint posture           | `nix run .#lint` passes with 0 issues across all 48 modules (as of v3.7.0 release prep)                |
+| Lint posture           | `nix run .#lint` passes with 0 issues across all 52 modules (as of v4.0.0)                             |
 | Race-free              | `go test -race` passes across all modules                                                              |
 | Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                                         |
 | Strong types           | `event.Event` is a concrete type alias (`= *ImmutableEvent`); core store/bus are interfaces for DI     |

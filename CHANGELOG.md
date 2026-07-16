@@ -224,10 +224,6 @@ To revert process-wide: `event.DefaultCodec = codec.JSONCodec{}`.
   `stack.New()` constructor path with close-order tracking, not just struct
   literals.
 
-## [Unreleased]
-
-### Added
-
 #### Dead Code Cleanup
 
 - **Deleted `event/arena_experiment.go`** — 36-line stub with zero consumers, no tests,

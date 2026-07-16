@@ -17,6 +17,8 @@ import (
 // with mixed camelCase and snake_case JSON tags.
 
 func NewA011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
+	suffixes := []string{"Created", "Updated", "Deleted", "Removed", "Added", "Changed", "Event"}
+
 	return finding.NamedDetectorFunc(
 		"A011-inconsistent-json-key-casing-event-payloads",
 		func(_ context.Context) ([]finding.Finding, error) {
@@ -34,7 +36,10 @@ func NewA011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					}
 
 					name := ts.Name.Name
-					if !slices.Contains() {
+					if !slices.ContainsFunc(
+						suffixes,
+						func(s string) bool { return strings.HasSuffix(name, s) },
+					) {
 						return true
 					}
 
