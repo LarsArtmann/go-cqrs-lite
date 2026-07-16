@@ -336,7 +336,7 @@ func WithPurgeDeadLetters() ResetOption {
 // Reset returns an error if the projection name is not registered or the host
 // is currently running (Stop first). It is safe to call Reset multiple times.
 func (h *Host) Reset(ctx context.Context, name string, opts ...ResetOption) error {
-	cfg := resetConfig{}
+	cfg := resetConfig{purgeDLQ: false}
 	for _, opt := range opts {
 		opt(&cfg)
 	}

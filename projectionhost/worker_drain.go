@@ -23,14 +23,14 @@ func (w *worker) process(ctx context.Context) error {
 	)
 	defer span.End()
 
-	cp, err := w.cpStore.Load(ctx, w.name)
+	checkpoint, err := w.cpStore.Load(ctx, w.name)
 	if err != nil {
 		return fmt.Errorf("load checkpoint for %q: %w", w.name, err)
 	}
 
 	var afterID id.EventID
-	if !cp.IsZero() {
-		afterID = cp.EventID
+	if !checkpoint.IsZero() {
+		afterID = checkpoint.EventID
 	}
 
 	w.setCheckpoint(afterID.String())
