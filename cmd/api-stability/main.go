@@ -72,6 +72,7 @@ func main() {
 		// Tooling + catalog
 		"testutil",
 		"catalog",
+		"cmd/cqrs-lint",
 	}
 
 	projectRoot := filepath.Join(".", "..", "..")

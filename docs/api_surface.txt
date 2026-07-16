@@ -271,6 +271,9 @@ catalog/var ErrEmptyChannelID
 catalog/var ErrEmptyDomainID
 catalog/var ErrEmptyMessageID
 catalog/var ErrEmptyServiceID
+cmd/cqrs-lint/func ComputeHealthScore
+cmd/cqrs-lint/struct AppConfig
+cmd/cqrs-lint/struct HealthScore
 codec/const COSEAlgAES256GCM
 codec/const COSEAlgChaCha20Poly1305
 codec/const COSEAlgEd25519
@@ -427,6 +430,7 @@ decider/const DefaultStateCacheCapacity
 decider/func NewRepository
 decider/func NewStateCache
 decider/func NewTypedRepository
+decider/func StrictApply
 decider/func WithCodec
 decider/func WithEnricher
 decider/func WithLoadCoalescing
@@ -457,6 +461,7 @@ decider/var ErrNilBus
 decider/var ErrNilPublisher
 decider/var ErrNilStore
 decider/var ErrSaveFailed
+decider/var ErrStrictApplyUnknownType
 dedup/const DefaultCapacity
 dedup/func NewRing
 dedup/method Add
@@ -639,6 +644,7 @@ event/func ParseVersion
 event/func PayloadReadOnly
 event/func ProcessingModeFrom
 event/func ReconstructEventFromFields
+event/func Single
 event/func SliceFromVersion
 event/func SliceToVersion
 event/func UnmarshalMetadataJSON
