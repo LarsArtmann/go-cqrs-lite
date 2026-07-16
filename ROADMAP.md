@@ -24,15 +24,15 @@ migration steps.
 
 ## Release History
 
-| Version | Date       | Highlights                                                                                                  |
-| ------- | ---------- | ----------------------------------------------------------------------------------------------------------- |
+| Version | Date       | Highlights                                                                                                                                          |
+| ------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | v4.0.1  | 2026-07-16 | Patch: projectionhost deadlock/leak/sort fix, watermill deadlock fix, storage/view IS NULL+RawWhere+ViewUpdater, cqrs-lint first release (60 rules) |
-| v4.0.0  | 2026-07-11 | CBOR defaults, API cleanup, BackfillHandler consolidation, HealthCheck, storage split, `/v4` path migration |
-| v3.6.0  | 2026-07-05 | Error taxonomy, deriver module, DOMAIN_LANGUAGE rebuild                                                     |
-| v3.5.0  | 2026-06-29 | Idempotency, dispatch middleware, scenario DSL, scheduling, projectionhost                                  |
-| v3.3.0  | 2026-06-28 | Three projection tiers, Watermill command bridge                                                            |
-| v3.1.0  | 2026-06-25 | SQL-backed view stores, multi-database split                                                                |
-| v3.0.0  | 2026-06-22 | 11 breaking changes — see [V3 Migration Guide](docs/migration/V3_MIGRATION.md)                              |
+| v4.0.0  | 2026-07-11 | CBOR defaults, API cleanup, BackfillHandler consolidation, HealthCheck, storage split, `/v4` path migration                                         |
+| v3.6.0  | 2026-07-05 | Error taxonomy, deriver module, DOMAIN_LANGUAGE rebuild                                                                                             |
+| v3.5.0  | 2026-06-29 | Idempotency, dispatch middleware, scenario DSL, scheduling, projectionhost                                                                          |
+| v3.3.0  | 2026-06-28 | Three projection tiers, Watermill command bridge                                                                                                    |
+| v3.1.0  | 2026-06-25 | SQL-backed view stores, multi-database split                                                                                                        |
+| v3.0.0  | 2026-06-22 | 11 breaking changes — see [V3 Migration Guide](docs/migration/V3_MIGRATION.md)                                                                      |
 
 ---
 

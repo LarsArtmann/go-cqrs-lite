@@ -299,6 +299,7 @@ GOPROXY=proxy.golang.org go list -m "github.com/larsartmann/go-cqrs-lite/event/v
 ### Release CI
 
 The `release.yml` workflow triggers on any tag matching `v*` or `*/v*`. It:
+
 1. Auto-discovers all modules from `go.work`
 2. Builds, tests (with `-race`), and runs `govulncheck` on each module independently (GOWORK=off)
 3. Creates a GitHub Release with auto-generated notes
