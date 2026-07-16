@@ -152,6 +152,96 @@ quality,architecture-understanding,brainstorming,modularization}/` timestamped
 - **New docs/middleware-ordering.md** — Recommended middleware application order
   for all 30+ middlewares.
 
+## [cmd/cqrs-lint/v0.1.0] - 2026-07-16
+
+First release of the domain-aware linter for CQRS/ES Go projects.
+
+### Added
+
+- **60 rules across 6 categories** — correctness (12), API misuse (19), boilerplate
+  (15), consistency (4), architecture (7), security (3). Each rule has a real detector
+  backed by AST analysis.
+- **CLI** — struct-tag flags, `--min-confidence`, `--health-score`, `--verbose`,
+  `--color`, `--format` (text/json/sarif/markdown). Monorepo support with per-module
+  output grouping.
+- **Config file** — `.cqrs-lint.json` via cmdguard for project-specific rule
+  configuration, exclusions, and severity overrides.
+- **Suppression comments** — `//cqrs-lint:ignore(rule-id) reason` for inline false-positive
+  suppression.
+- **Health score** — `--health-score` computes a 0–100 code health metric weighted by
+  finding severity and category.
+- **Source snippets** — 34/60 detectors include the offending source line in findings.
+- **SARIF output** — GitHub Code Scanning integration via `--format sarif`.
+- **165 tests** — positive tests (rule fires), negative tests (rule doesn't fire),
+  scanner accuracy tests, CLI output tests, SARIF golden file test.
+- **Auto-fix** — 4 rules support `--fix` for automatic remediation.
+
+### Fixed
+
+- **A011 detector compile bug** — `slices.Contains()` was called with zero arguments
+  (incomplete refactor in `b3931503`). Fixed to `slices.ContainsFunc` with a suffix
+  predicate. Detector now correctly identifies event payload structs.
+
+## [retry/v4.0.0] - 2026-07-16
+
+First release of the zero-dependency retry module.
+
+### Added
+
+- **`retry.Do(ctx, fn)`** — executes `fn` with exponential backoff and jitter until
+  success, context cancellation, or max retries exhausted.
+- **`retry.Config`** — configurable max attempts, initial delay, max delay, multiplier,
+  and jitter factor. Sensible defaults via `retry.DefaultConfig`.
+- **`retry.ErrExhausted`** — sentinel error returned when all retries are spent.
+- **`retry.ErrCanceled`** — sentinel error returned when context is cancelled mid-retry.
+- **Zero dependencies** — no CQRS, no OTel, no external imports. Pure Go stdlib.
+
+## [idempotency/kvstore/v4.0.0] - 2026-07-16
+
+First release of the KV-backed idempotency subpackage.
+
+### Added
+
+- **`kvstore.KVStore`** — idempotency store backed by the `kv.Store` interface.
+  Works with any KV implementation (memory, Pebble, SQL-backed).
+- **`kvstore.KVBackend`** — interface for pluggable KV backends.
+- **Atomic check-and-set** — prevents duplicate processing under concurrent access.
+
+## [v4.0.1 patches] - 2026-07-16
+
+Per-module patch releases for bug fixes and additive features since v4.0.0.
+
+### Fixed (projectionhost/v4.0.1)
+
+- **Stagger-shutdown leak** — `defer wg.Done()` moved to `Start()` goroutine to
+  prevent WaitGroup underflow during graceful shutdown.
+- **Status() non-deterministic ordering** — `Host.Status()` output now sorted by
+  worker name for deterministic test assertions and dashboard output.
+- **purgeDLQ field initialization** — `purgeDLQ` explicitly initialized in constructor
+  to prevent zero-value ambiguity.
+
+### Fixed (watermill/v4.0.1)
+
+- **EventBus dispatch deadlock** — `Close()` now releases `b.mu` before calling
+  `backend.Close()`, preventing deadlock with background dispatch goroutine.
+
+### Added (storage/v4.0.1, kv/v4.0.1)
+
+- **IS NULL / IS NOT NULL operators** — `kv.OpIsNull`, `kv.OpIsNotNull` for NULL-aware
+  view queries. Supported in `SQLViewStore.Query` and `Count`.
+- **`RawWhere` escape hatch** — raw SQL WHERE clause injection for complex predicates
+  not expressible via the `Condition` struct.
+- **`ViewUpdater` interface** — incremental view updates (read-modify-write) for
+  projections that need to merge event data with existing row state.
+- **BLOB support** — `ViewColumn` now supports `BLOB` type for binary payload storage.
+
+### Changed (metadata normalization batch)
+
+- Module dependency references normalized across 15 modules (event, decider, middleware,
+  signing, encryption, listing, codec, otel, schema, snapshot, id, graph, scenario,
+  scheduling, transport/http). `metadata/v4` pinned to v4.0.0 in all go.mod files.
+  No API changes — internal go.mod housekeeping only.
+
 ## [4.0.0] - 2026-07-11
 
 **Major version cut — CBOR defaults, API cleanup, BackfillHandler consolidation.**

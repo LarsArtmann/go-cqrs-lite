@@ -7,7 +7,10 @@ It finds bugs, API misuse, and boilerplate that generic linters cannot detect â€
 ## Quickstart
 
 ```bash
-# Build
+# Install
+go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint@latest
+
+# Or build from source
 go build -o cqrs-lint ./cmd/cqrs-lint
 
 # Lint your project
