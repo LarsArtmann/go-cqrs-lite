@@ -1,6 +1,7 @@
 package main
 
 import (
+	"path/filepath"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
@@ -74,6 +75,13 @@ func filterByExcludedPaths(findings []finding.Finding, patterns []string) []find
 			pattern = strings.TrimSpace(pattern)
 			if pattern == "" {
 				continue
+			}
+			if matched, _ := filepath.Match(
+				pattern,
+				filepath.Base(string(f.Position.File)),
+			); matched {
+				excluded = true
+				break
 			}
 			if strings.Contains(string(f.Position.File), pattern) {
 				excluded = true

@@ -8,6 +8,8 @@ import (
 
 // scanFile analyzes a Go file for CQRS patterns and populates the registry.
 func scanFile(ctx *AnalysisContext, gf *GoFile) {
+	varAssigns := map[string]string{}
+
 	for _, decl := range gf.AST.Decls {
 		switch d := decl.(type) {
 		case *ast.GenDecl:
@@ -18,13 +20,13 @@ func scanFile(ctx *AnalysisContext, gf *GoFile) {
 	}
 
 	ast.Inspect(gf.AST, func(n ast.Node) bool {
-		call, ok := n.(*ast.CallExpr)
-		if !ok {
-			return true
+		switch node := n.(type) {
+		case *ast.AssignStmt:
+			trackVarAssignments(node, varAssigns)
+		case *ast.CallExpr:
+			scanCallExpr(ctx, gf, node)
+			capturePayloadTypeFromVar(ctx, node, varAssigns)
 		}
-
-		scanCallExpr(ctx, gf, call)
-
 		return true
 	})
 }
@@ -100,4 +102,65 @@ func isBasicCommandEmbed(expr ast.Expr) bool {
 	s := ExprString(expr)
 
 	return strings.Contains(s, "BasicCommand")
+}
+
+// trackVarAssignments records variable → type mappings from short variable
+// declarations (:=) and assignments where the RHS is a composite literal.
+// This lets capturePayloadType resolve variable references to their actual types.
+func trackVarAssignments(stmt *ast.AssignStmt, varAssigns map[string]string) {
+	for i, lhs := range stmt.Lhs {
+		if i >= len(stmt.Rhs) {
+			break
+		}
+
+		ident, ok := lhs.(*ast.Ident)
+		if !ok {
+			continue
+		}
+
+		if cl, ok := stmt.Rhs[i].(*ast.CompositeLit); ok {
+			if typeIdent, ok := cl.Type.(*ast.Ident); ok {
+				varAssigns[ident.Name] = typeIdent.Name
+			}
+		}
+	}
+}
+
+// capturePayloadTypeFromVar resolves variable payload references using
+// the varAssigns map. If event.New's payload arg is a variable name that
+// was assigned a composite literal earlier, register the actual type.
+func capturePayloadTypeFromVar(
+	ctx *AnalysisContext,
+	call *ast.CallExpr,
+	varAssigns map[string]string,
+) {
+	sel, ok := call.Fun.(*ast.SelectorExpr)
+	if !ok {
+		return
+	}
+
+	funcName := sel.Sel.Name
+	pkgName := SelectorPackage(sel)
+
+	if funcName != "New" && funcName != "NewEvent" {
+		return
+	}
+
+	if pkgName != "event" {
+		return
+	}
+
+	if len(call.Args) < 5 {
+		return
+	}
+
+	payloadArg := call.Args[4]
+	ident, ok := payloadArg.(*ast.Ident)
+	if !ok {
+		return
+	}
+
+	if typeName, ok := varAssigns[ident.Name]; ok {
+		ctx.Registry.EventPayloadTypes[typeName] = true
+	}
 }

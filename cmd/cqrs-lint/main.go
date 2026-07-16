@@ -5,8 +5,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -187,6 +189,7 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		modules := countModules(actx.GoFiles)
 		fmt.Fprintf(os.Stderr, "Modules: %d  Detectors: %d  Findings: %d (before filtering)\n\n",
 			modules, len(detectors), len(allFindings))
+		printDetectorTimings(os.Stderr, result.Metrics)
 	}
 
 	if err := outputFindings(ctx, activeFindings, cfg); err != nil {
@@ -221,4 +224,40 @@ func countModules(files []*analyzer.GoFile) int {
 		seen[filepath.Dir(f.Path)] = true
 	}
 	return len(seen)
+}
+
+func printDetectorTimings(w io.Writer, snap pipeline.MetricsSnapshot) {
+	if len(snap.DetectorTimes) == 0 {
+		return
+	}
+
+	type detStat struct {
+		name     string
+		duration time.Duration
+		findings int
+	}
+
+	stats := make([]detStat, 0, len(snap.DetectorTimes))
+	for name, d := range snap.DetectorTimes {
+		stats = append(stats, detStat{name: name, duration: d, findings: snap.FindingsFound[name]})
+	}
+
+	sort.Slice(stats, func(i, j int) bool {
+		return stats[i].duration > stats[j].duration
+	})
+
+	fmt.Fprintln(w, "Detector timings (slowest first):")
+	for _, s := range stats {
+		if s.duration < time.Millisecond {
+			continue
+		}
+		fmt.Fprintf(
+			w,
+			"  %-40s %8s  %d findings\n",
+			s.name,
+			s.duration.Round(time.Millisecond),
+			s.findings,
+		)
+	}
+	fmt.Fprintln(w)
 }

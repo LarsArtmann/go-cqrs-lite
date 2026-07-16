@@ -33,6 +33,31 @@ func emit() {
 	}
 }
 
+func TestCapturePayloadType_VariableReference(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"emit.go": `package main
+
+type UserCreated struct {
+	Name string
+}
+
+func emit() {
+	payload := UserCreated{Name: "Alice"}
+	_ = event.New("user.created", id, "User", 1, payload)
+}
+`,
+	})
+
+	if !ctx.Registry.EventPayloadTypes["UserCreated"] {
+		t.Errorf(
+			"expected UserCreated in EventPayloadTypes, got: %v",
+			ctx.Registry.EventPayloadTypes,
+		)
+	}
+}
+
 func TestScanCallExpr_EventTypesEmitted(t *testing.T) {
 	t.Parallel()
 
