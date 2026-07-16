@@ -59,10 +59,10 @@ You run `cqrs-lint ./...` against your Go codebase. It tells you **which bugs yo
 Example output for a project with issues:
 
 ```
-internal/cqrs/commands.go:30  C002  CRITICAL  Command ID() returns zero value — breaks idempotency + tracing
-internal/cqrs/commands.go:18  A001  HIGH      Manual command interface — embed *command.BasicCommand instead
-internal/cqrs/decide.go:62    C007  MEDIUM    time.Now() inside decider — non-deterministic, untestable
-internal/cqrs/events.go:28    D004  LOW       snake_case JSON keys — other payloads use camelCase
+internal/cqrs/commands.go:30:1  [CRIT]  C002  Command ID() returns zero value — breaks idempotency + tracing
+internal/cqrs/commands.go:18:1  [ERR]   A001  Manual command interface — embed *command.BasicCommand instead
+internal/cqrs/decide.go:62:5    [WARN]  C007  time.Now() inside decider — non-deterministic, untestable
+internal/cqrs/events.go:28:1    [INFO]  D004  snake_case JSON keys — other payloads use camelCase
 
 Health Score: 72/100 (Good)
 ```
@@ -133,7 +133,7 @@ Applies the fixes, runs `go build`, and if anything breaks, **rolls everything b
 now := time.Now()
 ```
 
-The linter respects `//cqrs-lint:ignore(rule-id) reason` comments, `.cqrs-lint.yml` config for package-level exclusions, and per-rule severity overrides. Every finding carries a confidence level (High/Medium/Low) so you can filter noisy rules with `--min-confidence high`.
+The linter respects `//cqrs-lint:ignore(rule-id) reason` comments, `.cqrs-lint.json` config for package-level exclusions, and per-rule severity overrides. Every finding carries a confidence level (High/Medium/Low) so you can filter noisy rules with `--min-confidence high`.
 
 ### 2.5 CI Integration
 
@@ -170,7 +170,8 @@ Breakdown:
    -2  1x Medium (C007 time.Now in decider)
    -1  1x Low (D004 inconsistent casing)
 
-Compare: crush-daily 100, bank-sync 100, SBTS 25
+Compare (from a local benchmark database, populated by running cqrs-lint across all projects):
+  crush-daily  100   bank-sync  100   SBTS  25
 ```
 
 Gives you a single number to track improvement over time. Projects below 50 need systematic refactoring.
@@ -289,7 +290,7 @@ The linter team writes **only the CQRS-specific rule logic**. Everything else is
 
 #### Finding Model: replaces the custom `Issue` struct
 
-The linter's `Issue` type from Section 6.3 maps directly to `finding.Finding`:
+The linter's findings map directly to `finding.Finding` — there is no custom `Issue` type (see [Section 6.3](#63-rule-implementation-pattern) for the concrete detector pattern):
 
 ```go
 // INSTEAD OF a custom Issue type, use finding.Finding directly:
@@ -386,9 +387,9 @@ result, err := pipeline.Run(ctx)
 - **Iteration** — `MaxIterations` re-runs detect-fix-verify until stable (needed when a fix reveals a new issue)
 - **Verification** — after applying fixes, the pipeline re-runs all detectors and reports what's fixed, what's new, what's still remaining
 
-#### Fix Engine: replaces custom FixTransaction
+#### Fix Engine: replaces custom fix transaction logic
 
-The linter's `FixTransaction` from Section 8.3 is replaced by `pipeline.FixEngine` + `pipeline.FixApplier`:
+The linter does not implement its own fix transaction, backup, or rollback logic. All of this is handled by `pipeline.FixEngine` (byte-level) and `pipeline.FixApplier` (filesystem-level):
 
 ```go
 // Custom FixProvider for CQRS-specific fixes
@@ -513,12 +514,12 @@ generatedFilter := pipeline.NewGeneratedFileFilter()
 
 `go-error-family` provides the error taxonomy, exit codes, and user-facing error formatting.
 
-#### Error Taxonomy for Linternal Errors
+#### Error Taxonomy for cqrs-lint Internal Errors
 
 The linter distinguishes between "found violations" (expected, report as findings) and "internal errors" (unexpected, report as errors):
 
 ```go
-// Linternal errors use error-family for classification + exit codes:
+// cqrs-lint internal errors use error-family for classification + exit codes:
 
 // Can't parse Go source → Corruption (exit 65)
 err := errorfamily.WrapCorruption(parseErr,
@@ -557,7 +558,7 @@ func main() {
 - **Structured logging** — `errorfamily.LogErrorContext` routes to correct log level based on family
 - **HTTP handler** — if the linter ever gets a web UI, `errorfamily.HTTPHandler` maps errors to JSON responses
 
-#### Error Templates for Common Linternal Errors
+#### Error Templates for Common cqrs-lint Internal Errors
 
 ```go
 func init() {
@@ -565,7 +566,7 @@ func init() {
         What:  "Failed to parse Go source in {file}",
         Why:   "The file contains syntax errors or uses unsupported Go features.",
         Fix:   "Run `go build ./...` to identify and fix syntax errors, then re-run cqrs-lint.",
-        WayOut: "If the file is intentionally invalid (e.g., a template), exclude it via .cqrs-lint.yml.",
+        WayOut: "If the file is intentionally invalid (e.g., a template), exclude it via .cqrs-lint.json.",
     })
     errorfamily.RegisterTemplate("cqrs-lint.no_go_mod", errorfamily.MessageTemplate{
         What:  "No go.mod found in {path}",
@@ -814,7 +815,7 @@ ast.Inspect(funcDecl, func(n ast.Node) bool {
 
     // Step 5: flag
     if hasNilReturn && !hasCommit {
-        return Issue{Rule: "C001", ...}
+        return finding.NewBuilder("C001", "cqrs-lint", "...", sev, pos).Build() // ...
     }
     return true
 })
@@ -878,7 +879,7 @@ for _, decl := range file.Decls {
         for _, expr := range ret.Results {
             lit, ok := expr.(*ast.CompositeLit)
             if ok && (lit.Elts == nil || len(lit.Elts) == 0) {
-                return Issue{Rule: "C002", ...}
+                return finding.NewBuilder("C002", "cqrs-lint", "...", sev, pos).Build() // ...
             }
         }
         return true
@@ -1031,7 +1032,7 @@ ast.Inspect(file, func(n ast.Node) bool {
     // Check: first arg is .Payload() call
     if len(call.Args) > 0 {
         if isPayloadCall(call.Args[0]) {
-            return Issue{Rule: "C005", ...}
+            return finding.NewBuilder("C005", "cqrs-lint", "...", sev, pos).Build() // ...
         }
     }
     return true
@@ -1111,7 +1112,7 @@ ast.Inspect(file, func(n ast.Node) bool {
     lit, ok := binExpr.Y.(*ast.BasicLit)
     if !ok || lit.Value != "1" { return true }
 
-    return Issue{Rule: "C006", ...}
+    return finding.NewBuilder("C006", "cqrs-lint", "...", sev, pos).Build() // ...
 })
 ```
 
@@ -1580,7 +1581,7 @@ These rules detect repetitive code that could be replaced by library helpers or 
 
 | ID   | Rule                                | Severity      | Auto-Fix                     | Projects Affected     |
 | ---- | ----------------------------------- | ------------- | ---------------------------- | --------------------- |
-| B001 | `single-event-helper`               | Low           | Yes (suggest library fn)     | ALL (every project)   |
+| B001 | `single-event-helper`               | Low           | Suggest (blocked on lib)     | ALL (every project)   |
 | B002 | `repository-wiring-boilerplate`     | Medium        | No                           | ALL v3 projects       |
 | B003 | `read-model-projection-boilerplate` | Medium        | Yes (suggest projectionhost) | ALL with projections  |
 | B004 | `command-constructor-boilerplate`   | Low           | Yes (suggest cqrs-gen)       | ALL with commands     |
@@ -1617,7 +1618,7 @@ The function name pattern: ^(single|make|create|must).*[Ee]vent$
 Or functions calling event.New/event.NewEvent where the return wraps to []event.Event{}
 ```
 
-**Auto-fix:** Replace all call sites with `event.Single(...)` if that library function is added (see Appendix B). Risk: **Low**.
+**Auto-fix:** **Blocked** on library improvement — `event.Single(...)` does not exist in go-cqrs-lite yet (see Appendix B). Once added, the auto-fix replaces all call sites. Until then, this rule is detection-only with `FixStrategySuggest`.
 
 ---
 
@@ -2038,7 +2039,7 @@ func RegisterAllRules(ctx *AnalysisContext) ([]finding.Detector, error) {
 }
 ```
 
-This enables dynamic rule configuration from `.cqrs-lint.yml` via `go-finding/pipeline.ConfigFile.ResolveDetectors()`.
+This enables dynamic rule configuration from `.cqrs-lint.json` via `go-finding/pipeline.ConfigFile.ResolveDetectors()`.
 
 ### 6.4 Generated Code Detection
 
@@ -2113,7 +2114,7 @@ package main
 ```
 
 ```yaml
-# .cqrs-lint.yml — package-level suppression
+# .cqrs-lint.json — package-level suppression
 ignore:
   rules:
     A018:
@@ -2132,7 +2133,7 @@ Every issue carries a Confidence level. Rules with Low confidence (C007, C011, A
 
 ### 7.4 Per-Rule Severity Override
 
-Users can override severity per rule in `.cqrs-lint.yml`:
+Users can override severity per rule in `.cqrs-lint.json`:
 
 ```yaml
 severity:
@@ -2203,7 +2204,7 @@ func (p *CQRSFixProvider) Edits(content []byte, f finding.Finding) ([]pipeline.F
 | Risky      | `FixStrategyDirect`  | Restructures types (C002, A001, A004)             | Compile-check + `--force` flag     |
 | Suggestion | `FixStrategySuggest` | Shows BeforeCode/AfterCode, user applies manually | None                               |
 
-The pipeline handles backup, rollback, conflict detection, and line-shift tracking automatically (see [Section 4.2 Fix Engine](#fix-engine-replaces-custom-fixtransaction)).
+The pipeline handles backup, rollback, conflict detection, and line-shift tracking automatically (see [Section 4.2 Fix Engine](#fix-engine-replaces-custom-fix-transaction-logic)).
 
 ### 8.3 Fix Application and Verification
 
@@ -2440,6 +2441,52 @@ testdata/C007_time-now-in-decider/
     non_decider_context.go         # time.Now() outside decider → not flagged
 ```
 
+### 10.5 Integration Tests Against Real Consumer Projects
+
+Beyond unit fixtures, the linter must be validated against real consumer code. Integration tests run the linter on actual projects and verify expected findings:
+
+```
+testdata/
+  integration/
+    kernovia/
+      expected.json    # C002 at commands.go:30, A001 at commands.go:18, C007 at decide.go:62
+    discordsync/
+      expected.json    # C001 at messages.go:34, C012 at messages.go:34, C004 at attachments.go:96
+    storbi/
+      expected.json    # A001 at commands.go:22, C005 at state.go:120
+    bank-sync/
+      expected.json    # [] (empty — gold standard, zero findings)
+    crush-daily/
+      expected.json    # [] (empty — v4 gold standard)
+```
+
+**Integration test runner:**
+
+```go
+func TestIntegration(t *testing.T) {
+    projects := []struct {
+        name     string
+        path     string
+        expected string
+    }{
+        {"kernovia", "/home/lars/projects/Kernovia", "integration/kernovia/expected.json"},
+        {"discordsync", "/home/lars/projects/DiscordSync", "integration/discordsync/expected.json"},
+        {"bank-sync", "/home/lars/projects/bank-sync", "integration/bank-sync/expected.json"},
+    }
+    for _, p := range projects {
+        t.Run(p.name, func(t *testing.T) {
+            findings := runLint(t, p.path)
+            expected := loadExpected(p.expected)
+            // Allow line numbers to shift (consumer code evolves)
+            // but verify rule IDs and file paths match
+            assertRulesMatch(t, findings, expected)
+        })
+    }
+}
+```
+
+**Key principle:** Integration test `expected.json` files match by rule ID + file path, not exact line numbers. Consumer projects evolve; line numbers drift. Rule IDs and files are stable.
+
 ---
 
 ## 11. Performance and Caching
@@ -2502,6 +2549,69 @@ For large projects, the AST + type info can consume significant memory. Strategy
 1. Parse files lazily (only when a rule needs them)
 2. Drop type info for packages that have no CQRS types
 3. Cap concurrency at `runtime.NumCPU()` to avoid OOM on large repos
+
+### 11.5 Skip Logic for Non-CQRS Projects
+
+If a project does not import any `go-cqrs-lite` module, the linter should exit immediately with zero findings — no point parsing AST for projects that don't use the library:
+
+```go
+func shouldSkip(project *ProjectInfo) bool {
+    for _, dep := range project.GoModDependencies {
+        if strings.Contains(dep, "go-cqrs-lite") {
+            return false
+        }
+    }
+    return true
+}
+```
+
+This prevents the linter from wasting 8-12 seconds scanning a non-CQRS Go project. The `--force` flag overrides this for cases where go-cqrs-lite is used transitively (e.g., via cqrs-htmx) and not directly in go.mod.
+
+### 11.6 AnalysisContext Access Pattern
+
+Rules access the `CQRSRegistry` and AST via closure capture at detector construction time. For dynamically-registered detectors (from config), the context is stored in a `DetectorRegistry`-adjacent factory:
+
+```go
+// Static registration (most rules): closure capture
+func NewC006Detector(ctx *AnalysisContext) finding.Detector {
+    return finding.NamedDetectorFunc("C006", func(goCtx context.Context) ([]finding.Finding, error) {
+        // ctx.Registry, ctx.Packages, ctx.Fset available via closure
+    })
+}
+
+// Dynamic registration (config-driven): factory function
+registry.MustRegister("C006", func() finding.Detector {
+    return NewC006Detector(sharedCtx)  // sharedCtx built once before registry
+})
+```
+
+The `AnalysisContext` is built once after `packages.Load` completes, then shared (read-only) across all detectors. No detector mutates the context.
+
+### 11.7 FixProvider Priority Chain
+
+The `CQRSFixProvider` is chained with go-finding's built-in providers. Priority order (first match wins):
+
+```go
+applier, _ := pipeline.NewFixApplierWithProviders(projectRoot,
+    &CQRSFixProvider{},       // 1. CQRS-specific: uses Metadata + BeforeCode/AfterCode
+    &pipeline.OffsetProvider{},   // 2. Exact byte-offset ranges
+    &pipeline.LineProvider{},     // 3. Line/column → byte conversion
+    &pipeline.SubstringProvider{}, // 4. Fallback substring matching
+)
+```
+
+The `CQRSFixProvider.CanHandle()` method checks `f.ToolName == "cqrs-lint"` so it never intercepts findings from other tools. Within the provider, `Edits()` first tries `BeforeCode`/`AfterCode` substring match, then falls back to `Metadata`-based AST-aware edits for complex fixes (C002, A001).
+
+### 11.8 Pipeline Processors vs Report Filtering
+
+Two filtering layers exist and serve different purposes:
+
+| Layer                                          | What                                                     | When                           | Example                                                         |
+| ---------------------------------------------- | -------------------------------------------------------- | ------------------------------ | --------------------------------------------------------------- |
+| **Pipeline Processors** (`FindingTransformer`) | Remove findings before they enter the Report             | During detection               | GeneratedFileFilter, suppression attachment, severity threshold |
+| **Report Filtering** (`report.Filter()`)       | Remove findings from output without re-running detection | After detection, before output | `BySeverity`, `NotSuppressed`, `ByCategory`                     |
+
+Pipeline Processors are for findings that should never exist (generated files). Report Filtering is for user-facing display preferences (`--min-severity warning` hides info findings but keeps them in JSON output for audit).
 
 ---
 
@@ -2618,7 +2728,7 @@ cqrs-lint ./internal/domain/...
 ### 12.5 Rule Configuration
 
 ```yaml
-# .cqrs-lint.yml
+# .cqrs-lint.json
 rules:
   correctness:
     all: true
