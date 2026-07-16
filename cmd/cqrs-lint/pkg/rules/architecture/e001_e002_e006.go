@@ -148,7 +148,7 @@ func NewE006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 		func(_ context.Context) ([]finding.Finding, error) {
 			var findings []finding.Finding
 
-			emittedTypes := make(map[string]string)
+			emittedTypes := make(map[string]analyzer.EventEmission)
 			projectedTypes := make(map[string]bool)
 
 			maps.Copy(emittedTypes, ctx.Registry.EventTypesEmitted)
@@ -159,13 +159,13 @@ func NewE006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				}
 			}
 
-			for evtType, file := range emittedTypes {
+			for evtType, emission := range emittedTypes {
 				if projectedTypes[evtType] {
 					continue
 				}
 
-				pos := finding.Pos(finding.FilePath(file), 1, 1)
-				if file == "" {
+				pos := finding.Pos(finding.FilePath(emission.File), emission.Line, 1)
+				if emission.File == "" {
 					pos = finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1)
 				}
 
@@ -178,6 +178,7 @@ func NewE006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					WithCategory(finding.CategoryStructure).
 					WithConfidence(finding.ConfidenceLow).
 					WithSuggestion("Register a projection that handles this event type, or mark it as intentionally unhandled").
+					WithSnippet(ctx.SourceLine(emission.File, emission.Line)).
 					Build()
 				if err == nil {
 					findings = append(findings, f)

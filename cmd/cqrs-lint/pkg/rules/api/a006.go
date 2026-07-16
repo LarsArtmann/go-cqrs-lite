@@ -51,6 +51,7 @@ func NewA006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 								WithCategory(finding.CategoryBestPractice).
 								WithConfidence(finding.ConfidenceLow).
 								WithSuggestion("Work with event.Event directly — it's a type alias for *ImmutableEvent, no adapter layer needed").
+								WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 								Build()
 							if err == nil {
 								findings = append(findings, f)

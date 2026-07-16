@@ -47,7 +47,7 @@ func findGoModDirs(root string) ([]string, error) {
 
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
-			return nil
+			return nil //nolint:nilerr // skip inaccessible paths, continue walking
 		}
 
 		if d.IsDir() {

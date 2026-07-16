@@ -75,6 +75,7 @@ func NewB006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					WithCategory(finding.CategoryBestPractice).
 					WithConfidence(finding.ConfidenceHigh).
 					WithSuggestion("Extract FK SQL into a shared constant or migration helper").
+					WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 					Build()
 				if err != nil {
 					continue
@@ -116,6 +117,7 @@ func NewB007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						if !ok {
 							if registerCount >= 3 {
 								reportRepeatedRegistration(
+									ctx,
 									&findings,
 									fn.Name.Name,
 									registerCount,
@@ -149,7 +151,13 @@ func NewB007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					}
 
 					if registerCount >= 3 {
-						reportRepeatedRegistration(&findings, fn.Name.Name, registerCount, firstPos)
+						reportRepeatedRegistration(
+							ctx,
+							&findings,
+							fn.Name.Name,
+							registerCount,
+							firstPos,
+						)
 					}
 
 					return true
@@ -162,6 +170,7 @@ func NewB007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 }
 
 func reportRepeatedRegistration(
+	ctx *analyzer.AnalysisContext,
 	findings *[]finding.Finding,
 	funcName string,
 	count int,
@@ -181,6 +190,7 @@ func reportRepeatedRegistration(
 		WithCategory(finding.CategoryBestPractice).
 		WithConfidence(finding.ConfidenceHigh).
 		WithSuggestion("Collect handlers into a slice and register them in a loop, or use a variadic helper").
+		WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 		Build()
 	if err != nil {
 		return

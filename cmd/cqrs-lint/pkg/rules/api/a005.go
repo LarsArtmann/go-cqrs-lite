@@ -69,6 +69,7 @@ func NewA005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							WithCategory(finding.CategoryBestPractice).
 							WithConfidence(finding.ConfidenceMedium).
 							WithSuggestion("Register projections with projectionhost.New(journal, checkpointStore) instead of manual bus.SubscribeAll + switch").
+							WithSnippet(ctx.SourceLine(subscribePos.Filename, subscribePos.Line)).
 							Build()
 						if err == nil {
 							findings = append(findings, f)

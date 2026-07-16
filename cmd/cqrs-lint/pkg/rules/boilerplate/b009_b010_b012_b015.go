@@ -84,6 +84,7 @@ func NewB009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						WithCategory(finding.CategoryBestPractice).
 						WithConfidence(finding.ConfidenceHigh).
 						WithSuggestion("Use cqrs-gen to generate typed emit functions from struct tags").
+						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()
 					if err != nil {
 						continue
@@ -163,6 +164,7 @@ func NewB010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						WithCategory(finding.CategoryBestPractice).
 						WithConfidence(finding.ConfidenceHigh).
 						WithSuggestion("Run cqrs-gen to auto-generate catalog registrations from Go struct types").
+						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()
 					if err != nil {
 						return true
@@ -242,6 +244,7 @@ func NewB012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						WithCategory(finding.CategoryBestPractice).
 						WithConfidence(finding.ConfidenceHigh).
 						WithSuggestion("Use event.New(eventType, aggID, aggType, version, payload) which handles marshaling automatically").
+						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()
 					if err != nil {
 						continue

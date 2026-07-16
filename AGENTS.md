@@ -89,7 +89,7 @@ go-cqrs-lite/
 ├── retry/               # Zero-dep retry with exponential backoff+jitter: Do, Config, Backoff, ErrExhausted, ErrCanceled (standalone — no CQRS/OTel deps)
 ├── scenario/            # Fluent BDD test DSL: Given/When/Then + ThenError/ThenState for deciders, GivenProjection/ThenNoError for projections (framework gap A5)
 ├── cmd/cqrs-gen/        # Code generator: typed handler registration from Go structs
-├── cmd/cqrs-lint/       # Domain-aware linter: 52 rules across 6 categories (correctness, API misuse, boilerplate, consistency, architecture, security). Built on go-finding + cmdguard. CLI: struct-tag flags, config file (.cqrs-lint.json), --min-confidence, --health-score, SARIF/JSON/markdown output
+├── cmd/cqrs-lint/       # Domain-aware linter: 61 rules across 6 categories (correctness, API misuse, boilerplate, consistency, architecture, security). Built on go-finding + cmdguard. CLI: struct-tag flags, config file (.cqrs-lint.json), --min-confidence, --health-score, --verbose, --color, SARIF/JSON/markdown output
 ├── cmd/api-stability/   # API surface checker: compares exported symbols against golden file
 ├── integration/         # Cross-module tests (command, event, query, signing, encryption)
 ├── example/taskmanager/    # Flagship full HTTP service: event sourcing, CQRS, projections, middleware, OTel, signing

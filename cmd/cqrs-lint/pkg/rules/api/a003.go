@@ -57,6 +57,7 @@ func NewA003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						WithCategory(finding.CategoryBestPractice).
 						WithConfidence(finding.ConfidenceMedium).
 						WithSuggestion("Use event.DecodePayloadAuto[T](evt) — it auto-detects JSON/CBOR from the event's encoding stamp").
+						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()
 					if err != nil {
 						return true

@@ -45,6 +45,7 @@ func NewA001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						WithCategory(finding.CategoryBestPractice).
 						WithConfidence(finding.ConfidenceHigh).
 						WithSuggestion("Embed *command.BasicCommand to get Type(), ID(), and AggregateID() for free, constructed via command.New(type, aggregateID)").
+						WithSnippet(ctx.SourceLine(cmd.File, cmd.Pos.Line)).
 						Build()
 					if err != nil {
 						continue

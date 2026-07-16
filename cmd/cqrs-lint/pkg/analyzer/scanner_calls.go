@@ -15,12 +15,16 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 
 	funcName := sel.Sel.Name
 	pkgName := SelectorPackage(sel)
+	pos := ctx.Fset.Position(call.Pos())
 
 	switch {
 	case funcName == "New" && pkgName == "event":
 		if len(call.Args) > 0 {
 			if eventTypeStr := stringLit(call.Args[0]); eventTypeStr != "" {
-				ctx.Registry.EventTypesEmitted[eventTypeStr] = gf.Path
+				ctx.Registry.EventTypesEmitted[eventTypeStr] = EventEmission{
+					File: gf.Path,
+					Line: pos.Line,
+				}
 			}
 		}
 
@@ -29,7 +33,10 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 	case funcName == "NewEvent" && pkgName == "event":
 		if len(call.Args) > 0 {
 			if eventTypeStr := stringLit(call.Args[0]); eventTypeStr != "" {
-				ctx.Registry.EventTypesEmitted[eventTypeStr] = gf.Path
+				ctx.Registry.EventTypesEmitted[eventTypeStr] = EventEmission{
+					File: gf.Path,
+					Line: pos.Line,
+				}
 			}
 		}
 
@@ -49,7 +56,7 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 		scanProjectionRegistration(ctx, gf, call)
 
 	case funcName == "Subscribe":
-		scanProjectionSubscription(ctx, gf, call, pkgName)
+		scanProjectionSubscription(ctx, gf, call)
 	}
 }
 
@@ -68,8 +75,13 @@ func handlerTypeFromCall(call *ast.CallExpr) string {
 	return ""
 }
 
+// capturePayloadType records the struct type name used as the event payload.
+// In event.New/NewEvent, the payload is always the 5th argument (index 4):
+// event.New(type, aggregateID, aggregateType, version, payload, opts...).
 func capturePayloadType(ctx *AnalysisContext, call *ast.CallExpr) {
-	for _, arg := range call.Args {
+	for i := 4; i < len(call.Args); i++ {
+		arg := call.Args[i]
+
 		switch a := arg.(type) {
 		case *ast.CompositeLit:
 			if id, ok := a.Type.(*ast.Ident); ok {
@@ -112,7 +124,6 @@ func scanProjectionSubscription(
 	ctx *AnalysisContext,
 	gf *GoFile,
 	call *ast.CallExpr,
-	pkgName string,
 ) {
 	eventTypeStr := ""
 	if len(call.Args) > 0 {

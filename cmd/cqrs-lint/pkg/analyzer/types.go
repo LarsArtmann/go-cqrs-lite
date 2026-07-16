@@ -8,9 +8,16 @@ import (
 	"go/types"
 	"os"
 	"strings"
+	"sync"
 
 	"golang.org/x/tools/go/packages"
 )
+
+// EventEmission records where an event type was emitted via event.New/NewEvent.
+type EventEmission struct {
+	File string
+	Line int
+}
 
 // CommandInfo describes a command type found in the analyzed code.
 type CommandInfo struct {
@@ -85,6 +92,9 @@ type AnalysisContext struct {
 
 	// AllGoFiles is a flat list of all Go source files for easy iteration.
 	GoFiles []*GoFile
+
+	// lineCache caches file contents for SourceLine to avoid repeated disk reads.
+	lineCache sync.Map // filename → []string
 }
 
 // GoFile wraps a parsed Go file with its package context.
@@ -97,17 +107,28 @@ type GoFile struct {
 
 // SourceLine reads the source file at the given line number and returns the trimmed line.
 // Returns empty string if the file cannot be read or the line is out of range.
+// File contents are cached to avoid repeated disk reads for the same file.
 func (ctx *AnalysisContext) SourceLine(filename string, line int) string {
 	if filename == "" || line <= 0 {
 		return ""
 	}
 
-	data, err := os.ReadFile(filename)
-	if err != nil {
-		return ""
+	var lines []string
+
+	if cached, ok := ctx.lineCache.Load(filename); ok {
+		if l, ok := cached.([]string); ok {
+			lines = l
+		}
+	} else {
+		data, err := os.ReadFile(filename)
+		if err != nil {
+			return ""
+		}
+
+		lines = strings.Split(string(data), "\n")
+		ctx.lineCache.Store(filename, lines)
 	}
 
-	lines := strings.Split(string(data), "\n")
 	if line > len(lines) {
 		return ""
 	}

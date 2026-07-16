@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
@@ -181,4 +184,102 @@ func val(cond bool, ifTrue, ifFalse string) string {
 	}
 
 	return ifFalse
+}
+
+func outputFindings(ctx context.Context, findings []finding.Finding, cfg *AppConfig) error {
+	report := finding.NewReport(finding.ToolInfo{Name: "cqrs-lint", Version: version})
+	report.AddFindings(findings)
+
+	switch strings.ToLower(cfg.Format) {
+	case "json":
+		json, err := report.PrettyJSON()
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(json)
+
+	case "sarif":
+		err := report.WriteSARIF(ctx, os.Stdout)
+		if err != nil {
+			return err
+		}
+
+	case "markdown":
+		err := finding.FormatMarkdown(os.Stdout, findings)
+		if err != nil {
+			return err
+		}
+
+	default:
+		if len(findings) == 0 {
+			if !cfg.Quiet {
+				fmt.Println("No findings. Clean!")
+			}
+
+			return nil
+		}
+
+		if cfg.Verbose {
+			printFindingsGrouped(os.Stdout, findings, parseColorMode(cfg.Color))
+		} else {
+			formatFindingsText(os.Stdout, findings, parseColorMode(cfg.Color))
+		}
+	}
+
+	return nil
+}
+
+// printFindingsGrouped prints findings grouped by module directory.
+// Each group is preceded by a header showing the module path and finding count.
+func printFindingsGrouped(w io.Writer, findings []finding.Finding, cm output.ColorMode) {
+	useColor := shouldColor(cm, w)
+
+	groups := groupFindingsByModule(findings)
+
+	for _, g := range groups {
+		header := fmt.Sprintf("=== %s (%d) ===", g.module, len(g.findings))
+		if useColor {
+			header = ansiBold + ansiCyan + header + ansiReset
+		}
+
+		_, _ = fmt.Fprintln(w, header)
+		formatFindingsText(w, g.findings, cm)
+	}
+}
+
+type findingGroup struct {
+	module   string
+	findings []finding.Finding
+}
+
+func groupFindingsByModule(findings []finding.Finding) []findingGroup {
+	groupMap := make(map[string][]finding.Finding)
+
+	for _, f := range findings {
+		mod := moduleFromPath(string(f.Position.File))
+		groupMap[mod] = append(groupMap[mod], f)
+	}
+
+	groups := make([]findingGroup, 0, len(groupMap))
+	for mod, fs := range groupMap {
+		groups = append(groups, findingGroup{module: mod, findings: fs})
+	}
+
+	sort.Slice(groups, func(i, j int) bool {
+		return groups[i].module < groups[j].module
+	})
+
+	return groups
+}
+
+// moduleFromPath extracts the module directory from a file path.
+// Returns "root" for files directly in the project root.
+func moduleFromPath(path string) string {
+	dir := filepath.Dir(path)
+	if dir == "." || dir == "/" {
+		return "root"
+	}
+
+	return dir
 }

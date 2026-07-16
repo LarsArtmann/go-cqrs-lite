@@ -77,6 +77,7 @@ func NewS002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				WithCategory(finding.CategorySecurity).
 				WithConfidence(finding.ConfidenceMedium).
 				WithSuggestion("Add encryption.EncryptMiddleware(enc) to your bus.UsePublish chain").
+				WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 				Build()
 			if err == nil {
 				findings = append(findings, f)
@@ -225,6 +226,7 @@ func NewS003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				WithCategory(finding.CategorySecurity).
 				WithConfidence(finding.ConfidenceLow).
 				WithSuggestion("Add signing.SignMiddleware(signer) to bus.UsePublish and signing.VerifyMiddleware to bus.Use").
+				WithSnippet(ctx.SourceLine(string(savePos.File), savePos.Line)).
 				Build()
 			if err == nil {
 				findings = append(findings, f)

@@ -60,6 +60,7 @@ func NewA011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							WithCategory(finding.CategoryBestPractice).
 							WithConfidence(finding.ConfidenceLow).
 							WithSuggestion("Standardize on one JSON key casing convention for event payloads").
+							WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 							Build()
 						if err != nil {
 							return true
@@ -175,6 +176,7 @@ func NewA014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						WithCategory(finding.CategoryBestPractice).
 						WithConfidence(finding.ConfidenceHigh).
 						WithSuggestion("Migrate to the recommended replacement API").
+						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()
 					if err != nil {
 						return true
@@ -244,6 +246,7 @@ func NewA017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						WithCategory(finding.CategoryBestPractice).
 						WithConfidence(finding.ConfidenceLow).
 						WithSuggestion("Add decider.WithSnapshotStore(snapStore) or decider.WithStateCache(cache) for large aggregates").
+						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()
 					if err != nil {
 						return true

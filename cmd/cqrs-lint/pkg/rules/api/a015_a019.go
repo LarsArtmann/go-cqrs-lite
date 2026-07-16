@@ -60,6 +60,7 @@ func NewA015Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							WithCategory(finding.CategoryCorrectness).
 							WithConfidence(finding.ConfidenceMedium).
 							WithSuggestion("Inject dependencies via constructor parameters or use sync.OnceValue for lazy init").
+							WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 							Build()
 						if err != nil {
 							continue

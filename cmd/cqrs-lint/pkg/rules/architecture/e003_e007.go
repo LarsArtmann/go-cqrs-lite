@@ -164,6 +164,7 @@ func NewE007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						WithCategory(finding.CategoryStructure).
 						WithConfidence(finding.ConfidenceMedium).
 						WithSuggestion("Register the query via query.RegisterTyped or dispatcher.RegisterTyped").
+						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()
 					if err != nil {
 						return true

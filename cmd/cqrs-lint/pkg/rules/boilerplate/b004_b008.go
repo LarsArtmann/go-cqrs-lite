@@ -38,6 +38,7 @@ func NewB004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					WithCategory(finding.CategoryBestPractice).
 					WithConfidence(finding.ConfidenceHigh).
 					WithSuggestion("Run cqrs-gen to auto-generate typed constructors from struct tags").
+					WithSnippet(ctx.SourceLine(cmd.File, cmd.Pos.Line)).
 					Build()
 				if err != nil {
 					continue
@@ -73,6 +74,7 @@ func NewB005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					WithCategory(finding.CategoryBestPractice).
 					WithConfidence(finding.ConfidenceHigh).
 					WithSuggestion("Use decider.StrictApply[T](fold, initial) to error on unknown event types at runtime").
+					WithSnippet(ctx.SourceLine(fold.File, fold.Pos.Line)).
 					Build()
 				if err != nil {
 					continue
@@ -176,6 +178,7 @@ func NewB008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							WithCategory(finding.CategoryBestPractice).
 							WithConfidence(finding.ConfidenceHigh).
 							WithSuggestion("Replace with retry.Do(ctx, func() error { ... }, retry.WithMaxRetries(3))").
+							WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 							Build()
 						if err != nil {
 							return true

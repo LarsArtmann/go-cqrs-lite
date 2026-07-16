@@ -74,6 +74,7 @@ func NewB011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						WithCategory(finding.CategoryBestPractice).
 						WithConfidence(finding.ConfidenceHigh).
 						WithSuggestion("Use event.New() which returns (*ImmutableEvent, error) — handle errors explicitly").
+						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()
 					if err != nil {
 						continue

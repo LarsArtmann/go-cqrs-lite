@@ -42,7 +42,7 @@ cqrs-lint ./...
 
 ## Rule Count
 
-**52 rules** across 6 categories: correctness (12), API misuse (16), boilerplate (9), consistency (5), architecture (7), security (3).
+**61 rules** across 6 categories: correctness (12), API misuse (19), boilerplate (15), consistency (5), architecture (7), security (3).
 
 ## Correctness Rules (bugs)
 
@@ -63,24 +63,27 @@ cqrs-lint ./...
 
 ## API Misuse Rules
 
-| ID   | Rule                           | Severity | Description                                              |
-| ---- | ------------------------------ | -------- | -------------------------------------------------------- |
-| A001 | manual-command-interface       | Error    | Manual Type()/ID()/AggregateID() instead of BasicCommand |
-| A002 | newevent-manual-marshal        | Warning  | event.NewEvent with json.Marshal — use event.New         |
-| A003 | explicit-codec-in-decode       | Info     | Explicit codec — use DecodePayloadAuto                   |
-| A004 | untyped-dispatch-register      | Warning  | Type assertion in handler — use RegisterTyped            |
-| A005 | custom-projection-runner       | Warning  | Manual bus.SubscribeAll — use projectionhost             |
-| A006 | adapter-layer-wrapping         | Info     | WrapEvent/UnwrapEvent adapter methods                    |
-| A007 | dual-model-oo-functional       | Error    | Both OO aggregates and functional deciders               |
-| A008 | parallel-type-system           | Error    | Custom AggregateID/Version types duplicating library     |
-| A009 | missing-stack-preset           | Info     | No stack/ preset — manual wiring is error-prone          |
-| A010 | custom-error-types             | Warning  | Custom error interface duplicating go-error-family       |
-| A012 | missing-tombstone-handling     | Info     | Fold function does not check for tombstone events        |
-| A013 | pointer-vs-value-basic-command | Info     | Embeds *BasicCommand (pointer) instead of value          |
-| A015 | global-mutable-state           | Error    | Global mutable variable — race condition risk            |
-| A016 | missing-idempotency-middleware | Warning  | Command dispatcher lacks idempotency middleware          |
-| A018 | no-actual-event-sourcing       | Info     | Imports go-cqrs-lite but never calls Save/Publish        |
-| A019 | vendored-cqrs                  | Warning  | Vendored copy of go-cqrs-lite detected                   |
+| ID   | Rule                                        | Severity | Description                                              |
+| ---- | ------------------------------------------- | -------- | -------------------------------------------------------- |
+| A001 | manual-command-interface                    | Error    | Manual Type()/ID()/AggregateID() instead of BasicCommand |
+| A002 | newevent-manual-marshal                     | Warning  | event.NewEvent with json.Marshal — use event.New         |
+| A003 | explicit-codec-in-decode                    | Info     | Explicit codec — use DecodePayloadAuto                   |
+| A004 | untyped-dispatch-register                   | Warning  | Type assertion in handler — use RegisterTyped            |
+| A005 | custom-projection-runner                    | Warning  | Manual bus.SubscribeAll — use projectionhost             |
+| A006 | adapter-layer-wrapping                      | Info     | WrapEvent/UnwrapEvent adapter methods                    |
+| A007 | dual-model-oo-functional                    | Error    | Both OO aggregates and functional deciders               |
+| A008 | parallel-type-system                        | Error    | Custom AggregateID/Version types duplicating library     |
+| A009 | missing-stack-preset                        | Info     | No stack/ preset — manual wiring is error-prone          |
+| A010 | custom-error-types                          | Warning  | Custom error interface duplicating go-error-family       |
+| A011 | inconsistent-json-key-casing-event-payloads | Info     | Event payload structs with mixed JSON key casing         |
+| A012 | missing-tombstone-handling                  | Info     | Fold function does not check for tombstone events        |
+| A013 | pointer-vs-value-basic-command              | Info     | Embeds *BasicCommand (pointer) instead of value          |
+| A014 | deprecated-api-usage                        | Warning  | Calls to deprecated APIs (event.NewEvent, Register)      |
+| A015 | global-mutable-state                        | Error    | Global mutable variable — race condition risk            |
+| A016 | missing-idempotency-middleware              | Warning  | Command dispatcher lacks idempotency middleware          |
+| A017 | missing-snapshot-strategy                   | Info     | Repository without snapshot strategy — slow aggregates   |
+| A018 | no-actual-event-sourcing                    | Info     | Imports go-cqrs-lite but never calls Save/Publish        |
+| A019 | vendored-cqrs                               | Warning  | Vendored copy of go-cqrs-lite detected                   |
 
 ## Boilerplate Rules
 
@@ -91,10 +94,16 @@ cqrs-lint ./...
 | B003 | subscribeall-large-switch       | Info     | Split into separate projections                 |
 | B004 | command-constructor-boilerplate | Info     | Command with many fields — use cqrs-gen         |
 | B005 | fold-switch-boilerplate         | Info     | Fold uses switch — consider decider.StrictApply |
+| B006 | duplicate-fk-stub-sql           | Info     | Duplicated foreign-key SQL — centralize         |
+| B007 | repeated-handler-registration   | Info     | 3+ consecutive registrations — table-driven     |
 | B008 | manual-retry-implementation     | Warning  | Manual retry loop — use retry.Do                |
+| B009 | emit-function-boilerplate       | Info     | Hand-written emit helper wrapping event.New     |
+| B010 | catalog-event-list-boilerplate  | Info     | 3+ catalog.Event calls — use cqrs-gen           |
 | B011 | must-marshal-helper             | Info     | mustMarshal helper — use event.New              |
+| B012 | make-event-helper               | Info     | Hand-written makeEvent helper — use event.New   |
 | B013 | missing-correlation-enricher    | Warning  | Repository without correlation enricher         |
 | B014 | missing-otel-middleware         | Info     | Bus/dispatcher lacks OTel tracing               |
+| B015 | missing-test-utilities          | Info     | Project has tests but no testutil imports       |
 
 ## Consistency Rules
 
@@ -140,9 +149,11 @@ Built with [cmdguard](https://github.com/larsartmann/cmdguard) for type-safe fla
 | `--fix`            |       | false   | Apply auto-fixes                                 |
 | `--dry-run`        |       | false   | Show fixes without applying                      |
 | `--fast`           |       | false   | Run only Critical/High correctness rules         |
-| `--health-score`   |       | false   | Print only the health score                      |
-| `--only`           |       |         | Run only specific categories (comma-separated)   |
-| `--verbose`        |       | false   | Verbose output                                   |
+| `--health-score`   |       | false   | Print the health score after findings            |
+| `--only`           |       |         | Filter by category or rule IDs (comma-separated) |
+| `--exclude`        |       |         | Exclude paths (comma-separated)                  |
+| `--color`          |       | auto    | Colored output: auto, always, never              |
+| `--verbose`        |       | false   | Verbose output (module grouping, stats)          |
 | `--quiet`          | `-q`  | false   | Suppress non-finding output                      |
 | `--config`         | `-c`  |         | Path to config file                              |
 

@@ -64,6 +64,7 @@ func NewA008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 								WithCategory(finding.CategoryBestPractice).
 								WithConfidence(finding.ConfidenceHigh).
 								WithSuggestion(fmt.Sprintf("Replace custom %s with the library's type from id/ or event/ package", ts.Name.Name)).
+								WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 								Build()
 							if err == nil {
 								findings = append(findings, f)

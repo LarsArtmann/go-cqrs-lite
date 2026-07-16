@@ -84,6 +84,7 @@ func NewB001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 									WithCategory(finding.CategoryDuplication).
 									WithConfidence(finding.ConfidenceHigh).
 									WithSuggestion("Replace with event.Single(eventType, aggID, aggType, version, payload) which returns []Event").
+									WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 									Build()
 								if err == nil {
 									findings = append(findings, f)
@@ -151,6 +152,7 @@ func NewB002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							WithCategory(finding.CategoryDuplication).
 							WithConfidence(finding.ConfidenceMedium).
 							WithSuggestion("Use stack/sqlite.New(dsn) or stack/pebble.New(dir) for one-call wiring of all stores").
+							WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 							Build()
 						if err == nil {
 							findings = append(findings, f)
@@ -238,6 +240,7 @@ func NewB003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							WithCategory(finding.CategoryDuplication).
 							WithConfidence(finding.ConfidenceMedium).
 							WithSuggestion("Register each event handler as a separate projection.Projection with projectionhost.Host").
+							WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 							Build()
 						if err == nil {
 							findings = append(findings, f)

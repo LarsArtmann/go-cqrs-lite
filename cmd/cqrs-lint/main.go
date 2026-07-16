@@ -183,6 +183,12 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		)
 	}
 
+	if cfg.Verbose && !cfg.Quiet {
+		modules := countModules(actx.GoFiles)
+		fmt.Fprintf(os.Stderr, "Modules: %d  Detectors: %d  Findings: %d (before filtering)\n\n",
+			modules, len(detectors), len(allFindings))
+	}
+
 	if err := outputFindings(ctx, activeFindings, cfg); err != nil {
 		return fmt.Errorf("output: %w", err)
 	}
@@ -209,42 +215,10 @@ func run(ctx context.Context, cfg *AppConfig) error {
 	return nil
 }
 
-func outputFindings(ctx context.Context, findings []finding.Finding, cfg *AppConfig) error {
-	report := finding.NewReport(finding.ToolInfo{Name: "cqrs-lint", Version: version})
-	report.AddFindings(findings)
-
-	switch strings.ToLower(cfg.Format) {
-	case "json":
-		json, err := report.PrettyJSON()
-		if err != nil {
-			return err
-		}
-
-		fmt.Println(json)
-
-	case "sarif":
-		err := report.WriteSARIF(ctx, os.Stdout)
-		if err != nil {
-			return err
-		}
-
-	case "markdown":
-		err := finding.FormatMarkdown(os.Stdout, findings)
-		if err != nil {
-			return err
-		}
-
-	default:
-		if len(findings) == 0 {
-			if !cfg.Quiet {
-				fmt.Println("No findings. Clean!")
-			}
-
-			return nil
-		}
-
-		formatFindingsText(os.Stdout, findings, parseColorMode(cfg.Color))
+func countModules(files []*analyzer.GoFile) int {
+	seen := make(map[string]bool)
+	for _, f := range files {
+		seen[filepath.Dir(f.Path)] = true
 	}
-
-	return nil
+	return len(seen)
 }

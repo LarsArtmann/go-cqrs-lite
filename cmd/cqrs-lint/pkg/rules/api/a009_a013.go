@@ -115,6 +115,7 @@ func NewA010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						WithCategory(finding.CategoryBestPractice).
 						WithConfidence(finding.ConfidenceLow).
 						WithSuggestion("Use errorfamily.NewRejection, errorfamily.WrapConflict, etc. for classified errors").
+						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()
 					if err != nil {
 						return true
@@ -157,6 +158,7 @@ func NewA012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					WithCategory(finding.CategoryBestPractice).
 					WithConfidence(finding.ConfidenceLow).
 					WithSuggestion("Use event.DetectTombstone(events) to handle soft-delete in your fold function").
+					WithSnippet(ctx.SourceLine(fold.File, fold.Pos.Line)).
 					Build()
 				if err != nil {
 					continue
@@ -212,6 +214,7 @@ func NewA013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 										WithCategory(finding.CategoryBestPractice).
 										WithConfidence(finding.ConfidenceHigh).
 										WithSuggestion("Embed BasicCommand by value (not pointer) for better cache locality and simpler nil-safety").
+										WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 										Build()
 									if err != nil {
 										return true

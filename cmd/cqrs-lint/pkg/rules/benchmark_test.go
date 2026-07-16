@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-finding"
@@ -95,7 +96,7 @@ func TestGoldenFile_JSONOutput(t *testing.T) {
 	goldenPath := filepath.Join("testdata", "json_output.json")
 	if os.Getenv("UPDATE_GOLDEN") == "1" {
 		_ = os.MkdirAll("testdata", 0o755)
-		if err := os.WriteFile(goldenPath, []byte(jsonOut), 0o644); err != nil {
+		if err := os.WriteFile(goldenPath, []byte(jsonOut+"\n"), 0o644); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -105,7 +106,7 @@ func TestGoldenFile_JSONOutput(t *testing.T) {
 		t.Skipf("golden file not found (run with UPDATE_GOLDEN=1 to create): %v", err)
 	}
 
-	if jsonOut != string(expected) {
+	if strings.TrimRight(string(expected), "\n") != jsonOut {
 		t.Errorf("JSON output changed from golden file. Run with UPDATE_GOLDEN=1 to update.")
 	}
 }

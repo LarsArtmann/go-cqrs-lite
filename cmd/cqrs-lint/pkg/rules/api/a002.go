@@ -70,6 +70,7 @@ func NewA002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						WithCategory(finding.CategoryBestPractice).
 						WithConfidence(finding.ConfidenceHigh).
 						WithSuggestion("Replace event.NewEvent(type, id, aggType, ver, json.Marshal(payload)) with event.New(type, id, aggType, ver, payload)").
+						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()
 					if err != nil {
 						return true

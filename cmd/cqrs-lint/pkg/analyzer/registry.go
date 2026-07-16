@@ -11,7 +11,7 @@ type CQRSRegistry struct {
 	Handlers    []HandlerInfo
 
 	// EventTypesEmitted tracks event type strings emitted via event.New/NewEvent.
-	EventTypesEmitted map[string]string // event type string → file
+	EventTypesEmitted map[string]EventEmission // event type string → emission location
 	// EventTypesInCatalog tracks event types registered via catalog.Event.
 	EventTypesInCatalog map[string]bool
 	// CommandTypesRegistered tracks command types registered via RegisterTyped.
@@ -23,7 +23,7 @@ type CQRSRegistry struct {
 // NewCQRSRegistry creates an empty registry.
 func NewCQRSRegistry() *CQRSRegistry {
 	return &CQRSRegistry{
-		EventTypesEmitted:      make(map[string]string),
+		EventTypesEmitted:      make(map[string]EventEmission),
 		EventTypesInCatalog:    make(map[string]bool),
 		CommandTypesRegistered: make(map[string]bool),
 		EventPayloadTypes:      make(map[string]bool),

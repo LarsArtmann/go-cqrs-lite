@@ -193,6 +193,7 @@ func NewD005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					WithCategory(finding.CategoryNaming).
 					WithConfidence(finding.ConfidenceLow).
 					WithSuggestion("Update documentation to match the version in go.mod").
+					WithSnippet(ctx.SourceLine(path, 1)).
 					Build()
 				if err == nil {
 					findings = append(findings, f)
