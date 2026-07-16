@@ -99,7 +99,7 @@ func countJSONKeyCasings(st *ast.StructType) (int, int) {
 
 		tag := field.Tag.Value
 
-		jsonTag := extractJSONTag(tag)
+		jsonTag := analyzer.ExtractJSONTag(tag)
 		if jsonTag == "" || jsonTag == "-" {
 			continue
 		}
@@ -149,7 +149,7 @@ func NewA014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
-					pkgName := selectorPackage(sel)
+					pkgName := analyzer.SelectorPackage(sel)
 					if sel.Sel.Name == "NewEvent" && pkgName != "event" {
 						return true
 					}

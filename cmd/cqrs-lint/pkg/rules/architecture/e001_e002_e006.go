@@ -191,7 +191,5 @@ func NewE006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 }
 
 func isCQRSModule(path string) bool {
-	prefix := "github.com/larsartmann/go-cqrs-lite"
-
-	return path == prefix || (len(path) > len(prefix) && path[:len(prefix)+1] == prefix+"/")
+	return analyzer.IsCQRSModulePath(path)
 }

@@ -109,7 +109,7 @@ func NewD004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 						tag := field.Tag.Value
 
-						jsonTag := extractJSONTag(tag)
+						jsonTag := analyzer.ExtractJSONTag(tag)
 						if jsonTag == "" || jsonTag == "-" {
 							continue
 						}

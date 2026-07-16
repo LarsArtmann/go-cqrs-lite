@@ -11,17 +11,19 @@ func recvTypeName(fn *ast.FuncDecl) string {
 		return ""
 	}
 
-	return baseTypeName(fn.Recv.List[0].Type)
+	return BaseTypeName(fn.Recv.List[0].Type)
 }
 
-func baseTypeName(expr ast.Expr) string {
+// BaseTypeName extracts the underlying type name from an AST expression,
+// unwrapping pointer and generic instantiation wrappers.
+func BaseTypeName(expr ast.Expr) string {
 	switch t := expr.(type) {
 	case *ast.Ident:
 		return t.Name
 	case *ast.StarExpr:
-		return baseTypeName(t.X)
+		return BaseTypeName(t.X)
 	case *ast.IndexExpr:
-		return baseTypeName(t.X)
+		return BaseTypeName(t.X)
 	}
 
 	return ""
@@ -52,7 +54,7 @@ func SelectorPackage(sel *ast.SelectorExpr) string {
 // Helper: get function name including receiver.
 func funcName(fn *ast.FuncDecl) string {
 	if fn.Recv != nil && len(fn.Recv.List) > 0 {
-		return "(" + baseTypeName(fn.Recv.List[0].Type) + ")." + fn.Name.Name
+		return "(" + BaseTypeName(fn.Recv.List[0].Type) + ")." + fn.Name.Name
 	}
 
 	return fn.Name.Name
@@ -112,4 +114,27 @@ func nodeString(n ast.Node) string {
 	}
 
 	return ""
+}
+
+// ExtractJSONTag extracts the JSON field name from a struct tag string.
+// Returns empty string if no json tag is present.
+func ExtractJSONTag(tag string) string {
+	idx := strings.Index(tag, `json:"`)
+	if idx < 0 {
+		return ""
+	}
+
+	start := idx + len(`json:"`)
+
+	end := strings.Index(tag[start:], `"`)
+	if end < 0 {
+		return ""
+	}
+
+	value := tag[start : start+end]
+	if comma := strings.Index(value, ","); comma >= 0 {
+		value = value[:comma]
+	}
+
+	return value
 }

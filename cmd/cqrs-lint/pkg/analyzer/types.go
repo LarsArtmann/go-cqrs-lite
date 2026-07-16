@@ -5,7 +5,6 @@ package analyzer
 import (
 	"go/ast"
 	"go/token"
-	"go/types"
 	"os"
 	"strings"
 	"sync"
@@ -143,7 +142,7 @@ func IsCQRSImport(p *packages.Package) bool {
 			continue
 		}
 
-		if isCQRSModulePath(imp.PkgPath) {
+		if IsCQRSModulePath(imp.PkgPath) {
 			return true
 		}
 	}
@@ -151,7 +150,9 @@ func IsCQRSImport(p *packages.Package) bool {
 	return false
 }
 
-func isCQRSModulePath(path string) bool {
+// IsCQRSModulePath returns true if the given import path is part of
+// the go-cqrs-lite module ecosystem.
+func IsCQRSModulePath(path string) bool {
 	prefix := "github.com/larsartmann/go-cqrs-lite"
 	if path == prefix {
 		return true
@@ -162,18 +163,4 @@ func isCQRSModulePath(path string) bool {
 	}
 
 	return false
-}
-
-// TypeResolver helps resolve AST identifiers to types.Package types.
-type TypeResolver struct {
-	Info *types.Info
-}
-
-// ResolveType resolves an ast.Expr to a types.Type if possible.
-func (tr *TypeResolver) ResolveType(expr ast.Expr) types.Type {
-	if tr.Info == nil {
-		return nil
-	}
-
-	return tr.Info.TypeOf(expr)
 }

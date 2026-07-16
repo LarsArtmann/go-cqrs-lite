@@ -51,7 +51,7 @@ func NewB009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						}
 
 						if sel.Sel.Name == "New" || sel.Sel.Name == "NewEvent" {
-							pkg := selectorPackage(sel)
+							pkg := analyzer.SelectorPackage(sel)
 							if pkg == "event" {
 								hasNewEvent = true
 							}
@@ -133,7 +133,7 @@ func NewB010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							return true
 						}
 
-						if sel.Sel.Name == "Event" && selectorPackage(sel) == "catalog" {
+						if sel.Sel.Name == "Event" && analyzer.SelectorPackage(sel) == "catalog" {
 							if catalogCallCount == 0 {
 								firstPos = ctx.Fset.Position(call.Pos())
 							}

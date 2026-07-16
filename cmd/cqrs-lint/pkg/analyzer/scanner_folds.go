@@ -124,7 +124,7 @@ func detectFoldFunc(
 
 	stateType := ExprString(params.List[0].Type)
 	if stateType == "" {
-		stateType = baseTypeName(params.List[0].Type)
+		stateType = BaseTypeName(params.List[0].Type)
 	}
 
 	info := &FoldInfo{

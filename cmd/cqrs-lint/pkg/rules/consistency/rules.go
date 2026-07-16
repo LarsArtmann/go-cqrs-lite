@@ -84,7 +84,7 @@ func NewD002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 						tag := field.Tag.Value
 
-						jsonTag := extractJSONTag(tag)
+						jsonTag := analyzer.ExtractJSONTag(tag)
 						if jsonTag == "" || jsonTag == "-" {
 							continue
 						}
@@ -122,22 +122,6 @@ func NewD002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
-}
-
-func extractJSONTag(tag string) string {
-	idx := strings.Index(tag, `json:"`)
-	if idx == -1 {
-		return ""
-	}
-
-	start := idx + len(`json:"`)
-
-	end := strings.Index(tag[start:], `"`)
-	if end == -1 {
-		return ""
-	}
-
-	return tag[start : start+end]
 }
 
 func hasLower(s string) bool {
