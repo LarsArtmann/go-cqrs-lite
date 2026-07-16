@@ -8,6 +8,12 @@ import (
 	"github.com/larsartmann/go-finding"
 )
 
+type breakdownEntry struct {
+	Deduction int
+	Severity  string
+	Rule      string
+}
+
 // HealthScore computes a 0-100 score from findings.
 type HealthScore struct {
 	Score     int
@@ -66,25 +72,36 @@ func ComputeHealthScore(findings []finding.Finding) HealthScore {
 	}
 }
 
-// FormatHealthScore formats the health score for display.
-func FormatHealthScore(hs HealthScore) string {
-	var sb strings.Builder
-	fmt.Fprintf(&sb, "Score: %d/100 (%s)\n\n", hs.Score, hs.Grade)
+func (hs HealthScore) sortedBreakdown() []breakdownEntry {
+	entries := make([]breakdownEntry, 0, len(hs.Breakdown))
 
-	if len(hs.Breakdown) > 0 {
-		sb.WriteString("Breakdown:\n")
+	for key, ded := range hs.Breakdown {
+		parts := strings.SplitN(key, " ", 2)
 
-		keys := make([]string, 0, len(hs.Breakdown))
-		for k := range hs.Breakdown {
-			keys = append(keys, k)
+		sev := ""
+		rule := ""
+		if len(parts) > 0 {
+			sev = parts[0]
 		}
 
-		sort.Strings(keys)
-
-		for _, k := range keys {
-			fmt.Fprintf(&sb, "  -%-4d %s\n", hs.Breakdown[k], k)
+		if len(parts) > 1 {
+			rule = parts[1]
 		}
+
+		entries = append(entries, breakdownEntry{
+			Deduction: ded,
+			Severity:  sev,
+			Rule:      rule,
+		})
 	}
 
-	return sb.String()
+	sort.Slice(entries, func(i, j int) bool {
+		if entries[i].Deduction != entries[j].Deduction {
+			return entries[i].Deduction > entries[j].Deduction
+		}
+
+		return entries[i].Severity < entries[j].Severity
+	})
+
+	return entries
 }

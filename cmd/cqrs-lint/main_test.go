@@ -114,25 +114,21 @@ func TestCollectFindingsDeduplicates(t *testing.T) {
 	f1 := finding.Finding{ID: finding.ID("test-id-1")}
 	f2 := finding.Finding{ID: f1.ID}
 
-	duplicates := []finding.Finding{f1, f2}
-	unique := deduplicate(duplicates)
-	if len(unique) != 1 {
-		t.Errorf("expected 1 unique finding, got %d", len(unique))
-	}
-}
-
-func deduplicate(findings []finding.Finding) []finding.Finding {
 	seen := make(map[finding.ID]bool)
 	var unique []finding.Finding
-	for _, f := range findings {
+
+	for _, f := range []finding.Finding{f1, f2} {
 		if seen[f.ID] {
 			continue
 		}
+
 		seen[f.ID] = true
 		unique = append(unique, f)
 	}
 
-	return unique
+	if len(unique) != 1 {
+		t.Errorf("expected 1 unique finding, got %d", len(unique))
+	}
 }
 
 func TestOutputFindingsJSON(t *testing.T) {

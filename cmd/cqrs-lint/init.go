@@ -12,8 +12,8 @@ import (
 var errConfigExists = errors.New(".cqrs-lint.json already exists")
 
 const configTemplate = `{
-  "min_severity": "info",
-  "min_confidence": "low",
+  "min-severity": "info",
+  "min-confidence": "low",
   "format": "text",
   "exclude": [],
   "only": ""

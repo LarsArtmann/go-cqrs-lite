@@ -3,6 +3,7 @@ package analyzer
 import (
 	"fmt"
 	"go/token"
+	"io/fs"
 	"path/filepath"
 	"strings"
 
@@ -12,6 +13,16 @@ import (
 // LoadPackages loads Go packages from the given directory with full type info.
 func LoadPackages(dir string) ([]*packages.Package, *token.FileSet, error) {
 	fset := token.NewFileSet()
+
+	pkgs, err := loadFromDir(dir, fset)
+	if err != nil {
+		return nil, nil, fmt.Errorf("load packages: %w", err)
+	}
+
+	return pkgs, fset, nil
+}
+
+func loadFromDir(dir string, fset *token.FileSet) ([]*packages.Package, error) {
 	cfg := &packages.Config{
 		Mode: packages.NeedName | packages.NeedTypes | packages.NeedTypesInfo |
 			packages.NeedSyntax | packages.NeedImports | packages.NeedFiles,
@@ -23,54 +34,105 @@ func LoadPackages(dir string) ([]*packages.Package, *token.FileSet, error) {
 
 	pkgs, err := packages.Load(cfg, "./...")
 	if err != nil {
-		return nil, nil, fmt.Errorf("load packages: %w", err)
+		return nil, fmt.Errorf("load packages from %s: %w", dir, err)
 	}
 
-	return pkgs, fset, nil
+	return pkgs, nil
+}
+
+// findGoModDirs walks the directory tree under root and returns all directories
+// containing a go.mod file. Skips vendor, .git, node_modules, and similar dirs.
+func findGoModDirs(root string) ([]string, error) {
+	var dirs []string
+
+	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return nil
+		}
+
+		if d.IsDir() {
+			base := d.Name()
+			if base == "vendor" || base == ".git" || base == "node_modules" ||
+				base == "testdata" || base == "dist" || base == "build" {
+				return filepath.SkipDir
+			}
+
+			return nil
+		}
+
+		if d.Name() == "go.mod" {
+			dir := filepath.Dir(path)
+			dirs = append(dirs, dir)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("walk %s: %w", root, err)
+	}
+
+	return dirs, nil
 }
 
 // BuildContext loads packages, builds the CQRSRegistry, and creates an AnalysisContext.
+// Supports monorepos: recursively discovers all go.mod files under projectRoot
+// and merges packages from every module into a single context.
 func BuildContext(projectRoot string) (*AnalysisContext, error) {
-	pkgs, fset, err := LoadPackages(projectRoot)
+	modDirs, err := findGoModDirs(projectRoot)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("find modules: %w", err)
 	}
+
+	if len(modDirs) == 0 {
+		modDirs = []string{projectRoot}
+	}
+
+	fset := token.NewFileSet()
 
 	ctx := &AnalysisContext{
 		Fset:        fset,
-		Packages:    pkgs,
 		ProjectRoot: projectRoot,
 		Registry:    NewCQRSRegistry(),
 	}
 
-	// Collect Go files and build registry.
-	for _, pkg := range pkgs {
-		if len(pkg.Errors) > 0 {
+	for _, dir := range modDirs {
+		pkgs, err := loadFromDir(dir, fset)
+		if err != nil {
 			continue
 		}
 
-		if !IsCQRSImport(pkg) {
-			continue
-		}
+		ctx.Packages = append(ctx.Packages, pkgs...)
 
-		ctx.ModulePath = pkg.PkgPath
-
-		for i, file := range pkg.Syntax {
-			if file == nil {
+		for _, pkg := range pkgs {
+			if len(pkg.Errors) > 0 {
 				continue
 			}
 
-			path := pkg.GoFiles[min(i, len(pkg.GoFiles)-1)]
-			goFile := &GoFile{
-				Path:   path,
-				Pkg:    pkg,
-				AST:    file,
-				IsTest: strings.HasSuffix(path, "_test.go"),
+			if !IsCQRSImport(pkg) {
+				continue
 			}
-			ctx.GoFiles = append(ctx.GoFiles, goFile)
 
-			if !goFile.IsTest {
-				scanFile(ctx, goFile)
+			if ctx.ModulePath == "" {
+				ctx.ModulePath = pkg.PkgPath
+			}
+
+			for i, file := range pkg.Syntax {
+				if file == nil {
+					continue
+				}
+
+				path := pkg.GoFiles[min(i, len(pkg.GoFiles)-1)]
+				goFile := &GoFile{
+					Path:   path,
+					Pkg:    pkg,
+					AST:    file,
+					IsTest: strings.HasSuffix(path, "_test.go"),
+				}
+				ctx.GoFiles = append(ctx.GoFiles, goFile)
+
+				if !goFile.IsTest {
+					scanFile(ctx, goFile)
+				}
 			}
 		}
 	}

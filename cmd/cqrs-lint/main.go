@@ -54,7 +54,6 @@ func main() {
 		"Domain-aware linter for go-cqrs-lite consumers",
 		AppConfig{},
 		cmdguard.WithCLIVersion(version),
-		cmdguard.WithFang(false),
 		cmdguard.WithConfigFile(".cqrs-lint.json"),
 		cmdguard.WithCLILong(
 			"cqrs-lint detects anti-patterns in projects consuming the go-cqrs-lite library.",
@@ -174,13 +173,6 @@ func run(ctx context.Context, cfg *AppConfig) error {
 	activeFindings := filterBySeverity(allFindings, cfg.MinSeverity)
 	activeFindings = filterByConfidence(activeFindings, cfg.MinConfidence)
 
-	if cfg.HealthScore {
-		hs := ComputeHealthScore(activeFindings)
-		fmt.Print(FormatHealthScore(hs))
-
-		return nil
-	}
-
 	if !cfg.Quiet && cfg.Format == "text" {
 		elapsed := time.Since(start)
 		fmt.Fprintf(
@@ -193,6 +185,11 @@ func run(ctx context.Context, cfg *AppConfig) error {
 
 	if err := outputFindings(ctx, activeFindings, cfg); err != nil {
 		return fmt.Errorf("output: %w", err)
+	}
+
+	if cfg.HealthScore {
+		hs := ComputeHealthScore(activeFindings)
+		fmt.Print(renderHealthScore(hs, parseColorMode(cfg.Color)))
 	}
 
 	hasErrors := false
@@ -246,12 +243,7 @@ func outputFindings(ctx context.Context, findings []finding.Finding, cfg *AppCon
 			return nil
 		}
 
-		if cfg.Color == "always" || (cfg.Color != "never" && shouldUseColor(cfg.Color, os.Stdout)) {
-			formatColoredText(os.Stdout, findings, cfg.Color)
-			return nil
-		}
-
-		return finding.FormatText(os.Stdout, findings)
+		formatFindingsText(os.Stdout, findings, parseColorMode(cfg.Color))
 	}
 
 	return nil

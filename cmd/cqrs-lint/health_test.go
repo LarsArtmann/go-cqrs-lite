@@ -57,60 +57,60 @@ func TestComputeHealthScore_Floor(t *testing.T) {
 	}
 }
 
-func TestFormatHealthScore(t *testing.T) {
+func TestRenderHealthScore(t *testing.T) {
 	t.Parallel()
 
 	hs := HealthScore{Score: 85, Grade: "Good", Breakdown: map[string]int{"error C001": 5}}
-	output := FormatHealthScore(hs)
+	out := renderHealthScore(hs, parseColorMode("never"))
 
-	if !strings.Contains(output, "85/100") {
+	if !strings.Contains(out, "85/100") {
 		t.Error("output should contain score")
 	}
-	if !strings.Contains(output, "Good") {
+	if !strings.Contains(out, "Good") {
 		t.Error("output should contain grade")
 	}
-	if !strings.Contains(output, "Breakdown") {
-		t.Error("output should contain breakdown section")
+	if !strings.Contains(out, "C001") {
+		t.Error("output should contain rule from breakdown")
 	}
 }
 
-func TestHealthScoreGrades(t *testing.T) {
+func TestComputeHealthScore_Grades(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		score int
-		grade string
+		score  int
+		grade  string
+		findFn func() HealthScore
 	}{
-		{95, "Excellent"},
-		{90, "Excellent"},
-		{85, "Good"},
-		{75, "Good"},
-		{60, "Fair"},
-		{50, "Fair"},
-		{30, "Needs Improvement"},
-		{0, "Needs Improvement"},
+		{95, "Excellent", func() HealthScore { return ComputeHealthScore(nil) }},
 	}
 
-	for _, tt := range tests {
-		hs := HealthScore{Score: tt.score}
-		got := healthGrade(tt.score)
-		if got != tt.grade {
-			t.Errorf("score %d: expected grade %s, got %s", tt.score, tt.grade, got)
+	_ = tests
+
+	cases := []struct {
+		findingsCount int
+		severity      finding.Severity
+		wantGrade     string
+	}{
+		{0, finding.SeverityInfo, "Excellent"},
+		{11, finding.SeverityCritical, "Needs Improvement"},
+	}
+
+	for _, tc := range cases {
+		var findings []finding.Finding
+		for i := 0; i < tc.findingsCount; i++ {
+			f, _ := finding.NewBuilder(
+				"TEST", "test", "test",
+				tc.severity,
+				finding.Pos(finding.FilePath("test.go"), 1, 1),
+			).Build()
+			findings = append(findings, f)
 		}
-		_ = hs
-	}
-}
-
-func healthGrade(score int) string {
-	switch {
-	case score >= 90:
-		return "Excellent"
-	case score >= 75:
-		return "Good"
-	case score >= 50:
-		return "Fair"
-	default:
-		return "Needs Improvement"
+		hs := ComputeHealthScore(findings)
+		if hs.Grade != tc.wantGrade {
+			t.Errorf("findings=%d severity=%s: expected grade %s, got %s",
+				tc.findingsCount, tc.severity, tc.wantGrade, hs.Grade)
+		}
 	}
 }
 
