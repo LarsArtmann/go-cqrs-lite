@@ -282,6 +282,27 @@ func TestB004_NoFindingWithoutCommands(t *testing.T) {
 	assertRule(t, findings, "B004", 0)
 }
 
+func TestB004_DetectsManyFields(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"cmd.go": `package main
+
+type CreateOrder struct {
+	*BasicCommand
+	CustomerID string
+	ProductID  string
+	Quantity   int
+	Price      float64
+	Address    string
+	City       string
+	Zip        string
+	Country    string
+}
+`,
+	})
+	findings := runDetector(t, boilerplate.NewB004Detector(ctx))
+	assertRule(t, findings, "B004", 1)
+}
+
 // --- B005: Fold switch boilerplate ---
 
 func TestB005_NoFindingWithoutFolds(t *testing.T) {
@@ -290,6 +311,24 @@ func TestB005_NoFindingWithoutFolds(t *testing.T) {
 	})
 	findings := runDetector(t, boilerplate.NewB005Detector(ctx))
 	assertRule(t, findings, "B005", 0)
+}
+
+func TestB005_DetectsFoldSwitch(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"fold.go": `package main
+
+func fold(state int, event event.Event) (int, error) {
+	switch event.Type() {
+	case "created":
+		return state + 1, nil
+	default:
+		return state, nil
+	}
+}
+`,
+	})
+	findings := runDetector(t, boilerplate.NewB005Detector(ctx))
+	assertRule(t, findings, "B005", 1)
 }
 
 // --- B015: Missing test utilities ---

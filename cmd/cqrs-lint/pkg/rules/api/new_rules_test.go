@@ -100,9 +100,7 @@ type CreateCmd struct {
 `,
 	})
 	findings := runDetector(t, api.NewA013Detector(ctx))
-	// The detector iterates ctx.Registry.Commands which is populated by scanner
-	// BasicCommand needs to be detected as command first
-	_ = findings
+	assertRule(t, findings, "A013", 1)
 }
 
 // --- A014: Deprecated API usage ---

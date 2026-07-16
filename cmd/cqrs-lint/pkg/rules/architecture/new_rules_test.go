@@ -100,6 +100,22 @@ func TestE005_NoFindingOnEmptyRegistry(t *testing.T) {
 	assertRule(t, findings, "E005", 0)
 }
 
+// --- E005: Positive test — command without handler ---
+
+func TestE005_DetectsCommandWithoutHandler(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"cmd.go": `package main
+
+type CreateUser struct {
+	*BasicCommand
+	Name string
+}
+`,
+	})
+	findings := runDetector(t, architecture.NewE005Detector(ctx))
+	assertRule(t, findings, "E005", 1)
+}
+
 // --- E006: Event without projection ---
 
 func TestE006_NoFindingOnEmptyRegistry(t *testing.T) {
@@ -108,6 +124,19 @@ func TestE006_NoFindingOnEmptyRegistry(t *testing.T) {
 	})
 	findings := runDetector(t, architecture.NewE006Detector(ctx))
 	assertRule(t, findings, "E006", 0)
+}
+
+func TestE006_DetectsEmittedWithoutProjection(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"emit.go": `package main
+
+func emit() {
+	_ = event.New("user.created", id, "User", 1, payload)
+}
+`,
+	})
+	findings := runDetector(t, architecture.NewE006Detector(ctx))
+	assertRule(t, findings, "E006", 1)
 }
 
 // --- E007: Query without handler ---
