@@ -3,6 +3,7 @@ package architecture
 import (
 	"context"
 	"fmt"
+	"maps"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
@@ -147,12 +148,10 @@ func NewE006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 		func(_ context.Context) ([]finding.Finding, error) {
 			var findings []finding.Finding
 
-			emittedTypes := make(map[string]bool)
+			emittedTypes := make(map[string]string)
 			projectedTypes := make(map[string]bool)
 
-			for _, evt := range ctx.Registry.Events {
-				emittedTypes[evt.Name] = true
-			}
+			maps.Copy(emittedTypes, ctx.Registry.EventTypesEmitted)
 
 			for _, proj := range ctx.Registry.Projections {
 				for _, t := range proj.EventTypes {
@@ -160,16 +159,21 @@ func NewE006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				}
 			}
 
-			for evtType := range emittedTypes {
+			for evtType, file := range emittedTypes {
 				if projectedTypes[evtType] {
 					continue
+				}
+
+				pos := finding.Pos(finding.FilePath(file), 1, 1)
+				if file == "" {
+					pos = finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1)
 				}
 
 				f, err := finding.NewBuilder(
 					"E006", toolName,
 					fmt.Sprintf("Event type %q is emitted but no projection handles it", evtType),
 					finding.SeverityInfo,
-					finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1),
+					pos,
 				).
 					WithCategory(finding.CategoryStructure).
 					WithConfidence(finding.ConfidenceLow).

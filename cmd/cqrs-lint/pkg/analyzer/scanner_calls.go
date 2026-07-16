@@ -14,7 +14,7 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 	}
 
 	funcName := sel.Sel.Name
-	pkgName := selectorPackage(sel)
+	pkgName := SelectorPackage(sel)
 
 	switch {
 	case funcName == "New" && pkgName == "event":

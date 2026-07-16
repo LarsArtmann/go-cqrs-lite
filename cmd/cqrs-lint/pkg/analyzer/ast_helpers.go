@@ -37,12 +37,13 @@ func stringLit(expr ast.Expr) string {
 }
 
 // Helper: extract the package/qualifier from a SelectorExpr.
-func selectorPackage(sel *ast.SelectorExpr) string {
+// SelectorPackage extracts the package name from a SelectorExpr.
+func SelectorPackage(sel *ast.SelectorExpr) string {
 	switch x := sel.X.(type) {
 	case *ast.Ident:
 		return x.Name
 	case *ast.SelectorExpr:
-		return selectorPackage(x)
+		return SelectorPackage(x)
 	}
 
 	return ""

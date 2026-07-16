@@ -3,6 +3,7 @@ package security
 import (
 	"context"
 	"go/ast"
+	"path/filepath"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
@@ -11,86 +12,49 @@ import (
 )
 
 // S002: Missing encryption for sensitive payloads.
-// Detects event payloads with PII fields (email, SSN, phone) without encryption middleware.
+// Detects event payload structs with PII fields (email, SSN, phone) without encryption middleware.
 func NewS002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"S002-missing-encryption-for-sensitive-payloads",
 		func(_ context.Context) ([]finding.Finding, error) {
 			piiFields := []string{
-				"email",
-				"phone",
-				"ssn",
-				"password",
-				"address",
-				"creditcard",
-				"credit_card",
+				"email", "phone", "ssn", "password",
+				"address", "creditcard", "credit_card",
 			}
 
-			hasPII := false
+			var piiEventPayloads []analyzer.EventInfo
 
-			// Check event payload type names for PII keywords.
 			for _, evt := range ctx.Registry.Events {
 				name := strings.ToLower(evt.Name)
 				for _, pii := range piiFields {
 					if strings.Contains(name, pii) {
-						hasPII = true
-
+						piiEventPayloads = append(piiEventPayloads, evt)
 						break
 					}
 				}
 			}
 
-			// Also check struct field names for PII keywords.
-			if !hasPII {
-				for _, gf := range ctx.GoFiles {
-					if gf.IsTest {
-						continue
-					}
-
-					ast.Inspect(gf.AST, func(n ast.Node) bool {
-						st, ok := n.(*ast.StructType)
-						if !ok || st.Fields == nil {
-							return true
-						}
-
-						for _, field := range st.Fields.List {
-							for _, name := range field.Names {
-								lname := strings.ToLower(name.Name)
-								for _, pii := range piiFields {
-									if strings.Contains(lname, pii) {
-										hasPII = true
-
-										return false
-									}
-								}
-							}
-						}
-
-						return true
-					})
-					if hasPII {
-						break
-					}
-				}
+			if len(piiEventPayloads) == 0 {
+				piiEventPayloads = findPIIInPayloadStructs(ctx, piiFields)
 			}
 
-			if !hasPII {
+			if len(piiEventPayloads) == 0 {
 				return nil, nil
 			}
 
 			hasEncryption := false
-
 			for _, pkg := range ctx.Packages {
 				for _, imp := range pkg.Imports {
 					if imp == nil {
 						continue
 					}
-
 					if strings.Contains(imp.PkgPath, "go-cqrs-lite/encryption") {
 						hasEncryption = true
-
 						break
 					}
+				}
+				if hasEncryption {
+					break
 				}
 			}
 
@@ -99,12 +63,16 @@ func NewS002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			}
 
 			var findings []finding.Finding
+			pos := piiEventPayloads[0].Pos
+			if pos.Filename == "" {
+				pos.Filename = filepath.Join(ctx.ProjectRoot, "go.mod")
+			}
 
 			f, err := finding.NewBuilder(
 				"S002", toolName,
 				"Event payloads contain PII fields but no encryption middleware — data is stored in plaintext",
 				finding.SeverityError,
-				finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1),
+				finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 			).
 				WithCategory(finding.CategorySecurity).
 				WithConfidence(finding.ConfidenceMedium).
@@ -119,6 +87,61 @@ func NewS002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	)
 }
 
+func findPIIInPayloadStructs(
+	ctx *analyzer.AnalysisContext,
+	piiFields []string,
+) []analyzer.EventInfo {
+	var matches []analyzer.EventInfo
+
+	payloadSet := ctx.Registry.EventPayloadTypes
+	if len(payloadSet) == 0 {
+		return nil
+	}
+
+	for _, gf := range ctx.GoFiles {
+		if gf.IsTest {
+			continue
+		}
+
+		ast.Inspect(gf.AST, func(n ast.Node) bool {
+			ts, ok := n.(*ast.TypeSpec)
+			if !ok {
+				return true
+			}
+
+			if !payloadSet[ts.Name.Name] {
+				return true
+			}
+
+			st, ok := ts.Type.(*ast.StructType)
+			if !ok || st.Fields == nil {
+				return true
+			}
+
+			for _, field := range st.Fields.List {
+				for _, name := range field.Names {
+					lname := strings.ToLower(name.Name)
+					for _, pii := range piiFields {
+						if strings.Contains(lname, pii) {
+							pos := ctx.Fset.Position(ts.Pos())
+							matches = append(matches, analyzer.EventInfo{
+								Name: ts.Name.Name,
+								File: gf.Path,
+								Pos:  pos,
+							})
+							return false
+						}
+					}
+				}
+			}
+
+			return true
+		})
+	}
+
+	return matches
+}
+
 // S003: Missing event signing.
 // Detects event stores in production without signing middleware (tamper detection).
 func NewS003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
@@ -126,18 +149,18 @@ func NewS003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 		"S003-missing-event-signing",
 		func(_ context.Context) ([]finding.Finding, error) {
 			hasSigning := false
-
 			for _, pkg := range ctx.Packages {
 				for _, imp := range pkg.Imports {
 					if imp == nil {
 						continue
 					}
-
 					if strings.Contains(imp.PkgPath, "go-cqrs-lite/signing") {
 						hasSigning = true
-
 						break
 					}
+				}
+				if hasSigning {
+					break
 				}
 			}
 
@@ -145,13 +168,46 @@ func NewS003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
+			var savePos finding.Position
 			hasEventStore := false
 
-			for _, fold := range ctx.Registry.Folds {
-				_ = fold
-				hasEventStore = true
+			for _, gf := range ctx.GoFiles {
+				if gf.IsTest {
+					continue
+				}
 
-				break
+				ast.Inspect(gf.AST, func(n ast.Node) bool {
+					call, ok := n.(*ast.CallExpr)
+					if !ok {
+						return true
+					}
+
+					sel, ok := call.Fun.(*ast.SelectorExpr)
+					if !ok {
+						return true
+					}
+
+					method := sel.Sel.Name
+					if method == "Save" || method == "AppendBatch" || method == "Publish" {
+						pkgName := analyzer.SelectorPackage(sel)
+						if strings.Contains(pkgName, "event") ||
+							strings.Contains(pkgName, "store") ||
+							strings.Contains(pkgName, "repo") {
+							pos := ctx.Fset.Position(call.Pos())
+							savePos = finding.Pos(
+								finding.FilePath(pos.Filename), pos.Line, pos.Column,
+							)
+							hasEventStore = true
+							return false
+						}
+					}
+
+					return true
+				})
+
+				if hasEventStore {
+					break
+				}
 			}
 
 			if !hasEventStore {
@@ -164,7 +220,7 @@ func NewS003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				"S003", toolName,
 				"Event store without signing middleware — events are vulnerable to tampering",
 				finding.SeverityWarning,
-				finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1),
+				savePos,
 			).
 				WithCategory(finding.CategorySecurity).
 				WithConfidence(finding.ConfidenceLow).

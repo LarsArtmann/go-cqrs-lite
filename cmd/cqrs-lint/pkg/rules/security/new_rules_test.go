@@ -81,6 +81,10 @@ type State struct{ Count int }
 func fold(s State, evt event.Event) (State, error) {
 	return s, nil
 }
+
+func saveEvents(store event.Store, ref event.AggregateRef, events []event.Event) error {
+	return store.Save(nil, ref, events)
+}
 `,
 	})
 	findings := runDetector(t, security.NewS003Detector(ctx))

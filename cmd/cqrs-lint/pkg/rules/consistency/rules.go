@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"go/ast"
+	"path/filepath"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
@@ -38,7 +39,7 @@ func NewD001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					"D001", toolName,
 					"Inconsistent event type naming — some use dot notation (user.created), others don't (UserCreated)",
 					finding.SeverityInfo,
-					finding.Pos(finding.FilePath("project"), 1, 1),
+					finding.Pos(finding.FilePath(filepath.Join(ctx.ProjectRoot, "go.mod")), 1, 1),
 				).
 					WithCategory(finding.CategoryStyle).
 					WithConfidence(finding.ConfidenceMedium).
