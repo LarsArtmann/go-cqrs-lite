@@ -28,9 +28,7 @@ func isLikelyDecider(fn *ast.FuncDecl) bool {
 
 	return name == "decide" || name == "Decide" ||
 		strings.HasPrefix(name, "decide") ||
-		strings.HasPrefix(name, "Decide") ||
-		strings.Contains(name, "decide") ||
-		strings.Contains(name, "Decide")
+		strings.HasPrefix(name, "Decide")
 }
 
 func isFloat64(expr ast.Expr) bool {

@@ -10,8 +10,13 @@ import (
 func scanFuncDecl(ctx *AnalysisContext, gf *GoFile, fn *ast.FuncDecl) {
 	pos := ctx.Fset.Position(fn.Pos())
 
-	if isIDMethod(fn) {
-		scanIDMethod(ctx, gf, fn, pos)
+	if fn.Name == nil || fn.Recv != nil {
+		switch {
+		case fn.Name != nil && fn.Name.Name == "ID":
+			scanIDMethod(ctx, gf, fn, pos)
+		case fn.Name != nil && (fn.Name.Name == "Type" || fn.Name.Name == "AggregateID"):
+			scanTypedMethod(ctx, gf, fn, pos)
+		}
 	}
 
 	if foldInfo := detectFoldFunc(ctx, gf, fn, pos); foldInfo != nil {
@@ -56,6 +61,18 @@ func scanIDMethod(ctx *AnalysisContext, gf *GoFile, fn *ast.FuncDecl, pos token.
 
 		return true
 	})
+}
+
+// scanTypedMethod registers Type() and AggregateID() methods on structs as
+// potential command types. Combined with BasicCommand embedding or ID() method,
+// this catches commands with manual interfaces.
+func scanTypedMethod(ctx *AnalysisContext, gf *GoFile, fn *ast.FuncDecl, pos token.Position) {
+	recvType := recvTypeName(fn)
+	if recvType == "" {
+		return
+	}
+
+	findOrCreateCommand(ctx, recvType, gf, pos)
 }
 
 func findOrCreateCommand(
@@ -125,7 +142,7 @@ func detectFoldFunc(
 	}
 
 	paramTypeStr := ExprString(params.List[1].Type)
-	if !strings.Contains(paramTypeStr, "event.Event") && !strings.Contains(paramTypeStr, "Event") {
+	if !looksLikeEventType(paramTypeStr) {
 		return nil
 	}
 
@@ -194,4 +211,16 @@ func detectFoldFunc(
 	})
 
 	return info
+}
+
+// looksLikeEventType checks if a parameter type string represents an event type.
+// Accepts event.Event, event.ImmutableEvent, *event.Event, and the CQRS event type
+// variants. Rejects unrelated types that merely contain "Event" (EventBus, EventCounter).
+func looksLikeEventType(typeStr string) bool {
+	if strings.Contains(typeStr, "event.Event") ||
+		strings.Contains(typeStr, "Event") && strings.Contains(typeStr, "event") {
+		return true
+	}
+
+	return false
 }
