@@ -15,11 +15,12 @@ Phases are ordered by dependency: leaf modules first, consumers last. Each phase
 ### Phase 1: Delete leaf outbox implementations (no consumers depend on these)
 
 **Delete files:**
-| File | Module |
-|---|---|
-| `memory/outbox.go` | memory |
-| `memory/outbox_test.go` | memory |
-| `testhelpers/fake_outbox.go` | testhelpers |
+
+| File                              | Module      |
+| --------------------------------- | ----------- |
+| `memory/outbox.go`                | memory      |
+| `memory/outbox_test.go`           | memory      |
+| `testhelpers/fake_outbox.go`      | testhelpers |
 | `testhelpers/fake_outbox_test.go` | testhelpers |
 
 **After:** Run `GOWORK=off go test ./...` in `memory/` and `testhelpers/`.

@@ -937,8 +937,7 @@
   snapshot.SnapshotStore ───────────▶ KVSnapshotStore                  KeyValue bucket
     SnapshotSink   (Save, Delete)        ├─ Save()   → kv.Put(aggregateKey, snapshot)
     SnapshotSource (Load, LoadAtVersion) └─ Load()   → kv.Get(aggregateKey)
-</pre
-          >
+</pre>
         </div>
       </section>
 
@@ -968,8 +967,7 @@ Subjects:       "cqrs.events.{aggregateType}.{aggregateID}"
 Retention:      limits (append-only replay)
 Storage:        file (or memory for testing)
 MaxMsgsPerSubject: 0 (unlimited per aggregate)
-Duplicates:     msg-id header = EventID for exactly-once</pre
-              >
+Duplicates:     msg-id header = EventID for exactly-once</pre>
               <table>
                 <tr>
                   <th>go-cqrs-lite</th>
@@ -1026,8 +1024,7 @@ Duplicates:     msg-id header = EventID for exactly-once</pre
             <div class="card-body">
               <pre>
 ReadAll()  → ephemeral ordered consumer, start from seq 1
-ReadFrom() → ephemeral ordered consumer, start after mapped sequence</pre
-              >
+ReadFrom() → ephemeral ordered consumer, start after mapped sequence</pre>
               <table>
                 <tr>
                   <th>go-cqrs-lite</th>
@@ -1067,8 +1064,7 @@ ReadFrom() → ephemeral ordered consumer, start after mapped sequence</pre
               <pre>
 Publish subject:  "cqrs.events.{eventType}"
 Subscribe filter:  "cqrs.events.{eventType}"
-SubscribeAll:      "cqrs.events.>"</pre
-              >
+SubscribeAll:      "cqrs.events.>"</pre>
               <table>
                 <tr>
                   <th>go-cqrs-lite</th>
@@ -1116,8 +1112,7 @@ SubscribeAll:      "cqrs.events.>"</pre
               <pre>
 Bucket name: "CQRS_CHECKPOINTS"
 Key format:  "{projectionName}"
-Value:       JSON(eventID + processedAt)</pre
-              >
+Value:       JSON(eventID + processedAt)</pre>
               <table>
                 <tr>
                   <th>go-cqrs-lite</th>
@@ -1154,8 +1149,7 @@ Value:       JSON(eventID + processedAt)</pre
               <pre>
 Bucket name: "CQRS_SNAPSHOTS"
 Key format:  "{aggregateType}:{aggregateID}"
-Value:       JSON(snapshot struct)</pre
-              >
+Value:       JSON(snapshot struct)</pre>
               <table>
                 <tr>
                   <th>go-cqrs-lite</th>
@@ -1207,8 +1201,7 @@ Bus publish subject:    cqrs.bus.{eventType}
 Checkpoint KV bucket:  CQRS_CHECKPOINTS
 Checkpoint KV key:     {projectionName}
 Snapshot KV bucket:    CQRS_SNAPSHOTS
-Snapshot KV key:       {aggregateType}:{aggregateID}</pre
-              >
+Snapshot KV key:       {aggregateType}:{aggregateID}</pre>
               <table>
                 <tr>
                   <th>Convention</th>
@@ -1333,8 +1326,7 @@ Snapshot KV key:       {aggregateType}:{aggregateID}</pre
                     bus_subscribe.go
                     │
                     serialization.go
-</pre
-          >
+</pre>
         </div>
       </section>
 

@@ -124,20 +124,20 @@ All have design documents. None are started — they await consumer signal.
 
 ## D) TOTALLY FUCKED UP 💥 (and fixed)
 
-| What                                                      | Why it was bad                                                                 | How it was fixed                                            |
+| What | Why it was bad | How it was fixed |
 | --------------------------------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------- | ------------------------------------------ | ------------------------------------------------------- |
-| **Session 1 fabricated review scores**                    | "Modularity 9/10" etc. were vibes, not measurements                            | Acknowledged in brutal-self-review report. Never repeated.  |
-| **Session 1 bypassed `nix run` commands**                 | AGENTS.md says to use nix. Raw `go build` missed check-layers, check-file-size | Session 2+: always used `nix run .#*`.                      |
-| **Session 1 called storage/memory dep a "critical leak"** | `check-module-layers.sh:46-53` explicitly documents it as an allowed exception | Brutal self-review corrected. TODO_LIST updated.            |
-| **`ci` flake app duplicated build/vet/test logic**        | 30+ lines of inline go commands with manual `                                  |                                                             | exit 1` instead of calling individual apps | Simplified to `set -e` + single bash block (`ef4c6c7b`) |
-| **ROADMAP.md said "38 modules"**                          | Updated AGENTS.md to 43 but missed ROADMAP                                     | Fixed (`5fe2dd1d`)                                          |
-| **ADR-0026 claimed "decider/ does NOT compile to WASM"**  | Fixed months ago via `//go:build !js` in otel/views.go; ADR never updated      | Fixed (`5fe2dd1d`)                                          |
-| **ADR-0026 referenced deleted `wasm/main.go`**            | Ghost reference                                                                | Replaced with CI job reference (`5fe2dd1d`)                 |
-| **9 dead `noinlineerr` entries in .golangci.yml**         | Removed from `enable` list but left in exclusion lists                         | Removed all 9, fixed broken empty-lister rules (`5fe2dd1d`) |
-| **Claimed "SQLViewStore benchmarks missing"**             | They already existed (5 benchmarks in view_store_bench_test.go)                | Verified they run. No action needed. Self-delusion caught.  |
-| **11 stale `//nolint:errcheck` in test files**            | errcheck excluded for \_test.go in config — nolint directives are dead code    | Removed (`fbd455c2`)                                        |
-| **stack/go.mod had invalid eventtest v3.0.0**             | eventtest's module path has no major-version suffix; v3 is invalid             | Fixed to v0.0.0 (`8f2d2090`, earlier session)               |
-| **storage/pebble tests had unchecked constructor errors** | Three test functions assigned errors but never checked them                    | Added error checks (`668e63bf`, earlier session)            |
+| **Session 1 fabricated review scores** | "Modularity 9/10" etc. were vibes, not measurements | Acknowledged in brutal-self-review report. Never repeated. |
+| **Session 1 bypassed `nix run` commands** | AGENTS.md says to use nix. Raw `go build` missed check-layers, check-file-size | Session 2+: always used `nix run .#*`. |
+| **Session 1 called storage/memory dep a "critical leak"** | `check-module-layers.sh:46-53` explicitly documents it as an allowed exception | Brutal self-review corrected. TODO_LIST updated. |
+| **`ci` flake app duplicated build/vet/test logic** | 30+ lines of inline go commands with manual `                                  |                                                             | exit 1` instead of calling individual apps | Simplified to `set -e` + single bash block (`ef4c6c7b`) |
+| **ROADMAP.md said "38 modules"** | Updated AGENTS.md to 43 but missed ROADMAP | Fixed (`5fe2dd1d`) |
+| **ADR-0026 claimed "decider/ does NOT compile to WASM"** | Fixed months ago via `//go:build !js` in otel/views.go; ADR never updated | Fixed (`5fe2dd1d`) |
+| **ADR-0026 referenced deleted `wasm/main.go`** | Ghost reference | Replaced with CI job reference (`5fe2dd1d`) |
+| **9 dead `noinlineerr` entries in .golangci.yml** | Removed from `enable` list but left in exclusion lists | Removed all 9, fixed broken empty-lister rules (`5fe2dd1d`) |
+| **Claimed "SQLViewStore benchmarks missing"** | They already existed (5 benchmarks in view_store_bench_test.go) | Verified they run. No action needed. Self-delusion caught. |
+| **11 stale `//nolint:errcheck` in test files** | errcheck excluded for \_test.go in config — nolint directives are dead code | Removed (`fbd455c2`) |
+| **stack/go.mod had invalid eventtest v3.0.0** | eventtest's module path has no major-version suffix; v3 is invalid | Fixed to v0.0.0 (`8f2d2090`, earlier session) |
+| **storage/pebble tests had unchecked constructor errors** | Three test functions assigned errors but never checked them | Added error checks (`668e63bf`, earlier session) |
 
 ---
 

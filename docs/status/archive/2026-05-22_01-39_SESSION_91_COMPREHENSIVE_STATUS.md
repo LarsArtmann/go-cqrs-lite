@@ -124,36 +124,40 @@
 Full audit of dead/zero-consumer exports completed. Findings organized by tier:
 
 **Tier 1: Zero-cost deletions (407 lines, zero external consumers)**
-| Symbol | Lines | Why Dead |
-|--------|-------|----------|
-| `event.IsReplay` | ~5 | Zero callers anywhere |
-| `catalog/adapters.FromCommandDispatcher` + `FromQueryDispatcher` | 57 | Zero production callers |
-| `catalog.MessageIDString` | ~3 | Own-package tests only |
-| `event.NewEvents` + `MustNewEvents` + `DecodePayloads` | 84 | README example only, no `.go` consumers |
-| `decider.Result` + `ExecuteWithResult` | 71 | Zero external callers |
-| `query.Pagination` + `NewPagination` + `PaginatedResult` + `NewPaginatedResult` | 93 | Zero external callers |
-| `query.TypedHandler` | ~2 | Zero external callers |
-| `dispatcher.NewCatalogDispatcher` + `CopyCatalogEntries` + `CatalogDispatcher` | ~50 | Internal plumbing exposed as public |
-| `dispatcher.MiddlewareChain` + `GetHandler` | ~40 | Same-package only |
-| `dispatcher.Lifecycle.IsClosed` | ~2 | Test only |
+
+| Symbol                                                                          | Lines | Why Dead                                |
+| ------------------------------------------------------------------------------- | ----- | --------------------------------------- |
+| `event.IsReplay`                                                                | ~5    | Zero callers anywhere                   |
+| `catalog/adapters.FromCommandDispatcher` + `FromQueryDispatcher`                | 57    | Zero production callers                 |
+| `catalog.MessageIDString`                                                       | ~3    | Own-package tests only                  |
+| `event.NewEvents` + `MustNewEvents` + `DecodePayloads`                          | 84    | README example only, no `.go` consumers |
+| `decider.Result` + `ExecuteWithResult`                                          | 71    | Zero external callers                   |
+| `query.Pagination` + `NewPagination` + `PaginatedResult` + `NewPaginatedResult` | 93    | Zero external callers                   |
+| `query.TypedHandler`                                                            | ~2    | Zero external callers                   |
+| `dispatcher.NewCatalogDispatcher` + `CopyCatalogEntries` + `CatalogDispatcher`  | ~50   | Internal plumbing exposed as public     |
+| `dispatcher.MiddlewareChain` + `GetHandler`                                     | ~40   | Same-package only                       |
+| `dispatcher.Lifecycle.IsClosed`                                                 | ~2    | Test only                               |
 
 **Tier 2: Deprecated adapters (1 example consumer)**
-| Symbol | Lines | Consumer |
-|--------|-------|----------|
-| `catalog/adapters.CatalogBuilder` | 122 | `example/user/catalog.go` (migrate to `catalog.Builder`) |
-| Related test files | ~200 | Delete with adapters |
+
+| Symbol                            | Lines | Consumer                                                 |
+| --------------------------------- | ----- | -------------------------------------------------------- |
+| `catalog/adapters.CatalogBuilder` | 122   | `example/user/catalog.go` (migrate to `catalog.Builder`) |
+| Related test files                | ~200  | Delete with adapters                                     |
 
 **Tier 3: Breaking interface changes**
-| Symbol | Lines | Impact |
-|--------|-------|--------|
-| `Command.IdempotencyKey()` | ~5 | 5 implementations exist but nobody calls it — dead method |
-| `event.OutboxPublisher` + subsystem | 206 | Zero production consumers (comments only) |
+
+| Symbol                              | Lines | Impact                                                    |
+| ----------------------------------- | ----- | --------------------------------------------------------- |
+| `Command.IdempotencyKey()`          | ~5    | 5 implementations exist but nobody calls it — dead method |
+| `event.OutboxPublisher` + subsystem | 206   | Zero production consumers (comments only)                 |
 
 **Tier 4: Major package deletion**
-| Symbol | Lines | Impact |
-|--------|-------|--------|
+
+| Symbol                           | Lines | Impact                                                      |
+| -------------------------------- | ----- | ----------------------------------------------------------- |
 | `core/aggregate/` entire package | 1,756 | Deprecated, only `integration/aggregate/` test files use it |
-| `integration/aggregate/` | ~800 | Tests for deprecated package |
+| `integration/aggregate/`         | ~800  | Tests for deprecated package                                |
 
 **NOT dead (keep):**
 

@@ -130,21 +130,24 @@
 **Tier 1: ✅ DONE** — 217 lines deleted, 12 exports removed
 
 **Tier 2: Deprecated adapters (1 example consumer)**
-| Symbol | Lines | Consumer | Status |
-|--------|-------|----------|--------|
-| `catalog/adapters.CatalogBuilder` | 122 | `example/user/catalog.go` | Still in use via `NewBuilder` |
+
+| Symbol                            | Lines | Consumer                  | Status                        |
+| --------------------------------- | ----- | ------------------------- | ----------------------------- |
+| `catalog/adapters.CatalogBuilder` | 122   | `example/user/catalog.go` | Still in use via `NewBuilder` |
 
 **Tier 3: Breaking interface changes**
-| Symbol | Lines | Impact | Status |
-|--------|-------|--------|--------|
-| `Command.IdempotencyKey()` | ~5 | 5 implementations | Still in interface |
-| `event.OutboxPublisher` + subsystem | 206 | Zero consumers | Still exported |
+
+| Symbol                              | Lines | Impact            | Status             |
+| ----------------------------------- | ----- | ----------------- | ------------------ |
+| `Command.IdempotencyKey()`          | ~5    | 5 implementations | Still in interface |
+| `event.OutboxPublisher` + subsystem | 206   | Zero consumers    | Still exported     |
 
 **Tier 4: Major package deletion**
-| Symbol | Lines | Impact | Status |
-|--------|-------|--------|--------|
-| `core/aggregate/` entire package | 1,756 | Deprecated | Still exported with deprecation notice |
-| `integration/aggregate/` | ~800 | Tests for deprecated | Still present |
+
+| Symbol                           | Lines | Impact               | Status                                 |
+| -------------------------------- | ----- | -------------------- | -------------------------------------- |
+| `core/aggregate/` entire package | 1,756 | Deprecated           | Still exported with deprecation notice |
+| `integration/aggregate/`         | ~800  | Tests for deprecated | Still present                          |
 
 ### LSP Build Errors — Pre-existing
 

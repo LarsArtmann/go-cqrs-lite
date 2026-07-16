@@ -911,8 +911,7 @@
               <pre>
 Get(key) → value
 Put(key, value)
-Delete(key)</pre
-              >
+Delete(key)</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -973,8 +972,7 @@ Insert(collection, document)
 Find(collection, query) → []Document
 Update(collection, query, changes)
 Delete(collection, query)
-Aggregate(collection, pipeline) → []Document</pre
-              >
+Aggregate(collection, pipeline) → []Document</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1023,8 +1021,7 @@ SELECT columns FROM table WHERE condition
 INSERT INTO table (columns) VALUES (...)
 UPDATE table SET ... WHERE ...
 DELETE FROM table WHERE ...
-BEGIN / COMMIT / ROLLBACK</pre
-              >
+BEGIN / COMMIT / ROLLBACK</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1072,8 +1069,7 @@ CreateNode(label, properties) → Node
 CreateEdge(type, source, target, properties) → Edge
 Traverse(start, pattern) → []Path
 Query(cypher) → Result
-ShortestPath(a, b) → Path</pre
-              >
+ShortestPath(a, b) → Path</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1115,8 +1111,7 @@ ShortestPath(a, b) → Path</pre
 Write(metric, tags, value, timestamp)
 Query(metric, tags, timeRange) → []Point
 Aggregate(metric, tags, window, fn) → []Bucket
-Downsample(metric, targetResolution)</pre
-              >
+Downsample(metric, targetResolution)</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1159,8 +1154,7 @@ Downsample(metric, targetResolution)</pre
 Index(document, fields)
 Search(query, filters) → []Hit (ranked)
 Suggest(prefix) → []Suggestion
-Aggregate(query, facets) → FacetResults</pre
-              >
+Aggregate(query, facets) → FacetResults</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1202,8 +1196,7 @@ Aggregate(query, facets) → FacetResults</pre
               <pre>
 Put(rowKey, columnFamily, column, value)
 Get(rowKey, columnFamily, column) → value
-Scan(rowKeyRange, columnFamily, columns) → []Row</pre
-              >
+Scan(rowKeyRange, columnFamily, columns) → []Row</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1246,8 +1239,7 @@ Scan(rowKeyRange, columnFamily, columns) → []Row</pre
 PUT(bucket, key, data, metadata)
 GET(bucket, key) → data + metadata
 DELETE(bucket, key)
-LIST(bucket, prefix) → []ObjectInfo</pre
-              >
+LIST(bucket, prefix) → []ObjectInfo</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1289,8 +1281,7 @@ LIST(bucket, prefix) → []ObjectInfo</pre
               <pre>
 Assert(subject, predicate, object)
 Retract(subject, predicate, object)
-Query(sparql) → Result</pre
-              >
+Query(sparql) → Result</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1332,8 +1323,7 @@ Query(sparql) → Result</pre
               <pre>
 Assert(fact)
 Rule(head ← body)
-Query(goal) → Result</pre
-              >
+Query(goal) → Result</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1377,8 +1367,7 @@ Publish(topic, message)
 Subscribe(topic, handler)
 Process(stream → stream)
 Window(stream, duration) → []Batch
-Join(streamA, streamB) → streamC</pre
-              >
+Join(streamA, streamB) → streamC</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1419,8 +1408,7 @@ Join(streamA, streamB) → streamC</pre
               <pre>
 Insert(id, vector, metadata)
 Search(queryVector, k) → []Neighbor
-Query(filter) → []Vector</pre
-              >
+Query(filter) → []Vector</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1464,8 +1452,7 @@ SQL("SELECT ...")              // Relational
 Cypher("MATCH ...")            // Graph
 KV.Get(key)                    // Key-Value
 Search(query)                  // Full-text
-Vector.Search(embedding, k)    // Similarity</pre
-              >
+Vector.Search(embedding, k)    // Similarity</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1504,8 +1491,7 @@ INSERT INTO locations (name, geo)
   VALUES ('Berlin', ST_Point(13.4, 52.5))
 
 SELECT * FROM locations
-  WHERE ST_DWithin(geo, ST_Point(13.4,52.5), 5000)</pre
-              >
+  WHERE ST_DWithin(geo, ST_Point(13.4,52.5), 5000)</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1549,8 +1535,7 @@ SELECT * FROM locations
               <pre>
 db.Store(&amp;User{Name: "Alice", Address: &amp;Address{City: "Berlin"}})
 user := db.Load&lt;User&gt;(oid)
-user.Address.City  // navigated transparently</pre
-              >
+user.Address.City  // navigated transparently</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1596,8 +1581,7 @@ user.Address.City  // navigated transparently</pre
 session.getNode("/content/articles/2024/intro")
   .setProperty("title", "Hello World")
   .addMixin("mix:versionable")
-session.save()</pre
-              >
+session.save()</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1640,8 +1624,7 @@ session.save()</pre
 // XQuery across XML documents
 for $book in doc("catalog.xml")/books/book
 where $book/price &lt; 30
-return $book/title</pre
-              >
+return $book/title</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1687,8 +1670,7 @@ OPEN "CUSTOMERS" TO custs THEN
   name = cust&lt;1&gt;      ; * attribute 1
   phones = cust&lt;2&gt;     ; * multi-valued
   phone1 = cust&lt;2,1&gt;   ; * first value
-END</pre
-              >
+END</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1750,8 +1732,7 @@ END</pre
            [Internal Node: Keys + Child Pointers]
           /              |                \
   [Leaf: K,V,K,V]  [Leaf: K,V,K,V]  [Leaf: K,V,K,V]
-       ↔ linked list for range scans ↔</pre
-              >
+       ↔ linked list for range scans ↔</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1806,8 +1787,7 @@ Writes → [MemTable (sorted, in-memory)]
               ↓ flush when full
          [SSTable L0] → [SSTable L1] → [SSTable L2] → ...
               ↑ background compaction merges levels ↑
-[WAL] → sequential log for crash recovery</pre
-              >
+[WAL] → sequential log for crash recovery</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1892,8 +1872,7 @@ Writes → [MemTable (sorted, in-memory)]
               <pre>
 hash("user:123") → bucket 7 → [offset → disk position]
                                       ↓
-                              [Log file: key, value, ...]</pre
-              >
+                              [Log file: key, value, ...]</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1939,8 +1918,7 @@ hash("user:123") → bucket 7 → [offset → disk position]
 Row-oriented:  [id=1,name="Alice",age=30] [id=2,name="Bob",age=25]
 Columnar:      id: [1, 2, 3, ...]
                name: ["Alice", "Bob", ...]
-               age: [30, 25, ...]</pre
-              >
+               age: [30, 25, ...]</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -1986,8 +1964,7 @@ Columnar:      id: [1, 2, 3, ...]
             <div class="card-body">
               <pre>
 [Event 1] → [Event 2] → [Event 3] → ... → [Event N]
-  ↑ immutable, never modified, only appended ↑</pre
-              >
+  ↑ immutable, never modified, only appended ↑</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -2036,8 +2013,7 @@ Columnar:      id: [1, 2, 3, ...]
               <pre>
 Process Virtual Memory:
 [0x0000 ... Database File ... 0xFFFF]
-     ↑ OS handles page faults ←→ Disk automatically ↑</pre
-              >
+     ↑ OS handles page faults ←→ Disk automatically ↑</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -2082,8 +2058,7 @@ Process Virtual Memory:
               <pre>
 [Root with buffer] → [Internal with buffer] → [Leaf]
        ↓ flush              ↓ flush
-  Messages buffered in internal nodes, flushed in batches</pre
-              >
+  Messages buffered in internal nodes, flushed in batches</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -2128,8 +2103,7 @@ Process Virtual Memory:
               <pre>
 Node4:  [≤4 children, compact]   → Node16: [≤16 children]
                                       → Node48: [≤48 children]
-                                         → Node256: [256 children]</pre
-              >
+                                         → Node256: [256 children]</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -2176,8 +2150,7 @@ Node4:  [≤4 children, compact]   → Node16: [≤16 children]
             <div class="card-body">
               <pre>
 Page A → [delta 3] → [delta 2] → [delta 1] → [base page]
-              ↑ CAS chain — updates without latches ↑</pre
-              >
+              ↑ CAS chain — updates without latches ↑</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -2217,8 +2190,7 @@ Page A → [delta 3] → [delta 2] → [delta 1] → [base page]
             <div class="card-body">
               <pre>
 [Cache] → flush → [TSM File: time-sorted, compressed per field]
-                       ↓ compaction → [Larger TSM File]</pre
-              >
+                       ↓ compaction → [Larger TSM File]</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -2256,8 +2228,7 @@ Page A → [delta 3] → [delta 2] → [delta 1] → [base page]
 HNSW:                       IVF:
   Layer 2: [sparse]           [Centroid 1] → [vectors near 1]
   Layer 1: [medium]           [Centroid 2] → [vectors near 2]
-  Layer 0: [dense]            [Centroid N] → [vectors near N]</pre
-              >
+  Layer 0: [dense]            [Centroid N] → [vectors near N]</pre>
               <table>
                 <tr>
                   <th>Dimension</th>
@@ -2293,8 +2264,7 @@ HNSW:                       IVF:
             <div class="card-body">
               <pre>
 Write: Modify leaf → copy path to root → atomically swap root pointer
-Old root still valid → readers see consistent snapshot</pre
-              >
+Old root still valid → readers see consistent snapshot</pre>
               <table>
                 <tr>
                   <th>Dimension</th>

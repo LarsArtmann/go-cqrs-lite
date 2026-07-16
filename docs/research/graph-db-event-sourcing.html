@@ -939,8 +939,7 @@
                                                 │
                                           And now the FULL CAUSAL CHAIN
                                           is a graph traversal, not a table scan.
-</pre
-          >
+</pre>
         </div>
 
         <div class="cards">
@@ -1052,8 +1051,7 @@
       │
       ▼
 (:Event {type:"AddressMoved", seq:3, payload:{...}, at:T3})
-</pre
-                >
+</pre>
               </div>
               <table>
                 <thead>
@@ -1115,8 +1113,7 @@
       │
       ▼
 (:State:User {version:2, data:{name:"Alice", email:"a@b.com"}})
-</pre
-                >
+</pre>
               </div>
               <table>
                 <thead>
@@ -1196,8 +1193,7 @@
       │ [:CORRELATES_WITH]
       ▼
 (:Event:PaymentTaken {seq:2}) ◀── [:CAUSED_BY]
-</pre
-                >
+</pre>
               </div>
               <table>
                 <thead>
@@ -1999,8 +1995,7 @@ CREATE (a:Aggregate:User {
   id: "user-01JM3X...",
   type: "User",
   created_at: datetime("2026-05-29T10:00:00Z")
-})</pre
-              >
+})</pre>
               <table>
                 <thead>
                   <tr>
@@ -2060,8 +2055,7 @@ CREATE (e:Event:UserCreated {
   causation_id: "cause-xyz"
 })
 CREATE (a)-[:HAS_EVENT]->(e)
-CREATE (prev)-[:NEXT]->(e)</pre
-              >
+CREATE (prev)-[:NEXT]->(e)</pre>
               <table>
                 <thead>
                   <tr>
@@ -2298,8 +2292,7 @@ func (s *Neo4jEventStore) Save(
             lastEventNode = /* new event's element ID */
         }
     })
-}</pre
-              >
+}</pre>
             </div>
           </div>
 
@@ -2350,8 +2343,7 @@ func reconstructEvent(props map[string]any) (event.Event, error) {
         event.WithSchemaVersion(int(props["schema_version"].(int64))),
         event.WithOccurredAt(props["occurred_at"].(time.Time)),
     )
-}</pre
-              >
+}</pre>
             </div>
           </div>
 
@@ -2392,8 +2384,7 @@ MATCH (e:Event)
 OPTIONAL MATCH (e)-[:CAUSED_BY]->(cause:Event)
 OPTIONAL MATCH (e)<-[:PRODUCED]-(cmd:Command)
 RETURN e, cause.event_id AS caused_by, cmd.id AS source_command
-ORDER BY e.occurred_at ASC</pre
-              >
+ORDER BY e.occurred_at ASC</pre>
               <div class="key-prop green">
                 <strong>This is the killer feature.</strong> These queries are either impossible or
                 require expensive recursive CTEs in a SQL event store. In a graph, they're single
@@ -2448,8 +2439,7 @@ ORDER BY e.occurred_at ASC</pre
   │  "Was this command successful?"   → Does [:PRODUCED] edge exist?        │
   │  "Debug this saga failure"        → Traverse the full subgraph          │
   └─────────────────────────────────────────────────────────────────────────┘
-</pre
-          >
+</pre>
         </div>
 
         <div class="cards">
@@ -2471,8 +2461,7 @@ CREATE (cmd:Command:RegisterUser {
   aggregate_type: "User"
 })
 
-CREATE (cmd)-[:TARGETS]->(:Aggregate:User {id: "user-01JM..."})</pre
-              >
+CREATE (cmd)-[:TARGETS]->(:Aggregate:User {id: "user-01JM..."})</pre>
               <table>
                 <thead>
                   <tr>
@@ -2544,8 +2533,7 @@ CREATE (e2)-[:TRIGGERED]->(cmd2)
 MATCH (saga:Saga {id: 'saga-001'})-[step:STEP]->(node)
 RETURN step.n AS step_number, step.status AS status,
        labels(node) AS type, node
-ORDER BY step.n</pre
-              >
+ORDER BY step.n</pre>
               <div class="key-prop green">
                 <strong>Sagas become queryable graphs.</strong> No separate saga state table. No
                 saga orchestrator polling. The saga IS the subgraph. "Which step failed?" is a
@@ -4679,8 +4667,7 @@ MATCH path = (s0:State:User {id:"user-1", version:0})
               -[:TRANSITION*]->(sN:State:User)
 WHERE ALL(r IN relationships(path) WHERE
     r.recorded_at <= datetime($asOfTime))
-RETURN last(nodes(path)) AS state_at_time</pre
-              >
+RETURN last(nodes(path)) AS state_at_time</pre>
               <div class="key-prop violet">
                 <strong>Time travel for free.</strong> No temporal tables, no system-versioning, no
                 audit log sidecar. The graph topology IS the temporal record.
@@ -4719,8 +4706,7 @@ RETURN last(nodes(path)) AS state_at_time</pre
 -- Dead letter detection
 MATCH (s:Service)-[:EMITS]->(e:EventType)
 WHERE NOT (e)-[:CONSUMED_BY]->(:Service)
-RETURN s.name AS orphan_producer, e.type AS unconsumed_event</pre
-              >
+RETURN s.name AS orphan_producer, e.type AS unconsumed_event</pre>
               <div class="key-prop">
                 <strong>System-level observability.</strong> The graph doesn't just store YOUR
                 domain events — it maps the entire distributed system's event topology. Dependency
@@ -4759,8 +4745,7 @@ ORDER BY frequency DESC LIMIT 20
 -- Version distribution: how many events per aggregate?
 MATCH (a:Aggregate)-[:HAS_EVENT]->(e:Event)
 RETURN a.id, max(e.seq) AS event_count
-ORDER BY event_count DESC LIMIT 10</pre
-              >
+ORDER BY event_count DESC LIMIT 10</pre>
               <div class="key-prop">
                 <strong>Operational intelligence.</strong> Cypher pattern matching turns your event
                 store into an analytics engine. No separate monitoring stack needed for event-level
@@ -5169,8 +5154,7 @@ ORDER BY event_count DESC LIMIT 10</pre
 │                                   │
 │  All events, commands, sagas,     │
 │  and relationships in one graph.  │
-└──────────────────────────────────┘</pre
-                >
+└──────────────────────────────────┘</pre>
               </div>
               <ul class="variants">
                 <li>
@@ -5219,8 +5203,7 @@ ORDER BY event_count DESC LIMIT 10</pre
 │  })                        │      │  data lives here.          │
 │                            │      │                            │
 │  Graph = index + structure │      │  Store = payload archive   │
-└──────────────────────────┘      └──────────────────────────┘</pre
-                >
+└──────────────────────────┘      └──────────────────────────┘</pre>
               </div>
               <ul class="variants">
                 <li>
@@ -5278,8 +5261,7 @@ ORDER BY event_count DESC LIMIT 10</pre
                                               │
                                     Graph is ALWAYS a projection
                                     (eventual consistency is fine
-                                     for read-side analytics)</pre
-                >
+                                     for read-side analytics)</pre>
               </div>
               <ul class="variants">
                 <li>
@@ -5339,8 +5321,7 @@ ORDER BY event_count DESC LIMIT 10</pre
 │  - What events does the PaymentService emit?                          │
 │  - If I change UserCreated schema, what breaks?                       │
 │  - What's the full dependency graph of my event-driven system?        │
-└─────────────────────────────────────────────────────────────────────┘</pre
-                >
+└─────────────────────────────────────────────────────────────────────┘</pre>
               </div>
               <ul class="variants">
                 <li>
@@ -5441,8 +5422,7 @@ ORDER BY event_count DESC LIMIT 10</pre
   The thought experiment isn't "should I use a graph as my event store?"
   The thought experiment is "what would I gain if I projected my events
   into a graph?" — and the answer is: superpowers you didn't know you needed.
-</pre
-          >
+</pre>
         </div>
 
         <div class="diagram-box">
@@ -5464,8 +5444,7 @@ ORDER BY event_count DESC LIMIT 10</pre
 
   The future of event sourcing isn't one or the other.
   It's a flat store for writes, projected into a graph for reads.
-</pre
-          >
+</pre>
         </div>
       </section>
 

@@ -192,13 +192,13 @@ Sorted by **impact × effort** (Pareto principle):
 
 ### Tier 4: Strategic / Future
 
-| #   | Task                                                                                                                       | Impact          | Effort         |
+| # | Task | Impact | Effort |
 | --- | -------------------------------------------------------------------------------------------------------------------------- | --------------- | -------------- | ------ |
-| 21  | Evaluate `mnd` (magic number detector) — fix the `10` in gracefulshutdown default timeout                                  | Code quality    | 5 min          |
-| 22  | Consider `bool` enum conversion for `catalog.Message.Deprecated` — `DeprecatedStatus Active                                | Deprecated`     | Domain clarity | 15 min |
-| 23  | Add catalog diff/breaking-change detection tool (from TODO_LIST.md)                                                        | Consumer safety | 4+ hours       |
-| 24  | Consider `go-branded-id` patterns for remaining strong-ID violations (`openapi.OperationID`, `FlowStep.ID`, `FlowEdge.ID`) | Completeness    | 30 min         |
-| 25  | Evaluate whether branching-flow phantom analysis should have a "serialization struct" exclusion mode                       | Tooling         | 2+ hours       |
+| 21 | Evaluate `mnd` (magic number detector) — fix the `10` in gracefulshutdown default timeout | Code quality | 5 min |
+| 22 | Consider `bool` enum conversion for `catalog.Message.Deprecated` — `DeprecatedStatus Active                                | Deprecated` | Domain clarity | 15 min |
+| 23 | Add catalog diff/breaking-change detection tool (from TODO_LIST.md) | Consumer safety | 4+ hours |
+| 24 | Consider `go-branded-id` patterns for remaining strong-ID violations (`openapi.OperationID`, `FlowStep.ID`, `FlowEdge.ID`) | Completeness | 30 min |
+| 25 | Evaluate whether branching-flow phantom analysis should have a "serialization struct" exclusion mode | Tooling | 2+ hours |
 
 ---
 

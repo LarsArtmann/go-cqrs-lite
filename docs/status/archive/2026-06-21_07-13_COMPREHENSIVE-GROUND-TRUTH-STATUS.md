@@ -21,22 +21,22 @@ with no real-world validation.
 
 ## a) FULLY DONE (verified passing)
 
-| Area                           | Status                       | Evidence                                                                                                      |
+| Area | Status | Evidence |
 | ------------------------------ | ---------------------------- | ------------------------------------------------------------------------------------------------------------- | --- | ------------- |
-| **Build**                      | ✅ Clean                     | `go build ./...` exits 0 with experimental tags                                                               |
-| **Vet**                        | ✅ Clean                     | `go vet ./...` exits 0                                                                                        |
-| **Tests**                      | ✅ 59/59 pass                | Zero failures across all modules + examples                                                                   |
-| **Race detector**              | ✅ Clean on modified modules | SSE, stack, event pass `-race`                                                                                |
-| **File-size gate**             | ✅ Zero violations           | No production file exceeds 350 lines                                                                          |
-| **TODO/FIXME markers**         | ✅ Zero in production        | Only acceptable codec init panics remain                                                                      |
-| **All 11 v3 breaking changes** | ✅ Complete                  | ghost bus removed, `readmodel/` deleted, `projection/` dissolved, `Event` concrete type, `Fold`→`Apply`, etc. |
-| **Zero-panic migration**       | ✅ Complete                  | 26 production panics → error returns                                                                          |
-| **Error taxonomy**             | ✅ Complete                  | 5-family classification (Rejection/Conflict/Transient/Infrastructure/Corruption)                              |
-| **Dead build tags cleaned**    | ✅ Done                      | Only `goexperiment.arenas` + `goexperiment.jsonv2` remain                                                     |
-| **Security theater removed**   | ✅ Done                      | gosec `-no-fail`, `                                                                                           |     | true` removed |
-| **Ghost code eliminated**      | ✅ Done                      | `readmodel/`, `projection/`, `wasm/`, `transaction_id.go`, ghost bus — all deleted                            |
-| **CI file-size gate fixed**    | ✅ Done                      | Subshell bug fixed, gate actually works                                                                       |
-| **API stability golden**       | ✅ Current                   | 1,605 exports, `TestAPISurfaceCheck` passes                                                                   |
+| **Build** | ✅ Clean | `go build ./...` exits 0 with experimental tags |
+| **Vet** | ✅ Clean | `go vet ./...` exits 0 |
+| **Tests** | ✅ 59/59 pass | Zero failures across all modules + examples |
+| **Race detector** | ✅ Clean on modified modules | SSE, stack, event pass `-race` |
+| **File-size gate** | ✅ Zero violations | No production file exceeds 350 lines |
+| **TODO/FIXME markers** | ✅ Zero in production | Only acceptable codec init panics remain |
+| **All 11 v3 breaking changes** | ✅ Complete | ghost bus removed, `readmodel/` deleted, `projection/` dissolved, `Event` concrete type, `Fold`→`Apply`, etc. |
+| **Zero-panic migration** | ✅ Complete | 26 production panics → error returns |
+| **Error taxonomy** | ✅ Complete | 5-family classification (Rejection/Conflict/Transient/Infrastructure/Corruption) |
+| **Dead build tags cleaned** | ✅ Done | Only `goexperiment.arenas` + `goexperiment.jsonv2` remain |
+| **Security theater removed** | ✅ Done | gosec `-no-fail`, `                                                                                           |     | true` removed |
+| **Ghost code eliminated** | ✅ Done | `readmodel/`, `projection/`, `wasm/`, `transaction_id.go`, ghost bus — all deleted |
+| **CI file-size gate fixed** | ✅ Done | Subshell bug fixed, gate actually works |
+| **API stability golden** | ✅ Current | 1,605 exports, `TestAPISurfaceCheck` passes |
 
 ### Core Module Coverage
 

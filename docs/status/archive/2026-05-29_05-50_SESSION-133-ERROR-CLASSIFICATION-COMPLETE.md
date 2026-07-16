@@ -86,13 +86,14 @@ The `sqlite_integration_test.go` monolith was already deleted in a prior session
 - **Remaining:** `core/` (4 calls), `catalog/` (29 calls), `projection/` (2 calls), `saga/` (1 call)
 
 Remaining `fmt.Errorf` calls by module:
-| Module | Count | Nature |
-|--------|-------|--------|
-| `core/pkg/id/` | 3 | ULID parsing — these are validation errors wrapping `errEmptyString` |
-| `core/decider/` | 1 | `Load` error formatting — intentional formatted error builder |
-| `catalog/` | 29 | File I/O in exporters — wrapping filesystem operations |
-| `projection/` | 2 | Health check — wrapping checkpoint store / journal errors |
-| `saga/` | 1 | Health check — nil store guard |
+
+| Module          | Count | Nature                                                               |
+| --------------- | ----- | -------------------------------------------------------------------- |
+| `core/pkg/id/`  | 3     | ULID parsing — these are validation errors wrapping `errEmptyString` |
+| `core/decider/` | 1     | `Load` error formatting — intentional formatted error builder        |
+| `catalog/`      | 29    | File I/O in exporters — wrapping filesystem operations               |
+| `projection/`   | 2     | Health check — wrapping checkpoint store / journal errors            |
+| `saga/`         | 1     | Health check — nil store guard                                       |
 
 ---
 

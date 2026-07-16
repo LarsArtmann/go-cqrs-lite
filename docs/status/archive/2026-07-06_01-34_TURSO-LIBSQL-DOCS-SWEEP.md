@@ -17,53 +17,56 @@ The user asked "How is stack/'s turso integration?" → I investigated → the *
 ### 1. Go Source Comments — All LibSQL references updated
 
 **Files (11):**
-| File | Change |
-|---|---|
-| `storage/turso/doc.go` | "embedded LibSQL" → "embedded Turso Database"; pool section rewritten |
-| `storage/turso/connector.go` | "LibSQL native engine" → "Turso Database engine" (×3); ConfigurePool comment |
-| `storage/turso/backend.go` | "Turso/LibSQL" → "Turso" (×2); "embedded LibSQL" → "embedded database" |
-| `storage/turso/indexing.go` | "Turso/LibSQL" → "Turso" (×2) |
-| `storage/turso/example_test.go` | Comment + example URL `libsql://` → `https://` |
-| `storage/turso/backend_test.go` | Pool comment |
-| `storage/turso/indexing/doc.go` | Package doc |
-| `storage/turso/indexing/optimizations.go` | Pragma comments (×3) |
-| `storage/turso/indexing/auto.go` | Error message comment |
-| `stack/turso/doc.go` | Package doc + Quick Start example |
-| `stack/turso/drivers.go` | Driver registration comment |
-| `stack/turso/preset.go` | New() doc, NewSync() doc, bus comment |
+
+| File                                      | Change                                                                       |
+| ----------------------------------------- | ---------------------------------------------------------------------------- |
+| `storage/turso/doc.go`                    | "embedded LibSQL" → "embedded Turso Database"; pool section rewritten        |
+| `storage/turso/connector.go`              | "LibSQL native engine" → "Turso Database engine" (×3); ConfigurePool comment |
+| `storage/turso/backend.go`                | "Turso/LibSQL" → "Turso" (×2); "embedded LibSQL" → "embedded database"       |
+| `storage/turso/indexing.go`               | "Turso/LibSQL" → "Turso" (×2)                                                |
+| `storage/turso/example_test.go`           | Comment + example URL `libsql://` → `https://`                               |
+| `storage/turso/backend_test.go`           | Pool comment                                                                 |
+| `storage/turso/indexing/doc.go`           | Package doc                                                                  |
+| `storage/turso/indexing/optimizations.go` | Pragma comments (×3)                                                         |
+| `storage/turso/indexing/auto.go`          | Error message comment                                                        |
+| `stack/turso/doc.go`                      | Package doc + Quick Start example                                            |
+| `stack/turso/drivers.go`                  | Driver registration comment                                                  |
+| `stack/turso/preset.go`                   | New() doc, NewSync() doc, bus comment                                        |
 
 **Verified:** Zero LibSQL/libSQL references remain in any `.go` file (excluding `libsql://` URL strings in test data, which are arbitrary round-trip strings, not user-facing branding).
 
 ### 2. Markdown Docs — All living docs updated
 
 **Files (13):**
-| File | Change |
-|---|---|
-| `README.md` | 3 table entries + preset description |
-| `AGENTS.md` | Module tree comment |
-| `FEATURES.md` | Local DB + Pool configuration rows |
-| `docs/DOMAIN_LANGUAGE.md` | Turso domain term |
-| `docs/INFRASTRUCTURE_RECOMMENDATIONS.md` | Edge/offline-first row |
-| `docs/PRESETS.md` | Engine column |
-| `docs/README.md` | Index link text |
-| `docs/STORAGE_GUIDE.md` | Section header + **bug fix** (see below) |
-| `docs/benchmarks/README.md` | Benchmark section header |
-| `docs/turso-indexing-guidance.md` | Title + section header + code example |
-| `docs/planning/2026-06-23_..._HARDENING.md` | 2 table entries |
-| `docs/research/storage-first-principles-analysis.md` | Engine column |
-| `docs/research/2026-06-23_..._AUDIT.md` | 2 references |
-| `storage/turso/README.md` | Tagline + pool table + 2 code examples + indexing section + pragma note |
-| `storage/turso/indexing/README.md` | Tagline + related modules |
-| `storage/README.md` | Related modules link |
+
+| File                                                 | Change                                                                  |
+| ---------------------------------------------------- | ----------------------------------------------------------------------- |
+| `README.md`                                          | 3 table entries + preset description                                    |
+| `AGENTS.md`                                          | Module tree comment                                                     |
+| `FEATURES.md`                                        | Local DB + Pool configuration rows                                      |
+| `docs/DOMAIN_LANGUAGE.md`                            | Turso domain term                                                       |
+| `docs/INFRASTRUCTURE_RECOMMENDATIONS.md`             | Edge/offline-first row                                                  |
+| `docs/PRESETS.md`                                    | Engine column                                                           |
+| `docs/README.md`                                     | Index link text                                                         |
+| `docs/STORAGE_GUIDE.md`                              | Section header + **bug fix** (see below)                                |
+| `docs/benchmarks/README.md`                          | Benchmark section header                                                |
+| `docs/turso-indexing-guidance.md`                    | Title + section header + code example                                   |
+| `docs/planning/2026-06-23_..._HARDENING.md`          | 2 table entries                                                         |
+| `docs/research/storage-first-principles-analysis.md` | Engine column                                                           |
+| `docs/research/2026-06-23_..._AUDIT.md`              | 2 references                                                            |
+| `storage/turso/README.md`                            | Tagline + pool table + 2 code examples + indexing section + pragma note |
+| `storage/turso/indexing/README.md`                   | Tagline + related modules                                               |
+| `storage/README.md`                                  | Related modules link                                                    |
 
 ### 3. AI Skill Docs — Updated
 
 **Files (4):**
-| File | Change |
-|---|---|
-| `.agents/skills/go-cqrs-lite/SKILL.md` | Decision matrix row |
-| `.agents/skills/go-cqrs-lite/references/modules.md` | Turso module row |
-| `.agents/skills/go-cqrs-lite/references/recipes.md` | Preset comparison table |
+
+| File                                                 | Change                     |
+| ---------------------------------------------------- | -------------------------- |
+| `.agents/skills/go-cqrs-lite/SKILL.md`               | Decision matrix row        |
+| `.agents/skills/go-cqrs-lite/references/modules.md`  | Turso module row           |
+| `.agents/skills/go-cqrs-lite/references/recipes.md`  | Preset comparison table    |
 | `.agents/skills/go-cqrs-lite/references/advanced.md` | Offline-first code comment |
 
 ### 4. URL Scheme Updated (`libsql://` → `https://`)

@@ -35,13 +35,13 @@
 
 `.golangci.yml` passes `golangci-lint config verify` (zero schema errors). Remaining lint issues:
 
-| Module     | Issues | Details                                                                                                                                                                                   |
+| Module | Issues | Details |
 | ---------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| core       | 14     | depguard (2 — `go-composable-business-types/id`, `oklog/ulid` not in allow-list), err113 (2 — dynamic errors in `id.go`, `repository.go`), wsl_v5 (10 — whitespace style in `id_test.go`) |
-| catalog    | 1      | exhaustive switch on `reflect.Kind` missing `Pointer                                                                                                                                      | Ptr` case |
-| middleware | 1      | nlreturn in `middleware_test.go:339`                                                                                                                                                      |
-| memory     | 0      | Clean                                                                                                                                                                                     |
-| xtypes     | 0      | Clean                                                                                                                                                                                     |
+| core | 14 | depguard (2 — `go-composable-business-types/id`, `oklog/ulid` not in allow-list), err113 (2 — dynamic errors in `id.go`, `repository.go`), wsl_v5 (10 — whitespace style in `id_test.go`) |
+| catalog | 1 | exhaustive switch on `reflect.Kind` missing `Pointer                                                                                                                                      | Ptr` case |
+| middleware | 1 | nlreturn in `middleware_test.go:339` |
+| memory | 0 | Clean |
+| xtypes | 0 | Clean |
 
 ---
 
@@ -220,13 +220,13 @@ The middleware extraction commit `563f126` had three syntax errors (detached if 
 
 ### HIGH IMPACT, LOW EFFORT (Do These First)
 
-| #   | Action                                                                           | Effort     | Impact | Why                           |
+| # | Action | Effort | Impact | Why |
 | --- | -------------------------------------------------------------------------------- | ---------- | ------ | ----------------------------- | ----------------- |
-| 1   | Fix depguard allow-list: add `go-composable-business-types/id` + `oklog/ulid/v2` | 5 min      | MEDIUM | Lint currently errors on core |
-| 2   | Fix `nlreturn` in `middleware_test.go:339`                                       | 2 min      | LOW    | Trivial lint fix              |
-| 3   | Fix `exhaustive` switch in `catalog/schema.go` (add `reflect.Pointer             | Ptr` case) | 5 min  | LOW                           | One-line lint fix |
-| 4   | Commit `go.work.sum` changes                                                     | 2 min      | LOW    | Housekeeping                  |
-| 5   | Update TODO_LIST.md: mark done items, remove stale entries                       | 15 min     | LOW    | Accuracy                      |
+| 1 | Fix depguard allow-list: add `go-composable-business-types/id` + `oklog/ulid/v2` | 5 min | MEDIUM | Lint currently errors on core |
+| 2 | Fix `nlreturn` in `middleware_test.go:339` | 2 min | LOW | Trivial lint fix |
+| 3 | Fix `exhaustive` switch in `catalog/schema.go` (add `reflect.Pointer             | Ptr` case) | 5 min | LOW | One-line lint fix |
+| 4 | Commit `go.work.sum` changes | 2 min | LOW | Housekeeping |
+| 5 | Update TODO_LIST.md: mark done items, remove stale entries | 15 min | LOW | Accuracy |
 
 ### HIGH IMPACT, MEDIUM EFFORT (Next Sprint)
 

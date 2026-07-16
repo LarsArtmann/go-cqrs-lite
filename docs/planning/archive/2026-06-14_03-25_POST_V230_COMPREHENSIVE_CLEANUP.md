@@ -44,26 +44,26 @@ These are tiny changes that immediately improve how consumers perceive the libra
 
 ### 🟢 20% → 80% (add ~18 tasks, ~10 hours) — Broad Quality Lift
 
-| #   | Task                                                  | Status      | Commit     | Notes                                                                                     |
-| --- | ----------------------------------------------------- | ----------- | ---------- | ----------------------------------------------------------------------------------------- |
-| 10  | Fix nolint:errcheck suppressions in defer .Close()    | ✅ DONE     | `824483cc` | Resolved as part of lint cleanup pass (35→ fewer suppressions)                            |
-| 11  | Reduce catalog/ nolint suppressions (36 total)        | ✅ DONE     | `824483cc` | Reduced from 36 to 30 justified suppressions                                              |
-| 12  | Verify all //nolint comments have justification       | ✅ DONE     | `824483cc` | All remaining nolints have inline justification comments                                  |
-| 13  | Add turso integration tests (sync.go coverage)        | ✅ DONE     | `3d5ec978` | turso/coverage_test.go, crud_test.go, indexing_test.go, benchmark_test.go                 |
-| 14  | Add storage/sql query_engine edge case tests          | ✅ DONE     | `3d5ec978` | storage/sql/query_engine_test.go — LoadWithSpan, ScanSlice, CheckClosed                   |
-| 15  | Add `example/encryption/` standalone project          | ✅ DONE     | `3d5ec978` | example/encryption/ — go.mod, main.go, README.md                                          |
-| 16  | Add `storage.NewEncryptedEventStore` wrapper          | ✅ DONE     | `3d5ec978` | encryption.NewEncryptedStore wraps event.Store with transparent encryption                |
+| #   | Task                                                  | Status     | Commit     | Notes                                                                                     |
+| --- | ----------------------------------------------------- | ---------- | ---------- | ----------------------------------------------------------------------------------------- |
+| 10  | Fix nolint:errcheck suppressions in defer .Close()    | ✅ DONE    | `824483cc` | Resolved as part of lint cleanup pass (35→ fewer suppressions)                            |
+| 11  | Reduce catalog/ nolint suppressions (36 total)        | ✅ DONE    | `824483cc` | Reduced from 36 to 30 justified suppressions                                              |
+| 12  | Verify all //nolint comments have justification       | ✅ DONE    | `824483cc` | All remaining nolints have inline justification comments                                  |
+| 13  | Add turso integration tests (sync.go coverage)        | ✅ DONE    | `3d5ec978` | turso/coverage_test.go, crud_test.go, indexing_test.go, benchmark_test.go                 |
+| 14  | Add storage/sql query_engine edge case tests          | ✅ DONE    | `3d5ec978` | storage/sql/query_engine_test.go — LoadWithSpan, ScanSlice, CheckClosed                   |
+| 15  | Add `example/encryption/` standalone project          | ✅ DONE    | `3d5ec978` | example/encryption/ — go.mod, main.go, README.md                                          |
+| 16  | Add `storage.NewEncryptedEventStore` wrapper          | ✅ DONE    | `3d5ec978` | encryption.NewEncryptedStore wraps event.Store with transparent encryption                |
 | 17  | Add field-level encryption (`encryption/fieldlevel/`) | ⏭ DESCOPED | —          | Not implemented — no consumer demand yet, would add complexity                            |
 | 18  | Turso indexing: comparison report generator           | ⏭ DESCOPED | —          | Not implemented — indexing advisor covers core need                                       |
 | 19  | Turso indexing: hooks API (`turso.WithIndexingHooks`) | ⏭ DESCOPED | —          | Not implemented — no consumer demand yet                                                  |
 | 20  | Turso indexing: health check integration              | ⏭ DESCOPED | —          | Not implemented — no consumer demand yet                                                  |
-| 21  | Add CBOR DecMode configuration                        | ✅ DONE     | `3d5ec978` | codec/cbor.go: cborDecMode with DupMapKeyEnforcedAPF                                      |
-| 22  | Evaluate CoreDetEncOptions vs CanonicalEncOptions     | ✅ DONE     | `3d5ec978` | Evaluated, chose CanonicalEncOptions (RFC 7049), CoreDet rejected (documented in cbor.go) |
+| 21  | Add CBOR DecMode configuration                        | ✅ DONE    | `3d5ec978` | codec/cbor.go: cborDecMode with DupMapKeyEnforcedAPF                                      |
+| 22  | Evaluate CoreDetEncOptions vs CanonicalEncOptions     | ✅ DONE    | `3d5ec978` | Evaluated, chose CanonicalEncOptions (RFC 7049), CoreDet rejected (documented in cbor.go) |
 | 23  | Add go-snaps across remaining modules                 | ⏭ DESCOPED | —          | Not implemented — golden tests via eventtest.AssertGolden used instead                    |
-| 24  | Outbox pattern design doc                             | ✅ DONE     | `bf4111eb` | docs/adr/0016-outbox-pattern.md                                                           |
-| 25  | Schema registry design doc                            | ✅ DONE     | `bf4111eb` | docs/adr/0017-schema-registry.md                                                          |
-| 26  | Distributed checkpointing design doc                  | ✅ DONE     | `bf4111eb` | docs/adr/0018-distributed-checkpointing.md                                                |
-| 27  | Turso indexing: Postgres/Compact guidance             | ✅ DONE     | `bf4111eb` | docs/turso-indexing-guidance.md                                                           |
+| 24  | Outbox pattern design doc                             | ✅ DONE    | `bf4111eb` | docs/adr/0016-outbox-pattern.md                                                           |
+| 25  | Schema registry design doc                            | ✅ DONE    | `bf4111eb` | docs/adr/0017-schema-registry.md                                                          |
+| 26  | Distributed checkpointing design doc                  | ✅ DONE    | `bf4111eb` | docs/adr/0018-distributed-checkpointing.md                                                |
+| 27  | Turso indexing: Postgres/Compact guidance             | ✅ DONE    | `bf4111eb` | docs/turso-indexing-guidance.md                                                           |
 
 **Summary: 22/27 tasks DONE, 5 DESCOPED (field-level encryption, turso hooks/report/health, go-snaps).**
 

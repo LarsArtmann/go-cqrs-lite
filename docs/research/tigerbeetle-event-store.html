@@ -761,8 +761,7 @@
   Event Store (reverse)   ←→      GetAccountTransfers with Reversed flag
   Global Journal          ←→      QueryTransfers (cross-account)
   Position-based replay   ←→      QueryTransfers with TimestampMin
-</pre
-          >
+</pre>
         </div>
       </section>
 
@@ -787,8 +786,7 @@ tb.Account{
     Ledger:  aggregateTypeToLedger(ref.Type),
     Code:    1,   // "event stream" account type
     Flags:   AccountFlags{History: true}.ToUint16(),
-}</pre
-              >
+}</pre>
               <table>
                 <tr>
                   <th>go-cqrs-lite</th>
@@ -838,8 +836,7 @@ tb.Transfer{
     Ledger:          aggregateTypeToLedger(ref.Type),
     Code:            eventTypeToCode(evt.Type()),
     Timestamp:       uint64(evt.OccurredAt().UnixNano()),
-}</pre
-              >
+}</pre>
               <table>
                 <tr>
                   <th>Event Field</th>
@@ -968,8 +965,7 @@ for i, t := range transfers {
     if i < len(transfers)-1 {
         t.Flags |= TransferFlags{Linked: true}.ToUint16()
     }
-}</pre
-              >
+}</pre>
               <table>
                 <tr>
                   <th>CQRS Pattern</th>
@@ -1032,8 +1028,7 @@ for i, t := range transfers {
 
   The ratio is brutal: 34 bytes of metadata for 500+ bytes of payload.
   We need a sidecar.
-</pre
-          >
+</pre>
         </div>
       </section>
 
@@ -1061,8 +1056,7 @@ Write path:
 Read path:
   GetAccountTransfers → [Transfer, ...]
   → bulk Get hashes from BlobStore
-  → reconstruct Events</pre
-              >
+  → reconstruct Events</pre>
               <p
                 style="
                   font-size: 0.85rem;
@@ -1101,8 +1095,7 @@ Split payload across N transfers via Linked chains:
   ...
 
   A 240-byte event  = 1 header + 10 chunks = 11 transfers
-  A 500-byte event  = ~22 transfers</pre
-              >
+  A 500-byte event  = ~22 transfers</pre>
               <p
                 style="
                   font-size: 0.85rem;
@@ -1153,8 +1146,7 @@ Split payload across N transfers via Linked chains:
         ↕                                ↕
   Projections rebuild            Financial reports
   from event store               query TB directly
-</pre
-                >
+</pre>
               </div>
               <p
                 style="
@@ -1257,8 +1249,7 @@ func (s *TBEventStore) Save(
 
     results, err := s.client.CreateTransfers(transfers)
     return checkResults(results, err)
-}</pre
-              >
+}</pre>
             </div>
           </div>
 
@@ -1308,8 +1299,7 @@ func (s *TBEventStore) Load(
     payloads := s.blobs.BatchGet(hashes)
 
     return reconstructEvents(transfers, payloads), nil
-}</pre
-              >
+}</pre>
             </div>
           </div>
 
@@ -1338,8 +1328,7 @@ func reconstructEvent(t tb.Transfer, payload []byte) event.Event {
         event.WithOccurredAt(time.Unix(0, int64(t.Timestamp))),
     )
     return evt
-}</pre
-              >
+}</pre>
             </div>
           </div>
         </div>
@@ -1540,8 +1529,7 @@ func reconstructEvent(t tb.Transfer, payload []byte) event.Event {
     7. Exact version addressing          ← TB does NOT have this
 
   The gap between "almost" and "actually" is where the design lives.
-</pre
-          >
+</pre>
         </div>
       </section>
 

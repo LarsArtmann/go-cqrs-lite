@@ -399,12 +399,12 @@ Deleted — generic utility with no CQRS dependencies. Use `prometheus/` module 
 
 ### Tracing ✅
 
-| Factory                       | Span                                                                |
+| Factory | Span |
 | ----------------------------- | ------------------------------------------------------------------- | --- |
-| `CommandTracing(tracer)`      | `"command.handle"`, SpanKindServer, attributes: `cqrs.command.type` |
-| `EventTracing(tracer)`        | `"event.handle"`, SpanKindConsumer, attributes: `cqrs.event.type`   |
-| `QueryTracing(tracer)`        | `"query.handle"`, SpanKindServer, attributes: `cqrs.query.type`     |
-| `EventPublishTracing(tracer)` | `"event.publish"`, SpanKindProducer                                 | ✅  |
+| `CommandTracing(tracer)` | `"command.handle"`, SpanKindServer, attributes: `cqrs.command.type` |
+| `EventTracing(tracer)` | `"event.handle"`, SpanKindConsumer, attributes: `cqrs.event.type` |
+| `QueryTracing(tracer)` | `"query.handle"`, SpanKindServer, attributes: `cqrs.query.type` |
+| `EventPublishTracing(tracer)` | `"event.publish"`, SpanKindProducer | ✅ |
 
 OpenTelemetry via `go.opentelemetry.io/otel/trace`. Caller provides the `Tracer`.
 

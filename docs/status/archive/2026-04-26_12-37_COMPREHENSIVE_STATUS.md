@@ -129,15 +129,16 @@ golangci-lint run ./core/... ./memory/... ./catalog/... ./middleware/... ./xtype
 | `varnamelen`   | 1     | Variable name too short                          |
 
 **Files with most lint issues:**
-| File | Issues |
-|------|--------|
-| `catalog/registry_test.go` | 21 |
-| `catalog/adapters/adapters_test.go` | 11 |
-| `core/pkg/dispatcher/dispatcher_test.go` | 9 |
-| `core/event/internal/evtest/helpers.go` | 7 |
-| `memory/store.go` | 6 |
-| `core/aggregate/cqrs_bdd_test.go` | 6 |
-| `core/aggregate/integration_test.go` | 6 |
+
+| File                                     | Issues |
+| ---------------------------------------- | ------ |
+| `catalog/registry_test.go`               | 21     |
+| `catalog/adapters/adapters_test.go`      | 11     |
+| `core/pkg/dispatcher/dispatcher_test.go` | 9      |
+| `core/event/internal/evtest/helpers.go`  | 7      |
+| `memory/store.go`                        | 6      |
+| `core/aggregate/cqrs_bdd_test.go`        | 6      |
+| `core/aggregate/integration_test.go`     | 6      |
 
 **Note:** The `noinlineerr` linter wants `err := ...` (plain assignment) NOT `if err := ...; err != nil`. The uncommitted changes in `memory/bus.go`/`memory/snapshot.go` convert to the inline form and would worsen this count.
 

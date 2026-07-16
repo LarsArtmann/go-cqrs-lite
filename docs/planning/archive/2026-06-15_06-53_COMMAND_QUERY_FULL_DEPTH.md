@@ -269,7 +269,7 @@ memory/:
 | T20c    | Test: MemoryCommandBus            | `75533808` | ✅ DONE | memory/command_bus_test.go — publish, subscribe, middleware, close         |
 | T20d    | Test: event causality             | `21d28fd2` | ✅ DONE | event/causality_test.go — WithCommandCausality + CommandCausalityEnricher  |
 | T21     | Documentation updates             | multiple   | ✅ DONE | AGENTS.md, doc.go (pebble), FEATURES.md, TODO_LIST.md all updated          |
-| T19     | kv/ interface module              | —          | ⏭ SKIP | Descoped — pebble snapshot/checkpoint implemented directly on `*pebble.DB` |
+| T19     | kv/ interface module              | —          | ⏭ SKIP  | Descoped — pebble snapshot/checkpoint implemented directly on `*pebble.DB` |
 
 **All 21 tasks resolved. Plan fully executed (T19 descoped — see KV_MODULE_AGENT_PLAN.md).**
 
