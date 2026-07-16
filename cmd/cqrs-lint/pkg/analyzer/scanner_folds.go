@@ -81,14 +81,26 @@ func findOrCreateCommand(
 }
 
 func isOOAggregate(fn *ast.FuncDecl) bool {
-	bodyStr := ""
-	if fn.Body != nil {
-		bodyStr = nodeString(fn.Body)
+	if fn.Body == nil {
+		return false
 	}
 
-	return strings.Contains(bodyStr, "uncommittedEvents") ||
-		strings.Contains(bodyStr, "pendingEvents") ||
-		strings.Contains(bodyStr, "UncommittedEvents")
+	var buf strings.Builder
+
+	ast.Inspect(fn.Body, func(n ast.Node) bool {
+		if ident, ok := n.(*ast.Ident); ok {
+			buf.WriteString(ident.Name)
+			buf.WriteByte(' ')
+		}
+
+		return true
+	})
+
+	s := buf.String()
+
+	return strings.Contains(s, "uncommittedEvents") ||
+		strings.Contains(s, "pendingEvents") ||
+		strings.Contains(s, "UncommittedEvents")
 }
 
 func detectFoldFunc(

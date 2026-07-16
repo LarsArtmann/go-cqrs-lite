@@ -11,6 +11,36 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/consistency"
 )
 
+// --- D001: Inconsistent event naming ---
+
+func TestD001_DetectsMixedNaming(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"events.go": `package main
+
+func emitEvents() {
+	_ = event.New("user.created", id, "User", 1, payload)
+	_ = event.New("UserDeleted", id, "User", 2, payload)
+}
+`,
+	})
+	findings := runDetector(t, consistency.NewD001Detector(ctx))
+	assertRule(t, findings, "D001", 1)
+}
+
+func TestD001_NoFindingForConsistentNaming(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"events.go": `package main
+
+func emitEvents() {
+	_ = event.New("user.created", id, "User", 1, payload)
+	_ = event.New("user.deleted", id, "User", 2, payload)
+}
+`,
+	})
+	findings := runDetector(t, consistency.NewD001Detector(ctx))
+	assertRule(t, findings, "D001", 0)
+}
+
 // --- D003: Inconsistent logging library ---
 
 func TestD003_NoCrashOnEmptyContext(t *testing.T) {

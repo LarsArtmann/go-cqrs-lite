@@ -223,3 +223,88 @@ func TestA019_NoCrashOnEmptyContext(t *testing.T) {
 	findings := runDetector(t, api.NewA019Detector(ctx))
 	assertRule(t, findings, "A019", 0)
 }
+
+// --- Positive tests for previously untested rules ---
+
+func TestA001_DetectsManualCommandInterface(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"cmd.go": `package main
+
+type CreateUser struct {
+	Name string
+}
+
+func (c *CreateUser) ID() string { return "" }
+func (c *CreateUser) Type() string { return "createUser" }
+func (c *CreateUser) AggregateID() string { return "" }
+`,
+	})
+	findings := runDetector(t, api.NewA001Detector(ctx))
+	assertRule(t, findings, "A001", 1)
+}
+
+func TestA003_DetectsExplicitCodec(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"decode.go": `package main
+
+func handle(evt Event) {
+	_ = event.DecodePayload(evt, codec.JSONCodec{})
+}
+`,
+	})
+	findings := runDetector(t, api.NewA003Detector(ctx))
+	assertRule(t, findings, "A003", 1)
+}
+
+func TestA004_DetectsTypeAssertionInHandler(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"register.go": `package main
+
+func register(d Dispatcher) {
+	d.Register("cmd", func(cmd any) error {
+		c := cmd.(*CreateUser)
+		_ = c
+		return nil
+	})
+}
+`,
+	})
+	findings := runDetector(t, api.NewA004Detector(ctx))
+	assertRule(t, findings, "A004", 1)
+}
+
+func TestA005_DetectsSubscribeAllWithoutProjectionHost(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"proj.go": `package main
+
+func setup(bus EventBus) {
+	bus.SubscribeAll(func(evt Event) {})
+}
+`,
+	})
+	findings := runDetector(t, api.NewA005Detector(ctx))
+	assertRule(t, findings, "A005", 1)
+}
+
+func TestA007_DetectsDualModel(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"oo.go": `package main
+
+type Order struct {
+	uncommittedEvents []Event
+}
+
+func (o *Order) Apply(evt Event) {
+	o.uncommittedEvents = append(o.uncommittedEvents, evt)
+}
+`,
+		"functional.go": `package main
+
+var d = decider.Decider[OrderState]{
+	Initial: OrderState{},
+}
+`,
+	})
+	findings := runDetector(t, api.NewA007Detector(ctx))
+	assertRule(t, findings, "A007", 1)
+}

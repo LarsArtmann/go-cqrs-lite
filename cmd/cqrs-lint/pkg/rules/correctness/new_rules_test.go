@@ -19,6 +19,36 @@ func TestC004_NoFindingWithoutProjections(t *testing.T) {
 	assertRule(t, findings, "C004", 0)
 }
 
+// --- C007: time.Now in decider ---
+
+func TestC007_DetectsTimeNowInDecider(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"decide.go": `package main
+
+func decide(state int, cmd Command) (int, error) {
+	now := time.Now()
+	return state + int(now.Unix()), nil
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC007Detector(ctx))
+	assertRule(t, findings, "C007", 1)
+}
+
+func TestC007_NoFindingOutsideDecider(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"handler.go": `package main
+
+func handleRequest() {
+	now := time.Now()
+	_ = now
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC007Detector(ctx))
+	assertRule(t, findings, "C007", 0)
+}
+
 func TestC004_DetectsAsyncProjection(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"proj.go": `package main
