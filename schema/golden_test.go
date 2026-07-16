@@ -23,10 +23,14 @@ func TestGolden_UpcasterOutput(t *testing.T) {
 		"UserCreated",
 		1,
 		func(evt event.Event) (event.Event, error) {
-			newPayload, _ := json.Marshal(map[string]any{
-				"name":     "unknown",
-				"email":    string(evt.Payload()),
-				"upgraded": true,
+			newPayload, _ := json.Marshal(struct {
+				Name     string `json:"name"`
+				Email    string `json:"email"`
+				Upgraded bool   `json:"upgraded"`
+			}{
+				Name:     "unknown",
+				Email:    string(evt.Payload()),
+				Upgraded: true,
 			})
 
 			return event.NewEvent(

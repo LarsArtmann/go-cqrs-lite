@@ -105,7 +105,10 @@ func TestGolden_SnapshotStoreRoundTrip(t *testing.T) {
 	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
 	ref := id.NewAggregateRef("User", aggID)
 
-	state, err := json.Marshal(map[string]string{"name": "Bob", "role": "admin"})
+	state, err := json.Marshal(struct {
+		Name string `json:"name"`
+		Role string `json:"role"`
+	}{Name: "Bob", Role: "admin"})
 	if err != nil {
 		t.Fatalf("marshal state: %v", err)
 	}

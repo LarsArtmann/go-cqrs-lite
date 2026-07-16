@@ -1,7 +1,7 @@
 [
   {
     "name": "max_attempts_zero",
-    "error": "[rejection:middleware.invalid_max_attempts] MaxAttempts must be \u003e= 1, got 0: [rejection:middleware.validation_failed] validation failed"
+    "error": "[rejection:middleware.invalid_max_attempts] MaxAttempts must be >= 1, got 0: [rejection:middleware.validation_failed] validation failed"
   },
   {
     "name": "initial_delay_negative",
@@ -9,6 +9,6 @@
   },
   {
     "name": "multiplier_one",
-    "error": "[rejection:middleware.invalid_multiplier] Multiplier must be \u003e 1, got 1.000000: [rejection:middleware.validation_failed] validation failed"
+    "error": "[rejection:middleware.invalid_multiplier] Multiplier must be > 1, got 1.000000: [rejection:middleware.validation_failed] validation failed"
   }
 ]

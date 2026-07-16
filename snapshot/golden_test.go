@@ -30,10 +30,14 @@ var update = flag.Bool("update", false, "update golden files")
 func TestGolden_SnapshotStructure(t *testing.T) {
 	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
-	state, err := json.Marshal(map[string]string{
-		"name":  "Alice",
-		"email": "alice@example.com",
-		"items": "widget,gadget",
+	state, err := json.Marshal(struct {
+		Name  string `json:"name"`
+		Email string `json:"email"`
+		Items string `json:"items"`
+	}{
+		Name:  "Alice",
+		Email: "alice@example.com",
+		Items: "widget,gadget",
 	})
 	if err != nil {
 		t.Fatalf("marshal state: %v", err)

@@ -1,12 +1,13 @@
 package otel_test
 
 import (
-	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"flag"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -36,10 +37,7 @@ func TestGolden_AttributeConstants(t *testing.T) {
 		"KindQuery":            otel.KindQuery,
 	}
 
-	got, err := json.Marshal(constants, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
-	if err != nil {
-		t.Fatalf("marshal: %v", err)
-	}
+	got := marshalSortedMap(constants)
 
 	assertOtelGolden(t, filepath.Join("testdata", "golden", "attribute-constants.json"), got)
 }
@@ -47,14 +45,7 @@ func TestGolden_AttributeConstants(t *testing.T) {
 func TestGolden_CommandAttrs(t *testing.T) {
 	attrs := otel.CommandAttrs("CreateUser", fixedID("01HK1540X0841Y0A6BSX1VKR95"))
 
-	got, err := json.Marshal(
-		attrsToMap(attrs),
-		jsontext.WithIndentPrefix(""),
-		jsontext.WithIndent("  "),
-	)
-	if err != nil {
-		t.Fatalf("marshal: %v", err)
-	}
+	got := marshalSortedMap(attrsToMap(attrs))
 
 	assertOtelGolden(t, filepath.Join("testdata", "golden", "command-attrs.json"), got)
 }
@@ -62,14 +53,7 @@ func TestGolden_CommandAttrs(t *testing.T) {
 func TestGolden_EventAttrs(t *testing.T) {
 	attrs := otel.EventAttrs("UserCreated", fixedID("01HK1540X0841Y0A6BSX1VKR95"), "User")
 
-	got, err := json.Marshal(
-		attrsToMap(attrs),
-		jsontext.WithIndentPrefix(""),
-		jsontext.WithIndent("  "),
-	)
-	if err != nil {
-		t.Fatalf("marshal: %v", err)
-	}
+	got := marshalSortedMap(attrsToMap(attrs))
 
 	assertOtelGolden(t, filepath.Join("testdata", "golden", "event-attrs.json"), got)
 }
@@ -77,14 +61,7 @@ func TestGolden_EventAttrs(t *testing.T) {
 func TestGolden_QueryAttrs(t *testing.T) {
 	attrs := otel.QueryAttrs("GetUser")
 
-	got, err := json.Marshal(
-		attrsToMap(attrs),
-		jsontext.WithIndentPrefix(""),
-		jsontext.WithIndent("  "),
-	)
-	if err != nil {
-		t.Fatalf("marshal: %v", err)
-	}
+	got := marshalSortedMap(attrsToMap(attrs))
 
 	assertOtelGolden(t, filepath.Join("testdata", "golden", "query-attrs.json"), got)
 }
@@ -103,6 +80,26 @@ type fixedID string
 func (s fixedID) String() string { return string(s) }
 
 var _ fmt.Stringer = fixedID("")
+
+func marshalSortedMap(m map[string]string) []byte {
+	keys := slices.Sorted(maps.Keys(m))
+	var b strings.Builder
+	b.WriteString("{\n")
+	for i, k := range keys {
+		if i > 0 {
+			b.WriteString(",\n")
+		}
+		kb, _ := json.Marshal(k)
+		vb, _ := json.Marshal(m[k])
+		b.WriteString("  ")
+		b.Write(kb)
+		b.WriteString(": ")
+		b.Write(vb)
+	}
+	b.WriteString("\n}")
+
+	return []byte(b.String())
+}
 
 func assertOtelGolden(t *testing.T, path string, got []byte) {
 	t.Helper()

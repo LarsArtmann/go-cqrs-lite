@@ -348,8 +348,8 @@ func FuzzMetadata_JSON_Roundtrip(f *testing.F) {
 	f.Add("unicode-é-ñ-ü", "::1", "curl/8.0")
 
 	f.Fuzz(func(t *testing.T, source, ip, ua string) {
-		// Skip invalid UTF-8 inputs (Go JSON does lossy replacement)
-		if !utf8.ValidString(source) || !utf8.ValidString(ua) {
+		// Skip invalid UTF-8 inputs (JSON v2 rejects invalid UTF-8 on marshal)
+		if !utf8.ValidString(source) || !utf8.ValidString(ip) || !utf8.ValidString(ua) {
 			return
 		}
 

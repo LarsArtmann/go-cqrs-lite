@@ -5,6 +5,6 @@
     "aggregateType": "User",
     "version": 1,
     "schemaVersion": 2,
-    "payload": "{\"email\":\"\\\"alice@example.com\\\"\",\"name\":\"unknown\",\"upgraded\":true}"
+    "payload": "{\"name\":\"unknown\",\"email\":\"\\\"alice@example.com\\\"\",\"upgraded\":true}"
   }
 ]

@@ -2,10 +2,12 @@ package watermill_test
 
 import (
 	"context"
-	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"flag"
+	"maps"
 	"path/filepath"
+	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -83,10 +85,7 @@ func snapshotMetadata(t *testing.T, msg *message.Message) {
 		sorted[k] = v
 	}
 
-	got, err := json.Marshal(sorted, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
-	if err != nil {
-		t.Fatalf("marshal: %v", err)
-	}
+	got := marshalSortedMap(sorted)
 
 	eventtest.AssertGolden(
 		t,
@@ -94,4 +93,24 @@ func snapshotMetadata(t *testing.T, msg *message.Message) {
 		got,
 		*update,
 	)
+}
+
+func marshalSortedMap(m map[string]string) []byte {
+	keys := slices.Sorted(maps.Keys(m))
+	var b strings.Builder
+	b.WriteString("{\n")
+	for i, k := range keys {
+		if i > 0 {
+			b.WriteString(",\n")
+		}
+		kb, _ := json.Marshal(k)
+		vb, _ := json.Marshal(m[k])
+		b.WriteString("  ")
+		b.Write(kb)
+		b.WriteString(": ")
+		b.Write(vb)
+	}
+	b.WriteString("\n}")
+
+	return []byte(b.String())
 }

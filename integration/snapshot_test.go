@@ -104,9 +104,12 @@ func TestSnapshot_EventSerialization(t *testing.T) {
 		aggID,
 		"User",
 		func(_ snapUserState, currentVersion event.Version) ([]event.Event, error) {
-			payload, _ := json.Marshal(map[string]string{
-				"name":  "Alice",
-				"email": "alice@example.com",
+			payload, _ := json.Marshal(struct {
+				Name  string `json:"name"`
+				Email string `json:"email"`
+			}{
+				Name:  "Alice",
+				Email: "alice@example.com",
 			})
 			evt, err := event.NewEvent(
 				"UserCreated",
@@ -131,12 +134,18 @@ func TestSnapshot_EventSerialization(t *testing.T) {
 		t.Fatalf("load: %v", err)
 	}
 
-	serialized := make([]map[string]any, 0, len(events))
+	type eventSnapshot struct {
+		Type          string `json:"type"`
+		AggregateType string `json:"aggregateType"`
+		Version       int    `json:"version"`
+	}
+
+	serialized := make([]eventSnapshot, 0, len(events))
 	for _, evt := range events {
-		serialized = append(serialized, map[string]any{
-			"type":          string(evt.Type()),
-			"aggregateType": string(evt.AggregateType()),
-			"version":       int(evt.Version()),
+		serialized = append(serialized, eventSnapshot{
+			Type:          string(evt.Type()),
+			AggregateType: string(evt.AggregateType()),
+			Version:       int(evt.Version()),
 		})
 	}
 

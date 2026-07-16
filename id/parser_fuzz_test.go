@@ -115,6 +115,11 @@ func FuzzAggregateID_JSON_Roundtrip(f *testing.F) {
 			return
 		}
 
+		// JSON v2 rejects invalid UTF-8 on marshal
+		if !utf8.ValidString(input) {
+			return
+		}
+
 		data, err := json.Marshal(original)
 		if err != nil {
 			t.Fatalf("Marshal: %v", err)
@@ -123,12 +128,6 @@ func FuzzAggregateID_JSON_Roundtrip(f *testing.F) {
 		var decoded id.AggregateID
 		if err := json.Unmarshal(data, &decoded); err != nil {
 			t.Fatalf("Unmarshal: %v", err)
-		}
-
-		// JSON encoding is lossy for invalid UTF-8. The AggregateID contract
-		// permits any string, but JSON transport requires valid UTF-8.
-		if !utf8.ValidString(input) {
-			return
 		}
 
 		if !decoded.Equal(original) {
