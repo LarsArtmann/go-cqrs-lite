@@ -103,19 +103,6 @@ func ExprString(expr ast.Expr) string {
 	}
 }
 
-// nodeString returns a rough string for an AST node (for pattern matching).
-func nodeString(n ast.Node) string {
-	if n == nil {
-		return ""
-	}
-
-	if expr, ok := n.(ast.Expr); ok {
-		return ExprString(expr)
-	}
-
-	return ""
-}
-
 // ExtractJSONTag extracts the JSON field name from a struct tag string.
 // Returns empty string if no json tag is present.
 func ExtractJSONTag(tag string) string {
