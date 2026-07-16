@@ -9,8 +9,10 @@ import (
 	"strings"
 	"time"
 
+	cmdguard "github.com/larsartmann/cmdguard/v3/pkg/cmdguard/v3"
 	"github.com/larsartmann/go-finding"
 	"github.com/larsartmann/go-finding/pipeline"
+	"github.com/spf13/cobra"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/fix"
@@ -20,145 +22,118 @@ import (
 
 const version = "0.1.0"
 
-// Config holds all CLI configuration.
-type Config struct {
-	Path        string
-	Format      string
-	MinSeverity string
-	Fix         bool
-	DryRun      bool
-	FastMode    bool
-	HealthScore bool
-	Categories  []string
-	Verbose     bool
-	Quiet       bool
+// AppConfig holds all CLI configuration via cmdguard struct tags.
+type AppConfig struct {
+	cmdguard.Config
+
+	Path          string `default:"."     flag:"path"           help:"Path to lint"`
+	Format        string `default:"text"  flag:"format"         help:"Output format: text, json, sarif, markdown"       short:"o"`
+	MinSeverity   string `default:"info"  flag:"min-severity"   help:"Minimum severity: info, warning, error, critical"`
+	MinConfidence string `default:"low"   flag:"min-confidence" help:"Minimum confidence: low, medium, high"`
+	Fix           bool   `default:"false" flag:"fix"            help:"Apply auto-fixes"`
+	DryRun        bool   `default:"false" flag:"dry-run"        help:"Show fixes without applying"`
+	FastMode      bool   `default:"false" flag:"fast"           help:"Run only Critical/High correctness rules"`
+	HealthScore   bool   `default:"false" flag:"health-score"   help:"Print only the health score"`
+	Categories    string `default:""      flag:"only"           help:"Run only specific categories (comma-separated)"`
+	Verbose       bool   `default:"false" flag:"verbose"        help:"Verbose output"`
+	Quiet         bool   `default:"false" flag:"quiet"          help:"Suppress non-finding output"                      short:"q"`
 }
 
 func main() {
-	cfg := parseFlags()
-	if cfg == nil {
-		return
-	}
-
-	ctx := context.Background()
-	if err := run(ctx, cfg); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+	cli, err := cmdguard.NewCLI[AppConfig](
+		"cqrs-lint",
+		"Domain-aware linter for go-cqrs-lite consumers",
+		AppConfig{},
+		cmdguard.WithCLIVersion(version),
+		cmdguard.WithFang(false),
+		cmdguard.WithConfigFile(".cqrs-lint.json"),
+		cmdguard.WithCLILong(
+			"cqrs-lint detects anti-patterns in projects consuming the go-cqrs-lite library.",
+		),
+	)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error creating CLI: %v\n", err)
 		os.Exit(1)
 	}
-}
 
-func parseFlags() *Config {
-	args := os.Args[1:]
-	cfg := &Config{
-		Path:        ".",
-		Format:      "text",
-		MinSeverity: "info",
+	rootCmd := cli.RootCommand()
+	rootCmd.Use = "cqrs-lint [path] [flags]"
+	rootCmd.Long = "cqrs-lint — Domain-aware linter for go-cqrs-lite consumers\n\n" +
+		"Analyzes Go projects for CQRS anti-patterns, correctness bugs, and API misuse.\n\n" +
+		"Usage:\n" +
+		"  cqrs-lint [path] [flags]     Lint Go project for CQRS anti-patterns (default)\n" +
+		"  cqrs-lint rules              List all available rules\n" +
+		"  cqrs-lint version            Print version\n"
+	rootCmd.Args = cobra.MaximumNArgs(1)
+	rootCmd.RunE = func(cmd *cobra.Command, args []string) error {
+		cfg := cli.Config()
+
+		path := cfg.Path
+		if len(args) > 0 {
+			path = args[0]
+		}
+
+		absPath, err := filepath.Abs(path)
+		if err != nil {
+			return fmt.Errorf("resolve path: %w", err)
+		}
+
+		cfg.Path = absPath
+		ctx := cmd.Context()
+
+		return run(ctx, cfg)
 	}
 
-	for i := 0; i < len(args); i++ {
-		arg := args[i]
-		switch arg {
-		case "-h", "--help":
-			printHelp()
-
-			return nil
-		case "-v", "--version":
-			fmt.Printf("cqrs-lint %s\n", version)
-
-			return nil
-		case "--fix":
-			cfg.Fix = true
-		case "--dry-run":
-			cfg.DryRun = true
-		case "--fast":
-			cfg.FastMode = true
-		case "--health-score":
-			cfg.HealthScore = true
-		case "--verbose":
-			cfg.Verbose = true
-		case "--quiet", "-q":
-			cfg.Quiet = true
-		case "-o", "--format":
-			if i+1 < len(args) {
-				cfg.Format = args[i+1]
-				i++
-			}
-		case "--min-severity":
-			if i+1 < len(args) {
-				cfg.MinSeverity = args[i+1]
-				i++
-			}
-		case "--only":
-			if i+1 < len(args) {
-				cfg.Categories = strings.Split(args[i+1], ",")
-				i++
-			}
-		case "rules":
+	rulesCmd, err := cmdguard.NewCommand[AppConfig, cmdguard.NoFlags](
+		"rules",
+		cmdguard.NoFlags{},
+		func(_ context.Context, _ *AppConfig, _ cmdguard.NoFlags) error {
 			fmt.Print(rules.ListRules())
 
 			return nil
-		case "version":
+		},
+		cmdguard.WithShort("List all available rules"),
+		cmdguard.WithNoArgs(),
+	)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error creating rules command: %v\n", err)
+		os.Exit(1)
+	}
+
+	if err := cmdguard.AddCommand(cli, rulesCmd); err != nil {
+		fmt.Fprintf(os.Stderr, "Error adding rules command: %v\n", err)
+		os.Exit(1)
+	}
+
+	versionCmd, err := cmdguard.NewCommand[AppConfig, cmdguard.NoFlags](
+		"version",
+		cmdguard.NoFlags{},
+		func(_ context.Context, _ *AppConfig, _ cmdguard.NoFlags) error {
 			fmt.Printf("cqrs-lint %s\n", version)
 
 			return nil
-		default:
-			if !strings.HasPrefix(arg, "-") {
-				cfg.Path = arg
-			}
-		}
-	}
-
-	absPath, err := filepath.Abs(cfg.Path)
-	if err == nil {
-		cfg.Path = absPath
-	}
-
-	return cfg
-}
-
-func printHelp() {
-	fmt.Print(`cqrs-lint — Domain-aware linter for go-cqrs-lite consumers
-
-Usage:
-  cqrs-lint [path] [flags]
-
-Commands:
-  cqrs-lint lint [path]     Lint Go project for CQRS anti-patterns (default)
-  cqrs-lint rules           List all available rules
-  cqrs-lint version         Print version
-
-Flags:
-  --format <fmt>            Output format: text, json, sarif, markdown (default: text)
-  --min-severity <sev>      Minimum severity: info, warning, error, critical (default: info)
-  --fix                     Apply auto-fixes
-  --dry-run                 Show fixes without applying
-  --fast                    Run only Critical/High correctness rules
-  --health-score            Print only the health score
-  --only <cats>             Run only specific categories (comma-separated)
-  --verbose                 Verbose output
-  --quiet                   Suppress non-finding output
-  -h, --help                Show help
-  -v, --version             Print version
-
-Examples:
-  cqrs-lint ./...
-  cqrs-lint ./internal/... --format json
-  cqrs-lint --fix --dry-run ./...
-  cqrs-lint --fast ./...
-  cqrs-lint --health-score ./...
-`)
-}
-
-func run(ctx context.Context, cfg *Config) error {
-	absPath, err := filepath.Abs(cfg.Path)
+		},
+		cmdguard.WithShort("Print version"),
+		cmdguard.WithNoArgs(),
+	)
 	if err != nil {
-		return fmt.Errorf("resolve path: %w", err)
+		fmt.Fprintf(os.Stderr, "Error creating version command: %v\n", err)
+		os.Exit(1)
 	}
 
+	if err := cmdguard.AddCommand(cli, versionCmd); err != nil {
+		fmt.Fprintf(os.Stderr, "Error adding version command: %v\n", err)
+		os.Exit(1)
+	}
+
+	ctx := context.Background()
+	cli.ExecuteAndExit(ctx)
+}
+
+func run(ctx context.Context, cfg *AppConfig) error {
 	start := time.Now()
 
-	// Build analysis context.
-	actx, err := analyzer.BuildContext(absPath)
+	actx, err := analyzer.BuildContext(cfg.Path)
 	if err != nil {
 		return fmt.Errorf("load packages: %w", err)
 	}
@@ -171,24 +146,21 @@ func run(ctx context.Context, cfg *Config) error {
 		return nil
 	}
 
-	// Select detectors.
 	var detectors []finding.Detector
 	if cfg.FastMode {
 		detectors = rules.RegisterCritical(actx)
 	} else {
 		detectors = rules.RegisterAll(actx)
-		if len(cfg.Categories) > 0 {
-			detectors = rules.FilterByCategory(detectors, cfg.Categories)
+		if cfg.Categories != "" {
+			detectors = rules.FilterByCategory(detectors, strings.Split(cfg.Categories, ","))
 		}
 	}
 
-	// Build pipeline config.
-	// DryRun is true unless --fix is explicitly passed — we never auto-apply fixes.
 	pipeConfig := pipeline.Config{
 		MaxIterations:       1,
 		ParallelDetectors:   true,
 		GracefulDegradation: true,
-		DryRun:              !cfg.Fix, // detection-only unless --fix
+		DryRun:              !cfg.Fix,
 		Timeout:             5 * time.Minute,
 		Processors: []pipeline.FindingTransformer{
 			suppression.NewSuppressionFilter(),
@@ -199,8 +171,7 @@ func run(ctx context.Context, cfg *Config) error {
 		pipeConfig.FixProviders = []pipeline.FixProvider{fix.NewCQRSFixProvider()}
 	}
 
-	// Run pipeline.
-	pipe, err := pipeline.New(pipeConfig, absPath, detectors...)
+	pipe, err := pipeline.New(pipeConfig, cfg.Path, detectors...)
 	if err != nil {
 		return fmt.Errorf("create pipeline: %w", err)
 	}
@@ -210,11 +181,10 @@ func run(ctx context.Context, cfg *Config) error {
 		return fmt.Errorf("pipeline run: %w", err)
 	}
 
-	// Collect findings.
 	allFindings := collectFindings(result)
 	activeFindings := filterBySeverity(allFindings, cfg.MinSeverity)
+	activeFindings = filterByConfidence(activeFindings, cfg.MinConfidence)
 
-	// Output.
 	if cfg.HealthScore {
 		hs := ComputeHealthScore(activeFindings)
 		fmt.Print(FormatHealthScore(hs))
@@ -236,7 +206,6 @@ func run(ctx context.Context, cfg *Config) error {
 		return fmt.Errorf("output: %w", err)
 	}
 
-	// Exit non-zero if there are error/critical findings.
 	for _, f := range activeFindings {
 		if f.Severity >= finding.SeverityError {
 			os.Exit(1)
@@ -256,7 +225,7 @@ func collectFindings(result *pipeline.PipelineResult) []finding.Finding {
 		all = append(all, result.Verification.Remaining...)
 		all = append(all, result.Verification.NewFindings...)
 	}
-	// Deduplicate by ID.
+
 	seen := make(map[finding.ID]bool)
 
 	var unique []finding.Finding
@@ -287,6 +256,20 @@ func filterBySeverity(findings []finding.Finding, minSev string) []finding.Findi
 	return result
 }
 
+func filterByConfidence(findings []finding.Finding, minConf string) []finding.Finding {
+	minC := parseConfidence(minConf)
+
+	var result []finding.Finding
+
+	for _, f := range findings {
+		if f.Confidence >= minC {
+			result = append(result, f)
+		}
+	}
+
+	return result
+}
+
 func parseSeverity(s string) finding.Severity {
 	switch strings.ToLower(s) {
 	case "critical":
@@ -302,7 +285,20 @@ func parseSeverity(s string) finding.Severity {
 	}
 }
 
-func outputFindings(findings []finding.Finding, cfg *Config) error {
+func parseConfidence(s string) finding.Confidence {
+	switch strings.ToLower(s) {
+	case "high":
+		return finding.ConfidenceHigh
+	case "medium":
+		return finding.ConfidenceMedium
+	case "low":
+		return finding.ConfidenceLow
+	default:
+		return finding.ConfidenceLow
+	}
+}
+
+func outputFindings(findings []finding.Finding, cfg *AppConfig) error {
 	report := finding.NewReport(finding.ToolInfo{Name: "cqrs-lint", Version: version})
 	report.AddFindings(findings)
 
@@ -327,7 +323,7 @@ func outputFindings(findings []finding.Finding, cfg *Config) error {
 			return err
 		}
 
-	default: // text
+	default:
 		if len(findings) == 0 {
 			if !cfg.Quiet {
 				fmt.Println("No findings. Clean!")

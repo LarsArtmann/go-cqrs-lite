@@ -1,6 +1,7 @@
 package suppression_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/larsartmann/go-finding"
@@ -64,5 +65,42 @@ func TestNewSuppressionFilter_DoesNotMarkUnsuppressed(t *testing.T) {
 	}
 	if out[0].Suppression != nil {
 		t.Fatal("finding should NOT be marked as suppressed")
+	}
+}
+
+func TestNewSuppressionFilter_ReadsActualFile(t *testing.T) {
+	tmpDir := t.TempDir()
+	filePath := tmpDir + "/example.go"
+
+	content := `package main
+
+import "time"
+
+func fold() {
+	//cqrs-lint:ignore(C007) domain clock
+	now := time.Now()
+	_ = now
+}
+`
+	if err := os.WriteFile(filePath, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	filter := suppression.NewSuppressionFilter()
+
+	f, _ := finding.NewBuilder(
+		"C007", "cqrs-lint", "time.Now in decider",
+		finding.SeverityWarning, finding.Pos(finding.FilePath(filePath), 7, 2),
+	).Build()
+
+	out, err := filter.Transform(nil, []finding.Finding{f})
+	if err != nil {
+		t.Fatalf("Transform() error: %v", err)
+	}
+	if len(out) != 1 {
+		t.Fatalf("got %d findings, want 1", len(out))
+	}
+	if out[0].Suppression == nil {
+		t.Fatal("finding should be suppressed by file-based comment")
 	}
 }

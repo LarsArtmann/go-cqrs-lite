@@ -128,14 +128,13 @@ func NewB002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							return true
 						}
 
-						sel, ok := call.Fun.(*ast.SelectorExpr)
+						_, ok = call.Fun.(*ast.SelectorExpr)
 						if !ok {
 							return true
 						}
 
 						callStr := analyzer.ExprString(call.Fun)
 						callSequence = append(callSequence, callStr)
-						_ = sel
 
 						return true
 					})

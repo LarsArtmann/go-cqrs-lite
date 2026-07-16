@@ -25,66 +25,139 @@ cqrs-lint --fast ./...
 # Health score
 cqrs-lint --health-score ./...
 
+# Filter by severity and confidence
+cqrs-lint --min-severity error --min-confidence high ./...
+
 # Apply auto-fixes (with dry-run preview first)
 cqrs-lint --fix --dry-run ./...
 cqrs-lint --fix ./...
 
 # List available rules
 cqrs-lint rules
+
+# Config file support (auto-loaded from .cqrs-lint.json)
+echo '{"min-severity":"warning","format":"json"}' > .cqrs-lint.json
+cqrs-lint ./...
 ```
 
-## What It Detects
+## Rule Count
 
-### Correctness Rules (bugs)
+**52 rules** across 6 categories: correctness (12), API misuse (16), boilerplate (9), consistency (5), architecture (7), security (3).
 
-| ID   | Rule                            | Severity | Description                                                      |
-| ---- | ------------------------------- | -------- | ---------------------------------------------------------------- |
-| C001 | missing-tx-commit               | Critical | Transaction wrapper returns nil instead of tx.Commit()           |
-| C002 | broken-command-id               | Critical | Command ID() returns zero value — breaks idempotency             |
-| C003 | silent-unknown-event-fold       | Error    | Fold function silently ignores unknown event types               |
-| C005 | raw-json-unmarshal-payload      | Error    | Raw json.Unmarshal on event payload instead of DecodePayloadAuto |
-| C006 | manual-version-arithmetic       | Warning  | event.Version(x.Int()+1) instead of x.Increment()                |
-| C007 | time-now-in-decider             | Warning  | time.Now() inside decider — non-deterministic                    |
-| C008 | float64-for-money               | Warning  | float64 field with monetary name — use decimal or cents          |
-| C009 | panic-in-production             | Warning  | panic() in production code — use error returns                   |
-| C010 | swallowed-error-in-fold         | Warning  | Error from decode/unmarshal discarded in fold                    |
-| C012 | missing-error-return-in-with-tx | Critical | withTx ignores body error — failures silently lost               |
+## Correctness Rules (bugs)
 
-### API Misuse Rules (wrong API)
+| ID   | Rule                             | Severity | Description                                                      |
+| ---- | -------------------------------- | -------- | ---------------------------------------------------------------- |
+| C001 | missing-tx-commit                | Critical | Transaction wrapper returns nil instead of tx.Commit()           |
+| C002 | broken-command-id                | Critical | Command ID() returns zero value — breaks idempotency             |
+| C003 | silent-unknown-event-fold        | Error    | Fold function silently ignores unknown event types               |
+| C004 | checkpoint-before-async-complete | Error    | Projection launches async work — checkpoint may save early       |
+| C005 | raw-json-unmarshal-payload       | Error    | Raw json.Unmarshal on event payload instead of DecodePayloadAuto |
+| C006 | manual-version-arithmetic        | Warning  | event.Version(x.Int()+1) instead of x.Increment()                |
+| C007 | time-now-in-decider              | Warning  | time.Now() inside decider — non-deterministic                    |
+| C008 | float64-for-money                | Warning  | float64 field with monetary name — use decimal or cents          |
+| C009 | panic-in-production              | Warning  | panic() in production code — use error returns                   |
+| C010 | swallowed-error-in-fold          | Warning  | Error from decode/unmarshal discarded in fold                    |
+| C011 | nondeterministic-decider         | Warning  | rand.* call inside decider — non-deterministic replay            |
+| C012 | missing-error-return-in-with-tx  | Critical | withTx ignores body error — failures silently lost               |
 
-| ID   | Rule                      | Severity | Description                                              |
-| ---- | ------------------------- | -------- | -------------------------------------------------------- |
-| A001 | manual-command-interface  | Error    | Manual Type()/ID()/AggregateID() instead of BasicCommand |
-| A002 | newevent-manual-marshal   | Warning  | event.NewEvent with json.Marshal — use event.New         |
-| A003 | explicit-codec-in-decode  | Info     | Explicit codec — use DecodePayloadAuto                   |
-| A004 | untyped-dispatch-register | Warning  | Type assertion in handler — use RegisterTyped            |
-| A005 | custom-projection-runner  | Warning  | Manual bus.SubscribeAll — use projectionhost             |
-| A006 | adapter-layer-wrapping    | Info     | WrapEvent/UnwrapEvent adapter methods                    |
-| A007 | dual-model-oo-functional  | Error    | Both OO aggregates and functional deciders               |
-| A008 | parallel-type-system      | Error    | Custom AggregateID/Version types duplicating library     |
+## API Misuse Rules
 
-### Boilerplate Rules (repetitive code)
+| ID   | Rule                           | Severity | Description                                              |
+| ---- | ------------------------------ | -------- | -------------------------------------------------------- |
+| A001 | manual-command-interface       | Error    | Manual Type()/ID()/AggregateID() instead of BasicCommand |
+| A002 | newevent-manual-marshal        | Warning  | event.NewEvent with json.Marshal — use event.New         |
+| A003 | explicit-codec-in-decode       | Info     | Explicit codec — use DecodePayloadAuto                   |
+| A004 | untyped-dispatch-register      | Warning  | Type assertion in handler — use RegisterTyped            |
+| A005 | custom-projection-runner       | Warning  | Manual bus.SubscribeAll — use projectionhost             |
+| A006 | adapter-layer-wrapping         | Info     | WrapEvent/UnwrapEvent adapter methods                    |
+| A007 | dual-model-oo-functional       | Error    | Both OO aggregates and functional deciders               |
+| A008 | parallel-type-system           | Error    | Custom AggregateID/Version types duplicating library     |
+| A009 | missing-stack-preset           | Info     | No stack/ preset — manual wiring is error-prone          |
+| A010 | custom-error-types             | Warning  | Custom error interface duplicating go-error-family       |
+| A012 | missing-tombstone-handling     | Info     | Fold function does not check for tombstone events        |
+| A013 | pointer-vs-value-basic-command | Info     | Embeds *BasicCommand (pointer) instead of value          |
+| A015 | global-mutable-state           | Error    | Global mutable variable — race condition risk            |
+| A016 | missing-idempotency-middleware | Warning  | Command dispatcher lacks idempotency middleware          |
+| A018 | no-actual-event-sourcing       | Info     | Imports go-cqrs-lite but never calls Save/Publish        |
+| A019 | vendored-cqrs                  | Warning  | Vendored copy of go-cqrs-lite detected                   |
 
-| ID   | Rule                      | Severity | Description                     |
-| ---- | ------------------------- | -------- | ------------------------------- |
-| B001 | single-event-helper       | Info     | Use event.Single() instead      |
-| B002 | manual-repository-wiring  | Info     | Use stack preset instead        |
-| B003 | subscribeall-large-switch | Info     | Split into separate projections |
+## Boilerplate Rules
 
-### Architecture Rules (cross-module invariants)
+| ID   | Rule                            | Severity | Description                                     |
+| ---- | ------------------------------- | -------- | ----------------------------------------------- |
+| B001 | single-event-helper             | Info     | Use event.Single() instead                      |
+| B002 | manual-repository-wiring        | Info     | Use stack preset instead                        |
+| B003 | subscribeall-large-switch       | Info     | Split into separate projections                 |
+| B004 | command-constructor-boilerplate | Info     | Command with many fields — use cqrs-gen         |
+| B005 | fold-switch-boilerplate         | Info     | Fold uses switch — consider decider.StrictApply |
+| B008 | manual-retry-implementation     | Warning  | Manual retry loop — use retry.Do                |
+| B011 | must-marshal-helper             | Info     | mustMarshal helper — use event.New              |
+| B013 | missing-correlation-enricher    | Warning  | Repository without correlation enricher         |
+| B014 | missing-otel-middleware         | Info     | Bus/dispatcher lacks OTel tracing               |
 
-| ID   | Rule                    | Severity | Description                               |
-| ---- | ----------------------- | -------- | ----------------------------------------- |
-| E004 | event-not-in-catalog    | Info     | Event type emitted but not in catalog     |
-| E005 | command-without-handler | Warning  | Command type defined but never registered |
+## Consistency Rules
 
-### Other Categories
+| ID   | Rule                         | Severity | Description                                  |
+| ---- | ---------------------------- | -------- | -------------------------------------------- |
+| D001 | inconsistent-event-naming    | Info     | Mixed dot notation and PascalCase            |
+| D002 | inconsistent-json-casing     | Info     | Mixed camelCase and snake_case JSON tags     |
+| D003 | inconsistent-logging-library | Info     | Project mixes multiple logging libraries     |
+| D004 | inconsistent-json-key-casing | Info     | Mixed camelCase and snake_case JSON tags     |
+| D005 | stale-documentation-version  | Warning  | Docs reference different version than go.mod |
 
-| ID   | Rule                      | Severity | Description                                  |
-| ---- | ------------------------- | -------- | -------------------------------------------- |
-| D001 | inconsistent-event-naming | Info     | Mixed dot notation and PascalCase            |
-| D002 | inconsistent-json-casing  | Info     | Mixed camelCase and snake_case JSON tags     |
-| S001 | hardcoded-secrets         | Critical | Potential hardcoded secret in string literal |
+## Architecture Rules
+
+| ID   | Rule                     | Severity | Description                                |
+| ---- | ------------------------ | -------- | ------------------------------------------ |
+| E001 | layer-violation          | Error    | Tier-0 module imports Tier-3+ module       |
+| E002 | circular-dependency      | Error    | Two modules import each other              |
+| E003 | missing-module-boundary  | Warning  | All CQRS code in one package               |
+| E004 | event-not-in-catalog     | Info     | Event type emitted but not in catalog      |
+| E005 | command-without-handler  | Warning  | Command type defined but never registered  |
+| E006 | event-without-projection | Info     | Event emitted but no projection handles it |
+| E007 | query-without-handler    | Warning  | Query type defined but never registered    |
+
+## Security Rules
+
+| ID   | Rule                                      | Severity | Description                                      |
+| ---- | ----------------------------------------- | -------- | ------------------------------------------------ |
+| S001 | hardcoded-secrets                         | Critical | Potential hardcoded secret in string literal     |
+| S002 | missing-encryption-for-sensitive-payloads | Error    | PII event payloads without encryption middleware |
+| S003 | missing-event-signing                     | Warning  | Event store without signing middleware           |
+
+## CLI
+
+Built with [cmdguard](https://github.com/larsartmann/cmdguard) for type-safe flag parsing, config file support, and subcommands.
+
+### Flags
+
+| Flag               | Short | Default | Description                                      |
+| ------------------ | ----- | ------- | ------------------------------------------------ |
+| `--format`         | `-o`  | text    | Output format: text, json, sarif, markdown       |
+| `--min-severity`   |       | info    | Minimum severity: info, warning, error, critical |
+| `--min-confidence` |       | low     | Minimum confidence: low, medium, high            |
+| `--fix`            |       | false   | Apply auto-fixes                                 |
+| `--dry-run`        |       | false   | Show fixes without applying                      |
+| `--fast`           |       | false   | Run only Critical/High correctness rules         |
+| `--health-score`   |       | false   | Print only the health score                      |
+| `--only`           |       |         | Run only specific categories (comma-separated)   |
+| `--verbose`        |       | false   | Verbose output                                   |
+| `--quiet`          | `-q`  | false   | Suppress non-finding output                      |
+| `--config`         | `-c`  |         | Path to config file                              |
+
+### Config File
+
+A `.cqrs-lint.json` file in the project root is auto-loaded:
+
+```json
+{
+  "format": "json",
+  "min-severity": "warning",
+  "min-confidence": "medium",
+  "fast": false
+}
+```
 
 ## Suppression
 
@@ -111,10 +184,8 @@ C006 (manual version arithmetic) and C003 (silent fold) are auto-fixable.
 Built on three foundation libraries:
 
 - **[go-finding](https://github.com/larsartmann/go-finding)** — Finding model, Detector interface, Pipeline (parallel execution, fix engine), output formats (SARIF/JSON/text/markdown)
-- **[go-error-family](https://github.com/larsartmann/go-error-family)** — Error classification, exit codes
-- **go-cqrs-lite AST patterns** — Built on the `cqrs-gen` scanning foundation
-
-The linter writes only CQRS-specific rule logic (~50-100 lines per rule). All infrastructure (finding model, pipeline, output, fix engine) comes from go-finding.
+- **[cmdguard](https://github.com/larsartmann/cmdguard)** — Type-safe CLI with struct-tag flags, config file loading, subcommands
+- **go-cqrs-lite AST patterns** — CQRS-specific AST scanning
 
 ## Library Functions
 
@@ -123,39 +194,31 @@ cqrs-lint also ships library functions that eliminate boilerplate at the source:
 ### event.Single()
 
 ```go
-// Instead of writing a singleEvent helper in every project:
-func decideCreate(s State, cmd CreateCmd) ([]event.Event, error) {
-    return event.Single("user.created", cmd.AggregateID(), "User", s.Version.Increment(), UserCreated{Name: cmd.Name})
-}
+return event.Single("user.created", cmd.AggregateID(), "User", s.Version.Increment(), UserCreated{Name: cmd.Name})
 ```
 
 ### decider.StrictApply()
 
 ```go
-// Prevents silent data corruption from unknown event types:
 d := decider.Decider[State]{
     Initial: State{},
-    Apply: decider.StrictApply(fold, []event.Type{
-        "user.created",
-        "user.updated",
-    }),
+    Apply: decider.StrictApply(fold, []event.Type{"user.created", "user.updated"}),
 }
 ```
 
 ## Rule Development
 
-Each rule is a `finding.Detector` implementation:
+Each rule is a `finding.Detector` in its own file (`c001.go`, `a001.go`, etc.):
 
 ```go
 func NewC006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
     return finding.NamedDetectorFunc("C006-manual-version-arithmetic", func(_ context.Context) ([]finding.Finding, error) {
         // AST inspection logic
-        // Return []finding.Finding
     })
 }
 ```
 
-Register it in `pkg/rules/register.go`. Write tests in `pkg/rules/<category>/rules_test.go` using `analyzer.BuildContextFromSource`.
+Register it in `pkg/rules/register.go`. Write tests using `analyzer.BuildContextFromSource`.
 
 ## CI Integration
 

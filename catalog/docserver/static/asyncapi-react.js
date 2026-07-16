@@ -175,7 +175,7 @@
           const e = {};
           return (
             Object.entries(this._json).forEach(([t, n]) => {
-              /^x-[\w\d\.\-\_]+$/.test(t) && (e[String(t)] = n);
+              /^x-[\w\d.\-_]+$/.test(t) && (e[String(t)] = n);
             }),
             e
           );
@@ -1157,7 +1157,7 @@
             }
             return this;
           }));
-        var B = /[^+\/0-9A-Za-z-_]/g;
+        var B = /[^+/0-9A-Za-z-_]/g;
         function M(e) {
           return e < 16 ? "0" + e.toString(16) : e.toString(16);
         }
@@ -2786,14 +2786,14 @@
     function (e, t, n) {
       "use strict";
       (function (r) {
-        let i = /^win/.test(r.platform),
+        let i = r.platform.startsWith("win"),
           a = /\//g,
           o = /^(\w{2,}):\/\//i,
           s = e.exports,
           c = /~1/g,
           u = /~0/g,
-          l = [/\?/g, "%3F", /\#/g, "%23"],
-          p = [/\%23/g, "#", /\%24/g, "$", /\%26/g, "&", /\%2C/g, ",", /\%40/g, "@"];
+          l = [/\?/g, "%3F", /#/g, "%23"],
+          p = [/%23/g, "#", /%24/g, "$", /%26/g, "&", /%2C/g, ",", /%40/g, "@"];
         ((t.parse = n(69).parse),
           (t.resolve = n(69).resolve),
           (t.cwd = function () {
@@ -9727,10 +9727,10 @@ object-assign
           N = a(["xlink:href", "xml:id", "xlink:title", "xml:space", "xmlns:xlink"]),
           R = o(/\{\{[\s\S]*|[\s\S]*\}\}/gm),
           B = o(/<%[\s\S]*|[\s\S]*%>/gm),
-          M = o(/^data-[\-\w.\u00B7-\uFFFF]/),
-          L = o(/^aria-[\-\w]+$/),
+          M = o(/^data-[-\w.\u00B7-\uFFFF]/),
+          L = o(/^aria-[-\w]+$/),
           z = o(
-            /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+            /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.-]+(?:[^a-z+.\-:]|$))/i,
           ),
           U = o(/^(?:\w+script|data):/i),
           q = o(/[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205F\u3000]/g),
@@ -10740,7 +10740,7 @@ object-assign
                 : "";
           });
         }
-        var d = /(^|[^\[])\^/g;
+        var d = /(^|[^[])\^/g;
         function m(e, t) {
           ((e = "string" == typeof e ? e : e.source), (t = t || ""));
           var n = {
@@ -10849,7 +10849,7 @@ object-assign
         function C(e, t, n, r) {
           var i = t.href,
             a = t.title ? p(t.title) : null,
-            o = e[1].replace(/\\([\[\]])/g, "$1");
+            o = e[1].replace(/\\([[\]])/g, "$1");
           if ("!" !== e[0].charAt(0)) {
             r.state.inLink = !0;
             var s = {
@@ -10909,9 +10909,11 @@ object-assign
                 var t = this.rules.block.heading.exec(e);
                 if (t) {
                   var n = t[2].trim();
-                  if (/#$/.test(n)) {
+                  if (n.endsWith("#")) {
                     var r = D(n, "#");
-                    this.options.pedantic ? (n = r.trim()) : (r && !/ $/.test(r)) || (n = r.trim());
+                    this.options.pedantic
+                      ? (n = r.trim())
+                      : (r && !r.endsWith(" ")) || (n = r.trim());
                   }
                   var i = { type: "heading", raw: t[0], depth: t[1].length, text: n, tokens: [] };
                   return (this.lexer.inline(i.text, i.tokens), i);
@@ -11174,8 +11176,8 @@ object-assign
                 var t = this.rules.inline.link.exec(e);
                 if (t) {
                   var n = t[2].trim();
-                  if (!this.options.pedantic && /^</.test(n)) {
-                    if (!/>$/.test(n)) return;
+                  if (!this.options.pedantic && n.startsWith("<")) {
+                    if (!n.endsWith(">")) return;
                     var r = D(n.slice(0, -1), "\\");
                     if ((n.length - r.length) % 2 == 0) return;
                   } else {
@@ -11202,8 +11204,8 @@ object-assign
                   } else s = t[3] ? t[3].slice(1, -1) : "";
                   return (
                     (o = o.trim()),
-                    /^</.test(o) &&
-                      (o = this.options.pedantic && !/>$/.test(n) ? o.slice(1) : o.slice(1, -1)),
+                    o.startsWith("<") &&
+                      (o = this.options.pedantic && !n.endsWith(">") ? o.slice(1) : o.slice(1, -1)),
                     C(
                       t,
                       {
@@ -11282,7 +11284,7 @@ object-assign
                 if (t) {
                   var n = t[2].replace(/\n/g, " "),
                     r = /[^ ]/.test(n),
-                    i = /^ /.test(n) && / $/.test(n);
+                    i = n.startsWith(" ") && n.endsWith(" ");
                   return (
                     r && i && (n = n.substring(1, n.length - 1)),
                     (n = p(n, !0)),
@@ -11378,7 +11380,7 @@ object-assign
             _paragraph:
               /^([^\n]+(?:\n(?!hr|heading|lheading|blockquote|fences|list|html|table| +\n)[^\n]+)*)/,
             text: /^[^\n]+/,
-            _label: /(?!\s*\])(?:\\.|[^\[\]\\])+/,
+            _label: /(?!\s*\])(?:\\.|[^[\]\\])+/,
             _title: /(?:"(?:\\"?|[^"\\])*"|'[^'\n]*(?:\n[^'\n]+)*\n?'|\([^()]*\))/,
           };
         ((T.def = m(T.def).replace("label", T._label).replace("title", T._title).getRegex()),
@@ -11464,7 +11466,7 @@ object-assign
               .getRegex(),
           })));
         var $ = {
-          escape: /^\\([!"#$%&'()*+,\-./:;<=>?@\[\]\\^_`{|}~])/,
+          escape: /^\\([!"#$%&'()*+,\-./:;<=>?@[\]\\^_`{|}~])/,
           autolink: /^<(scheme:[^\s\x00-\x1f<>]*|email)>/,
           url: _,
           tag: "^comment|^</[a-zA-Z][\\w:-]*\\s*>|^<[a-zA-Z][\\w-]*(?:attribute)*?\\s*/?>|^<\\?[\\s\\S]*?\\?>|^<![a-zA-Z]+\\s[\\s\\S]*?>|^<!\\[CDATA\\[[\\s\\S]*?\\]\\]>",
@@ -11475,23 +11477,23 @@ object-assign
           emStrong: {
             lDelim: /^(?:\*+(?:([punct_])|[^\s*]))|^_+(?:([punct*])|([^\s_]))/,
             rDelimAst:
-              /^[^_*]*?\_\_[^_*]*?\*[^_*]*?(?=\_\_)|[^*]+(?=[^*])|[punct_](\*+)(?=[\s]|$)|[^punct*_\s](\*+)(?=[punct_\s]|$)|[punct_\s](\*+)(?=[^punct*_\s])|[\s](\*+)(?=[punct_])|[punct_](\*+)(?=[punct_])|[^punct*_\s](\*+)(?=[^punct*_\s])/,
+              /^[^_*]*?_\_[^_*]*?\*[^_*]*?(?=_\_)|[^*]+(?=[^*])|[punct_](\*+)(?=[\s]|$)|[^punct*_\s](\*+)(?=[punct_\s]|$)|[punct_\s](\*+)(?=[^punct*_\s])|[\s](\*+)(?=[punct_])|[punct_](\*+)(?=[punct_])|[^punct*_\s](\*+)(?=[^punct*_\s])/,
             rDelimUnd:
-              /^[^_*]*?\*\*[^_*]*?\_[^_*]*?(?=\*\*)|[^_]+(?=[^_])|[punct*](\_+)(?=[\s]|$)|[^punct*_\s](\_+)(?=[punct*\s]|$)|[punct*\s](\_+)(?=[^punct*_\s])|[\s](\_+)(?=[punct*])|[punct*](\_+)(?=[punct*])/,
+              /^[^_*]*?\*\*[^_*]*?_[^_*]*?(?=\*\*)|[^_]+(?=[^_])|[punct*](_+)(?=[\s]|$)|[^punct*_\s](_+)(?=[punct*\s]|$)|[punct*\s](_+)(?=[^punct*_\s])|[\s](_+)(?=[punct*])|[punct*](_+)(?=[punct*])/,
           },
           code: /^(`+)([^`]|[^`][\s\S]*?[^`])\1(?!`)/,
           br: /^( {2,}|\\)\n(?!\s*$)/,
           del: _,
-          text: /^(`+|[^`])(?:(?= {2,}\n)|[\s\S]*?(?:(?=[\\<!\[`*_]|\b_|$)|[^ ](?= {2,}\n)))/,
+          text: /^(`+|[^`])(?:(?= {2,}\n)|[\s\S]*?(?:(?=[\\<![`*_]|\b_|$)|[^ ](?= {2,}\n)))/,
           punctuation: /^([\spunctuation])/,
         };
         function O(e) {
           return e
             .replace(/---/g, "—")
             .replace(/--/g, "–")
-            .replace(/(^|[-\u2014/(\[{"\s])'/g, "$1‘")
+            .replace(/(^|[-\u2014/([{"\s])'/g, "$1‘")
             .replace(/'/g, "’")
-            .replace(/(^|[-\u2014/(\[{\u2018\s])"/g, "$1“")
+            .replace(/(^|[-\u2014/([{\u2018\s])"/g, "$1“")
             .replace(/"/g, "”")
             .replace(/\.{3}/g, "…");
         }
@@ -11510,7 +11512,7 @@ object-assign
           ($.punctuation = m($.punctuation)
             .replace(/punctuation/g, $._punctuation)
             .getRegex()),
-          ($.blockSkip = /\[[^\]]*?\]\([^\)]*?\)|`[^`]*?`|<[^>]*?>/g),
+          ($.blockSkip = /\[[^\]]*?\]\([^)]*?\)|`[^`]*?`|<[^>]*?>/g),
           ($.escapedEmSt = /\\\*|\\_/g),
           ($._comment = m(T._comment).replace("(?:--\x3e|$)", "--\x3e").getRegex()),
           ($.emStrong.lDelim = m($.emStrong.lDelim).replace(/punct/g, $._punctuation).getRegex()),
@@ -11520,7 +11522,7 @@ object-assign
           ($.emStrong.rDelimUnd = m($.emStrong.rDelimUnd, "g")
             .replace(/punct/g, $._punctuation)
             .getRegex()),
-          ($._escapes = /\\([!"#$%&'()*+,\-./:;<=>?@\[\]\\^_`{|}~])/g),
+          ($._escapes = /\\([!"#$%&'()*+,\-./:;<=>?@[\]\\^_`{|}~])/g),
           ($._scheme = /[a-zA-Z][a-zA-Z0-9+.-]{1,31}/),
           ($._email =
             /[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+(@)[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+(?![-_])/),
@@ -11534,7 +11536,7 @@ object-assign
             .replace("comment", $._comment)
             .replace("attribute", $._attribute)
             .getRegex()),
-          ($._label = /(?:\[(?:\\.|[^\[\]\\])*\]|\\.|`[^`]*`|[^\[\]\\`])*?/),
+          ($._label = /(?:\[(?:\\.|[^[\]\\])*\]|\\.|`[^`]*`|[^[\]\\`])*?/),
           ($._href = /<(?:\\.|[^\n<>\\])+>|[^\s\x00-\x1f]*/),
           ($._title = /"(?:\\"?|[^"\\])*"|'(?:\\'?|[^'\\])*'|\((?:\\\)?|[^)\\])*\)/),
           ($.link = m($.link)
@@ -11573,10 +11575,10 @@ object-assign
             escape: m($.escape).replace("])", "~|])").getRegex(),
             _extended_email:
               /[A-Za-z0-9._+-]+(@)[a-zA-Z0-9-_]+(?:\.[a-zA-Z0-9-_]*[a-zA-Z0-9])+(?![-_])/,
-            url: /^((?:ftp|https?):\/\/|www\.)(?:[a-zA-Z0-9\-]+\.?)+[^\s<]*|^email/,
+            url: /^((?:ftp|https?):\/\/|www\.)(?:[a-zA-Z0-9-]+\.?)+[^\s<]*|^email/,
             _backpedal: /(?:[^?!.,:;*_~()&]+|\([^)]*\)|&(?![a-zA-Z0-9]+;$)|[?!.,:;*_~)]+(?!$))+/,
             del: /^(~~?)(?=[^\s~])([\s\S]*?[^\s~])\1(?=[^~]|$)/,
-            text: /^([`~]+|[^`~])(?:(?= {2,}\n)|(?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@)|[\s\S]*?(?:(?=[\\<!\[`*~_]|\b_|https?:\/\/|ftp:\/\/|www\.|$)|[^ ](?= {2,}\n)|[^a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-](?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@)))/,
+            text: /^([`~]+|[^`~])(?:(?= {2,}\n)|(?=[a-zA-Z0-9.!#$%&'*+/=?_`{|}~-]+@)|[\s\S]*?(?:(?=[\\<![`*~_]|\b_|https?:\/\/|ftp:\/\/|www\.|$)|[^ ](?= {2,}\n)|[^a-zA-Z0-9.!#$%&'*+/=?_`{|}~-](?=[a-zA-Z0-9.!#$%&'*+/=?_`{|}~-]+@)))/,
           })),
           ($.gfm.url = m($.gfm.url, "i").replace("email", $.gfm._extended_email).getRegex()),
           ($.breaks = j({}, $.gfm, {
@@ -12026,7 +12028,7 @@ object-assign
                 return e
                   .toLowerCase()
                   .trim()
-                  .replace(/<[!\/a-z].*?>/gi, "")
+                  .replace(/<[!/a-z].*?>/gi, "")
                   .replace(/[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,./:;<=>?@[\]^`{|}~]/g, "")
                   .replace(/\s/g, "-");
               }),
@@ -12962,7 +12964,7 @@ object-assign
         (t.Url = a));
       var o = /^([a-z0-9.+-]+:)/i,
         s = /:[0-9]*$/,
-        c = /^(\/\/?(?!\/)[^\?\s]*)(\?[^\s]*)?$/,
+        c = /^(\/\/?(?!\/)[^?\s]*)(\?[^\s]*)?$/,
         u = ["{", "}", "|", "\\", "^", "`"].concat(["<", ">", '"', "`", " ", "\r", "\n", "\t"]),
         l = ["'"].concat(u),
         p = ["%", "/", "?", ";", "#"].concat(l),
@@ -13016,7 +13018,7 @@ object-assign
           var E = (w = w[0]).toLowerCase();
           ((this.protocol = E), (b = b.substr(w.length)));
         }
-        if (n || w || b.match(/^\/\/[^@\/]+@[^@\/]+/)) {
+        if (n || w || b.match(/^\/\/[^@/]+@[^@/]+/)) {
           var _ = "//" === b.substr(0, 2);
           !_ || (w && y[w]) || ((b = b.substr(2)), (this.slashes = !0));
         }
@@ -14347,7 +14349,7 @@ object-assign
         ["rowSpan", "start"].forEach(function (e) {
           K[e] = new J(e, 5, !1, e.toLowerCase(), null, !1);
         }));
-      var X = /[\-:]([a-z])/g;
+      var X = /[-:]([a-z])/g;
       function W(e) {
         return e[1].toUpperCase();
       }
@@ -14437,7 +14439,7 @@ object-assign
       (G.hasOwnProperty("ReactCurrentDispatcher") || (G.ReactCurrentDispatcher = { current: null }),
         G.hasOwnProperty("ReactCurrentBatchConfig") ||
           (G.ReactCurrentBatchConfig = { suspense: null }));
-      var Z = /^(.*)[\\\/]/,
+      var Z = /^(.*)[\\/]/,
         Q = "function" == typeof Symbol && Symbol.for,
         ee = Q ? Symbol.for("react.element") : 60103,
         te = Q ? Symbol.for("react.portal") : 60106,
@@ -18320,7 +18322,7 @@ object-assign
                   e === sn && (e = Ne(a)),
                   e === sn
                     ? "script" === a
-                      ? (((e = c.createElement("div")).innerHTML = "<script><\/script>"),
+                      ? (((e = c.createElement("div")).innerHTML = "<script></script>"),
                         (e = e.removeChild(e.firstChild)))
                       : "string" == typeof r.is
                         ? (e = c.createElement(a, { is: r.is }))
@@ -22292,7 +22294,7 @@ object-assign
           );
         };
       ((l.tilde = (e) =>
-        e.replace(/[~\/]{1}/g, (e) => {
+        e.replace(/[~/]{1}/g, (e) => {
           switch (e) {
             case "/":
               return "~1";
@@ -27481,7 +27483,7 @@ object-assign
           );
         }
         var f = (e.exports = v),
-          h = /\s*function\s+([^\(\s]*)\s*/;
+          h = /\s*function\s+([^(\s]*)\s*/;
         function d(e) {
           if (o.isFunction(e)) {
             if (u) return e.name;
@@ -28820,7 +28822,7 @@ object-assign
           return e;
         }
         var $ =
-            /^(?:([^:\/?#]+):)?(?:\/\/((?:([^\/?#@]*)@)?(\[[^\/?#\]]+\]|[^\/?#:]*)(?:\:(\d*))?))?([^?#]*)(?:\?([^#]*))?(?:#((?:.|\n|\r)*))?/i,
+            /^(?:([^:/?#]+):)?(?:\/\/((?:([^/?#@]*)@)?(\[[^/?#\]]+\]|[^/?#:]*)(?::(\d*))?))?([^?#]*)(?:\?([^#]*))?(?:#((?:.|\n|\r)*))?/i,
           O = void 0 === "".match(/(){0}/)[1];
         function F(e) {
           var t = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : {},
@@ -28845,8 +28847,7 @@ object-assign
                 (n.path = i[6] || ""),
                 (n.query = -1 !== e.indexOf("?") ? i[7] : void 0),
                 (n.fragment = -1 !== e.indexOf("#") ? i[8] : void 0),
-                isNaN(n.port) &&
-                  (n.port = e.match(/\/\/(?:.|\n)*\:(?:\/|\?|\#|$)/) ? i[4] : void 0)),
+                isNaN(n.port) && (n.port = e.match(/\/\/(?:.|\n)*:(?:\/|\?|#|$)/) ? i[4] : void 0)),
               n.host && (n.host = T(P(n.host, r), r)),
               void 0 !== n.scheme ||
               void 0 !== n.userinfo ||
@@ -29154,7 +29155,7 @@ object-assign
               return (h.length && (r.query = h.join("&")), r);
             },
           },
-          se = /^([^\:]+)\:(.*)/,
+          se = /^([^:]+):(.*)/,
           ce = {
             scheme: "urn",
             parse: function (e, t) {
@@ -29181,7 +29182,7 @@ object-assign
               return ((o.path = (r || t.nid) + ":" + s), o);
             },
           },
-          ue = /^[0-9A-Fa-f]{8}(?:\-[0-9A-Fa-f]{4}){3}\-[0-9A-Fa-f]{12}$/,
+          ue = /^[0-9A-Fa-f]{8}(?:-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}$/,
           le = {
             scheme: "urn:uuid",
             parse: function (e, t) {
@@ -33861,9 +33862,9 @@ object-assign
         J =
           /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x84\x86-\x9F\uFFFE\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]/,
         K = /[\x85\u2028\u2029]/,
-        X = /[,\[\]\{\}]/,
-        W = /^(?:!|!!|![a-z\-]+!)$/i,
-        G = /^(?:!|[^,\[\]\{\}])(?:%[0-9a-f]{2}|[0-9a-z\-#;\/\?:@&=\+\$,_\.!~\*'\(\)\[\]])*$/i;
+        X = /[,[\]{\}]/,
+        W = /^(?:!|!!|![a-z-]+!)$/i,
+        G = /^(?:!|[^,[\]{\}])(?:%[0-9a-f]{2}|[0-9a-z\-#;/\?:@&=+\$,_.!~*'(\)[\]])*$/i;
       function Y(e) {
         return Object.prototype.toString.call(e);
       }
@@ -36763,9 +36764,9 @@ object-assign
         u =
           /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x84\x86-\x9F\uFFFE\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]/,
         l = /[\x85\u2028\u2029]/,
-        p = /[,\[\]\{\}]/,
-        f = /^(?:!|!!|![a-z\-]+!)$/i,
-        h = /^(?:!|[^,\[\]\{\}])(?:%[0-9a-f]{2}|[0-9a-z\-#;\/\?:@&=\+\$,_\.!~\*'\(\)\[\]])*$/i;
+        p = /[,[\]{\}]/,
+        f = /^(?:!|!!|![a-z-]+!)$/i,
+        h = /^(?:!|[^,[\]{\}])(?:%[0-9a-f]{2}|[0-9a-z\-#;/\?:@&=+\$,_.!~*'(\)[\]])*$/i;
       function d(e) {
         return Object.prototype.toString.call(e);
       }
@@ -44201,9 +44202,9 @@ object-assign
         l =
           /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x84\x86-\x9F\uFFFE\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]/,
         p = /[\x85\u2028\u2029]/,
-        f = /[,\[\]\{\}]/,
-        h = /^(?:!|!!|![a-z\-]+!)$/i,
-        d = /^(?:!|[^,\[\]\{\}])(?:%[0-9a-f]{2}|[0-9a-z\-#;\/\?:@&=\+\$,_\.!~\*'\(\)\[\]])*$/i;
+        f = /[,[\]{\}]/,
+        h = /^(?:!|!!|![a-z-]+!)$/i,
+        d = /^(?:!|[^,[\]{\}])(?:%[0-9a-f]{2}|[0-9a-z\-#;/\?:@&=+\$,_.!~*'(\)[\]])*$/i;
       function m(e) {
         return 10 === e || 13 === e;
       }
