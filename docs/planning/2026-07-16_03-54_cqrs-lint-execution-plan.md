@@ -1,5 +1,13 @@
 # CQRS-Lint: Execution Plan
 
+<!-- historical-artifact-banner -->
+
+> **Historical session artifact.** This is a point-in-time snapshot from a past
+> session. Many items marked TODO / Open / Not Started / Broken have since been
+> resolved. See [CHANGELOG.md](../../CHANGELOG.md) and
+> [TODO_LIST.md](../../TODO_LIST.md) for current state.
+> Last documentation health audit: 2026-07-16.
+
 > **Date**: 2026-07-16
 > **Goal**: Build a domain-aware linter for go-cqrs-lite consumers
 > **Companion docs**: [Linter Research](../research/domain-linter-research.md), [Consumer Analysis](../../../docs/go-cqrs-lite-consumer-projects-analysis.md)

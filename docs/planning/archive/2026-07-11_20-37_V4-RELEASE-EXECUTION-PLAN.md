@@ -1,5 +1,13 @@
 # V4 Release Execution Plan
 
+<!-- historical-artifact-banner -->
+
+> **Historical session artifact.** This is a point-in-time snapshot from a past
+> session. Many items marked TODO / Open / Not Started / Broken have since been
+> resolved. See [CHANGELOG.md](../../../CHANGELOG.md) and
+> [TODO_LIST.md](../../../TODO_LIST.md) for current state.
+> Last documentation health audit: 2026-07-16.
+
 > **Created:** 2026-07-11 20:37
 > **Status:** EXECUTION COMPLETE — all phases done + storage split + shutdown fix. Awaiting `git tag v4.0.0`.
 > **Total effort:** ~2.5 hours actual (estimated 4.5 hrs)

@@ -1,5 +1,13 @@
 # Status Report — DLQ Hardening + VersionedSeekableJournal Tests + SKILL.md
 
+<!-- historical-artifact-banner -->
+
+> **Historical session artifact.** This is a point-in-time snapshot from a past
+> session. Many items marked TODO / Open / Not Started / Broken have since been
+> resolved. See [CHANGELOG.md](../../../CHANGELOG.md) and
+> [TODO_LIST.md](../../../TODO_LIST.md) for current state.
+> Last documentation health audit: 2026-07-16.
+
 **Date:** 2026-07-11 15:53
 **Session scope:** TODO items from DLQ production hardening (Gap 3), VersionedSeekableJournal follow-ups (Gap 1), SKILL.md API documentation (item 34), DLQ index optimization (item 31)
 **Tests:** All passing (projectionhost 78.8% coverage, schema 89.9% coverage)

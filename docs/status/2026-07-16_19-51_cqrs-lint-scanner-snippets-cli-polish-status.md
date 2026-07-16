@@ -1,5 +1,13 @@
 # cqrs-lint: Scanner Accuracy, Snippets & CLI Polish — Status Report
 
+<!-- historical-artifact-banner -->
+
+> **Historical session artifact.** This is a point-in-time snapshot from a past
+> session. Many items marked TODO / Open / Not Started / Broken have since been
+> resolved. See [CHANGELOG.md](../../CHANGELOG.md) and
+> [TODO_LIST.md](../../TODO_LIST.md) for current state.
+> Last documentation health audit: 2026-07-16.
+
 **Date:** 2026-07-16 19:51
 **Commit:** `3ff5d255` — "Add source snippets, fix scanner accuracy, and polish CLI output"
 **Session goal:** Execute the full Pareto plan from `docs/planning/2026-07-16_18-20_cqrs-lint-scanner-foundation-and-cli-hardening.md`

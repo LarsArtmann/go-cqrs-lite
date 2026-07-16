@@ -1,5 +1,13 @@
 # cqrs-lint: Scanner Foundation, Rule Accuracy & CLI Hardening Status
 
+<!-- historical-artifact-banner -->
+
+> **Historical session artifact.** This is a point-in-time snapshot from a past
+> session. Many items marked TODO / Open / Not Started / Broken have since been
+> resolved. See [CHANGELOG.md](../../CHANGELOG.md) and
+> [TODO_LIST.md](../../TODO_LIST.md) for current state.
+> Last documentation health audit: 2026-07-16.
+
 **Date:** 2026-07-16 18:39
 **Session focus:** Fix false-positive root cause, improve CLI output, monorepo support, rule accuracy
 **Commits this session:** `6b9ae616`, `408ebdac`, `055ba7d1`, `25124a1b` (4 commits, pushed)

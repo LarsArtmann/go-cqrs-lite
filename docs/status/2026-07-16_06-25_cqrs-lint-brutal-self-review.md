@@ -1,5 +1,13 @@
 # cqrs-lint Implementation Status — 2026-07-16
 
+<!-- historical-artifact-banner -->
+
+> **Historical session artifact.** This is a point-in-time snapshot from a past
+> session. Many items marked TODO / Open / Not Started / Broken have since been
+> resolved. See [CHANGELOG.md](../../CHANGELOG.md) and
+> [TODO_LIST.md](../../TODO_LIST.md) for current state.
+> Last documentation health audit: 2026-07-16.
+
 > **Updated 2026-07-16 17:16**: P0/P1 items were completed in a prior session. P2/P3 items (test quality upgrades, snippet population, new features, rule quality improvements) were completed in a follow-up session. See the [P2/P3 brutal self-review](2026-07-16_17-16_cqrs-lint-p2-p3-brutal-self-review.md) and [P2/P3 completion report](2026-07-16_08-15_cqrs-lint-p2-p3-completion.md) for details.
 >
 > **Final state: 61 rules, 122 tests + 3 benchmarks, 0 lint issues, 77 Go files all under 350 lines, severity filter bug found and fixed.**

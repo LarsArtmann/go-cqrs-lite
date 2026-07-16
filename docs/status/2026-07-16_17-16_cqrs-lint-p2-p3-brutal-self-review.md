@@ -1,5 +1,13 @@
 # cqrs-lint P2/P3 Session — Brutal Self-Review & Status
 
+<!-- historical-artifact-banner -->
+
+> **Historical session artifact.** This is a point-in-time snapshot from a past
+> session. Many items marked TODO / Open / Not Started / Broken have since been
+> resolved. See [CHANGELOG.md](../../CHANGELOG.md) and
+> [TODO_LIST.md](../../TODO_LIST.md) for current state.
+> Last documentation health audit: 2026-07-16.
+
 > **Date**: 2026-07-16 17:16
 > **Session scope**: Execute all remaining P2-P5 TODO items from the brutal self-review
 > **Companion docs**: [P0/P1 Completion](2026-07-16_07-20_cqrs-lint-p0-p1-completion.md), [Self-Review](2026-07-16_06-25_cqrs-lint-brutal-self-review.md), [Implementation Status](2026-07-16_05-07_cqrs-lint-implementation-status.md)

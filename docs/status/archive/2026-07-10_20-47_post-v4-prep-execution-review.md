@@ -1,5 +1,13 @@
 # Status Report: 2026-07-10 Post-v4-Prep Execution Review
 
+<!-- historical-artifact-banner -->
+
+> **Historical session artifact.** This is a point-in-time snapshot from a past
+> session. Many items marked TODO / Open / Not Started / Broken have since been
+> resolved. See [CHANGELOG.md](../../../CHANGELOG.md) and
+> [TODO_LIST.md](../../../TODO_LIST.md) for current state.
+> Last documentation health audit: 2026-07-16.
+
 > **Session:** Comprehensive v4 preparation plan execution (113-task plan, Phases 1-10)
 > **Date:** 2026-07-10 20:47
 > **Branch:** master

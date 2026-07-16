@@ -1,5 +1,13 @@
 # Session Status: 2026-07-11 — Post-Remediation Verification & Honest Assessment
 
+<!-- historical-artifact-banner -->
+
+> **Historical session artifact.** This is a point-in-time snapshot from a past
+> session. Many items marked TODO / Open / Not Started / Broken have since been
+> resolved. See [CHANGELOG.md](../../../CHANGELOG.md) and
+> [TODO_LIST.md](../../../TODO_LIST.md) for current state.
+> Last documentation health audit: 2026-07-16.
+
 **Date:** 2026-07-11 09:38
 **Session scope:** Verify the remediation work from the previous session (commit `14b61cc7`), identify remaining gaps
 **Working tree:** Clean — all work committed in `14b61cc7` + `d914ae94`

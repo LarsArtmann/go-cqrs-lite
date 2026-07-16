@@ -1,5 +1,13 @@
 # cqrs-lint P2/P3 Completion Status — 2026-07-16
 
+<!-- historical-artifact-banner -->
+
+> **Historical session artifact.** This is a point-in-time snapshot from a past
+> session. Many items marked TODO / Open / Not Started / Broken have since been
+> resolved. See [CHANGELOG.md](../../CHANGELOG.md) and
+> [TODO_LIST.md](../../TODO_LIST.md) for current state.
+> Last documentation health audit: 2026-07-16.
+
 ## Executive Summary
 
 This session executed all remaining P2-P5 items from the brutal self-review. The cqrs-lint module went from **61 rules, 94 tests, 0 lint issues** to **61 rules, 122 tests, 0 lint issues**, with new features (--exclude, --color, init command), rule quality improvements, snippet population, and comprehensive documentation.

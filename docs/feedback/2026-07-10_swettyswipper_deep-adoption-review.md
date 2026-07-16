@@ -1,5 +1,13 @@
 # Consumer Feedback: go-cqrs-lite Deep Adoption Review
 
+<!-- historical-artifact-banner -->
+
+> **Historical session artifact.** This is a point-in-time snapshot from a past
+> session. Many items marked TODO / Open / Not Started / Broken have since been
+> resolved. See [CHANGELOG.md](../../CHANGELOG.md) and
+> [TODO_LIST.md](../../TODO_LIST.md) for current state.
+> Last documentation health audit: 2026-07-16.
+
 **From:** SwettySwipperWeb deep adoption session (2026-07-10)
 **Perspective:** Production event-sourced media voting platform — 6 aggregates, SQLite persistence, 12 of 24 available modules in active use
 **Prior feedback:** [2026-07-05_swettyswipper-consumer-feedback.md](./2026-07-05_swettyswipper-consumer-feedback.md) — see appendix for resolution status

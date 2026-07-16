@@ -1,5 +1,13 @@
 # Status Report: Lint Cleanup, Race Detection & CI Verification
 
+<!-- historical-artifact-banner -->
+
+> **Historical session artifact.** This is a point-in-time snapshot from a past
+> session. Many items marked TODO / Open / Not Started / Broken have since been
+> resolved. See [CHANGELOG.md](../../CHANGELOG.md) and
+> [TODO_LIST.md](../../TODO_LIST.md) for current state.
+> Last documentation health audit: 2026-07-16.
+
 **Date:** 2026-07-16 22:53
 **Session scope:** Post-buildflow lint fixes, race detection, canonical CI gate verification
 **Commit range:** `bd849d1c` → `fe8f27e6` (external auto-commit) + 2 unstaged files

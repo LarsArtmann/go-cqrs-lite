@@ -1,5 +1,13 @@
 # Status Report: cqrs-lint Implementation
 
+<!-- historical-artifact-banner -->
+
+> **Historical session artifact.** This is a point-in-time snapshot from a past
+> session. Many items marked TODO / Open / Not Started / Broken have since been
+> resolved. See [CHANGELOG.md](../../CHANGELOG.md) and
+> [TODO_LIST.md](../../TODO_LIST.md) for current state.
+> Last documentation health audit: 2026-07-16.
+
 > **Date**: 2026-07-16 05:07 (original), **Updated**: 2026-07-16 17:16
 > **Session scope**: Building the cqrs-lint domain-aware linter from the execution plan
 > **Companion docs**: [Execution Plan](../planning/2026-07-16_03-54_cqrs-lint-execution-plan.md), [Linter Research](../research/domain-linter-research.md), [Brutal Self-Review](2026-07-16_06-25_cqrs-lint-brutal-self-review.md), [P0/P1 Completion](2026-07-16_07-20_cqrs-lint-p0-p1-completion.md), [P2/P3 Brutal Self-Review](2026-07-16_17-16_cqrs-lint-p2-p3-brutal-self-review.md), [P2/P3 Completion](2026-07-16_08-15_cqrs-lint-p2-p3-completion.md)

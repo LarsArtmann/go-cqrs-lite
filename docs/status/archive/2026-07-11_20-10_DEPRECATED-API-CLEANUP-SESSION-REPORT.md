@@ -1,5 +1,13 @@
 # Deprecated API Cleanup Session — 2026-07-11
 
+<!-- historical-artifact-banner -->
+
+> **Historical session artifact.** This is a point-in-time snapshot from a past
+> session. Many items marked TODO / Open / Not Started / Broken have since been
+> resolved. See [CHANGELOG.md](../../../CHANGELOG.md) and
+> [TODO_LIST.md](../../../TODO_LIST.md) for current state.
+> Last documentation health audit: 2026-07-16.
+
 **Date:** 2026-07-11 20:10
 **Session scope:** Remove deprecated v4 APIs, fix contradictory tracking docs
 **Verdict:** Done correctly but sloppy first pass — missed 3 stale references (README, api_surface.txt golden file), caught on self-review.

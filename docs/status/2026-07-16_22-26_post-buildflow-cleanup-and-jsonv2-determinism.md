@@ -1,5 +1,13 @@
 # Status Report: Post-Buildflow Cleanup & JSON v2 Test Determinism
 
+<!-- historical-artifact-banner -->
+
+> **Historical session artifact.** This is a point-in-time snapshot from a past
+> session. Many items marked TODO / Open / Not Started / Broken have since been
+> resolved. See [CHANGELOG.md](../../CHANGELOG.md) and
+> [TODO_LIST.md](../../TODO_LIST.md) for current state.
+> Last documentation health audit: 2026-07-16.
+
 **Date:** 2026-07-16 22:26
 **Session scope:** Fixing buildflow findings + fixing broken buildflow commit + fixing pre-existing JSON v2 test failures
 **Commit range:** `bd849d1c` (buildflow commit) → working tree (uncommitted)

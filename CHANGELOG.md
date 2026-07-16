@@ -6,14 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-### Fixed
+### Documentation Health
+
+- **Historical artifact banners** — All 41 `docs/*2026-07-1*.md` session reports
+  now carry a banner at the top stating they are point-in-time snapshots, with
+  links to this CHANGELOG and TODO_LIST.md for current status. This prevents
+  readers from acting on stale TODO/Open/Not Started items in old reports.
+
+### Fixed — Documentation Health Audit (2026-07-16)
 
 - **README.md license section** — Said "MIT" but actual LICENSE file is
   PROPRIETARY. Corrected to match reality. This was a Critical documentation
   lie — consumers could have assumed MIT when the code is proprietary.
-- **Module count across all docs** — AGENTS.md, README.md, FEATURES.md, and
-  CONTRIBUTING.md said "48 modules" but the actual count is 52 `go.mod` files.
-  All references now say 52 with a verify command.
+- **Module count across all docs** — AGENTS.md, README.md, FEATURES.md,
+  CONTRIBUTING.md, docs/README.md, docs/v4-WISHLIST.md said "48" or "49"
+  but the actual count is 52 `go.mod` files. All references now say 52 with
+  a verify command (`find . -name go.mod -not -path './vendor/*' | wc -l`).
 - **ROADMAP.md** — Was frozen at v3.6.0 ("Current State: v3.6.0 released")
   despite v4.0.0 being shipped. Rebuilt from scratch: current state reflects
   v4.0.0, release history table added, Long Term Vision cleaned (completed
@@ -25,6 +33,91 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   consolidation, event go.mod tidy). Removed; remaining items are genuinely open.
 - **README.md migration reference** — Said "Migrating from v2?" but the current
   version is v4. Updated to reference both v3 and v4 migration guides.
+- **FEATURES.md missing cqrs-lint** — Shipped feature (60 rules, 159+ tests)
+  absent from feature inventory. Added full feature table.
+- **FEATURES.md missing SQLTimerStore** — `storage.SQLTimerStore[T]` shipped
+  but only MemoryTimerStore listed. Added row.
+- **docs/v4-WISHLIST.md** — Said "PREP COMPLETE" and "Ready to cut" despite
+  v4.0.0 already shipped. Updated to SHIPPED with correct module count.
+- **docs/README.md module count** — Said "28 modules" (very stale). Updated
+  to 52.
+
+### Resolved During July 2026 Sessions
+
+> The items below were flagged as TODO/Open/Not Started/Broken in the
+> `docs/*2026-07-1*.md` session reports. They have ALL been resolved.
+> This section exists so readers of those historical reports can verify
+> resolution without grepping through code.
+
+**v4 Release (2026-07-11):**
+
+- ✅ Module path migration `/v3` → `/v4` (49 go.mod, ~750 .go files)
+- ✅ Codec defaults flipped to CBOR (event, kv, snapshot, command, query)
+- ✅ Deprecated alias removal (8 event/ aliases, WithNewCodec, WithReplay)
+- ✅ BackfillHandler consolidation (`BackfillHandler(*SSEBroker)`)
+- ✅ Storage split (eventstore/, readmodel/, sql/, relational/, view/, migrations/)
+- ✅ HealthCheck on OwnedDBHandle (all SQL stores inherit)
+- ✅ WithShutdownDependency (topological close ordering)
+- ✅ ADR-0044 blind store envelopes (WrapEncode/UnwrapDecode)
+- ✅ JSON quality audit (Deterministic + MatchCaseInsensitiveNames on all calls)
+- ✅ ADRs 0047-0054 written (json/v2, transport codec, dispatch middleware, etc.)
+- ✅ eventtest tag created locally (`event/v4/eventtest/v0.1.0`)
+- ✅ v3 git tag backfill (v3.0.0–v3.7.1)
+
+**DiscordSync Feedback Gaps (2026-07-10/11):**
+
+- ✅ Gap 1: `schema.VersionedSeekableJournal` (upcasters for projectionhost)
+- ✅ Gap 2: `transport/http.WithPayloadTransform` (all 3 SSE paths: live, replay, backfill)
+- ✅ Gap 3: `projectionhost.SQLiteDeadLetterStore` (persistent DLQ)
+- ✅ Gap 4: `prometheus.WithViews` (CQRS histogram boundaries applied)
+- ✅ `DeadLetterStoreAdmin` interface (Count, ListPaged, PurgeBefore)
+- ✅ `BackfillHandlerWithTransform` → consolidated into BackfillHandler(broker)
+
+**Post-v4 Cleanup (2026-07-12):**
+
+- ✅ 287 session artifacts archived to `docs/*/archive/`
+- ✅ `docs/getting-started.md` rewritten + compile-verified
+- ✅ ADR index regenerated (0032 → 0054)
+- ✅ Module dependency graph (mermaid) in README
+- ✅ `docs/middleware-ordering.md` (recommended order + rationale)
+- ✅ CONTRIBUTING.md: Four-Tier Model (replaced stale 7-layer)
+- ✅ CONTRIBUTING.md: AI Agent safety rules
+- ✅ ADR numbering fix (duplicate 0047 → 0054)
+- ✅ Lint-clean scheduling (11→0) and scenario (4→0)
+- ✅ DiscordSync feedback doc reconciled (Gaps 3-5: REJECTED → SHIPPED)
+- ✅ API surface regenerated (2209 exports)
+- ✅ `fire_at` → `fireAt` JSON tag (tagliatelle compliance)
+- ✅ `nix fmt` clean, `nix run .#lint` clean (0 issues)
+- ✅ Doc-check passed (880+ references valid)
+
+**cqrs-lint (2026-07-16) — Built from scratch across 6 sessions:**
+
+- ✅ 60 rules with real detectors (correctness 12, API 19, boilerplate 15, consistency 4, architecture 7, security 3)
+- ✅ 159+ tests + 3 benchmarks, 0 lint issues
+- ✅ Scanner accuracy fixes (6 critical bugs: capturePayloadType, detectFoldFunc, isLikelyDecider, isOOAggregate, C004 dead rule, Type/AggregateID scanning)
+- ✅ Source snippets on 34/60 detectors
+- ✅ CLI overhaul: fang, go-output tables, monorepo support, module grouping
+- ✅ Dead code eliminated (13 items: TypeResolver, HandlerInfo, nodeString, etc.)
+- ✅ Severity filter bug fixed (alphabetical comparison → Severity.Compare)
+- ✅ Catalog consolidated (3 files → 2, organized by category)
+- ✅ Finding location improvements (go.mod:1:1 → real source lines on 7 rules)
+- ✅ SARIF golden file test
+- ✅ JSON v2 test determinism (10 non-deterministic tests fixed)
+- ✅ Race detection verified (zero data races across all 50+ modules)
+- ✅ Pipeline metrics wired (--verbose shows per-detector timing)
+- ✅ CONTRIBUTING.md rule development guide
+
+**Documentation Health Audit (2026-07-16):**
+
+- ✅ README.md license corrected (MIT → PROPRIETARY)
+- ✅ Module count corrected across all docs (48 → 52)
+- ✅ ROADMAP.md rebuilt (v3.6.0 → v4.0.0)
+- ✅ TODO_LIST.md cleaned (13 stale items removed)
+- ✅ FEATURES.md updated (cqrs-lint + SQLTimerStore added)
+- ✅ Historical artifact banners added to all session reports
+
+### Fixed — Prior Session Fixes
+
 - **README.md and docs/getting-started.md code examples** — Command examples
   were missing the required `ID()` method (inherited via `*command.BasicCommand`
   embedding). Getting-started also used `event.NewEvent` instead of `event.New`

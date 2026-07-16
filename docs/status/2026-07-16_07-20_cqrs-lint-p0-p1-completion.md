@@ -1,5 +1,13 @@
 # cqrs-lint P0/P1 Completion Status — 2026-07-16 07:20
 
+<!-- historical-artifact-banner -->
+
+> **Historical session artifact.** This is a point-in-time snapshot from a past
+> session. Many items marked TODO / Open / Not Started / Broken have since been
+> resolved. See [CHANGELOG.md](../../CHANGELOG.md) and
+> [TODO_LIST.md](../../TODO_LIST.md) for current state.
+> Last documentation health audit: 2026-07-16.
+
 > **Updated 2026-07-16 17:16**: All P0/P1 items in this report are complete. A follow-up P2/P3 session then completed all remaining quality items: test upgrades, snippet population, new CLI features, and found+fixed a critical severity-filtering bug. See the [P2/P3 brutal self-review](2026-07-16_17-16_cqrs-lint-p2-p3-brutal-self-review.md) and [P2/P3 completion report](2026-07-16_08-15_cqrs-lint-p2-p3-completion.md).
 
 ## Executive Summary

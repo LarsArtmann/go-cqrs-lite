@@ -10,6 +10,13 @@
 - `[BLOCKED]` = Blocked on upstream dependency or user approval
 - `🔥` = High impact (top 20% that delivers 80% of value)
 
+## Recently Completed
+
+> **50+ items resolved during July 2026 sessions.** Full list in
+> [CHANGELOG.md](CHANGELOG.md) `[Unreleased]` → "Resolved During July 2026 Sessions".
+> Key highlights: v4.0.0 shipped, cqrs-lint built (60 rules), all DiscordSync
+> feedback gaps closed, ROADMAP/TODO/FEATURES docs audited and fixed.
+
 ---
 
 ## v4.0.0 — SHIPPED

@@ -1,5 +1,13 @@
 # Status Report: 2026-07-11 22:27 — v4 Release Execution (Updated)
 
+<!-- historical-artifact-banner -->
+
+> **Historical session artifact.** This is a point-in-time snapshot from a past
+> session. Many items marked TODO / Open / Not Started / Broken have since been
+> resolved. See [CHANGELOG.md](../../../CHANGELOG.md) and
+> [TODO_LIST.md](../../../TODO_LIST.md) for current state.
+> Last documentation health audit: 2026-07-16.
+
 > **Session scope:** Execute the entire v4 TODO_LIST — code changes, tests, path migration, documentation, storage split, shutdown fix.
 > **Outcome:** All blockers resolved + storage split + shutdown integration tests done. 20 files uncommitted. `git tag v4.0.0` pending user approval.
 

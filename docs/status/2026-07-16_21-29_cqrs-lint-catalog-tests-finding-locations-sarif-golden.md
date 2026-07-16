@@ -1,5 +1,13 @@
 # cqrs-lint: Catalog Consolidation, Positive Tests, Finding Locations & SARIF Golden — Full Status
 
+<!-- historical-artifact-banner -->
+
+> **Historical session artifact.** This is a point-in-time snapshot from a past
+> session. Many items marked TODO / Open / Not Started / Broken have since been
+> resolved. See [CHANGELOG.md](../../CHANGELOG.md) and
+> [TODO_LIST.md](../../TODO_LIST.md) for current state.
+> Last documentation health audit: 2026-07-16.
+
 **Date:** 2026-07-16 21:29
 **Session scope:** Round 4 of cqrs-lint quality improvements (following Rounds 1-3 from prior sessions)
 **Uncommitted changes:** 13 files changed in `cmd/cqrs-lint/` (+604 -316 lines), 1 new golden file

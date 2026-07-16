@@ -1,5 +1,13 @@
 # Status Update — 2026-07-11 17:49
 
+<!-- historical-artifact-banner -->
+
+> **Historical session artifact.** This is a point-in-time snapshot from a past
+> session. Many items marked TODO / Open / Not Started / Broken have since been
+> resolved. See [CHANGELOG.md](../../../CHANGELOG.md) and
+> [TODO_LIST.md](../../../TODO_LIST.md) for current state.
+> Last documentation health audit: 2026-07-16.
+
 **Session scope:** Complete all 25 lint-debt items from `paste_1.txt`, plus 5 high-priority follow-ups from prior session (README Quick Start, nolint positions, race detector, CBOR→JSON SSE e2e test, commit `30bae1c3` investigation, `nix flake check`). This is a forensic record — it mixes clean wins, judgment calls, and acknowledged debt.
 
 ---

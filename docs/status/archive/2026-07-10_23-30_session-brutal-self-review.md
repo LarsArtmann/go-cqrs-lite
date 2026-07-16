@@ -1,5 +1,13 @@
 # Session Status: 2026-07-10 — DiscordSync Feedback Gaps Implementation + Self-Review
 
+<!-- historical-artifact-banner -->
+
+> **Historical session artifact.** This is a point-in-time snapshot from a past
+> session. Many items marked TODO / Open / Not Started / Broken have since been
+> resolved. See [CHANGELOG.md](../../../CHANGELOG.md) and
+> [TODO_LIST.md](../../../TODO_LIST.md) for current state.
+> Last documentation health audit: 2026-07-16.
+
 **Date:** 2026-07-10 23:30 (updated 23:50 — remediation complete)
 **Session scope:** Execute 5 feedback gaps from `2026-07-10_DiscordSync_leverage_review.md`, self-review, correct stale documentation, **then fix all self-identified issues**
 **Verdict:** All 5 gaps now fully implemented and verified. All self-review issues remediated.

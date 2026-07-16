@@ -1,5 +1,13 @@
 # Session Status: 2026-07-12 16:25 — Post-v4 Comprehensive Cleanup
 
+<!-- historical-artifact-banner -->
+
+> **Historical session artifact.** This is a point-in-time snapshot from a past
+> session. Many items marked TODO / Open / Not Started / Broken have since been
+> resolved. See [CHANGELOG.md](../../CHANGELOG.md) and
+> [TODO_LIST.md](../../TODO_LIST.md) for current state.
+> Last documentation health audit: 2026-07-16.
+
 **Date:** 2026-07-12 16:25
 **Session scope:** Read all July 2026 feedback/status/review docs. Reconciled stale documentation. Wrote comprehensive Pareto plan. Executed high-impact items: archived session files, lint-cleaned remaining modules, added module graph + middleware guide, fixed ADR numbering, consolidated dependency model.
 **Commits this session:** `d554db37`, `6b724d79`, `4f756cd0`, `0bf8eba3`

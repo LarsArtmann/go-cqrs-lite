@@ -1,5 +1,13 @@
 # cqrs-lint — Consumer Feedback (DiscordSync)
 
+<!-- historical-artifact-banner -->
+
+> **Historical session artifact.** This is a point-in-time snapshot from a past
+> session. Many items marked TODO / Open / Not Started / Broken have since been
+> resolved. See [CHANGELOG.md](../../CHANGELOG.md) and
+> [TODO_LIST.md](../../TODO_LIST.md) for current state.
+> Last documentation health audit: 2026-07-16.
+
 **Consumer:** [DiscordSync](https://github.com/LarsArtmann/DiscordSync) — Discord backup bot
 **Version used:** go-cqrs-lite v4.0.0 (flake pin at `c34dd604`)
 **lint version:** `go run -tags "goexperiment.jsonv2" ./cmd/cqrs-lint/` (master, 2026-07-16)

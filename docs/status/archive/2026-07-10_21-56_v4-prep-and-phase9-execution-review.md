@@ -1,5 +1,13 @@
 # Status Report: Post-v4-Prep Execution + Phase 9
 
+<!-- historical-artifact-banner -->
+
+> **Historical session artifact.** This is a point-in-time snapshot from a past
+> session. Many items marked TODO / Open / Not Started / Broken have since been
+> resolved. See [CHANGELOG.md](../../../CHANGELOG.md) and
+> [TODO_LIST.md](../../../TODO_LIST.md) for current state.
+> Last documentation health audit: 2026-07-16.
+
 **Date:** 2026-07-10 21:56
 **Session scope:** Verification gaps from prior session + Phase 9 execution
 **Verdict:** Functional but messy. Lots of sharp edges left unpolished.

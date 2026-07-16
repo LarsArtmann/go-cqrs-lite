@@ -1,5 +1,13 @@
 # Post-v4.0.0 Comprehensive Plan
 
+<!-- historical-artifact-banner -->
+
+> **Historical session artifact.** This is a point-in-time snapshot from a past
+> session. Many items marked TODO / Open / Not Started / Broken have since been
+> resolved. See [CHANGELOG.md](../../CHANGELOG.md) and
+> [TODO_LIST.md](../../TODO_LIST.md) for current state.
+> Last documentation health audit: 2026-07-16.
+
 > **Created:** 2026-07-12 14:18
 > **Status:** PLANNING — awaiting execution
 > **Context:** v4.0.0 is shipped (tagged, all per-module tags exist). This plan covers everything from consumer feedback, status reports, self-reviews, and the v4 release retrospective. It is the single source of truth for what to do next.

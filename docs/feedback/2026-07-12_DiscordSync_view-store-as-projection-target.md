@@ -1,5 +1,13 @@
 # go-cqrs-lite — Consumer Feedback Round 3 (DiscordSync)
 
+<!-- historical-artifact-banner -->
+
+> **Historical session artifact.** This is a point-in-time snapshot from a past
+> session. Many items marked TODO / Open / Not Started / Broken have since been
+> resolved. See [CHANGELOG.md](../../CHANGELOG.md) and
+> [TODO_LIST.md](../../TODO_LIST.md) for current state.
+> Last documentation health audit: 2026-07-16.
+
 **Consumer:** [DiscordSync](https://github.com/LarsArtmann/DiscordSync) — Discord backup bot
 **Version used:** commit `f9e0e0bb` (between v3.7.3 and v3.7.4, 15 direct module imports)
 **Previous feedback:** [2026-07-10 DiscordSync leverage review](./2026-07-10_DiscordSync_leverage_review.md)

@@ -1,5 +1,13 @@
 # cqrs-lint: CLI Overhaul + Monorepo Support Status
 
+<!-- historical-artifact-banner -->
+
+> **Historical session artifact.** This is a point-in-time snapshot from a past
+> session. Many items marked TODO / Open / Not Started / Broken have since been
+> resolved. See [CHANGELOG.md](../../CHANGELOG.md) and
+> [TODO_LIST.md](../../TODO_LIST.md) for current state.
+> Last documentation health audit: 2026-07-16.
+
 **Date:** 2026-07-16 18:08
 **Session focus:** Fix broken CLI output, enable fang/go-output, add monorepo support
 **Previous report:** `2026-07-16_17-16_cqrs-lint-p2-p3-brutal-self-review.md`
