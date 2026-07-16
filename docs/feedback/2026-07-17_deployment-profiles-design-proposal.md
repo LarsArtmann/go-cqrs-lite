@@ -355,3 +355,78 @@ After (with deployment profile + detector fixes):
 - Remaining: **~8 findings, 0 false positives, signal-to-noise ~100%**
 
 That's the goal.
+
+---
+
+## Appendix A — Maintainer Review (PRO / CONTRA)
+
+**Reviewer:** maintainer (Crush)
+**Date:** 2026-07-17
+**Verdict:** the *instincts* are right (make the secure path easy, fix detectors, evidence-driven). The *packaging* is wrong — it bundles three independent debates into one, and the deployment taxonomy over-generalizes from N=2 consumers.
+
+### PRO — genuinely good ideas
+
+1. **"Pit of success" SDK one-liners are correct and important.** Wiring encryption in 5 manual steps IS why consumers skip it. `WithEncryptionFromEnv("KEY")` is the right shape — functional option, composable, matches the existing `middleware.NewOTelBundle` precedent.
+2. **The "hard floor" guardrail is well-designed.** "Declarations can only suppress, never enable" + non-suppressible S001/S002/C001-C012/E001-E002 prevents score-gaming.
+3. **The encryption argument (Part 3) is well-reasoned.** Laptop theft, cloud sync, accidental commit — "local tool" really isn't an excuse.
+4. **Evidence-based framing (39→8 findings).** Two consumers with concrete FP counts is the right kind of data to drive decisions.
+
+### CONTRA — real problems
+
+1. **Couples three independent things that should be three PRs.** P0 detector fixes ≠ profile system ≠ SDK one-liners. Bundling risks blocking the cheap unambiguous fixes behind the expensive design debate.
+2. **The deployment taxonomy is premature — built from N=2.** `kind: local-cli | server | library | batch-job` misses workers, lambdas, embedded, CLIs-that-call-servers, gRPC servers. `data: internal` is hopelessly vague. Classic premature generalization.
+3. **Four competing config mechanisms is too many.** `deployment.*` declarative + auto-detection heuristics + `rules.exclude` + per-rule overrides. **Pick one primary mechanism.**
+4. **Auto-detection heuristics are brittle and trade one FP class for another.** PII detection via field-name string matching (`email`, `iban`) will FP on `email_queue_size` and fail every non-English domain.
+5. **The profile system is largely a workaround for weak detectors.** Most "Fix:" entries in Part 4 are detector fixes. If the detectors are fixed properly, the deployment taxonomy may be unnecessary.
+6. **`WithSecurity(SecurityConfig)` is leaky and reinvents functional options.** A struct with required/optional fields + runtime validation loses compile-time safety. Drop it.
+7. **The closure-fix snippet is fragile.** It assumes the handler's 2nd param is always `*T`. Handlers can take value receivers and have injected deps.
+8. **No schema-versioning story.** When the taxonomy expands, what breaks?
+
+### The pivot: feature-based vocabulary, not deployment archetypes
+
+> **Decision:** the config vocabulary should be grounded in **go-cqrs-lite's own features/modules**, not in abstract deployment concepts. "You can imagine anything otherwise and it will be a nightmare to map all these correctly in go-cqrs-lite."
+
+Instead of `"kind": "local-cli"` (fuzzy, hard to auto-detect, drifts constantly), declare **which go-cqrs-lite features the consumer uses**. Each flag maps 1:1 to a library module, and auto-detection is a reliable import + constructor scan:
+
+| Feature flag      | Values                                  | go-cqrs-lite module            | Auto-detect signal                  |
+| ----------------- | --------------------------------------- | ------------------------------ | ----------------------------------- |
+| `store`           | sqlite, postgres, pebble, memory, turso, custom, none | `stack/*`, `storage/*`         | stack preset import                 |
+| `command-flow`    | read-only, sync, commands               | `command/`, `decider/`         | `command.Dispatcher` + `Dispatch()` |
+| `server`          | true, false                             | `transport/http/`, `transport/grpc/` | `net/http` / `grpc.NewServer`       |
+| `soft-delete`     | true, false                             | event tombstone                | tombstone-like event type names     |
+| `tracing`         | off, on                                 | `otel/`, `middleware` OTel     | otel import + middleware wiring     |
+| `snapshot`        | off, on                                 | `snapshot/`                    | snapshot store usage                |
+
+**Why this is better:**
+
+- The vocabulary IS the library's vocabulary — no translation layer.
+- Auto-detection is reliable (imports + constructor calls), not NLP-grade field-name guessing.
+- Each flag directly answers the one rule that needs it (no 5-axis matrix that drifts).
+- A consumer reading `"command-flow": "sync"` understands it refers to `command.Dispatcher` usage; `"deployment": "local-cli"` required interpretation.
+
+### Reality check: what is ALREADY shipped
+
+> The feedback doc's Part 2.4 (E005/E007 closure tracing) and Part 2.5 (generic `unwrapSelector`) were **already implemented** in commit `579a3438`, and the per-detector heuristics (S002 local-only, A012 tombstone, A016 dispatch) in `5a9425a6`. D005 wildcard handling (`isVersionCompatible`) also shipped.
+
+What genuinely **remains** is smaller than this doc implies:
+
+- ✅ Generic call detection (`SelectorFromExpr`) — DONE
+- ✅ Closure handler tracing — DONE
+- ✅ `Type()` method FP fix — DONE
+- ✅ Upcaster context detection — DONE
+- ✅ D005 wildcard + migration-arrow handling — DONE
+- ✅ Per-detector heuristics — DONE (but **scattered across 3 files** — the architectural smell)
+- ❌ Centralize the 3 scattered heuristics into one `FeatureProfile` (the architectural cleanup)
+- ❌ `features` config section in `.cqrs-lint.json` + AppConfig
+- ❌ SDK one-liners (`WithEncryptionFromEnv`, etc.) — **lower priority** (PII is not the current focus)
+
+### Recommendation
+
+| Do now                                                       | Do later                                          | Drop                                  |
+| ------------------------------------------------------------ | ------------------------------------------------- | ------------------------------------- |
+| Centralize heuristics → `FeatureProfile` (feature vocabulary) | `WithEncryptionFromEnv` / `WithObservability`    | `WithSecurity(SecurityConfig)` struct |
+| `features` config section + auto-detect                      | `encryption.GenerateKey()` first-run UX          | The 5-axis deployment taxonomy        |
+| `cqrs-lint doctor` to print detected features                | Property detectors (write-after-init) as primary | Auto-detection as "fallback"          |
+| Split the proposal into 3 independent PRs                    |                                                   |                                       |
+
+The proposal's *instincts* are right; the *packaging* and *vocabulary* need this pivot. See `docs/planning/2026-07-17_01-45_feature-profile-and-detector-consolidation.md` for the execution plan.
