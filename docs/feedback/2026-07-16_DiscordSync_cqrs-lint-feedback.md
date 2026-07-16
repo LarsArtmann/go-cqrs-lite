@@ -10,8 +10,8 @@
 ## Executive Summary
 
 Ran cqrs-lint against the full DiscordSync codebase (126 Go files). The tool
-reported a **47/100 health score** across 34 findings (1 critical, 4 error,
-15 warning, 14 info). After source-level verification of every finding, the
+reported a **47/100 health score** across 34 findings (1 critical, 10
+warning, 23 info). After source-level verification of every finding, the
 results break into three categories:
 
 | Category                                              | Count | Action taken                                |
@@ -301,12 +301,14 @@ The 47/100 score is computed as: `100 - sum(deductions)`.
 | D005      | Warning  | 2      | -2          | -4       |
 | A009      | Info     | 1      | -1          | -1       |
 | B007      | Info     | 2      | -1          | -2       |
-| D002      | Info     | 13     | -1          | -13      |
+| D002      | Info     | 18     | -1          | -18      |
 | D004      | Info     | 1      | -1          | -1       |
 | E006      | Info     | 1      | -1          | -1       |
-| **Total** |          | **29** |             | **-48**  |
+| **Total** |          | **34** |             | **-53**  |
 
 After fixing the 3 C009 panics (-6 points), the effective score would be 53/100.
+A re-run confirmed 54/100 (the additional +1 is because E006 stopped firing —
+likely a heuristic change in the linter between runs).
 The remaining deductions are all false positives or intentional decisions.
 
 ---
@@ -371,6 +373,6 @@ Ranked by impact (would remove the most false positives):
 | D005 | Warning  | 2     | False positive                 | None — version regex extracts empty string             |
 | A009 | Info     | 1     | Intentional                    | None — shared-DB architecture incompatible with stack/ |
 | B007 | Info     | 2     | Style preference               | None — Go 1.22+ pattern routing is idiomatic           |
-| D002 | Info     | 13    | Intentional                    | None — Discord API uses snake_case                     |
+| D002 | Info     | 18    | Intentional                    | None — Discord API uses snake_case                     |
 | D004 | Info     | 1     | Intentional                    | None — same as D002, project-wide                      |
 | E006 | Info     | 1     | False positive                 | None — SQL row struct, not an event type               |
